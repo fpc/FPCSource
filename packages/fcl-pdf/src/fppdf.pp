@@ -6501,18 +6501,23 @@ var
 begin
   Result:=0;
   TreeRoot:=0;
-  if (Sections.Count>1) then
+  OutlineRoot:=0; // explicit init: must never be used uninitialized below
+
+  // The outline (bookmark) root object must be created whenever bookmarks
+  // are requested, regardless of how many sections the document has.
+  // A single-section report with poOutline enabled is a perfectly valid
+  // use case (e.g. one bookmark per generated page).
+  If (poOutline in Options) then
     begin
-    If (poOutline in Options) then
-      begin
-      OutlineRoot:=CreateOutlines;
-      // add outline reference to catalog dictionary
-      GlobalXRefs[Catalogue].Dict.AddReference('Outlines',GLobalXRefCount-1);
-      // add useoutline element to catalog dictionary
-      GlobalXRefs[Catalogue].Dict.AddName('PageMode','UseOutlines');
-      end;
-    TreeRoot:=CreatePagesEntry(Result);
-    end
+    OutlineRoot:=CreateOutlines;
+    // add outline reference to catalog dictionary
+    GlobalXRefs[Catalogue].Dict.AddReference('Outlines',GLobalXRefCount-1);
+    // add useoutline element to catalog dictionary
+    GlobalXRefs[Catalogue].Dict.AddName('PageMode','UseOutlines');
+    end;
+
+  if (Sections.Count>1) then
+    TreeRoot:=CreatePagesEntry(Result)
   else
     begin
     Result:=CreatePagesEntry(Result);
@@ -6549,7 +6554,7 @@ begin
         end;
       PageNum:=CreateContentsEntry(GlobalPageIdx); // pagenum = object number in the pdf file
       CreatePageStream(S.Pages[k],PageNum);
-      if (Sections.Count>1) and (poOutline in Options) then
+      if (poOutline in Options) then
         begin
         if S.PageTitles[k] <> '' then
           PageOutLine:=CreateOutlineEntry(ParentOutline,j+1,-1,S.PageTitles[k])

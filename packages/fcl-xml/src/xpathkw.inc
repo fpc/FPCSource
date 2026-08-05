@@ -152,7 +152,7 @@ begin
       else
         Exit;
   end;
-  if (hash >= 0) and (hash <= MaxHash) then
+  if (hash >= 0) and (hash < MaxHash) then
   begin
     p1 := XPathKeywords[KeywordIndex[hash]];
     if (ord(p1^) = Len) and

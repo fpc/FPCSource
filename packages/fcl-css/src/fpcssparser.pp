@@ -35,6 +35,21 @@ uses
 Type	
   ECSSParser = Class(ECSSException);
 
+  // Complete parser position, see TCSSParser.SaveState.
+  TCSSParserState = record
+    ScannerState: TCSSScannerState;
+    Previous, Current: TCSSToken;
+    CurrentTokenString: TCSSString;
+    PeekToken: TCSSToken;
+    PeekTokenString: TCSSString;
+    CurrentTokenRow, CurrentTokenCol, CurrentTokenPos: Integer;
+    PeekTokenRow, PeekTokenCol, PeekTokenPos: Integer;
+    CurrentTokenEndRow, CurrentTokenEndCol: Integer;
+    PeekTokenEndRow, PeekTokenEndCol: Integer;
+    CurSigTokenEndRow, CurSigTokenEndCol: Integer;
+    PrevSigTokenEndRow, PrevSigTokenEndCol: Integer;
+  end;
+
   { TCSSParser }
 
   TCSSParser = class(TObject)
@@ -46,6 +61,11 @@ Type
     FCurrentTokenString : TCSSString;
     FPeekToken : TCSSToken;
     FPeekTokenString : TCSSString;
+    // start location (row,col of the first character, 0-based stream position) of tokens.
+    // Note: the scanner only knows the last fetched token, which is the peeked
+    // one while a peek is pending, so the parser has to remember these.
+    FCurrentTokenRow, FCurrentTokenCol, FCurrentTokenPos : Integer; // current token
+    FPeekTokenRow, FPeekTokenCol, FPeekTokenPos : Integer;          // peeked token
     // end location (row,col right after the last character) of tokens.
     FCurrentTokenEndRow, FCurrentTokenEndCol : Integer; // current token
     FPeekTokenEndRow, FPeekTokenEndCol : Integer;       // peeked token
@@ -70,6 +90,8 @@ Type
     Procedure DoError(const Fmt : TCSSString; const Args : Array of const);
     Procedure DoErrorExpectedButGot(const Expected: string);
     Procedure Consume(aToken : TCSSToken); virtual;
+    // Close a block: an unclosed block at end of input is auto closed, as required by the CSS syntax spec.
+    Procedure ConsumeRBrace;
     Procedure SkipWhiteSpace;
     Procedure SkipRule;
     function ParseComponentValueList(AllowRules: Boolean=True): TCSSElement; virtual;
@@ -99,6 +121,8 @@ Type
     function ParsePseudoClass: TCSSElement; virtual;
     function ParsePseudoElement: TCSSElement; virtual;
     function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False) : integer; virtual;
+    function CurrentStartsNestedRule : Boolean; virtual;
+    function LookAheadIsNestedRule : Boolean;
     function ParseInteger: TCSSElement; virtual;
     function ParseFloat: TCSSElement; virtual;
     function ParseString: TCSSElement; virtual;
@@ -141,6 +165,11 @@ Type
     Property PreviousToken : TCSSToken Read FPrevious;
     Function GetNextToken : TCSSToken;
     Function PeekNextToken : TCSSToken;
+    // Speculative scanning: SaveState remembers the current position,
+    // RestoreState rewinds to it, DropState commits.
+    function SaveState : TCSSParserState;
+    procedure RestoreState(const aState : TCSSParserState);
+    procedure DropState;
     Property Scanner : TCSSScanner Read FScanner;
     Property atEOF : Boolean Read GetAtEOF;
   end;
@@ -271,6 +300,14 @@ begin
   GetNextToken;
 end;
 
+procedure TCSSParser.ConsumeRBrace;
+begin
+  if CurrentToken=ctkRBRACE then
+    GetNextToken
+  else if CurrentToken<>ctkEOF then
+    DoWarnExpectedButGot('}');
+end;
+
 procedure TCSSParser.SkipWhiteSpace;
 begin
   while CurrentToken=ctkWHITESPACE do
@@ -294,10 +331,7 @@ begin
     repeat
       case CurrentToken of
       ctkEOF:
-        begin
-        DoWarnExpectedButGot('}');
         break;
-        end;
       ctkLBRACE: inc(Lvl);
       ctkRBRACE:
         if Lvl=1 then
@@ -460,10 +494,7 @@ begin
       begin
       GetNextToken;
       aRule.AddChild(ParseRuleList(ctkRBRACE));
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
@@ -535,10 +566,7 @@ begin
         if CurrentToken=ctkSEMICOLON then
           GetNextToken;
         end;
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
@@ -980,6 +1008,9 @@ begin
     begin
     FCurrent:=FPeekToken;
     FCurrentTokenString:=FPeekTokenString;
+    FCurrentTokenRow:=FPeekTokenRow;
+    FCurrentTokenCol:=FPeekTokenCol;
+    FCurrentTokenPos:=FPeekTokenPos;
     FCurrentTokenEndRow:=FPeekTokenEndRow;
     FCurrentTokenEndCol:=FPeekTokenEndCol;
     FPeekToken:=ctkUNKNOWN;
@@ -989,6 +1020,9 @@ begin
     begin
     FCurrent:=FScanner.FetchToken;
     FCurrentTokenString:=FScanner.CurTokenString;
+    FCurrentTokenRow:=FScanner.CurTokenRow;
+    FCurrentTokenCol:=FScanner.CurTokenColumn;
+    FCurrentTokenPos:=FScanner.CurTokenPos;
     FCurrentTokenEndRow:=FScanner.CurRow;
     FCurrentTokenEndCol:=FScanner.CurColumn;
     end;
@@ -1016,11 +1050,67 @@ begin
     begin
     FPeekToken:=FScanner.FetchToken;
     FPeekTokenString:=FScanner.CurTokenString;
+    FPeekTokenRow:=FScanner.CurTokenRow;
+    FPeekTokenCol:=FScanner.CurTokenColumn;
+    FPeekTokenPos:=FScanner.CurTokenPos;
     FPeekTokenEndRow:=FScanner.CurRow;
     FPeekTokenEndCol:=FScanner.CurColumn;
     end;
   {$ifdef VerboseCSSParser}Writeln('PeekNextToken : ',GetEnumName(TypeInfo(TCSSToken),Ord(FPeekToken)), ' As TCSSString: ',FPeekTokenString);{$endif VerboseCSSParser}
   Result:=FPeekToken;
+end;
+
+function TCSSParser.SaveState: TCSSParserState;
+begin
+  Result.ScannerState:=FScanner.SaveState;
+  Result.Previous:=FPrevious;
+  Result.Current:=FCurrent;
+  Result.CurrentTokenString:=FCurrentTokenString;
+  Result.PeekToken:=FPeekToken;
+  Result.PeekTokenString:=FPeekTokenString;
+  Result.CurrentTokenRow:=FCurrentTokenRow;
+  Result.CurrentTokenCol:=FCurrentTokenCol;
+  Result.CurrentTokenPos:=FCurrentTokenPos;
+  Result.PeekTokenRow:=FPeekTokenRow;
+  Result.PeekTokenCol:=FPeekTokenCol;
+  Result.PeekTokenPos:=FPeekTokenPos;
+  Result.CurrentTokenEndRow:=FCurrentTokenEndRow;
+  Result.CurrentTokenEndCol:=FCurrentTokenEndCol;
+  Result.PeekTokenEndRow:=FPeekTokenEndRow;
+  Result.PeekTokenEndCol:=FPeekTokenEndCol;
+  Result.CurSigTokenEndRow:=FCurSigTokenEndRow;
+  Result.CurSigTokenEndCol:=FCurSigTokenEndCol;
+  Result.PrevSigTokenEndRow:=FPrevSigTokenEndRow;
+  Result.PrevSigTokenEndCol:=FPrevSigTokenEndCol;
+end;
+
+procedure TCSSParser.RestoreState(const aState: TCSSParserState);
+begin
+  FScanner.RestoreState(aState.ScannerState);
+  FPrevious:=aState.Previous;
+  FCurrent:=aState.Current;
+  FCurrentTokenString:=aState.CurrentTokenString;
+  FPeekToken:=aState.PeekToken;
+  FPeekTokenString:=aState.PeekTokenString;
+  FCurrentTokenRow:=aState.CurrentTokenRow;
+  FCurrentTokenCol:=aState.CurrentTokenCol;
+  FCurrentTokenPos:=aState.CurrentTokenPos;
+  FPeekTokenRow:=aState.PeekTokenRow;
+  FPeekTokenCol:=aState.PeekTokenCol;
+  FPeekTokenPos:=aState.PeekTokenPos;
+  FCurrentTokenEndRow:=aState.CurrentTokenEndRow;
+  FCurrentTokenEndCol:=aState.CurrentTokenEndCol;
+  FPeekTokenEndRow:=aState.PeekTokenEndRow;
+  FPeekTokenEndCol:=aState.PeekTokenEndCol;
+  FCurSigTokenEndRow:=aState.CurSigTokenEndRow;
+  FCurSigTokenEndCol:=aState.CurSigTokenEndCol;
+  FPrevSigTokenEndRow:=aState.PrevSigTokenEndRow;
+  FPrevSigTokenEndCol:=aState.PrevSigTokenEndCol;
+end;
+
+procedure TCSSParser.DropState;
+begin
+  FScanner.DropState;
 end;
 
 function TCSSParser.ParseUnit : TCSSUnit;
@@ -1059,8 +1149,10 @@ begin
   // first character of the token (e.g. the start of a declaration's attribute name).
   if Assigned(FScanner) then
     begin
-    Result:=aClass.Create(CurrentSource,FScanner.CurTokenRow,FScanner.CurTokenColumn);
-    Result.SourcePos:=FScanner.CurTokenPos;
+    // Note: FScanner knows only the last fetched token, which is the peeked one
+    // while a peek is pending, so use the position remembered by GetNextToken.
+    Result:=aClass.Create(CurrentSource,FCurrentTokenRow,FCurrentTokenCol);
+    Result.SourcePos:=FCurrentTokenPos;
     end
   else
     Result:=aClass.Create(CurrentSource,CurrentLine,CurrentPos);
@@ -1259,12 +1351,90 @@ begin
   end;
 end;
 
-function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false): integer;
+function TCSSParser.LookAheadIsNestedRule: Boolean;
+// The current token starts a statement of a rule body, which can be a
+// declaration "color:red;" or a nested rule "div:hover{}".
+// Scan forward until { or ; and rewind:
+// Note: the scanned tokens cannot be buffered and reused, because the scanner
+// options change how the source is tokenized. For example ParseDeclaration sets
+// DisablePseudo, so that 'width:10px' gives a ctkCOLON instead of a ctkPSEUDO.
+// That is why everything is scanned again after RestoreState.
+var
+  State: TCSSParserState;
+  Depth: Integer;
+  aToken: TCSSToken;
+  First: Boolean;
+begin
+  Result:=false;
+  if FPeekToken=ctkUNKNOWN then
+    // Most statements end on the line they start, so try the cheap way first:
+    // read the rest of the current line, without fetching tokens and without
+    // having to rewind.
+    case FScanner.SearchStatementEndInCurLine of
+    cseLBrace: exit(true);
+    cseEnd: exit(false);
+    end;
+
+  State:=SaveState;
+  try
+    Depth:=0;
+    First:=true;
+    repeat
+      aToken:=GetNextToken;
+      if First then
+        begin
+        First:=false;
+        if aToken=ctkCOLON then
+          // e.g. 'color: red'. Note: 'div:hover' gives a single ctkPSEUDO token,
+          // because the scanner option DisablePseudo is not set here.
+          break;
+        end;
+      case aToken of
+      ctkEOF:
+        break;
+      ctkLPARENTHESIS,ctkLBRACKET,
+      ctkFUNCTION,ctkPSEUDOFUNCTION: // these tokens contain the opening '('
+        Inc(Depth);
+      ctkRPARENTHESIS,ctkRBRACKET:
+        begin
+        if Depth=0 then break;
+        Dec(Depth);
+        end;
+      ctkLBRACE:
+        begin
+        Result:=Depth=0;
+        break;
+        end;
+      ctkSEMICOLON,ctkRBRACE:
+        if Depth=0 then break;
+      end;
+    until false;
+  finally
+    RestoreState(State);
+  end;
+end;
+
+function TCSSParser.CurrentStartsNestedRule: Boolean;
 
 Const
   NestedRuleTokens: TCSSTokens = [ctkAND, ctkCLASSNAME, ctkHASH, ctkPSEUDO,
                                   ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON,
                                   ctkPLUS, ctkGT, ctkTILDE];
+  // These start a type or universal selector, but a declaration as well.
+  AmbiguousTokens: TCSSTokens = [ctkIDENTIFIER, ctkSTAR];
+
+begin
+  if CurrentToken in NestedRuleTokens then
+    exit(true);
+  if not (CurrentToken in AmbiguousTokens) then
+    exit(false);
+  if (CurrentToken=ctkIDENTIFIER) and (Copy(CurrentTokenString,1,2)='--') then
+    exit(false); // a custom property, its value may contain a block
+  Result:=LookAheadIsNestedRule;
+end;
+
+function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false): integer;
+
 Var
   aDecl : TCSSElement;
   aNestedRule: TCSSRuleElement;
@@ -1283,7 +1453,7 @@ begin
       if aDecl<>nil then
         aRule.AddChild(aDecl);
       end
-    else if CurrentToken in NestedRuleTokens then
+    else if CurrentStartsNestedRule then
       begin
       aNestedRule:=ParseRule;
       if aNestedRule<>nil then
@@ -1363,10 +1533,7 @@ begin
       begin
       GetNextToken;
       ParseRuleBody(aRule);
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;

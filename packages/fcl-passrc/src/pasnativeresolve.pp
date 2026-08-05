@@ -128,6 +128,10 @@ type
     function PreferNarrowerInferredInteger: Boolean; override;
     // Native target: Inc/Dec is allowed on any pointer, switch-independent.
     function AllowIncDecOnPointer(El: TPasType): Boolean; override;
+    // Native target: Inc/Dec is allowed on any ordinal (char, boolean, enum).
+    function AllowIncDecOnOrdinal(bt: TResolverBaseType; El: TPasType): Boolean; override;
+    // Native target: Include/Exclude works on any ordinal set (set of char/int/bool).
+    function AllowInExcludeNonEnumSet: Boolean; override;
     // Detects a bit-packed ordinal array element / record field access (an ordinal whose packed bit width is not a whole number of bytes).
     function IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean; override;
     // Native ASSIGNED-value enum ordinal model (type e=(a,b:=8) -> Ord(b)=8),
@@ -198,6 +202,12 @@ begin
     AddBuiltInProc('Copy','function Copy(const S: String; Start: integer = 1; Count: integer = all): String',
         @BI_CopyString_OnGetCallCompatibility,@BI_CopyString_OnGetCallResult,
         nil,nil,bfCopyString);
+  // native-target Slice(arr,count) intrinsic — an open-array view of the first
+  // `count` elements. Used by the variants unit's array helpers.
+  if BuiltInProcs[bfSlice]=nil then
+    AddBuiltInProc('Slice','function Slice(var Array; Count: integer): Array',
+        @BI_Slice_OnGetCallCompatibility,@BI_Slice_OnGetCallResult,
+        nil,nil,bfSlice);
 end;
 
 function TPasNativeResolver.BI_CopyString_OnGetCallCompatibility(
@@ -699,6 +709,23 @@ begin
   // native target: Inc/Dec is allowed on any pointer, switch-independent
   Result:=True;
   if El=nil then ;
+end;
+
+
+function TPasNativeResolver.AllowIncDecOnOrdinal(bt: TResolverBaseType; El: TPasType): Boolean;
+
+begin
+  // native target: Inc/Dec is allowed on any ordinal (char/boolean/enum)
+  Result:=True;
+  if (bt=btNone) and (El=nil) then ;
+end;
+
+
+function TPasNativeResolver.AllowInExcludeNonEnumSet: Boolean;
+
+begin
+  // native target: Include/Exclude works on any ordinal set
+  Result:=True;
 end;
 
 

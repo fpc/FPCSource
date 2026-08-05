@@ -420,7 +420,7 @@ type
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       ProcType: TProcType): boolean;
-    function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
+    function CheckVisibility(var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
     function CreateElement(AClass: TPTreeElement; const AName: String; AParent: TPasElement): TPasElement;overload;
@@ -1823,6 +1823,13 @@ begin
     AName:=SimpleTypeCaseNames[I];
 end;
 
+var
+  { Uniquifies the synthetic name of an anonymous inline string[N] type, so two
+    string[N] declarations of the same N in one scope do not collide on
+    'string$_N' (classes/parser.inc: a const string[3] and a var string[3] in
+    the same routine). The name is anonymous, so any unique value works. }
+  AnonStringTypeCounter: Integer = 0;
+
 function TPasParser.ParseStringType(Parent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String): TPasAliasType;
 
@@ -1867,7 +1874,11 @@ begin
   //   string(CP)     -> 'string$CP'    (codepage-qualified, existing convention)
   //   plain string   -> 'string'
   if LengthAsText <> '' then
-    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$_'+LengthAsText,Result))
+    begin
+    Inc(AnonStringTypeCounter);
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,
+      'string$_'+LengthAsText+'$'+IntToStr(AnonStringTypeCounter),Result));
+    end
   else if CodePageAsText <> '' then
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$'+CodePageAsText,Result))
   else
@@ -4842,7 +4853,7 @@ Var
   function IdentifierSpecializeArgIsConst: Boolean;
   // CurToken is a tkIdentifier beginning a specialize argument. Returns True when
   // the identifier (possibly starting a const expression like "Base + 3") is bound
-  // by the resolver to a const/enum VALUE — a const-generic argument, not a type.
+  // by the resolver to a const/enum VALUE - a const-generic argument, not a type.
   // A '.' (dotted name) or '<' (nested generic) marks a type → False → ParseType.
   var
     Name: string;
@@ -4855,6 +4866,14 @@ Var
       begin
       UngetToken; // dotted name / nested generic — let ParseType handle it
       exit;
+      end;
+    if CurToken=tkBraceOpen then
+      begin
+      { Identifier(...) - a function-call const expression such as High(N),
+        Succ(3) or SizeOf(T), or a typecast: 
+        always a value in a specialize argument, never a type. }
+      UngetToken; // back to the identifier for DoParseExpression
+      exit(True);
       end;
     UngetToken; // back to the identifier
     if Engine=nil then exit;
@@ -6058,8 +6077,10 @@ begin
   if pm<>pmPublic then
     AddModifier;
   Case pm of
-  pmExternal:
+  pmExternal,pmWeakExternal:
     begin
+    // weakexternal takes the same [libname] [name X] [index X] clause as external
+    // (e.g. Linux's statx: `cdecl; weakexternal name 'statx';`).
     NextToken;
     if CurToken in [tkChar,tkString,tkStringMultiLine,tkIdentifier] then
       begin
@@ -7864,7 +7885,7 @@ begin
             end;
           UnGetToken;
           end;
-        If AllowVisibility and CheckVisibility(CurTokenString,v) then
+        If AllowVisibility and CheckVisibility(v) then
           begin
           if not (v in [visPrivate,visPublic,visStrictPrivate]) then
             ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);
@@ -7954,7 +7975,7 @@ begin
   Engine.FinishScope(stTypeDef,Result);
 end;
 
-Function IsVisibility(S : String;  var AVisibility :TPasMemberVisibility; IsObjCProtocol : Boolean) : Boolean;
+Function IsVisibility(S : String; var AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean): Boolean;
 
 Const
   VNames : array[TPasMemberVisibility] of string =
@@ -7978,10 +7999,12 @@ begin
     end;
 end;
 
-function TPasParser.CheckVisibility(S: String; var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = false): Boolean;
+function TPasParser.CheckVisibility(var AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean
+  ): Boolean;
 
 Var
   B : Boolean;
+  s: String;
 
 begin
   if CurtokenEscaped then
@@ -8087,6 +8110,7 @@ begin
       ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,
                ['generic type','a generic type']);
     // FPC allows an empty type section.
+    TmpVis:=visPublic;
     if ((CurToken=tkIdentifier) and (not CurTokenEscaped)
         and (SameText(CurTokenString,'strict')
              or IsVisibility(LowerCase(CurTokenString),TmpVis,
@@ -8112,7 +8136,7 @@ begin
       end;
     tkIdentifier:
       begin
-      Done:=CheckVisibility(CurTokenString,AVisibility);
+      Done:=CheckVisibility(AVisibility);
       if not done and CheckCurtokenIsFinal(aType) then
         Done:=True;
       end;
@@ -8171,7 +8195,7 @@ begin
     case CurToken of
     tkAbsolute,
     tkIdentifier:
-      Done:=CheckVisibility(CurTokenString,AVisibility) or CheckCurtokenIsFinal(aType);
+      Done:=CheckVisibility(AVisibility) or CheckCurtokenIsFinal(aType);
     tkSquaredBraceOpen:
       if msPrefixedAttributes in CurrentModeswitches then
         repeat
@@ -8295,7 +8319,7 @@ begin
         NextToken;
         Continue;
         end
-      else if CheckVisibility(CurTokenString,CurVisibility,(AType.ObjKind=okObjcProtocol)) then
+      else if CheckVisibility(CurVisibility,(AType.ObjKind=okObjcProtocol)) then
         CurSection:=stNone
       else
         begin

@@ -573,6 +573,7 @@ begin
   end;
 
   getmem(s,sizeof(deflate_state));
+  fillchar(s^,sizeof(deflate_state),0);
   if (s = nil) then
   begin
     deflateInit2_ := Z_MEM_ERROR;
@@ -592,6 +593,7 @@ begin
   s^.hash_shift :=  ((s^.hash_bits+MIN_MATCH-1) div MIN_MATCH);
 
   getmem(s^.window,s^.w_size*2*sizeof(byte));
+  fillchar(s^.window^,s^.w_size*2*sizeof(byte),0);
   getmem(s^.prev,s^.w_size*sizeof(pos));
   getmem(s^.head,s^.hash_size*sizeof(pos));
 

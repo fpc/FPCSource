@@ -502,6 +502,7 @@ type
     Procedure TestProcOverloadDelphiWithObjFPC;
     Procedure TestProcOverloadDelphiOverride;
     Procedure TestProcOverloadDelphiOverrideOne;
+    Procedure TestProcOverloadDelphiPointerClass;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestNestedProc_ResultString;
@@ -2903,6 +2904,7 @@ var
 begin
   aScanner:=TPascalScanner(Sender);
   if aScanner=nil then exit;
+  if Msg='' then ;
   {$IFDEF VerbosePasResolver}
   writeln('TCustomTestResolver.OnScannerLog ',GetObjName(Sender),' ',aScanner.LastMsgType,' ',aScanner.LastMsgNumber,' Msg="', Msg,'"');
   {$ENDIF}
@@ -7665,6 +7667,45 @@ begin
   '  TBird.Create(2);',
   '  TEagle.Create(true);',
   '  TEagle.Create(3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiPointerClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    constructor Create(b: boolean); virtual;',
+  '    class function ClassInfo : pointer;',
+  '    class function ClassType : TClass;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#p}Fly(p: Pointer); overload;',
+  '    procedure {#c}Fly(c: TClass); overload;',
+  '  end;',
+  'constructor TObject.Create(b: boolean);',
+  'begin',
+  'end;',
+  'class function TObject.ClassInfo : pointer;',
+  'begin',
+  'end;',
+  'class function TObject.ClassType : TClass;',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(p: pointer);',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(c: TClass);',
+  'begin',
+  'end;',
+  'var Bird: TBird;',
+  'begin',
+  '  Bird.{@p}Fly(Bird.ClassInfo);',
+  '  Bird.{@c}Fly(Bird.ClassType);',
   '']);
   ParseProgram;
 end;

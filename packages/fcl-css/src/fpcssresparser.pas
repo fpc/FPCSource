@@ -533,6 +533,14 @@ type
     NumericalID: TCSSNumericalID;
   end;
 
+  { TCSSResolvedRuleElement }
+
+  TCSSResolvedRuleElement = class(TCSSRuleElement)
+  public
+    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
+      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
+  end;
+
   { TCSSNthChildParams }
 
   TCSSNthChildParams = class
@@ -735,6 +743,7 @@ type
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     procedure CheckMediaSelector(El: TCSSElement); virtual;
+    procedure DoWarn(const Msg: TCSSString); override;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
@@ -3285,6 +3294,8 @@ var
   AllowUnknown, HasVar: boolean;
 begin
   Result:=inherited ParseDeclaration(aIsAt);
+  if Result=nil then
+    exit; // invalid declaration, it was skipped with a warning
   if Result.KeyCount<>1 then
   begin
     if Result.KeyCount<1 then
@@ -3762,6 +3773,7 @@ begin
   CSSClassNameElementClass:=TCSSResolvedClassNameElement;
   CSSHashIdentifierElementClass:=TCSSResolvedHashIdentifierElement;
   CSSCallElementClass:=TCSSResolvedCallElement;
+  CSSRuleElementClass:=TCSSResolvedRuleElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;
 end;
@@ -3769,6 +3781,18 @@ end;
 destructor TCSSResolverParser.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TCSSResolverParser.DoWarn(const Msg: TCSSString);
+// An invalid CSS syntax was found. According to the CSS syntax spec the invalid
+// part is skipped and parsing continues. Without a Scanner.OnWarn the inherited
+// DoWarn raises an ECSSParser, aborting the whole stylesheet. Log it instead.
+begin
+  if Assigned(Scanner.OnWarn) then
+    inherited DoWarn(Msg)
+  else
+    Log(etWarning,20260803114500,Msg+' at line '+IntToStr(Scanner.CurRow)
+      +', column '+IntToStr(Scanner.CurColumn),nil);
 end;
 
 procedure TCSSResolverParser.Log(MsgType: TEventType; const ID: TCSSMsgID;

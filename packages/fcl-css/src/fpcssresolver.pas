@@ -104,6 +104,7 @@ unit fpCSSResolver;
 {$mode ObjFPC}{$H+}
 {$Interfaces CORBA}
 {$ModeSwitch AdvancedRecords}
+
 {$IF FPC_FULLVERSION>30300}
 {$WARN 6060 off} // Case statement does not handle all possible cases
 {$ENDIF}
@@ -583,6 +584,9 @@ type
     function DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData; virtual;
     function DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString; virtual;
     procedure RestoreDisabledDeclarations(Sheet: TStyleSheet); virtual;
+    // recompute TCSSResolvedRuleElement.HasDisabledDecls
+    procedure UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement); virtual; overload;
+    procedure UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement); virtual; overload;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
 
     // var() and shorthands
@@ -659,6 +663,12 @@ type
     procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
     procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
     function IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean; virtual;
+    function RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean; virtual;
+    // Carry the disabled flags of OldRule's declarations over to NewRule's, matched by
+    // property name (same-named ones in order). For a rule that is in no stylesheet -
+    // an element/inline style - and therefore has no declaration path, so that the
+    // path based RestoreDisabledDeclarations cannot reach it after a reparse.
+    procedure TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement); virtual;
     function GetDisabledDeclarations: TFPList; virtual; // TCSSDeclarationElement list, caller frees the list
     function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
     property StyleSheetCount: integer read FStyleSheetCount;
@@ -684,6 +694,11 @@ function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;
 
 // navigating a parsed stylesheet tree, e.g. for GetDeclarationPath/FindDeclaration
+// true if an ordinary rule, i.e. a rule which is not an @-rule.
+// Note: the parser can create descendants (see TCSSResolvedRuleElement), so
+// checking the exact class is not enough.
+function CSSIsPlainRule(El: TCSSElement): boolean; overload;
+function CSSIsPlainRule(C: TClass): boolean; overload; // C must not be nil, faster when the caller already fetched the ClassType
 function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
 function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
 function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
@@ -772,6 +787,16 @@ begin
     Result:='';
 end;
 
+function CSSIsPlainRule(El: TCSSElement): boolean; overload;
+begin
+  Result:=(El<>nil) and CSSIsPlainRule(El.ClassType);
+end;
+
+function CSSIsPlainRule(C: TClass): boolean; overload;
+begin
+  Result:=C.InheritsFrom(TCSSRuleElement) and not C.InheritsFrom(TCSSAtRuleElement);
+end;
+
 // scan El's subtree for immediate child rules, descending through non-rule
 // containers (compounds) but never into a rule (its nested rules are a deeper level)
 procedure CSSScanChildRules(El: TCSSElement; var Rules: TCSSRuleElementArray; var Cnt: integer);
@@ -782,7 +807,7 @@ begin
   if El=nil then exit;
   if El is TCSSDeclarationElement then exit; // a declaration's children are values, not rules
   C:=El.ClassType;
-  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  if C.InheritsFrom(TCSSRuleElement) then
   begin
     if Cnt>=length(Rules) then
       SetLength(Rules,Cnt*2+8);
@@ -804,7 +829,7 @@ begin
   Result:=nil;
   if Root=nil then exit;
   C:=Root.ClassType;
-  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  if C.InheritsFrom(TCSSRuleElement) then
   begin
     SetLength(Result,1);
     Result[0]:=TCSSRuleElement(Root);
@@ -1310,9 +1335,9 @@ begin
     //writeln('TCSSResolver.ComputeElement Compound.ChildCount=',Compound.ChildCount);
     for i:=0 to Compound.ChildCount-1 do
       ComputeElement(Compound.Children[i]);
-  end else if C=TCSSRuleElement then
+  end else if CSSIsPlainRule(C) then
     ComputeRule(TCSSRuleElement(El))
-  else if C=TCSSAtRuleElement then
+  else if C.InheritsFrom(TCSSAtRuleElement) then
     ComputeAtRule(TCSSAtRuleElement(El))
   else
     Log(etWarning,20220908150252,'TCSSResolver.ComputeElement: Unknown CSS element',El);
@@ -1371,7 +1396,7 @@ begin
   begin
     NestedRule:=aRule.NestedRules[i];
     C:=NestedRule.ClassType;
-    if C=TCSSAtRuleElement then
+    if C.InheritsFrom(TCSSAtRuleElement) then
     begin
       if (BestSpecificity<0) then
         continue; // current rule mismatch -> do not check nested @-rule
@@ -1420,10 +1445,10 @@ begin
     begin
       NestedRule:=aRule.NestedRules[i];
       C:=NestedRule.ClassType;
-      if C=TCSSAtRuleElement then
+      if C.InheritsFrom(TCSSAtRuleElement) then
         ComputeAtRule(TCSSAtRuleElement(NestedRule))
-      else if C=TCSSRuleElement then
-        ComputeRule(TCSSRuleElement(NestedRule));
+      else
+        ComputeRule(NestedRule);
     end;
   end;
 end;
@@ -1468,6 +1493,7 @@ function TCSSResolver.GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRule
 var
   aRule: TCSSRuleElement;
   aParent: TCSSElement;
+  C: TClass;
 begin
   Result:=nil;
   aRule:=GetRuleOfSelector(aSelector);
@@ -1476,9 +1502,10 @@ begin
   aParent:=aRule.Parent;
   while (aParent<>nil) do
   begin
-    if aParent.ClassType=TCSSRuleElement then
+    C:=aParent.ClassType;
+    if CSSIsPlainRule(C) then
       exit(TCSSRuleElement(aParent));
-    if not SkipAtRules and (aParent.ClassType=TCSSAtRuleElement) then
+    if not SkipAtRules and C.InheritsFrom(TCSSAtRuleElement) then
       exit(TCSSRuleElement(aParent));
     aParent:=aParent.Parent;
   end;
@@ -3956,7 +3983,7 @@ procedure TCSSResolver.EvalGlobalAtRules;
     begin
       for j:=0 to TCSSCompoundElement(El).ChildCount-1 do
         CollectEl(TCSSCompoundElement(El).Children[j]);
-    end else if C=TCSSAtRuleElement then
+    end else if C.InheritsFrom(TCSSAtRuleElement) then
     begin
       AtRule:=TCSSAtRuleElement(El);
       if AtRule.AtKeyWord='@media' then
@@ -3979,13 +4006,13 @@ procedure TCSSResolver.EvalGlobalAtRules;
         inc(FAtMediaCacheCount);
         // recurse for nested @media
         for j:=0 to AtRule.NestedRuleCount-1 do
-          if AtRule.NestedRules[j].ClassType=TCSSAtRuleElement then
+          if AtRule.NestedRules[j] is TCSSAtRuleElement then
             CollectEl(AtRule.NestedRules[j]);
       end;
-    end else if C=TCSSRuleElement then
+    end else if CSSIsPlainRule(C) then
     begin
       for j:=0 to TCSSRuleElement(El).NestedRuleCount-1 do
-        if TCSSRuleElement(El).NestedRules[j].ClassType=TCSSAtRuleElement then
+        if TCSSRuleElement(El).NestedRules[j] is TCSSAtRuleElement then
           CollectEl(TCSSRuleElement(El).NestedRules[j]);
     end;
   end;
@@ -4374,7 +4401,7 @@ procedure TCSSResolver.BuildRuleBuckets;
       for i:=0 to TCSSCompoundElement(El).ChildCount-1 do
         CollectEl(TCSSCompoundElement(El).Children[i],SrcSpecificity);
     end
-    else if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+    else if C.InheritsFrom(TCSSRuleElement) then
     begin
       BucketRule(TCSSRuleElement(El),SrcSpecificity);
       CollectSiblingSelectors(TCSSRuleElement(El),SrcSpecificity);
@@ -5115,6 +5142,7 @@ begin
   KeyData:=DeclKeyData(Decl);
   if KeyData=nil then exit;
   KeyData.Disabled:=true;
+  UpdateRuleHasDisabledDecls(Decl);
 
   // remember by path so the disabled state survives a reparse
   if GetDeclarationPath(Decl,Path) then
@@ -5145,6 +5173,7 @@ begin
   KeyData:=DeclKeyData(Decl);
   if KeyData=nil then exit;
   KeyData.Disabled:=false;
+  UpdateRuleHasDisabledDecls(Decl);
 
   if GetDeclarationPath(Decl,Path) then
   begin
@@ -5175,8 +5204,37 @@ begin
     if Decl=nil then continue;
     KeyData:=DeclKeyData(Decl);
     if KeyData<>nil then
+    begin
       KeyData.Disabled:=true;
+      UpdateRuleHasDisabledDecls(Decl);
+    end;
   end;
+end;
+
+procedure TCSSResolver.UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement);
+begin
+  if Decl=nil then exit;
+  if Decl.Parent is TCSSRuleElement then
+    UpdateRuleHasDisabledDecls(TCSSRuleElement(Decl.Parent));
+end;
+
+procedure TCSSResolver.UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement);
+var
+  i: Integer;
+  Child: TCSSElement;
+begin
+  if not (Rule is TCSSResolvedRuleElement) then exit;
+  for i:=0 to Rule.ChildCount-1 do
+  begin
+    Child:=Rule.Children[i];
+    if (Child is TCSSDeclarationElement)
+        and IsDeclarationDisabled(TCSSDeclarationElement(Child)) then
+    begin
+      TCSSResolvedRuleElement(Rule).HasDisabledDecls:=true;
+      exit;
+    end;
+  end;
+  TCSSResolvedRuleElement(Rule).HasDisabledDecls:=false;
 end;
 
 function TCSSResolver.IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean;
@@ -5185,6 +5243,55 @@ var
 begin
   KeyData:=DeclKeyData(Decl);
   Result:=(KeyData<>nil) and KeyData.Disabled;
+end;
+
+function TCSSResolver.RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean;
+var
+  i: Integer;
+begin
+  Result:=false;
+  if Rule=nil then exit;
+  if Rule is TCSSResolvedRuleElement then
+    exit(TCSSResolvedRuleElement(Rule).HasDisabledDecls);
+  for i:=0 to Rule.ChildCount-1 do
+    if (Rule.Children[i] is TCSSDeclarationElement)
+        and IsDeclarationDisabled(TCSSDeclarationElement(Rule.Children[i])) then
+      exit(true);
+end;
+
+procedure TCSSResolver.TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement);
+var
+  i, j: Integer;
+  OldDecl, NewDecl: TCSSDeclarationElement;
+  KeyData: TCSSAttributeKeyData;
+  Taken: array of boolean;
+  PropName: TCSSString;
+begin
+  if (OldRule=nil) or (NewRule=nil) then exit;
+  Taken:=nil;
+  SetLength(Taken,NewRule.ChildCount);
+  for i:=0 to OldRule.ChildCount-1 do
+  begin
+    if not (OldRule.Children[i] is TCSSDeclarationElement) then continue;
+    OldDecl:=TCSSDeclarationElement(OldRule.Children[i]);
+    if not IsDeclarationDisabled(OldDecl) then continue;
+    PropName:=CSSDeclPropertyName(OldDecl);
+    // the first new declaration of that property not yet claimed by an earlier old one,
+    // so duplicate properties keep their order
+    for j:=0 to NewRule.ChildCount-1 do
+    begin
+      if Taken[j] then continue;
+      if not (NewRule.Children[j] is TCSSDeclarationElement) then continue;
+      NewDecl:=TCSSDeclarationElement(NewRule.Children[j]);
+      if CSSDeclPropertyName(NewDecl)<>PropName then continue;
+      Taken[j]:=true;
+      KeyData:=DeclKeyData(NewDecl);
+      if KeyData<>nil then
+        KeyData.Disabled:=true;
+      break;
+    end;
+  end;
+  UpdateRuleHasDisabledDecls(NewRule);
 end;
 
 function TCSSResolver.GetDisabledDeclarations: TFPList;

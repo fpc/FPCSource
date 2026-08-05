@@ -89,11 +89,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils,
-  Pascal.Tree, Pascal.Scanner, Pascal.ResolveEval, Pascal.Resolver;
+  Pascal.Tree, Pascal.Scanner, Pascal.Resolver;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
-  PasTree, PScanner, PasResolveEval, PasResolver;
+  PasTree, PScanner, PasResolver;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
