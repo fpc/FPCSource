@@ -13595,6 +13595,29 @@ var
   Proc, ImplProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ResolvedEl: TPasResolverResult;
+  EnclFunc: TPasFunction;
+
+  function FindEnclosingFuncNamed(El: TPasElement; const aFuncName: String;
+    out Found: TPasFunction): boolean;
+  // The function being compiled around El, when it carries aFuncName. Used to
+  // recover from FindFirstEl picking the wrong same-named overload.
+  var
+    P: TPasElement;
+  begin
+    Found:=nil;
+    P:=El;
+    while P<>nil do
+      begin
+      if (P is TPasFunction) and SameText(TPasFunction(P).Name,aFuncName) then
+        begin
+        Found:=TPasFunction(P);
+        exit(true);
+        end;
+      P:=P.Parent;
+      end;
+    Result:=false;
+  end;
+
 begin
   if (NameExpr.ClassType=TPrimitiveExpr)
       and (TPrimitiveExpr(NameExpr).Kind=pekIdent) then
@@ -13625,6 +13648,13 @@ begin
       // function name denotes its Result variable, so index Result. FPC allows this
       // for any access (tspace: `space[0]:=` and `FillChar(Space[1],..)`).
       Ref.Declaration:=TPasFunctionType(Proc.ProcType).ResultEl
+    else if (Proc.ProcType is TPasFunctionType)
+        and FindEnclosingFuncNamed(Params,Proc.Name,EnclFunc) then
+      // Overloaded case: FindFirstEl may have picked a same-named overload whose
+      // body does NOT enclose Params, so HasParent fails. Walk out to the function
+      // actually being compiled and index ITS Result — rtl/linux/termio.pp writes
+      // `ttyname[0]:=...` inside TTYname(Handle) while TTYname(var Text) also exists.
+      Ref.Declaration:=TPasFunctionType(EnclFunc.ProcType).ResultEl
     else if ProcNeedsParams(Proc.ProcType) then
       // A non-self-reference procedure that needs arguments cannot be indexed.
       RaiseMsg(20260715120000,nWrongNumberOfParametersForCallTo,
