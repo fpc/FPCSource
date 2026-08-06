@@ -178,6 +178,21 @@ begin
   //s3 := v;
 end;
 
+procedure testInt128BCD(const s: string);
+var
+  b1, b2: TBCD;
+  i: Int128Rec;
+begin
+  b1 := strtobcd(s);
+  i := BCDToInt128(b1);
+  b2 := Int128ToBCD(i);
+  if BCDCompare(b1, b2) <> 0 then
+  begin
+    writeln('Int128<->BCD failed for number', bcdtostr(b1));
+    inc(ErrorCount);
+  end;
+end;
+
 begin
   ErrorCount := 0;
 
@@ -319,6 +334,13 @@ begin
   testVariantOp(varFmtBcdCreate(-100), shortstring(floattostr(10.2)));
   testVariantOp(varFmtBcdCreate(-100), ansistring(floattostr(0.2)));
   testVariantOp(varFmtBcdCreate(-100), unicodestring(floattostr(-0.2)));
+
+  // test Int128
+  testInt128BCD('0');
+  testInt128BCD('9223372036854775808');
+  testInt128BCD('18446744073709551615');
+  testInt128BCD('170141183460469231731687303715884105727'); //2^127-1
+  testInt128BCD('-170141183460469231731687303715884105728'); //-2^127
 
   if ErrorCount<>0 then
   begin

@@ -2034,7 +2034,9 @@ IMPLEMENTATION
       if Plac > 0 then
         if Singles[1] > 4 then MulAdd(Result, 1, 1);
       if Neg then begin
+{$PUSH}{$Q-}
         Result.Lo := not Result.Lo + 1;
+{$POP}
         Result.Hi := not Result.Hi + Ord(Result.Lo=0);
       end;
     end;
