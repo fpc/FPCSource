@@ -730,7 +730,7 @@ type
     function GetDefaultMemberVisibility(El: TPasElement): TPasMemberVisibility; virtual;
     function GetDefaultPasScopeVisibilityContext(Scope: TPasScope): TPasElement; virtual;
     procedure GetDefaultsPasIdentifierProps(El: TPasElement; out Kind: TPasIdentifierKind; out Name: string); virtual;
-    function GetDefaultClassScopeFlags(Scope: TPas2JSClassScope): TPasClassScopeFlags; virtual;
+    function GetDefaultClassScopeFlags(Scope: TPasClassScope): TPasClassScopeFlags; virtual;
     function GetDefaultProcModifiers(Proc: TPasProcedure): TProcedureModifiers; virtual;
     function GetDefaultProcTypeModifiers(ProcType: TPasProcedureType): TProcTypeModifiers; virtual;
     function GetDefaultExprHasEvalValue(Expr: TPasExpr): boolean; virtual;
@@ -919,7 +919,12 @@ type
     procedure WriteRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPCUWriterContext); virtual;
     procedure WriteClassScopeFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasClassScopeFlags); virtual;
     procedure WriteClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap); virtual;
-    procedure WriteClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUWriterContext); virtual;
+    // Back-end hooks. WriteClassScope itself only knows TPasClassScope; these two
+    // are called at the exact points where a back-end specific field used to be
+    // written, so the key order in the file is unchanged.
+    procedure WriteClassScopeBackendHead(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUWriterContext); virtual;
+    procedure WriteClassScopeBackendTail(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUWriterContext); virtual;
+    procedure WriteClassScope(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUWriterContext); virtual;
     procedure WriteClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUWriterContext); virtual;
     procedure WriteArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUWriterContext); virtual;
     procedure WriteProcTypeModifiers(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TProcTypeModifiers); virtual;
@@ -1233,12 +1238,18 @@ type
     function ReadClassInterfaceType(Obj: TJSONObject; const PropName: string; ErrorEl: TPasElement; DefaultValue: TPasClassInterfaceType): TPasClassInterfaceType;
     function ReadClassScopeFlags(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TPasClassScopeFlags): TPasClassScopeFlags; virtual;
-    procedure ReadClassScopeAbstractProcs(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
+    procedure ReadClassScopeAbstractProcs(Obj: TJSONObject; Scope: TPasClassScope); virtual;
     procedure ReadClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
-    procedure ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
-    procedure ReadClassScopeInterfaces(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
+    procedure ReadClassIntfMap(Obj: TJSONObject; Scope: TPasClassScope; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
+    procedure ReadClassScopeInterfaces(Obj: TJSONObject; Scope: TPasClassScope); virtual;
     procedure ReadClassScopeDispatchProcs(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
-    procedure ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUReaderContext); virtual;
+    // Back-end hooks, mirroring the writer's.
+    procedure ReadClassScopeBackendHead(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUReaderContext); virtual;
+    procedure ReadClassScopeBackendTail(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUReaderContext); virtual;
+    // Called from ReadClassType after the members are read, where a back-end
+    // field may depend on them.
+    procedure ReadClassScopeBackendMembers(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUReaderContext); virtual;
+    procedure ReadClassScope(Obj: TJSONObject; Scope: TPasClassScope; aContext: TPCUReaderContext); virtual;
     procedure ReadClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUReaderContext); virtual;
     procedure ReadArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUReaderContext); virtual;
     function ReadProcTypeModifiers(Obj: TJSONObject; El: TPasElement;
@@ -2078,7 +2089,7 @@ begin
   Name:=El.Name;
 end;
 
-function TPCUFiler.GetDefaultClassScopeFlags(Scope: TPas2JSClassScope
+function TPCUFiler.GetDefaultClassScopeFlags(Scope: TPasClassScope
   ): TPasClassScopeFlags;
 begin
   if FFileVersion<2 then
@@ -4257,8 +4268,32 @@ begin
     end;
 end;
 
+procedure TPCUWriter.WriteClassScopeBackendHead(Obj: TJSONObject;
+  Scope: TPasClassScope; aContext: TPCUWriterContext);
+begin
+  if aContext=nil then ;
+  AddReferenceToObj(Obj,'NewInstanceFunction',TPas2JSClassScope(Scope).NewInstanceFunction);
+end;
+
+
+procedure TPCUWriter.WriteClassScopeBackendTail(Obj: TJSONObject;
+  Scope: TPasClassScope; aContext: TPCUWriterContext);
+var
+  JSScope: TPas2JSClassScope absolute Scope;
+begin
+  if aContext=nil then ;
+  if JSScope.DispatchField<>PCUDispatchDefaultField then
+    Obj.Add('DispatchField',JSScope.DispatchField);
+  if JSScope.DispatchStrField<>PCUDispatchDefaultStrField then
+    Obj.Add('DispatchStrField',JSScope.DispatchStrField);
+
+  if JSScope.GUID<>'' then
+    Obj.Add('SGUID',JSScope.GUID);
+end;
+
+
 procedure TPCUWriter.WriteClassScope(Obj: TJSONObject;
-  Scope: TPas2JSClassScope; aContext: TPCUWriterContext);
+  Scope: TPasClassScope; aContext: TPCUWriterContext);
 
   procedure WriteMap(SubObj: TJSONObject; Map: TPasClassIntfMap);
   var
@@ -4290,7 +4325,7 @@ var
 begin
   WriteIdentifierScope(Obj,Scope,aContext);
   aClass:=Scope.Element as TPasClassType;
-  AddReferenceToObj(Obj,'NewInstanceFunction',Scope.NewInstanceFunction);
+  WriteClassScopeBackendHead(Obj,Scope,aContext);
   // AncestorScope can be derived from DirectAncestor
   // CanonicalClassOf is autogenerated
   CanonicalClassOf:=Scope.CanonicalClassOf;
@@ -4328,13 +4363,7 @@ begin
       AddReferenceToArray(Arr,Scope.AbstractProcs[i]);
     end;
 
-  if Scope.DispatchField<>PCUDispatchDefaultField then
-    Obj.Add('DispatchField',Scope.DispatchField);
-  if Scope.DispatchStrField<>PCUDispatchDefaultStrField then
-    Obj.Add('DispatchStrField',Scope.DispatchStrField);
-
-  if Scope.GUID<>'' then
-    Obj.Add('SGUID',Scope.GUID);
+  WriteClassScopeBackendTail(Obj,Scope,aContext);
 
   ScopeIntf:=Scope.Interfaces;
   if (ScopeIntf<>nil) and (ScopeIntf.Count>0) then
@@ -4368,7 +4397,7 @@ var
   Arr: TJSONArray;
   i: Integer;
   Ref: TResolvedReference;
-  Scope: TPas2JSClassScope;
+  Scope: TPasClassScope;
 begin
   WritePasElement(Obj,El,aContext);
   WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
@@ -4403,7 +4432,7 @@ begin
     end
   else
     begin
-    Scope:=El.CustomData as TPas2JSClassScope;
+    Scope:=El.CustomData as TPasClassScope;
     WriteElementList(Obj,El,'Interfaces',El.Interfaces,aContext,true);
     WriteElementList(Obj,El,'Members',El.Members,aContext);
     if Scope<>nil then
@@ -5279,8 +5308,8 @@ end;
 procedure TPCUReader.Set_ClassScope_DirectAncestor(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPas2JSClassScope absolute Data;
-  AncestorScope: TPas2JSClassScope;
+  Scope: TPasClassScope absolute Data;
+  AncestorScope: TPasClassScope;
   aClassAncestor: TPasType;
 begin
   if not (RefEl is TPasType) then
@@ -5297,7 +5326,7 @@ begin
     {$ENDIF}
     RaiseMsg(20180214114322,Scope.Element,GetObjName(RefEl));
     end;
-  AncestorScope:=aClassAncestor.CustomData as TPas2JSClassScope;
+  AncestorScope:=aClassAncestor.CustomData as TPasClassScope;
   Scope.AncestorScope:=AncestorScope;
   if (AncestorScope<>nil) and (pcsfPublished in Scope.AncestorScope.Flags) then
     Include(Scope.Flags,pcsfPublished);
@@ -5306,7 +5335,7 @@ end;
 procedure TPCUReader.Set_ClassScope_DefaultProperty(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPas2JSClassScope absolute Data;
+  Scope: TPasClassScope absolute Data;
 begin
   if RefEl is TPasProperty then
     Scope.DefaultProperty:=TPasProperty(RefEl) // no AddRef
@@ -8798,7 +8827,7 @@ begin
 end;
 
 procedure TPCUReader.ReadClassScopeAbstractProcs(Obj: TJSONObject;
-  Scope: TPas2JSClassScope);
+  Scope: TPasClassScope);
 var
   Arr: TJSONArray;
   Data: TJSONData;
@@ -8874,7 +8903,7 @@ begin
     RaiseMsg(20180325130720,aClass,Map.Intf.FullPath+' Expected='+IntToStr(Map.Intf.Members.Count)+', but found 0');
 end;
 
-procedure TPCUReader.ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope;
+procedure TPCUReader.ReadClassIntfMap(Obj: TJSONObject; Scope: TPasClassScope;
   Map: TPasClassIntfMap; OrigIntfType: TPasType);
 var
   aClass: TPasClassType;
@@ -8908,7 +8937,7 @@ begin
 end;
 
 procedure TPCUReader.ReadClassScopeInterfaces(Obj: TJSONObject;
-  Scope: TPas2JSClassScope);
+  Scope: TPasClassScope);
 var
   aClass: TPasClassType;
   Arr: TJSONArray;
@@ -8976,7 +9005,34 @@ begin
     Scope.DispatchStrField:=PCUDispatchDefaultStrField;
 end;
 
-procedure TPCUReader.ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope;
+procedure TPCUReader.ReadClassScopeBackendHead(Obj: TJSONObject;
+  Scope: TPasClassScope; aContext: TPCUReaderContext);
+begin
+  if aContext=nil then ;
+  ReadElementReference(Obj,Scope,'NewInstanceFunction',@Set_ClassScope_NewInstanceFunction);
+end;
+
+
+procedure TPCUReader.ReadClassScopeBackendTail(Obj: TJSONObject;
+  Scope: TPasClassScope; aContext: TPCUReaderContext);
+var
+  JSScope: TPas2JSClassScope absolute Scope;
+begin
+  if aContext=nil then ;
+  if not ReadString(Obj,'SGUID',JSScope.GUID,Scope.Element) then
+    JSScope.GUID:='';
+end;
+
+
+procedure TPCUReader.ReadClassScopeBackendMembers(Obj: TJSONObject;
+  Scope: TPasClassScope; aContext: TPCUReaderContext);
+begin
+  if aContext=nil then ;
+  ReadClassScopeDispatchProcs(Obj,TPas2JSClassScope(Scope));
+end;
+
+
+procedure TPCUReader.ReadClassScope(Obj: TJSONObject; Scope: TPasClassScope;
   aContext: TPCUReaderContext);
 var
   aClass: TPasClassType;
@@ -8997,12 +9053,11 @@ begin
       AddElReference(CanonicalClassOfId,CanonicalClassOf,CanonicalClassOf);
     end;
 
-  ReadElementReference(Obj,Scope,'NewInstanceFunction',@Set_ClassScope_NewInstanceFunction);
+  ReadClassScopeBackendHead(Obj,Scope,aContext);
   ReadElementReference(Obj,Scope,'DirectAncestor',@Set_ClassScope_DirectAncestor);
   ReadElementReference(Obj,Scope,'DefaultProperty',@Set_ClassScope_DefaultProperty);
   Scope.Flags:=ReadClassScopeFlags(Obj,Scope.Element,'SFlags',GetDefaultClassScopeFlags(Scope));
-  if not ReadString(Obj,'SGUID',Scope.GUID,aClass) then
-    Scope.GUID:='';
+  ReadClassScopeBackendTail(Obj,Scope,aContext);
 
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
@@ -9013,7 +9068,7 @@ var
   Arr: TJSONArray;
   i: Integer;
   Data: TJSONData;
-  Scope: TPas2JSClassScope;
+  Scope: TPasClassScope;
   Ref: TResolvedReference;
   Parent: TPasElement;
   SectionScope: TPasSectionScope;
@@ -9033,7 +9088,7 @@ begin
       Scope:=nil // msIgnoreInterfaces
     else
       begin
-      Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
+      Scope:=TPasClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
       El.CustomData:=Scope;
       end;
     end;
@@ -9085,7 +9140,7 @@ begin
 
       ReadClassScopeAbstractProcs(Obj,Scope);
       ReadClassScopeInterfaces(Obj,Scope);
-      ReadClassScopeDispatchProcs(Obj,Scope);
+      ReadClassScopeBackendMembers(Obj,Scope,aContext);
 
       if El.ObjKind in okAllHelpers then
         begin
