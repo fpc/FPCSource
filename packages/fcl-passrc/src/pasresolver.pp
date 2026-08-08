@@ -1779,6 +1779,8 @@ type
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     function CreateClassIntfMap(El: TPasClassType; Index: integer): TPasClassIntfMap;
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
+    function SameConstParamType(DeclTempl,
+      ImplTempl: TPasGenericTemplateType): boolean;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure;
       IsOverride: boolean // override or class intf implementation
       );
@@ -2194,6 +2196,8 @@ type
       var Abort: boolean); virtual;
     procedure CheckFoundElement(const FindData: TPRFindData;
       Ref: TResolvedReference); virtual;
+    function StrictProtectedQualifierOk(const FindData: TPRFindData;
+      Context: TPasType): boolean;
     procedure CheckFoundElementVisibility(const FindData: TPRFindData;
       Ref: TResolvedReference); virtual;
     function GetVisibilityContext: TPasElement;
@@ -10968,6 +10972,24 @@ begin
     BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType],El);
 end;
 
+function TPasResolver.SameConstParamType(DeclTempl,
+  ImplTempl: TPasGenericTemplateType): boolean;
+// Whether two const generic parameters are annotated with the same type. The
+// annotation is the parameter's single constraint; a missing one on either side
+// means there is nothing to disagree about.
+var
+  DeclType, ImplType: TPasType;
+begin
+  Result:=true;
+  if (length(DeclTempl.Constraints)=0) or (length(ImplTempl.Constraints)=0) then
+    exit;
+  if not (DeclTempl.Constraints[0] is TPasType) then exit;
+  if not (ImplTempl.Constraints[0] is TPasType) then exit;
+  DeclType:=ResolveAliasType(TPasType(DeclTempl.Constraints[0]));
+  ImplType:=ResolveAliasType(TPasType(ImplTempl.Constraints[0]));
+  Result:=DeclType=ImplType;
+end;
+
 procedure TPasResolver.CheckProcSignatureMatch(DeclProc,
   ImplProc: TPasProcedure; IsOverride: boolean);
 var
@@ -11020,12 +11042,40 @@ begin
       if not SameText(DeclTemplType.Name,ImplTemplType.Name) then
         RaiseMsg(20190912150311,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
           [GetProcName(ImplProc),GetElementSourcePosStr(TPasElement(DeclTemplType))],ImplTemplType);
-      // A const generic parameter may repeat its (matching) type annotation in
-      // the implementation; only real (type) constraints must not be repeated.
-      // A native/FPC target allows a FORWARD proc's impl to repeat constraints
-      // (tgenfunc20/21) via the seam — but a class/interface method impl must
-      // still never repeat them (tgenfunc13), so gate on DeclProc.IsForward.
-      if (length(ImplTemplType.Constraints)>0) and (not ImplTemplType.IsConst)
+      // Where the declaration was decides what the implementation must say,
+      // and the two rules are opposites. Verified against ppcx64:
+      //
+      //   declared in the INTERFACE - the implementation must NOT repeat the
+      //     annotations; `<A; const N: LongInt>` there is implemented as
+      //     plain `<A; N>` (tgenconst19/20), and repeating leaves the
+      //     declaration unsolved (tgenconst27/28);
+      //   declared FORWARD in the implementation section - the implementation
+      //     MUST repeat them, and they must MATCH (tgenfunc20/21).
+      //
+      // So the two checks below belong to the forward case only.
+      if DeclProc.IsForward then
+        begin
+        // A CONST generic parameter and a plain type parameter are different
+        // kinds of parameter, not two spellings of one: forward
+        // `<A; const N: LongInt>` implemented as `<A; N>` is a different
+        // routine (tgenconst25/26).
+        if DeclTemplType.IsConst<>ImplTemplType.IsConst then
+          RaiseMsg(20260808150001,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+            [GetProcName(ImplProc),GetElementSourcePosStr(TPasElement(DeclTemplType))],ImplTemplType);
+        // Repeating is allowed, but only with the SAME type: forward
+        // `const N: LongInt` implemented as `const N: String` is a different
+        // routine (tgenconst23/24).
+        if DeclTemplType.IsConst and (length(ImplTemplType.Constraints)>0)
+            and not SameConstParamType(DeclTemplType,ImplTemplType) then
+          RaiseMsg(20260808150002,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+            [GetProcName(ImplProc),GetElementSourcePosStr(TPasElement(DeclTemplType))],ImplTemplType);
+        end;
+      // Only a FORWARD declaration's implementation may repeat the annotation
+      // at all. A routine declared in the INTERFACE section must not repeat it,
+      // const or otherwise (tgenconst27/28 - ppcx64 answers "Forward
+      // declaration not solved") - the same rule that keeps a class method's
+      // implementation from repeating its constraints (tgenfunc13).
+      if (length(ImplTemplType.Constraints)>0)
           and not (DeclProc.IsForward and AllowImplRepeatConstraints) then
         RaiseMsg(20190912150739,nImplMustNotRepeatConstraints,sImplMustNotRepeatConstraints,[],ImplTemplType);
       end;
@@ -26518,6 +26568,27 @@ begin
   CheckFoundElementVisibility(FindData,Ref);
 end;
 
+function TPasResolver.StrictProtectedQualifierOk(const FindData: TPRFindData;
+  Context: TPasType): boolean;
+// For `obj.Member`, whether obj's type is reachable from the accessing class.
+// Only a qualified access has a type to judge; a bare `Member` inside the class
+// is always its own instance, and there is nothing to check.
+var
+  Qualifier: TPasType;
+  DotScope: TPasDotClassOrRecordScope;
+begin
+  Result:=true;
+  if not (FindData.StartScope is TPasDotClassOrRecordScope) then exit;
+  DotScope:=TPasDotClassOrRecordScope(FindData.StartScope);
+  if DotScope.ClassRecScope=nil then exit;
+  if not (DotScope.ClassRecScope.Element is TPasType) then exit;
+  Qualifier:=TPasType(DotScope.ClassRecScope.Element);
+  // The qualifier must BE the accessing class or descend from it. A class the
+  // accessing class descends from is fine too - that is plain inherited access.
+  Result:=(CheckClassIsClass(Qualifier,Context)<>cIncompatible)
+       or (CheckClassIsClass(Context,Qualifier)<>cIncompatible);
+end;
+
 procedure TPasResolver.CheckFoundElementVisibility(const FindData: TPRFindData;
   Ref: TResolvedReference);
 var
@@ -26607,7 +26678,15 @@ begin
         // strict protected members can only be accessed in their and descendant classes
         if (Context is TPasType)
             and (CheckClassIsClass(TPasType(Context),FoundContext)<>cIncompatible) then
-          // context in class or descendant
+          begin
+          // Being a descendant is only half the rule. The INSTANCE it is reached
+          // through must be of the accessing class too: a sibling branch of the
+          // same ancestor is not "its own", so `f.pmethod` where f is a cousin
+          // class is out of reach even from inside a descendant (tsprot).
+          if not StrictProtectedQualifierOk(FindData, TPasType(Context)) then
+            RaiseMsg(20260808150003,nCantAccessXMember,sCantAccessXMember,
+              ['strict protected',FindData.Found.Name],FindData.ErrorPosEl);
+          end
         else if IsHelperContextForClass(Context,FoundContext) then
           // class/record helper may access strict protected members of the extended type
         else
