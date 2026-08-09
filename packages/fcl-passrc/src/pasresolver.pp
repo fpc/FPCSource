@@ -17319,6 +17319,54 @@ procedure TPasResolver.ComputeTypeCast(ToLoType, ToHiType: TPasType;
            or (IdentEl.ClassType=TPasResultElement);
   end;
 
+  function OrdinalBitSize(B: TResolverBaseType; const R: TPasResolverResult;
+    out ABits: word): boolean;
+  // Width of an ordinal, so a variable typecast can be checked for the
+  // same-size rule. Anything that is not a plain ordinal answers False.
+  var
+    Signed: boolean;
+  begin
+    Result:=false;
+    ABits:=0;
+    if B=btRange then
+      B:=R.SubType;
+    if B in btAllInteger then
+      begin
+      GetIntegerProps(B,ABits,Signed);
+      Exit(ABits>0);
+      end;
+    case B of
+    btChar{$ifdef FPC_HAS_CPSTRING},btAnsiChar{$endif},
+    btBoolean,btByteBool: ABits:=8;
+    btWideChar,btWordBool: ABits:=16;
+    btLongBool: ABits:=32;
+    {$ifdef HasInt64}
+    btQWordBool: ABits:=64;
+    {$endif}
+    btContext:
+      if R.LoTypeEl is TPasEnumType then
+        ABits:=32
+      else
+        Exit(false);
+    else
+      Exit(false);
+    end;
+    Result:=true;
+  end;
+
+  function SameOrdinalSize(ToBT: TResolverBaseType;
+    const FromRes: TPasResolverResult): boolean;
+  var
+    ToBits, FromBits: word;
+    ToRes: TPasResolverResult;
+  begin
+    ToRes:=Default(TPasResolverResult);
+    ToRes.BaseType:=ToBT;
+    Result:=OrdinalBitSize(ToBT,ToRes,ToBits)
+        and OrdinalBitSize(FromRes.BaseType,FromRes,FromBits)
+        and (ToBits=FromBits);
+  end;
+
 var
   WriteFlags: TPasResolverResultFlags;
   KeepWriteFlags: Boolean;
@@ -17380,6 +17428,13 @@ begin
       else if OperandIsLValueExpr then
         // a pointer-deref/index l-value reinterpreted as a base type, e.g.
         // cardinal(pointer(x)^):=n in the RTL's StrAlloc.
+        KeepWriteFlags:=true
+      else if SameOrdinalSize(bt,ParamResolved) then
+        // A VARIABLE TYPECAST between two ordinals of the same size stays an
+        // l-value, exactly as in FPC and Delphi: Inc(word(WideCharVar),32) in
+        // fcl-xml's WStrLower, Inc(ShortInt(ByteVar)). Without this the cast
+        // came back read-only and Inc rejected its own argument, blaming the
+        // CALLER's line.
         KeepWriteFlags:=true;
       if KeepWriteFlags then
         ResolvedEl.Flags:=ResolvedEl.Flags+WriteFlags;
@@ -17439,6 +17494,14 @@ begin
           else
             KeepWriteFlags:=true;
           end
+        else if (ToLoType.ClassType=TPasPointerType)
+            and (ParamResolved.LoTypeEl.ClassType=TPasClassType) then
+          // PAnsiChar(ObjVar): a class reference IS a pointer, so casting it to
+          // a DECLARED pointer type stays an l-value - exactly as the untyped
+          // Pointer(ObjVar) does in the base-type branch above, which is the
+          // only reason that one worked. fcl-xml's dom.pp walks its node pool
+          // with Dec(PAnsiChar(FCurrBlock), FElementSize).
+          KeepWriteFlags:=true
         else if (ToLoType.ClassType=TPasRecordType)
             and (ParamResolved.LoTypeEl.ClassType=TPasRecordType) then
           // typecast record
@@ -23351,9 +23414,19 @@ begin
   // Expr must be a variable
   if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
-    if RaiseOnError then
-      RaiseVarExpected(20170216152319,Expr,ParamResolved.IdentEl);
-    exit;
+    // A STRING ELEMENT is deliberately assignable but not writable: `S[i]:=c`
+    // is allowed, aliasing it as a var parameter is not. Inc/Dec neither alias
+    // nor keep the address - they read, add and assign back - so FPC accepts
+    // Inc(S[i]) and so must this. fcl-xml's WStrLower is Inc(word(S[i]),32),
+    // and the cast passes the same flags through.
+    if not (([rrfReadable,rrfAssignable]*ParamResolved.Flags=[rrfReadable,rrfAssignable])
+        and (ParamResolved.ExprEl is TParamsExpr)
+        and (TParamsExpr(ParamResolved.ExprEl).Kind=pekArrayParams)) then
+      begin
+      if RaiseOnError then
+        RaiseVarExpected(20170216152319,Expr,ParamResolved.IdentEl);
+      exit;
+      end;
     end;
   bt:=ParamResolved.BaseType;
   if bt=btRange then
