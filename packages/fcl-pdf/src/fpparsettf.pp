@@ -220,6 +220,17 @@ Type
   end;
   TUnicodeMapSegmentArray = Array of TUnicodeMapSegment;
 
+  { A format 12 coverage group:
+    Groups are sorted by StartCharCode and are stored as they appear in the font:
+    unlike format 4 they are not expanded into an array indexed by code point,
+    because a format 12 map may contain U+10FFFF while covering only a few thousand code points. }
+  TCmapFmt12Group = Packed Record
+    StartCharCode : UInt32;
+    EndCharCode : UInt32;
+    StartGlyphID : UInt32;
+  end;
+  TCmapFmt12GroupArray = Array of TCmapFmt12Group;
+
   TNameRecord = Packed Record
     PlatformID : UInt16;
     EncodingID : UInt16;
@@ -259,6 +270,7 @@ Type
     FSubtables : TCmapSubTables;
     FUnicodeMap : TCmapFmt4;
     FUnicodeMapSegments : TUnicodeMapSegmentArray;
+    FUnicodeGroups : TCmapFmt12GroupArray;
     FHead : THead;
     FHHEad : THHead;
     FOS2Data : TOS2Data;
@@ -268,6 +280,11 @@ Type
     FOriginalSize : Cardinal;
     FMissingWidth: Integer;
     FNameEntries: TNameEntries;
+    // Stream position at which the font of this face starts.
+    FFontStart : Int64;
+    // for a TrueType collection, which face was loaded out of how many.
+    FFaceCount : Integer;
+    FFaceIndex : Integer;
     { This only applies to TFixedVersionRec values. }
     function FixMinorVersion(const AMinor: word): word;
     function GetMissingWidth: integer;
@@ -276,12 +293,18 @@ Type
     function ReadInt16(AStream: TStream): Int16; inline;
     function ReadUInt32(AStream: TStream): UInt32; inline;
     function ReadUInt16(AStream: TStream): UInt16; inline;
+    { Position AStream on the offset table of face AFaceIndex, reading the
+      ttcf header first when the file is a TrueType collection. Sets FaceCount.
+      Returns False when the file holds no such face. }
+    function SeekFace(AStream : TStream; AFaceIndex : Integer) : Boolean; virtual;
     // Parse the various well-known tables
     procedure ParseHead(AStream : TStream); virtual;
     procedure ParseHhea(AStream : TStream); virtual;
     procedure ParseMaxp(AStream : TStream); virtual;
     procedure ParseHmtx(AStream : TStream); virtual;
     procedure ParseCmap(AStream : TStream); virtual;
+    // Read a format 12 subtable. The format word has already been read.
+    procedure ParseCmapFmt12(AStream : TStream); virtual;
     procedure ParseName(AStream : TStream); virtual;
     procedure ParseOS2(AStream : TStream); virtual;
     procedure ParsePost(AStream : TStream); virtual;
@@ -302,10 +325,19 @@ Type
     destructor Destroy; override;
     { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
     function  GetGlyphIndex(AValue: word): word;
+    { Similar to GetGlyphIndex, but for a code point that may lie outside the BMP.
+      Looks up in the format 12 groups when the font has no format 4 subtable.
+      Returns 0 (the missing glyph) for a code point the font does not cover. }
+    function  GetGlyphIndexCP(ACodePoint: UInt32): word;
     function  GetTableDirEntry(const ATableName: string; var AEntry: TTableDirectoryEntry): boolean;
     // Load a TTF file from file or stream.
     Procedure LoadFromFile(const AFileName : String);
     Procedure LoadFromStream(AStream: TStream); virtual;
+    // Load one face of a TrueType collection. Zero-based index.
+    // LoadFromFile and LoadFromStream read this by default:
+    // A plain font file holds face 0 only. An out-of-range face index raises ETTF.
+    Procedure LoadFaceFromFile(const AFileName : String; AFaceIndex : Integer);
+    Procedure LoadFaceFromStream(AStream: TStream; AFaceIndex : Integer); virtual;
     // Checks if Embedded is allowed, and also prepares CharWidths array. NOTE: this is possibly not needed any more.
     procedure PrepareFontDefinition(const Encoding:string; Embed: Boolean);
 
@@ -329,6 +361,10 @@ Type
     { original font file size }
     property OriginalSize: Cardinal read FOriginalSize;
     property Filename: string read FFilename;
+    { Number of faces in the file: 1 for a plain font, N for a collection }
+    Property FaceCount : Integer Read FFaceCount;
+    { Index of the face that was loaded }
+    Property FaceIndex : Integer Read FFaceIndex;
     Property Directory : TTableDirectory Read FTableDir;
     Property Tables : TTableDirectoryEntries Read FTables;
 
@@ -338,6 +374,8 @@ Type
     property CmapSubtables : TCmapSubTables Read FSubtables;
     property CmapUnicodeMap : TCmapFmt4 Read FUnicodeMap;
     property CmapUnicodeMapSegments : TUnicodeMapSegmentArray Read FUnicodeMapSegments;
+    { Non-empty only when the font was mapped through a format 12 subtable }
+    property CmapUnicodeGroups : TCmapFmt12GroupArray Read FUnicodeGroups;
     Property Widths : TLongHorMetricArray Read FWidths;
     Property MaxP : TMaxP Read FMaxP;
     Property OS2Data : TOS2Data Read FOS2Data;
@@ -394,6 +432,7 @@ implementation
 resourcestring
   rsFontEmbeddingNotAllowed = 'Font licence does not allow embedding';
   rsErrUnexpectedUnicodeSubtable = 'Unexpected unicode subtable format, expected 4, got %s';
+  rsErrInvalidFaceIndex = 'Invalid face index %d, the file holds %d face(s)';
 
 Function GetTableType(Const AName : String) : TTTFTableType;
 begin
@@ -546,15 +585,28 @@ begin
   if UE=-1 then
     // No CMap subtable entries, this is not an error, just exit.
     exit;
+  // The Windows BMP subtable (3,1) is preferred and it must be format 4.
   While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<> 1)) do
     Dec(UE);
   if (UE=-1) then
+    begin
+    UE:=FCMapH.SubtableCount-1;
+    While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<>10)) do
+      Dec(UE);
+    if (UE=-1) then
+      exit;
+    AStream.Position:=TableStartPos+FSubtables[UE].Offset;
+    FUnicodeMap.Format:=ReadUInt16(AStream);
+    if (FUnicodeMap.Format<>12) then
+      Raise ETTF.CreateFmt(rsErrUnexpectedUnicodeSubtable, [IntToStr(FUnicodeMap.Format)]);
+    ParseCmapFmt12(AStream);
     exit;
+    end;
   TT:=TableStartPos+FSubtables[UE].Offset;
   AStream.Position:=TT;
   FUnicodeMap.Format:= ReadUInt16(AStream);               // 2 bytes - Format of subtable
   if (FUnicodeMap.Format<>4) then
-    Raise ETTF.CreateFmt(rsErrUnexpectedUnicodeSubtable, [FUnicodeMap.Format]);
+    Raise ETTF.CreateFmt(rsErrUnexpectedUnicodeSubtable, [IntToStr(FUnicodeMap.Format)]);
   FUnicodeMap.Length:=ReadUInt16(AStream);
   S:=TMemoryStream.Create;
   try
@@ -657,7 +709,8 @@ begin
       AStream.Read(WA[0],SizeOf(Word)*Length(W));    // 1 byte
       For J:=0 to Length(WA)-1 do
         W[J+1]:=WideChar(Beton(WA[J]));
-      E[i].Value:=string(W);
+      // Convert explicitly
+      E[i].Value:=UTF8Encode(W);
     end
     else
     begin
@@ -768,24 +821,98 @@ begin
 end;
 
 procedure TTFFileInfo.LoadFromFile(const AFileName: String);
+
+begin
+  LoadFaceFromFile(AFileName,0);
+end;
+
+
+procedure TTFFileInfo.LoadFaceFromFile(const AFileName: String; AFaceIndex : Integer);
 Var
   AStream: TFileStream;
 begin
   FFilename := AFilename;
   AStream:= TFileStream.Create(AFileName,fmOpenRead or fmShareDenyNone);
   try
-    LoadFromStream(AStream);
+    LoadFaceFromStream(AStream,AFaceIndex);
   finally
     AStream.Free;
   end;
 end;
 
+
+procedure TTFFileInfo.ParseCmapFmt12(AStream : TStream);
+
+Var
+  NGroups,I : UInt32;
+
+begin
+  // The format word was read by the caller.
+  ReadUInt16(AStream);          // reserved
+  ReadUInt32(AStream);          // length of the subtable
+  ReadUInt32(AStream);          // language
+  NGroups:=ReadUInt32(AStream);
+  SetLength(FUnicodeGroups,NGroups);
+  For I:=0 to NGroups-1 do
+    begin
+    FUnicodeGroups[I].StartCharCode:=ReadUInt32(AStream);
+    FUnicodeGroups[I].EndCharCode:=ReadUInt32(AStream);
+    FUnicodeGroups[I].StartGlyphID:=ReadUInt32(AStream);
+    end;
+end;
+
+
+function TTFFileInfo.SeekFace(AStream : TStream; AFaceIndex : Integer) : Boolean;
+
+Var
+  Tag : AnsiString;
+  StartPos : Int64;
+  Offsets : Array of UInt32;
+  I,Cnt : Integer;
+
+begin
+  StartPos:=AStream.Position;
+  FFontStart:=StartPos;
+  FFaceCount:=1;
+  FFaceIndex:=0;
+  SetLength(Tag,4);
+  AStream.ReadBuffer(Tag[1],4);
+  if (Tag<>'ttcf') then
+    begin
+    // A plain font file: rewind and let the caller read the offset table.
+    AStream.Position:=StartPos;
+    Result:=(AFaceIndex=0);
+    Exit;
+    end;
+  ReadUInt32(AStream);          // ttc header version
+  Cnt:=ReadUInt32(AStream);     // number of faces
+  FFaceCount:=Cnt;
+  Result:=(AFaceIndex>=0) and (AFaceIndex<Cnt);
+  if not Result then
+    Exit;
+  SetLength(Offsets,Cnt);
+  for I:=0 to Cnt-1 do
+    Offsets[I]:=ReadUInt32(AStream);
+  FFaceIndex:=AFaceIndex;
+  // Offsets in a collection are counted from the start of the file.
+  AStream.Position:=StartPos+Offsets[AFaceIndex];
+end;
+
 procedure TTFFileInfo.LoadFromStream(AStream : TStream);
+
+begin
+  LoadFaceFromStream(AStream,0);
+end;
+
+
+procedure TTFFileInfo.LoadFaceFromStream(AStream : TStream; AFaceIndex : Integer);
 var
   i: Integer;
   tt : TTTFTableType;
 begin
   FOriginalSize:= AStream.Size;
+  if not SeekFace(AStream,AFaceIndex) then
+    Raise ETTF.CreateFmt(rsErrInvalidFaceIndex,[AFaceIndex,FFaceCount]);
   AStream.ReadBuffer(FTableDir,Sizeof(TTableDirectory));
   With FTableDir do
   begin
@@ -811,7 +938,9 @@ begin
     TT:=GetTableType(FTables[I].Tag);
     if (TT<>ttUnknown) then
     begin
-      AStream.Position:=FTables[i].Offset;
+      // Table offsets are counted from the start of the font, which for a face
+      // of a collection is the start of the file, not of its offset table.
+      AStream.Position:=FFontStart+FTables[i].Offset;
       Case TT of
         tthead: ParseHead(AStream);
         ttHhea: ParseHhea(AStream);
@@ -925,7 +1054,36 @@ end;
 
 function TTFFileInfo.GetGlyphIndex(AValue: word): word;
 begin
-  result := Chars[AValue];
+  result := GetGlyphIndexCP(AValue);
+end;
+
+
+function TTFFileInfo.GetGlyphIndexCP(ACodePoint: UInt32): word;
+
+var
+  L,R,M : Integer;
+
+begin
+  Result:=0;
+  if Length(FUnicodeGroups)>0 then
+    begin
+    // Format 12: binary search the groups, which the font stores sorted.
+    L:=0;
+    R:=High(FUnicodeGroups);
+    while (L<=R) do
+      begin
+      M:=(L+R) div 2;
+      if (ACodePoint<FUnicodeGroups[M].StartCharCode) then
+        R:=M-1
+      else if (ACodePoint>FUnicodeGroups[M].EndCharCode) then
+        L:=M+1
+      else
+        Exit(FUnicodeGroups[M].StartGlyphID+(ACodePoint-FUnicodeGroups[M].StartCharCode));
+      end;
+    Exit;
+    end;
+  if (ACodePoint<UInt32(Length(Chars))) then
+    Result:=Chars[ACodePoint];
 end;
 
 function TTFFileInfo.GetTableDirEntry(const ATableName: string; var AEntry: TTableDirectoryEntry): boolean;
