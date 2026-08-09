@@ -5778,9 +5778,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found another candidate, but it is incompatible -> ignore')
     {$ENDIF}
-  else if (Data^.Distance=Distance)
-      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)
-          and ((Distance>=cIntToFloatConversion)=(Data^.Distance>=cIntToFloatConversion))) then
+  else if (Data^.Distance=Distance) then
     begin
     { A class/record/helper member hides an equally-good unit-level global:
       the member is in a closer scope, so FPC picks it without ambiguity. 
@@ -5970,17 +5968,12 @@ begin
       end
     else
       begin
-      if (Distance<cLossyConversion)
-          or ((Distance>=cIntToFloatConversion)<>(Data^.Distance>=cIntToFloatConversion)) then
-        begin
-        // found a good one
-        Data^.Count:=1;
-        if Data^.List<>nil then
-          Data^.List.Clear;
-        end
-      else
-        // found another lossy one -> collect them
-        inc(Data^.Count);
+      // A strictly smaller distance wins outright, also inside the lossy band:
+      // candidates there are not interchangeable when one is exact on the
+      // argument that separates them (variants.pp DumpVariant).
+      Data^.Count:=1;
+      if Data^.List<>nil then
+        Data^.List.Clear;
       Data^.Found:=El;
       Data^.ElScope:=ElScope;
       Data^.StartScope:=StartScope;
@@ -15687,13 +15680,14 @@ begin
           if RightTypeEl.ClassType=TPasPointerType then
             begin
             if (Bin.OpCode in [eopAdd,eopSubtract])
-                and (ElHasBoolSwitch(Bin,bsPointerMath)
+                and (PointerMathBoolSwitchEnabled(Bin)
                   or IsPointerMathType(RightTypeEl)) then
               begin
-              // integer+TypedPointer
-              RightTypeEl:=TPasPointerType(RightTypeEl).DestType;
-              SetResolverValueExpr(ResolvedEl,btPointer,
-                ResolveAliasType(RightTypeEl),RightTypeEl,Bin,[rrfReadable]);
+              // integer+TypedPointer — the mirror of TypedPointer+Integer, which
+              // keeps the POINTER's own type. Unwrapping to the pointee here made
+              // `inLeft + FCharBuf` (fcl-xml xmltextreader.pp) an AnsiChar, so
+              // comparing it with a PAnsiChar reported "Char" <= "PAnsiChar".
+              SetRightValueExpr([rrfReadable]);
               exit;
               end;
             end;
@@ -28757,14 +28751,22 @@ begin
         exit(cIncompatible);
         end;
       end;
-    // Accumulate per-argument distances so a candidate needing FEWER/cheaper
-    // conversions ranks below one needing more. Sum across the whole
-    // type-conversion band (up to cLossyConversion) rather than capping at the
-    // FIRST cTypeConversion
-    if Result<cLossyConversion then
-      inc(Result,ParamCompatibility)
+    // Accumulate per-argument distances across ALL bands - capping the running
+    // total makes a later argument undecidable (variants.pp DumpVariant, where
+    // only the 3rd argument separates the candidates).
+    // A cost inside a conversion BAND is first normalised to that band's own
+    // value, so two candidates that are both lossy on the same argument stay
+    // indistinguishable there and the call remains ambiguous (tover3), while an
+    // argument on which one candidate is exact and the other is not still
+    // separates them.
+    if ParamCompatibility>=cIntToFloatConversion then
+      ParamCompatibility:=cIntToFloatConversion
+    else if ParamCompatibility>=cLossyConversion then
+      ParamCompatibility:=cLossyConversion;
+    if ParamCompatibility>=cIncompatible-Result then
+      Result:=cIncompatible-1
     else
-      Result:=Max(Result,ParamCompatibility);
+      inc(Result,ParamCompatibility);
     inc(i);
     end;
   if (i<ProcArgs.Count) then
