@@ -1813,6 +1813,8 @@ type
     FRTBottomStackedFooterList: TBandList;
     FRTPage: TFPReportCustomPage;
     FCurrentRTColumnFooterBand: TFPReportCustomColumnFooterBand;
+    FGroupChanged: Boolean;
+    FHighestGroupWithChange: Integer;
     function FindFooter(aPage: TFPReportCustomPage; aData: TFPReportData): TFPReportCustomDataFooterBand;
     function FindHeader(aPage: TFPReportCustomPage; aData: TFPReportData): TFPReportCustomDataHeaderBand;
     function GetCurrentLoop: TLoopData;
@@ -1860,6 +1862,8 @@ type
     procedure HandleBottomStackedFooters; virtual;
     procedure HandleRepeatedGroupHeaderBands(pNewPage: Boolean); virtual;
     procedure HandleGroupBands; virtual;
+    procedure HandleGroupFooters; virtual;
+    procedure HandleGroupHeaders; virtual;
     procedure HandleLastGroupFooters; virtual;
     procedure HandleReportSummaryBands; virtual;
     procedure ShowGroupHeaderBand(aBand: TFPReportCustomGroupHeaderBand; aCheckStartOnNewSection: Boolean); virtual;
@@ -12089,11 +12093,12 @@ begin
         {$endif}
         // DumpData(lData);
         PrepareRecord(lData);
-        Report.UpdateAggregates(lPage,lData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
-        HandleGroupBands;
+        HandleGroupFooters;
+        Report.UpdateAggregates(lPage,lData);
+        HandleGroupHeaders;
         ShowDataBand;
         lData.Next;
         end;  { while not lData.EOF }
@@ -12117,26 +12122,25 @@ begin
     end;
 end;
 
-procedure TFPReportLayouter.HandleGroupBands;
+procedure TFPReportLayouter.HandleGroupFooters;
 
 Var
-  I, lHighestGroupWithChange: Integer;
+  I: Integer;
   lGroup: TFPReportCustomGroupHeaderBand;
-  lGroupChanged: Boolean;
 
 begin
+  FGroupChanged := false;
+  FHighestGroupWithChange := 0;
   if CurrentLoop.FGroupHeaderList.Count=0 then
     exit;
-  lGroupChanged := false;
-  lHighestGroupWithChange := 0;
-  // process footers
+  // process footers. must run BEFORE Report.UpdateAggregates.
   For I := 0 to CurrentLoop.FGroupHeaderList.Count - 1 do
   begin
     lGroup := TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[I]);
     if lGroup.GroupChanged then
     begin
-      lGroupChanged := true;
-      lHighestGroupWithChange := I;
+      FGroupChanged := true;
+      FHighestGroupWithChange := I;
       if Assigned(lGroup.GroupFooter) and
       not lGroup.IsInitialGroupChange then
       begin
@@ -12147,11 +12151,19 @@ begin
     else
       break;
   end;
+end;
 
-  if not lGroupChanged then
+procedure TFPReportLayouter.HandleGroupHeaders;
+
+Var
+  I: Integer;
+  lGroup: TFPReportCustomGroupHeaderBand;
+
+begin
+  if not FGroupChanged then
     exit;
 
-  For I := lHighestGroupWithChange downto 0 do
+  For I := FHighestGroupWithChange downto 0 do
   begin
     lGroup := TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[I]);
     if Assigned(lGroup.GroupFooter) then
@@ -12161,12 +12173,19 @@ begin
   if Assigned(CurrentLoop.FDataBand) then
     Report.ClearDataBandLastTextValues(CurrentLoop.FDataBand);
 
-  // process headers
-  For I := lHighestGroupWithChange downto 0 do
+  // process headers. must run AFTER Report.UpdateAggregates.
+  For I := FHighestGroupWithChange downto 0 do
   begin
     lGroup := TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[I]);
     ShowGroupHeaderBand(lGroup, True);
   end;
+end;
+
+procedure TFPReportLayouter.HandleGroupBands;
+begin
+  // Kept for backward compatibility. 
+  HandleGroupFooters;
+  HandleGroupHeaders;
 end;
 
 procedure TFPReportLayouter.HandleLastGroupFooters;
@@ -12292,8 +12311,9 @@ begin
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
-        HandleGroupBands;
+        HandleGroupFooters;
         Report.UpdateAggregates(aPage,aData);
+        HandleGroupHeaders;
         ShowDataBand;
         aData.Next;
         end;

@@ -193,7 +193,7 @@ begin
 
 
   {*** variables ***}
-  rpt.Variables.AddExprVariable('population_in_M', 'sum(StrToFloat(data.population) / 1000000)', rtFloat, rtNone, '');
+  rpt.Variables.AddExprVariable('population_in_M', 'StrToFloat(data.population) / 1000000', rtFloat, rtNone, '');
   rpt.Variables.AddExprVariable('grp_sum_population', 'sum(StrToFloat(data.population))',rtFloat , GroupHeader);
   rpt.Variables.AddExprVariable('grp_sum_population_in_M', 'sum(StrToFloat(data.population) / 1000000)', rtFloat, GroupHeader);
   rpt.Variables.AddExprVariable('sum_population', 'sum(StrToFloat(data.population))', rtFloat, rtnone, '');
