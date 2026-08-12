@@ -39,7 +39,7 @@ interface
 
   type
     thlcgcpu = class(thlcg2ll)
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
       procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); override;
@@ -273,9 +273,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgcpu.create(hlcgobjhelpers,compiler);
     end;
 
 begin

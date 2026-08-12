@@ -4117,7 +4117,7 @@ begin
       if MainSrcFile<>'' then
         ParamFatal('Only one Pascal file is supported, but got "'+MainSrcFile+'" and "'+Param+'".');
       MainSrcFile:=ExpandFileName(Param);
-      Writeln('Info: MainSrcFile ',Param,' -> ',MainSrcFile);
+      //Writeln('Info: MainSrcFile ',Param,' -> ',MainSrcFile);
     end;
   end;
 end;
@@ -4975,7 +4975,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2025 Free Pascal team.');
+  Log.LogPlain('Copyright (c) 2026 Free Pascal team.');
   if coShowInfos in Options then
     WriteEncoding;
 end;

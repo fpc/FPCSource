@@ -400,9 +400,13 @@ type
 
     Type
       TWorkStealingQueueThreadPoolWorkItemArray = specialize TSparseArray<TWorkStealingQueueThreadPoolWorkItem>;
+      // The global work queue must retain a reference to the queued items. A raw
+      // pointer queue (Contnrs.TQueue) does not, so a work item could be destroyed
+      // while still enqueued, leading to a use-after-free on the worker threads.
+      TWorkItemQueue = specialize TQueue<IThreadPoolWorkItem>;
       TMonitorResult = (mrTerminate,mrContinue,mrIdle);
     var
-      FWorkQueue : {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Contnrs.TQueue;
+      FWorkQueue : TWorkItemQueue;
       FQueues : TWorkStealingQueueThreadPoolWorkItemArray;
       FThreads: TBaseWorkerThreadList;
 
@@ -1438,12 +1442,17 @@ end;
 
 function TWorkStealingQueue.GetCount: Integer;
 begin
-  Result:=FItems.Count;
+  Lock;
+  try
+    Result:=FItems.Count;
+  finally
+    UnLock;
+  end;
 end;
 
 function TWorkStealingQueue.GetIsEmpty: Boolean;
 begin
-  Result:=FItems.Count=0;
+  Result:=GetCount=0;
 end;
 
 procedure TWorkStealingQueue.Lock;
@@ -1454,7 +1463,8 @@ begin
   except
     on E : Exception do
 	  begin
-      {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);{$ENDIF USE_THREADLOG}
+          {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);{$ENDIF USE_THREADLOG}
+          Raise;
 	  end;
   end;
   {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','Leave %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
@@ -1730,7 +1740,7 @@ begin
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AssignWorkToGlobalQueue','locking queue');{$ENDIF USE_THREADLOG}
   LockQueue;
   try
-    FWorkQueue.Push(WorkerData);
+    FWorkQueue.Enqueue(WorkerData);
   finally
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AssignWorkToGlobalQueue','unlocking queue');{$ENDIF USE_THREADLOG}
     UnLockQueue;
@@ -1787,7 +1797,7 @@ begin
   FRetireEvent:=TLightweightEvent.Create;
   FQueueEvent:=TEvent.Create;
   FQueueLock:=TSpinLock.Create(False);
-  FWorkQueue:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Contnrs.TQueue.Create;
+  FWorkQueue:=TWorkItemQueue.Create;
   PC:=TThread.ProcessorCount;
   FQueues:=TWorkStealingQueueThreadPoolWorkItemArray.Create(PC);
   FMinThreads:=PC div 4;
@@ -2013,9 +2023,9 @@ begin
   try
     if (FWorkQueue.Count > 0) then
       begin
-      // FWorkQueue is thread safe.
+      // FWorkQueue access is guarded by LockQueue.
       {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Have global work');{$ENDIF USE_THREADLOG}
-      Itm:=IThreadPoolWorkItem(FWorkQueue.Pop);
+      Itm:=FWorkQueue.Dequeue;
       if assigned(Itm) then
         begin
         {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Global work, -> no quit');{$ENDIF USE_THREADLOG}
@@ -2589,7 +2599,25 @@ end;
 
 destructor TThreadPool.TQueueWorkerThread.Destroy;
 begin
-  FreeAndNil(FWorkQueue);
+  if Assigned(ThreadPool) and Assigned(ThreadPool.FQueues) then
+    begin
+    // Make sure the queue is no longer published to stealers, even if an
+    // exceptional exit path skipped UnRegisterWorkerThread (no-op otherwise).
+    ThreadPool.FQueues.Remove(FWorkQueue);
+    // Serialize the destruction with the steal loop: GetWorkItemFromQueues
+    // captures queue references from FQueues.Current and uses them while
+    // holding FQueues' lock. Taking the same lock here guarantees no stealer
+    // is left operating on a freed queue (whose internal critical section
+    // and event are freed with it).
+    ThreadPool.FQueues.Lock;
+    try
+      FreeAndNil(FWorkQueue);
+    finally
+      ThreadPool.FQueues.Unlock;
+    end;
+    end
+  else
+    FreeAndNil(FWorkQueue);
   inherited Destroy;
 end;
 

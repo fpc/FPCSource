@@ -156,6 +156,14 @@ type
     procedure TestDelphiMultiLineFailNonWhiteSpaceBeforeClosing;
     procedure TestMultilineContinuation;
     Procedure TestTextBlockDirective;
+    procedure TestBitPackingDirective;
+    procedure TestVarPropSetterDirective;
+    procedure TestCOperatorsDirective;
+    procedure TestDirectivePushPop;
+    procedure TestOctalCharLiteral;
+    procedure TestBinaryCharLiteral;
+    procedure TestIncludeLineNum;
+    procedure TestNumberMemberDot;
     procedure TestNumber;
     procedure TestChar;
     procedure TestCharString;
@@ -1180,6 +1188,80 @@ begin
 
   TestTokens([tkIdentifier,tkWhiteSpace,tkEqual,tkwhiteSpace,pscanner.tkString,tkSemicolon],'a = ^C''abc'';',false);
 end;
+
+procedure TTestScanner.TestBitPackingDirective;
+begin
+  DoTestToken(tkComment,'{$bitpacking on}');
+  AssertTrue('bsBitPacking on',bsBitPacking in Scanner.CurrentBoolSwitches);
+  DoTestToken(tkComment,'{$bitpacking off}');
+  AssertTrue('bsBitPacking off',not (bsBitPacking in Scanner.CurrentBoolSwitches));
+end;
+
+
+procedure TTestScanner.TestVarPropSetterDirective;
+begin
+  DoTestToken(tkComment,'{$varpropsetter on}');
+  AssertTrue('bsVarPropSetter on',bsVarPropSetter in Scanner.CurrentBoolSwitches);
+  DoTestToken(tkComment,'{$varpropsetter off}');
+  AssertTrue('bsVarPropSetter off',not (bsVarPropSetter in Scanner.CurrentBoolSwitches));
+end;
+
+
+procedure TTestScanner.TestCOperatorsDirective;
+begin
+  DoTestToken(tkComment,'{$coperators on}');
+  AssertTrue('po_CAssignments on',po_CAssignments in Scanner.Options);
+  DoTestToken(tkComment,'{$coperators off}');
+  AssertTrue('po_CAssignments off',not (po_CAssignments in Scanner.Options));
+end;
+
+
+procedure TTestScanner.TestDirectivePushPop;
+// {$push}/{$pop} save and restore the current switch state.
+var
+  tk: TToken;
+begin
+  NewSource('{$bitpacking on}{$push}{$bitpacking off}{$pop}');
+  tk:=FScanner.FetchToken; // {$bitpacking on}
+  AssertEquals('bitpacking-on is a comment',tkComment,tk);
+  AssertTrue('after on: bsBitPacking set',bsBitPacking in Scanner.CurrentBoolSwitches);
+  tk:=FScanner.FetchToken; // {$push}
+  AssertTrue('after push: still set',bsBitPacking in Scanner.CurrentBoolSwitches);
+  tk:=FScanner.FetchToken; // {$bitpacking off}
+  AssertTrue('after off: cleared',not (bsBitPacking in Scanner.CurrentBoolSwitches));
+  tk:=FScanner.FetchToken; // {$pop}
+  AssertTrue('after pop: restored',bsBitPacking in Scanner.CurrentBoolSwitches);
+end;
+
+
+procedure TTestScanner.TestOctalCharLiteral;
+begin
+  // #&17 (octal 17 = 15) is a char literal
+  TestToken(pscanner.tkChar,'#&17 ',false);
+end;
+
+
+procedure TTestScanner.TestBinaryCharLiteral;
+begin
+  // #%1010 (binary 1010 = 10) is a char literal
+  TestToken(pscanner.tkChar,'#%1010 ',false);
+end;
+
+
+procedure TTestScanner.TestIncludeLineNum;
+begin
+  // {$I %LINENUM%} expands to the current line number as a NUMERIC token.
+  DoTestToken(tkNumber,'{$I %LINENUM%}');
+end;
+
+
+procedure TTestScanner.TestNumberMemberDot;
+// 100.Foo : the '.' is a member-access dot (Integer helper), not a fraction —
+// so it tokenizes as tkNumber '100', tkDot, tkIdentifier 'Foo'.
+begin
+  TestTokens([tkNumber,tkDot,tkIdentifier],'100.Foo');
+end;
+
 
 procedure TTestScanner.TestNumber;
 

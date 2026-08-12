@@ -233,6 +233,12 @@ const
   nSymbolXIsNotPortable = 5076; // was 3058
   nSymbolXIsNotImplemented = 5078; // was  3060
   nSymbolXIsExperimental = 5079;  // was 3059
+  nCannotTakeAddrOfBitPackedElement = 3221; // same ID as FPC parser_e_packed_element_no_var_addr
+  nVarArgsNeedCDeclAndExternal = 3178; // same ID as FPC parser_e_varargs_need_cdecl_and_external
+  nNoStackFrameWithoutAssembler = 3323; // same ID as FPC parser_e_nostackframe_without_assembler
+  nAbsoluteOnlyToVarOrConst = 3096; // same ID as FPC parser_e_absolute_only_to_var_or_const
+  nSealedClassCannotHaveAbstractMethod = 3255; // FPC parser_e_sealed_class_cannot_have_abstract_methods
+  nForInLoopCannotBeUsedForType = 3265; // FPC parser_e_for_in_loop_cannot_be_used_for_the_type
 
 // resourcestring patterns of messages
 resourcestring
@@ -384,6 +390,12 @@ resourcestring
   sCaseStatementNotCovered = 'Case statement does not handle all possible cases';
   sCaseElseUnreachable = 'Case else branch is unreachable - all cases are already handled';
   sAttributeNotAllowedHere = 'Attribute is not allowed here';
+  sCannotTakeAddrOfBitPackedElement = 'The address cannot be taken of bit packed array elements and record fields';
+  sVarArgsNeedCDeclAndExternal = 'VarArgs directive (or ''...'' in MacPas) without CDecl/CPPDecl/MWPascal/StdCall and External';
+  sNoStackFrameWithoutAssembler = 'Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER';
+  sAbsoluteOnlyToVarOrConst = 'absolute can only be associated with a variable or constant representing an address';
+  sSealedClassCannotHaveAbstractMethod = 'SEALED class cannot have an ABSTRACT method';
+  sForInLoopCannotBeUsedForType = 'For in loop cannot be used for the type "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -746,7 +758,7 @@ type
     procedure RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
     procedure RaiseOverflowArithmetic(id: TMaxPrecInt; ErrorEl: TPasElement);
     procedure RaiseDivByZero(id: TMaxPrecInt; ErrorEl: TPasElement);
-    function EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags): TResEvalValue;
+    function EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBinaryExpr(Expr: TBinaryExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
@@ -1325,7 +1337,7 @@ end;
 constructor TResEvalRangeUInt.Create;
 begin
   inherited Create;
-  Kind:=revkRangeInt;
+  Kind:=revkRangeUInt;
 end;
 
 constructor TResEvalRangeUInt.CreateValue(const aRangeStart,
@@ -1771,7 +1783,18 @@ begin
         begin
         if TResEvalInt(RightValue).Int<0 then
           RaiseRangeCheck(20170522152608,Expr.Right)
-        else if TResEvalUInt(LeftValue).UInt>TMaxPrecUInt(TResEvalInt(RightValue).Int) then
+        else if TMaxPrecInt(TResEvalUInt(LeftValue).UInt)<=TResEvalInt(RightValue).Int then
+          begin
+          // Left > High(Int64): a high-bit-set hex/octal/binary literal, reinterpreted
+          // as its signed Int64 bit pattern (negative). If that gives a valid ascending
+          // range with the signed Right, FPC types it as a signed Int64 subrange
+          // (trtti13: TRangedInt64 = $FFFFFFFF00000000..$100000000). A bare qword-max
+          // literal in an assignment never reaches here, so this keeps qword defaults.
+          Result:=TResEvalRangeInt.CreateValue(revskInt,nil,
+            TMaxPrecInt(TResEvalUInt(LeftValue).UInt),TResEvalInt(RightValue).Int);
+          exit;
+          end
+        else
           RaiseMsg(20170522152648,nHighRangeLimitLTLowRangeLimit,
             sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
         Result:=TResEvalRangeUInt.CreateValue(TResEvalUInt(LeftValue).UInt,
@@ -4448,6 +4471,42 @@ var
         inc(Result);
         end;
       end
+    else if S[Result]='&' then
+      begin
+      // #&octalnumber
+      inc(Result);
+      StartP:=Result;
+      u:=0;
+      while Result<=l do
+        begin
+        c:=S[Result];
+        case c of
+        '0'..'7': u:=u*8+longword(ord(c)-ord('0'));
+        else break;
+        end;
+        if u>$10FFFF then
+          RangeError(20170523115712);
+        inc(Result);
+        end;
+      end
+    else if S[Result]='%' then
+      begin
+      // #%binarynumber
+      inc(Result);
+      StartP:=Result;
+      u:=0;
+      while Result<=l do
+        begin
+        c:=S[Result];
+        case c of
+        '0','1': u:=u*2+longword(ord(c)-ord('0'));
+        else break;
+        end;
+        if u>$10FFFF then
+          RangeError(20170523115712);
+        inc(Result);
+        end;
+      end
     else
       begin
       // #decimalnumber
@@ -4460,8 +4519,8 @@ var
         '0'..'9': u:=u*10+longword(ord(c)-ord('0'));
         else break;
         end;
-        if u>$ffff then
-          RangeError(20170523123137);
+        if u>$10FFFF then
+          RangeError(20170523115712);
         inc(Result);
         end;
       end;

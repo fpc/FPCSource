@@ -36,12 +36,12 @@ uses
 
 type
   thlcgcpu = class(thlcgriscv)
-    constructor create(ACompiler: TCompilerBase); override;
+    constructor create(ACompiler: TCompilerBase); override; overload;
 
     procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); override;
   end;
 
-   procedure create_hlcodegen(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
 
 implementation
 
@@ -78,13 +78,14 @@ implementation
     end;
 
 
-  procedure create_hlcodegen(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgcpu.create(hlcgobjhelpers,compiler);
     end;
 
 
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

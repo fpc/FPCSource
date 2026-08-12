@@ -462,8 +462,6 @@ implementation
 
 
    function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
-     var
-       hp: tai;
      begin
        case o.typ of
          top_reg:
@@ -1036,11 +1034,12 @@ implementation
           if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
              (pd.mangledname=(compiler.target.info.cprefix+'setjmp')) then
             writer.AsmWrite(' returns_twice');
-          if po_inline in pd.procoptions then
-            writer.AsmWrite(' inlinehint')
-          else if (po_noinline in pd.procoptions) or
+          if (([po_noinline,po_assembler]* pd.procoptions) <> []) or
              (pio_inline_forbidden in pd.implprocoptions) then
-            writer.AsmWrite(' noinline');
+            writer.AsmWrite(' noinline')
+          else if po_inline in pd.procoptions then
+            writer.AsmWrite(' inlinehint');
+
           { ensure that functions that happen to have the same name as a
             standard C library function, but which are implemented in Pascal,
             are not considered to have the same semantics as the C function with
@@ -1059,6 +1058,8 @@ implementation
             writer.AsmWrite(' strictfp');
           if cs_sanitize_address in compiler.globals.current_settings.moduleswitches then
             writer.AsmWrite(' sanitize_address');
+          if po_assembler in pd.procoptions then
+            writer.AsmWrite(' naked');
         end;
 
       procedure WriteTypedConstData(hp: tai_abstracttypedconst; metadatakind: tmetadatakind);
@@ -1638,11 +1639,11 @@ implementation
                asmdata.asmlists[hal].Empty then
               continue;
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-            if not(hal in [al_pure_assembler,al_dwarf_frame]) then
+            if hal<>al_dwarf_frame then
               writetree(asmdata.asmlists[hal],hal)
             else
               begin
-                { write routines using the target-specific external assembler
+                { write using the target-specific external assembler
                   writer, filtered using the LLVM module-level assembly
                   decorator }
                 decorator:=TLLVMModuleInlineAssemblyDecorator.Create;

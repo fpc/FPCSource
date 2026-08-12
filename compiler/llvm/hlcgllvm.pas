@@ -34,11 +34,14 @@ uses
   compilerbase;
 
   type
-
-    { thlcgllvm }
+    thlcgllvmhelpers = class(thlcgobjhelpers)
+      class procedure gen_proc_symbol(list: TAsmList); override;
+      class procedure gen_proc_symbol_internal(list:TAsmList);
+      class procedure record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList); override;
+     end;
 
     thlcgllvm = class(thlcgobj)
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
@@ -108,7 +111,7 @@ uses
       procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
      public
 
-      procedure gen_proc_symbol(list: TAsmList); override;
+
       procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
@@ -184,7 +187,7 @@ implementation
     compiler;
 
   var
-    create_hlcodegen_cpu: procedure(acompiler: TCompilerBase) = nil;
+    create_hlcodegen_cpu: tcreate_hlcgcodegen = nil;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -196,12 +199,105 @@ implementation
        la_none, la_none);
 
 
+    class procedure thlcgllvmhelpers.gen_proc_symbol_internal(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
+        item: TCmdStrListItem;
+        mangledname: TSymStr;
+        asmsym: tasmsymbol;
+      begin
+        if po_external in compiler.current_procinfo.procdef.procoptions then
+          exit;
+        item:=TCmdStrListItem(compiler.current_procinfo.procdef.aliasnames.first);
+        mangledname:=compiler.current_procinfo.procdef.mangledname;
+        { predefine the real function name as local/global, so the aliases can
+          refer to the symbol and get the binding correct }
+        if (cs_profile in compiler.globals.current_settings.moduleswitches) or
+           (po_global in compiler.current_procinfo.procdef.procoptions) then
+          asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,compiler.current_procinfo.procdef)
+        else
+          asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,compiler.current_procinfo.procdef);
+        while assigned(item) do
+          begin
+            if mangledname<>item.Str then
+              list.concat(taillvmalias.create(asmsym,item.str,compiler.current_procinfo.procdef,asmsym.bind));
+            item:=TCmdStrListItem(item.next);
+          end;
+        list.concat(taillvmdecl.createdef(asmsym,compiler.current_procinfo.procdef.procsym,compiler.current_procinfo.procdef,nil,sec_code,compiler.current_procinfo.procdef.alignment));
+        compiler.current_procinfo.procdef.procstarttai:=tai(list.last);
+    end;
+
+
+    class procedure thlcgllvmhelpers.gen_proc_symbol(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      begin
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
+          gen_proc_symbol_internal(list);
+      end;
+
+
+    class procedure thlcgllvmhelpers.record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList);
+      var
+        asmai, ai, endsymai, next: tai;
+        newcodelist: TAsmList;
+      begin
+        if po_assembler in pd.procoptions then
+          begin
+            if not data.Empty then
+              internalerror(2023111110);
+            { make the assembler body the argument to an inline assembly statement }
+            newcodelist:=TAsmlist.create(AsmData);
+            newcodelist.concatlist(code);
+            { but hoist the ait_symbol_end for the proc definition
+              into the LLVM asmlist }
+            ai:=tai(newcodelist.first);
+
+            gen_proc_symbol_internal(code);
+            while assigned(ai) do
+              begin
+                { get next now in case ai gets moved to a different list }
+                next:=tai(ai.next);
+                case ai.typ of
+                  ait_symbol_end :
+                    begin
+                      if tai_symbol_end(ai).sym.typ=AT_FUNCTION then
+                        begin
+                          newcodelist.Remove(ai);
+                          endsymai:=ai;
+                        end
+                      else
+                        internalerror(2023111111);
+                      break;
+                    end;
+                  else
+                    ;
+                end;
+                ai:=next;
+              end;
+
+            if not assigned(ai) then
+              internalerror(2023111112);
+
+            asmai:=taillvm.asm_paras(newcodelist,tfplist.create);
+
+            code.Concat(asmai);
+            code.Concat(taillvm.op_none(la_unreachable));
+            code.Concat(endsymai);
+          end;
+        inherited;
+      end;
+
+
+{ ********************************* }
+{ ********************************* }
+
   constructor thlcgllvm.create(ACompiler: TCompilerBase);
     begin
       inherited;
       fcg:=cgllvm.create_codegen(compiler)
     end;
-
 
   procedure thlcgllvm.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
     begin
@@ -1498,34 +1594,6 @@ implementation
     end;
 
 
-  procedure thlcgllvm.gen_proc_symbol(list: TAsmList);
-    var
-      item: TCmdStrListItem;
-      mangledname: TSymStr;
-      asmsym: tasmsymbol;
-    begin
-      if po_external in compiler.current_procinfo.procdef.procoptions then
-        exit;
-      item:=TCmdStrListItem(compiler.current_procinfo.procdef.aliasnames.first);
-      mangledname:=compiler.current_procinfo.procdef.mangledname;
-      { predefine the real function name as local/global, so the aliases can
-        refer to the symbol and get the binding correct }
-      if (cs_profile in compiler.globals.current_settings.moduleswitches) or
-         (po_global in compiler.current_procinfo.procdef.procoptions) then
-        asmsym:=list.AsmData.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,compiler.current_procinfo.procdef)
-      else
-        asmsym:=list.AsmData.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,compiler.current_procinfo.procdef);
-      while assigned(item) do
-        begin
-          if mangledname<>item.Str then
-            list.concat(taillvmalias.create(asmsym,item.str,compiler.current_procinfo.procdef,asmsym.bind));
-          item:=TCmdStrListItem(item.next);
-        end;
-      list.concat(taillvmdecl.createdef(asmsym,compiler.current_procinfo.procdef.procsym,compiler.current_procinfo.procdef,nil,sec_code,compiler.current_procinfo.procdef.alignment));
-      compiler.current_procinfo.procdef.procstarttai:=tai(list.last);
-    end;
-
-
   procedure thlcgllvm.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
     begin
       { don't do anything, because at this point we can't know yet for certain
@@ -2287,18 +2355,18 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_llvm(compiler: TCompilerBase);
+  procedure create_hlcodegen_llvm(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
       if not assigned(compiler.current_procinfo) or
          not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           tgobjclass:=ttgllvm;
-          tcompiler(compiler).hlcg:=thlcgllvm.create(compiler);
+          tcompiler(compiler).hlcg:=thlcgllvm.create(thlcgllvmhelpers,compiler);
         end
       else
         begin
           tgobjclass:=orgtgclass;
-          create_hlcodegen_cpu(compiler);
+          create_hlcodegen_cpu(thlcgllvmhelpers,compiler);
           { todo: handle/remove chlcgobj }
         end;
     end;

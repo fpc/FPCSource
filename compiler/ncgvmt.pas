@@ -1417,7 +1417,7 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifndef cpuhighleveltarget}
-        create_hlcodegen(compiler);
+        create_hlcodegen(thlcgobjhelpers,compiler);
 {$endif}
         do_write_vmts(asmdata,st,is_global);
 {$ifndef cpuhighleveltarget}

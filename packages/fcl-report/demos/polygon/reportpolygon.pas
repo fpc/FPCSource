@@ -3,11 +3,7 @@ unit reportpolygon;
 {$mode objfpc}{$H+}
 
 {$DEFINE NATIVERENDERER}
-{ $DEFINE EXPORTFPIMAGE}
-{ $DEFINE EXPORTPDF}
-{ $DEFINE EXPORTLCL}
-{ $DEFINE EXPORTAGGPAS}
-{ $DEFINE EXPORTFPGUI}
+{$I demos.inc}
 
 interface
 
@@ -150,7 +146,8 @@ begin
   if ANumber<3 then
     exit;
   C.X:=AOffset.Left+E.RTLayout.Left+E.RTLayout.Width / 2;
-  C.Y:=AOffset.Top+E.RTLayout.Top+E.RTLayout.Height / 2;
+  { PDF origin coordinate is Bottom-Left, and Report Layout is Top-Left }
+  C.Y:=AOffset.Top+E.RTLayout.Top-E.RTLayout.Height / 2;
   if E.RTLayout.Width<E.RTLayout.Height then
     R:=E.RTLayout.Width / 2
   else

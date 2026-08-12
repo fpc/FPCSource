@@ -367,9 +367,9 @@ implementation
            { This does not depend on the target version but on the toolchain
              version, but we only know the former and not the latter }
            if compiler.target.MacOSXVersionMin.relationto(11,0,0)>=0 then
-             result:='-macosx_version_min '+compiler.target.MacOSXVersionMin.str
+             result:='-macos_version_min '+compiler.target.MacOSXVersionMin.str
            else
-             result:='-macos_version_min '+compiler.target.MacOSXVersionMin.str;
+             result:='-macosx_version_min '+compiler.target.MacOSXVersionMin.str;
           end
         else if compiler.target.iPhoneOSVersionMin.isvalid then
           begin

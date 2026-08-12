@@ -892,11 +892,16 @@ implementation
                  (hp.vardef.size<>0) then
                 begin
                   case hp.varspez of
-                    vs_value,
-                    vs_const:
-                      begin
+                    vs_value:
+                      if not(compiler.target.info.system in systems_caller_copy_addr_value_para) then
                         encodedstr:=encodedstr+' readonly dereferenceable('
-                      end;
+                      else
+                        { if the copy got made on the caller side, it can
+                          be modified on the callee side (but it can't alias
+                          anything else, since it's a unique copy) }
+                        encodedstr:=encodedstr+' noalias dereferenceable(';
+                    vs_const:
+                       encodedstr:=encodedstr+' readonly dereferenceable(';
                     vs_var,
                     vs_out:
                       begin

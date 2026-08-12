@@ -6,7 +6,7 @@ uses ps1System;
 const
   DMA_MAX_CHUNK_SIZE    =  16;
   CHAIN_BUFFER_SIZE : dword = 1024 * 7;
-  ORDERING_TABLE_SIZE : dword = 1024;
+  ORDERING_TABLE_SIZE : dword = 1024 * 4;
 
 
 // --- GP0 drawing attributes ---
@@ -140,8 +140,8 @@ function gp1_acknowledge: LongWord; inline;
 function gp1_dispBlank(blank: Boolean): LongWord; inline;
 function gp1_dmaRequestMode(mode: LongInt): LongWord; inline;
 function gp1_fbOffset(x, y: LongWord): LongWord; inline;
-function gp1_fbRangeH(low, high: LongWord): LongWord; inline;
-function gp1_fbRangeV(low, high: LongWord): LongWord; inline;
+function gp1_fbRangeH(low, high: LongInt): LongWord; inline;
+function gp1_fbRangeV(low, high: LongInt): LongWord; inline;
 function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: LongInt): LongWord; inline;
 function gp1_vramSize(size: LongInt): LongWord; inline;
 
@@ -211,16 +211,18 @@ begin
   Result := ((x and $3F) shl 0) or ((y and $3FF) shl 6);
 end;
 
-function gp0_xy(x, y: Integer): LongWord;
+function gp0_xy(x, y: LongInt): LongWord;
 begin
-  Result := ((x and $FFFF))
-          or ((y and $FFFF) shl 16);
+  Result := (LongWord(x) and $FFFF)
+         or ((LongWord(y) and $FFFF) shl 16);
 end;
 
 
 function gp0_uv(u, v: LongWord; attr: Word): LongWord;
 begin
-  Result := (u and $FF) or ((v and $FF) shl 8) or ((attr and $FFFF) shl 16);
+  Result := (u and $FF)
+       or ((v and $FF) shl 8)
+       or (LongWord(attr) shl 16);
 end;
 
 function gp0_rgb(r, g, b: Byte): LongWord;
@@ -410,14 +412,18 @@ begin
   Result := GP1_CMD_FB_OFFSET or ((x and $3FF) shl 0) or ((y and $3FF) shl 10);
 end;
 
-function gp1_fbRangeH(low, high: LongWord): LongWord; inline;
+function gp1_fbRangeH(low, high: LongInt): LongWord;
 begin
-  Result := GP1_CMD_FB_RANGE_H or ((low and $FFF) shl 0) or ((high and $FFF) shl 12);
+  Result := GP1_CMD_FB_RANGE_H
+         or ((LongWord(low)  and $FFF) shl 0)
+         or ((LongWord(high) and $FFF) shl 12);
 end;
 
-function gp1_fbRangeV(low, high: LongWord): LongWord; inline;
+function gp1_fbRangeV(low, high: LongInt): LongWord;
 begin
-  Result := GP1_CMD_FB_RANGE_V or ((low and $3FF) shl 0) or ((high and $3FF) shl 10);
+  Result := GP1_CMD_FB_RANGE_V
+         or ((LongWord(low)  and $3FF) shl 0)
+         or ((LongWord(high) and $3FF) shl 10);
 end;
 
 function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: LongInt): LongWord; inline;
@@ -495,6 +501,14 @@ begin
   setlength(dmaChains[1].data, chainSize);
   setlength(dmaChains[1].orderingTable, OTsize);
 
+  if chainSize > 0 then begin
+    dmaChains[0].nextPacket := @dmaChains[0].data[0];
+    dmaChains[1].nextPacket := @dmaChains[1].data[0];
+  end;
+
+  FillDWord(dmaChains[0].orderingTable[0], OTsize, $00FFFFFF);
+  FillDWord(dmaChains[1].orderingTable[0], OTsize, $00FFFFFF);
+
   DMA_DPCR:= DMA_DPCR or DMA_DPCR_CH_ENABLE(DMA_GPU) or DMA_DPCR_CH_ENABLE(DMA_OTC);
 
   GPU_GP1:= gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
@@ -533,8 +547,8 @@ begin
 
     end else begin
 
-      while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do ;
-      IRQ_STAT := not (1 shl IRQ_VSYNC);
+      while (IRQ_STAT and (Word(1) shl IRQ_VSYNC)) = 0 do ;
+      IRQ_STAT := Word(not (Word(1) shl IRQ_VSYNC));
 
       inc(vblankCount);
 
@@ -647,6 +661,10 @@ end;
 procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: Integer);
 begin
 
+  if (x < 0) or (y < 0) then exit;
+  if (width < 0) or (height < 0) then exit;
+  if (width > 65535) or (height > 65535) then exit;
+
   sendVRAMData(data, x, y, width, height);
   waitForDMADone;
 
@@ -665,6 +683,10 @@ var
   numColors, widthDivider: Integer;
 
 begin
+
+  if (imageX < 0) or (imageY < 0) then exit;
+  if (width < 0) or (height < 0) then exit;
+  if (width > 65535) or (height > 65535) then exit;
 
   if colorDepth = GP0_COLOR_8BPP then begin
     numColors := 256;

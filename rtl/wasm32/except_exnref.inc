@@ -149,6 +149,8 @@ begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
+  if Assigned(WasmOnException) then
+    WasmOnException(Obj,AnAddr,aFrame);
   if ExceptTryLevel<>0 then
     Halt(217);
   ExceptTryLevel:=1;

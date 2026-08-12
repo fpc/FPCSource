@@ -50,6 +50,23 @@ begin
           AddUnit('pscanner');
           AddUnit('pparser');
         end;
+    T:=P.Targets.AddUnit('pasnativeresolve.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+          AddUnit('pscanner');
+          AddUnit('pparser');
+          AddUnit('pasresolver');
+        end;
+    T:=P.Targets.AddUnit('pasdataflow.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+          AddUnit('pscanner');
+          AddUnit('pparser');
+          AddUnit('pasresolver');
+          AddUnit('pasresolveeval');
+        end;
     T:=P.Targets.AddUnit('pastounittest.pp');
       with T.Dependencies do
         begin

@@ -95,9 +95,14 @@ Type
   ECSSScanner = Class(ECSSException);
 
   TCSSLineReader = class
+  protected
+    // 0-based byte offset of the next character to be read (i.e. the start of
+    // the line returned by the next ReadLine call).
+    function GetPosition: Integer; virtual; abstract;
   public
     function IsEOF: Boolean; virtual; abstract;
     function ReadLine: TCSSString; virtual; abstract;
+    property Position: Integer read GetPosition;
   end;
 
   { TCSSStreamLineReader }
@@ -108,7 +113,10 @@ Type
     Buffer : Array[0..1024] of Byte;
     FBufPos,
     FBufLen : Integer;
+    FBufStart : Integer; // 0-based stream offset of Buffer[0]
     procedure FillBuffer;
+  protected
+    function GetPosition: Integer; override;
   public
     Constructor Create(AStream : TStream);
     function IsEOF: Boolean; override;
@@ -119,6 +127,9 @@ Type
   private
     FTextFile: Text;
     FileOpened: Boolean;
+    FPosition: Integer; // 0-based offset of the start of the next line
+  protected
+    function GetPosition: Integer; override;
   public
     constructor Create(const AFilename: TCSSString);
     destructor Destroy; override;
@@ -133,6 +144,32 @@ Type
   TCSSScannerWarnEvent = function(Sender: TObject; Msg: TCSSString; aRow, aCol: integer
     ): boolean of object; // returns true to continue, false to raise an exception
 
+  // A line as delivered by the line reader, together with its stream offset.
+  TCSSScannerLine = record
+    Line: TCSSString;
+    LineStart: Integer; // 0-based stream offset of the start of Line
+  end;
+  TCSSScannerLines = array of TCSSScannerLine;
+
+  // Result of TCSSScanner.SearchStatementEndInCurLine
+  TCSSStatementEnd = (
+    cseUnknown, // the rest of the current line does not tell
+    cseLBrace,  // found a '{', i.e. the statement is a rule
+    cseEnd      // found a ';' or '}', i.e. the statement is a declaration
+    );
+
+  // Complete scanner position, see TCSSScanner.SaveState.
+  TCSSScannerState = record
+    Line: TCSSString;
+    TokenOfs: Integer; // offset of TokenStr within Line, -1 if TokenStr=nil
+    Row, LineStart: Integer;
+    Token: TCSSToken;
+    TokenString: TCSSString;
+    TokenRow, TokenCol, TokenPos: Integer;
+    PrevToken: TCSSToken;
+    Options: TCSSScannerOptions;
+  end;
+
   TCSSScanner = class
   private
     FPreviousToken: TCSSToken;
@@ -141,12 +178,22 @@ Type
     FSourceFile: TCSSLineReader;
     FSourceFilename: TCSSString;
     FCurRow: Integer;
+    FCurLineStart: Integer; // 0-based stream offset of the start of FCurLine
+    FCurTokenRow: Integer;
+    FCurTokenColumn: Integer;
+    FCurTokenPos: Integer;
     FCurToken: TCSSToken;
     FCurTokenString: TCSSString;
     FCurLine: TCSSString;
     TokenStr: PCSSChar;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
+    // The line reader cannot seek. To allow RestoreState to rewind across line
+    // boundaries the lines read since SaveState are recorded and served again.
+    FRecordLines: Boolean;
+    FRecordedLines: TCSSScannerLines; // lines fetched since SaveState
+    FPendingLines: TCSSScannerLines;  // lines to serve before reading the source
+    FPendingLinePos: Integer;
     function DoHash: TCSSToken;
     function DoIdentifierLike : TCSSToken;
     function DoInvalidChars : TCSSToken;
@@ -176,6 +223,12 @@ Type
     procedure OpenFile(const AFilename: TCSSString);
     Function FetchToken: TCSSToken;
     function IsUTF8BOM: boolean;
+    function SearchStatementEndInCurLine: TCSSStatementEnd;
+    // Speculative scanning: SaveState remembers the current position and starts
+    // recording lines, RestoreState rewinds to it, DropState commits.
+    function SaveState: TCSSScannerState;
+    procedure RestoreState(const aState: TCSSScannerState);
+    procedure DropState;
     Property ReturnComments : Boolean Index csoReturnComments Read GetOption Write SetOption;
     Property ReturnWhiteSpace : Boolean Index csoReturnWhiteSpace Read GetOption Write SetOption;
     Property Options : TCSSScannerOptions Read FOptions Write FOptions;
@@ -184,6 +237,9 @@ Type
     property CurLine: TCSSString read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
+    property CurTokenRow: Integer read FCurTokenRow; // row of the start of the current token
+    property CurTokenColumn: Integer read FCurTokenColumn; // column of the start of the current token
+    property CurTokenPos: Integer read FCurTokenPos; // 0-based stream position of the start of the current token
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
     property PreviousToken: TCSSToken read FPreviousToken;
@@ -322,9 +378,17 @@ begin
   Result := EOF(FTextFile);
 end;
 
+function TCSSFileLineReader.GetPosition: Integer;
+begin
+  Result:=FPosition;
+end;
+
 function TCSSFileLineReader.ReadLine: TCSSString;
 begin
   ReadLn(FTextFile, Result);
+  // ReadLn strips the line ending, so the exact ending length is unknown here.
+  // Assume the platform line ending; byte-exact positions require the stream reader.
+  Inc(FPosition,Length(Result)+Length(LineEnding));
 end;
 
 constructor TCSSScanner.Create(ALineReader: TCSSLineReader);
@@ -354,19 +418,211 @@ begin
 end;
 
 function TCSSScanner.FetchLine: Boolean;
+var
+  l: Integer;
 begin
-  if FSourceFile.IsEOF then
+  if FPendingLinePos<Length(FPendingLines) then
+    begin
+    // a line read during a speculative scan, served again after RestoreState
+    FCurLineStart := FPendingLines[FPendingLinePos].LineStart;
+    FCurLine := FPendingLines[FPendingLinePos].Line;
+    Inc(FPendingLinePos);
+    if FPendingLinePos=Length(FPendingLines) then
+      begin
+      FPendingLines := nil;
+      FPendingLinePos := 0;
+      end;
+    end
+  else if FSourceFile.IsEOF then
   begin
     FCurLine := '';
     TokenStr := nil;
     Result := false;
+    exit;
   end else
   begin
+    // Capture the stream offset before reading, so it points at the line start.
+    FCurLineStart := FSourceFile.Position;
     FCurLine := FSourceFile.ReadLine;
-    TokenStr := PCSSChar(CurLine);
-    Result := true;
-    Inc(FCurRow);
   end;
+  if FRecordLines then
+    begin
+    l := Length(FRecordedLines);
+    SetLength(FRecordedLines,l+1);
+    FRecordedLines[l].Line := FCurLine;
+    FRecordedLines[l].LineStart := FCurLineStart;
+    end;
+  TokenStr := PCSSChar(CurLine);
+  Result := true;
+  Inc(FCurRow);
+end;
+
+function TCSSScanner.SearchStatementEndInCurLine: TCSSStatementEnd;
+// Read the rest of the current line, without fetching any token, and search for
+// the end of the statement which starts with the current token:
+// a '{' means the statement is a rule, a ';' or '}' means it is a declaration.
+// '{' within round or edged brackets are skipped.
+// The result is cseUnknown if the line ends first, or if a comment or a string
+// might continue on the next line.
+var
+  p: PCSSChar;
+  Depth: Integer;
+  Delim: TCSSChar;
+  First: Boolean;
+begin
+  Result:=cseUnknown;
+  p:=TokenStr;
+  if p=nil then exit;
+  Depth:=0;
+  First:=true;
+  repeat
+    case p[0] of
+    #0:
+      exit; // end of line
+    ' ',#9:
+      ; // whitespace, the statement continues
+    '''','"':
+      begin
+      // a string, note that it cannot span lines
+      Delim:=p[0];
+      Inc(p);
+      while p[0]<>Delim do
+        begin
+        if p[0]=#0 then exit; // unterminated, let the scanner complain
+        if p[0]='\' then
+          begin
+          Inc(p);
+          if p[0]=#0 then exit;
+          end;
+        Inc(p);
+        end;
+      First:=false;
+      end;
+    '/':
+      case p[1] of
+      '/':
+        exit; // a comment till the end of the line
+      '*':
+        begin
+        // a comment, which can span lines
+        Inc(p,2);
+        while not ((p[0]='*') and (p[1]='/')) do
+          begin
+          if p[0]=#0 then exit; // it continues on the next line
+          Inc(p);
+          end;
+        Inc(p); // the '/' is skipped below
+        end
+      else
+        First:=false;
+      end;
+    '\':
+      begin
+      // an escaped character
+      Inc(p);
+      if p[0]=#0 then exit;
+      First:=false;
+      end;
+    ':':
+      begin
+      if First and ((csoDisablePseudo in FOptions)
+          or not ((p[1]=':') or (p[1] in AlNumIden))) then
+        // a plain ':' right behind the first token, e.g. 'color: red',
+        // in other words: not a pseudo class or element like 'div:hover'
+        exit(cseEnd);
+      First:=false;
+      end;
+    '(','[':
+      begin
+      Inc(Depth);
+      First:=false;
+      end;
+    ')',']':
+      begin
+      if Depth=0 then exit(cseEnd);
+      Dec(Depth);
+      First:=false;
+      end;
+    '{':
+      begin
+      if Depth=0 then exit(cseLBrace);
+      First:=false;
+      end;
+    ';','}':
+      begin
+      if Depth=0 then exit(cseEnd);
+      First:=false;
+      end;
+    else
+      First:=false;
+    end;
+    Inc(p);
+  until false;
+end;
+
+function TCSSScanner.SaveState: TCSSScannerState;
+begin
+  Result.Line := FCurLine;
+  if TokenStr=nil then
+    Result.TokenOfs := -1
+  else if Length(FCurLine)=0 then
+    Result.TokenOfs := 0 // see GetCurColumn: PCSSChar of an empty string
+  else
+    Result.TokenOfs := TokenStr - PCSSChar(FCurLine);
+  Result.Row := FCurRow;
+  Result.LineStart := FCurLineStart;
+  Result.Token := FCurToken;
+  Result.TokenString := FCurTokenString;
+  Result.TokenRow := FCurTokenRow;
+  Result.TokenCol := FCurTokenColumn;
+  Result.TokenPos := FCurTokenPos;
+  Result.PrevToken := FPreviousToken;
+  Result.Options := FOptions;
+  FRecordedLines := nil;
+  FRecordLines := true;
+end;
+
+procedure TCSSScanner.RestoreState(const aState: TCSSScannerState);
+var
+  i, Cnt: Integer;
+  NewPending: TCSSScannerLines;
+begin
+  FRecordLines := false;
+  // The lines fetched since SaveState must be served again, followed by the
+  // lines which were still pending at that time.
+  NewPending := nil;
+  Cnt := Length(FPendingLines)-FPendingLinePos;
+  SetLength(NewPending,Length(FRecordedLines)+Cnt);
+  for i := 0 to Length(FRecordedLines)-1 do
+    NewPending[i] := FRecordedLines[i];
+  for i := 0 to Cnt-1 do
+    NewPending[Length(FRecordedLines)+i] := FPendingLines[FPendingLinePos+i];
+  FPendingLines := NewPending;
+  FPendingLinePos := 0;
+  FRecordedLines := nil;
+
+  FCurLine := aState.Line;
+  if aState.TokenOfs<0 then
+    TokenStr := nil
+  else if Length(FCurLine)=0 then
+    TokenStr := PCSSChar(FCurLine)
+  else
+    TokenStr := PCSSChar(FCurLine)+aState.TokenOfs;
+  FCurRow := aState.Row;
+  FCurLineStart := aState.LineStart;
+  FCurToken := aState.Token;
+  FCurTokenString := aState.TokenString;
+  FCurTokenRow := aState.TokenRow;
+  FCurTokenColumn := aState.TokenCol;
+  FCurTokenPos := aState.TokenPos;
+  FPreviousToken := aState.PrevToken;
+  FOptions := aState.Options;
+end;
+
+procedure TCSSScanner.DropState;
+begin
+  FRecordLines := false;
+  FRecordedLines := nil;
 end;
 
 function TCSSScanner.DoWhiteSpace : TCSSToken;
@@ -909,7 +1165,12 @@ begin
       exit;
       end;
     end;
-  //CurPos:=TokenStr;
+  FCurTokenRow:=FCurRow;
+  if (TokenStr=Nil) or (Length(CurLine)=0) then
+    FCurTokenColumn:=0
+  else
+    FCurTokenColumn:=TokenStr - PCSSChar(CurLine);
+  FCurTokenPos:=FCurLineStart+FCurTokenColumn;
   FCurTokenString := '';
   case TokenStr[0] of
     #0:         // EOL
@@ -1078,6 +1339,12 @@ begin
   FStream:=AStream;
   FBufPos:=0;
   FBufLen:=0;
+  FBufStart:=0;
+end;
+
+function TCSSStreamLineReader.GetPosition: Integer;
+begin
+  Result:=FBufStart+FBufPos;
 end;
 
 function TCSSStreamLineReader.IsEOF: Boolean;
@@ -1093,6 +1360,7 @@ end;
 procedure TCSSStreamLineReader.FillBuffer;
 
 begin
+  Inc(FBufStart,FBufLen); // account for the bytes of the buffer we are replacing
   FBufLen:=FStream.Read(Buffer,SizeOf(Buffer)-1);
   Buffer[FBufLen]:=0;
   FBufPos:=0;

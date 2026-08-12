@@ -85,7 +85,7 @@ interface
         the value to be returned; replacing it with an absolutevarsym that
         redirects to the field in the parentfpstruct doesn't work, as the code
         generator cannot deal with such symbols }
-       procedure load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
+       procedure load_parentfpstruct_nested_funcret(ressym: tsym; resdef: tdef; var stat: tstatementnode);
       { called after parsing a routine with the code of the entire routine
         as argument; can be used to modify the node tree. By default handles
         insertion of code for systems that perform the typed constant
@@ -669,18 +669,29 @@ implementation
     end;
 
 
-  procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
+  procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; resdef: tdef; var stat: tstatementnode);
     var
-      target: tnode;
+      src, target: tloadnode;
     begin
       target:=compiler.cloadnode(ressym, ressym.owner);
       { ensure the target of this assignment doesn't translate the
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
+      src:=compiler.cloadnode(ressym, ressym.owner);
+      if tabstractnormalvarsym(ressym).vardef<>resdef then
+        begin
+          { the resultdef of TP-style object constructors is the object itself,
+            but in practice they return a pointer to the object (the self
+            pointer) }
+          if (resdef.typ<>pointerdef) or
+             (tpointerdef(resdef).pointeddef<>tabstractnormalvarsym(ressym).vardef) then
+            internalerror(2026072310);
+          include(src.loadnodeflags, loadnf_load_addr);
+          include(target.loadnodeflags, loadnf_load_addr);
+        end;
+
       addstatement(stat,
-        compiler.cassignmentnode(
-          target, compiler.cloadnode(ressym, ressym.owner)
-        )
+        compiler.cassignmentnode(target,src)
       );
     end;
 
@@ -784,7 +795,7 @@ implementation
         begin
           block:=internalstatements(compiler,stat);
           addstatement(stat,result);
-          load_parentfpstruct_nested_funcret(ressym,stat);
+          load_parentfpstruct_nested_funcret(ressym,resdef,stat);
           result:=block;
         end;
     end;

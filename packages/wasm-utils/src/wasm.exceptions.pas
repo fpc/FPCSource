@@ -39,10 +39,13 @@ Type
 function GetLastExceptionInfo : PLastExceptionInfo;
 procedure FreeLastExceptionInfo(aInfo : PLastExceptionInfo);
 
+Procedure LogWasmExceptions(aEnable  : boolean; aToConsole : Boolean);
+
 implementation
 
-function PopObjectStack : TObject; external name 'FPC_POPOBJECTSTACK';
+uses wasm.logger.api;
 
+function PopObjectStack : TObject; external name 'FPC_POPOBJECTSTACK';
 
 function GetLastExceptionInfo : PLastExceptionInfo;
 
@@ -83,6 +86,45 @@ end;
 procedure FreeLastExceptionInfo(aInfo : PLastExceptionInfo);
 begin
   Dispose(aInfo);
+end;
+
+var
+  _LogToConsole : Boolean;
+  
+Procedure DoLogWasmException(Obj : TObject; AnAddr : CodePointer; aFrame : Pointer);
+var
+  aClass : String;
+  aMessage : String;
+  lLog : String;
+begin
+  if assigned(Obj) then
+    begin
+    aClass:=Obj.ClassName;
+    if Obj is Exception then
+      aMessage:=Exception(Obj).Message
+    else  
+      aMessage:=Obj.ToString;
+    end
+  else
+    begin
+    aMessage:='';
+    aClass:='<Nil>';  
+    end;
+  lLog:=SafeFormat('Raising exception %s with message "%s"',[aClass,aMessage]);
+  if _LogToConsole then
+    Writeln(lLog)
+  else  
+    __wasm_log(wllDebug,'SYSTEM',lLog);
+end;
+
+Procedure LogWasmExceptions(aEnable  : boolean; aToConsole : Boolean);
+begin
+  Writeln('LogWasmExceptions(',aEnable,',',aToConsole);
+  _LogToConsole:=aToConsole;  
+  if aEnable then
+    WasmOnException:=@DoLogWasmException
+  else  
+    WasmOnException:=Nil;
 end;
 
 exports

@@ -48,9 +48,38 @@ Type
     function BytesAvailable: Integer; override;
     // Result of last CheckSSL call.
     Function SSLLastError: integer;
+    // Negotiated ALPN protocol after a completed handshake; '' when nothing negotiated
+    // or FSSL is not yet created. Overrides the provider-neutral base virtual (Story 4.4).
+    function GetSelectedALPNProtocol: string; override;
     property SSLLastErrorString: string read FSSLLastErrorString write SetSSLLastErrorString;
     property SSL: TSSL read FSSL; // allow more lower level info and control
   end;
+
+// --- RFC 9113 §9.2 TLS floor predicates (Story 4.5) ---------------------------
+// Pure, socket-free decisions over the negotiated TLS version string and cipher
+// name. They reference no socket, no FSSL, no connection state and no globals,
+// so they are callable from a throwaway test with literal strings (NFR7). The
+// live policy in TOpenSSLSocketHandler.InitContext / Accept (below) is the only
+// caller in the library.
+
+// True when the ALPN list (comma-separated, e.g. 'h2,http/1.1') offers the 'h2'
+// token. Case/space-insensitive *token* match -- NOT a substring test, so
+// 'h2c' and 'h2-foo' must NOT match.
+Function ALPNListOffersH2(const aALPNList: string): Boolean;
+
+// RFC 9113 §9.2: TLS 1.2 or higher. aVersion is TSSL.Version
+// ('TLSv1.2','TLSv1.3','TLSv1.1','TLSv1','SSLv3',...).
+Function H2TLSVersionAdequate(const aVersion: string): Boolean;
+
+// RFC 9113 §9.2.2: prohibit the Appendix-A cipher suites. Practical equivalent
+// (see story Dev Notes): require an AEAD cipher (GCM / CHACHA20-POLY1305 / CCM)
+// with ephemeral key exchange (ECDHE/DHE), OR any TLS 1.3 cipher (TLS 1.3 suites
+// are never on the §9.2.2 list). aCipherName is TSSL.CipherName (OpenSSL name,
+// e.g. 'ECDHE-RSA-AES128-GCM-SHA256').
+Function H2CipherAdequate(const aVersion, aCipherName: string): Boolean;
+
+// The combined §9.2 floor decision used by the Accept wiring.
+Function H2TLSFloorMet(const aVersion, aCipherName: string): Boolean;
 
 implementation
 
@@ -59,6 +88,104 @@ Resourcestring
   SErrNoLibraryInit = 'Could not initialize OpenSSL library';
   SErrCouldNotCreateSelfSignedCertificate = 'Failed to create self-signed certificate';
   SErrCouldNotInitSSLKeys = 'Failed to initialize SSL keys';
+  SErrH2InadequateSecurity = 'h2 refused: TLS parameters below RFC 9113 §9.2 floor (version=%s cipher=%s)';
+
+Const
+  // openssl/tls1.h. Passed to TSSLContext.SetMinProtoVersion to enforce the
+  // RFC 9113 §9.2 floor (TLS >= 1.2) when h2 is offered (Story 4.5). Lives here,
+  // at the call site, rather than in fpopenssl/openssl.pas (see story Task 1).
+  TLS1_2_VERSION = $0303;
+
+{ --- RFC 9113 §9.2 TLS floor predicates (Story 4.5): pure, socket-free --- }
+
+// Parse an OpenSSL TLS version string ('TLSv1.2','TLSv1.3','TLSv1',...) into
+// major/minor. Returns False for anything that is not a 'TLSv' string (e.g.
+// 'SSLv3'), which the floor treats as inadequate.
+Function ParseTLSVersion(const aVersion: string; out aMajor, aMinor: Integer): Boolean;
+var
+  v, rest: string;
+  dotPos, code: Integer;
+begin
+  Result := False;
+  aMajor := 0;
+  aMinor := 0;
+  v := UpperCase(Trim(aVersion));
+  if Copy(v, 1, 4) <> 'TLSV' then
+    Exit;                              // SSLv3 and unknowns -> not adequate
+  rest := Copy(v, 5, Length(v));       // '1.2', '1.3', '1', '1.1', ...
+  dotPos := Pos('.', rest);
+  if dotPos > 0 then
+    begin
+    Val(Copy(rest, 1, dotPos - 1), aMajor, code);
+    if code <> 0 then Exit;
+    Val(Copy(rest, dotPos + 1, Length(rest)), aMinor, code);
+    if code <> 0 then Exit;
+    end
+  else
+    begin
+    Val(rest, aMajor, code);           // 'TLSv1' -> major 1, minor 0
+    if code <> 0 then Exit;
+    aMinor := 0;
+    end;
+  Result := True;
+end;
+
+Function ALPNListOffersH2(const aALPNList: string): Boolean;
+var
+  i, start, len: Integer;
+begin
+  Result := False;
+  // Token match on a comma-separated list, case/space-insensitive. Hand-rolled
+  // split on ',' (rather than strutils.SplitString) to avoid adding a new unit
+  // dependency to this package. Splitting on ',' guarantees 'h2c'/'h2-foo' are
+  // distinct tokens and never match the 'h2' token.
+  len := Length(aALPNList);
+  start := 1;
+  for i := 1 to len + 1 do
+    if (i > len) or (aALPNList[i] = ',') then
+      begin
+      if LowerCase(Trim(Copy(aALPNList, start, i - start))) = 'h2' then
+        Exit(True);
+      start := i + 1;
+      end;
+end;
+
+Function H2TLSVersionAdequate(const aVersion: string): Boolean;
+var
+  major, minor: Integer;
+begin
+  // §9.2: TLS >= 1.2.
+  Result := ParseTLSVersion(aVersion, major, minor)
+            and ((major > 1) or ((major = 1) and (minor >= 2)));
+end;
+
+Function H2CipherAdequate(const aVersion, aCipherName: string): Boolean;
+var
+  major, minor: Integer;
+  c: string;
+  isAEAD, isPFS: Boolean;
+begin
+  // TLS 1.3 (or higher): every standardized suite is AEAD + forward-secret and
+  // none appear on the RFC 9113 §9.2.2 (Appendix A) prohibited list -> adequate
+  // for any cipher.
+  if ParseTLSVersion(aVersion, major, minor)
+     and ((major > 1) or ((major = 1) and (minor >= 3))) then
+    Exit(True);
+  // TLS 1.2: §9.2.2 prohibits everything that is NOT an AEAD cipher using
+  // ephemeral (forward-secret) key exchange. Expressed as the AEAD+PFS allowlist
+  // -- the practical equivalent of the ~270-entry Appendix-A blocklist, matching
+  // how mainstream h2 servers (nginx/h2o/nghttp2) enforce it. This is the
+  // security-load-bearing decision: keep the token set named and commented.
+  c := UpperCase(aCipherName);
+  isAEAD := (Pos('GCM', c) > 0) or (Pos('CHACHA20', c) > 0) or (Pos('CCM', c) > 0);
+  isPFS  := (Pos('ECDHE', c) > 0) or (Pos('EDH', c) > 0) or (Pos('DHE', c) > 0);
+  Result := isAEAD and isPFS;
+end;
+
+Function H2TLSFloorMet(const aVersion, aCipherName: string): Boolean;
+begin
+  Result := H2TLSVersionAdequate(aVersion) and H2CipherAdequate(aVersion, aCipherName);
+end;
 
 Procedure MaybeInitSSLInterface;
 
@@ -268,6 +395,18 @@ begin
      DoneContext;
      raise ESSL.Create(SErrCouldNotInitSSLKeys);
      end;
+   // ALPN install — runs on both Accept (server, drives select callback) and Connect
+   // (client, sends offer). Sourced from the provider-neutral CertificateData.ALPNProtocols
+   // (Story 4.4). Inert when empty, so existing TLS users are byte-for-byte unchanged (NFR1).
+   // Must happen after FCTX config and before FSSL exists.
+   if CertificateData.ALPNProtocols <> '' then
+     FCTX.SetALPNProtocols(CertificateData.ALPNProtocols);
+   // RFC 9113 §9.2 TLS floor (Story 4.5): when h2 is offered, require TLS >= 1.2,
+   // so a peer that can only do TLS < 1.2 simply fails the handshake. Gated on the
+   // h2 offer so non-h2 TLS users are byte-for-byte unchanged (NFR1). No max-version
+   // cap -> TLS 1.3 stays available.
+   if ALPNListOffersH2(CertificateData.ALPNProtocols) then
+     FCTX.SetMinProtoVersion(TLS1_2_VERSION);
    try
      FSSL:=TSSL.Create(FCTX);
      Result:=True;
@@ -287,6 +426,20 @@ begin
     Result:=CheckSSL(FSSL.setfd(Socket.Handle));
     if Result then
       Result:=CheckSSL(FSSL.Accept);
+    end;
+  // RFC 9113 §9.2.2 (Story 4.5): a negotiated h2 connection MUST meet the cipher
+  // floor; otherwise refuse it (INADEQUATE_SECURITY-class). The (version,cipher)
+  // pair is inspected ONLY when h2 was actually negotiated, so non-h2 TLS
+  // connections are never affected (NFR1). H2TLSFloorMet also re-checks the TLS
+  // version, catching any build/config that somehow negotiated h2 below TLS 1.2
+  // despite the preventive InitContext gate.
+  if Result and (GetSelectedALPNProtocol = 'h2')
+     and not H2TLSFloorMet(FSSL.Version, FSSL.CipherName) then
+    begin
+    SetSSLLastErrorString(Format(SErrH2InadequateSecurity, [FSSL.Version, FSSL.CipherName]));
+    DoneContext;            // frees FSSL/FCTX + SetSSLActive(False): same failed state as any Accept failure
+    Result:=False;
+    Exit;                   // DoneContext already called SetSSLActive(False)
     end;
   SetSSLActive(Result);
 end;
@@ -371,6 +524,14 @@ end;
 Function TOpenSSLSocketHandler.SSLLastError: integer;
 begin
   Result:=FSSLLastError;
+end;
+
+function TOpenSSLSocketHandler.GetSelectedALPNProtocol: string;
+begin
+  if Assigned(FSSL) then
+    Result:=FSSL.GetSelectedALPNProtocol
+  else
+    Result:='';
 end;
 
 initialization

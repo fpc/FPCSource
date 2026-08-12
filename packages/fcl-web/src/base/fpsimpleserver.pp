@@ -35,7 +35,7 @@ uses
   {$ELSE}
     FpWeb.HostApp.Custom.MicroHttpApp,
   {$ENDIF}
-  FpWeb.Route, FpWeb.Http.Defs, FpWeb.MimeTypes, FpWeb.Modules.Files, FpWeb.Modules.Proxy,
+  FpWeb.Route, FpWeb.Http.Defs, FpWeb.Http.Server, FpWeb.MimeTypes, FpWeb.Modules.Files, FpWeb.Modules.Proxy,
   FpWeb.Utils;
 {$ELSE}
   SysUtils, Classes,
@@ -50,7 +50,7 @@ uses
   {$ELSE}
     custmicrohttpapp,
   {$ENDIF}
-  types, jsonparser, strutils, inifiles, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy,
+  types, jsonparser, strutils, inifiles, httproute, httpdefs, fphttpserver, fpmimetypes, fpwebfile, fpwebproxy,
   webutil;
 {$ENDIF}
 Const
@@ -75,6 +75,7 @@ Type
     FBaseDir: string;
     FIndexPageName: String;
     FInterfaceAddress: String;
+    FThreadMode: TThreadMode;
     FMimeFile: String;
     FNoIndexPage: Boolean;
     FQuiet: Boolean;
@@ -169,6 +170,8 @@ Type
     Property IndexPageName : String Read FIndexPageName Write FIndexPageName;
     // Listen only on this interface address.
     Property InterfaceAddress : String Read FInterfaceAddress Write FInterfaceAddress;
+    // Connection handling model: none (serial, default), thread (one per connection) or threadpool.
+    Property ThreadMode : TThreadMode Read FThreadMode Write FThreadMode;
   end;
 
 implementation
@@ -201,6 +204,29 @@ Const
   KeyUploadDir = 'UploadDir';
   KeyUploadURL = 'UploadUrl';
   KeyUploadResponse = 'UploadResponse';
+  KeyThreadMode = 'ThreadMode';
+
+Function StrToThreadMode(const aValue : String; aDefault : TThreadMode) : TThreadMode;
+
+begin
+  Case LowerCase(aValue) of
+    'none','single','' : Result:=tmNone;
+    'polled','poll' : Result:=tmPolled;
+    'thread','threaded' : Result:=tmThread;
+    'pool','threadpool' : Result:=tmThreadPool;
+  else
+    Result:=aDefault;
+  end;
+end;
+
+Function ThreadModeToStr(aMode : TThreadMode) : String;
+
+Const
+  Names : Array[TThreadMode] of String = ('none','polled','thread','threadpool');
+
+begin
+  Result:=Names[aMode];
+end;
 
 {$IFDEF VER3_2}
 Type
@@ -572,6 +598,8 @@ begin
     IndexPageName:=GetOptionValue('i','indexpage');
   if HasOption('I','interface') then
     InterfaceAddress:=GetOptionValue('I','interface');
+  if HasOption('t','thread-mode') then
+    FThreadMode:=StrToThreadMode(GetOptionValue('t','thread-mode'),FThreadMode);
   if HasOption('a','max-age') then
     FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
   if HasOption('b','background') then
@@ -621,6 +649,15 @@ begin
   Writeln('                              %GUID% - upload file name location.');
   Writeln('                              %GUID% - upload file name location.');
   Writeln('-s --ssl              Use SSL.');
+  Writeln('-t --thread-mode=MODE Connection handling model. MODE is one of:');
+  Writeln('                        none   - Serial, single thread (default). Blocks while');
+  Writeln('                                 reading each connection.');
+  Writeln('                        polled - Single thread, only handles connections that');
+  Writeln('                                 have data waiting; does not block on idle sockets.');
+  Writeln('                        thread - One thread per connection.');
+  Writeln('                        pool   - Thread pool.');
+  Writeln('                      Use polled, thread or pool when serving browsers, which');
+  Writeln('                      open several connections (some of which stay idle).');
   {$IFNDEF VER3_2}
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
   Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
@@ -641,6 +678,7 @@ begin
     BaseDir:=ReadString(SConfig,KeyDir,BaseDir);
     Port:=ReadInteger(SConfig,KeyPort,Port);
     InterfaceAddress:=ReadString(SConfig,KeyInterface,InterfaceAddress);
+    FThreadMode:=StrToThreadMode(ReadString(SConfig,KeyThreadMode,''),FThreadMode);
     Quiet:=ReadBool(SConfig,KeyQuiet,Quiet);
     MimeFile:=ReadString(SConfig,keyMimetypes,MimeFile);
     NoIndexPage:=ReadBool(SConfig,KeyNoIndexPage,NoIndexPage);
@@ -686,6 +724,7 @@ Var
 begin
   Log(etInfo,'Listening on port %d',[Port]);
   Log(etInfo,'Serving files from directory: %s',[BaseDir]);
+  Log(etInfo,'Connection handling mode: %s',[ThreadModeToStr(FThreadMode)]);
   For I:=0 to ProxyManager.LocationCount-1 do
     with ProxyManager.Locations[i] do
       Log(etInfo,'Proxy location /proxy/%s redirects to: %s',[Path,URL]);
@@ -694,7 +733,7 @@ begin
     FLocations.GetNameValue(I,N,V);
     Log(etInfo,'Enabled file location "%s", serving from: %s',[N,V]);
     end;
-  Log(etInfo,'Enabled index page: %s',[BToS(NoIndexPage)]);
+  Log(etInfo,'Enabled index page: %s',[BToS(not NoIndexPage)]);
   if not NoIndexPage then
     Log(etInfo,'Index page name: %s',[IndexPageName]);
   Log(etInfo,'Enabled SSL: %s',[BtoS(UseSSL)]);
@@ -723,10 +762,10 @@ procedure TFPSimpleServerApplication.GetValidOptions(out aShort: String; out aLo
 
 Const
   LongOpts : TStringDynArray =
-     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface','upload-dir','upload','upload-response');
+     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface','upload-dir','upload','upload-response','thread-mode:');
 
 begin
-  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VIl:L:r:';
+  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VIl:L:r:t:';
   aLong:=LongOpts;
 end;
 
@@ -770,6 +809,7 @@ begin
     WriteInfo;
   if InterfaceAddress<>'' then
     HTTPHandler.Address:=InterfaceAddress;
+  HTTPHandler.HTTPServer.ThreadMode:=FThreadMode;
   inherited;
 end;
 

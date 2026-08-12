@@ -1833,7 +1833,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidstr) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              compiler.verbose.CGMessage1(type_e_interface_has_no_name,tobjectdef(left.resultdef).typename);
             result:=compiler.cstringconstnode_str(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(compiler.deftypes.cshortstringtype);
           end
@@ -5012,6 +5012,8 @@ implementation
                       begin
                         if assigned(tobjectdef(right.resultdef).iidstr) then
                           begin
+                            if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) and not is_typeparam(right.resultdef) then
+                              compiler.verbose.CGMessage1(type_e_interface_has_no_name,tobjectdef(right.resultdef).typename);
                             hp:=compiler.cstringconstnode_str(tobjectdef(right.resultdef).iidstr^);
                             tstringconstnode(hp).changestringtype(compiler.deftypes.cshortstringtype);
                             right.free;
@@ -5024,7 +5026,7 @@ implementation
                       begin
                         if assigned(tobjectdef(right.resultdef).iidguid) then
                           begin
-                            if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                            if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) and not is_typeparam(right.resultdef) then
                               compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
                             hp:=compiler.cguidconstnode(tobjectdef(right.resultdef).iidguid^);
                             right.free;

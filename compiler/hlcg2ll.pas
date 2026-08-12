@@ -55,7 +55,6 @@ unit hlcg2ll;
        public
           {************************************************}
           {                 basic routines                 }
-          constructor create(ACompiler: TCompilerBase);override;
           procedure init_register_allocators;override;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;override;
@@ -341,11 +340,6 @@ implementation
        ncgutil;
 
   { thlcg2ll }
-
-  constructor thlcg2ll.create(ACompiler: TCompilerBase);
-    begin
-      inherited create(acompiler);
-    end;
 
   procedure thlcg2ll.init_register_allocators;
     begin

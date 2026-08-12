@@ -6,7 +6,7 @@ program fpmake;
 uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif}
 
-Procedure Add_Google(ADirectory : string);
+Procedure add_googleapi(ADirectory : string);
 
   function StdDep(T : TTarget) : TTarget;
   begin
@@ -163,7 +163,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  Add_Google('');
+  add_googleapi('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

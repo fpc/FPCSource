@@ -9606,6 +9606,17 @@ type
         tpDeltaPri: LONG;
         dwFlags: DWORD;
     end;
+   CREATEFILE2_EXTENDED_PARAMETERS = record
+        dwSize : DWORD;
+        dwFileAttributes : DWORD;
+        dwFileFlags : DWORD;
+        dwSecurityQosFlags : DWORD;
+        lpSecurityAttributes : LPSECURITY_ATTRIBUTES;
+        hTemplateFile : THandle;
+    end;
+   TCREATEFILE2_EXTENDED_PARAMETERS  = CREATEFILE2_EXTENDED_PARAMETERS;
+   PCREATEFILE2_EXTENDED_PARAMETERS  = ^CREATEFILE2_EXTENDED_PARAMETERS;
+   LPCREATEFILE2_EXTENDED_PARAMETERS = PCREATEFILE2_EXTENDED_PARAMETERS;
 
 {$pop}
 {$endif read_interface}

@@ -50,6 +50,10 @@ Type
     Function AllowFile(Const AFileName : String) : Boolean; virtual;
     // Actually Send file to client.
     Procedure SendFile(Const AFileName : String; AResponse : TResponse); virtual;
+    // Return HTML listing the contents of directory aDir. aBaseURL is the request path (trailing /).
+    function GetDirectoryListing(const aDir, aBaseURL : String) : String; virtual;
+    // Send a generated directory listing for a directory request. Returns True when it handled the request.
+    function ServeDirectoryListing(aRequest : TRequest; const aFileName : String; aResponse : TResponse) : Boolean; virtual;
     // Prepare response. This can be overridden to add headers
     procedure PrepareResponse(aResponse: TResponse); virtual;
   Public
@@ -65,6 +69,8 @@ Type
       OnLog : TSimpleFileLog;
       // If you want to customize the response, call this.
       OnPrepareResponse : TPrepareFileResponseCallback;
+      // If set, a directory request with no index page returns a generated file listing.
+      AllowDirectoryListing : Boolean;
       // You can add some global headers.
     class procedure RegisterGlobalResponseHeader(const aName,aValue : String);
   Published
@@ -314,14 +320,24 @@ function TFPCustomFileModule.GetRequestFileName(const ARequest: TRequest): Strin
     If (Result<>'') and (Result[1]='/') then
       Delete(Result,1,1);
   end;
+
+Var
+  P : Integer;
+
 begin
   Result:=ARequest.PathInfo;
   If (Result='') then
     Result:=ARequest.URI;
+  // Drop any query string before mapping to a file name.
+  P:=Pos('?',Result);
+  if P>0 then
+    Result:=Copy(Result,1,P-1);
   sb;
   If (BaseURL<>'') and (Pos(BaseURL,Result)=1) then
     Delete(Result,1,Length(BaseURL));
   sb;
+  // Percent-decode the path. Unlike form data, '+' stays literal in a path.
+  Result:=HTTPDecode(Result,False);
 end;
 
 function TFPCustomFileModule.MapFileName(const AFileName: String): String;
@@ -395,6 +411,119 @@ begin
   end;
 end;
 
+function TFPCustomFileModule.GetDirectoryListing(const aDir, aBaseURL: String): String;
+
+  function EncHTML(const S : String) : String;
+
+  begin
+    Result:=StringReplace(S,'&','&amp;',[rfReplaceAll]);
+    Result:=StringReplace(Result,'<','&lt;',[rfReplaceAll]);
+    Result:=StringReplace(Result,'>','&gt;',[rfReplaceAll]);
+    Result:=StringReplace(Result,'"','&quot;',[rfReplaceAll]);
+  end;
+
+Var
+  lRec : TSearchRec;
+  lDirs,lFiles : TStringList;
+  S,lTitle : String;
+  B : TStringBuilder;
+
+begin
+  lDirs:=TStringList.Create;
+  lFiles:=TStringList.Create;
+  B:=TStringBuilder.Create;
+  try
+    lDirs.Sorted:=True;
+    lFiles.Sorted:=True;
+    if FindFirst(aDir+AllFilesMask,faAnyFile,lRec)=0 then
+      try
+        Repeat
+          if (lRec.Name<>'.') and (lRec.Name<>'..') then
+            if (lRec.Attr and faDirectory)<>0 then
+              lDirs.Add(lRec.Name)
+            else
+              lFiles.Add(lRec.Name);
+        Until FindNext(lRec)<>0;
+      finally
+        FindClose(lRec);
+      end;
+    lTitle:='Index of '+aBaseURL;
+    B.Append('<!DOCTYPE html>'+sLineBreak);
+    B.Append('<html>'+sLineBreak+'<head>'+sLineBreak);
+    B.Append('<meta charset="utf-8">'+sLineBreak);
+    B.Append('<title>'+EncHTML(lTitle)+'</title>'+sLineBreak);
+    B.Append('</head>'+sLineBreak+'<body>'+sLineBreak);
+    B.Append('<h1>'+EncHTML(lTitle)+'</h1>'+sLineBreak);
+    B.Append('<ul>'+sLineBreak);
+    if aBaseURL<>'/' then
+      B.Append('<li><a href="../">../</a></li>'+sLineBreak);
+    // Percent-encode each name for the href. '%' is marked unsafe so a literal '%'
+    // in a name round-trips through GetRequestFileName's HTTPDecode.
+    For S in lDirs do
+      B.Append('<li><a href="'+aBaseURL+HTTPEncode(S,[Ord('%')],False)+'/">'+EncHTML(S)+'/</a></li>'+sLineBreak);
+    For S in lFiles do
+      B.Append('<li><a href="'+aBaseURL+HTTPEncode(S,[Ord('%')],False)+'">'+EncHTML(S)+'</a></li>'+sLineBreak);
+    B.Append('</ul>'+sLineBreak+'</body>'+sLineBreak+'</html>'+sLineBreak);
+    Result:=B.ToString;
+  finally
+    B.Free;
+    lFiles.Free;
+    lDirs.Free;
+  end;
+end;
+
+
+function TFPCustomFileModule.ServeDirectoryListing(aRequest: TRequest; const aFileName: String; aResponse: TResponse): Boolean;
+
+Var
+  lDir,lRaw,lBase : String;
+  P : Integer;
+
+begin
+  Result:=False;
+  if not AllowDirectoryListing then
+    Exit;
+  // Determine the physical directory this request maps to, if it is a directory request.
+  if DirectoryExists(aFileName) then
+    lDir:=aFileName
+  else
+    begin
+    lRaw:=aRequest.PathInfo;
+    if lRaw='' then
+      lRaw:=aRequest.URI;
+    // A trailing slash (or root) means a directory was requested; GetRequestFileName
+    // appended the (missing) index page name, so strip it back to the directory.
+    if (lRaw='') or (lRaw[Length(lRaw)]='/') then
+      lDir:=ExtractFileDir(aFileName)
+    else
+      Exit;
+    end;
+  if not DirectoryExists(lDir) then
+    Exit;
+  lDir:=IncludeTrailingPathDelimiter(lDir);
+  if not AllowFile(lDir) then
+    Exit;
+  // Build the base URL for hrefs from the request path, forcing a trailing slash.
+  lBase:=aRequest.PathInfo;
+  if lBase='' then
+    lBase:=aRequest.URI;
+  P:=Pos('?',lBase);
+  if P>0 then
+    lBase:=Copy(lBase,1,P-1);
+  if lBase='' then
+    lBase:='/';
+  lBase:=IncludeHTTPPathDelimiter(lBase);
+  PrepareResponse(aResponse);
+  if aResponse.ContentSent then
+    Exit(True);
+  aResponse.ContentType:='text/html; charset=utf-8';
+  aResponse.Content:=GetDirectoryListing(lDir,lBase);
+  aResponse.ContentLength:=Length(aResponse.Content);
+  aResponse.SendContent;
+  Result:=True;
+end;
+
+
 procedure TFPCustomFileModule.PrepareResponse(aResponse: TResponse);
 
 var
@@ -450,6 +579,12 @@ begin
     end;
   if  not FileExists(FN) then
     begin
+    if AllowDirectoryListing and ServeDirectoryListing(aRequest,FN,aResponse) then
+      begin
+      if Assigned (OnLog) then
+        OnLog(etInfo,Format('%d listing "%s"',[AResponse.Code,aRequest.URL]));
+      exit;
+      end;
     AResponse.SetStatus(404,True);
     if Assigned (OnLog) then
       OnLog(etInfo,Format('%d serving "%s"',[AResponse.Code,aRequest.URL]));

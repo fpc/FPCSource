@@ -302,6 +302,10 @@ var
   { memory functions }
 const
   HEAP_ZERO_MEMORY = $8;
+  MEM_RESERVE = $00002000;
+  MEM_COMMIT  = $00001000;
+  MEM_RELEASE = $00008000;
+  PAGE_READWRITE = $4;
 
   function GetProcessHeap : THandle;
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
@@ -311,6 +315,11 @@ const
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapFree';
   function HeapReAlloc(hHeap : THandle; dwFlags : dword; lpMem: pointer; dwBytes : SizeUint) : pointer;
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapReAlloc';
+
+  function VirtualAlloc(lpAddress: pointer; dwSize: SizeUint; flAllocationType, flProtect: DWORD): pointer;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'VirtualAlloc';
+  function VirtualFree(lpAddress: pointer; dwSize: SizeUint; dwFreeType: DWORD): LongBool;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'VirtualFree';
 
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;

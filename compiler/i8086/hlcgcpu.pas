@@ -66,7 +66,7 @@ interface
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
-      constructor create(ACompiler: TCompilerBase);override;
+      constructor create(ACompiler: TCompilerBase);override;overload;
 
       function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
 
@@ -746,9 +746,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgcpu.create(hlcgobjhelpers,compiler);
     end;
 
 

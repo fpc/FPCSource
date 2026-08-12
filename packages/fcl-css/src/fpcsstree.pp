@@ -24,7 +24,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses System.Contnrs, System.RtlConsts, System.SysUtils, System.Classes, System.Math;
 {$ELSE FPC_DOTTEDUNITS}
-uses Contnrs, RtlConsts, SysUtils, Classes, Math;
+uses Contnrs, RTLConsts, SysUtils, Classes, Math;
 {$ENDIF FPC_DOTTEDUNITS}
 
 
@@ -233,7 +233,8 @@ type
     csstArray, // []
     csstURL, // url()
     csstUnicodeRange,
-    csstList);
+    csstList,
+    csstParenthesis); // ( )
 
   TCSSElement = class;
 
@@ -263,6 +264,7 @@ type
     FFileName: TCSSString;
     FParent: TCSSElement;
     FRow: Integer;
+    FSourcePos: Integer;
     function GetAsUnFormattedString: TCSSString;
     function GetAsFormattedString: TCSSString;
   Protected
@@ -273,6 +275,7 @@ type
   Public
     Constructor Create(const aFileName : TCSSString; aRow,aCol : Integer); virtual;
     destructor Destroy; override;
+    Procedure SetLocation(aRow, aCol : Integer; const aFileName : TCSSString);
     Class function CSSType : TCSSType; virtual;
     function Equals(Obj: TObject): boolean; override;
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
@@ -280,6 +283,7 @@ type
     Property CustomData : TObject Read FData Write FData;
     Property SourceRow : Integer Read FRow;
     Property SourceCol : Integer Read FCol;
+    Property SourcePos : Integer Read FSourcePos Write FSourcePos; // 0-based stream position
     Property SourceFileName : TCSSString Read FFileName;
     Property AsFormattedString : TCSSString Read GetAsFormattedString;
     Property AsString : TCSSString Read GetAsUnformattedString;
@@ -566,6 +570,8 @@ type
     FIsImportant: Boolean;
     FKeys : TCSSElementList;
     FColon: Boolean;
+    FEndRow: Integer;
+    FEndCol: Integer;
     function GetKeyCount: Integer;
     function GetKeys(aIndex : Integer): TCSSElement;
   Protected
@@ -576,10 +582,27 @@ type
     Destructor Destroy; override;
     Procedure AddKey(aKey : TCSSElement); virtual;
     function Equals(Obj: TObject): boolean; override;
+    // Returns the source position of the start of the declaration value (first child).
+    // If the declaration has no value, the position of the declaration itself is returned.
+    Procedure GetValueStartLocation(out aRow, aCol : Integer);
+    // Returns the source position right after the last character of the declaration value.
+    // If the declaration has no value, the position of the declaration itself is returned.
+    Procedure GetValueEndLocation(out aRow, aCol : Integer);
+    // Scans aSource from the value start (see GetValueStartLocation) and returns the
+    // source position right after the value's last significant character. String
+    // literals ('...' / "...") and /* */ comments are skipped, so a ';', '{' or '}'
+    // inside them does not end the value. The value ends before the terminating ';' or
+    // the rule's closing '}' (or at end of source); trailing whitespace and comments are
+    // not part of the value. Returns False (and the value start) if the start location is
+    // not found in aSource.
+    function GetValueEndLocationInSource(const aSource : TCSSString; out aRow, aCol : Integer) : Boolean;
     Property Keys [aIndex : Integer] : TCSSElement Read GetKeys;
     Property KeyCount : Integer Read GetKeyCount;
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
     Property Colon : Boolean Read FColon Write FColon;
+    // Source position right after the last character of the value (set by the parser).
+    Property EndRow : Integer Read FEndRow Write FEndRow;
+    Property EndCol : Integer Read FEndCol Write FEndCol;
   end;
   TCSSDeclarationElementClass = class of TCSSDeclarationElement;
 
@@ -592,6 +615,16 @@ type
     Function ExtractElement(aIndex : Integer) : TCSSElement;
   end;
   TCSSListElementClass = class of TCSSListElement;
+
+  { TCSSParenthesisElement - a parenthesized value: ( child ) }
+
+  TCSSParenthesisElement = class(TCSSChildrenElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
+  Public
+    Class function CSSType : TCSSType; override;
+  end;
+  TCSSParenthesisElementClass = class of TCSSParenthesisElement;
 
   { TCSSCompoundElement }
 
@@ -815,6 +848,26 @@ begin
   Result:=FChildren.Extract(aIndex);
 end;
 
+{ TCSSParenthesisElement }
+
+function TCSSParenthesisElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
+
+Var
+  I : integer;
+
+begin
+  Result:='(';
+  For I:=0 to ChildCount-1 do
+    Result:=Result+Children[I].GetAsString(aFormat,aIndent);
+  Result:=Result+')';
+end;
+
+class function TCSSParenthesisElement.CSSType: TCSSType;
+begin
+  Result:=csstParenthesis;
+end;
+
 { TCSSAtRuleElement }
 
 function TCSSAtRuleElement.GetAsString(aFormat: Boolean;
@@ -910,6 +963,233 @@ begin
   if Not Assigned(FKeys) then
     Raise EListError.CreateFmt(SListIndexError,[aIndex]);
   Result:=FKeys[aIndex];
+end;
+
+type
+  { TCSSStartLocationVisitor - finds the topmost-leftmost source location in a subtree }
+  TCSSStartLocationVisitor = class(TCSSTreeVisitor)
+  public
+    HasLoc : Boolean;
+    Row, Col : Integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure TCSSStartLocationVisitor.Visit(obj: TCSSElement);
+begin
+  if obj.SourceRow<=0 then exit; // skip elements without a source location
+  if (not HasLoc)
+      or (obj.SourceRow<Row)
+      or ((obj.SourceRow=Row) and (obj.SourceCol<Col)) then
+    begin
+    HasLoc:=True;
+    Row:=obj.SourceRow;
+    Col:=obj.SourceCol;
+    end;
+end;
+
+procedure TCSSDeclarationElement.GetValueStartLocation(out aRow, aCol: Integer);
+var
+  aValue : TCSSElement;
+  V : TCSSStartLocationVisitor;
+begin
+  if ChildCount=0 then
+    begin
+    // No value: fall back to the declaration position (start of the attribute name).
+    aRow:=SourceRow;
+    aCol:=SourceCol;
+    exit;
+    end;
+  aValue:=Children[0];
+  // The value can be a composite element (e.g. a binary operation) whose own
+  // position is not its leftmost token, so find the leftmost location in the subtree.
+  V:=TCSSStartLocationVisitor.Create;
+  try
+    aValue.Iterate(V);
+    if V.HasLoc then
+      begin
+      aRow:=V.Row;
+      aCol:=V.Col;
+      end
+    else
+      begin
+      aRow:=aValue.SourceRow;
+      aCol:=aValue.SourceCol;
+      end;
+  finally
+    V.Free;
+  end;
+end;
+
+// Returns the source position right after the last character of aValue.
+// Composite values end at the end of their last sub-element, plus a closing
+// bracket for parenthesis/call/array. Leaf values end after their source text.
+procedure ElementEndLocation(aValue : TCSSElement; out aRow, aCol : Integer);
+var
+  Sub : TCSSElement;
+  aChildren : TCSSChildrenElement;
+begin
+  aRow:=aValue.SourceRow;
+  aCol:=aValue.SourceCol;
+  if aValue is TCSSBaseUnaryElement then
+    begin
+    // unary and binary operations end at the end of their right operand
+    Sub:=TCSSBaseUnaryElement(aValue).Right;
+    if Assigned(Sub) then
+      ElementEndLocation(Sub,aRow,aCol)
+    else
+      aCol:=aCol+Length(aValue.AsString);
+    end
+  else if aValue is TCSSChildrenElement then
+    begin
+    aChildren:=TCSSChildrenElement(aValue);
+    if aChildren.ChildCount>0 then
+      begin
+      ElementEndLocation(aChildren.Children[aChildren.ChildCount-1],aRow,aCol);
+      if (aValue is TCSSParenthesisElement)
+          or (aValue is TCSSCallElement)
+          or (aValue is TCSSArrayElement) then
+        Inc(aCol); // closing ')' or ']'
+      end
+    else
+      aCol:=aCol+Length(aValue.AsString);
+    end
+  else
+    // leaf element: ends after its source text
+    aCol:=aCol+Length(aValue.AsString);
+end;
+
+procedure TCSSDeclarationElement.GetValueEndLocation(out aRow, aCol: Integer);
+begin
+  if FEndRow>0 then
+    begin
+    // Exact position stored by the parser.
+    aRow:=FEndRow;
+    aCol:=FEndCol;
+    end
+  else if ChildCount=0 then
+    begin
+    // No value: fall back to the declaration position (start of the attribute name).
+    aRow:=SourceRow;
+    aCol:=SourceCol;
+    end
+  else
+    // Tree not built by the parser: reconstruct the end from the value subtree.
+    ElementEndLocation(Children[ChildCount-1],aRow,aCol);
+end;
+
+function TCSSDeclarationElement.GetValueEndLocationInSource(const aSource: TCSSString;
+  out aRow, aCol: Integer): Boolean;
+var
+  Len, i: Integer;
+  Row, Col: Integer;       // scanner position (1-based row, 0-based col) of aSource[i]
+  StartRow, StartCol: Integer;
+  LastRow, LastCol: Integer; // position right after the last significant char seen
+  q: TCSSChar;
+
+  procedure Advance;
+  // consume aSource[i], advancing Row/Col like the scanner: a LF, CR or CRLF ends the
+  // line (Row+1, Col:=0) and is not a column of any line.
+  begin
+    if aSource[i]=#13 then
+      begin
+      inc(i);
+      if (i<=Len) and (aSource[i]=#10) then inc(i);
+      inc(Row);
+      Col:=0;
+      end
+    else if aSource[i]=#10 then
+      begin
+      inc(i);
+      inc(Row);
+      Col:=0;
+      end
+    else
+      begin
+      inc(i);
+      inc(Col);
+      end;
+  end;
+
+begin
+  GetValueStartLocation(StartRow,StartCol);
+  aRow:=StartRow;
+  aCol:=StartCol;
+  Result:=false;
+
+  Len:=length(aSource);
+  Row:=1;
+  Col:=0;
+  i:=1;
+  // walk to the value start
+  while (i<=Len) and not ((Row=StartRow) and (Col=StartCol)) do
+    Advance;
+  if (Row<>StartRow) or (Col<>StartCol) then
+    exit; // start location not in aSource
+
+  Result:=true;
+  LastRow:=Row; // an empty value ends where it starts
+  LastCol:=Col;
+  while i<=Len do
+  begin
+    // comment: skip /* ... */ (not part of the value)
+    if (aSource[i]='/') and (i<Len) and (aSource[i+1]='*') then
+    begin
+      Advance;
+      Advance; // past '/*'
+      while i<=Len do
+        if (aSource[i]='*') and (i<Len) and (aSource[i+1]='/') then
+        begin
+          Advance;
+          Advance; // past '*/'
+          break;
+        end
+        else
+          Advance;
+      continue;
+    end;
+    // a top-level terminator ends the value
+    if aSource[i] in [';','{','}'] then
+      break;
+    // string literal: its content (incl. any ; { }) is part of the value
+    if aSource[i] in ['''','"'] then
+    begin
+      q:=aSource[i];
+      Advance; // opening quote
+      while i<=Len do
+      begin
+        if aSource[i]='\' then
+        begin
+          Advance; // the backslash
+          if i<=Len then Advance; // the escaped char
+          continue;
+        end;
+        if aSource[i]=q then
+        begin
+          Advance; // closing quote
+          break;
+        end;
+        if aSource[i] in [#10,#13] then
+          break; // a newline ends an unterminated string
+        Advance;
+      end;
+      LastRow:=Row;
+      LastCol:=Col;
+      continue;
+    end;
+    // whitespace: consume but do not extend the value
+    if aSource[i] in [#9,#10,#13,' '] then
+    begin
+      Advance;
+      continue;
+    end;
+    // an ordinary significant character
+    Advance;
+    LastRow:=Row;
+    LastCol:=Col;
+  end;
+
+  aRow:=LastRow;
+  aCol:=LastCol;
 end;
 
 function TCSSDeclarationElement.GetAsString(aFormat: Boolean;
@@ -1791,6 +2071,13 @@ begin
   FFileName:=aFileName;
   FRow:=aRow;
   FCol:=aCol;
+end;
+
+procedure TCSSElement.SetLocation(aRow, aCol: Integer; const aFileName: TCSSString);
+begin
+  FRow:=aRow;
+  FCol:=aCol;
+  FFileName:=aFileName;
 end;
 
 destructor TCSSElement.Destroy;

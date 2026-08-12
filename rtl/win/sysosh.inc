@@ -120,9 +120,9 @@ type
 var
   LibModuleList: PLibModule = nil;
 
-{$ifdef FPC_USE_WIN64_SEH}
+{$ifdef SYSTEM_USE_WIN_SEH}
 procedure _fpc_local_unwind(frame,target: Pointer);compilerproc;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 {$ifdef FPC_SECTION_THREADVARS}
 function fpc_tls_add(addr: pointer):pointer;compilerproc;
 {$endif FPC_SECTION_THREADVARS}

@@ -41,7 +41,7 @@ interface
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
@@ -451,9 +451,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgcpu.create(hlcgobjhelpers,compiler);
     end;
 
 

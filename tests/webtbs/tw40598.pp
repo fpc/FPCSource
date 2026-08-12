@@ -1,5 +1,5 @@
 { %RESULT=202 }
-{ %opt=-gl -Ct }
+{ %opt=-gl -Ct -Oonostackframe }
 
 {$mode objfpc}
 
@@ -10,14 +10,18 @@ uses
 
 type
   TForm1 = class
-    procedure Button1Click(Sender: TObject);
+    function Button1Click(Sender: TObject): ptrint;
   end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+function TForm1.Button1Click(Sender: TObject): ptrint;
+var
+  l: ptrint;
 begin
   writeln(hexstr(stackbottom));
+  l := ptrint(sptr);
   writeln(hexstr(sptr));
-  Button1Click(self);
+  // prevent an endless loop due to tail call optimization
+  result := l + Button1Click(self) + ptrint(sptr);
 end;
 
 var
@@ -34,5 +38,5 @@ begin
   writeln('StackLength: ',StackLength);
 {$endif linux}
   Form1:=TForm1.Create;
-  Form1.Button1Click(nil);
+  writeln(Form1.Button1Click(nil));
 end.

@@ -710,7 +710,7 @@ Function IsValidDate(const AYear, AMonth, ADay: Word): Boolean;
 begin
   Result:=(AYear<>0) and (AYear<10000)
           and (AMonth in [1..12])
-          and (ADay<>0) and (ADay<=MonthDays[IsleapYear(AYear),AMonth]);
+          and (ADay<>0) and (ADay<=DaysInAMonth(AYear,AMonth));
 end;
 
 
@@ -799,13 +799,19 @@ Var
 
 begin
   Decodedate(AValue,Y,M,D);
-  Result:=MonthDays[IsLeapYear(Y),M];
+  Result:=DaysInAMonth(Y,M);
 end;
 
 
 Function DaysInAMonth(const AYear, AMonth: Word): Word;
 begin
-  Result:=MonthDays[IsLeapYear(AYear),AMonth];
+  If AMonth<>2 Then
+    Result:=30 Or (AMonth Xor (AMonth shr 3))
+  Else
+    If IsLeapYear(AYear) Then
+      Result:=29
+    Else
+      Result:=28;
 end;
 
 

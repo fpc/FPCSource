@@ -21,10 +21,10 @@ const
   level : longint = 0;
 
 function inf_rec(x : longint) : longint;
-
 begin
   inc(level);
   inf_rec:=x+inf_rec(x-1);
+  inf_rec:=inf_rec+ptrint(sptr);
 end;
 
 

@@ -45,6 +45,12 @@ Type
     Procedure TestGenericMethod_Program;
     Procedure TestGenericMethod_OverloadDelphi;
 
+    // generic class operator
+    Procedure TestGenericOperator_ImplHeaderDelphi;
+
+    // empty nested type section in a (generic) class
+    Procedure TestEmptyLocalTypeSection;
+
     // const generic parameters
     Procedure TestConstGeneric_Basic;
     Procedure TestConstGeneric_MultiParam;
@@ -431,6 +437,46 @@ begin
   '    Fly<word>();',
   '    Fly<longint>(13);',
   '  end;',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestGenericOperator_ImplHeaderDelphi;
+begin
+  // A generic record's class-operator implementation header
+  // "class operator TBox<T>.Implicit" must parse (it used to raise
+  // "Unknown operator type" because the <T> after the type name was not read).
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBox<T> = record',
+  '    class operator Implicit(const b: TBox<T>): T;',
+  '  end;',
+  'class operator TBox<T>.Implicit(const b: TBox<T>): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestEmptyLocalTypeSection;
+begin
+  // An empty nested "type" section in a class (all type members absent),
+  // followed by another visibility specifier, must parse — the parser used to
+  // try to read the visibility keyword as a type declaration (#41518).
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TGen<X> = class',
+  '  public type',
+  '  public',
+  '    procedure p;',
+  '  end;',
+  'procedure TGen.p;',
+  'begin',
+  'end;',
+  'begin',
   '']);
   ParseModule;
 end;

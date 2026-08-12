@@ -72,6 +72,9 @@ Type
     Function CreateCertificateData : TCertificateData; virtual;
     Function CreateCertGenerator : TX509Certificate; virtual;
     function CreateSelfSignedCertificate: Boolean; virtual;
+    // Negotiated ALPN protocol after a completed handshake; '' when nothing negotiated.
+    // Provider-neutral default — non-OpenSSL handlers degrade gracefully
+    Function GetSelectedALPNProtocol : string; virtual;
     Property CertGenerator : TX509Certificate Read FCertGenerator;
     Property SSLActive: Boolean read FSSLActive;
     Property LastSSLErrorString : String Read GetLastSSLErrorString;
@@ -240,6 +243,11 @@ begin
   CertificateData.Certificate.Value:=CK.Certificate;
   CertificateData.PrivateKey.Value:=CK.PrivateKey;
   Result:=(Length(CK.Certificate)<>0) and (Length(CK.PrivateKey)<>0);
+end;
+
+function TSSLSocketHandler.GetSelectedALPNProtocol: string;
+begin
+  Result:='';
 end;
 
 

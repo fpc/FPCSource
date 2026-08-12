@@ -140,6 +140,16 @@ type
 
   TOnForEachPasElement = procedure(El: TPasElement; arg: pointer) of object;
 
+  { Extensible per-element state recorded during resolution:
+    e.g. whether a statement/expression was parsed while range/overflow checking was active. 
+    Further flags may be added here. }
+  TPasElementStateFlag = (
+    pesfRangeChecked,    // parsed while {$R+} (range checking) was active
+    pesfOverflowChecked, // parsed while {$Q+} (overflow checking) was active
+    pesfPointerMath      // a pointer type declared while {$POINTERMATH ON} was active
+    );
+  TPasElementStateFlags = set of TPasElementStateFlag;
+
   { TPasElement }
 
   TPasElement = class(TPasElementBase)
@@ -161,6 +171,7 @@ type
     SourceLinenumber: Integer;
     SourceEndLinenumber: Integer;
     Visibility: TPasMemberVisibility;
+    States: TPasElementStateFlags; // extensible resolution-time state flags
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); virtual;
     destructor Destroy; override;
     Class Function IsKeyWord(Const S : TPasTreeString) : Boolean;
@@ -173,7 +184,7 @@ type
       const Arg: Pointer); virtual;
     procedure ForEachChildCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer; Child: TPasElement; CheckParent: boolean); virtual;
-    Function SafeName : TPasTreeString; virtual;                // Name but with & prepended if name is a keyword.
+    Function SafeName : TPasTreeString; virtual;        // Name but with & prepended if name is a keyword.
     function FullPath: TPasTreeString;                  // parent's names, until parent is not TPasDeclarations
     function ParentPath: TPasTreeString;                // parent's names
     function FullName: TPasTreeString; virtual;         // FullPath + Name
@@ -490,6 +501,9 @@ type
   Public
     ProgramSection: TProgramSection;
     InputFile,OutPutFile : TPasTreeString;
+    // All program-header parameters in order, e.g. program p(input,output,f) 
+    // needed for ISO mode, which has more parameters;
+    ProgramParameters : Array of TPasTreeString;
     // Note: the begin..end. block is in the InitializationSection
   end;
 
@@ -592,6 +606,7 @@ type
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
     DestType: TPasType;
+    HasPointerMath : Boolean;
   end;
 
   { TPasTypeAliasType }
@@ -1694,6 +1709,7 @@ type
   public
     VariableName : TPasExpr;
     LoopType : TLoopType;
+    IsVarDef : Boolean; // true when the loop variable is declared inline (for var i := ...)
     StartExpr : TPasExpr;
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Variable: TPasVariable; // not used by TPasParser
@@ -5289,7 +5305,9 @@ end;
 
 function TPasProcedure.IsExternal: Boolean;
 begin
-  Result:=pmExternal in FModifiers;
+  // A weakexternal routine is external too (just weak linkage); it needs no body,
+  // e.g. Linux's `statx(...): cint; cdecl; weakexternal name 'statx';`.
+  Result:=(pmExternal in FModifiers) or (pmWeakExternal in FModifiers);
 end;
 
 function TPasProcedure.IsOverload: Boolean;
@@ -5488,6 +5506,9 @@ begin
   finally
     S.Free;
   end;
+  if AddArgs then ;
+  if AddModifiers then ;
+  if AddParent then ;
 end;
 
 function TPasOperator.TypeName: TPasTreeString;
@@ -6371,6 +6392,7 @@ end;
 
 constructor TNamedArgExpr.Create(AParent: TPasElement; AName: TPrimitiveExpr; AValue: TPasExpr);
 begin
+  inherited Create(AParent,pekNamedArg,eopNone);
   NameExpr:=aName;
   ValueExpr:=aValue;
 end;
@@ -6378,6 +6400,7 @@ end;
 function TNamedArgExpr.GetDeclaration(full: Boolean): TPasTreeString;
 begin
   Result:=NameExpr.GetDeclaration(True)+':='+ValueExpr.GetDeclaration(True);
+  if full then ;
 end;
 
 procedure TNamedArgExpr.FreeChildren(Prepare: boolean);

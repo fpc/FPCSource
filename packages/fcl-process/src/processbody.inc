@@ -525,7 +525,7 @@ Procedure TProcess.SetWindowHeight (Value : Cardinal);
 
 begin
   if Value<>0 then
-    include(FStartupOptions,suoUsePosition);
+    include(FStartupOptions,suoUseSize);
   dwYSize:=Value;
 end;
 
@@ -533,7 +533,7 @@ Procedure TProcess.SetWindowLeft (Value : Cardinal);
 
 begin
   if Value<>0 then
-    Include(FStartupOptions,suoUseSize);
+    Include(FStartupOptions,suoUsePosition);
   dwx:=Value;
 end;
 

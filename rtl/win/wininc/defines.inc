@@ -504,18 +504,24 @@
      FILE_ATTRIBUTE_RECALL_ON_OPEN       = $0040000;   // same as EA ?
      FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS = $0400000;
 
-     FILE_FLAG_WRITE_THROUGH = $80000000;
-     FILE_FLAG_OVERLAPPED = 1073741824;
-     FILE_FLAG_NO_BUFFERING = 536870912;
-     FILE_FLAG_RANDOM_ACCESS = 268435456;
-     FILE_FLAG_SEQUENTIAL_SCAN = 134217728;
-     FILE_FLAG_DELETE_ON_CLOSE = 67108864;
-     FILE_FLAG_BACKUP_SEMANTICS = 33554432;
-     FILE_FLAG_POSIX_SEMANTICS = 16777216;
+     FILE_FLAG_WRITE_THROUGH         = $80000000;
+     FILE_FLAG_OVERLAPPED            = $40000000;
+     FILE_FLAG_NO_BUFFERING          = $20000000;
+     FILE_FLAG_RANDOM_ACCESS         = $10000000;
+     FILE_FLAG_SEQUENTIAL_SCAN       = $08000000;
+     FILE_FLAG_DELETE_ON_CLOSE       = $04000000;
+     FILE_FLAG_BACKUP_SEMANTICS      = $02000000;
+     FILE_FLAG_POSIX_SEMANTICS       = $01000000;
+     FILE_FLAG_SESSION_AWARE         = $00800000;
+     FILE_FLAG_OPEN_REPARSE_POINT    = $00200000;
+     FILE_FLAG_OPEN_NO_RECALL        = $00100000;
+     FILE_FLAG_FIRST_PIPE_INSTANCE   = $00080000;
+     FILE_FLAG_OPEN_REQUIRING_OPLOCK = $00040000;    // createfile2 only
+     FILE_FLAG_IGNORE_IMPERSONATED_DEVICEMAP = $00020000; // createfile2 only
 
-     IO_REPARSE_TAG_RESERVED_ZERO  = 0;
-     IO_REPARSE_TAG_RESERVED_ONE   = 1;
-     IO_REPARSE_TAG_RESERVED_RANGE = IO_REPARSE_TAG_RESERVED_ONE;
+     IO_REPARSE_TAG_RESERVED_ZERO  =  0;
+     IO_REPARSE_TAG_RESERVED_ONE   =  1;
+     IO_REPARSE_TAG_RESERVED_RANGE =  IO_REPARSE_TAG_RESERVED_ONE;
 
      IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
      IO_REPARSE_TAG_HSM         = $C0000004;
@@ -2552,6 +2558,14 @@ Type
 	SE_PROVIDER_DEFINED_OBJECT,
 	SE_WMIGUID_OBJECT,
 	SE_REGISTRY_WOW64_32KEY);
+    FILE_FLUSH_MODE = (
+        FILE_FLUSH_DEFAULT = 0, // same as WIN32 FlushFileBuffers(); Flushes data, metadata, AND sends a SYNC command to the hardware
+        FILE_FLUSH_DATA,        // Flush data only
+        FILE_FLUSH_MIN_METADATA,// Flush data + SYNC (minimal metadata)
+        FILE_FLUSH_NO_SYNC      // Flush data + metadata
+       );
+
+
   { RegCreateKeyEx  }
 
   const
@@ -6455,6 +6469,21 @@ const
 
 
     COPY_FILE_NO_OFFLOAD                          = $00040000;
+    COPY_FILE_IGNORE_EDP_BLOCK                    = $00400000;
+    COPY_FILE_IGNORE_SOURCE_ENCRYPTION            = $00800000;
+
+// Don't request WRITE_DAC for the destination file access.
+    COPY_FILE_DONT_REQUEST_DEST_WRITE_DAC         = $02000000;
+
+// If either source or target is an SMB share, compression
+// will be requested on all READs and WRITEs.
+    COPY_FILE_REQUEST_COMPRESSED_TRAFFIC          = $10000000;
+    COPY_FILE_OPEN_AND_COPY_REPARSE_POINT         = $00200000;
+    COPY_FILE_DIRECTORY                           = $00000080;
+    COPY_FILE_SKIP_ALTERNATE_STREAMS              = $00008000;
+    COPY_FILE_DISABLE_PRE_ALLOCATION              = $04000000;
+    COPY_FILE_ENABLE_LOW_FREE_SPACE_MODE          = $08000000; //  Additional flags for CopyFile2().
+    COPY_FILE_ENABLE_SPARSE_COPY                  = $20000000; //  CopyFile flag to retain sparse state during copying.
 
 //
 // Define ReplaceFile option flags

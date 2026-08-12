@@ -2076,9 +2076,9 @@ else
 	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
 endif
 PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu)
-PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+PPULOGLIST:=$(patsubst %.ppu,%.log-ppu,$(PPULIST))
 ALLPPUDIRS:=$(wildcard */units/*)
-RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
+RMPPULOGLIST:=$(patsubst %.log-ppu,%.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 ppulogs : $(PPULOGLIST)
 %.log-ppu : %.ppu

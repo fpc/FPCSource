@@ -1,0 +1,14 @@
+{
+  "_fpsonar": { "config": "fpsonar-default", "version": "1" },
+  "rules": {},
+  "gate": {
+    "maxBlocker": 0,
+    "maxCritical": 0,
+    "maxMajor": -1,
+    "maxMinor": -1,
+    "maxInfo": -1,
+    "maxTotal": -1
+  },
+  "suppressions": [],
+  "useTier": { "resolution": "off" }
+}

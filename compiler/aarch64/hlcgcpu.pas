@@ -41,7 +41,7 @@ interface
     { thlcgaarch64 }
 
     thlcgaarch64 = class(thlcg2ll)
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
@@ -237,9 +237,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgaarch64.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgaarch64.create(hlcgobjhelpers,compiler);
     end;
 
 

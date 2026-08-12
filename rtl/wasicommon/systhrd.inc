@@ -672,7 +672,6 @@ var
   tlsMemBlock : pointer;
   tlsBlockSize : Integer;
   P : POSMemBlock;
-
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiAllocateThreadVars');{$ENDIF}
   tlsBlockSize:=fpc_wasm32_tls_size;
@@ -696,11 +695,23 @@ procedure WasiReleaseThreadVars;
 
 Var
   PTLS : PTLSMem;
-
+  T : PWasmThread;
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiReleaseThreadVars');{$ENDIF}
-  PTLS:=GetTLSMemory-Sizeof(Pointer);
-  ReleaseOSBlock(PTLS^.OSMemBlock);
+  {
+     Only threads hooked via HookThread/WasiAllocateThreadVars obtained their 
+     TLS from GetFreeOSBlock, which places a TTLSMem back-pointer (OSMemBlock) right before the TLS base.
+     Threads spawned by WasiBeginThread get their TLS from a plain AllocMem (T^.TLSBlock)
+     without that header,and it is freed later by FreeStackAndTlsBlock (WasiCloseThread).
+     The main thread uses the static TLS image from the data segment.
+     Only release for hooked threads, (GlobalCurrentThread = Nil)
+  }
+  T:=GetSelfThread;
+  if T=Nil then
+    begin  
+    PTLS:=GetTLSMemory-Sizeof(Pointer);
+    ReleaseOSBlock(PTLS^.OSMemBlock);
+    end;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiReleaseThreadVars done');{$ENDIF}
 end;
 

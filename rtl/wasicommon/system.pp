@@ -63,6 +63,7 @@ const
 
 type
   TWasmGrowMemoryCallBack = procedure(aGrowPages: longint);
+  TWasmExceptionCallBack = procedure(Obj : TObject; anAddr: CodePointer; aFrame : Pointer);
 
 var
   argc: longint;
@@ -70,7 +71,8 @@ var
   envp: PPAnsiChar;
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
   WasmGrowMemoryCallback : TWasmGrowMemoryCallBack;
-
+  WasmOnException : TWasmExceptionCallBack;
+  
 function __fpc_get_wasm_suspender: WasmExternRef;
 procedure __fpc_set_wasm_suspender(v: WasmExternRef);
 

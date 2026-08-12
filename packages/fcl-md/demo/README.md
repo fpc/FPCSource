@@ -1,28 +1,58 @@
-# Markdown parser examples
 
-## Synopsis
+# MarkDown demo
 
-This directory contains the following markdown parser examples:
+## Plain text and bullet lists
 
-* demomd - simple markdown parser and html renderer.
-* md2html - slightly more complete markdown-to-html converter.
-* md2fpdoc - simple version of a markdown to fpdoc converter.
-* md2latex - simple version of a markdown to LaTeX converter.
+This is some plain text with a [website link](https://www.freepascal.org) embedded. It will open when clicked.
+We also support &quot;HTML entities&quot; and UTF8 escapes such as &#36825;&#20010;...
 
-## conversion to fpdoc 
+* **a** - Length of alphabet **A** . This is going to be a very long line to see how line wrappping is handled in bullet lists. It *should* be handled gracefully.
+   * indented bullet 1. *Again* a very long line to see line wrappping is handled in bullet lists. It should be handled   gracefully.
+   * indented bullet 2. Again a very long line to see line wrappping is handled in bullet lists. It should be handled   gracefully.
 
-The headers determine what is generated for a given section:
+* **k** - Count of encoding chars.
 
-* Level 1 - contains the unit name.
-* Level 2 - Start Element or Topic (use "topic: name")
-* Level 3 - Parts of element/topic. Must have one of the following titles
-  * short
-  * descr or description
-  * errors
-  * seealso
-  * example or examples
+# Numbered lists
 
-links must be rendered as \[text\]\(text\) or \[\]\(text\)
+Numbered lists are also supported:
 
-You can find a simple example in the [sampledoc.md](sampledoc.md) file.
+1. item 1
+2. Item 2
+3. Item 3.
 
+# Image
+
+This is a sentence with ![markdown](markdown.png) image embedded.
+
+Or a complete paragraph:
+
+![FPC logo](demo.png)
+
+## Block quote
+
+Some normal text
+
+> Quoted text line 1
+
+> Quoted text line 2
+
+
+# A table
+
+We can also render markdown tables
+
+| Letter | ASCII | ASCII HEX |
+|--------|-------|---------| 
+| A      | 65 | 41  |
+| B      | 66 | 42  |
+| C      | 67 | 43  |
+
+# Code
+
+Code is rendered differently from the main text:
+
+```pascal
+begin
+  Writeln('Hello, world!');
+end.
+```

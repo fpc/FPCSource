@@ -153,7 +153,7 @@ type
       Value: TCSSAttributeValue);
     // split shorthands into longhands
     procedure OnSplit_Border(Resolver: TCSSBaseResolver;
-      var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
+      var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray);
   public
 
     const
@@ -199,13 +199,17 @@ type
 
   { TDemoNode }
 
-  TDemoNode = class(TComponent,ICSSNode)
+  TDemoNode = class(TComponent,ICSSNode,IFPObserver)
   private
     class var CSSRegistry: TDemoCSSRegistry;
     class var FDemoNodeTypeID: TCSSNumericalID;
   private
     FNodes: TFPObjectList; // list of TDemoNode
     FCSSClasses: TStrings;
+    FCSSClassArr: TCSSNumericalIDArray; // cached class ids of FCSSClasses, valid if FCSSClassArrValid and FCSSClassArrStamp=Resolver.CSSClassIDStamp
+    FCSSClassArrValid: boolean;
+    FCSSClassArrStamp: TCSSNumericalID; // Resolver.CSSClassIDStamp when FCSSClassArr was built
+    FResolver: TCSSResolver; // last resolver, used to map class names to ids
     FParent: TDemoNode;
     FPseudoClasses: array [TDemoPseudoClass] of boolean;
     FInlineStyleElements: TCSSRuleElement;
@@ -221,6 +225,9 @@ type
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
+    // IFPObserver: FCSSClasses changed -> invalidate FCSSClassArr cache
+    procedure FPOObservedChanged(ASender: TObject;
+      Operation: TFPObservedOperation; Data: Pointer);
   public
     // computed by resolver:
     Rules: TCSSSharedRuleList; // owned by resolver
@@ -238,7 +245,7 @@ type
     class function GetCSSTypeStyle: TCSSString; virtual;
 
     // ICSSNode interface:
-    function GetCSSID: TCSSString; virtual;
+    function GetCSSID: TCSSNumericalID; virtual;
     function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
     function GetCSSPseudoElementName: TCSSString; virtual;
@@ -253,9 +260,11 @@ type
     function GetCSSEmpty: boolean; virtual;
     function GetCSSChildCount: integer; virtual;
     function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
-    function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean; virtual;
+    function GetCSSClasses: TCSSNumericalIDArray; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
-    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function GetCSSAttributeID: TCSSString; virtual;
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
@@ -302,7 +311,8 @@ type
     function GetCSSEmpty: boolean; override;
     function GetCSSChildCount: integer; override;
     function GetCSSChild(const anIndex: integer): ICSSNode; override;
-    function HasCSSClass(const aClassName: TCSSString): boolean; override;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean; override;
+    function GetCSSClasses: TCSSNumericalIDArray; override;
     function GetCSSAttributeClass: TCSSString; override;
   end;
 
@@ -371,6 +381,7 @@ type
   private
     FCSSResolver: TCSSResolver;
     FHeight: integer;
+    FMediaEvalCount: integer;
     FStyle: TCSSString;
     FWidth: integer;
     function HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
@@ -391,6 +402,7 @@ type
     property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
+    property MediaEvalCount: integer read FMediaEvalCount;
     property Width: integer read FWidth write FWidth;
     property Height: integer read FHeight write FHeight;
   end;
@@ -416,17 +428,56 @@ type
   { TTestCSSResolver }
 
   TTestCSSResolver = class(TCustomTestCSSResolver)
+  private
+    procedure CheckTokenize(const Title, aValue, Expected: string);
+    procedure CheckTokenizeInvalid(const Title, aValue: string);
+    procedure CheckRoundtrip(const Title, aValue, Expected: string);
+    // locate a declaration in the author 'test.css' sheet by top-level selector
+    // and property name, e.g. FindAuthorDecl('.bird','left')
+    function FindAuthorDecl(const aSelector, aProp: string): TCSSDeclarationElement;
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
-    procedure TestRes_ParseAttr_Keyword_SkipInvalid;
     procedure TestRes_ParseAttr_Float;
+
+    // low level tokenizer
+    procedure TestRes_Tokenize_Empty;
+    procedure TestRes_Tokenize_Keyword;
+    procedure TestRes_Tokenize_Identifier;
+    procedure TestRes_Tokenize_Float;
+    procedure TestRes_Tokenize_Whitespace;
+    procedure TestRes_Tokenize_Symbols;
+    procedure TestRes_Tokenize_PlusMinus;
+    procedure TestRes_Tokenize_Function;
+    procedure TestRes_Tokenize_Brackets;
+    procedure TestRes_Tokenize_HexColor;
+    procedure TestRes_Tokenize_Strings;
+    procedure TestRes_Tokenize_Invalid;
+    procedure TestRes_Detokenize;
+
+    // invalid syntax
+    procedure TestRes_InvalidDeclaration_LogWarning;
+    procedure TestRes_InvalidSyntax_NoException;
 
     procedure TestRes_Selector_Universal;
     procedure TestRes_Selector_Type;
     procedure TestRes_Selector_Type_Spaces;
     procedure TestRes_Selector_Id;
     procedure TestRes_Selector_Class;
+    procedure TestRes_CSSClassID_Numbering;
+    procedure TestRes_CSSClassID_Unknown;
+    procedure TestRes_CSSClassID_CaseSensitive;
+    procedure TestRes_CSSClassID_ResolvedElement;
+    procedure TestRes_CSSClassID_AddClassToStylesheet;
+    procedure TestRes_CSSClassID_DeleteClassFromStylesheet;
+    procedure TestRes_CSSClassID_ChangeNodeClass; // add/delete a class on the node between two ApplyStyle
+    procedure TestRes_CSSID_Numbering;
+    procedure TestRes_CSSID_Unknown;
+    procedure TestRes_CSSID_CaseSensitive;
+    procedure TestRes_CSSID_ResolvedElement;
+    procedure TestRes_CSSID_AddIdToStylesheet;
+    procedure TestRes_CSSID_DeleteIdFromStylesheet;
+    procedure TestRes_CSSID_ChangeNodeId; // rename a node's id between two ApplyStyle
     procedure TestRes_Selector_ClassClass; // AND combinator
     procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
     procedure TestRes_Selector_TypeCommaType; // OR combinator
@@ -452,6 +503,7 @@ type
     procedure TestRes_Selector_OnlyChild;
     procedure TestRes_Selector_Not;
     procedure TestRes_Selector_NthChild;
+    procedure TestRes_Selector_NthChild2;
     procedure TestRes_Selector_NthLastChild;
     procedure TestRes_Selector_NthChildOf;
     procedure TestRes_Selector_FirstOfType;
@@ -480,13 +532,34 @@ type
     procedure TestRes_Specificity_Longhand_All_Longhand;
     procedure TestRes_Specificity_Shorthand_All_Shorthand;
 
+    // disable/enable declarations
+    procedure TestRes_Disable_Longhand;
+    procedure TestRes_Disable_Shorthand;
+    procedure TestRes_Disable_All;
+    procedure TestRes_Disable_Restore_AfterReparse;
+    procedure TestRes_Disable_QueryMethods;
+
     // origin
     procedure TestRes_Origin_Id_Class;
+    procedure TestRes_Origin_UserBeatsUserAgent; // user normal beats user-agent normal
+    procedure TestRes_Origin_AuthorBeatsUser; // author normal beats user normal
+    procedure TestRes_Origin_AuthorBeatsUserAgentDespiteSpecificity; // origin trumps selector specificity
+    procedure TestRes_Origin_Important; // !important beats normal; among importants the last origin wins
+    procedure TestRes_Origin_SourceOrderAcrossOrigins; // rules from all origins collected and sorted
+
+    // InsertStyleSheet / DeleteStyleSheet: within one origin the higher index (later
+    // document order) wins the cascade tie-break
+    procedure TestRes_InsertStyleSheet_HigherIndexWins;
+    procedure TestRes_InsertStyleSheet_MidListOrdered; // mid-list insert beats lower, loses to higher index
+    procedure TestRes_DeleteStyleSheet_LowerIndexWinsAfterDelete;
+    procedure TestRes_DeleteStyleSheet_RemovesContribution;
 
     // var()
     procedure TestRes_Var_NoDefault;
     procedure TestRes_Var_Inline_NoDefault;
     procedure TestRes_Var_Defaults;
+    procedure TestRes_Var_MixedCase;
+    procedure TestRes_Var_StringLiteral;
 
     // pseudo elements (works like child combinator)
     procedure TestRes_PseudoElement;
@@ -496,6 +569,7 @@ type
     // nested rules
     procedure TestRes_Nested_Hash; // #id -> Descendant combinator
     procedure TestRes_Nested_Class; // .class -> Descendant combinator
+    procedure TestRes_Nested_Type; // type -> Descendant combinator
     procedure TestRes_Nested_AndClass; // & AND selector
     procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
     procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
@@ -527,7 +601,21 @@ type
     procedure TestRes_Media_Comma;
     procedure TestRes_Media_Not;
     procedure TestRes_Media_NotAnd;
+    procedure TestRes_Media_EvalOncePerInit;
+    procedure TestRes_Media_ReplaceStyleSheet;
     // todo procedure TestRes_Media_Only
+
+    // rule buckets: selectors bucketed by their rightmost identifier
+    procedure TestRes_Buckets_GetCSSClasses;
+    procedure TestRes_Buckets_ClassBucket; // only the .red bucket matches
+    procedure TestRes_Buckets_TypeBucket; // only the button bucket matches
+    procedure TestRes_Buckets_IdBucket; // only the #id bucket matches
+    procedure TestRes_Buckets_IdBucketNumerical; // node id index selects the id bucket
+    procedure TestRes_Buckets_OtherBucket; // universal/pseudo-only rules always apply
+    procedure TestRes_Buckets_MultiSelectorRuleOnce; // rule with several matching selectors added once
+    procedure TestRes_Buckets_NonMatchingSkipped; // wrong class/type/id never apply
+    procedure TestRes_Buckets_CompoundRightmost; // div.red bucketed by class .red
+    procedure TestRes_Buckets_DescendantRightmost; // div .red bucketed by class .red
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -554,6 +642,82 @@ begin
     end;
   end;
   Result:=s;
+end;
+
+function TokenStreamToStr(Registry: TCSSRegistry; const Data: TBytes): string;
+// Human readable representation of a token stream produced by Tokenize,
+// so tests can compare against an expected string.
+var
+  i: integer;
+
+  function RByte: byte;
+  begin
+    Result:=Data[i];
+    inc(i);
+  end;
+
+  function RWord: word;
+  begin
+    Result:=PWord(@Data[i])^;
+    inc(i,2);
+  end;
+
+  function RDWord: DWord;
+  begin
+    Result:=PDWord(@Data[i])^;
+    inc(i,4);
+  end;
+
+  function RDouble: double;
+  begin
+    Result:=PDouble(@Data[i])^;
+    inc(i,8);
+  end;
+
+  function RStr(Count: cardinal): string;
+  begin
+    Result:='';
+    if Count=0 then exit;
+    SetLength(Result,Count);
+    Move(Data[i],Result[1],Count);
+    inc(i,Count);
+  end;
+
+var
+  Kind: TCSSResTokenKind;
+  U: TCSSUnit;
+begin
+  Result:='';
+  i:=0;
+  while i<length(Data) do
+  begin
+    Kind:=TCSSResTokenKind(RByte);
+    case Kind of
+    rtkWhitespace: Result:=Result+'ws ';
+    rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
+    rtkLParenthesis: Result:=Result+'( ';
+    rtkRParenthesis: Result:=Result+') ';
+    rtkLBracket: Result:=Result+'[ ';
+    rtkRBracket: Result:=Result+'] ';
+    rtkPlus: Result:=Result+'plus ';
+    rtkMinus: Result:=Result+'minus ';
+    rtkFloat:
+      begin
+        U:=TCSSUnit(RByte);
+        Result:=Result+'float('+FloatToCSSStr(RDouble)+CSSUnitNames[U]+') ';
+      end;
+    rtkKeyword: Result:=Result+'kw('+Registry.Keywords[RWord]+') ';
+    rtkFunction: Result:=Result+'func('+Registry.AttrFunctions[RWord]+') ';
+    rtkIdentifier: Result:=Result+'ident('+RStr(RDWord)+') ';
+    rtkStringApos: Result:=Result+'apos('+RStr(RDWord)+') ';
+    rtkStringQuote: Result:=Result+'quote('+RStr(RDWord)+') ';
+    rtkHexColor: Result:=Result+'hex('+RStr(RByte)+') ';
+    else
+      Result:=Result+'?? ';
+      break;
+    end;
+  end;
+  Result:=TrimRight(Result);
 end;
 
 { TDemoDiv }
@@ -693,6 +857,7 @@ begin
   ApplyTypeStyles;
 
   CSSResolver.AddStyleSheet(cssoAuthor,'test.css',Style);
+  FMediaEvalCount:=0;
   CSSResolver.Init;
   Traverse(Root);
 end;
@@ -705,6 +870,7 @@ end;
 
 function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
 begin
+  inc(FMediaEvalCount);
   Result:=false;
   case KW of
   TDemoCSSRegistry.kwHeight,
@@ -863,13 +1029,13 @@ begin
   HasWidth:=false;
   HasColor:=false;
   repeat
-    case Resolver.CurComp.Kind of
-    rvkFloat:
+    case Resolver.TokenKind of
+    rtkFloat:
       if not HasWidth then
-        HasWidth:=Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
-    rvkKeyword:
+        HasWidth:=Resolver.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
+    rtkKeyword:
       if not HasColor then
-        HasColor:=(Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor);
+        HasColor:=(Resolver.KeywordID>=kwFirstColor) and (Resolver.KeywordID<=kwLastColor);
     end;
   until not Resolver.ReadNext;
   Result:=HasWidth or HasColor;
@@ -886,24 +1052,24 @@ begin
 end;
 
 procedure TDemoCSSRegistry.OnSplit_Border(Resolver: TCSSBaseResolver;
-  var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
+  var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray);
 var
-  aWidth, aColor: TCSSString;
+  aWidth, aColor: TBytes;
 begin
-  aWidth:='';
-  aColor:='';
+  aWidth:=nil;
+  aColor:=nil;
   repeat
-    case Resolver.CurComp.Kind of
-    rvkFloat:
-      if aWidth='' then begin
-        if Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
-          aWidth:=Resolver.CurComp.FloatAsString;
+    case Resolver.TokenKind of
+    rtkFloat:
+      if aWidth=nil then begin
+        if Resolver.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
+          aWidth:=Resolver.GetCompTokens;
       end;
-    rvkKeyword:
-      if aColor='' then
+    rtkKeyword:
+      if aColor=nil then
       begin
-        if (Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor) then
-          aColor:=Keywords[Resolver.CurComp.KeywordID];
+        if (Resolver.KeywordID>=kwFirstColor) and (Resolver.KeywordID<=kwLastColor) then
+          aColor:=KeywordTokens[Resolver.KeywordID];
       end;
     end;
   until not Resolver.ReadNext;
@@ -940,15 +1106,7 @@ procedure TDemoCSSRegistry.OnCompute_Direction(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs) then
-  begin
-    Value.Value:=Keywords[Resolver.CurComp.KeywordID];
-    Value.State:=cavsComputed;
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.State:=cavsInvalid;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs);
   if Node=nil then ;
 end;
 
@@ -957,20 +1115,7 @@ procedure TDemoCSSRegistry.OnCompute_LeftTop(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop) then
-  begin
-    case Resolver.CurComp.Kind of
-    rvkFloat:
-      Value.Value:=Resolver.CurComp.FloatAsString;
-    rvkKeyword:
-      Value.Value:=Keywords[Resolver.CurComp.KeywordID];
-    end;
-    Value.State:=cavsComputed;
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.State:=cavsInvalid;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop);
   if Node=nil then ;
 end;
 
@@ -979,15 +1124,7 @@ procedure TDemoCSSRegistry.OnCompute_WidthHeight(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight) then
-  begin
-    Value.Value:=Resolver.CurComp.FloatAsString;
-    Value.State:=cavsComputed;
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.State:=cavsInvalid;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight);
   if Node=nil then ;
 end;
 
@@ -1154,7 +1291,7 @@ begin
   AttrDesc:=CSSRegistry.DemoAttrs[DemoAttr];
   i:=Values.IndexOf(AttrDesc.Index);
   if i>=0 then
-    Result:=Values.Values[i].Value
+    Result:=FResolver.Detokenize(Values.Values[i].Tokens)
   else
     Result:='';
 end;
@@ -1229,6 +1366,7 @@ begin
   FNodes:=TFPObjectList.Create(false);
   FCSSClasses:=TStringList.Create;
   FCSSClasses.Delimiter:=' ';
+  FCSSClasses.FPOAttachObserver(Self);
 end;
 
 destructor TDemoNode.Destroy;
@@ -1263,55 +1401,54 @@ var
   AttrID: TCSSNumericalID;
   CurValue: TCSSAttributeValue;
   Desc: TCSSAttributeDesc;
+  SiblingMatches: TCSSSiblingMatchList;
 begin
+  FResolver:=Resolver;
+
   if (InlineStyleElement=nil) and (InlineStyle<>'') then
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
 
-  Resolver.Compute(Self,InlineStyleElement,Rules,Values);
+  Resolver.Compute(Self,InlineStyleElement,Rules,Values,SiblingMatches);
 
   {$IFDEF VerboseCSSResolver}
   writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
   for i:=0 to length(Values.Values)-1 do begin
     AttrID:=Values.Values[i].AttrID;
     Desc:=Resolver.GetAttributeDesc(AttrID);
-    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Desc.Name,'/',AttrID,':="',Values.Values[i].Value,'"');
+    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Desc.Name,'/',AttrID,':="',Resolver.Detokenize(Values.Values[i].Tokens),'"');
   end;
   {$ENDIF}
   // compute values
   for i:=0 to length(Values.Values)-1 do
   begin
     CurValue:=Values.Values[i];
-    case CurValue.State of
-      cavsSource, cavsBaseKeywords:
-        begin
-          AttrID:=CurValue.AttrID;
-          Desc:=Resolver.GetAttributeDesc(AttrID);
-          if Desc=nil then
-            raise Exception.Create('20240823100115 AttrID='+IntToStr(AttrID));
-          if Desc is TDemoCSSAttributeDesc then
-          begin
-            AttrDesc:=TDemoCSSAttributeDesc(Desc);
-            if AttrDesc.OnCompute<>nil then
-            begin
-              Resolver.CurComp.EndP:=PChar(CurValue.Value);
-              Resolver.ReadNext;
-              AttrDesc.OnCompute(Resolver,Self,CurValue);
-              {$IFDEF VerboseCSSResolver}
-              writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
-              {$ENDIF}
-            end else
-              CurValue.State:=cavsComputed;
-          end;
-        end;
-      cavsComputed: ;
-      cavsInvalid: ;
+    if CurValue.Invalid then continue;
+    AttrID:=CurValue.AttrID;
+    Desc:=Resolver.GetAttributeDesc(AttrID);
+    if Desc=nil then
+      raise Exception.Create('20240823100115 AttrID='+IntToStr(AttrID));
+    if Desc is TDemoCSSAttributeDesc then
+    begin
+      AttrDesc:=TDemoCSSAttributeDesc(Desc);
+      if AttrDesc.OnCompute<>nil then
+      begin
+        Resolver.InitParseAttr(AttrDesc,CurValue.Tokens);
+        AttrDesc.OnCompute(Resolver,Self,CurValue);
+        {$IFDEF VerboseCSSResolver}
+        writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',Resolver.Detokenize(CurValue.Tokens),'"');
+        {$ENDIF}
+      end;
     end;
   end;
 end;
 
-function TDemoNode.GetCSSID: TCSSString;
+function TDemoNode.GetCSSID: TCSSNumericalID;
 begin
-  Result:=Name;
+  // map the node name to the resolver's id index (the same index the #name
+  // selectors were registered under); CSSIDNone if the name is not used by any selector
+  if FResolver=nil then
+    exit(CSSIDNone);
+  Result:=FResolver.GetCSSIDIndex(Name);
 end;
 
 class function TDemoNode.CSSTypeName: TCSSString;
@@ -1319,14 +1456,43 @@ begin
   Result:=DemoElementTypeNames[detNode];
 end;
 
-function TDemoNode.HasCSSClass(const aClassName: TCSSString): boolean;
+procedure TDemoNode.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+  if ASender=nil then ;
+  if Data=nil then ;
+  if Operation in [ooChange,ooAddItem,ooDeleteItem,ooFree] then
+    FCSSClassArrValid:=false;
+end;
+
+function TDemoNode.HasCSSClass(const aClassID: TCSSNumericalID): boolean;
+var
+  i: Integer;
+  Classes: TCSSNumericalIDArray;
+begin
+  if aClassID=CSSIDNone then exit(false);
+  Classes:=GetCSSClasses;
+  for i:=0 to length(Classes)-1 do
+    if aClassID=Classes[i] then
+      exit(true);
+  Result:=false;
+end;
+
+function TDemoNode.GetCSSClasses: TCSSNumericalIDArray;
 var
   i: Integer;
 begin
-  for i:=0 to CSSClasses.Count-1 do
-    if aClassName=CSSClasses[i] then
-      exit(true);
-  Result:=false;
+  // rebuild the cache if the class names changed or the resolver remapped class ids
+  if (not FCSSClassArrValid) or (FCSSClassArrStamp<>FResolver.CSSClassIDStamp) then
+  begin
+    // map the class names to their resolver ids
+    SetLength(FCSSClassArr,FCSSClasses.Count);
+    for i:=0 to FCSSClasses.Count-1 do
+      FCSSClassArr[i]:=FResolver.GetCSSClassID(FCSSClasses[i]);
+    FCSSClassArrValid:=true;
+    FCSSClassArrStamp:=FResolver.CSSClassIDStamp;
+  end;
+  Result:=FCSSClassArr;
 end;
 
 function TDemoNode.GetCSSParent: ICSSNode;
@@ -1421,12 +1587,18 @@ begin
   Result:=FCSSClasses.DelimitedText;
 end;
 
-function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
+function TDemoNode.GetCSSAttributeID: TCSSString;
+begin
+  // the demo node uses its component name as the 'id' attribute
+  Result:=Name;
+end;
+
+function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes;
 var
   i: Integer;
   El: TDemoNode;
 begin
-  Result:='';
+  Result:=nil;
   El:=Self;
   repeat
     if El.Values<>nil then
@@ -1434,8 +1606,8 @@ begin
       i:=El.Values.IndexOf(AttrID);
       if i>=0 then
       begin
-        Result:=El.Values.Values[i].Value;
-        if Result<>'' then exit;
+        Result:=El.Values.Values[i].Tokens;
+        if length(Result)>0 then exit;
       end;
     end;
     El:=El.Parent;
@@ -1595,10 +1767,15 @@ begin
   if anIndex=0 then ;
 end;
 
-function TDemoPseudoElement.HasCSSClass(const aClassName: TCSSString): boolean;
+function TDemoPseudoElement.HasCSSClass(const aClassID: TCSSNumericalID): boolean;
 begin
   Result:=false;
-  if aClassName='' then ;
+  if aClassID=CSSIDNone then ;
+end;
+
+function TDemoPseudoElement.GetCSSClasses: TCSSNumericalIDArray;
+begin
+  Result:=nil;
 end;
 
 function TDemoPseudoElement.GetCSSAttributeClass: TCSSString;
@@ -1696,20 +1873,54 @@ begin
   Result.CSSClasses.Add(aClass);
 end;
 
+{ TClassNameCollector }
+
+type
+  TClassNameCollector = class(TCSSTreeVisitor)
+  public
+    Items: array of TCSSResolvedClassNameElement;
+    Count: integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure TClassNameCollector.Visit(obj: TCSSElement);
+begin
+  if obj is TCSSResolvedClassNameElement then
+  begin
+    if Count=length(Items) then
+      SetLength(Items,Count*2+8);
+    Items[Count]:=TCSSResolvedClassNameElement(obj);
+    inc(Count);
+  end;
+end;
+
+{ THashIdentifierCollector }
+
+type
+  THashIdentifierCollector = class(TCSSTreeVisitor)
+  public
+    Items: array of TCSSResolvedHashIdentifierElement;
+    Count: integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure THashIdentifierCollector.Visit(obj: TCSSElement);
+begin
+  if obj is TCSSResolvedHashIdentifierElement then
+  begin
+    if Count=length(Items) then
+      SetLength(Items,Count*2+8);
+    Items[Count]:=TCSSResolvedHashIdentifierElement(obj);
+    inc(Count);
+  end;
+end;
+
 { TTestCSSResolver }
 
 procedure TTestCSSResolver.TestRes_ParseAttr_Keyword;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: ltr; }';
-  ApplyStyle;
-  AssertEquals('Root.direction','ltr',Doc.Root.Direction);
-end;
-
-procedure TTestCSSResolver.TestRes_ParseAttr_Keyword_SkipInvalid;
-begin
-  Doc.Root:=TDemoNode.Create(nil);
-  Doc.Style:='* { direction: something ltr; }';
   ApplyStyle;
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
@@ -1743,6 +1954,62 @@ begin
   AssertEquals('Div1.Top','-0.5pc',Div1.Top);
   AssertEquals('Div1.Width','0.6cm',Div1.Width);
   AssertEquals('Div1.Height','60rem',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_InvalidDeclaration_LogWarning;
+var
+  Div1: TDemoDiv;
+  aResolver: TCSSResolver;
+  Entry: TCSSResolverLogEntry;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // 'out' is an invalid declaration. It must be skipped with a warning, not
+  // abort the whole stylesheet.
+  Doc.Style:=LinesToStr([
+  '#Div1 {',
+  '  out',
+  '}',
+  '#Div1 { width: 10px; }',
+  '']);
+  Doc.ApplyStyle; // not ApplyStyle, because a warning is expected
+
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  aResolver:=Doc.CSSResolver;
+  AssertEquals('log count',1,aResolver.LogCount);
+  Entry:=aResolver.LogEntries[0];
+  AssertTrue('log entry is a warning',Entry.MsgType=etWarning);
+  AssertTrue('log entry message "'+Entry.Msg+'"',Pos('expected',Entry.Msg)>0);
+end;
+
+procedure TTestCSSResolver.TestRes_InvalidSyntax_NoException;
+// Invalid CSS syntax must be skipped with a warning, it must not raise an
+// exception, which would abort the whole stylesheet.
+const
+  Sources: array[0..8] of string = (
+    '#Div1 { out }',
+    'a:not() { color: red; }',
+    'a:not(',
+    '#Div1 { width: }',
+    '#Div1 { : red }',
+    '@media (',
+    'a { b: url( }',
+    'a { color: red',
+    'a[ { color: red }'
+    );
+var
+  i: Integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddDiv('Div1',Doc.Root);
+  for i:=0 to High(Sources) do
+    begin
+    Doc.Style:=Sources[i];
+    Doc.ApplyStyle; // not ApplyStyle, because warnings are expected
+    end;
+  AssertTrue('warnings logged',Doc.CSSResolver.LogCount>0);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_Universal;
@@ -1803,6 +2070,336 @@ begin
   ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button1.left','13px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_Numbering;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // first occurrence in selector order determines the id, beginning at 1
+  Doc.Style:='.alpha { left: 1px; }'
+            +'.beta { left: 2px; }'
+            +'.alpha.gamma { left: 3px; }'; // alpha repeats, gamma is new
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSClassNameCount',3,R.CSSClassNameCount);
+  AssertEquals('id alpha',1,R.GetCSSClassID('alpha'));
+  AssertEquals('id beta',2,R.GetCSSClassID('beta'));
+  AssertEquals('id gamma',3,R.GetCSSClassID('gamma'));
+  // stable on re-query
+  AssertEquals('id alpha again',1,R.GetCSSClassID('alpha'));
+  // reverse lookup
+  AssertEquals('name 1','alpha',R.GetCSSClassName(1));
+  AssertEquals('name 2','beta',R.GetCSSClassName(2));
+  AssertEquals('name 3','gamma',R.GetCSSClassName(3));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_Unknown;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='.west { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // lookup-only: a class never seen in any selector returns CSSIDNone
+  AssertEquals('unknown class',CSSIDNone,R.GetCSSClassID('east'));
+  AssertEquals('empty name',CSSIDNone,R.GetCSSClassID(''));
+  // querying did not register anything
+  AssertEquals('CSSClassNameCount',1,R.CSSClassNameCount);
+  AssertEquals('name of unknown id','',R.GetCSSClassName(99));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_CaseSensitive;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // css class names are case sensitive -> two distinct ids
+  Doc.Style:='.Foo { left: 1px; }'
+            +'.foo { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSClassNameCount',2,R.CSSClassNameCount);
+  AssertEquals('id Foo',1,R.GetCSSClassID('Foo'));
+  AssertEquals('id foo',2,R.GetCSSClassID('foo'));
+  AssertTrue('distinct ids',R.GetCSSClassID('Foo')<>R.GetCSSClassID('foo'));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_ResolvedElement;
+var
+  R: TCSSResolver;
+  Visitor: TClassNameCollector;
+  i: Integer;
+  El: TCSSResolvedClassNameElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='.west { left: 1px; }'
+            +'.east { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Visitor:=TClassNameCollector.Create;
+  try
+    for i:=0 to R.StyleSheetCount-1 do
+      if R.StyleSheets[i].Element<>nil then
+        R.StyleSheets[i].Element.Iterate(Visitor);
+    // both class selectors got resolved into TCSSResolvedClassNameElement
+    AssertEquals('collected class elements',2,Visitor.Count);
+    for i:=0 to Visitor.Count-1 do
+    begin
+      El:=Visitor.Items[i];
+      AssertEquals('NumericalID matches GetCSSClassID for '+El.Name,
+        R.GetCSSClassID(El.Name),El.NumericalID);
+      AssertTrue('NumericalID>=1 for '+El.Name,El.NumericalID>=1);
+    end;
+  finally
+    Visitor.Free;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_AddClassToStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+  OldStamp: TCSSNumericalID;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('west');
+  // the stylesheet does not yet contain a .west rule
+  Doc.Style:='.east { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // class 'west' is not used by any selector -> not registered yet
+  AssertEquals('west unknown before',CSSIDNone,R.GetCSSClassID('west'));
+  AssertEquals('Button1.left before','',Button1.Left);
+
+  // add a .west rule: a new class id is registered and the stamp must change
+  OldStamp:=R.CSSClassIDStamp;
+  Doc.Style:='.east { left: 1px; }.west { left: 22px; }';
+  ApplyStyle;
+  AssertTrue('CSSClassIDStamp changed after add',R.CSSClassIDStamp<>OldStamp);
+  AssertTrue('west registered after add',R.GetCSSClassID('west')>=1);
+  // the node noticed the changed stamp and rebuilt its cached class id array,
+  // so the freshly added rule now matches
+  AssertEquals('Button1.left after','22px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_DeleteClassFromStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('west');
+  Doc.Style:='.west { left: 22px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('west registered before',R.GetCSSClassID('west')>=1);
+  AssertEquals('Button1.left before','22px',Button1.Left);
+
+  // delete the .west rule from the stylesheet
+  Doc.Style:='.east { left: 1px; }';
+  ApplyStyle;
+  // the rule is gone -> it is no longer applied to the node
+  AssertEquals('Button1.left after','',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_ChangeNodeClass;
+var
+  Node: TDemoButton;
+  R: TCSSResolver;
+  RedID: TCSSNumericalID;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Node:=AddButton('Button1',Doc.Root);
+  // the stylesheet stays the same; only the node's class list changes
+  Doc.Style:='.red { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  RedID:=R.GetCSSClassID('red');
+  // the node has no class yet -> the .red rule does not match
+  AssertFalse('HasCSSClass red before',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left before','',Node.Left);
+
+  // add the class: the IFPObserver invalidates the cached class id array, so
+  // GetCSSClasses rebuilds and the .red rule now matches
+  Node.CSSClasses.Add('red');
+  ApplyStyle;
+  AssertTrue('HasCSSClass red after add',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left after add','1px',Node.Left);
+
+  // delete the class again: the rule no longer matches
+  Node.CSSClasses.Clear;
+  ApplyStyle;
+  AssertFalse('HasCSSClass red after delete',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left after delete','',Node.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_Numbering;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // first occurrence in selector order determines the id index, beginning at 1
+  Doc.Style:='#alpha { left: 1px; }'
+            +'#beta { left: 2px; }'
+            +'#alpha#gamma { left: 3px; }'; // alpha repeats, gamma is new
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSIDCount',3,R.CSSIDCount);
+  AssertEquals('index alpha',1,R.GetCSSIDIndex('alpha'));
+  AssertEquals('index beta',2,R.GetCSSIDIndex('beta'));
+  AssertEquals('index gamma',3,R.GetCSSIDIndex('gamma'));
+  // stable on re-query
+  AssertEquals('index alpha again',1,R.GetCSSIDIndex('alpha'));
+  // reverse lookup
+  AssertEquals('name 1','alpha',R.GetCSSIDName(1));
+  AssertEquals('name 2','beta',R.GetCSSIDName(2));
+  AssertEquals('name 3','gamma',R.GetCSSIDName(3));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_Unknown;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='#west { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // lookup-only: an id never seen in any selector returns CSSIDNone
+  AssertEquals('unknown id',CSSIDNone,R.GetCSSIDIndex('east'));
+  AssertEquals('empty name',CSSIDNone,R.GetCSSIDIndex(''));
+  // querying did not register anything
+  AssertEquals('CSSIDCount',1,R.CSSIDCount);
+  AssertEquals('name of unknown index','',R.GetCSSIDName(99));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_CaseSensitive;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // css ids are case sensitive -> two distinct indices
+  Doc.Style:='#Foo { left: 1px; }'
+            +'#foo { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSIDCount',2,R.CSSIDCount);
+  AssertEquals('index Foo',1,R.GetCSSIDIndex('Foo'));
+  AssertEquals('index foo',2,R.GetCSSIDIndex('foo'));
+  AssertTrue('distinct indices',R.GetCSSIDIndex('Foo')<>R.GetCSSIDIndex('foo'));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_ResolvedElement;
+var
+  R: TCSSResolver;
+  Visitor: THashIdentifierCollector;
+  i: Integer;
+  El: TCSSResolvedHashIdentifierElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='#west { left: 1px; }'
+            +'#east { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Visitor:=THashIdentifierCollector.Create;
+  try
+    for i:=0 to R.StyleSheetCount-1 do
+      if R.StyleSheets[i].Element<>nil then
+        R.StyleSheets[i].Element.Iterate(Visitor);
+    // both id selectors got resolved into TCSSResolvedHashIdentifierElement
+    AssertEquals('collected id elements',2,Visitor.Count);
+    for i:=0 to Visitor.Count-1 do
+    begin
+      El:=Visitor.Items[i];
+      AssertEquals('NumericalID matches GetCSSIDIndex for '+El.Value,
+        R.GetCSSIDIndex(El.Value),El.NumericalID);
+      AssertTrue('NumericalID>=1 for '+El.Value,El.NumericalID>=1);
+    end;
+  finally
+    Visitor.Free;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_AddIdToStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // the stylesheet does not yet contain a #Button1 rule
+  Doc.Style:='#Other { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // id 'Button1' is not used by any selector -> not registered yet
+  AssertEquals('Button1 unknown before',CSSIDNone,R.GetCSSIDIndex('Button1'));
+  AssertEquals('Button1.left before','',Button1.Left);
+
+  // add a #Button1 rule: a new id index is registered
+  Doc.Style:='#Other { left: 1px; }#Button1 { left: 22px; }';
+  ApplyStyle;
+  AssertTrue('Button1 registered after add',R.GetCSSIDIndex('Button1')>=1);
+  // the node maps its name to the freshly added id index, so the rule now matches
+  AssertEquals('Button1.left after','22px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_DeleteIdFromStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Doc.Style:='#Button1 { left: 22px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('Button1 registered before',R.GetCSSIDIndex('Button1')>=1);
+  AssertEquals('Button1.left before','22px',Button1.Left);
+
+  // delete the #Button1 rule from the stylesheet
+  Doc.Style:='#Other { left: 1px; }';
+  ApplyStyle;
+  // the rule is gone -> it is no longer applied to the node
+  AssertEquals('Button1.left after','',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_ChangeNodeId;
+var
+  Node: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Node:=AddButton('Button1',Doc.Root);
+  // the stylesheet stays the same; only the node's id (name) changes
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // initially the node is #Button1 -> the first rule matches
+  AssertEquals('node id is #Button1',R.GetCSSIDIndex('Button1'),Node.GetCSSID);
+  AssertEquals('Button1.left before','1px',Node.Left);
+
+  // rename the node to 'Other': its id index now resolves to #Other
+  Node.Name:='Other';
+  ApplyStyle;
+  AssertEquals('node id is #Other',R.GetCSSIDIndex('Other'),Node.GetCSSID);
+  AssertTrue('node id changed',Node.GetCSSID<>R.GetCSSIDIndex('Button1'));
+  // the freshly matched #Other rule applies, the old #Button1 rule no longer does
+  AssertEquals('Other.left after','2px',Node.Left);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_ClassClass;
@@ -2341,6 +2938,31 @@ begin
   AssertEquals('Div4.Width','',Div4.Width);
 end;
 
+procedure TTestCSSResolver.TestRes_Selector_NthChild2;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('',Doc.Root);
+
+  Div2:=AddDiv('',Doc.Root);
+
+  Div3:=AddDiv('',Doc.Root);
+
+  Div4:=AddDiv('',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div:nth-child(2) { left: 8px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Div2.Left','8px',Div2.Left);
+  AssertEquals('Div3.Left','',Div3.Left);
+  AssertEquals('Div4.Left','',Div4.Left);
+end;
+
 procedure TTestCSSResolver.TestRes_Selector_NthLastChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
@@ -2805,6 +3427,219 @@ begin
   AssertEquals('Div2.BorderWidth','8px',Div2.BorderWidth);
 end;
 
+function TTestCSSResolver.FindAuthorDecl(const aSelector, aProp: string
+  ): TCSSDeclarationElement;
+var
+  R: TCSSResolver;
+  ShIdx, i, j: Integer;
+  Rules: TCSSRuleElementArray;
+  Rule: TCSSRuleElement;
+  Decl: TCSSDeclarationElement;
+begin
+  Result:=nil;
+  R:=Doc.CSSResolver;
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  if ShIdx<0 then exit;
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  for i:=0 to length(Rules)-1 do
+  begin
+    Rule:=Rules[i];
+    if CSSRuleSelectorsStr(Rule)<>aSelector then continue;
+    for j:=0 to Rule.ChildCount-1 do
+      if Rule.Children[j] is TCSSDeclarationElement then
+      begin
+        Decl:=TCSSDeclarationElement(Rule.Children[j]);
+        if CSSDeclPropertyName(Decl)=aProp then
+          exit(Decl);
+      end;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Longhand;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left initial','10px',Div1.Left);
+
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found .bird left decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left disabled','',Div1.Left);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left enabled','10px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Shorthand;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { border: 7px blue; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth initial','7px',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor initial','blue',Div1.BorderColor);
+
+  Decl:=FindAuthorDecl('.bird','border');
+  AssertTrue('found .bird border decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth disabled','',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor disabled','',Div1.BorderColor);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth enabled','7px',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor enabled','blue',Div1.BorderColor);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_All;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr([
+    '.bird { border-width: 7px; }',
+    '.bird { all: initial; }',
+    '']);
+  ApplyStyle;
+  // 'all: initial' resets border-width (an All attribute)
+  AssertEquals('Div1.BorderWidth initial','',Div1.BorderWidth);
+
+  Decl:=FindAuthorDecl('.bird','all');
+  AssertTrue('found .bird all decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth all disabled','7px',Div1.BorderWidth);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth all enabled','',Div1.BorderWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Restore_AfterReparse;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 5px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left initial','10px',Div1.Left);
+
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found .bird left decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left disabled','',Div1.Left);
+
+  // change the source -> reparse replaces all declaration elements;
+  // the disabled state must be restored from the path map
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 8px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left still disabled after reparse','',Div1.Left);
+  AssertEquals('Div1.Top after reparse','8px',Div1.Top);
+
+  // re-enable on the reparsed tree
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found reparsed .bird left decl',Decl<>nil);
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left enabled','10px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_QueryMethods;
+var
+  Div1: TDemoDiv;
+  DeclLeft, DeclTop: TCSSDeclarationElement;
+  R: TCSSResolver;
+  List: TFPList;
+  Paths: TStrings;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 5px; }','']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  DeclLeft:=FindAuthorDecl('.bird','left');
+  DeclTop:=FindAuthorDecl('.bird','top');
+  AssertTrue('found left',DeclLeft<>nil);
+  AssertTrue('found top',DeclTop<>nil);
+
+  // nothing disabled yet
+  AssertFalse('left not disabled initially',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count before',0,List.Count);
+  finally
+    List.Free;
+  end;
+
+  // disable left
+  R.DisableDeclaration(DeclLeft);
+  AssertTrue('left disabled after DisableDeclaration',R.IsDeclarationDisabled(DeclLeft));
+  AssertFalse('top still enabled',R.IsDeclarationDisabled(DeclTop));
+
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count',1,List.Count);
+    AssertTrue('disabled element is left',TCSSDeclarationElement(List[0])=DeclLeft);
+  finally
+    List.Free;
+  end;
+
+  Paths:=R.GetDisabledDeclarationPaths;
+  try
+    AssertEquals('paths count',1,Paths.Count);
+    AssertTrue('path object is left',TCSSDeclarationElement(Paths.Objects[0])=DeclLeft);
+    AssertTrue('path string not empty',Paths[0]<>'');
+  finally
+    Paths.Free;
+  end;
+
+  // after a reparse the element is replaced; the query must return the NEW element
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 8px; }','']);
+  ApplyStyle;
+  DeclLeft:=FindAuthorDecl('.bird','left');
+  AssertTrue('found reparsed left',DeclLeft<>nil);
+  AssertTrue('left still disabled after reparse',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count after reparse',1,List.Count);
+    AssertTrue('disabled element is reparsed left',TCSSDeclarationElement(List[0])=DeclLeft);
+  finally
+    List.Free;
+  end;
+
+  // enabling clears it
+  R.EnableDeclaration(DeclLeft);
+  AssertFalse('left enabled again',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count after enable',0,List.Count);
+  finally
+    List.Free;
+  end;
+end;
+
 procedure TTestCSSResolver.TestRes_Origin_Id_Class;
 var
   Div1: TDemoDiv;
@@ -2827,6 +3662,200 @@ begin
   AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
   AssertEquals('Div1.Background','green',Div1.Background);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_UserBeatsUserAgent;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // same selector in user-agent and user origin: the user origin wins for left,
+  // while top (only set by the user-agent sheet) still applies.
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; top: 7px; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 2px; }');
+  ApplyStyle;
+  AssertEquals('Div1.left (user beats user-agent)','2px',Div1.Left);
+  AssertEquals('Div1.top (user-agent only)','7px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_AuthorBeatsUser;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // same selector in user and author origin: the author origin wins for left,
+  // while top (only set by the user sheet) still applies.
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 1px; top: 5px; }');
+  Doc.Style:='div { left: 2px; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (author beats user)','2px',Div1.Left);
+  AssertEquals('Div1.top (user only)','5px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_AuthorBeatsUserAgentDespiteSpecificity;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // origin beats selector specificity: although the user-agent #Div1 selector has
+  // a higher selector specificity than the author div selector, the author origin
+  // base specificity (3000) outweighs the user-agent one (1000).
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','#Div1 { left: 1px; }');
+  Doc.Style:='div { left: 2px; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (author origin beats higher-specificity UA rule)','2px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_Important;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // left: user-agent !important beats author normal (important outweighs any origin).
+  // top: all three origins mark top !important, so the cascade falls back to source
+  // position - the last declaration in document order (author) wins.
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css',
+    '#Div1 { left: 1px !important; top: 1px !important; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { top: 2px !important; }');
+  Doc.Style:='div { left: 9px; top: 3px !important; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (UA important beats author normal)','1px',Div1.Left);
+  AssertEquals('Div1.top (author important wins among importants)','3px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_SourceOrderAcrossOrigins;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // rules from every origin are gathered (via the rule hashmaps) and then sorted
+  // back into document order. The author origin wins, and within the author origin
+  // the later declaration wins (source position tie-break).
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 2px; }');
+  Doc.Style:='div { left: 3px; }'+'div { left: 4px; }'; // two author rules
+  ApplyStyle;
+  AssertEquals('Div1.left (last author rule wins)','4px',Div1.Left);
+  // matching rules: the auto user-agent type style (div{display}), the extra
+  // user-agent rule, the user rule and both author rules = 5.
+  AssertEquals('rule count across origins',5,length(Div1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_InsertStyleSheet_HigherIndexWins;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  // two author sheets, same selector: each sheet is its own anonymous layer within
+  // the author origin, so the tie-break falls to document order = the array index.
+  // The higher index (b.css) wins for left, while top (only in a.css) still applies.
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 5px; }');
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');
+  AssertEquals('StyleSheetCount',2,R.StyleSheetCount);
+  ApplyStyle;
+  AssertEquals('Div1.left (higher index b.css wins)','2px',Div1.Left);
+  AssertEquals('Div1.top (only a.css sets it)','5px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_InsertStyleSheet_MidListOrdered;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 1px; }'); // index 0
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');          // index 1
+  // insert c.css between a.css and b.css: array order becomes a(0), c(1), b(2), and
+  // OrderStyleSheetInLayer must move c's fresh layer into the matching slot so the
+  // cascade document order follows the array. Then c beats a (lower index) but
+  // loses to b (higher index).
+  R.InsertStyleSheet(1,cssoAuthor,'c.css','div { left: 3px; top: 3px; }');
+  AssertEquals('StyleSheetCount',3,R.StyleSheetCount);
+  AssertEquals('sheet[0] is a.css','a.css',R.StyleSheets[0].Name);
+  AssertEquals('sheet[1] is c.css','c.css',R.StyleSheets[1].Name);
+  AssertEquals('sheet[2] is b.css','b.css',R.StyleSheets[2].Name);
+  ApplyStyle;
+  AssertEquals('Div1.left (b.css, highest index, wins)','2px',Div1.Left);
+  AssertEquals('Div1.top (c.css beats a.css)','3px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_DeleteStyleSheet_LowerIndexWinsAfterDelete;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  CntBefore: integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; }'); // lower index
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }'); // higher index, wins
+  // ApplyStyle also adds the user-agent type-style sheets and the author test.css,
+  // so query the sheet by name rather than assuming an absolute index/count.
+  ApplyStyle;
+  AssertEquals('Div1.left before delete (b.css wins)','2px',Div1.Left);
+
+  // delete the winning higher-index sheet: the lower-index a.css now wins
+  CntBefore:=R.StyleSheetCount;
+  R.DeleteStyleSheet(R.IndexOfStyleSheetWithName(cssoAuthor,'b.css'));
+  AssertEquals('StyleSheetCount dropped by one',CntBefore-1,R.StyleSheetCount);
+  AssertEquals('b.css is gone',-1,R.IndexOfStyleSheetWithName(cssoAuthor,'b.css'));
+  ApplyStyle;
+  AssertEquals('Div1.left after delete (a.css wins)','1px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_DeleteStyleSheet_RemovesContribution;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  CntBefore: integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 1px; }'); // lower index
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');          // higher index
+  ApplyStyle;
+  AssertEquals('Div1.left before delete','2px',Div1.Left);
+  AssertEquals('Div1.top before delete','1px',Div1.Top);
+
+  // delete lower-index a.css: its declarations no longer contribute, so top (only
+  // a.css set it) becomes empty, while b.css still sets left.
+  CntBefore:=R.StyleSheetCount;
+  R.DeleteStyleSheet(R.IndexOfStyleSheetWithName(cssoAuthor,'a.css'));
+  AssertEquals('StyleSheetCount dropped by one',CntBefore-1,R.StyleSheetCount);
+  AssertEquals('a.css is gone',-1,R.IndexOfStyleSheetWithName(cssoAuthor,'a.css'));
+  ApplyStyle;
+  AssertEquals('Div1.left after delete (b.css remains)','2px',Div1.Left);
+  AssertEquals('Div1.top after delete (a.css gone)','',Div1.Top);
 end;
 
 procedure TTestCSSResolver.TestRes_Var_NoDefault;
@@ -2895,6 +3924,53 @@ begin
   AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
   AssertEquals('Div1.Color','',Div1.Color);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_MixedCase;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the var() function name is case insensitive, while the custom property
+  // name --bird-color is case sensitive
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --bird-color: red;',
+  '  --bird-width: 3px;',
+  '  border-color: VAR(--bird-color);',
+  '  border-width: Var(--bird-width);',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_StringLiteral;
+begin
+  // plain var() call
+  AssertEquals('var(--a)',true,HasCSSValueVarCall('var(--a)'));
+  AssertEquals('VAR(--a) case insensitive',true,HasCSSValueVarCall('VAR(--a)'));
+  AssertEquals('1px var(--a)',true,HasCSSValueVarCall('1px var(--a)'));
+
+  // no var() call
+  AssertEquals('empty',false,HasCSSValueVarCall(''));
+  AssertEquals('red',false,HasCSSValueVarCall('red'));
+  AssertEquals('var without bracket',false,HasCSSValueVarCall('var'));
+  AssertEquals('variable',false,HasCSSValueVarCall('variable'));
+
+  // var() inside a string literal must be skipped
+  AssertEquals('"var(--a)" double quoted',false,HasCSSValueVarCall('"var(--a)"'));
+  AssertEquals('''var(--a)'' single quoted',false,HasCSSValueVarCall(''''+'var(--a)'+''''));
+  AssertEquals('text before quoted var',false,HasCSSValueVarCall('url("var(--a)")'));
+  AssertEquals('escaped quote in string',false,HasCSSValueVarCall('"\"var(--a)"'));
+  AssertEquals('unterminated string',false,HasCSSValueVarCall('"var(--a)'));
+
+  // a real var() call outside a string is still found
+  AssertEquals('quoted then real var',true,HasCSSValueVarCall('"text" var(--a)'));
+  AssertEquals('real var then quoted',true,HasCSSValueVarCall('var(--a) "var(--b)"'));
 end;
 
 procedure TTestCSSResolver.TestRes_PseudoElement;
@@ -3031,6 +4107,36 @@ begin
 
   AssertEquals('Container.Width','',Container.Width);
   AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Nested_Type;
+var
+  Container, Div1, Div2: TDemoDiv;
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Foo parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Span1:=AddSpan('Span1',Container);
+
+  Div2:=AddDiv('Div2',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  div {', // descendant combinator: .Foo div
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Span1.Width','',Span1.Width);
   AssertEquals('Div2.Width','',Div2.Width);
 end;
 
@@ -3770,6 +4876,377 @@ begin
   AssertEquals('Div1.Width','10px',Div1.Width);
   // 4/3 > 3/2 -> no match
   AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_EvalOncePerInit;
+var
+  Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div2:=AddDiv('Div2',Doc.Root);
+  Div3:=AddDiv('Div3',Doc.Root);
+
+  // one @media rule with one boolean selector -> HasMediaBoolean called once in Init
+  Doc.Style:='@media screen { div{ width: 10px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','10px',Div2.Width);
+  AssertEquals('Div3.Width','10px',Div3.Width);
+  AssertEquals('MediaEvalCount',1,Doc.MediaEvalCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_ReplaceStyleSheet;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@media screen { div{ width: 10px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width before','10px',Div1.Width);
+
+  // replace stylesheet: print does not match -> width not set
+  Doc.Style:='@media print { div{ width: 20px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width after','',Div1.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_GetCSSClasses;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+  Classes: TCSSNumericalIDArray;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  Button1.CSSClasses.Add('big');
+  Doc.Style:='.red { left: 1px; } .big { top: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Classes:=Button1.GetCSSClasses;
+  AssertEquals('class count',2,length(Classes));
+  AssertEquals('class[0] is red id',R.GetCSSClassID('red'),Classes[0]);
+  AssertEquals('class[1] is big id',R.GetCSSClassID('big'),Classes[1]);
+  // GetCSSClasses is consistent with HasCSSClass
+  AssertTrue('HasCSSClass red',Button1.HasCSSClass(R.GetCSSClassID('red')));
+  AssertTrue('HasCSSClass big',Button1.HasCSSClass(R.GetCSSClassID('big')));
+  AssertFalse('not HasCSSClass unknown',Button1.HasCSSClass(R.GetCSSClassID('green')));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_ClassBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // Note: every node also matches its user-agent type style (button{display:..})
+  // via the type bucket, so the rule counts below include that one extra rule.
+  // .blue does not match -> only .red applies (+ the UA button rule)
+  Doc.Style:='.red { left: 1px; }'
+            +'.blue { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('Button1.display (UA)','inline-block',Button1.Display);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_TypeBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // span does not match the button -> only button applies (+ the UA button rule)
+  Doc.Style:='button { left: 1px; }'
+            +'span { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_IdBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // #Other does not match -> only #Button1 applies (+ the UA button rule)
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_IdBucketNumerical;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { top: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // the node reports its id as a numerical index, equal to the index the
+  // #Button1 selector was registered under (and different from #Other)
+  AssertTrue('node id index>=1',Button1.GetCSSID>=1);
+  AssertEquals('node id index = #Button1 index',R.GetCSSIDIndex('Button1'),Button1.GetCSSID);
+  AssertTrue('node id index <> #Other index',Button1.GetCSSID<>R.GetCSSIDIndex('Other'));
+  // and only the matching #Button1 rule applies (+ the UA button rule)
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_OtherBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // the universal selector goes to the Other bucket and must always be checked;
+  // *, .red and button all match -> 3 author rules + the UA button rule
+  Doc.Style:='* { left: 1px; }'
+            +'.red { top: 2px; }'
+            +'button { width: 3px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','2px',Button1.Top);
+  AssertEquals('Button1.width','3px',Button1.Width);
+  AssertEquals('rule count',4,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MultiSelectorRuleOnce;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // all three selectors of this single rule match the node (class, type, id)
+  // -> the rule lands in three buckets but must be applied only once.
+  // rule count = 1 author rule + the UA button rule (would be 3 if duplicated).
+  Doc.Style:='.red, button, #Button1 { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_NonMatchingSkipped;
+var
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Span1:=AddSpan_Class('Span1','blue',Doc.Root);
+  // none of these author rules match a span.blue with id Span1
+  // -> only the UA span type style applies
+  Doc.Style:='.red { left: 1px; }'
+            +'button { top: 2px; }'
+            +'#Other { width: 3px; }';
+  ApplyStyle;
+  AssertEquals('Span1.left','',Span1.Left);
+  AssertEquals('Span1.top','',Span1.Top);
+  AssertEquals('Span1.width','',Span1.Width);
+  AssertEquals('Span1.display (UA)','inline-block',Span1.Display);
+  AssertEquals('rule count',1,length(Span1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_CompoundRightmost;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('red');
+  Span1:=AddSpan_Class('Span1','red',Doc.Root);
+  // compound div.red: rightmost identifier is the class .red, but the type div
+  // must still be verified -> only the div matches, not the span
+  Doc.Style:='div.red { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Div1.left','1px',Div1.Left);
+  AssertEquals('Span1.left','',Span1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_DescendantRightmost;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1); // inside the div
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // not inside a div
+  // descendant combinator div .red: rightmost is the class .red, ancestor div required
+  Doc.Style:='div .red { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Span1.left','1px',Span1.Left);
+  AssertEquals('Span2.left','',Span2.Left);
+  if Div1=nil then ;
+end;
+
+procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);
+var
+  Data: TBytes;
+  Resolver: TCSSBaseResolver;
+begin
+  Resolver:=Doc.CSSResolver;
+  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data));
+  AssertEquals(Title,Expected,TokenStreamToStr(Resolver.CSSRegistry,Data));
+end;
+
+procedure TTestCSSResolver.CheckTokenizeInvalid(const Title, aValue: string);
+var
+  Data: TBytes;
+begin
+  AssertEquals(Title+' invalid',false,Doc.CSSResolver.Tokenize(aValue,Data));
+end;
+
+procedure TTestCSSResolver.CheckRoundtrip(const Title, aValue, Expected: string);
+var
+  Data: TBytes;
+  Resolver: TCSSBaseResolver;
+begin
+  Resolver:=Doc.CSSResolver;
+  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data));
+  AssertEquals(Title,Expected,Resolver.Detokenize(Data));
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Empty;
+begin
+  // empty and whitespace-only values are invalid (Tokenize returns false)
+  CheckTokenizeInvalid('empty','');
+  CheckTokenizeInvalid('only whitespace','   ');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Keyword;
+begin
+  CheckTokenize('keyword red','red','kw(red)');
+  CheckTokenize('keyword auto','auto','kw(auto)');
+  CheckTokenize('keyword inline-block','inline-block','kw(inline-block)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Identifier;
+begin
+  CheckTokenize('custom ident','--my-var','ident(--my-var)');
+  CheckTokenize('custom ident short','--x','ident(--x)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Float;
+begin
+  CheckTokenize('int','12','float(12)');
+  CheckTokenize('px','5px','float(5px)');
+  CheckTokenize('percent','50%','float(50%)');
+  CheckTokenize('frac','1.5em','float(1.5em)');
+  CheckTokenize('dot frac','.25','float(0.25)');
+  CheckTokenize('exponent','2e3','float(2000)');
+  CheckTokenize('plus number','+7','float(7)');
+  CheckTokenize('minus number','-3px','float(-3px)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Whitespace;
+begin
+  CheckTokenize('two keywords','red blue','kw(red) ws kw(blue)');
+  CheckTokenize('collapsed','red    blue','kw(red) ws kw(blue)');
+  // leading and trailing whitespace is trimmed (TrimEnclosingSpace=true)
+  CheckTokenize('leading','  red','kw(red)');
+  CheckTokenize('trailing','red ','kw(red)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Symbols;
+begin
+  CheckTokenize('comma','red,blue','kw(red) sym(,) kw(blue)');
+  CheckTokenize('colon','red:blue','kw(red) sym(:) kw(blue)');
+  CheckTokenize('semicolon','red;','kw(red) sym(;)');
+  CheckTokenize('div','red/blue','kw(red) sym(/) kw(blue)');
+  CheckTokenize('star','red*blue','kw(red) sym(*) kw(blue)');
+  CheckTokenize('dot','red.blue','kw(red) sym(.) kw(blue)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_PlusMinus;
+begin
+  CheckTokenize('plus operator','+ red','plus ws kw(red)');
+  CheckTokenize('minus operator','- red','minus ws kw(red)');
+  CheckTokenize('plus var','+var(--x)','plus func(var) ident(--x) )');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Function;
+begin
+  CheckTokenize('var','var(--x)','func(var) ident(--x) )');
+  CheckTokenize('var fallback','var(--x, red)',
+    'func(var) ident(--x) sym(,) ws kw(red) )');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Brackets;
+begin
+  CheckTokenize('parenthesis','(red)','( kw(red) )');
+  CheckTokenize('brackets','[red]','[ kw(red) ]');
+  CheckTokenize('nested','([red])','( [ kw(red) ] )');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_HexColor;
+begin
+  CheckTokenize('rgb','#fff','hex(fff)');
+  CheckTokenize('rgba','#abcd','hex(abcd)');
+  CheckTokenize('rrggbb','#ff0000','hex(ff0000)');
+  CheckTokenize('rrggbbaa','#11223344','hex(11223344)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Strings;
+begin
+  CheckTokenize('apos','''hello''','apos(hello)');
+  CheckTokenize('quote','"hello"','quote(hello)');
+  CheckTokenize('empty apos','''''','apos()');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Invalid;
+begin
+  CheckTokenizeInvalid('unknown keyword','footastic');
+  CheckTokenizeInvalid('unknown function','footastic(1)');
+  CheckTokenizeInvalid('unknown unit','5foo');
+  CheckTokenizeInvalid('unknown symbol','red=blue');
+  CheckTokenizeInvalid('unbalanced open paren','var(--x');
+  CheckTokenizeInvalid('unbalanced close paren','red)');
+  CheckTokenizeInvalid('unbalanced bracket','[red');
+  CheckTokenizeInvalid('mismatched bracket','(red]');
+  CheckTokenizeInvalid('unterminated apos','''hello');
+  CheckTokenizeInvalid('unterminated quote','"hello');
+  CheckTokenizeInvalid('bad hex','#ab');
+end;
+
+procedure TTestCSSResolver.TestRes_Detokenize;
+begin
+  // values that survive tokenize+detokenize unchanged
+  CheckRoundtrip('keyword','red','red');
+  CheckRoundtrip('identifier','--my-var','--my-var');
+  CheckRoundtrip('float','5px','5px');
+  CheckRoundtrip('two keywords','red blue','red blue');
+  CheckRoundtrip('symbols','red,blue','red,blue');
+  CheckRoundtrip('function','var(--x, red)','var(--x, red)');
+  CheckRoundtrip('brackets','([red])','([red])');
+  CheckRoundtrip('hex','#ff0000','#ff0000');
+  CheckRoundtrip('apos','''hello''','''hello''');
+  CheckRoundtrip('quote','"hello"','"hello"');
+  CheckRoundtrip('plus operator','+ red','+ red');
+  // normalizations: whitespace collapses, numbers are normalized
+  CheckRoundtrip('collapsed whitespace','red    blue','red blue');
+  CheckRoundtrip('normalized number','.50','0.5');
+  CheckRoundtrip('normalized exponent','2e3','2000');
 end;
 
 initialization

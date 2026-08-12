@@ -29,7 +29,7 @@ type
   TTestLineReader = Class(TTestCase)
   Private
     FData: TStringStream;
-    FReader : TStreamLineReader;
+    FReader : TCSSStreamLineReader;
   protected
     Procedure CreateReader(AInput : String);
     procedure TearDown; override;
@@ -58,7 +58,7 @@ type
     FPSeudoDisabled,
     FNeedWhiteSpace : Boolean;
     FStream : TStream;
-    FLineReader : TLineReader;
+    FLineReader : TCSSLineReader;
     FScanner : TCSSScanner;
     FErrorSource : String;
     FWarnings: array of TTestCSSWarning;
@@ -152,7 +152,7 @@ function TTestCSSScanner.CreateScanner(AInput: String): TCSSScanner;
 begin
   FreeScanner;
   FStream:=TStringStream.Create(AInput);
-  FLineReader:=TStreamLineReader.Create(Fstream);
+  FLineReader:=TCSSStreamLineReader.Create(Fstream);
   FScanner:=TCSSScanner.Create(FLineReader);
   FScanner.DisablePseudo:=FPSeudoDisabled;
   Result:=FScanner;
@@ -695,7 +695,7 @@ end;
 procedure TTestLineReader.CreateReader(AInput: String);
 begin
   FData:=TStringStream.Create(AInput);
-  FReader:=TStreamLineReader.Create(FData);
+  FReader:=TCSSStreamLineReader.Create(FData);
 end;
 
 

@@ -772,7 +772,6 @@ type
   private
     FCollection: TCollection;
     FID: Integer;
-    FUpdateCount: Integer;
     function GetIndex: Integer;
   protected
     procedure SetCollection(Value: TCollection);virtual;
@@ -781,7 +780,6 @@ type
     function GetDisplayName: string; virtual;
     procedure SetIndex(Value: Integer); virtual;
     procedure SetDisplayName(const Value: string); virtual;
-    property UpdateCount: Integer read FUpdateCount;
   public
     constructor Create(ACollection: TCollection); virtual;
     destructor Destroy; override;

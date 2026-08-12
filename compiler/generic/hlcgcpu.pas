@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    hlcgobj,
     compilerbase,
     hlcg2ll;
 
@@ -36,17 +37,16 @@ interface
     thlcgcpu = class(thlcg2ll)
     end;
 
-  procedure create_hlcodegen(compiler: TCompilerBase);
+  procedure create_hlcodegen(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
 
 implementation
 
   uses
-    hlcgobj,
     cgcpu,
     compiler;
 
 
-  procedure create_hlcodegen(compiler: TCompilerBase);
+  procedure create_hlcodegen(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
       create_codegen;

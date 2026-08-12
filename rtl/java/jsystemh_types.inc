@@ -27,6 +27,12 @@
 {$endif}
 
 { Using inlining for small system functions/wrappers }
+{ Inlining is currently broken for JVM target }
+{ use -d FORCE_SYSTEMINLINE to change }
+{$ifndef FORCE_SYSTEMINLINE}
+  {$define DISABLE_SYSTEMINLINE}
+{$endif}
+
 {$ifndef DISABLE_SYSTEMINLINE}
   {$inline on}
   {$define SYSTEMINLINE}

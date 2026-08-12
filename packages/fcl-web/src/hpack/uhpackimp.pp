@@ -242,6 +242,10 @@ type
     ValueLength: integer;
     FName: RawByteString;
     FMustReset: Boolean;
+    // RFC 7541 §4.2: a dynamic table size update MUST occur at the beginning of
+    // a header block, before any header field. Set once the first field of the
+    // current block is emitted; a size update seen afterwards is a decoding error.
+    FFieldEmitted: Boolean;
   protected
     FHeaderListenerAddHeader: THPackHeaderAddEvent;
     FDecodedHeaders: THPackHeaderTextList;
@@ -269,6 +273,12 @@ type
     function  GetMaxHeaderTableSize: Integer;
     procedure SetMaxHeaderTableSize(aMaxHeaderTableSize: integer);
     function  EndHeaderBlockTruncated: Boolean;
+    // True when the decoder sits at a clean header-field boundary (ready to read a
+    // new representation), i.e. NOT part-way through one. After a COMPLETE header
+    // block has been decoded, a False result means the block ended mid-representation
+    // (e.g. a literal cut off before its length/value) — an HPACK decoding error
+    // (RFC 7541) the caller raises as a connection COMPRESSION_ERROR.
+    function  AtHeaderBoundary: Boolean;
     property  OnAddHeader: THPackHeaderAddEvent read FHeaderListenerAddHeader write FHeaderListenerAddHeader;
     property  DecodedHeaders: THPackHeaderTextList read FDecodedHeaders;
   end;
@@ -888,6 +898,7 @@ begin
   State := THPackState.READ_HEADER_REPRESENTATION;
   IndexType := THPackIndexType.eHPackNONE;
   FDecodedHeaders.Clear;
+  FFieldEmitted:=false;
   FMustReset:=false;
 end;
 
@@ -895,6 +906,13 @@ function THPackDecoder.EndHeaderBlockTruncated: Boolean;
 begin
   Result:= HeaderSize > MaxHeaderSize;
   FMustReset:=true;
+end;
+
+function THPackDecoder.AtHeaderBoundary: Boolean;
+begin
+  // A valid, fully-decoded block leaves the state machine back at the
+  // representation boundary; any other state means the input ran out mid-field.
+  Result := State = THPackState.READ_HEADER_REPRESENTATION;
 end;
 
 procedure THPackDecoder.SetMaxHeaderTableSize(aMaxHeaderTableSize: integer);
@@ -963,6 +981,9 @@ begin
   if aName='' then begin
     Raise THPACKException.Create('Header name is empty');
   end;
+  // A header field representation has now appeared in this block: any subsequent
+  // dynamic table size update is illegal (RFC 7541 §4.2).
+  FFieldEmitted := True;
   NewSize := HeaderSize + Length(aName) + Length(aValue);
   if NewSize <= MaxHeaderSize then begin
     DoAddHeader(aName, aValue, aSensitive);
@@ -1136,6 +1157,12 @@ begin
           end;
         end else if ((b and $20) = $20) then begin
           // Dynamic Table Size Update
+          // RFC 7541 §4.2: it MUST occur at the beginning of a header block,
+          // before any header field. One appearing after a field is a decoding
+          // error (h2spec hpack 4.2.1 -> COMPRESSION_ERROR).
+          if FFieldEmitted then begin
+            Raise THPACKException.Create('Dynamic table size update after header field (RFC 7541 4.2)');
+          end;
           Findex := b and $1F;
           if (Findex = $1F) then begin
             State := THPackState.READ_MAX_DYNAMIC_TABLE_SIZE;
@@ -1753,6 +1780,8 @@ var
   Bits: Integer;
   i,b,c: Integer;
   Mask: integer;
+  Consumed: integer;   // absolute bits consumed by transitions so far
+  LastEmit: integer;   // value of Consumed at the last symbol emission
   OutputBuffer: RawByteString;
   procedure WriteByte(const aByte: Byte); {$IFDEF USEINLINE}inline;{$ENDIF}
   begin
@@ -1774,6 +1803,8 @@ begin
   Node := FRoot;
   Current := 0;
   Bits := 0;
+  Consumed := 0;
+  LastEmit := 0;
   for i := 0 to Pred(Length(aBuf)) do begin
     b := Byte(aBuf[i+1]);
     Current := (current shl 8) or b;
@@ -1782,12 +1813,14 @@ begin
       c := integer((DWORD(Current) {unsigned shift} shr (Bits - 8)) and DWORD($FF));
       Node := Node.FChildren[c];
       dec(Bits,Node.FBits);
+      inc(Consumed,Node.FBits);
       if (Node.isTerminal) then begin
         if (Node.FSymbol = HPACK_HUFFMAN_EOS) then begin
           Raise THPACKException.Create('EOS_DECODED');
         end;
         WriteByte(Byte(Node.FSymbol));
         Node := Froot;
+        LastEmit := Consumed;
       end;
     end;
   end;
@@ -1796,14 +1829,21 @@ begin
     Node := Node.FChildren[c];
     if (Node.isTerminal and (Node.FBits <= Bits)) then begin
       dec(Bits,Node.FBits);
+      inc(Consumed,Node.FBits);
       WriteByte(Byte(Node.FSymbol));
       Node := Froot;
+      LastEmit := Consumed;
     end else begin
       break;
     end;
   end;
 
-  // Section 5.2. String Literal Representation
+  { Section 5.2. String Literal Representation
+    A padding strictly longer than 7 bits MUST be treated as a decoding error.
+    (h2spec hpack 5.2.1 -> COMPRESSION_ERROR. }
+  if (Length(aBuf) * 8 - LastEmit) > 7 then begin
+    Raise THPACKException.Create('INVALID_PADDING');
+  end;
   // Padding not corresponding to the most significant Bits of the code
   // for the EOS symbol (0xFF) MUST be treated as a decoding error.
   Mask := (1 shl Bits) - 1;

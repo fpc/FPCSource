@@ -67,6 +67,7 @@ Type
     function ParseBlockSequence(SkipStart: boolean=false): TYAMLSequence; virtual;
     function ParseFlowSequence: TYAMLSequence; virtual;
     function ParseValue(aAllowBlockEntry: Boolean=false): TYAMLData; virtual;
+    function ParseValueOrNull(aAllowBlockEntry: Boolean=false): TYAMLData; virtual;
     function ParseTagDirective: TYAMLTagData; virtual;
     function ParseDocument: TYAMLDocument; virtual;
     function ParseSingleDocument(aStream: TYAMLStream): TYAMLDocument;
@@ -282,6 +283,28 @@ begin
 end;
 
 
+function TYAMLParser.ParseValueOrNull(aAllowBlockEntry : Boolean = false) : TYAMLData;
+// As ParseValue, but allows the value to be absent: a mapping value may be
+// empty (null), e.g. "key:" with nothing following it. In that case the next
+// token is not the start of a value, and we return a null scalar.
+const
+  ValueStartTokens = [ytAnchor, ytAlias, ytBlockEntry,
+    ytBlockSequenceStart, ytFlowSequenceStart,
+    ytBlockMappingStart, ytFlowMappingStart,
+    ytScalarPlain, ytScalarSingle, ytScalarDouble,
+    ytScalarFolded, ytScalarLiteral];
+
+begin
+  if Peek.Token in ValueStartTokens then
+    Result:=ParseValue(aAllowBlockEntry)
+  else
+    begin
+    Result:=CreateYAMLData(TYAMLScalar,yttNull);
+    TYAMLScalar(Result).Kind:=yskPlain;
+    end;
+end;
+
+
 function TYAMLParser.ParseFlowSequence : TYAMLSequence;
 // On entry, we're on the first token of the sequence: ytFlowSequenceStart.
 // On exit, were on EOF or the first token after the sequence end: ytFlowSequenceEnd;
@@ -364,7 +387,7 @@ begin
       if lToken.Token<>ytValue then
         Error(SErrUnexpectedToken,[lToken.token.ToString,lToken.Value]);
       consumeToken;
-      lValue:=ParseValue(true);
+      lValue:=ParseValueOrNull(true);
       Result.Add(lKey,lValue);
       lToken:=Peek;
       Inc(lCount);
@@ -401,7 +424,7 @@ begin
       if lToken.Token<>ytValue then
         Error(SErrUnexpectedToken,[lToken.token.ToString,lToken.Value]);
       consumeToken;
-      lValue:=ParseValue;
+      lValue:=ParseValueOrNull(false);
       Result.Add(lKey,lValue);
       lToken:=Peek;
       if lToken.Token=ytFlowEntry then

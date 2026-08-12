@@ -386,8 +386,8 @@ const
       begin
         Write(xmloutput,'      <ostarget shortname="',targetinfos[target]^.shortname,'" name="',targetinfos[target]^.name,'"');
         if tf_under_development in targetinfos[target]^.flags then
-          Write(' experimental="1"');
-        WriteLn('/>');
+          Write(xmloutput,' experimental="1"');
+        WriteLn(xmloutput,'/>');
       end;
     WriteLn(xmloutput,'    </ostargets>');
   end;
@@ -4912,6 +4912,7 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
 
       {$ifdef aarch64}
         def_system_macro('CPUAARCH64');
+        def_system_macro('CPUARM64');
         def_system_macro('CPU64');
         def_system_macro('FPC_CURRENCY_IS_INT64');
         def_system_macro('FPC_COMP_IS_INT64');

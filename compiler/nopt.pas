@@ -447,23 +447,52 @@ end;
 function genmultidynarrayadd(p: taddnode): tnode;
 var
   compiler: TCompilerBase;
-  hp,sn : tnode;
+  hp    : tnode;
   arrp  : tarrayconstructornode;
   newstatement : tstatementnode;
   tempnode    : ttempcreatenode;
   para : tcallparanode;
+
+  { operands read from a variable (possibly through fields/elements/derefs)
+    are anchored by that storage: they need no lifetime help and their
+    refcount must stay untouched so fpc_dynarray_concat_multi can still
+    detect refcount=1 and append to the destination in place }
+  function is_stored_operand(n: tnode): boolean;
+    begin
+      while n.nodetype in [subscriptn,vecn,derefn] do
+        n:=tunarynode(n).left;
+      is_stored_operand:=n.nodetype=loadn;
+    end;
+
+  { store any other operand (call result, literal, nested concat) in a
+    reference counted persistent temp so it stays alive until the concat
+    call, then hand the helper a plain pointer to it }
+  function operandref(n: tnode): tnode;
+    var
+      optemp : ttempcreatenode;
+    begin
+      if is_stored_operand(n) then
+        exit(compiler.ctypeconvnode_internal(n,compiler.deftypes.voidpointertype));
+      if not is_array_constructor(n.resultdef) then
+        inserttypeconv(n,p.resultdef,compiler);
+      optemp:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent,true);
+      addstatement(newstatement,optemp);
+      addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(optemp),n));
+      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(optemp));
+      operandref:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(optemp),compiler.deftypes.voidpointertype);
+    end;
+
 begin
   compiler:=p.compiler;
+  result:=internalstatements(compiler,newstatement);
   arrp:=nil;
   hp:=p;
   while assigned(hp) and (hp.nodetype=addn) do
     begin
-      sn:=compiler.ctypeconvnode_internal(taddnode(hp).right.getcopy,compiler.deftypes.voidpointertype);
-      arrp:=compiler.carrayconstructornode(sn,arrp);
+      arrp:=compiler.carrayconstructornode(operandref(taddnode(hp).right.getcopy),arrp);
       hp:=taddnode(hp).left;
     end;
-  sn:=compiler.ctypeconvnode_internal(hp.getcopy,compiler.deftypes.voidpointertype);
-  arrp:=compiler.carrayconstructornode(sn,arrp);
+  arrp:=compiler.carrayconstructornode(operandref(hp.getcopy),arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(compiler.aktassignmentnode) and
      (compiler.aktassignmentnode.right=p) and
@@ -477,15 +506,16 @@ begin
             compiler.ccallparanode(
               compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,compiler.deftypes.voidpointertype),nil)
           ));
-      result:=compiler.ccallnode_intern(
-                'fpc_dynarray_concat_multi',
-                para
-              );
+      addstatement(newstatement,
+        compiler.ccallnode_intern(
+          'fpc_dynarray_concat_multi',
+          para
+        )
+      );
       include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin
-      result:=internalstatements(compiler,newstatement);
       tempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent ,true);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a

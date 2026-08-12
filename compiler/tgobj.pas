@@ -132,6 +132,12 @@ unit tgobj;
 
           procedure location_freetemp(list:TAsmList; const l : tlocation);
 
+          { Discard the free list so that previously freed temp slots cannot be
+            reused by subsequent allocations. Used on AArch64-Win64 before
+            generating exceptfilter code to prevent handler temps from reusing
+            freed parent slots. }
+          procedure discard_freelist;
+
           property Compiler: TCompilerBase read FCompiler;
        end;
        ttgobjclass = class of ttgobj;
@@ -785,6 +791,12 @@ implementation
     procedure ttgobj.UnGetLocal(list: TAsmList; const ref : treference);
       begin
         FreeTemp(list,ref.temppos,[tt_persistent]);
+      end;
+
+
+    procedure ttgobj.discard_freelist;
+      begin
+        tempfreelist:=nil;
       end;
 
 end.

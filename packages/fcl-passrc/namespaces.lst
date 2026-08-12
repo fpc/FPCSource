@@ -1,4 +1,5 @@
 src/pasresolver.pp=namespaced/Pascal.Resolver.pp
+src/pasnativeresolve.pp=namespaced/Pascal.Resolver.Native.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/pparser.pp=namespaced/Pascal.Parser.pp
@@ -9,4 +10,5 @@ src/pscanner.pp=namespaced/Pascal.Scanner.pp
 src/pastree.pp=namespaced/Pascal.Tree.pp
 src/pasuseanalyzer.pas=namespaced/Pascal.UseAnalyzer.pp
 src/paswrite.pp=namespaced/Pascal.Writer.pp
+src/pasdataflow.pp=namespaced/Pascal.DataFlow.pp
 src/dpktolpk.pp=namespaced/Pascal.DpkToLpk.pp

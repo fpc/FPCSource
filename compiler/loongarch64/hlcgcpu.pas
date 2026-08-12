@@ -38,7 +38,7 @@ type
   thlcgloongarch64 = class(thlcg2ll)
     protected
     public
-      constructor create(ACompiler: TCompilerBase);override;
+      constructor create(ACompiler: TCompilerBase);override;overload;
 
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
   end;
@@ -183,9 +183,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgloongarch64.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgloongarch64.create(hlcgobjhelpers,compiler);
     end;
 
 begin

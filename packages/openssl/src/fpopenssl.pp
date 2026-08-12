@@ -48,6 +48,7 @@ Type
   TSSLContext = Class(TObject)
   private
     FCTX: PSSL_CTX;
+    FALPNWire : TBytes;   // ALPN preference list, [len][bytes]… wire form (RFC 7301); read by the unit-level ALPN select callback
     function UsePrivateKey(pkey: SslPtr): cInt;
     function UsePrivateKeyASN1(pk: cInt; d: String; len: cLong): cInt;
     function UsePrivateKeyASN1(pk: cInt; d: TBytes; len: cLong): cInt;
@@ -57,6 +58,11 @@ Type
     Constructor Create(AType : TSSLType); overload;
     Destructor Destroy; override;
     Function SetCipherList(Var ACipherList : AnsiString) : Integer;
+    // Install an ALPN protocol list (comma-separated, e.g. 'h2,http/1.1'): builds the
+    // [len][bytes]… wire buffer, sets the client offer and the server select callback.
+    // Returns the underlying SslCtxSetAlpnProtos result (0 == success, inverted!); an
+    // empty/whitespace-only list installs nothing and returns non-zero (failure).
+    Function SetALPNProtocols(const aProtocols: AnsiString): Integer;
     procedure SetVerify(mode: Integer; arg2: TSSLCTXVerifyCallback);
     procedure SetDefaultPasswdCb(cb: PPasswdCb);
     procedure SetDefaultPasswdCbUserdata(u: SslPtr);
@@ -73,6 +79,10 @@ Type
     function LoadPFX(Const Buf : TBytes;APassword : AnsiString) : cint;
     function LoadPFX(Data : TSSLData; Const APAssword : Ansistring) : cint;
     function SetOptions(AOptions: cLong): cLong;
+    // Set the minimum negotiated TLS protocol version (e.g. TLS1_2_VERSION).
+    // Returns the SslCTXCtrl result (1 == success). Used to enforce the RFC 9113
+    // §9.2 floor (TLS >= 1.2) when h2 is offered (Story 4.5).
+    Function SetMinProtoVersion(aVersion : cInt) : cLong;
     procedure SetTlsextServernameCallback(cb: PCallbackCb);
     procedure SetTlsextServernameArg(ATlsextcbp: SslPtr);
     procedure ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
@@ -112,6 +122,8 @@ Type
     function CipherAlgBits: integer;
     Function VerifyResult : Integer;
     function Set1Host(const hostname: string): Integer;
+    // Negotiated ALPN protocol after a completed handshake; '' when nothing negotiated.
+    function GetSelectedALPNProtocol: AnsiString;
     Property SSL: PSSL Read FSSL;
   end;
 
@@ -355,6 +367,74 @@ begin
   Result:=SSLCTxSetCipherList(FCTX,ACipherList);
 end;
 
+{ Server-side ALPN select callback (plain cdecl function — no implicit Self — typed
+  exactly as openssl.pas's TAlpnSelectCb). Recovers the TSSLContext from arg (Self,
+  passed at install time) and lets OpenSSL pick from the client offer (in_/inlen) using
+  our server preference wire list (FALPNWire). Returns SSL_TLSEXT_ERR_OK to accept; on
+  no-overlap returns SSL_TLSEXT_ERR_ALERT_FATAL (RFC 7301 §3.2 no_application_protocol —
+  NOT NOACK, which is the wrong NPN-era "continue without ALPN" semantics for h2). }
+function ALPNSelectCallback(ssl: PSSL; out_: PPByte; outlen: PByte;
+                            in_: PByte; inlen: cuint; arg: Pointer): cint; cdecl;
+var
+  Ctx : TSSLContext;
+  r   : cint;
+begin
+  Ctx := TSSLContext(arg);
+  if (Ctx = nil) or (Length(Ctx.FALPNWire) = 0) then
+    Exit(SSL_TLSEXT_ERR_ALERT_FATAL);
+  r := SslSelectNextProto(out_, outlen,
+                          @Ctx.FALPNWire[0], Length(Ctx.FALPNWire),  // server prefs
+                          in_, inlen);                               // client offer
+  if r = OPENSSL_NPN_NEGOTIATED then
+    Result := SSL_TLSEXT_ERR_OK            // 0 — accept; OpenSSL copies out_ itself
+  else
+    Result := SSL_TLSEXT_ERR_ALERT_FATAL;  // 2 — RFC 7301 §3.2 no_application_protocol
+end;
+
+Function TSSLContext.SetALPNProtocols(const aProtocols: AnsiString): Integer;
+
+  // Append one length-prefixed token ([len][bytes]) to FALPNWire after trimming;
+  // empty tokens are skipped. Raises ESSL for a token that cannot be length-prefixed.
+  procedure AppendToken(const aToken: AnsiString);
+  var
+    Tok : AnsiString;
+    L : Integer;
+  begin
+    Tok:=Trim(aToken);
+    if Tok='' then
+      Exit;                              // skip empty tokens
+    if Length(Tok)>255 then              // cannot length-prefix in a single byte
+      Raise ESSL.CreateFmt('ALPN protocol name too long (%d bytes): %s',[Length(Tok),Tok]);
+    L:=Length(FALPNWire);
+    SetLength(FALPNWire,L+1+Length(Tok));
+    FALPNWire[L]:=Byte(Length(Tok));     // [len]
+    Move(Tok[1],FALPNWire[L+1],Length(Tok)); // [bytes]  (1-based string -> 0-based TBytes)
+  end;
+
+var
+  I,Start : Integer;
+begin
+  SetLength(FALPNWire,0);
+  // Manual comma split (no type-helper dependency): emit each [Start..I-1] slice.
+  Start:=1;
+  for I:=1 to Length(aProtocols) do
+    if aProtocols[I]=',' then
+      begin
+      AppendToken(Copy(aProtocols,Start,I-Start));
+      Start:=I+1;
+      end;
+  AppendToken(Copy(aProtocols,Start,Length(aProtocols)-Start+1)); // trailing token
+  if Length(FALPNWire)=0 then
+    begin
+    // No valid tokens: install nothing, signal failure (non-zero) — never a false success.
+    Result:=1;
+    Exit;
+    end;
+  { NB: SSL_CTX_set_alpn_protos returns 0 on SUCCESS (inverted!) }
+  Result:=SslCtxSetAlpnProtos(FCTX,@FALPNWire[0],Length(FALPNWire)); // client offer
+  SslCtxSetAlpnSelectCb(FCTX,@ALPNSelectCallback,Self);             // server side
+end;
+
 procedure TSSLContext.SetVerify(mode: Integer; arg2: TSSLCTXVerifyCallback);
 begin
   SslCtxSetVerify(FCtx,Mode,arg2);
@@ -539,6 +619,19 @@ end;
 function TSSLContext.SetOptions(AOptions: cLong): cLong;
 begin
   result := SslCtxCtrl(FCTX, SSL_CTRL_OPTIONS, AOptions, nil);
+end;
+
+Const
+  // OpenSSL SSL_CTX control id used by SetMinProtoVersion. Defined here (not in
+  // openssl.pas) to avoid re-opening that done unit (Story 4.5). Standard/stable
+  // across OpenSSL 1.1.x/3.x. (TLS1_2_VERSION = $0303 lives at the call site in
+  // opensslsockets.pp, the unit that passes it.)
+  SSL_CTRL_SET_MIN_PROTO_VERSION = 123;    // openssl/ssl.h
+
+function TSSLContext.SetMinProtoVersion(aVersion: cInt): cLong;
+begin
+  // Mirrors SetOptions: SSL_CTX_set_min_proto_version() is a macro over SSL_CTX_ctrl.
+  Result := SslCtxCtrl(FCTX, SSL_CTRL_SET_MIN_PROTO_VERSION, aVersion, nil);
 end;
 
 procedure TSSLContext.SetTlsextServernameCallback(cb: PCallbackCb);
@@ -822,6 +915,19 @@ end;
 function TSSL.Set1Host(const hostname: string): Integer;
 begin
   Result := SslSet1Host(FSsl, hostname);
+end;
+
+function TSSL.GetSelectedALPNProtocol: AnsiString;
+var
+  data : PByte;
+  len  : cuint;
+begin
+  Result := '';
+  data := nil;
+  len  := 0;
+  SslGet0AlpnSelected(FSSL, @data, @len);          // public wrapper nils/zeros when unavailable
+  if (len > 0) and (data <> nil) then
+    SetString(Result, PAnsiChar(data), len);       // copy; NEVER free data (OpenSSL-owned)
 end;
 
 end.

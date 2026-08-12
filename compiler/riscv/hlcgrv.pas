@@ -259,9 +259,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass;compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgriscv.create(compiler);
+      tcompiler(compiler).hlcg:=chlcgobj.create(hlcgobjhelpers,compiler);
 //      create_codegen;
     end;
 

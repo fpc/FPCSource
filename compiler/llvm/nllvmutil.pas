@@ -123,11 +123,7 @@ implementation
           for i:=0 to usedsyms.count-1 do
             begin
               typedsym:=TTypedAsmSym(usedsyms[i]);
-              if (prevasmsym<>typedsym.sym) and
-                { even though we already filter on pure assembler routines when adding the symbols,
-                  some may slip through because of forward definitions that are not yet resolved }
-                 not((typedsym.def.typ=procdef) and
-                     (po_assembler in tprocdef(typedsym.def).procoptions)) then
+              if (prevasmsym<>typedsym.sym) then
                 inc(uniquesyms);
               prevasmsym:=typedsym.sym;
               end;
@@ -140,9 +136,7 @@ implementation
           for i:=0 to usedsyms.count-1 do
             begin
               typedsym:=TTypedAsmSym(usedsyms[i]);
-              if (prevasmsym<>typedsym.sym) and
-                 not((typedsym.def.typ=procdef) and
-                     (po_assembler in tprocdef(typedsym.def).procoptions)) then
+              if (prevasmsym<>typedsym.sym) then
                 begin
                   tcb.queue_init(compiler.deftypes.voidpointertype);
                   tcb.queue_emit_asmsym(typedsym.sym,typedsym.def);

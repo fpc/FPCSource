@@ -12,7 +12,7 @@ Const
   CPUnits       = [aix,amiga,aros,android,beos,macosclassic,darwin,iphonesim,ios,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly,freertos,wasip1,wasip1threads];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];
-  UnicodeBaseOnlyOSes   = [msdos,win16];
+  UnicodeBaseOnlyOSes   = [atari,human68k,msdos,sinclairql,win16];
   UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + UnicodeBaseOnlyOSes;
 
   GraphemeBreakPropertyOSes = UnicodeAllOSes;

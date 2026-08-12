@@ -335,7 +335,10 @@ end;
 
 function IsLeapYear(Year: Word): boolean;
 begin
-  Result := (Year mod 4 = 0) and ((Year mod 100 <> 0) or (Year mod 400 = 0));
+  If Year mod 100<>0 Then
+    Result:=(Year mod 4)=0
+  Else
+    Result:=(Year mod 16)=0;   { optimized version of (Year mod 400)=0 }
 end;
 
 {  DateToStr returns a string representation of Date using ShortDateFormat   }

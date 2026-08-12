@@ -1,43 +1,167 @@
-# This .gitlab.ci.yml is based on:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-# the FPC specific parts are partly from:
-# https://gitlab.com/alb42/testconversion2/-/blob/main/.gitlab-ci.yml
+spec:
+  inputs:
+    fpc_version:
+      description: 'FPC version that should be used for compiling'
+      default: '3.2.2'
+---
 
-.linux_runners:
-  image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
-  tags:
-    - saas-linux-medium-amd64
+
 
 stages:
-  - compilercycle
-  - buildandtest
+  - build compiler
+  - build
+  - test
 
-compiler-fullcycle-job:
-  stage: compilercycle
-  extends:
-    - .linux_runners
+
+
+# ----------------------------
+# Templates for platforms
+# ----------------------------
+.linux-parallel: &linux-parallel
+  before_script:
+    - 'AVAILABLE_CPU_CORES=$(( $(nproc) > 6 ? 6 : $(nproc) ))'
+  parallel:
+    matrix:
+      - ARCH: x86_64
+        # PLATFORM: linux/amd64
+        RUNNER_TAG: saas-linux-medium-amd64
+      - ARCH: aarch64
+        # PLATFORM: linux/arm64
+        RUNNER_TAG: saas-linux-small-arm64
+  tags:
+    - $RUNNER_TAG
+
+# allows to use inputs in image field
+variables:
+  REQUIRED_FPC_COMPILER_VERSION: $[[ inputs.fpc_version ]]
+
+# Alpine Linux builds
+.alpine_linux: &alpine_linux_configuration
+  <<: *linux-parallel
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-alpine-3.23-minimal
+
+# Debian builds
+.debian_linux: &debian_linux_configuration
+  <<: *linux-parallel
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-bullseye-full
+
+# Ubuntu builds
+.ubuntu_linux: &ubuntu_linux_configuration
+  <<: *linux-parallel
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-jammy-full
+
+
+
+# ----------------------------
+# Setup script section
+# ----------------------------
+.full_cycle_of_compiler: &full_cycle_of_compiler
+  stage: build compiler
   script:
     - cd compiler
-    - make fullcycle -j 4 "OPT=-Oodfa"
+    - make fullcycle -j $AVAILABLE_CPU_CORES
 
-build-and-test-job-linux:
-  stage: buildandtest
-  extends:
-    - .linux_runners
+.creating_full_installation: &creating_full_installation
+  stage: build
   script:
-    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4" "OPT=-Oodfa"
+    - |
+      MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
+      if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
+          make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
+      else
+          make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+      fi
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - fpc-*.tar.gz
+
+.run_tests: &run_tests
+  stage: test
+  script:
+    - |
+      MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
+      if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
+          make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
+      else
+          make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+      fi
     - FPC_SRC=$(pwd)
-    - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
+    - |
+      case "$ARCH" in
+          x86_64)
+              COMPILER_EXE_NAME="ppcx64"
+              ;;
+          aarch64)
+              COMPILER_EXE_NAME="ppca64"
+              ;;
+          *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+      esac
+    - FPC_COMPILER=$(find $FPC_SRC/compiler/ -name $COMPILER_EXE_NAME)
+    # run tests
     - cd tests
-    - make clean TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
-    - make full TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
+    - make clean -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
+    - make full -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
+    # generate junit test report
     - cd utils
     - make fpts2junit
     - cd $FPC_SRC
-    - tests/utils/fpts2junit $FPC_SRC/tests/output/x86_64-linux/ testresult.xml
+    - tests/utils/fpts2junit $FPC_SRC/tests/output/*/ testresult.xml
   artifacts:
     when: always  
-    paths:
-      - testresult.xml
     reports:
       junit: testresult.xml
+
+
+
+# ----------------------------
+# Build compiler section (fail fast before building everything)
+# ----------------------------
+Full Cycle of Compiler on Alpine Linux:
+  <<: [*full_cycle_of_compiler, *alpine_linux_configuration]
+
+Full Cycle of Compiler on Debian Linux:
+  <<: [*full_cycle_of_compiler, *debian_linux_configuration]
+
+Full Cycle of Compiler on Ubuntu Linux:
+  <<: [*full_cycle_of_compiler, *ubuntu_linux_configuration]
+
+
+
+# ----------------------------
+# Build section
+# ----------------------------
+Build FPC on Alpine Linux:
+  <<: [*creating_full_installation, *alpine_linux_configuration]
+
+Build FPC on Debian Linux:
+  <<: [*creating_full_installation, *debian_linux_configuration]
+
+Build FPC on Ubuntu Linux:
+  <<: [*creating_full_installation, *ubuntu_linux_configuration]
+
+
+
+# ----------------------------
+# Testing section
+# ----------------------------
+Run FPC Tests on Alpine Linux:
+  <<: [*run_tests, *alpine_linux_configuration]
+  dependencies: []
+  timeout: 2h
+  # TODO: package gdbint can't be compiled because musl does not provide libgdb.a
+  allow_failure: true
+
+Run FPC Tests on Debian Linux:
+  <<: [*run_tests, *debian_linux_configuration]
+  dependencies: []
+  timeout: 2h
+
+Run FPC Tests on Ubuntu Linux:
+  <<: [*run_tests, *ubuntu_linux_configuration]
+  dependencies: []
+  timeout: 2h

@@ -37,7 +37,7 @@ interface
 
   type
     tbasehlcgarm = class(thlcg2ll)
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
@@ -266,12 +266,12 @@ implementation
 
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass;compiler: TCompilerBase);
     begin
       if GenerateThumbCode then
-        tcompiler(compiler).hlcg:=tthumbhlcgcpu.create(compiler)
+        tcompiler(compiler).hlcg:=tthumbhlcgcpu.create(hlcgobjhelpers,compiler)
       else
-        tcompiler(compiler).hlcg:=tarmhlcgcpu.create(compiler);
+        tcompiler(compiler).hlcg:=tarmhlcgcpu.create(hlcgobjhelpers,compiler);
     end;
 
 begin

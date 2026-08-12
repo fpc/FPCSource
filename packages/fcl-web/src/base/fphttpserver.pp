@@ -37,6 +37,8 @@ Const
   DefaultMaxHeaderCount = 256;
   DefaultMaxLiveConnectionCount = 128;
   DefaultKeepConnectionIdleTimeout = 50; // Ms
+  DefaultRequestReadTimeout = 30000; // Ms. Per-read timeout while reading a request. 0 disables.
+  DefaultPolledAcceptIdleTimeout = 100; // Ms. Poll interval used for tmPolled when no AcceptIdleTimeout is set.
 
 Type
   TFPHTTPConnection = Class;
@@ -93,6 +95,7 @@ Type
     FIsSocketSetup : Boolean;
     FBuffer : Ansistring;
     FKeepAlive : Boolean;
+    FRequestDataReceived : Boolean; // True once a byte of the current request has been read.
     function GetKeepConnections: Boolean;
     function GetKeepConnectionTimeout: Integer;
     function GetKeepConnectionIdleTimeout: Integer;
@@ -160,6 +163,11 @@ Type
     Property KeepAlive: Boolean read FKeepAlive;
     // Is the current connection upgraded ?
     Property IsUpgraded : Boolean Read FIsUpgraded;
+    { Bytes already read from the socket past the consumed request lines (the residual FBuffer).
+      Used by the HTTP/2 prior-knowledge takeover/hand-off.}
+    Function ResidualBytes : TBytes;
+    // ALPN-negotiated application protocol from the TLS handshake. used by the HTTP/2 TLS ingress takeover/handoff.
+    Function NegotiatedProtocol : String;
   end;
 
   { TFPHTTPConnectionThread }
@@ -179,7 +187,19 @@ Type
       Var AResponse : TFPHTTPConnectionResponse) of object;
 
   { TFPCustomHttpServer }
-  TThreadMode = (tmNone,tmThread,tmThreadPool);
+  { Connection handling model. 
+    
+    tmNone and tmPolled are both single-threaded and differ only in I/O: 
+    
+    tmNone handles one connection at a time and blocks the accept loop while reading it; 
+    
+    tmPolled keeps a list of connections and only handles a connection 
+    once data is actually waiting (non-blocking readiness check), 
+    so idle/preconnect sockets never block the accept loop. 
+    
+    tmThread and tmThreadPool handle connections concurrently on separate threads. 
+  }
+  TThreadMode = (tmNone,tmPolled,tmThread,tmThreadPool);
 
   { TFPHTTPServerConnectionHandler }
 
@@ -243,6 +263,24 @@ Type
   TFPThreadedConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
   private
     procedure ConnectionDone(Sender: TObject);
+  Public
+    procedure CheckRequests; override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+  end;
+
+  { TFPPolledConnectionHandler }
+
+  {
+    Single-threaded handler that services connections only when they have data waiting. 
+    New connections are kept in the list and handled (synchronously) on
+    the accept-idle tick or as soon as data is available, so a silent/preconnect
+    socket never blocks the accept loop the way tmNone does. 
+  }
+    
+  TFPPolledConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
+  Protected
+    // Handle aConnection if it has a request pending, else leave it for the next poll.
+    procedure CheckConnection(aConnection: TFPHTTPConnection); virtual;
   Public
     procedure CheckRequests; override;
     Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
@@ -346,7 +384,9 @@ Type
     FAddress: string;
     FPort: Word;
     FQueueSize: Word;
+    FRequestReadTimeout: Integer;
     FSend503OnMaxConnections: Boolean;
+    FStrictASCIIURL: Boolean;
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
@@ -355,6 +395,8 @@ Type
     FUseSSL: Boolean;
     FConnectionHandler : TFPHTTPServerConnectionHandler;
     FUpdateHandlers : TUpgradeHandlerList;
+    // HTTP/2 prior-knowledge adopt callback (cannot go through FUpdateHandlers). Set via RegisterHTTP2Handler.
+    FOnAdoptHTTP2 : TUpgradeConnectionEvent;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     procedure DoOnAllowConnect(Sender: TObject; ASocket: TFPSocket; var Allow: Boolean);
     function GetActive: Boolean;
@@ -383,6 +425,15 @@ Type
     procedure DoLog(aMoment: THTTPLogMoment; const Msg: String); overload;
     Procedure DoLog(aMoment : THTTPLogMoment; const Fmt : String; Const Args : Array of const); overload;
     Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // True when an HTTP/2 prior-knowledge adopt callback is registered.
+    Function HasHTTP2Handler : Boolean; inline;
+    // Detect the prior-knowledge preface (Method=PRI, version 2.0) and, when a
+    // handler is registered, fire the adopt callback. Mirrors CheckUpgrade.
+    Function CheckHTTP2PriorKnowledge(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // Similar to CheckHTTP2PriorKnowledge, but triggered by the TLS-ALPN-negotiated
+    // protocol rather than a `PRI` start line, and fired BEFORE any HTTP/1.1
+    // parse — there is no request to pass.
+    Function CheckHTTP2ALPN(aConnection : TFPHTTPConnection) : Boolean;
     // Override this to create Descendent
     Function CreateUpgradeHandlerList : TUpgradeHandlerList; virtual;
     // Override this to create descendent
@@ -448,6 +499,11 @@ Type
     Destructor Destroy; override;
     Function RegisterUpdateHandler(Const aName : string; const OnCheck : THandlesUpgradeEvent; const OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
     Procedure UnRegisterUpdateHandler(Const aName : string);
+    // Register the HTTP/2 prior-knowledge adopt callback. Additive, callback-based
+    // seam (mirrors RegisterUpdateHandler): the server stores the event and never
+    // references any HTTP/2 type.
+    Procedure RegisterHTTP2Handler(const aOnAdopt : TUpgradeConnectionEvent);
+    Procedure UnRegisterHTTP2Handler;
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
@@ -492,6 +548,15 @@ Type
     Property MaxLiveConnectionCount : Integer Read FMaxLiveConnectionCount Write FMaxLiveConnectionCount Default DefaultMaxLiveConnectionCount;
     // If true, when max connections is reached, send a 503. If false, connection is simply closed.
     property Send503OnMaxConnections : Boolean Read FSend503OnMaxConnections Write FSend503OnMaxConnections Default True;
+    // Per-read socket time-out (ms) used while reading a request (headers and content).
+    //   Set as SO_RCVTIMEO/SO_SNDTIMEO on the connection socket, so it limits a single recv/send call,
+    //   not the total request time. Protects against clients that connect and then stall mid-request
+    //   (e.g. slowloris, or non-HTTP clients sending a TLS handshake to a plaintext port). 0 disables.
+    Property RequestReadTimeout : Integer Read FRequestReadTimeout Write FRequestReadTimeout Default DefaultRequestReadTimeout;
+    // If True (the default), the complete request line - including the URL - must be printable US-ASCII.
+    //   If False, only the method and HTTP-version tokens are validated, so a URL may contain raw
+    //   (non percent-encoded) high bytes. Switch off only if you must accept such non-conforming clients.
+    Property StrictASCIIURL : Boolean Read FStrictASCIIURL Write FStrictASCIIURL Default True;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -536,9 +601,13 @@ Type
     Property OnLog;
     Property MaxLineLength;
     Property MaxHeaderCount;
+    Property RequestReadTimeout;
+    Property StrictASCIIURL;
   end;
 
   EHTTPServer = Class(EHTTP);
+  // Raised when the peer stalls mid-request and the read time-out expires.
+  EHTTPServerTimeout = Class(EHTTPServer);
 
   Function GetStatusCode (ACode: Integer) : String; deprecated 'Use GetHTTPStatusText from unit httpprotocol';
 
@@ -551,7 +620,11 @@ implementation
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
+  SErrRequestReadTimeout = 'Time-out after %d ms reading request from %s (connection %s), closing connection';
   SErrMissingProtocol = 'Missing HTTP protocol version in request "%s"';
+  SErrInvalidRequestLine = 'Invalid characters in request line "%s"';
+  SErrInvalidMethod = 'Invalid HTTP method in request line "%s"';
+  SErrInvalidControlChar = 'Invalid control character in request "%s"';
   SErrDuplicateUpgradeHandler = 'Duplicate upgrade handler';
   SUpgradingConnection = 'connection "%s" is upgraded to %s for request: %s';
   SErrAcceptingNewConnection = 'Accepting new connection (%s) from %s';
@@ -823,6 +896,79 @@ begin
 end;
 
 
+{ TFPPolledConnectionHandler }
+
+procedure TFPPolledConnectionHandler.CheckConnection(aConnection: TFPHTTPConnection);
+
+begin
+  { Drop connections that were 
+    - handed off (upgraded), 
+    - finished with an empty request  (closed), 
+    - or completed a request and are not kept alive. 
+    AllowNewRequest is only meaningful once a request has been handled (FLastRequestTime>0): 
+    for a fresh  connection it is False (keep-alive not negotiated yet), 
+    so it must not be used to reap connections that have not had their first request handled. 
+    }
+  if aConnection.IsUpgraded or aConnection.EmptyDetected
+     or ((aConnection.FLastRequestTime>0) and not aConnection.AllowNewRequest) then
+    begin
+    RemoveConnection(aConnection);
+    Exit;
+    end;
+  // Reap kept-alive connections that have been idle past the keep-alive timeout.
+  if (aConnection.FLastRequestTime>0) and (aConnection.KeepConnectionTimeout>0)
+     and (GetTickCount64 > aConnection.FLastRequestTime + QWord(aConnection.KeepConnectionTimeout)) then
+    begin
+    RemoveConnection(aConnection);
+    Exit;
+    end;
+  { Handle a request only when data is actually waiting: 
+    this is what keeps idle and preconnect sockets from blocking the single thread. 
+    Reading/handling is synchronous. }
+  if aConnection.Socket.CanRead(0) then
+    begin
+    aConnection.HandleRequest;
+    // Close now unless the connection was kept alive for a further request.
+    if aConnection.IsUpgraded or aConnection.EmptyDetected or not aConnection.AllowNewRequest then
+      RemoveConnection(aConnection);
+    end;
+end;
+
+
+procedure TFPPolledConnectionHandler.CheckRequests;
+
+Var
+  L : TList;
+  I : Integer;
+  lConnections : Array of TFPHTTPConnection;
+
+begin
+  { Snapshot the connections under lock, then handle them outside the lock: 
+    handling is synchronous and must not be done while holding the list lock.  }
+  L:=List.LockList;
+  try
+    SetLength(lConnections,L.Count);
+    For I:=0 to L.Count-1 do
+      lConnections[i]:=TFPHTTPConnection(L[i]);
+  finally
+    List.UnlockList;
+  end;
+  For I:=0 to High(lConnections) do
+    if Server.Active then
+      CheckConnection(lConnections[i]);
+end;
+
+
+procedure TFPPolledConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+
+begin
+  Inherited; // Adds to list
+  { Serve immediately if the request is already waiting (the common case); otherwise
+    leave it in the list to be polled on the next accept-idle tick. }
+  CheckConnection(aConnection);
+end;
+
+
 { TFPSimpleConnectionHandler }
 
 function TFPSimpleConnectionHandler.GetActiveConnectionCount: Integer;
@@ -914,6 +1060,52 @@ begin
     Result := NetAddrToStr(ASocketAddr.sin_addr)
   else // no ipv6 support yet
     Result := '';
+end;
+
+Function EscapeLogText(const S: String; AMaxLen: Integer = 256): String;
+// Escape control/non-printable bytes before request data is logged or put in an
+// exception message. This keeps raw bytes from a malformed or non-HTTP request
+// (e.g. a TLS handshake sent to a plaintext port) from corrupting the log and
+// prevents log injection through embedded CR/LF or terminal escape sequences.
+// Overly long input is truncated.
+Var
+  I,L : Integer;
+  C : Char;
+  Truncated : Boolean;
+begin
+  Result:='';
+  L:=Length(S);
+  Truncated:=(AMaxLen>0) and (L>AMaxLen);
+  if Truncated then
+    L:=AMaxLen;
+  For I:=1 to L do
+    begin
+    C:=S[I];
+    if (C<#32) or (C>=#127) or (C='\') then
+      Result:=Result+'\x'+HexStr(Ord(C),2)
+    else
+      Result:=Result+C;
+    end;
+  if Truncated then
+    Result:=Result+'...';
+end;
+
+Function HasIllegalControlChar(const S: String): Boolean;
+// True if S contains a control byte that may not appear in a request line or
+// header line. CR and LF are line terminators (handled by the line reader) and
+// HTAB is permitted in field values; anything else below #32 is illegal and
+// indicates a non-HTTP / binary request (e.g. a TLS handshake byte such as $16).
+Var
+  I : Integer;
+  C : Char;
+begin
+  Result:=False;
+  For I:=1 to Length(S) do
+    begin
+    C:=S[I];
+    if (C<#32) and not (C in [#9,#10,#13]) then
+      Exit(True);
+    end;
 end;
 
 
@@ -1274,6 +1466,7 @@ function TFPCustomHttpServer.CreateConnectionHandler: TFPHTTPServerConnectionHan
 begin
   case ThreadMode of
     tmNone : Result:=TFPSimpleConnectionHandler.Create(Self);
+    tmPolled : Result:=TFPPolledConnectionHandler.Create(Self);
     tmThread : Result:=TFPThreadedConnectionHandler.Create(Self);
     tmThreadPool : Result:=TFPPooledConnectionHandler.Create(Self);
   end;
@@ -1296,7 +1489,7 @@ begin
   Con.OnRequestError:=@HandleRequestError;
   Con.OnUnexpectedError:=@HandleUnexpectedError;
   If CanLog(hlmConnect) then
-    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID,  HostAddrToStr(Data.RemoteAddress.sin_addr)]);
+    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID,  NetAddrToStr(Data.RemoteAddress.sin_addr)]);
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1346,6 +1539,35 @@ begin
    end;
 end;
 
+function TFPCustomHttpServer.HasHTTP2Handler: Boolean;
+begin
+  Result:=Assigned(FOnAdoptHTTP2);
+end;
+
+function TFPCustomHttpServer.CheckHTTP2PriorKnowledge(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
+begin
+  Result:=HasHTTP2Handler;
+  If not Result then
+    Exit;
+  // The canonical prior-knowledge signal: start line 'PRI * HTTP/2.0'.
+  Result:=SameText(aRequest.Method,'PRI') and (aRequest.ProtocolVersion='2.0');
+  If Result then
+    FOnAdoptHTTP2(aConnection,aRequest);
+end;
+
+function TFPCustomHttpServer.CheckHTTP2ALPN(aConnection: TFPHTTPConnection): Boolean;
+begin
+  Result:=HasHTTP2Handler;                    // no handler => unchanged (NFR1)
+  if not Result then
+    Exit;
+  { The TLS handshake (completed during socket accept, before this thread ran) already decided the protocol.
+    When it is 'h2', the wire bytes are an HTTP/2 connection preface.
+    Any other value (including empty string) falls through to the unchanged HTTP/1.1 path (FR16/NFR1). }
+  Result:=(aConnection.NegotiatedProtocol = 'h2');
+  if Result then
+    FOnAdoptHTTP2(aConnection,Nil);           // nil request: no HTTP/1.1 was parsed
+end;
+
 function TFPCustomHttpServer.CreateUpgradeHandlerList: TUpgradeHandlerList;
 begin
   Result:=TUpgradeHandlerList.Create(TUpgradeHandlerItem);
@@ -1383,7 +1605,13 @@ begin
   FServer.OnConnect:=@DOConnect;
   FServer.OnAcceptSocketError:=@DoAcceptError;
   FServer.OnIdle:=@DoAcceptIdle;
-  FServer.AcceptIdleTimeOut:=AcceptIdleTimeout;
+  { tmPolled relies on the accept-idle tick to poll connections for pending data.
+    Without a timeout, accept() would block indefinitely and connections would never
+    be polled, so fall back to a sensible default poll interval. }
+  if (ThreadMode=tmPolled) and (AcceptIdleTimeout=0) then
+    FServer.AcceptIdleTimeOut:=DefaultPolledAcceptIdleTimeout
+  else
+    FServer.AcceptIdleTimeOut:=AcceptIdleTimeout;
 end;
 
 procedure TFPCustomHttpServer.StartServerSocket;
@@ -1421,6 +1649,8 @@ begin
   FMaxBodySize:=DefaultMaxBodySize;
   FMaxLiveConnectionCount:=DefaultMaxLiveConnectionCount;
   FSend503OnMaxConnections:=True;
+  FRequestReadTimeout:=DefaultRequestReadTimeout;
+  FStrictASCIIURL:=True;
 end;
 
 
@@ -1509,7 +1739,36 @@ begin
     end;
 end;
 
+procedure TFPCustomHttpServer.RegisterHTTP2Handler(const aOnAdopt: TUpgradeConnectionEvent);
+begin
+  FOnAdoptHTTP2:=aOnAdopt;
+end;
+
+procedure TFPCustomHttpServer.UnRegisterHTTP2Handler;
+begin
+  FOnAdoptHTTP2:=Nil;
+end;
+
 { TFPHTTPConnection }
+
+function TFPHTTPConnection.ResidualBytes: TBytes;
+begin
+  SetLength(Result,Length(FBuffer));
+  if Length(FBuffer)>0 then
+    Move(FBuffer[1],Result[0],Length(FBuffer));   // FBuffer is 1-based, TBytes 0-based
+end;
+
+function TFPHTTPConnection.NegotiatedProtocol: string;
+var
+  H : TSocketHandler;
+begin
+  Result := '';
+  if not Assigned(FSocket) then
+    Exit;
+  H := FSocket.Handler;                         // TSocketStream.Handler (ssockets.pp)
+  if H is TSSLSocketHandler then                // cleartext handler => '' (NFR1)
+    Result := TSSLSocketHandler(H).GetSelectedALPNProtocol;  // virtual (Story 4.4); OpenSSL override returns negotiated
+end;
 
 function TFPHTTPConnection.ReadString : String;
 
@@ -1519,17 +1778,42 @@ function TFPHTTPConnection.ReadString : String;
     R : Integer;
 
   begin
+    // Do not block indefinitely while reading a request. If a read time-out is
+    // configured and no data arrives within it, either the peer never started a
+    // request (an idle/preconnect socket) or it stalled mid-request (slowloris).
+    // CanRead uses select(), so it is portable and tells us "no data within timeout"
+    // without depending on platform errno values. The two cases are handled below.
+    if Assigned(Server) and (Server.RequestReadTimeout>0)
+       and not FSocket.CanRead(Server.RequestReadTimeout) then
+      begin
+      // Distinguish an idle connection from a stalled request. If not a single byte
+      // of the current request has arrived, the peer opened the connection but sent
+      // nothing - typically a browser speculative/preconnect socket. That is normal:
+      // return with an empty buffer so ReadString yields '' and the caller closes the
+      // connection quietly via the empty-request path. Only a peer that stops *during*
+      // a request (slowloris) is a genuine timeout worth raising and logging.
+      if not FRequestDataReceived then
+        begin
+        FBuffer:='';
+        Exit;
+        end;
+      Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
+              [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+      end;
     SetLength(FBuffer,ReadBufLen);
     r:=FSocket.Read(FBuffer[1],ReadBufLen);
     If r<0 then
       Raise EHTTPServer.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
+    if (r>0) then
+      FRequestDataReceived:=True;
   end;
 
 Var
   CheckLF,Done : Boolean;
   P,L : integer;
+  Chunk : String;
   Err : EHTTP;
 begin
   Result:='';
@@ -1559,17 +1843,22 @@ begin
         L:=Length(FBuffer);
         CheckLF:=FBuffer[L]=#13;
         if CheckLF then
-          Result:=Result+Copy(FBuffer,1,L-1)
+          Chunk:=Copy(FBuffer,1,L-1)
         else
-          Result:=Result+FBuffer;
+          Chunk:=FBuffer;
         FBuffer:='';
         end
       else
         begin
-        Result:=Result+Copy(FBuffer,1,P-1);
+        Chunk:=Copy(FBuffer,1,P-1);
         Delete(FBuffer,1,P+1);
         Done:=True;
         end;
+      // Reject binary / non-HTTP input as soon as it is seen, instead of waiting
+      // for a line terminator (or the read time-out) that will never arrive.
+      if HasIllegalControlChar(Chunk) then
+        Raise EHTTPServer.CreateFmtHelp(SErrInvalidControlChar,[EscapeLogText(Result+Chunk)],400);
+      Result:=Result+Chunk;
       end;
     if (Server.MaxLineLength>0) and (Length(Result)>Server.MaxLineLength) then
       begin
@@ -1614,6 +1903,9 @@ begin
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
 {$endif}
+  // Reap connections that stall mid-request so they cannot hold a slot indefinitely.
+  if Assigned(FServer) and (FServer.RequestReadTimeout>0) then
+    FSocket.IOTimeout:=FServer.RequestReadTimeout;
   FIsSocketSetup:=True;
 end;
 
@@ -1661,14 +1953,51 @@ procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest;
     Delete(S,1,P);
   end;
 
+  // The request line must be printable US-ASCII (space allowed, no control or high bytes).
+  Function IsPrintableAscii(const aLine : String) : Boolean;
+
+  Var
+    J : Integer;
+
+  begin
+    Result:=True;
+    For J:=1 to Length(aLine) do
+      if (aLine[J]<#32) or (aLine[J]>#126) then
+        Exit(False);
+  end;
+
+  // The method is a non-empty token of ASCII letters (covers all standard and WebDAV methods).
+  Function IsValidMethod(const aMethod : String) : Boolean;
+
+  Var
+    J : Integer;
+
+  begin
+    Result:=aMethod<>'';
+    if Result then
+      For J:=1 to Length(aMethod) do
+        if not (aMethod[J] in ['A'..'Z','a'..'z']) then
+          Exit(False);
+  end;
+
 Var
-  S : String;
+  S,OrigLine : String;
   I : Integer;
+  Strict : Boolean;
 
 begin
   if aStartLine='' then
     exit;
+  OrigLine:=aStartLine;
+  Strict:=(not Assigned(Server)) or Server.StrictASCIIURL;
+  // Reject non-HTTP / binary requests up front, before any field is assigned or logged.
+  // In strict mode the whole request line (URL included) must be printable US-ASCII.
+  if Strict and not IsPrintableAscii(aStartLine) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidRequestLine,[EscapeLogText(OrigLine)],400);
   Request.Method:=GetNextWord(AStartLine);
+  // The method is always validated, even in non-strict mode.
+  if not IsValidMethod(Request.Method) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidMethod,[EscapeLogText(OrigLine)],400);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
   I:=Pos('?',S);
@@ -1680,13 +2009,16 @@ begin
     S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
+  // In non-strict mode the URL was not checked, so validate the HTTP-version token here.
+  if (not Strict) and (S<>'') and not IsPrintableAscii(S) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidRequestLine,[EscapeLogText(OrigLine)],400);
   If Assigned(Server) and Server.CanLog(hlmRequestStart) then
-    Server.DoLog(hlmRequestStart,SRequestStart,[Request.ToString]);
+    Server.DoLog(hlmRequestStart,SRequestStart,[EscapeLogText(Request.ToString)]);
   If (S<>'') and (Pos('HTTP/',S)<>1) then
     begin
     If Assigned(Server) and Server.CanLog(hlmNoHTTPProtocol) then
-      Server.DoLog(hlmNoHTTPProtocol,SErrLogMissingProtocol,[aStartLine,Request.ToString]);
-    Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[AStartLine],400);
+      Server.DoLog(hlmNoHTTPProtocol,SErrLogMissingProtocol,[EscapeLogText(aStartLine),EscapeLogText(Request.ToString)]);
+    Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[EscapeLogText(AStartLine)],400);
     end;
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S); 
@@ -1720,6 +2052,12 @@ begin
     R:=1;
     While (L>0) and (R>0) do
       begin
+      // Same stall protection as the header reader: a client that announced a
+      // body but stops sending must not block the connection indefinitely.
+      if Assigned(Server) and (Server.RequestReadTimeout>0)
+         and not FSocket.CanRead(Server.RequestReadTimeout) then
+        Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
+                [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
       R:=FSocket.Read(S[p],L);
       If R<0 then
         Raise EHTTPServer.Create(SErrReadingSocket);
@@ -1742,6 +2080,9 @@ Var
 
 begin
   Result:=Nil;
+  // A fresh request starts here: no byte received yet. This lets FillBuffer treat a
+  // first-byte read time-out as an idle connection rather than a slowloris stall.
+  FRequestDataReceived:=False;
   StartLine:=ReadString;
   if StartLine='' then
     exit;
@@ -1764,7 +2105,7 @@ begin
         Raise Err;
         end;
     Until (S='');
-    Result.RemoteAddress :=  HostAddrToStr(FSocket.RemoteAddress.sin_addr);
+    Result.RemoteAddress :=  NetAddrToStr(FSocket.RemoteAddress.sin_addr);
     Result.ServerPort := FServer.Port;
   except
     FreeAndNil(Result);
@@ -1797,7 +2138,7 @@ destructor TFPHTTPConnection.Destroy;
 
 begin
   If Assigned(FServer) and FServer.CanLog(hlmDisConnect) then
-    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID, HostAddrToStr(FSocket.RemoteAddress.sin_addr)]);
+    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID, NetAddrToStr(FSocket.RemoteAddress.sin_addr)]);
   FreeAndNil(FSocket);
   Inherited;
 end;
@@ -1833,6 +2174,15 @@ Var
 begin
   if IsUpgraded then
     exit;
+  { HTTP/2 over TLS (ALPN, Story 4.6): when the TLS handshake negotiated 'h2',
+    the bytes on the wire are an HTTP/2 connection preface, NOT an HTTP/1.1
+    request — adopt the socket BEFORE any HTTP/1.1 parse }
+  if Server.CheckHTTP2ALPN(Self) then
+    begin
+    FSocket:=Nil; 
+    FIsUpgraded:=True;
+    Exit;
+    end;
   // Read headers.
   Resp:=Nil;
   Req:=ReadRequestHeaders;
@@ -1853,6 +2203,12 @@ begin
     If Req.ContentLength>0 then
       ReadRequestContent(Req);
     Req.InitRequestVars;
+    If Server.CheckHTTP2PriorKnowledge(Self,Req) then
+      begin
+      FSocket:=Nil;  // ownership handed to the H2 layer (similar to websocket)
+      FIsUpgraded:=True; // Make sure we don't have a  HTTP/1.1 response / keep-alive / close
+      Exit;
+      end;
     If Server.CheckUpgrade(Self,Req) then
       begin
       FSocket:=Nil; // Must have been taken over by upgrader

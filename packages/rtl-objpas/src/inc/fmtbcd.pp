@@ -1691,15 +1691,19 @@ IMPLEMENTATION
     exitloop : Boolean;
 
   begin
-    if aValue.Hi = 0 then
+    if (aValue.Hi = 0) and (aValue.Lo <= High(myInttype)) then
       Result := IntegerToBCD(aValue.Lo)
+    else if (aValue.Hi = High(QWord)) and (aValue.Lo > High(myInttype)+1) then  //negative numbers
+      Result := IntegerToBCD(myInttype(aValue.Lo))
     else begin
       v128 := aValue;
       bh := null_.bh;
       with bh do begin
         Neg := v128.Hi and (1 shl 63) <> 0;
         if Neg then begin
+{$PUSH}{$Q-}
           v128.Lo := not v128.Lo + 1;
+{$POP}
           v128.Hi := not v128.Hi + Ord(v128.Lo=0);
         end;
         LDig := 0;
@@ -2030,7 +2034,9 @@ IMPLEMENTATION
       if Plac > 0 then
         if Singles[1] > 4 then MulAdd(Result, 1, 1);
       if Neg then begin
+{$PUSH}{$Q-}
         Result.Lo := not Result.Lo + 1;
+{$POP}
         Result.Hi := not Result.Hi + Ord(Result.Lo=0);
       end;
     end;

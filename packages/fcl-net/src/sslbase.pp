@@ -47,7 +47,7 @@ Type
 
 Const
   SSLDataCount = 4; // 0 based.
-  StrDataCount = 2; // 0 based.
+  StrDataCount = 3; // 0 based.
 
 Type
 
@@ -71,6 +71,8 @@ Type
     property KeyPassword: string Index 0 read GetString write SetString;
     property CipherList: string Index 1 read GetString write SetString;
     Property HostName : String Index 2 read GetString write SetString;
+    // Provider-neutral ALPN protocol list, comma-separated (e.g. 'h2,http/1.1'); default ''.
+    property ALPNProtocols : String Index 3 read GetString write SetString;
     property Certificate : TSSLData Index 0 Read GetSSLData Write SetSSLData;
     property TrustedCertificate : TSSLData Index 1 Read GetSSLData Write SetSSLData;
     property PrivateKey : TSSLData Index 2 Read GetSSLData Write SetSSLData;

@@ -134,6 +134,25 @@ type
     Procedure TestNestedAndPlusRule;
     Procedure TestNestedRule_AppendedAndOperator;
     Procedure TestNestedRule_NestedDeclarations;
+    Procedure TestNestedTypeRule;
+    Procedure TestNestedTypeSpaceTypeRule;
+    Procedure TestNestedTypeMultiLineRule;
+    Procedure TestNestedTypeCommaTypeRule;
+    Procedure TestNestedTypeAttributeRule;
+    Procedure TestNestedTypeStringRule;
+    Procedure TestNestedTypePseudoRule;
+    Procedure TestNestedTypePseudoElementRule;
+    Procedure TestNestedStarRule;
+    Procedure TestNestedRule_DeclarationNoSpace;
+    Procedure TestNestedRule_CustomProperty;
+    Procedure TestDeclarationSourcePosition;
+    Procedure TestDeclarationValueSourcePosition;
+    Procedure TestDeclarationValueSourceStreamPos;
+    Procedure TestDeclarationValueClassSourcePosition;
+    Procedure TestDeclarationValueStartLocation;
+    Procedure TestDeclarationValueEndLocation;
+    Procedure TestDeclarationValueEndLocationExact;
+    Procedure TestDeclarationParenthesisValue;
   end;
 
   { TTestCSSFilesParser }
@@ -1249,6 +1268,414 @@ begin
   AssertEquals('Declaration value count',1,aDecl.ChildCount);
   aIdent:=TCSSIdentifierElement(CheckClass('Declaration value',TCSSIdentifierElement,aDecl.Children[0]));
   AssertEquals('Declaration value','blue',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedTypeRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aClass: TCSSClassNameElement;
+  aIdent: TCSSIdentifierElement;
+begin
+  aRule:=ParseRule('.parent { div { } }');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  aClass:=TCSSClassNameElement(CheckClass('Selector',TCSSClassNameElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','parent',aClass.Value);
+  AssertEquals('No declarations',0,aRule.ChildCount);
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector',TCSSIdentifierElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested sel name','div',aIdent.Value);
+  AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
+  AssertEquals('No nested rules',0,aNestedRule.NestedRuleCount);
+end;
+
+procedure TTestCSSParser.TestNestedTypeSpaceTypeRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aBin: TCSSBinaryElement;
+begin
+  aRule:=ParseRule('.parent { div span { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('Nested selector',TCSSBinaryElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector operation',boWhiteSpace,aBin.Operation);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('Nested selector left value','div',aIdent.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('Nested selector right value','span',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedTypeMultiLineRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aBin: TCSSBinaryElement;
+  aDecl: TCSSDeclarationElement;
+  LineLen: Integer;
+begin
+  // The look ahead for the '{' has to read the next lines and rewind, so the
+  // source positions must survive that.
+  aRule:=ParseRule(
+   '.parent {'+LineEnding
+  +'  div'+LineEnding
+  +'  span'+LineEnding
+  +'  {'+LineEnding
+  +'    color: red;'+LineEnding
+  +'  }'+LineEnding
+  +'}');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('Nested selector',TCSSBinaryElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector operation',boWhiteSpace,aBin.Operation);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('Nested selector left value','div',aIdent.Value);
+  AssertEquals('Nested selector left row',2,aIdent.SourceRow);
+  AssertEquals('Nested selector left col',2,aIdent.SourceCol);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('Nested selector right value','span',aIdent.Value);
+  AssertEquals('Nested selector right row',3,aIdent.SourceRow);
+  // declaration: color: red
+  aDecl:=CheckDeclaration(aNestedRule,0,'color');
+  AssertEquals('Declaration row',5,aDecl.SourceRow);
+  AssertEquals('Declaration col',4,aDecl.SourceCol);
+  LineLen:=Length(LineEnding);
+  AssertEquals('Declaration source pos',
+    (9+LineLen)+(5+LineLen)+(6+LineLen)+(3+LineLen)+4,aDecl.SourcePos);
+end;
+
+procedure TTestCSSParser.TestNestedTypeCommaTypeRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+begin
+  aRule:=ParseRule('.parent { div, span { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',2,aNestedRule.SelectorCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector[0]',TCSSIdentifierElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector[0] value','div',aIdent.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector[1]',TCSSIdentifierElement,aNestedRule.Selectors[1]));
+  AssertEquals('Nested selector[1] value','span',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedTypeAttributeRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aList: TCSSListElement;
+  aIdent: TCSSIdentifierElement;
+begin
+  // the '{' of the statement must be searched behind the edged brackets
+  aRule:=ParseRule('.parent { div[title=foo] { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aList:=TCSSListElement(CheckClass('Nested selector',TCSSListElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector list count',2,aList.ChildCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector[0]',TCSSIdentifierElement,aList[0]));
+  AssertEquals('Nested selector[0] value','div',aIdent.Value);
+  CheckClass('Nested selector[1]',TCSSArrayElement,aList[1]);
+end;
+
+procedure TTestCSSParser.TestNestedTypeStringRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+begin
+  // the '{' and the ';' within the string and the brackets must be skipped when
+  // searching the end of the statement
+  aRule:=ParseRule('.parent { div:not([title="a{b;c"]) { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
+end;
+
+procedure TTestCSSParser.TestNestedTypePseudoRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aList: TCSSListElement;
+  aPseudo: TCSSPseudoClassElement;
+begin
+  // Note: 'div:hover' is a single ctkPSEUDO token, the same token as in the
+  // declaration 'color:red', so this needs a look ahead for the '{'.
+  aRule:=ParseRule('.parent { div:hover { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aList:=TCSSListElement(CheckClass('Nested selector',TCSSListElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector list count',2,aList.ChildCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector[0]',TCSSIdentifierElement,aList[0]));
+  AssertEquals('Nested selector[0] value','div',aIdent.Value);
+  aPseudo:=TCSSPseudoClassElement(CheckClass('Nested selector[1]',TCSSPseudoClassElement,aList[1]));
+  AssertEquals('Nested selector[1] value',':hover',aPseudo.Value);
+end;
+
+procedure TTestCSSParser.TestNestedTypePseudoElementRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aBin: TCSSBinaryElement;
+begin
+  aRule:=ParseRule('.parent { div::before { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('Nested selector',TCSSBinaryElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector operation',boDoubleColon,aBin.Operation);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('Nested selector left value','div',aIdent.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('Nested selector right value','before',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedStarRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+begin
+  aRule:=ParseRule('.parent { * { } }');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector',TCSSIdentifierElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested sel name','*',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedRule_DeclarationNoSpace;
+var
+  aRule: TCSSRuleElement;
+  aDecl: TCSSDeclarationElement;
+  aIdent: TCSSIdentifierElement;
+begin
+  // 'color:red' has no space, so the ':red' is a ctkPSEUDO token, but it is a
+  // declaration, not a nested rule.
+  aRule:=ParseRule('.parent { color:red; }');
+  AssertEquals('Nested rule count',0,aRule.NestedRuleCount);
+  aDecl:=CheckDeclaration(aRule,0,'color');
+  AssertEquals('Declaration value count',1,aDecl.ChildCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Declaration value',TCSSIdentifierElement,aDecl.Children[0]));
+  AssertEquals('Declaration value','red',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestNestedRule_CustomProperty;
+var
+  aRule: TCSSRuleElement;
+begin
+  aRule:=ParseRule('.parent { --my-var: 1px; }');
+  AssertEquals('Nested rule count',0,aRule.NestedRuleCount);
+  CheckDeclaration(aRule,0,'--my-var');
+end;
+
+procedure TTestCSSParser.TestDeclarationSourcePosition;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+begin
+  // The declaration source position must point to the start of the attribute name.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Declaration source row',2,D.SourceRow);
+  AssertEquals('Declaration source col',2,D.SourceCol);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueSourcePosition;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  V : TCSSElement;
+begin
+  // The declaration value source position must point to the start of the value.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertNotNull('Value not nil',V);
+  AssertEquals('Value source row',2,V.SourceRow);
+  AssertEquals('Value source col',15,V.SourceCol);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueSourceStreamPos;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  V : TCSSElement;
+  LineStart : Integer;
+begin
+  // SourcePos is the 0-based stream position of the start of the element.
+  // On a single line it equals the (0-based) column.
+  R:=ParseRule('a{p:b}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Declaration source pos',2,D.SourcePos); // 'p' is at offset 2
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertEquals('Value source pos',4,V.SourcePos); // 'b' is at offset 4
+
+  // On later lines it accounts for the preceding lines and their line endings.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  LineStart:=Length('a {')+Length(LineEnding); // offset of the start of line 2
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Declaration source pos',LineStart+2,D.SourcePos);
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertEquals('Value source pos',LineStart+15,V.SourcePos);
+
+  // A unary value points at the operator.
+  R:=ParseRule('a{p:>b}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Unary value count',1,D.ChildCount);
+  V:=D.Children[0];
+  CheckClass('Unary value class',TCSSUnaryElement,V);
+  AssertEquals('Unary value source pos',4,V.SourcePos); // '>' is at offset 4
+end;
+
+procedure TTestCSSParser.TestDeclarationValueClassSourcePosition;
+
+  // Parse 'a{p:<aValue>}' and check that the value element is of the expected
+  // class and its source position points to the start of the value (column 4).
+  procedure CheckValuePos(const aValue: String; aExpectedClass: TCSSElementClass);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    V : TCSSElement;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    V:=D.Children[0];
+    CheckClass('Value class for '+aValue,aExpectedClass,V);
+    AssertEquals('Value source row for '+aValue,1,V.SourceRow);
+    AssertEquals('Value source col for '+aValue,4,V.SourceCol);
+  end;
+
+begin
+  CheckValuePos('b',TCSSIdentifierElement);
+  CheckValuePos('3px',TCSSIntegerElement);
+  CheckValuePos('-.5em',TCSSFloatElement);
+  CheckValuePos('"b"',TCSSStringElement);
+  CheckValuePos('#ABABAB',TCSSHashValueElement);
+  CheckValuePos('url("b.c")',TCSSURLElement);
+  CheckValuePos('U+0400',TCSSUnicodeRangeElement);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueStartLocation;
+
+  // Parse 'a{p:<aValue>}' and check that GetValueStartLocation returns the start
+  // of the value (row 1, column aExpectedCol). The value starts at column 4.
+  procedure CheckStart(const aValue: String; aExpectedClass: TCSSElementClass; aExpectedCol: Integer);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    aRow, aCol : Integer;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    CheckClass('Value class for '+aValue,aExpectedClass,D.Children[0]);
+    D.GetValueStartLocation(aRow,aCol);
+    AssertEquals('Value start row for '+aValue,1,aRow);
+    AssertEquals('Value start col for '+aValue,aExpectedCol,aCol);
+  end;
+
+begin
+  CheckStart('b',TCSSIdentifierElement,4);        // simple identifier
+  CheckStart('calc(1px)',TCSSCallElement,4);      // function call
+  CheckStart('(1 + 2)',TCSSParenthesisElement,4); // parenthesized value: the opening bracket
+  CheckStart('>b',TCSSUnaryElement,4);            // unary: the prefix operator
+end;
+
+procedure TTestCSSParser.TestDeclarationValueEndLocation;
+
+  // Parse 'a{p:<aValue>}' and check that GetValueEndLocation returns the position
+  // right after the last character of the value.
+  procedure CheckEnd(const aValue: String; aExpectedClass: TCSSElementClass; aExpectedCol: Integer);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    aRow, aCol : Integer;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    CheckClass('Value class for '+aValue,aExpectedClass,D.Children[0]);
+    // The parser stored the exact end location in the EndRow/EndCol properties.
+    AssertEquals('EndRow for '+aValue,1,D.EndRow);
+    AssertEquals('EndCol for '+aValue,aExpectedCol,D.EndCol);
+    // GetValueEndLocation returns the stored position.
+    D.GetValueEndLocation(aRow,aCol);
+    AssertEquals('Value end row for '+aValue,1,aRow);
+    AssertEquals('Value end col for '+aValue,aExpectedCol,aCol);
+  end;
+
+begin
+  // The value starts at column 4; the end column is 4 + length of the value text.
+  CheckEnd('b',TCSSIdentifierElement,5);            // 'b'
+  CheckEnd('3px',TCSSIntegerElement,7);             // '3px'
+  CheckEnd('calc(1px)',TCSSCallElement,13);         // 'calc(1px)'
+  CheckEnd('(1 + 2)',TCSSParenthesisElement,11);    // '(1 + 2)'
+  CheckEnd('>b',TCSSUnaryElement,6);                // '>b'
+end;
+
+procedure TTestCSSParser.TestDeclarationValueEndLocationExact;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+begin
+  // Leading/trailing whitespace: the end excludes the trailing space.
+  //             0123456789
+  R:=ParseRule('a{p:  3px }');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('spaced EndRow',1,D.EndRow);
+  AssertEquals('spaced EndCol',9,D.EndCol); // after 'x' at col 8
+
+  // Non-canonical spacing inside parentheses: the end is the actual ')' position.
+  //             0123456789012
+  R:=ParseRule('a{p:( 1 + 2 )}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('spaced paren EndRow',1,D.EndRow);
+  AssertEquals('spaced paren EndCol',13,D.EndCol); // after ')' at col 12
+
+  // !important is not part of the value.
+  //             0123456789
+  R:=ParseRule('a{p:3px !important}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertTrue('important flag',D.IsImportant);
+  AssertEquals('important EndRow',1,D.EndRow);
+  AssertEquals('important EndCol',7,D.EndCol); // after 'x' at col 6, excludes !important
+end;
+
+procedure TTestCSSParser.TestDeclarationParenthesisValue;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  aParen : TCSSParenthesisElement;
+  aBin : TCSSBinaryElement;
+begin
+  R:=ParseRule('a{p:(1 + 2)}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Value count',1,D.ChildCount);
+  aParen:=TCSSParenthesisElement(CheckClass('Value',TCSSParenthesisElement,D.Children[0]));
+  // The parenthesis node points at the opening bracket ...
+  AssertEquals('Parenthesis source row',1,aParen.SourceRow);
+  AssertEquals('Parenthesis source col',4,aParen.SourceCol);
+  // ... and wraps the inner expression, which keeps its own position (the operator).
+  AssertEquals('Parenthesis child count',1,aParen.ChildCount);
+  aBin:=TCSSBinaryElement(CheckClass('Inner value',TCSSBinaryElement,aParen.Children[0]));
+  AssertEquals('Inner binary operation',boPlus,aBin.Operation);
+  AssertEquals('Inner binary source col',7,aBin.SourceCol);
+  CheckLiteral('Inner binary left',aBin.Left,1);
+  CheckLiteral('Inner binary right',aBin.Right,2);
+  // The parentheses round-trip through AsString.
+  AssertEquals('AsString','(1 + 2)',aParen.AsString);
 end;
 
 

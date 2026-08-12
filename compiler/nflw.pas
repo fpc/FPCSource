@@ -2318,7 +2318,7 @@ implementation
           begin
             if not assigned(result) then
               result:=internalstatements(compiler,newstatement);
-            compiler.nodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
+            compiler.nodeutils.load_parentfpstruct_nested_funcret(ressym,resdef,newstatement);
           end;
         if assigned(result) then
           begin

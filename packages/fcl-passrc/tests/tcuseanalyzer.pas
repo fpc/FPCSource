@@ -402,13 +402,15 @@ end;
 procedure TCustomTestUseAnalyzer.CheckUnitUsed(const aFilename: string;
   Used: boolean);
 var
-  aResolver: TTestEnginePasResolver;
+  aResolver: TPasResolver;
+  aModule: TPasModule;
   PAEl: TPAElement;
 begin
   aResolver:=FindModuleWithFilename(aFilename);
   AssertNotNull('unit not found "'+aFilename+'"',aResolver);
-  AssertNotNull('unit module not found "'+aFilename+'"',aResolver.Module);
-  PAEl:=Analyzer.FindElement(aResolver.Module);
+  aModule:=PlumbingOf(aResolver).Module;
+  AssertNotNull('unit module not found "'+aFilename+'"',aModule);
+  PAEl:=Analyzer.FindElement(aModule);
   if PAEl<>nil then
     begin
     // unit is used

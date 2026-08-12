@@ -60,7 +60,7 @@ element/type: 1 p, :before
 *: 0
 
 ToDo:
-- 'all' attribute: resets all properties, except direction, unicode bidi and custom css properties
+- 'all' attribute: resets all properties, except direction, unicode-bidi and custom css properties
 - :has()
 - namespaces
 - layers
@@ -104,6 +104,7 @@ unit fpCSSResolver;
 {$mode ObjFPC}{$H+}
 {$Interfaces CORBA}
 {$ModeSwitch AdvancedRecords}
+
 {$IF FPC_FULLVERSION>30300}
 {$WARN 6060 off} // Case statement does not handle all possible cases
 {$ENDIF}
@@ -112,11 +113,11 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Types, System.Contnrs, System.StrUtils, System.Math,
+  System.Classes, System.SysUtils, System.Types, System.Math, System.Contnrs, System.StrUtils,
   Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
+  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -129,22 +130,25 @@ const
   CSSSpecificityUserAgent = 1000;
   CSSSpecificityUser = 2000;
   CSSSpecificityAuthor = 3000;
-  CSSSpecificityInline = 10000;
+  CSSSpecificityInline = 5000;
+  CSSSpecificityElement = 10000;
   CSSSpecificityImportant = 100000;
 
 type
   TCSSSpecificity = integer; // see CSSSpecificityInvalid..CSSSpecificityImportant
 
   TCSSOrigin = (
-    cssoUserAgent,
-    cssoUser,
-    cssoAuthor
+    cssoUserAgent, // e.g. browser
+    cssoUser,      // e.g. user settings
+    cssoAuthor,    // e.g. stylesheet(s) of a site
+    cssoInline     // e.g. inspector
     );
 const
   CSSOriginToSpecifity: array[TCSSOrigin] of TCSSNumericalID = (
     CSSSpecificityUserAgent,
     CSSSpecificityUser,
-    CSSSpecificityAuthor
+    CSSSpecificityAuthor,
+    CSSSpecificityInline
     );
 
 type
@@ -166,10 +170,8 @@ type
   { ICSSNode }
 
   ICSSNode = interface
-    function GetCSSID: TCSSString;
-    function GetCSSTypeName: TCSSString;
+    function GetCSSID: TCSSNumericalID; // resolver id index of this node's 'id' (see GetCSSIDIndex), CSSIDNone if none/unknown
     function GetCSSTypeID: TCSSNumericalID;
-    function GetCSSPseudoElementName: TCSSString;
     function GetCSSPseudoElementID: TCSSNumericalID;
     // parent
     function GetCSSParent: ICSSNode;
@@ -185,12 +187,14 @@ type
     function GetCSSChildCount: integer;
     function GetCSSChild(const anIndex: integer): ICSSNode;
     // attributes
-    function HasCSSClass(const aClassName: TCSSString): boolean;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean;
+    function GetCSSClasses: TCSSNumericalIDArray; // all class ids of this node
     function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
-    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
+    function GetCSSAttributeID: TCSSString; // get the 'id' attribute
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes; // tokenized computed value
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
-    function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
+    function HasCSSPseudoClass(const aPseudoClassID: TCSSNumericalID): boolean;
   end;
 
 type
@@ -219,6 +223,25 @@ type
   PCSSSharedRule = ^TCSSSharedRule;
   TCSSSharedRuleArray = array of TCSSSharedRule;
 
+  // A "sibling selector" is one whose match result for the subject (rightmost) compound
+  // depends on the node's siblings, its position among siblings, or its descendants
+  // (combinators '+'/'~', :nth-*(), :first/last/only-child/of-type, :empty, :has()).
+  // Same-parent siblings share their ancestor chain, so combinators/pseudos that appear
+  // only in an ancestor part are NOT sibling selectors. Used by the style-sharing
+  // optimization (see TFresnelElement.ComputeCSSValues).
+  TCSSSiblingSelector = record
+    Selector: TCSSElement;
+    Rule: TCSSRuleElement; // owning rule, passed to SelectorMatches for the nested context
+    SrcSpecificity: TCSSSpecificity; // origin specificity of the rule's layer
+  end;
+  TCSSSiblingSelectorArray = array of TCSSSiblingSelector;
+
+  { TCSSSiblingMatchList - the subset of the resolver's sibling selectors that match a
+    given node, in FSiblingSelectors order (so two nodes' lists are directly comparable). }
+  TCSSSiblingMatchList = record
+    Matched: array of TCSSElement;
+  end;
+
   { TCSSSharedRuleList - elements with same CSS rules share the base attributes }
 
   TCSSSharedRuleList = class
@@ -237,17 +260,9 @@ type
 
   TCSSAttributeValue = class
   public
-    type
-      TState = (
-        cavsSource, // value from CSS - simple normalization, e.g. no comments, some spaces differ, floats
-        cavsBaseKeywords, // base keywords resolved e.g. "initial" or "inherit"
-        cavsComputed, // has final result
-        cavsInvalid // skip this value
-        );
-  public
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
-    State: TState;
-    Value: TCSSString; // the resolver has substituted all var() calls
+    Invalid: boolean;
+    Tokens: TBytes; // tokenized value, the resolver has substituted all var() calls
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
 
@@ -259,7 +274,7 @@ type
     Values: TCSSAttributeValueArray; // the resolver sorts them ascending for AttrID, shorthands are already replaced with longhands
     procedure SortValues; virtual; // ascending AttrID
     function IndexOf(AttrID: TCSSNumericalID): integer;
-    procedure SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
+    procedure SetComputedValue(AttrID: TCSSNumericalID; const aTokens: TBytes);
     destructor Destroy; override;
   end;
 
@@ -328,8 +343,24 @@ type
         Origin: TCSSOrigin;
         Element: TCSSElement;
         Parsed: boolean;
+        Stamp: integer; // bumped whenever the stylesheet (re)parses, see GetStyleSheetStamp
       end;
       TStyleSheets = array of TStyleSheet;
+
+      // A stable reference to a declaration that survives a reparse (which
+      // replaces the TCSSDeclarationElement instances). See GetDeclarationPath /
+      // FindDeclaration.
+      // Selectors and RuleIndex describe the chain of (possibly nested) rules from
+      // the stylesheet top level (index 0) down to the rule holding the declaration.
+      TCSSDeclarationPath = record
+        Valid: boolean;
+        Origin: TCSSOrigin;
+        SheetName: TCSSString;
+        Selectors: array of TCSSString; // selectors of each rule in the nesting chain
+        PropertyName: TCSSString;       // the declaration's (first) property name
+        RuleIndex: array of integer;    // index of each rule within its parent rule list
+        PropIndex: integer;             // index of the declaration within the innermost rule
+      end;
 
       TLayerElement = record
         Src: TStyleSheet;
@@ -351,6 +382,7 @@ type
     FStringComparison: TCSSResStringComparison;
     FStyleSheets: TStyleSheets;
     FStyleSheetCount: integer;
+    FStyleSheetStamp: integer; // monotonic counter handed out to TStyleSheet.Stamp on change
     function GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
     function GetLogCount: integer;
     function GetLogEntries(Index: integer): TCSSResolverLogEntry;
@@ -365,12 +397,53 @@ type
         Stamp: Integer; // only valid if equal to FMergedAttributesStamp
         Specificity: TCSSSpecificity;
         DeclEl: TCSSDeclarationElement; // can be nil if set by a shorthand
-        Value: TCSSString;
+        Tokens: TBytes; // tokenized value, see TCSSBaseResolver.Tokenize
         Complete: boolean;
         Prev, Next: TCSSNumericalID; // valid if >0, see below FMergedAttributeFirst
       end;
       PMergedAttribute = ^TMergedAttribute;
       TMergedAttributeArray = array of TMergedAttribute;
+
+      TAtMediaCacheEntry = record
+        Rule: TCSSAtRuleElement;
+        Specificity: TCSSSpecificity;
+      end;
+      TAtMediaCacheArray = array of TAtMediaCacheEntry;
+
+      // selector rules bucketed by the rightmost identifier of a selector
+      TCSSRuleBucketKind = (
+        rbkOther, // universal, attribute-only, pseudo-only, complex, nested
+        rbkID,    // rightmost is #id
+        rbkClass, // rightmost is .class
+        rbkType   // rightmost is a tag/type
+        );
+
+      TCSSRuleBucketItem = record
+        Rule: TCSSRuleElement; // can be a TCSSAtRuleElement (in the Other bucket)
+        DocIndex: integer; // document order, used as stable secondary sort key for the cascade
+        SourceSpecificity: TCSSSpecificity; // origin specificity of the rule's layer
+      end;
+      PCSSRuleBucketItem = ^TCSSRuleBucketItem;
+      TCSSRuleBucketItemArray = array of TCSSRuleBucketItem;
+
+      { TCSSRuleBucket - a list of rules sharing the same rightmost identifier }
+
+      TCSSRuleBucket = class
+      public
+        Items: TCSSRuleBucketItemArray;
+        Count: integer;
+        procedure Add(aRule: TCSSRuleElement; aDocIndex: integer; aSrcSpecificity: TCSSSpecificity);
+      end;
+      TCSSRuleBucketArray = array of TCSSRuleBucket;
+
+      { TCSSDisabledDecl - a disabled declaration, stored by declaration path so it
+        survives a stylesheet reparse (which replaces the declaration elements) }
+
+      TCSSDisabledDecl = class
+      public
+        Path: TCSSDeclarationPath;
+        Decl: TCSSDeclarationElement; // the currently disabled element (updated on reparse)
+      end;
 
   protected
     FCustomAttributes: TCSSResCustomAttributeDescArray;
@@ -381,6 +454,7 @@ type
     FNode: ICSSNode;
     FLogEntries: TFPObjectList; // list of TCSSResolverLogEntry
     FSharedRuleLists: TAVLTree; // tree of TCSSSharedRuleList sorted for rules
+    FDisabledDecls: TFPHashObjectList; // key = DisabledDeclKey(Path) -> TCSSDisabledDecl (owned)
     FMergedAttributes: TMergedAttributeArray;
     FMergedAttributesStamp: integer;
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
@@ -388,11 +462,42 @@ type
     FMergedAllSpecificity: TCSSSpecificity;
     FSourceSpecificity: TCSSSpecificity;
     FCSSRegistryStamp: TCSSNumericalID;
+    FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
+    FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
+    FCSSClassNameCount: TCSSNumericalID;
+    FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class or id name to numerical id mapping changed
+    FCSSIDNameToIndex: TFPHashList; // id name -> TCSSNumericalID (>=1)
+    FCSSIDNames: TCSSStringArray; // index = ID-1, reverse lookup
+    FCSSIDCount: TCSSNumericalID;
+    FAtMediaCache: TAtMediaCacheArray;
+    FAtMediaCacheCount: integer;
+    // rule buckets, based on the rightmost identifier of each selector;
+    // (re)built lazily by Compute when FRuleBucketsValid is false
+    FBucketOther: TCSSRuleBucket;
+    FBucketType: TCSSRuleBucketArray; // index = type id
+    FBucketClass: TCSSRuleBucketArray; // index = class id
+    FBucketID: TCSSRuleBucketArray; // index = id numerical id
+    FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
+    FRuleCandidateCount: integer;
+    FBucketDocIndex: integer; // running document order while building buckets
+    FRuleBucketsValid: boolean; // false when FLayers changed and buckets/@media cache need a rebuild
+    // all selectors whose subject match depends on siblings/position/descendants;
+    // (re)built lazily with the rule buckets, used by MatchSiblingSelectors
+    FSiblingSelectors: TCSSSiblingSelectorArray;
+    FSiblingSelectorCount: integer;
+    procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
     function ParseCSSSource(const Src: TCSSString; Inline: boolean): TCSSElement; virtual;
     procedure ClearElements; virtual;
+    // Drop every layer entry that belongs to aSheet (used before reparsing it,
+    // so a replaced sheet leaves no dangling element pointer in the layers).
+    procedure RemoveStyleSheetFromLayers(aSheet: TStyleSheet); virtual;
+    // Move the layer entry of the sheet at Index (which ParseSource appended to
+    // the layer end) to the slot matching the FStyleSheets order, so the cascade
+    // document order follows the array order after a mid-list InsertStyleSheet.
+    procedure OrderStyleSheetInLayer(Index: integer); virtual;
     procedure ClearCustomAttributes; virtual;
 
     // resolving rules
@@ -402,20 +507,20 @@ type
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
-    function MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
+    function MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
     function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity; virtual;
     function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
     function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
-    function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndGTMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndPlusMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndTildeMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndCompoundMatches(aList: TCSSListElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndRightAndMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
-    function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
-    function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorHashIdentifierMatches(aIdentifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorClassNameMatches(aClassName: TCSSResolvedClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorUnaryMatches(aUnary: TCSSUnaryElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -439,8 +544,28 @@ type
     function GetSiblingCount(aNode: ICSSNode): integer; virtual;
 
     // resolving identifiers
-    function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
+    function ResolveIdentifier(El: TCSSResolvedIdentifierElement; aKind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
+    // @media caching
+    procedure EvalGlobalAtRules; virtual; // evaluate all @media rules once
+    function FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
+    // rule buckets
+    procedure ClearRuleBuckets; virtual;
+    procedure UpdateRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
+    procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
+    procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    // sibling selectors (style sharing)
+    procedure CollectSiblingSelectors(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    procedure AddSiblingSelector(aSelector: TCSSElement; aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
+    function SelectorHasSiblingDependency(aSelector: TCSSElement): boolean; virtual; // subject-side
+    function SelectorComponentSiblingDep(aComponent: TCSSElement): boolean; virtual;
+    procedure GetSelectorBucketKey(aSelector: TCSSElement; out aKind: TCSSRuleBucketKind;
+      out NumID: TCSSNumericalID); virtual;
+    function GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
+    function GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
+    function GetIDBucket(aID: TCSSNumericalID): TCSSRuleBucket;
+    procedure AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
+    procedure SortRuleCandidates;
     // shared rules
     procedure ClearSharedRuleLists; virtual;
     procedure FindMatchingRules; virtual; // create FElRules for current FNode
@@ -456,6 +581,12 @@ type
     procedure MergeAttribute(El: TCSSElement; aSpecificity: TCSSSpecificity); virtual;
     procedure SaveSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     procedure LoadSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
+    function DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData; virtual;
+    function DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString; virtual;
+    procedure RestoreDisabledDeclarations(Sheet: TStyleSheet); virtual;
+    // recompute TCSSResolvedRuleElement.HasDisabledDecls
+    procedure UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement); virtual; overload;
+    procedure UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement); virtual; overload;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
 
     // var() and shorthands
@@ -472,16 +603,41 @@ type
     function GetElPos(El: TCSSElement): TCSSString; virtual;
     function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual; // must be freed by caller
     procedure Compute(Node: ICSSNode;
-      InlineStyle: TCSSRuleElement; // inline style of Node
+      ElementStyle: TCSSRuleElement; // element style of Node
       out Rules: TCSSSharedRuleList {owned by resolver};
-      out Values: TCSSAttributeValues
+      out Values: TCSSAttributeValues;
+      out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
       ); virtual;
+    // Match all sibling/positional selectors against Node (cheap: only the usually-small
+    // sibling-selector set is evaluated, not the full bucketed cascade).
+    function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
+    // The specificity of aRule for aNode: the best of its selectors, or
+    // CSSSpecificityNoMatch when none matches (e.g. a selectorless inline rule).
+    function GetRuleSpecificity(aRule: TCSSRuleElement; const aNode: ICSSNode): TCSSSpecificity; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
     function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; override;
     function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; override;
+    // True when the value is not valid for the attribute AttrID, mirroring the parser's
+    // per-declaration value check (see TCSSResolverParser.ReadDeclaration). A value that
+    // cannot be checked - a custom property, an attribute below/at 'all', or a value that
+    // still contains a var() call - is treated as valid. Used by the style inspector to
+    // flag an invalid value live while it is being edited.
+    function IsAttrValueInvalid(AttrID: TCSSNumericalID; const Tokens: TBytes): boolean; overload;
+    function IsAttrValueInvalid(AttrID: TCSSNumericalID; const aValue: TCSSString): boolean; overload;
     function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
+    // css class names from selectors, numbered from 1
+    function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
+    function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
+    function GetCSSClassName(aID: TCSSNumericalID): TCSSString; virtual;
+    property CSSClassNameCount: TCSSNumericalID read FCSSClassNameCount;
+    property CSSClassIDStamp: TCSSNumericalID read FCSSClassIDStamp; // always >0, changed whenever the css class or id name to numerical id mapping changed
+    // css ids from selectors, numbered from 1
+    function GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID; override;
+    function AddCSSID(const aCSSID: TCSSString): TCSSNumericalID; override;
+    function GetCSSIDName(aID: TCSSNumericalID): TCSSString; virtual;
+    property CSSIDCount: TCSSNumericalID read FCSSIDCount;
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
     property StringComparison: TCSSResStringComparison read FStringComparison;
@@ -489,12 +645,38 @@ type
     // stylesheets
     procedure ClearStyleSheets; virtual;
     function AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
+    function InsertStyleSheet(Index: integer; anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
     procedure ReplaceStyleSheet(Index: integer; const NewSource: TCSSString); virtual;
+    procedure DeleteStyleSheet(Index: integer); virtual;
+    // Force @media rules and rule buckets to be re-evaluated on the next resolve,
+    // even when no stylesheet text changed (e.g. the colour scheme flipped).
+    procedure InvalidateRuleBuckets; virtual;
+    function IndexOfStyleSheet(aSheet: TStyleSheet): integer;
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
     function IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
     function FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;
+    function FindStyleSheetWithName(const aName: TCSSString; anOrigin: TCSSOrigin = cssoAuthor): TStyleSheet;
+    function GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer; // -1 if no such sheet
+    function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
+    function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
+    // disable/enable a single declaration; The disabled state is restored after the stylesheet is reparsed.
+    procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
+    procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
+    function IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean; virtual;
+    function RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean; virtual;
+    // Carry the disabled flags of OldRule's declarations over to NewRule's, matched by
+    // property name (same-named ones in order). For a rule that is in no stylesheet -
+    // an element/inline style - and therefore has no declaration path, so that the
+    // path based RestoreDisabledDeclarations cannot reach it after a reparse.
+    procedure TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement); virtual;
+    function GetDisabledDeclarations: TFPList; virtual; // TCSSDeclarationElement list, caller frees the list
+    function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
+    // Bumped whenever the set of stylesheets or any sheet's source actually
+    // changed (Add/Insert/Delete, or Replace with a differing source). Snapshot
+    // and compare to detect a real change without re-parsing.
+    property StyleSheetsStamp: integer read FStyleSheetStamp;
     property Layers: TLayerArray read FLayers;
   public
     // logging
@@ -505,13 +687,35 @@ type
     property OnLog: TCSSResolverLogEvent read FOnLog write FOnLog;
   end;
 
+function SameCSSSiblingMatches(const A, B: TCSSSiblingMatchList): boolean;
 function ComparePointer(Data1, Data2: Pointer): integer;
 function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): integer;
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;
 
+// navigating a parsed stylesheet tree, e.g. for GetDeclarationPath/FindDeclaration
+// true if an ordinary rule, i.e. a rule which is not an @-rule.
+// Note: the parser can create descendants (see TCSSResolvedRuleElement), so
+// checking the exact class is not enough.
+function CSSIsPlainRule(El: TCSSElement): boolean; overload;
+function CSSIsPlainRule(C: TClass): boolean; overload; // C must not be nil, faster when the caller already fetched the ClassType
+function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
+function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
+function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
+function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
 
 implementation
+
+function SameCSSSiblingMatches(const A, B: TCSSSiblingMatchList): boolean;
+var
+  i, n: Integer;
+begin
+  n:=length(A.Matched);
+  if n<>length(B.Matched) then exit(false);
+  for i:=0 to n-1 do
+    if A.Matched[i]<>B.Matched[i] then exit(false);
+  Result:=true;
+end;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
 begin
@@ -561,6 +765,112 @@ begin
   Result:=CompareCSSSharedRuleArrays(Arr,List.Rules);
 end;
 
+// the rule's selectors joined as one string, matching the inspector's display
+function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=0 to Rule.SelectorCount-1 do
+  begin
+    if i>0 then Result:=Result+', ';
+    Result:=Result+Rule.Selectors[i].AsFormattedString;
+  end;
+end;
+
+// the declaration's (first) property name
+function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
+begin
+  if DeclEl.KeyCount>0 then
+    Result:=DeclEl.Keys[0].AsFormattedString
+  else
+    Result:='';
+end;
+
+function CSSIsPlainRule(El: TCSSElement): boolean; overload;
+begin
+  Result:=(El<>nil) and CSSIsPlainRule(El.ClassType);
+end;
+
+function CSSIsPlainRule(C: TClass): boolean; overload;
+begin
+  Result:=C.InheritsFrom(TCSSRuleElement) and not C.InheritsFrom(TCSSAtRuleElement);
+end;
+
+// scan El's subtree for immediate child rules, descending through non-rule
+// containers (compounds) but never into a rule (its nested rules are a deeper level)
+procedure CSSScanChildRules(El: TCSSElement; var Rules: TCSSRuleElementArray; var Cnt: integer);
+var
+  i: Integer;
+  C: TClass;
+begin
+  if El=nil then exit;
+  if El is TCSSDeclarationElement then exit; // a declaration's children are values, not rules
+  C:=El.ClassType;
+  if C.InheritsFrom(TCSSRuleElement) then
+  begin
+    if Cnt>=length(Rules) then
+      SetLength(Rules,Cnt*2+8);
+    Rules[Cnt]:=TCSSRuleElement(El);
+    inc(Cnt);
+    exit; // do not descend into the rule
+  end;
+  if El is TCSSChildrenElement then
+    for i:=0 to TCSSChildrenElement(El).ChildCount-1 do
+      CSSScanChildRules(TCSSChildrenElement(El).Children[i],Rules,Cnt);
+end;
+
+// the top-level rules of a stylesheet (Root is a compound of rules, or a single rule)
+function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
+var
+  Cnt: Integer;
+  C: TClass;
+begin
+  Result:=nil;
+  if Root=nil then exit;
+  C:=Root.ClassType;
+  if C.InheritsFrom(TCSSRuleElement) then
+  begin
+    SetLength(Result,1);
+    Result[0]:=TCSSRuleElement(Root);
+    exit;
+  end;
+  Cnt:=0;
+  if Root is TCSSChildrenElement then
+    CSSScanChildRules(Root,Result,Cnt);
+  SetLength(Result,Cnt);
+end;
+
+// the immediate nested rules of a rule
+function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
+var
+  i: Integer;
+begin
+  Result:=[];
+  SetLength(Result,Rule.NestedRuleCount);
+  for i:=0 to Rule.NestedRuleCount-1 do
+    Result[i]:=Rule.NestedRules[i];
+end;
+
+// locate a rule in a candidate list: by index if its selectors still match (fast
+// path, no rule added/deleted), else scan by selectors, else fall back to the
+// stored index (a selector changed)
+function CSSLocateRule(const Candidates: TCSSRuleElementArray; Idx: integer;
+  const Sel: TCSSString): TCSSRuleElement;
+var
+  i: Integer;
+begin
+  Result:=nil;
+  if (Idx>=0) and (Idx<length(Candidates))
+      and (CSSRuleSelectorsStr(Candidates[Idx])=Sel) then
+    exit(Candidates[Idx]);
+  for i:=0 to length(Candidates)-1 do
+    if CSSRuleSelectorsStr(Candidates[i])=Sel then
+      exit(Candidates[i]);
+  if (Idx>=0) and (Idx<length(Candidates)) then
+    Result:=Candidates[Idx];
+end;
+
 { TCSSResolverNthChildParams }
 
 destructor TCSSResolverNthChildParams.Destroy;
@@ -570,6 +880,27 @@ begin
   for i:=0 to high(StackCache) do
     StackCache[i].Free;
   inherited Destroy;
+end;
+
+{ TCSSResolver.TCSSRuleBucket }
+
+procedure TCSSResolver.TCSSRuleBucket.Add(aRule: TCSSRuleElement;
+  aDocIndex: integer; aSrcSpecificity: TCSSSpecificity);
+var
+  l: SizeInt;
+begin
+  // a rule with multiple selectors landing in the same bucket is added only once
+  if (Count>0) and (Items[Count-1].Rule=aRule) then exit;
+  l:=length(Items);
+  if Count=l then
+  begin
+    if l<4 then l:=4 else l:=l*2;
+    SetLength(Items,l);
+  end;
+  Items[Count].Rule:=aRule;
+  Items[Count].DocIndex:=aDocIndex;
+  Items[Count].SourceSpecificity:=aSrcSpecificity;
+  inc(Count);
 end;
 
 { TCSSSharedRuleList }
@@ -744,7 +1075,7 @@ begin
   Result:=-1;
 end;
 
-procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
+procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aTokens: TBytes);
 
   procedure AddNew;
   var
@@ -756,8 +1087,8 @@ procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aV
     while (i>0) and (Values[i-1].AttrID>AttrID) do dec(i);
     Item:=TCSSAttributeValue.Create;
     Item.AttrID:=AttrID;
-    Item.State:=cavsComputed;
-    Item.Value:=aValue;
+    Item.Invalid:=false;
+    Item.Tokens:=aTokens;
     System.Insert(Item,Values,i);
   end;
 
@@ -773,8 +1104,8 @@ begin
     i:=IndexOf(AttrID);
     if i>=0 then
     begin
-      Values[i].State:=cavsComputed;
-      Values[i].Value:=aValue;
+      Values[i].Invalid:=false;
+      Values[i].Tokens:=aTokens;
     end else begin
       AddNew;
     end;
@@ -852,6 +1183,7 @@ begin
   El:=ParseCSSSource(Src,false);
   if El=nil then exit;
   aStyleSheet.Element:=El;
+  FRuleBucketsValid:=false; // FLayers about to change -> buckets need a rebuild
 
   // find last layer with this Origin or lower
   LayerIndex:=length(FLayers);
@@ -870,7 +1202,6 @@ begin
       else
         Cnt:=Cnt*2;
       SetLength(Elements,Cnt);
-      FillByte(Elements[ElementCount],SizeOf(TLayerElement)*(Cnt-ElementCount),0);
     end;
     Elements[ElementCount].Src:=aStyleSheet;
     Elements[ElementCount].Element:=El;
@@ -902,7 +1233,7 @@ begin
   try
     ms.Write(Src[1],length(Src)*SizeOf(TCSSChar));
     ms.Position:=0;
-    aParser:=TCSSResolverParser.Create(ms); // ss is freed by the parser
+    aParser:=TCSSResolverParser.Create(ms); // stream is freed by the parser
     aParser.Resolver:=Self;
     aParser.OnLog:=@Log;
     aParser.CSSNthChildParamsClass:=TCSSResolverNthChildParams;
@@ -924,6 +1255,7 @@ begin
 
   ClearMerge;
   ClearSharedRuleLists;
+  ClearRuleBuckets;
   ClearCustomAttributes;
 
   // clear layers
@@ -937,6 +1269,17 @@ begin
 
   for i:=0 to FStyleSheetCount-1 do
     FreeAndNil(FStyleSheets[i].Element);
+
+  // class name ids are rebuilt while reparsing the selectors
+  FCSSClassNameToID.Clear;
+  FCSSClassNames:=nil;
+  FCSSClassNameCount:=0;
+  ChangeCSSClassIDStamp;
+
+  // id name indices are rebuilt while reparsing the selectors
+  FCSSIDNameToIndex.Clear;
+  FCSSIDNames:=nil;
+  FCSSIDCount:=0;
 
   // not referencing CSSRegistry anymore
   FCSSRegistryStamp:=0;
@@ -992,12 +1335,36 @@ begin
     //writeln('TCSSResolver.ComputeElement Compound.ChildCount=',Compound.ChildCount);
     for i:=0 to Compound.ChildCount-1 do
       ComputeElement(Compound.Children[i]);
-  end else if C=TCSSRuleElement then
+  end else if CSSIsPlainRule(C) then
     ComputeRule(TCSSRuleElement(El))
-  else if C=TCSSAtRuleElement then
+  else if C.InheritsFrom(TCSSAtRuleElement) then
     ComputeAtRule(TCSSAtRuleElement(El))
   else
     Log(etWarning,20220908150252,'TCSSResolver.ComputeElement: Unknown CSS element',El);
+end;
+
+function TCSSResolver.GetRuleSpecificity(aRule: TCSSRuleElement;
+  const aNode: ICSSNode): TCSSSpecificity;
+var
+  i: Integer;
+  Specificity: TCSSSpecificity;
+  SavedNode: ICSSNode;
+begin
+  Result:=CSSSpecificityNoMatch;
+  if (aRule=nil) or (aNode=nil) then exit;
+  // SelectorMatches uses FNode for the nested/combinator context (see ComputeRule)
+  SavedNode:=FNode;
+  try
+    FNode:=aNode;
+    for i:=0 to aRule.SelectorCount-1 do
+    begin
+      Specificity:=SelectorMatches(aRule.Selectors[i],aNode,false,aRule);
+      if Specificity>Result then
+        Result:=Specificity;
+    end;
+  finally
+    FNode:=SavedNode;
+  end;
 end;
 
 procedure TCSSResolver.ComputeRule(aRule: TCSSRuleElement);
@@ -1029,7 +1396,7 @@ begin
   begin
     NestedRule:=aRule.NestedRules[i];
     C:=NestedRule.ClassType;
-    if C=TCSSAtRuleElement then
+    if C.InheritsFrom(TCSSAtRuleElement) then
     begin
       if (BestSpecificity<0) then
         continue; // current rule mismatch -> do not check nested @-rule
@@ -1051,13 +1418,14 @@ begin
 
   case aRule.AtKeyWord of
   '@media':
-    for i:=0 to aRule.SelectorCount-1 do
-    begin
-      aSelector:=aRule.Selectors[i];
-      Specificity:=MediaSelectorMatches(aSelector);
-      if Specificity>BestSpecificity then
-        BestSpecificity:=Specificity;
-    end;
+    if not FindAtMediaCached(aRule,BestSpecificity) then
+      for i:=0 to aRule.SelectorCount-1 do
+      begin
+        aSelector:=aRule.Selectors[i];
+        Specificity:=MediaSelectorMatches(aSelector);
+        if Specificity>BestSpecificity then
+          BestSpecificity:=Specificity;
+      end;
   else
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20260322092255,'Unknown CSS rule @'+aRule.AtKeyWord,aRule);
@@ -1077,10 +1445,10 @@ begin
     begin
       NestedRule:=aRule.NestedRules[i];
       C:=NestedRule.ClassType;
-      if C=TCSSAtRuleElement then
+      if C.InheritsFrom(TCSSAtRuleElement) then
         ComputeAtRule(TCSSAtRuleElement(NestedRule))
-      else if C=TCSSRuleElement then
-        ComputeRule(TCSSRuleElement(NestedRule));
+      else
+        ComputeRule(NestedRule);
     end;
   end;
 end;
@@ -1125,6 +1493,7 @@ function TCSSResolver.GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRule
 var
   aRule: TCSSRuleElement;
   aParent: TCSSElement;
+  C: TClass;
 begin
   Result:=nil;
   aRule:=GetRuleOfSelector(aSelector);
@@ -1133,26 +1502,27 @@ begin
   aParent:=aRule.Parent;
   while (aParent<>nil) do
   begin
-    if aParent.ClassType=TCSSRuleElement then
+    C:=aParent.ClassType;
+    if CSSIsPlainRule(C) then
       exit(TCSSRuleElement(aParent));
-    if not SkipAtRules and (aParent.ClassType=TCSSAtRuleElement) then
+    if not SkipAtRules and C.InheritsFrom(TCSSAtRuleElement) then
       exit(TCSSRuleElement(aParent));
     aParent:=aParent.Parent;
   end;
 end;
 
-function TCSSResolver.MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement
+function TCSSResolver.MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement
   ): TCSSSpecificity;
 var
   KW: TCSSNumericalID;
 begin
   Result:=CSSSpecificityNoMatch;
-  KW:=Identifier.NumericalID;
+  KW:=aIdentifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
   if KW>0 then
-    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',CSSRegistry.Keywords[KW])
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',aIdentifier.Value,' KW=',CSSRegistry.Keywords[KW])
   else
-    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' unknown');
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',aIdentifier.Value,' unknown');
   {$ENDIF}
   if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
     Result:=FSourceSpecificity;
@@ -1398,27 +1768,29 @@ var
   RuleArr: TCSSSharedRule;
   Rule: TCSSRuleElement;
   Specificity: TCSSSpecificity;
-  RuleI, RuleJ: PCSSSharedRule;
 begin
   SetLength(FElRules,FElRuleCount); // needed by FindSharedRuleList
 
-  // sort ascending for Specificity
-  for i:=0 to FElRuleCount-2 do
+  // Sort ascending for Specificity, keeping equal-specificity rules in their
+  // original (document) order so the cascade tie-break is "last declaration wins".
+  // FElRules arrives in document order (ComputeRule is called in DocIndex order),
+  // so a STABLE sort is required: a plain selection/bubble sort that swaps on '>'
+  // is not stable and would move the first of an equal-specificity pair behind the
+  // second whenever a lower-specificity rule follows them, reversing source order.
+  // Insertion sort with a strict '>' comparison is stable and cheap for the small
+  // per-element rule counts.
+  for i:=1 to FElRuleCount-1 do
   begin
-    RuleI:=@FElRules[i];
-    for j:=i+1 to FElRuleCount-1 do
+    Rule:=FElRules[i].Rule;
+    Specificity:=FElRules[i].Specificity;
+    j:=i-1;
+    while (j>=0) and (FElRules[j].Specificity>Specificity) do
     begin
-      RuleJ:=@FElRules[j];
-      if RuleI^.Specificity>RuleJ^.Specificity then
-      begin
-        Specificity:=RuleI^.Specificity;
-        RuleI^.Specificity:=RuleJ^.Specificity;
-        RuleJ^.Specificity:=Specificity;
-        Rule:=RuleI^.Rule;
-        RuleI^.Rule:=RuleJ^.Rule;
-        RuleJ^.Rule:=Rule;
-      end;
+      FElRules[j+1]:=FElRules[j];
+      dec(j);
     end;
+    FElRules[j+1].Rule:=Rule;
+    FElRules[j+1].Specificity:=Specificity;
   end;
 
   Result:=FindSharedRuleList(FElRules);
@@ -1478,7 +1850,6 @@ begin
   if NewLen>OldLen then
   begin
     SetLength(FMergedAttributes,NewLen);
-    FillByte(FMergedAttributes[OldLen],(NewLen-OldLen)*SizeOf(TMergedAttribute),0);
   end;
 end;
 
@@ -1649,10 +2020,10 @@ begin
   C:=aSelector.ClassType;
   if C=TCSSResolvedIdentifierElement then
     Result:=SelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector),TestNode,OnlySpecificity)
-  else if C=TCSSHashIdentifierElement then
-    Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
-  else if C=TCSSClassNameElement then
-    Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode,OnlySpecificity)
+  else if C=TCSSResolvedHashIdentifierElement then
+    Result:=SelectorHashIdentifierMatches(TCSSResolvedHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
+  else if C=TCSSResolvedClassNameElement then
+    Result:=SelectorClassNameMatches(TCSSResolvedClassNameElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedPseudoClassElement then
     Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSUnaryElement then
@@ -1674,15 +2045,15 @@ begin
 end;
 
 function TCSSResolver.SelectorIdentifierMatches(
-  Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode;
+  aIdentifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
 var
   TypeID: TCSSNumericalID;
 begin
   Result:=CSSSpecificityNoMatch;
-  TypeID:=Identifier.NumericalID;
+  TypeID:=aIdentifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
-  writeln('TCSSResolver.SelectorIdentifierMatches ',Identifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
+  writeln('TCSSResolver.SelectorIdentifierMatches ',aIdentifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
   {$ENDIF}
   if TypeID=CSSTypeID_Universal then
     // universal selector
@@ -1693,7 +2064,7 @@ begin
   begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
-    Log(etWarning,20240625153922,'Unknown type ',Identifier);
+    Log(etWarning,20240625153922,'Unknown type ',aIdentifier);
     {$ENDIF}
     Result:=CSSSpecificityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
@@ -1919,33 +2290,30 @@ begin
 end;
 
 function TCSSResolver.SelectorHashIdentifierMatches(
-  Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
+  aIdentifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
 var
-  aValue: TCSSString;
+  aID: TCSSNumericalID;
 begin
   if OnlySpecificity then
     exit(CSSSpecificityIdentifier+FSourceSpecificity);
   Result:=CSSSpecificityNoMatch;
-  aValue:=Identifier.Value;
-  if TestNode.GetCSSID=aValue then
+  aID:=TCSSResolvedHashIdentifierElement(aIdentifier).NumericalID;
+  if (aID>=1) and (TestNode.GetCSSID=aID) then
     Result:=CSSSpecificityIdentifier+FSourceSpecificity;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
-  aClassName: TCSSClassNameElement; const TestNode: ICSSNode;
+  aClassName: TCSSResolvedClassNameElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
-var
-  aValue: TCSSString;
 begin
   if OnlySpecificity then
     exit(CSSSpecificityClass+FSourceSpecificity);
-  aValue:=aClassName.Name;
-  if TestNode.HasCSSClass(aValue) then
+  if TestNode.HasCSSClass(aClassName.NumericalID) then
     Result:=CSSSpecificityClass+FSourceSpecificity
   else
     Result:=CSSSpecificityNoMatch;
-  //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
+  //writeln('TCSSResolver.SelectorClassNameMatches ',aClassName.Name,' ',Result);
 end;
 
 function TCSSResolver.SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement;
@@ -2340,7 +2708,7 @@ begin
   case AttrID of
   CSSIDNone: exit(CSSSpecificityNoMatch);
   CSSAttributeID_ID:
-    LeftValue:=TestNode.GetCSSID;
+    LeftValue:=TestNode.GetCSSAttributeID;
   CSSAttributeID_Class:
     LeftValue:=TestNode.GetCSSAttributeClass;
   CSSAttributeID_All:
@@ -2533,8 +2901,6 @@ begin
   end;
 
   Result:=CSSSpecificityNoMatch;
-  if Params.Modulo=0 then
-    exit;
   i:=TestNode.GetCSSIndex;
   if Params.HasOf then
   begin
@@ -2558,7 +2924,13 @@ begin
     i:=i+1;
   end;
   dec(i,Params.Start);
-  if i mod Params.Modulo = 0 then
+  if Params.Modulo=0 then
+  begin
+    // plain integer B (a=0): match exactly the B-th sibling, e.g. nth-child(2)
+    if i=0 then
+      Result:=CSSSpecificityClass+FSourceSpecificity;
+  end
+  else if i mod Params.Modulo = 0 then
   begin
     i:=i div Params.Modulo;
     if i>=0 then
@@ -2728,6 +3100,8 @@ begin
       writeln('TCSSResolver.ComputeValue Float=[',Result,']');
       {$ENDIF}
     end;
+    if El.CustomData<>nil then
+      raise ECSSResolver.Create('20260416220031');
     ElData:=TCSSValueData.Create;
     TCSSValueData(ElData).NormValue:=Result;
     El.CustomData:=ElData;
@@ -2936,6 +3310,8 @@ begin
     {$ENDIF}
     exit;
   end;
+  if KeyData.Disabled then
+    exit; // declaration disabled by DisableDeclaration, treat as commented out
 
   if AnAttrID=CSSAttributeID_All then
   begin
@@ -3063,7 +3439,7 @@ begin
     NextAttrID:=FMergedAttributes[AttrID].Next;
     AttrP:=@FMergedAttributes[AttrID];
     AttrDesc:=GetAttributeDesc(AttrID);
-    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specificity,' Value="',AttrP^.Value,'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
+    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specificity,' Value="',Detokenize(AttrP^.Tokens),'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
     inc(Cnt);
     AttrID:=NextAttrID;
   end;
@@ -3076,9 +3452,8 @@ var
   AttrP: PMergedAttribute;
   Key: TCSSElement;
   KeyData: TCSSAttributeKeyData;
-  Value: TCSSString;
 begin
-  // load value strings from css elements
+  // load tokenized values from css elements
   // and remove longhand placeholders set by shorthands
   AttrID:=FMergedAttributeFirst;
   while AttrID>0 do
@@ -3091,13 +3466,11 @@ begin
     else begin
       Key:=AttrP^.DeclEl.Keys[0];
       KeyData:=Key.CustomData as TCSSAttributeKeyData;
-      Value:=KeyData.Value;
-      //writeln('TCSSResolver.LoadMergedValues AttrID=',AttrID,' Decl=',AttrP^.DeclEl.Classname,' Key=',(AttrP^.DeclEl.Keys[0] as TCSSResolvedIdentifierElement).Name,' Value=',Value);
-      AttrP^.Value:=Value;
-      if TCSSResolverParser.IsWhiteSpace(Value) then
+      AttrP^.Tokens:=KeyData.Tokens;
+      if KeyData.Invalid or (length(AttrP^.Tokens)=0) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=KeyData.Complete;
+        AttrP^.Complete:=not CSSHasVarToken(AttrP^.Tokens);
     end;
     AttrID:=NextAttrID;
   end;
@@ -3105,220 +3478,123 @@ end;
 
 procedure TCSSResolver.SubstituteVarCalls;
 // called after CSS attribute values have been merged by cascade rules
-// before replacing shorthands
+// before replacing shorthands. Operates on the tokenized values.
 const
   ReplaceMax = 10;
 var
   AttrID, NextAttrID: TCSSNumericalID;
   AttrP: PMergedAttribute;
-  p: PCSSChar;
   ReplaceCnt: integer;
 
-  procedure SkipEscape;
-  begin
-    inc(p);
-    if p^>#0 then inc(p);
-  end;
-
-  procedure SkipString;
+  function SubstituteVars(var Tokens: TBytes): boolean;
+  // replace all var() calls in Tokens (leftmost first, repeated).
+  // Returns false on error (loop limit or syntax error).
   var
-    c: TCSSChar;
-  begin
-    c:=p^;
-    repeat
-      inc(p);
-      if p^=#0 then exit;
-      if p^=c then
-      begin
-        inc(p);
-        exit;
-      end;
-    until false;
-  end;
-
-  procedure SkipIdentifier;
-  begin
-    while p^ in ['-','_','a'..'z','A'..'Z'] do inc(p);
-  end;
-
-  procedure SkipWhiteSpace;
-  begin
-    while p^ in [' ',#9,#10,#13] do inc(p);
-  end;
-
-  function ReplaceVarsInRightString: boolean;
-  var
-    OldP, Lvl: integer;
-    VarStartP, NameStartP, NameEndP, ValueStartP, BracketCloseP: PCSSChar;
-    aValue, s: TCSSString;
-    {$IF SIZEOF(CHAR)=2}
-    varname: UnicodeString;
-    {$ELSE}
-    VarName: ShortString;
-    {$ENDIF}
+    Ofs, Len, TokLen, VarStart, AfterClose, NameTokOfs: integer;
+    DefStart, DefEnd, Depth: integer;
+    k: TCSSResTokenKind;
+    VarName: TCSSString;
     Desc: TCSSResCustomAttributeDesc;
     aParentNode: ICSSNode;
+    Repl: TBytes;
+    HasRepl: boolean;
   begin
-    {$IFDEF VerboseCSSVar}
-    writeln('ReplaceVarsInRightString p="',p,'"');
-    {$ENDIF}
-    Result:=true;
     repeat
-      case p^ of
-      #0: break;
-      '"','''': SkipString;
-      '\': SkipEscape;
-      '@','#':
+      // find the leftmost var() function token
+      Len:=length(Tokens);
+      Ofs:=0;
+      VarStart:=-1;
+      while Ofs<Len do
+      begin
+        k:=TCSSResTokenKind(Tokens[Ofs]);
+        if (k=rtkFunction) and (CSSReadTokenWord(Tokens,Ofs+1)=CSSAttrFuncVar) then
         begin
-          inc(p);
-          SkipIdentifier;
+          VarStart:=Ofs;
+          break;
         end;
-      '-':
-        begin
-          inc(p);
-          if (p^ in ['a'..'z','A'..'Z','_','-']) then
-            SkipIdentifier;
-        end;
-      'a'..'z','A'..'Z','_':
-        if (p^='v') and (p[1]='a') and (p[2]='r') and (p[3]='(') then
-        begin
-          // var() found
-
-          inc(ReplaceCnt);
-          if ReplaceCnt=ReplaceMax then
-          begin
-            // maybe a loop
-            exit(false);
-          end;
-
-          VarStartP:=p;
-          inc(p,4);
-          SkipWhiteSpace;
-
-          // replace var() in parameter
-          OldP:=p-PCSSChar(AttrP^.Value);
-          if not ReplaceVarsInRightString then
-            exit(false);
-          p:=PCSSChar(AttrP^.Value)+OldP;
-
-          NameStartP:=p;
-          NameEndP:=nil;
-          ValueStartP:=nil;
-          if (p^<>'-') or (p[1]<>'-') then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString invalid VarName (must start with --): ',NameStartP);
-            {$ENDIF}
-            exit(false);
-          end;
-          inc(p,2);
-          while p^ in ['a'..'z','A'..'Z','_','-'] do inc(p);
-          NameEndP:=p;
-          if NameEndP-NameStartP>255 then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString invalid VarName (too long): ',NameStartP);
-            {$ENDIF}
-            exit(false);
-          end;
-          SkipWhiteSpace;
-          if p^=',' then
-          begin
-            inc(p);
-            SkipWhiteSpace;
-            ValueStartP:=p;
-          end;
-
-          // skip to round bracket close
-          Lvl:=1;
-          BracketCloseP:=nil;
-          repeat
-            case p^ of
-            #0:
-              begin
-                // syntax error
-                {$IFDEF VerboseCSSVar}
-                writeln('ReplaceVarsInRightString missing closing bracket: ',NameStartP);
-                {$ENDIF}
-                exit(false);
-              end;
-            '"','''': SkipString;
-            '\': SkipEscape;
-            '(':
-              begin
-                inc(Lvl);
-                inc(p);
-              end;
-            ')':
-              if Lvl=1 then
-              begin
-                BracketCloseP:=p;
-                inc(p);
-                break;
-              end else begin
-                dec(Lvl);
-                inc(p);
-              end;
-            else
-              inc(p);
-            end;
-          until false;
-
-          // fetch value from node
-          SetString(VarName,NameStartP,NameEndP-NameStartP);
-          {$IF SIZEOF(CHAR)=2}
-          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(UTF8Encode(VarName)));
-          {$ELSE}
-          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
-          {$ENDIF}
-          if Desc<>nil then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString VarName="',VarName,'" AttrID=',Desc.Index);
-            {$ENDIF}
-            if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
-              aValue:=FMergedAttributes[Desc.Index].Value
-            else
-              aValue:='';
-            if aValue='' then
-            begin
-              aParentNode:=FNode.GetCSSParent;
-              if aParentNode<>nil then
-                aValue:=aParentNode.GetCSSCustomAttribute(Desc.Index);
-            end;
-          end else begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString VarName="',VarName,'" never declared');
-            {$ENDIF}
-            aValue:='';
-          end;
-
-          if aValue='' then
-          begin
-            // use default value
-            if ValueStartP<>nil then
-              SetString(aValue,ValueStartP,BracketCloseP-ValueStartP);
-          end;
-          {$IFDEF VerboseCSSVar}
-          writeln('ReplaceVarsInRightString VarName="',VarName,'" Value="',aValue,'"');
-          {$ENDIF}
-
-          // replace
-          p:=PCSSChar(AttrP^.Value);
-          OldP:=VarStartP-p;
-          s:=AttrP^.Value;
-          AttrP^.Value:=LeftStr(s,VarStartP-p)+aValue+copy(s,BracketCloseP-p+2,length(s));
-          {$IFDEF VerboseCSSVar}
-          writeln('ReplaceVarsInRightString New AttrP^.Value="',AttrP^.Value,'"');
-          {$ENDIF}
-
-          // continue parsing
-          p:=PCSSChar(AttrP^.Value)+OldP;
-        end else
-          SkipIdentifier;
-      else
-        inc(p);
+        TokLen:=CSSTokenByteLen(Tokens,Ofs);
+        if TokLen<=0 then exit(false);
+        inc(Ofs,TokLen);
       end;
+      if VarStart<0 then exit(true); // no more var() calls
+
+      inc(ReplaceCnt);
+      if ReplaceCnt=ReplaceMax then exit(false); // probably a loop
+
+      // step inside the parenthesis, skip whitespace
+      Ofs:=VarStart+CSSTokenByteLen(Tokens,VarStart);
+      while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+        inc(Ofs);
+      // the first argument must be a custom property name --xxx (rtkIdentifier)
+      if (Ofs>=Len) or (TCSSResTokenKind(Tokens[Ofs])<>rtkIdentifier) then exit(false);
+      NameTokOfs:=Ofs;
+      VarName:=DetokenizeOne(@Tokens[NameTokOfs]);
+      if (length(VarName)<2) or (VarName[1]<>'-') or (VarName[2]<>'-') then exit(false);
+      Ofs:=Ofs+CSSTokenByteLen(Tokens,NameTokOfs);
+      while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+        inc(Ofs);
+
+      // optional default value after a comma
+      DefStart:=-1;
+      DefEnd:=-1;
+      if (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkSymbol) and (Tokens[Ofs+1]=ord(',')) then
+      begin
+        Ofs:=Ofs+CSSTokenByteLen(Tokens,Ofs); // past the comma
+        while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+          inc(Ofs);
+        DefStart:=Ofs;
+      end;
+
+      // find the matching closing parenthesis
+      Depth:=1;
+      while Ofs<Len do
+      begin
+        k:=TCSSResTokenKind(Tokens[Ofs]);
+        if (k=rtkLParenthesis) or (k=rtkFunction) then
+          inc(Depth)
+        else if k=rtkRParenthesis then
+        begin
+          dec(Depth);
+          if Depth=0 then break;
+        end;
+        inc(Ofs,CSSTokenByteLen(Tokens,Ofs));
+      end;
+      if Depth<>0 then exit(false);
+      if DefStart>=0 then
+        DefEnd:=Ofs; // default value tokens are [DefStart, DefEnd)
+      AfterClose:=Ofs+1; // one past the ')'
+
+      // resolve the value of the custom property
+      Repl:=nil;
+      HasRepl:=false;
+      {$IF SIZEOF(CHAR)=2}
+      Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(UTF8Encode(VarName)));
+      {$ELSE}
+      Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
+      {$ENDIF}
+      if Desc<>nil then
+      begin
+        if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
+        begin
+          Repl:=FMergedAttributes[Desc.Index].Tokens;
+          HasRepl:=not CSSTokensEmpty(Repl);
+        end;
+        if not HasRepl then
+        begin
+          aParentNode:=FNode.GetCSSParent;
+          if aParentNode<>nil then
+          begin
+            Repl:=aParentNode.GetCSSCustomAttribute(Desc.Index);
+            HasRepl:=not CSSTokensEmpty(Repl);
+          end;
+        end;
+      end;
+      if (not HasRepl) and (DefStart>=0) then
+        // use the default value
+        Repl:=Copy(Tokens,DefStart,DefEnd-DefStart);
+
+      // splice: Tokens[0..VarStart) + Repl + Tokens[AfterClose..end]
+      Tokens:=Concat(Copy(Tokens,0,VarStart),Repl,Copy(Tokens,AfterClose,Len-AfterClose));
     until false;
   end;
 
@@ -3330,20 +3606,13 @@ begin
     AttrP:=@FMergedAttributes[AttrID];
     if not AttrP^.Complete then
     begin
-      // check attribute
-      if Pos('var(',AttrP^.Value)>0 then
+      if CSSHasVarToken(AttrP^.Tokens) then
       begin
-        // can have var() calls -> parse
-        p:=PCSSChar(AttrP^.Value);
-        {$IFDEF VerboseCSSVar}
-        writeln('TCSSResolver.SubstituteVarCalls ',GetAttributeDesc(AttrID).Name,': "',AttrP^.Value,'"');
-        {$ENDIF}
         ReplaceCnt:=0;
-        if not ReplaceVarsInRightString then
-          AttrP^.Value:='';
+        if not SubstituteVars(AttrP^.Tokens) then
+          AttrP^.Tokens:=nil;
       end;
-
-      if AttrP^.Value='' then
+      if CSSTokensEmpty(AttrP^.Tokens) then
         RemoveMergedAttribute(AttrID);
     end;
     AttrID:=NextAttrID;
@@ -3357,7 +3626,7 @@ var
   AttrP, SubAttrP: PMergedAttribute;
   AttrDesc, SubAttrDesc: TCSSAttributeDesc;
   LHAttrIDs: TCSSNumericalIDArray;
-  LHValues: TCSSStringArray;
+  LHValues: TBytesArray;
   i: Integer;
 begin
   AttrID:=FMergedAttributeFirst;
@@ -3370,13 +3639,13 @@ begin
     if Assigned(AttrDesc.OnSplitShorthand) then
     begin
       RemoveMergedAttribute(AttrID);
-      if AttrP^.Value>'' then
+      if not CSSTokensEmpty(AttrP^.Tokens) then
       begin
         // replace shorthand with longhands, keep already set longhands
         LHAttrIDs:=[];
         LHValues:=[];
-        InitParseAttr(AttrDesc,nil,AttrP^.Value);
-        if not (CurComp.Kind in [rvkNone,rvkInvalid]) then
+        InitParseAttr(AttrDesc,AttrP^.Tokens);
+        if not AtEnd then
         begin
           AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
           for i:=0 to length(LHAttrIDs)-1 do
@@ -3393,9 +3662,11 @@ begin
               // longhand already exists -> keep
             end else begin
               SetMergedAttribute(SubAttrID,AttrP^.Specificity,nil);
-              SubAttrP^.Value:=LHValues[i];
-              if SubAttrP^.Value='' then
-                SubAttrP^.Value:=SubAttrDesc.InitialValue;
+              // the split handler returns tokenized values; fall back to the initial value when empty
+              if not CSSTokensEmpty(LHValues[i]) then
+                SubAttrP^.Tokens:=LHValues[i]
+              else
+                Tokenize(SubAttrDesc.InitialValue,SubAttrP^.Tokens,SubAttrDesc.AllowUnknownIdentifiers);
               SubAttrP^.Complete:=false;
               // Note: if NextAttrID=0 then this was the last shorthand
             end;
@@ -3420,10 +3691,10 @@ begin
   if FMergedAllDecl<>nil then
   begin
     // set Result.AllValue
-    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],nil,GetDeclarationValue(FMergedAllDecl));
-    if (CurComp.Kind=rvkKeyword) and IsBaseKeyword(CurComp.KeywordID) then
+    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],GetDeclarationValue(FMergedAllDecl));
+    if (TokenKind=rtkKeyword) and IsBaseKeyword(KeywordID) then
     begin
-      Result.AllValue:=CurComp.KeywordID;
+      Result.AllValue:=KeywordID;
     end;
   end;
 
@@ -3447,8 +3718,8 @@ begin
     AttrValue:=TCSSAttributeValue.Create;
     Result.Values[Cnt]:=AttrValue;
     AttrValue.AttrID:=AttrID;
-    AttrValue.Value:=AttrP^.Value;
-    //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID,' "',AttrValue.Value,'"');
+    AttrValue.Tokens:=AttrP^.Tokens;
+    //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID);
     AttrID:=AttrP^.Next;
     inc(Cnt);
   end;
@@ -3458,7 +3729,7 @@ begin
 end;
 
 function TCSSResolver.ResolveIdentifier(El: TCSSResolvedIdentifierElement;
-  Kind: TCSSNumericalIDKind): TCSSNumericalID;
+  aKind: TCSSNumericalIDKind): TCSSNumericalID;
 var
   aName: TCSSString;
 begin
@@ -3467,25 +3738,25 @@ begin
   begin
     // not yet resolved
     aName:=El.Name;
-    if Kind in [nikPseudoClass,nikPseudoElement] then
+    if aKind in [nikPseudoClass,nikPseudoElement] then
     begin
       // pseudo attributes and elements are ASCII case insensitive
       System.Delete(aName,1,1);
       aName:=lowercase(aName);
     end;
 
-    Result:=CSSRegistry.IndexOfNamedItem(Kind,aName);
+    Result:=CSSRegistry.IndexOfNamedItem(aKind,aName);
     if Result=CSSIDNone then
     begin
       El.NumericalID:=-1;
-      Log(etWarning,20240625160211,'unknown '+CSSNumericalIDKindNames[Kind]+' "'+aName+'"',El);
+      Log(etWarning,20240625160211,'unknown '+CSSNumericalIDKindNames[aKind]+' "'+aName+'"',El);
     end else begin
       El.NumericalID:=Result;
-      El.Kind:=Kind;
+      El.Kind:=aKind;
     end;
   end else if Result=-1 then
     Result:=CSSIDNone // name not found
-  else if El.Kind<>Kind then
+  else if El.Kind<>aKind then
     raise ECSSResolver.Create('20240701105839');
 end;
 
@@ -3552,14 +3823,30 @@ begin
   inherited;
   FLogEntries:=TFPObjectList.Create(true);
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
+  FDisabledDecls:=TFPHashObjectList.Create(true);
   FCustomAttributeNameToDesc:=TFPHashList.Create;
+  FCSSClassNameToID:=TFPHashList.Create;
+  FCSSIDNameToIndex:=TFPHashList.Create;
+  FCSSClassIDStamp:=1;
+end;
+
+procedure TCSSResolver.ChangeCSSClassIDStamp;
+begin
+  if FCSSClassIDStamp<high(FCSSClassIDStamp) then
+    inc(FCSSClassIDStamp)
+  else
+    FCSSClassIDStamp:=1;
 end;
 
 destructor TCSSResolver.Destroy;
 begin
   Clear;
+  ClearRuleBuckets;
+  FreeAndNil(FCSSIDNameToIndex);
+  FreeAndNil(FCSSClassNameToID);
   FreeAndNil(FCustomAttributeNameToDesc);
   FreeAndNil(FSharedRuleLists);
+  FreeAndNil(FDisabledDecls);
   FreeAndNil(FLogEntries);
   inherited Destroy;
 end;
@@ -3581,6 +3868,9 @@ begin
 
   // todo: if CSSRegistry has changed, reparse all stylesheets
 
+  // Note: the @media cache and rule buckets are built lazily in Compute (see
+  // UpdateRuleBuckets), because the stylesheets are added to FLayers after Init.
+
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
     FMergedAttributes[i].Stamp:=0;
@@ -3591,14 +3881,17 @@ begin
   FSharedRuleLists.FreeAndClear;
 end;
 
-procedure TCSSResolver.Compute(Node: ICSSNode; InlineStyle: TCSSRuleElement;
-  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues);
+procedure TCSSResolver.Compute(Node: ICSSNode; ElementStyle: TCSSRuleElement;
+  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues;
+  out SiblingMatches: TCSSSiblingMatchList);
 var
   i: Integer;
 begin
   Rules:=nil;
+  SiblingMatches:=Default(TCSSSiblingMatchList);
   FNode:=Node;
   try
+    UpdateRuleBuckets;
     InitMerge;
 
     FindMatchingRules;
@@ -3607,10 +3900,10 @@ begin
     Rules:=CreateSharedRuleList;
 
     // apply inline attributes
-    if InlineStyle<>nil then
+    if ElementStyle<>nil then
     begin
-      for i:=0 to InlineStyle.ChildCount-1 do
-        MergeAttribute(InlineStyle.Children[i],CSSSpecificityInline);
+      for i:=0 to ElementStyle.ChildCount-1 do
+        MergeAttribute(ElementStyle.Children[i],CSSSpecificityElement);
     end;
 
     LoadMergedValues;
@@ -3619,6 +3912,9 @@ begin
 
     // create sorted map AttrId to Value
     Values:=CreateValueList;
+
+    // collect the sibling selectors matching this node, so siblings can be style-shared
+    SiblingMatches:=MatchSiblingSelectors(Node);
   finally
     FNode:=nil;
   end;
@@ -3649,7 +3945,6 @@ begin
         else
           Cnt:=Cnt*2;
         SetLength(FCustomAttributes,Cnt);
-        FillByte(FCustomAttributes[FCustomAttributeCount],SizeOf(Pointer)*(Cnt-FCustomAttributeCount),0);
       end;
 
       Desc:=TCSSResCustomAttributeDesc.Create;
@@ -3672,19 +3967,573 @@ begin
   end;
 end;
 
-procedure TCSSResolver.FindMatchingRules;
+procedure TCSSResolver.EvalGlobalAtRules;
+
+  procedure CollectEl(El: TCSSElement);
+  var
+    C: TClass;
+    AtRule: TCSSAtRuleElement;
+    j: integer;
+    BestSpec, Spec: TCSSSpecificity;
+    l: SizeInt;
+  begin
+    if El=nil then exit;
+    C:=El.ClassType;
+    if C=TCSSCompoundElement then
+    begin
+      for j:=0 to TCSSCompoundElement(El).ChildCount-1 do
+        CollectEl(TCSSCompoundElement(El).Children[j]);
+    end else if C.InheritsFrom(TCSSAtRuleElement) then
+    begin
+      AtRule:=TCSSAtRuleElement(El);
+      if AtRule.AtKeyWord='@media' then
+      begin
+        BestSpec:=CSSSpecificityNoMatch;
+        for j:=0 to AtRule.SelectorCount-1 do
+        begin
+          Spec:=MediaSelectorMatches(AtRule.Selectors[j]);
+          if Spec>BestSpec then
+            BestSpec:=Spec;
+        end;
+        l:=length(FAtMediaCache);
+        if FAtMediaCacheCount=l then
+        begin
+          if l<8 then l:=8 else l:=l*2;
+          SetLength(FAtMediaCache,l);
+        end;
+        FAtMediaCache[FAtMediaCacheCount].Rule:=AtRule;
+        FAtMediaCache[FAtMediaCacheCount].Specificity:=BestSpec;
+        inc(FAtMediaCacheCount);
+        // recurse for nested @media
+        for j:=0 to AtRule.NestedRuleCount-1 do
+          if AtRule.NestedRules[j] is TCSSAtRuleElement then
+            CollectEl(AtRule.NestedRules[j]);
+      end;
+    end else if CSSIsPlainRule(C) then
+    begin
+      for j:=0 to TCSSRuleElement(El).NestedRuleCount-1 do
+        if TCSSRuleElement(El).NestedRules[j] is TCSSAtRuleElement then
+          CollectEl(TCSSRuleElement(El).NestedRules[j]);
+    end;
+  end;
+
+var
+  aLayerIndex, i: integer;
+begin
+  FAtMediaCacheCount:=0;
+  for aLayerIndex:=0 to length(FLayers)-1 do
+    with FLayers[aLayerIndex] do
+      for i:=0 to ElementCount-1 do
+        CollectEl(Elements[i].Element);
+end;
+
+function TCSSResolver.FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
+var
+  i: integer;
+begin
+  for i:=0 to FAtMediaCacheCount-1 do
+    if FAtMediaCache[i].Rule=aRule then
+    begin
+      Specificity:=FAtMediaCache[i].Specificity;
+      exit(true);
+    end;
+  Result:=false;
+  Specificity:=CSSSpecificityNoMatch;
+end;
+
+procedure TCSSResolver.ClearRuleBuckets;
+var
+  i: Integer;
+begin
+  FreeAndNil(FBucketOther);
+  for i:=0 to length(FBucketType)-1 do
+    FBucketType[i].Free;
+  FBucketType:=nil;
+  for i:=0 to length(FBucketClass)-1 do
+    FBucketClass[i].Free;
+  FBucketClass:=nil;
+  for i:=0 to length(FBucketID)-1 do
+    FBucketID[i].Free;
+  FBucketID:=nil;
+  FRuleCandidateCount:=0;
+  FBucketDocIndex:=0;
+  FSiblingSelectorCount:=0;
+  FSiblingSelectors:=nil;
+  FRuleBucketsValid:=false;
+end;
+
+procedure TCSSResolver.UpdateRuleBuckets;
+begin
+  if FRuleBucketsValid then exit;
+  EvalGlobalAtRules;
+  BuildRuleBuckets;
+end;
+
+procedure TCSSResolver.InvalidateRuleBuckets;
+begin
+  { Drop the cached @media results and buckets so the next resolve rebuilds them.
+    Needed when the media environment changed but the stylesheet text did not. }
+  ClearRuleBuckets;
+end;
+
+function TCSSResolver.GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
+begin
+  if aTypeID>=length(FBucketType) then
+    SetLength(FBucketType,aTypeID+1);
+  Result:=FBucketType[aTypeID];
+  if Result=nil then
+  begin
+    Result:=TCSSRuleBucket.Create;
+    FBucketType[aTypeID]:=Result;
+  end;
+end;
+
+function TCSSResolver.GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
+begin
+  if aClassID>=length(FBucketClass) then
+    SetLength(FBucketClass,aClassID+1);
+  Result:=FBucketClass[aClassID];
+  if Result=nil then
+  begin
+    Result:=TCSSRuleBucket.Create;
+    FBucketClass[aClassID]:=Result;
+  end;
+end;
+
+function TCSSResolver.GetIDBucket(aID: TCSSNumericalID): TCSSRuleBucket;
+begin
+  if aID>=length(FBucketID) then
+    SetLength(FBucketID,aID+1);
+  Result:=FBucketID[aID];
+  if Result=nil then
+  begin
+    Result:=TCSSRuleBucket.Create;
+    FBucketID[aID]:=Result;
+  end;
+end;
+
+procedure TCSSResolver.GetSelectorBucketKey(aSelector: TCSSElement;
+  out aKind: TCSSRuleBucketKind; out NumID: TCSSNumericalID);
+
+  procedure Classify(El: TCSSElement; out aKind: TCSSRuleBucketKind;
+    out aNumID: TCSSNumericalID);
+  var
+    C: TClass;
+    TypeID: TCSSNumericalID;
+  begin
+    aKind:=rbkOther;
+    aNumID:=CSSIDNone;
+    if El=nil then exit;
+    C:=El.ClassType;
+    if C=TCSSResolvedHashIdentifierElement then
+    begin
+      aNumID:=TCSSResolvedHashIdentifierElement(El).NumericalID;
+      if aNumID>=1 then
+        aKind:=rbkID;
+    end
+    else if C=TCSSResolvedClassNameElement then
+    begin
+      aNumID:=TCSSResolvedClassNameElement(El).NumericalID;
+      if aNumID>=1 then
+        aKind:=rbkClass;
+    end
+    else if C=TCSSResolvedIdentifierElement then
+    begin
+      TypeID:=TCSSResolvedIdentifierElement(El).NumericalID;
+      // universal '*' and unknown types are not distinctive -> Other
+      if (TypeID>=1) and (TypeID<>CSSTypeID_Universal) then
+      begin
+        aNumID:=TypeID;
+        aKind:=rbkType;
+      end;
+    end;
+    // pseudo classes, attribute selectors, calls (:is/:not), '&' etc. -> Other
+  end;
+
+var
+  aBinary: TCSSBinaryElement;
+  aUnary: TCSSUnaryElement;
+  aList: TCSSListElement;
+  i: Integer;
+  ChildKind: TCSSRuleBucketKind;
+  ChildNum: TCSSNumericalID;
+begin
+  aKind:=rbkOther;
+  NumID:=CSSIDNone;
+
+  // descend combinators to the rightmost selector part
+  while aSelector<>nil do
+  begin
+    if aSelector.ClassType=TCSSBinaryElement then
+    begin
+      aBinary:=TCSSBinaryElement(aSelector);
+      case aBinary.Operation of
+      boWhiteSpace,boGT,boPlus,boTilde:
+        begin
+          aSelector:=aBinary.Right;
+          continue;
+        end;
+      end;
+      break;
+    end
+    else if aSelector.ClassType=TCSSUnaryElement then
+    begin
+      aUnary:=TCSSUnaryElement(aSelector);
+      case aUnary.Operation of
+      uoGT,uoPlus,uoTilde:
+        begin
+          aSelector:=aUnary.Right;
+          continue;
+        end;
+      end;
+      break;
+    end;
+    break;
+  end;
+  if aSelector=nil then exit;
+
+  if aSelector.ClassType=TCSSListElement then
+  begin
+    // compound selector e.g. div.red#x -> pick the most distinctive part: id > class > type
+    aList:=TCSSListElement(aSelector);
+    for i:=0 to aList.ChildCount-1 do
+    begin
+      Classify(aList.Children[i],ChildKind,ChildNum);
+      if ChildKind>aKind then
+      begin
+        aKind:=ChildKind;
+        NumID:=ChildNum;
+        if aKind=rbkID then break; // id is the most distinctive, stop early
+      end;
+    end;
+  end
+  else
+    Classify(aSelector,aKind,NumID);
+end;
+
+procedure TCSSResolver.BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
+var
+  i: Integer;
+  aKind: TCSSRuleBucketKind;
+  NumID: TCSSNumericalID;
+  DocIndex: Integer;
+begin
+  DocIndex:=FBucketDocIndex;
+  inc(FBucketDocIndex);
+
+  // @media (and other @-rules) and rules with nested rules keep the original
+  // recursion (media gating, nested ancestor matching) -> always evaluate them
+  if (aRule.ClassType=TCSSAtRuleElement) or (aRule.NestedRuleCount>0) then
+  begin
+    FBucketOther.Add(aRule,DocIndex,SrcSpecificity);
+    exit;
+  end;
+
+  if aRule.SelectorCount=0 then
+  begin
+    FBucketOther.Add(aRule,DocIndex,SrcSpecificity);
+    exit;
+  end;
+
+  for i:=0 to aRule.SelectorCount-1 do
+  begin
+    GetSelectorBucketKey(aRule.Selectors[i],aKind,NumID);
+    case aKind of
+    rbkID:    GetIDBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
+    rbkClass: GetClassBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
+    rbkType:  GetTypeBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
+    else
+      FBucketOther.Add(aRule,DocIndex,SrcSpecificity);
+    end;
+  end;
+end;
+
+procedure TCSSResolver.CollectSiblingSelectors(aRule: TCSSRuleElement;
+  SrcSpecificity: TCSSSpecificity);
+// Add every selector of aRule (and its nested rules) whose subject match depends on
+// siblings/position/descendants to FSiblingSelectors. @-rule "selectors" are media
+// queries, not node selectors, so only their nested rules are descended.
+var
+  i: Integer;
+begin
+  if aRule=nil then exit;
+  if aRule.ClassType<>TCSSAtRuleElement then
+    for i:=0 to aRule.SelectorCount-1 do
+      if SelectorHasSiblingDependency(aRule.Selectors[i]) then
+        AddSiblingSelector(aRule.Selectors[i],aRule,SrcSpecificity);
+  for i:=0 to aRule.NestedRuleCount-1 do
+    CollectSiblingSelectors(aRule.NestedRules[i],SrcSpecificity);
+end;
+
+procedure TCSSResolver.AddSiblingSelector(aSelector: TCSSElement;
+  aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
+var
+  l: Integer;
+begin
+  l:=length(FSiblingSelectors);
+  if FSiblingSelectorCount=l then
+  begin
+    if l<8 then l:=8 else l:=l*2;
+    SetLength(FSiblingSelectors,l);
+  end;
+  FSiblingSelectors[FSiblingSelectorCount].Selector:=aSelector;
+  FSiblingSelectors[FSiblingSelectorCount].Rule:=aRule;
+  FSiblingSelectors[FSiblingSelectorCount].SrcSpecificity:=SrcSpecificity;
+  inc(FSiblingSelectorCount);
+end;
+
+function TCSSResolver.SelectorHasSiblingDependency(aSelector: TCSSElement): boolean;
+// Walks the subject (rightmost) side of aSelector. Combinators/pseudos in an ancestor
+// part are deliberately not followed - same-parent siblings share their ancestors.
+var
+  aBinary: TCSSBinaryElement;
+  aUnary: TCSSUnaryElement;
+  aList: TCSSListElement;
+  i: Integer;
+begin
+  Result:=false;
+  if aSelector=nil then exit;
+  if aSelector.ClassType=TCSSBinaryElement then
+  begin
+    aBinary:=TCSSBinaryElement(aSelector);
+    case aBinary.Operation of
+    boPlus,boTilde: Result:=true; // subject preceded by a (matching) sibling
+    else
+      // descendant/child combinator (or attribute binary): only the subject matters
+      Result:=SelectorHasSiblingDependency(aBinary.Right);
+    end;
+  end
+  else if aSelector.ClassType=TCSSUnaryElement then
+  begin
+    aUnary:=TCSSUnaryElement(aSelector);
+    case aUnary.Operation of
+    uoPlus,uoTilde: Result:=true;
+    uoGT: Result:=SelectorHasSiblingDependency(aUnary.Right);
+    end;
+  end
+  else if aSelector.ClassType=TCSSListElement then
+  begin
+    aList:=TCSSListElement(aSelector);
+    for i:=0 to aList.ChildCount-1 do
+      if SelectorComponentSiblingDep(aList.Children[i]) then exit(true);
+  end
+  else
+    Result:=SelectorComponentSiblingDep(aSelector);
+end;
+
+function TCSSResolver.SelectorComponentSiblingDep(aComponent: TCSSElement): boolean;
+// A single component of the subject compound (pseudo-class, call, type, class, ...).
+var
+  aCall: TCSSResolvedCallElement;
+  i: Integer;
+begin
+  Result:=false;
+  if aComponent=nil then exit;
+  if aComponent.ClassType=TCSSResolvedPseudoClassElement then
+  begin
+    case TCSSResolvedPseudoClassElement(aComponent).NumericalID of
+    CSSPseudoID_Empty,
+    CSSPseudoID_FirstChild,CSSPseudoID_LastChild,CSSPseudoID_OnlyChild,
+    CSSPseudoID_FirstOfType,CSSPseudoID_LastOfType,CSSPseudoID_OnlyOfType:
+      Result:=true;
+    end;
+  end
+  else if aComponent.ClassType=TCSSResolvedCallElement then
+  begin
+    aCall:=TCSSResolvedCallElement(aComponent);
+    case aCall.NameNumericalID of
+    CSSCallID_NthChild,CSSCallID_NthLastChild,
+    CSSCallID_NthOfType,CSSCallID_NthLastOfType,
+    CSSCallID_Has:
+      Result:=true;
+    CSSCallID_Not,CSSCallID_Is,CSSCallID_Where:
+      // forgiving wrappers apply to the same subject node -> recurse into the args
+      for i:=0 to aCall.ArgCount-1 do
+        if SelectorHasSiblingDependency(aCall.Args[i]) then exit(true);
+    end;
+  end;
+end;
+
+function TCSSResolver.MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList;
+var
+  i, Cnt: Integer;
+  SavedNode: ICSSNode;
+  SavedSrcSpec: TCSSSpecificity;
+  Sel: TCSSElement;
+begin
+  Result.Matched:=nil;
+  if FSiblingSelectorCount=0 then exit;
+
+  SetLength(Result.Matched,FSiblingSelectorCount);
+  Cnt:=0;
+  SavedNode:=FNode;
+  SavedSrcSpec:=FSourceSpecificity;
+  FNode:=Node;
+  try
+    for i:=0 to FSiblingSelectorCount-1 do
+    begin
+      FSourceSpecificity:=FSiblingSelectors[i].SrcSpecificity;
+      Sel:=FSiblingSelectors[i].Selector;
+      if SelectorMatches(Sel,Node,false,FSiblingSelectors[i].Rule)>=0 then
+      begin
+        Result.Matched[Cnt]:=Sel;
+        inc(Cnt);
+      end;
+    end;
+  finally
+    FNode:=SavedNode;
+    FSourceSpecificity:=SavedSrcSpec;
+  end;
+  SetLength(Result.Matched,Cnt);
+end;
+
+procedure TCSSResolver.BuildRuleBuckets;
+
+  procedure CollectEl(El: TCSSElement; SrcSpecificity: TCSSSpecificity);
+  var
+    C: TClass;
+    i: Integer;
+  begin
+    if El=nil then exit;
+    C:=El.ClassType;
+    if C=TCSSCompoundElement then
+    begin
+      for i:=0 to TCSSCompoundElement(El).ChildCount-1 do
+        CollectEl(TCSSCompoundElement(El).Children[i],SrcSpecificity);
+    end
+    else if C.InheritsFrom(TCSSRuleElement) then
+    begin
+      BucketRule(TCSSRuleElement(El),SrcSpecificity);
+      CollectSiblingSelectors(TCSSRuleElement(El),SrcSpecificity);
+    end;
+    // unknown top-level elements are ignored here (warned by ComputeElement)
+  end;
+
 var
   aLayerIndex, i: Integer;
+  SrcSpecificity: TCSSSpecificity;
+begin
+  ClearRuleBuckets;
+  FBucketOther:=TCSSRuleBucket.Create;
+
+  // pre-size the type/class/id bucket arrays to their final length, so the
+  // GetTypeBucket/GetClassBucket/GetIDBucket calls in BucketRule never grow
+  // (and reallocate) them one id at a time. The bucket objects themselves are
+  // still created lazily; index 0 is the unused CSSIDNone slot.
+  if CSSRegistry.TypeCount>0 then
+    SetLength(FBucketType,CSSRegistry.TypeCount);
+  if FCSSClassNameCount>0 then
+    SetLength(FBucketClass,FCSSClassNameCount+1);
+  if FCSSIDCount>0 then
+    SetLength(FBucketID,FCSSIDCount+1);
+
+  // walk in the same order FindMatchingRules used, assigning document order indexes
+  for aLayerIndex:=0 to length(FLayers)-1 do
+    with FLayers[aLayerIndex] do
+    begin
+      SrcSpecificity:=CSSOriginToSpecifity[Origin];
+      for i:=0 to ElementCount-1 do
+        CollectEl(Elements[i].Element,SrcSpecificity);
+    end;
+  FRuleBucketsValid:=true;
+end;
+
+procedure TCSSResolver.AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
+var
+  l: SizeInt;
+begin
+  if (Bucket=nil) or (Bucket.Count=0) then exit;
+  l:=length(FRuleCandidates);
+  if FRuleCandidateCount+Bucket.Count>l then
+  begin
+    if l<8 then l:=8;
+    while l<FRuleCandidateCount+Bucket.Count do
+      l:=l*2;
+    SetLength(FRuleCandidates,l);
+  end;
+  Move(Bucket.Items[0],FRuleCandidates[FRuleCandidateCount],Bucket.Count*SizeOf(TCSSRuleBucketItem));
+  inc(FRuleCandidateCount,Bucket.Count);
+end;
+
+procedure TCSSResolver.SortRuleCandidates;
+
+  procedure QuickSort(L, R: Integer);
+  var
+    i, j, Pivot: Integer;
+    Tmp: TCSSRuleBucketItem;
+  begin
+    i:=L;
+    j:=R;
+    Pivot:=FRuleCandidates[(L+R) div 2].DocIndex;
+    repeat
+      while FRuleCandidates[i].DocIndex<Pivot do inc(i);
+      while FRuleCandidates[j].DocIndex>Pivot do dec(j);
+      if i<=j then
+      begin
+        Tmp:=FRuleCandidates[i];
+        FRuleCandidates[i]:=FRuleCandidates[j];
+        FRuleCandidates[j]:=Tmp;
+        inc(i);
+        dec(j);
+      end;
+    until i>j;
+    if L<j then QuickSort(L,j);
+    if i<R then QuickSort(i,R);
+  end;
+
+begin
+  if FRuleCandidateCount>1 then
+    QuickSort(0,FRuleCandidateCount-1);
+end;
+
+procedure TCSSResolver.FindMatchingRules;
+var
+  i, c: Integer;
+  Classes: TCSSNumericalIDArray;
+  TypeID, IDIndex: TCSSNumericalID;
+  LastRule: TCSSRuleElement;
+  Item: PCSSRuleBucketItem;
 begin
   FElRuleCount:=0;
+  FRuleCandidateCount:=0;
 
-  // find all matching rules in all stylesheets
-  for aLayerIndex:=0 to length(FLayers)-1 do
-    with FLayers[aLayerIndex] do begin
-      FSourceSpecificity:=CSSOriginToSpecifity[Origin];
-      for i:=0 to ElementCount-1 do
-        ComputeElement(Elements[i].Element);
-    end;
+  // only the buckets that can match this node are inspected:
+  // the Other bucket, the node's type bucket, its id bucket and its class buckets
+  AddBucketToRuleCandidates(FBucketOther);
+
+  TypeID:=FNode.GetCSSTypeID;
+  if (TypeID>=0) and (TypeID<length(FBucketType)) then
+    AddBucketToRuleCandidates(FBucketType[TypeID]);
+
+  IDIndex:=FNode.GetCSSID;
+  if (IDIndex>=1) and (IDIndex<length(FBucketID)) then
+    AddBucketToRuleCandidates(FBucketID[IDIndex]);
+
+  Classes:=FNode.GetCSSClasses;
+  for i:=0 to length(Classes)-1 do
+  begin
+    c:=Classes[i];
+    if (c>=1) and (c<length(FBucketClass)) then
+      AddBucketToRuleCandidates(FBucketClass[c]);
+  end;
+
+  // restore document order so the cascade tie-break is identical to a linear scan
+  SortRuleCandidates;
+
+  // evaluate each candidate rule once (a multi-selector rule can appear in
+  // several buckets; duplicates share a DocIndex and are now adjacent)
+  LastRule:=nil;
+  for i:=0 to FRuleCandidateCount-1 do
+  begin
+    Item:=@FRuleCandidates[i];
+    if Item^.Rule=LastRule then continue;
+    LastRule:=Item^.Rule;
+    FSourceSpecificity:=Item^.SourceSpecificity;
+    if Item^.Rule.ClassType=TCSSAtRuleElement then
+      ComputeAtRule(TCSSAtRuleElement(Item^.Rule))
+    else
+      ComputeRule(Item^.Rule);
+  end;
 end;
 
 function TCSSResolver.GetAttributeDesc(AttrId: TCSSNumericalID
@@ -3700,6 +4549,140 @@ begin
   end;
 end;
 
+function TCSSResolver.IsAttrValueInvalid(AttrID: TCSSNumericalID;
+  const Tokens: TBytes): boolean;
+// Run an already tokenized value through the attribute parser and its OnCheck, exactly
+// as the parser does per declaration. A temporary key data lets InitParseAttr flag a
+// misused base keyword (e.g. "inherit red") as well.
+var
+  Desc: TCSSAttributeDesc;
+  AttrData: TCSSAttributeKeyData;
+begin
+  Result:=false;
+  // only built-in attributes from 'all' upwards are checkable; the ones below 'all' and
+  // the custom properties (>=AttributeCount) accept anything
+  if (AttrID<CSSAttributeID_All) or (AttrID>=CSSRegistry.AttributeCount) then
+    exit;
+  Desc:=GetAttributeDesc(AttrID);
+  if Desc=nil then exit;
+  AttrData:=TCSSAttributeKeyData.Create;
+  try
+    AttrData.Tokens:=Tokens;
+    if InitParseAttr(Desc,AttrData) then
+      if Assigned(Desc.OnCheck) and not Desc.OnCheck(Self) then
+        AttrData.Invalid:=true;
+    Result:=AttrData.Invalid; // InitParseAttr may have flagged it too
+  finally
+    AttrData.Free;
+  end;
+end;
+
+function TCSSResolver.IsAttrValueInvalid(AttrID: TCSSNumericalID;
+  const aValue: TCSSString): boolean;
+// Tokenize aValue as the attribute expects, then check the tokens (see above).
+var
+  Desc: TCSSAttributeDesc;
+  Tokens: TBytes;
+begin
+  Result:=false;
+  if HasCSSValueVarCall(aValue) then
+    exit; // a var() cannot be checked until it is substituted
+  if (AttrID<CSSAttributeID_All) or (AttrID>=CSSRegistry.AttributeCount) then
+    exit;
+  Desc:=GetAttributeDesc(AttrID);
+  if Desc=nil then exit;
+  Tokens:=nil;
+  if not Tokenize(aValue,Tokens,Desc.AllowUnknownIdentifiers) then
+    exit(true); // the value does not even tokenize
+  Result:=IsAttrValueInvalid(AttrID,Tokens);
+end;
+
+function TCSSResolver.GetCSSClassID(const aCSSClassName: TCSSString
+  ): TCSSNumericalID;
+var
+  p: Pointer;
+begin
+  // class names are case sensitive
+  p:=FCSSClassNameToID.Find(aCSSClassName);
+  if p=nil then
+    Result:=CSSIDNone
+  else
+    Result:={%H-}TCSSNumericalID(p);
+end;
+
+function TCSSResolver.AddCSSClassID(const aCSSClassName: TCSSString
+  ): TCSSNumericalID;
+var
+  Cnt: SizeInt;
+begin
+  Result:=GetCSSClassID(aCSSClassName);
+  if Result<>CSSIDNone then exit;
+  inc(FCSSClassNameCount);
+  Result:=FCSSClassNameCount;
+  FCSSClassNameToID.Add(aCSSClassName,{%H-}Pointer(Result));
+  Cnt:=length(FCSSClassNames);
+  if Cnt<FCSSClassNameCount then
+  begin
+    if Cnt<8 then
+      Cnt:=8
+    else
+      Cnt:=Cnt*2;
+    SetLength(FCSSClassNames,Cnt);
+  end;
+  FCSSClassNames[Result-1]:=aCSSClassName;
+  ChangeCSSClassIDStamp;
+end;
+
+function TCSSResolver.GetCSSClassName(aID: TCSSNumericalID): TCSSString;
+begin
+  if (aID>=1) and (aID<=FCSSClassNameCount) then
+    Result:=FCSSClassNames[aID-1]
+  else
+    Result:='';
+end;
+
+function TCSSResolver.GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID;
+var
+  p: Pointer;
+begin
+  // ids are case sensitive
+  p:=FCSSIDNameToIndex.Find(aCSSID);
+  if p=nil then
+    Result:=CSSIDNone
+  else
+    Result:={%H-}TCSSNumericalID(p);
+end;
+
+function TCSSResolver.AddCSSID(const aCSSID: TCSSString): TCSSNumericalID;
+var
+  Cnt: SizeInt;
+begin
+  Result:=GetCSSIDIndex(aCSSID);
+  if Result<>CSSIDNone then exit;
+  inc(FCSSIDCount);
+  Result:=FCSSIDCount;
+  FCSSIDNameToIndex.Add(aCSSID,{%H-}Pointer(Result));
+  Cnt:=length(FCSSIDNames);
+  if Cnt<FCSSIDCount then
+  begin
+    if Cnt<8 then
+      Cnt:=8
+    else
+      Cnt:=Cnt*2;
+    SetLength(FCSSIDNames,Cnt);
+  end;
+  FCSSIDNames[Result-1]:=aCSSID;
+  ChangeCSSClassIDStamp;
+end;
+
+function TCSSResolver.GetCSSIDName(aID: TCSSNumericalID): TCSSString;
+begin
+  if (aID>=1) and (aID<=FCSSIDCount) then
+    Result:=FCSSIDNames[aID-1]
+  else
+    Result:='';
+end;
+
 function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;
 var
   KeyData: TCSSAttributeKeyData;
@@ -3709,7 +4692,7 @@ begin
   if Decl.KeyCount=0 then exit;
   KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
   if KeyData=nil then exit;
-  Result:=KeyData.Value;
+  Result:=Detokenize(KeyData.Tokens);
 end;
 
 procedure TCSSResolver.ClearStyleSheets;
@@ -3717,6 +4700,8 @@ var
   i: Integer;
 begin
   ClearElements;
+
+  FDisabledDecls.Clear;
 
   // clear stylesheets
   for i:=0 to FStyleSheetCount-1 do
@@ -3729,6 +4714,12 @@ end;
 
 function TCSSResolver.AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString;
   const aSource: TCSSString): TStyleSheet;
+begin
+  Result:=InsertStyleSheet(FStyleSheetCount,anOrigin,aName,aSource);
+end;
+
+function TCSSResolver.InsertStyleSheet(Index: integer; anOrigin: TCSSOrigin;
+  const aName: TCSSString; const aSource: TCSSString): TStyleSheet;
 var
   Cnt, i: SizeInt;
 begin
@@ -3738,9 +4729,12 @@ begin
     if i>=0 then
     begin
       ReplaceStyleSheet(i,aSource);
-      exit;
+      exit(FStyleSheets[i]);
     end;
   end;
+
+  if (Index<0) or (Index>FStyleSheetCount) then
+    raise ECSSResolver.Create('20260706153000');
 
   Cnt:=length(FStyleSheets);
   if Cnt=FStyleSheetCount then
@@ -3750,14 +4744,15 @@ begin
     else
       Cnt:=Cnt*2;
     SetLength(FStyleSheets,Cnt);
-    FillByte(FStyleSheets[FStyleSheetCount],SizeOf(Pointer)*(Cnt-FStyleSheetCount),0);
   end;
+
+  // repurpose the pooled object in the tail slot, then open a gap at Index
   Result:=FStyleSheets[FStyleSheetCount];
+  for i:=FStyleSheetCount downto Index+1 do
+    FStyleSheets[i]:=FStyleSheets[i-1];
   if Result=nil then
-  begin
     Result:=TStyleSheet.Create;
-    FStyleSheets[FStyleSheetCount]:=Result;
-  end;
+  FStyleSheets[Index]:=Result;
   inc(FStyleSheetCount);
 
   with Result do begin
@@ -3767,9 +4762,17 @@ begin
     Parsed:=false;
     if Element<>nil then
       FreeAndNil(Element);
+    inc(FStyleSheetStamp);
+    Stamp:=FStyleSheetStamp;
   end;
 
-  ParseSource(FStyleSheetCount-1);
+  ParseSource(Index);
+
+  // ParseSource appended the sheet's element to the end of its layer; when this
+  // is a mid-list insert, move it to the slot matching the array order so the
+  // cascade (document order) respects the requested position.
+  if Index<FStyleSheetCount-1 then
+    OrderStyleSheetInLayer(Index);
 end;
 
 procedure TCSSResolver.ReplaceStyleSheet(Index: integer; const NewSource: TCSSString);
@@ -3780,11 +4783,142 @@ begin
   if NewSource=Sheet.Source then exit;
   ClearMerge;
   ClearSharedRuleLists;
+  { ParseSource appended this sheet's element to the layers; drop that entry
+    before freeing the element, or the layers keep a dangling pointer that
+    FindMatchingRules would later walk (a use-after-free). }
+  RemoveStyleSheetFromLayers(Sheet);
   FreeAndNil(Sheet.Element);
   Sheet.Parsed:=false;
   Sheet.Source:=NewSource;
+  inc(FStyleSheetStamp);
+  Sheet.Stamp:=FStyleSheetStamp;
 
   ParseSource(Index);
+
+  // the reparse replaced all declaration elements with fresh ones (Disabled=false);
+  // re-apply the remembered disabled state
+  RestoreDisabledDeclarations(Sheet);
+end;
+
+procedure TCSSResolver.DeleteStyleSheet(Index: integer);
+var
+  Sheet: TStyleSheet;
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  if (Index<0) or (Index>=FStyleSheetCount) then
+    raise ECSSResolver.Create('20260706120000');
+  Sheet:=FStyleSheets[Index];
+  ClearMerge;
+  ClearSharedRuleLists;
+  { The sheet's element (and all its declaration elements) is about to be freed.
+    Drop it from the layers first, or FindMatchingRules would walk a dangling
+    pointer (a use-after-free). }
+  RemoveStyleSheetFromLayers(Sheet);
+
+  // forget disabled declarations of this sheet; their Decl elements are freed below
+  for i:=FDisabledDecls.Count-1 downto 0 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if (Item.Path.Origin=Sheet.Origin) and (Item.Path.SheetName=Sheet.Name) then
+      FDisabledDecls.Delete(i); // owns the object, frees it
+  end;
+
+  FreeAndNil(Sheet.Element);
+  FreeAndNil(FStyleSheets[Index]);
+
+  // close the gap; the vacated tail slot stays nil for AddStyleSheet to reuse
+  for i:=Index to FStyleSheetCount-2 do
+    FStyleSheets[i]:=FStyleSheets[i+1];
+  FStyleSheets[FStyleSheetCount-1]:=nil;
+  dec(FStyleSheetCount);
+
+  inc(FStyleSheetStamp);
+end;
+
+
+procedure TCSSResolver.RemoveStyleSheetFromLayers(aSheet: TStyleSheet);
+var
+  l, i, d: Integer;
+begin
+  FRuleBucketsValid:=false; // FLayers changing -> buckets need a rebuild
+  for l:=0 to length(FLayers)-1 do
+    with FLayers[l] do
+    begin
+      d:=0;
+      for i:=0 to ElementCount-1 do
+        if Elements[i].Src<>aSheet then
+        begin
+          if d<>i then
+            Elements[d]:=Elements[i];
+          inc(d);
+        end;
+      ElementCount:=d;
+    end;
+end;
+
+procedure TCSSResolver.OrderStyleSheetInLayer(Index: integer);
+// ParseSource gives each stylesheet its own anonymous layer, appended at the end
+// of its origin's contiguous run, so the cascade document order is the layer
+// order. After a mid-list InsertStyleSheet, move that fresh layer to the slot
+// matching the FStyleSheets order, so ancestors keep coming before descendants.
+var
+  aSheet: TStyleSheet;
+  El: TCSSElement;
+  l, srcLayer, runStart, destLayer, otherIdx: Integer;
+  Tmp: TLayer;
+begin
+  aSheet:=FStyleSheets[Index];
+  El:=aSheet.Element;
+  if El=nil then exit; // empty stylesheet contributes no layer
+
+  // locate the layer holding this sheet's element
+  srcLayer:=-1;
+  for l:=0 to length(FLayers)-1 do
+    if (FLayers[l].ElementCount>0) and (FLayers[l].Elements[0].Src=aSheet) then
+    begin
+      srcLayer:=l;
+      break;
+    end;
+  if srcLayer<0 then exit;
+
+  // first layer of this origin (origins are sorted, so the run is contiguous)
+  runStart:=0;
+  while (runStart<length(FLayers)) and (FLayers[runStart].Origin<>aSheet.Origin) do
+    inc(runStart);
+
+  // destination = runStart + number of same-origin layers whose sheet precedes Index
+  destLayer:=runStart;
+  for l:=0 to length(FLayers)-1 do
+  begin
+    if (l=srcLayer) or (FLayers[l].Origin<>aSheet.Origin) or (FLayers[l].ElementCount=0) then
+      continue;
+    otherIdx:=IndexOfStyleSheet(FLayers[l].Elements[0].Src);
+    if (otherIdx>=0) and (otherIdx<Index) then
+      inc(destLayer);
+  end;
+
+  if destLayer=srcLayer then exit;
+
+  Tmp:=FLayers[srcLayer];
+  if destLayer<srcLayer then
+  begin
+    for l:=srcLayer downto destLayer+1 do
+      FLayers[l]:=FLayers[l-1];
+  end else begin
+    for l:=srcLayer to destLayer-1 do
+      FLayers[l]:=FLayers[l+1];
+  end;
+  FLayers[destLayer]:=Tmp;
+  FRuleBucketsValid:=false; // document order changed -> rebuild buckets
+end;
+
+function TCSSResolver.IndexOfStyleSheet(aSheet: TStyleSheet): integer;
+begin
+  for Result:=0 to FStyleSheetCount-1 do
+    if FStyleSheets[Result]=aSheet then
+      exit;
+  Result:=-1;
 end;
 
 function TCSSResolver.IndexOfStyleSheetWithElement(El: TCSSElement): integer;
@@ -3827,6 +4961,364 @@ begin
     Result:=FStyleSheets[i]
   else
     Result:=nil;
+end;
+
+function TCSSResolver.FindStyleSheetWithName(const aName: TCSSString; anOrigin: TCSSOrigin
+  ): TStyleSheet;
+var
+  i: Integer;
+begin
+  i:=IndexOfStyleSheetWithName(anOrigin,aName);
+  if i>=0 then
+    Result:=FStyleSheets[i]
+  else
+    Result:=nil;
+end;
+
+function TCSSResolver.GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
+var
+  i: Integer;
+begin
+  i:=IndexOfStyleSheetWithName(anOrigin,aName);
+  if i>=0 then
+    Result:=FStyleSheets[i].Stamp
+  else
+    Result:=-1;
+end;
+
+function TCSSResolver.GetDeclarationPath(DeclEl: TCSSDeclarationElement;
+  out Path: TCSSDeclarationPath): boolean;
+var
+  ShIdx, i, Level: Integer;
+  Sheet: TStyleSheet;
+  Root, Node: TCSSElement;
+  Innermost: TCSSRuleElement;
+  Chain: TCSSRuleElementArray; // rule nesting chain, outermost (0) .. innermost
+  ChainCnt: Integer;
+  Candidates: TCSSRuleElementArray;
+begin
+  Result:=false;
+  Path:=Default(TCSSDeclarationPath);
+  if DeclEl=nil then exit;
+  ShIdx:=IndexOfStyleSheetWithElement(DeclEl);
+  if ShIdx<0 then exit; // e.g. an inline style declaration, not in a stylesheet
+  Sheet:=FStyleSheets[ShIdx];
+  Root:=Sheet.Element;
+
+  // collect the chain of enclosing rules, innermost first while walking up
+  Chain:=nil;
+  ChainCnt:=0;
+  Node:=DeclEl.Parent;
+  while Node<>nil do
+  begin
+    if Node is TCSSRuleElement then
+    begin
+      SetLength(Chain,ChainCnt+1);
+      // shift down to insert this (more outer) rule at the front
+      for i:=ChainCnt downto 1 do
+        Chain[i]:=Chain[i-1];
+      Chain[0]:=TCSSRuleElement(Node);
+      inc(ChainCnt);
+    end;
+    if Node=Root then break;
+    Node:=Node.Parent;
+  end;
+  if ChainCnt=0 then exit; // declaration not inside a rule
+  Innermost:=Chain[ChainCnt-1];
+
+  Path.Origin:=Sheet.Origin;
+  Path.SheetName:=Sheet.Name;
+  Path.PropertyName:=CSSDeclPropertyName(DeclEl);
+  SetLength(Path.Selectors,ChainCnt);
+  SetLength(Path.RuleIndex,ChainCnt);
+  for Level:=0 to ChainCnt-1 do
+  begin
+    if Level=0 then
+      Candidates:=CSSGetTopLevelRules(Root)
+    else
+      Candidates:=CSSGetNestedRules(Chain[Level-1]);
+    Path.Selectors[Level]:=CSSRuleSelectorsStr(Chain[Level]);
+    Path.RuleIndex[Level]:=-1;
+    for i:=0 to length(Candidates)-1 do
+      if Candidates[i]=Chain[Level] then
+      begin
+        Path.RuleIndex[Level]:=i;
+        break;
+      end;
+  end;
+
+  Path.PropIndex:=-1;
+  for i:=0 to Innermost.ChildCount-1 do
+    if Innermost.Children[i]=DeclEl then
+    begin
+      Path.PropIndex:=i;
+      break;
+    end;
+
+  Path.Valid:=true;
+  Result:=true;
+end;
+
+function TCSSResolver.FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
+var
+  ShIdx, i, Level: Integer;
+  Sheet: TStyleSheet;
+  Candidates: TCSSRuleElementArray;
+  Rule: TCSSRuleElement;
+  Decl: TCSSDeclarationElement;
+
+  function ChildDecl(aRule: TCSSRuleElement; Idx: integer): TCSSDeclarationElement;
+  begin
+    Result:=nil;
+    if (Idx>=0) and (Idx<aRule.ChildCount) and (aRule.Children[Idx] is TCSSDeclarationElement) then
+      Result:=TCSSDeclarationElement(aRule.Children[Idx]);
+  end;
+
+begin
+  Result:=nil;
+  if (not Path.Valid) or (length(Path.RuleIndex)=0) then exit;
+  ShIdx:=IndexOfStyleSheetWithName(Path.Origin,Path.SheetName);
+  if ShIdx<0 then exit;
+  Sheet:=FStyleSheets[ShIdx];
+
+  // walk the rule nesting chain, locating each level by index/selector
+  Rule:=nil;
+  for Level:=0 to length(Path.RuleIndex)-1 do
+  begin
+    if Level=0 then
+      Candidates:=CSSGetTopLevelRules(Sheet.Element)
+    else
+      Candidates:=CSSGetNestedRules(Rule);
+    Rule:=CSSLocateRule(Candidates,Path.RuleIndex[Level],Path.Selectors[Level]);
+    if Rule=nil then exit;
+  end;
+
+  // locate the declaration: by index, else by name, else index fallback
+  Decl:=ChildDecl(Rule,Path.PropIndex);
+  if (Decl<>nil) and (CSSDeclPropertyName(Decl)=Path.PropertyName) then
+    exit(Decl);
+  for i:=0 to Rule.ChildCount-1 do
+    if (Rule.Children[i] is TCSSDeclarationElement)
+        and (CSSDeclPropertyName(TCSSDeclarationElement(Rule.Children[i]))=Path.PropertyName) then
+      exit(TCSSDeclarationElement(Rule.Children[i]));
+  Result:=ChildDecl(Rule,Path.PropIndex);
+end;
+
+function TCSSResolver.DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData;
+var
+  Key: TCSSElement;
+begin
+  Result:=nil;
+  if Decl=nil then exit;
+  if Decl.KeyCount=0 then exit;
+  Key:=Decl.Keys[0];
+  if Key=nil then exit;
+  if Key.CustomData is TCSSAttributeKeyData then
+    Result:=TCSSAttributeKeyData(Key.CustomData);
+end;
+
+function TCSSResolver.DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString;
+var
+  i: Integer;
+begin
+  // build a unique, reparse-stable key from the declaration path;
+  // #10 is a separator that cannot occur inside a selector token
+  Result:=IntToStr(ord(Path.Origin))+#10+Path.SheetName+#10;
+  Result:=Result+IntToStr(length(Path.Selectors))+#10;
+  for i:=0 to length(Path.Selectors)-1 do
+    Result:=Result+Path.Selectors[i]+#10;
+  for i:=0 to length(Path.RuleIndex)-1 do
+    Result:=Result+IntToStr(Path.RuleIndex[i])+#10;
+  Result:=Result+Path.PropertyName+#10+IntToStr(Path.PropIndex);
+end;
+
+procedure TCSSResolver.DisableDeclaration(Decl: TCSSDeclarationElement);
+var
+  KeyData: TCSSAttributeKeyData;
+  Path: TCSSDeclarationPath;
+  Key: TCSSString;
+  Item: TCSSDisabledDecl;
+begin
+  KeyData:=DeclKeyData(Decl);
+  if KeyData=nil then exit;
+  KeyData.Disabled:=true;
+  UpdateRuleHasDisabledDecls(Decl);
+
+  // remember by path so the disabled state survives a reparse
+  if GetDeclarationPath(Decl,Path) then
+  begin
+    Key:=DisabledDeclKey(Path);
+    Item:=TCSSDisabledDecl(FDisabledDecls.Find(Key));
+    if Item=nil then
+    begin
+      Item:=TCSSDisabledDecl.Create;
+      Item.Path:=Path;
+      FDisabledDecls.Add(Key,Item);
+    end;
+    Item.Decl:=Decl;
+  end;
+
+  // the merged/shared caches were built with this declaration active; drop them
+  // so the next Compute rebuilds through MergeAttribute (where disabled is skipped)
+  ClearMerge;
+  ClearSharedRuleLists;
+end;
+
+procedure TCSSResolver.EnableDeclaration(Decl: TCSSDeclarationElement);
+var
+  KeyData: TCSSAttributeKeyData;
+  Path: TCSSDeclarationPath;
+  Index: Integer;
+begin
+  KeyData:=DeclKeyData(Decl);
+  if KeyData=nil then exit;
+  KeyData.Disabled:=false;
+  UpdateRuleHasDisabledDecls(Decl);
+
+  if GetDeclarationPath(Decl,Path) then
+  begin
+    Index:=FDisabledDecls.FindIndexOf(DisabledDeclKey(Path));
+    if Index>=0 then
+      FDisabledDecls.Delete(Index); // owns the object, frees it
+  end;
+
+  ClearMerge;
+  ClearSharedRuleLists;
+end;
+
+procedure TCSSResolver.RestoreDisabledDeclarations(Sheet: TStyleSheet);
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+  Decl: TCSSDeclarationElement;
+  KeyData: TCSSAttributeKeyData;
+begin
+  if Sheet=nil then exit;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if (Item.Path.Origin<>Sheet.Origin) or (Item.Path.SheetName<>Sheet.Name) then
+      continue;
+    Decl:=FindDeclaration(Item.Path);
+    Item.Decl:=Decl; // the reparse replaced the element; keep the reference current
+    if Decl=nil then continue;
+    KeyData:=DeclKeyData(Decl);
+    if KeyData<>nil then
+    begin
+      KeyData.Disabled:=true;
+      UpdateRuleHasDisabledDecls(Decl);
+    end;
+  end;
+end;
+
+procedure TCSSResolver.UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement);
+begin
+  if Decl=nil then exit;
+  if Decl.Parent is TCSSRuleElement then
+    UpdateRuleHasDisabledDecls(TCSSRuleElement(Decl.Parent));
+end;
+
+procedure TCSSResolver.UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement);
+var
+  i: Integer;
+  Child: TCSSElement;
+begin
+  if not (Rule is TCSSResolvedRuleElement) then exit;
+  for i:=0 to Rule.ChildCount-1 do
+  begin
+    Child:=Rule.Children[i];
+    if (Child is TCSSDeclarationElement)
+        and IsDeclarationDisabled(TCSSDeclarationElement(Child)) then
+    begin
+      TCSSResolvedRuleElement(Rule).HasDisabledDecls:=true;
+      exit;
+    end;
+  end;
+  TCSSResolvedRuleElement(Rule).HasDisabledDecls:=false;
+end;
+
+function TCSSResolver.IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean;
+var
+  KeyData: TCSSAttributeKeyData;
+begin
+  KeyData:=DeclKeyData(Decl);
+  Result:=(KeyData<>nil) and KeyData.Disabled;
+end;
+
+function TCSSResolver.RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean;
+var
+  i: Integer;
+begin
+  Result:=false;
+  if Rule=nil then exit;
+  if Rule is TCSSResolvedRuleElement then
+    exit(TCSSResolvedRuleElement(Rule).HasDisabledDecls);
+  for i:=0 to Rule.ChildCount-1 do
+    if (Rule.Children[i] is TCSSDeclarationElement)
+        and IsDeclarationDisabled(TCSSDeclarationElement(Rule.Children[i])) then
+      exit(true);
+end;
+
+procedure TCSSResolver.TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement);
+var
+  i, j: Integer;
+  OldDecl, NewDecl: TCSSDeclarationElement;
+  KeyData: TCSSAttributeKeyData;
+  Taken: array of boolean;
+  PropName: TCSSString;
+begin
+  if (OldRule=nil) or (NewRule=nil) then exit;
+  Taken:=nil;
+  SetLength(Taken,NewRule.ChildCount);
+  for i:=0 to OldRule.ChildCount-1 do
+  begin
+    if not (OldRule.Children[i] is TCSSDeclarationElement) then continue;
+    OldDecl:=TCSSDeclarationElement(OldRule.Children[i]);
+    if not IsDeclarationDisabled(OldDecl) then continue;
+    PropName:=CSSDeclPropertyName(OldDecl);
+    // the first new declaration of that property not yet claimed by an earlier old one,
+    // so duplicate properties keep their order
+    for j:=0 to NewRule.ChildCount-1 do
+    begin
+      if Taken[j] then continue;
+      if not (NewRule.Children[j] is TCSSDeclarationElement) then continue;
+      NewDecl:=TCSSDeclarationElement(NewRule.Children[j]);
+      if CSSDeclPropertyName(NewDecl)<>PropName then continue;
+      Taken[j]:=true;
+      KeyData:=DeclKeyData(NewDecl);
+      if KeyData<>nil then
+        KeyData.Disabled:=true;
+      break;
+    end;
+  end;
+  UpdateRuleHasDisabledDecls(NewRule);
+end;
+
+function TCSSResolver.GetDisabledDeclarations: TFPList;
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  Result:=TFPList.Create;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if Item.Decl<>nil then
+      Result.Add(Item.Decl);
+  end;
+end;
+
+function TCSSResolver.GetDisabledDeclarationPaths: TStrings;
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  Result:=TStringList.Create;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    Result.AddObject(DisabledDeclKey(Item.Path),Item.Decl);
+  end;
 end;
 
 end.

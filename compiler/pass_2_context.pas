@@ -47,7 +47,7 @@ type
     constructor create(acompiler: TCompilerBase; parent_tg: ttgobj);
     destructor Destroy; override;
 
-    procedure create_hlcodegen(acompiler: TCompilerBase);
+    procedure create_hlcodegen(lcgobjhelper: thlcgobjhelpersclass; acompiler: TCompilerBase);
     procedure create_tempgen(acompiler: TCompilerBase);
   end;
 
@@ -110,9 +110,9 @@ begin
   inherited Destroy;
 end;
 
-procedure tpassgeneratecodecontextimpl.create_hlcodegen(acompiler: TCompilerBase);
+procedure tpassgeneratecodecontextimpl.create_hlcodegen(lcgobjhelper: thlcgobjhelpersclass; acompiler: TCompilerBase);
 begin
-  hlcgobj.create_hlcodegen(acompiler);
+  hlcgobj.create_hlcodegen(lcgobjhelper,acompiler);
   hlcg:=acompiler.hlcg;
 end;
 

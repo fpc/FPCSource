@@ -39,7 +39,7 @@ uses
   type
     thlcgmips = class(thlcg2ll)
     public
-      constructor create(ACompiler: TCompilerBase); override;
+      constructor create(ACompiler: TCompilerBase); override; overload;
 
       function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);override;
@@ -295,9 +295,9 @@ implementation
   end;
 
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgmips.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgmips.create(hlcgobjhelpers,compiler);
     end;
 
 begin

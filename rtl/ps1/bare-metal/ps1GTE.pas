@@ -17,48 +17,57 @@ type
 	end;
 	pGTEMatrix = ^GTEMatrix;
 
+
+const
+	GTE_COP2_INSTR = $4A000000;					// this is the COP2 opcode
+
+
 { Command definitions and Flags}
 const
-	GTE_CMD_BITMASK = 63 shl  0;
-	GTE_CMD_RTPS    =  1 shl  0; // Perspective transformation (1 vertex)
-	GTE_CMD_NCLIP   =  6 shl  0; // Normal clipping
-	GTE_CMD_OP      = 12 shl  0; // Outer product (Cross product of 2 vectors)
-	GTE_CMD_DPCS    = 16 shl  0; // Depth cue (1 vertex)
-	GTE_CMD_INTPL   = 17 shl  0; // Depth cue with vector
-	GTE_CMD_MVMVA   = 18 shl  0; // Matrix-vector multiplication
-	GTE_CMD_NCDS    = 19 shl  0; // Normal color depth (1 vertex)
-	GTE_CMD_CDP     = 20 shl  0; // Color depth cue
-	GTE_CMD_NCDT    = 22 shl  0; // Normal color depth (3 vertices)
-	GTE_CMD_NCCS    = 27 shl  0; // Normal color color (1 vertex)
-	GTE_CMD_CC      = 28 shl  0; // Color color
-	GTE_CMD_NCS     = 30 shl  0; // Normal color (1 vertex) (NORM)
-	GTE_CMD_NCT     = 32 shl  0; // Normal color (3 vertices)
-	GTE_CMD_SQR     = 40 shl  0; // Square of vector
-	GTE_CMD_DCPL    = 41 shl  0; // Depth cue with light
-	GTE_CMD_DPCT    = 42 shl  0; // Depth cue (3 vertices)
-	GTE_CMD_AVSZ3   = 45 shl  0; // Average Z value (3 vertices)
-	GTE_CMD_AVSZ4   = 46 shl  0; // Average Z value (4 vertices)
-	GTE_CMD_RTPT    = 48 shl  0; // Perspective transformation (3 vertices)
-	GTE_CMD_GPF     = 61 shl  0; // Linear interpolation
-	GTE_CMD_GPL     = 62 shl  0; // Linear interpolation with base
-	GTE_CMD_NCCT    = 63 shl  0; // Normal color color (3 vertices)
-	GTE_LM          =  1 shl 10; // Saturate IR to 0x0000-0x7fff
-	GTE_CV_BITMASK  =  3 shl 13;
-	GTE_CV_TR       =  0 shl 13; // Use TR as translation vector for MVMVA
-	GTE_CV_BK       =  1 shl 13; // Use BK as translation vector for MVMVA
-	GTE_CV_FC       =  2 shl 13; // Use FC as translation vector for MVMVA
-	GTE_CV_NONE     =  3 shl 13; // Skip translation for MVMVA
-	GTE_V_BITMASK   =  3 shl 15;
-	GTE_V_V0        =  0 shl 15; // Use V0 as operand for MVMVA
-	GTE_V_V1        =  1 shl 15; // Use V1 as operand for MVMVA
-	GTE_V_V2        =  2 shl 15; // Use V2 as operand for MVMVA
-	GTE_V_IR        =  3 shl 15; // Use IR as operand for MVMVA
-	GTE_MX_BITMASK  =  3 shl 17;
-	GTE_MX_RT       =  0 shl 17; // Use rotation matrix as operand for MVMVA
-	GTE_MX_LLM      =  1 shl 17; // Use light matrix as operand for MVMVA
-	GTE_MX_LCM      =  2 shl 17; // Use light color matrix as operand for MVMVA
-	GTE_SF          =  1 shl 19;  // Shift results by 12 bits
+	GTE_CMD_GET_REAL_BITMASK = $3F;		 		// If You need the real value do an AND with this
+ 	GTE_CMD_RTPS  	= ($01 shl 20) or $01;   	// Perspective transformation (1 vertex)
+  	GTE_CMD_NCLIP 	= ($14 shl 20) or $06;   	// Normal clipping
+	GTE_CMD_OP    	= ($17 shl 20) or $0C;   	// Outer product (Cross product of 2 vectors)
+	GTE_CMD_DPCS  	= ($07 shl 20) or $10;   	// Depth cue (1 vertex)
+	GTE_CMD_INTPL 	= ($09 shl 20) or $11;   	// Depth cue with vector
+	GTE_CMD_MVMVA 	= ($04 shl 20) or $12;   	// Matrix-vector multiplication
+	GTE_CMD_NCDS  	= ($0E shl 20) or $13;   	// Normal color depth (1 vertex)
+	GTE_CMD_CDP   	= ($12 shl 20) or $14;   	// Color depth cue
+	GTE_CMD_NCDT  	= ($0F shl 20) or $16;   	// Normal color depth (3 vertices)
+	GTE_CMD_NCCS  	= ($10 shl 20) or $1B;   	// Normal color color (1 vertex)
+	GTE_CMD_CC    	= ($13 shl 20) or $1C;   	// Color color
+	GTE_CMD_NCS   	= ($0C shl 20) or $1E;   	// Normal color (1 vertex) (NORM)
+	GTE_CMD_NCT   	= ($0D shl 20) or $20;   	// Normal color (3 vertices)
+	GTE_CMD_SQR   	= ($0A shl 20) or $28;   	// Square of vector
+	GTE_CMD_DCPL  	= ($06 shl 20) or $29;   	// Depth cue with light
+	GTE_CMD_DPCT  	= ($0F shl 20) or $2A;   	// Depth cue (3 vertices)
+	GTE_CMD_AVSZ3 	= ($15 shl 20) or $2D;   	// Average Z value (3 vertices)
+	GTE_CMD_AVSZ4 	= ($16 shl 20) or $2E;   	// Average Z value (4 vertices)
+	GTE_CMD_RTPT  	= ($02 shl 20) or $30;   	// Perspective transformation (3 vertices)
+	GTE_CMD_GPF   	= ($19 shl 20) or $3D;   	// Linear interpolation
+	GTE_CMD_GPL   	= ($1A shl 20) or $3E;   	// Linear interpolation with base
+	GTE_CMD_NCCT  	= ($11 shl 20) or $3F;   	// Normal color color (3 vertices)
 
+	GTE_LM          =  1 shl 10; 				// Saturate IR to 0x0000-0x7fff
+
+	GTE_CV_BITMASK  =  3 shl 13;
+	GTE_CV_TR       =  0 shl 13; 				// Use TR as translation vector for MVMVA
+	GTE_CV_BK       =  1 shl 13; 				// Use BK as translation vector for MVMVA
+	GTE_CV_FC       =  2 shl 13; 				// Use FC as translation vector for MVMVA
+	GTE_CV_NONE     =  3 shl 13; 				// Skip translation for MVMVA
+
+	GTE_V_BITMASK   =  3 shl 15;
+	GTE_V_V0        =  0 shl 15; 				// Use V0 as operand for MVMVA
+	GTE_V_V1        =  1 shl 15; 				// Use V1 as operand for MVMVA
+	GTE_V_V2        =  2 shl 15; 				// Use V2 as operand for MVMVA
+	GTE_V_IR        =  3 shl 15; 				// Use IR as operand for MVMVA
+
+	GTE_MX_BITMASK  =  3 shl 17;
+	GTE_MX_RT       =  0 shl 17; 				// Use rotation matrix as operand for MVMVA
+	GTE_MX_LLM      =  1 shl 17; 				// Use light matrix as operand for MVMVA
+	GTE_MX_LCM      =  2 shl 17; 				// Use light color matrix as operand for MVMVA
+
+	GTE_SF          =  1 shl 19;  				// Shift results by 12 bits
 
 
 { Control register definitions }
@@ -96,6 +105,7 @@ const
 	GTE_ZSF4       = 30;  { Average Z scale factor }
 	GTE_FLAG       = 31;  { Error/overflow flags }
 
+
 { Status flags }
 const
 	GTE_FLAG_IR0_SATURATED   = 1 shl 12;
@@ -125,9 +135,9 @@ procedure gte_setControlRegRT13RT21(value: dword);
 procedure gte_setControlRegRT22RT23(value: dword);
 procedure gte_setControlRegRT31RT32(value: dword);
 procedure gte_setControlRegRT33(value: dword);
-procedure gte_setControlRegTRX(value: dword);
-procedure gte_setControlRegTRY(value: dword);
-procedure gte_setControlRegTRZ(value: dword);
+procedure gte_setControlRegTRX(value: longint);
+procedure gte_setControlRegTRY(value: longint);
+procedure gte_setControlRegTRZ(value: longint);
 procedure gte_setControlRegL11L12(value: dword);
 procedure gte_setControlRegL13L21(value: dword);
 procedure gte_setControlRegL22L23(value: dword);
@@ -157,15 +167,15 @@ function gte_getControlRegRT11RT12: dword;
 function gte_getControlRegRT13RT21: dword;
 function gte_getControlRegRT22RT23: dword;
 function gte_getControlRegRT31RT32: dword;
-function gte_getControlRegRT33: dword;
-function gte_getControlRegTRX: dword;
-function gte_getControlRegTRY: dword;
-function gte_getControlRegTRZ: dword;
+function gte_getControlRegRT33: longint;
+function gte_getControlRegTRX: longint;
+function gte_getControlRegTRY: longint;
+function gte_getControlRegTRZ: longint;
 function gte_getControlRegL11L12: dword;
 function gte_getControlRegL13L21: dword;
 function gte_getControlRegL22L23: dword;
 function gte_getControlRegL31L32: dword;
-function gte_getControlRegL33: dword;
+function gte_getControlRegL33: longint;
 function gte_getControlRegRBK: dword;
 function gte_getControlRegGBK: dword;
 function gte_getControlRegBBK: dword;
@@ -174,16 +184,16 @@ function gte_getControlRegLC13LC21: dword;
 function gte_getControlRegLC22LC23: dword;
 function gte_getControlRegLC31LC32: dword;
 function gte_getControlRegLC33: dword;
-function gte_getControlRegRFC: dword;
-function gte_getControlRegGFC: dword;
-function gte_getControlRegBFC: dword;
-function gte_getControlRegOFX: dword;
-function gte_getControlRegOFY: dword;
+function gte_getControlRegRFC: longint;
+function gte_getControlRegGFC: longint;
+function gte_getControlRegBFC: longint;
+function gte_getControlRegOFX: longint;
+function gte_getControlRegOFY: longint;
 function gte_getControlRegH: dword;
-function gte_getControlRegDQA: dword;
-function gte_getControlRegDQB: dword;
-function gte_getControlRegZSF3: dword;
-function gte_getControlRegZSF4: dword;
+function gte_getControlRegDQA: longint;
+function gte_getControlRegDQB: longint;
+function gte_getControlRegZSF3: longint;
+function gte_getControlRegZSF4: longint;
 function gte_getControlRegFLAG: dword;
 
 	
@@ -274,17 +284,17 @@ procedure gte_setDataRegLZCS(value: dword);
 procedure gte_setDataRegLZCR(value: dword);
 
 function gte_getDataRegVXY0: dword;
-function gte_getDataRegVZ0: dword;
+function gte_getDataRegVZ0: longint;
 function gte_getDataRegVXY1: dword;
-function gte_getDataRegVZ1: dword;
+function gte_getDataRegVZ1: longint;
 function gte_getDataRegVXY2: dword;
-function gte_getDataRegVZ2: dword;
+function gte_getDataRegVZ2: longint;
 function gte_getDataRegRGBC: dword;
 function gte_getDataRegOTZ: dword;
-function gte_getDataRegIR0: dword;
-function gte_getDataRegIR1: dword;
-function gte_getDataRegIR2: dword;
-function gte_getDataRegIR3: dword;
+function gte_getDataRegIR0: longint;
+function gte_getDataRegIR1: longint;
+function gte_getDataRegIR2: longint;
+function gte_getDataRegIR3: longint;
 function gte_getDataRegSXY0: dword;
 function gte_getDataRegSXY1: dword;
 function gte_getDataRegSXY2: dword;
@@ -296,10 +306,10 @@ function gte_getDataRegSZ3: dword;
 function gte_getDataRegRGB0: dword;
 function gte_getDataRegRGB1: dword;
 function gte_getDataRegRGB2: dword;
-function gte_getDataRegMAC0: dword;
-function gte_getDataRegMAC1: dword;
-function gte_getDataRegMAC2: dword;
-function gte_getDataRegMAC3: dword;
+function gte_getDataRegMAC0: longint;
+function gte_getDataRegMAC1: longint;
+function gte_getDataRegMAC2: longint;
+function gte_getDataRegMAC3: longint;
 function gte_getDataRegIRGB: dword;
 function gte_getDataRegORGB: dword;
 function gte_getDataRegLZCS: dword;
@@ -444,19 +454,19 @@ asm
 end;
 
 
-procedure gte_setControlRegTRX(value: dword); assembler;
+procedure gte_setControlRegTRX(value: longint); assembler;
 asm
 	ctc2 $a0, $TRX
 end;
 
 
-procedure gte_setControlRegTRY(value: dword); assembler;
+procedure gte_setControlRegTRY(value: longint); assembler;
 asm
 	ctc2 $a0, $TRY
 end;
 
 
-procedure gte_setControlRegTRZ(value: dword); assembler;
+procedure gte_setControlRegTRZ(value: longint); assembler;
 asm
 	ctc2 $a0, $TRZ
 end;
@@ -630,25 +640,25 @@ asm
 end;
 
 
-function gte_getControlRegRT33: dword; assembler;
+function gte_getControlRegRT33: longint; assembler;
 asm
 	cfc2 $v0, $RT33
 end;
 
 
-function gte_getControlRegTRX: dword; assembler;
+function gte_getControlRegTRX: longint; assembler;
 asm
 	cfc2 $v0, $TRX
 end;
 
 
-function gte_getControlRegTRY: dword; assembler;
+function gte_getControlRegTRY: longint; assembler;
 asm
 	cfc2 $v0, $TRY
 end;
 
 
-function gte_getControlRegTRZ: dword; assembler;
+function gte_getControlRegTRZ: longint; assembler;
 asm
 	cfc2 $v0, $TRZ
 end;
@@ -678,7 +688,7 @@ asm
 end;
 
 
-function gte_getControlRegL33: dword; assembler;
+function gte_getControlRegL33: longint; assembler;
 asm
 	cfc2 $v0, $L33
 end;
@@ -732,31 +742,31 @@ asm
 end;
 
 
-function gte_getControlRegRFC: dword; assembler;
+function gte_getControlRegRFC: longint; assembler;
 asm
 	cfc2 $v0, $RFC
 end;
 
 
-function gte_getControlRegGFC: dword; assembler;
+function gte_getControlRegGFC: longint; assembler;
 asm
 	cfc2 $v0, $GFC
 end;
 
 
-function gte_getControlRegBFC: dword; assembler;
+function gte_getControlRegBFC: longint; assembler;
 asm
 	cfc2 $v0, $BFC
 end;
 
 
-function gte_getControlRegOFX: dword; assembler;
+function gte_getControlRegOFX: longint; assembler;
 asm
 	cfc2 $v0, $OFX
 end;
 
 
-function gte_getControlRegOFY: dword; assembler;
+function gte_getControlRegOFY: longint; assembler;
 asm
 	cfc2 $v0, $OFY
 end;
@@ -768,25 +778,25 @@ asm
 end;
 
 
-function gte_getControlRegDQA: dword; assembler;
+function gte_getControlRegDQA: longint; assembler;
 asm
 	cfc2 $v0, $DQA
 end;
 
 
-function gte_getControlRegDQB: dword; assembler;
+function gte_getControlRegDQB: longint; assembler;
 asm
 	cfc2 $v0, $DQB
 end;
 
 
-function gte_getControlRegZSF3: dword; assembler;
+function gte_getControlRegZSF3: longint; assembler;
 asm
 	cfc2 $v0, $ZSF3
 end;
 
 
-function gte_getControlRegZSF4: dword; assembler;
+function gte_getControlRegZSF4: longint; assembler;
 asm
 	cfc2 $v0, $ZSF4
 end;
@@ -1111,7 +1121,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ0: dword; assembler;
+function gte_getDataRegVZ0: longint; assembler;
 asm
 	mfc2 $v0, $VZ0
 end;
@@ -1123,7 +1133,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ1: dword; assembler;
+function gte_getDataRegVZ1: longint; assembler;
 asm
 	mfc2 $v0, $VZ1
 end;
@@ -1135,7 +1145,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ2: dword; assembler;
+function gte_getDataRegVZ2: longint; assembler;
 asm
 	mfc2 $v0, $VZ2
 end;
@@ -1153,25 +1163,25 @@ asm
 end;
 
 
-function gte_getDataRegIR0: dword; assembler;
+function gte_getDataRegIR0: longint; assembler;
 asm
 	mfc2 $v0, $IR0
 end;
 
 
-function gte_getDataRegIR1: dword; assembler;
+function gte_getDataRegIR1: longint; assembler;
 asm
 	mfc2 $v0, $IR1
 end;
 
 
-function gte_getDataRegIR2: dword; assembler;
+function gte_getDataRegIR2: longint; assembler;
 asm
 	mfc2 $v0, $IR2
 end;
 
 
-function gte_getDataRegIR3: dword; assembler;
+function gte_getDataRegIR3: longint; assembler;
 asm
 	mfc2 $v0, $IR3
 end;
@@ -1243,25 +1253,25 @@ asm
 end;
 
 
-function gte_getDataRegMAC0: dword; assembler;
+function gte_getDataRegMAC0: longint; assembler;
 asm
 	mfc2 $v0, $MAC0
 end;
 
 
-function gte_getDataRegMAC1: dword; assembler;
+function gte_getDataRegMAC1: longint; assembler;
 asm
 	mfc2 $v0, $MAC1
 end;
 
 
-function gte_getDataRegMAC2: dword; assembler;
+function gte_getDataRegMAC2: longint; assembler;
 asm
 	mfc2 $v0, $MAC2
 end;
 
 
-function gte_getDataRegMAC3: dword; assembler;
+function gte_getDataRegMAC3: longint; assembler;
 asm
 	mfc2 $v0, $MAC3
 end;
@@ -1822,7 +1832,7 @@ begin
 
   gte_setControlRegOFX((width shl 16) div 2);
   gte_setControlRegOFY((height shl 16) div 2);
-  gte_setControlRegH(256);
+  gte_setControlRegH(240);
   gte_setControlRegZSF3(ORDERING_TABLE_SIZE div 3);
   gte_setControlRegZSF4(ORDERING_TABLE_SIZE div 4);
 

@@ -10,8 +10,8 @@ uses
   Classes, consoletestrunner, tcscanner,  tctypeparser, tcstatements,
   tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
   tcexprparser, tcprocfunc, tcpassrcutil, TCGenerics, paswrite, tcPasWriteStatements,
-  TCResolver, TCResolveGenerics, TCResolveMultiErrors,
-  TCUseAnalyzer;
+  TCResolver, TCResolveGenerics, TCResolveMultiErrors, tcpasdfa,
+  TCUseAnalyzer, tcnativeresolver;
 
 type
 

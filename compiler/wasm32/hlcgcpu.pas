@@ -59,7 +59,7 @@ uses
      public
       fntypelookup : TWasmProcTypeLookup;
 
-      constructor create(acompiler: TCompilerBase); override;
+      constructor create(acompiler: TCompilerBase); override; overload;
       destructor Destroy; override;
 
       function RefStackPointerSym(asmdata: TAsmData): TWasmGlobalAsmSymbol;
@@ -2929,9 +2929,9 @@ implementation
         end;
     end;
 
-  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass; compiler: TCompilerBase);
     begin
-      tcompiler(compiler).hlcg:=thlcgwasm.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgwasm.create(hlcgobjhelpers,compiler);
     end;
 
 initialization

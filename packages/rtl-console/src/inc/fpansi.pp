@@ -75,8 +75,13 @@ type
     function Blinking: TAnsi;
     function Bold: TAnsi;
     function Faint: TAnsi;
+    function Italic: TAnsi;
+    function Underline: TAnsi;
+    function Inverse: TAnsi;
     function Strikethrough: TAnsi;
     function ToString : String;
+    // Wrap aText in an OSC 8 terminal hyperlink pointing to aURL.
+    class function Hyperlink(const aURL, aText : string) : string; static;
     // Return ANSI escape control string
     class function CursorAt(aCol,aRow : Word; asFormat : boolean = True) : string; static;
     class function CursorAtCol(aCol : Word) : string; static;
@@ -168,12 +173,14 @@ end;
 
 function Tansi.FgRGB(R,G,B : Byte) : TAnsi;
 begin
-  SGR(Format('38,2;%d;%d;%d',[R,G,B]));
+  SGR(Format('38;2;%d;%d;%d',[R,G,B]));
+  Result := Self;
 end;
 
 function TAnsi.BgRGB(R,G,B : Byte) : TAnsi;
 begin
-  SGR(Format('48,2;%d;%d;%d',[R,G,B]));
+  SGR(Format('48;2;%d;%d;%d',[R,G,B]));
+  Result := Self;
 end;
 
 class function TAnsi.CursorUp(aLines : Word = 1) : string;
@@ -304,6 +311,30 @@ function TAnsi.Faint: TAnsi;
 begin
   SGR('2');
   Result := Self;
+end;
+
+function TAnsi.Italic: TAnsi;
+begin
+  SGR('3');
+  Result := Self;
+end;
+
+function TAnsi.Underline: TAnsi;
+begin
+  SGR('4');
+  Result := Self;
+end;
+
+function TAnsi.Inverse: TAnsi;
+begin
+  SGR('7');
+  Result := Self;
+end;
+
+class function TAnsi.Hyperlink(const aURL, aText : string) : string;
+begin
+  // OSC 8 hyperlink:  ESC ] 8 ; ; URL ST  text  ESC ] 8 ; ; ST   (ST = ESC \)
+  Result := #27']8;;'+aURL+#27'\'+aText+#27']8;;'+#27'\';
 end;
 
 function TAnsi.StrikeThrough: TAnsi;

@@ -49,6 +49,7 @@
   {$define DEBUG_PREREGSCHEDULER (arm specific) }
   { for aoptobj unit }
   {$define DEBUG_AOPTOBJ}
+  {$define DEBUG_JUMP}
   {$define ALLOCREGDEBUG}
   { for optconstprop unit }
   {$define DEBUG_CONSTPROP}

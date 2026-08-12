@@ -54,10 +54,20 @@ type
     NameExpr, InFileExpr: TPasExpr): TPasModule of object;
   TOnContinueParsing = procedure(Sender: TPasResolver) of object;
 
-  { TTestEnginePasResolver }
+  { TTestResolverPlumbing
 
-  TTestEnginePasResolver = class(TPasResolver)
+    The test-only scaffolding a resolver needs to be driven by the test harness:
+    the scanner/parser/stream-resolver it runs on, the source and filename under
+    test, the OnFindUnit callback, and the parsed module. Held as a separate
+    object (not baked into the resolver class) so that resolver descendants which
+    cannot share a common test-engine ancestor (e.g. a native-target resolver)
+    can each own one and delegate to it, rather than duplicating the plumbing.
+    The owning resolver passes itself to the constructor and is available as
+    Resolver. }
+
+  TTestResolverPlumbing = class
   private
+    FResolver: TPasResolver;
     FFilename: string;
     FModule: TPasModule;
     FOnFindUnit: TOnFindUnit;
@@ -66,6 +76,34 @@ type
     FScanner: TPascalScanner;
     FSource: string;
     procedure SetModule(AValue: TPasModule);
+  public
+    constructor Create(aResolver: TPasResolver);
+    destructor Destroy; override;
+    // Frees the parser/scanner and drops the stream-resolver reference; call
+    // from the owning resolver's destructor before inherited Destroy.
+    procedure ReleaseParserScanner;
+    // Post-step for the resolver's CreateElement override: records the first
+    // module element created.
+    procedure NoteCreatedElement(El: TPasElement; AClass: TPTreeElement);
+    // Body of the resolver's FindUnit override: dispatches to OnFindUnit with
+    // the owning resolver as the source.
+    function DoFindUnit(const AName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule;
+    property Resolver: TPasResolver read FResolver;
+    property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
+    property Filename: string read FFilename write FFilename;
+    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
+    property Scanner: TPascalScanner read FScanner write FScanner;
+    property Parser: TPasParser read FParser write FParser;
+    property Source: string read FSource write FSource;
+    property Module: TPasModule read FModule write SetModule;
+  end;
+
+  { TTestEnginePasResolver }
+
+  TTestEnginePasResolver = class(TPasResolver)
+  private
+    FPlumbing: TTestResolverPlumbing;
   public
     constructor Create;
     destructor Destroy; override;
@@ -76,13 +114,7 @@ type
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
     procedure UsedInterfacesFinished(Section: TPasSection); override;
-    property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
-    property Filename: string read FFilename write FFilename;
-    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
-    property Scanner: TPascalScanner read FScanner write FScanner;
-    property Parser: TPasParser read FParser write FParser;
-    property Source: string read FSource write FSource;
-    property Module: TPasModule read FModule write SetModule;
+    property Plumbing: TTestResolverPlumbing read FPlumbing;
   end;
 
   { TTestResolverMessage }
@@ -118,12 +150,15 @@ type
   Private
     FHub: TPasResolverHub;
     FFirstStatement: TPasImplBlock;
-    FResolvers: TObjectList;// list of TTestEnginePasResolver
-    FResolverEngine: TTestEnginePasResolver;
+    FResolvers: TObjectList;// list of TPasResolver (test engines)
+    FPlumbings: TFPList; // parallel to FResolvers: the TTestResolverPlumbing of each engine
+    FResolverEngine: TPasResolver;
+    FEnginePlumbing: TTestResolverPlumbing; // plumbing of FResolverEngine
     FResolverMsgs: TObjectList; // list of TTestResolverMessage
     FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
     function GetModuleCount: integer;
-    function GetModules(Index: integer): TTestEnginePasResolver;
+    function GetModules(Index: integer): TPasResolver;
+    function GetModulePlumbing(Index: integer): TTestResolverPlumbing;
     function GetMsgCount: integer;
     function GetMsgs(Index: integer): TTestResolverMessage;
     procedure OnPasResolverContinueParsing(Sender: TPasResolver);
@@ -166,24 +201,36 @@ type
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
-    procedure HandleError(CurEngine: TTestEnginePasResolver; E: Exception);
+    procedure HandleError(CurEngine: TPasResolver; E: Exception);
+    // Creates the concrete test engine and returns its plumbing via Plumbing.
+    // Override to plug in a resolver descendant (e.g. a native-target resolver).
+    function CreateResolverEngine(out Plumbing: TTestResolverPlumbing): TPasResolver; virtual;
+    // The plumbing of a given test engine (nil if not one created by this harness).
+    function PlumbingOf(R: TPasResolver): TTestResolverPlumbing;
     property Resolvers : TObjectList Read FResolvers;
   Public
     constructor Create; override;
     destructor Destroy; override;
-    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
-    function AddModule(aFilename: string): TTestEnginePasResolver;
-    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver;
+    function FindModuleWithFilename(aFilename: string): TPasResolver;
+    function AddModule(aFilename: string): TPasResolver;
+    function AddModuleWithSrc(aFilename, Src: string): TPasResolver;
     function AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-      ImplementationSrc: string): TTestEnginePasResolver;
+      ImplementationSrc: string): TPasResolver;
+    // As AddModuleWithIntfImplSrc, but the module is resolved INTERFACE-ONLY: its
+    // engine's InterfaceOnly is set, so the parser skips its implementation
+    // section (models a dependency whose implementation is not analysed).
+    function AddInterfaceOnlyModuleWithIntfImplSrc(aFilename, InterfaceSrc,
+      ImplementationSrc: string): TPasResolver;
     procedure AddSystemUnit(Parts: TSystemUnitParts = []);
     procedure StartProgram(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     procedure StartLibrary(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     procedure StartUnit(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
-    property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
+    property Modules[Index: integer]: TPasResolver read GetModules;
+    property ModulePlumbing[Index: integer]: TTestResolverPlumbing read GetModulePlumbing;
     property ModuleCount: integer read GetModuleCount;
     property Hub: TPasResolverHub read FHub;
-    property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
+    property ResolverEngine: TPasResolver read FResolverEngine;
+    property EnginePlumbing: TTestResolverPlumbing read FEnginePlumbing;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
   end;
@@ -258,6 +305,7 @@ type
     Procedure TestStringElement_MissingArgFail;
     Procedure TestStringElement_IndexNonIntFail;
     Procedure TestStringElement_AsVarArgFail;
+    Procedure TestStringElement_AsUntypedVarArg;
     Procedure TestString_DoubleQuotesFail;
     Procedure TestString_ShortstringType;
     Procedure TestConstStringOperators;
@@ -287,6 +335,14 @@ type
     Procedure TestEnumSet_AnonymousEnumtype;
     Procedure TestEnumSet_AnonymousEnumtypeName;
     Procedure TestEnumSet_Const;
+    Procedure TestProc_AddrConstInit;
+    Procedure TestSet_TypecastFromInt;
+    Procedure TestProgramHeaderParameters;
+    Procedure TestRTTIDirectiveInvalidFail;
+    Procedure TestForInMultiDimArrayFlatten;
+    Procedure TestResourcestringInTypedConst;
+    Procedure TestResourcestringInTypedConstArray;
+    Procedure TestResourcestringInTypedCompoundFail;
     Procedure TestSet_IntRange_Const;
     Procedure TestSet_Byte_Const;
     Procedure TestEnumRange;
@@ -300,6 +356,7 @@ type
     Procedure TestPrgProcVar;
     Procedure TestUnitProcVar;
     Procedure TestAssignIntegers;
+    Procedure TestRange_HighBitHexIsSignedInt64;
     Procedure TestAssignString;
     Procedure TestAssignIntToStringFail;
     Procedure TestAssignStringToIntFail;
@@ -380,6 +437,7 @@ type
     Procedure TestUnitUseDotted;
     Procedure TestUnit_ProgramDefaultNamespace;
     Procedure TestUnit_DottedIdentifier;
+    Procedure TestUnit_DottedNamespaceHidesUnitFail;
     Procedure TestUnit_DottedPrg;
     Procedure TestUnit_DottedUnit;
     Procedure TestUnit_DottedExpr;
@@ -421,6 +479,8 @@ type
     Procedure TestProcOverloadNearestHigherPrecision;
     Procedure TestProcOverloadForLoopIntDouble;
     Procedure TestProcOverloadStringArgCount;
+    Procedure TestProcOverload_PCharAndCharArrayByStringWidth;
+    Procedure TestProcOverload_VariantAmbiguousFail;
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
     Procedure TestProcOverloadMultiLowPrecisionFail;
@@ -442,6 +502,7 @@ type
     Procedure TestProcOverloadDelphiWithObjFPC;
     Procedure TestProcOverloadDelphiOverride;
     Procedure TestProcOverloadDelphiOverrideOne;
+    Procedure TestProcOverloadDelphiPointerClass;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestNestedProc_ResultString;
@@ -475,6 +536,11 @@ type
     Procedure TestProc_VarargsOfTMismatch;
     Procedure TestProc_ParameterExprAccess;
     Procedure TestProc_FunctionResult_DeclProc;
+    Procedure TestProc_FuncNameResultInParamAndExpr;
+    Procedure TestProc_FuncNameResultFieldAccess;
+    Procedure TestProc_FuncNameResultIndexedRead;
+    Procedure TestProc_ImplOmitsParamList;
+    Procedure TestProc_ImplInheritsCallingConvention;
     Procedure TestProc_TypeCastFunctionResult;
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
@@ -503,6 +569,7 @@ type
 
     // record
     Procedure TestRecord;
+    Procedure TestRecord_FieldNameEqualsTypeNameByCase;
     Procedure TestRecordVariant;
     Procedure TestRecordVariantNested;
     Procedure TestRecord_WriteConstParamFail;
@@ -657,6 +724,8 @@ type
     Procedure TestClass_UntypedParam_TypeCast;
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
+    Procedure TestClass_SealedAbstractMethodFail;
+    Procedure TestProperty_PublishedFileTypeFail;
     Procedure TestClass_Abstract;
     Procedure TestClass_AbstractCreateFail;
     Procedure TestClass_VarExternal;
@@ -675,6 +744,7 @@ type
     // published
     Procedure TestClass_PublishedClassVarFail;
     Procedure TestClass_PublishedClassPropertyFail;
+    Procedure TestClass_ClassPropertyStoredFail;
     Procedure TestClass_PublishedClassFunctionFail;
     Procedure TestClass_PublishedOverloadFail;
 
@@ -841,6 +911,13 @@ type
     Procedure TestArray_Static_Const;
     Procedure TestArray_Record_Const;
     Procedure TestArray_MultiDim_Const;
+    Procedure TestArray_PartialMultiDimIndex;
+    Procedure TestArray_SliceStaticAsOpenArrayArg;
+    Procedure TestArray_SliceDynArrayAsOpenArrayArg;
+    Procedure TestArray_DistinctStaticSameRangesAssign;
+    Procedure TestArray_CharArrayPCharInterconvert;
+    Procedure TestPointer_UntypedAddrToTypedPointerTMinus;
+    Procedure TestProcVar_BareProcAssignTPMode;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
     Procedure TestStaticArray_SetlengthFail;
@@ -907,6 +984,7 @@ type
     Procedure TestProcType_PassAsArg_NoAtDelphi;
     Procedure TestProcType_WhileListCompare;
     Procedure TestProcType_IsNested;
+    Procedure TestProcType_NestedAddrIsPointerInTPModeFail;
     Procedure TestProcType_IsNested_AssignProcFail;
     Procedure TestProcType_ReferenceTo;
     Procedure TestProcType_AllowNested;
@@ -935,6 +1013,8 @@ type
     Procedure TestPointer_OverloadSignature;
     Procedure TestPointer_Assign;
     Procedure TestPointerTyped;
+    Procedure TestPointer_FunctionResultDeref;
+    Procedure TestFile_BufferDeref;
     Procedure TestPointerTypedForwardMissingFail;
     Procedure TestPointerTyped_CycleFail;
     Procedure TestPointerTyped_AssignMismatchFail;
@@ -948,6 +1028,10 @@ type
     Procedure TestResourcestringAssignFail;
     Procedure TestResourcestringLocalFail;
     Procedure TestResourcestringInConstFail;
+    Procedure TestTypeInfoStringType;
+    Procedure TestCaseOfConstWithElseNoWarn;
+    Procedure TestCharArrayFromShortString;
+    Procedure TestCharArrayFromStringVar;
     Procedure TestResourcestringPassVarArgFail;
 
     // hints
@@ -976,6 +1060,9 @@ type
     Procedure TestClassHelper_InheritedClassObjFPC;
     Procedure TestClassHelper_InheritedDelphi;
     Procedure TestClassHelper_NestedInheritedParentFail;
+    Procedure TestClassHelper_NestedStrictPrivateNotVisibleFail;
+    Procedure TestClassHelper_AccessExtendedStrictProtected;
+    Procedure TestClassHelper_OverloadKeepsExtendedMethod;
     Procedure TestClassHelper_AccessFields;
     Procedure TestClassHelper_HelperDotClassMethodFail;
     Procedure TestClassHelper_WithDoHelperFail;
@@ -1069,31 +1156,64 @@ begin
   Result:=s;
 end;
 
-{ TTestEnginePasResolver }
+{ TTestResolverPlumbing }
 
-procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
+procedure TTestResolverPlumbing.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
   FModule:=AValue;
   {$IFDEF CheckPasTreeRefCount}
   if Module<>nil then
-    Module.ChangeRefId('CreateElement','TTestEnginePasResolver.Module');
+    Module.ChangeRefId('CreateElement','TTestResolverPlumbing.Module');
   {$ENDIF}
 end;
+
+constructor TTestResolverPlumbing.Create(aResolver: TPasResolver);
+begin
+  inherited Create;
+  FResolver:=aResolver;
+end;
+
+destructor TTestResolverPlumbing.Destroy;
+begin
+  Module:=nil;
+  inherited Destroy;
+end;
+
+procedure TTestResolverPlumbing.ReleaseParserScanner;
+begin
+  FStreamResolver:=nil;
+  FreeAndNil(FParser);
+  FreeAndNil(FScanner);
+end;
+
+procedure TTestResolverPlumbing.NoteCreatedElement(El: TPasElement;
+  AClass: TPTreeElement);
+begin
+  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
+    Module:=TPasModule(El);
+end;
+
+function TTestResolverPlumbing.DoFindUnit(const AName, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
+begin
+  Result:=FOnFindUnit(FResolver,AName,InFilename,NameExpr,InFileExpr);
+end;
+
+{ TTestEnginePasResolver }
 
 constructor TTestEnginePasResolver.Create;
 begin
   inherited Create;
   StoreSrcColumns:=true;
+  FPlumbing:=TTestResolverPlumbing.Create(Self);
 end;
 
 destructor TTestEnginePasResolver.Destroy;
 begin
-  FStreamResolver:=nil;
-  FreeAndNil(FParser);
-  FreeAndNil(FScanner);
+  FPlumbing.ReleaseParserScanner;
   inherited Destroy;
-  Module:=nil;
+  FreeAndNil(FPlumbing);
 end;
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
@@ -1101,14 +1221,13 @@ function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
 begin
   Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos, TypeParams);
-  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
-    Module:=TPasModule(Result);
+  FPlumbing.NoteCreatedElement(Result,AClass);
 end;
 
 function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
   NameExpr, InFileExpr: TPasExpr): TPasModule;
 begin
-  Result:=OnFindUnit(Self,AName,InFilename,NameExpr,InFileExpr);
+  Result:=FPlumbing.DoFindUnit(AName,InFilename,NameExpr,InFileExpr);
 end;
 
 procedure TTestEnginePasResolver.UsedInterfacesFinished(Section: TPasSection);
@@ -1123,6 +1242,7 @@ end;
 procedure TCustomTestResolver.SetUp;
 begin
   FResolvers:=TObjectList.Create(true);
+  FPlumbings:=TFPList.Create;
   FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
@@ -1142,9 +1262,10 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown ResolverEngine.Clear');
   {$ENDIF}
-  if ResolverEngine.Parser=Parser then
-    ResolverEngine.Parser:=nil;
+  if EnginePlumbing.Parser=Parser then
+    EnginePlumbing.Parser:=nil;
   ResolverEngine.Clear;
+  FreeAndNil(FPlumbings);
   if FResolvers<>nil then
     begin
     {$IFDEF VerbosePasResolverMem}
@@ -1161,6 +1282,7 @@ begin
   {$ENDIF}
   inherited TearDown;
   FResolverEngine:=nil;
+  FEnginePlumbing:=nil;
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown END');
   {$ENDIF}
@@ -1169,6 +1291,7 @@ end;
 procedure TCustomTestResolver.CreateEngine(var TheEngine: TPasTreeContainer);
 begin
   FResolverEngine:=AddModule(MainFilename);
+  FEnginePlumbing:=PlumbingOf(FResolverEngine);
   TheEngine:=ResolverEngine;
 end;
 
@@ -1176,11 +1299,12 @@ procedure TCustomTestResolver.ParseModule;
 var
   Section: TPasSection;
   i: Integer;
-  CurResolver: TTestEnginePasResolver;
+  CurResolver: TPasResolver;
+  CurPlumbing: TTestResolverPlumbing;
   Found: Boolean;
 begin
-  if ResolverEngine.Parser=nil then
-    ResolverEngine.Parser:=Parser;
+  if EnginePlumbing.Parser=nil then
+    EnginePlumbing.Parser:=Parser;
 
   inherited ParseModule;
   repeat
@@ -1188,14 +1312,15 @@ begin
     for i:=0 to ModuleCount-1 do
       begin
       CurResolver:=Modules[i];
-      if CurResolver.Parser=nil then continue;
-      if not CurResolver.Parser.CanParseContinue(Section) then
+      CurPlumbing:=ModulePlumbing[i];
+      if CurPlumbing.Parser=nil then continue;
+      if not CurPlumbing.Parser.CanParseContinue(Section) then
         continue;
       {$IFDEF VerbosePasResolver}
-      writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurResolver.Filename);
+      writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurPlumbing.Filename);
       {$ENDIF}
       Found:=true;
-      CurResolver.Parser.ParseContinue;
+      CurPlumbing.Parser.ParseContinue;
       break;
       end;
   until not Found;
@@ -1203,15 +1328,16 @@ begin
   for i:=0 to ModuleCount-1 do
     begin
     CurResolver:=Modules[i];
-    if CurResolver.Parser=nil then
+    CurPlumbing:=ModulePlumbing[i];
+    if CurPlumbing.Parser=nil then
       begin
       if CurResolver.CurrentParser<>nil then
-        Fail(CurResolver.Filename+' Parser<>CurrentParser Parser="'+GetObjName(CurResolver.Parser)+'" CurrentParser='+GetObjName(CurResolver.CurrentParser));
+        Fail(CurPlumbing.Filename+' Parser<>CurrentParser Parser="'+GetObjName(CurPlumbing.Parser)+'" CurrentParser='+GetObjName(CurResolver.CurrentParser));
       continue;
       end;
-    if CurResolver.Parser.CurModule<>nil then
+    if CurPlumbing.Parser.CurModule<>nil then
       begin
-      Section:=CurResolver.Parser.GetLastSection;
+      Section:=CurPlumbing.Parser.GetLastSection;
       {$IFDEF VerbosePasResolver}
       writeln('TCustomTestResolver.ParseModule module not finished "',GetObjName(CurResolver.RootElement),'" LastSection=',GetObjName(Section)+' PendingUsedIntf='+GetObjName(Section.PendingUsedIntf));
       if (Section<>nil) and (Section.PendingUsedIntf<>nil) then
@@ -2138,7 +2264,7 @@ var
   ok: Boolean;
   FoundRefs: TTestResolverReferenceData;
   i: Integer;
-  CurResolver: TTestEnginePasResolver;
+  CurPlumbing: TTestResolverPlumbing;
 begin
   //writeln('TCustomTestResolver.FindElementsAt START "',aFilename,'" Line=',aLine,' Col=',aStartCol,'-',aEndCol);
   FoundRefs:=Default(TTestResolverReferenceData);
@@ -2153,10 +2279,10 @@ begin
     Module.ForEachCall(@OnFindReference,@FoundRefs);
     for i:=0 to ModuleCount-1 do
       begin
-      CurResolver:=Modules[i];
-      if CurResolver.Module=Module then continue;
-      //writeln('TCustomTestResolver.FindElementsAt ',CurResolver.Filename);
-      CurResolver.Module.ForEachCall(@OnFindReference,@FoundRefs);
+      CurPlumbing:=ModulePlumbing[i];
+      if CurPlumbing.Module=Module then continue;
+      //writeln('TCustomTestResolver.FindElementsAt ',CurPlumbing.Filename);
+      CurPlumbing.Module.ForEachCall(@OnFindReference,@FoundRefs);
       end;
     ok:=true;
   finally
@@ -2246,24 +2372,26 @@ begin
   RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
 end;
 
-procedure TCustomTestResolver.HandleError(CurEngine: TTestEnginePasResolver;
+procedure TCustomTestResolver.HandleError(CurEngine: TPasResolver;
   E: Exception);
 {$IFNDEF NOCONSOLE}
 var
+  Scanner: TPascalScanner;
   ErrFilename: String;
   ErrRow, ErrCol: Integer;
 {$ENDIF}
 begin
   if CurEngine=nil then ;
   {$IFNDEF NOCONSOLE}
-  ErrFilename:=CurEngine.Scanner.CurFilename;
-  ErrRow:=CurEngine.Scanner.CurRow;
-  ErrCol:=CurEngine.Scanner.CurColumn;
+  Scanner:=PlumbingOf(CurEngine).Scanner;
+  ErrFilename:=Scanner.CurFilename;
+  ErrRow:=Scanner.CurRow;
+  ErrCol:=Scanner.CurColumn;
   writeln('ERROR: TCustomTestResolver.HandleError during parsing: '+E.ClassName+':'+E.Message
     +' File='+ErrFilename
     +' LineNo='+IntToStr(ErrRow)
     +' Col='+IntToStr(ErrCol)
-    +' Line="'+CurEngine.Scanner.CurLine+'"'
+    +' Line="'+Scanner.CurLine+'"'
     );
   WriteSources(ErrFilename,ErrRow,ErrCol);
   {$ENDIF}
@@ -2285,41 +2413,44 @@ begin
 end;
 
 function TCustomTestResolver.FindModuleWithFilename(aFilename: string
-  ): TTestEnginePasResolver;
+  ): TPasResolver;
 var
   i: Integer;
 begin
   for i:=0 to ModuleCount-1 do
-    if CompareText(Modules[i].Filename,aFilename)=0 then
+    if CompareText(ModulePlumbing[i].Filename,aFilename)=0 then
       exit(Modules[i]);
   Result:=nil;
 end;
 
-function TCustomTestResolver.AddModule(aFilename: string): TTestEnginePasResolver;
+function TCustomTestResolver.AddModule(aFilename: string): TPasResolver;
+var
+  Plumbing: TTestResolverPlumbing;
 begin
   //writeln('TTestResolver.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
     Fail('TTestResolver.AddModule: file "'+aFilename+'" already exists');
-  Result:=TTestEnginePasResolver.Create;
-  Result.Filename:=aFilename;
+  Result:=CreateResolverEngine(Plumbing);
+  FResolvers.Add(Result);
+  FPlumbings.Add(Plumbing);
+  Plumbing.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers;
-  Result.OnFindUnit:=@OnPasResolverFindUnit;
+  Plumbing.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
   Result.Hub:=Hub;
   Result.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   Result.ExprEvaluator.DefaultSourceCodePage:=CP_UTF8;
-  FResolvers.Add(Result);
 end;
 
 function TCustomTestResolver.AddModuleWithSrc(aFilename, Src: string
-  ): TTestEnginePasResolver;
+  ): TPasResolver;
 begin
   Result:=AddModule(aFilename);
-  Result.Source:=Src;
+  PlumbingOf(Result).Source:=Src;
 end;
 
 function TCustomTestResolver.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-  ImplementationSrc: string): TTestEnginePasResolver;
+  ImplementationSrc: string): TPasResolver;
 var
   Src: String;
 begin
@@ -2334,6 +2465,16 @@ begin
   Src+=ImplementationSrc;
   Src+='end.'+LineEnding;
   Result:=AddModuleWithSrc(aFilename,Src);
+end;
+
+function TCustomTestResolver.AddInterfaceOnlyModuleWithIntfImplSrc(aFilename,
+  InterfaceSrc, ImplementationSrc: string): TPasResolver;
+begin
+  Result:=AddModuleWithIntfImplSrc(aFilename,InterfaceSrc,ImplementationSrc);
+  // Mark the dependency interface-only: the parser will skip its implementation
+  // (TPasTreeContainer.InterfaceOnly, read at pparser ParseDeclarations). Set on
+  // the engine before the module is parsed (it is parsed lazily on first use).
+  Result.InterfaceOnly:=True;
 end;
 
 procedure TCustomTestResolver.AddSystemUnit(Parts: TSystemUnitParts);
@@ -2482,37 +2623,41 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
   const aUnitName, InFilename: String; NameExpr, InFileExpr: TPasExpr
   ): TPasModule;
 
-  function InitUnit(CurEngine: TTestEnginePasResolver): TPasModule;
+  function InitUnit(CurPlumbing: TTestResolverPlumbing): TPasModule;
+  var
+    lModule: TPasModule;
   begin
-    if CurEngine.Module<>nil then
-      Fail('InitUnit '+GetObjName(CurEngine.Module));
-    CurEngine.StreamResolver:=Resolver;
-    //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
-    CurEngine.StreamResolver.AddStream(CurEngine.FileName,
-                                    TStringStream.Create(CurEngine.Source));
-    CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
-    CurEngine.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
-    CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,
-                                        CurEngine.StreamResolver,CurEngine);
-    CurEngine.Parser.Options:=CurEngine.Parser.Options+[po_StopOnUnitInterface];
-    if CompareText(ExtractFileUnitName(CurEngine.Filename),'System')=0 then
-      CurEngine.Parser.ImplicitUses.Clear;
-    CurEngine.Scanner.OpenFile(CurEngine.Filename);
+    if CurPlumbing.Module<>nil then
+      Fail('InitUnit '+GetObjName(CurPlumbing.Module));
+    CurPlumbing.StreamResolver:=Resolver;
+    //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurPlumbing.Source);
+    CurPlumbing.StreamResolver.AddStream(CurPlumbing.FileName,
+                                    TStringStream.Create(CurPlumbing.Source));
+    CurPlumbing.Scanner:=TPascalScanner.Create(CurPlumbing.StreamResolver);
+    CurPlumbing.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
+    CurPlumbing.Parser:=TPasParser.Create(CurPlumbing.Scanner,
+                                        CurPlumbing.StreamResolver,CurPlumbing.Resolver);
+    CurPlumbing.Parser.Options:=CurPlumbing.Parser.Options+[po_StopOnUnitInterface];
+    if CompareText(ExtractFileUnitName(CurPlumbing.Filename),'System')=0 then
+      CurPlumbing.Parser.ImplicitUses.Clear;
+    CurPlumbing.Scanner.OpenFile(CurPlumbing.Filename);
     try
-      CurEngine.Parser.NextToken;
-      CurEngine.Parser.ParseUnit(CurEngine.FModule);
+      CurPlumbing.Parser.NextToken;
+      lModule:=CurPlumbing.Module;
+      CurPlumbing.Parser.ParseUnit(lModule);
+      CurPlumbing.Module:=lModule;
     except
       on E: Exception do
-        HandleError(CurEngine,E);
+        HandleError(CurPlumbing.Resolver,E);
     end;
     //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
-    Result:=CurEngine.Module;
+    Result:=CurPlumbing.Module;
   end;
 
   function FindUnit(const aUnitName: String): TPasModule;
   var
     i: Integer;
-    CurEngine: TTestEnginePasResolver;
+    CurPlumbing: TTestResolverPlumbing;
     CurUnitName: String;
   begin
     {$IFDEF VerboseUnitSearch}
@@ -2521,22 +2666,22 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
     Result:=nil;
     for i:=0 to ModuleCount-1 do
       begin
-      CurEngine:=Modules[i];
-      CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
+      CurPlumbing:=ModulePlumbing[i];
+      CurUnitName:=ExtractFileUnitName(CurPlumbing.Filename);
       {$IFDEF VerboseUnitSearch}
-      writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+      writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurPlumbing.Filename,' ',CurUnitName);
       {$ENDIF}
       if CompareText(aUnitName,CurUnitName)=0 then
         begin
-        Result:=CurEngine.Module;
+        Result:=CurPlumbing.Module;
         {$IFDEF VerboseUnitSearch}
-        writeln('TTestResolver.OnPasResolverFindUnit Found unit "',CurEngine.Filename,'" Module=',GetObjName(Result));
+        writeln('TTestResolver.OnPasResolverFindUnit Found unit "',CurPlumbing.Filename,'" Module=',GetObjName(Result));
         {$ENDIF}
         if Result<>nil then exit;
         {$IFDEF VerboseUnitSearch}
-        writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
+        writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurPlumbing.Filename,'"');
         {$ENDIF}
-        Result:=InitUnit(CurEngine);
+        Result:=InitUnit(CurPlumbing);
         exit;
         end;
       end;
@@ -2544,7 +2689,8 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
 
   function GetResolver(aFilename: string): boolean;
   var
-    CurEngine: TTestEnginePasResolver;
+    CurEngine: TPasResolver;
+    CurPlumbing: TTestResolverPlumbing;
     aModule: TPasModule;
   begin
     {$IFDEF VerbosePasResolver}
@@ -2552,13 +2698,14 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
     {$ENDIF}
     CurEngine:=FindModuleWithFilename(aFilename);
     if CurEngine=nil then exit(false);
-    if CurEngine.Module=nil then
+    CurPlumbing:=PlumbingOf(CurEngine);
+    if CurPlumbing.Module=nil then
       begin
-      aModule:=InitUnit(CurEngine);
+      aModule:=InitUnit(CurPlumbing);
       if aModule=nil then exit(false);
       end
     else
-      aModule:=CurEngine.Module;
+      aModule:=CurPlumbing.Module;
     OnPasResolverFindUnit:=aModule;
     Result:=true;
   end;
@@ -2582,7 +2729,7 @@ begin
     DoDirSeparators(aFilename);
     if FilenameIsAbsolute(aFilename) then
       if GetResolver(aFilename) then exit;
-    aFilename:=ExtractFilePath(ResolverEngine.Filename)+aFilename;
+    aFilename:=ExtractFilePath(EnginePlumbing.Filename)+aFilename;
     if GetResolver(aFilename) then exit;
     SrcResolver.RaiseMsg(20180222004311,100001,'in-file ''%s'' not found',
       [InFilename],InFileExpr);
@@ -2757,14 +2904,42 @@ var
 begin
   aScanner:=TPascalScanner(Sender);
   if aScanner=nil then exit;
+  if Msg='' then ;
   {$IFDEF VerbosePasResolver}
   writeln('TCustomTestResolver.OnScannerLog ',GetObjName(Sender),' ',aScanner.LastMsgType,' ',aScanner.LastMsgNumber,' Msg="', Msg,'"');
   {$ENDIF}
 end;
 
-function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
+function TCustomTestResolver.GetModules(Index: integer): TPasResolver;
 begin
-  Result:=TTestEnginePasResolver(FResolvers[Index]);
+  Result:=TPasResolver(FResolvers[Index]);
+end;
+
+function TCustomTestResolver.GetModulePlumbing(Index: integer
+  ): TTestResolverPlumbing;
+begin
+  Result:=TTestResolverPlumbing(FPlumbings[Index]);
+end;
+
+function TCustomTestResolver.CreateResolverEngine(
+  out Plumbing: TTestResolverPlumbing): TPasResolver;
+var
+  lEngine: TTestEnginePasResolver;
+begin
+  lEngine:=TTestEnginePasResolver.Create;
+  Plumbing:=lEngine.Plumbing;
+  Result:=lEngine;
+end;
+
+function TCustomTestResolver.PlumbingOf(R: TPasResolver): TTestResolverPlumbing;
+var
+  i: Integer;
+begin
+  i:=FResolvers.IndexOf(R);
+  if i>=0 then
+    Result:=TTestResolverPlumbing(FPlumbings[i])
+  else
+    Result:=nil;
 end;
 
 function TCustomTestResolver.GetMsgCount: integer;
@@ -2780,14 +2955,16 @@ end;
 procedure TCustomTestResolver.OnPasResolverContinueParsing(Sender: TPasResolver
   );
 var
-  CurEngine: TTestEnginePasResolver;
+  CurEngine: TPasResolver;
+  CurPlumbing: TTestResolverPlumbing;
 begin
-  CurEngine:=Sender as TTestEnginePasResolver;
+  CurEngine:=Sender;
+  CurPlumbing:=PlumbingOf(CurEngine);
   {$IFDEF VerbosePasResolver}
-  writeln('TCustomTestResolver.OnPasResolverContinueParsing "',CurEngine.Module.Name,'"...');
+  writeln('TCustomTestResolver.OnPasResolverContinueParsing "',CurPlumbing.Module.Name,'"...');
   {$ENDIF}
   try
-    CurEngine.Parser.ParseContinue;
+    CurPlumbing.Parser.ParseContinue;
   except
     on E: Exception do
       HandleError(CurEngine,E);
@@ -3731,6 +3908,21 @@ begin
     nVariableIdentifierExpected);
 end;
 
+procedure TTestResolver.TestStringElement_AsUntypedVarArg;
+begin
+  // An UNTYPED var parameter accepts a writable string char-index l-value
+  // (the Stream.ReadBuffer(s[1],..) idiom); resolves without error. Contrast
+  // TestStringElement_AsVarArgFail: a TYPED var param still rejects it.
+  StartProgram(false);
+  Add('procedure DoIt(var x);');
+  Add('begin');
+  Add('end;');
+  Add('var s: string;');
+  Add('begin');
+  Add('  DoIt(s[1]);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestString_DoubleQuotesFail;
 begin
   StartProgram(false);
@@ -4348,6 +4540,91 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestProc_AddrConstInit;
+begin
+  StartProgram(false);
+  Add([
+  'type TProc = procedure;',
+  'procedure Foo; begin end;',
+  'const P: TProc = @Foo;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedConst;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo = ''foo'';','const Bar: string = Foo;','begin','']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedConstArray;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo=''foo''; Baz=''baz'';','const Arr: array[0..1] of string = (Foo, Baz);','begin','']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedCompoundFail;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo = ''foo'';','const Bar: string = ''Pre''+Foo;','begin','']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestForInMultiDimArrayFlatten;
+begin
+  StartProgram(false);
+  Add([
+  'var a: array[0..1,0..1] of longint; x, s: longint;',
+  'begin',
+  '  s:=0;',
+  '  for x in a do s:=s+x;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRTTIDirectiveInvalidFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$RTTI EXPLICIT METHODS([nonsense])}',
+  'begin',
+  '']);
+  // po_CheckDirectiveRTTI (now in po_Resolver) validates the $RTTI directive.
+  CheckParserException('Invalid parameters for compiler directive %s',
+    PParser.nErrInvalidParamsForDirectiveX);
+end;
+
+procedure TTestResolver.TestProgramHeaderParameters;
+begin
+  Parser.ImplicitUses.Clear;
+  Add([
+  'program afile(input,output,data);',
+  'begin',
+  '']);
+  ParseProgram;
+  AssertEquals('InputFile','input',TPasProgram(Module).InputFile);
+  AssertEquals('OutputFile','output',TPasProgram(Module).OutputFile);
+  AssertEquals('ProgramParameters count',3,Length(TPasProgram(Module).ProgramParameters));
+  AssertEquals('param[0]','input',TPasProgram(Module).ProgramParameters[0]);
+  AssertEquals('param[2]','data',TPasProgram(Module).ProgramParameters[2]);
+end;
+
+procedure TTestResolver.TestSet_TypecastFromInt;
+begin
+  StartProgram(false);
+  Add([
+  'type TByteSet = set of 0..7;',
+  'var s: TByteSet; l: longint;',
+  'begin',
+  '  l:=5;',
+  '  s:=TByteSet(l);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestSet_IntRange_Const;
 begin
   StartProgram(false);
@@ -4692,6 +4969,27 @@ begin
   Add('  {@vcomp}vcomp:=0;');
   Add('  {@vcomp}vcomp:=-$8000000000000000;');
   Add('  {@vcomp}vcomp:= $7fffffffffffffff;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRange_HighBitHexIsSignedInt64;
+begin
+  // A subrange whose low bound is a high-bit-set hex literal (> High(Int64)) is a
+  // signed Int64 subrange: the bound is reinterpreted as its signed bit pattern
+  // (negative), giving a valid ascending range (trtti13). A bare qword-max literal
+  // in a plain assignment (TestAssignIntegers) stays QWord -> the two do not clash.
+  StartProgram(false);
+  Add([
+  'const',
+  '  RangedInt64Min = $FFFFFFFF00000000;',
+  '  RangedInt64Max = $100000000;',
+  'type',
+  '  TRangedInt64 = RangedInt64Min..RangedInt64Max;',
+  'var',
+  '  r: TRangedInt64;',
+  'begin',
+  '  r:=0;',
+  '']);
   ParseProgram;
 end;
 
@@ -6119,6 +6417,26 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestUnit_DottedNamespaceHidesUnitFail;
+begin
+  // Unit tudots has a member "dot"; a second used unit tudots.dot.foo makes
+  // "tudots.dot" a namespace prefix. FPC's dotted-namespace precedence: the
+  // namespace hides unit tudots, so tudots.dot cannot resolve as member "dot".
+  AddModuleWithIntfImplSrc('tudots.pp',
+    LinesToStr(['var dot: longint;']),
+    LinesToStr(['']));
+  AddModuleWithIntfImplSrc('tudots.dot.foo.pp',
+    LinesToStr(['var x: longint;']),
+    LinesToStr(['']));
+  StartProgram(true);
+  Add([
+  'uses tudots, tudots.dot.foo;',
+  'begin',
+  '  if tudots.dot=0 then ;',
+  '']);
+  CheckResolverException('identifier not found "tudots.dot"',nIdentifierNotFound);
+end;
+
 procedure TTestResolver.TestUnit_DottedPrg;
 begin
   MainFilename:='unitdots.main1.pas';
@@ -6792,6 +7110,63 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcOverload_VariantAmbiguousFail;
+// In Delphi mode, a Variant argument makes certain overload type-pairs ambiguous
+// even when graduated scoring would pick a winner (Boolean vs Integer) — FPC
+// reports "cannot determine which overloaded function to call".
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  'procedure Test(b: boolean); overload;',
+  'begin',
+  'end;',
+  'procedure Test(i: longint); overload;',
+  'begin',
+  'end;',
+  'var v: variant;',
+  'begin',
+  '  Test(v);',
+  '']);
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(8,15), afile.pp(5,15)',
+    nCantDetermineWhichOverloadedFunctionToCall);
+end;
+
+procedure TTestResolver.TestProcOverload_PCharAndCharArrayByStringWidth;
+// An overloaded pair Test(string)/Test(unicodestring) called with a PChar or an
+// array-of-char argument must pick the overload whose string width matches the
+// char width: ansi char -> string, wide char -> unicodestring. Without
+// width-aware ranking both conversions tie ("can't determine which overload").
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PAnsiCh = ^char;',
+  '  PWideCh = ^widechar;',
+  '  TAnsiArr = array[0..2] of char;',
+  '  TWideArr = array[0..2] of widechar;',
+  'procedure Test(s: string); overload;',
+  'begin',
+  'end;',
+  'procedure Test(s: unicodestring); overload;',
+  'begin',
+  'end;',
+  'var',
+  '  pa: PAnsiCh;',
+  '  pw: PWideCh;',
+  '  aa: TAnsiArr;',
+  '  wa: TWideArr;',
+  'begin',
+  '  Test(pa);',
+  '  Test(pw);',
+  '  Test(aa);',
+  '  Test(wa);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestProcOverloadStringArgCount;
 begin
   StartProgram(false);
@@ -7292,6 +7667,45 @@ begin
   '  TBird.Create(2);',
   '  TEagle.Create(true);',
   '  TEagle.Create(3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiPointerClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    constructor Create(b: boolean); virtual;',
+  '    class function ClassInfo : pointer;',
+  '    class function ClassType : TClass;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#p}Fly(p: Pointer); overload;',
+  '    procedure {#c}Fly(c: TClass); overload;',
+  '  end;',
+  'constructor TObject.Create(b: boolean);',
+  'begin',
+  'end;',
+  'class function TObject.ClassInfo : pointer;',
+  'begin',
+  'end;',
+  'class function TObject.ClassType : TClass;',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(p: pointer);',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(c: TClass);',
+  'begin',
+  'end;',
+  'var Bird: TBird;',
+  'begin',
+  '  Bird.{@p}Fly(Bird.ClassInfo);',
+  '  Bird.{@c}Fly(Bird.ClassType);',
   '']);
   ParseProgram;
 end;
@@ -7831,6 +8245,95 @@ begin
   Add('      {#w_a4_out}a);');
   ParseProgram;
   CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestProc_FuncNameResultInParamAndExpr;
+// Inside a function's own body the bare function name denotes its Result, even for
+// a function that requires parameters: as a call argument (F passed to G) and in a
+// general expression (F+1) — not only on the left of ":=".
+begin
+  StartProgram(false);
+  Add([
+  'function G(a: longint): longint;',
+  'begin',
+  '  G:=a;',
+  'end;',
+  'function F(x: longint): longint;',
+  'begin',
+  '  F:=x;',      // Case 1 (assignment LHS)
+  '  F:=G(F);',   // Case 3 (F as a call argument)
+  '  F:=F+1;',    // Case 4 (F in a general expression)
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_FuncNameResultFieldAccess;
+// "F.field" inside F, where F returns a record, denotes Result.field (Case 2).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record a: longint; end;',
+  'function F(x: longint): TRec;',
+  'begin',
+  '  F.a:=x;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_FuncNameResultIndexedRead;
+// Reading an indexed function name inside its own body ("c:=F[1]") denotes
+// Result[1]. The write form "F[1]:=" already worked; the read/by-ref form did not.
+begin
+  StartProgram(false);
+  Add([
+  'function F(n: longint): shortstring;',
+  'var c: char;',
+  'begin',
+  '  F:=''abc'';',
+  '  F[1]:=''x'';',
+  '  c:=F[1];',
+  '  if c=''x'' then ;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ImplOmitsParamList;
+// FPC allows a forward/interface routine's implementation to omit the parameter
+// list; it then inherits the declaration's arguments and can use them in the body.
+begin
+  StartProgram(false);
+  Add([
+  'procedure P(x: longint); forward;',
+  'procedure P;',
+  'begin',
+  '  if x>0 then ;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ImplInheritsCallingConvention;
+// An implementation that does not restate the calling convention inherits it from
+// the forward declaration (directives need not be repeated in the implementation).
+begin
+  StartProgram(false);
+  Add([
+  'procedure P(x: longint); cdecl; forward;',
+  'procedure P(x: longint);',
+  'begin',
+  '  if x>0 then ;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProc_FunctionResult_DeclProc;
@@ -8375,6 +8878,28 @@ begin
   Add('  {#r}{=TRec}r: TRec;');
   Add('begin');
   Add('  {@r}r.{@Size}Size:=3;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_FieldNameEqualsTypeNameByCase;
+// A record field whose name equals its own type name only by case (Pascal is
+// case-insensitive): "hWnd: HWND". The field is registered in the record scope
+// before its own type is parsed, so a by-name lookup for the type "HWND" wrongly
+// finds the still-typeless field. The resolver must skip the member scope and
+// resolve the real type declared in an outer scope.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  HWND = type longint;',
+  '  TRec = record',
+  '    hWnd: HWND;',
+  '  end;',
+  'var',
+  '  r: TRec;',
+  'begin',
+  '  r.hWnd:=0;',
+  '']);
   ParseProgram;
 end;
 
@@ -11792,6 +12317,38 @@ begin
     nCannotCreateADescendantOfTheSealedXY);
 end;
 
+procedure TTestResolver.TestClass_SealedAbstractMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TFoo = class sealed',
+  '    procedure DoIt; virtual; abstract;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sSealedClassCannotHaveAbstractMethod,
+    nSealedClassCannotHaveAbstractMethod);
+end;
+
+procedure TTestResolver.TestProperty_PublishedFileTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TFoo = class',
+  '  private',
+  '    FF: file;',
+  '  published',
+  '    property F: file read FF;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sSymbolCannotBePublished,nSymbolCannotBePublished);
+end;
+
 procedure TTestResolver.TestClass_Abstract;
 begin
   StartProgram(false);
@@ -12143,6 +12700,21 @@ begin
   Add('  end;');
   Add('begin');
   CheckResolverException('Invalid published property modifier "class"',
+    nInvalidXModifierY);
+end;
+
+procedure TTestResolver.TestClass_ClassPropertyStoredFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class var FA: longint;',
+  '    class property A: longint read FA stored false;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Invalid class property modifier "stored"',
     nInvalidXModifierY);
 end;
 
@@ -15366,6 +15938,135 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestArray_PartialMultiDimIndex;
+// Indexing a multi-dimensional static array with fewer subscripts than
+// dimensions yields a sub-array of the remaining dimensions: a[0] on
+// array[0..2,0..2] of longint is an array[0..2] of integer, indexable further.
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  a: array[0..2,0..2] of longint;',
+  '  x: longint;',
+  'begin',
+  '  a[1,2]:=5;',
+  '  x:=a[0][1];',
+  '  if x=5 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_SliceStaticAsOpenArrayArg;
+// An array slice arr[a..b] over a static array is accepted where an open array
+// is expected (FPC array-slice extension).
+begin
+  StartProgram(false);
+  Add([
+  'function total(const r: array of longint): longint;',
+  'begin',
+  'end;',
+  'var',
+  '  arr: array[0..9] of longint;',
+  '  s: longint;',
+  'begin',
+  '  s:=total(arr[2..5]);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_SliceDynArrayAsOpenArrayArg;
+// An array slice over a dynamic array is accepted where an open array is
+// expected — the dynamic/open-array index branch admits a pekRange.
+begin
+  StartProgram(false);
+  Add([
+  'function total(const r: array of longint): longint;',
+  'begin',
+  'end;',
+  'var',
+  '  arr: array of longint;',
+  '  s: longint;',
+  'begin',
+  '  s:=total(arr[2..5]);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_DistinctStaticSameRangesAssign;
+// Two DISTINCT static array types with the same index bounds and a compatible
+// element type are assignment-compatible (matches FPC; SameArrayRanges).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TA = array[0..2] of longint;',
+  '  TB = array[0..2] of longint;',
+  'var',
+  '  a: TA;',
+  '  b: TB;',
+  'begin',
+  '  a:=b;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_CharArrayPCharInterconvert;
+// StaticCharArr:=PChar (copy) and PChar:=StaticCharArr (decay to first element)
+// are both accepted for matching char width (FPC extension).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PCh = ^char;',
+  'var',
+  '  arr: array[0..9] of char;',
+  '  p: PCh;',
+  'begin',
+  '  arr:=p;',
+  '  p:=arr;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointer_UntypedAddrToTypedPointerTMinus;
+// Under {$T-} (untyped address), @Var yields an untyped pointer assignable to
+// any typed pointer regardless of the pointed-to type (e.g. PByte:=@CharVar).
+begin
+  StartProgram(false);
+  Add([
+  '{$T-}',
+  'type',
+  '  PByte = ^byte;',
+  'var',
+  '  c: char;',
+  '  p: PByte;',
+  'begin',
+  '  p:=@c;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcVar_BareProcAssignTPMode;
+// A bare procedure name (no @) is assignable to a procedure variable in the
+// TP-style procvar modes (tp/delphi/macpas/gpc all have msTPProcVar), not only
+// Delphi mode.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode tp}',
+  'type',
+  '  TProc = procedure;',
+  'procedure DoIt;',
+  'begin',
+  'end;',
+  'var',
+  '  p: TProc;',
+  'begin',
+  '  p:=DoIt;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestArray_MultiDim_Const;
 begin
   StartProgram(false);
@@ -16729,6 +17430,31 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcType_NestedAddrIsPointerInTPModeFail;
+// In {$mode tp} typed-address is off, so a nested procedure's address @Nested is
+// a plain Pointer, not a procedural value — it is therefore NOT compatible with
+// a nested-procedure-variable parameter (which it would be in objfpc/delphi/fpc).
+begin
+  StartProgram(false);
+  Add('{$mode tp}');
+  Add('{$modeswitch nestedprocvars}');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TNestedProc = procedure(i: integer) is nested;');
+  Add('procedure DoIt(p: TNestedProc);');
+  Add('begin');
+  Add('end;');
+  Add('procedure Outer;');
+  Add('  procedure Nested(i: integer);');
+  Add('  begin');
+  Add('  end;');
+  Add('begin');
+  Add('  DoIt(@Nested);');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
+end;
+
 procedure TTestResolver.TestProcType_IsNested_AssignProcFail;
 begin
   StartProgram(false);
@@ -17308,6 +18034,47 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestPointer_FunctionResultDeref;
+// func^ : dereferencing a parameterless function that returns a pointer
+// implicitly calls it and dereferences the result (GPC/ISO), e.g. `ip1^`
+// where ip1 returns ^Integer yields an Integer.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  PInteger = ^integer;',
+  'function ip1: PInteger;',
+  'begin',
+  'end;',
+  'var',
+  '  i: integer;',
+  'begin',
+  '  i:=ip1^;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestFile_BufferDeref;
+// ISO/Standard-Pascal file buffer variable: f^ is the file component type
+// (the element type of `file of T`, or Char for a text file).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  'var',
+  '  f: file of integer;',
+  '  t: text;',
+  '  i: integer;',
+  '  c: char;',
+  'begin',
+  '  i:=f^;',
+  '  c:=t^;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestPointerTypedForwardMissingFail;
 begin
   StartProgram(false);
@@ -17492,6 +18259,57 @@ begin
   'begin',
   '']);
   CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestTypeInfoStringType;
+begin
+  StartProgram(false);
+  Add([
+  'type TShortStr = string[20];',
+  'var p: pointer;',
+  'begin',
+  '  p:=typeinfo(TShortStr);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestCharArrayFromShortString;
+begin
+  StartProgram(false);
+  Add([
+  'var a: array[0..9] of char;',
+  'begin',
+  '  a:=''abc'';',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestCharArrayFromStringVar;
+begin
+  StartProgram(false);
+  Add([
+  'var a: array[0..4] of char; s: string;',
+  'begin',
+  '  s:=''hi''; a:=s;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestCaseOfConstWithElseNoWarn;
+begin
+  StartProgram(false);
+  Add([
+  'const K = 5;',
+  'var x: longint;',
+  'begin',
+  '  case K of',
+  '  1: x:=1;',
+  '  2: x:=2;',
+  '  else x:=9;',
+  '  end;',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestResourcestringPassVarArgFail;
@@ -18139,6 +18957,86 @@ begin
   'begin',
   '']);
   CheckResolverException('identifier not found "Fly"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestClassHelper_NestedStrictPrivateNotVisibleFail;
+// A class helper declared as a strict-private nested type is only active within
+// its enclosing type; outside it the helper is not in scope, so the method it
+// adds is not found (FPC tchlp18..21).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TExt = class',
+  '  strict private type',
+  '    TObjHelper = class helper for TObject',
+  '      procedure Fly;',
+  '    end;',
+  '  end;',
+  'procedure TExt.TObjHelper.Fly;',
+  'begin',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Fly;',
+  '']);
+  CheckResolverException('identifier not found "Fly"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestClassHelper_OverloadKeepsExtendedMethod;
+// A class helper method marked "overload" does not hide the same-named method of
+// the extended type — they overload each other, so both signatures resolve
+// (FPC tchlp33), even though the extended method has no "overload" directive.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '    procedure Foo(i: longint);',
+  '  end;',
+  '  TObjHelper = class helper for TObject',
+  '    procedure Foo(b: boolean); overload;',
+  '  end;',
+  'procedure TObject.Foo(i: longint);',
+  'begin',
+  'end;',
+  'procedure TObjHelper.Foo(b: boolean);',
+  'begin',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Foo(3);',
+  '  o.Foo(true);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassHelper_AccessExtendedStrictProtected;
+// A class helper may access a strict-protected member of the type it extends
+// (a helper is not a subclass, so this is not covered by the descendant rule).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TExt = class',
+  '  strict protected',
+  '    FValue: longint;',
+  '  end;',
+  '  TExtHelper = class helper for TExt',
+  '    procedure Show;',
+  '  end;',
+  'procedure TExtHelper.Show;',
+  'begin',
+  '  FValue:=3;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClassHelper_AccessFields;
