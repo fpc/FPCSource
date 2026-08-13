@@ -1042,7 +1042,7 @@ var
 begin
   HIn:=THandle(INVALID_HANDLE_VALUE);
   HOut:=HIn;
-  If not CreatePipeHandles(Hin,HOut) then
+  If not CreatePipeHandles(Hin,HOut,FPipeBufferSize) then
     Raise EProcess.Create(SErrCannotCreatePipes);
   case ProcessHandleType of
     phtInput:

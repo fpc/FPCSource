@@ -61,7 +61,7 @@ Type
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle; APipeBufferSize : Cardinal = 1024) : Boolean;
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
-                             Var OutPipe : TOutputPipeStream);
+                             Var OutPipe : TOutputPipeStream; APipeBufferSize : Cardinal = 1024);
 
 Const EPipeMsg = 'Failed to create pipe.';
       ENoSeekMsg = 'Cannot seek on pipes';
@@ -72,12 +72,12 @@ Implementation
 {$i pipes.inc}
 
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
-                             Var OutPipe : TOutputPipeStream);
+                             Var OutPipe : TOutputPipeStream; APipeBufferSize : Cardinal = 1024);
 
 Var InHandle,OutHandle : THandle;
 
 begin
-  if CreatePipeHandles (InHandle, OutHandle) then
+  if CreatePipeHandles (InHandle, OutHandle, APipeBufferSize) then
     begin
     InPipe:=TInputPipeStream.Create (InHandle);
     OutPipe:=TOutputPipeStream.Create (OutHandle);
