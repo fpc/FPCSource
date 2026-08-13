@@ -488,6 +488,7 @@ type
     procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
+    function DoCSSWarn(Sender: TObject; Msg: TCSSString; aRow, aCol: integer): boolean; virtual;
     procedure ParseSource(Index: integer); virtual;
     function ParseCSSSource(const Src: TCSSString; Inline: boolean): TCSSElement; virtual;
     procedure ClearElements; virtual;
@@ -1134,6 +1135,17 @@ begin
   Result:=FCustomAttributes[Index];
 end;
 
+function TCSSResolver.DoCSSWarn(Sender: TObject; Msg: TCSSString; aRow, aCol: integer): boolean;
+// An invalid CSS syntax was found. According to the CSS syntax spec the invalid
+// part is skipped and parsing continues. Log it as a warning instead of raising
+// an exception, which would abort the whole stylesheet.
+begin
+  Result:=true;
+  Log(etWarning,20260803114500,Msg+' at line '+IntToStr(aRow)
+    +', column '+IntToStr(aCol),nil);
+  if Sender=nil then ;
+end;
+
 function TCSSResolver.GetLogEntries(Index: integer): TCSSResolverLogEntry;
 begin
   Result:=TCSSResolverLogEntry(FLogEntries[Index]);
@@ -1236,6 +1248,7 @@ begin
     aParser:=TCSSResolverParser.Create(ms); // stream is freed by the parser
     aParser.Resolver:=Self;
     aParser.OnLog:=@Log;
+    aParser.Scanner.OnWarn:=@DoCSSWarn;
     aParser.CSSNthChildParamsClass:=TCSSResolverNthChildParams;
     if Inline then
       Result:=aParser.ParseInline
@@ -5141,8 +5154,10 @@ var
 begin
   KeyData:=DeclKeyData(Decl);
   if KeyData=nil then exit;
+  if KeyData.Disabled then exit;
   KeyData.Disabled:=true;
-  UpdateRuleHasDisabledDecls(Decl);
+  if Decl.Parent is TCSSResolvedRuleElement then
+    TCSSResolvedRuleElement(Decl.Parent).HasDisabledDecls:=true;
 
   // remember by path so the disabled state survives a reparse
   if GetDeclarationPath(Decl,Path) then
@@ -5172,8 +5187,8 @@ var
 begin
   KeyData:=DeclKeyData(Decl);
   if KeyData=nil then exit;
+  if not KeyData.Disabled then exit;
   KeyData.Disabled:=false;
-  UpdateRuleHasDisabledDecls(Decl);
 
   if GetDeclarationPath(Decl,Path) then
   begin
@@ -5181,6 +5196,8 @@ begin
     if Index>=0 then
       FDisabledDecls.Delete(Index); // owns the object, frees it
   end;
+
+  UpdateRuleHasDisabledDecls(Decl);
 
   ClearMerge;
   ClearSharedRuleLists;
@@ -5206,7 +5223,8 @@ begin
     if KeyData<>nil then
     begin
       KeyData.Disabled:=true;
-      UpdateRuleHasDisabledDecls(Decl);
+      if Decl.Parent is TCSSResolvedRuleElement then
+        TCSSResolvedRuleElement(Decl.Parent).HasDisabledDecls:=true;
     end;
   end;
 end;
@@ -5266,10 +5284,12 @@ var
   KeyData: TCSSAttributeKeyData;
   Taken: array of boolean;
   PropName: TCSSString;
+  HasDisabled: Boolean;
 begin
   if (OldRule=nil) or (NewRule=nil) then exit;
   Taken:=nil;
   SetLength(Taken,NewRule.ChildCount);
+  HasDisabled:=false;
   for i:=0 to OldRule.ChildCount-1 do
   begin
     if not (OldRule.Children[i] is TCSSDeclarationElement) then continue;
@@ -5287,11 +5307,15 @@ begin
       Taken[j]:=true;
       KeyData:=DeclKeyData(NewDecl);
       if KeyData<>nil then
+      begin
         KeyData.Disabled:=true;
+        HasDisabled:=true;
+      end;
       break;
     end;
   end;
-  UpdateRuleHasDisabledDecls(NewRule);
+  if NewRule is TCSSResolvedRuleElement then
+    TCSSResolvedRuleElement(NewRule).HasDisabledDecls:=HasDisabled;
 end;
 
 function TCSSResolver.GetDisabledDeclarations: TFPList;

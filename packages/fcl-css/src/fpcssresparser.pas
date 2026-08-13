@@ -743,7 +743,6 @@ type
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     procedure CheckMediaSelector(El: TCSSElement); virtual;
-    procedure DoWarn(const Msg: TCSSString); override;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
@@ -3257,6 +3256,7 @@ var
 begin
   Result:=inherited ParseAtMediaRule;
   if Result=nil then exit;
+
   for i:=0 to Result.SelectorCount-1 do
     CheckMediaSelector(Result.Selectors[i]);
 end;
@@ -3267,6 +3267,8 @@ var
   CallID: TCSSNumericalID;
 begin
   Result:=inherited ParseCall(aName, IsSelector);
+  if Result=nil then exit;
+
   if IsSelector then
   begin
     if Result.Name[1]=':' then
@@ -3294,8 +3296,8 @@ var
   AllowUnknown, HasVar: boolean;
 begin
   Result:=inherited ParseDeclaration(aIsAt);
-  if Result=nil then
-    exit; // invalid declaration, it was skipped with a warning
+  if Result=nil then exit;
+
   if Result.KeyCount<>1 then
   begin
     if Result.KeyCount<1 then
@@ -3366,6 +3368,8 @@ end;
 function TCSSResolverParser.ParsePseudoElement: TCSSElement;
 begin
   Result:=inherited ParsePseudoElement;
+  if Result=nil then exit;
+
   if Result is TCSSResolvedIdentifierElement then
     ResolvePseudoElement(TCSSResolvedIdentifierElement(Result))
   else if Result is TCSSResolvedCallElement then
@@ -3377,6 +3381,8 @@ end;
 function TCSSResolverParser.ParseSelector: TCSSElement;
 begin
   Result:=inherited ParseSelector;
+  if Result=nil then exit;
+
   CheckSelector(Result);
 end;
 
@@ -3781,18 +3787,6 @@ end;
 destructor TCSSResolverParser.Destroy;
 begin
   inherited Destroy;
-end;
-
-procedure TCSSResolverParser.DoWarn(const Msg: TCSSString);
-// An invalid CSS syntax was found. According to the CSS syntax spec the invalid
-// part is skipped and parsing continues. Without a Scanner.OnWarn the inherited
-// DoWarn raises an ECSSParser, aborting the whole stylesheet. Log it instead.
-begin
-  if Assigned(Scanner.OnWarn) then
-    inherited DoWarn(Msg)
-  else
-    Log(etWarning,20260803114500,Msg+' at line '+IntToStr(Scanner.CurRow)
-      +', column '+IntToStr(Scanner.CurColumn),nil);
 end;
 
 procedure TCSSResolverParser.Log(MsgType: TEventType; const ID: TCSSMsgID;
