@@ -6236,7 +6236,8 @@ begin
         SectionLength := FTokenPos - TokenStart;
         FetchCurTokenString;
         // Handle macro which is //
-        if FCurSourceFile is TMacroReader then
+        // Only when the macro text ends here: a macro whose value is "//"
+        if (FCurSourceFile is TMacroReader) and FCurSourceFile.IsEOF then
           begin
           // exhaust till eof of macro stream
           Repeat
