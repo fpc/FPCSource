@@ -4285,8 +4285,12 @@ begin
     begin
       StartP:=p;
       while p^ in Alpha do inc(p);
+      // match the whole unit name, not just a prefix, otherwise the short names
+      // shadow the long ones starting with them, e.g. "s" would eat "svw"
       U:=high(TCSSUnit);
-      while (U>cuNone) and not CompareMem(StartP,PChar(CSSUnitNames[U]),length(CSSUnitNames[U])) do
+      while (U>cuNone)
+          and ((length(CSSUnitNames[U])<>p-StartP)
+            or not CompareMem(StartP,PChar(CSSUnitNames[U]),p-StartP)) do
         U:=pred(U);
       if U=cuNone then
         exit; // unknown unit

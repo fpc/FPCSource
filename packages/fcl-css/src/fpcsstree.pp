@@ -217,8 +217,8 @@ const
     'rad',  // radians
     'turn', // turns
     // time
-    'seconds',
-    'milliseconds',
+    's',    // seconds
+    'ms',   // milliseconds
     // special
     'fr'    // fraction
     );
