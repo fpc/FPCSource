@@ -956,6 +956,7 @@ type
       Data: Pointer; var Abort: boolean);
   public
     UsesScopes: TFPList; // list of TPasSectionScope
+    ImplUsesScopes: TFPList; // only on an interface scope: the UsesScopes of the implementation section, not owned
     UsesFinished: boolean;
     Finished: boolean;
     BoolSwitches: TBoolSwitches;
@@ -2352,6 +2353,14 @@ type
     // sXMethodsCannotHaveTypeParams). Delphi accepts it, so a native/FPC target
     // overrides to allow it (GitLab #41410).
     function AllowGenericPublishedMethod: Boolean; virtual;
+    // True when a variable typecast to ToLoType keeps its operand's l-value
+    // status although the two types differ. Base default False - the same-size
+    // ordinal rule in ComputeTypeCast already covers the plain cases. A native
+    // target knows every type's size and lets ANY same-size scalar cast stay
+    // writable, which is what ppcx64 does: `IdentToColor(S,LongInt(Result))`
+    // with a subrange Result, and `Longint(SingleVar)` in TInterlocked.
+    function TypeCastKeepsLValue(ToLoType: TPasType;
+      const FromRes: TPasResolverResult): Boolean; virtual;
     function IsPointerMathType(El: TPasType): Boolean; virtual;
     // True when Inc/Dec is permitted on a pointer of type El. Base default False;
     // a native target allows Inc/Dec on any pointer (switch-independent).
@@ -2368,6 +2377,19 @@ type
     // whose byte address cannot be taken. Base default False (pas2js has no
     // bit-packing); a native resolver computes it from the packed bit width.
     function IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean; virtual;
+    // True when BtA and BtB are the WideString/UnicodeString pair AND this
+    // target stores them identically, so either fills the other's var/out
+    // parameter. Base default False (pas2js has no WideString of its own).
+    function WideStringMatchesUnicodeString(BtA, BtB: TResolverBaseType): Boolean; virtual;
+    // True when `nil^` denotes a location. Base default False; a native target
+    // accepts it, like the real FPC compiler, so it can be handed to an untyped
+    // var parameter meaning "no buffer" (rtl/inc/lnfodwrf.pp ReadNext(nil^,n)).
+    function AllowNilDereference: Boolean; virtual;
+    // True when an INSTANCE field reached through its type name (TRec.field) is
+    // allowed at PosEl. Base default False; FPC accepts it wherever only the
+    // field's TYPE is used - High/Low/SizeOf/Default (lnfodwrf.pp).
+    function AllowTypeQualifiedInstanceField(Found: TPasElement;
+      PosEl: TPasElement): Boolean; virtual;
     // Copies the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} pack values from a
     // generic template element to its specialized element (called from both the
     // nested-element and the top-level generic-type specialization paths).
@@ -2471,6 +2493,8 @@ type
     function CheckProcTypeCompatibility(Proc1, Proc2: TPasProcedureType;
       IsAssign: boolean; ErrorEl: TPasElement; RaiseOnIncompatible: boolean): boolean;
     function CheckProcArgCompatibility(Arg1, Arg2: TPasArgument): integer;
+    function ProcArgsMatchForSignature(Arg1, Arg2: TPasArgument): boolean;
+    function TypesMatchAsWideVsUnicodeString(T1, T2: TPasType): boolean;
     function CheckElTypeCompatibility(Arg1, Arg2: TPasType;
       ResolveAlias: TPRResolveAlias): integer;
     function CheckCanBeLHS(const ResolvedEl: TPasResolverResult;
@@ -2579,6 +2603,7 @@ type
     function GetSpecializeParamAsType(Param: TPasElement): TPasType;
     procedure FinishGenericClassOrRecIntf(Scope: TPasGenericScope); virtual;
     procedure FinishSpecializations(Scope: TPasGenericScope); virtual;
+    procedure CheckPendingForwardTypes(El: TPasElement); virtual;
     procedure CheckPendingForwardProcs(El: TPasElement); virtual;
     function IsSpecialized(El: TPasGenericType): boolean; overload;
     function IsFullySpecialized(El: TPasGenericType): boolean; overload;
@@ -2597,6 +2622,11 @@ type
     procedure CreateProcSelfArg(Proc: TPasProcedure); virtual;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function IsProcOverload(Proc: TPasProcedure): boolean;
+    { True when a bare ProcName inside EnclosingName's body is that routine's
+      own Result - the enclosing name may be qualified and/or specialized. }
+    function SameSelfRefProcName(const EnclosingName, ProcName: String): boolean;
+    { False when El is the member side of "X.Name", which is never a self-ref. }
+    function IsSelfRefCandidate(El: TPasExpr): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
     function GetParentProc(El: TPasElement; GetDeclProc: boolean): TPasProcedure;
     function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
@@ -4318,51 +4348,86 @@ end;
 
 function TPasSectionScope.FindIdentifier(const Identifier: String
   ): TPasIdentifier;
+
+  procedure SearchUses(aList: TFPList; var aFound: TPasIdentifier; out Done: boolean);
+  var
+    i: Integer;
+    UsesScope: TPasIdentifierScope;
+    C: TClass;
+    Cur: TPasIdentifier;
+  begin
+    Done:=false;
+    if aList=nil then exit;
+    for i:=aList.Count-1 downto 0 do
+      begin
+      UsesScope:=TPasIdentifierScope(aList[i]);
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasSectionScope.FindIdentifier "',Identifier,'" in used unit ',GetObjName(UsesScope.Element));
+      {$ENDIF}
+      Cur:=UsesScope.FindLocalIdentifier(Identifier);
+      if Cur<>nil then
+        begin
+        aFound:=Cur;
+        C:=Cur.Element.ClassType;
+        if (C<>TPasModule) and (C<>TPasUsesUnit) then
+          begin
+          Done:=true;
+          exit;
+          end;
+        end;
+      end;
+  end;
+
 var
-  i: Integer;
-  UsesScope: TPasIdentifierScope;
-  C: TClass;
+  Done: boolean;
 begin
   Result:=inherited FindIdentifier(Identifier);
   if Result<>nil then
     exit;
-  for i:=UsesScopes.Count-1 downto 0 do
-    begin
-    UsesScope:=TPasIdentifierScope(UsesScopes[i]);
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasSectionScope.FindIdentifier "',Identifier,'" in used unit ',GetObjName(UsesScope.Element));
-    {$ENDIF}
-    Result:=UsesScope.FindLocalIdentifier(Identifier);
-    if Result<>nil then
-      begin
-      C:=Result.Element.ClassType;
-      if (C<>TPasModule) and (C<>TPasUsesUnit) then
-        exit;
-      end;
-    end;
+  // the units used by the implementation section are searched together with the
+  // interface section, so that the unit's own declarations shadow them
+  if Element.ClassType=TImplementationSection then
+    exit;
+  SearchUses(ImplUsesScopes,Result,Done);
+  if Done then exit;
+  SearchUses(UsesScopes,Result,Done);
 end;
 
 procedure TPasSectionScope.IterateElements(const aName: string;
   StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
   Data: Pointer; var Abort: boolean);
 var
-  i: Integer;
-  UsesScope: TPasSectionScope;
   FilterData: TPasIterateFilterData;
+
+  procedure IterateUses(aList: TFPList);
+  var
+    i: Integer;
+    UsesScope: TPasSectionScope;
+  begin
+    if aList=nil then exit;
+    for i:=aList.Count-1 downto 0 do
+      begin
+      UsesScope:=TPasSectionScope(aList[i]);
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',UsesScope.Element.ParentPath,':',GetObjName(UsesScope.Element));
+      {$ENDIF}
+      UsesScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
+      if Abort then exit;
+      end;
+  end;
+
 begin
   inherited IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
   if Abort then exit;
+  // the units used by the implementation section are searched together with the
+  // interface section, so that the unit's own declarations shadow them
+  if Element.ClassType=TImplementationSection then
+    exit;
   FilterData.OnIterate:=OnIterateElement;
   FilterData.Data:=Data;
-  for i:=UsesScopes.Count-1 downto 0 do
-    begin
-    UsesScope:=TPasSectionScope(UsesScopes[i]);
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',UsesScope.Element.ParentPath,':',GetObjName(UsesScope.Element));
-    {$ENDIF}
-    UsesScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
-    if Abort then exit;
-    end;
+  IterateUses(ImplUsesScopes);
+  if Abort then exit;
+  IterateUses(UsesScopes);
 end;
 
 procedure TPasSectionScope.WriteIdentifiers(Prefix: string);
@@ -5181,6 +5246,10 @@ begin
         ok:=false;
       end;
     end;
+  if ok and (Data^.Found<>nil) and (ElScope=DefaultScope) then
+    // a built-in never shadows a declaration of the same name found in a nearer
+    // scope, not even when that declaration needs parameters (iso7185.FilePos)
+    exit;
   if ok or (Data^.Found=nil) then
     begin
     Data^.Found:=El;
@@ -6314,6 +6383,57 @@ begin
   Result:=false;
 end;
 
+function TPasResolver.IsSelfRefCandidate(El: TPasExpr): boolean;
+// False when El is the NAME side of a qualified access, which always names a
+// member of whatever is on the left and never the enclosing function's Result.
+// Two shapes, and both bit:
+//   "BottomRight.Ceiling" inside `function TRectF.Ceiling: TRectF` (types.pp) -
+//     treating it as a self-reference silently turned the RHS into a TRectF;
+//   "inherited HasAggregate" inside `function T.HasAggregate: Boolean`
+//     (fpexprpars) - an inherited call is a TBinaryExpr too, with the inherited
+//     marker on the left and eopNone as the opcode.
+// A qualifier binds TIGHTER than the qualification, so `inherited GetFirst^`
+// parses with the name's parent being the DEREF, not the binary expression.
+// Look through those wrappers, or the name reads as this function's own Result
+// and the deref is then refused ("illegal qualifier ^ in front of Result") -
+// rtl/objpas/fgl.pp writes `T(inherited GetFirst^)`.
+var
+  Node: TPasExpr;
+begin
+  Result:=true;
+  if El=nil then exit;
+  Node:=El;
+  while (Node.Parent is TUnaryExpr) and (TUnaryExpr(Node.Parent).Operand=Node) do
+    Node:=TPasExpr(Node.Parent);
+  if not (Node.Parent is TBinaryExpr) then exit;
+  if TBinaryExpr(Node.Parent).right<>Node then exit;
+  if (TBinaryExpr(Node.Parent).OpCode=eopSubIdent)
+      or (TBinaryExpr(Node.Parent).left is TInheritedExpr) then
+    Result:=false;
+end;
+
+function TPasResolver.SameSelfRefProcName(const EnclosingName,
+  ProcName: String): boolean;
+// Whether a bare use of ProcName inside EnclosingName's body names that same
+// routine, i.e. is its Result. A METHOD's implementation carries the QUALIFIED
+// name ("TEReader.ReadNext"), so a plain compare said no and an overloaded
+// method could not assign to its own function name at all - lnfodwrf writes
+// `ReadNext := size = 0` inside `TEReader.ReadNext(var dest; size)`. A generic
+// body's name may also carry a "<...>" specialization suffix.
+var
+  EnclShort: String;
+  P: Integer;
+begin
+  EnclShort:=EnclosingName;
+  P:=Pos('<',EnclShort);
+  if P>0 then
+    EnclShort:=LeftStr(EnclShort,P-1);
+  P:=LastDelimiter('.',EnclShort);
+  if P>0 then
+    EnclShort:=Copy(EnclShort,P+1,length(EnclShort));
+  Result:=CompareText(EnclShort,ProcName)=0;
+end;
+
 function TPasResolver.IsProcOverloading(LastProc, CurProc: TPasProcedure
   ): boolean;
 begin
@@ -6699,6 +6819,8 @@ begin
   // parsed, so an interface routine/method whose body lives there has no
   // ImplProc; skip the check to avoid a spurious "Forward proc not resolved".
   // Inert by default (InterfaceOnly=False): the loop runs exactly as before.
+  for i:=0 to FPendingForwardProcs.Count-1 do
+    CheckPendingForwardTypes(TPasElement(FPendingForwardProcs[i]));
   if not InterfaceOnly then
     for i:=0 to FPendingForwardProcs.Count-1 do
       CheckPendingForwardProcs(TPasElement(FPendingForwardProcs[i]));
@@ -6922,7 +7044,14 @@ begin
     begin
     if TPasClassType(El).IsForward
         and not (TPasClassType(El).CustomData is TResolvedReference) then
-      RaiseMsg(20170216151534,nForwardTypeNotResolved,sForwardTypeNotResolved,[El.Name],El);
+      // Delphi requires a forward type to be completed inside the SAME type
+      // section, so an unresolved one is final here. ObjFPC allows any later
+      // type section of the same declaration section to complete it, and the
+      // parser calls this once per intervening non-type declaration (fcl-xml
+      // xpath.pp declares procedures between the two) — so there the verdict is
+      // deferred to CheckPendingForwardProcs.
+      if msDelphi in GetElModeSwitches(El) then
+        RaiseMsg(20170216151534,nForwardTypeNotResolved,sForwardTypeNotResolved,[El.Name],El);
     end
   else if (C=TPasClassOfType) then
     begin
@@ -9388,6 +9517,27 @@ var
   // whose signature matches the property (arg count + value/result type) and redirect
   // the accessor reference so later checks and codegen use the right method.
 
+    function ParamsMatch(P: TPasProcedure): boolean;
+    // An indexed property's own parameters are the accessor's LEADING arguments.
+    // Two overloads may agree on argument count and value type and differ only
+    // there — fcl-xml xpath.pp reads both `Functions[Index: Integer]` and
+    // `FunctionsByName[const AName: String]` through an overloaded GetFunction.
+    var
+      i: Integer;
+      PropArg, AccArg: TPasArgument;
+    begin
+      Result:=false;
+      if PropEl.Args.Count>P.ProcType.Args.Count then exit;
+      for i:=0 to PropEl.Args.Count-1 do
+        begin
+        PropArg:=TPasArgument(PropEl.Args[i]);
+        AccArg:=TPasArgument(P.ProcType.Args[i]);
+        if (PropArg.ArgType=nil) or (AccArg.ArgType=nil) then continue;
+        if not IsSameType(PropArg.ArgType,AccArg.ArgType,prraAlias) then exit;
+        end;
+      Result:=true;
+    end;
+
     function AccMatches(P: TPasProcedure; out TypeMatches: boolean): boolean;
     var
       LArg: TPasArgument;
@@ -9403,7 +9553,8 @@ var
         if NeededArgCount<1 then exit;
         LArg:=TPasArgument(P.ProcType.Args[NeededArgCount-1]);
         Result:=true;
-        TypeMatches:=(LArg.ArgType<>nil) and IsSameType(LArg.ArgType,PropType,prraAlias);
+        TypeMatches:=(LArg.ArgType<>nil) and IsSameType(LArg.ArgType,PropType,prraAlias)
+          and ParamsMatch(P);
         end
       else
         begin
@@ -9411,7 +9562,7 @@ var
         if not (P is TPasFunction) then exit;
         LRes:=TPasFunction(P).FuncType.ResultEl.ResultType;
         Result:=true;
-        TypeMatches:=IsSameType(LRes,PropType,prraAlias);
+        TypeMatches:=IsSameType(LRes,PropType,prraAlias) and ParamsMatch(P);
         end;
     end;
 
@@ -11099,7 +11250,12 @@ begin
     ImplResult:=TPasFunctionType(ImplProc.ProcType).ResultEl.ResultType;
     DeclResult:=TPasFunctionType(DeclProc.ProcType).ResultEl.ResultType;
 
-    if CheckElTypeCompatibility(ImplResult,DeclResult,prraSimple)>cGenericExact then
+    // cAliasExact is "the same actual type under another name" - $H+ String vs
+    // AnsiString, or two AnsiString-family types differing only in codepage.
+    // Restating the result that way is allowed; rtl-objpas' rtti.pp and
+    // fcl-base's streamex both declare `function ToString: String; override;`
+    // over a TObject.ToString that returns AnsiString.
+    if CheckElTypeCompatibility(ImplResult,DeclResult,prraSimple)>cAliasExact then
       RaiseIncompatibleType(20170216151734,nResultTypeMismatchExpectedButFound,
         [],DeclResult,ImplResult,ImplProc);
     end;
@@ -11365,11 +11521,15 @@ type
       end;
     revkUInt:
       begin
-      // Note: when FPC compares int64 with qword it converts the qword to an int64
-      if TResEvalUInt(Value).UInt>HighIntAsUInt then
-        ExprEvaluator.EmitRangeCheckConst(20180424212414,Value.AsString,
-          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
-      RangeStart:=TResEvalUInt(Value).UInt;
+      // When FPC compares an int64 with a qword it converts the qword to an
+      // int64, so a label above High(Int64) is NOT an error - it is that same
+      // bit pattern read as signed. ppcx64 accepts `case sizeVar of size_t(-2)`
+      // (rtl/unix/cwstring.pp tests mbrtowc's size_t(-1)/size_t(-2) results);
+      // erroring here rejected the whole unit. Duplicate detection is unaffected:
+      // equal patterns still compare equal.
+      {$R-}
+      RangeStart:=TMaxPrecInt(TResEvalUInt(Value).UInt);
+      {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
       RangeEnd:=RangeStart;
       end;
     {$ifdef FPC_HAS_CPSTRING}
@@ -11409,12 +11569,11 @@ type
         end;
     revkRangeUInt:
       begin
-      // Note: when FPC compares int64 with qword it converts the qword to an int64
-      if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
-        ExprEvaluator.EmitRangeCheckConst(20180424212648,Value.AsString,
-          '0',IntToStr(High(TMaxPrecInt)),Expr,mtError);
-      RangeStart:=TResEvalRangeUInt(Value).RangeStart;
-      RangeEnd:=TResEvalRangeUInt(Value).RangeEnd;
+      // Same as revkUInt above: read the pattern as signed rather than refusing.
+      {$R-}
+      RangeStart:=TMaxPrecInt(TResEvalRangeUInt(Value).RangeStart);
+      RangeEnd:=TMaxPrecInt(TResEvalRangeUInt(Value).RangeEnd);
+      {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
       end;
     else
       Result:=false;
@@ -11965,6 +12124,10 @@ begin
       RaiseMsg(20260622170000,nIllegalExpression,sIllegalExpression,[],El);
     exit;
     end;
+  // A call on a still-unbound template type is a statement whose callability can
+  // only be judged at specialization (`T(Dest^)._Release;` in rtl/objpas/fgl.pp).
+  if IsGenericTemplType(ExprResolved) then
+    exit;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveImplSimple El=',GetObjName(El),' El.Expr=',GetObjName(El.Expr),' ExprResolved=',GetResolverResultDbg(ExprResolved));
   {$ENDIF}
@@ -12264,7 +12427,8 @@ begin
         while (ParentEl<>nil) and not (ParentEl is TPasProcedure) do
           ParentEl:=ParentEl.Parent;
         if (ParentEl<>nil) and (ParentEl is TPasFunction)
-            and (CompareText(TPasFunction(ParentEl).Name, Proc.Name)=0) then
+            and IsSelfRefCandidate(El)
+            and SameSelfRefProcName(TPasFunction(ParentEl).Name, Proc.Name) then
           begin
           Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
           exit;
@@ -12283,7 +12447,8 @@ begin
         while (ParentEl<>nil) and not (ParentEl is TPasProcedure) do
           ParentEl:=ParentEl.Parent;
         if (ParentEl<>nil) and (ParentEl is TPasFunction)
-            and (CompareText(TPasFunction(ParentEl).Name, Proc.Name)=0) then
+            and IsSelfRefCandidate(El)
+            and SameSelfRefProcName(TPasFunction(ParentEl).Name, Proc.Name) then
           begin
           Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
           exit;
@@ -12315,7 +12480,8 @@ begin
           while (ParentEl<>nil) do
             begin
             if (ParentEl is TPasFunction)
-                and SameText(TPasFunction(ParentEl).Name, Proc.Name) then
+                and IsSelfRefCandidate(El)
+            and SameSelfRefProcName(TPasFunction(ParentEl).Name, Proc.Name) then
               begin
               Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
               exit;
@@ -12842,7 +13008,12 @@ begin
       RecordEl:=TPasRecordType(LLoTypeEl);
       RecordScope:=PushRecordDotScope(RecordEl);
       RecordScope.ConstParent:=not (rrfWritable in LeftResolved.Flags);
-      if LeftResolved.IdentEl is TPasType then
+      // A TYPE NAME is not readable; a VALUE is. Without the readable test an
+      // operator's record result counted as a type reference and its own methods
+      // came back "inaccessible here" - rtl-objpas' system.math.vectors writes
+      // `(PCurr-PLast).Length`.
+      if (LeftResolved.IdentEl is TPasType)
+          and not (rrfReadable in LeftResolved.Flags) then
         // e.g. TPoint.PointInCircle
         RecordScope.OnlyTypeMembers:=true
       else
@@ -13030,6 +13201,13 @@ begin
       if SearchInTypeHelpers(SetType,LeftResolved.IdentEl) then exit;
       end;
     end;
+
+  // A member access on a still-unbound generic template type can only be checked
+  // once T is known, so defer it to specialization instead of refusing here -
+  // the same treatment `with` and indexing on a template already get.
+  // rtl/objpas/fgl.pp calls `T(Dest^)._Release` in TFPGInterfacedObjectList.
+  if IsGenericTemplType(LeftResolved) then
+    exit;
 
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveSubIdent left=',GetObjName(Left),' right=',GetObjName(El.Right),' leftresolved=',GetResolverResultDbg(LeftResolved));
@@ -14185,7 +14363,12 @@ begin
         or (C=TInlineSpecializeExpr) then
     // ok
   else if C=TUnaryExpr then
-    AccessExpr(TUnaryExpr(Expr).Operand,Access)
+    begin
+    if (TUnaryExpr(Expr).OpCode=eopDeref) and (TUnaryExpr(Expr).Operand is TNilExpr) then
+      // `nil^` as a var argument: there is no variable to mark
+    else
+      AccessExpr(TUnaryExpr(Expr).Operand,Access);
+    end
   else
     begin
     {$IFDEF VerbosePasResolver}
@@ -14460,6 +14643,7 @@ procedure TPasResolver.AddSection(El: TPasSection);
 // Note: implementation scope is within the interface scope
 var
   Scope: TPasSectionScope;
+  aModule: TPasModule;
 begin
   if TopScope is TPasSectionScope then
     FinishSection(TPasSectionScope(TopScope).Element as TPasSection);
@@ -14473,6 +14657,13 @@ begin
   Scope:=TPasSectionScope(PushScope(El,ScopeClass_Section));
   Scope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
   Scope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
+  if El.ClassType=TImplementationSection then
+    begin
+    aModule:=El.GetModule;
+    if (aModule<>nil) and (aModule.InterfaceSection<>nil)
+        and (aModule.InterfaceSection.CustomData is TPasSectionScope) then
+      TPasSectionScope(aModule.InterfaceSection.CustomData).ImplUsesScopes:=Scope.UsesScopes;
+    end;
 end;
 
 procedure TPasResolver.AddInitialFinalizationSection(El: TPasImplBlock);
@@ -17407,6 +17598,10 @@ begin
                                                           // pointer(act.sa_handler):=...
         or (ParamResolved.LoTypeEl is TPasPointerType)   // Pointer(TypedPtrVar):=
         or IsDynArray(ParamResolved.LoTypeEl)
+        // Pointer(TemplateVar) inside a generic body: what T turns out to be is
+        // only known at specialization, and FPC accepts it there. syncobjs'
+        // generic TInterlocked.Exchange<T> passes Pointer(Target) as a var arg.
+        or (ParamResolved.LoTypeEl is TPasGenericTemplateType)
         then
           // e.g. pointer(ObjVar)
           KeepWriteFlags:=true;
@@ -17429,6 +17624,10 @@ begin
         // fcl-xml's WStrLower, Inc(ShortInt(ByteVar)). Without this the cast
         // came back read-only and Inc rejected its own argument, blaming the
         // CALLER's line.
+        KeepWriteFlags:=true
+      else if TypeCastKeepsLValue(ToLoType,ParamResolved) then
+        // Same rule, for the types SameOrdinalSize cannot measure on its own:
+        // a subrange (system.uiconsts' TColor) or a float (syncobjs' Single).
         KeepWriteFlags:=true;
       if KeepWriteFlags then
         ResolvedEl.Flags:=ResolvedEl.Flags+WriteFlags;
@@ -17459,13 +17658,27 @@ begin
     ResolvedEl.Flags:=[rrfReadable];
 
     WriteFlags:=ParamResolved.Flags*[rrfWritable,rrfAssignable];
-    if (WriteFlags<>[]) and ParamIsVar then
+    // Same rescue as the base-type branch above: a dereference/index operand
+    // (p^, p[i]) is writable by nature although an untyped-Pointer deref carries
+    // no rrfWritable flag of its own.
+    OperandIsLValueExpr:=((ParamResolved.ExprEl is TUnaryExpr)
+                            and (TUnaryExpr(ParamResolved.ExprEl).OpCode=eopDeref))
+                      or ((ParamResolved.ExprEl is TParamsExpr)
+                            and (TParamsExpr(ParamResolved.ExprEl).Kind=pekArrayParams));
+    if (WriteFlags=[]) and OperandIsLValueExpr then
+      WriteFlags:=[rrfWritable];
+    if (WriteFlags<>[]) and (ParamIsVar or OperandIsLValueExpr) then
       begin
       KeepWriteFlags:=false;
       if (rrfReadable in ResolvedEl.Flags) then
         begin
         // typecast a value
-        if ParamResolved.BaseType=btPointer then
+        if ToLoType is TPasGenericTemplateType then
+          // T(Dest^):= inside a generic body — what T turns out to be is only
+          // known at specialization, so the cast keeps its operand's l-value
+          // status, as FPC does (fgl.pp's TFPGList.CopyItem).
+          KeepWriteFlags:=true
+        else if ParamResolved.BaseType=btPointer then
           begin
           if (ToLoType.ClassType=TPasClassType)
               or (ToLoType.ClassType=TPasPointerType)
@@ -17702,7 +17915,15 @@ begin
       end;
     exit;
     end;
-  {$ENDIF}  
+  {$ENDIF}
+  if (ResolvedEl.BaseType=btNil) and AllowNilDereference then
+    begin
+    // `nil^` is an untyped location at address nil - the idiom for handing an
+    // untyped var parameter "no buffer at all".
+    SetResolverIdentifier(ResolvedEl,btUntyped,nil,nil,nil,[rrfReadable,rrfWritable]);
+    ResolvedEl.ExprEl:=El;
+    exit;
+    end;
   RaiseMsg(20180422191139,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
     [OpcodeStrings[eopDeref],GetResolverResultDescription(ResolvedEl)],El);
 end;
@@ -25772,6 +25993,38 @@ begin
   Result:=False;
 end;
 
+function TPasResolver.TypeCastKeepsLValue(ToLoType: TPasType;
+  const FromRes: TPasResolverResult): Boolean;
+begin
+  // Default fcl-passrc policy: only the same-size ordinal rule applies.
+  Result:=False;
+  if ToLoType=nil then ;
+  if FromRes.BaseType=btNone then ;
+end;
+
+function TPasResolver.WideStringMatchesUnicodeString(BtA,
+  BtB: TResolverBaseType): Boolean;
+begin
+  // Default fcl-passrc policy: the two are separate types.
+  Result:=False;
+  if BtA=BtB then ;
+end;
+
+function TPasResolver.AllowNilDereference: Boolean;
+begin
+  // Default fcl-passrc policy: `nil^` is an error.
+  Result:=False;
+end;
+
+function TPasResolver.AllowTypeQualifiedInstanceField(Found: TPasElement;
+  PosEl: TPasElement): Boolean;
+begin
+  // Default fcl-passrc policy: an instance member always needs an instance.
+  Result:=False;
+  if Found=nil then ;
+  if PosEl=nil then ;
+end;
+
 function TPasResolver.UseTentativeImplicitSpecMatch: Boolean;
 begin
   // Default fcl-passrc policy: score implicit-spec candidates with the full type
@@ -26473,6 +26726,8 @@ begin
       // nested type: ok
     else if FindData.Found is TPasEnumValue then
       // e.g. enumtype.enumvalue: ok
+    else if AllowTypeQualifiedInstanceField(FindData.Found,FindData.ErrorPosEl) then
+      // e.g. High(TRec.field): ok
     else
       begin
       RaiseMsg(20170216152348,nInstanceMemberXInaccessible,
@@ -29035,9 +29290,46 @@ end;
 function TPasResolver.CheckProcOverloadCompatibility(Proc1, Proc2: TPasProcedure): boolean;
 // returns if number and type of arguments fit
 // does not check calling convention
+
+  function SameSignatureArg(Arg1, Arg2: TPasArgument): boolean;
+  // Two spellings of the SAME type are one signature, not two: an implementation
+  // may write an argument differently from its forward (iconvenc_dyn declares
+  // `var error: AnsiString` and implements `var error: string`), and ppcx64
+  // equally rejects two overloads differing only that way as a duplicate.
+  // AnsiString vs RawByteString also ranks cAliasExact, but those two are
+  // DISTINCT types (different static codepage) that ppcx64 does let overload —
+  // our own system unit's GetDir relies on it — so they are excluded here.
+  var
+    Comp: Integer;
+    Res1, Res2: TPasResolverResult;
+  begin
+    Comp:=CheckProcArgCompatibility(Arg1,Arg2);
+    if Comp=cExact then exit(true);
+    // cGenericExact is deliberately NOT accepted: `T` and `array of T` rank that
+    // way against each other and ARE two distinct overloads (tgenfunc23).
+    if Comp<>cAliasExact then exit(false);
+    ComputeElement(Arg1.ArgType,Res1,[rcType]);
+    ComputeElement(Arg2.ArgType,Res2,[rcType]);
+    // Only the STRING/CHAR aliases collapse. Extended also ranks cAliasExact
+    // because this target has no 80-bit type and aliases it to Double, but on
+    // real x86_64 FPC the two ARE distinct and do overload (tover4).
+    if not (Res1.BaseType in btAllStringAndChars)
+        or not (Res2.BaseType in btAllStringAndChars) then
+      exit(false);
+    Result:=true;
+    {$ifdef FPC_HAS_CPSTRING}
+    // AnsiString vs RawByteString differ in static codepage: distinct types that
+    // ppcx64 does let overload — our own system unit's GetDir relies on it.
+    if (Res1.BaseType in [btAnsiString,btRawByteString])
+        and (Res2.BaseType in [btAnsiString,btRawByteString])
+        and (Res1.BaseType<>Res2.BaseType) then
+      Result:=false;
+    {$endif}
+  end;
+
 var
   ProcArgs1, ProcArgs2, TemplTypes1, TemplTypes2: TFPList;
-  i, Comp: Integer;
+  i: Integer;
   ResultResolved1, ResultResolved2: TPasResolverResult;
 begin
   Result:=false;
@@ -29070,8 +29362,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CheckProcOverloadCompatibility ',i,'/',ProcArgs1.Count);
     {$ENDIF}
-    Comp:=CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i]));
-    if Comp>cExact then
+    if not SameSignatureArg(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
       exit;
     end;
   // Conversion operators (Implicit/Explicit) overload on their result type in
@@ -29184,7 +29475,7 @@ begin
     {$ENDIF}
     ExpectedArg:=TPasArgument(ProcArgs1[i]);
     ActualArg:=TPasArgument(ProcArgs2[i]);
-    if CheckProcArgCompatibility(ExpectedArg,ActualArg)>cGenericExact then
+    if not ProcArgsMatchForSignature(ExpectedArg,ActualArg) then
       begin
       if RaiseOnIncompatible then
         begin
@@ -29203,7 +29494,16 @@ begin
     begin
     ResultType1:=TPasFunctionType(Proc1).ResultEl.ResultType;
     ResultType2:=TPasFunctionType(Proc2).ResultEl.ResultType;
-    if CheckElTypeCompatibility(ResultType1,ResultType2,prraSimple)>cGenericExact then
+    // cAliasExact is "the same actual type under another name" - $H+ String vs
+    // AnsiString, or two AnsiString-family types differing only in codepage. An
+    // override may restate its result that way, and rtl-objpas' rtti.pp and
+    // fcl-base's streamex both do (`function ToString: String; override;` over
+    // TObject.ToString).
+    // A WideString result stands in for a UnicodeString one and back, for the
+    // same reason as the parameters above (fpwidestring.pp's UpperUnicodeString
+    // fills the manager's UpperWideStringProc slot).
+    if (CheckElTypeCompatibility(ResultType1,ResultType2,prraSimple)>cAliasExact)
+        and not TypesMatchAsWideVsUnicodeString(ResultType1,ResultType2) then
       begin
       if RaiseOnIncompatible then
         RaiseIncompatibleType(20170402112648,nResultTypeMismatchExpectedButFound,
@@ -29226,6 +29526,38 @@ begin
   Result:=CheckElTypeCompatibility(Arg1.ArgType,Arg2.ArgType,prraSimple);
 end;
 
+function TPasResolver.TypesMatchAsWideVsUnicodeString(T1, T2: TPasType
+  ): boolean;
+// True when the two types are the WideString/UnicodeString pair on a target that
+// stores them identically. See ProcArgsMatchForSignature for why this is kept
+// out of the general compatibility ranking.
+var
+  Res1, Res2: TPasResolverResult;
+begin
+  Result:=false;
+  if (T1=nil) or (T2=nil) then exit;
+  ComputeElement(T1,Res1,[rcType]);
+  ComputeElement(T2,Res2,[rcType]);
+  Result:=WideStringMatchesUnicodeString(Res1.BaseType,Res2.BaseType);
+end;
+
+function TPasResolver.ProcArgsMatchForSignature(Arg1, Arg2: TPasArgument
+  ): boolean;
+// Whether two parameters are the same for PROCEDURE-TYPE compatibility. Beyond
+// an exact match this accepts a WideString against a UnicodeString, which off
+// Windows share one storage type: rtl/objpas/fpwidestring.pp installs its
+// Unicode2AnsiMove(...,var UnicodeString,...) into the widestring manager's
+// Wide2AnsiMoveProc(...,var WideString,...) field.
+// Deliberately NOT folded into CheckProcArgCompatibility: that one also decides
+// overload IDENTITY, and ppcx64 lets a WideString and a UnicodeString routine
+// overload each other (tcpstr22), so there they must stay different.
+begin
+  Result:=CheckProcArgCompatibility(Arg1,Arg2)<=cGenericExact;
+  if Result then exit;
+  if Arg1.Access<>Arg2.Access then exit;
+  Result:=TypesMatchAsWideVsUnicodeString(Arg1.ArgType,Arg2.ArgType);
+end;
+
 function TPasResolver.CheckElTypeCompatibility(Arg1, Arg2: TPasType;
   ResolveAlias: TPRResolveAlias): integer;
 var
@@ -29236,6 +29568,7 @@ var
   Templates1, Templates2, ProcArgs1, ProcArgs2: TFPList;
   i: Integer;
   Proc1, Proc2: TPasProcedureType;
+  Ptr1, Ptr2: TPasPointerType;
 begin
   if Arg1=Arg2 then exit(cExact);
   ComputeElement(Arg1,Arg1Resolved,[rcType]);
@@ -29359,6 +29692,26 @@ begin
       Result:=CheckElTypeCompatibility(GetArrayElType(Arr1),GetArrayElType(Arr2),ResolveAlias);
       exit;
       end
+    else if C=TPasPointerType then
+      begin
+      // Two pointer types are one signature when they point at the same type —
+      // exactly as the array case above compares element types. PWideChar and
+      // PUnicodeChar are two separate declarations of ^WideChar (UnicodeChar is
+      // an alias of WideChar), and FPC accepts either for the other in a
+      // procedure signature: rtl/objpas/fpwidestring.pp assigns its
+      // Unicode2AnsiMove(PUnicodeChar,...) to a Wide2AnsiMoveProc(PWideChar,...)
+      // field of the widestring manager.
+      Ptr1:=TPasPointerType(Arg1Resolved.LoTypeEl);
+      Ptr2:=TPasPointerType(Arg2Resolved.LoTypeEl);
+      if (Ptr1.DestType=nil) or (Ptr2.DestType=nil) then
+        begin
+        if Ptr1.DestType=Ptr2.DestType then
+          exit(cExact);  // two forward pointers, both still unresolved
+        exit(cIncompatible);
+        end;
+      Result:=CheckElTypeCompatibility(Ptr1.DestType,Ptr2.DestType,ResolveAlias);
+      exit;
+      end
     else if (C.InheritsFrom(TPasProcedureType))
         and not (msDelphi in CurrentParser.CurrentModeswitches) then
       begin
@@ -29380,8 +29733,7 @@ begin
         exit(cIncompatible);
       for i:=0 to ProcArgs1.Count-1 do
         begin
-        Result:=CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i]));
-        if Result>cGenericExact then
+        if not ProcArgsMatchForSignature(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
           exit(cIncompatible);
         end;
       exit(cExact);
@@ -30973,7 +31325,13 @@ begin
     and (ResolvedEl.BaseType in btAllChars)
     and (ResolvedEl.ExprEl is TParamsExpr)
     and (TParamsExpr(ResolvedEl.ExprEl).Kind=pekArrayParams)
-    and (ResolvedEl.IdentEl<>nil);
+    and ((ResolvedEl.IdentEl<>nil)
+      // Indexing through a DEREFERENCE carries no IdentEl (a deref result never
+      // does), but `sp^[i]` is just as writable a character slot as `s[i]`.
+      // lnfodwrf appends to a PShortstring with
+      // `Move(bufp^, sp^[1 + length(sp^)], nmove)`.
+      or ((TParamsExpr(ResolvedEl.ExprEl).Value is TUnaryExpr)
+        and (TUnaryExpr(TParamsExpr(ResolvedEl.ExprEl).Value).OpCode=eopDeref)));
 end;
 
 function TPasResolver.ResolvedElIsClassOrRecordInstance(
@@ -31596,12 +31954,13 @@ begin
         EnclEl:=Expr;
         while (EnclEl<>nil) and not (EnclEl is TPasProcedure) do
           EnclEl:=EnclEl.Parent;
-        // Compare BASE names (strip any "<...>" specialization suffix) so this works
-        // inside a specialized generic function body too.
+        // Compare BASE names: the enclosing name may carry a "<...>"
+        // specialization suffix AND, for a METHOD, its qualifying type
+        // ("TEReader.ReadUHalf"), which a plain compare missed - so a method
+        // could not pass its own name to a var parameter at all. lnfodwrf does
+        // `ReadNext(ReadUHalf, sizeof(ReadUHalf))`.
         if (EnclEl is TPasFunction)
-            and SameText(
-              Copy(TPasFunction(EnclEl).Name,1,Pos('<',TPasFunction(EnclEl).Name+'<')-1),
-              Copy(SelfProc.Name,1,Pos('<',SelfProc.Name+'<')-1)) then
+            and SameSelfRefProcName(TPasFunction(EnclEl).Name,SelfProc.Name) then
           begin
           ArgRef.Declaration:=TPasFunctionType(TPasFunction(EnclEl).ProcType).ResultEl;
           if SetReferenceFlags then
@@ -31642,6 +32001,15 @@ begin
       // but ranked BELOW an exact typed match so an overload with a specific
       // parameter type wins the tie 
       exit(cCompatible); // untyped argument
+    // WideString and UnicodeString are ONE storage type off Windows (there FPC
+    // defines FPC_WIDESTRING_EQUAL_UNICODESTRING), so either satisfies the
+    // other's var/out parameter — cwstring.pp hands a WideString to
+    // DefaultAnsi2UnicodeMove's `var UnicodeString`. They stay DISTINCT
+    // everywhere else: ppcx64 keeps separate type helpers for the two (tthlp3)
+    // and lets them overload each other (tcpstr22), which is why this must not
+    // be widened into GetActualBaseType.
+    if WideStringMatchesUnicodeString(ParamResolved.BaseType,ExprResolved.BaseType) then
+      exit(cExact);
     if GetActualBaseType(ParamResolved.BaseType)=GetActualBaseType(ExprResolved.BaseType) then
       begin
       // Two `File`/`Text` types with matching element type are the same type for a
@@ -33085,7 +33453,10 @@ begin
     else if (C=TPasEnumType)
         or (C=TPasRangeType) then
       begin
-      if CheckIsOrdinal(FromResolved,ErrorEl,true) then
+      // Honour RaiseOnError: a caller PROBING compatibility (a descendant that
+      // adds cast rules of its own, an overload scorer) must get cIncompatible
+      // back, not an exception raised from under it.
+      if CheckIsOrdinal(FromResolved,ErrorEl,RaiseOnError) then
         Result:=cExact;
       end
     else if C=TPasSetType then
@@ -33635,7 +34006,27 @@ begin
       pekIdent,pekSelf:
         begin
         if not (El.CustomData is TResolvedReference) then
+          begin
+          // A member of a still-unbound template type (`T(Dest^)._Release` in
+          // rtl/objpas/fgl.pp): ResolveSubIdent deliberately left it unresolved
+          // because only specialization can say what T has. Yield the template
+          // type itself so the enclosing expression stays deferred too, instead
+          // of reporting the member as not-yet-implemented.
+          if (El.Parent is TBinaryExpr)
+              and (TBinaryExpr(El.Parent).OpCode=eopSubIdent)
+              and (TBinaryExpr(El.Parent).right=El) then
+            begin
+            ComputeElement(TBinaryExpr(El.Parent).left,ResolvedEl,Flags,StartEl);
+            if IsGenericTemplType(ResolvedEl) then
+              begin
+              ResolvedEl.IdentEl:=nil;
+              ResolvedEl.ExprEl:=TPasExpr(El);
+              exit;
+              end;
+            ResolvedEl:=Default(TPasResolverResult);
+            end;
           RaiseNotYetImplemented(20160922163658,El,'Value="'+TPrimitiveExpr(El).Value+'" CustomData='+GetObjName(El.CustomData)+' '+GetElementSourcePosStr(El));
+          end;
         ComputeIdentifier(TPrimitiveExpr(El));
         end;
       pekNumber:
@@ -35441,6 +35832,29 @@ begin
   if SpecializedItems=nil then exit;
   for i:=0 to SpecializedItems.Count-1 do
     SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
+end;
+
+procedure TPasResolver.CheckPendingForwardTypes(El: TPasElement);
+// The ObjFPC half of the forward-TYPE check deferred by FinishTypeSectionEl: by
+// now every type section of this declaration section has been seen. Unlike the
+// forward-PROC check this also runs under interface-only resolution — a forward
+// declared in an interface has to be completed there, never in the (unparsed)
+// implementation.
+var
+  i: Integer;
+  DeclEl: TPasElement;
+begin
+  if IsElementSkipped(El) then exit;
+  if not (El is TPasDeclarations) then exit;
+  for i:=0 to TPasDeclarations(El).Declarations.Count-1 do
+    begin
+    DeclEl:=TPasElement(TPasDeclarations(El).Declarations[i]);
+    if (DeclEl.ClassType=TPasClassType)
+        and TPasClassType(DeclEl).IsForward
+        and not (TPasClassType(DeclEl).CustomData is TResolvedReference) then
+      RaiseMsg(20260813151500,nForwardTypeNotResolved,sForwardTypeNotResolved,
+        [DeclEl.Name],DeclEl);
+    end;
 end;
 
 procedure TPasResolver.CheckPendingForwardProcs(El: TPasElement);
