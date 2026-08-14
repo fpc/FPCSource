@@ -1046,7 +1046,7 @@ begin
 end;
 
 
-class function Eq(const V1,V2: Single): Boolean;inline;
+function Eq(const V1,V2: Single): Boolean;inline;
 begin
   Result:=Abs(V1-V2)<=TAlphaColorF.Epsilon;
 end;
