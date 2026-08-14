@@ -133,6 +133,9 @@ Type
     cu_grad, // gradians, full circle is 400grad
     cu_rad,  // radians, full circle is (2*pi)rad
     cu_turn, // turns, full circle is 1turn
+    // time
+    cu_s,    // seconds
+    cu_ms,   // milliseconds
     // special
     cu_fr    // fraction of flex space
     );
@@ -148,6 +151,7 @@ const
   cuAllLengths = cuAllAbsoluteLengths+cuAllViewportLengths+cuAllRelativeFontSize;
   cuAllLengthsAndPercent = cuAllLengths+[cuPercent];
   cuAllAngles = [cu_deg,cu_grad,cu_rad,cu_turn];
+  cuAllTimes = [cu_s,cu_ms];
 
   CSSUnitNames: array[TCSSUnit] of TCSSString = (
     '',     // no unit
@@ -212,6 +216,9 @@ const
     'grad', // gradians
     'rad',  // radians
     'turn', // turns
+    // time
+    'seconds',
+    'milliseconds',
     // special
     'fr'    // fraction
     );
