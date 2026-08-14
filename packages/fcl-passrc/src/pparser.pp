@@ -3388,7 +3388,18 @@ begin
   else begin
     Result:=nil;
     if Engine.NeedArrayValues(AParent) then
-      ReadArrayValues(nil)
+      begin
+      // Empty dynamic-array initializer: `a: array of T = ()`. 
+      NextToken;
+      if CurToken=tkBraceClose then
+        begin
+        Result:=CreateArrayValues(AParent);
+        NextToken;
+        Exit;
+        end;
+      UngetToken;
+      ReadArrayValues(nil);
+      end
     else
       begin
       NextToken;
