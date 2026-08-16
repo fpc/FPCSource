@@ -63,7 +63,7 @@ type
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
-    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function parse_forward_declaration(AsmData: TAsmData; sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
   end;
 
 implementation
@@ -623,7 +623,7 @@ implementation
       end;
 
 
-    function TDeclarationParser.parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function TDeclarationParser.parse_forward_declaration(AsmData: TAsmData; sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
       var
         wasforward : boolean;
         objecttype : tobjecttyp;
@@ -673,7 +673,7 @@ implementation
                of a specialization }
              gendef:=parser.pgenutil.determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
-           parser.pdecobj.object_dec(current_asmdata,objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
+           parser.pdecobj.object_dec(AsmData,objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
              (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
              compiler.verbose.Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
@@ -860,7 +860,7 @@ implementation
                    (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
-                 hdef:=parse_forward_declaration(sym,gentypename,genorgtypename,nil,generictypelist,newtype);
+                 hdef:=parse_forward_declaration(current_asmdata,sym,gentypename,genorgtypename,nil,generictypelist,newtype);
                end;
             end;
            { no old type reused ? Then insert this new type }

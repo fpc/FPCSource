@@ -98,7 +98,7 @@ uses
   { common }
   cutils,fpchash,
   { global }
-  globals,tokens,verbose,finput,constexp,compiler,parser,
+  globals,tokens,verbose,finput,constexp,compiler,parser,aasmdata,
   { symtable }
   symconst,symtable,defcmp,defutil,procinfo,
   { node }
@@ -2159,7 +2159,7 @@ uses
                     if assigned(context.forwarddef) then
                       begin
                         tsrsym:=nil;
-                        result:=parser.pdecl.parse_forward_declaration(context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
+                        result:=parser.pdecl.parse_forward_declaration(current_asmdata,context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
                         srsym:=tsrsym;
                       end
                     else
