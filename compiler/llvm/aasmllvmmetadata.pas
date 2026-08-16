@@ -152,7 +152,7 @@ interface
         afterwards) }
       procedure addemplaceitem(const item: tllvmspecialisedmetaitem);
      public
-      constructor create(aKind: tspecialisedmetadatanodekind);
+      constructor create(aKind: tspecialisedmetadatanodekind; acompiler: TCompilerBase);
       procedure addvalue(val: tai_abstracttypedconst); override; deprecated 'use addboolean/addinteger/addmetadataref/addstring/addenum';
       procedure addboolean(const aitemname: TSymStr; boolval: boolean);
       procedure addint64(const aitemname: TSymStr; intval: int64);
@@ -353,11 +353,9 @@ implementation
       inherited create(compiler.deftypes.charpointertype,tai_string.Create(enumval));
     end;
 
-  constructor tai_llvmspecialisedmetadatanode.create(aKind: tspecialisedmetadatanodekind);
-    var
-      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  constructor tai_llvmspecialisedmetadatanode.create(aKind: tspecialisedmetadatanodekind; acompiler: TCompilerBase);
     begin
-      inherited create(current_asmdata,_compiler);
+      inherited create(current_asmdata,acompiler);
       fkind:=aKind;
     end;
 

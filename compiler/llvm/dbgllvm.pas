@@ -293,17 +293,17 @@ implementation
               exception: procdefs because we cannot make typedefs for those}
             if def.typ<>procdef then
               begin
-                result^.HashSetItem.Data:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+                result^.HashSetItem.Data:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType,compiler);
 
                 if is_implicit_pointer_object_type(def) then
-                  result^.struct_metadef:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType)
+                  result^.struct_metadef:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType,compiler)
                 else
                   result^.struct_metadef:=nil;
                 result^.implmetadef:=nil;
               end
             else
               begin
-                result^.HashSetItem.Data:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubprogram);
+                result^.HashSetItem.Data:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubprogram,compiler);
                 result^.struct_metadef:=nil;
                 result^.implmetadef:=nil;
               end;
@@ -342,7 +342,7 @@ implementation
         entry:=fstaticvarsymdecl.FindOrAdd(@sym,sizeof(sym));
         if not assigned(entry^.Data) then
           begin
-            result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocalVariable);
+            result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocalVariable,compiler);
             AsmData.AsmLists[al_dwarf_info].concat(result);
             entry^.Data:=result;
             is_new:=true;
@@ -360,7 +360,7 @@ implementation
         arrayrangenode: tai_llvmunnamedmetadatanode;
       begin
         { range of the array }
-        subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange);
+        subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange,compiler);
         { include length }
         subrangenode.addqword('lowerBound',lowRange);
         if highrange>=0 then
@@ -414,7 +414,7 @@ implementation
       begin
         if assigned(def.typesym) then
           begin
-            result:=tai_llvmspecialisedmetadatanode.create(meta_kind);
+            result:=tai_llvmspecialisedmetadatanode.create(meta_kind,compiler);
             get_def_metatai(def)^.implmetadef:=result
           end
         else
@@ -502,10 +502,10 @@ implementation
             fenums:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
             fretainedtypes:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
             fglobals:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
-            femptyexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
-            fderefexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
+            femptyexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression,compiler);
+            fderefexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression,compiler);
             fderefexpression.addenum('','DW_OP_deref');
-            fcunode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompileUnit);
+            fcunode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompileUnit,compiler);
           end;
       end;
 
@@ -653,7 +653,7 @@ implementation
               end;
             if dirname='' then
               dirname:='.';
-            metaitem:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIFile);
+            metaitem:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIFile,compiler);
             metaitem.addstring('filename',infile.name);
             metaitem.addstring('directory',dirname);
             AsmData.AsmLists[al_dwarf_line].concat(metaitem);
@@ -694,7 +694,7 @@ implementation
             item:=flexicalblockfilemeta.FindOrAdd(@lexicalblockkey,sizeof(lexicalblockkey));
             if not assigned(item^.Data) then
               begin
-                locationscopemeta:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILexicalBlockFile);
+                locationscopemeta:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILexicalBlockFile,compiler);
                 locationscopemeta.addmetadatarefto('scope',functionscope);
                 locationscopemeta.addmetadatarefto('file',filemeta);
                 locationscopemeta.addint64('discriminator',0);
@@ -720,7 +720,7 @@ implementation
         item:=flocationmeta.FindOrAdd(@locationkey,sizeof(locationkey));
         if not assigned(item^.Data) then
           begin
-            result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation);
+            result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation,compiler);
             if not nolineinfo then
               begin
                 result.addqword('line',filepos.line);
@@ -761,7 +761,7 @@ implementation
         filemeta:=file_getmetanode(fileinfo.moduleindex,fileinfo.fileindex);
         if not assigned(filemeta) then
           internalerror(2022041730);
-        result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation);
+        result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation,compiler);
         result.addqword('line',fileinfo.line);
         result.addqword('column',fileinfo.column);
         result.addmetadatarefto('scope',filemeta);
@@ -902,7 +902,7 @@ implementation
               continue
             else if hp.value>def.maxval then
               break;
-            enumelem:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIEnumerator);
+            enumelem:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIEnumerator,compiler);
             enumelem.addstring('name',symname(hp, false));
             enumelem.addint64('value',hp.value);
             list.concat(enumelem);
@@ -990,10 +990,10 @@ implementation
         list.concat(arrayrangenode);
 
         { range of the array }
-        subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange);
+        subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange,compiler);
         if is_dynamic_array(def) then
           begin
-            exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
+            exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression,compiler);
             exprnode.addenum('','DW_OP_push_object_address');
             exprnode.addenum('','DW_OP_constu');
             exprnode.addint64('',ord(sizeof(pint)));
@@ -1014,7 +1014,7 @@ implementation
         while (nesteddef.typ=arraydef) and
               not is_special_array(nesteddef) do
           begin
-            subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange);
+            subrangenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubrange,compiler);
             subrangenode.addqword('count',tarraydef(nesteddef).highrange-tarraydef(nesteddef).lowrange+1);
             subrangenode.addint64('lowerBound',tarraydef(nesteddef).lowrange);
             list.concat(subrangenode);
@@ -1040,7 +1040,7 @@ implementation
             dinode.addqword('size',def.size*8)
         else
           begin
-            exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
+            exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression,compiler);
             exprnode.addenum('','DW_OP_LLVM_implicit_pointer');
             list.concat(exprnode);
             dinode.addmetadatarefto('dataLocation',exprnode);
@@ -1211,9 +1211,9 @@ implementation
                    (pvariantinfo(variantinfolist[varindex])^.startfield.fieldoffset<field.fieldoffset) then
                   begin
                     { more deeply nested variant }
-                    uniondi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType);
+                    uniondi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType,compiler);
 
-                    fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+                    fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType,compiler);
                     fielddi.addenum('tag','DW_TAG_member');
                     fielddi.addmetadatarefto('scope',scope);
                     try_add_file_metaref(fielddi,field.fileinfo,false);
@@ -1283,7 +1283,7 @@ implementation
                   end
                 else
                   begin
-                    structdi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType);
+                    structdi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType,compiler);
                     list.concat(structdi);
                     structdi.addenum('tag','DW_TAG_structure_type');
                     structdi.addmetadatarefto('scope',variantinfo^.uniondi);
@@ -1298,7 +1298,7 @@ implementation
                   end;
               end;
 
-            fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+            fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType,compiler);
             fielddi.addenum('tag','DW_TAG_member');
             fielddi.addstring('name',symname(field,false));
             fielddi.addmetadatarefto('scope',scope);
@@ -1473,7 +1473,7 @@ implementation
         fields:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         if assigned(def.childof) then
           begin
-            inheritancedi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+            inheritancedi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType,compiler);
             list.concat(inheritancedi);
             inheritancedi.addenum('tag','DW_TAG_inheritance');
             if is_implicit_pointer_object_type(def) then
@@ -1596,7 +1596,7 @@ implementation
               a pointer to the actual struct) }
 
             { implicit pointer }
-            tempdinode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+            tempdinode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType,compiler);
             refdinode.addenum('tag','DW_TAG_pointer_type');
             refdinode.addmetadatarefto('baseType',tempdinode);
             list.concat(refdinode);
@@ -1772,7 +1772,7 @@ implementation
         adddiflags(dinode,in_currentunit);
 
         dinode.addmetadatarefto('unit',fcunode);
-        ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType);
+        ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType,compiler);
         ditypenode.addmetadatarefto('types',getabstractprocdeftypes(list,def));
         list.concat(ditypenode);
         dinode.addmetadatarefto('type',ditypenode);
@@ -2233,10 +2233,10 @@ implementation
             list.concat(tai_comment.create(strpnew('no declaration found for '+sym.mangledname)));
             exit;
           end;
-        globalvar:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIGlobalVariable);
+        globalvar:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIGlobalVariable,compiler);
         list.concat(globalvar);
 
-        globalvarexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIGlobalVariableExpression);
+        globalvarexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIGlobalVariableExpression,compiler);
         globalvarexpression.addmetadatarefto('var',globalvar);
         globalvarexpression.addmetadatarefto('expr',femptyexpression);
         list.concat(globalvarexpression);
