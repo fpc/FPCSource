@@ -58,7 +58,7 @@ interface
 
     procedure read_var_decls(AsmData: TAsmData; options:Tvar_dec_options;out had_generic:boolean);
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+    procedure read_record_fields(AsmData: TAsmData; options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -1752,7 +1752,7 @@ implementation
       end;
 
 
-    procedure TVariableDeclarationsParser.read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+    procedure TVariableDeclarationsParser.read_record_fields(AsmData: TAsmData; options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -2025,7 +2025,7 @@ implementation
                      if vd_threadvar in options then
                        include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parser.pbase.parse_generic then
-                       compiler.nodeutils.insertbssdata(current_asmdata,hstaticvs);
+                       compiler.nodeutils.insertbssdata(AsmData,hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;
@@ -2151,7 +2151,7 @@ implementation
                 parser.pbase.consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if current_scanner.token<>_RKLAMMER then
-                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
+                  read_record_fields(AsmData,[vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
                 dec(variantrecordlevel);
                 parser.pbase.consume(_RKLAMMER);
 

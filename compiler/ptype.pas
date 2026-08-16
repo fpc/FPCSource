@@ -86,7 +86,7 @@ implementation
        cutils,
        { global }
        globals,tokens,verbose,constexp,
-       systems,compiler,
+       systems,compiler,aasmdata,
        { symtable }
        symconst,symsym,symtable,symcreat,
        defutil,defcmp,
@@ -924,7 +924,7 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=compiler.current_structdef.symtable.SymList.Count;
-                                parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(current_asmdata,vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -1181,7 +1181,7 @@ implementation
            end
          else
            begin
-             parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
+             parser.pdecvar.read_record_fields(current_asmdata,[vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(compiler.current_structdef));

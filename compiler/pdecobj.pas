@@ -73,7 +73,7 @@ implementation
     uses
       sysutils,cutils,
       globals,verbose,systems,tokens,
-      compiler,
+      compiler,aasmdata,
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
@@ -1424,7 +1424,7 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                parser.pdecvar.read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(current_asmdata,vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
