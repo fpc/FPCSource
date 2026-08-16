@@ -1312,7 +1312,7 @@ implementation
     { the top symbol table of symtablestack         }
       begin
         parser.pbase.consume(_VAR);
-        parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
+        parser.pdecvar.read_var_decls(current_asmdata,[vd_check_generic],had_generic);
       end;
 
 
@@ -1342,11 +1342,11 @@ implementation
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           compiler.verbose.Message(parser_e_threadvars_only_sg);
         if f_threading in compiler.globals.features then
-          parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
+          parser.pdecvar.read_var_decls(current_asmdata,[vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             compiler.verbose.Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
+            parser.pdecvar.read_var_decls(current_asmdata,[vd_check_generic],had_generic);
           end;
       end;
 
