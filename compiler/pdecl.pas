@@ -57,7 +57,7 @@ type
     procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec(AsmData: TAsmData);
     procedure type_dec(out had_generic:boolean);
-    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
+    procedure types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
     procedure var_dec(out had_generic:boolean);
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
@@ -732,7 +732,7 @@ implementation
           include(pd.procoptions,po_objc_related_result_type);
       end;
 
-    procedure TDeclarationParser.types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
+    procedure TDeclarationParser.types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
       procedure finalize_class_external_status(od: tobjectdef);
         begin
@@ -860,7 +860,7 @@ implementation
                    (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
-                 hdef:=parse_forward_declaration(current_asmdata,sym,gentypename,genorgtypename,nil,generictypelist,newtype);
+                 hdef:=parse_forward_declaration(AsmData,sym,gentypename,genorgtypename,nil,generictypelist,newtype);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -1301,7 +1301,7 @@ implementation
       begin
         parser.pbase.consume(_TYPE);
         rtti_attrs_def := nil;
-        types_dec(false,had_generic,rtti_attrs_def);
+        types_dec(current_asmdata,false,had_generic,rtti_attrs_def);
         rtti_attrs_def.free;
         rtti_attrs_def := nil;
       end;

@@ -1258,7 +1258,7 @@ implementation
                 if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in compiler.globals.current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
-                    parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
+                    parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def);
                   end
                 else
                   { expect at least one type declaration }
@@ -1459,7 +1459,7 @@ implementation
                         else if object_member_blocktype=bt_type then
                           begin
                           check_unbound_attributes;
-                          parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def)
                           end
                         else if object_member_blocktype=bt_const then
                           begin
