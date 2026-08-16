@@ -182,7 +182,7 @@ interface
       bind: tasmsymbind;
       oldsym, newsym: TAsmSymbol;
       def: tdef;
-      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
+      constructor create(AsmData: TAsmData; _oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
     end;
 
     taillvmdeclflag =
@@ -327,12 +327,12 @@ implementation
 
     { taillvmalias }
 
-    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
+    constructor taillvmalias.create(AsmData: TAsmData; _oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
       begin
         inherited Create;
         typ:=ait_llvmalias;
         oldsym:=_oldsym;
-        newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION,_def);
+        newsym:=AsmData.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION,_def);
         newsym.declared:=true;
         def:=_def;
         { alias cannot be external }

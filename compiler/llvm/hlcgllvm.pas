@@ -221,7 +221,7 @@ implementation
         while assigned(item) do
           begin
             if mangledname<>item.Str then
-              list.concat(taillvmalias.create(asmsym,item.str,compiler.current_procinfo.procdef,asmsym.bind));
+              list.concat(taillvmalias.create(list.AsmData,asmsym,item.str,compiler.current_procinfo.procdef,asmsym.bind));
             item:=TCmdStrListItem(item.next);
           end;
         list.concat(taillvmdecl.createdef(asmsym,compiler.current_procinfo.procdef.procsym,compiler.current_procinfo.procdef,nil,sec_code,compiler.current_procinfo.procdef.alignment));
@@ -2351,7 +2351,7 @@ implementation
       if po_external in procdef.procoptions then
         exit;
       asmsym:=list.AsmData.RefAsmSymbol(externalname,AT_FUNCTION);
-      list.concat(taillvmalias.create(asmsym,wrappername,procdef,asmsym.bind));
+      list.concat(taillvmalias.create(list.AsmData,asmsym,wrappername,procdef,asmsym.bind));
     end;
 
 
