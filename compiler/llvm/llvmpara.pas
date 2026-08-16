@@ -57,7 +57,7 @@ unit llvmpara;
        private
         procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(AsmData: TAsmData; p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
-        procedure add_llvm_callee_paraloc_names(p: tabstractprocdef);
+        procedure add_llvm_callee_paraloc_names(AsmData: TAsmData; p: tabstractprocdef);
         procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
         procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
@@ -296,7 +296,7 @@ unit llvmpara;
         locations }
       if (side=calleeside) then
         begin
-          add_llvm_callee_paraloc_names(p);
+          add_llvm_callee_paraloc_names(current_asmdata,p);
           reduceparalocs(p,side,p.paras);
         end
       else if side=callerside then
@@ -330,7 +330,7 @@ unit llvmpara;
     end;
 
 
-  procedure tllvmparamanager.add_llvm_callee_paraloc_names(p: tabstractprocdef);
+  procedure tllvmparamanager.add_llvm_callee_paraloc_names(AsmData: TAsmData; p: tabstractprocdef);
     var
       paranr: longint;
       hp: tparavarsym;
@@ -338,7 +338,7 @@ unit llvmpara;
       for paranr:=0 to p.paras.count-1 do
         begin
           hp:=tparavarsym(p.paras[paranr]);
-          set_llvm_paraloc_name(current_asmdata,p,hp,hp.paraloc[calleeside]);
+          set_llvm_paraloc_name(AsmData,p,hp,hp.paraloc[calleeside]);
         end;
     end;
 
