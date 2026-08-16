@@ -1472,7 +1472,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in compiler.globals.current_settings.localswitches;
                                 compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_typed_const_writable];
                               end;
-                            parser.pdecl.consts_dec(true,not is_javainterface(compiler.current_structdef),hadgeneric);
+                            parser.pdecl.consts_dec(AsmData,true,not is_javainterface(compiler.current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_typed_const_writable];

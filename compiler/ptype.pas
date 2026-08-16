@@ -953,7 +953,7 @@ implementation
                         else if member_blocktype=bt_type then
                           parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                         else if member_blocktype=bt_const then
-                          parser.pdecl.consts_dec(true,true,hadgeneric)
+                          parser.pdecl.consts_dec(current_asmdata,true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;

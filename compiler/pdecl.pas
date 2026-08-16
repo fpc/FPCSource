@@ -34,7 +34,7 @@ interface
       { symtable }
       symbase,symsym,symdef,symtype,
       { pass_1 }
-      node;
+      node,aasmdata;
 
 type
   TDeclarationParser = class
@@ -54,7 +54,7 @@ type
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
     procedure const_dec(out had_generic:boolean);
-    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
+    procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
     procedure type_dec(out had_generic:boolean);
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
@@ -74,7 +74,7 @@ implementation
        cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
-       systems,aasmdata,fmodule,compinnr,
+       systems,fmodule,compinnr,
        compiler,
        { symtable }
        symconst,symcpu,symcreat,defutil,defcmp,symtable,symutil,
@@ -256,10 +256,10 @@ implementation
     procedure TDeclarationParser.const_dec(out had_generic:boolean);
       begin
         parser.pbase.consume(_CONST);
-        consts_dec(false,true,had_generic);
+        consts_dec(current_asmdata,false,true,had_generic);
       end;
 
-    procedure TDeclarationParser.consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
+    procedure TDeclarationParser.consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -312,7 +312,7 @@ implementation
                        if (compiler.symtablestack.top.symtablelevel<normal_function_level) and
                           assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
-                         jvm_add_typed_const_initializer(current_asmdata,tconstsym(sym));
+                         jvm_add_typed_const_initializer(AsmData,tconstsym(sym));
 {$endif}
                      end
                    else
@@ -395,7 +395,7 @@ implementation
                     begin
                       parser.pbase.consume(_EQ);
                       maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner,compiler.target);
-                      parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
+                      parser.ptconst.read_typed_const(AsmData.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
