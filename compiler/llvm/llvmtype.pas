@@ -235,7 +235,7 @@ implementation
     constructor TLLVMTypeInfo.Create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
-        asmsymtypes:=THashSet.Create(current_asmdata.AsmSymbolDict.Count,true,false);
+        asmsymtypes:=THashSet.Create(AAsmData.AsmSymbolDict.Count,true,false);
       end;
 
 
