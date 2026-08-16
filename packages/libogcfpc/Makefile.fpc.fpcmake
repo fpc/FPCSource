@@ -4,7 +4,7 @@
 
 [package]
 name=libogcfpc
-version=3.2.4-rc1
+version=3.2.4-rc2
 
 [target]
 units=gctypes gccore debug mp3player fat asndlib aesndlib gcmodplay iso9660 network

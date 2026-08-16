@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=3.2.4-rc1
+version=3.2.4-rc2
 
 [target]
 dirs=compiler rtl utils packages installer
