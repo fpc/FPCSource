@@ -56,7 +56,7 @@ unit llvmpara;
         function has_strict_proc_signature: boolean; override;
        private
         procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
-        procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
+        procedure set_llvm_paraloc_name(AsmData: TAsmData; p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
         procedure add_llvm_callee_paraloc_names(p: tabstractprocdef);
         procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
         procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
@@ -309,7 +309,7 @@ unit llvmpara;
   { hp non-nil: parasym to check
     hp nil: function result
   }
-  procedure tllvmparamanager.set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
+  procedure tllvmparamanager.set_llvm_paraloc_name(AsmData: TAsmData; p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
     var
       paraloc: PCGParaLocation;
       paralocnr: longint;
@@ -318,7 +318,7 @@ unit llvmpara;
       paralocnr:=0;
       repeat
         paraloc^.llvmloc.loc:=LOC_REFERENCE;
-        paraloc^.llvmloc.sym:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_TEMP,AT_DATA,paraloc^.def);
+        paraloc^.llvmloc.sym:=AsmData.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_TEMP,AT_DATA,paraloc^.def);
         { byval: a pointer to a type that should actually be passed by
             value (e.g. a record that should be passed on the stack) }
         paraloc^.llvmvalueloc:=
@@ -338,7 +338,7 @@ unit llvmpara;
       for paranr:=0 to p.paras.count-1 do
         begin
           hp:=tparavarsym(p.paras[paranr]);
-          set_llvm_paraloc_name(p,hp,hp.paraloc[calleeside]);
+          set_llvm_paraloc_name(current_asmdata,p,hp,hp.paraloc[calleeside]);
         end;
     end;
 
