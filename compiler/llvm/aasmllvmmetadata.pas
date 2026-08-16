@@ -29,7 +29,7 @@ interface
   uses
     globtype,cclasses,
     cgbase,
-    aasmtai,aasmcnst,
+    aasmtai,aasmcnst,aasmdata,
     symtype,
     compilerbase;
 
@@ -79,7 +79,7 @@ interface
     (* !0 = !{ type1 value1, ... } *)
     tai_llvmunnamedmetadatanode = class(tai_llvmbasemetadatanode)
      strict private
-      class function getnextid: cardinal;
+      class function getnextid(AsmData: TAsmData): cardinal;
      strict protected
       fnameval: cardinal;
      public
@@ -200,7 +200,7 @@ implementation
     fmodule,
     symdef,
     dbgdwarfconst,
-    aasmdata,aasmllvm,
+    aasmllvm,
     compiler;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
@@ -244,10 +244,10 @@ implementation
     end;
 
 
-  class function tai_llvmunnamedmetadatanode.getnextid: cardinal;
+  class function tai_llvmunnamedmetadatanode.getnextid(AsmData: TAsmData): cardinal;
     begin
-      result:=tllvmasmdata(current_asmdata).fnextmetaid;
-      inc(tllvmasmdata(current_asmdata).fnextmetaid);
+      result:=tllvmasmdata(AsmData).fnextmetaid;
+      inc(tllvmasmdata(AsmData).fnextmetaid);
     end;
 
 
@@ -260,7 +260,7 @@ implementation
   constructor tai_llvmunnamedmetadatanode.create;
     begin
       inherited;
-      fnameval:=getnextid;
+      fnameval:=getnextid(current_asmdata);
     end;
 
 
