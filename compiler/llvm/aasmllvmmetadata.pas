@@ -83,7 +83,7 @@ interface
      strict protected
       fnameval: cardinal;
      public
-      constructor create; reintroduce;
+      constructor create(AsmData: TAsmData; acompiler: TCompilerBase); reintroduce;
       function getname: ansistring; override;
     end;
 
@@ -257,10 +257,10 @@ implementation
     end;
 
 
-  constructor tai_llvmunnamedmetadatanode.create;
+  constructor tai_llvmunnamedmetadatanode.create(AsmData: TAsmData; acompiler: TCompilerBase);
     begin
-      inherited;
-      fnameval:=getnextid(current_asmdata);
+      inherited Create(acompiler);
+      fnameval:=getnextid(AsmData);
     end;
 
 
@@ -354,8 +354,10 @@ implementation
     end;
 
   constructor tai_llvmspecialisedmetadatanode.create(aKind: tspecialisedmetadatanodekind);
+    var
+      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      inherited create;
+      inherited create(current_asmdata,_compiler);
       fkind:=aKind;
     end;
 

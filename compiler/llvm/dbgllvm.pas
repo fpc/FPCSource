@@ -369,7 +369,7 @@ implementation
           subrangenode.addint64('count',highRange+1);
         list.concat(subrangenode);
         { collection containing the one range }
-        arrayrangenode:=tai_llvmunnamedmetadatanode.create;
+        arrayrangenode:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         arrayrangenode.addvalue(llvm_getmetadatareftypedconst(subrangenode));
         list.concat(arrayrangenode);
         { the array definition }
@@ -386,7 +386,7 @@ implementation
         types: tai_llvmunnamedmetadatanode;
         i: longint;
       begin
-        types:=tai_llvmunnamedmetadatanode.create;
+        types:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         list.concat(types);
         result:=types;
         { we still need a DISubProgramType in this case, but not the list of types }
@@ -499,9 +499,9 @@ implementation
           fllvm_dbg_addr_pd:=search_system_proc('llvm_dbg_addr');
         if not assigned(fenums) then
           begin
-            fenums:=tai_llvmunnamedmetadatanode.create;
-            fretainedtypes:=tai_llvmunnamedmetadatanode.create;
-            fglobals:=tai_llvmunnamedmetadatanode.create;
+            fenums:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
+            fretainedtypes:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
+            fglobals:=tai_llvmunnamedmetadatanode.create(AsmData,compiler);
             femptyexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
             fderefexpression:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
             fderefexpression.addenum('','DW_OP_deref');
@@ -893,7 +893,7 @@ implementation
           emitted even if the enum is not used in the current module) }
         fenums.addvalue(llvm_getmetadatareftypedconst(dinode));
 
-        enumlist:=tai_llvmunnamedmetadatanode.create;
+        enumlist:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         { add enum symbols }
         for i:=0 to def.symtable.SymList.Count-1 do
           begin
@@ -986,7 +986,7 @@ implementation
           end;
 
         { collection of all ranges of the array (to support multi-dimensional arrays) }
-        arrayrangenode:=tai_llvmunnamedmetadatanode.create;
+        arrayrangenode:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         list.concat(arrayrangenode);
 
         { range of the array }
@@ -1065,7 +1065,7 @@ implementation
         dinode:=def_set_meta_impl(fordef,tspecialisedmetadatanodekind.DICompositeType);
         list.concat(dinode);
         dinode.addenum('tag','DW_TAG_structure_type');
-        appenddef_struct_named(list,def,dinode,tai_llvmunnamedmetadatanode.create,name);
+        appenddef_struct_named(list,def,dinode,tai_llvmunnamedmetadatanode.create(list.AsmData,compiler),name);
       end;
 
 
@@ -1234,7 +1234,7 @@ implementation
                       in case of multiple parallel nested variants, but not
                       really important since it's all padding anyway }
                     uniondi.addint64('size',cappedsize-min(field.bitoffset,cappedsize));
-                    fieldlist:=tai_llvmunnamedmetadatanode.create;
+                    fieldlist:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
                     list.concat(fieldlist);
                     uniondi.addmetadatarefto('elements',fieldlist);
 
@@ -1288,7 +1288,7 @@ implementation
                     structdi.addenum('tag','DW_TAG_structure_type');
                     structdi.addmetadatarefto('scope',variantinfo^.uniondi);
                     structdi.addint64('size',cappedsize-min(field.bitoffset,cappedsize));
-                    variantinfo^.curvariantstructfieldlist:=tai_llvmunnamedmetadatanode.create;
+                    variantinfo^.curvariantstructfieldlist:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
                     list.concat(variantinfo^.curvariantstructfieldlist);
                     structdi.addmetadatarefto('elements',variantinfo^.curvariantstructfieldlist);
                     fieldlist.addvalue(llvm_getmetadatareftypedconst(structdi));
@@ -1470,7 +1470,7 @@ implementation
         fields: tai_llvmunnamedmetadatanode;
       begin
         inheritancedi:=nil;
-        fields:=tai_llvmunnamedmetadatanode.create;
+        fields:=tai_llvmunnamedmetadatanode.create(list.AsmData,compiler);
         if assigned(def.childof) then
           begin
             inheritancedi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
