@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,compilerbase,
-      globtype,symconst,symtype,symdef;
+      globtype,symconst,symtype,symdef,aasmdata;
 
 type
   TObjectDeclarationsParser = class
@@ -50,7 +50,7 @@ type
     procedure parse_parent_classes;
     procedure parse_extended_type(helpertype:thelpertype);
     procedure parse_guid;
-    procedure parse_object_members;
+    procedure parse_object_members(AsmData: TAsmData);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
@@ -73,7 +73,7 @@ implementation
     uses
       sysutils,cutils,
       globals,verbose,systems,tokens,
-      compiler,aasmdata,
+      compiler,
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
@@ -1118,7 +1118,7 @@ implementation
       end;
 
 
-    procedure TObjectDeclarationsParser.parse_object_members;
+    procedure TObjectDeclarationsParser.parse_object_members(AsmData: TAsmData);
 
       var
         typedconstswritable: boolean;
@@ -1424,7 +1424,7 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                parser.pdecvar.read_record_fields(current_asmdata,vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(AsmData,vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -1780,7 +1780,7 @@ implementation
               compiler.current_objectdef.insertvmt;
 
             { parse and insert object members }
-            parse_object_members;
+            parse_object_members(current_asmdata);
 
             if assigned(olddef) then
               begin
