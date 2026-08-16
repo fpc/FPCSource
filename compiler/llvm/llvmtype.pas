@@ -747,7 +747,7 @@ implementation
         { process all llvm instructions, part of flagging all required tdefs }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
-            collect_asmlist_info(AsmData.asmlists[al_start],current_asmdata.asmlists[hal]);
+            collect_asmlist_info(AsmData.asmlists[al_start],AsmData.asmlists[hal]);
 
         { update the defs of all alias declarations so they match those of the
           declarations of the symbols they alias }
