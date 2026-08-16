@@ -55,7 +55,7 @@ unit llvmpara;
         function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara; override;
         function has_strict_proc_signature: boolean; override;
        private
-        procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
+        procedure create_paraloc_info_internllvm(AsmData: TAsmData; p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(AsmData: TAsmData; p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
         procedure add_llvm_callee_paraloc_names(AsmData: TAsmData; p: tabstractprocdef);
         procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
@@ -247,14 +247,14 @@ unit llvmpara;
   function tllvmparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
     begin
       result:=inherited;
-      create_paraloc_info_internllvm(p,side);
+      create_paraloc_info_internllvm(current_asmdata,p,side);
     end;
 
 
   function tllvmparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint;
     begin
       result:=inherited;
-      create_paraloc_info_internllvm(p,side);
+      create_paraloc_info_internllvm(current_asmdata,p,side);
       if assigned(varargspara) then
         reduceparalocs(p,side,varargspara);
     end;
@@ -288,7 +288,7 @@ unit llvmpara;
     end;
 
 
-  procedure tllvmparamanager.create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
+  procedure tllvmparamanager.create_paraloc_info_internllvm(AsmData: TAsmData; p: tabstractprocdef; side: tcallercallee);
     begin
       { on the calleeside, llvm declares the parameters similar to Pascal or C
         (a list of parameters and their types), but they correspond more
@@ -296,7 +296,7 @@ unit llvmpara;
         locations }
       if (side=calleeside) then
         begin
-          add_llvm_callee_paraloc_names(current_asmdata,p);
+          add_llvm_callee_paraloc_names(AsmData,p);
           reduceparalocs(p,side,p.paras);
         end
       else if side=callerside then
