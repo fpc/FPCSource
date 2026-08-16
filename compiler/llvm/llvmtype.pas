@@ -487,7 +487,7 @@ implementation
                  (taillvmdecl(p).def.typ=procdef) and
                  assigned(tprocdef(taillvmdecl(p).def).personality) then
                 maybe_insert_extern_sym_decl(toplevellist,
-                  current_asmdata.RefAsmSymbol(tprocdef(taillvmdecl(p).def).personality.mangledname,AT_FUNCTION,false),
+                  AsmData.RefAsmSymbol(tprocdef(taillvmdecl(p).def).personality.mangledname,AT_FUNCTION,false),
                   tprocdef(taillvmdecl(p).def).personality);
               insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
             end;
@@ -625,10 +625,10 @@ implementation
 
         { last write the types from this procdef }
         if assigned(def.parast) then
-          write_symtable_defs(current_asmdata.asmlists[al_start],def.parast);
+          write_symtable_defs(AsmData.asmlists[al_start],def.parast);
         if assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_start],def.localst);
+          write_symtable_defs(AsmData.asmlists[al_start],def.localst);
       end;
 
 
@@ -705,7 +705,7 @@ implementation
                     dbg_state_unused:
                       internalerror(2006100505);
                     dbg_state_used:
-                      appenddef(current_asmdata.asmlists[al_start],def)
+                      appenddef(AsmData.asmlists[al_start],def)
                   else
                     internalerror(200610054);
                   end;
@@ -734,33 +734,33 @@ implementation
 
         { write all global/static variables, part of flagging all required tdefs  }
         if assigned(compiler.current_module.globalsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_start],compiler.current_module.globalsymtable);
+          write_symtable_syms(AsmData.asmlists[al_start],compiler.current_module.globalsymtable);
         if assigned(compiler.current_module.localsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_start],compiler.current_module.localsymtable);
+          write_symtable_syms(AsmData.asmlists[al_start],compiler.current_module.localsymtable);
 
         { write all procedures and methods, part of flagging all required tdefs }
         if assigned(compiler.current_module.globalsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_start],compiler.current_module.globalsymtable);
+          write_symtable_procdefs(AsmData.asmlists[al_start],compiler.current_module.globalsymtable);
         if assigned(compiler.current_module.localsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_start],compiler.current_module.localsymtable);
+          write_symtable_procdefs(AsmData.asmlists[al_start],compiler.current_module.localsymtable);
 
         { process all llvm instructions, part of flagging all required tdefs }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
-            collect_asmlist_info(current_asmdata.asmlists[al_start],current_asmdata.asmlists[hal]);
+            collect_asmlist_info(AsmData.asmlists[al_start],current_asmdata.asmlists[hal]);
 
         { update the defs of all alias declarations so they match those of the
           declarations of the symbols they alias }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
-            update_asmlist_alias_types(current_asmdata.asmlists[hal]);
+            update_asmlist_alias_types(AsmData.asmlists[hal]);
 
         { and insert the necessary type conversions }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
             insert_asmlist_typeconversions(
-              current_asmdata.asmlists[hal],
-              current_asmdata.asmlists[hal]);
+              AsmData.asmlists[hal],
+              AsmData.asmlists[hal]);
 
         { write all used defs }
         write_defs_to_write;
