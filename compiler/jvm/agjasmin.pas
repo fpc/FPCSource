@@ -54,7 +54,7 @@ interface
 
         procedure WriteExtraHeader(obj: tabstractrecorddef);
         procedure WriteInstruction(hp: tai);
-        procedure NewAsmFileForStructDef(obj: tabstractrecorddef);
+        procedure NewAsmFileForStructDef(AsmData: TAsmData; obj: tabstractrecorddef);
 
         function VisibilityToStr(vis: tvisibility): ansistring;
         function MethodDefinition(pd: tprocdef): ansistring;
@@ -684,7 +684,7 @@ implementation
      end;
 
 
-   procedure TJasminAssembler.NewAsmFileForStructDef(obj: tabstractrecorddef);
+   procedure TJasminAssembler.NewAsmFileForStructDef(AsmData: TAsmData; obj: tabstractrecorddef);
       begin
         if not writer.ClearIfEmpty then
           begin
@@ -694,7 +694,7 @@ implementation
 
         AsmFileName:=obj.jvm_full_typename(false);
         AsmFileName:=Path+FixFileName(AsmFileName)+compiler.target.info.asmext;
-        writer.AsmCreate(current_asmdata,cut_normal);
+        writer.AsmCreate(AsmData,cut_normal);
       end;
 
 
@@ -1043,7 +1043,7 @@ implementation
         for i:=0 to nestedstructs.count-1 do
           begin
             obj:=tabstractrecorddef(nestedstructs[i]);
-            NewAsmFileForStructDef(obj);
+            NewAsmFileForStructDef(current_asmdata,obj);
             WriteExtraHeader(obj);
             WriteSymtableVarSyms(obj.symtable);
             writer.AsmLn;
