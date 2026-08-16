@@ -107,6 +107,7 @@ type
     function GetParaManager: TParaManager; inline;
   protected
     property Compiler: TCompilerBase read FCompiler;
+    property AsmData: TAsmData read FAsmData;
     property ParaManager: TParaManager read GetParaManager;
   public
     opr    : TOprRec;

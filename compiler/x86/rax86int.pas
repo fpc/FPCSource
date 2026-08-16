@@ -2263,13 +2263,13 @@ Unit Rax86int;
           begin
             if not (cseof_isseg in cse_out_flags) then
               compiler.verbose.Message(asmr_e_CODE_or_DATA_without_SEG);
-            oper.SetupData(AsmData);
+            oper.SetupData;
           end
         else if tempstr='@CODE' then
           begin
             if not (cseof_isseg in cse_out_flags) then
               compiler.verbose.Message(asmr_e_CODE_or_DATA_without_SEG);
-            oper.SetupCode(AsmData);
+            oper.SetupCode;
           end
         else
 {$endif i8086}

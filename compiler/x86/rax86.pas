@@ -48,9 +48,9 @@ type
     Procedure SetCorrectSize(opcode:tasmop);override;
     Function CheckOperand(ins : TInstruction): boolean; override;
     { handles the @Code symbol }
-    Procedure SetupCode(AsmData: TAsmData);
+    Procedure SetupCode;
     { handles the @Data symbol }
-    Procedure SetupData(AsmData: TAsmData);
+    Procedure SetupData;
 
     constructor create(AAsmData: TAsmData; ACompiler: TCompilerBase); override;
   end;
@@ -391,7 +391,7 @@ begin
 end;
 
 
-procedure Tx86Operand.SetupCode(AsmData: TAsmData);
+procedure Tx86Operand.SetupCode;
 begin
 {$ifdef i8086}
   opr.typ:=OPR_SYMBOL;
@@ -405,7 +405,7 @@ begin
 end;
 
 
-procedure Tx86Operand.SetupData(AsmData: TAsmData);
+procedure Tx86Operand.SetupData;
 begin
 {$ifdef i8086}
   InitRef;
