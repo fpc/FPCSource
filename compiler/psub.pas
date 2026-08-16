@@ -3188,7 +3188,7 @@ implementation
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.label_dec;
+                  parser.pdecl.label_dec(current_asmdata);
                 end;
               _CONST:
                 begin

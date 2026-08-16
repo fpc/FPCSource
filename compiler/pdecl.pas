@@ -55,7 +55,7 @@ type
 
     procedure const_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
-    procedure label_dec;
+    procedure label_dec(AsmData: TAsmData);
     procedure type_dec(out had_generic:boolean);
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
     procedure var_dec(out had_generic:boolean);
@@ -420,7 +420,7 @@ implementation
       end;
 
 
-    procedure TDeclarationParser.label_dec;
+    procedure TDeclarationParser.label_dec(AsmData: TAsmData);
       var
         labelsym : tlabelsym;
       begin
@@ -455,7 +455,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
-                        compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(labelsym.jumpbuf));
+                        compiler.nodeutils.insertbssdata(AsmData,tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }
