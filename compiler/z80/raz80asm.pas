@@ -1950,7 +1950,7 @@ Unit raz80asm;
 
                 if actasmtoken=AS_LPAREN then
                   begin
-                    tmpoper:=Tz80Operand.create(compiler);
+                    tmpoper:=Tz80Operand.create(AsmData,compiler);
                     BuildReference(tmpoper);
                     AddReferences(oper,tmpoper);
                     tmpoper.Free;

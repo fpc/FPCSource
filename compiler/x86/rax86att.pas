@@ -246,7 +246,7 @@ Implementation
             begin
               expr:=actasmpattern;
               Consume(AS_ID);
-              tmp:=Tx86Operand.create(compiler);
+              tmp:=Tx86Operand.create(AsmData,compiler);
               if not tmp.SetupVar(expr,false) then
                 begin
                   { look for special symbols ... }
@@ -358,7 +358,7 @@ Implementation
             begin
               expr:=actasmpattern;
               Consume(AS_ID);
-              tmp:=Tx86Operand.create(compiler);
+              tmp:=Tx86Operand.create(AsmData,compiler);
               if not tmp.SetupVar(expr,false) then
                 begin
                   { look for special symbols ... }

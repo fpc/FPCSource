@@ -103,6 +103,7 @@ type
   TOperand = class
   private
     FCompiler: TCompilerBase;
+    FAsmData: TAsmData;
     function GetParaManager: TParaManager; inline;
   protected
     property Compiler: TCompilerBase read FCompiler;
@@ -117,7 +118,7 @@ type
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;
-    constructor create(ACompiler: TCompilerBase);virtual;
+    constructor create(AAsmData: TAsmData; ACompiler: TCompilerBase);virtual;
     destructor  destroy;override;
     Procedure SetSize(_size:longint;force:boolean);virtual;
     Procedure SetCorrectSize(opcode:tasmop);virtual;
@@ -684,8 +685,9 @@ begin
   result:=compiler.paramanager;
 end;
 
-constructor TOperand.create(ACompiler: TCompilerBase);
+constructor TOperand.create(AAsmData: TAsmData; ACompiler: TCompilerBase);
 begin
+  FAsmData:=AAsmData;
   FCompiler:=ACompiler;
   size:=OS_NO;
   hasproc:=false;
@@ -1286,7 +1288,7 @@ constructor TInstruction.create(optype : tcoperand;ACompiler: TCompilerBase);
     }
     filepos:=compiler.globals.current_filepos;
     for i:=1 to max_operands do
-      Operands[i]:=optype.create(compiler);
+      Operands[i]:=optype.create(current_asmdata,compiler);
     Labeled:=false;
   end;
 

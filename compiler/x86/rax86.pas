@@ -52,7 +52,7 @@ type
     { handles the @Data symbol }
     Procedure SetupData(AsmData: TAsmData);
 
-    constructor create(ACompiler: TCompilerBase); override;
+    constructor create(AAsmData: TAsmData; ACompiler: TCompilerBase); override;
   end;
 
   { Operands are always in AT&T order.
@@ -418,7 +418,7 @@ begin
 {$endif i8086}
 end;
 
-constructor Tx86Operand.create(ACompiler: TCompilerBase);
+constructor Tx86Operand.create(AAsmData: TAsmData; ACompiler: TCompilerBase);
 begin
   inherited;
 
