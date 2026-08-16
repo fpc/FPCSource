@@ -2,6 +2,8 @@
 %%% Contains all comments from errorn.msg
 %%% Reordering of errorn.msg respective to errore.msg
 %%% Contains all comments from errorn.msg
+%%% Reordering of errorn.msg respective to errore.msg
+%%% Contains all comments from errorn.msg
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2018 by the Free Pascal Development team

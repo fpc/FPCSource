@@ -1,3 +1,5 @@
+%%% Reordering of errordu.msg respective to errore.msg
+%%% Contains all comments from errordu.msg
 #
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
@@ -159,6 +161,39 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 #
 # BeginOfTeX
 %
+% \section{Scanner messages.}
+% This section lists the messages that the scanner emits. The scanner takes
+% care of the lexical structure of the pascal file, i.e. it tries to find
+% reserved words, strings, etc. It also takes care of directives and
+% conditional compilation handling.
+% \begin{description}
+general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
+general_t_unitpath_local=01030_T_$1: Using local unit path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for compiled units. You can set this path with the \var{\{\$UNITPATH xxx\}}
+% directive.
+general_t_includepath_local=01031_T_$1: Using local include path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
+% You can set this path with the \var{\{\$INCLUDEPATH xxx\}} directive.
+general_t_librarypath_local=01032_T_$1: Using local library path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for the libraries. You can set this path with the \var{\{\$LIBRARYPATH xxx\}}
+% directive.
+general_t_objectpath_local=01033_T_$1: Using local object path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
+% You can set this path with the \var{\{\$OBJECTPATH xxx\}} directive.
+% \end{description}
+#
+# Scanner
+#
+# 02105 is the last used one
+#
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
 % care of the lexical structure of the pascal file, i.e. it tries to find
@@ -443,26 +478,12 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION wird vom Zielbetriebssy
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION wird vom Zielbetriebssystem nicht unterstützt
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Geänderter Prozessortyp muss zum angegebenen Controller passen
-scan_e_emptymacroname=02106_E_Der Name einer macro/compiler-Variablen kann nicht leer sein
-scan_e_unexpected_ifend=02107_E_$IFEND Direktive ohne entsprechende $IF Direktive gefunden
-% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
-% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
-% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
-scan_e_unexpected_endif=02108_E_$ENDIF Direktive ohne entsprechende $IF(N)DEF Direktive gefunden
-% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
-% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
-% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
-%
 % \end{description}
-# EndOfTeX
-
 #
 # Parser
 #
-# 03370 is the last used one
+# 03348 is the last used one
 #
-# BeginOfTeX
-%
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
 % semantics of you language, i.e. it determines if your Pascal constructs
@@ -855,7 +876,7 @@ parser_e_function_already_declared_public_forward=03120_E_Funktion ist bereits a
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Kann nicht EXPORT und EXTERNAL gleichzeitig benutzen
 % These two procedure directives are mutually exclusive.
-parser_n_not_supported_for_inline=03123_N_$1 noch nicht innerhalb von inline Prozeduren/Funktionen unterstützt
+parser_h_not_supported_for_inline=03123_H_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining deaktiviert
 % Inlining of procedures is disabled.
@@ -1621,73 +1642,6 @@ parser_e_only_static_members_via_object_type=03349_E_Nur statische Methoden und 
 %   TObj.test;
 % \end{verbatim}
 % \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
-parser_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil auf dieser Plattform nicht als external redeklarieren; schon die erste Deklaration muss external sein
-% If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
-% must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
-% platforms. Even on platforms where it is supported, this is quite inefficient.
-parser_e_unbound_attribute=03351_E_Nicht verknüpftes Kundenattribut: "$1".
-% A custom attribute is defined, but there is no identifier to bind it to.
-parser_e_enumeration_out_of_range=03352_E_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
-% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
-% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
-parser_w_enumeration_out_of_range=03353_W_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
-% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
-% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
-parser_e_method_for_type_in_other_unit=03354_E_Implementierung einer Methods für den Typ "$1", der in einer anderen Unit deklariert ist
-% This error occurs if one tries to define a method for a type that is originally declared
-% in a different unit.
-parser_e_generic_constraints_not_allowed_here=03355_E_Eine generische Einschränkung ist hier nicht erlaubt
-% At the current location specifying a constraint is not allowed. For example
-% in delphi mode, a constraint might not be specified in the header of the implementation.
-parser_e_location_size_too_small=03356_E_Die explizite "location" ist zu klein für den Parameter
-% AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
-parser_e_location_size_too_large=03357_E_Die Größe der expliziten "location" ist größer als vom Parameter verlangt
-% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64 bits, a register pair is specified
-parser_e_location_regpair_only_data=03358_E_Nur Daten-Register werden für explizite "location" Registerpaare unterstützt
-% AmigaOS/MorphOS syscall specific: for 64 bit register pairs, only data registers are supported
-parser_e_location_regpair_only_consecutive=03359_E_Nur aufeinander folgende Register werden für explizite "location" Registerpaare unterstützt
-% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64 bit register pairs
-parser_e_constructurs_cannot_take_type_parameters=03360_E_Konstruktoren können keine Type-Parameter übernehmen
-% The use of type parameters in constructors is not allowed.
-parser_e_raise_with_noreturn_not_allowed=03361_E_Deklaration von Raise in einer Subroutine als noreturn ist nicht erlaubt
-% \var{noreturn} tells the compiler that the activation scope of the subroutine is never left. This includes exceptions
-% goto or any other mean. While the compiler cannot detect all such cases some are trivial and the compiler gives an error.
-parser_e_section_directive_not_allowed_for_target=03362_E_Direktiven-Bereich ist für dieses Ziel nicht erlaubt
-% Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
-parser_e_absolute_sym_cannot_reference_itself=03363_E_Eine absolute Variable kann sich nicht selbst referenzieren
-parser_e_syscall_format_not_support=03364_E_Syntax der syscall-Direktive wird auf dem aktuellen Zielsystem nicht unterstützt
-% On a certain target, not all syntax variants of the syscall directive make sense and thus those making
-% no sense are not supported
-% Declarations like \var{var i: Integer absolute i;} are not allowed
-parser_w_ignoring_published_property=03365_W_Diese Eigenschaft wird nicht veröffentlicht
-% Published property is ignored
-parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly-Referenz-Typen können nur "by value" übergeben werden
-% WebAssembly reference types don't have an in-memory representation and can only be passed by value.
-parser_e_promising_exports_not_supported_on_current_platform=03367_E_Exporte als 'promising' zu deklarieren ist WebAssembly-spezifisch und nicht auf der aktuellen Plattform unterstützt
-% Promising exports are WebAssembly-specific. They are not allowed on other platforms.
-parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Externals als 'suspending' zu deklarieren ist WebAssembly-spezifisch und nicht auf der aktuellen Plattform unterstützt
-% Suspending externals are WebAssembly-specific. They are not allowed on other platforms.
-parser_w_widechar_set_reduced=03369_W_Reduziere Widechar-Set zu Single-Byte-AnsiChar-Set.
-% The base type of a set can only have 255 elements. Sets of wide characters
-% are reduced to sets of 1-byte characters.
-parser_e_nostringaliasinsystem=03370_e_Das Alias 'string' ist in der Unit "system" nicht erlaubt. Benutze Short-, Ansi- oder Unicodestring.
-% As a safeguard, the system unit may only use basic string types, not the
-% string alias which is dependent on the mode in which a unit is compiled.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Type Checking
-#
-# 04133 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Type checking errors}
-% This section lists all errors that can occur when type checking is
-% performed.
-% \begin{description}
 type_e_mismatch=04000_E_Typen passen nicht zusammen
 % This can happen in many cases:
 % \begin{itemize}
@@ -2122,41 +2076,6 @@ type_e_cblock_callconv=04126_E_Eine C-Blockreferenz muss die Aufrufkonvention CD
 % When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
 % calling convention either by adding the corresponding function directive or by using the
 % \var{\{\$Calling\}} compiler directive.
-type_e_forward_interface_type_does_not_match=04127_E_Der Interfacetyp der Vorwärtsdeklaration und der für das Interface $1 stimmen nicht überein
-% When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
-% This is in particular important with regard to the parent interface which implicitly sets the interface type for the
-% child interface.
-type_e_generic_const_type_not_allowed=04128_E_Typ ist für generische, konstante Parameter nicht erlaubt: $1
-% Only types that can also be used (indirectly) for untyped constants can be used as a
-% type for a generic constant parameter.
-type_e_cant_read_write_type_in_iso_mode=04129_E_Kann Variablen diesen Typs im ISO-Modus nicht lesen oder schreiben
-% You are trying to \var{read} or \var{write} a variable from or to a
-% file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
-type_w_array_size_does_not_match_size_of_constant_string=04130_W_Die Länge der konstanten Zeichenkette (die Länge ist $1) muss so groß wie die Anzahl der Array-Elemente sein ($2 Elemente)
-% ISO Pascal requires that string constants have the same length as the array to which them they are assigned.
-type_e_nested_procvar_to_funcref=04131_E_Eine verschachtelte Funktionsvariable kann nicht einer Funktionsreferenz zugewiesen werden
-% Function references can live beyond the scope of the function they're contained in while
-% nested functions assigned to nested function variables can't. Due to this discrepancy
-% in design assigning a nested function variable to a function reference is forbidden.
-type_e_cannot_take_address_of_wasm_externref=04132_E_Kann die Adresse einer externen WebAssembly-Referenz nicht verwenden
-% WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
-type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly-Referenz-Typen haben keine beobachtbare Größe
-% WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Symtable
-#
-# 05101 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Symbol handling}
-% This section lists all the messages that concern the handling of symbols.
-% This means all things that have to do with procedure and variable names.
-% \begin{description}
 sym_e_id_not_found=05000_E_Bezeichner "$1" nicht gefunden
 % The compiler doesn't know this symbol. Usually happens when you misspell
 % the name of a variable or procedure, or when you forget to declare a
@@ -2469,30 +2388,6 @@ sym_e_generic_type_param_decl=05097_E_Generischer Typparameter deklariert als "$
 % is found between a declaration and the definition.
 sym_e_type_must_be_rec_or_object=05098_E_Record- oder Objecttyp erwartet
 % The variable or expression isn't of the type \var{record} or \var{object}.
-sym_e_symbol_no_capture=05099_E_Symbol "$1" kann nicht erfasst werden
-% The specified symbol can not be captured to be used in a function reference.
-% For example \var{var} or \var{out} parameters can not be captured in that way.
-sym_f_systemunitnotloaded=05100_F_Unit "system" nicht geladen
-% The compiler used a function that requires the system unit to be loaded,
-% but it was not yet loaded. This is an internal compiler error and must be reported.
-sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly-Referenz-Typen können nicht innerhalb von Records, Objekten oder Klassen verwendet werden
-% WebAssembly reference types don't have an in-memory representation and therefore
-% cannot be used inside records, objects or classes.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Codegenerator
-#
-# 06062 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Code generator messages}
-% This section lists all messages that can be displayed if the code
-% generator encounters an error condition.
-% \begin{description}
 cg_e_parasize_too_big=06009_E_Größe der Parameterliste übersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes. (The \var{RET}
 % instruction causes this).
@@ -3001,21 +2896,10 @@ asmr_e_local_label_cannot_be_declared_public=07138_E_Das lokale Label $1 kann ni
 asmr_e_multiple_segment_overrides=07139_E_Kann "multiple segment overrides" nicht benutzen
 asmr_w_multiple_segment_overrides=07140_W_"Multiple segment overrides" (nur das letzte wird beachtet)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment-Basis $1 wird erzeugt, aber von der CPU im 64-Bit-Modus ignoriert
-asmr_e_mismatch_broadcasting_elements=07142_E_Broadcasting-Elemente passen nicht (erwartet: {$1} gefunden: {$2})
-asmr_e_invalid_arrangement=07143_E_Ungültige Anordnung "$1"
-asmr_e_a64_invalid_regset=07144_E_Register in einem Register-Set müssen aufeinander folgen
-asmr_e_unknown_field=07145_E_Unbekannter Feld-Bezeichner
-% The internal assembler read cannot find the passed field identifier.
-asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146_E_Nicht unterstützter Kombinations-Opcode: $1 - att-suffix-type {$2} und memrefsize-type {$3}
-asmr_e_a64_regset_too_large=07147_E_Zu viele Register im Registerset.
-%
-% \end{description}
-# EndOfTeX
-
 #
 # Assembler/binary writers
 #
-# 08037 is the last used one
+# 08033 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -3069,7 +2953,7 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32-Bit-Referenzen werden nicht unterstü
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu groß
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu groß
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewählten Befehlssatz nicht unterstützt
-asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist außerhalb des Bereichs
+asmw_e_destination_out_of_range=08033_E_Asm: $1 destination is out of range
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP kann nicht als Indexregister oder mit einem anderen Register in einer Referenz verwendet werden
 asmw_e_seh_invalid_data_size=08035_F_Ungültige Funktionsgröße einer SEH-Funktion
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP kann nicht als Indexregister verwendet werden
@@ -3142,6 +3026,9 @@ exec_e_exe_not_supported=09018_E_Erzeugen von ausführbaren Dateien nicht unters
 exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstützt
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
+exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Schließe Skript $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
@@ -3179,27 +3066,6 @@ exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich
 % If the system has gcc installed, running \var{gcc --print-file-name <filename>} might return the path to the file.
 % Add this path in your \var{fpc.cfg} using the switch \var{-Fl} to fix this error. This requires though,
 % that gcc targets the same target as FPC.
-exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
-% Creating static libraries is not supported for this platform, because it was
-% not yet implemented in the compiler.
-exec_f_controllertype_expected=09036_F_Um den korrekten Aufruf des Linkers zu erzeugen, muss ein Controller-Typ mit der Direktive -Wp gesetzt werden
-% Xtensa micro controller require a detailed specification linker command which depends on the target controller.
-% If no target controller is set, this command cannot be build and thus linking cannot be carried out.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Executable information
-#
-# 09134 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Executable information messages.}
-% This section lists all messages that the compiler emits when an executable program is produced,
-% and only when the internal linker is used.
-% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Kann ausführbare Datei nicht nachbearbeiten: $1
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausführbare Datei nicht öffnen: $1
@@ -3283,24 +3149,20 @@ link_e_comdat_content_differs=09219_E_Inhalt des doppelten COMDAT-Symbols "$1" u
 % but this section had a different size.
 link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus für das Symbol "$1" unterscheidet sich
 % Two COMDAT sections with the same name have different COMDAT selection modes.
-link_e_undefined_symbol_in_obj=09221_E_Nicht definiertes Symbol: $1 (Zuerst gesehen in $2)
-% The specified symbol is used, but not defined and was first seen in the specified object file.
-link_e_undefined_symbol=09222_E_Nicht definiertes Symbol: $1
-% The specified symbol is used, but not defined.
-%
+link_e_unsupported_cross_endian_internal_linker=09223_E_Using internal linker in cross-endian configuration is not supported
+% The internal linker does not correctly handle endianess conversion.
 % \end{description}
 # EndOfTeX
 
 #
 # Unit loading
 #
-# 10070 is the last used one
+# 10064 is the last used one
 #
 # BeginOfTeX
-%
 % \section{Unit loading messages.}
 % This section lists all messages that can occur when the compiler is
-% loading a unit from disk into memory. Many of these mesages are
+% loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
 unit_t_unitsearch=10000_T_Suche Unit: $1
@@ -3517,33 +3379,13 @@ cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. Übe
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
-unit_u_ppu_llvm_mismatch=10067_U_Überspringe die Unit, PPU und Compiler müssen beide entweder mit oder ohne LLVM-Unterstützung übersetzt sein
-% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
-% and vice versa.
-unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU ist für einen anderen WebAssembly Exception-Modus kompiliert
-% This unit file was compiled for a different WebAssembly exceptions mode.
-unit_u_ppu_symansistr_mismatch=10069_U_Überspringe Unit, PPU und Compiler müssen beide mit oder ohne SYMANSISTR Unterstützung kompiliert werden
-% Units compiled by a compiler built with -dSYMANSISTR cannot be used with a regular compiler built without,
-% and vice versa.
-unit_u_ppu_wasm_threads_mismatch=10070_U_PPU und Programm müssen beide mit oder ohne WebAssembly-Multithreading-Unterstützung kompiliert werden
-% The user is compiling a program with multithreading turned on, but the unit was compiled with multithreading off,
-% or vice versa.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Options
-#
-# 11067 is the last used one
-#
+option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
 %
 % \section{Command line handling errors}
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 option_only_one_source_support=11001_W_Es wird nur eine Quelldatei unterstützt. Wechsel für das Kompilieren von Quelldatei "$1" zu Quelldatei "$2"
 % You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
@@ -3601,6 +3443,9 @@ option_obsolete_switch_use_new=11019_W_Sie benutzen den nun überholten Schalter
 option_switch_bin_to_src_assembler=11020_N_Schalte Assembler auf den Standard-Assembler-Quellcodeschreiber
 % This notifies you that the assembler has been changed because you used the
 % -a switch, which cannot be used with a binary assembler writer.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
 option_incompatible_asm=11021_W_Das gewählte Assembler-Ausgabeformat "$1" ist nicht mit "$2" kompatibel
 option_asm_forced=11022_W_Verwendung des Assemblers "$1" erzwungen
 % The assembler output selected cannot generate
@@ -3692,22 +3537,11 @@ option_features_only_for_system_unit=11060_E_Feature-Schalter werden nur beim Ü
 % system unit through the ppu of the system unit.
 option_debug_info_requires_external_linker=11061_N_Das ausgewählte Debug-Format wird vom internen Linker nicht unterstützt, schalte um auf externen Linker
 option_valgrind_heaptrc_mismatch=11062_E_Die beiden Optionen ($1) ($2) können nicht gleichzeitig verwendet werden
-option_unsupported_fpu=11063_F_Der ausgewählte FPU-Typ "$1" wird vom ausgewählten Befehlssatz "$2" nicht unterstützt
-% Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
-option_too_many_exception_modes=11064_E_Nur ein unterstützter Modus von WebAssembly Exceptions darf angegeben werden.
-% Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
-option_subtarget_is_already_set=11065_W_Subzielsystem is bereits auf $1 gesetzt
-% Displayed if more than one \var{-t} option is specified.
-option_subtarget_config_not_found=11066_E_Subzielsystem $1 angegeben, aber keine entsprechende Konfigurationsdatei $2 gefunden.
-% Displayed if more than one \var{-t} option is specified.
-option_x_ignored=11067_N_Ignoriere den Compiler-Programm-Suffix $1.
-% Displayed if more than one \var{-t} option is specified.
-%
-% \end{description}
+%\end{description}
 # EndOfTeX
 
 #
-# Whole program optimization
+#  Whole program optimization
 #
 # 12019 is the last used one
 #
@@ -4538,3 +4372,262 @@ F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 #
 # The End...
 #
+%%% scan_e_emptymacroname=02106_E_Der Name einer macro/compiler-Variablen kann nicht leer sein
+%%% scan_e_unexpected_ifend=02107_E_$IFEND Direktive ohne entsprechende $IF Direktive gefunden
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+%%% scan_e_unexpected_endif=02108_E_$ENDIF Direktive ohne entsprechende $IF(N)DEF Direktive gefunden
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Parser
+#
+# 03370 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your Pascal constructs
+% are correct.
+% \begin{description}
+%%% parser_n_not_supported_for_inline=03123_N_$1 noch nicht innerhalb von inline Prozeduren/Funktionen unterstützt
+% Inline procedures don't support this declaration.
+%%% parser_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil auf dieser Plattform nicht als external redeklarieren; schon die erste Deklaration muss external sein
+% If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
+% must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
+% platforms. Even on platforms where it is supported, this is quite inefficient.
+%%% parser_e_unbound_attribute=03351_E_Nicht verknüpftes Kundenattribut: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
+%%% parser_e_enumeration_out_of_range=03352_E_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
+%%% parser_w_enumeration_out_of_range=03353_W_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
+%%% parser_e_method_for_type_in_other_unit=03354_E_Implementierung einer Methods für den Typ "$1", der in einer anderen Unit deklariert ist
+% This error occurs if one tries to define a method for a type that is originally declared
+% in a different unit.
+%%% parser_e_generic_constraints_not_allowed_here=03355_E_Eine generische Einschränkung ist hier nicht erlaubt
+% At the current location specifying a constraint is not allowed. For example
+% in delphi mode, a constraint might not be specified in the header of the implementation.
+%%% parser_e_location_size_too_small=03356_E_Die explizite "location" ist zu klein für den Parameter
+% AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
+%%% parser_e_location_size_too_large=03357_E_Die Größe der expliziten "location" ist größer als vom Parameter verlangt
+% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64 bits, a register pair is specified
+%%% parser_e_location_regpair_only_data=03358_E_Nur Daten-Register werden für explizite "location" Registerpaare unterstützt
+% AmigaOS/MorphOS syscall specific: for 64 bit register pairs, only data registers are supported
+%%% parser_e_location_regpair_only_consecutive=03359_E_Nur aufeinander folgende Register werden für explizite "location" Registerpaare unterstützt
+% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64 bit register pairs
+%%% parser_e_constructurs_cannot_take_type_parameters=03360_E_Konstruktoren können keine Type-Parameter übernehmen
+% The use of type parameters in constructors is not allowed.
+%%% parser_e_raise_with_noreturn_not_allowed=03361_E_Deklaration von Raise in einer Subroutine als noreturn ist nicht erlaubt
+% \var{noreturn} tells the compiler that the activation scope of the subroutine is never left. This includes exceptions
+% goto or any other mean. While the compiler cannot detect all such cases some are trivial and the compiler gives an error.
+%%% parser_e_section_directive_not_allowed_for_target=03362_E_Direktiven-Bereich ist für dieses Ziel nicht erlaubt
+% Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
+%%% parser_e_absolute_sym_cannot_reference_itself=03363_E_Eine absolute Variable kann sich nicht selbst referenzieren
+%%% parser_e_syscall_format_not_support=03364_E_Syntax der syscall-Direktive wird auf dem aktuellen Zielsystem nicht unterstützt
+% On a certain target, not all syntax variants of the syscall directive make sense and thus those making
+% no sense are not supported
+% Declarations like \var{var i: Integer absolute i;} are not allowed
+%%% parser_w_ignoring_published_property=03365_W_Diese Eigenschaft wird nicht veröffentlicht
+% Published property is ignored
+%%% parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly-Referenz-Typen können nur "by value" übergeben werden
+% WebAssembly reference types don't have an in-memory representation and can only be passed by value.
+%%% parser_e_promising_exports_not_supported_on_current_platform=03367_E_Exporte als 'promising' zu deklarieren ist WebAssembly-spezifisch und nicht auf der aktuellen Plattform unterstützt
+% Promising exports are WebAssembly-specific. They are not allowed on other platforms.
+%%% parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Externals als 'suspending' zu deklarieren ist WebAssembly-spezifisch und nicht auf der aktuellen Plattform unterstützt
+% Suspending externals are WebAssembly-specific. They are not allowed on other platforms.
+%%% parser_w_widechar_set_reduced=03369_W_Reduziere Widechar-Set zu Single-Byte-AnsiChar-Set.
+% The base type of a set can only have 255 elements. Sets of wide characters
+% are reduced to sets of 1-byte characters.
+%%% parser_e_nostringaliasinsystem=03370_e_Das Alias 'string' ist in der Unit "system" nicht erlaubt. Benutze Short-, Ansi- oder Unicodestring.
+% As a safeguard, the system unit may only use basic string types, not the
+% string alias which is dependent on the mode in which a unit is compiled.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Type Checking
+#
+# 04133 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Type checking errors}
+% This section lists all errors that can occur when type checking is
+% performed.
+% \begin{description}
+%%% type_e_forward_interface_type_does_not_match=04127_E_Der Interfacetyp der Vorwärtsdeklaration und der für das Interface $1 stimmen nicht überein
+% When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
+% This is in particular important with regard to the parent interface which implicitly sets the interface type for the
+% child interface.
+%%% type_e_generic_const_type_not_allowed=04128_E_Typ ist für generische, konstante Parameter nicht erlaubt: $1
+% Only types that can also be used (indirectly) for untyped constants can be used as a
+% type for a generic constant parameter.
+%%% type_e_cant_read_write_type_in_iso_mode=04129_E_Kann Variablen diesen Typs im ISO-Modus nicht lesen oder schreiben
+% You are trying to \var{read} or \var{write} a variable from or to a
+% file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
+%%% type_w_array_size_does_not_match_size_of_constant_string=04130_W_Die Länge der konstanten Zeichenkette (die Länge ist $1) muss so groß wie die Anzahl der Array-Elemente sein ($2 Elemente)
+% ISO Pascal requires that string constants have the same length as the array to which them they are assigned.
+%%% type_e_nested_procvar_to_funcref=04131_E_Eine verschachtelte Funktionsvariable kann nicht einer Funktionsreferenz zugewiesen werden
+% Function references can live beyond the scope of the function they're contained in while
+% nested functions assigned to nested function variables can't. Due to this discrepancy
+% in design assigning a nested function variable to a function reference is forbidden.
+%%% type_e_cannot_take_address_of_wasm_externref=04132_E_Kann die Adresse einer externen WebAssembly-Referenz nicht verwenden
+% WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
+%%% type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly-Referenz-Typen haben keine beobachtbare Größe
+% WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Symtable
+#
+# 05101 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Symbol handling}
+% This section lists all the messages that concern the handling of symbols.
+% This means all things that have to do with procedure and variable names.
+% \begin{description}
+%%% sym_e_symbol_no_capture=05099_E_Symbol "$1" kann nicht erfasst werden
+% The specified symbol can not be captured to be used in a function reference.
+% For example \var{var} or \var{out} parameters can not be captured in that way.
+%%% sym_f_systemunitnotloaded=05100_F_Unit "system" nicht geladen
+% The compiler used a function that requires the system unit to be loaded,
+% but it was not yet loaded. This is an internal compiler error and must be reported.
+%%% sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly-Referenz-Typen können nicht innerhalb von Records, Objekten oder Klassen verwendet werden
+% WebAssembly reference types don't have an in-memory representation and therefore
+% cannot be used inside records, objects or classes.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Codegenerator
+#
+# 06062 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Code generator messages}
+% This section lists all messages that can be displayed if the code
+% generator encounters an error condition.
+% \begin{description}
+%%% asmr_e_mismatch_broadcasting_elements=07142_E_Broadcasting-Elemente passen nicht (erwartet: {$1} gefunden: {$2})
+%%% asmr_e_invalid_arrangement=07143_E_Ungültige Anordnung "$1"
+%%% asmr_e_a64_invalid_regset=07144_E_Register in einem Register-Set müssen aufeinander folgen
+%%% asmr_e_unknown_field=07145_E_Unbekannter Feld-Bezeichner
+% The internal assembler read cannot find the passed field identifier.
+%%% asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146_E_Nicht unterstützter Kombinations-Opcode: $1 - att-suffix-type {$2} und memrefsize-type {$3}
+%%% asmr_e_a64_regset_too_large=07147_E_Zu viele Register im Registerset.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Assembler/binary writers
+#
+# 08037 is the last used one
+#
+%%% asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist außerhalb des Bereichs
+%%% exec_f_controllertype_expected=09036_F_Um den korrekten Aufruf des Linkers zu erzeugen, muss ein Controller-Typ mit der Direktive -Wp gesetzt werden
+% Xtensa micro controller require a detailed specification linker command which depends on the target controller.
+% If no target controller is set, this command cannot be build and thus linking cannot be carried out.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Executable information
+#
+# 09134 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
+%%% link_e_undefined_symbol_in_obj=09221_E_Nicht definiertes Symbol: $1 (Zuerst gesehen in $2)
+% The specified symbol is used, but not defined and was first seen in the specified object file.
+%%% link_e_undefined_symbol=09222_E_Nicht definiertes Symbol: $1
+% The specified symbol is used, but not defined.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Unit loading
+#
+# 10070 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Unit loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a unit from disk into memory. Many of these mesages are
+% informational messages.
+% \begin{description}
+%%% unit_u_ppu_llvm_mismatch=10067_U_Überspringe die Unit, PPU und Compiler müssen beide entweder mit oder ohne LLVM-Unterstützung übersetzt sein
+% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
+% and vice versa.
+%%% unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU ist für einen anderen WebAssembly Exception-Modus kompiliert
+% This unit file was compiled for a different WebAssembly exceptions mode.
+%%% unit_u_ppu_symansistr_mismatch=10069_U_Überspringe Unit, PPU und Compiler müssen beide mit oder ohne SYMANSISTR Unterstützung kompiliert werden
+% Units compiled by a compiler built with -dSYMANSISTR cannot be used with a regular compiler built without,
+% and vice versa.
+%%% unit_u_ppu_wasm_threads_mismatch=10070_U_PPU und Programm müssen beide mit oder ohne WebAssembly-Multithreading-Unterstützung kompiliert werden
+% The user is compiling a program with multithreading turned on, but the unit was compiled with multithreading off,
+% or vice versa.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Options
+#
+# 11067 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Command line handling errors}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
+%%% option_unsupported_fpu=11063_F_Der ausgewählte FPU-Typ "$1" wird vom ausgewählten Befehlssatz "$2" nicht unterstützt
+% Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
+%%% option_too_many_exception_modes=11064_E_Nur ein unterstützter Modus von WebAssembly Exceptions darf angegeben werden.
+% Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
+%%% option_subtarget_is_already_set=11065_W_Subzielsystem is bereits auf $1 gesetzt
+% Displayed if more than one \var{-t} option is specified.
+%%% option_subtarget_config_not_found=11066_E_Subzielsystem $1 angegeben, aber keine entsprechende Konfigurationsdatei $2 gefunden.
+% Displayed if more than one \var{-t} option is specified.
+%%% option_x_ignored=11067_N_Ignoriere den Compiler-Programm-Suffix $1.
+% Displayed if more than one \var{-t} option is specified.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Whole program optimization
+#
+# 12019 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimization messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+% \begin{description}

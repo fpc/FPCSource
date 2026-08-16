@@ -1,5 +1,7 @@
 %%% Reordering of errorda.msg respective to errore.msg
 %%% Contains all comments from errorda.msg
+%%% Reordering of errorda.msg respective to errore.msg
+%%% Contains all comments from errorda.msg
 #$
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers 
 #   This file is part of the Free Pascal Compiler
@@ -153,6 +155,45 @@ general_f_oserror=01025_F_Operating system error: $1
 # Scanner
 #
 # 02098 is the last used one
+#
+% \section{Scanner messages.}
+% This section lists the messages that the scanner emits. The scanner takes
+% care of the lexical structure of the pascal file, i.e. it tries to find
+% reserved words, strings, etc. It also takes care of directives and
+% conditional compilation handling.
+% \begin{description}
+general_e_exception_raised=01026_E_Compilation raised exception internally
+% Compilation was aborted, due to an exception generation.
+general_t_unitscope=01027_T_Using unit scope: $1
+% When the \var{-vt} switch is used, this line tells you what unit scopes (namespaces)
+% the compiler is using when looking up units. You can add a unit scope with the
+% \var{-FN} option.
+general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
+general_t_unitpath_local=01030_T_$1: Using local unit path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for compiled units. You can set this path with the \var{\{\$UNITPATH xxx\}}
+% directive.
+general_t_includepath_local=01031_T_$1: Using local include path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
+% You can set this path with the \var{\{\$INCLUDEPATH xxx\}} directive.
+general_t_librarypath_local=01032_T_$1: Using local library path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for the libraries. You can set this path with the \var{\{\$LIBRARYPATH xxx\}}
+% directive.
+general_t_objectpath_local=01033_T_$1: Using local object path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
+% You can set this path with the \var{\{\$OBJECTPATH xxx\}} directive.
+% \end{description}
+#
+# Scanner
+#
+# 02105 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -450,6 +491,32 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 # Parser
 #
 # 03339 is the last used one
+#
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your Pascal constructs
+% are correct.
+% \begin{description}
+scan_e_illegal_asmcpu_specifier=02099_E_Illegal assembler CPU instruction set specified "$1"
+% When you specify an assembler CPU with the \var{\{\$ASMCPU xxx\}} directive,
+% the compiler didn't recognize the CPU you specified.
+scan_w_syscall_convention_not_useable_on_target=02100_W_Specified syscall convention is not useable on this target
+% The specified syscall convention using the \var{\{\$SYSCALL xxx\}} directive,
+% is not useable on the current target system.
+scan_w_syscall_convention_invalid=02101_W_Invalid syscall convention specified
+% The compiler did not recognize the syscall convention specified by the \var{\{\$SYSCALL xxx\}} directive.
+scan_w_setpeuserversion_not_support=02102_W_SETPEUSERVERSION is not supported by the target OS
+% The \var{\{\$SETPEUSERVERSION\}} directive is not supported by the target OS.
+scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION is not supported by the target OS
+% The \var{\{\$SETPEOSVERSION\}} directive is not supported by the target OS.
+scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supported by the target OS
+% The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
+scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified controller
+% \end{description}
+#
+# Parser
+#
+# 03348 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1600,6 +1667,53 @@ parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
+parser_e_explicit_method_implementation_for_specializations_not_allowed=03341_E_Explicit implementation of methods for specializations of generics is not allowed
+% Methods introduced in a generic must be implemented for the generic. It is not possible to implement them only for specializations.
+parser_e_no_genfuncs_in_interfaces=03342_E_Generic methods are not allowed in interfaces
+% Generic methods are not allowed in interfaces, because there is no way to specialize a suitable
+% implementation.
+parser_e_genfuncs_cannot_be_virtual=03343_E_Generic methods can not be virtual
+% Generic methods can not be declared as virtual as there'd need to be a VMT entry for each
+% specialization. This is however not possible with a static VMT.
+parser_e_packages_not_supported=03344_E_Dynamic packages not supported for target OS
+% Support for dynamic packages is not implemented for the specified target OS
+% or it is at least not tested and thus disabled.
+parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_The HardFloat directive cannot be used if soft float code is generated or fpu emulation is turned on
+% The \var{HardFloat} directive can only be used if an instruction set is used which supports floating point operations.
+parser_e_invalid_internal_function_index=03346_E_Index $1 is not a valid internal function index
+% The index specified for the \var{compilerproc} directive is not an index that's recognized
+% by the compiler.
+parser_w_operator_overloaded_hidden_3=03347_W_Operator overload hidden by internal operator: "$1" $2 "$3"
+% An operator overload is defined for the specified overload, but the internal overload by the compiler
+% takes precedence. This only happens for operators that had been overloadable before (e.g. dynamic array + dynamic array),
+% but aren't anymore due to an internal operator being defined while this behavior is controllable by a modeswitch
+% (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
+parser_e_threadvar_must_be_class=03348_E_Thread variables inside classes or records must be class variables
+% A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
+parser_e_only_static_members_via_object_type=03349_E_Only static methods and static variables can be referenced through an object type
+% This error occurs in a situation like the following:
+% \begin{verbatim}
+% Type
+%    TObj = object
+%      procedure test;
+%    end;
+%
+% begin
+%   TObj.test;
+% \end{verbatim}
+% \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
+%
+%
+% \end{description}
+%
+# Type Checking
+#
+# 04126 is the last used one
+#
+% \section{Type checking errors}
+% This section lists all errors that can occur when type checking is
+% performed.
+% \begin{description}
 type_e_mismatch=04000_E_Typefejl
 % This can happen in many cases:
 % \begin{itemize}
@@ -2033,15 +2147,18 @@ type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$
 type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
-type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
-% Remove this error message once Delphi-style anonymous are implemented. It has
-% number 4999 so as not to result in a gap in the error message numbering once
-% it's removed.
+type_e_seg_procvardef_wrong_memory_model=04124_E_Procedure variables in that memory model do not store segment information
+type_w_empty_constant_range_set=04125_W_The first value of a set constructur range is greater then the second value, so the range describes an empty set.
+% If a set is constructed like this: \var{s:=[9..7];]}, then an empty set is generated. As this is something normally not desired, the compiler warns about it.
+type_e_cblock_callconv=04126_E_C block reference must use CDECL or MWPASCAL calling convention.
+% When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
+% calling convention either by adding the corresponding function directive or by using the
+% \var{\{\$Calling\}} compiler directive.
 % \end{description}
 #
 # Symtable
 #
-# 05095 is the last used one
+# 05098 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2381,6 +2498,25 @@ sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
+sym_e_generic_type_param_mismatch=05096_E_Generic type parameter "$1" does not match with the one in the declaration
+% The specified generic type parameter for the generic class, record or routine does
+% not match with the one declared in the declaration of the generic class, record
+% or routine.
+sym_e_generic_type_param_decl=05097_E_Generic type parameter declared as "$1"
+% Shows what the generic type parameter was originally declared as if a mismatch
+% is found between a declaration and the definition.
+sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
+% The variable or expression isn't of the type \var{record} or \var{object}.
+% \end{description}
+#
+# Codegenerator
+#
+# 06062 is the last used one
+#
+% \section{Code generator messages}
+% This section lists all messages that can be displayed if the code
+% generator encounters an error condition.
+% \begin{description}
 cg_e_parasize_too_big=06009_E_Den samlede parameterstørrelse overstiger 64KB
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
@@ -2547,6 +2683,31 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 # Assembler reader
 #
 # 07125 is the last used one
+#
+cg_n_no_inline=06058_N_Call to subroutine "$1" marked as inline is not inlined
+% The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
+% marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
+% the directive inline is ignored.
+cg_e_case_missing_value=06059_E_Case statement does not handle ordinal value "$1", and no else/otherwise statement is present.
+# The case statement does not handle the specified value and does not have an else/otherwise statement, and the compiler determined
+# that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
+cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
+% The case statement does not contain labels for all possible values of the operand, and no else statement is present.
+cg_w_cannot_compile_subroutine=06061_W_The current subroutine "$1" cannot be compiled for the target CPU, creating dummy
+% Some processors have a very limited instruction set so some routines cannot be compiled for them. As it is not always
+% clear from the beginning if a subroutine can be compiled for a certain CPU or not, the compiler checks afterwards
+% and creates a dummy if it cannot compile the subroutine.
+cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support preserving the registers in subroutine "$1"
+% Certain processors have no memory (e.~g. avr1 family), so they do not support storing/restoring the used registers
+% in an interrupt routine. The programmer has to ensure that while there is a chance for the interrupt routine being
+% called that no other code depending on registers being preserved is executed.
+%
+% \end{description}
+# EndOfTeX
+#
+# Assembler reader
+#
+# 07141 is the last used one
 #
 asmr_d_start_reading=07000_DL_Begynder assembler-parsing ($1)
 % This informs you that an assembler block is being parsed
@@ -2742,8 +2903,8 @@ asmr_w_align_not_supported=07093_W_ALIGN ikke understøttet
 asmr_e_no_inc_and_dec_together=07094_E_Inc og Dec kan ikke bruges sammen
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
-asmr_e_invalid_reg_list_in_movem=07095_E_Ugyldig registerliste til movem
-% Trying to use the \var{movem} opcode with invalid registers
+asmr_e_invalid_reg_list_in_movem_or_fmovem=07095_E_Invalid register list for MOVEM or FMOVEM
+% Trying to use the \var{movem} or \var{fmovem} opcode with invalid registers
 % to save or restore.
 asmr_e_invalid_reg_list_for_opcode=07096_E_Registerliste ikke gyldig for denne operationskode
 asmr_e_higher_cpu_mode_required=07097_E_Højere cpu-mode krævet ($1)
@@ -2863,6 +3024,49 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # 08029 is the last used one
 #
+asmr_e_seg_without_identifier=07126_E_SEG used without identifier
+% You can only use SEG with an identifier. Other syntaxes are not
+% supported
+asmr_e_CODE_or_DATA_without_SEG=07127_E_@CODE and @DATA can only be used with the SEG operator
+% You can only use @CODE and @DATA symbols together with the SEG operator
+asmr_e_const16bit_for_segment=07128_E_Not enough space (16 bits required) for the segment constant of symbol $1
+% Specifying a segment constant for a symbol via the SEG operator requires at
+% least 16 bits of space for the segment. This error occurs, if you specify
+% less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
+asmr_e_invalid_code_value=07129_E_Invalid value of .code directive constant
+% The ARM assembler only allows the values 16 and 32 to be used as arguments to the .code directive
+asmr_w_unable_to_determine_constant_size_using_byte=07130_W_No size specified and unable to determine the size of the constant, using BYTE as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, BYTE is used.
+asmr_w_unable_to_determine_constant_size_using_word=07131_W_No size specified and unable to determine the size of the constant, using WORD as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, WORD is used.
+asmr_e_cannot_override_es_segment=07132_E_Cannot override ES segment
+% The ES segment in the ES:[EDI] reference of the x86 string instructions
+% cannot be overridden.
+asmr_w_invalid_reference=07133_W_Reference is not valid here (expected "$1")
+% Certain x86 instructions require a fixed source or destination reference
+% (e.g. [ESI] or [EDI] for the string instructions source and destination)
+asmr_e_address_sizes_do_not_match=07134_E_Address sizes do not match
+% Caused by using two memory operands in the same instruction with mismatched
+% address sizes (e.g. movs byte ptr [EDI], byte ptr [SI] )
+asmr_e_pop_cs_not_valid=07135_E_Instruction "POP CS" is not valid for the current target
+% The 'pop cs' instruction works only on the 8086 and 8088 CPUs, which are not
+% supported on the i386 or x86_64 targets.
+asmr_w_pop_cs_not_portable=07136_W_Instruction "POP CS" is not portable (it only works on 8086 and 8088 CPUs)
+% The 'pop cs' instruction doesn't work on any CPU, except 8086 and 8088.
+asmr_e_public_must_be_used_before_label_definition=07137_E_Label $1 can only be declared public before it's defined
+asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be declared public
+asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
+asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
+asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
+#
+# Assembler/binary writers
+#
+# 08033 is the last used one
+#
 asmw_f_too_many_asm_files=08000_F_For mange assemblerfiler (forsøg uden smartlinking)
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
@@ -2924,6 +3128,25 @@ asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3
 % of wrong code generation, but currently set to Note level as it appears inside
 % the compiler compilation.
 asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
+#
+# Executing linker/assembler
+#
+# 09035 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Errors of assembling/linking stage}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
+asmw_f_code_segment_too_large=08030_F_Code segment too large
+asmw_f_data_segment_too_large=08031_F_Data segment too large
+asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
+asmw_e_destination_out_of_range=08033_E_Asm: $1 destination is out of range
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
+asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
+asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
+asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
 #
 # Executing linker/assembler
 #
@@ -3087,6 +3310,70 @@ link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute re
 # Unit loading
 #
 # 10062 is the last used one
+#
+# BeginOfTeX
+% \section{Unit loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a unit from disk into memory. Many of these messages are
+% informational messages.
+% \begin{description}
+link_e_program_segment_too_large=09202_E_Program segment too large (exceeds 64k by $1 bytes)
+% Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
+link_e_code_segment_too_large=09203_E_Code segment "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program's code segment exceeds 64k bytes
+link_e_data_segment_too_large=09204_E_Data segment "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program's data segment exceeds 64k bytes
+link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program contains a segment that exceeds 64k bytes
+link_e_group_too_large=09206_E_Group "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program's object modules define a segment group that
+% exceeds 64k bytes
+link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, because the program contains segment relocations
+% Error occurs, when creating a tiny model DOS .COM file, but at least one of
+% the program's object modules contains segment relocations. Segment relocations
+% might be caused by the use of the Seg() function or by the SEG assembler
+% directive (either in pascal's built-in inline assembler, or in an externally
+% linked assembly module).
+link_w_program_uses_checkpointer=09208_W_Program "$1" uses experimental CheckPointer option
+link_e_duplicate_symbol=09209_E_Multiple defined symbol "$1"
+% The specified symbol is already defined inside the whole collection of object files.
+link_e_comdat_select_unsupported=09210_E_COMDAT selection mode $1 not supported (section: "$1")
+% The specified COMDAT selection mode is not supported.
+link_e_comdat_associative_section_expected=09211_E_Associative section expected for COMDAT section "$1"
+% The specified COMDAT section is specified as expecting an associative section,
+% but none is specified.
+link_e_comdat_not_matching=09212_E_COMDAT section selection mode doesn't match for section "$1" and symbol "$2"
+% All COMDAT symbols/sections need to use the same selection mode.
+link_e_comdat_associative_section_not_found=09213_E_Associative COMDAT section for section "$1" not found
+% The COMDAT section expects an associative section, but it was not found inside the object file.
+link_d_comdat_discard_any=09214_D_Discarding duplicate symbol "$1" due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name might be selected and this
+% specific section was selected to be discarded.
+link_d_comdat_discard_size=09215_D_Discarding duplicate symbol "$1" with same size due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name and size might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_discard_content=09216_D_Discarding duplicate symbol "$1" with same content due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name and content might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_replace_size=09217_D_Replacing duplicate symbol "$1" with smaller size due to COMDAT selection mode
+% The COMDAT section specifies that the largest section with the same name should be selected
+% this specific section was larger than the previous largest one.
+link_e_comdat_size_differs=09218_E_Size of duplicate COMDAT symbol "$1" differs
+% The COMDAT section specifies that all sections with the same name need to have the same size,
+% but this section had a different size.
+link_e_comdat_content_differs=09219_E_Content of duplicate COMDAT symbol "$1" differs
+% The COMDAT section specifies that all sections with the same name need to have the same content,
+% but this section had a different size.
+link_e_comdat_selection_differs=09220_E_COMDAT selection mode for symbol "$1" differs
+link_e_unsupported_cross_endian_internal_linker=09223_E_Using internal linker in cross-endian configuration is not supported
+% The internal linker does not correctly handle endianess conversion.
+% \end{description}
+# EndOfTeX
+
+#
+# Unit loading
+#
+# 10064 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3296,6 +3583,26 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 #
 # 11057 is the last used one
 #
+unit_u_loading_from_package=10064_U_Loading unit $1 from package $2
+% The unit is loaded from a package.
+cg_f_internal_type_not_found=10065_F_Internal type "$1" was not found. Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
+cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as expected. Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
+% \end{description}
+# EndOfTeX
+
+#
+#  Options
+#
+# 11068 is the last used one
+#
 option_usage=11000_O_$1 [indstillinger] <inputfil> [indstillinger]
 # BeginOfTeX
 %
@@ -3360,6 +3667,9 @@ option_obsolete_switch_use_new=11019_E_Du bruger $1 der er en forældet indstill
 option_switch_bin_to_src_assembler=11020_N_Skifter til den standard-assembler der skriver direkte til assemblerfilerne
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
 option_incompatible_asm=11021_W_Det valgte udformat for assemblerfiler "$1" er ikke kompatibelt med "$2"
 option_asm_forced=11022_W_brug af "$1" assembler gennemtvunget
 % The assembler output selected can not generate
@@ -3464,6 +3774,30 @@ option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
 % \begin{description}
+option_gc_incompatible_with_release_flag=11058_W_Experimental CheckPointer option not enabled because it is incomptatible with -Ur option.
+% The compiler binary only supports a single target architecture. Invoke the fpc binary if you wish to select a compiler binary for a different target architecture.
+option_invalid_target_architecture=11059_E_Unsupported target architecture -P$1, invoke the "fpc" compiler driver instead.
+% The ppc<target> executables support only a single target architecture. They do not support the -P switch. The compiler driver "fpc"
+% handles this switch, so you have to invoke compiling by using "fpc" instead
+option_features_only_for_system_unit=11060_E_Feature switches are only supported while compiling the system unit.
+% To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
+% system unit through the ppu of the system unit.
+option_debug_info_requires_external_linker=11061_N_The selected debug format is not supported by the internal linker, switching to external linking
+option_valgrind_heaptrc_mismatch=11062_E_You can't use both options ($1) ($2) at same time.
+%\end{description}
+# EndOfTeX
+
+#
+#  Whole program optimization
+#
+# 12019 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimization messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+% \begin{description}
 wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file "$1"
 % The compiler cannot open the specified feedback file with whole program optimization information.
 wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file "$1"
@@ -3527,6 +3861,90 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness i
 wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
 %\end{description}
+# EndOfTeX
+
+
+#
+# Logo (option -l)
+#
+package_f_cant_find_pcp=13001_F_Can't find package $1
+% You tried to use a package of which the PCP file isn't found by the
+% compiler. Check your configuration file for the package paths.
+package_u_pcp_found=13002_U_PCP file for package $1 found
+% The PCP file for the specified package was found.
+package_e_duplicate_package=13003_E_Duplicate package $1
+% The package was already specified as required package and may not be specified
+% a second time.
+package_e_unit_deny_package=13004_E_Unit $1 can not be part of a package
+% The unit can not be part of a package because the DenyPackageUnit directive is enabled for the unit.
+package_n_implicit_unit_import=13005_N_Unit $1 is implicitly imported into package $2
+% The unit was not specified as part of the \var{contains} section and is also not included in one of the
+% required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
+package_f_cant_create_pcp=13006_F_Failed to create PCP file $2 for package $1
+% The PCP file for the package could not be created.
+package_f_cant_read_pcp=13007_F_Failed to read PCP file for package $1
+% The PCP file for the package could not be read.
+package_t_pcp_loading=13008_T_PCP loading $1
+% When the \var{-vt} switch is used, the compiler tells you
+% what packages it loads.
+package_u_pcp_name=13009_U_PCP Name: $1
+% When you use the \var{-vu} flag, the package name is shown.
+package_u_pcp_flags=13010_U_PCP Flags: $1
+% When you use the \var{-vu} flag, the package flags are shown.
+package_u_pcp_crc=13011_U_PCP Crc: $1
+% When you use the \var{-vu} flag, the package CRC check is shown.
+package_u_pcp_time=13012_U_PCP Time: $1
+% When you use the \var{-vu} flag, the time the package was compiled is shown.
+package_u_pcp_file_too_short=13013_U_PCP File too short
+% The PCP file is too short, not all declarations are present.
+package_u_pcp_invalid_header=13014_U_PCP Invalid Header (no PCP at the begin)
+% A package file contains as the first three bytes the ASCII codes of the characters \var{PCP}.
+package_u_pcp_invalid_version=13015_U_PCP Invalid Version $1
+% This package file was compiled with a different version of the compiler, and
+% cannot be read.
+package_u_pcp_invalid_processor=13016_U_PCP is compiled for another processor
+% This package file was compiled for a different processor type, and
+% cannot be read.
+package_u_pcp_invalid_target=13017_U_PCP is compiled for another target
+% This package file was compiled for a different target, and
+% cannot be read.
+package_u_pcp_write=13018_U_Writing $1
+% When you specify the \var{-vu} switch, the compiler will tell you where it
+% writes the package file.
+package_f_pcp_cannot_write=13019_F_Can't Write PCP-File
+% An error occurred when writing the package file.
+package_f_pcp_read_error=13020_F_Error reading PCP-File
+% This means that the package file was corrupted, and contains invalid
+% information. Recompilation will be necessary.
+package_f_pcp_read_unexpected_end=13021_F_unexpected end of PCP-File
+% Unexpected end of file. This may mean that the PCP file is
+% corrupted.
+package_f_pcp_invalid_entry=13022_F_Invalid PCP-File entry: $1
+% The unit the compiler is trying to read is corrupted, or generated with a
+% newer version of the compiler.
+package_u_pcp_invalid_fpumode=13023_U_Trying to use a unit which was compiled with a different FPU mode
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
+package_t_packagesearch=13024_T_Packagesearch: $1
+% When you use the \var{-vt} option, the compiler tells you where it tries to find
+% package files.
+package_u_required_package=13025_U_Required package $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% packages a package requires.
+package_u_contained_unit=13026_U_Contained unit $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% units a package contains.
+package_e_unit_already_contained_in_package=13027_E_Unit $1 is already contained in package $2
+% A unit specified in a contains sections must not be part of a required package. Note that
+% a unit might have become part of another package by indirectly including it.
+package_w_unit_from_indirect_package=13028_W_Unit $1 is imported from indirectly required package $2
+% If a unit from a package that is not part of the \var{requires} section is used then the package
+% should require this unit directly to avoid confusion.
+package_u_ppl_filename=13029_U_PPL filename $1
+% The name of the binary package library that is stored in the PCP.
+%
+% \end{description}
 # EndOfTeX
 
 
@@ -3895,3 +4313,20 @@ P*2WT_Vælg værktøjsapplikation (MPW tool, MacOS only)
 % A modified source file for a unit was found that was compiled with the
 % release flag (-Ur). The unit will not implicitly be recompiled because
 % this release flag is set.
+%%% type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
+% Remove this error message once Delphi-style anonymous are implemented. It has
+% number 4999 so as not to result in a gap in the error message numbering once
+% it's removed.
+% \end{description}
+#
+# Symtable
+#
+# 05095 is the last used one
+#
+% \section{Symbol handling}
+% This section lists all the messages that concern the handling of symbols.
+% This means all things that have to do with procedure and variable names.
+% \begin{description}
+%%% asmr_e_invalid_reg_list_in_movem=07095_E_Ugyldig registerliste til movem
+% Trying to use the \var{movem} opcode with invalid registers
+% to save or restore.
