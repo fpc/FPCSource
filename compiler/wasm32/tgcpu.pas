@@ -79,7 +79,7 @@ unit tgcpu;
         public
          localvars: TWasmLocalVars;
 
-         constructor create(acompiler: TCompilerBase); override;
+         constructor create(aAsmData: TAsmData; acompiler: TCompilerBase); override;
          destructor destroy; override;
          procedure setfirsttemp(l : asizeint); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
@@ -214,7 +214,7 @@ unit tgcpu;
       if localslasttemp<localsfirsttemp then localslasttemp := localsfirsttemp;
     end;
 
-    constructor ttgwasm.create(acompiler: TCompilerBase);
+    constructor ttgwasm.create(aAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         localvars:=TWasmLocalVars.Create;

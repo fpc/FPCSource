@@ -64,7 +64,7 @@ unit tgllvm;
        public
         alloclist: tasmlist;
 
-        constructor create(acompiler: TCompilerBase); override;
+        constructor create(aAsmData: TAsmData; acompiler: TCompilerBase); override;
         destructor destroy; override;
         procedure setfirsttemp(l: asizeint); override;
         procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
@@ -184,11 +184,11 @@ implementation
       end;
 
 
-    constructor ttgllvm.create(acompiler: TCompilerBase);
+    constructor ttgllvm.create(aAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         direction:=1;
-        alloclist:=TAsmList.create(current_asmdata);
+        alloclist:=TAsmList.create(aAsmData);
       end;
 
 

@@ -61,6 +61,7 @@ unit tgobj;
        {# Generates temporary variables }
        ttgobj = class
        private
+          FAsmData: TAsmData;
           FCompiler: TCompilerBase;
        protected
           { contains all free temps using nextfree links }
@@ -80,7 +81,7 @@ unit tgobj;
                and if all requested alignments are also a power of 2) }
           alignmismatch: longint;
           direction : shortint;
-          constructor create(acompiler: TCompilerBase);virtual;reintroduce;
+          constructor create(aAsmData: TAsmData; acompiler: TCompilerBase);virtual;reintroduce;
           {# Clear and free the complete linked list of temporary memory
              locations. The list is set to nil.}
           procedure resettempgen;
@@ -190,9 +191,10 @@ implementation
                                     TTGOBJ
 *****************************************************************************}
 
-    constructor ttgobj.create(acompiler: TCompilerBase);
+    constructor ttgobj.create(aAsmData: TAsmData; acompiler: TCompilerBase);
 
      begin
+       FAsmData:=aAsmData;
        FCompiler:=acompiler;
        tempfreelist:=nil;
        templist:=nil;

@@ -120,7 +120,7 @@ procedure tpassgeneratecodecontextimpl.create_tempgen(acompiler: TCompilerBase);
 begin
   if has_parent_tg then
     internalerror(2026051001);
-  tcompiler(acompiler).tg:=tgobjclass.create(acompiler);
+  tcompiler(acompiler).tg:=tgobjclass.create(CurrAsmList.AsmData,acompiler);
   tg:=acompiler.tg;
 end;
 
