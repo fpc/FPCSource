@@ -1,3 +1,5 @@
+%%% Reordering of errord.msg respective to errore.msg
+%%% Contains all comments from errord.msg
 #
 #   German (alternative, LATIN-US DOS) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
@@ -158,6 +160,39 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 #
 # BeginOfTeX
 %
+% \section{Scanner messages.}
+% This section lists the messages that the scanner emits. The scanner takes
+% care of the lexical structure of the pascal file, i.e. it tries to find
+% reserved words, strings, etc. It also takes care of directives and
+% conditional compilation handling.
+% \begin{description}
+general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
+general_t_unitpath_local=01030_T_$1: Using local unit path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for compiled units. You can set this path with the \var{\{\$UNITPATH xxx\}}
+% directive.
+general_t_includepath_local=01031_T_$1: Using local include path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
+% You can set this path with the \var{\{\$INCLUDEPATH xxx\}} directive.
+general_t_librarypath_local=01032_T_$1: Using local library path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for the libraries. You can set this path with the \var{\{\$LIBRARYPATH xxx\}}
+% directive.
+general_t_objectpath_local=01033_T_$1: Using local object path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
+% You can set this path with the \var{\{\$OBJECTPATH xxx\}} directive.
+% \end{description}
+#
+# Scanner
+#
+# 02105 is the last used one
+#
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
 % care of the lexical structure of the pascal file, i.e. it tries to find
@@ -1613,6 +1648,30 @@ parser_e_threadvar_must_be_class=03348_E_Threadvariablen in Klassen oder Records
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
+parser_e_only_static_members_via_object_type=03349_E_Only static methods and static variables can be referenced through an object type
+% This error occurs in a situation like the following:
+% \begin{verbatim}
+% Type
+%    TObj = object
+%      procedure test;
+%    end;
+%
+% begin
+%   TObj.test;
+% \end{verbatim}
+% \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
+%
+%
+% \end{description}
+%
+# Type Checking
+#
+# 04126 is the last used one
+#
+% \section{Type checking errors}
+% This section lists all errors that can occur when type checking is
+% performed.
+% \begin{description}
 type_e_mismatch=04000_E_Typen passen nicht zusammen
 % This can happen in many cases:
 % \begin{itemize}
@@ -2058,6 +2117,20 @@ type_w_empty_constant_range_set=04125_W_Der erste Wert des Bereichs fÅr den Meng
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
+type_e_cblock_callconv=04126_E_C block reference must use CDECL or MWPASCAL calling convention.
+% When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
+% calling convention either by adding the corresponding function directive or by using the
+% \var{\{\$Calling\}} compiler directive.
+% \end{description}
+#
+# Symtable
+#
+# 05098 is the last used one
+#
+% \section{Symbol handling}
+% This section lists all the messages that concern the handling of symbols.
+% This means all things that have to do with procedure and variable names.
+% \begin{description}
 sym_e_id_not_found=05000_E_Bezeichner "$1" nicht gefunden
 % The compiler doesn't know this symbol. Usually happens when you misspell
 % the name of a variable or procedure, or when you forget to declare a
@@ -2383,6 +2456,18 @@ sym_e_generic_type_param_decl=05097_E_Generischer Typparameter deklariert als "$
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
+sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
+% The variable or expression isn't of the type \var{record} or \var{object}.
+% \end{description}
+#
+# Codegenerator
+#
+# 06062 is the last used one
+#
+% \section{Code generator messages}
+% This section lists all messages that can be displayed if the code
+% generator encounters an error condition.
+% \begin{description}
 cg_e_parasize_too_big=06009_E_Grî·e der Parameterliste Åbersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes. (The \var{RET}
 % instruction causes this).
@@ -2536,6 +2621,27 @@ cg_n_no_inline=06058_N_Der Aufruf der Routine "$1" ist als "inline" markiert, wi
 % \end{description}
 # EndOfTeX
 
+#
+# Assembler reader
+#
+# 07141 is the last used one
+#
+cg_e_case_missing_value=06059_E_Case statement does not handle ordinal value "$1", and no else/otherwise statement is present.
+# The case statement does not handle the specified value and does not have an else/otherwise statement, and the compiler determined
+# that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
+cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
+% The case statement does not contain labels for all possible values of the operand, and no else statement is present.
+cg_w_cannot_compile_subroutine=06061_W_The current subroutine "$1" cannot be compiled for the target CPU, creating dummy
+% Some processors have a very limited instruction set so some routines cannot be compiled for them. As it is not always
+% clear from the beginning if a subroutine can be compiled for a certain CPU or not, the compiler checks afterwards
+% and creates a dummy if it cannot compile the subroutine.
+cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support preserving the registers in subroutine "$1"
+% Certain processors have no memory (e.~g. avr1 family), so they do not support storing/restoring the used registers
+% in an interrupt routine. The programmer has to ensure that while there is a chance for the interrupt routine being
+% called that no other code depending on registers being preserved is executed.
+%
+% \end{description}
+# EndOfTeX
 #
 # Assembler reader
 #
@@ -2939,11 +3045,11 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit Referenzen werden nicht unterstÅt
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu gro·
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu gro·
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewÑhlten Befehlssatz nicht unterstÅtzt
-asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist au·erhalb des Bereichs
-%
-% \end{description}
-# EndOfTeX
-
+asmw_e_destination_out_of_range=08033_E_Asm: $1 destination is out of range
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
+asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
+asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
+asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
 #
 # Executing linker/assembler
 #
@@ -3008,6 +3114,24 @@ exec_e_exe_not_supported=09018_E_Erzeugen von ausfÅhrbaren Dateien nicht unterst
 exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstÅtzt
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
+exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstÅtzt
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Executable information
+#
+# 09134 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 exec_i_closing_script=09020_I_Schlie·e Skript $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
@@ -3042,24 +3166,6 @@ exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommand
 exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich zu einem Fehler beim Linken fÅhren
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
-exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstÅtzt
-% Creating static libraries is not supported for this platform, because it was
-% not yet implemented in the compiler.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Executable information
-#
-# 09134 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Executable information messages.}
-% This section lists all messages that the compiler emits when an executable program is produced,
-% and only when the internal linker is used.
-% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Kann ausfÅhrbare Datei nicht nachbearbeiten: $1
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausfÅhrbare Datei nicht îffnen: $1
@@ -3156,6 +3262,22 @@ link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus fÅr das Symbol "$1" 
 % \section{Unit loading messages.}
 % This section lists all messages that can occur when the compiler is
 % loading a unit from disk into memory. Many of these mesages are
+% informational messages.
+% \begin{description}
+link_e_unsupported_cross_endian_internal_linker=09223_E_Using internal linker in cross-endian configuration is not supported
+% The internal linker does not correctly handle endianess conversion.
+% \end{description}
+# EndOfTeX
+
+#
+# Unit loading
+#
+# 10064 is the last used one
+#
+# BeginOfTeX
+% \section{Unit loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
 unit_t_unitsearch=10000_T_Suche Unit: $1
@@ -3389,6 +3511,12 @@ cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. öber
 % command line or handling the configuration files.
 % \begin{description}
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
+# BeginOfTeX
+%
+% \section{Command line handling errors}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
 option_only_one_source_support=11001_W_Es wird nur eine Quelldatei unterstÅtzt. Wechsel fÅr das Kompilieren von Quelldatei "$1" zu Quelldatei "$2"
 % You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
@@ -3446,6 +3574,9 @@ option_obsolete_switch_use_new=11019_W_Sie benutzen den nun Åberholten Schalter 
 option_switch_bin_to_src_assembler=11020_N_Schalte Assembler auf den Standard-Assembler-Quellcodeschreiber
 % This notifies you that the assembler has been changed because you used the
 % -a switch, which cannot be used with a binary assembler writer.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
 option_incompatible_asm=11021_W_Das gewÑhlte Assembler-Ausgabeformat "$1" ist nicht mit "$2" kompatibel
 option_asm_forced=11022_W_Verwendung des Assemblers "$1" erzwungen
 % The assembler output selected cannot generate
@@ -3542,6 +3673,21 @@ option_debug_info_requires_external_linker=11061_N_Das ausgewÑhlte Debug-Format 
 
 #
 # Whole program optimization
+#
+# 12019 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimization messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+% \begin{description}
+option_valgrind_heaptrc_mismatch=11062_E_You can't use both options ($1) ($2) at same time.
+%\end{description}
+# EndOfTeX
+
+#
+#  Whole program optimization
 #
 # 12019 is the last used one
 #
@@ -4261,3 +4407,19 @@ F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 #
 # The End...
 #
+%%% asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist au·erhalb des Bereichs
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Executing linker/assembler
+#
+# 09035 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Errors of assembling/linking stage}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
