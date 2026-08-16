@@ -69,7 +69,7 @@ interface
         procedure WriteConstSym(sym: tconstsym);
         procedure WriteSymtableVarSyms(st: TSymtable);
         procedure WriteSymtableProcdefs(st: TSymtable);
-        procedure WriteSymtableStructDefs(st: TSymtable);
+        procedure WriteSymtableStructDefs(AsmData: TAsmData; st: TSymtable);
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
@@ -1015,7 +1015,7 @@ implementation
           end;
       end;
 
-    procedure TJasminAssembler.WriteSymtableStructDefs(st: TSymtable);
+    procedure TJasminAssembler.WriteSymtableStructDefs(AsmData: TAsmData; st: TSymtable);
       var
         i   : longint;
         def : tdef;
@@ -1043,12 +1043,12 @@ implementation
         for i:=0 to nestedstructs.count-1 do
           begin
             obj:=tabstractrecorddef(nestedstructs[i]);
-            NewAsmFileForStructDef(current_asmdata,obj);
+            NewAsmFileForStructDef(AsmData,obj);
             WriteExtraHeader(obj);
             WriteSymtableVarSyms(obj.symtable);
             writer.AsmLn;
             WriteSymtableProcDefs(obj.symtable);
-            WriteSymtableStructDefs(obj.symtable);
+            WriteSymtableStructDefs(AsmData,obj.symtable);
           end;
         nestedstructs.free;
       end;
@@ -1084,8 +1084,8 @@ implementation
         WriteSymtableProcdefs(compiler.current_module.globalsymtable);
         WriteSymtableProcdefs(compiler.current_module.localsymtable);
 
-        WriteSymtableStructDefs(compiler.current_module.globalsymtable);
-        WriteSymtableStructDefs(compiler.current_module.localsymtable);
+        WriteSymtableStructDefs(asmdata,compiler.current_module.globalsymtable);
+        WriteSymtableStructDefs(asmdata,compiler.current_module.localsymtable);
 
         writer.AsmLn;
       end;
