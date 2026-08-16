@@ -1733,7 +1733,7 @@ var
                 end;
               AS_OPCODE:
                 begin
-                  instr:=TM68kInstruction.Create(tm68koperand,compiler);
+                  instr:=TM68kInstruction.Create(tm68koperand,AsmData,compiler);
                   BuildOpcode(instr);
 //                  instr.AddReferenceSizes;
 //                  instr.SetInstructionOpsize;

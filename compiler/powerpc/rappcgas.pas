@@ -786,7 +786,7 @@ Unit rappcgas;
       var
         instr : tppcinstruction;
       begin
-        instr:=TPPCInstruction.Create(TPPCOperand,compiler);
+        instr:=TPPCInstruction.Create(TPPCOperand,AsmData,compiler);
         BuildOpcode(instr);
         instr.condition := actcondition;
         if is_calljmp(instr.opcode) then

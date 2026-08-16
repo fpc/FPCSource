@@ -137,8 +137,10 @@ type
 
   TInstruction = class
   private
+    FAsmData: TAsmData;
     FCompiler: TCompilerBase;
   protected
+    property AsmData: TAsmData read FAsmData;
     property Compiler: TCompilerBase read FCompiler;
   public
     operands  : array[1..max_operands] of toperand;
@@ -147,7 +149,7 @@ type
     ops       : byte;
     labeled   : boolean;
     filepos  : tfileposinfo;
-    constructor create(optype : tcoperand;ACompiler: TCompilerBase);virtual;
+    constructor create(optype: tcoperand; AAsmData: TAsmData; ACompiler: TCompilerBase); virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
       and concatenate it to the passed list. The newly created item is returned if the
@@ -1277,10 +1279,11 @@ end;
                                  TInstruction
 ****************************************************************************}
 
-constructor TInstruction.create(optype : tcoperand;ACompiler: TCompilerBase);
+constructor TInstruction.create(optype : tcoperand; AAsmData: TAsmData; ACompiler: TCompilerBase);
   var
     i : longint;
   Begin
+    FAsmData:=AAsmData;
     FCompiler:=ACompiler;
     { these field are set to 0 anyways by the constructor helper (FK)
     Opcode:=A_NONE;
@@ -1289,7 +1292,7 @@ constructor TInstruction.create(optype : tcoperand;ACompiler: TCompilerBase);
     }
     filepos:=compiler.globals.current_filepos;
     for i:=1 to max_operands do
-      Operands[i]:=optype.create(current_asmdata,compiler);
+      Operands[i]:=optype.create(AsmData,compiler);
     Labeled:=false;
   end;
 

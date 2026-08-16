@@ -705,7 +705,7 @@ Unit raavrgas;
       var
         instr : tavrinstruction;
       begin
-        instr:=tavrinstruction.Create(tavroperand,compiler);
+        instr:=tavrinstruction.Create(tavroperand,AsmData,compiler);
         BuildOpcode(instr);
 {        if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr); }

@@ -605,7 +605,7 @@ Interface
       var
         instr : TInstruction;
       begin
-        instr:=TInstruction.Create(TOperand,compiler);
+        instr:=TInstruction.Create(TOperand,AsmData,compiler);
         BuildOpcode(instr);
         with instr do
           begin

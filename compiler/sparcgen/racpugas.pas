@@ -610,7 +610,7 @@ Interface
       var
         instr : tSparcinstruction;
       begin
-        instr:=TSparcInstruction.Create(TSparcOperand,compiler);
+        instr:=TSparcInstruction.Create(TSparcOperand,AsmData,compiler);
         BuildOpcode(instr);
         with instr do
           begin

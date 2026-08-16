@@ -1489,7 +1489,7 @@ Unit raarmgas;
       var
         instr : tarminstruction;
       begin
-        instr:=TarmInstruction.Create(TarmOperand,compiler);
+        instr:=TarmInstruction.Create(TarmOperand,AsmData,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

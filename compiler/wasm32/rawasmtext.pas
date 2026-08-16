@@ -598,7 +598,7 @@ Unit rawasmtext;
                     HasInstructions:=False;
                     HasThen:=False;
                     HasElse:=False;
-                    instr:=TWasmInstruction.create(TWasmOperand,compiler);
+                    instr:=TWasmInstruction.create(TWasmOperand,AsmData,compiler);
                     instr.opcode:=actopcode;
                     HasLabel:=False;
                     if actasmtoken=AS_ID then
@@ -727,7 +727,7 @@ Unit rawasmtext;
         case actasmtoken of
           AS_OPCODE:
             begin
-              result:=TWasmInstruction.create(TWasmOperand,compiler);
+              result:=TWasmInstruction.create(TWasmOperand,AsmData,compiler);
               result.opcode:=actopcode;
               Consume(AS_OPCODE);
               case result.opcode of
@@ -1074,7 +1074,7 @@ Unit rawasmtext;
           a_block,
           a_loop:
             begin
-              instr:=TWasmInstruction.create(TWasmOperand,compiler);
+              instr:=TWasmInstruction.create(TWasmOperand,AsmData,compiler);
               instr.opcode:=actopcode;
               Consume(AS_OPCODE);
               {TODO: implement the rest}

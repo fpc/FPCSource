@@ -1270,7 +1270,7 @@ Unit racpugas;
       var
         instr: taarch64instruction;
       begin
-        instr:=taarch64instruction.Create(taarch64operand,compiler);
+        instr:=taarch64instruction.Create(taarch64operand,AsmData,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

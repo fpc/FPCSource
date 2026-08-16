@@ -838,7 +838,7 @@ Unit racpugas;
       var
         instr : TXtensaInstruction;
       begin
-        instr:=TXtensaInstruction.Create(TXtensaOperand,compiler);
+        instr:=TXtensaInstruction.Create(TXtensaOperand,AsmData,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

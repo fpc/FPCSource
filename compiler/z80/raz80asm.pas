@@ -2326,7 +2326,7 @@ Unit raz80asm;
       var
         instr: TZ80Instruction;
       begin
-        instr:=TZ80Instruction.create(TZ80Operand,compiler);
+        instr:=TZ80Instruction.create(TZ80Operand,AsmData,compiler);
         BuildOpcode(instr);
         with instr do
           begin

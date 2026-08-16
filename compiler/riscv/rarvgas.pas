@@ -809,7 +809,7 @@ unit rarvgas;
       var
         instr : trvinstruction;
       begin
-        instr:=trvinstruction.Create(trvoperand,compiler);
+        instr:=trvinstruction.Create(trvoperand,AsmData,compiler);
         BuildOpcode(instr);
         instr.condition := actcondition;
         {
