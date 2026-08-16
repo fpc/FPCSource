@@ -3193,7 +3193,7 @@ implementation
               _CONST:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.const_dec(hadgeneric);
+                  parser.pdecl.const_dec(current_asmdata,hadgeneric);
                 end;
               _TYPE:
                 begin
@@ -3357,7 +3357,7 @@ implementation
              _CONST :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.const_dec(hadgeneric);
+                 parser.pdecl.const_dec(current_asmdata,hadgeneric);
                end;
              _TYPE :
                begin

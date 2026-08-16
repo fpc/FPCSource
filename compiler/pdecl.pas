@@ -53,7 +53,7 @@ type
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
-    procedure const_dec(out had_generic:boolean);
+    procedure const_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
     procedure type_dec(out had_generic:boolean);
@@ -253,10 +253,10 @@ implementation
         readconstant:=hp;
       end;
 
-    procedure TDeclarationParser.const_dec(out had_generic:boolean);
+    procedure TDeclarationParser.const_dec(AsmData: TAsmData; out had_generic:boolean);
       begin
         parser.pbase.consume(_CONST);
-        consts_dec(current_asmdata,false,true,had_generic);
+        consts_dec(AsmData,false,true,had_generic);
       end;
 
     procedure TDeclarationParser.consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
