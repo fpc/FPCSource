@@ -41,7 +41,7 @@ interface
            source code are mapped }
          fsymboldata: tfplist;
          function getllvmasmopindexforsym(sym: tabstractnormalvarsym): longint;
-         function getllvmasmparasym(sym: tabstractnormalvarsym): tasmsymbol;
+         function getllvmasmparasym(sym: tabstractnormalvarsym; ctx:tpassgeneratecodecontext): tasmsymbol;
          procedure ResolveRef(const filepos: tfileposinfo; var op: toper; ctx:tpassgeneratecodecontext); override;
         public
          constructor create(p : TAsmList; acompiler: TCompilerBase); override;
@@ -106,13 +106,13 @@ interface
       end;
 
 
-    function tllvmasmnode.getllvmasmparasym(sym: tabstractnormalvarsym): tasmsymbol;
+    function tllvmasmnode.getllvmasmparasym(sym: tabstractnormalvarsym; ctx:tpassgeneratecodecontext): tasmsymbol;
       begin
         { these have to be transformed from `nr into into $nr; we use ` because
           we also have to double all other occurrences of '$' in the assembly
           code, and we can't differentiate between these and other '$'s in
           agllvm }
-        result:=current_asmdata.RefAsmSymbol('`'+tostr(getllvmasmopindexforsym(sym)),AT_DATA,false);
+        result:=ctx.CurrAsmList.AsmData.RefAsmSymbol('`'+tostr(getllvmasmopindexforsym(sym)),AT_DATA,false);
       end;
 
 
@@ -160,7 +160,7 @@ interface
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
-                        reference_reset_symbol(op.ref^,getllvmasmparasym(sym),sofs,
+                        reference_reset_symbol(op.ref^,getllvmasmparasym(sym,ctx),sofs,
                           newalignment(sym.localloc.reference.alignment,sofs),[]);
                         op.ref^.index:=indexreg;
 {$ifdef x86}
