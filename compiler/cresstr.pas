@@ -26,9 +26,10 @@ unit cresstr;
 interface
 
 uses
-   compilerbase;
+   compilerbase,
+   aasmdata;
 
-    Procedure GenerateResourceStrings(compiler: TCompilerBase);
+    Procedure GenerateResourceStrings(AsmData: TAsmData; compiler: TCompilerBase);
 
 
 implementation
@@ -39,7 +40,7 @@ uses
    cutils,globtype,globals,systems,compiler,
    symbase,symconst,symtype,defutil, symdef,symsym,symtable,
    verbose,fmodule,ppu,
-   aasmtai,aasmdata,aasmcnst,
+   aasmtai,aasmcnst,
    aasmcpu;
 
     Type
@@ -370,7 +371,7 @@ uses
       end;
 
 
-    Procedure GenerateResourceStrings(compiler: TCompilerBase);
+    Procedure GenerateResourceStrings(AsmData: TAsmData; compiler: TCompilerBase);
       var
         resstrs : Tresourcestrings;
       begin
@@ -378,7 +379,7 @@ uses
         if assigned(compiler.current_module.globalsymtable) then
           compiler.symtablestack.push(compiler.current_module.globalsymtable);
         compiler.symtablestack.push(compiler.current_module.localsymtable);
-        resstrs:=Tresourcestrings.Create(current_asmdata,compiler);
+        resstrs:=Tresourcestrings.Create(AsmData,compiler);
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
