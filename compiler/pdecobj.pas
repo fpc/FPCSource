@@ -56,7 +56,7 @@ type
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(AsmData: TAsmData; objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
@@ -1530,7 +1530,7 @@ implementation
       end;
 
 
-    function TObjectDeclarationsParser.object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function TObjectDeclarationsParser.object_dec(AsmData: TAsmData; objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1780,7 +1780,7 @@ implementation
               compiler.current_objectdef.insertvmt;
 
             { parse and insert object members }
-            parse_object_members(current_asmdata);
+            parse_object_members(AsmData);
 
             if assigned(olddef) then
               begin
