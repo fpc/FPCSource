@@ -60,6 +60,7 @@ implementation
       tokens,scanner,pexpr,
       defutil,
       nbas,ncal,ncon,ncnv,njvmcon,
+      aasmdata,
       compiler;
 
 
@@ -192,7 +193,7 @@ implementation
             { array of ansichar -> can be constant char/string; can't use plain
               assignment in this case, because it will result in a codepage
               conversion }
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             if n.nodetype=stringconstn then
               begin
                 len:=tstringconstnode(n).len;
