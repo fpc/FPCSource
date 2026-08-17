@@ -29,6 +29,7 @@ interface
 
     uses
       compilerbase,
+      aasmdata,
       node,
       symtype,symdef;
 
@@ -39,7 +40,7 @@ type
   TObjectiveCUtils = class
   private
     FCompiler: TCompilerBase;
-    procedure exportobjcclassfields(objccls: tobjectdef);
+    procedure exportobjcclassfields(AsmData: TAsmData; objccls: tobjectdef);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -74,7 +75,6 @@ implementation
       objcdef,
       defutil,paramgr,
       nmem,ncal,nld,ncon,ncnv,
-      aasmdata,
       export,compiler;
 
 constructor TObjectiveCUtils.Create(ACompiler: TCompilerBase);
@@ -292,7 +292,7 @@ end;
                     ObjC class exporting
 *******************************************************************}
 
-    procedure TObjectiveCUtils.exportobjcclassfields(objccls: tobjectdef);
+    procedure TObjectiveCUtils.exportobjcclassfields(AsmData: TAsmData; objccls: tobjectdef);
     var
       i: longint;
       vf: tfieldvarsym;
@@ -306,7 +306,7 @@ end;
             { TODO: package visibility (private_extern) -- must not be exported
                either}
             if not(vf.visibility in [vis_private,vis_strictprivate]) then
-              compiler.exportlib.exportname(current_asmdata,prefix+vf.RealName,[]);
+              compiler.exportlib.exportname(AsmData,prefix+vf.RealName,[]);
           end;
     end;
 
@@ -319,7 +319,7 @@ end;
             compiler.exportlib.exportname(current_asmdata,def.rtti_mangledname(objcclassrtti),[]);
             compiler.exportlib.exportname(current_asmdata,def.rtti_mangledname(objcmetartti),[]);
             { export public/protected instance variable offset symbols }
-            exportobjcclassfields(def);
+            exportobjcclassfields(current_asmdata,def);
           end
         else
           begin
