@@ -26,7 +26,7 @@ unit pexpr;
 interface
 
     uses
-      compilerbase,
+      compilerbase,aasmdata,
       symtype,symdef,symbase,
       node,ncal,compinnr,
       tokens,globtype,globals,constexp,
@@ -1778,7 +1778,7 @@ implementation
                 arraydef,
                 procvardef:
                   begin
-                    spezdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
+                    spezdef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
                     if spezdef<>compiler.generrordef then
@@ -3575,7 +3575,7 @@ implementation
                          begin
                            if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
                              begin
-                               hdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
+                               hdef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
                                if hdef<>compiler.generrordef then
@@ -4643,7 +4643,7 @@ implementation
             procvardef,
             arraydef:
               begin
-                gendef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
+                gendef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then
