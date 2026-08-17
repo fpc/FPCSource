@@ -206,8 +206,8 @@ implementation
    function tjvmtypeconvnode.typecheck_string_to_string: tnode;
      begin
        { make sure the generic code gets a stringdef }
-       if (maybe_find_real_class_definition(resultdef,false)=compiler.deftypes.java_jlstring) or
-          (maybe_find_real_class_definition(left.resultdef,false)=compiler.deftypes.java_jlstring) then
+       if (maybe_find_real_class_definition(compiler.symtablestack,resultdef,false)=compiler.deftypes.java_jlstring) or
+          (maybe_find_real_class_definition(compiler.symtablestack,left.resultdef,false)=compiler.deftypes.java_jlstring) then
          begin
            left:=compiler.ctypeconvnode(left,compiler.deftypes.cunicodestringtype);
            left.flags:=flags;
@@ -302,7 +302,7 @@ implementation
         if ((is_conststringnode(left) and
              not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring])) or
             is_constcharnode(left)) and
-           (maybe_find_real_class_definition(resultdef,false)=compiler.deftypes.java_jlstring) then
+           (maybe_find_real_class_definition(compiler.symtablestack,resultdef,false)=compiler.deftypes.java_jlstring) then
           inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
       end;
 
@@ -846,6 +846,8 @@ implementation
 
 
     procedure get_most_nested_types(var fromdef, todef: tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
        while is_dynamic_array(fromdef) and
              is_dynamic_array(todef) do
@@ -853,8 +855,8 @@ implementation
            fromdef:=tarraydef(fromdef).elementdef;
            todef:=tarraydef(todef).elementdef;
          end;
-       fromdef:=maybe_find_real_class_definition(fromdef,false);
-       todef:=maybe_find_real_class_definition(todef,false);
+       fromdef:=maybe_find_real_class_definition(compiler.symtablestack,fromdef,false);
+       todef:=maybe_find_real_class_definition(compiler.symtablestack,todef,false);
       end;
 
 
@@ -1496,7 +1498,7 @@ implementation
          ((node.nodetype<>asn) or
           not tjvmasnode(node).classreftypecast) then
         realtodef:=tclassrefdef(realtodef).pointeddef;
-      realtodef:=maybe_find_real_class_definition(realtodef,false);
+      realtodef:=maybe_find_real_class_definition(compiler.symtablestack,realtodef,false);
       if result then
         if node.nodetype=asn then
           node.resultdef:=realtodef

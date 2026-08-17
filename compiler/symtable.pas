@@ -405,7 +405,7 @@ interface
 
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
-    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
+    function maybe_find_real_class_definition(symtablestack: TSymtablestack; pd: tdef; erroronfailure: boolean): tdef;
     function find_real_class_definition(symtablestack:TSymtablestack;pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
@@ -3912,14 +3912,12 @@ implementation
       end;
 
 
-    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function maybe_find_real_class_definition(symtablestack: TSymtablestack; pd: tdef; erroronfailure: boolean): tdef;
       begin
         result:=pd;
         if pd.typ<>objectdef then
           exit;
-        result:=compiler.symtablestack.find_real_class_definition(tobjectdef(pd),erroronfailure);
+        result:=symtablestack.find_real_class_definition(tobjectdef(pd),erroronfailure);
       end;
 
 
