@@ -26,7 +26,7 @@ unit cpupi;
 interface
 
   uses
-    sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,
+    sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,aasmdata,
     procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
     psub,node,compilerbase, cclasses;
 
@@ -55,7 +55,7 @@ interface
       { label to the nearest local exception handler }
       CurrRaiseLabel : tasmlabel;
 
-      constructor create(aparent: tprocinfo;acompiler: TCompilerBase); override;
+      constructor create(aparent: tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase); override;
       destructor destroy; override;
       function calc_stackframe_size : longint;override;
       procedure setup_eh(ctx:tpassgeneratecodecontext); override;
@@ -491,7 +491,7 @@ implementation
         result:=FLocals[localidx];
       end;
 
-    constructor tcpuprocinfo.create(aparent: tprocinfo;acompiler: TCompilerBase);
+    constructor tcpuprocinfo.create(aparent: tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase);
       begin
         inherited;
         FGotoTargets:=TFPHashObjectList.Create(false);

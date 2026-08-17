@@ -40,7 +40,7 @@ type
 
     needs_frame_pointer : boolean;
 
-    constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
+    constructor create(aparent: tprocinfo; aasmdata: tasmdata; acompiler: TCompilerBase); override;
     procedure set_first_temp_offset; override;
     function calc_stackframe_size: longint; override;
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
@@ -61,7 +61,7 @@ uses
   aasmcpu,
   compiler;
 
-constructor tcpuprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
+constructor tcpuprocinfo.create(aparent: tprocinfo; aasmdata: tasmdata; acompiler: TCompilerBase);
 
 begin
   inherited;

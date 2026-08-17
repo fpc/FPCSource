@@ -39,7 +39,7 @@ unit cpupi;
 
           { offset where the frame pointer from the outer procedure is stored. }
           parent_framepointer_offset : longint;
-          constructor create(aparent:tprocinfo;acompiler: TCompilerBase);override;
+          constructor create(aparent:tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase);override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
 
@@ -68,7 +68,7 @@ unit cpupi;
        aasmcpu,
        compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler: TCompilerBase);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase);
 
       begin
          inherited;

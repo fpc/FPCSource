@@ -47,7 +47,7 @@ interface
       setnoat : boolean;
       //intparareg,
       //parasize : longint;
-      constructor create(aparent:tprocinfo;acompiler:TCompilerBase);override;
+      constructor create(aparent:tprocinfo;aasmdata:tasmdata;acompiler:TCompilerBase);override;
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
       procedure allocate_got_register(list:tasmlist);override;
@@ -66,7 +66,7 @@ implementation
       tgobj,paramgr,symconst,symcpu,aasmcpu,
       compiler;
 
-    constructor tcpuprocinfo.create(aparent: tprocinfo;acompiler:TCompilerBase);
+    constructor tcpuprocinfo.create(aparent: tprocinfo;aasmdata:tasmdata;acompiler:TCompilerBase);
       begin
         inherited;
         if (cs_generate_stackframes in compiler.globals.current_settings.localswitches) or

@@ -42,7 +42,7 @@ interface
       { Total stack frame size including saved registers (for SEH on AArch64-Win64).
         This is the offset from FP to SP after the prolog completes. }
       total_stackframe_size: longint;
-      constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
+      constructor create(aparent: tprocinfo; aasmdata: tasmdata; acompiler: TCompilerBase); override;
       destructor destroy; override;
       procedure set_first_temp_offset; override;
       procedure add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
@@ -67,7 +67,7 @@ implementation
     SCOPE_CATCHALL=1;
     SCOPE_IMPLICIT=2;
 
-  constructor tcpuprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
+  constructor tcpuprocinfo.create(aparent: tprocinfo; aasmdata: tasmdata ; acompiler: TCompilerBase);
     begin
       inherited;
       { use the stack pointer as framepointer, because

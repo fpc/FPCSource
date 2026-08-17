@@ -28,13 +28,14 @@ interface
   uses
     cutils,
     procinfo,cpuinfo,
+    aasmdata,
     psub,
     compilerbase;
 
   type
     tcpuprocinfo=class(tcgprocinfo)
     public
-      constructor create(aparent:tprocinfo;acompiler: TCompilerBase);override;
+      constructor create(aparent:tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase);override;
       function calc_stackframe_size:longint;override;
     end;
 
@@ -46,7 +47,7 @@ implementation
       tgobj,paramgr,symconst,
       compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler: TCompilerBase);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;aasmdata:tasmdata;acompiler: TCompilerBase);
       begin
         inherited;
         maxpushedparasize:=0;

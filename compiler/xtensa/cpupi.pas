@@ -45,7 +45,7 @@ unit cpupi;
         maxcall : Byte;
         // procedure handle_body_start;override;
         // procedure after_pass1;override;
-        constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
+        constructor create(aparent: tprocinfo; aasmdata: tasmdata; acompiler: TCompilerBase); override;
         procedure set_first_temp_offset;override;
         function calc_stackframe_size:longint;override;
         procedure init_framepointer;override;
@@ -67,7 +67,7 @@ unit cpupi;
        aasmcpu,
        compiler,nodehelper;
 
-    constructor txtensaprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
+    constructor txtensaprocinfo.create(aparent: tprocinfo; aasmdata: tasmdata; acompiler: TCompilerBase);
       begin
         inherited;
         maxpushedparasize:=0;
