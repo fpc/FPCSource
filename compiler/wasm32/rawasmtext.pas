@@ -1019,7 +1019,7 @@ Unit rawasmtext;
                   case actasmtoken of
                     AS_ID:
                       begin
-                        AsmSearchSym(upper(Copy(actasmpattern,2,Length(actasmpattern)-1)),srsym,srsymtable);
+                        AsmSearchSym(compiler.symtablestack,upper(Copy(actasmpattern,2,Length(actasmpattern)-1)),srsym,srsymtable);
                         if assigned(srsym) then
                           begin
                             case srsym.typ of
