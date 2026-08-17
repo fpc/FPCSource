@@ -331,7 +331,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    compiler.globals.block_type:=bt_const_type;
                    parser.pbase.consume(_COLON);
-                   parser.ptype.read_anon_type(hdef,false,nil);
+                   parser.ptype.read_anon_type(AsmData,hdef,false,nil);
                    compiler.globals.block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=compiler.globals.current_tokenpos;

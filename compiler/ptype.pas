@@ -64,7 +64,7 @@ interface
     procedure read_named_type(AsmData: TAsmData; var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
+    procedure read_anon_type(AsmData: TAsmData; var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
 
     { parse nested type declaration of the def (typedef) }
     procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
@@ -1440,7 +1440,7 @@ implementation
         begin
           parser.pbase.consume(_SET);
           parser.pbase.consume(_OF);
-          read_anon_type(tt2,true,nil);
+          read_anon_type(AsmData,tt2,true,nil);
           if assigned(tt2) then
            begin
              case tt2.typ of
@@ -1624,7 +1624,7 @@ implementation
                     be parsed by readtype (PFV) }
                   if current_scanner.token=_LKLAMMER then
                    begin
-                     read_anon_type(hdef,true,nil);
+                     read_anon_type(AsmData,hdef,true,nil);
                      setdefdecl(hdef);
                    end
                   else
@@ -1731,7 +1731,7 @@ implementation
                 def:=arrdef;
              end;
            parser.pbase.consume(_OF);
-           read_anon_type(tt2,true,nil);
+           read_anon_type(AsmData,tt2,true,nil);
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
@@ -2203,12 +2203,12 @@ implementation
       end;
 
 
-    procedure TTypesParser.read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
+    procedure TTypesParser.read_anon_type(AsmData: TAsmData; var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
       var
         hadtypetoken : boolean;
       begin
         hadtypetoken:=false;
-        read_named_type(current_asmdata,def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
+        read_named_type(AsmData,def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
       end;
 
 

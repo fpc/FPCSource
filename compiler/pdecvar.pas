@@ -1526,7 +1526,7 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             parser.ptype.read_anon_type(hdef,false,nil);
+             parser.ptype.read_anon_type(AsmData,hdef,false,nil);
              maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
              for i:=0 to sc.count-1 do
                begin
@@ -1871,7 +1871,7 @@ implementation
                  gendef:=tfieldvarsym(srsym).vardef;
                end;
 
-             parser.ptype.read_anon_type(hdef,false,tstoreddef(gendef));
+             parser.ptype.read_anon_type(AsmData,hdef,false,tstoreddef(gendef));
              maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
@@ -2090,7 +2090,7 @@ implementation
                       compiler.symtablestack.top.insertsym(fieldvs);
                     end;
                 end;
-              parser.ptype.read_anon_type(casetype,true,nil);
+              parser.ptype.read_anon_type(AsmData,casetype,true,nil);
               compiler.globals.block_type:=bt_var;
               if assigned(fieldvs) then
                 begin
