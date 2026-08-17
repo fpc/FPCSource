@@ -35,7 +35,7 @@ unit cpupi;
        private
          procedure insert_8087_fwaits(list : TAsmList);
        public
-         constructor create(aparent:tprocinfo;acompiler:tcompilerbase);override;
+         constructor create(aparent:tprocinfo;aasmdata:tasmdata;acompiler:tcompilerbase);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
@@ -55,7 +55,7 @@ unit cpupi;
       symconst,
       compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler:tcompilerbase);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;aasmdata:tasmdata;acompiler:tcompilerbase);
       begin
         inherited;
         got:=NR_EBX;
