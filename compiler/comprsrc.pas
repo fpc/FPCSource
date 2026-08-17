@@ -74,7 +74,7 @@ type
    end;
 
 
-procedure CompileResourceFiles;
+procedure CompileResourceFiles(compiler: TCompilerBase);
 procedure CollectResourceFiles;
 
 implementation
@@ -457,9 +457,7 @@ begin
   Result:=true;
 end;
 
-procedure CompileResourceFiles;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure CompileResourceFiles(compiler: TCompilerBase);
 var
   resourcefile : tresourcefile;
   res: TCmdStrListItem;

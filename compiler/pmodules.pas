@@ -199,7 +199,7 @@ implementation
          end;
 
         { resource files }
-        CompileResourceFiles;
+        CompileResourceFiles(compiler);
       end;
 
 
