@@ -1259,11 +1259,11 @@ implementation
              if try_parse_structdef_nested_type(def,compiler.current_structdef,false) then
                exit;
            { we can't accept a equal in type }
-           pt1:=parser.pexpr.comp_expr([ef_type_only]);
+           pt1:=parser.pexpr.comp_expr(AsmData,[ef_type_only]);
            if parser.pbase.try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=parser.pexpr.comp_expr([]);
+               pt2:=parser.pexpr.comp_expr(AsmData,[]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1934,7 +1934,7 @@ implementation
                     begin
                        oldlocalswitches:=compiler.globals.current_settings.localswitches;
                        compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_allow_enum_calc];
-                       p:=parser.pexpr.comp_expr([ef_accept_equal]);
+                       p:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
                        compiler.globals.current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin

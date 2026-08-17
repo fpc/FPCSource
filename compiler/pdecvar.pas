@@ -219,7 +219,7 @@ implementation
                          if assigned(def) and (def.typ=arraydef) then
                           begin
                             idx:=0;
-                            p:=parser.pexpr.comp_expr([ef_accept_equal]);
+                            p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                             if (not compiler.verbose.codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -335,7 +335,7 @@ implementation
 
               if parser.pbase.try_to_consume(_DISPID) then
                 begin
-                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -504,7 +504,7 @@ implementation
               if (current_scanner.idtoken=_INDEX) then
                 begin
                    parser.pbase.consume(_INDEX);
-                   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                   pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
                      s16int on 16- and 8-bit) to be compatible with delphi,
@@ -746,7 +746,7 @@ implementation
                 begin
                   compiler.verbose.Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                   pt.free;
                   pt := nil;
                 end
@@ -754,7 +754,7 @@ implementation
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -2120,13 +2120,13 @@ implementation
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
                   sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
-                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     compiler.verbose.Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)=[]) and parser.pbase.try_to_consume(_POINTPOINT) then
-                    pt:=compiler.crangenode(pt,parser.pexpr.comp_expr([ef_accept_equal]))
+                    pt:=compiler.crangenode(pt,parser.pexpr.comp_expr(AsmData,[ef_accept_equal]))
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do

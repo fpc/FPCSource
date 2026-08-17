@@ -176,7 +176,7 @@ implementation
                      end;
                     if parser.pbase.try_to_consume(_INDEX) then
                      begin
-                       pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                       pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                        if pt.nodetype=ordconstn then
                         if (Tordconstnode(pt).value<int64(low(index))) or
                            (Tordconstnode(pt).value>int64(high(index))) then
@@ -201,7 +201,7 @@ implementation
                      end;
                     if parser.pbase.try_to_consume(_NAME) then
                      begin
-                       pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+                       pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                        if pt.nodetype=stringconstn then
                          hpname:=strpas(pchar(@tstringconstnode(pt).valueas[0]))
                        else if is_constcharnode(pt) then

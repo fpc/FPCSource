@@ -187,7 +187,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           n : tnode;
         begin
-           n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+           n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
            { for C-style booleans, true=-1 and false=0) }
            if is_cbool(def) then
              inserttypeconv(n,def,compiler);
@@ -200,7 +200,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           n : tnode;
         begin
-          n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           tc_emit_floatdef(def,n);
           n.free;
           n := nil;
@@ -210,7 +210,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           n : tnode;
         begin
-          n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           case n.nodetype of
             loadvmtaddrn:
               begin
@@ -230,7 +230,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           p: tnode;
         begin
-          p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          p:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           tc_emit_pointerdef(def,p);
           p.free;
           p := nil;
@@ -240,7 +240,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           p : tnode;
         begin
-          p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          p:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           tc_emit_setdef(def,p);
           p.free;
           p := nil;
@@ -250,7 +250,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           p : tnode;
         begin
-          p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          p:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           tc_emit_enumdef(def,p);
           p.free;
           p := nil;
@@ -260,7 +260,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         var
           n : tnode;
         begin
-          n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+          n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
           tc_emit_stringdef(def,n);
           n.free;
           n := nil;
@@ -1189,7 +1189,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         node: tnode;
       begin
         result:=true;
-        node:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+        node:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
         if (node.nodetype <> ordconstn) or
            (not equal_defs(compiler.symtablestack,node.resultdef,def) and
             not is_subequal(node.resultdef,def)) then
@@ -1386,7 +1386,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
              ftcb.maybe_begin_aggregate(def);
              char_size:=def.elementdef.size;
-             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+             n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
              if n.nodetype=stringconstn then
                begin
                  len:=tstringconstnode(n).len;
@@ -1519,7 +1519,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
         { parse the rest too, so we can continue with error checking }
         compiler.parser.pexpr.getprocvardef:=def;
-        n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+        n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
         compiler.parser.pexpr.getprocvardef:=nil;
         if compiler.verbose.codegenerror then
           begin
@@ -1671,7 +1671,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { GUID }
         if (def=compiler.deftypes.rec_tguid) and (current_scanner.token=_ID) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
@@ -1688,7 +1688,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
         if (def=compiler.deftypes.rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             inserttypeconv(n,compiler.deftypes.cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
@@ -1882,7 +1882,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { only allow nil for implicit pointer object types }
         if is_implicit_pointer_object_type(def) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             if n.nodetype<>niln then
               begin
                 compiler.verbose.Message(parser_e_type_const_not_possible);
@@ -2033,7 +2033,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { if array of char then we allow also a string }
         else if is_anychar(def.elementdef) then
           begin
-             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+             n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
              addstatement(statmnt,compiler.cassignmentnode_internal(basenode,n));
              basenode:=nil;
           end
@@ -2047,7 +2047,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.parse_procvardef(def: tprocvardef);
       begin
-        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,compiler.parser.pexpr.comp_expr([ef_accept_equal])));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal])));
         basenode:=nil;
       end;
 
@@ -2076,7 +2076,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { GUID }
         if (def=compiler.deftypes.rec_tguid) and (current_scanner.token=_ID) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
@@ -2098,7 +2098,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
         if (def=compiler.deftypes.rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             inserttypeconv(n,compiler.deftypes.cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
@@ -2246,7 +2246,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { only allow nil for implicit pointer object types }
         if is_implicit_pointer_object_type(def) then
           begin
-            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
             if n.nodetype<>niln then
               begin
                 compiler.verbose.Message(parser_e_type_const_not_possible);

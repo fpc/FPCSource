@@ -134,7 +134,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=parser.pexpr.comp_expr([ef_accept_equal]);
+        p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=compiler.globals.current_tokenpos;
         compiler.globals.current_tokenpos:=filepos;
@@ -975,7 +975,7 @@ implementation
                           { check if it is an ansistring(codepage) declaration }
                           if is_ansistring(hdef) and parser.pbase.try_to_consume(_LKLAMMER) then
                             begin
-                              p:=parser.pexpr.comp_expr([ef_accept_equal]);
+                              p:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
                               parser.pbase.consume(_RKLAMMER);
                               if not is_constintnode(p) then
                                 begin
@@ -1384,7 +1384,7 @@ implementation
              _EQ:
                 begin
                    parser.pbase.consume(_EQ);
-                   p:=parser.pexpr.comp_expr([ef_accept_equal]);
+                   p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                    storetokenpos:=compiler.globals.current_tokenpos;
                    compiler.globals.current_tokenpos:=filepos;
                    sym:=nil;

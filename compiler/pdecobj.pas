@@ -456,7 +456,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=parser.pexpr.comp_expr([ef_accept_equal]);
+        p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(compiler.current_objectdef.iidstr);

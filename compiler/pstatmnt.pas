@@ -115,7 +115,7 @@ implementation
          ex,if_a,else_a : tnode;
       begin
          parser.pbase.consume(_IF);
-         ex:=parser.pexpr.comp_expr([ef_accept_equal]);
+         ex:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
          parser.pbase.consume(_THEN);
          if not(current_scanner.token in endtokens) then
            if_a:=statement
@@ -172,7 +172,7 @@ implementation
          casenode : tcasenode;
       begin
          parser.pbase.consume(_CASE);
-         caseexpr:=parser.pexpr.comp_expr([ef_accept_equal]);
+         caseexpr:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -369,7 +369,7 @@ implementation
          parser.pbase.consume(_UNTIL);
 
          first:=compiler.cblocknode(first);
-         p_e:=parser.pexpr.comp_expr([ef_accept_equal]);
+         p_e:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
          result:=compiler.cwhilerepeatnode(p_e,first,false,true);
       end;
 
@@ -381,7 +381,7 @@ implementation
 
       begin
          parser.pbase.consume(_WHILE);
-         p_e:=parser.pexpr.comp_expr([ef_accept_equal]);
+         p_e:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
          parser.pbase.consume(_DO);
          p_a:=statement;
          result:=compiler.cwhilerepeatnode(p_e,p_a,true,false);
@@ -519,7 +519,7 @@ implementation
              else
                compiler.verbose.MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=parser.pexpr.comp_expr([ef_accept_equal]);
+             hfrom:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
 
              if parser.pbase.try_to_consume(_DOWNTO) then
                backward:=true
@@ -529,7 +529,7 @@ implementation
                  backward:=false;
                end;
 
-             hto:=parser.pexpr.comp_expr([ef_accept_equal]);
+             hto:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
              parser.pbase.consume(_DO);
 
              { Check if the constants fit in the range }
@@ -583,7 +583,7 @@ implementation
               else
                 loopvarsym:=nil;
 
-              expr:=parser.pexpr.comp_expr([ef_accept_equal]);
+              expr:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
 
               parser.pbase.consume(_DO);
 
@@ -669,7 +669,7 @@ implementation
 
       begin
          calltempnode:=nil;
-         p:=parser.pexpr.comp_expr([ef_accept_equal]);
+         p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -895,12 +895,12 @@ implementation
          if not(current_scanner.token in endtokens) then
            begin
               { object }
-              pobj:=parser.pexpr.comp_expr([ef_accept_equal]);
+              pobj:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
               if parser.pbase.try_to_consume(_AT) then
                 begin
-                   paddr:=parser.pexpr.comp_expr([ef_accept_equal]);
+                   paddr:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                    if parser.pbase.try_to_consume(_COMMA) then
-                     pframe:=parser.pexpr.comp_expr([ef_accept_equal]);
+                     pframe:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
                 end;
            end
          else

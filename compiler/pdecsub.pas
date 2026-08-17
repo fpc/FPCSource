@@ -2156,7 +2156,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -2242,7 +2242,7 @@ begin
       if paracnt<>1 then
         compiler.verbose.Message(parser_e_ill_msg_param);
     end;
-  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
+  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin

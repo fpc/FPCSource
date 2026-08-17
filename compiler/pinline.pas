@@ -172,7 +172,7 @@ implementation
         if compiler.target.info.system in systems_managed_vm then
           compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
-        p:=parser.pexpr.comp_expr([ef_accept_equal]);
+        p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
         { calc return type }
         if is_new then
           begin
