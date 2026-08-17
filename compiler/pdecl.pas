@@ -514,7 +514,7 @@ implementation
 
         repeat
           { Parse attribute type }
-          p:=parser.pexpr.factor(false,[ef_type_only,ef_check_attr_suffix]);
+          p:=parser.pexpr.factor(current_asmdata,false,[ef_type_only,ef_check_attr_suffix]);
           if p.nodetype=typen then
             begin
               typesym:=ttypesym(ttypenode(p).typesym);

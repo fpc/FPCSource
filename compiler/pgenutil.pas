@@ -643,7 +643,7 @@ uses
               parser.pbase.consume(_COMMA);
             compiler.globals.block_type:=bt_type;
             tmpparampos:=compiler.globals.current_filepos;
-            typeparam:=parser.pexpr.factor(false,[ef_accept_equal]);
+            typeparam:=parser.pexpr.factor(current_asmdata,false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
             validparam:=typeparam.nodetype in tgeneric_param_nodes;
             if validparam then

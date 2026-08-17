@@ -103,7 +103,7 @@ interface
     function comp_expr(flags:texprflags):tnode;
 
     { reads a single factor }
-    function factor(getaddr:boolean;flags:texprflags) : tnode;
+    function factor(AsmData:TAsmData;getaddr:boolean;flags:texprflags) : tnode;
 
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
@@ -684,7 +684,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(true,[]);
+              p1:=factor(current_asmdata,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -699,7 +699,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(true,[]);
+              p1:=factor(current_asmdata,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -716,7 +716,7 @@ implementation
                 compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(true,[]);
+              p1:=factor(current_asmdata,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -733,7 +733,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(true,[]);
+              p1:=factor(current_asmdata,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -856,7 +856,7 @@ implementation
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(true,[]);
+                  p1:=factor(current_asmdata,true,[]);
                   p2:=geninlinenode(l,false,p1,compiler);
                   parser.pbase.consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -3413,7 +3413,7 @@ implementation
       end;
 
 
-    function TExpressionParser.factor(getaddr:boolean;flags:texprflags) : tnode;
+    function TExpressionParser.factor(AsmData:TAsmData;getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
                          Factor_read_id
@@ -3575,7 +3575,7 @@ implementation
                          begin
                            if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
                              begin
-                               hdef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(hdef),false,'');
+                               hdef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
                                if hdef<>compiler.generrordef then
@@ -3736,7 +3736,7 @@ implementation
             end;
 
             begin
-              p1:=factor_handle_sym(current_asmdata,srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
+              p1:=factor_handle_sym(AsmData,srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
 
               if assigned(spezcontext) then
                 internalerror(2015061207);
@@ -3895,7 +3895,7 @@ implementation
              dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not (ef_had_specialize in flags) then
-             updatefpos:=postfixoperators(current_asmdata,p1,again,getaddr);
+             updatefpos:=postfixoperators(AsmData,p1,again,getaddr);
          end
         else
          begin
@@ -3999,7 +3999,7 @@ implementation
                          searchsym_in_class(hclassdef,compiler.current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                        if isspecialize and assigned(srsym) then
                          begin
-                           if not handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                           if not handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                              srsym:=nil;
                          end;
                      end;
@@ -4135,7 +4135,7 @@ implementation
                      p1:=compiler.cerrornode;
                    end;
                  if p1.nodetype<>specializen then
-                   postfixoperators(current_asmdata,p1,again,getaddr);
+                   postfixoperators(AsmData,p1,again,getaddr);
                end;
 
              _INTCONST :
@@ -4182,7 +4182,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4193,7 +4193,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4210,7 +4210,7 @@ implementation
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end
                  else
                    begin
@@ -4219,7 +4219,7 @@ implementation
                        begin
                          again:=true;
                          { handle type helpers here }
-                         postfixoperators(current_asmdata,p1,again,getaddr);
+                         postfixoperators(AsmData,p1,again,getaddr);
                        end;
                    end;
                end;
@@ -4236,7 +4236,7 @@ implementation
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end
                  else
                   begin
@@ -4251,7 +4251,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4262,7 +4262,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4276,7 +4276,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4287,7 +4287,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(current_asmdata,p1,again,getaddr);
+                     postfixoperators(AsmData,p1,again,getaddr);
                    end;
                end;
 
@@ -4298,14 +4298,14 @@ implementation
                  { support both @<x> and @(<x>) }
                  if parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=factor(true,[]);
+                    p1:=factor(AsmData,true,[]);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if current_scanner.token<>_RKLAMMER then
                       p1:=sub_expr(opcompare,[ef_accept_equal],p1);
                     parser.pbase.consume(_RKLAMMER);
                   end
                  else
-                  p1:=factor(true,[]);
+                  p1:=factor(AsmData,true,[]);
                  if (current_scanner.token in postfixoperator_tokens) and
                    { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^
                      is parsed as @(notproc^) }
@@ -4317,7 +4317,7 @@ implementation
                    then
                   begin
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end;
                  got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
@@ -4333,7 +4333,7 @@ implementation
                  if (current_scanner.token in postfixoperator_tokens) then
                   begin
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end;
                end;
 
@@ -4347,7 +4347,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                   begin
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end;
                end;
 
@@ -4361,7 +4361,7 @@ implementation
              _PLUS :
                begin
                  parser.pbase.consume(_PLUS);
-                 p1:=factor(false,[]);
+                 p1:=factor(AsmData,false,[]);
                  p1:=compiler.cunaryplusnode(p1);
                end;
 
@@ -4408,7 +4408,7 @@ implementation
              _OP_NOT :
                begin
                  parser.pbase.consume(_OP_NOT);
-                 p1:=factor(false,[]);
+                 p1:=factor(AsmData,false,[]);
                  p1:=compiler.cnotnode(p1);
                end;
 
@@ -4420,7 +4420,7 @@ implementation
                  if current_scanner.token in [_CARET,_POINT] then
                   begin
                     again:=true;
-                    postfixoperators(current_asmdata,p1,again,getaddr);
+                    postfixoperators(AsmData,p1,again,getaddr);
                   end;
                end;
              _OBJCPROTOCOL:
@@ -4434,7 +4434,7 @@ implementation
                  }
                  parser.pbase.consume(_OBJCPROTOCOL);
                  parser.pbase.consume(_LKLAMMER);
-                 p1:=factor(false,[]);
+                 p1:=factor(AsmData,false,[]);
                  parser.pbase.consume(_RKLAMMER);
                  p1:=compiler.cinlinenode(in_objc_protocol_x,false,p1);
                end;
@@ -4815,7 +4815,7 @@ implementation
         if pred_level=highest_precedence then
           begin
             if factornode=nil then
-              p1:=factor(false,flags)
+              p1:=factor(current_asmdata,false,flags)
             else
               p1:=factornode;
           end
@@ -4830,7 +4830,7 @@ implementation
              filepos:=compiler.globals.current_tokenpos;
              parser.pbase.consume(current_scanner.token);
              if pred_level=highest_precedence then
-               p2:=factor(false,[])
+               p2:=factor(current_asmdata,false,[])
              else
                p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
@@ -5035,7 +5035,7 @@ implementation
           begin
             filepos:=compiler.globals.current_tokenpos;
             parser.pbase.consume(current_scanner.token);
-            p2:=factor(false,[]);
+            p2:=factor(current_asmdata,false,[]);
             if maybe_handle_specialization(p1,p2,filepos) then
               begin
                 { with p1 now set we are in reality directly behind the

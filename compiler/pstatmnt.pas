@@ -606,7 +606,7 @@ implementation
          { parse loop header }
          parser.pbase.consume(_FOR);
 
-         hloopvar:=parser.pexpr.factor(false,[]);
+         hloopvar:=parser.pexpr.factor(current_asmdata,false,[]);
          valid_for_loopvar(hloopvar,true);
 
          if parser.pbase.try_to_consume(_ASSIGNMENT) then

@@ -30,6 +30,7 @@ interface
       cclasses,
       compilerbase,
       paramgr,
+      aasmdata,
       { scanner }
       tokens,
       { symtable }
@@ -867,7 +868,7 @@ implementation
           var
             node : tnode;
           begin
-            node:=parser.pexpr.factor(false,[ef_type_only,ef_had_specialize]);
+            node:=parser.pexpr.factor(current_asmdata,false,[ef_type_only,ef_had_specialize]);
             if node.nodetype=typen then
               begin
                 sp:=ttypenode(node).typedef.typesym.name;

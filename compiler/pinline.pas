@@ -27,6 +27,7 @@ interface
 
     uses
       compilerbase,
+      aasmdata,
       symtype,
       node,
       globals,compinnr;
@@ -125,7 +126,7 @@ implementation
               while (current_scanner.token=_COMMA) and assigned(variantdesc) do
                 begin
                   parser.pbase.consume(_COMMA);
-                  p2:=parser.pexpr.factor(false,[]);
+                  p2:=parser.pexpr.factor(current_asmdata,false,[]);
                   do_typecheckpass(p2);
                   if p2.nodetype=ordconstn then
                     begin
@@ -257,7 +258,7 @@ implementation
             if is_typeparam(p.resultdef) then
               begin
                  p.free;
-                 p:=parser.pexpr.factor(false,[]);
+                 p:=parser.pexpr.factor(current_asmdata,false,[]);
                  p.free;
                  p := nil;
                  parser.pbase.consume(_RKLAMMER);
@@ -269,7 +270,7 @@ implementation
               begin
                  compiler.verbose.Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=parser.pexpr.factor(false,[]);
+                 p:=parser.pexpr.factor(current_asmdata,false,[]);
                  p.free;
                  p := nil;
                  parser.pbase.consume(_RKLAMMER);
@@ -282,7 +283,7 @@ implementation
                  compiler.verbose.Message(parser_e_pointer_to_class_expected);
                  p.free;
                  p := nil;
-                 new_dispose_statement:=parser.pexpr.factor(false,[]);
+                 new_dispose_statement:=parser.pexpr.factor(current_asmdata,false,[]);
                  parser.pbase.consume_all_until(_RKLAMMER);
                  parser.pbase.consume(_RKLAMMER);
                  exit;
@@ -292,7 +293,7 @@ implementation
             if is_class(classh) then
               begin
                  compiler.verbose.Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=parser.pexpr.factor(false,[]);
+                 new_dispose_statement:=parser.pexpr.factor(current_asmdata,false,[]);
                  parser.pbase.consume_all_until(_RKLAMMER);
                  parser.pbase.consume(_RKLAMMER);
                  exit;
@@ -491,7 +492,7 @@ implementation
         if compiler.target.info.system in systems_managed_vm then
           compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
-        p1:=parser.pexpr.factor(false,[]);
+        p1:=parser.pexpr.factor(current_asmdata,false,[]);
         if p1.nodetype<>typen then
          begin
            compiler.verbose.Message(type_e_type_id_expected);
