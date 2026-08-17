@@ -525,7 +525,7 @@ unit racpugas;
               end;
             AS_ID:
               begin
-                if SearchIConstant(actasmpattern,l) then
+                if SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                   result:=l
                 else
                   internalerror(2022081101);
@@ -749,7 +749,7 @@ unit racpugas;
           end
         else if maybeconst then
           begin
-            if not SearchIConstant(actasmpattern,value) then
+            if not SearchIConstant(compiler.symtablestack,actasmpattern,value) then
               begin
                 expr:=actasmpattern;
                 Consume(AS_ID);

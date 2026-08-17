@@ -224,7 +224,7 @@ procedure AsmSearchSym(symtablestack:TSymtablestack;const s:string;out srsym:tsy
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 Function SearchType(symtablestack:TSymtablestack;const hs:string;out size:tcgint): Boolean;
 Function SearchRecordType(symtablestack:TSymtablestack;const s:string): boolean;
-Function SearchIConstant(const s:string; var l:tcgint): boolean;
+Function SearchIConstant(symtablestack:TSymtablestack;const s:string; var l:tcgint): boolean;
 Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 
 {---------------------------------------------------------------------
@@ -1580,9 +1580,7 @@ Begin
 end;
 
 
-Function SearchIConstant(const s:string; var l:tcgint): boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Function SearchIConstant(symtablestack:TSymtablestack;const s:string; var l:tcgint): boolean;
 {**********************************************************************}
 {  Description: Searches for a CONSTANT of name s in either the local  }
 {  symbol list, then in the global symbol list, and returns the value  }
@@ -1610,7 +1608,7 @@ Begin
      exit;
    end;
 { Check the constants in symtable }
-  asmsearchsym(compiler.symtablestack,s,srsym,srsymtable);
+  asmsearchsym(symtablestack,s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym.typ of

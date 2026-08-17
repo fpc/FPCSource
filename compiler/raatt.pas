@@ -1736,7 +1736,7 @@ unit raatt;
                 tempstr:=actasmpattern;
                 prevtok:=prevasmtoken;
                 consume(AS_ID);
-                if SearchIConstant(tempstr,l) then
+                if SearchIConstant(compiler.symtablestack,tempstr,l) then
                  begin
                    str(l, tempstr);
                    expr:=expr + tempstr;

@@ -710,7 +710,7 @@ var
                   expr := expr + '|';
                 end;
       AS_ID:    begin
-                  if SearchIConstant(actasmpattern,l) then
+                  if SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                   begin
                     str(l, tempstr);
                     expr := expr + tempstr;
@@ -1110,7 +1110,7 @@ var
             end;
         AS_ID:
             begin
-              if not SearchIConstant(actasmpattern,l) then
+              if not SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                 begin
                   compiler.verbose.Message(asmr_e_syn_constant);
                   l := 0;
@@ -1470,7 +1470,7 @@ var
               else
                begin
                  { is it a constant ? }
-                 if SearchIConstant(actasmpattern,l) then
+                 if SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                    begin
                      Oper.InitRef;
                      oper.opr.ref.offset:=BuildRefExpression;

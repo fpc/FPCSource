@@ -350,7 +350,7 @@ Interface
                  { or a procedure (such as in CALL ID)      }
                  Begin
                    { is it a constant ? }
-                   if SearchIConstant(actasmpattern,l) then
+                   if SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                     Begin
                       if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
                        compiler.verbose.Message(asmr_e_invalid_operand_type);

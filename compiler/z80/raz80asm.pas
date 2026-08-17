@@ -1274,7 +1274,7 @@ Unit raz80asm;
                    else
                     compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end
-                else if SearchIConstant(tempstr,l) then
+                else if SearchIConstant(compiler.symtablestack,tempstr,l) then
                  begin
                    str(l, tempstr);
                    expr:=expr + tempstr;
@@ -1548,7 +1548,7 @@ Unit raz80asm;
                 GotStar:=false;
                 GotPlus:=false;
                 if (actasmtoken = AS_VMTOFFSET) or
-                   (SearchIConstant(actasmpattern,l) or
+                   (SearchIConstant(compiler.symtablestack,actasmpattern,l) or
                     SearchRecordType(compiler.symtablestack,actasmpattern)) then
                  begin
                    l:=BuildRefConstExpression(size,negative);
@@ -2085,7 +2085,7 @@ Unit raz80asm;
                 else
                  Begin
                    { is it a constant ? }
-                   if SearchIConstant(actasmpattern,l) then
+                   if SearchIConstant(compiler.symtablestack,actasmpattern,l) then
                     Begin
                       case oper.opr.typ of
                         OPR_REFERENCE :
