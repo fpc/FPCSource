@@ -56,7 +56,7 @@ type
     procedure const_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec(AsmData: TAsmData);
-    procedure type_dec(out had_generic:boolean);
+    procedure type_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
     procedure var_dec(out had_generic:boolean);
     procedure threadvar_dec(out had_generic:boolean);
@@ -1295,13 +1295,13 @@ implementation
 
 
     { reads a type declaration to the symbol table }
-    procedure TDeclarationParser.type_dec(out had_generic:boolean);
+    procedure TDeclarationParser.type_dec(AsmData: TAsmData; out had_generic:boolean);
       var
         rtti_attrs_def: trtti_attribute_list;
       begin
         parser.pbase.consume(_TYPE);
         rtti_attrs_def := nil;
-        types_dec(current_asmdata,false,had_generic,rtti_attrs_def);
+        types_dec(AsmData,false,had_generic,rtti_attrs_def);
         rtti_attrs_def.free;
         rtti_attrs_def := nil;
       end;

@@ -3198,7 +3198,7 @@ implementation
               _TYPE:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.type_dec(hadgeneric);
+                  parser.pdecl.type_dec(current_asmdata,hadgeneric);
                 end;
               _VAR:
                 begin
@@ -3362,7 +3362,7 @@ implementation
              _TYPE :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.type_dec(hadgeneric);
+                 parser.pdecl.type_dec(current_asmdata,hadgeneric);
                end;
              _VAR :
                begin
