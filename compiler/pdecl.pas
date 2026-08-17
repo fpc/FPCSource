@@ -942,7 +942,7 @@ implementation
               compiler.globals.current_tokenpos:=defpos;
               compiler.globals.current_tokenpos:=storetokenpos;
               { read the type definition }
-              parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
+              parser.ptype.read_named_type(AsmData,hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin

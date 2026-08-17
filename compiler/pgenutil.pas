@@ -2172,7 +2172,7 @@ uses
                         else
                           ttypesym(srsym).fprettyname:=prettyname;
 
-                        parser.ptype.read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
+                        parser.ptype.read_named_type(current_asmdata,result,srsym,genericdef,generictypelist,false,hadtypetoken);
                         ttypesym(srsym).typedef:=result;
                         result.typesym:=srsym;
                       end;

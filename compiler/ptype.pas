@@ -61,7 +61,7 @@ interface
     function result_type(options:TSingleTypeOptions):tdef;
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
+    procedure read_named_type(AsmData: TAsmData; var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
@@ -1227,7 +1227,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure TTypesParser.read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
+    procedure TTypesParser.read_named_type(AsmData: TAsmData; var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
@@ -1999,10 +1999,10 @@ implementation
                 if (current_scanner.idtoken=_HELPER) and (m_advanced_records in compiler.globals.current_settings.modeswitches) then
                   begin
                     parser.pbase.consume(_HELPER);
-                    def:=parser.pdecobj.object_dec(current_asmdata,odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
+                    def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
-                  def:=record_dec(current_asmdata,name,newsym,genericdef,genericlist);
+                  def:=record_dec(AsmData,name,newsym,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -2029,16 +2029,16 @@ implementation
                       _CLASS :
                         begin
                           parser.pbase.consume(_CLASS);
-                          def:=parser.pdecobj.object_dec(current_asmdata,odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=parser.pdecobj.object_dec(AsmData,odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
                           parser.pbase.consume(_OBJECT);
-                          def:=parser.pdecobj.object_dec(current_asmdata,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=parser.pdecobj.object_dec(AsmData,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       else begin
                         parser.pbase.consume(_RECORD);
-                        def:=record_dec(current_asmdata,name,newsym,genericdef,genericlist);
+                        def:=record_dec(AsmData,name,newsym,genericdef,genericlist);
                       end;
                     end;
                     compiler.globals.current_settings.packrecords:=oldpackrecords;
@@ -2051,7 +2051,7 @@ implementation
                 if not(m_class in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
@@ -2082,15 +2082,15 @@ implementation
                 if (current_scanner.idtoken=_HELPER) then
                   begin
                     parser.pbase.consume(_HELPER);
-                    def:=parser.pdecobj.object_dec(current_asmdata,odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
+                    def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=parser.pdecobj.object_dec(current_asmdata,default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
+                  def:=parser.pdecobj.object_dec(AsmData,default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
@@ -2098,7 +2098,7 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -2109,11 +2109,11 @@ implementation
                 parser.pbase.consume(current_scanner.token);
                 case compiler.globals.current_settings.interfacetype of
                   it_interfacecom:
-                    def:=parser.pdecobj.object_dec(current_asmdata,odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
-                    def:=parser.pdecobj.object_dec(current_asmdata,odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
-                    def:=parser.pdecobj.object_dec(current_asmdata,odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
                 end;
               end;
             _OBJCPROTOCOL :
@@ -2122,7 +2122,7 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
@@ -2130,12 +2130,12 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(current_asmdata,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(AsmData,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -2157,7 +2157,7 @@ implementation
                             as a "unique" type }
                           hadtypetoken:=false;
                           parser.pbase.consume(_HELPER);
-                          def:=parser.pdecobj.object_dec(current_asmdata,odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                          def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                         end
                       else
                         expr_type
@@ -2208,7 +2208,7 @@ implementation
         hadtypetoken : boolean;
       begin
         hadtypetoken:=false;
-        read_named_type(def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
+        read_named_type(current_asmdata,def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
       end;
 
 
