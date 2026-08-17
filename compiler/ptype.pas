@@ -48,7 +48,7 @@ interface
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
     procedure parse_record_members(AsmData: TAsmData; recsym:tsym);
-    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+    function record_dec(AsmData: TAsmData; const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
@@ -1074,7 +1074,7 @@ implementation
       end;
 
     { reads a record declaration }
-    function TTypesParser.record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+    function TTypesParser.record_dec(AsmData: TAsmData; const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       var
          olddef : tdef;
 
@@ -1177,11 +1177,11 @@ implementation
 
          if m_advanced_records in compiler.globals.current_settings.modeswitches then
            begin
-             parse_record_members(current_asmdata,recsym);
+             parse_record_members(AsmData,recsym);
            end
          else
            begin
-             parser.pdecvar.read_record_fields(current_asmdata,[vd_record],nil,nil,hadgendummy,dummyattrelcount);
+             parser.pdecvar.read_record_fields(AsmData,[vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(compiler.current_structdef));
@@ -2002,7 +2002,7 @@ implementation
                     def:=parser.pdecobj.object_dec(current_asmdata,odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
-                  def:=record_dec(name,newsym,genericdef,genericlist);
+                  def:=record_dec(current_asmdata,name,newsym,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -2038,7 +2038,7 @@ implementation
                         end;
                       else begin
                         parser.pbase.consume(_RECORD);
-                        def:=record_dec(name,newsym,genericdef,genericlist);
+                        def:=record_dec(current_asmdata,name,newsym,genericdef,genericlist);
                       end;
                     end;
                     compiler.globals.current_settings.packrecords:=oldpackrecords;
