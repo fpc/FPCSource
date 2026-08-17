@@ -32,7 +32,7 @@ unit cpupi;
 
     type
        tcpuprocinfo = class(tpsabiehprocinfo)
-         constructor create(aparent:tprocinfo;acompiler:TCompilerBase);override;
+         constructor create(aparent:tprocinfo;aasmdata:TAsmData;acompiler:TCompilerBase);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
@@ -51,7 +51,7 @@ unit cpupi;
       symconst,
       compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler:TCompilerBase);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;aasmdata:TAsmData;acompiler:TCompilerBase);
       begin
         inherited;
         got:=NR_EBX;

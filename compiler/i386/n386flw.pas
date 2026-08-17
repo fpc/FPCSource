@@ -225,7 +225,7 @@ function ti386tryfinallynode.dogetcopy: tnode;
     n:=ti386tryfinallynode(inherited dogetcopy);
     if compiler.target.info.system=system_i386_win32 then
       begin
-        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,current_asmdata,compiler));
         n.finalizepi.force_nested;
         n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,compiler.deftypes.voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;
