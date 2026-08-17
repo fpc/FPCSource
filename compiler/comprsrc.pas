@@ -427,37 +427,36 @@ function TJVMRawResourceFile.IsCompiled(const fn: ansistring): boolean;
   end;
 
 
-function CopyResFile(inf,outf : TCmdStr) : boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
-  src,dst : TCCustomFileStream;
-begin
-  { Copy .res file to units output dir. }
-  Result:=false;
-  src:=CFileStreamClass.Create(inf,fmOpenRead or fmShareDenyNone);
-  if CStreamError<>0 then
-    begin
-      compiler.verbose.Message1(exec_e_cant_open_resource_file, src.FileName);
-      compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
-      exit;
-    end;
-  dst:=CFileStreamClass.Create(compiler.current_module.outputpath+outf,fmCreate);
-  if CStreamError<>0 then
-    begin
-      compiler.verbose.Message1(exec_e_cant_write_resource_file, dst.FileName);
-      compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
-      exit;
-    end;
-  dst.CopyFrom(src,src.Size);
-  dst.Free;
-  dst := nil;
-  src.Free;
-  src := nil;
-  Result:=true;
-end;
-
 procedure CompileResourceFiles(compiler: TCompilerBase);
+
+  function CopyResFile(inf,outf : TCmdStr) : boolean;
+  var
+    src,dst : TCCustomFileStream;
+  begin
+    { Copy .res file to units output dir. }
+    Result:=false;
+    src:=CFileStreamClass.Create(inf,fmOpenRead or fmShareDenyNone);
+    if CStreamError<>0 then
+      begin
+        compiler.verbose.Message1(exec_e_cant_open_resource_file, src.FileName);
+        compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
+        exit;
+      end;
+    dst:=CFileStreamClass.Create(compiler.current_module.outputpath+outf,fmCreate);
+    if CStreamError<>0 then
+      begin
+        compiler.verbose.Message1(exec_e_cant_write_resource_file, dst.FileName);
+        compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
+        exit;
+      end;
+    dst.CopyFrom(src,src.Size);
+    dst.Free;
+    dst := nil;
+    src.Free;
+    src := nil;
+    Result:=true;
+  end;
+
 var
   resourcefile : tresourcefile;
   res: TCmdStrListItem;
