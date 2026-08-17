@@ -146,10 +146,10 @@ type
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { reads the declaration blocks }
-    procedure read_declarations(AsmData: TAsmData; islibrary : boolean);
+    procedure read_declarations(islibrary : boolean);
 
     { reads declarations in the interface part of a unit }
-    procedure read_interface_declarations(AsmData: TAsmData);
+    procedure read_interface_declarations;
 
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parser.pbase.parse_only is
@@ -416,7 +416,7 @@ implementation
     function tcgprocinfo.block(islibrary : boolean) : tnode;
       begin
          { parse const,types and vars }
-         compiler.parser.psub.read_declarations(current_asmdata,islibrary);
+         compiler.parser.psub.read_declarations(islibrary);
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
@@ -3162,7 +3162,7 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure TSubroutineParser.read_declarations(AsmData: TAsmData; islibrary : boolean);
+    procedure TSubroutineParser.read_declarations(islibrary : boolean);
       var
         hadgeneric : boolean;
 
@@ -3188,27 +3188,27 @@ implementation
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.label_dec(AsmData);
+                  parser.pdecl.label_dec;
                 end;
               _CONST:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.const_dec(AsmData,hadgeneric);
+                  parser.pdecl.const_dec(hadgeneric);
                 end;
               _TYPE:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.type_dec(AsmData,hadgeneric);
+                  parser.pdecl.type_dec(hadgeneric);
                 end;
               _VAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.var_dec(AsmData,hadgeneric);
+                  parser.pdecl.var_dec(hadgeneric);
                 end;
               _THREADVAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.threadvar_dec(AsmData,hadgeneric);
+                  parser.pdecl.threadvar_dec(hadgeneric);
                 end;
               _CLASS:
                 begin
@@ -3335,7 +3335,7 @@ implementation
       end;
 
 
-    procedure TSubroutineParser.read_interface_declarations(AsmData: TAsmData);
+    procedure TSubroutineParser.read_interface_declarations;
       var
         hadgeneric : boolean;
 
@@ -3357,22 +3357,22 @@ implementation
              _CONST :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.const_dec(AsmData,hadgeneric);
+                 parser.pdecl.const_dec(hadgeneric);
                end;
              _TYPE :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.type_dec(AsmData,hadgeneric);
+                 parser.pdecl.type_dec(hadgeneric);
                end;
              _VAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.var_dec(AsmData,hadgeneric);
+                 parser.pdecl.var_dec(hadgeneric);
                end;
              _THREADVAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.threadvar_dec(AsmData,hadgeneric);
+                 parser.pdecl.threadvar_dec(hadgeneric);
                end;
              _FUNCTION,
              _PROCEDURE,

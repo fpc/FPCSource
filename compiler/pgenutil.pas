@@ -68,7 +68,7 @@ type
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;const symname:string;symtable:tsymtable):tdef;inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
-    function generate_specialization_phase2(AsmData:TAsmData;context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
+    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
     function check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
     function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
     function parse_generic_specialization_types(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
@@ -643,7 +643,7 @@ uses
               parser.pbase.consume(_COMMA);
             compiler.globals.block_type:=bt_type;
             tmpparampos:=compiler.globals.current_filepos;
-            typeparam:=parser.pexpr.factor(current_asmdata,false,[ef_accept_equal]);
+            typeparam:=parser.pexpr.factor(false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
             validparam:=typeparam.nodetype in tgeneric_param_nodes;
             if validparam then
@@ -721,7 +721,7 @@ uses
         FillChar(dummypos, SizeOf(tfileposinfo), 0);
         genericdef:=tstoreddef(generate_specialization_phase1(context,tt,enforce_unit,nil,symname,symtable,dummypos));
         if genericdef<>compiler.generrordef then
-          genericdef:=tstoreddef(generate_specialization_phase2(current_asmdata,context,genericdef,parse_class_parent,_prettyname));
+          genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
           context.free; // no nil needed
@@ -741,7 +741,7 @@ uses
               to the def's constraints }
             if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
               exit;
-            def:=generate_specialization_phase2(current_asmdata,spezcontext,pd,false,'');
+            def:=generate_specialization_phase2(spezcontext,pd,false,'');
             case def.typ of
               errordef:
                 { do nothing }
@@ -1650,7 +1650,7 @@ uses
           parser.pbase.consume(_RSHARPBRACKET);
       end;
 
-    function TGenericsParseUtils.generate_specialization_phase2(AsmData:TAsmData;context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
+    function TGenericsParseUtils.generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
 
         procedure unset_forwarddef(def: tdef);
           var
@@ -2160,7 +2160,7 @@ uses
                     if assigned(context.forwarddef) then
                       begin
                         tsrsym:=nil;
-                        result:=parser.pdecl.parse_forward_declaration(AsmData,context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
+                        result:=parser.pdecl.parse_forward_declaration(context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
                         srsym:=tsrsym;
                       end
                     else
@@ -2173,7 +2173,7 @@ uses
                         else
                           ttypesym(srsym).fprettyname:=prettyname;
 
-                        parser.ptype.read_named_type(AsmData,result,srsym,genericdef,generictypelist,false,hadtypetoken);
+                        parser.ptype.read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
                         ttypesym(srsym).typedef:=result;
                         result.typesym:=srsym;
                       end;
@@ -2353,7 +2353,7 @@ uses
       begin
         genericdef:=tstoreddef(generate_specialization_phase1(context,tt,enforce_unit,parsedtype,symname,nil,parsedpos));
         if genericdef<>compiler.generrordef then
-          genericdef:=tstoreddef(generate_specialization_phase2(current_asmdata,context,genericdef,parse_class_parent,_prettyname));
+          genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
           context.free; // no nil needed
@@ -3193,7 +3193,7 @@ uses
           internalerror(2020070305);
         for i:=0 to list.count-1 do begin
           context:=tspecializationcontext(list[i]);
-          generate_specialization_phase2(current_asmdata,context,tstoreddef(def),false,'');
+          generate_specialization_phase2(context,tstoreddef(def),false,'');
         end;
         compiler.current_module.forwardgenericdefs.delete(idx);
       end;

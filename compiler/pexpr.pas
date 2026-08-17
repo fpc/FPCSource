@@ -70,21 +70,21 @@ interface
     srdef : tdef;
 
     property Compiler: TCompilerBase read FCompiler;
-    function sub_expr(AsmData:TAsmData;pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
+    function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
-    function statement_syssym(AsmData: TAsmData; l : tinlinenumber) : tnode;
+    function statement_syssym(l : tinlinenumber) : tnode;
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
     procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
     procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
     procedure handle_funcref(fr:tobjectdef;var p2:tnode);
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
-    function handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
-    function handle_factor_typenode(AsmData:TAsmData;hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
+    function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+    function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
     function real_const_node_from_pattern(const s:string):tnode;
-    function postfixoperators(AsmData:TAsmData;var p1:tnode;var again:boolean;getaddr:boolean): boolean;
+    function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
     function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
                             out memberparentdef: tdef): boolean;
-    function factor_handle_sym(AsmData:TAsmData;srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+    function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
   public
     { true, if we are after an assignment }
     afterassignment : boolean;
@@ -100,10 +100,10 @@ interface
     function expr(dotypecheck:boolean) : tnode;
 
     { reads an expression without assignments and .. }
-    function comp_expr(AsmData:TAsmData;flags:texprflags):tnode;
+    function comp_expr(flags:texprflags):tnode;
 
     { reads a single factor }
-    function factor(AsmData:TAsmData;getaddr:boolean;flags:texprflags) : tnode;
+    function factor(getaddr:boolean;flags:texprflags) : tnode;
 
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
@@ -117,7 +117,7 @@ interface
 
     { Does some postprocessing for a generic type (especially when nested types
       of the specialization are used) }
-    procedure post_comp_expr_gendef(AsmData: TAsmData; var def: tdef);
+    procedure post_comp_expr_gendef(var def: tdef);
   end;
 
 implementation
@@ -170,7 +170,7 @@ implementation
              if not(allowtypedef) then
                compiler.verbose.Message(parser_e_no_local_para_def);
              parser.pbase.consume(_LECKKLAMMER);
-             p:=comp_expr(current_asmdata,[ef_accept_equal]);
+             p:=comp_expr([ef_accept_equal]);
              if not is_constintnode(p) then
                begin
                  compiler.verbose.Message(parser_e_illegal_expression);
@@ -252,12 +252,12 @@ implementation
                else
                  begin
                    named_args_allowed:=true;
-                   p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+                   p1:=comp_expr([ef_accept_equal]);
                    named_args_allowed:=false;
                    if parser.pbase.found_arg_name then
                      begin
                        argname:=p1;
-                       p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+                       p1:=comp_expr([ef_accept_equal]);
                        p2:=compiler.ccallparanode(p1,p2);
                        tcallparanode(p2).parametername:=argname;
                      end
@@ -268,19 +268,19 @@ implementation
              end
            else
              begin
-               p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+               p1:=comp_expr([ef_accept_equal]);
                p2:=compiler.ccallparanode(p1,p2);
              end;
            { it's for the str(l:5,s); }
            if __colon and (current_scanner.token=_COLON) then
              begin
                parser.pbase.consume(_COLON);
-               p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+               p1:=comp_expr([ef_accept_equal]);
                p2:=compiler.ccallparanode(p1,p2);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                if parser.pbase.try_to_consume(_COLON) then
                  begin
-                   p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+                   p1:=comp_expr([ef_accept_equal]);
                    p2:=compiler.ccallparanode(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
@@ -328,7 +328,7 @@ implementation
        end;
 
 
-     function TExpressionParser.statement_syssym(AsmData: TAsmData; l : tinlinenumber) : tnode;
+     function TExpressionParser.statement_syssym(l : tinlinenumber) : tnode;
       var
         p1,p2,paras  : tnode;
         err,
@@ -357,7 +357,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_RKLAMMER);
               p1:=geninlinenode(l,false,p1,compiler);
               statement_syssym := p1;
@@ -372,7 +372,7 @@ implementation
                     begin
                       if not(parser.pbase.try_to_consume(_RKLAMMER)) then
                         begin
-                          p1:=comp_expr(AsmData,[ef_accept_equal]);
+                          p1:=comp_expr([ef_accept_equal]);
                           parser.pbase.consume(_RKLAMMER);
                           if not assigned(compiler.current_procinfo) or
                              (compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
@@ -472,7 +472,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
@@ -500,7 +500,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_RKLAMMER);
               if ((p1.nodetype<>typen) and
                  (
@@ -563,7 +563,7 @@ implementation
                 begin
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(AsmData,[ef_accept_equal]);
+                  p1:=comp_expr([ef_accept_equal]);
                   { When reading a class type it is parsed as loadvmtaddrn,
                     typeinfo only needs the type so we remove the loadvmtaddrn }
                   if p1.nodetype=loadvmtaddrn then
@@ -601,7 +601,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_RKLAMMER);
               p2:=geninlinenode(l,false,p1,compiler);
               statement_syssym:=p2;
@@ -614,7 +614,7 @@ implementation
               err:=false;
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=compiler.ccallparanode(p1,nil);
               p2:=geninlinenode(l,false,p2,compiler);
               parser.pbase.consume(_RKLAMMER);
@@ -626,7 +626,7 @@ implementation
               err:=false;
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               { When reading a class type it is parsed as loadvmtaddrn,
                 typeinfo only needs the type so we remove the loadvmtaddrn }
               if p1.nodetype=loadvmtaddrn then
@@ -684,10 +684,10 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(AsmData,true,[]);
+              p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -699,10 +699,10 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(AsmData,true,[]);
+              p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_faraddr_x,false,p1,compiler);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -716,10 +716,10 @@ implementation
                 compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(AsmData,true,[]);
+              p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
               got_addrn:=false;
@@ -733,10 +733,10 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(AsmData,true,[]);
+              p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_seg_x,false,p1,compiler);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -748,7 +748,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -759,7 +759,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -770,9 +770,9 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               if parser.pbase.try_to_consume(_COMMA) then
-                p2:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil)
+                p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
               else
                 p2:=nil;
               p2:=compiler.ccallparanode(p1,p2);
@@ -787,9 +787,9 @@ implementation
                   compiler.verbose.Message(parser_e_illegal_slice);
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
-                  comp_expr(AsmData,[ef_accept_equal]).free; // no nil needed
+                  comp_expr([ef_accept_equal]).free; // no nil needed
                   if parser.pbase.try_to_consume(_COMMA) then
-                    comp_expr(AsmData,[ef_accept_equal]).free; // no nil needed
+                    comp_expr([ef_accept_equal]).free; // no nil needed
                   statement_syssym:=compiler.cerrornode;
                   parser.pbase.consume(_RKLAMMER);
                 end
@@ -797,10 +797,10 @@ implementation
                 begin
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(AsmData,[ef_accept_equal]);
+                  p1:=comp_expr([ef_accept_equal]);
                   parser.pbase.consume(_COMMA);
                   if not(compiler.verbose.codegenerror) then
-                    p2:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil)
+                    p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
                   else
                     p2:=compiler.cerrornode;
                   p2:=compiler.ccallparanode(p1,p2);
@@ -856,7 +856,7 @@ implementation
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(AsmData,true,[]);
+                  p1:=factor(true,[]);
                   p2:=geninlinenode(l,false,p1,compiler);
                   parser.pbase.consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -872,7 +872,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -906,11 +906,11 @@ implementation
             Begin
               parser.pbase.consume(_LKLAMMER);
               in_args := true;
-              p1:= compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]), nil);
+              p1:= compiler.ccallparanode(comp_expr([ef_accept_equal]), nil);
               parser.pbase.consume(_COMMA);
-              p2 := compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),p1);
+              p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p1);
               if parser.pbase.try_to_consume(_COMMA) then
-                p2 := compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),p2);
+                p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p2);
               parser.pbase.consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2,compiler);
               statement_syssym := p2;
@@ -921,9 +921,9 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_COMMA);
-              p2:=comp_expr(AsmData,[ef_accept_equal]);
+              p2:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               parser.pbase.consume(_RKLAMMER);
             end;
@@ -933,11 +933,11 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_COMMA);
-              p2:=comp_expr(AsmData,[ef_accept_equal]);
+              p2:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_COMMA);
-              paras:=comp_expr(AsmData,[ef_accept_equal]);
+              paras:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,compiler.ccallparanode(paras,nil))),compiler);
               parser.pbase.consume(_RKLAMMER);
             end;
@@ -946,9 +946,9 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               if parser.pbase.try_to_consume(_COMMA) then
-                 p2:=comp_expr(AsmData,[ef_accept_equal])
+                 p2:=comp_expr([ef_accept_equal])
               else
                begin
                  { then insert an empty string }
@@ -1016,7 +1016,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,true,p1,compiler);
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -1027,10 +1027,10 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               if parser.pbase.try_to_consume(_COMMA) then
                 begin
-                  p2:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil);
+                  p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end
               else
                 p2:=nil;
@@ -1042,9 +1042,9 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               parser.pbase.consume(_COMMA);
-              p2:=comp_expr(AsmData,[ef_accept_equal]);
+              p2:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               parser.pbase.consume(_RKLAMMER);
             end;
@@ -1053,14 +1053,14 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               in_args:=true;
-              paras:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil);
+              paras:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               parser.pbase.consume(_COMMA);
-              tcallparanode(paras).right:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil);
+              tcallparanode(paras).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               parser.pbase.consume(_COMMA);
-              tcallparanode(tcallparanode(paras).right).right:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil);
+              tcallparanode(tcallparanode(paras).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               if parser.pbase.try_to_consume(_COMMA) then
                 begin
-                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=compiler.ccallparanode(comp_expr(AsmData,[ef_accept_equal]),nil);
+                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end;
               statement_syssym:=geninlinenode(l,false,paras,compiler);
               parser.pbase.consume(_RKLAMMER);
@@ -1425,7 +1425,7 @@ implementation
                            getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
                            getfuncrefdef:=tobjectdef(propsym.propdef);
-                         p2:=comp_expr(current_asmdata,[ef_accept_equal]);
+                         p2:=comp_expr([ef_accept_equal]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2)
                          else if assigned(getfuncrefdef) then
@@ -1448,7 +1448,7 @@ implementation
                            getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
                            getfuncrefdef:=tobjectdef(propsym.propdef);
-                         p2:=comp_expr(current_asmdata,[ef_accept_equal]);
+                         p2:=comp_expr([ef_accept_equal]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2)
                          else if assigned(getfuncrefdef) then
@@ -1689,7 +1689,7 @@ implementation
                      p1.free;
                      if parser.pbase.try_to_consume(_LKLAMMER) then
                       begin
-                        p1:=comp_expr(current_asmdata,[ef_accept_equal]);
+                        p1:=comp_expr([ef_accept_equal]);
                         parser.pbase.consume(_RKLAMMER);
                         p1:=compiler.ctypeconvnode_explicit(p1,ttypesym(sym).typedef);
                       end
@@ -1729,7 +1729,7 @@ implementation
       end;
 
 
-    function TExpressionParser.handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+    function TExpressionParser.handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       var
         spezdef : tdef;
       begin
@@ -1778,7 +1778,7 @@ implementation
                 arraydef,
                 procvardef:
                   begin
-                    spezdef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(spezdef),false,'');
+                    spezdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
                     if spezdef<>compiler.generrordef then
@@ -1796,7 +1796,7 @@ implementation
       end;
 
 
-    function TExpressionParser.handle_factor_typenode(AsmData:TAsmData;hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
+    function TExpressionParser.handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1814,7 +1814,7 @@ implementation
          if (not typeonly or is_ordinal(hdef)) and
             parser.pbase.try_to_consume(_LKLAMMER) then
           begin
-            result:=comp_expr(AsmData,[ef_accept_equal]);
+            result:=comp_expr([ef_accept_equal]);
             parser.pbase.consume(_RKLAMMER);
             { type casts to class helpers aren't allowed }
             if is_objectpascal_helper(hdef) then
@@ -1853,7 +1853,7 @@ implementation
                  if isspecialize then
                    begin
                      parser.pbase.consume(_ID);
-                     if not handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                     if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
                          result:=compiler.cerrornode;
@@ -1898,7 +1898,7 @@ implementation
                 if isspecialize and assigned(srsym) then
                   begin
                     parser.pbase.consume(_ID);
-                    if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                    if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                       erroroutresult:=false;
                   end
                 else
@@ -2034,7 +2034,7 @@ implementation
 ---------------------------------------------}
 
     { returns whether or not p1 has been changed }
-    function TExpressionParser.postfixoperators(AsmData:TAsmData;var p1:tnode;var again:boolean;getaddr:boolean): boolean;
+    function TExpressionParser.postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
 
       { tries to avoid syntax errors after invalid qualifiers }
       procedure recoverconsume_postfixops;
@@ -2046,14 +2046,14 @@ implementation
              else if parser.pbase.try_to_consume(_LECKKLAMMER) then
                begin
                  repeat
-                   comp_expr(AsmData,[ef_accept_equal]);
+                   comp_expr([ef_accept_equal]);
                  until not parser.pbase.try_to_consume(_COMMA);
                  parser.pbase.consume(_RECKKLAMMER);
                end
              else if parser.pbase.try_to_consume(_LKLAMMER) then
                begin
                  repeat
-                   comp_expr(AsmData,[ef_accept_equal]);
+                   comp_expr([ef_accept_equal]);
                  until not parser.pbase.try_to_consume(_COMMA);
                  parser.pbase.consume(_RKLAMMER);
                end
@@ -2083,7 +2083,7 @@ implementation
          countindices:=0;
          elements:=tfplist.Create;
          repeat
-           p4:=comp_expr(AsmData,[ef_accept_equal]);
+           p4:=comp_expr([ef_accept_equal]);
            elements.add(p4);
          until not parser.pbase.try_to_consume(_COMMA);
 
@@ -2112,7 +2112,7 @@ implementation
          if current_scanner.token=_ASSIGNMENT then
            begin
              parser.pbase.consume(_ASSIGNMENT);
-             p4:=comp_expr(AsmData,[ef_accept_equal]);
+             p4:=comp_expr([ef_accept_equal]);
 
              { create call to fpc_vararray_put }
              paras:=compiler.ccallparanode(compiler.cordconstnode
@@ -2179,7 +2179,7 @@ implementation
                     compiler.cvecnode(
                       compiler.ctemprefnode(arrnode),
                       compiler.cordconstnode(paracount,arrdef.rangedef,false)),
-                    comp_expr(AsmData,[ef_accept_equal])));
+                    comp_expr([ef_accept_equal])));
                 inc(paracount);
               until not parser.pbase.try_to_consume(_COMMA);
               parser.pbase.consume(_RKLAMMER);
@@ -2405,10 +2405,10 @@ implementation
                             if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                (m_autoderef in compiler.globals.current_settings.modeswitches) then
                               p1:=compiler.cderefnode(p1);
-                            p2:=comp_expr(AsmData,[ef_accept_equal]);
+                            p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
                             if parser.pbase.try_to_consume(_POINTPOINT) then
-                              p2:=compiler.crangenode(p2,comp_expr(AsmData,[ef_accept_equal]));
+                              p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                             p1:=compiler.cvecnode(p1,p2);
                          end;
                        variantdef:
@@ -2419,15 +2419,15 @@ implementation
                          end;
                        stringdef :
                          begin
-                           p2:=comp_expr(AsmData,[ef_accept_equal]);
+                           p2:=comp_expr([ef_accept_equal]);
                            { Support string[0..9] which returns array [0..9] of char.}
                            if parser.pbase.try_to_consume(_POINTPOINT) then
-                             p2:=compiler.crangenode(p2,comp_expr(AsmData,[ef_accept_equal]));
+                             p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                            p1:=compiler.cvecnode(p1,p2);
                          end;
                        arraydef:
                          begin
-                           p2:=comp_expr(AsmData,[ef_accept_equal]);
+                           p2:=comp_expr([ef_accept_equal]);
                            { support SEG:OFS for go32v2/msdos Mem[] }
                            if (compiler.target.info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
                               (p1.nodetype=loadn) and
@@ -2443,7 +2443,7 @@ implementation
                                inserttypeconv(p2,compiler.deftypes.u16inttype,compiler);
                                inserttypeconv_internal(p2,compiler.deftypes.u32inttype,compiler);
                                p3:=compiler.cshlshrnode(shln,p2,compiler.cordconstnode($10,compiler.deftypes.s16inttype,false));
-                               p2:=comp_expr(AsmData,[ef_accept_equal]);
+                               p2:=comp_expr([ef_accept_equal]);
                                inserttypeconv(p2,compiler.deftypes.u16inttype,compiler);
                                inserttypeconv_internal(p2,compiler.deftypes.u32inttype,compiler);
                                p2:=compiler.caddnode(addn,p2,p3);
@@ -2459,11 +2459,11 @@ implementation
                                if parser.pbase.try_to_consume(_COLON) then
                                 begin
                                   p3:=compiler.caddnode(muln,compiler.cordconstnode($10,compiler.deftypes.s32inttype,false),p2);
-                                  p2:=comp_expr(AsmData,[ef_accept_equal]);
+                                  p2:=comp_expr([ef_accept_equal]);
                                   p2:=compiler.caddnode(addn,p2,p3);
                                   if parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                    p2:=compiler.crangenode(p2,compiler.caddnode(addn,comp_expr(AsmData,[ef_accept_equal]),p3.getcopy));
+                                    p2:=compiler.crangenode(p2,compiler.caddnode(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memseg);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
@@ -2472,7 +2472,7 @@ implementation
                                 begin
                                   if parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
-                                    p2:=compiler.crangenode(p2,comp_expr(AsmData,[ef_accept_equal]));
+                                    p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                                   p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end;
@@ -2484,7 +2484,7 @@ implementation
                              begin
                                if parser.pbase.try_to_consume(_POINTPOINT) then
                                  { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
-                                 p2:=compiler.crangenode(p2,comp_expr(AsmData,[ef_accept_equal]));
+                                 p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                                p1:=compiler.cvecnode(p1,p2);
                              end;
                          end;
@@ -2494,7 +2494,7 @@ implementation
                              compiler.verbose.Message(parser_e_invalid_qualifier);
                            p1.free;
                            p1:=compiler.cerrornode;
-                           comp_expr(AsmData,[ef_accept_equal]);
+                           comp_expr([ef_accept_equal]);
                            again:=false;
                          end;
                      end;
@@ -2668,7 +2668,7 @@ implementation
                                begin
                                  searchsym_in_record(structh,current_scanner.pattern,srsym,srsymtable);
                                  parser.pbase.consume(_ID);
-                                 if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                                 if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
                            end
@@ -2816,7 +2816,7 @@ implementation
                                 begin
                                   parser.pbase.consume(_ASSIGNMENT);
                                   { read the expression }
-                                  p3:=comp_expr(AsmData,[ef_accept_equal]);
+                                  p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
                                   p2:=compiler.ccallparanode(p3,p2);
                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,compiler.deftypes.voidtype);
@@ -2850,7 +2850,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2904,7 +2904,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -3031,7 +3031,7 @@ implementation
                     begin
                       if parser.pbase.try_to_consume(_LKLAMMER) then
                         begin
-                          p1:=comp_expr(AsmData,[ef_accept_equal]);
+                          p1:=comp_expr([ef_accept_equal]);
                           parser.pbase.consume(_RKLAMMER);
                           p1:=compiler.ctypeconvnode_explicit(p1,p1.resultdef);
                         end
@@ -3108,7 +3108,7 @@ implementation
   {$maxfpuregisters 0}
 
 
-    function TExpressionParser.factor_handle_sym(AsmData:TAsmData;srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+    function TExpressionParser.factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
       var
         hdef : tdef;
         pd : tprocdef;
@@ -3186,7 +3186,7 @@ implementation
 
           syssym :
             begin
-              result:=statement_syssym(AsmData,tsyssym(srsym).number);
+              result:=statement_syssym(tsyssym(srsym).number);
             end;
 
           typesym :
@@ -3204,7 +3204,7 @@ implementation
                    begin
                      if compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type] then
                        begin
-                         if not handle_specialize_inline_specialization(AsmData,srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                         if not handle_specialize_inline_specialization(srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
                              spezcontext.free;
                              spezcontext := nil;
@@ -3220,7 +3220,7 @@ implementation
                              if srsym.typ<>typesym then
                                internalerror(2015071705);
                              hdef:=ttypesym(srsym).typedef;
-                             result:=handle_factor_typenode(AsmData,hdef,getaddr,again,srsym,ef_type_only in flags);
+                             result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
                            end;
                        end
                      else
@@ -3232,7 +3232,7 @@ implementation
                      if ((hdef=compiler.deftypes.cvarianttype) or (hdef=compiler.deftypes.colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(compiler.current_module.moduleflags,mf_uses_variants);
-                     result:=handle_factor_typenode(AsmData,hdef,getaddr,again,srsym,ef_type_only in flags);
+                     result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
                    end;
                end;
             end;
@@ -3413,7 +3413,7 @@ implementation
       end;
 
 
-    function TExpressionParser.factor(AsmData:TAsmData;getaddr:boolean;flags:texprflags) : tnode;
+    function TExpressionParser.factor(getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
                          Factor_read_id
@@ -3575,7 +3575,7 @@ implementation
                          begin
                            if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
                              begin
-                               hdef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(hdef),false,'');
+                               hdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
                                if hdef<>compiler.generrordef then
@@ -3736,7 +3736,7 @@ implementation
             end;
 
             begin
-              p1:=factor_handle_sym(AsmData,srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
+              p1:=factor_handle_sym(srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
 
               if assigned(spezcontext) then
                 internalerror(2015061207);
@@ -3765,10 +3765,10 @@ implementation
              buildp:=compiler.carrayconstructornode(nil,buildp)
            else
             repeat
-              p1:=comp_expr(AsmData,[ef_accept_equal]);
+              p1:=comp_expr([ef_accept_equal]);
               if parser.pbase.try_to_consume(_POINTPOINT) then
                 begin
-                  p2:=comp_expr(AsmData,[ef_accept_equal]);
+                  p2:=comp_expr([ef_accept_equal]);
                   p1:=compiler.carrayconstructorrangenode(p1,p2);
                 end;
                { insert at the end of the tree, to get the correct order }
@@ -3895,7 +3895,7 @@ implementation
              dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not (ef_had_specialize in flags) then
-             updatefpos:=postfixoperators(AsmData,p1,again,getaddr);
+             updatefpos:=postfixoperators(p1,again,getaddr);
          end
         else
          begin
@@ -3907,7 +3907,7 @@ implementation
                   p1:=nil;
                   if not(current_scanner.token in [_SEMICOLON,_ELSE,_END]) then
                     begin
-                      p1:=comp_expr(AsmData,[ef_accept_equal]);
+                      p1:=comp_expr([ef_accept_equal]);
                       if not assigned(compiler.current_procinfo) or
                          (compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
                          is_void(compiler.current_procinfo.procdef.returndef) then
@@ -3999,7 +3999,7 @@ implementation
                          searchsym_in_class(hclassdef,compiler.current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                        if isspecialize and assigned(srsym) then
                          begin
-                           if not handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
+                           if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                              srsym:=nil;
                          end;
                      end;
@@ -4135,7 +4135,7 @@ implementation
                      p1:=compiler.cerrornode;
                    end;
                  if p1.nodetype<>specializen then
-                   postfixoperators(AsmData,p1,again,getaddr);
+                   postfixoperators(p1,again,getaddr);
                end;
 
              _INTCONST :
@@ -4182,7 +4182,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4193,7 +4193,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4205,12 +4205,12 @@ implementation
                  { STRING can be also a type cast }
                  if parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(AsmData,[ef_accept_equal]);
+                    p1:=comp_expr([ef_accept_equal]);
                     parser.pbase.consume(_RKLAMMER);
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end
                  else
                    begin
@@ -4219,7 +4219,7 @@ implementation
                        begin
                          again:=true;
                          { handle type helpers here }
-                         postfixoperators(AsmData,p1,again,getaddr);
+                         postfixoperators(p1,again,getaddr);
                        end;
                    end;
                end;
@@ -4231,12 +4231,12 @@ implementation
                  { FILE can be also a type cast }
                  if parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(AsmData,[ef_accept_equal]);
+                    p1:=comp_expr([ef_accept_equal]);
                     parser.pbase.consume(_RKLAMMER);
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end
                  else
                   begin
@@ -4251,7 +4251,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4262,7 +4262,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4276,7 +4276,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4287,7 +4287,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(AsmData,p1,again,getaddr);
+                     postfixoperators(p1,again,getaddr);
                    end;
                end;
 
@@ -4298,14 +4298,14 @@ implementation
                  { support both @<x> and @(<x>) }
                  if parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=factor(AsmData,true,[]);
+                    p1:=factor(true,[]);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if current_scanner.token<>_RKLAMMER then
-                      p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
+                      p1:=sub_expr(opcompare,[ef_accept_equal],p1);
                     parser.pbase.consume(_RKLAMMER);
                   end
                  else
-                  p1:=factor(AsmData,true,[]);
+                  p1:=factor(true,[]);
                  if (current_scanner.token in postfixoperator_tokens) and
                    { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^
                      is parsed as @(notproc^) }
@@ -4317,7 +4317,7 @@ implementation
                    then
                   begin
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end;
                  got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
@@ -4333,21 +4333,21 @@ implementation
                  if (current_scanner.token in postfixoperator_tokens) then
                   begin
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end;
                end;
 
              _LKLAMMER :
                begin
                  parser.pbase.consume(_LKLAMMER);
-                 p1:=comp_expr(AsmData,[ef_accept_equal]);
+                 p1:=comp_expr([ef_accept_equal]);
                  parser.pbase.consume(_RKLAMMER);
                  { it's not a good solution
                    but (a+b)^ makes some problems  }
                  if current_scanner.token in postfixoperator_tokens then
                   begin
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end;
                end;
 
@@ -4361,7 +4361,7 @@ implementation
              _PLUS :
                begin
                  parser.pbase.consume(_PLUS);
-                 p1:=factor(AsmData,false,[]);
+                 p1:=factor(false,[]);
                  p1:=compiler.cunaryplusnode(p1);
                end;
 
@@ -4373,7 +4373,7 @@ implementation
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
                       current_scanner.pattern := '-'+current_scanner.pattern;
-                      p1:=sub_expr(AsmData,oppower,[],nil);
+                      p1:=sub_expr(oppower,[],nil);
                       {  -1 ** 4 should be - (1 ** 4) and not
                          (-1) ** 4
                          This was the reason of tw0869.pp test failure PM }
@@ -4397,9 +4397,9 @@ implementation
                  else
                    begin
                      if m_isolike_unary_minus in compiler.globals.current_settings.modeswitches then
-                       p1:=sub_expr(AsmData,opmultiply,[],nil)
+                       p1:=sub_expr(opmultiply,[],nil)
                      else
-                       p1:=sub_expr(AsmData,oppower,[],nil);
+                       p1:=sub_expr(oppower,[],nil);
 
                      p1:=compiler.cunaryminusnode(p1);
                    end;
@@ -4408,7 +4408,7 @@ implementation
              _OP_NOT :
                begin
                  parser.pbase.consume(_OP_NOT);
-                 p1:=factor(AsmData,false,[]);
+                 p1:=factor(false,[]);
                  p1:=compiler.cnotnode(p1);
                end;
 
@@ -4420,7 +4420,7 @@ implementation
                  if current_scanner.token in [_CARET,_POINT] then
                   begin
                     again:=true;
-                    postfixoperators(AsmData,p1,again,getaddr);
+                    postfixoperators(p1,again,getaddr);
                   end;
                end;
              _OBJCPROTOCOL:
@@ -4434,7 +4434,7 @@ implementation
                  }
                  parser.pbase.consume(_OBJCPROTOCOL);
                  parser.pbase.consume(_LKLAMMER);
-                 p1:=factor(AsmData,false,[]);
+                 p1:=factor(false,[]);
                  parser.pbase.consume(_RKLAMMER);
                  p1:=compiler.cinlinenode(in_objc_protocol_x,false,p1);
                end;
@@ -4508,7 +4508,7 @@ implementation
       end;
   {$maxfpuregisters default}
 
-    procedure TExpressionParser.post_comp_expr_gendef(AsmData: TAsmData; var def: tdef);
+    procedure TExpressionParser.post_comp_expr_gendef(var def: tdef);
       var
         p1 : tnode;
         again : boolean;
@@ -4517,9 +4517,9 @@ implementation
           internalerror(2011053001);
         again:=false;
         { handle potential typecasts, etc }
-        p1:=handle_factor_typenode(AsmData,def,false,again,nil,false);
+        p1:=handle_factor_typenode(def,false,again,nil,false);
         { parse postfix operators }
-        postfixoperators(AsmData,p1,again,false);
+        postfixoperators(p1,again,false);
         if assigned(p1) and (p1.nodetype=typen) then
           def:=ttypenode(p1).typedef
         else
@@ -4529,7 +4529,7 @@ implementation
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
-    function TExpressionParser.sub_expr(AsmData:TAsmData;pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
+    function TExpressionParser.sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
@@ -4643,7 +4643,7 @@ implementation
             procvardef,
             arraydef:
               begin
-                gendef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(gendef),false,'');
+                gendef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then
@@ -4737,11 +4737,11 @@ implementation
                   end
                 else
                   { handle potential typecasts, etc }
-                  result:=handle_factor_typenode(AsmData,gendef,false,again,nil,false);
+                  result:=handle_factor_typenode(gendef,false,again,nil,false);
             end;
 
           { parse postfix operators }
-          if postfixoperators(AsmData,result,again,false) then
+          if postfixoperators(result,again,false) then
             if assigned(result) then
               result.fileinfo:=filepos
             else
@@ -4815,12 +4815,12 @@ implementation
         if pred_level=highest_precedence then
           begin
             if factornode=nil then
-              p1:=factor(AsmData,false,flags)
+              p1:=factor(false,flags)
             else
               p1:=factornode;
           end
         else
-          p1:=sub_expr(AsmData,succ(pred_level),flags+[ef_accept_equal],factornode);
+          p1:=sub_expr(succ(pred_level),flags+[ef_accept_equal],factornode);
         repeat
           if (current_scanner.token in [NOTOKEN..last_operator]) and
              (current_scanner.token in operator_levels[pred_level]) and
@@ -4830,9 +4830,9 @@ implementation
              filepos:=compiler.globals.current_tokenpos;
              parser.pbase.consume(current_scanner.token);
              if pred_level=highest_precedence then
-               p2:=factor(AsmData,false,[])
+               p2:=factor(false,[])
              else
-               p2:=sub_expr(AsmData,succ(pred_level),flags+[ef_accept_equal],nil);
+               p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
                _PLUS :
                  p1:=compiler.caddnode(addn,p1,p2);
@@ -4877,8 +4877,7 @@ implementation
                                dummyagain:=false;
                                dummyspezctxt:=nil;
 
-                               ptmp:=factor_handle_sym(AsmData,
-                                                       gensym,
+                               ptmp:=factor_handle_sym(gensym,
                                                        gensym.owner,
                                                        dummyagain,
                                                        tspecializenode(p1).getaddr,
@@ -5035,7 +5034,7 @@ implementation
           begin
             filepos:=compiler.globals.current_tokenpos;
             parser.pbase.consume(current_scanner.token);
-            p2:=factor(AsmData,false,[]);
+            p2:=factor(false,[]);
             if maybe_handle_specialization(p1,p2,filepos) then
               begin
                 { with p1 now set we are in reality directly behind the
@@ -5054,14 +5053,14 @@ implementation
       end;
 
 
-    function TExpressionParser.comp_expr(AsmData:TAsmData;flags:texprflags):tnode;
+    function TExpressionParser.comp_expr(flags:texprflags):tnode;
       var
          oldafterassignment : boolean;
          p1 : tnode;
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         p1:=sub_expr(AsmData,opcompare,flags,nil);
+         p1:=sub_expr(opcompare,flags,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
@@ -5080,7 +5079,7 @@ implementation
          oldflags : tnodeflags;
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+         p1:=sub_expr(opcompare,[ef_accept_equal],nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
@@ -5093,7 +5092,7 @@ implementation
            _POINTPOINT :
              begin
                 parser.pbase.consume(_POINTPOINT);
-                p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 p1:=compiler.crangenode(p1,p2);
              end;
            _ASSIGNMENT :
@@ -5104,7 +5103,7 @@ implementation
                     getprocvardef:=tprocvardef(p1.resultdef)
                   else if is_invokable(p1.resultdef) then
                     getfuncrefdef:=tobjectdef(p1.resultdef);
-                p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2)
                 else if assigned(getfuncrefdef) then
@@ -5118,7 +5117,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_PLUSASN);
-               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
@@ -5126,7 +5125,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_MINUSASN);
-               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
@@ -5134,7 +5133,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_STARASN  );
-               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
@@ -5142,7 +5141,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_SLASHASN  );
-               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
           else
@@ -5169,7 +5168,7 @@ implementation
       p:tnode;
     begin
       result:=0;
-      p:=comp_expr(current_asmdata,[ef_accept_equal]);
+      p:=comp_expr([ef_accept_equal]);
       if not compiler.verbose.codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
@@ -5196,7 +5195,7 @@ implementation
 
     begin
       get_stringconst:='';
-      p:=comp_expr(current_asmdata,[ef_accept_equal]);
+      p:=comp_expr([ef_accept_equal]);
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then

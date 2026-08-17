@@ -334,7 +334,7 @@ implementation
       { inject the string in the scanner }
       current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
-      compiler.parser.pdecl.type_dec(current_asmdata,b);
+      compiler.parser.pdecl.type_dec(b);
       // In the interface part, the object def is not necessarily the last one, the methods also generate defs.
       i:=compiler.current_module.DefList.count-1;
       While (result=nil) and (i>=0) do

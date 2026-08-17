@@ -47,8 +47,8 @@ interface
 
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
-    procedure parse_record_members(AsmData: TAsmData; recsym:tsym);
-    function record_dec(AsmData: TAsmData; const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+    procedure parse_record_members(recsym:tsym);
+    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
@@ -61,10 +61,10 @@ interface
     function result_type(options:TSingleTypeOptions):tdef;
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(AsmData: TAsmData; var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
-    procedure read_anon_type(AsmData: TAsmData; var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
+    procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
 
     { parse nested type declaration of the def (typedef) }
     procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
@@ -718,7 +718,7 @@ implementation
           compiler.verbose.Message(parser_e_illegal_function_result);
       end;
 
-    procedure TTypesParser.parse_record_members(AsmData: TAsmData; recsym:tsym);
+    procedure TTypesParser.parse_record_members(recsym:tsym);
 
       function IsAnonOrLocal: Boolean;
         begin
@@ -924,7 +924,7 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=compiler.current_structdef.symtable.SymList.Count;
-                                parser.pdecvar.read_record_fields(AsmData,vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -951,9 +951,9 @@ implementation
                               end;
                           end
                         else if member_blocktype=bt_type then
-                          parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                         else if member_blocktype=bt_const then
-                          parser.pdecl.consts_dec(AsmData,true,true,hadgeneric)
+                          parser.pdecl.consts_dec(true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;
@@ -1074,7 +1074,7 @@ implementation
       end;
 
     { reads a record declaration }
-    function TTypesParser.record_dec(AsmData: TAsmData; const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+    function TTypesParser.record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       var
          olddef : tdef;
 
@@ -1177,11 +1177,11 @@ implementation
 
          if m_advanced_records in compiler.globals.current_settings.modeswitches then
            begin
-             parse_record_members(AsmData,recsym);
+             parse_record_members(recsym);
            end
          else
            begin
-             parser.pdecvar.read_record_fields(AsmData,[vd_record],nil,nil,hadgendummy,dummyattrelcount);
+             parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(compiler.current_structdef));
@@ -1227,7 +1227,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure TTypesParser.read_named_type(AsmData: TAsmData; var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
+    procedure TTypesParser.read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
@@ -1259,11 +1259,11 @@ implementation
              if try_parse_structdef_nested_type(def,compiler.current_structdef,false) then
                exit;
            { we can't accept a equal in type }
-           pt1:=parser.pexpr.comp_expr(AsmData,[ef_type_only]);
+           pt1:=parser.pexpr.comp_expr([ef_type_only]);
            if parser.pbase.try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=parser.pexpr.comp_expr(AsmData,[]);
+               pt2:=parser.pexpr.comp_expr([]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1355,7 +1355,7 @@ implementation
                          def:=compiler.current_structdef;
                        if assigned(def) then
                          { handle nested types }
-                         parser.pexpr.post_comp_expr_gendef(AsmData,def)
+                         parser.pexpr.post_comp_expr_gendef(def)
                        else
                          def:=compiler.generrordef;
                      end;
@@ -1366,7 +1366,7 @@ implementation
                        parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
-                         parser.pexpr.post_comp_expr_gendef(AsmData,def);
+                         parser.pexpr.post_comp_expr_gendef(def);
                      end
                    else
                      begin
@@ -1440,7 +1440,7 @@ implementation
         begin
           parser.pbase.consume(_SET);
           parser.pbase.consume(_OF);
-          read_anon_type(AsmData,tt2,true,nil);
+          read_anon_type(tt2,true,nil);
           if assigned(tt2) then
            begin
              case tt2.typ of
@@ -1624,7 +1624,7 @@ implementation
                     be parsed by readtype (PFV) }
                   if current_scanner.token=_LKLAMMER then
                    begin
-                     read_anon_type(AsmData,hdef,true,nil);
+                     read_anon_type(hdef,true,nil);
                      setdefdecl(hdef);
                    end
                   else
@@ -1731,7 +1731,7 @@ implementation
                 def:=arrdef;
              end;
            parser.pbase.consume(_OF);
-           read_anon_type(AsmData,tt2,true,nil);
+           read_anon_type(tt2,true,nil);
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
@@ -1934,7 +1934,7 @@ implementation
                     begin
                        oldlocalswitches:=compiler.globals.current_settings.localswitches;
                        compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_allow_enum_calc];
-                       p:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
+                       p:=parser.pexpr.comp_expr([ef_accept_equal]);
                        compiler.globals.current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
@@ -1999,10 +1999,10 @@ implementation
                 if (current_scanner.idtoken=_HELPER) and (m_advanced_records in compiler.globals.current_settings.modeswitches) then
                   begin
                     parser.pbase.consume(_HELPER);
-                    def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
+                    def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
-                  def:=record_dec(AsmData,name,newsym,genericdef,genericlist);
+                  def:=record_dec(name,newsym,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -2029,16 +2029,16 @@ implementation
                       _CLASS :
                         begin
                           parser.pbase.consume(_CLASS);
-                          def:=parser.pdecobj.object_dec(AsmData,odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=parser.pdecobj.object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
                           parser.pbase.consume(_OBJECT);
-                          def:=parser.pdecobj.object_dec(AsmData,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       else begin
                         parser.pbase.consume(_RECORD);
-                        def:=record_dec(AsmData,name,newsym,genericdef,genericlist);
+                        def:=record_dec(name,newsym,genericdef,genericlist);
                       end;
                     end;
                     compiler.globals.current_settings.packrecords:=oldpackrecords;
@@ -2051,7 +2051,7 @@ implementation
                 if not(m_class in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
@@ -2082,15 +2082,15 @@ implementation
                 if (current_scanner.idtoken=_HELPER) then
                   begin
                     parser.pbase.consume(_HELPER);
-                    def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
+                    def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=parser.pdecobj.object_dec(AsmData,default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
+                  def:=parser.pdecobj.object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
@@ -2098,7 +2098,7 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -2109,11 +2109,11 @@ implementation
                 parser.pbase.consume(current_scanner.token);
                 case compiler.globals.current_settings.interfacetype of
                   it_interfacecom:
-                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
-                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
-                    def:=parser.pdecobj.object_dec(AsmData,odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
                 end;
               end;
             _OBJCPROTOCOL :
@@ -2122,7 +2122,7 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
@@ -2130,12 +2130,12 @@ implementation
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
                 parser.pbase.consume(current_scanner.token);
-                def:=parser.pdecobj.object_dec(AsmData,odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -2157,7 +2157,7 @@ implementation
                             as a "unique" type }
                           hadtypetoken:=false;
                           parser.pbase.consume(_HELPER);
-                          def:=parser.pdecobj.object_dec(AsmData,odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                          def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                         end
                       else
                         expr_type
@@ -2203,12 +2203,12 @@ implementation
       end;
 
 
-    procedure TTypesParser.read_anon_type(AsmData: TAsmData; var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
+    procedure TTypesParser.read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
       var
         hadtypetoken : boolean;
       begin
         hadtypetoken:=false;
-        read_named_type(AsmData,def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
+        read_named_type(def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
       end;
 
 

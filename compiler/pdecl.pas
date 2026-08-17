@@ -53,17 +53,17 @@ type
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
-    procedure const_dec(AsmData: TAsmData; out had_generic:boolean);
-    procedure consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
-    procedure label_dec(AsmData: TAsmData);
-    procedure type_dec(AsmData: TAsmData; out had_generic:boolean);
-    procedure types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
-    procedure var_dec(AsmData: TAsmData; out had_generic:boolean);
-    procedure threadvar_dec(AsmData: TAsmData; out had_generic:boolean);
+    procedure const_dec(out had_generic:boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
+    procedure label_dec;
+    procedure type_dec(out had_generic:boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
+    procedure var_dec(out had_generic:boolean);
+    procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
-    function parse_forward_declaration(AsmData: TAsmData; sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
   end;
 
 implementation
@@ -134,7 +134,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+        p:=parser.pexpr.comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=compiler.globals.current_tokenpos;
         compiler.globals.current_tokenpos:=filepos;
@@ -253,13 +253,13 @@ implementation
         readconstant:=hp;
       end;
 
-    procedure TDeclarationParser.const_dec(AsmData: TAsmData; out had_generic:boolean);
+    procedure TDeclarationParser.const_dec(out had_generic:boolean);
       begin
         parser.pbase.consume(_CONST);
-        consts_dec(AsmData,false,true,had_generic);
+        consts_dec(false,true,had_generic);
       end;
 
-    procedure TDeclarationParser.consts_dec(AsmData: TAsmData; in_structure, allow_typed_const: boolean;out had_generic:boolean);
+    procedure TDeclarationParser.consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -312,7 +312,7 @@ implementation
                        if (compiler.symtablestack.top.symtablelevel<normal_function_level) and
                           assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
-                         jvm_add_typed_const_initializer(AsmData,tconstsym(sym));
+                         jvm_add_typed_const_initializer(current_asmdata,tconstsym(sym));
 {$endif}
                      end
                    else
@@ -331,7 +331,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    compiler.globals.block_type:=bt_const_type;
                    parser.pbase.consume(_COLON);
-                   parser.ptype.read_anon_type(AsmData,hdef,false,nil);
+                   parser.ptype.read_anon_type(hdef,false,nil);
                    compiler.globals.block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=compiler.globals.current_tokenpos;
@@ -395,7 +395,7 @@ implementation
                     begin
                       parser.pbase.consume(_EQ);
                       maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner,compiler.target);
-                      parser.ptconst.read_typed_const(AsmData.asmlists[asmtype],tstaticvarsym(sym),in_structure);
+                      parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
@@ -420,7 +420,7 @@ implementation
       end;
 
 
-    procedure TDeclarationParser.label_dec(AsmData: TAsmData);
+    procedure TDeclarationParser.label_dec;
       var
         labelsym : tlabelsym;
       begin
@@ -455,7 +455,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
-                        compiler.nodeutils.insertbssdata(AsmData,tstaticvarsym(labelsym.jumpbuf));
+                        compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }
@@ -514,7 +514,7 @@ implementation
 
         repeat
           { Parse attribute type }
-          p:=parser.pexpr.factor(current_asmdata,false,[ef_type_only,ef_check_attr_suffix]);
+          p:=parser.pexpr.factor(false,[ef_type_only,ef_check_attr_suffix]);
           if p.nodetype=typen then
             begin
               typesym:=ttypesym(ttypenode(p).typesym);
@@ -623,7 +623,7 @@ implementation
       end;
 
 
-    function TDeclarationParser.parse_forward_declaration(AsmData: TAsmData; sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function TDeclarationParser.parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
       var
         wasforward : boolean;
         objecttype : tobjecttyp;
@@ -673,7 +673,7 @@ implementation
                of a specialization }
              gendef:=parser.pgenutil.determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
-           parser.pdecobj.object_dec(AsmData,objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
+           parser.pdecobj.object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
              (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
              compiler.verbose.Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
@@ -732,7 +732,7 @@ implementation
           include(pd.procoptions,po_objc_related_result_type);
       end;
 
-    procedure TDeclarationParser.types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
+    procedure TDeclarationParser.types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
       procedure finalize_class_external_status(od: tobjectdef);
         begin
@@ -860,7 +860,7 @@ implementation
                    (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
-                 hdef:=parse_forward_declaration(AsmData,sym,gentypename,genorgtypename,nil,generictypelist,newtype);
+                 hdef:=parse_forward_declaration(sym,gentypename,genorgtypename,nil,generictypelist,newtype);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -942,7 +942,7 @@ implementation
               compiler.globals.current_tokenpos:=defpos;
               compiler.globals.current_tokenpos:=storetokenpos;
               { read the type definition }
-              parser.ptype.read_named_type(AsmData,hdef,newtype,gendef,generictypelist,false,isunique);
+              parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin
@@ -975,7 +975,7 @@ implementation
                           { check if it is an ansistring(codepage) declaration }
                           if is_ansistring(hdef) and parser.pbase.try_to_consume(_LKLAMMER) then
                             begin
-                              p:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
+                              p:=parser.pexpr.comp_expr([ef_accept_equal]);
                               parser.pbase.consume(_RKLAMMER);
                               if not is_constintnode(p) then
                                 begin
@@ -1295,24 +1295,24 @@ implementation
 
 
     { reads a type declaration to the symbol table }
-    procedure TDeclarationParser.type_dec(AsmData: TAsmData; out had_generic:boolean);
+    procedure TDeclarationParser.type_dec(out had_generic:boolean);
       var
         rtti_attrs_def: trtti_attribute_list;
       begin
         parser.pbase.consume(_TYPE);
         rtti_attrs_def := nil;
-        types_dec(AsmData,false,had_generic,rtti_attrs_def);
+        types_dec(false,had_generic,rtti_attrs_def);
         rtti_attrs_def.free;
         rtti_attrs_def := nil;
       end;
 
 
-    procedure TDeclarationParser.var_dec(AsmData: TAsmData; out had_generic:boolean);
+    procedure TDeclarationParser.var_dec(out had_generic:boolean);
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         parser.pbase.consume(_VAR);
-        parser.pdecvar.read_var_decls(AsmData,[vd_check_generic],had_generic);
+        parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
       end;
 
 
@@ -1334,7 +1334,7 @@ implementation
       end;
 
 
-    procedure TDeclarationParser.threadvar_dec(AsmData: TAsmData; out had_generic:boolean);
+    procedure TDeclarationParser.threadvar_dec(out had_generic:boolean);
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -1342,11 +1342,11 @@ implementation
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           compiler.verbose.Message(parser_e_threadvars_only_sg);
         if f_threading in compiler.globals.features then
-          parser.pdecvar.read_var_decls(AsmData,[vd_threadvar,vd_check_generic],had_generic)
+          parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             compiler.verbose.Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            parser.pdecvar.read_var_decls(AsmData,[vd_check_generic],had_generic);
+            parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
           end;
       end;
 
@@ -1384,7 +1384,7 @@ implementation
              _EQ:
                 begin
                    parser.pbase.consume(_EQ);
-                   p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                   p:=parser.pexpr.comp_expr([ef_accept_equal]);
                    storetokenpos:=compiler.globals.current_tokenpos;
                    compiler.globals.current_tokenpos:=filepos;
                    sym:=nil;

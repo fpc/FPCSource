@@ -56,9 +56,9 @@ interface
 
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
-    procedure read_var_decls(AsmData: TAsmData; options:Tvar_dec_options;out had_generic:boolean);
+    procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
-    procedure read_record_fields(AsmData: TAsmData; options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -219,7 +219,7 @@ implementation
                          if assigned(def) and (def.typ=arraydef) then
                           begin
                             idx:=0;
-                            p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                            p:=parser.pexpr.comp_expr([ef_accept_equal]);
                             if (not compiler.verbose.codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -335,7 +335,7 @@ implementation
 
               if parser.pbase.try_to_consume(_DISPID) then
                 begin
-                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -504,7 +504,7 @@ implementation
               if (current_scanner.idtoken=_INDEX) then
                 begin
                    parser.pbase.consume(_INDEX);
-                   pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
                      s16int on 16- and 8-bit) to be compatible with delphi,
@@ -746,7 +746,7 @@ implementation
                 begin
                   compiler.verbose.Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   pt.free;
                   pt := nil;
                 end
@@ -754,7 +754,7 @@ implementation
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -1189,7 +1189,7 @@ implementation
     end;
 
 
-    procedure TVariableDeclarationsParser.read_var_decls(AsmData: TAsmData; options:Tvar_dec_options;out had_generic:boolean);
+    procedure TVariableDeclarationsParser.read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
         procedure read_default_value(sc : TFPObjectList);
         var
@@ -1209,7 +1209,7 @@ implementation
                 tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 compiler.symtablestack.top.insertsym(tcsym);
-                templist:=tasmlist.create(AsmData);
+                templist:=tasmlist.create(current_asmdata);
                 parser.ptconst.read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
                   used, and will be re-parsed during specialisations (and the
@@ -1218,7 +1218,7 @@ implementation
                 if not parser.pbase.parse_generic then
                   begin
                     vs.defaultconstsym:=tcsym;
-                    AsmData.asmlists[al_typedconsts].concatlist(templist);
+                    current_asmdata.asmlists[al_typedconsts].concatlist(templist);
                   end;
                 templist.free;
                 templist := nil;
@@ -1226,7 +1226,7 @@ implementation
             staticvarsym :
               begin
                 maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner,compiler.target);
-                parser.ptconst.read_typed_const(AsmData.asmlists[al_typedconsts],tstaticvarsym(vs),false);
+                parser.ptconst.read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
               internalerror(200611051);
@@ -1526,7 +1526,7 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             parser.ptype.read_anon_type(AsmData,hdef,false,nil);
+             parser.ptype.read_anon_type(hdef,false,nil);
              maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
              for i:=0 to sc.count-1 do
                begin
@@ -1697,7 +1697,7 @@ implementation
                  if (vs.typ=staticvarsym) and
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
-                   compiler.nodeutils.insertbssdata(AsmData,tstaticvarsym(vs));
+                   compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(vs));
                  if vo_is_public in vs.varoptions then
                    compiler.current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
                end;
@@ -1752,7 +1752,7 @@ implementation
       end;
 
 
-    procedure TVariableDeclarationsParser.read_record_fields(AsmData: TAsmData; options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+    procedure TVariableDeclarationsParser.read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -1871,7 +1871,7 @@ implementation
                  gendef:=tfieldvarsym(srsym).vardef;
                end;
 
-             parser.ptype.read_anon_type(AsmData,hdef,false,tstoreddef(gendef));
+             parser.ptype.read_anon_type(hdef,false,tstoreddef(gendef));
              maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
@@ -2025,7 +2025,7 @@ implementation
                      if vd_threadvar in options then
                        include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parser.pbase.parse_generic then
-                       compiler.nodeutils.insertbssdata(AsmData,hstaticvs);
+                       compiler.nodeutils.insertbssdata(current_asmdata,hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;
@@ -2090,7 +2090,7 @@ implementation
                       compiler.symtablestack.top.insertsym(fieldvs);
                     end;
                 end;
-              parser.ptype.read_anon_type(AsmData,casetype,true,nil);
+              parser.ptype.read_anon_type(casetype,true,nil);
               compiler.globals.block_type:=bt_var;
               if assigned(fieldvs) then
                 begin
@@ -2120,13 +2120,13 @@ implementation
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
                   sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
-                  pt:=parser.pexpr.comp_expr(AsmData,[ef_accept_equal]);
+                  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     compiler.verbose.Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)=[]) and parser.pbase.try_to_consume(_POINTPOINT) then
-                    pt:=compiler.crangenode(pt,parser.pexpr.comp_expr(AsmData,[ef_accept_equal]))
+                    pt:=compiler.crangenode(pt,parser.pexpr.comp_expr([ef_accept_equal]))
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do
@@ -2151,7 +2151,7 @@ implementation
                 parser.pbase.consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if current_scanner.token<>_RKLAMMER then
-                  read_record_fields(AsmData,[vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
+                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
                 dec(variantrecordlevel);
                 parser.pbase.consume(_RKLAMMER);
 

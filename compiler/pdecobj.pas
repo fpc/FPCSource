@@ -50,13 +50,13 @@ type
     procedure parse_parent_classes;
     procedure parse_extended_type(helpertype:thelpertype);
     procedure parse_guid;
-    procedure parse_object_members(AsmData: TAsmData);
+    procedure parse_object_members;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { parses a object declaration }
-    function object_dec(AsmData: TAsmData; objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
@@ -456,7 +456,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=parser.pexpr.comp_expr(current_asmdata,[ef_accept_equal]);
+        p:=parser.pexpr.comp_expr([ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(compiler.current_objectdef.iidstr);
@@ -1118,7 +1118,7 @@ implementation
       end;
 
 
-    procedure TObjectDeclarationsParser.parse_object_members(AsmData: TAsmData);
+    procedure TObjectDeclarationsParser.parse_object_members;
 
       var
         typedconstswritable: boolean;
@@ -1258,7 +1258,7 @@ implementation
                 if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in compiler.globals.current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
-                    parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def);
+                    parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
                   end
                 else
                   { expect at least one type declaration }
@@ -1424,7 +1424,7 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                parser.pdecvar.read_record_fields(AsmData,vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -1459,7 +1459,7 @@ implementation
                         else if object_member_blocktype=bt_type then
                           begin
                           check_unbound_attributes;
-                          parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                           end
                         else if object_member_blocktype=bt_const then
                           begin
@@ -1472,7 +1472,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in compiler.globals.current_settings.localswitches;
                                 compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_typed_const_writable];
                               end;
-                            parser.pdecl.consts_dec(AsmData,true,not is_javainterface(compiler.current_structdef),hadgeneric);
+                            parser.pdecl.consts_dec(true,not is_javainterface(compiler.current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_typed_const_writable];
@@ -1530,7 +1530,7 @@ implementation
       end;
 
 
-    function TObjectDeclarationsParser.object_dec(AsmData: TAsmData; objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function TObjectDeclarationsParser.object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1780,7 +1780,7 @@ implementation
               compiler.current_objectdef.insertvmt;
 
             { parse and insert object members }
-            parse_object_members(AsmData);
+            parse_object_members;
 
             if assigned(olddef) then
               begin
