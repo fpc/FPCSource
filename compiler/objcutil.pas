@@ -57,7 +57,7 @@ type
     function objcencodemethod(pd: tabstractprocdef): ansistring;
 
     { Exports all assembler symbols related to the obj-c class }
-    procedure exportobjcclass(def: tobjectdef);
+    procedure exportobjcclass(AsmData: TAsmData; def: tobjectdef);
 
     { loads a field of an Objective-C root class (such as ISA) }
     function objcloadbasefield(n: tnode; const fieldname: string): tnode;
@@ -311,20 +311,20 @@ end;
     end;
 
 
-    procedure TObjectiveCUtils.exportobjcclass(def: tobjectdef);
+    procedure TObjectiveCUtils.exportobjcclass(AsmData: TAsmData; def: tobjectdef);
       begin
         if (compiler.target.info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
-            compiler.exportlib.exportname(current_asmdata,def.rtti_mangledname(objcclassrtti),[]);
-            compiler.exportlib.exportname(current_asmdata,def.rtti_mangledname(objcmetartti),[]);
+            compiler.exportlib.exportname(AsmData,def.rtti_mangledname(objcclassrtti),[]);
+            compiler.exportlib.exportname(AsmData,def.rtti_mangledname(objcmetartti),[]);
             { export public/protected instance variable offset symbols }
-            exportobjcclassfields(current_asmdata,def);
+            exportobjcclassfields(AsmData,def);
           end
         else
           begin
              { export the class symbol }
-             compiler.exportlib.exportname(current_asmdata,'.objc_class_name_'+def.objextname^,[]);
+             compiler.exportlib.exportname(AsmData,'.objc_class_name_'+def.objextname^,[]);
           end;
       end;
 
