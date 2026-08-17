@@ -149,7 +149,7 @@ type
     procedure read_declarations(AsmData: TAsmData; islibrary : boolean);
 
     { reads declarations in the interface part of a unit }
-    procedure read_interface_declarations;
+    procedure read_interface_declarations(AsmData: TAsmData);
 
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parser.pbase.parse_only is
@@ -3335,7 +3335,7 @@ implementation
       end;
 
 
-    procedure TSubroutineParser.read_interface_declarations;
+    procedure TSubroutineParser.read_interface_declarations(AsmData: TAsmData);
       var
         hadgeneric : boolean;
 
@@ -3357,22 +3357,22 @@ implementation
              _CONST :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.const_dec(current_asmdata,hadgeneric);
+                 parser.pdecl.const_dec(AsmData,hadgeneric);
                end;
              _TYPE :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.type_dec(current_asmdata,hadgeneric);
+                 parser.pdecl.type_dec(AsmData,hadgeneric);
                end;
              _VAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.var_dec(current_asmdata,hadgeneric);
+                 parser.pdecl.var_dec(AsmData,hadgeneric);
                end;
              _THREADVAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.threadvar_dec(current_asmdata,hadgeneric);
+                 parser.pdecl.threadvar_dec(AsmData,hadgeneric);
                end;
              _FUNCTION,
              _PROCEDURE,

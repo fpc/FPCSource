@@ -1317,10 +1317,12 @@ type
       end;
 
     function TModulesParser.parse_unit_interface_declarations(curr : tmodule) : boolean;
-
+      var
+        curr_asmdata: TAsmData;
       begin
         result:=true;
         compiler.set_current_module(curr);
+        curr_asmdata:=TAsmData(curr.asmdata);
 
         { update the symtable }
         connect_loaded_units(curr,nil);
@@ -1350,7 +1352,7 @@ type
          { fake classdef to represent the class corresponding to the unit }
          addmoduleclass(curr);
 {$endif}
-        parser.psub.read_interface_declarations;
+        parser.psub.read_interface_declarations(curr_asmdata);
 
 
         { Export macros defined in the interface for macpas. The macros
