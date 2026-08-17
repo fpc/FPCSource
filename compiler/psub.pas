@@ -3208,7 +3208,7 @@ implementation
               _THREADVAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.threadvar_dec(hadgeneric);
+                  parser.pdecl.threadvar_dec(current_asmdata,hadgeneric);
                 end;
               _CLASS:
                 begin
@@ -3372,7 +3372,7 @@ implementation
              _THREADVAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.threadvar_dec(hadgeneric);
+                 parser.pdecl.threadvar_dec(current_asmdata,hadgeneric);
                end;
              _FUNCTION,
              _PROCEDURE,

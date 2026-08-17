@@ -59,7 +59,7 @@ type
     procedure type_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
     procedure var_dec(AsmData: TAsmData; out had_generic:boolean);
-    procedure threadvar_dec(out had_generic:boolean);
+    procedure threadvar_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
@@ -1334,7 +1334,7 @@ implementation
       end;
 
 
-    procedure TDeclarationParser.threadvar_dec(out had_generic:boolean);
+    procedure TDeclarationParser.threadvar_dec(AsmData: TAsmData; out had_generic:boolean);
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -1342,11 +1342,11 @@ implementation
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           compiler.verbose.Message(parser_e_threadvars_only_sg);
         if f_threading in compiler.globals.features then
-          parser.pdecvar.read_var_decls(current_asmdata,[vd_threadvar,vd_check_generic],had_generic)
+          parser.pdecvar.read_var_decls(AsmData,[vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             compiler.verbose.Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            parser.pdecvar.read_var_decls(current_asmdata,[vd_check_generic],had_generic);
+            parser.pdecvar.read_var_decls(AsmData,[vd_check_generic],had_generic);
           end;
       end;
 
