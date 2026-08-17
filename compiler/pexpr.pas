@@ -70,7 +70,7 @@ interface
     srdef : tdef;
 
     property Compiler: TCompilerBase read FCompiler;
-    function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
+    function sub_expr(AsmData:TAsmData;pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
     function statement_syssym(AsmData: TAsmData; l : tinlinenumber) : tnode;
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
@@ -687,7 +687,7 @@ implementation
               p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -702,7 +702,7 @@ implementation
               p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_faraddr_x,false,p1,compiler);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -719,7 +719,7 @@ implementation
               p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
               got_addrn:=false;
@@ -736,7 +736,7 @@ implementation
               p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
-                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_seg_x,false,p1,compiler);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
@@ -4301,7 +4301,7 @@ implementation
                     p1:=factor(AsmData,true,[]);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if current_scanner.token<>_RKLAMMER then
-                      p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                      p1:=sub_expr(AsmData,opcompare,[ef_accept_equal],p1);
                     parser.pbase.consume(_RKLAMMER);
                   end
                  else
@@ -4373,7 +4373,7 @@ implementation
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
                       current_scanner.pattern := '-'+current_scanner.pattern;
-                      p1:=sub_expr(oppower,[],nil);
+                      p1:=sub_expr(AsmData,oppower,[],nil);
                       {  -1 ** 4 should be - (1 ** 4) and not
                          (-1) ** 4
                          This was the reason of tw0869.pp test failure PM }
@@ -4397,9 +4397,9 @@ implementation
                  else
                    begin
                      if m_isolike_unary_minus in compiler.globals.current_settings.modeswitches then
-                       p1:=sub_expr(opmultiply,[],nil)
+                       p1:=sub_expr(AsmData,opmultiply,[],nil)
                      else
-                       p1:=sub_expr(oppower,[],nil);
+                       p1:=sub_expr(AsmData,oppower,[],nil);
 
                      p1:=compiler.cunaryminusnode(p1);
                    end;
@@ -4529,7 +4529,7 @@ implementation
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
-    function TExpressionParser.sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
+    function TExpressionParser.sub_expr(AsmData:TAsmData;pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
@@ -4643,7 +4643,7 @@ implementation
             procvardef,
             arraydef:
               begin
-                gendef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(gendef),false,'');
+                gendef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then
@@ -4737,11 +4737,11 @@ implementation
                   end
                 else
                   { handle potential typecasts, etc }
-                  result:=handle_factor_typenode(current_asmdata,gendef,false,again,nil,false);
+                  result:=handle_factor_typenode(AsmData,gendef,false,again,nil,false);
             end;
 
           { parse postfix operators }
-          if postfixoperators(current_asmdata,result,again,false) then
+          if postfixoperators(AsmData,result,again,false) then
             if assigned(result) then
               result.fileinfo:=filepos
             else
@@ -4815,12 +4815,12 @@ implementation
         if pred_level=highest_precedence then
           begin
             if factornode=nil then
-              p1:=factor(current_asmdata,false,flags)
+              p1:=factor(AsmData,false,flags)
             else
               p1:=factornode;
           end
         else
-          p1:=sub_expr(succ(pred_level),flags+[ef_accept_equal],factornode);
+          p1:=sub_expr(AsmData,succ(pred_level),flags+[ef_accept_equal],factornode);
         repeat
           if (current_scanner.token in [NOTOKEN..last_operator]) and
              (current_scanner.token in operator_levels[pred_level]) and
@@ -4830,9 +4830,9 @@ implementation
              filepos:=compiler.globals.current_tokenpos;
              parser.pbase.consume(current_scanner.token);
              if pred_level=highest_precedence then
-               p2:=factor(current_asmdata,false,[])
+               p2:=factor(AsmData,false,[])
              else
-               p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
+               p2:=sub_expr(AsmData,succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
                _PLUS :
                  p1:=compiler.caddnode(addn,p1,p2);
@@ -4877,7 +4877,7 @@ implementation
                                dummyagain:=false;
                                dummyspezctxt:=nil;
 
-                               ptmp:=factor_handle_sym(current_asmdata,
+                               ptmp:=factor_handle_sym(AsmData,
                                                        gensym,
                                                        gensym.owner,
                                                        dummyagain,
@@ -5035,7 +5035,7 @@ implementation
           begin
             filepos:=compiler.globals.current_tokenpos;
             parser.pbase.consume(current_scanner.token);
-            p2:=factor(current_asmdata,false,[]);
+            p2:=factor(AsmData,false,[]);
             if maybe_handle_specialization(p1,p2,filepos) then
               begin
                 { with p1 now set we are in reality directly behind the
@@ -5061,7 +5061,7 @@ implementation
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         p1:=sub_expr(opcompare,flags,nil);
+         p1:=sub_expr(current_asmdata,opcompare,flags,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
@@ -5080,7 +5080,7 @@ implementation
          oldflags : tnodeflags;
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(opcompare,[ef_accept_equal],nil);
+         p1:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
@@ -5093,7 +5093,7 @@ implementation
            _POINTPOINT :
              begin
                 parser.pbase.consume(_POINTPOINT);
-                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+                p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                 p1:=compiler.crangenode(p1,p2);
              end;
            _ASSIGNMENT :
@@ -5104,7 +5104,7 @@ implementation
                     getprocvardef:=tprocvardef(p1.resultdef)
                   else if is_invokable(p1.resultdef) then
                     getfuncrefdef:=tobjectdef(p1.resultdef);
-                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+                p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2)
                 else if assigned(getfuncrefdef) then
@@ -5118,7 +5118,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_PLUSASN);
-               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
@@ -5126,7 +5126,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_MINUSASN);
-               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
@@ -5134,7 +5134,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_STARASN  );
-               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
@@ -5142,7 +5142,7 @@ implementation
                if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_SLASHASN  );
-               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
+               p2:=sub_expr(current_asmdata,opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
           else
