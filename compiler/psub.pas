@@ -146,7 +146,7 @@ type
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { reads the declaration blocks }
-    procedure read_declarations(islibrary : boolean);
+    procedure read_declarations(AsmData: TAsmData; islibrary : boolean);
 
     { reads declarations in the interface part of a unit }
     procedure read_interface_declarations;
@@ -416,7 +416,7 @@ implementation
     function tcgprocinfo.block(islibrary : boolean) : tnode;
       begin
          { parse const,types and vars }
-         compiler.parser.psub.read_declarations(islibrary);
+         compiler.parser.psub.read_declarations(current_asmdata,islibrary);
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
@@ -3162,7 +3162,7 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure TSubroutineParser.read_declarations(islibrary : boolean);
+    procedure TSubroutineParser.read_declarations(AsmData: TAsmData; islibrary : boolean);
       var
         hadgeneric : boolean;
 
@@ -3188,27 +3188,27 @@ implementation
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.label_dec(current_asmdata);
+                  parser.pdecl.label_dec(AsmData);
                 end;
               _CONST:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.const_dec(current_asmdata,hadgeneric);
+                  parser.pdecl.const_dec(AsmData,hadgeneric);
                 end;
               _TYPE:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.type_dec(current_asmdata,hadgeneric);
+                  parser.pdecl.type_dec(AsmData,hadgeneric);
                 end;
               _VAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.var_dec(current_asmdata,hadgeneric);
+                  parser.pdecl.var_dec(AsmData,hadgeneric);
                 end;
               _THREADVAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.threadvar_dec(current_asmdata,hadgeneric);
+                  parser.pdecl.threadvar_dec(AsmData,hadgeneric);
                 end;
               _CLASS:
                 begin
