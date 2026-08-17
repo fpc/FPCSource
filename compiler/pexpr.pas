@@ -72,7 +72,7 @@ interface
     property Compiler: TCompilerBase read FCompiler;
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
-    function statement_syssym(l : tinlinenumber) : tnode;
+    function statement_syssym(AsmData: TAsmData; l : tinlinenumber) : tnode;
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
     procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
     procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
@@ -328,7 +328,7 @@ implementation
        end;
 
 
-     function TExpressionParser.statement_syssym(l : tinlinenumber) : tnode;
+     function TExpressionParser.statement_syssym(AsmData: TAsmData; l : tinlinenumber) : tnode;
       var
         p1,p2,paras  : tnode;
         err,
@@ -684,7 +684,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(current_asmdata,true,[]);
+              p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -699,7 +699,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(current_asmdata,true,[]);
+              p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -716,7 +716,7 @@ implementation
                 compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(current_asmdata,true,[]);
+              p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -733,7 +733,7 @@ implementation
             begin
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
-              p1:=factor(current_asmdata,true,[]);
+              p1:=factor(AsmData,true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
@@ -856,7 +856,7 @@ implementation
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(current_asmdata,true,[]);
+                  p1:=factor(AsmData,true,[]);
                   p2:=geninlinenode(l,false,p1,compiler);
                   parser.pbase.consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -3186,7 +3186,7 @@ implementation
 
           syssym :
             begin
-              result:=statement_syssym(tsyssym(srsym).number);
+              result:=statement_syssym(AsmData,tsyssym(srsym).number);
             end;
 
           typesym :
