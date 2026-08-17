@@ -129,7 +129,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      tcompiler(compiler).current_procinfo:=cprocinfo.create(nil,compiler);
+      tcompiler(compiler).current_procinfo:=cprocinfo.create(nil,current_asmdata,compiler);
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);
