@@ -1549,7 +1549,7 @@ Unit raz80asm;
                 GotPlus:=false;
                 if (actasmtoken = AS_VMTOFFSET) or
                    (SearchIConstant(actasmpattern,l) or
-                    SearchRecordType(actasmpattern)) then
+                    SearchRecordType(compiler.symtablestack,actasmpattern)) then
                  begin
                    l:=BuildRefConstExpression(size,negative);
                    if size<>0 then
