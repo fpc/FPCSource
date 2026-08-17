@@ -2326,7 +2326,7 @@ type
                  parser.psystem.load_intern_types;
                end;
              if not assigned(uu.u.package) then
-               compiler.pkgutil.export_unit(uu.u);
+               compiler.pkgutil.export_unit(current_asmdata,uu.u);
 
              uu:=tused_unit(uu.next);
            end;

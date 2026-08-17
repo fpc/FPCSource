@@ -59,7 +59,7 @@ type
     constructor Create(ACompiler: TCompilerBase);
     procedure createimportlibfromexternals;
     Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
-    procedure export_unit(u:tmodule);
+    procedure export_unit(AsmData:TAsmData;u:tmodule);
     procedure load_packages;
     procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
     procedure add_package_unit_ref(package:tpackage);
@@ -282,13 +282,13 @@ implementation
     end;
 
 
-  procedure TPackageUtils.export_unit(u: tmodule);
+  procedure TPackageUtils.export_unit(AsmData:TAsmData;u: tmodule);
     var
       i : longint;
       sym : tasmsymbol;
       tmparg: tinsertexportarg;
     begin
-      tmparg.asmdata:=current_asmdata;
+      tmparg.asmdata:=AsmData;
       tmparg.symtable:=u.globalsymtable;
       u.globalsymtable.symlist.ForEachCall(@insert_export,@tmparg);
       tmparg.symtable:=u.localsymtable;
@@ -297,15 +297,15 @@ implementation
 
       { create special exports }
       if mf_init in u.moduleflags then
-        procexport(current_asmdata,make_mangledname('INIT$',u.globalsymtable,''));
+        procexport(AsmData,make_mangledname('INIT$',u.globalsymtable,''));
       if mf_finalize in u.moduleflags then
-        procexport(current_asmdata,make_mangledname('FINALIZE$',u.globalsymtable,''));
+        procexport(AsmData,make_mangledname('FINALIZE$',u.globalsymtable,''));
       if mf_threadvars in u.moduleflags then
-        varexport(current_asmdata,make_mangledname('THREADVARLIST',u.globalsymtable,''));
+        varexport(AsmData,make_mangledname('THREADVARLIST',u.globalsymtable,''));
       if mf_has_resourcestrings in u.moduleflags then
         begin
-          varexport(current_asmdata,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(current_asmdata,'RESSTR',u.localsymtable,[]).name);
-          varexport(current_asmdata,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(current_asmdata,'RESSTR',u.localsymtable,[]).name);
+          varexport(AsmData,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(AsmData,'RESSTR',u.localsymtable,[]).name);
+          varexport(AsmData,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(AsmData,'RESSTR',u.localsymtable,[]).name);
         end;
 
       if not (compiler.target.info.system in systems_indirect_var_imports) then
@@ -313,7 +313,7 @@ implementation
           begin
             sym:=tasmsymbol(u.publicasmsyms[i]);
             if sym.bind=AB_INDIRECT then
-              varexport(current_asmdata,sym.name);
+              varexport(AsmData,sym.name);
           end;
     end;
 
