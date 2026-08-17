@@ -33,12 +33,18 @@ interface
 
 type
   TPackageUtils = class
+  private type
+    pexportabstractrecordsymprocarg = ^texportabstractrecordsymprocarg;
+    texportabstractrecordsymprocarg = record
+      symtable: TSymtable;
+      asmdata: TAsmData;
+    end;
   private
     FCompiler: TCompilerBase;
     procedure procexport(AsmData: TAsmData; const s : string);
     procedure varexport(AsmData: TAsmData; const s : string);
     procedure exportprocsym(AsmData: TAsmData; sym:tprocsym;symtable:tsymtable);
-    procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
+    procedure exportabstractrecordsymproc(sym:tobject;uarg:pointer);
     procedure exportname(const s:tsymstr);
     procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
     procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
@@ -125,8 +131,14 @@ implementation
     end;
 
 
-  procedure TPackageUtils.exportabstractrecordsymproc(sym:tobject;arg:pointer);
+  procedure TPackageUtils.exportabstractrecordsymproc(sym:tobject;uarg:pointer);
+    var
+      targ: pexportabstractrecordsymprocarg absolute uarg;
+      arg: TSymTable;
+      AsmData: TAsmData;
     begin
+      arg:=targ^.symtable;
+      AsmData:=targ^.asmdata;
       case tsym(sym).typ of
         typesym:
           begin
@@ -143,11 +155,11 @@ implementation
             { don't export methods of interfaces }
             if is_interface(tdef(tabstractrecordsymtable(arg).defowner)) then
               exit;
-            exportprocsym(current_asmdata,tprocsym(sym),tsymtable(arg));
+            exportprocsym(AsmData,tprocsym(sym),tsymtable(arg));
           end;
         staticvarsym:
           begin
-            varexport(current_asmdata,tsym(sym).mangledname);
+            varexport(AsmData,tsym(sym).mangledname);
           end;
         else
           ;
@@ -167,6 +179,8 @@ implementation
 
 
   procedure TPackageUtils.exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+    var
+      tmparg: texportabstractrecordsymprocarg;
     begin
       { for cross unit type aliases this might happen }
       if def.owner<>symtable then
@@ -174,7 +188,9 @@ implementation
       { don't export generics or their nested types }
       if df_generic in def.defoptions then
         exit;
-      def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
+      tmparg.symtable:=def.symtable;
+      tmparg.asmdata:=current_asmdata;
+      def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,@tmparg);
       if def.typ=objectdef then
         begin
           if (oo_has_vmt in tobjectdef(def).objectoptions) then
