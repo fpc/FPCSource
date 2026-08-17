@@ -28,6 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
+  aasmdata,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
   pdecl,psub,pinline,ptype,psystem,pbase,pparautl;
 
@@ -55,6 +56,7 @@ type
     FPSystem: TSystemUnitParser;
     FPParaUtl: TParaUtils;
 
+    function GetAsmData: TAsmData; inline;
     procedure initparser;
     procedure doneparser;
     procedure Reset;
@@ -84,6 +86,8 @@ type
     property ptype: TTypesParser read FPType;
     property psystem: TSystemUnitParser read FPSystem;
     property pparautl: TParaUtils read FPParaUtl;
+
+    property AsmData: TAsmData read GetAsmData;
   end;
 
 implementation
@@ -98,7 +102,6 @@ implementation
       globtype,tokens,systemstypes,systems,globals,verbose,globstat,compiler,
       symbase,symtable,symdef,
       finput,fppu,
-      aasmdata,
       cscript,gendef,
       comphook,
       scanner,scandir,
@@ -302,6 +305,12 @@ implementation
            else
              ;
          end;
+      end;
+
+
+    function TParser.GetAsmData: TAsmData; inline;
+      begin
+        Result:=current_asmdata;
       end;
 
 
