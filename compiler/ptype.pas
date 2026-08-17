@@ -26,7 +26,7 @@ unit ptype;
 interface
 
     uses
-       globtype,cclasses,compilerbase,
+       globtype,cclasses,compilerbase,aasmdata,
        symtype,symdef,symbase;
 
     type
@@ -47,7 +47,7 @@ interface
 
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
-    procedure parse_record_members(recsym:tsym);
+    procedure parse_record_members(AsmData: TAsmData; recsym:tsym);
     function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -86,7 +86,7 @@ implementation
        cutils,
        { global }
        globals,tokens,verbose,constexp,
-       systems,compiler,aasmdata,
+       systems,compiler,
        { symtable }
        symconst,symsym,symtable,symcreat,
        defutil,defcmp,
@@ -718,7 +718,7 @@ implementation
           compiler.verbose.Message(parser_e_illegal_function_result);
       end;
 
-    procedure TTypesParser.parse_record_members(recsym:tsym);
+    procedure TTypesParser.parse_record_members(AsmData: TAsmData; recsym:tsym);
 
       function IsAnonOrLocal: Boolean;
         begin
@@ -924,7 +924,7 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=compiler.current_structdef.symtable.SymList.Count;
-                                parser.pdecvar.read_record_fields(current_asmdata,vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(AsmData,vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -951,9 +951,9 @@ implementation
                               end;
                           end
                         else if member_blocktype=bt_type then
-                          parser.pdecl.types_dec(current_asmdata,true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(AsmData,true,hadgeneric, rtti_attrs_def)
                         else if member_blocktype=bt_const then
-                          parser.pdecl.consts_dec(current_asmdata,true,true,hadgeneric)
+                          parser.pdecl.consts_dec(AsmData,true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;
@@ -1177,7 +1177,7 @@ implementation
 
          if m_advanced_records in compiler.globals.current_settings.modeswitches then
            begin
-             parse_record_members(recsym);
+             parse_record_members(current_asmdata,recsym);
            end
          else
            begin
