@@ -1202,7 +1202,7 @@ Unit raz80asm;
                      end
                    else
                     begin
-                      asmsearchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(compiler.symtablestack,tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -1295,7 +1295,7 @@ Unit raz80asm;
                       end
                    else
                     begin
-                      asmsearchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(compiler.symtablestack,tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of

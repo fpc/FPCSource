@@ -558,7 +558,7 @@ Unit Rax86int;
                    parse the identifier }
                  if (c='.') then
                   begin
-                    asmsearchsym(actasmpattern,srsym,srsymtable);
+                    asmsearchsym(compiler.symtablestack,actasmpattern,srsym,srsymtable);
                     if assigned(srsym) and
                        (srsym.typ=unitsym) and
                        (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
@@ -1468,7 +1468,7 @@ Unit Rax86int;
                      end
                    else
                     begin
-                      asmsearchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(compiler.symtablestack,tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -1566,7 +1566,7 @@ Unit Rax86int;
                       end
                    else
                     begin
-                      asmsearchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(compiler.symtablestack,tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -3293,7 +3293,7 @@ Unit Rax86int;
                         if not hl.is_public then
                           begin
                             hl.is_public:=true;
-                            asmsearchsym(upper(actasmpattern),tmpsym,tmpsrsymtable);
+                            asmsearchsym(compiler.symtablestack,upper(actasmpattern),tmpsym,tmpsrsymtable);
                             if tlabelsym(tmpsym).defined then
                               compiler.verbose.Message1(asmr_e_public_must_be_used_before_label_definition,actasmpattern);
                           end;

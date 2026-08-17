@@ -220,7 +220,7 @@ Function EscapeToPascal(const s:string; Verbose: TVerbose): string;
                      Symbol helper routines
 ---------------------------------------------------------------------}
 
-procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
+procedure AsmSearchSym(symtablestack:TSymtablestack;const s:string;out srsym:tsym;out srsymtable:TSymtable);
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 Function SearchType(const hs:string;out size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
@@ -882,7 +882,7 @@ var
   tmpprocinfo: tprocinfo;
 Begin
   SetupVar:=false;
-  asmsearchsym(s,sym,srsymtable);
+  asmsearchsym(compiler.symtablestack,s,sym,srsymtable);
   if sym = nil then
    exit;
   if sym.typ=absolutevarsym then
@@ -1462,9 +1462,7 @@ begin
   end;
 end;
 
-procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure AsmSearchSym(symtablestack:TSymtablestack;const s:string;out srsym:tsym;out srsymtable:TSymtable);
 var
   i : integer;
 begin
@@ -1472,7 +1470,7 @@ begin
   { allow unit.identifier }
   if i>1 then
     begin
-      compiler.symtablestack.searchsym(Copy(s,1,i-1),srsym,srsymtable);
+      symtablestack.searchsym(Copy(s,1,i-1),srsym,srsymtable);
       if assigned(srsym) then
        begin
          if (srsym.typ=unitsym) and
@@ -1487,7 +1485,7 @@ begin
        end;
     end
   else
-    compiler.symtablestack.searchsym(s,srsym,srsymtable);
+    symtablestack.searchsym(s,srsym,srsymtable);
   { in asm routines, the function result variable, that matches the function
     name should be avoided, because:
     1) there's already a @Result directive (even in TP7) that can be used, if
@@ -1532,12 +1530,14 @@ end;
 
 Function SearchType(const hs:string;out size:tcgint): Boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   srsym : tsym;
   srsymtable : TSymtable;
 begin
   result:=false;
   size:=0;
-  asmsearchsym(hs,srsym,srsymtable);
+  asmsearchsym(compiler.symtablestack,hs,srsym,srsymtable);
   if assigned(srsym) and
      (srsym.typ=typesym) then
     begin
@@ -1550,12 +1550,14 @@ end;
 
 Function SearchRecordType(const s:string): boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   srsym : tsym;
   srsymtable : TSymtable;
 Begin
   SearchRecordType:=false;
 { Check the constants in symtable }
-  asmsearchsym(s,srsym,srsymtable);
+  asmsearchsym(compiler.symtablestack,s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym.typ of
@@ -1583,6 +1585,8 @@ end;
 
 
 Function SearchIConstant(const s:string; var l:tcgint): boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {**********************************************************************}
 {  Description: Searches for a CONSTANT of name s in either the local  }
 {  symbol list, then in the global symbol list, and returns the value  }
@@ -1610,7 +1614,7 @@ Begin
      exit;
    end;
 { Check the constants in symtable }
-  asmsearchsym(s,srsym,srsymtable);
+  asmsearchsym(compiler.symtablestack,s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym.typ of
@@ -1677,7 +1681,7 @@ Begin
    st:=compiler.current_structdef.symtable
   else
    begin
-     asmsearchsym(base,sym,srsymtable);
+     asmsearchsym(compiler.symtablestack,base,sym,srsymtable);
      { allow unitname.identifier }
      if assigned(sym) and (sym.typ=unitsym) then
        begin
@@ -1686,7 +1690,7 @@ Begin
           i:=255;
          base:=base+'.'+Copy(s,1,i-1);
          delete(s,1,i);
-         asmsearchsym(base,sym,srsymtable);
+         asmsearchsym(compiler.symtablestack,base,sym,srsymtable);
        end;
      st:=nil;
      { we can start with a var,type,typedconst }
@@ -1792,7 +1796,7 @@ Begin
    { Support Field.Type as typecasting }
    if (st=nil) and (s<>'') then
      begin
-       asmsearchsym(s,sym,srsymtable);
+       asmsearchsym(compiler.symtablestack,s,sym,srsymtable);
        if assigned(sym) and (sym.typ=typesym) then
          begin
            size:=ttypesym(sym).typedef.size;
@@ -1816,7 +1820,7 @@ Begin
   SearchLabel:=false;
 { Check for pascal labels, which are case insensetive }
   hs:=upper(s);
-  asmsearchsym(hs,sym,srsymtable);
+  asmsearchsym(compiler.symtablestack,hs,sym,srsymtable);
   if sym=nil then
    exit;
   case sym.typ of
