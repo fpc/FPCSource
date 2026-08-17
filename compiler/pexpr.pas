@@ -79,7 +79,7 @@ interface
     procedure handle_funcref(fr:tobjectdef;var p2:tnode);
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
     function handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
-    function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
+    function handle_factor_typenode(AsmData:TAsmData;hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
     function real_const_node_from_pattern(const s:string):tnode;
     function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
     function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
@@ -1796,7 +1796,7 @@ implementation
       end;
 
 
-    function TExpressionParser.handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
+    function TExpressionParser.handle_factor_typenode(AsmData:TAsmData;hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1853,7 +1853,7 @@ implementation
                  if isspecialize then
                    begin
                      parser.pbase.consume(_ID);
-                     if not handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                     if not handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
                          result:=compiler.cerrornode;
@@ -1898,7 +1898,7 @@ implementation
                 if isspecialize and assigned(srsym) then
                   begin
                     parser.pbase.consume(_ID);
-                    if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                    if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                       erroroutresult:=false;
                   end
                 else
@@ -3220,7 +3220,7 @@ implementation
                              if srsym.typ<>typesym then
                                internalerror(2015071705);
                              hdef:=ttypesym(srsym).typedef;
-                             result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                             result:=handle_factor_typenode(current_asmdata,hdef,getaddr,again,srsym,ef_type_only in flags);
                            end;
                        end
                      else
@@ -3232,7 +3232,7 @@ implementation
                      if ((hdef=compiler.deftypes.cvarianttype) or (hdef=compiler.deftypes.colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(compiler.current_module.moduleflags,mf_uses_variants);
-                     result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                     result:=handle_factor_typenode(current_asmdata,hdef,getaddr,again,srsym,ef_type_only in flags);
                    end;
                end;
             end;
@@ -4517,7 +4517,7 @@ implementation
           internalerror(2011053001);
         again:=false;
         { handle potential typecasts, etc }
-        p1:=handle_factor_typenode(def,false,again,nil,false);
+        p1:=handle_factor_typenode(current_asmdata,def,false,again,nil,false);
         { parse postfix operators }
         postfixoperators(p1,again,false);
         if assigned(p1) and (p1.nodetype=typen) then
@@ -4737,7 +4737,7 @@ implementation
                   end
                 else
                   { handle potential typecasts, etc }
-                  result:=handle_factor_typenode(gendef,false,again,nil,false);
+                  result:=handle_factor_typenode(current_asmdata,gendef,false,again,nil,false);
             end;
 
           { parse postfix operators }
