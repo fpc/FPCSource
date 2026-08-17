@@ -1355,7 +1355,7 @@ implementation
                          def:=compiler.current_structdef;
                        if assigned(def) then
                          { handle nested types }
-                         parser.pexpr.post_comp_expr_gendef(def)
+                         parser.pexpr.post_comp_expr_gendef(AsmData,def)
                        else
                          def:=compiler.generrordef;
                      end;
@@ -1366,7 +1366,7 @@ implementation
                        parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
-                         parser.pexpr.post_comp_expr_gendef(def);
+                         parser.pexpr.post_comp_expr_gendef(AsmData,def);
                      end
                    else
                      begin

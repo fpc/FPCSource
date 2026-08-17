@@ -117,7 +117,7 @@ interface
 
     { Does some postprocessing for a generic type (especially when nested types
       of the specialization are used) }
-    procedure post_comp_expr_gendef(var def: tdef);
+    procedure post_comp_expr_gendef(AsmData: TAsmData; var def: tdef);
   end;
 
 implementation
@@ -4508,7 +4508,7 @@ implementation
       end;
   {$maxfpuregisters default}
 
-    procedure TExpressionParser.post_comp_expr_gendef(var def: tdef);
+    procedure TExpressionParser.post_comp_expr_gendef(AsmData: TAsmData; var def: tdef);
       var
         p1 : tnode;
         again : boolean;
@@ -4517,9 +4517,9 @@ implementation
           internalerror(2011053001);
         again:=false;
         { handle potential typecasts, etc }
-        p1:=handle_factor_typenode(current_asmdata,def,false,again,nil,false);
+        p1:=handle_factor_typenode(AsmData,def,false,again,nil,false);
         { parse postfix operators }
-        postfixoperators(current_asmdata,p1,again,false);
+        postfixoperators(AsmData,p1,again,false);
         if assigned(p1) and (p1.nodetype=typen) then
           def:=ttypenode(p1).typedef
         else
