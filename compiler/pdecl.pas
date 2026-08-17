@@ -58,7 +58,7 @@ type
     procedure label_dec(AsmData: TAsmData);
     procedure type_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure types_dec(AsmData: TAsmData; in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
-    procedure var_dec(out had_generic:boolean);
+    procedure var_dec(AsmData: TAsmData; out had_generic:boolean);
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
@@ -1307,12 +1307,12 @@ implementation
       end;
 
 
-    procedure TDeclarationParser.var_dec(out had_generic:boolean);
+    procedure TDeclarationParser.var_dec(AsmData: TAsmData; out had_generic:boolean);
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         parser.pbase.consume(_VAR);
-        parser.pdecvar.read_var_decls(current_asmdata,[vd_check_generic],had_generic);
+        parser.pdecvar.read_var_decls(AsmData,[vd_check_generic],had_generic);
       end;
 
 

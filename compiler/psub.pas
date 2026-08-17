@@ -3203,7 +3203,7 @@ implementation
               _VAR:
                 begin
                   handle_unexpected_had_generic;
-                  parser.pdecl.var_dec(hadgeneric);
+                  parser.pdecl.var_dec(current_asmdata,hadgeneric);
                 end;
               _THREADVAR:
                 begin
@@ -3367,7 +3367,7 @@ implementation
              _VAR :
                begin
                  handle_unexpected_had_generic;
-                 parser.pdecl.var_dec(hadgeneric);
+                 parser.pdecl.var_dec(current_asmdata,hadgeneric);
                end;
              _THREADVAR :
                begin
