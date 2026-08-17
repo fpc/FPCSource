@@ -2819,15 +2819,15 @@ implementation
                                   p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
                                   p2:=compiler.ccallparanode(p3,p2);
-                                  p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,compiler.deftypes.voidtype);
+                                  p1:=translate_disp_call(parser.AsmData,p1,p2,dct_propput,dispatchstring,0,compiler.deftypes.voidtype);
                                 end
                               else
                               { this is only an approximation
                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
                               if afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
-                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,compiler.deftypes.cvarianttype)
+                                p1:=translate_disp_call(parser.AsmData,p1,p2,calltype,dispatchstring,0,compiler.deftypes.cvarianttype)
                               else
-                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,compiler.deftypes.voidtype);
+                                p1:=translate_disp_call(parser.AsmData,p1,p2,calltype,dispatchstring,0,compiler.deftypes.voidtype);
                             end;
                         end
                       else { Error }

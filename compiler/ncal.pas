@@ -32,6 +32,7 @@ interface
        cutils,cclasses,
        globtype,constexp,
        paramgr,parabase,cgbase,
+       aasmdata,
        node,nbas,nutils,nodeprinter,
        {$ifdef state_tracking}
        nstate,
@@ -316,7 +317,7 @@ interface
 
     { also returns the number of parameters }
     function reverseparameters(var p: tcallparanode) : sizeint;
-    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
+    function translate_disp_call(AsmData: TAsmData; selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
 
     var
@@ -329,7 +330,7 @@ implementation
       systems,
       verbose,globals,fmodule,ppu,
       compiler,
-      aasmbase,aasmdata,
+      aasmbase,
       symconst,defutil,defcmp,
       htypechk,pass_1,
       nodehelper,
@@ -371,7 +372,7 @@ implementation
         p:=hp1;
       end;
 
-    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
+    function translate_disp_call(AsmData: TAsmData; selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
       const
         DISPATCH_METHOD = $1;
@@ -509,7 +510,7 @@ implementation
         params:=compiler.ctempcreatenode(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
 
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_new_section],compiler);
+        tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_new_section],compiler);
         tcb.begin_anonymous_record('',1,sizeof(pint),1);
 
         if not variantdispatch then  { generate a tdispdesc record }
@@ -610,9 +611,9 @@ implementation
           vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const]);
         calldescsym.varstate:=vs_initialised;
         compiler.current_module.localsymtable.insertsym(calldescsym);
-        current_asmdata.AsmLists[al_typedconsts].concatList(
+        AsmData.AsmLists[al_typedconsts].concatList(
           tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA,calldescsym.vardef),
+            AsmData.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA,calldescsym.vardef),
             calldescsym.vardef,sec_rodata_norel,
             lower(calldescsym.mangledname),sizeof(pint)
           )
@@ -4684,13 +4685,13 @@ implementation
                 addstatement(statements,converted_result_data);
                 addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(converted_result_data),
                   compiler.ctypeconvnode_internal(
-                    translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
+                    translate_disp_call(current_asmdata,methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                   procdefinition.returndef)));
                 addstatement(statements,compiler.ctempdeletenode_normal_temp(converted_result_data));
                 addstatement(statements,compiler.ctemprefnode(converted_result_data));
               end
             else
-              result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,compiler.deftypes.voidtype);
+              result:=translate_disp_call(current_asmdata,methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,compiler.deftypes.voidtype);
 
             { don't free reused nodes }
             methodpointer:=nil;
