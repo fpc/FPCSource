@@ -2443,7 +2443,7 @@ implementation
                                inserttypeconv(p2,compiler.deftypes.u16inttype,compiler);
                                inserttypeconv_internal(p2,compiler.deftypes.u32inttype,compiler);
                                p3:=compiler.cshlshrnode(shln,p2,compiler.cordconstnode($10,compiler.deftypes.s16inttype,false));
-                               p2:=comp_expr([ef_accept_equal]);
+                               p2:=comp_expr(AsmData,[ef_accept_equal]);
                                inserttypeconv(p2,compiler.deftypes.u16inttype,compiler);
                                inserttypeconv_internal(p2,compiler.deftypes.u32inttype,compiler);
                                p2:=compiler.caddnode(addn,p2,p3);
