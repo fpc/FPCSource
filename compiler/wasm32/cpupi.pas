@@ -26,7 +26,7 @@ unit cpupi;
 interface
 
   uses
-    sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,aasmdata,
+    sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,
     procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
     psub,node,compilerbase, cclasses;
 
