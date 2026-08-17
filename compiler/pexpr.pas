@@ -2459,11 +2459,11 @@ implementation
                                if parser.pbase.try_to_consume(_COLON) then
                                 begin
                                   p3:=compiler.caddnode(muln,compiler.cordconstnode($10,compiler.deftypes.s32inttype,false),p2);
-                                  p2:=comp_expr([ef_accept_equal]);
+                                  p2:=comp_expr(AsmData,[ef_accept_equal]);
                                   p2:=compiler.caddnode(addn,p2,p3);
                                   if parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                    p2:=compiler.crangenode(p2,compiler.caddnode(addn,comp_expr([ef_accept_equal]),p3.getcopy));
+                                    p2:=compiler.crangenode(p2,compiler.caddnode(addn,comp_expr(AsmData,[ef_accept_equal]),p3.getcopy));
                                   p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memseg);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
@@ -2472,7 +2472,7 @@ implementation
                                 begin
                                   if parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
-                                    p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
+                                    p2:=compiler.crangenode(p2,comp_expr(AsmData,[ef_accept_equal]));
                                   p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end;
