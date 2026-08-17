@@ -81,7 +81,7 @@ interface
     function handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
     function handle_factor_typenode(AsmData:TAsmData;hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
     function real_const_node_from_pattern(const s:string):tnode;
-    function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
+    function postfixoperators(AsmData:TAsmData;var p1:tnode;var again:boolean;getaddr:boolean): boolean;
     function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
                             out memberparentdef: tdef): boolean;
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
@@ -2034,7 +2034,7 @@ implementation
 ---------------------------------------------}
 
     { returns whether or not p1 has been changed }
-    function TExpressionParser.postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
+    function TExpressionParser.postfixoperators(AsmData:TAsmData;var p1:tnode;var again:boolean;getaddr:boolean): boolean;
 
       { tries to avoid syntax errors after invalid qualifiers }
       procedure recoverconsume_postfixops;
@@ -2668,7 +2668,7 @@ implementation
                                begin
                                  searchsym_in_record(structh,current_scanner.pattern,srsym,srsymtable);
                                  parser.pbase.consume(_ID);
-                                 if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                                 if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
                            end
@@ -2850,7 +2850,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2904,7 +2904,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(AsmData,srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -3895,7 +3895,7 @@ implementation
              dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not (ef_had_specialize in flags) then
-             updatefpos:=postfixoperators(p1,again,getaddr);
+             updatefpos:=postfixoperators(current_asmdata,p1,again,getaddr);
          end
         else
          begin
@@ -4135,7 +4135,7 @@ implementation
                      p1:=compiler.cerrornode;
                    end;
                  if p1.nodetype<>specializen then
-                   postfixoperators(p1,again,getaddr);
+                   postfixoperators(current_asmdata,p1,again,getaddr);
                end;
 
              _INTCONST :
@@ -4182,7 +4182,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4193,7 +4193,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4210,7 +4210,7 @@ implementation
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end
                  else
                    begin
@@ -4219,7 +4219,7 @@ implementation
                        begin
                          again:=true;
                          { handle type helpers here }
-                         postfixoperators(p1,again,getaddr);
+                         postfixoperators(current_asmdata,p1,again,getaddr);
                        end;
                    end;
                end;
@@ -4236,7 +4236,7 @@ implementation
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end
                  else
                   begin
@@ -4251,7 +4251,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4262,7 +4262,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4276,7 +4276,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4287,7 +4287,7 @@ implementation
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
-                     postfixoperators(p1,again,getaddr);
+                     postfixoperators(current_asmdata,p1,again,getaddr);
                    end;
                end;
 
@@ -4317,7 +4317,7 @@ implementation
                    then
                   begin
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end;
                  got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
@@ -4333,7 +4333,7 @@ implementation
                  if (current_scanner.token in postfixoperator_tokens) then
                   begin
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end;
                end;
 
@@ -4347,7 +4347,7 @@ implementation
                  if current_scanner.token in postfixoperator_tokens then
                   begin
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end;
                end;
 
@@ -4420,7 +4420,7 @@ implementation
                  if current_scanner.token in [_CARET,_POINT] then
                   begin
                     again:=true;
-                    postfixoperators(p1,again,getaddr);
+                    postfixoperators(current_asmdata,p1,again,getaddr);
                   end;
                end;
              _OBJCPROTOCOL:
@@ -4519,7 +4519,7 @@ implementation
         { handle potential typecasts, etc }
         p1:=handle_factor_typenode(current_asmdata,def,false,again,nil,false);
         { parse postfix operators }
-        postfixoperators(p1,again,false);
+        postfixoperators(current_asmdata,p1,again,false);
         if assigned(p1) and (p1.nodetype=typen) then
           def:=ttypenode(p1).typedef
         else
@@ -4741,7 +4741,7 @@ implementation
             end;
 
           { parse postfix operators }
-          if postfixoperators(result,again,false) then
+          if postfixoperators(current_asmdata,result,again,false) then
             if assigned(result) then
               result.fileinfo:=filepos
             else
