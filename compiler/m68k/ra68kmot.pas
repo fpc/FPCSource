@@ -1496,7 +1496,7 @@ var
                        expr:=actasmpattern;
                        Consume(AS_ID);
                        { typecasting? }
-                       if SearchType(expr,l) then
+                       if SearchType(compiler.symtablestack,expr,l) then
                         begin
                           oper.hastype:=true;
                           oper.typesize:=l;

@@ -222,7 +222,7 @@ Function EscapeToPascal(const s:string; Verbose: TVerbose): string;
 
 procedure AsmSearchSym(symtablestack:TSymtablestack;const s:string;out srsym:tsym;out srsymtable:TSymtable);
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
-Function SearchType(const hs:string;out size:tcgint): Boolean;
+Function SearchType(symtablestack:TSymtablestack;const hs:string;out size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:tcgint): boolean;
 Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
@@ -1528,16 +1528,14 @@ begin
 end;
 
 
-Function SearchType(const hs:string;out size:tcgint): Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Function SearchType(symtablestack:TSymtablestack;const hs:string;out size:tcgint): Boolean;
 var
   srsym : tsym;
   srsymtable : TSymtable;
 begin
   result:=false;
   size:=0;
-  asmsearchsym(compiler.symtablestack,hs,srsym,srsymtable);
+  asmsearchsym(symtablestack,hs,srsym,srsymtable);
   if assigned(srsym) and
      (srsym.typ=typesym) then
     begin

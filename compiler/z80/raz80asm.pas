@@ -1587,7 +1587,7 @@ Unit raz80asm;
                    Consume(AS_ID);
                    { typecasting? }
                    if (actasmtoken=AS_LPAREN) and
-                      SearchType(tempstr,l) then
+                      SearchType(compiler.symtablestack,tempstr,l) then
                     begin
                       oper.hastype:=true;
                       oper.typesize:=l;
@@ -2127,7 +2127,7 @@ Unit raz80asm;
 
 
                        { typecasting? }
-                       if SearchType(expr,l) then
+                       if SearchType(compiler.symtablestack,expr,l) then
                         begin
                           oper.hastype:=true;
                           oper.typesize:=l;

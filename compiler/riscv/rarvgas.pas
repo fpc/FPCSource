@@ -102,7 +102,7 @@ unit rarvgas;
         Consume(AS_ID);
         { typecasting? }
         if (actasmtoken=AS_LPAREN) and
-           SearchType(tempstr,typesize) then
+           SearchType(compiler.symtablestack,tempstr,typesize) then
          begin
            oper.hastype:=true;
            Consume(AS_LPAREN);
@@ -549,7 +549,7 @@ unit rarvgas;
                     Consume(AS_ID);
                     { typecasting? }
                     if (actasmtoken=AS_LPAREN) and
-                       SearchType(expr,typesize) then
+                       SearchType(compiler.symtablestack,expr,typesize) then
                      begin
                        oper.hastype:=true;
                        Consume(AS_LPAREN);
