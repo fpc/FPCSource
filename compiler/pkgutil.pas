@@ -46,7 +46,7 @@ type
     procedure exportprocsym(AsmData: TAsmData; sym:tprocsym;symtable:tsymtable);
     procedure exportabstractrecordsymproc(sym:tobject;uarg:pointer);
     procedure exportname(AsmData: TAsmData; const s:tsymstr);
-    procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+    procedure exportabstractrecorddef(AsmData:TAsmData;def:tabstractrecorddef;symtable:tsymtable);
     procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     procedure insert_export(sym : TObject;arg:pointer);
     property Compiler: TCompilerBase read FCompiler;
@@ -145,7 +145,7 @@ implementation
             case ttypesym(sym).typedef.typ of
               objectdef,
               recorddef:
-                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
+                exportabstractrecorddef(AsmData,tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
               else
                 ;
             end;
@@ -178,7 +178,7 @@ implementation
     end;
 
 
-  procedure TPackageUtils.exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+  procedure TPackageUtils.exportabstractrecorddef(AsmData:TAsmData;def:tabstractrecorddef;symtable:tsymtable);
     var
       tmparg: texportabstractrecordsymprocarg;
     begin
@@ -189,17 +189,17 @@ implementation
       if df_generic in def.defoptions then
         exit;
       tmparg.symtable:=def.symtable;
-      tmparg.asmdata:=current_asmdata;
+      tmparg.asmdata:=AsmData;
       def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,@tmparg);
       if def.typ=objectdef then
         begin
           if (oo_has_vmt in tobjectdef(def).objectoptions) then
-            exportname(current_asmdata,tobjectdef(def).vmt_mangledname);
+            exportname(AsmData,tobjectdef(def).vmt_mangledname);
           if is_interface(def) then
             begin
               if assigned(tobjectdef(def).iidguid) then
-                exportname(current_asmdata,make_mangledname('IID',def.owner,def.objname^));
-              exportname(current_asmdata,make_mangledname('IIDSTR',def.owner,def.objname^));
+                exportname(AsmData,make_mangledname('IID',def.owner,def.objname^));
+              exportname(AsmData,make_mangledname('IIDSTR',def.owner,def.objname^));
             end;
         end;
     end;
@@ -220,7 +220,7 @@ implementation
       case def.typ of
         recorddef,
         objectdef:
-          exportabstractrecorddef(tabstractrecorddef(def),symtable);
+          exportabstractrecorddef(current_asmdata,tabstractrecorddef(def),symtable);
         else
           ;
       end;
