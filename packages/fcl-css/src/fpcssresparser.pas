@@ -2596,6 +2596,8 @@ var
   // '--xxx'  -> rtkIdentifier
   // 'name('  -> rtkFunction if the function is known, else invalid
   // 'name'   -> rtkKeyword if the keyword is known, else invalid
+  // '-name'  -> as 'name', a single leading dash is part of the word,
+  //             e.g. the custom identifier -fade
   var
     Name: TCSSString;
     FuncID, KeywordID: TCSSNumericalID;
@@ -2609,6 +2611,14 @@ var
     if p^='(' then
     begin
       // function call, the token includes the opening parenthesis
+      if (Len>=2) and (StartP[0]='-') and (StartP[1]<>'-') then
+      begin
+        // a single dash in front of a function is the minus operator,
+        // e.g. -calc(), it is not part of the function name
+        AddKind(rtkMinus);
+        inc(StartP);
+        dec(Len);
+      end;
       // function names are ASCII case-insensitive, e.g. var() = VAR()
       SetString(Name,StartP,Len);
       FuncID:=CSSRegistry.IndexOfAttrFunction(LowerCase(Name));
@@ -2699,8 +2709,9 @@ begin
         case p[1] of
         '0'..'9','.':
           if not ReadNumberToken then exit;
-        '-':
-          if not ReadWordToken then exit; // custom identifier --xxx
+        '-','a'..'z','A'..'Z':
+          // custom identifier, e.g. --my-var or -fade
+          if not ReadWordToken then exit;
         else
           AddKind(rtkMinus);
           inc(p);
@@ -2821,7 +2832,7 @@ begin
   SetLength(Result,10);
   Result[0]:=ord(rtkFloat);
   Result[1]:=ord(anUnit);
-  PDouble(@Result[3])^:=aFloat;
+  PDouble(@Result[2])^:=aFloat; // kind + unit + double, see ReadNext
 end;
 
 function TCSSBaseResolver.Detokenize(const aData: TBytes): TCSSString;
