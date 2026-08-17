@@ -39,6 +39,11 @@ type
       symtable: TSymtable;
       asmdata: TAsmData;
     end;
+    pinsertexportarg = ^tinsertexportarg;
+    tinsertexportarg = record
+      symtable: TSymtable;
+      asmdata: TAsmData;
+    end;
   private
     FCompiler: TCompilerBase;
     procedure procexport(AsmData: TAsmData; const s : string);
@@ -48,7 +53,7 @@ type
     procedure exportname(AsmData: TAsmData; const s:tsymstr);
     procedure exportabstractrecorddef(AsmData:TAsmData;def:tabstractrecorddef;symtable:tsymtable);
     procedure export_typedef(AsmData:TAsmData;def:tdef;symtable:tsymtable;global:boolean);
-    procedure insert_export(sym : TObject;arg:pointer);
+    procedure insert_export(sym : TObject;uarg:pointer);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -227,11 +232,16 @@ implementation
     end;
 
 
-  procedure TPackageUtils.insert_export(sym : TObject;arg:pointer);
+  procedure TPackageUtils.insert_export(sym : TObject;uarg:pointer);
     var
+      targ: pinsertexportarg absolute uarg;
+      arg: TSymtable;
+      AsmData: TAsmData;
       isglobal,
       publiconly : boolean;
     begin
+      arg:=targ^.symtable;
+      AsmData:=targ^.asmdata;
       publiconly:=tsymtable(arg).symtabletype=staticsymtable;
       isglobal:=tsymtable(arg).symtabletype=globalsymtable;
       case TSym(sym).typ of
@@ -245,21 +255,21 @@ implementation
         constsym:
           begin
             if tconstsym(sym).consttyp=constresourcestring then
-              varexport(current_asmdata,make_mangledname('RESSTR',tsym(sym).owner,tsym(sym).name));
+              varexport(AsmData,make_mangledname('RESSTR',tsym(sym).owner,tsym(sym).name));
           end;
         typesym:
           begin
-            export_typedef(current_asmdata,ttypesym(sym).typedef,tsymtable(arg),isglobal);
+            export_typedef(AsmData,ttypesym(sym).typedef,tsymtable(arg),isglobal);
           end;
         procsym:
           begin
-            exportprocsym(current_asmdata,tprocsym(sym),tsymtable(arg));
+            exportprocsym(AsmData,tprocsym(sym),tsymtable(arg));
           end;
         staticvarsym:
           begin
             if publiconly and ([vo_is_public,vo_has_global_ref]*tstaticvarsym(sym).varoptions=[]) then
               exit;
-            varexport(current_asmdata,tsym(sym).mangledname);
+            varexport(AsmData,tsym(sym).mangledname);
           end;
         absolutevarsym:
           ;
@@ -276,10 +286,14 @@ implementation
     var
       i : longint;
       sym : tasmsymbol;
+      tmparg: tinsertexportarg;
     begin
-      u.globalsymtable.symlist.ForEachCall(@insert_export,u.globalsymtable);
+      tmparg.asmdata:=current_asmdata;
+      tmparg.symtable:=u.globalsymtable;
+      u.globalsymtable.symlist.ForEachCall(@insert_export,@tmparg);
+      tmparg.symtable:=u.localsymtable;
       { check localsymtable for exports too to get public symbols }
-      u.localsymtable.symlist.ForEachCall(@insert_export,u.localsymtable);
+      u.localsymtable.symlist.ForEachCall(@insert_export,@tmparg);
 
       { create special exports }
       if mf_init in u.moduleflags then
