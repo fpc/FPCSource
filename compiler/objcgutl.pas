@@ -511,7 +511,7 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; classdef: tobje
       tcb.emit_tai(tai_const.Create_nil_codeptr,compiler.deftypes.voidpointertype);
 
     def:=tcb.end_anonymous_record;
-    protolistsym:=current_asmdata.DefineAsmSymbol(classdef.rtti_mangledname(objcprotocollist),AB_LOCAL,AT_DATA,def);
+    protolistsym:=list.AsmData.DefineAsmSymbol(classdef.rtti_mangledname(objcprotocollist),AB_LOCAL,AT_DATA,def);
     list.concatList(
       tcb.get_final_asmlist(
         protolistsym,def,
@@ -564,7 +564,7 @@ begin
         tcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.codeptruinttype);
     end;
   listdef:=tcb.end_anonymous_record;
-  listsym:=current_asmdata.DefineAsmSymbol(classdef.rtti_mangledname(rttiype),AB_LOCAL,AT_DATA,listdef);
+  listsym:=list.AsmData.DefineAsmSymbol(classdef.rtti_mangledname(rttiype),AB_LOCAL,AT_DATA,listdef);
   list.concatList(
     tcb.get_final_asmlist(
       listsym,listdef,section,sectname,sizeof(pint))
@@ -1957,7 +1957,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_extmethodtypes(list: tasm
         tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
       end;
     def:=tcb.end_anonymous_record;
-    extmethsym:=current_asmdata.DefineAsmSymbol(prot.rtti_mangledname(objcprotocolmethodstypelist),AB_LOCAL,AT_DATA,def);
+    extmethsym:=list.AsmData.DefineAsmSymbol(prot.rtti_mangledname(objcprotocolmethodstypelist),AB_LOCAL,AT_DATA,def);
     list.concatList(
       tcb.get_final_asmlist(
         extmethsym,def,sec_objc_const,'OBJC_PROTOCOL_METHOD_TYPES',sizeof(pint))
