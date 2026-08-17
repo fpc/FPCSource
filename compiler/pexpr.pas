@@ -78,7 +78,7 @@ interface
     procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
     procedure handle_funcref(fr:tobjectdef;var p2:tnode);
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
-    function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+    function handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
     function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
     function real_const_node_from_pattern(const s:string):tnode;
     function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
@@ -1729,7 +1729,7 @@ implementation
       end;
 
 
-    function TExpressionParser.handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+    function TExpressionParser.handle_specialize_inline_specialization(AsmData:TAsmData;var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       var
         spezdef : tdef;
       begin
@@ -1778,7 +1778,7 @@ implementation
                 arraydef,
                 procvardef:
                   begin
-                    spezdef:=parser.pgenutil.generate_specialization_phase2(current_asmdata,spezcontext,tstoreddef(spezdef),false,'');
+                    spezdef:=parser.pgenutil.generate_specialization_phase2(AsmData,spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
                     if spezdef<>compiler.generrordef then
@@ -1853,7 +1853,7 @@ implementation
                  if isspecialize then
                    begin
                      parser.pbase.consume(_ID);
-                     if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                     if not handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
                          result:=compiler.cerrornode;
@@ -1898,7 +1898,7 @@ implementation
                 if isspecialize and assigned(srsym) then
                   begin
                     parser.pbase.consume(_ID);
-                    if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                    if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                       erroroutresult:=false;
                   end
                 else
@@ -2668,7 +2668,7 @@ implementation
                                begin
                                  searchsym_in_record(structh,current_scanner.pattern,srsym,srsymtable);
                                  parser.pbase.consume(_ID);
-                                 if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                                 if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
                            end
@@ -2850,7 +2850,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2904,7 +2904,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                                   parser.pbase.consume(_ID);
-                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -3204,7 +3204,7 @@ implementation
                    begin
                      if compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type] then
                        begin
-                         if not handle_specialize_inline_specialization(srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                         if not handle_specialize_inline_specialization(current_asmdata,srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
                              spezcontext.free;
                              spezcontext := nil;
@@ -3999,7 +3999,7 @@ implementation
                          searchsym_in_class(hclassdef,compiler.current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                        if isspecialize and assigned(srsym) then
                          begin
-                           if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
+                           if not handle_specialize_inline_specialization(current_asmdata,srsym,false,srsymtable,spezcontext) then
                              srsym:=nil;
                          end;
                      end;
