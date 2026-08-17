@@ -45,7 +45,7 @@ type
     procedure varexport(AsmData: TAsmData; const s : string);
     procedure exportprocsym(AsmData: TAsmData; sym:tprocsym;symtable:tsymtable);
     procedure exportabstractrecordsymproc(sym:tobject;uarg:pointer);
-    procedure exportname(const s:tsymstr);
+    procedure exportname(AsmData: TAsmData; const s:tsymstr);
     procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
     procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     procedure insert_export(sym : TObject;arg:pointer);
@@ -167,14 +167,14 @@ implementation
     end;
 
 
-  procedure TPackageUtils.exportname(const s:tsymstr);
+  procedure TPackageUtils.exportname(AsmData: TAsmData; const s:tsymstr);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportvar(current_asmdata,hp);
+      compiler.exportlib.exportvar(AsmData,hp);
     end;
 
 
@@ -194,12 +194,12 @@ implementation
       if def.typ=objectdef then
         begin
           if (oo_has_vmt in tobjectdef(def).objectoptions) then
-            exportname(tobjectdef(def).vmt_mangledname);
+            exportname(current_asmdata,tobjectdef(def).vmt_mangledname);
           if is_interface(def) then
             begin
               if assigned(tobjectdef(def).iidguid) then
-                exportname(make_mangledname('IID',def.owner,def.objname^));
-              exportname(make_mangledname('IIDSTR',def.owner,def.objname^));
+                exportname(current_asmdata,make_mangledname('IID',def.owner,def.objname^));
+              exportname(current_asmdata,make_mangledname('IIDSTR',def.owner,def.objname^));
             end;
         end;
     end;
@@ -213,10 +213,10 @@ implementation
           (def.owner<>symtable) then
         exit;
       if ds_rtti_table_written in def.defstates then
-        exportname(def.rtti_mangledname(fullrtti));
+        exportname(current_asmdata,def.rtti_mangledname(fullrtti));
       if (ds_init_table_written in def.defstates) and
           def.needs_separate_initrtti then
-        exportname(def.rtti_mangledname(initrtti));
+        exportname(current_asmdata,def.rtti_mangledname(initrtti));
       case def.typ of
         recorddef,
         objectdef:
