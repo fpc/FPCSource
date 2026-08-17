@@ -3034,7 +3034,7 @@ implementation
                    begin
                      create_hlcodegen(nil,compiler);
                      compiler.hlcg.handle_external_proc(
-                       current_asmdata.asmlists[al_procedures],
+                       parser.AsmData.asmlists[al_procedures],
                        result,
                        parser.pdecsub.proc_get_importname(result));
                      destroy_hlcodegen(compiler);
@@ -3058,7 +3058,7 @@ implementation
 
          { make sure we don't change the binding of real external symbols }
          if (([po_external,po_weakexternal]*result.procoptions)=[]) and (pocall_internproc<>result.proccalloption) then
-           current_asmdata.DefineProcAsmSymbol(result,result.mangledname,result.needsglobalasmsym);
+           parser.AsmData.DefineProcAsmSymbol(result,result.mangledname,result.needsglobalasmsym);
 
          tcompiler(compiler).current_structdef:=old_current_structdef;
          tcompiler(compiler).current_genericdef:=old_current_genericdef;

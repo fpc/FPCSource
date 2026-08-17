@@ -1129,7 +1129,7 @@ implementation
 
          if assigned(asmmodeinfos[compiler.globals.current_settings.asmmode]) then
            begin
-             asmreader:=asmmodeinfos[compiler.globals.current_settings.asmmode]^.casmreader.create(compiler,current_asmdata);
+             asmreader:=asmmodeinfos[compiler.globals.current_settings.asmmode]^.casmreader.create(compiler,parser.AsmData);
              entrypos:=compiler.globals.current_filepos;
              hl:=asmreader.assemble as TAsmList;
              if (not hl.empty) then
@@ -1250,7 +1250,7 @@ implementation
       begin
         parser.pbase.consume(_INLINE);
         parser.pbase.consume(_LKLAMMER);
-        hl:=TAsmList.create(current_asmdata);
+        hl:=TAsmList.create(parser.AsmData);
         asmstat:=compiler.casmnode(hl);
         asmstat.fileinfo:=compiler.globals.current_filepos;
         tokenbuf:=tdynamicarray.Create(16);

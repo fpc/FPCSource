@@ -312,7 +312,7 @@ implementation
                        if (compiler.symtablestack.top.symtablelevel<normal_function_level) and
                           assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
-                         jvm_add_typed_const_initializer(current_asmdata,tconstsym(sym));
+                         jvm_add_typed_const_initializer(parser.AsmData,tconstsym(sym));
 {$endif}
                      end
                    else
@@ -395,7 +395,7 @@ implementation
                     begin
                       parser.pbase.consume(_EQ);
                       maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner,compiler.target);
-                      parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
+                      parser.ptconst.read_typed_const(parser.AsmData.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
@@ -455,7 +455,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
-                        compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(labelsym.jumpbuf));
+                        compiler.nodeutils.insertbssdata(parser.AsmData,tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }

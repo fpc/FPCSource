@@ -256,7 +256,7 @@ implementation
                        { the parent unit is used in that)                }
                        if (options*[eo_name,eo_index]=[]) and
                           (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
-                         compiler.exportlib.exportallprocsymnames(current_asmdata,tprocsym(srsym),options)
+                         compiler.exportlib.exportallprocsymnames(parser.AsmData,tprocsym(srsym),options)
                        else
                          begin
                            { there's a name or an index -> export only one name   }
@@ -277,7 +277,7 @@ implementation
                              else
                                hpname:=orgs;
 
-                           compiler.exportlib.exportprocsym(current_asmdata,srsym,hpname,index,options);
+                           compiler.exportlib.exportprocsym(parser.AsmData,srsym,hpname,index,options);
                          end
                       end;
                     staticvarsym:
@@ -288,7 +288,7 @@ implementation
                             hpname:=srsym.mangledname
                           else
                             hpname:=orgs;
-                        compiler.exportlib.exportvarsym(current_asmdata,srsym,hpname,index,options);
+                        compiler.exportlib.exportvarsym(parser.AsmData,srsym,hpname,index,options);
                       end;
                     typesym:
                       begin

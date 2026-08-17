@@ -1209,7 +1209,7 @@ implementation
                 tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 compiler.symtablestack.top.insertsym(tcsym);
-                templist:=tasmlist.create(current_asmdata);
+                templist:=tasmlist.create(parser.AsmData);
                 parser.ptconst.read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
                   used, and will be re-parsed during specialisations (and the
@@ -1218,7 +1218,7 @@ implementation
                 if not parser.pbase.parse_generic then
                   begin
                     vs.defaultconstsym:=tcsym;
-                    current_asmdata.asmlists[al_typedconsts].concatlist(templist);
+                    parser.AsmData.asmlists[al_typedconsts].concatlist(templist);
                   end;
                 templist.free;
                 templist := nil;
@@ -1226,7 +1226,7 @@ implementation
             staticvarsym :
               begin
                 maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner,compiler.target);
-                parser.ptconst.read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
+                parser.ptconst.read_typed_const(parser.AsmData.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
               internalerror(200611051);
@@ -1697,7 +1697,7 @@ implementation
                  if (vs.typ=staticvarsym) and
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
-                   compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(vs));
+                   compiler.nodeutils.insertbssdata(parser.AsmData,tstaticvarsym(vs));
                  if vo_is_public in vs.varoptions then
                    compiler.current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
                end;
@@ -2025,7 +2025,7 @@ implementation
                      if vd_threadvar in options then
                        include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parser.pbase.parse_generic then
-                       compiler.nodeutils.insertbssdata(current_asmdata,hstaticvs);
+                       compiler.nodeutils.insertbssdata(parser.AsmData,hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;
