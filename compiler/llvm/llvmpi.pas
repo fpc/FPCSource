@@ -40,7 +40,7 @@ interface
         fexceptlabelstack: tfplist;
         flandingpadstack: tfplist;
        public
-        constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
+        constructor create(aparent: tprocinfo; aasmdata: TAsmData; acompiler: TCompilerBase); override;
         destructor destroy; override;
         procedure pushexceptlabel(lab: TAsmLabel);
         { returns true if there no more landing pads on the stack }
@@ -375,7 +375,7 @@ implementation
                      tllvmprocinfo
 *****************************************************************************}
 
-    constructor tllvmprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
+    constructor tllvmprocinfo.create(aparent: tprocinfo; aasmdata: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         fexceptlabelstack:=tfplist.create;
