@@ -2718,7 +2718,7 @@ implementation
         oldfailtokenmode:=[];
 
         { create a new procedure }
-        tcompiler(compiler).current_procinfo:=cprocinfo.create(old_current_procinfo,compiler);
+        tcompiler(compiler).current_procinfo:=cprocinfo.create(old_current_procinfo,current_asmdata,compiler);
         compiler.current_module.procinfo:=compiler.current_procinfo;
         compiler.current_procinfo.procdef:=pd;
         isnestedproc:=(compiler.current_procinfo.procdef.parast.symtablelevel>normal_function_level);

@@ -158,7 +158,7 @@ unit procinfo;
           saved_regs_address,
           saved_regs_mm: TCPURegisterSet;
 
-          constructor create(aparent:tprocinfo;acompiler:tcompilerbase);virtual;
+          constructor create(aparent:tprocinfo;aasmdata:TAsmData;acompiler:tcompilerbase);virtual;
           destructor destroy;override;
 
           procedure allocate_push_parasize(size:longint);
@@ -244,7 +244,7 @@ implementation
         result:=compiler.paramanager;
       end;
 
-    constructor tprocinfo.create(aparent:tprocinfo;acompiler:tcompilerbase);
+    constructor tprocinfo.create(aparent:tprocinfo;aasmdata:TAsmData;acompiler:tcompilerbase);
       begin
         compiler:=acompiler;
         parent:=aparent;
@@ -256,12 +256,12 @@ implementation
         framepointer:=NR_FRAME_POINTER_REG;
         maxpushedparasize:=0;
         { asmlists }
-        aktproccode:=TAsmList.Create(current_asmdata);
-        aktlocaldata:=TAsmList.Create(current_asmdata);
+        aktproccode:=TAsmList.Create(aasmdata);
+        aktlocaldata:=TAsmList.Create(aasmdata);
         reference_reset(save_regs_ref,sizeof(aint),[]);
         { labels }
-        current_asmdata.getjumplabel(CurrExitLabel);
-        current_asmdata.getjumplabel(CurrGOTLabel);
+        aasmdata.getjumplabel(CurrExitLabel);
+        aasmdata.getjumplabel(CurrGOTLabel);
         CurrBreakLabel:=nil;
         CurrContinueLabel:=nil;
         if Assigned(parent) and (parent.procdef.parast.symtablelevel>=normal_function_level) then
@@ -402,7 +402,7 @@ implementation
 
     function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
       begin
-        result:=cprocinfo.create(self,compiler);
+        result:=cprocinfo.create(self,current_asmdata,compiler);
         result.force_nested;
         result.procdef:=compiler.procdefutil.create_outline_procdef(basesymname,astruct,potype,resultdef);
         result.entrypos:=entrynodeinfo.fileinfo;

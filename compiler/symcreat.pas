@@ -2296,7 +2296,7 @@ implementation
           pd.aliasnames.insert(pd.mangledname);
           compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_impl);
           { set procinfo and compiler.current_procinfo.procdef }
-          pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
+          pi:=tcgprocinfo(cprocinfo.create(nil,current_asmdata,compiler));
           pi.procdef:=pd;
           { we always do a call, namely to the constructor }
           include(pi.flags,pi_do_call);

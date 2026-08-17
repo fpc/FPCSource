@@ -1019,7 +1019,7 @@ implementation
       ps.ProcdefList.Add(pd);
       pd.forwarddef:=false;
       { set procinfo and compiler.current_procinfo.procdef }
-      pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
+      pi:=tcgprocinfo(cprocinfo.create(nil,current_asmdata,compiler));
       pi.procdef:=pd;
       if not assigned(pinested) then
         begin
