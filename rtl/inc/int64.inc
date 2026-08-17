@@ -498,3 +498,206 @@ function fpc_mod_currency(n,z : currency) : currency; [public,alias: 'FPC_MOD_CU
   end;
 {$endif FPC_SYSTEM_HAS_MOD_CURRENCY}
 
+{$ifndef FPC_SYSTEM_HAS_MUL_CURRENCY}
+{ Multiplies two already-scaled (x10000) Int64 Currency internal
+  representations and rescales the result back down by one factor of
+  10000, i.e. computes (a*b) div 10000.
+
+  This can NOT be done as a plain "int64*int64, then div 10000", because
+  both a and b are already scaled by 10000, so their product very easily
+  exceeds the range of a 64-bit integer even for operands that are
+  themselves well within Currency's legal range (approximately
+  +/-922337203685477.5807). The multiplication has to be performed with a
+  full 128-bit intermediate result, which is only truncated back down to
+  64 bits *after* the division by 10000.
+
+  This routine is only used for the Int64-based Currency implementation
+  (s64currencytype.typ=orddef), which is currently the case on Win64
+  because x87 extended precision types -- used to implement Currency on
+  most other x86(_64) targets, sidestepping this issue entirely -- are
+  not supported there.
+
+  Parameters/result are plain Int64 (not Currency): the compiler builds
+  and typechecks this call using the raw scaled Int64 representation
+  directly (setting the operand nodes' resultdef to s64inttype before
+  constructing the call, then re-tagging the finished call node's
+  resultdef as Currency afterwards -- see taddnode.do_currency_corrections
+  in nadd.pas). This deliberately avoids routing the arguments through
+  the compiler's generic Currency-typed parameter-conversion machinery,
+  which -- being designed for ordinary source-level Currency expressions,
+  not already-scaled internal representations -- would otherwise rescale
+  the already-correct raw values a second time. }
+function fpc_mul_currency(x,y : currency) : currency; [public,alias: 'FPC_MUL_CURRENCY']; compilerproc;
+  var
+    a : int64 absolute x;
+    b : int64 absolute y;
+    neg : boolean;
+    ua,ub : qword;
+    a_lo,a_hi,b_lo,b_hi : qword;
+    t0,t1,t2,t3 : qword;
+    mid : qword;
+    prod_hi,prod_lo : qword;
+    limb : array[0..3] of qword;
+    i : longint;
+    rem,cur : qword;
+    q : array[0..3] of qword;
+    result_q : qword;
+    result_i : int64 absolute result;
+  begin
+    neg:=false;
+    if int64(a)<0 then
+      begin
+        neg:=true;
+        ua:=qword(-int64(a));
+      end
+    else
+      ua:=qword(a);
+    if int64(b)<0 then
+      begin
+        neg:=not neg;
+        ub:=qword(-int64(b));
+      end
+    else
+      ub:=qword(b);
+
+    { full 64x64 -> 128 bit unsigned multiply, done manually via 32-bit
+      halves so that it works regardless of whether the target has a
+      native widening multiply instruction exposed to the compiler }
+    a_lo:=ua and qword($FFFFFFFF);
+    a_hi:=ua shr 32;
+    b_lo:=ub and qword($FFFFFFFF);
+    b_hi:=ub shr 32;
+
+    t0:=a_lo*b_lo;
+    t1:=a_hi*b_lo;
+    t2:=a_lo*b_hi;
+    t3:=a_hi*b_hi;
+
+    mid:=(t0 shr 32)+(t1 and qword($FFFFFFFF))+(t2 and qword($FFFFFFFF));
+
+    prod_lo:=(t0 and qword($FFFFFFFF)) or (mid shl 32);
+    prod_hi:=t3+(t1 shr 32)+(t2 shr 32)+(mid shr 32);
+
+    { divide the 128-bit product by 10000 using 32-bit-limb short division;
+      this is safe/exact because 10000 fits comfortably in 32 bits, so the
+      running remainder (always < 10000) combined with the next limb never
+      exceeds 64 bits }
+    limb[0]:=prod_lo and qword($FFFFFFFF);
+    limb[1]:=prod_lo shr 32;
+    limb[2]:=prod_hi and qword($FFFFFFFF);
+    limb[3]:=prod_hi shr 32;
+
+    rem:=0;
+    for i:=3 downto 0 do
+      begin
+        cur:=(rem shl 32) or limb[i];
+        q[i]:=cur div 10000;
+        rem:=cur mod 10000;
+      end;
+
+    { for operands whose mathematical product legitimately fits back into
+      a 64-bit Currency value, q[3] and q[2] are always 0; if the true
+      result exceeds Currency's range, we -- like ordinary Int64
+      arithmetic with overflow checking disabled -- silently keep only
+      the low 64 bits instead of raising an error }
+    result_q:=(q[1] shl 32) or q[0];
+
+    if neg then
+      Result_i:=-int64(result_q)
+    else
+      Result_i:=int64(result_q);
+  end;
+
+
+function fpc_mul_currency_checkoverflow(x,y : currency) : currency;[public,alias: 'FPC_MUL_CURRENCY_CHECKOVERFLOW']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  begin
+    runerror(217);
+  end;
+{$else EXCLUDE_COMPLEX_PROCS}
+var
+  a : int64 absolute x;
+  b : int64 absolute y;
+  neg : boolean;
+  ua,ub : qword;
+  a_lo,a_hi,b_lo,b_hi : qword;
+  t0,t1,t2,t3 : qword;
+  mid : qword;
+  prod_hi,prod_lo : qword;
+  limb : array[0..3] of qword;
+  i : longint;
+  rem,cur : qword;
+  q : array[0..3] of qword;
+  result_q : qword;
+  result_i : int64 absolute result;
+begin
+  neg:=false;
+  if int64(a)<0 then
+    begin
+      neg:=true;
+      ua:=qword(-int64(a));
+    end
+  else
+    ua:=qword(a);
+  if int64(b)<0 then
+    begin
+      neg:=not neg;
+      ub:=qword(-int64(b));
+    end
+  else
+    ub:=qword(b);
+
+  { full 64x64 -> 128 bit unsigned multiply, done manually via 32-bit
+    halves so that it works regardless of whether the target has a
+    native widening multiply instruction exposed to the compiler }
+  a_lo:=ua and qword($FFFFFFFF);
+  a_hi:=ua shr 32;
+  b_lo:=ub and qword($FFFFFFFF);
+  b_hi:=ub shr 32;
+
+  t0:=a_lo*b_lo;
+  t1:=a_hi*b_lo;
+  t2:=a_lo*b_hi;
+  t3:=a_hi*b_hi;
+
+  mid:=(t0 shr 32)+(t1 and qword($FFFFFFFF))+(t2 and qword($FFFFFFFF));
+
+  prod_lo:=(t0 and qword($FFFFFFFF)) or (mid shl 32);
+  prod_hi:=t3+(t1 shr 32)+(t2 shr 32)+(mid shr 32);
+
+  { divide the 128-bit product by 10000 using 32-bit-limb short division;
+    this is safe/exact because 10000 fits comfortably in 32 bits, so the
+    running remainder (always < 10000) combined with the next limb never
+    exceeds 64 bits }
+  limb[0]:=prod_lo and qword($FFFFFFFF);
+  limb[1]:=prod_lo shr 32;
+  limb[2]:=prod_hi and qword($FFFFFFFF);
+  limb[3]:=prod_hi shr 32;
+
+  rem:=0;
+  for i:=3 downto 0 do
+    begin
+      cur:=(rem shl 32) or limb[i];
+      q[i]:=cur div 10000;
+      rem:=cur mod 10000;
+    end;
+
+  { for operands whose mathematical product legitimately fits back into
+    a 64-bit Currency value, q[3] and q[2] are always 0 }
+  result_q:=(q[1] shl 32) or q[0];
+  if (q[2]<>0) or (q[3]<>0) or
+    (
+      { bit 63 can be only set if we have $80000000 00000000 }
+      { and sign is true                                     }
+      (result_q shr 63<>0) and
+      ((result_q<>qword(qword(1) shl 63)) or not(neg))
+    ) then
+    HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+
+  if neg then
+    Result_i:=-int64(result_q)
+  else
+    Result_i:=int64(result_q);
+end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+{$endif FPC_SYSTEM_HAS_MUL_CURRENCY}

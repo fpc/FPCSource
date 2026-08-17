@@ -3577,6 +3577,7 @@ const
     function taddnode.do_currency_corrections: tnode;
       var
         hp: tnode;
+        procname: string[31];
       begin
         result:=nil;
         hp:=nil;
@@ -3788,13 +3789,26 @@ const
                           end
                         else if (nf_is_currency in left.flags) and (nf_is_currency in right.flags) then
                           begin
-                            Include(flags,nf_is_currency);
-                            Include(flags,nf_internal); { Prevent recursion, plus this multiplication now has 2 scalars applied }
-                            { Because the multiplication doubles up on the currency scalar, dividing
-                              removes only one and hence the result is still scaled }
-                            hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create_currency_scalar(s64currencytype));
+                            { The Int64-based Currency implementation (used e.g. on
+                              Win64, where x87 extended types are not supported) can
+                              NOT be safely done as a plain 64-bit "multiply, then
+                              divide by 10000": both operands here are already scaled
+                              by 10000, so their raw product can overflow a 64-bit
+                              integer even for operands that are themselves well
+                              within Currency's legal range (e.g. 9500000.0004 *
+                              10000). Route through a helper that computes the
+                              product and the rescaling division using a full
+                              128-bit intermediate result, instead of building
+                              generic muln+divn nodes that truncate to 64 bits
+                              in between.
+                            }
+                            procname := 'fpc_mul_currency';
+                            if cs_check_overflow in current_settings.localswitches then
+                              procname := procname + '_checkoverflow';
+                            hp:=ccallnode.createintern(procname,ccallparanode.create(right,ccallparanode.create(left,nil)));
                             Include(hp.flags,nf_is_currency);
-                            Include(hp.flags,nf_internal);
+                            left:=nil;
+                            right:=nil;
                           end;
                       end;
 

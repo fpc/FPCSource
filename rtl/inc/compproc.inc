@@ -624,6 +624,8 @@ function fpc_mul_longint_to_int64(f1,f2 : longint) : int64; compilerproc;
 
 function fpc_div_currency(n,z : currency) : currency; compilerproc;
 function fpc_mod_currency(n,z : currency) : currency; compilerproc;
+function fpc_mul_currency(x,y : currency) : currency; compilerproc;
+function fpc_mul_currency_checkoverflow(x,y : currency) : currency; compilerproc;
 
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 function fpc_shl_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
