@@ -1083,7 +1083,7 @@ implementation
              indsecname:=secname
            else
              indsecname:=lower(symind.name);
-           indtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_new_section,tcalo_make_dead_strippable],compiler);
+           indtcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_new_section,tcalo_make_dead_strippable],compiler);
            indtcb.emit_tai(tai_const.create_sym_offset(sym,0),ptrdef);
            AsmData.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
              symind,
@@ -1959,7 +1959,7 @@ implementation
 
            { we start a new constbuilder as we don't know whether we're called
              from inside an internal constbuilder }
-           strtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+           strtcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
 
            strtcb.maybe_begin_aggregate(datadef);
            { l+1: include length byte; true: add terminating #0 }
