@@ -47,7 +47,7 @@ type
     procedure exportabstractrecordsymproc(sym:tobject;uarg:pointer);
     procedure exportname(AsmData: TAsmData; const s:tsymstr);
     procedure exportabstractrecorddef(AsmData:TAsmData;def:tabstractrecorddef;symtable:tsymtable);
-    procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
+    procedure export_typedef(AsmData:TAsmData;def:tdef;symtable:tsymtable;global:boolean);
     procedure insert_export(sym : TObject;arg:pointer);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -205,7 +205,7 @@ implementation
     end;
 
 
-  procedure TPackageUtils.export_typedef(def:tdef;symtable:tsymtable;global:boolean);
+  procedure TPackageUtils.export_typedef(AsmData:TAsmData;def:tdef;symtable:tsymtable;global:boolean);
     begin
       if not (global or is_class(def)) or
           ([df_internal,df_generic]*def.defoptions<>[]) or
@@ -213,14 +213,14 @@ implementation
           (def.owner<>symtable) then
         exit;
       if ds_rtti_table_written in def.defstates then
-        exportname(current_asmdata,def.rtti_mangledname(fullrtti));
+        exportname(AsmData,def.rtti_mangledname(fullrtti));
       if (ds_init_table_written in def.defstates) and
           def.needs_separate_initrtti then
-        exportname(current_asmdata,def.rtti_mangledname(initrtti));
+        exportname(AsmData,def.rtti_mangledname(initrtti));
       case def.typ of
         recorddef,
         objectdef:
-          exportabstractrecorddef(current_asmdata,tabstractrecorddef(def),symtable);
+          exportabstractrecorddef(AsmData,tabstractrecorddef(def),symtable);
         else
           ;
       end;
@@ -249,7 +249,7 @@ implementation
           end;
         typesym:
           begin
-            export_typedef(ttypesym(sym).typedef,tsymtable(arg),isglobal);
+            export_typedef(current_asmdata,ttypesym(sym).typedef,tsymtable(arg),isglobal);
           end;
         procsym:
           begin
