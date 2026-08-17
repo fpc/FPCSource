@@ -75,7 +75,7 @@ type
 
 
 procedure CompileResourceFiles(compiler: TCompilerBase);
-procedure CollectResourceFiles;
+procedure CollectResourceFiles(compiler: TCompilerBase);
 
 implementation
 
@@ -520,9 +520,7 @@ begin
 end;
 
 
-procedure CollectResourceFiles;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure CollectResourceFiles(compiler: TCompilerBase);
 var
   resourcefile : tresourcefile;
 

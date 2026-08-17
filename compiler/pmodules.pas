@@ -2415,7 +2415,7 @@ type
              if (curr.is_initial) then
                begin
                  { create global resource file by collecting all resource files }
-                 CollectResourceFiles;
+                 CollectResourceFiles(compiler);
                  { write .def file }
                  if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
                    compiler.deffile.writefile;
@@ -2471,7 +2471,7 @@ type
 
       begin
             { create global resource file by collecting all resource files }
-            CollectResourceFiles;
+            CollectResourceFiles(compiler);
             { write .def file }
             if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
              compiler.deffile.writefile;
