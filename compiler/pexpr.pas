@@ -84,7 +84,7 @@ interface
     function postfixoperators(AsmData:TAsmData;var p1:tnode;var again:boolean;getaddr:boolean): boolean;
     function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
                             out memberparentdef: tdef): boolean;
-    function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+    function factor_handle_sym(AsmData:TAsmData;srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
   public
     { true, if we are after an assignment }
     afterassignment : boolean;
@@ -3108,7 +3108,7 @@ implementation
   {$maxfpuregisters 0}
 
 
-    function TExpressionParser.factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+    function TExpressionParser.factor_handle_sym(AsmData:TAsmData;srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
       var
         hdef : tdef;
         pd : tprocdef;
@@ -3204,7 +3204,7 @@ implementation
                    begin
                      if compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type] then
                        begin
-                         if not handle_specialize_inline_specialization(current_asmdata,srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                         if not handle_specialize_inline_specialization(AsmData,srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
                              spezcontext.free;
                              spezcontext := nil;
@@ -3220,7 +3220,7 @@ implementation
                              if srsym.typ<>typesym then
                                internalerror(2015071705);
                              hdef:=ttypesym(srsym).typedef;
-                             result:=handle_factor_typenode(current_asmdata,hdef,getaddr,again,srsym,ef_type_only in flags);
+                             result:=handle_factor_typenode(AsmData,hdef,getaddr,again,srsym,ef_type_only in flags);
                            end;
                        end
                      else
@@ -3232,7 +3232,7 @@ implementation
                      if ((hdef=compiler.deftypes.cvarianttype) or (hdef=compiler.deftypes.colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(compiler.current_module.moduleflags,mf_uses_variants);
-                     result:=handle_factor_typenode(current_asmdata,hdef,getaddr,again,srsym,ef_type_only in flags);
+                     result:=handle_factor_typenode(AsmData,hdef,getaddr,again,srsym,ef_type_only in flags);
                    end;
                end;
             end;
@@ -3736,7 +3736,7 @@ implementation
             end;
 
             begin
-              p1:=factor_handle_sym(srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
+              p1:=factor_handle_sym(current_asmdata,srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
 
               if assigned(spezcontext) then
                 internalerror(2015061207);
@@ -4877,7 +4877,8 @@ implementation
                                dummyagain:=false;
                                dummyspezctxt:=nil;
 
-                               ptmp:=factor_handle_sym(gensym,
+                               ptmp:=factor_handle_sym(current_asmdata,
+                                                       gensym,
                                                        gensym.owner,
                                                        dummyagain,
                                                        tspecializenode(p1).getaddr,
