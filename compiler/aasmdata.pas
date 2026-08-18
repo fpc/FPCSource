@@ -213,7 +213,6 @@ interface
         function GetConstPools(APoolType: TConstPoolType): THashSet;
       protected
         function  DefineAsmSymbolByClassBase(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef; out wasdefined: boolean) : TAsmSymbol;
-        property Compiler: TCompilerBase read FCompiler;
       public
         name          : pshortstring;       { owned by tmodule }
         NextVTEntryNr : longint;
@@ -257,6 +256,7 @@ interface
         property AsmCFI:TAsmCFI read FAsmCFI;
         { hash tables for reusing constant storage }
         property ConstPools[APoolType:TConstPoolType]: THashSet read GetConstPools;
+        property Compiler: TCompilerBase read FCompiler;
       end;
       TAsmDataClass = class of TAsmData;
 

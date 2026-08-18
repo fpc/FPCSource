@@ -1115,10 +1115,8 @@ implementation
  ****************************************************************************}
 
     procedure maybe_new_object_file(list:TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if compiler.globals.create_smartlink_library then
+        if list.AsmData.compiler.globals.create_smartlink_library then
           list.concat(tai_cutobject.create);
       end;
 
