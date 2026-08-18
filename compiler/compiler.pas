@@ -177,6 +177,7 @@ type
     FTime: TCompilerTime;
     FGlobals: TCompilerGlobals;
     FVerbose: TVerbose;
+    FCFileUtl: TCompilerFileUtils;
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FScanner: TScanner;
@@ -261,6 +262,7 @@ type
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
     property Verbose: TVerbose read FVerbose;
+    property CFileUtl: TCompilerFileUtils read FCFileUtl;
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
     property Scanner: TScanner read FScanner write FScanner;
@@ -317,6 +319,7 @@ type
   private
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
+    function GetCFileUtl: TCompilerFileUtils; inline;
     function GetCG: tcg; inline;
     function Getcurrent_genericdef: tstoreddef; inline;
     function Getcurrent_module: tmodule; inline;
@@ -481,6 +484,7 @@ type
     property Verbose: TVerbose read GetVerbose;
     property Time: TCompilerTime read GetTime;
     property Globals: TCompilerGlobals read GetGlobals;
+    property CFileUtl: TCompilerFileUtils read GetCFileUtl;
     property Parser: TParser read GetParser;
     property Scanner: TScanner read GetScanner;
     property Switches: TSwitchesHandler read GetSwitches;
@@ -1106,6 +1110,11 @@ end;
 function TCompilerHelper.GetBlockUtl: TBlockUtils; inline;
 begin
   Result := TCompiler(Self).BlockUtl;
+end;
+
+function TCompilerHelper.GetCFileUtl: TCompilerFileUtils; inline;
+begin
+  Result := TCompiler(Self).CFileUtl;
 end;
 
 function TCompilerHelper.GetCG: tcg; inline;
