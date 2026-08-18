@@ -119,9 +119,9 @@ interface
         function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
         function  path_absolute(const s : TCmdStr) : boolean;
         Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
+        Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
       end;
 
-    Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     Function  RemoveDir(d:TCmdStr):boolean;
     Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
@@ -146,6 +146,7 @@ interface
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
+    FileExists = 'Do not use' deprecated 'Use compiler.cfileutl.FileExists instead';
 
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
@@ -325,12 +326,14 @@ end;
 
     function TCachedDirectory.FileExists(const AName:TCmdStr):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         Attr : Longint;
       begin
         if not TryUseCache then
           begin
             { prepend directory name again }
-            result:=cfileutl.FileExists(Name+AName,false);
+            result:=compiler.cfileutl.FileExists(Name+AName,false);
             exit;
           end;
         Attr:=GetItemAttr(AName);
@@ -583,7 +586,7 @@ end;
 {$endif unix}
      end;
 
-    Function FileExists ( Const F : TCmdStr;allowcache:boolean) : Boolean;
+    Function TCompilerFileUtils.FileExists ( Const F : TCmdStr;allowcache:boolean) : Boolean;
       begin
 {$ifdef usedircache}
         if allowcache then
@@ -617,7 +620,7 @@ end;
                3. UPPERCASE
             }
             FoundFile:=path+fn;
-            If (ftNone in compiler.globals.AllowedFilenameTransFormations) and FileExists(FoundFile,allowcache) then
+            If (ftNone in compiler.globals.AllowedFilenameTransFormations) and compiler.CFileUtl.FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
@@ -628,7 +631,7 @@ end;
                 if (fn2<>fn) then
                   begin
                     FoundFile:=path+fn2;
-                    If FileExists(FoundFile,allowcache) then
+                    If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
                      begin
                        result:=true;
                        exit;
@@ -641,7 +644,7 @@ end;
                 if (fn2<>fn) then
                   begin
                   FoundFile:=path+fn2;
-                  If FileExists(FoundFile,allowcache) then
+                  If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
                     begin
                       result:=true;
                       exit;
@@ -670,7 +673,7 @@ end;
 {$endif usedircache}
                 begin
                   FoundFile:=path+fn;
-                  If FileExists(FoundFile,allowcache) then
+                  If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
                     begin
                       { don't know the real name in this case }
                       result:=true;
@@ -682,7 +685,7 @@ end;
           begin
             { None case sensitive only lowercase }
             FoundFile:=path+Lower(fn);
-            If FileExists(FoundFile,allowcache) then
+            If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;

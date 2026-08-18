@@ -331,7 +331,7 @@ begin
   begin
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
-    if FileExists(preprocessorbin,true) then
+    if compiler.CFileUtl.FileExists(preprocessorbin,true) then
       s:='--preprocessor='+preprocessorbin+' '+s;
     if (srcfilepath<>'') then
       s:='--include '+WindresFileName(srcfilepath)+' '+s;
@@ -370,7 +370,7 @@ begin
       if Result then break;
     end;
 
-  if Result or not FileExists(fn, False) then exit;
+  if Result or not compiler.CFileUtl.FileExists(fn, False) then exit;
   oldfmode:=Filemode;
   Filemode:=0;
   assign(f,fn);
@@ -478,7 +478,7 @@ begin
       s:=res.FPStr;
       if not compiler.CFileUtl.path_absolute(s) then
         s:=p+s;
-      if not FileExists(s, True) then
+      if not compiler.CFileUtl.FileExists(s, True) then
         begin
           compiler.verbose.Message1(exec_e_cant_open_resource_file, s);
           compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
@@ -537,7 +537,7 @@ var
         else
           begin
             s:=u.path+res.FPStr;
-            if not FileExists(s,True) then
+            if not compiler.CFileUtl.FileExists(s,True) then
               s:=u.outputpath+res.FPStr;
           end;
         resourcefile.Collect(s);

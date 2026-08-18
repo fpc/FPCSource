@@ -393,7 +393,7 @@ begin
   linkscript.AddLinkCommand(binstr,CmdStr,'');
   { delete the target static library containing the dynamic object file in
     case it already existed }
-  if FileExists(libfn,true) then
+  if compiler.CFileUtl.FileExists(libfn,true) then
     linkscript.AddDeleteCommand(libfn);
   { and create the new one }
   linkscript.AddLinkCommand(FindUtil(compiler.globals.utilsprefix+'ar'),' -X32_64 -q '+libfn+(' '+libobj),'');

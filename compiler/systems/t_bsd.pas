@@ -161,7 +161,7 @@ begin
      else if compiler.target.info.system in systems_freebsd then
        begin
 	 if (compiler.target.info.system = system_i386_freebsd) and
-            FileExists('/usr/libexec/ld-elf32.so.1',true) then
+            compiler.CFileUtl.FileExists('/usr/libexec/ld-elf32.so.1',true) then
            DynamicLinker:='/usr/libexec/ld-elf32.so.1'
          else
            DynamicLinker:='/usr/libexec/ld-elf.so.1'

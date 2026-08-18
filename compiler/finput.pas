@@ -455,10 +455,12 @@ uses
  ****************************************************************************}
 
     function tdosinputfile.fileopen(const filename: TPathStr): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { Check if file exists, this will also check if it is
           a real file and not a directory }
-        if not fileexists(filename,false) then
+        if not compiler.CFileUtl.fileexists(filename,false) then
           begin
             result:=false;
             exit;

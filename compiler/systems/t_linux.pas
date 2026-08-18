@@ -337,7 +337,7 @@ begin
     glibc 2.0
     If none is found (e.g. when cross compiling) glibc21 is assumed
   }
-  if fileexists(compiler.globals.sysrootpath+defdynlinker,false) then
+  if compiler.CFileUtl.fileexists(compiler.globals.sysrootpath+defdynlinker,false) then
     begin
       DynamicLinker:=defdynlinker;
 {$ifdef i386}
@@ -346,13 +346,13 @@ begin
       libctype:=glibc2;
 {$endif i386}
     end
-  else if fileexists(compiler.globals.sysrootpath+'/lib/ld-uClibc.so.0',false) then
+  else if compiler.CFileUtl.fileexists(compiler.globals.sysrootpath+'/lib/ld-uClibc.so.0',false) then
     begin
       DynamicLinker:='/lib/ld-uClibc.so.0';
       libctype:=uclibc;
     end
 {$ifdef i386}
-  else if FileExists(compiler.globals.sysrootpath+'/lib/ld-linux.so.1',false) then
+  else if compiler.CFileUtl.FileExists(compiler.globals.sysrootpath+'/lib/ld-linux.so.1',false) then
     begin
       DynamicLinker:='/lib/ld-linux.so.1';
       libctype:=glibc2;
@@ -897,7 +897,7 @@ begin
   if (cs_lto in compiler.globals.current_settings.moduleswitches) and
      not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      (compiler.globals.utilsdirectory<>'') and
-     FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
+     compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
       ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;
@@ -935,7 +935,7 @@ begin
     cmdstr:=cmdstr+' --no-relax';
 
   s:=FindUtil(compiler.globals.utilsprefix+BinStr+'.bfd',false);
-  if FileExists(s, True) then
+  if compiler.CFileUtl.FileExists(s, True) then
     binstr:=s
   else
     { fallback to ld for very old or custom binutils }
@@ -1014,7 +1014,7 @@ begin
   if (cs_lto in compiler.globals.current_settings.moduleswitches) and
      not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      (compiler.globals.utilsdirectory<>'') and
-     FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
+     compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
       ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;

@@ -536,7 +536,7 @@ implementation
       if (cs_lto in compiler.globals.current_settings.moduleswitches) and
          not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
          (compiler.globals.utilsdirectory<>'') and
-         FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
+         compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
           ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;
@@ -653,7 +653,7 @@ implementation
       if (cs_lto in compiler.globals.current_settings.moduleswitches) and
          not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
          (compiler.globals.utilsdirectory<>'') and
-         FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
+         compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
           ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;

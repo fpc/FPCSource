@@ -553,7 +553,7 @@ begin
 { if we have a xdc file, dont touch it, otherwise create a new
   one and remove it after nlmconv }
   xdcname := ChangeFileExt(compiler.current_module.exefilename,'.xdc');
-  xdcpresent := FileExists (xdcname,false);
+  xdcpresent := compiler.CFileUtl.FileExists (xdcname,false);
   if not xdcpresent then
   begin
     assign (f,xdcname);

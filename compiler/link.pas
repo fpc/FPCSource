@@ -243,7 +243,7 @@ Implementation
           the specified file exists without searching any paths }
         if not isunit then
          begin
-           if FileExists(FixFileName(s),false) then
+           if compiler.CFileUtl.FileExists(FixFileName(s),false) then
             begin
               foundfile:=ScriptFixFileName(s);
               found:=true;
@@ -345,7 +345,7 @@ Implementation
          s:=s+ext;
         { readd the split path }
         s:=paths+s;
-        if FileExists(s,false) then
+        if compiler.CFileUtl.FileExists(s,false) then
          begin
            foundfile:=ScriptFixFileName(s);
            FindLibraryFile:=true;
@@ -770,7 +770,7 @@ Implementation
                         Check for runtime files in the new layout without the architecture first.
                       }
                       sanitizerlibname:=GetSanitizerLibName('asan',false);
-                      result:=FileExists(sanitizerlibrarypath+sanitizerlibname,false);
+                      result:=compiler.CFileUtl.FileExists(sanitizerlibrarypath+sanitizerlibname,false);
                       if result then
                         begin
                           sanitizerlibraryfiles.Concat(sanitizerlibrarypath+sanitizerlibname);
@@ -778,13 +778,13 @@ Implementation
                       else
                         begin
                           sanitizerlibname:=GetSanitizerLibName('asan',true);
-                          result:=FileExists(sanitizerlibrarypath+sanitizerlibname,false);
+                          result:=compiler.CFileUtl.FileExists(sanitizerlibrarypath+sanitizerlibname,false);
                           if result then
                             sanitizerlibraryfiles.Concat(sanitizerlibrarypath+sanitizerlibname);
                         end;
                     end;
                 end;
-              if FileExists(clangsearchdirspath,false) then
+              if compiler.CFileUtl.FileExists(clangsearchdirspath,false) then
                 DeleteFile(clangsearchdirspath);
             end;
           end;
@@ -964,7 +964,7 @@ Implementation
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
-              ItemExists:=FileExists(FixFilename(item.str),true);
+              ItemExists:=compiler.CFileUtl.FileExists(FixFilename(item.str),true);
 	      ItemSize:=0;
 	      if ItemExists then
                 begin
@@ -1092,9 +1092,9 @@ Implementation
                 success:=DoExec(binstr,nextcmd,false,true);
               if ar_creates_different_output_file then
                 begin
-                  if FileExists(compiler.current_module.staticlibfilename,false) then
+                  if compiler.CFileUtl.FileExists(compiler.current_module.staticlibfilename,false) then
                     DeleteFile(compiler.current_module.staticlibfilename);
-                  if FileExists(compiler.current_module.staticlibfilename+'.tmp',false) then
+                  if compiler.CFileUtl.FileExists(compiler.current_module.staticlibfilename+'.tmp',false) then
                     RenameFile(compiler.current_module.staticlibfilename+'.tmp',compiler.current_module.staticlibfilename);
                 end;
               first := false;
