@@ -243,7 +243,7 @@ begin
   WriteResponseFile(false);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$MAP',MapStr);
@@ -268,7 +268,7 @@ begin
     begin
       if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         begin
-          SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+          compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
         end;

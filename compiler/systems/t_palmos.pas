@@ -198,7 +198,7 @@ begin
   success:=false;
   for i:=1 to 2 do
    begin
-     SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
      if binstr<>'' then
       begin

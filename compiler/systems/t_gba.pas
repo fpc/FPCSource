@@ -579,7 +579,7 @@ begin
   WriteResponseFile();
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
   Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')))));

@@ -329,7 +329,7 @@ begin
   WriteResponsefile(false);
 
   { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
@@ -354,7 +354,7 @@ begin
   WriteResponsefile(true);
 
   { Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);

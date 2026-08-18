@@ -1015,11 +1015,11 @@ Implementation
         DeleteFile(compiler.current_module.staticlibfilename);
       { Call AR }
         smartpath:=compiler.CFileUtl.FixPath(ChangeFileExt(compiler.current_module.asmfilename,compiler.target.info.smartext),false);
-        SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
+        compiler.CFileUtl.SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(compiler.globals.utilsprefix + binstr);
         if compiler.target.ar.arfirstcmd<>'' then
           begin
-            SplitBinCmd(compiler.target.ar.arfirstcmd,firstbinstr,firstcmd);
+            compiler.CFileUtl.SplitBinCmd(compiler.target.ar.arfirstcmd,firstbinstr,firstcmd);
             firstbinstr := FindUtil(compiler.globals.utilsprefix + firstbinstr);
           end
         else
@@ -1103,7 +1103,7 @@ Implementation
 
         if (compiler.target.ar.arfinishcmd <> '') then
           begin
-            SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
+            compiler.CFileUtl.SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(compiler.globals.utilsprefix + binstr);
             Replace(cmdstr,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);

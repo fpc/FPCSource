@@ -126,9 +126,9 @@ interface
         function  FixFileName(const s:TCmdStr):TCmdStr;
         function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
         function  TargetFixFileName(const s:TCmdStr):TCmdStr;
+        procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
       end;
 
-    procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
     function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
@@ -938,7 +938,7 @@ end;
      end;
 
 
-   procedure SplitBinCmd(const s:TCmdStr;var bstr:TCmdStr;var cstr:TCmdStr);
+   procedure TCompilerFileUtils.SplitBinCmd(const s:TCmdStr;var bstr:TCmdStr;var cstr:TCmdStr);
      var
        i : longint;
      begin

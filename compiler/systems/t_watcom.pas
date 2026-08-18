@@ -151,7 +151,7 @@ begin
   WriteResponseFile(false);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));

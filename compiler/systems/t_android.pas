@@ -432,7 +432,7 @@ begin
     s:=Info.DllCmd[1]
   else
     s:=Info.ExeCmd[1];
-  SplitBinCmd(s, binstr, cmdstr);
+  compiler.CFileUtl.SplitBinCmd(s, binstr, cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(outname));
   Replace(cmdstr,'$OPT',opts);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -457,7 +457,7 @@ begin
     begin
       for i:=1 to 3 do
         begin
-          SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
+          compiler.CFileUtl.SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(outname));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
           Replace(cmdstr,'$DBG',maybequoted(compiler.current_module.dbgfilename));

@@ -1809,7 +1809,7 @@ begin
   WriteResponseFile();
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   {$ifdef xtensa}
   if compiler.target.info.abi=abi_xtensa_call0 then
@@ -2179,7 +2179,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     WriteResponseFile();
 
   { Call linker }
-    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
     if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      begin
@@ -2267,7 +2267,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
       GCSectionsStr:='';
 
     SoNameStr:='';
-    SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
 
     tmp := TCmdStrListItem(ObjectFiles.First);
@@ -2298,7 +2298,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
-    //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
+    //compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
     //Replace(cmdstr,'$INPUT',compiler.current_module.objfilename );
     //Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
     //DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);

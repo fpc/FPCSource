@@ -1479,7 +1479,7 @@ implementation
           cmds:=1;
         for i:=1 to cmds do
          begin
-           SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+           compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
               Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
@@ -1585,7 +1585,7 @@ implementation
           cmds:=1;
         for i:=1 to cmds do
          begin
-           SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
+           compiler.CFileUtl.SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
               Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));

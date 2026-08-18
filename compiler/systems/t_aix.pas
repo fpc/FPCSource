@@ -263,7 +263,7 @@ begin
   WriteResponseFile(false);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   if assumebinutils and (source_info.system in systems_aix) then
     Replace(binstr,'$LDBIN','gld')
   else
@@ -357,7 +357,7 @@ begin
     StripStr:='';
 
 { Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   if assumebinutils and (source_info.system in systems_aix) then
     Replace(binstr,'$LDBIN','gld')
   else

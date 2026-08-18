@@ -245,7 +245,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     WriteResponseFile_Sdld();
 
   { Call linker }
-    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
@@ -288,7 +288,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     WriteResponseFile_Vlink();
 
   { Call linker }
-    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);

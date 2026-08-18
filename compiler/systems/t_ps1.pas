@@ -329,7 +329,7 @@ begin
     end;
 
     { Call linker }
-    SplitBinCmd(Info.ExeCmd[1], binstr, cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1], binstr, cmdstr);
 
     Replace(cmdstr, '$OPT', Info.ExtraOptions);
     Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(compiler.globals.outputexedir + Info.ResName))));

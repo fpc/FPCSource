@@ -911,7 +911,7 @@ begin
   WriteResponseFile(false);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -948,7 +948,7 @@ begin
     begin
       for i:=1 to 3 do
         begin
-          SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
+          compiler.CFileUtl.SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
           Replace(cmdstr,'$DBGX',compiler.current_module.dbgfilename);
@@ -1025,7 +1025,7 @@ begin
     end;
 
  { Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -1043,7 +1043,7 @@ begin
    begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
-     SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
+     compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;

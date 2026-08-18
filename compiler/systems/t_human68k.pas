@@ -209,7 +209,7 @@ begin
   ExeName:=compiler.current_module.exefilename;
 
   { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));

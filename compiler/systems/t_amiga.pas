@@ -372,7 +372,7 @@ begin
     end;
 
   { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
@@ -413,7 +413,7 @@ begin
     end;
 
   { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));

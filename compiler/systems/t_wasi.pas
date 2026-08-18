@@ -159,7 +159,7 @@ begin
     GCSectionsStr:='';
 
   SoNameStr:='';
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
@@ -235,7 +235,7 @@ begin
     GCSectionsStr:='';
 
   SoNameStr:='';
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);

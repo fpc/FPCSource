@@ -561,7 +561,7 @@ begin
   ordersymfile:=WriteSymbolOrderFile;
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
@@ -679,7 +679,7 @@ begin
   SoNameStr:='-soname '+ExtractFileName(compiler.current_module.sharedlibfilename);
 
 { Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
@@ -720,7 +720,7 @@ begin
 { Strip the library ? }
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
-     SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
+     compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
    end;

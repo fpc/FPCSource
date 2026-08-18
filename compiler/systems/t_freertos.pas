@@ -1686,7 +1686,7 @@ begin
   WriteResponseFile();
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   {$ifdef xtensa}
   if compiler.target.info.abi=abi_xtensa_call0 then

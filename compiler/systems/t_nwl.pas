@@ -573,7 +573,7 @@ begin
 
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
@@ -591,7 +591,7 @@ begin
   begin
     NLMConvLinkFile.writetodisk;
     NLMConvLinkFile.Free;
-    SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+    compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);

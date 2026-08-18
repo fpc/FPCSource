@@ -228,7 +228,7 @@ begin
     GCSectionsStr:='--gc-sections';
 
   { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
@@ -243,7 +243,7 @@ begin
   { Call Strip }
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     begin
-      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+      compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
       Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
       success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
     end;

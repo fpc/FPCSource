@@ -509,7 +509,7 @@ begin
   success:=false;
   for i:=1 to 3 do
    begin
-     SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
         { Is this really required? Not anymore according to my EMX docs }
