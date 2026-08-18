@@ -1444,7 +1444,7 @@ end;
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
           quote_script:=source_info.script
         else
-          quote_script:=compiler.target.info.script;
+          quote_script:=Target.info.script;
         result:=maybequoted_for_script(s,quote_script);
       end;
 
