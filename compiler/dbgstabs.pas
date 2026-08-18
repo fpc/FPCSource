@@ -1801,7 +1801,7 @@ implementation
                         AsmData.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
                         if not(ds_stabs_abs_include_files in compiler.globals.current_settings.debugswitches) or
-                           path_absolute(infile.path) then
+                           compiler.CFileUtl.path_absolute(infile.path) then
                           list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp)
                         else

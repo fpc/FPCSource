@@ -476,7 +476,7 @@ begin
       if compiler.target.info.res=res_none then
         compiler.verbose.Message(scan_e_resourcefiles_not_supported);
       s:=res.FPStr;
-      if not path_absolute(s) then
+      if not compiler.CFileUtl.path_absolute(s) then
         s:=p+s;
       if not FileExists(s, True) then
         begin
@@ -532,7 +532,7 @@ var
     res:=TCmdStrListItem(u.ResourceFiles.First);
     while assigned(res) do
       begin
-        if path_absolute(res.FPStr) then
+        if compiler.CFileUtl.path_absolute(res.FPStr) then
           s:=res.FPStr
         else
           begin

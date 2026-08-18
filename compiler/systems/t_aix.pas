@@ -301,7 +301,7 @@ begin
 //        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
-      if not path_absolute(BinStr) then
+      if not compiler.CFileUtl.path_absolute(BinStr) then
         if cs_link_on_target in compiler.globals.current_settings.globalswitches then
           BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
@@ -399,7 +399,7 @@ begin
   linkscript.AddLinkCommand(FindUtil(compiler.globals.utilsprefix+'ar'),' -X32_64 -q '+libfn+(' '+libobj),'');
   linkscript.WriteToDisk;
   BinStr:=linkscript.fn;
-  if not path_absolute(BinStr) then
+  if not compiler.CFileUtl.path_absolute(BinStr) then
     if cs_link_on_target in compiler.globals.current_settings.globalswitches then
       BinStr:='.'+compiler.target.info.dirsep+BinStr
     else

@@ -1740,7 +1740,7 @@ type
          found:=false;
          foundfile:='';
          hpath:='';
-         if path_absolute(path) then
+         if compiler.CFileUtl.path_absolute(path) then
            begin
              found:=FindFile(name,path,true,foundfile);
            end

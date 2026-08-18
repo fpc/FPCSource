@@ -1984,7 +1984,7 @@ unit scandir;
             current_scanner.skipspace;
             unitpath:=current_scanner.readcomment;
             if (compiler.current_module.path<>'') and
-               not path_absolute(unitpath) then
+               not compiler.CFileUtl.path_absolute(unitpath) then
              unitpath:=compiler.current_module.path+source_info.DirSep+unitpath;
             compiler.current_module.localunitsearchpath.AddPath(unitpath,false);
             compiler.verbose.Message2(general_t_unitpath_local,compiler.current_module.realmodulename^,unitpath);

@@ -117,9 +117,9 @@ interface
         {Gives the relative path to the current directory,
          with a trailing dir separator. E. g. on unix ./ }
         function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
+        function  path_absolute(const s : TCmdStr) : boolean;
       end;
 
-    function  path_absolute(const s : TCmdStr) : boolean;
     Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
@@ -540,7 +540,7 @@ end;
    end;
 
 
-   function path_absolute(const s : TCmdStr) : boolean;
+   function TCompilerFileUtils.path_absolute(const s : TCmdStr) : boolean;
    {
      is path s an absolute path?
    }
@@ -1169,12 +1169,14 @@ end;
 
 
    function FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        StartPos, EndPos, L: LongInt;
      begin
        Result:=False;
 
-       if (path_absolute(f)) then
+       if (compiler.CFileUtl.path_absolute(f)) then
          begin
            Result:=FileExistsNonCase('',f, allowcache, foundfile);
            if Result then
