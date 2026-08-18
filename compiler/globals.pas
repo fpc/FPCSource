@@ -2156,7 +2156,7 @@ implementation
           localExepath:=ExtractFilePath(localExepath);
         end;
 {$endif need_path_search}
-       exepath:=FixPath(localExepath,false);
+       exepath:=FCFileUtl.FixPath(localExepath,false);
      end;
 
 

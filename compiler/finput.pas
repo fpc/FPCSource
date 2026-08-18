@@ -603,7 +603,7 @@ uses
          { Create names }
          paramfn := fn;
          paramallowoutput := allowoutput;
-         p := FixPath(ExtractFilePath(fn),false);
+         p := compiler.CFileUtl.FixPath(ExtractFilePath(fn),false);
          n := FixFileName(ChangeFileExt(ExtractFileName(fn),''));
          { set path }
          path:=p;

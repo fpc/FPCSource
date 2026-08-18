@@ -310,7 +310,7 @@ Implementation
         { when cross compiling, it is pretty useless to search windir etc. for dlls }
         if (not found) and (source_info.system=compiler.target.info.system) then
          begin
-           sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
+           sysdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('windir'),false);
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
          end;
         if (not found) then
@@ -1014,7 +1014,7 @@ Implementation
       { remove the library, to be sure that it is rewritten }
         DeleteFile(compiler.current_module.staticlibfilename);
       { Call AR }
-        smartpath:=FixPath(ChangeFileExt(compiler.current_module.asmfilename,compiler.target.info.smartext),false);
+        smartpath:=compiler.CFileUtl.FixPath(ChangeFileExt(compiler.current_module.asmfilename,compiler.target.info.smartext),false);
         SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(compiler.globals.utilsprefix + binstr);
         if compiler.target.ar.arfirstcmd<>'' then

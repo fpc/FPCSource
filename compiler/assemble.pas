@@ -833,7 +833,7 @@ Implementation
         ffreewriter:=freewriter;
         if SmartAsm then
           begin
-            path:=FixPath(ChangeFileExt(AsmFileName,compiler.target.info.smartext),false);
+            path:=compiler.CFileUtl.FixPath(ChangeFileExt(AsmFileName,compiler.target.info.smartext),false);
             CreateSmartLinkPath(path);
           end;
       end;
@@ -845,7 +845,7 @@ Implementation
         var
           dir : TRawByteSearchRec;
         begin
-          if findfirst(FixPath(s,false)+'*'+AExt,faAnyFile,dir) = 0 then
+          if findfirst(compiler.CFileUtl.FixPath(s,false)+'*'+AExt,faAnyFile,dir) = 0 then
             begin
               repeat
                 DeleteFile(s+source_info.dirsep+dir.name);

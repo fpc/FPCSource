@@ -3230,7 +3230,7 @@ implementation
             { directory_entry count }
             linelist.concat(tai_const.create_8bit(dirlist.Count - found_dot_dir + 1));
             { directory_entry 0 / DWARF-5 needs current dir FIRST }
-            linelist.concat(tai_string.create(compiler.CFileUtl.BSToSlash(FixPath(compiler.CFileUtl.GetCurrentDir,false))+#0));
+            linelist.concat(tai_string.create(compiler.CFileUtl.BSToSlash(compiler.CFileUtl.FixPath(compiler.CFileUtl.GetCurrentDir,false))+#0));
           end;
 
         { include_directories }
@@ -3413,7 +3413,7 @@ implementation
         append_entry(DW_TAG_compile_unit,true,[
           DW_AT_name,DW_FORM_string,relative_dwarf_path(compiler.current_module.sourcefiles.get_file(1).path+compiler.current_module.sourcefiles.get_file(1).name)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
-          DW_AT_comp_dir,DW_FORM_string,compiler.CFileUtl.BSToSlash(FixPath(compiler.CFileUtl.GetCurrentDir,false))+#0,
+          DW_AT_comp_dir,DW_FORM_string,compiler.CFileUtl.BSToSlash(compiler.CFileUtl.FixPath(compiler.CFileUtl.GetCurrentDir,false))+#0,
           DW_AT_language,DW_FORM_data1,lang,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 

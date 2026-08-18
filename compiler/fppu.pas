@@ -512,7 +512,7 @@ var
            newname : TCmdStr;
          begin
            Found:=false;
-           singlepathstring:=FixPath(s,false);
+           singlepathstring:=compiler.CFileUtl.FixPath(s,false);
          { Check for PPU file }
            Found:=UnitExists(compiler.target.info.unitext,hs,prefix);
            if Found then
@@ -538,7 +538,7 @@ var
            newname : TCmdStr;
          begin
            Found:=false;
-           singlepathstring:=FixPath(s,false);
+           singlepathstring:=compiler.CFileUtl.FixPath(s,false);
          { Check for Sources }
            ppufile:=nil;
            recompile_reason:=rr_noppu;
@@ -748,7 +748,7 @@ var
             hs    : TCmdStr;
           begin
             Found:=false;
-            singlepathstring:=FixPath(s,false);
+            singlepathstring:=compiler.CFileUtl.FixPath(s,false);
           { Check for PPU file }
             Found:=UnitExists(compiler.target.info.unitext,hs);
             if Found then

@@ -122,9 +122,9 @@ interface
         Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
         function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         Function  RemoveDir(d:TCmdStr):boolean;
+        Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
       end;
 
-    Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
     function  FixFileName(const s:TCmdStr):TCmdStr;
     function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
     function  TargetFixFileName(const s:TCmdStr):TCmdStr;
@@ -760,7 +760,7 @@ end;
       end;
 
 
-    Function FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
+    Function TCompilerFileUtils.FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
       begin
         Result:=_FixPath(s,allowdot,source_info,DriveSeparator);
       end;
@@ -1042,12 +1042,12 @@ end;
          { GNU LD convention: if library search path starts with '=', it's relative to the
            sysroot; otherwise, interpret it as a regular path }
          if (length(currPath) >0) and (currPath[1]='=') then
-           currPath:=sysroot+FixPath(copy(currPath,2,length(currPath)-1),false);
+           currPath:=sysroot+compiler.CFileUtl.FixPath(copy(currPath,2,length(currPath)-1),false);
          if currPath='' then
            currPath:= compiler.CFileUtl.CurDirRelPath(source_info)
          else
           begin
-            currPath:=FixPath(ExpandFileName(currpath),false);
+            currPath:=compiler.CFileUtl.FixPath(ExpandFileName(currpath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef hasamiga}
@@ -1200,7 +1200,7 @@ end;
          EndPos := StartPos;
          while (EndPos <= L) and ((Path[EndPos] <> PathSeparator) and (Path[EndPos] <> ';')) do
            Inc(EndPos);
-         Result := compiler.CFileUtl.FileExistsNonCase(FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
+         Result := compiler.CFileUtl.FileExistsNonCase(compiler.CFileUtl.FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
          if Result then
            Exit;
          StartPos := EndPos + 1;

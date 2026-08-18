@@ -3096,7 +3096,7 @@ end;
 procedure TOption.Interpret_E_l(opt, more: TCmdStr);
 
 begin
-  compiler.globals.exepath:=FixPath(More,true);
+  compiler.globals.exepath:=compiler.CFileUtl.FixPath(More,true);
 end;
 
 
@@ -3164,11 +3164,11 @@ begin
       else
         compiler.globals.init_settings.disabledircache:=true;
     'D' :
-      compiler.globals.utilsdirectory:=FixPath(More,true);
+      compiler.globals.utilsdirectory:=compiler.CFileUtl.FixPath(More,true);
     'e' :
       compiler.verbose.SetRedirectFile(More);
     'E' :
-      compiler.globals.outputexedir:=FixPath(More,true);
+      compiler.globals.outputexedir:=compiler.CFileUtl.FixPath(More,true);
     'f' :
         if (compiler.target.info.system in systems_darwin) then
           if ispara then
@@ -3177,7 +3177,7 @@ begin
             compiler.globals.frameworksearchpath.AddPath(More,true)
 {$if defined(XTENSA) or defined(RISCV32)}
         else if (compiler.target.info.system in [system_xtensa_freertos,system_riscv32_freertos]) then
-          compiler.globals.idfpath:=FixPath(More,true)
+          compiler.globals.idfpath:=compiler.CFileUtl.FixPath(More,true)
 {$endif defined(XTENSA) or defined(RISCV32)}
         else
           IllegalPara(opt);
@@ -3204,7 +3204,7 @@ begin
           IllegalPara(opt);
       end;
     'M' :
-      compiler.globals.unicodepath:=FixPath(More,true);
+      compiler.globals.unicodepath:=compiler.CFileUtl.FixPath(More,true);
     'g' :
       compiler.verbose.Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
     'l' :
@@ -3266,7 +3266,7 @@ begin
           compiler.globals.unitsearchpath.AddPath(More,true);
       end;
     'U' :
-      compiler.globals.outputunitdir:=FixPath(More,true);
+      compiler.globals.outputunitdir:=compiler.CFileUtl.FixPath(More,true);
     'W',
     'w':
       begin
@@ -3275,7 +3275,7 @@ begin
             compiler.DefaultReplacements(More);
             D:=ExtractFilePath(More);
             if (D<>'') then
-              D:=FixPath(D,True);
+              D:=compiler.CFileUtl.FixPath(D,True);
             D:=D+ExtractFileName(More);
             if (c='W') then
               compiler.globals.wpofeedbackoutput:=D
@@ -3525,7 +3525,7 @@ begin
       compiler.DefaultReplacements(More);
       D:=ExtractFilePath(More);
       if (D<>'') then
-        compiler.globals.outputexedir:=FixPath(D,True);
+        compiler.globals.outputexedir:=compiler.CFileUtl.FixPath(D,True);
       compiler.globals.OutputFileName:=ExtractFileName(More);
     end
   else
@@ -4598,10 +4598,10 @@ begin
   foundfn:=fn;
   check_configfile:=true;
   { retrieve configpath }
-  configpath:=FixPath(GetEnvironmentVariable('PPC_CONFIG_PATH'),false);
+  configpath:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('PPC_CONFIG_PATH'),false);
 {$ifdef Unix}
   if configpath='' then
-   configpath:=ExpandFileName(FixPath(compiler.globals.exepath+'../etc/',false));
+   configpath:=ExpandFileName(compiler.CFileUtl.FixPath(compiler.globals.exepath+'../etc/',false));
 {$endif}
   {
     Order to read configuration file :
@@ -4614,19 +4614,19 @@ begin
    begin
 {$ifdef Unix}
      hs:=GetEnvironmentVariable('HOME');
-     if (hs<>'') and CfgFileExists(FixPath(hs,false)+'.'+fn) then
-      foundfn:=FixPath(hs,false)+'.'+fn
+     if (hs<>'') and CfgFileExists(compiler.CFileUtl.FixPath(hs,false)+'.'+fn) then
+      foundfn:=compiler.CFileUtl.FixPath(hs,false)+'.'+fn
      else
 {$endif}
       if CfgFileExists(configpath+fn) then
        foundfn:=configpath+fn
      else
 {$ifdef WINDOWS}
-       if (GetEnvironmentVariable('USERPROFILE')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn) then
-         foundfn:=FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn
+       if (GetEnvironmentVariable('USERPROFILE')<>'') and CfgFileExists(compiler.CFileUtl.FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn) then
+         foundfn:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn
      else
-       if (GetEnvironmentVariable('ALLUSERSPROFILE')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn) then
-         foundfn:=FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn
+       if (GetEnvironmentVariable('ALLUSERSPROFILE')<>'') and CfgFileExists(compiler.CFileUtl.FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn) then
+         foundfn:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn
      else
 {$endif WINDOWS}
 {$ifndef Unix}
@@ -5338,7 +5338,7 @@ begin
     end;
 
 {$ifdef Unix}
-  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
+  fpcdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('FPCDIR'),false);
   if fpcdir='' then
     begin
       if compiler.CFileUtl.PathExists('/usr/local/lib/fpc/'+version_string,true) then
@@ -5347,7 +5347,7 @@ begin
         fpcdir:='/usr/lib/fpc/'+version_string+'/';
     end;
 {$else unix}
-  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
+  fpcdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('FPCDIR'),false);
   if fpcdir='' then
     begin
       fpcdir:=compiler.globals.ExePath+'../';

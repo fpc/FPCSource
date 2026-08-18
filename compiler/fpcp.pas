@@ -169,7 +169,7 @@ implementation
         hs    : TCmdStr;
       begin
         found:=false;
-        singlepathstring:=FixPath(s,false);
+        singlepathstring:=compiler.CFileUtl.FixPath(s,false);
         { Check for package file }
         { TODO }
         found:=package_exists({compiler.target.info.pkginfoext}'.pcp',hs);
@@ -221,7 +221,7 @@ implementation
     var
       p,n : tpathstr;
     begin
-      p:=FixPath(ExtractFilePath(fn),false);
+      p:=compiler.CFileUtl.FixPath(ExtractFilePath(fn),false);
       n:=FixFileName(ChangeFileExt(ExtractFileName(fn),''));
       { pcp name }
       if allowoutput then
