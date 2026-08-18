@@ -1648,7 +1648,7 @@ implementation
                   decorator }
                 decorator:=TLLVMModuleInlineAssemblyDecorator.Create;
                 writer.decorator:=decorator;
-                a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
+                a:=GetExternalGnuAssemblerWithAsmInfoWriter(compiler,asminfo,writer);
                 a.WriteTree(asmdata.asmlists[hal],hal);
                 writer.decorator:=nil;
                 decorator.free;
@@ -1670,7 +1670,7 @@ implementation
         if assigned(writer.decorator) then
           internalerror(2016110201);
         writer.decorator:=ffuncinlasmdecorator;
-        a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
+        a:=GetExternalGnuAssemblerWithAsmInfoWriter(compiler,asminfo,writer);
         a.WriteTree(list,al_procedures);
         a.free;
         writer.decorator:=nil;

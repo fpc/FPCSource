@@ -257,7 +257,7 @@ interface
     { get an instance of an external GNU-style assembler that is compatible
       with the current target, reusing an existing writer. Used by the LLVM
       target to write inline assembler }
-    function GetExternalGnuAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
+    function GetExternalGnuAssemblerWithAsmInfoWriter(compiler: TCompilerBase; info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
 
     procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
 
@@ -2954,9 +2954,7 @@ Implementation
       end;
 
 
-    function GetExternalGnuAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function GetExternalGnuAssemblerWithAsmInfoWriter(compiler: TCompilerBase; info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
       var
         asmkind: tasm;
       begin
