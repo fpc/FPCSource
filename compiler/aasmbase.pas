@@ -243,7 +243,7 @@ interface
          is_set    : boolean;
          is_public : boolean;
          defined_in_asmstatement : boolean;
-         constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
+         constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType; target: TReadOnlyCompilerTarget);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
@@ -352,11 +352,9 @@ implementation
                                  TAsmLabel
 *****************************************************************************}
 
-    constructor TAsmLabel.Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor TAsmLabel.Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType; target: TReadOnlyCompilerTarget);
       begin
-        create_non_global(AList,nr,ltyp,compiler.target._asm.labelprefix);
+        create_non_global(AList,nr,ltyp,target._asm.labelprefix);
       end;
 
 

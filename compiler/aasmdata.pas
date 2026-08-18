@@ -732,14 +732,14 @@ function current_asmdata : TAsmData; inline;
            (alt = alt_dbgline) then
           l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt],alt)
         else
-          l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
+          l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt,compiler.target);
         inc(FNextLabelNr[alt]);
       end;
 
 
     procedure TAsmData.getjumplabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_jump],alt_jump);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_jump],alt_jump,compiler.target);
         inc(FNextLabelNr[alt_jump]);
       end;
 
@@ -766,7 +766,7 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmData.getlocaldatalabel(out l: TAsmLabel);
       begin
-        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_data],alt_data);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_data],alt_data,compiler.target);
         inc(FNextLabelNr[alt_data]);
       end;
 
@@ -782,7 +782,7 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmData.getaddrlabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_addr],alt_addr);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_addr],alt_addr,compiler.target);
         inc(FNextLabelNr[alt_addr]);
       end;
 
