@@ -1517,7 +1517,7 @@ end;
           do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
             ComLine+'"');
         if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
-          quote_script:=compiler.target.info.script
+          quote_script:=Target.info.script
         else
           quote_script:=source_info.script;
         if quote_script=script_unix then
