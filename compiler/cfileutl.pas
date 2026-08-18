@@ -1316,7 +1316,7 @@ end;
       if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
         quote_script:=source_info.script
       else
-        quote_script:=compiler.target.info.script;
+        quote_script:=Target.info.script;
       if quote_script=script_dos then
         forbidden_chars:=FORBIDDEN_CHARS_DOS
       else
