@@ -1805,7 +1805,7 @@ implementation
                           list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(compiler.CFileUtl.FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp)
                         else
-                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(compiler.CFileUtl.FixPath(compiler.CFileUtl.getcurrentdir,false)+FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
+                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(compiler.CFileUtl.FixPath(compiler.CFileUtl.getcurrentdir,false)+compiler.CFileUtl.FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
                         hlabel.increfs;
