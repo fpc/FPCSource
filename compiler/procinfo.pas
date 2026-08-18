@@ -57,12 +57,14 @@ unit procinfo;
 
        tprocinfo = class(tlinkedlistitem)
        private
+          FAsmData: TAsmData;
           { list to store the procinfo's of the nested procedures }
           nestedprocs : tlinkedlist;
           { required alignment for this stackframe }
           fstackalignment : longint;
           function GetParaManager: TParaManager; inline;
        protected
+          property AsmData: TAsmData read FAsmData;
           property ParaManager: TParaManager read GetParaManager;
        public
           { the compiler instance }
@@ -246,6 +248,7 @@ implementation
 
     constructor tprocinfo.create(aparent:tprocinfo;aasmdata:TAsmData;acompiler:tcompilerbase);
       begin
+        FAsmData:=aasmdata;
         compiler:=acompiler;
         parent:=aparent;
         procdef:=nil;
