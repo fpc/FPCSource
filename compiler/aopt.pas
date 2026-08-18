@@ -388,11 +388,9 @@ Unit aopt;
 
     procedure PreRegallocSchedule(AsmL:TAsmList);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         p : TAsmScheduler;
       begin
-        p:=cpreregallocscheduler.Create(AsmL,compiler);
+        p:=cpreregallocscheduler.Create(AsmL,AsmL.AsmData.Compiler);
         p.Optimize;
         p.free;
         p := nil;
