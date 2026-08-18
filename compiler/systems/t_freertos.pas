@@ -1733,7 +1733,7 @@ begin
   if success then
     begin
 {$if defined(DARWIN)}
-      success:=FindFileInExeLocations('python',true,binstr);
+      success:=compiler.CFileUtl.FindFileInExeLocations('python',true,binstr);
       cmdstr:=compiler.globals.idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$elseif defined(UNIX)}
       binstr:=compiler.CFileUtl.TargetFixPath(compiler.globals.idfpath,false)+'/components/esptool_py/esptool/esptool.py';

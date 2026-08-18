@@ -129,9 +129,9 @@ interface
         procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
         function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {        function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
+        function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
-    function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
     function maybequoted(const s:string):string;
@@ -1237,7 +1237,7 @@ end;
      end;
 }
 
-  function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+  function  TCompilerFileUtils.FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
@@ -1260,6 +1260,8 @@ end;
 
    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     var
        b : TCmdStr;
      begin
        { change extension only on platforms that use an exe extension, otherwise on OpenBSD
@@ -1268,7 +1270,7 @@ end;
          b:=ChangeFileExt(bin,source_info.exeext)
        else
          b:=bin;
-       FindExe:=FindFileInExeLocations(b,allowcache,foundfile);
+       FindExe:=compiler.CFileUtl.FindFileInExeLocations(b,allowcache,foundfile);
      end;
 
 
