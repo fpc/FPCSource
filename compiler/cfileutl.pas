@@ -109,10 +109,10 @@ interface
         destructor Destroy;override;
 
         function  bstoslash(const s : TCmdStr) : TCmdStr;
+        {Gives the absolute path to the current directory}
+        function  GetCurrentDir:TCmdStr;
       end;
 
-    {Gives the absolute path to the current directory}
-    function  GetCurrentDir:TCmdStr;
     {Gives the relative path to the current directory,
      with a trailing dir separator. E. g. on unix ./ }
     function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
@@ -517,7 +517,7 @@ end;
    {Gives the absolute path to the current directory}
      var
        CachedCurrentDir : TCmdStr;
-   function GetCurrentDir:TCmdStr;
+   function TCompilerFileUtils.GetCurrentDir:TCmdStr;
      begin
        if CachedCurrentDir='' then
          begin

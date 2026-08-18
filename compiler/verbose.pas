@@ -487,7 +487,7 @@ implementation
               status.sources_avail:=module.sources_avail;
               { if currentsourcepath is relative, make it absolute }
               if not path_absolute(status.currentsourcepath) then
-                status.currentsourcepath:=GetCurrentDir+status.currentsourcepath;
+                status.currentsourcepath:=compiler.CFileUtl.GetCurrentDir+status.currentsourcepath;
 
               { update lastfileidx only if name known PM }
               if status.currentsource<>'' then

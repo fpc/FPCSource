@@ -1805,7 +1805,7 @@ implementation
                           list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp)
                         else
-                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(getcurrentdir,false)+FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
+                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(compiler.CFileUtl.getcurrentdir,false)+FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
                         hlabel.increfs;
@@ -1854,7 +1854,7 @@ implementation
          procedure/function, see bug report 32138 }
         AsmData.asmlists[al_start].concat(Taicpu.op_none(A_P_SET_NOMIPS16));
 {$endif MIPS}
-        AsmData.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(getcurrentdir,false))+'",'+
+        AsmData.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(compiler.CFileUtl.getcurrentdir,false))+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         AsmData.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+compiler.CFileUtl.BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
