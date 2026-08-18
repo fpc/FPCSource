@@ -543,7 +543,7 @@ begin
           (compiler.target.info.script=script_unix)) or
          (not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
           (source_info.script=script_unix))) then
-       inherited add(UnixRequoteWithDoubleQuotes(s))
+       inherited add(compiler.CFileUtl.UnixRequoteWithDoubleQuotes(s))
      else if not(ls[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
       begin
         if fForceUseForwardSlash then
