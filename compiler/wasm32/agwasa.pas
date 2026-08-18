@@ -702,9 +702,9 @@ implementation
           if compiler.CFileUtl.FindExe('wasmtool',true,t) then begin
             if compiler.current_module.is_unit then
               // making "common" global variables a week reference
-              RequotedExecuteProcess(t,' --weak "$__stack_top" --symbolauto '+ObjFileName)
+              compiler.CFileUtl.RequotedExecuteProcess(t,' --weak "$__stack_top" --symbolauto '+ObjFileName)
             else
-              RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
+              compiler.CFileUtl.RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
           end
           else
             compiler.verbose.Message1(exec_e_util_not_found,'wasmtool');

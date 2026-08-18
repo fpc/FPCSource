@@ -932,7 +932,7 @@ Implementation
           end;
         try
           compiler.verbose.FlushOutput;
-          DosExitCode:=RequotedExecuteProcess(command,para);
+          DosExitCode:=compiler.CFileUtl.RequotedExecuteProcess(command,para);
           if DosExitCode<>0
           then begin
             compiler.verbose.Message1(exec_e_error_while_assembling,tostr(dosexitcode));

@@ -137,10 +137,10 @@ interface
         function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
 
         function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
+        function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
+        function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
       end;
 
-    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
-    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
     function Shell(const command:ansistring): longint;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
@@ -1516,7 +1516,7 @@ end;
       end;
 
 
-    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags): Longint;
+    function TCompilerFileUtils.RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags): Longint;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1537,7 +1537,7 @@ end;
       end;
 
 
-    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags): Longint;
+    function TCompilerFileUtils.RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags): Longint;
       var
         i : longint;
         st : string;

@@ -435,7 +435,7 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
 
     if Found then
       begin
-        exitcode:=RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+        exitcode:=compiler.CFileUtl.RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
         result:=exitcode<>0;
       end;
   end;

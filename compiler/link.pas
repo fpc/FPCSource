@@ -920,7 +920,7 @@ Implementation
              exitcode:=shell(compiler.CFileUtl.maybequoted(command)+' '+para)
            else
              try
-               exitcode:=RequotedExecuteProcess(command,para);
+               exitcode:=compiler.CFileUtl.RequotedExecuteProcess(command,para);
              except on E:EOSError do
                begin
                  compiler.verbose.Message1(exec_e_cant_call_linker,e.Message);

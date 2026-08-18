@@ -443,7 +443,7 @@ function TInternalLinkerZXSpectrum.postprocessexecutable(const fn: string): bool
     if Found then
       begin
         compiler.verbose.Message1(exec_t_using_util,FoundBin);
-        exitcode:=RequotedExecuteProcess(foundbin,' '+fn);
+        exitcode:=compiler.CFileUtl.RequotedExecuteProcess(foundbin,' '+fn);
         result:=exitcode<>0;
       end
     else

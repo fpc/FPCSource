@@ -203,7 +203,7 @@ begin
      compiler.verbose.Message2(exec_d_resbin_params,resbin,s);
      compiler.verbose.FlushOutput;
      try
-       if RequotedExecuteProcess(resbin,s) <> 0 then
+       if compiler.CFileUtl.RequotedExecuteProcess(resbin,s) <> 0 then
        begin
          if not (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
            compiler.verbose.Message(exec_e_error_while_compiling_resources);
