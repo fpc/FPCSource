@@ -1034,13 +1034,14 @@ Const
 
       TCompilerGlobals = class(TReadOnlyCompilerGlobals)
       private
+        FCFileUtl: TCompilerFileUtils;
         function GetCurrentSettings: TMutableSettings;
         function GetInitSettings: TMutableSettings;
         function GetTarget: TCompilerTarget;
         procedure get_exepath;
         procedure callinitprocs;
         procedure calldoneprocs;
-        procedure InitGlobals(ATarget: TCompilerTarget);
+        procedure InitGlobals(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
         procedure DoneGlobals;
       public
 
@@ -1050,7 +1051,7 @@ Const
 
         pendingstate       : tpendingstate;
 
-        constructor Create(ATarget: TCompilerTarget);
+        constructor Create(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
         destructor Destroy; override;
 
         function create_smartlink_sections:boolean;inline;
@@ -2229,9 +2230,10 @@ implementation
        stringdispose(Foutputsuffix);
      end;
 
-   procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
+   procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
      begin
         FTarget:=ATarget;
+        FCFileUtl:=ACFileUtl;
         Finit_settings:=TMutableSettings.Create;
         Fcurrent_settings:=TMutableSettings.Create;
 
@@ -2340,9 +2342,9 @@ implementation
         callinitprocs;
      end;
 
-   constructor TCompilerGlobals.Create(ATarget: TCompilerTarget);
+   constructor TCompilerGlobals.Create(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
      begin
-       InitGlobals(ATarget);
+       InitGlobals(ATarget,ACFileUtl);
      end;
 
    destructor TCompilerGlobals.Destroy;
