@@ -1011,7 +1011,7 @@ end;
           s[i]:=';';
 {$warnings on}
      { get current dir }
-       CurrentDir:=GetCurrentDir;
+       CurrentDir:=compiler.CFileUtl.GetCurrentDir;
        repeat
          { get currpath }
          if addfirst then
