@@ -146,7 +146,7 @@ interface
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
-    GetCurrentDir = 'Do not use' deprecated 'Use compiler.cfileutl.GetCurrentDir instead';
+    GetCurrentDir = 0.0 {not a string, because GetCurrentDir returns a string} deprecated 'Use compiler.cfileutl.GetCurrentDir instead';
     FileExists = 'Do not use' deprecated 'Use compiler.cfileutl.FileExists instead';
 
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
