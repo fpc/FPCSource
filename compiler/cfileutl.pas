@@ -622,7 +622,7 @@ end;
                3. UPPERCASE
             }
             FoundFile:=path+fn;
-            If (ftNone in compiler.globals.AllowedFilenameTransFormations) and compiler.CFileUtl.FileExists(FoundFile,allowcache) then
+            If (ftNone in compiler.globals.AllowedFilenameTransFormations) and FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
@@ -633,7 +633,7 @@ end;
                 if (fn2<>fn) then
                   begin
                     FoundFile:=path+fn2;
-                    If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
+                    If FileExists(FoundFile,allowcache) then
                      begin
                        result:=true;
                        exit;
@@ -646,7 +646,7 @@ end;
                 if (fn2<>fn) then
                   begin
                   FoundFile:=path+fn2;
-                  If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
+                  If FileExists(FoundFile,allowcache) then
                     begin
                       result:=true;
                       exit;
@@ -675,7 +675,7 @@ end;
 {$endif usedircache}
                 begin
                   FoundFile:=path+fn;
-                  If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
+                  If FileExists(FoundFile,allowcache) then
                     begin
                       { don't know the real name in this case }
                       result:=true;
@@ -687,7 +687,7 @@ end;
           begin
             { None case sensitive only lowercase }
             FoundFile:=path+Lower(fn);
-            If compiler.CFileUtl.FileExists(FoundFile,allowcache) then
+            If FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
