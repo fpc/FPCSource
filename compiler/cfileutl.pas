@@ -351,15 +351,13 @@ end;
 
     function TCachedDirectory.FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         entry : PCachedDirectoryEntry;
       begin
         if (tf_files_case_aware in source_info.flags) then
           begin
             if not TryUseCache then
               begin
-                Result:=compiler.CFileUtl.FileExistsNonCase(path,fn,false,FoundName);
+                Result:=FOwnerFileUtils.FileExistsNonCase(path,fn,false,FoundName);
                 exit;
               end;
             entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(ExtractFileName(fn))));
