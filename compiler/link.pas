@@ -1117,7 +1117,7 @@ Implementation
               DeleteFile(compiler.SmartLinkOFiles.GetFirst);
             if scripted_ar then
               DeleteFile(scriptfile);
-            RemoveDir(smartpath);
+            compiler.CFileUtl.RemoveDir(smartpath);
           end
          else
           begin

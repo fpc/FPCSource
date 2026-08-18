@@ -121,9 +121,9 @@ interface
         Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
         Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
         function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+        Function  RemoveDir(d:TCmdStr):boolean;
       end;
 
-    Function  RemoveDir(d:TCmdStr):boolean;
     Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
     function  FixFileName(const s:TCmdStr):TCmdStr;
     function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
@@ -148,6 +148,7 @@ interface
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
     GetCurrentDir = 0.0 {not a string, because GetCurrentDir returns a string} deprecated 'Use compiler.cfileutl.GetCurrentDir instead';
     FileExists = 'Do not use' deprecated 'Use compiler.cfileutl.FileExists instead';
+    RemoveDir = 'Do not use' deprecated 'Use compiler.cfileutl.RemoveDir instead';
 
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
@@ -723,7 +724,7 @@ end;
       end;
 
 
-    Function RemoveDir(d:TCmdStr):boolean;
+    Function TCompilerFileUtils.RemoveDir(d:TCmdStr):boolean;
       begin
         if d[length(d)]=source_info.DirSep then
          Delete(d,length(d),1);
