@@ -211,9 +211,9 @@ begin
     DOS command line is limited to 126 characters! }
   { Newer or cross GNU ld do not like \ in path names,
     so we use bstoslash }
-  LinkRes.Add('--script='+maybequoted(bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
+  LinkRes.Add('--script='+maybequoted(compiler.CFileUtl.bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(compiler.current_module.exefilename,'.map'))));
+    LinkRes.Add('-Map '+maybequoted(compiler.CFileUtl.bstoslash(ChangeFileExt(compiler.current_module.exefilename,'.map'))));
   if compiler.target.create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
@@ -221,7 +221,7 @@ begin
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(bstoslash(compiler.current_module.exefilename)));
+  LinkRes.Add('-o '+maybequoted(compiler.CFileUtl.bstoslash(compiler.current_module.exefilename)));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -230,7 +230,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(bstoslash(GetShortName(s)))
+        LinkRes.AddFileName(compiler.CFileUtl.bstoslash(GetShortName(s)))
       end;
      LinkRes.Add('-)');
    end;

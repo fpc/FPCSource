@@ -271,7 +271,7 @@ implementation
     function TDebugInfoLLVM.absolute_llvm_path(const s:tcmdstr):tcmdstr;
       begin
         { Remove trailing / and ./ prefixes and always use a / }
-        result:=BsToSlash(ExcludeTrailingPathDelimiter(FixFileName(ExpandFileName(s))));
+        result:=compiler.CFileUtl.BsToSlash(ExcludeTrailingPathDelimiter(FixFileName(ExpandFileName(s))));
       end;
 
     function TDebugInfoLLVM.get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;

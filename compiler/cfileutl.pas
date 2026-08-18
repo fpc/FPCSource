@@ -107,9 +107,10 @@ interface
       TCompilerFileUtils = class
         constructor Create;
         destructor Destroy;override;
+
+        function  bstoslash(const s : TCmdStr) : TCmdStr;
       end;
 
-    function  bstoslash(const s : TCmdStr) : TCmdStr;
     {Gives the absolute path to the current directory}
     function  GetCurrentDir:TCmdStr;
     {Gives the relative path to the current directory,
@@ -499,7 +500,7 @@ end;
                                    Utils
 ****************************************************************************}
 
-    function bstoslash(const s : TCmdStr) : TCmdStr;
+    function TCompilerFileUtils.bstoslash(const s : TCmdStr) : TCmdStr;
     {
       return TCmdStr s with all \ changed into /
     }
