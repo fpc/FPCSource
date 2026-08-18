@@ -172,12 +172,12 @@ begin
     DOS command line is limited to 126 characters! }
 
   { add objectfiles, start with prt0 always }
-  LinkRes.Add(GetShortName(FindObjectFile('prt0','',false)) + ' +');
+  LinkRes.Add(compiler.CFileUtl.GetShortName(FindObjectFile('prt0','',false)) + ' +');
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkRes.Add(GetShortName(s) + ' +');
+      LinkRes.Add(compiler.CFileUtl.GetShortName(s) + ' +');
   end;
   LinkRes.Add(', ' + maybequoted(compiler.current_module.exefilename));
 

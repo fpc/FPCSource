@@ -85,7 +85,7 @@ implementation
       begin
         with LinkScript do
           begin
-            Concat('READOBJECT '+GetShortName(FindObjectFile('prt0','',false)));
+            Concat('READOBJECT '+compiler.CFileUtl.GetShortName(FindObjectFile('prt0','',false)));
             while not ObjectFiles.Empty do
               begin
                 s:=ObjectFiles.GetFirst;
@@ -230,7 +230,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(compiler.CFileUtl.bstoslash(GetShortName(s)))
+        LinkRes.AddFileName(compiler.CFileUtl.bstoslash(compiler.CFileUtl.GetShortName(s)))
       end;
      LinkRes.Add('-)');
    end;
@@ -284,14 +284,14 @@ begin
   ScriptRes.Add('  .text  0x1000+SIZEOF_HEADERS : {');
   ScriptRes.Add('  . = ALIGN(16);');
   { add objectfiles, start with prt0 always }
-  ScriptRes.Add('  '+GetShortName(FindObjectFile('prt0','',false))+'(.text)');
+  ScriptRes.Add('  '+compiler.CFileUtl.GetShortName(FindObjectFile('prt0','',false))+'(.text)');
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
        begin
           ScriptRes.Add('  . = ALIGN(16);');
-          ScriptRes.Add('  '+GetShortName(s)+'(.text)');
+          ScriptRes.Add('  '+compiler.CFileUtl.GetShortName(s)+'(.text)');
        end;
    end;
   ScriptRes.Add('    *(.text)');
@@ -357,13 +357,13 @@ begin
   HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
+     ScriptRes.Add('SEARCH_DIR("'+compiler.CFileUtl.GetShortName(HPath.Str)+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
+     ScriptRes.Add('SEARCH_DIR("'+compiler.CFileUtl.GetShortName(HPath.Str)+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 

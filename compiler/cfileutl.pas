@@ -131,9 +131,9 @@ interface
 {        function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
         function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+        function  GetShortName(const n:TCmdStr):TCmdStr;
       end;
 
-    function  GetShortName(const n:TCmdStr):TCmdStr;
     function maybequoted(const s:string):string;
     function maybequoted(const s:ansistring):ansistring;
     function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
@@ -1274,7 +1274,7 @@ end;
      end;
 
 
-    function GetShortName(const n:TCmdStr):TCmdStr;
+    function TCompilerFileUtils.GetShortName(const n:TCmdStr):TCmdStr;
 {$ifdef win32}
       var
         hs,hs2 : TCmdStr;

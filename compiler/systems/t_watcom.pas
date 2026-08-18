@@ -80,12 +80,12 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write object files, start with prt0 }
-  LinkRes.Add('file '+GetShortName(FindObjectFile('prt0','',false)));
+  LinkRes.Add('file '+compiler.CFileUtl.GetShortName(FindObjectFile('prt0','',false)));
   if not ObjectFiles.Empty then
      While not ObjectFiles.Empty do
       begin
         S:=ObjectFiles.GetFirst;
-        LinkRes.AddFileName('file '+GetShortName(s));
+        LinkRes.AddFileName('file '+compiler.CFileUtl.GetShortName(s));
       end;
 
   { Write staticlibraries }
@@ -93,7 +93,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName('file '+GetShortName(s));
+        LinkRes.AddFileName('file '+compiler.CFileUtl.GetShortName(s));
       end;
 
 (*

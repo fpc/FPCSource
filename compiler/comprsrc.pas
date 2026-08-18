@@ -261,7 +261,7 @@ var
   var
     i: longint;
   begin
-    Result := GetShortName(filename);
+    Result := compiler.CFileUtl.GetShortName(filename);
     for I:=1 to Length(Result) do
     if Result[I] in AllowDirectorySeparators then
       Result[i]:='/';
