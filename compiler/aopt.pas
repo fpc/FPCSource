@@ -372,12 +372,10 @@ Unit aopt;
 
     procedure Optimize(AsmL:TAsmList);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         p : TAsmOptimizer;
       begin
         ResumeTimer(ct_aopt);
-        p:=casmoptimizer.Create(AsmL,compiler);
+        p:=casmoptimizer.Create(AsmL,AsmL.AsmData.Compiler);
         p.Optimize;
 {$ifdef DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
         p.Debug_InsertInstrRegisterDependencyInfo;
