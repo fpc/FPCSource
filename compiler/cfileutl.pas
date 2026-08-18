@@ -1256,8 +1256,6 @@ end;
 
    function  TCompilerFileUtils.FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-     var
        b : TCmdStr;
      begin
        { change extension only on platforms that use an exe extension, otherwise on OpenBSD
@@ -1266,7 +1264,7 @@ end;
          b:=ChangeFileExt(bin,source_info.exeext)
        else
          b:=bin;
-       FindExe:=compiler.CFileUtl.FindFileInExeLocations(b,allowcache,foundfile);
+       FindExe:=FindFileInExeLocations(b,allowcache,foundfile);
      end;
 
 
