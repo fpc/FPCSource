@@ -1447,7 +1447,7 @@ end;
           quote_script:=source_info.script
         else
           quote_script:=compiler.target.info.script;
-        result:=compiler.CFileUtl.maybequoted_for_script(s,quote_script);
+        result:=maybequoted_for_script(s,quote_script);
       end;
 
 
