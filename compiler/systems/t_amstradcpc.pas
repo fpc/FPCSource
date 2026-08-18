@@ -109,7 +109,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Sdld: Boolean;
        begin
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
          s:=FindObjectFile(s,'',false);
-        LinkRes.AddFileName((maybequoted(s)));
+        LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
        end;
      end;
 
@@ -119,7 +119,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Sdld: Boolean;
       while not StaticLibFiles.Empty do
        begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.Add('-l'+maybequoted(s));
+        LinkRes.Add('-l'+compiler.CFileUtl.maybequoted(s));
        end;
      end;
 
@@ -149,7 +149,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Vlink: Boolean;
     if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
-        LinkRes.AddFileName(maybequoted(s));
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
       end;
 
     while not ObjectFiles.Empty do
@@ -158,14 +158,14 @@ function TLinkerAmstradCPC.WriteResponseFile_Vlink: Boolean;
         if s<>'' then
           begin
             s:=FindObjectFile(s,'',false);
-            LinkRes.AddFileName(maybequoted(s));
+            LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
           end;
       end;
 
     while not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s));
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
       end;
 
     LinkRes.Add(')');
@@ -242,7 +242,7 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
+    FixedExeFileName:=compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
@@ -255,7 +255,7 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -290,10 +290,10 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     StripStr:='';
     MapStr:='';
     StartSymbolStr:='start';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
+    FixedExeFileName:=compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-      MapStr:='-M'+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
+      MapStr:='-M'+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
 
   { Write used files and libraries }
     WriteResponseFile_Vlink();
@@ -303,7 +303,7 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$MAP',MapStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
@@ -354,7 +354,7 @@ procedure TInternalLinkerAmstradCPC.DefaultLinkScript;
     prtobj:='prt0';
 
     if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
-      LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile(prtobj,'',false)));
+      LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)));
 
     while not ObjectFiles.Empty do
       begin
@@ -363,7 +363,7 @@ procedure TInternalLinkerAmstradCPC.DefaultLinkScript;
           begin
             if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
               s:=FindObjectFile(s,'',false);
-            LinkScript.Concat('READOBJECT ' + maybequoted(s));
+            LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(s));
           end;
       end;
 
@@ -375,7 +375,7 @@ procedure TInternalLinkerAmstradCPC.DefaultLinkScript;
           begin
             S:=StaticLibFiles.GetFirst;
             if s<>'' then
-              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+              LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
           end;
       end;
     LinkScript.Concat('ENDGROUP');

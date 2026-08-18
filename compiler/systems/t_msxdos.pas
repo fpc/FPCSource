@@ -110,7 +110,7 @@ function TLinkerMSXDOS.WriteResponseFile_Sdld: Boolean;
        begin
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
          s:=FindObjectFile(s,'',false);
-        LinkRes.AddFileName((maybequoted(s)));
+        LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
        end;
      end;
 
@@ -120,7 +120,7 @@ function TLinkerMSXDOS.WriteResponseFile_Sdld: Boolean;
       while not StaticLibFiles.Empty do
        begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.Add('-l'+maybequoted(s));
+        LinkRes.Add('-l'+compiler.CFileUtl.maybequoted(s));
        end;
      end;
 
@@ -150,7 +150,7 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
     if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
-        LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(compiler.CFileUtl.FixFileName(s)));
       end;
 
     while not ObjectFiles.Empty do
@@ -159,14 +159,14 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
         if s<>'' then
           begin
             s:=FindObjectFile(s,'',false);
-            LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
+            LinkRes.AddFileName(compiler.CFileUtl.maybequoted(compiler.CFileUtl.FixFileName(s)));
           end;
       end;
 
     while not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(compiler.CFileUtl.FixFileName(s)));
       end;
 
     LinkRes.Add(')');
@@ -236,7 +236,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
+    FixedExeFileName:=compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
@@ -249,7 +249,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -282,7 +282,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     GCSectionsStr:='-gc-all -mtype';
     StripStr:='';
     StartSymbolStr:='start';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
+    FixedExeFileName:=compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
   { Write used files and libraries }
     WriteResponseFile_Vlink();
@@ -292,7 +292,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -326,7 +326,7 @@ end;
 
 function TLinkerMSXDOS.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(compiler.current_module.exefilename)),true,false);
+    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' -t bin '+fn+' '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)),true,false);
   end;
 
 
@@ -342,7 +342,7 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
     prtobj:='prt0';
 
     if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
-      LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile(prtobj,'',false)));
+      LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)));
 
     while not ObjectFiles.Empty do
       begin
@@ -351,7 +351,7 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
           begin
             if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
               s:=FindObjectFile(s,'',false);
-            LinkScript.Concat('READOBJECT ' + maybequoted(s));
+            LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(s));
           end;
       end;
 
@@ -363,7 +363,7 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
           begin
             S:=StaticLibFiles.GetFirst;
             if s<>'' then
-              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+              LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
           end;
       end;
     LinkScript.Concat('ENDGROUP');
@@ -413,7 +413,7 @@ function TInternalLinkerMSXDOS.MakeExecutable: boolean;
     result:=inherited;
     { Post process }
     if result and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-      result:=PostProcessExecutable(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx'))));
+      result:=PostProcessExecutable(compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx'))));
   end;
 
 function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
@@ -435,7 +435,7 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
 
     if Found then
       begin
-        exitcode:=RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+        exitcode:=RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
         result:=exitcode<>0;
       end;
   end;

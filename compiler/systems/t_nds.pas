@@ -156,7 +156,7 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName((maybequoted(s)));
+      LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -172,7 +172,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName((maybequoted(s)));
+      LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -817,7 +817,7 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+   StripStr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
@@ -830,8 +830,8 @@ begin
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,preName)))));
-  Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+  Replace(cmdstr,'$EXE',(compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,preName)))));
+  Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);

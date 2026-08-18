@@ -152,9 +152,9 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 

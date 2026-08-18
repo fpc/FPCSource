@@ -179,7 +179,7 @@ begin
     if s<>'' then
       LinkRes.Add(compiler.CFileUtl.GetShortName(s) + ' +');
   end;
-  LinkRes.Add(', ' + maybequoted(compiler.current_module.exefilename));
+  LinkRes.Add(', ' + compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -203,7 +203,7 @@ begin
 
   { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
@@ -234,15 +234,15 @@ begin
     DOS command line is limited to 126 characters! }
 
   { add objectfiles, start with prt0 always }
-  LinkRes.Add(maybequoted(FindObjectFile('prt0','',false)));
+  LinkRes.Add(compiler.CFileUtl.maybequoted(FindObjectFile('prt0','',false)));
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkRes.Add(maybequoted(s));
+      LinkRes.Add(compiler.CFileUtl.maybequoted(s));
   end;
   LinkRes.Add('-oEXE');
-  LinkRes.Add('-o ' + maybequoted(compiler.current_module.exefilename));
+  LinkRes.Add('-o ' + compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -281,7 +281,7 @@ begin
 
   { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
@@ -329,24 +329,24 @@ begin
 
   { add objectfiles, start with prt0 always }
   case compiler.globals.current_settings.x86memorymodel of
-    mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
-    mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
-    mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
-    mm_compact: LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0c','',false)));
-    mm_large:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0l','',false)));
-    mm_huge:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0h','',false)));
+    mm_tiny:    LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0t','',false)));
+    mm_small:   LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0h','',false)));
   end;
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkRes.Add('file ' + maybequoted(s));
+      LinkRes.Add('file ' + compiler.CFileUtl.maybequoted(s));
   end;
   while not StaticLibFiles.Empty do
   begin
     s:=StaticLibFiles.GetFirst;
     if s<>'' then
-      LinkRes.Add('library '+MaybeQuoted(s));
+      LinkRes.Add('library '+compiler.CFileUtl.MaybeQuoted(s));
   end;
   if compiler.globals.apptype=app_com then
     LinkRes.Add('format dos com')
@@ -357,8 +357,8 @@ begin
   else
     LinkRes.Add('order clname CODE clname FAR_DATA clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('option map='+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map')));
-  LinkRes.Add('name ' + maybequoted(compiler.current_module.exefilename));
+    LinkRes.Add('option map='+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map')));
+  LinkRes.Add('name ' + compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -397,7 +397,7 @@ begin
 
   { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
@@ -496,25 +496,25 @@ var
 begin
   { add objectfiles, start with prt0 always }
   case compiler.globals.current_settings.x86memorymodel of
-    mm_tiny:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0t','',false)));
-    mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
-    mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
-    mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
-    mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
-    mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+    mm_tiny:    LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0t','',false)));
+    mm_small:   LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(FindObjectFile('prt0h','',false)));
   end;
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+      LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(s));
   end;
   LinkScript.Concat('GROUP');
   while not StaticLibFiles.Empty do
   begin
     s:=StaticLibFiles.GetFirst;
     if s<>'' then
-      LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+      LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
   end;
   LinkScript.Concat('ENDGROUP');
 

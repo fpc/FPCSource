@@ -247,7 +247,7 @@ begin
      Add('SET THEFILE='+ScriptFixFileName(FileName));
      Add('echo Assembling %THEFILE%');
    end;
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('if errorlevel 1 goto asmend');
 end;
 
@@ -259,20 +259,20 @@ begin
      Add('SET THEFILE='+ScriptFixFileName(FileName));
      Add('echo Linking %THEFILE%');
    end;
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('if errorlevel 1 goto linkend');
 end;
 
 
 Procedure TAsmScriptDos.AddDeleteCommand (Const FileName : TCmdStr);
 begin
- Add('Del ' + MaybeQuoted (ScriptFixFileName (FileName)));
+ Add('Del ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 
 Procedure TAsmScriptDos.AddDeleteDirCommand (Const FileName : TCmdStr);
 begin
- Add('Rmdir ' + MaybeQuoted (ScriptFixFileName (FileName)));
+ Add('Rmdir ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 
@@ -307,7 +307,7 @@ begin
      Add('SET THEFILE '+ScriptFixFileName(FileName));
      Add('echo Assembling $THEFILE');
    end;
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   { There is a problem here,
     as always return with a non zero error value PM  }
   Add('if error');
@@ -324,7 +324,7 @@ begin
      Add('SET THEFILE '+ScriptFixFileName(FileName));
      Add('echo Linking $THEFILE');
    end;
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('if error');
   Add('skip linkend');
   Add('endif');
@@ -333,13 +333,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + Unix2AmigaPath(MaybeQuoted(ScriptFixFileName(FileName))) + ' Quiet');
+ Add('Delete ' + Unix2AmigaPath(compiler.CFileUtl.MaybeQuoted(ScriptFixFileName(FileName))) + ' Quiet');
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + Unix2AmigaPath(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
+ Add('Delete ' + Unix2AmigaPath(compiler.CFileUtl.MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
 end;
 
 
@@ -371,9 +371,9 @@ end;
 Procedure TAsmScriptUnix.AddAsmCommand (Const Command, Options,FileName : TCmdStr);
 begin
   if FileName<>'' then
-   Add('echo Assembling '+maybequoted(ScriptFixFileName(FileName)));
-  Add(maybequoted(command)+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitAsm '+maybequoted(ScriptFixFileName(FileName))+'; fi');
+   Add('echo Assembling '+compiler.CFileUtl.maybequoted(ScriptFixFileName(FileName)));
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
+  Add('if [ $? != 0 ]; then DoExitAsm '+compiler.CFileUtl.maybequoted(ScriptFixFileName(FileName))+'; fi');
 end;
 
 
@@ -384,7 +384,7 @@ begin
   Add('OFS=$IFS');
   Add('IFS="');
   Add('"');
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(FileName)+'; fi');
   Add('IFS=$OFS');
 end;
@@ -392,13 +392,13 @@ end;
 
 Procedure TAsmScriptUnix.AddDeleteCommand (Const FileName : TCmdStr);
 begin
- Add('rm ' + MaybeQuoted (ScriptFixFileName(FileName)));
+ Add('rm ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
 Procedure TAsmScriptUnix.AddDeleteDirCommand (Const FileName : TCmdStr);
 begin
- Add('rmdir ' + MaybeQuoted (ScriptFixFileName(FileName)));
+ Add('rmdir ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
@@ -431,7 +431,7 @@ Procedure TAsmScriptMPW.AddAsmCommand (Const Command, Options,FileName : TCmdStr
 begin
   if FileName<>'' then
     Add('Echo Assembling '+ScriptFixFileName(FileName));
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('Exit If "{Status}" != 0');
 end;
 
@@ -440,7 +440,7 @@ Procedure TAsmScriptMPW.AddLinkCommand (Const Command, Options, FileName : TCmdS
 begin
   if FileName<>'' then
     Add('Echo Linking '+ScriptFixFileName(FileName));
-  Add(maybequoted(command)+' '+Options);
+  Add(compiler.CFileUtl.maybequoted(command)+' '+Options);
   Add('Exit If "{Status}" != 0');
 
   {Add resources}
@@ -454,13 +454,13 @@ end;
 
 Procedure TAsmScriptMPW.AddDeleteCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
+ Add('Delete ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
 Procedure TAsmScriptMPW.AddDeleteDirCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + MaybeQuoted (ScriptFixFileName (FileName)));
+ Add('Delete ' + compiler.CFileUtl.MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 

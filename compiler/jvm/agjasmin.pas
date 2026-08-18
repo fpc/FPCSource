@@ -658,12 +658,12 @@ implementation
        result:=asminfo^.asmcmd;
        filenames:=ScriptFixFileName(AsmFileName);
        if cs_asm_extern in compiler.globals.current_settings.globalswitches then
-         filenames:=maybequoted(filenames);
+         filenames:=compiler.CFileUtl.maybequoted(filenames);
        asmfile:=tcmdstrlistitem(asmfiles.First);
        while assigned(asmfile) do
          begin
            if cs_asm_extern in compiler.globals.current_settings.globalswitches then
-             filenames:=filenames+' '+maybequoted(ScriptFixFileName(asmfile.str))
+             filenames:=filenames+' '+compiler.CFileUtl.maybequoted(ScriptFixFileName(asmfile.str))
            else
             filenames:=filenames+' '+ScriptFixFileName(asmfile.str);
            asmfile:=tcmdstrlistitem(asmfile.next);
@@ -671,13 +671,13 @@ implementation
        Replace(result,'$ASM',filenames);
        if (path<>'') then
          if cs_asm_extern in compiler.globals.current_settings.globalswitches then
-           Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
+           Replace(result,'$OBJDIR',compiler.CFileUtl.maybequoted(ScriptFixFileName(path)))
          else
            Replace(result,'$OBJDIR',ScriptFixFileName(path))
        else
          Replace(result,'$OBJDIR','.');
        if cs_asm_extern in compiler.globals.current_settings.globalswitches then
-         Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)))
+         Replace(result,'$JASMINJAR',compiler.CFileUtl.maybequoted(ScriptFixFileName(jasminjar)))
        else
          Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar));
        Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);

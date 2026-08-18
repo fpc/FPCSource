@@ -151,7 +151,7 @@ begin
   { Create some replacements }
   mapstr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+    mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -160,7 +160,7 @@ begin
 
   SoNameStr:='';
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
@@ -194,7 +194,7 @@ begin
    end;
 
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  //Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$STACKSIZE',tostr(compiler.globals.stacksize));
@@ -227,7 +227,7 @@ begin
   { Create some replacements }
   mapstr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
+    mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -236,7 +236,7 @@ begin
 
   SoNameStr:='';
   compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
@@ -256,7 +256,7 @@ begin
    end;
 
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  //Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$STACKSIZE',tostr(compiler.globals.stacksize));
@@ -325,7 +325,7 @@ begin
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+      LinkScript.Concat('READOBJECT ' + compiler.CFileUtl.maybequoted(s));
   end;
 
   LinkScript.Concat('EXESECTION .wasm_globals');

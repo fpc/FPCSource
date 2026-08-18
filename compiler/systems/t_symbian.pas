@@ -73,19 +73,19 @@ implementation
             begin
                 s:=ObjectFiles.GetFirst;
                 if s<>'' then
-                  Concat('READOBJECT '+MaybeQuoted(s));
+                  Concat('READOBJECT '+compiler.CFileUtl.MaybeQuoted(s));
             end;
             while not StaticLibFiles.Empty do
             begin
                 s:=StaticLibFiles.GetFirst;
                 if s<>'' then
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+                  Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
             end;
             While not SharedLibFiles.Empty do
             begin
                 S:=SharedLibFiles.GetFirst;
                 if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+                  Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s2))
                 else
                   compiler.verbose.Comment(V_Error,'Import library not found for '+S);
             end;

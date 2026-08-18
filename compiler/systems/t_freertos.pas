@@ -166,9 +166,9 @@ begin
       if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
       if (compiler.globals.idf_version>=50200) then
-        LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
+        LinkRes.AddFileName(ExtractFileName(compiler.CFileUtl.maybequoted(s)))
       else
-        LinkRes.AddFileName((maybequoted(s)));
+        LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -181,9 +181,9 @@ begin
         begin
           S:=StaticLibFiles.GetFirst;
           if (compiler.globals.idf_version>=50200) then
-            LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
+            LinkRes.AddFileName(ExtractFileName(compiler.CFileUtl.maybequoted(s)))
           else
-            LinkRes.AddFileName((maybequoted(s)));
+            LinkRes.AddFileName((compiler.CFileUtl.maybequoted(s)));
         end;
     end;
 
@@ -1673,14 +1673,14 @@ begin
   Replace(Info.ExeCmd[1],'$IDF_PATH',compiler.globals.idfpath);
 {$endif defined(XTENSA) or defined(RISCV32)}
 
-  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')));
+  FixedExeFileName:=compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+    mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -1702,7 +1702,7 @@ begin
   if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1712,7 +1712,7 @@ begin
   else
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+    Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1749,7 +1749,7 @@ begin
           success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
             '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--version=3 '+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
+            '-o '+compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,
             true,false);
         end
@@ -1759,7 +1759,7 @@ begin
           success:=DoExec(binstr,cmdstr+'--chip '+cntrlr+' elf2image '+
             '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--elf-sha256-offset 0xb0 '+extraopts+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
+            '-o '+compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,
             true,false);
         end;
@@ -1768,7 +1768,7 @@ begin
   if success then
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
       FixedExeFileName+' '+
-      maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),true,false);
+      compiler.CFileUtl.maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),true,false);
 {$endif defined(XTENSA) or defined(RISCV32)}
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

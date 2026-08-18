@@ -132,11 +132,11 @@ interface
         function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         function  GetShortName(const n:TCmdStr):TCmdStr;
+        function maybequoted(const s:string):string;
+        function maybequoted(const s:ansistring):ansistring;
         function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
       end;
 
-    function maybequoted(const s:string):string;
-    function maybequoted(const s:ansistring):ansistring;
 
     function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
@@ -1306,7 +1306,7 @@ end;
       end;
 
 
-    function maybequoted(const s:string):string;
+    function TCompilerFileUtils.maybequoted(const s:string):string;
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
@@ -1443,7 +1443,7 @@ end;
       end;
 
 
-    function maybequoted(const s:ansistring):ansistring;
+    function TCompilerFileUtils.maybequoted(const s:ansistring):ansistring;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var

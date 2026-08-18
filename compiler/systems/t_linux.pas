@@ -646,7 +646,7 @@ begin
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
       if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
-       AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+       AddFileName(compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
       if linklibc and (libctype<>uclibc) then
        begin
@@ -688,7 +688,7 @@ begin
        begin
          s:=ObjectFiles.GetFirst;
          if s<>'' then
-          AddFileName(maybequoted(s));
+          AddFileName(compiler.CFileUtl.maybequoted(s));
        end;
       EndSection(')');
 
@@ -699,7 +699,7 @@ begin
          While not StaticLibFiles.Empty do
           begin
             S:=StaticLibFiles.GetFirst;
-            AddFileName(maybequoted(s))
+            AddFileName(compiler.CFileUtl.maybequoted(s))
           end;
          Add(')');
        end;
@@ -879,7 +879,7 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+   mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
@@ -899,12 +899,12 @@ begin
      (compiler.globals.utilsdirectory<>'') and
      compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
-      ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
+      ltostr:='-plugin '+compiler.CFileUtl.maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;
 
   if AddSanitizerLibrariesAndGetSearchDir('linux',sanitizerLibraryDir) then
     begin
-      rpathstr:='-rpath '+maybequoted(sanitizerLibraryDir);
+      rpathstr:='-rpath '+compiler.CFileUtl.maybequoted(sanitizerLibraryDir);
     end;
 
 { Write used files and libraries }
@@ -912,9 +912,9 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -949,10 +949,10 @@ begin
       for i:=1 to 3 do
         begin
           compiler.CFileUtl.SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
-          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
+          Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
+          Replace(cmdstr,'$DBGFN',compiler.CFileUtl.maybequoted(extractfilename(compiler.current_module.dbgfilename)));
           Replace(cmdstr,'$DBGX',compiler.current_module.dbgfilename);
-          Replace(cmdstr,'$DBG',maybequoted(compiler.current_module.dbgfilename));
+          Replace(cmdstr,'$DBG',compiler.CFileUtl.maybequoted(compiler.current_module.dbgfilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;
@@ -1008,7 +1008,7 @@ begin
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(compiler.current_module.sharedlibfilename);
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-     mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
+     mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
   { add custom LTO library if using custom clang }
   if (cs_lto in compiler.globals.current_settings.moduleswitches) and
@@ -1016,19 +1016,19 @@ begin
      (compiler.globals.utilsdirectory<>'') and
      compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
-      ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
+      ltostr:='-plugin '+compiler.CFileUtl.maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;
 
   if AddSanitizerLibrariesAndGetSearchDir('linux',sanitizerLibraryDir) then
     begin
-      rpathstr:='-rpath '+maybequoted(sanitizerLibraryDir)
+      rpathstr:='-rpath '+compiler.CFileUtl.maybequoted(sanitizerLibraryDir)
     end;
 
  { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
@@ -1044,7 +1044,7 @@ begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
      compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 
@@ -1122,10 +1122,10 @@ var
       { TODO: shall we search library without suffix if one with suffix is not found? }
       if (not(cs_link_staticflag in compiler.globals.current_settings.globalswitches)) and
          FindLibraryFile(s1,'','',s2) then
-        LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
+        LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.maybequoted(s2))
       { TODO: static libraries never have numeric suffix in their names }
       else if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
-        LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
+        LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.maybequoted(s2))
       else
         compiler.verbose.Comment(V_Error,'Import library not found for '+S);
     end;
@@ -1142,26 +1142,26 @@ begin
 
   { add objectfiles, start with prt0 always }
   if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
-    LinkScript.Concat('READOBJECT '+ maybequoted(FindObjectFile(prtobj,'',false)));
+    LinkScript.Concat('READOBJECT '+ compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)));
 
   { try to add crti and crtbegin if linking to C }
   if linklibc and (libctype<>uclibc) then
     begin
       { crti.o must come first }
       if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
-        LinkScript.Concat('READOBJECT '+maybequoted(s));
+        LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s));
       { then the crtbegin* }
       if cs_create_pic in compiler.globals.current_settings.moduleswitches then
         begin
           if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
-            LinkScript.Concat('READOBJECT '+maybequoted(s));
+            LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s));
         end
       else
         if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) and
           compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
-          LinkScript.Concat('READOBJECT '+maybequoted(s))
+          LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s))
         else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
-          LinkScript.Concat('READOBJECT '+maybequoted(s));
+          LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s));
     end;
 
   ScriptAddSourceStatements(false);
@@ -1172,7 +1172,7 @@ begin
   { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
     and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
   if IsSharedLibrary then
-    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(compiler.globals.sysrootpath+dynlinker));
+    LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.maybequoted(compiler.globals.sysrootpath+dynlinker));
 
   linkToSharedLibs:=(not SharedLibFiles.Empty);
 
@@ -1213,9 +1213,9 @@ begin
         found1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);
       found2:=compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2);
       if found1 then
-        LinkScript.Concat('READOBJECT '+maybequoted(s1));
+        LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s1));
       if found2 then
-        LinkScript.Concat('READOBJECT '+maybequoted(s2));
+        LinkScript.Concat('READOBJECT '+compiler.CFileUtl.maybequoted(s2));
     end;
 
    if (not IsSharedLibrary) then

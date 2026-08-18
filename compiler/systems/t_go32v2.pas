@@ -77,7 +77,7 @@ implementation
           s2: TCmdStr;
         begin
           if FindLibraryFile(name,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
-            LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+            LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s2))
           else
             compiler.verbose.Comment(V_Error,'Import library not found for '+name);
         end;
@@ -90,13 +90,13 @@ implementation
               begin
                 s:=ObjectFiles.GetFirst;
                 if s<>'' then
-                  Concat('READOBJECT '+MaybeQuoted(s));
+                  Concat('READOBJECT '+compiler.CFileUtl.MaybeQuoted(s));
               end;
             while not StaticLibFiles.Empty do
               begin
                 s:=StaticLibFiles.GetFirst;
                 if s<>'' then
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+                  Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
               end;
             linklibc:=False;
             while not SharedLibFiles.Empty do
@@ -211,9 +211,9 @@ begin
     DOS command line is limited to 126 characters! }
   { Newer or cross GNU ld do not like \ in path names,
     so we use bstoslash }
-  LinkRes.Add('--script='+maybequoted(compiler.CFileUtl.bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
+  LinkRes.Add('--script='+compiler.CFileUtl.maybequoted(compiler.CFileUtl.bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('-Map '+maybequoted(compiler.CFileUtl.bstoslash(ChangeFileExt(compiler.current_module.exefilename,'.map'))));
+    LinkRes.Add('-Map '+compiler.CFileUtl.maybequoted(compiler.CFileUtl.bstoslash(ChangeFileExt(compiler.current_module.exefilename,'.map'))));
   if compiler.target.create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
@@ -221,7 +221,7 @@ begin
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(compiler.CFileUtl.bstoslash(compiler.current_module.exefilename)));
+  LinkRes.Add('-o '+compiler.CFileUtl.maybequoted(compiler.CFileUtl.bstoslash(compiler.current_module.exefilename)));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -391,7 +391,7 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 

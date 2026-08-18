@@ -329,7 +329,7 @@ implementation
            if not compiler.globals.librarysearchpath.FindFile(startupfile,false,result) then
              result:='/usr/lib/'+startupfile;
           end;
-        result:=maybequoted(result);
+        result:=compiler.CFileUtl.maybequoted(result);
       end;
 
 
@@ -389,7 +389,7 @@ implementation
       begin
         if compiler.globals.sysrootpath<>'' then
           begin
-            result:='-syslibroot '+maybequoted(compiler.globals.sysrootpath);
+            result:='-syslibroot '+compiler.CFileUtl.maybequoted(compiler.globals.sysrootpath);
           end
         else
           begin
@@ -406,26 +406,26 @@ implementation
         HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
         while assigned(HPath) do
          begin
-           result:=result+' '+maybequoted('-L'+HPath.Str);
+           result:=result+' '+compiler.CFileUtl.maybequoted('-L'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
         HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
         while assigned(HPath) do
          begin
-           result:=result+' '+maybequoted('-L'+HPath.Str);
+           result:=result+' '+compiler.CFileUtl.maybequoted('-L'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
 
         HPath:=TCmdStrListItem(compiler.current_module.localframeworksearchpath.First);
         while assigned(HPath) do
          begin
-           result:=result+' '+maybequoted('-F'+HPath.Str);
+           result:=result+' '+compiler.CFileUtl.maybequoted('-F'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
         HPath:=TCmdStrListItem(compiler.globals.FrameworkSearchPath.First);
         while assigned(HPath) do
          begin
-           result:=result+' '+maybequoted('-F'+HPath.Str);
+           result:=result+' '+compiler.CFileUtl.maybequoted('-F'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
       end;
@@ -445,7 +445,7 @@ implementation
                 i:=Pos(compiler.target.info.sharedlibext,s);
                 if i>0 then
                   Delete(s,i,length(s));
-                result:=result+' '+maybequoted('-l'+s);
+                result:=result+' '+compiler.CFileUtl.maybequoted('-l'+s);
               end;
            { be sure that libc is the last lib }
            if not ReOrderEntries then
@@ -456,7 +456,7 @@ implementation
 
         while not FrameworkFiles.empty do
           begin
-            result:=result+' -framework '+maybequoted(FrameworkFiles.GetFirst);
+            result:=result+' -framework '+compiler.CFileUtl.maybequoted(FrameworkFiles.GetFirst);
           end;
       end;
 
@@ -522,7 +522,7 @@ implementation
       ltostr:='';
 
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        mapstr:='-map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+        mapstr:='-map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
         StaticStr:='-static';
@@ -538,7 +538,7 @@ implementation
          (compiler.globals.utilsdirectory<>'') and
          compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
-          ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
+          ltostr:='-lto_library '+compiler.CFileUtl.maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;
 
       { Write symbol order file }
@@ -546,14 +546,14 @@ implementation
 
     { Call linker }
       compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+      Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
       Replace(cmdstr,'$MAP',mapstr);
-      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$LTO',ltostr);
       if ordersymfile<>'' then
-        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+compiler.CFileUtl.maybequoted(ordersymfile))
       else
         Replace(cmdstr,'$ORDERSYMS','');
 
@@ -561,7 +561,7 @@ implementation
         begin
           { also add the executable path as search path in case the asan
             library gets copied into the application bundle }
-          Replace(cmdstr,'$RPATH','-rpath @executable_path -rpath '+maybequoted(sanitizerLibraryDir))
+          Replace(cmdstr,'$RPATH','-rpath @executable_path -rpath '+compiler.CFileUtl.maybequoted(sanitizerLibraryDir))
         end
       else
         begin
@@ -579,7 +579,7 @@ implementation
       Replace(cmdstr,'$VERSION',GetLinkVersion);
       Replace(cmdstr,'$SYSROOT',GetSysroot);
       Replace(cmdstr,'$LIBSEARCHPATH',GetLibSearchPath);
-      Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(linkfiles));
+      Replace(cmdstr,'$FILELIST','-filelist '+compiler.CFileUtl.maybequoted(linkfiles));
       Replace(cmdstr,'$LIBRARIES',GetLibraries);
       BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
@@ -590,7 +590,7 @@ implementation
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
-          extdbgcmdstr:=maybequoted(compiler.current_module.exefilename);
+          extdbgcmdstr:=compiler.CFileUtl.maybequoted(compiler.current_module.exefilename);
         end;
 
       success:=DoExec(BinStr,CmdStr,true,false);
@@ -647,7 +647,7 @@ implementation
         GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        mapstr:='-map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
+        mapstr:='-map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
       { add custom LTO library if using custom clang }
       if (cs_lto in compiler.globals.current_settings.moduleswitches) and
@@ -655,7 +655,7 @@ implementation
          (compiler.globals.utilsdirectory<>'') and
          compiler.CFileUtl.FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
-          ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
+          ltostr:='-lto_library '+compiler.CFileUtl.maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;
 
       targetstr:='';
@@ -665,17 +665,17 @@ implementation
 
       { Call linker }
       compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(compiler.current_module.sharedlibfilename)));
+      Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ExpandFileName(compiler.current_module.sharedlibfilename)));
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
-      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$INIT',InitStr);
       Replace(cmdstr,'$FINI',FiniStr);
       Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
       Replace(cmdstr,'$MAP',mapstr);
       Replace(cmdstr,'$LTO',ltostr);
       if ordersymfile<>'' then
-        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+compiler.CFileUtl.maybequoted(ordersymfile))
       else
         Replace(cmdstr,'$ORDERSYMS','');
       { add asan library if known }
@@ -683,7 +683,7 @@ implementation
         begin
           { also add the executable path as search path in case the asan
             library gets copied into the application bundle }
-          Replace(cmdstr,'$RPATH','-rpath @executable_path -rpath '+maybequoted(sanitizerLibraryDir))
+          Replace(cmdstr,'$RPATH','-rpath @executable_path -rpath '+compiler.CFileUtl.maybequoted(sanitizerLibraryDir))
         end
       else
         begin
@@ -698,7 +698,7 @@ implementation
       Replace(cmdstr,'$VERSION',GetLinkVersion);
       Replace(cmdstr,'$SYSROOT',GetSysroot);
       Replace(cmdstr,'$LIBSEARCHPATH',GetLibSearchPath);
-      Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(linkfiles));
+      Replace(cmdstr,'$FILELIST','-filelist '+compiler.CFileUtl.maybequoted(linkfiles));
       Replace(cmdstr,'$LIBRARIES',GetLibraries);
       BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
@@ -709,7 +709,7 @@ implementation
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
-          extdbgcmdstr:=maybequoted(compiler.current_module.sharedlibfilename);
+          extdbgcmdstr:=compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename);
         end;
 
       LinkSymsFileName:='';
@@ -722,7 +722,7 @@ implementation
             writeln(exportedsyms,texportlibunix(compiler.exportlib).exportedsymnames.getfirst);
           until texportlibunix(compiler.exportlib).exportedsymnames.empty;
           close(exportedsyms);
-          cmdstr:=cmdstr+' -exported_symbols_list '+maybequoted(compiler.globals.outputexedir+LinkSymsFileName);
+          cmdstr:=cmdstr+' -exported_symbols_list '+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+LinkSymsFileName);
         end;
 
       success:=DoExec(BinStr,cmdstr,true,false);
@@ -735,7 +735,7 @@ implementation
       if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
        begin
          compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-         Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+         Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
          success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
        end;
 

@@ -131,7 +131,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    s1 := Unix2AmigaPath(maybequoted(s));
+    s1 := Unix2AmigaPath(compiler.CFileUtl.maybequoted(s));
     if trim(s1)<>'' then
      LinkRes.Add('SEARCH_DIR('+s1+')');
     HPath:=TCmdStrListItem(HPath.Next);
@@ -142,14 +142,14 @@ begin
   if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
     end;
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
      begin
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -161,7 +161,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -230,13 +230,13 @@ begin
   { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$ENTRY',EntryStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
 
-  { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename^))));
-    Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));}
+  { Replace(cmdstr,'$EXE',Unix2AmigaPath(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename^))));
+    Replace(cmdstr,'$RES',Unix2AmigaPath(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));}
 
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
 
@@ -244,7 +244,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     begin
       compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+      Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
       success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
     end;
 

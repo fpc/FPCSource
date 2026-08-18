@@ -129,16 +129,16 @@ begin
         s:=FPCResRCArgs
       else
         s:=compiler.target.res.rccmd;
-      Replace(s,'$RES',maybequoted(OutName));
-      Replace(s,'$RC',maybequoted(fname));
+      Replace(s,'$RES',compiler.CFileUtl.maybequoted(OutName));
+      Replace(s,'$RC',compiler.CFileUtl.maybequoted(fname));
       ObjUsed:=False;
     end
   else
     begin
       s:=compiler.target.res.rescmd;
       ObjUsed:=(pos('$OBJ',s)>0);
-      Replace(s,'$OBJ',maybequoted(OutName));
-      Replace(s,'$RES',maybequoted(fname));
+      Replace(s,'$OBJ',compiler.CFileUtl.maybequoted(OutName));
+      Replace(s,'$RES',compiler.CFileUtl.maybequoted(fname));
     end;
   Result:=s;
 end;
@@ -265,7 +265,7 @@ var
     for I:=1 to Length(Result) do
     if Result[I] in AllowDirectorySeparators then
       Result[i]:='/';
-    Result:=maybequoted(Result);
+    Result:=compiler.CFileUtl.maybequoted(Result);
   end;
 
 begin
@@ -279,8 +279,8 @@ begin
       if (compiler.target.res.rcbin = 'windres') and not compiler.globals.RCForceFPCRes then
         Replace(s,'$RC',WindresFileName(fname))
       else
-        Replace(s,'$RC',maybequoted(fname));
-      Replace(s,'$RES',maybequoted(OutName));
+        Replace(s,'$RC',compiler.CFileUtl.maybequoted(fname));
+      Replace(s,'$RES',compiler.CFileUtl.maybequoted(OutName));
       ObjUsed:=False;
     end
   else
@@ -290,7 +290,7 @@ begin
         ObjUsed:=false
       else
         ObjUsed:=(pos('$OBJ',s)>0);
-      Replace(s,'$OBJ',maybequoted(OutName));
+      Replace(s,'$OBJ',compiler.CFileUtl.maybequoted(OutName));
       subarch:='all';
       arch:=cpu2str[compiler.target.cpu];
       if (compiler.target.info.cpu=systemstypes.cpu_arm) then
@@ -319,14 +319,14 @@ begin
       else
         Replace(s,'$DBG','');
       if fCollectCount=0 then
-        s:=s+' '+maybequoted(fname)
+        s:=s+' '+compiler.CFileUtl.maybequoted(fname)
       else
-        s:=s+' '+maybequoted('@'+fScriptName);
+        s:=s+' '+compiler.CFileUtl.maybequoted('@'+fScriptName);
     end;
   { windres doesn't like empty include paths }
   if respath='' then
     respath:='.';
-  Replace(s,'$INC',maybequoted(respath));
+  Replace(s,'$INC',compiler.CFileUtl.maybequoted(respath));
   if (output=roRes) and (compiler.target.res.rcbin='windres') and not compiler.globals.RCForceFPCRes then
   begin
     { try to find a preprocessor }

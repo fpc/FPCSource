@@ -363,7 +363,7 @@ begin
         if LdSupportsNoResponseFile then
           LinkRes.AddFileName(s)
         else
-          LinkRes.AddFileName(maybequoted(s));
+          LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
     end;
 
   if not LdSupportsNoResponseFile then
@@ -389,7 +389,7 @@ begin
         if LdSupportsNoResponseFile then
           LinkRes.AddFileName(s)
         else
-          LinkRes.AddFileName(maybequoted(s))
+          LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s))
       end;
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
@@ -498,7 +498,7 @@ begin
   mapstr:='';
   ltostr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+    mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -562,16 +562,16 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$LTO',ltostr);
   if ordersymfile<>'' then
-    Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+compiler.CFileUtl.maybequoted(ordersymfile))
   else
     Replace(cmdstr,'$ORDERSYMS','');
 
@@ -658,7 +658,7 @@ begin
     ;
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
+    mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
@@ -680,13 +680,13 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$FILELIST','');
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -694,7 +694,7 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$LTO',ltostr);
   if ordersymfile<>'' then
-    Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+compiler.CFileUtl.maybequoted(ordersymfile))
   else
     Replace(cmdstr,'$ORDERSYMS','');
   BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
@@ -721,7 +721,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
    end;
 

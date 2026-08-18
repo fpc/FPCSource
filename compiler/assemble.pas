@@ -675,9 +675,9 @@ Implementation
            else
              compiler.verbose.Message1(exec_i_assembling_pipe,owner.AsmFileName);
            if compiler.verbose.checkverbosity(V_Executable) then
-             compiler.verbose.comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
+             compiler.verbose.comment(V_Executable,'Executing "'+compiler.CFileUtl.maybequoted(owner.FindAssembler)+'" with command line "'+
                owner.MakeCmdLine(AsmData)+'"');
-           POpen(outfile,maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine(AsmData),'W');
+           POpen(outfile,compiler.CFileUtl.maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine(AsmData),'W');
          end
         else
 {$endif}
@@ -999,8 +999,8 @@ Implementation
         ;
         if (cs_assemble_on_target in compiler.globals.current_settings.globalswitches) then
          begin
-           Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
-           Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
+           Replace(result,'$ASM',compiler.CFileUtl.maybequoted(ScriptFixFileName(AsmFileName)));
+           Replace(result,'$OBJ',compiler.CFileUtl.maybequoted(ScriptFixFileName(ObjFileName)));
          end
         else
          begin
@@ -1012,8 +1012,8 @@ Implementation
               Replace(result,'$ASM','-')
           else
 {$endif}
-             Replace(result,'$ASM',maybequoted(AsmFileName));
-           Replace(result,'$OBJ',maybequoted(ObjFileName));
+             Replace(result,'$ASM',compiler.CFileUtl.maybequoted(AsmFileName));
+           Replace(result,'$OBJ',compiler.CFileUtl.maybequoted(ObjFileName));
          end;
 
          if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then

@@ -272,7 +272,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
    end;
   LinkRes.Add(')');
 
@@ -283,7 +283,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s))
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s))
       end;
      LinkRes.Add(')');
    end;
@@ -346,13 +346,13 @@ begin
   HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L '+maybequoted(HPath.Str));
+     LinkRes.Add('-L '+compiler.CFileUtl.maybequoted(HPath.Str));
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L '+maybequoted(HPath.Str));
+     LinkRes.Add('-L '+compiler.CFileUtl.maybequoted(HPath.Str));
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   { force local symbol resolution (i.e., inside the shared }
@@ -399,7 +399,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
    end;
 
   { Write staticlibraries }
@@ -409,7 +409,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s))
+        LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s))
       end;
      linkres.add('-)');
    end;
@@ -489,11 +489,11 @@ begin
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
-       StripStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
+       StripStr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
      else
        begin
          StripStr:='-m';
-         RedirectStr:=' > '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+         RedirectStr:=' > '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
        end;
    end;
   If (cs_profile in compiler.globals.current_settings.moduleswitches) or
@@ -514,11 +514,11 @@ begin
     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr)
   else
     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if use_gnu_ld then
     begin
-      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
@@ -574,11 +574,11 @@ begin
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
-       MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
+       MapStr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
      else
        begin
          MapStr:='-m';
-         RedirectStr:=' > '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+         RedirectStr:=' > '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
        end;
    end;
   need_quotes:= (cs_link_nolink in compiler.globals.current_settings.globalswitches) or
@@ -622,17 +622,17 @@ begin
     compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr)
   else
     compiler.CFileUtl.SplitBinCmd(Info.DllCmd[3],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
     begin
-      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
     begin
-      Replace(cmdstr,'$VERSIONFILE',maybequoted(compiler.globals.outputexedir+Info.ResName));
+      Replace(cmdstr,'$VERSIONFILE',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
       linkstr:='';
       while not linkres.data.Empty do
         begin
@@ -653,7 +653,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 

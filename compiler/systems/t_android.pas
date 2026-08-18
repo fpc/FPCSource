@@ -229,13 +229,13 @@ begin
       HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
-         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         Add('SEARCH_DIR('+compiler.CFileUtl.maybequoted(HPath.Str)+')');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
       HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
       while assigned(HPath) do
        begin
-         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         Add('SEARCH_DIR('+compiler.CFileUtl.maybequoted(HPath.Str)+')');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
 
@@ -265,7 +265,7 @@ begin
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
       if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
-        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+        AddFileName(compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)));
       { Add libc startup object file }
       if isdll then
         s:='crtbegin_so.o'
@@ -275,13 +275,13 @@ begin
         else
           s:='crtbegin_dynamic.o';
       compiler.globals.librarysearchpath.FindFile(s,false,s1);
-      AddFileName(maybequoted(s1));
+      AddFileName(compiler.CFileUtl.maybequoted(s1));
       { main objectfiles }
       while not ObjectFiles.Empty do
        begin
          s:=ObjectFiles.GetFirst;
          if s<>'' then
-          AddFileName(maybequoted(s));
+          AddFileName(compiler.CFileUtl.maybequoted(s));
        end;
       EndSection(')');
 
@@ -292,7 +292,7 @@ begin
          While not StaticLibFiles.Empty do
           begin
             S:=StaticLibFiles.GetFirst;
-            AddFileName(maybequoted(s))
+            AddFileName(compiler.CFileUtl.maybequoted(s))
           end;
          Add(')');
        end;
@@ -344,7 +344,7 @@ begin
       else
         s:='crtend_android.o';
       compiler.globals.librarysearchpath.FindFile(s,false,s1);
-      AddFileName(maybequoted(s1));
+      AddFileName(compiler.CFileUtl.maybequoted(s1));
       Add(')');
 
       { Additions to the linker script }
@@ -403,7 +403,7 @@ begin
      not (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    opts:=opts + ' -Map '+maybequoted(ChangeFileExt(outname,'.map'));
+    opts:=opts + ' -Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(outname,'.map'));
   if compiler.target.create_smartlink_sections then
     opts:=opts + ' --gc-sections';
   if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
@@ -433,9 +433,9 @@ begin
   else
     s:=Info.ExeCmd[1];
   compiler.CFileUtl.SplitBinCmd(s, binstr, cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(outname));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(outname));
   Replace(cmdstr,'$OPT',opts);
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   if IsSharedLib then
     Replace(cmdstr,'$SONAME',ExtractFileName(outname));
 
@@ -458,9 +458,9 @@ begin
       for i:=1 to 3 do
         begin
           compiler.CFileUtl.SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(outname));
-          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
-          Replace(cmdstr,'$DBG',maybequoted(compiler.current_module.dbgfilename));
+          Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(outname));
+          Replace(cmdstr,'$DBGFN',compiler.CFileUtl.maybequoted(extractfilename(compiler.current_module.dbgfilename)));
+          Replace(cmdstr,'$DBG',compiler.CFileUtl.maybequoted(compiler.current_module.dbgfilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;

@@ -528,13 +528,13 @@ begin
    This means that name of the output directory cannot contain spaces,
    but at least it works otherwise...
 
-        Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+        Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
 *)
         Replace(cmdstr,'$RES',compiler.globals.outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
-        Replace(cmdstr,'$OUT',maybequoted(OutName));
-        Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+        Replace(cmdstr,'$OUT',compiler.CFileUtl.maybequoted(OutName));
+        Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
         if i<>3 then
          success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,(i=1),false)
         else

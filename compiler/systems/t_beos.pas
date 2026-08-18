@@ -403,10 +403,10 @@ begin
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -461,10 +461,10 @@ var
 
 { Call linker }
   compiler.CFileUtl.SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -476,7 +476,7 @@ var
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      compiler.CFileUtl.SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 

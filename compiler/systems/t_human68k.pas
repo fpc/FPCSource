@@ -130,7 +130,7 @@ begin
   if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
     end;
   while not ObjectFiles.Empty do
     begin
@@ -140,7 +140,7 @@ begin
           { vlink doesn't use SEARCH_DIR for object files }
           if UseVLink then
              s:=FindObjectFile(s,'',false);
-          LinkRes.AddFileName(maybequoted(s));
+          LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
        end;
     end;
 
@@ -156,7 +156,7 @@ begin
       while not StaticLibFiles.Empty do
         begin
           S:=StaticLibFiles.GetFirst;
-          LinkRes.AddFileName(maybequoted(s));
+          LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
         end;
     end;
 
@@ -189,9 +189,9 @@ begin
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     if UseVLink then
-      MapStr:='-M'+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename))
+      MapStr:='-M'+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.mapfilename))
     else
-      MapStr:='-Map '+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
+      MapStr:='-Map '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
@@ -212,8 +212,8 @@ begin
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(ExeName)));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$FLAGS',FlagsStr);
   Replace(cmdstr,'$STRIP',StripStr);

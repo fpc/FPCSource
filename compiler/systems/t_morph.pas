@@ -126,7 +126,7 @@ begin
   if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
     end;
   while not ObjectFiles.Empty do
    begin
@@ -136,7 +136,7 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if UseVLink then
        s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -152,7 +152,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(compiler.CFileUtl.maybequoted(s)));
      end;
    end;
 
@@ -227,14 +227,14 @@ begin
       if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         StripStr:='-s -P __abox__';
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(compiler.current_module.mapfilename)));
+        MapStr:='-M'+Unix2AmigaPath(compiler.CFileUtl.maybequoted(ScriptFixFilename(compiler.current_module.mapfilename)));
       if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc -sd';
     end
   else
     begin
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        MapStr:='-Map '+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
+        MapStr:='-Map '+compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
       if compiler.target.create_smartlink_sections then
         GCSectionsStr:='--gc-sections -e _start';
     end;
@@ -249,14 +249,14 @@ begin
   Replace(cmdstr,'$MAP',MapStr);
   if UseVLink then
     begin
-      Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
-      Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
+      Replace(cmdstr,'$EXE',Unix2AmigaPath(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
+      Replace(cmdstr,'$RES',Unix2AmigaPath(compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
       Replace(cmdstr,'$STRIP',StripStr);
     end
   else
     begin
-      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
-      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+      Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+      Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     end;
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
@@ -269,7 +269,7 @@ begin
       if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         begin
           compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+          Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
         end;
     end;

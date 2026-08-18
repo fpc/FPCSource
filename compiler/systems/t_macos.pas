@@ -226,9 +226,9 @@ begin
 
 { Prepare linking }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -327,14 +327,14 @@ begin
   if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
     end;
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
      begin
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
      end;
    end;
   LinkRes.Add(')');
@@ -346,7 +346,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(compiler.CFileUtl.maybequoted(s));
      end;
     LinkRes.Add(')');
    end;
@@ -411,8 +411,8 @@ begin
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(ScriptFixFileName(ExeName)));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);

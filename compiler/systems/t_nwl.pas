@@ -574,10 +574,10 @@ begin
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$TMPOBJ',maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
+  Replace(cmdstr,'$TMPOBJ',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
   BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
@@ -592,7 +592,7 @@ begin
     NLMConvLinkFile.writetodisk;
     NLMConvLinkFile.Free;
     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-    Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
+    Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);

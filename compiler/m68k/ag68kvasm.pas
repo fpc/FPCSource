@@ -112,13 +112,13 @@ unit ag68kvasm;
 
         if (compiler.target.info.system = system_m68k_amiga) then
           begin
-            Replace(result,'$ASM',maybequoted(ScriptFixFileName(Unix2AmigaPath(AsmFileName))));
-            Replace(result,'$OBJ',maybequoted(ScriptFixFileName(Unix2AmigaPath(ObjFileName))));
+            Replace(result,'$ASM',compiler.CFileUtl.maybequoted(ScriptFixFileName(Unix2AmigaPath(AsmFileName))));
+            Replace(result,'$OBJ',compiler.CFileUtl.maybequoted(ScriptFixFileName(Unix2AmigaPath(ObjFileName))));
           end
         else
           begin
-            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
-            Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
+            Replace(result,'$ASM',compiler.CFileUtl.maybequoted(ScriptFixFileName(AsmFileName)));
+            Replace(result,'$OBJ',compiler.CFileUtl.maybequoted(ScriptFixFileName(ObjFileName)));
           end;
         Replace(result,'$ARCH','-m'+GasCpuTypeStr[compiler.globals.current_settings.cputype]);
         Replace(result,'$OTYPE',objtype);

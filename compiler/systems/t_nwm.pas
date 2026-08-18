@@ -555,10 +555,10 @@ begin
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
   compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
-  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$TMPOBJ',maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
+  Replace(cmdstr,'$TMPOBJ',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
   BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
@@ -574,7 +574,7 @@ begin
     NLMConvLinkFile.Free;
     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
-    Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
+    Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
@@ -757,13 +757,13 @@ end;
             if pos ('.',prelude) = 0 then prelude := prelude + '.o';
             s2 := FindObjectFile(prelude,'',false);
             compiler.verbose.Comment (V_Debug,'adding init Object File '+s2);
-            Concat('READOBJECT '+MaybeQuoted(s2));
+            Concat('READOBJECT '+compiler.CFileUtl.MaybeQuoted(s2));
             while not ObjectFiles.Empty do
               begin
                 s:=ObjectFiles.GetFirst;
                 if s<>'' then
                 begin
-                  Concat('READOBJECT '+MaybeQuoted(s));
+                  Concat('READOBJECT '+compiler.CFileUtl.MaybeQuoted(s));
                   compiler.verbose.Comment (V_Debug,'adding Object File '+s);
                 end;
               end;
@@ -773,7 +773,7 @@ end;
                 if s<>'' then
                 begin
                   compiler.verbose.Comment (V_Debug,'adding StaticLibFile '+s);
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+                  Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
                 end;
               end;
            { While not SharedLibFiles.Empty do
@@ -782,7 +782,7 @@ end;
                 if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.importlibext,s2) then
                 begin
                   compiler.verbose.Comment (V_Debug,'adding LibraryFile '+s);
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s2));
+                  Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s2));
                 end else
                   compiler.verbose.Comment(V_Error,'Import library not found for '+S);
               end;}

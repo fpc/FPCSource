@@ -754,7 +754,7 @@ Implementation
           if clang<>'' then
             begin
               clangsearchdirspath:=compiler.globals.outputexedir+UniqueName('clangsearchdirs');
-              searchres:=shell(maybequoted(clang)+' -target '+targettriplet(compiler.target,triplet_llvm)+' -print-file-name=lib > '+maybequoted(clangsearchdirspath));
+              searchres:=shell(compiler.CFileUtl.maybequoted(clang)+' -target '+targettriplet(compiler.target,triplet_llvm)+' -print-file-name=lib > '+compiler.CFileUtl.maybequoted(clangsearchdirspath));
               if searchres=0 then
                 begin
                   AssignFile(clangsearchdirsfile,clangsearchdirspath);
@@ -883,7 +883,7 @@ Implementation
         if not (tf_no_backquote_support in source_info.flags) or
            (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
            begin
-             CatFileContent:='`cat '+MaybeQuoted(para)+'`';
+             CatFileContent:='`cat '+compiler.CFileUtl.MaybeQuoted(para)+'`';
              Exit;
            end;
         assign(f,para);
@@ -917,7 +917,7 @@ Implementation
          begin
            compiler.verbose.FlushOutput;
            if useshell then
-             exitcode:=shell(maybequoted(command)+' '+para)
+             exitcode:=shell(compiler.CFileUtl.maybequoted(command)+' '+para)
            else
              try
                exitcode:=RequotedExecuteProcess(command,para);
@@ -1036,7 +1036,7 @@ Implementation
         if scripted_ar then
           begin
             scriptfile := compiler.CFileUtl.FixFileName(smartpath+'arscript.txt');
-            Replace(cmdstr,'$SCRIPT',maybequoted(scriptfile));
+            Replace(cmdstr,'$SCRIPT',compiler.CFileUtl.maybequoted(scriptfile));
             Assign(script, scriptfile);
             Rewrite(script);
             try
@@ -1044,7 +1044,7 @@ Implementation
                 writeln(script, 'CREATE ' + compiler.current_module.staticlibfilename)
               else { wlib case }
                 writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
-                  maybequoted(compiler.current_module.staticlibfilename));
+                  compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename));
               current := TCmdStrListItem(compiler.SmartLinkOFiles.First);
               while current <> nil do
                 begin
@@ -1067,10 +1067,10 @@ Implementation
         else
           begin
             ar_creates_different_output_file:=(Pos('$OUTPUTLIB',cmdstr)>0) or (Pos('$OUTPUTLIB',firstcmd)>0);
-            Replace(cmdstr,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
-            Replace(firstcmd,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
-            Replace(cmdstr,'$OUTPUTLIB',maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
-            Replace(firstcmd,'$OUTPUTLIB',maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
+            Replace(cmdstr,'$LIB',compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename));
+            Replace(firstcmd,'$LIB',compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename));
+            Replace(cmdstr,'$OUTPUTLIB',compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
+            Replace(firstcmd,'$OUTPUTLIB',compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
             if compiler.target.ar.id=ar_watcom_wlib_omf then
               begin
                 Replace(cmdstr,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
@@ -1105,7 +1105,7 @@ Implementation
           begin
             compiler.CFileUtl.SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(compiler.globals.utilsprefix + binstr);
-            Replace(cmdstr,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
+            Replace(cmdstr,'$LIB',compiler.CFileUtl.maybequoted(compiler.current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);
           end;
 
@@ -1606,13 +1606,13 @@ Implementation
           begin
             s:=ObjectFiles.GetFirst;
             if s<>'' then
-              LinkScript.Concat('READOBJECT '+MaybeQuoted(s));
+              LinkScript.Concat('READOBJECT '+compiler.CFileUtl.MaybeQuoted(s));
           end;
         while not StaticLibFiles.Empty do
           begin
             s:=StaticLibFiles.GetFirst;
             if s<>'' then
-              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+              LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s));
           end;
         if not AddSharedAsStatic then
           exit;
@@ -1620,7 +1620,7 @@ Implementation
           begin
             S:=SharedLibFiles.GetFirst;
             if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
-              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+              LinkScript.Concat('READSTATICLIBRARY '+compiler.CFileUtl.MaybeQuoted(s2))
             else
               compiler.verbose.Comment(V_Error,'Import library not found for '+S);
           end;

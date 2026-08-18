@@ -185,7 +185,7 @@ begin
         StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
        if assumebinutils then
-         AddFileName(maybequoted(FindObjectFile(prtobj,'',false)))
+         AddFileName(compiler.CFileUtl.maybequoted(FindObjectFile(prtobj,'',false)))
        else
          AddFileName(FindObjectFile(prtobj,'',false));
       { main objectfiles }
@@ -194,7 +194,7 @@ begin
          s:=ObjectFiles.GetFirst;
          if s<>'' then
           if assumebinutils then
-            AddFileName(maybequoted(s))
+            AddFileName(compiler.CFileUtl.maybequoted(s))
           else
             AddFileName(s)
        end;
@@ -206,7 +206,7 @@ begin
           begin
             S:=StaticLibFiles.GetFirst;
             if assumebinutils then
-              AddFileName(maybequoted(s))
+              AddFileName(compiler.CFileUtl.maybequoted(s))
             else
               AddFileName(s);
           end;
@@ -258,7 +258,7 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   StripStr:='-bmap:'+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+   StripStr:='-bmap:'+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -269,7 +269,7 @@ begin
   else
     Replace(binstr,'$LDBIN','ld');
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
-  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   { the native AIX linker does not support linkres files, so we need
     CatFileContent(). The binutils cross-linker does support such files, so
@@ -366,7 +366,7 @@ begin
   { on AIX, shared libraries are special object files that are stored inside
     an archive. In that archive, the 32 bit version of the library is called
     shr.o and the 64 bit version shr_64.o }
-  Replace(cmdstr,'$EXE',maybequoted(libobj));
+  Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(libobj));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      not(source_info.system in systems_aix) then
@@ -384,10 +384,10 @@ begin
         writeln(exportedsyms,texportlibunix(compiler.exportlib).exportedsymnames.getfirst);
       until texportlibunix(compiler.exportlib).exportedsymnames.empty;
       close(exportedsyms);
-      cmdstr:=cmdstr+' -bE:'+maybequoted(compiler.globals.outputexedir)+'linksyms.fpc';
+      cmdstr:=cmdstr+' -bE:'+compiler.CFileUtl.maybequoted(compiler.globals.outputexedir)+'linksyms.fpc';
     end;
 
-  libfn:=maybequoted(compiler.current_module.sharedlibfilename);
+  libfn:=compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
   linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
   linkscript.AddLinkCommand(binstr,CmdStr,'');

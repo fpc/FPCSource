@@ -317,7 +317,7 @@ begin
       compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-      mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
+      mapstr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
     else
       mapstr:='';
 
@@ -332,7 +332,7 @@ begin
     compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[1], binstr, cmdstr);
 
     Replace(cmdstr, '$OPT', Info.ExtraOptions);
-    Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(compiler.globals.outputexedir + Info.ResName))));
+    Replace(cmdstr, '$RES', '-T ' + (compiler.CFileUtl.maybequoted(ScriptFixFileName(compiler.globals.outputexedir + Info.ResName))));
     Replace(cmdstr, '$MAP', mapstr);
 
     if cs_link_smart in compiler.globals.current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';

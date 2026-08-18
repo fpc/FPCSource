@@ -202,9 +202,9 @@ begin
      binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',MaybeQuoted(compiler.current_module.exefilename));
+        Replace(cmdstr,'$EXE',compiler.CFileUtl.MaybeQuoted(compiler.current_module.exefilename));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',MaybeQuoted(compiler.globals.outputexedir+Info.ResName));
+        Replace(cmdstr,'$RES',compiler.CFileUtl.MaybeQuoted(compiler.globals.outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
 //        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',compiler.globals.palmos_applicationname);

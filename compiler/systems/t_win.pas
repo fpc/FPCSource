@@ -1224,7 +1224,7 @@ implementation
                  begin
                    s:=ObjectFiles.GetFirst;
                    if s<>'' then
-                    AddFileName(MaybeQuoted(s));
+                    AddFileName(compiler.CFileUtl.MaybeQuoted(s));
                  end;
                 Add(')');
               end;
@@ -1236,7 +1236,7 @@ implementation
                While not StaticLibFiles.Empty do
                 begin
                   S:=StaticLibFiles.GetFirst;
-                  AddFileName(MaybeQuoted(s));
+                  AddFileName(compiler.CFileUtl.MaybeQuoted(s));
                 end;
                Add(')');
              end;
@@ -1250,7 +1250,7 @@ implementation
                   S:=SharedLibFiles.GetFirst;
                   if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
                     begin
-                      Add(MaybeQuoted(s2));
+                      Add(compiler.CFileUtl.MaybeQuoted(s2));
                       continue;
                     end;
                   if pos(compiler.target.info.sharedlibprefix,s)=1 then
@@ -1466,7 +1466,7 @@ implementation
         if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+          MapStr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(false);
@@ -1482,9 +1482,9 @@ implementation
            compiler.CFileUtl.SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+              Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.exefilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
-              Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+              Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
               Replace(cmdstr,'$ENTRY',EntryStr);
               Replace(cmdstr,'$ASBIN',AsbinStr);
@@ -1496,7 +1496,7 @@ implementation
               if not compiler.DefFile.Empty then
                 begin
                   compiler.DefFile.WriteFile;
-                  Replace(cmdstr,'$DEF','-d '+maybequoted(compiler.deffile.fname));
+                  Replace(cmdstr,'$DEF','-d '+compiler.CFileUtl.maybequoted(compiler.deffile.fname));
                 end
               else
                 Replace(cmdstr,'$DEF','');
@@ -1572,7 +1572,7 @@ implementation
         if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
+          MapStr:='-Map '+compiler.CFileUtl.maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(true);
@@ -1588,9 +1588,9 @@ implementation
            compiler.CFileUtl.SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
+              Replace(cmdstr,'$EXE',compiler.CFileUtl.maybequoted(compiler.current_module.sharedlibfilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
-              Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
+              Replace(cmdstr,'$RES',compiler.CFileUtl.maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
               Replace(cmdstr,'$ENTRY',EntryStr);
               Replace(cmdstr,'$ASBIN',AsbinStr);
@@ -1602,7 +1602,7 @@ implementation
               if not compiler.DefFile.Empty then
                 begin
                   compiler.DefFile.WriteFile;
-                  Replace(cmdstr,'$DEF','-d '+maybequoted(compiler.deffile.fname));
+                  Replace(cmdstr,'$DEF','-d '+compiler.CFileUtl.maybequoted(compiler.deffile.fname));
                 end
               else
                 Replace(cmdstr,'$DEF','');
@@ -1686,7 +1686,7 @@ implementation
            end;
            if compiler.globals.dllversion<>'' then
              cmdstr:=cmdstr+' --version '+compiler.globals.dllversion;
-           cmdstr:=cmdstr+' --input '+maybequoted(fn);
+           cmdstr:=cmdstr+' --input '+compiler.CFileUtl.maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(compiler.globals.stacksize);
            if compiler.target.info.system in [system_i386_win32, system_i386_wdosx] then
              DoExec(FindUtil(compiler.globals.utilsprefix+'postw32'),cmdstr,false,false);
