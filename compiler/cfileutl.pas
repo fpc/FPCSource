@@ -120,9 +120,9 @@ interface
         function  path_absolute(const s : TCmdStr) : boolean;
         Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
         Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
+        function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
-    function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     Function  RemoveDir(d:TCmdStr):boolean;
     Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
     function  FixFileName(const s:TCmdStr):TCmdStr;
@@ -347,13 +347,15 @@ end;
 
     function TCachedDirectory.FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         entry : PCachedDirectoryEntry;
       begin
         if (tf_files_case_aware in source_info.flags) then
           begin
             if not TryUseCache then
               begin
-                Result:=FileExistsNonCase(path,fn,false,FoundName);
+                Result:=compiler.CFileUtl.FileExistsNonCase(path,fn,false,FoundName);
                 exit;
               end;
             entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(ExtractFileName(fn))));
@@ -605,7 +607,7 @@ end;
       end;
 
 
-    function FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+    function TCompilerFileUtils.FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1157,6 +1159,8 @@ end;
 
 
    function TSearchPathList.FindFile(const f :TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        p : TCmdStrListItem;
      begin
@@ -1164,7 +1168,7 @@ end;
        p:=TCmdStrListItem(first);
        while assigned(p) do
         begin
-          result:=FileExistsNonCase(p.Str,f,allowcache,FoundFile);
+          result:=compiler.CFileUtl.FileExistsNonCase(p.Str,f,allowcache,FoundFile);
           if result then
             exit;
           p:=TCmdStrListItem(p.next);
@@ -1184,7 +1188,7 @@ end;
 
        if (compiler.CFileUtl.path_absolute(f)) then
          begin
-           Result:=FileExistsNonCase('',f, allowcache, foundfile);
+           Result:=compiler.CFileUtl.FileExistsNonCase('',f, allowcache, foundfile);
            if Result then
              Exit;
          end;
@@ -1195,7 +1199,7 @@ end;
          EndPos := StartPos;
          while (EndPos <= L) and ((Path[EndPos] <> PathSeparator) and (Path[EndPos] <> ';')) do
            Inc(EndPos);
-         Result := FileExistsNonCase(FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
+         Result := compiler.CFileUtl.FileExistsNonCase(FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
          if Result then
            Exit;
          StartPos := EndPos + 1;
