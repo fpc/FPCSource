@@ -107,6 +107,7 @@ interface
       TCompilerFileUtils = class
       private
         FTarget: TReadOnlyCompilerTarget;
+        FGlobals: TObject;  { actually TReadOnlyCompilerGlobals, but we use TObject to avoid circular unit reference }
         CachedCurrentDir : TCmdStr;
         DirCache : TDirectoryCache;
         property Target: TReadOnlyCompilerTarget read FTarget;
@@ -143,6 +144,8 @@ interface
         function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
         function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
         function Shell(const command:ansistring): longint;
+
+        property Globals: TObject read FGlobals write FGlobals;
       end;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}

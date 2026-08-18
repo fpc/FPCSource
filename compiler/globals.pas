@@ -2344,6 +2344,7 @@ implementation
 
    constructor TCompilerGlobals.Create(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
      begin
+       ACFileUtl.Globals:=Self;
        InitGlobals(ATarget,ACFileUtl);
      end;
 
