@@ -1503,15 +1503,13 @@ end;
 
     function TCompilerFileUtils.RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags): Longint;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         quote_script: tscripttype;
       begin
 
         if do_checkverbosity(V_Executable) then
           do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
             ComLine+'"');
-        if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
+        if (cs_link_on_target in TReadOnlyCompilerGlobals(Globals).current_settings.globalswitches) then
           quote_script:=Target.info.script
         else
           quote_script:=source_info.script;
