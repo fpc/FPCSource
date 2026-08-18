@@ -132,7 +132,7 @@ uses
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
-         ScriptFixFileName:=TargetFixFileName(s)
+         ScriptFixFileName:=compiler.CFileUtl.TargetFixFileName(s)
        else
          ScriptFixFileName:=compiler.CFileUtl.FixFileName(s);
      end;

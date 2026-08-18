@@ -477,7 +477,7 @@ implementation
           s:=ObjectFiles.GetFirst;
           if s<>'' then
             begin
-              s:=TargetFixFileName(s);
+              s:=compiler.CFileUtl.TargetFixFileName(s);
               FilesList.Add(s);
             end;
           { Write staticlibraries }

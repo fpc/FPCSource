@@ -125,9 +125,9 @@ interface
         Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
         function  FixFileName(const s:TCmdStr):TCmdStr;
         function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+        function  TargetFixFileName(const s:TCmdStr):TCmdStr;
       end;
 
-    function  TargetFixFileName(const s:TCmdStr):TCmdStr;
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
@@ -930,7 +930,7 @@ end;
      end;
 
 
-   function TargetFixFileName(const s:TCmdStr):TCmdStr;
+   function TCompilerFileUtils.TargetFixFileName(const s:TCmdStr):TCmdStr;
      var
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
