@@ -177,7 +177,7 @@ begin
   end;
   resfound:=false;
   if compiler.globals.utilsdirectory<>'' then
-    resfound:=FindFile(compiler.globals.utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
+    resfound:=compiler.CFileUtl.FindFile(compiler.globals.utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
   if not resfound then
     begin
       resfound:=FindExe(compiler.globals.utilsprefix+bin,false,resbin);

@@ -436,7 +436,7 @@ function TInternalLinkerAmstradCPC.postprocessexecutable(const fn: string): bool
     FoundBin:='';
     Found:=false;
     if compiler.globals.utilsdirectory<>'' then
-      Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
+      Found:=compiler.CFileUtl.FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
     if (not Found) then
       Found:=FindExe(utilexe,false,Foundbin);
 

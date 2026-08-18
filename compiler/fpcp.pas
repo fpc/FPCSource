@@ -160,7 +160,7 @@ implementation
       begin
         if compiler.verbose.CheckVerbosity(V_Tried) then
           compiler.verbose.Message1(package_t_packagesearch,Singlepathstring+filename+ext);
-        result:=FindFile(filename+ext,singlepathstring,true,foundfile);
+        result:=compiler.CFileUtl.FindFile(filename+ext,singlepathstring,true,foundfile);
       end;
 
     function package_search_path(const s:TCmdStr):boolean;

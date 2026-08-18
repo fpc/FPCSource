@@ -127,9 +127,9 @@ interface
         function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
         function  TargetFixFileName(const s:TCmdStr):TCmdStr;
         procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
+        function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
-    function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
     function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
@@ -1179,7 +1179,7 @@ end;
      end;
 
 
-   function FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+   function TCompilerFileUtils.FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
@@ -1244,7 +1244,7 @@ end;
       Path : TCmdStr;
       found : boolean;
     begin
-       found:=FindFile(compiler.CFileUtl.FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
+       found:=compiler.CFileUtl.FindFile(compiler.CFileUtl.FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
       if not found then
        begin
 {$ifdef macos}
@@ -1252,7 +1252,7 @@ end;
 {$else}
          Path:=GetEnvironmentVariable('PATH');
 {$endif}
-         found:=FindFile(compiler.CFileUtl.FixFileName(bin),Path,allowcache,foundfile);
+         found:=compiler.CFileUtl.FindFile(compiler.CFileUtl.FixFileName(bin),Path,allowcache,foundfile);
        end;
       FindFileInExeLocations:=found;
     end;

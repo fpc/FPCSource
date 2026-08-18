@@ -1742,12 +1742,12 @@ type
          hpath:='';
          if compiler.CFileUtl.path_absolute(path) then
            begin
-             found:=FindFile(name,path,true,foundfile);
+             found:=compiler.CFileUtl.FindFile(name,path,true,foundfile);
            end
          else
            begin
              hpath:=current_scanner.inputfile.path+';'+compiler.CFileUtl.CurDirRelPath(source_info);
-             found:=FindFile(path+name, hpath,true,foundfile);
+             found:=compiler.CFileUtl.FindFile(path+name, hpath,true,foundfile);
              if not found then
                found:=compiler.current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
              if not found  then

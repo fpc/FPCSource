@@ -263,14 +263,14 @@ Implementation
           for all finds don't use the directory caching }
         found:=false;
         if isunit and (compiler.globals.outputunitdir<>'') then
-          found:=FindFile(s,compiler.globals.outputunitdir,false,foundfile)
+          found:=compiler.CFileUtl.FindFile(s,compiler.globals.outputunitdir,false,foundfile)
         else
           if compiler.globals.outputexedir<>'' then
-            found:=FindFile(s,compiler.globals.outputexedir,false,foundfile);
+            found:=compiler.CFileUtl.FindFile(s,compiler.globals.outputexedir,false,foundfile);
         if (not found) and (unitpath<>'') then
-         found:=FindFile(s,unitpath,false,foundfile);
+         found:=compiler.CFileUtl.FindFile(s,unitpath,false,foundfile);
         if (not found) then
-         found:=FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info),false,foundfile);
+         found:=compiler.CFileUtl.FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info),false,foundfile);
         if (not found) then
          found:=compiler.globals.UnitSearchPath.FindFile(s,false,foundfile);
         if (not found) then
@@ -278,7 +278,7 @@ Implementation
         if (not found) then
          found:=compiler.globals.objectsearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,compiler.globals.exepath,false,foundfile);
+         found:=compiler.CFileUtl.FindFile(s,compiler.globals.exepath,false,foundfile);
         if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) and (not found) then
          compiler.verbose.Message1(exec_w_objfile_not_found,s);
 
@@ -303,7 +303,7 @@ Implementation
           1. Current dir
           2. Library Path
           3. windir,windir/system,windir/system32 }
-        Found:=FindFile(s,'.'+source_info.DirSep,false,founddll);
+        Found:=compiler.CFileUtl.FindFile(s,'.'+source_info.DirSep,false,founddll);
         if (not found) then
          Found:=compiler.globals.librarysearchpath.FindFile(s,false,founddll);
 
@@ -311,7 +311,7 @@ Implementation
         if (not found) and (source_info.system=compiler.target.info.system) then
          begin
            sysdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('windir'),false);
-           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
+           Found:=compiler.CFileUtl.FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
          end;
         if (not found) then
          begin
@@ -357,15 +357,15 @@ Implementation
            3. global libary dir
            4. exe path of the compiler (not when linking on target)
           for all searches don't use the directory cache }
-        found:=FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info), false,foundfile);
+        found:=compiler.CFileUtl.FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info), false,foundfile);
         if (not found) and (compiler.current_module.outputpath<>'') then
-         found:=FindFile(s,compiler.current_module.outputpath,false,foundfile);
+         found:=compiler.CFileUtl.FindFile(s,compiler.current_module.outputpath,false,foundfile);
         if (not found) then
          found:=compiler.current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
          found:=compiler.globals.librarysearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,compiler.globals.exepath,false,foundfile);
+         found:=compiler.CFileUtl.FindFile(s,compiler.globals.exepath,false,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
         findlibraryfile:=found;
       end;
@@ -860,7 +860,7 @@ Implementation
         FoundBin:='';
         Found:=false;
         if compiler.globals.utilsdirectory<>'' then
-         Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
+         Found:=compiler.CFileUtl.FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
         if (not Found) then
          Found:=FindExe(utilexe,false,Foundbin);
         if throwerror and (not Found) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then

@@ -303,7 +303,7 @@ const
         result:=false;
         fullutilname:=compiler.globals.utilsprefix+changefileext(utilname,source_info.exeext);
         if compiler.globals.utilsdirectory<>'' then
-          result:=findfile(fullutilname,compiler.globals.utilsdirectory,false,fullutilpath);
+          result:=compiler.CFileUtl.findfile(fullutilname,compiler.globals.utilsdirectory,false,fullutilpath);
         if not result then
           result:=findexe(fullutilname,false,fullutilpath);
       end;

@@ -2149,9 +2149,9 @@ implementation
           hs1 := ExtractFileName(exeName);
           hs1 := ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
-          FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
+          FCFileUtl.FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}
-          FindFile(hs1,GetEnvironmentVariable('PATH'),false,localExepath);
+          FCFileUtl.FindFile(hs1,GetEnvironmentVariable('PATH'),false,localExepath);
 {$endif macos}
           localExepath:=ExtractFilePath(localExepath);
         end;

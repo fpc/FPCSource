@@ -502,7 +502,7 @@ var
            s:=FileName+ext;
            if prefix<>'' then
              s:=prefix+'.'+s;
-           UnitExists:=FindFile(s,Singlepathstring,true,foundfile);
+           UnitExists:=compiler.CFileUtl.FindFile(s,Singlepathstring,true,foundfile);
          end;
 
          Function PPUSearchPath(const s,prefix:TCmdStr):boolean;
@@ -688,13 +688,13 @@ var
               searchpath (PFV) }
             if compiler.verbose.CheckVerbosity(V_Tried) then
               compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
-            if FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs) then
+            if compiler.CFileUtl.FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs) then
               include(fnd,auSrc);
             if (fnd=[]) then
              begin
                if compiler.verbose.CheckVerbosity(V_Tried) then
                  compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
-               if FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs) then
+               if compiler.CFileUtl.FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs) then
                  include(fnd,auSrc);
              end;
             if (fnd=[]) and
@@ -703,7 +703,7 @@ var
              begin
                if compiler.verbose.CheckVerbosity(V_Tried) then
                  compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
-               if FindFile(ChangeFileExt(sourcefn,pext),'',true,hs) then
+               if compiler.CFileUtl.FindFile(ChangeFileExt(sourcefn,pext),'',true,hs) then
                 include(fnd,auSrc)
              end;
             if [auSrc]=fnd then
@@ -739,7 +739,7 @@ var
           begin
             if CheckVerbosity(V_Tried) then
               compiler.verbose.Message1(unit_t_unitsearch,Singlepathstring+filename);
-            UnitExists:=FindFile(FileName,Singlepathstring,true,foundfile);
+            UnitExists:=compiler.CFileUtl.FindFile(FileName,Singlepathstring,true,foundfile);
           end;
 
         Function PPUSearchPath(const s:TCmdStr):boolean;

@@ -644,7 +644,7 @@ implementation
          begin
            jasminjarfound:=false;
            if compiler.globals.utilsdirectory<>'' then
-             jasminjarfound:=FindFile(jasminjarname,compiler.globals.utilsdirectory,false,jasminjar);
+             jasminjarfound:=compiler.CFileUtl.FindFile(jasminjarname,compiler.globals.utilsdirectory,false,jasminjar);
            if not jasminjarfound then
              jasminjarfound:=FindFileInExeLocations(jasminjarname,false,jasminjar);
            if (not jasminjarfound) and not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then

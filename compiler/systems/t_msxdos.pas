@@ -429,7 +429,7 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
     FoundBin:='';
     Found:=false;
     if compiler.globals.utilsdirectory<>'' then
-      Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
+      Found:=compiler.CFileUtl.FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
     if (not Found) then
       Found:=FindExe(utilexe,false,Foundbin);
 
