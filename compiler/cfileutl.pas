@@ -1178,16 +1178,14 @@ end;
 
 
    function TCompilerFileUtils.FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        StartPos, EndPos, L: LongInt;
      begin
        Result:=False;
 
-       if (compiler.CFileUtl.path_absolute(f)) then
+       if (path_absolute(f)) then
          begin
-           Result:=compiler.CFileUtl.FileExistsNonCase('',f, allowcache, foundfile);
+           Result:=FileExistsNonCase('',f, allowcache, foundfile);
            if Result then
              Exit;
          end;
@@ -1198,7 +1196,7 @@ end;
          EndPos := StartPos;
          while (EndPos <= L) and ((Path[EndPos] <> PathSeparator) and (Path[EndPos] <> ';')) do
            Inc(EndPos);
-         Result := compiler.CFileUtl.FileExistsNonCase(compiler.CFileUtl.FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
+         Result := FileExistsNonCase(FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
          if Result then
            Exit;
          StartPos := EndPos + 1;
