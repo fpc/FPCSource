@@ -1457,8 +1457,6 @@ end;
       differently for Unix) -- which is the case }
     function TCompilerFileUtils.UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i: longint;
         temp: TCmdStr;
         inquotes: boolean;
@@ -1485,7 +1483,7 @@ end;
                   else
                     begin
                       { requote for Windows }
-                      result:=result+compiler.CFileUtl.maybequoted_for_script(temp,script_dos);
+                      result:=result+maybequoted_for_script(temp,script_dos);
                       inquotes:=false;
                     end;
                 end;
