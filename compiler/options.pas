@@ -1749,7 +1749,7 @@ begin
   if not ParaIncludeCfgPath.FindFile(fileName,true,ConfigFile) then
     ConfigFile := ExpandFileName(filename);
 { Maybe It's Directory ?}   //Jaro Change:
-  if PathExists(ConfigFile,false) then
+  if compiler.CFileUtl.PathExists(ConfigFile,false) then
     begin
        compiler.verbose.Message1(option_config_is_dir,filename);
        exit;
@@ -5281,7 +5281,7 @@ begin
 
   { Check output dir }
   if (compiler.globals.outputexedir<>'') and
-     not PathExists(compiler.globals.outputexedir,false) then
+     not compiler.CFileUtl.PathExists(compiler.globals.outputexedir,false) then
     begin
       compiler.verbose.Message1(general_e_path_does_not_exist,compiler.globals.outputexedir);
       StopOptions(1);
@@ -5341,7 +5341,7 @@ begin
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
   if fpcdir='' then
     begin
-      if PathExists('/usr/local/lib/fpc/'+version_string,true) then
+      if compiler.CFileUtl.PathExists('/usr/local/lib/fpc/'+version_string,true) then
         fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
       else
         fpcdir:='/usr/lib/fpc/'+version_string+'/';
@@ -5351,15 +5351,15 @@ begin
   if fpcdir='' then
     begin
       fpcdir:=compiler.globals.ExePath+'../';
-      if not(PathExists(fpcdir+'units',true)) and
-         not(PathExists(fpcdir+'rtl',true)) then
+      if not(compiler.CFileUtl.PathExists(fpcdir+'units',true)) and
+         not(compiler.CFileUtl.PathExists(fpcdir+'rtl',true)) then
         fpcdir:=fpcdir+'../';
     end;
 {$endif unix}
   { first try development RTL, else use the default installation path }
   if not disable_configfile then
     begin
-      if PathExists(FpcDir+'rtl',true) then
+      if compiler.CFileUtl.PathExists(FpcDir+'rtl',true) then
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
           compiler.globals.UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.os_string,false)

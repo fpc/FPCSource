@@ -857,7 +857,7 @@ Implementation
       var
         hs  : TPathStr;
       begin
-        if PathExists(s,false) then
+        if compiler.CFileUtl.PathExists(s,false) then
          begin
            { the path exists, now we clean only all the .o and .s files }
            DeleteFilesWithExt(compiler.target.info.objext);

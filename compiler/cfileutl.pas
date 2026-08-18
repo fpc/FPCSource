@@ -118,9 +118,9 @@ interface
          with a trailing dir separator. E. g. on unix ./ }
         function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
         function  path_absolute(const s : TCmdStr) : boolean;
+        Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
       end;
 
-    Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     Function  RemoveDir(d:TCmdStr):boolean;
@@ -371,11 +371,13 @@ end;
 
     function TCachedDirectory.DirectoryExists(const AName:TCmdStr):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         Attr : Longint;
       begin
         if not TryUseCache then
           begin
-            Result:=PathExists(Name+AName,false);
+            Result:=compiler.CFileUtl.PathExists(Name+AName,false);
             exit;
           end;
         Attr:=GetItemAttr(AName);
@@ -691,7 +693,7 @@ end;
       end;
 
 
-    Function PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
+    Function TCompilerFileUtils.PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
       Var
         i: longint;
         hs : TCmdStr;
@@ -1063,7 +1065,7 @@ end;
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or PathExists(currpath,true) then
+                      if (suffix='') or compiler.CFileUtl.PathExists(currpath,true) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
@@ -1083,7 +1085,7 @@ end;
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or PathExists(currpath,false) then
+                      if (suffix='') or compiler.CFileUtl.PathExists(currpath,false) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
@@ -1099,7 +1101,7 @@ end;
           end
          else
           begin
-            if PathExists(currpath,true) then
+            if compiler.CFileUtl.PathExists(currpath,true) then
              AddCurrPath
             else
              WarnNonExistingPath(currpath);
