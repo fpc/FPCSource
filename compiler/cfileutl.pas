@@ -104,6 +104,9 @@ interface
         function  FindFile(const f : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
+      TCompilerFileUtils = class
+      end;
+
     function  bstoslash(const s : TCmdStr) : TCmdStr;
     {Gives the absolute path to the current directory}
     function  GetCurrentDir:TCmdStr;
