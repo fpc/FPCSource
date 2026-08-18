@@ -379,13 +379,11 @@ end;
 
     function TCachedDirectory.DirectoryExists(const AName:TCmdStr):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         Attr : Longint;
       begin
         if not TryUseCache then
           begin
-            Result:=compiler.CFileUtl.PathExists(Name+AName,false);
+            Result:=FOwnerFileUtils.PathExists(Name+AName,false);
             exit;
           end;
         Attr:=GetItemAttr(AName);
