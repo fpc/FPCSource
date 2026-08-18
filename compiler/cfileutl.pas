@@ -107,6 +107,7 @@ interface
       TCompilerFileUtils = class
       private
         CachedCurrentDir : TCmdStr;
+        DirCache : TDirectoryCache;
       public
         constructor Create;
         destructor Destroy;override;
@@ -197,8 +198,6 @@ implementation
     AllFilesMask = '*';
   {$endif not (go32v2 or watcom)}
 {$endif not AllFilesMaskIsInRTL}
-    var
-      DirCache : TDirectoryCache;
 
 
 {$IFNDEF HASAMIGA}
@@ -1064,7 +1063,7 @@ end;
             suffix:=Copy(currpath,staridx+1,length(currpath));
             subdirfound:=false;
 {$ifdef usedircache}
-            if DirCache.FindFirst(Prefix+AllFilesMask,dir) then
+            if compiler.CFileUtl.DirCache.FindFirst(Prefix+AllFilesMask,dir) then
               begin
                 repeat
                   if (dir.attr and faDirectory)<>0 then
@@ -1078,9 +1077,9 @@ end;
                             AddCurrPath;
                         end;
                     end;
-                until not DirCache.FindNext(dir);
+                until not compiler.CFileUtl.DirCache.FindNext(dir);
               end;
-            DirCache.FindClose(dir);
+            compiler.CFileUtl.DirCache.FindClose(dir);
 {$else usedircache}
             if findfirst(prefix+AllFilesMask,faDirectory,dir) = 0 then
               begin
