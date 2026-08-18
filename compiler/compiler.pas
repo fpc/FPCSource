@@ -574,7 +574,7 @@ begin
   FreeAndNil(FSwitches);
   FreeAndNil(FSysSymList);
   FreeAndNil(FGlobals);
-  DoneFileUtils;
+  FreeAndNil(FCFileUtl);
   donetokens;
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(Fparamanager);
@@ -619,7 +619,7 @@ begin
   FTarget:=TCompilerTarget.Create;
   FDefaultSyscallConvention:=TDefaultSyscallConvention.Create(FTarget);
   { fileutils depends on source_info so it must be after systems }
-  InitFileUtils;
+  FCFileUtl:=TCompilerFileUtils.Create;
   { globals depends on source_info so it must be after systems }
   FGlobals:=TCompilerGlobals.Create(FTarget);
   FSysSymList:=tsyssymlist.Create;

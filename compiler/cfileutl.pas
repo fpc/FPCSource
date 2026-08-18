@@ -105,6 +105,8 @@ interface
       end;
 
       TCompilerFileUtils = class
+        constructor Create;
+        destructor Destroy;override;
       end;
 
     function  bstoslash(const s : TCmdStr) : TCmdStr;
@@ -131,9 +133,6 @@ interface
     function maybequoted(const s:string):string;
     function maybequoted(const s:ansistring):ansistring;
     function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
-
-    procedure InitFileUtils;
-    procedure DoneFileUtils;
 
     function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
@@ -1571,17 +1570,18 @@ end;
                            Init / Done
 ****************************************************************************}
 
-    procedure InitFileUtils;
+    constructor TCompilerFileUtils.Create;
       begin
         CachedCurrentDir:='';
         DirCache:=TDirectoryCache.Create;
       end;
 
 
-    procedure DoneFileUtils;
+    destructor TCompilerFileUtils.Destroy;
       begin
         DirCache.Free;
         DirCache := nil;
       end;
+
 
 end.
