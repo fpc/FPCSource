@@ -929,10 +929,8 @@ end;
 
 
    function TCompilerFileUtils.TargetFixFileName(const s:TCmdStr):TCmdStr;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       result:=_FixFileName(s,compiler.target.info);
+       result:=_FixFileName(s,Target.info);
      end;
 
 
