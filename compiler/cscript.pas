@@ -134,7 +134,7 @@ uses
        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
          ScriptFixFileName:=TargetFixFileName(s)
        else
-         ScriptFixFileName:=FixFileName(s);
+         ScriptFixFileName:=compiler.CFileUtl.FixFileName(s);
      end;
 
 {****************************************************************************
@@ -144,7 +144,7 @@ uses
 constructor TScript.Create(const s: TCmdStr; ACompiler: TCompilerBase);
 begin
   FCompiler:=ACompiler;
-  fn:=FixFileName(s);
+  fn:=compiler.CFileUtl.FixFileName(s);
   executable:=false;
   data:=TCmdStrList.Create;
 end;
@@ -153,7 +153,7 @@ end;
 constructor TScript.CreateExec(const s:TCmdStr; ACompiler: TCompilerBase);
 begin
   FCompiler:=ACompiler;
-  fn:=FixFileName(s);
+  fn:=compiler.CFileUtl.FixFileName(s);
   if cs_link_on_target in compiler.globals.current_settings.globalswitches then
     fn:=ChangeFileExt(fn,compiler.target.info.scriptext)
   else

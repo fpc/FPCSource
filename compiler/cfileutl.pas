@@ -123,9 +123,9 @@ interface
         function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         Function  RemoveDir(d:TCmdStr):boolean;
         Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
+        function  FixFileName(const s:TCmdStr):TCmdStr;
       end;
 
-    function  FixFileName(const s:TCmdStr):TCmdStr;
     function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
     function  TargetFixFileName(const s:TCmdStr):TCmdStr;
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
@@ -916,7 +916,7 @@ end;
      end;
 
 
-   function FixFileName(const s:TCmdStr):TCmdStr;
+   function TCompilerFileUtils.FixFileName(const s:TCmdStr):TCmdStr;
      begin
        result:=_FixFileName(s,source_info);
      end;
@@ -1244,7 +1244,7 @@ end;
       Path : TCmdStr;
       found : boolean;
     begin
-       found:=FindFile(FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
+       found:=FindFile(compiler.CFileUtl.FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
       if not found then
        begin
 {$ifdef macos}
@@ -1252,7 +1252,7 @@ end;
 {$else}
          Path:=GetEnvironmentVariable('PATH');
 {$endif}
-         found:=FindFile(FixFileName(bin),Path,allowcache,foundfile);
+         found:=FindFile(compiler.CFileUtl.FixFileName(bin),Path,allowcache,foundfile);
        end;
       FindFileInExeLocations:=found;
     end;

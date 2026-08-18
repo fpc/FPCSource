@@ -712,7 +712,7 @@ begin
        globals.current_settings.pmessage:=pmessage;
 
        { show some info }
-       verbose.Message1(general_t_compilername,FixFileName(system.paramstr(0)));
+       verbose.Message1(general_t_compilername,CFileUtl.FixFileName(system.paramstr(0)));
        verbose.Message1(general_d_sourceos,source_info.name);
        verbose.Message1(general_i_targetos,target.info.name);
        verbose.Message1(general_t_exepath,globals.exepath);

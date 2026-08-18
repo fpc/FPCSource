@@ -665,9 +665,9 @@ var
        begin
          fnd:=[];
          if shortname then
-           filename:=FixFileName(Copy(realmodulename^,1,8))
+           filename:=compiler.CFileUtl.FixFileName(Copy(realmodulename^,1,8))
          else
-           filename:=FixFileName(realmodulename^);
+           filename:=compiler.CFileUtl.FixFileName(realmodulename^);
          { try to find unit
             1. look for ppu in cwd
             2. look for ppu in outputpath if set, this is tp7 compatible (PFV)

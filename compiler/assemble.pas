@@ -366,8 +366,8 @@ Implementation
           cut_end :
             s:=asmprefix+tostr(SmartHeaderCount)+'t';
         end;
-        AsmFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.asmext);
-        ObjFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext);
+        AsmFileName:=Path+compiler.CFileUtl.FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.asmext);
+        ObjFileName:=Path+compiler.CFileUtl.FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext);
         { insert in container so it can be cleared after the linking }
         compiler.SmartLinkOFiles.Insert(ObjFileName);
       end;

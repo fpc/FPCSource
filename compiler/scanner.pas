@@ -2042,7 +2042,7 @@ type
                     hs:=current_scanner.preproc_pattern;
                     preproc_consume(_CSTRING);
                     fs:=GetToken(hs,' ');
-                    fs:=FixFileName(fs);
+                    fs:=compiler.CFileUtl.FixFileName(fs);
                     path:=ExtractFilePath(fs);
                     name:=ExtractFileName(fs);
 
@@ -2995,7 +2995,7 @@ type
          end
         else
          begin
-           hs:=FixFileName(hs);
+           hs:=compiler.CFileUtl.FixFileName(hs);
            path:=ExtractFilePath(hs);
            name:=ExtractFileName(hs);
            { Special case for Delphi compatibility: '*' has to be replaced

@@ -55,7 +55,8 @@ interface
 implementation
 
     uses
-      cutils,cfileutl;
+      cutils,cfileutl,
+      compilerbase,compiler;
 
     const
       HexTbl : array[0..15] of char='0123456789abcdef';
@@ -96,8 +97,10 @@ implementation
 ****************************************************************************}
 
      constructor TExeMap.Create(const s:string);
+       var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
        begin
-         Assign(t,FixFileName(s));
+         Assign(t,compiler.CFileUtl.FixFileName(s));
          Rewrite(t);
          FImageBase:=0;
        end;

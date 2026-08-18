@@ -869,7 +869,7 @@ unit scandir;
           end
         else
           s:= trimspace(current_scanner.readcomment);
-        s:=FixFileName(s);
+        s:=compiler.CFileUtl.FixFileName(s);
         if ExtractFileExt(s)='' then
           s:=ChangeFileExt(s,compiler.target.info.objext);
         compiler.current_module.linkotherofiles.add(s,link_always);
@@ -887,7 +887,7 @@ unit scandir;
           end
         else
           s:= trimspace(current_scanner.readcomment);
-        s:=FixFileName(s);
+        s:=compiler.CFileUtl.FixFileName(s);
         if (compiler.target.info.system in systems_darwin) then
           compiler.current_module.linkotherframeworks.add(s,link_always)
         else
@@ -939,7 +939,7 @@ unit scandir;
            if p>0 then
             Delete(libname,p,1);
          end;
-        libname:=FixFileName(libname);
+        libname:=compiler.CFileUtl.FixFileName(libname);
 
         { get linkmode, default is to check the extension for
           the static library, otherwise shared linking is assumed }
@@ -1641,7 +1641,7 @@ unit scandir;
               delete(S,1,1);
               insert(ChangeFileExt(ExtractFileName(compiler.current_module.mainsource),''),S,1 );
             end;
-        s:=FixFileName(s);
+        s:=compiler.CFileUtl.FixFileName(s);
         if ExtractFileExt(s)='' then
           s:=ChangeFileExt(s,compiler.target.info.resext);
         if compiler.target.info.res<>res_none then
@@ -1651,7 +1651,7 @@ unit scandir;
                                    not (compiler.current_module.ResourceFiles.Empty) then
               compiler.verbose.Message(scan_w_only_one_resourcefile_supported)
             else
-              compiler.current_module.resourcefiles.insert(FixFileName(s));
+              compiler.current_module.resourcefiles.insert(compiler.CFileUtl.FixFileName(s));
           end
         else
           compiler.verbose.Message(scan_e_resourcefiles_not_supported);

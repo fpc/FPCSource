@@ -150,7 +150,7 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
     if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
-        LinkRes.AddFileName(maybequoted(FixFileName(s)));
+        LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
       end;
 
     while not ObjectFiles.Empty do
@@ -159,14 +159,14 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
         if s<>'' then
           begin
             s:=FindObjectFile(s,'',false);
-            LinkRes.AddFileName(maybequoted(FixFileName(s)));
+            LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
           end;
       end;
 
     while not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(FixFileName(s)));
+        LinkRes.AddFileName(maybequoted(compiler.CFileUtl.FixFileName(s)));
       end;
 
     LinkRes.Add(')');

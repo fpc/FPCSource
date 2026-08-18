@@ -604,7 +604,7 @@ uses
          paramfn := fn;
          paramallowoutput := allowoutput;
          p := compiler.CFileUtl.FixPath(ExtractFilePath(fn),false);
-         n := FixFileName(ChangeFileExt(ExtractFileName(fn),''));
+         n := compiler.CFileUtl.FixFileName(ChangeFileExt(ExtractFileName(fn),''));
          { set path }
          path:=p;
          { obj,asm,ppu names }

@@ -983,9 +983,9 @@ begin
   WriteLogo;
   Lines:=4;
   if FPCHelpLines then
-   compiler.verbose.Message1(option_usage,FixFileName(FPCBinaryPath))
+   compiler.verbose.Message1(option_usage,compiler.CFileUtl.FixFileName(FPCBinaryPath))
   else
-   compiler.verbose.Message1(option_usage,FixFileName(system.paramstr(0)));
+   compiler.verbose.Message1(option_usage,compiler.CFileUtl.FixFileName(system.paramstr(0)));
   lastident:=0;
   msg_str:=compiler.verbose.MessageStr(option_help_pages);
   p:=pchar(msg_str);

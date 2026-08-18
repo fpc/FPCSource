@@ -722,7 +722,7 @@ implementation
           fn:='';
           if not(m_tp7 in compiler.globals.current_settings.modeswitches) and
              parser.pbase.try_to_consume(_OP_IN) then
-            fn:=FixFileName(parser.pexpr.get_stringconst);
+            fn:=compiler.CFileUtl.FixFileName(parser.pexpr.get_stringconst);
           { Give a warning if lineinfo is loaded }
           if s='LINEINFO' then
             begin

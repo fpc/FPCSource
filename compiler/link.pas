@@ -243,7 +243,7 @@ Implementation
           the specified file exists without searching any paths }
         if not isunit then
          begin
-           if compiler.CFileUtl.FileExists(FixFileName(s),false) then
+           if compiler.CFileUtl.FileExists(compiler.CFileUtl.FixFileName(s),false) then
             begin
               foundfile:=ScriptFixFileName(s);
               found:=true;
@@ -764,8 +764,8 @@ Implementation
                   if ioresult=0 then
                     begin
                       readln(clangsearchdirsfile,textline);
-                      sanitizerlibrarydir:=FixFileName(textline+'/'+platformname);
-                      sanitizerlibrarypath:=FixFileName(sanitizerlibrarydir+'/');
+                      sanitizerlibrarydir:=compiler.CFileUtl.FixFileName(textline+'/'+platformname);
+                      sanitizerlibrarypath:=compiler.CFileUtl.FixFileName(sanitizerlibrarydir+'/');
                       { from clang:
                         Check for runtime files in the new layout without the architecture first.
                       }
@@ -964,7 +964,7 @@ Implementation
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
-              ItemExists:=compiler.CFileUtl.FileExists(FixFilename(item.str),true);
+              ItemExists:=compiler.CFileUtl.FileExists(compiler.CFileUtl.FixFilename(item.str),true);
 	      ItemSize:=0;
 	      if ItemExists then
                 begin
@@ -1035,7 +1035,7 @@ Implementation
 
         if scripted_ar then
           begin
-            scriptfile := FixFileName(smartpath+'arscript.txt');
+            scriptfile := compiler.CFileUtl.FixFileName(smartpath+'arscript.txt');
             Replace(cmdstr,'$SCRIPT',maybequoted(scriptfile));
             Assign(script, scriptfile);
             Rewrite(script);

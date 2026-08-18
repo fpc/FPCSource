@@ -553,9 +553,9 @@ implementation
 
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
-        asmprefix:=stringdup(FixFileName('as'));
+        asmprefix:=stringdup(compiler.CFileUtl.FixFileName('as'));
 {$else}
-        asmprefix:=stringdup(FixFileName(n));
+        asmprefix:=stringdup(compiler.CFileUtl.FixFileName(n));
 {$endif}
         setfilename(fn,true);
         localunitsearchpath:=TSearchPathList.Create;

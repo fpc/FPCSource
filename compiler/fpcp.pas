@@ -222,7 +222,7 @@ implementation
       p,n : tpathstr;
     begin
       p:=compiler.CFileUtl.FixPath(ExtractFilePath(fn),false);
-      n:=FixFileName(ChangeFileExt(ExtractFileName(fn),''));
+      n:=compiler.CFileUtl.FixFileName(ChangeFileExt(ExtractFileName(fn),''));
       { pcp name }
       if allowoutput then
         if (compiler.globals.outputunitdir<>'') then

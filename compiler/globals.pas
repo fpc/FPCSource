@@ -2140,7 +2140,7 @@ implementation
        exeName := '';
        if localexepath='' then
          begin
-           exeName := FixFileName(system.paramstr(0));
+           exeName := FCFileUtl.FixFileName(system.paramstr(0));
            localexepath := ExtractFilePath(exeName);
          end;
 {$ifdef need_path_search}

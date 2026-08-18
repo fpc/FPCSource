@@ -636,7 +636,7 @@ implementation
       begin
         { Make a clean path for gdb. Remove trailing / and ./ prefixes and
 	      use always a / }
-         result:=compiler.CFileUtl.BsToSlash(ExcludeTrailingPathDelimiter(ExtractRelativePath(compiler.CFileUtl.GetCurrentDir,FixFileName(ExpandFileName(s)))));
+         result:=compiler.CFileUtl.BsToSlash(ExcludeTrailingPathDelimiter(ExtractRelativePath(compiler.CFileUtl.GetCurrentDir,compiler.CFileUtl.FixFileName(ExpandFileName(s)))));
       end;
 
 

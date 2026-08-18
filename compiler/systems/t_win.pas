@@ -190,7 +190,7 @@ implementation
               s:=asmprefix+tostr(SmartHeaderCount)+'t';
           end;
           inc(SmartFilesCount);
-          result:=ObjOutput.NewObjData(FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext));
+          result:=ObjOutput.NewObjData(compiler.CFileUtl.FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext));
           ObjOutput.startobjectfile(Result.Name);
         end;
 

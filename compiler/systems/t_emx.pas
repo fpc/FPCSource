@@ -359,7 +359,7 @@ end;
         for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
-            LibName:=FixFileName(ImportLibrary.Name + compiler.target.info.StaticCLibExt);
+            LibName:=compiler.CFileUtl.FixFileName(ImportLibrary.Name + compiler.target.info.StaticCLibExt);
             seq_no:=1;
             compiler.current_module.linkotherstaticlibs.add(libname,link_always);
             assign(out_file,compiler.current_module.outputpath+libname);

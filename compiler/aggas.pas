@@ -2031,7 +2031,7 @@ implementation
         TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
       }
       if not(compiler.target.info.system in systems_darwin) then
-        writer.AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+        writer.AsmWriteLn(#9'.file "'+compiler.CFileUtl.FixFileName(n)+'"');
 
       WriteExtraHeader;
       writer.MarkEmpty;
