@@ -82,12 +82,15 @@ interface
         Attr    : longint;
       end;
 
+      TCompilerFileUtils = class;
+
       TDirectoryCache = class
       private
+        FOwner: TCompilerFileUtils;
         FDirectories : TFPHashObjectList;
         function GetDirectory(const ADir:TCmdStr):TCachedDirectory;
       public
-        constructor Create;
+        constructor Create(AOwner: TCompilerFileUtils);
         destructor  destroy;override;
         function FileExists(const AName:TCmdStr):boolean;
         function FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
@@ -402,9 +405,10 @@ end;
                            TDirectoryCache
 ****************************************************************************}
 
-    constructor TDirectoryCache.create;
+    constructor TDirectoryCache.create(AOwner: TCompilerFileUtils);
       begin
         inherited create;
+        FOwner:=AOwner;
         FDirectories:=TFPHashObjectList.Create(true);
       end;
 
@@ -1576,7 +1580,7 @@ end;
       begin
         FTarget:=ATarget;
         CachedCurrentDir:='';
-        DirCache:=TDirectoryCache.Create;
+        DirCache:=TDirectoryCache.Create(Self);
       end;
 
 
