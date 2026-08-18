@@ -106,10 +106,11 @@ interface
 
       TCompilerFileUtils = class
       private
+        FTarget: TReadOnlyCompilerTarget;
         CachedCurrentDir : TCmdStr;
         DirCache : TDirectoryCache;
       public
-        constructor Create;
+        constructor Create(ATarget: TReadOnlyCompilerTarget);
         destructor Destroy;override;
 
         function  bstoslash(const s : TCmdStr) : TCmdStr;
@@ -1581,8 +1582,9 @@ end;
                            Init / Done
 ****************************************************************************}
 
-    constructor TCompilerFileUtils.Create;
+    constructor TCompilerFileUtils.Create(ATarget: TReadOnlyCompilerTarget);
       begin
+        FTarget:=ATarget;
         CachedCurrentDir:='';
         DirCache:=TDirectoryCache.Create;
       end;

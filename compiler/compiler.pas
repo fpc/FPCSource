@@ -619,7 +619,7 @@ begin
   FTarget:=TCompilerTarget.Create;
   FDefaultSyscallConvention:=TDefaultSyscallConvention.Create(FTarget);
   { fileutils depends on source_info so it must be after systems }
-  FCFileUtl:=TCompilerFileUtils.Create;
+  FCFileUtl:=TCompilerFileUtils.Create(FTarget);
   { globals depends on source_info so it must be after systems }
   FGlobals:=TCompilerGlobals.Create(FTarget,FCFileUtl);
   FSysSymList:=tsyssymlist.Create;
