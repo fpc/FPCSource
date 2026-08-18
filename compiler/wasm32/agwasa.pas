@@ -699,7 +699,7 @@ implementation
         // the tool updates the symbol flags, so the linker
         // is capable of producing an executable
         if Result then
-          if FindExe('wasmtool',true,t) then begin
+          if compiler.CFileUtl.FindExe('wasmtool',true,t) then begin
             if compiler.current_module.is_unit then
               // making "common" global variables a week reference
               RequotedExecuteProcess(t,' --weak "$__stack_top" --symbolauto '+ObjFileName)

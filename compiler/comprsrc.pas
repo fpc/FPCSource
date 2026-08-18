@@ -180,11 +180,11 @@ begin
     resfound:=compiler.CFileUtl.FindFile(compiler.globals.utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
   if not resfound then
     begin
-      resfound:=FindExe(compiler.globals.utilsprefix+bin,false,resbin);
+      resfound:=compiler.CFileUtl.FindExe(compiler.globals.utilsprefix+bin,false,resbin);
       if not resfound and (compiler.globals.utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', compiler.target.res.rescmd)<>0) ) then
         { Search for resource compiler without utilsprefix, if RC->RES compiler is called }
         { or RES->OBJ compiler supports different architectures. }
-        resfound:=FindExe(bin,false,resbin);
+        resfound:=compiler.CFileUtl.FindExe(bin,false,resbin);
     end;
   { get also the path to be searched for the windres.h }
   respath:=ExtractFilePath(resbin);

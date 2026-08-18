@@ -305,7 +305,7 @@ const
         if compiler.globals.utilsdirectory<>'' then
           result:=compiler.CFileUtl.findfile(fullutilname,compiler.globals.utilsdirectory,false,fullutilpath);
         if not result then
-          result:=findexe(fullutilname,false,fullutilpath);
+          result:=compiler.CFileUtl.findexe(fullutilname,false,fullutilpath);
       end;
 
 

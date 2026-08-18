@@ -904,7 +904,7 @@ Implementation
            if compiler.globals.utilsdirectory<>'' then
              asfound:=compiler.CFileUtl.FindFile(UtilExe,compiler.globals.utilsdirectory,false,LastASBin);
            if not AsFound then
-             asfound:=FindExe(UtilExe,false,LastASBin);
+             asfound:=compiler.CFileUtl.FindExe(UtilExe,false,LastASBin);
            if (not asfound) and not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then
             begin
               compiler.verbose.Message1(exec_e_assembler_not_found,LastASBin);

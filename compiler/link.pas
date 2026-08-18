@@ -862,7 +862,7 @@ Implementation
         if compiler.globals.utilsdirectory<>'' then
          Found:=compiler.CFileUtl.FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
         if (not Found) then
-         Found:=FindExe(utilexe,false,Foundbin);
+         Found:=compiler.CFileUtl.FindExe(utilexe,false,Foundbin);
         if throwerror and (not Found) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
          begin
            compiler.verbose.Message1(exec_e_util_not_found,utilexe);
