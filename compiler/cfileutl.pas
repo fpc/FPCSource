@@ -50,8 +50,10 @@ interface
       SystemsTypes,Systems,CompilerBase;
 
     type
+      TCompilerFileUtils = class;
       TCachedDirectory = class(TFPHashObject)
       private
+        FOwnerFileUtils: TCompilerFileUtils;
         FDirectoryEntries : TFPHashList;
         FCached : Boolean;
         procedure FreeDirectoryEntries;
@@ -60,7 +62,7 @@ interface
         procedure ForceUseCache;
         procedure Reload;
       public
-        constructor Create(AList:TFPHashObjectList;const AName:TCmdStr);
+        constructor Create(AList:TFPHashObjectList;const AName:TCmdStr;AOwnerFileUtils: TCompilerFileUtils);
         destructor  destroy;override;
         function FileExists(const AName:TCmdStr):boolean;
         function FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
@@ -81,8 +83,6 @@ interface
         RealName: TCmdStr;
         Attr    : longint;
       end;
-
-      TCompilerFileUtils = class;
 
       TDirectoryCache = class
       private
@@ -223,9 +223,10 @@ end;
                            TCachedDirectory
 ****************************************************************************}
 
-    constructor TCachedDirectory.create(AList:TFPHashObjectList;const AName:TCmdStr);
+    constructor TCachedDirectory.create(AList:TFPHashObjectList;const AName:TCmdStr;AOwnerFileUtils: TCompilerFileUtils);
       begin
         inherited create(AList,AName);
+        FOwnerFileUtils:=AOwnerFileUtils;
         FDirectoryEntries:=TFPHashList.Create;
         FCached:=False;
       end;
@@ -432,7 +433,7 @@ end;
           DirName:=ADir;
         CachedDir:=TCachedDirectory(FDirectories.Find(DirName));
         if not assigned(CachedDir) then
-          CachedDir:=TCachedDirectory.Create(FDirectories,DirName);
+          CachedDir:=TCachedDirectory.Create(FDirectories,DirName,FOwner);
         Result:=CachedDir;
       end;
 
