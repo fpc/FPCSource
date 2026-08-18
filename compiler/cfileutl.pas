@@ -242,13 +242,11 @@ end;
 
 
     function TCachedDirectory.TryUseCache:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Result:=True;
         if FCached then
           exit;
-        if not compiler.globals.current_settings.disabledircache then
+        if not TReadOnlyCompilerGlobals(FOwnerFileUtils.Globals).current_settings.disabledircache then
           ForceUseCache
         else
           Result:=False;
