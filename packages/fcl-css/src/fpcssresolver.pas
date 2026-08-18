@@ -604,8 +604,8 @@ type
     function GetElPos(El: TCSSElement): TCSSString; virtual;
     function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual; // must be freed by caller
     procedure Compute(Node: ICSSNode;
-      ElementStyle: TCSSRuleElement; // element style of Node
-      out Rules: TCSSSharedRuleList {owned by resolver};
+      ElementStyle: TCSSRuleElement; // inline/element style of Node
+      out Rules: TCSSSharedRuleList; // owned by resolver
       out Values: TCSSAttributeValues;
       out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
       ); virtual;
