@@ -109,6 +109,7 @@ interface
         FTarget: TReadOnlyCompilerTarget;
         CachedCurrentDir : TCmdStr;
         DirCache : TDirectoryCache;
+        property Target: TReadOnlyCompilerTarget read FTarget;
       public
         constructor Create(ATarget: TReadOnlyCompilerTarget);
         destructor Destroy;override;
