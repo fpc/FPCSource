@@ -249,7 +249,7 @@ begin
 
   LinkRes.Add('option quiet');
 
-  LinkRes.Add('option description '+maybequoted_for_script(compiler.globals.description,script_unix));
+  LinkRes.Add('option description '+compiler.CFileUtl.maybequoted_for_script(compiler.globals.description,script_unix));
 
   if compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5] then
     LinkRes.Add('debug dwarf')

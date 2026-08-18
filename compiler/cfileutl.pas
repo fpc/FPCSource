@@ -132,11 +132,11 @@ interface
         function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
         function  GetShortName(const n:TCmdStr):TCmdStr;
+        function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
       end;
 
     function maybequoted(const s:string):string;
     function maybequoted(const s:ansistring):ansistring;
-    function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
 
     function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
@@ -1378,7 +1378,7 @@ end;
     end;
 
 
-    function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
+    function TCompilerFileUtils.maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
       const
         FORBIDDEN_CHARS_DOS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                            '{', '}', '''', '`', '~'];
@@ -1453,7 +1453,7 @@ end;
           quote_script:=source_info.script
         else
           quote_script:=compiler.target.info.script;
-        result:=maybequoted_for_script(s,quote_script);
+        result:=compiler.CFileUtl.maybequoted_for_script(s,quote_script);
       end;
 
 
@@ -1462,6 +1462,8 @@ end;
       everything that has to be quoted for Windows, was also quoted (but
       differently for Unix) -- which is the case }
     function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i: longint;
         temp: TCmdStr;
@@ -1489,7 +1491,7 @@ end;
                   else
                     begin
                       { requote for Windows }
-                      result:=result+maybequoted_for_script(temp,script_dos);
+                      result:=result+compiler.CFileUtl.maybequoted_for_script(temp,script_dos);
                       inquotes:=false;
                     end;
                 end;
