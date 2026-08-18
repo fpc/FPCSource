@@ -100,7 +100,7 @@ Type
     function ParseRule: TCSSRuleElement; virtual;
     function ParseAtUnknownRule: TCSSElement; virtual;
     function ParseAtMediaRule: TCSSAtRuleElement; virtual;
-    function ParseAtSimpleRule: TCSSAtRuleElement; virtual;
+    function ParseAtSimpleRule(aSkipDeclarations : Boolean = False): TCSSAtRuleElement; virtual;
     function ParseMediaCondition(TopLvl: boolean): TCSSElement; virtual;
     function ParseMediaBracket: TCSSElement; virtual;
     function ParseRuleList(aStopOn : TCSStoken = ctkEOF): TCSSElement; virtual;
@@ -120,7 +120,8 @@ Type
     function ParseParenthesis: TCSSElement; virtual;
     function ParsePseudoClass: TCSSElement; virtual;
     function ParsePseudoElement: TCSSElement; virtual;
-    function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False) : integer; virtual;
+    function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False;
+                           aSkipDeclarations : Boolean = False) : integer; virtual;
     function CurrentStartsNestedRule : Boolean; virtual;
     function LookAheadIsNestedRule : Boolean;
     function ParseInteger: TCSSElement; virtual;
@@ -577,7 +578,7 @@ begin
   end;
 end;
 
-function TCSSParser.ParseAtSimpleRule: TCSSAtRuleElement;
+function TCSSParser.ParseAtSimpleRule(aSkipDeclarations : Boolean): TCSSAtRuleElement;
 var
   {$ifdef VerboseCSSParser}
   aAt : TCSSString;
@@ -617,7 +618,7 @@ begin
     GetNextToken;
 
     // read declarations
-    ParseRuleBody(aRule);
+    ParseRuleBody(aRule,false,aSkipDeclarations);
     if CurrentToken=ctkRBRACE then
       GetNextToken;
 
@@ -944,6 +945,8 @@ begin
     '@media': Result:=ParseAtMediaRule;
     '@font-face',
     '@page': Result:=ParseAtSimpleRule;
+    // a top level @starting-style contains only rules, no declarations
+    '@starting-style': Result:=ParseAtSimpleRule(true);
     else
       Result:=ParseAtUnknownRule;
     end
@@ -1433,7 +1436,8 @@ begin
   Result:=LookAheadIsNestedRule;
 end;
 
-function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false): integer;
+function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false;
+  aSkipDeclarations: Boolean = false): integer;
 
 Var
   aDecl : TCSSElement;
@@ -1449,9 +1453,19 @@ begin
       break;
     if CurrentToken=ctkATKEYWORD then
       begin
-      aDecl:=ParseAtUnknownRule;
-      if aDecl<>nil then
-        aRule.AddChild(aDecl);
+      if lowercase(CurrentTokenString)='@starting-style' then
+        begin
+        // @starting-style contains declarations and/or nested rules
+        aNestedRule:=ParseAtSimpleRule;
+        if aNestedRule<>nil then
+          aRule.AddNestedRule(aNestedRule);
+        end
+      else
+        begin
+        aDecl:=ParseAtUnknownRule;
+        if aDecl<>nil then
+          aRule.AddChild(aDecl);
+        end;
       end
     else if CurrentStartsNestedRule then
       begin
@@ -1461,27 +1475,32 @@ begin
       end
     else
       begin
+      if aSkipDeclarations then
+        // e.g. a declaration directly in a top level @starting-style: only rules allowed
+        DoWarnExpectedButGot('selector');
       aDecl:=ParseDeclaration(aIsAt);
-      if aDecl<>nil then
+      if aDecl=nil then
         begin
-        if aRule.NestedRuleCount=0 then
-          aRule.AddChild(aDecl)
-        else
-          begin
-          // declarations behind nested rules are added to a special nested rule
-          aNestedRule:=aRule.NestedRules[aRule.NestedRuleCount-1];
-          if aNestedRule.SelectorCount>0 then
-            begin
-            // add special nested rule
-            aNestedRule:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
-            aRule.AddNestedRule(aNestedRule);
-            end;
-          aNestedRule.AddChild(aDecl);
-          end;
-        end
-      else // skip invalid
+        // skip invalid
         while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
           GetNextToken;
+        end
+      else if aSkipDeclarations then
+        FreeAndNil(aDecl)
+      else if aRule.NestedRuleCount=0 then
+        aRule.AddChild(aDecl)
+      else
+        begin
+        // declarations behind nested rules are added to a special nested rule
+        aNestedRule:=aRule.NestedRules[aRule.NestedRuleCount-1];
+        if (aNestedRule.SelectorCount>0) or (aNestedRule is TCSSAtRuleElement) then
+          begin
+          // add special nested rule
+          aNestedRule:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
+          aRule.AddNestedRule(aNestedRule);
+          end;
+        aNestedRule.AddChild(aDecl);
+        end;
       end;
     end;
   Result:=aRule.ChildCount;
