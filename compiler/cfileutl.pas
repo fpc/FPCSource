@@ -1298,8 +1298,6 @@ end;
 
 
     function TCompilerFileUtils.maybequoted(const s:string):string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       FORBIDDEN_CHARS_DOS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                          '{', '}', '''', '`', '~'];
@@ -1312,7 +1310,7 @@ end;
       quote_char: ansichar;
       quoted : boolean;
     begin
-      if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
+      if not(cs_link_on_target in TReadOnlyCompilerGlobals(Globals).current_settings.globalswitches) then
         quote_script:=source_info.script
       else
         quote_script:=Target.info.script;
