@@ -754,7 +754,7 @@ Implementation
           if clang<>'' then
             begin
               clangsearchdirspath:=compiler.globals.outputexedir+UniqueName('clangsearchdirs');
-              searchres:=shell(compiler.CFileUtl.maybequoted(clang)+' -target '+targettriplet(compiler.target,triplet_llvm)+' -print-file-name=lib > '+compiler.CFileUtl.maybequoted(clangsearchdirspath));
+              searchres:=compiler.CFileUtl.shell(compiler.CFileUtl.maybequoted(clang)+' -target '+targettriplet(compiler.target,triplet_llvm)+' -print-file-name=lib > '+compiler.CFileUtl.maybequoted(clangsearchdirspath));
               if searchres=0 then
                 begin
                   AssignFile(clangsearchdirsfile,clangsearchdirspath);
@@ -917,7 +917,7 @@ Implementation
          begin
            compiler.verbose.FlushOutput;
            if useshell then
-             exitcode:=shell(compiler.CFileUtl.maybequoted(command)+' '+para)
+             exitcode:=compiler.CFileUtl.shell(compiler.CFileUtl.maybequoted(command)+' '+para)
            else
              try
                exitcode:=compiler.CFileUtl.RequotedExecuteProcess(command,para);

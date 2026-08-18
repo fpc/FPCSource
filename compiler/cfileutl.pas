@@ -139,9 +139,8 @@ interface
         function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
         function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
         function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
+        function Shell(const command:ansistring): longint;
       end;
-
-    function Shell(const command:ansistring): longint;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -1557,7 +1556,7 @@ end;
       end;
 
 
-    function Shell(const command:ansistring): longint;
+    function TCompilerFileUtils.Shell(const command:ansistring): longint;
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
 {$ifdef hasunix}
