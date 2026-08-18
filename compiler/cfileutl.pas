@@ -114,11 +114,11 @@ interface
         function  bstoslash(const s : TCmdStr) : TCmdStr;
         {Gives the absolute path to the current directory}
         function  GetCurrentDir:TCmdStr;
+        {Gives the relative path to the current directory,
+         with a trailing dir separator. E. g. on unix ./ }
+        function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
       end;
 
-    {Gives the relative path to the current directory,
-     with a trailing dir separator. E. g. on unix ./ }
-    function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
     function  path_absolute(const s : TCmdStr) : boolean;
     Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
@@ -530,7 +530,7 @@ end;
 
    {Gives the relative path to the current directory,
     with a trailing dir separator. E. g. on unix ./ }
-   function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
+   function TCompilerFileUtils.CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
 
    begin
      if systeminfo.system <> system_powerpc_macosclassic then
@@ -1035,7 +1035,7 @@ end;
          if (length(currPath) >0) and (currPath[1]='=') then
            currPath:=sysroot+FixPath(copy(currPath,2,length(currPath)-1),false);
          if currPath='' then
-           currPath:= CurDirRelPath(source_info)
+           currPath:= compiler.CFileUtl.CurDirRelPath(source_info)
          else
           begin
             currPath:=FixPath(ExpandFileName(currpath),false);
@@ -1044,7 +1044,7 @@ end;
 {$ifdef hasamiga}
                currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
-               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
+               currPath:= compiler.CFileUtl.CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$endif}
              end;
           end;

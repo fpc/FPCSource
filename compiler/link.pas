@@ -270,7 +270,7 @@ Implementation
         if (not found) and (unitpath<>'') then
          found:=FindFile(s,unitpath,false,foundfile);
         if (not found) then
-         found:=FindFile(s, CurDirRelPath(source_info),false,foundfile);
+         found:=FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info),false,foundfile);
         if (not found) then
          found:=compiler.globals.UnitSearchPath.FindFile(s,false,foundfile);
         if (not found) then
@@ -357,7 +357,7 @@ Implementation
            3. global libary dir
            4. exe path of the compiler (not when linking on target)
           for all searches don't use the directory cache }
-        found:=FindFile(s, CurDirRelPath(source_info), false,foundfile);
+        found:=FindFile(s, compiler.CFileUtl.CurDirRelPath(source_info), false,foundfile);
         if (not found) and (compiler.current_module.outputpath<>'') then
          found:=FindFile(s,compiler.current_module.outputpath,false,foundfile);
         if (not found) then

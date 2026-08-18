@@ -1746,7 +1746,7 @@ type
            end
          else
            begin
-             hpath:=current_scanner.inputfile.path+';'+CurDirRelPath(source_info);
+             hpath:=current_scanner.inputfile.path+';'+compiler.CFileUtl.CurDirRelPath(source_info);
              found:=FindFile(path+name, hpath,true,foundfile);
              if not found then
                found:=compiler.current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
