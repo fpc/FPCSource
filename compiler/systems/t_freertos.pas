@@ -1394,7 +1394,7 @@ begin
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32c3",');
       writeln(t,'    "IDF_ENV_FPGA": "",');
-      writeln(t,'    "IDF_PATH": "'+TargetFixPath(compiler.globals.idfpath,false)+'",');
+      writeln(t,'    "IDF_PATH": "'+compiler.CFileUtl.TargetFixPath(compiler.globals.idfpath,false)+'",');
       writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs.in",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs_projbuild.in"');
     end;
@@ -1457,7 +1457,7 @@ begin
 
   { generate linker maps }
 {$ifdef UNIX}
-  binstr:=TargetFixPath(compiler.globals.idfpath,false)+'/tools/ldgen/ldgen.py';
+  binstr:=compiler.CFileUtl.TargetFixPath(compiler.globals.idfpath,false)+'/tools/ldgen/ldgen.py';
 {$else}
   binstr:='python';
 {$endif UNIX}
