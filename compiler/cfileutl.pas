@@ -613,8 +613,6 @@ end;
 
     function TCompilerFileUtils.FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         fn2 : TCmdStr;
       begin
         result:=false;
@@ -627,12 +625,12 @@ end;
                3. UPPERCASE
             }
             FoundFile:=path+fn;
-            If (ftNone in compiler.globals.AllowedFilenameTransFormations) and FileExists(FoundFile,allowcache) then
+            If (ftNone in TReadOnlyCompilerGlobals(Globals).AllowedFilenameTransFormations) and FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
              end;
-            if (ftLowerCase in compiler.globals.AllowedFilenameTransFormations) then
+            if (ftLowerCase in TReadOnlyCompilerGlobals(Globals).AllowedFilenameTransFormations) then
               begin
                 fn2:=Lower(fn);
                 if (fn2<>fn) then
@@ -645,7 +643,7 @@ end;
                      end;
                   end;
               end;
-            if (ftUpperCase in compiler.globals.AllowedFilenameTransFormations)  then
+            if (ftUpperCase in TReadOnlyCompilerGlobals(Globals).AllowedFilenameTransFormations)  then
               begin
                 fn2:=Upper(fn);
                 if (fn2<>fn) then
