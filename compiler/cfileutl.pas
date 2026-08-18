@@ -1523,7 +1523,7 @@ end;
         else
           quote_script:=source_info.script;
         if quote_script=script_unix then
-          result:=sysutils.ExecuteProcess(Path,compiler.CFileUtl.UnixRequoteWithDoubleQuotes(ComLine),Flags)
+          result:=sysutils.ExecuteProcess(Path,UnixRequoteWithDoubleQuotes(ComLine),Flags)
         else
           result:=sysutils.ExecuteProcess(Path,ComLine,Flags)
       end;
