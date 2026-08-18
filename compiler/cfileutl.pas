@@ -1240,7 +1240,7 @@ end;
       Path : TCmdStr;
       found : boolean;
     begin
-       found:=compiler.CFileUtl.FindFile(compiler.CFileUtl.FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
+       found:=FindFile(FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
       if not found then
        begin
 {$ifdef macos}
@@ -1248,7 +1248,7 @@ end;
 {$else}
          Path:=GetEnvironmentVariable('PATH');
 {$endif}
-         found:=compiler.CFileUtl.FindFile(compiler.CFileUtl.FixFileName(bin),Path,allowcache,foundfile);
+         found:=FindFile(FixFileName(bin),Path,allowcache,foundfile);
        end;
       FindFileInExeLocations:=found;
     end;
