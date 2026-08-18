@@ -1590,8 +1590,7 @@ end;
 
     destructor TCompilerFileUtils.Destroy;
       begin
-        DirCache.Free;
-        DirCache := nil;
+        FreeAndNil(DirCache);
       end;
 
 
