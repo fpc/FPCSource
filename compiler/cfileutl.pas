@@ -923,10 +923,8 @@ end;
 
 
    Function TCompilerFileUtils.TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       result:=_FixPath(s,allowdot,compiler.target.info,':');
+       result:=_FixPath(s,allowdot,Target.info,':');
      end;
 
 
