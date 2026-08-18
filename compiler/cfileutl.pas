@@ -105,6 +105,9 @@ interface
       end;
 
       TCompilerFileUtils = class
+      private
+        CachedCurrentDir : TCmdStr;
+      public
         constructor Create;
         destructor Destroy;override;
 
@@ -515,8 +518,6 @@ end;
 
 
    {Gives the absolute path to the current directory}
-     var
-       CachedCurrentDir : TCmdStr;
    function TCompilerFileUtils.GetCurrentDir:TCmdStr;
      begin
        if CachedCurrentDir='' then
