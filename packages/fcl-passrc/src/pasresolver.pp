@@ -18876,8 +18876,12 @@ begin
   Result:=ModScope.SystemTVarRec;
   if Result<>nil then exit;
 
-  // find unit in uses clauses
-  UtilsMod:=FindUsedUnitname('system',aMod);
+  // find unit in uses clauses; the system unit itself has no uses clause, so
+  // its own `array of const` parameters must look the record up locally
+  if SameText(aMod.Name,'system') then
+    UtilsMod:=aMod
+  else
+    UtilsMod:=FindUsedUnitname('system',aMod);
   if UtilsMod=nil then
     RaiseIdentifierNotFound(20190215101210,'System.TVarRec',ErrorEl);
 
@@ -23843,6 +23847,10 @@ begin
       Result:=cExact
     else if (ParamResolved.BaseType=btContext) and (ParamResolved.LoTypeEl is TPasEnumType) then
       Result:=cExact
+    // Inside an unspecialized generic body the argument type is not known yet;
+    // rtl-objpas' TRttiEnumerationType.GetName<T> does Ord(aValue) on one.
+    else if IsGenericTemplType(ParamResolved) then
+      Result:=cGenericExact
     else if ParamResolved.BaseType=btRange then
       begin
       if ParamResolved.SubType in btArrayRangeTypes then
@@ -29687,8 +29695,10 @@ begin
       // so `Test(array of LongInt)` and `Test(TLongIntArray)` may coexist (tarrconstr6).
       if IsOpenArray(Arr1)<>IsOpenArray(Arr2) then
         exit(cIncompatible);
-      if length(Arr1.Ranges)>0 then
-        RaiseNotYetImplemented(20170328093733,Arr1.Ranges[0],'anonymous static array');
+      // Two STATIC arrays are one signature only when their index bounds agree;
+      // differing bounds make them distinct types, so distinct overloads.
+      if (length(Arr1.Ranges)>0) and not SameArrayRanges(Arr1,Arr2) then
+        exit(cIncompatible);
       Result:=CheckElTypeCompatibility(GetArrayElType(Arr1),GetArrayElType(Arr2),ResolveAlias);
       exit;
       end
@@ -36212,6 +36222,10 @@ begin
   if (Proc.ClassType=TPasClassConstructor)
       or (Proc.ClassType=TPasClassDestructor) then
     // actually class constructor/destructor are static
+    exit;
+  if Proc is TPasOperator then
+    // operators are static too: they take every operand explicitly, and
+    // rtl-objpas' TRttiContext even names one of them `self`
     exit;
 
   ProcScope:=TPasProcedureScope(Proc.CustomData);
