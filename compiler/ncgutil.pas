@@ -93,8 +93,6 @@ interface
 
     procedure location_free(list: TAsmList; const location : TLocation;ctx:tpassgeneratecodecontext);
 
-    function getprocalign : shortint;
-
     procedure gen_load_frame_for_exceptfilter(list : TAsmList);
 
    procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
@@ -1391,18 +1389,6 @@ implementation
                   end;
               end;
           end;
-      end;
-
-
-    function getprocalign : shortint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        { gprof uses 16 byte granularity }
-        if (cs_profile in compiler.globals.current_settings.moduleswitches) then
-          result:=16
-        else
-         result:=compiler.globals.current_settings.alignment.procalign;
       end;
 
 

@@ -831,6 +831,8 @@ implementation
 
     class procedure thlcgobjhelpers.record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         alt: TAsmListType;
       begin
         if not(po_assembler in pd.procoptions) then
@@ -841,13 +843,13 @@ implementation
         maybe_new_object_file(AsmData.asmlists[alt]);
   {$ifdef symansistr}
         if pd.section<>'' then
-          new_proc_section(AsmData.asmlists[alt],sec_user,lower(pd.section),getprocalign)
+          new_proc_section(AsmData.asmlists[alt],sec_user,lower(pd.section),compiler.globals.getprocalign)
   {$else symansistr}
         if assigned(pd.section) then
-          new_proc_section(AsmData.asmlists[alt],sec_user,lower(pd.section^),getprocalign)
+          new_proc_section(AsmData.asmlists[alt],sec_user,lower(pd.section^),compiler.globals.getprocalign)
   {$endif symansistr}
         else
-          new_section(AsmData.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
+          new_section(AsmData.asmlists[alt],sec_code,lower(pd.mangledname),compiler.globals.getprocalign);
         AsmData.asmlists[alt].concatlist(code);
         { save local data (castable) also in the same file }
         if assigned(data) and

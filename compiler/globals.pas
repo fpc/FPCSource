@@ -844,6 +844,8 @@ Const
         class procedure GlobalDefaultReplacements(globals: TReadOnlyCompilerGlobals; target: TReadOnlyCompilerTarget; var s:ansistring; substitute_env_variables:boolean=true);
         procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
+        function getprocalign : shortint;
+
         property Target: TReadOnlyCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -2253,6 +2255,15 @@ implementation
     procedure TReadOnlyCompilerGlobals.DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
       begin
         GlobalDefaultReplacements(Self,Target,s,substitute_env_variables);
+      end;
+
+    function TReadOnlyCompilerGlobals.getprocalign : shortint;
+      begin
+        { gprof uses 16 byte granularity }
+        if (cs_profile in current_settings.moduleswitches) then
+          result:=16
+        else
+         result:=current_settings.alignment.procalign;
       end;
 
 {****************************************************************************
