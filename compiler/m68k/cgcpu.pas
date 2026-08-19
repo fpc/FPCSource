@@ -26,7 +26,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,globtype,
+       cgbase,cgobj,globtype,globals,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        parabase,cpupara,
@@ -133,14 +133,14 @@ unit cgcpu;
         is 32K
      }
      function isvalidrefoffset(const ref: treference): boolean;
-     function isvalidreference(const ref: treference): boolean;
+     function isvalidreference(const ref: treference; globals: TReadOnlyCompilerGlobals): boolean;
 
     function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
     uses
-       globals,verbose,systems,cutils,
+       verbose,systems,cutils,
        symsym,symtable,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu,fmodule,
        compiler;
@@ -211,9 +211,7 @@ unit cgcpu;
        C_HI
       );
 
-     function isvalidreference(const ref: treference): boolean;
-       var
-         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     function isvalidreference(const ref: treference; globals: TReadOnlyCompilerGlobals): boolean;
        begin
          isvalidreference:=isvalidrefoffset(ref) and
 
@@ -222,7 +220,7 @@ unit cgcpu;
            not (assigned(ref.symbol) and (ref.base <> NR_NO) and (ref.offset <> 0)) and
 
            { coldfire and 68000 cannot handle non-addressregs as bases }
-           not ((compiler.globals.current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
+           not ((globals.current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
                 not isaddressregister(ref.base));
        end;
 
