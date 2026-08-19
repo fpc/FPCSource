@@ -1232,7 +1232,7 @@ end;
 constructor TFPInputFile.Create(AEditor: PFileEditor);
 begin
   if not Assigned(AEditor) then Fail;
-  if inherited Create(AEditor^.FileName)=nil then
+  if inherited Create(AEditor^.FileName,current_compiler.CFileUtl)=nil then
     Fail;
   Editor:=AEditor;
 end;
