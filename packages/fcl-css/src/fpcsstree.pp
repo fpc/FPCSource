@@ -121,6 +121,7 @@ Type
     cu_dvmin,// dynamic-vmin
     cu_dvb,  // dynamic-vb
     cu_dvi,  // dynamic-vi
+    
     // container queries
     cu_cqw,  // relative to 1% of container's width
     cu_cqh,  // relative to 1% of container's height
@@ -136,8 +137,14 @@ Type
     // time
     cu_s,    // seconds
     cu_ms,   // milliseconds
+    cu_Hz,   // Frequency, cycles per second
+    cu_kHz,  // Frequency, thousands of cycles per second
     // special
-    cu_fr    // fraction of flex space
+    cu_fr,   // fraction of flex space
+    cu_dpcm, // dots per cm.
+    cu_dpi,  // dots per inch
+    cu_dppx, // dots per pixel unit
+    cu_x     // same as cu_dppx
     );
   TCSSUnits = set of TCSSUnit;
 const
@@ -152,6 +159,7 @@ const
   cuAllLengthsAndPercent = cuAllLengths+[cuPercent];
   cuAllAngles = [cu_deg,cu_grad,cu_rad,cu_turn];
   cuAllTimes = [cu_s,cu_ms];
+  cuAllFrequencies = [cu_Hz,cu_kHz];
 
   CSSUnitNames: array[TCSSUnit] of TCSSString = (
     '',     // no unit
@@ -217,10 +225,16 @@ const
     'rad',  // radians
     'turn', // turns
     // time
-    's',    // seconds
-    'ms',   // milliseconds
+    'seconds',
+    'milliseconds',
+    'Hz',   // Frequency, cycles per second
+    'kHz',  // Frequency, thousands of cycles per second
     // special
-    'fr'    // fraction
+    'fr',   // fraction of flex space
+    'dpcm', // dots per cm.
+    'dpi',  // dots per inch
+    'dppx', // dots per pixel unit
+    'x'     // same as cu_dppx
     );
 
 type
