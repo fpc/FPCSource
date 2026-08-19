@@ -464,7 +464,7 @@ const
       PreviousChunkIndex := NToLE(LastListIndex);
       NextChunkIndex := NToLE(Longint(-1)); // we update this when we write the next chunk
     end;
-    if HeaderSection1.FirstPMGLChunkIndex <= 0 then
+    if LastListIndex < 0 then
       HeaderSection1.FirstPMGLChunkIndex := NToLE(ChunkIndex);
     HeaderSection1.LastPMGLChunkIndex := NToLE(ChunkIndex);
     ListingBlock.WriteHeader(@ListHeader);
