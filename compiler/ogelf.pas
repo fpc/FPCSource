@@ -2276,12 +2276,12 @@ implementation
         exesec:TExeSection;
         opts:TObjSectionOptions;
         s:string;
-        newsections:TFPHashObjectList;
+        newsections:TExeSectionList;
         allsections:TFPList;
         inserts:array[0..6] of TExeSection;
         idx,inspos:longint;
       begin
-        newsections:=TFPHashObjectList.Create(false);
+        newsections:=TExeSectionList.Create(false);
         allsections:=TFPList.Create;
         { copy existing sections }
         allsections.Capacity:=ExeSectionList.Count;

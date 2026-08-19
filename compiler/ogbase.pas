@@ -640,6 +640,9 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
+      TExeSectionList = class(TFPHashObjectList)
+      end;
+
       TlibKind = (lkArchive,lkObject,lkGroup);
 
       TStaticLibrary = class(TObject)
@@ -715,7 +718,7 @@ interface
         FCObjData         : TObjDataClass;
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
-        FExeSectionList   : TFPHashObjectList;
+        FExeSectionList   : TExeSectionList;
         Fzeronr           : longint;
         Fvaluesnr         : longint;
         { Symbols }
@@ -815,7 +818,7 @@ interface
         function WriteExeFile(const fn:string):boolean;
         procedure ParseScript (linkscript:TCmdStrList); virtual;
         property Writer:TObjectWriter read FWriter;
-        property ExeSectionList:TFPHashObjectList read FExeSectionList;
+        property ExeSectionList:TExeSectionList read FExeSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
         property ExeSymbolList:TFPHashObjectList read FExeSymbolList;
         property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
@@ -2457,7 +2460,7 @@ implementation
         FExeVTableList:=TFPObjectList.Create(false);
         ComdatGroups:=TFPHashList.Create;
         { sections }
-        FExeSectionList:=TFPHashObjectList.Create(true);
+        FExeSectionList:=TExeSectionList.Create(true);
         FImageBase:=0;
 {$ifdef cpu16bitaddr}
         SectionMemAlign:=$10;
@@ -4184,10 +4187,10 @@ implementation
 
     procedure TExeOutput.ReplaceExeSectionList(newlist: TFPList);
       var
-        tmp: TFPHashObjectList;
+        tmp: TExeSectionList;
         i: longint;
       begin
-        tmp:=TFPHashObjectList.Create(true);
+        tmp:=TExeSectionList.Create(true);
         for i:=0 to newlist.count-1 do
           TFPHashObject(newlist[i]).ChangeOwner(tmp);
         { prevent destruction of existing sections }
