@@ -558,11 +558,11 @@ implementation
         asmprefix:=stringdup(compiler.CFileUtl.FixFileName(n));
 {$endif}
         setfilename(fn,true);
-        localunitsearchpath:=TSearchPathList.Create;
-        localobjectsearchpath:=TSearchPathList.Create;
-        localincludesearchpath:=TSearchPathList.Create;
-        locallibrarysearchpath:=TSearchPathList.Create;
-        localframeworksearchpath:=TSearchPathList.Create;
+        localunitsearchpath:=TSearchPathList.Create(compiler.CFileUtl);
+        localobjectsearchpath:=TSearchPathList.Create(compiler.CFileUtl);
+        localincludesearchpath:=TSearchPathList.Create(compiler.CFileUtl);
+        locallibrarysearchpath:=TSearchPathList.Create(compiler.CFileUtl);
+        localframeworksearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         localnamespacelist:=TCmdStrList.Create;
@@ -975,15 +975,15 @@ implementation
         tcinitcode.free;
         tcinitcode:=nil;
         localunitsearchpath.Free;
-        localunitsearchpath:=TSearchPathList.Create;
+        localunitsearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         localobjectsearchpath.free;
-        localobjectsearchpath:=TSearchPathList.Create;
+        localobjectsearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         localincludesearchpath.free;
-        localincludesearchpath:=TSearchPathList.Create;
+        localincludesearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         locallibrarysearchpath.free;
-        locallibrarysearchpath:=TSearchPathList.Create;
+        locallibrarysearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         localframeworksearchpath.free;
-        localframeworksearchpath:=TSearchPathList.Create;
+        localframeworksearchpath:=TSearchPathList.Create(compiler.CFileUtl);
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc_final:=false;

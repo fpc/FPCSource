@@ -2270,12 +2270,12 @@ implementation
 
         { Search Paths }
         unicodepath:='';
-        Flibrarysearchpath:=TSearchPathList.Create;
-        Funitsearchpath:=TSearchPathList.Create;
-        Fincludesearchpath:=TSearchPathList.Create;
-        Fobjectsearchpath:=TSearchPathList.Create;
-        Fframeworksearchpath:=TSearchPathList.Create;
-        Fpackagesearchpath:=TSearchPathList.Create;
+        Flibrarysearchpath:=TSearchPathList.Create(ACFileUtl);
+        Funitsearchpath:=TSearchPathList.Create(ACFileUtl);
+        Fincludesearchpath:=TSearchPathList.Create(ACFileUtl);
+        Fobjectsearchpath:=TSearchPathList.Create(ACFileUtl);
+        Fframeworksearchpath:=TSearchPathList.Create(ACFileUtl);
+        Fpackagesearchpath:=TSearchPathList.Create(ACFileUtl);
         Fnamespacelist:=TCmdStrList.Create;
         Fpremodule_namespacelist:=TCmdStrList.Create;
         current_namespacelist:=Nil;

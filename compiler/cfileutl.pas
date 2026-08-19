@@ -101,6 +101,10 @@ interface
       end;
 
       TSearchPathList = class(TCmdStrList)
+      private
+        FCFileUtl: TCompilerFileUtils;
+      public
+        constructor Create(ACFileUtl: TCompilerFileUtils);
         procedure AddPath(s:TCmdStr;addfirst:boolean);overload;
         procedure AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);overload;
         procedure AddList(list:TSearchPathList;addfirst:boolean);
@@ -950,6 +954,13 @@ end;
      end;
 
 
+    constructor TSearchPathList.Create(ACFileUtl: TCompilerFileUtils);
+      begin
+        inherited Create;
+        FCFileUtl:=ACFileUtl;
+      end;
+
+
     procedure TSearchPathList.AddPath(s:TCmdStr;addfirst:boolean);
       begin
         AddLibraryPath('',s,AddFirst);
@@ -1122,7 +1133,7 @@ end;
        { create temp and reverse the list }
        if addfirst then
         begin
-          hl:=TSearchPathList.Create;
+          hl:=TSearchPathList.Create(FCFileUtl);
           hp:=TCmdStrListItem(list.first);
           while assigned(hp) do
            begin
