@@ -35,6 +35,8 @@ interface
 
        TInlineNodeFlags = set of TInlineNodeFlag;
 
+       { tinlinenode }
+
        tinlinenode = class(tunarynode)
           inlinenodeflags : TInlineNodeFlags;
           inlinenumber : tinlinenumber;
@@ -118,6 +120,7 @@ interface
 
           procedure CheckParameters(count : integer);
         private
+          procedure get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
           procedure maybe_convert_to_string(var n: tnode);
 
           function handle_str: tnode;
@@ -719,9 +722,7 @@ implementation
       end;
 
 
-    procedure get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure tinlinenode.get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
     var
       ordtype: tordtype;
     begin
