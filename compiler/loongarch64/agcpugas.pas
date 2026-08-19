@@ -40,8 +40,13 @@ unit agcpugas;
        compilerbase;
 
   type
+
+    { TLoongArch64InstrWriter }
+
     TLoongArch64InstrWriter=class(TCPUInstrWriter)
        procedure WriteInstruction(hp : tai);override;
+     private
+       function getopstr(asminfo: pasminfo; const o: toper; use_std_regname: boolean): string;
     end;
 
     TLoongArch64GNUAssembler=class(TGNUassembler)
@@ -146,7 +151,7 @@ unit agcpugas;
     end;
 
 
-    function getopstr(asminfo: pasminfo; const o:toper;use_std_regname : boolean) : string;
+    function TLoongArch64InstrWriter.getopstr(asminfo: pasminfo; const o:toper;use_std_regname : boolean) : string;
     var
       hs : string;
     begin
