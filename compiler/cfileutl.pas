@@ -969,8 +969,6 @@ end;
 
    procedure TSearchPathList.AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);
      var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-     var
        staridx,
        i,j      : longint;
        prefix,
@@ -1011,7 +1009,7 @@ end;
        if s='' then
         exit;
      { Support default macro's }
-       compiler.DefaultReplacements(s);
+       TReadOnlyCompilerGlobals(FCFileUtl.Globals).DefaultReplacements(s);
 {$warnings off}
        if PathSeparator <> ';' then
         for i:=1 to length(s) do
