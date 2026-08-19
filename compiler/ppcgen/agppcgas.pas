@@ -35,7 +35,7 @@ unit agppcgas;
        aasmtai,aasmdata,
        assemble,aggas,
        cpubase,cgutils,
-       globtype,
+       globtype,verbose,
        compilerbase;
 
   type
@@ -78,12 +78,12 @@ unit agppcgas;
     topstr = string[4];
 
     function branchmode(o: tasmop): topstr;
-    function cond2str(op: tasmop; c: tasmcond): string;
+    function cond2str(op: tasmop; c: tasmcond; Verbose: TVerbose): string;
 
   implementation
 
     uses
-       cutils,globals,verbose,
+       cutils,globals,
        cgbase,
        itcpugas,cpuinfo,
        aasmcpu,
@@ -288,9 +288,7 @@ unit agppcgas;
       end;
 
 
-    function cond2str(op: tasmop; c: tasmcond): string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function cond2str(op: tasmop; c: tasmcond; Verbose: TVerbose): string;
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
     var
@@ -333,7 +331,7 @@ unit agppcgas;
                     C_LT..C_NU:
                       begin
                         if byte(c.cr)=0 then
-                          compiler.verbose.Comment(V_error,'Wrong use of whole CR register for '+tempstr);
+                          Verbose.Comment(V_error,'Wrong use of whole CR register for '+tempstr);
                         cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
                       end;
                     C_T,C_F,C_DNZT,C_DNZF,C_DZT,C_DZF:
@@ -375,7 +373,7 @@ unit agppcgas;
                s:=#9+gas_op2str[op]
              else
                begin
-                 s:=cond2str(op,taicpu(hp).condition);
+                 s:=cond2str(op,taicpu(hp).condition,compiler.verbose);
                  if (s[length(s)] <> #9) and
                     (taicpu(hp).ops>0) then
                    s := s + ',';
