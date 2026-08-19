@@ -310,6 +310,8 @@ begin
         until not (Sp^ in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
         AddPiece(Start, Sp);
         Result := RecognizeKeyword(Start, Sp - Start);
+        if (Result = tkIdentifier) and (joStrict in Options) then
+          InvalidCharacter(Start);
       end;
     else
       InvalidCharacter(Sp);

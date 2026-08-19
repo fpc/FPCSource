@@ -66,6 +66,8 @@ type
     procedure TestArray;
     procedure TestObject;
     procedure TestObjectError;
+    procedure TestObjectKeyIdentifier;
+    procedure TestObjectKeyIdentifierStrict;
     procedure TestTrailingComma;
     procedure TestTrailingCommaErrorArray;
     procedure TestTrailingCommaErrorObject;
@@ -447,6 +449,19 @@ end;
 procedure TBaseTestReader.TestObjectError;
 begin
   DoTestError('{ "name" : value }',[joUTF8]);
+end;
+
+procedure TBaseTestReader.TestObjectKeyIdentifier;
+begin
+  FOptions:=[joUTF8];
+  TestRead('{ a : 1 }',['so','key:a','number:1','integer:1','eo']);
+  TestRead('{ "a" : 1, b : 2 }',['so','key:a','number:1','integer:1','key:b','number:2','integer:2','eo']);
+end;
+
+procedure TBaseTestReader.TestObjectKeyIdentifierStrict;
+begin
+  DoTestError('{ a : 1 }');
+  DoTestError('{ "a" : 1, b : 2 }');
 end;
 
 
