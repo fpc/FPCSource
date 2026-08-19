@@ -2103,6 +2103,24 @@ implementation
       end;
 
     class procedure TReadOnlyCompilerGlobals.GlobalDefaultReplacements(globals: TReadOnlyCompilerGlobals; target: TReadOnlyCompilerTarget; var s:ansistring; substitute_env_variables:boolean=true);
+
+{$if defined(xtensa) or defined(riscv32)}
+      function idfversionstring(version : longint):string;
+      {
+        Convert back the numerical idf_version for esp32 to string
+      }
+        begin
+          result := '';
+          if version > 0 then
+            begin
+              result := inttostr(version div 10000)+'.';
+              version := version - (version div 10000)*10000;
+              result := result + inttostr(version div 100)+'.';
+              version := version - (version div 100)*100;
+              result := result + inttostr(version);
+            end;
+        end;
+{$endif xtensa or riscv32}
 {$ifdef mswindows}
       procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
         begin

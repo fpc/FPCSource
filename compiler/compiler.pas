@@ -872,22 +872,6 @@ begin
     result:=1;
 end;
 
-function idfversionstring(version : longint):string;
-{
-  Convert back the numerical idf_version for esp32 to string
-}
-  begin
-    result := '';
-    if version > 0 then
-      begin
-        result := inttostr(version div 10000)+'.';
-        version := version - (version div 10000)*10000;
-        result := result + inttostr(version div 100)+'.';
-        version := version - (version div 100)*100;
-        result := result + inttostr(version);
-      end;
-  end;
-
 {****************************************************************************
                        Default Macro Handling
 ****************************************************************************}
