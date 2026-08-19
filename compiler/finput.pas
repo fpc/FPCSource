@@ -36,6 +36,11 @@ interface
        tlongintarr = array of longint;
 
        tinputfile = class
+       private
+         FCFileUtl: TCompilerFileUtils;
+       protected
+         property CFileUtl: TCompilerFileUtils read FCFileUtl;
+       public
          path,name : TPathStr;       { path and filename }
          inc_path  : TPathStr;       { path if file was included with $I directive }
          next      : tinputfile;    { next file for reading }
@@ -218,6 +223,7 @@ uses
 
     constructor tinputfile.create(const fn:TPathStr; ACFileUtl: TCompilerFileUtils);
       begin
+        FCFileUtl:=ACFileUtl;
         name:=ExtractFileName(fn);
         path:=ExtractFilePath(fn);
         inc_path:='';
@@ -453,12 +459,10 @@ uses
  ****************************************************************************}
 
     function tdosinputfile.fileopen(const filename: TPathStr): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { Check if file exists, this will also check if it is
           a real file and not a directory }
-        if not compiler.CFileUtl.fileexists(filename,false) then
+        if not CFileUtl.fileexists(filename,false) then
           begin
             result:=false;
             exit;
