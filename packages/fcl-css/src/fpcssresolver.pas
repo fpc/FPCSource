@@ -477,6 +477,9 @@ type
     FBucketType: TCSSRuleBucketArray; // index = type id
     FBucketClass: TCSSRuleBucketArray; // index = class id
     FBucketID: TCSSRuleBucketArray; // index = id numerical id
+    // all outermost @starting-style at-rules, in document order; they are skipped
+    // by the normal cascade and only evaluated by ComputeStartingStyle
+    FBucketStartingStyle: TCSSRuleBucket;
     FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
@@ -504,7 +507,15 @@ type
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
-    procedure ComputeAtRule(aRule: TCSSAtRuleElement); virtual;
+    // ParentSpecificity: specificity of the enclosing style rule for the current node,
+    // CSSSpecificityNoMatch if there is none or it does not match
+    procedure ComputeAtRule(aRule: TCSSAtRuleElement;
+      ParentSpecificity: TCSSSpecificity = CSSSpecificityNoMatch); virtual;
+    function ComputeAtMediaSpecificity(aRule: TCSSAtRuleElement): TCSSSpecificity; virtual;
+    // @starting-style, see ComputeStartingStyle
+    function StartingStyleContextMatches(aRule: TCSSAtRuleElement;
+      out Specificity: TCSSSpecificity): boolean; virtual;
+    procedure ComputeStartingStyleRule(aRule: TCSSAtRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
@@ -555,6 +566,7 @@ type
     procedure UpdateRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    procedure CollectStartingStyleRules(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     // sibling selectors (style sharing)
     procedure CollectSiblingSelectors(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure AddSiblingSelector(aSelector: TCSSElement; aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
@@ -609,6 +621,25 @@ type
       out Values: TCSSAttributeValues;
       out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
       ); virtual;
+    // True if any stylesheet contains a @starting-style rule. Cheap probe, so a
+    // caller can skip ComputeStartingStyle altogether.
+    function HasStartingStyleRules: boolean; virtual;
+    // Compute the values Node would have with the @starting-style rules applied,
+    // i.e. the style a CSS transition starts from on the first style pass.
+    // ComputedRules is the rule list Compute returned for Node; the matching
+    // @starting-style rules are appended to it and the cascade is redone.
+    // Returns false and leaves Rules/Values nil when no @starting-style rule
+    // applies to Node - then the caller simply keeps the Compute result.
+    // Note: because ComputedRules is already sorted by specificity, the document
+    // order of the normal rules is no longer known, so a @starting-style rule with
+    // the same specificity as a normal rule always wins, even when it comes first
+    // in the stylesheet.
+    function ComputeStartingStyle(const Node: ICSSNode;
+      ElementStyle: TCSSRuleElement; // inline/element style of Node
+      ComputedRules: TCSSSharedRuleList; // rules of Node, as returned by Compute
+      out Rules: TCSSSharedRuleList; // owned by resolver
+      out Values: TCSSAttributeValues
+      ): boolean; virtual;
     // Match all sibling/positional selectors against Node (cheap: only the usually-small
     // sibling-selector set is evaluated, not the full bucketed cascade).
     function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
@@ -1410,35 +1441,28 @@ begin
     NestedRule:=aRule.NestedRules[i];
     C:=NestedRule.ClassType;
     if C.InheritsFrom(TCSSAtRuleElement) then
-    begin
-      if (BestSpecificity<0) then
-        continue; // current rule mismatch -> do not check nested @-rule
-      ComputeAtRule(TCSSAtRuleElement(NestedRule));
-    end else
+      // Note: even when aRule does not match, the rules nested in the @-rule can
+      // match, e.g. the '.red' of 'div{ @media screen{ .red{} } }' means 'div .red'.
+      ComputeAtRule(TCSSAtRuleElement(NestedRule),BestSpecificity)
+    else
       ComputeRule(NestedRule);
   end;
 end;
 
-procedure TCSSResolver.ComputeAtRule(aRule: TCSSAtRuleElement);
+procedure TCSSResolver.ComputeAtRule(aRule: TCSSAtRuleElement;
+  ParentSpecificity: TCSSSpecificity);
 var
-  i, BestSpecificity: Integer;
-  aSelector: TCSSElement;
+  i: Integer;
   C: TClass;
-  Specificity: TCSSSpecificity;
   NestedRule: TCSSRuleElement;
 begin
-  BestSpecificity:=CSSSpecificityNoMatch;
-
   case aRule.AtKeyWord of
   '@media':
-    if not FindAtMediaCached(aRule,BestSpecificity) then
-      for i:=0 to aRule.SelectorCount-1 do
-      begin
-        aSelector:=aRule.Selectors[i];
-        Specificity:=MediaSelectorMatches(aSelector);
-        if Specificity>BestSpecificity then
-          BestSpecificity:=Specificity;
-      end;
+    if ComputeAtMediaSpecificity(aRule)<0 then
+      exit; // the media query does not match -> nothing inside applies
+  '@starting-style':
+    // only used by ComputeStartingStyle, never by the normal cascade
+    exit;
   else
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20260322092255,'Unknown CSS rule @'+aRule.AtKeyWord,aRule);
@@ -1447,22 +1471,119 @@ begin
   end;
 
   {$IFDEF VerboseCSSResolver}
-  writeln('TCSSResolver.ComputeAtRule ',FNode.GetCSSID,' ',BestSpecificity);
+  writeln('TCSSResolver.ComputeAtRule ',FNode.GetCSSID,' ',ParentSpecificity);
   {$ENDIF}
-  if BestSpecificity>=0 then
-  begin
-    // match -> add rule to ruleset
-    AddRule(aRule,BestSpecificity);
 
-    for i:=0 to aRule.NestedRuleCount-1 do
+  // The declarations written directly in the @-rule belong to the enclosing style
+  // rule, so they need that rule to match and they take its specificity.
+  if (aRule.ChildCount>0) and (ParentSpecificity>=0) then
+    AddRule(aRule,ParentSpecificity);
+
+  // The nested rules have their own selectors, which can address an ancestor or a
+  // sibling via a combinator, so they must be checked for every node - no matter
+  // whether the enclosing style rule matches.
+  for i:=0 to aRule.NestedRuleCount-1 do
+  begin
+    NestedRule:=aRule.NestedRules[i];
+    C:=NestedRule.ClassType;
+    if C.InheritsFrom(TCSSAtRuleElement) then
+      ComputeAtRule(TCSSAtRuleElement(NestedRule),ParentSpecificity)
+    else
+      ComputeRule(NestedRule);
+  end;
+end;
+
+function TCSSResolver.ComputeAtMediaSpecificity(aRule: TCSSAtRuleElement
+  ): TCSSSpecificity;
+// the best specificity of the media queries of aRule, CSSSpecificityNoMatch if none matches
+var
+  i: Integer;
+  Specificity: TCSSSpecificity;
+begin
+  if FindAtMediaCached(aRule,Result) then exit;
+  Result:=CSSSpecificityNoMatch;
+  for i:=0 to aRule.SelectorCount-1 do
+  begin
+    Specificity:=MediaSelectorMatches(aRule.Selectors[i]);
+    if Specificity>Result then
+      Result:=Specificity;
+  end;
+end;
+
+function TCSSResolver.StartingStyleContextMatches(aRule: TCSSAtRuleElement; out
+  Specificity: TCSSSpecificity): boolean;
+// Check the ancestors of a @starting-style rule for the current FNode.
+// Result=false: an enclosing @media does not match, or an unsupported @-rule (e.g.
+//   @supports) encloses aRule -> nothing inside applies. The normal cascade drops
+//   those as well, see ComputeAtRule.
+// Specificity: the specificity of the innermost enclosing style rule for FNode, or
+//   CSSSpecificityNoMatch when there is none or it does not match FNode. Only the
+//   declarations directly in the @starting-style need it; its nested rules are
+//   matched by their own selectors, which can address an ancestor or a sibling.
+//   SelectorMatches resolves the whole outer nesting chain of the enclosing rule,
+//   so the outer style rules need no extra check.
+var
+  El: TCSSElement;
+  C: TClass;
+  HasStyleRule: boolean;
+begin
+  Result:=false;
+  Specificity:=CSSSpecificityNoMatch;
+  HasStyleRule:=false;
+  El:=aRule.Parent;
+  while El<>nil do
+  begin
+    C:=El.ClassType;
+    if C.InheritsFrom(TCSSAtRuleElement) then
     begin
-      NestedRule:=aRule.NestedRules[i];
-      C:=NestedRule.ClassType;
-      if C.InheritsFrom(TCSSAtRuleElement) then
-        ComputeAtRule(TCSSAtRuleElement(NestedRule))
+      case TCSSAtRuleElement(El).AtKeyWord of
+      '@media':
+        if ComputeAtMediaSpecificity(TCSSAtRuleElement(El))<0 then exit;
+      '@starting-style': ; // nested @starting-style: no extra condition
       else
-        ComputeRule(NestedRule);
+        exit; // unknown @-rule, e.g. @supports -> dropped, like in ComputeAtRule
+      end;
+    end
+    else if CSSIsPlainRule(C) and not HasStyleRule then
+    begin
+      Specificity:=GetRuleSpecificity(TCSSRuleElement(El),FNode);
+      HasStyleRule:=true;
+      // keep walking: an outer @media still has to match
     end;
+    El:=El.Parent;
+  end;
+  Result:=true;
+end;
+
+procedure TCSSResolver.ComputeStartingStyleRule(aRule: TCSSAtRuleElement;
+  SrcSpecificity: TCSSSpecificity);
+// Add the rules of one @starting-style at-rule matching FNode to FElRules.
+var
+  Specificity: TCSSSpecificity;
+  i: Integer;
+  NestedRule: TCSSRuleElement;
+begin
+  FSourceSpecificity:=SrcSpecificity;
+  if not StartingStyleContextMatches(aRule,Specificity) then exit;
+
+  // Declarations directly in the @starting-style, e.g. div{ @starting-style{ width:1px } }.
+  // They belong to the enclosing style rule, so they need it to match.
+  if (aRule.ChildCount>0) and (Specificity>=0) then
+    AddRule(aRule,Specificity);
+
+  // Nested rules, e.g. @starting-style{ div{ width:1px } }. They have their own
+  // selectors, which can address an ancestor or a sibling via a combinator, e.g.
+  // the '.red' of 'div{ @starting-style{ .red{} } }' means 'div .red' - so they are
+  // checked no matter whether the enclosing style rule matches.
+  for i:=0 to aRule.NestedRuleCount-1 do
+  begin
+    NestedRule:=aRule.NestedRules[i];
+    if NestedRule.ClassType=TCSSAtRuleElement then
+      // e.g. @starting-style{ @media screen{ div{...} } }
+      // Note: a nested @starting-style is ignored, same as in a browser.
+      ComputeAtRule(TCSSAtRuleElement(NestedRule),Specificity)
+    else
+      ComputeRule(NestedRule);
   end;
 end;
 
@@ -3933,6 +4054,71 @@ begin
   end;
 end;
 
+function TCSSResolver.HasStartingStyleRules: boolean;
+begin
+  UpdateRuleBuckets;
+  Result:=(FBucketStartingStyle<>nil) and (FBucketStartingStyle.Count>0);
+end;
+
+function TCSSResolver.ComputeStartingStyle(const Node: ICSSNode;
+  ElementStyle: TCSSRuleElement; ComputedRules: TCSSSharedRuleList; out
+  Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues): boolean;
+var
+  i, SeededCount: Integer;
+  OldSrcSpecificity: TCSSSpecificity;
+  Item: PCSSRuleBucketItem;
+begin
+  Result:=false;
+  Rules:=nil;
+  Values:=nil;
+  if not HasStartingStyleRules then exit;
+
+  FNode:=Node;
+  OldSrcSpecificity:=FSourceSpecificity;
+  try
+    InitMerge;
+
+    // start with the rules Compute already found, they are sorted ascending for
+    // specificity; the @starting-style rules are appended, so a @starting-style
+    // rule wins over a normal rule of the same specificity
+    FElRuleCount:=0;
+    if ComputedRules<>nil then
+      for i:=0 to length(ComputedRules.Rules)-1 do
+        AddRule(ComputedRules.Rules[i].Rule,ComputedRules.Rules[i].Specificity);
+    SeededCount:=FElRuleCount;
+
+    for i:=0 to FBucketStartingStyle.Count-1 do
+    begin
+      Item:=@FBucketStartingStyle.Items[i];
+      ComputeStartingStyleRule(TCSSAtRuleElement(Item^.Rule),Item^.SourceSpecificity);
+    end;
+
+    if FElRuleCount=SeededCount then
+      exit; // no @starting-style applies to this node
+
+    // create a shared rule list and merge attributes
+    Rules:=CreateSharedRuleList;
+
+    // apply inline attributes
+    if ElementStyle<>nil then
+    begin
+      for i:=0 to ElementStyle.ChildCount-1 do
+        MergeAttribute(ElementStyle.Children[i],CSSSpecificityElement);
+    end;
+
+    LoadMergedValues;
+    SubstituteVarCalls; // replace var() calls
+    ApplyShorthands;
+
+    // create sorted map AttrId to Value
+    Values:=CreateValueList;
+    Result:=true;
+  finally
+    FSourceSpecificity:=OldSrcSpecificity;
+    FNode:=nil;
+  end;
+end;
+
 function TCSSResolver.GetAttributeID(const aName: TCSSString; AutoCreate: boolean): TCSSNumericalID;
 var
   Desc: TCSSResCustomAttributeDesc;
@@ -4068,6 +4254,7 @@ begin
   for i:=0 to length(FBucketID)-1 do
     FBucketID[i].Free;
   FBucketID:=nil;
+  FreeAndNil(FBucketStartingStyle);
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
   FSiblingSelectorCount:=0;
@@ -4261,6 +4448,27 @@ begin
   end;
 end;
 
+procedure TCSSResolver.CollectStartingStyleRules(aRule: TCSSRuleElement;
+  SrcSpecificity: TCSSSpecificity);
+// Add every outermost @starting-style at-rule of aRule's subtree to
+// FBucketStartingStyle, in document order. These rules are skipped by the normal
+// cascade (see ComputeAtRule) and only evaluated by ComputeStartingStyle.
+// The recursion stops at a @starting-style, because ComputeStartingStyleRule
+// descends into its nested rules itself.
+var
+  i: Integer;
+begin
+  if aRule=nil then exit;
+  if (aRule.ClassType=TCSSAtRuleElement)
+      and (TCSSAtRuleElement(aRule).AtKeyWord='@starting-style') then
+  begin
+    FBucketStartingStyle.Add(aRule,0,SrcSpecificity);
+    exit;
+  end;
+  for i:=0 to aRule.NestedRuleCount-1 do
+    CollectStartingStyleRules(aRule.NestedRules[i],SrcSpecificity);
+end;
+
 procedure TCSSResolver.CollectSiblingSelectors(aRule: TCSSRuleElement;
   SrcSpecificity: TCSSSpecificity);
 // Add every selector of aRule (and its nested rules) whose subject match depends on
@@ -4418,6 +4626,7 @@ procedure TCSSResolver.BuildRuleBuckets;
     begin
       BucketRule(TCSSRuleElement(El),SrcSpecificity);
       CollectSiblingSelectors(TCSSRuleElement(El),SrcSpecificity);
+      CollectStartingStyleRules(TCSSRuleElement(El),SrcSpecificity);
     end;
     // unknown top-level elements are ignored here (warned by ComputeElement)
   end;
@@ -4428,6 +4637,7 @@ var
 begin
   ClearRuleBuckets;
   FBucketOther:=TCSSRuleBucket.Create;
+  FBucketStartingStyle:=TCSSRuleBucket.Create;
 
   // pre-size the type/class/id bucket arrays to their final length, so the
   // GetTypeBucket/GetClassBucket/GetIDBucket calls in BucketRule never grow

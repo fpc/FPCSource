@@ -747,7 +747,7 @@ type
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
     function ParseSelector: TCSSElement; override;
-    function ParseAtMediaRule: TCSSAtRuleElement; override;
+    function ParseAtMediaRulePrelude: TCSSAtRuleElement; override;
     procedure CheckSelector(El: TCSSElement); virtual;
     procedure CheckSelectorArray(anArray: TCSSArrayElement); virtual;
     procedure CheckSelectorArrayBinary(aBinary: TCSSBinaryElement); virtual;
@@ -3261,11 +3261,14 @@ begin
   end;
 end;
 
-function TCSSResolverParser.ParseAtMediaRule: TCSSAtRuleElement;
+function TCSSResolverParser.ParseAtMediaRulePrelude: TCSSAtRuleElement;
+// Resolve the media identifiers here, not in ParseAtMediaRule, because a @media
+// nested in a style rule or in another at-rule is parsed via ParseAtNestedRule,
+// which calls only the prelude.
 var
   i: Integer;
 begin
-  Result:=inherited ParseAtMediaRule;
+  Result:=inherited ParseAtMediaRulePrelude;
   if Result=nil then exit;
 
   for i:=0 to Result.SelectorCount-1 do

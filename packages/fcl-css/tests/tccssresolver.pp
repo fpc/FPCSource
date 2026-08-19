@@ -215,6 +215,7 @@ type
     FInlineStyleElements: TCSSRuleElement;
     FInlineStyle: TCSSString;
     function GetAttribute(DemoAttr: TDemoNodeAttribute): TCSSString;
+    function GetStartingAttribute(DemoAttr: TDemoNodeAttribute): TCSSString;
     function GetNodeCount: integer;
     function GetNodes(Index: integer): TDemoNode;
     function GetPseudoClasses(PseudoClass: TDemoPseudoClass): boolean;
@@ -232,6 +233,10 @@ type
     // computed by resolver:
     Rules: TCSSSharedRuleList; // owned by resolver
     Values: TCSSAttributeValues;
+    // @starting-style, computed by resolver, valid if HasStartingStyle:
+    HasStartingStyle: boolean;
+    StartingRules: TCSSSharedRuleList; // owned by resolver
+    StartingValues: TCSSAttributeValues;
     // explicit attributes: can be queried by CSS, e.g. div[foo=3px]
     ExplicitAttributes: array[TDemoNodeAttribute] of TCSSString;
 
@@ -288,6 +293,10 @@ type
     property Background: TCSSString index naBackground read GetAttribute;
     property Direction: TCSSString index naDirection read GetAttribute;
     property Attribute[Attr: TDemoNodeAttribute]: TCSSString read GetAttribute;
+    // CSS attributes of the @starting-style pass, '' if HasStartingStyle=false
+    property StartingWidth: TCSSString index naWidth read GetStartingAttribute;
+    property StartingHeight: TCSSString index naHeight read GetStartingAttribute;
+    property StartingAttribute[Attr: TDemoNodeAttribute]: TCSSString read GetStartingAttribute;
     // CSS pseudo classes
     property Active: boolean index pcActive read GetPseudoClasses write SetPseudoClasses;
     property Hover: boolean index pcHover read GetPseudoClasses write SetPseudoClasses;
@@ -601,9 +610,41 @@ type
     procedure TestRes_Media_Comma;
     procedure TestRes_Media_Not;
     procedure TestRes_Media_NotAnd;
+    procedure TestRes_Media_NestedInRule; // div{ @media screen{ ... } }
+    procedure TestRes_Media_NestedInRuleNestedSelector; // div{ @media screen{ .red{} } }
+    procedure TestRes_Media_NestedInRuleSpecificity; // the @media declarations beat the rule's own
+    procedure TestRes_Media_NestedInRuleNotMatching; // the @media declarations need the rule to match
     procedure TestRes_Media_EvalOncePerInit;
     procedure TestRes_Media_ReplaceStyleSheet;
     // todo procedure TestRes_Media_Only
+
+    // @starting-style, see TCSSResolver.ComputeStartingStyle
+    procedure TestRes_StartingStyle_None; // no @starting-style at all
+    procedure TestRes_StartingStyle_TopLevel; // @starting-style{ div{..} }
+    procedure TestRes_StartingStyle_Nested; // div{ @starting-style{..} }
+    procedure TestRes_StartingStyle_KeepsNormalValues; // untouched attributes stay
+    procedure TestRes_StartingStyle_SelectorNotMatching;
+    procedure TestRes_StartingStyle_ParentRuleNotMatching;
+    procedure TestRes_StartingStyle_Specificity; // a higher specificity normal rule wins
+    procedure TestRes_StartingStyle_SameSpecificityWins; // ties go to @starting-style
+    procedure TestRes_StartingStyle_NestedSelector; // descendant selector inside @starting-style
+    procedure TestRes_StartingStyle_NestedAmpSelector; // &.red inside a nested @starting-style
+    // a nested rule is matched by its own selector, the enclosing rule matches an
+    // ancestor/sibling, not the node itself
+    procedure TestRes_StartingStyle_NestedRuleIgnoresParentRule; // descendant
+    procedure TestRes_StartingStyle_NestedRuleChild; // > .red
+    procedure TestRes_StartingStyle_NestedRuleSibling; // + .red
+    procedure TestRes_StartingStyle_NestedRuleAmpSubject; // div &
+    procedure TestRes_StartingStyle_InMedia; // @media{ @starting-style{..} }
+    procedure TestRes_StartingStyle_MediaAncestorNotMatching;
+    procedure TestRes_StartingStyle_MediaInside; // @starting-style{ @media{..} }
+    procedure TestRes_StartingStyle_UnknownAtRuleAncestor; // @supports -> ignored
+    procedure TestRes_StartingStyle_NestedStartingStyleIgnored;
+    procedure TestRes_StartingStyle_Important;
+    procedure TestRes_StartingStyle_InlineStyle;
+    procedure TestRes_StartingStyle_Shorthand;
+    procedure TestRes_StartingStyle_Var;
+    procedure TestRes_StartingStyle_ComputeTwice;
 
     // rule buckets: selectors bucketed by their rightmost identifier
     procedure TestRes_Buckets_GetCSSClasses;
@@ -1296,6 +1337,20 @@ begin
     Result:='';
 end;
 
+function TDemoNode.GetStartingAttribute(DemoAttr: TDemoNodeAttribute
+  ): TCSSString;
+var
+  AttrDesc: TDemoCSSAttributeDesc;
+  i: Integer;
+begin
+  Result:='';
+  if StartingValues=nil then exit;
+  AttrDesc:=CSSRegistry.DemoAttrs[DemoAttr];
+  i:=StartingValues.IndexOf(AttrDesc.Index);
+  if i>=0 then
+    Result:=FResolver.Detokenize(StartingValues.Values[i].Tokens);
+end;
+
 function TDemoNode.GetNodeCount: integer;
 begin
   Result:=FNodes.Count;
@@ -1384,6 +1439,9 @@ var
 begin
   Rules:=nil;
   FreeAndNil(Values);
+  HasStartingStyle:=false;
+  StartingRules:=nil;
+  FreeAndNil(StartingValues);
 
   FCSSClasses.Clear;
   FreeAndNil(FInlineStyleElements);
@@ -1409,6 +1467,13 @@ begin
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
 
   Resolver.Compute(Self,InlineStyleElement,Rules,Values,SiblingMatches);
+
+  // the @starting-style values are not run through OnCompute, because that would
+  // write into the node's fields and clobber the normal computed state
+  StartingRules:=nil;
+  FreeAndNil(StartingValues);
+  HasStartingStyle:=Resolver.ComputeStartingStyle(Self,InlineStyleElement,Rules,
+                                                  StartingRules,StartingValues);
 
   {$IFDEF VerboseCSSResolver}
   writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
@@ -4878,6 +4943,93 @@ begin
   AssertEquals('Div1.Height','',Div1.Height);
 end;
 
+procedure TTestCSSResolver.TestRes_Media_NestedInRule;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // a @media nested in a style rule is parsed via ParseAtNestedRule, which must
+  // resolve the media identifiers as well (see TCSSResolverParser.ParseAtMediaRulePrelude)
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  @media screen { width: 10px; }',
+  '  @media print { height: 11px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NestedInRuleNestedSelector;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);     // inside the div -> matches
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // outside the div -> no match
+
+  // 'div{ @media screen{ .red{} } }' means 'div .red', so the nested rule must be
+  // checked for every node, not only for the nodes matching the enclosing div rule
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  @media screen { .red{ width: 10px; } }',
+  '  @media print { .red{ height: 11px; } }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span1.Height','',Span1.Height);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NestedInRuleSpecificity;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the declarations of a nested @media belong to the enclosing rule, so they have
+  // the specificity of 'div' and win as the later declaration
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  width: 20px;',
+  '  @media screen { width: 10px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NestedInRuleNotMatching;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the declarations directly in the @media still need the enclosing rule to match
+  Doc.Style:=LinesToStr([
+  'span{ @media screen { width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','',Div1.Width);
+end;
+
 procedure TTestCSSResolver.TestRes_Media_EvalOncePerInit;
 var
   Div1, Div2, Div3: TDemoDiv;
@@ -4915,6 +5067,510 @@ begin
   Doc.Style:='@media print { div{ width: 20px; } }';
   ApplyStyle;
   AssertEquals('Div1.Width after','',Div1.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_None;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='div{ width: 20px; }';
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertTrue('Div1.StartingValues',Div1.StartingValues=nil);
+  AssertEquals('Div1.StartingWidth','',Div1.StartingWidth);
+  AssertFalse('Resolver.HasStartingStyleRules',Doc.CSSResolver.HasStartingStyleRules);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_TopLevel;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@starting-style {',
+  '  div{ width: 10px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertTrue('Resolver.HasStartingStyleRules',Doc.CSSResolver.HasStartingStyleRules);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_Nested;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  width: 20px;',
+  '  @starting-style {',
+  '    width: 10px;',
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_KeepsNormalValues;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the starting style only overrides width, height comes from the normal rule
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; height: 5px; }',
+  '@starting-style { div{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertEquals('Div1.Height','5px',Div1.Height);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingHeight','5px',Div1.StartingHeight);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_SelectorNotMatching;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@starting-style { span{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_ParentRuleNotMatching;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the div has no class 'red' -> the enclosing rule does not match
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '.red{ @starting-style { width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_Specificity;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('red');
+
+  // .red (class) beats the div (type) of the @starting-style
+  Doc.Style:=LinesToStr([
+  '.red{ width: 30px; }',
+  '@starting-style { div{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','30px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','30px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_SameSpecificityWins;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // ComputeStartingStyle appends the @starting-style rules to the already sorted
+  // rules of Compute, so at equal specificity the @starting-style always wins,
+  // even though it comes first in the stylesheet
+  Doc.Style:=LinesToStr([
+  '@starting-style { div{ width: 10px; } }',
+  'div{ width: 20px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedSelector;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);  // inside the div -> matches
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // outside the div -> no match
+
+  Doc.Style:=LinesToStr([
+  'span{ width: 20px; }',
+  '@starting-style {',
+  '  div .red{ width: 10px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Span1.Width','20px',Span1.Width);
+  AssertTrue('Span1.HasStartingStyle',Span1.HasStartingStyle);
+  AssertEquals('Span1.StartingWidth','10px',Span1.StartingWidth);
+  AssertFalse('Span2.HasStartingStyle',Span2.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedAmpSelector;
+var
+  Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('red');
+  Div2:=AddDiv('Div2',Doc.Root);
+
+  // a nested rule inside a nested @starting-style: the & refers to the div rule
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  width: 20px;',
+  '  @starting-style {',
+  '    &.red{ width: 10px; }',
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  // Div2 has no class red -> the nested rule does not match, no starting style
+  AssertFalse('Div2.HasStartingStyle',Div2.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedRuleIgnoresParentRule;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);  // inside the div -> must match
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // outside the div -> must not match
+
+  // 'div{ @starting-style{ .red{} } }' means "a .red inside a div", so the nested
+  // rule must be checked for every node, not only for the nodes matching the
+  // enclosing 'div' rule.
+  Doc.Style:=LinesToStr([
+  'span{ width: 20px; }',
+  'div{',
+  '  @starting-style {',
+  '    .red{ width: 10px; }',
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Span1.Width','20px',Span1.Width);
+  AssertTrue('Span1.HasStartingStyle',Span1.HasStartingStyle);
+  AssertEquals('Span1.StartingWidth','10px',Span1.StartingWidth);
+  AssertFalse('Span2.HasStartingStyle',Span2.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedRuleChild;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);   // direct child of the div -> matches
+  Span2:=AddSpan_Class('Span2','red',Span1);  // grandchild -> no match
+
+  Doc.Style:=LinesToStr([
+  'span{ width: 20px; }',
+  'div{',
+  '  @starting-style {',
+  '    > .red{ width: 10px; }', // child combinator: div > .red
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertTrue('Span1.HasStartingStyle',Span1.HasStartingStyle);
+  AssertEquals('Span1.StartingWidth','10px',Span1.StartingWidth);
+  AssertFalse('Span2.HasStartingStyle',Span2.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedRuleSibling;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Doc.Root); // right after the div -> matches
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // after Span1 -> no match
+
+  Doc.Style:=LinesToStr([
+  'span{ width: 20px; }',
+  'div{',
+  '  @starting-style {',
+  '    + .red{ width: 10px; }', // adjacent sibling combinator: div + .red
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertTrue('Span1.HasStartingStyle',Span1.HasStartingStyle);
+  AssertEquals('Span1.StartingWidth','10px',Span1.StartingWidth);
+  AssertFalse('Span2.HasStartingStyle',Span2.HasStartingStyle);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedRuleAmpSubject;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);     // .red inside a div -> matches
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // .red outside a div -> no match
+
+  // the & is the subject here: 'div &' expands to 'div .red'
+  Doc.Style:=LinesToStr([
+  'span{ width: 20px; }',
+  '.red{',
+  '  @starting-style {',
+  '    div &{ width: 10px; }',
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertTrue('Span1.HasStartingStyle',Span1.HasStartingStyle);
+  AssertEquals('Span1.StartingWidth','10px',Span1.StartingWidth);
+  AssertFalse('Span2.HasStartingStyle',Span2.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_InMedia;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; height: 21px; }',
+  '@media screen { @starting-style { div{ width: 10px; } } }',
+  '@media print { @starting-style { div{ height: 11px; } } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_MediaAncestorNotMatching;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the enclosing rule matches, but the @media above it does not
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@media print { div{ @starting-style { width: 10px; } } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_MediaInside;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; height: 21px; }',
+  '@starting-style {',
+  '  @media screen { div{ width: 10px; } }',
+  '  @media print { div{ height: 11px; } }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_UnknownAtRuleAncestor;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // @supports is not supported by the resolver, so its content is dropped in the
+  // normal cascade as well as in the @starting-style pass
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  'div{ @supports (width: 1px) { @starting-style { width: 10px; } } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertFalse('Div1.HasStartingStyle',Div1.HasStartingStyle);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_NestedStartingStyleIgnored;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // only the outer @starting-style is used, the inner one is ignored
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; height: 21px; }',
+  'div{',
+  '  @starting-style {',
+  '    width: 10px;',
+  '    @starting-style { height: 11px; }',
+  '  }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+  // the outer rule is added exactly once
+  AssertEquals('starting rule count',length(Div1.Rules.Rules)+1,
+               length(Div1.StartingRules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_Important;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // !important sets the specificity of the declaration to CSSSpecificityImportant,
+  // which beats the normal @starting-style declaration
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px !important; }',
+  '@starting-style { div{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingWidth','20px',Div1.StartingWidth);
+
+  // an important @starting-style declaration wins again
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px !important; }',
+  '@starting-style { div{ width: 10px !important; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width 2','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth 2','10px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_InlineStyle;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.InlineStyle:='width: 30px';
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@starting-style { div{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','30px',Div1.Width);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  // the inline style beats the @starting-style rule
+  AssertEquals('Div1.StartingWidth','30px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_Shorthand;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ border: 3px green; }',
+  '@starting-style { div{ border: 1px red; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor','green',Div1.BorderColor);
+  AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
+  AssertEquals('Div1.StartingBorderWidth','1px',Div1.StartingAttribute[naBorderWidth]);
+  AssertEquals('Div1.StartingBorderColor','red',Div1.StartingAttribute[naBorderColor]);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_Var;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ --bird-width: 5px; width: 20px; }',
+  '@starting-style { div{ width: var(--bird-width); } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth','5px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_StartingStyle_ComputeTwice;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@starting-style { div{ width: 10px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width first','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth first','10px',Div1.StartingWidth);
+
+  // the second pass must not leak the merged attributes of the first
+  Div1.ApplyCSS(Doc.CSSResolver);
+  AssertEquals('Div1.Width second','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth second','10px',Div1.StartingWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_Buckets_GetCSSClasses;
