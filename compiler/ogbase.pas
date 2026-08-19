@@ -27,6 +27,8 @@ interface
 
     uses
       { common }
+      SysUtils,
+      cfileutl,
       cutils,
       cclasses,
       verbose,
@@ -696,7 +698,7 @@ interface
       end;
 
       texemapbase = class
-        constructor Create(const s:string);virtual;abstract;
+        constructor Create(const s:string;ACFileUtl: TCompilerFileUtils);virtual;abstract;
         procedure Flush;virtual;abstract;
         procedure Add(const s:string);virtual;abstract;
         procedure AddHeader(const s:string);virtual;abstract;
@@ -848,7 +850,6 @@ interface
 implementation
 
     uses
-      SysUtils,
       compiler,
 {$ifdef OMFOBJSUPPORT}
       omfbase,

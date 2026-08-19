@@ -28,6 +28,7 @@ interface
     uses
        { common }
        globtype,
+       cfileutl,
        { object writer }
        ogbase
        ;
@@ -38,7 +39,7 @@ interface
          t : text;
          FImageBase : qword;
        public
-         constructor Create(const s:string);override;
+         constructor Create(const s:string;ACFileUtl: TCompilerFileUtils);override;
          destructor Destroy;override;
          procedure Flush;override;
          procedure Add(const s:string);override;
@@ -55,7 +56,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,
+      cutils,
       compilerbase,compiler;
 
     const
@@ -96,11 +97,9 @@ implementation
                                   TExeMap
 ****************************************************************************}
 
-     constructor TExeMap.Create(const s:string);
-       var
-         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     constructor TExeMap.Create(const s:string;ACFileUtl: TCompilerFileUtils);
        begin
-         Assign(t,compiler.CFileUtl.FixFileName(s));
+         Assign(t,ACFileUtl.FixFileName(s));
          Rewrite(t);
          FImageBase:=0;
        end;

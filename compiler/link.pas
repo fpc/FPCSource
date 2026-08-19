@@ -2104,7 +2104,7 @@ Implementation
 
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
           begin
-            Fexemap:=texemap.create(compiler.current_module.mapfilename);
+            Fexemap:=texemap.create(compiler.current_module.mapfilename,compiler.CFileUtl);
             exeoutput.exemap:=Fexemap;
           end;
 
