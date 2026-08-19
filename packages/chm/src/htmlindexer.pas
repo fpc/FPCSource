@@ -211,9 +211,13 @@ begin
   if FInBody then begin
     if NoCaseTag = '</BODY>' then FInBody := False
     else if copy(NoCaseTag,1,7) = '<SCRIPT' then FInScript:= True
-    else if copy(NoCaseTag,1,8) = '</SCRIPT' then FInScript:= False
+    // The parser only looks for the next '>' to end a tag, so a '<' inside
+    // the script, as in "for (i = 0; i < n; i++)", makes it run past
+    // the real </script> and hand it to us in the middle of a bogus tag.
+    // Accept it there too, or everything below the script is left out.
+    else if Pos('</SCRIPT', NoCaseTag) > 0 then FInScript:= False
     else if copy(NoCaseTag,1,6) = '<STYLE' then FInStyle:= True          // style in body is not WhatWG but is HTML5.2 ?
-    else if copy(NoCaseTag,1,7) = '</STYLE' then FInStyle:= False
+    else if Pos('</STYLE', NoCaseTag) > 0 then FInStyle:= False
 
   end
   else begin
