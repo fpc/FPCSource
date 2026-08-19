@@ -98,12 +98,15 @@ Type
     function ParseComponentValue: TCSSElement; virtual;
     function ParseExpression: TCSSElement; virtual;
     function ParseRule: TCSSRuleElement; virtual;
-    function ParseAtUnknownRule: TCSSElement; virtual;
+    function ParseAtRulePrelude: TCSSAtRuleElement; virtual;
+    function ParseAtUnknownRule(aSkipDeclarations : Boolean = False): TCSSElement; virtual;
+    function ParseAtNestedRule: TCSSAtRuleElement; virtual;
     function ParseAtMediaRule: TCSSAtRuleElement; virtual;
     function ParseAtSimpleRule(aSkipDeclarations : Boolean = False): TCSSAtRuleElement; virtual;
     function ParseMediaCondition(TopLvl: boolean): TCSSElement; virtual;
     function ParseMediaBracket: TCSSElement; virtual;
-    function ParseRuleList(aStopOn : TCSStoken = ctkEOF): TCSSElement; virtual;
+    function ParseRuleList(aStopOn : TCSStoken = ctkEOF;
+                           aSkipDeclarations : Boolean = False): TCSSElement; virtual;
     function ParseSelector: TCSSElement; virtual;
     function ParseAttributeSelector: TCSSElement; virtual;
     function ParseWQName: TCSSElement;
@@ -123,6 +126,8 @@ Type
     function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False;
                            aSkipDeclarations : Boolean = False) : integer; virtual;
     function CurrentStartsNestedRule : Boolean; virtual;
+    function CurrentStartsDeclaration : Boolean; virtual;
+    procedure SkipInvalidDeclaration(aIsAt : Boolean = False); virtual;
     function LookAheadIsNestedRule : Boolean;
     function ParseInteger: TCSSElement; virtual;
     function ParseFloat: TCSSElement; virtual;
@@ -452,28 +457,18 @@ begin
     aList.Free;
 end;
 
-function TCSSParser.ParseAtUnknownRule: TCSSElement;
-// read unknown at-rule
+function TCSSParser.ParseAtRulePrelude: TCSSAtRuleElement;
+// read the at-keyword and the selectors/condition up to the '{', ';' or EOF
 
 Var
-  aRule : TCSSRuleElement;
   aSel : TCSSElement;
   Term : TCSSTokens;
   aList : TCSSListElement;
-  {$ifdef VerboseCSSParser}
-  aAt : TCSSString;
-  {$endif}
 
 begin
-  Result:=nil;
-  Inc(FRuleLevel);
-{$ifdef VerboseCSSParser}
-  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
-  Writeln('Parse @ rule');
-{$endif}
   Term:=[ctkLBRACE,ctkEOF,ctkSEMICOLON];
-  aRule:=TCSSAtRuleElement(CreateElement(CSSAtRuleElementClass));
-  TCSSAtRuleElement(aRule).AtKeyWord:=CurrentTokenString;
+  Result:=TCSSAtRuleElement(CreateElement(CSSAtRuleElementClass));
+  Result.AtKeyWord:=CurrentTokenString;
   GetNextToken;
   aList:=nil;
   try
@@ -485,21 +480,79 @@ begin
       if CurrentToken=ctkCOMMA then
         begin
         GetNextToken;
-        aRule.AddSelector(GetAppendElement(aList));
+        Result.AddSelector(GetAppendElement(aList));
         aList:=TCSSListElement(CreateElement(CSSListElementClass));
         end;
       end;
-    aRule.AddSelector(GetAppendElement(aList));
+    Result.AddSelector(GetAppendElement(aList));
     aList:=nil;
+  finally
+    aList.Free;
+  end;
+end;
+
+function TCSSParser.ParseAtUnknownRule(aSkipDeclarations : Boolean): TCSSElement;
+// read unknown at-rule, its block contains only rules
+
+Var
+  aRule : TCSSAtRuleElement;
+  {$ifdef VerboseCSSParser}
+  aAt : TCSSString;
+  {$endif}
+
+begin
+  Result:=nil;
+  Inc(FRuleLevel);
+{$ifdef VerboseCSSParser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse @ rule');
+{$endif}
+  aRule:=ParseAtRulePrelude;
+  try
     if (CurrentToken=ctkLBRACE) then
       begin
       GetNextToken;
-      aRule.AddChild(ParseRuleList(ctkRBRACE));
+      aRule.AddChild(ParseRuleList(ctkRBRACE,aSkipDeclarations));
       ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
 {$ifdef VerboseCSSParser}  Writeln('Done Parse @ rule ',aAt); {$endif}
+    Inc(FRuleLevel);
+  finally
+    aRule.Free;
+  end;
+end;
+
+function TCSSParser.ParseAtNestedRule: TCSSAtRuleElement;
+// read an at-rule nested inside a style rule, e.g.
+//   .foo { @supports (display:grid) { display:grid; } }
+// Its block can contain declarations as well as nested rules.
+
+Var
+  aRule : TCSSAtRuleElement;
+  {$ifdef VerboseCSSParser}
+  aAt : TCSSString;
+  {$endif}
+
+begin
+  Result:=nil;
+  Inc(FRuleLevel);
+{$ifdef VerboseCSSParser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse nested @ rule');
+{$endif}
+  aRule:=ParseAtRulePrelude;
+  try
+    if (CurrentToken=ctkLBRACE) then
+      begin
+      GetNextToken;
+      ParseRuleBody(aRule);
+      ConsumeRBrace;
+      end;
+    Result:=aRule;
+    aRule:=nil;
+{$ifdef VerboseCSSParser}  Writeln('Done Parse nested @ rule ',aAt); {$endif}
     Inc(FRuleLevel);
   finally
     aRule.Free;
@@ -559,11 +612,17 @@ begin
       Term:=[ctkEOF,ctkRBRACE];
       While not (CurrentToken in Term) do
         begin
-        El:=ParseExpression;
-        if El is TCSSRuleElement then
-          aRule.AddNestedRule(TCSSRuleElement(El))
+        if CurrentStartsDeclaration then
+          // a declaration directly in a @media block: only rules allowed
+          SkipInvalidDeclaration
         else
-          aRule.AddChild(ParseExpression);
+          begin
+          El:=ParseExpression;
+          if El is TCSSRuleElement then
+            aRule.AddNestedRule(TCSSRuleElement(El))
+          else
+            aRule.AddChild(ParseExpression);
+          end;
         if CurrentToken=ctkSEMICOLON then
           GetNextToken;
         end;
@@ -948,13 +1007,15 @@ begin
     // a top level @starting-style contains only rules, no declarations
     '@starting-style': Result:=ParseAtSimpleRule(true);
     else
-      Result:=ParseAtUnknownRule;
+      // e.g. @supports: only rules are allowed in the block of a top level at-rule
+      Result:=ParseAtUnknownRule(true);
     end
   else
     Result:=ParseComponentValueList;
 end;
 
-function TCSSParser.ParseRuleList(aStopOn : TCSStoken = ctkEOF): TCSSElement;
+function TCSSParser.ParseRuleList(aStopOn : TCSStoken = ctkEOF;
+  aSkipDeclarations : Boolean = False): TCSSElement;
 
 Var
   aList : TCSSCompoundElement;
@@ -966,8 +1027,14 @@ begin
   Try
     While not (CurrentToken in Terms) do
       begin
-      aEl:=ParseExpression;
-      aList.AddChild(aEl);
+      if aSkipDeclarations and CurrentStartsDeclaration then
+        // a declaration directly in this at-rule block: only rules allowed
+        SkipInvalidDeclaration
+      else
+        begin
+        aEl:=ParseExpression;
+        aList.AddChild(aEl);
+        end;
       if CurrentToken=ctkSEMICOLON then
         GetNextToken;
       end;
@@ -1436,6 +1503,29 @@ begin
   Result:=LookAheadIsNestedRule;
 end;
 
+function TCSSParser.CurrentStartsDeclaration: Boolean;
+// Whether the current token starts a declaration instead of a rule.
+// Only an identifier can start a declaration, e.g. 'color:red' or '--foo:red'.
+begin
+  Result:=(CurrentToken=ctkIDENTIFIER) and not CurrentStartsNestedRule;
+end;
+
+procedure TCSSParser.SkipInvalidDeclaration(aIsAt: Boolean);
+// Skip a declaration in a block where only rules are allowed, e.g. the body of
+// a top level @media, @supports or @starting-style.
+var
+  aDecl : TCSSElement;
+begin
+  DoWarnExpectedButGot('selector');
+  aDecl:=ParseDeclaration(aIsAt);
+  if aDecl=nil then
+    // skip invalid
+    while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
+      GetNextToken
+  else
+    aDecl.Free;
+end;
+
 function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false;
   aSkipDeclarations: Boolean = false): integer;
 
@@ -1453,19 +1543,11 @@ begin
       break;
     if CurrentToken=ctkATKEYWORD then
       begin
-      if lowercase(CurrentTokenString)='@starting-style' then
-        begin
-        // @starting-style contains declarations and/or nested rules
-        aNestedRule:=ParseAtSimpleRule;
-        if aNestedRule<>nil then
-          aRule.AddNestedRule(aNestedRule);
-        end
-      else
-        begin
-        aDecl:=ParseAtUnknownRule;
-        if aDecl<>nil then
-          aRule.AddChild(aDecl);
-        end;
+      // an at-rule nested in a style rule, e.g. @supports or @starting-style,
+      // can contain declarations as well as nested rules
+      aNestedRule:=ParseAtNestedRule;
+      if aNestedRule<>nil then
+        aRule.AddNestedRule(aNestedRule);
       end
     else if CurrentStartsNestedRule then
       begin
@@ -1473,11 +1555,11 @@ begin
       if aNestedRule<>nil then
         aRule.AddNestedRule(aNestedRule);
       end
+    else if aSkipDeclarations then
+      // e.g. a declaration directly in a top level @starting-style: only rules allowed
+      SkipInvalidDeclaration(aIsAt)
     else
       begin
-      if aSkipDeclarations then
-        // e.g. a declaration directly in a top level @starting-style: only rules allowed
-        DoWarnExpectedButGot('selector');
       aDecl:=ParseDeclaration(aIsAt);
       if aDecl=nil then
         begin
@@ -1485,8 +1567,6 @@ begin
         while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
           GetNextToken;
         end
-      else if aSkipDeclarations then
-        FreeAndNil(aDecl)
       else if aRule.NestedRuleCount=0 then
         aRule.AddChild(aDecl)
       else
