@@ -715,7 +715,7 @@ begin
     if uppercase(copy(s,1,8))='#INCLUDE' then
       begin
         delete(s,1,8);
-        s:=trim(s);
+        s:=AnsiDequotedStr(trim(s),'"');
         if fileexists(s) then
           begin
             strls2:=TstringList.create;
@@ -775,7 +775,7 @@ begin
     if uppercase(copy(s,1,8))='#INCLUDE' then
       begin
         delete(s,1,8);
-        s:=trim(s);
+        s:=AnsiDequotedStr(trim(s),'"');
         if fileexists(s) then
           begin
             strls2:=TstringList.create;
