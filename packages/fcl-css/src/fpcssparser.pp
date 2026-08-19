@@ -1214,7 +1214,7 @@ end;
 function TCSSParser.ParseUnit : TCSSUnit;
 
 var
-  p: PCSSChar;
+  aName: TCSSString;
   U: TCSSUnit;
 begin
   Result:=cuNone;
@@ -1226,9 +1226,11 @@ begin
     end;
   ctkIDENTIFIER:
     begin
-    p:=PCSSChar(CurrentTokenString);
+    // match the whole unit name, not just a prefix, otherwise a short name eats
+    // every longer identifier starting with it, e.g. 'in' would match 'index'
+    aName:=CurrentTokenString;
     for U:=Succ(cuNone) to High(TCSSUnit) do
-      if CompareMem(p,PCSSChar(CSSUnitNames[U]),SizeOf(TCSSChar)*length(CSSUnitNames[U])) then
+      if CSSUnitNames[U]=aName then
         begin
         Result:=U;
         GetNextToken;

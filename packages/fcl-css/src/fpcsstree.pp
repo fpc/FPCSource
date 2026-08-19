@@ -225,8 +225,8 @@ const
     'rad',  // radians
     'turn', // turns
     // time
-    'seconds',
-    'milliseconds',
+    's',    // seconds
+    'ms',   // milliseconds
     'Hz',   // Frequency, cycles per second
     'kHz',  // Frequency, thousands of cycles per second
     // special
