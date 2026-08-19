@@ -342,14 +342,12 @@ implementation
       ttypeconvnodetype = (tct_implicit,tct_explicit,tct_internal);
 
     procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype;acompiler:TCompilerBase);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         if not assigned(p.resultdef) then
          begin
            typecheckpass(p);
-           if compiler.verbose.codegenerror then
+           if acompiler.verbose.codegenerror then
             exit;
          end;
 
@@ -362,7 +360,7 @@ implementation
           that way (e.g., in case of Java where compiler.deftypes.java_jlstring equals
           unicodestring according to equal_defs, but an add node for strings
           still expects the resultdef of the node to be a stringdef) }
-        if equal_defs(compiler.symtablestack,p.resultdef,def) and
+        if equal_defs(acompiler.symtablestack,p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) and
            { result of a hardware vector node must remain a hardware
