@@ -114,7 +114,7 @@ implementation
                    begin
                      ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                      ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                     ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
+                     ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg(ctx.Globals),left.location.register));
 
                      tmpreg:=left.location.register;
                      for i:=2 to tcgsize2size[left.location.size] do
@@ -123,7 +123,7 @@ implementation
                            tmpreg:=left.location.registerhi
                          else
                            tmpreg:=ctx.cg.GetNextReg(tmpreg);
-                         ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg));
+                         ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg(ctx.Globals),tmpreg));
                        end;
                      location_reset(location,LOC_FLAGS,OS_NO);
                      location.resflags:=F_EQ;

@@ -120,6 +120,7 @@ unit cgcpu;
       private
         procedure a_op_const_reg_reg_internal(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, srchi, dst, dsthi: tregister);
         function GetDefaultTmpReg: TRegister;
+        function GetDefaultZeroReg: TRegister;
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
@@ -741,6 +742,11 @@ unit cgcpu;
      function tcgavr.GetDefaultTmpReg: TRegister;
        begin
          result:=cpubase.GetDefaultTmpReg(compiler.globals);
+       end;
+
+     function tcgavr.GetDefaultZeroReg: TRegister;
+       begin
+         result:=cpubase.GetDefaultZeroReg(compiler.globals);
        end;
 
 

@@ -859,7 +859,7 @@ Implementation
       hp1: tai;
     begin
       Result:=false;
-      if (taicpu(p).oper[1]^.reg=GetDefaultZeroReg) and
+      if (taicpu(p).oper[1]^.reg=GetDefaultZeroReg(compiler.Globals)) and
       GetNextInstruction(p, hp1) and
       MatchInstruction(hp1,A_ADC) then
       begin
@@ -876,7 +876,7 @@ Implementation
       hp1: tai;
     begin
       Result:=false;
-      if (taicpu(p).oper[1]^.reg=GetDefaultZeroReg) and
+      if (taicpu(p).oper[1]^.reg=GetDefaultZeroReg(compiler.Globals)) and
       GetNextInstruction(p, hp1) and
       MatchInstruction(hp1,A_SBC) then
       begin
@@ -977,7 +977,7 @@ Implementation
         begin
           DebugMsg('Peephole ClrAdc2Adc performed', p);
 
-          taicpu(hp1).oper[1]^.reg:=GetDefaultZeroReg;
+          taicpu(hp1).oper[1]^.reg:=GetDefaultZeroReg(compiler.Globals);
 
           alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.Previous));
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
@@ -1428,9 +1428,9 @@ Implementation
               GetNextInstruction(p, hp1) and
               ((MatchInstruction(hp1, A_CP) and
                 (((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
-                  (taicpu(hp1).oper[1]^.reg = GetDefaultZeroReg)) or
+                  (taicpu(hp1).oper[1]^.reg = GetDefaultZeroReg(compiler.Globals))) or
                  ((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
-                  (taicpu(hp1).oper[0]^.reg = GetDefaultZeroReg) and
+                  (taicpu(hp1).oper[0]^.reg = GetDefaultZeroReg(compiler.Globals)) and
                   (taicpu(p).opcode in [A_ADC,A_ADD,A_AND,A_ANDI,A_ASR,A_COM,A_EOR,
                                         A_LSL,A_LSR,
                                         A_OR,A_ORI,A_ROL,A_ROR,A_SUB,A_SBI])))) or
@@ -1468,7 +1468,7 @@ Implementation
                 // If we compare to the same value we are masking then invert the comparison
                 if (taicpu(hp1).opcode=A_CPI) or
                   { sub/sbc with reverted? }
-                  ((taicpu(hp1).oper[0]^.reg = GetDefaultZeroReg) and (taicpu(p).opcode in [A_SUB,A_SBI])) then
+                  ((taicpu(hp1).oper[0]^.reg = GetDefaultZeroReg(compiler.Globals)) and (taicpu(p).opcode in [A_SUB,A_SBI])) then
                   taicpu(hp2).condition:=inverse_cond(taicpu(hp2).condition);
 
                 asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);

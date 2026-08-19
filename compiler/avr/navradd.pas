@@ -224,7 +224,7 @@ interface
                   tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
               end;
 
-            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg(ctx.Globals)));
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
@@ -236,7 +236,7 @@ interface
           begin
             { decrease register pressure on registers >= r16 }
             if (right.location.value and $ff)=0 then
-              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg(ctx.Globals)))
             else
               begin
                 ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R26);
@@ -247,7 +247,7 @@ interface
           end
         { on the left side, we allow only a constant if it is 0 }
         else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-          ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
+          ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg(ctx.Globals),right.location.register))
         else
           ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
 
@@ -274,7 +274,7 @@ interface
               begin
                 { just use R1? }
                 if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
-                  ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
+                  ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg(ctx.Globals)))
                 else
                   begin
                     tmpreg2:=ctx.cg.getintregister(ctx.CurrAsmList,OS_8);
@@ -284,7 +284,7 @@ interface
               end
             { above it is checked, if left=0, then a constant is allowed }
             else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg(ctx.Globals),tmpreg2))
             else
               ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
