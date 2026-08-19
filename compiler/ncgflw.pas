@@ -144,11 +144,11 @@ implementation
                  { we have to synchronise both the regvars used in the loop }
                  { and the ones in the while/until condition                }
                  get_used_regvars(self,usedregvars);
-                 gen_sync_regvars(ctx.CurrAsmList,usedregvars);
+                 gen_sync_regvars(ctx.cg,ctx.CurrAsmList,usedregvars);
                end
              else
                begin
-                 gen_sync_regvars(ctx.CurrAsmList,usedregvars);
+                 gen_sync_regvars(ctx.cg,ctx.CurrAsmList,usedregvars);
                  usedregvars.intregvars.done;
                  usedregvars.addrregvars.done;
                  usedregvars.fpuregvars.done;

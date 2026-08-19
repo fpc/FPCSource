@@ -28,7 +28,7 @@ interface
     uses
       node,
       globtype,
-      cpubase,cgbase,parabase,cgutils,compilerbase,
+      cpubase,cgbase,cgobj,parabase,cgutils,compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symbase,symdef,symsym,symtype,
       hlcgobj
@@ -86,7 +86,7 @@ interface
       find out which regvars are used in two different node trees
       e.g. in the "else" and "then" path, or in various case blocks }
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
-    procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
+    procedure gen_sync_regvars(cg:tcg; list:TAsmList; var rv: tusedregvars);
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
@@ -107,7 +107,7 @@ implementation
     procinfo,paramgr,
     dbgbase,
     nadd,nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj,hlcgcpu,pass_2_context
+    tgobj,hlcgcpu,pass_2_context
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -1256,14 +1256,10 @@ implementation
       end;
 *)
 
-    procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure gen_sync_regvars(cg:tcg; list:TAsmList; var rv: tusedregvars);
       var
         count: longint;
       begin
-        cg:=compiler.cg;
         for count := 1 to rv.intregvars.length do
           cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.addrregvars.length do
