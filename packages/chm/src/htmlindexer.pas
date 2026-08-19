@@ -148,7 +148,10 @@ Function CompareProcObj(Node1, Node2: Pointer): integer;
 var n1,n2 : TIndexedWord;
 begin
   n1:=TIndexedWord(Node1); n2:=TIndexedWord(Node2);
-  Result := CompareText(n1.theword, n2.theword);
+  // The words are lowercased as they are added and a reader looks them up
+  // by comparing the stored bytes, so they have to be ordered the same way:
+  // CompareText uppercases first, which sorts '_' after the letters.
+  Result := CompareStr(n1.theword, n2.theword);
   if Result = 0 then
   begin
     Result := ord(n2.IsTitle)-ord(n1.IsTitle);
@@ -250,7 +253,7 @@ var
   IsNumberWord: Boolean;
   function IsEndOfWord: Boolean;
   begin
-    Result := not (WordPtr^ in ['a'..'z', '0'..'9', #01, #$DE, #$FE]);
+    Result := not (WordPtr^ in ['a'..'z', '0'..'9', '_', #01, #$DE, #$FE]);
     if  Result and IsNumberWord then
       Result :=  Result and (WordPtr[0] <> '.');
     if Result and InWord then
