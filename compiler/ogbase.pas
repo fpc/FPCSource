@@ -934,8 +934,6 @@ implementation
 
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(abind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_LOCAL,AB_COMMON,AB_IMPORT,AB_WEAK]) then
           internalerror(200603016);
@@ -956,7 +954,7 @@ implementation
           begin
             if pass=apass then
               begin
-                compiler.verbose.Message1(asmw_e_duplicate_label,name);
+                TObjSymbolList(OwnerList).Owner.Verbose.Message1(asmw_e_duplicate_label,name);
                 exit;
               end;
           end;
