@@ -1019,7 +1019,7 @@ end;
           s[i]:=';';
 {$warnings on}
      { get current dir }
-       CurrentDir:=compiler.CFileUtl.GetCurrentDir;
+       CurrentDir:=FCFileUtl.GetCurrentDir;
        repeat
          { get currpath }
          if addfirst then
@@ -1047,18 +1047,18 @@ end;
          { GNU LD convention: if library search path starts with '=', it's relative to the
            sysroot; otherwise, interpret it as a regular path }
          if (length(currPath) >0) and (currPath[1]='=') then
-           currPath:=sysroot+compiler.CFileUtl.FixPath(copy(currPath,2,length(currPath)-1),false);
+           currPath:=sysroot+FCFileUtl.FixPath(copy(currPath,2,length(currPath)-1),false);
          if currPath='' then
-           currPath:= compiler.CFileUtl.CurDirRelPath(source_info)
+           currPath:= FCFileUtl.CurDirRelPath(source_info)
          else
           begin
-            currPath:=compiler.CFileUtl.FixPath(ExpandFileName(currpath),false);
+            currPath:=FCFileUtl.FixPath(ExpandFileName(currpath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef hasamiga}
                currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
-               currPath:= compiler.CFileUtl.CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
+               currPath:= FCFileUtl.CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$endif}
              end;
           end;
@@ -1070,23 +1070,23 @@ end;
             suffix:=Copy(currpath,staridx+1,length(currpath));
             subdirfound:=false;
 {$ifdef usedircache}
-            if compiler.CFileUtl.DirCache.FindFirst(Prefix+AllFilesMask,dir) then
+            if FCFileUtl.DirCache.FindFirst(Prefix+AllFilesMask,dir) then
               begin
                 repeat
                   if (dir.attr and faDirectory)<>0 then
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or compiler.CFileUtl.PathExists(currpath,true) then
+                      if (suffix='') or FCFileUtl.PathExists(currpath,true) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
                             AddCurrPath;
                         end;
                     end;
-                until not compiler.CFileUtl.DirCache.FindNext(dir);
+                until not FCFileUtl.DirCache.FindNext(dir);
               end;
-            compiler.CFileUtl.DirCache.FindClose(dir);
+            FCFileUtl.DirCache.FindClose(dir);
 {$else usedircache}
             if findfirst(prefix+AllFilesMask,faDirectory,dir) = 0 then
               begin
@@ -1097,7 +1097,7 @@ end;
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or compiler.CFileUtl.PathExists(currpath,false) then
+                      if (suffix='') or FCFileUtl.PathExists(currpath,false) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
@@ -1113,7 +1113,7 @@ end;
           end
          else
           begin
-            if compiler.CFileUtl.PathExists(currpath,true) then
+            if FCFileUtl.PathExists(currpath,true) then
              AddCurrPath
             else
              WarnNonExistingPath(currpath);
