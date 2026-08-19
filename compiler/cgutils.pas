@@ -207,7 +207,6 @@ unit cgutils;
     procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
-    function location_reg2string(const locreg: tlocation): string;
 
     { returns r with the given alignment }
     function setalignment(const r : treference;b : byte) : treference;
@@ -333,82 +332,6 @@ uses
         swapl := destloc;
         destloc := sourceloc;
         sourceloc := swapl;
-      end;
-
-
-    function location_reg2string(const locreg: tlocation): string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
-      begin
-        cg:=compiler.cg;
-        if not (locreg.loc in [LOC_REGISTER,LOC_CREGISTER,
-            LOC_MMXREGISTER,LOC_CMMXREGISTER,
-            LOC_MMREGISTER,LOC_CMMREGISTER,
-            LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-          internalerror(2013122301);
-
-        if locreg.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          begin
-            case locreg.size of
-{$if defined(cpu64bitalu)}
-              OS_128,OS_S128:
-                result:=std_regname(locreg.registerhi)+':'+std_regname(locreg.register);
-{$elseif defined(cpu32bitalu)}
-              OS_64,OS_S64:
-                result:=std_regname(locreg.registerhi)+':'+std_regname(locreg.register);
-{$elseif defined(cpu16bitalu)}
-              OS_64,OS_S64:
-                if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:'+std_regname(locreg.registerhi)
-                          +':??:'+std_regname(locreg.register)
-                else
-                  result:=std_regname(cg.GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)
-                          +':'+std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
-              OS_32,OS_S32:
-                if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:'+std_regname(locreg.register)
-                else
-                  result:=std_regname(cg.GetNextReg(locreg.register))
-                          +':'+std_regname(locreg.register);
-{$elseif defined(cpu8bitalu)}
-              OS_64,OS_S64:
-                if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:??:??:'+std_regname(locreg.registerhi)
-                          +':??:??:??:'+std_regname(locreg.register)
-                else
-                  result:=std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.registerhi))))
-                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.registerhi)))
-                          +':'+std_regname(cg.GetNextReg(locreg.registerhi))
-                          +':'+std_regname(locreg.registerhi)
-                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.register))))
-                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.register)))
-                          +':'+std_regname(cg.GetNextReg(locreg.register))
-                          +':'+std_regname(locreg.register);
-              OS_32,OS_S32:
-                if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:??:??:'+std_regname(locreg.register)
-                else
-                  result:=std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.register))))
-                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.register)))
-                          +':'+std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
-              OS_16,OS_S16:
-                if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:'+std_regname(locreg.register)
-                else
-                  result:=std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
-{$endif}
-              else
-                result:=std_regname(locreg.register);
-            end;
-          end
-        else
-          begin
-            if locreg.registerhi<>NR_NO then
-              result:=std_regname(locreg.registerhi)+':'+std_regname(locreg.register)
-            else
-              result:=std_regname(locreg.register);
-          end;
       end;
 
 
