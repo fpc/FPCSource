@@ -310,7 +310,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
-    function GetDefaultTmpReg : TRegister;
+    function GetDefaultTmpReg(globals: TReadOnlyCompilerGlobals) : TRegister;
     function GetDefaultZeroReg : TRegister;
 
   implementation
@@ -469,11 +469,9 @@ unit cpubase;
       end;
 
 
-    function GetDefaultTmpReg: TRegister;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function GetDefaultTmpReg(globals: TReadOnlyCompilerGlobals): TRegister;
       begin
-        if CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_16_REGS in globals.target.cpu_capabilities[globals.current_settings.cputype] then
           Result:=NR_R16
         else
           Result:=NR_R0;

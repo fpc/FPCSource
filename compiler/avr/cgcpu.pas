@@ -118,7 +118,8 @@ unit cgcpu;
         procedure gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean; var ovloc: tlocation);
 
       private
-       procedure a_op_const_reg_reg_internal(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, srchi, dst, dsthi: tregister);
+        procedure a_op_const_reg_reg_internal(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, srchi, dst, dsthi: tregister);
+        function GetDefaultTmpReg: TRegister;
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
@@ -734,6 +735,12 @@ unit cgcpu;
            end
          else
            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+       end;
+
+
+     function tcgavr.GetDefaultTmpReg: TRegister;
+       begin
+         result:=cpubase.GetDefaultTmpReg(compiler.globals);
        end;
 
 
