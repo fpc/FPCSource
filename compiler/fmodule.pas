@@ -46,7 +46,8 @@ interface
        globtype,finput,ogbase,fpkg,compilerbase,
        symbase,symsym,
        wpobase,
-       aasmbase,aasmdata;
+       aasmbase,aasmdata,
+       verbose;
 
 
     const
@@ -130,7 +131,7 @@ interface
         unitsym         : tunitsym;
         dependent_added : boolean;
         constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
-        procedure check_hints;
+        procedure check_hints(Verbose: TVerbose);
       end;
 
       tdependent_unit = class(tlinkedlistitem)
@@ -358,7 +359,7 @@ implementation
 
     uses
       SysUtils,globals,
-      verbose,systems,compiler,
+      systems,compiler,
       scanner,dbgbase,
       procinfo,symdef,symtype;
 
@@ -476,26 +477,24 @@ implementation
       end;
 
 
-    procedure tused_unit.check_hints;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure tused_unit.check_hints(Verbose: TVerbose);
       var
         uname: pshortstring;
       begin
         uname:=u.realmodulename;
         if mo_hint_deprecated in u.moduleoptions then
           if (mo_has_deprecated_msg in u.moduleoptions) and (u.deprecatedmsg <> nil) then
-            compiler.verbose.MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
+            Verbose.MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
           else
-            compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
+            Verbose.MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
         if mo_hint_experimental in u.moduleoptions then
-          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
+          Verbose.MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
         if mo_hint_platform in u.moduleoptions then
-          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
+          Verbose.MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
         if mo_hint_library in u.moduleoptions then
-          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
+          Verbose.MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
         if mo_hint_unimplemented in u.moduleoptions then
-          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
+          Verbose.MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
       end;
 
 

@@ -843,7 +843,7 @@ implementation
                  Result:=false;
                end;
                { check hints }
-               pu.check_hints;
+               pu.check_hints(compiler.Verbose);
              end;
             pu:=tused_unit(pu.next);
           end;
