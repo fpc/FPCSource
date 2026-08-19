@@ -47,6 +47,7 @@ unit agcpugas;
        procedure WriteInstruction(hp : tai);override;
      private
        function getopstr(asminfo: pasminfo; const o: toper; use_std_regname: boolean): string;
+       function getreferencestring(asminfo: pasminfo; var ref: treference): string;
     end;
 
     TLoongArch64GNUAssembler=class(TGNUassembler)
@@ -65,9 +66,7 @@ unit agcpugas;
        aasmcpu,
        compiler;
 
-    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TLoongArch64InstrWriter.getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
       s : string;
     begin
@@ -95,7 +94,7 @@ unit agcpugas;
                   internalerror(2022081003)
                 else if not assigned(symbol) then
                   internalerror(2022081004);
-                s:=ApplyAsmSymbolRestrictions(symbol.name,compiler.target);
+                s:=ApplyAsmSymbolRestrictions(symbol.name);
                 if offset<0 then
                   s:=s+tostr(offset)
                 else if offset>0 then
