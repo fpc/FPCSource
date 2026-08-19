@@ -641,6 +641,8 @@ interface
       TExeSectionClass=class of TExeSection;
 
       TExeSectionList = class(TFPHashObjectList)
+        Owner: TExeOutput;
+        constructor Create(AOwner: TExeOutput; FreeObjects : boolean = True);
       end;
 
       TlibKind = (lkArchive,lkObject,lkGroup);
@@ -2334,6 +2336,15 @@ implementation
         result:='0x'+HexStr(mempos+AImageBase,sizeof(pint)*2);
       end;
 
+{****************************************************************************
+                              TExeSectionList
+****************************************************************************}
+
+    constructor TExeSectionList.Create(AOwner: TExeOutput; FreeObjects : boolean = True);
+      begin
+        inherited Create(FreeObjects);
+        Owner:=AOwner;
+      end;
 
 {****************************************************************************
                                 TStaticLibrary
@@ -2460,7 +2471,7 @@ implementation
         FExeVTableList:=TFPObjectList.Create(false);
         ComdatGroups:=TFPHashList.Create;
         { sections }
-        FExeSectionList:=TExeSectionList.Create(true);
+        FExeSectionList:=TExeSectionList.Create(Self,true);
         FImageBase:=0;
 {$ifdef cpu16bitaddr}
         SectionMemAlign:=$10;
@@ -4190,7 +4201,7 @@ implementation
         tmp: TExeSectionList;
         i: longint;
       begin
-        tmp:=TExeSectionList.Create(true);
+        tmp:=TExeSectionList.Create(Self,true);
         for i:=0 to newlist.count-1 do
           TFPHashObject(newlist[i]).ChangeOwner(tmp);
         { prevent destruction of existing sections }
