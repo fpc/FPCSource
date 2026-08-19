@@ -1165,8 +1165,6 @@ end;
 
 
    function TSearchPathList.FindFile(const f :TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        p : TCmdStrListItem;
      begin
@@ -1174,7 +1172,7 @@ end;
        p:=TCmdStrListItem(first);
        while assigned(p) do
         begin
-          result:=compiler.CFileUtl.FileExistsNonCase(p.Str,f,allowcache,FoundFile);
+          result:=FCFileUtl.FileExistsNonCase(p.Str,f,allowcache,FoundFile);
           if result then
             exit;
           p:=TCmdStrListItem(p.next);
