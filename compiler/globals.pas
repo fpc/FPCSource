@@ -842,6 +842,7 @@ Const
         function needs_check_for_fpu_exceptions : boolean;
 
         class procedure GlobalDefaultReplacements(globals: TReadOnlyCompilerGlobals; target: TReadOnlyCompilerTarget; var s:ansistring; substitute_env_variables:boolean=true);
+        procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
         property Target: TReadOnlyCompilerTarget read FTarget;
         { specified inputfile }
@@ -2229,6 +2230,11 @@ implementation
              FreeEnvPChar(envvalue);
             end;
          end;
+      end;
+
+    procedure TReadOnlyCompilerGlobals.DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+      begin
+        GlobalDefaultReplacements(Self,Target,s,substitute_env_variables);
       end;
 
 {****************************************************************************
