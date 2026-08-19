@@ -349,6 +349,8 @@ var
 begin
   FInBody := False;
   FInTitle:= False;
+  FInScript := False;
+  FInStyle := False;
   FIndexTitlesOnly := AIndexOnlyTitles;
   FWordCount := 0;
   FTopicIndex := ATOPICIndex;
@@ -369,6 +371,8 @@ begin
   FDocTitle := '';
   FInBody := False;
   FInTitle:= False;
+  FInScript := False;
+  FInStyle := False;
   FWordCount := 0;
   FTopicIndex := -1;
 
