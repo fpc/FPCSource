@@ -467,8 +467,10 @@ begin
 end;
 
 function  def_openinputfile(const filename: TPathStr): tinputfile;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  def_openinputfile:=tdosinputfile.create(filename);
+  def_openinputfile:=tdosinputfile.create(filename,compiler.CFileUtl);
 end;
 
 

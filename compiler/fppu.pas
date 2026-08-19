@@ -1342,7 +1342,7 @@ var
                       sources_avail:=false;
                       temp:=' not found';
                     end;
-                  hp:=tdosinputfile.create(hs);
+                  hp:=tdosinputfile.create(hs,compiler.CFileUtl);
                   hp.inc_path:=inc_path;
                   { the indexing is wrong here PM }
                   sourcefiles.register_file(hp);
@@ -1352,7 +1352,7 @@ var
              begin
                { still register the source module for proper error messages
                  since source_avail for the module is still false, this should not hurt }
-               sourcefiles.register_file(tdosinputfile.create(hs));
+               sourcefiles.register_file(tdosinputfile.create(hs,compiler.CFileUtl));
 
                temp:=' not available';
              end;

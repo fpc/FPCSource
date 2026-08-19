@@ -26,7 +26,7 @@ unit finput;
 interface
 
     uses
-      cutils,globtype,cclasses,cstreams,compilerbase;
+      SysUtils,cfileutl,cutils,globtype,cclasses,cstreams,compilerbase;
 
     const
        InputFileBufSize=32*1024+1;
@@ -62,7 +62,7 @@ interface
            certain escape sequences }
          internally_generated_macro: boolean;
 
-         constructor create(const fn:TPathStr);
+         constructor create(const fn:TPathStr; ACFileUtl: TCompilerFileUtils);
          destructor  destroy;override;
          procedure setpos(l:longint);
          procedure seekbuf(fpos:longint);
@@ -191,7 +191,6 @@ interface
 implementation
 
 uses
-  SysUtils,
   Comphook,
 {$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
@@ -199,7 +198,6 @@ uses
   ppheap,
 {$endif heaptrc}
 {$endif not GENERIC_CPU}
-  cfileutl,
   Globals,Systems,Compiler
   ;
 
@@ -218,7 +216,7 @@ uses
                                   TINPUTFILE
  ****************************************************************************}
 
-    constructor tinputfile.create(const fn:TPathStr);
+    constructor tinputfile.create(const fn:TPathStr; ACFileUtl: TCompilerFileUtils);
       begin
         name:=ExtractFileName(fn);
         path:=ExtractFilePath(fn);
