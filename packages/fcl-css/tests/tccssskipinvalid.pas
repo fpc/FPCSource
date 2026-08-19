@@ -48,6 +48,8 @@ type
     procedure TestSkipRule_AtMediaBinaryEOF;
     procedure TestSkipRule_AtMediaCurlyEOF;
     procedure TestSkipRule_AtMediaCurlyRuleCurlyEOF;
+    procedure TestSkipRule_AtMediaInvalidConditionBlock;
+    procedure TestSkipRule_AtMediaInvalidConditionNestedBlock;
     procedure TestSkipRule_AtFontFaceCurlyEOF;
     procedure TestSkipRule_AtFontFaceCurlyNameColonEOF;
     procedure TestSkipRule_NameEOF;
@@ -257,6 +259,18 @@ begin
   AssertEquals('selector count',1,aRule.SelectorCount);
   AssertEquals('nested rule count',1,aRule.NestedRuleCount);
   CheckSelector(aRule.NestedRules[0],0,'div');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaInvalidConditionBlock;
+begin
+  // SkipRule must skip the whole block, not only its first token
+  ParseRules_FirstAtRule('@media 5 { .foo{top:1px} }','@media');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaInvalidConditionNestedBlock;
+begin
+  // SkipRule must count the nested blocks
+  ParseRules_FirstAtRule('@media 5 { .foo{ .bar{top:1px} } }','@media');
 end;
 
 procedure TTestCSSSkipInline.TestSkipRule_AtFontFaceCurlyEOF;

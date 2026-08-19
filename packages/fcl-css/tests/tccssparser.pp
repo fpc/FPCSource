@@ -111,6 +111,7 @@ type
     Procedure TestMediaCommaBoolean;
     Procedure TestMediaCommaNotBoolean;
     Procedure TestMediaPlain;
+    Procedure TestMediaPlainNoSpace;
     Procedure TestMediaNotPlain;
     Procedure TestMediaNotIdentifier;
     Procedure TestMediaOnlyIdentifier;
@@ -126,6 +127,7 @@ type
     Procedure TestMediaRatio;
     Procedure TestMediaNestedBracket;
     Procedure TestMediaSkipDeclaration;
+    Procedure TestMediaInRule;
     Procedure TestSupportsFunction;
     Procedure TestSupportsInRule;
     Procedure TestSupportsSkipDeclaration;
@@ -924,6 +926,23 @@ begin
   AssertEquals('selector right value','hover',aSel.Value);
 end;
 
+procedure TTestCSSParser.TestMediaPlainNoSpace;
+// the whitespace around the ':' of a media feature is optional
+var
+  R: TCSSAtRuleElement;
+  aBin: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
+begin
+  R:=TCSSAtRuleElement(ParseRule('@media (max-width:100px) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector operation',boColon,aBin.Operation);
+  aSel:=TCSSIdentifierElement(CheckClass('selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('selector left value','max-width',aSel.Value);
+  CheckLiteral('selector right',aBin.Right,100,cu_px);
+end;
+
 procedure TTestCSSParser.TestMediaNotPlain;
 begin
   ParseRule('@media not (any-hover: hover) {  }');
@@ -1100,6 +1119,51 @@ begin
   D:=CheckDeclaration(aNestedRule,0,'width');
   AssertEquals('nested value count',1,D.ChildCount);
   CheckLiteral('nested value',D.Children[0],1,cu_px);
+end;
+
+procedure TTestCSSParser.TestMediaInRule;
+// a @media nested in a style rule has the same conditions as a top level @media
+// and its block can contain declarations and nested rules
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  M: TCSSAtRuleElement;
+  aSel: TCSSClassNameElement;
+  aBin: TCSSBinaryElement;
+  aCond: TCSSIdentifierElement;
+  D: TCSSDeclarationElement;
+  Id: TCSSIdentifierElement;
+begin
+  aRule:=ParseRule('.bar { color:blue; @media (width > 100px) { color:red; .foo { top:1px; } } }');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  aSel:=TCSSClassNameElement(CheckClass('Selector',TCSSClassNameElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','bar',aSel.Value);
+  AssertEquals('declaration count',1,aRule.ChildCount);
+  D:=CheckDeclaration(aRule,0,'color');
+  Id:=TCSSIdentifierElement(CheckClass('Value',TCSSIdentifierElement,D.Children[0]));
+  AssertEquals('Value','blue',Id.Value);
+  AssertEquals('nested rule count',1,aRule.NestedRuleCount);
+
+  M:=TCSSAtRuleElement(CheckClass('nested at',TCSSAtRuleElement,aRule.NestedRules[0]));
+  AssertEquals('nested at keyword','@media',M.AtKeyWord);
+  // same media condition tree as the top level @media, see TestMediaRangeNameValue
+  AssertEquals('nested selector count',1,M.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('media selector',TCSSBinaryElement,M.Selectors[0]));
+  AssertEquals('media selector operation',boGT,aBin.Operation);
+  aCond:=TCSSIdentifierElement(CheckClass('media selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('media selector left value','width',aCond.Value);
+  CheckLiteral('media selector right',aBin.Right,100,cu_px);
+
+  AssertEquals('nested declaration count',1,M.ChildCount);
+  D:=CheckDeclaration(M,0,'color');
+  Id:=TCSSIdentifierElement(CheckClass('nested value',TCSSIdentifierElement,D.Children[0]));
+  AssertEquals('nested value','red',Id.Value);
+  AssertEquals('nested nested rule count',1,M.NestedRuleCount);
+
+  aNestedRule:=M.NestedRules[0];
+  aSel:=TCSSClassNameElement(CheckClass('nested nested selector',TCSSClassNameElement,aNestedRule.Selectors[0]));
+  AssertEquals('nested nested sel name','foo',aSel.Value);
+  D:=CheckDeclaration(aNestedRule,0,'top');
+  CheckLiteral('nested nested value',D.Children[0],1,cu_px);
 end;
 
 procedure TTestCSSParser.TestSupportsFunction;

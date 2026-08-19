@@ -101,6 +101,7 @@ Type
     function ParseAtRulePrelude: TCSSAtRuleElement; virtual;
     function ParseAtUnknownRule(aSkipDeclarations : Boolean = False): TCSSElement; virtual;
     function ParseAtNestedRule: TCSSAtRuleElement; virtual;
+    function ParseAtMediaRulePrelude: TCSSAtRuleElement; virtual;
     function ParseAtMediaRule: TCSSAtRuleElement; virtual;
     function ParseAtSimpleRule(aSkipDeclarations : Boolean = False): TCSSAtRuleElement; virtual;
     function ParseMediaCondition(TopLvl: boolean): TCSSElement; virtual;
@@ -332,21 +333,24 @@ begin
     GetNextToken;
   if (CurrentToken=ctkLBRACE) then
     begin
+    // skip the block, including nested blocks
     Lvl:=1;
-    GetNextToken;
     repeat
+      GetNextToken;
       case CurrentToken of
       ctkEOF:
         break;
-      ctkLBRACE: inc(Lvl);
+      ctkLBRACE:
+        inc(Lvl);
       ctkRBRACE:
-        if Lvl=1 then
+        begin
+        dec(Lvl);
+        if Lvl=0 then
           begin
           GetNextToken;
           break;
-          end
-        else
-          dec(Lvl);
+          end;
+        end;
       end;
     until false;
     end;
@@ -542,7 +546,11 @@ begin
   aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
   Writeln('Parse nested @ rule');
 {$endif}
-  aRule:=ParseAtRulePrelude;
+  if lowercase(CurrentTokenString)='@media' then
+    // a nested @media has the same conditions as a top level @media
+    aRule:=ParseAtMediaRulePrelude
+  else
+    aRule:=ParseAtRulePrelude;
   try
     if (CurrentToken=ctkLBRACE) then
       begin
@@ -559,35 +567,31 @@ begin
   end;
 end;
 
-function TCSSParser.ParseAtMediaRule: TCSSAtRuleElement;
+function TCSSParser.ParseAtMediaRulePrelude: TCSSAtRuleElement;
+// read the @media keyword and the media conditions up to the '{', ';' or EOF
 
 Var
-  {$ifdef VerboseCSSParser}
-  aAt : TCSSString;
-  {$endif}
-  aRule : TCSSAtRuleElement;
   Term : TCSSTokens;
   aToken: TCSSToken;
   aList : TCSSListElement;
-  El: TCSSElement;
+  OldOptions: TCSSScannerOptions;
 begin
-  Result:=nil;
-  Inc(FRuleLevel);
-{$ifdef VerboseCSSParser}
-  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
-  Writeln('Parse @media rule');
-{$endif}
   Term:=[ctkLBRACE,ctkEOF,ctkSEMICOLON];
-  aRule:=TCSSAtRuleElement(CreateElement(CSSAtRuleElementClass));
-  aRule.AtKeyWord:=CurrentTokenString;
-  GetNextToken;
+  Result:=TCSSAtRuleElement(CreateElement(CSSAtRuleElementClass));
+  Result.AtKeyWord:=CurrentTokenString;
   aList:=nil;
+  OldOptions:=Scanner.Options;
   try
+    // A media query has no pseudo classes, so that 'max-width:100px' gives a
+    // ctkCOLON instead of a ctkPSEUDO ':100px'. Whitespace around the ':' of a
+    // media feature is optional.
+    Scanner.DisablePseudo:=True;
+    GetNextToken;
     aList:=TCSSListElement(CreateElement(CSSListElementClass));
     While Not (CurrentToken in Term) do
       begin
       aToken:=CurrentToken;
-      //  writeln('TCSSParser.ParseAtMediaRule Token=',CurrentToken);
+      //  writeln('TCSSParser.ParseAtMediaRulePrelude Token=',CurrentToken);
       case aToken of
       ctkIDENTIFIER:
         aList.AddChild(ParseMediaCondition(true));
@@ -600,12 +604,36 @@ begin
       if CurrentToken=ctkCOMMA then
         begin
         GetNextToken;
-        aRule.AddSelector(GetAppendElement(aList));
+        Result.AddSelector(GetAppendElement(aList));
         aList:=TCSSListElement(CreateElement(CSSListElementClass));
         end;
       end;
-    aRule.AddSelector(GetAppendElement(aList));
+    Result.AddSelector(GetAppendElement(aList));
     aList:=nil;
+  finally
+    Scanner.Options:=OldOptions;
+    aList.Free;
+  end;
+end;
+
+function TCSSParser.ParseAtMediaRule: TCSSAtRuleElement;
+
+Var
+  {$ifdef VerboseCSSParser}
+  aAt : TCSSString;
+  {$endif}
+  aRule : TCSSAtRuleElement;
+  Term : TCSSTokens;
+  El: TCSSElement;
+begin
+  Result:=nil;
+  Inc(FRuleLevel);
+{$ifdef VerboseCSSParser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse @media rule');
+{$endif}
+  aRule:=ParseAtMediaRulePrelude;
+  try
     if (CurrentToken=ctkLBRACE) then
       begin
       GetNextToken;
