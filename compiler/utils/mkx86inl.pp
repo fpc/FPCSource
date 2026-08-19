@@ -277,13 +277,13 @@ function GetLocStatement(AIndex: longint; const ATyp: string; AConst: boolean): 
       'rs64':  exit(format('ctx.hlcg.location_force_reg(ctx.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u64inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'reg':   exit(format('ctx.hlcg.location_force_reg(ctx.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.uinttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'sreg':  exit(format('ctx.hlcg.location_force_reg(ctx.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.sinttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
-      'f32':   exit(format('location_force_mmreg(ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
-      'f64':   exit(format('location_force_mmreg(ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
+      'f32':   exit(format('location_force_mmreg(ctx, ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
+      'f64':   exit(format('location_force_mmreg(ctx, ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
       'mm':    exit(format('location_force_mmxreg(ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
-      'xmm':   exit(format('location_force_mmreg(ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
+      'xmm':   exit(format('location_force_mmreg(ctx, ctx.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
 
       'implicit_xmm0':
-        exit(format('location_force_mmreg(ctx.CurrAsmList, paraarray[%d].location, %s);'+LineEnding+
+        exit(format('location_force_mmreg(ctx, ctx.CurrAsmList, paraarray[%d].location, %s);'+LineEnding+
                     '    ctx.hlcg.getcpuregister(ctx.CurrAsmList,NR_XMM0);'+LineEnding+
                     '    ctx.hlcg.a_loadmm_loc_reg(ctx.CurrAsmList,paraarray[%d].resultdef,compiler.deftypes.x86_m128type,paraarray[%d].location,NR_XMM0,nil);',
                       [AIndex+1, BoolToStr(aconst,'true','false'), AIndex+1, AIndex+1]));

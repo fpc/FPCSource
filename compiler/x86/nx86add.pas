@@ -1705,7 +1705,7 @@ unit nx86add;
               end
             else
               begin
-                location_force_mmreg(ctx.CurrAsmList,left.location,false);
+                location_force_mmreg(ctx,ctx.CurrAsmList,left.location,false);
                 if UseAVX then
                   begin
                     location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,OS_VECTOR);

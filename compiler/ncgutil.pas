@@ -61,7 +61,7 @@ interface
     procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+    procedure location_force_mmreg(ctx:tpassgeneratecodecontext;list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_allocate_register(ctx:tpassgeneratecodecontext;list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
     { allocate registers for a tlocation; assumes that loc.loc is already
@@ -411,22 +411,16 @@ implementation
       end;
 
 
-    procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
-        tg: ttgobj;
+    procedure location_force_mmreg(ctx:tpassgeneratecodecontext;list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
       begin
-        cg:=compiler.cg;
-        tg:=compiler.tg;
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
-            reg:=cg.getmmregister(list,l.size);
-            cg.a_loadmm_loc_reg(list,l.size,l,reg,nil);
-            tg.location_freetemp(list,l);
+            reg:=ctx.cg.getmmregister(list,l.size);
+            ctx.cg.a_loadmm_loc_reg(list,l.size,l,reg,nil);
+            ctx.tg.location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
           end;
