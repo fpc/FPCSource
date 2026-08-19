@@ -2281,7 +2281,7 @@ implementation
         inserts:array[0..6] of TExeSection;
         idx,inspos:longint;
       begin
-        newsections:=TExeSectionList.Create(false);
+        newsections:=TExeSectionList.Create(Self,false);
         allsections:=TFPList.Create;
         { copy existing sections }
         allsections.Capacity:=ExeSectionList.Count;
