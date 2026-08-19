@@ -1129,14 +1129,12 @@ implementation
 
 
     function TJasminInstrWriter.getopstr(const o:toper) : ansistring;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case o.typ of
           top_reg:
             // should have been translated into a memory location by the
             // register allocator)
-            if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
+            if (cs_no_regalloc in owner.compiler.globals.current_settings.globalswitches) then
               getopstr:=std_regname(o.reg)
             else
               internalerror(2010122803);
