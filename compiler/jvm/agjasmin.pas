@@ -95,6 +95,8 @@ interface
       TJasminInstrWriter = class
         constructor create(_owner: TJasminAssembler);
         procedure WriteInstruction(hp : tai); virtual;
+       private
+        function getopstr(const o: toper): ansistring;
        protected
         owner: TJasminAssembler;
       end;
@@ -1126,7 +1128,7 @@ implementation
       end;
 
 
-    function getopstr(const o:toper) : ansistring;
+    function TJasminInstrWriter.getopstr(const o:toper) : ansistring;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
