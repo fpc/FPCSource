@@ -2321,7 +2321,7 @@ implementation
             { Only if the section contains (un)initialized data the
               data flag must match. }
             if ((oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions)) then
-              compiler.verbose.Comment(V_Error,'Incompatible section options');
+              TExeSectionList(OwnerList).Owner.Verbose.Comment(V_Error,'Incompatible section options');
           end
         else
           begin
