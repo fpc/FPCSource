@@ -2106,8 +2106,8 @@ implementation
           not((lnf_backward in loopflags) and is_signed(left.resultdef) and (get_ordinal_value(t1)=(-Tconstexprint(1 shl (left.resultdef.size*8-1))))) and
           }
 
-          not(not(lnf_backward in loopflags) and (get_ordinal_value(t1)=countermax)) and
-          not((lnf_backward in loopflags) and (get_ordinal_value(t1)=countermin)) and
+          not(not(lnf_backward in loopflags) and (get_ordinal_value(t1,compiler.verbose)=countermax)) and
+          not((lnf_backward in loopflags) and (get_ordinal_value(t1,compiler.verbose)=countermin)) and
           { neither might the for loop contain a continue statement as continue in a while loop would skip the increment at the end
             of the loop, this could be overcome by replacing the continue statement with an pred/succ; continue sequence }
           not(has_node_of_type(t2,[continuen])) and

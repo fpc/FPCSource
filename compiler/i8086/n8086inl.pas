@@ -351,7 +351,7 @@ implementation
                begin
                  { when constant, just multiply the addvalue }
                  if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
-                    addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
+                    addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left,ctx.Verbose)
                  else if is_constpointernode(tcallparanode(tcallparanode(left).right).left) then
                     addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
                  else

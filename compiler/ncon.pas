@@ -30,7 +30,8 @@ interface
       globtype,widestr,constexp,
       node,nodeprinter,
       aasmbase,aasmcnst,cpuinfo,globals,
-      symconst,symtype,symdef,symsym;
+      symconst,symtype,symdef,symsym,
+      verbose;
 
     type
        tconstnode = class abstract(tnode)
@@ -218,7 +219,7 @@ interface
     function genenumnode(v : tenumsym;acompiler:TCompilerBase) : tordconstnode;
 
     { some helper routines }
-    function get_ordinal_value(p : tnode) : TConstExprInt;
+    function get_ordinal_value(p : tnode; Verbose: TVerbose) : TConstExprInt;
     function get_string_value(p : tnode; def: tstringdef; compiler: TCompilerBase) : tstringconstnode;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
@@ -230,7 +231,7 @@ implementation
 
     uses
       cutils,
-      verbose,systemstypes,systems,sysutils,ppu,compiler,
+      systemstypes,systems,sysutils,ppu,compiler,
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,
@@ -265,9 +266,7 @@ implementation
       end;
 
 
-    function get_ordinal_value(p : tnode) : TConstExprInt;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function get_ordinal_value(p : tnode; Verbose: TVerbose) : TConstExprInt;
       begin
         get_ordinal_value:=0;
         if is_constnode(p) then
@@ -275,10 +274,10 @@ implementation
             if p.nodetype=ordconstn then
               get_ordinal_value:=tordconstnode(p).value
             else
-              compiler.verbose.Message(type_e_ordinal_expr_expected);
+              Verbose.Message(type_e_ordinal_expr_expected);
           end
         else
-          compiler.verbose.Message(type_e_constant_expr_expected);
+          Verbose.Message(type_e_constant_expr_expected);
       end;
 
     function get_string_value(p: tnode; def: tstringdef; compiler: TCompilerBase): tstringconstnode;

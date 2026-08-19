@@ -264,8 +264,8 @@ implementation
                    is_subequal(casedef, trangenode(p).left.resultdef) and
                    is_subequal(casedef, trangenode(p).right.resultdef) then
                    begin
-                     hl1:=get_ordinal_value(trangenode(p).left);
-                     hl2:=get_ordinal_value(trangenode(p).right);
+                     hl1:=get_ordinal_value(trangenode(p).left,compiler.verbose);
+                     hl2:=get_ordinal_value(trangenode(p).right,compiler.verbose);
                      if hl1>hl2 then
                        compiler.verbose.CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
@@ -297,7 +297,7 @@ implementation
                    end
                  else
                    begin
-                     hl1:=get_ordinal_value(p);
+                     hl1:=get_ordinal_value(p,compiler.verbose);
                      if not casedeferror then
                        adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                      casenode.addlabel(blockid,hl1,hl1);

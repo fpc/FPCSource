@@ -981,7 +981,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                is_constcharnode(taddnode(hp).right) or
                                is_constboolnode(taddnode(hp).right)) and
                                is_pointer(taddnode(hp).left.resultdef) then
-                               ftcb.queue_pointeraddn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right))
+                               ftcb.queue_pointeraddn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right,compiler.verbose))
                              else
                                compiler.verbose.Message(parser_e_illegal_expression);
                            end;
@@ -992,7 +992,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                is_constcharnode(taddnode(hp).right) or
                                is_constboolnode(taddnode(hp).right)) and
                                is_pointer(taddnode(hp).left.resultdef) then
-                               ftcb.queue_pointersubn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right))
+                               ftcb.queue_pointersubn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right,compiler.verbose))
                              else
                                compiler.verbose.Message(parser_e_illegal_expression);
                            end;
@@ -1003,7 +1003,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                  is_constcharnode(tvecnode(hp).right) or
                                  is_constboolnode(tvecnode(hp).right)) and
                                 not is_implicit_array_pointer(tvecnode(hp).left.resultdef) then
-                               ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right))
+                               ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right,compiler.verbose))
                              else
                                compiler.verbose.Message(parser_e_illegal_expression);
                            end;

@@ -449,7 +449,7 @@ implementation
             begin
               { when constant, just multiply the addvalue }
               if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
-                 addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
+                 addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left,compiler.verbose)
               else if is_constpointernode(tcallparanode(tcallparanode(left).right).left) then
                  addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
               else
@@ -573,7 +573,7 @@ implementation
 
           { when constant, just get the maskvalue }
           if is_constintnode(tcallparanode(left).left) then
-             maskvalue:=get_ordinal_value(tcallparanode(left).left)
+             maskvalue:=get_ordinal_value(tcallparanode(left).left,ctx.Verbose)
           else
             begin
               { for shift/rotate the shift count can be of different size than the shifted variable }
