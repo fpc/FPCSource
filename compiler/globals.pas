@@ -841,6 +841,8 @@ Const
           software checks for fpu exceptions }
         function needs_check_for_fpu_exceptions : boolean;
 
+        class procedure GlobalDefaultReplacements(globals: TReadOnlyCompilerGlobals; target: TReadOnlyCompilerTarget; var s:ansistring; substitute_env_variables:boolean=true);
+
         property Target: TReadOnlyCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -2097,6 +2099,136 @@ implementation
 {$else}
         result:=false;
 {$endif}
+      end;
+
+    class procedure TReadOnlyCompilerGlobals.GlobalDefaultReplacements(globals: TReadOnlyCompilerGlobals; target: TReadOnlyCompilerTarget; var s:ansistring; substitute_env_variables:boolean=true);
+{$ifdef mswindows}
+      procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
+        begin
+          // Only try to receive the special folders (and thus dynamically
+          // load shfolder.dll) when that's needed.
+          if pos(MacroName,s)>0 then
+            Replace(s,MacroName,GetWindowsSpecialDir(ID));
+        end;
+
+{$endif mswindows}
+{$ifdef openbsd}
+      function GetOpenBSDLocalBase: ansistring;
+        var
+          envvalue: pchar;
+        begin
+          envvalue := GetEnvPChar('LOCALBASE');
+          if assigned(envvalue) then
+            Result:=envvalue
+          else
+            Result:='/usr/local';
+          FreeEnvPChar(envvalue);
+        end;
+      function GetOpenBSDX11Base: ansistring;
+        var
+          envvalue: pchar;
+        begin
+          envvalue := GetEnvPChar('X11BASE');
+          if assigned(envvalue) then
+            Result:=envvalue
+          else
+            Result:='/usr/X11R6';
+          FreeEnvPChar(envvalue);
+        end;
+{$endif openbsd}
+      var
+        envstr: string;
+        envvalue: pchar;
+        i: integer;
+      begin
+        { Replace some macros }
+        Replace(s,'$FPCVERSION',version_string);
+        Replace(s,'$FPCFULLVERSION',full_version_string);
+        Replace(s,'$FPCDATE',date_string);
+        if assigned(target) then
+          begin
+            Replace(s,'$FPCCPU',target.cpu_string);
+            Replace(s,'$FPCOS',target.os_string);
+          end;
+        if assigned(globals) then
+          Replace(s,'$FPCBINDIR',globals.exepath);
+        if assigned(target) then
+          begin
+            if (tf_use_8_3 in Source_Info.Flags) or
+               (tf_use_8_3 in target.info.Flags) then
+              Replace(s,'$FPCTARGET',target.os_string)
+            else if target.subtarget<>'' then
+              Replace(s,'$FPCTARGET',target.full_string+'-'+lower(target.subtarget))
+            else
+              Replace(s,'$FPCTARGET',target.full_string);
+          end;
+        if assigned(globals) then
+          Replace(s,'$FPCSUBARCH',lower(cputypestr[globals.init_settings.cputype]));
+        if assigned(target) then
+          Replace(s,'$FPCABI',lower(abiinfo[target.info.abi].name));
+{$ifdef i8086}
+        if assigned(globals) then
+          Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[globals.init_settings.x86memorymodel]));
+{$else i8086}
+        Replace(s,'$FPCMEMORYMODEL','flat');
+{$endif i8086}
+{$ifdef mswindows}
+        ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
+        ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
+        ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
+        ReplaceSpecialFolder('$PERSONAL',CSIDL_PERSONAL);
+        ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
+        ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
+        ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
+{$endif mswindows}
+{$ifdef openbsd}
+        Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+        Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
+{$ifdef xtensa}
+        if assigned(globals) then
+          begin
+            if globals.idf_version > 0 then
+              Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
+            if globals.idfpath <> '' then
+              Replace(s,'$IDFPATH',globals.idfpath);
+          end;
+{$endif xtensa}
+{$ifdef riscv32}
+        if assigned(globals) then
+          begin
+            if globals.idf_version > 0 then
+              Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
+            if globals.idfpath <> '' then
+              Replace(s,'$IDFPATH',globals.idfpath);
+          end;
+{$endif riscv32}
+
+        if not substitute_env_variables then
+          exit;
+        { Replace environment variables between dollar signs }
+        i := pos('$',s);
+        while i>0 do
+         begin
+           envstr:=copy(s,i+1,length(s)-i);
+           i:=pos('$',envstr);
+           if i>0 then
+            begin
+              envstr := copy(envstr,1,i-1);
+              envvalue := GetEnvPChar(envstr);
+              if assigned(envvalue) then
+                begin
+                Replace(s,'$'+envstr+'$',envvalue);
+                // Look if there is another env.var in the string
+                i:=pos('$',s);
+                end
+              else
+                // if the env.var is not set, do not replace the env.variable
+                // and stop looking for more env.var within the string
+                i := 0;
+             FreeEnvPChar(envvalue);
+            end;
+         end;
       end;
 
 {****************************************************************************
