@@ -471,8 +471,6 @@ end;
 
 function TDLLScannerWin16.Scan(const binname: string): boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   hs,
   dllname : TCmdStr;
 begin
