@@ -34,6 +34,9 @@ unit pararv;
 
     type
       trvparamanager = class(tparamanager)
+      private
+        function getparaloc(p : tdef) : tcgloc;
+      public
         function get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset; override;
         function get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset; override;
 
@@ -56,7 +59,6 @@ unit pararv;
         procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       end;
 
-    function getparaloc(p : tdef) : tcgloc;
 
 implementation
 
@@ -72,9 +74,7 @@ implementation
       procinfo,cpupi,
       compiler;
 
-    function getparaloc(p : tdef) : tcgloc;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function trvparamanager.getparaloc(p : tdef) : tcgloc;
       begin
          case p.typ of
             orddef:
