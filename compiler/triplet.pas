@@ -37,9 +37,11 @@ uses
   cpuinfo,tripletcpu,compiler;
 
   function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { architecture }
-      result:=tripletcpustr(target,tripletstyle);
+      result:=tripletcpustr(compiler.globals,tripletstyle);
       { vendor and/or OS }
       if target.info.system in systems_darwin then
         begin

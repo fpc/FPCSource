@@ -26,13 +26,13 @@ unit tripletcpu;
 interface
 
 uses
-  globtype, systems;
+  globtype, globals;
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
   begin
     result:='z80';
   end;

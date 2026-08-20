@@ -26,15 +26,18 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,systemstypes,systems;
+  globtype, globals;
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+uses
+  systemstypes;
+
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
   begin
-    if target.info.endian=endian_little then
+    if globals.target.info.endian=endian_little then
       result:='powerpc64le'
     else
       result:='powerpc64'

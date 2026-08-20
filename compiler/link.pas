@@ -720,7 +720,7 @@ Implementation
           begin
             if withArch then
               begin
-                result:=result+'-'+tripletcpustr(compiler.target,triplet_llvmrt);
+                result:=result+'-'+tripletcpustr(compiler.globals,triplet_llvmrt);
                 if compiler.target.info.system in systems_android then
                   result:=result+'-android';
               end;

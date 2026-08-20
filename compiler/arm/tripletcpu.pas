@@ -26,34 +26,32 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,systemstypes,systems,compilerbase;
+  globtype, globals;
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals, cutils, cpuinfo, compiler;
+  systemstypes, systems, cutils, cpuinfo;
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function tripletcpustr(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
   begin
     if tripletstyle=triplet_llvmrt then
       begin
-        if (target.info.abi=abi_eabihf) and
-           not(target.info.system in systems_windows) then
+        if (globals.target.info.abi=abi_eabihf) and
+           not(globals.target.info.system in systems_windows) then
           result:='armhf'
         else
           result:='arm';
         exit;
       end;
-    result:=lower(cputypestr[compiler.globals.current_settings.cputype]);
+    result:=lower(cputypestr[globals.current_settings.cputype]);
     { llvm replaces the cpu name with thumb for when generating thumb code}
     if (tripletstyle=triplet_llvm) and
-       (compiler.globals.current_settings.instructionset=is_thumb) then
+       (globals.current_settings.instructionset=is_thumb) then
       result:='thumb'+copy(result,4,255);
-    if target.info.endian=endian_big then
+    if globals.target.info.endian=endian_big then
       result:=result+'be';
   end;
 
