@@ -185,10 +185,10 @@ end;
 
 function detect_xterm_mouse:word;
 
-const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
+const mouse_terminals:array[0..7] of string[7]=('cons','eterm','gnome',
                                                 'konsole','rxvt','screen',
-                                                'xterm');
-      xterm=6;
+                                                'tmux','xterm');
+      xterm=7;
       mouse_1003_capable=[xterm]; {xterm only for now}
 
 var term:shortstring;
