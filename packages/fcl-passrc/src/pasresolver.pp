@@ -12079,6 +12079,16 @@ begin
         RaiseMsg(20170216152117,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
           ['set of '+BaseTypeNames[RightResolved.SubType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.Right);
       end
+    else if (LeftResolved.BaseType=btPointer)
+        and (El.Kind in [akAdd,akMinus])
+        and (rrfReadable in RightResolved.Flags)
+        and (RightResolved.BaseType in btAllInteger)
+        and (PointerMathBoolSwitchEnabled(El)
+          or IsPointerMathType(LeftResolved.LoTypeEl)) then
+      begin
+      // Ptr+=n / Ptr-=n, the same rule as the binary Ptr+n form above:
+      // generics.hashes walks its key with `AKey += 3`.
+      end
     else if LeftResolved.BaseType=btContext then
       begin
       if (LeftResolved.LoTypeEl.ClassType=TPasArrayType) and (El.Kind=akAdd)
@@ -12088,6 +12098,15 @@ begin
         // DynArr+=...
         CheckAssignCompatibilityArrayType(LeftResolved,RightResolved,El,true);
         exit;
+        end
+      else if (LeftResolved.LoTypeEl.ClassType=TPasPointerType)
+          and (El.Kind in [akAdd,akMinus])
+          and (rrfReadable in RightResolved.Flags)
+          and (RightResolved.BaseType in btAllInteger)
+          and (PointerMathBoolSwitchEnabled(El)
+            or IsPointerMathType(LeftResolved.LoTypeEl)) then
+        begin
+        // TypedPtr+=n / TypedPtr-=n, in element steps
         end
       else
         RaiseIncompatibleTypeRes(20180615235749,nOperatorIsNotOverloadedAOpB,[AssignKindNames[El.Kind]],LeftResolved,RightResolved,El);
@@ -16038,6 +16057,18 @@ begin
           exit;
           end;
         {$ENDIF}
+        end
+      else if (RightResolved.BaseType=btContext)
+          and (RightResolved.LoTypeEl is TPasPointerType)
+          and (Bin.OpCode in [eopLessThan,eopGreaterThan,
+                              eopLessthanEqual,eopGreaterThanEqual]) then
+        begin
+        (* An untyped Pointer ORDERED against a typed one, as the mirror case
+           already allows the other way round: generics.hashes walks a buffer
+           with `until not (P <= PLimit)` where P is Pointer and PLimit a
+           PAnsiChar. Both are addresses; comparing them needs no $POINTERMATH. *)
+        SetBaseType(btBoolean);
+        exit;
         end
       {$IFNDEF PAS2JS}
       else if (Bin.OpCode=eopSubtract)
