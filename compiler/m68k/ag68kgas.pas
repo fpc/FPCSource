@@ -74,13 +74,11 @@ interface
       compiler;
 
 
-    function GasMachineArg: string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function GasMachineArg(globals: TReadOnlyCompilerGlobals): string;
       const
         MachineArgNewOld: array[boolean] of string = ('-march=','-m');
       begin
-        result:=MachineArgNewOld[compiler.target.info.system in [system_m68k_amiga,system_m68k_palmos]]+GasCpuTypeStr[compiler.globals.current_settings.cputype];
+        result:=MachineArgNewOld[globals.target.info.system in [system_m68k_amiga,system_m68k_palmos]]+GasCpuTypeStr[globals.current_settings.cputype];
       end;
 
  {****************************************************************************}
@@ -96,7 +94,7 @@ interface
  function Tm68kGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
    begin
      result:=inherited;
-     Replace(result,'$ARCH',GasMachineArg);
+     Replace(result,'$ARCH',GasMachineArg(compiler.globals));
    end;
 
 
@@ -113,7 +111,7 @@ interface
  function Tm68kAoutGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
    begin
      result:=inherited;
-     Replace(result,'$ARCH',GasMachineArg);
+     Replace(result,'$ARCH',GasMachineArg(compiler.globals));
    end;
 
   function tm68kAoutGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
