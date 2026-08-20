@@ -123,7 +123,7 @@ unit cgx86;
 
         { returns the copy mode g_concatcopy will use depending on the length of the data, however, there is one except when this might be wrong:
           if the references contain a segment override g_concatcopy might use copy_string instead of other copying methods }
-        class function getcopymode(len: tcgint): tcopymode;
+        function getcopymode(len: tcgint): tcopymode;
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
 
         { entry/exit code helpers }
@@ -2773,9 +2773,7 @@ unit cgx86;
       end;
 
 
-    class function tcgx86.getcopymode(len: tcgint): tcopymode;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function tcgx86.getcopymode(len: tcgint): tcopymode;
       const
 {$if defined(cpu64bitalu)}
         copy_len_sizes = [1, 2, 4, 8];
@@ -2790,16 +2788,16 @@ unit cgx86;
       begin
         result:=copy_mov;
         helpsize:=3*sizeof(aword);
-        if cs_opt_size in _compiler.globals.current_settings.optimizerswitches then
+        if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
           helpsize:=2*sizeof(aword);
   {$ifndef i8086}
         { avx helps only to reduce size, using it in general does at least not help on
           an i7-4770
           but using the xmm registers reduces register pressure (FK) }
-        if (FPUX86_HAS_AVXUNIT in fpu_capabilities[_compiler.globals.current_settings.fputype]) and
+        if (FPUX86_HAS_AVXUNIT in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           ((len mod 4)=0) and (len<=48) {$ifndef i386}and (len>=16){$endif i386} then
           result:=copy_avx
-        else if (FPUX86_HAS_AVX512F in fpu_capabilities[_compiler.globals.current_settings.fputype]) and
+        else if (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           ((len mod 4)=0) and (len<=128) {$ifndef i386}and (len>=16){$endif i386} then
           result:=copy_avx512
         else
@@ -2807,29 +2805,29 @@ unit cgx86;
           but using the xmm registers reduces register pressure (FK) }
         if
   {$ifdef x86_64}
-          ((_compiler.globals.current_settings.fputype>=fpu_sse64)
+          ((compiler.globals.current_settings.fputype>=fpu_sse64)
   {$else x86_64}
-          ((_compiler.globals.current_settings.fputype>=fpu_sse)
+          ((compiler.globals.current_settings.fputype>=fpu_sse)
   {$endif x86_64}
-            or (CPUX86_HAS_SSE2 in _compiler.target.cpu_capabilities[_compiler.globals.current_settings.cputype])) and
+            or (CPUX86_HAS_SSE2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
            ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
            result:=copy_mm
         else
   {$endif i8086}
-        if (cs_mmx in _compiler.globals.current_settings.localswitches) and
-           not(pi_uses_fpu in _compiler.current_procinfo.flags) and
+        if (cs_mmx in compiler.globals.current_settings.localswitches) and
+           not(pi_uses_fpu in compiler.current_procinfo.flags) and
            ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32)) then
           result:=copy_mmx
         else
           if len>helpsize then
             result:=copy_string;
 
-        if (result=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) and
+        if (result=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]) and
           { we can use the move variant only if the subroutine does another call }
-          (pi_do_call in _compiler.current_procinfo.flags) then
+          (pi_do_call in compiler.current_procinfo.flags) then
           result:=copy_fpc_move;
 
-        if (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) and
+        if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
            not((len<=16) and (result in [copy_mmx,copy_mm,copy_avx])) and
            not(len in copy_len_sizes) then
           result:=copy_string;
