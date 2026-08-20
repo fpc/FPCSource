@@ -48,8 +48,13 @@ interface
 
 
     type
+
+      { Tm68kInstrWriter }
+
       Tm68kInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp: tai);override;
+      private
+        function getopstr(size: topsize; var o: toper): string;
       end;
 
     const
@@ -182,7 +187,7 @@ interface
       end;
 
 
-    function getopstr(size: topsize; var o:toper) : string;
+    function Tm68kInstrWriter.getopstr(size: topsize; var o:toper) : string;
       var
         i : tsuperregister;
       begin
