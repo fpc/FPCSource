@@ -3816,7 +3816,7 @@ const
                   ) then
                   begin
                     { Sort out problems with only one side being scaled }
-                    if (nf_is_currency in left.flags) then
+                    if not (nf_is_currency in right.flags) then
                       begin
                         if s64currencytype.typ = floatdef then
                           right:=caddnode.create_internal(muln,right,crealconstnode.create_currency_scalar(s64currencytype))
@@ -3824,8 +3824,10 @@ const
                           right:=caddnode.create_internal(muln,right,cordconstnode.create_currency_scalar(s64currencytype));
                         Include(right.flags,nf_is_currency);
                         typecheckpass(right);
-                      end
-                    else if (nf_is_currency in right.flags) then
+                        firstpass(right);
+                        Include(right.flags,nf_is_currency);
+                      end;
+                    if not (nf_is_currency in left.flags) then
                       begin
                         if s64currencytype.typ = floatdef then
                           left:=caddnode.create_internal(muln,left,crealconstnode.create_currency_scalar(s64currencytype))
@@ -3833,6 +3835,8 @@ const
                           left:=caddnode.create_internal(muln,left,cordconstnode.create_currency_scalar(s64currencytype));
                         Include(left.flags,nf_is_currency);
                         typecheckpass(left);
+                        firstpass(left);
+                        Include(left.flags,nf_is_currency);
                       end;
                   end;
               else
