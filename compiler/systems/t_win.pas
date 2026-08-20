@@ -1832,8 +1832,6 @@ implementation
 
     procedure TDLLScannerWin.CheckDLLFunc(const dllname,funcname:string);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i : longint;
         ExtName : string;
       begin
@@ -1852,8 +1850,6 @@ implementation
 
 
     function TDLLScannerWin.scan(const binname:string):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs,
         dllname : TCmdStr;

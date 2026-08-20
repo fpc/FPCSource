@@ -42,6 +42,12 @@ type
    end;
 
    TDLLScanner=class
+   private
+     FCompiler: TCompilerBase;
+   protected
+     property Compiler: TCompilerBase read FCompiler;
+   public
+     constructor Create(ACompiler: TCompilerBase);virtual;
      function Scan(const binname:string):boolean;virtual;abstract;
    end;
 
@@ -96,6 +102,15 @@ begin
   NotSupported;
 end;
 
+{****************************************************************************
+                              TDLLScanner
+****************************************************************************}
+
+constructor TDLLScanner.Create(ACompiler: TCompilerBase);
+begin
+  inherited Create;
+  FCompiler:=ACompiler;
+end;
 
 {*****************************************************************************
                                  Init/Done
@@ -127,8 +142,10 @@ begin
 end;
 
 function CreateDLLScanner(t:tsystem): TDLLScanner;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  result:=CDLLScanner[t].Create;
+  result:=CDLLScanner[t].Create(compiler);
 end;
 
 end.
