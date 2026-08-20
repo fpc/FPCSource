@@ -3024,14 +3024,14 @@ unit aoptx86;
               exit;
 
             l:=offset;
-            if (l=1) and UseIncDec then
+            if (l=1) and UseIncDec(compiler.globals) then
               begin
                 p.opcode:=A_INC;
                 p.loadreg(0,p.oper[1]^.reg);
                 p.ops:=1;
                 DebugMsg(SPeepholeOptimization + 'Lea2Inc done',p);
               end
-            else if (l=-1) and UseIncDec then
+            else if (l=-1) and UseIncDec(compiler.globals) then
               begin
                 p.opcode:=A_DEC;
                 p.loadreg(0,p.oper[1]^.reg);

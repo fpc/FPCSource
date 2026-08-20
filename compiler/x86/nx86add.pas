@@ -172,7 +172,7 @@ unit nx86add;
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
                     not overflowcheck and
-                    UseIncDec then
+                    UseIncDec(compiler.globals) then
                   begin
                     emit_reg(ctx,A_INC,TCGSize2Opsize[opsize],left.location.register);
                   end
@@ -181,7 +181,7 @@ unit nx86add;
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
                     not overflowcheck and
-                    UseIncDec then
+                    UseIncDec(compiler.globals) then
                   begin
                     emit_reg(ctx,A_DEC,TCGSize2Opsize[opsize],left.location.register);
                   end

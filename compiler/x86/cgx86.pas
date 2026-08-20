@@ -28,7 +28,7 @@ unit cgx86;
   interface
 
     uses
-       globtype,compilerbase,
+       globtype,globals,compilerbase,
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgx86,
@@ -184,7 +184,7 @@ unit cgx86;
       winstackpagesize = 4096;
 {$endif NOTARGETWIN}
 
-    function UseIncDec: boolean;
+    function UseIncDec(globals: TReadOnlyCompilerGlobals): boolean;
 
     { returns true, if the compiler should use leave instead of mov/pop }
     function UseLeave: boolean;
@@ -192,23 +192,21 @@ unit cgx86;
   implementation
 
     uses
-       globals,verbose,systemstypes,systems,cutils,compiler,
+       verbose,systemstypes,systems,cutils,compiler,
        symcpu,
        paramgr,procinfo,
        tgobj,ncgutil;
 
     { modern CPUs prefer add/sub over inc/dec because add/sub break instructions dependencies on flags
       because they modify all flags }
-    function UseIncDec: boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function UseIncDec(globals: TReadOnlyCompilerGlobals): boolean;
       begin
 {$if defined(x86_64)}
-        Result:=cs_opt_size in compiler.globals.current_settings.optimizerswitches;
+        Result:=cs_opt_size in globals.current_settings.optimizerswitches;
 {$elseif defined(i386)}
-        Result:=(cs_opt_size in compiler.globals.current_settings.optimizerswitches) or (compiler.globals.current_settings.cputype in [cpu_386]);
+        Result:=(cs_opt_size in globals.current_settings.optimizerswitches) or (globals.current_settings.cputype in [cpu_386]);
 {$elseif defined(i8086)}
-        Result:=(cs_opt_size in compiler.globals.current_settings.optimizerswitches) or (compiler.globals.current_settings.cputype in [cpu_8086..cpu_386]);
+        Result:=(cs_opt_size in globals.current_settings.optimizerswitches) or (globals.current_settings.cputype in [cpu_8086..cpu_386]);
 {$endif}
       end;
 
@@ -2158,7 +2156,7 @@ unit cgx86;
           OP_ADD, OP_SUB:
             if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
                (a = 1) and
-               UseIncDec then
+               UseIncDec(compiler.globals) then
               begin
                 if op = OP_ADD then
                   list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
@@ -2264,7 +2262,7 @@ unit cgx86;
           OP_ADD, OP_SUB:
             if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
                (a = 1) and
-               UseIncDec then
+               UseIncDec(compiler.globals) then
               begin
                 if op = OP_ADD then
                   list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
@@ -3360,7 +3358,7 @@ unit cgx86;
                     a_label(list,again);
                     decrease_sp(winstackpagesize-4);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
-                    if UseIncDec then
+                    if UseIncDec(compiler.globals) then
                       list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI))
                     else
                       list.concat(Taicpu.op_const_reg(A_SUB,S_L,1,NR_EDI));
@@ -3401,7 +3399,7 @@ unit cgx86;
                     decrease_sp(winstackpagesize);
                     reference_reset_base(href,NR_RSP,0,ctempposinvalid,4,[]);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
-                    if UseIncDec then
+                    if UseIncDec(compiler.globals) then
                       list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10))
                     else
                       list.concat(Taicpu.op_const_reg(A_SUB,S_Q,1,NR_R10));
