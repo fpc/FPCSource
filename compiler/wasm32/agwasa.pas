@@ -53,6 +53,8 @@ interface
      { TWasaTextAssembler }
 
      TWasaTextAssembler=class(texternalassembler)
+     private
+       function getopstr(const o: toper): ansistring;
      protected
        dataofs  : integer;
 
@@ -183,9 +185,7 @@ implementation
           str(d, result);
         end;
 
-    function getopstr(const o:toper) : ansistring;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TWasaTextAssembler.getopstr(const o:toper) : ansistring;
       var
         d: double;
         s: single;
