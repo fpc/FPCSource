@@ -80,6 +80,7 @@ interface
          procedure ExpandAndApplyOrder(var Src:TCmdStrList);
          procedure LoadPredefinedLibraryOrder;virtual;
          function  ReOrderEntries : boolean;
+         function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
          property Compiler: TCompilerBase read FCompiler;
        end;
 
@@ -164,7 +165,6 @@ interface
 
       TLinkerClass = class of Tlinker;
 
-    function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
 
@@ -220,9 +220,7 @@ Implementation
 
 
     { searches an object file }
-    function FindObjectFile(s:TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TLinker.FindObjectFile(s:TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
       var
         found : boolean;
         foundfile : TCmdStr;
