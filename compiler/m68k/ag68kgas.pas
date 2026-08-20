@@ -29,6 +29,7 @@ interface
       cclasses,cpubase,systemstypes,systems,
       globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas,
+      cgutils,
       compilerbase;
 
     type
@@ -54,6 +55,7 @@ interface
       Tm68kInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp: tai);override;
       private
+        function getreferencestring(var ref: treference): string;
         function getopstr(size: topsize; var o: toper): string;
         function getopstr_jmp(var o: toper): string;
       end;
@@ -67,7 +69,7 @@ interface
 
     uses
       cutils,
-      cgbase,cgutils,cpuinfo,
+      cgbase,cpuinfo,
       verbose,itcpugas,
       compiler;
 
@@ -119,9 +121,7 @@ interface
       result:='';
     end;
 
-    function getreferencestring(var ref : treference) : string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function Tm68kInstrWriter.getreferencestring(var ref : treference) : string;
       var
         s: string absolute getreferencestring; { shortcut name to result }
         basestr, indexstr : string;
