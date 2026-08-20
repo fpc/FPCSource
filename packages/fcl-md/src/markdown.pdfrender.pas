@@ -260,6 +260,9 @@ type
     function LayoutImage(aImageURL: UTF8String): Boolean; virtual;
     procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
 
+    // Copy the frontmatter keys that have a counterpart in the document information dictionary
+    procedure ApplyFrontmatterInfo(aBlock: TMarkdownFrontmatterBlock); virtual;
+
     // Actual drawing to PDF
     procedure DrawLayoutItem(aItem: TLayoutItem);
     procedure DrawLayout;
@@ -427,6 +430,14 @@ type
     class function BlockClass: TMarkDownBlockClass; override;
   end;
 
+  { TPDFMarkDownFrontmatterBlockRenderer }
+  TPDFMarkDownFrontmatterBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
   { TPDFMarkDownTextBlockRenderer }
   TPDFMarkDownTextBlockRenderer = class(TPDFMarkDownBlockRenderer)
   protected
@@ -566,6 +577,31 @@ begin
         Break;
         end;
       end;
+end;
+
+
+// True if aFont has TrueType outlines, the only glyphs that can be embedded.
+// A colour bitmap font (CBDT/CBLC, as used for emoji) has none.
+function FontHasOutlines(aFont: TFPFontCacheItem): Boolean;
+var
+  i: Integer;
+  lTag: String;
+  lGlyf, lLoca: Boolean;
+begin
+  Result := False;
+  if aFont=nil then
+    Exit;
+  lGlyf := False;
+  lLoca := False;
+  for i := 0 to Length(aFont.FontData.Tables)-1 do
+    begin
+    lTag := aFont.FontData.Tables[i].Tag;
+    if lTag='glyf' then
+      lGlyf := True
+    else if lTag='loca' then
+      lLoca := True;
+    end;
+  Result := lGlyf and lLoca;
 end;
 
 
@@ -909,6 +945,20 @@ end;
 class function TPDFMarkDownThematicBreakBlockRenderer.BlockClass: TMarkDownBlockClass;
 begin
   Result := TMarkDownThematicBreakBlock;
+end;
+
+{ TPDFMarkDownFrontmatterBlockRenderer }
+
+procedure TPDFMarkDownFrontmatterBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+begin
+  // Frontmatter produces no visible output. Its keys reach the document
+  // information dictionary through ApplyFrontmatterInfo, which must run before
+  // StartDocument writes that dictionary.
+end;
+
+class function TPDFMarkDownFrontmatterBlockRenderer.BlockClass: TMarkDownBlockClass;
+begin
+  Result := TMarkdownFrontmatterBlock;
 end;
 
 { TPDFMarkDownTextBlockRenderer }
@@ -1629,12 +1679,14 @@ begin
   for i := 0 to gTTFontCache.Count-1 do
     begin
     lItem := gTTFontCache.Items[i];
-    if FontCoversText(lItem, aText) then
+    if FontCoversText(lItem, aText) and FontHasOutlines(lItem) then
       begin
       FFallbackFont := lItem;
       Exit(lItem);
       end;
     end;
+  // No embeddable font has these glyphs: keep the configured font, which draws
+  // them as .notdef
 end;
 
 
@@ -1839,10 +1891,58 @@ begin
     fLineWidth:=lNewWidth;
 end;
 
+procedure TMarkDownPDFRenderer.ApplyFrontmatterInfo(aBlock: TMarkdownFrontmatterBlock);
+
+  function Unquote(const aValue: String): String;
+  begin
+    Result:=aValue;
+    if (Length(Result)>1) and (Result[1]=Result[Length(Result)])
+       and CharInSet(Result[1],['"','''']) then
+      Result:=Copy(Result,2,Length(Result)-2);
+  end;
+
+var
+  lInfos: TPDFInfos;
+  lLine, lKey, lValue: String;
+  I, P: Integer;
+
+begin
+  if not Assigned(aBlock) or (aBlock.FrontMatterType<>fmtYAML) then
+    Exit;
+  lInfos:=FPDFDocument.Infos;
+  for I:=0 to aBlock.Content.Count-1 do
+    begin
+    lLine:=aBlock.Content[I];
+    // An indented line belongs to a nested structure, so only take top-level keys
+    if (lLine='') or CharInSet(lLine[1],[' ',#9,'#']) then
+      continue;
+    P:=Pos(':',lLine);
+    if P=0 then
+      continue;
+    lKey:=LowerCase(Trim(Copy(lLine,1,P-1)));
+    lValue:=Unquote(Trim(Copy(lLine,P+1,Length(lLine)-P)));
+    if lValue='' then
+      continue;
+    // A value set by the caller wins over the document
+    case lKey of
+      'title':
+        if lInfos.Title='' then
+          lInfos.Title:=lValue;
+      'author':
+        if lInfos.Author='' then
+          lInfos.Author:=lValue;
+      'keywords':
+        if lInfos.Keywords='' then
+          lInfos.Keywords:=lValue;
+    end;
+    end;
+end;
+
 procedure TMarkDownPDFRenderer.RenderDocument(aDocument : TMarkDownDocument; aPDFDocument : TPDFDocument);
 begin
   FDocument:=aDocument; // referenced only; the caller owns it
   FPDFDocument:=aPDFDocument;
+  ApplyFrontmatterInfo(aDocument.Frontmatter);
   // We embed TrueType fonts (see ApplyFont); subsetting is required for the
   // embedded glyphs - including non-ASCII ones such as list bullets - to render.
   FPDFDocument.Options:=FPDFDocument.Options+[poSubsetFont];
@@ -2318,6 +2418,7 @@ initialization
   TPDFMarkDownListItemBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownCodeBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownThematicBreakBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownFrontmatterBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownTextBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownTableBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownTableRowBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);

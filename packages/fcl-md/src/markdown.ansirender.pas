@@ -187,6 +187,13 @@ type
     class function BlockClass : TMarkdownBlockClass; override;
   end;
 
+  TANSIFrontmatterRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
 function Spaces(aCount : Integer) : string;
 begin
   if aCount<=0 then
@@ -806,6 +813,20 @@ begin
 end;
 
 
+{ TANSIFrontmatterRenderer }
+
+procedure TANSIFrontmatterRenderer.DoRender(aBlock : TMarkdownBlock);
+begin
+  // Frontmatter produces no visible output
+end;
+
+
+class function TANSIFrontmatterRenderer.BlockClass : TMarkdownBlockClass;
+begin
+  Result:=TMarkdownFrontmatterBlock;
+end;
+
+
 initialization
   TANSIParagraphRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSITextBlockRenderer.RegisterRenderer(TMarkDownANSIRenderer);
@@ -816,4 +837,5 @@ initialization
   TANSICodeRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSIThematicBreakRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSITableRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIFrontmatterRenderer.RegisterRenderer(TMarkDownANSIRenderer);
 end.
