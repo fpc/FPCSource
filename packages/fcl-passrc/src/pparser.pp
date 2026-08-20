@@ -9537,6 +9537,11 @@ begin
       Mark:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,SrcPos));
       Mark.LabelId:=TPrimitiveExpr(Left).Value;
       CurBlock.AddElement(Mark);
+      // A label mark completes a statement position like any other element. Not
+      // recording it left the statement loop thinking none had been parsed, and
+      // a label immediately before END then consumed the END itself.
+      if NewImplElement=nil then
+        NewImplElement:=Mark;
       end;
   else
     // simple statement (function call)

@@ -25832,6 +25832,8 @@ begin
   else if AClass=TFinalizationSection then
     AddInitialFinalizationSection(TFinalizationSection(El))
   else if AClass=TPasImplCommand then
+  else if AClass=TPasLabels then
+    // a `label` section declares names only; nothing to put in a scope
   else if AClass.InheritsFrom(TPasImplBlock) then
     // resolved when finished
   else if AClass=TPasAttributes then
