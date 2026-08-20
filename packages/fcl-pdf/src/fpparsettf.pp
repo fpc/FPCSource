@@ -287,6 +287,9 @@ Type
     FFaceIndex : Integer;
     { This only applies to TFixedVersionRec values. }
     function FixMinorVersion(const AMinor: word): word;
+    // Advance width for a character the font has no glyph for: the space, else
+    // the widest advance in the font, else the first glyph that has an advance.
+    function CalcMissingWidth: integer;
     function GetMissingWidth: integer;
   Protected
     // Stream reading functions.
@@ -962,8 +965,7 @@ begin
   if embed and not Embeddable then
     raise ETTF.Create(rsFontEmbeddingNotAllowed);
   PrepareEncoding(Encoding);
-//  MissingWidth:=ToNatural(GetAdvanceWidth(Chars[CharCodes^[32]]));  // AnsiChar(32) - Space character
-  FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // AnsiChar(32) - Space character
+  FMissingWidth := CalcMissingWidth;
   for I:=0 to 255 do
   begin
     if (CharCodes^[i]>=0) and (CharCodes^[i]<=High(Chars))
@@ -1153,12 +1155,29 @@ begin
   Result := round(d*10000);
 end;
 
+function TTFFileInfo.CalcMissingWidth: integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  // 32 is in reference to the Space character
+  if Assigned(CharCodes) and (CharCodes^[32] >= 0) and (CharCodes^[32] <= High(Chars)) then
+    Result := GetAdvanceWidth(Chars[CharCodes^[32]]);
+  if Result = 0 then
+    Result := FHHead.AdvanceWidthMax;
+  if Result = 0 then
+    for I := 0 to Length(FWidths)-1 do
+      if FWidths[I].AdvanceWidth <> 0 then
+      begin
+        Result := FWidths[I].AdvanceWidth;
+        Break;
+      end;
+end;
+
 function TTFFileInfo.GetMissingWidth: integer;
 begin
   if FMissingWidth = 0 then
-  begin
-    FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // 32 is in reference to the Space character
-  end;
+    FMissingWidth := CalcMissingWidth;
   Result := FMissingWidth;
 end;
 
