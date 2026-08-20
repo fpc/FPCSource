@@ -30,14 +30,19 @@ unit agcpugas;
 
     uses
        globtype,systemstypes,systems,
-       aasmtai,aasmdata,aasmbase,
+       aasmtai,aasmdata,aasmbase,aasmcpu,
        assemble,aggas,
        cpubase,cpuinfo,
        compilerbase;
 
     type
+
+      { TAArch64InstrWriter }
+
       TAArch64InstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
+      private
+        function getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
       end;
 
       TAArch64Assembler=class(TGNUassembler)
@@ -101,7 +106,6 @@ unit agcpugas;
 
     uses
        cutils,cclasses,globals,verbose,
-       aasmcpu,
        itcpugas,
        cgbase,cgutils,
        compiler;
@@ -777,7 +781,7 @@ unit agcpugas;
       end;
 
 
-    function getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
+    function TAArch64InstrWriter.getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
       var
         i: longint;
         reg: tregister;
