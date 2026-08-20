@@ -107,7 +107,7 @@ function StripWhitespace(const S : String) : String;
 function HtmlEscape(aChar : char) : String; overload;
 // HTML escaping of < > & and " for all characters in S
 function HtmlEscape(const S : String) : String; overload;
-// URL escape of aChar for display in HTML (so & is escaped)
+// URL escape of aChar: percent-encode characters not allowed in a URL
 function UrlEscape(aChar : UnicodeChar) : String; overload;
 // URL escape of all characters in S
 function UrlEscape(const S : String) : String; overload;
@@ -115,6 +115,8 @@ function UrlEscape(const S : String) : String; overload;
 function isAbsoluteUri(const S : String) : boolean;
 // Is S a valid email address
 function IsEmailLike(const S : String) : boolean;
+// UTF-8 for a Unicode codepoint. Zero, surrogates and out-of-range values give U+FFFD
+function CodePointToUTF8(aCodePoint : Integer) : String;
 // Parse entity string
 function ParseEntityString(aEntities : TFPStringHashTable; const aEntity : String): String;
 // Check if S ends on an entity start character, and if so, return the length of the entity
@@ -496,9 +498,6 @@ var
 
 begin
   case aChar of
-    '&' :
-      // not escaped in URL but is escaped in html
-      Result:='&amp;';
     '\', '[', ']', '"', '`' :
       Result:='%'+IntToHex(ord(aChar),2);
   else
@@ -551,11 +550,38 @@ begin
   Result:=Pos(C,'!"#$%&''()*+,-./:;<=>?@[\]^_`{|}~')>0;
 end;
 
+function CodePointToUTF8(aCodePoint: Integer): String;
+
+const
+  MaxCodePoint = $10FFFF;
+
+var
+  U : UnicodeString;
+
+begin
+  if (aCodePoint<=0) or (aCodePoint>MaxCodePoint)
+     or ((aCodePoint>=$D800) and (aCodePoint<=$DFFF)) then
+    aCodePoint:=$FFFD;
+  if aCodePoint<=$FFFF then
+    begin
+    SetLength(U,1);
+    U[1]:=UnicodeChar(aCodePoint);
+    end
+  else
+    begin
+    Dec(aCodePoint,$10000);
+    SetLength(U,2);
+    U[1]:=UnicodeChar($D800 or (aCodePoint shr 10));
+    U[2]:=UnicodeChar($DC00 or (aCodePoint and $3FF));
+    end;
+  Result:=UTF8Encode(U);
+end;
+
+
 function ParseEntityString(aEntities : TFPStringHashTable; const aEntity : String): String;
 
 var
   S : String;
-  C : UnicodeChar;
   i, Len : integer;
 
 begin
@@ -565,13 +591,7 @@ begin
     Exit;
   Len:=Length(S);
   if (Len>0) and (Len<=9) and (S[1]='#') and TryStrToInt(Copy(S,2,Len-1),i)  then
-    begin
-    if (I<=0) or (i>65535) then
-      C:=#$FFFD
-    else
-      C:=UnicodeChar(i);
-    Result:=UTF8Encode(C);
-    end;
+    Result:=CodePointToUTF8(i);
 end;
 
 function CheckForTrailingEntity(const S: String): integer;
