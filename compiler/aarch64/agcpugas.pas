@@ -33,6 +33,7 @@ unit agcpugas;
        aasmtai,aasmdata,aasmbase,aasmcpu,
        assemble,aggas,
        cpubase,cpuinfo,
+       cgutils,
        compilerbase;
 
     type
@@ -42,6 +43,7 @@ unit agcpugas;
       TAArch64InstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
       private
+        function getreferencestring(asminfo: pasminfo; var ref: treference): string;
         function getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
       end;
 
@@ -107,7 +109,7 @@ unit agcpugas;
     uses
        cutils,cclasses,globals,verbose,
        itcpugas,
-       cgbase,cgutils,
+       cgbase,
        compiler;
 
 
@@ -682,9 +684,7 @@ unit agcpugas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TAArch64InstrWriter.getreferencestring(asminfo: pasminfo; var ref : treference) : string;
       const
         darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
            ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');
