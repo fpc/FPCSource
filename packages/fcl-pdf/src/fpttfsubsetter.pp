@@ -355,14 +355,10 @@ var
 begin
   for itm in FGlyphIDs do
   begin
+    // Update every code point using the glyph, not just the first one
     for i := 0 to FGlyphIDList.Count-1 do
-    begin
       if FGlyphIDList[i].GlyphID = itm.GID then
-      begin
         FGlyphIDList[i].NewGlyphID := itm.NewGID;
-        break;
-      end;
-    end;
   end;
 end;
 
@@ -1003,8 +999,10 @@ begin
   if Assigned(FGlyphIDList) then
   begin
     FGlyphIDList.Sort;
+    // Several code points can share one glyph, so add each glyph only once
     for i := 0 to FGlyphIDList.Count-1 do
-      FGlyphIDs.Add(FGlyphIDList[i].GlyphID);
+      if not FGlyphIDs.Contains(FGlyphIDList[i].GlyphID) then
+        FGlyphIDs.Add(FGlyphIDList[i].GlyphID);
   end;
 
   if FFontInfo.Filename <> '' then
