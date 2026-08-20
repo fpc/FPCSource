@@ -58,7 +58,7 @@ procedure RegisterImport(t:tsystem;c:TImportLibClass);
 procedure RegisterDLLScanner(t:tsystem;c:TDLLScannerClass);
 function CreateImport(ACompiler: TCompilerBase): TImportLib;
 function SystemHasDLLScanner(t:tsystem): Boolean;
-function CreateDLLScanner(t:tsystem): TDLLScanner;
+function CreateDLLScanner(t:tsystem;ACompiler: TCompilerBase): TDLLScanner;
 
 
 implementation
@@ -141,11 +141,9 @@ begin
   result:=assigned(CDLLScanner[t]);
 end;
 
-function CreateDLLScanner(t:tsystem): TDLLScanner;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function CreateDLLScanner(t:tsystem;ACompiler: TCompilerBase): TDLLScanner;
 begin
-  result:=CDLLScanner[t].Create(compiler);
+  result:=CDLLScanner[t].Create(ACompiler);
 end;
 
 end.

@@ -144,7 +144,7 @@ implementation
          begin
            { Init DLLScanner }
            if SystemHasDLLScanner(compiler.target.info.system) then
-            DLLScanner:=CreateDLLScanner(compiler.target.info.system)
+            DLLScanner:=CreateDLLScanner(compiler.target.info.system,compiler)
            else
             internalerror(200104121);
            KeepShared:=TCmdStrList.Create;
