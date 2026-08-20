@@ -145,6 +145,7 @@ Implementation
 
         fState: TCSELTrackingState;
 
+        function GetCompiler: TCompilerBase; inline;
         function TryCSELConst(p, start, stop: tai; var Count: LongInt): Boolean;
         function InitialiseBlock(BlockStart, OneBeforeBlock: tai; out BlockStop: tai; out EndJump: tai): Boolean;
         function AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
@@ -154,6 +155,7 @@ Implementation
         destructor Done;
         procedure Process(out new_p: tai);
         property State: TCSELTrackingState read fState;
+        property Compiler: TCompilerBase read GetCompiler;
       end;
 
       PCSELTracking = ^TCSELTracking;
@@ -1848,8 +1850,6 @@ Implementation
 
   function TCSELTracking.AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       hp1: tai;
       RefModified: Boolean;
     begin
@@ -2144,6 +2144,11 @@ Implementation
 
       if fState = tsBranching then
         EvaluateBranchingType;
+    end;
+
+  function TCSELTracking.GetCompiler: TCompilerBase; inline;
+    begin
+      Result:=fOptimizer.Compiler;
     end;
 
   { Tries to convert a mov const,%reg instruction into a CSEL by reserving a

@@ -251,7 +251,7 @@ Unit AoptObj;
         FCompiler: TCompilerBase;
         function GetParaManager: TParaManager; inline;
         function GetAsmData: TAsmData; inline;
-      protected
+      public
         property Compiler: TCompilerBase read FCompiler;
         property ParaManager: TParaManager read GetParaManager;
         property AsmData: TAsmData read GetAsmData;
