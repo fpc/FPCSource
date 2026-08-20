@@ -55,6 +55,7 @@ interface
         procedure WriteInstruction(hp: tai);override;
       private
         function getopstr(size: topsize; var o: toper): string;
+        function getopstr_jmp(var o: toper): string;
       end;
 
     const
@@ -252,7 +253,7 @@ interface
       end;
 
 
-    function getopstr_jmp(var o:toper) : string;
+    function Tm68kInstrWriter.getopstr_jmp(var o:toper) : string;
       begin
         case o.typ of
           top_reg:
