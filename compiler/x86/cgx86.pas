@@ -187,7 +187,7 @@ unit cgx86;
     function UseIncDec(globals: TReadOnlyCompilerGlobals): boolean;
 
     { returns true, if the compiler should use leave instead of mov/pop }
-    function UseLeave: boolean;
+    function UseLeave(globals: TReadOnlyCompilerGlobals): boolean;
 
   implementation
 
@@ -211,17 +211,15 @@ unit cgx86;
       end;
 
 
-    function UseLeave: boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function UseLeave(globals: TReadOnlyCompilerGlobals): boolean;
       begin
 {$if defined(x86_64)}
         { Modern processors should be happy with mov;pop, maybe except older AMDs }
-        Result:=cs_opt_size in compiler.globals.current_settings.optimizerswitches;
+        Result:=cs_opt_size in globals.current_settings.optimizerswitches;
 {$elseif defined(i386)}
-        Result:=(cs_opt_size in compiler.globals.current_settings.optimizerswitches) or (compiler.globals.current_settings.optimizecputype<cpu_Pentium2);
+        Result:=(cs_opt_size in globals.current_settings.optimizerswitches) or (globals.current_settings.optimizecputype<cpu_Pentium2);
 {$elseif defined(i8086)}
-        Result:=compiler.globals.current_settings.cputype>=cpu_186;
+        Result:=globals.current_settings.cputype>=cpu_186;
 {$endif}
       end;
 
@@ -3746,7 +3744,7 @@ unit cgx86;
 
     procedure tcgx86.generate_leave(list: TAsmList);
       begin
-        if UseLeave then
+        if UseLeave(compiler.globals) then
           list.concat(taicpu.op_none(A_LEAVE,S_NO))
         else
           begin
