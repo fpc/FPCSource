@@ -417,6 +417,9 @@ endif
 ifeq ($(CPU_TARGET),mipsel)
 PPSUF=mipsel
 endif
+ifeq ($(CPU_TARGET),mips64el)
+PPSUF=mips64el
+endif
 ifeq ($(CPU_TARGET),i8086)
 PPSUF=8086
 endif
