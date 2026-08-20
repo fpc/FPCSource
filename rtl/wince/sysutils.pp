@@ -421,12 +421,8 @@ end;
 
 
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
-var
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(FileName);
-  Result:=GetFileAttributes(fn);
-  FreeMem(fn);
+  Result:=GetFileAttributes(PWideChar(FileName));
 end;
 
 
