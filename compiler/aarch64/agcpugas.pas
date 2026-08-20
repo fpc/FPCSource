@@ -107,14 +107,12 @@ unit agcpugas;
        compiler;
 
 
-    function GetmarchStr : String;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function GetmarchStr(globals: TReadOnlyCompilerGlobals) : String;
       var
         cf: tcpuflags;
       begin
-        Result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype];
-        for cf in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] do
+        Result:='-march='+cputype_to_gas_march[globals.current_settings.cputype];
+        for cf in globals.target.cpu_capabilities[globals.current_settings.cputype] do
           begin
             case cf of
               CPUAARCH64_HAS_DOTPROD:
@@ -135,7 +133,7 @@ unit agcpugas;
                 { currently, clang on aarch64-darwin does not support pauth and as
                   it is actually part of -march==armv8.4-a (and higher) we actually don't need it,
                   so ignore it at this point }
-                if not(compiler.globals.current_settings.cputype>=cpu_armv84a) then
+                if not(globals.current_settings.cputype>=cpu_armv84a) then
                   Result:=Result+'+pauth';
               CPUAARCH64_HAS_TME:
                 Result:=Result+'+tme';
@@ -163,7 +161,7 @@ unit agcpugas;
       begin
         result:=inherited;
         if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
-          Replace(result,'$MARCHOPT',GetmarchStr)
+          Replace(result,'$MARCHOPT',GetmarchStr(compiler.globals))
         else
           Replace(result,'$MARCHOPT','');
       end;
@@ -183,7 +181,7 @@ unit agcpugas;
       begin
         result:=inherited;
         if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
-          Replace(result,'$MARCHOPT',GetmarchStr)
+          Replace(result,'$MARCHOPT',GetmarchStr(compiler.globals))
         else
           Replace(result,'$MARCHOPT','');
       end;
