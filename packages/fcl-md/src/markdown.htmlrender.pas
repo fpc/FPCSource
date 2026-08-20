@@ -82,18 +82,16 @@ type
   Private
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
-    FLastStyles : TNodeStyles;
     FKeys : Array of String;
     FKeyCount : integer;
     procedure DoKey(aItem: AnsiString; const aKey: AnsiString; var aContinue: Boolean);
-    procedure EmitStyleDiff(aStyles: TNodeStyles);
+    procedure EmitStyleDiff(const aStyles: TNodeStyleArray);
     function GetHTMLRenderer: TMarkdownHTMLRenderer;
     function GetNodeTag(aElement: TMarkdownTextNode): string;
     function MustCloseNode(aElement: TMarkdownTextNode): boolean;
   protected
     procedure PushStyle(aStyle : TNodeStyle);
-    function PopStyles(aStyle: TNodeStyles): TNodeStyle;
-    procedure PopStyle(aStyle : TNodeStyle);
+    procedure PopStyle;
     procedure Append(const S : String); inline;
     procedure DoRender(aElement: TMarkdownTextNode); override;
   Public
@@ -262,7 +260,7 @@ end;
 procedure TMarkdownHTMLRenderer.SetHead(const aValue: TStrings);
 begin
   if FHead=aValue then Exit;
-  FHead:=aValue;
+  FHead.Assign(aValue);
 end;
 
 procedure TMarkdownHTMLRenderer.Append(const aContent: String);
@@ -399,24 +397,12 @@ begin
   Inc(FStyleStackLen);
 end;
 
-function THTMLMarkdownTextRenderer.Popstyles(aStyle: TNodeStyles) : TNodeStyle;
-
+procedure THTMLMarkdownTextRenderer.PopStyle;
 begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1] in aStyle) then
-    begin
-    Result:=FStyleStack[FStyleStackLen-1];
-    HTMLRenderer.Append('</'+StyleNames[Result]+'>');
-    Dec(FStyleStackLen);
-    end;
-end;
-
-procedure THTMLMarkdownTextRenderer.PopStyle(aStyle: TNodeStyle);
-begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1]=aStyle) then
-    begin
-    HTMLRenderer.Append('</'+styleNames[aStyle]+'>');
-    Dec(FStyleStackLen);
-    end;
+  if FStyleStackLen=0 then
+    Exit;
+  Dec(FStyleStackLen);
+  HTMLRenderer.Append('</'+styleNames[FStyleStack[FStyleStackLen]]+'>');
 end;
 
 function THTMLMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode) : string;
@@ -425,6 +411,8 @@ begin
     nkCode: Result:='code';
     nkImg : Result:='img';
     nkURI,nkEmail : Result:='a'
+  else
+    Result:='';
   end;
 end;
 
@@ -443,49 +431,56 @@ begin
   inc(FKeyCount);
 end;
 
-procedure THTMLMarkdownTextRenderer.EmitStyleDiff(aStyles : TNodeStyles);
+procedure THTMLMarkdownTextRenderer.EmitStyleDiff(const aStyles : TNodeStyleArray);
 
 var
-  lRemove : TNodeStyles;
-  lAdd : TNodeStyles;
-  S : TNodeStyle;
+  lKeep,I : Integer;
 
 begin
-  lRemove:=[];
-  lAdd:=[];
-  For S in TNodeStyle do
-    begin
-    if (S in FLastStyles) and Not (S in aStyles) then
-      Include(lRemove,S);
-    if (S in aStyles) and Not (S in FLastStyles) then
-      Include(lAdd,S);
-    end;
-  While lRemove<>[] do
-    begin
-    S:=PopStyles(lRemove);
-    Exclude(lRemove,S);
-    end;
-  For S in TNodeStyle do
-    if S in lAdd then
-      PushStyle(S);
-  FLastStyles:=aStyles;
+  lKeep:=0;
+  While (lKeep<FStyleStackLen) and (lKeep<Length(aStyles)) and (FStyleStack[lKeep]=aStyles[lKeep]) do
+    Inc(lKeep);
+  While FStyleStackLen>lKeep do
+    PopStyle;
+  For I:=lKeep to Length(aStyles)-1 do
+    PushStyle(aStyles[I]);
 end;
 
 procedure THTMLMarkdownTextRenderer.DoRender(aElement: TMarkdownTextNode);
 var
   lName : string;
+  lChild : TMarkdownTextNode;
 begin
-  EmitStyleDiff(aElement.Styles);
+  lName:='';
+  EmitStyleDiff(aElement.StyleList);
+  if aElement.Kind=nkLineBreak then
+    begin
+    Append('<br />');
+    aElement.Active:=False;
+    Exit;
+    end;
   if aElement.Kind<>nkText then
     begin
     lName:=GetNodeTag(aElement);
-    Append('<');
-    Append(lName);
-    Append(renderAttrs(aElement));
-    Append('>');
+    if lName<>'' then
+      begin
+      Append('<');
+      Append(lName);
+      Append(renderAttrs(aElement));
+      Append('>');
+      end;
     end;
-  if aElement.NodeText<>'' then
-    Append(aElement.NodeText);
+  if MustCloseNode(aElement) then
+    begin
+    if aElement.NodeText<>'' then
+      Append(HtmlEscape(aElement.NodeText));
+    if aElement.HasChildren then
+      begin
+      for lChild in aElement.Children do
+        DoRender(lChild);
+      EmitStyleDiff(aElement.StyleList);
+      end;
+    end;
   if (lName<>'') and MustCloseNode(aElement) then
     begin
     Append('</');
@@ -499,14 +494,12 @@ procedure THTMLMarkdownTextRenderer.BeginBlock;
 begin
   inherited BeginBlock;
   FStyleStackLen:=0;
-  FLastStyles:=[];
 end;
 
 procedure THTMLMarkdownTextRenderer.EndBlock;
 begin
   While (FStyleStackLen>0) do
-    Popstyle(FStyleStack[FStyleStackLen-1]);
-  FLastStyles:=[];
+    Popstyle;
   inherited EndBlock;
 end;
 
@@ -514,7 +507,7 @@ function THTMLMarkdownTextRenderer.renderAttrs(aElement: TMarkdownTextNode): Ans
 
   procedure addKey(aKey,aValue : String);
   begin
-    Result:=Result+' '+aKey+'="'+aValue+'"';
+    Result:=Result+' '+aKey+'="'+HtmlEscape(aValue)+'"';
   end;
 
 var
@@ -669,9 +662,9 @@ begin
   lLang:=lNode.Lang;
   AppendNL('');
   if lLang<> '' then
-    AppendNl('<pre><code class="language-'+lLang+'">')
+    Append('<pre><code class="language-'+lLang+'">')
   else
-    AppendNl('<pre><code>');
+    Append('<pre><code>');
   for lBlock in LNode.Blocks do
     begin
     Renderer.RenderCodeBlock(LBlock,lLang);

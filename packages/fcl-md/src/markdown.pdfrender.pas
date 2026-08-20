@@ -26,10 +26,10 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils, System.Classes, System.Contnrs, System.Types,MarkDown.Elements, 
-  MarkDown.Render, Markdown.HTMLEntities, fpimage, FpPdf.Pdf, FpPdf.Ttf;
+  MarkDown.Render, fpimage, FpPdf.Pdf, FpPdf.Ttf;
 {$ELSE}
   SysUtils, Classes, Contnrs, Types, MarkDown.Elements, MarkDown.Render,
-  fpimage, Markdown.HTMLEntities, fppdf, fpttf;
+  fpimage, fppdf, fpttf;
 {$ENDIF}
 
 const
@@ -206,7 +206,6 @@ type
     FNextLineIndent : Integer;
     FSuppressParagraphBreak : Boolean;
     FImageCache : TFPObjectHashTable;
-    FHTMLEntities : TFPStringHashTable;
 
     // PDF-specific fields
     FCurrentPage: TPDFPage;
@@ -252,8 +251,6 @@ type
     function GetTextBGColor(aContext: TFontContext): TARGBColor; virtual;
 
     // Text layout
-    procedure CollectHTMLEntities;
-    function ResolveEntities(const aText: String): String; virtual;
     procedure FlushTextRun(const aText: utf8string; const aFontSize: LongInt;
       const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
       const aDryRun: boolean); virtual;
@@ -261,7 +258,7 @@ type
       const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
       const aPreserveWhitespace, aDryRun: boolean); virtual;
     function LayoutImage(aImageURL: UTF8String): Boolean; virtual;
-    procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext);
+    procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
 
     // Actual drawing to PDF
     procedure DrawLayoutItem(aItem: TLayoutItem);
@@ -1397,7 +1394,6 @@ end;
 constructor TMarkDownPDFRenderer.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  FHTMLEntities:=TFPStringHashTable.Create;
   FImageCache:=TFPObjectHashTable.Create(True);
   FPageList:=TList.Create;
   FBullets[1]:='•';
@@ -1439,7 +1435,6 @@ end;
 
 destructor TMarkDownPDFRenderer.Destroy;
 begin
-  FreeAndNil(FHTMLEntities);
   FreeAndNil(FImageCache);
   FreeAndNil(FPageList);
   FreeAndNil(FLists.Items);
@@ -2270,17 +2265,18 @@ begin
 end;
 
 procedure TMarkDownPDFRenderer.RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt;
-  aFontStyle: TFontStyles; const aContext : TFontContext);
+  aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
 var
   fontStyle: TFontStyles;
   lText,linkHref: utf8string;
   lContext : TFontContext;
+  lChild : TMarkDownTextNode;
 begin
   if not assigned(aTextNode) then exit;
   lContext:=aContext;
   fontStyle:=aFontStyle + GetNodeFontStyle(aTextNode);
-  lText:=ResolveEntities(aTextNode.NodeText);
-  linkHref:='';
+  lText:=aTextNode.NodeText;
+  linkHref:=aHref;
   if aTextNode.Kind = nkCode then
     lContext:=lContext+[fcMono,fcCode];
   case aTextNode.Kind of
@@ -2298,89 +2294,19 @@ begin
       linkHref:=aTextNode.Attrs['href'];
       LayoutTextWrapped(lText, aFontSize, fontStyle + [fsUnderline], linkHref,
         lContext+[fcHyperLink], False, False);
+      if aTextNode.HasChildren then
+        for lChild in aTextNode.Children do
+          RenderTextNode(lChild, aFontSize, fontStyle + [fsUnderline], lContext+[fcHyperLink], linkHref);
       end;
     nkImg:
       if Not LayoutImage(aTextNode.Attrs['src']) then
         begin
-        lText:=ResolveEntities(aTextNode.Attrs['alt']);
+        lText:=aTextNode.Attrs['alt'];
         if lText='' then
           lText:='img';
         LayoutTextWrapped('['+lText+']', aFontSize, fontStyle, '', lContext+[fcQuote], False, False);
         end;
   end;
-end;
-
-procedure TMarkDownPDFRenderer.CollectHTMLEntities;
-var
-  Ent : THTMLEntityDef;
-  lKey : String;
-begin
-  // Index by lower-case name for case-insensitive lookup; the table contains
-  // several names that only differ in case, so keep the first of each.
-  for Ent in EntityDefList do
-    begin
-    lKey:=LowerCase(Ent.e);
-    if FHTMLEntities.Items[lKey]='' then
-      FHTMLEntities.Add(lKey, Utf8Encode(Ent.u));
-    end;
-end;
-
-// Replace HTML named (&quot;) and numeric (&#NNN;) entities with their UTF-8 text
-function TMarkDownPDFRenderer.ResolveEntities(const aText: String): String;
-
-  procedure CopyToResult(aEnd, aStart : Integer);
-  begin
-    Result:=Result+Copy(aText, aStart, aEnd-aStart+1);
-  end;
-
-var
-  lEnd, lPrev, lNext, lUnicode : Integer;
-  lUChar : UnicodeChar;
-  lEnt, lUTF8 : String;
-begin
-  if FHTMLEntities.Count=0 then
-    CollectHTMLEntities;
-  lPrev:=1;
-  lNext:=Pos('&', aText, 1);
-  if lNext=0 then
-    Exit(aText);
-  Result:='';
-  while lNext>0 do
-    begin
-    lUTF8:='';
-    CopyToResult(lNext-1, lPrev);
-    lEnd:=Pos(';', aText, lNext+1);
-    if lEnd=0 then
-      begin
-      // A bare '&' without a closing ';': emit it literally and move on
-      Result:=Result+'&';
-      lPrev:=lNext+1;
-      lNext:=Pos('&', aText, lPrev);
-      Continue;
-      end;
-    lEnt:=Copy(aText, lNext+1, lEnd-lNext-1);
-    if lEnt<>'' then
-      begin
-      if lEnt[1]<>'#' then
-        lUTF8:=FHTMLEntities.Items[LowerCase(lEnt)]
-      else if TryStrToInt(StringReplace(Copy(lEnt,2,Length(lEnt)-1),'x','$',[rfIgnoreCase]),lUnicode) then
-        begin
-        if (lUnicode<=0) or (lUnicode>$FFFF) then
-          lUChar:=#$FFFD
-        else
-          lUChar:=UnicodeChar(lUnicode);
-        lUTF8:=Utf8Encode(lUChar);
-        end;
-      end;
-    if lUTF8='' then
-      // Unknown entity: keep the original text unchanged
-      Result:=Result+'&'+lEnt+';'
-    else
-      Result:=Result+lUTF8;
-    lPrev:=lEnd+1;
-    lNext:=Pos('&', aText, lPrev);
-    end;
-  CopyToResult(Length(aText), lPrev);
 end;
 
 initialization

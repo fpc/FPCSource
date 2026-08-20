@@ -46,6 +46,9 @@ Type
 
   TNodeStyle = (nsStrong,nsEmph,nsDelete);
   TNodeStyles = Set of TNodeStyle;
+  TNodeStyleArray = Array of TNodeStyle;
+
+  TMarkdownTextNodeList = class;
 
   { TMarkdownTextNode }
 
@@ -54,18 +57,23 @@ Type
     FKind: TTextNodeKind;
     FName : Ansistring;
     FAttrs: THashTable;
+    FChildren: TMarkdownTextNodeList;
     FContent : AnsiString;
     FBuild : RawByteString;
     FLength : integer;
     FPos : TPosition;
     FActive : Boolean;
     FStyles: TNodeStyles;
+    FStyleList : TNodeStyleArray;
     function GetAttrs: THashTable;
+    function GetChildren: TMarkdownTextNodeList;
     function GetHasAttrs: Boolean;
+    function GetHasChildren: Boolean;
     function getText : AnsiString;
     function GetNodetext : ansistring;
     procedure SetName(const Value: AnsiString);
     procedure SetActive(const aValue: boolean);
+    procedure SetStyles(const aValue: TNodeStyles);
   public
     constructor Create(aPos : TPosition; aKind : TTextNodeKind);
     destructor Destroy; override;
@@ -79,10 +87,18 @@ Type
     procedure AddText(ch : char); overload;
     procedure AddText(const s : AnsiString); overload;
     procedure RemoveChars(count : integer);
+    // Insert aText before the current content of the node
+    procedure PrependText(const aText : AnsiString);
     function IsEmpty : boolean;
     property Pos : TPosition Read FPos;
     property Active : Boolean Read FActive Write SetActive;
-    property Styles : TNodeStyles Read FStyles Write FStyles;
+    property Styles : TNodeStyles Read FStyles Write SetStyles;
+    // The styles of the node in nesting order, outermost first
+    property StyleList : TNodeStyleArray Read FStyleList;
+    // The nodes rendered inside this node
+    property Children : TMarkdownTextNodeList Read GetChildren;
+    // Does the node have nodes rendered inside it ?
+    property HasChildren : Boolean Read GetHasChildren;
   end;
 
   { TMarkdownTextNodeList }
@@ -97,6 +113,10 @@ Type
     procedure RemoveAfter(node : TMarkdownTextNode);
     function LastNode : TMarkdownTextNode;
     procedure ApplyStyleBetween(aStart,aStop : TMarkdownTextNode; aStyle : TNodeStyle);
+    // The concatenated text of aNode and all nodes following it
+    function TextFrom(aNode : TMarkdownTextNode) : AnsiString;
+    // Move all nodes following aNode into the child list of aNode
+    procedure MoveToChildren(aNode : TMarkdownTextNode);
   end;
 
   { TMarkdownBlock }
@@ -314,12 +334,21 @@ end;
 destructor TMarkdownTextNode.Destroy;
 begin
   FreeAndNil(FAttrs);
+  FreeAndNil(FChildren);
   inherited;
 end;
 
 procedure TMarkdownTextNode.AddStyle(aStyle: TNodeStyle);
+
+var
+  lChild : TMarkdownTextNode;
+
 begin
   include(FStyles,aStyle);
+  Insert(aStyle,FStyleList,0);
+  if Assigned(FChildren) then
+    for lChild in FChildren do
+      lChild.AddStyle(aStyle);
 end;
 
 procedure TMarkdownTextNode.IncCol(aCount: integer);
@@ -334,9 +363,21 @@ begin
   Result:=FAttrs;
 end;
 
+function TMarkdownTextNode.GetChildren: TMarkdownTextNodeList;
+begin
+  if FChildren = nil then
+    FChildren:=TMarkdownTextNodeList.Create(True);
+  Result:=FChildren;
+end;
+
 function TMarkdownTextNode.GetHasAttrs: Boolean;
 begin
   Result:=Assigned(FAttrs);
+end;
+
+function TMarkdownTextNode.GetHasChildren: Boolean;
+begin
+  Result:=Assigned(FChildren) and (FChildren.Count>0);
 end;
 
 function TMarkdownTextNode.getText: AnsiString;
@@ -365,12 +406,39 @@ begin
 end;
 
 
+procedure TMarkdownTextNode.PrependText(const aText : AnsiString);
+
+begin
+  if aText='' then
+    Exit;
+  Active:=False;
+  Insert(aText,FContent,1);
+end;
+
+
 procedure TMarkdownTextNode.SetActive(const aValue: boolean);
 begin
   if FActive and not aValue then
     FContent:=Copy(FBuild,1,FLength);
   FActive:=aValue;
 end;
+
+procedure TMarkdownTextNode.SetStyles(const aValue: TNodeStyles);
+
+var
+  S : TNodeStyle;
+
+begin
+  FStyles:=aValue;
+  SetLength(FStyleList,0);
+  for S in TNodeStyle do
+    if S in aValue then
+      begin
+      SetLength(FStyleList,Length(FStyleList)+1);
+      FStyleList[High(FStyleList)]:=S;
+      end;
+end;
+
 
 procedure TMarkdownTextNode.SetName(const Value: AnsiString);
 begin
@@ -436,6 +504,38 @@ begin
   idx:=indexOf(node);
   for i:=count-1 downto idx+1 do
     Delete(i);
+end;
+
+
+function TMarkdownTextNodeList.TextFrom(aNode: TMarkdownTextNode): AnsiString;
+
+var
+  I : Integer;
+
+begin
+  Result:='';
+  for I:=IndexOf(aNode) to Count-1 do
+    begin
+    Elements[I].Active:=False;
+    Result:=Result+Elements[I].NodeText;
+    end;
+end;
+
+
+procedure TMarkdownTextNodeList.MoveToChildren(aNode: TMarkdownTextNode);
+
+var
+  I,lIdx : Integer;
+
+begin
+  lIdx:=IndexOf(aNode);
+  for I:=lIdx+1 to Count-1 do
+    begin
+    Elements[I].Active:=False;
+    aNode.Children.Add(Elements[I]);
+    end;
+  for I:=Count-1 downto lIdx+1 do
+    Extract(Elements[I]);
 end;
 
 function TMarkdownTextNodeList.lastNode: TMarkdownTextNode;

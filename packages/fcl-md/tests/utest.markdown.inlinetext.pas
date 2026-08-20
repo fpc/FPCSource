@@ -42,6 +42,7 @@ type
     class procedure AssertEquals(const aMsg: string; aExpected,aActual : TTextNodeKind); overload;
     class procedure AssertEquals(const aMsg: string; aExpected,aActual : TNodeStyle); overload;
     class procedure AssertEquals(const aMsg: string; aExpected,aActual : TNodeStyles); overload;
+    class procedure CheckStyleList(const aMsg: string; const aExpected : Array of TNodeStyle; aNode : TMarkdownTextNode);
 
   protected
     procedure TearDown; override;
@@ -50,6 +51,7 @@ type
     procedure TestBackslashEscapes;
     procedure TestBareAmpersand;
     procedure TestNumericCharacterReference;
+    procedure TestNumericCharacterReferenceAboveBMP;
     procedure TestCodeSpans;
     procedure TestEmphasisAndStrong;
     procedure TestEmphasisAndStrongInOne;
@@ -59,6 +61,19 @@ type
     procedure TestAutoLinks;
     procedure TestInlineLink;
     procedure TestInlineImage;
+    procedure TestUnmatchedBrackets;
+    procedure TestUnmatchedBracketsAfterStrong;
+    procedure TestUnclosedBracket;
+    procedure TestUnclosedImageBracket;
+    procedure TestUnmatchedEmphasis;
+    procedure TestNestedEmphasis;
+    procedure TestInlineLinkWithMarkup;
+    procedure TestInlineLinkWithNestedBrackets;
+    procedure TestInlineImageWithMarkup;
+    procedure TestHardLineBreakSpaces;
+    procedure TestHardLineBreakBackslash;
+    procedure TestTextIsNotEscaped;
+    procedure TestInlineLinkUrlIsNotEscaped;
   end;
 
 implementation
@@ -111,6 +126,15 @@ begin
                     SetToString(PTypeInfo(TypeInfo(TNodeStyles)),Integer(aActual),False));
 end;
 
+class procedure TTestInlineTextProcessor.CheckStyleList(const aMsg: string; const aExpected: array of TNodeStyle; aNode: TMarkdownTextNode);
+var
+  I : Integer;
+begin
+  AssertEquals(aMsg+': style count',Length(aExpected),Length(aNode.StyleList));
+  for I:=0 to Length(aExpected)-1 do
+    AssertEquals(aMsg+': style at '+IntToStr(I),aExpected[I],aNode.StyleList[I]);
+end;
+
 procedure TTestInlineTextProcessor.TestSimpleText;
 begin
   SetupProcessor('This is a simple text.');
@@ -134,7 +158,7 @@ begin
   SetupProcessor('Concepts & data types');
   FProcessor.Process(True);
   AssertEquals('Should have one text node', 1, FNodes.Count);
-  AssertEquals('Bare ampersand should be HTML-escaped', 'Concepts &amp; data types', NodeAsText(0).NodeText);
+  AssertEquals('Bare ampersand is kept as text', 'Concepts & data types', NodeAsText(0).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.TestNumericCharacterReference;
@@ -143,6 +167,15 @@ begin
   FProcessor.Process(True);
   AssertEquals('Should have one text node', 1, FNodes.Count);
   AssertEquals('Numeric character reference should be decoded', 'x A y', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestNumericCharacterReferenceAboveBMP;
+begin
+  SetupProcessor('x &#x1F600; &#128512; y');
+  FProcessor.Process(True);
+  AssertEquals('Should have one text node', 1, FNodes.Count);
+  AssertEquals('Both spellings decode to the same character',
+               'x '+UTF8Encode(#$D83D#$DE00)+' '+UTF8Encode(#$D83D#$DE00)+' y', NodeAsText(0).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.DumpNodes;
@@ -296,6 +329,156 @@ begin
   AssertEquals('Image title', 'title', Node.attrs['title']);
   Node:=NodeAsText(2);
   AssertEquals('Text after', '.', Node.NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestUnmatchedBrackets;
+begin
+  SetupProcessor('A [M] bracket.');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'A ', NodeAsText(0).NodeText);
+  AssertEquals('Opening bracket kept', '[M', NodeAsText(1).NodeText);
+  AssertEquals('Text after', '] bracket.', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestUnmatchedBracketsAfterStrong;
+begin
+  SetupProcessor('**Level:** [M]');
+  FProcessor.Process(True);
+  AssertEquals('Should have 4 nodes', 4, FNodes.Count);
+  AssertEquals('Strong text', 'Level:', NodeAsText(0).NodeText);
+  AssertEquals('Strong style', [nsStrong], NodeAsText(0).Styles);
+  AssertEquals('Space between', ' ', NodeAsText(1).NodeText);
+  AssertEquals('Opening bracket kept', '[M', NodeAsText(2).NodeText);
+  AssertEquals('Closing bracket', ']', NodeAsText(3).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestUnclosedBracket;
+begin
+  SetupProcessor('An [unclosed bracket');
+  FProcessor.Process(True);
+  AssertEquals('Should have 2 nodes', 2, FNodes.Count);
+  AssertEquals('Text before', 'An ', NodeAsText(0).NodeText);
+  AssertEquals('Opening bracket kept', '[unclosed bracket', NodeAsText(1).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestUnclosedImageBracket;
+begin
+  SetupProcessor('An ![unclosed image');
+  FProcessor.Process(True);
+  AssertEquals('Should have 2 nodes', 2, FNodes.Count);
+  AssertEquals('Text before', 'An ', NodeAsText(0).NodeText);
+  AssertEquals('Image bracket kept', '![unclosed image', NodeAsText(1).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestUnmatchedEmphasis;
+begin
+  SetupProcessor('a * b');
+  FProcessor.Process(True);
+  AssertEquals('Should have 2 nodes', 2, FNodes.Count);
+  AssertEquals('Text before', 'a ', NodeAsText(0).NodeText);
+  AssertEquals('Asterisk kept', '* b', NodeAsText(1).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestNestedEmphasis;
+begin
+  SetupProcessor('*a *b* c*');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'a ', NodeAsText(0).NodeText);
+  CheckStyleList('Outer emphasis', [nsEmph], NodeAsText(0));
+  AssertEquals('Nested text', 'b', NodeAsText(1).NodeText);
+  CheckStyleList('Nested emphasis', [nsEmph,nsEmph], NodeAsText(1));
+  AssertEquals('Text after', ' c', NodeAsText(2).NodeText);
+  CheckStyleList('Outer emphasis resumed', [nsEmph], NodeAsText(2));
+end;
+
+procedure TTestInlineTextProcessor.TestInlineLinkWithMarkup;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('A [a *b* c](u) tail.');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'A ', NodeAsText(0).NodeText);
+  Node := NodeAsNamed(1, nkURI);
+  AssertEquals('Link href', 'u', Node.attrs['href']);
+  AssertEquals('Link text before markup', 'a ', Node.NodeText);
+  AssertTrue('Link has children', Node.HasChildren);
+  AssertEquals('Link child count', 2, Node.Children.Count);
+  AssertEquals('Emphasized child text', 'b', Node.Children[0].NodeText);
+  CheckStyleList('Emphasized child', [nsEmph], Node.Children[0]);
+  AssertEquals('Last child text', ' c', Node.Children[1].NodeText);
+  CheckStyleList('Last child', [], Node.Children[1]);
+  AssertEquals('Text after', ' tail.', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestInlineLinkWithNestedBrackets;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('A [a [b] c](u).');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkURI);
+  AssertEquals('Link href', 'u', Node.attrs['href']);
+  AssertEquals('Link text before bracket', 'a ', Node.NodeText);
+  AssertEquals('Link child count', 2, Node.Children.Count);
+  AssertEquals('Opening bracket kept', '[b', Node.Children[0].NodeText);
+  AssertEquals('Closing bracket kept', '] c', Node.Children[1].NodeText);
+  AssertEquals('Text after', '.', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestInlineImageWithMarkup;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('An ![a *b* c](i.png "T").');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'An ', NodeAsText(0).NodeText);
+  Node := NodeAsNamed(1, nkImg);
+  AssertEquals('Image src', 'i.png', Node.attrs['src']);
+  AssertEquals('Image alt', 'a b c', Node.attrs['alt']);
+  AssertEquals('Image title', 'T', Node.attrs['title']);
+  AssertFalse('Image has no children', Node.HasChildren);
+  AssertEquals('Text after', '.', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestHardLineBreakSpaces;
+begin
+  SetupProcessor('a  '#10'b');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'a', NodeAsText(0).NodeText);
+  AssertEquals('Line break has no text', '', NodeAsNamed(1, nkLineBreak).NodeText);
+  AssertEquals('Text after', #10'b', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestHardLineBreakBackslash;
+begin
+  SetupProcessor('a\'#10'b');
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before', 'a', NodeAsText(0).NodeText);
+  AssertEquals('Line break has no text', '', NodeAsNamed(1, nkLineBreak).NodeText);
+  AssertEquals('Text after', #10'b', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestTextIsNotEscaped;
+begin
+  SetupProcessor('5 < 7 & "q" > 3');
+  FProcessor.Process(True);
+  AssertEquals('Should have one text node', 1, FNodes.Count);
+  AssertEquals('Text is kept unescaped', '5 < 7 & "q" > 3', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestInlineLinkUrlIsNotEscaped;
+begin
+  SetupProcessor('[a](http://x/?p=1&q=2)');
+  FProcessor.Process(True);
+  AssertEquals('Should have one node', 1, FNodes.Count);
+  AssertEquals('Link href', 'http://x/?p=1&q=2', NodeAsNamed(0, nkURI).attrs['href']);
 end;
 
 initialization

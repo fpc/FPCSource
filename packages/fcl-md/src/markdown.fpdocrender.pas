@@ -94,12 +94,11 @@ type
   Private
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
-    FLastStyles : TNodeStyles;
     FKeys : Array of String;
     FKeyCount : integer;
     FText : String;
     procedure DoKey(aItem: AnsiString; const aKey: AnsiString; var aContinue: Boolean);
-    procedure EmitStyleDiff(aStyles: TNodeStyles);
+    procedure EmitStyleDiff(const aStyles: TNodeStyleArray);
     function GetFPDocRenderer: TMarkdownFPDocRenderer;
     function GetNodeTag(aElement: TMarkdownTextNode): string;
     function MustCloseNode(aElement: TMarkdownTextNode): boolean;
@@ -107,8 +106,7 @@ type
     procedure StartText;
     procedure EndText;
     procedure PushStyle(aStyle : TNodeStyle);
-    function PopStyles(aStyle: TNodeStyles): TNodeStyle;
-    procedure PopStyle(aStyle : TNodeStyle);
+    procedure PopStyle;
     procedure Append(const S : String); inline;
     procedure DoRender(aElement: TMarkdownTextNode); override;
   Public
@@ -466,7 +464,7 @@ end;
 function TFPDocMarkdownTextRenderer.MustCloseNode(aElement: TMarkdownTextNode) : boolean;
 
 begin
-  Result:=aElement.kind<>nkImg;
+  Result:=not (aElement.kind in [nkImg,nkLineBreak]);
 end;
 
 procedure TFPDocMarkdownTextRenderer.StartText;
@@ -493,24 +491,12 @@ begin
   Inc(FStyleStackLen);
 end;
 
-function TFPDocMarkdownTextRenderer.PopStyles(aStyle: TNodeStyles): TNodeStyle;
-
+procedure TFPDocMarkdownTextRenderer.PopStyle;
 begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1] in aStyle) then
-    begin
-    Result:=FStyleStack[FStyleStackLen-1];
-    FPDoc.Pop;
-    Dec(FStyleStackLen);
-    end;
-end;
-
-procedure TFPDocMarkdownTextRenderer.PopStyle(aStyle: TNodeStyle);
-begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1]=aStyle) then
-    begin
-    FPDoc.Pop;
-    Dec(FStyleStackLen);
-    end;
+  if FStyleStackLen=0 then
+    Exit;
+  Dec(FStyleStackLen);
+  FPDoc.Pop;
 end;
 
 function TFPDocMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode) : string;
@@ -518,7 +504,10 @@ begin
   case aElement.Kind of
     nkCode: Result:='code';
     nkImg : Result:='img';
+    nkLineBreak : Result:='br';
     nkURI,nkEmail : Result:='link'
+  else
+    Result:='';
   end;
 end;
 
@@ -537,48 +526,53 @@ begin
   inc(FKeyCount);
 end;
 
-procedure TFPDocMarkdownTextRenderer.EmitStyleDiff(aStyles : TNodeStyles);
+procedure TFPDocMarkdownTextRenderer.EmitStyleDiff(const aStyles : TNodeStyleArray);
 
 var
-  lRemove : TNodeStyles;
-  lAdd : TNodeStyles;
-  S : TNodeStyle;
+  lKeep,I : Integer;
 
 begin
-  lRemove:=[];
-  lAdd:=[];
-  For S in TNodeStyle do
-    begin
-    if (S in FLastStyles) and Not (S in aStyles) then
-      Include(lRemove,S);
-    if (S in aStyles) and Not (S in FLastStyles) then
-      Include(lAdd,S);
-    end;
-  While lRemove<>[] do
-    begin
-    S:=PopStyles(lRemove);
-    Exclude(lRemove,S);
-    end;
-  For S in TNodeStyle do
-    if S in lAdd then
-      PushStyle(S);
-  FLastStyles:=aStyles;
+  lKeep:=0;
+  While (lKeep<FStyleStackLen) and (lKeep<Length(aStyles)) and (FStyleStack[lKeep]=aStyles[lKeep]) do
+    Inc(lKeep);
+  While FStyleStackLen>lKeep do
+    PopStyle;
+  For I:=lKeep to Length(aStyles)-1 do
+    PushStyle(aStyles[I]);
 end;
 
 procedure TFPDocMarkdownTextRenderer.DoRender(aElement: TMarkdownTextNode);
 
+var
+  lChild : TMarkdownTextNode;
+  lName : String;
+
 begin
-  EmitStyleDiff(aElement.Styles);
+  EmitStyleDiff(aElement.StyleList);
+  lName:='';
   if aElement.Kind<>nkText then
     begin
-    FPDoc.Push(GetNodeTag(aElement));
-    RenderAttrs(aElement);
+    lName:=GetNodeTag(aElement);
+    if lName<>'' then
+      begin
+      FPDoc.Push(lName);
+      RenderAttrs(aElement);
+      end;
     end;
-  StartText;
-  if aElement.NodeText<>'' then
-    Append(aElement.NodeText);
-  EndText;
-  if aElement.Kind<>nkText then
+  if MustCloseNode(aElement) then
+    begin
+    StartText;
+    if aElement.NodeText<>'' then
+      Append(aElement.NodeText);
+    EndText;
+    if aElement.HasChildren then
+      begin
+      for lChild in aElement.Children do
+        DoRender(lChild);
+      EmitStyleDiff(aElement.StyleList);
+      end;
+    end;
+  if lName<>'' then
     FPDoc.Pop;
   aElement.Active:=False;
 end;
@@ -587,14 +581,12 @@ procedure TFPDocMarkdownTextRenderer.BeginBlock;
 begin
   inherited BeginBlock;
   FStyleStackLen:=0;
-  FLastStyles:=[];
 end;
 
 procedure TFPDocMarkdownTextRenderer.EndBlock;
 begin
   While (FStyleStackLen>0) do
-    Popstyle(FStyleStack[FStyleStackLen-1]);
-  FLastStyles:=[];
+    Popstyle;
   inherited EndBlock;
 end;
 

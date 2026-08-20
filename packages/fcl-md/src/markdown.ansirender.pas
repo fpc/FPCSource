@@ -26,8 +26,7 @@ uses
   Classes, SysUtils, Contnrs, FPAnsi,
 {$ENDIF}
   Markdown.Elements,
-  Markdown.Render,
-  Markdown.HTMLEntities;
+  Markdown.Render;
 
 type
   // Style flags collected for a text run.
@@ -64,8 +63,6 @@ type
     // inherited inline style (set by heading/quote block renderers)
     FBaseStyle : TRunStyle;
     FInListItem : Boolean; 
-    FHTMLEntities : TFPStringHashTable;
-    procedure CollectEntities;
     procedure StartLine;
     procedure PlaceStyled(const aVisible, aStyled : string);
   public
@@ -77,7 +74,6 @@ type
     function RenderToString(aDocument : TMarkdownDocument) : string;
     // Helpers used by the block/text renderers
     function VisibleWidth(const aText : string) : Integer;
-    function ResolveEntities(const aText : string) : string;
     function StyleText(const aText : string; const aStyle : TRunStyle) : string;
     function DefaultStyle : TRunStyle;
     // Writer primitives
@@ -207,7 +203,6 @@ begin
   FWidth:=80;
   FUseColor:=True;
   FHyperlinks:=True;
-  FHTMLEntities:=TFPStringHashTable.Create;
   FResult:=TStringList.Create;
   FBaseStyle:=DefaultStyle;
 end;
@@ -216,7 +211,6 @@ end;
 destructor TMarkDownANSIRenderer.Destroy;
 begin
   FreeAndNil(FResult);
-  FreeAndNil(FHTMLEntities);
   inherited Destroy;
 end;
 
@@ -238,76 +232,6 @@ begin
   for i:=1 to Length(aText) do
     if (Ord(aText[i]) and $C0)<>$80 then
       Inc(Result);
-end;
-
-
-procedure TMarkDownANSIRenderer.CollectEntities;
-var
-  Ent : THTMLEntityDef;
-  lKey : string;
-begin
-  for Ent in EntityDefList do
-    begin
-    lKey:=LowerCase(Ent.e);
-    if FHTMLEntities.Items[lKey]='' then
-      FHTMLEntities.Add(lKey,Utf8Encode(Ent.u));
-    end;
-end;
-
-
-function TMarkDownANSIRenderer.ResolveEntities(const aText : string) : string;
-
-  procedure CopyToResult(aEnd, aStart : Integer);
-  begin
-    Result:=Result+Copy(aText,aStart,aEnd-aStart+1);
-  end;
-
-var
-  lEnd, lPrev, lNext, lUnicode : Integer;
-  lUChar : UnicodeChar;
-  lEnt, lUTF8 : string;
-begin
-  if FHTMLEntities.Count=0 then
-    CollectEntities;
-  lPrev:=1;
-  lNext:=Pos('&',aText,1);
-  if lNext=0 then
-    Exit(aText);
-  Result:='';
-  while lNext>0 do
-    begin
-    lUTF8:='';
-    CopyToResult(lNext-1,lPrev);
-    lEnd:=Pos(';',aText,lNext+1);
-    if lEnd=0 then
-      begin
-      Result:=Result+'&';
-      lPrev:=lNext+1;
-      lNext:=Pos('&',aText,lPrev);
-      Continue;
-      end;
-    lEnt:=Copy(aText,lNext+1,lEnd-lNext-1);
-    if lEnt<>'' then
-      begin
-      if lEnt[1]<>'#' then
-        lUTF8:=FHTMLEntities.Items[LowerCase(lEnt)]
-      else if TryStrToInt(StringReplace(Copy(lEnt,2,Length(lEnt)-1),'x','$',[rfIgnoreCase]),lUnicode) then
-        begin
-        if (lUnicode<=0) or (lUnicode>$FFFF) then
-          lUChar:=#$FFFD
-        else
-          lUChar:=UnicodeChar(lUnicode);
-        lUTF8:=Utf8Encode(lUChar);
-        end;
-      end;
-    if lUTF8='' then
-      Result:=Result+'&'+lEnt+';'
-    else
-      Result:=Result+lUTF8;
-    lPrev:=lEnd+1;
-    lNext:=Pos('&',aText,lPrev);
-    end;
-  CopyToResult(Length(aText),lPrev);
 end;
 
 
@@ -488,8 +412,9 @@ end;
 
 procedure TMarkDownANSIRenderer.RenderInline(aNode : TMarkdownTextNode);
 var
-  lStyle : TRunStyle;
+  lStyle,lSaveBase : TRunStyle;
   lText : string;
+  lChild : TMarkdownTextNode;
 begin
   if not assigned(aNode) then
     exit;
@@ -499,22 +424,30 @@ begin
   if nsDelete in aNode.Styles then lStyle.Strike:=True;
   case aNode.Kind of
     nkText:
-      AddRun(ResolveEntities(aNode.NodeText),lStyle,True);
+      AddRun(aNode.NodeText,lStyle,True);
     nkCode:
       begin
       lStyle.Fg:=clCodeInl;
-      AddRun(ResolveEntities(aNode.NodeText),lStyle,False);
+      AddRun(aNode.NodeText,lStyle,False);
       end;
     nkURI,nkEmail:
       begin
       lStyle.Underline:=True;
       lStyle.Fg:=clLink;
       lStyle.Href:=aNode.Attrs['href'];
-      AddRun(ResolveEntities(aNode.NodeText),lStyle,False);
+      AddRun(aNode.NodeText,lStyle,False);
+      if aNode.HasChildren then
+        begin
+        lSaveBase:=FBaseStyle;
+        FBaseStyle:=lStyle;
+        for lChild in aNode.Children do
+          RenderInline(lChild);
+        FBaseStyle:=lSaveBase;
+        end;
       end;
     nkImg:
       begin
-      lText:=ResolveEntities(aNode.Attrs['alt']);
+      lText:=aNode.Attrs['alt'];
       if lText='' then
         lText:=aNode.Attrs['src'];
       lStyle.Faint:=True;
@@ -804,7 +737,6 @@ var
     if aCell is TMarkdownTextBlock then
       for n:=0 to TMarkdownTextBlock(aCell).Nodes.Count-1 do
         Result:=Result+TMarkdownTextBlock(aCell).Nodes[n].NodeText;
-    Result:=ANSI.ResolveEntities(Result);
   end;
 
 begin

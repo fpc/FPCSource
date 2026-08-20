@@ -86,17 +86,15 @@ type
   Private
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
-    FLastStyles : TNodeStyles;
     function GetLaTeXRenderer: TMarkdownLaTeXRenderer;
     function GetNodeTag(aElement: TMarkdownTextNode; Closing: Boolean): string;
   protected
     procedure PushStyle(aStyle : TNodeStyle);
-    function PopStyles(aStyle: TNodeStyles): TNodeStyle;
-    procedure PopStyle(aStyle : TNodeStyle);
+    procedure PopStyle;
     procedure Append(const S : String); inline;
     procedure DoRender(aElement: TMarkdownTextNode); override;
     function Escape(const S: String): String;
-    procedure EmitStyleDiff(aStyles : TNodeStyles);
+    procedure EmitStyleDiff(const aStyles : TNodeStyleArray);
   Public
     procedure BeginBlock; override;
     procedure EndBlock; override;
@@ -396,6 +394,8 @@ begin
       '_': Result := Result + '\_';
       '%': Result := Result + '\%';
       '~': Result := Result + '\textasciitilde{}';
+      '<': Result := Result + '\textless{}';
+      '>': Result := Result + '\textgreater{}';
     else
       Result := Result + c;
     end;
@@ -448,10 +448,15 @@ begin
           aElement.Attrs.TryGet('src', lUrl);
 
         if Closing then
-          Result := '}'
+          Result := ''
         else
-          Result := '\includegraphics{' + lUrl + '}{';
+          Result := '\includegraphics{' + lUrl + '}';
       end;
+    nkLineBreak:
+      if Closing then
+        Result := ''
+      else
+        Result := '\\';
   end;
 end;
 
@@ -468,75 +473,49 @@ begin
   Inc(FStyleStackLen);
 end;
 
-function TLaTeXMarkdownTextRenderer.Popstyles(aStyle: TNodeStyles) : TNodeStyle;
+procedure TLaTeXMarkdownTextRenderer.PopStyle;
 begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1] in aStyle) then
-    begin
-    Result:=FStyleStack[FStyleStackLen-1];
-    Append('}');
-    Dec(FStyleStackLen);
-    end;
+  if FStyleStackLen=0 then
+    Exit;
+  Dec(FStyleStackLen);
+  Append('}');
 end;
 
-procedure TLaTeXMarkdownTextRenderer.PopStyle(aStyle: TNodeStyle);
-begin
-  if (FStyleStackLen>0) and (FStyleStack[FStyleStackLen-1]=aStyle) then
-    begin
-    Append('}');
-    Dec(FStyleStackLen);
-    end;
-end;
-
-procedure TLaTeXMarkdownTextRenderer.EmitStyleDiff(aStyles : TNodeStyles);
+procedure TLaTeXMarkdownTextRenderer.EmitStyleDiff(const aStyles : TNodeStyleArray);
 var
-  lRemove : TNodeStyles;
-  lAdd : TNodeStyles;
-  S : TNodeStyle;
+  lKeep,I : Integer;
 begin
-  lRemove:=[];
-  lAdd:=[];
-  For S in TNodeStyle do
-    begin
-    if (S in Self.FLastStyles) and Not (S in aStyles) then
-      Include(lRemove,S);
-    if (S in aStyles) and Not (S in Self.FLastStyles) then
-      Include(lAdd,S);
-    end;
-  While lRemove<>[] do
-    begin
-    S:=Self.PopStyles(lRemove);
-    Exclude(lRemove,S);
-    end;
-  For S in TNodeStyle do
-    if S in lAdd then
-      Self.PushStyle(S);
-  Self.FLastStyles:=aStyles;
+  lKeep:=0;
+  While (lKeep<FStyleStackLen) and (lKeep<Length(aStyles)) and (FStyleStack[lKeep]=aStyles[lKeep]) do
+    Inc(lKeep);
+  While FStyleStackLen>lKeep do
+    Self.PopStyle;
+  For I:=lKeep to Length(aStyles)-1 do
+    Self.PushStyle(aStyles[I]);
 end;
 
 procedure TLaTeXMarkdownTextRenderer.DoRender(aElement: TMarkdownTextNode);
 var
-  lTag : string;
+  lChild : TMarkdownTextNode;
 begin
-  Self.EmitStyleDiff(aElement.Styles);
+  Self.EmitStyleDiff(aElement.StyleList);
   if aElement.Kind <> nkText then
-  begin
-    lTag := Self.GetNodeTag(aElement, False);
-    Append(lTag);
-  end;
+    Append(Self.GetNodeTag(aElement, False));
 
-  if aElement.Kind = nkImg then
-  begin
-     // Img handling logic here...
-  end;
-
-  if aElement.NodeText<>'' then
-    Append(Self.Escape(aElement.NodeText));
+  if not (aElement.Kind in [nkImg,nkLineBreak]) then
+    begin
+    if aElement.NodeText<>'' then
+      Append(Self.Escape(aElement.NodeText));
+    if aElement.HasChildren then
+      begin
+      for lChild in aElement.Children do
+        DoRender(lChild);
+      Self.EmitStyleDiff(aElement.StyleList);
+      end;
+    end;
 
   if aElement.Kind <> nkText then
-  begin
-    lTag := Self.GetNodeTag(aElement, True);
-    Append(lTag);
-  end;
+    Append(Self.GetNodeTag(aElement, True));
 
   aElement.Active:=False;
 end;
@@ -545,14 +524,12 @@ procedure TLaTeXMarkdownTextRenderer.BeginBlock;
 begin
   inherited BeginBlock;
   Self.FStyleStackLen:=0;
-  Self.FLastStyles:=[];
 end;
 
 procedure TLaTeXMarkdownTextRenderer.EndBlock;
 begin
   While (Self.FStyleStackLen>0) do
-    Self.Popstyle(Self.FStyleStack[Self.FStyleStackLen-1]);
-  Self.FLastStyles:=[];
+    Self.Popstyle;
   inherited EndBlock;
 end;
 

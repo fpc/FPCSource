@@ -78,6 +78,8 @@ Type
     function ReadLinkTitle(aBuilder: TStringBuilder): Boolean;
     function PeekEmailAddress(out len: integer): boolean; virtual;
     procedure AddTextTillNext(const aTerminal: String); virtual;
+    // Remove the delimiter from the stack, restoring the unused part of its run as literal text
+    procedure DiscardDelimiter(aIndex: Integer); virtual;
     // Handle various constructs
     procedure HandleEmphasis(aTerminator: TMarkdownDelimiter); virtual;
     function  HandleInlineLink(aDelim: TMarkdownDelimiter): boolean; virtual;
@@ -202,7 +204,7 @@ begin
   Scanner.NextChar();
   C:=Scanner.Peek;
   if MustEscape(C) then
-    Nodes.addText(Scanner.location,htmlEscape(Scanner.NextChar()))
+    Nodes.addText(Scanner.location,Scanner.NextChar())
   else if C=#10 then
     Nodes.addTextNode(Scanner.location,nkLineBreak,'')
   else
@@ -255,17 +257,17 @@ begin
   if lAdd then
     Exit;
   Scanner.GotoBookmark;
-  Nodes.addText(Scanner.location,'&lt;');
+  Nodes.addText(Scanner.location,'<');
   Scanner.NextChar();
 end;
 
 procedure TInlineTextProcessor.HandleEntity;
 begin
   if WhiteSpaceMode<>wsLeave then
-    Nodes.addText(Scanner.location,htmlEscape(HandleEntityInner()))
+    Nodes.addText(Scanner.location,HandleEntityInner())
   else
     begin
-    Nodes.addText(Scanner.location,'&amp;');
+    Nodes.addText(Scanner.location,'&');
     Scanner.NextChar();
     end
 end;
@@ -274,7 +276,6 @@ function TInlineTextProcessor.HandleEntityInner: String;
 
 var
   lEntity : String;
-  ch : UnicodeChar;
   I,lLen : integer;
 
 begin
@@ -295,12 +296,8 @@ begin
   System.Delete(lEntity,1,1);
   if TryStrToInt(lEntity,I) then
     begin
-    if (i=0) or (i>65535) then
-      ch:=#$FFFD
-    else
-      ch:=UnicodeChar(I);
     Scanner.NextChars(lLen+1);
-    Result:=Utf8Encode(ch);
+    Result:=CodePointToUTF8(I);
     end;
 end;
 
@@ -366,7 +363,7 @@ begin
         Nodes.addText(Scanner.location,' ');
       lFirstWhitespace:=false;
       lWhitespace:=false;
-      Nodes.addText(Scanner.location,htmlEscape(Scanner.NextChar));
+      Nodes.addText(Scanner.location,Scanner.NextChar);
       end;
     end;
   Scanner.NextChars(lLen);
@@ -550,20 +547,33 @@ begin
        Scanner.NextChar;
        if Scanner.EOF then
          Exit;
-       aBuilder.Append(htmlEscape(Scanner.NextChar));
+       aBuilder.Append(Scanner.NextChar);
        end;
     '&':
-       aBuilder.Append(htmlEscape(HandleEntityInner()));
+       aBuilder.Append(HandleEntityInner());
     #10:
        aBuilder.Append(' ');
     '"':
-      aBuilder.Append(htmlEscape(Scanner.NextChar));
+      aBuilder.Append(Scanner.NextChar);
     else
       aBuilder.Append(Scanner.NextChar);
     end;
     end;
   Result:=Not Scanner.EOF;
 end;
+
+
+procedure TInlineTextProcessor.DiscardDelimiter(aIndex: Integer);
+
+var
+  lDelim : TMarkdownDelimiter;
+
+begin
+  lDelim:=FStack[aIndex];
+  lDelim.Node.PrependText(lDelim.Delimiter);
+  FStack.Delete(aIndex);
+end;
+
 
 function TInlineTextProcessor.HandleInlineLink(aDelim : TMarkdownDelimiter): boolean;
 {
@@ -612,18 +622,21 @@ begin
     if Scanner.Peek <> ')' then
       Exit;
     Scanner.NextChar;
+    HandleEmphasis(aDelim);
     if aDelim.delimiter = '![' then
       begin
       aDelim.Node.Kind:=nkimg;
       aDelim.Node.active:=false;
-      aDelim.Node.attrs.Add('src',URLEscape(lURL));
-      aDelim.Node.attrs.Add('alt',aDelim.node.NodeText);
+      aDelim.Node.attrs.Add('src',lURL);
+      aDelim.Node.attrs.Add('alt',Nodes.TextFrom(aDelim.Node));
+      Nodes.RemoveAfter(aDelim.Node);
       end
     else
       begin
       aDelim.Node.Kind:=nkUri;
-      aDelim.Node.attrs.Add('href',URLEscape(lURL));
+      aDelim.Node.attrs.Add('href',lURL);
       aDelim.Node.active:=false;
+      Nodes.MoveToChildren(aDelim.Node);
       for lDelim in FStack do
         if lDelim = aDelim then
           break
@@ -632,7 +645,6 @@ begin
       end;
     if lTitle<>'' then
       aDelim.node.attrs.Add('title',lTitle);
-    HandleEmphasis(aDelim);
     FStack.remove(aDelim);
     Result:=true;
   finally
@@ -710,7 +722,7 @@ begin
       lDelete:=lClose;
       While lDelete>lOpen+1 do
         begin
-        FStack.Delete(lDelete);
+        DiscardDelimiter(lDelete);
         Dec(lDelete);
         Dec(lClose);
         end;
@@ -735,13 +747,13 @@ begin
       if FStack[lClose].Modes=dmOpenClose then
         inc(lClose)
       else
-        FStack.Delete(lClose);
+        DiscardDelimiter(lClose);
       end;
     lCount:=FStack.Count;
     lClose:=FindClosingDelimiter(lClose);
     end;
   for LOpen:=FStack.Count-1 downto lBottom do
-    FStack.Delete(lOpen);
+    DiscardDelimiter(lOpen);
 end;
 
 
@@ -765,7 +777,7 @@ begin
     Nodes.addText(Scanner.location,Scanner.NextChar)
   else if Not (lDelim.active and HandleInlineLink(lDelim)) then
     begin
-    FStack.Remove(lDelim);
+    DiscardDelimiter(FStack.IndexOf(lDelim));
     Nodes.addText(Scanner.location,Scanner.NextChar);
     end;
 end;
@@ -777,13 +789,13 @@ begin
   // code blocks leave whitespace intact
   if WhiteSpaceMode=wsLeave then
     begin
-    Nodes.addText(Scanner.location,htmlEscape(Scanner.NextChar));
+    Nodes.addText(Scanner.location,Scanner.NextChar);
     Exit;
     end;
   case Scanner.Peek of
     '\' : HandleTextEscape();
     '<' : HandleAutoLink();
-    '>','"' : Nodes.addText(Scanner.location,htmlEscape(Scanner.NextChar));
+    '>','"' : Nodes.addText(Scanner.location,Scanner.NextChar);
     '&' : HandleEntity;
     '`' : HandleBackTick;
     '~' : HandleTilde;
@@ -796,7 +808,7 @@ begin
              or (Scanner.PeekEndRun=#0) then
             HandleDelimiter(true)
           else
-            Nodes.addText(Scanner.Location,htmlEscape(Scanner.NextEquals()));
+            Nodes.addText(Scanner.Location,Scanner.NextEquals());
     '[' : HandleDelimiter(false);
     '!' : if Scanner.PeekNext='[' then
             HandleDelimiter(false)
@@ -900,7 +912,7 @@ begin
         else
           begin
           if lWhitespace.EndsWith('  ') then
-            Nodes.addText(Scanner.location,'<br />');
+            Nodes.addTextNode(Scanner.location,nkLineBreak,'');
           lWhitespace:='';
           end;
         end;
@@ -921,7 +933,7 @@ var
 
 begin
   lEmail:=Scanner.NextChars(aLength);
-  lNode:=Nodes.addTextNode(Scanner.location,nkUri,htmlEscape(lEmail));
+  lNode:=Nodes.addTextNode(Scanner.location,nkUri,lEmail);
   lNode.attrs.Add('href','mailto:'+urlEscape(lEmail));
 end;
 
@@ -961,16 +973,16 @@ begin
     end;
     if lRemove=0 then
       begin
-      lNode:=Nodes.addTextNode(Scanner.location,nkEmail,htmlEscape(lLink));
+      lNode:=Nodes.addTextNode(Scanner.location,nkEmail,lLink);
       lNode.attrs.Add('href',aProtocol+urlEscape(lLink));
       end
     else
       begin
       lUrl:=Copy(lLink,1,Length(lLink)-lRemove);
-      lNode:=Nodes.addTextNode(Scanner.location,nkURI,aProtocol+htmlEscape(lUrl));
+      lNode:=Nodes.addTextNode(Scanner.location,nkURI,aProtocol+lUrl);
       lNode.attrs.Add('href',aProtocol+urlEscape(lUrl));
       lText:=Copy(lLink,Length(lLink)-lRemove,lRemove);
-      Nodes.addTextNode(Scanner.location,nkText,htmlEscape(lText));
+      Nodes.addTextNode(Scanner.location,nkText,lText);
       end;
   finally
     if lRewind then

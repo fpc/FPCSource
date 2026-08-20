@@ -50,6 +50,7 @@ type
     procedure TestEmptyNoEnvelope;
     procedure TestEmptyTitle;
     procedure TestEmptyHead;
+    procedure TestAssignedHead;
     procedure TestTextBlockEmpty;
     procedure TestTextBlockText;
     procedure TestTextBlockTextStrong;
@@ -58,6 +59,13 @@ type
     procedure TestTextBlockTextStrongEmph;
     procedure TestTextBlockTextStrongEmphSplit1;
     procedure TestTextBlockTextStrongEmphSplit2;
+    procedure TestTextBlockTextNestedEmph;
+    procedure TestTextBlockImage;
+    procedure TestTextBlockLinkWithChildren;
+    procedure TestTextBlockLineBreak;
+    procedure TestTextBlockTextEscaping;
+    procedure TestTextBlockAttributeEscaping;
+    procedure TestCodeBlock;
     procedure TestPragraphBlockEmpty;
     procedure TestPragraphBlockText;
     procedure TestQuotedBlockEmpty;
@@ -223,6 +231,26 @@ begin
              +'<body>'+sLineBreak+'</body>'+sLineBreak+'</html>');
 end;
 
+
+procedure TTestHTMLRender.TestAssignedHead;
+
+var
+  lHead : TStrings;
+
+begin
+  lHead:=TStringList.Create;
+  try
+    lHead.Add('<meta charset="UTF8">');
+    Renderer.Options:=[hoEnvelope,hoHead];
+    Renderer.Head:=lHead;
+    TestRender('<!DOCTYPE html>'+sLineBreak+'<html>'+sLineBreak
+               +'<head>'+sLineBreak+'<meta charset="UTF8">'+sLineBreak+'</head>'+sLineBreak
+               +'<body>'+sLineBreak+'</body>'+sLineBreak+'</html>');
+  finally
+    lHead.Free;
+  end;
+end;
+
 procedure TTestHTMLRender.TestTextBlockEmpty;
 
 begin
@@ -291,6 +319,103 @@ begin
   lBlock:=CreateTextBlock(Document,'a','a',[nsEmph,nsStrong]);
   AppendTextNode(lBlock,' b',[nsStrong]);
   TestRender('<b><i>a</i> b</b>');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockTextNestedEmph;
+
+var
+  lBlock : TMarkDownTextBlock;
+  lNode : TMarkDownTextNode;
+
+begin
+  lBlock:=CreateTextBlock(Document,'a','a ',[nsEmph]);
+  lNode:=AppendTextNode(lBlock,'b',[nsEmph]);
+  lNode.AddStyle(nsEmph);
+  AppendTextNode(lBlock,' c',[nsEmph]);
+  TestRender('<i>a <i>b</i> c</i>');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockImage;
+
+var
+  lBlock : TMarkDownTextBlock;
+  lNode : TMarkDownTextNode;
+
+begin
+  lBlock:=CreateTextBlock(Document,'a','');
+  lNode:=AppendTextNode(lBlock,'alt text',[]);
+  lNode.Kind:=nkImg;
+  lNode.Attrs.Add('src','i.png');
+  lNode.Attrs.Add('alt','alt text');
+  TestRender('<img src="i.png" alt="alt text">');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockLinkWithChildren;
+
+var
+  lBlock : TMarkDownTextBlock;
+  lNode : TMarkDownTextNode;
+
+begin
+  lBlock:=CreateTextBlock(Document,'a','');
+  lNode:=AppendTextNode(lBlock,'a ',[]);
+  lNode.Kind:=nkURI;
+  lNode.Attrs.Add('href','u');
+  lNode.Children.AddTextNode(lNode.Pos,nkText,'b').AddStyle(nsEmph);
+  lNode.Children.AddTextNode(lNode.Pos,nkText,' c');
+  TestRender('<a href="u">a <i>b</i> c</a>');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockLineBreak;
+
+var
+  lBlock : TMarkDownTextBlock;
+
+begin
+  lBlock:=CreateTextBlock(Document,'a','a');
+  lBlock.Nodes.AddTextNode(lBlock.Nodes[0].Pos,nkLineBreak,'');
+  AppendTextNode(lBlock,'b',[]);
+  TestRender('a<br />b');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockTextEscaping;
+
+begin
+  CreateTextBlock(Document,'a','5 < 7 & "q" > 3');
+  TestRender('5 &lt; 7 &amp; &quot;q&quot; &gt; 3');
+end;
+
+
+procedure TTestHTMLRender.TestTextBlockAttributeEscaping;
+
+var
+  lBlock : TMarkDownTextBlock;
+  lNode : TMarkDownTextNode;
+
+begin
+  lBlock:=CreateTextBlock(Document,'a','');
+  lNode:=AppendTextNode(lBlock,'a',[]);
+  lNode.Kind:=nkURI;
+  lNode.Attrs.Add('href','http://x/?p=1&q=2');
+  TestRender('<a href="http://x/?p=1&amp;q=2">a</a>');
+end;
+
+
+procedure TTestHTMLRender.TestCodeBlock;
+
+var
+  lCode : TMarkDownCodeBlock;
+
+begin
+  lCode:=TMarkDownCodeBlock.Create(Document,1);
+  CreateTextBlock(lCode,'a','a');
+  CreateTextBlock(lCode,'b','b');
+  TestRender(sLineBreak+'<pre><code>a'+sLineBreak+'b'+sLineBreak+'</code></pre>');
 end;
 
 

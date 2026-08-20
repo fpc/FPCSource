@@ -50,6 +50,7 @@ type
     procedure TestHtmlEscape;
     procedure TestUrlEscape;
     procedure TestParseEntityString;
+    procedure TestCodePointToUTF8;
     procedure TestCheckForEntity;
     procedure TestIsUnicodePunctuation;
     procedure TestCountStartChars;
@@ -216,12 +217,12 @@ end;
 procedure TTestMarkdownUtils.TestUrlEscape;
 begin
   AssertEquals('URL Escape "a"', 'a', urlEscape('a'));
-  AssertEquals('URL Escape "&"', '&amp;', urlEscape('&')); // Ampersand should be HTML-escaped
+  AssertEquals('URL Escape "&"', '&', urlEscape('&')); // Allowed in a URL, escaped by the renderer
   AssertEquals('URL Escape "["', '%5B', urlEscape('[')); // Square bracket
   AssertEquals('URL Escape "`"', '%60', urlEscape('`')); // Backtick
   AssertEquals('URL Escape "é"', '%C3%A9', urlEscape('é')); // Unicode char é (UTF-8 bytes C3 A9)
   AssertEquals('URL Escape "€"', '%E2%82%AC', urlEscape('€')); // Unicode char € (UTF-8 bytes E2 82 AC)
-  AssertEquals('URL Escape full string', 'a path with &amp; %E2%82%AC', urlEscape('a path with & €'));
+  AssertEquals('URL Escape full string', 'a path with & %E2%82%AC', urlEscape('a path with & €'));
 end;
 
 procedure TTestMarkdownUtils.TestParseEntityString;
@@ -232,6 +233,20 @@ begin
   AssertEquals('Parse numeric &#60;', '<', parseEntityString(FEntities, '&#60;'));
   AssertEquals('Parse numeric &#8364;', '€', parseEntityString(FEntities, '&#8364;'));
   AssertEquals('Parse invalid numeric &#0;', #$FFFD, UTF8Decode(parseEntityString(FEntities, '&#0;')));
+  AssertEquals('Parse numeric &#128512;', #$D83D#$DE00, UTF8Decode(parseEntityString(FEntities, '&#128512;')));
+end;
+
+procedure TTestMarkdownUtils.TestCodePointToUTF8;
+begin
+  AssertEquals('Codepoint 65', 'A', CodePointToUTF8(65));
+  AssertEquals('Codepoint 8364', '€', CodePointToUTF8(8364));
+  AssertEquals('Codepoint above the BMP', #$D83D#$DE00, UTF8Decode(CodePointToUTF8($1F600)));
+  AssertEquals('Highest codepoint', #$DBFF#$DFFF, UTF8Decode(CodePointToUTF8($10FFFF)));
+  AssertEquals('Codepoint zero', #$FFFD, UTF8Decode(CodePointToUTF8(0)));
+  AssertEquals('Negative codepoint', #$FFFD, UTF8Decode(CodePointToUTF8(-1)));
+  AssertEquals('Codepoint out of range', #$FFFD, UTF8Decode(CodePointToUTF8($110000)));
+  AssertEquals('Lead surrogate codepoint', #$FFFD, UTF8Decode(CodePointToUTF8($D800)));
+  AssertEquals('Trail surrogate codepoint', #$FFFD, UTF8Decode(CodePointToUTF8($DFFF)));
 end;
 
 procedure TTestMarkdownUtils.TestCheckForEntity;
