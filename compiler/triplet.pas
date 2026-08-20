@@ -26,22 +26,22 @@ unit triplet;
 interface
 
 uses
-  globtype,systemstypes,systems,compilerbase;
+  globtype,globals;
 
-function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function targettriplet(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals,
-  cpuinfo,tripletcpu,compiler;
+  systemstypes,systems,cpuinfo,tripletcpu;
 
-  function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+  function targettriplet(globals: TReadOnlyCompilerGlobals; tripletstyle: ttripletstyle): ansistring;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      target: TReadOnlyCompilerTarget;
     begin
+      target:=globals.target;
       { architecture }
-      result:=tripletcpustr(compiler.globals,tripletstyle);
+      result:=tripletcpustr(globals,tripletstyle);
       { vendor and/or OS }
       if target.info.system in systems_darwin then
         begin

@@ -991,7 +991,7 @@ Implementation
       begin
         result:=asminfo^.asmcmd;
         if af_llvm in compiler.target._asm.flags then
-          Replace(result,'$TRIPLET',targettriplet(compiler.target,triplet_llvm))
+          Replace(result,'$TRIPLET',targettriplet(compiler.globals,triplet_llvm))
 {$ifdef arm}
         else if (compiler.target.info.system=system_arm_ios) then
           Replace(result,'$ARCH',lower(cputypestr[compiler.globals.current_settings.cputype]))

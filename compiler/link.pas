@@ -752,7 +752,7 @@ Implementation
           if clang<>'' then
             begin
               clangsearchdirspath:=compiler.globals.outputexedir+UniqueName('clangsearchdirs');
-              searchres:=compiler.CFileUtl.shell(compiler.CFileUtl.maybequoted(clang)+' -target '+targettriplet(compiler.target,triplet_llvm)+' -print-file-name=lib > '+compiler.CFileUtl.maybequoted(clangsearchdirspath));
+              searchres:=compiler.CFileUtl.shell(compiler.CFileUtl.maybequoted(clang)+' -target '+targettriplet(compiler.globals,triplet_llvm)+' -print-file-name=lib > '+compiler.CFileUtl.maybequoted(clangsearchdirspath));
               if searchres=0 then
                 begin
                   AssignFile(clangsearchdirsfile,clangsearchdirspath);
