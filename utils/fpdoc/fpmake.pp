@@ -65,6 +65,7 @@ begin
     T.Dependencies.AddUnit('dw_linrtf');
     T.Dependencies.AddUnit('dw_basemd');
     T.Dependencies.AddUnit('dw_markdown');
+    T.Dependencies.AddUnit('dw_material');
 
     T:=P.Targets.AddProgram('makeskel.pp');
     T.ResourceStrings:=true;
@@ -93,6 +94,7 @@ begin
     P.Targets.AddUnit('dw_html.pp').install:=false;
     P.Targets.AddUnit('dw_basemd.pp').install:=false;
     P.Targets.AddUnit('dw_markdown.pp').install:=false;
+    P.Targets.AddUnit('dw_material.pp').install:=false;
     T:=P.Targets.AddUnit('dw_latex.pp');
     T.install:=false;
 

@@ -33,6 +33,7 @@ uses
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
   dw_newhtml,   // HTML writer
+  dw_material,  // HTML writer with the mkdocs material layout
   dw_chm,    // CHM Writer
   dw_markdown, // Markdown writer
   dw_ipflin, // IPF writer (new linear output)

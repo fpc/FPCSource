@@ -33,6 +33,27 @@ dwriter.pp
 dw_html.pp
   * HTML/XHTML output generator
 
+dw_newhtml.pp
+  * HTML output generator using the fpdocs.css stylesheet
+
+dw_material.pp
+  * HTML output generator with the page layout of the mkdocs material theme.
+    It descends from the generator in dw_newhtml.pp and only replaces the
+    page frame, the style sheet and the navigation.
+
+    The style sheet and the javascript file it writes to the output are kept
+    in fpdocmaterial.css and fpdocmaterial.js. They are compiled into the
+    program through materialcss.inc and materialjs.inc. After changing the
+    css or the js file, regenerate the include files:
+
+      data2inc -b -s fpdocmaterial.css materialcss.inc DefaultMaterialCSS
+      data2inc -b -s fpdocmaterial.js  materialjs.inc  DefaultMaterialJS
+
+    The generator writes 4 files in the 'assets' directory of the output:
+    the style sheet, the script, the navigation tree (nav.js) and the
+    identifier list used by the search box (search.js). The pages need no
+    web server, they can be read directly from disk.
+
 dwlinear.pp
   * Abstract linear documentation generator.
 

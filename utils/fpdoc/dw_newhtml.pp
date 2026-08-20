@@ -42,19 +42,20 @@ type
     FIndexColCount : Integer;
     FSearchPage : String;
     function GetVarDef(aElement: TPasVariable; aPrefixParent: Boolean): string;
-    procedure SetModuleInfo(aElement: TPasElement; ASubpageIndex: integer);
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
     function CreateAllocator : TFileAllocator; override;
     procedure WriteDocPage(const aFileName: String; aElement: TPasElement; aSubPageIndex: Integer);  override;
+    // Set current module and relative paths for the page being written
+    procedure SetModuleInfo(aElement: TPasElement; ASubpageIndex: integer); virtual;
     // General HTML creation
     function CreateH1(Parent: TDOMNode): THTMLElement; override;
     function CreateH2(Parent: TDOMNode): THTMLElement; override;
     function CreateH3(Parent: TDOMNode): THTMLElement; override;
 
-    function CreateListColumn1(aParent: THTMLElement): THTMLElement;
-    function CreateListColumn2(aParent: THTMLElement): THTMLElement;
-    function CreateListColumns(aParent: THTMLElement): THTMLElement;
+    function CreateListColumn1(aParent: THTMLElement): THTMLElement; virtual;
+    function CreateListColumn2(aParent: THTMLElement): THTMLElement; virtual;
+    function CreateListColumns(aParent: THTMLElement): THTMLElement; virtual;
     function CreateSection(aParent : THTMLElement) : THTMLElement; virtual;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -75,6 +76,26 @@ type
     procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString); override;
     Procedure AppendSeeAlsoSection(AElement: TPasElement; aParent : TDOMElement; DocNode: TDocNode); override;
 
+    // Breadcrumb: the path from the package to the current page
+    // Name of the package, without the leading #
+    function GetPackageName: String; virtual;
+    // Title of the package
+    function GetPackageTitle: String; virtual;
+    // Text of the first step of the breadcrumb
+    function GetBreadcrumbRootTitle: String; virtual;
+    // Title of a subpage of a unit or of a class
+    function GetSubPageTitle(aSubPageIndex: Integer): String; virtual;
+    // Subpage of the unit that lists this element: types, classes, constants...
+    function GetElementSubPageIndex(aElement: TPasElement): Integer; virtual;
+    // Create the list that holds the steps
+    function CreateBreadcrumb(aParent: THTMLElement): THTMLElement; virtual;
+    // One step. An empty URL means the step is the current page
+    function CreateBreadcrumbItem(aList: THTMLElement; const aTitle, aURL: String): THTMLElement; virtual;
+    // Fill the breadcrumb for a page
+    procedure AppendBreadcrumb(aParent: THTMLElement; aElement: TPasElement; aSubPageIndex: Integer); virtual;
+    // Place the breadcrumb of a page. Called before the contents of the page are created
+    procedure AppendPageBreadcrumb(aElement: TPasElement; aSubPageIndex: Integer); virtual;
+
     // Structural elements
     procedure AppendMenuBar(ASubpageIndex: Integer);virtual;
     procedure AppendTopicMenuBar(Topic : TTopicElement);virtual;
@@ -87,9 +108,9 @@ type
     procedure CreateClassMainPage(aClass: TPasClassType);virtual;
     procedure CreateClassInheritedSubpage(AClass: TPasClassType; aType: TClassMemberType);
     procedure CreateClassSortedSubpage(AClass: TPasClassType; aType : TClassMemberType);virtual;
-    procedure CreateClassMemberList(aParent: THTMLElement; AClass: TPasClassType; DeclaredOnly: Boolean; AFilter: TMemberFilter);
-    procedure AppendMemberListSection(aParent: THTMLELement; aClass: TPasClassType; aMemberType : TClassMemberType; aDeclaredOnly: Boolean);
-    procedure AppendInheritanceTree(aParent: THTMLELement; aClass: TPasClassType);
+    procedure CreateClassMemberList(aParent: THTMLElement; AClass: TPasClassType; DeclaredOnly: Boolean; AFilter: TMemberFilter); virtual;
+    procedure AppendMemberListSection(aParent: THTMLELement; aClass: TPasClassType; aMemberType : TClassMemberType; aDeclaredOnly: Boolean); virtual;
+    procedure AppendInheritanceTree(aParent: THTMLELement; aClass: TPasClassType); virtual;
 
     // Package
 
@@ -114,7 +135,7 @@ type
     procedure CreateClassMemberPageBody(AElement: TPasElement);
     procedure CreateVarPageBody(AVar: TPasVariable);
     procedure CreateProcPageBody(AProc: TPasProcedureBase);
-    Procedure CreateTopicLinks(aParent : THTMLElement; Node : TDocNode; PasElement : TPasElement);
+    Procedure CreateTopicLinks(aParent : THTMLElement; Node : TDocNode; PasElement : TPasElement); virtual;
     // Type declarations
     function GetElementCode(aElement: TPasElement; aSparse: boolean; aFlags: TElementFlags = []): String;
     function AppendHighlightedCode(aParent: TDOMNode; aCode: String; const aLanguage: String=''; aMap: TLinkIdentifierMap = Nil): THTMLElement;
@@ -122,12 +143,12 @@ type
     procedure AppendTypeDecl(AType: TPasType);
     procedure AppendAliasTypeDecl(aType: TPasAliasType);
     procedure AppendClassOfTypeDecl(aType: TPasClassOfType);
-    function  AppendCodeBlock(aParent: TDOMNode; const aLanguage: String=''): THTMLElement;
-    procedure AppendEnumTypeDecl(aType: TPasEnumType);
+    function  AppendCodeBlock(aParent: TDOMNode; const aLanguage: String=''): THTMLElement; virtual;
+    procedure AppendEnumTypeDecl(aType: TPasEnumType); virtual;
     procedure AppendPointerTypeDecl(aType: TPasPointerType);
     procedure AppendProcedureTypeDecl(aType: TPasProcedureType);
     procedure AppendRecordTypeDecl(aType: TPasRecordType);
-    procedure AppendSetTypeDecl(aType: TPasSetType);
+    procedure AppendSetTypeDecl(aType: TPasSetType); virtual;
     procedure AppendTypeAliasTypeDecl(aType: TPasTypeAliasType);
 
     //  Main documentation process
@@ -136,9 +157,9 @@ type
     Property HeaderHTML : TStringStream Read FHeaderHTML;
     Property NavigatorHTML : TStringStream read FNavigatorHTML;
     Property FooterHTML : TStringStream read FFooterHTML;
-    Property CSSFile : String Read FCSSFile;
-    Property HeadElement : TDomElement Read FHeadElement;
-    Property TitleElement: TDOMElement Read FTitleElement;
+    Property CSSFile : String Read FCSSFile Write FCSSFile;
+    Property HeadElement : TDomElement Read FHeadElement Write FHeadElement;
+    Property TitleElement: TDOMElement Read FTitleElement Write FTitleElement;
   public
     // Creating all module hierarchy classes happens here !
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
@@ -1197,6 +1218,7 @@ procedure TNewHTMLWriter.CreatePackageClassHierarchy;
 Const
   SFunc = 'function expandorcollapse (event) { '+sLineBreak+
           '  var el = event.target;'+sLineBreak+
+          '  while (el && el.tagName != "LI") { el = el.parentNode; }'+sLineBreak+
           '  if (el) { '+sLineBreak+
           '    el.classList.toggle("expanded");'+sLineBreak+
           '    event.stopPropagation();'+sLineBreak+
@@ -1218,9 +1240,190 @@ begin
   CreateClassHierarchyPage(True);
 end;
 
+function TNewHTMLWriter.GetPackageName: String;
+
+begin
+  Result:=Package.Name;
+  if (Result<>'') and (Result[1]='#') then
+    Delete(Result,1,1);
+end;
+
+
+function TNewHTMLWriter.GetPackageTitle: String;
+
+begin
+  Result:=Format(SDocPackageTitle,[GetPackageName]);
+end;
+
+
+function TNewHTMLWriter.GetBreadcrumbRootTitle: String;
+
+begin
+  Result:=GetPackageName;
+end;
+
+
+function TNewHTMLWriter.GetSubPageTitle(aSubPageIndex: Integer): String;
+
+begin
+  case aSubPageIndex of
+    IdentifierIndex : Result:=SDocOverview;
+    ResstrSubindex : Result:=SDocResStrings;
+    ConstsSubindex : Result:=SDocConstants;
+    TypesSubindex : Result:=SDocTypes;
+    ClassesSubindex : Result:=SDocClasses;
+    ProcsSubindex : Result:=SDocProceduresAndFunctions;
+    VarsSubindex : Result:=SDocVariables;
+    IndexSubIndex : Result:=SDocIdentifierIndex;
+    ClassHierarchySubIndex : Result:=SDocPackageClassHierarchy;
+    PropertiesByInheritanceSubindex : Result:=SDocProperties;
+    PropertiesByNameSubindex : Result:=SDocProperties+' ('+SDocByName+')';
+    MethodsByInheritanceSubindex : Result:=SDocMethods;
+    MethodsByNameSubindex : Result:=SDocMethods+' ('+SDocByName+')';
+    EventsByInheritanceSubindex : Result:=SDocEvents;
+    EventsByNameSubindex : Result:=SDocEvents+' ('+SDocByName+')';
+    FieldsByNameSubindex : Result:=SDocFields;
+  else
+    Result:='';
+  end;
+end;
+
+
+function TNewHTMLWriter.GetElementSubPageIndex(aElement: TPasElement): Integer;
+
+  function InList(aList : TFPList) : Boolean;
+
+  var
+    I : Integer;
+
+  begin
+    Result:=False;
+    I:=0;
+    While not Result and (I<aList.Count) do
+      begin
+      Result:=TPasElement(aList[I])=aElement;
+      Inc(I);
+      end;
+  end;
+
+var
+  lSection : TPasSection;
+
+begin
+  Result:=-1;
+  if (Module=Nil) or (Module.InterfaceSection=Nil) then
+    exit;
+  lSection:=Module.InterfaceSection;
+  if InList(lSection.ResStrings) then
+    Result:=ResstrSubindex
+  else if InList(lSection.Consts) then
+    Result:=ConstsSubindex
+  else if InList(lSection.Types) then
+    Result:=TypesSubindex
+  else if InList(lSection.Classes) then
+    Result:=ClassesSubindex
+  else if InList(lSection.Functions) then
+    Result:=ProcsSubindex
+  else if InList(lSection.Variables) then
+    Result:=VarsSubindex;
+end;
+
+
+function TNewHTMLWriter.CreateBreadcrumb(aParent: THTMLElement): THTMLElement;
+
+var
+  lNav : THTMLElement;
+
+begin
+  lNav:=CreateEl(aParent,'nav','breadcrumb');
+  lNav['aria-label']:='Breadcrumb';
+  Result:=CreateEl(lNav,'ul');
+end;
+
+
+function TNewHTMLWriter.CreateBreadcrumbItem(aList: THTMLElement; const aTitle, aURL: String): THTMLElement;
+
+begin
+  Result:=CreateEl(aList,'li');
+  if aURL='' then
+    begin
+    Result['class']:='is-active';
+    AppendText(CreateEl(Result,'span'),UTF8Decode(aTitle));
+    end
+  else
+    AppendText(CreateLink(Result,FixHtmlPath(aURL)),UTF8Decode(aTitle));
+end;
+
+
+procedure TNewHTMLWriter.AppendBreadcrumb(aParent: THTMLElement; aElement: TPasElement; aSubPageIndex: Integer);
+
+var
+  lList : THTMLElement;
+  lOwner : TPasElement;
+  lIndex : Integer;
+
+begin
+  lList:=CreateBreadcrumb(aParent);
+  // The package is the first step, it is the only step on the package pages
+  if (aElement is TPasPackage) and (aSubPageIndex=IdentifierIndex) then
+    begin
+    CreateBreadcrumbItem(lList,GetBreadcrumbRootTitle,'');
+    exit;
+    end;
+  CreateBreadcrumbItem(lList,GetBreadcrumbRootTitle,ResolveLinkWithinPackage(Package,IdentifierIndex));
+  if aElement is TPasPackage then
+    begin
+    CreateBreadcrumbItem(lList,GetSubPageTitle(aSubPageIndex),'');
+    exit;
+    end;
+  if Module=Nil then
+    exit;
+  // The unit, and the subpage of the unit when the page is one of those
+  if aElement=Module then
+    begin
+    if aSubPageIndex=IdentifierIndex then
+      CreateBreadcrumbItem(lList,Module.Name,'')
+    else
+      begin
+      CreateBreadcrumbItem(lList,Module.Name,ResolveLinkWithinPackage(Module,IdentifierIndex));
+      CreateBreadcrumbItem(lList,GetSubPageTitle(aSubPageIndex),'');
+      end;
+    exit;
+    end;
+  CreateBreadcrumbItem(lList,Module.Name,ResolveLinkWithinPackage(Module,IdentifierIndex));
+  // Members are listed under the type they belong to
+  lOwner:=aElement;
+  While (lOwner.Parent<>Nil) and (lOwner.Parent is TPasType) do
+    lOwner:=lOwner.Parent;
+  lIndex:=GetElementSubPageIndex(lOwner);
+  if lIndex<>-1 then
+    CreateBreadcrumbItem(lList,GetSubPageTitle(lIndex),ResolveLinkWithinPackage(Module,lIndex));
+  if lOwner<>aElement then
+    begin
+    CreateBreadcrumbItem(lList,lOwner.Name,ResolveLinkWithinPackage(lOwner,IdentifierIndex));
+    CreateBreadcrumbItem(lList,aElement.Name,'');
+    end
+  else if aSubPageIndex=IdentifierIndex then
+    CreateBreadcrumbItem(lList,aElement.Name,'')
+  else
+    begin
+    CreateBreadcrumbItem(lList,aElement.Name,ResolveLinkWithinPackage(aElement,IdentifierIndex));
+    CreateBreadcrumbItem(lList,GetSubPageTitle(aSubPageIndex),'');
+    end;
+end;
+
+
+procedure TNewHTMLWriter.AppendPageBreadcrumb(aElement: TPasElement; aSubPageIndex: Integer);
+
+begin
+  AppendBreadcrumb(ContentElement,aElement,aSubPageIndex);
+end;
+
+
 procedure TNewHTMLWriter.CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer);
 
 begin
+  AppendPageBreadcrumb(AElement,ASubpageIndex);
   if Module=nil then
     begin
     If (ASubPageIndex=0) then
@@ -1363,7 +1566,6 @@ procedure TNewHTMLWriter.CreatePackagePageBody;
 var
   DocNode: TDocNode;
   lSection, lColumns, lColumn : THTMLElement;
-  TableEl, TREl: TDOMElement;
   i: Integer;
   ThisModule: TPasModule;
   L : TStringList;
@@ -1373,7 +1575,6 @@ begin
   AppendTitle(lSection,Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
   AppendShortDescr(CreatePara(lSection), Package);
   AppendText(CreateH2(lSection), UTF8Encode(SDocUnits));
-  TableEl := CreateTable(lSection);
   L:=TStringList.Create;
   Try
     L.Sorted:=True;
@@ -1549,7 +1750,7 @@ end;
 procedure TNewHTMLWriter.CreateModuleSimpleSubpage(aModule: TPasModule; ASubpageIndex: Integer; const ATitle: DOMString; AList: TFPList);
 
 var
-  lSection, ColumnsEl, ColumnEl, CodeEl: TDOMElement;
+  lSection, ColumnsEl, ColumnEl, CodeEl: THTMLElement;
   i, j: Integer;
   Decl: TPasElement;
   SortedList: TFPList;
@@ -1578,13 +1779,12 @@ begin
 
     for i := 0 to SortedList.Count - 1 do
     begin
-      ColumnsEl := CreateEl(lSection,'div','columns');
       Decl := TPasElement(SortedList[i]);
-      ColumnEl := CreateEl(ColumnsEl,'div','column is-one-fifth list');
-      ColumnEl['style']:='overflow:hidden; text-overflow: ellipsis;';
+      ColumnsEl := CreateListColumns(lSection);
+      ColumnEl := CreateListColumn1(ColumnsEl);
       CodeEl := CreateCode(ColumnEl);
       AppendHyperlink(CodeEl, Decl);
-      ColumnEl := CreateEl(ColumnsEl,'div','column is-four-fifths list');
+      ColumnEl := CreateListColumn2(ColumnsEl);
       AppendShortDescrCell(ColumnEl, Decl);
     end;
   finally
@@ -1796,13 +1996,13 @@ begin
     begin
     EnumType:=TPasEnumType(AType.EnumType);
     AppendText(CreateH3(ContentElement),'Values');
-    dlEl := CreateEl(ContentElement,'div','columns list');
     for i := 0 to EnumType.Values.Count - 1 do
     begin
       EnumValue := TPasEnumValue(EnumType.Values[i]);
-      dtEl := CreateEl(dlEl,'div','column is-2 list');
+      dlEl := CreateListColumns(ContentElement);
+      dtEl := CreateListColumn1(dlEl);
       AppendText(dtEl,EnumValue.Name);
-      ddEl := CreateEl(dlEl,'div','column is-10 list');
+      ddEl := CreateListColumn2(dlEl);
       AppendShortDescrCell(ddEl, EnumValue);
     end;
     end
@@ -2191,7 +2391,7 @@ var
 
   begin
     S:=GetElementCode(Element,False);
-    AppendCodeBlock(ContentElement,S);
+    AppendPasSHFragment(CodeBlock,S,0);
   end;
 
   procedure CreateTypePage(Element: TPasType);
@@ -2200,7 +2400,7 @@ var
 
   begin
     S:=GetElementCode(Element,False);
-    AppendCodeBlock(ContentElement,S);
+    AppendPasSHFragment(CodeBlock,S,0);
   end;
 
   procedure CreateConstPage(Element: TPasConst);
@@ -2209,7 +2409,7 @@ var
 
   begin
     S:=GetElementCode(Element,False);
-    AppendCodeBlock(ContentElement,S);
+    AppendPasSHFragment(CodeBlock,S,0);
   end;
 
   procedure CreatePropertyPage(Element: TPasProperty);
@@ -2217,7 +2417,7 @@ var
     S : String;
   begin
     S:=GetElementCode(Element,True);
-    AppendCodeBlock(ContentElement,S);
+    AppendPasSHFragment(CodeBlock,S,0);
   end;
 
 var
@@ -2271,7 +2471,7 @@ end;
 procedure TNewHTMLWriter.CreateProcPageBody(AProc: TPasProcedureBase);
 
 var
-  lSection,CodeEl: THTMLElement;
+  lSection: THTMLElement;
 
 begin
   lSection:=CreateSection(ContentElement);
@@ -2280,8 +2480,8 @@ begin
   lSection:=CreateSection(ContentElement);
   AppendText(CreateH2(lSection), SDocDeclaration);
   AppendSourceRef(lSection,AProc);
-  CodeEl := CreateCode(lSection);
-  AppendProcDecl(CodeEl, AProc);
+  // AppendProcDecl creates the code block itself
+  AppendProcDecl(lSection, AProc);
   if aProc is TPasProcedure then
     if Assigned(TPasProcedure(aProc).ProcType) then
       AppendProcArgsSection(lSection, TPasProcedure(aProc).ProcType);
