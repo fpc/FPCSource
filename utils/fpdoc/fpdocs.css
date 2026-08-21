@@ -239,9 +239,19 @@ nav.breadcrumb ul:not(:last-child) {
     padding: 0;
 }
 
+/* Bulma puts 0.75em at both sides of every step, that is too much here */
+nav.breadcrumb a,
+nav.breadcrumb li.is-active span {
+    padding: 0 0.15em;
+}
+
+nav.breadcrumb li:first-child a {
+    padding-left: 0;
+}
+
 nav.breadcrumb li + li::before {
     content: '/';
-    padding: 0 0.5em;
+    padding: 0 0.15em;
     color: gray;
 }
 
