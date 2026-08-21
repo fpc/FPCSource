@@ -603,7 +603,7 @@ implementation
 
     function t68kaddnode.use_generic_mul64bit: boolean;
     begin
-      result:=needoverflowcheck  or
+      result:=needoverflowcheck or
         (cs_opt_size in current_settings.optimizerswitches) or
         not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
     end;
@@ -611,7 +611,12 @@ implementation
     procedure t68kaddnode.second_add64bit;
     begin
       if (nodetype=muln) then
-        second_mul64bit
+        begin
+          { CPUs that can't support 64bit MUL should have been handled in pass 1 }
+          if not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]) then
+            internalerror(2026082101);
+          second_mul64bit;
+        end
       else
         inherited second_add64bit;
     end;
