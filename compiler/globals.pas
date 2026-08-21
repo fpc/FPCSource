@@ -846,6 +846,10 @@ Const
 
         function getprocalign : shortint;
 
+        function create_smartlink_sections:boolean;inline;
+        function create_smartlink_library:boolean;inline;
+        function create_smartlink:boolean;inline;
+
         property Target: TReadOnlyCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -1058,10 +1062,6 @@ Const
 
         constructor Create(ATarget: TCompilerTarget; ACFileUtl: TCompilerFileUtils);
         destructor Destroy; override;
-
-        function create_smartlink_sections:boolean;inline;
-        function create_smartlink_library:boolean;inline;
-        function create_smartlink:boolean;inline;
 
         function HandleFeature(const s : string) : boolean;
 
@@ -2521,19 +2521,19 @@ implementation
        inherited Destroy;
      end;
 
-   function TCompilerGlobals.create_smartlink_sections: boolean; inline;
+   function TReadOnlyCompilerGlobals.create_smartlink_sections: boolean; inline;
      begin
        result:=target.create_smartlink_sections;
      end;
 
-   function TCompilerGlobals.create_smartlink_library: boolean; inline;
+   function TReadOnlyCompilerGlobals.create_smartlink_library: boolean; inline;
      begin
        result:=(cs_Create_smart in current_settings.moduleswitches) and
                (tf_smartlink_library in target.info.flags) and
                not target.create_smartlink_sections;
      end;
 
-   function TCompilerGlobals.create_smartlink: boolean; inline;
+   function TReadOnlyCompilerGlobals.create_smartlink: boolean; inline;
      begin
        result:=(
                 (af_smartlink_sections in target._asm.flags) and
