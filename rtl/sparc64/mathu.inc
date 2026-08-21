@@ -12,26 +12,25 @@
 
  **********************************************************************}
 
-function GetRoundMode: TFPURoundingMode;
   const
+    rm2bits: array[TFPURoundingMode] of byte = (0,3,2,1);
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmUp,rmDown);
+
+function GetRoundMode: TFPURoundingMode;
   begin
-    result:=TFPURoundingMode(bits2rm[(GetNativeFPUControlWord shr 30) and 3])
+    result:=bits2rm[(GetNativeFPUControlWord shr 30) and 3];
   end;
 
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
-  const
-    rm2bits: array[TFPURoundingMode] of byte = (0,3,2,1);
   var
     cw: TNativeFPUControlWord;
   begin
     cw:=GetNativeFPUControlWord;
     softfloat_rounding_mode:=RoundMode;
-    result:=TFPURoundingMode(cw shr 30);
+    result:=bits2rm[(cw shr 30) and 3];
     SetNativeFPUControlWord((cw and $3fffffff) or (rm2bits[RoundMode] shl 30));
   end;
-
 
 function GetPrecisionMode: TFPUPrecisionMode;
   begin
