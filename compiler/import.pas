@@ -25,7 +25,7 @@ unit import;
 interface
 
 uses
-  systemstypes,systems,aasmdata,compilerbase;
+  globtype,systemstypes,systems,aasmdata,compilerbase;
 
 type
    timportlib=class
@@ -45,6 +45,7 @@ type
    private
      FCompiler: TCompilerBase;
    protected
+     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
      property Compiler: TCompilerBase read FCompiler;
    public
      constructor Create(ACompiler: TCompilerBase);virtual;
@@ -64,6 +65,7 @@ function CreateDLLScanner(t:tsystem;ACompiler: TCompilerBase): TDLLScanner;
 implementation
 
 uses
+  sysutils,cfileutl,
   verbose,globals,compiler;
 
 var
@@ -110,6 +112,36 @@ constructor TDLLScanner.Create(ACompiler: TCompilerBase);
 begin
   inherited Create;
   FCompiler:=ACompiler;
+end;
+
+
+{ searches a (windows) DLL file }
+function TDLLScanner.FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
+var
+  sysdir : TCmdStr;
+  Found : boolean;
+begin
+  Found:=false;
+  { Look for DLL in:
+    1. Current dir
+    2. Library Path
+    3. windir,windir/system,windir/system32 }
+  Found:=compiler.CFileUtl.FindFile(s,'.'+source_info.DirSep,false,founddll);
+  if (not found) then
+   Found:=compiler.globals.librarysearchpath.FindFile(s,false,founddll);
+
+  { when cross compiling, it is pretty useless to search windir etc. for dlls }
+  if (not found) and (source_info.system=compiler.target.info.system) then
+   begin
+     sysdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('windir'),false);
+     Found:=compiler.CFileUtl.FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
+   end;
+  if (not found) then
+   begin
+     compiler.verbose.Message1(exec_w_libfile_not_found,s);
+     FoundDll:=s;
+   end;
+  FindDll:=Found;
 end;
 
 {*****************************************************************************

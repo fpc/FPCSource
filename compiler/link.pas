@@ -166,7 +166,6 @@ interface
       TLinkerClass = class of Tlinker;
 
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
-    function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
 
     procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
@@ -285,38 +284,6 @@ Implementation
           foundfile:= ChangeFileExt(foundfile,compiler.target.info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
-      end;
-
-
-    { searches a (windows) DLL file }
-    function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        sysdir : TCmdStr;
-        Found : boolean;
-      begin
-        Found:=false;
-        { Look for DLL in:
-          1. Current dir
-          2. Library Path
-          3. windir,windir/system,windir/system32 }
-        Found:=compiler.CFileUtl.FindFile(s,'.'+source_info.DirSep,false,founddll);
-        if (not found) then
-         Found:=compiler.globals.librarysearchpath.FindFile(s,false,founddll);
-
-        { when cross compiling, it is pretty useless to search windir etc. for dlls }
-        if (not found) and (source_info.system=compiler.target.info.system) then
-         begin
-           sysdir:=compiler.CFileUtl.FixPath(GetEnvironmentVariable('windir'),false);
-           Found:=compiler.CFileUtl.FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
-         end;
-        if (not found) then
-         begin
-           compiler.verbose.Message1(exec_w_libfile_not_found,s);
-           FoundDll:=s;
-         end;
-        FindDll:=Found;
       end;
 
 
