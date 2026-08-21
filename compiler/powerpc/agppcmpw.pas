@@ -34,10 +34,13 @@ interface
     uses
        aasmtai,aasmdata,
        globals,aasmbase,aasmcpu,assemble,
-       cpubase,
+       cpubase,cgbase,cgutils,
        compilerbase;
 
     type
+
+      { TPPCMPWAssembler }
+
       TPPCMPWAssembler = class(TExternalAssembler)
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
@@ -48,6 +51,11 @@ interface
         cur_CSECT_name: String;
         cur_CSECT_class: String;
 
+        function cond2str(op: tasmop; c: tasmcond): string;
+        function gas_regname(r:Tregister): string;
+        function getopstr(const o: toper): string;
+        function getopstr_jmp(const o: toper): string;
+        function getreferencestring(var ref: treference): string;
         procedure WriteInstruction(hp : tai);
         procedure WriteProcedureHeader(var hp:tai);
         procedure WriteDataHeader(var s:string; isExported, isConst:boolean);
@@ -59,7 +67,6 @@ interface
     uses
       cutils,globtype,systemstypes,systems,cclasses,
       verbose,finput,fmodule,cscript,cpuinfo,
-      cgbase,cgutils,
       itcpugas,
       compiler
       ;
@@ -156,7 +163,7 @@ interface
      Perhaps put in a third common file. ***}
 
 
-    function getreferencestring(var ref : treference) : string;
+    function TPPCMPWAssembler.getreferencestring(var ref : treference) : string;
     var
       s : string;
     begin
@@ -216,7 +223,7 @@ interface
       getreferencestring:=s;
     end;
 
-    function getopstr_jmp(const o:toper) : string;
+    function TPPCMPWAssembler.getopstr_jmp(const o:toper) : string;
     var
       hs : string;
     begin
@@ -261,7 +268,7 @@ interface
       end;
     end;
 
-    function getopstr(const o:toper) : string;
+    function TPPCMPWAssembler.getopstr(const o:toper) : string;
     var
       hs : string;
     begin
@@ -327,7 +334,7 @@ interface
         branchmode := tempstr;
       end;
 
-    function cond2str(op: tasmop; c: tasmcond): string;
+    function TPPCMPWAssembler.cond2str(op: tasmop; c: tasmcond): string;
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
     var
@@ -1207,6 +1214,11 @@ interface
       writer.AsmWriteLn(#9'aligning off'); {We do our own aligning.}
       writer.AsmLn;
     end;
+
+    function TPPCMPWAssembler.gas_regname(r: Tregister): string;
+      begin
+        result:=itcpugas.gas_regname(compiler.globals,r);
+      end;
 
     procedure TPPCMPWAssembler.WriteAsmList(asmdata: TAsmData);
     var

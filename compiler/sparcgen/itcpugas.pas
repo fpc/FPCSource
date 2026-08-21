@@ -26,13 +26,13 @@ unit itcpugas;
 interface
 
     uses
-      cpubase,cgbase;
+      cpubase,cgbase,globals;
 
     const
       gas_op2str : array[tasmop] of string[14] = ({$INCLUDE strinst.inc});
 
     function gas_regnum_search(const s:string):Tregister;
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
 
 
 implementation
@@ -84,7 +84,7 @@ implementation
       end;
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
         hr : tregister;
         p  : longint;

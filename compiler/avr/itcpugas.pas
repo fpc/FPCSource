@@ -26,7 +26,7 @@ unit itcpugas;
 interface
 
   uses
-    cpubase,cgbase;
+    cpubase,cgbase,globals;
 
 
   const
@@ -48,7 +48,7 @@ interface
         'des');
 
     function gas_regnum_search(const s:string):Tregister;
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
 
 
 implementation
@@ -72,7 +72,7 @@ implementation
       end;
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
         p : tregisterindex;
       begin

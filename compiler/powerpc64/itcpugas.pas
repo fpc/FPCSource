@@ -26,7 +26,7 @@ unit itcpugas;
 interface
 
 uses
-  cpubase, cgbase, compilerbase;
+  cpubase, cgbase, globals, compilerbase;
 
 const
   gas_op2str: array[tasmop] of string[14] = ('<none>',
@@ -98,12 +98,12 @@ const
     'yield');
 
 function gas_regnum_search(const s: string): Tregister;
-function gas_regname(r: Tregister): string;
+function gas_regname(globals:TReadOnlyCompilerGlobals;r: Tregister): string;
 
 implementation
 
 uses
-  globtype, globals,aasmbase,
+  globtype,aasmbase,
   cutils, verbose, systemstypes, systems, compiler;
 
 const
@@ -142,7 +142,7 @@ begin
   result := regnumber_table[findreg_by_gasname(s)];
 end;
 
-function gas_regname(r: Tregister): string;
+function gas_regname(globals:TReadOnlyCompilerGlobals;r: Tregister): string;
 var
   compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var

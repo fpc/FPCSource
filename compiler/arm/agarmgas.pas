@@ -33,6 +33,7 @@ unit agarmgas;
        aasmdata,aasmtai,
        assemble,aggas,
        cpubase,cpuinfo,
+       cgutils,
        compilerbase;
 
     type
@@ -42,10 +43,15 @@ unit agarmgas;
         procedure WriteExtraHeader; override;
       end;
 
+      { TArmInstrWriter }
+
       TArmInstrWriter=class(TCPUInstrWriter)
         unified_syntax: boolean;
 
         procedure WriteInstruction(hp : tai);override;
+      private
+        function getreferencestring(var ref: treference): string;
+        function getopstr(const o: toper): string;
       end;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
@@ -86,7 +92,7 @@ unit agarmgas;
        cutils,globals,verbose,
        aasmcpu,
        itcpugas,
-       cgbase,cgutils,
+       cgbase,
        compiler;
 
 {****************************************************************************}
@@ -198,7 +204,7 @@ unit agarmgas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(var ref : treference) : string;
+    function TArmInstrWriter.getreferencestring(var ref : treference) : string;
       var
         s : string;
       begin
@@ -263,7 +269,7 @@ unit agarmgas;
         getreferencestring:=s;
       end;
 
-    function getopstr(const o:toper) : string;
+    function TArmInstrWriter.getopstr(const o:toper) : string;
       var
         hs : string;
         first : boolean;

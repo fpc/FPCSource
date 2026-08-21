@@ -26,7 +26,7 @@ unit raavr;
   interface
 
     uses
-      cpubase,
+      cpubase,cgbase,
       aasmtai,aasmdata,
       rautils,
       globtype,
@@ -37,6 +37,7 @@ unit raavr;
       end;
 
       TAVRInstruction=class(TInstruction)
+        function gas_regname(r:Tregister):string;
         function ConcatInstruction(p:TAsmList) : tai;override;
       end;
 
@@ -266,7 +267,12 @@ unit raavr;
 
   implementation
     uses
-      aasmcpu, verbose, cgbase, itcpugas, compiler;
+      aasmcpu, verbose, itcpugas, compiler;
+
+    function TAVRInstruction.gas_regname(r:Tregister):string;
+      begin
+        result:=itcpugas.gas_regname(compiler.globals,r);
+      end;
 
     function TAVRInstruction.ConcatInstruction(p:TAsmList) : tai;
       var

@@ -26,7 +26,7 @@ unit itcpugas;
 interface
 
   uses
-    cpubase,cgbase,
+    cpubase,cgbase,globals,
     itcpuwasm;
 
 
@@ -133,13 +133,13 @@ interface
 
     gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('unknown','i32','i64','f32','f64','funcref','externref','v128');
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
 
 
 implementation
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       begin
         result:=generic_regname(r);
       end;

@@ -26,13 +26,13 @@ unit itcpugas;
 interface
 
     uses
-      cpubase,cgbase;
+      cpubase,cgbase,globals;
 
     const
       gas_op2str : op2strtable = {$i m68kstd.inc}
 
     function gas_regnum_search(const s:string):Tregister;
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
     function gas_regfullname(r:Tregister):string;
 
   implementation
@@ -79,7 +79,7 @@ interface
       end;
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
         p : tregisterindex;
       begin

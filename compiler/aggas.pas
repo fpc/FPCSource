@@ -32,7 +32,7 @@ interface
 
     uses
       globtype,globals,compilerbase,
-      cpubase,aasmbase,aasmtai,aasmdata,aasmcfi,
+      cpubase,aasmbase,aasmtai,aasmdata,aasmcfi,cgbase,
 {$ifdef wasm}
       aasmcpu,
 {$endif wasm}
@@ -48,6 +48,7 @@ interface
 
       TGNUAssembler=class(texternalassembler)
       protected
+        function gas_regname(r:Tregister):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
@@ -100,6 +101,7 @@ interface
         procedure WriteInstruction(hp : tai); virtual; abstract;
        protected
         owner: TGNUAssembler;
+        function gas_regname(r:Tregister):string;
         function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
         property Compiler: TCompilerBase read GetCompiler;
       end;
@@ -219,6 +221,11 @@ implementation
            (atype<>sec_note) and
            { on embedded systems every byte counts, so smartlink bss too }
            ((atype<>sec_bss) or (compiler.target.info.system in (systems_embedded+systems_freertos)));
+      end;
+
+    function TGNUAssembler.gas_regname(r: Tregister): string;
+      begin
+        result:=itcpugas.gas_regname(compiler.globals,r);
       end;
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
@@ -2299,6 +2306,11 @@ implementation
        begin
          inherited create;
          owner := _owner;
+       end;
+
+     function TCPUInstrWriter.gas_regname(r: Tregister): string;
+       begin
+         result:=itcpugas.gas_regname(compiler.globals,r);
        end;
 
      function TCPUInstrWriter.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;

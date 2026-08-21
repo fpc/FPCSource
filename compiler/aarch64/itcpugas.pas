@@ -26,7 +26,7 @@ unit itcpugas;
 interface
 
   uses
-    cpubase,cgbase;
+    cpubase,cgbase,globals;
 
 
   const
@@ -37,7 +37,7 @@ interface
     gas_op2str : op2strtable = {$i a64att.inc}
 
     function gas_regnum_search(const s:string):Tregister;
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
 
 
 implementation
@@ -79,7 +79,7 @@ implementation
       end;
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
         p : tregisterindex;
       begin

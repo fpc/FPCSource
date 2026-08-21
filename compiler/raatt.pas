@@ -89,6 +89,7 @@ unit raatt;
        tattreader = class(tasmreader)
          actasmtoken    : tasmtoken;
          prevasmtoken   : tasmtoken;
+         function gas_regname(r:Tregister):string;
          procedure SetupTables;
          procedure BuildConstant(constsize: byte);
          procedure BuildConstantOperand(oper : toperand);
@@ -128,6 +129,12 @@ unit raatt;
 {$endif x86}
       itcpugas,
       procinfo;
+
+
+    function tattreader.gas_regname(r:Tregister):string;
+      begin
+        result:=itcpugas.gas_regname(compiler.globals,r);
+      end;
 
 
     procedure tattreader.SetupTables;

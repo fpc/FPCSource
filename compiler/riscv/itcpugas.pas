@@ -26,7 +26,7 @@ unit itcpugas;
   interface
 
     uses
-      cpubase, cgbase;
+      cpubase, cgbase, globals;
 
     const
       gas_op2str: array[tasmop] of string[14] = ('<none>',
@@ -180,12 +180,12 @@ unit itcpugas;
         );
 
     function gas_regnum_search(const s: string): Tregister;
-    function gas_regname(r: Tregister): string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r: Tregister): string;
 
   implementation
 
     uses
-      globtype,globals,aasmbase,
+      globtype,aasmbase,
       cutils,verbose, systems,
       rgbase;
 
@@ -236,7 +236,7 @@ unit itcpugas;
       end;
 
 
-    function gas_regname(r:Tregister):string;
+    function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
         p : tregisterindex;
       begin

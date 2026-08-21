@@ -28,6 +28,7 @@ unit cpugas;
     uses
       cpubase, aasmbase, globtype, systemstypes, systems,
       aasmdata, aasmtai, aasmcpu, assemble, aggas,
+      cgbase, cgutils,
       compilerbase;
 
     type
@@ -39,8 +40,14 @@ unit cpugas;
         procedure WriteExtraHeader; override;
       end;
 
+      { TMIPSInstrWriter }
+
       TMIPSInstrWriter = class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
+      private
+        function asm_regname(reg: TRegister): string;
+        function GetReferenceString(var ref: TReference): string;
+        function getopstr(const Oper: TOper): string;
       end;
 
     const
@@ -55,7 +62,7 @@ unit cpugas;
 
     uses
       cutils, cpuinfo,
-      globals, verbose, itcpugas, cgbase, cgutils,
+      globals, verbose, itcpugas,
       compiler;
 
 
@@ -98,7 +105,7 @@ unit cpugas;
           end;
         end;
 
-      function asm_regname(reg : TRegister) : string;
+      function TMIPSInstrWriter.asm_regname(reg : TRegister) : string;
 
         begin
           if use_std_regnames then
@@ -143,7 +150,7 @@ unit cpugas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function GetReferenceString(var ref: TReference): string;
+    function TMIPSInstrWriter.GetReferenceString(var ref: TReference): string;
       var
         reg: TRegister;
         regstr: string;
@@ -209,7 +216,7 @@ unit cpugas;
       end;
 
 
-    function getopstr(const Oper: TOper): string;
+    function TMIPSInstrWriter.getopstr(const Oper: TOper): string;
       begin
         with Oper do
           case typ of

@@ -39,6 +39,9 @@ Type
   { while ARM and AAarch64 look not very similar at a first glance,
     several optimizations can be shared between both }
   TARMAsmOptimizer = class(TAsmOptimizer)
+  private
+    function gas_regname(r:Tregister):string;
+  public
     procedure DebugMsg(const s : string; p : tai);
 
     function RegEndOfLife(reg: TRegister;p: taicpu): boolean; override;
@@ -92,6 +95,12 @@ Implementation
     cgobj,procinfo,
     aasmbase,aasmdata,itcpugas,
     compiler;
+
+
+  function TARMAsmOptimizer.gas_regname(r:Tregister):string;
+    begin
+      result:=itcpugas.gas_regname(compiler.globals,r);
+    end;
 
 
 {$ifdef DEBUG_AOPTCPU}

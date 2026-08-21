@@ -33,11 +33,18 @@ unit agcpugas;
        aasmdata,aasmtai,
        assemble,aggas,
        cpubase,cpuinfo,
+       cgutils,
        compilerbase;
 
     type
+
+      { TXtensaInstrWriter }
+
       TXtensaInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
+      private
+        function getreferencestring(var ref: treference): string;
+        function getopstr(const o: toper): string;
       end;
 
       TXtensaGNUAssembler=class(TGNUassembler)
@@ -51,7 +58,7 @@ unit agcpugas;
        cutils,globals,verbose,
        aasmcpu,
        itcpugas,
-       cgbase,cgutils,
+       cgbase,
        compiler;
 
 {****************************************************************************}
@@ -82,7 +89,7 @@ unit agcpugas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(var ref : treference) : string;
+    function TXtensaInstrWriter.getreferencestring(var ref : treference) : string;
       var
         s : string;
       begin
@@ -120,7 +127,7 @@ unit agcpugas;
       end;
 
 
-    function getopstr(const o:toper) : string;
+    function TXtensaInstrWriter.getopstr(const o:toper) : string;
       var
         hs : string;
         first : boolean;
