@@ -2592,6 +2592,11 @@ type
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
+    function IsDeferredTemplMember(Expr: TPasExpr): boolean;
+    function DerefPointerToArray(var R: TPasResolverResult;
+      PosEl: TPasElement): boolean;
+    function IsPartialSpecTypeArg(El, GenEl: TPasElement): boolean;
+    function InPartialSpecWithTypeArg(GenEl: TPasElement): boolean;
     function GetTypeParameterCount(aType: TPasGenericType): integer;
     function GetGenericConstraintKeyword(El: TPasElement): TToken;
     function HasClassConstraint(TemplType: TPasGenericTemplateType): Boolean;
@@ -4867,6 +4872,93 @@ begin
       and (ResolvedEl.LoTypeEl.ClassType=TPasGenericTemplateType);
 end;
 
+function TPasResolver.IsPartialSpecTypeArg(El, GenEl: TPasElement): boolean;
+// True when El is a specialization that took GenEl as a type argument, i.e. a
+// PARTIAL one: fcl-stl's gtree declares
+// `TTreeNodeList = specialize TVector<TTreeNode>` inside generic TTreeNode, so
+// TVector's own `PT = ^T`, `const Value: T` and `Default(T)` all see the bare
+// generic. Nothing is instantiated yet - every check runs again on the real
+// specialization - so such a reference must not be refused there.
+var
+  Item: TPRSpecializedItem;
+  i: Integer;
+begin
+  Result:=False;
+  if (El=nil) or not (El.CustomData is TPasGenericScope) then
+    exit;
+  Item:=TPasGenericScope(El.CustomData).SpecializedFromItem;
+  if Item=nil then
+    exit;
+  for i:=0 to Length(Item.Params)-1 do
+    if Item.Params[i]=GenEl then
+      exit(True);
+end;
+
+
+function TPasResolver.InPartialSpecWithTypeArg(GenEl: TPasElement): boolean;
+// IsPartialSpecTypeArg asked of every scope currently open.
+var
+  i: Integer;
+  Scope: TPasScope;
+begin
+  Result:=False;
+  for i:=ScopeCount-1 downto 0 do
+    begin
+    Scope:=Scopes[i];
+    if IsPartialSpecTypeArg(Scope.Element,GenEl) then
+      exit(True);
+    if (Scope is TPasProcedureScope)
+        and (TPasProcedureScope(Scope).ClassRecScope<>nil)
+        and IsPartialSpecTypeArg(TPasProcedureScope(Scope).ClassRecScope.Element,GenEl) then
+      exit(True);
+    end;
+end;
+
+
+function TPasResolver.DerefPointerToArray(var R: TPasResolverResult;
+  PosEl: TPasElement): boolean;
+// Delphi reads `P[i]` on a pointer to an ARRAY as `P^[i]` - the same implicit
+// dereference `P.Field` already gets from msAutoDeref. regexpr allocates
+// `Stack: ^TStackArray` with GetMem and indexes it directly.
+var
+  PtrType: TPasPointerType;
+  DestType: TPasType;
+begin
+  Result:=false;
+  if (R.BaseType<>btContext) or (R.LoTypeEl=nil)
+      or (R.LoTypeEl.ClassType<>TPasPointerType) then
+    exit;
+  if not ElHasModeSwitch(PosEl,msAutoDeref) then
+    exit;
+  PtrType:=TPasPointerType(R.LoTypeEl);
+  DestType:=ResolveAliasType(PtrType.DestType);
+  if not (DestType is TPasArrayType) then
+    exit;
+  ComputeElement(PtrType.DestType,R,[rcType],PosEl);
+  R.IdentEl:=nil;
+  R.ExprEl:=nil;
+  R.Flags:=R.Flags+[rrfReadable,rrfWritable];
+  Result:=true;
+end;
+
+
+function TPasResolver.IsDeferredTemplMember(Expr: TPasExpr): boolean;
+// True when Expr is the member name in T.Member and T is a generic template
+// type that is not bound yet. ResolveSubIdent leaves those unresolved on
+// purpose, so every consumer of the value must defer to specialization too.
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  Result:=false;
+  if (Expr=nil) or (Expr.CustomData is TResolvedReference) then exit;
+  if not ((Expr.Parent is TBinaryExpr)
+      and (TBinaryExpr(Expr.Parent).OpCode=eopSubIdent)
+      and (TBinaryExpr(Expr.Parent).right=Expr)) then exit;
+  ComputeElement(TBinaryExpr(Expr.Parent).left,ResolvedEl,[]);
+  Result:=IsGenericTemplType(ResolvedEl);
+end;
+
+
 // inline
 function TPasResolver.GetLocalScope: TPasScope;
 begin
@@ -6420,18 +6512,36 @@ function TPasResolver.SameSelfRefProcName(const EnclosingName,
 // method could not assign to its own function name at all - lnfodwrf writes
 // `ReadNext := size = 0` inside `TEReader.ReadNext(var dest; size)`. A generic
 // body's name may also carry a "<...>" specialization suffix.
-var
-  EnclShort: String;
-  P: Integer;
+// The suffix can sit at either level - "TSet<System.Integer>.Insert" (a method
+// of a specialized generic class) and "TFoo.Bar<System.Integer>" (a specialized
+// generic method) - so only the dots and the '<' OUTSIDE a "<...>" group
+// separate the parts. Cutting at the first '<' left "TSet", and an overloaded
+// method of a specialized generic could not name its own Result (fcl-stl gset).
+
+  function ShortProcName(const aName: String): String;
+  var
+    I, Depth, LastDot: Integer;
+  begin
+    Depth:=0;
+    LastDot:=0;
+    for I:=1 to length(aName) do
+      case aName[I] of
+      '<': inc(Depth);
+      '>': if Depth>0 then dec(Depth);
+      '.': if Depth=0 then LastDot:=I;
+      end;
+    Result:=Copy(aName,LastDot+1,length(aName));
+    I:=Pos('<',Result);
+    if I>0 then
+      Result:=LeftStr(Result,I-1);
+  end;
+
 begin
-  EnclShort:=EnclosingName;
-  P:=Pos('<',EnclShort);
-  if P>0 then
-    EnclShort:=LeftStr(EnclShort,P-1);
-  P:=LastDelimiter('.',EnclShort);
-  if P>0 then
-    EnclShort:=Copy(EnclShort,P+1,length(EnclShort));
-  Result:=CompareText(EnclShort,ProcName)=0;
+  // Only the ENCLOSING name is trimmed. A specialized generic ROUTINE keeps its
+  // suffix in ProcName ("Fly<System.Word>"), and a bare `Fly` inside `Fly` is
+  // then a recursive CALL, not the result variable (testpassrc
+  // TestGenProc_CallSelfNoParams).
+  Result:=CompareText(ShortProcName(EnclosingName),ProcName)=0;
 end;
 
 function TPasResolver.IsProcOverloading(LastProc, CurProc: TPasProcedure
@@ -12483,9 +12593,15 @@ begin
         when the found overload is parameterless (Cases 3/4 skip those).
         Checked for "El is NOT inside the found Proc's body": in the non-overloaded
         self-reference case El.HasParent(ImplProc) is true and the paths above
-        already handled it, so this block only fires for the wrong-overload pick. }
-      if (Proc.ProcType is TPasFunctionType)
-          and (El.ClassType=TPrimitiveExpr)
+        already handled it, so this block only fires for the wrong-overload pick.
+        The found overload may be a PROCEDURE (fcl-stl's gset has both
+        `procedure Insert(value)` and `function Insert(value,nod,position)`), so
+        only the ENCLOSING routine has to be a function. A procedure overload is
+        accepted only when it NEEDS parameters: a parameterless one is a plain
+        recursive call and must stay one. }
+      if (El.ClassType=TPrimitiveExpr)
+          and ((Proc.ProcType is TPasFunctionType)
+               or ProcNeedsParams(Proc.ProcType))
           and not ExprIsAddrTarget(El)
           and not ((El.Parent is TParamsExpr) and (TParamsExpr(El.Parent).Value=El)) then
         begin
@@ -13312,7 +13428,14 @@ begin
       begin
       ResolveBinaryExpr(TBinaryExpr(Params.Value),Access);
       if not (Value.CustomData is TResolvedReference) then
+        begin
+        // A CALL on a member of a still-unbound template type (T.Method(x)) is
+        // checked at specialization, like the member access itself. fcl-stl's
+        // garrayutils calls TCompare.c(a,b).
+        if IsDeferredTemplMember(Value) then
+          exit;
         RaiseNotYetImplemented(20190115140557,Params);
+        end;
       // already resolved
       exit;
       end
@@ -13796,7 +13919,13 @@ begin
       begin
       ResolveBinaryExpr(TBinaryExpr(Params.Value),Access);
       if not (Value.CustomData is TResolvedReference) then
+        begin
+        // Indexing a member of a still-unbound template type is checked at
+        // specialization too. fcl-stl's ghashmap writes (FData[Fh]).Mutable[Fp].
+        if IsDeferredTemplMember(Value) then
+          exit;
         RaiseNotYetImplemented(20190115144534,Params);
+        end;
       // already resolved via ResolveNameExpr, which calls ResolveArrayParamsExprName
       exit;
       end
@@ -13972,7 +14101,17 @@ var
   i: Integer;
   TypeEl: TPasType;
   C: TClass;
+  DerefValue: TPasResolverResult;
 begin
+  // Delphi reads `P[i]` on a pointer to an ARRAY as `P^[i]`. A bare name goes
+  // through ResolveArrayParamsExprName, which lands here directly, so the
+  // dereference belongs here rather than at one call site.
+  DerefValue:=ResolvedValue;
+  if DerefPointerToArray(DerefValue,Params) then
+    begin
+    ResolveArrayParamsArgs(Params,DerefValue,Access);
+    exit;
+    end;
   if IsGenericTemplType(ResolvedValue) then
     begin
     // value[i] where value has a generic template type: the element/index
@@ -17039,6 +17178,21 @@ begin
       // string + x => string. RawByteString and WideString were previously omitted,
       // so `RawByteString + RawByteString` (unix RTL path building a search dirlist)
       // wrongly reported "operator not overloaded".
+      {$ifdef FPC_HAS_CPSTRING}
+      // A narrow left operand widens to the wide right one: fpc gives
+      // `ansistring + unicodestring` a unicodestring result, and overload
+      // selection reads this type.
+      if (BaseTypeChar=btAnsiChar)
+          and (GetActualBaseType(LeftResolved.BaseType) in [btAnsiString,btRawByteString])
+          and (GetActualBaseType(RightResolved.BaseType) in [btWideString,btUnicodeString,btWideChar]) then
+        begin
+        if GetActualBaseType(RightResolved.BaseType)=btWideString then
+          SetBaseType(btWideString)
+        else
+          SetBaseType(btUnicodeString);
+        exit;
+        end;
+      {$endif}
       SetLeftValueExpr([rrfReadable]);
       exit;
     end;
@@ -17158,6 +17312,8 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ComputeArrayParams ResolvedEl=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
+  if DerefPointerToArray(ResolvedEl,Params) then
+    ResolvedEl.ExprEl:=Params.Value;
   if ResolvedEl.BaseType in btAllStrings then
     // stringvar[] => char; ResolvedEl.IdentEl stays the string var
     StringToCharElement(ResolvedEl)
@@ -17174,6 +17330,14 @@ begin
     ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable,rrfWritable,rrfAssignable];
     end
   {$ENDIF}
+  else if (Params.Value is TParamsExpr)
+      and (TParamsExpr(Params.Value).Kind=pekArrayParams)
+      and (Params.CustomData is TResolvedReference)
+      and (TResolvedReference(Params.CustomData).Declaration is TPasProperty) then
+    // (a[i])[j]: the second index uses the default property of a[i]'s TYPE. The
+    // property that produced a[i] is already consumed, so it must not be applied
+    // twice. fcl-stl's ghashmap reads (FData[Fh])[Fp].
+    ComputeIndexProperty(TPasProperty(TResolvedReference(Params.CustomData).Declaration))
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // property with args
@@ -17346,6 +17510,20 @@ begin
           TPasProcedure(DeclEl).ProcType,TPasProcedure(DeclEl).ProcType,[]);
       Include(ResolvedEl.Flags,rrfCanBeStatement);
       exit;
+      end;
+    // T.Method(x) on a still-unbound generic template type: ResolveSubIdent
+    // left it unresolved, so the result type is unknown until specialization.
+    // Keep the template type so callers (IsGenericTemplType) defer.
+    if (Params.Value is TBinaryExpr)
+        and (TBinaryExpr(Params.Value).OpCode=eopSubIdent) then
+      begin
+      ComputeElement(TBinaryExpr(Params.Value).Left,ResolvedEl,Flags,StartEl);
+      if IsGenericTemplType(ResolvedEl) then
+        begin
+        ResolvedEl.ExprEl:=Params;
+        Include(ResolvedEl.Flags,rrfReadable);
+        exit;
+        end;
       end;
     RaiseNotYetImplemented(20160928174124,Params);
     end;
@@ -17912,6 +18090,13 @@ begin
     if TypeEl.ClassType=TPasPointerType then
       begin
       Deref(TPasPointerType(TypeEl).DestType);
+      exit;
+      end;
+    if TypeEl.ClassType=TPasGenericTemplateType then
+      begin
+      // the pointee is unknown until specialization, so stay deferred
+      ResolvedEl.ExprEl:=El;
+      ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable,rrfWritable];
       exit;
       end;
     end
@@ -19044,7 +19229,14 @@ var
 begin
   Result:=nil;
   if not (Expr.CustomData is TResolvedReference) then
+    begin
+    // A member of a still-unbound template type has no constant value yet — nil
+    // means "not a constant" and the specialized copy is evaluated instead.
+    // fcl-stl's ghashmap range-checks the assignment bs:=(FData[Fh]).size.
+    if IsDeferredTemplMember(Expr) then
+      exit;
     RaiseNotYetImplemented(20170518203134,Expr,GetObjName(Expr.CustomData));
+    end;
   Ref:=TResolvedReference(Expr.CustomData);
   Decl:=Ref.Declaration;
   {$IFDEF VerbosePasResEval}
@@ -22066,6 +22258,9 @@ var
   Abort: boolean;
   Members: TFPList;
   NewClass: TPTreeElement;
+  OwnerType: TPasType;
+  GenOwner: TPasElement;
+  OwnerName: String;
 begin
   if GenTypeRef.Name='' then
     begin
@@ -22101,6 +22296,64 @@ begin
       if (Ref is TPasType) and (CompareText(Ref.Name,GenTypeRef.Name)=0) then
         break;
       Ref:=nil;
+      end;
+    end;
+  if (Ref=nil) and (GenTypeRef.Parent is TPasMembersType) then
+    begin
+    // A QUALIFIED reference to a member type of ANOTHER nested type, e.g.
+    // fcl-stl's gmap declares, inside the generic TMap,
+    //   TMSet = specialize TSet<TPair>;
+    //   TIterator = specialize TMapIterator<..., TMSet.Node>;
+    // Only "Node" is stored here and it lives in the scope of TMSet's own
+    // (partial) specialization, which has no name that is in scope. Its
+    // declaring member does: find the member that produced it, then take the
+    // same name from the specialization being built.
+    OwnerName:=GenTypeRef.Parent.Name;
+    GenOwner:=GenEl;
+    while GenOwner<>nil do
+      begin
+      if GenOwner is TPasMembersType then
+        break;
+      // An implementation proc hangs off the implementation section, not off
+      // its class, so the parent chain alone never reaches the members type.
+      if (GenOwner is TPasProcedure)
+          and (GenOwner.CustomData is TPasProcedureScope)
+          and (TPasProcedureScope(GenOwner.CustomData).ClassRecScope<>nil) then
+        begin
+        GenOwner:=TPasProcedureScope(GenOwner.CustomData).ClassRecScope.Element;
+        break;
+        end;
+      GenOwner:=GenOwner.Parent;
+      end;
+    if GenOwner is TPasMembersType then
+      begin
+      Members:=TPasMembersType(GenOwner).Members;
+      for i:=0 to Members.Count-1 do
+        if (TObject(Members[i]) is TPasType)
+            and (ResolveAliasTypeEl(TPasElement(Members[i]))=GenTypeRef.Parent) then
+          begin
+          OwnerName:=TPasElement(Members[i]).Name;
+          break;
+          end;
+      end;
+    if OwnerName<>'' then
+      begin
+      Abort:=false;
+      Data:=Default(TPRFindData);
+      Data.ErrorPosEl:=GenEl;
+      IterateElements(OwnerName,@OnFindFirst_PreferNoParams,@Data,Abort);
+      OwnerType:=ResolveAliasTypeEl(Data.Found);
+      if OwnerType is TPasMembersType then
+        begin
+        Members:=TPasMembersType(OwnerType).Members;
+        for i:=0 to Members.Count-1 do
+          begin
+          Ref:=TPasElement(Members[i]);
+          if (Ref is TPasType) and (CompareText(Ref.Name,GenTypeRef.Name)=0) then
+            break;
+          Ref:=nil;
+          end;
+        end;
       end;
     end;
   if Ref=nil then
@@ -23468,13 +23721,20 @@ begin
   EnumType:=nil;
   RgType:=nil;
   OrdSetOK:=false;
+  // The set has to be an assignable LOCATION, which is not the same as a named
+  // variable: `Include(P^, c)` names no identifier at all, and regexpr's
+  // rcParseCharRange takes the class set as a `PCharSet` and writes through it.
   if ([rrfReadable,rrfWritable]*Param0Resolved.Flags=[rrfReadable,rrfWritable])
-      and (Param0Resolved.IdentEl<>nil) then
+      and ((Param0Resolved.IdentEl<>nil)
+           or CheckCanBeLHS(Param0Resolved,false,Param0)) then
     begin
-    C:=Param0Resolved.IdentEl.ClassType;
-    if (C.InheritsFrom(TPasVariable)
+    C:=nil;
+    if Param0Resolved.IdentEl<>nil then
+      C:=Param0Resolved.IdentEl.ClassType;
+    if (C=nil)
+        or C.InheritsFrom(TPasVariable)
         or (C=TPasArgument)
-        or (C=TPasResultElement)) then
+        or (C=TPasResultElement) then
       begin
       if Param0Resolved.BaseType=btSet then
         begin
@@ -25524,9 +25784,12 @@ begin
     RaiseMsg(20180501004009,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
     end;
 
-  // An unspecialized generic cannot be used with Default() (tdefault11/12).
+  // An unspecialized generic cannot be used with Default() (tdefault11/12),
+  // unless it only stands in for a template parameter of a partial
+  // specialization (fcl-stl gvector's `Default(T)` under TVector<TTreeNode>).
   if (aType is TPasGenericType)
-      and (GetTypeParameterCount(TPasGenericType(aType))>0) then
+      and (GetTypeParameterCount(TPasGenericType(aType))>0)
+      and not InPartialSpecWithTypeArg(aType) then
     RaiseMsg(20260622100002,nXExpectedButYFound,sXExpectedButYFound,
       ['specialized type',GetTypeDescription(aType)],Param);
 
@@ -29792,6 +30055,10 @@ var
   El: TPasElement;
 begin
   Result:=false;
+  // Assigning to a member of a still-unbound template type can only be checked
+  // once T is known. fcl-stl's ghashmap writes ((FData[Fh]).mutable[Fp])^.Value.
+  if IsGenericTemplType(ResolvedEl) then
+    exit(true);
   El:=ResolvedEl.IdentEl;
   if El=nil then
     begin
@@ -32296,6 +32563,19 @@ begin
     begin
     if RHS.BaseType=btNil then
       exit(cExact);
+    // Delphi's `@` yields an untyped address, so `ProcVar:=@Routine` does not
+    // have its signature checked. ppcx64 accepts
+    // generics.hashes' `mORMotHasher:=@xxHash32` on exactly this basis (the
+    // routine's len is Integer, the field's is Cardinal) and REJECTS the very
+    // same assignment written WITHOUT the `@`, or written in objfpc mode. {$T}
+    // does NOT change this - ppcx64 accepts it under {$T+} too, so it is not
+    // tested here. Asked of the ELEMENT: the parser's CURRENT mode is wherever
+    // it happens to be, not where this expression was written.
+    if (ErrorEl is TUnaryExpr)
+        and (TUnaryExpr(ErrorEl).OpCode=eopAddress)
+        and (RTypeEl is TPasProcedureType)
+        and (msDelphi in GetElModeSwitches(ErrorEl)) then
+      exit(cExact);
     //writeln('TPasResolver.CheckAssignCompatibilityUserType LTypeEl=',GetObjName(LTypeEl),' RHS.BaseType=',BaseTypeNames[RHS.BaseType],' RTypeEl=',GetObjName(RTypeEl),' RHS.IdentEl=',GetObjName(RHS.IdentEl),' RHS.ExprEl=',GetObjName(RHS.ExprEl),' rrfReadable=',rrfReadable in RHS.Flags);
     if (LTypeEl.ClassType=RTypeEl.ClassType)
         and (rrfReadable in RHS.Flags) then
@@ -34214,6 +34494,8 @@ begin
           if ResolvedEl.BaseType in (btAllInteger+btAllBooleans) then
           else if ResolvedEl.BaseType=btVariant then
             // unary not on a Variant yields a Variant (variant manager at runtime)
+          else if IsGenericTemplType(ResolvedEl) then
+            // the operand type is unknown until specialization
           else
             ComputeUnaryNot(TUnaryExpr(El),ResolvedEl,Flags);
           exit;
@@ -34723,6 +35005,8 @@ procedure TPasResolver.CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
           exit; // definitive answer, stop searching
           end;
         end;
+      if IsPartialSpecTypeArg(ScopeEl,GenEl) then
+        exit;
       if (Scope is TPasProcedureScope) then
         begin
         ProcScope:=TPasProcedureScope(Scope);
@@ -34732,6 +35016,9 @@ procedure TPasResolver.CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
         if (ProcScope.ClassRecScope<>nil)
             and (ProcScope.ClassRecScope.Element<>nil)
             and ProcScope.ClassRecScope.Element.HasParent(GenEl) then
+          exit;
+        if (ProcScope.ClassRecScope<>nil)
+            and IsPartialSpecTypeArg(ProcScope.ClassRecScope.Element,GenEl) then
           exit;
         end;
       end;
