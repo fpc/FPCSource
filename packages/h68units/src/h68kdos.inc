@@ -184,9 +184,13 @@ function h68kdos_files(filbuf: Ph68kdos_filbuf; name: pchar; atr: word): longint
 function h68kdos_nfiles(filbuf: Ph68kdos_filbuf): longint; syscall $ff4f;
 
 { * human68k v2 only calls * }
+function h68kdos_setenv_v2(envname: PChar; envptr: PChar; envval: PChar): longint; syscall $ff52;
+function h68kdos_getenv_v2(envname: PChar; envptr: PChar; buffer: PChar): longint; syscall $ff53;
 function h68kdos_rename_v2(oldname: PChar; newname: PChar): longint; syscall $ff56;
 function h68kdos_filedate_v2(fileno: word; datetime: longint): longint; syscall $ff57;
 
 { * human68k v3 only calls * }
+function h68kdos_setenv_v3(envname: PChar; envptr: PChar; envval: PChar): longint; syscall $ff82;
+function h68kdos_getenv_v3(envname: PChar; envptr: PChar; buffer: PChar): longint; syscall $ff83;
 function h68kdos_rename_v3(oldname: PChar; newname: PChar): longint; syscall $ff86;
 function h68kdos_filedate_v3(fileno: word; datetime: longint): longint; syscall $ff87;

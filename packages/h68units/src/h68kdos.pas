@@ -21,11 +21,29 @@ interface
 
 {$i h68kdos.inc}
 
+function h68kdos_setenv(envname: PChar; envptr: PChar; envval: PChar): longint;
+function h68kdos_getenv(envname: PChar; envptr: PChar; buffer: PChar): longint;
 function h68kdos_rename(oldname: PChar; newname: PChar): longint;
 function h68kdos_exfiles(filbuf: Ph68kdos_exfilbuf; name: pchar; atr: word): longint;
 function h68kdos_exnfiles(filbuf: Ph68kdos_exfilbuf): longint;
 
 implementation
+
+function h68kdos_setenv(envname: PChar; envptr: PChar; envval: PChar): longint;
+begin
+  if hi(human68k_vernum) <= 2 then
+    h68kdos_setenv:=h68kdos_setenv_v2(envname, envptr, envval)
+  else
+    h68kdos_setenv:=h68kdos_setenv_v3(envname, envptr, envval);
+end;
+
+function h68kdos_getenv(envname: PChar; envptr: PChar; buffer: PChar): longint;
+begin
+  if hi(human68k_vernum) <= 2 then
+    h68kdos_getenv:=h68kdos_getenv_v2(envname, envptr, buffer)
+  else
+    h68kdos_getenv:=h68kdos_getenv_v3(envname, envptr, buffer);
+end;
 
 function h68kdos_rename(oldname: PChar; newname: PChar): longint;
 begin
