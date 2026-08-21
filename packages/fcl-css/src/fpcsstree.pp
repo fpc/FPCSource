@@ -1361,7 +1361,8 @@ begin
       end;
     Result:=Result+Selectors[I].GetAsString(aFormat,aIndent);
     end;
-  if (ChildCount=0) and (aPrefix<>'') then
+  if (ChildCount=0) and (NestedRuleCount=0) and (aPrefix<>'') then
+    // an at-rule without a block, e.g. '@import url("me.css");'
     Result:=aIndent+aPrefix+Result+';'
   else
     begin

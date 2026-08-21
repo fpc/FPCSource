@@ -137,6 +137,16 @@ type
     Procedure TestRuleInStartingStyle;
     Procedure TestStartingStyleSkipDeclaration;
     Procedure TestStartingStyleInMediaSkipDeclaration;
+    Procedure TestKeyframesEmpty;
+    Procedure TestKeyframesFromTo;
+    Procedure TestKeyframesPercentage;
+    Procedure TestKeyframesPercentageList;
+    Procedure TestKeyframesFloatPercentage;
+    Procedure TestKeyframesMultipleDeclarations;
+    Procedure TestKeyframesVendorPrefixed;
+    Procedure TestKeyframesNameString;
+    Procedure TestKeyframesInMedia;
+    Procedure TestKeyframesAsString;
     Procedure TestSkipUnknownFunction;
     Procedure TestNestedRule;
     Procedure TestNestedAndSpaceRule;
@@ -263,7 +273,6 @@ end;
 
 procedure TTestCSSFilesParser.Testanimation;
 begin
-  SkipInvalid:=true;
   RunFileTest;
 end;
 
@@ -1392,6 +1401,185 @@ begin
   aSel:=TCSSClassNameElement(CheckClass('rule selector',TCSSClassNameElement,aNestedRule.Selectors[0]));
   AssertEquals('rule sel name','foo',aSel.Value);
   CheckDeclaration(aNestedRule,0,'width');
+end;
+
+procedure TTestCSSParser.TestKeyframesEmpty;
+var
+  R: TCSSAtRuleElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,ParseRule('@keyframes fade { }')));
+  AssertEquals('at keyword','@keyframes',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  CheckSelector(R,0,'fade');
+  AssertEquals('declaration count',0,R.ChildCount);
+  AssertEquals('keyframe count',0,R.NestedRuleCount);
+end;
+
+procedure TTestCSSParser.TestKeyframesFromTo;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+  D: TCSSDeclarationElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { from { top: 1px; } to { top: 2px; } }')));
+  AssertEquals('at keyword','@keyframes',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  CheckSelector(R,0,'fade');
+  AssertEquals('declaration count',0,R.ChildCount);
+  AssertEquals('keyframe count',2,R.NestedRuleCount);
+
+  aKeyframe:=R.NestedRules[0];
+  AssertEquals('keyframe 0 selector count',1,aKeyframe.SelectorCount);
+  CheckClass('keyframe 0 selector',TCSSIdentifierElement,aKeyframe.Selectors[0]);
+  CheckSelector(aKeyframe,0,'from');
+  AssertEquals('keyframe 0 declaration count',1,aKeyframe.ChildCount);
+  D:=CheckDeclaration(aKeyframe,0,'top');
+  CheckLiteral('keyframe 0 value',D.Children[0],1,cu_px);
+
+  aKeyframe:=R.NestedRules[1];
+  AssertEquals('keyframe 1 selector count',1,aKeyframe.SelectorCount);
+  CheckSelector(aKeyframe,0,'to');
+  D:=CheckDeclaration(aKeyframe,0,'top');
+  CheckLiteral('keyframe 1 value',D.Children[0],2,cu_px);
+end;
+
+procedure TTestCSSParser.TestKeyframesPercentage;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+  D: TCSSDeclarationElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { 0% { top: 1px; } 100% { top: 2px; } }')));
+  AssertEquals('at keyword','@keyframes',R.AtKeyWord);
+  AssertEquals('keyframe count',2,R.NestedRuleCount);
+
+  aKeyframe:=R.NestedRules[0];
+  AssertEquals('keyframe 0 selector count',1,aKeyframe.SelectorCount);
+  CheckLiteral('keyframe 0 selector',aKeyframe.Selectors[0],0,cuPercent);
+  D:=CheckDeclaration(aKeyframe,0,'top');
+  CheckLiteral('keyframe 0 value',D.Children[0],1,cu_px);
+
+  aKeyframe:=R.NestedRules[1];
+  AssertEquals('keyframe 1 selector count',1,aKeyframe.SelectorCount);
+  CheckLiteral('keyframe 1 selector',aKeyframe.Selectors[0],100,cuPercent);
+  D:=CheckDeclaration(aKeyframe,0,'top');
+  CheckLiteral('keyframe 1 value',D.Children[0],2,cu_px);
+end;
+
+procedure TTestCSSParser.TestKeyframesPercentageList;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { 0%, 50%, to { top: 1px; } }')));
+  AssertEquals('keyframe count',1,R.NestedRuleCount);
+  aKeyframe:=R.NestedRules[0];
+  AssertEquals('keyframe selector count',3,aKeyframe.SelectorCount);
+  CheckLiteral('keyframe selector 0',aKeyframe.Selectors[0],0,cuPercent);
+  CheckLiteral('keyframe selector 1',aKeyframe.Selectors[1],50,cuPercent);
+  CheckSelector(aKeyframe,2,'to');
+  AssertEquals('keyframe declaration count',1,aKeyframe.ChildCount);
+  CheckDeclaration(aKeyframe,0,'top');
+end;
+
+procedure TTestCSSParser.TestKeyframesFloatPercentage;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+  aSel: TCSSFloatElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { 12.5% { top: 1px; } }')));
+  AssertEquals('keyframe count',1,R.NestedRuleCount);
+  aKeyframe:=R.NestedRules[0];
+  AssertEquals('keyframe selector count',1,aKeyframe.SelectorCount);
+  aSel:=TCSSFloatElement(CheckClass('keyframe selector',TCSSFloatElement,aKeyframe.Selectors[0]));
+  AssertEquals('keyframe selector value',12.5,aSel.Value,0.001);
+  AssertEquals('keyframe selector units',cuPercent,aSel.Units);
+  CheckDeclaration(aKeyframe,0,'top');
+end;
+
+procedure TTestCSSParser.TestKeyframesMultipleDeclarations;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+  D: TCSSDeclarationElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { 0% { top: 1px; left: 2px } }')));
+  AssertEquals('keyframe count',1,R.NestedRuleCount);
+  aKeyframe:=R.NestedRules[0];
+  AssertEquals('keyframe declaration count',2,aKeyframe.ChildCount);
+  D:=CheckDeclaration(aKeyframe,0,'top');
+  CheckLiteral('declaration 0 value',D.Children[0],1,cu_px);
+  D:=CheckDeclaration(aKeyframe,1,'left');
+  CheckLiteral('declaration 1 value',D.Children[0],2,cu_px);
+end;
+
+procedure TTestCSSParser.TestKeyframesVendorPrefixed;
+var
+  R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@-webkit-keyframes fade { 0% { top: 1px; } }')));
+  AssertEquals('at keyword','@-webkit-keyframes',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  CheckSelector(R,0,'fade');
+  AssertEquals('keyframe count',1,R.NestedRuleCount);
+  aKeyframe:=R.NestedRules[0];
+  CheckLiteral('keyframe selector',aKeyframe.Selectors[0],0,cuPercent);
+
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@-moz-keyframes fade { to { top: 1px; } }')));
+  AssertEquals('moz at keyword','@-moz-keyframes',R.AtKeyWord);
+  AssertEquals('moz keyframe count',1,R.NestedRuleCount);
+  CheckSelector(R.NestedRules[0],0,'to');
+end;
+
+procedure TTestCSSParser.TestKeyframesNameString;
+var
+  R: TCSSAtRuleElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes "fade" { }')));
+  AssertEquals('at keyword','@keyframes',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  CheckClass('name',TCSSStringElement,R.Selectors[0]);
+  CheckSelector(R,0,'fade');
+  AssertEquals('keyframe count',0,R.NestedRuleCount);
+end;
+
+procedure TTestCSSParser.TestKeyframesInMedia;
+var
+  M, R: TCSSAtRuleElement;
+  aKeyframe: TCSSRuleElement;
+begin
+  M:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@media print { @keyframes fade { 0% { top: 1px; } } }')));
+  AssertEquals('at keyword','@media',M.AtKeyWord);
+  AssertEquals('nested rule count',1,M.NestedRuleCount);
+
+  R:=TCSSAtRuleElement(CheckClass('nested at',TCSSAtRuleElement,M.NestedRules[0]));
+  AssertEquals('nested at keyword','@keyframes',R.AtKeyWord);
+  CheckSelector(R,0,'fade');
+  AssertEquals('keyframe count',1,R.NestedRuleCount);
+  aKeyframe:=R.NestedRules[0];
+  CheckLiteral('keyframe selector',aKeyframe.Selectors[0],0,cuPercent);
+  CheckDeclaration(aKeyframe,0,'top');
+end;
+
+procedure TTestCSSParser.TestKeyframesAsString;
+var
+  R: TCSSAtRuleElement;
+begin
+  R:=TCSSAtRuleElement(CheckClass('at',TCSSAtRuleElement,
+       ParseRule('@keyframes fade { 0%, 50% { top: 1px; } to { top: 2px; } }')));
+  AssertEquals('AsString',
+    '@keyframes fade { 0%, 50% { top : 1px; } to { top : 2px; } }',R.AsString);
 end;
 
 procedure TTestCSSParser.TestSkipUnknownFunction;

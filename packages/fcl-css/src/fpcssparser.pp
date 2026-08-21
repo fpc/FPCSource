@@ -104,6 +104,9 @@ Type
     function ParseAtMediaRulePrelude: TCSSAtRuleElement; virtual;
     function ParseAtMediaRule: TCSSAtRuleElement; virtual;
     function ParseAtSimpleRule(aSkipDeclarations : Boolean = False): TCSSAtRuleElement; virtual;
+    function IsAtKeyframesKeyword(const aKeyword : TCSSString): Boolean; virtual;
+    function ParseAtKeyframesRule: TCSSAtRuleElement; virtual;
+    function ParseKeyframeSelector: TCSSElement; virtual;
     function ParseMediaCondition(TopLvl: boolean): TCSSElement; virtual;
     function ParseMediaBracket: TCSSElement; virtual;
     function ParseRuleList(aStopOn : TCSStoken = ctkEOF;
@@ -718,6 +721,165 @@ begin
   end;
 end;
 
+function TCSSParser.IsAtKeyframesKeyword(const aKeyword: TCSSString): Boolean;
+// true for '@keyframes' and its vendor prefixed forms, e.g. '@-webkit-keyframes'
+
+var
+  s : TCSSString;
+  p : Integer;
+
+begin
+  Result:=false;
+  s:=lowercase(aKeyword);
+  if (s='') or (s[1]<>'@') then exit;
+  Delete(s,1,1);
+  if (s<>'') and (s[1]='-') then
+    begin
+    // skip the vendor prefix, e.g. '-webkit-'
+    p:=Pos('-',s,2);
+    if p<1 then exit;
+    Delete(s,1,p);
+    end;
+  Result:=s='keyframes';
+end;
+
+function TCSSParser.ParseAtKeyframesRule: TCSSAtRuleElement;
+// read '@keyframes name { <keyframe selectors> { declarations } ... }', e.g.
+//   @keyframes fade { from { opacity: 0; } 50%, 75% { opacity: 0.5; } to { opacity: 1; } }
+// The name becomes the selector of the at-rule, each keyframe becomes a nested rule.
+
+Var
+  {$ifdef VerboseCSSParser}
+  aAt : TCSSString;
+  {$endif}
+  aRule : TCSSAtRuleElement;
+  aKeyframe : TCSSRuleElement;
+  aSel : TCSSElement;
+  Valid : Boolean;
+
+begin
+  Result:=nil;
+  Inc(FRuleLevel);
+{$ifdef VerboseCSSParser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse @keyframes rule');
+{$endif}
+  aRule:=TCSSAtRuleElement(CreateElement(CSSAtRuleElementClass));
+  try
+    aRule.AtKeyWord:=CurrentTokenString;
+    GetNextToken;
+
+    // read the name of the animation
+    case CurrentToken of
+    ctkIDENTIFIER:
+      aRule.AddSelector(ParseIdentifier);
+    ctkSTRING:
+      aRule.AddSelector(ParseString);
+    else
+      DoWarnExpectedButGot('identifier');
+    end;
+
+    if CurrentToken<>ctkLBRACE then
+      begin
+      if CurrentToken<>ctkEOF then
+        begin
+        DoWarnExpectedButGot('{');
+        SkipRule;
+        end;
+      Result:=aRule;
+      aRule:=nil;
+      exit;
+      end;
+    GetNextToken;
+
+    // read the keyframes
+    While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
+      begin
+      if CurrentToken=ctkSEMICOLON then
+        begin
+        GetNextToken;
+        continue;
+        end;
+      aKeyframe:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
+      try
+        // read the keyframe selectors, e.g. 'from', 'to', '0%, 50%'
+        Valid:=true;
+        While Not (CurrentToken in [ctkEOF,ctkLBRACE,ctkRBRACE]) do
+          begin
+          aSel:=ParseKeyframeSelector;
+          if aSel=nil then
+            begin
+            Valid:=false;
+            break;
+            end;
+          aKeyframe.AddSelector(aSel);
+          if CurrentToken<>ctkCOMMA then
+            break;
+          GetNextToken;
+          end;
+
+        if not Valid then
+          // an invalid keyframe selector: skip the whole keyframe
+          SkipRule
+        else
+          begin
+          if CurrentToken=ctkLBRACE then
+            begin
+            GetNextToken;
+            // a keyframe contains only declarations
+            ParseRuleBody(aKeyframe);
+            ConsumeRBrace;
+            end;
+          aRule.AddNestedRule(aKeyframe);
+          aKeyframe:=nil;
+          end;
+      finally
+        aKeyframe.Free;
+      end;
+      end;
+    ConsumeRBrace;
+
+    Result:=aRule;
+    aRule:=nil;
+{$ifdef VerboseCSSParser}  Writeln('Done Parse @keyframes rule ',aAt); {$endif}
+    Dec(FRuleLevel);
+  finally
+    aRule.Free;
+  end;
+end;
+
+function TCSSParser.ParseKeyframeSelector: TCSSElement;
+// read a single keyframe selector: 'from', 'to' or a percentage
+
+begin
+  Result:=nil;
+  case CurrentToken of
+  ctkIDENTIFIER:
+    begin
+    case lowercase(CurrentTokenString) of
+    'from','to': ;
+    else
+      DoWarnExpectedButGot('from or to');
+    end;
+    Result:=ParseIdentifier;
+    end;
+  ctkINTEGER:
+    begin
+    Result:=ParseInteger;
+    if (Result is TCSSIntegerElement) and (TCSSIntegerElement(Result).Units<>cuPercent) then
+      DoWarnExpectedButGot('percentage');
+    end;
+  ctkFLOAT:
+    begin
+    Result:=ParseFloat;
+    if (Result is TCSSFloatElement) and (TCSSFloatElement(Result).Units<>cuPercent) then
+      DoWarnExpectedButGot('percentage');
+    end;
+  else
+    DoWarnExpectedButGot('percentage');
+  end;
+end;
+
 function TCSSParser.ParseMediaCondition(TopLvl: boolean): TCSSElement;
 // for example:
 //   (color)
@@ -1035,8 +1197,12 @@ begin
     // a top level @starting-style contains only rules, no declarations
     '@starting-style': Result:=ParseAtSimpleRule(true);
     else
-      // e.g. @supports: only rules are allowed in the block of a top level at-rule
-      Result:=ParseAtUnknownRule(true);
+      if IsAtKeyframesKeyword(CurrentTokenString) then
+        // @keyframes and its vendor prefixed forms
+        Result:=ParseAtKeyframesRule
+      else
+        // e.g. @supports: only rules are allowed in the block of a top level at-rule
+        Result:=ParseAtUnknownRule(true);
     end
   else
     Result:=ParseComponentValueList;
