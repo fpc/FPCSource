@@ -130,8 +130,6 @@ implementation
 
     function gas_regname(globals:TReadOnlyCompilerGlobals;r:Tregister):string;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         p : longint;
       begin
         p:=findreg_by_number(r);
@@ -143,8 +141,8 @@ implementation
            However, we do not do this for smart linked files since that would cause a lot of (mostly useless)
            overhead. In theory, we could also not do it if "-a" is not used. The Mac OS X assembler (which is
            based on GNU as) "natively" supports full register names.}
-          if compiler.globals.create_smartlink_library and
-             (compiler.target.info.system <> system_powerpc_darwin) then
+          if globals.create_smartlink_library and
+             (globals.target.info.system <> system_powerpc_darwin) then
             result:=gas_regname_short_table[p]
           else
             result:=gas_regname_table[p]
