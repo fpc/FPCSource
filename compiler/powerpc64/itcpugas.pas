@@ -144,14 +144,12 @@ end;
 
 function gas_regname(globals:TReadOnlyCompilerGlobals;r: Tregister): string;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   p: longint;
 begin
   p := findreg_by_number(r);
   if p <> 0 then
-    if compiler.globals.create_smartlink_library and
-       not(compiler.target.info.system = system_powerpc64_darwin) then
+    if globals.create_smartlink_library and
+       not(globals.target.info.system = system_powerpc64_darwin) then
       result := gas_regname_short_table[p]
     else
       result := gas_regname_table[p]
