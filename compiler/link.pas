@@ -81,6 +81,7 @@ interface
          procedure LoadPredefinedLibraryOrder;virtual;
          function  ReOrderEntries : boolean;
          function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
+         function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
          property Compiler: TCompilerBase read FCompiler;
        end;
 
@@ -165,7 +166,7 @@ interface
 
       TLinkerClass = class of Tlinker;
 
-    function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
+    function FindLibraryFile(compiler: TCompilerBase;s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
 
     procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
@@ -288,9 +289,7 @@ Implementation
 
 
     { searches an library file }
-    function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function FindLibraryFile(compiler: TCompilerBase;s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
       var
         found : boolean;
         paths : TCmdStr;
@@ -333,6 +332,12 @@ Implementation
          found:=compiler.CFileUtl.FindFile(s,compiler.globals.exepath,false,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
         findlibraryfile:=found;
+      end;
+
+
+    function TLinker.FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
+      begin
+        result:=link.FindLibraryFile(Compiler,s,prefix,ext,foundfile);
       end;
 
 

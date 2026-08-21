@@ -46,6 +46,7 @@ type
      FCompiler: TCompilerBase;
    protected
      function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
+     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
      property Compiler: TCompilerBase read FCompiler;
    public
      constructor Create(ACompiler: TCompilerBase);virtual;
@@ -66,7 +67,7 @@ implementation
 
 uses
   sysutils,cfileutl,
-  verbose,globals,compiler;
+  verbose,globals,link,compiler;
 
 var
   CImportLib  : array[tsystem] of TImportLibClass;
@@ -142,6 +143,11 @@ begin
      FoundDll:=s;
    end;
   FindDll:=Found;
+end;
+
+function TDLLScanner.FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
+begin
+  result:=link.FindLibraryFile(Compiler,s,prefix,ext,foundfile);
 end;
 
 {*****************************************************************************
