@@ -360,7 +360,7 @@ topsize2memsize: array[topsize] of integer =
     function condition_in(const Subset, c: TAsmCond): Boolean;
 
     { checks whether two segment registers are normally equal in the current memory model }
-    function segment_regs_equal(r1,r2:tregister):boolean;
+    function segment_regs_equal(r1,r2:tregister; globals: TReadOnlyCompilerGlobals):boolean;
 
     { checks whether the specified op is an x86 string instruction (e.g. cmpsb, movsd, scasw, etc.) }
     function is_x86_string_op(op: TAsmOp): boolean;
@@ -771,9 +771,7 @@ implementation
       end;
 
 
-    function segment_regs_equal(r1, r2: tregister): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function segment_regs_equal(r1, r2: tregister; globals: TReadOnlyCompilerGlobals): boolean;
       begin
         if not is_segment_reg(r1) or not is_segment_reg(r2) then
           internalerror(2013062301);
@@ -781,7 +779,7 @@ implementation
         if r1=r2 then
           exit(true);
 {$if defined(i8086)}
-        case compiler.globals.current_settings.x86memorymodel of
+        case globals.current_settings.x86memorymodel of
           mm_tiny:
             begin
               { CS=DS=SS }

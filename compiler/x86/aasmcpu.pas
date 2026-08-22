@@ -2511,6 +2511,8 @@ implementation
 
     procedure optimize_ref(var ref:treference; inlineasm: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ss_equals_ds: boolean;
         tmpreg: TRegister;
       begin
@@ -2530,12 +2532,12 @@ implementation
         if inlineasm then
           ss_equals_ds:=False
         else
-          ss_equals_ds:=segment_regs_equal(NR_DS,NR_SS);
+          ss_equals_ds:=segment_regs_equal(NR_DS,NR_SS,compiler.globals);
 {$endif x86_64}
         { remove redundant segment overrides }
         if (ref.segment<>NR_NO) and
            ((inlineasm and (ref.segment=get_default_segment_of_ref(ref))) or
-            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref))))) then
+            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref),compiler.globals)))) then
           ref.segment:=NR_NO;
         if not is_16_bit_ref(ref) then
           begin
@@ -2572,7 +2574,7 @@ implementation
         { remove redundant segment overrides again }
         if (ref.segment<>NR_NO) and
            ((inlineasm and (ref.segment=get_default_segment_of_ref(ref))) or
-            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref))))) then
+            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref),compiler.globals)))) then
           ref.segment:=NR_NO;
       end;
 

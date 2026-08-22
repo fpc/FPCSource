@@ -2571,8 +2571,8 @@ unit cgcpu;
 
         { Allocate SI and load it with source }
         getcpuregister(list,NR_SI);
-        if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or (ref.base<>NR_BP))) or
-           (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
+        if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS,compiler.globals) or (ref.base<>NR_BP))) or
+           (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS,compiler.globals)) then
           begin
             compiler.hlcg.a_loadaddr_ref_reg(list,compiler.deftypes.voidnearpointertype,compiler.deftypes.voidnearpointertype,ref,NR_SI);
             saved_ds:=false;

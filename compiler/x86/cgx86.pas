@@ -665,7 +665,7 @@ unit cgx86;
             { let the register allocator find a suitable register for the reference }
             list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
             { if DS<>SS in the current memory model, we need to add an SS: segment override as well }
-            if (ref.segment=NR_NO) and not segment_regs_equal(NR_DS,NR_SS) then
+            if (ref.segment=NR_NO) and not segment_regs_equal(NR_DS,NR_SS,compiler.globals) then
               href.segment:=NR_SS;
             ref:=href;
           end;
@@ -680,9 +680,9 @@ unit cgx86;
         { can the segment override be dropped? }
         if ref.segment<>NR_NO then
           begin
-            if (ref.base=NR_BP) and segment_regs_equal(ref.segment,NR_SS) then
+            if (ref.base=NR_BP) and segment_regs_equal(ref.segment,NR_SS,compiler.globals) then
               ref.segment:=NR_NO;
-            if (ref.base<>NR_BP) and segment_regs_equal(ref.segment,NR_DS) then
+            if (ref.base<>NR_BP) and segment_regs_equal(ref.segment,NR_DS,compiler.globals) then
               ref.segment:=NR_NO;
           end;
 {$endif}
@@ -3110,7 +3110,7 @@ unit cgx86;
           begin
             getcpuregister(list,REGDI);
             if (dstref.segment=NR_NO) and
-               (segment_regs_equal(NR_SS,NR_DS) or ((dstref.base<>NR_BP) and (dstref.base<>NR_SP))) then
+               (segment_regs_equal(NR_SS,NR_DS,compiler.globals) or ((dstref.base<>NR_BP) and (dstref.base<>NR_SP))) then
               begin
                 a_loadaddr_ref_reg(list,dstref,REGDI);
                 saved_es:=false;
@@ -3151,8 +3151,8 @@ unit cgx86;
                 srcref.index:=NR_NO;
               end;
 {$endif i8086}
-            if ((srcref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((srcref.base<>NR_BP) and (srcref.base<>NR_SP)))) or
-               (is_segment_reg(srcref.segment) and segment_regs_equal(srcref.segment,NR_DS)) then
+            if ((srcref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS,compiler.globals) or ((srcref.base<>NR_BP) and (srcref.base<>NR_SP)))) or
+               (is_segment_reg(srcref.segment) and segment_regs_equal(srcref.segment,NR_DS,compiler.globals)) then
               begin
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);

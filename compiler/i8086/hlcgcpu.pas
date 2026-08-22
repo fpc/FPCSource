@@ -554,7 +554,7 @@ implementation
               inc(selfoffsetfromsp,2);
             list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
             reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,selfoffsetfromsp+offs+2,ctempposinvalid,2,[]);
-            if not segment_regs_equal(NR_SS,NR_DS) then
+            if not segment_regs_equal(NR_SS,NR_DS,compiler.globals) then
               href.segment:=NR_SS;
             if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
               cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX)
@@ -662,7 +662,7 @@ implementation
             reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,6,ctempposinvalid,2,[])
           else
             reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,4,ctempposinvalid,2,[]);
-          if not segment_regs_equal(NR_DS,NR_SS) then
+          if not segment_regs_equal(NR_DS,NR_SS,compiler.globals) then
             href.segment:=NR_SS;
           list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
           list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
