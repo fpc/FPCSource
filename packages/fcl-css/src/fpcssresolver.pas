@@ -595,9 +595,10 @@ type
     procedure SaveSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     procedure LoadSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     function DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData; virtual;
+    function RuleData(Rule: TCSSRuleElement): TCSSRuleData; virtual;
     function DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString; virtual;
     procedure RestoreDisabledDeclarations(Sheet: TStyleSheet); virtual;
-    // recompute TCSSResolvedRuleElement.HasDisabledDecls
+    // recompute TCSSRuleData.HasDisabledDecls
     procedure UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement); virtual; overload;
     procedure UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement); virtual; overload;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
@@ -727,8 +728,8 @@ function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Point
 
 // navigating a parsed stylesheet tree, e.g. for GetDeclarationPath/FindDeclaration
 // true if an ordinary rule, i.e. a rule which is not an @-rule.
-// Note: the parser can create descendants (see TCSSResolvedRuleElement), so
-// checking the exact class is not enough.
+// Note: a parser can create TCSSRuleElement descendants, so checking the exact
+// class is not enough.
 function CSSIsPlainRule(El: TCSSElement): boolean; overload;
 function CSSIsPlainRule(C: TClass): boolean; overload; // C must not be nil, faster when the caller already fetched the ClassType
 function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
@@ -5340,6 +5341,15 @@ begin
     Result:=TCSSAttributeKeyData(Key.CustomData);
 end;
 
+function TCSSResolver.RuleData(Rule: TCSSRuleElement): TCSSRuleData;
+// nil if the rule was created by a parser without CSSRuleDataClass
+begin
+  Result:=nil;
+  if Rule=nil then exit;
+  if Rule.CustomData is TCSSRuleData then
+    Result:=TCSSRuleData(Rule.CustomData);
+end;
+
 function TCSSResolver.DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString;
 var
   i: Integer;
@@ -5361,13 +5371,18 @@ var
   Path: TCSSDeclarationPath;
   Key: TCSSString;
   Item: TCSSDisabledDecl;
+  RData: TCSSRuleData;
 begin
   KeyData:=DeclKeyData(Decl);
   if KeyData=nil then exit;
   if KeyData.Disabled then exit;
   KeyData.Disabled:=true;
-  if Decl.Parent is TCSSResolvedRuleElement then
-    TCSSResolvedRuleElement(Decl.Parent).HasDisabledDecls:=true;
+  if Decl.Parent is TCSSRuleElement then
+  begin
+    RData:=RuleData(TCSSRuleElement(Decl.Parent));
+    if RData<>nil then
+      RData.HasDisabledDecls:=true;
+  end;
 
   // remember by path so the disabled state survives a reparse
   if GetDeclarationPath(Decl,Path) then
@@ -5419,6 +5434,7 @@ var
   Item: TCSSDisabledDecl;
   Decl: TCSSDeclarationElement;
   KeyData: TCSSAttributeKeyData;
+  RData: TCSSRuleData;
 begin
   if Sheet=nil then exit;
   for i:=0 to FDisabledDecls.Count-1 do
@@ -5433,8 +5449,12 @@ begin
     if KeyData<>nil then
     begin
       KeyData.Disabled:=true;
-      if Decl.Parent is TCSSResolvedRuleElement then
-        TCSSResolvedRuleElement(Decl.Parent).HasDisabledDecls:=true;
+      if Decl.Parent is TCSSRuleElement then
+      begin
+        RData:=RuleData(TCSSRuleElement(Decl.Parent));
+        if RData<>nil then
+          RData.HasDisabledDecls:=true;
+      end;
     end;
   end;
 end;
@@ -5450,19 +5470,21 @@ procedure TCSSResolver.UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement);
 var
   i: Integer;
   Child: TCSSElement;
+  RData: TCSSRuleData;
 begin
-  if not (Rule is TCSSResolvedRuleElement) then exit;
+  RData:=RuleData(Rule);
+  if RData=nil then exit;
   for i:=0 to Rule.ChildCount-1 do
   begin
     Child:=Rule.Children[i];
     if (Child is TCSSDeclarationElement)
         and IsDeclarationDisabled(TCSSDeclarationElement(Child)) then
     begin
-      TCSSResolvedRuleElement(Rule).HasDisabledDecls:=true;
+      RData.HasDisabledDecls:=true;
       exit;
     end;
   end;
-  TCSSResolvedRuleElement(Rule).HasDisabledDecls:=false;
+  RData.HasDisabledDecls:=false;
 end;
 
 function TCSSResolver.IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean;
@@ -5476,11 +5498,14 @@ end;
 function TCSSResolver.RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean;
 var
   i: Integer;
+  RData: TCSSRuleData;
 begin
   Result:=false;
   if Rule=nil then exit;
-  if Rule is TCSSResolvedRuleElement then
-    exit(TCSSResolvedRuleElement(Rule).HasDisabledDecls);
+  RData:=RuleData(Rule);
+  if RData<>nil then
+    exit(RData.HasDisabledDecls);
+  // no cached flag, e.g. parsed by a plain TCSSParser -> scan the children
   for i:=0 to Rule.ChildCount-1 do
     if (Rule.Children[i] is TCSSDeclarationElement)
         and IsDeclarationDisabled(TCSSDeclarationElement(Rule.Children[i])) then
@@ -5495,6 +5520,7 @@ var
   Taken: array of boolean;
   PropName: TCSSString;
   HasDisabled: Boolean;
+  RData: TCSSRuleData;
 begin
   if (OldRule=nil) or (NewRule=nil) then exit;
   Taken:=nil;
@@ -5524,8 +5550,9 @@ begin
       break;
     end;
   end;
-  if NewRule is TCSSResolvedRuleElement then
-    TCSSResolvedRuleElement(NewRule).HasDisabledDecls:=HasDisabled;
+  RData:=RuleData(NewRule);
+  if RData<>nil then
+    RData.HasDisabledDecls:=HasDisabled;
 end;
 
 function TCSSResolver.GetDisabledDeclarations: TFPList;

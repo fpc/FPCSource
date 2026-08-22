@@ -328,6 +328,15 @@ type
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
 
+  { TCSSRuleData - TCSSElement.CustomData of TCSSRuleElement and TCSSAtRuleElement }
+
+  TCSSRuleData = class(TCSSElementOwnedData)
+  public
+    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
+      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
+  end;
+  TCSSRuleDataClass = class of TCSSRuleData;
+
   TCSSBaseResolver = class;
   TCSSResolverParser = class;
 
@@ -533,14 +542,6 @@ type
     NumericalID: TCSSNumericalID;
   end;
 
-  { TCSSResolvedRuleElement }
-
-  TCSSResolvedRuleElement = class(TCSSRuleElement)
-  public
-    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
-      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
-  end;
-
   { TCSSNthChildParams }
 
   TCSSNthChildParams = class
@@ -743,6 +744,7 @@ type
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     procedure CheckMediaSelector(El: TCSSElement); virtual;
+    function CreateElement(aClass: TCSSElementClass): TCSSElement; override;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
@@ -759,6 +761,7 @@ type
   public
     CSSNthChildParamsClass: TCSSNthChildParamsClass;
     CSSAttributeKeyDataClass: TCSSAttributeKeyDataClass;
+    CSSRuleDataClass: TCSSRuleDataClass;
     constructor Create(AScanner: TCSSScanner); override; overload;
     destructor Destroy; override;
     procedure Log(MsgType: TEventType; const ID: TCSSMsgID; const Msg: TCSSString; PosEl: TCSSElement); virtual;
@@ -3261,6 +3264,14 @@ begin
   end;
 end;
 
+function TCSSResolverParser.CreateElement(aClass: TCSSElementClass): TCSSElement;
+begin
+  Result:=inherited CreateElement(aClass);
+  // give every rule and @-rule its data, so the resolver can cache per rule
+  if (CSSRuleDataClass<>nil) and aClass.InheritsFrom(TCSSRuleElement) then
+    Result.CustomData:=CSSRuleDataClass.Create;
+end;
+
 function TCSSResolverParser.ParseAtMediaRulePrelude: TCSSAtRuleElement;
 // Resolve the media identifiers here, not in ParseAtMediaRule, because a @media
 // nested in a style rule or in another at-rule is parsed via ParseAtNestedRule,
@@ -3793,9 +3804,9 @@ begin
   CSSClassNameElementClass:=TCSSResolvedClassNameElement;
   CSSHashIdentifierElementClass:=TCSSResolvedHashIdentifierElement;
   CSSCallElementClass:=TCSSResolvedCallElement;
-  CSSRuleElementClass:=TCSSResolvedRuleElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;
+  CSSRuleDataClass:=TCSSRuleData;
 end;
 
 destructor TCSSResolverParser.Destroy;
