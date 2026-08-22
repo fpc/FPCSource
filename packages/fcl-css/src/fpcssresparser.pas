@@ -424,7 +424,7 @@ type
     FPseudoClassCount: TCSSNumericalID;
     FPseudoElementCount: TCSSNumericalID;
     FPseudoFunctionCount: TCSSNumericalID;
-    FStamp, FModifiedStamp: TCSSNumericalID;
+    FStamp, FModifiedStamp: integer;
     FTypeCount: TCSSNumericalID;
     function GetModified: boolean;
     procedure SetModified(const AValue: boolean);
@@ -436,7 +436,7 @@ type
     function IndexOfNamedItem(Kind: TCSSNumericalIDKind; const aName: TCSSString): TCSSNumericalID; overload;
     procedure ConsistencyCheck; virtual;
     procedure ChangeStamp;
-    property Stamp: TCSSNumericalID read FStamp; // always >0
+    property Stamp: integer read FStamp; // always >0
     property Modified: boolean read GetModified write SetModified;
   public
     // attributes
