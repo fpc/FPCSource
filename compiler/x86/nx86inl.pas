@@ -1456,7 +1456,7 @@ implementation
                 s32real:
                   begin
 {$ifndef i8086}
-                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
+                    if UseAVX512(compiler.globals) and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                       ctx.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESS,S_NO,3,left.location.register,left.location.register,location.register))
                     else
 {$endif not i8086}
@@ -1469,7 +1469,7 @@ implementation
                 s64real:
                   begin
 {$ifndef i8086}
-                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
+                    if UseAVX512(compiler.globals) and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                       ctx.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESD,S_NO,3,left.location.register,left.location.register,location.register))
                     else
 {$endif not i8086}

@@ -1594,7 +1594,7 @@ implementation
                     (tarraydef(p).lowrange=0) and
                     ((tarraydef(p).highrange=3) or
                      (UseAVX(compiler.globals) and (tarraydef(p).highrange=7)) or
-                     (UseAVX512 and (tarraydef(p).highrange=15))
+                     (UseAVX512(compiler.globals) and (tarraydef(p).highrange=15))
                     ) and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
                    )
@@ -1606,7 +1606,7 @@ implementation
                     (tarraydef(p).lowrange=0) and
                     ((tarraydef(p).highrange=1) or
                      (UseAVX(compiler.globals) and (tarraydef(p).highrange=3)) or
-                     (UseAVX512 and (tarraydef(p).highrange=7))
+                     (UseAVX512(compiler.globals) and (tarraydef(p).highrange=7))
                     )and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s64real)
                    )

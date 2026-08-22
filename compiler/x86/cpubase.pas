@@ -389,7 +389,7 @@ topsize2memsize: array[topsize] of integer =
 {$endif i8086}
 
    function UseAVX(globals: TReadOnlyCompilerGlobals): boolean;
-   function UseAVX512: boolean;
+   function UseAVX512(globals: TReadOnlyCompilerGlobals): boolean;
 
 implementation
 
@@ -985,11 +985,9 @@ implementation
     end;
 
 
-  function UseAVX512: boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function UseAVX512(globals: TReadOnlyCompilerGlobals): boolean;
     begin
-      Result:={$ifdef i8086}false{$else i8086}UseAVX(compiler.globals) and (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
+      Result:={$ifdef i8086}false{$else i8086}UseAVX(globals) and (FPUX86_HAS_AVX512F in fpu_capabilities[globals.current_settings.fputype]){$endif i8086};
     end;
 
 
