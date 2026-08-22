@@ -30,8 +30,7 @@ implementation
   uses
     globtype,globals,cutils,cclasses,
     verbose, elfbase,
-    systemstypes,systems,aasmbase,ogbase,ogelf,assemble,
-    compilerbase,compiler;
+    systemstypes,systems,aasmbase,ogbase,ogelf,assemble;
 
   type
     TElfExeOutputARM=class(TElfExeOutput)
@@ -317,9 +316,7 @@ implementation
                               ELF Target methods
 ****************************************************************************}
 
-  function elf_arm_encodereloc(objrel:TObjRelocation):byte;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function elf_arm_encodereloc(objrel:TObjRelocation;globals:TReadOnlyCompilerGlobals):byte;
     begin
       case objrel.typ of
         RELOC_NONE:
@@ -339,9 +336,9 @@ implementation
         RELOC_GOT32:
           result:=R_ARM_GOT_BREL;
         RELOC_TPOFF:
-          if compiler.globals.current_settings.tlsmodel=tlsm_initial_exec then
+          if globals.current_settings.tlsmodel=tlsm_initial_exec then
             result:=R_ARM_TLS_IE32
-          else if compiler.globals.current_settings.tlsmodel=tlsm_local_exec then
+          else if globals.current_settings.tlsmodel=tlsm_local_exec then
             result:=R_ARM_TLS_LE32
           else
             Internalerror(2019092901);
@@ -518,7 +515,7 @@ implementation
     begin
       objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
-        reltyp:=ElfTarget.encodereloc(ObjReloc)
+        reltyp:=ElfTarget.encodereloc(ObjReloc,globals)
       else
         reltyp:=ObjReloc.ftype;
 
@@ -611,7 +608,7 @@ implementation
         end;
 
         if (objreloc.flags and rf_raw)=0 then
-          reltyp:=ElfTarget.encodereloc(objreloc)
+          reltyp:=ElfTarget.encodereloc(objreloc,globals)
         else
           reltyp:=objreloc.ftype;
 

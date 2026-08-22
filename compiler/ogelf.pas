@@ -178,7 +178,7 @@ interface
        end;
 
        TRelocNameProc=function(reltyp:byte):string;
-       TEncodeRelocProc=function(objrel:TObjRelocation):byte;
+       TEncodeRelocProc=function(objrel:TObjRelocation;globals:TReadOnlyCompilerGlobals):byte;
        TLoadRelocProc=procedure(objrel:TObjRelocation);
        TLoadSectionProc=function(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
        TEncodeFlagsProc=function:longword;
@@ -932,7 +932,7 @@ implementation
               end;
 
             rel.address:=objreloc.dataoffset;
-            rel.info:=ELF_R_INFO(relsym,ElfTarget.encodereloc(objreloc));
+            rel.info:=ELF_R_INFO(relsym,ElfTarget.encodereloc(objreloc,globals));
 {$push}{$r-}
             rel.addend:=objreloc.orgsize;
 {$pop}

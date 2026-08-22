@@ -28,7 +28,7 @@ interface
 implementation
 
   uses
-    globtype,cutils,cclasses,
+    globtype,globals,cutils,cclasses,
     verbose,elfbase,
     systemstypes,systems,aasmbase,ogbase,ogelf,assemble;
 
@@ -146,7 +146,7 @@ implementation
                               ELF Target methods
 ****************************************************************************}
 
-  function elf_x86_64_encodereloc(objrel:TObjRelocation):byte;
+  function elf_x86_64_encodereloc(objrel:TObjRelocation;globals:TReadOnlyCompilerGlobals):byte;
     begin
       case objrel.typ of
         RELOC_NONE :
@@ -226,7 +226,7 @@ implementation
     begin
       objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
-        reltyp:=ElfTarget.encodereloc(ObjReloc)
+        reltyp:=ElfTarget.encodereloc(ObjReloc,globals)
       else
         reltyp:=ObjReloc.ftype;
 
@@ -427,7 +427,7 @@ implementation
           end;
 
           if (objreloc.flags and rf_raw)=0 then
-            reltyp:=ElfTarget.encodereloc(objreloc)
+            reltyp:=ElfTarget.encodereloc(objreloc,globals)
           else
             reltyp:=objreloc.ftype;
 
