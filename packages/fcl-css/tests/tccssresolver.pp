@@ -563,6 +563,10 @@ type
     procedure TestRes_Origin_Important; // !important beats normal; among importants the last origin wins
     procedure TestRes_Origin_SourceOrderAcrossOrigins; // rules from all origins collected and sorted
     procedure TestRes_Origin_GetRuleSpecificityUsesRuleOrigin; // works outside a Compute run
+    procedure TestRes_Origin_GetRuleSpecificityOfNestedRule; // nested and @media rules inherit the sheet origin
+    procedure TestRes_Origin_GetRuleSpecificityAfterReplaceStyleSheet; // reparsed rules are stamped again
+    procedure TestRes_Origin_GetRuleStyleSheet; // rule -> owning stylesheet, nil for an inline style
+    procedure TestRes_Origin_GetRuleStyleSheetAfterInsertEmptySheet; // a mid-list insert shifts the cached indexes
 
     // InsertStyleSheet / DeleteStyleSheet: within one origin the higher index (later
     // document order) wins the cascade tie-break
@@ -3938,6 +3942,149 @@ begin
   Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
   AssertEquals('test.css top level rule count',1,length(Rules));
   AssertEquals('specificity of the author div rule',
+    CSSSpecificityType+CSSSpecificityAuthor,R.GetRuleSpecificity(Rules[0],Div1));
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_GetRuleSpecificityOfNestedRule;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules, NestedRules: TCSSRuleElementArray;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1);
+
+  R:=Doc.CSSResolver;
+  // 'div{ @media screen{ .red{} } }' means 'div .red'
+  R.AddStyleSheet(cssoUserAgent,'ua.css','div { @media screen { .red { width: 10px; } } }');
+  ApplyStyle;
+  AssertEquals('Span1.Width','10px',Span1.Width);
+
+  // the origin of the stylesheet must reach the rules nested in the @media as well
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoUserAgent,'ua.css');
+  AssertTrue('found ua.css',ShIdx>=0);
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  AssertEquals('ua.css top level rule count',1,length(Rules));
+  NestedRules:=CSSGetNestedRules(Rules[0]);
+  AssertEquals('nested rule count of the div rule',1,length(NestedRules)); // the @media
+  NestedRules:=CSSGetNestedRules(NestedRules[0]);
+  AssertEquals('nested rule count of the @media',1,length(NestedRules)); // the .red rule
+  AssertEquals('specificity of the nested user-agent .red rule',
+    CSSSpecificityType+CSSSpecificityClass+CSSSpecificityUserAgent,
+    R.GetRuleSpecificity(NestedRules[0],Span1));
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_GetRuleSpecificityAfterReplaceStyleSheet;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules: TCSSRuleElementArray;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; }');
+  ApplyStyle;
+  AssertEquals('Div1.left','1px',Div1.Left);
+
+  // the reparse replaced the rule elements, and with them their TCSSRuleData ->
+  // the origin must be stored again
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoUserAgent,'ua.css');
+  AssertTrue('found ua.css',ShIdx>=0);
+  R.ReplaceStyleSheet(ShIdx,'div { left: 9px; }');
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  AssertEquals('ua.css top level rule count',1,length(Rules));
+  AssertEquals('specificity of the reparsed user-agent div rule',
+    CSSSpecificityType+CSSSpecificityUserAgent,R.GetRuleSpecificity(Rules[0],Div1));
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_GetRuleStyleSheet;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules, NestedRules: TCSSRuleElementArray;
+  Sheet: TCSSResolver.TStyleSheet;
+  InlineRule: TCSSRuleElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; .red { top: 2px; } }');
+  Doc.Style:='div { left: 3px; }'; // author, sheet name 'test.css'
+  ApplyStyle;
+  AssertEquals('Div1.left (author beats user-agent)','3px',Div1.Left);
+
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoUserAgent,'ua.css');
+  AssertTrue('found ua.css',ShIdx>=0);
+  Sheet:=R.StyleSheets[ShIdx];
+  Rules:=CSSGetTopLevelRules(Sheet.Element);
+  AssertEquals('ua.css top level rule count',1,length(Rules));
+  AssertTrue('stylesheet of the user-agent div rule',R.GetRuleStyleSheet(Rules[0])=Sheet);
+  // a nested rule belongs to the same stylesheet
+  NestedRules:=CSSGetNestedRules(Rules[0]);
+  AssertEquals('nested rule count of the div rule',1,length(NestedRules));
+  AssertTrue('stylesheet of the nested .red rule',R.GetRuleStyleSheet(NestedRules[0])=Sheet);
+
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  AssertTrue('found test.css',ShIdx>=0);
+  Sheet:=R.StyleSheets[ShIdx];
+  Rules:=CSSGetTopLevelRules(Sheet.Element);
+  AssertEquals('test.css top level rule count',1,length(Rules));
+  AssertTrue('stylesheet of the author div rule',R.GetRuleStyleSheet(Rules[0])=Sheet);
+
+  // an inline style belongs to no stylesheet
+  InlineRule:=R.ParseInlineStyle('left: 4px');
+  try
+    AssertTrue('stylesheet of an inline style',R.GetRuleStyleSheet(InlineRule)=nil);
+    AssertEquals('source specificity of an inline style',0,
+      R.GetRuleSourceSpecificity(InlineRule));
+  finally
+    InlineRule.Free;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_GetRuleStyleSheetAfterInsertEmptySheet;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules: TCSSRuleElementArray;
+  Sheet: TCSSResolver.TStyleSheet;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; }');
+  ApplyStyle;
+  AssertEquals('Div1.left','1px',Div1.Left);
+
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'a.css');
+  AssertTrue('found a.css',ShIdx>=0);
+  Sheet:=R.StyleSheets[ShIdx];
+  Rules:=CSSGetTopLevelRules(Sheet.Element);
+  AssertEquals('a.css top level rule count',1,length(Rules));
+  AssertTrue('stylesheet of the a.css div rule',R.GetRuleStyleSheet(Rules[0])=Sheet);
+
+  // an empty stylesheet contributes no element, but it still shifts the indexes of
+  // all following stylesheets, so the indexes cached in the rules must be updated
+  R.InsertStyleSheet(0,cssoAuthor,'empty.css','');
+  AssertTrue('a.css moved',R.IndexOfStyleSheetWithName(cssoAuthor,'a.css')<>ShIdx);
+  AssertTrue('stylesheet of the a.css div rule after insert',
+    R.GetRuleStyleSheet(Rules[0])=Sheet);
+  AssertEquals('specificity of the a.css div rule after insert',
     CSSSpecificityType+CSSSpecificityAuthor,R.GetRuleSpecificity(Rules[0],Div1));
 end;
 

@@ -286,6 +286,11 @@ type
     // @media at-rules only, maintained by TCSSResolver.AtMediaMatches:
     MediaResult: boolean; // cached result of the media condition
     MediaStamp: integer; // only valid if equal to TCSSResolver.MediaStamp, 0 = never computed
+    // the stylesheet this rule belongs to, maintained by TCSSResolver.BuildRuleBuckets:
+    Origin: TCSSOrigin; // origin of the stylesheet, see CSSOriginToSpecifity
+    SourceIndex: integer; // index in TCSSResolver.StyleSheets, -1 = unknown
+    SourceStamp: integer; // Origin and SourceIndex are only valid if this equals
+      // TCSSResolver.SourceStamp, 0 = never updated
   end;
 
   TCSSResolverNthChildParamsCacheItem = record
@@ -394,6 +399,7 @@ type
     FStyleSheetCount: integer;
     FStyleSheetStamp: integer; // monotonic counter handed out to TStyleSheet.Stamp on change
     FMediaStamp: integer; // monotonic counter of the @media environment, see InvalidateMedia
+    FSourceStamp: integer; // monotonic counter bumped by BuildRuleBuckets, see TCSSRuleData.SourceStamp
     function GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
     function GetLogCount: integer;
     function GetLogEntries(Index: integer): TCSSResolverLogEntry;
@@ -574,6 +580,8 @@ type
     procedure UpdateRuleBuckets; virtual; // rebuild the buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    procedure UpdateSourceOfElement(El: TCSSElement; anOrigin: TCSSOrigin;
+      aSheetIndex: integer); virtual;
     procedure CollectStartingStyleRules(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     // sibling selectors (style sharing)
     procedure CollectSiblingSelectors(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
@@ -643,7 +651,7 @@ type
     // order of the normal rules is no longer known, so a @starting-style rule with
     // the same specificity as a normal rule always wins, even when it comes first
     // in the stylesheet.
-    function ComputeStartingStyle(const Node: ICSSNode;
+    function ComputeStartingStyle(const aNode: ICSSNode;
       ElementStyle: TCSSRuleElement; // inline/element style of Node
       ComputedRules: TCSSSharedRuleList; // rules of Node, as returned by Compute
       out Rules: TCSSSharedRuleList; // owned by resolver
@@ -659,6 +667,9 @@ type
     // of aRule's stylesheet, or CSSSpecificityNoMatch when none matches (e.g. a
     // selectorless inline rule).
     function GetRuleSpecificity(aRule: TCSSRuleElement; const aNode: ICSSNode): TCSSSpecificity; virtual;
+    // The stylesheet containing aRule, nil if aRule belongs to none, e.g. an element
+    // style. Cheap: uses the index cached in the rule's TCSSRuleData.
+    function GetRuleStyleSheet(aRule: TCSSRuleElement): TStyleSheet; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
@@ -729,6 +740,9 @@ type
     // Always >0, bumped by InvalidateMedia. A TCSSRuleData.MediaResult is valid
     // as long as its MediaStamp equals this.
     property MediaStamp: integer read FMediaStamp;
+    // Always >0, bumped by BuildRuleBuckets. The TCSSRuleData.Origin and SourceIndex
+    // of a rule are valid as long as its SourceStamp equals this.
+    property SourceStamp: integer read FSourceStamp;
     property Layers: TLayerArray read FLayers;
   public
     // logging
@@ -1410,23 +1424,35 @@ end;
 
 function TCSSResolver.GetRuleSourceSpecificity(aRule: TCSSRuleElement
   ): TCSSSpecificity;
-// Look up the origin of aRule's stylesheet. Unlike FSourceSpecificity this does not
-// depend on a running Compute, so it also works for a caller like a style inspector.
 var
-  El: TCSSElement;
-  i, j: Integer;
+  RData: TCSSRuleData;
 begin
   Result:=0;
   if aRule=nil then exit;
-  // the layers store the top level element of each stylesheet
-  El:=aRule;
-  while El.Parent<>nil do
-    El:=El.Parent;
-  for i:=0 to length(FLayers)-1 do
-    with FLayers[i] do
-      for j:=0 to ElementCount-1 do
-        if Elements[j].Element=El then
-          exit(CSSOriginToSpecifity[Origin]);
+  // BuildRuleBuckets stored the origin in the data of every rule of every
+  // stylesheet, so no search is needed
+  UpdateRuleBuckets;
+  RData:=RuleData(aRule);
+  if RData=nil then exit; // a rule of another parser, so of no stylesheet of Self
+  // an old stamp means aRule is in none of the stylesheets, e.g. an element style
+  if RData.SourceStamp=FSourceStamp then
+    Result:=CSSOriginToSpecifity[RData.Origin];
+end;
+
+function TCSSResolver.GetRuleStyleSheet(aRule: TCSSRuleElement): TStyleSheet;
+var
+  RData: TCSSRuleData;
+begin
+  Result:=nil;
+  if aRule=nil then exit;
+  // BuildRuleBuckets stored the stylesheet index in the data of every rule
+  UpdateRuleBuckets;
+  RData:=RuleData(aRule);
+  if RData=nil then exit; // a rule of another parser, so of no stylesheet of Self
+  // an old stamp means aRule is in none of the stylesheets, e.g. an element style
+  if (RData.SourceStamp=FSourceStamp)
+      and (RData.SourceIndex>=0) and (RData.SourceIndex<FStyleSheetCount) then
+    Result:=FStyleSheets[RData.SourceIndex];
 end;
 
 function TCSSResolver.GetRuleSpecificity(aRule: TCSSRuleElement;
@@ -1451,9 +1477,6 @@ begin
   finally
     FNode:=SavedNode;
   end;
-  // the origin of the rule's stylesheet is added once per rule, not once per
-  // selector component. FSourceSpecificity is not used here, because this is also
-  // called from outside a Compute run, where it holds a stale value.
   if Result>=0 then
     inc(Result,GetRuleSourceSpecificity(aRule));
 end;
@@ -1479,8 +1502,6 @@ begin
 
   if BestSpecificity>=0 then
   begin
-    // the origin of the rule's stylesheet is added once per rule, not once per
-    // selector component, see FSourceSpecificity
     inc(BestSpecificity,FSourceSpecificity);
     // match -> add rule to ruleset
     AddRule(aRule,BestSpecificity);
@@ -4013,6 +4034,7 @@ begin
   FCSSIDNameToIndex:=TFPHashList.Create;
   FCSSClassIDStamp:=1;
   FMediaStamp:=1;
+  FSourceStamp:=1;
 end;
 
 procedure TCSSResolver.ChangeCSSClassIDStamp;
@@ -4112,7 +4134,7 @@ begin
   Result:=(FBucketStartingStyle<>nil) and (FBucketStartingStyle.Count>0);
 end;
 
-function TCSSResolver.ComputeStartingStyle(const Node: ICSSNode;
+function TCSSResolver.ComputeStartingStyle(const aNode: ICSSNode;
   ElementStyle: TCSSRuleElement; ComputedRules: TCSSSharedRuleList; out
   Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues): boolean;
 var
@@ -4125,7 +4147,7 @@ begin
   Values:=nil;
   if not HasStartingStyleRules then exit;
 
-  FNode:=Node;
+  FNode:=aNode;
   OldSrcSpecificity:=FSourceSpecificity;
   try
     InitMerge;
@@ -4146,7 +4168,7 @@ begin
     end;
 
     if FElRuleCount=SeededCount then
-      exit; // no @starting-style applies to this node
+      exit; // no @starting-style applies to this aNode
 
     // create a shared rule list and merge attributes
     Rules:=CreateSharedRuleList;
@@ -4639,15 +4661,51 @@ begin
   if FCSSIDCount>0 then
     SetLength(FBucketID,FCSSIDCount+1);
 
+  if FSourceStamp<high(FSourceStamp) then
+    inc(FSourceStamp)
+  else
+    FSourceStamp:=1;
+
   // walk in the same order FindMatchingRules used, assigning document order indexes
   for aLayerIndex:=0 to length(FLayers)-1 do
     with FLayers[aLayerIndex] do
     begin
       SrcSpecificity:=CSSOriginToSpecifity[Origin];
       for i:=0 to ElementCount-1 do
+      begin
+        UpdateSourceOfElement(Elements[i].Element,Origin,IndexOfStyleSheet(Elements[i].Src));
         CollectEl(Elements[i].Element,SrcSpecificity);
+      end;
     end;
   FRuleBucketsValid:=true;
+end;
+
+procedure TCSSResolver.UpdateSourceOfElement(El: TCSSElement;
+  anOrigin: TCSSOrigin; aSheetIndex: integer);
+var
+  C: TClass;
+  i: Integer;
+  aRule: TCSSRuleElement;
+  RData: TCSSRuleData;
+begin
+  if El=nil then exit;
+  C:=El.ClassType;
+  if C=TCSSCompoundElement then
+  begin
+    for i:=0 to TCSSCompoundElement(El).ChildCount-1 do
+      UpdateSourceOfElement(TCSSCompoundElement(El).Children[i],anOrigin,aSheetIndex);
+    exit;
+  end;
+  if not C.InheritsFrom(TCSSRuleElement) then exit;
+
+  aRule:=TCSSRuleElement(El);
+  // the stylesheets are parsed by ParseCSSSource, so every rule has a TCSSRuleData
+  RData:=RuleData(aRule);
+  RData.Origin:=anOrigin;
+  RData.SourceIndex:=aSheetIndex;
+  RData.SourceStamp:=FSourceStamp;
+  for i:=0 to aRule.NestedRuleCount-1 do
+    UpdateSourceOfElement(aRule.NestedRules[i],anOrigin,aSheetIndex);
 end;
 
 procedure TCSSResolver.AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
@@ -4984,7 +5042,14 @@ begin
   // is a mid-list insert, move it to the slot matching the array order so the
   // cascade (document order) respects the requested position.
   if Index<FStyleSheetCount-1 then
+  begin
+    // the following stylesheets moved up, so the indexes cached in the rule data
+    // are stale, see TCSSRuleData.SourceIndex. Note that ParseSource and
+    // OrderStyleSheetInLayer do not invalidate when the sheet has no element,
+    // e.g. an empty source.
+    FRuleBucketsValid:=false;
     OrderStyleSheetInLayer(Index);
+  end;
 end;
 
 procedure TCSSResolver.ReplaceStyleSheet(Index: integer; const NewSource: TCSSString);
