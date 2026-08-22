@@ -134,11 +134,11 @@ unit aoptx86;
 
         { Returns true if the reference only refers to ESP or EBP (or their 64-bit equivalents),
           or writes to a global symbol }
-        class function IsRefSafe(const ref: PReference): Boolean; static;
+        function IsRefSafe(const ref: PReference): Boolean;
 
 
         { Returns true if the given MOV instruction can be safely converted to CMOV }
-        class function CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean; static;
+        function CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean;
 
         { Like UpdateUsedRegs, but ignores deallocations }
         class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
@@ -2870,9 +2870,7 @@ unit aoptx86;
       end;
 
 
-    class function TX86AsmOptimizer.IsRefSafe(const ref: PReference): Boolean;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TX86AsmOptimizer.IsRefSafe(const ref: PReference): Boolean;
       begin
         Result :=
           (ref^.index = NR_NO) and
@@ -2885,7 +2883,7 @@ unit aoptx86;
 {$endif x86_64}
             (ref^.refaddr = addr_full) or
             (ref^.base = NR_STACK_POINTER_REG) or
-            (ref^.base = _compiler.current_procinfo.framepointer)
+            (ref^.base = compiler.current_procinfo.framepointer)
           );
       end;
 
@@ -13875,7 +13873,7 @@ unit aoptx86;
       end;
 
 
-    class function TX86AsmOptimizer.CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean;
+    function TX86AsmOptimizer.CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean;
       begin
         Result := assigned(p) and
           MatchInstruction(p,A_MOV,[S_W,S_L,S_Q]) and
