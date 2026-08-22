@@ -334,6 +334,9 @@ type
   public
     HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
       // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
+    // @media at-rules only, maintained by TCSSResolver.AtMediaMatches:
+    MediaResult: boolean; // cached result of the media condition
+    MediaStamp: integer; // only valid if equal to TCSSResolver.MediaStamp, 0 = never computed
   end;
   TCSSRuleDataClass = class of TCSSRuleData;
 

@@ -383,6 +383,7 @@ type
     FStyleSheets: TStyleSheets;
     FStyleSheetCount: integer;
     FStyleSheetStamp: integer; // monotonic counter handed out to TStyleSheet.Stamp on change
+    FMediaStamp: integer; // monotonic counter of the @media environment, see InvalidateMedia
     function GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
     function GetLogCount: integer;
     function GetLogEntries(Index: integer): TCSSResolverLogEntry;
@@ -403,12 +404,6 @@ type
       end;
       PMergedAttribute = ^TMergedAttribute;
       TMergedAttributeArray = array of TMergedAttribute;
-
-      TAtMediaCacheEntry = record
-        Rule: TCSSAtRuleElement;
-        Specificity: TCSSSpecificity;
-      end;
-      TAtMediaCacheArray = array of TAtMediaCacheEntry;
 
       // selector rules bucketed by the rightmost identifier of a selector
       TCSSRuleBucketKind = (
@@ -469,8 +464,6 @@ type
     FCSSIDNameToIndex: TFPHashList; // id name -> TCSSNumericalID (>=1)
     FCSSIDNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSIDCount: TCSSNumericalID;
-    FAtMediaCache: TAtMediaCacheArray;
-    FAtMediaCacheCount: integer;
     // rule buckets, based on the rightmost identifier of each selector;
     // (re)built lazily by Compute when FRuleBucketsValid is false
     FBucketOther: TCSSRuleBucket;
@@ -483,7 +476,7 @@ type
     FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
-    FRuleBucketsValid: boolean; // false when FLayers changed and buckets/@media cache need a rebuild
+    FRuleBucketsValid: boolean; // false when FLayers changed and the buckets need a rebuild
     // all selectors whose subject match depends on siblings/position/descendants;
     // (re)built lazily with the rule buckets, used by MatchSiblingSelectors
     FSiblingSelectors: TCSSSiblingSelectorArray;
@@ -511,7 +504,9 @@ type
     // CSSSpecificityNoMatch if there is none or it does not match
     procedure ComputeAtRule(aRule: TCSSAtRuleElement;
       ParentSpecificity: TCSSSpecificity = CSSSpecificityNoMatch); virtual;
-    function ComputeAtMediaSpecificity(aRule: TCSSAtRuleElement): TCSSSpecificity; virtual;
+    // Result: true if one of the media queries of aRule matches. The result is cached
+    // in TCSSRuleData.MediaResult and only recomputed after InvalidateMedia.
+    function AtMediaMatches(aRule: TCSSAtRuleElement): boolean; virtual;
     // @starting-style, see ComputeStartingStyle
     function StartingStyleContextMatches(aRule: TCSSAtRuleElement;
       out Specificity: TCSSSpecificity): boolean; virtual;
@@ -519,10 +514,11 @@ type
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
-    function MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
-    function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity; virtual;
-    function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
-    function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
+    // a media query either matches or not, it has no specificity of its own
+    function MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement): boolean; virtual;
+    function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): boolean; virtual;
+    function MediaSelectorMatches(aSelector: TCSSElement): boolean; virtual;
+    function MediaSelectorListMatches(aList: TCSSListElement): boolean; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
@@ -558,12 +554,9 @@ type
     // resolving identifiers
     function ResolveIdentifier(El: TCSSResolvedIdentifierElement; aKind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
-    // @media caching
-    procedure EvalGlobalAtRules; virtual; // evaluate all @media rules once
-    function FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
     // rule buckets
     procedure ClearRuleBuckets; virtual;
-    procedure UpdateRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
+    procedure UpdateRuleBuckets; virtual; // rebuild the buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure CollectStartingStyleRules(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
@@ -681,6 +674,10 @@ type
     function InsertStyleSheet(Index: integer; anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
     procedure ReplaceStyleSheet(Index: integer; const NewSource: TCSSString); virtual;
     procedure DeleteStyleSheet(Index: integer); virtual;
+    // Call after a value used by HasMediaBoolean/IsMediaPlain/MediaCompare changed
+    // (viewport size, colour scheme, orientation, ...), so the cached @media results
+    // are recomputed on the next resolve. Cheap: no rule buckets are rebuilt.
+    procedure InvalidateMedia; virtual;
     // Force @media rules and rule buckets to be re-evaluated on the next resolve,
     // even when no stylesheet text changed (e.g. the colour scheme flipped).
     procedure InvalidateRuleBuckets; virtual;
@@ -710,6 +707,9 @@ type
     // changed (Add/Insert/Delete, or Replace with a differing source). Snapshot
     // and compare to detect a real change without re-parsing.
     property StyleSheetsStamp: integer read FStyleSheetStamp;
+    // Always >0, bumped by InvalidateMedia. A TCSSRuleData.MediaResult is valid
+    // as long as its MediaStamp equals this.
+    property MediaStamp: integer read FMediaStamp;
     property Layers: TLayerArray read FLayers;
   public
     // logging
@@ -1459,7 +1459,7 @@ var
 begin
   case aRule.AtKeyWord of
   '@media':
-    if ComputeAtMediaSpecificity(aRule)<0 then
+    if not AtMediaMatches(aRule) then
       exit; // the media query does not match -> nothing inside applies
   '@starting-style':
     // only used by ComputeStartingStyle, never by the normal cascade
@@ -1494,20 +1494,32 @@ begin
   end;
 end;
 
-function TCSSResolver.ComputeAtMediaSpecificity(aRule: TCSSAtRuleElement
-  ): TCSSSpecificity;
-// the best specificity of the media queries of aRule, CSSSpecificityNoMatch if none matches
+function TCSSResolver.AtMediaMatches(aRule: TCSSAtRuleElement): boolean;
+// true if one of the media queries of aRule matches.
+// The media environment (see the HasMediaBoolean/IsMediaPlain/MediaCompare events)
+// changes rarely, while this is called for every node, so the result is cached in
+// the rule's TCSSRuleData and only recomputed after InvalidateMedia.
 var
+  RData: TCSSRuleData;
   i: Integer;
-  Specificity: TCSSSpecificity;
 begin
-  if FindAtMediaCached(aRule,Result) then exit;
-  Result:=CSSSpecificityNoMatch;
+  RData:=RuleData(aRule);
+  if (RData<>nil) and (RData.MediaStamp=FMediaStamp) then
+    exit(RData.MediaResult);
+
+  Result:=false;
   for i:=0 to aRule.SelectorCount-1 do
+    if MediaSelectorMatches(aRule.Selectors[i]) then
+    begin
+      Result:=true;
+      break;
+    end;
+
+  // RData=nil: the rule was created by a parser without CSSRuleDataClass -> no cache
+  if RData<>nil then
   begin
-    Specificity:=MediaSelectorMatches(aRule.Selectors[i]);
-    if Specificity>Result then
-      Result:=Specificity;
+    RData.MediaResult:=Result;
+    RData.MediaStamp:=FMediaStamp;
   end;
 end;
 
@@ -1539,7 +1551,7 @@ begin
     begin
       case TCSSAtRuleElement(El).AtKeyWord of
       '@media':
-        if ComputeAtMediaSpecificity(TCSSAtRuleElement(El))<0 then exit;
+        if not AtMediaMatches(TCSSAtRuleElement(El)) then exit;
       '@starting-style': ; // nested @starting-style: no extra condition
       else
         exit; // unknown @-rule, e.g. @supports -> dropped, like in ComputeAtRule
@@ -1647,11 +1659,10 @@ begin
 end;
 
 function TCSSResolver.MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement
-  ): TCSSSpecificity;
+  ): boolean;
 var
   KW: TCSSNumericalID;
 begin
-  Result:=CSSSpecificityNoMatch;
   KW:=aIdentifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
   if KW>0 then
@@ -1659,11 +1670,10 @@ begin
   else
     writeln('TCSSResolver.MediaSelectorIdentifierMatches ',aIdentifier.Value,' unknown');
   {$ENDIF}
-  if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
-    Result:=FSourceSpecificity;
+  Result:=Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW);
 end;
 
-function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity;
+function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): boolean;
 
   function GetCompValue(El: TCSSElement; out aValue: TCSSResCompValue): boolean;
   var
@@ -1741,7 +1751,7 @@ var
   aValue, aValue2: TCSSResCompValue;
   LeftBin: TCSSBinaryElement;
 begin
-  Result:=CSSSpecificityNoMatch;
+  Result:=false;
   if aBinary.Left is TCSSBinaryElement then
   begin
     // interval: value1 op1 name op2 value2, e.g. (100px <= width < 1000px)
@@ -1755,8 +1765,7 @@ begin
     if not GetCompValue(aBinary.Right,aValue2) then exit; // value2
     // check both bounds; inner is value-on-left, outer is name-on-left
     if not RangeCmpMatches(KW,aValue,LeftBin.Operation,true) then exit;
-    if RangeCmpMatches(KW,aValue2,aBinary.Operation,false) then
-      Result:=FSourceSpecificity;
+    Result:=RangeCmpMatches(KW,aValue2,aBinary.Operation,false);
   end
   else if aBinary.Left is TCSSResolvedIdentifierElement then
   begin
@@ -1767,11 +1776,9 @@ begin
     case aBinary.Operation of
     boColon:
       // plain name:value, e.g. (orientation: portrait)
-      if Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue) then
-        Result:=FSourceSpecificity;
+      Result:=Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue);
     boEquals,boLT,boLE,boGT,boGE:
-      if RangeCmpMatches(KW,aValue,aBinary.Operation,false) then
-        Result:=FSourceSpecificity;
+      Result:=RangeCmpMatches(KW,aValue,aBinary.Operation,false);
     end;
   end
   else if aBinary.Right is TCSSResolvedIdentifierElement then
@@ -1782,18 +1789,18 @@ begin
     if not GetCompValue(aBinary.Left,aValue) then exit;
     case aBinary.Operation of
     boEquals,boLT,boLE,boGT,boGE:
-      if RangeCmpMatches(KW,aValue,aBinary.Operation,true) then
-        Result:=FSourceSpecificity;
+      Result:=RangeCmpMatches(KW,aValue,aBinary.Operation,true);
     end;
   end;
 end;
 
-function TCSSResolver.MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity;
+function TCSSResolver.MediaSelectorMatches(aSelector: TCSSElement): boolean;
 var
   C: TClass;
 begin
   // Note: if this is a nested rule: the parent rule was already checked if it matches
 
+  Result:=false;
   C:=aSelector.ClassType;
   if C=TCSSResolvedIdentifierElement then
     Result:=MediaSelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector))
@@ -1809,15 +1816,14 @@ begin
   end;
 end;
 
-function TCSSResolver.MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity;
+function TCSSResolver.MediaSelectorListMatches(aList: TCSSListElement): boolean;
 var
   i: Integer;
   El: TCSSElement;
-  Specificity: TCSSSpecificity;
   KW: TCSSNumericalID;
   IsOr: boolean;
 begin
-  Result:=0;
+  Result:=false;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.MediaSelectorListMatches ChildCount=',aList.ChildCount);
   {$ENDIF}
@@ -1825,14 +1831,7 @@ begin
   // 'not' list: [not, condition] -> match if condition does NOT match
   if (aList.ChildCount=2) and (aList.Children[0] is TCSSResolvedIdentifierElement) and
       (TCSSResolvedIdentifierElement(aList.Children[0]).NumericalID=CSSKeywordNot) then
-  begin
-    Specificity:=MediaSelectorMatches(aList.Children[1]);
-    if Specificity<0 then
-      Result:=FSourceSpecificity
-    else
-      Result:=CSSSpecificityNoMatch;
-    exit;
-  end;
+    exit(not MediaSelectorMatches(aList.Children[1]));
 
   // detect connector: 'and' or 'or' (check first connector found)
   IsOr:=false;
@@ -1854,20 +1853,19 @@ begin
   if IsOr then
   begin
     // OR: match if any condition matches
-    Result:=CSSSpecificityNoMatch;
     for i:=0 to aList.ChildCount-1 do
     begin
       El:=aList.Children[i];
       if (El is TCSSResolvedIdentifierElement) and
           (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordOr) then
         continue;
-      Specificity:=MediaSelectorMatches(El);
-      if Specificity>=0 then
-        exit(Specificity);
+      if MediaSelectorMatches(El) then
+        exit(true);
     end;
   end else
   begin
     // AND: all conditions must match; skip 'and' connectors
+    Result:=true;
     for i:=0 to aList.ChildCount-1 do
     begin
       El:=aList.Children[i];
@@ -1877,10 +1875,8 @@ begin
       if (El is TCSSResolvedIdentifierElement) and
           (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordAnd) then
         continue;
-      Specificity:=MediaSelectorMatches(El);
-      if Specificity<0 then
-        exit(Specificity);
-      inc(Result,Specificity);
+      if not MediaSelectorMatches(El) then
+        exit(false);
     end;
   end;
 end;
@@ -3963,6 +3959,7 @@ begin
   FCSSClassNameToID:=TFPHashList.Create;
   FCSSIDNameToIndex:=TFPHashList.Create;
   FCSSClassIDStamp:=1;
+  FMediaStamp:=1;
 end;
 
 procedure TCSSResolver.ChangeCSSClassIDStamp;
@@ -4003,8 +4000,9 @@ begin
 
   // todo: if CSSRegistry has changed, reparse all stylesheets
 
-  // Note: the @media cache and rule buckets are built lazily in Compute (see
-  // UpdateRuleBuckets), because the stylesheets are added to FLayers after Init.
+  // Note: the rule buckets are built lazily in Compute (see UpdateRuleBuckets),
+  // because the stylesheets are added to FLayers after Init.
+  // The @media results are computed lazily per rule as well, see AtMediaMatches.
 
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
@@ -4167,80 +4165,6 @@ begin
   end;
 end;
 
-procedure TCSSResolver.EvalGlobalAtRules;
-
-  procedure CollectEl(El: TCSSElement);
-  var
-    C: TClass;
-    AtRule: TCSSAtRuleElement;
-    j: integer;
-    BestSpec, Spec: TCSSSpecificity;
-    l: SizeInt;
-  begin
-    if El=nil then exit;
-    C:=El.ClassType;
-    if C=TCSSCompoundElement then
-    begin
-      for j:=0 to TCSSCompoundElement(El).ChildCount-1 do
-        CollectEl(TCSSCompoundElement(El).Children[j]);
-    end else if C.InheritsFrom(TCSSAtRuleElement) then
-    begin
-      AtRule:=TCSSAtRuleElement(El);
-      if AtRule.AtKeyWord='@media' then
-      begin
-        BestSpec:=CSSSpecificityNoMatch;
-        for j:=0 to AtRule.SelectorCount-1 do
-        begin
-          Spec:=MediaSelectorMatches(AtRule.Selectors[j]);
-          if Spec>BestSpec then
-            BestSpec:=Spec;
-        end;
-        l:=length(FAtMediaCache);
-        if FAtMediaCacheCount=l then
-        begin
-          if l<8 then l:=8 else l:=l*2;
-          SetLength(FAtMediaCache,l);
-        end;
-        FAtMediaCache[FAtMediaCacheCount].Rule:=AtRule;
-        FAtMediaCache[FAtMediaCacheCount].Specificity:=BestSpec;
-        inc(FAtMediaCacheCount);
-        // recurse for nested @media
-        for j:=0 to AtRule.NestedRuleCount-1 do
-          if AtRule.NestedRules[j] is TCSSAtRuleElement then
-            CollectEl(AtRule.NestedRules[j]);
-      end;
-    end else if CSSIsPlainRule(C) then
-    begin
-      for j:=0 to TCSSRuleElement(El).NestedRuleCount-1 do
-        if TCSSRuleElement(El).NestedRules[j] is TCSSAtRuleElement then
-          CollectEl(TCSSRuleElement(El).NestedRules[j]);
-    end;
-  end;
-
-var
-  aLayerIndex, i: integer;
-begin
-  FAtMediaCacheCount:=0;
-  for aLayerIndex:=0 to length(FLayers)-1 do
-    with FLayers[aLayerIndex] do
-      for i:=0 to ElementCount-1 do
-        CollectEl(Elements[i].Element);
-end;
-
-function TCSSResolver.FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
-var
-  i: integer;
-begin
-  for i:=0 to FAtMediaCacheCount-1 do
-    if FAtMediaCache[i].Rule=aRule then
-    begin
-      Specificity:=FAtMediaCache[i].Specificity;
-      exit(true);
-    end;
-  Result:=false;
-  Specificity:=CSSSpecificityNoMatch;
-end;
-
 procedure TCSSResolver.ClearRuleBuckets;
 var
   i: Integer;
@@ -4266,14 +4190,25 @@ end;
 procedure TCSSResolver.UpdateRuleBuckets;
 begin
   if FRuleBucketsValid then exit;
-  EvalGlobalAtRules;
   BuildRuleBuckets;
+end;
+
+procedure TCSSResolver.InvalidateMedia;
+begin
+  { Note: on wrap-around a TCSSRuleData that was last computed at stamp 1 and never
+    since would be treated as valid. That needs high(integer) invalidations without a
+    single reparse of the stylesheet, so it is accepted. }
+  if FMediaStamp<high(FMediaStamp) then
+    inc(FMediaStamp)
+  else
+    FMediaStamp:=1;
 end;
 
 procedure TCSSResolver.InvalidateRuleBuckets;
 begin
   { Drop the cached @media results and buckets so the next resolve rebuilds them.
     Needed when the media environment changed but the stylesheet text did not. }
+  InvalidateMedia;
   ClearRuleBuckets;
 end;
 

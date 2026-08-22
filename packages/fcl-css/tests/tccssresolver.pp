@@ -401,19 +401,23 @@ type
     procedure OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEntry);
   protected
     procedure ApplyTypeStyles; virtual;
+    procedure SetHeight(const AValue: integer); virtual;
     procedure SetStyle(const AValue: TCSSString); virtual;
+    procedure SetWidth(const AValue: integer); virtual;
   public
     Root: TDemoNode;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyStyle; virtual;
+    // resolve all nodes again, without touching the stylesheets
+    procedure Resolve; virtual;
 
     property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
     property MediaEvalCount: integer read FMediaEvalCount;
-    property Width: integer read FWidth write FWidth;
-    property Height: integer read FHeight write FHeight;
+    property Width: integer read FWidth write SetWidth;
+    property Height: integer read FHeight write SetHeight;
   end;
 
   { TCustomTestCSSResolver }
@@ -425,6 +429,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure ApplyStyle; virtual;
+    procedure ReResolve; virtual;
     procedure CheckWarnings; virtual;
     function AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
     function AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
@@ -615,6 +620,7 @@ type
     procedure TestRes_Media_NestedInRuleSpecificity; // the @media declarations beat the rule's own
     procedure TestRes_Media_NestedInRuleNotMatching; // the @media declarations need the rule to match
     procedure TestRes_Media_EvalOncePerInit;
+    procedure TestRes_Media_CachedUntilInvalidateMedia;
     procedure TestRes_Media_ReplaceStyleSheet;
     // todo procedure TestRes_Media_Only
 
@@ -854,10 +860,26 @@ end;
 
 { TDemoDocument }
 
+procedure TDemoDocument.SetHeight(const AValue: integer);
+begin
+  if FHeight=AValue then Exit;
+  FHeight:=AValue;
+  // a value used by the @media events changed -> drop the cached @media results
+  FCSSResolver.InvalidateMedia;
+end;
+
 procedure TDemoDocument.SetStyle(const AValue: TCSSString);
 begin
   if FStyle=AValue then Exit;
   FStyle:=AValue;
+end;
+
+procedure TDemoDocument.SetWidth(const AValue: integer);
+begin
+  if FWidth=AValue then Exit;
+  FWidth:=AValue;
+  // a value used by the @media events changed -> drop the cached @media results
+  FCSSResolver.InvalidateMedia;
 end;
 
 constructor TDemoDocument.Create(AOwner: TComponent);
@@ -884,6 +906,14 @@ begin
 end;
 
 procedure TDemoDocument.ApplyStyle;
+begin
+  ApplyTypeStyles;
+
+  CSSResolver.AddStyleSheet(cssoAuthor,'test.css',Style);
+  Resolve;
+end;
+
+procedure TDemoDocument.Resolve;
 
   procedure Traverse(Node: TDemoNode);
   var
@@ -895,9 +925,6 @@ procedure TDemoDocument.ApplyStyle;
   end;
 
 begin
-  ApplyTypeStyles;
-
-  CSSResolver.AddStyleSheet(cssoAuthor,'test.css',Style);
   FMediaEvalCount:=0;
   CSSResolver.Init;
   Traverse(Root);
@@ -941,8 +968,12 @@ begin
       exit(Cmp=0);
     end;
   TDemoCSSRegistry.kwOrientation:
-     if (aValue.Kind=rvkKeyword) and (aValue.KeywordID=TDemoCSSRegistry.kwPortrait) then
-       Result:=true;
+    begin
+      // the length branch above counts via MediaCompare, this one counts itself
+      inc(FMediaEvalCount);
+      if (aValue.Kind=rvkKeyword) and (aValue.KeywordID=TDemoCSSRegistry.kwPortrait) then
+        Result:=true;
+    end;
   else exit;
   end;
 end;
@@ -954,6 +985,7 @@ var
   LeftType: TDemoMediaRangeType;
   LeftValue, RightValue: double;
 begin
+  inc(FMediaEvalCount);
   Result:=false;
 
   LeftType:=dmrtNone;
@@ -1887,6 +1919,12 @@ end;
 procedure TCustomTestCSSResolver.ApplyStyle;
 begin
   Doc.ApplyStyle;
+  CheckWarnings;
+end;
+
+procedure TCustomTestCSSResolver.ReResolve;
+begin
+  Doc.Resolve;
   CheckWarnings;
 end;
 
@@ -5041,13 +5079,44 @@ begin
   Div2:=AddDiv('Div2',Doc.Root);
   Div3:=AddDiv('Div3',Doc.Root);
 
-  // one @media rule with one boolean selector -> HasMediaBoolean called once in Init
+  // one @media rule with one boolean selector -> HasMediaBoolean called once,
+  // no matter how many nodes are resolved
   Doc.Style:='@media screen { div{ width: 10px; } }';
   ApplyStyle;
   AssertEquals('Div1.Width','10px',Div1.Width);
   AssertEquals('Div2.Width','10px',Div2.Width);
   AssertEquals('Div3.Width','10px',Div3.Width);
   AssertEquals('MediaEvalCount',1,Doc.MediaEvalCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_CachedUntilInvalidateMedia;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // two @media rules, each with one range query -> MediaCompare called twice
+  Doc.Style:=LinesToStr([
+  '@media (width > 500px) { div{ width: 10px; } }',
+  '@media (width < 500px) { div{ width: 20px; } }',
+  '']);
+  ApplyStyle; // Doc.Width is 800
+  AssertEquals('Div1.Width wide','10px',Div1.Width);
+  AssertEquals('MediaEvalCount first',2,Doc.MediaEvalCount);
+
+  // resolve again without touching the stylesheet -> the cached results are reused
+  ReResolve;
+  AssertEquals('Div1.Width wide cached','10px',Div1.Width);
+  AssertEquals('MediaEvalCount cached',0,Doc.MediaEvalCount);
+
+  // a media relevant value changed -> the setter calls InvalidateMedia
+  Doc.Width:=400;
+  ReResolve;
+  AssertEquals('Div1.Width narrow','20px',Div1.Width);
+  AssertEquals('MediaEvalCount after invalidate',2,Doc.MediaEvalCount);
 end;
 
 procedure TTestCSSResolver.TestRes_Media_ReplaceStyleSheet;
