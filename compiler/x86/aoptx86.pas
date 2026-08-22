@@ -165,7 +165,7 @@ unit aoptx86;
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
-        class function IsExitCode(p : tai) : boolean; static;
+        function IsExitCode(p : tai) : boolean;
         class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean; static;
         class function IsShrMovZFoldable(shr_size, movz_size: topsize; Shift: TCGInt): Boolean; static;
         procedure RemoveLastDeallocForFuncRes(p : tai);
@@ -2313,9 +2313,7 @@ unit aoptx86;
       end;
 
 
-    class function TX86AsmOptimizer.IsExitCode(p : tai) : boolean;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TX86AsmOptimizer.IsExitCode(p : tai) : boolean;
       var
         hp2,hp3 : tai;
       begin
@@ -2338,18 +2336,18 @@ unit aoptx86;
          ) or
          ((((taicpu(p).opcode=A_MOV) and
            MatchOpType(taicpu(p),top_reg,top_reg) and
-           (taicpu(p).oper[0]^.reg=_compiler.current_procinfo.framepointer) and
+           (taicpu(p).oper[0]^.reg=compiler.current_procinfo.framepointer) and
            (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)) or
            ((taicpu(p).opcode=A_LEA) and
            MatchOpType(taicpu(p),top_ref,top_reg) and
-           (taicpu(p).oper[0]^.ref^.base=_compiler.current_procinfo.framepointer) and
+           (taicpu(p).oper[0]^.ref^.base=compiler.current_procinfo.framepointer) and
            (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)
            )
           ) and
           GetNextInstruction(p,hp2) and
-          MatchInstruction(hp2,A_POP,[reg2opsize(_compiler.current_procinfo.framepointer)]) and
+          MatchInstruction(hp2,A_POP,[reg2opsize(compiler.current_procinfo.framepointer)]) and
           MatchOpType(taicpu(hp2),top_reg) and
-          (taicpu(hp2).oper[0]^.reg=_compiler.current_procinfo.framepointer) and
+          (taicpu(hp2).oper[0]^.reg=compiler.current_procinfo.framepointer) and
           GetNextInstruction(hp2,hp3) and
           MatchInstruction(hp3,A_RET,[S_NO])
          )
