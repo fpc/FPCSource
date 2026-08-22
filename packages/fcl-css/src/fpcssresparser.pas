@@ -328,17 +328,11 @@ type
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
 
-  { TCSSRuleData - TCSSElement.CustomData of TCSSRuleElement and TCSSAtRuleElement }
+  { TCSSRuleParserData - TCSSElement.CustomData of TCSSRuleElement and TCSSAtRuleElement }
 
-  TCSSRuleData = class(TCSSElementOwnedData)
-  public
-    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
-      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
-    // @media at-rules only, maintained by TCSSResolver.AtMediaMatches:
-    MediaResult: boolean; // cached result of the media condition
-    MediaStamp: integer; // only valid if equal to TCSSResolver.MediaStamp, 0 = never computed
+  TCSSRuleParserData = class(TCSSElementOwnedData)
   end;
-  TCSSRuleDataClass = class of TCSSRuleData;
+  TCSSRuleDataClass = class of TCSSRuleParserData;
 
   TCSSBaseResolver = class;
   TCSSResolverParser = class;
@@ -3809,7 +3803,7 @@ begin
   CSSCallElementClass:=TCSSResolvedCallElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;
-  CSSRuleDataClass:=TCSSRuleData;
+  CSSRuleDataClass:=TCSSRuleParserData;
 end;
 
 destructor TCSSResolverParser.Destroy;

@@ -125,6 +125,7 @@ const
   CSSSpecificityNoMatch = -1;
   CSSSpecificityUniversal = 0;
   CSSSpecificityType = 1;
+  CSSSpecificityPseudoElement = CSSSpecificityType; // a pseudo element e.g. ::first-line counts as a type selector
   CSSSpecificityClass = 10; // includes attribute selectors e.g. [href]
   CSSSpecificityIdentifier = 100;
   CSSSpecificityUserAgent = 1000;
@@ -276,6 +277,15 @@ type
     function IndexOf(AttrID: TCSSNumericalID): integer;
     procedure SetComputedValue(AttrID: TCSSNumericalID; const aTokens: TBytes);
     destructor Destroy; override;
+  end;
+
+  TCSSRuleData = class(TCSSRuleParserData)
+  public
+    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
+      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
+    // @media at-rules only, maintained by TCSSResolver.AtMediaMatches:
+    MediaResult: boolean; // cached result of the media condition
+    MediaStamp: integer; // only valid if equal to TCSSResolver.MediaStamp, 0 = never computed
   end;
 
   TCSSResolverNthChildParamsCacheItem = record
@@ -455,6 +465,11 @@ type
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
     FMergedAllDecl: TCSSDeclarationElement;
     FMergedAllSpecificity: TCSSSpecificity;
+    // Origin specificity of the layer of the rule currently being matched, see
+    // CSSOriginToSpecifity. The Selector*Matches functions return the plain CSS
+    // specificity; this is added once per rule by ComputeRule. It is only valid
+    // during a Compute run, where the caller takes it from the rule's bucket item;
+    // outside use GetRuleSourceSpecificity.
     FSourceSpecificity: TCSSSpecificity;
     FCSSRegistryStamp: TCSSNumericalID;
     FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
@@ -637,8 +652,12 @@ type
     // Match all sibling/positional selectors against Node (cheap: only the usually-small
     // sibling-selector set is evaluated, not the full bucketed cascade).
     function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
-    // The specificity of aRule for aNode: the best of its selectors, or
-    // CSSSpecificityNoMatch when none matches (e.g. a selectorless inline rule).
+    // The origin specificity of the stylesheet containing aRule, see CSSOriginToSpecifity.
+    // 0 if aRule belongs to none of the stylesheets, e.g. an element style.
+    function GetRuleSourceSpecificity(aRule: TCSSRuleElement): TCSSSpecificity; virtual;
+    // The specificity of aRule for aNode: the best of its selectors plus the origin
+    // of aRule's stylesheet, or CSSSpecificityNoMatch when none matches (e.g. a
+    // selectorless inline rule).
     function GetRuleSpecificity(aRule: TCSSRuleElement; const aNode: ICSSNode): TCSSSpecificity; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
@@ -1282,6 +1301,7 @@ begin
     aParser.OnLog:=@Log;
     aParser.Scanner.OnWarn:=@DoCSSWarn;
     aParser.CSSNthChildParamsClass:=TCSSResolverNthChildParams;
+    aParser.CSSRuleDataClass:=TCSSRuleData;
     if Inline then
       Result:=aParser.ParseInline
     else
@@ -1388,6 +1408,27 @@ begin
     Log(etWarning,20220908150252,'TCSSResolver.ComputeElement: Unknown CSS element',El);
 end;
 
+function TCSSResolver.GetRuleSourceSpecificity(aRule: TCSSRuleElement
+  ): TCSSSpecificity;
+// Look up the origin of aRule's stylesheet. Unlike FSourceSpecificity this does not
+// depend on a running Compute, so it also works for a caller like a style inspector.
+var
+  El: TCSSElement;
+  i, j: Integer;
+begin
+  Result:=0;
+  if aRule=nil then exit;
+  // the layers store the top level element of each stylesheet
+  El:=aRule;
+  while El.Parent<>nil do
+    El:=El.Parent;
+  for i:=0 to length(FLayers)-1 do
+    with FLayers[i] do
+      for j:=0 to ElementCount-1 do
+        if Elements[j].Element=El then
+          exit(CSSOriginToSpecifity[Origin]);
+end;
+
 function TCSSResolver.GetRuleSpecificity(aRule: TCSSRuleElement;
   const aNode: ICSSNode): TCSSSpecificity;
 var
@@ -1410,6 +1451,11 @@ begin
   finally
     FNode:=SavedNode;
   end;
+  // the origin of the rule's stylesheet is added once per rule, not once per
+  // selector component. FSourceSpecificity is not used here, because this is also
+  // called from outside a Compute run, where it holds a stale value.
+  if Result>=0 then
+    inc(Result,GetRuleSourceSpecificity(aRule));
 end;
 
 procedure TCSSResolver.ComputeRule(aRule: TCSSRuleElement);
@@ -1433,6 +1479,9 @@ begin
 
   if BestSpecificity>=0 then
   begin
+    // the origin of the rule's stylesheet is added once per rule, not once per
+    // selector component, see FSourceSpecificity
+    inc(BestSpecificity,FSourceSpecificity);
     // match -> add rule to ruleset
     AddRule(aRule,BestSpecificity);
   end;
@@ -2188,9 +2237,9 @@ begin
   {$ENDIF}
   if TypeID=CSSTypeID_Universal then
     // universal selector
-    Result:=CSSSpecificityUniversal+FSourceSpecificity
+    Result:=CSSSpecificityUniversal
   else if OnlySpecificity then
-    Result:=CSSSpecificityType+FSourceSpecificity
+    Result:=CSSSpecificityType
   else if TypeID=CSSIDNone then
   begin
     // already warned by parser
@@ -2199,7 +2248,7 @@ begin
     {$ENDIF}
     Result:=CSSSpecificityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
-    Result:=CSSSpecificityType+FSourceSpecificity;
+    Result:=CSSSpecificityType;
 end;
 
 function TCSSResolver.SelectorAndWhitespaceMatches(aRightSelector: TCSSElement;
@@ -2427,11 +2476,11 @@ var
   aID: TCSSNumericalID;
 begin
   if OnlySpecificity then
-    exit(CSSSpecificityIdentifier+FSourceSpecificity);
+    exit(CSSSpecificityIdentifier);
   Result:=CSSSpecificityNoMatch;
   aID:=TCSSResolvedHashIdentifierElement(aIdentifier).NumericalID;
   if (aID>=1) and (TestNode.GetCSSID=aID) then
-    Result:=CSSSpecificityIdentifier+FSourceSpecificity;
+    Result:=CSSSpecificityIdentifier;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
@@ -2439,9 +2488,9 @@ function TCSSResolver.SelectorClassNameMatches(
   OnlySpecificity: boolean): TCSSSpecificity;
 begin
   if OnlySpecificity then
-    exit(CSSSpecificityClass+FSourceSpecificity);
+    exit(CSSSpecificityClass);
   if TestNode.HasCSSClass(aClassName.NumericalID) then
-    Result:=CSSSpecificityClass+FSourceSpecificity
+    Result:=CSSSpecificityClass
   else
     Result:=CSSSpecificityNoMatch;
   //writeln('TCSSResolver.SelectorClassNameMatches ',aClassName.Name,' ',Result);
@@ -2453,7 +2502,7 @@ var
   PseudoID: TCSSNumericalID;
 begin
   if OnlySpecificity then
-    exit(CSSSpecificityClass+FSourceSpecificity);
+    exit(CSSSpecificityClass);
   Result:=CSSSpecificityNoMatch;
   PseudoID:=aPseudoClass.NumericalID;
   case PseudoID of
@@ -2466,33 +2515,33 @@ begin
     end;
   CSSPseudoID_Root:
     if TestNode.GetCSSParent=nil then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_Empty:
     if TestNode.GetCSSEmpty then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_FirstChild:
     if TestNode.GetCSSPreviousSibling=nil then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_LastChild:
     if TestNode.GetCSSNextSibling=nil then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_OnlyChild:
     if (TestNode.GetCSSNextSibling=nil)
         and (TestNode.GetCSSPreviousSibling=nil) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_FirstOfType:
     if TestNode.GetCSSPreviousOfType=nil then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_LastOfType:
     if TestNode.GetCSSNextOfType=nil then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   CSSPseudoID_OnlyOfType:
     if (TestNode.GetCSSNextOfType=nil)
         and (TestNode.GetCSSPreviousOfType=nil) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   else
     if TestNode.HasCSSPseudoClass(PseudoID) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   end;
 end;
 
@@ -2543,9 +2592,8 @@ begin
     begin
       // ::PseudoElement
       if OnlySpecificity then
-        // treat as Type::PseudoElement
-        Result:=CSSSpecificityType+FSourceSpecificity
-               +CSSSpecificityType+FSourceSpecificity
+        // same as *::PseudoElement, the universal selector adds nothing
+        Result:=CSSSpecificityPseudoElement
       else
         Result:=SelectorPseudoElementMatches(nil,aUnary.Right,TestNode);
     end;
@@ -2566,7 +2614,12 @@ begin
   if OnlySpecificity then
   begin
     Result:=SelectorMatches(aBinary.Left,TestNode,true);
-    inc(Result,SelectorMatches(aBinary.Right,TestNode,true));
+    if aBinary.Operation=boDoubleColon then
+      // the right side is a pseudo element (function), whose numerical ID belongs
+      // to the pseudo element namespace and must not be resolved as a type/call
+      inc(Result,CSSSpecificityPseudoElement)
+    else
+      inc(Result,SelectorMatches(aBinary.Right,TestNode,true));
     exit;
   end;
 
@@ -2671,7 +2724,7 @@ begin
     end;
     if ID<>TestNode.GetCSSPseudoElementID then
       exit(CSSSpecificityNoMatch);
-    Result:=CSSSpecificityIdentifier;
+    Result:=CSSSpecificityPseudoElement;
   end else if aRight is TCSSResolvedCallElement then begin
     // pseudo element function
     ID:=TCSSResolvedCallElement(aRight).NameNumericalID;
@@ -2686,7 +2739,7 @@ begin
     if ID<>TestNode.GetCSSPseudoElementID then
       exit(CSSSpecificityNoMatch);
     // todo: check parameters
-    Result:=CSSSpecificityIdentifier;
+    Result:=CSSSpecificityPseudoElement;
   end else begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -2720,7 +2773,7 @@ var
   aValue: TCSSString;
 begin
   if OnlySpecificity then
-    exit(CSSSpecificityClass+FSourceSpecificity);
+    exit(CSSSpecificityClass);
 
   Result:=CSSSpecificityInvalid;
   if anArray.Prefix<>nil then
@@ -2791,13 +2844,13 @@ begin
       CSSAttributeID_ID,
       CSSAttributeID_Class:
         // id and class are always defined
-        Result:=CSSSpecificityClass+FSourceSpecificity;
+        Result:=CSSSpecificityClass;
       CSSAttributeID_All:
         // special CSS attributes without a value
         Result:=CSSSpecificityNoMatch;
       else
         if TestNode.HasCSSExplicitAttribute(AttrID) then
-          Result:=CSSSpecificityClass+FSourceSpecificity
+          Result:=CSSSpecificityClass
         else
           Result:=CSSSpecificityNoMatch;
       end;
@@ -2868,29 +2921,29 @@ begin
   case aBinary.Operation of
   boEquals:
     if SameValueText(LeftValue,RightValue) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   boSquaredEqual:
     // begins with
     if (RightValue<>'') and SameValueText(LeftStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   boDollarEqual:
     // ends with
     if (RightValue<>'') and SameValueText(RightStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   boPipeEqual:
     // equal to or starts with name-hyphen
     if (RightValue<>'')
         and (SameValueText(LeftValue,RightValue)
           or SameValueText(LeftStr(LeftValue,length(RightValue)+1),RightValue+'-')) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   boStarEqual:
     // contains substring
     if (RightValue<>'') and (Pos(RightValue,LeftValue)>0) then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   boTildeEqual:
     // contains word
     if PosWord(RightValue,LeftValue)>0 then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   else
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -3020,7 +3073,7 @@ begin
     exit(CSSSpecificityInvalid);
 
   if OnlySpecificity then
-    Result:=CSSSpecificityClass+FSourceSpecificity
+    Result:=CSSSpecificityClass
   else
     Result:=CSSSpecificityInvalid;
 
@@ -3059,13 +3112,13 @@ begin
   begin
     // plain integer B (a=0): match exactly the B-th sibling, e.g. nth-child(2)
     if i=0 then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   end
   else if i mod Params.Modulo = 0 then
   begin
     i:=i div Params.Modulo;
     if i>=0 then
-      Result:=CSSSpecificityClass+FSourceSpecificity;
+      Result:=CSSSpecificityClass;
   end;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.Call_NthChild Node=',TestNode.GetCSSID,' ',Params.Modulo,' * N + ',Params.Start,' Index=',TestNode.GetCSSIndex+1,' i=',i,' Result=',Result);

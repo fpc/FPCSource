@@ -540,6 +540,8 @@ type
 
     // Specificity
     procedure TestRes_Specificity_Id_Class;
+    procedure TestRes_Specificity_IdBeatsDescendantClasses;
+    procedure TestRes_Specificity_ElementStyleBeatsLongSelector;
     procedure TestRes_Specificity_Important;
     procedure TestRes_Specificity_Shorthand_OneRule;
     procedure TestRes_Specificity_Shorthand_ClassClass;
@@ -560,6 +562,7 @@ type
     procedure TestRes_Origin_AuthorBeatsUserAgentDespiteSpecificity; // origin trumps selector specificity
     procedure TestRes_Origin_Important; // !important beats normal; among importants the last origin wins
     procedure TestRes_Origin_SourceOrderAcrossOrigins; // rules from all origins collected and sorted
+    procedure TestRes_Origin_GetRuleSpecificityUsesRuleOrigin; // works outside a Compute run
 
     // InsertStyleSheet / DeleteStyleSheet: within one origin the higher index (later
     // document order) wins the cascade tie-break
@@ -579,6 +582,8 @@ type
     procedure TestRes_PseudoElement;
     procedure TestRes_PseudoElement_Unary;
     procedure TestRes_PseudoElement_PostfixSelectNothing;
+    procedure TestRes_PseudoElement_SpecificityIsTypeLevel;
+    procedure TestRes_PseudoElement_SpecificityInForgivingSelector;
 
     // nested rules
     procedure TestRes_Nested_Hash; // #id -> Descendant combinator
@@ -3428,6 +3433,49 @@ begin
   AssertEquals('Div1.Top','8px',Div1.Top);
 end;
 
+procedure TTestCSSResolver.TestRes_Specificity_IdBeatsDescendantClasses;
+var
+  Outer, Inner: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Outer:=AddDiv('Outer',Doc.Root);
+  Outer.CSSClasses.Add('outer');
+  Inner:=AddDiv('Inner',Outer);
+  Inner.CSSClasses.Add('inner');
+
+  // an id beats two classes, no matter how many components the other selector has.
+  // The origin specificity of the stylesheet is added once per rule, so it cannot
+  // accumulate along the descendant combinator.
+  Doc.Style:=LinesToStr([
+  '#Inner { left: 1px; }',
+  '.outer .inner { left: 2px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Inner.Left','1px',Inner.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Specificity_ElementStyleBeatsLongSelector;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div2:=AddDiv('Div2',Div1);
+  Div3:=AddDiv('Div3',Div2);
+  Div4:=AddDiv('Div4',Div3);
+  Div4.InlineStyle:='left: 1px';
+
+  // an element style beats any selector: its CSSSpecificityElement must stay above
+  // the specificity of a long selector, i.e. the origin must not be added per component
+  Doc.Style:=LinesToStr([
+  'div div div div { left: 2px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div4.Left','1px',Div4.Left);
+end;
+
 procedure TTestCSSResolver.TestRes_Specificity_Important;
 var
   Div1: TDemoDiv;
@@ -3859,6 +3907,40 @@ begin
   AssertEquals('rule count across origins',5,length(Div1.Rules.Rules));
 end;
 
+procedure TTestCSSResolver.TestRes_Origin_GetRuleSpecificityUsesRuleOrigin;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules: TCSSRuleElementArray;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; }');
+  Doc.Style:='div { left: 2px; }'; // author, sheet name 'test.css'
+  ApplyStyle;
+  AssertEquals('Div1.left (author beats user-agent)','2px',Div1.Left);
+
+  // GetRuleSpecificity must take the origin of the given rule, not the one left over
+  // in FSourceSpecificity by the last Compute run
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoUserAgent,'ua.css');
+  AssertTrue('found ua.css',ShIdx>=0);
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  AssertEquals('ua.css top level rule count',1,length(Rules));
+  AssertEquals('specificity of the user-agent div rule',
+    CSSSpecificityType+CSSSpecificityUserAgent,R.GetRuleSpecificity(Rules[0],Div1));
+
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  AssertTrue('found test.css',ShIdx>=0);
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  AssertEquals('test.css top level rule count',1,length(Rules));
+  AssertEquals('specificity of the author div rule',
+    CSSSpecificityType+CSSSpecificityAuthor,R.GetRuleSpecificity(Rules[0],Div1));
+end;
+
 procedure TTestCSSResolver.TestRes_InsertStyleSheet_HigherIndexWins;
 var
   Div1: TDemoDiv;
@@ -4159,6 +4241,48 @@ begin
   AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
   AssertEquals('Div1::first-line.Color','',FirstLine.Color);
   AssertEquals('Div1::first-line.BorderColor','',FirstLine.BorderColor);
+end;
+
+procedure TTestCSSResolver.TestRes_PseudoElement_SpecificityIsTypeLevel;
+var
+  Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div2:=AddDiv('Div2',Div1);
+
+  // A pseudo element counts as a type selector, not as an id.
+  // '::first-line' never matches a div, so :not() is forgiving and contributes the
+  // specificity of its argument: one type-level component.
+  // -> 'div:not(::first-line)' = 2 = 'div div', so the later rule wins.
+  Doc.Style:=LinesToStr([
+  'div:not(::first-line) { color: red; }',
+  'div div { color: blue; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div2.Color','blue',Div2.Color);
+end;
+
+procedure TTestCSSResolver.TestRes_PseudoElement_SpecificityInForgivingSelector;
+var
+  Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div2:=AddDiv('Div2',Div1);
+
+  // 'div::first-line' contributes type+pseudo element = 2, although the numerical ID
+  // of the pseudo element lives in its own namespace and must not be resolved in the
+  // type namespace (where it could be read as the universal selector '*')
+  // -> 'div:not(div::first-line)' = 3 beats 'div div' = 2.
+  Doc.Style:=LinesToStr([
+  'div:not(div::first-line) { color: red; }',
+  'div div { color: blue; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div2.Color','red',Div2.Color);
 end;
 
 procedure TTestCSSResolver.TestRes_Nested_Hash;
