@@ -1608,9 +1608,9 @@ unit nx86add;
         ops_double: array[boolean] of tasmop = (A_COMISD,A_VCOMISD);
       begin
         if is_single(left.resultdef) then
-          op:=ops_single[UseAVX]
+          op:=ops_single[UseAVX(compiler.globals)]
         else if is_double(left.resultdef) then
-          op:=ops_double[UseAVX]
+          op:=ops_double[UseAVX(compiler.globals)]
         else
           internalerror(200402222);
         pass_left_right(ctx);
@@ -1692,7 +1692,7 @@ unit nx86add;
             { we can use only right as left operand if the operation is commutative }
             if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
               begin
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   begin
                     location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,OS_VECTOR);
                     ctx.cg.a_opmm_loc_reg_reg(ctx.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resultdef).floattype],left.location,right.location.register,location.register,nil);
@@ -1706,7 +1706,7 @@ unit nx86add;
             else
               begin
                 location_force_mmreg(ctx,ctx.CurrAsmList,left.location,false);
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   begin
                     location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,OS_VECTOR);
                     ctx.cg.a_opmm_loc_reg_reg(ctx.CurrAsmList,op,
@@ -1743,7 +1743,7 @@ unit nx86add;
       begin
         if use_vectorfpu(resultdef) then
           begin
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               second_addfloatavx(ctx)
             else
               second_addfloatsse(ctx);

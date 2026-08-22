@@ -791,8 +791,8 @@ implementation
            begin
              secondpass(left,ctx);
              if left.location.loc<>LOC_MMREGISTER then
-               ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,UseAVX);
-             if UseAVX then
+               ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,UseAVX(compiler.globals));
+             if UseAVX(compiler.globals) then
                begin
                  location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
                  location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,def_cgsize(resultdef));
@@ -806,7 +806,7 @@ implementation
                    reference_reset_symbol(href,sym,0,4,[]);
                    compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList, href);
-                   if UseAVX then
+                   if UseAVX(compiler.globals) then
                      ctx.CurrAsmList.concat(taicpu.op_ref_reg_reg(
                        A_VANDPS,S_XMM,href,left.location.register,location.register))
                    else
@@ -818,7 +818,7 @@ implementation
                    reference_reset_symbol(href,sym,0,4,[]);
                    compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList, href);
-                   if UseAVX then
+                   if UseAVX(compiler.globals) then
                      ctx.CurrAsmList.concat(taicpu.op_ref_reg_reg(
                        A_VANDPD,S_XMM,href,left.location.register,location.register))
                    else
@@ -845,7 +845,7 @@ implementation
              ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_S64);
-             if UseAVX then
+             if UseAVX(compiler.globals) then
                case left.location.size of
                  OS_F32:
                    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSS2SI,S_NO,left.location.register,location.register));
@@ -889,7 +889,7 @@ implementation
              ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_S64);
-             if UseAVX then
+             if UseAVX(compiler.globals) then
                case left.location.size of
                  OS_F32:
                    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSS2SI,S_NO,left.location.register,location.register));
@@ -960,7 +960,7 @@ implementation
              secondpass(left,ctx);
              location_reset(location,LOC_MMREGISTER,left.location.size);
              location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
-             if UseAVX then
+             if UseAVX(compiler.globals) then
                begin
                  ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
                  ctx.cg.a_opmm_reg_reg_reg(ctx.CurrAsmList,OP_MUL,left.location.size,left.location.register,left.location.register,location.register,mms_movescalar);
@@ -989,7 +989,7 @@ implementation
              ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_MMREGISTER,left.location.size);
              location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
-             if UseAVX then
+             if UseAVX(compiler.globals) then
                case tfloatdef(resultdef).floattype of
                  s32real:
                    { we use S_NO instead of S_XMM here, regardless of the register size, as the size of the memory location is 32/64 bit }
@@ -1451,7 +1451,7 @@ implementation
             ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               case tfloatdef(left.resultdef).floattype of
                 s32real:
                   begin
@@ -1517,7 +1517,7 @@ implementation
             ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,left.location.size);
             location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               case tfloatdef(resultdef).floattype of
                 s32real:
                   { using left.location.register here as 3rd parameter is crucial to break dependency chains }
@@ -1651,14 +1651,14 @@ implementation
                  gotmem:=false;
                end;
 
-             op:=oparray[inlinenumber in [in_max_single,in_max_double],UseAVX,tfloatdef(resultdef).floattype];
+             op:=oparray[inlinenumber in [in_max_single,in_max_double],UseAVX(compiler.globals),tfloatdef(resultdef).floattype];
 
              location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
              location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
 
              if gotmem then
                begin
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    case memop of
                      1:
                        emit_ref_reg_reg(ctx,op,S_NO,
@@ -1691,7 +1691,7 @@ implementation
                end
              else
                begin
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    emit_reg_reg_reg(ctx,op,S_NO,
                      paraarray[2].location.register,paraarray[1].location.register,location.register)
                  else

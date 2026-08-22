@@ -4437,7 +4437,7 @@ unit aoptx86;
 
                                           Inc(SourceRef.offset, 8);
 
-                                          if UseAVX then
+                                          if UseAVX(compiler.globals) then
                                             begin
                                               MovAligned :=  A_VMOVDQA;
                                               MovUnaligned := A_VMOVDQU;
@@ -9844,7 +9844,7 @@ unit aoptx86;
       CurrentReg: TRegister;
     begin
       { VMOVDQU/CMOVDQA shouldn't have even been generated }
-      if not UseAVX then
+      if not UseAVX(compiler.globals) then
         InternalError(2021100501);
 
       Result := False;

@@ -97,7 +97,7 @@ implementation
                    begin
                      location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
                      location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,def_cgsize(resultdef));
-                     if UseAVX then
+                     if UseAVX(compiler.globals) then
                        begin
                          if is_single(resultdef) then
                            emit_reg_reg_reg(ctx,A_VXORPS,S_NO,location.register,location.register,location.register)

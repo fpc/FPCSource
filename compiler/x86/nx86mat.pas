@@ -204,7 +204,7 @@ interface
 
                 reference_reset_symbol(href,l1,0,resultdef.alignment,[]);
 
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   begin
                     if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
                       ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);

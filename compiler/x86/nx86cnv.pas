@@ -281,7 +281,7 @@ implementation
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               case location.size of
                 OS_F32:
                   if torddef(left.resultdef).ordtype in [s32bit,s64bit] then
@@ -329,7 +329,7 @@ implementation
                 begin
                   href:=left.location.reference;
                   tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     { VCVTSI2.. requires a second source operand to copy bits 64..127 }
                     ctx.CurrAsmList.concat(taicpu.op_ref_reg_reg(op,opsize,href,location.register,location.register))
                   else
@@ -337,7 +337,7 @@ implementation
                 end;
               LOC_REGISTER,
               LOC_CREGISTER:
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                     { VCVTSI2.. requires a second source operand to copy bits 64..127 }
                   ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,opsize,left.location.register,location.register,location.register))
                 else

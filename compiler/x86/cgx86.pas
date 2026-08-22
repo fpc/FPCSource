@@ -38,6 +38,8 @@ unit cgx86;
     type
       tcopymode=(copy_mov,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512,copy_fpc_move);
 
+      { tcgx86 }
+
       tcgx86 = class(tcg)
         rgfpu   : Trgx86fpu;
 
@@ -141,6 +143,8 @@ unit cgx86;
         function get_darwin_call_stub(list: TAsmList; const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
+      private
+        function get_scalar_mm_op(fromsize, tosize: tcgsize; aligned: boolean): tasmop;
       protected
         procedure a_load_ref_reg_internal(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister;isdirect:boolean);virtual;
 
@@ -1352,7 +1356,7 @@ unit cgx86;
       end;
 
 
-    function get_scalar_mm_op(fromsize,tosize : tcgsize;aligned : boolean) : tasmop;
+    function tcgx86.get_scalar_mm_op(fromsize,tosize : tcgsize;aligned : boolean) : tasmop;
       const
         convertopsse : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
           (A_MOVSS,A_CVTSS2SD,A_NONE,A_NONE,A_NONE),
@@ -1382,7 +1386,7 @@ unit cgx86;
         if (fromsize in [low(convertopsse)..high(convertopsse)]) and
            (tosize in [low(convertopsse)..high(convertopsse)]) then
           begin
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               result:=convertopavx[fromsize,tosize]
             else
               result:=convertopsse[fromsize,tosize];
@@ -1395,13 +1399,13 @@ unit cgx86;
               OS_M64:
                 { we can have OS_M64 (record in function result/LOC_MMREGISTER) to
                   OS_64 (record in memory/LOC_REFERENCE) }
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   result:=A_VMOVQ
                 else
                   result:=A_MOVQ;
               OS_M128:
                 { 128-bit aligned vector }
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   begin
                     if aligned then
                       result:=A_VMOVAPS
@@ -1415,7 +1419,7 @@ unit cgx86;
               OS_M256,
               OS_M512:
                 { 256-bit aligned vector }
-                if UseAVX then
+                if UseAVX(compiler.globals) then
                   begin
                     if aligned then
                       result:=A_VMOVAPS
@@ -1432,7 +1436,7 @@ unit cgx86;
         else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
           (fromsize=OS_M128) then
           begin
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               result:=A_VMOVDQU
             else
               result:=A_MOVDQU;
@@ -1455,28 +1459,28 @@ unit cgx86;
               { needs correct size in case of spilling }
               case fromsize of
                 OS_F32:
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     instr:=taicpu.op_reg_reg(A_VMOVAPS,S_NO,reg1,reg2)
                   else
                     instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
                 OS_F64:
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     instr:=taicpu.op_reg_reg(A_VMOVAPD,S_NO,reg1,reg2)
                   else
                     instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
                 OS_M64:
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     instr:=taicpu.op_reg_reg(A_VMOVQ,S_NO,reg1,reg2)
                   else
                     instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
                 OS_M128:
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     instr:=taicpu.op_reg_reg(A_VMOVDQA,S_NO,reg1,reg2)
                   else
                     instr:=taicpu.op_reg_reg(A_MOVDQA,S_NO,reg1,reg2);
                 OS_M256,
                 OS_M512:
-                  if UseAVX then
+                  if UseAVX(compiler.globals) then
                     instr:=taicpu.op_reg_reg(A_VMOVDQA,S_NO,reg1,reg2)
                   else
                     { SSE doesn't support 512-bit vectors }
@@ -1542,30 +1546,30 @@ unit cgx86;
            begin
              case fromsize of
                OS_F32:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVSS
                  else
                    op := A_MOVSS;
                OS_F64:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVSD
                  else
                    op := A_MOVSD;
                OS_M32, OS_32, OS_S32:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVD
                  else
                    op := A_MOVD;
                OS_M64, OS_64, OS_S64:
                  { there is no VMOVQ for MMX registers }
-                 if UseAVX and (getregtype(reg)<>R_MMXREGISTER) then
+                 if UseAVX(compiler.globals) and (getregtype(reg)<>R_MMXREGISTER) then
                    op := A_VMOVQ
                  else
                    op := A_MOVQ;
                OS_128,
                OS_M128:
                  { Use XMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    begin
                      if GetRefAlignment(tmpref) = 16 then
                        op := A_VMOVDQA
@@ -1581,7 +1585,7 @@ unit cgx86;
                    end;
                OS_M256:
                  { Use YMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    begin
                      if GetRefAlignment(tmpref) = 32 then
                        op := A_VMOVDQA
@@ -1593,7 +1597,7 @@ unit cgx86;
                    Internalerror(2020010401);
                OS_M512:
                  { Use ZMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    begin
                      if GetRefAlignment(tmpref) = 64 then
                        op := A_VMOVDQA64
@@ -1637,29 +1641,29 @@ unit cgx86;
            begin
              case fromsize of
                OS_F32:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVSS
                  else
                    op := A_MOVSS;
                OS_F64:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVSD
                  else
                    op := A_MOVSD;
                OS_M32, OS_32, OS_S32:
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                    op := A_VMOVD
                  else
                    op := A_MOVD;
                OS_M64, OS_64, OS_S64:
                  { there is no VMOVQ for MMX registers }
-                 if UseAVX and (getregtype(reg)<>R_MMXREGISTER) then
+                 if UseAVX(compiler.globals) and (getregtype(reg)<>R_MMXREGISTER) then
                    op := A_VMOVQ
                  else
                    op := A_MOVQ;
                OS_M128:
                  { Use XMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                  begin
                    if GetRefAlignment(tmpref) = 16 then
                      op := A_VMOVDQA
@@ -1674,7 +1678,7 @@ unit cgx86;
                  end;
                OS_M256:
                  { Use XMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                  begin
                    if GetRefAlignment(tmpref) = 32 then
                      op := A_VMOVDQA
@@ -1685,7 +1689,7 @@ unit cgx86;
                    InternalError(2018012942);
                OS_M512:
                  { Use XMM integer transfer }
-                 if UseAVX then
+                 if UseAVX(compiler.globals) then
                  begin
                    if GetRefAlignment(tmpref) = 64 then
                      op := A_VMOVDQA64
@@ -1910,7 +1914,7 @@ unit cgx86;
           end
         else if shuffle=nil then
           begin
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               begin
                 asmop:=opmm2asmop_full_avx[op];
 {$ifdef x86_64}
@@ -1928,7 +1932,7 @@ unit cgx86;
           end
         else if shufflescalar(shuffle) then
           begin
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               begin
                 asmop:=opmm2asmop_avx[0,size,op];
                 if size in [OS_M256,OS_M512] then
@@ -1945,13 +1949,13 @@ unit cgx86;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
               make_simple_ref(list,loc.reference);
-              if UseAVX then
+              if UseAVX(compiler.globals) then
                 list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,resultreg,resultreg))
               else
                 list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
             end;
           LOC_CMMREGISTER,LOC_MMREGISTER:
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               list.concat(taicpu.op_reg_reg_reg(asmop,S_NO,loc.register,resultreg,resultreg))
             else
               list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));

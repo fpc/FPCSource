@@ -388,7 +388,7 @@ topsize2memsize: array[topsize] of integer =
     function requires_fwait_on_8087(op: TAsmOp): boolean;
 {$endif i8086}
 
-   function UseAVX: boolean;
+   function UseAVX(globals: TReadOnlyCompilerGlobals): boolean;
    function UseAVX512: boolean;
 
 implementation
@@ -979,11 +979,9 @@ implementation
 {$endif i8086}
 
 
-  function UseAVX: boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function UseAVX(globals: TReadOnlyCompilerGlobals): boolean;
     begin
-      Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
+      Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[globals.current_settings.fputype]){$endif i8086};
     end;
 
 
@@ -991,7 +989,7 @@ implementation
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      Result:={$ifdef i8086}false{$else i8086}UseAVX and (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
+      Result:={$ifdef i8086}false{$else i8086}UseAVX(compiler.globals) and (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
     end;
 
 

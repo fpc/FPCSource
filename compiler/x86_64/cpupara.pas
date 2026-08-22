@@ -478,7 +478,7 @@ unit cpupara;
             if vecsize > 2 then
               begin
                 { Cannot use 256-bit and 512-bit vectors if we're not using AVX }
-                if not UseAVX then
+                if not UseAVX(compiler.globals) then
                   Exit(0);
 
                 { WARNING: There is currently no support for 256-bit and 512-bit

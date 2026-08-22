@@ -1582,6 +1582,8 @@ implementation
 
     { returns if the passed type (array) fits into an mm register }
     function fits_in_mm_register(p : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef x86}
         result:= is_vector(p) and
@@ -1591,7 +1593,7 @@ implementation
                    (
                     (tarraydef(p).lowrange=0) and
                     ((tarraydef(p).highrange=3) or
-                     (UseAVX and (tarraydef(p).highrange=7)) or
+                     (UseAVX(compiler.globals) and (tarraydef(p).highrange=7)) or
                      (UseAVX512 and (tarraydef(p).highrange=15))
                     ) and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
@@ -1603,7 +1605,7 @@ implementation
                    (
                     (tarraydef(p).lowrange=0) and
                     ((tarraydef(p).highrange=1) or
-                     (UseAVX and (tarraydef(p).highrange=3)) or
+                     (UseAVX(compiler.globals) and (tarraydef(p).highrange=3)) or
                      (UseAVX512 and (tarraydef(p).highrange=7))
                     )and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s64real)

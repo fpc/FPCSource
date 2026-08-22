@@ -508,12 +508,12 @@ unit cgcpu;
           internalerror(2009112505);
         case fromsize of
           OS_32,OS_S32:
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               opc:=A_VMOVD
             else
               opc:=A_MOVD;
           OS_64,OS_S64:
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               opc:=A_VMOVQ
             else
               opc:=A_MOVQ;
@@ -538,12 +538,12 @@ unit cgcpu;
           internalerror(2009112507);
         case tosize of
           OS_32,OS_S32:
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               opc:=A_VMOVD
             else
               opc:=A_MOVD;
           OS_64,OS_S64:
-            if UseAVX then
+            if UseAVX(compiler.globals) then
               opc:=A_VMOVQ
             else
               opc:=A_MOVQ;
