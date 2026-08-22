@@ -72,6 +72,8 @@ Type
     function OptPass1And(var p: tai): Boolean; override;
     function OptPass1LDR(var p: tai): Boolean; override;
     function OptPass1STR(var p: tai): Boolean; override;
+  private
+    function AlignedToQWord(const ref: treference): boolean;
   protected
     function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
@@ -163,9 +165,7 @@ Implementation
     end;
 
 
-  function AlignedToQWord(const ref : treference) : boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TCpuAsmOptimizer.AlignedToQWord(const ref : treference) : boolean;
     begin
       { (safe) heuristics to ensure alignment }
       result:=(compiler.target.info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
