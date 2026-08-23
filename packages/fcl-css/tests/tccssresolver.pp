@@ -1500,14 +1500,13 @@ var
   AttrID: TCSSNumericalID;
   CurValue: TCSSAttributeValue;
   Desc: TCSSAttributeDesc;
-  SiblingMatches: TCSSSiblingMatchList;
 begin
   FResolver:=Resolver;
 
   if (InlineStyleElement=nil) and (InlineStyle<>'') then
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
 
-  Resolver.Compute(Self,InlineStyleElement,Rules,Values,SiblingMatches);
+  Resolver.Compute(Self,InlineStyleElement,Rules,Values);
 
   // the @starting-style values are not run through OnCompute, because that would
   // write into the node's fields and clobber the normal computed state

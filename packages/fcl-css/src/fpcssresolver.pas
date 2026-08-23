@@ -471,12 +471,7 @@ type
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
     FMergedAllDecl: TCSSDeclarationElement;
     FMergedAllSpecificity: TCSSSpecificity;
-    // Origin specificity of the layer of the rule currently being matched, see
-    // CSSOriginToSpecifity. The Selector*Matches functions return the plain CSS
-    // specificity; this is added once per rule by ComputeRule. It is only valid
-    // during a Compute run, where the caller takes it from the rule's bucket item;
-    // outside use GetRuleSourceSpecificity.
-    FSourceSpecificity: TCSSSpecificity;
+    FSourceSpecificity: TCSSSpecificity; // Origin specificity during Compute run, added only once per rule
     FCSSRegistryStamp: TCSSNumericalID;
     FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
@@ -635,8 +630,7 @@ type
     procedure Compute(Node: ICSSNode;
       ElementStyle: TCSSRuleElement; // inline/element style of Node
       out Rules: TCSSSharedRuleList; // owned by resolver
-      out Values: TCSSAttributeValues;
-      out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
+      out Values: TCSSAttributeValues
       ); virtual;
     // True if any stylesheet contains a @starting-style rule. Cheap probe, so a
     // caller can skip ComputeStartingStyle altogether.
@@ -4090,13 +4084,11 @@ begin
 end;
 
 procedure TCSSResolver.Compute(Node: ICSSNode; ElementStyle: TCSSRuleElement;
-  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues;
-  out SiblingMatches: TCSSSiblingMatchList);
+  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues);
 var
   i: Integer;
 begin
   Rules:=nil;
-  SiblingMatches:=Default(TCSSSiblingMatchList);
   FNode:=Node;
   try
     UpdateRuleBuckets;
@@ -4120,9 +4112,6 @@ begin
 
     // create sorted map AttrId to Value
     Values:=CreateValueList;
-
-    // collect the sibling selectors matching this node, so siblings can be style-shared
-    SiblingMatches:=MatchSiblingSelectors(Node);
   finally
     FNode:=nil;
   end;
@@ -4599,12 +4588,10 @@ begin
   SetLength(Result.Matched,FSiblingSelectorCount);
   Cnt:=0;
   SavedNode:=FNode;
-  SavedSrcSpec:=FSourceSpecificity;
   FNode:=Node;
   try
     for i:=0 to FSiblingSelectorCount-1 do
     begin
-      FSourceSpecificity:=FSiblingSelectors[i].SrcSpecificity;
       Sel:=FSiblingSelectors[i].Selector;
       if SelectorMatches(Sel,Node,false,FSiblingSelectors[i].Rule)>=0 then
       begin
@@ -4614,7 +4601,6 @@ begin
     end;
   finally
     FNode:=SavedNode;
-    FSourceSpecificity:=SavedSrcSpec;
   end;
   SetLength(Result.Matched,Cnt);
 end;
