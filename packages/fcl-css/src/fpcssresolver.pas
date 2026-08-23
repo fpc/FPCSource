@@ -4579,7 +4579,6 @@ function TCSSResolver.MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMa
 var
   i, Cnt: Integer;
   SavedNode: ICSSNode;
-  SavedSrcSpec: TCSSSpecificity;
   Sel: TCSSElement;
 begin
   Result.Matched:=nil;
