@@ -647,6 +647,12 @@ type
     FMediaCompare: TCSSMediaCompareEvent;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
+    procedure SetHasMediaBoolean(const AValue: TCSSHasMediaBoolEvent); virtual;
+    procedure SetIsMediaPlain(const AValue: TCSSIsMediaPlainEvent); virtual;
+    procedure SetMediaCompare(const AValue: TCSSMediaCompareEvent); virtual;
+    // Called when one of the @media events changed. A descendant caching @media
+    // results (see TCSSResolver.InvalidateMedia) must drop them here.
+    procedure MediaEnvironmentChanged; virtual;
     function CurFits(const Params: TCSSCheckAttrParams_Dimension): boolean; // true if the current float component fits
   public
     CurAttrData: TCSSAttributeKeyData;
@@ -717,9 +723,9 @@ type
 
     property CSSRegistry: TCSSRegistry read FCSSRegistry write SetCSSRegistry;
     // @media
-    property HasMediaBoolean: TCSSHasMediaBoolEvent read FHasMediaBoolean write FHasMediaBoolean;
-    property IsMediaPlain: TCSSIsMediaPlainEvent read FIsMediaPlain write FIsMediaPlain;
-    property MediaCompare: TCSSMediaCompareEvent read FMediaCompare write FMediaCompare;
+    property HasMediaBoolean: TCSSHasMediaBoolEvent read FHasMediaBoolean write SetHasMediaBoolean;
+    property IsMediaPlain: TCSSIsMediaPlainEvent read FIsMediaPlain write SetIsMediaPlain;
+    property MediaCompare: TCSSMediaCompareEvent read FMediaCompare write SetMediaCompare;
   end;
 
   { TCSSResolverParser
@@ -1951,6 +1957,32 @@ procedure TCSSBaseResolver.SetCSSRegistry(const AValue: TCSSRegistry);
 begin
   if FCSSRegistry=AValue then Exit;
   FCSSRegistry:=AValue;
+end;
+
+procedure TCSSBaseResolver.SetHasMediaBoolean(const AValue: TCSSHasMediaBoolEvent);
+begin
+  if FHasMediaBoolean=AValue then Exit;
+  FHasMediaBoolean:=AValue;
+  MediaEnvironmentChanged;
+end;
+
+procedure TCSSBaseResolver.SetIsMediaPlain(const AValue: TCSSIsMediaPlainEvent);
+begin
+  if FIsMediaPlain=AValue then Exit;
+  FIsMediaPlain:=AValue;
+  MediaEnvironmentChanged;
+end;
+
+procedure TCSSBaseResolver.SetMediaCompare(const AValue: TCSSMediaCompareEvent);
+begin
+  if FMediaCompare=AValue then Exit;
+  FMediaCompare:=AValue;
+  MediaEnvironmentChanged;
+end;
+
+procedure TCSSBaseResolver.MediaEnvironmentChanged;
+begin
+  // nothing to do here, see TCSSResolver.MediaEnvironmentChanged
 end;
 
 procedure TCSSBaseResolver.ResetCurComp;

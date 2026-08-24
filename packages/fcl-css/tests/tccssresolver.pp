@@ -677,6 +677,7 @@ type
     procedure TestRes_Keyframes_CaseSensitive;
     procedure TestRes_Keyframes_InMedia; // @media{ @keyframes{..} }
     procedure TestRes_Keyframes_MediaNotMatching;
+    procedure TestRes_Keyframes_MediaNotMatchingDoesNotShadow;
     procedure TestRes_Keyframes_NestedInRule; // div{ @keyframes{..} }
     procedure TestRes_Keyframes_NestedInRuleNotMatching;
     procedure TestRes_Keyframes_NestedDuplicateDifferentNodes;
@@ -695,6 +696,11 @@ type
     procedure TestRes_Buckets_NonMatchingSkipped; // wrong class/type/id never apply
     procedure TestRes_Buckets_CompoundRightmost; // div.red bucketed by class .red
     procedure TestRes_Buckets_DescendantRightmost; // div .red bucketed by class .red
+    procedure TestRes_Buckets_MediaMatchingHoisted; // rules of a matching @media are bucketed
+    procedure TestRes_Buckets_MediaNotMatchingSkipped; // rules of a non matching @media are dropped
+    procedure TestRes_Buckets_MediaFlipRebuilds; // InvalidateMedia rebuilds the buckets
+    procedure TestRes_Buckets_MediaNestedInMedia; // @media{ @media{ div{} } }
+    procedure TestRes_Buckets_MediaSiblingSelector; // a non matching @media adds no sibling selector
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -6137,6 +6143,25 @@ begin
   AssertTrue('fade',R.FindKeyframesRule(Div1,'fade')=nil);
 end;
 
+procedure TTestCSSResolver.TestRes_Keyframes_MediaNotMatchingDoesNotShadow;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // CollectKeyframes skips the non matching @media, so its @keyframes does not
+  // supersede the earlier top level one (see AddKeyframes)
+  Doc.Style:=LinesToStr([
+  '@keyframes fade { from{ width: 1px; } }',
+  '@media (width > 9000px) { @keyframes fade { from{ width: 2px; } } }',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
 procedure TTestCSSResolver.TestRes_Keyframes_NestedInRule;
 var
   Div1: TDemoDiv;
@@ -6436,6 +6461,129 @@ begin
   AssertEquals('Span1.left','1px',Span1.Left);
   AssertEquals('Span2.left','',Span2.Left);
   if Div1=nil then ;
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MediaMatchingHoisted;
+var
+  Span1, Span2: TDemoSpan;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Span1:=AddSpan_Class('Span1','red',Doc.Root);
+  Span2:=AddSpan_Class('Span2','blue',Doc.Root);
+
+  // 'screen' matches, so the @media is transparent and its .red rule is bucketed
+  // like a top level rule, i.e. it is a candidate for Span1, but not for Span2
+  Doc.Style:='@media screen{ .red{ left: 1px; } }';
+  ApplyStyle;
+  AssertEquals('Span1.left','1px',Span1.Left);
+  AssertEquals('Span2.left','',Span2.Left);
+  AssertEquals('MediaEvalCount',1,Doc.MediaEvalCount);
+
+  // Note: every span also matches its user-agent type style (span{display:..})
+  // via the type bucket, so the candidate counts include that one extra rule.
+  R:=Doc.CSSResolver;
+  Span1.ApplyCSS(R);
+  AssertEquals('Span1 candidates',2,R.RuleCandidateCount);
+  Span2.ApplyCSS(R);
+  AssertEquals('Span2 candidates',1,R.RuleCandidateCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MediaNotMatchingSkipped;
+var
+  Span1, Span2: TDemoSpan;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Span1:=AddSpan_Class('Span1','red',Doc.Root);
+  Span2:=AddSpan_Class('Span2','blue',Doc.Root);
+
+  // 'print' does not match, so BuildRuleBuckets drops the whole subtree and it is
+  // a candidate for no node at all. The media query is evaluated once, not per node.
+  Doc.Style:=LinesToStr([
+  '@media print{ .red{ left: 1px; } }',
+  '.red{ top: 2px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Span1.left','',Span1.Left);
+  AssertEquals('Span1.top','2px',Span1.Top);
+  AssertEquals('MediaEvalCount',1,Doc.MediaEvalCount);
+
+  // Span1: the UA span rule and the top level .red; Span2: only the UA span rule
+  R:=Doc.CSSResolver;
+  Span1.ApplyCSS(R);
+  AssertEquals('Span1 candidates',2,R.RuleCandidateCount);
+  Span2.ApplyCSS(R);
+  AssertEquals('Span2 candidates',1,R.RuleCandidateCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MediaFlipRebuilds;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the buckets depend on the media environment -> InvalidateMedia must rebuild them
+  Doc.Style:=LinesToStr([
+  '@media (width > 500px){ div{ left: 1px; } }',
+  '@media (width < 500px){ div{ left: 2px; } }',
+  '']);
+  ApplyStyle; // Doc.Width is 800
+  AssertEquals('Div1.left wide','1px',Div1.Left);
+
+  Doc.Width:=400; // the setter calls InvalidateMedia
+  ReResolve;
+  AssertEquals('Div1.left narrow','2px',Div1.Left);
+
+  Doc.Width:=800;
+  ReResolve;
+  AssertEquals('Div1.left wide again','1px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MediaNestedInMedia;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // both @media must match, the inner one flips with the width
+  Doc.Style:=LinesToStr([
+  '@media screen{',
+  '  @media (width > 500px){ div{ left: 1px; } }',
+  '  @media print{ div{ top: 2px; } }',
+  '}',
+  '']);
+  ApplyStyle; // Doc.Width is 800
+  AssertEquals('Div1.left wide','1px',Div1.Left);
+  AssertEquals('Div1.top','',Div1.Top);
+
+  Doc.Width:=400;
+  ReResolve;
+  AssertEquals('Div1.left narrow','',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MediaSiblingSelector;
+var
+  Span1, Span2: TDemoSpan;
+  Matched: TCSSSiblingMatchList;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Span1:=AddSpan_Class('Span1','red',Doc.Root);
+  Span2:=AddSpan_Class('Span2','blue',Doc.Root);
+
+  // the selector of a non matching @media must not become a sibling selector
+  Doc.Style:=LinesToStr([
+  '@media print{ .red + .blue{ left: 1px; } }',
+  '@media screen{ .red + .blue{ top: 2px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Span2.left','',Span2.Left);
+  AssertEquals('Span2.top','2px',Span2.Top);
+  Matched:=Doc.CSSResolver.MatchSiblingSelectors(Span2);
+  AssertEquals('sibling selectors of Span2',1,length(Matched.Matched));
+  if Span1=nil then ;
 end;
 
 procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);

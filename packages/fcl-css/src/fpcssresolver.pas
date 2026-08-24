@@ -575,6 +575,7 @@ type
     function ResolveIdentifier(El: TCSSResolvedIdentifierElement; aKind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
     // rule buckets
+    procedure MediaEnvironmentChanged; override; // one of the @media events changed
     procedure ClearRuleBuckets; virtual;
     procedure UpdateRuleBuckets; virtual; // rebuild the buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
@@ -714,10 +715,9 @@ type
     procedure DeleteStyleSheet(Index: integer); virtual;
     // Call after a value used by HasMediaBoolean/IsMediaPlain/MediaCompare changed
     // (viewport size, colour scheme, orientation, ...), so the cached @media results
-    // are recomputed on the next resolve. Cheap: no rule buckets are rebuilt.
+    // and the rule buckets are recomputed on the next resolve.
     procedure InvalidateMedia; virtual;
-    // Force @media rules and rule buckets to be re-evaluated on the next resolve,
-    // even when no stylesheet text changed (e.g. the colour scheme flipped).
+    // Same as InvalidateMedia, kept for compatibility.
     procedure InvalidateRuleBuckets; virtual;
     function IndexOfStyleSheet(aSheet: TStyleSheet): integer;
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
@@ -751,6 +751,9 @@ type
     // Always >0, bumped by BuildRuleBuckets. The TCSSRuleData.Origin, SourceIndex and
     // StyleRuleParent of a rule are valid as long as its SourceStamp equals this.
     property SourceStamp: integer read FSourceStamp;
+    // Number of rules the last FindMatchingRules had to check, i.e. the content of the
+    // buckets selected by that node. For diagnostics and benchmarks.
+    property RuleCandidateCount: integer read FRuleCandidateCount;
     property Layers: TLayerArray read FLayers;
   public
     // logging
@@ -4249,6 +4252,11 @@ begin
   end;
 end;
 
+procedure TCSSResolver.MediaEnvironmentChanged;
+begin
+  InvalidateMedia;
+end;
+
 procedure TCSSResolver.ClearRuleBuckets;
 var
   i: Integer;
@@ -4288,14 +4296,16 @@ begin
     inc(FMediaStamp)
   else
     FMediaStamp:=1;
+  { BuildRuleBuckets skips the rules of a non-matching @media and hoists the rules of a
+    matching one, so the buckets depend on the media environment -> drop them as well.
+    They are rebuilt lazily by the next UpdateRuleBuckets. }
+  ClearRuleBuckets;
 end;
 
 procedure TCSSResolver.InvalidateRuleBuckets;
 begin
-  { Drop the cached @media results and buckets so the next resolve rebuilds them.
-    Needed when the media environment changed but the stylesheet text did not. }
+  // kept for compatibility: since the buckets are media dependent this is InvalidateMedia
   InvalidateMedia;
-  ClearRuleBuckets;
 end;
 
 function TCSSResolver.GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
@@ -4443,9 +4453,30 @@ begin
   DocIndex:=FBucketDocIndex;
   inc(FBucketDocIndex);
 
-  // @media (and other @-rules) and rules with nested rules keep the original
-  // recursion (media gating, nested ancestor matching) -> always evaluate them
-  if (aRule.ClassType=TCSSAtRuleElement) or (aRule.NestedRuleCount>0) then
+  if aRule.ClassType=TCSSAtRuleElement then
+  begin
+    if TCSSAtRuleElement(aRule).AtKeyWord='@media' then
+    begin
+      if not AtMediaMatches(TCSSAtRuleElement(aRule)) then
+        exit; // does not match -> nothing in the subtree can apply to any node
+      // It matches, so for the cascade it is transparent: bucket its nested rules at
+      // this position. The declarations written directly in a top level @media are
+      // never applied (ComputeAtRule only adds them for ParentSpecificity>=0, and a
+      // bucket candidate is computed with the default CSSSpecificityNoMatch), so the
+      // at-rule itself needs no bucket item.
+      // Note: a @media nested in a style rule is not bucketed at all. It is reached via
+      // ComputeRule of that style rule, which does the media check per node.
+      for i:=0 to aRule.NestedRuleCount-1 do
+        BucketRule(aRule.NestedRules[i],SrcSpecificity);
+      exit;
+    end;
+    // @keyframes, @starting-style and unknown @-rules keep the original recursion
+    FBucketOther.Add(aRule,DocIndex,SrcSpecificity);
+    exit;
+  end;
+
+  // a rule with nested rules keeps the original recursion (nested ancestor matching)
+  if aRule.NestedRuleCount>0 then
   begin
     FBucketOther.Add(aRule,DocIndex,SrcSpecificity);
     exit;
@@ -4481,11 +4512,16 @@ var
   i: Integer;
 begin
   if aRule=nil then exit;
-  if (aRule.ClassType=TCSSAtRuleElement)
-      and (TCSSAtRuleElement(aRule).AtKeyWord='@starting-style') then
+  if aRule.ClassType=TCSSAtRuleElement then
   begin
-    FBucketStartingStyle.Add(aRule,0,SrcSpecificity);
-    exit;
+    if TCSSAtRuleElement(aRule).AtKeyWord='@starting-style' then
+    begin
+      FBucketStartingStyle.Add(aRule,0,SrcSpecificity);
+      exit;
+    end;
+    if (TCSSAtRuleElement(aRule).AtKeyWord='@media')
+        and not AtMediaMatches(TCSSAtRuleElement(aRule)) then
+      exit; // the media query does not match -> nothing in the subtree applies
   end;
   for i:=0 to aRule.NestedRuleCount-1 do
     CollectStartingStyleRules(aRule.NestedRules[i],SrcSpecificity);
@@ -4498,12 +4534,17 @@ var
   i: Integer;
 begin
   if aRule=nil then exit;
-  if (aRule.ClassType=TCSSAtRuleElement)
-      and CSSIsKeyframesAtKeyword(TCSSAtRuleElement(aRule).AtKeyWord) then
+  if aRule.ClassType=TCSSAtRuleElement then
   begin
-    AddKeyframes(TCSSAtRuleElement(aRule));
-    // its nested rules are the keyframes ('from', '50%', ...), not @keyframes rules
-    exit;
+    if CSSIsKeyframesAtKeyword(TCSSAtRuleElement(aRule).AtKeyWord) then
+    begin
+      AddKeyframes(TCSSAtRuleElement(aRule));
+      // its nested rules are the keyframes ('from', '50%', ...), not @keyframes rules
+      exit;
+    end;
+    if (TCSSAtRuleElement(aRule).AtKeyWord='@media')
+        and not AtMediaMatches(TCSSAtRuleElement(aRule)) then
+      exit; // the media query does not match -> nothing in the subtree applies
   end;
   for i:=0 to aRule.NestedRuleCount-1 do
     CollectKeyframes(aRule.NestedRules[i]);
@@ -4627,7 +4668,13 @@ var
   i: Integer;
 begin
   if aRule=nil then exit;
-  if aRule.ClassType<>TCSSAtRuleElement then
+  if aRule.ClassType=TCSSAtRuleElement then
+  begin
+    if (TCSSAtRuleElement(aRule).AtKeyWord='@media')
+        and not AtMediaMatches(TCSSAtRuleElement(aRule)) then
+      exit; // the media query does not match -> nothing in the subtree applies
+  end
+  else
     for i:=0 to aRule.SelectorCount-1 do
       if SelectorHasSiblingDependency(aRule.Selectors[i]) then
         AddSiblingSelector(aRule.Selectors[i],aRule,SrcSpecificity);
