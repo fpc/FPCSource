@@ -4841,7 +4841,10 @@ begin
   try
     RangeValue:=Eval(RangeExpr,[]);
     if RangeValue=nil then
-      RaiseNotYetImplemented(20170522171226,RangeExpr);
+      // a range that does not fold - it depends on a generic template parameter
+      // (rtl-generics writes `array[0..Pred(TCuckooCfg.D)]`) - cannot be checked
+      // here; the specialization checks it with the real bounds
+      exit(true);
     Result:=IsInRange(Value,Expr,RangeValue,RangeExpr,EmitHints);
   finally
     ReleaseEvalValue(Value);
@@ -5468,6 +5471,14 @@ begin
           IntToStr(TResEvalUInt(Value).UInt),'0',IntToStr(MaxIndex),Expr,mtError)
       else
         Index:=TResEvalUInt(Value).UInt;
+    revkEnum:
+      // one enum type cast to another keeps the value's ordinal
+      // (symbolic's teval.inc writes VLIWOp2(powo))
+      if TResEvalEnum(Value).Index>MaxIndex then
+        EmitRangeCheckConst(20170713105944,
+          IntToStr(TResEvalEnum(Value).Index),'0',IntToStr(MaxIndex),Expr,mtError)
+      else
+        Index:=TResEvalEnum(Value).Index;
     else
       RaiseNotYetImplemented(20170713105625,Expr);
     end;
