@@ -2514,7 +2514,12 @@ uses
                     genconstraintdata.interfaces.assign(constraintdata.interfaces);
                     genconstraintdata.fileinfo:=constraintdata.fileinfo;
                     include(defoptions,df_genconstraint);
-                  end;
+                  end
+              else
+                { the constraint was rejected: recover as an unconstrained
+                  parameter; keeping the shared errordef would corrupt its
+                  typesym below and IE in check_generic_constraints later }
+                basedef:=cundefineddef.create(false);
 
               for i:=firstidx to result.count-1 do
                 ttypesym(result[i]).typedef:=basedef;
