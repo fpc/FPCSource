@@ -745,7 +745,8 @@ type
     po_WarnResourceNotFound, // Do not raise error if resource not found.
     po_CheckDirectiveRTTI,   // parse $RTTI directive and error on invalid
     po_AllowPointerToSpecialize, // allow ^specialize Type<Params> inline-specialized pointer types
-    po_StrictClassHelperMode // "class helper" requires msClass (real-FPC: reject it in fpc/tp mode)
+    po_StrictClassHelperMode, // "class helper" requires msClass (real-FPC: reject it in fpc/tp mode)
+    po_IntfMethodModifiers   // allow and ignore virtual/dynamic/abstract/override/reintroduce on an interface method (real-FPC)
     );
   TPOptions = set of TPOption;
 

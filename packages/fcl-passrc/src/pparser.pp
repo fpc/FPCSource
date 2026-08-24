@@ -652,6 +652,11 @@ uses strutils;
 const
   WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
 
+  // What may name a parameter. `absolute` and `inline` are DIRECTIVES in fpc,
+  // not reserved words, and it accepts both here - libpipewire's libspa declares
+  // `absolute: T_Bool` and fcl-css `Inline: boolean`.
+  ParamNameTokens = [tkIdentifier, tkabsolute, tkinline];
+
 type
   TDeclType = (declNone, declConst, declResourcestring, declType,
                declVar, declThreadvar, declProperty, declExports);
@@ -1669,6 +1674,9 @@ begin
         Allowed:=IntfAllowed;
         if TPasClassType(Parent).IsExternal then
           Include(Allowed,pmExternal);
+        // real-FPC accepts and ignores these on an interface method
+        if po_IntfMethodModifiers in Options then
+          Allowed:=Allowed+[pmVirtual,pmDynamic,pmAbstract,pmOverride,pmReintroduce];
         if not (PM in Allowed) then
           exit(false);
         end;
@@ -2835,7 +2843,10 @@ begin
     tkString: Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
     tkStringMultiLine: Last:=CreatePrimitiveExpr(AParent,pekStringMultiLine,CurTokenString);
     tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
-    tkIdentifier:
+    // tkabsolute/tkinline: fpc treats both as DIRECTIVES, so they can name a
+    // parameter and then be READ in the body - fcl-css' ParseCSSSource takes an
+    // `Inline: boolean` and tests `if Inline then`.
+    tkIdentifier, tkabsolute, tkinline:
       begin
       if msDelphi in CurrentModeswitches then
         CanSpecialize:=aCan
@@ -2846,6 +2857,14 @@ begin
         Last:=CreateSelfExpr(AParent)
       else
         Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
+      end;
+    tkfile:
+      begin
+      // `file` names the untyped file TYPE in an expression - real FPC folds
+      // `SizeOf(file)` (unzip51g). TypedFile is the registered name of that type.
+      CanSpecialize:=aCannot;
+      aName:='TypedFile';
+      Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
       end;
     tkspecialize:
       begin
@@ -5310,6 +5329,9 @@ end;
 function TPasParser.GetVariableValueAndLocation(Parent: TPasElement; IsUntypedInline: Boolean; out Value: TPasExpr; out
   AbsoluteExpr: TPasExpr; out Location: String): Boolean;
 
+var
+  IndexParams: TParamsExpr;
+
 begin
   Value:=Nil;
   AbsoluteExpr:=Nil;
@@ -5340,6 +5362,17 @@ begin
     else
       begin
       Location:=ReadDottedIdentifier(Parent,AbsoluteExpr,true);
+      // `absolute Arr[i]` names an ELEMENT as the location, which real FPC
+      // accepts (rtl-generics: `LHash1: UInt32 absolute LHash[0]`)
+      while (CurToken=tkSquaredBraceOpen) and (AbsoluteExpr<>nil) do
+        begin
+        IndexParams:=ParseParams(Parent,pekArrayParams,false);
+        if IndexParams=nil then break;
+        IndexParams.Value:=AbsoluteExpr;
+        AbsoluteExpr.Parent:=IndexParams;
+        AbsoluteExpr:=IndexParams;
+        NextToken;
+        end;
       if CurToken<>tkSemicolon then
         AbsoluteExpr:=DoParseExpression(Parent,AbsoluteExpr,false);
       UnGetToken;
@@ -5901,8 +5934,11 @@ begin
         // (const|var|) [ref]  a : type;
         CheckAttributes(True);
         Name:=GetParamName;
-      end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
+      end else if (CurToken = tkIdentifier) and (not CurTokenEscaped)
+          and (UpperCase(CurTokenString) = 'OUT') then
       begin
+        // `&out` is the NAME out, not the out access specifier - libxml's
+        // xsltGetNamespace declares `&out: xmlNodePtr`.
         if ([msObjfpc, msDelphi, msDelphiUnicode, msOut] * CurrentModeswitches)<>[] then
           begin
           Access := ArgOut;
@@ -5916,7 +5952,7 @@ begin
           ParseExcTokenError('identifier')
         else
           Name := CurTokenString
-      end else if CurToken = tkIdentifier then
+      end else if CurToken in ParamNameTokens then
         Name := CurTokenString
       else
         ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
@@ -5942,7 +5978,7 @@ begin
         else if CurToken <> tkComma then
           ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
         NextToken;
-        if CurToken = tkIdentifier then
+        if CurToken in ParamNameTokens then
           Name := CurTokenString
         else
           ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
@@ -6060,6 +6096,7 @@ begin
         tkof, // e.g. procedure of object
         tkis, // e.g. procedure is nested
         tkBraceClose, // e.g. a param-less inline proc parameter: (procedure pp)
+        tkEqual, // e.g. const p: array[0..1] of procedure = (@a, @b);
         tkIdentifier: // e.g. procedure cdecl;
           UngetToken;
       else
@@ -6085,6 +6122,13 @@ Var
 
 begin
   P:=TPasProcedure(Parent);
+  // real-FPC accepts and IGNORES these on an interface method, so the modifier is
+  // dropped instead of recorded - an interface method is virtual+abstract anyway
+  if (po_IntfMethodModifiers in Options)
+      and (pm in [pmVirtual,pmDynamic,pmAbstract,pmOverride,pmReintroduce])
+      and (P<>nil) and (P.Parent is TPasClassType)
+      and (TPasClassType(P.Parent).ObjKind in [okInterface,okDispInterface]) then
+    exit;
   if pm<>pmPublic then
     AddModifier;
   Case pm of
@@ -8611,6 +8655,7 @@ procedure TPasParser.DoParseArrayType(ArrType: TPasArrayType);
 var
   S: String;
   RangeExpr: TPasExpr;
+  IsEqual: Boolean;
 begin
   NextToken;
   S:='';
@@ -8663,7 +8708,16 @@ begin
   // TPasProcedureType parsing has eaten the semicolon;
   // We know it was a local definition if the array def (ArrType) is the parent
   if (ArrType.ElType is TPasProcedureType) and (ArrType.ElType.Parent=ArrType) then
+    begin
+    // A typed constant (`array[0..1] of Procedure = (@a, @b)`) stops the
+    // procedure-type parse at the '=' without eating a semicolon, so there is
+    // nothing to give back there.
+    NextToken;
+    IsEqual:=CurToken=tkEqual;
     UnGetToken;
+    if not IsEqual then
+      UnGetToken;
+    end;
 end;
 
 function TPasParser.ParseClassDecl(Parent: TPasElement;
@@ -9181,6 +9235,7 @@ procedure TPasParser.TParseStatementParams.ParseFor;
 var
   ForLoop: TPasImplForLoop;
   Expr: TPasExpr;
+  CastParams: TParamsExpr;
   lt: TLoopType;
   SrcPos: TPasSourcePos;
   isVarDef : Boolean;
@@ -9232,6 +9287,18 @@ begin
           Parser.CreatePrimitiveExpr(ForLoop,pekIdent,Parser.CurTokenString),
           eopSubIdent,SrcPos);
         ForLoop.VariableName:=Expr;
+        end;
+      tkBraceOpen:
+        begin
+        // The loop variable is a typecast: for Pointer(N) in List do
+        if IsVarDef then
+          Parser.ParseExc(nParserExpectedAssignIn,SParserExpectedAssignIn);
+        CastParams:=Parser.ParseParams(ForLoop,pekFuncParams);
+        CastParams.Value:=Expr;
+        Expr.Parent:=CastParams;
+        Expr:=CastParams;
+        ForLoop.VariableName:=Expr;
+        Parser.UngetToken;
         end;
     else
       Parser.ParseExc(nParserExpectedAssignIn,SParserExpectedAssignIn);

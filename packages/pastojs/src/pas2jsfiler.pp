@@ -158,7 +158,8 @@ const
     'WarnResourceNotFound',
     'CheckDirectiveRTTI',
     'AllowPointerToSpecialize',
-    'StrictClassHelperMode');
+    'StrictClassHelperMode',
+    'IntfMethodModifiers');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
