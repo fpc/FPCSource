@@ -51,6 +51,9 @@ type
   TPasNativeResolver = class(TPasResolver)
   private
     FTargetPointerSize: Integer;
+    // The enum values whose ordinal is being computed, so a value expression
+    // that names its own member cannot recurse forever.
+    FEnumOrdinalBusy: TFPList;
     // SizeOf/BitSizeOf/Trunc/Round all take exactly one argument;
     function BI_OneParam_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer;
@@ -63,6 +66,7 @@ type
     procedure BI_TruncRound_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
     // native-target string Copy(s,start,count) -> string
+    function IsCharPointerType(AType: TPasType): Boolean;
     function BI_CopyString_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer;
     procedure BI_CopyString_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -89,6 +93,7 @@ type
   public
     // Injects the native scope subclasses that carry the packing values.
     constructor Create; reintroduce;
+    destructor Destroy; override;
     // Byte size of an enum's storage (1/2/4 by value count, honouring {$MINENUMSIZE}).
     function GetEnumTypeSize(EnumType: TPasEnumType): Integer;
     // Bit width of a bit-packed ordinal access (0 if Expr is not one). 
@@ -210,6 +215,22 @@ begin
         nil,nil,bfSlice);
 end;
 
+function TPasNativeResolver.IsCharPointerType(AType: TPasType): Boolean;
+// True for PChar/PAnsiChar/PWideChar and any other pointer to a char type.
+var
+  DestResolved: TPasResolverResult;
+  PtrType: TPasType;
+begin
+  Result:=false;
+  if AType=nil then exit;
+  PtrType:=ResolveAliasType(AType);
+  if not (PtrType is TPasPointerType) then exit;
+  if TPasPointerType(PtrType).DestType=nil then exit;
+  ComputeElement(TPasPointerType(PtrType).DestType,DestResolved,[rcType]);
+  Result:=DestResolved.BaseType in btAllChars;
+end;
+
+
 function TPasNativeResolver.BI_CopyString_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -221,11 +242,14 @@ begin
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit;
   Params:=TParamsExpr(Expr);
-  // first param: string or char
+  // first param: string, char, or a pointer to char - FPC converts a PChar to a
+  // string here, and fcl-db's dsparams.inc copies out of one:
+  // `Copy(ParamNameStart+1,1,p-ParamNameStart-2)`.
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   if not (rrfReadable in ParamResolved.Flags)
-      or not (ParamResolved.BaseType in btAllStringAndChars) then
+      or not ((ParamResolved.BaseType in btAllStringAndChars)
+              or IsCharPointerType(ParamResolved.LoTypeEl)) then
     exit(CheckRaiseTypeArgNo(20260318120000,1,Param,ParamResolved,'string',RaiseOnError));
   if length(Params.Params)=1 then
     exit(cExact);
@@ -481,8 +505,14 @@ function TPasNativeResolver.EvalNativeAddressOf(Expr: TPrimitiveExpr;
 
 begin
   Result:=nil;
-  if (Expr<>nil) and (Expr.Parent is TUnaryExpr)
+  if Expr=nil then exit;
+  if (Expr.Parent is TUnaryExpr)
       and (TUnaryExpr(Expr.Parent).OpCode=eopAddress) then
+    Result:=TResEvalValue.CreateKind(revkNil)
+  // A bare procedure name in a Delphi-mode constant initializer is a procedure
+  // address too, e.g. `array[0..1] of TExprFunc = (FuncA, FuncB)`.
+  else if (Expr.CustomData is TResolvedReference)
+      and (TResolvedReference(Expr.CustomData).Declaration is TPasProcedure) then
     Result:=TResEvalValue.CreateKind(revkNil);
   if Flags=[] then ;
 end;
@@ -494,6 +524,15 @@ begin
   inherited Create;
   ScopeClass_EnumType:=TNativeEnumTypeScope;
   ScopeClass_Record:=TNativeRecordScope;
+  FEnumOrdinalBusy:=TFPList.Create;
+end;
+
+
+destructor TPasNativeResolver.Destroy;
+
+begin
+  FreeAndNil(FEnumOrdinalBusy);
+  inherited Destroy;
 end;
 
 
@@ -934,25 +973,40 @@ begin
   Result:=0;
   if EnumValue=nil then exit;
   if not (EnumValue.Parent is TPasEnumType) then exit;
+  // A member valued from an EARLIER member of the same enum evaluates that
+  // member, which re-enters here; refuse a value that names itself rather than
+  // recursing forever.
+  if FEnumOrdinalBusy.IndexOf(EnumValue)>=0 then exit;
   El:=TPasEnumType(EnumValue.Parent);
-  Cur:=0;
-  for i:=0 to El.Values.Count-1 do
-    begin
-    EV:=TPasEnumValue(El.Values[i]);
-    if EV.Value<>nil then
+  FEnumOrdinalBusy.Add(EnumValue);
+  try
+    Cur:=0;
+    for i:=0 to El.Values.Count-1 do
       begin
-      V:=Eval(EV.Value,[refConst]);
-      try
-        if (V<>nil) and (V is TResEvalInt) then
-          Cur:=TResEvalInt(V).Int;
-      finally
-        ReleaseEvalValue(V);
+      EV:=TPasEnumValue(El.Values[i]);
+      if EV.Value<>nil then
+        begin
+        V:=Eval(EV.Value,[refConst]);
+        try
+          // The value may name another enum member (`aLast = aTwo`), which
+          // evaluates to that member's own ORDINAL.
+          if V is TResEvalInt then
+            Cur:=TResEvalInt(V).Int
+          else if V is TResEvalUInt then
+            Cur:=TMaxPrecInt(TResEvalUInt(V).UInt)
+          else if V is TResEvalEnum then
+            Cur:=TResEvalEnum(V).Index;
+        finally
+          ReleaseEvalValue(V);
+        end;
+        end;
+      if EV=EnumValue then
+        exit(Cur);
+      inc(Cur);
       end;
-      end;
-    if EV=EnumValue then
-      exit(Cur);
-    inc(Cur);
-    end;
+  finally
+    FEnumOrdinalBusy.Remove(EnumValue);
+  end;
 end;
 
 function TPasNativeResolver.GetEnumValueForOrdinal(El: TPasEnumType; Ord: TMaxPrecInt): TPasEnumValue;
