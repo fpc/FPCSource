@@ -187,6 +187,7 @@ Type
 Function TokenToBinaryOperation(aToken : TCSSToken) : TCSSBinaryOperation;
 Function TokenToUnaryOperation(aToken : TCSSToken) : TCSSUnaryOperation;
 Function IsValidCSSAttributeName(const aName: TCSSString): boolean;
+Function CSSIsKeyframesAtKeyword(const aKeyword: TCSSString): Boolean;
 
 implementation
 
@@ -263,6 +264,28 @@ begin
   end;
   while p^ in ['A'..'Z','a'..'z','_','-'] do inc(p);
   Result:=p=StartP+length(aName);
+end;
+
+function CSSIsKeyframesAtKeyword(const aKeyword: TCSSString): Boolean;
+// true for '@keyframes' and its vendor prefixed forms, e.g. '@-webkit-keyframes'
+
+var
+  s : TCSSString;
+  p : Integer;
+
+begin
+  Result:=false;
+  s:=lowercase(aKeyword);
+  if (s='') or (s[1]<>'@') then exit;
+  Delete(s,1,1);
+  if (s<>'') and (s[1]='-') then
+    begin
+    // skip the vendor prefix, e.g. '-webkit-'
+    p:=Pos('-',s,2);
+    if p<1 then exit;
+    Delete(s,1,p);
+    end;
+  Result:=s='keyframes';
 end;
 
 { TCSSParser }
@@ -544,6 +567,11 @@ Var
 
 begin
   Result:=nil;
+  if IsAtKeyframesKeyword(CurrentTokenString) then
+    // a nested @keyframes is read like a top level one, e.g.
+    //   div { @keyframes fade { from{ opacity:0; } to{ opacity:1; } } }
+    // Note: ParseAtKeyframesRule does its own FRuleLevel bookkeeping.
+    Exit(ParseAtKeyframesRule);
   Inc(FRuleLevel);
 {$ifdef VerboseCSSParser}
   aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
@@ -724,23 +752,8 @@ end;
 function TCSSParser.IsAtKeyframesKeyword(const aKeyword: TCSSString): Boolean;
 // true for '@keyframes' and its vendor prefixed forms, e.g. '@-webkit-keyframes'
 
-var
-  s : TCSSString;
-  p : Integer;
-
 begin
-  Result:=false;
-  s:=lowercase(aKeyword);
-  if (s='') or (s[1]<>'@') then exit;
-  Delete(s,1,1);
-  if (s<>'') and (s[1]='-') then
-    begin
-    // skip the vendor prefix, e.g. '-webkit-'
-    p:=Pos('-',s,2);
-    if p<1 then exit;
-    Delete(s,1,p);
-    end;
-  Result:=s='keyframes';
+  Result:=CSSIsKeyframesAtKeyword(aKeyword);
 end;
 
 function TCSSParser.ParseAtKeyframesRule: TCSSAtRuleElement;

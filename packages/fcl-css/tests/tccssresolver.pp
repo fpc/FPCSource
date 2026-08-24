@@ -449,6 +449,9 @@ type
     // locate a declaration in the author 'test.css' sheet by top-level selector
     // and property name, e.g. FindAuthorDecl('.bird','left')
     function FindAuthorDecl(const aSelector, aProp: string): TCSSDeclarationElement;
+    // the value of the first declaration of the first keyframe of a @keyframes rule,
+    // e.g. '1px', used to tell same-named @keyframes rules apart
+    function KeyframesFirstValue(aRule: TCSSAtRuleElement): string;
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
@@ -660,6 +663,26 @@ type
     procedure TestRes_StartingStyle_Shorthand;
     procedure TestRes_StartingStyle_Var;
     procedure TestRes_StartingStyle_ComputeTwice;
+
+    // TCSSRuleData.StyleRuleParent
+    procedure TestRes_RuleData_StyleRuleParent;
+
+    // @keyframes, see TCSSResolver.FindKeyframesRule
+    procedure TestRes_Keyframes_TopLevel;
+    procedure TestRes_Keyframes_NotFound;
+    procedure TestRes_Keyframes_NoCascadeEffect; // adds nothing to a node
+    procedure TestRes_Keyframes_TopLevelDuplicateLastWins;
+    procedure TestRes_Keyframes_VendorPrefix; // @-webkit-keyframes
+    procedure TestRes_Keyframes_QuotedName; // @keyframes "fade"
+    procedure TestRes_Keyframes_CaseSensitive;
+    procedure TestRes_Keyframes_InMedia; // @media{ @keyframes{..} }
+    procedure TestRes_Keyframes_MediaNotMatching;
+    procedure TestRes_Keyframes_NestedInRule; // div{ @keyframes{..} }
+    procedure TestRes_Keyframes_NestedInRuleNotMatching;
+    procedure TestRes_Keyframes_NestedDuplicateDifferentNodes;
+    procedure TestRes_Keyframes_NestedWinsOverTopLevel;
+    procedure TestRes_Keyframes_TopLevelWinsOverEarlierNested;
+    procedure TestRes_Keyframes_ReplaceStyleSheet;
 
     // rule buckets: selectors bucketed by their rightmost identifier
     procedure TestRes_Buckets_GetCSSClasses;
@@ -3609,6 +3632,20 @@ begin
   end;
 end;
 
+function TTestCSSResolver.KeyframesFirstValue(aRule: TCSSAtRuleElement): string;
+var
+  Keyframe: TCSSRuleElement;
+  i: Integer;
+begin
+  Result:='';
+  if aRule=nil then exit;
+  if aRule.NestedRuleCount=0 then exit;
+  Keyframe:=aRule.NestedRules[0];
+  for i:=0 to Keyframe.ChildCount-1 do
+    if Keyframe.Children[i] is TCSSDeclarationElement then
+      exit(Doc.CSSResolver.GetDeclarationValue(TCSSDeclarationElement(Keyframe.Children[i])));
+end;
+
 procedure TTestCSSResolver.TestRes_Disable_Longhand;
 var
   Div1: TDemoDiv;
@@ -5910,6 +5947,312 @@ begin
   Div1.ApplyCSS(Doc.CSSResolver);
   AssertEquals('Div1.Width second','20px',Div1.Width);
   AssertEquals('Div1.StartingWidth second','10px',Div1.StartingWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_RuleData_StyleRuleParent;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+  R: TCSSResolver;
+  ShIdx: Integer;
+  Rules, NestedRules: TCSSRuleElementArray;
+  TopRule, NestedRule: TCSSRuleElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan('Span1',Div1);
+
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  width: 1px;',
+  '  span{ height: 2px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','1px',Div1.Width);
+  AssertEquals('Span1.Height','2px',Span1.Height);
+
+  R:=Doc.CSSResolver;
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  AssertTrue('test.css found',ShIdx>=0);
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  AssertEquals('top level rule count',1,length(Rules));
+  TopRule:=Rules[0];
+  AssertTrue('top level rule has no StyleRuleParent',
+             TCSSRuleData(TopRule.CustomData).StyleRuleParent=nil);
+
+  NestedRules:=CSSGetNestedRules(TopRule);
+  AssertEquals('nested rule count',1,length(NestedRules));
+  NestedRule:=NestedRules[0];
+  AssertTrue('nested rule StyleRuleParent is the div rule',
+             TCSSRuleData(NestedRule.CustomData).StyleRuleParent=TopRule);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_TopLevel;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@keyframes fade {',
+  '  from{ width: 1px; }',
+  '  to{ width: 2px; }',
+  '}',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade for Div1','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+  // a top level @keyframes applies to every node, even without one
+  AssertEquals('fade for nil','1px',KeyframesFirstValue(R.FindKeyframesRule(nil,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NotFound;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@keyframes fade { from{ width: 1px; } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('unknown name',R.FindKeyframesRule(Div1,'slide')=nil);
+  AssertTrue('empty name',R.FindKeyframesRule(Div1,'')=nil);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NoCascadeEffect;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ width: 20px; }',
+  '@keyframes fade { from{ width: 1px; } to{ width: 2px; } }',
+  '']);
+  ApplyStyle;
+  // the keyframes must not contribute to the cascade
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  AssertEquals('resolver log count',0,Doc.CSSResolver.LogCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_TopLevelDuplicateLastWins;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@keyframes fade { from{ width: 1px; } }',
+  '@keyframes fade { from{ width: 2px; } }',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade','2px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_VendorPrefix;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@-webkit-keyframes fade { from{ width: 1px; } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('webkit fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+
+  // a later plain @keyframes supersedes the vendor prefixed one
+  Doc.CSSResolver.ReplaceStyleSheet(R.IndexOfStyleSheetWithName(cssoAuthor,'test.css'),
+    LinesToStr([
+    '@-webkit-keyframes fade { from{ width: 1px; } }',
+    '@keyframes fade { from{ width: 2px; } }',
+    '']));
+  AssertEquals('plain fade','2px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_QuotedName;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@keyframes "fade" { from{ width: 1px; } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_CaseSensitive;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@keyframes Fade { from{ width: 1px; } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('Fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'Fade')));
+  AssertTrue('fade',R.FindKeyframesRule(Div1,'fade')=nil);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_InMedia;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@media screen { @keyframes fade { from{ width: 1px; } } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_MediaNotMatching;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@media (width > 9000px) { @keyframes fade { from{ width: 1px; } } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('fade',R.FindKeyframesRule(Div1,'fade')=nil);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NestedInRule;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{',
+  '  width: 20px;',
+  '  @keyframes fade { from{ width: 1px; } }',
+  '}',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','20px',Div1.Width);
+  R:=Doc.CSSResolver;
+  AssertEquals('fade','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NestedInRuleNotMatching;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='span{ @keyframes fade { from{ width: 1px; } } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('fade for Div1',R.FindKeyframesRule(Div1,'fade')=nil);
+  // a @keyframes scoped to a style rule is not a global one
+  AssertTrue('fade for nil',R.FindKeyframesRule(nil,'fade')=nil);
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NestedDuplicateDifferentNodes;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan('Span1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div{ @keyframes fade { from{ width: 1px; } } }',
+  'span{ @keyframes fade { from{ width: 2px; } } }',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade for Div1','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+  AssertEquals('fade for Span1','2px',KeyframesFirstValue(R.FindKeyframesRule(Span1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_NestedWinsOverTopLevel;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan('Span1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@keyframes fade { from{ width: 1px; } }',
+  'div{ @keyframes fade { from{ width: 2px; } } }',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade for Div1','2px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+  AssertEquals('fade for Span1','1px',KeyframesFirstValue(R.FindKeyframesRule(Span1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_TopLevelWinsOverEarlierNested;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the document order decides, a nested @keyframes does not simply beat a global one
+  Doc.Style:=LinesToStr([
+  '@keyframes fade { from{ width: 1px; } }',
+  'div{ @keyframes fade { from{ width: 2px; } } }',
+  '@keyframes fade { from{ width: 3px; } }',
+  '']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade for Div1','3px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+end;
+
+procedure TTestCSSResolver.TestRes_Keyframes_ReplaceStyleSheet;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  ShIdx: Integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@keyframes fade { from{ width: 1px; } }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('fade before','1px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+
+  // reparsing the sheet frees the old rules -> the list must be rebuilt
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  R.ReplaceStyleSheet(ShIdx,'@keyframes fade { from{ width: 2px; } }');
+  AssertEquals('fade after','2px',KeyframesFirstValue(R.FindKeyframesRule(Div1,'fade')));
+
+  R.ReplaceStyleSheet(ShIdx,'div{ width: 20px; }');
+  AssertTrue('fade removed',R.FindKeyframesRule(Div1,'fade')=nil);
 end;
 
 procedure TTestCSSResolver.TestRes_Buckets_GetCSSClasses;

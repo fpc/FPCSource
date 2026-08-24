@@ -70,7 +70,6 @@ ToDo:
 - @rules:-----------------------------------------------------------------------
   - @media
   - @font-face
-  - @keyframes
   - @property
 - Functions and Vars:-----------------------------------------------------------
   - attr() 	Returns the value of an attribute of the selected element
@@ -114,10 +113,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, System.Types, System.Math, System.Contnrs, System.StrUtils,
-  Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
+  Fcl.AVLTree, FpCss.Tree, FpCss.Parser, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
+  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSParser,
+  fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -289,8 +289,9 @@ type
     // the stylesheet this rule belongs to, maintained by TCSSResolver.BuildRuleBuckets:
     Origin: TCSSOrigin; // origin of the stylesheet, see CSSOriginToSpecifity
     SourceIndex: integer; // index in TCSSResolver.StyleSheets, -1 = unknown
-    SourceStamp: integer; // Origin and SourceIndex are only valid if this equals
-      // TCSSResolver.SourceStamp, 0 = never updated
+    StyleRuleParent: TCSSRuleElement; // innermost enclosing style rule, nil if top level
+    SourceStamp: integer; // Origin, SourceIndex and StyleRuleParent are only valid if
+      // this equals TCSSResolver.SourceStamp, 0 = never updated
   end;
 
   TCSSResolverNthChildParamsCacheItem = record
@@ -489,6 +490,9 @@ type
     // all outermost @starting-style at-rules, in document order; they are skipped
     // by the normal cascade and only evaluated by ComputeStartingStyle
     FBucketStartingStyle: TCSSRuleBucket;
+    // all @keyframes at-rules, animation name -> TCSSAtRuleElement, added in document
+    // order; duplicate names are allowed, see AddKeyframes and FindKeyframesRule
+    FKeyframes: TFPHashList;
     FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
@@ -576,8 +580,12 @@ type
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure UpdateSourceOfElement(El: TCSSElement; anOrigin: TCSSOrigin;
-      aSheetIndex: integer); virtual;
+      aSheetIndex: integer; aStyleRuleParent: TCSSRuleElement = nil); virtual;
     procedure CollectStartingStyleRules(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    // @keyframes, see FindKeyframesRule
+    procedure CollectKeyframes(aRule: TCSSRuleElement); virtual;
+    procedure AddKeyframes(aRule: TCSSAtRuleElement); virtual;
+    function KeyframesContextMatches(aRule: TCSSAtRuleElement; const aNode: ICSSNode): boolean; virtual;
     // sibling selectors (style sharing)
     procedure CollectSiblingSelectors(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure AddSiblingSelector(aSelector: TCSSElement; aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
@@ -635,6 +643,12 @@ type
     // True if any stylesheet contains a @starting-style rule. Cheap probe, so a
     // caller can skip ComputeStartingStyle altogether.
     function HasStartingStyleRules: boolean; virtual;
+    // The @keyframes rule named aName applying to aNode, nil if there is none.
+    // A @keyframes nested in a style rule applies only to the nodes that rule matches,
+    // so the same name can be used by several rules; when more than one applies, the
+    // last one in document order wins. aNode=nil finds only the top level rules.
+    // Names are case sensitive, like CSS custom identifiers.
+    function FindKeyframesRule(const aNode: ICSSNode; const aName: TCSSString): TCSSAtRuleElement; virtual;
     // Compute the values Node would have with the @starting-style rules applied,
     // i.e. the style a CSS transition starts from on the first style pass.
     // ComputedRules is the rule list Compute returned for Node; the matching
@@ -734,8 +748,8 @@ type
     // Always >0, bumped by InvalidateMedia. A TCSSRuleData.MediaResult is valid
     // as long as its MediaStamp equals this.
     property MediaStamp: integer read FMediaStamp;
-    // Always >0, bumped by BuildRuleBuckets. The TCSSRuleData.Origin and SourceIndex
-    // of a rule are valid as long as its SourceStamp equals this.
+    // Always >0, bumped by BuildRuleBuckets. The TCSSRuleData.Origin, SourceIndex and
+    // StyleRuleParent of a rule are valid as long as its SourceStamp equals this.
     property SourceStamp: integer read FSourceStamp;
     property Layers: TLayerArray read FLayers;
   public
@@ -1521,6 +1535,10 @@ var
   C: TClass;
   NestedRule: TCSSRuleElement;
 begin
+  if CSSIsKeyframesAtKeyword(aRule.AtKeyWord) then
+    // @keyframes never contributes to the cascade, see FindKeyframesRule
+    exit;
+
   case aRule.AtKeyWord of
   '@media':
     if not AtMediaMatches(aRule) then
@@ -4026,6 +4044,7 @@ begin
   FCustomAttributeNameToDesc:=TFPHashList.Create;
   FCSSClassNameToID:=TFPHashList.Create;
   FCSSIDNameToIndex:=TFPHashList.Create;
+  FKeyframes:=TFPHashList.Create;
   FCSSClassIDStamp:=1;
   FMediaStamp:=1;
   FSourceStamp:=1;
@@ -4043,6 +4062,7 @@ destructor TCSSResolver.Destroy;
 begin
   Clear;
   ClearRuleBuckets;
+  FreeAndNil(FKeyframes);
   FreeAndNil(FCSSIDNameToIndex);
   FreeAndNil(FCSSClassNameToID);
   FreeAndNil(FCustomAttributeNameToDesc);
@@ -4244,6 +4264,8 @@ begin
     FBucketID[i].Free;
   FBucketID:=nil;
   FreeAndNil(FBucketStartingStyle);
+  // Note: the @keyframes rules are owned by the stylesheet elements, not by the list
+  FKeyframes.Clear;
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
   FSiblingSelectorCount:=0;
@@ -4469,6 +4491,133 @@ begin
     CollectStartingStyleRules(aRule.NestedRules[i],SrcSpecificity);
 end;
 
+procedure TCSSResolver.CollectKeyframes(aRule: TCSSRuleElement);
+// Add every @keyframes at-rule of aRule's subtree to FKeyframes, in document order.
+// Requires the TCSSRuleData of the subtree to be up to date, see UpdateSourceOfElement.
+var
+  i: Integer;
+begin
+  if aRule=nil then exit;
+  if (aRule.ClassType=TCSSAtRuleElement)
+      and CSSIsKeyframesAtKeyword(TCSSAtRuleElement(aRule).AtKeyWord) then
+  begin
+    AddKeyframes(TCSSAtRuleElement(aRule));
+    // its nested rules are the keyframes ('from', '50%', ...), not @keyframes rules
+    exit;
+  end;
+  for i:=0 to aRule.NestedRuleCount-1 do
+    CollectKeyframes(aRule.NestedRules[i]);
+end;
+
+procedure TCSSResolver.AddKeyframes(aRule: TCSSAtRuleElement);
+// Add one @keyframes at-rule to FKeyframes, keyed by its animation name.
+// A top level @keyframes supersedes an earlier top level one with the same name.
+// A @keyframes nested in a style rule is kept even when a same-named one exists,
+// because it applies to other nodes, see FindKeyframesRule.
+var
+  aName: TCSSString;
+  El: TCSSElement;
+  i: SizeInt;
+  OldRule: TCSSAtRuleElement;
+begin
+  if aRule.SelectorCount=0 then
+    exit; // a @keyframes without a name, e.g. '@keyframes {'
+  El:=aRule.Selectors[0];
+  // the name is an identifier or a string, both have a Value
+  if not (El is TCSSBaseStringElement) then
+    exit;
+  aName:=TCSSBaseStringElement(El).Value;
+  if aName='' then
+    exit;
+
+  // the stylesheets are parsed by ParseCSSSource, so every rule has a TCSSRuleData
+  if RuleData(aRule).StyleRuleParent=nil then
+  begin
+    i:=FKeyframes.FindIndexOf(aName);
+    while i>=0 do
+    begin
+      OldRule:=TCSSAtRuleElement(FKeyframes[i]);
+      if (FKeyframes.NameOfIndex(i)=aName)
+          and (RuleData(OldRule).StyleRuleParent=nil) then
+      begin
+        // Delete instead of replacing the item, so the new rule is added at the end
+        // and the collision chain keeps running backwards in document order.
+        FKeyframes.Delete(i);
+        break;
+      end;
+      i:=FKeyframes.GetNextCollision(i);
+    end;
+  end;
+
+  FKeyframes.Add(aName,aRule);
+end;
+
+function TCSSResolver.KeyframesContextMatches(aRule: TCSSAtRuleElement;
+  const aNode: ICSSNode): boolean;
+// Check the ancestors of a @keyframes rule for aNode, the counterpart of
+// StartingStyleContextMatches.
+// Result=false: an enclosing style rule does not match aNode, an enclosing @media
+//   does not match, or an unsupported @-rule (e.g. @supports) encloses aRule.
+var
+  El: TCSSElement;
+  C: TClass;
+  aStyleRuleParent: TCSSRuleElement;
+begin
+  Result:=false;
+
+  // aRule comes from FKeyframes, i.e. from a stylesheet -> it has a TCSSRuleData
+  aStyleRuleParent:=RuleData(aRule).StyleRuleParent;
+  if aStyleRuleParent<>nil then
+  begin
+    // e.g. 'div{ @keyframes fade{} }' applies only to the nodes 'div' matches.
+    // Only the innermost style rule needs a check: SelectorMatches resolves the
+    // whole outer nesting chain, see StartingStyleContextMatches.
+    if GetRuleSpecificity(aStyleRuleParent,aNode)<0 then exit;
+  end;
+
+  El:=aRule.Parent;
+  while El<>nil do
+  begin
+    C:=El.ClassType;
+    if C.InheritsFrom(TCSSAtRuleElement) then
+    begin
+      if TCSSAtRuleElement(El).AtKeyWord='@media' then
+      begin
+        if not AtMediaMatches(TCSSAtRuleElement(El)) then exit;
+      end
+      else
+        exit; // unknown @-rule, e.g. @supports -> dropped, like in ComputeAtRule
+    end;
+    El:=El.Parent;
+  end;
+  Result:=true;
+end;
+
+function TCSSResolver.FindKeyframesRule(const aNode: ICSSNode;
+  const aName: TCSSString): TCSSAtRuleElement;
+var
+  i: SizeInt;
+  aRule: TCSSAtRuleElement;
+begin
+  Result:=nil;
+  if aName='' then exit;
+  UpdateRuleBuckets;
+
+  // The collision chain runs from the last added item to the first, i.e. backwards in
+  // document order, and it can contain other names -> check the name of every item.
+  i:=FKeyframes.FindIndexOf(aName);
+  while i>=0 do
+  begin
+    if FKeyframes.NameOfIndex(i)=aName then
+    begin
+      aRule:=TCSSAtRuleElement(FKeyframes[i]);
+      if KeyframesContextMatches(aRule,aNode) then
+        exit(aRule);
+    end;
+    i:=FKeyframes.GetNextCollision(i);
+  end;
+end;
+
 procedure TCSSResolver.CollectSiblingSelectors(aRule: TCSSRuleElement;
   SrcSpecificity: TCSSSpecificity);
 // Add every selector of aRule (and its nested rules) whose subject match depends on
@@ -4623,6 +4772,7 @@ procedure TCSSResolver.BuildRuleBuckets;
       BucketRule(TCSSRuleElement(El),SrcSpecificity);
       CollectSiblingSelectors(TCSSRuleElement(El),SrcSpecificity);
       CollectStartingStyleRules(TCSSRuleElement(El),SrcSpecificity);
+      CollectKeyframes(TCSSRuleElement(El));
     end;
     // unknown top-level elements are ignored here (warned by ComputeElement)
   end;
@@ -4666,7 +4816,7 @@ begin
 end;
 
 procedure TCSSResolver.UpdateSourceOfElement(El: TCSSElement;
-  anOrigin: TCSSOrigin; aSheetIndex: integer);
+  anOrigin: TCSSOrigin; aSheetIndex: integer; aStyleRuleParent: TCSSRuleElement);
 var
   C: TClass;
   i: Integer;
@@ -4678,7 +4828,8 @@ begin
   if C=TCSSCompoundElement then
   begin
     for i:=0 to TCSSCompoundElement(El).ChildCount-1 do
-      UpdateSourceOfElement(TCSSCompoundElement(El).Children[i],anOrigin,aSheetIndex);
+      UpdateSourceOfElement(TCSSCompoundElement(El).Children[i],anOrigin,aSheetIndex,
+                            aStyleRuleParent);
     exit;
   end;
   if not C.InheritsFrom(TCSSRuleElement) then exit;
@@ -4688,9 +4839,14 @@ begin
   RData:=RuleData(aRule);
   RData.Origin:=anOrigin;
   RData.SourceIndex:=aSheetIndex;
+  RData.StyleRuleParent:=aStyleRuleParent;
   RData.SourceStamp:=FSourceStamp;
+
+  // an @-rule is not a style rule, so it does not become the parent of its nested rules
+  if CSSIsPlainRule(C) then
+    aStyleRuleParent:=aRule;
   for i:=0 to aRule.NestedRuleCount-1 do
-    UpdateSourceOfElement(aRule.NestedRules[i],anOrigin,aSheetIndex);
+    UpdateSourceOfElement(aRule.NestedRules[i],anOrigin,aSheetIndex,aStyleRuleParent);
 end;
 
 procedure TCSSResolver.AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
