@@ -286,8 +286,7 @@ begin
       InWord := False;
       IsNumberWord := False;
       WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
-      //if not IsTitle then
-        Inc(FWordCount);
+      Inc(FWordCount);
 
     end
     else if not InWord and not IsEndOfWord then
@@ -310,8 +309,7 @@ begin
     //if IsNumberWord then WriteLn('Following is NUMBER WORD: "', (WordStart[0]),'"'); ;
     IsNumberWord := False;
     //WriteLn(FWordCount, ' "', WordName,'"');
-    if not IsTitle then
-      Inc(FWordCount);
+    Inc(FWordCount);
   end;
 end;
 
