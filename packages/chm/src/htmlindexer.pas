@@ -255,7 +255,16 @@ var
   begin
     Result := not (WordPtr^ in ['a'..'z', '0'..'9', '_', #01, #$DE, #$FE]);
     if  Result and IsNumberWord then
-      Result :=  Result and (WordPtr[0] <> '.');
+      begin
+        // A word starting with a digit goes on over a thousands separator,
+        // which is then dropped from it, and over a decimal point, but only
+        // when a digit follows it: this is what the Microsoft compiler does,
+        // so "1,000" is one word and "7." is just "7".
+        if WordPtr[0] = ',' then
+          Result := False
+        else if (WordPtr[0] = '.') and (WordPtr[1] in ['0'..'9']) then
+          Result := False;
+      end;
     if Result and InWord then
       Result := Result and (WordPtr[0] <> '''');
   ;
@@ -308,6 +317,12 @@ begin
       begin
         Delete(WordName, FPos, 1);
         FPos := Pos('''', WordName);
+      end;
+      FPos := Pos(',', WordName);
+      while FPos > 0 do
+      begin
+        Delete(WordName, FPos, 1);
+        FPos := Pos(',', WordName);
       end;
       WordIndex := addgetword(wordname,istitle);
       InWord := False;
