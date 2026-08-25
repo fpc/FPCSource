@@ -5436,16 +5436,22 @@ Var
 
 begin
   Result:=tkComment;
-  P:=Pos(' ',ADirectiveText);
-  If P=0 then
-    begin
-    P:=Pos(#9,ADirectiveText);
-    If P=0 then
-      P:=Length(ADirectiveText)+1;
-    end;
+  // The directive NAME ends at the first whitespace, and a LINE ENDING counts:
+  // an {$if} whose expression starts on the next line is legal, and taking only
+  // space/tab left the line ending glued to the name so nothing matched below
+  // (rtl-extra's sockets.pp, 45 corpus units).
+  P:=1;
+  while (P<=Length(ADirectiveText))
+      and not (ADirectiveText[P] in [' ',#9,#10,#13]) do
+    Inc(P);
   Directive:=Copy(ADirectiveText,2,P-2); // 1 is $
   Param:=ADirectiveText;
   Delete(Param,1,P);
+  // Drop any further leading whitespace so the parameter starts at the value:
+  // ReadIdentifier gives up on the first non-identifier character, so a name on
+  // the next line ({$ifdef<eol>  NAME}) or after two spaces read as empty.
+  while (Param<>'') and (Param[1] in [' ',#9,#10,#13]) do
+    Delete(Param,1,1);
   {$IFDEF VerbosePasDirectiveEval}
   Writeln('TPascalScanner.HandleDirective.Directive: "',Directive,'", Param : "',Param,'"');
   {$ENDIF}
