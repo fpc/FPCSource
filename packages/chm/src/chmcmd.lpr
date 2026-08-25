@@ -234,7 +234,7 @@ begin
       if not fileexists(name) then
         begin
           Writeln('Can''t find project file ',name);
-          halt;
+          halt(1);
         end;
       ProcessFile(Name);
     end
