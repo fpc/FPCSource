@@ -53,6 +53,14 @@ Type
                       UrlStrId  : Integer;
                     end;
 
+   // An entry of the #URLTBL file. They are kept until the whole table is
+   // known because it has to be written ordered by Hash, see BuildURLTBL.
+   TUrlTblEntry = record
+                    Hash        : DWord;
+                    TopicsIndex : DWord;
+                    UrlIndex    : DWord;
+                  end;
+
   { TITSFWriter }
 
   TITSFWriter = class(TObject)
@@ -175,6 +183,8 @@ Type
     FTocSM        : TCHMSitemap;
     FHasKLinks    : Boolean;
     FNrTopics     : Integer;
+    FUrlTbl       : array of TUrlTblEntry;
+    FUrlTblCount  : Integer;
   protected
     procedure FileAdded(AStream: TStream; const AEntry: TFileEntryRec); override;
   private
@@ -189,6 +199,7 @@ Type
     procedure CreateIDXHDRStream;
     procedure WriteIDXHDR;
     procedure WriteURL_STR_TBL;
+    procedure BuildURLTBL;
     procedure WriteOBJINST;
     procedure WriteFiftiMain;
     procedure WriteWindows;
@@ -1169,6 +1180,9 @@ begin
   if indexname<>'' then
     AddTopic('',self.IndexName,2);
 
+  // every URL is known now
+  BuildURLTBL;
+
   FTopicsStream.Position := 0;
   PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
  // I commented the code below since the result seemed unused
@@ -1288,8 +1302,96 @@ begin
     FIDXHdrStream.WriteDword(0);
 end;
 
+// The help viewer resolves a URL to its topic by looking it up in #URLTBL,
+// which is ordered by this hash of the URL, so a table not ordered by it, or
+// filled with a constant, makes every lookup find the same entry: the topics
+// are then still found by a full text search but opening one of the results
+// shows the wrong page.
+//
+// Every character is a digit of a base 43 number, the alphabet being the 43
+// characters from '0' to 'Z' with the lower case letters folded onto the upper
+// case ones. Characters outside it, '.' and '-' in practice, simply give a
+// digit outside 0..42, which is harmless as the whole thing is computed modulo
+// 2^32 anyway.
+function URLTblHash(const AUrl: String): DWord;
+var
+  i : Integer;
+  c : Byte;
+begin
+  Result := 0;
+  for i := 1 to Length(AUrl) do
+    begin
+      c := Byte(AUrl[i]);
+      if c > Byte('Z') then
+        Dec(c, Ord('a') - Ord('A'));
+      Result := Result * 43 + DWord(Integer(c) - Ord('0'));
+    end;
+end;
+
+// Writes the entries remembered by AddURL ordered by hash and replaces the
+// entry numbers it returned by the real offsets in the #TOPICS entries.
+procedure TChmWriter.BuildURLTBL;
+var
+  i, j       : Integer;
+  Tmp        : TUrlTblEntry;
+  Offsets    : array of DWord;
+  Order      : array of Integer;
+  TopicCount : Integer;
+  UrlNumber  : DWord;
+begin
+  // Nothing to do if there are no URLs or if the table was already written.
+  if (FUrlTblCount = 0) or (FURLTBLStream.Size <> 0) then
+    Exit;
+
+  // sort the entries by hash, keeping track of where each one came from
+  SetLength(Order, FUrlTblCount);
+  for i := 0 to FUrlTblCount-1 do
+    Order[i] := i;
+  for i := 1 to FUrlTblCount-1 do
+    begin
+      j := i;
+      while (j > 0) and (FUrlTbl[j-1].Hash > FUrlTbl[j].Hash) do
+        begin
+          Tmp := FUrlTbl[j-1]; FUrlTbl[j-1] := FUrlTbl[j]; FUrlTbl[j] := Tmp;
+          TopicCount := Order[j-1]; Order[j-1] := Order[j]; Order[j] := TopicCount;
+          Dec(j);
+        end;
+    end;
+
+  SetLength(Offsets, FUrlTblCount);
+  for i := 0 to FUrlTblCount-1 do
+    begin
+      //if $1000 - (FURLTBLStream.Size mod $1000) = 4 then // we are at 4092
+      if FURLTBLStream.Size and $FFC = $FFC then // faster :)
+        FURLTBLStream.WriteDWord(0);
+      Offsets[Order[i]] := DWord(FURLTBLStream.Position);
+      FURLTBLStream.WriteDWordLE(FUrlTbl[i].Hash);
+      FURLTBLStream.WriteDWordLE(FUrlTbl[i].TopicsIndex); // Index of topic in #TOPICS
+      FURLTBLStream.WriteDWordLE(FUrlTbl[i].UrlIndex);
+    end;
+
+  // patch the entry numbers AddURL returned into the offsets just computed
+  TopicCount := FTopicsStream.Size div 16;
+  for i := 0 to TopicCount-1 do
+    begin
+      FTopicsStream.Position := i*16 + 8;
+      UrlNumber := LEtoN(FTopicsStream.ReadDWord);
+      if UrlNumber < DWord(FUrlTblCount) then
+        begin
+          FTopicsStream.Position := i*16 + 8;
+          FTopicsStream.WriteDWordLE(Offsets[UrlNumber]);
+        end;
+    end;
+
+  // AddTopic() appends at the current position, so don't leave it in the middle
+  // of the stream.
+  FTopicsStream.Position := FTopicsStream.Size;
+end;
+
 procedure TChmWriter.WriteURL_STR_TBL;
 begin
+  // normally already done by WriteTOPICS, but it gives up if there are no topics
+  BuildURLTBL;
   if FURLSTRStream.Size <> 0 then begin
     FURLSTRStream.Position := 0;
     PostAddStreamToArchive('#URLSTR', '/', FURLSTRStream);
@@ -1680,13 +1782,17 @@ begin
   if (Length(AURL) > 0) and (AURL[1] = '/') then Delete(AURL,1,1);
   UrlIndex:=LookupUrlString(AUrl);
 
-  //if $1000 - (FURLTBLStream.Size mod $1000) = 4 then // we are at 4092
-  if FURLTBLStream.Size and $FFC = $FFC then // faster :)
-    FURLTBLStream.WriteDWord(0);
-  Result := FURLTBLStream.Position;
-  FURLTBLStream.WriteDWord(0);//($231e9f5c); //unknown
-  FURLTBLStream.WriteDWordLE(TopicsIndex); // Index of topic in #TOPICS
-  FURLTBLStream.WriteDWordLE(UrlIndex);
+  // The entry can't be written yet as #URLTBL is ordered by hash and the
+  // hashes of the URLs still to come are not known, so just remember it. The
+  // result is its number, which BuildURLTBL replaces by its real offset in the
+  // #TOPICS entry using it.
+  if FUrlTblCount = Length(FUrlTbl) then
+    SetLength(FUrlTbl, 2*FUrlTblCount + 64);
+  FUrlTbl[FUrlTblCount].Hash := URLTblHash(AUrl);
+  FUrlTbl[FUrlTblCount].TopicsIndex := TopicsIndex;
+  FUrlTbl[FUrlTblCount].UrlIndex := UrlIndex;
+  Result := FUrlTblCount;
+  Inc(FUrlTblCount);
 end;
 
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
