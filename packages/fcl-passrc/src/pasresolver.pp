@@ -2661,6 +2661,8 @@ type
     { True when a bare ProcName inside EnclosingName's body is that routine's
       own Result - the enclosing name may be qualified and/or specialized. }
     function SameSelfRefProcName(const EnclosingName, ProcName: String): boolean;
+    function RedirectSelfNameToResult(Expr: TPasExpr;
+      var ExprResolved: TPasResolverResult; SetReferenceFlags: boolean): boolean;
     { False when El is the member side of "X.Name", which is never a self-ref. }
     function IsSelfRefCandidate(El: TPasExpr): boolean;
     { True when a bare Proc name at El sits inside a function of that same name. }
@@ -6735,6 +6737,45 @@ begin
   // then a recursive CALL, not the result variable (testpassrc
   // TestGenProc_CallSelfNoParams).
   Result:=CompareText(ShortProcName(EnclosingName),ProcName)=0;
+end;
+
+
+function TPasResolver.RedirectSelfNameToResult(Expr: TPasExpr;
+  var ExprResolved: TPasResolverResult; SetReferenceFlags: boolean): boolean;
+// A parameterless function's OWN NAME, written inside its own body and handed to
+// something that needs a variable, denotes the Result - not a recursive call.
+// Re-points the reference at the ResultEl and recomputes. False when the shape
+// does not match, and then nothing is changed.
+var
+  ArgRef: TResolvedReference;
+  SelfProc: TPasProcedure;
+  EnclEl: TPasElement;
+begin
+  Result:=false;
+  if ResolvedElCanBeVarParam(ExprResolved,Expr) then exit;
+  if not ((Expr is TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)
+          and (Expr.CustomData is TResolvedReference)
+          and not ExprIsAddrTarget(Expr)) then
+    exit;
+  ArgRef:=TResolvedReference(Expr.CustomData);
+  if not ((ArgRef.Declaration is TPasProcedure)
+          and (TPasProcedure(ArgRef.Declaration).ProcType is TPasFunctionType)) then
+    exit;
+  SelfProc:=TPasProcedure(ArgRef.Declaration);
+  EnclEl:=Expr;
+  while (EnclEl<>nil) and not (EnclEl is TPasProcedure) do
+    EnclEl:=EnclEl.Parent;
+  // Compare BASE names: the enclosing name may carry a "<...>" specialization
+  // suffix AND, for a METHOD, its qualifying type ("TEReader.ReadUHalf").
+  if not ((EnclEl is TPasFunction)
+          and SameSelfRefProcName(TPasFunction(EnclEl).Name,SelfProc.Name)) then
+    exit;
+  ArgRef.Declaration:=TPasFunctionType(TPasFunction(EnclEl).ProcType).ResultEl;
+  if SetReferenceFlags then
+    ComputeElement(Expr,ExprResolved,[rcSetReferenceFlags])
+  else
+    ComputeElement(Expr,ExprResolved,[]);
+  Result:=true;
 end;
 
 function TPasResolver.IsProcOverloading(LastProc, CurProc: TPasProcedure
@@ -13269,14 +13310,20 @@ procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
     PopScope;
   end;
 
-  function SearchInTypeHelpers(HiType: TPasType; IdentEl: TPasElement): boolean;
+  function SearchInTypeHelpers(HiType: TPasType;
+    const LeftRes: TPasResolverResult): boolean;
   var
     DotScope: TPasDotBaseScope;
   begin
     if HiType=nil then exit(false);
     DotScope:=PushHelperDotScope(HiType);
     if DotScope=nil then exit(false);
-    if IdentEl is TPasType then
+    // Only a TYPE NAME restricts the scope to type members. A readable VALUE
+    // whose IdentEl merely happens to be a type - a built-in call such as
+    // Ord(x), whose declaration is a TPasUnresolvedSymbolRef - must still reach
+    // instance members: fcl-net writes `ord(Addr.AddressType).ToString`.
+    if (LeftRes.IdentEl is TPasType)
+        and not (rrfReadable in LeftRes.Flags) then
       // e.g. TFlag.HelperProc
       DotScope.OnlyTypeMembers:=true;
     ResolveRight;
@@ -13401,7 +13448,7 @@ begin
     // `type helper for Pointer` — search it before falling through to the
     // illegal-qualifier error (tthlp4: Nil.Test binds the Pointer helper).
     if (LeftResolved.BaseType=btNil) and (FBaseTypes[btPointer]<>nil) then
-      if SearchInTypeHelpers(FBaseTypes[btPointer],LeftResolved.IdentEl) then exit;
+      if SearchInTypeHelpers(FBaseTypes[btPointer],LeftResolved) then exit;
     // else illegal qualifier, see below
     end
   else
@@ -13598,7 +13645,7 @@ begin
             end;
           end;
         if (FBaseTypes[LitBt]<>nil) and (FBaseTypes[LitBt]<>LHiTypeEl) then
-          if SearchInTypeHelpers(FBaseTypes[LitBt],LeftResolved.IdentEl) then exit;
+          if SearchInTypeHelpers(FBaseTypes[LitBt],LeftResolved) then exit;
         end;
       // An integer *literal* binds the helper by its inherent smallest,
       // signed-preferring type (tthlp4: 2->ShortInt, 200->Byte, 40000->Word),
@@ -13623,7 +13670,7 @@ begin
             end;
             if (LitBt<>btNone) and (FBaseTypes[LitBt]<>nil)
                 and (FBaseTypes[LitBt]<>LHiTypeEl) then
-              if SearchInTypeHelpers(FBaseTypes[LitBt],LeftResolved.IdentEl) then exit;
+              if SearchInTypeHelpers(FBaseTypes[LitBt],LeftResolved) then exit;
           finally
             ReleaseEvalValue(LitVal);
           end;
@@ -13644,17 +13691,17 @@ begin
           try
             if TMaxPrecFloat(Single(TResEvalFloat(LitVal).FloatValue))
                 = TResEvalFloat(LitVal).FloatValue then
-              if SearchInTypeHelpers(FBaseTypes[btSingle],LeftResolved.IdentEl) then exit;
+              if SearchInTypeHelpers(FBaseTypes[btSingle],LeftResolved) then exit;
           finally
             ReleaseEvalValue(LitVal);
           end;
         end;
-      if SearchInTypeHelpers(LHiTypeEl,LeftResolved.IdentEl) then exit;
+      if SearchInTypeHelpers(LHiTypeEl,LeftResolved) then exit;
       end
     else if LeftResolved.BaseType=btSet then
       begin
       SetType:=GetSetType(LeftResolved);
-      if SearchInTypeHelpers(SetType,LeftResolved.IdentEl) then exit;
+      if SearchInTypeHelpers(SetType,LeftResolved) then exit;
       end;
     end;
 
@@ -24259,6 +24306,9 @@ begin
   // first param: string or array variable
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  // The function's own name inside its body IS its Result: rtl-extra's
+  // objects.pp calls `SetLength(ReadRawByteString, L)` in ReadRawByteString.
+  RedirectSelfNameToResult(Param,ParamResolved,false);
   Result:=cIncompatible;
   DynArr:=nil;
   if ResolvedElCanBeVarParam(ParamResolved,Expr) then
@@ -33087,36 +33137,9 @@ begin
       exit(cExact);
     // A parameterless function's own name, used inside its body and passed to this
     // var/out parameter (e.g. FpGetcwd in SetCodePage(FpGetcwd,...)), denotes the
-    // Result variable, not a recursive call
-    if not ResolvedElCanBeVarParam(ExprResolved,Expr)
-        and (Expr is TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)
-        and (Expr.CustomData is TResolvedReference)
-        and not ExprIsAddrTarget(Expr) then
-      begin
-      ArgRef:=TResolvedReference(Expr.CustomData);
-      if (ArgRef.Declaration is TPasProcedure)
-          and (TPasProcedure(ArgRef.Declaration).ProcType is TPasFunctionType) then
-        begin
-        SelfProc:=TPasProcedure(ArgRef.Declaration);
-        EnclEl:=Expr;
-        while (EnclEl<>nil) and not (EnclEl is TPasProcedure) do
-          EnclEl:=EnclEl.Parent;
-        // Compare BASE names: the enclosing name may carry a "<...>"
-        // specialization suffix AND, for a METHOD, its qualifying type
-        // ("TEReader.ReadUHalf"), which a plain compare missed - so a method
-        // could not pass its own name to a var parameter at all. lnfodwrf does
-        // `ReadNext(ReadUHalf, sizeof(ReadUHalf))`.
-        if (EnclEl is TPasFunction)
-            and SameSelfRefProcName(TPasFunction(EnclEl).Name,SelfProc.Name) then
-          begin
-          ArgRef.Declaration:=TPasFunctionType(TPasFunction(EnclEl).ProcType).ResultEl;
-          if SetReferenceFlags then
-            ComputeElement(Expr,ExprResolved,[rcSetReferenceFlags])
-          else
-            ComputeElement(Expr,ExprResolved,[]);
-          end;
-        end;
-      end;
+    // Result variable, not a recursive call (lnfodwrf does
+    // `ReadNext(ReadUHalf, sizeof(ReadUHalf))`).
+    RedirectSelfNameToResult(Expr,ExprResolved,SetReferenceFlags);
     // Expr must be a variable. An untyped var/out additionally accepts a writable
     // string char-index l-value (s[i], the Stream.ReadBuffer(s[1],..) idiom):
     // ComputeArrayParams marks it rrfAssignable (not rrfWritable),
