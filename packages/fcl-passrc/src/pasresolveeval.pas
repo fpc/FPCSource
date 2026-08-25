@@ -1430,6 +1430,15 @@ var
   Int: TMaxPrecInt;
   UInt: TMaxPrecUInt;
 begin
+  // The @ operator needs a compiler, not just a resolver, so its value is opaque
+  // whatever the operand is - and in a CONSTANT the operand need not be
+  // evaluable at all: rtl-extra's objects.pp writes `@(TypeOf(TCollection)^)`,
+  // whose deref folds to nothing, and the nil came back as "Constant expression
+  // expected". Only when a constant is DEMANDED: an opportunistic fold must
+  // still answer nil, or `(@buf[n] + 1) - p` in timezone.inc looks constant and
+  // the arithmetic on the placeholder fails.
+  if (Expr.OpCode=eopAddress) and ([refConst,refConstExt]*Flags<>[]) then
+    exit(TResEvalValue.CreateKind(revkNil));
   Result:=Eval(Expr.Operand,Flags);
   if Result=nil then exit;
   {$IFDEF VerbosePasResEval}
