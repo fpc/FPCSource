@@ -22262,8 +22262,12 @@ begin
       if GenIntfProc.IsAbstract or GenIntfProc.IsExternal then continue;
       GenIntfProcScope:=TPasProcedureScope(GenIntfProc.CustomData);
       GenImplProc:=GenIntfProcScope.ImplProc;
-      if GenImplProc=nil then
-        RaiseNotYetImplemented(20190921221246,GenIntfProc);
+      // No implementation to copy: the template came from a precompiled unit
+      // that could not carry this body. The specialized method then has a
+      // declaration and no code, which the linker reports if it is ever called -
+      // far better than refusing to specialize the type at all, which stops the
+      // consumer from compiling even the members that ARE complete.
+      if GenImplProc=nil then continue;
       if ImplParent=nil then
         begin
         // switch scope (e.g. unit implementation section)
@@ -30620,11 +30624,26 @@ begin
   Result:=true;
 end;
 
+function SameArgAccess(A1, A2: TArgumentAccess): boolean;
+// Whether two parameter access modifiers make the same parameter list.
+
+begin
+  Result:=A1=A2;
+  if Result then exit;
+  Result:=(A1 in [argConst,argConstRef]) and (A2 in [argConst,argConstRef]);
+end;
+
+
 function TPasResolver.CheckProcArgCompatibility(Arg1, Arg2: TPasArgument
   ): integer;
 begin
   // check access: var, const, ...
-  if Arg1.Access<>Arg2.Access then exit(cIncompatible);
+  // const and constref are ONE parameter list for ppcx64: it refuses to overload
+  // them ("Overloaded functions have the same parameter list") and it matches an
+  // interface declaration to an implementation that swaps them - fcl-net's
+  // fpsockets declares `generic function SendTo<T>(constref ReceiverAddr; const
+  // AData: T)` and implements it with the two the other way round.
+  if not SameArgAccess(Arg1.Access,Arg2.Access) then exit(cIncompatible);
 
   Result:=CheckElTypeCompatibility(Arg1.ArgType,Arg2.ArgType,prraSimple);
 end;
