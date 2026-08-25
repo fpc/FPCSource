@@ -1484,7 +1484,7 @@ const pemagic : array[0..3] of byte = (
                   begin
                     addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
                     { sign extend the value if necessary }
-                    if (addend and (1 shl 21)) <> 0 then
+                    if (addend and (1 shl 20)) <> 0 then
                       addend:=addend or sarint64(1 shl 63,12);
                     { the addend is a byte offset, so it has to be applied to the
                       symbol address before taking the page number: ADRP encodes
@@ -1497,7 +1497,7 @@ const pemagic : array[0..3] of byte = (
                   begin
                     addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
                     { sign extend the value if necessary }
-                    if (addend and (1 shl 21)) <> 0 then
+                    if (addend and (1 shl 20)) <> 0 then
                       addend:=addend or sarint64(1 shl 63, 12);
                     relocval:=relocval shr 12;
                     relocval:=int64((relocval-(objsec.mempos+objreloc.dataoffset) shr 12)+addend);
