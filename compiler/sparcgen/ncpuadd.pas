@@ -58,7 +58,7 @@ interface
       aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,cgsparc,cgcpu,cgutils,
       cpuinfo,cpupara,
-      ncon,nset,nadd,
+      ncon,nset,nadd,symconst,
       hlcgobj,ncgutil,cgobj;
 
 {*****************************************************************************
@@ -463,7 +463,7 @@ interface
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(unsigned,is_64bit(right.resultdef));
+        location.resflags:=getresflags(unsigned,is_64bit(right.resultdef){$ifdef SPARC64} or (right.resultdef.typ=pointerdef){$endif});
       end;
 
     const
