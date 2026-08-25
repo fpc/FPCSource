@@ -1886,9 +1886,13 @@ implementation
            else
              begin
                handle_reg_imm12_reg(list,A_SUB,OS_ADDR,NR_SP,localsize,NR_SP,NR_IP0,false,true);
-               if target_info.system=system_aarch64_win64 then
-                 list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
              end;
+           { the allocation has to be described whichever way it was performed:
+             without this the .xdata is missing the frame size, and a function
+             that needs no other directive gets no .pdata entry at all, so
+             Windows treats it as a frameless leaf }
+           if target_info.system=system_aarch64_win64 then
+             list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
          end;
       end;
 
