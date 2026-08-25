@@ -506,7 +506,11 @@ unit agcpugas;
                               unwindrec:=unwindrec or (1 shl 20);  { X bit - exception data present }
 
                             unwindrec:=unwindrec or (1 shl 21);  { E bit - single epilog }
-                            unwindrec:=unwindrec or (1 shl 22);  { epilog start index = 1 }
+                            { the epilog start index stays 0: the epilog is the exact
+                              mirror of the prolog, so the same unwind codes describe
+                              both from the start of the array. The field is a byte
+                              index, so a hardcoded 1 addressed the second byte of the
+                              first code as soon as that code was longer than one byte }
 
                             if unwinddata.size div 4<=31 then
                               unwindrec:=unwindrec or ((unwinddata.size div 4) shl 27);  { code_words in bits 27-31 }
