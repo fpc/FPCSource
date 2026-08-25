@@ -264,10 +264,37 @@ var
     WordIndex: TIndexedWord;
     WordName: AnsiString;
     FPos: Integer;
+    i, j: Integer;
 begin
   if IsTitle then
     FDocTitle := Words;
   Words := LowerCase(Words);
+
+  // A character entity separates words but is not one itself: otherwise the
+  // digits of a numeric one are indexed as a word of their own, which shifts
+  // the position of every word following it in the document.
+  i := 1;
+  while i <= Length(Words) do
+    begin
+      if Words[i] = '&' then
+        begin
+          j := i + 1;
+          while (j <= Length(Words)) and (j - i <= 10)
+                and not (Words[j] in [';', ' ', '&']) do
+            Inc(j);
+          if (j <= Length(Words)) and (Words[j] = ';') then
+            begin
+              while i <= j do
+                begin
+                  Words[i] := ' ';
+                  Inc(i);
+                end;
+              Continue;
+            end;
+        end;
+      Inc(i);
+    end;
+
   WordStart := PAnsiChar(Words);
   WordPtr := WordStart;
   IsNumberWord := False;
