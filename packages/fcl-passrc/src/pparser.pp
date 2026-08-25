@@ -4122,7 +4122,12 @@ begin
   HadTypeSection:=false;
   while True do
   begin
-    if CurBlock in [DeclNone,declConst,declType,declVar] then
+    // A resourcestring or threadvar section ends at `operator` just as a var
+    // section does; without them the word arrives as an identifier and reads
+    // as one more declaration in the section (fcl-net's ssockets.pp puts
+    // `operator :=` straight after a resourcestring block).
+    if CurBlock in [DeclNone,declConst,declResourcestring,declType,declVar,
+        declThreadVar] then
       Scanner.SetTokenOption(toOperatorToken)
     else
       Scanner.UnSetTokenOption(toOperatorToken);
