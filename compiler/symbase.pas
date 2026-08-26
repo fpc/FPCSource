@@ -122,6 +122,7 @@ interface
           { includes the flag in this symtable and all parent symtables; if
             it's already set the flag is not set again }
           procedure includeoption(option:tsymtableoption);
+          class function maybe_adjust_symname(const s:tsymstr):tsymstr;
        end;
 
        psymtablestackitem = ^TSymtablestackitem;
@@ -355,25 +356,20 @@ implementation
     procedure TSymtable.insertsym(sym:TSymEntry;checkdup:boolean=true);
       var
         hashedid : THashedIDString;
+        s : tsymstr;
       begin
+         s:=maybe_adjust_symname(sym.realname);
          if checkdup then
            begin
-             if sym.realname[1]='$' then
-               hashedid.id:=Copy(sym.realname,2,maxidlen+1)
-             else
-               hashedid.id:=Upper(sym.realname);
+             hashedid.id:=s;
              { First check for duplicates, this can change the symbol name
                in case of a duplicate entry }
-             checkduplicate(hashedid,sym);
+             if checkduplicate(hashedid,sym) then
+               s:=maybe_adjust_symname(sym.realname);
            end;
          { Now we can insert the symbol, any duplicate entries
            are renamed to an unique (and for users inaccessible) name }
-         if sym.realname[1]='$' then
-           sym.ChangeOwnerAndName(SymList,Copy(sym.realname,2,maxidlen+1))
-         else if length(sym.realname)>maxidlen then
-           sym.ChangeOwnerAndName(SymList,Upper(Copy(sym.realname,1,maxidlen)))
-         else
-           sym.ChangeOwnerAndName(SymList,Upper(sym.realname));
+         sym.ChangeOwnerAndName(SymList,s);
          sym.Owner:=self;
       end;
 
@@ -411,6 +407,17 @@ implementation
     function TSymtable.FindWithHash(const s:THashedIDString) : TSymEntry;
       begin
         result:=TSymEntry(SymList.FindWithHash(s.id,s.hash));
+      end;
+
+
+    class function TSymtable.maybe_adjust_symname(const s:tsymstr):tsymstr;
+      begin
+        if s[1]='$' then
+          result:=copy(s,2,maxidlen+1)
+        else if length(s)>maxidlen then
+          result:=upper(copy(s,1,maxidlen))
+        else
+          result:=upper(s);
       end;
 
 
