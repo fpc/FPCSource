@@ -618,7 +618,6 @@ type
     function RuleData(Rule: TCSSRuleElement): TCSSRuleData; virtual;
     function DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString; virtual;
     procedure RestoreDisabledDeclarations(Sheet: TStyleSheet); virtual;
-    // recompute TCSSRuleData.HasDisabledDecls
     procedure UpdateRuleHasDisabledDecls(Decl: TCSSDeclarationElement); virtual; overload;
     procedure UpdateRuleHasDisabledDecls(Rule: TCSSRuleElement); virtual; overload;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
@@ -645,10 +644,6 @@ type
     // caller can skip ComputeStartingStyle altogether.
     function HasStartingStyleRules: boolean; virtual;
     // The @keyframes rule named aName applying to aNode, nil if there is none.
-    // A @keyframes nested in a style rule applies only to the nodes that rule matches,
-    // so the same name can be used by several rules; when more than one applies, the
-    // last one in document order wins. aNode=nil finds only the top level rules.
-    // Names are case sensitive, like CSS custom identifiers.
     function FindKeyframesRule(const aNode: ICSSNode; const aName: TCSSString): TCSSAtRuleElement; virtual;
     // Compute the values Node would have with the @starting-style rules applied,
     // i.e. the style a CSS transition starts from on the first style pass.
@@ -666,26 +661,20 @@ type
       out Rules: TCSSSharedRuleList; // owned by resolver
       out Values: TCSSAttributeValues
       ): boolean; virtual;
-    // Match all sibling/positional selectors against Node (cheap: only the usually-small
-    // sibling-selector set is evaluated, not the full bucketed cascade).
+    // Match all sibling/positional selectors against Node
     function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
     // The origin specificity of the stylesheet containing aRule, see CSSOriginToSpecifity.
     // 0 if aRule belongs to none of the stylesheets, e.g. an element style.
     function GetRuleSourceSpecificity(aRule: TCSSRuleElement): TCSSSpecificity; virtual;
-    // The specificity of aRule for aNode: the best of its selectors plus the origin
-    // of aRule's stylesheet, or CSSSpecificityNoMatch when none matches (e.g. a
-    // selectorless inline rule).
+    // The specificity of aRule for aNode: the best of its selectors plus the origin of aRule's stylesheet.
     function GetRuleSpecificity(aRule: TCSSRuleElement; const aNode: ICSSNode): TCSSSpecificity; virtual;
-    // The stylesheet containing aRule, nil if aRule belongs to none, e.g. an element
-    // style. Cheap: uses the index cached in the rule's TCSSRuleData.
     function GetRuleStyleSheet(aRule: TCSSRuleElement): TStyleSheet; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
     function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; override;
     function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; override;
-    // True when the value is not valid for the attribute AttrID, mirroring the parser's
-    // per-declaration value check (see TCSSResolverParser.ReadDeclaration). A value that
+    // True when the value is not valid for the attribute AttrID. A value that
     // cannot be checked - a custom property, an attribute below/at 'all', or a value that
     // still contains a var() call - is treated as valid. Used by the style inspector to
     // flag an invalid value live while it is being edited.
@@ -714,8 +703,6 @@ type
     procedure ReplaceStyleSheet(Index: integer; const NewSource: TCSSString); virtual;
     procedure DeleteStyleSheet(Index: integer); virtual;
     // Call after a value used by HasMediaBoolean/IsMediaPlain/MediaCompare changed
-    // (viewport size, colour scheme, orientation, ...), so the cached @media results
-    // and the rule buckets are recomputed on the next resolve.
     procedure InvalidateMedia; virtual;
     // Same as InvalidateMedia, kept for compatibility.
     procedure InvalidateRuleBuckets; virtual;
