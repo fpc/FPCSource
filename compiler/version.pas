@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2026 by Florian Klaempfl
 
     Version/target constants
 
@@ -30,7 +30,7 @@ interface
        version_nr = '3';
        release_nr = '2';
        patch_nr   = '4';
-       minorpatch = '-rc1';
+       minorpatch = '-rc2';
 
        { word version for ppu file }
        wordversion = ((ord(version_nr)-ord('0')) shl 14)+
