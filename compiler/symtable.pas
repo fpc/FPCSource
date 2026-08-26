@@ -4402,10 +4402,7 @@ implementation
         srsymtable: tsymtable;
         srsym: tsym;
       begin
-        if s[1]='$' then
-          found:=searchsym_in_module(current_module,copy(s,2,length(s)),srsym,srsymtable)
-        else
-          found:=searchsym_in_module(current_module,s,srsym,srsymtable);
+        found:=searchsym_in_module(current_module,tsymtable.maybe_adjust_symname(s),srsym,srsymtable);
         if found then
           begin
             if (srsym.typ<>typesym) then
