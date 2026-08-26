@@ -233,7 +233,9 @@ type
     // computed by resolver:
     Rules: TCSSSharedRuleList; // owned by resolver
     Values: TCSSAttributeValues;
-    // @starting-style, computed by resolver, valid if HasStartingStyle:
+    // The @starting-style declarations only, computed by resolver,
+    // valid if HasStartingStyle. They contain nothing from the normal rules
+    // and nothing from the inline style.
     HasStartingStyle: boolean;
     StartingRules: TCSSSharedRuleList; // owned by resolver
     StartingValues: TCSSAttributeValues;
@@ -293,7 +295,8 @@ type
     property Background: TCSSString index naBackground read GetAttribute;
     property Direction: TCSSString index naDirection read GetAttribute;
     property Attribute[Attr: TDemoNodeAttribute]: TCSSString read GetAttribute;
-    // CSS attributes of the @starting-style pass, '' if HasStartingStyle=false
+    // CSS attributes declared by the @starting-style rules, '' if the attribute
+    // is not declared there or HasStartingStyle=false
     property StartingWidth: TCSSString index naWidth read GetStartingAttribute;
     property StartingHeight: TCSSString index naHeight read GetStartingAttribute;
     property StartingAttribute[Attr: TDemoNodeAttribute]: TCSSString read GetStartingAttribute;
@@ -640,11 +643,11 @@ type
     procedure TestRes_StartingStyle_None; // no @starting-style at all
     procedure TestRes_StartingStyle_TopLevel; // @starting-style{ div{..} }
     procedure TestRes_StartingStyle_Nested; // div{ @starting-style{..} }
-    procedure TestRes_StartingStyle_KeepsNormalValues; // untouched attributes stay
+    procedure TestRes_StartingStyle_OnlyStartingValues; // no values of the normal rules
     procedure TestRes_StartingStyle_SelectorNotMatching;
     procedure TestRes_StartingStyle_ParentRuleNotMatching;
-    procedure TestRes_StartingStyle_Specificity; // a higher specificity normal rule wins
-    procedure TestRes_StartingStyle_SameSpecificityWins; // ties go to @starting-style
+    procedure TestRes_StartingStyle_Specificity; // the higher specificity rule wins
+    procedure TestRes_StartingStyle_SameSpecificityDocOrder; // ties go to the last rule
     procedure TestRes_StartingStyle_NestedSelector; // descendant selector inside @starting-style
     procedure TestRes_StartingStyle_NestedAmpSelector; // &.red inside a nested @starting-style
     // a nested rule is matched by its own selector, the enclosing rule matches an
@@ -1541,8 +1544,7 @@ begin
   // write into the node's fields and clobber the normal computed state
   StartingRules:=nil;
   FreeAndNil(StartingValues);
-  HasStartingStyle:=Resolver.ComputeStartingStyle(Self,InlineStyleElement,Rules,
-                                                  StartingRules,StartingValues);
+  HasStartingStyle:=Resolver.ComputeStartingStyle(Self,StartingRules,StartingValues);
 
   {$IFDEF VerboseCSSResolver}
   writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
@@ -5508,14 +5510,15 @@ begin
   AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
 end;
 
-procedure TTestCSSResolver.TestRes_StartingStyle_KeepsNormalValues;
+procedure TTestCSSResolver.TestRes_StartingStyle_OnlyStartingValues;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Div1:=AddDiv('Div1',Doc.Root);
 
-  // the starting style only overrides width, height comes from the normal rule
+  // only the width of the @starting-style is returned, the height of the normal
+  // rule is not - the caller applies the starting values on top of its own
   Doc.Style:=LinesToStr([
   'div{ width: 20px; height: 5px; }',
   '@starting-style { div{ width: 10px; } }',
@@ -5524,7 +5527,7 @@ begin
   AssertEquals('Div1.Width','20px',Div1.Width);
   AssertEquals('Div1.Height','5px',Div1.Height);
   AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
-  AssertEquals('Div1.StartingHeight','5px',Div1.StartingHeight);
+  AssertEquals('Div1.StartingHeight','',Div1.StartingHeight);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_SelectorNotMatching;
@@ -5569,34 +5572,35 @@ begin
   Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('red');
 
-  // .red (class) beats the div (type) of the @starting-style
+  // .red (class) beats div (type), although div comes later
   Doc.Style:=LinesToStr([
-  '.red{ width: 30px; }',
-  '@starting-style { div{ width: 10px; } }',
+  '@starting-style {',
+  '  .red{ width: 30px; }',
+  '  div{ width: 10px; }',
+  '}',
   '']);
   ApplyStyle;
-  AssertEquals('Div1.Width','30px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
   AssertEquals('Div1.StartingWidth','30px',Div1.StartingWidth);
 end;
 
-procedure TTestCSSResolver.TestRes_StartingStyle_SameSpecificityWins;
+procedure TTestCSSResolver.TestRes_StartingStyle_SameSpecificityDocOrder;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Div1:=AddDiv('Div1',Doc.Root);
 
-  // ComputeStartingStyle appends the @starting-style rules to the already sorted
-  // rules of Compute, so at equal specificity the @starting-style always wins,
-  // even though it comes first in the stylesheet
+  // the @starting-style rules are collected in document order, so at equal
+  // specificity the last declaration wins
   Doc.Style:=LinesToStr([
   '@starting-style { div{ width: 10px; } }',
   'div{ width: 20px; }',
+  '@starting-style { div{ width: 30px; } }',
   '']);
   ApplyStyle;
   AssertEquals('Div1.Width','20px',Div1.Width);
-  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingWidth','30px',Div1.StartingWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_NestedSelector;
@@ -5766,7 +5770,7 @@ begin
   AssertEquals('Div1.Width','20px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
   AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
-  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+  AssertEquals('Div1.StartingHeight','',Div1.StartingHeight);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_MediaAncestorNotMatching;
@@ -5804,7 +5808,7 @@ begin
   AssertEquals('Div1.Width','20px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
   AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
-  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+  AssertEquals('Div1.StartingHeight','',Div1.StartingHeight);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_UnknownAtRuleAncestor;
@@ -5846,10 +5850,9 @@ begin
   AssertEquals('Div1.Width','20px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
   AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
-  AssertEquals('Div1.StartingHeight','21px',Div1.StartingHeight);
+  AssertEquals('Div1.StartingHeight','',Div1.StartingHeight);
   // the outer rule is added exactly once
-  AssertEquals('starting rule count',length(Div1.Rules.Rules)+1,
-               length(Div1.StartingRules.Rules));
+  AssertEquals('starting rule count',1,length(Div1.StartingRules.Rules));
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_Important;
@@ -5858,26 +5861,29 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('red');
 
   // !important sets the specificity of the declaration to CSSSpecificityImportant,
-  // which beats the normal @starting-style declaration
+  // which beats the higher specificity .red
   Doc.Style:=LinesToStr([
-  'div{ width: 20px !important; }',
-  '@starting-style { div{ width: 10px; } }',
+  '@starting-style {',
+  '  div{ width: 10px !important; }',
+  '  .red{ width: 30px; }',
+  '}',
   '']);
   ApplyStyle;
-  AssertEquals('Div1.Width','20px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
-  AssertEquals('Div1.StartingWidth','20px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
 
-  // an important @starting-style declaration wins again
+  // both important -> the higher specificity wins again
   Doc.Style:=LinesToStr([
-  'div{ width: 20px !important; }',
-  '@starting-style { div{ width: 10px !important; } }',
+  '@starting-style {',
+  '  div{ width: 10px !important; }',
+  '  .red{ width: 30px !important; }',
+  '}',
   '']);
   ApplyStyle;
-  AssertEquals('Div1.Width 2','20px',Div1.Width);
-  AssertEquals('Div1.StartingWidth 2','10px',Div1.StartingWidth);
+  AssertEquals('Div1.StartingWidth 2','30px',Div1.StartingWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_InlineStyle;
@@ -5895,8 +5901,8 @@ begin
   ApplyStyle;
   AssertEquals('Div1.Width','30px',Div1.Width);
   AssertTrue('Div1.HasStartingStyle',Div1.HasStartingStyle);
-  // the inline style beats the @starting-style rule
-  AssertEquals('Div1.StartingWidth','30px',Div1.StartingWidth);
+  // the inline style is not applied, the caller has to do that itself
+  AssertEquals('Div1.StartingWidth','10px',Div1.StartingWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_Shorthand;
@@ -5926,12 +5932,22 @@ begin
   Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
-  'div{ --bird-width: 5px; width: 20px; }',
-  '@starting-style { div{ width: var(--bird-width); } }',
+  'div{ width: 20px; }',
+  '@starting-style { div{ --bird-width: 5px; width: var(--bird-width); } }',
   '']);
   ApplyStyle;
   AssertEquals('Div1.Width','20px',Div1.Width);
   AssertEquals('Div1.StartingWidth','5px',Div1.StartingWidth);
+
+  // a custom property set only by a normal rule is not available here, so the
+  // declaration is dropped
+  Doc.Style:=LinesToStr([
+  'div{ --bird-width: 5px; width: 20px; }',
+  '@starting-style { div{ width: var(--bird-width); } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width 2','20px',Div1.Width);
+  AssertEquals('Div1.StartingWidth 2','',Div1.StartingWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_StartingStyle_ComputeTwice;

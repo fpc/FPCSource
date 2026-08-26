@@ -645,19 +645,8 @@ type
     function HasStartingStyleRules: boolean; virtual;
     // The @keyframes rule named aName applying to aNode, nil if there is none.
     function FindKeyframesRule(const aNode: ICSSNode; const aName: TCSSString): TCSSAtRuleElement; virtual;
-    // Compute the values Node would have with the @starting-style rules applied,
-    // i.e. the style a CSS transition starts from on the first style pass.
-    // ComputedRules is the rule list Compute returned for Node; the matching
-    // @starting-style rules are appended to it and the cascade is redone.
-    // Returns false and leaves Rules/Values nil when no @starting-style rule
-    // applies to Node - then the caller simply keeps the Compute result.
-    // Note: because ComputedRules is already sorted by specificity, the document
-    // order of the normal rules is no longer known, so a @starting-style rule with
-    // the same specificity as a normal rule always wins, even when it comes first
-    // in the stylesheet.
+    // The @starting-style declarations applying to aNode
     function ComputeStartingStyle(const aNode: ICSSNode;
-      ElementStyle: TCSSRuleElement; // inline/element style of Node
-      ComputedRules: TCSSSharedRuleList; // rules of Node, as returned by Compute
       out Rules: TCSSSharedRuleList; // owned by resolver
       out Values: TCSSAttributeValues
       ): boolean; virtual;
@@ -4133,51 +4122,37 @@ begin
   Result:=(FBucketStartingStyle<>nil) and (FBucketStartingStyle.Count>0);
 end;
 
-function TCSSResolver.ComputeStartingStyle(const aNode: ICSSNode;
-  ElementStyle: TCSSRuleElement; ComputedRules: TCSSSharedRuleList; out
+function TCSSResolver.ComputeStartingStyle(const aNode: ICSSNode; out
   Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues): boolean;
 var
-  i, SeededCount: Integer;
+  i: Integer;
   OldSrcSpecificity: TCSSSpecificity;
   Item: PCSSRuleBucketItem;
 begin
   Result:=false;
   Rules:=nil;
   Values:=nil;
-  if not HasStartingStyleRules then exit;
+  if not HasStartingStyleRules then exit; // calls UpdateRuleBuckets
 
   FNode:=aNode;
   OldSrcSpecificity:=FSourceSpecificity;
   try
     InitMerge;
 
-    // start with the rules Compute already found, they are sorted ascending for
-    // specificity; the @starting-style rules are appended, so a @starting-style
-    // rule wins over a normal rule of the same specificity
+    // Only the @starting-style rules are cascaded. They are collected in document
+    // order, so the usual "last declaration wins" tie-break applies.
     FElRuleCount:=0;
-    if ComputedRules<>nil then
-      for i:=0 to length(ComputedRules.Rules)-1 do
-        AddRule(ComputedRules.Rules[i].Rule,ComputedRules.Rules[i].Specificity);
-    SeededCount:=FElRuleCount;
-
     for i:=0 to FBucketStartingStyle.Count-1 do
     begin
       Item:=@FBucketStartingStyle.Items[i];
       ComputeStartingStyleRule(TCSSAtRuleElement(Item^.Rule),Item^.SourceSpecificity);
     end;
 
-    if FElRuleCount=SeededCount then
+    if FElRuleCount=0 then
       exit; // no @starting-style applies to this aNode
 
     // create a shared rule list and merge attributes
     Rules:=CreateSharedRuleList;
-
-    // apply inline attributes
-    if ElementStyle<>nil then
-    begin
-      for i:=0 to ElementStyle.ChildCount-1 do
-        MergeAttribute(ElementStyle.Children[i],CSSSpecificityElement);
-    end;
 
     LoadMergedValues;
     SubstituteVarCalls; // replace var() calls
