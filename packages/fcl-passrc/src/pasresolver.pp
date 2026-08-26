@@ -1611,6 +1611,10 @@ type
       cTypeConversion = cExact+10000; // e.g. TObject to Pointer
       cLossyConversion = cExact+100000;
       cIntToFloatConversion = cExact+400000; // int to float is worse than bigint to smallint
+      // An UNTYPED parameter accepts anything, so it must rank below every real
+      // conversion or it wins ties it should lose: ppcx64 picks
+      // `FpWrite(fd; buf: PAnsiChar; nbytes)` over `FpWrite(fd; const buf; ...)`.
+      cUntypedParam = cExact+800000;
       // "only decidable at specialization": one side is a PARTIAL generic
       // specialization, so the real check happens when it becomes concrete.
       // Ranked below every genuine conversion so it never wins an overload.
@@ -2599,6 +2603,11 @@ type
     function GetReference_ConstructorType(Ref: TResolvedReference; Expr: TPasExpr): TPasResolverResult;
     function GetParamsValueRef(Params: TParamsExpr): TResolvedReference;
     function GetSetType(const ResolvedSet: TPasResolverResult): TPasSetType;
+    function GetRecordValuesMembersType(TypeEl: TPasType): TPasMembersType;
+    function ObjectHasVMT(TypeEl: TPasType): boolean;
+    // True when a string element (s[i]) is a writable l-value whose address can
+    // be taken - a native backend, not pas2js. See StringToCharElement.
+    function StringElementIsWritable: boolean; virtual;
     function IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean = true): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
@@ -14628,36 +14637,50 @@ end;
 
 procedure TPasResolver.ResolveRecordValues(El: TRecordValues);
 
-  function GetMember(RecType: TPasRecordType; const aName: string): TPasElement;
+  function GetMember(RecType: TPasMembersType; const aName: string): TPasElement;
+  // A TP object inherits its ancestor's fields, and ppcx64 lets a typed
+  // constant name them, so the search walks the ancestor chain too.
   var
     i: Integer;
+    Rec: TPasRecordType;
   begin
-    for i:=0 to RecType.Members.Count-1 do
+    while RecType<>nil do
       begin
-      Result:=TPasElement(RecType.Members[i]);
-      if SameText(Result.Name,aName) then
-        exit;
-      end;
-    if RecType.VariantEl is TPasVariable then
-      begin
-      Result:=TPasVariable(RecType.VariantEl);
-      if SameText(Result.Name,aName) then
-        exit;
-      end;
-    if RecType.Variants<>nil then
-      for i:=0 to RecType.Variants.Count-1 do
+      for i:=0 to RecType.Members.Count-1 do
         begin
-        Result:=GetMember(TPasVariant(RecType.Variants[i]).Members,aName);
-        if Result<>nil then
+        Result:=TPasElement(RecType.Members[i]);
+        if SameText(Result.Name,aName) then
           exit;
         end;
+      if RecType.ClassType=TPasRecordType then
+        begin
+        Rec:=TPasRecordType(RecType);
+        if Rec.VariantEl is TPasVariable then
+          begin
+          Result:=TPasVariable(Rec.VariantEl);
+          if SameText(Result.Name,aName) then
+            exit;
+          end;
+        if Rec.Variants<>nil then
+          for i:=0 to Rec.Variants.Count-1 do
+            begin
+            Result:=GetMember(TPasVariant(Rec.Variants[i]).Members,aName);
+            if Result<>nil then
+              exit;
+            end;
+        break;
+        end;
+      RecType:=TPasMembersType(ResolveAliasType(TPasClassType(RecType).AncestorType));
+      if (RecType<>nil) and (RecType.ClassType<>TPasClassType) then
+        break;
+      end;
     Result:=nil;
   end;
 
 var
   i, j: Integer;
   Member: TPasElement;
-  RecType: TPasRecordType;
+  RecType: TPasMembersType;
   Field: PRecordValuesItem;
   s: String;
   ResolvedEl: TPasResolverResult;
@@ -14666,13 +14689,17 @@ begin
   writeln('TPasResolver.ResolveRecordValues ',El.Fields[0].Name,' ',GetObjName(El.Parent),' ',GetObjName(El.Parent.Parent));
   {$ENDIF}
   ComputeElement(El,ResolvedEl,[]);
-  if (ResolvedEl.BaseType<>btContext)
-      or (ResolvedEl.LoTypeEl.ClassType<>TPasRecordType) then
-    begin
+  RecType:=nil;
+  if ResolvedEl.BaseType=btContext then
+    RecType:=GetRecordValuesMembersType(ResolvedEl.LoTypeEl);
+  if RecType=nil then
     RaiseIncompatibleTypeDesc(20180429104135,nIncompatibleTypesGotExpected,
       [],'record value',GetTypeDescription(ResolvedEl),El);
-    end;
-  RecType:=TPasRecordType(ResolvedEl.LoTypeEl);
+  // A TP object with a VMT cannot be a typed constant: the initializer says
+  // nothing about the VMT pointer the layout starts with. ppcx64 rejects it as
+  // "Constants of objects containing a VMT are not allowed".
+  if ObjectHasVMT(RecType) then
+    RaiseMsg(20260826170000,nIllegalExpression,sIllegalExpression,[],El);
   //writeln('TPasResolver.ResolveRecordValues ',GetObjName(El.Parent),' ',GetObjName(RecType));
   for i:=0 to length(El.Fields)-1 do
     begin
@@ -17742,7 +17769,15 @@ procedure TPasResolver.ComputeArrayParams(Params: TParamsExpr; out
     R.LoTypeEl:=FBaseTypes[R.BaseType];
     R.HiTypeEl:=R.LoTypeEl;
     R.ExprEl:=Params;
-    R.Flags:=R.Flags-[rrfWritable,rrfCanBeStatement]+[rrfAssignable];
+    // A string element is assignable everywhere; whether it is also a real
+    // WRITABLE l-value - one whose address can be passed to a var/out parameter
+    // - is a backend question. ppcx64 takes `Bump(s[2])` and writes back through
+    // it (making the string unique first); a JS backend has no addressable
+    // character, so the base keeps saying no.
+    if StringElementIsWritable and (rrfWritable in R.Flags) then
+      R.Flags:=R.Flags-[rrfCanBeStatement]+[rrfAssignable]
+    else
+      R.Flags:=R.Flags-[rrfWritable,rrfCanBeStatement]+[rrfAssignable];
   end;
 
 var
@@ -18705,7 +18740,7 @@ begin
       RaiseMsg(20180429105451,nSyntaxErrorExpectedButFound,sSyntaxErrorExpectedButFound,
         ['const','record values'],El);
     LoTypeEl:=ResolveAliasType(HiTypeEl);
-    if LoTypeEl.ClassType<>TPasRecordType then
+    if GetRecordValuesMembersType(LoTypeEl)=nil then
       RaiseIncompatibleTypeDesc(20180429104135,nIncompatibleTypesGotExpected,
         [],'record value',GetTypeDescription(HiTypeEl),El);
     SetResolverValueExpr(ResolvedEl,btContext,LoTypeEl,HiTypeEl,
@@ -20326,7 +20361,11 @@ begin
     {$ifdef FPC_HAS_CPSTRING}
     revkString:
       begin
-      if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+      // The ANSIchar branch must test BaseTypeChar=btAnsiChar; testing btWideChar
+      // made `Char(#219)` fall through to nil on a target whose default Char is
+      // AnsiChar, and the constant was refused. The revkInt branch above already
+      // spells the same test correctly.
+      if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
         begin
         // ansichar(ansistring)
         if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
@@ -24387,6 +24426,10 @@ begin
   // todo set of int, set of AnsiChar, set of bool
   Param0:=Params.Params[0];
   ComputeElement(Param0,Param0Resolved,[rcNoImplicitProc]);
+  // The function's own name inside its body IS its Result, so it is assignable
+  // here: rtl-console's keyboard.pp does `Include(EnhShiftState,essAlt)` inside
+  // `function EnhShiftState: TEnhancedShiftState`.
+  RedirectSelfNameToResult(Param0,Param0Resolved,false);
   Param1:=Params.Params[1];
   ComputeElement(Param1,Param1Resolved,[]);
 
@@ -24589,6 +24632,10 @@ begin
   // first param: var Integer
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  // The function's own name inside its body IS its Result, so it is assignable
+  // here: rtl-console's keyboard.pp does `inc(shiftstate,kbCtrl)` inside
+  // `function ShiftState: byte`. Same redirection SetLength already needs.
+  RedirectSelfNameToResult(Param,ParamResolved,false);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.BI_IncDec_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
@@ -30693,6 +30740,20 @@ var
   Ptr1, Ptr2: TPasPointerType;
 begin
   if Arg1=Arg2 then exit(cExact);
+  // A forward pointer's target is only bound at the END of its type section, so
+  // two methods declared LATER IN THAT SAME section compare argument types whose
+  // target is still a placeholder - and each `^T` reference makes its OWN
+  // placeholder, so they are not the same element. Two placeholders for the same
+  // NAME stand for the same type; computing one raised "not yet implemented".
+  // fv's dialogs.inc declares `PCommandSItem = ^TCommandSItem` and then two
+  // classes whose `constructor Init(...; ACommandStrings: PCommandSItem)`
+  // overload each other.
+  if (Arg1 is TUnresolvedPendingRef) or (Arg2 is TUnresolvedPendingRef) then
+    begin
+    if (Arg1<>nil) and (Arg2<>nil) and SameText(Arg1.Name,Arg2.Name) then
+      exit(cExact);
+    exit(cIncompatible);
+    end;
   ComputeElement(Arg1,Arg1Resolved,[rcType]);
   ComputeElement(Arg2,Arg2Resolved,[rcType]);
   {$IFDEF VerbosePasResolver}
@@ -30833,6 +30894,15 @@ begin
           exit(cExact);  // two forward pointers, both still unresolved
         exit(cIncompatible);
         end;
+      // The very same target element is the same type, whatever it is. It may
+      // still be a TUnresolvedPendingRef: a forward pointer is only bound at the
+      // END of its type section, so two methods declared LATER IN THAT SAME
+      // section already compare their argument types - fv's dialogs.inc declares
+      // `PCommandSItem = ^TCommandSItem` and then two classes whose
+      // `constructor Init(...; ACommandStrings: PCommandSItem)` overload each
+      // other. Computing the placeholder raised "not yet implemented".
+      if Ptr1.DestType=Ptr2.DestType then
+        exit(cExact);
       Result:=CheckElTypeCompatibility(Ptr1.DestType,Ptr2.DestType,ResolveAlias);
       exit;
       end
@@ -31013,8 +31083,13 @@ begin
   LTypeEl:=LeftResolved.LoTypeEl;
   if (LTypeEl<>nil)
       and ((LTypeEl.ClassType=TPasArrayType)
-        or (LTypeEl.ClassType=TPasRecordType)) then
-    exit; // arrays and records are checked by element, not by the whole value
+        or (LTypeEl.ClassType=TPasRecordType)
+        // A Turbo Pascal OBJECT is checked by field too - it can be a typed
+        // constant just like a record (fv's `MinWinSize: TPoint = (X:16;Y:6)`),
+        // and asking for the whole value said "Constant expression expected".
+        or ((LTypeEl.ClassType=TPasClassType)
+            and (TPasClassType(LTypeEl).ObjKind=okObject))) then
+    exit; // arrays, records and TP objects are checked by element, not by value
   if LTypeEl is TPasClassOfType then
     exit; // class-of are checked only by type, not by value
   if IsConstFoldableProcAddr(RHS)
@@ -33079,7 +33154,7 @@ function TPasResolver.CheckParamCompatibility(Expr: TPasExpr;
   Param: TPasArgument; ParamNo: integer; RaiseOnError: boolean;
   SetReferenceFlags: boolean): integer;
 var
-  ExprResolved, ParamResolved: TPasResolverResult;
+  ExprResolved, ParamResolved, ElTypeResolved: TPasResolverResult;
   NeedVar: Boolean;
   ArgRef: TResolvedReference;
   SelfProc: TPasProcedure;
@@ -33280,6 +33355,17 @@ begin
                 and (ExprResolved.LoTypeEl is TPasPointerType))) then
       exit(cCompatible);
 
+    // ...and the MIRROR: an untyped `Pointer` VARIABLE is accepted for a var/out
+    // parameter of a typed pointer type. ppcx64 takes it and writes back through
+    // it - fv's histlist.inc calls `DecodeSizeUInt(P2)` where the parameter is
+    // `var P: PByte` and P2 is a plain Pointer.
+    if (Param.Access in [argOut, argVar])
+        and (ParamResolved.BaseType=btContext)
+        and (ParamResolved.LoTypeEl is TPasPointerType)
+        and (ExprResolved.BaseType=btPointer)
+        and IsBaseType(ExprResolved.LoTypeEl,btPointer) then
+      exit(cCompatible);
+
     //writeln('TPasResolver.CheckParamCompatibility NeedVar ParamResolved=',GetResolverResultDbg(ParamResolved),' ExprResolved=',GetResolverResultDbg(ExprResolved));
     // Either side still PARTIALLY specialized: judged at specialization.
     if IsPartiallySpecializedType(ParamResolved.LoTypeEl)
@@ -33292,6 +33378,39 @@ begin
     exit(cIncompatible);
     end;
 
+  // A SINGLE value where an OPEN ARRAY is declared becomes a one-element array:
+  // ppcx64 accepts `Show(B, 1)` for `Show(const D: array of Byte; ...)` and
+  // reports Length(D)=1 (paszlib's inflate_set_dictionary(.., dictionary^, ..)).
+  // Ranked as a conversion so a real array argument always wins.
+  // `array of const` (ElType=nil) is excluded: FPC demands the bracket form
+  // there, and computing its element type raises "not yet implemented: nil".
+  if (ParamResolved.BaseType=btContext)
+      and (ParamResolved.LoTypeEl is TPasArrayType)
+      and IsOpenArray(ParamResolved.LoTypeEl)
+      and (TPasArrayType(ParamResolved.LoTypeEl).ElType<>nil)
+      and (rrfReadable in ExprResolved.Flags)
+      and not (ExprResolved.BaseType in [btArrayLit,btArrayOrSet])
+      and not ((ExprResolved.BaseType=btContext)
+               and (ExprResolved.LoTypeEl is TPasArrayType)) then
+    begin
+    ComputeElement(TPasArrayType(ParamResolved.LoTypeEl).ElType,ElTypeResolved,
+                   [rcType]);
+    if CheckAssignResCompatibility(ElTypeResolved,ExprResolved,Expr,false)<cIncompatible then
+      exit(cTypeConversion);
+    end;
+  if Param.ArgType=nil then
+    begin
+    // Untyped CONST/value parameter: a catch-all, ranked BELOW a typed match so
+    // an overload with a specific parameter type wins the tie - exactly as the
+    // untyped var/out case above. ppcx64 picks
+    // `FpWrite(fd; buf: PAnsiChar; nbytes)` over
+    // `FpWrite(fd; const buf; nbytes)` for an array of AnsiChar; without this
+    // the two ranked equally and the call was "Can't determine which overloaded
+    // function to call" (rtl-console's video.pp).
+    if rrfReadable in ExprResolved.Flags then
+      exit(cUntypedParam);
+    exit(cIncompatible);
+    end;
   Result:=CheckParamResCompatibility(Expr,ExprResolved,ParamResolved,ParamNo,
                                      RaiseOnError,SetReferenceFlags);
   (* An address-of expression (@x) yields an untyped pointer in the default {$T-}  mode; 
@@ -34590,7 +34709,10 @@ begin
           end
         else if ToTypeBaseType=btPointer then
           begin
-          if FromResolved.BaseType in ([btPointer]+btAllStringPointer) then
+          // btNil belongs here as much as in the typed-pointer branch below:
+          // `Pointer(nil)` is a pointer-typed nil. paszlib's gzio returns
+          // `gzopen := gzFile(nil)` where `gzFile = pointer`.
+          if FromResolved.BaseType in ([btPointer,btNil]+btAllStringPointer) then
             Result:=cExact
           else if FromResolved.BaseType in btAllInteger then
             Result:=cCompatible // integer to pointer (e.g. Pointer(i))
@@ -35477,7 +35599,14 @@ begin
   else if ElClass=TUnaryExpr then
     begin
     if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then
-      ComputeElement(TUnaryExpr(El).Operand,ResolvedEl,Flags+[rcNoImplicitProc],StartEl)
+      // The ADDRESS is the constant, not the operand's value: `@X` is a
+      // load-time address for anything addressable, including a typed constant
+      // or a global variable. Passing rcConstant down rejected the operand as
+      // "Constant expression expected" - rtl-console's video.pp builds
+      // `array[0..11] of Ptermcodes = (@term_codes_ansi, ...)` over typed
+      // constants, which a scalar `p: PR = @r1` already accepts.
+      ComputeElement(TUnaryExpr(El).Operand,ResolvedEl,
+        Flags+[rcNoImplicitProc]-[rcConstant],StartEl)
     else if TUnaryExpr(El).OpCode=eopDeref then
       // `P^` needs P's VALUE, so a parameterless function there must be CALLED
       // even when the deref itself is a var/out argument - that asks for
@@ -36485,6 +36614,53 @@ begin
         Result:=TPasSetType(ResolvedSet.HiTypeEl)
       else
         Result:=TPasSetType(ResolvedSet.LoTypeEl);
+    end;
+end;
+
+function TPasResolver.StringElementIsWritable: boolean;
+begin
+  Result:=false;
+end;
+
+function TPasResolver.GetRecordValuesMembersType(TypeEl: TPasType
+  ): TPasMembersType;
+// The type a `(name: value; ...)` typed constant may initialise: a record, or a
+// Turbo Pascal OBJECT. fv's views.inc has `MinWinSize: TPoint = (X: 16; Y: 6)`
+// over objects.pp's `TPoint = object`, which ppcx64 accepts. Anything else
+// (a class, an interface) is nil.
+begin
+  Result:=nil;
+  if TypeEl=nil then exit;
+  if TypeEl.ClassType=TPasRecordType then
+    Result:=TPasRecordType(TypeEl)
+  else if (TypeEl.ClassType=TPasClassType)
+      and (TPasClassType(TypeEl).ObjKind=okObject) then
+    Result:=TPasMembersType(TypeEl);
+end;
+
+function TPasResolver.ObjectHasVMT(TypeEl: TPasType): boolean;
+// True when a TP object carries a VMT, i.e. it or an ancestor declares a
+// virtual/dynamic method. ppcx64: "Constants of objects containing a VMT are
+// not allowed".
+var
+  aClass: TPasClassType;
+  i: Integer;
+  Member: TPasElement;
+begin
+  Result:=false;
+  while (TypeEl<>nil) and (TypeEl.ClassType=TPasClassType) do
+    begin
+    aClass:=TPasClassType(TypeEl);
+    for i:=0 to aClass.Members.Count-1 do
+      begin
+      Member:=TPasElement(aClass.Members[i]);
+      if (Member is TPasProcedure)
+          and (TPasProcedure(Member).IsVirtual
+               or TPasProcedure(Member).IsDynamic
+               or TPasProcedure(Member).IsOverride) then
+        exit(true);
+      end;
+    TypeEl:=ResolveAliasType(aClass.AncestorType);
     end;
 end;
 
