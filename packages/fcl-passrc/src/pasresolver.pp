@@ -21401,8 +21401,13 @@ begin
           exit(cIncompatible);
           end;
       prtcoAssignFromTempl:
-        // ParamClassType:=TemplateClass
-        if CheckClassIsClass(ConstraintClass,ParamType)<>cIncompatible then
+        // ParamClassType:=TemplateClass -- legal when the constraint class IS
+        // the target or descends from it. The test was inverted: it raised
+        // exactly when the assignment was VALID, so `Items[i]:=v` with
+        // `T: TObject` into a TObject property reported
+        // 'got "System.TObject" expected "System.TObject"'
+        // (fcl-md's markdown.utils TGFPObjectList).
+        if CheckClassIsClass(ConstraintClass,ParamType)=cIncompatible then
           begin
           // ConstraintClass is not ParamType
           if ErrorPos<>nil then
