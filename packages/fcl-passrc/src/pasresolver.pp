@@ -6435,9 +6435,13 @@ begin
       CurResolver:=ProcScope.Owner as TPasResolver;
       if msDelphi in CurResolver.CurrentParser.CurrentModeswitches then
         // ok in delphi
-      else
+      else if El.Parent=DataProc.Parent then
+        // Same class: a method and a field or property of one name clash.
         RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
           [El.Name,GetElementSourcePosStr(El)],DataProc.ProcType);
+        // A member of an ANCESTOR, or of an outer scope, is merely HIDDEN, and
+        // objfpc allows that silently - fcl-report's TFPReportExporter declares
+        // `class function Name` over TComponent's published `property Name`.
       end;
     end;
     exit;
@@ -25045,6 +25049,21 @@ begin
     begin
     ResolvedEl.BaseType:=ResolvedEl.SubType;
     ResolvedEl.SubType:=btNone;
+    // `set of rsPage..rsColumn`: the element type is a SUBRANGE, so low/high
+    // answer the type that subrange is OF, exactly as the array branch above
+    // reduces a range to its element type. Left as the range itself,
+    // ord(low(T)) was refused as a "range type" (fcl-report's
+    // ReportSectionsToString).
+    if (ResolvedEl.BaseType=btContext)
+        and (ResolvedEl.LoTypeEl<>nil)
+        and (ResolvedEl.LoTypeEl.ClassType=TPasRangeType)
+        and (TPasRangeType(ResolvedEl.LoTypeEl).RangeExpr<>nil) then
+      begin
+      ComputeElement(TPasRangeType(ResolvedEl.LoTypeEl).RangeExpr.Left,
+        ResolvedEl,[rcConstant]);
+      if ResolvedEl.BaseType=btRange then
+        ConvertRangeToElement(ResolvedEl);
+      end;
     end
   else if ResolvedEl.BaseType in btAllStrings then
     begin
@@ -25125,13 +25144,22 @@ begin
       TypeEl:=TPasSetType(TypeEl).EnumType;
       if TypeEl.ClassType=TPasEnumType then
         begin
-        EnumType:=TPasEnumType(TPasSetType(TypeEl).EnumType);
+        // TypeEl is ALREADY the element type - reading .EnumType off it again
+        // (as a TPasSetType) fetched a field that is not there, so high(set of
+        // TEnum) silently answered 0 instead of the last enum value.
+        EnumType:=TPasEnumType(TypeEl);
         if Proc.BuiltIn=bfLow then
           Evaluated:=TResEvalEnum.CreateValue(Integer(GetEnumMinOrdinal(EnumType)),TPasEnumValue(EnumType.Values[0]))
         else
           Evaluated:=TResEvalEnum.CreateValue(Integer(GetEnumMaxOrdinal(EnumType)),
             TPasEnumValue(EnumType.Values[EnumType.Values.Count-1]));
         end
+      else if (TypeEl.ClassType=TPasRangeType)
+          and (TPasRangeType(TypeEl).RangeExpr<>nil) then
+        // `set of rsPage..rsColumn`: the bounds are the SUBRANGE's, so low is
+        // rsPage and not the enum's first value.
+        Evaluated:=EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,Flags,
+          Proc.BuiltIn=bfLow,Param)
       else
         begin
         {$IFDEF VerbosePasResolver}
