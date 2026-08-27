@@ -994,7 +994,8 @@ begin
   if chunk.aType <> ctIHDR then
     exit;
   move (chunk.data^, FHeader, 13);  // copy exactly IHDR data size, not sizeof(record) which may have padding
-  with header do
+  // FHeader, Header is read-only. Bug in compiler.
+  with fheader do
     begin
     {$IFDEF ENDIAN_LITTLE}
     Width := swap(width);
