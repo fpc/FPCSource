@@ -1615,6 +1615,11 @@ type
       // conversion or it wins ties it should lose: ppcx64 picks
       // `FpWrite(fd; buf: PAnsiChar; nbytes)` over `FpWrite(fd; const buf; ...)`.
       cUntypedParam = cExact+800000;
+      // An INACCESSIBLE member (private/protected, reached from outside) is not
+      // one FPC would pick when an accessible overload exists. It is DEMOTED
+      // rather than dropped, so a call where every candidate is inaccessible
+      // still reports "Can't access ..." rather than a confusing later error.
+      cInaccessibleMember = cExact+900000;
       // "only decidable at specialization": one side is a PARTIAL generic
       // specialization, so the real check happens when it becomes concrete.
       // Ranked below every genuine conversion so it never wins an overload.
@@ -2608,6 +2613,10 @@ type
     // True when a string element (s[i]) is a writable l-value whose address can
     // be taken - a native backend, not pas2js. See StringToCharElement.
     function StringElementIsWritable: boolean; virtual;
+    { Conservative: True only when El is a private/protected member that the
+      current context definitely cannot reach. Anything unclear answers False,
+      so it can only DEMOTE an overload candidate, never reject one. }
+    function IsDefinitelyInaccessible(El: TPasElement): boolean;
     function IsDynArray(TypeEl: TPasType; OptionalOpenArray: boolean = true): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
@@ -5902,6 +5911,12 @@ begin
         Distance:=CheckCallProcCompatibility(Proc.ProcType,Data^.Params,false);
       end;
 
+    // An overload the caller cannot reach must lose to one it can: classes'
+    // TMemoryStream republishes only the Int64 SetSize as public, so
+    // `Stream.SetSize(1)` from another unit has to pick that one rather than
+    // TStream's protected LongInt overload (fpmkunit, fcl-res/strtable).
+    if (Distance<cInaccessibleMember) and IsDefinitelyInaccessible(Proc) then
+      Distance:=Distance+cInaccessibleMember;
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
       ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',Data^.Distance,
@@ -24885,10 +24900,36 @@ end;
 
 procedure TPasResolver.BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
+// ord() answers the OPERAND's ordinal range, not always a longint. ppcx64 picks
+// the Word overload over a Cardinal one for ord(AnsiChar)/ord(WideChar)/
+// ord(Boolean)/ord(Byte) - both fit, the narrower wins - and reports
+// ord(longint) and ord(enum) as genuinely ambiguous between the two. Typing
+// every ord() as longint made BOTH candidates lossy, and
+// CheckCallProcCompatibility flattens each conversion band so two candidates
+// lossy on the same argument stay indistinguishable (tover3) - so the call came
+// out ambiguous instead (fcl-md's GetProps(Ord(aChar))).
+var
+  ParamResolved: TPasResolverResult;
+  bt: TResolverBaseType;
 begin
-  SetResolverIdentifier(ResolvedEl,btLongint,Proc.Proc,
-    FBaseTypes[btLongint],FBaseTypes[btLongint],[rrfReadable]);
-  if Params=nil then ;
+  bt:=btLongint;
+  if (Params<>nil) and (length(Params.Params)>0) then
+    begin
+    ComputeElement(Params.Params[0],ParamResolved,[]);
+    case GetActualBaseType(ParamResolved.BaseType) of
+    btAnsiChar,btBoolean,btByteBool,btByte: bt:=btByte;
+    btWideChar,btWord,btWordBool: bt:=btWord;
+    end;
+    // Only the UNSIGNED narrow operands are narrowed. A SIGNED one (shortint,
+    // smallint) keeps longint: narrowing it made `writeln(ord(SmallIntVar))`
+    // print 65533 for -3, and it buys nothing here - the ambiguity only ever
+    // involved targets that a non-negative range fits.
+    // A target that does not offer the narrow base type keeps longint.
+    if FBaseTypes[bt]=nil then
+      bt:=btLongint;
+    end;
+  SetResolverIdentifier(ResolvedEl,bt,Proc.Proc,
+    FBaseTypes[bt],FBaseTypes[bt],[rrfReadable]);
 end;
 
 procedure TPasResolver.BI_Ord_OnEval(Proc: TResElDataBuiltInProc;
@@ -36620,6 +36661,47 @@ end;
 function TPasResolver.StringElementIsWritable: boolean;
 begin
   Result:=false;
+end;
+
+function TPasResolver.IsDefinitelyInaccessible(El: TPasElement): boolean;
+// Mirrors the private/protected arms of CheckFoundElement, but only where they
+// are unambiguous - it must never claim something is out of reach that the
+// checker would accept.
+var
+  Context: TPasElement;
+  FoundContext: TPasMembersType;
+  CurScope: TPasScope;
+begin
+  Result:=false;
+  if El=nil then exit;
+  if not (El.Visibility in [visPrivate,visProtected]) then
+    exit; // strict private/protected and everything else: leave alone
+  if not (El.Parent is TPasMembersType) then exit;
+  FoundContext:=TPasMembersType(El.Parent);
+  Context:=GetVisibilityContext;
+  if Context=nil then exit;
+  if FoundContext.GetModule=Context.GetModule then
+    exit; // same module -> reachable
+  if IsInsideSpecialization or FInSpecialize then
+    exit; // resolved inside a specialization body: checked where it was written
+  if (El.Visibility=visProtected) then
+    begin
+    if (Context is TPasType)
+        and (CheckClassIsClass(TPasType(Context),FoundContext)<>cIncompatible) then
+      exit; // context is the class or a descendant
+    CurScope:=TopScope;
+    if (CurScope is TPasDotClassOrRecordScope)
+        and (TPasDotClassOrRecordScope(CurScope).ClassRecScope.Element.GetModule=Context.GetModule) then
+      exit;
+    if (CurScope is TPasWithExprScope)
+        and (TPasWithExprScope(CurScope).Scope.Element<>nil)
+        and (TPasWithExprScope(CurScope).Scope.Element.GetModule=Context.GetModule) then
+      exit;
+    if (Context is TPasClassType)
+        and (TPasClassType(Context).ObjKind in okAllHelpers) then
+      exit; // a helper may reach the extended type's protected members
+    end;
+  Result:=true;
 end;
 
 function TPasResolver.GetRecordValuesMembersType(TypeEl: TPasType
