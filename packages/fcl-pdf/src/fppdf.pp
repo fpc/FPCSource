@@ -1448,7 +1448,7 @@ begin
     fmt := '%.2d:%.2d'
   else
     fmt := '%.2d''%.2d''';
-  i := GetLocalTimeOffset;//(ADate, False); //min
+  i := GetLocalTimeOffset(ADate, False); //min
   if i < 0 then
     Result := '+'
   else if i = 0 then begin
