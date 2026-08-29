@@ -645,18 +645,21 @@ type
     FHasMediaBoolean: TCSSHasMediaBoolEvent;
     FIsMediaPlain: TCSSIsMediaPlainEvent;
     FMediaCompare: TCSSMediaCompareEvent;
+    FCurValue: TCSSString;
+    FIdentifier: TCSSString;
+    FIdentifierValid: boolean;
+    function GetCurValue: TCSSString;
+    function GetIdentifier: TCSSString;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
     procedure SetHasMediaBoolean(const AValue: TCSSHasMediaBoolEvent); virtual;
     procedure SetIsMediaPlain(const AValue: TCSSIsMediaPlainEvent); virtual;
     procedure SetMediaCompare(const AValue: TCSSMediaCompareEvent); virtual;
-    // Called when one of the @media events changed. A descendant caching @media
-    // results (see TCSSResolver.InvalidateMedia) must drop them here.
     procedure MediaEnvironmentChanged; virtual;
   public
     CurAttrData: TCSSAttributeKeyData;
     CurDesc: TCSSAttributeDesc;
-    CurValue: TCSSString; // source text (for diagnostics), set by InitParseAttr
+
     CurTokens: TBytes; // tokenized value being read, see Tokenize
     CurTokenPos: integer; // offset in CurTokens of the next token (read by ReadNext)
     CurTokenStart: integer; // offset in CurTokens where the current token started
@@ -667,13 +670,16 @@ type
     KeywordID: TCSSNumericalID;
     FunctionID: TCSSNumericalID;
     Symbol: TCSSToken;
-    Identifier: TCSSString; // text payload of rtkIdentifier/rtkString*/rtkHexColor and symbols
     Empty: boolean; // no tokens read so far or only whitespace
     procedure ResetCurComp; // clear the current token component
     function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Tokens: TBytes): boolean; virtual; // true if parsing can start, reuses already tokenized value
     procedure InitParseAttr(const Value: TCSSString); virtual;
+    property CurValue: TCSSString read GetCurValue; // source text (for diagnostics)
+    // text payload of rtkIdentifier/rtkString*/rtkHexColor and symbols of the
+    // current token, decoded from CurTokens on demand, see ReadNext
+    property Identifier: TCSSString read GetIdentifier;
     function ReadNext: boolean;
     function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace; rtkNone at end
     function AtEnd: boolean; // true if there is no current token, i.e. the last ReadNext reached the end of CurTokens
@@ -1954,6 +1960,53 @@ end;
 
 { TCSSBaseResolver }
 
+function TCSSBaseResolver.GetCurValue: TCSSString;
+begin
+  Result:=FCurValue;
+  if Result='' then
+  begin
+    Result:=Detokenize(CurTokens);
+    FCurValue:=Result;
+  end;
+end;
+
+function TCSSBaseResolver.GetIdentifier: TCSSString;
+// decode the text payload of the current token, see ReadNext and DetokenizeOne
+var
+  Cnt: DWord;
+  p: integer;
+begin
+  if FIdentifierValid then
+    exit(FIdentifier);
+  FIdentifierValid:=true;
+  FIdentifier:='';
+  p:=CurTokenStart;
+  if p<length(CurTokens) then
+    case TokenKind of
+    rtkIdentifier,rtkStringApos,rtkStringQuote:
+      begin
+        Cnt:=PDWord(@CurTokens[p+1])^;
+        if Cnt>0 then
+        begin
+          SetLength(FIdentifier,Cnt);
+          Move(CurTokens[p+5],FIdentifier[1],Cnt);
+        end;
+      end;
+    rtkHexColor:
+      begin
+        Cnt:=CurTokens[p+1];
+        if Cnt>0 then
+        begin
+          SetLength(FIdentifier,Cnt);
+          Move(CurTokens[p+2],FIdentifier[1],Cnt);
+        end;
+      end;
+    rtkSymbol:
+      FIdentifier:=TCSSChar(CurTokens[p+1]);
+    end;
+  Result:=FIdentifier;
+end;
+
 procedure TCSSBaseResolver.SetCSSRegistry(const AValue: TCSSRegistry);
 begin
   if FCSSRegistry=AValue then Exit;
@@ -1991,13 +2044,15 @@ begin
   CurTokens:=nil;
   CurTokenPos:=0;
   CurTokenStart:=0;
+  FCurValue:='';
   TokenKind:=rtkNone;
   Float:=0;
   FloatUnit:=cuNone;
   KeywordID:=CSSIDNone;
   FunctionID:=CSSIDNone;
   Symbol:=ctkUNKNOWN;
-  Identifier:='';
+  FIdentifier:='';
+  FIdentifierValid:=true;
   Empty:=true;
 end;
 
@@ -2014,7 +2069,6 @@ begin
 
   // the value was already tokenized during parsing, reuse the tokens
   CurTokens:=AttrData.Tokens;
-  CurValue:=Detokenize(CurTokens); // source text for diagnostics / comp parser fallback
   if not ReadNext then
     exit;
 
@@ -2036,29 +2090,27 @@ function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; const Value: TC
 begin
   CurAttrData:=nil;
   CurDesc:=Desc;
-  CurValue:=Value;
   ResetCurComp;
+  FCurValue:=Value;
   if not Tokenize(Value,CurTokens,Desc.AllowUnknownIdentifiers) then
     exit(false);
   Result:=ReadNext;
 end;
 
 function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; const Tokens: TBytes): boolean;
-// reuse an already tokenized value
 begin
   CurAttrData:=nil;
   CurDesc:=Desc;
   ResetCurComp;
   CurTokens:=Tokens;
-  CurValue:=Detokenize(Tokens); // source text for diagnostics / comp parser fallback
   Result:=ReadNext;
 end;
 
 procedure TCSSBaseResolver.InitParseAttr(const Value: TCSSString);
 begin
   CurAttrData:=nil;
-  CurValue:=Value;
   ResetCurComp;
+  FCurValue:=Value;
   if Tokenize(Value,CurTokens) then
     ReadNext;
 end;
@@ -2147,8 +2199,6 @@ begin
   end;
 
   Result:=false;
-  if CurAttrData<>nil then
-    CurAttrData.Invalid:=true;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray
@@ -2181,8 +2231,6 @@ begin
   end;
 
   Result:=false;
-  if CurAttrData<>nil then
-    CurAttrData.Invalid:=true;
 end;
 
 function TCSSBaseResolver.ReadNext: boolean;
@@ -2213,17 +2261,9 @@ function TCSSBaseResolver.ReadNext: boolean;
     inc(CurTokenPos,8);
   end;
 
-  function ReadStr(Count: DWord): TCSSString;
-  begin
-    Result:='';
-    if Count=0 then exit;
-    SetLength(Result,Count);
-    Move(CurTokens[CurTokenPos],Result[1],Count);
-    inc(CurTokenPos,Count);
-  end;
-
 var
   Len: integer;
+  Cnt: DWord;
 begin
   // reset the current component
   Float:=0;
@@ -2231,7 +2271,7 @@ begin
   KeywordID:=CSSIDNone;
   FunctionID:=CSSIDNone;
   Symbol:=ctkUNKNOWN;
-  Identifier:='';
+  FIdentifierValid:=false; // Identifier is decoded on demand, see GetIdentifier
 
   Len:=length(CurTokens);
   // any amount of whitespace is a single token and is skipped here
@@ -2259,24 +2299,26 @@ begin
     KeywordID:=ReadWord;
   rtkFunction:
     FunctionID:=ReadWord;
-  rtkIdentifier:
-    Identifier:=ReadStr(ReadDWord);
-  rtkStringApos,rtkStringQuote:
-    Identifier:=ReadStr(ReadDWord);
-  rtkHexColor:
-    Identifier:=ReadStr(ReadByte);
-  rtkSymbol:
+  rtkIdentifier,rtkStringApos,rtkStringQuote:
     begin
-      Identifier:=TCSSChar(ReadByte);
-      case Identifier[1] of
-      ',': Symbol:=ctkCOMMA;
-      ':': Symbol:=ctkCOLON;
-      ';': Symbol:=ctkSEMICOLON;
-      '.': Symbol:=ctkDOT;
-      '*': Symbol:=ctkSTAR;
-      '/': Symbol:=ctkDIV;
-      else Symbol:=ctkUNKNOWN;
-      end;
+      // skip the text, see GetIdentifier
+      Cnt:=ReadDWord;
+      inc(CurTokenPos,Cnt);
+    end;
+  rtkHexColor:
+    begin
+      Cnt:=ReadByte;
+      inc(CurTokenPos,Cnt);
+    end;
+  rtkSymbol:
+    case TCSSChar(ReadByte) of
+    ',': Symbol:=ctkCOMMA;
+    ':': Symbol:=ctkCOLON;
+    ';': Symbol:=ctkSEMICOLON;
+    '.': Symbol:=ctkDOT;
+    '*': Symbol:=ctkSTAR;
+    '/': Symbol:=ctkDIV;
+    else Symbol:=ctkUNKNOWN;
     end;
   rtkPlus: Symbol:=ctkPLUS;
   rtkMinus: Symbol:=ctkMINUS;

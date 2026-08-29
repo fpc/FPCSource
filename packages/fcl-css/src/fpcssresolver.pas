@@ -669,6 +669,7 @@ type
     // flag an invalid value live while it is being edited.
     function IsAttrValueInvalid(AttrID: TCSSNumericalID; const Tokens: TBytes): boolean; overload;
     function IsAttrValueInvalid(AttrID: TCSSNumericalID; const aValue: TCSSString): boolean; overload;
+    function GetDeclarationTokens(Decl: TCSSDeclarationElement): TBytes; virtual;
     function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
     // css class names from selectors, numbered from 1
     function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
@@ -3877,7 +3878,7 @@ end;
 function TCSSResolver.CreateValueList: TCSSAttributeValues;
 var
   Cnt: Integer;
-  AttrID: TCSSNumericalID;
+  AttrID, AllKeywordID: TCSSNumericalID;
   AttrP: PMergedAttribute;
   AttrValue: TCSSAttributeValue;
 begin
@@ -3887,11 +3888,11 @@ begin
   if FMergedAllDecl<>nil then
   begin
     // set Result.AllValue
-    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],GetDeclarationValue(FMergedAllDecl));
-    if (TokenKind=rtkKeyword) and IsBaseKeyword(KeywordID) then
-    begin
-      Result.AllValue:=KeywordID;
-    end;
+    // The parser already tokenized and checked the value, so read the keyword
+    // directly from the tokens instead of parsing the value again.
+    AllKeywordID:=CheckAttribute_Keyword(GetDeclarationTokens(FMergedAllDecl));
+    if IsBaseKeyword(AllKeywordID) then
+      Result.AllValue:=AllKeywordID;
   end;
 
   // count and allocate attributes
@@ -5103,16 +5104,21 @@ begin
     Result:='';
 end;
 
-function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;
+function TCSSResolver.GetDeclarationTokens(Decl: TCSSDeclarationElement): TBytes;
 var
   KeyData: TCSSAttributeKeyData;
 begin
-  Result:='';
+  Result:=nil;
   if Decl=nil then exit;
   if Decl.KeyCount=0 then exit;
   KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
   if KeyData=nil then exit;
-  Result:=Detokenize(KeyData.Tokens);
+  Result:=KeyData.Tokens;
+end;
+
+function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;
+begin
+  Result:=Detokenize(GetDeclarationTokens(Decl));
 end;
 
 procedure TCSSResolver.ClearStyleSheets;
