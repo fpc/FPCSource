@@ -1217,28 +1217,22 @@ end;
 
 procedure TDemoCSSRegistry.OnCompute_Direction(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
-var
-  Invalid: boolean;
 begin
-  Value.Invalid:=not Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs);
+  Value.Invalid:=not Resolver.CheckAttribute_Keyword(Chk_DirectionAllowedKeywordIDs);
   if Node=nil then ;
 end;
 
 procedure TDemoCSSRegistry.OnCompute_LeftTop(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
-var
-  Invalid: boolean;
 begin
-  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop);
+  Value.Invalid:=not Resolver.CheckAttribute_Dimension(Chk_LeftTop);
   if Node=nil then ;
 end;
 
 procedure TDemoCSSRegistry.OnCompute_WidthHeight(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
-var
-  Invalid: boolean;
 begin
-  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight);
+  Value.Invalid:=not Resolver.CheckAttribute_Dimension(Chk_WidthHeight);
   if Node=nil then ;
 end;
 
