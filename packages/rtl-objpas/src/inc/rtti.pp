@@ -1548,7 +1548,7 @@ begin
 {$IF DEFINED(USE_WINDOWS_UNIT)}
   Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
 {$ELSEIF DEFINED(UNIX)}
-  Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, 0, 0);
+  Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, -1, 0);
 {$ELSE}
   Result := Nil;
 {$ENDIF}
