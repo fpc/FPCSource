@@ -460,6 +460,7 @@ function TSyntaxHighlighterRegistry.FindSyntaxHighlighterClass(const aLanguage: 
 var
   lDef : TLanguageDef;
 begin
+  Result:=Nil;
   lDef:=FindLanguageDef(aLanguage);
   if assigned(lDef) then
     Result:=lDef.highlighter;
