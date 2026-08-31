@@ -20,7 +20,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry, Contnrs,
-  Markdown.Elements, Markdown.Parser;
+  Markdown.Elements, Markdown.Parser, Markdown.InlineText, Markdown.Scanner;
 
 type
   { TBlockTestCase }
@@ -65,12 +65,32 @@ type
     procedure TestNestedCodeBlock;
   end;
 
+  { TTestInlineProcessorClass : replaces @ to show that the class var is honoured }
+
+  TTestInlineProcessor = class(TInlineTextProcessor)
+  protected
+    procedure HandleTextCore; override;
+  end;
+
+  { TTestInlineProcessorHook }
+
+  TTestInlineProcessorHook = class(TBlockTestCase)
+  Public
+    procedure TearDown; override;
+  published
+    procedure TestDefaultInlineTextProcessorClass;
+  end;
+
   { TTestBlockQuotes }
   TTestBlockQuotes = class(TBlockTestCase)
   published
     procedure TestSimpleQuote;
     procedure TestNestedQuote;
     procedure TestLazy;
+    // Code blocks in a quote have the quote marker removed from each of their lines.
+    procedure TestQuoteFencedCode;
+    procedure TestQuoteFencedCodeThenText;
+    procedure TestQuoteIndentedCode;
   end;
 
   { TTestLists }
@@ -94,6 +114,17 @@ type
     // These must keep working (the fix must not be over-eager):
     procedure TestLooseListPreserved;
     procedure TestLazyContinuationPreserved;
+    // Indentation of item content is counted from the column where the item content
+    // starts, not from the left margin.
+    procedure TestItemContentIndentParagraph;
+    procedure TestItemContentIndentCodeBlock;
+    procedure TestItemContentIndentThematicBreak;
+    procedure TestItemContentIndentWideMarker;
+    procedure TestItemTwoParagraphsAreLoose;
+    // Blocks starting inside an indented item are recognised and lose that indentation.
+    procedure TestItemHeading;
+    procedure TestItemQuote;
+    procedure TestItemFencedCode;
   end;
 
   { TTestThematicBreaks }
@@ -338,6 +369,89 @@ begin
   AssertEquals('Outer quote should have 1 blocks inside', 1, OuterQuote.Blocks.Count); // Para and another quote
   AssertEquals('First inner block is a paragraph', TMarkDownParagraphBlock,OuterQuote.Blocks[0].ClassType);
 end;
+
+procedure TTestBlockQuotes.TestQuoteFencedCode;
+var
+  Quote: TMarkDownQuoteBlock;
+  Code: TMarkDownCodeBlock;
+begin
+  SetupParser('> ```pascal'#10'> begin end.'#10'> ```');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 1 block', 1, Quote.Blocks.Count);
+  AssertTrue('Quote block is a code block', Quote.Blocks[0] is TMarkDownCodeBlock);
+  Code := Quote.Blocks[0] as TMarkDownCodeBlock;
+  AssertEquals('Code block language', 'pascal', Code.Lang);
+  AssertEquals('The closing fence ends the block', 1, Code.Blocks.Count);
+  AssertEquals('The quote marker is stripped from the code',
+               'begin end.', (Code.Blocks[0] as TMarkDownTextBlock).Text);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteFencedCodeThenText;
+var
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('> ```'#10'> code'#10'> ```'#10'> after');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 2 blocks', 2, Quote.Blocks.Count);
+  AssertTrue('First quote block is a code block', Quote.Blocks[0] is TMarkDownCodeBlock);
+  AssertTrue('Text after the fence stays in the quote', Quote.Blocks[1] is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteIndentedCode;
+var
+  Quote: TMarkDownQuoteBlock;
+  Code: TMarkDownCodeBlock;
+begin
+  SetupParser('> text'#10'>'#10'>     code one'#10'>     code two');
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 2 blocks', 2, Quote.Blocks.Count);
+  AssertTrue('Second quote block is a code block', Quote.Blocks[1] is TMarkDownCodeBlock);
+  Code := Quote.Blocks[1] as TMarkDownCodeBlock;
+  AssertEquals('Both lines belong to one code block', 2, Code.Blocks.Count);
+  AssertEquals('Second code line', 'code two', (Code.Blocks[1] as TMarkDownTextBlock).Text);
+end;
+
+
+{ TTestInlineProcessorHook }
+
+procedure TTestInlineProcessor.HandleTextCore;
+
+begin
+  if Scanner.Peek='@' then
+    begin
+    Scanner.NextChar;
+    Nodes.AddText(Scanner.Location,'[at]');
+    end
+  else
+    inherited HandleTextCore;
+end;
+
+
+procedure TTestInlineProcessorHook.TearDown;
+
+begin
+  TMarkDownParser.DefaultInlineTextProcessorClass:=Nil;
+  inherited TearDown;
+end;
+
+
+procedure TTestInlineProcessorHook.TestDefaultInlineTextProcessorClass;
+
+var
+  Text: TMarkDownTextBlock;
+
+begin
+  TMarkDownParser.DefaultInlineTextProcessorClass:=TTestInlineProcessor;
+  SetupParser('a @ b');
+  Text := (Doc.Blocks[0] as TMarkDownParagraphBlock).Blocks[0] as TMarkDownTextBlock;
+  AssertEquals('Text has one node', 1, Text.Nodes.Count);
+  AssertEquals('The installed processor produced the text', 'a [at] b', Text.Nodes[0].NodeText);
+end;
+
 
 { TTestLists }
 
@@ -652,6 +766,120 @@ begin
   AssertEquals('First item should have a single paragraph (with the lazy line)', 1, Item.Blocks.Count);
 end;
 
+procedure TTestLists.TestItemContentIndentParagraph;
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+begin
+  // Content column is 4, so a continuation indented 4 is item content, not code.
+  SetupParser('-   one'#10#10'    continued');
+  AssertEquals('Document should have 1 block (the list)', 1, Doc.Blocks.Count);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('List should have 1 item', 1, List.Blocks.Count);
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 paragraphs', 2, Item.Blocks.Count);
+  AssertTrue('First item block is a paragraph', Item.Blocks[0] is TMarkDownParagraphBlock);
+  AssertTrue('Second item block is a paragraph', Item.Blocks[1] is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestLists.TestItemContentIndentCodeBlock;
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+begin
+  // Content column is 4, so a code block inside the item starts at column 8.
+  SetupParser('-   one'#10#10'        code');
+  AssertEquals('Document should have 1 block (the list)', 1, Doc.Blocks.Count);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 blocks', 2, Item.Blocks.Count);
+  AssertTrue('Second item block is a code block', Item.Blocks[1] is TMarkDownCodeBlock);
+end;
+
+
+procedure TTestLists.TestItemContentIndentThematicBreak;
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+begin
+  SetupParser('-   one'#10#10'    ---'#10#10'    two');
+  AssertEquals('Document should have 1 block (the list)', 1, Doc.Blocks.Count);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 3 blocks', 3, Item.Blocks.Count);
+  AssertTrue('Second item block is a thematic break', Item.Blocks[1] is TMarkDownThematicBreakBlock);
+end;
+
+
+procedure TTestLists.TestItemContentIndentWideMarker;
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+begin
+  // Content column is 2, so a continuation indented 4 is still item content.
+  SetupParser('- one'#10#10'    continued');
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 paragraphs', 2, Item.Blocks.Count);
+  AssertTrue('Second item block is a paragraph', Item.Blocks[1] is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestLists.TestItemTwoParagraphsAreLoose;
+var
+  List: TMarkDownListBlock;
+begin
+  SetupParser('-   one'#10#10'    continued');
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertTrue('An item holding two paragraphs makes the list loose', List.Loose);
+end;
+
+
+procedure TTestLists.TestItemHeading;
+var
+  Item: TMarkDownListItemBlock;
+  Heading: TMarkDownHeadingBlock;
+begin
+  SetupParser('-   one'#10#10'    ## Heading');
+  Item := (Doc.Blocks[0] as TMarkDownListBlock).Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 blocks', 2, Item.Blocks.Count);
+  AssertTrue('Second item block is a heading', Item.Blocks[1] is TMarkDownHeadingBlock);
+  Heading := Item.Blocks[1] as TMarkDownHeadingBlock;
+  AssertEquals('Heading level', 2, Heading.Level);
+  AssertEquals('The markers are not part of the heading text', 'Heading',
+               (Heading.Blocks[0] as TMarkDownTextBlock).Text);
+end;
+
+
+procedure TTestLists.TestItemQuote;
+var
+  Item: TMarkDownListItemBlock;
+begin
+  SetupParser('-   one'#10#10'    > quoted');
+  Item := (Doc.Blocks[0] as TMarkDownListBlock).Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 blocks', 2, Item.Blocks.Count);
+  AssertTrue('Second item block is a quote', Item.Blocks[1] is TMarkDownQuoteBlock);
+end;
+
+
+procedure TTestLists.TestItemFencedCode;
+var
+  Item: TMarkDownListItemBlock;
+  Code: TMarkDownCodeBlock;
+begin
+  SetupParser('-   one'#10#10'    ```pascal'#10'    begin end.'#10'    ```');
+  Item := (Doc.Blocks[0] as TMarkDownListBlock).Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 2 blocks', 2, Item.Blocks.Count);
+  AssertTrue('Second item block is a code block', Item.Blocks[1] is TMarkDownCodeBlock);
+  Code := Item.Blocks[1] as TMarkDownCodeBlock;
+  AssertEquals('Code block language', 'pascal', Code.Lang);
+  AssertEquals('The closing fence ends the block', 1, Code.Blocks.Count);
+  AssertEquals('The item indentation is stripped from the code',
+               'begin end.', (Code.Blocks[0] as TMarkDownTextBlock).Text);
+end;
+
+
 { TTestThematicBreaks }
 
 procedure TTestThematicBreaks.TestAsteriskBreak;
@@ -783,6 +1011,6 @@ end;
 initialization
   RegisterTests('Parser',[TTestParagraphs, TTestHeadings, TTestCodeBlocks,
                           TTestBlockQuotes, TTestLists, TTestThematicBreaks,
-                          TTestTables, TTestFrontmatter]);
+                          TTestTables, TTestFrontmatter, TTestInlineProcessorHook]);
 end.
 
