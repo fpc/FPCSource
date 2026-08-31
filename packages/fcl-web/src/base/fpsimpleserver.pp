@@ -762,10 +762,10 @@ procedure TFPSimpleServerApplication.GetValidOptions(out aShort: String; out aLo
 
 Const
   LongOpts : TStringDynArray =
-     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface','upload-dir','upload','upload-response','thread-mode:');
+     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture::','version','interface:','upload-dir:','upload:','upload-response:','thread-mode:');
 
 begin
-  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VIl:L:r:t:';
+  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VI:l:L:r:t:';
   aLong:=LongOpts;
 end;
 
