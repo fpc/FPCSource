@@ -56,6 +56,12 @@ type
     function NextLine : TMarkdownLine;
     function Done : Boolean;
     procedure RedoLine(aResetLine: Boolean);
+    // Take off the prefix that this processor's block puts in front of its content lines.
+    // Returns False when the line does not jave it, and so leaves the block.
+    function StripLinePrefix(aLine : TMarkdownLine) : Boolean; virtual;
+    // Same, for the enclosing block, when a line is consumed outside the parse loop.
+    // Returns True when the line no longer belongs to that block.
+    function ParentEndsLine(aLine : TMarkdownLine) : Boolean;
     function InList(aBlock : TMarkdownBlock; ordered : boolean; const marker : String; indent : integer; grace : integer; out list : TMarkdownListBlock) : boolean;
     function IsBlock(aBlock : TMarkdownBlock; blocks : TMarkdownBlockList; const aLine : String; wsLen : integer = 3) : boolean;
     function CurrentLine : TMarkdownLine;
@@ -157,6 +163,9 @@ type
     // To customize top-level document bloc k parser, override this.
     function CreateDocumentProcessor: TMarkdownDocumentProcessor; virtual;
   public
+    class var
+      // Inline text processor to use. Assign to install an add-on such as emoji shortcodes.
+      DefaultInlineTextProcessorClass : TInlineTextProcessorClass;
     Constructor Create(aOwner : TComponent); override;
     Destructor Destroy; override;
     // Utility function to handle parsing of inline text.
@@ -317,6 +326,27 @@ function TMarkdownBlockProcessor.GetParentProcessor: TMarkdownBlockProcessor;
 
 begin
   Result:=FParser.ParentProcessor;
+end;
+
+
+function TMarkdownBlockProcessor.StripLinePrefix(aLine: TMarkdownLine): Boolean;
+
+begin
+  if aLine=Nil then ; // Silence warning
+  Result:=True;
+end;
+
+
+function TMarkdownBlockProcessor.ParentEndsLine(aLine: TMarkdownLine): Boolean;
+
+var
+  lProcessor : TMarkdownBlockProcessor;
+
+begin
+  Result:=False;
+  lProcessor:=ParentProcessor;
+  if Assigned(lProcessor) and (lProcessor<>Self) then
+    Result:=Not lProcessor.StripLinePrefix(aLine);
 end;
 
 { TMarkdownDocumentProcessor }
@@ -754,7 +784,9 @@ end;
 function TMarkdownParser.GetInlineTextProcessorClass: TInlineTextProcessorClass;
 
 begin
-  Result:=TInlineTextProcessor;
+  Result:=DefaultInlineTextProcessorClass;
+  if Result=Nil then
+    Result:=TInlineTextProcessor;
 end;
 
 
