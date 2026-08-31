@@ -493,7 +493,10 @@ type
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
     function IndexOfKeyword(const aName: TCSSString): TCSSNumericalID; overload;
+    function IndexOfValueKeyword(const aName: TCSSString;
+      AllowUnknownIdentifiers: boolean): TCSSNumericalID; virtual; // resolve a word of an attribute value
     procedure AddColorKeywords; virtual;
+    function IsColorKeyword(KeywordID: TCSSNumericalID): boolean;
     function GetNamedColor(const aName: TCSSString): TCSSAlphaColor; virtual; overload;
     function GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor; virtual; overload;
     property KeywordCount: TCSSNumericalID read FKeywordCount;
@@ -712,6 +715,7 @@ type
     function TokenizeKeyword(KW: TCSSNumericalID): TBytes;
     function TokenizeIdentifier(const anIdentifier: TCSSString): TBytes;
     function TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
+    function ResolveIdentifierTokens(var Tokens: TBytes): boolean; // convert rtkIdentifier to rtkKeyword, false if invalid
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
     function DetokenizeOne(aData: PByte): TCSSString; // convert one token back to a css value
     // registry
@@ -1835,6 +1839,34 @@ begin
     Result:={%H-}TCSSNumericalID(p);
 end;
 
+function TCSSRegistry.IndexOfValueKeyword(const aName: TCSSString;
+  AllowUnknownIdentifiers: boolean): TCSSNumericalID;
+// Resolve a word of an attribute value to a keyword, CSSIDNone if there is none.
+// Attributes allowing unknown identifiers use case sensitive names, e.g. font-family,
+// so they never get a color keyword: 'Red' and 'red' stay identifiers.
+// For all other attributes color names are ASCII case insensitive, e.g. 'Red' = 'red'.
+var
+  LoName: TCSSString;
+begin
+  Result:=IndexOfKeyword(aName);
+  if AllowUnknownIdentifiers then
+  begin
+    if IsColorKeyword(Result) then
+      Result:=CSSIDNone;
+    exit;
+  end;
+  if Result>CSSIDNone then
+    exit;
+  LoName:=lowercase(aName);
+  Result:=IndexOfKeyword(LoName);
+  if (Result>=kwFirstColor) and (Result<=kwLastColor) then
+    // color keywords are case insensitive
+  else if LoName='currentcolor' then
+    Result:=kwCurrentColor
+  else
+    Result:=CSSIDNone;
+end;
+
 procedure TCSSRegistry.AddColorKeywords;
 var
   Names: TCSSStringArray;
@@ -1846,6 +1878,13 @@ begin
   AddKeywords(Names,kwFirstColor,kwLastColor);
   kwTransparent:=IndexOfKeyword('transparent');
   kwCurrentColor:=AddKeyword('currentColor');
+end;
+
+function TCSSRegistry.IsColorKeyword(KeywordID: TCSSNumericalID): boolean;
+begin
+  Result:=(KeywordID>CSSIDNone)
+      and (((KeywordID>=kwFirstColor) and (KeywordID<=kwLastColor))
+        or (KeywordID=kwCurrentColor));
 end;
 
 function TCSSRegistry.GetNamedColor(const aName: TCSSString): TCSSAlphaColor;
@@ -2685,7 +2724,7 @@ var
   // '-name'  -> as 'name', a single leading dash is part of the word,
   //             e.g. the custom identifier -fade
   var
-    Name, LoName: TCSSString;
+    Name: TCSSString;
     FuncID, KeywordID: TCSSNumericalID;
   begin
     Result:=false;
@@ -2725,18 +2764,7 @@ var
       exit(true);
     end;
     SetString(Name,StartP,Len);
-    KeywordID:=CSSRegistry.IndexOfKeyword(Name);
-    if KeywordID<=CSSIDNone then
-    begin
-      LoName:=lowercase(Name);
-      KeywordID:=CSSRegistry.IndexOfKeyword(LoName);
-      if (KeywordID>=CSSRegistry.kwFirstColor) and (KeywordID<=CSSRegistry.kwLastColor) then
-        // color keywords are case insensitive
-      else if LoName='currentcolor' then
-        KeywordID:=CSSRegistry.kwCurrentColor
-      else
-        KeywordID:=CSSIDNone;
-    end;
+    KeywordID:=CSSRegistry.IndexOfValueKeyword(Name,AllowUnknownIdentifiers);
     if KeywordID<=CSSIDNone then
     begin
       if not AllowUnknownIdentifiers then
@@ -2930,6 +2958,92 @@ begin
   Result[0]:=ord(rtkFloat);
   Result[1]:=ord(anUnit);
   PDouble(@Result[2])^:=aFloat; // kind + unit + double, see ReadNext
+end;
+
+function TCSSBaseResolver.ResolveIdentifierTokens(var Tokens: TBytes): boolean;
+// An attribute that does not allow unknown identifiers must not contain
+// rtkIdentifier tokens, except the custom identifiers --xxx.
+// A value containing a var() is tokenized before the target attribute is known,
+// so the identifiers are converted to keywords here, e.g. 'Red' to the keyword red.
+// Returns false if a word is not a keyword, i.e. the value is invalid.
+var
+  Len, Ofs, TokLen, NewLen: integer;
+  aName: TCSSString;
+  aKeywordID: TCSSNumericalID;
+  NeedChange: boolean;
+  NewTokens: TBytes;
+
+  function ReadName(aOfs: integer): TCSSString;
+  // see GetIdentifier
+  var
+    Cnt: DWord;
+  begin
+    Result:='';
+    Cnt:=PDWord(@Tokens[aOfs+1])^;
+    if Cnt=0 then exit;
+    SetLength(Result,Cnt);
+    Move(Tokens[aOfs+5],Result[1],Cnt);
+  end;
+
+  function IsCustomIdentifier(const anIdentifier: TCSSString): boolean;
+  begin
+    Result:=(length(anIdentifier)>=2) and (anIdentifier[1]='-') and (anIdentifier[2]='-');
+  end;
+
+begin
+  Result:=true;
+  Len:=length(Tokens);
+
+  // check if there is an identifier to convert
+  NeedChange:=false;
+  Ofs:=0;
+  while Ofs<Len do
+  begin
+    if TCSSResTokenKind(Tokens[Ofs])=rtkIdentifier then
+    begin
+      aName:=ReadName(Ofs);
+      if not IsCustomIdentifier(aName) then
+      begin
+        if CSSRegistry.IndexOfValueKeyword(aName,false)<=CSSIDNone then
+          exit(false); // this attribute does not allow unknown identifiers
+        NeedChange:=true;
+      end;
+    end;
+    TokLen:=CSSTokenByteLen(Tokens,Ofs);
+    if TokLen<=0 then
+      exit(false);
+    inc(Ofs,TokLen);
+  end;
+  if not NeedChange then
+    exit;
+
+  // replace the identifiers with keywords, a keyword token is always shorter
+  NewTokens:=nil;
+  SetLength(NewTokens,Len);
+  NewLen:=0;
+  Ofs:=0;
+  while Ofs<Len do
+  begin
+    TokLen:=CSSTokenByteLen(Tokens,Ofs);
+    if TCSSResTokenKind(Tokens[Ofs])=rtkIdentifier then
+    begin
+      aName:=ReadName(Ofs);
+      if not IsCustomIdentifier(aName) then
+      begin
+        aKeywordID:=CSSRegistry.IndexOfValueKeyword(aName,false);
+        NewTokens[NewLen]:=ord(rtkKeyword);
+        PWord(@NewTokens[NewLen+1])^:=word(aKeywordID);
+        inc(NewLen,3);
+        inc(Ofs,TokLen);
+        continue;
+      end;
+    end;
+    Move(Tokens[Ofs],NewTokens[NewLen],TokLen);
+    inc(NewLen,TokLen);
+    inc(Ofs,TokLen);
+  end;
+  SetLength(NewTokens,NewLen);
+  Tokens:=NewTokens;
 end;
 
 function TCSSBaseResolver.Detokenize(const aData: TBytes): TCSSString;

@@ -37,7 +37,8 @@ type
     naDisplay,
     naColor,
     naBackground,
-    naDirection
+    naDirection,
+    naFontFamily
     );
   TDemoNodeAttributes = set of TDemoNodeAttribute;
 
@@ -55,7 +56,8 @@ const
     'display',
     'color',
     'background',
-    'direction'
+    'direction',
+    'font-family'
     );
   DemoAttributesInherited = [naBackground,naColor,naBorderColor];
   DemoAttributesNotAll = [naDirection];
@@ -71,7 +73,8 @@ const
     'inline', // display
     'none', // color
     'none', // background
-    'auto' // direction
+    'auto', // direction
+    'none' // font-family
     );
 
 type
@@ -294,6 +297,7 @@ type
     property Color: TCSSString index naColor read GetAttribute;
     property Background: TCSSString index naBackground read GetAttribute;
     property Direction: TCSSString index naDirection read GetAttribute;
+    property FontFamily: TCSSString index naFontFamily read GetAttribute;
     property Attribute[Attr: TDemoNodeAttribute]: TCSSString read GetAttribute;
     // CSS attributes declared by the @starting-style rules, '' if the attribute
     // is not declared there or HasStartingStyle=false
@@ -446,8 +450,10 @@ type
 
   TTestCSSResolver = class(TCustomTestCSSResolver)
   private
-    procedure CheckTokenize(const Title, aValue, Expected: string);
-    procedure CheckTokenizeInvalid(const Title, aValue: string);
+    procedure CheckTokenize(const Title, aValue, Expected: string;
+      AllowUnknownIdentifiers: boolean = false);
+    procedure CheckTokenizeInvalid(const Title, aValue: string;
+      AllowUnknownIdentifiers: boolean = false);
     procedure CheckRoundtrip(const Title, aValue, Expected: string);
     // locate a declaration in the author 'test.css' sheet by top-level selector
     // and property name, e.g. FindAuthorDecl('.bird','left')
@@ -459,6 +465,7 @@ type
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
     procedure TestRes_ParseAttr_Float;
+    procedure TestRes_ParseAttr_CaseSensitiveIdentifiers;
 
     // low level tokenizer
     procedure TestRes_Tokenize_Empty;
@@ -471,6 +478,7 @@ type
     procedure TestRes_Tokenize_Function;
     procedure TestRes_Tokenize_Brackets;
     procedure TestRes_Tokenize_HexColor;
+    procedure TestRes_Tokenize_ColorCase;
     procedure TestRes_Tokenize_Strings;
     procedure TestRes_Tokenize_Invalid;
     procedure TestRes_Detokenize;
@@ -586,6 +594,8 @@ type
     procedure TestRes_Var_Inline_NoDefault;
     procedure TestRes_Var_Defaults;
     procedure TestRes_Var_MixedCase;
+    procedure TestRes_Var_CaseSensitiveIdentifiers;
+    procedure TestRes_Var_UnknownIdentifier;
     procedure TestRes_Var_StringLiteral;
 
     // pseudo elements (works like child combinator)
@@ -1331,6 +1341,9 @@ begin
   SetCompProps(naBorder,[naBorderColor,naBorderWidth]);
   DemoAttrs[naBorder].OnCheck:=@OnCheck_Border;
   DemoAttrs[naBorder].OnSplitShorthand:=@OnSplit_Border;
+
+  // font-family: the names are case sensitive, e.g. 'Red' is not the color red
+  DemoAttrs[naFontFamily].AllowUnknownIdentifiers:=true;
 
   // direction
   DemoAttrs[naDirection].OnCheck:=@OnCheck_Direction;
@@ -2090,6 +2103,26 @@ begin
   AssertEquals('Div1.Top','-0.5pc',Div1.Top);
   AssertEquals('Div1.Width','0.6cm',Div1.Width);
   AssertEquals('Div1.Height','60rem',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_ParseAttr_CaseSensitiveIdentifiers;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // font-family allows unknown identifiers, so its names are case sensitive,
+  // while the color attribute reads 'Red' as the color red
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  color: Red;',
+  '  font-family: Red;',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.Color','red',Div1.Color);
+  AssertEquals('Div1.FontFamily','Red',Div1.FontFamily);
 end;
 
 procedure TTestCSSResolver.TestRes_InvalidDeclaration_LogWarning;
@@ -4316,6 +4349,50 @@ begin
   ApplyStyle;
   AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_CaseSensitiveIdentifiers;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // a custom property is tokenized without knowing the target attribute, so it
+  // keeps the case. The attribute using the var() decides: font-family keeps
+  // the identifier 'Red', color converts it to the color keyword red.
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --my-name: Red;',
+  '  color: var(--my-name);',
+  '  font-family: var(--my-name);',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.Color','red',Div1.Color);
+  AssertEquals('Div1.FontFamily','Red',Div1.FontFamily);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_UnknownIdentifier;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // color does not allow unknown identifiers, so substituting a var() with a
+  // word that is not a keyword makes the declaration invalid, same as writing
+  // the word directly
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --my-name: SomeFont;',
+  '  color: var(--my-name);',
+  '  font-family: var(--my-name);',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.Color','',Div1.Color);
+  AssertEquals('Div1.FontFamily','SomeFont',Div1.FontFamily);
 end;
 
 procedure TTestCSSResolver.TestRes_Var_StringLiteral;
@@ -6596,21 +6673,24 @@ begin
   if Span1=nil then ;
 end;
 
-procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);
+procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string;
+  AllowUnknownIdentifiers: boolean);
 var
   Data: TBytes;
   Resolver: TCSSBaseResolver;
 begin
   Resolver:=Doc.CSSResolver;
-  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data));
+  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data,AllowUnknownIdentifiers));
   AssertEquals(Title,Expected,TokenStreamToStr(Resolver.CSSRegistry,Data));
 end;
 
-procedure TTestCSSResolver.CheckTokenizeInvalid(const Title, aValue: string);
+procedure TTestCSSResolver.CheckTokenizeInvalid(const Title, aValue: string;
+  AllowUnknownIdentifiers: boolean);
 var
   Data: TBytes;
 begin
-  AssertEquals(Title+' invalid',false,Doc.CSSResolver.Tokenize(aValue,Data));
+  AssertEquals(Title+' invalid',false,
+    Doc.CSSResolver.Tokenize(aValue,Data,AllowUnknownIdentifiers));
 end;
 
 procedure TTestCSSResolver.CheckRoundtrip(const Title, aValue, Expected: string);
@@ -6701,6 +6781,27 @@ begin
   CheckTokenize('rgba','#abcd','hex(abcd)');
   CheckTokenize('rrggbb','#ff0000','hex(ff0000)');
   CheckTokenize('rrggbbaa','#11223344','hex(11223344)');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_ColorCase;
+begin
+  // color names are ASCII case insensitive
+  CheckTokenize('Red','Red','kw(red)');
+  CheckTokenize('RED','RED','kw(red)');
+  // other keywords are case sensitive
+  CheckTokenize('block','block','kw(block)');
+  CheckTokenizeInvalid('Block','Block');
+
+  // an attribute allowing unknown identifiers uses case sensitive names,
+  // so it does not tokenize colors, e.g. the font family 'Red'
+  CheckTokenize('Red allow unknown','Red','ident(Red)',true);
+  CheckTokenize('red allow unknown','red','ident(red)',true);
+  CheckTokenize('RED allow unknown','RED','ident(RED)',true);
+  // non color keywords are still keywords
+  CheckTokenize('block allow unknown','block','kw(block)',true);
+  CheckTokenize('Block allow unknown','Block','ident(Block)',true);
+  // custom identifiers are unaffected
+  CheckTokenize('custom ident allow unknown','--my-var','ident(--my-var)',true);
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Strings;

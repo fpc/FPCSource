@@ -3681,6 +3681,7 @@ const
 var
   AttrID, NextAttrID: TCSSNumericalID;
   AttrP: PMergedAttribute;
+  AttrDesc: TCSSAttributeDesc;
   ReplaceCnt: integer;
 
   function SubstituteVars(var Tokens: TBytes): boolean;
@@ -3807,7 +3808,14 @@ begin
       begin
         ReplaceCnt:=0;
         if not SubstituteVars(AttrP^.Tokens) then
-          AttrP^.Tokens:=nil;
+          AttrP^.Tokens:=nil
+        else begin
+          // the var() values were tokenized without knowing this attribute
+          AttrDesc:=GetAttributeDesc(AttrID);
+          if (AttrDesc<>nil) and not AttrDesc.AllowUnknownIdentifiers then
+            if not ResolveIdentifierTokens(AttrP^.Tokens) then
+              AttrP^.Tokens:=nil;
+        end;
       end;
       if CSSTokensEmpty(AttrP^.Tokens) then
         RemoveMergedAttribute(AttrID);
@@ -4199,6 +4207,8 @@ begin
       Desc.Name:=aName;
       Desc.Index:=CSSRegistry.AttributeCount+FCustomAttributeCount;
       Desc.Inherits:=true;
+      // the target attribute is unknown, so keep the names case sensitive
+      Desc.AllowUnknownIdentifiers:=true;
       FCustomAttributes[FCustomAttributeCount]:=Desc;
       FCustomAttributeNameToDesc.Add(aName,Desc);
 
