@@ -715,6 +715,7 @@ type
     function TokenizeKeyword(KW: TCSSNumericalID): TBytes;
     function TokenizeIdentifier(const anIdentifier: TCSSString): TBytes;
     function TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
+    function TokenizeHexColor(const aHexDigits: TCSSString): TBytes;
     function ResolveIdentifierTokens(var Tokens: TBytes): boolean; // convert rtkIdentifier to rtkKeyword, false if invalid
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
     function DetokenizeOne(aData: PByte): TCSSString; // convert one token back to a css value
@@ -2958,6 +2959,26 @@ begin
   Result[0]:=ord(rtkFloat);
   Result[1]:=ord(anUnit);
   PDouble(@Result[2])^:=aFloat; // kind + unit + double, see ReadNext
+end;
+
+function TCSSBaseResolver.TokenizeHexColor(const aHexDigits: TCSSString): TBytes;
+// aHexDigits are the hex characters without the leading '#'.
+// Only the four lengths Tokenize creates are valid: #rgb, #rgba, #rrggbb and #rrggbbaa.
+// Any other length gives nil, so a caller cannot build a value that Tokenize would refuse.
+var
+  l: integer;
+begin
+  Result:=nil;
+  l:=length(aHexDigits);
+  case l of
+  3,4,6,8: ;
+  else
+    exit;
+  end;
+  SetLength(Result,2+l);
+  Result[0]:=ord(rtkHexColor);
+  Result[1]:=byte(l);
+  Move(aHexDigits[1],Result[2],l); // kind + count + count hex chars, see ReadNext
 end;
 
 function TCSSBaseResolver.ResolveIdentifierTokens(var Tokens: TBytes): boolean;
