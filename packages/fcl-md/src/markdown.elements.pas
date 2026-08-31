@@ -140,6 +140,8 @@ Type
     property Closed : boolean read FClosed write SetClosed;
     property Line : Integer read FLine;
     property Parent : TMarkdownBlock read FParent;
+    // Columns of indentation used by the content of this block. Zero when it has none.
+    function ContentIndentation : Integer; virtual;
     property LastChild : TMarkdownBlock Read GetLastChild;
     property ChildCount : Integer read GetChildCount;
     property Children[aIndex : Integer] : TMarkdownBlock read GetChild; default;
@@ -217,12 +219,15 @@ Type
     FLoose: boolean;
     FLastIndent: integer;
     FBaseIndent: integer;
+    FContentIndent: integer;
     FHasSeenEmptyLine : boolean; // parser state
   public
     function Grace : integer;
     property Ordered : boolean read FOrdered write FOrdered;
     property BaseIndent : integer read FBaseIndent write FBaseIndent;
     property LastIndent : integer read FLastIndent write FLastIndent;
+    // Column at which the content of the last item starts: marker indent, marker and the spaces after it.
+    property ContentIndent : integer read FContentIndent write FContentIndent;
     property Start : integer read FStart write FStart;
     property Marker : AnsiString read FMarker write FMarker;
     property Loose : boolean read FLoose write FLoose;
@@ -232,6 +237,7 @@ Type
   TMarkdownListItemBlock = class (TMarkdownParagraphBlock)
   public
     function isPlainPara : boolean; override;
+    function ContentIndentation : Integer; override;
   end;
 
   TMarkdownHeadingBlock = class (TMarkdownContainerBlock)
@@ -586,6 +592,13 @@ begin
   FLine:=aLine;
 end;
 
+
+function TMarkdownBlock.ContentIndentation: Integer;
+begin
+  Result:=0;
+end;
+
+
 procedure TMarkdownBlock.dump(const aIndent: string = '');
 var
   I : Integer;
@@ -722,6 +735,15 @@ end;
 function TMarkdownListItemBlock.isPlainPara: boolean;
 begin
   Result:=false;
+end;
+
+
+function TMarkdownListItemBlock.ContentIndentation: Integer;
+begin
+  if Parent is TMarkdownListBlock then
+    Result:=TMarkdownListBlock(Parent).ContentIndent
+  else
+    Result:=0;
 end;
 
 { TMarkdownHeadingBlock }
