@@ -40,7 +40,8 @@ type
     FLevel : integer;
     function SkipQuotes(aLine: TMarkdownLine; aLevel: Integer): Integer;
   protected
-    function IsQuotedLine(aLine: TMarkdownLine; SkipLevels: Boolean): boolean;
+    function IsQuotedLine(aLine: TMarkdownLine; SkipLevels: Boolean; aWhiteSpaceLen : Integer = 3): boolean;
+    function StripLinePrefix(aLine : TMarkdownLine) : Boolean; override;
     function inListOrQuote : boolean; override;
     function IsRoot(aParent : TMarkdownContainerBlock) : Boolean;
   public
@@ -62,6 +63,8 @@ type
     function inListOrQuote : boolean; override;
     function Root : Boolean;
     function LastList : TMarkdownListBlock;
+    // Column at which the content of an item starts, for a line positioned just after the marker.
+    class function ContentIndent(aLine : TMarkdownLine) : Integer;
   public
     function prepareline(aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : boolean;
   end;
@@ -179,6 +182,27 @@ type
 
 implementation
 
+// Indentation at which a line is indented code instead of the start of a new block.
+// Inside an indented container this is 4 columns past the indentation of its content.
+function MaxBlockIndent(aParent : TMarkdownBlock) : Integer;
+
+var
+  lBlock : TMarkdownBlock;
+  lIndent : Integer;
+
+begin
+  Result:=4;
+  lBlock:=aParent;
+  While Assigned(lBlock) do
+    begin
+    lIndent:=lBlock.ContentIndentation;
+    if lIndent>0 then
+      Exit(Result+lIndent);
+    lBlock:=lBlock.Parent;
+    end;
+end;
+
+
 { ---------------------------------------------------------------------
   TMarkdownQuoteProcessor
   ---------------------------------------------------------------------}
@@ -238,7 +262,7 @@ begin
   Result:=lLevel;
 end;
 
-function TMarkdownQuoteProcessor.IsQuotedLine(aLine: TMarkdownLine; SkipLevels : Boolean): boolean;
+function TMarkdownQuoteProcessor.IsQuotedLine(aLine: TMarkdownLine; SkipLevels : Boolean; aWhiteSpaceLen : Integer = 3): boolean;
 
 var
   len : integer;
@@ -246,12 +270,19 @@ var
 begin
   if SkipLevels and (FLevel>0) then
     SkipQuotes(aLine,FLevel);
-  Result:=StartsWithWhiteSpace(aLine.Remainder,'>',len);
+  Result:=StartsWithWhiteSpace(aLine.Remainder,'>',len,aWhiteSpaceLen);
   if not Result then
     exit;
   aLine.advance(len+1);
   if not aLine.isEmpty and isWhitespaceChar(aLine.Remainder[1]) then
     aLine.advance(1);
+end;
+
+
+function TMarkdownQuoteProcessor.StripLinePrefix(aLine: TMarkdownLine): Boolean;
+
+begin
+  Result:=SkipQuotes(aLine,FLevel)=0;
 end;
 
 
@@ -263,7 +294,8 @@ end;
 function TMarkdownQuoteProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 begin
-  Result:=IsQuotedLine(aLine,False);
+  // An enclosing block may indent the marker past the three columns allowed at top level.
+  Result:=IsQuotedLine(aLine,False,MaxBlockIndent(aParent)-1);
 end;
 
 
@@ -322,6 +354,23 @@ end;
 function TMarkdownListProcessor.LastList: TMarkdownListBlock;
 begin
   Result:=FLastList;
+end;
+
+
+class function TMarkdownListProcessor.ContentIndent(aLine: TMarkdownLine): Integer;
+
+var
+  lWhiteSpace : Integer;
+
+begin
+  // The cursor is 1 based and sits just after the marker and one space.
+  Result:=aLine.CursorPos-1;
+  if aLine.isWhitespace then
+    Exit;
+  lWhiteSpace:=aLine.LeadingWhitespace;
+  // Five or more spaces after the marker start an indented code block in the item.
+  if lWhiteSpace<4 then
+    Inc(Result,lWhiteSpace);
 end;
 
 
@@ -386,7 +435,7 @@ var
   lLen,lCount : integer;
 begin
   FLen:=0;
-  if aLine.LeadingWhitespace >= 4 then
+  if aLine.LeadingWhitespace >= MaxBlockIndent(aParent) then
     Exit(false);
   ls:=Trim(aLine.Remainder);
   lLen:=Length(ls);
@@ -406,7 +455,8 @@ var
 
 begin
   lBlock:=TMarkdownHeadingBlock.Create(aParent,aLine.LineNo,Flen);
-  aLine.Advance(Flen);
+  // The markers start after the indentation, which an enclosing block may carry.
+  aLine.Advance(aLine.LeadingWhitespace+Flen);
   aLine.SkipWhiteSpace;
   s:=Trim(aLine.Remainder);
   if not isWhitespace(s) then
@@ -518,7 +568,7 @@ var
   lOldLastList, lList : TMarkdownListBlock;
   lOldLastItem, lItem : TMarkdownListItemBlock;
   lRemain,lMarker : string;
-  lIndent : Integer;
+  lIndent,lContentIndent : Integer;
   lNewItem : Boolean;
 
 begin
@@ -527,6 +577,7 @@ begin
   if not HasMarker(aLine,lIndent,lMarker) then exit;
 
   aLine.Advance(Pos(lMarker,aLine.Remainder)+1);
+  lContentIndent:=ContentIndent(aLine);
   lRemain:=aLine.Remainder;
   lOldLastList:=FLastList;
   lOldLastItem:=FLastItem;
@@ -541,6 +592,7 @@ begin
     lList.Marker:=lMarker;
     FLastList:=lList;
     end;
+  lList.ContentIndent:=lContentIndent;
   // While we have a list item part of this list block, add an item and parse it.
   repeat
     lItem:=TMarkdownListItemBlock.Create(lList,aLine.LineNo);
@@ -684,12 +736,13 @@ var
   lOldLastItem, lItem : TMarkdownListItemBlock;
   lNewItem : Boolean;
   lMarker : String;
-  lStart,lIndent : Integer;
+  lStart,lIndent,lContentIndent : Integer;
 begin
   Result:=False;
   if not HasMarker(aLine,lIndent,lMarker,lStart) then
     exit;
   aLine.Advance(Pos(lMarker,aLine.Remainder)+1);
+  lContentIndent:=ContentIndent(aLine);
   lOldLastList:=FLastList;
   if inList(aParent, true, lMarker, lindent, 2, lList) then
     begin
@@ -706,6 +759,8 @@ begin
     lList.Start:=lStart;
     FLastList:=lList;
     end;
+  // Continuation lines of an ordered item arrive with LastIndent already removed.
+  lList.ContentIndent:=lContentIndent-lIndent;
   // While we have a line that part of this list block, add an item and parse it.
   repeat
     lItem:=TMarkdownListItemBlock.Create(lList,aLine.LineNo);
@@ -741,7 +796,7 @@ var
 begin
   Result:=False;
   Indent:=aLine.LeadingWhitespace;
-  if Indent < 4 then
+  if Indent < MaxBlockIndent(aParent) then
     Exit;
   if aLine.isWhitespace then
     Exit;
@@ -766,6 +821,9 @@ begin
     TMarkdownTextBlock.Create(C,aLine.LineNo,S);
     aLine:=peekLine;
     if (aLine = nil) then
+      Exit;
+    // The enclosing block takes its prefix off before the line is examined.
+    if ParentEndsLine(aLine) then
       Exit;
     if not Handlesline(C,aLine) then
       Exit;
@@ -813,7 +871,7 @@ var
 begin
   Result:=False;
   FLang:='';
-  if aLine.LeadingWhitespace >= 4 then
+  if aLine.LeadingWhitespace >= MaxBlockIndent(aParent) then
     Exit;
   s:=aLine.Remainder.Trim;
   if (S='') then
@@ -887,15 +945,27 @@ function TFencedCodeBlockProcessor.processLine(aParent: TMarkdownContainerBlock;
 
 var
   lBlock : TMarkdownCodeBlock;
+  lLine : TMarkdownLine;
+  lClosed : Boolean;
   s : String;
 
 begin
   lBlock:=TMarkdownCodeBlock.Create(aParent,aLine.LineNo);
   lBlock.fenced:=true;
   lBlock.lang:=Flang;
-  lBlock.Indent:=aLine.CursorPos-1;
-  while Not LineEndsBlock(lBlock,PeekLine) do
-    begin
+  // Prefixes already consumed, plus the indentation an enclosing block gives the fence.
+  lBlock.Indent:=aLine.CursorPos-1+aLine.LeadingWhitespace;
+  lClosed:=False;
+  Repeat
+    lLine:=PeekLine;
+    if lLine=Nil then
+      Break;
+    // The enclosing block takes its prefix off before the line is examined.
+    if ParentEndsLine(lLine) then
+      Break;
+    lClosed:=LineEndsBlock(lBlock,lLine);
+    if lClosed then
+      Break;
     aLine:=NextLine;
     if aLine.LeadingWhitespace>=lBlock.Indent then
       aLine.Advance(lBlock.Indent)
@@ -903,8 +973,10 @@ begin
       aLine.Advance(aLine.LeadingWhitespace);
     s:=aLine.Remainder;
     TMarkdownTextBlock.Create(lBlock,aLine.LineNo,S);
-    end;
-  NextLine;
+  Until False;
+  // Consume the closing fence, but leave a line belonging to the enclosing block.
+  if lClosed then
+    NextLine;
   Result:=true;
 end;
 
@@ -1104,7 +1176,13 @@ begin
   else
     begin
     if Not Assigned(lPar) then
+      begin
+      // A second paragraph in an item follows a blank line, which makes the list loose.
+      if (aParent is TMarkdownListItemBlock) and (aParent.Blocks.Count>0)
+         and (aParent.Parent is TMarkdownListBlock) then
+        TMarkdownListBlock(aParent.Parent).Loose:=True;
       lPar:=TMarkdownParagraphBlock.Create(aParent,aLine.LineNo);
+      end;
     Parser.parseInLine(lPar,aLine.Remainder);
     end;
 end;
@@ -1123,7 +1201,7 @@ begin
   Result:=False;
   if aParent.blocks.Count=0 then
     Exit;
-  if aLine.LeadingWhitespace>=4 then
+  if aLine.LeadingWhitespace>=MaxBlockIndent(aParent) then
     Exit;
   if not TMarkdownParser.inPara(aParent.blocks,False) then
     Exit;
@@ -1178,7 +1256,7 @@ var
 
 begin
   Result:=False;
-  if aLine.LeadingWhitespace >= 4 then
+  if aLine.LeadingWhitespace >= MaxBlockIndent(aParent) then
     Exit;
   S:=StripWhitespace(aLine.Remainder);
   if (S='') then
