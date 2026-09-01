@@ -311,7 +311,7 @@ begin
   begin
     DoneHelpSystem;
     Message(Application,evBroadcast,cmHelpFilesChanged,nil);
-    InitHelpSystem;
+    CheckHelpSystem; { Let CheckHelpSystem to call InitHelpSystem; }
   end;
   if assigned(PHFD) then
     Dispose(PHFD, Done);
