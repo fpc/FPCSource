@@ -5452,6 +5452,17 @@ begin
   // the next line ({$ifdef<eol>  NAME}) or after two spaces read as empty.
   while (Param<>'') and (Param[1] in [' ',#9,#10,#13]) do
     Delete(Param,1,1);
+  // A switch may be written `{$macro+}` / `{$macro-}` with no space, which
+  // FPC treats exactly like `{$macro on}` / `{$macro off}`. 
+  if (Param='') and (Length(Directive)>2)
+      and (Directive[Length(Directive)] in ['+','-']) then
+    begin
+    if Directive[Length(Directive)]='+' then
+      Param:='on'
+    else
+      Param:='off';
+    Directive:=Copy(Directive,1,Length(Directive)-1);
+    end;
   {$IFDEF VerbosePasDirectiveEval}
   Writeln('TPascalScanner.HandleDirective.Directive: "',Directive,'", Param : "',Param,'"');
   {$ENDIF}
@@ -5654,9 +5665,9 @@ var
   NewValue: Boolean;
 
 begin
-  if CompareText(Param,'on')=0 then
+  if (CompareText(Param,'on')=0) or (Param='+') then
     NewValue:=true
-  else if CompareText(Param,'off')=0 then
+  else if (CompareText(Param,'off')=0) or (Param='-') then
     NewValue:=false
   else
     begin
