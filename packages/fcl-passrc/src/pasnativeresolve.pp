@@ -465,7 +465,8 @@ begin
   Result:=nil;
   if bt<>btPointer then exit;
   if (Params=nil) or (length(Params.Params)<1) then exit;
-  lVal:=Eval(Params.Params[0],[refConst]);
+  // Ask, do not demand - see EvalNativeNamedPointerCast below.
+  lVal:=Eval(Params.Params[0],[]);
   if lVal=nil then exit;
   try
     if lVal.Kind=revkInt then
@@ -484,16 +485,11 @@ var
 begin
   Result:=nil;
   if (Params=nil) or (length(Params.Params)<1) then exit;
-  // A non-constant operand raises EPasResolve ('constant expression expected');
-  // swallow it so an ordinary PChar(someVar) cast resolves as a runtime (non-
-  // const) expression rather than failing the unit. 
-  lVal:=nil;
-  try
-    lVal:=Eval(Params.Params[0],[refConst]);
-  except
-    on E: EPasResolve do
-      lVal:=nil;
-  end;
+  // A cast of a non-constant is simply not foldable, so ASK without demanding:
+  // refConst LOGS "constant expression expected" and then raises a bare
+  // Exception, which no `on EPasResolve` can swallow and which the log has
+  // already turned into a failed unit (vcl-compat casts TypeInfo(T)).
+  lVal:=Eval(Params.Params[0],[]);
   if (lVal<>nil) and (lVal.Kind=revkInt) then
     Result:=TResEvalInt.CreateValue(TResEvalInt(lVal).Int);
   ReleaseEvalValue(lVal);
@@ -601,20 +597,27 @@ end;
 
 
 function TPasNativeResolver.GetEnumTypeSize(EnumType: TPasEnumType): Integer;
-
+// Sized by the ORDINAL RANGE, not by the member count: an assigned value puts a
+// member far outside the count (cgbase.pas spans a TRegister enum over the whole
+// LongInt range with two members). Counting members answered 1 byte there while
+// the emitted storage was already 4, so SizeOf disagreed with the layout.
 var
-  Count, MinSize: Integer;
+  MinSize: Integer;
+  MinOrd, MaxOrd: TMaxPrecInt;
 
 begin
-  Count:=0;
-  if (EnumType<>nil) and (EnumType.Values<>nil) then
-    Count:=EnumType.Values.Count;
-  if Count<=256 then
-    Result:=1
-  else if Count<=65536 then
-    Result:=2
-  else
-    Result:=4;
+  Result:=1;
+  if (EnumType<>nil) and (EnumType.Values<>nil) and (EnumType.Values.Count>0) then
+    begin
+    MinOrd:=GetEnumMinOrdinal(EnumType);
+    MaxOrd:=GetEnumMaxOrdinal(EnumType);
+    if (MinOrd>=-128) and (MaxOrd<=255) then
+      Result:=1
+    else if (MinOrd>=-32768) and (MaxOrd<=65535) then
+      Result:=2
+    else
+      Result:=4;
+    end;
   MinSize:=GetMinEnumSize(EnumType);
   if MinSize>Result then
     Result:=MinSize;
