@@ -1160,7 +1160,7 @@ Function IsDateTimeType(aData : PTypeInfo) : Boolean; inline;
 begin
   Result:=(aData=TypeInfo(TDateTime))
           or (aData=TypeInfo(TDate))
-          or (aData=TypeInfo(TTime));
+          or (aData=TypeInfo(System.TTime));
 end;
 
 Function TypeInfoToVarType(aTypeInfo : PTypeInfo; out aType : TVarType) : Boolean;

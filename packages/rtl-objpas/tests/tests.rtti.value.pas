@@ -2057,12 +2057,12 @@ end;
 
 procedure TTestValueGeneral.TestAssignTime;
 var
-  t: TTime;
+  t: System.TTime;
   v: TValue;
 begin
   t := Time;
   v := t;
-  AssertSame('Incorrect type info', TypeInfo(TTime), V.TypeInfo);
+  AssertSame('Incorrect type info', TypeInfo(System.TTime), V.TypeInfo);
   CheckEquals(t, V.AsDateTime, 'Incorrect value');
 end;
 
