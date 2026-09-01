@@ -341,7 +341,9 @@ var
   r : integer;
   b : cardinal;
 begin
-  if (z.state=nil) or (z.next_in=nil) then
+  if (z.state=nil) or
+     (z.next_out=nil) or
+     ((z.next_in=nil) and (z.avail_in<>0)) then
   begin
     inflate := Z_STREAM_ERROR;
     exit;
