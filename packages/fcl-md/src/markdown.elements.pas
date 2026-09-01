@@ -41,7 +41,8 @@ Type
   TMarkdownElement = class (TObject);
   TMarkdownElementClass = class of TMarkdownElement;
 
-  TTextNodeKind = (nkNamed,nkLineBreak,nkText,nkCode,nkURI,nkEmail,nkImg);
+  // nkRaw holds content already in the target format, emitted without escaping.
+  TTextNodeKind = (nkNamed,nkLineBreak,nkText,nkCode,nkURI,nkEmail,nkImg,nkRaw);
   TTextNodeKinds = set of TTextNodeKind;
 
   TNodeStyle = (nsStrong,nsEmph,nsDelete);

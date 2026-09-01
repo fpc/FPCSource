@@ -464,7 +464,7 @@ end;
 function TFPDocMarkdownTextRenderer.MustCloseNode(aElement: TMarkdownTextNode) : boolean;
 
 begin
-  Result:=not (aElement.kind in [nkImg,nkLineBreak]);
+  Result:=not (aElement.kind in [nkImg,nkLineBreak,nkRaw]);
 end;
 
 procedure TFPDocMarkdownTextRenderer.StartText;

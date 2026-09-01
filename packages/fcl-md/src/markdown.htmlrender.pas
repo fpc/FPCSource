@@ -459,6 +459,12 @@ begin
     aElement.Active:=False;
     Exit;
     end;
+  if aElement.Kind=nkRaw then
+    begin
+    Append(aElement.NodeText);
+    aElement.Active:=False;
+    Exit;
+    end;
   if aElement.Kind<>nkText then
     begin
     lName:=GetNodeTag(aElement);

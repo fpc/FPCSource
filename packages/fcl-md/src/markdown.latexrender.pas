@@ -502,7 +502,7 @@ begin
   if aElement.Kind <> nkText then
     Append(Self.GetNodeTag(aElement, False));
 
-  if not (aElement.Kind in [nkImg,nkLineBreak]) then
+  if not (aElement.Kind in [nkImg,nkLineBreak,nkRaw]) then
     begin
     if aElement.NodeText<>'' then
       Append(Self.Escape(aElement.NodeText));
