@@ -705,14 +705,11 @@ type
     function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
     function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
     // disable/enable a single declaration; The disabled state is restored after the stylesheet is reparsed.
+    // inline declarations need TransferDisabledDeclarations
     procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
     procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
     function IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean; virtual;
     function RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean; virtual;
-    // Carry the disabled flags of OldRule's declarations over to NewRule's, matched by
-    // property name (same-named ones in order). For a rule that is in no stylesheet -
-    // an element/inline style - and therefore has no declaration path, so that the
-    // path based RestoreDisabledDeclarations cannot reach it after a reparse.
     procedure TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement); virtual;
     function GetDisabledDeclarations: TFPList; virtual; // TCSSDeclarationElement list, caller frees the list
     function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
