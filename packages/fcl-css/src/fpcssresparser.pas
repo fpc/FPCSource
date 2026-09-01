@@ -304,7 +304,6 @@ const
     (Name: 'yellowgreen'; Color: TCSSAlphaColor($ff9acd32))
   );
 
-
 type
 
   { TCSSRegistryNamedItem }
@@ -489,14 +488,17 @@ type
     // keywords
     Keywords: TCSSStringArray; // Note: Keywords[0] is nil to spot bugs easily
     KeywordTokens: TBytesArray; // tokenized form of each keyword, see TCSSBaseResolver.Tokenize
-    kwFirstColor, kwLastColor, kwTransparent, kwCurrentColor: TCSSNumericalID;
+    kwFirstColor, kwLastColor: TCSSNumericalID; // named colors, excluding transparent, currentColor and system colors
+    kwTransparent: TCSSNumericalID;
+    kwCurrentColor: TCSSNumericalID;
+    kwFirstSystemColor, kwLastSystemColor: TCSSNumericalID;
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
     function IndexOfKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfValueKeyword(const aName: TCSSString;
       AllowUnknownIdentifiers: boolean): TCSSNumericalID; virtual; // resolve a word of an attribute value
     procedure AddColorKeywords; virtual;
-    function IsColorKeyword(KeywordID: TCSSNumericalID): boolean;
+    function IsColorKeyword(KeywordID: TCSSNumericalID; OnlyConst: boolean): boolean;
     function GetNamedColor(const aName: TCSSString): TCSSAlphaColor; virtual; overload;
     function GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor; virtual; overload;
     property KeywordCount: TCSSNumericalID read FKeywordCount;
@@ -1089,6 +1091,9 @@ begin
     raise ECSSParser.Create('20260327000002');
   if AddKeyword('not')<>CSSKeywordNot then
     raise ECSSParser.Create('20260327000003');
+
+  kwFirstSystemColor:=0;
+  kwLastSystemColor:=-1;
 
   // init attribute functions
   if AddAttrFunction('var')<>CSSAttrFuncVar then
@@ -1852,7 +1857,7 @@ begin
   Result:=IndexOfKeyword(aName);
   if AllowUnknownIdentifiers then
   begin
-    if IsColorKeyword(Result) then
+    if IsColorKeyword(Result,false) then
       Result:=CSSIDNone;
     exit;
   end;
@@ -1860,10 +1865,13 @@ begin
     exit;
   LoName:=lowercase(aName);
   Result:=IndexOfKeyword(LoName);
-  if (Result>=kwFirstColor) and (Result<=kwLastColor) then
+  if ((Result>=kwFirstColor) and (Result<=kwLastColor))
+      or ((Result>=kwFirstSystemColor) and (Result<=kwLastSystemColor)) then
     // color keywords are case insensitive
   else if LoName='currentcolor' then
     Result:=kwCurrentColor
+  else if LoName='transparent' then
+    Result:=kwTransparent
   else
     Result:=CSSIDNone;
 end;
@@ -1877,15 +1885,20 @@ begin
   for i:=0 to High(CSSNamedColors) do
     Names[i]:=CSSNamedColors[i].Name;
   AddKeywords(Names,kwFirstColor,kwLastColor);
+
   kwTransparent:=IndexOfKeyword('transparent');
   kwCurrentColor:=AddKeyword('currentColor');
 end;
 
-function TCSSRegistry.IsColorKeyword(KeywordID: TCSSNumericalID): boolean;
+function TCSSRegistry.IsColorKeyword(KeywordID: TCSSNumericalID; OnlyConst: boolean): boolean;
 begin
-  Result:=(KeywordID>CSSIDNone)
-      and (((KeywordID>=kwFirstColor) and (KeywordID<=kwLastColor))
-        or (KeywordID=kwCurrentColor));
+  if (KeywordID>=kwFirstColor) and (KeywordID<=kwLastColor) then
+    exit(true);
+  if OnlyConst then
+    exit(false);
+  Result:=(KeywordID=kwCurrentColor)
+       or (KeywordID=kwTransparent)
+       or ((KeywordID>=kwFirstSystemColor) and (KeywordID<=kwLastSystemColor));
 end;
 
 function TCSSRegistry.GetNamedColor(const aName: TCSSString): TCSSAlphaColor;
@@ -1896,7 +1909,7 @@ end;
 function TCSSRegistry.GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor;
 begin
   if (KeywordID<kwFirstColor) or (KeywordID>kwLastColor) then
-    Result:=$ff000000
+    Result:=$ff000000 // black
   else
     Result:=CSSNamedColors[KeywordID-kwFirstColor].Color;
 end;
@@ -2249,9 +2262,8 @@ begin
   case TokenKind of
   rtkKeyword:
     begin
-      if (KeywordID>=CSSRegistry.kwFirstColor)
-          and (KeywordID<=CSSRegistry.kwLastColor)
-      then begin
+      if CSSRegistry.IsColorKeyword(KeywordID,false) then
+      begin
         if not ReadNext then
           exit(true);
       end;
@@ -2430,10 +2442,7 @@ begin
   Result:=false;
   case TokenKind of
   rtkKeyword:
-    if ((KeywordID>=CSSRegistry.kwFirstColor)
-          and (KeywordID<=CSSRegistry.kwLastColor))
-        or (KeywordID=CSSRegistry.kwCurrentColor)
-    then
+    if CSSRegistry.IsColorKeyword(KeywordID,false) then
       exit(true);
   rtkFunction:
     begin
@@ -4139,9 +4148,7 @@ begin
   case CurComp.Kind of
   rvkKeyword:
     begin
-      if (CurComp.KeywordID>=CSSRegistry.kwFirstColor)
-          and (CurComp.KeywordID<=CSSRegistry.kwLastColor)
-      then
+      if CSSRegistry.IsColorKeyword(CurComp.KeywordID,false) then
         exit(true);
       for i:=0 to length(AllowedKeywordIDs)-1 do
         if CurComp.KeywordID=AllowedKeywordIDs[i] then
