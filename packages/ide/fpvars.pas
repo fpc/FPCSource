@@ -109,7 +109,8 @@ const INIFileName      : string = ININame;
       ASCIIChart       : PFPASCIIChart = nil;
       BackgroundPath   : string = BackgroundName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
-                                   dfCodeCompleteWords+dfCodeTemplates;
+                                   dfCodeCompleteWords+dfCodeTemplates+
+                                   dfReturnToLastDir;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
       DesktopPreferences:longint = 0; { by default show no Clock, no Heap monitor }
