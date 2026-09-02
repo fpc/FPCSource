@@ -12,7 +12,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit restbase;
+unit RestBase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpoauth2ini;
+unit FPOAuth2Ini;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

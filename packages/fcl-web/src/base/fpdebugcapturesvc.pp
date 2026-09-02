@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpdebugcapturesvc;
+unit FpDebugCaptureSvc;
 {$ENDIF}
 
 {$mode ObjFPC}{$H+}

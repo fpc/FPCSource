@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit extjsxml;
+unit ExtJSXML;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

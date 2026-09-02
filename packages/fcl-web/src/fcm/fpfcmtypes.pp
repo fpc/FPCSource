@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpfcmtypes;
+unit FpFCMTypes;
 {$ENDIF}
 
 {$mode ObjFPC}

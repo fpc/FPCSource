@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit webjsonrpc;
+unit WebJSONRPC;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

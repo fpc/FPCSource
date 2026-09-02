@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjwasha384;
+unit FpJwasha384;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}

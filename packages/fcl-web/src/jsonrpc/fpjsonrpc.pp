@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjsonrpc;
+unit FpJSONRPC;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

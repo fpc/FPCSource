@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit websession deprecated;
+unit WebSession deprecated;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

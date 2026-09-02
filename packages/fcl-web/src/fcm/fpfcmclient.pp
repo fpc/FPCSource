@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpfcmclient;
+unit FpFCMClient;
 {$ENDIF}
 
 {$mode ObjFPC}{$H+}

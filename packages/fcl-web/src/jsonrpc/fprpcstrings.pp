@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fprpcstrings;
+unit FpRPCStrings;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}

@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpwebsocket;
+unit FpWebSocket;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}

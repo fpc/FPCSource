@@ -17,7 +17,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custcgi;
+unit CustCGI;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
- unit sqldbrestmodule;
+ unit SqlDbRestModule;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphttpapp;
+unit FpHTTPApp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

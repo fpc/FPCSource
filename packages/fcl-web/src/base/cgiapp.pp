@@ -17,7 +17,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit cgiapp;
+unit CgiApp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

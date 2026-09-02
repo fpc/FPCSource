@@ -16,7 +16,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpwebsocketserver;
+unit FpWebSocketServer;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

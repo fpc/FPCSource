@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sqldbrestbridge;
+unit SqlDbRestBridge;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpdatasetform;
+unit FpDatasetForm;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

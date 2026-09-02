@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sqldbrestcds;
+unit SqlDbRestCDS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

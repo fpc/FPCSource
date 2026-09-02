@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpextjs;
+unit FpExtJS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -57,7 +57,7 @@
 *)
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit uhpack;
+unit uHPack;
 {$ENDIF FPC_DOTTEDUNITS}
 
 (*

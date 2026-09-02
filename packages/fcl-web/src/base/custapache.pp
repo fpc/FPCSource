@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custapache;
+unit CustApache;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}

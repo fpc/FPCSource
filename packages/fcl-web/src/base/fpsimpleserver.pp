@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpsimpleserver;
+unit FpSimpleServer;
 {$ENDIF}
 {
     This file is part of the Free Pascal run time library.

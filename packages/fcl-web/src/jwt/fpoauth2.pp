@@ -12,7 +12,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpoauth2;
+unit FPOAuth2;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

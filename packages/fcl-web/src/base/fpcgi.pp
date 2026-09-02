@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpcgi;
+unit FpCGI;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

@@ -26,7 +26,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *)
 {$IFNDEF FPC_DOTTEDUNITS}
-unit uhpackimp;
+unit uHPackImp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit iniwebsession;
+unit IniWebSession;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

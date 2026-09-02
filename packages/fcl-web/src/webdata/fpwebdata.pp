@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpwebdata;
+unit FpWebData;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

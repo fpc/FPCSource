@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit cgiprotocol;
+unit CgiProtocol;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

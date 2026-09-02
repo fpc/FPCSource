@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpopenapiclient;
+unit FpOpenAPIClient;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}

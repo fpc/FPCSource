@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sqldbrestauth;
+unit SqlDbRestAuth;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

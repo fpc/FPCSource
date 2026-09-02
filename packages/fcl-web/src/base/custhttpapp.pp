@@ -17,7 +17,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custhttpapp;
+unit CustHTTPApp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

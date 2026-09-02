@@ -22,7 +22,7 @@
 {$RANGECHECKS OFF}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custfcgi;
+unit CustFCGI;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

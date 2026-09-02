@@ -44,7 +44,7 @@ begin
 
 }
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fcgigate;
+unit FCGIGate;
 {$ENDIF FPC_DOTTEDUNITS}
 
 { $define CGIGDEBUG}

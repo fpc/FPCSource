@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custapache24;
+unit CustApache24;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

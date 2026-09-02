@@ -17,7 +17,7 @@
 {$modeswitch advancedrecords}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpwebfile;
+unit FpWebFile;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

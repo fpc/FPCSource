@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpWeb;
+unit FpWeb;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

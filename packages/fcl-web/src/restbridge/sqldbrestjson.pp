@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sqldbrestjson;
+unit SqlDbRestJSON;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit extjsjson;
+unit ExtJSJSON;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

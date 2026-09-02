@@ -13,7 +13,7 @@
   **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit restcodegen;
+unit RestCodeGen;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -27,7 +27,7 @@
 *)
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit uhpacktables;
+unit uHPackTables;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

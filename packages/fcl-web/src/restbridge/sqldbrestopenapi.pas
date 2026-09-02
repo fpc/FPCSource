@@ -1,4 +1,4 @@
-unit sqldbrestopenapi;
+unit SqlDbRestOpenApi;
 
 {$mode ObjFPC}{$H+}
 

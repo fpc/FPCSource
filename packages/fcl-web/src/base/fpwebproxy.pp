@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpwebproxy;
+unit FpWebProxy;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

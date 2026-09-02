@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphtml;
+unit FpHTML;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

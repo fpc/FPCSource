@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit microhttpapp;
+unit MicroHTTPApp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

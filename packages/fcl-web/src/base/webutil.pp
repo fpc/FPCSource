@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit webutil;
+unit WebUtil;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

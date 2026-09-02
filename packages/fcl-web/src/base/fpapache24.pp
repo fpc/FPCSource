@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpapache24;
+unit FpApache24;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

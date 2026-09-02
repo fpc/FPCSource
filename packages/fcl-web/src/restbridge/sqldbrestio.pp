@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sqldbrestio;
+unit SqlDbRestIO;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

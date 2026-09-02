@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custHTTPSys;
+unit CustHTTPSys;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphttpserver;
+unit FpHTTPServer;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

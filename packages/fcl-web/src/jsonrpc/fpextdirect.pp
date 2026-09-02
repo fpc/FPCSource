@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpextdirect;
+unit FpExtDirect;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

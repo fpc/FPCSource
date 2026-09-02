@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fprpccodegen;
+unit FpRPCCodeGen;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}
