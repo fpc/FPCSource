@@ -1923,6 +1923,9 @@ const
     (k:'RP2040' ;v:$e48bff56)
   );
 
+const
+  ExtraOptionsArg = '-Ttext=';
+
 var
   f,g : file;
   uf2block : Tuf2Block;
@@ -1932,10 +1935,10 @@ var
   idx : SizeInt;
 
 begin
-  idx:=pos('-Ttext=',Info.ExtraOptions);
+  idx:=pos(ExtraOptionsArg,Info.ExtraOptions);
   if idx > 0 then
   begin
-    ExtraOptions := copy(Info.ExtraOptions,idx+7,length(Info.ExtraOptions));
+    ExtraOptions := copy(Info.ExtraOptions,idx+Length(ExtraOptionsArg),length(Info.ExtraOptions));
     for i := 1 to length(ExtraOptions) do
       if pos(copy(ExtraOptions,i,1),'0123456789abcdefxABCDEFX') = 0 then
         ExtraOptions := copy(ExtraOptions,1,i);
