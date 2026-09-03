@@ -1940,7 +1940,7 @@ begin
   begin
     ExtraOptions := copy(Info.ExtraOptions,idx+Length(ExtraOptionsArg),length(Info.ExtraOptions));
     for i := 1 to length(ExtraOptions) do
-      if pos(copy(ExtraOptions,i,1),'0123456789abcdefxABCDEFX') = 0 then
+      if pos(ExtraOptions[i],'0123456789abcdefxABCDEFX') = 0 then
         ExtraOptions := copy(ExtraOptions,1,i);
     baseAddress := StrToIntDef(ExtraOptions,0);
   end;
