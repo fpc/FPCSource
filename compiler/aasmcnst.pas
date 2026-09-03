@@ -1450,7 +1450,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
+       begin_anonymous_record(get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1628,14 +1628,14 @@ implementation
      begin
        case typ of
          st_ansistring:
-           result:='ansistrrec';
+           result:='$ansistrrec';
          st_unicodestring,
          st_widestring:
            if (typ=st_unicodestring) or
               not winlike then
-             result:='unicodestrrec'
+             result:='$unicodestrrec'
            else
-             result:='widestrrec';
+             result:='$widestrrec';
          else
            internalerror(2014080402);
        end;
@@ -1744,7 +1744,7 @@ implementation
        if winlike then
          begin
            result.lab:=startlab;
-           datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
+           datatcb.begin_anonymous_record(get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
              targetinfos[target_info.system]^.alignment.recordalignmin);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
