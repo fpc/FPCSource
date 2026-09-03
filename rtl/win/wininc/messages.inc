@@ -1971,6 +1971,15 @@
       ThreadId: LPARAM;
       Result: LRESULT;
     end;
+
+    TWMNCActivate = record
+      Msg: UINT;
+      MsgFiller : TDwordFiller;
+      Active: BOOL;
+      WParamFiller : TDwordFiller;
+      Unused: LPARAM;
+      Result: LRESULT;
+    end;
 {$endif messagesunit}
 
 {$endif read_interface}
