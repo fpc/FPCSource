@@ -1141,6 +1141,10 @@ implementation
          resultdef:=left.resultdef;
          if is_currency(left.resultdef) then
            begin
+             { negating a currency value does not change its scaling, so the
+               result is scaled exactly like the operand }
+             if nf_is_currency in left.flags then
+               Include(flags,nf_is_currency);
            end
          else if left.resultdef.typ=floatdef then
            begin
