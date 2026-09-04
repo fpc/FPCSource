@@ -26,10 +26,12 @@ Solaris-i386 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802)
 Solaris-x86_64 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802) with -m64 option
 
 Freebsd-x86_64 : gcc (GCC) 4.2.1 20070719  [FreeBSD]
+FreeBSD-x86_64 (tcext7.o) : gcc (FreeBSD Ports Collection for amd64) 15.2.0
 
 OpenBSD-i386 : gcc (GCC) 4.2.1 20070719
 NetBSD-i386 : gcc (GCC) 4.1.3 20080704 prerelease (NetBSD nb2 20081120)
 FreeBSD-i386 : gcc (GCC) 4.2.1 20070719  [FreeBSD] 8.2-RELEASE
+FreeBSD-i386 (tcext7.o) : gcc (FreeBSD Ports Collection for amd64) 15.2.0
 Linux-sparc : gcc (Debian 4.3.2-1.1) 4.3.2
 OpenBSD-x86_64 : gcc (GCC) 4.2.1 20070719
 NetBSD-x86_64 : gcc (GCC) 4.1.3 20080704 prerelease (NetBSD nb2 20081120)
