@@ -1991,7 +1991,7 @@ implementation
                  until not try_to_consume(_COMMA);
                  consume(_RECKKLAMMER);
                end
-             else if try_to_consume(_LKLAMMER) then
+             else if try_to_consume(_LKLAMMER) and not try_to_consume(_RKLAMMER) then
                begin
                  repeat
                    comp_expr([ef_accept_equal]);
