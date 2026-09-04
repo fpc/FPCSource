@@ -940,6 +940,8 @@ function FT_Get_Sfnt_Table(face: PFT_Face; tag: TFT_Sfnt_Tag): pointer; cdecl; e
 
 //Outline Processing
 function FT_Outline_Decompose(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl; external FreeTypeDLL Name 'FT_Outline_Decompose';
+function FT_Outline_Embolden(outline: PFT_Outline; strength: FT_Pos): integer; cdecl; external FreeTypeDLL Name 'FT_Outline_Embolden';
+function FT_Outline_EmboldenXY(outline: PFT_Outline; xstrength, ystrength: FT_Pos): integer; cdecl; external FreeTypeDLL Name 'FT_Outline_EmboldenXY';
 
 //FreeType Version
 procedure FT_Library_Version(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl; external FreeTypeDLL Name 'FT_Library_Version';
@@ -974,6 +976,8 @@ Type
 
     //Outline Processing
   TFT_Outline_Decompose = function(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl;
+  TFT_Outline_Embolden = function(outline: PFT_Outline; strength: FT_Pos): integer; cdecl;
+  TFT_Outline_EmboldenXY = function(outline: PFT_Outline; xstrength, ystrength: FT_Pos): integer; cdecl;
 
     //FreeType Version
   TFT_Library_Version = procedure(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl;
@@ -1004,6 +1008,8 @@ Var
 
   //Outline Processing
   FT_Outline_Decompose : TFT_Outline_Decompose;
+  FT_Outline_Embolden : TFT_Outline_Embolden;
+  FT_Outline_EmboldenXY : TFT_Outline_EmboldenXY;
 
   //FreeType Version
   FT_Library_Version : TFT_Library_Version;
@@ -1058,6 +1064,8 @@ begin
   pointer(FT_Get_Sfnt_Name) := GetProcedureAddress(LibHandle,'FT_Get_Sfnt_Name');
   pointer(FT_Get_Sfnt_Table) := GetProcedureAddress(LibHandle,'FT_Get_Sfnt_Table');
   pointer(FT_Outline_Decompose) := GetProcedureAddress(LibHandle,'FT_Outline_Decompose');
+  pointer(FT_Outline_Embolden) := GetProcedureAddress(LibHandle,'FT_Outline_Embolden');
+  pointer(FT_Outline_EmboldenXY) := GetProcedureAddress(LibHandle,'FT_Outline_EmboldenXY');
   pointer(FT_Library_Version) := GetProcedureAddress(LibHandle,'FT_Library_Version');
   pointer(FT_Get_Glyph) := GetProcedureAddress(LibHandle,'FT_Get_Glyph');
   pointer(FT_Glyph_Copy) := GetProcedureAddress(LibHandle,'FT_Glyph_Copy');
@@ -1084,6 +1092,8 @@ begin
   pointer(FT_Get_Sfnt_Name) := Nil;
   pointer(FT_Get_Sfnt_Table) := Nil;
   pointer(FT_Outline_Decompose) := Nil;
+  pointer(FT_Outline_Embolden) := Nil;
+  pointer(FT_Outline_EmboldenXY) := Nil;
   pointer(FT_Library_Version) := Nil;
   pointer(FT_Get_Glyph) := Nil;
   pointer(FT_Glyph_Copy) := Nil;
