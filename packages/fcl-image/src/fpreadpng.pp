@@ -51,6 +51,7 @@ Type
       StartX,StartY, DeltaX,DeltaY, StartPass,EndPass : integer;  // number and format of passes
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
+      FGamma : Single;      // from gAMA, 0 when the file declares none
       FSetPixel : TSetPixelProc;
       FConvertColor : TConvertColorProc;
       function GetGrayScale: Boolean;
@@ -88,6 +89,7 @@ Type
       procedure HandleAlpha; virtual;
       procedure PredefinedResolutionValues; virtual;
       procedure ReadResolutionValues; virtual;
+      procedure ReadGamma; virtual;
       function CalcX (relX:integer) : integer;
       function CalcY (relY:integer) : integer;
       function CalcColor: TColorData;
@@ -123,6 +125,9 @@ Type
       Property ColorType : Byte Index 1 Read GetHeaderByte;
       Property Compression : Byte Index 2 Read GetHeaderByte;
       Property Filter : Byte Index 3 Read GetHeaderByte;
+      // Gamma the gAMA chunk of the file - zero when there is no such chunk.
+      // The gamma is not applied, needs to be applied later when displaying.
+      Property Gamma : Single Read FGamma;
       Property Interlace : Byte Index 4 Read GetHeaderByte;
   end;
 
@@ -321,6 +326,23 @@ begin
   else TheImage.ResolutionUnit :=ruNone;
   TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
   TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+end;
+
+// gAMA holds the gamma of the file times 100000, in one big-endian
+// longword.
+procedure TFPReaderPNG.ReadGamma;
+
+var
+  lValue : longword;
+
+begin
+  if (chunk.alength <> sizeof(longword)) then
+    raise PNGImageException.Create('ctgAMA chunk size not valid for a gamma');
+  lValue := BEtoN(plongword(chunk.data)^);
+  if lValue = 0 then
+    FGamma := 0
+  else
+    FGamma := lValue / 100000;
 end;
 
 procedure TFPReaderPNG.HandlePalette;
@@ -889,6 +911,7 @@ begin
     ctIDAT : HandleData;
     ctIEND : EndOfFile := True;
     cttRNS : HandleAlpha;
+    ctgAMA : ReadGamma;
     ctpHYs : ReadResolutionValues;
     else HandleUnknown;
   end;
