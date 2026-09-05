@@ -24,7 +24,7 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'LibNettle is the interface to GNU nettle, a C library that implements gryptography';
+    P.Description := 'LibNettle is the interface to GNU nettle, a C library that implements cryptography';
     P.NeedLibC:= false;
     P.OSes := [linux,win32];
 
