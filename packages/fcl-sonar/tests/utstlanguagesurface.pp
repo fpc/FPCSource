@@ -121,9 +121,9 @@ const
   cDispInterfaceReason = 'not yet implemented: TPasClassType '
     + '"Kind=dispinterface" - the resolver has no dispinterface support';
   cDispInterfaceDiagnostic = '"Kind=dispinterface"';
-  cFlowReason = 'not yet implemented: TPasLabels - the resolver has no label '
-    + 'declaration support';
-  cFlowDiagnostic = 'TPasLabels';
+  cFlowReason = 'not yet implemented: TPasImplGoto - the resolver accepts a '
+    + 'label declaration but has no goto support';
+  cFlowDiagnostic = 'TPasImplGoto';
 
   // Embedded corpus sources: line i+1 of the staged fixture == element [i].
 
