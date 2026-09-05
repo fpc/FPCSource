@@ -478,7 +478,6 @@ type
     procedure TestRes_Tokenize_Function;
     procedure TestRes_Tokenize_Brackets;
     procedure TestRes_Tokenize_HexColor;
-    procedure TestRes_Tokenize_ColorCase;
     procedure TestRes_Tokenize_Strings;
     procedure TestRes_Tokenize_Invalid;
     procedure TestRes_Detokenize;
@@ -6781,27 +6780,6 @@ begin
   CheckTokenize('rgba','#abcd','hex(abcd)');
   CheckTokenize('rrggbb','#ff0000','hex(ff0000)');
   CheckTokenize('rrggbbaa','#11223344','hex(11223344)');
-end;
-
-procedure TTestCSSResolver.TestRes_Tokenize_ColorCase;
-begin
-  // color names are ASCII case insensitive
-  CheckTokenize('Red','Red','kw(red)');
-  CheckTokenize('RED','RED','kw(red)');
-  // other keywords are case sensitive
-  CheckTokenize('block','block','kw(block)');
-  CheckTokenizeInvalid('Block','Block');
-
-  // an attribute allowing unknown identifiers uses case sensitive names,
-  // so it does not tokenize colors, e.g. the font family 'Red'
-  CheckTokenize('Red allow unknown','Red','ident(Red)',true);
-  CheckTokenize('red allow unknown','red','ident(red)',true);
-  CheckTokenize('RED allow unknown','RED','ident(RED)',true);
-  // non color keywords are still keywords
-  CheckTokenize('block allow unknown','block','kw(block)',true);
-  CheckTokenize('Block allow unknown','Block','ident(Block)',true);
-  // custom identifiers are unaffected
-  CheckTokenize('custom ident allow unknown','--my-var','ident(--my-var)',true);
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Strings;

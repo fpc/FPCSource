@@ -488,7 +488,7 @@ type
     // keywords
     Keywords: TCSSStringArray; // Note: Keywords[0] is nil to spot bugs easily
     KeywordTokens: TBytesArray; // tokenized form of each keyword, see TCSSBaseResolver.Tokenize
-    kwFirstColor, kwLastColor: TCSSNumericalID; // named colors, excluding transparent, currentColor and system colors
+    kwFirstColor, kwLastColor: TCSSNumericalID; // named colors, excluding transparent, currentcolor and system colors
     kwTransparent: TCSSNumericalID;
     kwCurrentColor: TCSSNumericalID;
     kwFirstSystemColor, kwLastSystemColor: TCSSNumericalID;
@@ -1798,7 +1798,7 @@ begin
   SetLength(KeywordTokens[Result],3);
   KeywordTokens[Result][0]:=ord(rtkKeyword);
   PWord(@KeywordTokens[Result][1])^:=Result;
-  FHashLists[nikKeyword].Add(aName,{%H-}Pointer(Result));
+  FHashLists[nikKeyword].Add(lowercase(aName),{%H-}Pointer(Result));
   inc(FKeywordCount);
   ChangeStamp;
 end;
@@ -1838,7 +1838,7 @@ function TCSSRegistry.IndexOfKeyword(const aName: TCSSString): TCSSNumericalID;
 var
   p: Pointer;
 begin
-  p:=FHashLists[nikKeyword].Find(aName);
+  p:=FHashLists[nikKeyword].Find(lowercase(aName));
   if p=nil then
     exit(CSSIDNone)
   else
@@ -1850,9 +1850,6 @@ function TCSSRegistry.IndexOfValueKeyword(const aName: TCSSString;
 // Resolve a word of an attribute value to a keyword, CSSIDNone if there is none.
 // Attributes allowing unknown identifiers use case sensitive names, e.g. font-family,
 // so they never get a color keyword: 'Red' and 'red' stay identifiers.
-// For all other attributes color names are ASCII case insensitive, e.g. 'Red' = 'red'.
-var
-  LoName: TCSSString;
 begin
   Result:=IndexOfKeyword(aName);
   if AllowUnknownIdentifiers then
@@ -1861,19 +1858,6 @@ begin
       Result:=CSSIDNone;
     exit;
   end;
-  if Result>CSSIDNone then
-    exit;
-  LoName:=lowercase(aName);
-  Result:=IndexOfKeyword(LoName);
-  if ((Result>=kwFirstColor) and (Result<=kwLastColor))
-      or ((Result>=kwFirstSystemColor) and (Result<=kwLastSystemColor)) then
-    // color keywords are case insensitive
-  else if LoName='currentcolor' then
-    Result:=kwCurrentColor
-  else if LoName='transparent' then
-    Result:=kwTransparent
-  else
-    Result:=CSSIDNone;
 end;
 
 procedure TCSSRegistry.AddColorKeywords;

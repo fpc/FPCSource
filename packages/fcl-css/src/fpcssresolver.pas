@@ -279,6 +279,17 @@ type
     destructor Destroy; override;
   end;
 
+  { TCSSKeyframe - one offset of a @keyframes }
+
+  TCSSKeyframe = record
+    Offset: double; // Ascending and unique within a TCSSKeyframeArray.
+    // The cascaded declarations of every keyframe block with Offset: merged,
+    // var() substituted and shorthands expanded.
+    // Never nil, but can be empty. Owned by the caller, see FreeCSSKeyframes.
+    Values: TCSSAttributeValues;
+  end;
+  TCSSKeyframeArray = array of TCSSKeyframe;
+
   TCSSRuleData = class(TCSSRuleParserData)
   public
     HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
@@ -472,7 +483,8 @@ type
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
     FMergedAllDecl: TCSSDeclarationElement;
     FMergedAllSpecificity: TCSSSpecificity;
-    FSourceSpecificity: TCSSSpecificity; // Origin specificity during Compute run, added only once per rule
+    FSourceSpecificity: TCSSSpecificity; // Origin specificity during Compute run
+    FMergeVarsFromNode: boolean; // SubstituteVarCalls resolves a var() against FNode instead of its parent
     FCSSRegistryStamp: TCSSNumericalID;
     FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
@@ -608,7 +620,7 @@ type
 
     // merge properties
     procedure ClearMerge; virtual;
-    procedure InitMerge; virtual;
+    procedure InitMerge; virtual; // call this after CSSRegistry has been altered
     procedure SetMergedAttribute(AttrID, aSpecificity: TCSSNumericalID; DeclEl: TCSSDeclarationElement);
     procedure RemoveMergedAttribute(AttrID: TCSSNumericalID);
     procedure MergeAttribute(El: TCSSElement; aSpecificity: TCSSSpecificity); virtual;
@@ -640,11 +652,19 @@ type
       out Rules: TCSSSharedRuleList; // owned by resolver
       out Values: TCSSAttributeValues
       ); virtual;
-    // True if any stylesheet contains a @starting-style rule. Cheap probe, so a
-    // caller can skip ComputeStartingStyle altogether.
-    function HasStartingStyleRules: boolean; virtual;
+    function HasStartingStyleRules: boolean; virtual; // true if there any @starting-style rules
     // The @keyframes rule named aName applying to aNode, nil if there is none.
     function FindKeyframesRule(const aNode: ICSSNode; const aName: TCSSString): TCSSAtRuleElement; virtual;
+    function HasKeyframesRules: boolean; virtual; // true if there any @keyframes rules
+    // The values of every offset of the @keyframes rule aRule, ascending for Offset.
+    // Result=false no valid keyframe block.
+    // Keyframes is owned by the caller, see FreeCSSKeyframes.
+    // AttrIDs is the ascending set of AttrIDs of all Keyframes[].Values.
+    // Filtering out what cannot be animated - the animation-* properties in particular - is up to the caller.
+    function ComputeKeyframes(const aNode: ICSSNode; aRule: TCSSAtRuleElement;
+      out Keyframes: TCSSKeyframeArray;
+      out AttrIDs: TCSSNumericalIDArray
+      ): boolean; virtual;
     // The @starting-style declarations applying to aNode
     function ComputeStartingStyle(const aNode: ICSSNode;
       out Rules: TCSSSharedRuleList; // owned by resolver
@@ -744,16 +764,21 @@ function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): 
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;
 
-// navigating a parsed stylesheet tree, e.g. for GetDeclarationPath/FindDeclaration
-// true if an ordinary rule, i.e. a rule which is not an @-rule.
-// Note: a parser can create TCSSRuleElement descendants, so checking the exact
-// class is not enough.
-function CSSIsPlainRule(El: TCSSElement): boolean; overload;
-function CSSIsPlainRule(C: TClass): boolean; overload; // C must not be nil, faster when the caller already fetched the ClassType
+function CSSIsPlainRule(El: TCSSElement): boolean; overload; // true if is a rule, but not a @-rule
+function CSSIsPlainRule(C: TClass): boolean; overload; // C must not be nil
 function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
 function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
 function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
 function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
+
+// @keyframes
+function CSSKeyframesName(aRule: TCSSAtRuleElement): TCSSString;
+// The offsets of one keyframe block ('from', 'to', '50%', '0%, 100%') as fractions
+// 0..1, in source order.
+// Result=false if any selector is invalid. css-animations-1 3 drops the whole block.
+function CSSKeyframeOffsets(aKeyframe: TCSSRuleElement; out Offsets: TDoubleDynArray): boolean;
+// Free the TCSSAttributeValues of every entry and clear the array.
+procedure FreeCSSKeyframes(var Keyframes: TCSSKeyframeArray);
 
 implementation
 
@@ -845,7 +870,13 @@ end;
 
 function CSSIsPlainRule(C: TClass): boolean; overload;
 begin
-  Result:=C.InheritsFrom(TCSSRuleElement) and not C.InheritsFrom(TCSSAtRuleElement);
+  while C<>nil do
+  begin
+    if C=TCSSAtRuleElement then exit(false);
+    if C=TCSSRuleElement then exit(true);
+    C:=C.ClassParent;
+  end;
+  Result:=false;
 end;
 
 // scan El's subtree for immediate child rules, descending through non-rule
@@ -901,6 +932,94 @@ begin
   SetLength(Result,Rule.NestedRuleCount);
   for i:=0 to Rule.NestedRuleCount-1 do
     Result[i]:=Rule.NestedRules[i];
+end;
+
+function CSSKeyframesName(aRule: TCSSAtRuleElement): TCSSString;
+var
+  El: TCSSElement;
+begin
+  Result:='';
+  if aRule.SelectorCount=0 then
+    exit; // a @keyframes without a name, e.g. '@keyframes {'
+  El:=aRule.Selectors[0];
+  // the name is an identifier or a string, both have a Value
+  if not (El is TCSSBaseStringElement) then
+    exit;
+  Result:=TCSSBaseStringElement(El).Value;
+end;
+
+function CSSKeyframeOffsets(aKeyframe: TCSSRuleElement; out Offsets: TDoubleDynArray): boolean;
+// e.g. "from, 25%, 50% { }"
+var
+  i, Cnt: Integer;
+  El: TCSSElement;
+  C: TClass;
+  d: double;
+begin
+  Result:=false;
+  Offsets:=nil;
+  Cnt:=aKeyframe.SelectorCount;
+  if Cnt=0 then
+    exit; // a keyframe without a selector, e.g. '@keyframes fade{ {opacity:0} }'
+  SetLength(Offsets,Cnt);
+  for i:=0 to Cnt-1 do
+  begin
+    El:=aKeyframe.Selectors[i];
+    C:=El.ClassType;
+    if C.InheritsFrom(TCSSIdentifierElement) then
+    begin
+      // css keywords are ascii case insensitive
+      case lowercase(TCSSIdentifierElement(El).Name) of
+      'from': d:=0;
+      'to': d:=1;
+      else
+        begin
+          Offsets:=nil;
+          exit;
+        end;
+      end;
+    end
+    else if C=TCSSIntegerElement then
+    begin
+      if TCSSIntegerElement(El).Units<>cuPercent then
+      begin
+        Offsets:=nil;
+        exit;
+      end;
+      d:=double(TCSSIntegerElement(El).Value)/100;
+    end
+    else if C=TCSSFloatElement then
+    begin
+      if TCSSFloatElement(El).Units<>cuPercent then
+      begin
+        Offsets:=nil;
+        exit;
+      end;
+      d:=TCSSFloatElement(El).Value/100;
+    end
+    else begin
+      Offsets:=nil;
+      exit;
+    end;
+    // css-animations-1 3: a selector outside 0%..100% is invalid.
+    // Note: the parser only checks the unit, not the range.
+    if (d<0) or (d>1) then
+    begin
+      Offsets:=nil;
+      exit;
+    end;
+    Offsets[i]:=d;
+  end;
+  Result:=true;
+end;
+
+procedure FreeCSSKeyframes(var Keyframes: TCSSKeyframeArray);
+var
+  i: Integer;
+begin
+  for i:=0 to length(Keyframes)-1 do
+    FreeAndNil(Keyframes[i].Values);
+  Keyframes:=nil;
 end;
 
 // locate a rule in a candidate list: by index if its selectors still match (fast
@@ -3690,7 +3809,7 @@ var
     k: TCSSResTokenKind;
     VarName: TCSSString;
     Desc: TCSSResCustomAttributeDesc;
-    aParentNode: ICSSNode;
+    aVarNode: ICSSNode;
     Repl: TBytes;
     HasRepl: boolean;
   begin
@@ -3776,10 +3895,13 @@ var
         end;
         if not HasRepl then
         begin
-          aParentNode:=FNode.GetCSSParent;
-          if aParentNode<>nil then
+          if FMergeVarsFromNode then
+            aVarNode:=FNode
+          else
+            aVarNode:=FNode.GetCSSParent;
+          if aVarNode<>nil then
           begin
-            Repl:=aParentNode.GetCSSCustomAttribute(Desc.Index);
+            Repl:=aVarNode.GetCSSCustomAttribute(Desc.Index);
             HasRepl:=not CSSTokensEmpty(Repl);
           end;
         end;
@@ -4122,6 +4244,12 @@ begin
   end;
 end;
 
+function TCSSResolver.HasKeyframesRules: boolean;
+begin
+  UpdateRuleBuckets;
+  Result:=(FKeyframes<>nil) and (FKeyframes.Count>0);
+end;
+
 function TCSSResolver.HasStartingStyleRules: boolean;
 begin
   UpdateRuleBuckets;
@@ -4171,6 +4299,164 @@ begin
     FSourceSpecificity:=OldSrcSpecificity;
     FNode:=nil;
   end;
+end;
+
+function TCSSResolver.ComputeKeyframes(const aNode: ICSSNode;
+  aRule: TCSSAtRuleElement; out Keyframes: TCSSKeyframeArray; out
+  AttrIDs: TCSSNumericalIDArray): boolean;
+// Cascade the keyframe blocks of aRule, one merge pass per distinct offset.
+// Blocks are read in document order and every declaration gets the same specificity,
+// so a later declaration wins per property, see MergeAttribute.
+var
+  BlockOffsets: array of TDoubleDynArray; // per nested rule, nil = block dropped
+  UniqueOffsets: TDoubleDynArray;
+  OffsetCnt, AttrCnt: integer;
+
+  procedure AddUniqueOffset(d: double);
+  // insert d into the ascending UniqueOffsets, skipping a duplicate.
+  var
+    i: Integer;
+  begin
+    i:=0;
+    while i<OffsetCnt do
+    begin
+      if SameValue(UniqueOffsets[i],d) then
+        exit;
+      if UniqueOffsets[i]>d then
+        break;
+      inc(i);
+    end;
+    System.Insert(d,UniqueOffsets,i);
+    inc(OffsetCnt);
+  end;
+
+  function BlockHasOffset(j: integer; d: double): boolean;
+  var
+    i: Integer;
+  begin
+    for i:=0 to length(BlockOffsets[j])-1 do
+      if SameValue(BlockOffsets[j][i],d) then
+        exit(true);
+    Result:=false;
+  end;
+
+  procedure MergeAttrIDsOf(Values: TCSSAttributeValues);
+  // merge AttrIDs of Values into the ascending AttrIDs, dropping duplicates
+  var
+    i, j, Cnt: Integer;
+    AttrID: TCSSNumericalID;
+  begin
+    Cnt:=length(Values.Values);
+    if Cnt=0 then
+      exit;
+    i:=0;
+    j:=0;
+    while i<Cnt do
+    begin
+      AttrID:=Values.Values[i].AttrID;
+      while (j<AttrCnt) and (AttrIDs[j]<AttrID) do
+        inc(j);
+      if (j=AttrCnt) or (AttrIDs[j]>AttrID) then
+      begin
+        System.Insert(AttrID,AttrIDs,j);
+        inc(AttrCnt);
+      end;
+      inc(i);
+    end;
+  end;
+
+var
+  i, j, k: Integer;
+  Block: TCSSRuleElement;
+  El: TCSSElement;
+  Ofs: TDoubleDynArray;
+  OldMergeVars: boolean;
+  d: double;
+begin
+  Result:=false;
+  Keyframes:=nil;
+  AttrIDs:=nil;
+  if aRule=nil then
+    exit;
+  UpdateRuleBuckets;
+
+  // collect the valid blocks and their offsets, no merging yet
+  OffsetCnt:=0;
+  UniqueOffsets:=nil;
+  BlockOffsets:=nil;
+  SetLength(BlockOffsets,aRule.NestedRuleCount);
+  for j:=0 to aRule.NestedRuleCount-1 do
+  begin
+    Block:=aRule.NestedRules[j];
+    if not CSSIsPlainRule(Block.ClassType) then
+      continue; // e.g. a nested @-rule, not a keyframe
+    if not CSSKeyframeOffsets(Block,Ofs) then
+    begin
+      // css-animations-1 3: an invalid selector drops the whole block.
+      {$IFDEF VerboseCSSResolver}
+      Log(etWarning,20260904151220,'invalid keyframe selector',Block);
+      {$ENDIF}
+      continue;
+    end;
+    BlockOffsets[j]:=Ofs;
+    for i:=0 to length(Ofs)-1 do
+      AddUniqueOffset(Ofs[i]);
+  end;
+  if OffsetCnt=0 then
+    exit; // no valid keyframe
+  SetLength(UniqueOffsets,OffsetCnt);
+
+  // one merge pass per offset
+  FNode:=aNode;
+  OldMergeVars:=FMergeVarsFromNode;
+  FMergeVarsFromNode:=true;
+  try
+    SetLength(Keyframes,OffsetCnt);
+    for i:=0 to OffsetCnt-1 do
+    begin
+      d:=UniqueOffsets[i];
+      Keyframes[i].Offset:=d;
+      ClearMerge; // a fresh stamp hides the previous offset's attributes
+      for j:=0 to aRule.NestedRuleCount-1 do
+      begin
+        if BlockOffsets[j]=nil then
+          continue;
+        if not BlockHasOffset(j,d) then
+          continue;
+        Block:=aRule.NestedRules[j];
+        for k:=0 to Block.ChildCount-1 do
+        begin
+          El:=Block.Children[k];
+          if El.ClassType<>TCSSDeclarationElement then
+            continue;
+          if TCSSDeclarationElement(El).IsImportant then
+          begin
+            // css-animations-1 3: an !important declaration in a keyframe is ignored
+            {$IFDEF VerboseCSSResolver}
+            Log(etWarning,20260904151221,'!important is ignored in a keyframe',El);
+            {$ENDIF}
+            continue;
+          end;
+          MergeAttribute(El,CSSSpecificityUniversal);
+        end;
+      end;
+      LoadMergedValues;
+      SubstituteVarCalls;
+      ApplyShorthands;
+      Keyframes[i].Values:=CreateValueList;
+    end;
+  finally
+    FMergeVarsFromNode:=OldMergeVars;
+    FNode:=nil;
+  end;
+
+  // the union of all attribute ids, ascending
+  AttrCnt:=0;
+  for i:=0 to OffsetCnt-1 do
+    MergeAttrIDsOf(Keyframes[i].Values);
+  SetLength(AttrIDs,AttrCnt);
+
+  Result:=true;
 end;
 
 function TCSSResolver.GetAttributeID(const aName: TCSSString; AutoCreate: boolean): TCSSNumericalID;
@@ -4242,7 +4528,6 @@ begin
     FBucketID[i].Free;
   FBucketID:=nil;
   FreeAndNil(FBucketStartingStyle);
-  // Note: the @keyframes rules are owned by the stylesheet elements, not by the list
   FKeyframes.Clear;
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
@@ -4259,9 +4544,6 @@ end;
 
 procedure TCSSResolver.InvalidateMedia;
 begin
-  { Note: on wrap-around a TCSSRuleData that was last computed at stamp 1 and never
-    since would be treated as valid. That needs high(integer) invalidations without a
-    single reparse of the stylesheet, so it is accepted. }
   if FMediaStamp<high(FMediaStamp) then
     inc(FMediaStamp)
   else
@@ -4527,19 +4809,12 @@ procedure TCSSResolver.AddKeyframes(aRule: TCSSAtRuleElement);
 // because it applies to other nodes, see FindKeyframesRule.
 var
   aName: TCSSString;
-  El: TCSSElement;
   i: SizeInt;
   OldRule: TCSSAtRuleElement;
 begin
-  if aRule.SelectorCount=0 then
-    exit; // a @keyframes without a name, e.g. '@keyframes {'
-  El:=aRule.Selectors[0];
-  // the name is an identifier or a string, both have a Value
-  if not (El is TCSSBaseStringElement) then
-    exit;
-  aName:=TCSSBaseStringElement(El).Value;
+  aName:=CSSKeyframesName(aRule);
   if aName='' then
-    exit;
+    exit; // no name, e.g. '@keyframes {'
 
   // the stylesheets are parsed by ParseCSSSource, so every rule has a TCSSRuleData
   if RuleData(aRule).StyleRuleParent=nil then
