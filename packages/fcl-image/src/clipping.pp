@@ -68,7 +68,7 @@ end;
 
 Function CheckRectClipping (ClipRect:TRect; var Rect:Trect) : Boolean;
 begin
-  with ClipRect do
+  with Rect do
     Result:=CheckRectClipping (ClipRect, left,top,right,bottom);
 end;
 
