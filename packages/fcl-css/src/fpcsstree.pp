@@ -454,6 +454,8 @@ type
   { TCSSURLElement - a quoted string literal }
 
   TCSSURLElement = Class(TCSSBaseStringElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   public
     Class function CSSType : TCSSType; override;
   end;
@@ -937,6 +939,32 @@ begin
 end;
 
 { TCSSURLElement }
+
+function TCSSURLElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
+
+var
+  I : Integer;
+  Quoted : Boolean;
+
+begin
+  // Value is the address alone, so the url() around it is written back
+  // here. An address holding what cannot stand unquoted inside one is
+  // written as a string, the way TCSSStringElement writes its own.
+  Quoted:=False;
+  for I:=1 to Length(Value) do
+    if Value[I] in [' ','"','''','(',')',#9,#10,#12,#13] then
+      begin
+      Quoted:=True;
+      Break;
+      end;
+  if Quoted then
+    Result:='url('+StringToCSSString(Value)+')'
+  else
+    Result:='url('+Value+')';
+  if aFormat then
+    Result:=aIndent+Result;
+end;
 
 class function TCSSURLElement.CSSType: TCSSType;
 begin

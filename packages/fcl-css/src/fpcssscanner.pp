@@ -1075,6 +1075,10 @@ begin
       end
     else
       begin
+      // The token of a url is the address alone, which is what the
+      // quoted form above leaves behind. What stands in FCurTokenString
+      // here is the "url(" that opened it.
+      FCurTokenString:='';
       Result:=EatBadURL;
       end;
     If (result<>ctkEOF) and (TokenStr[0] in [')']) then

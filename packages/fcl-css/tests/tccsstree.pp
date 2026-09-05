@@ -525,8 +525,8 @@ begin
   aATRule:=TCSSAtRuleElement(CreateElement(TCSSAtRuleElement));
   aATRule.atKeyWord:='@import';
   aURL:=TCSSURLElement(CreateElement(TCSSURLElement,amSelector));
-  aURL.Value:='url("me.css")';
-  AssertEquals('Value','@import url("me.css");',Element.AsFormattedString);
+  aURL.Value:='me.css';
+  AssertEquals('Value','@import url(me.css);',Element.AsFormattedString);
 end;
 
 procedure TCSSTreeAsStringTest.TestDECLARATION;
@@ -615,8 +615,10 @@ Var
 
 begin
   Url:=TCSSURLElement(CreateElement(TCSSURLElement));
-  Url.Value:='url("a.png")';
-  AssertEquals('Value','url("a.png")',Element.AsString);
+  // The value of a url element is the address alone. The url() around it
+  // is written back by the element.
+  Url.Value:='a.png';
+  AssertEquals('Value','url(a.png)',Element.AsString);
 end;
 
 procedure TCSSTreeAsStringTest.TestUNICODERANGE;

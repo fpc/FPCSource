@@ -64,6 +64,7 @@ type
     FWarnings: array of TTestCSSWarning;
     procedure AssertEquals(AMessage: String; AExpected, AActual : TCSSToken); overload;
     procedure CheckToken(AToken: TCSSToken; ASource: String);
+    procedure CheckTokenString(AToken: TCSSToken; ASource, AString: String);
     procedure CheckTokens(ASource: String; ATokens: array of TCSSToken);
     procedure CheckWarning(Msg: string; Row, Col: integer);
     procedure DoTestFloat(F: Double);
@@ -139,6 +140,10 @@ type
     Procedure TestURL;
     Procedure TestURLAltQuote;
     Procedure TestURL2;
+    Procedure TestURLValue;
+    Procedure TestURLValueQuoted;
+    Procedure TestURLValueAltQuote;
+    Procedure TestURLValueFragment;
     Procedure TestBADURL;
     Procedure TestBADEOF;
     Procedure TestJUNK;
@@ -546,6 +551,28 @@ begin
   CheckToken(ctkURL,'url(abc)');
 end;
 
+procedure TTestCSSScanner.TestURLValue;
+begin
+  // The token of a url is the address alone, whatever it was written
+  // with. The brackets around it are not part of it.
+  CheckTokenString(ctkURL,'url(abc)','abc');
+end;
+
+procedure TTestCSSScanner.TestURLValueQuoted;
+begin
+  CheckTokenString(ctkURL,'url("abc")','abc');
+end;
+
+procedure TTestCSSScanner.TestURLValueAltQuote;
+begin
+  CheckTokenString(ctkURL,'url(''abc'')','abc');
+end;
+
+procedure TTestCSSScanner.TestURLValueFragment;
+begin
+  CheckTokenString(ctkURL,'url(#a)','#a');
+end;
+
 procedure TTestCSSScanner.TestBADURL;
 begin
   CheckToken(ctkBADURL,'url(de f)');
@@ -657,6 +684,23 @@ begin
   J:=Scanner.FetchToken;
   EN2:=GetEnumName(TypeINfo(TCSSToken),Ord(AToken));
   AssertEquals(Format('Source %s should result in %s.',[ASource,EN2]),AToken,J);
+end;
+
+// Checks the kind of the first token of ASource and the text it carries.
+procedure TTestCSSScanner.CheckTokenString(AToken: TCSSToken; ASource,
+  AString: String);
+
+Var
+  J : TCSSToken;
+  EN2 : String;
+
+begin
+  CreateScanner(ASource);
+  J:=Scanner.FetchToken;
+  EN2:=GetEnumName(TypeINfo(TCSSToken),Ord(AToken));
+  AssertEquals(Format('Source %s should result in %s.',[ASource,EN2]),AToken,J);
+  AssertEquals(Format('Source %s should carry %s.',[ASource,AString]),
+               AString,Scanner.CurTokenString);
 end;
 
 procedure TTestCSSScanner.CheckTokens(ASource: String;
