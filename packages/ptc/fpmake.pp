@@ -238,9 +238,12 @@ begin
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
     P.Targets.AddExampleProgram('tunnel3d.pp');
+    P.Targets.AddExampleProgram('mouse.pp');
     P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
     P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/*.raw',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/*.tga',P.Directory,false,'.');
 
 
     P.NamespaceMap:='namespaces.lst';

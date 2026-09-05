@@ -31,7 +31,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testlibuid.pp');
     P.Targets.AddExampleProgram('testuid.pp');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
 
     P.NamespaceMap:='namespaces.lst';
 

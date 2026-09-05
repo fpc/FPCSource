@@ -29,7 +29,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testvga.pp');
     P.Targets.AddExampleProgram('vgatest.pp');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
 
 
     P.NamespaceMap:='namespaces.lst';

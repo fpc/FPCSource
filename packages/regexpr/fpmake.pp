@@ -38,7 +38,11 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testreg1.pp');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Targets.AddExampleProgram('demowd.pp');
+    P.Targets.AddExampleProgram('splitwords.pp');
+    P.Targets.AddExampleProgram('testure.pp');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/splitwords.lpi',P.Directory,false,'.');
 
 
     P.NamespaceMap:='namespaces.lst';

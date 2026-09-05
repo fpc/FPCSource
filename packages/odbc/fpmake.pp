@@ -37,7 +37,8 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testodbc.pp');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/*.mdb',P.Directory,false,'.');
 
 
     P.NamespaceMap:='namespaces.lst';

@@ -214,7 +214,8 @@ begin
     P.Targets.AddExampleProgram('xpath1.pas');
     P.Targets.AddExampleProgram('xpath2.pas');
     P.Targets.AddExampleUnit('exutils.pas');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/*.xml',P.Directory,false,'.');
 
 
     P.NamespaceMap:='namespaces.lst';
