@@ -1,5 +1,7 @@
 program BasicPM;
 
+{$APPTYPE GUI}
+
 uses
  Os2Def, PMWin;
 
