@@ -589,6 +589,7 @@ type
     // rule buckets
     procedure MediaEnvironmentChanged; override; // one of the @media events changed
     procedure ClearRuleBuckets; virtual;
+    procedure BumpSourceStamp; // invalidate everything cached about the current rules
     procedure UpdateRuleBuckets; virtual; // rebuild the buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
@@ -742,8 +743,9 @@ type
     // Always >0, bumped by InvalidateMedia. A TCSSRuleData.MediaResult is valid
     // as long as its MediaStamp equals this.
     property MediaStamp: integer read FMediaStamp;
-    // Always >0, bumped by BuildRuleBuckets. The TCSSRuleData.Origin, SourceIndex and
-    // StyleRuleParent of a rule are valid as long as its SourceStamp equals this.
+    // Always >0, bumped by BuildRuleBuckets and by every change freeing rule elements.
+    // The TCSSRuleData.Origin, SourceIndex and StyleRuleParent of a rule are valid as
+    // long as its SourceStamp equals this, and so is a rule pointer stored by a user.
     property SourceStamp: integer read FSourceStamp;
     // Number of rules the last FindMatchingRules had to check, i.e. the content of the
     // buckets selected by that node. For diagnostics and benchmarks.
@@ -1450,6 +1452,8 @@ begin
   end;
   FLayers:=nil;
 
+  // the rules are freed here, see the BumpSourceStamp in ReplaceStyleSheet
+  BumpSourceStamp;
   for i:=0 to FStyleSheetCount-1 do
     FreeAndNil(FStyleSheets[i].Element);
 
@@ -4536,6 +4540,14 @@ begin
   FRuleBucketsValid:=false;
 end;
 
+procedure TCSSResolver.BumpSourceStamp;
+begin
+  if FSourceStamp<high(FSourceStamp) then
+    inc(FSourceStamp)
+  else
+    FSourceStamp:=1;
+end;
+
 procedure TCSSResolver.UpdateRuleBuckets;
 begin
   if FRuleBucketsValid then exit;
@@ -5088,10 +5100,7 @@ begin
   if FCSSIDCount>0 then
     SetLength(FBucketID,FCSSIDCount+1);
 
-  if FSourceStamp<high(FSourceStamp) then
-    inc(FSourceStamp)
-  else
-    FSourceStamp:=1;
+  BumpSourceStamp;
 
   // walk in the same order FindMatchingRules used, assigning document order indexes
   for aLayerIndex:=0 to length(FLayers)-1 do
@@ -5411,7 +5420,9 @@ begin
 
   FDisabledDecls.Clear;
 
-  // clear stylesheets
+  // clear stylesheets. ClearElements above freed the elements and bumped the stamp,
+  // this bumps again for the TStyleSheet objects freed here.
+  BumpSourceStamp;
   for i:=0 to FStyleSheetCount-1 do
   begin
     FreeAndNil(FStyleSheets[i].Element);
@@ -5502,6 +5513,11 @@ begin
     before freeing the element, or the layers keep a dangling pointer that
     FindMatchingRules would later walk (a use-after-free). }
   RemoveStyleSheetFromLayers(Sheet);
+  { The rules of this sheet are about to be freed, so every pointer to one of them
+    and every TCSSRuleData cached from them is stale from here on. The buckets are
+    rebuilt lazily, i.e. their stamp bump comes too late for a user reading a rule
+    pointer between this change and the next cascade. }
+  BumpSourceStamp;
   FreeAndNil(Sheet.Element);
   Sheet.Parsed:=false;
   Sheet.Source:=NewSource;
@@ -5539,6 +5555,8 @@ begin
       FDisabledDecls.Delete(i); // owns the object, frees it
   end;
 
+  // the rules are freed here, see the BumpSourceStamp in ReplaceStyleSheet
+  BumpSourceStamp;
   FreeAndNil(Sheet.Element);
   FreeAndNil(FStyleSheets[Index]);
 
