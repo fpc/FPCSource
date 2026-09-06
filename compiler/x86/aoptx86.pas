@@ -173,6 +173,7 @@ unit aoptx86;
 
         class function IsExitCode(p : tai) : boolean; static;
         class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean; static;
+        class procedure ChangeArithmeticOpSize(const p: taicpu; const NewSize: topsize); static;
         class function IsShrMovZFoldable(shr_size, movz_size: topsize; Shift: TCGInt): Boolean; static;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
@@ -2377,6 +2378,19 @@ unit aoptx86;
           else
             ;
         end;
+      end;
+
+
+    class procedure TX86AsmOptimizer.ChangeArithmeticOpSize(const p: taicpu; const NewSize: topsize);
+      var
+        NewBitSize: longint;
+      begin
+        NewBitSize:=topsize2memsize[NewSize];
+        if (topsize2memsize[p.opsize]>NewBitSize) and
+          (p.oper[0]^.typ=top_const) and
+          (NewBitSize<=63) then
+          p.oper[0]^.val:=p.oper[0]^.val and ((qword(1) shl NewBitSize)-1);
+        p.changeopsize(NewSize);
       end;
 
 
@@ -5614,7 +5628,7 @@ unit aoptx86;
                           debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
                           debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
                           debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize)+')',p);
-                    taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+                    ChangeArithmeticOpSize(taicpu(hp1),taicpu(hp2).opsize);
                     {
                       ->
                         movswl  %si,%eax        movswl  %si,%eax      p
@@ -5697,7 +5711,6 @@ unit aoptx86;
                       check opsize to avoid overflow when left shifting the 1 }
                     if (taicpu(p).oper[0]^.typ=top_const) and (topsize2memsize[taicpu(hp2).opsize]<=63) then
                       taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and ((qword(1) shl topsize2memsize[taicpu(hp2).opsize])-1);
-
 {$ifdef x86_64}
                     { Be careful of, for example:
                         movl %reg1,%reg2
@@ -5714,7 +5727,7 @@ unit aoptx86;
                       end;
 {$endif x86_64}
 
-                    taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+                    ChangeArithmeticOpSize(taicpu(hp1),taicpu(hp2).opsize);
                     taicpu(p).changeopsize(taicpu(hp2).opsize);
                     if taicpu(p).oper[0]^.typ=top_reg then
                       setsubreg(taicpu(p).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
@@ -15113,7 +15126,7 @@ unit aoptx86;
                 decw    %eax            addw    %edx,%eax     hp1
                 movw    %ax,%si         movw    %ax,%si       hp2
             }
-            taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+            ChangeArithmeticOpSize(taicpu(hp1),taicpu(hp2).opsize);
             {
               ->
                 movswl  %si,%eax        movswl  %si,%eax      p
