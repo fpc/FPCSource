@@ -1762,6 +1762,7 @@ Unit Rax86int;
         hl : tasmlabel;
         hastypecast: boolean;
         tmpoper: tx86operand;
+        refparasym: tabstractnormalvarsym;
         cse_in_flags: tconstsymbolexpressioninputflags;
         cse_out_flags: tconstsymbolexpressionoutputflags;
       Begin
@@ -1863,7 +1864,27 @@ Unit Rax86int;
                        { convert OPR_LOCAL register para into a reference base }
                        if (oper.opr.typ=OPR_LOCAL) and
                           AsmRegisterPara(oper.opr.localsym) then
-                         oper.InitRefConvertLocal
+                         begin
+                           refparasym:=oper.opr.localsym;
+                           oper.InitRefConvertLocal;
+                           if not oper.hastype then
+                             begin
+                               { The register contains the address, so the
+                                 parameter size is not the referenced data size. }
+                               oper.size:=OS_NO;
+                               oper.opsize:=S_NO;
+                               { A by-reference formal is different: the register
+                                 holds the address of the parameter's own type,
+                                 so a scalar vardef states the dereferenced width
+                                 exactly - "mov [Value],0" on a var UInt64 is a
+                                 qword store.  A value Pointer or an ABI-indirect
+                                 aggregate keeps the width unknown, and an
+                                 explicit "ptr" above stays authoritative. }
+                               if (refparasym.varspez in [vs_var,vs_out,vs_constref]) and
+                                  (refparasym.vardef.typ in [orddef,enumdef,floatdef,pointerdef,classrefdef]) then
+                                 oper.SetSize(refparasym.vardef.size,false);
+                             end;
+                         end
                        else
                          begin
 {$ifdef x86_64}
