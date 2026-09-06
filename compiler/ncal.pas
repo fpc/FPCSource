@@ -1908,6 +1908,7 @@ implementation
         n.procdefinition:=procdefinition;
         n.typedef := typedef;
         n.callnodeflags := callnodeflags;
+        n.inlinelevel := inlinelevel;
         n.pushedparasize := pushedparasize;
         n.intrinsiccode := intrinsiccode;
         if assigned(callinitblock) then
