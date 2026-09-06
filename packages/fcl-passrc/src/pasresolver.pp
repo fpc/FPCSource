@@ -2509,6 +2509,7 @@ type
       Params: TParamsExpr; RaiseOnError: boolean; EmitHints: boolean = false): integer;
     function CheckParamCompatibility(Expr: TPasExpr; Param: TPasArgument;
       ParamNo: integer; RaiseOnError: boolean; SetReferenceFlags: boolean = false): integer;
+    function IsUntypedPointerDeref(Expr: TPasExpr): boolean;
     function CheckParamResCompatibility(Expr: TPasExpr; const ExprResolved,
       ParamResolved: TPasResolverResult; ParamNo: integer; RaiseOnError: boolean;
       SetReferenceFlags: boolean): integer;
@@ -27359,7 +27360,15 @@ begin
   // flags in SpecializeElement.
   if (CurrentParser<>nil) and (CurrentParser.Scanner<>nil) then
     begin
-    if ((El is TPasImplAssign) or (El is TPasImplSimple))
+    // TParamsExpr covers `a[i]`, whose index a consumer range-checks against the
+    // array's declared bounds. Its Kind is set by the parser after this point,
+    // so every params expression is marked and the consumer picks the indexing
+    // ones out. Every TPasImplElement is marked as well, so a consumer emitting
+    // a check that belongs to no expression of its own (a nil-instance check on
+    // a virtual call, say) can read the state off the enclosing STATEMENT rather
+    // than off a scope, whose snapshot is taken once and cannot follow a
+    // directive that toggles mid-body.
+    if ((El is TPasImplElement) or (El is TParamsExpr))
         and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
       MarkRangeChecked(El);
     if (El is TBinaryExpr)
@@ -34182,6 +34191,21 @@ begin
     Result:=cCompatible;
 end;
 
+function TPasResolver.IsUntypedPointerDeref(Expr: TPasExpr): boolean;
+// True for `SomeUntypedPointer^` - the shape that is only ever an untyped
+// argument. A TYPED pointer deref (PByte^ -> Byte) is not this.
+var
+  OperandResolved: TPasResolverResult;
+begin
+  Result:=false;
+  if not (Expr is TUnaryExpr) then exit;
+  if TUnaryExpr(Expr).OpCode<>eopDeref then exit;
+  if TUnaryExpr(Expr).Operand=nil then exit;
+  ComputeElement(TUnaryExpr(Expr).Operand,OperandResolved,[rcNoImplicitProc]);
+  Result:=OperandResolved.BaseType=btPointer;
+end;
+
+
 function TPasResolver.CheckParamResCompatibility(Expr: TPasExpr;
   const ExprResolved, ParamResolved: TPasResolverResult; ParamNo: integer;
   RaiseOnError: boolean; SetReferenceFlags: boolean): integer;
@@ -34193,17 +34217,25 @@ begin
     // e.g. Call([1,2]) -> on mismatch jump to the wrong param expression
     UseAssignError:=true;
 
-  Result:=CheckAssignResCompatibility(ParamResolved,ExprResolved,Expr,UseAssignError);
-  { A Boolean argument passed by value to a two-value (boolean-like) enum parameter
-    maps its ordinal (False=0/True=1) onto the enum's two members. FPC's RTL relies
-    on this: TGuidHelper.Create(const Data; DataEndian: TEndian) }
-  if (Result=cIncompatible)
-      and (ExprResolved.BaseType in btAllBooleans)
-      and (rrfReadable in ExprResolved.Flags)
+  { Dereferencing an UNTYPED Pointer yields an UNTYPED value: `Pointer(S)^` is
+    only ever an untyped argument. It resolves back to Pointer (so that
+    `Pointer(Dest^) := x` stays a valid l-value), which made it look compatible
+    with a TYPED pointer parameter - `FNV1_32a(Pointer(aData)^, ..)` then chose
+    the `const Buf: PByte` overload over the `const Buf` one and passed the
+    string's DATA where its ADDRESS belonged. }
+  if IsUntypedPointerDeref(Expr)
       and (ParamResolved.BaseType=btContext)
-      and (ParamResolved.LoTypeEl is TPasEnumType)
-      and (TPasEnumType(ParamResolved.LoTypeEl).Values.Count=2) then
-    Result:=cCompatible;
+      and (ParamResolved.LoTypeEl is TPasPointerType) then
+    exit(cIncompatible);
+
+  Result:=CheckAssignResCompatibility(ParamResolved,ExprResolved,Expr,UseAssignError);
+  { A Boolean argument is NOT compatible with an enum parameter - fpc says
+    "Incompatible type for arg no. N: Got Boolean, expected TEndian". This was
+    once relaxed for two-value enums to make syshelp.inc's
+    TGuidHelper.Create(..., DataEndian: TEndian) compile, but that call really
+    resolves to TGUID's OWN Create(..., aBigEndian: Boolean) overload; accepting
+    the Boolean here made the helper call ITSELF and recurse until the stack ran
+    out (vcl-compat's TestDigestAsStringGUID). }
   // Either side still PARTIALLY specialized: judged at specialization
   // (rtl-generics passes one nested PNode where another is declared).
   if (Result=cIncompatible)
