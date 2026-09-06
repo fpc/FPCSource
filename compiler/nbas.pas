@@ -1703,6 +1703,11 @@ implementation
           internalerror(200108233);
         result := nil;
         resultdef := tempinfo^.typedef;
+        { a temp that stands in for a currency value holds it already scaled
+          by 10000, the same as a currency variable does
+          (see tloadnode.pass_typecheck) }
+        if is_currency(resultdef) then
+          Include(flags, nf_is_currency);
       end;
 
 

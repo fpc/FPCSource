@@ -220,6 +220,15 @@ unit optcall;
             _n:=n;
           end;
 
+        { the inlined block takes the place of the call node, so it has to
+          inherit its currency scaling state: without it, the enclosing
+          taddnode sees an operand that is no longer marked as scaled and
+          taddnode.do_currency_corrections applies the 10000 scalar a second
+          time }
+        if (cnf_return_value_used in callnode.callnodeflags) and
+           (nf_is_currency in callnode.flags) then
+          include(_n.flags,nf_is_currency);
+
         PBoolean(arg)^:=true;
 
 {$ifdef EXTDEBUG_INLINE}
