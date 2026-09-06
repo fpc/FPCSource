@@ -79,7 +79,7 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts, System.SysUtils; { GFV standard units }
+   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts;                  { GFV standard units }
 {$else FV_UNICODE}
    System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                     { GFV standard units }
 {$endif FV_UNICODE}
@@ -98,7 +98,7 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   objects, udrivers, uviews, UFVCommon, fvconsts, SysUtils;               { GFV standard units }
+   objects, udrivers, uviews, UFVCommon, fvconsts;               { GFV standard units }
 {$else FV_UNICODE}
    objects, drivers, views, fvcommon, fvconsts;                 { GFV standard units }
 {$endif FV_UNICODE}
@@ -854,7 +854,7 @@ BEGIN
        If (I > 0) AND (I < Length(menuName)) then
        begin
          itemHotkey := menuName[I+1];
-         If WideUpperCase(String(Ch)) = WideUpperCase(String(itemHotkey)) Then
+         If UpCase(String(Ch)) = UpCase(String(itemHotkey)) Then
          Begin
            FindItem := P;
            Exit;
