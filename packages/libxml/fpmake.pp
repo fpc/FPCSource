@@ -205,7 +205,6 @@ begin
     P.Targets.AddExampleProgram('io1.pas');
     P.Targets.AddExampleProgram('tree1.pas');
     P.Targets.AddExampleProgram('tree2.pas');
-    P.Targets.AddExampleProgram('reader2.pas');
     P.Targets.AddExampleProgram('parse1.pas');
     P.Targets.AddExampleProgram('parse2.pas');
     P.Targets.AddExampleProgram('parse3.pas');
