@@ -83,13 +83,14 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('reader1.pas');
+    P.Targets.AddExampleProgram('reader2.pas');
     P.Targets.AddExampleProgram('io2.pas');
     P.Targets.AddExampleProgram('io1.pas');
     P.Targets.AddExampleProgram('tree1.pas');
     P.Targets.AddExampleProgram('tree2.pas');
     P.Targets.AddExampleProgram('exutils.pas');
-    P.Targets.AddExampleProgram('reader2.pas');
-    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/Makefile*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/*.xml',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;
