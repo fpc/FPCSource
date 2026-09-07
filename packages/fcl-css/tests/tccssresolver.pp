@@ -792,6 +792,7 @@ begin
     case Kind of
     rtkWhitespace: Result:=Result+'ws ';
     rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
+    rtkComma: Result:=Result+'comma ';
     rtkLParenthesis: Result:=Result+'( ';
     rtkRParenthesis: Result:=Result+') ';
     rtkLBracket: Result:=Result+'[ ';
@@ -6745,7 +6746,7 @@ end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Symbols;
 begin
-  CheckTokenize('comma','red,blue','kw(red) sym(,) kw(blue)');
+  CheckTokenize('comma','red,blue','kw(red) comma kw(blue)');
   CheckTokenize('colon','red:blue','kw(red) sym(:) kw(blue)');
   CheckTokenize('semicolon','red;','kw(red) sym(;)');
   CheckTokenize('div','red/blue','kw(red) sym(/) kw(blue)');
@@ -6764,7 +6765,7 @@ procedure TTestCSSResolver.TestRes_Tokenize_Function;
 begin
   CheckTokenize('var','var(--x)','func(var) ident(--x) )');
   CheckTokenize('var fallback','var(--x, red)',
-    'func(var) ident(--x) sym(,) ws kw(red) )');
+    'func(var) ident(--x) comma ws kw(red) )');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Brackets;

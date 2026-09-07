@@ -3855,7 +3855,7 @@ var
       // optional default value after a comma
       DefStart:=-1;
       DefEnd:=-1;
-      if (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkSymbol) and (Tokens[Ofs+1]=ord(',')) then
+      if (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkComma) then
       begin
         Ofs:=Ofs+CSSTokenByteLen(Tokens,Ofs); // past the comma
         while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do

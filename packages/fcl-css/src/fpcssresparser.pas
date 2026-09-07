@@ -317,7 +317,6 @@ type
   end;
 
 type
-  TCSSRegistry = class;
 
   { TCSSAttributeKeyData }
 
@@ -580,7 +579,8 @@ type
   TCSSResTokenKind = (
     rtkNone,
     rtkWhitespace, // any amount of whitespace characters
-    rtkSymbol,  // followed by a byte comma, colon, semicolon, dot . , star *, or div /
+    rtkSymbol,  // followed by a byte colon, semicolon, dot . , star *, or div /
+    rtkComma, // ,
     rtkLParenthesis, // (
     rtkRParenthesis, // )
     rtkLBracket, // [
@@ -596,6 +596,28 @@ type
     rtkHexColor // followed by a byte as count, followed by count hex characters
     );
   TCSSResTokenKinds = set of TCSSResTokenKind;
+
+const
+  CSSResTokenToCSS: array[TCSSResTokenKind] of TCSSToken = (
+    ctkUNKNOWN,
+    ctkWhitespace,
+    ctkUNKNOWN,
+    ctkComma,
+    ctkLParenthesis,
+    ctkRParenthesis,
+    ctkLBracket,
+    ctkRBracket,
+    ctkPlus,
+    ctkMinus,
+    ctkUNKNOWN, // rtkFloat
+    ctkUNKNOWN, // rtkKeyword
+    ctkUNKNOWN, // rtkFunction
+    ctkUNKNOWN, // rtkIdentifier
+    ctkUNKNOWN, // rtkStringApos
+    ctkUNKNOWN, // rtkStringQuote
+    ctkUNKNOWN  // rtkHexColor
+    );
+type
 
   TCSSResValueKind = (
     rvkNone, // end of value
@@ -914,7 +936,7 @@ begin
   rtkHexColor: Result:=1+1+Tokens[Ofs+1]; // kind + length byte + hex chars
   rtkSymbol: Result:=1+1; // kind + char byte
   else
-    Result:=1; // rtkWhitespace, brackets, plus, minus
+    Result:=1; // rtkWhitespace, comma, brackets, plus, minus
   end;
 end;
 
@@ -2059,6 +2081,8 @@ begin
       end;
     rtkSymbol:
       FIdentifier:=TCSSChar(CurTokens[p+1]);
+    rtkComma:
+      FIdentifier:=',';
     end;
   Result:=FIdentifier;
 end;
@@ -2366,7 +2390,6 @@ begin
     end;
   rtkSymbol:
     case TCSSChar(ReadByte) of
-    ',': Symbol:=ctkCOMMA;
     ':': Symbol:=ctkCOLON;
     ';': Symbol:=ctkSEMICOLON;
     '.': Symbol:=ctkDOT;
@@ -2374,12 +2397,8 @@ begin
     '/': Symbol:=ctkDIV;
     else Symbol:=ctkUNKNOWN;
     end;
-  rtkPlus: Symbol:=ctkPLUS;
-  rtkMinus: Symbol:=ctkMINUS;
-  rtkLParenthesis: Symbol:=ctkLPARENTHESIS;
-  rtkRParenthesis: Symbol:=ctkRPARENTHESIS;
-  rtkLBracket: Symbol:=ctkLBRACKET;
-  rtkRBracket: Symbol:=ctkRBRACKET;
+  else
+    Symbol:=CSSResTokenToCSS[TokenKind];
   end;
   Result:=true;
 end;
@@ -2526,12 +2545,12 @@ begin
   if not ReadNext then exit;
   if not ReadComponent(r) then exit;
 
-  Legacy:=IsSymbol(ctkCOMMA);
+  Legacy:=TokenKind=rtkComma;
   if Legacy and not ReadNext then exit;
   if not ReadComponent(g) then exit;
   if Legacy then
   begin
-    if not IsSymbol(ctkCOMMA) then exit;
+    if TokenKind<>rtkComma then exit;
     if not ReadNext then exit;
   end;
   if not ReadComponent(b) then exit;
@@ -2539,7 +2558,7 @@ begin
   a:=255;
   if Legacy then
   begin
-    if IsSymbol(ctkCOMMA) then
+    if TokenKind=rtkComma then
     begin
       if not ReadNext then exit;
       if not ReadAlpha(a) then exit;
@@ -2550,7 +2569,7 @@ begin
     if not ReadAlpha(a) then exit;
   end;
 
-  if not IsSymbol(ctkRPARENTHESIS) then exit;
+  if TokenKind<>rtkRParenthesis then exit;
 
   aColor:=(TCSSAlphaColor(a) shl 24) or (TCSSAlphaColor(r) shl 16)
          or (TCSSAlphaColor(g) shl 8) or TCSSAlphaColor(b);
@@ -2636,7 +2655,7 @@ end;
 function TCSSBaseResolver.IsSymbol(Token: TCSSToken): boolean;
 begin
   Result:=(Symbol=Token)
-    and (TokenKind in [rtkSymbol,rtkPlus,rtkMinus,
+    and (TokenKind in [rtkSymbol,rtkComma,rtkPlus,rtkMinus,
                   rtkLParenthesis,rtkRParenthesis,rtkLBracket,rtkRBracket]);
 end;
 
@@ -2989,7 +3008,12 @@ begin
         end;
       'a'..'z','A'..'Z':
         if not ReadWordToken then exit;
-      ',',':',';','*','/':
+      ',':
+        begin
+          AddKind(rtkComma);
+          inc(p);
+        end;
+      ':',';','*','/':
         begin
           AddKind(rtkSymbol);
           AddByte(byte(ord(p^)));
@@ -3263,6 +3287,7 @@ begin
     case aKind of
     rtkWhitespace: Result:=Result+' ';
     rtkSymbol: Result:=Result+TCSSChar(ReadByte);
+    rtkComma: Result:=Result+',';
     rtkLParenthesis: Result:=Result+'(';
     rtkRParenthesis: Result:=Result+')';
     rtkLBracket: Result:=Result+'[';
@@ -3302,6 +3327,7 @@ begin
   case aKind of
   rtkWhitespace: Result:=' ';
   rtkSymbol: Result:=TCSSChar(aData[1]);
+  rtkComma: Result:=',';
   rtkLParenthesis: Result:='(';
   rtkRParenthesis: Result:=')';
   rtkLBracket: Result:='[';
