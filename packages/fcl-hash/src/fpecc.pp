@@ -1124,6 +1124,7 @@ Var
   i : Integer;
 
 begin
+  Result:=True;
   if (Pointer(@GetRandomBytes)=Nil) or not GetRandomBytes(@VLI,Sizeof(VLI)) then
     begin
     P:=@VLI;
