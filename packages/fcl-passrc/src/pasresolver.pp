@@ -1882,6 +1882,7 @@ type
       var LHS: TPasResolverResult; const RHS: TPasResolverResult);
     procedure ConvertRangeToElement(var ResolvedEl: TPasResolverResult);
     function IsCharLiteral(const Value: string; ErrorPos: TPasElement): TResolverBaseType; virtual;
+    function HasWideCharCode(const Value: string): Boolean;
     function CheckForIn(Loop: TPasImplForLoop;
       const VarResolved, InResolved: TPasResolverResult): boolean; virtual;
     function CheckForInClassOrRec(Loop: TPasImplForLoop;
@@ -19398,6 +19399,84 @@ begin
     end;
 end;
 
+function TPasResolver.HasWideCharCode(const Value: string): Boolean;
+// True when a string literal token carries a #-escape in the SURROGATE range,
+// $D800..$DFFF. Those are the only codes a narrow encoding cannot carry: UTF-8
+// has no form for a lone surrogate, so `#$D83D#$DE00` typed btString picked
+// UTF8Encode's AnsiString overload and its two units were dropped. The type has
+// to say UTF-16, which is what the evaluator already produces.
+// Deliberately NOT every code above 255: those encode and round-trip through
+// UTF-8 perfectly well, and calling them wide changes the meaning of a narrow
+// literal (tutf8cpl's `'e'#$20DD#$1DE0'b'` is a UTF-8 AnsiString).
+var
+  p, l, base: Integer;
+  u: LongWord;
+  c: AnsiChar;
+begin
+  Result:=false;
+  l:=length(Value);
+  p:=1;
+  while p<=l do
+    begin
+    c:=Value[p];
+    if c='''' then
+      begin
+      // quoted segment; '' is an embedded quote, and a # inside it is content
+      inc(p);
+      while p<=l do
+        if Value[p]='''' then
+          begin
+          inc(p);
+          if (p<=l) and (Value[p]='''') then
+            inc(p)
+          else
+            break;
+          end
+        else
+          inc(p);
+      end
+    else if c='#' then
+      begin
+      inc(p);
+      if p>l then exit;
+      base:=10;
+      case Value[p] of
+      '$': begin base:=16; inc(p); end;
+      '&': begin base:=8; inc(p); end;
+      '%': begin base:=2; inc(p); end;
+      end;
+      u:=0;
+      while p<=l do
+        begin
+        c:=Value[p];
+        case c of
+        '0'..'9':
+          if ord(c)-ord('0')<base then
+            u:=u*LongWord(base)+LongWord(ord(c)-ord('0'))
+          else
+            break;
+        'a'..'f':
+          if base=16 then
+            u:=u*16+LongWord(ord(c)-ord('a'))+10
+          else
+            break;
+        'A'..'F':
+          if base=16 then
+            u:=u*16+LongWord(ord(c)-ord('A'))+10
+          else
+            break;
+        else
+          break;
+        end;
+        if (u>=$D800) and (u<=$DFFF) then exit(true);
+        inc(p);
+        end;
+      end
+    else
+      inc(p);
+    end;
+end;
+
 function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
   ): TResolverBaseType;
 
@@ -36498,6 +36577,13 @@ begin
           SetResolverValueExpr(ResolvedEl,bt,FBaseTypes[bt],FBaseTypes[bt],
                                TPrimitiveExpr(El),[rrfReadable]);
           end
+        else if HasWideCharCode(TPrimitiveExpr(El).Value)
+            and (FBaseTypes[btUnicodeString]<>nil) then
+          // A #-escape above the byte range: the evaluator makes this a UTF-16
+          // constant, so the type must say so too.
+          SetResolverValueExpr(ResolvedEl,btUnicodeString,
+                               FBaseTypes[btUnicodeString],FBaseTypes[btUnicodeString],
+                               TPrimitiveExpr(El),[rrfReadable])
         else
           SetResolverValueExpr(ResolvedEl,btString,
                                FBaseTypes[btString],FBaseTypes[btString],
