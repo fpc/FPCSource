@@ -1363,15 +1363,18 @@ const
                (tfloatdef(rd).floattype=s64comp)
               )
           ) and
-          (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
-           ((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and
-            (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative])
+          (((rt=ordconstn) and
+            (cs_opt_fastmath in current_settings.optimizerswitches) or
+            (PopCnt(tordconstnode(right).value.uvalue)=1) { Power of two }
            ) or
            ((rt=realconstn) and
             (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative]) and
-            { mantissa returns the mantissa/fraction without the hidden 1, so power of two means only the hidden
-              bit is set => mantissa must be 0 }
-            (bestrealrec(trealconstnode(right).value_real).Mantissa=0)
+            (
+             (cs_opt_fastmath in current_settings.optimizerswitches) or
+             { mantissa returns the mantissa/fraction without the hidden 1, so power of two means only the hidden
+               bit is set => mantissa must be 0 }
+             (bestrealrec(trealconstnode(right).value_real).Mantissa=0)
+            )
            )
           ) then
           case rt of
@@ -1391,6 +1394,8 @@ const
               begin
                 nodetype:=muln;
                 trealconstnode(right).value_real:=1.0/trealconstnode(right).value_real;
+                if nf_is_currency in right.flags then
+                  Exclude(right.flags,nf_is_currency);
                 exit;
               end;
             else
