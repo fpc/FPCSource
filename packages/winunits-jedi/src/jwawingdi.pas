@@ -1835,6 +1835,25 @@ type
   NPEXTLOGPEN = ^EXTLOGPEN;
   {$EXTERNALSYM NPEXTLOGPEN}
   TExtLogPen = EXTLOGPEN;
+  
+  PExtLogPen32 = ^TExtLogPen32;
+  tagEXTLOGPEN32 = record
+    elpPenStyle: DWORD;
+    elpWidth: DWORD;
+    elpBrushStyle: UINT;
+    elpColor: COLORREF;
+    elpHatch: ULONG;
+    elpNumEntries: DWORD;
+    elpStyleEntry: array [0..0] of DWORD;
+  end;
+  {$EXTERNALSYM tagEXTLOGPEN32}
+  EXTLOGPEN32 = tagEXTLOGPEN32;
+  {$EXTERNALSYM EXTLOGPEN32}
+  LPEXTLOGPEN32 = ^EXTLOGPEN32;
+  {$EXTERNALSYM LPEXTLOGPEN32}
+  NPEXTLOGPEN32 = ^EXTLOGPEN32;
+  {$EXTERNALSYM NPEXTLOGPEN32}
+  TExtLogPen32 = EXTLOGPEN32;
 
   PPaletteEntry = ^TPaletteEntry;
   tagPALETTEENTRY = record
@@ -7228,7 +7247,7 @@ type
     // bits to form a packed DIB.
     offBits: DWORD; // Offset to the brush bitmap bits if any
     cbBits: DWORD; // Size of the brush bitmap bits if any
-    elp: EXTLOGPEN; // The extended pen with the style array.
+    elp: EXTLOGPEN32; // The extended pen with the style array.
   end;
   {$EXTERNALSYM tagEMREXTCREATEPEN}
   EMREXTCREATEPEN = tagEMREXTCREATEPEN;
