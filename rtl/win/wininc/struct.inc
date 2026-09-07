@@ -2627,10 +2627,19 @@ Const
      TLOGBRUSH = LOGBRUSH;
      PLOGBRUSH = ^LOGBRUSH;
 
+     LOGBRUSH32 = record
+       lbStyle: UINT;
+       lbColor: COLORREF;
+       lbHatch: ULONG;
+     end;
+     tagLOGBRUSH32 = LOGBRUSH32;
+     TLOGBRUSH32 = LOGBRUSH32;
+     PLOGBRUSH32 = ^LOGBRUSH32;
+
      EMRCREATEBRUSHINDIRECT = record
           emr : EMR;
           ihBrush : DWORD;
-          lb : LOGBRUSH;
+          lb : LOGBRUSH32;
        end;
      tagEMRCREATEBRUSHINDIRECT = EMRCREATEBRUSHINDIRECT;
      TEMRCREATEBRUSHINDIRECT = EMRCREATEBRUSHINDIRECT;
@@ -2891,6 +2900,19 @@ Const
      TEXTLOGPEN = EXTLOGPEN;
      PEXTLOGPEN = ^EXTLOGPEN;
 
+     EXTLOGPEN32 = record
+       elpPenStyle: DWORD;
+       elpWidth: DWORD;
+       elpBrushStyle: UINT;
+       elpColor: COLORREF;
+       elpHatch: ULONG;
+       elpNumEntries: DWORD;
+       elpStyleEntry: array [0..0] of DWORD;
+     end;
+     tagEXTLOGPEN32 = EXTLOGPEN32;
+     TEXTLOGPEN32 = EXTLOGPEN32;
+     PEXTLOGPEN32 = ^EXTLOGPEN32;
+
      EMREXTCREATEPEN = record
           emr : EMR;
           ihPen : DWORD;
@@ -2898,7 +2920,7 @@ Const
           cbBmi : DWORD;
           offBits : DWORD;
           cbBits : DWORD;
-          elp : EXTLOGPEN;
+          elp : EXTLOGPEN32;
        end;
      tagEMREXTCREATEPEN = EMREXTCREATEPEN;
      TEMREXTCREATEPEN = EMREXTCREATEPEN;
