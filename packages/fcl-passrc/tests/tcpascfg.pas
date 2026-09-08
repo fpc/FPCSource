@@ -22,6 +22,7 @@ type
     function BodyOf(const aName: string): TPasImplBlock;
     procedure CollectCoveredClasses(aCovered: TStrings);
     function DeclaredDescendants: TStringList;
+    function SyntaxTreeUnitPath: string;
     function Dump(const aLines: array of string): string;
     procedure ParseCoverageFixtures;
     procedure ParseRoutines(const aLines: array of string);
@@ -90,6 +91,8 @@ type
 const
   cImplElementRoot = 'TPasImplElement';
   cStatementPrefix = '  stmt ';
+  cSyntaxTreeRelPath = 'packages'+DirectorySeparator+'fcl-passrc'
+                       +DirectorySeparator+'src'+DirectorySeparator+'pastree.pp';
 
   cExemptImplElements: array[0..7] of TExemptImplElement = (
     (ClassName: 'TPasImplCommandBase'; Reason: 'base class the parser never instantiates'),
@@ -176,6 +179,41 @@ begin
 end;
 
 
+// The path of pastree.pp, searched upwards from the current directory, from the
+// test executable and from this source file. Empty when the sources are absent.
+function TTestCFG.SyntaxTreeUnitPath: string;
+
+const
+  cThisFile = {$I %FILE%};
+
+var
+  I: Integer;
+  lStarts: array[0..2] of string;
+  lDir,lPrev: string;
+
+begin
+  Result:='';
+  lStarts[0]:=ExpandFileName('.');
+  lStarts[1]:=ExpandFileName(ExtractFilePath(ParamStr(0)));
+  lStarts[2]:=ExtractFilePath(ExpandFileName(cThisFile));
+  for I:=Low(lStarts) to High(lStarts) do
+    begin
+    if lStarts[I]='' then
+      Continue;
+    lDir:=IncludeTrailingPathDelimiter(ExpandFileName(lStarts[I]));
+    repeat
+      if FileExists(lDir+cSyntaxTreeRelPath) then
+        begin
+        Result:=lDir+cSyntaxTreeRelPath;
+        Exit;
+        end;
+      lPrev:=lDir;
+      lDir:=IncludeTrailingPathDelimiter(ExpandFileName(lDir+'..'));
+    until lDir=lPrev;
+    end;
+end;
+
+
 function TTestCFG.DeclaredDescendants: TStringList;
 
 var
@@ -188,9 +226,10 @@ var
   lGrown: Boolean;
 
 begin
-  lPath:=ExpandFileName('..'+DirectorySeparator+'src'+DirectorySeparator+'pastree.pp');
-  if not FileExists(lPath) then
-    Fail('The syntax tree unit is not readable at '+lPath);
+  Result:=Nil;
+  lPath:=SyntaxTreeUnitPath;
+  if lPath='' then
+    Exit;
   Result:=TStringList.Create;
   try
     lPairs:=TStringList.Create;
@@ -1874,6 +1913,12 @@ begin
         for I:=Low(cExemptImplElements) to High(cExemptImplElements) do
           lExempt.Values[cExemptImplElements[I].ClassName]:=cExemptImplElements[I].Reason;
         lDeclared:=DeclaredDescendants;
+        if lDeclared=Nil then
+          begin
+          Ignore('pastree.pp was not found from the current directory "'+GetCurrentDir
+                 +'" nor from "'+ParamStr(0)+'"');
+          Exit;
+          end;
         try
           for I:=0 to lDeclared.Count-1 do
             begin
