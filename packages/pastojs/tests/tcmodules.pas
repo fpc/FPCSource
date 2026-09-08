@@ -1732,8 +1732,8 @@ begin
   FEngine.Source:=Src;
   FileResolver.AddStream(FileName,TStringStream.Create(Src));
   Scanner.OpenFile(FileName);
-  Writeln('// Test : ',Self.TestName);
-  Writeln(Src);
+  //Writeln('// Test : ',Self.TestName);
+  //Writeln(Src);
 end;
 
 procedure TCustomTestModule.ParseModuleQueue;
