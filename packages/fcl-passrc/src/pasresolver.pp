@@ -16522,11 +16522,8 @@ procedure TPasResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
   // A pointer to a char type (PAnsiChar/PWideChar/PUnicodeChar) concatenates with a
   // string as a null-terminated string operand: 
   // accept `s := s + PChar`
-  var
-    SubRes: TPasResolverResult;
   begin
     Result := IsCharPointerRes(RightResolved);
-    if SubRes.BaseType=btNone then ; // silence the now-unused local
   end;
 
   procedure CharPointerToStringRes(var R: TPasResolverResult);
@@ -33811,7 +33808,7 @@ var
   Members: TFPList;
   Owner: TPasElement;
   ClassEl: TPasClassType;
-  i, ArgNo, WantArgs: Integer;
+  i, WantArgs: Integer;
   Cand: TPasProcedure;
 
   function ArgsMatch(aProc: TPasProcedure): boolean;
@@ -33958,9 +33955,6 @@ var
   ExprResolved, ParamResolved, ElTypeResolved: TPasResolverResult;
   NeedVar: Boolean;
   ElCompat: integer;
-  ArgRef: TResolvedReference;
-  SelfProc: TPasProcedure;
-  EnclEl: TPasElement;
   PtDestRes, ExDestRes: TPasResolverResult;
 
   function ArraySliceFitsOpenArray: boolean;

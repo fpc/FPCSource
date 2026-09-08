@@ -93,7 +93,7 @@ uses
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
-  PasTree, PScanner, PasResolveEval, PasResolver, PasCFG;
+  PasTree, PScanner, PasResolver, PasCFG;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -284,7 +284,7 @@ procedure TPasDataFlowEngine.Enqueue(aIndex: Integer);
 begin
   if FQueued[aIndex] then Exit;
   FQueued[aIndex] := True;
-  FQueue.Add(Pointer(PtrInt(aIndex)));
+  FQueue.Add({%H-}Pointer(PtrInt(aIndex)));
 end;
 
 
@@ -319,7 +319,7 @@ begin
 
   while FQueue.Count > 0 do
   begin
-    lIndex := PtrInt(FQueue[0]);
+    lIndex := {%H-}PtrInt(FQueue[0]);
     FQueue.Delete(0);
     FQueued[lIndex] := False;
     lNode := aCFG.Nodes[lIndex];

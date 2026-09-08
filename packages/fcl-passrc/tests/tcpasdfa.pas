@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  PasTree, PScanner, PasResolver, PasResolveEval,
+  PasTree, PScanner, PasResolver,
   tcbaseparser, tcresolver, PasCFG, PasDataFlow;
 
 type
