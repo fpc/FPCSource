@@ -86,6 +86,7 @@ type
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Insert(Index: Integer): Pointer;
+    function InsertRange(AIndex, ACount: Integer):pointer;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj: TFPSList);
     procedure AddList(Obj: TFPSList);
@@ -741,6 +742,29 @@ end;
 procedure TFPSList.Insert(Index: Integer; Item: Pointer);
 begin
   CopyItem(Item, Insert(Index));
+end;
+
+function  TFPSList.InsertRange(AIndex, ACount: Integer):Pointer;
+ 
+begin
+  if ACount<=0 then Exit;
+  if (AIndex<0) or (AIndex>FCount) then
+    RaiseIndexError(AIndex);
+
+  if FCount+ACount>FCapacity then
+    SetCapacity(FCount+ACount);
+  Result:=InternalItems[AIndex];
+  if AIndex<FCount then
+  begin
+    //move list tail to the right; region after Count is zeroed by SetCapacity,
+    //so it's safe to move to (Result+ACount*ItemSize)
+    System.Move(Result^, (Result+SizeInt(ACount)*FItemSize)^, SizeInt(FCount-AIndex)*FItemSize);
+    //zero opened slots: empty items, like Insert() does
+    System.FillChar(Result^, SizeInt(ACount)*FItemSize, 0);
+  end;
+  //note: for AIndex=Count (append) slots are already zeroed: list keeps
+  //'ending filled with zeros' invariant
+  Inc(FCount, ACount);
 end;
 
 function TFPSList.GetLast: Pointer;
