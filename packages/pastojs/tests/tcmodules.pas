@@ -302,6 +302,7 @@ type
     Procedure TestVarExternalOtherUnit;
     Procedure TestVarAbsoluteFail;
     Procedure TestConstExternal;
+    Procedure TestNameOf;
 
     // numbers
     Procedure TestDouble;
@@ -7834,6 +7835,57 @@ begin
     LinesToStr([
     '$mod.d = Global.PI;',
     '$mod.d = $mod.Tau + Global.PI;'
+    ]));
+end;
+
+procedure TTestModule.TestNameOf;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    MyField: longint;',
+  '  end;',
+  'var',
+  '  MyVar: longint;',
+  '  r: TRec;',
+  '  s: string;',
+  'const',
+  '  c = nameof(myvar);',
+  'procedure DoIt;',
+  'begin',
+  'end;',
+  'begin',
+  '  s:=nameof(myvar);',
+  '  s:=nameof(r.myfield);',
+  '  s:=nameof(doit);',
+  '  s:=c;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestNameOf',
+    LinesToStr([
+    'rtl.recNewT(this, "TRec", function () {',
+    '  this.MyField = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.MyField === b.MyField;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.MyField = s.MyField;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.MyVar = 0;',
+    'this.r = this.TRec.$new();',
+    'this.s = "";',
+    'this.c = "MyVar";',
+    'this.DoIt = function () {',
+    '};'
+    ]),
+    LinesToStr([
+    '$mod.s = "MyVar";',
+    '$mod.s = "MyField";',
+    '$mod.s = "DoIt";',
+    '$mod.s = $mod.c;'
     ]));
 end;
 

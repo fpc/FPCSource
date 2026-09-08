@@ -2328,6 +2328,7 @@ type
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_GetTypeKind(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_NameOf(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -12298,6 +12299,7 @@ begin
           bfDeleteArray: Result:=ConvertBuiltIn_DeleteArray(El,AContext);
           bfTypeInfo: Result:=ConvertBuiltIn_TypeInfo(El,AContext);
           bfGetTypeKind: Result:=ConvertBuiltIn_GetTypeKind(El,AContext);
+          bfNameOf: Result:=ConvertBuiltIn_NameOf(El,AContext);
           bfAssert:
             begin
             Result:=ConvertBuiltIn_Assert(El,AContext);
@@ -15113,6 +15115,35 @@ begin
     if not (Value is TResEvalEnum) then
       RaiseNotSupported(El,AContext,20200826222729,GetObjName(Value));
     Result:=CreateLiteralNumber(El,TResEvalEnum(Value).Index);
+  finally
+    ReleaseEvalValue(Value);
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_NameOf(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// nameof(identifier) is a constant string
+var
+  aResolver: TPas2JSResolver;
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  aResolver.BI_NameOf_OnEval(aResolver.BuiltInProcs[bfNameOf],El,[refConst],Value);
+  try
+    if Value=nil then
+      RaiseNotSupported(El,AContext,20260908160001,'nameof');
+    case Value.Kind of
+    {$IFDEF FPC_HAS_CPSTRING}
+    revkString:
+      Result:=CreateLiteralJSString(El,TJSString(
+        aResolver.ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,El)));
+    {$ENDIF}
+    revkUnicodeString:
+      Result:=CreateLiteralJSString(El,TJSString(TResEvalUTF16(Value).S));
+    else
+      RaiseNotSupported(El,AContext,20260908160002,GetObjName(Value));
+    end;
   finally
     ReleaseEvalValue(Value);
   end;

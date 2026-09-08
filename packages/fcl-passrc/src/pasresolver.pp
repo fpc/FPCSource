@@ -583,6 +583,7 @@ type
     bfNew,
     bfDispose,
     bfDefault,
+    bfNameOf,
     // Const-eval intrinsics for the native target; registered only by
     // TPasNativeResolver, left unregistered (inert) in the base/pas2js setup.
     bfSizeOf,
@@ -633,6 +634,7 @@ const
     'New',
     'Dispose',
     'Default',
+    'NameOf',
     'SizeOf',
     'BitSizeOf',
     'Trunc',
@@ -2199,6 +2201,13 @@ type
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_Default_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
+    function BI_NameOf_GetIdentEl(Params: TParamsExpr; RaiseOnError: boolean): TPasElement; virtual;
+    function BI_NameOf_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_NameOf_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_NameOf_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2436,6 +2445,9 @@ type
     // field's TYPE is used - High/Low/SizeOf/Default (lnfodwrf.pp).
     function AllowTypeQualifiedInstanceField(Found: TPasElement;
       PosEl: TPasElement): Boolean; virtual;
+    // True when El is (part of) the argument of the built-in NameOf(), where
+    // only the declared name is needed and no instance is required.
+    function IsNameOfArgument(El: TPasElement): boolean; virtual;
     // Copies the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} pack values from a
     // generic template element to its specialized element (called from both the
     // nested-element and the top-level generic-type specialization paths).
@@ -27231,6 +27243,109 @@ begin
     end;
 end;
 
+function TPasResolver.BI_NameOf_GetIdentEl(Params: TParamsExpr;
+  RaiseOnError: boolean): TPasElement;
+// NameOf(identifier) - check that the parameter is a symbol reference and
+// return its declaration. Returns nil on error, unless RaiseOnError.
+var
+  Param, SubExpr, ComputeExpr: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  IsInlineSpec: boolean;
+  SpecItem: TPRSpecializedItem;
+begin
+  Result:=nil;
+  Param:=Params.Params[0];
+
+  // only an identifier or a dotted identifier chain is allowed,
+  // not an arbitrary expression
+  ComputeExpr:=Param;
+  SubExpr:=Param;
+  IsInlineSpec:=false;
+  repeat
+    if (SubExpr.ClassType=TBinaryExpr)
+        and (TBinaryExpr(SubExpr).OpCode=eopSubIdent) then
+      SubExpr:=TBinaryExpr(SubExpr).Right
+    else if SubExpr.ClassType=TInlineSpecializeExpr then
+      begin
+      // NameOf(TBird<boolean>) gives the name of the generic type: 'TBird'
+      ComputeExpr:=TInlineSpecializeExpr(SubExpr).NameExpr;
+      SubExpr:=ComputeExpr;
+      IsInlineSpec:=true;
+      end
+    else
+      break;
+  until false;
+  if not ((SubExpr.ClassType=TPrimitiveExpr) and (SubExpr.Kind=pekIdent)) then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20260908150001,nXExpectedButYFound,sXExpectedButYFound,
+        ['identifier',ExprKindNames[SubExpr.Kind]],Param);
+    exit;
+    end;
+
+  // do not turn a procedure reference into a call
+  ComputeElement(ComputeExpr,ParamResolved,[rcNoImplicitProc]);
+  Result:=ParamResolved.IdentEl;
+
+  if IsInlineSpec and (Result<>nil) and (Result.CustomData is TPasGenericScope) then
+    begin
+    // an inline specialization resolves to the specialized element, whose name
+    // is e.g. 'TBird<System.Boolean>' - use the name of the generic declaration
+    SpecItem:=TPasGenericScope(Result.CustomData).SpecializedFromItem;
+    if (SpecItem<>nil) and (SpecItem.GenericEl<>nil) then
+      Result:=SpecItem.GenericEl;
+    end;
+
+  if (Result=nil) or (Result.Name='') then
+    begin
+    Result:=nil;
+    if RaiseOnError then
+      RaiseMsg(20260908150002,nXExpectedButYFound,sXExpectedButYFound,
+        ['identifier',GetResolverResultDescription(ParamResolved)],Param);
+    end;
+end;
+
+function TPasResolver.BI_NameOf_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+  if BI_NameOf_GetIdentEl(Params,RaiseOnError)=nil then
+    exit;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_NameOf_OnGetCallResult(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
+begin
+  SetResolverIdentifier(ResolvedEl,btString,Proc.Proc,
+    FBaseTypes[btString],FBaseTypes[btString],[rrfReadable]);
+  if Params=nil then ;
+end;
+
+procedure TPasResolver.BI_NameOf_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  IdentEl: TPasElement;
+begin
+  Evaluated:=nil;
+  IdentEl:=BI_NameOf_GetIdentEl(Params,true);
+  if IdentEl=nil then
+    exit;
+  // the declared name, with the original case
+  {$ifdef FPC_HAS_CPSTRING}
+  Evaluated:=TResEvalString.CreateValue(IdentEl.Name);
+  {$else}
+  Evaluated:=TResEvalUTF16.CreateValue(IdentEl.Name);
+  {$endif}
+  if Proc=nil then ;
+  if Flags=[] then ;
+end;
+
 constructor TPasResolver.Create;
 begin
   inherited Create;
@@ -27640,6 +27755,29 @@ begin
   Result:=False;
   if Found=nil then ;
   if PosEl=nil then ;
+end;
+
+function TPasResolver.IsNameOfArgument(El: TPasElement): boolean;
+var
+  Parent: TPasElement;
+  Params: TParamsExpr;
+begin
+  Result:=false;
+  if FBuiltInProcs[bfNameOf]=nil then exit;
+  while (El<>nil) and (El.Parent is TPasExpr) do
+    begin
+    Parent:=El.Parent;
+    if Parent.ClassType=TParamsExpr then
+      begin
+      Params:=TParamsExpr(Parent);
+      Result:=(Params.Kind=pekFuncParams) and (Params.Value<>El)
+          and (length(Params.Params)=1)
+          and IsNameExpr(Params.Value)
+          and SameText(TPrimitiveExpr(Params.Value).Value,'NameOf');
+      exit; // some other call -> not a NameOf argument
+      end;
+    El:=Parent;
+    end;
 end;
 
 function TPasResolver.UseTentativeImplicitSpecMatch: Boolean;
@@ -28397,6 +28535,8 @@ begin
       // nested type: ok
     else if FindData.Found is TPasEnumValue then
       // e.g. enumtype.enumvalue: ok
+    else if IsNameOfArgument(FindData.ErrorPosEl) then
+      // e.g. NameOf(TObject.DoIt): only the declared name is needed, no instance
     else if AllowTypeQualifiedInstanceField(FindData.Found,FindData.ErrorPosEl) then
       // e.g. High(TRec.field): ok
     else
@@ -29192,6 +29332,10 @@ begin
     AddBuiltInProc('Default','function Default(T): T',
         @BI_Default_OnGetCallCompatibility,@BI_Default_OnGetCallResult,
         @BI_Default_OnEval,nil,bfDefault,[]);
+  if bfNameOf in TheBaseProcs then
+    AddBuiltInProc('NameOf','function NameOf(identifier): String',
+        @BI_NameOf_OnGetCallCompatibility,@BI_NameOf_OnGetCallResult,
+        @BI_NameOf_OnEval,nil,bfNameOf);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType

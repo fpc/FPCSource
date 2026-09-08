@@ -238,6 +238,10 @@ type
   { TTestResolver }
 
   TTestResolver = Class(TCustomTestResolver)
+  Protected
+    // Returns the folded value of the program const named aName
+    // (caller frees it via ReleaseEvalValue).
+    function EvalProgramConst(const aName: string): TResEvalValue;
   Published
     Procedure TestEmpty;
 
@@ -389,6 +393,18 @@ type
     Procedure TestTypeInfo;
     Procedure TestTypeInfo_FailRTTIDisabled;
     Procedure TestGetTypeKind;
+    Procedure TestNameOf;
+    Procedure TestNameOf_Const;
+    Procedure TestNameOf_Qualified;
+    Procedure TestNameOf_Unit;
+    Procedure TestNameOf_Generic;
+    Procedure TestNameOf_GenericSpecialize;
+    Procedure TestNameOfStringLiteralFail;
+    Procedure TestNameOfExprFail;
+    Procedure TestNameOfArrayElementFail;
+    Procedure TestNameOfNoParamsFail;
+    Procedure TestNameOfTwoParamsFail;
+    Procedure TestTypeQualifiedInstanceMemberFail;
 
     // statements
     Procedure TestForLoop;
@@ -1367,13 +1383,13 @@ begin
       {$ENDIF}
       aRow:=E.Row;
       aCol:=E.Column;
-{$IFNDEF NOCONSOLE}
+      {$IFNDEF NOCONSOLE}
       WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseMain ',ExpectedModuleClass.ClassName,' Parser: '+E.ClassName+':'+E.Message,
         ' Scanner at'
         +' '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')'
         +' Line="'+Scanner.CurLine+'"');
-{$ENDIF}
+      {$ENDIF}
       Fail(E.Message);
       end;
     on E: EPasResolve do
@@ -1390,18 +1406,18 @@ begin
         {$ENDIF}
         ResolverEngine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,aRow,aCol);
         end;
-{$IFNDEF NOCONSOLE}
+      {$IFNDEF NOCONSOLE}
       WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseMain ',ExpectedModuleClass.ClassName,' PasResolver: '+E.ClassName+':'+E.Message
         +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')');
-{$ENDIF}
+      {$ENDIF}
       Fail(E.Message);
       end;
     on E: Exception do
       begin
-{$IFNDEF NOCONSOLE}
+      {$IFNDEF NOCONSOLE}
       writeln('ERROR: TTestResolver.ParseMain ',ExpectedModuleClass.ClassName,' Exception: '+E.ClassName+':'+E.Message);
-{$ENDIF}
+      {$ENDIF}
       Fail(E.Message);
       end;
   end;
@@ -1670,14 +1686,14 @@ var
       for i:=0 to ReferenceElements.Count-1 do
         begin
         El:=TPasElement(ReferenceElements[i]);
-{$IFNDEF NOCONSOLE}
+        {$IFNDEF NOCONSOLE}
         write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.Row,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
         write(' El=',GetObjName(El));
         if EL is TPrimitiveExpr then
           begin
            writeln('CheckResolverReference ',TPrimitiveExpr(El).Value);
           end;
-{$ENDIF}
+        {$ENDIF}
         Ref:=nil;
         if El.CustomData is TResolvedReference then
           Ref:=TResolvedReference(El.CustomData).Declaration
@@ -1685,7 +1701,7 @@ var
           Ref:=TPasPropertyScope(El.CustomData).AncestorProp
         else if El.CustomData is TPasSpecializeTypeData then
           Ref:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
-{$IFNDEF NOCONSOLE}
+        {$IFNDEF NOCONSOLE}
         if Ref<>nil then
           begin
           write(' Decl=',GetObjName(Ref));
@@ -1695,9 +1711,9 @@ var
         else
           write(' has no TResolvedReference. El.CustomData=',GetObjName(El.CustomData));
         writeln;
-{$ENDIF}
+        {$ENDIF}
         end;
-{$IFNDEF NOCONSOLE}
+      {$IFNDEF NOCONSOLE}
       for i:=0 to LabelElements.Count-1 do
         begin
         El:=TPasElement(LabelElements[i]);
@@ -1705,7 +1721,7 @@ var
         write(' El=',GetObjName(El));
         writeln;
         end;
-{$ENDIF}
+      {$ENDIF}
 
       RaiseErrorAtSrcMarker('wrong resolved reference "'+aMarker^.Identifier+'"',aMarker);
     finally
@@ -1777,7 +1793,7 @@ var
           end;
         end;
       // failed -> show candidates
-{$IFNDEF NOCONSOLE}
+      {$IFNDEF NOCONSOLE}
       writeln('CheckDirectReference failed: Labels:');
       for j:=0 to LabelElements.Count-1 do
         begin
@@ -1792,7 +1808,7 @@ var
         //if EL is TPasVariable then
         //  writeln('CheckDirectReference ',GetObjPath(TPasVariable(El).VarType),' ',ResolverEngine.GetElementSourcePosStr(TPasVariable(EL).VarType));
         end;
-{$ENDIF}
+      {$ENDIF}
       RaiseErrorAtSrcMarker('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
     finally
       LabelElements.Free;
@@ -2977,6 +2993,21 @@ begin
 end;
 
 { TTestResolver }
+
+function TTestResolver.EvalProgramConst(const aName: string): TResEvalValue;
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  Result:=nil;
+  for i:=0 to PasProgram.ProgramSection.Declarations.Count-1 do
+    begin
+    El:=TPasElement(PasProgram.ProgramSection.Declarations[i]);
+    if (El is TPasConst) and (CompareText(El.Name,aName)=0) then
+      exit(ResolverEngine.Eval(TPasConst(El).Expr,[refConst]));
+    end;
+  Fail('const '+aName+' not found');
+end;
 
 procedure TTestResolver.TestEmpty;
 begin
@@ -5586,6 +5617,306 @@ begin
   '  k:=gettypekind(k);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestNameOf;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TEnum = (Red, Green);',
+  '  TRec = record',
+  '    Field: integer;',
+  '  end;',
+  '  TObject = class',
+  '    ClassField: integer;',
+  '    property Fld: integer read ClassField;',
+  '    procedure DoIt;',
+  '  end;',
+  'const',
+  '  MyConst = 3;',
+  'var',
+  '  s: string;',
+  '  i: integer;',
+  '  r: TRec;',
+  '  o: TObject;',
+  '  e: TEnum;',
+  'procedure TObject.DoIt;',
+  'begin',
+  '  s:=nameof(TObject.DoIt);',
+  '  s:=nameof(DoIt);', // Delphi does not support this
+  'end;',
+  'procedure Run(Arg: integer);',
+  'begin',
+  '  s:=nameof(Arg);',
+  'end;',
+  'function GetIt: integer;',
+  'begin',
+  '  Result:=0;',
+  '  s:=nameof(Result);',
+  'end;',
+  'begin',
+  '  s:=nameof(i);',
+  '  s:=nameof(MyConst);',
+  '  s:=nameof(integer);',
+  '  s:=nameof(TRec);',
+  '  s:=nameof(TObject);',
+  '  s:=nameof(r.Field);',
+  '  s:=nameof(TRec.Field);',
+  '  s:=nameof(o.ClassField);',
+  '  s:=nameof(TObject.ClassField);',
+  '  s:=nameof(TObject.DoIt);',
+  '  s:=nameof(o.Fld);',
+  '  s:=nameof(o.DoIt);',
+  '  s:=nameof(Run);',
+  '  s:=nameof(GetIt);',
+  '  s:=nameof(Red);',
+  '  s:=nameof(e);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestNameOf_Const;
+var
+  V: TResEvalValue;
+begin
+  StartProgram(false);
+  Add([
+  'var MyVar: longint;',
+  'const',
+  '  c = nameof(myvar);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalProgramConst('c');
+  try
+    AssertNotNull('nameof(myvar) folds',V);
+    AssertEquals('nameof(myvar) is a string',ord(revkString),ord(V.Kind));
+    AssertEquals('nameof(myvar) keeps the declared case','MyVar',
+      String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
+
+procedure TTestResolver.TestNameOf_Qualified;
+var
+  V: TResEvalValue;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    MyField: longint;',
+  '  end;',
+  'var r: TRec;',
+  'const',
+  '  c = nameof(r.myfield);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalProgramConst('c');
+  try
+    AssertNotNull('nameof(r.myfield) folds',V);
+    AssertEquals('nameof(r.myfield) is the last identifier','MyField',
+      String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
+
+procedure TTestResolver.TestNameOf_Unit;
+var
+  V: TResEvalValue;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var Some: longint;',
+    '']),
+    '');
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'const',
+  '  c = nameof(unit2);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalProgramConst('c');
+  try
+    AssertNotNull('nameof(unit2) folds',V);
+    AssertEquals('nameof(unit2)','unit2',String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
+
+procedure TTestResolver.TestNameOf_Generic;
+var
+  V: TResEvalValue;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '    Wings: longint;',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TBird<T>.Fly;',
+  'begin',
+  'end;',
+  'var b: TBird<boolean>;',
+  'const',
+  '  c = nameof(tbird<boolean>);',
+  '  d = nameof(tbird<boolean>.fly);',
+  '  e = nameof(b.wings);',
+  '  f = nameof(b);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalProgramConst('c');
+  try
+    AssertNotNull('nameof(tbird<boolean>) folds',V);
+    AssertEquals('nameof(tbird<boolean>) is the generic name','TBird',
+      String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+  V:=EvalProgramConst('d');
+  try
+    AssertEquals('nameof(tbird<boolean>.fly)','Fly',String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+  V:=EvalProgramConst('e');
+  try
+    AssertEquals('nameof(b.wings)','Wings',String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+  V:=EvalProgramConst('f');
+  try
+    AssertEquals('nameof(b)','b',String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
+
+procedure TTestResolver.TestNameOf_GenericSpecialize;
+var
+  V: TResEvalValue;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  end;',
+  'const',
+  '  c = nameof(specialize tbird<boolean>);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalProgramConst('c');
+  try
+    AssertNotNull('nameof(specialize tbird<boolean>) folds',V);
+    AssertEquals('nameof(specialize tbird<boolean>) is the generic name','TBird',
+      String(TResEvalString(V).S));
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
+
+procedure TTestResolver.TestNameOfStringLiteralFail;
+begin
+  StartProgram(false);
+  Add([
+  'var s: string;',
+  'begin',
+  '  s:=nameof(''abc'');',
+  '']);
+  CheckResolverException('identifier expected, but String found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestNameOfExprFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  '  i: longint;',
+  'begin',
+  '  s:=nameof(i+i);',
+  '']);
+  CheckResolverException('identifier expected, but Binary found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestNameOfArrayElementFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  '  a: array of longint;',
+  'begin',
+  '  s:=nameof(a[1]);',
+  '']);
+  CheckResolverException('identifier expected, but ArrayParams found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestNameOfNoParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  'var s: string;',
+  'begin',
+  '  s:=nameof();',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function NameOf(identifier): String"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestNameOfTwoParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  '  i: longint;',
+  'begin',
+  '  s:=nameof(i,i);',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function NameOf(identifier): String"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestTypeQualifiedInstanceMemberFail;
+// NameOf allows TObject.DoIt, an ordinary call must still require an instance
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt;',
+  'begin',
+  'end;',
+  'procedure Foo(Arg: longint);',
+  'begin',
+  'end;',
+  'begin',
+  '  Foo(TObject.DoIt);',
+  '']);
+  CheckResolverException('Instance member "DoIt" inaccessible here',
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestForLoop;

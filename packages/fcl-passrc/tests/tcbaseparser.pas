@@ -407,9 +407,10 @@ begin
 end;
 
 procedure TTestParser.StartParsing;
-
+{$ifndef NOCONSOLE}
 var
   i: Integer;
+{$ENDIF}
 begin
   If FIsUnit then
     StartImplementation;
@@ -418,11 +419,11 @@ begin
     FFileName:=MainFilename;
   FResolver.AddStream(FFileName,TStringStream.Create(FSource.Text));
   FScanner.OpenFile(FFileName);
-  { $ifndef NOCONSOLE} // JC: To get the tests to run with GUI
+  {$ifndef NOCONSOLE}
   Writeln('// Test : ',Self.TestName);
   for i:=0 to FSource.Count-1 do
     Writeln(Format('%:4d: ',[i+1]),FSource[i]);
-  { $EndIf}
+  {$EndIf}
 end;
 
 procedure TTestParser.ParseDeclarations;
