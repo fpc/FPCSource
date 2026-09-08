@@ -67,6 +67,7 @@ type
     procedure SetupSocket; virtual;
     procedure StartServerSocket; virtual;
     procedure CreateServerSocket; virtual;
+    Function CreateCertificateData : TCertificateData; virtual;
     function CreateSSLSocketHandler: TSocketHandler; virtual;
     // Socket server callbacks
     procedure DoConnect(Sender: TObject; Data: TSocketStream); virtual;
@@ -176,6 +177,13 @@ procedure TWebSocketServer.SetQueueSize(AValue: Word);
 begin
   if FQueueSize=AValue then Exit;
   FQueueSize:=AValue;
+end;
+
+
+function TWebSocketServer.CreateCertificateData : TCertificateData;
+
+begin
+  Result:=TCertificateData.Create;
 end;
 
 
@@ -387,6 +395,7 @@ end;
 constructor TWebSocketServer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FCertificateData:=CreateCertificateData;
   FHost:='0.0.0.0';
   FPort:=8080;
   FQueueSize:=5;
@@ -398,6 +407,7 @@ destructor TWebSocketServer.Destroy;
 begin
   Active:=False;
   FreeServerSocket;
+  FreeAndNil(FCertificateData);
   inherited Destroy;
 end;
 
