@@ -208,7 +208,8 @@ begin
     For I:=0 to StrDataCount do
       FStrData[i]:=CD.FStrData[i];
     For I:=0 to SSLDataCount do
-      FCertData[i].Assign(CD.FCertData[i])
+      FCertData[i].Assign(CD.FCertData[i]);
+    FTrustedCertsDir:=CD.FTrustedCertsDir;
     end
   else
     inherited Assign(Source);
