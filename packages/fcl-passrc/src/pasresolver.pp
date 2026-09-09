@@ -2698,6 +2698,7 @@ type
       Params: TFPList): TPasElement; virtual;
     function ResolverOfElement(El: TPasElement): TPasResolver;
     procedure RegisterSpecializedItem(El: TPasElement; Item: TPRSpecializedItem);
+    function IsSpecializedTypeEl(El: TPasElement): boolean;
     function FindSpecializedItemOfEl(El: TPasElement): TPRSpecializedItem;
     function GetSpecializeParamAsType(Param: TPasElement): TPasType;
     procedure FinishGenericClassOrRecIntf(Scope: TPasGenericScope); virtual;
@@ -38712,10 +38713,31 @@ begin
         end
       else
         begin
-        // Type param comparison (existing code)
-        if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone)
-            and (CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact) then
-          break;
+        // Type param comparison. Two types DECLARED SIDE BY SIDE IN THEIR OWN
+        // UNITS are two specializations even when their structures are
+        // interchangeable: accepting a merely COMPATIBLE one let the second
+        // reuse the first's specialization, so the `TypeInfo(T)` inside it named
+        // the wrong type - two units each declaring
+        // `TIntegerArray = array of Integer` shared one AsType<T>, and the JSON
+        // serializer's Deserialize<T> raised EInvalidCast on a value whose type
+        // info was the other unit's. Everything without that identity keeps the
+        // compatibility rule: an ANONYMOUS type (`array of Word` written inline
+        // twice), a still-unbound TEMPLATE parameter, a type declared INSIDE a
+        // generic (generics.collections' `PT = ^T`, one per specialization), and
+        // a specialized type itself.
+        if not IsSameType(Item.Params[j],ParamsResolved[j],prraAlias) then
+          begin
+          if (Item.Params[j].Name<>'') and (ParamsResolved[j].Name<>'')
+              and (Item.Params[j].Parent is TPasSection)
+              and (ParamsResolved[j].Parent is TPasSection)
+              and not (Item.Params[j] is TPasGenericTemplateType)
+              and not (ParamsResolved[j] is TPasGenericTemplateType)
+              and not IsSpecializedTypeEl(Item.Params[j])
+              and not IsSpecializedTypeEl(ParamsResolved[j]) then
+            break
+          else if CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact then
+            break;
+          end;
         end;
       dec(j);
       end;
@@ -38781,6 +38803,16 @@ begin
     FSpecItemsByEl.Add(Item);
     end;
 end;
+
+function TPasResolver.IsSpecializedTypeEl(El: TPasElement): boolean;
+// True when El is itself the product of a specialization. Such a type has no
+// stable identity across the places it is built, so two of them are compared by
+// structure, not by element.
+begin
+  Result:=(El<>nil) and (El.CustomData is TPasGenericScope)
+      and (TPasGenericScope(El.CustomData).SpecializedFromItem<>nil);
+end;
+
 
 function TPasResolver.FindSpecializedItemOfEl(El: TPasElement
   ): TPRSpecializedItem;
