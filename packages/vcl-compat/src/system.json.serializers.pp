@@ -667,7 +667,7 @@ end;
 
 function TJsonConverter.CanWrite(const aValue: TValue): Boolean;
 begin
-  Result := CanWrite;
+  Result := CanWrite();
 end;
 
 { TJsonConverterRegistry }
