@@ -706,6 +706,7 @@ type
     Procedure TestClassNilAsParam;
     Procedure TestClass_Operators_Is_As;
     Procedure TestClass_OperatorIsOnNonTypeFail;
+    Procedure TestClass_OperatorIsNotOnNonTypeFail;
     Procedure TestClass_OperatorAsOnNonDescendantFail;
     Procedure TestClass_OperatorAsOnNonTypeFail;
     Procedure TestClassAsFuncResult;
@@ -11702,9 +11703,14 @@ begin
   Add('  {#v}{=A}v: TClassA;');
   Add('begin');
   Add('  if {@o}o is {@A}TClassA then;');
+  Add('  if {@o}o is not {@A}TClassA then;');
+  Add('  if ({@o}o is not {@A}TClassA) and true then;');
   Add('  if {@v}v is {@A}TClassA then;');
+  Add('  if {@v}v is not {@A}TClassA then;');
   Add('  if {@v}v is {@TOBJ}TObject then;');
+  Add('  if {@v}v is not {@TOBJ}TObject then;');
   Add('  if {@v}v.{@Sub}Sub is {@A}TClassA then;');
+  Add('  if {@v}v.{@Sub}Sub is not {@A}TClassA then;');
   Add('  {@v}v:={@o}o as {@A}TClassA;');
   ParseProgram;
 end;
@@ -11722,6 +11728,23 @@ begin
   Add('  {#v}{=A}v: TClassA;');
   Add('begin');
   Add('  if {@o}o is {@v}v then;');
+  CheckResolverException('class type expected, but class found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestClass_OperatorIsNotOnNonTypeFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TOBJ}TObject = class');
+  Add('  end;');
+  Add('  {#A}TClassA = class');
+  Add('  end;');
+  Add('var');
+  Add('  {#o}{=TOBJ}o: TObject;');
+  Add('  {#v}{=A}v: TClassA;');
+  Add('begin');
+  Add('  if {@o}o is not {@v}v then;');
   CheckResolverException('class type expected, but class found',
     nXExpectedButYFound);
 end;
@@ -13464,8 +13487,11 @@ begin
   Add('  D: TCars;');
   Add('begin');
   Add('  if C is TCar then;');
+  Add('  if C is not TCar then;');
   Add('  if C is TCars then;');
+  Add('  if C is not TCars then;');
   Add('  if C is D then ;');
+  Add('  if C is not D then ;');
   ParseProgram;
 end;
 

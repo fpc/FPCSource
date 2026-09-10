@@ -13534,6 +13534,7 @@ begin
   eopGreaterThanEqual,
   eopIn,
   eopIs,
+  eopIsNot,
   eopAs,
   eopSymmetricaldifference:
     begin
@@ -16653,7 +16654,7 @@ begin
     case Bin.OpCode of
     eopEqual, eopNotEqual,
     eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual,
-    eopIn,eopIs:
+    eopIn,eopIs,eopIsNot:
       begin
       SetBaseType(btBoolean);
       exit;
@@ -17051,7 +17052,7 @@ begin
           RaiseMsg(20170216152228,nInOperatorExpectsSetElementButGot,
             sInOperatorExpectsSetElementButGot,[GetElementTypeName(LeftResolved.LoTypeEl)],Bin);
         end;
-    eopIs:
+    eopIs,eopIsNot:
       begin
       RightTypeEl:=RightResolved.LoTypeEl;
       if (LeftTypeEl is TPasClassType) then

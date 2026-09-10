@@ -112,6 +112,7 @@ type
     Procedure TestBinaryGreater;
     Procedure TestBinaryGreaterThanEqual;
     Procedure TestBinaryIs;
+    Procedure TestBinaryIsNot;
     Procedure TestBinaryPower;
     Procedure TestCallExpressionNone;
     Procedure TestCallExpressionOne;
@@ -1166,6 +1167,25 @@ begin
   E:=TJSRelationalExpressionInstanceOf(TestBinaryExpression(B,TJSRelationalExpressionInstanceOf));
   AssertIdentifier('Correct left literal for is',E.A,'a');
   AssertIdentifier('Correct right literal for is',E.B,'b');
+end;
+
+procedure TTestExpressionConverter.TestBinaryIsNot;
+Var
+  B : TBinaryExpr;
+  U : TJSUnaryNotExpression;
+  E : TJSRelationalExpressionInstanceOf;
+
+begin
+  B:=CreateBinary(eopIsNot);
+  B.left:=CreateIdent('a');
+  B.Right:=CreateIdent('b');
+  // "a is not b" -> "!(a instanceof b)"
+  U:=TJSUnaryNotExpression(Convert(B,TJSUnaryNotExpression));
+  if not (U.A is TJSRelationalExpressionInstanceOf) then
+    Fail('Do not have instanceof, but: '+U.A.ClassName);
+  E:=TJSRelationalExpressionInstanceOf(U.A);
+  AssertIdentifier('Correct left literal for is not',E.A,'a');
+  AssertIdentifier('Correct right literal for is not',E.B,'b');
 end;
 
 procedure TTestExpressionConverter.TestBinaryPower;

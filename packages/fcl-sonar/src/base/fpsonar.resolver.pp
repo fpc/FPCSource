@@ -9039,7 +9039,7 @@ var
         if NamesParam(lBin.left, aParam) then
           Exit(True);
       end
-      else if lBin.OpCode in [eopIs, eopAs] then
+      else if lBin.OpCode in [eopIs, eopIsNot, eopAs] then
       begin
         if SameText(IdentName(lBin.left), aParam)
           or SameText(IdentName(lBin.right), aParam) then

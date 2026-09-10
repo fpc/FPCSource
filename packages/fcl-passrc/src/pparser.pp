@@ -3133,6 +3133,7 @@ function TPasParser.DoParseExpression(AParent: TPaselement; InitExpr: TPasExpr;
 type
   TOpStackItem = record
     Token: TToken;
+    Negated: Boolean; // tkis followed by tknot, i.e. "is not"
     SrcPos: TPasSourcePos;
   end;
 
@@ -3170,6 +3171,7 @@ const
     if OpStackTop=length(OpStack) then
       SetLength(OpStack,length(OpStack)*2+4);
     OpStack[OpStackTop].Token:=Token;
+    OpStack[OpStackTop].Negated:=false;
     OpStack[OpStackTop].SrcPos:=CurTokenPos;
   end;
 
@@ -3198,7 +3200,9 @@ const
     xleft   : TPasExpr;
     bin     : TBinaryExpr;
     SrcPos: TPasSourcePos;
+    IsNegated: Boolean;
   begin
+    IsNegated:=(OpStackTop>=0) and OpStack[OpStackTop].Negated;
     t:=PopOper(SrcPos);
     xright:=PopExp;
     xleft:=PopExp;
@@ -3207,6 +3211,9 @@ const
       bin:=CreateBinaryExpr(AParent,xleft,xright,eopNone,SrcPos);
       bin.Kind:=pekRange;
       end
+    else if IsNegated then
+      // "is not"
+      bin:=CreateBinaryExpr(AParent,xleft,xright,eopIsNot,SrcPos)
     else
       bin:=CreateBinaryExpr(AParent,xleft,xright,TokenToExprOp(t),SrcPos);
     ExpStack.Add(bin);
@@ -3310,6 +3317,12 @@ begin
         end;
         PushOper(CurToken);
         NextToken;
+        if (OpStack[OpStackTop].Token=tkis) and (CurToken=tknot) then
+          begin
+          // "is not": the "not" belongs to the "is", not to the right operand
+          OpStack[OpStackTop].Negated:=true;
+          NextToken;
+          end;
         end;
        //Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
     until NotBinary or isEndOfExp(AllowEqual, NotBinary);

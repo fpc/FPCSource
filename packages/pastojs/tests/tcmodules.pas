@@ -633,6 +633,7 @@ type
     Procedure TestClassOf_Call;
     Procedure TestClassOf_Assign;
     Procedure TestClassOf_Is;
+    Procedure TestClassOf_IsNot;
     Procedure TestClassOf_Compare;
     Procedure TestClassOf_ClassVar;
     Procedure TestClassOf_ClassMethod;
@@ -856,6 +857,7 @@ type
     Procedure TestJSValue_Not;
     Procedure TestJSValue_Enum;
     Procedure TestJSValue_ClassInstance;
+    Procedure TestJSValue_ClassInstanceIsNot;
     Procedure TestJSValue_ClassOf;
     Procedure TestJSValue_ArrayOfJSValue;
     Procedure TestJSValue_ArrayLit;
@@ -18155,6 +18157,44 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClassOf_IsNot;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('  end;');
+  Add('  TCars = class of TCar;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('  Cars: tcars;');
+  Add('begin');
+  Add('  if c is not tcar then ;');
+  Add('  if c is not tcars then ;');
+  ConvertProgram;
+  CheckSource('TestClassOf_IsNot',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '});',
+    'this.Obj = null;',
+    'this.C = null;',
+    'this.Cars = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    'if(!rtl.is($mod.C,$mod.TCar));',
+    'if(!rtl.is($mod.C,$mod.TCar));',
+    '']));
+end;
+
 procedure TTestModule.TestClassOf_Compare;
 begin
   StartProgram(false);
@@ -31023,6 +31063,38 @@ begin
     '$mod.o = rtl.getObject($mod.v);',
     '$mod.o = rtl.getObject($mod.v);',
     'if (rtl.isExt($mod.v, $mod.TObject, 1)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ClassInstanceIsNot;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  'var',
+  '  v: jsvalue;',
+  '  o: TObject;',
+  'begin',
+  '  if v is not TObject then ;',
+  '  if o is not TObject then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_ClassInstanceIsNot',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.v = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if (!rtl.isExt($mod.v, $mod.TObject, 1)) ;',
+    'if (!$mod.TObject.isPrototypeOf($mod.o)) ;',
     '']));
 end;
 

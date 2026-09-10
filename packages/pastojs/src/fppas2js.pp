@@ -5874,7 +5874,7 @@ begin
   if (LeftResolved.BaseType=btCustom)
       or (RightResolved.BaseType=btCustom) then
     case Bin.OpCode of
-    eopIs:
+    eopIs,eopIsNot:
       if IsJSBaseType(LeftResolved,pbtJSValue,true) then
         begin
         // aJSValue is x
@@ -9101,6 +9101,7 @@ Const
    TJSRelationalExpressionGE,
    Nil, // In
    TJSRelationalExpressionInstanceOf, // is
+   TJSRelationalExpressionInstanceOf, // is not, negated below
    Nil, // As
    Nil, // Symmetrical diff
    Nil, // Address,
@@ -9209,7 +9210,13 @@ begin
       aResolver.ComputeElement(El.right,RightResolved,Flags);
 
       Result:=ConvertBinaryExpressionRes(El,AContext,LeftResolved,RightResolved,A,B);
-      if Result<>nil then exit;
+      if Result<>nil then
+        begin
+        if El.OpCode=eopIsNot then
+          // "a is not b" -> "!<is-expression>"
+          Result:=CreateUnaryNot(Result,El);
+        exit;
+        end;
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertBinaryExpression Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
       {$ENDIF}
@@ -9410,6 +9417,9 @@ begin
         // convert "a div b" to "rtl.trunc(a/b)"
         Result:=CreateTruncFloor(El,Result,true);
         end;
+      eopIsNot:
+        // convert "a is not b" to "!(a instanceof b)"
+        Result:=CreateUnaryNot(Result,El);
       end;
 
       if (bsOverflowChecks in AContext.ScannerBoolSwitches) and (aResolver<>nil) then
@@ -9738,9 +9748,9 @@ begin
       DoError(20180423114246,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
         [OpcodeStrings[El.OpCode],aResolver.GetResolverResultDescription(RightResolved,true)],El);
     end
-  else if (El.OpCode=eopIs) then
+  else if (El.OpCode in [eopIs,eopIsNot]) then
     begin
-    // "A is B"
+    // "A is B" / "A is not B" (the negation is added by the caller)
     Call:=CreateCallExpression(El);
     Result:=Call;
     Call.AddArg(A); A:=nil;

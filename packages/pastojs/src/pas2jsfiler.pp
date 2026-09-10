@@ -112,7 +112,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 7;
+  PCUVersion = 8;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -124,6 +124,7 @@ const
     5: removed modeswitch ignoreattributes
     6: default DispatchField=Msg, DispatchStrField=MsgStr
     7: InitializationSection JS replaced with Body, Empty
+    8: added TExprOpCode eopIsNot ("is not" operator)
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -401,6 +402,7 @@ const
     'GTE',
     'In',
     'Is',
+    'IsNot',
     'As',
     'SymDif',
     'Addr',

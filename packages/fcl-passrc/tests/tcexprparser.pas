@@ -89,6 +89,9 @@ type
     Procedure TestBinaryXOr;
     Procedure TestBinaryIn;
     Procedure TestBinaryIs;
+    Procedure TestBinaryIsNot;
+    Procedure TestBinaryIsNotPrecedence;
+    Procedure TestBinaryIsNotVsUnaryNot;
     Procedure TestBinaryAs;
     Procedure TestBinaryEquals;
     Procedure TestBinaryDiffers;
@@ -905,6 +908,49 @@ begin
   ParseExpression('b is TObject');
   AssertBinaryExpr('Simple binary Is',eopIs,FLeft,FRight);
   AssertExpression('Left is 1',TheLeft,pekident,'b');
+  AssertExpression('Right is TObject',TheRight,pekIdent,'TObject');
+end;
+
+procedure TTestExpressions.TestBinaryIsNot;
+begin
+  DeclareVar('boolean','a');
+  DeclareVar('TObject','b');
+  ParseExpression('b is not TObject');
+  AssertBinaryExpr('Simple binary Is not',eopIsNot,FLeft,FRight);
+  AssertExpression('Left is b',TheLeft,pekIdent,'b');
+  AssertExpression('Right is TObject',TheRight,pekIdent,'TObject');
+  AssertEquals('Declaration','b is not TObject',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestBinaryIsNotPrecedence;
+
+var
+  L,R : TPasExpr;
+
+begin
+  // "is not" has the same precedence as "is", i.e. the same as "and"
+  DeclareVar('TObject','a');
+  DeclareVar('boolean','b');
+  ParseExpression('a is not TObject and b');
+  AssertBinaryExpr('Outer is and',eopAnd,FLeft,FRight);
+  AssertBinaryExpr('Inner is "is not"',TheLeft,eopIsNot,L,R);
+  AssertExpression('Inner left is a',L,pekIdent,'a');
+  AssertExpression('Inner right is TObject',R,pekIdent,'TObject');
+  AssertExpression('Outer right is b',TheRight,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestBinaryIsNotVsUnaryNot;
+
+var
+  O : TPasExpr;
+
+begin
+  // a leading "not" is still the unary operator: "not a is TObject" is "(not a) is TObject"
+  DeclareVar('boolean','a');
+  ParseExpression('not a is TObject');
+  AssertBinaryExpr('Binary is',eopIs,FLeft,FRight);
+  AssertUnaryExpr('Left is unary not',TheLeft,eopNot,O);
+  AssertExpression('Operand is a',O,pekIdent,'a');
   AssertExpression('Right is TObject',TheRight,pekIdent,'TObject');
 end;
 

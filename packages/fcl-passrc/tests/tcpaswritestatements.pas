@@ -96,6 +96,7 @@ type
     TTestStatementWriterIf = class(TTestStatementWriterBase)
     published
         procedure TestIf;
+        procedure TestIfIsNot;
         procedure TestIfBlock;
         procedure TestIfAssignment;
         procedure TestIfElse;
@@ -737,9 +738,46 @@ begin
     AssertNull('No else', i.ElseBranch);
     AssertNull('No if branch', I.IfBranch);
 
-    AssertPasWriteOutput('output', BuildString(['program afile;',
-        '', 'var', '  A: Boolean;', '', 'begin',
-        '  if a then;', 'end.', '']), PasProgram);
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  A: Boolean;',
+      '',
+      'begin',
+      '  if a then;',
+      'end.',
+      '']),
+      PasProgram);
+end;
+
+procedure TTestStatementWriterIf.TestIfIsNot;
+
+var
+    I: TPasImplIfElse;
+    B: TBinaryExpr;
+
+begin
+    DeclareVar('TObject');
+    TestStatement(['if a is not TObject then', ';']);
+    I := AssertStatement('If statement', TPasImplIfElse) as TPasImplIfElse;
+    B := AssertExpression('IF condition', I.ConditionExpr, eopIsNot);
+    AssertExpression('Left', B.Left, pekIdent, 'a');
+    AssertExpression('Right', B.Right, pekIdent, 'TObject');
+
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  A: TObject;',
+      '',
+      'begin',
+      '  if a is not TObject then;',
+      'end.',
+      '']),
+      PasProgram);
 end;
 
 procedure TTestStatementWriterIf.TestIfBlock;
