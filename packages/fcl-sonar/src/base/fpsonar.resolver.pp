@@ -10690,6 +10690,12 @@ var
     end
     else if aExpr is TInlineSpecializeExpr then
       CollectRefs(TInlineSpecializeExpr(aExpr).NameExpr)
+    else if aExpr is TIfExpr then
+    begin
+      CollectRefs(TIfExpr(aExpr).ConditionExpr);
+      CollectRefs(TIfExpr(aExpr).ThenExpr);
+      CollectRefs(TIfExpr(aExpr).ElseExpr);
+    end
     // An anonymous method body is an operand, not a declaration-list entry.
     else if aExpr is TProcedureExpr then
       lAnswered := False

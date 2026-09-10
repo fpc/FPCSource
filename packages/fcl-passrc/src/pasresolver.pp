@@ -1739,6 +1739,7 @@ type
     procedure ResolveInherited(El: TInheritedExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveInheritedName(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveBinaryExpr(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
+    procedure ResolveIfExpr(El: TIfExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveSubIdent(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExprParams(Params: TParamsExpr); virtual;
@@ -1841,6 +1842,9 @@ type
     procedure ComputeBinaryExprRes(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); virtual;
+    procedure ComputeIfExpr(El: TIfExpr;
+      out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      StartEl: TPasElement); virtual;
     function ComputeAddStringRes(
       const LeftResolved, RightResolved: TPasResolverResult; ExprEl: TPasExpr;
       out ResolvedEl: TPasResolverResult): boolean; virtual;
@@ -2039,6 +2043,7 @@ type
     procedure SpecializeArrayValues(GenEl, SpecEl: TArrayValues);
     procedure SpecializeInlineSpecializeExpr(GenEl, SpecEl: TInlineSpecializeExpr);
     procedure SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
+    procedure SpecializeIfExpr(GenEl, SpecEl: TIfExpr);
     procedure SpecializeResString(GenEl, SpecEl: TPasResString);
     procedure SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
     procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
@@ -3131,6 +3136,8 @@ begin
     Result:='specialize'
   else if C=TInlineSpecializeExpr then
     Result:='inline-specialize'
+  else if C=TIfExpr then
+    Result:='if expression'
   else if C=TPasRangeType then
     Result:='range'
   else if C=TPasArrayType then
@@ -12920,6 +12927,8 @@ begin
     // resolved by FinishScope(stProcedure)
   else if ElClass=TInlineSpecializeExpr then
     ResolveInlineSpecializeExpr(TInlineSpecializeExpr(El),Access)
+  else if ElClass=TIfExpr then
+    ResolveIfExpr(TIfExpr(El),Access)
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -12927,6 +12936,167 @@ begin
     ResolveExpr(El.Format1,rraRead);
   if El.Format2<>nil then
     ResolveExpr(El.Format2,rraRead);
+end;
+
+procedure TPasResolver.ResolveIfExpr(El: TIfExpr; Access: TResolvedRefAccess);
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  // an if-expression is a value, it cannot be assigned or passed as var
+  if not (Access in [rraNone,rraRead,rraParamToUnknownProc]) then
+    RaiseMsg(20260910120200,nVariableIdentifierExpected,sVariableIdentifierExpected,
+      [],El);
+  ResolveStatementConditionExpr(El.ConditionExpr);
+  ResolveExpr(El.ThenExpr,rraRead);
+  ResolveExpr(El.ElseExpr,rraRead);
+  // check that then- and else-part are compatible
+  ComputeIfExpr(El,ResolvedEl,[],El);
+end;
+
+procedure TPasResolver.ComputeIfExpr(El: TIfExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+var
+  CondResolved, ThenResolved, ElseResolved: TPasResolverResult;
+  bt: TResolverBaseType;
+
+  procedure RaiseIncompatible;
+  var
+    ThenDesc, ElseDesc: String;
+  begin
+    GetIncompatibleTypeDesc(ThenResolved,ElseResolved,ThenDesc,ElseDesc);
+    RaiseMsg(20260910130000,nIncompatibleTypesGotExpected,sIncompatibleTypesXAndY,
+      [ThenDesc,ElseDesc],El);
+  end;
+
+  function IsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
+  begin
+    Result:=(ResolvedEl.BaseType=btContext)
+      and (ResolvedEl.LoTypeEl is TPasClassType)
+      and (TPasClassType(ResolvedEl.LoTypeEl).ObjKind=okClass)
+      and not (ResolvedEl.IdentEl is TPasType);
+  end;
+
+  function GetCommonAncestor(ThenClass, ElseClass: TPasClassType): TPasClassType;
+  var
+    Ancestor: TPasType;
+  begin
+    Ancestor:=ThenClass;
+    while Ancestor is TPasClassType do
+      begin
+      if CheckClassIsClass(ElseClass,Ancestor)<>cIncompatible then
+        exit(TPasClassType(Ancestor));
+      Ancestor:=GetPasClassAncestor(TPasClassType(Ancestor),true);
+      end;
+    Result:=nil;
+  end;
+
+  function GetClassRef(const ResolvedEl: TPasResolverResult): TPasClassType;
+  // returns the class, if ResolvedEl is a class reference,
+  // e.g. a class type identifier or a class-of value
+  var
+    TypeEl: TPasType;
+  begin
+    Result:=nil;
+    if ResolvedEl.BaseType<>btContext then exit;
+    TypeEl:=ResolvedEl.LoTypeEl;
+    if ResolvedEl.IdentEl is TPasType then
+      begin
+      // type identifier, e.g. TObject
+      if not (TypeEl is TPasClassType) then exit;
+      end
+    else if TypeEl is TPasClassOfType then
+      // class-of value, e.g. a variable of type TClass
+      TypeEl:=ResolveAliasType(TPasClassOfType(TypeEl).DestType)
+    else
+      exit;
+    if (TypeEl is TPasClassType) and (TPasClassType(TypeEl).ObjKind=okClass) then
+      Result:=TPasClassType(TypeEl);
+  end;
+
+var
+  CommonClass, ThenClassRef, ElseClassRef: TPasClassType;
+begin
+  if rcConstant in Flags then
+    ComputeElement(El.ConditionExpr,CondResolved,Flags,StartEl);
+  ComputeElement(El.ThenExpr,ThenResolved,Flags,StartEl);
+  ComputeElement(El.ElseExpr,ElseResolved,Flags,StartEl);
+
+  ThenClassRef:=GetClassRef(ThenResolved);
+  ElseClassRef:=GetClassRef(ElseResolved);
+  if (ThenClassRef<>nil) or (ElseClassRef<>nil) then
+    begin
+    // class references, e.g. TAnt and TBird -> TAnimal
+    if ThenResolved.BaseType=btNil then
+      CommonClass:=ElseClassRef
+    else if ElseResolved.BaseType=btNil then
+      CommonClass:=ThenClassRef
+    else if (ThenClassRef=nil) or (ElseClassRef=nil) then
+      // class reference and something else, e.g. an instance
+      CommonClass:=nil
+    else
+      CommonClass:=GetCommonAncestor(ThenClassRef,ElseClassRef);
+    if CommonClass=nil then
+      RaiseIncompatible;
+    // the result is a class reference, like a type identifier
+    SetResolverIdentifier(ResolvedEl,btContext,CommonClass,CommonClass,CommonClass,[]);
+    ResolvedEl.ExprEl:=El;
+    exit;
+    end;
+
+  if (ThenResolved.BaseType=btNil) and (ElseResolved.BaseType=btNil) then
+    ResolvedEl:=ThenResolved
+  else if ThenResolved.BaseType=btNil then
+    begin
+    // nil and e.g. a class, pointer, dynamic array or procedure type
+    if CheckAssignResCompatibility(ElseResolved,ThenResolved,El.ThenExpr,false)=cIncompatible then
+      RaiseIncompatible;
+    ResolvedEl:=ElseResolved;
+    end
+  else if ElseResolved.BaseType=btNil then
+    begin
+    if CheckAssignResCompatibility(ThenResolved,ElseResolved,El.ElseExpr,false)=cIncompatible then
+      RaiseIncompatible;
+    ResolvedEl:=ThenResolved;
+    end
+  else
+    begin
+    // e.g. char and string -> string, byte and int64 -> int64
+    bt:=GetCombinedBaseType(ThenResolved,ElseResolved,El);
+    if bt<>btNone then
+      begin
+      if (ThenResolved.BaseType=btShortString) and (ElseResolved.BaseType=btShortString)
+          and (ThenResolved.HiTypeEl<>ElseResolved.HiTypeEl) then
+        // two different shortstrings, e.g. string[3] and string[5] -> String
+        SetResolverValueExpr(ResolvedEl,btString,FBaseTypes[btString],FBaseTypes[btString],El,[rrfReadable])
+      else if bt=ThenResolved.BaseType then
+        ResolvedEl:=ThenResolved
+      else if bt=ElseResolved.BaseType then
+        ResolvedEl:=ElseResolved
+      else
+        SetResolverValueExpr(ResolvedEl,bt,FBaseTypes[bt],FBaseTypes[bt],El,[rrfReadable]);
+      end
+    else if CheckAssignResCompatibility(ThenResolved,ElseResolved,El.ElseExpr,false)<>cIncompatible then
+      // e.g. TAnimal and TDog -> TAnimal
+      ResolvedEl:=ThenResolved
+    else if CheckAssignResCompatibility(ElseResolved,ThenResolved,El.ThenExpr,false)<>cIncompatible then
+      ResolvedEl:=ElseResolved
+    else if IsClassInstance(ThenResolved) and IsClassInstance(ElseResolved) then
+      begin
+      // e.g. TAnt and TBird -> TAnimal
+      CommonClass:=GetCommonAncestor(TPasClassType(ThenResolved.LoTypeEl),
+                                     TPasClassType(ElseResolved.LoTypeEl));
+      if CommonClass=nil then
+        RaiseIncompatible;
+      SetResolverValueExpr(ResolvedEl,btContext,CommonClass,CommonClass,El,[rrfReadable]);
+      end
+    else
+      RaiseIncompatible;
+    end;
+  // the result is a value, not a variable
+  ResolvedEl.IdentEl:=nil;
+  ResolvedEl.ExprEl:=El;
+  ResolvedEl.Flags:=[rrfReadable];
 end;
 
 procedure TPasResolver.ResolveStatementConditionExpr(El: TPasExpr);
@@ -15183,7 +15353,8 @@ begin
         or (C=TNilExpr)
         or (C=TBoolConstExpr)
         or (C=TInheritedExpr)
-        or (C=TProcedureExpr))
+        or (C=TProcedureExpr)
+        or (C=TIfExpr))
         or (C=TInlineSpecializeExpr) then
     // ok
   else if C=TUnaryExpr then
@@ -21658,6 +21829,10 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
       Result:=ElementReferencesTemplateTypes(Bin.Left,GenericTemplateTypes)
         or ElementReferencesTemplateTypes(Bin.Right,GenericTemplateTypes);
       end
+    else if C=TIfExpr then
+      Result:=ElementReferencesTemplateTypes(TIfExpr(El).ConditionExpr,GenericTemplateTypes)
+        or ElementReferencesTemplateTypes(TIfExpr(El).ThenExpr,GenericTemplateTypes)
+        or ElementReferencesTemplateTypes(TIfExpr(El).ElseExpr,GenericTemplateTypes)
     else if C=TInlineSpecializeExpr then
       begin
       InlineSpec:=TInlineSpecializeExpr(El);
@@ -23026,6 +23201,8 @@ begin
     SpecializeInlineSpecializeExpr(TInlineSpecializeExpr(GenEl),TInlineSpecializeExpr(SpecEl))
   else if C=TProcedureExpr then
     SpecializeProcedureExpr(TProcedureExpr(GenEl),TProcedureExpr(SpecEl))
+  else if C=TIfExpr then
+    SpecializeIfExpr(TIfExpr(GenEl),TIfExpr(SpecEl))
   // TPasType
   else if (C=TPasAliasType)
       or (C=TPasTypeAliasType)
@@ -24262,6 +24439,14 @@ begin
   SpecializeExpr(GenEl,SpecEl);
   SpecializeElExpr(GenEl,SpecEl,GenEl.Left,SpecEl.Left);
   SpecializeElExpr(GenEl,SpecEl,GenEl.Right,SpecEl.Right);
+end;
+
+procedure TPasResolver.SpecializeIfExpr(GenEl, SpecEl: TIfExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ConditionExpr,SpecEl.ConditionExpr);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ThenExpr,SpecEl.ThenExpr);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ElseExpr,SpecEl.ElseExpr);
 end;
 
 procedure TPasResolver.SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
@@ -35845,6 +36030,16 @@ begin
             // done later by the const evaluator.
             Result:=cCompatible;
           end
+        {$IFNDEF PAS2JS}
+        else if ToTypeBaseType=btVariant then
+          begin
+          // e.g. Variant('Bar'), Variant(1): the conversion is done at runtime,
+          // same as Variant:=value in CheckAssignResCompatibility
+          if FromResolved.BaseType in (btAllInteger+btAllFloats+[btCurrency]
+              +btAllBooleans+btAllStringAndChars) then
+            Result:=cCompatible;
+          end
+        {$ENDIF}
         else if ToTypeBaseType in btAllStrings then
           begin
           if FromResolved.BaseType in btAllStringAndChars then
@@ -36770,6 +36965,8 @@ begin
                          TBoolConstExpr(El),[rrfReadable])
   else if ElClass=TBinaryExpr then
     ComputeBinaryExpr(TBinaryExpr(El),ResolvedEl,Flags,StartEl)
+  else if ElClass=TIfExpr then
+    ComputeIfExpr(TIfExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TUnaryExpr then
     begin
     if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then
@@ -39685,7 +39882,7 @@ var
   Precision1, Precision2: word;
   Signed1, Signed2: boolean;
 begin
-  if Int1.BaseType=Int2.BaseType then exit;
+  if Int1.BaseType=Int2.BaseType then exit(Int1.BaseType);
   GetIntegerProps(Int1.BaseType,Precision1,Signed1);
   GetIntegerProps(Int2.BaseType,Precision2,Signed2);
   if Precision1=Precision2 then

@@ -1358,7 +1358,8 @@ const
     msMultiHelpers,
     msImplicitFunctionSpec,
     msMultilineStrings,
-    msDelphiMultilineStrings];
+    msDelphiMultilineStrings,
+    msStatementExpressions];
 
   bsAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
@@ -2349,6 +2350,7 @@ type
     Function ConvertIdentifierExpr(El: TPasExpr; const aName: string; AContext : TConvertContext): TJSElement; virtual;
     Function ConvertUnaryExpression(El: TUnaryExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertInlineSpecializeExpr(El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertIfExpr(El: TIfExpr; AContext: TConvertContext): TJSElement; virtual;
     // Convert declarations
     Function ConvertElement(El : TPasElement; AContext: TConvertContext) : TJSElement; virtual;
     Function ConvertProperty(El: TPasProperty; AContext: TConvertContext ): TJSElement; virtual;
@@ -8926,6 +8928,36 @@ function TPasToJSConverter.ConvertInlineSpecializeExpr(
   El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement;
 begin
   Result:=ConvertExpression(El.NameExpr,AContext);
+end;
+
+function TPasToJSConverter.ConvertIfExpr(El: TIfExpr; AContext: TConvertContext
+  ): TJSElement;
+// convert "if a then b else c" to "a ? b : c"
+var
+  CondExpr: TJSConditionalExpression;
+  A, B, C: TJSElement;
+begin
+  Result:=nil;
+  A:=nil;
+  B:=nil;
+  C:=nil;
+  try
+    A:=ConvertExpression(El.ConditionExpr,AContext);
+    B:=ConvertExpression(El.ThenExpr,AContext);
+    C:=ConvertExpression(El.ElseExpr,AContext);
+    CondExpr:=TJSConditionalExpression(CreateElement(TJSConditionalExpression,El));
+    CondExpr.A:=A;
+    CondExpr.B:=B;
+    CondExpr.C:=C;
+    Result:=CondExpr;
+  finally
+    if Result=nil then
+      begin
+      A.Free;
+      B.Free;
+      C.Free;
+      end;
+  end;
 end;
 
 function TPasToJSConverter.GetExpressionValueType(El: TPasExpr;
@@ -15651,6 +15683,8 @@ begin
     Result:=ConvertArrayValues(TArrayValues(El),AContext)
   else if C=TInlineSpecializeExpr then
     Result:=ConvertInlineSpecializeExpr(TInlineSpecializeExpr(El),AContext)
+  else if C=TIfExpr then
+    Result:=ConvertIfExpr(TIfExpr(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024191314);
 end;

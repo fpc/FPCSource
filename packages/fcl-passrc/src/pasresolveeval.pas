@@ -229,6 +229,7 @@ resourcestring
   sExprTypeMustBeClassOrRecordTypeGot = 'Expression type must be class or record type, got %s';
   sPropertyNotWritable = 'No member is provided to access property';
   sIncompatibleTypesGotExpected = 'Incompatible types: got "%s" expected "%s"';
+  sIncompatibleTypesXAndY = 'Incompatible types: "%s" and "%s"'; // uses nIncompatibleTypesGotExpected
   sTypesAreNotRelatedXY = 'Types are not related: "%s" and "%s"';
   sAbstractMethodsCannotBeCalledDirectly = 'Abstract methods cannot be called directly';
   sMissingParameterX = 'Missing parameter %s';
@@ -719,6 +720,7 @@ type
     procedure RaiseDivByZero(id: TMaxPrecInt; ErrorEl: TPasElement);
     function EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBinaryExpr(Expr: TBinaryExpr; Flags: TResEvalFlags): TResEvalValue;
+    function EvalIfExpr(Expr: TIfExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalBinarySubExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
@@ -4886,6 +4888,8 @@ begin
     Result:=EvalParamsExpr(TParamsExpr(Expr),Flags)
   else if C=TArrayValues then
     Result:=EvalArrayValuesExpr(TArrayValues(Expr),Flags)
+  else if C=TIfExpr then
+    Result:=EvalIfExpr(TIfExpr(Expr),Flags)
   else if [refConst,refConstExt]*Flags<>[] then
     RaiseConstantExprExp(20170518213800,Expr);
   {$IFDEF VerbosePasResEval}
@@ -5131,6 +5135,33 @@ begin
     {$ENDIF}
     RaiseNotYetImplemented(20170714195815,ValueExpr);
   end;
+end;
+
+function TResExprEvaluator.EvalIfExpr(Expr: TIfExpr; Flags: TResEvalFlags
+  ): TResEvalValue;
+// only the chosen branch is evaluated
+var
+  CondValue: TResEvalValue;
+  IsTrue: Boolean;
+begin
+  Result:=nil;
+  CondValue:=Eval(Expr.ConditionExpr,Flags);
+  if CondValue=nil then exit;
+  try
+    if CondValue.Kind<>revkBool then
+      begin
+      if [refConst,refConstExt]*Flags<>[] then
+        RaiseConstantExprExp(20260910120000,Expr.ConditionExpr);
+      exit;
+      end;
+    IsTrue:=TResEvalBool(CondValue).B;
+  finally
+    ReleaseEvalValue(CondValue);
+  end;
+  if IsTrue then
+    Result:=Eval(Expr.ThenExpr,Flags)
+  else
+    Result:=Eval(Expr.ElseExpr,Flags);
 end;
 
 function TResExprEvaluator.IsConst(Expr: TPasExpr): boolean;

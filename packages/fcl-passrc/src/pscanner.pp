@@ -349,7 +349,8 @@ type
     msOmitRTTI,            { pas2js: treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
     msMultiLineStrings,     { pas2js: Multiline strings }
     msDelphiMultiLineStrings, { Delpi-compatible multiline strings }
-    msInlineVars              { Allow inline var declarations }
+    msInlineVars,             { Allow inline var declarations }
+    msStatementExpressions    { allow if-expressions }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1233,7 +1234,8 @@ const
     'OMITRTTI',
     'MULTILINESTRINGS',
     'DELPHIMULTILINESTRINGS',
-    'INLINEVARS'
+    'INLINEVARS',
+    'STATEMENTEXPRESSIONS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of TPasScannerString=(
@@ -1327,7 +1329,7 @@ const
      msProperty,msDefaultInline,msExcept,msAdvancedRecords,msTypeHelpers,
      msPrefixedAttributes,msArrayOperators,msImplicitFunctionSpec,
      msFunctionReferences,msAnonymousFunctions,msDelphiMultiLineStrings,
-     msInlineVars
+     msInlineVars,msStatementExpressions
      ];
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];

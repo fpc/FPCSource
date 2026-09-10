@@ -431,6 +431,9 @@ type
     Procedure TestSet_EnumConst;
     Procedure TestSet_IntConst;
     Procedure TestSet_NotIn;
+    Procedure TestIfExpr;
+    Procedure TestIfExpr_Record;
+    Procedure TestIfExpr_ClassRef;
     Procedure TestSet_IntRange;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
@@ -7272,6 +7275,130 @@ begin
     'if (!(0 in $mod.Enums)) ;',
     'if (!(0 in rtl.createSet(0, 1))) ;',
     '$mod.b = true;',
+    '']));
+end;
+
+procedure TTestModule.TestIfExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  '  s: string;',
+  '  c: char;',
+  'function GetStr: string;',
+  'begin',
+  'end;',
+  'begin',
+  '  s:=if b then ''True'' else ''False'';',
+  '  i:=if b then 1 else if i>2 then 3 else 4;',
+  '  i:=1+if b then 2 else 3;',
+  '  s:=if b then c else GetStr;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIfExpr',
+    LinesToStr([ // statements
+    'this.b = false;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.c = "\x00";',
+    'this.GetStr = function () {',
+    '  var Result = "";',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.s = ($mod.b ? "True" : "False");',
+    '$mod.i = ($mod.b ? 1 : ($mod.i > 2 ? 3 : 4));',
+    '$mod.i = 1 + ($mod.b ? 2 : 3);',
+    '$mod.s = ($mod.b ? $mod.c : $mod.GetStr());',
+    '']));
+end;
+
+procedure TTestModule.TestIfExpr_Record;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TRec = record',
+  '    x: longint;',
+  '  end;',
+  'var',
+  '  b: boolean;',
+  '  r, r1, r2: TRec;',
+  'begin',
+  '  r:=if b then r1 else r2;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIfExpr_Record',
+    LinesToStr([ // statements
+    'rtl.recNewT(this, "TRec", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.x === b.x;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.b = false;',
+    'this.r = this.TRec.$new();',
+    'this.r1 = this.TRec.$new();',
+    'this.r2 = this.TRec.$new();',
+    '']),
+    LinesToStr([
+    '$mod.r.$assign(($mod.b ? $mod.r1 : $mod.r2));',
+    '']));
+end;
+
+procedure TTestModule.TestIfExpr_ClassRef;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class end;',
+  '  TBird = class(TAnimal) end;',
+  '  TAnt = class(TAnimal) end;',
+  '  TAnimalClass = class of TAnimal;',
+  'procedure Eat(AnimalClass: TAnimalClass);',
+  'begin',
+  'end;',
+  'var',
+  '  b: boolean;',
+  '  AnimalClass: TAnimalClass;',
+  'begin',
+  '  AnimalClass:=if b then TAnt else TBird;',
+  '  Eat(if b then TAnt else AnimalClass);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIfExpr_ClassRef',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TAnimal", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "TBird", this.TAnimal, function () {',
+    '});',
+    'rtl.createClass(this, "TAnt", this.TAnimal, function () {',
+    '});',
+    'this.Eat = function (AnimalClass) {',
+    '};',
+    'this.b = false;',
+    'this.AnimalClass = null;',
+    '']),
+    LinesToStr([
+    '$mod.AnimalClass = ($mod.b ? $mod.TAnt : $mod.TBird);',
+    '$mod.Eat(($mod.b ? $mod.TAnt : $mod.AnimalClass));',
     '']));
 end;
 

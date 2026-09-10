@@ -17,6 +17,7 @@ type
     FRight: TPAsExpr;
     FTheExpr: TPasExpr;
     FVariables : TStringList;
+    FDirective : String; // e.g. '{$mode delphi}', added in front of the var section
     procedure AssertLeftPrecedence(AInnerLeft: Integer; AInnerOp: TExprOpCode;
       AInnerRight: Integer; AOuterOp: TexprOpCode; AOuterRight: Integer);
     procedure AssertRightPrecedence(AOuterLeft: Integer; AOuterOp: TExprOpCode;
@@ -91,6 +92,13 @@ type
     Procedure TestBinaryNotIn;
     Procedure TestBinaryNotInPrecedence;
     Procedure TestBinaryNotInVsUnaryNot;
+    Procedure TestIfExpr;
+    Procedure TestIfExprModeSwitch;
+    Procedure TestIfExprNested;
+    Procedure TestIfExprPrecedence;
+    Procedure TestIfExprInBrackets;
+    Procedure TestIfExprObjFPCFail;
+    Procedure TestIfExprMissingElseFail;
     Procedure TestBinaryIs;
     Procedure TestBinaryIsNot;
     Procedure TestBinaryIsNotPrecedence;
@@ -945,6 +953,110 @@ begin
   AssertExpression('Right is set',TheRight,pekSet,TParamsExpr);
 end;
 
+procedure TTestExpressions.TestIfExpr;
+
+var
+  I : TIfExpr;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  ParseExpression('if b then 1 else 2');
+  AssertExpression('If expression',TheExpr,pekIf,TIfExpr);
+  I:=TheExpr as TIfExpr;
+  AssertExpression('Condition is b',I.ConditionExpr,pekIdent,'b');
+  AssertExpression('Then is 1',I.ThenExpr,pekNumber,'1');
+  AssertExpression('Else is 2',I.ElseExpr,pekNumber,'2');
+  AssertEquals('Declaration','if b then 1 else 2',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestIfExprModeSwitch;
+begin
+  FDirective:='{$modeswitch statementexpressions}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  ParseExpression('if b then 1 else 2');
+  AssertExpression('If expression',TheExpr,pekIf,TIfExpr);
+end;
+
+procedure TTestExpressions.TestIfExprNested;
+
+var
+  I, Inner : TIfExpr;
+
+begin
+  // the inner if-expression takes the first else
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  DeclareVar('boolean','c');
+  ParseExpression('if b then if c then 1 else 2 else 3');
+  AssertExpression('If expression',TheExpr,pekIf,TIfExpr);
+  I:=TheExpr as TIfExpr;
+  AssertExpression('Condition is b',I.ConditionExpr,pekIdent,'b');
+  AssertExpression('Then is if',I.ThenExpr,pekIf,TIfExpr);
+  Inner:=TIfExpr(I.ThenExpr);
+  AssertExpression('Inner condition is c',Inner.ConditionExpr,pekIdent,'c');
+  AssertExpression('Inner then is 1',Inner.ThenExpr,pekNumber,'1');
+  AssertExpression('Inner else is 2',Inner.ElseExpr,pekNumber,'2');
+  AssertExpression('Else is 3',I.ElseExpr,pekNumber,'3');
+  AssertEquals('Declaration','if b then if c then 1 else 2 else 3',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestIfExprPrecedence;
+
+var
+  I : TIfExpr;
+  L, R : TPasExpr;
+
+begin
+  // if-expression has the lowest precedence: the else-part extends as far as possible
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  ParseExpression('1 + if b then 2 else 3 + 4');
+  AssertBinaryExpr('Outer is +',eopAdd,FLeft,FRight);
+  AssertExpression('Left is 1',TheLeft,pekNumber,'1');
+  AssertExpression('Right is if',TheRight,pekIf,TIfExpr);
+  I:=TIfExpr(TheRight);
+  AssertExpression('Then is 2',I.ThenExpr,pekNumber,'2');
+  AssertBinaryExpr('Else is +',I.ElseExpr,eopAdd,L,R);
+  AssertExpression('Else left is 3',L,pekNumber,'3');
+  AssertExpression('Else right is 4',R,pekNumber,'4');
+  AssertEquals('Declaration','1 + (if b then 2 else 3 + 4)',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestIfExprInBrackets;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  ParseExpression('(if b then 1 else 2) * 3');
+  AssertBinaryExpr('Outer is *',eopMultiply,FLeft,FRight);
+  AssertExpression('Left is if',TheLeft,pekIf,TIfExpr);
+  AssertExpression('Right is 3',TheRight,pekNumber,'3');
+  AssertEquals('Declaration','(if b then 1 else 2) * 3',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestIfExprObjFPCFail;
+begin
+  // without modeswitch statementexpressions
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  SetExpression('if b then 1 else 2');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestIfExprMissingElseFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  SetExpression('if b then 1');
+  AssertException(EParserError,@ParseExpression);
+end;
+
 procedure TTestExpressions.TestBinaryIs;
 begin
   DeclareVar('boolean','a');
@@ -1182,6 +1294,8 @@ Var
 
 begin
   StartProgram(ExtractFileUnitName(MainFilename));
+  if FDirective<>'' then
+    Add(FDirective);
   if FVariables.Count=0 then
     DeclareVar('integer');
   Add('Var');

@@ -2548,6 +2548,10 @@ begin
       else ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[ExprKindNames[TParamsExpr(Expr).Kind]]);
     end;
     end
+  else if C=TIfExpr then
+    Result:='if '+ExprToText(TIfExpr(Expr).ConditionExpr)
+      +' then '+ExprToText(TIfExpr(Expr).ThenExpr)
+      +' else '+ExprToText(TIfExpr(Expr).ElseExpr)
   else
     ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,['TPasParser.ExprToText: '+Expr.ClassName]);
 end;
@@ -2831,6 +2835,7 @@ var
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
   ProcExpr: TProcedureExpr;
+  IfExpr: TIfExpr;
   AllowKWAsSubIdent : Boolean;
   OldEndExpr: set of TToken;
 
@@ -2961,6 +2966,24 @@ begin
         begin
         CheckToken(tkBraceClose);
         end;
+      end;
+    tkif:
+      begin
+      // if-expression: if Cond then A else B
+      if not (msStatementExpressions in CurrentModeswitches) then
+        ParseExcExpectedIdentifier;
+      IfExpr:=TIfExpr(CreateElement(TIfExpr,'',AParent,CurTokenPos));
+      NextToken;
+      IfExpr.ConditionExpr:=DoParseExpression(IfExpr);
+      CheckToken(tkthen);
+      NextToken;
+      IfExpr.ThenExpr:=DoParseExpression(IfExpr);
+      CheckToken(tkelse);
+      NextToken;
+      // lowest precedence: the else-part extends as far as possible
+      IfExpr.ElseExpr:=DoParseExpression(IfExpr);
+      // no postfix operators, CurToken is already the token behind the expression
+      exit(IfExpr);
       end
   else
     ParseExcExpectedIdentifier;

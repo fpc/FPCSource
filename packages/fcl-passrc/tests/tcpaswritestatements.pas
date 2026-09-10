@@ -98,6 +98,7 @@ type
         procedure TestIf;
         procedure TestIfIsNot;
         procedure TestIfNotIn;
+        procedure TestIfExpr;
         procedure TestIfBlock;
         procedure TestIfAssignment;
         procedure TestIfElse;
@@ -804,6 +805,39 @@ begin
       '',
       'begin',
       '  if a not in [1, 2] then;',
+      'end.',
+      '']),
+      PasProgram);
+end;
+
+procedure TTestStatementWriterIf.TestIfExpr;
+begin
+    Source.Add('{$MODE DELPHI}');
+    Source.Add('var');
+    Source.Add('  a: Integer;');
+    Source.Add('  b: Boolean;');
+    Source.Add('begin');
+    Source.Add('  a := if b then 1 else 2;');
+    Source.Add('  a := 1 + (if b then 2 else 3) * 4;');
+    Source.Add('  if b then a := if b then 1 else 2 else a := 3;');
+    Source.Add('end.');
+    ParseModule;
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  a: Integer;',
+      '  b: Boolean;',
+      '',
+      'begin',
+      '  a := if b then 1 else 2;',
+      '  a := 1 + (if b then 2 else 3) * 4;',
+      '  if b then',
+      '  begin',
+      '    a := if b then 1 else 2;',
+      '  end else',
+      '    a := 3;',
       'end.',
       '']),
       PasProgram);

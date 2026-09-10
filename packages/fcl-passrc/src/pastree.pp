@@ -209,7 +209,7 @@ type
   TPasExprKind = (pekIdent, pekNumber, pekString, pekStringMultiLine, pekSet,
      pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
-     pekInherited, pekSelf, pekSpecialize, pekProcedure, pekNamedArg);
+     pekInherited, pekSelf, pekSpecialize, pekProcedure, pekNamedArg, pekIf);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide{/}, eopDiv{div},eopMod, eopPower,// arithmetic
@@ -1401,6 +1401,20 @@ type
       const Arg: Pointer); override;
   end;
 
+  { TIfExpr }
+
+  TIfExpr = class(TPasExpr)
+  public
+    ConditionExpr: TPasExpr;
+    ThenExpr: TPasExpr;
+    ElseExpr: TPasExpr;
+    constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
+    procedure FreeChildren(Prepare: boolean); override;
+    function GetDeclaration(full: Boolean): TPasTreeString; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  end;
+
   { TPasMethodResolution }
 
   TPasMethodResolution = class(TPasElement)
@@ -1873,7 +1887,8 @@ const
       'Self',
       'Specialize',
       'Procedure',
-      'NamedArg');
+      'NamedArg',
+      'If');
 
   OpcodeStrings : Array[TExprOpCode] of TPasTreeString = (
         '','+','-','*','/','div','mod','**',
@@ -2668,6 +2683,45 @@ procedure TProcedureExpr.ForEachCall(const aMethodCall: TOnForEachPasElement;
 begin
   inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,Proc,false);
+end;
+
+{ TIfExpr }
+
+constructor TIfExpr.Create(const AName: TPasTreeString; AParent: TPasElement);
+begin
+  inherited Create(AName,AParent);
+  Kind:=pekIf;
+  OpCode:=eopNone;
+end;
+
+procedure TIfExpr.FreeChildren(Prepare: boolean);
+begin
+  ConditionExpr:=TPasExpr(FreeChild(ConditionExpr,Prepare));
+  ThenExpr:=TPasExpr(FreeChild(ThenExpr,Prepare));
+  ElseExpr:=TPasExpr(FreeChild(ElseExpr,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+function TIfExpr.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:='if ';
+  if ConditionExpr<>nil then
+    Result:=Result+ConditionExpr.GetDeclaration(full);
+  Result:=Result+' then ';
+  if ThenExpr<>nil then
+    Result:=Result+ThenExpr.GetDeclaration(full);
+  Result:=Result+' else ';
+  if ElseExpr<>nil then
+    Result:=Result+ElseExpr.GetDeclaration(full);
+end;
+
+procedure TIfExpr.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,ConditionExpr,false);
+  ForEachChildCall(aMethodCall,Arg,ThenExpr,false);
+  ForEachChildCall(aMethodCall,Arg,ElseExpr,false);
 end;
 
 { TPasImplRaise }
@@ -5995,8 +6049,6 @@ begin
   if full then ;
 end;
 
-
-
 { TUnaryExpr }
 
 function TUnaryExpr.GetDeclaration(full: Boolean): TPasTreeString;
@@ -6009,7 +6061,13 @@ begin
   if OpCode in WordOpCodes  then
     Result:=Result+' ';
   If Assigned(Operand) then
-    Result:=Result+' '+Operand.GetDeclaration(Full);
+    begin
+    if Operand is TIfExpr then
+      // if-expression has lowest precedence
+      Result:=Result+' ('+Operand.GetDeclaration(Full)+')'
+    else
+      Result:=Result+' '+Operand.GetDeclaration(Full);
+    end;
 end;
 
 constructor TUnaryExpr.Create(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode);
@@ -6035,6 +6093,7 @@ end;
 { TBinaryExpr }
 
 function TBinaryExpr.GetDeclaration(full: Boolean): TPasTreeString;
+
   function OpLevel(op: TPasExpr): Integer;
   begin
     case op.OpCode of
@@ -6055,6 +6114,7 @@ function TBinaryExpr.GetDeclaration(full: Boolean): TPasTreeString;
       Result := 5; // Numbers and Identifiers
     end;
   end;
+
 var op: TPasTreeString;
 begin
   If Kind=pekRange then
@@ -6068,7 +6128,7 @@ begin
   If Assigned(Left) then
   begin
     op := Left.GetDeclaration(Full);
-    if OpLevel(Left) < OpLevel(Self) then
+    if (OpLevel(Left) < OpLevel(Self)) or (Left is TIfExpr) then
       Result := '(' + op + ')' + Result
     else
       Result := op + Result;
@@ -6076,7 +6136,8 @@ begin
   If Assigned(Right) then
   begin
     op := Right.GetDeclaration(Full);
-    if OpLevel(Left) < OpLevel(Self) then
+    // if-expression has lowest precedence, its else-part would swallow the rest
+    if (OpLevel(Left) < OpLevel(Self)) or (Right is TIfExpr) then
       Result := Result + '(' + op + ')'
     else
       Result := Result + op;
@@ -6186,7 +6247,12 @@ begin
   else
     Result := '(' + Result + ')';
   if full and Assigned(Value) then
-    Result:=Value.GetDeclaration(True)+Result;
+    begin
+    if Value is TIfExpr then
+      Result:='('+Value.GetDeclaration(True)+')'+Result
+    else
+      Result:=Value.GetDeclaration(True)+Result;
+    end;
 end;
 
 procedure TParamsExpr.AddParam(xp:TPasExpr);

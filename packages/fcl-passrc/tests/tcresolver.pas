@@ -385,6 +385,23 @@ type
     Procedure TestAssign_Access;
     Procedure TestAssignedIntFail;
 
+    // if-expression
+    Procedure TestIfExpr;
+    Procedure TestIfExpr_CondNotBoolFail;
+    Procedure TestIfExpr_IntAndStringFail;
+    Procedure TestIfExpr_NilAndIntFail;
+    Procedure TestIfExpr_AssignFail;
+    Procedure TestIfExpr_ConstEval;
+    Procedure TestIfExpr_Generic;
+    Procedure TestIfExpr_CommonAncestor;
+    Procedure TestIfExpr_ClassRef;
+    Procedure TestIfExpr_ClassRefDescendantFail;
+    Procedure TestIfExpr_ClassRefAndInstanceFail;
+    Procedure TestIfExpr_ShortStrings;
+    Procedure TestIfExpr_Variant;
+    Procedure TestIfExpr_CharOverloadWideChar;
+    Procedure TestIfExpr_FloatConstOverloadDouble;
+
     // misc built-in functions
     Procedure TestHighLow;
     Procedure TestStr_BaseTypes;
@@ -4334,6 +4351,351 @@ begin
   '']);
   CheckResolverException('set of TFlag expected, but set of TAnimal found',
     nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestIfExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class end;',
+  '  TDog = class(TAnimal) end;',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  '  by: byte;',
+  '  s: string;',
+  '  c: char;',
+  '  a: TAnimal;',
+  '  d: TDog;',
+  'function GetStr: string;',
+  'begin',
+  'end;',
+  'begin',
+  '  s:=if b then ''yes'' else ''no'';',
+  '  s:=if b then c else s;',
+  '  s:=if b then ''a'' else ''abc'';',
+  '  i:=if b then by else i;',
+  '  i:=if b then 1 else if i>2 then 3 else 4;',
+  '  i:=1+if b then 2 else 3;',
+  '  a:=if b then a else d;',
+  '  a:=if b then d else a;',
+  '  a:=if b then d else nil;',
+  '  a:=if b then nil else d;',
+  '  s:=if b then GetStr else ''x'';',
+  '  if (if b then i else by)>3 then ;',
+  '  if if b then true else false then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIfExpr_CondNotBoolFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  i:=if i then 1 else 2;',
+  '']);
+  CheckResolverException('Boolean expected, but Longint found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestIfExpr_IntAndStringFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  s:=if b then 1 else ''abc'';',
+  '']);
+  CheckResolverException('Incompatible types: "Longint" and "String"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestIfExpr_NilAndIntFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  b: boolean;',
+  '  p: pointer;',
+  'begin',
+  '  p:=if b then nil else 1;',
+  '']);
+  CheckResolverException('Incompatible types: "Nil" and "Longint"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestIfExpr_AssignFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  'begin',
+  '  (if b then i else i):=3;',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestIfExpr_ConstEval;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type TMyInt = 0..0;',
+  'const',
+  '  c = if 3>2 then 1 else 0;',
+  '  d = if 3<2 then 1 else 0;',
+  'var i: TMyInt;',
+  'begin',
+  '  i:=d;',
+  '  i:=c;']);
+  ParseProgram;
+  // only c is 1, which is out of range
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (1 is not between 0 and 0)');
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestIfExpr_Generic;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '    function Pick(b: boolean; x, y: T): T;',
+  '  end;',
+  'function TBird<T>.Pick(b: boolean; x, y: T): T;',
+  'begin',
+  '  Result:=if b then x else y;',
+  'end;',
+  'var',
+  '  Bird: TBird<word>;',
+  '  w: word;',
+  'begin',
+  '  w:=Bird.Pick(true,1,2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIfExpr_CommonAncestor;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '  end;',
+  '  TAnt = class(TAnimal)',
+  '  end;',
+  'procedure Eat(Animal: TAnimal);',
+  'begin',
+  'end;',
+  'var',
+  '  b: boolean;',
+  '  Ant: TAnt;',
+  '  Bird: TBird;',
+  'begin',
+  '  Eat(if b then Ant else Bird);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIfExpr_ClassRef;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '  end;',
+  '  TAnt = class(TAnimal)',
+  '  end;',
+  '  TAnimalClass = class of TAnimal;',
+  '  TAntClass = class of TAnt;',
+  '  TBirdClass = class of TBird;',
+  'procedure Eat(AnimalClass: TAnimalClass);',
+  'begin',
+  'end;',
+  'var',
+  '  b: boolean;',
+  '  AnimalClass: TAnimalClass;',
+  '  AntClass: TAntClass;',
+  '  BirdClass: TBirdClass;',
+  'begin',
+  '  AnimalClass:=if b then TAnt else TBird;',
+  '  Eat(if b then TAnt else TBird);',
+  '  Eat(if b then TAnimal else TAnt);',
+  '  AnimalClass:=if b then AntClass else BirdClass;',
+  '  AnimalClass:=if b then TAnt else BirdClass;',
+  '  AnimalClass:=if b then nil else TAnt;',
+  '  AnimalClass:=if b then TAnt else nil;',
+  '  AntClass:=if b then TAnt else AntClass;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIfExpr_ClassRefDescendantFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '  end;',
+  '  TAnt = class(TAnimal)',
+  '  end;',
+  '  TAntClass = class of TAnt;',
+  'var',
+  '  b: boolean;',
+  '  AntClass: TAntClass;',
+  'begin',
+  '  AntClass:=if b then TAnt else TBird;',
+  '']);
+  CheckResolverException('Incompatible types: got "TAnimal" expected "class of afile.TAnt"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestIfExpr_ClassRefAndInstanceFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class',
+  '  end;',
+  '  TAntClass = class of TAnt;',
+  'var',
+  '  b: boolean;',
+  '  Ant: TAnt;',
+  '  AntClass: TAntClass;',
+  'begin',
+  '  AntClass:=if b then TAnt else Ant;',
+  '']);
+  CheckResolverException('Incompatible types: "class TAnt" and "TAnt"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestIfExpr_ShortStrings;
+
+  procedure CheckResultType(Index: integer; Expected: TResolverBaseType);
+  var
+    Assign: TPasImplAssign;
+    IfResolved: TPasResolverResult;
+  begin
+    Assign:=TObject(Module.InitializationSection.Elements[Index]) as TPasImplAssign;
+    ResolverEngine.ComputeElement(Assign.Right as TIfExpr,IfResolved,[]);
+    AssertEquals('statement '+IntToStr(Index)+' type',
+      ResBaseTypeNames[Expected],ResBaseTypeNames[IfResolved.BaseType]);
+  end;
+
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'const MaxLen = 7;',
+  'type TShortStr = string[20];',
+  'var',
+  '  aBool: boolean;',
+  '  aString: string;',
+  '  aShortString3: string[3];',
+  '  aShortString5: string[5];',
+  '  aShortString7: string[MaxLen];',
+  '  aShortStr20, aShortStr20b: TShortStr;',
+  '  aShortString: ShortString;',
+  'begin',
+  '  aString:=if aBool then aShortString3 else aShortString5;',
+  '  aString:=if aBool then aShortString5 else aShortString7;',
+  '  aString:=if aBool then aShortStr20 else aShortString;',
+  '  aString:=if aBool then aShortString3 else aShortString3;',
+  '  aString:=if aBool then aShortStr20 else aShortStr20b;',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+  // two different shortstrings -> String
+  CheckResultType(0,btString);
+  CheckResultType(1,btString);
+  CheckResultType(2,btString);
+  // same shortstring type -> keep it
+  CheckResultType(3,btShortString);
+  CheckResultType(4,btShortString);
+end;
+
+procedure TTestResolver.TestIfExpr_Variant;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  aBool: boolean;',
+  '  aVariant: Variant;',
+  'begin',
+  '  aVariant:=if aBool then ''Foo'' else Variant(''Bar'');',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestIfExpr_CharOverloadWideChar;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Fly(c: AnsiChar); overload;',
+  'begin',
+  'end;',
+  'procedure {#W}Fly(c: WideChar); overload;',
+  'begin',
+  'end;',
+  'var aBool: boolean;',
+  'begin',
+  '  {@W}Fly(if aBool then #65 else WideChar(''A''));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIfExpr_FloatConstOverloadDouble;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#D}Fly(d: double); overload;',
+  'begin',
+  'end;',
+  'procedure {#S}Fly(s: single); overload;',
+  'begin',
+  'end;',
+  'var b: boolean;',
+  'begin',
+  '  {@S}Fly(if b then single(1.5) else single(2.5));',
+  '  {@D}Fly(if b then 1.5 else 2.5);',
+  '  {@S}Fly(if b then single(1.5) else 2);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestEnumParams;

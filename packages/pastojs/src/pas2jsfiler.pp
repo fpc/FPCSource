@@ -112,7 +112,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 9;
+  PCUVersion = 8;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -124,8 +124,7 @@ const
     5: removed modeswitch ignoreattributes
     6: default DispatchField=Msg, DispatchStrField=MsgStr
     7: InitializationSection JS replaced with Body, Empty
-    8: added TExprOpCode eopIsNot ("is not" operator)
-    9: added TExprOpCode eopNotIn ("not in" operator)
+    8: added eopIsNot, eopNotIn, TIfExpr, pekIf and modeswitch StatementExpressions
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -235,7 +234,8 @@ const
     'OmitRTTI',
     'MultilineStrings',
     'DelphiMultilineStrings',
-    'InlineVars'
+    'InlineVars',
+    'StatementExpressions'
     ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
@@ -378,7 +378,8 @@ const
     'Self',
     'Specialize',
     'Procedure',
-    'NamedArg');
+    'NamedArg',
+    'If');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',
@@ -903,6 +904,7 @@ type
     procedure WriteBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUWriterContext); virtual;
+    procedure WriteIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUWriterContext); virtual;
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
@@ -1220,6 +1222,7 @@ type
     procedure ReadBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUReaderContext); virtual;
+    procedure ReadIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUReaderContext); virtual;
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
@@ -1711,6 +1714,7 @@ begin
     msImplicitFunctionSpec: Result:=50;
     msMultiLineStrings: Result:=51;
     msDelphiMultiLineStrings: Result:=52;
+    msStatementExpressions: Result:=53;
   else
     Result:=0;
   end;
@@ -3704,6 +3708,11 @@ begin
     Obj.Add('Type','ProcExpr');
     WriteProcedureExpr(Obj,TProcedureExpr(El),aContext);
     end
+  else if C=TIfExpr then
+    begin
+    Obj.Add('Type','IfExpr');
+    WriteIfExpr(Obj,TIfExpr(El),aContext);
+    end
   else if C=TRecordValues then
     begin
     Obj.Add('Type','RecValues');
@@ -4039,6 +4048,15 @@ procedure TPCUWriter.WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr;
 begin
   WritePasExpr(Obj,Expr,Expr.Kind,eopNone,aContext);
   WriteElementProperty(Obj,Expr,'Proc',Expr.Proc,aContext);
+end;
+
+procedure TPCUWriter.WriteIfExpr(Obj: TJSONObject; Expr: TIfExpr;
+  aContext: TPCUWriterContext);
+begin
+  WritePasExpr(Obj,Expr,pekIf,eopNone,aContext);
+  WriteExpr(Obj,Expr,'Cond',Expr.ConditionExpr,aContext);
+  WriteExpr(Obj,Expr,'Then',Expr.ThenExpr,aContext);
+  WriteExpr(Obj,Expr,'Else',Expr.ElseExpr,aContext);
 end;
 
 procedure TPCUWriter.WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues;
@@ -8020,6 +8038,8 @@ begin
     ReadParams(pekSet);
   'ProcExpr':
     Result:=CreateElement(TProcedureExpr,Name,Parent);
+  'IfExpr':
+    Result:=CreateElement(TIfExpr,'',Parent);
   'RecValues':
     begin
     Result:=CreateElement(TRecordValues,'',Parent);
@@ -8171,6 +8191,8 @@ begin
     ReadParamsExpr(Obj,TParamsExpr(El),aContext)
   else if C=TProcedureExpr then
     ReadProcedureExpr(Obj,TProcedureExpr(El),aContext)
+  else if C=TIfExpr then
+    ReadIfExpr(Obj,TIfExpr(El),aContext)
   else if C=TRecordValues then
     ReadRecordValues(Obj,TRecordValues(El),aContext)
   else if C=TArrayValues then
@@ -8437,6 +8459,15 @@ procedure TPCUReader.ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr;
 begin
   ReadPasExpr(Obj,Expr,Expr.Kind,aContext);
   Expr.Proc:=TPasAnonymousProcedure(ReadElementProperty(Obj,Expr,'Proc',TPasAnonymousProcedure,aContext));
+end;
+
+procedure TPCUReader.ReadIfExpr(Obj: TJSONObject; Expr: TIfExpr;
+  aContext: TPCUReaderContext);
+begin
+  ReadPasExpr(Obj,Expr,pekIf,aContext);
+  Expr.ConditionExpr:=ReadExpr(Obj,Expr,'Cond',aContext);
+  Expr.ThenExpr:=ReadExpr(Obj,Expr,'Then',aContext);
+  Expr.ElseExpr:=ReadExpr(Obj,Expr,'Else',aContext);
 end;
 
 procedure TPCUReader.ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues;

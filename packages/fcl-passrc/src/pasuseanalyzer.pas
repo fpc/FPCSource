@@ -1925,6 +1925,12 @@ begin
     UseInheritedExpr(TInheritedExpr(El))
   else if C=TProcedureExpr then
     UseProcedure(TProcedureExpr(El).Proc)
+  else if C=TIfExpr then
+    begin
+    UseExpr(TIfExpr(El).ConditionExpr);
+    UseExpr(TIfExpr(El).ThenExpr);
+    UseExpr(TIfExpr(El).ElseExpr);
+    end
   else if C=TInlineSpecializeExpr then
     UseInlineSpecializeExpr(TInlineSpecializeExpr(El))
   else

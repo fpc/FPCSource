@@ -73,6 +73,7 @@ type
     procedure TestM_RangeType;
     procedure TestM_Unary;
     procedure TestM_Const;
+    procedure TestM_IfExpr;
     procedure TestM_ResourceString;
     procedure TestM_Record;
     procedure TestM_RecordGeneric;
@@ -916,6 +917,26 @@ begin
   '  b:=true;',
   '  c:=nil;',
   '  d:=''foo'';',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_IfExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#a_used}a: longint;',
+  '  {#b_used}b: boolean;',
+  '  {#c_used}c: longint;',
+  '  {#d_used}d: longint;',
+  '  {#e_notused}e: longint;',
+  'begin',
+  '  a:=if b then c else d;',
   'end;',
   'begin',
   '  DoIt;']);

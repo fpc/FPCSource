@@ -110,6 +110,7 @@ type
     procedure CheckRestoredBoolConstExpr(const Path: string; Orig, Rest: TBoolConstExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredParamsExpr(const Path: string; Orig, Rest: TParamsExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredProcedureExpr(const Path: string; Orig, Rest: TProcedureExpr; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredIfExpr(const Path: string; Orig, Rest: TIfExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredRecordValues(const Path: string; Orig, Rest: TRecordValues; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPasExprArray(const Path: string; Orig, Rest: TPasExprArray; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues; Flags: TPCCheckFlags); virtual;
@@ -176,6 +177,7 @@ type
     procedure TestPC_EmptyUnit;
 
     procedure TestPC_Const;
+    procedure TestPC_IfExpr;
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
@@ -1469,6 +1471,8 @@ begin
     CheckRestoredParamsExpr(Path,TParamsExpr(Orig),TParamsExpr(Rest),Flags)
   else if C=TProcedureExpr then
     CheckRestoredProcedureExpr(Path,TProcedureExpr(Orig),TProcedureExpr(Rest),Flags)
+  else if C=TIfExpr then
+    CheckRestoredIfExpr(Path,TIfExpr(Orig),TIfExpr(Rest),Flags)
   else if C=TRecordValues then
     CheckRestoredRecordValues(Path,TRecordValues(Orig),TRecordValues(Rest),Flags)
   else if C=TArrayValues then
@@ -1717,6 +1721,15 @@ procedure TCustomTestPrecompile.CheckRestoredProcedureExpr(const Path: string;
   Orig, Rest: TProcedureExpr; Flags: TPCCheckFlags);
 begin
   CheckRestoredProcedure(Path+'$Ano',Orig.Proc,Rest.Proc,Flags);
+  CheckRestoredPasExpr(Path,Orig,Rest,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredIfExpr(const Path: string; Orig,
+  Rest: TIfExpr; Flags: TPCCheckFlags);
+begin
+  CheckRestoredElement(Path+'.Cond',Orig.ConditionExpr,Rest.ConditionExpr,Flags);
+  CheckRestoredElement(Path+'.Then',Orig.ThenExpr,Rest.ThenExpr,Flags);
+  CheckRestoredElement(Path+'.Else',Orig.ElseExpr,Rest.ElseExpr,Flags);
   CheckRestoredPasExpr(Path,Orig,Rest,Flags);
 end;
 
@@ -2275,6 +2288,25 @@ begin
   'resourcestring',
   '  rs = ''rs'';',
   'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_IfExpr;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'const',
+  '  c = if 3>2 then 1 else 2;',
+  'var',
+  '  b: boolean;',
+  'function F: longint;',
+  'implementation',
+  'function F: longint;',
+  'begin',
+  '  Result:=if b then 1 else 2;',
+  'end;']);
   WriteReadUnit;
 end;
 
