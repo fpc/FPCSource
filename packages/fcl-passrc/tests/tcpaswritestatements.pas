@@ -97,6 +97,7 @@ type
     published
         procedure TestIf;
         procedure TestIfIsNot;
+        procedure TestIfNotIn;
         procedure TestIfBlock;
         procedure TestIfAssignment;
         procedure TestIfElse;
@@ -775,6 +776,34 @@ begin
       '',
       'begin',
       '  if a is not TObject then;',
+      'end.',
+      '']),
+      PasProgram);
+end;
+
+procedure TTestStatementWriterIf.TestIfNotIn;
+
+var
+    I: TPasImplIfElse;
+    B: TBinaryExpr;
+
+begin
+    DeclareVar('Integer');
+    TestStatement(['if a not in [1,2] then', ';']);
+    I := AssertStatement('If statement', TPasImplIfElse) as TPasImplIfElse;
+    B := AssertExpression('IF condition', I.ConditionExpr, eopNotIn);
+    AssertExpression('Left', B.Left, pekIdent, 'a');
+    AssertEquals('Right is set', TParamsExpr, B.Right.ClassType);
+
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  A: Integer;',
+      '',
+      'begin',
+      '  if a not in [1, 2] then;',
       'end.',
       '']),
       PasProgram);

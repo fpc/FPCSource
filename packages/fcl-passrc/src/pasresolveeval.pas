@@ -15,47 +15,6 @@
 
 Abstract:
   Evaluation of Pascal constants.
-
-Works:
-- Emitting range check warnings
-- Error on overflow
-- bool:
-  - not, =, <>, and, or, xor, low(), high(), pred(), succ(), ord()
-  - boolean(0), boolean(1)
-- int/uint
-  - unary +, -
-  - binary: +, -, *, div, mod, ^^, =, <>, <, >, <=, >=, and, or, xor, not, shl, shr
-  - Low(), High(), Pred(), Succ(), Ord(), Lo(), Hi()
-  - typecast longint(-1), word(-2), intsingle(-1), uintsingle(1)
-- float:
-  - typecast single(double), double(single), float(integer)
-  - +, -, /, *, =, <>, <, >, <=, >=
-- string:
-  - #65, '', 'a', 'ab'
-  - +, =, <>, <, >, <=, >=
-  - pred(), succ(), chr(), ord(), low(AnsiChar), high(AnsiChar)
-  - s[]
-  - length(string)
-  - #$DC00
-  - unicodestring
-- enum
-  - ord(), low(), high(), pred(), succ()
-  - typecast enumtype(integer)
-- set of enum, set of AnsiChar, set of bool, set of int
-  - [a,b,c..d]
-  - +, -, *, ><, =, <>, >=, <=, in
-  - error on duplicate in const set
-- arrays
-  - length()
-  - array of int, charm enum, bool
-
-ToDo:
-- arrays
-  - [], [a..b], multi dim [a,b], concat with +
-  - array of record
-  - array of string
-  - error on: array[1..2] of longint = (1,2,3);
-- anonymous enum range: type f=(a,b,c,d); g=b..c;
 }
 {$IFNDEF FPC_DOTTEDUNITS}
 unit PasResolveEval;
@@ -1687,6 +1646,11 @@ begin
         Result:=EvalBinaryLessGreaterExpr(Expr,LeftValue,RightValue);
       eopIn:
         Result:=EvalBinaryInExpr(Expr,LeftValue,RightValue);
+      eopNotIn:
+        begin
+        Result:=EvalBinaryInExpr(Expr,LeftValue,RightValue);
+        TResEvalBool(Result).B:=not TResEvalBool(Result).B;
+        end;
       eopSymmetricaldifference:
         Result:=EvalBinarySymmetricaldifferenceExpr(Expr,LeftValue,RightValue);
       else

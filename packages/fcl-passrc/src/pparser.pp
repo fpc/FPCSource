@@ -3133,7 +3133,7 @@ function TPasParser.DoParseExpression(AParent: TPaselement; InitExpr: TPasExpr;
 type
   TOpStackItem = record
     Token: TToken;
-    Negated: Boolean; // tkis followed by tknot, i.e. "is not"
+    Negated: Boolean; // tkis: "is not", tkin: "not in"
     SrcPos: TPasSourcePos;
   end;
 
@@ -3211,9 +3211,10 @@ const
       bin:=CreateBinaryExpr(AParent,xleft,xright,eopNone,SrcPos);
       bin.Kind:=pekRange;
       end
-    else if IsNegated then
-      // "is not"
+    else if IsNegated and (t=tkis) then
       bin:=CreateBinaryExpr(AParent,xleft,xright,eopIsNot,SrcPos)
+    else if IsNegated and (t=tkin) then
+      bin:=CreateBinaryExpr(AParent,xleft,xright,eopNotIn,SrcPos)
     else
       bin:=CreateBinaryExpr(AParent,xleft,xright,TokenToExprOp(t),SrcPos);
     ExpStack.Add(bin);
@@ -3221,7 +3222,8 @@ const
 
 Var
   AllowedBinaryOps : Set of TToken;
-  SrcPos: TPasSourcePos;
+  SrcPos, NotSrcPos: TPasSourcePos;
+  IsNotIn: Boolean;
 
 begin
   AllowedBinaryOps:=BinaryOP-FEndExprTokenExtra;
@@ -3306,6 +3308,17 @@ begin
         ExpStack.Add(InitExpr);
         InitExpr:=nil;
         end;
+      IsNotIn:=false;
+      if (CurToken=tknot) and (tkin in AllowedBinaryOps) then
+        begin
+        // a "not" after an operand can only be the start of "not in"
+        NotSrcPos:=CurTokenPos;
+        NextToken;
+        if CurToken=tkin then
+          IsNotIn:=true
+        else
+          UngetToken;
+        end;
       if (CurToken in AllowedBinaryOPs) then
         begin
         // process operators of higher precedence than next operator
@@ -3316,6 +3329,12 @@ begin
           TempOp:=PeekOper;
         end;
         PushOper(CurToken);
+        if IsNotIn then
+          begin
+          // "not in": same precedence as "in", element starts at the "not"
+          OpStack[OpStackTop].Negated:=true;
+          OpStack[OpStackTop].SrcPos:=NotSrcPos;
+          end;
         NextToken;
         if (OpStack[OpStackTop].Token=tkis) and (CurToken=tknot) then
           begin

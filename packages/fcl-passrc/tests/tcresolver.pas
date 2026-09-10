@@ -295,6 +295,7 @@ type
     Procedure TestIntegerRangeHighLowerLowFail;
     Procedure TestIntegerRangeLowHigh;
     Procedure TestAssignIntRangeWarning;
+    Procedure TestConstNotInEval;
     Procedure TestByteRangeWarning;
     Procedure TestByteRangeWarningOff;
     Procedure TestCustomIntRangeWarning;
@@ -325,6 +326,7 @@ type
     Procedure TestEnumDotValueFail;
     Procedure TestSets;
     Procedure TestSetOperators;
+    Procedure TestSet_NotInOtherEnumFail;
     Procedure TestEnumParams;
     Procedure TestSetParams;
     Procedure TestSetFunctions;
@@ -3756,6 +3758,25 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestConstNotInEval;
+begin
+  StartProgram(false);
+  Add([
+  'type TMyInt = 0..0;',
+  'const',
+  '  c = 3 not in [1,2];',
+  '  d = 2 not in [1,2];',
+  'var i: TMyInt;',
+  'begin',
+  '  i:=ord(d);',
+  '  i:=ord(c);']);
+  ParseProgram;
+  // only c is true, i.e. ord(c)=1 is out of range
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (1 is not between 0 and 0)');
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestByteRangeWarning;
 begin
   StartProgram(false);
@@ -4263,6 +4284,9 @@ begin
   Add('  if {@Green}Green in {@s}s then ;');
   Add('  if {@Blue}Blue in {@Colors}Colors then ;');
   Add('  if {@f}f in {@ExtColors}ExtColors then ;');
+  Add('  if {@Green}Green not in {@s}s then ;');
+  Add('  if {@f}f not in {@ExtColors}ExtColors then ;');
+  Add('  if ({@f}f not in {@s}s) and ({@f}f not in [{@Red}Red]) then ;');
   Add('  {@s}s:={@s}s * {@Colors}Colors;');
   Add('  {@s}s:={@Colors}Colors * {@s}s;');
   Add('  {@s}s:={@ExtColors}ExtColors * {@Colors}Colors;');
@@ -4275,6 +4299,9 @@ begin
   Add('  if ''p'' in {@Chars}Chars then ; ');
   Add('  if 7 in {@MyInts}MyInts then ; ');
   Add('  if 7 in [1+2,(3*4)+5,(-2+6)..(8-3)] then ; ');
+  Add('  if ''p'' not in {@Chars}Chars then ; ');
+  Add('  if 7 not in {@MyInts}MyInts then ; ');
+  Add('  if true not in {@MyBools}MyBools then ; ');
   Add('  if [red,blue]*s=[red,blue] then ;');
   Add('  if {@s}s = t then;');
   Add('  if {@s}s = {@Colors}Colors then;');
@@ -4289,6 +4316,24 @@ begin
   Add('  if {@s}s >= {@Colors}Colors then;');
   Add('  if {@Colors}Colors >= {@s}s then;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestSet_NotInOtherEnumFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFlag = (Red, Green);',
+  '  TAnimal = (Cat, Dog);',
+  '  TAnimals = set of TAnimal;',
+  'var',
+  '  f: TFlag;',
+  '  a: TAnimals;',
+  'begin',
+  '  if f not in a then ;',
+  '']);
+  CheckResolverException('set of TFlag expected, but set of TAnimal found',
+    nXExpectedButYFound);
 end;
 
 procedure TTestResolver.TestEnumParams;

@@ -13533,6 +13533,7 @@ begin
   eopLessthanEqual,
   eopGreaterThanEqual,
   eopIn,
+  eopNotIn,
   eopIs,
   eopIsNot,
   eopAs,
@@ -16654,7 +16655,7 @@ begin
     case Bin.OpCode of
     eopEqual, eopNotEqual,
     eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual,
-    eopIn,eopIs,eopIsNot:
+    eopIn,eopNotIn,eopIs,eopIsNot:
       begin
       SetBaseType(btBoolean);
       exit;
@@ -16735,7 +16736,7 @@ begin
           end
         else if (RightResolved.BaseType in [btSet,btArrayOrSet]) then
           begin
-          if (Bin.OpCode=eopIn) and (RightResolved.SubType in btAllInteger) then
+          if (Bin.OpCode in [eopIn,eopNotIn]) and (RightResolved.SubType in btAllInteger) then
             begin
             SetBaseType(btBoolean);
             exit;
@@ -16801,7 +16802,7 @@ begin
         and (RightResolved.SubType in btAllBooleans) then
       // boolean in set of boolean (mirrors the char-in-set-of-char path)
       case Bin.OpCode of
-      eopIn:
+      eopIn,eopNotIn:
         begin
         SetBaseType(btBoolean);
         exit;
@@ -16881,7 +16882,7 @@ begin
           and (LeftResolved.BaseType in btAllChars) then
         begin
         case Bin.OpCode of
-        eopIn:
+        eopIn,eopNotIn:
           begin
           SetBaseType(btBoolean);
           exit;
@@ -17002,7 +17003,7 @@ begin
           exit;
           end;
         end;
-    eopIn:
+    eopIn,eopNotIn:
       if (rrfReadable in LeftResolved.Flags)
       and (rrfReadable in RightResolved.Flags) then
         begin

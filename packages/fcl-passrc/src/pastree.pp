@@ -217,7 +217,7 @@ type
                  eopNot,eopAnd,eopOr,eopXor, // logical/bit
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
-                 eopIn,eopIs,eopIsNot,eopAs, eopSymmetricaldifference, // Specials
+                 eopIn,eopNotIn,eopIs,eopIsNot,eopAs, eopSymmetricaldifference, // Specials
                  eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
 
@@ -1881,7 +1881,7 @@ const
         'not','and','or','xor',
         '=','<>',
         '<','>','<=','>=',
-        'in','is','is not','as','><',
+        'in','not in','is','is not','as','><',
         '@','^','@@',
         '.');
 
@@ -6045,8 +6045,11 @@ function TBinaryExpr.GetDeclaration(full: Boolean): TPasTreeString;
         Result := 3;
       eopAdd, eopSubtract, eopOr, eopXor:
         Result := 2;
-      eopEqual, eopNotEqual, eopLessThan, eopLessthanEqual, eopGreaterThan,
-      eopGreaterThanEqual, eopIn, eopIs, eopIsNot:
+      eopEqual, eopNotEqual,
+      eopLessThan, eopLessthanEqual,
+      eopGreaterThan, eopGreaterThanEqual,
+      eopIn, eopNotIn,
+      eopIs, eopIsNot:
         Result := 1;
     else
       Result := 5; // Numbers and Identifiers

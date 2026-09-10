@@ -2939,7 +2939,7 @@ begin
   if not (aExpr is TBinaryExpr) then
     Exit;
   lBinary := TBinaryExpr(aExpr);
-  if lBinary.OpCode <> eopIn then
+  if not (lBinary.OpCode in [eopIn, eopNotIn]) then
     Exit;
   if not ComputeGuarded(lBinary.Left, lRes) then
     Exit;

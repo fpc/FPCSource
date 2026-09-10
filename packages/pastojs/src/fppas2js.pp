@@ -9100,6 +9100,7 @@ Const
    TJSRelationalExpressionLE,
    TJSRelationalExpressionGE,
    Nil, // In
+   Nil, // not in
    TJSRelationalExpressionInstanceOf, // is
    TJSRelationalExpressionInstanceOf, // is not, negated below
    Nil, // As
@@ -9536,9 +9537,10 @@ begin
     Result:=Call;
     exit;
     end
-  else if (El.OpCode=eopIn) and (RightResolved.BaseType in [btSet,btArrayOrSet])  then
+  else if (El.OpCode in [eopIn,eopNotIn]) and (RightResolved.BaseType in [btSet,btArrayOrSet])  then
     begin
     // a in b -> a in b
+    // a not in b -> !(a in b)
     if not (A is TJSLiteral) or (TJSLiteral(A).Value.ValueType<>jstNumber) then
       begin
       FreeAndNil(A);
@@ -9548,6 +9550,8 @@ begin
     InOp.A:=A; A:=nil;
     InOp.B:=B; B:=nil;
     Result:=InOp;
+    if El.OpCode=eopNotIn then
+      Result:=CreateUnaryNot(Result,El);
     exit;
     end
   else if (El.OpCode=eopAdd)

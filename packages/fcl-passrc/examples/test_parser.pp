@@ -335,6 +335,7 @@ procedure GetTPasExpr(lex:TPasExpr);
     eopLessthanEqual:Result:='<=';
     eopGreaterThanEqual:Result:='>=';
     eopIn:Result:=' in ';
+    eopNotIn:Result:=' not in ';
     eopIs:Result:=' is ';
     eopIsNot:Result:=' is not ';
     eopAs:Result:=' as ';

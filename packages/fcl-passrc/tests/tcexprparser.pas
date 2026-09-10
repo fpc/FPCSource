@@ -88,6 +88,9 @@ type
     Procedure TestBinaryOr;
     Procedure TestBinaryXOr;
     Procedure TestBinaryIn;
+    Procedure TestBinaryNotIn;
+    Procedure TestBinaryNotInPrecedence;
+    Procedure TestBinaryNotInVsUnaryNot;
     Procedure TestBinaryIs;
     Procedure TestBinaryIsNot;
     Procedure TestBinaryIsNotPrecedence;
@@ -899,6 +902,47 @@ begin
   AssertBinaryExpr('Simple binary In',eopIn,FLeft,FRight);
   AssertExpression('Left is 1',TheLeft,pekNumber,'1');
   AssertExpression('Right is array set',TheRight,pekSet,TParamsExpr);
+end;
+
+procedure TTestExpressions.TestBinaryNotIn;
+begin
+  DeclareVar('boolean','a');
+  ParseExpression('1 not in [1,2,3]');
+  AssertBinaryExpr('Simple binary not in',eopNotIn,FLeft,FRight);
+  AssertExpression('Left is 1',TheLeft,pekNumber,'1');
+  AssertExpression('Right is array set',TheRight,pekSet,TParamsExpr);
+  AssertEquals('Declaration','1 not in [1, 2, 3]',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestBinaryNotInPrecedence;
+
+var
+  L,R : TPasExpr;
+
+begin
+  // "not in" has the same precedence as "in", i.e. lower than "+"
+  DeclareVar('integer','a');
+  ParseExpression('a not in [1]+[2]');
+  AssertBinaryExpr('Outer is "not in"',eopNotIn,FLeft,FRight);
+  AssertExpression('Outer left is a',TheLeft,pekIdent,'a');
+  AssertBinaryExpr('Inner is +',TheRight,eopAdd,L,R);
+  AssertExpression('Inner left is set',L,pekSet,TParamsExpr);
+  AssertExpression('Inner right is set',R,pekSet,TParamsExpr);
+end;
+
+procedure TTestExpressions.TestBinaryNotInVsUnaryNot;
+
+var
+  O : TPasExpr;
+
+begin
+  // a leading "not" is still the unary operator: "not a in [true]" is "(not a) in [true]"
+  DeclareVar('boolean','a');
+  ParseExpression('not a in [true]');
+  AssertBinaryExpr('Binary in',eopIn,FLeft,FRight);
+  AssertUnaryExpr('Left is unary not',TheLeft,eopNot,O);
+  AssertExpression('Operand is a',O,pekIdent,'a');
+  AssertExpression('Right is set',TheRight,pekSet,TParamsExpr);
 end;
 
 procedure TTestExpressions.TestBinaryIs;

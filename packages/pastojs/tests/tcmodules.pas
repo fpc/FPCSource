@@ -430,6 +430,7 @@ type
     Procedure TestSet_Property;
     Procedure TestSet_EnumConst;
     Procedure TestSet_IntConst;
+    Procedure TestSet_NotIn;
     Procedure TestSet_IntRange;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
@@ -7240,6 +7241,37 @@ begin
     '$mod.Enums = rtl.createSet(null, 1, 2);',
     'if (0 in $mod.Enums) ;',
     'if (0 in rtl.createSet(0, 1)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestSet_NotIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnums = set of Byte;',
+  'const',
+  '  Orange = 0;',
+  '  c = 3 not in [1,2];',
+  'var',
+  '  Enums: tenums;',
+  '  b: boolean;',
+  'begin',
+  '  if orange not in enums then;',
+  '  if orange not in [orange,1] then;',
+  '  b:=c;']);
+  ConvertProgram;
+  CheckSource('TestSet_NotIn',
+    LinesToStr([ // statements
+    'this.Orange = 0;',
+    'this.c = !(3 in rtl.createSet(1, 2));',
+    'this.Enums = {};',
+    'this.b = false;',
+    '']),
+    LinesToStr([
+    'if (!(0 in $mod.Enums)) ;',
+    'if (!(0 in rtl.createSet(0, 1))) ;',
+    '$mod.b = true;',
     '']));
 end;
 
