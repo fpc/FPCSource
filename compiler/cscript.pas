@@ -247,7 +247,14 @@ begin
   if FileName<>'' then
    begin
      Add('SET THEFILE='+ScriptFixFileName(FileName));
+{ Workaround for buggy EMXBIND.EXE under OS/2 :-( }
+     if target_info.system = system_i386_OS2 then
+      Add('SET THEFILEBASE='+ScriptFixFileName(ChangeFileExt(FileName,'')));
      Add('echo Linking %THEFILE%');
+{ Workaround for buggy EMXBIND.EXE under OS/2 :-( }
+     if target_info.system = system_i386_OS2 then
+      Add('if exist ' + MaybeQuoted (ScriptFixFileName (FileName)) +
+          ' del ' + MaybeQuoted (ScriptFixFileName (FileName)));
    end;
   Add(maybequoted(command)+' '+Options);
   Add('if errorlevel 1 goto linkend');
@@ -269,6 +276,12 @@ end;
 Procedure TAsmScriptDos.WriteToDisk;
 Begin
   AddStart('@echo off');
+{ Workaround for buggy EMXBIND.EXE under OS/2 :-( }
+  if target_info.system = system_i386_OS2 then
+   begin
+    Add('if exist %THEFILE% goto end');
+    Add('if exist %THEFILEBASE% ren %THEFILEBASE% %THEFILE%');
+   end;
   Add('goto end');
   Add(':asmend');
   Add('echo An error occurred while assembling %THEFILE%');
