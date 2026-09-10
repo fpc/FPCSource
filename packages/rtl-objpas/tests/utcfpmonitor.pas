@@ -336,11 +336,11 @@ begin
   N:=GetTickCount64;
   TMonitor.PulseAll(Obj1);
   WaitForAllThreads(WaitTimeOut*MaxThrdCount);
-  For I:=0 to MaxThrdCount do
+  For I:=1 to MaxThrdCount do
     begin
-    AssertEquals('Thread '+IntToStr(i)+' did a Wait',toPulseAll,Obj1.Res[1].Op);
-    AssertTrue('Thread '+IntToStr(i)+' Wait was successful',Obj1.Res[1].Res);
-    AssertTrue('Thread '+IntToStr(i)+' pulse timestamp ',N<=FObj[1].Res[1].Tick);
+    AssertEquals('Thread '+IntToStr(i)+' did a Wait',toPulseAll,Obj1.Res[i].Op);
+    AssertTrue('Thread '+IntToStr(i)+' Wait was successful',Obj1.Res[i].Res);
+    AssertTrue('Thread '+IntToStr(i)+' pulse timestamp ',N<=FObj[1].Res[i].Tick);
     end;
 end;
 
