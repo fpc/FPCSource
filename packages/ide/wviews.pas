@@ -255,6 +255,7 @@ type
     TFPFileDialog = object(TFileDialog)
       constructor Init(AWildCard: TWildStr; const ATitle,
         InputName: String; AOptions: Word; HistoryId: Byte);
+      procedure SetData(var Rec); virtual;
       procedure ChangeBounds (Var Bounds: TRect); virtual;
       procedure SizeLimits (Var Min, Max: TPoint); virtual;
     end;
@@ -2841,6 +2842,9 @@ constructor TFPFileDialog.Init(AWildCard: TWildStr; const ATitle,
 var R: TRect;
   DInput  : PFPFileInputLine;
   Control : PView;
+  LabelFileName : PLabel;
+  LabelFileList : PLabel;
+  ScrollBar : PScrollBar;
   History : PHistory;
   S : String;
 begin
@@ -2850,19 +2854,90 @@ begin
   FileName^.GetBounds(R);
   DInput := New(PFPFileInputLine, Init(R, 79{FileNameLen+4}));
   DInput^.SetData(S);
-  DInput^.GrowMode:=FileName^.GrowMode;
-  InsertBefore(DInput,FileName); {insert before to preserve order as it was}
-  Delete(FileName);
-  Dispose(FileName,done);
-  FileName:=DInput;
-  FileHistory^.Link:=DInput;
+  DInput^.GrowMode:=gfGrowHiX;
+
+  LabelFileName:=nil;
+  Control:=FileName^.Prev; { Label }
+  if TypeOf(Control^) = TypeOf(TLabel) then
+  begin
+    LabelFileName:=PLabel(Control);
+    if LabelFileName^.Link = PView(FileName) then
+    else LabelFileName:=nil;
+  end;
+
+  ScrollBar:=nil;
+  Control:=FileList^.Next; {  }
+  if TypeOf(Control^) = TypeOf(TScrollBar) then
+  begin
+    ScrollBar:=PScrollBar(Control);
+  end;
+
+  LabelFileList:=nil ;
+  Control:=FileList^.Prev; { Label }
+  if TypeOf(Control^) = TypeOf(TLabel) then
+  begin
+    LabelFileList:=PLabel(Control);
+    if LabelFileList^.Link=PView(FileList) then
+    else LabelFileList:=nil;
+  end;
+
+  if (LabelFileList<>nil) and (LabelFileName<>nil) and (ScrollBar<>nil) then
+  begin
+    LabelFileName^.GrowMode:=0;
+    LabelFileName^.Link:=DInput;
+    FileHistory^.GrowMode:=gfGrowLoX or gfGrowHiX;
+    InsertBefore(DInput,FileName); {insert before to preserve order as it was}
+    Delete(FileName);
+    Dispose(FileName,done);
+    FileName:=DInput;
+    FileHistory^.Link:=DInput;
+
+    Delete(FileName);
+    Delete(LabelFileName);
+    Delete(FileList);
+    Delete(LabelFileList);
+    Delete(FileHistory);
+    Delete(ScrollBar);
+
+    { Reassign layout that corresponds to original Turbo Vision file dialog layout }
+    R.Assign(3,3,31,4);
+    FileName^.SetBounds(R);
+    R.Assign(2,2,3+LabelFileName^.Size.X,3);
+    LabelFileName^.SetBounds(R);
+    R.Assign(31,3,34,4);
+    FileHistory^.SetBounds(R);
+    R.Assign(3,14,34,15);
+    ScrollBar^.SetBounds(R);
+    R.Assign(3,6,34,14);
+    FileList^.SetBounds(R);
+    R.Assign(2,5,3+LabelFileList^.Size.X,6);
+    LabelFileList^.SetBounds(R);
+
+    InsertBefore(LabelFileList,Last);
+    InsertBefore(FileList,Last);
+    InsertBefore(ScrollBar,Last);
+    InsertBefore(FileHistory,Last);
+    InsertBefore(LabelFileName,Last);
+    InsertBefore(FileName,Last);
+  end else
+    Dispose(DInput,done);
   {resize}
   if Desktop^.Size.Y > 26 then
     GrowTo(Size.X,Desktop^.Size.Y-6);
   if Desktop^.Size.X > 70 then
     GrowTo(Min(Desktop^.Size.X-(70-Size.X),102),Size.Y);
   {set focus on the new input line}
-  DInput^.Focus;
+  FileName^.Focus;
+end;
+
+procedure TFPFileDialog.SetData(var Rec);
+begin
+  TDialog.SetData(Rec);
+  if (String(Rec) <> '') and (IsWild(TWildStr(String(Rec)))) then
+  begin
+    Valid(cmFileInit);
+    FileName^.Select;
+  end;
 end;
 
 procedure TFPFileDialog.ChangeBounds (Var Bounds: TRect);
