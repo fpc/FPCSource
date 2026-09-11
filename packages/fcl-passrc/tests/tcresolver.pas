@@ -6053,7 +6053,7 @@ begin
   'procedure TObject.DoIt;',
   'begin',
   '  s:=nameof(TObject.DoIt);',
-  '  s:=nameof(DoIt);', // Delphi does not support this
+  '  s:=nameof(DoIt);', // Delphi does not support this, maybe a bug in Delphi?
   'end;',
   'procedure Run(Arg: integer);',
   'begin',
@@ -6073,8 +6073,8 @@ begin
   '  s:=nameof(r.Field);',
   '  s:=nameof(TRec.Field);',
   '  s:=nameof(o.ClassField);',
-  '  s:=nameof(TObject.ClassField);',
-  '  s:=nameof(TObject.DoIt);',
+  // '  s:=nameof(TObject.ClassField);', not supported, works by accident
+  // '  s:=nameof(TObject.DoIt);', not supported, works by accident
   '  s:=nameof(o.Fld);',
   '  s:=nameof(o.DoIt);',
   '  s:=nameof(Run);',
