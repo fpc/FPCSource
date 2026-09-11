@@ -2330,6 +2330,7 @@ type
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_GetTypeKind(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_NameOf(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_IsConstValue(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -12346,6 +12347,7 @@ begin
           bfTypeInfo: Result:=ConvertBuiltIn_TypeInfo(El,AContext);
           bfGetTypeKind: Result:=ConvertBuiltIn_GetTypeKind(El,AContext);
           bfNameOf: Result:=ConvertBuiltIn_NameOf(El,AContext);
+          bfIsConstValue: Result:=ConvertBuiltIn_IsConstValue(El,AContext);
           bfAssert:
             begin
             Result:=ConvertBuiltIn_Assert(El,AContext);
@@ -15161,6 +15163,25 @@ begin
     if not (Value is TResEvalEnum) then
       RaiseNotSupported(El,AContext,20200826222729,GetObjName(Value));
     Result:=CreateLiteralNumber(El,TResEvalEnum(Value).Index);
+  finally
+    ReleaseEvalValue(Value);
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_IsConstValue(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// IsConstValue(Value) is a constant boolean, Value is not evaluated
+var
+  aResolver: TPas2JSResolver;
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  aResolver.BI_IsConstValue_OnEval(aResolver.BuiltInProcs[bfIsConstValue],El,[],Value);
+  try
+    if not (Value is TResEvalBool) then
+      RaiseNotSupported(El,AContext,20260911200101,'IsConstValue');
+    Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
   finally
     ReleaseEvalValue(Value);
   end;

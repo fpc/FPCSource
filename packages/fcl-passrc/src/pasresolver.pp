@@ -584,6 +584,7 @@ type
     bfDispose,
     bfDefault,
     bfNameOf,
+    bfIsConstValue,
     // Const-eval intrinsics for the native target; registered only by
     // TPasNativeResolver, left unregistered (inert) in the base/pas2js setup.
     bfSizeOf,
@@ -635,6 +636,7 @@ const
     'Dispose',
     'Default',
     'NameOf',
+    'IsConstValue',
     'SizeOf',
     'BitSizeOf',
     'Trunc',
@@ -2212,6 +2214,12 @@ type
     procedure BI_NameOf_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_NameOf_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
+    function BI_IsConstValue_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_IsConstValue_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_IsConstValue_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
     constructor Create;
@@ -27534,6 +27542,73 @@ begin
   if Flags=[] then ;
 end;
 
+function TPasResolver.BI_IsConstValue_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // check value
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags) then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20260911200001,nXExpectedButYFound,sXExpectedButYFound,
+        ['value',GetResolverResultDescription(ParamResolved)],Param);
+    exit;
+    end;
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_IsConstValue_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+begin
+  SetResolverIdentifier(ResolvedEl,btBoolean,Proc.Proc,
+                     FBaseTypes[btBoolean],FBaseTypes[btBoolean],[rrfReadable]);
+  if Params=nil then ;
+end;
+
+procedure TPasResolver.BI_IsConstValue_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+// IsConstValue(Value) is true if Value is a compile time constant.
+// Like FPC, a typed constant is not a constant value.
+var
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  Value: TResEvalValue;
+  IsConstant: boolean;
+begin
+  Evaluated:=nil;
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  IsConstant:=false;
+  if (ParamResolved.IdentEl is TPasConst)
+      and (TPasConst(ParamResolved.IdentEl).VarType<>nil) then
+    // typed const
+  else
+    begin
+    // evaluate without refConst, so that a non constant gives nil, not an error
+    Value:=Eval(Param,[],false);
+    try
+      IsConstant:=(Value<>nil) and (Value.Kind<>revkExternal);
+    finally
+      ReleaseEvalValue(Value);
+    end;
+    end;
+  Evaluated:=TResEvalBool.CreateValue(IsConstant);
+  if Proc=nil then ;
+  if Flags=[] then ;
+end;
+
 constructor TPasResolver.Create;
 begin
   inherited Create;
@@ -29524,6 +29599,10 @@ begin
     AddBuiltInProc('NameOf','function NameOf(identifier): String',
         @BI_NameOf_OnGetCallCompatibility,@BI_NameOf_OnGetCallResult,
         @BI_NameOf_OnEval,nil,bfNameOf);
+  if bfIsConstValue in TheBaseProcs then
+    AddBuiltInProc('IsConstValue','function IsConstValue(Value): Boolean',
+        @BI_IsConstValue_OnGetCallCompatibility,@BI_IsConstValue_OnGetCallResult,
+        @BI_IsConstValue_OnEval,nil,bfIsConstValue);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType

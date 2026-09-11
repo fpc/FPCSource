@@ -423,6 +423,10 @@ type
     Procedure TestNameOfArrayElementFail;
     Procedure TestNameOfNoParamsFail;
     Procedure TestNameOfTwoParamsFail;
+    Procedure TestIsConstValue;
+    Procedure TestIsConstValue_Const;
+    Procedure TestIsConstValueNoParamsFail;
+    Procedure TestIsConstValueTypeFail;
     Procedure TestTypeQualifiedInstanceMemberFail;
 
     // statements
@@ -6303,6 +6307,112 @@ begin
   '']);
   CheckResolverException('Wrong number of parameters specified for call to "function NameOf(identifier): String"',
     nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestIsConstValue;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green);',
+  'const',
+  '  c = 3;',
+  '  tc: longint = 4;',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  '  e: TEnum;',
+  'function GetIt: longint;',
+  'begin',
+  '  Result:=0;',
+  'end;',
+  'begin',
+  '  b:=IsConstValue(3);',
+  '  b:=IsConstValue(c);',
+  '  b:=IsConstValue(c+1);',
+  '  b:=IsConstValue(''abc'');',
+  '  b:=IsConstValue(Red);',
+  '  b:=IsConstValue(tc);',
+  '  b:=IsConstValue(i);',
+  '  b:=IsConstValue(i+1);',
+  '  b:=IsConstValue(e);',
+  '  b:=IsConstValue(GetIt);',
+  '  b:=IsConstValue(GetIt());',
+  '  if IsConstValue(i) then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIsConstValue_Const;
+
+  procedure CheckBool(const ConstName: string; Expected: boolean);
+  var
+    V: TResEvalValue;
+  begin
+    V:=EvalProgramConst(ConstName);
+    try
+      AssertNotNull(ConstName+' folds',V);
+      AssertEquals(ConstName+' is a boolean',ord(revkBool),ord(V.Kind));
+      AssertEquals(ConstName,Expected,TResEvalBool(V).B);
+    finally
+      ReleaseEvalValue(V);
+    end;
+  end;
+
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green);',
+  'const',
+  '  c = 3;',
+  '  tc: longint = 4;',
+  'var',
+  '  i: longint;',
+  'const',
+  '  IsLiteral = IsConstValue(3);',
+  '  IsConst = IsConstValue(c);',
+  '  IsConstExpr = IsConstValue(c*2+1);',
+  '  IsString = IsConstValue(''abc'');',
+  '  IsEnum = IsConstValue(Red);',
+  '  IsTypedConst = IsConstValue(tc);',
+  '  IsVar = IsConstValue(i);',
+  '  IsVarExpr = IsConstValue(i+1);',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckBool('IsLiteral',true);
+  CheckBool('IsConst',true);
+  CheckBool('IsConstExpr',true);
+  CheckBool('IsString',true);
+  CheckBool('IsEnum',true);
+  CheckBool('IsTypedConst',false);
+  CheckBool('IsVar',false);
+  CheckBool('IsVarExpr',false);
+end;
+
+procedure TTestResolver.TestIsConstValueNoParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  b:=IsConstValue();',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function IsConstValue(Value): Boolean"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestIsConstValueTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  b:=IsConstValue(longint);',
+  '']);
+  CheckResolverException('value expected, but Longint found',
+    nXExpectedButYFound);
 end;
 
 procedure TTestResolver.TestTypeQualifiedInstanceMemberFail;

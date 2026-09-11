@@ -303,6 +303,7 @@ type
     Procedure TestVarAbsoluteFail;
     Procedure TestConstExternal;
     Procedure TestNameOf;
+    Procedure TestIsConstValue;
 
     // numbers
     Procedure TestDouble;
@@ -8047,6 +8048,38 @@ begin
     '$mod.s = "MyField";',
     '$mod.s = "DoIt";',
     '$mod.s = $mod.c;'
+    ]));
+end;
+
+procedure TTestModule.TestIsConstValue;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  c = 3;',
+  '  IsC = IsConstValue(c);',
+  'var',
+  '  i: longint;',
+  '  b: boolean;',
+  'begin',
+  '  b:=IsConstValue(3);',
+  '  b:=IsConstValue(c+1);',
+  '  b:=IsConstValue(i);',
+  '  b:=IsC;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIsConstValue',
+    LinesToStr([
+    'this.c = 3;',
+    'this.IsC = true;',
+    'this.i = 0;',
+    'this.b = false;'
+    ]),
+    LinesToStr([
+    '$mod.b = true;',
+    '$mod.b = true;',
+    '$mod.b = false;',
+    '$mod.b = true;'
     ]));
 end;
 
