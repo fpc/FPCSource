@@ -4728,6 +4728,7 @@ implementation
       var
         p1,p2,ptmp : tnode;
         oldt    : Ttoken;
+        isnot   : boolean;
         filepos : tfileposinfo;
         gendef,parseddef : tdef;
         gensym : tsym;
@@ -4753,6 +4754,9 @@ implementation
              oldt:=current_scanner.token;
              filepos:=current_tokenpos;
              consume(current_scanner.token);
+             { "a is not b" is a short form for "not (a is b)", i.e. the "not"
+               belongs to the "is" and not to the right operand }
+             isnot:=(oldt=_OP_IS) and try_to_consume(_OP_NOT);
              if pred_level=highest_precedence then
                p2:=factor(false,[])
              else
@@ -4903,7 +4907,14 @@ implementation
                      _OP_AS:
                        p1:=casnode.create(p1,p2);
                      _OP_IS:
-                       p1:=cisnode.create(p1,p2);
+                       begin
+                         p1:=cisnode.create(p1,p2);
+                         if isnot then
+                           begin
+                             p1.fileinfo:=filepos;
+                             p1:=cnotnode.create(p1);
+                           end;
+                       end;
                      else
                        internalerror(2019050528);
                    end;
