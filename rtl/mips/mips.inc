@@ -134,7 +134,9 @@ begin
 	  framebp:=nil;
 	  exit;
 	end;
+  {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   Try
+  {$endif}
     current_ra:=addr;
     ra_offset:=-1;
     s8_offset:=-1;
@@ -178,10 +180,12 @@ begin
         else
           framebp:=nil;
       end;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   Except
     framebp:=nil;
     addr:=nil;
   end;
+{$endif}
 end;
 
 {$define FPC_SYSTEM_HAS_GET_PC_ADDR}

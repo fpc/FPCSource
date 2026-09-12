@@ -106,6 +106,8 @@ begin
     
     LinkRes.Add('SECTIONS');
     LinkRes.Add('{');
+    LinkRes.Add('   . = ORIGIN(ram);');
+    LinkRes.Add('');
     LinkRes.Add('   .text : ALIGN(8) {');
     LinkRes.Add('         __exe_start__ = .;');
     LinkRes.Add('');
@@ -114,7 +116,7 @@ begin
     LinkRes.Add('           *(.text .text.*)');
     LinkRes.Add('         __text_end__ = .;');
     LinkRes.Add('');
-    LinkRes.Add('         __text_size__ = __text_start__ - __text_end__;');
+    LinkRes.Add('         __text_size__ = __text_end__ - __text_start__;');
     LinkRes.Add('   } > ram');
     LinkRes.Add('');
     LinkRes.Add('   .rodata : ALIGN(8) {');
@@ -157,7 +159,6 @@ begin
     LinkRes.Add('         __data_start__ = .;');
     LinkRes.Add('           *(.data .data.*)');
     LinkRes.Add('           SORT(CONSTRUCTORS)');
-    LinkRes.Add('           . = ALIGN(2048);');
     LinkRes.Add('         __data_end__ = .;');
     LinkRes.Add('');
     LinkRes.Add('         __exe_end__ = .;');

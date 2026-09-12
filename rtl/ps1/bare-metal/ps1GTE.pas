@@ -1,4 +1,4 @@
-{$mode objfpc}
+{$MODE FPC} {$H-} {$MODESWITCH RESULT}
 unit ps1GTE;
 interface
 uses ps1COP0;
@@ -24,9 +24,49 @@ const
 
 { Command definitions and Flags}
 const
+  GTE_CMD_GET_REAL_BITMASK = $3F;
+
+  GTE_SF = $00080000;   { bit 19: shift result by 12 }
+  GTE_LM = $00000400;   { bit 10: clamp IR1..IR3 to 0..$7fff }
+
+
+  { Coordinate commands }
+  GTE_CMD_RTPS   = $0180001;   { Perspective transformation, 1 vertex }
+  GTE_CMD_NCLIP  = $1400006;   { Normal clipping }
+  GTE_CMD_AVSZ3  = $158002D;   { Average Z, 3 vertices }
+  GTE_CMD_AVSZ4  = $168002E;   { Average Z, 4 vertices }
+  GTE_CMD_RTPT   = $0280030;   { Perspective transformation, 3 vertices }
+
+
+  { General purpose }
+  GTE_CMD_OP     = $170000C;   { OP, sf=0 lm=0 }
+  GTE_CMD_MVMVA  = $0400012;   { Base MVMVA, flags/fields variable }
+  GTE_CMD_SQR    = $0A00428;   { SQR, sf=0 }
+
+
+  { Color / lighting }
+  GTE_CMD_DPCS   = $0780010;
+  GTE_CMD_INTPL  = $0980011;
+  GTE_CMD_NCDS   = $0E80413;
+  GTE_CMD_CDP    = $1280414;
+  GTE_CMD_NCDT   = $0F80416;
+  GTE_CMD_NCCS   = $108041B;
+  GTE_CMD_CC     = $138041C;
+  GTE_CMD_NCS    = $0C8041E;
+  GTE_CMD_NCT    = $0D80420;
+  GTE_CMD_DCPL   = $0680029;
+  GTE_CMD_DPCT   = $0F8002A;
+  GTE_CMD_NCCT   = $118043F;
+
+
+  { General interpolation }
+  GTE_CMD_GPF    = $190003D;   { sf/lm variable }
+  GTE_CMD_GPL    = $1A0003E;   { sf/lm variable }
+
+(*
 	GTE_CMD_GET_REAL_BITMASK = $3F;		 		// If You need the real value do an AND with this
  	GTE_CMD_RTPS  	= ($01 shl 20) or $01;   	// Perspective transformation (1 vertex)
-  	GTE_CMD_NCLIP 	= ($14 shl 20) or $06;   	// Normal clipping
+  GTE_CMD_NCLIP 	= ($14 shl 20) or $06;   	// Normal clipping
 	GTE_CMD_OP    	= ($17 shl 20) or $0C;   	// Outer product (Cross product of 2 vectors)
 	GTE_CMD_DPCS  	= ($07 shl 20) or $10;   	// Depth cue (1 vertex)
 	GTE_CMD_INTPL 	= ($09 shl 20) or $11;   	// Depth cue with vector
@@ -49,6 +89,8 @@ const
 	GTE_CMD_NCCT  	= ($11 shl 20) or $3F;   	// Normal color color (3 vertices)
 
 	GTE_LM          =  1 shl 10; 				// Saturate IR to 0x0000-0x7fff
+	GTE_SF          =  1 shl 19;  				// Shift results by 12 bits
+*)
 
 	GTE_CV_BITMASK  =  3 shl 13;
 	GTE_CV_TR       =  0 shl 13; 				// Use TR as translation vector for MVMVA
@@ -67,7 +109,7 @@ const
 	GTE_MX_LLM      =  1 shl 17; 				// Use light matrix as operand for MVMVA
 	GTE_MX_LCM      =  2 shl 17; 				// Use light color matrix as operand for MVMVA
 
-	GTE_SF          =  1 shl 19;  				// Shift results by 12 bits
+
 
 
 { Control register definitions }
@@ -258,7 +300,6 @@ procedure gte_setDataRegVZ1(value: dword);
 procedure gte_setDataRegVXY2(value: dword);
 procedure gte_setDataRegVZ2(value: dword);
 procedure gte_setDataRegRGBC(value: dword);
-procedure gte_setDataRegOTZ(value: dword);
 procedure gte_setDataRegIR0(value: dword);
 procedure gte_setDataRegIR1(value: dword);
 procedure gte_setDataRegIR2(value: dword);
@@ -279,9 +320,7 @@ procedure gte_setDataRegMAC1(value: dword);
 procedure gte_setDataRegMAC2(value: dword);
 procedure gte_setDataRegMAC3(value: dword);
 procedure gte_setDataRegIRGB(value: dword);
-procedure gte_setDataRegORGB(value: dword);
 procedure gte_setDataRegLZCS(value: dword);
-procedure gte_setDataRegLZCR(value: dword);
 
 function gte_getDataRegVXY0: dword;
 function gte_getDataRegVZ0: longint;
@@ -399,28 +438,8 @@ procedure gte_setColumnVectors(v11, v12, v13,
 
 
 procedure setupGTE(width, height: Integer);
-{
-const
-	sintable : array [0..359] of longint = (
-	0,71,143,214,286,357,428,499,570,641,711,782,852,921,991,1060,1129,1198,1266,1334,1401,1468,1534,1600,1666,
-	1731,1796,1860,1923,1986,2048,2110,2171,2231,2290,2349,2408,2465,2522,2578,2633,2687,2741,2793,2845,2896,2946,2996,3044,
-	3091,3138,3183,3228,3271,3314,3355,3396,3435,3474,3511,3547,3582,3617,3650,3681,3712,3742,3770,3798,3824,3849,3873,3896,
-	3917,3937,3956,3974,3991,4006,4021,4034,4046,4056,4065,4074,4080,4086,4090,4094,4095,4096,4095,4094,4090,4086,4080,4074,
-	4065,4056,4046,4034,4021,4006,3991,3974,3956,3937,3917,3896,3873,3849,3824,3798,3770,3742,3712,3681,3650,3617,3582,3547,
-	3511,3474,3435,3396,3355,3314,3271,3228,3183,3138,3091,3044,2996,2946,2896,2845,2793,2741,2687,2633,2578,2522,2465,2408,
-	2349,2290,2231,2171,2110,2048,1986,1923,1860,1796,1731,1666,1600,1534,1468,1401,1334,1266,1198,1129,1060,991,921,852,
-	782,711,641,570,499,428,357,286,214,143,71,0,-71,-143,-214,-286,-357,-428,-499,-570,-641,-711,-782,-852,
-	-921,-991,-1060,-1129,-1198,-1266,-1334,-1401,-1468,-1534,-1600,-1666,-1731,-1796,-1860,-1923,-1986,-2048,-2110,-2171,-2231,-2290,-2349,-2408,
-	-2465,-2522,-2578,-2633,-2687,-2741,-2793,-2845,-2896,-2946,-2996,-3044,-3091,-3138,-3183,-3228,-3271,-3314,-3355,-3396,-3435,-3474,-3511,-3547,
-	-3582,-3617,-3650,-3681,-3712,-3742,-3770,-3798,-3824,-3849,-3873,-3896,-3917,-3937,-3956,-3974,-3991,-4006,-4021,-4034,-4046,-4056,-4065,-4074,
-	-4080,-4086,-4090,-4094,-4095,-4096,-4095,-4094,-4090,-4086,-4080,-4074,-4065,-4056,-4046,-4034,-4021,-4006,-3991,-3974,-3956,-3937,-3917,-3896,
-	-3873,-3849,-3824,-3798,-3770,-3742,-3712,-3681,-3650,-3617,-3582,-3547,-3511,-3474,-3435,-3396,-3355,-3314,-3271,-3228,-3183,-3138,-3091,-3044,
-	-2996,-2946,-2896,-2845,-2793,-2741,-2687,-2633,-2578,-2522,-2465,-2408,-2349,-2290,-2231,-2171,-2110,-2048,-1986,-1923,-1860,-1796,-1731,-1666,
-	-1600,-1534,-1468,-1401,-1334,-1266,-1198,-1129,-1060,-991,-921,-852,-782,-711,-641,-570,-499,-428,-357,-286,-214,-143,-71);
 
-function isin(x: Int32): Int32;
-function icos(x: Int32): Int32;
-}
+
 implementation
 uses ps1GPU;
 
@@ -971,12 +990,6 @@ asm
 end;
 
 
-procedure gte_setDataRegOTZ(value: dword); assembler;
-asm
-	mtc2 $a0, $OTZ
-end;
-
-
 procedure gte_setDataRegIR0(value: dword); assembler;
 asm
 	mtc2 $a0, $IR0
@@ -1097,21 +1110,9 @@ asm
 end;
 
 
-procedure gte_setDataRegORGB(value: dword); assembler;
-asm
-	mtc2 $a0, $ORGB
-end;
-
-
 procedure gte_setDataRegLZCS(value: dword); assembler;
 asm
 	mtc2 $a0, $LZCS
-end;
-
-
-procedure gte_setDataRegLZCR(value: dword); assembler;
-asm
-	mtc2 $a0, $LZCR
 end;
 
 
@@ -1773,8 +1774,8 @@ end;
 
 procedure gte_storeV1(output: pGTEVector16); inline;
 begin
-	gte_storeDataRegVXY1(0, @output);
-	gte_storeDataRegVZ1(4, @output);
+	gte_storeDataRegVXY1(0, output);
+	gte_storeDataRegVZ1(4, output);
 end;
 
 
@@ -1838,16 +1839,5 @@ begin
 
 end;
 
-{
-function isin(x: Int32): Int32;
-begin
-  result:= sintable[x mod 359];
-end;
 
-
-function icos(x: Int32): Int32;
-begin
-  result:= SinTable[(90 + x) mod 359];
-end;
-}
 end.

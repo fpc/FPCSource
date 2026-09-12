@@ -1,4 +1,4 @@
-{$mode objfpc}{$H+}
+{$MODE FPC} {$H-} {$MODESWITCH RESULT}
 unit ps1GPU;
 interface
 uses ps1System;
@@ -100,7 +100,7 @@ const
 
 function gp0_tag(length: LongWord; next: Pointer): LongWord; inline;
 function gp0_endTag(length: LongWord): LongWord; inline;
-function gp0_page(x, y: LongWord; blendMode: LongInt; colorDepth: LongInt): Word; inline;
+function gp0_page(x, y: LongWord; blendMode: LongInt; colorDepth: dword): Word; inline;
 function gp0_clut(x, y: LongWord): Word; inline;
 function gp0_xy(x, y: LongInt): LongWord; inline;
 function gp0_uv(u, v: LongWord; attr: Word): LongWord; inline;
@@ -142,7 +142,7 @@ function gp1_dmaRequestMode(mode: LongInt): LongWord; inline;
 function gp1_fbOffset(x, y: LongWord): LongWord; inline;
 function gp1_fbRangeH(low, high: LongInt): LongWord; inline;
 function gp1_fbRangeV(low, high: LongInt): LongWord; inline;
-function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: LongInt): LongWord; inline;
+function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: dword): LongWord; inline;
 function gp1_vramSize(size: LongInt): LongWord; inline;
 
 
@@ -167,7 +167,7 @@ var
 
 function RGB(r, g, b: byte): Word;
 
-procedure setupGPU(mode: LongWord; width, height: Integer);
+procedure setupGPU(mode: LongWord; width, height: dword);
 procedure setupChainOT(chainSize, OTsize: dword);
 
 procedure waitForGP0Ready;
@@ -176,15 +176,15 @@ procedure waitForVSync;
 
 procedure sendLinkedList(data: Pointer);
 
-procedure clearOrderingTable(var table: array of LongWord; numEntries: Integer);
+procedure clearOrderingTable(var table: array of LongWord; numEntries: dword);
 
-function  allocatePacket(var chain: DMAChain; zIndex, numCommands: Integer): pdword;
-function  allocatePacket(var chain: DMAChain; numCommands: Integer): PDWord;
+function  allocatePacket(var chain: DMAChain; zIndex, numCommands: dword): pdword;
+function  allocatePacket(var chain: DMAChain; numCommands: dword): PDWord;
 
-procedure sendVRAMData(data: Pointer; x, y, width, height: Integer);
+procedure sendVRAMData(data: Pointer; x, y, width, height: dword);
 
-procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: Integer);
-procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer; imageX, imageY, paletteX, paletteY, width, height: Integer; colorDepth: longint);
+procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: dword);
+procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer; imageX, imageY, paletteX, paletteY, width, height: dword; colorDepth: dword);
 
 implementation
 
@@ -200,7 +200,7 @@ begin
   Result := gp0_tag(length, Pointer($FFFFFF));
 end;
 
-function gp0_page(x, y: LongWord; blendMode: LongInt; colorDepth: LongInt): Word;
+function gp0_page(x, y: LongWord; blendMode: LongInt; colorDepth: dword): Word;
 begin
   Result := (x and $F) or ((y and 1) shl 4) or ((Ord(blendMode) and 3) shl 5)
           or ((Ord(colorDepth) and 3) shl 7) or ((y and 2) shl 10);
@@ -426,7 +426,7 @@ begin
          or ((LongWord(high) and $3FF) shl 10);
 end;
 
-function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: LongInt): LongWord; inline;
+function gp1_fbMode(horizontalRes: LongInt; verticalRes: LongInt; videoMode: LongInt; interlace: Boolean; colorDepth: dword): LongWord; inline;
 begin
   Result := GP1_CMD_FB_MODE or ((LongWord(horizontalRes) and $47) shl 0)
           or ((LongWord(verticalRes) and 1) shl 2)
@@ -462,9 +462,9 @@ begin
 end;
 
 
-procedure setupGPU(mode: LongWord; width, height: Integer);
+procedure setupGPU(mode: LongWord; width, height: dword);
 var
-  x, y, offsetX, offsetY: Integer;
+  x, y, offsetX, offsetY: dword;
   horizontalRes: LongWord;
   verticalRes: LongWord;
 
@@ -571,7 +571,7 @@ begin
 end;
 
 
-procedure sendVRAMData(data: Pointer; x, y, width, height: Integer);
+procedure sendVRAMData(data: Pointer; x, y, width, height: dword);
 var
   lengthWords: NativeUInt;
   chunkSize, numChunks: NativeUInt;
@@ -606,7 +606,7 @@ begin
 end;
 
 
-procedure clearOrderingTable(var table: array of LongWord; numEntries: Integer);
+procedure clearOrderingTable(var table: array of LongWord; numEntries: dword);
 begin
 
   // Give DMA a pointer to the end of the ordering table (reversed)
@@ -621,7 +621,7 @@ begin
 end;
 
 
-function allocatePacket(var chain: DMAChain; zIndex, numCommands: Integer): pdword;
+function allocatePacket(var chain: DMAChain; zIndex, numCommands: dword): pdword;
 var
   ptr: pdword;
   tmp: LongWord;
@@ -644,7 +644,7 @@ begin
 end;
 
 
-function allocatePacket(var chain: DMAChain; numCommands: Integer): PDWord;
+function allocatePacket(var chain: DMAChain; numCommands: dword): PDWord;
 var
   ptr: PDWord;
 
@@ -658,7 +658,7 @@ begin
 end;
 
 
-procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: Integer);
+procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: dword);
 begin
 
   if (x < 0) or (y < 0) then exit;
@@ -678,9 +678,9 @@ begin
 end;
 
 
-procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer; imageX, imageY, paletteX, paletteY, width, height: Integer; colorDepth: longint);
+procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer; imageX, imageY, paletteX, paletteY, width, height: dword; colorDepth: dword);
 var
-  numColors, widthDivider: Integer;
+  numColors, widthDivider: dword;
 
 begin
 

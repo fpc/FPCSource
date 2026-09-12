@@ -1676,11 +1676,13 @@ Function  ParamCount:Longint;
 Function  ParamStr(l:Longint):shortstring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
 procedure Dump_Stack(var f : text;skipframes : longint);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBacktrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 Procedure RunError(w:Word);noreturn;
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;

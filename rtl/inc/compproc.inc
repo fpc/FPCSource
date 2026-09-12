@@ -425,7 +425,7 @@ procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); 
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
-{ $ifdef FPC_HAS_FEATURE_TEXTIO}
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { from text.inc }
 Function fpc_get_input:PText;compilerproc;
 Function fpc_get_output:PText;compilerproc;
@@ -504,7 +504,7 @@ procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unico
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{ $endif FPC_HAS_FEATURE_TEXTIO}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_variant_init(var v: tvardata);compilerproc;
@@ -577,7 +577,9 @@ Procedure fpc_Read_Text_LongWord(var f : text; out q : longword); compilerproc;
 Procedure fpc_Read_Text_LongInt(var f : text; out i : longint); compilerproc;
 {$endif CPU16 or CPU8}
 function fpc_GetBuf_Text(var f : Text) : PAnsiChar; compilerproc;
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 function fpc_GetBuf_TypedFile(var f : TypedFile) : pointer; compilerproc;
+{$endif FPC_HAS_FEATURE_FILEIO}
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}

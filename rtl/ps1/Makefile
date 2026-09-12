@@ -925,10 +925,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU si_prc
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_LOADERS+=sysintern
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(CTYPESUNIT) $(UUCHARUNIT) $(STRINGSUNIT) ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU si_prc
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
@@ -1801,33 +1798,6 @@ EXECPPAS:=@$(RUNBATCH) $(PPAS)
 else
 EXECPPAS:=@$(PPAS)
 endif
-endif
-.PHONY: fpc_loaders
-ifneq ($(TARGET_LOADERS),)
-override ALLTARGET+=fpc_loaders
-override CLEANTARGET+=fpc_loaders_clean
-override INSTALLTARGET+=fpc_loaders_install
-override LOADEROFILES:=$(addsuffix $(OEXT),$(TARGET_LOADERS))
-endif
-%$(OEXT): %$(LOADEREXT)
-ifdef COMPILER_UNITTARGETDIR
-	$(AS) -o $(COMPILER_UNITTARGETDIR)/$*$(OEXT) $<
-else
-	$(AS) -o $*$(OEXT) $<
-endif
-fpc_loaders: $(COMPILER_UNITTARGETDIR) $(LOADEROFILES)
-fpc_loaders_clean:
-ifdef COMPILER_UNITTARGETDIR
-	-$(DEL) $(addprefix $(COMPILER_UNITTARGETDIR)/,$(LOADEROFILES))
-else
-	-$(DEL) $(LOADEROFILES)
-endif
-fpc_loaders_install:
-	$(MKDIR) $(INSTALL_UNITDIR)
-ifdef COMPILER_UNITTARGETDIR
-	$(INSTALL) $(addprefix $(COMPILER_UNITTARGETDIR)/,$(LOADEROFILES)) $(INSTALL_UNITDIR)
-else
-	$(INSTALL) $(LOADEROFILES) $(INSTALL_UNITDIR)
 endif
 .PHONY: fpc_units
 ifneq ($(TARGET_UNITS)$(TARGET_IMPLICITUNITS),)
@@ -3000,19 +2970,22 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-ps1System$(PPUEXT) : bare-metal/ps1System.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) ps1GPU$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<      
-sysintern$(OEXT) : bare-metal/sysintern.sa
-	$(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.sa -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
-si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) si_prc.pp
+RTL_FPU_OPT=$(shell grep -E '^[[:space:]]*-Cf' rtl.cfg | tail -n 1)
+override FPC_SYSTEM_OPT += @rtl.cfg
+override FPCOPT += -CX
+$(OBJPASUNIT)$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+ps1System$(PPUEXT) : bare-metal/ps1System.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) ps1GPU$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<
+si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(RTL_FPU_OPT) $<

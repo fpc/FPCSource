@@ -1,4 +1,4 @@
-{$MODE OBJFPC}{$H+}
+{$MODE FPC} {$H-} {$MODESWITCH RESULT}
 unit ps1SPU;
 interface
 uses ps1System;
@@ -230,10 +230,12 @@ begin
   dmaBlocks := (words + _DMA_CHUNK_SIZE - 1) div _DMA_CHUNK_SIZE;
   d:= (_DMA_CHUNK_SIZE shl 16) or dmaBlocks;
 
-  writeln(d);
+
 
   if not waitForDMATransfer(DMA_SPU, _DMA_TIMEOUT) then begin
+    {$ifdef FPC_HAS_FEATURE_TEXTIO}
     writeln('waitForDMATransfer');
+    {$endif FPC_HAS_FEATURE_TEXTIO}
     Exit(0);
   end;
 

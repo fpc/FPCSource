@@ -1,4 +1,4 @@
-{$mode objfpc}
+{$MODE FPC} {$H-} {$MODESWITCH RESULT}
 unit ps1COP0;
 interface
 

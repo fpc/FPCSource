@@ -1,5 +1,4 @@
-{$MODE OBJFPC} {$H+}
-{$LINK sysintern.o}
+{$MODE FPC} {$H-} {$MODESWITCH RESULT}
 {$ALIGN 4}
 unit ps1System;
 interface
@@ -729,7 +728,7 @@ procedure softReset;
 	NOTE: we can't use any registers other than $k0 and $k1 here, as doing so
 	would destroy their contents and corrupt the current thread's state.
 }
-procedure _exceptionVector; cdecl; external;
+procedure _exceptionVector; cdecl;
 
 
 {
@@ -739,7 +738,7 @@ procedure _exceptionVector; cdecl; external;
  * prevent jitter, but not strictly necessary unless the interrupt handler
  * accesses timer 2.
 }
-procedure delayMicroseconds(time: dword); cdecl; external;
+procedure delayMicroseconds(time: dword); cdecl;
 
 
 {
@@ -747,7 +746,7 @@ procedure delayMicroseconds(time: dword); cdecl; external;
  * function does not rely on a hardware timer, so interrupts may throw off
  * timings if not explicitly disabled prior to calling delayMicrosecondsBusy().
 }
-procedure delayMicrosecondsBusy(time: dword); cdecl; external;
+procedure delayMicrosecondsBusy(time: dword); cdecl;
 
 {
  * Checks if the specified interrupt was fired but not yet acknowledged;
@@ -811,7 +810,7 @@ procedure InterruptHandlerFunction(arg: Pointer); cdecl;
 procedure InitIRQ;
 
 
-function PrintHexValue(value: LongWord): string;
+function PrintHexValue(value: LongWord): ShortString;
 
 
 implementation
@@ -1204,7 +1203,7 @@ const
 
   HexDigits: PChar = '0123456789abcdef';
 
-function PrintHexValue(value: LongWord): string;
+function PrintHexValue(value: LongWord): ShortString;
 var
   i: Integer;
 begin
@@ -1219,12 +1218,15 @@ end;
 
 
 procedure _unhandledException(cause: longint; badv: dword); cdecl;
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 var
   i: Integer;
   reg: PLongWord;
   name: PChar;
   addr, endAddr: PLongWord;
+{$endif FPC_HAS_FEATURE_TEXTIO}
 begin
+  {$ifdef FPC_HAS_FEATURE_TEXTIO}
   // Cause description
   if (cause >= 4) and (cause <= 12) then
     Writeln(CauseNames[cause - 4]);
@@ -1272,7 +1274,7 @@ begin
     Writeln;
     Inc(addr);
   end;
-
+{$endif FPC_HAS_FEATURE_TEXTIO}
 end;
 
 
@@ -1717,6 +1719,339 @@ begin
 end;
 
 
+
+
+
+procedure _callInterruptHandler; cdecl;
+  [public, alias: '_callInterruptHandler'];
+begin
+  if Assigned(interruptHandler) then
+    interruptHandler(interruptHandlerArg);
+end;
+
+
+procedure _exceptionHandler;
+  [public, alias: '_exceptionHandler'];
+  assembler;
+  nostackframe;
+asm
+  { EPC was loaded into $k1 by _exceptionVector }
+
+  { -----------------------------------------------------------------
+    Get current thread context
+    ----------------------------------------------------------------- }
+  la    $k0, currentThread
+  lw    $k0, 0($k0)
+
+  { -----------------------------------------------------------------
+    Save CPU registers
+    ----------------------------------------------------------------- }
+  sw    $at, 0x04($k0)
+
+  sw    $v0, 0x08($k0)
+  sw    $v1, 0x0c($k0)
+
+  sw    $a0, 0x10($k0)
+  sw    $a1, 0x14($k0)
+  sw    $a2, 0x18($k0)
+  sw    $a3, 0x1c($k0)
+
+  sw    $t0, 0x20($k0)
+  sw    $t1, 0x24($k0)
+  sw    $t2, 0x28($k0)
+  sw    $t3, 0x2c($k0)
+  sw    $t4, 0x30($k0)
+  sw    $t5, 0x34($k0)
+  sw    $t6, 0x38($k0)
+  sw    $t7, 0x3c($k0)
+
+  sw    $s0, 0x40($k0)
+  sw    $s1, 0x44($k0)
+  sw    $s2, 0x48($k0)
+  sw    $s3, 0x4c($k0)
+  sw    $s4, 0x50($k0)
+  sw    $s5, 0x54($k0)
+  sw    $s6, 0x58($k0)
+  sw    $s7, 0x5c($k0)
+
+  sw    $t8, 0x60($k0)
+  sw    $t9, 0x64($k0)
+
+  sw    $gp, 0x68($k0)
+  sw    $sp, 0x6c($k0)
+  sw    $fp, 0x70($k0)
+  sw    $ra, 0x74($k0)
+
+  { -----------------------------------------------------------------
+    Save HI/LO
+    ----------------------------------------------------------------- }
+  mfhi  $v0
+  mflo  $v1
+
+  sw    $v0, 0x78($k0)
+  sw    $v1, 0x7c($k0)
+
+  { -----------------------------------------------------------------
+    Read CAUSE register
+
+    Cause exception-code field = bits 6..2
+    Keep it shifted by 2 here.
+    ----------------------------------------------------------------- }
+  mfc0  $v0, $13
+  andi  $v0, 0x7c
+
+  { Cause = 0 -> hardware interrupt }
+  beq   $v0, $zero, .LcheckForGTEInst
+  li    $at, 32
+
+  { Cause 8 (syscall):
+      8 << 2 = 32
+    Skip syscall instruction. }
+  beq   $v0, $at, .LapplyIncrement
+  nop
+
+
+.LotherException:
+
+  { Store EPC into current thread context }
+  sw    $k1, 0x00($k0)
+
+  { BADVADDR }
+  mfc0  $a1, $8
+
+  { Convert shifted cause value back to exception number }
+  srl   $a0, $v0, 2
+
+  { _unhandledException(exceptionCode, badAddress) }
+  jal   _unhandledException
+  addiu $sp, $sp, -8
+
+  b     .Lreturn
+  addiu $sp, $sp, 8
+
+
+.LcheckForGTEInst:
+
+  { -----------------------------------------------------------------
+    PS1 GTE interrupt workaround.
+
+    Check opcode at EPC. If top 7 bits are 0x25,
+    increment EPC by 4.
+    ----------------------------------------------------------------- }
+  lw    $v0, 0($k1)
+
+  li    $at, 37
+  srl   $v0, $v0, 25
+
+  bne   $v0, $at, .LskipIncrement
+  nop
+
+
+.LapplyIncrement:
+
+  addiu $k1, $k1, 4
+
+
+.LskipIncrement:
+
+  { Save adjusted EPC }
+  sw    $k1, 0x00($k0)
+
+  { -----------------------------------------------------------------
+    Call Pascal wrapper.
+
+    Do NOT use:
+      la $v1, interruptHandler
+
+    interruptHandler is a procedural variable and caused the
+    $INVALID relocation.
+    ----------------------------------------------------------------- }
+  jal   _callInterruptHandler
+  addiu $sp, $sp, -8
+
+  addiu $sp, $sp, 8
+
+
+.Lreturn:
+
+  { -----------------------------------------------------------------
+    Switch to nextThread
+    ----------------------------------------------------------------- }
+  la    $k0, nextThread
+  lw    $k0, 0($k0)
+
+  { currentThread := nextThread }
+  la    $at, currentThread
+  sw    $k0, 0($at)
+
+  { -----------------------------------------------------------------
+    Restore HI / LO
+    ----------------------------------------------------------------- }
+  lw    $v0, 0x78($k0)
+  lw    $v1, 0x7c($k0)
+
+  mthi  $v0
+  mtlo  $v1
+
+  { Restore EPC }
+  lw    $k1, 0x00($k0)
+
+  { -----------------------------------------------------------------
+    Restore CPU registers
+    ----------------------------------------------------------------- }
+  lw    $at, 0x04($k0)
+
+  lw    $v0, 0x08($k0)
+  lw    $v1, 0x0c($k0)
+
+  lw    $a0, 0x10($k0)
+  lw    $a1, 0x14($k0)
+  lw    $a2, 0x18($k0)
+  lw    $a3, 0x1c($k0)
+
+  lw    $t0, 0x20($k0)
+  lw    $t1, 0x24($k0)
+  lw    $t2, 0x28($k0)
+  lw    $t3, 0x2c($k0)
+  lw    $t4, 0x30($k0)
+  lw    $t5, 0x34($k0)
+  lw    $t6, 0x38($k0)
+  lw    $t7, 0x3c($k0)
+
+  lw    $s0, 0x40($k0)
+  lw    $s1, 0x44($k0)
+  lw    $s2, 0x48($k0)
+  lw    $s3, 0x4c($k0)
+  lw    $s4, 0x50($k0)
+  lw    $s5, 0x54($k0)
+  lw    $s6, 0x58($k0)
+  lw    $s7, 0x5c($k0)
+
+  lw    $t8, 0x60($k0)
+  lw    $t9, 0x64($k0)
+
+  lw    $gp, 0x68($k0)
+  lw    $sp, 0x6c($k0)
+  lw    $fp, 0x70($k0)
+  lw    $ra, 0x74($k0)
+
+  { -----------------------------------------------------------------
+    Jump back to EPC.
+
+    0x42000010 = R3000 RFE.
+    It executes in JR's delay slot.
+    ----------------------------------------------------------------- }
+  jr    $k1
+  .long 0x42000010
+end;
+
+
+procedure _exceptionVector; cdecl;
+  [public, alias: '_exceptionVector'];
+  assembler;
+  nostackframe;
+asm
+  { This must stay exactly 16 bytes. }
+
+  j     _exceptionHandler
+  mfc0  $k1, $14
+
+end;
+
+
+procedure delayMicroseconds(time: dword); cdecl;
+  assembler;
+  nostackframe;
+asm
+  { cycles = ((time * 271) + 4) div 8 }
+
+  sll   $a1, $a0, 8
+  sll   $a2, $a0, 4
+  addu  $a1, $a1, $a2
+  subu  $a1, $a1, $a0
+  addiu $a1, $a1, 4
+  sra   $a0, $a1, 3
+
+  { Compensate overhead }
+  addiu $a0, $a0, -15
+
+  { $BF801124 = timer 2 control }
+  lui   $v1, 0xbf80
+  sh    $zero, 0x1124($v1)
+
+  li    $a1, 0xff00
+  slt   $v0, $a1, $a0
+
+  beq   $v0, $zero, .Lps1_delay_short
+  li    $a2, 0xff03
+
+
+.Lps1_delay_long:
+
+  { TIMER2_VALUE := 0 }
+  sh    $zero, 0x1120($v1)
+  li    $v0, 0
+
+
+.Lps1_delay_long_loop:
+
+  nop
+  slt   $v0, $v0, $a1
+
+  bne   $v0, $zero, .Lps1_delay_long_loop
+  lhu   $v0, 0x1120($v1)
+
+  slt   $v0, $a1, $a0
+
+  bne   $v0, $zero, .Lps1_delay_long
+  subu  $a0, $a0, $a2
+
+
+.Lps1_delay_short:
+
+  { TIMER2_VALUE := 0 }
+  sh    $zero, 0x1120($v1)
+  li    $v0, 0
+
+
+.Lps1_delay_short_loop:
+
+  nop
+  slt   $v0, $v0, $a0
+
+  bne   $v0, $zero, .Lps1_delay_short_loop
+  lhu   $v0, 0x1120($v1)
+
+  jr    $ra
+  nop
+end;
+
+
+procedure delayMicrosecondsBusy(time: dword); cdecl;
+  assembler;
+  nostackframe;
+asm
+  { cycles = ((time * 271) + 4) div 8 }
+
+  sll   $a1, $a0, 8
+  sll   $a2, $a0, 4
+  addu  $a1, $a1, $a2
+  subu  $a1, $a1, $a0
+  addiu $a1, $a1, 4
+  sra   $a0, $a1, 3
+
+  { Compensate overhead }
+  addiu $a0, $a0, -9
+
+
+.Lps1_delay_busy_loop:
+
+  bgtz  $a0, .Lps1_delay_busy_loop
+  addiu $a0, $a0, -2
+
+  jr    $ra
+  nop
+end;
 
 
 initialization

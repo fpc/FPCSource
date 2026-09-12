@@ -1489,6 +1489,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
   i : ObjpasInt;
@@ -1563,7 +1564,7 @@ begin
     WriteLn(f,BackTraceStrFunc(Frames[FrameNumber]));
 end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Type
@@ -1928,7 +1929,7 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
-{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$if defined(FPC_HAS_FEATURE_FILEIO) or defined(FPC_HAS_FEATURE_TEXTIO)}
 {$i sysfile.inc}
 
 {$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
@@ -1969,6 +1970,9 @@ end;
 {$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
 {$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
 {$ifndef FPC_ANSI_TEXTFILEREC}
 procedure do_open(var f; p: pwidechar; flags: longint; pchangeable: boolean);
@@ -2006,6 +2010,9 @@ end;
 {$endif not FPC_ANSI_TEXTFILEREC}
 {$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { helper for targets supporting no ansistrings, it is used
@@ -2029,7 +2036,7 @@ function min(v1,v2 : SizeInt) : SizeInt;
 
 { Typed file }
 {$i typefile.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
+{$endif defined(FPC_HAS_FEATURE_FILEIO) or defined(FPC_HAS_FEATURE_TEXTIO)}
 
 
 {*****************************************************************************

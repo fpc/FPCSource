@@ -1,4 +1,6 @@
-{$mode objfpc}{$H+}
+{$MODE FPC} {$H-} 
+{$MODESWITCH RESULT} 
+{$IMPLICITEXCEPTIONS OFF}
 {$packrecords 1}
 unit ps1CDRom;
 interface
@@ -225,7 +227,7 @@ type
   TEntries = array of TDirectoryEntry;
 
   TFile = record
-    name : string;
+    name : shortstring;
     size : dword;
     data : pointer;
     lba : dword;    
@@ -236,13 +238,13 @@ procedure initFileSystem;
 
 function ParseDirRecord(data: pointer; offset: dword; var recordLength: Byte; var directoryEntry: TDirectoryEntry): Integer;
 procedure pareseDir(lba: dword; var entrys: TEntries);
-function getLBA(const name: string; const entries: TEntries; var info: TDirectoryEntry): longint;
+function getLBA(const name: shortstring; const entries: TEntries; var info: TDirectoryEntry): longint;
 
-function getFileLBA(const name: string; startLBA: longint; var fileInfo: TDirectoryEntry): longint;
+function getFileLBA(const name: shortstring; startLBA: longint; var fileInfo: TDirectoryEntry): longint;
 
 procedure printEntries(const entries: TEntries);
 
-function getFileInfo(const name: string; var fileInfo: TFile): boolean;
+function getFileInfo(const name: shortstring; var fileInfo: TFile): boolean;
 procedure loadFile(var theFile: TFile);
 
 
@@ -493,7 +495,9 @@ var
 
 begin
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
   writeln('TRACK ERROR: HSTS=', CDROM_HSTS);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
   // read response FIFO to cdromResponse
   cdromRespLength:= 0;
@@ -503,10 +507,13 @@ begin
     if cdromRespLength >= length(cdromResponse) then break;
   end;
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
   write('Response: ');
   for i := 0 to cdromRespLength - 1 do write(PrintHexValue(cdromResponse[i]),' ');
 
   writeln;
+{$endif FPC_HAS_FEATURE_TEXTIO}
+
   cdromWaitingForInt5:= False;
 
 end;
@@ -623,15 +630,15 @@ procedure printEntries(const entries: TEntries);
 var
   i : dword;
 begin
-
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
   for i:= 0 to length(entries) - 1 do begin
     Writeln('Entry name: ', Entries[i].name, ' LBA=', entries[i].lba);
   end;
-
+{$endif FPC_HAS_FEATURE_TEXTIO}
 end;
 
 
-function getLBA(const name: string; const entries: TEntries; var info: TDirectoryEntry): longint;
+function getLBA(const name: shortstring; const entries: TEntries; var info: TDirectoryEntry): longint;
 var
   i : dword;
 begin
@@ -648,63 +655,69 @@ end;
 
 
 type
-    TStringArray = array of string;
+    TStringArray = array of ShortString;
 
-function Split(const s: string; sep: Char): TStringArray;
+procedure Split(const s: ShortString; sep: Char; var Result: TStringArray);
 var
-  p, start, count, i: dword;
-
+  p, start, count, i: DWord;
 begin
-  if length(s) = 0 then exit;
-  count:= 0;
-  start:= 1;
   SetLength(Result, 0);
-  p:= 1;
+
+  if Length(s) = 0 then
+    Exit;
+
+  count := 0;
+  start := 1;
+  p := 1;
+
   repeat
-
-    if s[p] = sep then begin
-
+    if s[p] = sep then
+    begin
       SetLength(Result, count + 1);
-      Result[count]:= '';
- 
-      i:= start;
+      Result[count] := '';
+
+      i := start;
       repeat
-        Result[count]:= Result[count] + s[i];
-        inc(i);
-      until (s[i] = sep) or (i = length(s)) or (i = p);
-      if s[i] = sep then Result[count]:= Result[count] + sep; 
-      start:= p + 1;
+        Result[count] := Result[count] + s[i];
+        Inc(i);
+      until (i > Length(s)) or
+            (s[i] = sep) or
+            (i = p);
 
+      if (i <= Length(s)) and (s[i] = sep) then
+        Result[count] := Result[count] + sep;
+
+      start := p + 1;
       Inc(count);
-
     end;
 
-    inc(p);
+    Inc(p);
+  until p >= Length(s);
 
-  until p = length(s);
+  if start <= Length(s) then
+  begin
+    SetLength(Result, count + 1);
+    Result[count] := '';
 
-  if (start <> p) and (start <> (length(s))) then begin
-      SetLength(Result, count + 1);
-      Result[count]:= '';
-      i:= start;
-      
-      repeat
-        Result[count]:= Result[count] + s[i];
-        inc(i);
-      until (i = (length(s) + 1)) or (s[i] = sep);
+    i := start;
+    while i <= Length(s) do
+    begin
+      if s[i] = sep then
+        Break;
 
+      Result[count] := Result[count] + s[i];
+      Inc(i);
+    end;
   end;
-
-
 end;
 
 
-function getFileLBA(const name: string; startLBA: longint; var fileInfo: TDirectoryEntry): longint;
+function getFileLBA(const name: shortstring; startLBA: longint; var fileInfo: TDirectoryEntry): longint;
 var
   entries : TEntries;
   stringArray: TStringArray;
   lba : longint;
-  curname : string;
+  curname : shortstring;
   i : dword;
 
 begin
@@ -714,7 +727,7 @@ begin
   
   pareseDir(startLBA, entries);
 
-  stringArray:= Split(name, '/');
+  Split(name, '/', stringArray);
 
   curname:= stringArray[0];
 
@@ -745,7 +758,7 @@ begin
 end;
 
 
-function getFileInfo(const name: string; var fileInfo: TFile): boolean;
+function getFileInfo(const name: shortstring; var fileInfo: TFile): boolean;
 var
   entry : TDirectoryEntry;
 

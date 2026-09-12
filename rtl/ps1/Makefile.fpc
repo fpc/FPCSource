@@ -4,9 +4,9 @@
 [package]
 main=rtl
 [target]
-loaders=sysintern
-units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) \
-  $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) \
+loaders=
+units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(CTYPESUNIT) \
+  $(UUCHARUNIT) $(STRINGSUNIT) \
   ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU \
   si_prc
 
@@ -52,27 +52,40 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
+# Extract only the -Cf option from rtl.cfg.
+RTL_FPU_OPT=$(shell grep -E '^[[:space:]]*-Cf' rtl.cfg | tail -n 1)
+
+
+# Build System with the explicit minimal feature set.
+override FPC_SYSTEM_OPT += @rtl.cfg
+
+# Make all PS1 RTL units smart-linkable.
+override FPCOPT += -CX
+
+
+# ObjPas must use the same FPU ABI as System.
+$(OBJPASUNIT)$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+        
 # BARE-METAL units
-ps1System$(PPUEXT) : bare-metal/ps1System.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+ps1System$(PPUEXT) : bare-metal/ps1System.pas $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) ps1GPU$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) ps1GPU$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<      
+ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<
 
-sysintern$(OEXT) : bare-metal/sysintern.sa
-        $(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.sa -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
-
-si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) si_prc.pp
+si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(RTL_FPU_OPT) $<

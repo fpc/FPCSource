@@ -748,11 +748,13 @@ begin
 {$include proj4/fpmake.pp}
 end;
 
+
 procedure add_psy_q_sdk(const ADirectory: string);
 begin
   with Installer do
 {$include psy-q-sdk/fpmake.pp}
 end;
+
 
 procedure add_ptc(const ADirectory: string);
 begin
