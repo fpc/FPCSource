@@ -29,7 +29,7 @@ interface
       symtype,symdef,symbase,
       node,ncal,compinnr,
       tokens,globtype,globals,constexp,
-      pgentype;
+      pgentype,pstatmnt;
 
     type
       texprflag = (
@@ -4398,7 +4398,7 @@ implementation
                    end;
                end
 
-             else
+             else if not statement_expr(p1) then
                begin
                  Message(parser_e_illegal_expression);
                  p1:=cerrornode.create;

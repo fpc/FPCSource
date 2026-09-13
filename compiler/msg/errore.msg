@@ -1724,6 +1724,14 @@ parser_e_no_suitable_newinstance_method_found=03374_E_No suitable NewInstance me
 parser_w_unaligned_useless=03375_W_Unaligned is useless here.
 parser_w_aligned_useless=03376_W_Aligned is useless here.
 % Use of aligned(EXPR) or unaligned(EXPR) only has an effect if EXPR is a dereference.
+parser_e_stmt_expr_requires_else=03377_E_Statement expression does not handle all cases, an else branch is required
+% A case or try..except expression must return a value in all cases. Either the case labels
+% cover all possible values, or add an else (otherwise) branch.
+parser_e_stmt_expr_no_finally=03378_E_try..finally cannot be used as an expression
+% Only try..except can be used as expression
+parser_e_stmt_expr_anon_needs_type=03379_E_Anonymous functions in a statement expression require a procedural variable or function reference type
+% A statement expression with anonymous functions as values can only be assigned or passed
+% to a procedural variable or a function reference.
 %
 % \end{description}
 %
