@@ -5039,10 +5039,9 @@ unit aoptx86;
             TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
 
+            JumpTracking := nil;
             if NotFirstIteration then
-              JumpTracking := TLinkedList.Create
-            else
-              JumpTracking := nil;
+              JumpTracking := TLinkedList.Create;
 
             while GetNextInstructionUsingRegCond(hp3,hp2,p_TargetReg,JumpTracking,CrossJump) and
               { GetNextInstructionUsingRegCond only searches one instruction ahead unless -O3 is specified }
@@ -5196,6 +5195,7 @@ unit aoptx86;
                                         DebugMsg(SPeepholeOptimization + 'MovMov2Mov 7 done',p);
                                         RemoveCurrentP(p, hp1);
                                         Result:=true;
+                                        JumpTracking.Free;
                                         Exit;
                                       end;
                                   end;
@@ -5214,6 +5214,7 @@ unit aoptx86;
                             DebugMsg(SPeepholeOptimization + 'Mov2Nop 3a done',p);
                             RemoveCurrentp(p, hp1);
                             Result := True;
+                            JumpTracking.Free;
                             Exit;
                           end;
 
@@ -5283,6 +5284,7 @@ unit aoptx86;
                             DebugMsg(SPeepholeOptimization + 'Mov2Nop 8a done', p);
                             RemoveCurrentP(p, hp1);
                             Result := True;
+                            JumpTracking.Free;
                             Exit;
                           end
                         else
