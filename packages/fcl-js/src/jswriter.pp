@@ -182,6 +182,7 @@ Type
     FOptions: TWriteOptions;
     FSkipCurlyBrackets : Boolean;
     FSkipRoundBrackets : Boolean;
+    FSkipCommaBrackets : Boolean; // e.g. "var a=0,b=1" does not need brackets
     FWriter: TTextWriter;
     function GetUseUTF8: Boolean;
     procedure SetOptions(AValue: TWriteOptions);
@@ -1442,12 +1443,14 @@ procedure TJSWriter.WriteBinary(El: TJSBinary);
 var
   ElC: TClass;
   S : String;
+  IsCommaExpr, IsCommaList: Boolean;
 
   procedure WriteRight(Bin: TJSBinary);
   begin
     FSkipRoundBrackets:=(Bin.B.ClassType=ElC)
           and ((ElC=TJSLogicalOrExpression)
             or (ElC=TJSLogicalAndExpression));
+    FSkipCommaBrackets:=IsCommaList and (Bin.B is TJSCommaExpression);
     Write(S);
     WriteJS(Bin.B);
     Writer.CurElement:=Bin;
@@ -1463,23 +1466,31 @@ begin
   {$IFDEF VerboseJSWriter}
   System.writeln('TJSWriter.WriteBinary SkipRoundBrackets=',FSkipRoundBrackets);
   {$ENDIF}
-  WithBrackets:=not FSkipRoundBrackets;
+  ElC:=El.ClassType;
+  IsCommaExpr:=ElC=TJSCommaExpression;
+  IsCommaList:=IsCommaExpr and FSkipCommaBrackets;
+  FSkipCommaBrackets:=false;
+  if IsCommaExpr then
+    // a comma expression inside another expression needs brackets, e.g. "a = (b, c)",
+    // except a var declaration list, e.g. "var a = 1, b = 2, c = 3"
+    WithBrackets:=not IsCommaList
+  else
+    WithBrackets:=not FSkipRoundBrackets;
   if WithBrackets then
     Write('(');
   FSkipRoundBrackets:=false;
-  ElC:=El.ClassType;
   Left:=El.A;
   AllowCompact:=False;
 
   S:='';
-  if (El is TJSBinaryExpression) then
+  if ElC.InheritsFrom(TJSBinaryExpression) then
     begin
     S:=TJSBinaryExpression(El).OperatorString;
     AllowCompact:=TJSBinaryExpression(El).AllowCompact;
     end;
   If Not (AllowCompact and (woCompact in Options)) then
     begin
-    if El is TJSCommaExpression then
+    if IsCommaExpr then
       S:=S+' '
     else
       S:=' '+S+' ';
@@ -1520,7 +1531,8 @@ begin
       end;
     end
   else
-    begin;
+    begin
+    FSkipCommaBrackets:=IsCommaList and (Left is TJSCommaExpression);
     WriteJS(Left);
     Writer.CurElement:=El;
     end;
@@ -2061,8 +2073,9 @@ Const
   Keywords : Array[TJSVarType] of string = ('var','let','const');
 
 begin
-  Write(Keywords[el.varType]+' ');
+  Write(Keywords[El.varType]+' ');
   FSkipRoundBrackets:=true;
+  FSkipCommaBrackets:=El.VarDecl is TJSCommaExpression; // e.g. "var a = 1, b = 2"
   WriteJS(El.VarDecl);
 end;
 

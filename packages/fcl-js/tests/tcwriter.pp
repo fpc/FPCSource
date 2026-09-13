@@ -86,6 +86,7 @@ type
   Public
     Procedure TestAssignment(Const Msg : String; AClass : TJSAssignStatementClass; Result : String;ACompact : Boolean);
     Function CreateAssignment(AClass : TJSAssignStatementClass) : TJSAssignStatement;
+    Function CreateSimpleAssign(LHS, Expr : TJSElement) : TJSSimpleAssignStatement;
     Function CreateStatementListOneElement : TJSStatementList;
     Function CreateStatementListTwoElement2 : TJSStatementList;
   published
@@ -137,6 +138,10 @@ type
     Procedure TestAssignmentStatementBinaryXOrCompact;
     Procedure TestAssignmentStatementBinaryAnd;
     Procedure TestAssignmentStatementBinaryAndCompact;
+    Procedure TestAssignmentStatementComma;
+    Procedure TestVarDeclarationStatementInitComma;
+    Procedure TestVarDeclarationStatementCommaList;
+    Procedure TestVarDeclarationStatementCommaListInitComma;
     Procedure TestForStatementEmpty;
     Procedure TestForStatementFull;
     Procedure TestForStatementFull1;
@@ -894,6 +899,14 @@ begin
   Result.Expr:=CreateIdent('b');
 end;
 
+function TTestStatementWriter.CreateSimpleAssign(LHS, Expr: TJSElement
+  ): TJSSimpleAssignStatement;
+begin
+  Result:=TJSSimpleAssignStatement.Create(0,0);
+  Result.LHS:=LHS;
+  Result.Expr:=Expr;
+end;
+
 function TTestStatementWriter.CreateStatementListOneElement: TJSStatementList;
 begin
   Result:=TJSStatementList.Create(0,0);
@@ -1216,6 +1229,73 @@ end;
 procedure TTestStatementWriter.TestAssignmentStatementSimpleCompact;
 begin
   TestAssignment('Simple assignment',TJSSimpleAssignStatement,'a=b',True);
+end;
+
+procedure TTestStatementWriter.TestAssignmentStatementComma;
+Var
+  U : TJSAssignStatement;
+  C : TJSCommaExpression;
+begin
+  // a comma expression on the right side needs brackets
+  U:=TJSSimpleAssignStatement.Create(0,0);
+  U.LHS:=CreateIdent('a');
+  C:=TJSCommaExpression.Create(0,0);
+  U.Expr:=C;
+  C.A:=CreateIdent('b');
+  C.B:=CreateIdent('c');
+  AssertWrite('assignment comma','a = (b, c)',U);
+end;
+
+procedure TTestStatementWriter.TestVarDeclarationStatementInitComma;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+  C : TJSCommaExpression;
+begin
+  // a comma expression as initial value needs brackets
+  S:=TJSVariableStatement.Create(0,0);
+  V:=TJSVarDeclaration.Create(0,0);
+  S.VarDecl:=V;
+  V.Name:='a';
+  C:=TJSCommaExpression.Create(0,0);
+  V.Init:=C;
+  C.A:=CreateIdent('b');
+  C.B:=CreateIdent('c');
+  AssertWrite('var init comma','var a = (b, c)',S);
+end;
+
+procedure TTestStatementWriter.TestVarDeclarationStatementCommaList;
+Var
+  S : TJSVariableStatement;
+  C, SubC : TJSCommaExpression;
+begin
+  // a comma expression as declaration list has no brackets
+  S:=TJSVariableStatement.Create(0,0);
+  C:=TJSCommaExpression.Create(0,0);
+  S.VarDecl:=C;
+  SubC:=TJSCommaExpression.Create(0,0);
+  C.A:=SubC;
+  SubC.A:=CreateSimpleAssign(CreateIdent('a'),CreateLiteral(1));
+  SubC.B:=CreateSimpleAssign(CreateIdent('b'),CreateLiteral(2));
+  C.B:=CreateSimpleAssign(CreateIdent('c'),CreateLiteral(3));
+  AssertWrite('var comma list','var a = 1, b = 2, c = 3',S);
+end;
+
+procedure TTestStatementWriter.TestVarDeclarationStatementCommaListInitComma;
+Var
+  S : TJSVariableStatement;
+  C, InitC : TJSCommaExpression;
+begin
+  // declaration list without brackets, but the comma in an initial value needs brackets
+  S:=TJSVariableStatement.Create(0,0);
+  C:=TJSCommaExpression.Create(0,0);
+  S.VarDecl:=C;
+  InitC:=TJSCommaExpression.Create(0,0);
+  InitC.A:=CreateIdent('b');
+  InitC.B:=CreateIdent('c');
+  C.A:=CreateSimpleAssign(CreateIdent('a'),InitC);
+  C.B:=CreateSimpleAssign(CreateIdent('d'),CreateLiteral(1));
+  AssertWrite('var comma list init comma','var a = (b, c), d = 1',S);
 end;
 
 procedure TTestStatementWriter.TestAssignmentStatementAdd;
