@@ -113,6 +113,8 @@ type
     procedure CheckRestoredIfExpr(const Path: string; Orig, Rest: TIfExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredCaseExpr(const Path: string; Orig, Rest: TCaseExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredCaseExprBranch(const Path: string; Orig, Rest: TCaseExprBranch; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredTryExceptExpr(const Path: string; Orig, Rest: TTryExceptExpr; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredTryExceptExprOn(const Path: string; Orig, Rest: TTryExceptExprOn; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredRecordValues(const Path: string; Orig, Rest: TRecordValues; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPasExprArray(const Path: string; Orig, Rest: TPasExprArray; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues; Flags: TPCCheckFlags); virtual;
@@ -181,6 +183,7 @@ type
     procedure TestPC_Const;
     procedure TestPC_IfExpr;
     procedure TestPC_CaseExpr;
+    procedure TestPC_TryExceptExpr;
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
@@ -1480,6 +1483,10 @@ begin
     CheckRestoredCaseExpr(Path,TCaseExpr(Orig),TCaseExpr(Rest),Flags)
   else if C=TCaseExprBranch then
     CheckRestoredCaseExprBranch(Path,TCaseExprBranch(Orig),TCaseExprBranch(Rest),Flags)
+  else if C=TTryExceptExpr then
+    CheckRestoredTryExceptExpr(Path,TTryExceptExpr(Orig),TTryExceptExpr(Rest),Flags)
+  else if C=TTryExceptExprOn then
+    CheckRestoredTryExceptExprOn(Path,TTryExceptExprOn(Orig),TTryExceptExprOn(Rest),Flags)
   else if C=TRecordValues then
     CheckRestoredRecordValues(Path,TRecordValues(Orig),TRecordValues(Rest),Flags)
   else if C=TArrayValues then
@@ -1763,6 +1770,28 @@ begin
   for i:=0 to Orig.Labels.Count-1 do
     CheckRestoredElement(Path+'.Labels['+IntToStr(i)+']',
       TPasElement(Orig.Labels[i]),TPasElement(Rest.Labels[i]),Flags);
+  CheckRestoredElement(Path+'.Value',Orig.Value,Rest.Value,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredTryExceptExpr(const Path: string;
+  Orig, Rest: TTryExceptExpr; Flags: TPCCheckFlags);
+var
+  i: Integer;
+begin
+  CheckRestoredElement(Path+'.Try',Orig.TryExpr,Rest.TryExpr,Flags);
+  AssertEquals(Path+'.OnBranches.Count',Orig.OnBranches.Count,Rest.OnBranches.Count);
+  for i:=0 to Orig.OnBranches.Count-1 do
+    CheckRestoredElement(Path+'.OnBranches['+IntToStr(i)+']',
+      TPasElement(Orig.OnBranches[i]),TPasElement(Rest.OnBranches[i]),Flags);
+  CheckRestoredElement(Path+'.Else',Orig.ElseExpr,Rest.ElseExpr,Flags);
+  CheckRestoredPasExpr(Path,Orig,Rest,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredTryExceptExprOn(const Path: string;
+  Orig, Rest: TTryExceptExprOn; Flags: TPCCheckFlags);
+begin
+  CheckRestoredElement(Path+'.VarEl',Orig.VarEl,Rest.VarEl,Flags);
+  CheckRestoredElOrRef(Path+'.TypeEl',Orig,Orig.TypeEl,Rest,Rest.TypeEl,Flags);
   CheckRestoredElement(Path+'.Value',Orig.Value,Rest.Value,Flags);
 end;
 
@@ -2360,6 +2389,30 @@ begin
   'function F: string;',
   'begin',
   '  Result:=case e of red: ''r''; green, blue: ''gb'' end;',
+  'end;']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_TryExceptExpr;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  Exception = class',
+  '    Msg: string;',
+  '  end;',
+  '  EAbort = class(Exception) end;',
+  'var',
+  '  s: string;',
+  'function F: string;',
+  'implementation',
+  'function F: string;',
+  'begin',
+  '  Result:=try s except ''Error'' end;',
+  '  Result:=try s except on EAbort do ''Abort''; on E: Exception do E.Msg; else ''Error'' end;',
   'end;']);
   WriteReadUnit;
 end;

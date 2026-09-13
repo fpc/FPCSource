@@ -2289,6 +2289,7 @@ type
     Function ConvertWithStatement(El: TPasImplWithDo; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertTryStatement(El: TPasImplTry; AContext: TConvertContext ): TJSElement; virtual;
     Function ConvertExceptOn(El: TPasImplExceptOn; AContext: TConvertContext): TJSElement;
+    Function CreateExceptOnCondition(TypeEl: TPasType; PosEl: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertCaseOfStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
     Function ConvertAsmStatement(El: TPasImplAsmStatement; AContext: TConvertContext): TJSElement;
     // Expressions
@@ -2358,6 +2359,7 @@ type
     Function ConvertInlineSpecializeExpr(El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertIfExpr(El: TIfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertCaseExpr(El: TCaseExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertTryExceptExpr(El: TTryExceptExpr; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCaseLabelsCondition(Labels: TFPList; const CaseValueName: string;
       CaseValuePosEl, PosEl: TPasElement; IsCaseOfString: boolean;
       AContext: TConvertContext): TJSElement; virtual;
@@ -4609,7 +4611,7 @@ begin
       AddElevatedLocal(El);
       end;
     end
-  else if ParentC=TPasImplExceptOn then
+  else if (ParentC=TPasImplExceptOn) or (ParentC=TTryExceptExprOn) then
     // except on var
     RaiseVarModifierNotSupported(LocalVarModifiersAllowed)
   else if ParentC=TImplementationSection then
@@ -9103,6 +9105,94 @@ begin
   end;
 end;
 
+function TPasToJSConverter.ConvertTryExceptExpr(El: TTryExceptExpr;
+  AContext: TConvertContext): TJSElement;
+// JS has no try-expression, so use an immediately called function:
+// convert "try a except b end" to
+//   "(function () { try { return a; } catch ($e) { return b; } }).call(this)"
+// convert "try a except on E: T do b; else c end" to
+//   "(function () {
+//      try { return a; }
+//      catch ($e) {
+//        if (T.isPrototypeOf($e)) { var E = $e; return b; } else return c;
+//      }
+//    }).call(this)"
+
+  function CreateReturn(Expr: TPasExpr): TJSReturnStatement;
+  var
+    JS: TJSElement;
+  begin
+    JS:=ConvertExpression(Expr,AContext);
+    Result:=TJSReturnStatement(CreateElement(TJSReturnStatement,Expr));
+    Result.Expr:=JS;
+  end;
+
+var
+  Call: TJSCallExpression;
+  DotExpr: TJSDotMemberExpression;
+  FuncSt: TJSFunctionDeclarationStatement;
+  TrySt: TJSTryCatchStatement;
+  IfSt, LastIfSt: TJSIfStatement;
+  List: TJSStatementList;
+  OnBranch: TTryExceptExprOn;
+  ElseSt: TJSReturnStatement;
+  i: Integer;
+begin
+  Result:=nil;
+  Call:=CreateCallExpression(El);
+  try
+    // create "function(){}.call(this)"
+    DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+    Call.Expr:=DotExpr;
+    DotExpr.Name:='call';
+    FuncSt:=CreateFunctionSt(El,true,true);
+    DotExpr.MExpr:=FuncSt;
+    Call.AddArg(TJSPrimaryExpressionThis(CreateElement(TJSPrimaryExpressionThis,El)));
+
+    // create "try { return a; } catch($e) {}"
+    TrySt:=TJSTryCatchStatement(CreateElement(TJSTryCatchStatement,El));
+    TJSSourceElements(FuncSt.AFunction.Body.A).Statements.AddNode.Node:=TrySt;
+    TrySt.Block:=CreateReturn(El.TryExpr);
+    TrySt.Ident:=TJSString(GetBIName(pbivnExceptObject));
+
+    // create "if (T.isPrototypeOf($e)) { var E = $e; return b; } else ..."
+    LastIfSt:=nil;
+    for i:=0 to El.OnBranches.Count-1 do
+      begin
+      OnBranch:=TTryExceptExprOn(El.OnBranches[i]);
+      IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,OnBranch));
+      if LastIfSt=nil then
+        TrySt.BCatch:=IfSt
+      else
+        LastIfSt.BFalse:=IfSt;
+      LastIfSt:=IfSt;
+      IfSt.Cond:=CreateExceptOnCondition(OnBranch.TypeEl,OnBranch,AContext);
+      if OnBranch.VarEl<>nil then
+        begin
+        List:=TJSStatementList(CreateElement(TJSStatementList,OnBranch));
+        IfSt.BTrue:=List;
+        List.A:=CreateVarStatement(TransformElToJSName(OnBranch.VarEl,AContext),
+          CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),OnBranch),OnBranch);
+        List.B:=CreateReturn(OnBranch.Value);
+        end
+      else
+        IfSt.BTrue:=CreateReturn(OnBranch.Value);
+      end;
+
+    // create "return c"
+    ElseSt:=CreateReturn(El.ElseExpr);
+    if LastIfSt=nil then
+      TrySt.BCatch:=ElseSt
+    else
+      LastIfSt.BFalse:=ElseSt;
+
+    Result:=Call;
+  finally
+    if Result=nil then
+      Call.Free;
+  end;
+end;
+
 function TPasToJSConverter.CreateCaseLabelsCondition(Labels: TFPList;
   const CaseValueName: string; CaseValuePosEl, PosEl: TPasElement;
   IsCaseOfString: boolean; AContext: TConvertContext): TJSElement;
@@ -9314,7 +9404,7 @@ begin
     Result:=true
   else if El.Parent is TProcedureBody then
     Result:=true
-  else if El.Parent is TPasImplExceptOn then
+  else if (El.Parent is TPasImplExceptOn) or (El.Parent is TTryExceptExprOn) then
     Result:=true
   else
     Result:=false;
@@ -15920,6 +16010,8 @@ begin
     Result:=ConvertIfExpr(TIfExpr(El),AContext)
   else if C=TCaseExpr then
     Result:=ConvertCaseExpr(TCaseExpr(El),AContext)
+  else if C=TTryExceptExpr then
+    Result:=ConvertTryExceptExpr(TTryExceptExpr(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024191314);
 end;
@@ -26563,7 +26655,8 @@ var
       exit(true);
     if El.Parent=nil then
       RaiseNotSupported(El,AContext,20170203121306,GetObjName(El));
-    if El.Parent.ClassType=TPasImplExceptOn then
+    if (El.Parent.ClassType=TPasImplExceptOn)
+        or (El.Parent.ClassType=TTryExceptExprOn) then
       exit(true);
     if not (El.Parent is TProcedureBody) then exit;
     Result:=true;
@@ -28129,6 +28222,41 @@ begin
   Result:=CreatePrimitiveDotExpr(ArgName,PosEl);
 end;
 
+function TPasToJSConverter.CreateExceptOnCondition(TypeEl: TPasType;
+  PosEl: TPasElement; AContext: TConvertContext): TJSElement;
+// create "T.isPrototypeOf(exceptObject)"
+// or for external classes "rtl.isExt(exceptObject,TExternal)"
+var
+  DotExpr: TJSDotMemberExpression;
+  Call: TJSCallExpression;
+  aType: TPasType;
+begin
+  aType:=AContext.Resolver.ResolveAliasType(TypeEl);
+  Call:=CreateCallExpression(PosEl);
+  try
+    if (aType is TPasClassType) and TPasClassType(aType).IsExternal then
+      begin
+      // create rtl.isExt(exceptObject,T)
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIsExt)]);
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),PosEl));
+      Call.AddArg(CreateReferencePathExpr(TypeEl,AContext));
+      end
+    else
+      begin
+      // create "T.isPrototypeOf(exceptObject)"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,PosEl));
+      Call.Expr:=DotExpr;
+      DotExpr.MExpr:=CreateReferencePathExpr(TypeEl,AContext);
+      DotExpr.Name:='isPrototypeOf';
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),PosEl));
+      end;
+    Result:=Call;
+  except
+    Call.Free;
+    raise;
+  end;
+end;
+
 function TPasToJSConverter.ConvertExceptOn(El: TPasImplExceptOn;
   AContext: TConvertContext): TJSElement;
 // convert "on T do ;" to "if(T.isPrototypeOf(exceptObject)){}"
@@ -28138,41 +28266,14 @@ function TPasToJSConverter.ConvertExceptOn(El: TPasImplExceptOn;
 Var
   IfSt : TJSIfStatement;
   ListFirst , ListLast: TJSStatementList;
-  DotExpr: TJSDotMemberExpression;
-  Call: TJSCallExpression;
   V: TJSVariableStatement;
-  aResolver: TPas2JSResolver;
-  aType: TPasType;
-  IsExternal: Boolean;
 begin
   Result:=nil;
-  aResolver:=AContext.Resolver;
-  aType:=aResolver.ResolveAliasType(El.TypeEl);
-  IsExternal:=(aType is TPasClassType) and TPasClassType(aType).IsExternal;
 
   // create "if()"
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
-    if IsExternal then
-      begin
-      // create rtl.isExt(exceptObject,T)
-      Call:=CreateCallExpression(El);
-      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIsExt)]);
-      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
-      Call.AddArg(CreateReferencePathExpr(El.TypeEl,AContext));
-      end
-    else
-      begin
-      // create "T.isPrototypeOf"
-      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-      DotExpr.MExpr:=CreateReferencePathExpr(El.TypeEl,AContext);
-      DotExpr.Name:='isPrototypeOf';
-      // create "T.isPrototypeOf(exceptObject)"
-      Call:=CreateCallExpression(El);
-      Call.Expr:=DotExpr;
-      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
-      end;
-    IfSt.Cond:=Call;
+    IfSt.Cond:=CreateExceptOnCondition(El.TypeEl,El,AContext);
 
     if El.VarEl<>nil then
       begin

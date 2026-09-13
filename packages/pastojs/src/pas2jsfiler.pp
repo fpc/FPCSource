@@ -112,7 +112,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 9;
+  PCUVersion = 10;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -125,7 +125,7 @@ const
     6: default DispatchField=Msg, DispatchStrField=MsgStr
     7: InitializationSection JS replaced with Body, Empty
     8: added eopIsNot, eopNotIn, TIfExpr, pekIf and modeswitch StatementExpressions
-    9: added TCaseExpr, pekCase
+    9: added TCaseExpr, pekCase, TTryExceptExpr, pekTry
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -381,7 +381,8 @@ const
     'Procedure',
     'NamedArg',
     'If',
-    'Case');
+    'Case',
+    'Try');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',
@@ -908,6 +909,7 @@ type
     procedure WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteCaseExpr(Obj: TJSONObject; Expr: TCaseExpr; aContext: TPCUWriterContext); virtual;
+    procedure WriteTryExceptExpr(Obj: TJSONObject; Expr: TTryExceptExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUWriterContext); virtual;
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
@@ -1107,6 +1109,7 @@ type
     procedure Set_ProcedureScope_ImplProc(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_Overridden(RefEl: TPasElement; Data: TObject);
     procedure Set_ExceptOn_TypeEl(RefEl: TPasElement; Data: TObject);
+    procedure Set_TryExceptExprOn_TypeEl(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_Declaration(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_CtxConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_CtxAttrProc(RefEl: TPasElement; Data: TObject);
@@ -1227,6 +1230,7 @@ type
     procedure ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadCaseExpr(Obj: TJSONObject; Expr: TCaseExpr; aContext: TPCUReaderContext); virtual;
+    procedure ReadTryExceptExpr(Obj: TJSONObject; Expr: TTryExceptExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUReaderContext); virtual;
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
@@ -3722,6 +3726,11 @@ begin
     Obj.Add('Type','CaseExpr');
     WriteCaseExpr(Obj,TCaseExpr(El),aContext);
     end
+  else if C=TTryExceptExpr then
+    begin
+    Obj.Add('Type','TryExpr');
+    WriteTryExceptExpr(Obj,TTryExceptExpr(El),aContext);
+    end
   else if C=TRecordValues then
     begin
     Obj.Add('Type','RecValues');
@@ -4104,6 +4113,37 @@ begin
         WriteExprCustomData(LabelObj,LabelExpr,aContext);
         end;
       WriteExpr(BranchObj,Branch,'Value',Branch.Value,aContext);
+      end;
+    end;
+  WriteExpr(Obj,Expr,'Else',Expr.ElseExpr,aContext);
+end;
+
+procedure TPCUWriter.WriteTryExceptExpr(Obj: TJSONObject;
+  Expr: TTryExceptExpr; aContext: TPCUWriterContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  OnObj: TJSONObject;
+  OnBranch: TTryExceptExprOn;
+begin
+  WritePasExpr(Obj,Expr,pekTry,eopNone,aContext);
+  WriteExpr(Obj,Expr,'Try',Expr.TryExpr,aContext);
+  if Expr.OnBranches.Count>0 then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add('On',Arr);
+    for i:=0 to Expr.OnBranches.Count-1 do
+      begin
+      OnBranch:=TTryExceptExprOn(Expr.OnBranches[i]);
+      if OnBranch.Parent<>Expr then
+        RaiseMsg(20260913150000,OnBranch,GetObjName(Expr)+'<>'+GetObjName(OnBranch.Parent));
+      OnObj:=TJSONObject.Create;
+      Arr.Add(OnObj);
+      WritePasElement(OnObj,OnBranch,aContext);
+      WriteElementProperty(OnObj,OnBranch,'Var',OnBranch.VarEl,aContext);
+      if OnBranch.VarEl=nil then
+        WriteElType(OnObj,OnBranch,'VarType',OnBranch.TypeEl,aContext);
+      WriteExpr(OnObj,OnBranch,'Value',OnBranch.Value,aContext);
       end;
     end;
   WriteExpr(Obj,Expr,'Else',Expr.ElseExpr,aContext);
@@ -5615,6 +5655,17 @@ begin
     end
   else
     RaiseMsg(20200115214455,El,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_TryExceptExprOn_TypeEl(RefEl: TPasElement;
+  Data: TObject);
+var
+  El: TTryExceptExprOn absolute Data;
+begin
+  if RefEl is TPasType then
+    El.TypeEl:=TPasType(RefEl)
+  else
+    RaiseMsg(20260913150100,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ResolvedReference_Declaration(RefEl: TPasElement;
@@ -8092,6 +8143,8 @@ begin
     Result:=CreateElement(TIfExpr,'',Parent);
   'CaseExpr':
     Result:=CreateElement(TCaseExpr,'',Parent);
+  'TryExpr':
+    Result:=CreateElement(TTryExceptExpr,'',Parent);
   'RecValues':
     begin
     Result:=CreateElement(TRecordValues,'',Parent);
@@ -8247,6 +8300,8 @@ begin
     ReadIfExpr(Obj,TIfExpr(El),aContext)
   else if C=TCaseExpr then
     ReadCaseExpr(Obj,TCaseExpr(El),aContext)
+  else if C=TTryExceptExpr then
+    ReadTryExceptExpr(Obj,TTryExceptExpr(El),aContext)
   else if C=TRecordValues then
     ReadRecordValues(Obj,TRecordValues(El),aContext)
   else if C=TArrayValues then
@@ -8562,6 +8617,37 @@ begin
           ReadExprCustomData(LabelObj,TPasExpr(SubEl),aContext);
           end;
       Branch.Value:=ReadExpr(BranchObj,Branch,'Value',aContext);
+      end;
+  Expr.ElseExpr:=ReadExpr(Obj,Expr,'Else',aContext);
+end;
+
+procedure TPCUReader.ReadTryExceptExpr(Obj: TJSONObject;
+  Expr: TTryExceptExpr; aContext: TPCUReaderContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  Data: TJSONData;
+  OnObj: TJSONObject;
+  OnBranch: TTryExceptExprOn;
+begin
+  ReadPasExpr(Obj,Expr,pekTry,aContext);
+  Expr.TryExpr:=ReadExpr(Obj,Expr,'Try',aContext);
+  if ReadArray(Obj,'On',Arr,Expr) then
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONObject) then
+        RaiseMsg(20260913150200,Expr,'On['+IntToStr(i)+'] is '+GetObjName(Data));
+      OnObj:=TJSONObject(Data);
+      OnBranch:=TTryExceptExprOn(CreateElement(TTryExceptExprOn,'',Expr));
+      Expr.OnBranches.Add(OnBranch);
+      ReadPasElement(OnObj,OnBranch,aContext);
+      OnBranch.VarEl:=TPasVariable(ReadElementProperty(OnObj,OnBranch,'Var',TPasVariable,aContext));
+      if OnBranch.VarEl<>nil then
+        OnBranch.TypeEl:=OnBranch.VarEl.VarType
+      else
+        ReadElType(OnObj,'VarType',OnBranch,@Set_TryExceptExprOn_TypeEl,aContext);
+      OnBranch.Value:=ReadExpr(OnObj,OnBranch,'Value',aContext);
       end;
   Expr.ElseExpr:=ReadExpr(Obj,Expr,'Else',aContext);
 end;

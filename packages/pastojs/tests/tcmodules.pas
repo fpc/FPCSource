@@ -438,6 +438,8 @@ type
     Procedure TestCaseExpr;
     Procedure TestCaseExpr_TempVar;
     Procedure TestCaseExpr_Nested;
+    Procedure TestTryExceptExpr;
+    Procedure TestTryExceptExpr_Method;
     Procedure TestSet_IntRange;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
@@ -7435,6 +7437,125 @@ begin
     'var $tmp1;',
     'var $tmp2;',
     '$mod.i = ($tmp = $mod.GetInt(), ($tmp === 1 ? ($tmp1 = $mod.GetInt(), ($tmp1 === 2 ? 11 : 12)) : ($tmp === 3 ? ($tmp2 = $mod.GetInt(), ($tmp2 === 1 ? 31 : 32)) : 12)));',
+    '']));
+end;
+
+procedure TTestModule.TestTryExceptExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  Exception = class',
+  '    Msg: string;',
+  '  end;',
+  '  EAbort = class(Exception) end;',
+  'var',
+  '  s: string;',
+  'function Get: string;',
+  'begin',
+  'end;',
+  'begin',
+  '  s:=try Get except ''Error'' end;',
+  '  s:=try Get except on EAbort do ''Abort''; on E: Exception do E.Msg; else ''Error'' end;',
+  '  s:=''a''+try s except ''b'' end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTryExceptExpr',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "Exception", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Msg = "";',
+    '  };',
+    '});',
+    'rtl.createClass(this, "EAbort", this.Exception, function () {',
+    '});',
+    'this.s = "";',
+    'this.Get = function () {',
+    '  var Result = "";',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.s = (function () {',
+    '  try {',
+    '    return $mod.Get()',
+    '  } catch ($e) {',
+    '    return "Error"',
+    '  };',
+    '}).call(this);',
+    '$mod.s = (function () {',
+    '  try {',
+    '    return $mod.Get()',
+    '  } catch ($e) {',
+    '    if ($mod.EAbort.isPrototypeOf($e)) {',
+    '      return "Abort"',
+    '    } else if ($mod.Exception.isPrototypeOf($e)) {',
+    '      var E = $e;',
+    '      return E.Msg;',
+    '    } else return "Error"',
+    '  };',
+    '}).call(this);',
+    '$mod.s = "a" + (function () {',
+    '  try {',
+    '    return $mod.s',
+    '  } catch ($e) {',
+    '    return "b"',
+    '  };',
+    '}).call(this);',
+    '']));
+end;
+
+procedure TTestModule.TestTryExceptExpr_Method;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    FName: string;',
+  '    function GetName: string;',
+  '  end;',
+  'function TObject.GetName: string;',
+  'begin',
+  '  Result:=try FName except on E: TObject do E.FName; else Self.FName end;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTryExceptExpr_Method',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FName = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetName = function () {',
+    '    var Result = "";',
+    '    Result = (function () {',
+    '      try {',
+    '        return this.FName',
+    '      } catch ($e) {',
+    '        if ($mod.TObject.isPrototypeOf($e)) {',
+    '          var E = $e;',
+    '          return E.FName;',
+    '        } else return this.FName',
+    '      };',
+    '    }).call(this);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
     '']));
 end;
 
