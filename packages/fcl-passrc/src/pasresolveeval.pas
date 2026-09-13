@@ -181,6 +181,7 @@ const
   nCaseStatementNotCovered = 3148;
   nCaseElseUnreachable = 3149;
   nAttributeNotAllowedHere = 3150;
+  nCaseExprNotCovered = 3151;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -349,6 +350,7 @@ resourcestring
   sIllegalCharConst = 'Illegal char constant';
   sCaseStatementNotCovered = 'Case statement does not handle all possible cases';
   sCaseElseUnreachable = 'Case else branch is unreachable - all cases are already handled';
+  sCaseExprNotCovered = 'Case expression does not handle all possible cases, else expected';
   sAttributeNotAllowedHere = 'Attribute is not allowed here';
   sCannotTakeAddrOfBitPackedElement = 'The address cannot be taken of bit packed array elements and record fields';
   sVarArgsNeedCDeclAndExternal = 'VarArgs directive (or ''...'' in MacPas) without CDecl/CPPDecl/MWPascal/StdCall and External';
@@ -721,6 +723,7 @@ type
     function EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBinaryExpr(Expr: TBinaryExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalIfExpr(Expr: TIfExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    function EvalCaseExpr(Expr: TCaseExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalBinarySubExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
@@ -4890,6 +4893,8 @@ begin
     Result:=EvalArrayValuesExpr(TArrayValues(Expr),Flags)
   else if C=TIfExpr then
     Result:=EvalIfExpr(TIfExpr(Expr),Flags)
+  else if C=TCaseExpr then
+    Result:=EvalCaseExpr(TCaseExpr(Expr),Flags)
   else if [refConst,refConstExt]*Flags<>[] then
     RaiseConstantExprExp(20170518213800,Expr);
   {$IFDEF VerbosePasResEval}
@@ -5162,6 +5167,171 @@ begin
     Result:=Eval(Expr.ThenExpr,Flags)
   else
     Result:=Eval(Expr.ElseExpr,Flags);
+end;
+
+function TResExprEvaluator.EvalCaseExpr(Expr: TCaseExpr; Flags: TResEvalFlags
+  ): TResEvalValue;
+// only the chosen branch is evaluated
+type
+  TLabelMatch = (lmNotConst, lmNo, lmYes);
+var
+  CaseValue: TResEvalValue;
+
+  function GetStr(V: TResEvalValue; out s: UnicodeString): boolean;
+  begin
+    Result:=true;
+    case V.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      s:=GetUnicodeStr(TResEvalString(V).S,Expr);
+    {$endif}
+    revkUnicodeString:
+      s:=TResEvalUTF16(V).S;
+    else
+      Result:=false;
+    end;
+  end;
+
+  function GetOrd(V: TResEvalValue; out o: TMaxPrecInt): boolean;
+  var
+    s: UnicodeString;
+  begin
+    Result:=true;
+    case V.Kind of
+    revkBool:
+      o:=ord(TResEvalBool(V).B);
+    revkInt:
+      o:=TResEvalInt(V).Int;
+    revkUInt:
+      begin
+      {$R-}
+      o:=TMaxPrecInt(TResEvalUInt(V).UInt);
+      {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+      end;
+    revkEnum:
+      o:=TResEvalEnum(V).Index;
+    else
+      begin
+      Result:=GetStr(V,s) and (length(s)=1);
+      if Result then
+        o:=ord(s[1]);
+      end;
+    end;
+  end;
+
+  // returns false if the values cannot be compared
+  function CompareValues(LabelValue: TResEvalValue; out Cmp: integer): boolean;
+  var
+    CaseOrd, LabelOrd: TMaxPrecInt;
+    CaseStr, LabelStr: UnicodeString;
+  begin
+    Result:=true;
+    Cmp:=0;
+    if GetOrd(CaseValue,CaseOrd) and GetOrd(LabelValue,LabelOrd) then
+      begin
+      if CaseOrd<LabelOrd then
+        Cmp:=-1
+      else if CaseOrd>LabelOrd then
+        Cmp:=1;
+      end
+    else if GetStr(CaseValue,CaseStr) and GetStr(LabelValue,LabelStr) then
+      begin
+      if CaseStr<LabelStr then
+        Cmp:=-1
+      else if CaseStr>LabelStr then
+        Cmp:=1;
+      end
+    else
+      Result:=false;
+  end;
+
+  function MatchLabel(LabelExpr: TPasExpr): TLabelMatch;
+  var
+    LowValue, HighValue, LabelValue: TResEvalValue;
+    CmpLow, CmpHigh: integer;
+  begin
+    Result:=lmNotConst;
+    if (LabelExpr is TBinaryExpr) and (TBinaryExpr(LabelExpr).Kind=pekRange) then
+      begin
+      // range, e.g. 1..3 or 'a'..'z'
+      LowValue:=Eval(TBinaryExpr(LabelExpr).Left,Flags);
+      HighValue:=nil;
+      try
+        if LowValue=nil then exit;
+        HighValue:=Eval(TBinaryExpr(LabelExpr).Right,Flags);
+        if HighValue=nil then exit;
+        if not CompareValues(LowValue,CmpLow) then exit;
+        if not CompareValues(HighValue,CmpHigh) then exit;
+        if (CmpLow>=0) and (CmpHigh<=0) then
+          Result:=lmYes
+        else
+          Result:=lmNo;
+      finally
+        ReleaseEvalValue(LowValue);
+        ReleaseEvalValue(HighValue);
+      end;
+      end
+    else
+      begin
+      LabelValue:=Eval(LabelExpr,Flags);
+      if LabelValue=nil then exit;
+      try
+        if not CompareValues(LabelValue,CmpLow) then exit;
+        if CmpLow=0 then
+          Result:=lmYes
+        else
+          Result:=lmNo;
+      finally
+        ReleaseEvalValue(LabelValue);
+      end;
+      end;
+  end;
+
+var
+  i, j: Integer;
+  Branch: TCaseExprBranch;
+  LabelExpr, ValueExpr: TPasExpr;
+begin
+  Result:=nil;
+  CaseValue:=Eval(Expr.CaseExpr,Flags);
+  if CaseValue=nil then exit;
+  ValueExpr:=nil;
+  try
+    for i:=0 to Expr.Branches.Count-1 do
+      begin
+      Branch:=TCaseExprBranch(Expr.Branches[i]);
+      for j:=0 to Branch.Labels.Count-1 do
+        begin
+        LabelExpr:=TPasExpr(Branch.Labels[j]);
+        case MatchLabel(LabelExpr) of
+        lmNotConst:
+          begin
+          if [refConst,refConstExt]*Flags<>[] then
+            RaiseConstantExprExp(20260913120000,LabelExpr);
+          exit;
+          end;
+        lmYes:
+          begin
+          ValueExpr:=Branch.Value;
+          break;
+          end;
+        end;
+        end;
+      if ValueExpr<>nil then
+        break;
+      end;
+    if ValueExpr=nil then
+      ValueExpr:=Expr.ElseExpr;
+    if ValueExpr=nil then
+      begin
+      if [refConst,refConstExt]*Flags<>[] then
+        RaiseConstantExprExp(20260913120010,Expr);
+      exit;
+      end;
+  finally
+    ReleaseEvalValue(CaseValue);
+  end;
+  Result:=Eval(ValueExpr,Flags);
 end;
 
 function TResExprEvaluator.IsConst(Expr: TPasExpr): boolean;

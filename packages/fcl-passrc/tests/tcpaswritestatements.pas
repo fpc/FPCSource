@@ -99,6 +99,7 @@ type
         procedure TestIfIsNot;
         procedure TestIfNotIn;
         procedure TestIfExpr;
+        procedure TestCaseExpr;
         procedure TestIfBlock;
         procedure TestIfAssignment;
         procedure TestIfElse;
@@ -838,6 +839,33 @@ begin
       '    a := if b then 1 else 2;',
       '  end else',
       '    a := 3;',
+      'end.',
+      '']),
+      PasProgram);
+end;
+
+procedure TTestStatementWriterIf.TestCaseExpr;
+begin
+    Source.Add('{$MODE DELPHI}');
+    Source.Add('var');
+    Source.Add('  a: Integer;');
+    Source.Add('  b: Boolean;');
+    Source.Add('begin');
+    Source.Add('  a := case a of 1: 2; 3, 4: 5; 6..7: 8; else 9 end;');
+    Source.Add('  a := case b of false: 1; true: 2 end;');
+    Source.Add('end.');
+    ParseModule;
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  a: Integer;',
+      '  b: Boolean;',
+      '',
+      'begin',
+      '  a := case a of 1: 2; 3, 4: 5; 6..7: 8; else 9 end;',
+      '  a := case b of False: 1; True: 2 end;',
       'end.',
       '']),
       PasProgram);

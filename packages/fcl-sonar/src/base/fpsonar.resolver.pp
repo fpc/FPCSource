@@ -10649,7 +10649,8 @@ var
     one expression class this walker does not model, withdraws the answer. }
   procedure CollectRefs(aExpr: TPasExpr);
   var
-    m: integer;
+    m, lBranchIdx, lLabelIdx: integer;
+    lBranch: TCaseExprBranch;
   begin
     if aExpr = nil then
       Exit;
@@ -10695,6 +10696,18 @@ var
       CollectRefs(TIfExpr(aExpr).ConditionExpr);
       CollectRefs(TIfExpr(aExpr).ThenExpr);
       CollectRefs(TIfExpr(aExpr).ElseExpr);
+    end
+    else if aExpr is TCaseExpr then
+    begin
+      CollectRefs(TCaseExpr(aExpr).CaseExpr);
+      for lBranchIdx := 0 to TCaseExpr(aExpr).Branches.Count - 1 do
+      begin
+        lBranch := TCaseExprBranch(TCaseExpr(aExpr).Branches[lBranchIdx]);
+        for lLabelIdx := 0 to lBranch.Labels.Count - 1 do
+          CollectRefs(TPasExpr(lBranch.Labels[lLabelIdx]));
+        CollectRefs(lBranch.Value);
+      end;
+      CollectRefs(TCaseExpr(aExpr).ElseExpr);
     end
     // An anonymous method body is an operand, not a declaration-list entry.
     else if aExpr is TProcedureExpr then

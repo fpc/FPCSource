@@ -99,6 +99,14 @@ type
     Procedure TestIfExprInBrackets;
     Procedure TestIfExprObjFPCFail;
     Procedure TestIfExprMissingElseFail;
+    Procedure TestCaseExpr;
+    Procedure TestCaseExprOtherwise;
+    Procedure TestCaseExprNoElse;
+    Procedure TestCaseExprNested;
+    Procedure TestCaseExprInBrackets;
+    Procedure TestCaseExprObjFPCFail;
+    Procedure TestCaseExprMissingEndFail;
+    Procedure TestCaseExprNoBranchFail;
     Procedure TestBinaryIs;
     Procedure TestBinaryIsNot;
     Procedure TestBinaryIsNotPrecedence;
@@ -1054,6 +1062,126 @@ begin
   DeclareVar('integer','a');
   DeclareVar('boolean','b');
   SetExpression('if b then 1');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestCaseExpr;
+
+var
+  C : TCaseExpr;
+  Branch : TCaseExprBranch;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  ParseExpression('case a of 1: 10; 2, 3: 20; 4..6: 30; else 40 end');
+  AssertExpression('Case expression',TheExpr,pekCase,TCaseExpr);
+  C:=TheExpr as TCaseExpr;
+  AssertExpression('Case value is a',C.CaseExpr,pekIdent,'a');
+  AssertEquals('Branch count',3,C.Branches.Count);
+  Branch:=TCaseExprBranch(C.Branches[0]);
+  AssertEquals('Branch 0 label count',1,Branch.Labels.Count);
+  AssertExpression('Branch 0 label',TPasExpr(Branch.Labels[0]),pekNumber,'1');
+  AssertExpression('Branch 0 value',Branch.Value,pekNumber,'10');
+  Branch:=TCaseExprBranch(C.Branches[1]);
+  AssertEquals('Branch 1 label count',2,Branch.Labels.Count);
+  AssertExpression('Branch 1 label 0',TPasExpr(Branch.Labels[0]),pekNumber,'2');
+  AssertExpression('Branch 1 label 1',TPasExpr(Branch.Labels[1]),pekNumber,'3');
+  AssertExpression('Branch 1 value',Branch.Value,pekNumber,'20');
+  Branch:=TCaseExprBranch(C.Branches[2]);
+  AssertEquals('Branch 2 label count',1,Branch.Labels.Count);
+  AssertExpression('Branch 2 label',TPasExpr(Branch.Labels[0]),pekRange,TBinaryExpr);
+  AssertExpression('Branch 2 value',Branch.Value,pekNumber,'30');
+  AssertExpression('Else is 40',C.ElseExpr,pekNumber,'40');
+  AssertEquals('Declaration','case a of 1: 10; 2, 3: 20; 4..6: 30; else 40 end',
+    TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestCaseExprOtherwise;
+
+var
+  C : TCaseExpr;
+
+begin
+  // otherwise instead of else, semicolons before else and end
+  FDirective:='{$modeswitch statementexpressions}';
+  DeclareVar('integer','a');
+  ParseExpression('case a of 1: 10; otherwise 40; end');
+  AssertExpression('Case expression',TheExpr,pekCase,TCaseExpr);
+  C:=TheExpr as TCaseExpr;
+  AssertEquals('Branch count',1,C.Branches.Count);
+  AssertExpression('Else is 40',C.ElseExpr,pekNumber,'40');
+end;
+
+procedure TTestExpressions.TestCaseExprNoElse;
+
+var
+  C : TCaseExpr;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('boolean','b');
+  ParseExpression('case b of false: 1; true: 2 end');
+  AssertExpression('Case expression',TheExpr,pekCase,TCaseExpr);
+  C:=TheExpr as TCaseExpr;
+  AssertEquals('Branch count',2,C.Branches.Count);
+  AssertNull('No else',C.ElseExpr);
+  AssertEquals('Declaration','case b of False: 1; True: 2 end',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestCaseExprNested;
+
+var
+  C, Inner : TCaseExpr;
+  Branch : TCaseExprBranch;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  DeclareVar('boolean','b');
+  ParseExpression('case a of 1: if b then 2 else 3; else case a of 4: 5; else 6 end end');
+  AssertExpression('Case expression',TheExpr,pekCase,TCaseExpr);
+  C:=TheExpr as TCaseExpr;
+  AssertEquals('Branch count',1,C.Branches.Count);
+  Branch:=TCaseExprBranch(C.Branches[0]);
+  AssertExpression('Branch value is if',Branch.Value,pekIf,TIfExpr);
+  AssertExpression('Else is case',C.ElseExpr,pekCase,TCaseExpr);
+  Inner:=TCaseExpr(C.ElseExpr);
+  AssertEquals('Inner branch count',1,Inner.Branches.Count);
+  AssertExpression('Inner else is 6',Inner.ElseExpr,pekNumber,'6');
+end;
+
+procedure TTestExpressions.TestCaseExprInBrackets;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  ParseExpression('(case a of 1: 2; else 3 end) * 4');
+  AssertBinaryExpr('Outer is *',eopMultiply,FLeft,FRight);
+  AssertExpression('Left is case',TheLeft,pekCase,TCaseExpr);
+  AssertExpression('Right is 4',TheRight,pekNumber,'4');
+end;
+
+procedure TTestExpressions.TestCaseExprObjFPCFail;
+begin
+  // without modeswitch statementexpressions
+  DeclareVar('integer','a');
+  SetExpression('case a of 1: 2; else 3 end');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestCaseExprMissingEndFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  SetExpression('case a of 1: 2; else 3');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestCaseExprNoBranchFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  SetExpression('case a of else 3 end');
   AssertException(EParserError,@ParseExpression);
 end;
 

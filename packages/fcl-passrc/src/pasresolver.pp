@@ -1729,6 +1729,8 @@ type
     procedure ResolveImplBlock(Block: TPasImplBlock); virtual;
     procedure ResolveImplElement(El: TPasImplElement); virtual;
     procedure ResolveImplCaseOf(CaseOf: TPasImplCaseOf); virtual;
+    procedure ResolveCaseLabels(CaseExpr: TPasExpr; LabelLists: TFPList;
+      ElseEl: TPasElement; IsExpression: boolean); virtual;
     procedure ResolveImplLabelMark(Mark: TPasImplLabelMark); virtual;
     procedure ResolveImplWithDo(El: TPasImplWithDo); virtual;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); virtual;
@@ -1742,6 +1744,7 @@ type
     procedure ResolveInheritedName(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveBinaryExpr(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveIfExpr(El: TIfExpr; Access: TResolvedRefAccess); virtual;
+    procedure ResolveCaseExpr(El: TCaseExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveSubIdent(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExprParams(Params: TParamsExpr); virtual;
@@ -1847,6 +1850,12 @@ type
     procedure ComputeIfExpr(El: TIfExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement); virtual;
+    procedure ComputeCaseExpr(El: TCaseExpr;
+      out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      StartEl: TPasElement); virtual;
+    procedure CombineStatementExprBranch(El: TPasExpr;
+      var CombinedResolved: TPasResolverResult; const NextResolved: TPasResolverResult;
+      LastExpr, NextExpr: TPasExpr); virtual;
     function ComputeAddStringRes(
       const LeftResolved, RightResolved: TPasResolverResult; ExprEl: TPasExpr;
       out ResolvedEl: TPasResolverResult): boolean; virtual;
@@ -2046,6 +2055,8 @@ type
     procedure SpecializeInlineSpecializeExpr(GenEl, SpecEl: TInlineSpecializeExpr);
     procedure SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
     procedure SpecializeIfExpr(GenEl, SpecEl: TIfExpr);
+    procedure SpecializeCaseExpr(GenEl, SpecEl: TCaseExpr);
+    procedure SpecializeCaseExprBranch(GenEl, SpecEl: TCaseExprBranch);
     procedure SpecializeResString(GenEl, SpecEl: TPasResString);
     procedure SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
     procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
@@ -3146,6 +3157,8 @@ begin
     Result:='inline-specialize'
   else if C=TIfExpr then
     Result:='if expression'
+  else if C=TCaseExpr then
+    Result:='case expression'
   else if C=TPasRangeType then
     Result:='range'
   else if C=TPasArrayType then
@@ -12037,6 +12050,39 @@ begin
 end;
 
 procedure TPasResolver.ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
+var
+  LabelLists: TFPList;
+  i: Integer;
+  El: TPasElement;
+begin
+  LabelLists:=TFPList.Create;
+  try
+    for i:=0 to CaseOf.Elements.Count-1 do
+      begin
+      El:=TPasElement(CaseOf.Elements[i]);
+      if El.ClassType=TPasImplCaseStatement then
+        LabelLists.Add(TPasImplCaseStatement(El).Expressions)
+      else if El.ClassType<>TPasImplCaseElse then
+        RaiseNotYetImplemented(20160922163448,El);
+      end;
+    ResolveCaseLabels(CaseOf.CaseExpr,LabelLists,CaseOf.ElseBranch,false);
+  finally
+    LabelLists.Free;
+  end;
+  for i:=0 to CaseOf.Elements.Count-1 do
+    begin
+    El:=TPasElement(CaseOf.Elements[i]);
+    if El.ClassType=TPasImplCaseStatement then
+      ResolveImplElement(TPasImplCaseStatement(El).Body)
+    else
+      ResolveImplBlock(TPasImplCaseElse(El));
+    end;
+end;
+
+procedure TPasResolver.ResolveCaseLabels(CaseExpr: TPasExpr;
+  LabelLists: TFPList; ElseEl: TPasElement; IsExpression: boolean);
+// LabelLists: list of TFPList of TPasExpr
+// ElseEl: nil if there is no else-branch
 type
   TRangeItem = record
     RangeStart, RangeEnd: TMaxPrecInt;
@@ -12361,8 +12407,7 @@ type
 
 var
   i, j: Integer;
-  El: TPasElement;
-  Stat: TPasImplCaseStatement;
+  Labels: TFPList;
   CaseExprResolved, OfExprResolved: TPasResolverResult;
   OfExpr: TPasExpr;
   ok: Boolean;
@@ -12374,8 +12419,8 @@ var
   RLow, RHigh: TMaxPrecInt;
   CaseValue, RangeVal: TResEvalValue;
 begin
-  ResolveExpr(CaseOf.CaseExpr,rraRead);
-  ComputeElement(CaseOf.CaseExpr,CaseExprResolved,[rcSetReferenceFlags]);
+  ResolveExpr(CaseExpr,rraRead);
+  ComputeElement(CaseExpr,CaseExprResolved,[rcSetReferenceFlags]);
   ok:=false;
   Values:=TFPList.Create;
   ValueSet:=nil;
@@ -12387,63 +12432,61 @@ begin
       begin
       if not IsGenericTemplType(CaseExprResolved) then
         RaiseXExpectedButYFound(20170216151952,'ordinal expression',
-                   GetTypeDescription(CaseExprResolved.LoTypeEl),CaseOf.CaseExpr);
+                   GetTypeDescription(CaseExprResolved.LoTypeEl),CaseExpr);
       end;
 
-    for i:=0 to CaseOf.Elements.Count-1 do
+    for i:=0 to LabelLists.Count-1 do
       begin
-      El:=TPasElement(CaseOf.Elements[i]);
-      if El.ClassType=TPasImplCaseStatement then
+      Labels:=TFPList(LabelLists[i]);
+      for j:=0 to Labels.Count-1 do
         begin
-        Stat:=TPasImplCaseStatement(El);
-        for j:=0 to Stat.Expressions.Count-1 do
-          begin
-          //writeln('TPasResolver.ResolveImplCaseOf Stat.Expr[',j,']=',GetObjName(El));
-          OfExpr:=TPasExpr(Stat.Expressions[j]);
-          ResolveExpr(OfExpr,rraRead);
-          ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
-          if OfExprResolved.BaseType=btRange then
-            ConvertRangeToElement(OfExprResolved);
-          if not ok then
-            continue;
-          CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
+        OfExpr:=TPasExpr(Labels[j]);
+        ResolveExpr(OfExpr,rraRead);
+        ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
+        if OfExprResolved.BaseType=btRange then
+          ConvertRangeToElement(OfExprResolved);
+        if not ok then
+          continue;
+        CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
 
-          Value:=Eval(OfExpr,[refConstExt]);
-          if Value<>nil then
+        Value:=Eval(OfExpr,[refConstExt]);
+        if Value<>nil then
+          begin
+          if Value.Kind=revkExternal then
             begin
-            if Value.Kind=revkExternal then
-              begin
-              // external const
-              end
-            else if not AddValue(Value,Values,ValueSet,OfExpr) then
-              RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
-                [],OfExprResolved,CaseExprResolved,OfExpr);
-            // Also check single string values against multi-char string ranges
-            if CaseExprResolved.BaseType in btAllStrings then
-              CheckStringValueOverlap(OfExpr,Values);
-            ReleaseEvalValue(Value);
+            // external const
             end
-          else if CaseExprResolved.BaseType in btAllStrings then
-            // Multi-char string range: check for overlaps
-            CheckStringRangeOverlap(OfExpr,Values)
-          else
-            RaiseMsg(20180518102047,nConstantExpressionExpected,sConstantExpressionExpected,[],OfExpr);
-          end;
-        ResolveImplElement(Stat.Body);
-        end
-      else if El.ClassType=TPasImplCaseElse then
-        ResolveImplBlock(TPasImplCaseElse(El))
-      else
-        RaiseNotYetImplemented(20160922163448,El);
+          else if not AddValue(Value,Values,ValueSet,OfExpr) then
+            RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
+              [],OfExprResolved,CaseExprResolved,OfExpr);
+          // Also check single string values against multi-char string ranges
+          if CaseExprResolved.BaseType in btAllStrings then
+            CheckStringValueOverlap(OfExpr,Values);
+          ReleaseEvalValue(Value);
+          end
+        else if CaseExprResolved.BaseType in btAllStrings then
+          // Multi-char string range: check for overlaps
+          CheckStringRangeOverlap(OfExpr,Values)
+        else
+          RaiseMsg(20180518102047,nConstantExpressionExpected,sConstantExpressionExpected,[],OfExpr);
+        end;
       end;
     // Case coverage analysis
+    HasElse := ElseEl <> nil;
+    if IsExpression and not HasElse
+        and (CaseExprResolved.BaseType in btAllStrings) then
+      // case-of-string expression needs an else
+      RaiseMsg(20260913120100,nCaseExprNotCovered,sCaseExprNotCovered,[],CaseExpr);
     if (ValueSet <> nil) and not (CaseExprResolved.BaseType in btAllStrings) then
       begin
-      HasElse := CaseOf.ElseBranch <> nil;
-      IsISO := [msIso, msExtpas] * GetElModeSwitches(CaseOf) <> [];
+      IsISO := [msIso, msExtpas] * GetElModeSwitches(CaseExpr) <> [];
 
       // Check 1: constant case expression - is the value covered?
-      CaseValue := Eval(CaseOf.CaseExpr, []);
+      // A case-expression without else must cover the whole type range.
+      if IsExpression then
+        CaseValue := nil
+      else
+        CaseValue := Eval(CaseExpr, []);
       if CaseValue <> nil then
         begin
         try
@@ -12455,10 +12498,10 @@ begin
               // Constant value not in any case label and no else/otherwise branch and no else/otherwise branch
               if IsISO then
                 RaiseMsg(20260225200001,nCaseStatementNotCovered,
-                  sCaseStatementNotCovered,[],CaseOf.CaseExpr)
+                  sCaseStatementNotCovered,[],CaseExpr)
               else
                 LogMsg(20260225200002,mtWarning,nCaseStatementNotCovered,
-                  sCaseStatementNotCovered,[],CaseOf.CaseExpr);
+                  sCaseStatementNotCovered,[],CaseExpr);
               end;
             end;
         finally
@@ -12472,7 +12515,11 @@ begin
         RLow := 0;
         RHigh := 0;
         if CaseExprResolved.BaseType in btAllBooleans then
-          begin RLow := 0; RHigh := 1; RangeCovered := true; end
+          begin
+          RLow := 0;
+          RHigh := 1;
+          RangeCovered := true;
+          end
         else if CaseExprResolved.LoTypeEl is TPasRangeType then
           begin
           RangeVal := Eval(TPasRangeType(CaseExprResolved.LoTypeEl).RangeExpr, []);
@@ -12501,28 +12548,34 @@ begin
           if AllCovered and HasElse then
             // All values covered but else exists - unreachable else warning
             LogMsg(20260225200003,mtWarning,nCaseElseUnreachable,
-              sCaseElseUnreachable,[],CaseOf.ElseBranch)
+              sCaseElseUnreachable,[],ElseEl)
           else if not AllCovered and not HasElse then
             begin
             // Not all values covered and no else
-            if IsISO then
+            if IsExpression then
+              RaiseMsg(20260913120101,nCaseExprNotCovered,
+                sCaseExprNotCovered,[],CaseExpr)
+            else if IsISO then
               RaiseMsg(20260225200004,nCaseStatementNotCovered,
-                sCaseStatementNotCovered,[],CaseOf.CaseExpr)
+                sCaseStatementNotCovered,[],CaseExpr)
             else
               LogMsg(20260225200005,mtWarning,nCaseStatementNotCovered,
-                sCaseStatementNotCovered,[],CaseOf.CaseExpr);
+                sCaseStatementNotCovered,[],CaseExpr);
             end;
           end
+        else if not HasElse and IsExpression then
+          // case-expression without else on unbounded type, e.g. integer
+          RaiseMsg(20260913120102,nCaseExprNotCovered,
+            sCaseExprNotCovered,[],CaseExpr)
         else if not HasElse and IsISO then
           begin
           // ISO/ExtPascal: case without else on unbounded type - warning
           LogMsg(20260225200006,mtWarning,nCaseStatementNotCovered,
-            sCaseStatementNotCovered,[],CaseOf.CaseExpr);
+            sCaseStatementNotCovered,[],CaseExpr);
           end;
         end;
       end;
 
-    // Note: CaseOf.ElseBranch was already resolved via Elements
   finally
     ReleaseEvalValue(Value);
     ValueSet.Free;
@@ -12937,6 +12990,8 @@ begin
     ResolveInlineSpecializeExpr(TInlineSpecializeExpr(El),Access)
   else if ElClass=TIfExpr then
     ResolveIfExpr(TIfExpr(El),Access)
+  else if ElClass=TCaseExpr then
+    ResolveCaseExpr(TCaseExpr(El),Access)
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -12961,11 +13016,94 @@ begin
   ComputeIfExpr(El,ResolvedEl,[],El);
 end;
 
+procedure TPasResolver.ResolveCaseExpr(El: TCaseExpr;
+  Access: TResolvedRefAccess);
+var
+  ResolvedEl: TPasResolverResult;
+  LabelLists: TFPList;
+  i: Integer;
+begin
+  // a case-expression is a value, it cannot be assigned or passed as var
+  if not (Access in [rraNone,rraRead,rraParamToUnknownProc]) then
+    RaiseMsg(20260913120200,nVariableIdentifierExpected,sVariableIdentifierExpected,
+      [],El);
+  LabelLists:=TFPList.Create;
+  try
+    for i:=0 to El.Branches.Count-1 do
+      LabelLists.Add(TCaseExprBranch(El.Branches[i]).Labels);
+    ResolveCaseLabels(El.CaseExpr,LabelLists,El.ElseExpr,true);
+  finally
+    LabelLists.Free;
+  end;
+  for i:=0 to El.Branches.Count-1 do
+    ResolveExpr(TCaseExprBranch(El.Branches[i]).Value,rraRead);
+  if El.ElseExpr<>nil then
+    ResolveExpr(El.ElseExpr,rraRead);
+  // check that all values are compatible
+  ComputeCaseExpr(El,ResolvedEl,[],El);
+end;
+
 procedure TPasResolver.ComputeIfExpr(El: TIfExpr; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
 var
-  CondResolved, ThenResolved, ElseResolved: TPasResolverResult;
+  CondResolved, ElseResolved: TPasResolverResult;
+begin
+  if rcConstant in Flags then
+    ComputeElement(El.ConditionExpr,CondResolved,Flags,StartEl);
+  ComputeElement(El.ThenExpr,ResolvedEl,Flags,StartEl);
+  ComputeElement(El.ElseExpr,ElseResolved,Flags,StartEl);
+  CombineStatementExprBranch(El,ResolvedEl,ElseResolved,El.ThenExpr,El.ElseExpr);
+end;
+
+procedure TPasResolver.ComputeCaseExpr(El: TCaseExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+var
+  AccExpr: TPasExpr;
+
+  procedure AddValue(ValueExpr: TPasExpr);
+  var
+    ValueResolved: TPasResolverResult;
+  begin
+    if AccExpr=nil then
+      ComputeElement(ValueExpr,ResolvedEl,Flags,StartEl)
+    else
+      begin
+      ComputeElement(ValueExpr,ValueResolved,Flags,StartEl);
+      CombineStatementExprBranch(El,ResolvedEl,ValueResolved,AccExpr,ValueExpr);
+      end;
+    AccExpr:=ValueExpr;
+  end;
+
+var
+  CaseResolved: TPasResolverResult;
+  i: Integer;
+begin
+  if rcConstant in Flags then
+    ComputeElement(El.CaseExpr,CaseResolved,Flags,StartEl);
+  AccExpr:=nil;
+  for i:=0 to El.Branches.Count-1 do
+    AddValue(TCaseExprBranch(El.Branches[i]).Value);
+  if El.ElseExpr<>nil then
+    AddValue(El.ElseExpr);
+  if AccExpr=nil then
+    RaiseInternalError(20260913120300);
+  // the result is a value, not a variable, except for class references
+  ResolvedEl.ExprEl:=El;
+  if not (ResolvedEl.IdentEl is TPasType) then
+    begin
+    ResolvedEl.IdentEl:=nil;
+    ResolvedEl.Flags:=[rrfReadable];
+    end;
+end;
+
+procedure TPasResolver.CombineStatementExprBranch(El: TPasExpr;
+  var CombinedResolved: TPasResolverResult; const NextResolved: TPasResolverResult;
+  LastExpr, NextExpr: TPasExpr);
+// combines the types of two branches of an if- or case-expression
+var
+  ThenResolved, ElseResolved, ResolvedEl: TPasResolverResult;
   bt: TResolverBaseType;
 
   procedure RaiseIncompatible;
@@ -13025,10 +13163,8 @@ var
 var
   CommonClass, ThenClassRef, ElseClassRef: TPasClassType;
 begin
-  if rcConstant in Flags then
-    ComputeElement(El.ConditionExpr,CondResolved,Flags,StartEl);
-  ComputeElement(El.ThenExpr,ThenResolved,Flags,StartEl);
-  ComputeElement(El.ElseExpr,ElseResolved,Flags,StartEl);
+  ThenResolved:=CombinedResolved;
+  ElseResolved:=NextResolved;
 
   ThenClassRef:=GetClassRef(ThenResolved);
   ElseClassRef:=GetClassRef(ElseResolved);
@@ -13046,9 +13182,10 @@ begin
       CommonClass:=GetCommonAncestor(ThenClassRef,ElseClassRef);
     if CommonClass=nil then
       RaiseIncompatible;
-    // the result is a class reference, like a type identifier
+
     SetResolverIdentifier(ResolvedEl,btContext,CommonClass,CommonClass,CommonClass,[]);
     ResolvedEl.ExprEl:=El;
+    CombinedResolved:=ResolvedEl;
     exit;
     end;
 
@@ -13056,14 +13193,13 @@ begin
     ResolvedEl:=ThenResolved
   else if ThenResolved.BaseType=btNil then
     begin
-    // nil and e.g. a class, pointer, dynamic array or procedure type
-    if CheckAssignResCompatibility(ElseResolved,ThenResolved,El.ThenExpr,false)=cIncompatible then
+    if CheckAssignResCompatibility(ElseResolved,ThenResolved,LastExpr,false)=cIncompatible then
       RaiseIncompatible;
     ResolvedEl:=ElseResolved;
     end
   else if ElseResolved.BaseType=btNil then
     begin
-    if CheckAssignResCompatibility(ThenResolved,ElseResolved,El.ElseExpr,false)=cIncompatible then
+    if CheckAssignResCompatibility(ThenResolved,ElseResolved,NextExpr,false)=cIncompatible then
       RaiseIncompatible;
     ResolvedEl:=ThenResolved;
     end
@@ -13084,10 +13220,10 @@ begin
       else
         SetResolverValueExpr(ResolvedEl,bt,FBaseTypes[bt],FBaseTypes[bt],El,[rrfReadable]);
       end
-    else if CheckAssignResCompatibility(ThenResolved,ElseResolved,El.ElseExpr,false)<>cIncompatible then
+    else if CheckAssignResCompatibility(ThenResolved,ElseResolved,NextExpr,false)<>cIncompatible then
       // e.g. TAnimal and TDog -> TAnimal
       ResolvedEl:=ThenResolved
-    else if CheckAssignResCompatibility(ElseResolved,ThenResolved,El.ThenExpr,false)<>cIncompatible then
+    else if CheckAssignResCompatibility(ElseResolved,ThenResolved,LastExpr,false)<>cIncompatible then
       ResolvedEl:=ElseResolved
     else if IsClassInstance(ThenResolved) and IsClassInstance(ElseResolved) then
       begin
@@ -13105,6 +13241,7 @@ begin
   ResolvedEl.IdentEl:=nil;
   ResolvedEl.ExprEl:=El;
   ResolvedEl.Flags:=[rrfReadable];
+  CombinedResolved:=ResolvedEl;
 end;
 
 procedure TPasResolver.ResolveStatementConditionExpr(El: TPasExpr);
@@ -15362,7 +15499,8 @@ begin
         or (C=TBoolConstExpr)
         or (C=TInheritedExpr)
         or (C=TProcedureExpr)
-        or (C=TIfExpr))
+        or (C=TIfExpr)
+        or (C=TCaseExpr))
         or (C=TInlineSpecializeExpr) then
     // ok
   else if C=TUnaryExpr then
@@ -21813,6 +21951,9 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
     Arr: TPasArrayType;
     i: Integer;
     InlineSpec: TInlineSpecializeExpr;
+    CaseEx: TCaseExpr;
+    CaseBranch: TCaseExprBranch;
+    j: Integer;
   begin
     Result:=false;
     if El=nil then exit;
@@ -21841,6 +21982,23 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
       Result:=ElementReferencesTemplateTypes(TIfExpr(El).ConditionExpr,GenericTemplateTypes)
         or ElementReferencesTemplateTypes(TIfExpr(El).ThenExpr,GenericTemplateTypes)
         or ElementReferencesTemplateTypes(TIfExpr(El).ElseExpr,GenericTemplateTypes)
+    else if C=TCaseExpr then
+      begin
+      CaseEx:=TCaseExpr(El);
+      Result:=ElementReferencesTemplateTypes(CaseEx.CaseExpr,GenericTemplateTypes)
+        or ElementReferencesTemplateTypes(CaseEx.ElseExpr,GenericTemplateTypes);
+      for i:=0 to CaseEx.Branches.Count-1 do
+        begin
+        if Result then break;
+        CaseBranch:=TCaseExprBranch(CaseEx.Branches[i]);
+        Result:=ElementReferencesTemplateTypes(CaseBranch.Value,GenericTemplateTypes);
+        for j:=0 to CaseBranch.Labels.Count-1 do
+          begin
+          if Result then break;
+          Result:=ElementReferencesTemplateTypes(TPasElement(CaseBranch.Labels[j]),GenericTemplateTypes);
+          end;
+        end;
+      end
     else if C=TInlineSpecializeExpr then
       begin
       InlineSpec:=TInlineSpecializeExpr(El);
@@ -23211,6 +23369,10 @@ begin
     SpecializeProcedureExpr(TProcedureExpr(GenEl),TProcedureExpr(SpecEl))
   else if C=TIfExpr then
     SpecializeIfExpr(TIfExpr(GenEl),TIfExpr(SpecEl))
+  else if C=TCaseExpr then
+    SpecializeCaseExpr(TCaseExpr(GenEl),TCaseExpr(SpecEl))
+  else if C=TCaseExprBranch then
+    SpecializeCaseExprBranch(TCaseExprBranch(GenEl),TCaseExprBranch(SpecEl))
   // TPasType
   else if (C=TPasAliasType)
       or (C=TPasTypeAliasType)
@@ -24455,6 +24617,20 @@ begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.ConditionExpr,SpecEl.ConditionExpr);
   SpecializeElExpr(GenEl,SpecEl,GenEl.ThenExpr,SpecEl.ThenExpr);
   SpecializeElExpr(GenEl,SpecEl,GenEl.ElseExpr,SpecEl.ElseExpr);
+end;
+
+procedure TPasResolver.SpecializeCaseExpr(GenEl, SpecEl: TCaseExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.CaseExpr,SpecEl.CaseExpr);
+  SpecializeElList(GenEl,SpecEl,GenEl.Branches,SpecEl.Branches,false);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ElseExpr,SpecEl.ElseExpr);
+end;
+
+procedure TPasResolver.SpecializeCaseExprBranch(GenEl, SpecEl: TCaseExprBranch);
+begin
+  SpecializeElList(GenEl,SpecEl,GenEl.Labels,SpecEl.Labels,false);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Value,SpecEl.Value);
 end;
 
 procedure TPasResolver.SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
@@ -27794,6 +27970,8 @@ begin
   else if AClass=TFinalizationSection then
     AddInitialFinalizationSection(TFinalizationSection(El))
   else if AClass=TPasImplCommand then
+  else if AClass=TCaseExprBranch then
+    // resolved by ResolveCaseExpr
   else if AClass=TPasLabels then
     // a `label` section declares names only; nothing to put in a scope
   else if AClass.InheritsFrom(TPasImplBlock) then
@@ -37046,6 +37224,8 @@ begin
     ComputeBinaryExpr(TBinaryExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TIfExpr then
     ComputeIfExpr(TIfExpr(El),ResolvedEl,Flags,StartEl)
+  else if ElClass=TCaseExpr then
+    ComputeCaseExpr(TCaseExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TUnaryExpr then
     begin
     if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then
