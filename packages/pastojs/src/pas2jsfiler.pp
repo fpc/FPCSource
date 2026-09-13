@@ -112,7 +112,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 8;
+  PCUVersion = 9;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -125,6 +125,7 @@ const
     6: default DispatchField=Msg, DispatchStrField=MsgStr
     7: InitializationSection JS replaced with Body, Empty
     8: added eopIsNot, eopNotIn, TIfExpr, pekIf and modeswitch StatementExpressions
+    9: added TCaseExpr, pekCase
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -379,7 +380,8 @@ const
     'Specialize',
     'Procedure',
     'NamedArg',
-    'If');
+    'If',
+    'Case');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',
@@ -905,6 +907,7 @@ type
     procedure WriteParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUWriterContext); virtual;
+    procedure WriteCaseExpr(Obj: TJSONObject; Expr: TCaseExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUWriterContext); virtual;
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
@@ -1223,6 +1226,7 @@ type
     procedure ReadParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadIfExpr(Obj: TJSONObject; Expr: TIfExpr; aContext: TPCUReaderContext); virtual;
+    procedure ReadCaseExpr(Obj: TJSONObject; Expr: TCaseExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUReaderContext); virtual;
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
@@ -3713,6 +3717,11 @@ begin
     Obj.Add('Type','IfExpr');
     WriteIfExpr(Obj,TIfExpr(El),aContext);
     end
+  else if C=TCaseExpr then
+    begin
+    Obj.Add('Type','CaseExpr');
+    WriteCaseExpr(Obj,TCaseExpr(El),aContext);
+    end
   else if C=TRecordValues then
     begin
     Obj.Add('Type','RecValues');
@@ -4056,6 +4065,47 @@ begin
   WritePasExpr(Obj,Expr,pekIf,eopNone,aContext);
   WriteExpr(Obj,Expr,'Cond',Expr.ConditionExpr,aContext);
   WriteExpr(Obj,Expr,'Then',Expr.ThenExpr,aContext);
+  WriteExpr(Obj,Expr,'Else',Expr.ElseExpr,aContext);
+end;
+
+procedure TPCUWriter.WriteCaseExpr(Obj: TJSONObject; Expr: TCaseExpr;
+  aContext: TPCUWriterContext);
+var
+  Arr, LabelArr: TJSONArray;
+  i, j: Integer;
+  BranchObj, LabelObj: TJSONObject;
+  Branch: TCaseExprBranch;
+  LabelExpr: TPasExpr;
+begin
+  WritePasExpr(Obj,Expr,pekCase,eopNone,aContext);
+  WriteExpr(Obj,Expr,'Of',Expr.CaseExpr,aContext);
+  if Expr.Branches.Count>0 then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add('Branches',Arr);
+    for i:=0 to Expr.Branches.Count-1 do
+      begin
+      Branch:=TCaseExprBranch(Expr.Branches[i]);
+      if Branch.Parent<>Expr then
+        RaiseMsg(20260913130000,Branch,GetObjName(Expr)+'<>'+GetObjName(Branch.Parent));
+      BranchObj:=TJSONObject.Create;
+      Arr.Add(BranchObj);
+      WritePasElement(BranchObj,Branch,aContext);
+      LabelArr:=TJSONArray.Create;
+      BranchObj.Add('Labels',LabelArr);
+      for j:=0 to Branch.Labels.Count-1 do
+        begin
+        LabelExpr:=TPasExpr(Branch.Labels[j]);
+        if LabelExpr.Parent<>Branch then
+          RaiseMsg(20260913130010,LabelExpr,GetObjName(Branch)+'<>'+GetObjName(LabelExpr.Parent));
+        LabelObj:=TJSONObject.Create;
+        LabelArr.Add(LabelObj);
+        WriteElement(LabelObj,LabelExpr,aContext);
+        WriteExprCustomData(LabelObj,LabelExpr,aContext);
+        end;
+      WriteExpr(BranchObj,Branch,'Value',Branch.Value,aContext);
+      end;
+    end;
   WriteExpr(Obj,Expr,'Else',Expr.ElseExpr,aContext);
 end;
 
@@ -8040,6 +8090,8 @@ begin
     Result:=CreateElement(TProcedureExpr,Name,Parent);
   'IfExpr':
     Result:=CreateElement(TIfExpr,'',Parent);
+  'CaseExpr':
+    Result:=CreateElement(TCaseExpr,'',Parent);
   'RecValues':
     begin
     Result:=CreateElement(TRecordValues,'',Parent);
@@ -8193,6 +8245,8 @@ begin
     ReadProcedureExpr(Obj,TProcedureExpr(El),aContext)
   else if C=TIfExpr then
     ReadIfExpr(Obj,TIfExpr(El),aContext)
+  else if C=TCaseExpr then
+    ReadCaseExpr(Obj,TCaseExpr(El),aContext)
   else if C=TRecordValues then
     ReadRecordValues(Obj,TRecordValues(El),aContext)
   else if C=TArrayValues then
@@ -8467,6 +8521,48 @@ begin
   ReadPasExpr(Obj,Expr,pekIf,aContext);
   Expr.ConditionExpr:=ReadExpr(Obj,Expr,'Cond',aContext);
   Expr.ThenExpr:=ReadExpr(Obj,Expr,'Then',aContext);
+  Expr.ElseExpr:=ReadExpr(Obj,Expr,'Else',aContext);
+end;
+
+procedure TPCUReader.ReadCaseExpr(Obj: TJSONObject; Expr: TCaseExpr;
+  aContext: TPCUReaderContext);
+var
+  Arr, LabelArr: TJSONArray;
+  i, j: Integer;
+  Data: TJSONData;
+  BranchObj, LabelObj: TJSONObject;
+  Branch: TCaseExprBranch;
+  SubEl: TPasElement;
+begin
+  ReadPasExpr(Obj,Expr,pekCase,aContext);
+  Expr.CaseExpr:=ReadExpr(Obj,Expr,'Of',aContext);
+  if ReadArray(Obj,'Branches',Arr,Expr) then
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONObject) then
+        RaiseMsg(20260913130100,Expr,'Branches['+IntToStr(i)+'] is '+GetObjName(Data));
+      BranchObj:=TJSONObject(Data);
+      Branch:=TCaseExprBranch(CreateElement(TCaseExprBranch,'',Expr));
+      Expr.Branches.Add(Branch);
+      ReadPasElement(BranchObj,Branch,aContext);
+      if ReadArray(BranchObj,'Labels',LabelArr,Branch) then
+        for j:=0 to LabelArr.Count-1 do
+          begin
+          Data:=LabelArr[j];
+          if not (Data is TJSONObject) then
+            RaiseMsg(20260913130110,Branch,'Labels['+IntToStr(j)+'] is '+GetObjName(Data));
+          LabelObj:=TJSONObject(Data);
+          SubEl:=ReadNewElement(LabelObj,Branch);
+          if not (SubEl is TPasExpr) then
+            RaiseMsg(20260913130120,Branch,'Labels['+IntToStr(j)+'] is '+GetObjName(SubEl));
+          Branch.Labels.Add(SubEl);
+          ReadElement(LabelObj,SubEl,aContext);
+          // Important: read customdata after parser data
+          ReadExprCustomData(LabelObj,TPasExpr(SubEl),aContext);
+          end;
+      Branch.Value:=ReadExpr(BranchObj,Branch,'Value',aContext);
+      end;
   Expr.ElseExpr:=ReadExpr(Obj,Expr,'Else',aContext);
 end;
 

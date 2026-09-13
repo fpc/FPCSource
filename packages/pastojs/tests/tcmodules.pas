@@ -435,6 +435,9 @@ type
     Procedure TestIfExpr;
     Procedure TestIfExpr_Record;
     Procedure TestIfExpr_ClassRef;
+    Procedure TestCaseExpr;
+    Procedure TestCaseExpr_TempVar;
+    Procedure TestCaseExpr_Nested;
     Procedure TestSet_IntRange;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
@@ -7315,6 +7318,123 @@ begin
     '$mod.i = ($mod.b ? 1 : ($mod.i > 2 ? 3 : 4));',
     '$mod.i = 1 + ($mod.b ? 2 : 3);',
     '$mod.s = ($mod.b ? $mod.c : $mod.GetStr());',
+    '']));
+end;
+
+procedure TTestModule.TestCaseExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TEnum = (red, green, blue);',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  '  s: string;',
+  '  e: TEnum;',
+  'begin',
+  '  s:=case i of 1: ''a''; 2, 3: ''b''; 5..7: ''c''; else s end;',
+  '  s:=case e of red: ''r''; green: ''g''; blue: ''b'' end;',
+  '  s:=case s of ''a'': ''x''; ''b''..''d'': ''y''; else '''' end;',
+  '  s:=if b then case i of 1: ''a''; else ''b'' end else ''c'';',
+  '  i:=1+case b of true: 2; false: 3 end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCaseExpr',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1,',
+    '  "2": "blue",',
+    '  blue: 2',
+    '};',
+    'this.b = false;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.e = 0;',
+    '']),
+    LinesToStr([
+    '$mod.s = ($mod.i === 1 ? "a" : (($mod.i === 2) || ($mod.i === 3) ? "b" : (($mod.i >= 5) && ($mod.i <= 7) ? "c" : $mod.s)));',
+    '$mod.s = ($mod.e === $mod.TEnum.red ? "r" : ($mod.e === $mod.TEnum.green ? "g" : "b"));',
+    '$mod.s = ($mod.s === "a" ? "x" : (($mod.s.length === 1) && ($mod.s >= "b") && ($mod.s <= "d") ? "y" : ""));',
+    '$mod.s = ($mod.b ? ($mod.i === 1 ? "a" : "b") : "c");',
+    '$mod.i = 1 + ($mod.b === true ? 2 : 3);',
+    '']));
+end;
+
+procedure TTestModule.TestCaseExpr_TempVar;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  s: string;',
+  'function GetInt: longint;',
+  'begin',
+  'end;',
+  'procedure DoIt;',
+  'var',
+  '  j: longint;',
+  'begin',
+  '  j:=case GetInt of 1: 2; else 3 end;',
+  'end;',
+  'begin',
+  '  s:=case GetInt of 1: ''a''; 2..4: ''b''; else ''c'' end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCaseExpr_TempVar',
+    LinesToStr([ // statements
+    'this.s = "";',
+    'this.GetInt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.DoIt = function () {',
+    '  var $tmp;',
+    '  var j = 0;',
+    '  j = ($tmp = $mod.GetInt(), ($tmp === 1 ? 2 : 3));',
+    '};',
+    '']),
+    LinesToStr([
+    'var $tmp;',
+    '$mod.s = ($tmp = $mod.GetInt(), ($tmp === 1 ? "a" : (($tmp >= 2) && ($tmp <= 4) ? "b" : "c")));',
+    '']));
+end;
+
+procedure TTestModule.TestCaseExpr_Nested;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  i: longint;',
+  'function GetInt: longint;',
+  'begin',
+  'end;',
+  'begin',
+  '  i:=case GetInt() of',
+  '    1: case GetInt() of 2: 11 else 12 end;',
+  '    3: case GetInt() of 1: 31 else 32 end;',
+  '    else 12',
+  '    end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCaseExpr_Nested',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.GetInt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    'var $tmp;',
+    'var $tmp1;',
+    'var $tmp2;',
+    '$mod.i = ($tmp = $mod.GetInt(), ($tmp === 1 ? ($tmp1 = $mod.GetInt(), ($tmp1 === 2 ? 11 : 12)) : ($tmp === 3 ? ($tmp2 = $mod.GetInt(), ($tmp2 === 1 ? 31 : 32)) : 12)));',
     '']));
 end;
 

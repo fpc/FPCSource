@@ -1809,6 +1809,7 @@ type
     Element: TPasElement;
     Name: string;
     Kind: TCtxVarKind;
+    Hoisted: boolean; // true if it needs a "var name;" at the start of the function
     constructor Create(const aName: string; TheEl: TPasElement; aKind: TCtxVarKind);
   end;
   TFCLocalVars = array of TFCLocalIdentifier;
@@ -1832,6 +1833,8 @@ type
     destructor Destroy; override;
     function AddLocalVar(aName: string; El: TPasElement; aKind: TCtxVarKind; AutoUnique: boolean): TFCLocalIdentifier;
     function AddLocalJSVar(aName: string; AutoUnique: boolean): TFCLocalIdentifier;
+    function AddHoistedJSVar(const aName: string): string;
+    function HasHoistedVars: boolean;
     procedure Add_InterfaceRelease(El: TPasElement);
     function CreateLocalIdentifier(const Prefix: string; El: TPasElement; aKind: TCtxVarKind): string; virtual;
     function ToString: string; override;
@@ -2256,6 +2259,8 @@ type
     Procedure AddInFrontOfFunctionTry(NewEl: TJSElement; PosEl: TPasElement;
       FuncContext: TFunctionContext); virtual;
     Procedure AddInterfaceReleases(FuncContext: TFunctionContext; PosEl: TPasElement); virtual;
+    Function PrependHoistedVars(FuncContext: TFunctionContext; First: TJSElement; PosEl: TPasElement): TJSElement; virtual;
+    Procedure AddHoistedVarsToSource(FuncContext: TFunctionContext; Src: TJSSourceElements; PosEl: TPasElement); virtual;
     Procedure AddInterfaceRelease_Result(FuncContext: TFunctionContext;
       const ResultVarName: string; PosEl: TPasElement); virtual;
     Procedure AddClassSupportedInterfaces(El: TPasClassType; Src: TJSSourceElements;
@@ -2352,6 +2357,10 @@ type
     Function ConvertUnaryExpression(El: TUnaryExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertInlineSpecializeExpr(El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertIfExpr(El: TIfExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertCaseExpr(El: TCaseExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateCaseLabelsCondition(Labels: TFPList; const CaseValueName: string;
+      CaseValuePosEl, PosEl: TPasElement; IsCaseOfString: boolean;
+      AContext: TConvertContext): TJSElement; virtual;
     // Convert declarations
     Function ConvertElement(El : TPasElement; AContext: TConvertContext) : TJSElement; virtual;
     Function ConvertProperty(El: TPasProperty; AContext: TConvertContext ): TJSElement; virtual;
@@ -8007,6 +8016,25 @@ begin
   Result:=AddLocalVar(aName,nil,cvkNone,AutoUnique);
 end;
 
+function TFunctionContext.AddHoistedJSVar(const aName: string): string;
+var
+  V: TFCLocalIdentifier;
+begin
+  V:=AddLocalJSVar(aName,true);
+  V.Hoisted:=true;
+  Result:=V.Name;
+end;
+
+function TFunctionContext.HasHoistedVars: boolean;
+var
+  i: Integer;
+begin
+  for i:=0 to length(LocalVars)-1 do
+    if LocalVars[i].Hoisted then
+      exit(true);
+  Result:=false;
+end;
+
 procedure TFunctionContext.Add_InterfaceRelease(El: TPasElement);
 begin
   if IntfElReleases=nil then
@@ -8959,6 +8987,190 @@ begin
       C.Free;
       end;
   end;
+end;
+
+function TPasToJSConverter.ConvertCaseExpr(El: TCaseExpr;
+  AContext: TConvertContext): TJSElement;
+// convert "case v of 1: a; 2..3: b; else c end"
+//   to "v === 1 ? a : (v >= 2) && (v <= 3) ? b : c"
+// if v is not a simple reference, it is stored in a hoisted local var:
+//   "($tmp = v, $tmp === 1 ? a : ...)"
+var
+  Root: TJSElement;
+  ParentCond: TJSConditionalExpression;
+
+  function GetSimpleRefPath(JS: TJSElement): string;
+  begin
+    if JS is TJSPrimaryExpressionIdent then
+      Result:=String(TJSPrimaryExpressionIdent(JS).Name)
+    else if JS is TJSPrimaryExpressionThis then
+      Result:='this'
+    else if JS is TJSDotMemberExpression then
+      begin
+      Result:=GetSimpleRefPath(TJSDotMemberExpression(JS).MExpr);
+      if Result<>'' then
+        Result:=Result+'.'+String(TJSDotMemberExpression(JS).Name);
+      end
+    else
+      Result:='';
+  end;
+
+  procedure AddToChain(NewEl: TJSElement);
+  begin
+    if ParentCond=nil then
+      Root:=NewEl
+    else
+      ParentCond.C:=NewEl;
+  end;
+
+var
+  aResolver: TPas2JSResolver;
+  CaseResolved: TPasResolverResult;
+  IsCaseOfString: Boolean;
+  CaseValueJS, ValueJS: TJSElement;
+  CaseValueName: String;
+  FuncCtx: TFunctionContext;
+  CondExpr: TJSConditionalExpression;
+  AssignSt: TJSSimpleAssignStatement;
+  CommaExpr: TJSCommaExpression;
+  i, LastIndex: Integer;
+  Branch: TCaseExprBranch;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  IsCaseOfString:=false;
+  if aResolver<>nil then
+    begin
+    aResolver.ComputeElement(El.CaseExpr,CaseResolved,[]);
+    IsCaseOfString:=CaseResolved.BaseType in btAllStrings;
+    end;
+
+  Root:=nil;
+  ParentCond:=nil;
+  CaseValueJS:=ConvertExpression(El.CaseExpr,AContext);
+  try
+    CaseValueName:=GetSimpleRefPath(CaseValueJS);
+    if CaseValueName<>'' then
+      // simple reference, e.g. a variable -> use it directly
+      FreeAndNil(CaseValueJS)
+    else
+      begin
+      // e.g. a function call -> store in a local var
+      FuncCtx:=AContext.GetFunctionContext;
+      if FuncCtx=nil then
+        RaiseNotSupported(El,AContext,20260913140000);
+      CaseValueName:=FuncCtx.AddHoistedJSVar('$tmp');
+      end;
+
+    LastIndex:=El.Branches.Count-1;
+    for i:=0 to LastIndex do
+      begin
+      Branch:=TCaseExprBranch(El.Branches[i]);
+      ValueJS:=ConvertExpression(Branch.Value,AContext);
+      if (i=LastIndex) and (El.ElseExpr=nil) then
+        // without else all values are covered -> the last branch needs no test
+        AddToChain(ValueJS)
+      else
+        begin
+        CondExpr:=TJSConditionalExpression(CreateElement(TJSConditionalExpression,Branch));
+        AddToChain(CondExpr);
+        CondExpr.B:=ValueJS;
+        CondExpr.A:=CreateCaseLabelsCondition(Branch.Labels,CaseValueName,
+                                              El.CaseExpr,Branch,IsCaseOfString,AContext);
+        ParentCond:=CondExpr;
+        end;
+      end;
+    if El.ElseExpr<>nil then
+      AddToChain(ConvertExpression(El.ElseExpr,AContext));
+
+    if CaseValueJS<>nil then
+      begin
+      // create "($tmp = v, chain)"
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.CaseExpr));
+      AssignSt.LHS:=CreatePrimitiveDotExpr(CaseValueName,El.CaseExpr);
+      AssignSt.Expr:=CaseValueJS;
+      CaseValueJS:=nil;
+      CommaExpr:=TJSCommaExpression(CreateElement(TJSCommaExpression,El));
+      CommaExpr.A:=AssignSt;
+      CommaExpr.B:=Root;
+      Root:=CommaExpr;
+      end;
+    Result:=Root;
+  finally
+    CaseValueJS.Free;
+    if Result=nil then
+      Root.Free;
+  end;
+end;
+
+function TPasToJSConverter.CreateCaseLabelsCondition(Labels: TFPList;
+  const CaseValueName: string; CaseValuePosEl, PosEl: TPasElement;
+  IsCaseOfString: boolean; AContext: TConvertContext): TJSElement;
+// create for example "(tmp===expr) || ((tmp>=expr) && (tmp<=expr))"
+var
+  j: Integer;
+  Expr: TPasExpr;
+  JSExpr: TJSElement;
+  JSOrExpr: TJSLogicalOrExpression;
+  JSAndExpr: TJSLogicalAndExpression;
+  JSLEExpr: TJSRelationalExpressionLE;
+  JSGEExpr: TJSRelationalExpressionGE;
+  JSEQExpr: TJSEqualityExpressionSEQ;
+begin
+  Result:=nil;
+  for j:=0 to Labels.Count-1 do
+    begin
+    Expr:=TPasExpr(Labels[j]);
+    if (Expr is TBinaryExpr) and (TBinaryExpr(Expr).Kind=pekRange) then
+      begin
+      // range -> create "(tmp>=left) && (tmp<=right)"
+      // create "() && ()"
+      JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
+      JSExpr:=JSAndExpr;
+      // create "tmp>=left"
+      JSGEExpr:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,Expr));
+      JSAndExpr.A:=JSGEExpr;
+      JSGEExpr.A:=CreatePrimitiveDotExpr(CaseValueName,CaseValuePosEl);
+      JSGEExpr.B:=ConvertExpression(TBinaryExpr(Expr).left,AContext);
+      // create "tmp<=right"
+      JSLEExpr:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,Expr));
+      JSAndExpr.B:=JSLEExpr;
+      JSLEExpr.A:=CreatePrimitiveDotExpr(CaseValueName,CaseValuePosEl);
+      JSLEExpr.B:=ConvertExpression(TBinaryExpr(Expr).right,AContext);
+      if IsCaseOfString then
+        begin
+        // case of string, range  ->  "(tmp.length===1) &&"
+        JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
+        JSEQExpr.A:=CreateDotNameExpr(Expr,
+                      CreatePrimitiveDotExpr(CaseValueName,CaseValuePosEl),
+                      'length');
+        JSEQExpr.B:=CreateLiteralNumber(Expr,1);
+        JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
+        JSAndExpr.A:=JSEQExpr;
+        JSAndExpr.B:=JSExpr;
+        JSExpr:=JSAndExpr;
+        end;
+      end
+    else
+      begin
+      // value -> create (tmp===Expr)
+      JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
+      JSExpr:=JSEQExpr;
+      JSEQExpr.A:=CreatePrimitiveDotExpr(CaseValueName,CaseValuePosEl);
+      JSEQExpr.B:=ConvertExpression(Expr,AContext);
+      end;
+    if Result=nil then
+      // first expression
+      Result:=JSExpr
+    else
+      begin
+      // multi expression -> append with OR
+      JSOrExpr:=TJSLogicalOrExpression(CreateElement(TJSLogicalOrExpression,PosEl));
+      JSOrExpr.A:=Result;
+      JSOrExpr.B:=JSExpr;
+      Result:=JSOrExpr;
+      end;
+    end;
 end;
 
 function TPasToJSConverter.GetExpressionValueType(El: TPasExpr;
@@ -15706,6 +15918,8 @@ begin
     Result:=ConvertInlineSpecializeExpr(TInlineSpecializeExpr(El),AContext)
   else if C=TIfExpr then
     Result:=ConvertIfExpr(TIfExpr(El),AContext)
+  else if C=TCaseExpr then
+    Result:=ConvertCaseExpr(TCaseExpr(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024191314);
 end;
@@ -16244,6 +16458,16 @@ begin
       if ResStrVarElAdd then
         Add(ResStrVarEl,El);
       ResStrVarEl:=nil;
+      end;
+
+    // add "var $tmp;" for local vars used by expressions, e.g. case-expressions
+    if (AContext is TFunctionContext)
+        and TFunctionContext(AContext).HasHoistedVars then
+      begin
+      if AContext.IsGlobal and (AContext.JSElement is TJSSourceElements) then
+        AddHoistedVarsToSource(TFunctionContext(AContext),TJSSourceElements(AContext.JSElement),El)
+      else
+        ConvertDeclarations:=PrependHoistedVars(TFunctionContext(AContext),SLFirst,El);
       end;
   finally
     ResStrVarEl.Free;
@@ -18148,7 +18372,7 @@ begin
           FuncContext.BodySt:=Body.A;
 
           AddInterfaceReleases(FuncContext,PosEl);
-          Body.A:=FuncContext.BodySt;
+          Body.A:=PrependHoistedVars(FuncContext,FuncContext.BodySt,PosEl);
 
           // store precompiled JS
           if ImplJS<>nil then
@@ -18264,18 +18488,12 @@ var
   St: TPasImplCaseStatement;
   ok, IsCaseOfString: Boolean;
   i, j: Integer;
-  JSExpr: TJSElement;
   StList: TJSStatementList;
   Expr: TPasExpr;
   IfSt, LastIfSt: TJSIfStatement;
   TmpVar: TFCLocalIdentifier;
   VarDecl: TJSVarDeclaration;
   VarSt: TJSVariableStatement;
-  JSOrExpr: TJSLogicalOrExpression;
-  JSAndExpr: TJSLogicalAndExpression;
-  JSLEExpr: TJSRelationalExpressionLE;
-  JSGEExpr: TJSRelationalExpressionGE;
-  JSEQExpr: TJSEqualityExpressionSEQ;
   aResolver: TPas2JSResolver;
   CaseResolved: TPasResolverResult;
   FuncCtx: TFunctionContext;
@@ -18351,59 +18569,8 @@ begin
           LastIfSt.BFalse:=IfSt;
         LastIfSt:=IfSt;
 
-        for j:=0 to St.Expressions.Count-1 do
-          begin
-          Expr:=TPasExpr(St.Expressions[j]);
-          if (Expr is TBinaryExpr) and (TBinaryExpr(Expr).Kind=pekRange) then
-            begin
-            // range -> create "(tmp>=left) && (tmp<=right)"
-            // create "() && ()"
-            JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
-            JSExpr:=JSAndExpr;
-            // create "tmp>=left"
-            JSGEExpr:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,Expr));
-            JSAndExpr.A:=JSGEExpr;
-            JSGEExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
-            JSGEExpr.B:=ConvertExpression(TBinaryExpr(Expr).left,AContext);
-            // create "tmp<=right"
-            JSLEExpr:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,Expr));
-            JSAndExpr.B:=JSLEExpr;
-            JSLEExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
-            JSLEExpr.B:=ConvertExpression(TBinaryExpr(Expr).right,AContext);
-            if IsCaseOfString then
-              begin
-              // case of string, range  ->  "(tmp.length===1) &&"
-              JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
-              JSEQExpr.A:=CreateDotNameExpr(Expr,
-                            CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr),
-                            'length');
-              JSEQExpr.B:=CreateLiteralNumber(Expr,1);
-              JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
-              JSAndExpr.A:=JSEQExpr;
-              JSAndExpr.B:=JSExpr;
-              JSExpr:=JSAndExpr;
-              end;
-            end
-          else
-            begin
-            // value -> create (tmp===Expr)
-            JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
-            JSExpr:=JSEQExpr;
-            JSEQExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
-            JSEQExpr.B:=ConvertExpression(Expr,AContext);
-            end;
-          if IfSt.Cond=nil then
-            // first expression
-            IfSt.Cond:=JSExpr
-          else
-            begin
-            // multi expression -> append with OR
-            JSOrExpr:=TJSLogicalOrExpression(CreateElement(TJSLogicalOrExpression,St));
-            JSOrExpr.A:=IfSt.Cond;
-            JSOrExpr.B:=JSExpr;
-            IfSt.Cond:=JSOrExpr;
-            end;
-          end;
+        IfSt.Cond:=CreateCaseLabelsCondition(St.Expressions,TmpVar.Name,
+                                             El.CaseExpr,St,IsCaseOfString,AContext);
         // convert statement
         if St.Body<>nil then
           IfSt.BTrue:=ConvertElement(St.Body,AContext)
@@ -22295,6 +22462,43 @@ begin
     end
   else
     RaiseInconsistency(20180402103144,PosEl);
+end;
+
+function TPasToJSConverter.PrependHoistedVars(FuncContext: TFunctionContext;
+  First: TJSElement; PosEl: TPasElement): TJSElement;
+// add in front of First: "var $tmp;"
+var
+  i: Integer;
+  St: TJSStatementList;
+  V: TFCLocalIdentifier;
+begin
+  Result:=First;
+  for i:=length(FuncContext.LocalVars)-1 downto 0 do
+    begin
+    V:=FuncContext.LocalVars[i];
+    if not V.Hoisted then continue;
+    St:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
+    St.A:=CreateVarStatement(V.Name,nil,PosEl);
+    St.B:=Result;
+    Result:=St;
+    V.Hoisted:=false;
+    end;
+end;
+
+procedure TPasToJSConverter.AddHoistedVarsToSource(
+  FuncContext: TFunctionContext; Src: TJSSourceElements; PosEl: TPasElement);
+// insert at the start of Src: "var $tmp;"
+var
+  i: Integer;
+  V: TFCLocalIdentifier;
+begin
+  for i:=length(FuncContext.LocalVars)-1 downto 0 do
+    begin
+    V:=FuncContext.LocalVars[i];
+    if not V.Hoisted then continue;
+    Src.Statements.InsertNode(0).Node:=CreateVarStatement(V.Name,nil,PosEl);
+    V.Hoisted:=false;
+    end;
 end;
 
 procedure TPasToJSConverter.AddInterfaceReleases(FuncContext: TFunctionContext;

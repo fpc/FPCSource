@@ -111,6 +111,8 @@ type
     procedure CheckRestoredParamsExpr(const Path: string; Orig, Rest: TParamsExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredProcedureExpr(const Path: string; Orig, Rest: TProcedureExpr; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredIfExpr(const Path: string; Orig, Rest: TIfExpr; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredCaseExpr(const Path: string; Orig, Rest: TCaseExpr; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredCaseExprBranch(const Path: string; Orig, Rest: TCaseExprBranch; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredRecordValues(const Path: string; Orig, Rest: TRecordValues; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPasExprArray(const Path: string; Orig, Rest: TPasExprArray; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues; Flags: TPCCheckFlags); virtual;
@@ -178,6 +180,7 @@ type
 
     procedure TestPC_Const;
     procedure TestPC_IfExpr;
+    procedure TestPC_CaseExpr;
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
@@ -1473,6 +1476,10 @@ begin
     CheckRestoredProcedureExpr(Path,TProcedureExpr(Orig),TProcedureExpr(Rest),Flags)
   else if C=TIfExpr then
     CheckRestoredIfExpr(Path,TIfExpr(Orig),TIfExpr(Rest),Flags)
+  else if C=TCaseExpr then
+    CheckRestoredCaseExpr(Path,TCaseExpr(Orig),TCaseExpr(Rest),Flags)
+  else if C=TCaseExprBranch then
+    CheckRestoredCaseExprBranch(Path,TCaseExprBranch(Orig),TCaseExprBranch(Rest),Flags)
   else if C=TRecordValues then
     CheckRestoredRecordValues(Path,TRecordValues(Orig),TRecordValues(Rest),Flags)
   else if C=TArrayValues then
@@ -1731,6 +1738,32 @@ begin
   CheckRestoredElement(Path+'.Then',Orig.ThenExpr,Rest.ThenExpr,Flags);
   CheckRestoredElement(Path+'.Else',Orig.ElseExpr,Rest.ElseExpr,Flags);
   CheckRestoredPasExpr(Path,Orig,Rest,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredCaseExpr(const Path: string;
+  Orig, Rest: TCaseExpr; Flags: TPCCheckFlags);
+var
+  i: Integer;
+begin
+  CheckRestoredElement(Path+'.Of',Orig.CaseExpr,Rest.CaseExpr,Flags);
+  AssertEquals(Path+'.Branches.Count',Orig.Branches.Count,Rest.Branches.Count);
+  for i:=0 to Orig.Branches.Count-1 do
+    CheckRestoredElement(Path+'.Branches['+IntToStr(i)+']',
+      TPasElement(Orig.Branches[i]),TPasElement(Rest.Branches[i]),Flags);
+  CheckRestoredElement(Path+'.Else',Orig.ElseExpr,Rest.ElseExpr,Flags);
+  CheckRestoredPasExpr(Path,Orig,Rest,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredCaseExprBranch(const Path: string;
+  Orig, Rest: TCaseExprBranch; Flags: TPCCheckFlags);
+var
+  i: Integer;
+begin
+  AssertEquals(Path+'.Labels.Count',Orig.Labels.Count,Rest.Labels.Count);
+  for i:=0 to Orig.Labels.Count-1 do
+    CheckRestoredElement(Path+'.Labels['+IntToStr(i)+']',
+      TPasElement(Orig.Labels[i]),TPasElement(Rest.Labels[i]),Flags);
+  CheckRestoredElement(Path+'.Value',Orig.Value,Rest.Value,Flags);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRecordValues(const Path: string;
@@ -2306,6 +2339,27 @@ begin
   'function F: longint;',
   'begin',
   '  Result:=if b then 1 else 2;',
+  'end;']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_CaseExpr;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TEnum = (red, green, blue);',
+  'const',
+  '  c = case 3 of 1: 10; 2..4: 20; else 30 end;',
+  'var',
+  '  e: TEnum;',
+  'function F: string;',
+  'implementation',
+  'function F: string;',
+  'begin',
+  '  Result:=case e of red: ''r''; green, blue: ''gb'' end;',
   'end;']);
   WriteReadUnit;
 end;
