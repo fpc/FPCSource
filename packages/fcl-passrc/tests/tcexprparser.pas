@@ -107,6 +107,14 @@ type
     Procedure TestCaseExprObjFPCFail;
     Procedure TestCaseExprMissingEndFail;
     Procedure TestCaseExprNoBranchFail;
+    Procedure TestTryExceptExpr;
+    Procedure TestTryExceptExprOn;
+    Procedure TestTryExceptExprSemicolons;
+    Procedure TestTryExceptExprInBrackets;
+    Procedure TestTryExceptExprObjFPCFail;
+    Procedure TestTryExceptExprOnMissingElseFail;
+    Procedure TestTryExceptExprFinallyFail;
+    Procedure TestTryExceptExprMissingEndFail;
     Procedure TestBinaryIs;
     Procedure TestBinaryIsNot;
     Procedure TestBinaryIsNotPrecedence;
@@ -1182,6 +1190,108 @@ begin
   FDirective:='{$mode delphi}';
   DeclareVar('integer','a');
   SetExpression('case a of else 3 end');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestTryExceptExpr;
+
+var
+  T : TTryExceptExpr;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  ParseExpression('try a except 3 end');
+  AssertExpression('Try expression',TheExpr,pekTry,TTryExceptExpr);
+  T:=TheExpr as TTryExceptExpr;
+  AssertExpression('Try value is a',T.TryExpr,pekIdent,'a');
+  AssertEquals('On count',0,T.OnBranches.Count);
+  AssertExpression('Else is 3',T.ElseExpr,pekNumber,'3');
+  AssertEquals('Declaration','try a except 3 end',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestTryExceptExprOn;
+
+var
+  T : TTryExceptExpr;
+  OnBranch : TTryExceptExprOn;
+
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  ParseExpression('try a except on E: TObject do 1; on EAbort do 2; else 3 end');
+  AssertExpression('Try expression',TheExpr,pekTry,TTryExceptExpr);
+  T:=TheExpr as TTryExceptExpr;
+  AssertEquals('On count',2,T.OnBranches.Count);
+  OnBranch:=TTryExceptExprOn(T.OnBranches[0]);
+  AssertNotNull('On 0 var',OnBranch.VarEl);
+  AssertEquals('On 0 var name','E',OnBranch.VarEl.Name);
+  AssertNotNull('On 0 type',OnBranch.TypeEl);
+  AssertEquals('On 0 type name','TObject',OnBranch.TypeEl.Name);
+  AssertExpression('On 0 value',OnBranch.Value,pekNumber,'1');
+  OnBranch:=TTryExceptExprOn(T.OnBranches[1]);
+  AssertNull('On 1 var',OnBranch.VarEl);
+  AssertEquals('On 1 type name','EAbort',OnBranch.TypeEl.Name);
+  AssertExpression('On 1 value',OnBranch.Value,pekNumber,'2');
+  AssertExpression('Else is 3',T.ElseExpr,pekNumber,'3');
+  AssertEquals('Declaration','try a except on E: TObject do 1; on EAbort do 2; else 3 end',
+    TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestTryExceptExprSemicolons;
+
+var
+  T : TTryExceptExpr;
+
+begin
+  FDirective:='{$modeswitch statementexpressions}';
+  DeclareVar('integer','a');
+  ParseExpression('try a except on E: TObject do 1; else 3; end');
+  AssertExpression('Try expression',TheExpr,pekTry,TTryExceptExpr);
+  T:=TheExpr as TTryExceptExpr;
+  AssertEquals('On count',1,T.OnBranches.Count);
+  AssertExpression('Else is 3',T.ElseExpr,pekNumber,'3');
+end;
+
+procedure TTestExpressions.TestTryExceptExprInBrackets;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  ParseExpression('(try a except 3 end) * 4');
+  AssertBinaryExpr('Outer is *',eopMultiply,FLeft,FRight);
+  AssertExpression('Left is try',TheLeft,pekTry,TTryExceptExpr);
+  AssertExpression('Right is 4',TheRight,pekNumber,'4');
+end;
+
+procedure TTestExpressions.TestTryExceptExprObjFPCFail;
+begin
+  // without modeswitch statementexpressions
+  DeclareVar('integer','a');
+  SetExpression('try a except 3 end');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestTryExceptExprOnMissingElseFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  SetExpression('try a except on E: TObject do 1 end');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestTryExceptExprFinallyFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  SetExpression('try a finally 3 end');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestTryExceptExprMissingEndFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('integer','a');
+  SetExpression('try a except 3');
   AssertException(EParserError,@ParseExpression);
 end;
 

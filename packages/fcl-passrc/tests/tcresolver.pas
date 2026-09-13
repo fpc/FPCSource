@@ -414,6 +414,15 @@ type
     Procedure TestCaseExpr_Generic;
     Procedure TestCaseExpr_ShortStrings;
 
+    // try-except-expression
+    Procedure TestTryExceptExpr;
+    Procedure TestTryExceptExpr_IncompatibleFail;
+    Procedure TestTryExceptExpr_AssignFail;
+    Procedure TestTryExceptExpr_OnNonClassFail;
+    Procedure TestTryExceptExpr_OnVarOutOfScopeFail;
+    Procedure TestTryExceptExpr_ConstFail;
+    Procedure TestTryExceptExpr_Generic;
+
     // misc built-in functions
     Procedure TestHighLow;
     Procedure TestStr_BaseTypes;
@@ -4911,6 +4920,134 @@ begin
   CheckResultType(0,btString);
   // same shortstring type -> keep it
   CheckResultType(1,btShortString);
+end;
+
+procedure TTestResolver.TestTryExceptExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    Name: string;',
+  '  end;',
+  '  TAnimal = class end;',
+  '  TDog = class(TAnimal) end;',
+  'function Get: string;',
+  'begin',
+  'end;',
+  'var',
+  '  b: boolean;',
+  '  i: longint;',
+  '  s: string;',
+  '  a: TAnimal;',
+  '  d: TDog;',
+  'begin',
+  '  s:=try Get except ''Error'' end;',
+  '  s:=try Get except on {#E1}E: TObject do {@E1}E.Name; else ''Error'' end;',
+  '  s:=try Get except on TObject do ''TObject''; on {#E2}E: TAnimal do {@E2}E.Name; else s; end;',
+  '  a:=try d except on TObject do a; else nil end;',
+  '  i:=1+try i except 2 end;',
+  '  i:=try if b then 1 else 2 except case i of 1: 3; else 4 end end;',
+  '  if try b except false end then ;',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestTryExceptExpr_IncompatibleFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  s: string;',
+  'begin',
+  '  s:=try s except 32 end;',
+  '']);
+  CheckResolverException('Incompatible types: "String" and "Longint"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestTryExceptExpr_AssignFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  (try i except i end):=3;',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestTryExceptExpr_OnNonClassFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  i:=try i except on longint do 1; else 2 end;',
+  '']);
+  CheckResolverException('class expected, but Longint found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestTryExceptExpr_OnVarOutOfScopeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    Name: string;',
+  '  end;',
+  'var',
+  '  s: string;',
+  'begin',
+  '  s:=try s except on E: TObject do E.Name; else E.Name end;',
+  '']);
+  CheckResolverException('identifier not found "E"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestTryExceptExpr_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'const',
+  '  c = try 1 except 2 end;',
+  'begin',
+  '']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestTryExceptExpr_Generic;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  EMsg<T> = class',
+  '    Msg: T;',
+  '  end;',
+  '  TBird<T> = class',
+  '    function Pick(x, y: T): T;',
+  '  end;',
+  'function TBird<T>.Pick(x, y: T): T;',
+  'begin',
+  '  Result:=try x except on E: EMsg<T> do E.Msg; on TObject do x; else y end;',
+  'end;',
+  'var',
+  '  Bird: TBird<word>;',
+  '  w: word;',
+  'begin',
+  '  w:=Bird.Pick(1,2);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestEnumParams;

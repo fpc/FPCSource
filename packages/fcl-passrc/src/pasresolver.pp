@@ -1725,6 +1725,7 @@ type
     procedure AddFunctionResult(El: TPasResultElement); virtual;
     procedure AddGenericTemplateType(El: TPasGenericTemplateType); virtual;
     procedure AddExceptOn(El: TPasImplExceptOn); virtual;
+    procedure AddTryExceptExprOn(El: TTryExceptExprOn); virtual;
     procedure AddWithDo(El: TPasImplWithDo); virtual;
     procedure ResolveImplBlock(Block: TPasImplBlock); virtual;
     procedure ResolveImplElement(El: TPasImplElement); virtual;
@@ -1745,6 +1746,7 @@ type
     procedure ResolveBinaryExpr(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveIfExpr(El: TIfExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveCaseExpr(El: TCaseExpr; Access: TResolvedRefAccess); virtual;
+    procedure ResolveTryExceptExpr(El: TTryExceptExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveSubIdent(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExprParams(Params: TParamsExpr); virtual;
@@ -1851,6 +1853,9 @@ type
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement); virtual;
     procedure ComputeCaseExpr(El: TCaseExpr;
+      out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      StartEl: TPasElement); virtual;
+    procedure ComputeTryExceptExpr(El: TTryExceptExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement); virtual;
     procedure CombineStatementExprBranch(El: TPasExpr;
@@ -2057,6 +2062,8 @@ type
     procedure SpecializeIfExpr(GenEl, SpecEl: TIfExpr);
     procedure SpecializeCaseExpr(GenEl, SpecEl: TCaseExpr);
     procedure SpecializeCaseExprBranch(GenEl, SpecEl: TCaseExprBranch);
+    procedure SpecializeTryExceptExpr(GenEl, SpecEl: TTryExceptExpr);
+    procedure SpecializeTryExceptExprOn(GenEl, SpecEl: TTryExceptExprOn);
     procedure SpecializeResString(GenEl, SpecEl: TPasResString);
     procedure SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
     procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
@@ -3159,6 +3166,8 @@ begin
     Result:='if expression'
   else if C=TCaseExpr then
     Result:='case expression'
+  else if C=TTryExceptExpr then
+    Result:='try expression'
   else if C=TPasRangeType then
     Result:='range'
   else if C=TPasArrayType then
@@ -9285,22 +9294,32 @@ end;
 
 procedure TPasResolver.FinishExceptOnExpr;
 var
-  El: TPasImplExceptOn;
+  El: TPasElement;
   ResolvedType: TPasResolverResult;
   TypeEl: TPasType;
 begin
   CheckTopScope(TPasExceptOnScope);
-  El:=TPasImplExceptOn(FTopScope.Element);
-  TypeEl:=El.TypeEl;
+  El:=FTopScope.Element;
+  if El is TTryExceptExprOn then
+    TypeEl:=TTryExceptExprOn(El).TypeEl
+  else
+    TypeEl:=TPasImplExceptOn(El).TypeEl;
   ComputeElement(TypeEl,ResolvedType,[rcType]);
   CheckIsClass(TypeEl,ResolvedType);
 end;
 
 procedure TPasResolver.FinishExceptOnStatement;
+var
+  El: TPasElement;
 begin
   //writeln('TPasResolver.FinishExceptOnStatement START');
   CheckTopScope(TPasExceptOnScope);
-  ResolveImplElement(TPasImplExceptOn(FTopScope.Element).Body);
+  El:=FTopScope.Element;
+  if El is TTryExceptExprOn then
+    // on-branch of a try-except-expression, resolved while E is in scope
+    ResolveExpr(TTryExceptExprOn(El).Value,rraRead)
+  else
+    ResolveImplElement(TPasImplExceptOn(El).Body);
   PopScope;
 end;
 
@@ -12992,6 +13011,8 @@ begin
     ResolveIfExpr(TIfExpr(El),Access)
   else if ElClass=TCaseExpr then
     ResolveCaseExpr(TCaseExpr(El),Access)
+  else if ElClass=TTryExceptExpr then
+    ResolveTryExceptExpr(TTryExceptExpr(El),Access)
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -13043,6 +13064,22 @@ begin
   ComputeCaseExpr(El,ResolvedEl,[],El);
 end;
 
+procedure TPasResolver.ResolveTryExceptExpr(El: TTryExceptExpr;
+  Access: TResolvedRefAccess);
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  // a try-expression is a value, it cannot be assigned or passed as var
+  if not (Access in [rraNone,rraRead,rraParamToUnknownProc]) then
+    RaiseMsg(20260913130000,nVariableIdentifierExpected,sVariableIdentifierExpected,
+      [],El);
+  ResolveExpr(El.TryExpr,rraRead);
+  // Note: the on-branch values were resolved by FinishExceptOnStatement
+  ResolveExpr(El.ElseExpr,rraRead);
+  // check that all values are compatible
+  ComputeTryExceptExpr(El,ResolvedEl,[],El);
+end;
+
 procedure TPasResolver.ComputeIfExpr(El: TIfExpr; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
@@ -13089,6 +13126,38 @@ begin
     AddValue(El.ElseExpr);
   if AccExpr=nil then
     RaiseInternalError(20260913120300);
+  // the result is a value, not a variable, except for class references
+  ResolvedEl.ExprEl:=El;
+  if not (ResolvedEl.IdentEl is TPasType) then
+    begin
+    ResolvedEl.IdentEl:=nil;
+    ResolvedEl.Flags:=[rrfReadable];
+    end;
+end;
+
+procedure TPasResolver.ComputeTryExceptExpr(El: TTryExceptExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+var
+  LastExpr: TPasExpr;
+
+  procedure AddValue(ValueExpr: TPasExpr);
+  var
+    ValueResolved: TPasResolverResult;
+  begin
+    ComputeElement(ValueExpr,ValueResolved,Flags,StartEl);
+    CombineStatementExprBranch(El,ResolvedEl,ValueResolved,LastExpr,ValueExpr);
+    LastExpr:=ValueExpr;
+  end;
+
+var
+  i: Integer;
+begin
+  ComputeElement(El.TryExpr,ResolvedEl,Flags,StartEl);
+  LastExpr:=El.TryExpr;
+  for i:=0 to El.OnBranches.Count-1 do
+    AddValue(TTryExceptExprOn(El.OnBranches[i]).Value);
+  AddValue(El.ElseExpr);
   // the result is a value, not a variable, except for class references
   ResolvedEl.ExprEl:=El;
   if not (ResolvedEl.IdentEl is TPasType) then
@@ -15500,7 +15569,8 @@ begin
         or (C=TInheritedExpr)
         or (C=TProcedureExpr)
         or (C=TIfExpr)
-        or (C=TCaseExpr))
+        or (C=TCaseExpr)
+        or (C=TTryExceptExpr))
         or (C=TInlineSpecializeExpr) then
     // ok
   else if C=TUnaryExpr then
@@ -16726,6 +16796,11 @@ begin
 end;
 
 procedure TPasResolver.AddExceptOn(El: TPasImplExceptOn);
+begin
+  PushScope(El,TPasExceptOnScope);
+end;
+
+procedure TPasResolver.AddTryExceptExprOn(El: TTryExceptExprOn);
 begin
   PushScope(El,TPasExceptOnScope);
 end;
@@ -21954,6 +22029,8 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
     CaseEx: TCaseExpr;
     CaseBranch: TCaseExprBranch;
     j: Integer;
+    TryEx: TTryExceptExpr;
+    TryOn: TTryExceptExprOn;
   begin
     Result:=false;
     if El=nil then exit;
@@ -21994,9 +22071,22 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
         Result:=ElementReferencesTemplateTypes(CaseBranch.Value,GenericTemplateTypes);
         for j:=0 to CaseBranch.Labels.Count-1 do
           begin
-          if Result then break;
           Result:=ElementReferencesTemplateTypes(TPasElement(CaseBranch.Labels[j]),GenericTemplateTypes);
+          if Result then break;
           end;
+        end;
+      end
+    else if C=TTryExceptExpr then
+      begin
+      TryEx:=TTryExceptExpr(El);
+      Result:=ElementReferencesTemplateTypes(TryEx.TryExpr,GenericTemplateTypes)
+        or ElementReferencesTemplateTypes(TryEx.ElseExpr,GenericTemplateTypes);
+      for i:=0 to TryEx.OnBranches.Count-1 do
+        begin
+        TryOn:=TTryExceptExprOn(TryEx.OnBranches[i]);
+        Result:=ElementReferencesTemplateTypes(TryOn.TypeEl,GenericTemplateTypes)
+          or ElementReferencesTemplateTypes(TryOn.Value,GenericTemplateTypes);
+        if Result then break;
         end;
       end
     else if C=TInlineSpecializeExpr then
@@ -23373,6 +23463,13 @@ begin
     SpecializeCaseExpr(TCaseExpr(GenEl),TCaseExpr(SpecEl))
   else if C=TCaseExprBranch then
     SpecializeCaseExprBranch(TCaseExprBranch(GenEl),TCaseExprBranch(SpecEl))
+  else if C=TTryExceptExpr then
+    SpecializeTryExceptExpr(TTryExceptExpr(GenEl),TTryExceptExpr(SpecEl))
+  else if C=TTryExceptExprOn then
+    begin
+    AddTryExceptExprOn(TTryExceptExprOn(SpecEl));
+    SpecializeTryExceptExprOn(TTryExceptExprOn(GenEl),TTryExceptExprOn(SpecEl));
+    end
   // TPasType
   else if (C=TPasAliasType)
       or (C=TPasTypeAliasType)
@@ -24631,6 +24728,40 @@ procedure TPasResolver.SpecializeCaseExprBranch(GenEl, SpecEl: TCaseExprBranch);
 begin
   SpecializeElList(GenEl,SpecEl,GenEl.Labels,SpecEl.Labels,false);
   SpecializeElExpr(GenEl,SpecEl,GenEl.Value,SpecEl.Value);
+end;
+
+procedure TPasResolver.SpecializeTryExceptExpr(GenEl, SpecEl: TTryExceptExpr);
+begin
+  SpecializeExpr(GenEl,SpecEl);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.TryExpr,SpecEl.TryExpr);
+  SpecializeElList(GenEl,SpecEl,GenEl.OnBranches,SpecEl.OnBranches,false);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.ElseExpr,SpecEl.ElseExpr);
+end;
+
+procedure TPasResolver.SpecializeTryExceptExprOn(GenEl,
+  SpecEl: TTryExceptExprOn);
+var
+  GenVar: TPasVariable;
+  NewClass: TPTreeElement;
+begin
+  GenVar:=GenEl.VarEl;
+  if GenVar<>nil then
+    begin
+    if GenVar.Parent<>GenEl then
+      RaiseNotYetImplemented(20260913130100,GenEl);
+    NewClass:=TPTreeElement(GenVar.ClassType);
+    SpecEl.VarEl:=TPasVariable(CreateOwnedElement(NewClass,GenVar.Name,SpecEl));
+    SpecializeElement(GenVar,SpecEl.VarEl);
+    if GenVar.VarType<>GenEl.TypeEl then
+      RaiseNotYetImplemented(20260913130101,GenEl);
+    SpecEl.TypeEl:=SpecEl.VarEl.VarType;
+    end
+  else
+    SpecializeElType(GenEl,SpecEl,GenEl.TypeEl,SpecEl.TypeEl);
+
+  FinishExceptOnExpr;
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Value,SpecEl.Value);
+  FinishExceptOnStatement;
 end;
 
 procedure TPasResolver.SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
@@ -27951,6 +28082,8 @@ begin
   else if AClass=TPasMethodResolution then
   else if AClass=TPasImplExceptOn then
     AddExceptOn(TPasImplExceptOn(El))
+  else if AClass=TTryExceptExprOn then
+    AddTryExceptExprOn(TTryExceptExprOn(El))
   else if AClass=TPasImplWithDo then
     AddWithDo(TPasImplWithDo(El))
   else if AClass=TPasImplLabelMark then
@@ -37226,6 +37359,8 @@ begin
     ComputeIfExpr(TIfExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TCaseExpr then
     ComputeCaseExpr(TCaseExpr(El),ResolvedEl,Flags,StartEl)
+  else if ElClass=TTryExceptExpr then
+    ComputeTryExceptExpr(TTryExceptExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TUnaryExpr then
     begin
     if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then

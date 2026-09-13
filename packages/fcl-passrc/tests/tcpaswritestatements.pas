@@ -100,6 +100,7 @@ type
         procedure TestIfNotIn;
         procedure TestIfExpr;
         procedure TestCaseExpr;
+        procedure TestTryExceptExpr;
         procedure TestIfBlock;
         procedure TestIfAssignment;
         procedure TestIfElse;
@@ -866,6 +867,31 @@ begin
       'begin',
       '  a := case a of 1: 2; 3, 4: 5; 6..7: 8; else 9 end;',
       '  a := case b of False: 1; True: 2 end;',
+      'end.',
+      '']),
+      PasProgram);
+end;
+
+procedure TTestStatementWriterIf.TestTryExceptExpr;
+begin
+    Source.Add('{$MODE DELPHI}');
+    Source.Add('var');
+    Source.Add('  a: Integer;');
+    Source.Add('begin');
+    Source.Add('  a := try a except 2 end;');
+    Source.Add('  a := try a except on E: TObject do 1; on EAbort do 2; else 3; end;');
+    Source.Add('end.');
+    ParseModule;
+    AssertPasWriteOutput('output',
+      BuildString([
+      'program afile;',
+      '',
+      'var',
+      '  a: Integer;',
+      '',
+      'begin',
+      '  a := try a except 2 end;',
+      '  a := try a except on E: TObject do 1; on EAbort do 2; else 3 end;',
       'end.',
       '']),
       PasProgram);

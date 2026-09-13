@@ -10709,6 +10709,13 @@ var
       end;
       CollectRefs(TCaseExpr(aExpr).ElseExpr);
     end
+    else if aExpr is TTryExceptExpr then
+    begin
+      CollectRefs(TTryExceptExpr(aExpr).TryExpr);
+      for lBranchIdx := 0 to TTryExceptExpr(aExpr).OnBranches.Count - 1 do
+        CollectRefs(TTryExceptExprOn(TTryExceptExpr(aExpr).OnBranches[lBranchIdx]).Value);
+      CollectRefs(TTryExceptExpr(aExpr).ElseExpr);
+    end
     // An anonymous method body is an operand, not a declaration-list entry.
     else if aExpr is TProcedureExpr then
       lAnswered := False

@@ -75,6 +75,7 @@ type
     procedure TestM_Const;
     procedure TestM_IfExpr;
     procedure TestM_CaseExpr;
+    procedure TestM_TryExceptExpr;
     procedure TestM_ResourceString;
     procedure TestM_Record;
     procedure TestM_RecordGeneric;
@@ -960,6 +961,34 @@ begin
   '  {#e_notused}e: longint;',
   'begin',
   '  a:=case a of k: c; 2: d; else f end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_TryExceptExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#exception_used}Exception = class(TObject)',
+  '    {#msg_used}Msg: longint;',
+  '  end;',
+  '  {#eabort_used}EAbort = class(Exception);',
+  '  {#eunused_notused}EUnused = class(Exception);',
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#a_used}a: longint;',
+  '  {#c_used}c: longint;',
+  '  {#d_used}d: longint;',
+  '  {#f_used}f: longint;',
+  '  {#e_notused}e: longint;',
+  'begin',
+  '  a:=try c except on {#e1_used}E1: Exception do E1.Msg; on {#e2_notused}E2: EAbort do d; else f end;',
   'end;',
   'begin',
   '  DoIt;']);
