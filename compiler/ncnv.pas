@@ -67,6 +67,7 @@ interface
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
 {$endif DEBUG_NODE_XML}
+          procedure convert_deferred_stmt_expr;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean):tnode; override;
@@ -2812,6 +2813,78 @@ implementation
           result:=cerrornode.create;
       end;
 
+    procedure ttypeconvnode.convert_deferred_stmt_expr;
+    { A statement expression (if-, case-, try-expression) with anonymous
+      functions as values is created without the assignments to its result
+      temp, because the type of the temp is only known now (see pstatmnt).
+      Retype the temp, add the assignments and typecheck again. }
+      var
+        stmt : tstatementnode;
+        resulttemp : ttempcreatenode;
+        valuenode,onnode : tnode;
+        i : longint;
+
+        procedure assign_to_temp(var n : tnode);
+          begin
+            if assigned(n) then
+              n:=cassignmentnode.create(ctemprefnode.create(resulttemp),n);
+          end;
+
+      begin
+        { skip the nothing node created by internalstatements }
+        stmt:=tstatementnode(tblocknode(left).left);
+        while stmt.left.nodetype=nothingn do
+          stmt:=tstatementnode(stmt.right);
+
+        resulttemp:=ttempcreatenode(stmt.left);
+        resulttemp.tempinfo^.typedef:=resultdef;
+        resulttemp.size:=resultdef.size;
+        left.resultdef:=nil;
+
+        { the statement computing the value }
+        stmt:=tstatementnode(stmt.right);
+        valuenode:=stmt.left;
+        case valuenode.nodetype of
+          ifn:
+            begin
+              assign_to_temp(tifnode(valuenode).right);
+              assign_to_temp(tifnode(valuenode).t1);
+              valuenode.resultdef:=nil;
+            end;
+          casen:
+            begin
+              for i:=0 to tcasenode(valuenode).blocks.count-1 do
+                assign_to_temp(pcaseblock(tcasenode(valuenode).blocks[i])^.statement);
+              assign_to_temp(tcasenode(valuenode).elseblock);
+              valuenode.resultdef:=nil;
+            end;
+          tryexceptn:
+            begin
+              assign_to_temp(ttryexceptnode(valuenode).left);
+              onnode:=ttryexceptnode(valuenode).right;
+              while assigned(onnode) and (onnode.nodetype=onn) do
+                begin
+                  assign_to_temp(tonnode(onnode).right);
+                  onnode:=tonnode(onnode).left;
+                end;
+              assign_to_temp(ttryexceptnode(valuenode).t1);
+              valuenode.resultdef:=nil;
+            end;
+          else
+            { simplified to a single value, e.g. constant condition }
+            assign_to_temp(stmt.left);
+        end;
+
+        { the temp delete and temp ref }
+        stmt:=tstatementnode(stmt.right);
+        while assigned(stmt) do
+          begin
+            stmt.left.resultdef:=nil;
+            stmt:=tstatementnode(stmt.right);
+          end;
+
+        typecheckpass(left);
+      end;
 
     function ttypeconvnode.typecheck_call_helper(c : tconverttype) : tnode;
       const
@@ -2878,7 +2951,6 @@ implementation
 
 
     function ttypeconvnode.pass_typecheck:tnode;
-
       var
         hdef : tdef;
         hp : tnode;
@@ -2896,7 +2968,15 @@ implementation
 
         typecheckpass(left);
         if codegenerror then
-         exit;
+          exit;
+
+        if is_deferred_stmt_expr(left) and
+            ((resultdef.typ=procvardef) or is_funcref(resultdef)) then
+          begin
+            convert_deferred_stmt_expr;
+            if codegenerror then
+              exit;
+          end;
 
         { When absolute force tc_equal }
         if (nf_absolute in flags) then

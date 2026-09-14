@@ -1,8 +1,25 @@
+{$Mode ObjFPC}
 {$ModeSwitch StatementExpressions}
-var
-  sz: SizeInt;
+
+function ConditionalThrow(doRaise: Boolean): String;
 begin
-  sz := sizeOf((if 0<1 then 'Foo' else widestring('Bar'))[1]);
-  WriteLn(sz);
-  if (sz<>2) then Halt(1);
+  Result := 'Foo';
+  if doRaise then raise TObject.Create;
+end;
+
+var
+  s: String;
+begin
+  s := try ConditionalThrow(False) except 'Error' end;
+  WriteLn(s);
+  if (s<>'Foo') then
+    Halt(1);
+  s := try ConditionalThrow(True) except 'Error' end;
+  WriteLn(s);
+  if (s<>'Error') then
+    Halt(2);
+  s := try ConditionalThrow(True) except on o: TObject do 'TObject' else 'Error' end;
+  WriteLn(s);
+  if (s<>'TObject') then
+    Halt(3);
 end.

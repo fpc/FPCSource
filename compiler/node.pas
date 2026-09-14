@@ -80,16 +80,16 @@ interface
           setconstn,        {A set constant (i.e. [1,2])}
           blockn,           {A block of statements}
           statementn,       {One statement in a block of nodes}
-          ifn,              {An if statement}
+          ifn,              {An if statement / expression}
           breakn,           {A break statement}
           continuen,        {A continue statement}
           whilerepeatn,     {A while or repeat statement}
           forn,             {A for loop}
           exitn,            {An exit statement}
-          casen,            {A case statement}
+          casen,            {A case statement / expression}
           labeln,           {A label}
           goton,            {A goto statement}
-          tryexceptn,       {A try except block}
+          tryexceptn,       {A try except block / expression}
           raisen,           {A raise statement}
           tryfinallyn,      {A try finally statement}
           onn,              {For an on statement in exception code}

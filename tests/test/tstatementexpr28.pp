@@ -1,10 +1,13 @@
-{%FAIL}
-{$Mode ObjFPC}
+{$Mode ObjFPC}{$H+}
 {$ModeSwitch StatementExpressions}
 
+const
+  aUnicodeString = UnicodeString('Foo');
+
 var
-  s: String;
+  s: UnicodeString;
 begin
-  s := try 'Foo' except on e: TObject do 'Error' end;
-  Halt(1);
+  s:= if false then aUnicodeString else '';
+  if s<>'' then
+    Halt(1);
 end.

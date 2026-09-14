@@ -1,12 +1,14 @@
 {$Mode EXTENDEDPASCAL}
 {$ModeSwitch StatementExpressions}
+program tstatementexpr9(output);
 var
   i: Integer;
 begin
   i := case 5 of
     0: 3;
     1..9: 42;
-    otherwise 0;
+    otherwise 0
+  end;
 
   WriteLn(i);
   if (i<>42) then

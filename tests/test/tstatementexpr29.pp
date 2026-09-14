@@ -1,14 +1,11 @@
-{$Mode ObjFPC}{$H+}
+{%FAIL}
+{ case-expression must end with end }
 {$ModeSwitch StatementExpressions}
-
-const
-  aUnicodeString = UnicodeString('Foo');
-
 var
-  s: UnicodeString;
-  a: String;
+  s: String;
 begin
-  s:= if false then aUnicodeString else '';
-  if s<>'' then
-    Halt(1);
+  s := case 5 of
+    0: 'Foo';
+    else 'Bar';
+  Halt(1);
 end.

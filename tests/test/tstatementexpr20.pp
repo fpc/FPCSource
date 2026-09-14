@@ -5,8 +5,9 @@ uses classes;
 var
   s: tstream;
 begin
-  s := if 0 < 1 then nil else tmemorystream.create;
+  s := if 0 < 1 then tmemorystream.create else nil;
   WriteLn(intptr(s));
-  if assigned(s) then
+  if not assigned(s) then
     Halt(1);
+  s.Free;
 end.

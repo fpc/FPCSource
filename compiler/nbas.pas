@@ -355,6 +355,10 @@ interface
        function  laststatement(block:tblocknode):tstatementnode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
+       { true if p is a statement expression with anonymous functions as values,
+         which still needs to be converted to a procvar or function reference }
+       function is_deferred_stmt_expr(p : tnode) : boolean;
+
        { if the complexity of n is "high", creates a reference temp to n's
          location and replace n with a ttemprefnode referring to that location }
        function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
@@ -390,6 +394,30 @@ implementation
 {*****************************************************************************
                                      Helpers
 *****************************************************************************}
+
+    function is_deferred_stmt_expr(p : tnode) : boolean;
+      var
+        stmt : tstatementnode;
+      begin
+        result:=false;
+        if (p.nodetype<>blockn) or
+            not assigned(p.resultdef) or
+            (p.resultdef.typ<>procdef) or
+            not (po_anonymous in tprocdef(p.resultdef).procoptions) then
+          exit;
+
+        { skip the nothing node created by internalstatements }
+        stmt:=tstatementnode(tblocknode(p).left);
+        while assigned(stmt) and
+            assigned(stmt.left) and
+            (stmt.left.nodetype=nothingn) do
+          stmt:=tstatementnode(stmt.right);
+
+        result:=assigned(stmt) and
+                assigned(stmt.left) and
+                (stmt.left.nodetype=tempcreaten);
+      end;
+
 
     function internalstatements(out laststatement:tstatementnode):tblocknode;
       begin
@@ -934,6 +962,13 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
+         if is_deferred_stmt_expr(self) then
+           begin
+             { statement expression with anonymous functions, which was
+               not converted to a procvar or function reference }
+             CGMessage(parser_e_stmt_expr_anon_needs_type);
+             exit;
+           end;
          //count:=0;
          hp:=tstatementnode(left);
          php:=nil;

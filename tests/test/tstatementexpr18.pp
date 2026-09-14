@@ -1,17 +1,11 @@
-{$mode objfpc}
 {$ModeSwitch StatementExpressions}
-uses classes;
-
-type
-  ITest1 = interface ['{f97b7b1b-77c0-4c3c-800e-05bbd987493b}'] end;
-  ITest2 = interface ['{207fbdba-6605-4168-bb21-fe0429ed55f2}'] end;
-  TTest = class(TInterfacedObject, ITest1, ITest2) end;
-
 var
-  i: IUnknown;
+  s: String;
 begin
-  i := if 0 < 1 then TTest.Create as ITest2 else TTest.Create as ITest1;
-  WriteLn((i as TObject).classname);
-  if (not (i is TTest)) then
+  s := if 0 < 1 then 'Foo' else
+       if 1 < 2 then 'Bar' else
+       'Baz';
+  WriteLn(s);
+  if (s<>'Foo') then
     Halt(1);
 end.

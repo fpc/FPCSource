@@ -1,9 +1,9 @@
 {$ModeSwitch StatementExpressions}
 var
-  s: String;
+  v: Variant;
 begin
-  s := if 0 < 1 then 'Foo' else 'Bar' + 'Baz';
-  WriteLn(s);
-  if (s<>'Foo') then
+  v := if 0 < 1 then 'Foo' else Variant('Bar');
+  WriteLn(v);
+  if (v<>'Foo') then
     Halt(1);
 end.

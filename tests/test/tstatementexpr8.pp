@@ -5,7 +5,8 @@ begin
   s := case 5 of
     0: 'Foo';
     1..9: 'Bar';
-    otherwise 'FooBar';
+    otherwise 'FooBar'
+  end;
 
   WriteLn(s);
   if (s<>'Bar') then

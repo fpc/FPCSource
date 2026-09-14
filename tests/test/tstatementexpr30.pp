@@ -1,11 +1,10 @@
 {%FAIL}
+{ try..finally cannot be an expression }
 {$Mode ObjFPC}
 {$ModeSwitch StatementExpressions}
-
 var
   s: String;
 begin
-  // missing except else
-  s := try 'Foo' except on e: TObject do 'Error' end;
+  s := try 'Foo' finally WriteLn('Bar'); end;
   Halt(1);
 end.

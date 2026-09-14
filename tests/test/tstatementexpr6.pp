@@ -7,7 +7,8 @@ begin
   s := case c of
     'Foo': 'Foo';
     'Bar': 'Bar';
-    else 'FooBar';
+    else 'FooBar'
+  end;
 
   WriteLn(s);
   if (s<>'Bar') then

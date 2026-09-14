@@ -9,6 +9,7 @@ begin
     'Foo': 'Foo';
     'Bar': 'Bar';
     'FooBar': 'FooBar';
+    // not exhaustive
   end;
 
   WriteLn(s);

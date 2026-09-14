@@ -30,6 +30,8 @@ interface
 
 
     function statement_block(starttoken : ttoken) : tnode;
+
+    { parses an if-, case- or try-expression, if modeswitch statementexpressions is enabled }
     function statement_expr(var p1 : tnode) : boolean;
 
     { reads an assembler block }
@@ -65,13 +67,24 @@ implementation
 
     function statement : tnode;forward;
 
-    function branch_type(olddef : tdef; branchtree : tnode; var oldtree:tnode): tdef;
 
-      function commonancestor(c1,c2:tobjectdef;var a:tdef):boolean;
+    function is_anonymous_procdef(def : tdef) : boolean;
+      begin
+        result:=assigned(def) and
+                (def.typ=procdef) and
+                (po_anonymous in tprocdef(def).procoptions);
+      end;
+
+
+    { returns the common type of olddef and the type of branchtree,
+      oldtree is the node that determines the type }
+    function branch_type(olddef : tdef; branchtree : tnode; var oldtree : tnode) : tdef;
+
+      function commonancestor(c1,c2 : tobjectdef; var a : tdef) : boolean;
         var
-          curr , check : tobjectdef;
+          curr, check : tobjectdef;
         begin
-          result:=False;
+          result:=false;
           curr:=c1;
           while assigned(curr) do
             begin
@@ -92,19 +105,32 @@ implementation
 
       var
         branchdef : tdef;
-        cmp: tequaltype;
+        cmp : tequaltype;
       begin
-        if not assigned(olddef) then
-        begin
-          oldtree:=branchtree;
-          exit(branchtree.resultdef);
-        end;
-        if not assigned(branchtree.resultdef) then
+        if not assigned(branchtree) or
+            not assigned(branchtree.resultdef) or
+            (branchtree.resultdef.typ=errordef) then
           exit(olddef);
+
         branchdef:=branchtree.resultdef;
-        { Handle promotion of string types to widestring and char types
-          to either char or widechar }
-        if (is_anychar(olddef) and is_string(branchdef)) then
+        if not assigned(olddef) then
+          begin
+            oldtree:=branchtree;
+            exit(branchdef);
+          end;
+
+        { anonymous functions get their type when the statement expression
+          is converted to a procvar or function reference, see ncnv }
+        if is_anonymous_procdef(olddef) then
+          exit(olddef);
+        if is_anonymous_procdef(branchdef) then
+          begin
+            oldtree:=branchtree;
+            exit(branchdef);
+          end;
+
+        { combining string/char types }
+        if is_anychar(olddef) and is_string(branchdef) then
           result:=branchdef
         else if is_widestring(branchdef) or is_widestring(olddef) or
                 ((is_ansistring(olddef) or is_chararray(olddef)) and is_widechar(branchdef)) then
@@ -113,82 +139,116 @@ implementation
           result:=cunicodestringtype
         else if is_char(olddef) and is_widechar(branchdef) then
           result:=cwidechartype
-        { When constant strings, result should be as long as the longest }
+        { constant strings: use longest }
         else if is_chararray(olddef) and is_chararray(branchdef) then
           begin
             result:=olddef;
             if tarraydef(olddef).elecount<tarraydef(branchdef).elecount then
               result:=branchdef;
           end
-        { When shortstrings, extend to the longest shortstring }
+        { shortstrings: use longest }
         else if is_shortstring(olddef) and is_shortstring(branchdef) then
           begin
             result:=olddef;
             if tstringdef(olddef).len<tstringdef(branchdef).len then
               result:=branchdef;
           end
-        { if any variant is involved, return variant }
+        { combine with variant results in a variant }
         else if (olddef.typ=variantdef) or (branchdef.typ=variantdef) then
           result:=cvarianttype
         else if (olddef.typ=objectdef) and (branchdef.typ=objectdef) and
                 commonancestor(tobjectdef(olddef),tobjectdef(branchdef),result) then
-          begin { no-op } end
+          { result set by commonancestor }
         else
           begin
+            { combine to biggest }
             result:=olddef;
             cmp:=compare_defs(olddef,branchdef,oldtree.nodetype);
             if (cmp<te_equal) and
-               (cmp>compare_defs(branchdef,olddef,branchtree.nodetype)) then
+                (cmp>compare_defs(branchdef,olddef,branchtree.nodetype)) then
               result:=branchdef;
           end;
+
         if result<>olddef then
           oldtree:=branchtree;
       end;
 
-    function if_statement(is_expr:boolean=false) : tnode;
-      function statementorexpr : tnode; inline;
-        begin
-          if is_expr then
-            result:=expr(true)
-          else
-            result:=statement;
-        end;
 
-      var
-         ex,if_a,else_a , dummy: tnode;
-         statements : tstatementnode;
-         resultvar : ttempcreatenode;
-         resultdef : tdef;
+    { creates a temp for the result of a statement expression block }
+    function create_stmt_expr_block(resdef : tdef; out statements : tstatementnode;
+        out resultvar : ttempcreatenode) : tnode;
       begin
-         consume(_IF);
-         ex:=comp_expr([ef_accept_equal]);
-         consume(_THEN);
-         if not(current_scanner.token in endtokens) then
-           if_a:=statementorexpr
-         else
-           if_a:=nil;
+        result:=internalstatements(statements);
+        resultvar:=ctempcreatenode.create(resdef,resdef.size,tt_persistent,
+                                          not is_anonymous_procdef(resdef));
+        addstatement(statements,resultvar);
+      end;
 
-         else_a:=nil;
-         if try_to_consume(_ELSE) then
-            else_a:=statementorexpr
-         else if is_expr then
-           consume(_ELSE);
-         if (not is_expr) then
-           begin
-             result:=cifnode.create(ex,if_a,else_a);
-             exit;
-           end;
-         result:=internalstatements(statements);
-         dummy:=if_a;
-         resultdef:=branch_type(if_a.resultdef,else_a,dummy);
-         resultvar:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
-         addstatement(statements,resultvar);
-         addstatement(statements,cifnode.create(ex,
-           cassignmentnode.create(ctemprefnode.create(resultvar),if_a),
-           cassignmentnode.create(ctemprefnode.create(resultvar),else_a)
-         ));
-         addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
-         addstatement(statements,ctemprefnode.create(resultvar));
+
+    procedure finish_stmt_expr_block(statements : tstatementnode;
+        resultvar : ttempcreatenode; valuenode : tnode);
+      begin
+        addstatement(statements,valuenode);
+        addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
+        addstatement(statements,ctemprefnode.create(resultvar));
+      end;
+
+
+    function if_stmt_expr : tnode;
+      var
+        ex, if_a, else_a, typenode : tnode;
+        statements : tstatementnode;
+        resultvar : ttempcreatenode;
+        resdef : tdef;
+      begin
+        consume(_IF);
+        ex:=comp_expr([ef_accept_equal]);
+        consume(_THEN);
+        if_a:=expr(true);
+        consume(_ELSE);
+        else_a:=expr(true);
+
+        typenode:=nil;
+        resdef:=branch_type(nil,if_a,typenode);
+        resdef:=branch_type(resdef,else_a,typenode);
+        if not assigned(resdef) then
+          begin
+            { errors have already been reported }
+            ex.free;
+            if_a.free;
+            else_a.free;
+            result:=cerrornode.create;
+            exit;
+          end;
+        result:=create_stmt_expr_block(resdef,statements,resultvar);
+        if is_anonymous_procdef(resdef) then
+          finish_stmt_expr_block(statements,resultvar,cifnode.create(ex,if_a,else_a))
+        else
+          finish_stmt_expr_block(statements,resultvar,
+            cifnode.create(ex,
+              cassignmentnode.create(ctemprefnode.create(resultvar),if_a),
+              cassignmentnode.create(ctemprefnode.create(resultvar),else_a)));
+        exit;
+      end;
+
+    function if_statement : tnode;
+      var
+        ex, if_a, else_a : tnode;
+      begin
+        consume(_IF);
+        ex:=comp_expr([ef_accept_equal]);
+        consume(_THEN);
+
+        if not(current_scanner.token in endtokens) then
+          if_a:=statement
+        else
+          if_a:=nil;
+
+        if try_to_consume(_ELSE) then
+          else_a:=statement
+        else
+          else_a:=nil;
+        result:=cifnode.create(ex,if_a,else_a);
       end;
 
     { creates a block (list) of statements, til the next END token }
@@ -223,244 +283,292 @@ implementation
       end;
 
 
-    function case_statement(is_expr:boolean=false) : tnode;
+    { parses "case <expr> of" }
+    function read_case_head(out casedef : tdef; out casedeferror, caseofstring : boolean) : tcasenode;
       var
-        resultdef : tdef;
-        resultdefnode : tnode;
+        caseexpr : tnode;
+      begin
+        consume(_CASE);
+        caseexpr:=comp_expr([ef_accept_equal]);
+        { determines result type }
+        do_typecheckpass(caseexpr);
+        { variants must be accepted, but first they must be converted to integer }
+        if caseexpr.resultdef.typ=variantdef then
+          begin
+            caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
+            do_typecheckpass(caseexpr);
+          end;
+        set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
+        casedeferror:=false;
+        casedef:=caseexpr.resultdef;
+        { case of string must be rejected in delphi-,tp7-,mac-pas modes. }
+        caseofstring :=
+          ([m_delphi, m_mac, m_tp7] * current_settings.modeswitches = []) and
+          is_string(casedef);
 
-      function statementorexpr : tnode;inline;
+        if (not assigned(casedef)) or
+            ( not(is_ordinal(casedef)) and (not caseofstring) ) then
         begin
-          if is_expr then
+          CGMessage(type_e_ordinal_or_string_expr_expected);
+          { create a valid tree }
+          caseexpr.free;
+          caseexpr:=cordconstnode.create(0,u32inttype,false);
+          { set error flag so no rangechecks are done }
+          casedeferror:=true;
+         end;
+        { Create casenode }
+        result:=ccasenode.create(caseexpr);
+        consume(_OF);
+      end;
+
+
+    { parses the labels of one case block, including the colon }
+    procedure read_case_labels(casenode : tcasenode; casedef : tdef; blockid : longint;
+        casedeferror, caseofstring : boolean);
+      var
+        p : tnode;
+        hl1,hl2 : TConstExprInt;
+        sl1,sl2 : tstringconstnode;
+      begin
+        repeat
+          p:=expr(true);
+          if is_widechar(casedef) then
             begin
-               result:=expr(true);
-               resultdef:=branch_type(resultdef,result,resultdefnode);
+              if (p.nodetype=rangen) then
+                begin
+                  trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
+                  trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
+                  do_typecheckpass(trangenode(p).left);
+                  do_typecheckpass(trangenode(p).right);
+                end
+              else
+                begin
+                  p:=ctypeconvnode.create(p,cwidechartype);
+                  do_typecheckpass(p);
+                end;
             end
           else
-            result:=statement;
+            begin
+              if is_char(casedef) and is_widechar(p.resultdef) then
+                begin
+                  if (p.nodetype=ordconstn) then
+                    begin
+                      p:=ctypeconvnode.create(p,cansichartype);
+                      do_typecheckpass(p);
+                    end
+                  else if (p.nodetype=rangen) then
+                    begin
+                      trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype);
+                      trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype);
+                      do_typecheckpass(trangenode(p).left);
+                      do_typecheckpass(trangenode(p).right);
+                    end;
+                end;
+            end;
+          hl1:=0;
+          hl2:=0;
+          sl1:=nil;
+          sl2:=nil;
+          if (p.nodetype=rangen) then
+            begin
+              { range }
+
+              { type check for string case statements }
+              if caseofstring and
+                is_conststring_or_constcharnode(trangenode(p).left) and
+                is_conststring_or_constcharnode(trangenode(p).right) then
+              begin
+                { we need stringconstnodes, even if expression contains single chars }
+                sl1 := get_string_value(trangenode(p).left, tstringdef(casedef));
+                sl2 := get_string_value(trangenode(p).right, tstringdef(casedef));
+                if sl1.fullcompare(sl2) > 0 then
+                  CGMessage(parser_e_case_lower_less_than_upper_bound);
+              end
+
+              { type checking for ordinal case statements }
+              else if (not caseofstring) and
+                is_subequal(casedef, trangenode(p).left.resultdef) and
+                is_subequal(casedef, trangenode(p).right.resultdef) then
+                begin
+                  hl1:=get_ordinal_value(trangenode(p).left);
+                  hl2:=get_ordinal_value(trangenode(p).right);
+                  if hl1>hl2 then
+                    CGMessage(parser_e_case_lower_less_than_upper_bound);
+                  if not casedeferror then
+                    begin
+                      adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
+                      adaptrange(casedef,hl2,false,false,cs_check_range in current_settings.localswitches);
+                    end;
+                end
+              else
+                CGMessage(parser_e_case_mismatch);
+
+              if caseofstring then
+                casenode.addlabel(blockid,sl1,sl2)
+              else
+                casenode.addlabel(blockid,hl1,hl2);
+            end
+          else
+            begin
+              { single value }
+
+              { type check for string / ordinal case statements }
+              if (caseofstring and (not is_conststring_or_constcharnode(p))) or
+                ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
+                CGMessage(parser_e_case_mismatch);
+
+              if caseofstring then
+                begin
+                  sl1:=get_string_value(p, tstringdef(casedef));
+                  casenode.addlabel(blockid,sl1,sl1);
+                end
+              else
+                begin
+                  hl1:=get_ordinal_value(p);
+                  if not casedeferror then
+                    adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
+                  casenode.addlabel(blockid,hl1,hl1);
+                end;
+            end;
+
+          p.free;
+          p := nil;
+          sl1.free;
+          sl1 := nil;
+          sl2.free;
+          sl2 := nil;
+
+          if current_scanner.token=_COMMA then
+            consume(_COMMA)
+          else
+            break;
+        until false;
+        consume(_COLON);
+      end;
+
+
+    function case_statement : tnode;
+      var
+        casedef : tdef;
+        blockid : longint;
+        casedeferror, caseofstring : boolean;
+        casenode : tcasenode;
+      begin
+        casenode:=read_case_head(casedef,casedeferror,caseofstring);
+
+        { Parse all case blocks }
+        blockid:=0;
+        repeat
+          { maybe an instruction has more case labels }
+          read_case_labels(casenode,casedef,blockid,casedeferror,caseofstring);
+
+          { add instruction block }
+          casenode.addblock(blockid,statement);
+
+          { next block }
+          inc(blockid);
+
+          if not(current_scanner.token in [_ELSE,_OTHERWISE,_END]) then
+            consume(_SEMICOLON);
+        until (current_scanner.token in [_ELSE,_OTHERWISE,_END]);
+
+        if (current_scanner.token in [_ELSE,_OTHERWISE]) then
+          begin
+            if not try_to_consume(_ELSE) then
+              consume(_OTHERWISE);
+            casenode.addelseblock(statements_til_end);
+          end
+        else
+          consume(_END);
+
+        result:=casenode;
+      end;
+
+
+    function case_stmt_expr : tnode;
+      var
+        casedef : tdef;
+        blockid : longint;
+        casedeferror, caseofstring : boolean;
+        casenode : tcasenode;
+        resdef : tdef;
+        typenode : tnode;
+        i : longint;
+        statements : tstatementnode;
+        resultvar : ttempcreatenode;
+
+      function read_branch : tnode;
+        begin
+          result:=expr(true);
+          resdef:=branch_type(resdef,result,typenode);
         end;
 
-        function requires_else(casenode : tcasenode) : boolean; inline;
-          var
-            lv,hv : TConstExprInt;
-          begin
-            if is_string(casenode.left.resultdef) then
-              exit(true);
-            if is_boolean(casenode.left.resultdef) then
-              begin
-                lv:=0;
-                hv:=1;
-              end
-            else
-              getrange(casenode.left.resultdef,lv,hv);
-            Result:=casenode.labelcoverage<hv-lv;
-          end;
+      { true if the case labels cover all values of the case expression }
+      function is_exhaustive : boolean;
+        var
+          lv,hv,typcount : TConstExprInt;
+        begin
+          if casedeferror then
+            exit(true);
+          if caseofstring then
+            exit(false);
+          getrange(casedef,lv,hv);
+          { low/high value of c-style booleans are not suitable for calculating their "type count" }
+          if is_cbool(casedef) then
+            exit(false);
 
-      var
-         casedef : tdef;
-         caseexpr,p : tnode;
-         blockid : longint;
-         hl1,hl2 : TConstExprInt;
-         sl1,sl2 : tstringconstnode;
-         casedeferror, caseofstring : boolean;
-         casenode : tcasenode;
-         i : longint;
-         statements : tstatementnode;
-         resultvar : ttempcreatenode;
+          typcount:=hv-lv;
+          result:=not (casenode.labelcoverage<typcount);
+        end;
+
       begin
-         resultdef:=nil;
-         resultdefnode:=nil;
-         consume(_CASE);
-         caseexpr:=comp_expr([ef_accept_equal]);
-         { determines result type }
-         do_typecheckpass(caseexpr);
-         { variants must be accepted, but first they must be converted to integer }
-         if caseexpr.resultdef.typ=variantdef then
-           begin
-             caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
-             do_typecheckpass(caseexpr);
-           end;
-         set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
-         casedeferror:=false;
-         casedef:=caseexpr.resultdef;
-         { case of string must be rejected in delphi-, }
-         { tp7/bp7-, mac-compatibility modes.          }
-         caseofstring :=
-           ([m_delphi, m_mac, m_tp7] * current_settings.modeswitches = []) and
-           is_string(casedef);
+        resdef:=nil;
+        typenode:=nil;
+        casenode:=read_case_head(casedef,casedeferror,caseofstring);
 
-         if (not assigned(casedef)) or
-            ( not(is_ordinal(casedef)) and (not caseofstring) ) then
+        { Parse all case branches }
+        blockid:=0;
+        repeat
+          read_case_labels(casenode,casedef,blockid,casedeferror,caseofstring);
+          casenode.addblock(blockid,read_branch);
+          inc(blockid);
+
+          if not(current_scanner.token in [_ELSE,_OTHERWISE,_END]) then
+            consume(_SEMICOLON);
+        until (current_scanner.token in [_ELSE,_OTHERWISE,_END]);
+
+        if (current_scanner.token in [_ELSE,_OTHERWISE]) then
           begin
-            CGMessage(type_e_ordinal_or_string_expr_expected);
-            { create a correct tree }
-            caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32inttype,false);
-            { set error flag so no rangechecks are done }
-            casedeferror:=true;
+            if not try_to_consume(_ELSE) then
+              consume(_OTHERWISE);
+            casenode.addelseblock(read_branch);
+            try_to_consume(_SEMICOLON);
+            consume(_END);
+          end
+        else
+          begin
+            consume(_END);
+            if not is_exhaustive then
+              Message(parser_e_stmt_expr_requires_else);
           end;
-         { Create casenode }
-         casenode:=ccasenode.create(caseexpr);
-         consume(_OF);
-         { Parse all case blocks }
-         blockid:=0;
-         repeat
-           { maybe an instruction has more case labels }
-           repeat
-             p:=expr(true);
-             if is_widechar(casedef) then
-               begin
-                  if (p.nodetype=rangen) then
-                    begin
-                       trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
-                       trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
-                       do_typecheckpass(trangenode(p).left);
-                       do_typecheckpass(trangenode(p).right);
-                    end
-                  else
-                    begin
-                       p:=ctypeconvnode.create(p,cwidechartype);
-                       do_typecheckpass(p);
-                    end;
-               end
-             else
-               begin
-                 if is_char(casedef) and is_widechar(p.resultdef) then
-                   begin
-                      if (p.nodetype=ordconstn) then
-                        begin
-                           p:=ctypeconvnode.create(p,cansichartype);
-                           do_typecheckpass(p);
-                        end
-                      else if (p.nodetype=rangen) then
-                        begin
-                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype);
-                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype);
-                           do_typecheckpass(trangenode(p).left);
-                           do_typecheckpass(trangenode(p).right);
-                        end;
-                   end;
-               end;
-             hl1:=0;
-             hl2:=0;
-             sl1:=nil;
-             sl2:=nil;
-             if (p.nodetype=rangen) then
-               begin
-                 { type check for string case statements }
-                 if caseofstring and
-                   is_conststring_or_constcharnode(trangenode(p).left) and
-                   is_conststring_or_constcharnode(trangenode(p).right) then
-                 begin
-                   { we need stringconstnodes, even if expression contains single chars }
-                   sl1 := get_string_value(trangenode(p).left, tstringdef(casedef));
-                   sl2 := get_string_value(trangenode(p).right, tstringdef(casedef));
-                   if sl1.fullcompare(sl2) > 0 then
-                     CGMessage(parser_e_case_lower_less_than_upper_bound);
-                 end
-                 { type checking for ordinal case statements }
-                 else if (not caseofstring) and
-                   is_subequal(casedef, trangenode(p).left.resultdef) and
-                   is_subequal(casedef, trangenode(p).right.resultdef) then
-                   begin
-                     hl1:=get_ordinal_value(trangenode(p).left);
-                     hl2:=get_ordinal_value(trangenode(p).right);
-                     if hl1>hl2 then
-                       CGMessage(parser_e_case_lower_less_than_upper_bound);
-                     if not casedeferror then
-                       begin
-                         adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
-                         adaptrange(casedef,hl2,false,false,cs_check_range in current_settings.localswitches);
-                       end;
-                   end
-                 else
-                   CGMessage(parser_e_case_mismatch);
 
-                 if caseofstring then
-                   casenode.addlabel(blockid,sl1,sl2)
-                 else
-                   casenode.addlabel(blockid,hl1,hl2);
-               end
-             else
-               begin
-                 { type check for string case statements }
-                 if (caseofstring and (not is_conststring_or_constcharnode(p))) or
-                 { type checking for ordinal case statements }
-                   ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
-                   CGMessage(parser_e_case_mismatch);
-
-                 if caseofstring then
-                   begin
-                     sl1:=get_string_value(p, tstringdef(casedef));
-                     casenode.addlabel(blockid,sl1,sl1);
-                   end
-                 else
-                   begin
-                     hl1:=get_ordinal_value(p);
-                     if not casedeferror then
-                       adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
-                     casenode.addlabel(blockid,hl1,hl1);
-                   end;
-               end;
-             p.free;
-             p := nil;
-             sl1.free;
-             sl1 := nil;
-             sl2.free;
-             sl2 := nil;
-
-             if current_scanner.token=_COMMA then
-               consume(_COMMA)
-             else
-               break;
-           until false;
-           consume(_COLON);
-
-           { add instruction block }
-           casenode.addblock(blockid,statementorexpr);
-
-           { next block }
-           inc(blockid);
-
-           if not(current_scanner.token in [_ELSE,_OTHERWISE,_END]) then
-             consume(_SEMICOLON);
-         until (current_scanner.token in [_ELSE,_OTHERWISE,_END]);
-
-         if (current_scanner.token in [_ELSE,_OTHERWISE]) then
-           begin
-              if ([m_extpas,m_iso]*current_settings.modeswitches<>[]) or not try_to_consume(_ELSE) then
-                consume(_OTHERWISE);
-              if is_expr then
-                casenode.addelseblock(statementorexpr)
-              else
-                casenode.addelseblock(statements_til_end);
-           end
-         else if is_expr and requires_else(casenode) then
-         begin
-           if ([m_extpas,m_iso]*current_settings.modeswitches<>[]) then
-             consume(_OTHERWISE)
-           else
-             consume(_ELSE);
-         end
-         else
-           consume(_END);
-
-         if not is_expr then
-           begin
-             result:=casenode;
-             exit;
-           end;
-         result:=internalstatements(statements);
-         resultvar:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
-         addstatement(statements,resultvar);
-         for i:=0 to casenode.blocks.Count-1 do
-           pcaseblock(casenode.blocks[i])^.statement:=cassignmentnode.create(
-             ctemprefnode.create(resultvar), pcaseblock(casenode.blocks[i])^.statement
-           );
-         if assigned(casenode.elseblock) then
-           casenode.elseblock:=cassignmentnode.create(ctemprefnode.create(resultvar), casenode.elseblock);
-         addstatement(statements,casenode);
-         addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
-         addstatement(statements,ctemprefnode.create(resultvar));
+        if not assigned(resdef) then
+          begin
+            { errors have already been reported }
+            casenode.free;
+            result:=cerrornode.create;
+            exit;
+          end;
+        result:=create_stmt_expr_block(resdef,statements,resultvar);
+        if not is_anonymous_procdef(resdef) then
+          begin
+            for i:=0 to casenode.blocks.count-1 do
+              pcaseblock(casenode.blocks[i])^.statement:=cassignmentnode.create(
+                ctemprefnode.create(resultvar),pcaseblock(casenode.blocks[i])^.statement);
+            if assigned(casenode.elseblock) then
+              casenode.elseblock:=cassignmentnode.create(ctemprefnode.create(resultvar),casenode.elseblock);
+          end;
+        finish_stmt_expr_block(statements,resultvar,casenode);
       end;
 
 
@@ -1039,263 +1147,354 @@ implementation
       end;
 
 
-    function try_statement(is_expr:boolean=false) : tnode;
-      var
-        resultdef : tdef;
-        resultdefnode : tnode;
-
-      function readexpr : tnode;inline;
-        begin
-          result:=expr(true);
-          resultdef:=branch_type(resultdef,result,resultdefnode);
-        end;
-
-      procedure update_onnode_assignment(temp: ttempcreatenode; onnode: tonnode);
-        begin
-          if not assigned(onnode) then
-            exit;
-          onnode.right:=cassignmentnode.create(ctemprefnode.create(temp),onnode.right);
-          update_onnode_assignment(temp,tonnode(onnode.left));
-        end;
-
-      procedure check_type_valid(var def: tdef);
-        begin
-           if not (is_class(def) or is_javaclass(def) or
-              { skip showing error message the second time }
-              (def.typ=errordef)) then
-             begin
-               Message1(type_e_class_type_expected,def.typename);
-               def:=generrordef;
-             end;
-        end;
-
-      var
-         p_try_block,p_finally_block,first,last,
-         p_default,p_specific,hp : tnode;
-         ot : tDef;
-         sym : tlocalvarsym;
-         old_block_type : tblock_type;
-         excepTSymtable : TSymtable;
-         objname,objrealname : TIDString;
-         srsym : tsym;
-         srsymtable : TSymtable;
-         t:ttoken;
-         unit_found:boolean;
-         oldcurrent_exceptblock: integer;
-         filepostry : tfileposinfo;
-         trynode : ttryexceptnode;
-         statements : tstatementnode;
-         resultvar : ttempcreatenode;
+    procedure check_except_type_valid(var def: tdef);
       begin
-         p_default:=nil;
-         p_specific:=nil;
-         excepTSymtable:=nil;
-         last:=nil;
-         resultdef:=nil;
-         resultdefnode:=nil;
-         result:=nil;
+        if not (is_class(def) or is_javaclass(def) or
+            { skip showing error message the second time }
+            (def.typ=errordef)) then
+          begin
+            Message1(type_e_class_type_expected,def.typename);
+            def:=generrordef;
+          end;
+      end;
 
-         { read statements to try }
-         consume(_TRY);
-         filepostry:=current_filepos;
-         first:=nil;
-         inc(exceptblockcounter);
-         oldcurrent_exceptblock := current_exceptblock;
-         current_exceptblock := exceptblockcounter;
-         old_block_type := block_type;
-         block_type := bt_body;
 
-         if is_expr then
-           p_try_block:=readexpr
-         else
+    { parses "on [name:] type do" and pushes the exception symtable }
+    procedure read_on_head(out ot : tdef; out excepTSymtable : TSymtable);
+      var
+        sym : tlocalvarsym;
+        objname,objrealname : TIDString;
+        srsym : tsym;
+        srsymtable : TSymtable;
+        t : ttoken;
+        unit_found : boolean;
+      begin
+        ot:=generrordef;
+        excepTSymtable:=nil;
+        consume(_ON);
+        if current_scanner.token=_ID then
+          begin
+            objname:=current_scanner.pattern;
+            objrealname:=current_scanner.orgpattern;
+            { can't use consume_sym here, because we need already
+              to check for the colon }
+            searchsym(objname,srsym,srsymtable);
+            consume(_ID);
+            { is a explicit name for the exception given ? }
+            if try_to_consume(_COLON) then
+              begin
+                single_type(ot,[]);
+                check_except_type_valid(ot);
+                sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
+              end
+            else
+              begin
+                { check if type is valid, must be done here because
+                  with "e: Exception" the e is not necessary }
+
+                { support unit.identifier }
+                t:=NOTOKEN;
+                unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
+                if srsym=nil then
+                  begin
+                    identifier_not_found(objrealname);
+                    srsym:=generrorsym;
+                  end;
+                if unit_found then
+                  consume(t);
+                { check if type is valid, must be done here because
+                  with "e: Exception" the e is not necessary }
+                if (srsym.typ=typesym) then
+                  begin
+                    ot:=ttypesym(srsym).typedef;
+                    parse_nested_types(ot,false,false,nil);
+                    check_except_type_valid(ot);
+                  end
+                else
+                  begin
+                    Message(type_e_type_id_expected);
+                    ot:=generrordef;
+                  end;
+
+                { create dummy symbol so we don't need a special
+                  case in ncgflw, and so that we always know the
+                  type }
+                sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
+              end;
+            excepTSymtable:=tstt_excepTSymtable.create;
+            excepTSymtable.defowner:=current_procinfo.procdef;
+            excepTSymtable.insertsym(sym);
+            symtablestack.push(excepTSymtable);
+          end
+        else
+          consume(_ID);
+        consume(_DO);
+      end;
+
+
+    { appends the on node hp to the list p_specific and pops the exception symtable }
+    procedure add_on_node(hp : tnode; ot : tdef; excepTSymtable : TSymtable;
+        var p_specific, last : tnode);
+      begin
+         if ot.typ=errordef then
            begin
-             while (current_scanner.token<>_FINALLY) and (current_scanner.token<>_EXCEPT) do
-               begin
-                  if first=nil then
-                    begin
-                       last:=cstatementnode.create(statement,nil);
-                       first:=last;
-                    end
-                  else
-                    begin
-                       tstatementnode(last).right:=cstatementnode.create(statement,nil);
-                       last:=tstatementnode(last).right;
-                    end;
-                  if not try_to_consume(_SEMICOLON) then
-                    break;
-                  consume_emptystats;
-               end;
-             p_try_block:=cblocknode.create(first);
+              hp.free;
+              hp:=cerrornode.create;
            end;
-
-         if current_scanner.token=_FINALLY then
+         if p_specific=nil then
            begin
-              if is_expr then
-                begin
-                  { try-finally expressions are not allowed }
-                  consume(_EXCEPT);
-                  result:=cerrornode.create;
-                  exit;
-                end;
-              consume(_FINALLY);
-              inc(exceptblockcounter);
-              current_exceptblock := exceptblockcounter;
-              p_finally_block:=statements_til_end;
-              result:=ctryfinallynode.create(p_try_block,p_finally_block);
-              result.fileinfo:=filepostry;
+              last:=hp;
+              p_specific:=last;
            end
          else
            begin
-              consume(_EXCEPT);
-              block_type:=bt_except;
-              inc(exceptblockcounter);
-              current_exceptblock := exceptblockcounter;
-              ot:=generrordef;
-              p_specific:=nil;
-              if (current_scanner.idtoken=_ON) then
-                { catch specific exceptions }
-                begin
-                   repeat
-                     consume(_ON);
-                     if current_scanner.token=_ID then
-                       begin
-                          objname:=current_scanner.pattern;
-                          objrealname:=current_scanner.orgpattern;
-                          { can't use consume_sym here, because we need already
-                            to check for the colon }
-                          searchsym(objname,srsym,srsymtable);
-                          consume(_ID);
-                          { is a explicit name for the exception given ? }
-                          if try_to_consume(_COLON) then
-                            begin
-                              single_type(ot,[]);
-                              check_type_valid(ot);
-                              sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
-                            end
-                          else
-                            begin
-                               { check if type is valid, must be done here because
-                                 with "e: Exception" the e is not necessary }
-
-                               { support unit.identifier }
-                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
-                               if srsym=nil then
-                                 begin
-                                   identifier_not_found(objrealname);
-                                   srsym:=generrorsym;
-                                 end;
-                               if unit_found then
-                                 consume(t);
-                               { check if type is valid, must be done here because
-                                 with "e: Exception" the e is not necessary }
-                               if (srsym.typ=typesym) then
-                                 begin
-                                   ot:=ttypesym(srsym).typedef;
-                                   parse_nested_types(ot,false,false,nil);
-                                   check_type_valid(ot);
-                                 end
-                               else
-                                 begin
-                                   Message(type_e_type_id_expected);
-                                   ot:=generrordef;
-                                 end;
-
-                                 { create dummy symbol so we don't need a special
-                                 case in ncgflw, and so that we always know the
-                                 type }
-                               sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
-                            end;
-                          excepTSymtable:=tstt_excepTSymtable.create;
-                          excepTSymtable.defowner:=current_procinfo.procdef;
-                          excepTSymtable.insertsym(sym);
-                          symtablestack.push(excepTSymtable);
-                       end
-                     else
-                       consume(_ID);
-                     consume(_DO);
-                     if is_expr then
-                       hp:=connode.create(nil,readexpr)
-                     else
-                       hp:=connode.create(nil,statement);
-                     if ot.typ=errordef then
-                       begin
-                          hp.free;
-                          hp:=cerrornode.create;
-                       end;
-                     if p_specific=nil then
-                       begin
-                          last:=hp;
-                          p_specific:=last;
-                       end
-                     else
-                       begin
-                          tonnode(last).left:=hp;
-                          last:=tonnode(last).left;
-                       end;
-                     { set the informations }
-                     { only if the creation of the onnode was successful, it's possible}
-                     { that last and hp are errornodes (JM)                            }
-                     if last.nodetype = onn then
-                       begin
-                         tonnode(last).excepttype:=tobjectdef(ot);
-                         tonnode(last).excepTSymtable:=excepTSymtable;
-                       end;
-                     { remove exception symtable }
-                     if assigned(excepTSymtable) then
-                       begin
-                         symtablestack.pop(excepTSymtable);
-                         if last.nodetype <> onn then
-                           begin
-                             excepTSymtable.free;
-                             excepTSymtable := nil;
-                           end;
-                       end;
-                     if not try_to_consume(_SEMICOLON) then
-                        break;
-                     consume_emptystats;
-                   until (current_scanner.token in [_END,_ELSE]);
-                   if try_to_consume(_ELSE) then
-                     begin
-                       { catch the other exceptions }
-                       if is_expr then
-                         p_default:=readexpr
-                       else
-                         p_default:=statements_til_end;
-                     end
-                   else if is_expr then
-                     consume(_ELSE)
-                   else
-                     consume(_END);
-                end
-              else
-                begin
-                   { catch all exceptions }
-                   if is_expr then
-                     p_default:=readexpr
-                   else
-                     p_default:=statements_til_end;
-                end;
-
-              result:=ctryexceptnode.create(p_try_block,p_specific,p_default);
+              tonnode(last).left:=hp;
+              last:=tonnode(last).left;
            end;
-         block_type:=old_block_type;
-         current_exceptblock := oldcurrent_exceptblock;
+         { set the informations }
+         { only if the creation of the onnode was successful, it's possible}
+         { that last and hp are errornodes (JM)                            }
+         if last.nodetype = onn then
+           begin
+             tonnode(last).excepttype:=tobjectdef(ot);
+             tonnode(last).excepTSymtable:=excepTSymtable;
+           end;
+         { remove exception symtable }
+         if assigned(excepTSymtable) then
+           begin
+             symtablestack.pop(excepTSymtable);
+             if last.nodetype <> onn then
+               begin
+                 excepTSymtable.free;
+                 excepTSymtable := nil;
+               end;
+           end;
+      end;
 
-         if not is_expr then
-           exit;
-         trynode:=ttryexceptnode(result);
-         result:=internalstatements(statements);
-         resultvar:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
-         addstatement(statements,resultvar);
 
-         trynode.left:=cassignmentnode.create(ctemprefnode.create(resultvar),trynode.left);
-         update_onnode_assignment(resultvar,tonnode(trynode.right));
-         if assigned(trynode.t1) then
-           trynode.t1:=cassignmentnode.create(ctemprefnode.create(resultvar),trynode.t1);
+    function try_statement : tnode;
+      var
+        p_try_block,p_finally_block,first,last,
+        p_default,p_specific,hp : tnode;
+        ot : tDef;
+        old_block_type : tblock_type;
+        excepTSymtable : TSymtable;
+        oldcurrent_exceptblock: integer;
+        filepostry : tfileposinfo;
+      begin
+        p_default:=nil;
+        p_specific:=nil;
+        last:=nil;
 
-         addstatement(statements,trynode);
-         addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
-         addstatement(statements,ctemprefnode.create(resultvar));
+        { read statements to try }
+        consume(_TRY);
+        filepostry:=current_filepos;
+        first:=nil;
+        inc(exceptblockcounter);
+        oldcurrent_exceptblock := current_exceptblock;
+        current_exceptblock := exceptblockcounter;
+        old_block_type := block_type;
+        block_type := bt_body;
+
+        while (current_scanner.token<>_FINALLY) and (current_scanner.token<>_EXCEPT) do
+          begin
+            if first=nil then
+              begin
+                last:=cstatementnode.create(statement,nil);
+                first:=last;
+              end
+            else
+              begin
+                tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                last:=tstatementnode(last).right;
+              end;
+            if not try_to_consume(_SEMICOLON) then
+              break;
+            consume_emptystats;
+          end;
+        p_try_block:=cblocknode.create(first);
+
+        if try_to_consume(_FINALLY) then
+          begin
+            inc(exceptblockcounter);
+            current_exceptblock := exceptblockcounter;
+            p_finally_block:=statements_til_end;
+            result:=ctryfinallynode.create(p_try_block,p_finally_block);
+            result.fileinfo:=filepostry;
+          end
+        else
+          begin
+            consume(_EXCEPT);
+            block_type:=bt_except;
+            inc(exceptblockcounter);
+            current_exceptblock := exceptblockcounter;
+            if (current_scanner.idtoken=_ON) then
+              { on: catch specific exceptions }
+              begin
+                last:=nil;
+                repeat
+                  read_on_head(ot,excepTSymtable);
+                  hp:=connode.create(nil,statement);
+                  add_on_node(hp,ot,excepTSymtable,p_specific,last);
+                  if not try_to_consume(_SEMICOLON) then
+                    break;
+                  consume_emptystats;
+                until (current_scanner.token in [_END,_ELSE]);
+                if try_to_consume(_ELSE) then
+                  p_default:=statements_til_end
+                else
+                  consume(_END);
+              end
+            else
+              p_default:=statements_til_end;
+
+            result:=ctryexceptnode.create(p_try_block,p_specific,p_default);
+          end;
+        block_type:=old_block_type;
+        current_exceptblock := oldcurrent_exceptblock;
+      end;
+
+
+    function try_stmt_expr : tnode;
+      var
+        resdef : tdef;
+        typenode : tnode;
+
+      function read_branch : tnode;
+        begin
+          result:=expr(true);
+          resdef:=branch_type(resdef,result,typenode);
+        end;
+
+      { wraps the expressions of all on-branches into assignments to temp }
+      procedure update_onnode_assignment(temp : ttempcreatenode; onnode : tnode);
+        begin
+          while assigned(onnode) and (onnode.nodetype=onn) do
+            begin
+              tonnode(onnode).right:=cassignmentnode.create(ctemprefnode.create(temp),tonnode(onnode).right);
+              onnode:=tonnode(onnode).left;
+            end;
+        end;
+
+      var
+        p_try_block,p_finally_block,
+        p_default,p_specific,last,hp : tnode;
+        ot : tDef;
+        old_block_type : tblock_type;
+        excepTSymtable : TSymtable;
+        oldcurrent_exceptblock: integer;
+        trynode : ttryexceptnode;
+        statements : tstatementnode;
+        resultvar : ttempcreatenode;
+      begin
+        p_default:=nil;
+        p_specific:=nil;
+        last:=nil;
+        resdef:=nil;
+        typenode:=nil;
+
+        { read expression to try }
+        consume(_TRY);
+        inc(exceptblockcounter);
+        oldcurrent_exceptblock := current_exceptblock;
+        current_exceptblock := exceptblockcounter;
+        old_block_type := block_type;
+        block_type := bt_body;
+
+        p_try_block:=read_branch;
+
+        if try_to_consume(_FINALLY) then
+          begin
+            Message(parser_e_stmt_expr_no_finally);
+            { recover }
+            inc(exceptblockcounter);
+            current_exceptblock := exceptblockcounter;
+            p_finally_block:=statements_til_end;
+            p_try_block.free;
+            p_finally_block.free;
+            block_type:=old_block_type;
+            current_exceptblock := oldcurrent_exceptblock;
+            result:=cerrornode.create;
+            exit;
+          end;
+
+        consume(_EXCEPT);
+        block_type:=bt_except;
+        inc(exceptblockcounter);
+        current_exceptblock := exceptblockcounter;
+        if (current_scanner.idtoken=_ON) then
+          { on: catch specific exceptions }
+          begin
+            repeat
+              read_on_head(ot,excepTSymtable);
+              if ot.typ=errordef then
+                { the on node is replaced by an error node, don't use it for the result type }
+                hp:=connode.create(nil,expr(true))
+              else
+                hp:=connode.create(nil,read_branch);
+              add_on_node(hp,ot,excepTSymtable,p_specific,last);
+              if not try_to_consume(_SEMICOLON) then
+                break;
+              consume_emptystats;
+            until (current_scanner.token in [_END,_ELSE]);
+            if try_to_consume(_ELSE) then
+              begin
+                { else: catch the other exceptions }
+                p_default:=read_branch;
+                try_to_consume(_SEMICOLON);
+                consume(_END);
+              end
+            else
+              begin
+                consume(_END);
+                Message(parser_e_stmt_expr_requires_else);
+              end;
+          end
+        else
+          begin
+            { default: catch all exceptions }
+            p_default:=read_branch;
+            try_to_consume(_SEMICOLON);
+            consume(_END);
+          end;
+        block_type:=old_block_type;
+        current_exceptblock := oldcurrent_exceptblock;
+
+        trynode:=ttryexceptnode(ctryexceptnode.create(p_try_block,p_specific,p_default));
+        if not assigned(resdef) then
+          begin
+            { errors have already been reported }
+            trynode.free;
+            result:=cerrornode.create;
+            exit;
+          end;
+        result:=create_stmt_expr_block(resdef,statements,resultvar);
+        if not is_anonymous_procdef(resdef) then
+          begin
+            trynode.left:=cassignmentnode.create(ctemprefnode.create(resultvar),trynode.left);
+            update_onnode_assignment(resultvar,trynode.right);
+            if assigned(trynode.t1) then
+              trynode.t1:=cassignmentnode.create(ctemprefnode.create(resultvar),trynode.t1);
+          end;
+        finish_stmt_expr_block(statements,resultvar,trynode);
+      end;
+
+
+    function statement_expr(var p1 : tnode) : boolean;
+      begin
+        if not (m_statement_expressions in current_settings.modeswitches) then
+          exit(false);
+        result:=true;
+        case current_scanner.token of
+          _IF:
+            p1:=if_stmt_expr;
+          _CASE:
+            p1:=case_stmt_expr;
+          _TRY:
+            p1:=try_stmt_expr;
+          else
+            result:=false;
+        end;
       end;
 
 
@@ -1591,7 +1790,11 @@ implementation
                 else
                   begin
                      if current_scanner.token=_ID then
-                       consume_sym(srsym,srsymtable)
+                       begin
+                         srsym:=nil;
+                         srsymtable:=nil;
+                         consume_sym(srsym,srsymtable);
+                       end
                      else
                       begin
                         if current_scanner.token<>_INTCONST then
@@ -1936,21 +2139,6 @@ implementation
         last_endtoken_filepos:=current_tokenpos;
 
         assembler_block:=p;
-      end;
-
-
-    function statement_expr(var p1 : tnode) : boolean;
-      begin
-        if not (m_statement_expressions in current_settings.modeswitches) then
-          exit(false);
-        result:=true;
-        case current_scanner.token of
-        _IF: p1:=if_statement(true);
-        _CASE: p1:=case_statement(true);
-        _TRY: p1:=try_statement(true);
-        else
-          result:=false;
-        end;
       end;
 
 end.

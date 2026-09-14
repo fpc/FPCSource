@@ -5,7 +5,8 @@ var
 begin
   s := case 5 of
     0: 'Foo';
-    5: 32;
-    else 'FooBar';
+    5: 32; // cant be combined with string
+    else 'FooBar'
+  end;
   Halt(1);
 end.

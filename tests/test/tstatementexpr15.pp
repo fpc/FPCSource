@@ -1,8 +1,13 @@
-{%FAIL}
+{$mode objfpc}
 {$ModeSwitch StatementExpressions}
+uses classes;
+
 var
-  s: String;
+  s: tstream;
 begin
-  s := if 0 < 1 then 'Foo' else 32;
-  Halt(1);
+  s := if 0 < 1 then tstringstream.create('') else tmemorystream.create;
+  WriteLn(s.classname);
+  if (not (s is tstringstream)) then
+    Halt(1);
+  s.Free;
 end.

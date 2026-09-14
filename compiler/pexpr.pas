@@ -29,7 +29,7 @@ interface
       symtype,symdef,symbase,
       node,ncal,compinnr,
       tokens,globtype,globals,constexp,
-      pgentype;
+      pgentype,pstatmnt;
 
     type
       texprflag = (
@@ -80,7 +80,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pstatmnt,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
+       pbase,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
        ;
 
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;

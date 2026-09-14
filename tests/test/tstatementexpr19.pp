@@ -1,11 +1,12 @@
+{$mode objfpc}
 {$ModeSwitch StatementExpressions}
+uses classes;
+
 var
-  s: String;
+  s: tstream;
 begin
-  s := if 0 < 1 then 'Foo' else
-       if 1 < 2 then 'Bar' else
-       'Baz';
-  WriteLn(s);
-  if (s<>'Foo') then
+  s := if 0 < 1 then nil else tmemorystream.create;
+  WriteLn(intptr(s));
+  if assigned(s) then
     Halt(1);
 end.

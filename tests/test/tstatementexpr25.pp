@@ -1,8 +1,8 @@
 {$ModeSwitch StatementExpressions}
 var
-  sz: sizeint;
+  sz: SizeInt;
 begin
-  sz := SizeOf(if 0<1 then #65 else WideChar('A'));
+  sz := sizeOf((if 0<1 then 'Foo' else widestring('Bar'))[1]);
   WriteLn(sz);
-  if (sz<>SizeOf(WideChar)) then Halt(1);
+  if (sz<>2) then Halt(1);
 end.

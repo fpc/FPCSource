@@ -1,15 +1,17 @@
-{%FAIL}
-{$Mode EXTENDEDPASCAL}
 {$ModeSwitch StatementExpressions}
-var
-  i: Integer;
-begin
-  i := case 5 of
-    0: 3;
-    1..9: 42;
-    else 0;
 
-  WriteLn(i);
-  if (i<>42) then
-    Halt(1);
+type
+  TS3 = String[3];
+  TS12 = String[12];
+
+var
+  s: String;
+begin
+  s := case 5 of
+    0..4: TS3('Foo');
+    5: TS12('FooBar');
+    otherwise TS3('Bar')
+  end;
+  WriteLn(s);
+  if (s<>'FooBar') then Halt(1);
 end.
