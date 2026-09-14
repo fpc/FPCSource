@@ -174,22 +174,54 @@ begin
 end;
 
 procedure TTestSimpleDictionary.DoKeyNotify(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+var
+  I,J : integer;
 begin
   Writeln(FnotifyMessage+' Notification ',FCurrentKeyNotify);
   AssertSame(FnotifyMessage+' Correct sender', FDict,aSender);
   if (FCurrentKeyNotify>=Length(FExpectKeys)) then
     Fail(FnotifyMessage+' Too many notificiations');
-  AssertEquals(FnotifyMessage+' Notification Key no '+IntToStr(FCurrentKeyNotify),FExpectKeys[FCurrentKeyNotify],aItem);
+  if AAction=cnRemoved then
+    begin
+      j:=-1;
+      for i:=0 to Length(FExpectKeys)-1 do
+        if AItem=FExpectKeys[i] then
+	  begin
+            j:=i;
+            FExpectKeys[i]:=-1;
+	    break;
+	  end;
+      if j=-1 then
+        Fail(FnotifyMessage+' Notification Key '+IntToStr(aItem)+' not found');
+    end
+  else
+    AssertEquals(FnotifyMessage+' Notification Key no '+IntToStr(FCurrentKeyNotify),FExpectKeys[FCurrentKeyNotify],aItem);
   Inc(FCurrentKeyNotify);
 end;
 
 procedure TTestSimpleDictionary.DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
+var
+  I,J : integer;
 begin
   Writeln(FnotifyMessage+' value Notification ',FCurrentValueNotify);
   AssertSame(FnotifyMessage+' value Correct sender', FDict,aSender);
   if (FCurrentValueNotify>=Length(FExpectValues)) then
     Fail(FnotifyMessage+' Too many value notificiations');
-  AssertEquals(FnotifyMessage+' Notification value no '+IntToStr(FCurrentValueNotify),FExpectValues[FCurrentValueNotify],aItem);
+  if AAction=cnRemoved then
+    begin
+      j:=-1;
+      for i:=0 to Length(FExpectKeys)-1 do
+        if AItem=FExpectValues[i] then
+	  begin
+            j:=i;
+            FExpectValues[i]:='Already found';
+	    break;
+	  end;
+      if j=-1 then
+        Fail(FnotifyMessage+' Notification value '+AItem+' not found');
+    end
+  else
+    AssertEquals(FnotifyMessage+' Notification value no '+IntToStr(FCurrentValueNotify),FExpectValues[FCurrentValueNotify],aItem);
   Inc(FCurrentValueNotify);
 end;
 
