@@ -251,6 +251,16 @@ type
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
 
+    PWFileList = ^TWFileList;
+    TWFileList = object(TFileList)
+      procedure NewList(AList: PCollection); virtual;
+    end;
+
+    PWFileCollection = ^TWFileCollection;
+    TWFileCollection = object(TFileCollection)
+      function Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+    end;
+
     PFPFileDialog = ^TFPFileDialog;
     TFPFileDialog = object(TFileDialog)
       constructor Init(AWildCard: TWildStr; const ATitle,
@@ -320,6 +330,7 @@ uses Mouse,
 {$ifdef WinClipSupported}
      FvClip,
 {$endif WinClipSupported}
+     Dos,
      FpConst,
      FVConsts,
      App,MsgBox,
@@ -2837,6 +2848,45 @@ begin
   //Message(Owner,evBroadCast,cmInputLineLen,pointer(Length(st)));
 end;
 
+procedure TWFileList.NewList(AList: PCollection);
+var BList : PWFileCollection;
+
+procedure ReAdd(P : PSearchRec);
+begin
+  BList^.Insert(P);
+end;
+
+begin
+  { transfer list elements from PFileCollection to PWFileCollection
+    with sort order files first and directories follow afterwards }
+  BList := New(PWFileCollection, Init(5, 5));
+  AList^.ForEach(TCallbackProcParam(@ReAdd)); 
+  AList^.DeleteAll;
+  Dispose(AList,Done);
+  inherited NewList (BList);
+end;
+
+function TWFileCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+begin
+  if PSearchRec(Key1)^.Name = PSearchRec(Key2)^.Name then Compare := 0
+  else if PSearchRec(Key1)^.Name = '..' then Compare := 1
+  else if PSearchRec(Key2)^.Name = '..' then Compare := -1
+  else if (PSearchRec(Key1)^.Attr and Directory <> 0) and
+     (PSearchRec(Key2)^.Attr and Directory = 0) then Compare := 1
+  else if (PSearchRec(Key2)^.Attr and Directory <> 0) and
+     (PSearchRec(Key1)^.Attr and Directory = 0) then Compare := -1
+  else if UpcaseStr(PSearchRec(Key1)^.Name) > UpcaseStr(PSearchRec(Key2)^.Name) then
+    Compare := 1
+{$ifdef unix}
+  else if UpcaseStr(PSearchRec(Key1)^.Name) < UpcaseStr(PSearchRec(Key2)^.Name) then
+    Compare := -1
+  else if PSearchRec(Key1)^.Name > PSearchRec(Key2)^.Name then
+    Compare := 1
+{$endif def unix}
+  else
+    Compare := -1;
+end;
+
 constructor TFPFileDialog.Init(AWildCard: TWildStr; const ATitle,
         InputName: String; AOptions: Word; HistoryId: Byte);
 var R: TRect;
@@ -2846,6 +2896,7 @@ var R: TRect;
   LabelFileList : PLabel;
   ScrollBar : PScrollBar;
   History : PHistory;
+  WFileList: PWFileList;
   S : String;
 begin
   inherited init(AWildCard,ATitle,InputName,AOptions,HistoryId);
@@ -2909,9 +2960,16 @@ begin
     R.Assign(3,14,34,15);
     ScrollBar^.SetBounds(R);
     R.Assign(3,6,34,14);
-    FileList^.SetBounds(R);
+    //FileList^.SetBounds(R);
+    WFileList := New(PWFileList, Init(R, ScrollBar));
+    WFileList^.GrowMode:=gfGrowHiX or gfGrowHiY;
+    WFileList^.NewList(FileList^.List);
+    FileList^.List:=nil;
+    Dispose(FileList,Done);
+    FileList:=WFileList;
     R.Assign(2,5,3+LabelFileList^.Size.X,6);
     LabelFileList^.SetBounds(R);
+    LabelFileList^.Link:=FileList;
 
     InsertBefore(LabelFileList,Last);
     InsertBefore(FileList,Last);
