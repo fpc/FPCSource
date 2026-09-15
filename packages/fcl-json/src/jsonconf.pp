@@ -796,6 +796,7 @@ procedure TJSONConfig.LoadFromString(const S: String);
 Var
   SS : TStringStream;
 begin
+  FFileName:='';
   SS:=TStringStream.Create(S,TEncoding.UTF8,false);
   try
     LoadFromStream(SS);
