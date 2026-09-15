@@ -656,9 +656,14 @@ begin
     argvalues[i] := aArgs[i].ValueRef;
   end;
   CreateCIF(arginfos, argvalues, aCallConv, aResultType, aResultValue, aFlags, ffidata);
-
+{$ifopt R+}
+  if Length(aArgs)=0 then
+    ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, nil)
+  else
+    ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
+{$else}
   ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
-
+{$endif}
   arginfos := Nil;
   argvalues := Nil;
 
