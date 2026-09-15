@@ -1,5 +1,7 @@
 unit testcomps;
 
+{$mode objfpc}
+{$h+}
 interface
 
 uses classes, sysutils;
