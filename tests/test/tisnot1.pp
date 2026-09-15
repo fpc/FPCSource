@@ -2,6 +2,7 @@
 program tisnot1;
 
 {$mode objfpc}{$H+}
+{$modeswitch delphislang}
 
 type
   IFoo = interface

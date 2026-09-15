@@ -57,7 +57,7 @@ interface
           m_property,m_default_inline,m_except,m_advanced_records,
           m_array_operators,m_prefixed_attributes,m_underscoreisseparator,
           m_function_references,m_anonymous_functions,m_multiline_strings,
-          m_statement_expressions];
+          m_statement_expressions,m_delphi_slang];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
