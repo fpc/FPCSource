@@ -780,7 +780,10 @@ begin
   Result:=TJSONArray.Create;
   try
     FChildren:=Result;
+{$push}
+{$objectchecks off}
     THackComponent(AComponent).GetChildren(@StreamChild,AComponent);
+{$pop}
   except
     FreeAndNil(Result);
     Raise;
