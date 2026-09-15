@@ -54,6 +54,7 @@ FPC_SHARED_LIB_START:
         movb    $1,operatingsystem_islibrary(%rip)
         #movq    operatingsystem_islibrary@GOTPCREL(%rip),%rax
         #movb    $1,(%rax)
+        andq     $0xfffffffffffffff0,%rsp
 	call	PASCALMAIN@PLT
 	ret
 	.p2align 2,,3

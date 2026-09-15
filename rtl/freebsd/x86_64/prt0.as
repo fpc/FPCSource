@@ -39,6 +39,7 @@ _start:
 	movq	%rsp, %rbp
 .LCFI1:
 	subq	$48, %rsp
+        andq     $0xfffffffffffffff0,%rsp
 .LCFI2:
 	movq	%rdi, -8(%rbp)
 	movq	%rsi, -16(%rbp)
