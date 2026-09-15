@@ -447,6 +447,15 @@ implementation
       end;
 
 
+    procedure consume_case_else;
+      begin
+        if ([m_iso,m_extpas]*current_settings.modeswitches)<>[] then
+          consume(_OTHERWISE)
+        else if not try_to_consume(_ELSE) then
+          consume(_OTHERWISE);
+      end;
+
+
     function case_statement : tnode;
       var
         casedef : tdef;
@@ -474,8 +483,7 @@ implementation
 
         if (current_scanner.token in [_ELSE,_OTHERWISE]) then
           begin
-            if not try_to_consume(_ELSE) then
-              consume(_OTHERWISE);
+            consume_case_else;
             casenode.addelseblock(statements_til_end);
           end
         else
@@ -539,8 +547,7 @@ implementation
 
         if (current_scanner.token in [_ELSE,_OTHERWISE]) then
           begin
-            if not try_to_consume(_ELSE) then
-              consume(_OTHERWISE);
+            consume_case_else;
             casenode.addelseblock(read_branch);
             try_to_consume(_SEMICOLON);
             consume(_END);
