@@ -69,9 +69,26 @@ _haltproc:
         syscall
         jmp     _haltproc@PLT
 	/* Do not fail linkage if argc, argv and envp are not found. */
-	.weak   operatingsystem_parameter_argc
-	.weak   operatingsystem_parameter_argv
-	.weak   operatingsystem_parameter_envp
+#	.weak   operatingsystem_parameter_argc
+#	.weak   operatingsystem_parameter_argv
+#	.weak   operatingsystem_parameter_envp
+
+	.section ".bss"
+        .skip   8
+
+        .type   operatingsystem_parameters, @object
+        .size   operatingsystem_parameters, 24
+operatingsystem_parameters:
+		.globl operatingsystem_parameter_argc
+operatingsystem_parameter_argc:
+		.skip 8
+		.globl operatingsystem_parameter_argv
+operatingsystem_parameter_argv:
+		.skip 8
+		.globl operatingsystem_parameter_envp
+operatingsystem_parameter_envp:
+		.skip 8
+
 
 .section .note.GNU-stack,"",@progbits
 
