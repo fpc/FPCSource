@@ -2233,8 +2233,8 @@ end;
 
 function DeleteDirectory(const DirectoryName: string; OnlyChildren: boolean): boolean;
 const
-  //Don't follow symlinks on *nix, just delete them
-  DeleteMask = faAnyFile {$ifdef unix} or {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faSymLink{%H-} {$endif unix};
+  //Don't follow symlinks just delete them (note: Windows has symlinks too (and junctions): issue #42561
+  DeleteMask = faAnyFile or {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSymLink{%H-};
 var
   FileInfo: TSearchRec;
   CurSrcDir: String;
@@ -2243,23 +2243,34 @@ begin
   Result:=false;
   CurSrcDir:=ExpandFileName(DirectoryName);
   CurSrcDir:=IncludeTrailingPathDelimiter(CurSrcDir);
-  if FindFirst(CurSrcDir+AllFilesMask,DeleteMask,FileInfo)=0 then
+  if {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindFirst(CurSrcDir+AllFilesMask,DeleteMask,FileInfo)=0 then begin
     Try
       repeat
         // check if special file
         if (FileInfo.Name='.') or (FileInfo.Name='..') or (FileInfo.Name='') then
           continue;
         CurFilename:=CurSrcDir+FileInfo.Name;
-        if ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faDirectory)>0)
-           {$ifdef unix} and ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faSymLink{%H-})=0) {$endif unix} then begin
-          if not DeleteDirectory(CurFilename,false) then exit;
+        if ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faDirectory)>0) then begin
+          if ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faSymLink{%H-})=0) then begin
+            //regular directory
+            if not DeleteDirectory(CurFilename,false) then exit;
+          end else begin
+            //symlink to directory
+            {$ifdef unix}
+            if not {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(CurFilename) then exit;
+            {$else}
+            if not {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RemoveDir(CurFilename) then exit;
+            {$endif}
+          end;
         end else begin
+            //file or symlink to a file
           if not {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(CurFilename) then exit;
         end;
       until {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(FileInfo)<>0;
     finally
       {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(FileInfo);
     end;
+  end;
   if (not OnlyChildren) and (not RemoveDir(CurSrcDir)) then exit;
   Result:=true;
 end;
