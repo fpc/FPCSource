@@ -196,6 +196,7 @@ type
 
 { More internal functions }
      in_isconstvalue_x    = 1000,
+     in_nameof_x          = 1001,
 
 { atomic intrinsics }
      in_atomic_inc       = 1100,

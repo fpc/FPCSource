@@ -100,7 +100,8 @@ interface
       tconsume_unitsym_flag = (
         cuf_consume_id,
         cuf_allow_specialize,
-        cuf_check_attr_suffix
+        cuf_check_attr_suffix,
+        cuf_allow_unit_only  { allow unit name without point, e.g. NameOf(unitname) }
       );
       tconsume_unitsym_flags = set of tconsume_unitsym_flag;
 
@@ -360,7 +361,15 @@ implementation
             if hmodule.moduleid=current_filepos.moduleindex then
               begin
                 if cuf_consume_id in flags then
-                  consume(_ID);
+                  begin
+                    consume(_ID);
+                    if (cuf_allow_unit_only in flags) and
+                       (current_scanner.token<>_POINT) then
+                      begin
+                        tokentoconsume:=NOTOKEN;
+                        exit(true);
+                      end;
+                  end;
                 consume(_POINT);
                 if srsym.typ=namespacesym then
                   begin

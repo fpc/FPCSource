@@ -90,6 +90,50 @@ implementation
        anon_inherited : boolean = false;
        { last def found, only used by anon. inherited calls to insert proper type casts }
        srdef : tdef = nil;
+       { true while parsing the argument of NameOf }
+       nameof_active : boolean = false;
+       { last symbol found while parsing the argument of NameOf }
+       nameof_sym : tsym = nil;
+       { position of the token following nameof_sym }
+       nameof_nextpos : tfileposinfo;
+
+    procedure nameof_record_sym(sym:tsym);
+      begin
+        if not nameof_active or not assigned(sym) then
+          exit;
+        nameof_sym:=sym;
+        nameof_nextpos:=current_filepos;
+      end;
+
+    { returns the declared name of sym without generic parameters }
+    function nameof_symname(sym:tsym):string;
+      var
+        i : longint;
+      begin
+        if (sym.typ in [absolutevarsym,localvarsym,paravarsym]) and
+           (vo_is_funcret in tabstractvarsym(sym).varoptions) then
+          begin
+            { the function result symbols are stored uppercase }
+            if vo_is_result in tabstractvarsym(sym).varoptions then
+              exit('Result');
+            if assigned(sym.owner.defowner) and
+               (tdef(sym.owner.defowner).typ=procdef) then
+              exit(tprocdef(sym.owner.defowner).procsym.realname);
+          end;
+        { use the declared unit name, e.g. the implicit system unit is stored uppercase }
+        if (sym.typ=unitsym) and
+           assigned(tunitsym(sym).module) and
+           assigned(tmodule(tunitsym(sym).module).realmodulename) then
+          exit(tmodule(tunitsym(sym).module).realmodulename^);
+        result:=sym.realname;
+        for i:=1 to length(result) do
+          if result[i] in ['$','<'] then
+            begin
+              if i>1 then
+                setlength(result,i-1);
+              break;
+            end;
+      end;
 
     procedure string_dec(var def:tdef; allowtypedef: boolean);
     { reads a string type with optional length }
@@ -270,6 +314,10 @@ implementation
         prev_in_args : boolean;
         def : tdef;
         exit_procinfo: tprocinfo;
+        old_nameof_active,
+        nameof_ok : boolean;
+        old_nameof_sym : tsym;
+        old_nameof_nextpos : tfileposinfo;
       begin
         prev_in_args:=in_args;
         case l of
@@ -933,6 +981,56 @@ implementation
               consume(_RKLAMMER);
             end;
 
+          in_nameof_x:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              { save the state: e.g. NameOf(TGen<byte>) may parse NameOf while specializing }
+              old_nameof_active:=nameof_active;
+              old_nameof_sym:=nameof_sym;
+              old_nameof_nextpos:=nameof_nextpos;
+              nameof_active:=true;
+              nameof_sym:=nil;
+              { only an identifier or a dotted identifier chain is allowed }
+              nameof_ok:=current_scanner.token=_ID;
+              if current_scanner.token=_RKLAMMER then
+                { NameOf() }
+                p1:=cnothingnode.create
+              else
+                { getaddr: do not turn a procedure into a call }
+                p1:=factor(true,[]);
+              if current_scanner.token<>_RKLAMMER then
+                begin
+                  { e.g. inline specialization TBird<Boolean> }
+                  p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+                  if p1.nodetype in [addn,subn,muln,slashn,divn,modn,symdifn,starstarn,
+                      equaln,unequaln,ltn,lten,gtn,gten,inn,isn,asn,orn,andn,xorn,
+                      shln,shrn,notn,assignn] then
+                    nameof_ok:=false;
+                end;
+              { the last found identifier must be directly followed by ")" }
+              nameof_ok:=nameof_ok and
+                assigned(nameof_sym) and
+                (nameof_sym.typ<>errorsym) and
+                (nameof_nextpos.line=current_filepos.line) and
+                (nameof_nextpos.column=current_filepos.column) and
+                (nameof_nextpos.fileindex=current_filepos.fileindex) and
+                (nameof_nextpos.moduleindex=current_filepos.moduleindex);
+              if nameof_ok then
+                statement_syssym:=cstringconstnode.createstr(nameof_symname(nameof_sym))
+              else
+                begin
+                  if p1.nodetype<>errorn then
+                    Message(parser_e_illegal_expression);
+                  statement_syssym:=cerrornode.create;
+                end;
+              p1.free;
+              nameof_active:=old_nameof_active;
+              nameof_sym:=old_nameof_sym;
+              nameof_nextpos:=old_nameof_nextpos;
+              consume(_RKLAMMER);
+            end;
+
           in_setstring_x_y_z:
             begin
               statement_syssym := inline_setstring;
@@ -1110,8 +1208,14 @@ implementation
                this is only temporary we use a non translated message }
              if assigned(spezcontext) then
                begin
-                 comment(v_error, 'Pointers to generics functions not implemented');
-                 p1:=cerrornode.create;
+                 if nameof_active then
+                   { NameOf(GenericFunc<T>) only needs the name }
+                   p1:=cnothingnode.create
+                 else
+                   begin
+                     comment(v_error, 'Pointers to generics functions not implemented');
+                     p1:=cerrornode.create;
+                   end;
                  spezcontext.free;
                  spezcontext := nil;
                  exit;
@@ -1319,6 +1423,13 @@ implementation
          propaccesslist : tpropaccesslist;
          sym: tsym;
       begin
+         { NameOf(property) needs neither parameters nor read access }
+         if nameof_active and (current_scanner.token=_RKLAMMER) then
+           begin
+             p1.free;
+             p1:=cnothingnode.create;
+             exit;
+           end;
          { property parameters? read them only if the property really }
          { has parameters                                             }
          paras:=nil;
@@ -1474,6 +1585,7 @@ implementation
            end
          else
            begin
+              nameof_record_sym(sym);
               if assigned(p1) then
                begin
                  if not assigned(p1.resultdef) then
@@ -1705,6 +1817,7 @@ implementation
                       begin
                         srsym:=tprocdef(spezdef).procsym;
                         srsymtable:=srsym.owner;
+                        nameof_record_sym(srsym);
                         result:=true;
                       end;
                   end;
@@ -1721,6 +1834,7 @@ implementation
                         srsym:=spezdef.typesym;
                         srsymtable:=srsym.owner;
                         check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                        nameof_record_sym(srsym);
                         result:=true;
                       end;
                   end;
@@ -2657,6 +2771,7 @@ implementation
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                              p1:=genenumnode(tenumsym(srsym));
                              consume(_ID);
+                             nameof_record_sym(srsym);
                            end
                          else
                            if not try_type_helper(p1,nil) then
@@ -3318,6 +3433,19 @@ implementation
               srsym := nil;
             end;
 
+          unitsym,
+          namespacesym :
+            begin
+              if nameof_active then
+                { NameOf(unitname) }
+                result:=cnothingnode.create
+              else
+                begin
+                  result:=cerrornode.create;
+                  Message(parser_e_illegal_expression);
+                end;
+            end;
+
           errorsym :
             begin
               result:=cerrornode.create;
@@ -3441,6 +3569,8 @@ implementation
                      include(cufflags,cuf_allow_specialize);
                    if ef_check_attr_suffix in flags then
                      include(cufflags,cuf_check_attr_suffix);
+                   if nameof_active then
+                     include(cufflags,cuf_allow_unit_only);
                    unit_found:=try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,current_scanner.pattern);
                    if unit_found then
                      consumeid:=true;
@@ -3450,7 +3580,8 @@ implementation
                    unit_found:=false;
                    t:=_ID;
                  end;
-               if consumeid then
+               { NOTOKEN: NameOf(unitname), the unit name is already consumed }
+               if consumeid and (t<>NOTOKEN) then
                  begin
                    storedpattern:=current_scanner.pattern;
                    orgstoredpattern:=current_scanner.orgpattern;
@@ -3660,6 +3791,7 @@ implementation
             end;
 
             begin
+              nameof_record_sym(srsym);
               p1:=factor_handle_sym(srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
 
               if assigned(spezcontext) then
@@ -4528,6 +4660,7 @@ implementation
           unitspecific : boolean;
           pload : tnode;
           spezcontext : tspecializationcontext;
+          orggensym : tsym;
           structdef,
           inheriteddef : tabstractrecorddef;
           callflags : tcallnodeflags;
@@ -4555,6 +4688,7 @@ implementation
             gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
           else
             gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
+          orggensym:=gensym;
           case gendef.typ of
             errordef:
               begin
@@ -4590,6 +4724,9 @@ implementation
             else
               internalerror(2015092702);
           end;
+          { the generic parameters are parsed and the specialization is done,
+            NameOf uses the generic name }
+          nameof_record_sym(orggensym);
 
           { in case of a class or a record the specialized generic
             is always a classrefdef }
@@ -4661,11 +4798,11 @@ implementation
                   end
                 else
                   { handle potential typecasts, etc }
-                  result:=handle_factor_typenode(gendef,false,again,nil,false);
+                  result:=handle_factor_typenode(gendef,nameof_active,again,nil,false);
             end;
 
-          { parse postfix operators }
-          if postfixoperators(result,again,false) then
+          { parse postfix operators, NameOf does not need an instance }
+          if postfixoperators(result,again,nameof_active) then
             if assigned(result) then
               result.fileinfo:=filepos
             else
@@ -4729,7 +4866,7 @@ implementation
         p1,p2,ptmp : tnode;
         oldt    : Ttoken;
         filepos : tfileposinfo;
-        gendef,parseddef : tdef;
+        gendef : tdef;
         gensym : tsym;
         genlist : tfpobjectlist;
         dummyagain : boolean;
@@ -5112,7 +5249,6 @@ implementation
     var
       p:tnode;
       snode : tstringconstnode absolute p;
-      s : string;
       pw : tcompilerwidestring;
       pc : pansichar;
       len : Integer;
