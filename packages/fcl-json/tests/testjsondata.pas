@@ -1776,7 +1776,11 @@ begin
     TestAsBoolean(J,(I<>0));
     TestAsInteger(J,I);
     TestAsInt64(J,I);
+{$push}
+{$R-}
+{$Q-}
     TestAsQword(J,I);
+{$pop}
     TestAsString(J,IntToStr(I));
     TestAsFloat(J,I);
   finally
@@ -1875,7 +1879,11 @@ begin
     TestAsBoolean(J,(I<>0));
     TestAsInteger(J,I);
     TestAsInt64(J,I);
+{$push}
+{$R-}
+{$Q-}
     TestAsQword(J,I);
+{$pop}
     TestAsString(J,IntToStr(I));
     TestAsFloat(J,I);
   finally
@@ -2073,9 +2081,13 @@ begin
     TestJSON(J,S);
     TestIsNull(J,False);
     TestAsBoolean(J,(F<>0));
+{$push}
+{$R-}
+{$Q-}
     TestAsInteger(J,Round(F));
     TestAsInt64(J,Round(F));
     TestAsQword(J,Round(F));
+{$pop}
     TestAsString(J,S);
     TestAsFloat(J,F);
   finally
