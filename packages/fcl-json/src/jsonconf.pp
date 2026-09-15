@@ -76,7 +76,6 @@ type
     FJSON: TJSONObject;
     FModified: Boolean;
     Procedure LoadFromFile(Const AFileName : String);
-    Procedure LoadFromStream(S : TStream); virtual;
     procedure Loaded; override;
     function FindNodeForValue(const APath: UnicodeString; aExpectedType: TJSONDataClass; out AParent: TJSONObject; out ElName: UnicodeString): TJSONData;
     function FindPath(Const APath: UnicodeString; AllowCreate : Boolean) : TJSONObject;
@@ -87,9 +86,11 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    Procedure LoadFromStream(S : TStream); virtual;
+    Procedure LoadFromString(const S : AnsiString); virtual;
     Procedure Reload;
     procedure Clear;
-    procedure Flush; virtual;    // Writes the JSON file
+    procedure Flush; virtual;    // Writes the JSON file if filename is set
     procedure OpenKey(const aPath: UnicodeString; AllowCreate : Boolean);
     procedure CloseKey;
     procedure ResetKey;
@@ -177,7 +178,7 @@ Var
   S : TJSONStringType;
 
 begin
-  if Modified then
+  if Modified and (FileName<>'') then
     begin
     F:=TFileStream.Create(FileName,fmCreate);
     Try
@@ -788,6 +789,18 @@ begin
       end;
   finally
     P.Free;
+  end;
+end;
+
+procedure TJSONConfig.LoadFromString(const S: String);
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create(S,TEncoding.UTF8,false);
+  try
+    LoadFromStream(SS);
+  finally
+    SS.Free;
   end;
 end;
 
