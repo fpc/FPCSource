@@ -4751,7 +4751,7 @@ implementation
             operand can only be the start of "not in" }
           if ((pred_level=opcompare) and
               (current_scanner.token=_OP_NOT) and
-              (m_delphi_slang in current_settings.modeswitches)) or
+              (m_reordered_operators in current_settings.modeswitches)) or
              ((current_scanner.token in [NOTOKEN..last_operator]) and
               (current_scanner.token in operator_levels[pred_level]) and
               ((current_scanner.token<>_EQ) or (ef_accept_equal in flags))) then
@@ -4772,7 +4772,7 @@ implementation
                  { "a is not b" is a short form for "not (a is b)", i.e. the "not"
                    belongs to the "is" and not to the right operand }
                  negate:=(oldt=_OP_IS) and
-                   (m_delphi_slang in current_settings.modeswitches) and
+                   (m_reordered_operators in current_settings.modeswitches) and
                    try_to_consume(_OP_NOT);
                end;
              if pred_level=highest_precedence then

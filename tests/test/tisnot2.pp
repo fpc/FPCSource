@@ -2,7 +2,7 @@
 program tisnot2;
 
 {$mode objfpc}{$H+}
-{$modeswitch delphislang}
+{$modeswitch reorderedoperators}
 
 type
   TFoo = class(TObject)

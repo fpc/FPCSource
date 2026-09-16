@@ -4,7 +4,7 @@
 program tnotin3;
 
 {$mode objfpc}{$H+}
-{$modeswitch delphislang}
+{$modeswitch reorderedoperators}
 
 var
   A, B: boolean;

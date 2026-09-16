@@ -1,4 +1,4 @@
-{ modeswitch delphislang, and thus "is not", is enabled by mode delphi }
+{ modeswitch reorderedoperators, and thus "is not", is enabled by mode delphi }
 program tisnot5;
 
 {$mode delphi}

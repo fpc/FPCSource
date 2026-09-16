@@ -1,6 +1,6 @@
 { %FAIL }
 
-{ "not in" requires modeswitch delphislang }
+{ "not in" requires modeswitch reorderedoperators }
 program tnotin2;
 
 {$mode objfpc}{$H+}

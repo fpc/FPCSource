@@ -1,4 +1,4 @@
-{ modeswitch delphislang, and thus "not in", is enabled by mode delphi }
+{ modeswitch reorderedoperators, and thus "not in", is enabled by mode delphi }
 program tnotin4;
 
 {$mode delphi}

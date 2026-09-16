@@ -2,7 +2,7 @@
 program tnotin1;
 
 {$mode objfpc}{$H+}
-{$modeswitch delphislang}
+{$modeswitch reorderedoperators}
 
 type
   TColor = (clRed, clGreen, clBlue);

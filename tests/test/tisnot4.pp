@@ -1,6 +1,6 @@
 { %FAIL }
 
-{ "is not" requires modeswitch delphislang }
+{ "is not" requires modeswitch reorderedoperators }
 program tisnot4;
 
 {$mode objfpc}{$H+}
