@@ -210,7 +210,7 @@ begin
   if AAction=cnRemoved then
     begin
       j:=-1;
-      for i:=0 to Length(FExpectKeys)-1 do
+      for i:=0 to Length(FExpectValues)-1 do
         if AItem=FExpectValues[i] then
 	  begin
             j:=i;
