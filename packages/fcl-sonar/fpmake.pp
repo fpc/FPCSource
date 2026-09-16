@@ -317,6 +317,9 @@ begin
       T.Dependencies.AddUnit('fpsonar.config');
       T.Dependencies.AddUnit('fpsonar.useanalysis');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      P.ExamplePath.Add('examples');
+      P.Targets.AddExampleProgram('examples/sonardemo.pas');
     end;
 end;
 
