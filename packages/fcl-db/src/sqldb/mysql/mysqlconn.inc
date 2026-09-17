@@ -669,8 +669,13 @@ begin
       Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
     end;
   inherited DoInternalConnect;
-  ConnectToServer;
-  SelectDatabase;
+  try
+    ConnectToServer;
+    SelectDatabase;
+  except
+    DoInternalDisconnect;
+    raise;
+  end;
 end;
 
 procedure TConnectionName.DoInternalDisconnect;
