@@ -236,7 +236,18 @@ Type
     Function StreamChildren(AComponent : TComponent; AStreamer : TJSONStreamer): TJSONArray;
   end;
 
-  THackComponent = Class(TComponent);
+  { TComponentHelper }
+
+  TComponentHelper = Class helper for TComponent
+    procedure GetStreamChildren(Proc: TGetChildProc; Root: TComponent);
+  end;
+
+{ TComponentHelper }
+
+procedure TComponentHelper.GetStreamChildren(Proc: TGetChildProc; Root: TComponent);
+begin
+  GetChildren(Proc,Root);
+end;
 
 { TJSONDeStreamer }
 
@@ -780,10 +791,7 @@ begin
   Result:=TJSONArray.Create;
   try
     FChildren:=Result;
-{$push}
-{$objectchecks off}
-    THackComponent(AComponent).GetChildren(@StreamChild,AComponent);
-{$pop}
+    AComponent.GetStreamChildren(@StreamChild,AComponent);
   except
     FreeAndNil(Result);
     Raise;
