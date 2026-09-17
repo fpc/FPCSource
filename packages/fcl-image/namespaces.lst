@@ -40,6 +40,7 @@ src/fpwriteqoi.pas=namespaced/FpImage.Writer.QOI.pas
 src/fpreadpsd.pas=namespaced/FpImage.Reader.PSD.pas
 src/extinterpolation.pp=namespaced/FpImage.Extinterpolation.pp
 src/fpreadgif.pas=namespaced/FpImage.Reader.GIF.pas
+src/fpwritegif.pas=namespaced/FpImage.Writer.GIF.pas
 src/fpreadxwd.pas=namespaced/FpImage.Reader.XWD.pas
 src/fpimgcmn.pp=namespaced/FpImage.Common.pp
 src/fpreadxpm.pp=namespaced/FpImage.Reader.XPM.pp

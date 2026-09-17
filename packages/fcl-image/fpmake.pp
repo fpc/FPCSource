@@ -195,6 +195,12 @@ begin
           AddUnit('fpimage');
           AddUnit('bmpcomn');
         end;
+    T:=P.Targets.AddUnit('fpwritegif.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpquantizer');
+        end;
     T:=P.Targets.AddUnit('fpwritejpeg.pas');
       with T.Dependencies do
         begin
