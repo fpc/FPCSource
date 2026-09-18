@@ -723,6 +723,11 @@ type
     GenericEl: TPasElement;
     Index: integer;
     Step: TPRSpecializeStep; // how much of the specialized element has been created
+    // The method bodies are owed: the generic has an implementation to copy,
+    // and it has not been copied yet. Lives on the ITEM, not on a resolver's
+    // list - each unit has its own resolver and specializations are shared, so
+    // the resolver that needs the code is often not the one that owed it.
+    ImplOwed: boolean;
     FirstSpecialize: TPasElement;
     Params: TPasTypeArray;
     ConstExprs: array of TPasExpr; // nil for type params, expression for const params
@@ -1036,6 +1041,7 @@ type
   TPasProcTypeScopeClass = class of TPasProcTypeScope;
 
   { TPasClassOrRecordScope }
+
 
   TPasClassOrRecordScope = Class(TPasGenericScope)
   public
@@ -1573,6 +1579,9 @@ type
     { Specializations whose IMPLEMENTATION is owed until the outermost interface
       build ends; see CreateSpecializedItem. }
     FPendingSpecImpls: TFPList;
+    FDeferSpecImpls: boolean;
+    FPartialSpecsAsGeneric: boolean;
+    FLoadedUnitDepth: integer;
     { Specialized element and its item, as pairs, so a specialization that has
       no scope yet can be finished on demand. Kept on the resolver that owns the
       ELEMENT, because every specialization list is per-resolver. }
@@ -2240,6 +2249,13 @@ type
     procedure BI_IsConstValue_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
+    // Defer every specialization's IMPLEMENTATION until the batch ends, so a
+    // group of specializations built together sees a finished hierarchy before
+    // any body of it is type-checked. The same deferral an interface build
+    // already gets; a loader that builds many at once needs it explicitly.
+    procedure BeginSpecializationBatch;
+    procedure EndSpecializationBatch;
+  public
     constructor Create;
     destructor Destroy; override;
     procedure Clear; virtual; // does not free built-in identifiers
@@ -2356,6 +2372,7 @@ type
     // HiType. Base: an exact (alias-resolved) type match. A backend may widen this,
     // e.g. to let the Double helper serve Extended values when the two share one
     // machine type.
+    function HelperUsesPriority(Helper: TPasClassType): integer;
     function MatchHelperForType(HelperForType, HiType: TPasType): boolean; virtual;
     // log and messages
     class function MangleSourceLineNumber(Line, Column: integer): integer;
@@ -2559,6 +2576,9 @@ type
       SetReferenceFlags: boolean): integer;
     function IsInsideSpecialization: boolean;
     function SpecializedSourceModule(El: TPasElement): TPasModule;
+    function InUnboundGeneric: boolean;
+    function UndecidedPair(A, B: TPasType): boolean;
+    function ParamIsUndecided(El: TPasElement): boolean;
     function IsPartiallySpecializedType(El: TPasType): boolean;
     function CheckAssignCompatibilityUserType(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
@@ -2713,6 +2733,7 @@ type
     function IsArrayExpr(Expr: TParamsExpr): TPasArrayType;
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    function ExprNeedsSpecialization(Expr: TPasExpr): boolean;
     function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function IsDeferredTemplMember(Expr: TPasExpr): boolean;
     function DerefPointerToArray(var R: TPasResolverResult;
@@ -2746,6 +2767,35 @@ type
     function IsTGUIDString(const ResolvedEl: TPasResolverResult): boolean; virtual;
     function IsCustomAttribute(El: TPasElement): boolean; virtual;
     function IsSystemUnit(El: TPasModule): boolean; virtual;
+    // Owe a specialization's method bodies until something needs the CODE,
+    // instead of building them when the specialization is created. Off by
+    // default: a consumer that switches it on must drive the building itself
+    // (EnsureSpecializedImpl), or the bodies are never made. It applies only
+    // while a UNIT IS BEING LOADED (BeginLoadedUnit): a specialization the
+    // code being compiled asks for is built where it was asked for, because a
+    // body is resolved in the context of the request - which helpers are
+    // active, above all - and that context is gone by code generation time.
+    property DeferSpecializedImpls: boolean read FDeferSpecImpls
+      write FDeferSpecImpls;
+    // Answer a PARTIAL specialization - a generic instantiated with a type
+    // PARAMETER, `TEnumerator<TAVLTreeMap.TKey>` written inside TAVLTreeMap -
+    // with the GENERIC itself instead of building a substituted copy of it.
+    // Such a reference is only there so the enclosing generic's own code can be
+    // checked; it is specialized again, with real arguments, when that generic
+    // is. fpc checks against the generic the same way. rtl-generics writes 8824
+    // of them against 121 real ones, each otherwise a whole class copied member
+    // by member. Off by default: it changes what such a reference resolves to.
+    property PartialSpecsAsGeneric: boolean read FPartialSpecsAsGeneric
+      write FPartialSpecsAsGeneric;
+    // Bracket the loading of an already-compiled unit.
+    procedure BeginLoadedUnit;
+    procedure EndLoadedUnit;
+    // Whether El is a specialization, or is declared inside one.
+    function IsInsideSpecialization(El: TPasElement): boolean;
+    // Build the specialization's method bodies, if they are still owed.
+    procedure EnsureSpecializedImpl(El: TPasElement);
+    // Every body still owed, as a backstop.
+    procedure BuildOwedSpecializedImpls;
     function GetAttributeCallsEl(El: TPasElement): TPasExprArray; virtual;
     function GetAttributeCalls(Members: TFPList; Index: integer): TPasExprArray; virtual;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
@@ -2899,6 +2949,10 @@ function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
 function dbgs(const a: TPSRefAccess): string; overload;
 
 implementation
+
+
+
+
 
 function GetTreeDbg(El: TPasElement; Indent: integer): string;
 
@@ -5024,6 +5078,53 @@ begin
 end;
 
 // inline
+function TPasResolver.ExprNeedsSpecialization(Expr: TPasExpr): boolean;
+// Whether an expression still waits for a type argument: it names something
+// that is not bound to a declaration, and it lives inside a generic that has
+// not been given its arguments. rtl-generics declares
+// `array[0..Pred(TCuckooCfg.D)]`, where TCuckooCfg is a type PARAMETER - the
+// bound is evaluated, never resolved, so `Pred` is still a bare name and
+// nothing about the bound can be computed until the generic is specialized.
+
+  function HasUnboundName(E: TPasExpr; Depth: integer): boolean;
+  var
+    i: Integer;
+  begin
+    Result:=false;
+    if (E=nil) or (Depth>20) then exit;
+    if (E is TPrimitiveExpr) and (TPrimitiveExpr(E).Kind=pekIdent)
+        and not (E.CustomData is TResolvedReference) then
+      exit(true);
+    if E is TBinaryExpr then
+      Result:=HasUnboundName(TBinaryExpr(E).Left,Depth+1)
+           or HasUnboundName(TBinaryExpr(E).Right,Depth+1)
+    else if E is TUnaryExpr then
+      Result:=HasUnboundName(TUnaryExpr(E).Operand,Depth+1)
+    else if E is TParamsExpr then
+      begin
+      Result:=HasUnboundName(TParamsExpr(E).Value,Depth+1);
+      for i:=0 to length(TParamsExpr(E).Params)-1 do
+        if HasUnboundName(TParamsExpr(E).Params[i],Depth+1) then
+          exit(true);
+      end;
+  end;
+
+var
+  Cur: TPasElement;
+begin
+  Result:=false;
+  if not HasUnboundName(Expr,0) then
+    exit;
+  Cur:=Expr;
+  while Cur<>nil do
+    begin
+    if (Cur is TPasGenericType)
+        and (GetTypeParameterCount(TPasGenericType(Cur))>0) then
+      exit(true);
+    Cur:=Cur.Parent;
+    end;
+end;
+
 function TPasResolver.IsGenericTemplType(const ResolvedEl: TPasResolverResult
   ): boolean;
 begin
@@ -6702,8 +6803,16 @@ begin
             Include(TPasProcedureScope(DataProc.CustomData).Flags, ppsfIsGroupOverload);
             end
           else if ProcIsUnimplementedForward(DataProc) then
+            begin
             // The earlier one is still a forward: fpc does not complain here
-            // either, and openssl.pas relies on it.
+            // either (pparautl.pas: `if not(fwpd.forwarddef)`), and openssl.pas
+            // relies on it. They overload each other from now on - without this
+            // the CALL search stops at whichever is found first, and a call that
+            // only the other one accepts is rejected (`BioRead(B, Result, L)`
+            // with Result an AnsiString, against a `TBytes` sibling).
+            Include(TPasProcedureScope(Proc.CustomData).Flags, ppsfIsGroupOverload);
+            Include(TPasProcedureScope(DataProc.CustomData).Flags, ppsfIsGroupOverload);
+            end
           else
             RaiseMsg(20171118222112,nPreviousDeclMissesOverload,sPreviousDeclMissesOverload,
               [Proc.Name,GetElementSourcePosStr(Proc)],DataProc.ProcType);
@@ -7008,7 +7117,18 @@ begin
     // explicit "overload" directive, in Delphi mode too (timpfuncspez35).
     if (not IsProcOverload(LastProc) and not ProcHasGroupOverload(LastProc))
         or (not IsProcOverload(CurProc) and not ProcHasGroupOverload(CurProc)) then
-      exit(false);
+      begin
+      // fpc refuses the missing `overload` only when the EARLIER declaration is
+      // no longer a FORWARD one (pparautl.pas: `if not(fwpd.forwarddef)`). Two
+      // declarations in a unit's INTERFACE are both still forward, so they
+      // overload each other without the directive - openssl.pas declares
+      // BioRead twice that way, once taking `var AnsiString` and once `TBytes`.
+      // Treating them as non-overloading hides the first, and a call that only
+      // it accepts is then rejected.
+      if not ((LastProc.Parent is TInterfaceSection)
+              and (CurProc.Parent = LastProc.Parent)) then
+        exit(false);
+      end;
     end
   else
     begin
@@ -7165,7 +7285,12 @@ var
 begin
   if aName='' then exit(nil);
 
-  IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
+  // The mode of the unit that DECLARES the name, not of the one being compiled.
+  // A member of a SPECIALIZED class is the generic's own declaration, and
+  // rtl-generics is written in Delphi mode, where a nested type may hide the
+  // ancestor's type of the same name (TCustomList<T>.PT over TEnumerable<T>.PT).
+  // Judged by the consumer's mode instead, that redeclaration is a duplicate.
+  IsDelphi:=msDelphi in GetElModeSwitches(El);
 
   if Scope is TPasGroupScope then
     begin
@@ -8019,6 +8144,15 @@ begin
           begin
           IntfType:=Map.Intf;
           //writeln('TPasResolver.FinishClassType ',GetObjName(Map),' ',GetObjName(IntfType),' Count=',IntfType.Members.Count);
+          // An interface reached through a partial specialization is the bare
+          // GENERIC (PartialSpecsAsGeneric), so its methods still carry its own
+          // type parameters and nothing in this class can match them. Nothing
+          // is decided yet either - the specialized copy is checked for real.
+          if FPartialSpecsAsGeneric and ParamIsUndecided(IntfType) then
+            begin
+            Map:=Map.AncestorMap;
+            continue;
+            end;
           for j:=0 to IntfType.Members.Count-1 do
             begin
             Member:=TPasElement(IntfType.Members[j]);
@@ -10407,7 +10541,8 @@ begin
         begin
         if (PropEl.Args.Count>0) then
           RaiseXExpectedButYFound(20170216151823,'function',GetElementTypeName(AccEl),ErrorEl);
-        if not IsSameType(TPasVariable(AccEl).VarType,PropType,prraAlias) then
+        if not IsSameType(TPasVariable(AccEl).VarType,PropType,prraAlias)
+            and not UndecidedPair(TPasVariable(AccEl).VarType,PropType) then
           RaiseIncompatibleType(20170216151826,nIncompatibleTypesGotExpected,
             [],PropType,TPasVariable(AccEl).VarType,ErrorEl);
         if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
@@ -10477,7 +10612,8 @@ begin
         begin
         if (PropEl.Args.Count>0) then
           RaiseXExpectedButYFound(20170216151852,'procedure',GetElementTypeName(AccEl),ErrorEl);
-        if not IsSameType(TPasVariable(AccEl).VarType,PropType,prraAlias) then
+        if not IsSameType(TPasVariable(AccEl).VarType,PropType,prraAlias)
+            and not UndecidedPair(TPasVariable(AccEl).VarType,PropType) then
           RaiseIncompatibleType(20170216151855,nIncompatibleTypesGotExpected,
             [],PropType,TPasVariable(AccEl).VarType,ErrorEl);
         if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
@@ -11046,6 +11182,15 @@ begin
     // flag transitively through intermediate partial specializations (tgeneric116).
     if (AncestorClassScope<>nil)
         and (pcsfDeferredAncestor in AncestorClassScope.Flags) then
+      IsDeferredAncestor:=true;
+    // Descending from a GENERIC that still carries its type parameters: the
+    // ancestor reference was a partial specialization answered with the generic
+    // (PartialSpecsAsGeneric), so what is inherited - and every signature in it
+    // - is only settled when this class is specialized. That is what the
+    // deferred-ancestor flag already means, and the override checks it guards
+    // are re-run on the real specialization.
+    if (AncestorClassEl is TPasGenericType)
+        and (GetTypeParameterCount(TPasGenericType(AncestorClassEl))>0) then
       IsDeferredAncestor:=true;
     if (AncestorClassScope<>nil) and (pcsfSealed in AncestorClassScope.Flags) then
       RaiseMsg(20170320191735,nCannotCreateADescendantOfTheSealedXY,
@@ -11841,6 +11986,7 @@ var
   NewImplProcMods: TProcedureModifiers;
   pm: TProcedureModifier;
   ImplOmitsArgs: boolean;
+
 begin
   if ImplProc.ClassType<>DeclProc.ClassType then
     RaiseXExpectedButYFound(20170216151729,DeclProc.TypeName,ImplProc.TypeName,ImplProc);
@@ -11951,8 +12097,10 @@ begin
     // over a TObject.ToString that returns AnsiString.
     if (CheckElTypeCompatibility(ImplResult,DeclResult,prraSimple)>cAliasExact)
         and not (IsOverride and CovariantResultAllowed(DeclResult,ImplResult)) then
+      begin
       RaiseIncompatibleType(20170216151734,nResultTypeMismatchExpectedButFound,
         [],DeclResult,ImplResult,ImplProc);
+      end;
     end;
 
   // calling convention
@@ -14347,6 +14495,14 @@ begin
   // the same treatment `with` and indexing on a template already get.
   // rtl/objpas/fgl.pp calls `T(Dest^)._Release` in TFPGInterfacedObjectList.
   if IsGenericTemplType(LeftResolved) then
+    exit;
+  // The same where the left side merely DEPENDS on a type parameter rather than
+  // being one: `LItem: TQueueDictionary.PValue` is `^TValue` taken from the bare
+  // generic once a partial specialization answers with it
+  // (PartialSpecsAsGeneric). What `.Pair` means there is settled when the
+  // generic is specialized.
+  if FPartialSpecsAsGeneric and (LeftResolved.LoTypeEl<>nil)
+      and ParamIsUndecided(LeftResolved.LoTypeEl) then
     exit;
 
   {$IFDEF VerbosePasResolver}
@@ -18697,6 +18853,7 @@ var
   DeclType: TPasType;
   Param0: TPasExpr;
   InvokeProcType: TPasProcedureType;
+
 begin
   Ref:=GetParamsValueRef(Params);
   if Ref=nil then
@@ -22256,6 +22413,12 @@ begin
         // (fcl-md's markdown.utils TGFPObjectList).
         if CheckClassIsClass(ConstraintClass,ParamType)=cIncompatible then
           begin
+          // Undecided target: `TDictionary<T,TEmptyRecord>.TKeyEnumerator` is a
+          // member of the bare generic once a partial specialization answers
+          // with it (PartialSpecsAsGeneric), so which class it is depends on a
+          // type argument nobody has supplied yet.
+          if UndecidedPair(ConstraintClass,ParamType) then
+            exit(cCompatible);
           // ConstraintClass is not ParamType
           if ErrorPos<>nil then
             RaiseIncompatibleType(20190915202812,nIncompatibleTypesGotExpected,[''],
@@ -22425,6 +22588,14 @@ begin
   // compatibility is verified when the outer generic is specialized with a
   // concrete value, so the class-constraint fitting below does not apply.
   if GenTempl.IsConst or ParamTemplType.IsConst then
+    exit;
+  // Two type parameters belonging to DIFFERENT generics, neither of them bound
+  // yet. That pairing only arises once a partial specialization answers with
+  // the bare generic (PartialSpecsAsGeneric) - `inherited Pop` inside
+  // TObjectStack<T> then returns TStack's own T. Whether the argument really
+  // satisfies the constraint is settled, and checked, when the enclosing
+  // generic is specialized with a real type.
+  if FPartialSpecsAsGeneric and (GenTempl.Parent<>ParamTemplType.Parent) then
     exit;
   ParamConstraints:=ParamTemplType.Constraints;
   for j:=0 to length(GenTempl.Constraints)-1 do
@@ -22637,13 +22808,25 @@ begin
 
   if GenScope.GenericStep>=psgsImplementationParsed then
     begin
-    if (FBuildingSpecializations<>nil) and (FBuildingSpecializations.Count>0) then
+    // Specializing a method body copies the generic's statements and
+    // type-checks them, which is most of what a specialization costs: bringing
+    // rtl-generics into scope creates ~9000 specializations and over a million
+    // element copies, for a consumer that may call none of them. With
+    // DeferSpecializedImpls the bodies are owed until something needs the CODE;
+    // the interface built above is what callers are checked against.
+    if FDeferSpecImpls and (FLoadedUnitDepth>0) then
       begin
-      // Inside another specialization's INTERFACE build. Building these bodies
-      // now type-checks them against a half-built hierarchy - rtl-generics'
-      // TList<X> is reached while its own ancestor TCustomList<X> is in flight,
-      // and `TEnumerator.Create(Self)` cannot then see that TList<X> IS a
-      // TCustomList<X>. Owe them until the outermost build has finished.
+      // Owed until something needs the code. Nothing drains this: a body built
+      // because a batch closed would be built for a unit nobody calls into.
+      Result.ImplOwed:=true;
+      end
+    else if (FBuildingSpecializations<>nil) and (FBuildingSpecializations.Count>0) then
+      begin
+      // Also owed while another specialization's INTERFACE is being built:
+      // building a body then type-checks it against a half-built hierarchy -
+      // rtl-generics' TList<X> is reached while its own ancestor TCustomList<X>
+      // is in flight, and `TEnumerator.Create(Self)` cannot then see that
+      // TList<X> IS a TCustomList<X>.
       if FPendingSpecImpls=nil then
         FPendingSpecImpls:=TFPList.Create;
       if FPendingSpecImpls.IndexOf(Result)<0 then
@@ -23053,16 +23236,120 @@ begin
   finally
     FBuildingSpecializations.Delete(FBuildingSpecializations.Count-1);
     FBuildingSpecializations.Delete(FBuildingSpecializations.Count-1);
-    // The cascade is complete: the bodies owed by specializations created inside
-    // it can be built now, against a finished hierarchy. Draining can owe more.
-    if (FBuildingSpecializations.Count=0) and (FPendingSpecImpls<>nil) then
-      while FPendingSpecImpls.Count>0 do
-        begin
-        PendingItem:=TPRSpecializedItem(FPendingSpecImpls[0]);
-        FPendingSpecImpls.Delete(0);
-        SpecializeGenericImpl(PendingItem);
-        end;
+    // The cascade is complete: the bodies owed by specializations created
+    // inside it can be built now, against a finished hierarchy.
+    if FBuildingSpecializations.Count=0 then
+      BuildOwedSpecializedImpls;
   end;
+end;
+
+procedure TPasResolver.BeginSpecializationBatch;
+// Two entries, because the interface build pops them in pairs.
+begin
+  if FBuildingSpecializations=nil then
+    FBuildingSpecializations:=TFPList.Create;
+  FBuildingSpecializations.Add(nil);
+  FBuildingSpecializations.Add(nil);
+end;
+
+
+procedure TPasResolver.EndSpecializationBatch;
+begin
+  if (FBuildingSpecializations=nil) or (FBuildingSpecializations.Count<2) then
+    exit;
+  FBuildingSpecializations.Delete(FBuildingSpecializations.Count-1);
+  FBuildingSpecializations.Delete(FBuildingSpecializations.Count-1);
+  if FBuildingSpecializations.Count=0 then
+    BuildOwedSpecializedImpls;
+end;
+
+
+function SpecializedItemIsPartial(Item: TPRSpecializedItem): boolean;
+// Whether any of a specialization's arguments is still a type PARAMETER, or is
+// declared inside something that is.
+
+  function IsOpen(El: TPasElement; Depth: integer): boolean;
+  var
+    P: TPasElement;
+    Sub: TPRSpecializedItem;
+    i: Integer;
+  begin
+    Result:=false;
+    if (El=nil) or (Depth>8) then exit;
+    P:=El;
+    while P<>nil do
+      begin
+      if P is TPasGenericTemplateType then exit(true);
+      if P.CustomData is TPasGenericScope then
+        begin
+        Sub:=TPasGenericScope(P.CustomData).SpecializedFromItem;
+        if Sub<>nil then
+          for i:=0 to length(Sub.Params)-1 do
+            if IsOpen(Sub.Params[i],Depth+1) then exit(true);
+        end;
+      P:=P.Parent;
+      end;
+  end;
+
+var
+  i: Integer;
+begin
+  Result:=false;
+  if Item=nil then exit;
+  for i:=0 to length(Item.Params)-1 do
+    if IsOpen(Item.Params[i],0) then exit(true);
+end;
+
+
+procedure TPasResolver.BeginLoadedUnit;
+begin
+  inc(FLoadedUnitDepth);
+end;
+
+procedure TPasResolver.EndLoadedUnit;
+begin
+  if FLoadedUnitDepth>0 then
+    dec(FLoadedUnitDepth);
+end;
+
+procedure TPasResolver.EnsureSpecializedImpl(El: TPasElement);
+// Build the BODIES of the specialization El belongs to, if they are still owed.
+// Called when something needs the CODE - the code generator's demand walk -
+// rather than when the specialization was created. Building one can create
+// more specializations, and those are owed in their turn.
+var
+  Item: TPRSpecializedItem;
+  Scope: TPasGenericScope;
+begin
+  if (El=nil) or not (El.CustomData is TPasGenericScope) then exit;
+  Scope:=TPasGenericScope(El.CustomData);
+  Item:=Scope.SpecializedFromItem;
+  if Item=nil then exit;
+  // Only what is actually OWED. A specialization that was never queued is one
+  // that would not have been built eagerly either - a generic INTERFACE has no
+  // method bodies, and its scope never reaches psgsImplementationParsed, so
+  // asking to build it raises "not yet implemented".
+  if not Item.ImplOwed then exit;
+  Item.ImplOwed:=false;
+  if FPendingSpecImpls<>nil then
+    FPendingSpecImpls.Remove(Item);
+  SpecializeGenericImpl(Item);
+end;
+
+procedure TPasResolver.BuildOwedSpecializedImpls;
+// Every body still owed. Called when a specialization cascade finishes, and as
+// the backstop for a path that needs code without having gone through a demand
+// walk. Does nothing while the bodies are deliberately owed.
+var
+  Item: TPRSpecializedItem;
+begin
+  while (FPendingSpecImpls<>nil) and (FPendingSpecImpls.Count>0) do
+    begin
+    Item:=TPRSpecializedItem(FPendingSpecImpls[0]);
+    FPendingSpecImpls.Delete(0);
+    Item.ImplOwed:=false;
+    SpecializeGenericImpl(Item);
+    end;
 end;
 
 procedure TPasResolver.SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem
@@ -23079,6 +23366,17 @@ begin
   // check specialized type step
   if SpecializedItem.Step>prssInterfaceFinished then
     exit;
+  // A body may not be built while another specialization's interface is still
+  // being built, nor while a precompiled unit is being read - the generic's own
+  // bodies are not all there yet. Owe it until the outermost build is done.
+  if (FBuildingSpecializations<>nil) and (FBuildingSpecializations.Count>0) then
+    begin
+    if FPendingSpecImpls=nil then
+      FPendingSpecImpls:=TFPList.Create;
+    if FPendingSpecImpls.IndexOf(SpecializedItem)<0 then
+      FPendingSpecImpls.Add(SpecializedItem);
+    exit;
+    end;
   // Bodies cannot be built before the interface: an owed implementation can be
   // drained while its own interface was never started.
   if SpecializedItem.Step=prssNone then
@@ -23123,10 +23421,14 @@ begin
       SpecializedProcItem:=TPRSpecializedProcItem(SpecializedItem);
       GenDeclProcScope:=TPasProcedureScope(GenScope);
       GenImplProc:=GenDeclProcScope.ImplProc;
-      if GenImplProc=nil then
-        RaiseNotYetImplemented(20190920211609,SpecializedProcItem.SpecializedProc);
-      if GenImplProc.Body=nil then
-        RaiseNotYetImplemented(20190920192731,GenImplProc); // GenScope.GenericStep is wrong
+      // No implementation to copy: the template came from a precompiled unit
+      // that could not carry this body. The specialized routine then has a
+      // declaration and no code, which the linker reports if it is ever called -
+      // far better than refusing to specialize at all, which stops the consumer
+      // from compiling even what IS complete. Same rule as for a method of a
+      // specialized class.
+      if (GenImplProc=nil) or (GenImplProc.Body=nil) then
+        exit;
       SpecDeclProc:=SpecializedProcItem.SpecializedProc;
 
       InitSpecializeScopes(GenImplProc,OldScopeState);
@@ -23413,6 +23715,7 @@ begin
     FInSpecialize:=SavedInSpecialize;
   end;
 end;
+
 
 procedure TPasResolver.SpecializeElement(GenEl, SpecEl: TPasElement);
 var
@@ -24198,8 +24501,6 @@ begin
       RaiseNotYetImplemented(20190920203536,SpecEl);
     SpecProcScope.ClassRecScope:=GenProcScope.ClassRecScope;
     // SpecProcScope.Flags
-    SpecProcScope.ModeSwitches:=GenProcScope.ModeSwitches;
-    SpecProcScope.BoolSwitches:=GenProcScope.BoolSwitches;
     Templates:=GetProcTemplateTypes(GenEl);
     if (Templates=nil) or (Templates.Count=0) then
       RaiseNotYetImplemented(20190920183140,SpecEl);
@@ -24208,6 +24509,20 @@ begin
   else
     RaiseNotYetImplemented(20190922153918,SpecEl);
   Include(SpecProcScope.Flags,ppsfIsSpecialized);
+
+  // The specialized routine IS the generic's code, so it is judged by the mode
+  // of the unit that DECLARED it - not by whatever the consumer is written in.
+  // A scope created through the ordinary AddProcedure path takes the CURRENT
+  // parser's switches, which for a specialization is the consumer's file (and,
+  // for a generic loaded from a precompiled unit, a file that has nothing to do
+  // with it). rtl-generics is {$mode delphi} and passes a bare method name
+  // where a method pointer is wanted; an objfpc consumer specializing it then
+  // rejected its own generic's body.
+  if GenProcScope<>nil then
+    begin
+    SpecProcScope.ModeSwitches:=GenProcScope.ModeSwitches;
+    SpecProcScope.BoolSwitches:=GenProcScope.BoolSwitches;
+    end;
 
   if GenEl.PublicName<>nil then
     SpecializeElExpr(GenEl,SpecEl,GenEl.PublicName,SpecEl.PublicName);
@@ -27575,9 +27890,14 @@ begin
   // An unspecialized generic cannot be used with Default() (tdefault11/12),
   // unless it only stands in for a template parameter of a partial
   // specialization (fcl-stl gvector's `Default(T)` under TVector<TTreeNode>).
+  // Inside a generic, `Default(TPair<TKey,TValue>)` names a partial
+  // specialization, which answers with the bare generic
+  // (PartialSpecsAsGeneric). At top level the same text really is an
+  // unspecialized generic and stays an error (tdefault11/12).
   if (aType is TPasGenericType)
       and (GetTypeParameterCount(TPasGenericType(aType))>0)
-      and not InPartialSpecWithTypeArg(aType) then
+      and not InPartialSpecWithTypeArg(aType)
+      and not (FPartialSpecsAsGeneric and InUnboundGeneric) then
     RaiseMsg(20260622100002,nXExpectedButYFound,sXExpectedButYFound,
       ['specialized type',GetTypeDescription(aType)],Param);
 
@@ -30115,6 +30435,40 @@ begin
   end;
 end;
 
+function TPasResolver.HelperUsesPriority(Helper: TPasClassType): integer;
+// How near a helper is to the code being resolved: one declared in the same
+// unit is nearest, then the ones of the units it USES, in the order of the uses
+// clause - which is the order that decides which helper wins. -1 when it is not
+// reachable from here at all.
+
+var
+  i, j: Integer;
+  Scope: TPasScope;
+  Sect: TPasSectionScope;
+  HelperMod: TPasModule;
+begin
+  Result:=-1;
+  HelperMod:=Helper.GetModule;
+  if HelperMod=nil then
+    exit;
+  for i:=FScopeCount-1 downto 0 do
+    begin
+    Scope:=Scopes[i];
+    if not (Scope is TPasSectionScope) then
+      continue;
+    Sect:=TPasSectionScope(Scope);
+    if (Sect.Element<>nil) and (Sect.Element.GetModule=HelperMod) then
+      exit(High(Integer));
+    if Sect.UsesScopes=nil then
+      continue;
+    for j:=0 to Sect.UsesScopes.Count-1 do
+      if (TPasScope(Sect.UsesScopes[j]).Element<>nil)
+          and (TPasScope(Sect.UsesScopes[j]).Element.GetModule=HelperMod)
+          and (j>Result) then
+        Result:=j;
+    end;
+end;
+
 function TPasResolver.MatchHelperForType(HelperForType, HiType: TPasType): boolean;
 begin
   Result:=IsSameType(HelperForType,HiType,prraNone);
@@ -30125,8 +30479,8 @@ procedure TPasResolver.GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope;
   HiType: TPasType; WithTopHelpers: boolean);
 var
   IsClass: Boolean;
-  i: Integer;
-  Entry: TPRHelperEntry;
+  i, Prio, BestPrio, MatchCount: Integer;
+  Entry, BestEntry: TPRHelperEntry;
   HelperForType, LoType: TPasType;
   AncestorScope, HelperScope: TPasClassScope;
   C: TClass;
@@ -30159,6 +30513,9 @@ begin
     // first add helper(s)
     if WithTopHelpers then
       begin
+      BestEntry:=nil;
+      BestPrio:=-2;
+      MatchCount:=0;
       for i:=length(FActiveHelpers)-1 downto 0 do
         begin
         Entry:=FActiveHelpers[i];
@@ -30169,15 +30526,51 @@ begin
           // is not in scope (FPC: tchlp18..21).
           if not IsActiveHelperVisible(Entry.Helper) then
             continue;
-          // add Helper and its ancestors
-          HelperScope:=TPasClassScope(Entry.Helper.CustomData);
-          while HelperScope<>nil do
+          if msMultiHelpers in CurrentParser.CurrentModeswitches then
             begin
-            Scope.Add(HelperScope);
-            HelperScope:=HelperScope.AncestorScope;
+            // add Helper and its ancestors
+            HelperScope:=TPasClassScope(Entry.Helper.CustomData);
+            while HelperScope<>nil do
+              begin
+              Scope.Add(HelperScope);
+              HelperScope:=HelperScope.AncestorScope;
+              end;
+            continue;
             end;
-          if not (msMultiHelpers in CurrentParser.CurrentModeswitches) then
-            break;
+          inc(MatchCount);
+          if (MatchCount>1) and (BestPrio=-2) then
+            // Only now is it worth asking which one is nearer: with a single
+            // candidate the answer cannot change, and working it out means
+            // walking the scope stack and every uses clause on it.
+            BestPrio:=HelperUsesPriority(BestEntry.Helper);
+          // Single-helper mode: the LAST helper for the type wins, but "last"
+          // means last in the USES ORDER of the code being resolved, not last
+          // in the resolver's global list. Every unit that uses SysUtils
+          // registers TCardinalHelper again, so a body of ANOTHER unit
+          // re-resolved later - a generic's, when a consumer specializes it -
+          // took whichever helper some unrelated unit had registered most
+          // recently (`UInt32.GetSignMask` in rtl-generics, which SysUtils'
+          // helper for the same type does not have).
+          if MatchCount=1 then
+            BestEntry:=Entry
+          else
+            begin
+            Prio:=HelperUsesPriority(Entry.Helper);
+            if Prio>BestPrio then
+              begin
+              BestEntry:=Entry;
+              BestPrio:=Prio;
+              end;
+            end;
+          end;
+        end;
+      if BestEntry<>nil then
+        begin
+        HelperScope:=TPasClassScope(BestEntry.Helper.CustomData);
+        while HelperScope<>nil do
+          begin
+          Scope.Add(HelperScope);
+          HelperScope:=HelperScope.AncestorScope;
           end;
         end;
       end
@@ -30953,6 +31346,9 @@ end;
 
 procedure TPasResolver.RaiseIdentifierNotFound(id: TMaxPrecInt; Identifier: string;
   El: TPasElement);
+
+
+
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.RaiseIdentifierNotFound START "',Identifier,'" ErrorEl=',GetObjName(El));
@@ -31702,6 +32098,10 @@ begin
           exit(cExact);
         GetNextParam;
         RangeExpr:=ArrayEl.Ranges[DimNo];
+        // A bound that still depends on a type parameter cannot be computed
+        // here; the index is checked when the array is specialized.
+        if ExprNeedsSpecialization(RangeExpr) then
+          continue;
         ComputeElement(RangeExpr,RangeResolved,[]);
         bt:=RangeResolved.BaseType;
         if not (rrfReadable in ParamResolved.Flags) then
@@ -32028,8 +32428,10 @@ begin
         and not TypesMatchAsWideVsUnicodeString(ResultType1,ResultType2) then
       begin
       if RaiseOnIncompatible then
+        begin
         RaiseIncompatibleType(20170402112648,nResultTypeMismatchExpectedButFound,
           [],ResultType1,ResultType2,ErrorEl);
+        end;
       exit;
       end;
 
@@ -32694,6 +33096,7 @@ var
   LRange, RValue, Value: TResEvalValue;
   RightSubResolved: TPasResolverResult;
   wc: WideChar;
+  ExprModeEl: TPasElement;
 begin
   // check if the RHS can be converted to LHS
   {$IFDEF VerbosePasResolver}
@@ -33190,8 +33593,22 @@ begin
       end
     else if RBT=btProc then
       begin
-      if ((msDelphi in CurrentParser.CurrentModeswitches)
-           or (msTPProcVar in CurrentParser.CurrentModeswitches))
+      if RHS.ExprEl<>nil then
+        ExprModeEl:=RHS.ExprEl
+      else
+        ExprModeEl:=ErrorEl;
+      // The MODE that decides this belongs to the CODE THE EXPRESSION IS IN,
+      // not to whatever file the parser happens to be in: a generic body is
+      // re-resolved when a CONSUMER specializes it, and that consumer may be in
+      // another mode entirely - or, for a generic loaded from a precompiled
+      // unit, there is no parser for it at all. rtl-generics is {$mode delphi}
+      // and passes a bare method name (`Create(AEq, GetHashCodeMethod, AExt)`),
+      // which an objfpc consumer specializing it then rejected.
+      // The referenced ROUTINE's own mode is the wrong question - dbf_idxfile
+      // builds `array of TExprFunc` from bare names of routines declared
+      // elsewhere.
+      if ((msDelphi in GetElModeSwitches(ExprModeEl))
+           or (msTPProcVar in GetElModeSwitches(ExprModeEl)))
           and (LHS.LoTypeEl is TPasProcedureType)
           and (RHS.IdentEl is TPasProcedure) then
         begin
@@ -35097,9 +35514,97 @@ begin
   Result:=El.GetModule;
 end;
 
+function TPasResolver.InUnboundGeneric: boolean;
+// True when the code being resolved belongs to a generic that has not been
+// given its type arguments - a generic's own declarations and method bodies.
+// A reference to another generic is undecided there, and is checked for real on
+// the specialized copy.
+var
+  i: Integer;
+  Scope: TPasScope;
+  El: TPasElement;
+begin
+  Result:=false;
+  for i:=ScopeCount-1 downto 0 do
+    begin
+    Scope:=Scopes[i];
+    if not (Scope is TPasGenericScope) then continue;
+    if TPasGenericScope(Scope).SpecializedFromItem<>nil then continue;
+    El:=Scope.Element;
+    if (El is TPasProcedure) and (GetProcTemplateTypes(TPasProcedure(El))<>nil) then
+      exit(true);
+    // A method body has its own scope on the stack, not its class's: the class
+    // is reached through the procedure scope.
+    if (Scope is TPasProcedureScope)
+        and (TPasProcedureScope(Scope).ClassRecScope<>nil) then
+      begin
+      if TPasProcedureScope(Scope).ClassRecScope.SpecializedFromItem=nil then
+        El:=TPasProcedureScope(Scope).ClassRecScope.Element;
+      end;
+    if (El is TPasGenericType)
+        and (GetTypeParameterCount(TPasGenericType(El))>0) then
+      exit(true);
+    end;
+end;
+
+function TPasResolver.UndecidedPair(A, B: TPasType): boolean;
+// True when either side still depends on a type parameter, so comparing the two
+// decides nothing. Only with PartialSpecsAsGeneric: a reference like
+// `TPair<TREE_CONSTRAINTS>` then answers with the bare generic, so a member of
+// it carries the GENERIC's parameter while the user of it carries the enclosing
+// type's. Both are settled - and the same check runs again - when the enclosing
+// generic is specialized with real arguments.
+begin
+  Result:=FPartialSpecsAsGeneric
+      and (ParamIsUndecided(A) or ParamIsUndecided(B));
+end;
+
+function TPasResolver.ParamIsUndecided(El: TPasElement): boolean;
+// Whether a type still depends on a type parameter: it IS one, it is declared
+// inside a generic that has not been given its arguments, or it is a
+// specialization one of whose arguments is itself undecided.
+// `TEnumerable<T>.PT` and the same `PT` taken from the generic are both
+// undecided, and must be judged alike - a body that assigns one to the other is
+// correct, and is checked for real when the specialization is built.
+
+  function IsUndecided(Cur: TPasElement; Depth: Integer): boolean;
+  var
+    Scope: TPasGenericScope;
+    SpecItem: TPRSpecializedItem;
+    i: Integer;
+  begin
+    Result:=false;
+    if Depth>10 then exit;
+    while Cur<>nil do
+      begin
+      if Cur is TPasGenericTemplateType then
+        exit(true);
+      if Cur.CustomData is TPasGenericScope then
+        begin
+        Scope:=TPasGenericScope(Cur.CustomData);
+        SpecItem:=Scope.SpecializedFromItem;
+        if SpecItem<>nil then
+          begin
+          for i:=0 to length(SpecItem.Params)-1 do
+            if IsUndecided(TPasElement(SpecItem.Params[i]),Depth+1) then
+              exit(true);
+          end
+        else if (Cur is TPasGenericType)
+            and (GetTypeParameterCount(TPasGenericType(Cur))>0) then
+          exit(true);
+        end;
+      Cur:=Cur.Parent;
+      end;
+  end;
+
+begin
+  Result:=IsUndecided(El,0);
+end;
+
 function TPasResolver.IsPartiallySpecializedType(El: TPasType): boolean;
 // True when El is, or is declared inside, a generic specialization whose type
-// arguments are still templates: nothing about it is decided yet.
+// arguments are not decided yet: nothing about it is settled, so it is judged
+// when the specialization is built rather than here.
 var
   Cur: TPasElement;
   Scope: TPasGenericScope;
@@ -35116,7 +35621,7 @@ begin
       SpecItem:=Scope.SpecializedFromItem;
       if SpecItem<>nil then
         for i:=0 to length(SpecItem.Params)-1 do
-          if SpecItem.Params[i] is TPasGenericTemplateType then
+          if ParamIsUndecided(TPasElement(SpecItem.Params[i])) then
             exit(true);
       end;
     Cur:=Cur.Parent;
@@ -36918,6 +37423,14 @@ begin
         Result:=cCompatible;
     end;
 
+  // A cast with a type parameter on either side decides nothing here: inside a
+  // generic, `_TItem(AItems[i])` casts from the bare generic's T once a partial
+  // specialization answers with the generic (PartialSpecsAsGeneric). The
+  // specialized copy is cast-checked for real.
+  if (Result=cIncompatible)
+      and UndecidedPair(FromResolved.LoTypeEl,ToResolved.LoTypeEl) then
+    Result:=cCompatible;
+
   if Result=cIncompatible then
     begin
     {$IFDEF VerbosePasResolver}
@@ -37245,7 +37758,12 @@ begin
               and (TBinaryExpr(El.Parent).right=El) then
             begin
             ComputeElement(TBinaryExpr(El.Parent).left,ResolvedEl,Flags,StartEl);
-            if IsGenericTemplType(ResolvedEl) then
+            // The mirror of the deferral in ResolveSubIdent: the left is a type
+            // parameter, or something that still depends on one, so what this
+            // name means is settled at specialization.
+            if IsGenericTemplType(ResolvedEl)
+                or (FPartialSpecsAsGeneric and (ResolvedEl.LoTypeEl<>nil)
+                    and ParamIsUndecided(ResolvedEl.LoTypeEl)) then
               begin
               ResolvedEl.IdentEl:=nil;
               ResolvedEl.ExprEl:=TPasExpr(El);
@@ -38227,15 +38745,19 @@ begin
       // raising "wrong number of parameters". A non-procvar LHS still fails
       // later with an incompatible-types error. (pas2js strips msTPProcVar from
       // its Delphi mode, so the explicit msDelphi arm is kept too.)
-      if (msDelphi in CurrentParser.CurrentModeswitches)
-          or (msTPProcVar in CurrentParser.CurrentModeswitches) then exit(true);
+      // The mode of the unit that WROTE the assignment, not of the one being
+      // compiled: a Delphi-mode generic's body re-resolved for an objfpc
+      // consumer took `FDict.OnKeyNotify := InternalDictionaryNotify` for a
+      // 0-arg call and reported the wrong number of parameters.
+      if (msDelphi in GetElModeSwitches(El))
+          or (msTPProcVar in GetElModeSwitches(El)) then exit(true);
       exit;
       end
     else if C=TRecordValues then
       begin
       // A bare proc name used as a record-const field value (e.g. `MyProc: SomeProc`)
       // is a proc-address target, not a 0-arg call — same rule as an assignment RHS.
-      if (msDelphi in CurrentParser.CurrentModeswitches) then exit(true);
+      if (msDelphi in GetElModeSwitches(El)) then exit(true);
       exit;
       end
     else if C=TPasExportSymbol then
@@ -39256,6 +39778,13 @@ begin
   if IsSelf then
     exit(GenericEl);
 
+  // The same answer when an argument is merely UNDECIDED rather than the
+  // generic's own parameter - see PartialSpecsAsGeneric.
+  if FPartialSpecsAsGeneric then
+    for i:=0 to length(ParamsResolved)-1 do
+      if (ConstExprsResolved[i]=nil) and ParamIsUndecided(ParamsResolved[i]) then
+        exit(GenericEl);
+
   if SpecializedElList=nil then
     begin
     SpecializedElList:=TObjectList.Create(true);
@@ -39464,6 +39993,8 @@ begin
 end;
 
 procedure TPasResolver.FinishSpecializations(Scope: TPasGenericScope);
+// The generic's implementation has been parsed, so its specializations COULD
+// have their bodies built now. They are only owed: see CreateSpecializedItem.
 var
   SpecializedItems: TObjectList;
   i: Integer;
@@ -39471,7 +40002,8 @@ begin
   SpecializedItems:=Scope.SpecializedItems;
   if SpecializedItems=nil then exit;
   for i:=0 to SpecializedItems.Count-1 do
-    SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
+    if not TPRSpecializedItem(SpecializedItems[i]).ImplOwed then
+      SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
 end;
 
 procedure TPasResolver.CheckPendingForwardTypes(El: TPasElement);
@@ -39497,6 +40029,24 @@ begin
     end;
 end;
 
+function TPasResolver.IsInsideSpecialization(El: TPasElement): boolean;
+// Whether El is a specialization, or is declared inside one. Only the outermost
+// specialized type carries the TPRSpecializedItem; everything nested in it is a
+// copy made along with it.
+var
+  Cur: TPasElement;
+begin
+  Result:=false;
+  Cur:=El;
+  while Cur<>nil do
+    begin
+    if (Cur.CustomData is TPasGenericScope)
+        and (TPasGenericScope(Cur.CustomData).SpecializedFromItem<>nil) then
+      exit(true);
+    Cur:=Cur.Parent;
+    end;
+end;
+
 procedure TPasResolver.CheckPendingForwardProcs(El: TPasElement);
 var
   i: Integer;
@@ -39514,6 +40064,11 @@ begin
       if DeclEl is TPasProcedure then
         begin
         Proc:=TPasProcedure(DeclEl);
+        // A SPECIALIZED routine has no source body of its own - it is a copy of
+        // the generic's, made when something needs the code. Until then it has
+        // no implementation proc, and that is not a missing forward.
+        if FDeferSpecImpls and IsInsideSpecialization(Proc) then
+          continue;
         if ProcNeedsImplProc(Proc)
             and (TPasProcedureScope(Proc.CustomData).ImplProc=nil) then
           RaiseMsg(20170216152219,nForwardProcNotResolved,sForwardProcNotResolved,
@@ -39534,7 +40089,12 @@ begin
         exit;
       end;
     ClassOrRecScope:=aClassOrRec.CustomData as TPasClassOrRecordScope;
-    if ClassOrRecScope.SpecializedFromItem<>nil then
+    // A specialized type, or a type NESTED in one: its members are copies of
+    // the generic's, and their bodies are made when something needs the code
+    // (EnsureSpecializedImpl). A missing implementation proc here is a body
+    // still owed, not an unresolved forward - `TCustomListWithPointers<T>`
+    // nests TPointersEnumerator, whose own scope carries no item of its own.
+    if FDeferSpecImpls and IsInsideSpecialization(aClassOrRec) then
       exit;
     // finish implementation of (generic) class/record
     if ClassOrRecScope.GenericStep<>psgsInterfaceParsed then
@@ -39546,6 +40106,10 @@ begin
         begin
         Proc:=TPasProcedure(DeclEl);
         if Proc.IsAbstract or Proc.IsExternal then continue;
+        // A specialization of a generic METHOD is appended to the class it was
+        // declared in, so an ordinary class can hold one (`Add<System.Longint>`
+        // beside the generic `Add<T>`). Its body is owed, not missing.
+        if FDeferSpecImpls and IsInsideSpecialization(Proc) then continue;
         if TPasProcedureScope(Proc.CustomData).ImplProc=nil then
           begin
           {$IFDEF VerbosePasResolver}
@@ -40907,4 +41471,3 @@ begin
 end;
 
 end.
-
