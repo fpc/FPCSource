@@ -8449,6 +8449,15 @@ begin
     NextToken;
     end;
   Repeat
+    // Empty const section guard: a visibility specifier or "final" may follow
+    // "const" directly (empty generator output, IFDEF'ed-out bodies). Do not
+    // consume such a token as a constant name.
+    case CurToken of
+    tkAbsolute,
+    tkIdentifier:
+      if CheckVisibility(AVisibility) or CheckCurtokenIsFinal(aType) then
+        Exit;
+    end;
     SaveIdentifierPosition;
     C:=ParseConstDecl(AType);
     if assigned(C) then
