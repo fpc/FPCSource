@@ -792,7 +792,7 @@ begin
   end;
 end;
 
-procedure TJSONConfig.LoadFromString(const S: String);
+procedure TJSONConfig.LoadFromString(const S: AnsiString);
 Var
   SS : TStringStream;
 begin
