@@ -151,11 +151,11 @@ unit uinteger128;
          n:=n shl shift;
          for shift:=shift downto 0 do
            begin
-             {if z>=n then
+             if z>=n then
                begin
                   z:=z-n;
-                  fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
-               end;}
+                  fpc_div_uint128:=fpc_div_uint128+(uint128(1) shl shift);
+               end;
              n:=n shr 1;
            end;
       end;
