@@ -248,6 +248,10 @@ Type
   end;
 
 function SafeFormat(const Fmt: TCSSString; const Args: array of const): TCSSString;
+// The text of the bytes of a stylesheet, which are read as UTF-8.
+function CSSStringOfBytes(const aBytes: RawByteString): TCSSString;
+// The bytes of the text of a stylesheet, written as UTF-8.
+function CSSBytesOfString(const aText: TCSSString): RawByteString;
 
 implementation
 
@@ -335,6 +339,28 @@ begin
     end;
     {$endif}
 end;
+
+function CSSStringOfBytes(const aBytes: RawByteString): TCSSString;
+
+begin
+{$IF SIZEOF(CHAR)=1}
+  Result:=aBytes;
+{$ELSE}
+  Result:=UTF8Decode(aBytes);
+{$ENDIF}
+end;
+
+
+function CSSBytesOfString(const aText: TCSSString): RawByteString;
+
+begin
+{$IF SIZEOF(CHAR)=1}
+  Result:=aText;
+{$ELSE}
+  Result:=UTF8Encode(aText);
+{$ENDIF}
+end;
+
 
 function SafeFormat(const Fmt: TCSSString;
   const Args: array of const): TCSSString;
@@ -654,7 +680,7 @@ begin
   Len:=TokenStr-TokenStart;
   SetLength(FCurTokenString, Len);
   if (Len>0) then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
   Result := ctkComment;
 end;
 
@@ -678,7 +704,7 @@ begin
       Len:=TokenStr-TokenStart+1;
       SetLength(FCurTokenString,OLen+Len);
       if Len>1 then
-        Move(TokenStart^,FCurTokenString[OLen+1],Len-1);
+        Move(TokenStart^,FCurTokenString[OLen+1],(Len-1)*SizeOf(TCSSChar));
       Inc(OLen,Len);
       FCurTokenString[OLen]:=#10;
       if not FetchLine then
@@ -699,7 +725,7 @@ begin
   Len:=TokenStr-TokenStart-1; // -1 for *
   SetLength(FCurTokenString, Olen+Len);
   if (Len>0) then
-    Move(TokenStart^, FCurTokenString[Olen + 1], Len);
+    Move(TokenStart^, FCurTokenString[Olen + 1], Len*SizeOf(TCSSChar));
   Inc(TokenStr);
   Result := ctkComment;
 end;
@@ -792,12 +818,12 @@ begin
       SetLength(FCurTokenString, OLen + Len+1+Length(S));
       if Len > 0 then
         begin
-        Move(TokenStart^, FCurTokenString[OLen + 1], Len);
+        Move(TokenStart^, FCurTokenString[OLen + 1], Len*SizeOf(TCSSChar));
         Inc(OLen, Len);
         end;
       if S>'' then
         begin
-        Move(S[1],FCurTokenString[OLen + 1],Length(S));
+        Move(S[1],FCurTokenString[OLen + 1],Length(S)*SizeOf(TCSSChar));
         Inc(OLen, Length(S));
         end;
       TokenStart := TokenStr+1;
@@ -817,7 +843,7 @@ begin
   Len := TokenStr - TokenStart;
   SetLength(FCurTokenString, OLen + Len);
   if Len > 0 then
-    Move(TokenStart^, FCurTokenString[OLen+1], Len);
+    Move(TokenStart^, FCurTokenString[OLen+1], Len*SizeOf(TCSSChar));
   Inc(TokenStr);
   Result := ctkSTRING;
 end;
@@ -834,7 +860,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
   Result:=ctkString;
   FCurTokenString:=TCSSChar(StrToInt(FCurTokenString));
 end;
@@ -914,7 +940,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
 end;
 
 function TCSSScanner.DoHash :TCSSToken;
@@ -932,7 +958,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
+  Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
 end;
 
 
@@ -959,7 +985,7 @@ begin
     oldLen:=Length(FCurTokenString);
     Setlength(FCurTokenString, OldLen+Len);
     if (Len>0) then
-      Move(TokenStart^,FCurTokenString[OldLen+1],Len);
+      Move(TokenStart^,FCurTokenString[OldLen+1],Len*SizeOf(TCSSChar));
     if TokenStr[0]=#0 then
       if not FetchLine then
         Exit(ctkEOF);
@@ -986,7 +1012,7 @@ begin
   Len:=(TokenStr-TokenStart);
   SetLength(FCurTokenString,Len);
   if Len > 0 then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
 
 end;
 
@@ -1042,7 +1068,7 @@ begin
     oLen:=Length(FCurTokenString);
     SetLength(FCurTokenString,Olen+Len);
     if Len > 0 then
-      Move(TokenStart^,FCurTokenString[Olen+1],Len);
+      Move(TokenStart^,FCurTokenString[Olen+1],Len*SizeOf(TCSSChar));
     if IsEscape then
       Inc(TokenStr);
     TokenStart := TokenStr;
@@ -1056,7 +1082,8 @@ begin
     Result:=ctkIMPORTANT
   else if CurTokenString='!' then
     begin
-    if (TokenStr^=' ') and CompareMem(TokenStr+1,PChar('important'),9)
+    if (TokenStr^=' ')
+    and CompareMem(TokenStr+1,PCSSChar('important'),9*SizeOf(TCSSChar))
     and (TokenStr[10] in [' ',';']) then
       begin
       inc(TokenStr,10);
@@ -1109,7 +1136,7 @@ begin
   Len:=TokenStr-TokenStart;
   SetLength(FCurTokenString,Len);
   if Len > 0 then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(TCSSChar));
 end;
 
 function TCSSScanner.FetchToken: TCSSToken;
@@ -1375,9 +1402,11 @@ function TCSSStreamLineReader.ReadLine: TCSSString;
 Var
   FPos,OLen,Len: Integer;
   PRun : PByte;
+  // The bytes of the line, before they are read as UTF-8.
+  Bytes : RawByteString;
 
 begin
-  Result:='';
+  Bytes:='';
   FPos:=FBufPos;
   Repeat
     PRun:=@Buffer[FBufPos];
@@ -1391,9 +1420,9 @@ begin
       Len:=FBufPos-FPos;
       If (Len>0) then
         begin
-        Olen:=Length(Result);
-        SetLength(Result,OLen+Len);
-        Move(Buffer[FPos],Result[OLen+1],Len);
+        Olen:=Length(Bytes);
+        SetLength(Bytes,OLen+Len);
+        Move(Buffer[FPos],Bytes[OLen+1],Len);
         end;
       FillBuffer;
       FPos:=FBufPos;
@@ -1402,10 +1431,11 @@ begin
   Len:=FBufPos-FPos;
   If (Len>0) then
     begin
-    Olen:=Length(Result);
-    SetLength(Result,OLen+Len);
-    Move(Buffer[FPos],Result[OLen+1],Len)
+    Olen:=Length(Bytes);
+    SetLength(Bytes,OLen+Len);
+    Move(Buffer[FPos],Bytes[OLen+1],Len)
     end;
+  Result:=CSSStringOfBytes(Bytes);
   If (PRun^ in [10,13]) and (FBufPos<FBufLen) then
     begin
     Inc(FBufPos);

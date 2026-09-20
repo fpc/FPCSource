@@ -113,11 +113,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, System.Types, System.Math, System.Contnrs, System.StrUtils,
-  Fcl.AVLTree, FpCss.Tree, FpCss.Parser, FpCss.ValueParser;
+  Fcl.AVLTree, FpCss.Tree, FpCss.Scanner, FpCss.Parser, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSParser,
-  fpCSSResParser;
+  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSScanner,
+  fpCSSParser, fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -1397,6 +1397,7 @@ function TCSSResolver.ParseCSSSource(const Src: TCSSString; Inline: boolean
 var
   ms: TMemoryStream;
   aParser: TCSSResolverParser;
+  Bytes: RawByteString;
 begin
   Result:=nil;
   if Src='' then
@@ -1414,7 +1415,9 @@ begin
   aParser:=nil;
   ms:=TMemoryStream.Create;
   try
-    ms.Write(Src[1],length(Src)*SizeOf(TCSSChar));
+    // The scanner reads the stream as UTF-8, not as the code units of Src.
+    Bytes:=CSSBytesOfString(Src);
+    ms.Write(Bytes[1],length(Bytes));
     ms.Position:=0;
     aParser:=TCSSResolverParser.Create(ms); // stream is freed by the parser
     aParser.Resolver:=Self;
@@ -3464,7 +3467,7 @@ begin
     end;
     Result:=true;
   end else
-    Result:=CompareMem(A,B,ALen);
+    Result:=CompareMem(A,B,ALen*SizeOf(TCSSChar));
 end;
 
 function TCSSResolver.PosSubString(const SearchStr, Str: TCSSString): integer;

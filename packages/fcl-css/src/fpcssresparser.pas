@@ -931,9 +931,9 @@ begin
     begin
       // kind + dword length + payload
       Cnt:=PDWord(@Tokens[Ofs+1])^;
-      Result:=1+4+integer(Cnt);
+      Result:=1+4+integer(Cnt)*SizeOf(TCSSChar);
     end;
-  rtkHexColor: Result:=1+1+Tokens[Ofs+1]; // kind + length byte + hex chars
+  rtkHexColor: Result:=1+1+Tokens[Ofs+1]*SizeOf(TCSSChar); // kind + length byte + hex chars
   rtkSymbol: Result:=1+1; // kind + char byte
   else
     Result:=1; // rtkWhitespace, comma, brackets, plus, minus
@@ -1993,7 +1993,7 @@ begin
     exit('');
   l:=EndP-StartP;
   SetLength(Result,l);
-  Move(StartP^,Result[1],l);
+  Move(StartP^,Result[1],l*SizeOf(TCSSChar));
 end;
 
 function TCSSResCompValue.FloatAsString: TCSSString;
@@ -2067,7 +2067,7 @@ begin
         if Cnt>0 then
         begin
           SetLength(FIdentifier,Cnt);
-          Move(CurTokens[p+5],FIdentifier[1],Cnt);
+          Move(CurTokens[p+5],FIdentifier[1],Cnt*SizeOf(TCSSChar));
         end;
       end;
     rtkHexColor:
@@ -2076,7 +2076,7 @@ begin
         if Cnt>0 then
         begin
           SetLength(FIdentifier,Cnt);
-          Move(CurTokens[p+2],FIdentifier[1],Cnt);
+          Move(CurTokens[p+2],FIdentifier[1],Cnt*SizeOf(TCSSChar));
         end;
       end;
     rtkSymbol:
@@ -2925,7 +2925,7 @@ var
       // custom identifier, e.g. --my-var
       AddKind(rtkIdentifier);
       AddDWord(cardinal(Len));
-      AddMem(StartP,Len);
+      AddMem(StartP,Len*SizeOf(TCSSChar));
       exit(true);
     end;
     SetString(Name,StartP,Len);
@@ -2937,7 +2937,7 @@ var
       // store the unknown word as a custom identifier, e.g. a font-family name
       AddKind(rtkIdentifier);
       AddDWord(cardinal(Len));
-      AddMem(StartP,Len);
+      AddMem(StartP,Len*SizeOf(TCSSChar));
       exit(true);
     end;
     AddKind(rtkKeyword);
@@ -3057,7 +3057,7 @@ begin
               // #rgb, #rgba, #rrggbb, #rrggbbaa
               AddKind(rtkHexColor);
               AddByte(byte(Len));
-              AddMem(StartP+1,Len);
+              AddMem(StartP+1,Len*SizeOf(TCSSChar));
             end;
           else
             exit; // invalid hex color
@@ -3070,7 +3070,7 @@ begin
           Len:=(p-StartP)-2; // without enclosing apostrophs
           AddKind(rtkStringApos);
           AddDWord(cardinal(Len));
-          AddMem(StartP+1,Len);
+          AddMem(StartP+1,Len*SizeOf(TCSSChar));
         end;
       '"':
         begin
@@ -3079,7 +3079,7 @@ begin
           Len:=(p-StartP)-2; // without enclosing quotes
           AddKind(rtkStringQuote);
           AddDWord(cardinal(Len));
-          AddMem(StartP+1,Len);
+          AddMem(StartP+1,Len*SizeOf(TCSSChar));
         end;
       else
         exit; // unknown symbol
@@ -3115,10 +3115,10 @@ begin
   l:=length(anIdentifier);
   Result:=nil;
   if l=0 then exit;
-  SetLength(Result,1+4+l);
+  SetLength(Result,1+4+l*SizeOf(TCSSChar));
   Result[0]:=ord(rtkIdentifier);
   PDWord(@Result[1])^:=l;
-  Move(anIdentifier[1],Result[5],l);
+  Move(anIdentifier[1],Result[5],l*SizeOf(TCSSChar));
 end;
 
 function TCSSBaseResolver.TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
@@ -3144,10 +3144,10 @@ begin
   else
     exit;
   end;
-  SetLength(Result,2+l);
+  SetLength(Result,2+l*SizeOf(TCSSChar));
   Result[0]:=ord(rtkHexColor);
   Result[1]:=byte(l);
-  Move(aHexDigits[1],Result[2],l); // kind + count + count hex chars, see ReadNext
+  Move(aHexDigits[1],Result[2],l*SizeOf(TCSSChar)); // kind + count + count hex chars, see ReadNext
 end;
 
 function TCSSBaseResolver.ResolveIdentifierTokens(var Tokens: TBytes): boolean;
@@ -3172,7 +3172,7 @@ var
     Cnt:=PDWord(@Tokens[aOfs+1])^;
     if Cnt=0 then exit;
     SetLength(Result,Cnt);
-    Move(Tokens[aOfs+5],Result[1],Cnt);
+    Move(Tokens[aOfs+5],Result[1],Cnt*SizeOf(TCSSChar));
   end;
 
   function IsCustomIdentifier(const anIdentifier: TCSSString): boolean;
@@ -3270,8 +3270,8 @@ var
     Result:='';
     if Count=0 then exit;
     SetLength(Result,Count);
-    Move(aData[i],Result[1],Count);
-    inc(i,Count);
+    Move(aData[i],Result[1],Count*SizeOf(TCSSChar));
+    inc(i,Count*SizeOf(TCSSChar));
   end;
 
 var
@@ -4713,7 +4713,7 @@ begin
       U:=high(TCSSUnit);
       while (U>cuNone)
           and ((length(CSSUnitNames[U])<>p-StartP)
-            or not CompareMem(StartP,PChar(CSSUnitNames[U]),p-StartP)) do
+            or not CompareMem(StartP,PCSSChar(CSSUnitNames[U]),(p-StartP)*SizeOf(TCSSChar))) do
         U:=pred(U);
       if U=cuNone then
         exit; // unknown unit
