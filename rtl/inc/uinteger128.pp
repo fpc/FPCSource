@@ -31,6 +31,7 @@ unit uinteger128;
       end;
 
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
+    operator- (const i1,i2: UInt128) result : UInt128;inline;
 
     operator := (const source : UInt64) dest : UInt128;inline;
 
@@ -72,6 +73,15 @@ unit uinteger128;
       begin
         qword_add(i1.QWords[QWORD_LO],i2.QWords[QWORD_LO],false,result.QWords[QWORD_LO],c);
         qword_add(i1.QWords[QWORD_HI],i2.QWords[QWORD_HI],c,result.QWords[QWORD_HI],c);
+      end;
+
+    operator- (const i1,i2: UInt128) result : UInt128;inline;
+      var
+        ii2: UInt128;
+      begin
+        ii2.QWords[QWORD_LO]:=not i2.QWords[QWORD_LO];
+        ii2.QWords[QWORD_HI]:=not i2.QWords[QWORD_HI];
+        result:=i1+ii2+1;
       end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
