@@ -30,6 +30,8 @@ unit uinteger128;
         QWords: array [0..1] of QWord;
       end;
 
+    function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
     operator- (const i1,i2: UInt128) result : UInt128;inline;
     operator* (f1,f2 : UInt128) result : UInt128;
@@ -53,6 +55,20 @@ unit uinteger128;
     procedure DumpUInt128(const f : UInt128);
       begin
         write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
+      end;
+
+    function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+      var
+        tmp: QWord;
+      begin
+        BsrUInt128:=64;
+        tmp:=AValue.QWords[QWORD_HI];
+        if (tmp=0) then
+          begin
+            tmp:=AValue.QWords[QWORD_LO];
+            BsrUInt128:=0;
+          end;
+        BsrUInt128:=BsrUInt128 or BsrQword(tmp);
       end;
 
 {$push} {$q-,r-}
