@@ -53,6 +53,23 @@ unit uinteger128;
         write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
       end;
 
+    function fpc_shl_uint128(value : UInt128;shift : ALUUInt) : UInt128;
+      begin
+        shift:=shift and 127;
+        if shift=0 then
+          fpc_shl_uint128:=value
+        else if shift>63 then
+          begin
+            fpc_shl_uint128.QWords[QWORD_LO]:=0;
+            fpc_shl_uint128.QWords[QWORD_HI]:=value.QWords[QWORD_LO] shl (shift-64);
+          end
+        else
+          begin
+            fpc_shl_uint128.QWords[QWORD_LO]:=value.QWords[QWORD_LO] shl shift;
+            fpc_shl_uint128.QWords[QWORD_HI]:=(value.QWords[QWORD_HI] shl shift) or (value.QWords[QWORD_LO] shr (64-shift));
+          end;
+      end;
+
 {$push} {$q-,r-}
     procedure qword_add(const i1, i2: QWord; carry_in: Boolean; var o: QWord; var carry_out: Boolean);
       begin
