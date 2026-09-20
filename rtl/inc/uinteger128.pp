@@ -32,7 +32,7 @@ unit uinteger128;
 
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
     operator- (const i1,i2: UInt128) result : UInt128;inline;
-
+    operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator := (const source : UInt64) dest : UInt128;inline;
 
     procedure DumpUInt128(const f : UInt128);
@@ -51,23 +51,6 @@ unit uinteger128;
     procedure DumpUInt128(const f : UInt128);
       begin
         write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
-      end;
-
-    function fpc_shl_uint128(value : UInt128;shift : ALUUInt) : UInt128;
-      begin
-        shift:=shift and 127;
-        if shift=0 then
-          fpc_shl_uint128:=value
-        else if shift>63 then
-          begin
-            fpc_shl_uint128.QWords[QWORD_LO]:=0;
-            fpc_shl_uint128.QWords[QWORD_HI]:=value.QWords[QWORD_LO] shl (shift-64);
-          end
-        else
-          begin
-            fpc_shl_uint128.QWords[QWORD_LO]:=value.QWords[QWORD_LO] shl shift;
-            fpc_shl_uint128.QWords[QWORD_HI]:=(value.QWords[QWORD_HI] shl shift) or (value.QWords[QWORD_LO] shr (64-shift));
-          end;
       end;
 
 {$push} {$q-,r-}
@@ -99,6 +82,23 @@ unit uinteger128;
         ii2.QWords[QWORD_LO]:=not i2.QWords[QWORD_LO];
         ii2.QWords[QWORD_HI]:=not i2.QWords[QWORD_HI];
         result:=i1+ii2+1;
+      end;
+
+    operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
+      begin
+        shift:=shift and 127;
+        if shift=0 then
+          result:=value
+        else if shift>63 then
+          begin
+            result.QWords[QWORD_LO]:=0;
+            result.QWords[QWORD_HI]:=value.QWords[QWORD_LO] shl (shift-64);
+          end
+        else
+          begin
+            result.QWords[QWORD_LO]:=value.QWords[QWORD_LO] shl shift;
+            result.QWords[QWORD_HI]:=(value.QWords[QWORD_HI] shl shift) or (value.QWords[QWORD_LO] shr (64-shift));
+          end;
       end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
