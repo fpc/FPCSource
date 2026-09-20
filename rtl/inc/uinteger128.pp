@@ -131,12 +131,12 @@ unit uinteger128;
              exit;
            end;
          fpc_div_uint128:=0;
-         (*if n=0 then
-           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+         if n=0 then
+           {TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame)};
          if z=0 then
            exit;
-         lzz:=BsrQWord(z);
-         lzn:=BsrQWord(n);
+         lzz:=BsrUInt128(z);
+         lzn:=BsrUInt128(n);
          { if the denominator contains less zeros }
          { than the numerator                     }
          { then d is greater than the n           }
@@ -147,13 +147,13 @@ unit uinteger128;
          n:=n shl shift;
          for shift:=shift downto 0 do
            begin
-             if z>=n then
+             {if z>=n then
                begin
                   z:=z-n;
                   fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
-               end;
+               end;}
              n:=n shr 1;
-           end;*)
+           end;
       end;
 
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
