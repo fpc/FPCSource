@@ -101,6 +101,42 @@ unit uinteger128;
           end;
       end;
 
+    function fpc_div_uint128(n,z : uint128) : uint128;
+      var
+         shift,lzz,lzn : longint;
+      begin
+         { Use the usually faster 64-bit division if possible }
+         if (z.QWords[QWORD_HI] = 0) and (n.QWords[QWORD_HI] = 0) then
+           begin
+             fpc_div_uint128 := z.QWords[QWORD_LO] div n.QWords[QWORD_LO];
+             exit;
+           end;
+         fpc_div_uint128:=0;
+         (*if n=0 then
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+         if z=0 then
+           exit;
+         lzz:=BsrQWord(z);
+         lzn:=BsrQWord(n);
+         { if the denominator contains less zeros }
+         { than the numerator                     }
+         { then d is greater than the n           }
+         if lzn>lzz then
+           exit;
+
+         shift:=lzz-lzn;
+         n:=n shl shift;
+         for shift:=shift downto 0 do
+           begin
+             if z>=n then
+               begin
+                  z:=z-n;
+                  fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
+               end;
+             n:=n shr 1;
+           end;*)
+      end;
+
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
       begin
         shift:=shift and 127;
