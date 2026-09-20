@@ -1,0 +1,54 @@
+begin-frame 100 100
+push-clip rule=nonzero ctm=identity
+  moveto 0 0
+  lineto 100 0
+  lineto 100 100
+  lineto 0 100
+  close
+  fill-path rule=nonzero paint=color(#008000ff) opacity=1 ctm=identity
+    moveto 0 0
+    lineto 100 0
+    lineto 100 10
+    lineto 0 10
+    close
+  push-clip rule=nonzero ctm=identity
+    moveto 10 10
+    lineto 50 10
+    lineto 50 50
+    lineto 10 50
+    close
+    fill-path rule=nonzero paint=color(#ff0000ff) opacity=1 ctm=[2 0 0 2 10 10]
+      moveto 0 0
+      lineto 20 0
+      lineto 20 20
+      lineto 0 20
+      close
+  pop-clip
+  push-clip rule=nonzero ctm=identity
+    moveto 50 50
+    lineto 90 50
+    lineto 90 70
+    lineto 50 70
+    close
+    fill-path rule=nonzero paint=color(#000000ff) opacity=1 ctm=[2 0 0 2 50 50]
+      moveto 0 0
+      lineto 10 0
+      lineto 10 10
+      lineto 0 10
+      close
+  pop-clip
+  push-clip rule=nonzero ctm=identity
+    moveto 0 80
+    lineto 20 80
+    lineto 20 100
+    lineto 0 100
+    close
+    fill-path rule=nonzero paint=color(#000000ff) opacity=1 ctm=[1 0 0 1 0 80]
+      moveto 0 0
+      lineto 10 0
+      lineto 10 10
+      lineto 0 10
+      close
+  pop-clip
+pop-clip
+end-frame

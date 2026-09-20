@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <rect id="plain" x="10" y="10" width="80" height="40"/>
+  <rect id="rounded" x="10" y="60" width="80" height="40" rx="8" ry="12"/>
+  <rect id="onlyrx" x="10" y="110" width="80" height="40" rx="8"/>
+  <rect id="percent" x="0" y="0" width="50%" height="25%"/>
+  <circle id="dot" cx="140" cy="30" r="20"/>
+  <ellipse id="oval" cx="140" cy="90" rx="30" ry="15"/>
+  <line id="edge" x1="10" y1="160" x2="90" y2="190"/>
+  <polyline id="open" points="100,160 120,190 140,160 160,190"/>
+  <polygon id="closed" points="170,160 190,190 150,190"/>
+  <path id="curve" d="M10,10 C20,0 40,0 50,10 S80,20 90,10 Z"/>
+  <path id="arcs" d="M10,50 a20 20 0 0140 0 h-10 A20 20 0 1 0 10 50 z"/>
+  <path id="quads" d="M0,0 q10,20 20,0 t20,0 T60,0"/>
+</svg>

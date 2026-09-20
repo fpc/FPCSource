@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="100" height="60" viewBox="0 0 100 60">
+  <title>Animation timeline</title>
+  <rect x="10" y="10" width="20" height="20" fill="#ff0000">
+    <animate attributeName="x" from="10" to="50" dur="1s" fill="freeze"/>
+  </rect>
+  <circle cx="70" cy="20" r="10" fill="#000000">
+    <animate attributeName="fill" from="#000000" to="#00ff00" dur="2.5s"
+             repeatCount="2"/>
+  </circle>
+  <rect x="10" y="40" width="20" height="10">
+    <set attributeName="fill" to="green" begin="1.5s"/>
+  </rect>
+  <rect x="50" y="40" width="20" height="10" fill="#0000ff">
+    <animate attributeName="fill-opacity" values="1;0.5;0.25" dur="1s"
+             calcMode="discrete" repeatCount="2" fill="freeze"/>
+  </rect>
+</svg>

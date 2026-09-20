@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="120" height="60" viewBox="0 0 120 60">
+  <title>Chained animation</title>
+  <rect x="10" y="10" width="20" height="20" fill="#ff0000">
+    <animate id="grow" attributeName="width" from="20" to="40" dur="1s"
+             fill="freeze"/>
+  </rect>
+  <rect x="10" y="35" width="20" height="15" fill="#0000ff">
+    <set attributeName="fill" to="#00ff00" begin="grow.end + 0.5s"/>
+  </rect>
+  <circle cx="90" cy="30" r="10" fill="#000000">
+    <animate attributeName="fill" from="#000000" to="#00ff00" dur="1s"
+             begin="grow.begin + 1s" end="1.4s" fill="freeze"/>
+  </circle>
+</svg>

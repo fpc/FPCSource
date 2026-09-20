@@ -1,0 +1,14 @@
+# simple
+  <g fill="red" transform="translate(3,4)">
+    <rect id="box" width="10" height="10">
+# plainuse
+  <g>
+    <rect id="box" width="10" height="10">
+# deep
+  <g>
+    <g transform="translate(0,5)">
+      <g id="pair">
+        <g>
+          <rect id="box" width="10" height="10">
+        <g transform="translate(20,0)">
+          <rect id="box" width="10" height="10">

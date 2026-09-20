@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="200" height="200">
+  <defs>
+    <rect id="box" width="10" height="10"/>
+    <g id="pair">
+      <use xlink:href="#box"/>
+      <use xlink:href="#box" x="20"/>
+    </g>
+    <use id="chained" xlink:href="#pair" y="5"/>
+    <g id="loopa"><use xlink:href="#loopb"/></g>
+    <g id="loopb"><use xlink:href="#loopa"/></g>
+    <use id="selfish" xlink:href="#selfish"/>
+  </defs>
+  <use id="simple" xlink:href="#box" x="3" y="4" fill="red"/>
+  <use id="plainuse" xlink:href="#box"/>
+  <use id="turned" xlink:href="#box" x="3" y="4" transform="scale(2)"/>
+  <use id="deep" xlink:href="#chained"/>
+  <use id="cyclic" xlink:href="#loopa"/>
+  <use id="dangling" xlink:href="#nothere"/>
+  <use id="direct" xlink:href="#selfish"/>
+  <rect id="notause" width="1" height="1"/>
+</svg>

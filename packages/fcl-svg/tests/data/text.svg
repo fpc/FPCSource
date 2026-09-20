@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"
+     font-size="10">
+  <text x="0" y="8">ab</text>
+  <text x="30" y="8" text-anchor="middle">cd</text>
+  <text x="60" y="18" text-anchor="end">ef</text>
+  <text x="0" y="28">g<tspan dx="5" dy="4" fill="#0000ff">h</tspan>i</text>
+  <text x="0" y="38" textLength="40">jkl</text>
+</svg>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href="sheet.css" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <defs>
+    <style type="text/css"><![CDATA[
+    circle {fill:#ff00ff;}
+    ]]></style>
+  </defs>
+  <rect x="0" y="0" width="20" height="20"/>
+  <circle cx="30" cy="10" r="8"/>
+</svg>

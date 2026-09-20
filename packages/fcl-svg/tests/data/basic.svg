@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="200" height="100" viewBox="0 0 400 200"
+     preserveAspectRatio="xMidYMid meet">
+  <title>A basic document</title>
+  <defs>
+    <rect id="box" x="0" y="0" width="40" height="20"/>
+  </defs>
+  <g id="layer" transform="translate(10,20) scale(2)" class="main shaded">
+    <use xlink:href="#box" x="5"/>
+    <circle cx="50" cy="50" r="25" fill="red"/>
+    <path d="M 0 0 L 10 0 Z"/>
+  </g>
+  <text x="10" y="90">Hello <tspan dx="2">world</tspan></text>
+</svg>

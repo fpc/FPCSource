@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="200"
+     viewBox="0 0 640 200">
+  <rect width="640" height="200" fill="#ffffff"/>
+  <g font-family="DejaVu Sans, sans-serif" font-size="30" fill="#101010">
+    <text x="15" y="50">Latin, Ελληνικά, Кириллица</text>
+    <text x="15" y="100">日本語 and 中文</text>
+    <text x="15" y="150">עברית and العربية</text>
+  </g>
+  <text x="15" y="188" font-family="DejaVu Sans, sans-serif" font-size="15"
+        fill="#606060">Every line asks for one family; what it lacks is covered.</text>
+</svg>

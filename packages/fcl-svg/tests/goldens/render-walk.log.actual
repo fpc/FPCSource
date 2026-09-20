@@ -1,0 +1,62 @@
+begin-frame 200 100
+push-clip rule=nonzero ctm=identity
+  moveto 0 0
+  lineto 200 0
+  lineto 200 100
+  lineto 0 100
+  close
+  fill-path rule=nonzero paint=color(#ff0000ff) opacity=1 ctm=[2 0 0 2 0 0]
+    moveto 1 1
+    lineto 21 1
+    lineto 21 21
+    lineto 1 21
+    close
+  stroke-path width=2 cap=butt join=miter miter-limit=4 paint=color(#000000ff) opacity=1 ctm=[2 0 0 2 0 0]
+    moveto 1 1
+    lineto 21 1
+    lineto 21 21
+    lineto 1 21
+    close
+  push-layer bounds=empty opacity=0.5 isolate=true
+    fill-path rule=nonzero paint=color(#000000ff) opacity=1 ctm=[2 0 0 2 64 6]
+      moveto 0 0
+      lineto 10 0
+      lineto 10 10
+      lineto 0 10
+      close
+    fill-path rule=nonzero paint=color(#000000ff) opacity=1 ctm=[2 0 0 2 64 6]
+      moveto 20 5
+      cubicto 20 7.209139 18.209139 9 16 9
+      cubicto 13.790861 9 12 7.209139 12 5
+      cubicto 12 2.790861 13.790861 1 16 1
+      cubicto 18.209139 1 20 2.790861 20 5
+      close
+  pop-layer
+  push-clip rule=nonzero ctm=[2 0 0 2 120 20]
+    moveto 0 0
+    lineto 20 0
+    lineto 20 20
+    lineto 0 20
+    close
+    fill-path rule=nonzero paint=color(#008000ff) opacity=1 ctm=[4 0 0 4 120 20]
+      moveto 0 0
+      lineto 10 0
+      lineto 10 10
+      lineto 0 10
+      close
+  pop-clip
+  fill-path rule=nonzero paint=server(linear-gradient "ramp") opacity=1 ctm=[2 0 0 2 0 0]
+    moveto 98 40
+    cubicto 98 42.761424 94.418278 45 90 45
+    cubicto 85.581722 45 82 42.761424 82 40
+    cubicto 82 37.238576 85.581722 35 90 35
+    cubicto 94.418278 35 98 37.238576 98 40
+    close
+  fill-path rule=nonzero paint=color(#00ff00ff) opacity=1 ctm=[2 0 0 2 0 0]
+    moveto 0 40
+    lineto 5 40
+    lineto 5 45
+    lineto 0 45
+    close
+pop-clip
+end-frame

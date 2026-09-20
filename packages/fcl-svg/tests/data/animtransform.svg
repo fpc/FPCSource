@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="120" height="80" viewBox="0 0 120 80">
+  <title>Transform animation</title>
+  <g transform="translate(20 20)">
+    <rect x="-10" y="-10" width="20" height="20" fill="#ff0000"
+          transform="skewX(30)">
+      <animateTransform attributeName="transform" type="rotate" from="0"
+                        to="90" dur="2s" additive="sum" fill="freeze"/>
+    </rect>
+  </g>
+  <rect x="60" y="10" width="10" height="10" fill="#0000ff">
+    <animateTransform attributeName="transform" type="scale" from="1 1"
+                      to="2 2" dur="1s" repeatCount="2" accumulate="sum"
+                      fill="freeze"/>
+  </rect>
+  <circle cx="30" cy="60" r="10" fill="#000000">
+    <animateColor attributeName="fill" from="#000000" to="#00ff00"
+                  dur="2.5s"/>
+  </circle>
+</svg>

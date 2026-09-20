@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="64" height="64">
+  <defs>
+    <g id="stopsource" stop-color="#ff00ff" stop-opacity="0.25"
+       color="yellow">
+      <linearGradient id="inheriting" stop-color="inherit"
+                      stop-opacity="inherit">
+        <stop offset="0" stop-color="lime"/>
+        <stop offset="1" stop-color="inherit" stop-opacity="inherit"/>
+      </linearGradient>
+      <linearGradient id="currentcolour">
+        <stop offset="0" stop-color="lime"/>
+        <stop offset="1" stop-color="currentColor"/>
+      </linearGradient>
+      <linearGradient id="bare">
+        <stop offset="0" stop-color="lime"/>
+        <stop offset="1"/>
+      </linearGradient>
+      <linearGradient id="ruled">
+        <stop offset="0" stop-color="lime"/>
+        <stop id="ruledstop" offset="1"/>
+      </linearGradient>
+    </g>
+    <style type="text/css">#ruledstop { stop-color: #0000ff }</style>
+    <linearGradient id="plain">
+      <stop offset="0" stop-color="red"/>
+      <stop offset="1" stop-color="blue"/>
+    </linearGradient>
+    <linearGradient id="diagonal" x1="0" y1="0" x2="1" y2="1"
+                    spreadMethod="reflect">
+      <stop offset="0%" stop-color="black"/>
+      <stop offset="50%" stop-color="white" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="black"/>
+    </linearGradient>
+    <linearGradient id="userspace" gradientUnits="userSpaceOnUse"
+                    x1="10" y1="0" x2="50" y2="0"
+                    gradientTransform="translate(4,0)">
+      <stop offset="0" stop-color="lime"/>
+      <stop offset="1" stop-color="navy"/>
+    </linearGradient>
+    <linearGradient id="derived" xlink:href="#plain" x1="0" y1="0"
+                    x2="0" y2="1"/>
+    <radialGradient id="ball" cx="0.4" cy="0.4" r="0.5" fx="0.3" fy="0.3">
+      <stop offset="0" stop-color="white"/>
+      <stop offset="1" stop-color="#004080"/>
+    </radialGradient>
+    <radialGradient id="tiles" r="0.25" spreadMethod="repeat">
+      <stop offset="0" stop-color="black"/>
+      <stop offset="1" stop-color="white"/>
+    </radialGradient>
+    <linearGradient id="unsorted">
+      <stop offset="0.8" stop-color="red"/>
+      <stop offset="0.2" stop-color="blue"/>
+    </linearGradient>
+    <linearGradient id="empty"/>
+    <linearGradient id="styledstops">
+      <stop offset="0" style="stop-color:#ff0000;stop-opacity:0.25"/>
+      <stop offset="1" style="stop-color:#0000ff"/>
+    </linearGradient>
+  </defs>
+  <rect id="a" x="0" y="0" width="64" height="64" fill="url(#plain)"/>
+  <rect id="b" x="0" y="0" width="64" height="64" fill="url(#diagonal)"/>
+  <rect id="c" x="0" y="0" width="64" height="64" fill="url(#userspace)"/>
+  <rect id="d" x="0" y="0" width="64" height="64" fill="url(#derived)"/>
+  <rect id="e" x="0" y="0" width="64" height="64" fill="url(#ball)"/>
+  <rect id="f" x="0" y="0" width="64" height="64" fill="url(#tiles)"/>
+  <rect id="g" x="0" y="0" width="64" height="64" fill="url(#unsorted)"/>
+  <rect id="h" x="0" y="0" width="64" height="64" fill="url(#empty)"/>
+  <rect id="i" x="0" y="0" width="64" height="64" fill="url(#missing)"/>
+  <rect id="j" x="0" y="0" width="64" height="64" style="fill:url(#plain)"/>
+  <rect id="k" x="0" y="0" width="64" height="64" fill="url(#plain)"
+        style="fill:url(#ball)"/>
+  <rect id="l" x="0" y="0" width="64" height="64"
+        style="fill:url(#styledstops)"/>
+</svg>

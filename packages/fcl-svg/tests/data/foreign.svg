@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     width="10" height="10">
+  <metadata>
+    <rdf:RDF>
+      <rdf:Description rdf:about="http://example.invalid/"/>
+    </rdf:RDF>
+  </metadata>
+  <rect width="10" height="10"/>
+  <bogus attr="1"/>
+</svg>

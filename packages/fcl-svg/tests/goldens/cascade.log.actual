@@ -1,0 +1,120 @@
+# plain
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=miter miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# special
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=miter miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# classy
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=7 cap=butt join=miter miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# inlined
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=miter miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# group
+fill=color(#008080ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=1 cap=butt join=round miter-limit=4
+opacity=0.5 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# nested
+fill=color(#008080ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=round miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# first
+fill=color(#008080ff) fill-opacity=0.25 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=1 cap=butt join=round miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# second
+fill=color(#008080ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=1 cap=butt join=round miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# current
+fill=color(#008080ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=round miter-limit=4
+opacity=1 color=#ff00ffff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# explicit
+fill=color(#008080ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=round miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# dashed
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=color(#000000ff) stroke-opacity=1 width=3 cap=butt join=miter miter-limit=4 dashes=[4 2 1] dash-offset=1.5
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto
+# badpaint
+fill=color(#000000ff) fill-opacity=1 fill-rule=nonzero
+stroke=none stroke-opacity=1 width=3 cap=butt join=miter miter-limit=4
+opacity=1 color=#000000ff display=inline visibility=visible
+font-family="" font-size=16 clip-rule=nonzero
+overflow=hidden clip=auto clip-path="" mask=""
+stop-color=#000000ff stop-opacity=1
+color-interpolation=sRGB
+text-anchor=start font-weight=400 font-style=normal font-stretch=normal font-variant=normal letter-spacing=0 word-spacing=0
+writing-mode=lr-tb glyph-orientation-vertical=auto

@@ -175,3 +175,4 @@
   add_zlib(ADirectory+IncludeTrailingPathDelimiter('zlib'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
   add_fcl_sonar(ADirectory+IncludeTrailingPathDelimiter('fcl-sonar'));
+  add_fcl_svg(ADirectory+IncludeTrailingPathDelimiter('fcl-svg'));

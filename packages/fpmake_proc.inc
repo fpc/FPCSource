@@ -984,6 +984,12 @@ begin
 {$include zorba/fpmake.pp}
 end;
 
+procedure add_fcl_svg(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-svg/fpmake.pp}
+end;
+
 {$include fcl-sonar/fpmake.pp}
 
 

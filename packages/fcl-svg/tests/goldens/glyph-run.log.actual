@@ -1,0 +1,6 @@
+begin-frame 200 40
+draw-glyphs font="DejaVu Sans" paint=color(#000000ff) opacity=1 ctm=[1 0 0 1 10 30]
+  glyph 36 0 0 stretch 0
+  glyph 37 7.5 0 stretch 0
+  glyph 38 15 -1.25 stretch 0
+end-frame

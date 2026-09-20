@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="40" height="40" viewBox="0 0 40 40">
+  <defs>
+    <style type="text/css"><![CDATA[
+    circle {fill:#ff00ff;}
+    ]]></style>
+    <rect id="box" x="0" y="0" width="10" height="10" fill="#0000ff"/>
+    <circle id="ruled" cx="10" cy="10" r="10"/>
+    <g id="pair">
+      <use xlink:href="#box"/>
+      <use xlink:href="#box" x="20"/>
+    </g>
+    <linearGradient id="ramp" gradientUnits="objectBoundingBox"
+                    x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff0000"/>
+      <stop offset="1" stop-color="#ff0000"/>
+    </linearGradient>
+    <linearGradient id="heir" xlink:href="#ramp"/>
+    <pattern id="tile" patternUnits="userSpaceOnUse" width="20" height="20">
+      <rect width="10" height="10" fill="#00ffff"/>
+    </pattern>
+    <clipPath id="hole">
+      <rect x="0" y="0" width="5" height="10"/>
+    </clipPath>
+    <rect id="painted" x="0" y="0" width="10" height="10" fill="url(#ramp)"/>
+    <rect id="clipped" x="0" y="0" width="10" height="10" fill="#0000ff"
+          clip-path="url(#hole)"/>
+  </defs>
+  <rect id="ground" x="0" y="0" width="40" height="40" fill="#00ff00"/>
+</svg>

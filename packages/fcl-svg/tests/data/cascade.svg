@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <style>
+    rect { fill: green; stroke-width: 3 }
+    .thick { stroke-width: 7 }
+    #special { fill: purple }
+    g rect { stroke: blue }
+    circle:first-of-type { fill-opacity: 0.25 }
+  </style>
+  <rect id="plain" fill="red"/>
+  <rect id="special" fill="red"/>
+  <rect id="classy" class="thick" fill="red"/>
+  <rect id="inlined" fill="red" style="fill: orange"/>
+  <g id="group" fill="teal" stroke-linejoin="round" opacity="0.5">
+    <rect id="nested"/>
+    <circle id="first"/>
+    <circle id="second"/>
+    <rect id="current" color="magenta" style="fill: currentColor"/>
+    <rect id="explicit" style="fill: inherit" stroke="none"/>
+  </g>
+  <g id="hidden" display="none">
+    <rect id="buried"/>
+  </g>
+  <rect id="dashed" stroke="black" stroke-dasharray="4 2 1" stroke-dashoffset="1.5"/>
+  <rect id="dashedpx" stroke="black" stroke-dasharray="4px 2px 1px"
+    stroke-dashoffset="1.5px"/>
+  <rect id="dashedbad" stroke="black" stroke-dasharray="4 fish 1"/>
+  <rect id="badpaint" fill="notacolour" stroke-width="-3"/>
+</svg>
