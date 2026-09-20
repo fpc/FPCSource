@@ -37,6 +37,9 @@ unit uinteger128;
     operator* (f1,f2 : UInt128) result : UInt128;
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
+
+    operator = (const i1,i2: UInt128) result: Boolean;inline;
+
     operator := (const source : UInt64) dest : UInt128;inline;
 
     procedure DumpUInt128(const f : UInt128);
@@ -185,6 +188,12 @@ unit uinteger128;
             result.QWords[QWORD_HI]:=value.QWords[QWORD_HI] shr shift;
             result.QWords[QWORD_LO]:=(value.QWords[QWORD_LO] shr shift) or (value.QWords[QWORD_HI] shl (64-shift));
           end;
+      end;
+
+    operator = (const i1,i2: UInt128) result: Boolean;inline;
+      begin
+        result:=(i1.QWords[QWORD_LO]=i2.QWords[QWORD_LO]) and
+                (i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]);
       end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
