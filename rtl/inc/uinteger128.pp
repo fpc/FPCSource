@@ -32,6 +32,7 @@ unit uinteger128;
 
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
     operator- (const i1,i2: UInt128) result : UInt128;inline;
+    operator* (f1,f2 : UInt128) result : UInt128;
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
     operator := (const source : UInt64) dest : UInt128;inline;
@@ -83,6 +84,21 @@ unit uinteger128;
         ii2.QWords[QWORD_LO]:=not i2.QWords[QWORD_LO];
         ii2.QWords[QWORD_HI]:=not i2.QWords[QWORD_HI];
         result:=i1+ii2+1;
+      end;
+
+    operator* (f1,f2 : UInt128) result : UInt128;
+      var
+        b : byte;
+      begin
+        result:=0;
+
+        for b:=0 to 63 do
+          begin
+            if odd(f2.QWords[QWORD_LO]) then
+              result:=result+f1;
+            f1:=f1 shl 1;
+            f2:=f2 shr 1;
+          end;
       end;
 
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
