@@ -4,10 +4,18 @@ program testcss;
 
 uses
   {$IFDEF UNIX}
+  {$IFDEF FPC_DOTTEDUNITS}
+  UnixApi.CWString,
+  {$ELSE FPC_DOTTEDUNITS}
   cwstring,
+  {$ENDIF FPC_DOTTEDUNITS}
   {$ENDIF}
-  Classes, sysutils, consoletestrunner, tcCSSScanner, tcCSSParser, tcCSSTree,
-  tcCSSResolver, tcCSSSkipInvalid;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Runners.Console,
+  {$ELSE FPC_DOTTEDUNITS}
+  Classes, sysutils, consoletestrunner,
+  {$ENDIF FPC_DOTTEDUNITS}
+  tcCSSScanner, tcCSSParser, tcCSSTree, tcCSSResolver, tcCSSSkipInvalid;
 
 type
 

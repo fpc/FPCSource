@@ -18,9 +18,15 @@ unit tcCSSParser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+  FpCss.Parser, FpCss.Tree, FpCss.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, testregistry, fpcssparser, fpcsstree,
   fpCSSScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -213,7 +219,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.IniFiles, System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses inifiles, typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TTestCSSFilesParser }
 

@@ -1160,10 +1160,15 @@ end;
 
 function TCSSScanner.IsUTF8BOM: boolean;
 begin
+{$IF SIZEOF(CHAR)=1}
   Result:=(length(FCurTokenString)=3)
       and (FCurTokenString[1]=#$EF)
       and (FCurTokenString[2]=#$BB)
       and (FCurTokenString[3]=#$BF);
+{$ELSE}
+  // The reader gives the three bytes as one character.
+  Result:=(length(FCurTokenString)=1) and (FCurTokenString[1]=#$FEFF);
+{$ENDIF}
 end;
 
 function TCSSScanner.DoFetchToken: TCSSToken;

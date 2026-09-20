@@ -4,8 +4,14 @@ unit tcCSSSkipInvalid;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+  tcCSSParser, FpCss.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, testregistry, tcCSSParser, fpCSSTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

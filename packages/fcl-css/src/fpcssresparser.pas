@@ -3317,7 +3317,8 @@ function TCSSBaseResolver.DetokenizeOne(aData: PByte): TCSSString;
   begin
     Result:='';
     if Cnt=0 then exit;
-    SetString(Result,@aData[Ofs],Cnt);
+    SetLength(Result,Cnt);
+    Move(aData[Ofs],Result[1],Cnt*SizeOf(TCSSChar));
   end;
 
 var

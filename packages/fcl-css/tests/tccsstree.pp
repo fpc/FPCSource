@@ -4,8 +4,14 @@ unit tcCSSTree;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FpcUnit.Test,
+  FpcUnit.Registry, FpCss.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, fpcunit, testregistry, fpCSSTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

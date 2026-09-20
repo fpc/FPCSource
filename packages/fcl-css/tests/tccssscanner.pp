@@ -19,8 +19,14 @@ unit tcCSSScanner;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FpcUnit.Test,
+  FpcUnit.Registry, FpCss.Scanner, FpCss.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, fpcunit, testregistry, fpcssscanner, fpCSSTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

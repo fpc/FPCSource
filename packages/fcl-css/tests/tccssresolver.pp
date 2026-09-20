@@ -20,9 +20,15 @@ unit tcCSSResolver;
 {$ENDIF}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Math, System.Contnrs, FpcUnit.Test,
+  FpcUnit.Registry, FpCss.Tree, FpCss.ValueParser, FpCss.Resolver;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Math, Contnrs, fpcunit, testregistry, fpCSSTree,
   fpCSSResParser, fpCSSResolver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TDemoNodeAttribute = (
@@ -776,8 +782,8 @@ var
     Result:='';
     if Count=0 then exit;
     SetLength(Result,Count);
-    Move(Data[i],Result[1],Count);
-    inc(i,Count);
+    Move(Data[i],Result[1],Count*SizeOf(TCSSChar));
+    inc(i,Count*SizeOf(TCSSChar));
   end;
 
 var
