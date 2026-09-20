@@ -38,6 +38,15 @@ unit uinteger128;
 
   implementation
 
+    const
+{$ifdef FPC_LITTLE_ENDIAN}
+      QWORD_LO = 0;
+      QWORD_HI = 1;
+{$else FPC_LITTLE_ENDIAN}
+      QWORD_LO = 1;
+      QWORD_HI = 0;
+{$endif FPC_LITTLE_ENDIAN}
+
     procedure DumpUInt128(const f : UInt128);
       type
         ta = packed array[0..SizeOf(UInt128)-1] of byte;
@@ -66,14 +75,14 @@ unit uinteger128;
       var
         c: Boolean;
       begin
-        qword_add(i1.QWords[0],i2.QWords[0],false,result.QWords[0],c);
-        qword_add(i1.QWords[1],i2.QWords[1],c,result.QWords[1],c);
+        qword_add(i1.QWords[QWORD_LO],i2.QWords[QWORD_LO],false,result.QWords[QWORD_LO],c);
+        qword_add(i1.QWords[QWORD_HI],i2.QWords[QWORD_HI],c,result.QWords[QWORD_HI],c);
       end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
       begin
-        dest.QWords[0] := source;
-        dest.QWords[1] := 0;
+        dest.QWords[QWORD_LO] := source;
+        dest.QWords[QWORD_HI] := 0;
       end;
 
 end.
