@@ -1046,6 +1046,8 @@ Function LoadFontConfigLib(Const ALibName : String; RaiseError : Boolean = true)
 
 Var
   FN : String;
+  // The name as the bytes the loader takes.
+  FB : RawByteString;
 
 begin
   Result:=-1;
@@ -1063,7 +1065,8 @@ begin
     end
   else
     begin
-    if LoadFC(PAnsiChar(FN)) then
+    FB:=FN;
+    if LoadFC(PAnsiChar(FB)) then
       begin
       inc(HCount);
       LoadedLib:=FN;
