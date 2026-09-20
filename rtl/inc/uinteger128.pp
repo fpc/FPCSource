@@ -34,7 +34,19 @@ unit uinteger128;
 
     operator := (const source : UInt64) dest : UInt128;inline;
 
+    procedure DumpUInt128(const f : UInt128);
+
   implementation
+
+    procedure DumpUInt128(const f : UInt128);
+      type
+        ta = packed array[0..SizeOf(UInt128)-1] of byte;
+      var
+        i : longint;
+      begin
+        for i:=SizeOf(UInt128)-1 downto 0 do
+          write(hexstr(ta(f)[i],2));
+      end;
 
     procedure qword_add(const i1, i2: QWord; carry_in: Boolean; var o: QWord; var carry_out: Boolean);
       begin
