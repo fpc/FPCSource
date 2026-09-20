@@ -118,7 +118,7 @@ unit uinteger128;
           end;
       end;
 
-   operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
+   operator shr (value : UInt128;shift : ALUUInt) result : UInt128;
       begin
         shift:=shift and 127;
         if shift=0 then
