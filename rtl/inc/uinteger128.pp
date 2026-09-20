@@ -92,7 +92,7 @@ unit uinteger128;
       begin
         result:=0;
 
-        for b:=0 to 63 do
+        for b:=0 to 127 do
           begin
             if odd(f2.QWords[QWORD_LO]) then
               result:=result+f1;
