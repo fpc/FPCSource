@@ -48,13 +48,8 @@ unit uinteger128;
 {$endif FPC_LITTLE_ENDIAN}
 
     procedure DumpUInt128(const f : UInt128);
-      type
-        ta = packed array[0..SizeOf(UInt128)-1] of byte;
-      var
-        i : longint;
       begin
-        for i:=SizeOf(UInt128)-1 downto 0 do
-          write(hexstr(ta(f)[i],2));
+        write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
       end;
 
 {$push} {$q-,r-}
