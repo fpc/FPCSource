@@ -30,9 +30,31 @@ unit uinteger128;
         QWords: array [0..1] of QWord;
       end;
 
+    operator+ (const i1,i2: UInt128) result : UInt128;inline;
+
     operator := (const source : UInt64) dest : UInt128;inline;
 
   implementation
+
+    procedure qword_add(const i1, i2: QWord; carry_in: Boolean; var o: QWord; var carry_out: Boolean);
+      begin
+        o := i1 + i2;
+        carry_out := (o < i1) or (o < i2);
+        if carry_in then
+          begin
+            if o = High(QWord) then
+              carry_out := true;
+            Inc(o);
+          end;
+      end;
+
+    operator+ (const i1,i2: UInt128) result : UInt128;inline;
+      var
+        c: Boolean;
+      begin
+        qword_add(i1.QWords[0],i2.QWords[0],false,result.QWords[0],c);
+        qword_add(i1.QWords[1],i2.QWords[1],c,result.QWords[1],c);
+      end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
       begin
