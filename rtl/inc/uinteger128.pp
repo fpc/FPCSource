@@ -48,6 +48,7 @@ unit uinteger128;
           write(hexstr(ta(f)[i],2));
       end;
 
+{$push} {$q-,r-}
     procedure qword_add(const i1, i2: QWord; carry_in: Boolean; var o: QWord; var carry_out: Boolean);
       begin
         o := i1 + i2;
@@ -59,6 +60,7 @@ unit uinteger128;
             Inc(o);
           end;
       end;
+{$pop}
 
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
       var
