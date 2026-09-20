@@ -35,6 +35,7 @@ unit uinteger128;
     operator+ (const i1,i2: UInt128) result : UInt128;inline;
     operator- (const i1,i2: UInt128) result : UInt128;inline;
     operator* (f1,f2 : UInt128) result : UInt128;
+    operator div (z,n : uint128) fpc_div_uint128 : uint128;
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
 
@@ -124,7 +125,7 @@ unit uinteger128;
           end;
       end;
 
-    function fpc_div_uint128(n,z : uint128) : uint128;
+    operator div (z,n : uint128) fpc_div_uint128 : uint128;
       var
          shift,lzz,lzn : longint;
       begin
