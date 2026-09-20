@@ -30,6 +30,14 @@ unit uinteger128;
         QWords: array [0..1] of QWord;
       end;
 
+    operator := (const source : UInt64) dest : UInt128;inline;
+
   implementation
+
+    operator := (const source : UInt64) dest : UInt128;inline;
+      begin
+        dest.QWords[0] := source;
+        dest.QWords[1] := 0;
+      end;
 
 end.
