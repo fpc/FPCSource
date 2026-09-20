@@ -74,7 +74,7 @@ implementation
       16-register E variants (ilp32e / lp64e), a7 (x17) otherwise. }
     function rv_max_int_param_reg: tsuperregister;
       begin
-        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+        if target_info.abi=abi_riscv_ilp32e then
           rv_max_int_param_reg:=RS_X15
         else
           rv_max_int_param_reg:=RS_X17;
@@ -142,7 +142,7 @@ implementation
 
     function trvparamanager.get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset;
       begin
-        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+        if target_info.abi=abi_riscv_ilp32e then
           result:=[RS_X0..RS_X15]-[RS_X2,RS_X8,RS_X9]
         else
           result:=[RS_X0..RS_X31]-[RS_X2,RS_X8..RS_X9,RS_X18..RS_X27];
@@ -162,7 +162,7 @@ implementation
         saved_regs: tcpuregisterarray = (RS_X2,RS_X8,RS_X9,RS_X18,RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27);
         saved_regs_16: tcpuregisterarray = (RS_X2,RS_X8,RS_X9);
       begin
-        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+        if target_info.abi=abi_riscv_ilp32e then
           result:=saved_regs_16
         else
           result:=saved_regs;
