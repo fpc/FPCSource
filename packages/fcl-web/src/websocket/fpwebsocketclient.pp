@@ -1287,7 +1287,7 @@ procedure TWebSocketClientConnection.Send(aFrame: TWSFrame);
 begin
   if Assigned(FClientSession) and
      (not TWSClientSession(FClientSession).IsOpen) then
-    Raise EWSReadInterrupted.Create(SErrClientSessionClosing);
+    Raise EWebSocketClient.Create(SErrClientSessionClosing);
   if not HandshakeCompleted then
     Raise EWebSocketClient.Create(SErrHandshakeInComplete);
   inherited Send(aFrame);
