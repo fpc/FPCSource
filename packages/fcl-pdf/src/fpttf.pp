@@ -207,6 +207,10 @@ resourcestring
 
 var
   uFontCacheList: TFPFontCacheList;
+{$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  // True when fontconfig was loaded by this unit, so that we unload only if we loaded.
+  uFontConfigLoaded: Boolean = False;
+{$ifend}
 
 function gTTFontCache: TFPFontCacheList;
 begin
@@ -648,8 +652,11 @@ var
 {$endif}
 begin
   {$ifdef HasFontsConf} // Linux & BSD
-  if not FontConfigLibLoaded then
-    loadfontconfiglib('');
+  if not uFontConfigLoaded then
+    begin
+    LoadFontConfigLib('', False);
+    uFontConfigLoaded := FontConfigLibLoaded;
+    end;
 
   config := FcInitLoadConfigAndFonts();
 
@@ -897,8 +904,11 @@ begin
   Result:=false;
   res:='';
 
-  if not FontConfigLibLoaded then
-    loadfontconfiglib('');
+  if not uFontConfigLoaded then
+    begin
+    LoadFontConfigLib('', False);
+    uFontConfigLoaded := FontConfigLibLoaded;
+    end;
 
   config := FcInitLoadConfigAndFonts();
 
@@ -1211,10 +1221,9 @@ initialization
 finalization
   uFontCacheList.Free;
 {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
-  if FontConfigLibLoaded then begin
-    FcFini;
+  // The library is unloaded: another part of the program may still be using fontconfig.
+  if uFontConfigLoaded then
     UnLoadFontConfigLib;
-  end;
 {$ifend}
 
 end.
