@@ -48,6 +48,8 @@ unit uinteger128;
 
     operator := (const source : UInt64) dest : UInt128;inline;
 
+    function IntToStr(Value: UInt128): string;
+
     procedure DumpUInt128(const f : UInt128);
 
   implementation
@@ -64,6 +66,30 @@ unit uinteger128;
     procedure DumpUInt128(const f : UInt128);
       begin
         write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
+      end;
+
+    function IntToStr(Value: UInt128): string;
+      var
+        I: Integer;
+        tmpC: Char;
+      begin
+        if Value=0 then
+          begin
+            IntToStr:='0';
+            exit;
+          end;
+        IntToStr:='';
+        while Value<>0 do
+          begin
+            IntToStr:=IntToStr+Chr(Ord('0') + (Value mod 10).QWords[QWORD_LO]);
+            Value:=Value div 10;
+          end;
+        for I:=1 to Length(IntToStr) div 2 do
+          begin
+            tmpC:=IntToStr[I];
+            IntToStr[I]:=IntToStr[Length(IntToStr)-I+1];
+            IntToStr[Length(IntToStr)-I+1]:=tmpC;
+          end;
       end;
 
     function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
