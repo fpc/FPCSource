@@ -164,7 +164,8 @@ unit uinteger128;
            end;
          fpc_div_uint128:=0;
          if n=0 then
-           {TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame)};
+           RunError(200);
+           //TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          if z=0 then
            exit;
          lzz:=BsrUInt128(z);
@@ -200,7 +201,8 @@ unit uinteger128;
            end;
          fpc_mod_uint128:=0;
          if n=0 then
-           {TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame)};
+           RunError(200);
+           //TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          if z=0 then
            exit;
          lzz:=BsrUInt128(z);
