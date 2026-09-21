@@ -52,6 +52,7 @@ unit uinteger128;
 
     operator := (const source : UInt64) dest : UInt128;inline;
 
+    function BinStr(const v: UInt128; cnt: Byte): string; overload;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
     function IntToStr(Value: UInt128): string;
 
@@ -65,6 +66,14 @@ unit uinteger128;
       QWORD_LO = 1;
       QWORD_HI = 0;
 {$endif FPC_LITTLE_ENDIAN}
+
+    function BinStr(const v: UInt128; cnt: Byte): string; overload;
+      begin
+        if cnt<=64 then
+          BinStr:=System.BinStr(v.QWords[QWORD_LO],cnt)
+        else
+          BinStr:=System.BinStr(v.QWords[QWORD_HI],cnt-64)+System.BinStr(v.QWords[QWORD_LO],64);
+      end;
 
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
       begin
