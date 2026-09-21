@@ -35,7 +35,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
      svggoldens, svgstubfont, svgpixels, tcsvgtypes, tcsvgtrace,
      tcsvgread, tcsvgdom, tcsvgpath, tcsvgshapes, tcsvgstyle,
-     tcsvgcascade, tcsvguse, tcsvgraster, tcsvgstroke, tcsvggradient,
+     tcsvgcascade, tcsvguse, tcsvgraster, tcsvgstroke, tcsvggradient, tcsvgpdf,
      tcsvgrender, tcsvgclip, tcsvgrefs, tcsvgtext,
 {$IFDEF DARWIN}
      tcsvgcoretext,
