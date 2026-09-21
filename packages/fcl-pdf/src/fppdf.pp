@@ -166,6 +166,52 @@ type
 
   TDashArray = array of TPDFFloat;
 
+  { A transformation matrix, using the names & order as the cm operator uses them.
+    It maps a point to x' = A*x + C*y + E and y' = B*x + D*y + F.
+    TPDFMatrix above is the same matrix without rotation or skew:
+    The fields map as:
+    _00 is A,
+    _11 is D,
+    _20 is E
+    _21 is F
+    It has no B or C because both are zero.
+    A page places what is drawn on it with TPDFMatrix;
+    This one is written into the content stream by TPDFPage.ConcatMatrix,
+    and by the matrix of a form or a pattern. }
+  TPDFTransformMatrix = record
+    // Horizontal scale
+    A: TPDFFloat;
+    // Vertical skew
+    B: TPDFFloat;
+    // Horizontal skew
+    C: TPDFFloat;
+    // Vertical scale
+    D: TPDFFloat;
+    // Horizontal translation.
+    E: TPDFFloat;
+    // Vertical translation.
+    F: TPDFFloat;
+  end;
+
+  { Blending modes: How a drawing is combined with what is under it. }
+  TPDFBlendMode = (pbmNormal, pbmMultiply, pbmScreen, pbmOverlay, pbmDarken,
+    pbmLighten, pbmColorDodge, pbmColorBurn, pbmHardLight, pbmSoftLight,
+    pbmDifference, pbmExclusion);
+
+  { What a soft mask reads }
+  TPDFSoftMaskKind = (psmNone, psmAlpha, psmLuminosity);
+
+  { The geometry a shading paints along: an axis or a pair of circles. }
+  TPDFShadingKind = (pshAxial, pshRadial);
+
+  { One colour of a shading, between [0..1].
+    A shading in grey uses the level from the red channel. }
+  TPDFShadingStop = record
+    Offset : TPDFFloat;
+    Color  : TARGBColor;
+  end;
+  TPDFShadingStopArray = array of TPDFShadingStop;
+
   TPDFObject = class(TObject)
   Protected
     Class Function FloatStr(F: TPDFFloat) : String;
@@ -853,6 +899,12 @@ type
     { Move the current drawing position to (x, y) }
     procedure MoveTo(x, y: TPDFFloat); overload;
     procedure MoveTo(APos: TPDFCoord); overload;
+    { Append a straight segment to the current path, from the current position to (x, y), which becomes the current position. }
+    procedure LineTo(x, y: TPDFFloat); overload;
+    procedure LineTo(APos: TPDFCoord); overload;
+    { Draws an image of the document under the current transformation,
+      which maps the unit square onto it. }
+    procedure DrawImageXObject(const ANumber: Integer);
     { Append a cubic Bezier curve to the current path
       - The curve extends from the current point to the point (xTo, yTo),
         using (xCtrl1, yCtrl1) and (xCtrl2, yCtrl2) as the Bezier control points
@@ -871,6 +923,30 @@ type
       - The new current point is (xTo, yTo) }
     procedure CubicCurveToY(xCtrl1, yCtrl1, xTo, yTo: TPDFFloat; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
     procedure CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    { Multiplies the current transformation by this matrix. Everything drawn afterwards, until the graphics stack is popped, is affected by it. }
+    procedure ConcatMatrix(const A, B, C, D, E, F: TPDFFloat); overload;
+    procedure ConcatMatrix(const AMatrix: TPDFTransformMatrix); overload;
+    { Fill using the nonzero winding number rule, without stroking. }
+    procedure FillPath;
+    { Fill using the even-odd rule, without stroking. }
+    procedure FillEvenOddPath;
+    { Intersects the clip with the current path, using the even-odd rule. }
+    procedure ClipPathEvenOdd;
+    { Sets the width of the pen without changing anything else. }
+    procedure SetLineWidth(const AWidth: TPDFFloat);
+    { Sets the dash pattern of the pen and where in the pattern it starts. An empty pattern draws a solid line. }
+    procedure SetDashPattern(const APattern: TDashArray; const APhase: TPDFFloat);
+    { Puts a graphics state of the document into effect: its alpha, its blend mode and its soft mask. }
+    procedure SetGraphicsState(const AIndex: Integer);
+    { Paints a shading of the document over the area (bounded by the clip area) }
+    procedure PaintShading(const AIndex: Integer);
+    { Draws a form of the document, under the current transformation. }
+    procedure DrawForm(const AIndex: Integer);
+    { Takes a pattern of the document as the colour to fill or stroke with. }
+    procedure SetPatternFill(const AIndex: Integer);
+    procedure SetPatternStroke(const AIndex: Integer);
+    { Writes content stream operators as-is }
+    procedure WriteRawContent(const AContent: String);
     { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
     Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
     { Define a rectangle that becomes a clickable hotspot, referencing the document page.
@@ -1009,6 +1085,153 @@ type
   end;
 
 
+  { A form XObject:
+    Content that is written once and drawn as a unit, with its own coordinate box.
+    A form with Group set is a transparency group, which is what an isolated layer and the source of a soft mask are.
+    Draw into it with the methods of its page (it is a page all by itself), and place it on a page with TPDFPage.DrawForm.
+  }
+  TPDFForm = class(TPDFPage)
+  private
+    FBBox: TPDFDimensions;
+    FFormMatrix: TPDFTransformMatrix;
+    FGroup: Boolean;
+    FIsolated: Boolean;
+    FKnockout: Boolean;
+    FIndex: Integer;
+    FXRef: Integer;
+  protected
+    procedure AdjustMatrix; override;
+  public
+    constructor Create(const ADocument: TPDFDocument); override;
+    // The box the content of the form covers, in its own coordinates.
+    property BBox: TPDFDimensions read FBBox write FBBox;
+    // Maps the content of the form into the space it is drawn in.
+    property FormMatrix: TPDFTransformMatrix read FFormMatrix write FFormMatrix;
+    // True when the form is a transparency group.
+    property Group: Boolean read FGroup write FGroup;
+    // True when the group starts from a transparent backdrop of its own.
+    property Isolated: Boolean read FIsolated write FIsolated;
+    // True when each object of the group hides the ones before it.
+    property Knockout: Boolean read FKnockout write FKnockout;
+    // The number the form is drawn by, as /Fm<number>.
+    property Index: Integer read FIndex;
+  end;
+
+
+  { One entry of the /ExtGState resource:
+    the alpha, the blend mode and the soft mask that TPDFPage.SetGraphicsState sets. }
+  TPDFGraphicsStateItem = class(TCollectionItem)
+  private
+    FFillAlpha: TPDFFloat;
+    FStrokeAlpha: TPDFFloat;
+    FBlendMode: TPDFBlendMode;
+    FSoftMask: TPDFSoftMaskKind;
+    FSoftMaskForm: Integer;
+    FXRef: Integer;
+  public
+    constructor Create(ACollection: TCollection); override;
+    // Alpha of everything filled; a negative value leaves it unchanged.
+    property FillAlpha: TPDFFloat read FFillAlpha write FFillAlpha;
+    // Alpha of everything stroked; a negative value leaves it unchanged.
+    property StrokeAlpha: TPDFFloat read FStrokeAlpha write FStrokeAlpha;
+    // How a drawing is combined with what lies under it.
+    property BlendMode: TPDFBlendMode read FBlendMode write FBlendMode;
+    // What the mask reads from its form.
+    property SoftMask: TPDFSoftMaskKind read FSoftMask write FSoftMask;
+    // The form the soft mask reads, as an index into Forms; -1 for none.
+    property SoftMaskForm: Integer read FSoftMaskForm write FSoftMaskForm;
+  end;
+
+
+  { The graphics states of a document, written as its /ExtGState resource. }
+  TPDFGraphicsStates = class(TCollection)
+  private
+    function GetS(AIndex: Integer): TPDFGraphicsStateItem;
+  public
+    // Appends an empty state.
+    function AddState: TPDFGraphicsStateItem;
+    property States[AIndex: Integer]: TPDFGraphicsStateItem read GetS; default;
+  end;
+
+
+  { A shading:
+    the geometry it runs along (axial or radial) and the colours it runs through. }
+  TPDFShadingItem = class(TCollectionItem)
+  private
+    FKind: TPDFShadingKind;
+    FCoords: array[0..5] of TPDFFloat;
+    FStops: TPDFShadingStopArray;
+    FExtendStart: Boolean;
+    FExtendEnd: Boolean;
+    FGray: Boolean;
+    FXRef: Integer;
+    function GetCoord(AIndex: Integer): TPDFFloat;
+    procedure SetCoord(AIndex: Integer; AValue: TPDFFloat);
+  public
+    constructor Create(ACollection: TCollection); override;
+    // Appends a colour at a place on the axis. Offsets rise from 0 to 1.
+    procedure AddStop(AOffset: TPDFFloat; AColor: TARGBColor);
+    // An axis or a pair of circles.
+    property Kind: TPDFShadingKind read FKind write FKind;
+    { The geometry: x0 y0 x1 y1 for an axis, x0 y0 r0 x1 y1 r1 for circles. }
+    property Coords[AIndex: Integer]: TPDFFloat read GetCoord write SetCoord;
+    // True when the first colour also paints everything before the axis.
+    property ExtendStart: Boolean read FExtendStart write FExtendStart;
+    // True when the last colour also paints everything past the axis.
+    property ExtendEnd: Boolean read FExtendEnd write FExtendEnd;
+    // True for a shading in grey, which a soft mask reads.
+    property Gray: Boolean read FGray write FGray;
+    // The colours, in the order they were added.
+    property Stops: TPDFShadingStopArray read FStops;
+  end;
+
+
+  { The shadings of a document, written as its /Shading resource. }
+  TPDFShadings = class(TCollection)
+  private
+    function GetS(AIndex: Integer): TPDFShadingItem;
+  public
+    // Appends a shading without colours.
+    function AddShading: TPDFShadingItem;
+    property Shadings[AIndex: Integer]: TPDFShadingItem read GetS; default;
+  end;
+
+
+  { A pattern that fills with a shading, or with a form repeated over a grid.
+    Use it with TPDFPage.SetPatternFill to set the fill or stroke colour. }
+  TPDFPatternItem = class(TCollectionItem)
+  private
+    FShading: Integer;
+    FForm: Integer;
+    FMatrix: TPDFTransformMatrix;
+    FXStep: TPDFFloat;
+    FYStep: TPDFFloat;
+    FXRef: Integer;
+  public
+    constructor Create(ACollection: TCollection); override;
+    // The shading the pattern paints, as an index into Shadings; -1 for none.
+    property Shading: Integer read FShading write FShading;
+    // The form the pattern repeats, as an index into Forms; -1 for none.
+    property Form: Integer read FForm write FForm;
+    // Maps the space of the pattern into the space of the page.
+    property Matrix: TPDFTransformMatrix read FMatrix write FMatrix;
+    // Distance between two tiles of a form pattern.
+    property XStep: TPDFFloat read FXStep write FXStep;
+    property YStep: TPDFFloat read FYStep write FYStep;
+  end;
+
+
+  { The patterns of a document, written as its /Pattern resource. }
+  TPDFPatterns = class(TCollection)
+  private
+    function GetP(AIndex: Integer): TPDFPatternItem;
+  public
+    // Appends a pattern that paints nothing yet.
+    function AddPattern: TPDFPatternItem;
+    property Patterns[AIndex: Integer]: TPDFPatternItem read GetP; default;
+  end;
+
+
   TPDFAnnot = class(TPDFObject)
   private
     FLeft: TPDFFloat;
@@ -1087,6 +1310,12 @@ type
     Procedure CreateStreamedData(AUseCompression: Boolean); overload;
     Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
     Procedure DetachImage;
+    { Takes raw pixels:
+      - three bytes of red, green and blue per pixel,
+      - row by row from the top,
+      - and an alpha plane of one byte per pixel or nothing.
+      The data is compressed when the document asks for  compressed images. }
+    Procedure SetRawImage(AWidth, AHeight: Integer; const ARGB: TBytes;  const AAlpha: TBytes);
     procedure SetStreamedMask(const AValue: TBytes; const ACompression: TPDFImageCompression);
     Function WriteImageStream(AStream: TStream): int64;
     Function WriteMaskStream(AStream: TStream): int64;
@@ -1113,6 +1342,10 @@ type
   Public
     Constructor Create(AOwner: TPDFDocument; AItemClass : TCollectionItemClass);
     Function AddImageItem : TPDFImageItem;
+    { Adds an image from the pixels themselves (See SetRawImage for the format).
+      Returns the number the image is drawn by. }
+    Function AddRawImage(AWidth, AHeight : Integer; const ARGB : TBytes;
+      const AAlpha : TBytes): Integer;
     Function AddJPEGStream(Const AStream : TStream; Width,Height : Integer): Integer;
     Function AddFromStream(Const AStream : TStream; Handler : TFPCustomImageReaderClass;
       KeepImage : Boolean = False): Integer;
@@ -1201,10 +1434,16 @@ type
     FTrailer: TPDFDictionary;
     FZoomValue: string;
     FGlobalXRefs: TFPObjectList; // list of TPDFXRef
+    FGraphicsStates: TPDFGraphicsStates;
+    FShadings: TPDFShadings;
+    FPatterns: TPDFPatterns;
+    FForms: TFPObjectList; // list of TPDFForm
     FUnitOfMeasure: TPDFUnitOfMeasure;
     FPageXRefs: array of Integer; // maps page index (document reading order) -> xref object number of that page
     FPendingDestArrays: array of TPDFArray;   // GoTo destination arrays awaiting page resolution
     FPendingDestPageIdx: array of Integer;    // target page index for each pending array, same order
+    function GetForm(AIndex: Integer): TPDFForm;
+    function GetFormCount: Integer;
     function GetStdFontCharWidthsArray(const AFontName: string): TPDFFontWidthArray;
     function GetX(AIndex : Integer): TPDFXRef;
     function GetXC: Integer;
@@ -1266,6 +1505,19 @@ type
     function CreateAnnotEntry(const APageNum, AnnotNum: integer): integer; virtual;
     function CreateCIDToGIDMap(const AFontNum: integer): integer; virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
+    // The resource dictionary of the first page, or nil when there is none.
+    function PageResources: TPDFDictionary;
+    procedure CreateShadingEntry(AItem: TPDFShadingItem); virtual;
+    procedure CreatePatternEntry(AItem: TPDFPatternItem); virtual;
+    procedure CreateGraphicsStateEntry(AItem: TPDFGraphicsStateItem); virtual;
+    procedure CreateFormEntry(AForm: TPDFForm); virtual;
+    // Writes the graphics states, shadings, patterns and forms, and adds them to the resources of every page and form that may use them.
+    procedure CreateExtendedResources; virtual;
+    // Adds the named resources of the document to a resource dictionary.
+    // The form with the number AExcludeForm is left out, so that a form
+    // does not name itself; -1 leaves out none of them.
+    procedure AddExtendedResourcesTo(AResources: TPDFDictionary;
+      AExcludeForm: Integer); virtual;
     Function CreateString(Const AValue : String) : TPDFString;
     Function CreateUTF16String(Const AValue : UnicodeString; const AFontIndex: integer) : TPDFUTF16String;
     Function CreateUTF8String(Const AValue : UTF8String; const AFontIndex: integer) : TPDFUTF8String;
@@ -1310,6 +1562,31 @@ type
     Function CreateXRef : TPDFXRef;
     Function CreateArray : TPDFArray;
     Function CreateImage(const ALeft, ABottom, AWidth, AHeight: TPDFFloat; ANumber: integer) : TPDFImage;
+    { Adds a graphics state, or returns the one already added with the same values.
+      A negative alpha leaves that alpha as it is.
+      ASoftMaskForm is an index into Forms, and is used only when ASoftMask is not psmNone. }
+    Function AddGraphicsState(AFillAlpha, AStrokeAlpha: TPDFFloat;
+      ABlendMode: TPDFBlendMode = pbmNormal;
+      ASoftMask: TPDFSoftMaskKind = psmNone;
+      ASoftMaskForm: Integer = -1) : Integer;
+    { Adds a shading running along the axis from (X0,Y0) to (X1,Y1). AGray writes it in grey, which is what a soft mask reads. }
+    Function AddAxialShading(X0, Y0, X1, Y1: TPDFFloat;
+      const AStops: array of TPDFShadingStop;
+      AExtendStart: Boolean = True; AExtendEnd: Boolean = True;
+      AGray: Boolean = False) : Integer;
+    { Adds a shading running between two circles, the first of which is the focus of an SVG radial gradient. }
+    Function AddRadialShading(X0, Y0, R0, X1, Y1, R1: TPDFFloat;
+      const AStops: array of TPDFShadingStop;
+      AExtendStart: Boolean = True; AExtendEnd: Boolean = True;
+      AGray: Boolean = False) : Integer;
+    { Adds a pattern painting a shading. It is placed onto the page using a matrix that maps the space the shading was given in. }
+    Function AddShadingPattern(AShading: Integer;
+      const AMatrix: TPDFTransformMatrix) : Integer;
+    { Adds a pattern repeating a form over a grid of AXStep by AYStep. }
+    Function AddTilingPattern(AForm: Integer; AXStep, AYStep: TPDFFloat;
+      const AMatrix: TPDFTransformMatrix) : Integer;
+    { Adds a form covering the given box. Draw into it with its own page methods, and place it with TPDFPage.DrawForm. }
+    Function AddForm(const ABBox: TPDFDimensions) : TPDFForm;
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
     Function AddFont(AFontStream: TStream; AName : String) : Integer; overload;
@@ -1320,6 +1597,15 @@ type
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
     Property Pages : TPDFPages Read FPages;
     Property Images : TPDFImages Read FImages;
+    // The graphics states, written as the /ExtGState resource.
+    Property GraphicsStates : TPDFGraphicsStates Read FGraphicsStates;
+    // The shadings, written as the /Shading resource.
+    Property Shadings : TPDFShadings Read FShadings;
+    // The patterns, written as the /Pattern resource.
+    Property Patterns : TPDFPatterns Read FPatterns;
+    // The forms, written as /Fm<index> in the /XObject resource.
+    Property Forms[AIndex : Integer] : TPDFForm Read GetForm;
+    Property FormCount : Integer Read GetFormCount;
     Function ImageStreamOptions : TPDFImageStreamOptions;
     Property Catalogue: integer Read FCatalogue;
     Property Trailer: TPDFDictionary Read FTrailer;
@@ -1430,6 +1716,9 @@ resourcestring
   rsErrNoFontDefined = 'No Font was set - please use SetFont() first.';
   rsErrNoImageReader = 'Unsupported image format - no image reader available.';
   rsErrUnknownStdFont = 'Unknown standard PDF font name <%s>.';
+  rsErrInvalidShadingCoord = 'Invalid shading coordinate index: %d';
+  rsErrInvalidFormIndex = 'Invalid form index: %d';
+  rsErrShortImageData = 'Image data too short: %d bytes needed, %d given.';
 
 { Includes font metrics constant arrays for the standard PDF fonts. They are
   not used at the moment, but in future we might want to do something with
@@ -2297,6 +2586,199 @@ begin
   Result:=Add as TPDFLineStyleDef;
 end;
 
+// A number with the precision a transformation matrix needs, written
+// without a decimal separator of the locale.
+function PDFMatrixFloatStr(F: TPDFFloat): String;
+
+var
+  I: Integer;
+
+begin
+  Str(F:0:6, Result);
+  Result := Trim(Result);
+  if Pos('.', Result) > 0 then
+    begin
+    I := Length(Result);
+    while (I > 1) and (Result[I] = '0') do
+      Dec(I);
+    if Result[I] = '.' then
+      Dec(I);
+    SetLength(Result, I);
+    end;
+  if Result = '-0' then
+    Result := '0';
+end;
+
+
+// The six numbers of a matrix, in the order the cm operator takes them.
+function PDFMatrixStr(const AMatrix: TPDFTransformMatrix): String;
+
+begin
+  Result := PDFMatrixFloatStr(AMatrix.A) + ' ' + PDFMatrixFloatStr(AMatrix.B)
+    + ' ' + PDFMatrixFloatStr(AMatrix.C) + ' ' + PDFMatrixFloatStr(AMatrix.D)
+    + ' ' + PDFMatrixFloatStr(AMatrix.E) + ' ' + PDFMatrixFloatStr(AMatrix.F);
+end;
+
+
+{ TPDFForm }
+
+constructor TPDFForm.Create(const ADocument: TPDFDocument);
+
+begin
+  inherited Create(ADocument);
+  FIndex := -1;
+  FXRef := -1;
+  FGroup := True;
+  FIsolated := True;
+  FKnockout := False;
+  FillChar(FFormMatrix, SizeOf(FFormMatrix), 0);
+  FFormMatrix.A := 1;
+  FFormMatrix.D := 1;
+  UnitOfMeasure := uomPixels;
+  AdjustMatrix;
+end;
+
+
+procedure TPDFForm.AdjustMatrix;
+
+begin
+  FMatrix._00 := 1;
+  FMatrix._11 := 1;
+  FMatrix._20 := 0;
+  FMatrix._21 := 0;
+end;
+
+
+{ TPDFGraphicsStateItem }
+
+constructor TPDFGraphicsStateItem.Create(ACollection: TCollection);
+
+begin
+  inherited Create(ACollection);
+  FFillAlpha := -1;
+  FStrokeAlpha := -1;
+  FBlendMode := pbmNormal;
+  FSoftMask := psmNone;
+  FSoftMaskForm := -1;
+  FXRef := -1;
+end;
+
+
+{ TPDFGraphicsStates }
+
+function TPDFGraphicsStates.GetS(AIndex: Integer): TPDFGraphicsStateItem;
+
+begin
+  Result := TPDFGraphicsStateItem(Items[AIndex]);
+end;
+
+
+function TPDFGraphicsStates.AddState: TPDFGraphicsStateItem;
+
+begin
+  Result := TPDFGraphicsStateItem(Add);
+end;
+
+
+{ TPDFShadingItem }
+
+constructor TPDFShadingItem.Create(ACollection: TCollection);
+
+var
+  I: Integer;
+
+begin
+  inherited Create(ACollection);
+  FKind := pshAxial;
+  for I := 0 to 5 do
+    FCoords[I] := 0;
+  FExtendStart := True;
+  FExtendEnd := True;
+  FGray := False;
+  FXRef := -1;
+end;
+
+
+function TPDFShadingItem.GetCoord(AIndex: Integer): TPDFFloat;
+
+begin
+  if (AIndex < 0) or (AIndex > 5) then
+    raise EPDF.CreateFmt(rsErrInvalidShadingCoord, [AIndex]);
+  Result := FCoords[AIndex];
+end;
+
+
+procedure TPDFShadingItem.SetCoord(AIndex: Integer; AValue: TPDFFloat);
+
+begin
+  if (AIndex < 0) or (AIndex > 5) then
+    raise EPDF.CreateFmt(rsErrInvalidShadingCoord, [AIndex]);
+  FCoords[AIndex] := AValue;
+end;
+
+
+procedure TPDFShadingItem.AddStop(AOffset: TPDFFloat; AColor: TARGBColor);
+
+var
+  L: Integer;
+
+begin
+  L := Length(FStops);
+  SetLength(FStops, L + 1);
+  FStops[L].Offset := AOffset;
+  FStops[L].Color := AColor;
+end;
+
+
+{ TPDFShadings }
+
+function TPDFShadings.GetS(AIndex: Integer): TPDFShadingItem;
+
+begin
+  Result := TPDFShadingItem(Items[AIndex]);
+end;
+
+
+function TPDFShadings.AddShading: TPDFShadingItem;
+
+begin
+  Result := TPDFShadingItem(Add);
+end;
+
+
+{ TPDFPatternItem }
+
+constructor TPDFPatternItem.Create(ACollection: TCollection);
+
+begin
+  inherited Create(ACollection);
+  FShading := -1;
+  FForm := -1;
+  FXStep := 1;
+  FYStep := 1;
+  FillChar(FMatrix, SizeOf(FMatrix), 0);
+  FMatrix.A := 1;
+  FMatrix.D := 1;
+  FXRef := -1;
+end;
+
+
+{ TPDFPatterns }
+
+function TPDFPatterns.GetP(AIndex: Integer): TPDFPatternItem;
+
+begin
+  Result := TPDFPatternItem(Items[AIndex]);
+end;
+
+
+function TPDFPatterns.AddPattern: TPDFPatternItem;
+
+begin
+  Result := TPDFPatternItem(Add);
+end;
+
+
 { TPDFPages }
 
 function TPDFPages.GetP(AIndex : Integer): TPDFPage;
@@ -2986,6 +3468,34 @@ begin
   MoveTo(APos.X, APos.Y);
 end;
 
+procedure TPDFPage.LineTo(x, y: TPDFFloat);
+
+var
+  p1: TPDFCoord;
+
+begin
+  p1 := Matrix.Transform(x, y);
+  DoUnitConversion(p1);
+  AddObject(TPDFFreeFormString.Create(Document,
+    PDFMatrixFloatStr(p1.X) + ' ' + PDFMatrixFloatStr(p1.Y) + ' l' + CRLF));
+end;
+
+
+procedure TPDFPage.LineTo(APos: TPDFCoord);
+
+begin
+  LineTo(APos.X, APos.Y);
+end;
+
+
+procedure TPDFPage.DrawImageXObject(const ANumber: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/I' + IntToStr(ANumber) + ' Do' + CRLF));
+end;
+
+
 procedure TPDFPage.CubicCurveTo(const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo, ALineWidth: TPDFFloat; AStroke: Boolean);
 var
   p1, p2, p3: TPDFCoord;
@@ -3035,6 +3545,126 @@ procedure TPDFPage.CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFF
 begin
   CubicCurveToY(ACtrl1.X, ACtrl1.Y, ATo.X, ATo.Y, ALineWidth, AStroke);
 end;
+
+procedure TPDFPage.ConcatMatrix(const A, B, C, D, E, F: TPDFFloat);
+
+var
+  M: TPDFTransformMatrix;
+
+begin
+  M.A := A;
+  M.B := B;
+  M.C := C;
+  M.D := D;
+  M.E := E;
+  M.F := F;
+  ConcatMatrix(M);
+end;
+
+
+procedure TPDFPage.ConcatMatrix(const AMatrix: TPDFTransformMatrix);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    PDFMatrixStr(AMatrix) + ' cm' + CRLF));
+end;
+
+
+procedure TPDFPage.FillPath;
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 'f' + CRLF));
+end;
+
+
+procedure TPDFPage.FillEvenOddPath;
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 'f*' + CRLF));
+end;
+
+
+procedure TPDFPage.ClipPathEvenOdd;
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 'W* n' + CRLF));
+end;
+
+
+procedure TPDFPage.SetLineWidth(const AWidth: TPDFFloat);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    PDFMatrixFloatStr(AWidth) + ' w' + CRLF));
+end;
+
+
+procedure TPDFPage.SetDashPattern(const APattern: TDashArray;
+  const APhase: TPDFFloat);
+
+var
+  S: String;
+  I: Integer;
+
+begin
+  S := '';
+  for I := 0 to Length(APattern) - 1 do
+    begin
+    if S <> '' then
+      S := S + ' ';
+    S := S + PDFMatrixFloatStr(APattern[I]);
+    end;
+  AddObject(TPDFFreeFormString.Create(Document,
+    '[' + S + '] ' + PDFMatrixFloatStr(APhase) + ' d' + CRLF));
+end;
+
+
+procedure TPDFPage.SetGraphicsState(const AIndex: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/GS' + IntToStr(AIndex) + ' gs' + CRLF));
+end;
+
+
+procedure TPDFPage.PaintShading(const AIndex: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/Sh' + IntToStr(AIndex) + ' sh' + CRLF));
+end;
+
+
+procedure TPDFPage.DrawForm(const AIndex: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/Fm' + IntToStr(AIndex) + ' Do' + CRLF));
+end;
+
+
+procedure TPDFPage.SetPatternFill(const AIndex: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/Pattern cs /P' + IntToStr(AIndex) + ' scn' + CRLF));
+end;
+
+
+procedure TPDFPage.SetPatternStroke(const AIndex: Integer);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document,
+    '/Pattern CS /P' + IntToStr(AIndex) + ' SCN' + CRLF));
+end;
+
+
+procedure TPDFPage.WriteRawContent(const AContent: String);
+
+begin
+  AddObject(TPDFFreeFormString.Create(Document, AContent));
+end;
+
 
 procedure TPDFPage.AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
     const AURI: string; ABorder: boolean);
@@ -3453,6 +4083,68 @@ begin
   end;
 end;
 
+procedure TPDFImageItem.SetRawImage(AWidth, AHeight: Integer;
+  const ARGB: TBytes; const AAlpha: TBytes);
+
+  function Packed_(const ABytes: TBytes; ACompress: Boolean;
+    out ACompression: TPDFImageCompression): TBytes;
+  var
+    MS: TMemoryStream;
+    Str: TStream;
+  begin
+    Result := nil;
+    if not ACompress then
+      begin
+      ACompression := icNone;
+      Exit(Copy(ABytes, 0, Length(ABytes)));
+      end;
+    ACompression := icDeflate;
+    MS := TMemoryStream.Create;
+    try
+      Str := Tcompressionstream.create(cldefault, MS);
+      try
+        if Length(ABytes) > 0 then
+          Str.WriteBuffer(ABytes[0], Length(ABytes));
+      finally
+        Str.Free;
+      end;
+      SetLength(Result, MS.Size);
+      MS.Position := 0;
+      if MS.Size > 0 then
+        MS.ReadBuffer(Result[0], MS.Size);
+    finally
+      MS.Free;
+    end;
+  end;
+
+var
+  lCompress: Boolean;
+  lCompression: TPDFImageCompression;
+
+begin
+  if Length(ARGB) < AWidth * AHeight * 3 then
+    raise EPDF.CreateFmt(rsErrShortImageData, [AWidth * AHeight * 3,
+      Length(ARGB)]);
+  if (Length(AAlpha) > 0) and (Length(AAlpha) < AWidth * AHeight) then
+    raise EPDF.CreateFmt(rsErrShortImageData, [AWidth * AHeight,
+      Length(AAlpha)]);
+  DetachImage;
+  FWidth := AWidth;
+  FHeight := AHeight;
+  FColorSpace := csDeviceRGB;
+  FBitsPerComponent := 8;
+  lCompress := False;
+  if (Collection is TPDFImages) and (TPDFImages(Collection).Owner <> nil) then
+    lCompress := isoCompressed in TPDFImages(Collection).Owner.ImageStreamOptions;
+  FStreamed := Packed_(ARGB, lCompress, lCompression);
+  FCompression := lCompression;
+  if Length(AAlpha) > 0 then
+    SetStreamedMask(Packed_(AAlpha, lCompress, lCompression), lCompression)
+  else
+    SetStreamedMask(nil, icNone);
+end;
+
+
 Procedure TPDFImageItem.DetachImage;
 begin
   FImage := nil;
@@ -3524,6 +4216,19 @@ function TPDFImages.AddImageItem: TPDFImageItem;
 begin
   Result:=Add as TPDFImageItem;
 end;
+
+function TPDFImages.AddRawImage(AWidth, AHeight: Integer;
+  const ARGB: TBytes; const AAlpha: TBytes): Integer;
+
+var
+  I: TPDFImageItem;
+
+begin
+  I := AddImageItem;
+  I.SetRawImage(AWidth, AHeight, ARGB, AAlpha);
+  Result := Count - 1;
+end;
+
 
 function TPDFImages.AddJPEGStream(const AStream: TStream; Width, Height: Integer
   ): Integer;
@@ -4844,9 +5549,9 @@ class function TPDFColor.Command(const AStroke: boolean; const AColor: TARGBColo
 var
   lR, lG, lB: string;
 begin
-  lR := FloatStr(ARGBGetRed(AColor)/256);
-  lG := FloatStr(ARGBGetGreen(AColor)/256);
-  lB := FloatStr(ARGBGetBlue(AColor)/256);
+  lR := FloatStr(ARGBGetRed(AColor)/255);
+  lG := FloatStr(ARGBGetGreen(AColor)/255);
+  lB := FloatStr(ARGBGetBlue(AColor)/255);
   result := lR+' '+lG+' '+lB+' ';
   if AStroke then
     result := result + 'RG'
@@ -4858,9 +5563,9 @@ constructor TPDFColor.Create(Const ADocument : TPDFDocument; const AStroke: Bool
 begin
   inherited Create(ADocument);
   FColor := AColor;
-  FRed:=FloatStr( ARGBGetRed(AColor)/256);
-  FGreen:=FloatStr( ARGBGetGreen(AColor)/256);
-  FBlue:=FloatStr( ARGBGetBlue(AColor)/256);
+  FRed:=FloatStr( ARGBGetRed(AColor)/255);
+  FGreen:=FloatStr( ARGBGetGreen(AColor)/255);
+  FBlue:=FloatStr( ARGBGetBlue(AColor)/255);
   FStroke:=AStroke;
 end;
 
@@ -4963,7 +5668,9 @@ var
   D : TPDFDictionary;
   aFont: TPDFFont;
 begin
-  if GetE(0).FKey.Name='' then
+  if ElementCount=0 then
+    WriteString('<<>>', AStream)
+  else if GetE(0).FKey.Name='' then
     GetE(0).Write(AStream)  // write a charwidth array of a font
   else
   begin
@@ -6368,6 +7075,10 @@ begin
   FInfos:=CreatePDFInfos;
   FImages:=CreatePDFImages;
   FPages:=CreatePDFPages;
+  FGraphicsStates:=TPDFGraphicsStates.Create(TPDFGraphicsStateItem);
+  FShadings:=TPDFShadings.Create(TPDFShadingItem);
+  FPatterns:=TPDFPatterns.Create(TPDFPatternItem);
+  FForms:=TFPObjectList.Create(True);
   FPreferences:=True;
   FPageLayout:=lSingle;
   FDefaultPaperType:=ptA4;
@@ -6401,6 +7112,10 @@ begin
   FFonts.Clear;
   FImages.Clear;
   FFontFiles.Clear;
+  FGraphicsStates.Clear;
+  FShadings.Clear;
+  FPatterns.Clear;
+  FForms.Clear;
   FreeAndNil(FPages);
   FPages:=CreatePDFPages;
   FreeAndNil(FSections);
@@ -6417,6 +7132,10 @@ begin
   FreeAndNil(FFontFiles);
   FreeAndNil(FPages);
   FreeAndNil(FSections);
+  FreeAndNil(FGraphicsStates);
+  FreeAndNil(FShadings);
+  FreeAndNil(FPatterns);
+  FreeAndNil(FForms);
   Trailer.Free;
   FGlobalXRefs.Free;
   inherited;
@@ -6635,6 +7354,534 @@ begin
   end;
 end;
 
+function TPDFDocument.GetForm(AIndex: Integer): TPDFForm;
+
+begin
+  if (AIndex < 0) or (AIndex >= FForms.Count) then
+    raise EPDF.CreateFmt(rsErrInvalidFormIndex, [AIndex]);
+  Result := TPDFForm(FForms[AIndex]);
+end;
+
+
+function TPDFDocument.GetFormCount: Integer;
+
+begin
+  Result := FForms.Count;
+end;
+
+
+function TPDFDocument.AddGraphicsState(AFillAlpha, AStrokeAlpha: TPDFFloat;
+  ABlendMode: TPDFBlendMode; ASoftMask: TPDFSoftMaskKind;
+  ASoftMaskForm: Integer): Integer;
+
+var
+  I: Integer;
+  S: TPDFGraphicsStateItem;
+
+begin
+  for I := 0 to FGraphicsStates.Count - 1 do
+    begin
+    S := FGraphicsStates[I];
+    if (S.FillAlpha = AFillAlpha) and (S.StrokeAlpha = AStrokeAlpha)
+       and (S.BlendMode = ABlendMode) and (S.SoftMask = ASoftMask)
+       and (S.SoftMaskForm = ASoftMaskForm) then
+      Exit(I);
+    end;
+  S := FGraphicsStates.AddState;
+  S.FillAlpha := AFillAlpha;
+  S.StrokeAlpha := AStrokeAlpha;
+  S.BlendMode := ABlendMode;
+  S.SoftMask := ASoftMask;
+  S.SoftMaskForm := ASoftMaskForm;
+  Result := FGraphicsStates.Count - 1;
+end;
+
+
+function TPDFDocument.AddAxialShading(X0, Y0, X1, Y1: TPDFFloat;
+  const AStops: array of TPDFShadingStop; AExtendStart: Boolean;
+  AExtendEnd: Boolean; AGray: Boolean): Integer;
+
+var
+  S: TPDFShadingItem;
+  I: Integer;
+
+begin
+  S := FShadings.AddShading;
+  S.Kind := pshAxial;
+  S.Coords[0] := X0;
+  S.Coords[1] := Y0;
+  S.Coords[2] := X1;
+  S.Coords[3] := Y1;
+  S.ExtendStart := AExtendStart;
+  S.ExtendEnd := AExtendEnd;
+  S.Gray := AGray;
+  for I := 0 to High(AStops) do
+    S.AddStop(AStops[I].Offset, AStops[I].Color);
+  Result := FShadings.Count - 1;
+end;
+
+
+function TPDFDocument.AddRadialShading(X0, Y0, R0, X1, Y1, R1: TPDFFloat;
+  const AStops: array of TPDFShadingStop; AExtendStart: Boolean;
+  AExtendEnd: Boolean; AGray: Boolean): Integer;
+
+var
+  S: TPDFShadingItem;
+  I: Integer;
+
+begin
+  S := FShadings.AddShading;
+  S.Kind := pshRadial;
+  S.Coords[0] := X0;
+  S.Coords[1] := Y0;
+  S.Coords[2] := R0;
+  S.Coords[3] := X1;
+  S.Coords[4] := Y1;
+  S.Coords[5] := R1;
+  S.ExtendStart := AExtendStart;
+  S.ExtendEnd := AExtendEnd;
+  S.Gray := AGray;
+  for I := 0 to High(AStops) do
+    S.AddStop(AStops[I].Offset, AStops[I].Color);
+  Result := FShadings.Count - 1;
+end;
+
+
+function TPDFDocument.AddShadingPattern(AShading: Integer;
+  const AMatrix: TPDFTransformMatrix): Integer;
+
+var
+  P: TPDFPatternItem;
+
+begin
+  P := FPatterns.AddPattern;
+  P.Shading := AShading;
+  P.Matrix := AMatrix;
+  Result := FPatterns.Count - 1;
+end;
+
+
+function TPDFDocument.AddTilingPattern(AForm: Integer; AXStep,
+  AYStep: TPDFFloat; const AMatrix: TPDFTransformMatrix): Integer;
+
+var
+  P: TPDFPatternItem;
+
+begin
+  P := FPatterns.AddPattern;
+  P.Form := AForm;
+  P.XStep := AXStep;
+  P.YStep := AYStep;
+  P.Matrix := AMatrix;
+  Result := FPatterns.Count - 1;
+end;
+
+
+function TPDFDocument.AddForm(const ABBox: TPDFDimensions): TPDFForm;
+
+begin
+  Result := TPDFForm.Create(Self);
+  Result.FBBox := ABBox;
+  Result.FIndex := FForms.Count;
+  FForms.Add(Result);
+end;
+
+
+procedure TPDFDocument.CreateShadingEntry(AItem: TPDFShadingItem);
+
+  function ColorArray(AColor: TARGBColor): TPDFArray;
+  begin
+    Result := CreateArray;
+    if AItem.Gray then
+      Result.AddItem(CreateFloat(((AColor shr 16) and $FF) / 255))
+    else
+      begin
+      Result.AddItem(CreateFloat(((AColor shr 16) and $FF) / 255));
+      Result.AddItem(CreateFloat(((AColor shr 8) and $FF) / 255));
+      Result.AddItem(CreateFloat((AColor and $FF) / 255));
+      end;
+  end;
+
+  function StopFunction(const AFrom, ATo: TPDFShadingStop): TPDFDictionary;
+  var
+    D: TPDFArray;
+  begin
+    Result := CreateDictionary;
+    Result.AddInteger('FunctionType', 2);
+    D := CreateArray;
+    D.AddItem(CreateInteger(0));
+    D.AddItem(CreateInteger(1));
+    Result.AddElement('Domain', D);
+    Result.AddElement('C0', ColorArray(AFrom.Color));
+    Result.AddElement('C1', ColorArray(ATo.Color));
+    Result.AddInteger('N', 1);
+  end;
+
+var
+  lDict, lFunc: TPDFDictionary;
+  lArr, lFuncs, lBounds, lEncode: TPDFArray;
+  lStops: TPDFShadingStopArray;
+  I, N: Integer;
+  lLast: TPDFFloat;
+
+begin
+  lDict := GlobalXRefs[AItem.FXRef].Dict;
+  if AItem.Kind = pshAxial then
+    lDict.AddInteger('ShadingType', 2)
+  else
+    lDict.AddInteger('ShadingType', 3);
+  if AItem.Gray then
+    lDict.AddName('ColorSpace', 'DeviceGray')
+  else
+    lDict.AddName('ColorSpace', 'DeviceRGB');
+  lArr := CreateArray;
+  lDict.AddElement('Coords', lArr);
+  if AItem.Kind = pshAxial then
+    N := 4
+  else
+    N := 6;
+  for I := 0 to N - 1 do
+    lArr.AddItem(CreateFloat(AItem.FCoords[I]));
+  // The stops have to cover the whole of the domain, and rise strictly, so
+  // the ends are repeated and equal offsets are pushed apart.
+  lStops := Copy(AItem.Stops, 0, Length(AItem.Stops));
+  if Length(lStops) = 0 then
+    begin
+    SetLength(lStops, 1);
+    lStops[0].Offset := 0;
+    lStops[0].Color := clBlack;
+    end;
+  if lStops[0].Offset > 0 then
+    begin
+    Insert(lStops[0], lStops, 0);
+    lStops[0].Offset := 0;
+    end;
+  if lStops[High(lStops)].Offset < 1 then
+    begin
+    Insert(lStops[High(lStops)], lStops, Length(lStops));
+    lStops[High(lStops)].Offset := 1;
+    end;
+  lLast := 0;
+  for I := 0 to High(lStops) do
+    begin
+    if lStops[I].Offset < lLast then
+      lStops[I].Offset := lLast;
+    if (I > 0) and (I < High(lStops)) and (lStops[I].Offset <= lLast) then
+      lStops[I].Offset := lLast + 0.001;
+    lLast := lStops[I].Offset;
+    end;
+  if Length(lStops) = 1 then
+    lFunc := StopFunction(lStops[0], lStops[0])
+  else if Length(lStops) = 2 then
+    lFunc := StopFunction(lStops[0], lStops[1])
+  else
+    begin
+    lFunc := CreateDictionary;
+    lFunc.AddInteger('FunctionType', 3);
+    lArr := CreateArray;
+    lArr.AddItem(CreateInteger(0));
+    lArr.AddItem(CreateInteger(1));
+    lFunc.AddElement('Domain', lArr);
+    lFuncs := CreateArray;
+    lBounds := CreateArray;
+    lEncode := CreateArray;
+    lFunc.AddElement('Functions', lFuncs);
+    lFunc.AddElement('Bounds', lBounds);
+    lFunc.AddElement('Encode', lEncode);
+    for I := 0 to High(lStops) - 1 do
+      begin
+      lFuncs.AddItem(StopFunction(lStops[I], lStops[I + 1]));
+      if I > 0 then
+        lBounds.AddItem(CreateFloat(lStops[I].Offset));
+      lEncode.AddItem(CreateInteger(0));
+      lEncode.AddItem(CreateInteger(1));
+      end;
+    end;
+  lDict.AddElement('Function', lFunc);
+  lArr := CreateArray;
+  lArr.AddItem(CreateBoolean(AItem.ExtendStart));
+  lArr.AddItem(CreateBoolean(AItem.ExtendEnd));
+  lDict.AddElement('Extend', lArr);
+end;
+
+
+procedure TPDFDocument.CreatePatternEntry(AItem: TPDFPatternItem);
+
+var
+  lDict, lRes: TPDFDictionary;
+  lArr: TPDFArray;
+  lForm: TPDFForm;
+  lXRef: TPDFXRef;
+
+begin
+  lXRef := GlobalXRefs[AItem.FXRef];
+  lDict := lXRef.Dict;
+  lDict.AddName('Type', 'Pattern');
+  if AItem.Shading >= 0 then
+    begin
+    lDict.AddInteger('PatternType', 2);
+    lDict.AddReference('Shading', Shadings[AItem.Shading].FXRef);
+    end
+  else
+    begin
+    // A tiling pattern draws its form once per tile, so it needs a content
+    // stream of its own and the form among its resources.
+    lForm := Forms[AItem.Form];
+    lDict.AddInteger('PatternType', 1);
+    lDict.AddInteger('PaintType', 1);
+    lDict.AddInteger('TilingType', 1);
+    lArr := CreateArray;
+    lArr.AddItem(CreateFloat(lForm.BBox.L));
+    lArr.AddItem(CreateFloat(lForm.BBox.B));
+    lArr.AddItem(CreateFloat(lForm.BBox.R));
+    lArr.AddItem(CreateFloat(lForm.BBox.T));
+    lDict.AddElement('BBox', lArr);
+    lDict.AddElement('XStep', CreateFloat(AItem.XStep));
+    lDict.AddElement('YStep', CreateFloat(AItem.YStep));
+    lRes := CreateDictionary;
+    lDict.AddElement('Resources', lRes);
+    AddExtendedResourcesTo(lRes, -1);
+    lXRef.FStream := CreateStream(True);
+    lXRef.FStream.AddItem(TPDFFreeFormString.Create(Self,
+      '/Fm' + IntToStr(AItem.Form) + ' Do' + CRLF));
+    end;
+  lArr := CreateArray;
+  lArr.AddItem(CreateFloat(AItem.Matrix.A));
+  lArr.AddItem(CreateFloat(AItem.Matrix.B));
+  lArr.AddItem(CreateFloat(AItem.Matrix.C));
+  lArr.AddItem(CreateFloat(AItem.Matrix.D));
+  lArr.AddItem(CreateFloat(AItem.Matrix.E));
+  lArr.AddItem(CreateFloat(AItem.Matrix.F));
+  lDict.AddElement('Matrix', lArr);
+end;
+
+
+procedure TPDFDocument.CreateGraphicsStateEntry(AItem: TPDFGraphicsStateItem);
+
+const
+  BlendNames: array[TPDFBlendMode] of String = ('Normal', 'Multiply',
+    'Screen', 'Overlay', 'Darken', 'Lighten', 'ColorDodge', 'ColorBurn',
+    'HardLight', 'SoftLight', 'Difference', 'Exclusion');
+
+var
+  lDict, lMask: TPDFDictionary;
+
+begin
+  lDict := GlobalXRefs[AItem.FXRef].Dict;
+  lDict.AddName('Type', 'ExtGState');
+  if AItem.FillAlpha >= 0 then
+    lDict.AddElement('ca', CreateFloat(AItem.FillAlpha));
+  if AItem.StrokeAlpha >= 0 then
+    lDict.AddElement('CA', CreateFloat(AItem.StrokeAlpha));
+  if AItem.BlendMode <> pbmNormal then
+    lDict.AddName('BM', BlendNames[AItem.BlendMode]);
+  if (AItem.SoftMask <> psmNone) and (AItem.SoftMaskForm >= 0) then
+    begin
+    lMask := CreateDictionary;
+    if AItem.SoftMask = psmAlpha then
+      lMask.AddName('S', 'Alpha')
+    else
+      lMask.AddName('S', 'Luminosity');
+    lMask.AddReference('G', Forms[AItem.SoftMaskForm].FXRef);
+    lDict.AddElement('SMask', lMask);
+    end;
+  if lDict.ElementCount = 1 then
+    // A state that changes nothing still has to be a dictionary a viewer
+    // accepts.
+    lDict.AddElement('ca', CreateFloat(1));
+end;
+
+
+procedure TPDFDocument.CreateFormEntry(AForm: TPDFForm);
+
+var
+  lXRef: TPDFXRef;
+  lDict, lRes, lGroup: TPDFDictionary;
+  lArr: TPDFArray;
+  I: Integer;
+
+begin
+  lXRef := GlobalXRefs[AForm.FXRef];
+  lDict := lXRef.Dict;
+  lDict.AddName('Type', 'XObject');
+  lDict.AddName('Subtype', 'Form');
+  lDict.AddInteger('FormType', 1);
+  lArr := CreateArray;
+  lArr.AddItem(CreateFloat(AForm.BBox.L));
+  lArr.AddItem(CreateFloat(AForm.BBox.B));
+  lArr.AddItem(CreateFloat(AForm.BBox.R));
+  lArr.AddItem(CreateFloat(AForm.BBox.T));
+  lDict.AddElement('BBox', lArr);
+  lArr := CreateArray;
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.A));
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.B));
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.C));
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.D));
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.E));
+  lArr.AddItem(CreateFloat(AForm.FormMatrix.F));
+  lDict.AddElement('Matrix', lArr);
+  if AForm.Group then
+    begin
+    lGroup := CreateDictionary;
+    lGroup.AddName('S', 'Transparency');
+    lGroup.AddName('CS', 'DeviceRGB');
+    lGroup.AddElement('I', CreateBoolean(AForm.Isolated));
+    lGroup.AddElement('K', CreateBoolean(AForm.Knockout));
+    lDict.AddElement('Group', lGroup);
+    end;
+  lRes := CreateDictionary;
+  lDict.AddElement('Resources', lRes);
+  AddExtendedResourcesTo(lRes, AForm.Index);
+  lXRef.FStream := CreateStream(False);
+  for I := 0 to AForm.ObjectCount - 1 do
+    lXRef.FStream.AddItem(AForm.Objects[I]);
+end;
+
+
+procedure TPDFDocument.AddExtendedResourcesTo(AResources: TPDFDictionary;
+  AExcludeForm: Integer);
+
+var
+  I: Integer;
+  lSub, lPage: TPDFDictionary;
+  lItem: TPDFDictionaryItem;
+
+begin
+  if FGraphicsStates.Count > 0 then
+    begin
+    lSub := CreateDictionary;
+    AResources.AddElement('ExtGState', lSub);
+    for I := 0 to FGraphicsStates.Count - 1 do
+      lSub.AddReference('GS' + IntToStr(I), FGraphicsStates[I].FXRef);
+    end;
+  if FShadings.Count > 0 then
+    begin
+    lSub := CreateDictionary;
+    AResources.AddElement('Shading', lSub);
+    for I := 0 to FShadings.Count - 1 do
+      lSub.AddReference('Sh' + IntToStr(I), FShadings[I].FXRef);
+    end;
+  if FPatterns.Count > 0 then
+    begin
+    lSub := CreateDictionary;
+    AResources.AddElement('Pattern', lSub);
+    for I := 0 to FPatterns.Count - 1 do
+      lSub.AddReference('P' + IntToStr(I), FPatterns[I].FXRef);
+    end;
+  if (FForms.Count = 0) and (Images.Count = 0) then
+    Exit;
+  if (Images.Count = 0) and (FForms.Count = 1) and (AExcludeForm = 0) then
+    Exit;
+  lSub := TPDFDictionary(AResources.FindValue('XObject'));
+  if lSub = nil then
+    begin
+    lSub := CreateDictionary;
+    AResources.AddElement('XObject', lSub);
+    end;
+  // A form is drawn inside a page as well as inside another form, so it
+  // needs the images of the document beside the other forms.
+  if AExcludeForm >= 0 then
+    begin
+    lPage := PageResources;
+    if lPage <> nil then
+      begin
+      lPage := TPDFDictionary(lPage.FindValue('XObject'));
+      if lPage <> nil then
+        for I := 0 to lPage.ElementCount - 1 do
+          begin
+          lItem := lPage.Elements[I];
+          if (lItem.Value is TPDFReference) and (lItem.FKey.Name <> '')
+             and (lItem.FKey.Name[1] = 'I') then
+            lSub.AddReference(lItem.FKey.Name,
+              TPDFReference(lItem.Value).Value);
+          end;
+      end;
+    end;
+  for I := 0 to FForms.Count - 1 do
+    if I <> AExcludeForm then
+      lSub.AddReference('Fm' + IntToStr(I), Forms[I].FXRef);
+end;
+
+
+procedure TPDFDocument.CreateExtendedResources;
+
+var
+  I: Integer;
+  lXRef: TPDFXRef;
+  lDict: TPDFDictionary;
+
+begin
+  if (FGraphicsStates.Count = 0) and (FShadings.Count = 0)
+     and (FPatterns.Count = 0) and (FForms.Count = 0) then
+    Exit;
+  // Every object is numbered before any of them is written: they refer to
+  // one another in both directions.
+  for I := 0 to FShadings.Count - 1 do
+    begin
+    FShadings[I].FXRef := GlobalXRefCount;
+    CreateGlobalXRef;
+    end;
+  for I := 0 to FPatterns.Count - 1 do
+    begin
+    FPatterns[I].FXRef := GlobalXRefCount;
+    CreateGlobalXRef;
+    end;
+  for I := 0 to FForms.Count - 1 do
+    begin
+    Forms[I].FXRef := GlobalXRefCount;
+    CreateGlobalXRef;
+    end;
+  for I := 0 to FGraphicsStates.Count - 1 do
+    begin
+    FGraphicsStates[I].FXRef := GlobalXRefCount;
+    CreateGlobalXRef;
+    end;
+  for I := 0 to FShadings.Count - 1 do
+    CreateShadingEntry(FShadings[I]);
+  for I := 0 to FPatterns.Count - 1 do
+    CreatePatternEntry(FPatterns[I]);
+  for I := 0 to FForms.Count - 1 do
+    CreateFormEntry(Forms[I]);
+  for I := 0 to FGraphicsStates.Count - 1 do
+    CreateGraphicsStateEntry(FGraphicsStates[I]);
+  // The pages may use everything.
+  for I := 1 to GlobalXRefCount - 1 do
+    begin
+    lXRef := GlobalXRefs[I];
+    lDict := lXRef.Dict;
+    if (lDict.ElementCount = 0) or not (lDict.Values[0] is TPDFName) then
+      Continue;
+    if TPDFName(lDict.Values[0]).Name <> 'Page' then
+      Continue;
+    lDict := TPDFDictionary(lDict.FindValue('Resources'));
+    if lDict <> nil then
+      AddExtendedResourcesTo(lDict, -1);
+    end;
+end;
+
+
+function TPDFDocument.PageResources: TPDFDictionary;
+
+var
+  I: Integer;
+  lDict: TPDFDictionary;
+
+begin
+  Result := nil;
+  for I := 1 to GlobalXRefCount - 1 do
+    begin
+    lDict := GlobalXRefs[I].Dict;
+    if (lDict.ElementCount = 0) or not (lDict.Values[0] is TPDFName) then
+      Continue;
+    if TPDFName(lDict.Values[0]).Name <> 'Page' then
+      Continue;
+    Result := TPDFDictionary(lDict.FindValue('Resources'));
+    if Result <> nil then
+      Exit;
+    end;
+end;
+
+
 procedure TPDFDocument.SaveToStream(const AStream: TStream);
 var
   i, XRefPos: integer;
@@ -6642,6 +7889,7 @@ begin
   CreateSectionsOutLine;
   CreateFontEntries;
   CreateImageEntries;
+  CreateExtendedResources;
   (Trailer.ValueByName('Size') as TPDFInteger).Value:=GlobalXRefCount;
   AStream.Position:=0;
   TPDFObject.WriteString(PDF_VERSION+CRLF, AStream);
