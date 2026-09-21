@@ -130,6 +130,11 @@ const
 
   SOL_SOCKET    = $FFFF;
 
+  // values verified against AROS TCP/IP code itself
+  SHUT_RD       = 1;
+  SHUT_WR       = 2;
+  SHUT_RDWR     = 3;
+
 const
   EsockEINTR            = 4; // EsysEINTR;
   EsockEBADF            = 9; // EsysEBADF;
