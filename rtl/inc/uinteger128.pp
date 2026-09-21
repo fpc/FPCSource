@@ -39,6 +39,9 @@ unit uinteger128;
     operator mod (z,n: uint128) fpc_mod_uint128 : uint128;
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
+    operator and (const i1,i2: UInt128) result: UInt128;
+    operator or (const i1,i2: UInt128) result: UInt128;
+    operator xor (const i1,i2: UInt128) result: UInt128;
 
     operator = (const i1,i2: UInt128) result: Boolean;inline;
     operator < (const i1,i2: UInt128) result: Boolean;inline;
@@ -258,6 +261,24 @@ unit uinteger128;
             result.QWords[QWORD_HI]:=value.QWords[QWORD_HI] shr shift;
             result.QWords[QWORD_LO]:=(value.QWords[QWORD_LO] shr shift) or (value.QWords[QWORD_HI] shl (64-shift));
           end;
+      end;
+
+    operator and (const i1,i2: UInt128) result: UInt128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] and i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] and i2.QWords[QWORD_HI];
+      end;
+
+    operator or (const i1,i2: UInt128) result: UInt128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] or i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] or i2.QWords[QWORD_HI];
+      end;
+
+    operator xor (const i1,i2: UInt128) result: UInt128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] xor i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] xor i2.QWords[QWORD_HI];
       end;
 
     operator = (const i1,i2: UInt128) result: Boolean;inline;
