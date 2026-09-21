@@ -42,6 +42,7 @@ unit uinteger128;
     operator and (const i1,i2: UInt128) result: UInt128;
     operator or (const i1,i2: UInt128) result: UInt128;
     operator xor (const i1,i2: UInt128) result: UInt128;
+    operator not (const i: UInt128) result: UInt128;
 
     operator = (const i1,i2: UInt128) result: Boolean;inline;
     operator < (const i1,i2: UInt128) result: Boolean;inline;
@@ -279,6 +280,12 @@ unit uinteger128;
       begin
         result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] xor i2.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] xor i2.QWords[QWORD_HI];
+      end;
+
+    operator not (const i: UInt128) result: UInt128;
+      begin
+        result.QWords[QWORD_LO]:=not i.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=not i.QWords[QWORD_HI];
       end;
 
     operator = (const i1,i2: UInt128) result: Boolean;inline;
