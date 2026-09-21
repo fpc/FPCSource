@@ -135,6 +135,12 @@ const
 
   SOL_SOCKET    = $FFFF;
 
+  // these aren't defined in AmiTCP headers, but the values have been
+  // verified against AmiTCP 3.0b2 GPL code as available on Aminet
+  SHUT_RD       = 1;
+  SHUT_WR       = 2;
+  SHUT_RDWR     = 3;
+
 const
   EsockEINTR            = 4; // EsysEINTR;
   EsockEBADF            = 9; // EsysEBADF;
