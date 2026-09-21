@@ -55,8 +55,6 @@ unit uinteger128;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
     function IntToStr(Value: UInt128): string;
 
-    procedure DumpUInt128(const f : UInt128);
-
   implementation
 
     const
@@ -67,11 +65,6 @@ unit uinteger128;
       QWORD_LO = 1;
       QWORD_HI = 0;
 {$endif FPC_LITTLE_ENDIAN}
-
-    procedure DumpUInt128(const f : UInt128);
-      begin
-        write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
-      end;
 
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
       begin
