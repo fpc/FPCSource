@@ -373,6 +373,7 @@ unit cgcpu;
       begin
         { we do not need an exit stack frame when we never return
                 * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
+                  (except where unwind information needs it, see below)
                 * the entry stack frame must be normally generated because the subroutine could be still left by
                   an exception and then the unwinding code might need to restore the registers stored by the entry code
         }
@@ -427,7 +428,18 @@ unit cgcpu;
 
             if pi_uses_ymm in current_procinfo.flags then
               list.Concat(taicpu.op_none(A_VZEROUPPER));
-          end;
+          end
+        else if (pi_has_unwind_info in current_procinfo.flags) then
+          { the return address of the last call must not be the final ret
+            either: an exception that passes through this routine is unwound
+            from there, and the Win64 unwinder takes a return address on a ret
+            for the epilogue, and reads the caller's return address from the
+            top of the stack instead of through the unwind information. This
+            also keeps the peephole optimizer from removing that ret, which
+            would put the return address past the end of the routine. Not
+            only when pi_do_call says the routine calls: a call written in
+            assembler does not set it }
+          list.concat(Taicpu.op_none(A_NOP));
 
         if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
           list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
