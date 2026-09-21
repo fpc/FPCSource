@@ -36,6 +36,7 @@ unit uinteger128;
     operator- (const i1,i2: UInt128) result : UInt128;inline;
     operator* (f1,f2 : UInt128) result : UInt128;
     operator div (z,n : uint128) fpc_div_uint128 : uint128;
+    operator mod (z,n: uint128) fpc_mod_uint128 : uint128;
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
     operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
 
@@ -159,6 +160,42 @@ unit uinteger128;
                end;
              n:=n shr 1;
            end;
+      end;
+
+    operator mod (z,n: uint128) fpc_mod_uint128 : uint128;
+      var
+         shift,lzz,lzn : longint;
+      begin
+         { Use the usually faster 64-bit mod if possible }
+         if (z.QWords[QWORD_HI] = 0) and (n.QWords[QWORD_HI] = 0) then
+           begin
+             fpc_mod_uint128 := z.QWords[QWORD_LO] mod n.QWords[QWORD_LO];
+             exit;
+           end;
+         fpc_mod_uint128:=0;
+         if n=0 then
+           {TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame)};
+         if z=0 then
+           exit;
+         lzz:=BsrUInt128(z);
+         lzn:=BsrUInt128(n);
+         { if the denominator contains less zeros }
+         { then the numerator                     }
+         { the d is greater than the n            }
+         if lzn>lzz then
+           begin
+              fpc_mod_uint128:=z;
+              exit;
+           end;
+         shift:=lzz-lzn;
+         n:=n shl shift;
+         for shift:=shift downto 0 do
+           begin
+             if z>=n then
+               z:=z-n;
+             n:=n shr 1;
+           end;
+         fpc_mod_uint128:=z;
       end;
 
     operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
