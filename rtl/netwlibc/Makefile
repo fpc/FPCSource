@@ -606,6 +606,7 @@ TYPINFOUNIT=System.TypInfo
 UFLOAT128UNIT=System.UFloat128
 UFLOATX80UNIT=System.UFloatX80
 UIUNIT=PalmApi.Ui
+UINTEGER128UNIT=System.UInteger128
 UIQUNIT=SymbianApi.Uiq
 UIQCLASSESUNIT=SymbianApi.Uiqclasses
 UNICODEDATAUNIT=System.CodePages.unicodedata
@@ -868,6 +869,7 @@ TYPINFOUNIT=typinfo
 UFLOAT128UNIT=ufloat128
 UFLOATX80UNIT=ufloatx80
 UIUNIT=ui
+UINTEGER128UNIT=uinteger128
 UIQUNIT=uiq
 UIQCLASSESUNIT=uiqclasses
 UNICODEDATAUNIT=unicodedata
@@ -2386,6 +2388,13 @@ ufloat128$(PPUEXT) : $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
 System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
+UINTEGER128_DEPS=$(INC)/uinteger128.pp \
+	       $(SYSTEMUNIT)$(PPUEXT) \
+	       $(UINTEGER128_DEPS_OS) $(UINTEGER128_DEPS_CPU)
+uinteger128$(PPUEXT) : $(UINTEGER128_DEPS)
+	$(COMPILER) $(UINTEGER128_OPT) $<
+System.UInteger128$(PPUEXT) : $(NSINC)/System.UInteger128.pp $(UINTEGER128_DEPS)
+	$(COMPILER) $(UINTEGER128_OPT) $<
 STRINGS_DEPS=$(INC)/strings.pp $(INC)/stringsi.inc $(PROCINC)/stringss.inc $(PROCINC)/strings.inc \
 	     $(INC)/genstr.inc $(INC)/genstrs.inc $(INC)/cgenstr.inc \
 	     $(SYSTEMUNIT)$(PPUEXT)  \
