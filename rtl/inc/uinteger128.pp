@@ -52,6 +52,7 @@ unit uinteger128;
 
     operator := (const source : UInt64) dest : UInt128;inline;
 
+    function HexStr(const v: UInt128; cnt: Byte): string; overload;
     function IntToStr(Value: UInt128): string;
 
     procedure DumpUInt128(const f : UInt128);
@@ -70,6 +71,14 @@ unit uinteger128;
     procedure DumpUInt128(const f : UInt128);
       begin
         write(hexstr(f.QWords[QWORD_HI],16),hexstr(f.QWords[QWORD_LO],16));
+      end;
+
+    function HexStr(const v: UInt128; cnt: Byte): string; overload;
+      begin
+        if cnt<=16 then
+          HexStr:=System.HexStr(v.QWords[QWORD_LO],cnt)
+        else
+          HexStr:=System.HexStr(v.QWords[QWORD_HI],cnt-16)+System.HexStr(v.QWords[QWORD_LO],16);
       end;
 
     function IntToStr(Value: UInt128): string;
