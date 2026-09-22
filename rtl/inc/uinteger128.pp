@@ -55,6 +55,7 @@ unit uinteger128;
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
     function IntToStr(Value: UInt128): string;
+    function IntToStr(Value: Int128): string;
 
   implementation
 
@@ -104,6 +105,20 @@ unit uinteger128;
             tmpC:=IntToStr[I];
             IntToStr[I]:=IntToStr[Length(IntToStr)-I+1];
             IntToStr[Length(IntToStr)-I+1]:=tmpC;
+          end;
+      end;
+
+    function IntToStr(Value: Int128): string;
+      var
+        UValue: UInt128 absolute Value;
+      begin
+        if (UValue.QWords[QWORD_HI] and (qword(1) shl 63)) = 0 then
+          IntToStr:=IntToStr(UValue)
+        else
+          begin
+            UValue:=not UValue;
+            UValue:=UValue+1;
+            IntToStr:='-'+IntToStr(UValue);
           end;
       end;
 

@@ -24,6 +24,21 @@ begin
   MK_UINT128 := res;
 end;
 
+function MK_INT128(const h, l: QWord): Int128;
+var
+  res: Int128;
+begin
+  FillChar(res, SizeOf(res), 0);
+{$ifdef FPC_LITTLE_ENDIAN}
+  Move(l, res, 8);
+  Move(h, (PByte(@res)+8)^, 8);
+{$else FPC_LITTLE_ENDIAN}
+  Move(h, res, 8);
+  Move(l, (PByte(@res)+8)^, 8);
+{$endif FPC_LITTLE_ENDIAN}
+  MK_INT128 := res;
+end;
+
 procedure TestUInt128ToString(const v: UInt128; const expect_s: string);
 var
   s: string;
@@ -49,7 +64,33 @@ begin
   TestUInt128ToString(MK_UINT128(18446744073709551615, 18446744073709551615), '340282366920938463463374607431768211455');
 end;
 
+procedure TestInt128ToString(const v: Int128; const expect_s: string);
+var
+  s: string;
+begin
+  s := IntToStr(v);
+  if s <> expect_s then
+    Error;
+end;
+
+procedure Int128ToStringTests;
+begin
+  TestInt128ToString(MK_INT128(                   0,                    0), '0');
+  TestInt128ToString(MK_INT128(                   0,                    1), '1');
+  TestInt128ToString(MK_INT128(                   0,                    9), '9');
+  TestInt128ToString(MK_INT128(                   0,                   10), '10');
+  TestInt128ToString(MK_INT128(                   0, 18446744073709551615), '18446744073709551615');
+  TestInt128ToString(MK_INT128(                   1,                    0), '18446744073709551616');
+  TestInt128ToString(MK_INT128( 9223372036854775807,                    0), '170141183460469231713240559642174554112');
+  TestInt128ToString(MK_INT128( 9223372036854775807, 18446744073709551615), '170141183460469231731687303715884105727');
+  TestInt128ToString(MK_INT128( 9223372036854775808,                    0), '-170141183460469231731687303715884105728');
+  TestInt128ToString(MK_INT128( 9223372036854775808, 18446744073709551615), '-170141183460469231713240559642174554113');
+  TestInt128ToString(MK_INT128(18446744073709551615,                    0), '-18446744073709551616');
+  TestInt128ToString(MK_INT128(18446744073709551615, 18446744073709551615), '-1');
+end;
+
 begin
   UInt128ToStringTests;
+  Int128ToStringTests;
   Writeln('Ok!');
 end.
