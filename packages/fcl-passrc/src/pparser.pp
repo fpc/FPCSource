@@ -511,6 +511,7 @@ type
     procedure SaveIdentifierPosition;
     function CurTokenIsIdentifier(Const S : String) : Boolean;
     function NextTokenIsToKeyword : Boolean;
+    function CurTokenIsTypeOf : Boolean;
     // Expression parsing
     function isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True): Boolean;
     function ExprToText(Expr: TPasExpr): String;
@@ -531,6 +532,7 @@ type
     function ParseTypeReference(Parent: TPasElement; NeedExpr: boolean; out Expr: TPasExpr): TPasType;
     function ParseSpecializeType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName, GenName: string; var GenNameExpr: TPasExpr): TPasSpecializeType;
     function ParsePointerType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasPointerType;
+    function ParseTypeOfType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasTypeOfType;
     Function ParseArrayType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName : String; PackMode : TPackMode) : TPasArrayType;
     Function ParseFileType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName  : String) : TPasFileType;
     Function ParseRecordDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName : string; const Packmode : TPackMode = pmNone) : TPasRecordType;
@@ -1586,6 +1588,17 @@ begin
   UngetToken;
 end;
 
+function TPasParser.CurTokenIsTypeOf: Boolean;
+// true if the current token is the "type" of a "type of" operator
+begin
+  Result:=false;
+  if CurToken<>tkType then exit;
+  if not (msTypeInquiry in CurrentModeswitches) then exit;
+  NextToken;
+  Result:=(CurToken=tkOf);
+  UngetToken;
+end;
+
 function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
 
 var
@@ -2153,6 +2166,13 @@ begin
   // Check `specialize` separately so the ExpectTokens error message for the plain
   // pointer case is unchanged (TestPointer_AnonymousSetFail).
   NextToken;
+  if CurTokenIsTypeOf then
+    begin
+    // ^type of Operand
+    Result.DestType:=ParseTypeOfType(Result,CurSourcePos,'');
+    Engine.FinishScope(stTypeDef,Result);
+    exit;
+    end;
   // ^specialize Type<Params> is a pas2llvm/real-FPC extension, gated on
   // po_AllowPointerToSpecialize so upstream keeps rejecting it (default off).
   WasSpecialize:=(CurToken=tkspecialize) and (po_AllowPointerToSpecialize in Options);
@@ -2209,6 +2229,21 @@ begin
     Scanner.CurrentBoolSwitches := SavedBoolSwitches;
     end;
   Result.DestType:=ResolveTypeReference(Name,Result);
+  Engine.FinishScope(stTypeDef,Result);
+end;
+
+// On entry, we're on the TYPE token of "type of"
+function TPasParser.ParseTypeOfType(Parent: TPasElement;
+  const NamePos: TPasSourcePos; const TypeName: String): TPasTypeOfType;
+begin
+  Result := TPasTypeOfType(CreateElement(TPasTypeOfType, TypeName, Parent, NamePos));
+  ExpectToken(tkOf);
+  NextToken;
+  Result.Expr:=ParseExprOperand(Result);
+  if Result.Expr=nil then
+    ParseExcSyntaxError;
+  // CurToken is behind the operand, a type ends at its last token
+  UngetToken;
   Engine.FinishScope(stTypeDef,Result);
 end;
 
@@ -2292,6 +2327,14 @@ begin
   Result := nil;
   // NextToken and check pack mode
   Pm:=CheckPackMode;
+  if CurTokenIsTypeOf then
+    begin
+    // "type of" is allowed everywhere a type is expected
+    Result:=ParseTypeOfType(Parent,NamePos,TypeName);
+    if DeclParseType=dptFull then
+      CheckHint(Result,True);
+    exit;
+    end;
   if DeclParseType=dptFull then
     CH:=Not (CurToken in NoHintTokens)
   else
@@ -2527,7 +2570,12 @@ begin
   else if C=TInheritedExpr then
     Result:='inherited'
   else if C=TUnaryExpr then
-    Result:=OpcodeStrings[TUnaryExpr(Expr).OpCode]+ExprToText(TUnaryExpr(Expr).Operand)
+    begin
+    Result:=OpcodeStrings[TUnaryExpr(Expr).OpCode];
+    if TUnaryExpr(Expr).OpCode=eopTypeOf then
+      Result:=Result+' ';
+    Result:=Result+ExprToText(TUnaryExpr(Expr).Operand);
+    end
   else if C=TBinaryExpr then
     begin
     Result:=ExprToText(TBinaryExpr(Expr).Left);
@@ -2974,6 +3022,21 @@ begin
         begin
         CheckToken(tkBraceClose);
         end;
+      end;
+    tkType:
+      begin
+      // type of Operand
+      if not CurTokenIsTypeOf then
+        ParseExcExpectedIdentifier;
+      SrcPos:=CurTokenPos;
+      NextToken; // of
+      NextToken;
+      // the operand includes its postfix operators, e.g. "type of a.b[1]"
+      Last:=ParseExprOperand(AParent);
+      if Last=nil then
+        ParseExcSyntaxError;
+      // no postfix operators, CurToken is already the token behind the operand
+      exit(CreateUnaryExpr(AParent,Last,eopTypeOf,SrcPos));
       end;
     tkif:
       begin
@@ -7288,7 +7351,7 @@ var
        tkIdentifier,tkspecialize,
        tkNumber,tkString,tkfalse,tktrue,tkChar,
        tkBraceOpen,tkSquaredBraceOpen,
-       tkMinus,tkPlus,tkinherited
+       tkMinus,tkPlus,tkinherited,tkType
        ];
     Result:=(Curtoken<>tkEOF);
     if Result then
@@ -7437,7 +7500,7 @@ begin
       tkIdentifier,tkspecialize,
       tkNumber,tkString,tkfalse,tktrue,tkChar,
       tkBraceOpen,tkSquaredBraceOpen,
-      tkMinus,tkPlus,tkinherited:
+      tkMinus,tkPlus,tkinherited,tkType:
         begin
         // Do not check this here:
         //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then

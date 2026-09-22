@@ -112,7 +112,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 10;
+  PCUVersion = 11;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -126,6 +126,7 @@ const
     7: InitializationSection JS replaced with Body, Empty
     8: added eopIsNot, eopNotIn, TIfExpr, pekIf and modeswitch StatementExpressions
     9: added TCaseExpr, pekCase, TTryExceptExpr, pekTry
+    11: added TPasTypeOfType, eopTypeOf, rrfTypeOfCast and modeswitch TypeInquiry
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -236,7 +237,8 @@ const
     'MultilineStrings',
     'DelphiMultilineStrings',
     'InlineVars',
-    'StatementExpressions'
+    'StatementExpressions',
+    'TypeInquiry'
     ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
@@ -414,7 +416,8 @@ const
     'Addr',
     'Deref',
     'MemAddr',
-    'SubId'
+    'SubId',
+    'TypeOf'
     );
 
   PCUPackModeNames: array[TPackMode] of string = (
@@ -619,7 +622,8 @@ const
     'FreeInst',
     'VMT',
     'ConstInh',
-    'UseFields'
+    'UseFields',
+    'TypeOfCast'
     );
 
   PCUResolverWithExprScopeFlagNames: array[TPasWithExprScopeFlag] of string = (
@@ -915,6 +919,7 @@ type
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
     procedure WriteGenericTemplateTypes(Obj: TJSONObject; Parent: TPasElement; GenericTemplateTypes: TFPList; aContext: TPCUWriterContext); virtual;
     procedure WriteAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUWriterContext); virtual;
+    procedure WriteTypeOfType(Obj: TJSONObject; El: TPasTypeOfType; aContext: TPCUWriterContext); virtual;
     procedure WritePointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUWriterContext); virtual;
     procedure WriteSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUWriterContext); virtual;
     procedure WriteInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext); virtual;
@@ -1080,6 +1085,7 @@ type
     FPendingForwardProcs: TFPList; // list of TPasElement waiting for implementation of methods
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
+    procedure Set_TypeOfType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_PointerType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_FileType_ElType(RefEl: TPasElement; Data: TObject);
@@ -1236,6 +1242,7 @@ type
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
     procedure ReadGenericTemplateTypes(Obj: TJSONObject; Parent: TPasElement; var GenericTemplateTypes: TFPList; aContext: TPCUReaderContext); virtual;
     procedure ReadAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPCUReaderContext); virtual;
+    procedure ReadTypeOfType(Obj: TJSONObject; El: TPasTypeOfType; aContext: TPCUReaderContext); virtual;
     procedure ReadPointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPCUReaderContext); virtual;
     procedure ReadSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUReaderContext); virtual;
     procedure ReadInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext); virtual;
@@ -1723,6 +1730,7 @@ begin
     msMultiLineStrings: Result:=51;
     msDelphiMultiLineStrings: Result:=52;
     msStatementExpressions: Result:=53;
+    msTypeInquiry: Result:=54;
   else
     Result:=0;
   end;
@@ -2153,6 +2161,7 @@ begin
   if C.InheritsFrom(TPasExpr) then exit(false);
   if (C=TPasAliasType)
       or (C=TPasTypeAliasType)
+      or (C=TPasTypeOfType)
       or (C=TPasPointerType)
       or (C=TPasProperty)
   then
@@ -3751,6 +3760,11 @@ begin
     Obj.Add('Type','Alias');
     WriteAliasType(Obj,TPasAliasType(El),aContext);
     end
+  else if C=TPasTypeOfType then
+    begin
+    Obj.Add('Type','TypeOf');
+    WriteTypeOfType(Obj,TPasTypeOfType(El),aContext);
+    end
   else if C=TPasPointerType then
     begin
     Obj.Add('Type','Pointer');
@@ -4216,6 +4230,18 @@ procedure TPCUWriter.WriteAliasType(Obj: TJSONObject; El: TPasAliasType;
 begin
   WritePasElement(Obj,El,aContext);
   WriteElType(Obj,El,'Dest',El.DestType,aContext);
+  WriteExpr(Obj,El,'Expr',El.Expr,aContext);
+end;
+
+procedure TPCUWriter.WriteTypeOfType(Obj: TJSONObject; El: TPasTypeOfType;
+  aContext: TPCUWriterContext);
+begin
+  WritePasElement(Obj,El,aContext);
+  // DestType is set by the resolver, it can be an anonymous type of another element
+  if (El.DestType<>nil) and (El.DestType.Parent=El) then
+    WriteElType(Obj,El,'Dest',El.DestType,aContext)
+  else
+    AddReferenceToObj(Obj,'Dest',El.DestType);
   WriteExpr(Obj,El,'Expr',El.Expr,aContext);
 end;
 
@@ -5296,6 +5322,16 @@ begin
     end
   else
     RaiseMsg(20180211121809,El,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_TypeOfType_DestType(RefEl: TPasElement; Data: TObject);
+var
+  El: TPasTypeOfType absolute Data;
+begin
+  if RefEl is TPasType then
+    El.DestType:=TPasType(RefEl)
+  else
+    RaiseMsg(20260922100050,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
@@ -8159,6 +8195,8 @@ begin
     Result:=CreateElement(TPasResString,Name,Parent);
   'Alias':
     Result:=CreateElement(TPasAliasType,Name,Parent);
+  'TypeOf':
+    Result:=CreateElement(TPasTypeOfType,Name,Parent);
   'Pointer':
     Result:=CreateElement(TPasPointerType,Name,Parent);
   'TypeAlias':
@@ -8310,6 +8348,8 @@ begin
     ReadResString(Obj,TPasResString(El),aContext)
   else if C=TPasAliasType then
     ReadAliasType(Obj,TPasAliasType(El),aContext)
+  else if C=TPasTypeOfType then
+    ReadTypeOfType(Obj,TPasTypeOfType(El),aContext)
   else if C=TPasPointerType then
     ReadPointerType(Obj,TPasPointerType(El),aContext)
   else if C=TPasTypeAliasType then
@@ -8725,6 +8765,14 @@ procedure TPCUReader.ReadAliasType(Obj: TJSONObject; El: TPasAliasType;
 begin
   ReadPasElement(Obj,El,aContext);
   ReadElType(Obj,'Dest',El,@Set_AliasType_DestType,aContext);
+  El.Expr:=ReadExpr(Obj,El,'Expr',aContext);
+end;
+
+procedure TPCUReader.ReadTypeOfType(Obj: TJSONObject; El: TPasTypeOfType;
+  aContext: TPCUReaderContext);
+begin
+  ReadPasElement(Obj,El,aContext);
+  ReadElType(Obj,'Dest',El,@Set_TypeOfType_DestType,aContext);
   El.Expr:=ReadExpr(Obj,El,'Expr',aContext);
 end;
 

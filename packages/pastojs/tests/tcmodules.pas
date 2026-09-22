@@ -440,6 +440,17 @@ type
     Procedure TestCaseExpr_Nested;
     Procedure TestTryExceptExpr;
     Procedure TestTryExceptExpr_Method;
+
+    // type of
+    Procedure TestTypeOf_Var;
+    Procedure TestTypeOf_TypeCast;
+    Procedure TestTypeOf_Intrinsics;
+    Procedure TestTypeOf_FuncNotCalled;
+    Procedure TestTypeOf_TypeAliasRTTI;
+    Procedure TestTypeOf_Specialize;
+
+    // Default
+    Procedure TestDefault_SignedInt;
     Procedure TestSet_IntRange;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
@@ -7320,6 +7331,366 @@ begin
     '$mod.i = ($mod.b ? 1 : ($mod.i > 2 ? 3 : 4));',
     '$mod.i = 1 + ($mod.b ? 2 : 3);',
     '$mod.s = ($mod.b ? $mod.c : $mod.GetStr());',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_Var;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRec = record',
+  '    x: word;',
+  '  end;',
+  'var',
+  '  b: byte;',
+  '  c: type of b;',
+  '  r: TRec;',
+  '  s: type of r;',
+  '  a: array of word;',
+  '  d: type of a;',
+  '  e: type of a[0];',
+  'begin',
+  '  c:=b;',
+  '  s:=r;',
+  '  d:=a;',
+  '  e:=a[1];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_Var',
+    LinesToStr([ // statements
+    'rtl.recNewT(this, "TRec", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.x === b.x;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.x = s.x;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.b = 0;',
+    'this.c = 0;',
+    'this.r = this.TRec.$new();',
+    'this.s = this.TRec.$new();',
+    'this.a = [];',
+    'this.d = [];',
+    'this.e = 0;',
+    '']),
+    LinesToStr([
+    '$mod.c = $mod.b;',
+    '$mod.s.$assign($mod.r);',
+    '$mod.d = rtl.arrayRef($mod.a);',
+    '$mod.e = $mod.a[1];',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_TypeCast;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class',
+  '    Value: word;',
+  '  end;',
+  '  TEnum = (red, green, blue);',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  e: TEnum;',
+  '  o: TObject;',
+  '  Bird: TBird;',
+  '  Arr: array of byte;',
+  'begin',
+  '  b:=type of b(w);',
+  '  w:=type of w(b);',
+  '  e:=type of e(b);',
+  '  b:=type of Arr[0](w);',
+  '  b:=(type of b)(w);',
+  '  w:=type of Bird(o).Value;',
+  '  type of Bird(o).Value:=w;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_TypeCast',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Value = 0;',
+    '  };',
+    '});',
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1,',
+    '  "2": "blue",',
+    '  blue: 2',
+    '};',
+    'this.b = 0;',
+    'this.w = 0;',
+    'this.e = 0;',
+    'this.o = null;',
+    'this.Bird = null;',
+    'this.Arr = [];',
+    '']),
+    LinesToStr([
+    '$mod.b = $mod.w & 255;',
+    '$mod.w = $mod.b;',
+    '$mod.e = $mod.b;',
+    '$mod.b = $mod.w & 255;',
+    '$mod.b = $mod.w & 255;',
+    '$mod.w = $mod.o.Value;',
+    '$mod.o.Value = $mod.w;',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_Intrinsics;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TEnum = (red, green, blue);',
+  'var',
+  '  b: byte;',
+  '  e: TEnum;',
+  '  i: longint;',
+  '  p: pointer;',
+  'begin',
+  '  i:=High(type of b);',
+  '  i:=Low(type of b);',
+  '  e:=High(type of e);',
+  '  b:=Default(type of b);',
+  '  e:=Default(type of e);',
+  '  p:=TypeInfo(type of b);',
+  '  p:=TypeInfo(type of e);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_Intrinsics',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1,',
+    '  "2": "blue",',
+    '  blue: 2',
+    '};',
+    'this.b = 0;',
+    'this.e = 0;',
+    'this.i = 0;',
+    'this.p = null;',
+    '']),
+    LinesToStr([
+    '$mod.i = 255;',
+    '$mod.i = 0;',
+    '$mod.e = $mod.TEnum.blue;',
+    '$mod.b = 0;',
+    '$mod.e = $mod.TEnum.red;',
+    '$mod.p = rtl.byte;',
+    '$mod.p = $mod.$rtti["TEnum"];',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_FuncNotCalled;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'function SideEffect: word;',
+  'begin',
+  '  Result:=3;',
+  'end;',
+  'function SideEffectPara(i: longint): word;',
+  'begin',
+  '  Result:=i;',
+  'end;',
+  'var',
+  '  a: type of SideEffect;',
+  '  c: type of SideEffectPara(1);',
+  '  EmptyArr: array of longint;',
+  '  d: type of EmptyArr[0];',
+  'begin',
+  '  a:=Default(type of SideEffect);',
+  '  c:=High(type of SideEffectPara(2));',
+  '  d:=High(type of EmptyArr[0]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_FuncNotCalled',
+    LinesToStr([ // statements
+    'this.SideEffect = function () {',
+    '  var Result = 0;',
+    '  Result = 3;',
+    '  return Result;',
+    '};',
+    'this.SideEffectPara = function (i) {',
+    '  var Result = 0;',
+    '  Result = i;',
+    '  return Result;',
+    '};',
+    'this.a = 0;',
+    'this.c = 0;',
+    'this.EmptyArr = [];',
+    'this.d = 0;',
+    '']),
+    LinesToStr([
+    '$mod.a = 0;',
+    '$mod.c = 65535;',
+    '$mod.d = 2147483647;',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_TypeAliasRTTI;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  p: longint;',
+  'type',
+  '  TInt = type of p;',
+  '  TAlias = type type of p;',
+  'var',
+  '  a: TInt;',
+  '  u: TAlias;',
+  '  t: pointer;',
+  'begin',
+  '  a:=u;',
+  '  t:=TypeInfo(TInt);',
+  '  t:=TypeInfo(TAlias);',
+  '  t:=TypeInfo(type of u);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_TypeAliasRTTI',
+    LinesToStr([ // statements
+    'this.p = 0;',
+    'this.$rtti.$inherited("TAlias", rtl.longint, {});',
+    'this.a = 0;',
+    'this.u = 0;',
+    'this.t = null;',
+    '']),
+    LinesToStr([
+    '$mod.a = $mod.u;',
+    '$mod.t = rtl.longint;',
+    '$mod.t = $mod.$rtti["TAlias"];',
+    '$mod.t = $mod.$rtti["TAlias"];',
+    '']));
+end;
+
+procedure TTestModule.TestTypeOf_Specialize;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  generic TBird<T> = class',
+  '    Value: T;',
+  '    function Fly(a: T): T;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'function TBird.Fly(a: T): T;',
+  'var',
+  '  tmp: type of a;',
+  'begin',
+  '  tmp:=a;',
+  '  Result:=tmp;',
+  'end;',
+  'var',
+  '  w: word;',
+  '  Bird: specialize TBird<type of w>;',
+  'begin',
+  '  Bird:=specialize TBird<type of w>.Create;',
+  '  w:=Bird.Fly(w);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeOf_Specialize',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    'this.w = 0;',
+    'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Value = 0;',
+    '  };',
+    '  this.Fly = function (a) {',
+    '    var Result = 0;',
+    '    var tmp = 0;',
+    '    tmp = a;',
+    '    Result = tmp;',
+    '    return Result;',
+    '  };',
+    '}, "TBird<System.Word>");',
+    'this.Bird = null;',
+    '']),
+    LinesToStr([
+    '$mod.Bird = $mod.TBird$G1.$create("Create");',
+    '$mod.w = $mod.Bird.Fly($mod.w);',
+    '']));
+end;
+
+procedure TTestModule.TestDefault_SignedInt;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'const',
+  '  c = Default(longint);',
+  '  d = Default(shortint)+1;',
+  'var',
+  '  s: shortint;',
+  '  m: smallint;',
+  '  l: longint;',
+  '  n: nativeint;',
+  '  b: byte;',
+  'begin',
+  '  s:=Default(shortint);',
+  '  m:=Default(smallint);',
+  '  l:=Default(longint);',
+  '  n:=Default(nativeint);',
+  '  b:=Default(byte);',
+  '  l:=Default(type of l);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestDefault_SignedInt',
+    LinesToStr([ // statements
+    'this.c = 0;',
+    'this.d = 0 + 1;',
+    'this.s = 0;',
+    'this.m = 0;',
+    'this.l = 0;',
+    'this.n = 0;',
+    'this.b = 0;',
+    '']),
+    LinesToStr([
+    '$mod.s = 0;',
+    '$mod.m = 0;',
+    '$mod.l = 0;',
+    '$mod.n = 0;',
+    '$mod.b = 0;',
+    '$mod.l = 0;',
     '']));
 end;
 

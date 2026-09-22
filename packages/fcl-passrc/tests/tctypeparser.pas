@@ -50,6 +50,9 @@ type
     Procedure DoTestClassOf(Const AHint : string);
   Published
     Procedure TestAliasType;
+    Procedure TestTypeOf;
+    Procedure TestTypeOf_VarArgResult;
+    Procedure TestTypeOf_ModeFPCFail;
     procedure TestAbsoluteAliasType;
     Procedure TestCrossUnitAliasType;
     Procedure TestAliasTypeDeprecated;
@@ -3035,6 +3038,77 @@ begin
   ParseType('Class of TSomeClass',TPasClassOfType,AHint);
   AssertNotNull('Have class type',TPasClassOfType(TheType).DestType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasClassOfType(TheType).DestType.ClassType);
+end;
+
+procedure TTestTypeParser.TestTypeOf;
+
+  function CheckTypeOf(const Msg: string; El: TPasElement; const OperandName: string): TPasTypeOfType;
+  begin
+    AssertNotNull(Msg+' not nil',El);
+    AssertEquals(Msg+' class',TPasTypeOfType,El.ClassType);
+    Result:=TPasTypeOfType(El);
+    AssertExpression(Msg+' operand',Result.Expr,pekIdent,OperandName);
+  end;
+
+var
+  T: TPasTypeOfType;
+begin
+  Add('{$modeswitch typeinquiry}');
+  Add('Type');
+  Add('  TInt = type of p;');
+  Add('  TAlias = type type of p;');
+  Add('  TArr = array of type of p;');
+  Add('  PInt = ^type of p;');
+  Add('  TSet = set of type of b;');
+  Add('  TGen = specialize TBird<type of p>;');
+  Add('  TSum = type of (w+dw);');
+  ParseDeclarations;
+  AssertEquals('Type count',7,Declarations.Types.Count);
+  T:=CheckTypeOf('TInt',TPasElement(Declarations.Types[0]),'p');
+  AssertEquals('TInt name','TInt',T.Name);
+  AssertEquals('TInt declaration','TInt = type of p',T.GetDeclaration(true));
+  AssertEquals('TAlias class',TPasTypeAliasType,TPasElement(Declarations.Types[1]).ClassType);
+  CheckTypeOf('TAlias.DestType',TPasTypeAliasType(Declarations.Types[1]).DestType,'p');
+  AssertEquals('TArr class',TPasArrayType,TPasElement(Declarations.Types[2]).ClassType);
+  CheckTypeOf('TArr.ElType',TPasArrayType(Declarations.Types[2]).ElType,'p');
+  AssertEquals('PInt class',TPasPointerType,TPasElement(Declarations.Types[3]).ClassType);
+  CheckTypeOf('PInt.DestType',TPasPointerType(Declarations.Types[3]).DestType,'p');
+  AssertEquals('TSet class',TPasSetType,TPasElement(Declarations.Types[4]).ClassType);
+  CheckTypeOf('TSet.EnumType',TPasSetType(Declarations.Types[4]).EnumType,'b');
+  AssertEquals('TGen class',TPasSpecializeType,TPasElement(Declarations.Types[5]).ClassType);
+  AssertEquals('TGen param count',1,TPasSpecializeType(Declarations.Types[5]).Params.Count);
+  CheckTypeOf('TGen.Params[0]',TPasElement(TPasSpecializeType(Declarations.Types[5]).Params[0]),'p');
+  AssertEquals('TSum class',TPasTypeOfType,TPasElement(Declarations.Types[6]).ClassType);
+  AssertExpression('TSum operand',TPasTypeOfType(Declarations.Types[6]).Expr,eopAdd);
+end;
+
+procedure TTestTypeParser.TestTypeOf_VarArgResult;
+var
+  V: TPasVariable;
+  F: TPasFunction;
+begin
+  Add('{$modeswitch typeinquiry}');
+  Add('var');
+  Add('  v: type of r.w;');
+  Add('function Fly(a: type of b; const c: array of type of b): type of p;');
+  ParseDeclarations;
+  AssertEquals('One variable',1,Declarations.Variables.Count);
+  V:=TPasVariable(Declarations.Variables[0]);
+  AssertEquals('v.VarType class',TPasTypeOfType,V.VarType.ClassType);
+  AssertExpression('v operand',TPasTypeOfType(V.VarType).Expr,eopSubIdent);
+  AssertEquals('One function',1,Declarations.Functions.Count);
+  F:=TPasFunction(Declarations.Functions[0]);
+  AssertEquals('a.ArgType class',TPasTypeOfType,TPasArgument(F.ProcType.Args[0]).ArgType.ClassType);
+  AssertEquals('c.ArgType class',TPasArrayType,TPasArgument(F.ProcType.Args[1]).ArgType.ClassType);
+  AssertEquals('Result class',TPasTypeOfType,F.FuncType.ResultEl.ResultType.ClassType);
+end;
+
+procedure TTestTypeParser.TestTypeOf_ModeFPCFail;
+begin
+  Add('{$mode fpc}');
+  Add('var');
+  Add('  v: type of p;');
+  AssertException(EParserError,@ParseDeclarations);
 end;
 
 procedure TTestTypeParser.TestAliasType;

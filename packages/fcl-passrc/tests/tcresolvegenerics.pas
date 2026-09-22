@@ -245,6 +245,12 @@ type
     procedure TestGen_ConstGeneric_ByteOutOfRangeFail;
     procedure TestGen_ConstGeneric_SubrangeOutOfRangeFail;
     procedure TestGen_ConstGeneric_DelphiClassMethodTyped;
+
+    // type of
+    procedure TestGen_TypeOf_Body;
+    procedure TestGen_TypeOf_Specialize;
+    procedure TestGen_TypeOf_FuncResult;
+    procedure TestGen_TypeOf_TypeParamExpr;
   end;
 
 implementation
@@ -4142,6 +4148,113 @@ begin
   'var L: TIntList;',
   'begin',
   '  L := TIntList.Create;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_TypeOf_Body;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    a: T;',
+  '    b: type of a;',
+  '    function Fly(x: T): T;',
+  '  end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'function TBird.Fly(x: T): T;',
+  'var',
+  '  tmp: type of x;',
+  '  me: type of Self;',
+  '  v: type of (Default(T));',
+  '  s: type of (x+a);',
+  'begin',
+  '  tmp:=x;',
+  '  v:=tmp;',
+  '  me:=Self;',
+  '  s:=x+a;',
+  '  Result:=v+s;',
+  '  Run(tmp);',
+  'end;',
+  'var',
+  '  Bird: specialize TBird<word>;',
+  'begin',
+  '  {@RunWord}Run(Bird.b);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_TypeOf_Specialize;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  generic TBox<T> = class',
+  '    Value: T;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'var',
+  '  x: word;',
+  '  Box: specialize TBox<type of x>;',
+  '  Box2: specialize TBox<word>;',
+  'begin',
+  '  Box:=specialize TBox<type of x>.Create;',
+  '  Box2:=Box;',
+  '  {@RunWord}Run(Box.Value);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_TypeOf_FuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'generic function Add<S,T>(a: S; b: T): type of (a+b);',
+  'begin',
+  '  Result:=a+b;',
+  'end;',
+  'procedure {#RunLongint}Run(i: longint); overload; begin end;',
+  'procedure {#RunString}Run(s: string); overload; begin end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  s: string;',
+  'begin',
+  '  {@RunLongint}Run(specialize Add<byte,word>(b,w));',
+  '  {@RunString}Run(specialize Add<string,string>(s,s));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_TypeOf_TypeParamExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'generic function Add<S,T>(a: S; b: T): type of (S+T);',
+  'begin',
+  '  Result:=a+b;',
+  'end;',
+  'procedure {#RunLongint}Run(i: longint); overload; begin end;',
+  'procedure {#RunString}Run(s: string); overload; begin end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  s: string;',
+  'begin',
+  '  {@RunLongint}Run(specialize Add<byte,word>(b,w));',
+  '  {@RunString}Run(specialize Add<string,string>(s,s));',
   '']);
   ParseProgram;
 end;

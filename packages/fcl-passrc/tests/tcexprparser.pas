@@ -98,6 +98,13 @@ type
     Procedure TestIfExprPrecedence;
     Procedure TestIfExprInBrackets;
     Procedure TestIfExprObjFPCFail;
+    procedure TestTypeOf;
+    procedure TestTypeOfSubIdent;
+    procedure TestTypeOfPlus;
+    procedure TestTypeOfCall;
+    procedure TestTypeOfBrackets;
+    procedure TestTypeOfModeFPCFail;
+    procedure TestTypeOfModeDelphiFail;
     Procedure TestIfExprMissingElseFail;
     Procedure TestCaseExpr;
     Procedure TestCaseExprOtherwise;
@@ -1053,6 +1060,85 @@ begin
   AssertExpression('Left is if',TheLeft,pekIf,TIfExpr);
   AssertExpression('Right is 3',TheRight,pekNumber,'3');
   AssertEquals('Declaration','(if b then 1 else 2) * 3',TheExpr.GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestTypeOf;
+var
+  P: TParamsExpr;
+  O: TPasExpr;
+begin
+  FDirective:='{$mode objfpc}';
+  DeclareVar('byte','b');
+  ParseExpression('SizeOf(type of b)');
+  P:=TParamsExpr(AssertExpression('Params',TheExpr,pekFuncParams,TParamsExpr));
+  AssertEquals('One param',1,length(P.Params));
+  AssertUnaryExpr('type of',P.Params[0],eopTypeOf,O);
+  AssertExpression('Operand is b',O,pekIdent,'b');
+  AssertEquals('Declaration','type of b',P.Params[0].GetDeclaration(true));
+end;
+
+procedure TTestExpressions.TestTypeOfSubIdent;
+var
+  O: TPasExpr;
+begin
+  FDirective:='{$mode objfpc}';
+  DeclareVar('byte','a');
+  ParseExpression('type of a.b');
+  AssertUnaryExpr('type of',TheExpr,eopTypeOf,O);
+  AssertExpression('Operand is a.b',O,eopSubIdent);
+end;
+
+procedure TTestExpressions.TestTypeOfPlus;
+var
+  O: TPasExpr;
+begin
+  FDirective:='{$mode objfpc}';
+  DeclareVar('byte','a');
+  ParseExpression('type of a+b');
+  AssertBinaryExpr('Binary +',eopAdd,FLeft,FRight);
+  AssertUnaryExpr('Left is type of',TheLeft,eopTypeOf,O);
+  AssertExpression('Operand is a',O,pekIdent,'a');
+  AssertExpression('Right is b',TheRight,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestTypeOfCall;
+var
+  O: TPasExpr;
+  P: TParamsExpr;
+begin
+  FDirective:='{$mode objfpc}';
+  DeclareVar('byte','a');
+  ParseExpression('type of x(b)');
+  AssertUnaryExpr('type of',TheExpr,eopTypeOf,O);
+  P:=TParamsExpr(AssertExpression('Operand is x(b)',O,pekFuncParams,TParamsExpr));
+  AssertExpression('Value is x',P.Value,pekIdent,'x');
+end;
+
+procedure TTestExpressions.TestTypeOfBrackets;
+var
+  O: TPasExpr;
+begin
+  FDirective:='{$mode delphi}{$modeswitch typeinquiry}';
+  DeclareVar('byte','a');
+  ParseExpression('type of (a+b)');
+  AssertUnaryExpr('type of',TheExpr,eopTypeOf,O);
+  AssertExpression('Operand is a+b',O,eopAdd);
+end;
+
+procedure TTestExpressions.TestTypeOfModeFPCFail;
+begin
+  FDirective:='{$mode fpc}';
+  DeclareVar('byte','b');
+  SetExpression('SizeOf(type of b)');
+  AssertException(EParserError,@ParseExpression);
+end;
+
+procedure TTestExpressions.TestTypeOfModeDelphiFail;
+begin
+  FDirective:='{$mode delphi}';
+  DeclareVar('byte','b');
+  SetExpression('SizeOf(type of b)');
+  AssertException(EParserError,@ParseExpression);
 end;
 
 procedure TTestExpressions.TestIfExprObjFPCFail;

@@ -1308,7 +1308,8 @@ type
     rrfFreeInstance, // destructor call (without it call destructor as normal method)
     rrfVMT, // use VMT for call (e.g. calling a virtual method)
     rrfConstInherited, // parent is const and this child is too (e.g. field of a const record argument)
-    rrfUseFields // use record fields too, flag is used by pas2js
+    rrfUseFields, // use record fields too, flag is used by pas2js
+    rrfTypeOfCast // callee of a "type of" typecast, e.g. "type of a(b)", Declaration is the type of a
     );
   TResolvedReferenceFlags = set of TResolvedReferenceFlag;
 
@@ -1602,6 +1603,7 @@ type
     FScopeCount: integer;
     FScopes: TPasScopeArray; // stack of scopes
     FStep: TPasResolverStep;
+    FTypeOfOperandLevel: integer; // >0 while resolving the operand of "type of"
     FStoreSrcColumns: boolean;
     FStashScopeCount: integer;
     FStashScopes: TPasScopeArray; // stack of scopes
@@ -1751,6 +1753,9 @@ type
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExprParams(Params: TParamsExpr); virtual;
     procedure ResolveFuncParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
+    procedure ResolveTypeOfExpr(El: TUnaryExpr; Access: TResolvedRefAccess); virtual;
+    procedure FinishTypeOfCast(Params: TParamsExpr; TypeEl: TPasType; Access: TResolvedRefAccess); virtual;
+    procedure FinishTypeCastParamAccess(TypeEl: TPasType; Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveFuncParamsExprName(NameExpr: TPasExpr; TemplParams: TFPList;
       Params: TParamsExpr; Access: TResolvedRefAccess; CallName: string = ''); virtual;
     procedure ResolveArrayParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
@@ -1790,6 +1795,7 @@ type
     procedure FinishPointerType(El: TPasPointerType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
     procedure FinishAliasType(El: TPasAliasType); virtual;
+    procedure FinishTypeOfType(El: TPasTypeOfType); virtual;
     procedure FinishGenericTemplateType(El: TPasGenericTemplateType); virtual;
     procedure FinishSpecializeType(El: TPasSpecializeType); virtual;
     procedure FinishSpecializeTypeBody(El: TPasSpecializeType);
@@ -2066,6 +2072,7 @@ type
     procedure SpecializeTryExceptExprOn(GenEl, SpecEl: TTryExceptExprOn);
     procedure SpecializeResString(GenEl, SpecEl: TPasResString);
     procedure SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
+    procedure SpecializeTypeOfType(GenEl, SpecEl: TPasTypeOfType);
     procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
     procedure SpecializeRangeType(GenEl, SpecEl: TPasRangeType);
     procedure SpecializeArrayType(GenEl, SpecEl: TPasArrayType; SpecializedItem: TPRSpecializedTypeItem);
@@ -2713,6 +2720,16 @@ type
     function IsArrayExpr(Expr: TParamsExpr): TPasArrayType;
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    // "type of" operator
+    function GetTypeOfOperandType(Operand: TPasExpr; ErrorEl: TPasElement): TPasType; virtual;
+    function IsTypeOfTypeRefOperand(Operand: TPasExpr): boolean;
+    procedure TypeOfOperandTypeToValue(var ResolvedEl: TPasResolverResult; Expr: TPasExpr);
+    function GetTypeOfCastRoot(Params: TParamsExpr): TUnaryExpr;
+    function GetTypeOfCastValueType(Value: TPasElement): TPasType; virtual;
+    function IsTypeOfCastExpr(El: TUnaryExpr): boolean;
+    procedure ComputeTypeOfExpr(El: TUnaryExpr; out ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement);
+    property TypeOfOperandLevel: integer read FTypeOfOperandLevel;
     function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function IsDeferredTemplMember(Expr: TPasExpr): boolean;
     function DerefPointerToArray(var R: TPasResolverResult;
@@ -3152,6 +3169,8 @@ begin
     Result:='nil'
   else if C=TPasAliasType then
     Result:='alias'
+  else if C=TPasTypeOfType then
+    Result:='type of'
   else if C=TPasPointerType then
     Result:='pointer'
   else if C=TPasTypeAliasType then
@@ -3264,6 +3283,8 @@ begin
     C:=aType.ClassType;
     if (C=TPasAliasType) then
       aType:=TPasAliasType(aType).DestType
+    else if (C=TPasTypeOfType) then
+      aType:=TPasTypeOfType(aType).DestType
     else if (C=TPasClassType) and TPasClassType(aType).IsForward
         and (aType.CustomData is TResolvedReference) then
       aType:=NoNil(TResolvedReference(aType.CustomData).Declaration) as TPasType
@@ -4801,7 +4822,7 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     OldItem:=TPasIdentifier(FItems.List^[Index].Data);
     {$ELSE}
     OldItem:=TPasIdentifier(FItems.List[Index].Data);
@@ -4811,7 +4832,7 @@ begin
       raise Exception.Create('20160925183438');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     FItems.List^[Index].Data:=Item;
     {$ELSE}
     FItems.List[Index].Data:=Item;
@@ -6201,6 +6222,16 @@ begin
         CandidateFound:=true;
         end;
       end;
+    end;
+
+  if (not CandidateFound) and (Data^.Found=nil)
+      and (GetTypeOfCastRoot(Data^.Params)<>nil)
+      and (GetTypeOfCastValueType(El)<>nil) then
+    begin
+    // "type of Value(Param)" -> typecast, see ResolveFuncParamsExprName
+    Abort:=true;
+    Distance:=cIncompatible;
+    CandidateFound:=true;
     end;
 
   if not CandidateFound then
@@ -7725,6 +7756,8 @@ begin
     FinishArrayType(TPasArrayType(El))
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     FinishAliasType(TPasAliasType(El))
+  else if C=TPasTypeOfType then
+    FinishTypeOfType(TPasTypeOfType(El))
   else if (C=TPasPointerType) then
     EmitTypeHints(El,TPasPointerType(El).DestType)
   else if C=TPasGenericTemplateType then
@@ -8119,7 +8152,8 @@ begin
   TypeEl:=ResolveAliasType(El.DestType);
   if TypeEl is TUnresolvedPendingRef then
     exit;
-  if (El.DestType.Parent=El) and not (El.DestType is TPasSpecializeType) then
+  if (El.DestType.Parent=El) and not (El.DestType is TPasSpecializeType)
+      and not (El.DestType is TPasTypeOfType) then
     RaiseMsg(20180429094237,nNotYetImplemented,sNotYetImplemented,['pointer of anonymous type'], El.DestType);
   CheckUseAsType(El.DestType,20190123095118,El);
   CheckPointerCycle(El);
@@ -8242,6 +8276,17 @@ begin
     RaiseMsg(20190818135830,nXExpectedButYFound,sXExpectedButYFound,
       ['type',GetTypeDescription(aType)],El);
   EmitTypeHints(El,TPasAliasType(El).DestType);
+end;
+
+procedure TPasResolver.FinishTypeOfType(El: TPasTypeOfType);
+begin
+  Inc(FTypeOfOperandLevel);
+  try
+    ResolveExpr(El.Expr,rraRead);
+    El.DestType:=GetTypeOfOperandType(El.Expr,El.Expr);
+  finally
+    Dec(FTypeOfOperandLevel);
+  end;
 end;
 
 procedure TPasResolver.FinishGenericTemplateType(El: TPasGenericTemplateType);
@@ -12976,7 +13021,9 @@ begin
     // In P^ := x the operand P is READ - only the memory it points at is
     // written. Passing the write access down rejects a function result
     // (GetPtr(i)^ := x), which FPC accepts.
-    if TUnaryExpr(El).OpCode=eopDeref then
+    if TUnaryExpr(El).OpCode=eopTypeOf then
+      ResolveTypeOfExpr(TUnaryExpr(El),Access)
+    else if TUnaryExpr(El).OpCode=eopDeref then
       ResolveExpr(TUnaryExpr(El).Operand,rraRead)
     else
       ResolveExpr(TUnaryExpr(El).Operand,Access);
@@ -14491,10 +14538,45 @@ begin
         CreateReference(TPasProcedureType(ResolvedEl.LoTypeEl),Value,Access);
         FinishProcParamAccess(TPasProcedureType(ResolvedEl.LoTypeEl),Params);
         exit;
-        end
+        end;
+      if (GetTypeOfCastRoot(Params)<>nil) and (SubParams.CustomData=nil)
+          and (rrfReadable in ResolvedEl.Flags) and (ResolvedEl.HiTypeEl<>nil) then
+        begin
+        // "type of a[0](b)" -> typecast b to the type of a[0]
+        FinishTypeOfCast(Params,ResolvedEl.HiTypeEl,Access);
+        exit;
+        end;
       end;
     RaiseMsg(20170216152202,nIllegalQualifierAfter,sIllegalQualifierAfter,
       ['(',SubParams.ElementTypeName],Params);
+    end
+  else if Value.ClassType=TUnaryExpr then
+    begin
+    if TUnaryExpr(Value).OpCode=eopTypeOf then
+      begin
+      // "(type of a)(b)" -> typecast b to the type of a
+      ResolveExpr(Value,rraRead);
+      if not (Value.CustomData is TResolvedReference) then
+        RaiseMsg(20260922100010,nIllegalQualifierAfter,sIllegalQualifierAfter,
+          ['(',Value.ElementTypeName],Params);
+      CheckTypeCast(ResolveAliasType(TResolvedReference(Value.CustomData).Declaration as TPasType),Params,true);
+      FinishTypeCastParamAccess(TResolvedReference(Value.CustomData).Declaration as TPasType,Params,Access);
+      exit;
+      end
+    else if (TUnaryExpr(Value).OpCode=eopDeref) and (GetTypeOfCastRoot(Params)<>nil) then
+      begin
+      // "type of p^(b)" -> typecast b to the type of p^
+      ResolveExpr(Value,rraRead);
+      ComputeElement(Value,ResolvedEl,[rcNoImplicitProc,rcSetReferenceFlags]);
+      if not IsProcedureType(ResolvedEl,true)
+          and (rrfReadable in ResolvedEl.Flags) and (ResolvedEl.HiTypeEl<>nil) then
+        begin
+        FinishTypeOfCast(Params,ResolvedEl.HiTypeEl,Access);
+        exit;
+        end;
+      end;
+    RaiseMsg(20260922100011,nIllegalQualifierAfter,sIllegalQualifierAfter,
+      ['(',Value.ElementTypeName],Params);
     end
   else if Value.ClassType=TProcedureExpr then
     begin
@@ -14505,6 +14587,51 @@ begin
     end
   else
     RaiseNotYetImplemented(20161014085118,Params.Value);
+end;
+
+procedure TPasResolver.ResolveTypeOfExpr(El: TUnaryExpr;
+  Access: TResolvedRefAccess);
+// "type of Operand"
+// Either a type, e.g. "SizeOf(type of a)",
+// or a typecast, e.g. "type of a(b)", which is a value.
+var
+  TypeEl: TPasType;
+begin
+  Inc(FTypeOfOperandLevel);
+  try
+    ResolveExpr(El.Operand,Access);
+    if IsTypeOfCastExpr(El) then
+      exit; // a value
+    TypeEl:=GetTypeOfOperandType(El.Operand,El);
+  finally
+    Dec(FTypeOfOperandLevel);
+  end;
+  CreateReference(TypeEl,El,rraRead);
+end;
+
+procedure TPasResolver.FinishTypeOfCast(Params: TParamsExpr; TypeEl: TPasType;
+  Access: TResolvedRefAccess);
+// "type of Value(Param)" -> typecast Param to TypeEl, the type of Value
+var
+  Ref: TResolvedReference;
+begin
+  CheckTypeCast(ResolveAliasType(TypeEl),Params,true);
+  Ref:=CreateReference(TypeEl,Params.Value,rraRead);
+  Include(Ref.Flags,rrfTypeOfCast);
+  FinishTypeCastParamAccess(TypeEl,Params,Access);
+end;
+
+procedure TPasResolver.FinishTypeCastParamAccess(TypeEl: TPasType;
+  Params: TParamsExpr; Access: TResolvedRefAccess);
+var
+  i: Integer;
+begin
+  TypeEl:=ResolveAliasType(TypeEl);
+  if TypeEl is TPasProcedureType then
+    AccessExpr(Params.Params[0],Access)
+  else if Access<>rraParamToUnknownProc then
+    for i:=0 to length(Params.Params)-1 do
+      FinishCallArgAccess(Params.Params[i],Access);
 end;
 
 procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
@@ -14615,6 +14742,7 @@ var
   TemplParamsCnt: Integer;
   GenTemplates, InferenceParams: TFPList;
   InvokeProcType: TPasProcedureType;
+  IsTypeOfCast: Boolean;
 begin
   // e.g. Name() -> find compatible
   {$IFDEF VerbosePasResolver}
@@ -14640,6 +14768,21 @@ begin
   FoundEl:=FindCallData.Found;
   if FoundEl=nil then
     RaiseIdentifierNotFound(20170216152544,CallName,NameExpr);
+  IsTypeOfCast:=false;
+  if (FindCallData.Distance=cIncompatible)
+      and (FindCallData.Count<=1)
+      and (GetTypeOfCastRoot(Params)<>nil) then
+    begin
+    // "type of Value(Param)" -> typecast Param to the type of Value
+    TypeEl:=GetTypeOfCastValueType(FoundEl);
+    if TypeEl<>nil then
+      begin
+      IsTypeOfCast:=true;
+      FoundEl:=TypeEl;
+      FindCallData.Distance:=cExact;
+      FindCallData.Count:=1;
+      end;
+    end;
   if FindCallData.Distance=cIncompatible then
     begin
     // FoundEl one element, but it was incompatible => raise error
@@ -14781,6 +14924,8 @@ begin
 
   // FoundEl compatible element -> create reference
   Ref:=CreateReference(FoundEl,NameExpr,rraRead);
+  if IsTypeOfCast then
+    Include(Ref.Flags,rrfTypeOfCast);
   if FindCallData.StartScope.ClassType=ScopeClass_WithExpr then
     Ref.WithExprScope:=TPasWithExprScope(FindCallData.StartScope);
   FindData:=Default(TPRFindData);
@@ -16883,9 +17028,13 @@ begin
       end;
     // Left is now left-most of multi add
     ComputeElement(Left,LeftResolved,Flags,StartEl);
+    if FTypeOfOperandLevel>0 then
+      TypeOfOperandTypeToValue(LeftResolved,Left);
     repeat
       SubBin:=TBinaryExpr(Left.Parent);
       ComputeElement(SubBin.Right,RightResolved,Flags,StartEl);
+      if FTypeOfOperandLevel>0 then
+        TypeOfOperandTypeToValue(RightResolved,SubBin.Right);
 
       if not TryResolveOperatorOverload(SubBin,ResolvedEl,LeftResolved,RightResolved) then
         ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
@@ -16897,9 +17046,34 @@ begin
     begin
     ComputeElement(Bin.Left,LeftResolved,Flags,StartEl);
     ComputeElement(Bin.Right,RightResolved,Flags,StartEl);
+    if (FTypeOfOperandLevel>0)
+        and not (Bin.OpCode in [eopIs,eopIsNot,eopAs,eopSubIdent,eopNone]) then
+      begin
+      TypeOfOperandTypeToValue(LeftResolved,Bin.Left);
+      TypeOfOperandTypeToValue(RightResolved,Bin.Right);
+      end;
 
     if not TryResolveOperatorOverload(Bin,ResolvedEl,LeftResolved,RightResolved) then
       ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
+    end;
+end;
+
+procedure TPasResolver.TypeOfOperandTypeToValue(var ResolvedEl: TPasResolverResult;
+  Expr: TPasExpr);
+// In the operand of "type of" an operand of a binary operator can be a type,
+// e.g. "type of (S+T)" with type parameters S and T -> treat it as a value
+var
+  BaseType: TResolverBaseType;
+  LoType, HiType: TPasType;
+begin
+  if (ResolvedEl.IdentEl is TPasType)
+      and not (rrfReadable in ResolvedEl.Flags)
+      and (ResolvedEl.LoTypeEl<>nil) then
+    begin
+    BaseType:=ResolvedEl.BaseType;
+    LoType:=ResolvedEl.LoTypeEl;
+    HiType:=ResolvedEl.HiTypeEl;
+    SetResolverValueExpr(ResolvedEl,BaseType,LoType,HiType,Expr,[rrfReadable]);
     end;
 end;
 
@@ -20837,7 +21011,9 @@ procedure TPasResolver.OnRangeCheckEl(Sender: TResExprEvaluator;
   El: TPasElement; var MsgType: TMessageType);
 begin
   if El=nil then exit;
+  // Note: range checks are off for the operand of "type of"
   if (MsgType=mtWarning)
+      and (FTypeOfOperandLevel=0)
       and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
     MsgType:=mtError;
   if Sender=nil then ;
@@ -22076,6 +22252,8 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
           end;
         end;
       end
+    else if C=TUnaryExpr then
+      Result:=ElementReferencesTemplateTypes(TUnaryExpr(El).Operand,GenericTemplateTypes)
     else if C=TTryExceptExpr then
       begin
       TryEx:=TTryExceptExpr(El);
@@ -22127,6 +22305,9 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
         Result:=ElementReferencesTemplateTypes(TPasPointerType(El).DestType,GenericTemplateTypes)
       else if C=TPasSetType then
         Result:=ElementReferencesTemplateTypes(TPasSetType(El).EnumType,GenericTemplateTypes)
+      else if C=TPasTypeOfType then
+        Result:=ElementReferencesTemplateTypes(TPasTypeOfType(El).DestType,GenericTemplateTypes)
+          or ElementReferencesTemplateTypes(TPasTypeOfType(El).Expr,GenericTemplateTypes)
       else if C=TPasEnumType then
       else
         RaiseNotYetImplemented(20190905110152,El);
@@ -23477,6 +23658,11 @@ begin
     begin
     AddType(TPasAliasType(SpecEl));
     SpecializeAliasType(TPasAliasType(GenEl),TPasAliasType(SpecEl));
+    end
+  else if C=TPasTypeOfType then
+    begin
+    AddType(TPasTypeOfType(SpecEl));
+    SpecializeTypeOfType(TPasTypeOfType(GenEl),TPasTypeOfType(SpecEl));
     end
   else if C=TPasPointerType then
     begin
@@ -24847,6 +25033,13 @@ procedure TPasResolver.SpecializeResString(GenEl, SpecEl: TPasResString);
 begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
   FinishResourcestring(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeTypeOfType(GenEl, SpecEl: TPasTypeOfType);
+begin
+  // the DestType is computed by FinishTypeDef in the specialized context
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
+  FinishTypeDef(SpecEl);
 end;
 
 procedure TPasResolver.SpecializeAliasType(GenEl, SpecEl: TPasAliasType);
@@ -27615,7 +27808,6 @@ var
   EnumType: TPasEnumType;
   ArrayEl: TPasArrayType;
   bt: TResolverBaseType;
-  MinInt, MaxInt: TMaxPrecInt;
 begin
   if Proc=nil then ;
   Evaluated:=nil;
@@ -27678,8 +27870,9 @@ begin
     else if bt=btQWord then
       Evaluated:=TResEvalInt.CreateValue(0)
     {$endif}
-    else if (bt in btAllIntegerNoQWord) and GetIntegerRange(bt,MinInt,MaxInt) then
-      Evaluated:=TResEvalInt.CreateValue(MinInt)
+    else if bt in btAllIntegerNoQWord then
+      // the range of every integer base type contains 0
+      Evaluated:=TResEvalInt.CreateValue(0)
     {$ifdef FPC_HAS_CPSTRING}
     else if bt in [btAnsiString,btShortString,btRawByteString] then
       // RawByteString belongs with the other ansi strings: its default is the
@@ -28050,7 +28243,8 @@ begin
       or (AClass=TPasSetType)
       or (AClass=TPasRangeType)
       or (AClass=TPasFileType)
-      or (AClass=TPasSpecializeType) then
+      or (AClass=TPasSpecializeType)
+      or (AClass=TPasTypeOfType) then
     AddType(TPasType(El))
   else if AClass=TPasArrayType then
     AddArrayType(TPasArrayType(El),TypeParams)
@@ -37363,6 +37557,11 @@ begin
     ComputeTryExceptExpr(TTryExceptExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TUnaryExpr then
     begin
+    if TUnaryExpr(El).OpCode=eopTypeOf then
+      begin
+      ComputeTypeOfExpr(TUnaryExpr(El),ResolvedEl,Flags,StartEl);
+      exit;
+      end;
     if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then
       // The ADDRESS is the constant, not the operand's value: `@X` is a
       // load-time address for anything addressable, including a typed constant
@@ -37529,6 +37728,15 @@ begin
     ComputeElement(TPasAliasType(El).DestType,ResolvedEl,Flags+[rcType],StartEl);
     ResolvedEl.IdentEl:=El;
     ResolvedEl.HiTypeEl:=TPasAliasType(El);
+    end
+  else if ElClass=TPasTypeOfType then
+    begin
+    // e.g. 'type a = type of b' -> compute type of b
+    if TPasTypeOfType(El).DestType=nil then
+      RaiseNotYetImplemented(20260922100001,El);
+    ComputeElement(TPasTypeOfType(El).DestType,ResolvedEl,Flags+[rcType],StartEl);
+    if El.Name<>'' then
+      ResolvedEl.IdentEl:=El;
     end
   else if (ElClass=TPasVariable) then
     begin
@@ -38145,6 +38353,8 @@ begin
     C:=aType.ClassType;
     if C=TPasAliasType then
       aType:=TPasAliasType(aType).DestType
+    else if C=TPasTypeOfType then
+      aType:=TPasTypeOfType(aType).DestType
     else if (C=TPasTypeAliasType) and SkipTypeAlias then
       aType:=TPasAliasType(aType).DestType
     else if (C=TPasClassType) and TPasClassType(aType).IsForward
@@ -38894,6 +39104,169 @@ begin
           and ElHasModeSwitch(Expr,msArrayOperators);
 end;
 
+function TPasResolver.GetTypeOfOperandType(Operand: TPasExpr;
+  ErrorEl: TPasElement): TPasType;
+// returns the type of the already resolved operand of "type of"
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  ComputeElement(Operand,ResolvedEl,[]);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.GetTypeOfOperandType ',GetObjName(Operand),' ',GetResolverResultDbg(ResolvedEl));
+  {$ENDIF}
+  if (ResolvedEl.IdentEl is TPasType) and not (rrfReadable in ResolvedEl.Flags)
+      and IsTypeOfTypeRefOperand(Operand) then
+    // "type of TypeIdentifier"
+    RaiseMsg(20260922100020,nXExpectedButYFound,sXExpectedButYFound,
+      ['expression','type'],ErrorEl);
+  Result:=ResolvedEl.HiTypeEl;
+  if (Result=nil) and (ResolvedEl.BaseType in
+      btAllInteger+btAllFloats+btAllBooleans+btAllStringAndChars+[btPointer,btVariant]) then
+    Result:=FBaseTypes[ResolvedEl.BaseType];
+  if (Result=nil)
+      or ((ResolvedEl.BaseType=btProc) and (ResolvedEl.IdentEl is TPasProcedure)
+        and not (rrfReadable in ResolvedEl.Flags)) then
+    // e.g. "type of nil", "type of [1,2]", "type of SomeProcedure"
+    RaiseMsg(20260922100021,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+end;
+
+function TPasResolver.IsTypeOfTypeRefOperand(Operand: TPasExpr): boolean;
+// true if Operand is a plain type reference, e.g. "Integer", "System.Integer" or "TList<Word>",
+// false for type expressions, e.g. "S+T" of type parameters
+var
+  C: TClass;
+begin
+  C:=Operand.ClassType;
+  if C=TPrimitiveExpr then
+    Result:=TPrimitiveExpr(Operand).Kind=pekIdent
+  else if C=TBinaryExpr then
+    Result:=TBinaryExpr(Operand).OpCode=eopSubIdent
+  else if C=TInlineSpecializeExpr then
+    Result:=true
+  else
+    Result:=false;
+end;
+
+function TPasResolver.GetTypeOfCastRoot(Params: TParamsExpr): TUnaryExpr;
+// returns the "type of" expression, if Params is the typecast of a "type of",
+// e.g. "type of a(b)", "type of r.a(b).c", "type of a[1](b)^"
+var
+  Child, Parent, El: TPasExpr;
+  C: TClass;
+  Ref: TResolvedReference;
+begin
+  Result:=nil;
+  if (Params=nil) or (Params.Kind<>pekFuncParams) then exit;
+  // the first typecast in the operand chain only
+  El:=Params.Value;
+  while El<>nil do
+    begin
+    Ref:=nil;
+    if El.CustomData is TResolvedReference then
+      Ref:=TResolvedReference(El.CustomData);
+    if (Ref<>nil) and (rrfTypeOfCast in Ref.Flags) then
+      exit;
+    C:=El.ClassType;
+    if (C=TBinaryExpr) and (TBinaryExpr(El).OpCode=eopSubIdent) then
+      El:=TBinaryExpr(El).Left
+    else if C=TParamsExpr then
+      El:=TParamsExpr(El).Value
+    else if (C=TUnaryExpr) and (TUnaryExpr(El).OpCode=eopDeref) then
+      El:=TUnaryExpr(El).Operand
+    else
+      break;
+    end;
+  // search the "type of" in the parents
+  Child:=Params;
+  while Child.Parent is TPasExpr do
+    begin
+    Parent:=TPasExpr(Child.Parent);
+    C:=Parent.ClassType;
+    if C=TUnaryExpr then
+      begin
+      if TUnaryExpr(Parent).Operand<>Child then exit;
+      case TUnaryExpr(Parent).OpCode of
+      eopTypeOf: exit(TUnaryExpr(Parent));
+      eopDeref: ;
+      else exit;
+      end;
+      end
+    else if C=TBinaryExpr then
+      begin
+      if (TBinaryExpr(Parent).OpCode<>eopSubIdent)
+          or (TBinaryExpr(Parent).Left<>Child) then exit;
+      end
+    else if C=TParamsExpr then
+      begin
+      if TParamsExpr(Parent).Value<>Child then exit;
+      end
+    else
+      exit;
+    Child:=Parent;
+    end;
+end;
+
+function TPasResolver.GetTypeOfCastValueType(Value: TPasElement): TPasType;
+// returns the type of Value, if Value can be used in "type of Value(Param)"
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  Result:=nil;
+  if not ((Value is TPasVariable) or (Value is TPasArgument)
+      or (Value is TPasResultElement) or (Value is TPasEnumValue)) then
+    exit;
+  ComputeElement(Value,ResolvedEl,[rcNoImplicitProc]);
+  if IsProcedureType(ResolvedEl,true) then exit;
+  if not (rrfReadable in ResolvedEl.Flags) then exit;
+  Result:=ResolvedEl.HiTypeEl;
+  if (Result<>nil) and (GetFuncRefInvokeProcType(Result)<>nil) then
+    Result:=nil;
+end;
+
+function TPasResolver.IsTypeOfCastExpr(El: TUnaryExpr): boolean;
+// true if El is a "type of" typecast, e.g. "type of a(b)"
+var
+  Expr: TPasExpr;
+  C: TClass;
+begin
+  Result:=false;
+  if El.OpCode<>eopTypeOf then exit;
+  Expr:=El.Operand;
+  while Expr<>nil do
+    begin
+    C:=Expr.ClassType;
+    if C=TParamsExpr then
+      begin
+      if (TParamsExpr(Expr).Kind=pekFuncParams)
+          and (GetParamsValueRef(TParamsExpr(Expr))<>nil)
+          and (rrfTypeOfCast in GetParamsValueRef(TParamsExpr(Expr)).Flags) then
+        exit(true);
+      Expr:=TParamsExpr(Expr).Value;
+      end
+    else if (C=TBinaryExpr) and (TBinaryExpr(Expr).OpCode=eopSubIdent) then
+      Expr:=TBinaryExpr(Expr).Left
+    else if (C=TUnaryExpr) and (TUnaryExpr(Expr).OpCode=eopDeref) then
+      Expr:=TUnaryExpr(Expr).Operand
+    else
+      exit;
+    end;
+end;
+
+procedure TPasResolver.ComputeTypeOfExpr(El: TUnaryExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+begin
+  if El.CustomData is TResolvedReference then
+    // "type of a" -> a type
+    ComputeElement(TResolvedReference(El.CustomData).Declaration,ResolvedEl,
+      Flags+[rcNoImplicitProc],StartEl)
+  else if IsTypeOfCastExpr(El) then
+    // "type of a(b)" -> a value
+    ComputeElement(El.Operand,ResolvedEl,Flags,StartEl)
+  else
+    RaiseNotYetImplemented(20260922100030,El);
+end;
+
 function TPasResolver.IsTypeCast(Params: TParamsExpr): boolean;
 var
   Value: TPasExpr;
@@ -38904,15 +39277,17 @@ begin
   Result:=false;
   if (Params=nil) or (Params.Kind<>pekFuncParams) then exit;
   Value:=Params.Value;
-  if not IsNameExpr(Value) then
-    exit;
   if not (Value.CustomData is TResolvedReference) then exit;
   Ref:=TResolvedReference(Value.CustomData);
+  if not IsNameExpr(Value)
+      and not (rrfTypeOfCast in Ref.Flags)
+      and not ((Value.ClassType=TUnaryExpr) and (TUnaryExpr(Value).OpCode=eopTypeOf)) then
+    exit;
   Decl:=Ref.Declaration;
   C:=Decl.ClassType;
-  if (C=TPasAliasType) or (C=TPasTypeAliasType) then
+  if (C=TPasAliasType) or (C=TPasTypeAliasType) or (C=TPasTypeOfType) then
     begin
-    Decl:=ResolveAliasType(TPasAliasType(Decl));
+    Decl:=ResolveAliasType(TPasType(Decl));
     C:=Decl.ClassType;
     end;
   if (C=TPasProcedureType)

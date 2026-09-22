@@ -1273,8 +1273,11 @@ begin
   Result := True;
   lType := aVar.VarType;
   // An alias, including a specialization, stands for the type it names.
-  while lType is TPasAliasType do
-    lType := TPasAliasType(lType).DestType;
+  while (lType is TPasAliasType) or (lType is TPasTypeOfType) do
+    if lType is TPasTypeOfType then
+      lType := TPasTypeOfType(lType).DestType
+    else
+      lType := TPasAliasType(lType).DestType;
   if lType = nil then
     Exit;
   Result := (lType is TPasClassType)
