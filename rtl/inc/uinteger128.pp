@@ -19,6 +19,8 @@
 unit uinteger128;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$MODE objfpc}
+
   interface
 
     type
@@ -32,25 +34,25 @@ unit uinteger128;
 
     function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
 
-    operator+ (const i1,i2: UInt128) result : UInt128;inline;
-    operator- (const i1,i2: UInt128) result : UInt128;inline;
-    operator* (f1,f2 : UInt128) result : UInt128;
-    operator div (z,n : uint128) fpc_div_uint128 : uint128;
-    operator mod (z,n: uint128) fpc_mod_uint128 : uint128;
-    operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
-    operator shr(value : UInt128;shift : ALUUInt) result : UInt128;
-    operator and (const i1,i2: UInt128) result: UInt128;
-    operator or (const i1,i2: UInt128) result: UInt128;
-    operator xor (const i1,i2: UInt128) result: UInt128;
-    operator not (const i: UInt128) result: UInt128;
+    operator+ (const i1,i2: UInt128): UInt128;inline;
+    operator- (const i1,i2: UInt128): UInt128;inline;
+    operator* (f1,f2 : UInt128): UInt128;
+    operator div (z,n : uint128): uint128;
+    operator mod (z,n: uint128): uint128;
+    operator shl (value : UInt128;shift : ALUUInt): UInt128;
+    operator shr(value : UInt128;shift : ALUUInt): UInt128;
+    operator and (const i1,i2: UInt128): UInt128;
+    operator or (const i1,i2: UInt128): UInt128;
+    operator xor (const i1,i2: UInt128): UInt128;
+    operator not (const i: UInt128): UInt128;
 
-    operator = (const i1,i2: UInt128) result: Boolean;inline;
-    operator < (const i1,i2: UInt128) result: Boolean;inline;
-    operator <= (const i1,i2: UInt128) result: Boolean;inline;
-    operator > (const i1,i2: UInt128) result: Boolean;inline;
-    operator >= (const i1,i2: UInt128) result: Boolean;inline;
+    operator = (const i1,i2: UInt128): Boolean;inline;
+    operator < (const i1,i2: UInt128): Boolean;inline;
+    operator <= (const i1,i2: UInt128): Boolean;inline;
+    operator > (const i1,i2: UInt128): Boolean;inline;
+    operator >= (const i1,i2: UInt128): Boolean;inline;
 
-    operator := (const source : UInt64) dest : UInt128;inline;
+    operator := (const source : UInt64): UInt128;inline;
 
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
@@ -150,7 +152,7 @@ unit uinteger128;
       end;
 {$pop}
 
-    operator+ (const i1,i2: UInt128) result : UInt128;inline;
+    operator+ (const i1,i2: UInt128): UInt128;inline;
       var
         c: Boolean;
       begin
@@ -158,7 +160,7 @@ unit uinteger128;
         qword_add(i1.QWords[QWORD_HI],i2.QWords[QWORD_HI],c,result.QWords[QWORD_HI],c);
       end;
 
-    operator- (const i1,i2: UInt128) result : UInt128;inline;
+    operator- (const i1,i2: UInt128): UInt128;inline;
       var
         ii2: UInt128;
       begin
@@ -167,7 +169,7 @@ unit uinteger128;
         result:=i1+ii2+1;
       end;
 
-    operator* (f1,f2 : UInt128) result : UInt128;
+    operator* (f1,f2 : UInt128): UInt128;
       var
         b : byte;
       begin
@@ -189,10 +191,10 @@ unit uinteger128;
          { Use the usually faster 64-bit division if possible }
          if (z.QWords[QWORD_HI] = 0) and (n.QWords[QWORD_HI] = 0) then
            begin
-             fpc_div_uint128 := z.QWords[QWORD_LO] div n.QWords[QWORD_LO];
+             result := z.QWords[QWORD_LO] div n.QWords[QWORD_LO];
              exit;
            end;
-         fpc_div_uint128:=0;
+         result:=0;
          if n=0 then
            RunError(200);
            //TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -213,7 +215,7 @@ unit uinteger128;
              if z>=n then
                begin
                   z:=z-n;
-                  fpc_div_uint128:=fpc_div_uint128+(uint128(1) shl shift);
+                  result:=result+(uint128(1) shl shift);
                end;
              n:=n shr 1;
            end;
@@ -226,10 +228,10 @@ unit uinteger128;
          { Use the usually faster 64-bit mod if possible }
          if (z.QWords[QWORD_HI] = 0) and (n.QWords[QWORD_HI] = 0) then
            begin
-             fpc_mod_uint128 := z.QWords[QWORD_LO] mod n.QWords[QWORD_LO];
+             result := z.QWords[QWORD_LO] mod n.QWords[QWORD_LO];
              exit;
            end;
-         fpc_mod_uint128:=0;
+         result:=0;
          if n=0 then
            RunError(200);
            //TODO:HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -242,7 +244,7 @@ unit uinteger128;
          { the d is greater than the n            }
          if lzn>lzz then
            begin
-              fpc_mod_uint128:=z;
+              result:=z;
               exit;
            end;
          shift:=lzz-lzn;
@@ -253,10 +255,10 @@ unit uinteger128;
                z:=z-n;
              n:=n shr 1;
            end;
-         fpc_mod_uint128:=z;
+         result:=z;
       end;
 
-    operator shl (value : UInt128;shift : ALUUInt) result : UInt128;
+    operator shl (value : UInt128;shift : ALUUInt): UInt128;
       begin
         shift:=shift and 127;
         if shift=0 then
@@ -273,7 +275,7 @@ unit uinteger128;
           end;
       end;
 
-   operator shr (value : UInt128;shift : ALUUInt) result : UInt128;
+   operator shr (value : UInt128;shift : ALUUInt): UInt128;
       begin
         shift:=shift and 127;
         if shift=0 then
@@ -290,55 +292,55 @@ unit uinteger128;
           end;
       end;
 
-    operator and (const i1,i2: UInt128) result: UInt128;
+    operator and (const i1,i2: UInt128): UInt128;
       begin
         result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] and i2.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] and i2.QWords[QWORD_HI];
       end;
 
-    operator or (const i1,i2: UInt128) result: UInt128;
+    operator or (const i1,i2: UInt128): UInt128;
       begin
         result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] or i2.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] or i2.QWords[QWORD_HI];
       end;
 
-    operator xor (const i1,i2: UInt128) result: UInt128;
+    operator xor (const i1,i2: UInt128): UInt128;
       begin
         result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] xor i2.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] xor i2.QWords[QWORD_HI];
       end;
 
-    operator not (const i: UInt128) result: UInt128;
+    operator not (const i: UInt128): UInt128;
       begin
         result.QWords[QWORD_LO]:=not i.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=not i.QWords[QWORD_HI];
       end;
 
-    operator = (const i1,i2: UInt128) result: Boolean;inline;
+    operator = (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_LO]=i2.QWords[QWORD_LO]) and
                 (i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]);
       end;
 
-    operator < (const i1,i2: UInt128) result: Boolean;inline;
+    operator < (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]<i2.QWords[QWORD_HI]) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<i2.QWords[QWORD_LO]));
       end;
 
-    operator <= (const i1,i2: UInt128) result: Boolean;inline;
+    operator <= (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]<i2.QWords[QWORD_HI]) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<=i2.QWords[QWORD_LO]));
       end;
 
-    operator > (const i1,i2: UInt128) result: Boolean;inline;
+    operator > (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]>i2.QWords[QWORD_HI]) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>i2.QWords[QWORD_LO]));
       end;
 
-    operator >= (const i1,i2: UInt128) result: Boolean;inline;
+    operator >= (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]>i2.QWords[QWORD_HI]) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>=i2.QWords[QWORD_LO]));
@@ -346,8 +348,8 @@ unit uinteger128;
 
     operator := (const source : UInt64) dest : UInt128;inline;
       begin
-        dest.QWords[QWORD_LO] := source;
-        dest.QWords[QWORD_HI] := 0;
+        result.QWords[QWORD_LO] := source;
+        result.QWords[QWORD_HI] := 0;
       end;
 
 end.
