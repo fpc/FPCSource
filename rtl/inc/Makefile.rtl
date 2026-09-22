@@ -852,7 +852,7 @@ System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 # uinteger128
 
 UINTEGER128_DEPS=$(INC)/uinteger128.pp \
-               $(SYSTEMUNIT)$(PPUEXT) \
+               $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                $(UINTEGER128_DEPS_OS) $(UINTEGER128_DEPS_CPU)
 
 uinteger128$(PPUEXT) : $(UINTEGER128_DEPS)
