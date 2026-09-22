@@ -139,7 +139,7 @@ unit uinteger128;
       end;
 
 {$push} {$q-,r-}
-    procedure qword_add(const i1, i2: QWord; carry_in: Boolean; var o: QWord; var carry_out: Boolean);
+    procedure qword_add(const i1, i2: QWord; carry_in: Boolean; out o: QWord; out carry_out: Boolean);
       begin
         o := i1 + i2;
         carry_out := o < i1;
