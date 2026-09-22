@@ -207,10 +207,14 @@ resourcestring
 
 var
   uFontCacheList: TFPFontCacheList;
-{$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+{$if (defined(linux) or defined(solaris) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
+  {$define UsesFontsConf}
+{$endif}
+
+{$ifdef UsesFontsConf}
   // True when fontconfig was loaded by this unit, so that we unload only if we loaded.
   uFontConfigLoaded: Boolean = False;
-{$ifend}
+{$endif}
 
 function gTTFontCache: TFPFontCacheList;
 begin
@@ -628,18 +632,18 @@ end;
 
 procedure TFPFontCacheList.ReadStandardFonts;
 
+{$ifdef UsesFontsConf}
   {$ifdef freebsd}
-    {$define HasFontsConf}
     const
       cFontsConf = '/usr/local/etc/fonts/fonts.conf';
-  {$endif}
-  { Use same default for Linux and other BSD non-Darwin systems. }
-  {$if (defined(linux) or defined(solaris) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
     {$define HasFontsConf}
+  {$else}
+  { Use same default for Linux and other BSD non-Darwin systems. }
     const
       cFontsConf = '/etc/fonts/fonts.conf';
-  {$ifend}
-
+    {$define HasFontsConf}
+  {$endif not freebsd}
+{$endif UsesFontsConf}
 
 
 {$ifdef HasFontsConf}
