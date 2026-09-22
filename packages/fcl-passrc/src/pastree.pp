@@ -49,6 +49,7 @@ resourcestring
   SPasTreeAliasType = 'alias type';
   SPasTreeTypeAliasType = '"type" alias type';
   SPasTreeClassOfType = '"class of" type';
+  SPasTreeTypeOfType = '"type of" type';
   SPasTreeRangeType = 'range type';
   SPasTreeArrayType = 'array type';
   SPasTreeFileType = 'file type';
@@ -219,7 +220,8 @@ type
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopNotIn,eopIs,eopIsNot,eopAs, eopSymmetricaldifference, // Specials
                  eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
-                 eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
+                 eopSubIdent, // SomeRec.A, A is subIdent of SomeRec
+                 eopTypeOf); // type of A, modeswitch TypeInquiry
 
   { TPasExpr }
 
@@ -607,6 +609,22 @@ type
   public
     DestType: TPasType;
     HasPointerMath : Boolean;
+  end;
+
+  { TPasTypeOfType - "type of Expr", modeswitch TypeInquiry
+    The resolver sets DestType to the type of Expr. }
+
+  TPasTypeOfType = class(TPasType)
+  public
+    procedure FreeChildren(Prepare: boolean); override;
+    function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full : Boolean): TPasTreeString; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure ClearTypeReferences(aType: TPasElement); override;
+  public
+    Expr: TPasExpr; // operand
+    DestType: TPasType; // set by resolver
   end;
 
   { TPasTypeAliasType }
@@ -1961,7 +1979,8 @@ const
         '<','>','<=','>=',
         'in','not in','is','is not','as','><',
         '@','^','@@',
-        '.');
+        '.',
+        'type of');
 
 
   UnaryOperators = [otImplicit,otExplicit,otAssign,otNegative,otPositive,otEnumerator];
@@ -4865,7 +4884,10 @@ end;
 
 function TPasPointerType.GetDeclaration(full: Boolean): TPasTreeString;
 begin
-  Result:='^'+DestType.SafeName;
+  if DestType is TPasTypeOfType then
+    Result:='^'+DestType.GetDeclaration(false)
+  else
+    Result:='^'+DestType.SafeName;
   If Full then
     begin
     Result:=SafeName+' = '+Result;
@@ -4905,6 +4927,46 @@ begin
 end;
 
 procedure TPasAliasType.ClearTypeReferences(aType: TPasElement);
+begin
+  if DestType=aType then
+    DestType:=nil;
+end;
+
+{ TPasTypeOfType }
+
+procedure TPasTypeOfType.FreeChildren(Prepare: boolean);
+begin
+  DestType:=TPasType(FreeChild(DestType,Prepare));
+  Expr:=TPasExpr(FreeChild(Expr,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+function TPasTypeOfType.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreeTypeOfType;
+end;
+
+function TPasTypeOfType.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:='type of ';
+  if Expr<>nil then
+    Result:=Result+Expr.GetDeclaration(true);
+  If Full and (Name<>'') then
+    begin
+    Result:=SafeName+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+procedure TPasTypeOfType.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,DestType,true);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
+end;
+
+procedure TPasTypeOfType.ClearTypeReferences(aType: TPasElement);
 begin
   if DestType=aType then
     DestType:=nil;

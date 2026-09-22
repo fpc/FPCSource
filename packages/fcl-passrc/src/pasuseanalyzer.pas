@@ -1290,6 +1290,8 @@ begin
     end
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     UseSubEl(TPasAliasType(El).DestType)
+  else if C=TPasTypeOfType then
+    UseSubEl(TPasTypeOfType(El).DestType)
   else if C=TPasEnumType then
   else if C=TPasSetType then
     UseSubEl(TPasSetType(El).EnumType)
@@ -1903,6 +1905,11 @@ begin
       UseExpr(Bin.Right);
       end;
     end
+  else if (Ref<>nil)
+      and ((rrfTypeOfCast in Ref.Flags)
+        or ((C=TUnaryExpr) and (TUnaryExpr(El).OpCode=eopTypeOf))) then
+    // "type of Operand" and "type of Callee(Param)": Operand and Callee are
+    // only used for their type
   else if C=TUnaryExpr then
     UseExpr(TUnaryExpr(El).Operand)
   else if C=TParamsExpr then
@@ -2027,6 +2034,12 @@ begin
     Unary:=TUnaryExpr(Expr);
     if Unary.OpCode in [eopAdd,eopSubtract,eopAddress,eopDeref,eopMemAddress] then
       UseExprRef(El,Unary.Operand,rraRead,false)
+    else if Unary.OpCode=eopTypeOf then
+      begin
+      // a "type of" typecast passes the access, a "type of" type is not a value
+      if not (Unary.CustomData is TResolvedReference) then
+        UseExprRef(El,Unary.Operand,Access,UseFull);
+      end
     else
       RaiseNotSupported(20181015193334,Expr,OpcodeStrings[Unary.OpCode]);
     end
@@ -2253,6 +2266,12 @@ begin
       UseElType(El,TPasAliasType(El).DestType,Mode);
       if C=TPasTypeAliasType then
         UseExpr(TPasTypeAliasType(El).Expr);
+      end
+    else if C=TPasTypeOfType then
+      begin
+      // the operand Expr is never executed
+      if not MarkElementAsUsed(El) then exit;
+      UseElType(El,TPasTypeOfType(El).DestType,Mode);
       end
     else if C=TPasArrayType then
       begin

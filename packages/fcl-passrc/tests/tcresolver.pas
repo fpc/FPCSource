@@ -423,6 +423,27 @@ type
     Procedure TestTryExceptExpr_ConstFail;
     Procedure TestTryExceptExpr_Generic;
 
+    // type of
+    Procedure TestTypeOf_Var;
+    Procedure TestTypeOf_AliasAndTypeAlias;
+    Procedure TestTypeOf_Derived;
+    Procedure TestTypeOf_ArgResultProperty;
+    Procedure TestTypeOf_Const;
+    Procedure TestTypeOf_FuncResult;
+    Procedure TestTypeOf_PostfixOperand;
+    Procedure TestTypeOf_Intrinsics;
+    Procedure TestTypeOf_TypeCast;
+    Procedure TestTypeOf_TypeCastParenthesized;
+    Procedure TestTypeOf_TypeCastPostfix;
+    Procedure TestTypeOf_TypeCastAssign;
+    Procedure TestTypeOf_ConstRangeNoError;
+    Procedure TestTypeOf_TypeIdentifierFail;
+    Procedure TestTypeOf_UndeclaredFail;
+    Procedure TestTypeOf_AnonRecordFail;
+    Procedure TestTypeOf_PlusFail;
+    Procedure TestTypeOf_CastInTypePositionFail;
+    Procedure TestTypeOf_ModeFPCFail;
+
     // misc built-in functions
     Procedure TestHighLow;
     Procedure TestStr_BaseTypes;
@@ -5048,6 +5069,406 @@ begin
   '  w:=Bird.Pick(1,2);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_Var;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunStr}Run(s: string); overload; begin end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  s: string;',
+  '  c: type of b;',
+  '  d: type of w = 3;',
+  '  e: type of s;',
+  'begin',
+  '  {@RunByte}Run(c);',
+  '  {@RunWord}Run(d);',
+  '  {@RunStr}Run(e);',
+  '  c:=b;',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestTypeOf_AliasAndTypeAlias;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  i: longint;',
+  'type',
+  '  TInt = type of i;',
+  '  TUniqueInt = type type of i;',
+  'procedure {#RunInt}Run(i: longint); overload; begin end;',
+  'procedure {#RunUnique}Run(i: TUniqueInt); overload; begin end;',
+  'var',
+  '  a: TInt;',
+  '  u: TUniqueInt;',
+  'begin',
+  '  {@RunInt}Run(a);',
+  '  {@RunUnique}Run(u);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_Derived;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    Value: T;',
+  '  end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'var',
+  '  w: word;',
+  '  b: byte;',
+  '  Arr: array of type of w;',
+  '  StatArr: array[1..2] of type of w;',
+  '  p: ^type of w;',
+  '  bs: set of type of b;',
+  '  Gen: specialize TBird<type of w>;',
+  'begin',
+  '  SetLength(Arr,2);',
+  '  {@RunWord}Run(Arr[0]);',
+  '  {@RunWord}Run(StatArr[1]);',
+  '  p:=@w;',
+  '  {@RunWord}Run(p^);',
+  '  bs:=[b];',
+  '  {@RunWord}Run(Gen.Value);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_ArgResultProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  w: word;',
+  '  b: byte;',
+  'type',
+  '  TObject = class',
+  '  private',
+  '    FVal: type of w;',
+  '  public',
+  '    property Val: type of w read FVal write FVal;',
+  '  end;',
+  '  TRec = record',
+  '    f: type of b;',
+  '  end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'function Fly(a: type of b; const Arr: array of type of w): type of w;',
+  'begin',
+  '  {@RunByte}Run(a);',
+  '  {@RunWord}Run(Arr[0]);',
+  '  Result:=a;',
+  'end;',
+  'var',
+  '  o: TObject;',
+  '  r: TRec;',
+  'begin',
+  '  {@RunWord}Run(Fly(b,[w]));',
+  '  {@RunWord}Run(o.Val);',
+  '  {@RunByte}Run(r.f);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_Const;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  'const',
+  '  c = 5;',
+  '  t: word = 7;',
+  'procedure {#RunLongint}Run(i: longint); overload; begin end;',
+  'procedure {#RunInt64}Run(i: int64); overload; begin end;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunBoolean}Run(b: boolean); overload; begin end;',
+  'var',
+  '  o: TObject;',
+  '  g: type of (o is TObject);',
+  '  a: type of (1+2);',
+  '  b: type of (int64(1) shl 33);',
+  '  d: type of c;',
+  '  e: type of t;',
+  '  f: type of true;',
+  'begin',
+  '  {@RunLongint}Run(a);',
+  '  {@RunInt64}Run(b);',
+  '  {@RunLongint}Run(d);',
+  '  {@RunWord}Run(e);',
+  '  {@RunBoolean}Run(f);',
+  '  {@RunBoolean}Run(g);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_FuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'function GetWord: word; begin Result:=1; end;',
+  'function {#FooByte}Foo(b: byte): word; overload; begin Result:=b; end;',
+  'function {#FooWord}Foo(w: word): byte; overload; begin Result:=w; end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  x: type of GetWord;',
+  '  y: type of GetWord();',
+  '  z: type of {@FooByte}Foo(b);',
+  '  v: type of {@FooWord}Foo(w);',
+  'begin',
+  '  {@RunWord}Run(x);',
+  '  {@RunWord}Run(y);',
+  '  {@RunWord}Run(z);',
+  '  {@RunByte}Run(v);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_PostfixOperand;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRec = record',
+  '    b: byte;',
+  '    w: word;',
+  '  end;',
+  '  PWord = ^word;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'var',
+  '  r: TRec;',
+  '  Arr: array of byte;',
+  '  p: PWord;',
+  '  a: type of r.w;',
+  '  b: type of Arr[0];',
+  '  c: type of p^;',
+  '  d: type of r.b;',
+  'begin',
+  '  {@RunWord}Run(a);',
+  '  {@RunByte}Run(b);',
+  '  {@RunWord}Run(c);',
+  '  {@RunByte}Run(d);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_Intrinsics;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TEnum = (red, green, blue);',
+  'var',
+  '  b: byte;',
+  '  e: TEnum;',
+  '  i: longint;',
+  '  p: pointer;',
+  'begin',
+  '  i:=High(type of b);',
+  '  i:=Low(type of b);',
+  '  e:=High(type of e);',
+  '  b:=Default(type of b);',
+  '  p:=TypeInfo(type of b);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_TypeCast;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TEnum = (red, green, blue);',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'procedure {#RunEnum}Run(e: TEnum); overload; begin end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  '  e: TEnum;',
+  '  Arr: array of byte;',
+  'begin',
+  '  {@RunByte}Run(type of b(w));',
+  '  {@RunWord}Run(type of w(b));',
+  '  {@RunEnum}Run(type of e(b));',
+  '  {@RunByte}Run(type of Arr[0](w));',
+  '  {@RunWord}Run(type of w(type of b(w)));',
+  '  b:=type of b(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_TypeCastParenthesized;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  'begin',
+  '  {@RunByte}Run((type of b)(w));',
+  '  {@RunWord}Run((type of w)(b));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_TypeCastPostfix;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    Value: word;',
+  '  end;',
+  '  PWord = ^word;',
+  'procedure {#RunWord}Run(w: word); overload; begin end;',
+  'procedure {#RunByte}Run(b: byte); overload; begin end;',
+  'var',
+  '  o: TObject;',
+  '  Bird: TBird;',
+  '  p: PWord;',
+  '  Ptr: pointer;',
+  'begin',
+  '  {@RunWord}Run(type of Bird(o).Value);',
+  '  {@RunWord}Run(type of p(Ptr)^);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_TypeCastAssign;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  i: longint;',
+  '  c: longword;',
+  'begin',
+  '  type of c(i):=7;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_ConstRangeNoError;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$R+}',
+  'var',
+  '  Arr: array[1..3] of byte;',
+  '  a: type of Arr[5];',
+  'begin',
+  '  a:=1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeOf_TypeIdentifierFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  v: type of longint;',
+  'begin',
+  '']);
+  CheckResolverException('expression expected, but type found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestTypeOf_UndeclaredFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  v: type of NotDeclared;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "NotDeclared"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestTypeOf_AnonRecordFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  v: type of (record a: longint; end);',
+  'begin',
+  '']);
+  CheckParserException('Identifier expected',nParserExpectedIdentifier);
+end;
+
+procedure TTestResolver.TestTypeOf_PlusFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  a, b, c: byte;',
+  'begin',
+  '  c:=type of a+b;',
+  '']);
+  CheckResolverException('Operator is not overloaded: "Byte Byte" + "Byte"',nOperatorIsNotOverloadedAOpB);
+end;
+
+procedure TTestResolver.TestTypeOf_CastInTypePositionFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'var',
+  '  x: word;',
+  '  b: byte;',
+  '  v: type of x(b);',
+  'begin',
+  '']);
+  CheckResolverException('illegal qualifier "(" after "variable"',nIllegalQualifierAfter);
+end;
+
+procedure TTestResolver.TestTypeOf_ModeFPCFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode fpc}',
+  'var',
+  '  b: byte;',
+  '  v: type of b;',
+  'begin',
+  '']);
+  CheckParserException('Type "type" not allowed here',nParserTypeNotAllowedHere);
 end;
 
 procedure TTestResolver.TestEnumParams;

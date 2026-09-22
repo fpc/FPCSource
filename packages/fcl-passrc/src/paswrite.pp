@@ -340,6 +340,8 @@ begin
     WriteAliasType(TPasAliasType(AType))
   else if AType is TPasPointerType then
     Add(AType.GetDeclaration(true))
+  else if AType is TPasTypeOfType then
+    Add(AType.GetDeclaration(true))
   else if AType is TPasSetType then
     Add(AType.GetDeclaration(true))
   else if AType is TPasRangeType then

@@ -566,6 +566,8 @@ begin
   // TPasClassOfType descends TPasAliasType, so its DestType is covered here too.
   else if aEl is TPasAliasType then
     RecordType(TPasAliasType(aEl).DestType)
+  else if aEl is TPasTypeOfType then
+    RecordType(TPasTypeOfType(aEl).DestType)
   else if aEl is TPasClassType then
   begin
     RecordType(TPasClassType(aEl).AncestorType);
@@ -953,6 +955,8 @@ begin
     Result := TPasSetType(aEl).EnumType
   else if aEl is TPasAliasType then
     Result := TPasAliasType(aEl).DestType
+  else if aEl is TPasTypeOfType then
+    Result := TPasTypeOfType(aEl).DestType
   else
     Result := nil;
 end;

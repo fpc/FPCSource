@@ -350,7 +350,8 @@ type
     msMultiLineStrings,     { pas2js: Multiline strings }
     msDelphiMultiLineStrings, { Delpi-compatible multiline strings }
     msInlineVars,             { Allow inline var declarations }
-    msStatementExpressions    { allow if-expressions }
+    msStatementExpressions,   { allow if-expressions }
+    msTypeInquiry             { allow "type of" operator }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1235,7 +1236,8 @@ const
     'MULTILINESTRINGS',
     'DELPHIMULTILINESTRINGS',
     'INLINEVARS',
-    'STATEMENTEXPRESSIONS'
+    'STATEMENTEXPRESSIONS',
+    'TYPEINQUIRY'
     );
 
   LetterSwitchNames: array['A'..'Z'] of TPasScannerString=(
@@ -1341,7 +1343,7 @@ const
 
   OBJFPCModeSwitches =  [msObjfpc,msClass,msObjpas,msResult,msStringPchar,msNestedComment,
     msRepeatForward,msCVarSupport,msInitFinal,msOut,msDefaultPara,msHintDirective,
-    msProperty,msDefaultInline,msExcept,msDelphiMultiLineStrings];
+    msProperty,msDefaultInline,msExcept,msDelphiMultiLineStrings,msTypeInquiry];
 
   TPModeSwitches = [msTP7,msTPProcVar,msDuplicateNames];
 
@@ -1356,7 +1358,7 @@ const
 
   ExtPasModeSwitches = [msExtpas,msTPProcVar,msDuplicateNames,msNestedProcVars,
     msNonLocalGoto,msISOLikeUnaryMinus,msISOLikeIO,msISOLikeProgramsPara,
-    msISOLikeMod];
+    msISOLikeMod,msTypeInquiry];
 
 function StrToModeSwitch(aName: TPasScannerString): TModeSwitch;
 function ModeSwitchesToStr(Switches: TModeSwitches): TPasScannerString;

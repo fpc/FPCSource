@@ -3661,9 +3661,12 @@ function TFpSonarResolver.TryShortStringTruncation(aNode: TPasElement;
     Result := -1;
     lType := aType;
     lGuard := 0;
-    while (lType is TPasAliasType) and (lGuard < 100) do
+    while ((lType is TPasAliasType) or (lType is TPasTypeOfType)) and (lGuard < 100) do
     begin
-      lType := TPasAliasType(lType).DestType;
+      if lType is TPasTypeOfType then
+        lType := TPasTypeOfType(lType).DestType
+      else
+        lType := TPasAliasType(lType).DestType;
       Inc(lGuard);
     end;
     if not (lType is TPasStringType) then
@@ -11078,9 +11081,12 @@ function TFpSonarResolver.TryRawByteStringCodePageMix(aNode: TPasElement;
     else
       Exit;
     lGuard := 0;
-    while (lType is TPasAliasType) and (lGuard < 100) do
+    while ((lType is TPasAliasType) or (lType is TPasTypeOfType)) and (lGuard < 100) do
     begin
-      lType := TPasAliasType(lType).DestType;
+      if lType is TPasTypeOfType then
+        lType := TPasTypeOfType(lType).DestType
+      else
+        lType := TPasAliasType(lType).DestType;
       Inc(lGuard);
     end;
     if lType is TPasStringType then
