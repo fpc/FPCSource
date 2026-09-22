@@ -49,6 +49,12 @@ interface
     { reads a single factor }
     function factor(getaddr:boolean;flags:texprflags) : tnode;
 
+    { parse "type of <operand>" and returns the type.
+      The operand is only parsed and type checked, its node tree is discarded,
+      so the operand is never executed.
+      typetokenconsumed=true means the "type" token was already consumed. }
+    function parse_type_inquiry(typetokenconsumed:boolean):tdef;
+
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
@@ -3465,6 +3471,46 @@ implementation
       end;
 
 
+    function parse_type_inquiry(typetokenconsumed:boolean):tdef;
+      var
+        n : tnode;
+        oldlocalswitches : tlocalswitches;
+        old_block_type : tblock_type;
+        old_in_type_inquiry : boolean;
+      begin
+        result:=generrordef;
+        if not typetokenconsumed then
+          consume(_TYPE);
+        consume(_OF);
+        old_block_type:=block_type;
+        oldlocalswitches:=current_settings.localswitches;
+        old_in_type_inquiry:=current_module.in_type_inquiry;
+        current_module.in_type_inquiry:=true;
+        { Disable range and overflow checks. }
+        current_settings.localswitches:=current_settings.localswitches-[cs_check_range,cs_check_overflow];
+        { parse the operand like a normal expression, independent of the
+          declaration section the operator is used in }
+        block_type:=bt_body;
+        n:=factor(false,[]);
+        do_typecheckpass(n);
+        current_module.in_type_inquiry:=old_in_type_inquiry;
+        block_type:=old_block_type;
+        current_settings.localswitches:=oldlocalswitches;
+        if not assigned(n) then
+          exit;
+        { a type identifier is not a valid operand }
+        if (n.nodetype=typen) or
+           ((n.nodetype=loadvmtaddrn) and
+            assigned(tloadvmtaddrnode(n).left) and
+            (tloadvmtaddrnode(n).left.nodetype=typen)) then
+          Message(parser_e_no_type_not_allowed_here)
+        else if assigned(n.resultdef) then
+          result:=n.resultdef;
+        { only the type is needed, discard the node }
+        n.free;
+      end;
+
+
     function factor(getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
@@ -4478,6 +4524,25 @@ implementation
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end;
+               end;
+             _TYPE:
+               begin
+                 { "type of <operand>" }
+                 if not (m_type_inquiry in current_settings.modeswitches) then
+                   begin
+                     Message(parser_e_illegal_expression);
+                     consume(_TYPE);
+                     p1:=cerrornode.create;
+                   end
+                 else
+                   begin
+                     hdef:=parse_type_inquiry(false);
+                     again:=false;
+                     { handle type cast "type of <operand>(<expr>)" and
+                       member access like a normal type }
+                     p1:=handle_factor_typenode(hdef,getaddr,again,hdef.typesym,ef_type_only in flags);
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
              _OBJCPROTOCOL:
                begin

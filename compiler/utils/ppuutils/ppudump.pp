@@ -2509,7 +2509,8 @@ const
          'm_function_references', { enable Delphi-style function references }
          'm_anonymous_functions',  { enable Delphi-style anonymous functions }
          'm_multiline_strings',    { multi-line strings denoted with '`' are enabled and valid }
-         'm_statement_expressions' { enables expressions using statements like if, case, try }
+         'm_statement_expressions', { enables expressions using statements like if, case, try }
+         'm_type_inquiry'          { the compile time operator "type of <operand>" }
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =

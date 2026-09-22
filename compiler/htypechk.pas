@@ -29,7 +29,7 @@ interface
       sysutils,cclasses,cmsgs,tokens,
       node,globtype,compinnr,
       symconst,symtype,symdef,symsym,symbase,
-      pgentype;
+      pgentype,fmodule;
 
     type
       TSupportedOpOverload = (op_unary, op_binary);
@@ -1208,6 +1208,9 @@ implementation
       var
         hsym : tabstractvarsym;
       begin
+        { the "type of" operand is never executed and neither reads nor writes any variable }
+        if assigned(current_module) and current_module.in_type_inquiry then
+          exit;
         { make sure we can still warn about uninitialised use after high(v), @v etc }
         if (newstate = vs_read) and
            not(vsf_must_be_valid in varstateflags) then

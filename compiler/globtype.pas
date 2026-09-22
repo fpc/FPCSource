@@ -559,7 +559,8 @@ interface
          m_function_references, { enable Delphi-style function references }
          m_anonymous_functions,  { enable Delphi-style anonymous functions }
          m_multiline_strings,    { multi-line strings denoted with '`' are enabled and valid }
-         m_statement_expressions { if-, case-, try-except-expression }
+         m_statement_expressions, { if-, case-, try-except-expression }
+         m_type_inquiry          { compile time operator "type of <operand>" }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -768,7 +769,8 @@ interface
          'FUNCTIONREFERENCES',
          'ANONYMOUSFUNCTIONS',
          'MULTILINESTRINGS',
-         'STATEMENTEXPRESSIONS'
+         'STATEMENTEXPRESSIONS',
+         'TYPEINQUIRY'
          );
 
 

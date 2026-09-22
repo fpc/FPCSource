@@ -66,7 +66,7 @@ interface
        objfpcmodeswitches =
          [m_objfpc,m_fpc,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_out,m_default_para,m_hintdirective,
-          m_property,m_default_inline,m_except,m_multiline_strings];
+          m_property,m_default_inline,m_except,m_multiline_strings,m_type_inquiry];
        tpmodeswitches =
          [m_tp7,m_tp_procvar,m_duplicate_names];
 {$ifdef gpc_mode}
@@ -82,7 +82,7 @@ interface
        extpasmodeswitches =
          [m_extpas,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
           m_isolike_program_para,
-          m_isolike_mod];
+          m_isolike_mod,m_type_inquiry];
 
        { maximum nesting of routines }
        maxnesting = 32;
