@@ -550,6 +550,25 @@ implementation
                      end;
                  end;
 
+               _TYPE:
+                 begin
+                   { "type of <operand>" }
+                   if m_type_inquiry in current_settings.modeswitches then
+                     begin
+                       { the operator returns a def, not a reference to a type
+                         symbol, so srsym stays nil and none of the
+                         specialization and generic dummy symbol handling
+                         below applies }
+                       def:=parse_type_inquiry(false);
+                       exit;
+                     end
+                   else
+                     begin
+                       message(type_e_type_id_expected);
+                       def:=generrordef;
+                     end;
+                 end;
+
                else
                  begin
                    message(type_e_type_id_expected);
@@ -1835,7 +1854,12 @@ implementation
                  (current_scanner.idtoken=_REFERENCE)
                )
              ) and
-             (current_scanner.token<>_STRING) and (current_scanner.token<>_FILE) then
+             (current_scanner.token<>_STRING) and (current_scanner.token<>_FILE) and
+             { "t = type of <operand>" and "t = type type of <operand>" }
+             not (
+               (m_type_inquiry in current_settings.modeswitches) and
+               (current_scanner.token in [_OF,_TYPE])
+             ) then
            consume(_ID);
          case current_scanner.token of
             _STRING,_FILE:
@@ -1951,6 +1975,34 @@ implementation
 {$ifdef jvm}
                 jvm_maybe_create_enum_class(name,def);
 {$endif}
+              end;
+            _TYPE:
+              begin
+                { "type of <operand>" }
+                if m_type_inquiry in current_settings.modeswitches then
+                  def:=parse_type_inquiry(false)
+                else
+                  begin
+                    message(type_e_type_id_expected);
+                    def:=generrordef;
+                  end;
+              end;
+            _OF:
+              begin
+                { "t = type of <operand>": the "type" token was already
+                  consumed as the "unique type" token by the caller }
+                if hadtypetoken and
+                    (m_type_inquiry in current_settings.modeswitches) then
+                  begin
+                    { tell the caller that this is not a "unique" type }
+                    hadtypetoken:=false;
+                    def:=parse_type_inquiry(true);
+                  end
+                else
+                  begin
+                    message(type_e_type_id_expected);
+                    def:=generrordef;
+                  end;
               end;
             _ARRAY:
               array_dec(false,genericdef,genericlist);
