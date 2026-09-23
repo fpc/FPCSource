@@ -3331,8 +3331,14 @@ procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; IdentEl: TPasElement; LoTypeEl,
   HiTypeEl: TPasType; Flags: TPasResolverResultFlags);
 begin
+  {$IFOPT C+}
+  // Only with assertions on: this runs tens of millions of times per compilation
+  // (a third of the instructions of one measured run were class-type tests, and
+  // this line was 9-11% of it), and it guards against a caller mistake that the
+  // test suites cover.
   if IdentEl is TPasExpr then
     raise Exception.Create('20170729101017');
+  {$ENDIF}
   ResolvedType.BaseType:=BaseType;
   ResolvedType.SubType:=btNone;
   ResolvedType.IdentEl:=IdentEl;
