@@ -53,6 +53,8 @@ unit uinteger128;
     operator >= (const i1,i2: UInt128): Boolean;inline;
 
     operator := (const source : UInt64): UInt128;inline;
+    operator := (const source : Int64): Int128;inline;
+    operator := (const source : UInt64): Int128;inline;
 
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
 
@@ -349,6 +351,21 @@ unit uinteger128;
       end;
 
     operator := (const source : UInt64) dest : UInt128;inline;
+      begin
+        result.QWords[QWORD_LO] := source;
+        result.QWords[QWORD_HI] := 0;
+      end;
+
+    operator := (const source : Int64): Int128;inline;
+      begin
+        result.QWords[QWORD_LO] := QWord(source);
+        if source>=0 then
+          result.QWords[QWORD_HI] := 0
+        else
+          result.QWords[QWORD_HI] := High(QWord);
+      end;
+
+    operator := (const source : UInt64): Int128;inline;
       begin
         result.QWords[QWORD_LO] := source;
         result.QWords[QWORD_HI] := 0;
