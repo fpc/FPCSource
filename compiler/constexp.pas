@@ -27,6 +27,9 @@ unit constexp;
 
 interface
 
+uses
+  uinteger128;
+
 {Avoid dependency on cpuinfo because the cpu directory isn't
  searched during utils building.}
 {$ifdef GENERIC_CPU}
@@ -48,15 +51,15 @@ type  Tconstexprint=record
         overflow:boolean;
         case signed:boolean of
           false:
-            (uvalue:qword);
+            (uvalue:uint128);
           true:
-            (svalue:int64);
+            (svalue:int128);
       end;
 
-operator := (const u:qword):Tconstexprint;inline;
-operator := (const s:int64):Tconstexprint;inline;
-operator := (const c:Tconstexprint):qword;
-operator := (const c:Tconstexprint):int64;
+operator := (const u:uint128):Tconstexprint;inline;
+operator := (const s:int128):Tconstexprint;inline;
+operator := (const c:Tconstexprint):uint128;
+operator := (const c:Tconstexprint):int128;
 operator := (const c:Tconstexprint):bestreal;
 
 operator + (const a,b:Tconstexprint):Tconstexprint;
@@ -141,7 +144,7 @@ begin
     result:=uvalue;
 end;
 
-operator := (const u:qword):Tconstexprint;
+operator := (const u:uint128):Tconstexprint;
 
 begin
   result.overflow:=false;
@@ -149,7 +152,7 @@ begin
   result.uvalue:=u;
 end;
 
-operator := (const s:int64):Tconstexprint;
+operator := (const s:int128):Tconstexprint;
 
 begin
   result.overflow:=false;
@@ -157,7 +160,7 @@ begin
   result.svalue:=s;
 end;
 
-operator := (const c:Tconstexprint):qword;
+operator := (const c:Tconstexprint):uint128;
 
 begin
   if c.overflow then
@@ -167,7 +170,7 @@ begin
   result:=c.uvalue;
 end;
 
-operator := (const c:Tconstexprint):int64;
+operator := (const c:Tconstexprint):int128;
 
 begin
   if c.overflow then
