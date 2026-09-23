@@ -54,6 +54,8 @@ unit uinteger128;
 
     operator := (const source : UInt64): UInt128;inline;
 
+    procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
+
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
     function IntToStr(Value: UInt128): string;
@@ -350,6 +352,14 @@ unit uinteger128;
       begin
         result.QWords[QWORD_LO] := source;
         result.QWords[QWORD_HI] := 0;
+      end;
+
+{$i sstrings_val_common.inc}
+{$i sstrings_val_int128.inc}
+
+    procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
+      begin
+        V:=fpc_val_uint128_shortstr(S,Code);
       end;
 
 end.
