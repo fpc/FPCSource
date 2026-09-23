@@ -36,6 +36,7 @@ unit uinteger128;
 
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator- (const i1,i2: UInt128): UInt128;inline;
+    operator- (const i: Int128): Int128;inline;
     operator* (f1,f2 : UInt128): UInt128;
     operator div (z,n : uint128): uint128;
     operator mod (z,n: uint128): uint128;
@@ -171,6 +172,15 @@ unit uinteger128;
         ii2.QWords[QWORD_LO]:=not i2.QWords[QWORD_LO];
         ii2.QWords[QWORD_HI]:=not i2.QWords[QWORD_HI];
         result:=i1+ii2+1;
+      end;
+
+    operator- (const i: Int128): Int128;inline;
+      var
+        ii: UInt128;
+      begin
+        ii.QWords[QWORD_LO]:=not i.QWords[QWORD_LO];
+        ii.QWords[QWORD_HI]:=not i.QWords[QWORD_HI];
+        result:=Int128(ii+1);
       end;
 
     operator* (f1,f2 : UInt128): UInt128;
