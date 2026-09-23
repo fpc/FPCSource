@@ -686,7 +686,7 @@ type
    Protected
       procedure CheckBitIndex (Bit : SizeInt;CurrentSize : Boolean);
    public
-      constructor Create(TheSize : longint = 0); virtual;
+      constructor Create(aSize : SizeInt = 0); virtual;
       destructor Destroy; override;
       function  GetFSize : SizeInt;
       procedure SetOn(Bit : SizeInt);

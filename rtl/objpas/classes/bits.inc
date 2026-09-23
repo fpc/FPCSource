@@ -140,10 +140,10 @@ end;
 
 { ******************** TBits ***************************** }
 
-constructor TBits.Create(theSize : longint = 0 );
+constructor TBits.Create(aSize : SizeInt = 0 );
 begin
    findIndex := -1;
-   if TheSize > 0 then grow(theSize);
+   if aSize > 0 then grow(aSize);
 end;
 
 destructor TBits.Destroy;
