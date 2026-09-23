@@ -50,9 +50,13 @@ unit uinteger128;
     operator = (const i1,i2: UInt128): Boolean;inline;
     operator = (const i1,i2: Int128): Boolean;inline;
     operator < (const i1,i2: UInt128): Boolean;inline;
+    operator < (const i1,i2: Int128): Boolean;inline;
     operator <= (const i1,i2: UInt128): Boolean;inline;
+    operator <= (const i1,i2: Int128): Boolean;inline;
     operator > (const i1,i2: UInt128): Boolean;inline;
+    operator > (const i1,i2: Int128): Boolean;inline;
     operator >= (const i1,i2: UInt128): Boolean;inline;
+    operator >= (const i1,i2: Int128): Boolean;inline;
 
     operator := (const source : UInt64): UInt128;inline;
     operator := (const source : Int64): Int128;inline;
@@ -360,9 +364,21 @@ unit uinteger128;
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<i2.QWords[QWORD_LO]));
       end;
 
+    operator < (const i1,i2: Int128): Boolean;inline;
+      begin
+        result:=(Int64(i1.QWords[QWORD_HI])<Int64(i2.QWords[QWORD_HI])) or
+               ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<i2.QWords[QWORD_LO]));
+      end;
+
     operator <= (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]<i2.QWords[QWORD_HI]) or
+               ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<=i2.QWords[QWORD_LO]));
+      end;
+
+    operator <= (const i1,i2: Int128): Boolean;inline;
+      begin
+        result:=(Int64(i1.QWords[QWORD_HI])<Int64(i2.QWords[QWORD_HI])) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]<=i2.QWords[QWORD_LO]));
       end;
 
@@ -372,9 +388,21 @@ unit uinteger128;
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>i2.QWords[QWORD_LO]));
       end;
 
+    operator > (const i1,i2: Int128): Boolean;inline;
+      begin
+        result:=(Int64(i1.QWords[QWORD_HI])>Int64(i2.QWords[QWORD_HI])) or
+               ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>i2.QWords[QWORD_LO]));
+      end;
+
     operator >= (const i1,i2: UInt128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_HI]>i2.QWords[QWORD_HI]) or
+               ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>=i2.QWords[QWORD_LO]));
+      end;
+
+    operator >= (const i1,i2: Int128): Boolean;inline;
+      begin
+        result:=(Int64(i1.QWords[QWORD_HI])>Int64(i2.QWords[QWORD_HI])) or
                ((i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]) and (i1.QWords[QWORD_LO]>=i2.QWords[QWORD_LO]));
       end;
 
