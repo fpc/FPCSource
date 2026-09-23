@@ -68,8 +68,13 @@ unit uinteger128;
 
   const
     MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
+{$ifdef FPC_LITTLE_ENDIAN}
     MaxInt128: Int128 = (QWords: (High(QWord), QWord(High(Int64))));
     MinInt128: Int128 = (QWords: (0, QWord(Low(Int64))));
+{$else FPC_LITTLE_ENDIAN}
+    MaxInt128: Int128 = (QWords: (QWord(High(Int64)), High(QWord)));
+    MinInt128: Int128 = (QWords: (QWord(Low(Int64)), 0));
+{$endif FPC_LITTLE_ENDIAN}
 
   implementation
 
