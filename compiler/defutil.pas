@@ -1832,6 +1832,10 @@ implementation
             result:=torddef(u64inttype);
           OS_S64:
             result:=torddef(s64inttype);
+          OS_128:
+            result:=torddef(u128inttype);
+          OS_S128:
+            result:=torddef(s128inttype);
           else
             internalerror(2012050401);
         end;
