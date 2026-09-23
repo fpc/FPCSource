@@ -549,6 +549,8 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
+        addtype('UInt128',u128inttype);
+        addtype('Int128',s128inttype);
         addtype('AnsiChar',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext);
