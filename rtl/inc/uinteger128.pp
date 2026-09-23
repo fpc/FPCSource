@@ -68,6 +68,8 @@ unit uinteger128;
 
   const
     MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
+    MaxInt128: Int128 = (QWords: (High(QWord), QWord(High(Int64))));
+    MinInt128: Int128 = (QWords: (0, QWord(Low(Int64))));
 
   implementation
 
