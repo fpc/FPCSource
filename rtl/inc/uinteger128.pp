@@ -43,6 +43,7 @@ unit uinteger128;
     operator div (z,n : uint128): uint128;
     operator mod (z,n: uint128): uint128;
     operator shl (value : UInt128;shift : ALUUInt): UInt128;
+    operator shl (value : Int128;shift : ALUUInt): Int128;
     operator shr(value : UInt128;shift : ALUUInt): UInt128;
     operator and (const i1,i2: UInt128): UInt128;
     operator and (const i1,i2: Int128): Int128;
@@ -328,6 +329,11 @@ unit uinteger128;
           end;
       end;
 
+    operator shl (value : Int128;shift : ALUUInt): Int128;
+      begin
+        result:=Int128(UInt128(value) shl shift);
+      end;
+
    operator shr (value : UInt128;shift : ALUUInt): UInt128;
       begin
         shift:=shift and 127;
@@ -343,6 +349,11 @@ unit uinteger128;
             result.QWords[QWORD_HI]:=value.QWords[QWORD_HI] shr shift;
             result.QWords[QWORD_LO]:=(value.QWords[QWORD_LO] shr shift) or (value.QWords[QWORD_HI] shl (64-shift));
           end;
+      end;
+
+    operator shr (value : Int128;shift : ALUUInt): Int128;
+      begin
+        result:=Int128(UInt128(value) shr shift);
       end;
 
     operator and (const i1,i2: UInt128): UInt128;
