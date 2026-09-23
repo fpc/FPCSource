@@ -117,9 +117,38 @@ begin
   TestStringToUInt128('340282366920938463463374607431768211455', MK_UINT128(18446744073709551615, 18446744073709551615));
 end;
 
+procedure TestStringToInt128(const s: string; const expect_v: Int128);
+var
+  v: Int128;
+  c: ValSInt;
+begin
+  val_int128(s, v, c);
+  if c<>0 then
+    Error;
+  if v<>expect_v then
+    Error;
+end;
+
+procedure StringToInt128Tests;
+begin
+  TestStringToInt128('0',                                        MK_INT128(                   0,                    0));
+  TestStringToInt128('1',                                        MK_INT128(                   0,                    1));
+  TestStringToInt128('9',                                        MK_INT128(                   0,                    9));
+  TestStringToInt128('10',                                       MK_INT128(                   0,                   10));
+  TestStringToInt128('18446744073709551615',                     MK_INT128(                   0, 18446744073709551615));
+  TestStringToInt128('18446744073709551616',                     MK_INT128(                   1,                    0));
+  TestStringToInt128('170141183460469231713240559642174554112',  MK_INT128( 9223372036854775807,                    0));
+  TestStringToInt128('170141183460469231731687303715884105727',  MK_INT128( 9223372036854775807, 18446744073709551615));
+  TestStringToInt128('-170141183460469231731687303715884105728', MK_INT128( 9223372036854775808,                    0));
+  TestStringToInt128('-170141183460469231713240559642174554113', MK_INT128( 9223372036854775808, 18446744073709551615));
+  TestStringToInt128('-18446744073709551616',                    MK_INT128(18446744073709551615,                    0));
+  TestStringToInt128('-1',                                       MK_INT128(18446744073709551615, 18446744073709551615));
+end;
+
 begin
   UInt128ToStringTests;
   Int128ToStringTests;
   StringToUInt128Tests;
+  StringToInt128Tests;
   Writeln('Ok!');
 end.
