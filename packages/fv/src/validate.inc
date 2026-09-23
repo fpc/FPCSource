@@ -582,7 +582,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      VAR Itr, K, L: Byte; Rslt: TPicResult; NewTermCh: Byte;
      BEGIN
        Itr := 0;                                      { Zero iteration }
-       Iteration := prError;                          { Preset error result }
+       Rslt := prError;                               { Preset error result }
        Inc(I);                                        { Skip '*' character }
        While Pic Sw_PString_DeRef[I] in ['0'..'9'] Do Begin           { Entry is a number }
          Itr := Itr * 10 + Byte(Pic Sw_PString_DeRef[I]) - Byte('0'); { Convert to number }
