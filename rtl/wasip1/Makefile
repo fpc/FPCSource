@@ -2367,7 +2367,7 @@ ufloat128$(PPUEXT) : $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
 System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
-UINTEGER128_DEPS=$(INC)/uinteger128.pp \
+UINTEGER128_DEPS=$(INC)/uinteger128.pp $(INC)/sstrings_val_common.inc $(INC)/sstrings_val_int128.inc \
 	       $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	       $(UINTEGER128_DEPS_OS) $(UINTEGER128_DEPS_CPU)
 uinteger128$(PPUEXT) : $(UINTEGER128_DEPS)
