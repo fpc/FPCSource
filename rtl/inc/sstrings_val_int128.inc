@@ -15,6 +15,77 @@
                 Int128/UInt128 support for the Val() Functions
 *****************************************************************************}
 
+  Function fpc_val_int128_shortstr(Const S: ShortString; out Code: ValSInt): Int128;{ [public, alias:'FPC_VAL_INT128_SHORTSTR']; compilerproc;}
+  const
+    MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
+    MaxInt128: Int128 = (QWords: (QWord(High(Int64)), High(QWord)));
+    MinInt128: Int128 = (QWords: (QWord(Low(Int64)), 0));
+
+  var  u : sizeuint;
+       sp,ns : sizeint;
+       digitsLeft : ALUSint;
+       temp, prev, lim : UInt128;
+       vc : ValCommon;
+
+  begin
+  {$ifdef EXCLUDE_COMPLEX_PROCS}
+    runerror(219);
+  {$else EXCLUDE_COMPLEX_PROCS}
+    fpc_val_int128_shortstr := 0;
+    sp:=InitVal(s,vc);
+    ns:=length(s);
+    if (sp>ns) or (s[sp]=#0) then
+     begin
+       Code:=sp;
+       exit;
+     end;
+
+    digitsLeft:=ValData.MaxDigits[ord((vc.base=10) or vc.negative)+ord(vc.negative), vc.baseIndex, 4];
+    Temp:=0;
+    prev:=0;
+    repeat
+      u:=SizeUint(ord(s[sp])-ord('0'));
+      if u>=length(ValData.ValueArray) then
+        break;
+      u:=ValData.ValueArray[u];
+      If u>=vc.base then
+        break;
+      dec(digitsLeft);
+      if digitsLeft<0 then
+        break;
+      prev:=Temp;
+      Temp:=Temp*vc.base+u;
+      inc(sp);
+    until sp>ns;
+
+    if digitsLeft<=0 then { Maybe an overflow. If so, step 1 digit back. }
+     begin
+       if sp<=ns then { If the loop was stopped not by sp>ns check... }
+         u:=ValData.ValueArray[ord(s[sp-1])-ord('0')]; { Then recover previous u. }
+       lim:=MaxUInt128;
+       if (vc.base=10) or vc.negative then
+        begin
+          lim:=uint128(MaxInt128);
+          if vc.negative then { lim:=uint64(High(int64))+ord(vc.negative) triggers #41148. }
+            lim:=uint128(MinInt128);
+        end;
+       if prev>uint128(lim-u) div ValNonZeroBase(vc.base) then
+         dec(sp); { Overflow. Step 1 digit back. }
+     end;
+
+    if (sp<=ns) and (s[sp]<>#0) then
+     begin
+       Code:=sp;
+       exit;
+     end;
+
+    code:=0;
+    fpc_val_int128_shortstr:=int128(Temp);
+    if vc.negative then
+      fpc_val_int128_shortstr:=-fpc_val_int128_shortstr;
+  {$endif EXCLUDE_COMPLEX_PROCS}
+  end;
+
   Function fpc_val_uint128_shortstr(Const S: ShortString; out Code: ValSInt): UInt128; {[public, alias:'FPC_VAL_UINT128_SHORTSTR']; compilerproc;}
   const
     MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));

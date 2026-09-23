@@ -57,6 +57,7 @@ unit uinteger128;
     operator := (const source : Int64): Int128;inline;
     operator := (const source : UInt64): Int128;inline;
 
+    procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
 
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
@@ -383,6 +384,11 @@ unit uinteger128;
 
 {$i sstrings_val_common.inc}
 {$i sstrings_val_int128.inc}
+
+    procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
+      begin
+        V:=fpc_val_int128_shortstr(S,Code);
+      end;
 
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
       begin
