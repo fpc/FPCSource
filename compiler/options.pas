@@ -4908,6 +4908,7 @@ procedure read_arguments(cmd:TCmdStr);
         if pocall_default = pocall_register then
           def_system_macro('REGCALL');
       {$warnings on}
+      def_system_macro('FPC_HAS_TYPES_INT128_AND_UINT128');
     end;
 
 var
