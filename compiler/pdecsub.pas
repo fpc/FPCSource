@@ -1636,6 +1636,7 @@ implementation
                    if not assigned(pd.struct) or assigned(astruct) then
                      begin
                        if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
+                          (pd.parast.SymList.Count>0) and
                           equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                           (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
                          message(parser_e_no_such_assignment)
