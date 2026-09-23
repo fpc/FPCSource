@@ -48,6 +48,7 @@ unit uinteger128;
     operator not (const i: UInt128): UInt128;
 
     operator = (const i1,i2: UInt128): Boolean;inline;
+    operator = (const i1,i2: Int128): Boolean;inline;
     operator < (const i1,i2: UInt128): Boolean;inline;
     operator <= (const i1,i2: UInt128): Boolean;inline;
     operator > (const i1,i2: UInt128): Boolean;inline;
@@ -332,6 +333,12 @@ unit uinteger128;
       end;
 
     operator = (const i1,i2: UInt128): Boolean;inline;
+      begin
+        result:=(i1.QWords[QWORD_LO]=i2.QWords[QWORD_LO]) and
+                (i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]);
+      end;
+
+    operator = (const i1,i2: Int128): Boolean;inline;
       begin
         result:=(i1.QWords[QWORD_LO]=i2.QWords[QWORD_LO]) and
                 (i1.QWords[QWORD_HI]=i2.QWords[QWORD_HI]);
