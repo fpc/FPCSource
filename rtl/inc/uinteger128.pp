@@ -45,9 +45,13 @@ unit uinteger128;
     operator shl (value : UInt128;shift : ALUUInt): UInt128;
     operator shr(value : UInt128;shift : ALUUInt): UInt128;
     operator and (const i1,i2: UInt128): UInt128;
+    operator and (const i1,i2: Int128): Int128;
     operator or (const i1,i2: UInt128): UInt128;
+    operator or (const i1,i2: Int128): Int128;
     operator xor (const i1,i2: UInt128): UInt128;
+    operator xor (const i1,i2: Int128): Int128;
     operator not (const i: UInt128): UInt128;
+    operator not (const i: Int128): Int128;
 
     operator = (const i1,i2: UInt128): Boolean;inline;
     operator = (const i1,i2: Int128): Boolean;inline;
@@ -347,7 +351,19 @@ unit uinteger128;
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] and i2.QWords[QWORD_HI];
       end;
 
+    operator and (const i1,i2: Int128): Int128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] and i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] and i2.QWords[QWORD_HI];
+      end;
+
     operator or (const i1,i2: UInt128): UInt128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] or i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] or i2.QWords[QWORD_HI];
+      end;
+
+    operator or (const i1,i2: Int128): Int128;
       begin
         result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] or i2.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] or i2.QWords[QWORD_HI];
@@ -359,7 +375,19 @@ unit uinteger128;
         result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] xor i2.QWords[QWORD_HI];
       end;
 
+    operator xor (const i1,i2: Int128): Int128;
+      begin
+        result.QWords[QWORD_LO]:=i1.QWords[QWORD_LO] xor i2.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=i1.QWords[QWORD_HI] xor i2.QWords[QWORD_HI];
+      end;
+
     operator not (const i: UInt128): UInt128;
+      begin
+        result.QWords[QWORD_LO]:=not i.QWords[QWORD_LO];
+        result.QWords[QWORD_HI]:=not i.QWords[QWORD_HI];
+      end;
+
+    operator not (const i: Int128): Int128;
       begin
         result.QWords[QWORD_LO]:=not i.QWords[QWORD_LO];
         result.QWords[QWORD_HI]:=not i.QWords[QWORD_HI];
