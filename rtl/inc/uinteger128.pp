@@ -66,6 +66,9 @@ unit uinteger128;
     function IntToStr(Value: UInt128): string;
     function IntToStr(Value: Int128): string;
 
+  const
+    MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
+
   implementation
 
     const

@@ -17,7 +17,6 @@
 
   Function fpc_val_int128_shortstr(Const S: ShortString; out Code: ValSInt): Int128;{ [public, alias:'FPC_VAL_INT128_SHORTSTR']; compilerproc;}
   const
-    MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
     MaxInt128: Int128 = (QWords: (High(QWord), QWord(High(Int64))));
     MinInt128: Int128 = (QWords: (0, QWord(Low(Int64))));
 
@@ -87,8 +86,6 @@
   end;
 
   Function fpc_val_uint128_shortstr(Const S: ShortString; out Code: ValSInt): UInt128; {[public, alias:'FPC_VAL_UINT128_SHORTSTR']; compilerproc;}
-  const
-    MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
   var
     sp,ns : SizeInt;
     u : SizeUInt;
