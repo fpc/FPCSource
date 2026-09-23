@@ -1640,10 +1640,21 @@ implementation
                           (pd.parast.SymList.Count>0) and
                           equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                           (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
-                         message(parser_e_no_such_assignment)
+                         begin
+                           message(parser_e_no_such_assignment);
+                           { marked all the same: the implementation of a
+                             class operator is marked, and would otherwise
+                             be reported as matching no declaration too }
+                           markoperatorcheckparas(pd);
+                         end
                        else if not isoperatoracceptable(pd,optoken) then
                          Message(parser_e_overload_impossible);
-                     end;
+                     end
+                   else
+                     { the implementation of an operator declared in a
+                       structure: its hidden parameters must be marked as
+                       those of the declaration were, or it matches none }
+                     markoperatorcheckparas(pd);
                  end;
             end;
           else
