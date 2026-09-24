@@ -61,6 +61,8 @@ type  Tconstexprint=record
 
 operator := (const u:uint128):Tconstexprint;inline;
 operator := (const s:int128):Tconstexprint;inline;
+operator := (const u:qword):Tconstexprint;inline;
+operator := (const s:int64):Tconstexprint;inline;
 operator := (const c:Tconstexprint):uint128;
 operator := (const c:Tconstexprint):int128;
 operator := (const c:Tconstexprint):bestreal;
@@ -197,6 +199,22 @@ begin
 end;
 
 operator := (const s:int128):Tconstexprint;
+
+begin
+  result.overflow:=false;
+  result.signed:=true;
+  result.svalue:=s;
+end;
+
+operator := (const u:qword):Tconstexprint;
+
+begin
+  result.overflow:=false;
+  result.signed:=false;
+  result.uvalue:=u;
+end;
+
+operator := (const s:int64):Tconstexprint;
 
 begin
   result.overflow:=false;
