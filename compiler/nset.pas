@@ -495,7 +495,7 @@ implementation
       procedure count(p : pcaselabel);
         begin
            inc(labels);
-           inc(cases, (p^._high.svalue - p^._low.svalue) + 1);
+           inc(cases, (p^._high.AsInt64 - p^._low.AsInt64) + 1);
            if assigned(p^.less) then
              count(p^.less);
            if assigned(p^.greater) then
