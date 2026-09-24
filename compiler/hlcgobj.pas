@@ -4133,7 +4133,7 @@ implementation
                    otherwise we end up having all zeros for 64 bit data types on
                    64 bit processors }
                   if (lto = 0) and
-                     (qword(hto) = (qword(-1) >> (64-(tosize * 8))) ) then
+                     (hto.ToQWord = (qword(-1) >> (64-(tosize * 8))) ) then
                     exit
                 end;
 {$ifdef overflowon}
@@ -4210,7 +4210,7 @@ implementation
         end;
       hreg:=getintregister(list,maxdef);
       a_load_loc_reg(list,fromdef,maxdef,l,hreg);
-      a_op_const_reg(list,OP_SUB,maxdef,tcgint(int64(lto)),hreg);
+      a_op_const_reg(list,OP_SUB,maxdef,tcgint(lto.ToInt64),hreg);
       current_asmdata.getjumplabel(neglabel);
       {
       if from_signed then
@@ -4218,10 +4218,10 @@ implementation
       else
       }
       cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
-      if qword(hto-lto)>qword(aintmax) then
+      if (hto-lto).ToQWord>qword(aintmax) then
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
-        a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
+        a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint((hto-lto).ToInt64),hreg,neglabel);
       cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
       g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
       a_label(list,neglabel);
