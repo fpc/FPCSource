@@ -394,9 +394,9 @@ function tostr(const i:Tconstexprint):shortstring;overload;
 
 begin
   if i.signed then
-    str(i.svalue,result)
+    result:=IntToStr(i.svalue)
   else
-    str(i.uvalue,result);
+    result:=IntToStr(i.uvalue);
 end;
 
 end.
