@@ -1857,10 +1857,10 @@ begin
       v:=get_intconst;
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
         message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
-      else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
+      else if not assigned(tsyssym.find_by_number(longint(v.AsInt64))) then
         message1(parser_e_invalid_internal_function_index,tostr(v))
       else
-        tprocdef(pd).extnumber:=longint(v.svalue);
+        tprocdef(pd).extnumber:=longint(v.AsInt64);
     end;
 end;
 
