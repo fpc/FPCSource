@@ -915,7 +915,7 @@ implementation
              case blocks.count of
                2:
                  begin
-                   if boolean(qword(flabels^._low))=false then
+                   if boolean(flabels^._low.ToQWord)=false then
                      begin
                        node_thenblock:=pcaseblock(blocks[flabels^.greater^.blockid])^.statement;
                        node_elseblock:=pcaseblock(blocks[flabels^.blockid])^.statement;
@@ -933,7 +933,7 @@ implementation
                  begin
                    if flabels^._low=flabels^._high then
                      begin
-                       if boolean(qword(flabels^._low))=false then
+                       if boolean(flabels^._low.ToQWord)=false then
                          begin
                            node_thenblock:=elseblock;
                            node_elseblock:=pcaseblock(blocks[flabels^.blockid])^.statement;
