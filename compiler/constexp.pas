@@ -272,8 +272,8 @@ var aneg:boolean;
 begin
   aneg:=a.is_negative;
   result.svalue:=-a.svalue;
-  result.overflow:=a.overflow or not aneg and (result.svalue>0); { Will trigger on > -Low(int64). }
-  result.signed:=not (aneg and (a.svalue=Low(a.svalue))); { Unsigned only if negating Low(int64). }
+  result.overflow:=a.overflow or not aneg and (result.svalue>0); { Will trigger on > -Low(int128). }
+  result.signed:=not (aneg and (a.svalue=MinInt128)); { Unsigned only if negating Low(int128). }
 end;
 
 operator * (const a,b:Tconstexprint):Tconstexprint;
