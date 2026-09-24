@@ -1245,7 +1245,7 @@ implementation
            inc(flabelcnt);
            if isord then
              begin
-               flabelcoverage:=flabelcoverage + (p^._high - p^._low);
+               flabelcoverage:=flabelcoverage + (p^._high - p^._low).ToQWord;
                { ensure we don't overflow in case it covers the
                  full range of qword }
                if not first then
