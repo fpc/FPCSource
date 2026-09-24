@@ -454,6 +454,14 @@ begin
 end;
 {$endif}
 
+procedure QuitAsOnSigHup;
+
+begin
+  TCSetAttr(1,TCSANOW,StartTio);
+  fpExit(1);
+end;
+
+
 function ttyRecvChar:AnsiChar;
 
 var Readed,i : longint;
@@ -469,7 +477,9 @@ begin
       {Read}
       repeat
         Readed:=fpRead(StdInputHandle,InBuf[InHead],i);
-      until readed<>-1;
+      until (Readed<>-1) or (fpgeterrno<>ESysEINTR);
+      if Readed<=0 then
+        QuitAsOnSigHup;
       {Increase Counters}
       inc(InHead,Readed);
       {Wrap if End has Reached}
