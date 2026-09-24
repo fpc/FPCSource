@@ -33,6 +33,7 @@ unit uinteger128;
       end;
 
     function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+    function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
 
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator+ (const i1,i2: Int128): Int128;inline;
@@ -164,6 +165,20 @@ unit uinteger128;
             BsrUInt128:=0;
           end;
         BsrUInt128:=BsrUInt128 or BsrQword(tmp);
+      end;
+
+    function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+      var
+        tmp: QWord;
+      begin
+        result:=0;
+        tmp:=AValue.QWords[QWORD_LO];
+        if (tmp=0) then
+          begin
+            tmp:=AValue.QWords[QWORD_HI];
+            result:=64;
+          end;
+        result:=result or BsfQword(tmp);
       end;
 
 {$push} {$q-,r-}
