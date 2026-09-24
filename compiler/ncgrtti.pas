@@ -1027,7 +1027,7 @@ implementation
                            space:=(high(address)-address) div def.size;
                            if int64(space)<hp^.value then
                              internalerror(200706101);
-                           inc(address,int64(def.size*hp^.value));
+                           inc(address,def.size*hp^.value.ToInt64);
                          end;
                        else
                          internalerror(2019050523);
@@ -1460,7 +1460,7 @@ implementation
 
         procedure dointeger(typekind:byte);inline;
           begin
-            doint32_64(typekind,int64(def.low.svalue),int64(def.high.svalue));
+            doint32_64(typekind,def.low.AsInt64,def.high.AsInt64);
           end;
 
         begin
