@@ -91,6 +91,24 @@ implementation
 uses
   cutils;
 
+function int128_to_bestreal(const source: Int128): bestreal;
+begin
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  result:=int128_to_extended(source);
+{$else FPC_HAS_TYPE_EXTENDED}
+  result:=int128_to_double(source);
+{$endif FPC_HAS_TYPE_EXTENDED}
+end;
+
+function uint128_to_bestreal(const source: UInt128): bestreal;
+begin
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  result:=uint128_to_extended(source);
+{$else FPC_HAS_TYPE_EXTENDED}
+  result:=uint128_to_double(source);
+{$endif FPC_HAS_TYPE_EXTENDED}
+end;
+
 function Tconstexprint.is_negative: boolean;
 begin
   result:=signed and (svalue<0);
@@ -139,9 +157,9 @@ begin
   if overflow then
     internalerrorproc(200706095);
   if signed then
-    result:=svalue
+    result:=int128_to_bestreal(svalue)
   else
-    result:=uvalue;
+    result:=uint128_to_bestreal(uvalue);
 end;
 
 operator := (const u:uint128):Tconstexprint;
