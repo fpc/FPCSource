@@ -145,7 +145,7 @@ implementation
                             message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(index)),tostr(high(index)))
                           end
                         else
-                          index:=Tordconstnode(pt).value.svalue
+                          index:=Tordconstnode(pt).value.tolongint
                        else
                         begin
                           index:=0;
@@ -165,7 +165,7 @@ implementation
                        if pt.nodetype=stringconstn then
                          hpname:=strpas(pchar(@tstringconstnode(pt).valueas[0]))
                        else if is_constcharnode(pt) then
-                         hpname:=chr(tordconstnode(pt).value.svalue and $ff)
+                         hpname:=chr(tordconstnode(pt).value.AsInt64 and $ff)
                        else
                          message(type_e_string_expr_expected);
                        include(options,eo_name);
