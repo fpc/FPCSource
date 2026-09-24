@@ -438,7 +438,7 @@ implementation
            right should be treated as one-symbol string }
          if is_conststringnode(l) and is_constcharnode(r) then
            begin
-             value := char(tordconstnode(r).value.uvalue) + ''#0;
+             value := char(tordconstnode(r).value.AsQWord) + ''#0;
              r.free;
              r := cstringconstnode.createstr(value);
              do_typecheckpass(r);
