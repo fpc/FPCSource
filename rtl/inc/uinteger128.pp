@@ -71,6 +71,7 @@ unit uinteger128;
     operator := (const source : UInt64): Int128;inline;
 
     function uint128_to_double(const source: UInt128): Double;
+    function int128_to_double(const source: Int128): Double;
 
     procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
@@ -516,6 +517,14 @@ unit uinteger128;
           result:=Double(source.QWords[QWORD_HI]) * (Double(QWord(1) shl 63) * 2)
         else
           result:=Double((source shr high_bit).QWords[QWORD_LO]) * Double(QWord(1) shl high_bit);
+      end;
+
+    function int128_to_double(const source: Int128): Double;
+      begin
+        if source>=0 then
+          result:=uint128_to_double(UInt128(source))
+        else
+          result:=-uint128_to_double(UInt128(-source));
       end;
 
 {$i sstrings_val_common.inc}
