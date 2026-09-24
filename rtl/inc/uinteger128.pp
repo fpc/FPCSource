@@ -70,6 +70,8 @@ unit uinteger128;
     operator := (const source : Int64): Int128;inline;
     operator := (const source : UInt64): Int128;inline;
 
+    function uint128_to_double(const source: UInt128): Double;
+
     procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
 
@@ -498,6 +500,22 @@ unit uinteger128;
       begin
         result.QWords[QWORD_LO] := source;
         result.QWords[QWORD_HI] := 0;
+      end;
+
+    function uint128_to_double(const source: UInt128): Double;
+      var
+        high_bit: Integer;
+      begin
+        if source.QWords[QWORD_HI]=0 then
+          begin
+            result:=source.QWords[QWORD_LO];
+            exit;
+          end;
+        high_bit:=BsrQWord(source.QWords[QWORD_HI])+1;
+        if high_bit=64 then
+          result:=Double(source.QWords[QWORD_HI]) * (Double(QWord(1) shl 63) * 2)
+        else
+          result:=Double((source shr high_bit).QWords[QWORD_LO]) * Double(QWord(1) shl high_bit);
       end;
 
 {$i sstrings_val_common.inc}
