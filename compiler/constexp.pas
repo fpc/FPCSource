@@ -376,7 +376,7 @@ begin
   if b.uvalue>=bitsizeof(a.uvalue) then
     exit(0);
   result.overflow:=false;
-  result.signed:=a.signed; { signed(1) shl 63 does not fit into signed }
+  result.signed:=a.signed; { signed(1) shl 127 does not fit into signed }
   result.uvalue:=a.uvalue shl b.uvalue;
 end;
 
