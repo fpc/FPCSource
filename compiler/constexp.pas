@@ -49,6 +49,7 @@ type  Tconstexprint=record
         function tobestreal: bestreal;
         function tolongint: longint;
         function toint64: int64;
+        function AsInt64: int64;
       var
         overflow:boolean;
         case signed:boolean of
@@ -179,6 +180,11 @@ begin
     internalerrorproc(2026092403);
   if (self<Int128(low(int64))) or (self>Int128(high(int64))) then
     internalerrorproc(2026092404);
+  result:=int64(Lo(uvalue));
+end;
+
+function Tconstexprint.AsInt64: int64;
+begin
   result:=int64(Lo(uvalue));
 end;
 
