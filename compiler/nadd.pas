@@ -1364,8 +1364,8 @@ const
               )
           ) and
           (((rt=ordconstn) and
-            (cs_opt_fastmath in current_settings.optimizerswitches) or
-            (PopCnt(tordconstnode(right).value.uvalue)=1) { Power of two }
+            ((cs_opt_fastmath in current_settings.optimizerswitches) or
+             (PopCnt(tordconstnode(right).value.uvalue)=1)) { Power of two }
            ) or
            ((rt=realconstn) and
             (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative]) and
