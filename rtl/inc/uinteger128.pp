@@ -75,6 +75,9 @@ unit uinteger128;
     function uint128_to_extended(const source: UInt128): Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
     function int128_to_double(const source: Int128): Double;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    function int128_to_extended(const source: Int128): Extended;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
     procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
     procedure val_uint128(Const S: ShortString; out V: UInt128; out Code: ValSInt);
@@ -547,6 +550,16 @@ unit uinteger128;
         else
           result:=-uint128_to_double(UInt128(-source));
       end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    function int128_to_extended(const source: Int128): Extended;
+      begin
+        if source>=0 then
+          result:=uint128_to_extended(UInt128(source))
+        else
+          result:=-uint128_to_extended(UInt128(-source));
+      end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 {$i sstrings_val_common.inc}
 {$i sstrings_val_int128.inc}
