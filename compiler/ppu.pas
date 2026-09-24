@@ -178,6 +178,7 @@ type
 implementation
 
   uses
+    cutils,
     comphook,
     globals,
     fpchash;
