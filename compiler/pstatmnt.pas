@@ -1626,7 +1626,7 @@ implementation
           if cv.uvalue>get_max_value(def).uvalue then
             def:=get_unsigned_inttype(def);
           adaptrange(def,cv,rc_implicit);
-          result:=cv.svalue;
+          result:=cv.AsInt64;
         end;
 
       var
