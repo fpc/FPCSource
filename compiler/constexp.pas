@@ -108,12 +108,12 @@ end;
 
 procedure Tconstexprint.div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
 var
-  aa, bb: qword;
+  aa, bb: uint128;
   negres: boolean;
 begin
   if by.uvalue=0 then
     begin
-      r:=qword(-int64(isdiv)); { Something. All ones if div, all zeros if mod. }
+      r:=uint128(-int128(Ord(isdiv))); { Something. All ones if div, all zeros if mod. }
       r.overflow:=true;
       exit;
     end;
