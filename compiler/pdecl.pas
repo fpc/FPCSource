@@ -103,7 +103,7 @@ implementation
            ordconstn:
              begin
                if p.resultdef.typ=pointerdef then
-                 hp:=cconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
+                 hp:=cconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.AsQWord,p.resultdef)
                else
                  hp:=cconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
              end;
@@ -950,7 +950,7 @@ implementation
                                       Message(parser_e_invalid_codepage);
                                       tordconstnode(p).value:=0;
                                     end;
-                                  tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
+                                  tstringdef(hdef).encoding:=tordconstnode(p).value.ToInt64;
                                 end;
                               p.free;
                               p := nil;
@@ -1357,7 +1357,7 @@ implementation
                                 if not is_systemunit_unicode then
                                   begin
                                   getmem(sp,2);
-                                  sp[0]:=chr(tordconstnode(p).value.svalue);
+                                  sp[0]:=chr(tordconstnode(p).value.AsInt64);
                                   sp[1]:=#0;
                                   sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
                                   end
@@ -1365,7 +1365,7 @@ implementation
                                   begin
                                   initwidestring(pw);
                                   setlengthwidestring(pw,1);
-                                  pw.data[0]:=tordconstnode(p).value.svalue;
+                                  pw.data[0]:=tordconstnode(p).value.AsInt64;
                                   sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
                                   end;
                              end
