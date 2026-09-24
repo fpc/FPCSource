@@ -374,7 +374,7 @@ operator shl (const a,b:Tconstexprint):Tconstexprint;
 
 begin
   if b.uvalue>=bitsizeof(a.uvalue) then
-    exit(0);
+    exit(int128(0));
   result.overflow:=false;
   result.signed:=a.signed; { signed(1) shl 127 does not fit into signed }
   result.uvalue:=a.uvalue shl b.uvalue;
@@ -384,7 +384,7 @@ operator shr (const a,b:Tconstexprint):Tconstexprint;
 
 begin
   if b.uvalue>=bitsizeof(a.uvalue) then
-    exit(0);
+    exit(int128(0));
   result.overflow:=false;
   result.signed:=a.signed;
   result.uvalue:=a.uvalue shr b.uvalue;
