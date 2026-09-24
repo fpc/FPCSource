@@ -48,6 +48,7 @@ type  Tconstexprint=record
         procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
         function tobestreal: bestreal;
         function tolongint: longint;
+        function toint64: int64;
       var
         overflow:boolean;
         case signed:boolean of
@@ -170,6 +171,15 @@ begin
   if (self<Int128(low(longint))) or (self>Int128(high(longint))) then
     internalerrorproc(2026092402);
   result:=LongInt(Lo(uvalue));
+end;
+
+function Tconstexprint.toint64: int64;
+begin
+  if overflow then
+    internalerrorproc(2026092403);
+  if (self<Int128(low(int64))) or (self>Int128(high(int64))) then
+    internalerrorproc(2026092404);
+  result:=int64(Lo(uvalue));
 end;
 
 operator := (const u:uint128):Tconstexprint;
