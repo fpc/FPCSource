@@ -286,7 +286,7 @@ begin
   result.uvalue:=aa*bb;
   result.overflow:=a.overflow or b.overflow or
     (Hi(aa) or Hi(bb)<>0) and { Pretest to avoid division in small cases. Must be cheaper than two BsrQWords. }
-    (bb<>0) and (high(qword) div bb<aa);
+    (bb<>0) and (MaxUInt128 div bb<aa);
   result.signed:=negres or (result.svalue>=0);
   if negres then
     begin
