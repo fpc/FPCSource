@@ -71,6 +71,9 @@ unit uinteger128;
     operator := (const source : UInt64): Int128;inline;
 
     function uint128_to_double(const source: UInt128): Double;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    function uint128_to_extended(const source: UInt128): Extended;
+{$endif FPC_HAS_TYPE_EXTENDED}
     function int128_to_double(const source: Int128): Double;
 
     procedure val_int128(Const S: ShortString; out V: Int128; out Code: ValSInt);
@@ -518,6 +521,24 @@ unit uinteger128;
         else
           result:=Double((source shr high_bit).QWords[QWORD_LO]) * Double(QWord(1) shl high_bit);
       end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    function uint128_to_extended(const source: UInt128): Extended;
+      var
+        high_bit: Integer;
+      begin
+        if source.QWords[QWORD_HI]=0 then
+          begin
+            result:=source.QWords[QWORD_LO];
+            exit;
+          end;
+        high_bit:=BsrQWord(source.QWords[QWORD_HI])+1;
+        if high_bit=64 then
+          result:=Extended(source.QWords[QWORD_HI]) * (Extended(QWord(1) shl 63) * 2)
+        else
+          result:=Extended((source shr high_bit).QWords[QWORD_LO]) * Extended(QWord(1) shl high_bit);
+      end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
     function int128_to_double(const source: Int128): Double;
       begin
