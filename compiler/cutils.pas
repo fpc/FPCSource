@@ -30,6 +30,7 @@ unit cutils;
 interface
 
   uses
+    uinteger128,
     constexp;
 
   type
@@ -113,7 +114,7 @@ interface
     {# Returns true if value is a power of 2, the actual
        exponent value is returned in power.
     }
-    function ispowerof2(value : int64;out power : longint) : boolean;
+    function ispowerof2(value : int128;out power : longint) : boolean;
     function ispowerof2(const value : Tconstexprint;out power : longint) : boolean;
     {# Returns true if abs(value) is a power of 2, the actual
        exponent value is returned in power.
@@ -1009,14 +1010,14 @@ implementation
       end;
 
 
-    function ispowerof2(value : int64;out power : longint) : boolean;
+    function ispowerof2(value : int128;out power : longint) : boolean;
     {
       return if value is a power of 2. And if correct return the power
     }
       begin
         if (value <= 0) or (value and (value - 1) <> 0) then
           exit(false);
-        power:=BsfQWord(value);
+        power:=BsfUInt128(UInt128(value));
         result:=true;
       end;
 
