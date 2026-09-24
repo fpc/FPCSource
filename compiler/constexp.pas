@@ -47,6 +47,7 @@ type  Tconstexprint=record
         function extract_sign_abs(out abs: uint128): boolean;
         procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
         function tobestreal: bestreal;
+        function tolongint: longint;
       var
         overflow:boolean;
         case signed:boolean of
@@ -160,6 +161,15 @@ begin
     result:=int128_to_bestreal(svalue)
   else
     result:=uint128_to_bestreal(uvalue);
+end;
+
+function Tconstexprint.tolongint: longint;
+begin
+  if overflow then
+    internalerrorproc(2026092401);
+  if (self<Int128(low(longint))) or (self>Int128(high(longint))) then
+    internalerrorproc(2026092402);
+  result:=LongInt(Lo(uvalue));
 end;
 
 operator := (const u:uint128):Tconstexprint;
