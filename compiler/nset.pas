@@ -362,10 +362,10 @@ implementation
                  { value > high(longint) if we don't take the signedness    }
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
+                   t:=cordconstnode.create(byte(tordconstnode(left).value.AsInt64 in Tsetconstnode(right).value_set^),
                      pasbool1type,true)
                  else
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
+                   t:=cordconstnode.create(byte(tordconstnode(left).value.AsQWord in Tsetconstnode(right).value_set^),
                      pasbool1type,true);
                  typecheckpass(t);
                  result:=t;
