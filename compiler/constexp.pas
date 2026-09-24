@@ -50,6 +50,7 @@ type  Tconstexprint=record
         function tolongint: longint;
         function toint64: int64;
         function AsInt64: int64;
+        function ToQWord: QWord;
       var
         overflow:boolean;
         case signed:boolean of
@@ -188,6 +189,17 @@ end;
 function Tconstexprint.AsInt64: int64;
 begin
   result:=int64(Lo(uvalue));
+end;
+
+function Tconstexprint.ToQWord: QWord;
+begin
+  if overflow then
+    internalerrorproc(2026092405);
+  if is_negative then
+    internalerrorproc(2026092406);
+  if Hi(uvalue)<>0 then
+    internalerrorproc(2026092407);
+  result:=Lo(uvalue);
 end;
 
 operator := (const u:uint128):Tconstexprint;
