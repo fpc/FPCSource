@@ -204,9 +204,9 @@ begin
   if c.overflow then
     internalerrorproc(200706095);
   if c.signed then
-    result:=c.svalue
+    result:=int128_to_bestreal(c.svalue)
   else
-    result:=c.uvalue;
+    result:=uint128_to_bestreal(c.uvalue);
 end;
 
 {$push} {$q-,r-}
