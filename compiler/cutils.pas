@@ -1042,7 +1042,7 @@ implementation
       begin
         if ispowerof2(value,power) then
           result:=true
-        else if value.signed and (value.svalue<0) and (value.svalue<>low(int64)) and ispowerof2(-value.svalue,power) then
+        else if value.signed and (value.svalue<0) and (value.svalue<>MinInt128) and ispowerof2(-value.svalue,power) then
           result:=true
         else
           result:=false;
