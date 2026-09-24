@@ -102,6 +102,7 @@ interface
 implementation
 
   uses
+    uinteger128,
     cutils,cclasses,
     globals,systems,verbose,
     defutil,
@@ -244,7 +245,7 @@ implementation
            begin
               if is_constboolnode(p) then
                 begin
-                   if Tordconstnode(p).value.uvalue<>0 then
+                   if Tordconstnode(p).value.uvalue<>uint128(0) then
                      cg.a_jmp_always(list,truelabel)
                    else
                      cg.a_jmp_always(list,falselabel)
