@@ -669,7 +669,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constboolnode(node) then
                   begin
                     adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
-                    ftcb.emit_ord_const(tordconstnode(node).value.svalue,def)
+                    ftcb.emit_ord_const(tordconstnode(node).value.AsInt64,def)
                   end
                 else
                   do_error;
@@ -682,7 +682,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   ((m_delphi in current_settings.modeswitches) and
                    is_constwidecharnode(node) and
                    (tordconstnode(node).value <= 255)) then
-                  ftcb.emit_ord_const(byte(tordconstnode(node).value.svalue),def)
+                  ftcb.emit_ord_const(byte(tordconstnode(node).value.AsInt64),def)
                 else
                   do_error;
              end;
@@ -691,7 +691,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constcharnode(node) then
                   inserttypeconv(node,cwidechartype);
                 if is_constwidecharnode(node) then
-                  ftcb.emit_ord_const(word(tordconstnode(node).value.svalue),def)
+                  ftcb.emit_ord_const(word(tordconstnode(node).value.AsInt64),def)
                 else
                   do_error;
              end;
@@ -703,7 +703,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constintnode(node) then
                   begin
                     adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
-                    ftcb.emit_ord_const(tordconstnode(node).value.svalue,def);
+                    ftcb.emit_ord_const(tordconstnode(node).value.AsInt64,def);
                   end
                 else
                   do_error;
@@ -725,7 +725,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     intvalue:=0;
                     IncompatibleTypes(node.resultdef, def);
                   end;
-               ftcb.emit_ord_const(intvalue,def);
+               ftcb.emit_ord_const(intvalue.ToInt64,def);
              end;
            else
              internalerror(200611052);
@@ -867,7 +867,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if is_constwidecharnode(node) then
                 begin
                   initwidestring(pw);
-                  concatwidestringchar(pw,tcompilerwidechar(word(tordconstnode(node).value.svalue)));
+                  concatwidestringchar(pw,tcompilerwidechar(word(tordconstnode(node).value.AsInt64)));
                   hp:=cstringconstnode.createunistr(pw);
                   donewidestring(pw);
                   node.free;
@@ -904,7 +904,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   datadef:=carraydef.getreusable(cansichartype,2);
                   datatcb.maybe_begin_aggregate(datadef);
-                  datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
+                  datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.AsInt64))+#0),datadef);
                   datatcb.maybe_end_aggregate(datadef);
                 end
               else
@@ -1167,9 +1167,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if not equal then
                   adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
                 case node.resultdef.size of
-                  1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
-                  2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);
-                  4 : ftcb.emit_tai(Tai_const.Create_32bit(Longint(tordconstnode(node).value.svalue)),def);
+                  1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.AsInt64)),def);
+                  2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.AsInt64)),def);
+                  4 : ftcb.emit_tai(Tai_const.Create_32bit(Longint(tordconstnode(node).value.AsInt64)),def);
                   else
                     internalerror(2022040301);
                 end;
@@ -1205,7 +1205,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (Tordconstnode(node).value<qword(low(Aword))) or (Tordconstnode(node).value>qword(high(Aword))) then
           message3(type_e_range_check_error_bounds,tostr(Tordconstnode(node).value),tostr(low(Aword)),tostr(high(Aword)))
         else
-          bitpackval(Tordconstnode(node).value.uvalue,bp);
+          bitpackval(Tordconstnode(node).value.AsQWord,bp);
         if (bp.curbitoffset>=AIntBits) then
           flush_packed_value(bp);
         node.free;
@@ -1422,13 +1422,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   case char_size of
                     1:
-                      ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                      ch[0]:=chr(tordconstnode(n).value.AsQWord and $ff);
                     2:
                       begin
                         inserttypeconv(n,cwidechartype);
                         if not is_constwidecharnode(n) then
                           internalerror(2010033001);
-                        widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
+                        widechar(ch):=widechar(tordconstnode(n).value.AsQWord and $ffff);
                       end;
                     else
                       internalerror(2010033002);
@@ -1444,10 +1444,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         inserttypeconv(n,cansichartype);
                         if not is_constcharnode(n) then
                           internalerror(2010033006);
-                        ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                        ch[0]:=chr(tordconstnode(n).value.AsQWord and $ff);
                       end;
                     2:
-                      widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
+                      widechar(ch):=widechar(tordconstnode(n).value.AsQWord and $ffff);
                     else
                       internalerror(2010033008);
                   end;
