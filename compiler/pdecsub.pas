@@ -1945,7 +1945,7 @@ begin
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
-    Tprocdef(pd).extnumber:=longint(v.svalue);
+    Tprocdef(pd).extnumber:=longint(v.AsInt64);
 end;
 
 
@@ -1961,7 +1961,7 @@ begin
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
-    Tprocdef(pd).extnumber:=longint(v.svalue);
+    Tprocdef(pd).extnumber:=longint(v.AsInt64);
   { the proc is defined }
   tprocdef(pd).forwarddef:=false;
 end;
@@ -2089,7 +2089,7 @@ begin
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
     else
-      Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
+      Tprocdef(pd).dispid:=Tordconstnode(pt).value.AsInt64
   else
     message(parser_e_dispid_must_be_ord_const);
   pt.free;
@@ -2175,7 +2175,7 @@ begin
   if is_constcharnode(pt) then
     begin
       include(pd.procoptions,po_msgstr);
-      tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.uvalue and $FF)));
+      tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.AsQWord and $FF)));
     end
   else if pt.nodetype=stringconstn then
     begin
@@ -2194,7 +2194,7 @@ begin
          (Tordconstnode(pt).value>int64(high(Tprocdef(pd).messageinf.i))) then
         message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(Tprocdef(pd).messageinf.i)),tostr(high(Tprocdef(pd).messageinf.i)))
       else
-        Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
+        Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.ToLongint;
     end
   else
     Message(parser_e_ill_msg_expr);
@@ -2316,7 +2316,7 @@ begin
   if target_info.system in [system_arm_palmos, system_m68k_palmos] then
     begin
       v:=get_intconst;
-      tprocdef(pd).extnumber:=longint(v.svalue);
+      tprocdef(pd).extnumber:=v.ToLongint;
       if ((v<0) or (v>high(word))) then
         message(parser_e_range_check_error);
 
@@ -2325,7 +2325,7 @@ begin
           v:=get_intconst;
           if ((v<0) or (v>high(word))) then
             message(parser_e_range_check_error);
-          tprocdef(pd).import_nr:=longint(v.svalue);
+          tprocdef(pd).import_nr:=v.ToLongint;
           include(pd.procoptions,po_syscall_has_importnr);
         end;
       exit;
@@ -2337,13 +2337,13 @@ begin
       if ((v<0) or (v>15)) then
         message(parser_e_range_check_error)
       else
-        tprocdef(pd).extnumber:=longint(v.svalue);
+        tprocdef(pd).extnumber:=v.ToLongint;
 
       v:=get_intconst;
       if ((v<0) or (v>high(smallint))) then
         message(parser_e_range_check_error)
       else
-        tprocdef(pd).import_nr:=longint(v.svalue);
+        tprocdef(pd).import_nr:=v.ToLongint;
 
       exit;
     end;
@@ -2354,7 +2354,7 @@ begin
       if ((v<$ff00) or (v>high(word))) then
         message(parser_e_range_check_error)
       else
-        tprocdef(pd).extnumber:=longint(v.svalue);
+        tprocdef(pd).extnumber:=v.ToLongint;
 
       exit;
     end;
@@ -2387,9 +2387,9 @@ begin
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
     if target_info.system in [system_arm_aros,system_i386_aros,system_x86_64_aros] then
-      Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)
+      Tprocdef(pd).extnumber:=v.AsQWord * sizeof(pint)
     else
-      Tprocdef(pd).extnumber:=v.uvalue;
+      Tprocdef(pd).extnumber:=v.AsQWord;
 {$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
 end;
 
@@ -2460,7 +2460,7 @@ begin
              if (v<int64(low(import_nr))) or (v>int64(high(import_nr))) then
                message(parser_e_range_check_error)
              else
-               import_nr:=longint(v.svalue);
+               import_nr:=v.ToLongint;
            end;
           if (current_scanner.idtoken=_SUSPENDING) then
            begin
