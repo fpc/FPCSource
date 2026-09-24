@@ -1025,13 +1025,13 @@ implementation
     function ispowerof2(const value: Tconstexprint; out power: longint): boolean;
       begin
         if value.signed or
-           (value.uvalue<=high(int64)) then
+           (value.uvalue<=UInt128(MaxInt128)) then
           result:=ispowerof2(value.svalue,power)
         else if not value.signed and
-            (value.svalue=low(int64)) then
+            (value.svalue=MinInt128) then
           begin
             result:=true;
-            power:=63;
+            power:=127;
           end
         else
           result:=false;
