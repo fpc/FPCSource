@@ -735,7 +735,7 @@ implementation
                 if not ((resdef.typ=arraydef) and not (ado_IsDynamicArray in tarraydef(resdef).arrayoptions)) then
                   exit;
 
-                index:=tordconstnode(tvecnode(hp).right).value.svalue;
+                index:=tordconstnode(tvecnode(hp).right).value.AsInt64;
                 if not ((index>=tarraydef(resdef).lowrange) and (index<=tarraydef(resdef).highrange)) then
                   exit;
                 index:=index-tarraydef(resdef).lowrange;
