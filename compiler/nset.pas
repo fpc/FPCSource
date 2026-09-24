@@ -236,7 +236,7 @@ implementation
               end;
             orddef :
               begin
-                for i:=int64(torddef(psd.elementdef).low) to int64(torddef(psd.elementdef).high) do
+                for i:=torddef(psd.elementdef).low.ToInt64 to torddef(psd.elementdef).high.ToInt64 do
                   include(pcs^,i);
               end;
             else
