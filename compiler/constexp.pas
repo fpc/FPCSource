@@ -47,6 +47,7 @@ type  Tconstexprint=record
         function extract_sign_abs(out abs: uint128): boolean;
         procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
         function tobestreal: bestreal;
+        function tosingle: single;
         function tolongint: longint;
         function toint64: int64;
         function AsInt64: int64;
@@ -167,6 +168,11 @@ begin
     result:=int128_to_bestreal(svalue)
   else
     result:=uint128_to_bestreal(uvalue);
+end;
+
+function Tconstexprint.tosingle: single;
+begin
+  result:=tobestreal;
 end;
 
 function Tconstexprint.tolongint: longint;
