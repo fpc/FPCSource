@@ -1469,7 +1469,7 @@ implementation
                   it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
                 }
                 Result := COrdConstNode.create(
-                  TStringConstNode(left).valuews.data[PtrUInt(TOrdConstNode(right).value.uvalue) - 1],
+                  TStringConstNode(left).valuews.data[PtrUInt(TOrdConstNode(right).value.AsQWord) - 1],
                   resultdef,
                   False
                 );
@@ -1479,7 +1479,7 @@ implementation
                   it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
                 }
                 Result := COrdConstNode.create(
-                  Byte(TStringConstNode(left).valueas[PtrUInt(TOrdConstNode(right).value.uvalue) - 1]),
+                  Byte(TStringConstNode(left).valueas[PtrUInt(TOrdConstNode(right).value.AsQWord) - 1]),
                   resultdef,
                   False
                 );
