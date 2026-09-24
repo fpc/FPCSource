@@ -32,6 +32,9 @@ unit uinteger128;
         QWords: array [0..1] of QWord;
       end;
 
+    function Hi(const value: UInt128): QWord;overload;inline;
+    function Lo(const value: UInt128): QWord;overload;inline;
+
     function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
     function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
 
@@ -107,6 +110,16 @@ unit uinteger128;
       QWORD_LO = 1;
       QWORD_HI = 0;
 {$endif FPC_LITTLE_ENDIAN}
+
+    function Hi(const value: UInt128): QWord;overload;inline;
+      begin
+        result:=value.QWords[QWORD_HI];
+      end;
+
+    function Lo(const value: UInt128): QWord;overload;inline;
+      begin
+        result:=value.QWords[QWORD_LO];
+      end;
 
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
       begin

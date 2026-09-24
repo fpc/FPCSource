@@ -278,7 +278,7 @@ end;
 
 operator * (const a,b:Tconstexprint):Tconstexprint;
 
-var aa,bb:qword;
+var aa,bb:uint128;
     negres:boolean;
 
 begin
