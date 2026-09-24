@@ -44,7 +44,7 @@ type  bestreal=double;
 
 type  Tconstexprint=record
         function is_negative: boolean; inline;
-        function extract_sign_abs(out abs: qword): boolean;
+        function extract_sign_abs(out abs: uint128): boolean;
         procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
         function tobestreal: bestreal;
       var
@@ -97,11 +97,11 @@ begin
 end;
 
 {$push} {$q-,r-}
-function Tconstexprint.extract_sign_abs(out abs: qword): boolean;
+function Tconstexprint.extract_sign_abs(out abs: uint128): boolean;
 begin
   result:=is_negative;
   if result then
-    abs:=qword(-svalue)
+    abs:=uint128(-svalue)
   else
     abs:=uvalue;
 end;
