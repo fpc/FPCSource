@@ -174,11 +174,11 @@ implementation
 {                    t:=cstringdef.createlong(tordconstnode(p).value))}
                     Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
+                    def:=cstringdef.createshort(tordconstnode(p).value.ToInt64,true);
                   end
                 else
                   if tordconstnode(p).value<>255 then
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
+                    def:=cstringdef.createshort(tordconstnode(p).value.ToInt64,true);
                 consume(_RECKKLAMMER);
               end;
              p.free;
@@ -2612,11 +2612,7 @@ implementation
                        else
                          expstr:='';
                        consume(current_scanner.token);
-                       if tordconstnode(p1).value.signed then
-                         str(tordconstnode(p1).value.svalue,valstr)
-                       else
-                         str(tordconstnode(p1).value.uvalue,valstr);
-                       valstr:=valstr+'.0E';
+                       valstr:=tostr(tordconstnode(p1).value)+'.0E';
                        if expstr='' then
                          case current_scanner.token of
                            _MINUS:
@@ -5295,7 +5291,7 @@ implementation
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then
-            get_stringconst:=char(tordconstnode(p).value.svalue)
+            get_stringconst:=char(tordconstnode(p).value.AsInt64)
           else
             Message(parser_e_illegal_expression);
         end
