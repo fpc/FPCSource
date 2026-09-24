@@ -1597,10 +1597,7 @@ unit scandir;
               (tconstsym(srsym).consttyp=constord) and
               is_integer(tconstsym(srsym).constdef) then
             with tconstsym(srsym).value.valueord do
-              if signed then
-                result:=tconstsym(srsym).value.valueord.svalue
-              else
-                result:=tconstsym(srsym).value.valueord.uvalue
+              result:=tconstsym(srsym).value.valueord.tolongint
           else
             message(error)
         else
