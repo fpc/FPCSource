@@ -193,7 +193,7 @@ implementation
                                       (Tordconstnode(p).value>int64(high(longint))) then
                                      message(parser_e_array_range_out_of_bounds)
                                    else
-                                     idx:=Tordconstnode(p).value.svalue
+                                     idx:=Tordconstnode(p).value.ToLongint
                                  end
                                else
                                 Message(type_e_ordinal_expr_expected)
@@ -303,7 +303,7 @@ implementation
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
                     else
-                      hdispid:=Tordconstnode(pt).value.svalue
+                      hdispid:=Tordconstnode(pt).value.ToLongint
                   else
                     Message(parser_e_dispid_must_be_ord_const);
                   pt.free;
@@ -486,7 +486,7 @@ implementation
 {$else}
                          inserttypeconv_internal(pt,s32inttype);
 {$endif}
-                       p.index:=tordconstnode(pt).value.svalue;
+                       p.index:=tordconstnode(pt).value.AsInt64;
                      end
                    else
                      begin
@@ -740,10 +740,7 @@ implementation
                     ordconstn :
                       if is_real(p.propdef) then
                         begin
-                          if TOrdconstnode(pt).value.is_negative then
-                            s:=TOrdconstnode(pt).value.svalue
-                          else
-                            s:=TOrdconstnode(pt).value.uvalue;
+                          s:=TOrdconstnode(pt).value.ToSingle;
                           p.default:=plongint(@s)^;
                           include(p.propoptions,ppo_default_is_single);
                         end
@@ -751,7 +748,7 @@ implementation
                          (Tordconstnode(pt).value>int64(high(cardinal))) then
                         message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
                       else
-                        p.default:=longint(tordconstnode(pt).value.svalue);
+                        p.default:=longint(tordconstnode(pt).value.AsInt64);
                     niln :
                       p.default:=0;
                     realconstn:
@@ -1242,7 +1239,7 @@ implementation
               if pt.nodetype=stringconstn then
                 abssym.asmname:=stringdup(tstringconstnode(pt).asrawbytestring)
               else
-                abssym.asmname:=stringdup(chr(tordconstnode(pt).value.svalue));
+                abssym.asmname:=stringdup(chr(tordconstnode(pt).value.AsInt64));
               abssym.abstyp:=toasm;
             end
           { address }
@@ -1261,7 +1258,7 @@ implementation
                 message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
              else
 {$endif}
-                abssym.addroffset:=Tordconstnode(pt).value.svalue;
+                abssym.addroffset:=Tordconstnode(pt).value.AsInt64;
 {$if defined(i386) or defined(i8086)}
               tcpuabsolutevarsym(abssym).absseg:=false;
               if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
