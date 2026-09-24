@@ -1161,7 +1161,7 @@ implementation
          if (current_scanner.token=_ID) and (current_scanner.pattern='ALIGN') then
            begin
              consume(_ID);
-             alignment:=get_intconst.svalue;
+             alignment:=get_intconst.AsInt64;
              { "(alignment and not $7F) = 0" means it's between 0 and 127, and
                PopCnt = 1 for powers of 2 }
              if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
@@ -1251,7 +1251,7 @@ implementation
                        { All checks passed, create the new def }
                        case pt1.resultdef.typ of
                          enumdef :
-                           def:=cenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
+                           def:=cenumdef.create_subrange(tenumdef(pt1.resultdef),lv.AsInt64,hv.AsInt64);
                          orddef :
                            begin
                              if is_char(pt1.resultdef) then
@@ -1424,7 +1424,7 @@ implementation
                      if (m_default_unicodestring in current_settings.modeswitches) then
                        begin
                          Message(parser_w_widechar_set_reduced);
-                         def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true);
+                         def:=csetdef.create(cansichartype,torddef(cansichartype).low.AsInt64,torddef(cansichartype).high.AsInt64,true);
                        end
                      else
                        Message(sym_e_ill_type_decl_set);
@@ -1435,7 +1435,7 @@ implementation
                      if Torddef(tt2).high>int64(high(byte)) then
                        message(sym_e_ill_type_decl_set)
                      else
-                       def:=csetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue,true)
+                       def:=csetdef.create(tt2,torddef(tt2).low.AsInt64,torddef(tt2).high.AsInt64,true)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
@@ -1655,7 +1655,7 @@ implementation
                     as element of the existing array, otherwise modify the existing array }
                   if not(first) then
                     begin
-                      arrdef.elementdef:=carraydef.create(lowval.svalue,highval.svalue,indexdef);
+                      arrdef.elementdef:=carraydef.create(lowval.AsInt64,highval.AsInt64,indexdef);
                       { push new symtable }
                       symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
@@ -1667,8 +1667,8 @@ implementation
                     end
                   else
                     begin
-                      arrdef.lowrange:=lowval.svalue;
-                      arrdef.highrange:=highval.svalue;
+                      arrdef.lowrange:=lowval.AsInt64;
+                      arrdef.highrange:=highval.AsInt64;
                       arrdef.rangedef:=indexdef;
                       def:=arrdef;
                       first:=false;
@@ -1926,7 +1926,7 @@ implementation
                        l:=v;
                     end
                   else
-                    inc(l.svalue);
+                    l.svalue:=l.svalue+1;
                   first:=false;
                   { don't generate enum members if this is a specialization because aktenumdef is copied from the generic type }
                   if not is_specialize then
@@ -1938,11 +1938,11 @@ implementation
                           Message(parser_w_enumeration_out_of_range)
                         else
                           Message(parser_e_enumeration_out_of_range);
-                      tenumsymtable(aktenumdef.symtable).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      tenumsymtable(aktenumdef.symtable).insertsym(cenumsym.create(s,aktenumdef,longint(l.AsInt64)));
                       if not (cs_scopedenums in current_settings.localswitches) or
                           { also provide the global symbol for anonymous enums }
                           not assigned(newsym) then
-                        tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
+                        tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.AsInt64)));
                       current_tokenpos:=storepos;
                     end;
                 until not try_to_consume(_COMMA);
