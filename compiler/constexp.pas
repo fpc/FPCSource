@@ -49,6 +49,7 @@ type  Tconstexprint=record
         function tobestreal: bestreal;
         function tosingle: single;
         function tolongint: longint;
+        function AsLongint: longint;
         function toint64: int64;
         function AsInt64: int64;
         function ToQWord: QWord;
@@ -181,6 +182,11 @@ begin
     internalerrorproc(2026092401);
   if (self<Int128(low(longint))) or (self>Int128(high(longint))) then
     internalerrorproc(2026092402);
+  result:=LongInt(Lo(uvalue));
+end;
+
+function Tconstexprint.AsLongint: longint;
+begin
   result:=LongInt(Lo(uvalue));
 end;
 
