@@ -3693,7 +3693,13 @@ end;
 { TPRSpecializedItem }
 
 destructor TPRSpecializedItem.Destroy;
+var
+  i: Integer;
 begin
+  // Destroy does not free child elements: free each synthetic const's Expr first.
+  if SyntheticConsts<>nil then
+    for i:=0 to SyntheticConsts.Count-1 do
+      TPasElement(SyntheticConsts[i]).FreeChildren(false);
   FreeAndNil(SyntheticConsts);
   SetLength(ConstExprs,0);
   SetLength(SpecializedConstraints,0);

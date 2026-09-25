@@ -2643,7 +2643,11 @@ begin
           ParseExcSyntaxError;
         NextToken;
         ValueExpr:=DoParseExpression(Params);
-        NamedArg:=TNamedArgExpr.Create(Params, TPrimitiveExpr(Expr), ValueExpr);
+        NamedArg:=TNamedArgExpr(CreateElement(TNamedArgExpr,'',Params,CurTokenPos));
+        NamedArg.Kind:=pekNamedArg;
+        NamedArg.OpCode:=eopNone;
+        NamedArg.NameExpr:=TPrimitiveExpr(Expr);
+        NamedArg.ValueExpr:=ValueExpr;
         // Replace the last param (the bare identifier) with the named arg
         Params.Params[Length(Params.Params)-1]:=NamedArg;
         end
@@ -2949,7 +2953,8 @@ begin
       // handle specializations like this: TA.X<B>()
       if CurToken=tkBraceClose then
         begin
-        Params:=TParamsExpr.Create( aParent,pekFuncParams);
+        Params:=TParamsExpr(CreateElement(TParamsExpr,'',aParent,CurTokenPos));
+        Params.Kind:=pekFuncParams;
         Last:=Params;
         end
       else
