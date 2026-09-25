@@ -50,6 +50,7 @@ type  Tconstexprint=record
         function tosingle: single;
         function ToDouble: Double;
         function ToSmallInt: SmallInt;
+        function AsSmallInt: SmallInt;
         function tolongint: longint;
         function AsLongint: longint;
         function ToDWord: DWord;
@@ -191,6 +192,11 @@ begin
     internalerrorproc(2026092411);
   if (self<Int128(low(SmallInt))) or (self>Int128(high(SmallInt))) then
     internalerrorproc(2026092412);
+  result:=SmallInt(Lo(uvalue));
+end;
+
+function Tconstexprint.AsSmallInt: SmallInt;
+begin
   result:=SmallInt(Lo(uvalue));
 end;
 
