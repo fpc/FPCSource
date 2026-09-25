@@ -48,6 +48,7 @@ type  Tconstexprint=record
         procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
         function tobestreal: bestreal;
         function tosingle: single;
+        function ToDouble: Double;
         function tolongint: longint;
         function AsLongint: longint;
         function toint64: int64;
@@ -172,6 +173,11 @@ begin
 end;
 
 function Tconstexprint.tosingle: single;
+begin
+  result:=tobestreal;
+end;
+
+function Tconstexprint.ToDouble: Double;
 begin
   result:=tobestreal;
 end;
