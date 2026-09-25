@@ -52,6 +52,7 @@ type  Tconstexprint=record
         function tolongint: longint;
         function AsLongint: longint;
         function ToDWord: DWord;
+        function AsDWord: DWord;
         function toint64: int64;
         function AsInt64: int64;
         function ToQWord: QWord;
@@ -205,6 +206,11 @@ begin
     internalerrorproc(2026092409);
   if uvalue>High(DWord) then
     internalerrorproc(2026092410);
+  result:=DWord(Lo(uvalue));
+end;
+
+function Tconstexprint.AsDWord: DWord;
+begin
   result:=DWord(Lo(uvalue));
 end;
 
