@@ -51,6 +51,7 @@ type  Tconstexprint=record
         function ToDouble: Double;
         function tolongint: longint;
         function AsLongint: longint;
+        function ToDWord: DWord;
         function toint64: int64;
         function AsInt64: int64;
         function ToQWord: QWord;
@@ -194,6 +195,17 @@ end;
 function Tconstexprint.AsLongint: longint;
 begin
   result:=LongInt(Lo(uvalue));
+end;
+
+function Tconstexprint.ToDWord: DWord;
+begin
+  if overflow then
+    internalerrorproc(2026092408);
+  if is_negative then
+    internalerrorproc(2026092409);
+  if uvalue>High(DWord) then
+    internalerrorproc(2026092410);
+  result:=DWord(Lo(uvalue));
 end;
 
 function Tconstexprint.toint64: int64;
