@@ -49,6 +49,7 @@ type  Tconstexprint=record
         function tobestreal: bestreal;
         function tosingle: single;
         function ToDouble: Double;
+        function ToSmallInt: SmallInt;
         function tolongint: longint;
         function AsLongint: longint;
         function ToDWord: DWord;
@@ -182,6 +183,15 @@ end;
 function Tconstexprint.ToDouble: Double;
 begin
   result:=tobestreal;
+end;
+
+function Tconstexprint.ToSmallInt: SmallInt;
+begin
+  if overflow then
+    internalerrorproc(2026092411);
+  if (self<Int128(low(SmallInt))) or (self>Int128(high(SmallInt))) then
+    internalerrorproc(2026092412);
+  result:=SmallInt(Lo(uvalue));
 end;
 
 function Tconstexprint.tolongint: longint;
