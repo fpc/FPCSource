@@ -52,6 +52,7 @@ type  Tconstexprint=record
         function ToShortInt: ShortInt;
         function AsShortInt: ShortInt;
         function ToByte: Byte;
+        function AsByte: Byte;
         function ToSmallInt: SmallInt;
         function AsSmallInt: SmallInt;
         function ToWord: Word;
@@ -213,6 +214,11 @@ begin
     internalerrorproc(2026092419);
   if uvalue>High(Byte) then
     internalerrorproc(2026092420);
+  result:=Byte(Lo(uvalue));
+end;
+
+function Tconstexprint.AsByte: Byte;
+begin
   result:=Byte(Lo(uvalue));
 end;
 
