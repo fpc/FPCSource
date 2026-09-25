@@ -2232,7 +2232,7 @@ implementation
                 end;
 
               bits:=def.size*8;
-              shift:=vl.svalue and (bits-1);
+              shift:=vl.AsInt64 and (bits-1);
               case bits of
                  8:
                    mask:=$ff;
