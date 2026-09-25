@@ -51,6 +51,7 @@ type  Tconstexprint=record
         function ToDouble: Double;
         function ToSmallInt: SmallInt;
         function AsSmallInt: SmallInt;
+        function ToWord: Word;
         function tolongint: longint;
         function AsLongint: longint;
         function ToDWord: DWord;
@@ -198,6 +199,17 @@ end;
 function Tconstexprint.AsSmallInt: SmallInt;
 begin
   result:=SmallInt(Lo(uvalue));
+end;
+
+function Tconstexprint.ToWord: Word;
+begin
+  if overflow then
+    internalerrorproc(2026092413);
+  if is_negative then
+    internalerrorproc(2026092414);
+  if uvalue>High(Word) then
+    internalerrorproc(2026092415);
+  result:=Word(Lo(uvalue));
 end;
 
 function Tconstexprint.tolongint: longint;
