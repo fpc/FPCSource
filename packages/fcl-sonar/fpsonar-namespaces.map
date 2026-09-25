@@ -830,6 +830,7 @@ fpwebsocketclient=FpWeb.WebSocket.Client
 fpwebsocketserver=FpWeb.WebSocket.Server
 fpwinmonitor=System.WindowsMonitorSupport
 fpwritebmp=FpImage.Writer.Bitmap
+fpwritegif=FpImage.Writer.GIF
 fpwritejpeg=FpImage.Writer.JPEG
 fpwritepcx=FpImage.Writer.PCX
 fpwritepng=FpImage.Writer.PNG
