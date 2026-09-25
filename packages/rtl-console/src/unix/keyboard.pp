@@ -2903,6 +2903,21 @@ begin
   ReadKey:=PopKey;
 End;
 
+
+function WaitAndReadString:string;
+var st : shortstring;
+  timewait,finalparsec : TimeSpec;
+  ree : longint;
+begin
+  timewait.tv_sec := 0;
+  timewait.tv_nsec := 100000000; {few nano seconds to wait}
+  ree:=fpNanoSleep(@timewait,@finalparsec);
+  st:='';
+  if syskeypressed then st:=RawReadString; {empty key buffer (key release might be pending)}
+  WaitAndReadString:=st;
+end;
+
+
 procedure KittyKeyAvailability;
 var st,zt : shortstring;
     i: integer;
@@ -2912,7 +2927,7 @@ begin
   begin
     write(#27'[?u');   { request response! }
     write(#27'[c');    { request device status (DA1) to get at least some answer. }
-    st:=RawReadString; { read the answer }
+    st:=WaitAndReadString; { read the answer }
     isKittyKeys:=false;
     if length(st)>0 then
     begin
@@ -2938,19 +2953,6 @@ begin
       kitty_keys_no := not isKittyKeys;
     end;
   end;
-end;
-
-procedure waitAndReadAfterArtifacts;
-var st : shortstring;
-  timewait,finalparsec : TimeSpec;
-  ree : longint;
-begin
-  if not kitty_keys_yes then exit;
-  timewait.tv_sec := 0;
-  timewait.tv_nsec := 100000000; {few nano seconds to wait}
-  ree:=fpNanoSleep(@timewait,@finalparsec);
-  st:='';
-  if syskeypressed then st:=RawReadString; {empty key buffer (key release might be pending)}
 end;
 
 { Exported functions }
@@ -3041,7 +3043,7 @@ begin
   if kitty_keys_yes then
   begin
     write(#27'[<u'); {if we have kitty keys, disable them}
-    waitAndReadAfterArtifacts;
+    WaitAndReadString;
     isKittyKeys:=false;
   end;
 {$endif HAIKU}
