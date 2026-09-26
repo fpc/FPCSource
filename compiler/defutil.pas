@@ -2035,20 +2035,22 @@ implementation
           s32bit,
           u32bit,
           s64bit,
-          u64bit:
+          u64bit,
+          s128bit,
+          u128bit:
             begin
               { unsigned, equal or bigger than the native int size? }
-              if (torddef(def).ordtype in [u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
+              if (torddef(def).ordtype in [u128bit,u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
                  (is_nativeord(def) or is_oversizedord(def)) then
                 begin
                   { Delphi-compatible: not dword = dword (not word = longint) }
                   { Extension: not qword = qword                              }
-                  v:=qword(not qword(v));
+                  v:=uint128(not uint128(v));
                   { will be truncated by the ordconstnode for u32bit }
                 end
               else
                 begin
-                  v:=int64(not int64(v));
+                  v:=int128(not int128(v));
                   def:=get_common_intdef(torddef(def),torddef(sinttype),false);
                 end;
             end;
