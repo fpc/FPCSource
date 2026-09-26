@@ -568,8 +568,12 @@ implementation
          def:=u32inttype
         else if (l>=low(int64)) and (h<=high(int64)) then
          def:=s64inttype
+        else if (l>=low(qword)) and (h<=high(qword)) then
+         def:=u64inttype
+        else if (l>=MinInt128) and (h<=MaxInt128) then
+         def:=s128inttype
         else
-         def:=u64inttype;
+         def:=u128inttype;
       end;
 
 
