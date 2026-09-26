@@ -123,6 +123,7 @@ interface
     function isabspowerof2(const value : Tconstexprint; out power : longint) : boolean;
     { # Returns the power of 2 >= value }
     function nextpowerof2(value : qword; out power: longint) : qword;
+    function nextpowerof2(value : uint128; out power: longint) : uint128;
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
@@ -1071,6 +1072,23 @@ implementation
 
         power:=BsrQWord(value);
         result:=qword(1) shl power;
+        if (value and (value-1))<>0 then
+          begin
+            inc(power);
+            result:=result shl 1;
+          end;
+      end;
+
+
+    function nextpowerof2(value : uint128; out power: longint) : uint128;
+      begin
+        power:=-1;
+        result:=0;
+        if (value=0) or (value>(uint128(1) shl 127)) then
+          exit;
+
+        power:=BsrUInt128(value);
+        result:=uint128(1) shl power;
         if (value and (value-1))<>0 then
           begin
             inc(power);
