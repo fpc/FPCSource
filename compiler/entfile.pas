@@ -26,7 +26,7 @@ unit entfile;
 interface
 
   uses
-    systems,globtype,constexp,cstreams;
+    uinteger128,systems,globtype,constexp,cstreams;
 
 const
 { buffer sizes }
@@ -312,6 +312,8 @@ type
     function  getlongint:longint;
     function getint64:int64;
     function  getqword:qword;
+    function  getint128:int128;
+    function  getuint128:uint128;
     function getaint:{$ifdef generic_cpu}int64{$else}aint{$ifdef USEINLINE}; inline{$endif}{$endif};
     function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$ifdef USEINLINE}; inline{$endif}{$endif};
     function getpuint:{$ifdef generic_cpu}qword{$else}puint{$ifdef USEINLINE}; inline{$endif}{$endif};
@@ -340,6 +342,8 @@ type
     procedure putlongint(l:longint); {$ifdef USEINLINE}inline;{$endif}
     procedure putint64(i:int64); {$ifdef USEINLINE}inline;{$endif}
     procedure putqword(q:qword); {$ifdef USEINLINE}inline;{$endif}
+    procedure putint128(const i:int128); {$ifdef USEINLINE}inline;{$endif}
+    procedure putuint128(const u:uint128); {$ifdef USEINLINE}inline;{$endif}
     procedure putaint(i:aint); {$ifdef USEINLINE}inline;{$endif}
     procedure putasizeint(i:asizeint); {$ifdef USEINLINE}inline;{$endif}
     procedure putpuint(i:puint); {$ifdef USEINLINE}inline;{$endif}
@@ -1051,6 +1055,64 @@ begin
   dec_log_level;
 {$endif}
   inc(entryidx,8);
+end;
+
+
+function  tentryfile.getint128:int128;
+begin
+  if entryidx+16>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+{$ifdef DEBUG_PPU}
+  ppu_log('putint128');
+  inc_log_level;
+{$endif}
+  if bufsize-bufidx>=sizeof(int128) then
+    begin
+      result:=Unaligned(pint128(@buf[bufidx])^);
+      inc(bufidx,sizeof(int128));
+    end
+  else
+    readdata(result,sizeof(int128));
+  if change_endian then
+   result:=swapendian(result);
+{$ifdef DEBUG_PPU}
+  ppu_log_val(tostr(result));
+  dec_log_level;
+{$endif}
+  inc(entryidx,16);
+end;
+
+
+function  tentryfile.getuint128:uint128;
+begin
+  if entryidx+16>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+{$ifdef DEBUG_PPU}
+  ppu_log('putuint128');
+  inc_log_level;
+{$endif}
+  if bufsize-bufidx>=sizeof(uint128) then
+    begin
+      result:=Unaligned(puint128(@buf[bufidx])^);
+      inc(bufidx,sizeof(uint128));
+    end
+  else
+    readdata(result,sizeof(uint128));
+  if change_endian then
+   result:=swapendian(result);
+{$ifdef DEBUG_PPU}
+  ppu_log_val(tostr(result));
+  dec_log_level;
+{$endif}
+  inc(entryidx,16);
 end;
 
 
@@ -1870,6 +1932,34 @@ begin
   ppu_log_val(tostr(q));
 {$endif}
   putdata(q,sizeof(qword));
+{$ifdef DEBUG_PPU}
+  dec_log_level;
+{$endif}
+end;
+
+
+procedure tentryfile.putint128(const i:int128);
+begin
+{$ifdef DEBUG_PPU}
+  ppu_log('putint128');
+  inc_log_level;
+  ppu_log_val(tostr(i));
+{$endif}
+  putdata(i,sizeof(int128));
+{$ifdef DEBUG_PPU}
+  dec_log_level;
+{$endif}
+end;
+
+
+procedure tentryfile.putuint128(const u:uint128);
+begin
+{$ifdef DEBUG_PPU}
+  ppu_log('putuint128');
+  inc_log_level;
+  ppu_log_val(tostr(u));
+{$endif}
+  putdata(u,sizeof(uint128));
 {$ifdef DEBUG_PPU}
   dec_log_level;
 {$endif}
