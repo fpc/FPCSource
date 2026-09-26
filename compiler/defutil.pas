@@ -2021,6 +2021,10 @@ implementation
             result:=torddef(s64inttype);
           u64bit:
             result:=torddef(u64inttype);
+          s128bit:
+            result:=torddef(s128inttype);
+          u128bit:
+            result:=torddef(u128inttype);
           else
             begin
               { avoid warning }
@@ -2046,6 +2050,10 @@ implementation
               result:=torddef(s64inttype);
             s64bit:
               result:=torddef(u64inttype);
+            u64bit:
+              result:=torddef(s128inttype);
+            s128bit:
+              result:=torddef(u128inttype);
             else
               ;
           end;
