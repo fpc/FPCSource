@@ -324,7 +324,7 @@ begin
           if round(frac(totaltime)*10) >= 10 then
             totaltime:=trunc(totaltime) + 1;
           timestr:=tostr(trunc(totaltime))+'.'+tostr(round(frac(totaltime)*10));
-          if status.codesize<>aword(-1) then
+          if status.codesize<>qword(-1) then
             linkstr:=', '+tostr(status.codesize)+' ' +MessageStr(general_text_bytes_code)+', '+tostr(status.datasize)+' '+MessageStr(general_text_bytes_data)
           else
             linkstr:='';
