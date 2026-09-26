@@ -1489,6 +1489,7 @@ implementation
                 2: mask:=$ffff;
                 4: mask:=$ffffffff;
                 8: mask:=$ffffffffffffffff;
+                16: mask:=MaxUInt128;
                 else
                   internalerror(2019062305);
                 end;
