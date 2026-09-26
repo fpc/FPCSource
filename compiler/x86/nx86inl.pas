@@ -530,7 +530,7 @@ implementation
         begin
           Result:=0;
           if is_constintnode(n) then
-            result:=tordconstnode(n).value.svalue
+            result:=tordconstnode(n).value.AsInt64
           else
             Message(type_e_constant_expr_expected);
         end;
