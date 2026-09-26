@@ -546,8 +546,12 @@ implementation
          range_to_basetype:=u32bit
         else if (l>=low(int64)) and (h<=high(int64)) then
          range_to_basetype:=s64bit
+        else if (l>=low(qword)) and (h<=high(qword)) then
+         range_to_basetype:=u64bit
+        else if (l>=MinInt128) and (h<=MaxInt128) then
+         range_to_basetype:=s128bit
         else
-         range_to_basetype:=u64bit;
+         range_to_basetype:=u128bit;
       end;
 
 
