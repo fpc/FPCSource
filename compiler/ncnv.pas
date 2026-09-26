@@ -1126,7 +1126,7 @@ implementation
               else
                 { in Delphi mode, these aren't caught in compare_defs_ext }
                 IncompatibleTypes(left.resultdef,resultdef);
-            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
+            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.AsQWord),resultdef);
           end
          else
           internalerror(200104023);
