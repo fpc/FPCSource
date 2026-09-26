@@ -1040,7 +1040,7 @@ implementation
                    { only orddefs are bitpacked }
                    not is_ordinal(resultdef))) then
                 begin
-                  extraoffset:=tordconstnode(right).value.svalue;
+                  extraoffset:=tordconstnode(right).value.AsInt64;
                   update_reference_offset(location.reference,extraoffset,bytemulsize);
                   { adjust alignment after this change }
                   location.reference.alignment:=newalignment(location.reference.alignment,extraoffset*bytemulsize);
@@ -1083,9 +1083,9 @@ implementation
                   if not ispowerof2(packedbitsloadsize(resultdef.packedbitsize),temp) then
                     internalerror(2006081212);
                   alignpow:=temp;
-                  update_reference_offset(subsetref.ref,(mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow),1 shl alignpow);
+                  update_reference_offset(subsetref.ref,(mulsize * (tordconstnode(right).value.AsInt64-tarraydef(left.resultdef).lowrange)) shr (3+alignpow),1 shl alignpow);
                   subsetref.bitindexreg := NR_NO;
-                  subsetref.startbit := (mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
+                  subsetref.startbit := (mulsize * (tordconstnode(right).value.AsInt64-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
                   subsetref.bitlen := resultdef.packedbitsize;
                   if (left.location.loc = LOC_REFERENCE) then
                     location.loc := LOC_SUBSETREF
@@ -1111,12 +1111,12 @@ implementation
                      begin
                         if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                            extraoffset:=tordconstnode(taddnode(rightp^).right).value.svalue;
+                            extraoffset:=tordconstnode(taddnode(rightp^).right).value.AsInt64;
                             replacenode(rightp^,taddnode(rightp^).left);
                           end
                         else if taddnode(rightp^).left.nodetype=ordconstn then
                           begin
-                            extraoffset:=tordconstnode(taddnode(rightp^).left).value.svalue;
+                            extraoffset:=tordconstnode(taddnode(rightp^).left).value.AsInt64;
                             replacenode(rightp^,taddnode(rightp^).right);
                           end;
                      end
@@ -1124,7 +1124,7 @@ implementation
                      begin
                         if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                            extraoffset:=-tordconstnode(taddnode(rightp^).right).value.svalue;
+                            extraoffset:=-tordconstnode(taddnode(rightp^).right).value.AsInt64;
                             replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
