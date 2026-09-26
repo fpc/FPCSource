@@ -138,7 +138,7 @@ implementation
             if ((hv - lv) - Range <= ExhaustiveLimit) then
               begin
                 oldmin := min_;
-                min_ := lv.svalue;
+                min_ := lv.AsInt64;
                 AlmostExhaustive := True;
               end
             else
@@ -198,7 +198,7 @@ implementation
         if AlmostExhaustive then
           begin
             { Fill the table with the values below _min }
-            x := lv.svalue;
+            x := lv.AsInt64;
             while x < oldmin do
               begin
                 jtlist.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
