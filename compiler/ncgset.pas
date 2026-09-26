@@ -700,16 +700,16 @@ implementation
              genitem(t^.less);
            { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resultdef)) then
-             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.AsInt64),hregister,elselabel);
            if t^._low=t^._high then
              begin
                if t^._low-last=0 then
                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
                else
                  begin
-                   gensub(tcgint(t^._low.svalue-last.svalue));
+                   gensub(tcgint(t^._low.AsInt64-last.AsInt64));
                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
-                                            OC_EQ,tcgint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
+                                            OC_EQ,tcgint(t^._low.AsInt64-last.AsInt64),scratch_reg,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
              end
@@ -722,18 +722,18 @@ implementation
                   begin
                      { have we to adjust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                       gensub(tcgint(t^._low.svalue));
+                       gensub(tcgint(t^._low.AsInt64));
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    gensub(tcgint(t^._low.svalue-last.svalue));
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,tcgint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
+                    gensub(tcgint(t^._low.AsInt64-last.AsInt64));
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,tcgint(t^._low.AsInt64-last.AsInt64),scratch_reg,elselabel);
                   end;
-                gensub(tcgint(t^._high.svalue-t^._low.svalue));
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,tcgint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
+                gensub(tcgint(t^._high.AsInt64-t^._low.AsInt64));
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,tcgint(t^._high.AsInt64-t^._low.AsInt64),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -777,12 +777,12 @@ implementation
                   { If only one label exists, we can greatly simplify the checks to a simple comparison }
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   if hp^._low=hp^._high then
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.AsInt64), hregister, blocklabel(hp^.blockid))
                   else
                     begin
                       scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
-                      gensub(tcgint(hp^._low.svalue));
-                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                      gensub(tcgint(hp^._low.AsInt64));
+                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.AsInt64-hp^._low.AsInt64), hregister, blocklabel(hp^.blockid))
                     end;
                 end;
               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -871,7 +871,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low.svalue),hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low.AsInt64),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -978,7 +978,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                        begin
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low.svalue), hregister,
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low.AsInt64), hregister,
                            elselabel);
                        end;
                   end;
@@ -1070,7 +1070,7 @@ implementation
 {$endif}
 {$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.svalue), hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.AsInt64), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -1112,18 +1112,18 @@ implementation
           if p^._low=p^._high then
             begin
               if greaterlabel=lesslabel then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_NE,p^._low,hregister, lesslabel)
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_NE,p^._low.ToInt64,hregister, lesslabel)
               else
                 begin
-                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_lt,p^._low,hregister, lesslabel);
-                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_gt,p^._low,hregister, greaterlabel);
+                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_lt,p^._low.ToInt64,hregister, lesslabel);
+                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_gt,p^._low.ToInt64,hregister, greaterlabel);
                 end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end
           else
             begin
-              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low, hregister, lesslabel);
-              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister, greaterlabel);
+              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low.ToInt64, hregister, lesslabel);
+              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high.ToInt64,hregister, greaterlabel);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end;
            if assigned(p^.less) then
@@ -1279,9 +1279,9 @@ implementation
 
                    distv:=max_label-min_label;
                    if distv>=0 then
-                     dist:=min(distv.uvalue,high(dist))
+                     dist:=min(distv.AsQWord,high(dist))
                    else
-                     dist:=min(asizeuint(-distv.svalue),high(dist));
+                     dist:=min(asizeuint(-distv.AsInt64),high(dist));
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
@@ -1294,7 +1294,7 @@ implementation
                               (dist>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
-                           genjumptable(labels,min_label.svalue,max_label.svalue);
+                           genjumptable(labels,min_label.AsInt64,max_label.AsInt64);
                          end
                        else
                          begin
@@ -1326,7 +1326,7 @@ implementation
                                (dist<max_dist) and
                                (min_label>=int64(low(aint))) and
                                (max_label<=high(aint)) then
-                              genjumptable(labels,min_label.svalue,max_label.svalue)
+                              genjumptable(labels,min_label.AsInt64,max_label.AsInt64)
                             { value has been determined on an i7-4770 using a random case with random values
                               if more values are known, this can be handled depending on the target CPU
 
