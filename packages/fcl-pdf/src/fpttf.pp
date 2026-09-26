@@ -1227,7 +1227,12 @@ finalization
 {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
   // The library is unloaded: another part of the program may still be using fontconfig.
   if uFontConfigLoaded then
+    begin
+    // Release fontconfig's own caches, built by FcInitLoadConfigAndFonts.
+    if Assigned(FcFini) then
+      FcFini;
     UnLoadFontConfigLib;
+    end;
 {$ifend}
 
 end.
