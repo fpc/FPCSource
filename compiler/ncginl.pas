@@ -464,7 +464,7 @@ implementation
 {$endif not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       { insert multiply with addvalue if its >1 }
                       if addvalue>1 then
-                        hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,left.resultdef,addvalue.svalue,hregister);
+                        hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,left.resultdef,addvalue.AsInt64,hregister);
                     end
                   else if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                     begin
@@ -488,9 +488,9 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
 {$ifdef cpu64bitalu}
-                  aint(addvalue.svalue),
+                  aint(addvalue.AsInt64),
 {$else cpu64bitalu}
-                  longint(addvalue.svalue),  // can't use aint, because it breaks 16-bit and 8-bit CPUs
+                  addvalue.AsLongInt,  // can't use aint, because it breaks 16-bit and 8-bit CPUs
 {$endif cpu64bitalu}
                   tcallparanode(left).left.location);
             end
@@ -603,9 +603,9 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
 {$ifdef cpu64bitalu}
-                  aint(maskvalue.svalue),
+                  aint(maskvalue.AsInt64),
 {$else cpu64bitalu}
-                  longint(maskvalue.svalue),  // can't use aint, because it breaks 16-bit and 8-bit CPUs
+                  maskvalue.AsLongInt,  // can't use aint, because it breaks 16-bit and 8-bit CPUs
 {$endif cpu64bitalu}
                   tcallparanode(tcallparanode(left).right).left.location);
             end
@@ -956,7 +956,7 @@ implementation
                else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
-                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
+                   tordconstnode(op2).value.AsQWord and (resultdef.size*8-1),
                    op1.location.register, location.register)
              else
                begin
