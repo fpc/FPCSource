@@ -1258,8 +1258,8 @@ implementation
     function are_equal_ints(def1, def2: tdef): boolean;
       begin
         result:=(def1.typ=orddef) and (def2.typ=orddef) and
-          (torddef(def1).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                     s8bit,s16bit,s32bit,s64bit,customint]) and
+          (torddef(def1).ordtype in [u8bit,u16bit,u32bit,u64bit,u128bit,
+                                     s8bit,s16bit,s32bit,s64bit,s128bit,customint]) and
           (torddef(def1).ordtype=torddef(def2).ordtype) and
           ((torddef(def1).ordtype<>customint) or
            ((torddef(def1).low=torddef(def2).low) and
