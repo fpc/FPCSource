@@ -246,17 +246,17 @@ implementation
          hp:=actualtargetnode(@left);
          if (hp^.nodetype=subn) and is_constintnode(taddnode(hp^).right) then
            begin
-             newoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
+             newoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value.AsInt64);
              replacenode(hp^,taddnode(hp^).left);
            end
          else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).right) then
            begin
-             newoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
+             newoffset:=tcgint(tordconstnode(taddnode(hp^).right).value.AsInt64);
              replacenode(hp^,taddnode(hp^).left);
            end
          else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).left) then
            begin
-             newoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
+             newoffset:=tcgint(tordconstnode(taddnode(hp^).left).value.AsInt64);
              replacenode(hp^,taddnode(hp^).right);
            end;
 
