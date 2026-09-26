@@ -2933,13 +2933,15 @@ implementation
                     begin
                       case left.resultdef.size of
                         1:
-                          result:=cordconstnode.create(BsfByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsfByte(tordconstnode(left).value.AsByte),resultdef,false);
                         2:
-                          result:=cordconstnode.create(BsfWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsfWord(tordconstnode(left).value.AsWord),resultdef,false);
                         4:
-                          result:=cordconstnode.create(BsfDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsfDWord(tordconstnode(left).value.AsDWord),resultdef,false);
                         8:
-                          result:=cordconstnode.create(BsfQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsfQWord(tordconstnode(left).value.AsQWord),resultdef,false);
+                        16:
+                          result:=cordconstnode.create(BsfUInt128(tordconstnode(left).value.uvalue),resultdef,false);
                         else
                           internalerror(2017042401);
                       end;
@@ -2951,13 +2953,15 @@ implementation
                     begin
                       case left.resultdef.size of
                         1:
-                          result:=cordconstnode.create(BsrByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsrByte(tordconstnode(left).value.AsByte),resultdef,false);
                         2:
-                          result:=cordconstnode.create(BsrWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsrWord(tordconstnode(left).value.AsWord),resultdef,false);
                         4:
-                          result:=cordconstnode.create(BsrDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsrDWord(tordconstnode(left).value.AsDWord),resultdef,false);
                         8:
-                          result:=cordconstnode.create(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                          result:=cordconstnode.create(BsrQWord(tordconstnode(left).value.AsQWord),resultdef,false);
+                        16:
+                          result:=cordconstnode.create(BsrUInt128(tordconstnode(left).value.uvalue),resultdef,false);
                         else
                           internalerror(2017042402);
                       end;
