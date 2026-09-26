@@ -108,6 +108,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       systems,
       verbose,globals,cutils,compinnr,
       globtype,constexp,
@@ -688,7 +689,7 @@ implementation
                   exit;
 
                 shiftval:=left.resultdef.size*8-1;
-                tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
+                tordconstnode(right).value.uvalue:=UInt128((UInt128(1) shl power)-1);
 
                 result:=internalstatements(statements);
                 temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
