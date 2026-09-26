@@ -2506,7 +2506,7 @@ implementation
                    end;
                  in_const_eh_return_data_regno:
                    begin
-                     vl:=eh_return_data_regno(vl.svalue);
+                     vl:=eh_return_data_regno(vl.AsInt64);
                      if vl=-1 then
                        CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
                      hp:=genintconstnode(vl);
