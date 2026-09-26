@@ -2497,11 +2497,11 @@ implementation
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
                        cgmessage(parser_e_range_check_error);
 {$if defined(i8086)}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
+                     hp:=cpointerconstnode.create((vl2.AsDWord shl 16)+vl.AsDWord,voidfarpointertype);
 {$elseif defined(i386)}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype);
+                     hp:=cpointerconstnode.create((vl2.AsDWord shl 4)+vl.AsDWord,voidnearfspointertype);
 {$else}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
+                     hp:=cpointerconstnode.create((vl2.AsQWord shl 4)+vl.AsQWord,voidpointertype);
 {$endif}
                    end;
                  in_const_eh_return_data_regno:
