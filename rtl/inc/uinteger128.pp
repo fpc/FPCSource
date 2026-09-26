@@ -53,6 +53,7 @@ unit uinteger128;
     function Odd(const AValue: Int128): Boolean;overload;inline;
 
     function SwapEndian(const AValue: UInt128): UInt128;overload;inline;
+    function SwapEndian(const AValue: Int128): Int128;overload;inline;
 
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator+ (const i1,i2: Int128): Int128;inline;
@@ -279,6 +280,11 @@ unit uinteger128;
       begin
         Result.QWords[QWORD_LO]:=SwapEndian(AValue.QWords[QWORD_HI]);
         Result.QWords[QWORD_HI]:=SwapEndian(AValue.QWords[QWORD_LO]);
+      end;
+
+    function SwapEndian(const AValue: Int128): Int128;overload;inline;
+      begin
+        Result:=Int128(SwapEndian(UInt128(AValue)));
       end;
 
 {$push} {$q-,r-}
