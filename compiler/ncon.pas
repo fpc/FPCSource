@@ -290,13 +290,13 @@ implementation
         if is_constcharnode(p) then
           begin
             SetLength(stringVal,1);
-            stringVal[1]:=char(tordconstnode(p).value.uvalue);
+            stringVal[1]:=char(tordconstnode(p).value.AsQWord);
             result:=cstringconstnode.createstr(stringVal);
           end
         else if is_constwidecharnode(p) then
           begin
             initwidestring(pWideStringVal);
-            concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
+            concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.AsQWord));
             result:=cstringconstnode.createunistr(pWideStringVal);
           end
         else if p.nodetype=stringconstn then
@@ -763,7 +763,7 @@ implementation
 
     function tordconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
       begin
-        tcb.emit_ord_const(value,resultdef);
+        tcb.emit_ord_const(value.ToInt64,resultdef);
         result:=resultdef.size;
       end;
 
