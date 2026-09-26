@@ -143,6 +143,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       verbose,globals,systems,constexp,
       globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
@@ -2191,7 +2192,7 @@ implementation
         var
           vl,vl2    : TConstExprInt;
           bits,shift: integer;
-          mask : qword;
+          mask : uint128;
           def : tdef;
         begin
           result:=nil;
@@ -2244,8 +2245,10 @@ implementation
                    mask:=$ffffffff;
                  64:
                    mask:=qword($ffffffffffffffff);
+                 128:
+                   mask:=MaxUInt128;
                  else
-                   mask:=qword(1 shl bits)-1;
+                   mask:=UInt128(UInt128(1) shl bits)-1;
               end;
 {$push}
 {$r-,q-}
@@ -2265,10 +2268,11 @@ implementation
               { sar(0,x) is 0 }
               { sar32(ffffffff,x) is ffffffff, etc. }
               if ((vl2=0) or
-                  ((resultdef.size=1) and (shortint(vl2.svalue)=-1)) or
-                  ((resultdef.size=2) and (smallint(vl2.svalue)=-1)) or
-                  ((resultdef.size=4) and (longint(vl2.svalue)=-1)) or
-                  ((resultdef.size=8) and (int64(vl2.svalue)=-1))) and
+                  ((resultdef.size=1) and (vl2.AsShortInt=-1)) or
+                  ((resultdef.size=2) and (vl2.AsSmallInt=-1)) or
+                  ((resultdef.size=4) and (vl2.AsLongInt=-1)) or
+                  ((resultdef.size=8) and (vl2.AsInt64=-1)) or
+                  ((resultdef.size=16) and (Int128(vl2.svalue)=-1))) and
                  ((cs_opt_level4 in current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 begin
