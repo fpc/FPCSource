@@ -790,7 +790,7 @@ interface
               begin
                 if is_signed(left.resultdef) then
                   begin
-                    e:=tordconstnode(right).value.svalue;
+                    e:=tordconstnode(right).value.AsInt64;
                     calc_divconst_magic_signed(resultdef.size*8,e,sm,s);
                     cg.getcpuregister(current_asmdata.CurrAsmList,rega);
                     emit_const_reg(A_MOV,opsize,sm,rega);
@@ -818,7 +818,7 @@ interface
                   end
                 else
                   begin
-                    d:=tordconstnode(right).value.uvalue;
+                    d:=tordconstnode(right).value.AsQWord;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
@@ -869,7 +869,7 @@ interface
               end
             else
               begin
-                d:=tordconstnode(right).value.uvalue;
+                d:=tordconstnode(right).value.AsQWord;
                 if d>=aword(1) shl (left.resultdef.size*8-1) then
                   begin
 
