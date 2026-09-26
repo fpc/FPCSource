@@ -1285,13 +1285,13 @@ implementation
     function is_oversizedord(def : tdef) : boolean;
       begin
 {$if defined(cpu8bitalu)}
-         result:=is_64bit(def) or is_32bit(def) or is_16bit(def);
+         result:=is_128bit(def) or is_64bit(def) or is_32bit(def) or is_16bit(def);
 {$elseif defined(cpu16bitalu)}
-         result:=is_64bit(def) or is_32bit(def);
+         result:=is_128bit(def) or is_64bit(def) or is_32bit(def);
 {$elseif defined(cpu32bitaddr)}
-         result:=is_64bit(def);
+         result:=is_128bit(def) or is_64bit(def);
 {$elseif defined(cpu64bitaddr)}
-         result:=false;
+         result:=is_128bit(def);
 {$endif}
       end;
 
