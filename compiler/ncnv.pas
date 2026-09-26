@@ -612,7 +612,7 @@ implementation
 
                               if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
                                 CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
-                              for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
+                              for l:=tordconstnode(p2).value.AsInt64 to tordconstnode(p3).value.AsInt64 do
                                 do_set(l);
                               p2.free;
                               p2 := nil;
@@ -652,7 +652,7 @@ implementation
                           if not(is_integer(p2.resultdef)) then
                             update_constsethi(p2.resultdef,true);
 
-                          do_set(tordconstnode(p2).value.svalue);
+                          do_set(tordconstnode(p2).value.AsInt64);
                           p2.free;
                           p2 := nil;
                         end
@@ -696,7 +696,7 @@ implementation
              p.free; // no nil needed
          end;
         { set the initial set type }
-        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.AsInt64,constsethi.AsInt64,true);
         { determine the resultdef for the tree }
         typecheckpass(result);
       end;
