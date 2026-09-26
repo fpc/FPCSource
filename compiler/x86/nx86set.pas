@@ -139,7 +139,7 @@ implementation
             if ((hv - lv) - Range <= ExhaustiveLimit) then
               begin
                 oldmin := min_;
-                min_ := lv.svalue;
+                min_ := lv.AsInt64;
                 AlmostExhaustive := True;
               end
             else
@@ -191,7 +191,7 @@ implementation
         if AlmostExhaustive then
           begin
             { Fill the table with the values below _min }
-            x := lv.svalue;
+            x := lv.AsInt64;
             while x < oldmin do
               begin
                 jtlist.concat(Tai_const.Create_type_sym(labeltyp, elselabel));
@@ -232,7 +232,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resultdef)) then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.AsInt64),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -241,7 +241,7 @@ implementation
                   else
                     begin
                       cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.AsInt64-last.AsInt64), hregister);
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
                       cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     end;
@@ -250,7 +250,7 @@ implementation
                end
              else
                begin
-                  range := aint(t^._high.svalue - t^._low.svalue);
+                  range := aint(t^._high.AsInt64 - t^._low.AsInt64);
                   extra := 0;
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
@@ -260,11 +260,11 @@ implementation
                     begin
                        { have we to adjust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
+                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.AsInt64), hregister);
                     end
                   else
                     begin
-                      gap := aint(t^._low.svalue - last.svalue);
+                      gap := aint(t^._low.AsInt64 - last.AsInt64);
                       { if there is no unused label between the last and the }
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
@@ -332,11 +332,11 @@ implementation
                   begin
                     { If only one label exists, we can greatly simplify the checks to a simple comparison }
                     if hp^._low=hp^._high then
-                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ, tcgint(hp^._low.AsInt64), hregister, blocklabel(hp^.blockid))
                     else
                       begin
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.svalue), hregister);
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.AsInt64), hregister);
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.AsInt64 - hp^._low.AsInt64), hregister,blocklabel(hp^.blockid));
                       end;
                   end;
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
@@ -371,18 +371,18 @@ implementation
           if p^._low=p^._high then
             begin
               if greaterlabel=lesslabel then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low.ToInt64,hregister,lesslabel)
               else
                 begin
                   cmplow:=p^._low-1<>parentvalue;
                   if cmplow then
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low.ToInt64,hregister,lesslabel);
                   if p^._high+1<>parentvalue then
                     begin
                       if cmplow then
                         hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
                       else
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low.ToInt64,hregister,greaterlabel);
                     end;
                 end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
@@ -390,9 +390,9 @@ implementation
           else
             begin
               if p^._low-1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low.ToInt64,hregister,lesslabel);
               if p^._high+1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high.ToInt64,hregister,greaterlabel);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end;
            if assigned(p^.less) then
