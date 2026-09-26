@@ -3082,7 +3082,7 @@ implementation
                               { Both actual parameters are constants, so take
                                 the smaller of the two right now }
                               if inlinenumber=in_min_longint then
-                                result:=cordconstnode.create(min(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
+                                result:=cordconstnode.create(min(tordconstnode(hp).value.AsLongInt,tordconstnode(hp2).value.AsLongInt),resultdef,false)
                               else
                                 result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
@@ -3123,7 +3123,7 @@ implementation
                               { Both actual parameters are constants, so take
                                 the larger of the two right now }
                               if inlinenumber=in_max_longint then
-                                result:=cordconstnode.create(max(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
+                                result:=cordconstnode.create(max(tordconstnode(hp).value.AsLongInt,tordconstnode(hp2).value.AsLongInt),resultdef,false)
                               else
                                 result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
@@ -3164,7 +3164,7 @@ implementation
                               { Both actual parameters are constants, so take
                                 the smaller of the two right now }
                               if inlinenumber=in_min_dword then
-                                result:=cordconstnode.create(min(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
+                                result:=cordconstnode.create(min(tordconstnode(hp).value.AsDWord,tordconstnode(hp2).value.AsDWord),resultdef,false)
                               else
                                 result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
@@ -3205,7 +3205,7 @@ implementation
                               { Both actual parameters are constants, so take
                                 the larger of the two right now }
                               if inlinenumber=in_max_dword then
-                                result:=cordconstnode.create(max(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
+                                result:=cordconstnode.create(max(tordconstnode(hp).value.AsDWord,tordconstnode(hp2).value.AsDWord),resultdef,false)
                               else
                                 result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
