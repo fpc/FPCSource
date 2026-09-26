@@ -1647,14 +1647,14 @@ implementation
               if is_signed(fromsubsetsize) then
                 begin
                   extra_value_reg:=hlcg.getintregister(list,tosize);
-                  a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
+                  a_op_const_reg_reg(list,OP_AND,tosize,tcgint((tcgint(1) shl AIntBits)-1),valuereg,extra_value_reg);
                   valuereg:=extra_value_reg;
                 end
             end;
           if is_signed(fromsubsetsize) then
             begin
               extra_value_reg:=hlcg.getintregister(list,tosize);
-              a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
+              a_op_const_reg_reg(list,OP_AND,tosize,tcgint((tcgint(1) shl AIntBits)-1),valuereg,extra_value_reg);
               valuereg:=extra_value_reg;
             end;
           a_op_reg_reg_reg(list,OP_OR,tosize,valuereg,tmpreg,destreg);
