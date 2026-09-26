@@ -35,6 +35,8 @@ unit uinteger128;
     function Hi(const value: UInt128): QWord;overload;inline;
     function Lo(const value: UInt128): QWord;overload;inline;
 
+    function PopCnt(Const AValue : UInt128): Byte;overload;inline;
+
     function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
     function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
 
@@ -132,6 +134,11 @@ unit uinteger128;
     function Lo(const value: UInt128): QWord;overload;inline;
       begin
         result:=value.QWords[QWORD_LO];
+      end;
+
+    function PopCnt(Const AValue : UInt128): Byte;overload;inline;
+      begin
+        Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue));
       end;
 
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
