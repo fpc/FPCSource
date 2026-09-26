@@ -84,7 +84,7 @@ implementation
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
           cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
-            tordconstnode(right).value.uvalue and mask,left.location.register,location.register)
+            tordconstnode(right).value.AsQWord and mask,left.location.register,location.register)
         else
           begin
             { load right operators in a register - this
