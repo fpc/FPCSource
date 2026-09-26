@@ -325,6 +325,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       systems,
       verbose,globals,fmodule,ppu,
       aasmbase,aasmdata,
@@ -2983,13 +2984,13 @@ implementation
 
                                   if is_constintnode(valnode) then
                                     begin
-                                      minstrlen := TOrdConstNode(minlennode).value.svalue;
+                                      minstrlen := TOrdConstNode(minlennode).value.AsInt64;
 
                                       { If we've gotten this far, we can convert the node into a direct assignment }
                                       if tordconstnode(valnode).value.signed then
-                                        Str(tordconstnode(valnode).value.svalue:minstrlen, StringLiteral)
+                                        Str(tordconstnode(valnode).value.AsInt64:minstrlen, StringLiteral)
                                       else
-                                        Str(tordconstnode(valnode).value.uvalue:minstrlen, StringLiteral);
+                                        Str(tordconstnode(valnode).value.AsQWord:minstrlen, StringLiteral);
 
                                       para := GetParaFromIndex(paracount);
                                       if Assigned(para) then
@@ -3000,7 +3001,7 @@ implementation
                                             maxlennode := ttypeconvnode(maxlennode).left;
 
                                           if is_constintnode(maxlennode) then
-                                            SetLength(StringLiteral, tordconstnode(maxlennode).value.svalue)
+                                            SetLength(StringLiteral, tordconstnode(maxlennode).value.AsInt64)
                                           else
                                             Exit;
                                         end;
@@ -3060,7 +3061,7 @@ implementation
                           ValOutput.signed := is_signed(ResultDef);
 {$PUSH}
 {$R-}
-                          case Longint(tordconstnode(GetParaFromIndex(2).paravalue).value.svalue) of
+                          case tordconstnode(GetParaFromIndex(2).paravalue).value.AsLongInt of
                             1:
                               if ValOutput.signed then
                                 begin
