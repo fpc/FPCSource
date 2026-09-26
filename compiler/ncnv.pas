@@ -324,6 +324,7 @@ interface
 implementation
 
    uses
+      uinteger128,
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,ppu,
       symconst,symdef,symsym,symcpu,symtable,
@@ -3658,17 +3659,21 @@ implementation
         case size of
           1 : {do nothing };
           2 : if val.signed then
-                val.svalue:=swapendian(smallint(val.svalue))
+                val.svalue:=swapendian(val.AsSmallInt)
               else
-                val.uvalue:=swapendian(word(val.uvalue));
+                val.uvalue:=swapendian(val.AsWord);
           4 : if val.signed then
-                val.svalue:=swapendian(longint(val.svalue))
+                val.svalue:=swapendian(val.AsLongInt)
               else
-                val.uvalue:=swapendian(qword(val.uvalue));
+                val.uvalue:=swapendian(val.AsDWord);
           8 : if val.signed then
-                val.svalue:=swapendian(int64(val.svalue))
+                val.svalue:=swapendian(val.AsInt64)
               else
-                val.uvalue:=swapendian(qword(val.uvalue));
+                val.uvalue:=swapendian(val.AsQWord);
+          16 : if val.signed then
+                val.svalue:=swapendian(val.svalue)
+              else
+                val.uvalue:=swapendian(val.uvalue);
 	  else
             internalerror(2014111201);
         end;
