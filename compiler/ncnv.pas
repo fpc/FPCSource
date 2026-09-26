@@ -3869,6 +3869,11 @@ implementation
                                tordconstnode(left).value:=tordconstnode(left).value and longint($ffffffff)
                              else
                                tordconstnode(left).value:=tordconstnode(left).value and dword($ffffffff);
+                           8:
+                             if is_signed(resultdef) then
+                               tordconstnode(left).value:=tordconstnode(left).value and int64($ffffffffffffffff)
+                             else
+                               tordconstnode(left).value:=tordconstnode(left).value and qword($ffffffffffffffff);
                          end;
                      end;
                    left.resultdef:=resultdef;
