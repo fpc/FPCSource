@@ -132,7 +132,7 @@ interface
 
     const
        nroftrashvalues = 4;
-       trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
+       trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,int64($AAAAAAAAAAAAAAAA),int64($EFEFEFEFEFEFEFEF),0);
 
 { Verbosity constants }
 Const
