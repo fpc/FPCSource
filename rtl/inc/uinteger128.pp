@@ -93,6 +93,8 @@ unit uinteger128;
     operator := (const source : Int64): Int128;inline;
     operator := (const source : UInt64): Int128;inline;
 
+    function uint128_to_byte(const source: UInt128): Byte;inline;
+    function uint128_to_word(const source: UInt128): Word;inline;
     function uint128_to_dword(const source: UInt128): DWord;inline;
     function uint128_to_qword(const source: UInt128): QWord;inline;
     function uint128_to_double(const source: UInt128): Double;
@@ -611,6 +613,16 @@ unit uinteger128;
       begin
         result.QWords[QWORD_LO] := source;
         result.QWords[QWORD_HI] := 0;
+      end;
+
+    function uint128_to_byte(const source: UInt128): Byte;inline;
+      begin
+        Result:=Byte(source.QWords[QWORD_LO]);
+      end;
+
+    function uint128_to_word(const source: UInt128): Word;inline;
+      begin
+        Result:=Word(source.QWords[QWORD_LO]);
       end;
 
     function uint128_to_dword(const source: UInt128): DWord;inline;
