@@ -39,6 +39,7 @@ unit optloop;
   implementation
 
     uses
+      uinteger128,
       cclasses,cutils,compinnr,cdynset,
       globtype,globals,constexp,
 {$ifdef i386}
@@ -119,7 +120,7 @@ unit optloop;
     function unroll_loop(node : tnode) : tnode;
       var
         unrolls,i : cardinal;
-        counts : qword;
+        counts : UInt128;
         unrollstatement,newforstatement : tstatementnode;
         unrollblock : tblocknode;
         getridoffor : boolean;
@@ -159,7 +160,7 @@ unit optloop;
                   of the counter variable completely and replace it by a constant
                   if unrolls=counts }
                 if unrolls*2>=counts then
-                  unrolls:=counts;
+                  unrolls:=uint128_to_dword(counts);
 
                 { create block statement }
                 unrollblock:=internalstatements(unrollstatement);
