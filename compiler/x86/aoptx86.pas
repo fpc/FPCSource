@@ -3487,7 +3487,7 @@ unit aoptx86;
                                     Exit;
                                 end;
                             S_Q: { TODO: Confirm if this is even possible }
-                              if (taicpu(hp1).oper[0]^.val = $ffffffffffffffff) then
+                              if (taicpu(hp1).oper[0]^.val = tcgint($ffffffffffffffff)) then
                                 begin
                                   { Optimize out:
                                       mov x, %reg
@@ -4085,7 +4085,7 @@ unit aoptx86;
                               if (taicpu(hp1).opsize = S_Q) and
                                 (taicpu(hp1).oper[0]^.typ = top_const) and
                                 (taicpu(hp1).oper[0]^.val >= $80000000) then
-                                taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val or $FFFFFFFF00000000;
+                                taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val or tcgint($FFFFFFFF00000000);
 {$endif x86_64}
                               DebugMsg(SPeepholeOptimization + 'MOV 0 / OR -> MOV', p);
                               taicpu(hp1).opcode := A_MOV;
@@ -8168,14 +8168,14 @@ unit aoptx86;
             }
             case taicpu(p).oper[0]^.val of
                8:
-                 mask:=$FFFFFFFFFFFFFF00;
+                 mask:=tcgint($FFFFFFFFFFFFFF00);
                16:
-                 mask:=$FFFFFFFFFFFF0000;
+                 mask:=tcgint($FFFFFFFFFFFF0000);
                32:
-                 mask:=$FFFFFFFF00000000;
+                 mask:=tcgint($FFFFFFFF00000000);
                63:
                  { Constant pre-calculated to prevent overflow errors with Int64 }
-                 mask:=$8000000000000000;
+                 mask:=tcgint($8000000000000000);
                else
                  begin
                    if taicpu(p).oper[0]^.val >= 64 then
@@ -17162,7 +17162,7 @@ unit aoptx86;
 
             { sign extend offset }
             if taicpu(p).oper[0]^.ref^.offset>$7fffffff then
-              taicpu(p).oper[0]^.ref^.offset:=taicpu(p).oper[0]^.ref^.offset or $ffffffff00000000;
+              taicpu(p).oper[0]^.ref^.offset:=taicpu(p).oper[0]^.ref^.offset or asizeint($ffffffff00000000);
 
             { No reason to set Result to true }
           end;
