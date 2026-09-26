@@ -653,7 +653,7 @@ implementation
            orddef:
              result:=torddef(def).low;
            enumdef:
-             result:=int64(tenumdef(def).min);
+             result:=int128(tenumdef(def).min);
            else
              result:=0;
          end;
