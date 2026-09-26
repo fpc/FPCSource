@@ -429,6 +429,7 @@ interface
 implementation
 
     uses
+       uinteger128,
        verbose,cutils,
        symtable, // search_system_type
        symsym,
@@ -1357,10 +1358,11 @@ implementation
              sextval:=0;
              { do sign extension if necessary (JM) }
              case rangedefsize of
-               1: sextval.svalue:=shortint(l.svalue);
-               2: sextval.svalue:=smallint(l.svalue);
-               4: sextval.svalue:=longint(l.svalue);
-               8: sextval.svalue:=l.svalue;
+               1: sextval.svalue:=l.AsShortInt;
+               2: sextval.svalue:=l.AsSmallInt;
+               4: sextval.svalue:=l.AsLongInt;
+               8: sextval.svalue:=l.AsInt64;
+               16: sextval.svalue:=l.svalue;
                else
                  internalerror(201906230);
               end;
