@@ -1524,7 +1524,7 @@ implementation
                SetCurFlag:=True;
              end;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
+             result:=cpointerconstnode.create(TConstPtrUInt(v.AsQWord),resultdef)
            else
              begin
                if (nf_is_currency in left.flags) and
@@ -1546,7 +1546,7 @@ implementation
          begin
            v:=tpointerconstnode(left).value;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(v.uvalue,resultdef)
+             result:=cpointerconstnode.create(v.AsQWord,resultdef)
            else
              begin
                if (nf_is_currency in flags) and
