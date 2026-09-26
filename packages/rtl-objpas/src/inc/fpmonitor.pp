@@ -179,17 +179,17 @@ var
 begin
   TID:=GetCurrentThreadId;
   IsOwner:=(TID=LockOwnerThreadID);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin enter. Is Owner: ',IsOwner);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin enter. Is Owner: ',IsOwner);{$ENDIF}
   if IsOwner then
     begin
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Recursive enter detected');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Recursive enter detected');{$ENDIF}
     end
   else
     begin
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entering critical section');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Entering critical section');{$ENDIF}
     EnterCriticalSection(CriticalSection);
     LockOwnerThreadID:=TID;
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entered critical section');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Entered critical section');{$ENDIF}
     end;
   Inc(LockCount);
 end;
@@ -200,7 +200,7 @@ var
 begin
   TID:=GetCurrentThreadId;
   Result:=TID=LockOwnerThreadID;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin TryEnter. Is Owner: ',Result);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin TryEnter. Is Owner: ',Result);{$ENDIF}
   if not Result then
     begin
     Result:=TryEnterCriticalSection(CriticalSection)<>0;
@@ -209,7 +209,7 @@ begin
     end;
   if Result then
     Inc(LockCount);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End TryEnter. Result: ',Result);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End TryEnter. Result: ',Result);{$ENDIF}
 end;
 
 function TMonitorData.Enter(aTimeout: Cardinal): Boolean;
@@ -217,13 +217,13 @@ begin
   // Should preferably use an event raised on Leave somehow.
   // And this event should preferably not exist until someone actually uses timeouted Enter, ant not be raised until there are outstanding timeouted Enters.
   // Sounds complex, so until then, spin-wait + exponentially wait.
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Enter(',aTimeout,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin Enter(',aTimeout,')');{$ENDIF}
   Result:=EmulateEnterTimeout(aTimeout,
     function(param : pointer) : boolean
     begin
       Result:=PMonitorData(param)^.TryEnter;
     end, @self);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Enter(',aTimeout,'), Result: ',Result);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End Enter(',aTimeout,'), Result: ',Result);{$ENDIF}
 end;
 
 procedure TMonitorData.CheckLockOwner;
@@ -235,7 +235,7 @@ end;
 function TMonitorData.UnlockedPopPulseData: PPulseData;
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin UnlockedPopPulseData');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin UnlockedPopPulseData');{$ENDIF}
   Result:=PulseHead;
   if Result<>nil then
     begin
@@ -246,7 +246,7 @@ begin
       PulseTail:=nil;
     Result^.Next:=nil; // Mark as removed for future RemoveFromPulseData call from Wait.
     end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End UnlockedPopPulseData Result: ',HexStr(Result));{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End UnlockedPopPulseData Result: ',HexStr(Result));{$ENDIF}
 end;
 
 procedure TMonitorData.RemoveFromPulseData(aPulse: PPulseData);
@@ -257,11 +257,11 @@ var
 begin
   EnterPulse;
   try
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin RemoveFromPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin RemoveFromPulseData (Thread: ',ptruint(aPulse^.ThreadID),')');{$ENDIF}
     Next:=aPulse^.Next;
     if (Next=nil) and (aPulse<>PulseTail) then // Already removed.
     begin
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Cancel RemoveFromPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Cancel RemoveFromPulseData (Thread: ',ptruint(aPulse^.ThreadID),')');{$ENDIF}
     exit;
     end;
     Prev:=aPulse^.Prev;
@@ -273,7 +273,7 @@ begin
       Next^.Prev:=Prev
     else
       PulseTail:=Prev;
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' end RemoveFromPulseData.');{$ENDIF}
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' end RemoveFromPulseData.');{$ENDIF}
   finally
     LeavePulse;
   end;
@@ -282,7 +282,7 @@ end;
 procedure TMonitorData.AddToPulseData(aPulse: PPulseData);
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin AddToPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin AddToPulseData (Thread: ',ptruint(aPulse^.ThreadID),')');{$ENDIF}
   EnterPulse; // try .. finally aren’t required as the code cannot throw, for now.
   aPulse^.Next:=nil;
   aPulse^.Prev:=PulseTail;
@@ -292,7 +292,7 @@ begin
     PulseHead:=aPulse;
   PulseTail:=aPulse;
   LeavePulse;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End AddToPulseData.');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End AddToPulseData.');{$ENDIF}
 end;
 
 function TMonitorData.Wait(aLock : PMonitorData; aTimeout: Cardinal): Boolean;
@@ -302,7 +302,7 @@ var
   PrevLockCount : Integer;
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
   aLock^.CheckLockOwner;
   aPulse:=TPulseData.Create;
   AddToPulseData(@aPulse);
@@ -314,7 +314,7 @@ begin
   LeaveCriticalSection(aLock^.CriticalSection);
 
   Result:=aPulse.Wait(aTimeOut);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Wait Removing from Pulse data');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Wait Removing from Pulse data');{$ENDIF}
   RemoveFromPulseData(@aPulse);
   aPulse.Done;
 
@@ -323,22 +323,22 @@ begin
   aLock^.LockOwnerThreadID:=GetCurrentThreadId;
   aLock^.LockCount:=PrevLockCount;
 
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
 end;
 
 procedure TMonitorData.Leave;
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
   CheckLockOwner;
   Dec(LockCount);
-  {$IFDEF DEBUG_MONITOR}if LockCount>0 then Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Owner holds recursive lock: ',LockCount);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}if LockCount>0 then Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Owner holds recursive lock: ',LockCount);{$ENDIF}
   if LockCount<>0 then
     Exit;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Leaving critical section');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Leaving critical section');{$ENDIF}
   LockOwnerThreadID:=TThreadID(0);
   LeaveCriticalSection(CriticalSection);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
 end;
 
 procedure TMonitorData.Init;
@@ -354,10 +354,10 @@ end;
 procedure TMonitorData.Done;
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Done monitor data');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin Done monitor data');{$ENDIF}
   DoneCriticalSection(PulseLock);
   DoneCriticalSection(CriticalSection);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Done monitor data');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End Done monitor data');{$ENDIF}
 end;
 
 procedure TMonitorData.Pulse;
@@ -366,7 +366,7 @@ var
   aPulse : PPulseData;
 {$IFDEF DEBUG_MONITOR}HavePulse: Boolean;{$endif}
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Pulse');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin Pulse');{$ENDIF}
   EnterPulse;
   try
     aPulse:=UnlockedPopPulseData;
@@ -376,7 +376,7 @@ begin
   finally
     LeavePulse;
   end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Pulse (had pulse: ',HavePulse,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End Pulse (had pulse: ',HavePulse,')');{$ENDIF}
 end;
 
 procedure TMonitorData.PulseAll;
@@ -386,7 +386,7 @@ var
 {$IFDEF DEBUG_MONITOR}aCount : Integer;{$ENDIF}
 begin
 {$IFDEF DEBUG_MONITOR}
-  Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin PulseAll');
+  Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' Begin PulseAll');
   aCount:=0;
 {$ENDIF}
   EnterPulse;
@@ -401,7 +401,7 @@ begin
   finally
     LeavePulse;
   end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End PulseAll (Pulse count: ',aCount,')');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadId),' End PulseAll (Pulse count: ',aCount,')');{$ENDIF}
 end;
 
 
