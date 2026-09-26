@@ -2311,6 +2311,8 @@ implementation
                         vl:=vl and byte($1f);
                       8:
                         vl:=vl and byte($3f);
+                      16:
+                        vl:=vl and byte($7f);
                       else
                         internalerror(2013122304);
                     end;
@@ -2336,7 +2338,7 @@ implementation
                 end;
 
               bits:=def.size*8;
-              shift:=vl.svalue and (bits-1);
+              shift:=vl.AsInt64 and (bits-1);
 {$push}
 {$r-,q-}
               if shift=0 then
@@ -2346,26 +2348,30 @@ implementation
                   in_ror_x,in_ror_x_y:
                     case def.size of
                       1:
-                        result:=cordconstnode.create(RorByte(Byte(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RorByte(vl2.AsByte,shift),def,false);
                       2:
-                        result:=cordconstnode.create(RorWord(Word(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RorWord(vl2.AsWord,shift),def,false);
                       4:
-                        result:=cordconstnode.create(RorDWord(DWord(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RorDWord(vl2.AsDWord,shift),def,false);
                       8:
-                        result:=cordconstnode.create(RorQWord(QWord(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RorQWord(vl2.AsQWord,shift),def,false);
+                      16:
+                        result:=cordconstnode.create(RorUInt128(vl2.uvalue,shift),def,false);
                       else
                         internalerror(2011061903);
                     end;
                   in_rol_x,in_rol_x_y:
                     case def.size of
                       1:
-                        result:=cordconstnode.create(RolByte(Byte(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RolByte(vl2.AsByte,shift),def,false);
                       2:
-                        result:=cordconstnode.create(RolWord(Word(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RolWord(vl2.AsWord,shift),def,false);
                       4:
-                        result:=cordconstnode.create(RolDWord(DWord(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RolDWord(vl2.AsDWord,shift),def,false);
                       8:
-                        result:=cordconstnode.create(RolQWord(QWord(vl2.svalue),shift),def,false);
+                        result:=cordconstnode.create(RolQWord(vl2.AsQWord,shift),def,false);
+                      16:
+                        result:=cordconstnode.create(RolUInt128(vl2.uvalue,shift),def,false);
                       else
                         internalerror(2011061902);
                     end;
@@ -2389,6 +2395,8 @@ implementation
                   vl2:=vl2 and dword($ffffffff);
                 8:
                   vl2:=vl2 and qword($ffffffffffffffff);
+                16:
+                  vl2:=vl2 and MaxUInt128;
                 else
                   internalerror(2017050101);
               end;
@@ -2398,7 +2406,8 @@ implementation
                   ((resultdef.size=1) and (vl2=$ff)) or
                   ((resultdef.size=2) and (vl2=$ffff)) or
                   ((resultdef.size=4) and (vl2=$ffffffff)) or
-                  ((resultdef.size=8) and (vl2.uvalue=qword($ffffffffffffffff)))) and
+                  ((resultdef.size=8) and (vl2.uvalue=qword($ffffffffffffffff))) or
+                  ((resultdef.size=16) and (vl2.uvalue=MaxUInt128))) and
                  ((cs_opt_level4 in current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 result:=cordconstnode.create(vl2,resultdef,true);
