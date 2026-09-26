@@ -543,7 +543,7 @@ begin
     exit(int128(0));
   result.overflow:=false;
   result.signed:=a.signed; { signed(1) shl 127 does not fit into signed }
-  result.uvalue:=a.uvalue shl b.uvalue;
+  result.uvalue:=a.uvalue shl uint128_to_byte(b.uvalue);
 end;
 
 operator shr (const a,b:Tconstexprint):Tconstexprint;
@@ -553,7 +553,7 @@ begin
     exit(int128(0));
   result.overflow:=false;
   result.signed:=a.signed;
-  result.uvalue:=a.uvalue shr b.uvalue;
+  result.uvalue:=a.uvalue shr uint128_to_byte(b.uvalue);
 end;
 
 function tostr(const i:Tconstexprint):shortstring;overload;
