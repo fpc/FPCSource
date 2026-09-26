@@ -1312,7 +1312,7 @@ unit nx86add;
 {$endif cpu64bitalu}
               (TOrdConstNode(TModDivNode(t).right).value>=3) then
               begin
-                divisor:=TOrdConstNode(TModDivNode(t).right).value.uvalue;
+                divisor:=TOrdConstNode(TModDivNode(t).right).value.AsQWord;
 
                 { Exclude powers of 2, as there are more efficient ways to handle those }
                 if PopCnt(divisor)>1 then
@@ -1387,7 +1387,7 @@ unit nx86add;
                               ThisType:=gtn;
 
                             N:=ThisDef.size*8;
-                            calc_mul_inverse(N, TOrdConstNode(TModDivNode(t).right).value.uvalue, reciprocal, shift);
+                            calc_mul_inverse(N, TOrdConstNode(TModDivNode(t).right).value.AsQWord, reciprocal, shift);
 
                             { Construct the following node tree for odd divisors:
                                 <lten> (for equaln) or <gtn> (for notequaln)
@@ -1540,7 +1540,7 @@ unit nx86add;
                               ThisType:=gtn;
 
                             N:=ThisDef.size*8;
-                            calc_mul_inverse(N, TOrdConstNode(TModDivNode(t).right).value.uvalue, reciprocal, shift);
+                            calc_mul_inverse(N, TOrdConstNode(TModDivNode(t).right).value.AsQWord, reciprocal, shift);
 
                             ConstNode:=cordconstnode.create(reciprocal, ThisDef, False);
                             ConstNode.resultdef:=ThisDef;
