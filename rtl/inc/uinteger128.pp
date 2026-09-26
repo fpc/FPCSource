@@ -53,6 +53,7 @@ unit uinteger128;
     operator- (const i1,i2: Int128): Int128;inline;
     operator- (const i: Int128): Int128;inline;
     operator* (f1,f2 : UInt128): UInt128;
+    operator* (f1,f2 : Int128): Int128;inline;
     operator div (z,n : uint128): uint128;
     operator mod (z,n: uint128): uint128;
     operator shl (value : UInt128;shift : ALUUInt): UInt128;
@@ -315,6 +316,11 @@ unit uinteger128;
             f1:=f1 shl 1;
             f2:=f2 shr 1;
           end;
+      end;
+
+    operator* (f1,f2 : Int128): Int128;inline;
+      begin
+        result:=Int128(UInt128(f1)*UInt128(f2));
       end;
 
     operator div (z,n : uint128) fpc_div_uint128 : uint128;
