@@ -25,6 +25,8 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    // Load the font the test needs; called by SetUp after FFileInfo is created.
+    procedure SetUpFont; virtual;
     procedure LoadFont(const AFilename: string);
   public
     property  FI: TMyTFFileInfo read FFileInfo;
@@ -40,7 +42,7 @@ type
 
   TTestLiberationFont = class(TBaseTestParseTTF)
   protected
-    procedure SetUp; override;
+    procedure SetUpFont; override;
   published
     { Offset Table }
     procedure TestDirectory_FontVersion;
@@ -203,7 +205,7 @@ type
 
   TTestLiberationItalicFont = class(TBaseTestParseTTF)
   protected
-    procedure SetUp; override;
+    procedure SetUpFont; override;
   published
     { PostScript data structure }
     procedure TestPostScript_ItalicAngle;
@@ -217,7 +219,7 @@ type
 
   TTestFreeSansFont = class(TBaseTestParseTTF)
   protected
-    procedure SetUp; override;
+    procedure SetUpFont; override;
   published
     { Offset Table }
     procedure TestDirectory_FontVersion;
@@ -392,6 +394,18 @@ const
 procedure TBaseTestParseTTF.SetUp;
 begin
   FFileInfo := TMyTFFileInfo.Create;
+  // TearDown is not called when SetUp fails, so free FFileInfo here then.
+  try
+    SetUpFont;
+  except
+    FreeAndNil(FFileInfo);
+    raise;
+  end;
+end;
+
+procedure TBaseTestParseTTF.SetUpFont;
+begin
+  // Nothing to load by default.
 end;
 
 procedure TBaseTestParseTTF.TearDown;
@@ -419,9 +433,8 @@ end;
 
 { TTestLiberationFont }
 
-procedure TTestLiberationFont.SetUp;
+procedure TTestLiberationFont.SetUpFont;
 begin
-  inherited SetUp;
   LoadFont(cFont1);
 end;
 
@@ -1191,9 +1204,8 @@ end;
 
 { TTestLiberationItalicFont }
 
-procedure TTestLiberationItalicFont.SetUp;
+procedure TTestLiberationItalicFont.SetUpFont;
 begin
-  inherited SetUp;
   AssertTrue('Failed to find TTF font file <' + cFont3 + '>' + LineEnding +
     'You can download it from [https://fedorahosted.org/releases/l/i/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz]',
     FileExists(cFont3) = True);
@@ -1223,9 +1235,8 @@ end;
 
 { TTestFreeSansFont }
 
-procedure TTestFreeSansFont.SetUp;
+procedure TTestFreeSansFont.SetUpFont;
 begin
-  inherited SetUp;
   AssertTrue('Failed to find TTF font file <' + cFont2 + '>' + LineEnding +
     'You can download it from [http://ftp.gnu.org/gnu/freefont/freefont-ttf-20140503.zip]',
     FileExists(cFont2) = True);

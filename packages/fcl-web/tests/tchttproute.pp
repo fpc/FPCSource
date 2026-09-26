@@ -935,6 +935,10 @@ procedure TTestHTTPRoute.TearDown;
 begin
   CallBackCalled:=0;
   FEventCalled:=0;
+  // The handler owns the modules it created. Its destructor leaves the module
+  // factory pointing at its own HandleModuleRequest, so clear that too.
+  FreeAndNil(FWebhandler);
+  ModuleFactory.OnModuleRequest:=Nil;
   FreeAndNil(FRouteParams);
   FreeAndNil(FInterfacedHandler);
   FreeAndNil(FRequest);

@@ -540,7 +540,7 @@ begin
   Ex:=Flist.Truncate;
   AssertEquals('Length',3,Length(Ex));
   For I:=1 to 3 do
-    AssertSame('Ex'+IntToStr(i),FList.List[i],Ex[i]);
+    AssertSame('Ex'+IntToStr(i),FEx[i],Ex[i-1]);
 end;
 
 procedure TTestTExceptionList.TestGrowCapacity;

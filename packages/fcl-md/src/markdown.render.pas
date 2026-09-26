@@ -269,7 +269,7 @@ var
 
 begin
   Result:=nil;
-  if FTextRenderer=Nil then;
+  if FTextRenderer=Nil then
     begin
     lRenderClass:=TMarkdownRendererClass(Self.ClassType);
     lClass:=TMarkdownRendererFactory.Instance.FindTextRendererClass(lRenderClass);
