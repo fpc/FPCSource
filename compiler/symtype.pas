@@ -1312,7 +1312,7 @@ implementation
                putderef(hp^.defderef);
              sl_vec :
                begin
-                 putlongint(int64(hp^.value));
+                 putlongint(hp^.value.ToLongInt);
                  putderef(hp^.valuedefderef);
                end;
              else
