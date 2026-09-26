@@ -26,6 +26,7 @@ unit scanner;
 interface
 
     uses
+       uinteger128,
        cclasses,
        globtype,globals,constexp,version,tokens,
        symtype,symdef,symsym,
@@ -1065,8 +1066,8 @@ type
     constructor create_const(c:tconstsym);
     constructor create_error;
     constructor create_ord(v: Tconstexprint);
-    constructor create_int(v: int64);
-    constructor create_uint(v: qword);
+    constructor create_int(v: int128);
+    constructor create_uint(v: uint128);
     constructor create_bool(b: boolean);
     constructor create_str(const s: string);
     constructor create_set(ns: tnormalset);
@@ -1171,7 +1172,7 @@ type
         def:=uintdef;
     end;
 
-  constructor texprvalue.create_int(v: int64);
+  constructor texprvalue.create_int(v: int128);
     begin
       fillchar(value,sizeof(value),#0);
       consttyp:=constord;
@@ -1179,7 +1180,7 @@ type
       def:=sintdef;
     end;
 
-  constructor texprvalue.create_uint(v: qword);
+  constructor texprvalue.create_uint(v: uint128);
     begin
       fillchar(value,sizeof(value),#0);
       consttyp:=constord;
@@ -1294,9 +1295,9 @@ type
             end
           else
           if value.valueord.signed then
-            result:=texprvalue.create_bool(value.valueord.svalue in pnormalset(v.value.valueptr)^)
+            result:=texprvalue.create_bool(value.valueord.AsInt64 in pnormalset(v.value.valueptr)^)
           else
-            result:=texprvalue.create_bool(value.valueord.uvalue in pnormalset(v.value.valueptr)^);
+            result:=texprvalue.create_bool(value.valueord.AsQWord in pnormalset(v.value.valueptr)^);
         end;
         _OP_NOT:
         begin
@@ -1542,12 +1543,12 @@ type
 
   function texprvalue.asInt: Integer;
     begin
-      result:=value.valueord.svalue;
+      result:=value.valueord.AsInt64;
     end;
 
   function texprvalue.asInt64: Int64;
     begin
-      result:=value.valueord.svalue;
+      result:=value.valueord.AsInt64;
     end;
 
   function texprvalue.asSet: tnormalset;
