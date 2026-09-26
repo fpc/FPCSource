@@ -2015,7 +2015,7 @@ implementation
           pasbool16,
           pasbool32,
           pasbool64:
-            v:=byte(not(boolean(int64(v))));
+            v:=byte(v=0);
           bool8bit,
           bool16bit,
           bool32bit,
