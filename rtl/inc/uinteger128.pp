@@ -88,6 +88,8 @@ unit uinteger128;
     operator := (const source : Int64): Int128;inline;
     operator := (const source : UInt64): Int128;inline;
 
+    function uint128_to_dword(const source: UInt128): DWord;inline;
+    function uint128_to_qword(const source: UInt128): QWord;inline;
     function uint128_to_double(const source: UInt128): Double;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     function uint128_to_extended(const source: UInt128): Extended;
@@ -593,6 +595,16 @@ unit uinteger128;
       begin
         result.QWords[QWORD_LO] := source;
         result.QWords[QWORD_HI] := 0;
+      end;
+
+    function uint128_to_dword(const source: UInt128): DWord;inline;
+      begin
+        Result:=DWord(source.QWords[QWORD_LO]);
+      end;
+
+    function uint128_to_qword(const source: UInt128): QWord;inline;
+      begin
+        Result:=source.QWords[QWORD_LO];
       end;
 
     function uint128_to_double(const source: UInt128): Double;
