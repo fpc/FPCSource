@@ -193,9 +193,9 @@ implementation
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
 {$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
-         location.value:=value.svalue;
+         location.value:=value.AsInt64;
 {$else cpu64bitalu or cpuhighleveltarget}
-         location.value64:=value.svalue;
+         location.value64:=value.AsInt64;
 {$endif cpu64bitalu or cpuhighleveltarget}
       end;
 
