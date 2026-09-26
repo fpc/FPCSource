@@ -2207,6 +2207,8 @@ implementation
                         vl:=vl and byte($1f);
                       8:
                         vl:=vl and byte($3f);
+                      16:
+                        vl:=vl and byte($7f);
                       else
                         internalerror(2013122303);
                     end;
