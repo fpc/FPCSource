@@ -1271,13 +1271,13 @@ implementation
     function is_oversizedint(def : tdef) : boolean;
       begin
 {$if defined(cpu8bitalu)}
-         result:=is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
+         result:=is_128bitint(def) or is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
 {$elseif defined(cpu16bitalu)}
-         result:=is_64bitint(def) or is_32bitint(def);
+         result:=is_128bitint(def) or is_64bitint(def) or is_32bitint(def);
 {$elseif defined(cpu32bitaddr)}
-         result:=is_64bitint(def);
+         result:=is_128bitint(def) or is_64bitint(def);
 {$elseif defined(cpu64bitaddr)}
-         result:=false;
+         result:=is_128bitint(def);
 {$endif}
       end;
 
