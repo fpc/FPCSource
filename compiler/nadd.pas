@@ -144,6 +144,7 @@ implementation
 {$ELSE}
       fksysutl,
 {$ENDIF}
+      uinteger128,
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,
       tokens,
@@ -830,7 +831,7 @@ const
                        t:=genintconstnode(0)
                      end
                    else if is_constpointernode(left) or is_constpointernode(right) then
-                     t:=cpointerconstnode.create(qword(v),resultdef)
+                     t:=cpointerconstnode.create(v.ToQWord,resultdef)
                    else
                      begin
                        if is_integer(ld) then
@@ -859,10 +860,10 @@ const
                             (tpointerdef(rd).pointeddef.size>1) and
                             not(anf_has_pointerdiv in addnodeflags) then
                            internalerror(2008030101);
-                         t:=cpointerconstnode.create(qword(v),resultdef)
+                         t:=cpointerconstnode.create(v.ToQWord,resultdef)
                        end
                      else
-                       t:=cpointerconstnode.create(qword(v),resultdef)
+                       t:=cpointerconstnode.create(v.ToQWord,resultdef)
                    else
                      begin
                        if is_integer(ld) then
@@ -1445,10 +1446,10 @@ const
         if (lt=ordconstn) and (rt=ordconstn) and
            is_char(ld) and is_char(rd) then
           begin
-             c1[0]:=char(int64(tordconstnode(left).value));
+             c1[0]:=char(tordconstnode(left).value.ToInt64);
              c1[1]:=#0;
              l1:=1;
-             c2[0]:=char(int64(tordconstnode(right).value));
+             c2[0]:=char(tordconstnode(right).value.ToInt64);
              c2[1]:=#0;
              l2:=1;
              s1:=@c1[0];
@@ -1459,7 +1460,7 @@ const
           begin
              l1:=tstringconstnode(left).len;
              s1:=tstringconstnode(left).asconstpchar;
-             c2[0]:=char(int64(tordconstnode(right).value));
+             c2[0]:=char(tordconstnode(right).value.ToInt64);
              c2[1]:=#0;
              s2:=@c2[0];
              l2:=1;
@@ -1467,7 +1468,7 @@ const
           end
         else if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
           begin
-             c1[0]:=char(int64(tordconstnode(left).value));
+             c1[0]:=char(tordconstnode(left).value.ToInt64);
              c1[1]:=#0;
              l1:=1;
              s1:=@c1[0];
@@ -3000,7 +3001,7 @@ const
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue,true);
+                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).AsInt64,max(lhigh,rhigh).AsInt64,true);
                     inserttypeconv(left,nd);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd)
