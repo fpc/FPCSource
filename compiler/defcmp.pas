@@ -2216,7 +2216,6 @@ implementation
                   is_subequal:=(torddef(def2).ordtype=uwidechar);
                 customint:
                   is_subequal:=(torddef(def2).low=torddef(def1).low) and (torddef(def2).high=torddef(def1).high);
-                u128bit, s128bit,
                 scurrency,
                 uvoid:
                   ;
