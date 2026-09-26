@@ -1279,9 +1279,9 @@ implementation
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
-                   concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
+                   concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.AsQWord))
                  else
-                   concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
+                   concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.AsQWord)));
                  hp:=cstringconstnode.createunistr(ws);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
@@ -1312,11 +1312,11 @@ implementation
                               exit;
                             end
                           else
-                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.AsQWord)));
                         end
                       else
                         begin
-                          cw:=tcompilerwidechar(tordconstnode(left).value.uvalue);
+                          cw:=tcompilerwidechar(tordconstnode(left).value.AsQWord);
                           SetLength(sa,5);
                           l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
                           SetLength(sa,l-1);
@@ -1331,7 +1331,7 @@ implementation
                         end
                     end
                   else
-                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
+                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.AsQWord));
                   { output string consts in local ansistring encoding }
                   if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
                     tstringconstnode(hp).changestringtype(getansistringdef)
