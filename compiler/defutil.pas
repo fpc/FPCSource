@@ -719,8 +719,8 @@ implementation
     function is_integer(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                          s8bit,s16bit,s32bit,s64bit,
+                    (torddef(def).ordtype in [u8bit,u16bit,u32bit,u64bit,u128bit,
+                                          s8bit,s16bit,s32bit,s64bit,s128bit,
                                           customint]);
       end;
 
