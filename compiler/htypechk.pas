@@ -26,6 +26,7 @@ unit htypechk;
 interface
 
     uses
+      uinteger128,
       sysutils,cclasses,cmsgs,tokens,
       node,globtype,compinnr,
       symconst,symtype,symdef,symsym,symbase,
@@ -52,14 +53,14 @@ interface
          wrongparaidx,
          firstparaidx : integer;
          te_count : array[te_convert_operator .. te_exact] of integer; { should be signed }
-         ordinal_distance_lo : uint64;
+         ordinal_distance_lo : uint128;
          ordinal_distance_hi,ordinal_distance_secondary : uint32; { “hi” allows summing many uint64s, “secondary” allows tie-break corrections. }
          invalid : boolean;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
          saved_validity : boolean;
 {$endif}
          wrongparanr : byte;
-         procedure increment_ordinal_distance(by: uint64);
+         procedure increment_ordinal_distance(by: uint128);
       end;
 
       tcallcandidatesflag =
@@ -2177,9 +2178,9 @@ implementation
       end;
 
 
-    procedure tcandidate.increment_ordinal_distance(by: uint64);
+    procedure tcandidate.increment_ordinal_distance(by: uint128);
       begin
-      {$push} {$q-,r-} inc(ordinal_distance_lo,by); {$pop}
+      {$push} {$q-,r-} ordinal_distance_lo:=ordinal_distance_lo+by; {$pop}
         if ordinal_distance_lo<by then
           inc(ordinal_distance_hi); { Carry. }
       end;
