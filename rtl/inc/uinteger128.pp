@@ -44,6 +44,8 @@ unit uinteger128;
     function RolUInt128(Const AValue : UInt128): UInt128;
     function RolUInt128(Const AValue : UInt128;const Dist : Byte): UInt128;
 
+    function Abs(const AValue: Int128): Int128;overload;
+
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator+ (const i1,i2: Int128): Int128;inline;
     operator- (const i1,i2: UInt128): UInt128;inline;
@@ -227,6 +229,14 @@ unit uinteger128;
     function RolUInt128(Const AValue : UInt128;const Dist : Byte): UInt128;
       begin
         Result:=(AValue shl (Dist and 127)) or (AValue shr (128-(Dist and 127)));
+      end;
+
+    function Abs(const AValue: Int128): Int128;overload;
+      begin
+        if AValue>=0 then
+          Result:=AValue
+        else
+          Result:=-AValue;
       end;
 
 {$push} {$q-,r-}
