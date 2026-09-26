@@ -46,6 +46,7 @@ unit uinteger128;
 
     function Abs(const AValue: Int128): Int128;overload;
     function Sqr(const AValue: UInt128): UInt128;overload;inline;
+    function Sqr(const AValue: Int128): Int128;overload;inline;
 
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator+ (const i1,i2: Int128): Int128;inline;
@@ -242,6 +243,11 @@ unit uinteger128;
       end;
 
     function Sqr(const AValue: UInt128): UInt128;overload;inline;
+      begin
+        Result:=AValue*AValue;
+      end;
+
+    function Sqr(const AValue: Int128): Int128;overload;inline;
       begin
         Result:=AValue*AValue;
       end;
