@@ -1485,7 +1485,7 @@ implementation
                 if tordconstnode(left).value.uvalue>127 then
                   Message(type_w_unicode_data_loss);
                 hp:=cordconstnode.create(
-                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
+                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.AsQWord))),
                       cansichartype,true);
                 result:=hp;
               end
@@ -1493,7 +1493,7 @@ implementation
                      (torddef(left.resultdef).ordtype=uchar) then
               begin
                 hp:=cordconstnode.create(
-                      asciichar2unicode(chr(tordconstnode(left).value.uvalue)),
+                      asciichar2unicode(chr(tordconstnode(left).value.AsQWord)),
                       cwidechartype,true);
                 result:=hp;
               end
