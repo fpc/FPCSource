@@ -2112,7 +2112,7 @@ implementation
        if (v<int64(low(fqueue_offset))) or (v>int64(high(fqueue_offset))) then
          message3(type_e_range_check_error_bounds,tostr(v),tostr(low(fqueue_offset)),tostr(high(fqueue_offset)));
        if high(fqueue_offset)-fqueue_offset div elelen>v then
-         inc(fqueue_offset,elelen*v.svalue)
+         inc(fqueue_offset,elelen*v.AsInt64)
        else
          message3(type_e_range_check_error_bounds,tostr(index),tostr(vecbase),tostr(high(fqueue_offset)-fqueue_offset div elelen+vecbase))
      end;
@@ -2120,13 +2120,13 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_pointeraddn(def: tpointerdef; const index: tconstexprint);
      begin
-       inc(fqueue_offset,def.pointeddef.size*int64(index));
+       inc(fqueue_offset,def.pointeddef.size*index.ToInt64);
      end;
 
 
    procedure ttai_typedconstbuilder.queue_pointersubn(def: tpointerdef; const index: tconstexprint);
      begin
-       dec(fqueue_offset,def.pointeddef.size*int64(index));
+       dec(fqueue_offset,def.pointeddef.size*index.ToInt64);
      end;
 
 
