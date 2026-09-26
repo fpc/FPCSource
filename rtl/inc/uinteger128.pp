@@ -41,8 +41,8 @@ unit uinteger128;
     function RorUInt128(Const AValue : UInt128): UInt128;
     function RorUInt128(Const AValue : UInt128;const Dist : Byte): UInt128;
 
-    function RolQWord(Const AValue : UInt128): UInt128;
-    function RolQWord(Const AValue : UInt128;const Dist : Byte): UInt128;
+    function RolUInt128(Const AValue : UInt128): UInt128;
+    function RolUInt128(Const AValue : UInt128;const Dist : Byte): UInt128;
 
     operator+ (const i1,i2: UInt128): UInt128;inline;
     operator+ (const i1,i2: Int128): Int128;inline;
@@ -219,12 +219,12 @@ unit uinteger128;
         Result:=(AValue shr (Dist and 127)) or (AValue shl (128-(Dist and 127)));
       end;
 
-    function RolQWord(Const AValue : UInt128): UInt128;
+    function RolUInt128(Const AValue : UInt128): UInt128;
       begin
         Result:=(AValue shl 1) or (AValue shr 127);
       end;
 
-    function RolQWord(Const AValue : UInt128;const Dist : Byte): UInt128;
+    function RolUInt128(Const AValue : UInt128;const Dist : Byte): UInt128;
       begin
         Result:=(AValue shl (Dist and 127)) or (AValue shr (128-(Dist and 127)));
       end;
