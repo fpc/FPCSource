@@ -67,6 +67,7 @@ implementation
 
     uses
        { common }
+       uinteger128,
        cutils,cclasses,
        { global }
        verbose,
@@ -3858,10 +3859,10 @@ implementation
 
       var
          l          : longint;
-         ic         : int64;
-         qc         : qword;
+         ic         : int128;
+         qc         : uint128;
          p1         : tnode;
-         code       : integer;
+         code       : ValSInt;
          srsym      : tsym;
          srsymtable : TSymtable;
          pd         : tprocdef;
@@ -4192,8 +4193,8 @@ implementation
 
              _INTCONST :
                begin
-                 {Try first wether the value fits in an int64.}
-                 val(current_scanner.pattern,ic,code);
+                 {Try first wether the value fits in an int128.}
+                 val_int128(current_scanner.pattern,ic,code);
                  if code=0 then
                    begin
                       consume(_INTCONST);
@@ -4202,8 +4203,8 @@ implementation
                    end
                  else
                    begin
-                     { try qword next }
-                     val(current_scanner.pattern,qc,code);
+                     { try uint128 next }
+                     val_uint128(current_scanner.pattern,qc,code);
                      if code=0 then
                        begin
                           consume(_INTCONST);
