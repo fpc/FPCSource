@@ -24,10 +24,12 @@ unit uinteger128;
   interface
 
     type
+      PInt128 = ^Int128;
       Int128 = record
         QWords: array [0..1] of QWord;
       end;
 
+      PUInt128 = ^UInt128;
       UInt128 = record
         QWords: array [0..1] of QWord;
       end;
