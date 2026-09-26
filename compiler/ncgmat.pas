@@ -308,7 +308,7 @@ implementation
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,location.register,hl);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.AsInt64,location.register,hl);
             hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
@@ -425,7 +425,7 @@ implementation
                       if power=1 then
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,1,hreg1)
                       else
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,Tordconstnode(right).value.svalue-1,hreg1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,Tordconstnode(right).value.AsInt64-1,hreg1);
                       cg.a_label(current_asmdata.CurrAsmList,hl);
                       cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,power,hreg1);
                     End
@@ -582,9 +582,9 @@ implementation
               { In TP, "byte/word shl 16 = 0", so no "and 15" in case of
                 a 16 bit ALU }
               if tcgsize2size[opsize]<=4 then
-                shiftval:=tordconstnode(right).value.uvalue and 31
+                shiftval:=tordconstnode(right).value.AsQWord and 31
               else
-                shiftval:=tordconstnode(right).value.uvalue and 63;
+                shiftval:=tordconstnode(right).value.AsQWord and 63;
               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
                 shiftval,left.location.register,location.register);
            end
