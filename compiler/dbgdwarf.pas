@@ -1278,13 +1278,13 @@ implementation
                   if assigned(def.typesym) then
                     append_entry(DW_TAG_subrange_type,false,[
                       DW_AT_name,DW_FORM_string,symname(def.typesym, false)+#0,
-                      DW_AT_lower_bound,signform,int64(def.low),
-                      DW_AT_upper_bound,signform,int64(def.high)
+                      DW_AT_lower_bound,signform,def.low.ToInt64,
+                      DW_AT_upper_bound,signform,def.high.ToInt64
                       ])
                   else
                     append_entry(DW_TAG_subrange_type,false,[
-                      DW_AT_lower_bound,signform,int64(def.low),
-                      DW_AT_upper_bound,signform,int64(def.high)
+                      DW_AT_lower_bound,signform,def.low.ToInt64,
+                      DW_AT_upper_bound,signform,def.high.ToInt64
                       ]);
                   append_labelentry_ref(DW_AT_type,def_dwarf_lab(basedef));
                 end;
@@ -2314,7 +2314,7 @@ implementation
                             exit;
                           elesize:=elesize div 8;
                         end;
-                      inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
+                      inc(offset,(symlist^.value.AsInt64-tarraydef(currdef).lowrange)*elesize);
                       currdef:=tarraydef(currdef).elementdef;
                     end;
                   stringdef:
@@ -2322,17 +2322,17 @@ implementation
                       case tstringdef(currdef).stringtype of
                         st_widestring,st_unicodestring:
                           begin
-                            inc(offset,(symlist^.value.svalue-1)*2);
+                            inc(offset,(symlist^.value.AsInt64-1)*2);
                             currdef:=cwidechartype;
                           end;
                         st_shortstring:
                           begin
-                            inc(offset,symlist^.value.svalue);
+                            inc(offset,symlist^.value.AsInt64);
                             currdef:=cansichartype;
                           end;
                         st_ansistring:
                           begin
-                            inc(offset,symlist^.value.svalue-1);
+                            inc(offset,symlist^.value.AsInt64-1);
                             currdef:=cansichartype;
                           end;
                         else
@@ -2871,12 +2871,12 @@ implementation
               if (sym.value.valueord<0) then
                 begin
                   AddConstToAbbrev(ord(DW_FORM_sdata));
-                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.AsInt64));
                 end
               else
                 begin
                   AddConstToAbbrev(ord(DW_FORM_udata));
-                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.valueord.uvalue));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.valueord.AsQWord));
                 end;
             end;
           constnil:
@@ -4065,7 +4065,7 @@ implementation
                   actually have a larger range than the original one.  }
                 append_entry(DW_TAG_subrange_type,false,[
                   DW_AT_lower_bound,DW_FORM_sdata,def.setbase,
-                  DW_AT_upper_bound,DW_FORM_sdata,get_max_value(def.elementdef).svalue
+                  DW_AT_upper_bound,DW_FORM_sdata,get_max_value(def.elementdef).AsInt64
                   ]);
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef))
               end
