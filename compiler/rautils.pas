@@ -902,9 +902,9 @@ Begin
                             exit;
                           end;
                         if not is_packed_array(harrdef) then
-                          Inc(absoffset,asizeint(Int64(plist^.value-harrdef.lowrange))*harrdef.elesize)
-                        else if (Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize mod 8)=0 then
-                          Inc(absoffset,asizeint(Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize div 8))
+                          Inc(absoffset,asizeint((plist^.value-harrdef.lowrange).ToInt64)*harrdef.elesize)
+                        else if ((plist^.value-harrdef.lowrange).ToInt64*harrdef.elepackedbitsize mod 8)=0 then
+                          Inc(absoffset,asizeint((plist^.value-harrdef.lowrange).ToInt64*harrdef.elepackedbitsize div 8))
                         else
                           Message(asmr_e_packed_element);
                       end
@@ -1038,7 +1038,7 @@ Begin
       begin
         if tconstsym(sym).consttyp=constord then
          begin
-           setconst(tconstsym(sym).value.valueord.svalue);
+           setconst(tconstsym(sym).value.valueord.AsInt64);
            SetupVar:=true;
            Exit;
          end;
@@ -1582,7 +1582,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=tconstsym(srsym).value.valueord.svalue;
+              l:=tconstsym(srsym).value.valueord.AsInt64;
               SearchIConstant:=TRUE;
               exit;
             end;
