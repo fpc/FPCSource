@@ -302,6 +302,18 @@ interface
     { returns true, if def is a dword type }
     function is_u32bitint(def : tdef) : boolean;
 
+    {# Returns true, if def is a 128 bit integer type }
+    function is_128bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 128 bit signed integer type }
+    function is_s128bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 128 bit integer type }
+    function is_u128bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 128 bit ordinal type }
+    function is_128bit(def : tdef) : boolean;
+
     { true, if def1 and def2 are both integers of the same bit size and sign }
     function are_equal_ints(def1, def2: tdef): boolean;
 
@@ -1213,6 +1225,32 @@ implementation
       begin
         result:=(def.typ=orddef) and
           (torddef(def).ordtype=u32bit);
+      end;
+
+
+    { true, if def is a 128 bit int type }
+    function is_128bitint(def : tdef) : boolean;
+      begin
+        is_128bitint:=(def.typ=orddef) and (torddef(def).ordtype in [u128bit,s128bit])
+      end;
+
+
+    function is_s128bitint(def : tdef) : boolean;
+      begin
+        is_s128bitint:=(def.typ=orddef) and (torddef(def).ordtype=s128bit)
+      end;
+
+
+    function is_u128bitint(def : tdef) : boolean;
+      begin
+        is_u128bitint:=(def.typ=orddef) and (torddef(def).ordtype=u128bit)
+      end;
+
+
+    { true, if def is a 128 bit type }
+    function is_128bit(def : tdef) : boolean;
+      begin
+        is_128bit:=(def.typ=orddef) and (torddef(def).ordtype in [u128bit,s128bit{,pasbool128,bool128bit}])
       end;
 
 
