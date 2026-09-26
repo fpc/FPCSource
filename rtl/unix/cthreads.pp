@@ -1039,7 +1039,10 @@ begin
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
-  Result:=UnloadPthreads;
+  // The library may already have been closed by an earlier call.
+  Result:=(PthreadDLL=Nil) or UnloadPthreads;
+  if Result then
+    PthreadDLL:=Nil;
 {$endif}
 end;
 
@@ -1100,4 +1103,6 @@ initialization
     end;
   SetCThreadManager;
 finalization
+  // Release the dynamically loaded pthread library.
+  CDoneThreads;
 end.
