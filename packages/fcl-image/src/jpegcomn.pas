@@ -23,9 +23,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.Jpeg.Jpeglib, FpImage;
+  System.Classes, System.SysUtils, System.Jpeg.Jpeglib, System.Jpeg.Jdeferr, FpImage;
 {$ELSE}
-  Classes, JPEGLib, FPImage;
+  Classes, SysUtils, JPEGLib, JDefErr, FPImage;
 {$ENDIF}
 
 type
@@ -52,8 +52,35 @@ type
 
 function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
 function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;
+// Raises FPImageException with the code and text of the current libjpeg error.
+procedure RaiseJPEGError(CurInfo: j_common_ptr);
 
 implementation
+
+procedure RaiseJPEGError(CurInfo: j_common_ptr);
+
+var
+  lMsg: AnsiString;
+
+begin
+  lMsg := '';
+  with CurInfo^.err^ do
+    begin
+    if (jpeg_message_table <> nil) and (msg_code > 0) and (msg_code <= Ord(last_jpeg_message)) then
+      lMsg := jpeg_message_table^[J_MESSAGE_CODE(msg_code)];
+    if Pos('%s', lMsg) > 0 then
+      lMsg := StringReplace(lMsg, '%s', msg_parm.s, [])
+    else if Pos('%', lMsg) > 0 then
+      try
+        lMsg := Format(lMsg, [msg_parm.i[0], msg_parm.i[1], msg_parm.i[2], msg_parm.i[3],
+                              msg_parm.i[4], msg_parm.i[5], msg_parm.i[6], msg_parm.i[7]]);
+      except
+        on EConvertError do ;
+      end;
+    raise FPImageException.CreateFmt('JPEG error %d: %s', [msg_code, lMsg]);
+    end;
+end;
+
 
 function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
 begin
