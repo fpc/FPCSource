@@ -1347,7 +1347,6 @@ var
 
 begin
   Result:=False;
-  assert((segs <> Nil) and (length(segs) <> 0));
 
   // Find the minimal version number to use
   for version := minVersion to maxVersion do
@@ -1521,7 +1520,7 @@ function TQRCodeGenerator.GetBits(X : Word; Y : Word): Boolean;
 
 begin
   if Assigned(FBytes) then
-    Result:=getModule(FBytes,X,Y)
+    Result:=QRgetModule(FBytes,X,Y)
   else
     Result:=False;
 end;
