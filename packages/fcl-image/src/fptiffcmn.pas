@@ -201,6 +201,8 @@ type
     XResolution: TTiffRational;
     YResolution: TTiffRational;
     YCbCr_LumaRed, YCbCr_LumaGreen, YCbCr_LumaBlue :Single;
+    MinSampleValue: Double; // tag 280, or the reader default
+    MaxSampleValue: Double; // tag 281, or the reader default
     // image
     Img: TFPCustomImage;
     FreeImg: boolean;
@@ -382,6 +384,8 @@ begin
   GrayBits:=0;
   AlphaBits:=0;
   BytesPerPixel:=0;
+  MinSampleValue:=0.0;
+  MaxSampleValue:=1.0;
 
   if FreeImg then begin
     FreeImg:=false;
@@ -442,6 +446,8 @@ begin
   BlueBits:=IFD.BlueBits;
   GrayBits:=IFD.GrayBits;
   AlphaBits:=IFD.AlphaBits;
+  MinSampleValue:=IFD.MinSampleValue;
+  MaxSampleValue:=IFD.MaxSampleValue;
   if (Img<>nil) and (IFD.Img<>nil) then
     Img.Assign(IFD.Img);
 end;
@@ -489,7 +495,7 @@ end;
 
 constructor TTiffIFD.Create;
 begin
-  PlanarConfiguration:=TiffPlanarConfigurationChunky;
+  Clear;
 
   //Use the Standard 601 Constants
   YCbCr_LumaRed:=0;
