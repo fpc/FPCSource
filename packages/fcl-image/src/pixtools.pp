@@ -26,6 +26,8 @@ uses classes, FPCanvas, FPimage;
 {$ENDIF FPC_DOTTEDUNITS}
 
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
+// Draws a line of brush pixels, both end points included: DrawingMode applies, the pen mode does not.
+procedure DrawBrushLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
@@ -63,6 +65,15 @@ procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const 
 procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
 procedure FillFloodImage (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
 procedure FillFloodImageRel (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
+
+// True when (x, y) lies on a line of the hatch aStyle, lines aWidth apart, counted from (aOriginX, aOriginY).
+function HatchPixel (aStyle:TFPBrushStyle; x,y, aWidth, aOriginX,aOriginY:integer) : boolean;
+// Fills the rectangle (corners included) with the hatch aStyle counted from (aOriginX, aOriginY).
+procedure FillRectangleHatch (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
+// Flood fills from (x, y) with the hatch aStyle counted from (aOriginX, aOriginY).
+procedure FillFloodHatch (Canv:TFPCustomCanvas; x,y:integer; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
 
 implementation
 
@@ -111,28 +122,11 @@ end;
 type
   TPutPixelProc = procedure (Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
 
-procedure PutPixelCopy(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+// Draws color at (x, y) with DrawPenPixel: combined with the pixel there by Pen.Mode, and by
+// DrawingMode when Pen.Mode is pmCopy.
+procedure PutPixelPen(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
 begin
-  with Canv do
-    DrawPixel(x,y,color);
-end;
-
-procedure PutPixelXor(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] xor color;
-end;
-
-procedure PutPixelOr(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] or color;
-end;
-
-procedure PutPixelAnd(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] and color;
+  Canv.DrawPenPixel(x,y,color);
 end;
 
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer);
@@ -140,8 +134,14 @@ begin
   DrawSolidLine (Canv, x1,y1, x2,y2, Canv.Pen.FPColor);
 end;
 
-procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
-var PutPixelProc : TPutPixelProc;
+// Draws color at (x, y) with DrawPixel: combined with the pixel there by DrawingMode; Pen.Mode is ignored.
+procedure PutPixelBrush(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+begin
+  Canv.DrawPixel(x,y,color);
+end;
+
+// Draws the line from (x1,y1) to (x2,y2), both included, with PutPixelProc.
+procedure LineWith (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor; PutPixelProc : TPutPixelProc);
   procedure HorizontalLine (x1,x2,y:integer);
     var x : integer;
     begin
@@ -217,13 +217,6 @@ var PutPixelProc : TPutPixelProc;
       end;
     end;
 begin
-  with canv.pen do
-    case mode of
-      pmMerge : PutPixelProc := @PutPixelAnd;
-      pmMask : PutPixelProc := @PutPixelOr;
-      pmXor : PutPixelProc := @PutPixelXor;
-      else PutPixelProc := @PutPixelCopy;
-    end;
   if x1 = x2 then  // vertical line
     if y1 < y2 then
       VerticalLine (x1, y1, y2)
@@ -236,6 +229,16 @@ begin
       HorizontalLine (x2, x1, y1)
   else  // sloped line
     SlopedLine;
+end;
+
+procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
+begin
+  LineWith (Canv, x1,y1, x2,y2, color, @PutPixelPen);
+end;
+
+procedure DrawBrushLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
+begin
+  LineWith (Canv, x1,y1, x2,y2, color, @PutPixelBrush);
 end;
 
 type
@@ -268,14 +271,14 @@ var LinePoints : TLinePoints;
     var x : integer;
     begin
       for x := x1 to x2 do
-        if LinePoints[x mod PatternBitCount] then
+        if LinePoints[x and (PatternBitCount-1)] then
           PutPixelProc (Canv, x,y, color);
     end;
   procedure VerticalLine (x,y1,y2:integer);
     var y : integer;
     begin
       for y := y1 to y2 do
-        if LinePoints[y mod PatternBitCount] then
+        if LinePoints[y and (PatternBitCount-1)] then
           PutPixelProc (Canv, x,y, color);
     end;
   procedure SlopedLine;
@@ -318,14 +321,18 @@ var LinePoints : TLinePoints;
         yinc2 := - yinc2;
         end;
       end;
-    var r,x,y : integer;
+    var r,x,y,idx : integer;
     begin
     initialize;
     x := x1;
     y := y1;
     for r := 1 to nPixels do
       begin
-      if LinePoints[r mod PatternBitCount] then
+      if dx >= dy then
+        idx := x
+      else
+        idx := y;
+      if LinePoints[idx and (PatternBitCount-1)] then
         PutPixelProc (Canv, x,y, color);
       if d < 0 then
         begin
@@ -343,13 +350,7 @@ var LinePoints : TLinePoints;
     end;
 begin
   PatternToPoints (pattern, @LinePoints);
-  with canv.pen do
-    case mode of
-      pmMask : PutPixelProc := @PutPixelAnd;
-      pmMerge : PutPixelProc := @PutPixelOr;
-      pmXor : PutPixelProc := @PutPixelXor;
-      else PutPixelProc := @PutPixelCopy;
-    end;
+  PutPixelProc := @PutPixelPen;
   if x1 = x2 then  // vertical line
     if y1 < y2 then
       VerticalLine (x1, y1, y2)
@@ -377,7 +378,7 @@ begin
     y := AWidth + top;
     while y <= bottom do
       begin
-      DrawSolidLine (Canv, left,y, right,y, c);
+      DrawBrushLine (Canv, left,y, right,y, c);
       inc (y,AWidth);
       end
     end;
@@ -396,7 +397,7 @@ begin
     x := AWidth + left;
     while x <= right do
       begin
-      DrawSolidLine (Canv, x,top, x,bottom, c);
+      DrawBrushLine (Canv, x,top, x,bottom, c);
       inc (x, AWidth);
       end;
     end;
@@ -424,7 +425,7 @@ begin
     rx := left + AWidth;
     while (rx < right) and (ry < bottom) do
       begin
-      DrawSolidLine (Canv, left,ry, rx,top, c);
+      DrawBrushLine (Canv, left,ry, rx,top, c);
       inc (rx, AWidth);
       inc (ry, AWidth);
       end;
@@ -442,7 +443,7 @@ begin
         r := CheckCorner (rx, right, top);
         while (ry < bottom) do
           begin
-          DrawSolidLine (Canv, left,ry, right,r, c);
+          DrawBrushLine (Canv, left,ry, right,r, c);
           inc (r, AWidth);
           inc (ry, AWidth);
           end;
@@ -456,7 +457,7 @@ begin
         r := checkCorner (ry, bottom, left);
         while (rx <= right) do
           begin
-          DrawSolidLine (Canv, r,bottom, rx,top, c);
+          DrawBrushLine (Canv, r,bottom, rx,top, c);
           inc (r, AWidth);
           inc (rx, AWidth);
           end;
@@ -465,7 +466,7 @@ begin
         end;
     while (rx < right) do  // fill lower right corner
       begin
-      DrawSolidLine (Canv, rx,bottom, right,ry, c);
+      DrawBrushLine (Canv, rx,bottom, right,ry, c);
       inc (rx, AWidth);
       inc (ry, AWidth);
       end;
@@ -501,7 +502,7 @@ begin
     rx := left + AWidth;
     while (rx < right) and (ry > top) do
       begin
-      DrawSolidLine (Canv, left,ry, rx,bottom, c);
+      DrawBrushLine (Canv, left,ry, rx,bottom, c);
       inc (rx, AWidth);
       dec (ry, AWidth);
       end;
@@ -519,7 +520,7 @@ begin
         r := CheckCorner (rx, right, bottom);
         while (ry > top) do
           begin
-          DrawSolidLine (Canv, left,ry, right,r, c);
+          DrawBrushLine (Canv, left,ry, right,r, c);
           dec (r, AWidth);
           dec (ry, AWidth);
           end;
@@ -533,7 +534,7 @@ begin
         r := checkInversCorner (ry, top, left);
         while (rx < right) do
           begin
-          DrawSolidLine (Canv, r,top, rx,bottom, c);
+          DrawBrushLine (Canv, r,top, rx,bottom, c);
           inc (r, AWidth);
           inc (rx, AWidth);
           end;
@@ -542,7 +543,7 @@ begin
         end;
     while (rx < right) do  // fill upper right corner
       begin
-      DrawSolidLine (Canv, rx,top, right,ry, c);
+      DrawBrushLine (Canv, rx,top, right,ry, c);
       inc (rx, AWidth);
       dec (ry, AWidth);
       end;
@@ -555,10 +556,17 @@ begin
 end;
 
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
-var r : integer;
+var x, y : integer;
+    row : TPenPattern;
 begin
-  for r := y1 to y2 do
-    DrawPatternLine (Canv, x1,r, x2,r, pattern[r mod PatternBitCount], color);
+  SortRect (x1,y1, x2,y2);
+  for y := y1 to y2 do
+    begin
+    row := pattern[y and (PatternBitCount-1)];
+    for x := x1 to x2 do
+      if (row shr (PatternBitCount - 1 - (x and (PatternBitCount-1)))) and 1 <> 0 then
+        Canv.DrawPixel (x,y, color);
+    end;
 end;
 
 procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
@@ -582,320 +590,90 @@ end;
 type
   TFuncSetColor = procedure (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 
-  PDoneRec = ^TDoneRec;
-  TDoneRec = record
-    x, min, max : integer;
-    next : PDoneRec;
-  end;
-
   PFloodFillData = ^TFloodFillData;
   TFloodFillData = record
     Canv : TFPCustomCanvas;
     ReplColor : TFPColor;
     SetColor : TFuncSetColor;
     ExtraData : pointer;
-    DoneList : TList;
   end;
 
-function FindDoneIndex (const data:PFloodFillData; x:integer; out index:integer):boolean;
+// Calls data^.SetColor once for each pixel of colour data^.ReplColor that is connected to (x, y)
+// horizontally or vertically through pixels of that colour.
+procedure FloodFill (data:PFloodFillData; x,y:integer);
+var
+  w, h, lx, rx, cx, ny, i, count : integer;
+  done : array of byte;
+  stack : array of TPoint;
+  p : TPoint;
+
+  function Fillable (ax, ay : integer) : boolean;
+  var idx : Int64;
+  begin
+    idx := Int64(ay) * w + ax;
+    Result := ((done[idx shr 3] and (1 shl (idx and 7))) = 0)
+              and (data^.Canv.Colors[ax, ay] = data^.ReplColor);
+  end;
+
+  procedure SetDone (ax, ay : integer);
+  var idx : Int64;
+  begin
+    idx := Int64(ay) * w + ax;
+    done[idx shr 3] := done[idx shr 3] or (1 shl (idx and 7));
+  end;
+
+  procedure Push (ax, ay : integer);
+  begin
+    if count = Length(stack) then
+      SetLength(stack, 2 * count + 64);
+    stack[count] := Point(ax, ay);
+    inc(count);
+  end;
+
 begin
-  with data^.DoneList do
+  w := data^.Canv.Width;
+  h := data^.Canv.Height;
+  if (x < 0) or (y < 0) or (x >= w) or (y >= h) then
+    exit;
+  SetLength(done, (Int64(w) * h + 7) div 8);
+  FillChar(done[0], Length(done), 0);
+  stack := nil;
+  count := 0;
+  Push(x, y);
+  while count > 0 do
+  begin
+    dec(count);
+    p := stack[count];
+    if not Fillable(p.X, p.Y) then
+      continue;
+    lx := p.X;
+    while (lx > 0) and Fillable(lx - 1, p.Y) do
+      dec(lx);
+    rx := p.X;
+    while (rx < w - 1) and Fillable(rx + 1, p.Y) do
+      inc(rx);
+    for cx := lx to rx do
     begin
-    index := 0;
-    while (index < count) and (PDoneRec(items[index])^.x <> x) do
-      inc (index);
-    result := (index < count) and (PDoneRec(items[index])^.x = x);
+      SetDone(cx, p.Y);
+      data^.SetColor(data^.Canv, cx, p.Y, data^.ExtraData);
     end;
-end;
-
-procedure FreeDoneList (const data:TFloodFillData);
-  procedure FreeList (p:PDoneRec);
-  var n : PDoneRec;
-  begin
-    while assigned(p) do
-      begin
-      n := p^.Next;
-      dispose (p);
-      p := n;
-      end;
-  end;
-var r : integer;
-begin
-  with data do
-  for r := 0 to DoneList.Count-1 do
-    FreeList (PDoneRec(DoneList[r]));
-end;
-
-procedure CheckFloodFillColor (x,top,bottom,Direction:integer; data:PFloodFillData);
-
-  procedure CheckRange;
-  var r,t,b : integer;
-  begin
-    t := top;
-    b := top -1;
-    for r := top to bottom do
-      with data^ do
+    for i := 0 to 1 do
+    begin
+      ny := p.Y - 1 + 2 * i;
+      if (ny < 0) or (ny >= h) then
+        continue;
+      cx := lx;
+      while cx <= rx do
+        if Fillable(cx, ny) then
         begin
-        if canv.colors[x,r] = ReplColor then
-          begin
-          b := r;
-          SetColor(Canv,x,r,ExtraData);
-          end
+          Push(cx, ny);
+          while (cx <= rx) and Fillable(cx, ny) do
+            inc(cx);
+        end
         else
-          begin
-          if t < r then
-            CheckFloodFillColor (x+Direction, t, r-1, Direction, data);
-          t := r + 1;
-          end;
-        end;
-    if t <= b then
-      CheckFloodFillColor (x+Direction, t, b, Direction, data);
-  end;
-
-  procedure CheckAboveRange;
-  var t,b : integer;
-  begin
-    with data^ do
-      begin
-      t := top - 1;
-      while (t >= 0) and (Canv.colors[x,t]=ReplColor) do
-        begin
-        SetColor(Canv, x,t, ExtraData);
-        dec (t);
-        end;
-      t := t + 1;
-      b := top - 1;
-      if t <= b then
-        begin
-        CheckFloodFillColor (x-1, t, b, -1, data);
-        CheckFloodFillColor (x+1, t, b, 1, data);
-        end;
-      end;
-  end;
-
-  procedure CheckBelowRange;
-  var r,t,b : integer;
-  begin
-    with data^ do
-      begin
-      r := Canv.Height;
-      b := bottom + 1;
-      t := b;
-      while (b < r) and (Canv.colors[x,b]=ReplColor) do
-        begin
-        SetColor (Canv,x,b,ExtraData);
-        inc (b);
-        end;
-      b := b - 1;
-      if t <= b then
-        begin
-        CheckFloodFillColor (x-1, t, b, -1, data);
-        CheckFloodFillColor (x+1, t, b, 1, data);
-        end;
-      end;
-  end;
-
-var DoAbove, DoBelow : boolean;
-
-begin
-  with data^ do
-    begin
-    if (x >= Canv.width) or (x < 0) then
-      Exit;
-    if top < 0 then
-      top := 0;
-    if bottom >= Canv.Height then
-      bottom := Canv.Height-1;
-    DoAbove := (Canv.colors[x,top] = ReplColor);
-    DoBelow := (Canv.colors[x,bottom] = ReplColor);
+          inc(cx);
     end;
-  CheckRange;
-  if DoAbove then
-    CheckAboveRange;
-  if DoBelow then
-    CheckBelowRange;
-end;
-
-procedure CheckFloodFill (x,top,bottom,Direction:integer; data:PFloodFillData);
-var beforetop, ontop, chain, myrec : PDoneRec;
-    doneindex : integer;
-
-  procedure CheckRange;
-  var r,t,b : integer;
-      n : PDoneRec;
-  begin
-    ontop := nil;
-    beforetop := nil;
-    n := chain;
-    while (n <> nil) and (n^.min <= top) do
-      begin
-      beforetop := ontop;
-      ontop := n;
-      n := n^.next;
-      end;
-    if assigned(ontop) and (ontop^.max < top) then
-      begin
-      beforetop := ontop;
-      ontop := nil;
-      end;
-    // ontop is: nil OR rec before top OR rec containing top
-    if assigned(ontop) then
-      begin
-      t := ontop^.max + 1;
-      myrec := ontop;
-      end
-    else
-      begin
-      t := top;
-      new(myrec);
-      myrec^.x := x;
-      myrec^.min := top;
-      myrec^.max := top;
-      myrec^.Next := n;
-      if assigned(beforetop) then
-        beforetop^.next := myrec
-      else
-        begin
-        with data^.DoneList do
-          if DoneIndex < Count then
-            Items[DoneIndex] := myrec
-          else
-            Add (myrec);
-        chain := myrec;
-        end;
-      end;
-    ontop := myrec;
-    // ontop is rec containing the top
-    b := t-1;
-    r := t;
-    while (r <= bottom) do
-      begin
-      with data^ do
-        begin
-        if canv.colors[x,r] = ReplColor then
-          begin
-          b := r;
-          SetColor(Canv,x,r,ExtraData);
-          end
-        else
-          begin
-          if t < r then
-            begin
-            myrec^.max := r;
-            CheckFloodFill (x+Direction, t, r-1, Direction, data);
-            end;
-          t := r + 1;
-          end;
-        inc (r);
-        end;
-      if assigned(n) and (r >= n^.min) then
-        begin
-        if t < r then
-          begin
-          myrec^.max := n^.min-1;
-          CheckFloodFill (x+Direction, t, r-1, Direction, data);
-          end;
-        while assigned(n) and (r >= n^.min) do
-          begin
-          myrec := n;
-          r := myrec^.max + 1;
-          n := n^.next;
-          end;
-        t := r;
-        end;
-      end;
-    myrec^.max := r - 1;
-    if t <= b then
-      CheckFloodFill (x+Direction, t, b, Direction, data);
   end;
-
-  procedure CheckAboveRange (highest:integer);
-  var t,b : integer;
-  begin
-    with data^ do
-      begin
-      t := top - 1;
-      while (t >= highest) and (Canv.colors[x,t]=ReplColor) do
-        begin
-        SetColor(Canv, x,t, ExtraData);
-        dec (t);
-        end;
-      t := t + 1;
-      b := top - 1;
-      if t <= b then
-        begin
-        ontop^.min := t - 1;
-        CheckFloodFill (x-1, t, b, -1, data);
-        CheckFloodFill (x+1, t, b, 1, data);
-        end;
-      end;
-  end;
-
-  procedure CheckBelowRange (lowest : integer);
-  var t,b : integer;
-  begin
-    with data^ do
-      begin
-      b := bottom + 1;
-      t := b;
-      while (b <= lowest) and (Canv.colors[x,b]=ReplColor) do
-        begin
-        SetColor (Canv,x,b,ExtraData);
-        inc (b);
-        end;
-      b := b - 1;
-      if t <= b then
-        begin
-        myrec^.max := b+1;
-        CheckFloodFill (x-1, t, b, -1, data);
-        CheckFloodFill (x+1, t, b, 1, data);
-        end;
-      end;
-  end;
-
-var DoAbove, DoBelow : boolean;
-    m : integer;
-begin
-  with data^ do
-    begin
-    if (x >= Canv.width) or (x < 0) then
-      Exit;
-    if top < 0 then
-      top := 0;
-    if bottom >= Canv.Height then
-      bottom := Canv.Height-1;
-    DoAbove := (Canv.colors[x,top] = ReplColor);
-    DoBelow := (Canv.colors[x,bottom] = ReplColor);
-    end;
-  if FindDoneIndex (data, x, DoneIndex) then
-    begin
-    chain := PDoneRec(data^.DoneList[DoneIndex]);
-    myrec := chain;
-    while assigned(myrec) do
-      with myrec^ do
-        myrec := next;
-    end
-  else
-    chain := nil;
-  CheckRange;
-  // ontop: rec containing top
-  // myrec: rec containing bottom
-  if DoAbove and (ontop^.min = top) then
-    begin
-    if assigned (beforetop) then
-      m := beforetop^.max + 1
-    else
-      m := 0;
-    CheckAboveRange (m);
-    end;
-  if DoBelow and (myrec^.max = bottom) then
-    begin
-    if assigned (myrec^.next) then
-      m := myrec^.next^.min - 1
-    else
-      m := data^.Canv.Height - 1;
-    CheckBelowRange (m);
-    end;
 end;
 
 procedure SetFloodColor (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -910,7 +688,7 @@ begin
   d.ReplColor := Canv.colors[x,y];
   d.SetColor := @SetFloodColor;
   d.ExtraData := @color;
-  CheckFloodFillColor (x, y, y, 1, @d);
+  FloodFill (@d, x, y);
 end;
 
 procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer);
@@ -930,8 +708,8 @@ procedure SetFloodPattern (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 var p : PFloodPatternRec;
 begin
   p := PFloodPatternRec(data);
-  if p^.plane[x mod PatternBitCount, y mod PatternBitCount] then
-    Canv.colors[x,y] := p^.color;
+  if p^.plane[y and (PatternBitCount-1), x and (PatternBitCount-1)] then
+    Canv.DrawPixel(x,y,p^.color);
 end;
 
 procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern; const color:TFPColor);
@@ -950,14 +728,9 @@ begin
   d.ReplColor := Canv.colors[x,y];
   d.SetColor := @SetFloodPattern;
   d.ExtraData := @rec;
-  d.DoneList := TList.Create;
-  try
-    FillPattern;
-    rec.color := Color;
-    CheckFloodFill (x, y, y, 1, @d);
-  finally
-    FreeDoneList (d);
-  end;
+  FillPattern;
+  rec.color := Color;
+  FloodFill (@d, x, y);
 end;
 
 procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern);
@@ -1000,7 +773,7 @@ end;
 
 procedure SetFloodHashBDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 var r : PFloodHashRec;
-    w : 0..PatternBitCount-1;
+    w : integer;
 begin
   r := PFloodHashRec(data);
   w := r^.width;
@@ -1010,7 +783,7 @@ end;
 
 procedure SetFloodHashCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 var r : PFloodHashRec;
-    w : 0..PatternBitCount-1;
+    w : integer;
 begin
   r := PFloodHashRec(data);
   w := r^.width;
@@ -1020,7 +793,7 @@ end;
 
 procedure SetFloodHashDiagCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 var r : PFloodHashRec;
-    w : 0..PatternBitCount-1;
+    w : integer;
 begin
   r := PFloodHashRec(data);
   w := r^.width;
@@ -1037,14 +810,11 @@ begin
   d.ReplColor := Canv.colors[x,y];
   d.SetColor := SetHashColor;
   d.ExtraData := @rec;
-  d.DoneList := TList.Create;
   rec.color := c;
+  if Width < 1 then
+    Width := 1;
   rec.width := Width;
-  try
-    CheckFloodFill (x, y, y, 1, @d);
-  finally
-    FreeDoneList (d);
-  end;
+  FloodFill (@d, x, y);
 end;
 
 procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1130,13 +900,8 @@ begin
   d.ReplColor := Canv.colors[x,y];
   d.SetColor := @SetFloodImage;
   d.ExtraData := @rec;
-  d.DoneList := Tlist.Create;
   rec.image := image;
-  try
-    CheckFloodFill (x, y, y, 1, @d);
-  finally
-    FreeDoneList (d);
-  end;
+  FloodFill (@d, x, y);
 end;
 
 procedure SetFloodImageRel (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -1148,10 +913,10 @@ begin
     begin
     xi := (x - xo) mod width;
     if xi < 0 then
-      xi := width - xi;
+      xi := width + xi;
     yi := (y - yo) mod height;
     if yi < 0 then
-      yi := height - yi;
+      yi := height + yi;
     Canv.DrawPixel(x,y,colors[xi,yi]);
     end;
 end;
@@ -1164,15 +929,74 @@ begin
   d.ReplColor := Canv.colors[x,y];
   d.SetColor := @SetFloodImageRel;
   d.ExtraData := @rec;
-  d.DoneList := TList.Create;
   rec.image := image;
   rec.xo := x;
   rec.yo := y;
-  try
-    CheckFloodFill (x, y, y, 1, @d);
-  finally
-    FreeDoneList (d);
+  FloodFill (@d, x, y);
+end;
+
+
+function HatchPixel (aStyle:TFPBrushStyle; x,y, aWidth, aOriginX,aOriginY:integer) : boolean;
+var mx, my : integer;
+begin
+  if aWidth < 1 then
+    aWidth := 1;
+  mx := ((x - aOriginX) mod aWidth + aWidth) mod aWidth;
+  my := ((y - aOriginY) mod aWidth + aWidth) mod aWidth;
+  case aStyle of
+    bsHorizontal : Result := my = 0;
+    bsVertical : Result := mx = 0;
+    bsFDiagonal : Result := mx = my;
+    bsBDiagonal : Result := (mx + my) mod aWidth = aWidth - 1;
+    bsCross : Result := (mx = 0) or (my = 0);
+    bsDiagCross : Result := (mx = my) or ((mx + my) mod aWidth = aWidth - 1);
+  else
+    Result := false;
   end;
+end;
+
+procedure FillRectangleHatch (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
+var x,y : integer;
+begin
+  SortRect (x1,y1, x2,y2);
+  for y := y1 to y2 do
+    for x := x1 to x2 do
+      if HatchPixel (aStyle, x,y, aWidth, aOriginX,aOriginY) then
+        Canv.DrawPixel (x,y, c);
+end;
+
+type
+  TFloodHatchRec = record
+    color : TFPColor;
+    style : TFPBrushStyle;
+    width, ox, oy : integer;
+  end;
+  PFloodHatchRec = ^TFloodHatchRec;
+
+// Paints a flood pixel when it lies on the hatch.
+procedure SetFloodHatch (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+begin
+  with PFloodHatchRec(data)^ do
+    if HatchPixel (style, x,y, width, ox,oy) then
+      Canv.DrawPixel (x,y, color);
+end;
+
+procedure FillFloodHatch (Canv:TFPCustomCanvas; x,y:integer; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
+var rec : TFloodHatchRec;
+    d : TFloodFillData;
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := @SetFloodHatch;
+  d.ExtraData := @rec;
+  rec.color := c;
+  rec.style := aStyle;
+  rec.width := aWidth;
+  rec.ox := aOriginX;
+  rec.oy := aOriginY;
+  FloodFill (@d, x, y);
 end;
 
 end.
