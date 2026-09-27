@@ -247,14 +247,20 @@ begin
     else
       result := Img;
     FImage := result;
-    if FImage.UsePalette then
-      FImage.Palette.Clear;
-    if CheckContents (Str) then
-      begin
-      InternalRead (Str, result)
-      end
-    else
-      raise FPImageException.Create ('Wrong image format');
+    try
+      if FImage.UsePalette then
+        FImage.Palette.Clear;
+      if CheckContents (Str) then
+        begin
+        InternalRead (Str, result)
+        end
+      else
+        raise FPImageException.Create ('Wrong image format');
+    except
+      if not assigned(img) then
+        FreeAndNil(result);
+      raise;
+    end;
   finally
     FStream := nil;
     FImage := nil;
@@ -295,7 +301,7 @@ end;
 
 { TFPCustomImageWriter }
 
-procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage);
+procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage; aTruncate : Boolean = True);
 begin
   if not assigned(img) then
     raise FPImageException.Create(ErrorText[StrNoImageToWrite]);
@@ -304,8 +310,11 @@ begin
   try
     FStream := str;
     FImage := img;
-    Str.position := 0;
-    Str.Size := 0;
+    if aTruncate then
+      begin
+      Str.position := 0;
+      Str.Size := 0;
+      end;
     InternalWrite(Str, Img);
   finally
     FStream := nil;

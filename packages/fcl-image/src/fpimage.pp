@@ -156,7 +156,7 @@ type
       procedure LoadFromStream (Str:TStream);
       procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
       function LoadFromFile (const filename:String): Boolean;
-      procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
+      procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter; aTruncate : Boolean = True);
       procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
       function SaveToFile (const filename:String): Boolean;
       // Size and data
@@ -248,8 +248,9 @@ type
     protected
       procedure InternalWrite (Str:TStream; Img:TFPCustomImage); virtual; abstract;
     public
-      procedure ImageWrite (Str:TStream; Img:TFPCustomImage);
-      // writes given image to stream
+      // Writes Img to Str; with aTruncate True the stream is emptied first, otherwise Img is written
+      // at the current position.
+      procedure ImageWrite (Str:TStream; Img:TFPCustomImage; aTruncate : Boolean = True);
   end;
 
   TIHData = class
