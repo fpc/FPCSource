@@ -43,6 +43,7 @@ type
     StartPosition : int64; { save start of bitmap in the stream, if we must go back and fix something }
     FBpp : byte;
     FRLECompress : boolean;
+    FV5 : boolean; { 32 bpp with alpha: V5 header with bit field masks, alpha included }
     BFH : TBitMapFileHeader;
     BFI : TBitMapInfoHeader;
     Colinfo : array of TColorRGBA;
@@ -99,8 +100,8 @@ end;
 constructor TFPWriterBMP.create;
 begin
   inherited create;
-  fXPelsPerMeter:=100;
-  fYPelsPerMeter:=100;
+  fXPelsPerMeter:=0;
+  fYPelsPerMeter:=0;
   FBpp:=24;
   FRleCompress:=false;
 end;
@@ -251,30 +252,88 @@ begin
   Result:=b;
 end;
 
+const
+  V5HeaderSize = 124;
+
+// True if a pixel of aImg is not fully opaque.
+function HasTranslucentPixels(aImg : TFPCustomImage) : boolean;
+
+var
+  lX, lY : integer;
+
+begin
+  Result:=True;
+  for lY:=0 to aImg.Height-1 do
+    for lX:=0 to aImg.Width-1 do
+      if aImg.Colors[lX,lY].Alpha<>alphaOpaque then
+        exit;
+  Result:=False;
+end;
+
+// Writes the part of a V5 header after the first 40 bytes: masks for B,G,R,A bytes, sRGB, no profile.
+procedure WriteV5Tail(aStream : TStream);
+
+const
+  LCS_sRGB = $73524742;
+
+var
+  lTail : array[0..V5HeaderSize-41] of byte;
+
+  procedure PutLE32(aOffset : integer; aValue : longword);
+  begin
+    lTail[aOffset]:=aValue and $FF;
+    lTail[aOffset+1]:=(aValue shr 8) and $FF;
+    lTail[aOffset+2]:=(aValue shr 16) and $FF;
+    lTail[aOffset+3]:=aValue shr 24;
+  end;
+
+begin
+  FillChar(lTail,SizeOf(lTail),0);
+  PutLE32(0,$00FF0000);
+  PutLE32(4,$0000FF00);
+  PutLE32(8,$000000FF);
+  PutLE32(12,$FF000000);
+  PutLE32(16,LCS_sRGB);
+  PutLE32(68,4);
+  aStream.WriteBuffer(lTail,SizeOf(lTail));
+end;
+
 function TFPWriterBMP.SaveHeader(Stream:TStream; Img : TFPCustomImage):boolean;
 begin
   Result:=False;
   with BFI do
     begin
-    Size:=sizeof(TBitMapInfoHeader);
+    if FV5 then
+      Size:=V5HeaderSize
+    else
+      Size:=sizeof(TBitMapInfoHeader);
     Width:=Img.Width;
     Height:=Img.Height;
     Planes:=1;
     if FBpp=15 then BitCount:=16
     else BitCount:=FBpp;
 
-    Img.ResolutionUnit :=ruPixelsPerCentimeter;
-    fXPelsPerMeter :=Trunc(Img.ResolutionX*100);
-    fYPelsPerMeter :=Trunc(Img.ResolutionY*100);
-
-    XPelsPerMeter:=fXPelsPerMeter;
-    YPelsPerMeter:=fYPelsPerMeter;
+    case Img.ResolutionUnit of
+      ruPixelsPerCentimeter :
+        begin
+        XPelsPerMeter:=Round(Img.ResolutionX*100);
+        YPelsPerMeter:=Round(Img.ResolutionY*100);
+        end;
+      ruPixelsPerInch :
+        begin
+        XPelsPerMeter:=Round(Img.ResolutionX*100/2.54);
+        YPelsPerMeter:=Round(Img.ResolutionY*100/2.54);
+        end;
+    else
+      XPelsPerMeter:=fXPelsPerMeter;
+      YPelsPerMeter:=fYPelsPerMeter;
+    end;
     ClrImportant:=0;
     end;
   with BFH do
     begin
     bfType:=BMmagic;//'BM'
-    bfOffset:=sizeof(TBitMapFileHeader)+sizeof(TBitMapInfoHeader)+length(ColInfo)*4;
+    bfOffset:=sizeof(TBitMapFileHeader)+BFI.Size+length(ColInfo)*4;
     bfReserved:=0;
     bfSize:=bfOffset+BFI.SizeImage;
     end;
@@ -285,6 +344,8 @@ begin
   StartPosition:=Stream.Position;
   Stream.Write(bfh,sizeof(TBitMapFileHeader));
   Stream.Write(bfi,sizeof(TBitMapInfoHeader));
+  if FV5 then
+    WriteV5Tail(Stream);
   {$IFDEF ENDIAN_BIG}
   SwapBMPFileHeader(BFH);
   SwapBMPInfoHeader(BFI);
@@ -429,7 +490,8 @@ var i, j, k, couples, singles, lastsingle : integer;
     even : boolean;
 begin
   even:=false;
-  getmem(nibline,width);
+  getmem(nibline,width+1);
+  nibline[width]:=0;
   try
     k:=(Width div 2) + (Width mod 2);
     i:=0;
@@ -652,8 +714,10 @@ begin
   if not continue then exit;
   if (FRLECompress and (not (FBpp in [4,8]))) then
     raise FPImageException.Create('Can''t use RLE compression with '+IntToStr(FBpp)+' bits per pixel');
+  FV5:=(FBpp=32) and HasTranslucentPixels(Img);
   if FRLECompress and (FBpp=4) then BFI.Compression:=BI_RLE4
   else if FRLECompress and (FBpp=8) then BFI.Compression:=BI_RLE8
+  else if FV5 then BFI.Compression:=BI_BITFIELDS
   else BFI.Compression:=BI_RGB;
   BFI.ClrUsed:=0;
   try
