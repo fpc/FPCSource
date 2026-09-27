@@ -128,7 +128,51 @@ end;
 function TFPCustomCanvas.GetClipRect: TRect;
 begin
   if FClipRegion = nil then Result := Bounds(0, 0, 0, 0)
+  else
+    begin
+    Result:=FClipRegion.GetBoundingRect();
+    if FRectangleMode=rmExclude then
+      begin
+      Inc(Result.Right);
+      Inc(Result.Bottom);
+      end;
+    end;
+end;
+
+function TFPCustomCanvas.GetDeviceClipRect: TRect;
+begin
+  if FClipRegion = nil then Result := Bounds(0, 0, 0, 0)
   else Result:=FClipRegion.GetBoundingRect();
+end;
+
+function TFPCustomCanvas.UserRect(const aRect: TRect; out aResult: TRect): Boolean;
+
+begin
+  aResult:=aRect;
+  SortRect(aResult);
+  if FRectangleMode=rmExclude then
+    begin
+    if (aResult.Right<=aResult.Left) or (aResult.Bottom<=aResult.Top) then
+      Exit(False);
+    Dec(aResult.Right);
+    Dec(aResult.Bottom);
+    end;
+  Result:=True;
+end;
+
+function TFPCustomCanvas.DeviceRect(const aRect: TRect; out aResult: TRect): Boolean;
+
+var
+  lExtent: TRect;
+
+begin
+  Result:=UserRect(aRect,aResult);
+  if Result and HasTransform then
+    begin
+    lExtent:=TransformRect(Rect(aResult.Left,aResult.Top,aResult.Right+1,aResult.Bottom+1));
+    aResult:=Rect(lExtent.Left,lExtent.Top,lExtent.Right-1,lExtent.Bottom-1);
+    Result:=(aResult.Right>=aResult.Left) and (aResult.Bottom>=aResult.Top);
+    end;
 end;
 
 function TFPCustomCanvas.CreateFont : TFPCustomFont;
@@ -260,6 +304,12 @@ var
 begin
   lNewRegion := TFPRectRegion.Create;
   lNewRegion.Rect := AValue;
+  SortRect(lNewRegion.Rect);
+  if FRectangleMode=rmExclude then
+    begin
+    Dec(lNewRegion.Rect.Right);
+    Dec(lNewRegion.Rect.Bottom);
+    end;
   if FClipRegion <> nil then FClipRegion.Free;
   FClipRegion := lNewRegion;
 end;
@@ -511,16 +561,72 @@ begin
   Result:=DoGetTextWidth(UTF8Encode(text));
 end;
 
+{ Returns the points of the arc of the ellipse in aBounds (Right and Bottom
+  included), from the ray at aStart16 over aLength16, in 1/16 degree
+  counter-clockwise from 3 o'clock. }
+function ArcPoints(const aBounds: TRect; aStart16, aLength16: Integer): TFPCanvasPointArray;
+var
+  cx, cy, rx, ry, a0, da, a, r: Double;
+  n, i: Integer;
+begin
+  cx := (aBounds.Left + aBounds.Right) / 2;
+  cy := (aBounds.Top + aBounds.Bottom) / 2;
+  rx := (aBounds.Right - aBounds.Left) / 2;
+  ry := (aBounds.Bottom - aBounds.Top) / 2;
+  if aLength16 > 360*16 then
+    aLength16 := 360*16
+  else if aLength16 < -360*16 then
+    aLength16 := -360*16;
+  a0 := DegToRad(aStart16 / 16);
+  da := DegToRad(aLength16 / 16);
+  n := Ceil(Abs(da) * Max(rx, ry));
+  if n < 1 then
+    n := 1
+  else if n > 100000 then
+    n := 100000;
+  SetLength(Result, n + 1);
+  for i := 0 to n do
+  begin
+    a := a0 + da * i / n;
+    if (rx = 0) or (ry = 0) then
+      Result[i] := Point(Round(cx + rx * Cos(a)), Round(cy - ry * Sin(a)))
+    else
+    begin
+      r := rx * ry / Sqrt(Sqr(ry * Cos(a)) + Sqr(rx * Sin(a)));
+      Result[i] := Point(Round(cx + r * Cos(a)), Round(cy - r * Sin(a)));
+    end;
+  end;
+end;
+
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
   Angle16DegLength: Integer);
+var
+  R: TRect;
+  Pts: TFPCanvasPointArray;
 begin
-
+  if (Pen.Style = psClear) or not DeviceRect(Rect(ALeft, ATop, ARight, ABottom), R) then
+    exit;
+  Pts := ArcPoints(R, Angle16Deg, Angle16DegLength);
+  if Pen is TFPCustomDrawPen then
+    TFPCustomDrawPen(Pen).Polyline(Pts, false)
+  else
+    DoPolyline(Pts);
 end;
 
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, SX, SY, EX,
   EY: Integer);
+var
+  cx, cy: Double;
+  lStart, lEnd, lLength: Integer;
 begin
-
+  cx := (ALeft + ARight) / 2;
+  cy := (ATop + ABottom) / 2;
+  lStart := Round(RadToDeg(ArcTan2(cy - SY, SX - cx)) * 16);
+  lEnd := Round(RadToDeg(ArcTan2(cy - EY, EX - cx)) * 16);
+  lLength := lEnd - lStart;
+  while lLength <= 0 do
+    Inc(lLength, 360*16);
+  Arc(ALeft, ATop, ARight, ABottom, lStart, lLength);
 end;
 
 procedure TFPCustomCanvas.DoMoveTo (x,y:integer);
@@ -639,7 +745,12 @@ procedure TFPCustomCanvas.RadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegL
 var
   R: TRect;
 begin
-  if HasTransform then
+  if FRectangleMode=rmExclude then
+    begin
+    if DeviceRect(Rect(x1, y1, x2, y2), R) then
+      DoRadialPie(R.Left, R.Top, R.Right, R.Bottom, StartAngle16Deg, Angle16DegLength);
+    end
+  else if HasTransform then
     begin
     R := TransformRect(Rect(x1, y1, x2, y2));
     DoRadialPie(R.Left, R.Top, R.Right, R.Bottom, StartAngle16Deg, Angle16DegLength);
@@ -649,9 +760,25 @@ begin
 end;
 
 procedure TFPCustomCanvas.DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
-
+var
+  ArcPts, Pts: TFPCanvasPointArray;
+  i: Integer;
 begin
-  // To be implemented
+  ArcPts := ArcPoints(Rect(x1, y1, x2, y2), StartAngle16Deg, Angle16DegLength);
+  SetLength(Pts, Length(ArcPts) + 1);
+  Pts[0] := Point(Round((x1 + x2) / 2), Round((y1 + y2) / 2));
+  for i := 0 to High(ArcPts) do
+    Pts[i + 1] := ArcPts[i];
+  if Brush.Style <> bsClear then
+    if Brush is TFPCustomDrawBrush then
+      TFPCustomDrawBrush(Brush).Polygon(Pts)
+    else
+      DoPolygonFill(Pts);
+  if Pen.Style <> psClear then
+    if Pen is TFPCustomDrawPen then
+      TFPCustomDrawPen(Pen).Polyline(Pts, true)
+    else
+      DoPolygon(Pts);
 end;
 
 procedure TFPCustomCanvas.DoPolyBezier(Points: PPoint; NumPts: Integer;
@@ -662,7 +789,7 @@ procedure TFPCustomCanvas.DoPolyBezier(Points: PPoint; NumPts: Integer;
 
   Point layout (following Windows GDI PolyBezier convention):
   - Non-continuous: groups of 4 points each (start, cp1, cp2, end).
-    Total points must be 1 + 3*N for N segments.
+    Total points must be 4*N for N segments.
   - Continuous: first segment uses points[0..3], subsequent segments
     use 3 points each (cp1, cp2, end) with start = previous end.
     Total points must be 4 + 3*(N-1) = 1 + 3*N for N segments.
@@ -734,7 +861,10 @@ begin
   if NumPts < 4 then
     exit;
   { Calculate number of cubic segments }
-  NumSegs := (NumPts - 1) div 3;
+  if Continuous then
+    NumSegs := (NumPts - 1) div 3
+  else
+    NumSegs := NumPts div 4;
   if NumSegs < 1 then
     exit;
   { Initialize polygon point collection for filled mode }
@@ -819,10 +949,10 @@ begin
   if Brush.Style <> bsClear then
     begin
     if Brush is TFPCustomDrawBrush then
-      TFPCustomDrawBrush(Brush).Rectangle(0,0, width, height)
+      TFPCustomDrawBrush(Brush).Rectangle(0,0, width-1, height-1)
     else
       begin
-      r := Rect(0,0, width, height);
+      r := Rect(0,0, width-1, height-1);
       DoRectangleFill (r);
       end;
     end;
@@ -836,6 +966,46 @@ begin
     dmAlphaBlend: Colors[x,y] := AlphaBlend(Colors[x,y], newcolor);
     dmCustom: Colors[x,y] := FOnCombineColors(Colors[x,y], newcolor);
   end;
+end;
+
+procedure TFPCustomCanvas.BeginPenShape;
+begin
+  inc(FPenShapeLevel);
+  if (FPenShapeLevel = 1) and ((Pen.Mode <> pmCopy) or (FDrawingMode <> dmOpaque)) then
+  begin
+    FPenShapeWidth := Width;
+    FPenShapeHeight := Height;
+    SetLength(FPenShapeDone, (Int64(FPenShapeWidth) * FPenShapeHeight + 7) div 8);
+    if Length(FPenShapeDone) > 0 then
+      FillChar(FPenShapeDone[0], Length(FPenShapeDone), 0);
+  end;
+end;
+
+procedure TFPCustomCanvas.EndPenShape;
+begin
+  if FPenShapeLevel > 0 then
+    dec(FPenShapeLevel);
+  if FPenShapeLevel = 0 then
+    FPenShapeDone := nil;
+end;
+
+procedure TFPCustomCanvas.DrawPenPixel(const x, y: integer; const newcolor: TFPColor);
+var
+  lIndex: Int64;
+begin
+  if FPenShapeDone <> nil then
+  begin
+    if (x < 0) or (y < 0) or (x >= FPenShapeWidth) or (y >= FPenShapeHeight) then
+      exit;
+    lIndex := Int64(y) * FPenShapeWidth + x;
+    if (FPenShapeDone[lIndex shr 3] and (1 shl (lIndex and 7))) <> 0 then
+      exit;
+    FPenShapeDone[lIndex shr 3] := FPenShapeDone[lIndex shr 3] or (1 shl (lIndex and 7));
+  end;
+  if Pen.Mode = pmCopy then
+    DrawPixel(x, y, newcolor)
+  else
+    Colors[x,y] := PenModeColor(Pen.Mode, newcolor, Colors[x,y]);
 end;
 
 procedure TFPCustomCanvas.Erase;
@@ -866,42 +1036,42 @@ var
   oldPenStyle: TFPPenStyle;
   oldPenWidth: Integer;
   oldPenColor: TFPColor;
+  lRect: TRect;
 begin
+  if not UserRect(ARect, lRect) then
+    exit;
   oldPenStyle := Pen.Style;
   oldPenWidth := Pen.Width;
   oldPenColor := Pen.FPColor;
   Pen.Style := psSolid;
   Pen.Width := 1;
-
-  if ADirection = gdVertical then
-  begin
-    n := ARect.Bottom - ARect.Top;
-    if n = 0 then
-      exit;
-    i := 0;
-    for y := ARect.Top to ARect.Bottom - 1 do
+  try
+    if ADirection = gdVertical then
     begin
-      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
-      Line(ARect.Left, y, ARect.Right - 1, y);
-      inc(i);
-    end;
-  end else
-  begin
-    n := ARect.Right - ARect.Left;
-    if n = 0 then
-      exit;
-    i := 0;
-    for x := ARect.Left to ARect.Right - 1 do
+      n := lRect.Bottom - lRect.Top + 1;
+      i := 0;
+      for y := lRect.Top to lRect.Bottom do
+      begin
+        Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+        Line(lRect.Left, y, lRect.Right, y);
+        inc(i);
+      end;
+    end else
     begin
-      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
-      Line(x, ARect.Top, x, ARect.Bottom - 1);
-      inc(i);
+      n := lRect.Right - lRect.Left + 1;
+      i := 0;
+      for x := lRect.Left to lRect.Right do
+      begin
+        Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+        Line(x, lRect.Top, x, lRect.Bottom);
+        inc(i);
+      end;
     end;
+  finally
+    Pen.Style := oldPenStyle;
+    Pen.Width := oldPenWidth;
+    Pen.FPColor := oldPenColor;
   end;
-
-  Pen.Style := oldPenStyle;
-  Pen.Width := oldPenWidth;
-  Pen.FPColor := oldPenColor;
 end;
 
 procedure TFPCustomCanvas.DoRectangleAndFill (const Bounds:TRect);
@@ -927,10 +1097,8 @@ var
   p,b,dp,db,pb : boolean;
   TB: TRect;
 begin
-  if HasTransform then
-    TB := TransformRect(Bounds)
-  else
-    TB := Bounds;
+  if not DeviceRect(Bounds, TB) then
+    exit;
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
   pb := false;
@@ -976,7 +1144,10 @@ end;
 
 procedure TFPCustomCanvas.EllipseC (x,y:integer; rx,ry:longword);
 begin
-  Ellipse (Rect(x-rx,y-ry,x+rx,y+ry));
+  if FRectangleMode=rmExclude then
+    Ellipse (Rect(x-rx,y-ry,x+rx+1,y+ry+1))
+  else
+    Ellipse (Rect(x-rx,y-ry,x+rx,y+ry));
 end;
 
 procedure TFPCustomCanvas.Rectangle (left,top,right,bottom:integer);
@@ -988,12 +1159,8 @@ procedure TFPCustomCanvas.FillRect(const ARect: TRect);
 var
   TR: TRect;
 begin
-  if (Brush.style <> bsClear) then
+  if (Brush.style <> bsClear) and DeviceRect(ARect, TR) then
     begin
-    if HasTransform then
-      TR := TransformRect(ARect)
-    else
-      TR := ARect;
     if not (brush is TFPCustomDrawBrush) then
       DoRectangleFill (TR)
     else
@@ -1017,10 +1184,12 @@ begin
   if HasTransform and HasRotation then
     begin
     // When rotation is active, convert rectangle to polygon with pre-transformed corners
-    Corners[0] := FMatrix.Transform(Bounds.Left, Bounds.Top);
-    Corners[1] := FMatrix.Transform(Bounds.Right, Bounds.Top);
-    Corners[2] := FMatrix.Transform(Bounds.Right, Bounds.Bottom);
-    Corners[3] := FMatrix.Transform(Bounds.Left, Bounds.Bottom);
+    if not UserRect(Bounds, TB) then
+      exit;
+    Corners[0] := FMatrix.Transform(TB.Left, TB.Top);
+    Corners[1] := FMatrix.Transform(TB.Right+1, TB.Top);
+    Corners[2] := FMatrix.Transform(TB.Right+1, TB.Bottom+1);
+    Corners[3] := FMatrix.Transform(TB.Left, TB.Bottom+1);
     np := Pen.style <> psClear;
     nb := Brush.style <> bsClear;
     if np and nb then
@@ -1034,10 +1203,8 @@ begin
       end;
     exit;
     end;
-  if HasTransform then
-    TB := TransformRect(Bounds)
-  else
-    TB := Bounds;
+  if not DeviceRect(Bounds, TB) then
+    exit;
   np:= Pen.style <> psClear; // Need pen ?
   nb:= Brush.style <> bsClear;  // Need brush ?
   dp:=(pen is TFPCustomDrawPen); // Pen draws ?
@@ -1149,7 +1316,8 @@ begin
     x := P.X;
     y := P.Y;
     end;
-  SortRect (SourceRect);
+  if not UserRect (SourceRect, SourceRect) then
+    exit;
   with SourceRect do begin
     for t := top to bottom do begin
       yy := t - top + y;
@@ -1181,7 +1349,7 @@ begin
   xi := x;
   yi := y;
   if clipping then
-    if not CheckRectClipping (ClipRect, xi,yi, xm,ym) then
+    if not CheckRectClipping (DeviceClipRect, xi,yi, xm,ym) then
       exit;
   for r := xi to xm do
     begin
@@ -1198,7 +1366,7 @@ var
 begin
   FreeInterpolation := not assigned (FInterpolation);
   if FreeInterpolation then
-    IP := TMitchelInterpolation.Create
+    IP := TMitchellInterpolation.Create
   else
     IP := FInterpolation;
   try

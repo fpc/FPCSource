@@ -223,9 +223,6 @@ type
   { TFPBaseInterpolation }
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
-  private
-    procedure CreatePixelWeights (OldSize, NewSize: integer;
-      out Entries: Pointer; out EntrySize: integer; out Support: integer);
   protected
     procedure Execute (x,y,w,h : integer); override;
     function Filter (x : double): double; virtual;
@@ -239,7 +236,7 @@ type
     function Filter (x : double) : double; override;
     function MaxSupport : double; override;
   end;
-  TMitchelInterpolation = TFPBaseInterpolation deprecated 'Use TMitchellInterpolation';
+  TMitchelInterpolation = TMitchellInterpolation deprecated 'Use TMitchellInterpolation';
 
   TFPCustomRegion = class
   public
@@ -259,6 +256,14 @@ type
   TFPDrawingMode = (dmOpaque, dmAlphaBlend, dmCustom);
   TFPCanvasCombineColors = function(const color1, color2: TFPColor): TFPColor of object;
   TFPGradientDirection = (gdVertical, gdHorizontal);
+  // rmInclude: Right and Bottom of a rectangle are painted; rmExclude: they are not (as in TRect)
+  TRectangleMode = (rmInclude, rmExclude);
+  // emCentered: a thick ellipse outline is centred on the bounds; emInside: it stays inside them
+  TEllipseMode = (emCentered, emInside);
+  // hoDefault: rectangles and polygons are hatched from their own corner, ellipses and flood fills
+  // from the canvas origin; hoShape: every hatch starts at the top-left of the shape, or at the start
+  // point of a flood fill; hoCanvas: every hatch starts at the canvas origin.
+  THatchOrigin = (hoDefault, hoShape, hoCanvas);
 
   { TFPCustomCanvas }
 
@@ -273,6 +278,11 @@ type
     FInterpolation : TFPCustomInterpolation;
     FDrawingMode : TFPDrawingMode;
     FOnCombineColors : TFPCanvasCombineColors;
+    FRectangleMode : TRectangleMode;
+    FEllipseMode : TEllipseMode;
+    FPenShapeLevel : integer;
+    FPenShapeWidth, FPenShapeHeight : integer;
+    FPenShapeDone : array of byte;
     function AllowFont (AFont : TFPCustomFont) : boolean;
     function AllowBrush (ABrush : TFPCustomBrush) : boolean;
     function AllowPen (APen : TFPCustomPen) : boolean;
@@ -289,6 +299,11 @@ type
     FDefaultPen, FPen : TFPCustomPen;
     FPenPos : TPoint;
     FClipRegion : TFPCustomRegion;
+    // Starts a shape in which the pen combines each pixel with Pen.Mode at most once, even where
+    // its strokes overlap, until the matching EndPenShape.
+    procedure BeginPenShape;
+    // Ends a shape started with BeginPenShape.
+    procedure EndPenShape;
     function DoCreateDefaultFont : TFPCustomFont; virtual; abstract;
     function DoCreateDefaultPen : TFPCustomPen; virtual; abstract;
     function DoCreateDefaultBrush : TFPCustomBrush; virtual; abstract;
@@ -305,6 +320,7 @@ type
     procedure SetWidth (AValue : integer); virtual; abstract;
     function  GetWidth : integer; virtual; abstract;
     function  GetClipRect: TRect; virtual;
+    function  GetDeviceClipRect: TRect; virtual;
     procedure SetClipRect(const AValue: TRect); virtual;
     function  GetClipping: boolean; virtual;
     procedure SetClipping(const AValue: boolean); virtual;
@@ -346,6 +362,14 @@ type
     function TransformRect(const R: TRect): TRect;
     function TransformPoints(const Points: array of TPoint): TFPCanvasPointArray;
     function HasRotation: Boolean;
+    // Returns in aResult aRect with its corners ordered and, under rmExclude, Right and Bottom moved in
+    // by one pixel so that both are included; returns False when the rectangle covers no pixel.
+    function UserRect(const aRect: TRect; out aResult: TRect): Boolean;
+    // Returns in aResult the device pixels covered by aRect: the UserRect result mapped through the
+    // transformation, Right and Bottom included; returns False when it covers no pixel.
+    function DeviceRect(const aRect: TRect; out aResult: TRect): Boolean;
+    // The clip rectangle in device pixels, Right and Bottom included, whatever RectangleMode is.
+    property DeviceClipRect : TRect read GetDeviceClipRect;
   public
     constructor create;
     destructor destroy; override;
@@ -406,6 +430,8 @@ type
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage); virtual;
     procedure Erase;virtual;
     procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
+    // Draws a pen pixel, combined with the pixel at (x, y) by Pen.Mode.
+    procedure DrawPenPixel(const x, y: integer; const newcolor: TFPColor);
     procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection); virtual;
     // coordinate transformation
     property TransformMatrix: TFPCanvasMatrix read FMatrix write FMatrix;
@@ -429,6 +455,10 @@ type
     property Width : integer read GetWidth write SetWidth;
     property ManageResources: boolean read FManageResources write FManageResources;
     property DrawingMode : TFPDrawingMode read FDrawingMode write FDrawingMode;
+    // Whether the Right and Bottom of rectangles given to the canvas (shapes, fills, ClipRect, CopyRect) are painted.
+    property RectangleMode : TRectangleMode read FRectangleMode write FRectangleMode;
+    // Whether a thick ellipse outline is centred on its bounds or drawn inside them.
+    property EllipseMode : TEllipseMode read FEllipseMode write FEllipseMode;
     property OnCombineColors : TFPCanvasCombineColors read FOnCombineColors write FOnCombineColors;
   end;
 
@@ -492,6 +522,9 @@ procedure DecRect (var rect : TRect; delta:integer);
 procedure IncRect (var rect : TRect; delta:integer);
 procedure DecRect (var rect : TRect);
 procedure IncRect (var rect : TRect);
+// Returns the colour that pen mode aMode gives when pen colour aPen is drawn over pixel colour aDest,
+// computed per RGB channel; the result has the alpha of aDest.
+function PenModeColor(aMode: TFPPenMode; const aPen, aDest: TFPColor): TFPColor;
 
 implementation
 
@@ -541,6 +574,39 @@ begin
     bottom := bottom + delta;
     end;
 end;
+
+function PenModeColor(aMode: TFPPenMode; const aPen, aDest: TFPColor): TFPColor;
+
+  function Channel(aP, aD: Word): Word;
+  begin
+    case aMode of
+      pmBlack: Result := 0;
+      pmWhite: Result := $FFFF;
+      pmNop: Result := aD;
+      pmNot: Result := not aD;
+      pmCopy: Result := aP;
+      pmNotCopy: Result := not aP;
+      pmMergePenNot: Result := aP or not aD;
+      pmMaskPenNot: Result := aP and not aD;
+      pmMergeNotPen: Result := not aP or aD;
+      pmMaskNotPen: Result := not aP and aD;
+      pmMerge: Result := aP or aD;
+      pmNotMerge: Result := not (aP or aD);
+      pmMask: Result := aP and aD;
+      pmNotMask: Result := not (aP and aD);
+      pmXor: Result := aP xor aD;
+    else
+      Result := not (aP xor aD);
+    end;
+  end;
+
+begin
+  Result.Red := Channel(aPen.Red, aDest.Red);
+  Result.Green := Channel(aPen.Green, aDest.Green);
+  Result.Blue := Channel(aPen.Blue, aDest.Blue);
+  Result.Alpha := aDest.Alpha;
+end;
+
 
 { TFPRectRegion }
 

@@ -21,233 +21,185 @@ begin
   fcanvas := acanvas;
 end;
 
+type
+  TInterpolationKernel = function (x: double): double of object;
+
+  // The source pixels of one destination pixel: source pixel Start+i has weight Weights[i].
+  TPixelWeights = record
+    Start: integer;
+    Weights: array of double;
+  end;
+  TPixelWeightTable = array of TPixelWeights;
+
+{ Returns for each of NewSize destination pixels the weights of the OldSize
+  source pixels. Shrinking weights every source pixel by the part of the
+  destination pixel it covers. Enlarging samples source position
+  (OldSize-1)*(i+0.5)/NewSize with Kernel over Support, the source extended
+  by its edge pixels; without Kernel the nearest source pixel is taken. }
+function PixelWeightTable(OldSize, NewSize: integer; Kernel: TInterpolationKernel;
+  Support: double): TPixelWeightTable;
+var
+  i, j, k, lo, hi: integer;
+  a, b, factor, p, w, sum: double;
+  acc: array of double;
+begin
+  Result := nil;
+  SetLength(Result, NewSize);
+  SetLength(acc, OldSize);
+  for i := 0 to NewSize-1 do
+  begin
+    for k := 0 to OldSize-1 do
+      acc[k] := 0;
+    if NewSize = OldSize then
+      acc[i] := 1
+    else if NewSize < OldSize then
+    begin
+      factor := OldSize / NewSize;
+      a := i * factor;
+      b := (i + 1) * factor;
+      for j := Floor(a) to Min(Ceil(b), OldSize) - 1 do
+        acc[j] := (Min(b, j + 1) - Max(a, j)) / factor;
+    end
+    else if not Assigned(Kernel) then
+      acc[Min(OldSize-1, Floor((i + 0.5) * OldSize / NewSize))] := 1
+    else
+    begin
+      p := (OldSize - 1) * (i + 0.5) / NewSize;
+      for j := Floor(p - Support) to Ceil(p + Support) do
+        if Abs(p - j) < Support then
+        begin
+          w := Kernel(Abs(p - j));
+          k := Min(Max(j, 0), OldSize - 1);
+          acc[k] := acc[k] + w;
+        end;
+      sum := 0;
+      for k := 0 to OldSize-1 do
+        sum := sum + acc[k];
+      if Abs(sum) < 1e-9 then
+      begin
+        for k := 0 to OldSize-1 do
+          acc[k] := 0;
+        acc[Min(OldSize-1, Max(0, Round(p)))] := 1;
+      end
+      else
+        for k := 0 to OldSize-1 do
+          acc[k] := acc[k] / sum;
+    end;
+    lo := 0;
+    while (lo < OldSize - 1) and (acc[lo] = 0) do
+      inc(lo);
+    hi := OldSize - 1;
+    while (hi > lo) and (acc[hi] = 0) do
+      dec(hi);
+    Result[i].Start := lo;
+    SetLength(Result[i].Weights, hi - lo + 1);
+    for k := lo to hi do
+      Result[i].Weights[k - lo] := acc[k];
+  end;
+end;
+
+{ Draws Image scaled to the w x h pixels at (x, y) of Canvas; each destination
+  pixel mixes the source pixels XTable and YTable give it, colours weighted by
+  their alpha. }
+procedure ResampleImage(Image: TFPCustomImage; Canvas: TFPCustomCanvas; x, y, w, h: integer;
+  const XTable, YTable: TPixelWeightTable);
+type
+  TPremultiplied = record
+    r, g, b, a: double;
+  end;
+var
+  rows: array of TPremultiplied;
+  sx, sy, dx, dy, k: integer;
+  f: double;
+  c: TFPColor;
+  acc: TPremultiplied;
+
+  function ToWord(v: double): word;
+  begin
+    if v <= 0 then
+      Result := 0
+    else if v >= $FFFF then
+      Result := $FFFF
+    else
+      Result := Round(v);
+  end;
+
+begin
+  // horizontal pass over every source row, premultiplied by alpha
+  SetLength(rows, Image.Height * w);
+  for sy := 0 to Image.Height - 1 do
+    for dx := 0 to w - 1 do
+    begin
+      acc.r := 0; acc.g := 0; acc.b := 0; acc.a := 0;
+      with XTable[dx] do
+        for k := 0 to High(Weights) do
+        begin
+          f := Weights[k];
+          c := Image.Colors[Start + k, sy];
+          acc.r := acc.r + f * c.Red * c.Alpha;
+          acc.g := acc.g + f * c.Green * c.Alpha;
+          acc.b := acc.b + f * c.Blue * c.Alpha;
+          acc.a := acc.a + f * c.Alpha;
+        end;
+      rows[sy * w + dx] := acc;
+    end;
+  // vertical pass
+  for dy := 0 to h - 1 do
+    for dx := 0 to w - 1 do
+    begin
+      acc.r := 0; acc.g := 0; acc.b := 0; acc.a := 0;
+      with YTable[dy] do
+        for k := 0 to High(Weights) do
+        begin
+          f := Weights[k];
+          sx := (Start + k) * w + dx;
+          acc.r := acc.r + f * rows[sx].r;
+          acc.g := acc.g + f * rows[sx].g;
+          acc.b := acc.b + f * rows[sx].b;
+          acc.a := acc.a + f * rows[sx].a;
+        end;
+      if acc.a > 0.5 then
+      begin
+        c.Red := ToWord(acc.r / acc.a);
+        c.Green := ToWord(acc.g / acc.a);
+        c.Blue := ToWord(acc.b / acc.a);
+      end
+      else
+      begin
+        c.Red := 0;
+        c.Green := 0;
+        c.Blue := 0;
+      end;
+      c.Alpha := ToWord(acc.a);
+      Canvas.DrawPixel(x + dx, y + dy, c);
+    end;
+end;
+
 { TFPBoxInterpolation }
 
 procedure TFPBoxInterpolation.Execute(x,y,w,h:integer);
-var
-  dx, dy, iw, ih: Integer;
 begin
-  iw := Image.Width;
-  ih := Image.Height;
-
-  for dx := 0 to w-1 do
-    for dy := 0 to h-1 do
-      Canvas.DrawPixel(x+dx,y+dy, Image.Colors[dx*iw div w, dy*ih div h]);
+  if (w<=0) or (h<=0) or (Image.Width=0) or (Image.Height=0) then
+    exit;
+  ResampleImage(Image, Canvas, x, y, w, h,
+    PixelWeightTable(Image.Width, w, nil, 0), PixelWeightTable(Image.Height, h, nil, 0));
 end;
 
 { TFPBaseInterpolation }
 
-procedure TFPBaseInterpolation.CreatePixelWeights(OldSize, NewSize: integer;
-  out Entries: Pointer; out EntrySize: integer; out Support: integer);
-// create an array of #NewSize entries. Each entry starts with an integer
-// for the StartIndex, followed by #Support singles for the pixel weights.
-// The sum of weights for each entry is 1.
-var
-  Entry: Pointer;
-
-  procedure SetSupport(NewSupport: integer);
-  begin
-    Support:=NewSupport;
-    EntrySize:=SizeOf(integer)+SizeOf(Single)*Support;
-    Getmem(Entries,EntrySize*NewSize);
-    Entry:=Entries;
-  end;
-
-var
-  i: Integer;
-  Factor: double;
-  StartPos: Double;
-  StartIndex: Integer;
-  j: Integer;
-  FirstValue: Double;
-  //Sum: double;
-begin
-  if NewSize=OldSize then
-  begin
-    SetSupport(1);
-    for i:=0 to NewSize-1 do
-    begin
-      // 1:1
-      PInteger(Entry)^:=i;
-      inc(Entry,SizeOf(Integer));
-      PSingle(Entry)^:=1.0;
-      inc(Entry,SizeOf(Single));
-    end;
-  end else if NewSize<OldSize then
-  begin
-    // shrink
-    SetSupport(Max(2,(OldSize+NewSize-1) div NewSize));
-    Factor:=double(OldSize)/double(NewSize);
-    for i:=0 to NewSize-1 do
-    begin
-      StartPos:=Factor*i;
-      StartIndex:=Floor(StartPos);
-      PInteger(Entry)^:=StartIndex;
-      inc(Entry,SizeOf(Integer));
-      // first pixel
-      FirstValue:=(1.0-(StartPos-double(StartIndex)));
-      PSingle(Entry)^:=FirstValue/Factor;
-      inc(Entry,SizeOf(Single));
-      // middle pixel
-      for j:=1 to Support-2 do
-      begin
-        PSingle(Entry)^:=1.0/Factor;
-        inc(Entry,SizeOf(Single));
-      end;
-      // last pixel
-      PSingle(Entry)^:=(Factor-FirstValue-(Support-2))/Factor;
-      inc(Entry,SizeOf(Single));
-    end;
-  end else
-  begin
-    // enlarge
-    if OldSize=1 then
-    begin
-      SetSupport(1);
-      for i:=0 to NewSize-1 do
-      begin
-        // nothing to interpolate
-        PInteger(Entry)^:=0;
-        inc(Entry,SizeOf(Integer));
-        PSingle(Entry)^:=1.0;
-        inc(Entry,SizeOf(Single));
-      end;
-    end else
-    begin
-      SetSupport(2);
-      Factor:=double(OldSize-1)/double(NewSize);
-      for i:=0 to NewSize-1 do
-      begin
-        StartPos:=Factor*(i+0.5);
-        StartIndex:=Floor(StartPos);
-        PInteger(Entry)^:=StartIndex;
-        inc(Entry,SizeOf(Integer));
-        // first pixel
-        FirstValue := StartPos-double(StartIndex);
-        // convert linear distribution
-        FirstValue:=Min(1.0,Max(0.0,Filter(FirstValue)));
-        PSingle(Entry)^:=FirstValue;
-        inc(Entry,SizeOf(Single));
-        // last pixel
-        PSingle(Entry)^:=1.0-FirstValue;
-        inc(Entry,SizeOf(Single));
-      end;
-    end;
-  end;
-  if Entry<>Entries+EntrySize*NewSize then
-    raise Exception.Create('TFPBase2Interpolation.Execute inconsistency');
-end;
-
 procedure TFPBaseInterpolation.Execute(x, y, w, h: integer);
 // paint Image on Canvas at x,y,w*h
-var
-  dy: Integer;
-  dx: Integer;
-  HorzResized: PFPColor;
-  xEntries: Pointer;
-  xEntrySize: integer;
-  xSupport: integer;// how many horizontal pixel are needed to create one pixel
-  yEntries: Pointer;
-  yEntrySize: integer;
-  ySupport: integer;// how many vertical pixel are needed to create one pixel
-  NewSupportLines: LongInt;
-  yEntry: Pointer;
-  SrcStartY: LongInt;
-  LastSrcStartY: LongInt;
-  sy: Integer;
-  xEntry: Pointer;
-  sx: LongInt;
-  cx: Integer;
-  f: Single;
-  NewCol: TFPColor;
-  Col: TFPColor;
-  CurEntry: Pointer;
 begin
   if (w<=0) or (h<=0) or (image.Width=0) or (image.Height=0) then
     exit;
-
-  xEntries:=nil;
-  yEntries:=nil;
-  HorzResized:=nil;
-  try
-    CreatePixelWeights(image.Width,w,xEntries,xEntrySize,xSupport);
-    CreatePixelWeights(image.Height,h,yEntries,yEntrySize,ySupport);
-    // create temporary buffer for the horizontally resized pixel for the
-    // current y line
-    GetMem(HorzResized,w*ySupport*SizeOf(TFPColor));
-
-    SrcStartY:=0;
-    for dy:=0 to h-1 do
-    begin
-      if dy=0 then
-      begin
-        yEntry:=yEntries;
-        SrcStartY:=PInteger(yEntry)^;
-        NewSupportLines:=ySupport;
-      end else
-      begin
-        LastSrcStartY:=SrcStartY;
-        inc(yEntry,yEntrySize);
-        SrcStartY:=PInteger(yEntry)^;
-        NewSupportLines:=SrcStartY-LastSrcStartY;
-        // move lines up
-        if (NewSupportLines>0) and (ySupport>NewSupportLines) then
-          System.Move(HorzResized[NewSupportLines*w],
-                      HorzResized[0],
-                      (ySupport-NewSupportLines)*w*SizeOf(TFPColor));
-      end;
-
-      // compute new horizontally resized line(s)
-      for sy:=ySupport-NewSupportLines to ySupport-1 do
-      begin
-        xEntry:=xEntries;
-        for dx:=0 to w-1 do
-        begin
-          sx:=PInteger(xEntry)^;
-          inc(xEntry,SizeOf(integer));
-          NewCol:= colTransparent;
-          for cx:=0 to xSupport-1 do
-          begin
-            f:=PSingle(xEntry)^;
-            inc(xEntry,SizeOf(Single));
-            Col:=image.Colors[sx+cx,SrcStartY+sy];
-            NewCol.red:=Min(NewCol.red+round(Col.red*f),$ffff);
-            NewCol.green:=Min(NewCol.green+round(Col.green*f),$ffff);
-            NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
-            NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
-          end;
-          HorzResized[dx+sy*w]:=NewCol;
-        end;
-      end;
-
-      // compute new vertically resized line
-      for dx:=0 to w-1 do
-      begin
-        CurEntry:=yEntry+SizeOf(integer);
-        NewCol:=colTransparent;
-        for sy:=0 to ySupport-1 do
-        begin
-          f:=PSingle(CurEntry)^;
-          inc(CurEntry,SizeOf(Single));
-          Col:=HorzResized[dx+sy*w];
-          NewCol.red:=Min(NewCol.red+round(Col.red*f),$ffff);
-          NewCol.green:=Min(NewCol.green+round(Col.green*f),$ffff);
-          NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
-          NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
-        end;
-        Canvas.DrawPixel(x+dx,y+dy, NewCol);
-      end;
-    end;
-  finally
-    if xEntries<>nil then FreeMem(xEntries);
-    if yEntries<>nil then FreeMem(yEntries);
-    if HorzResized<>nil then FreeMem(HorzResized);
-  end;
+  ResampleImage(Image, Canvas, x, y, w, h,
+    PixelWeightTable(Image.Width, w, @Filter, MaxSupport),
+    PixelWeightTable(Image.Height, h, @Filter, MaxSupport));
 end;
 
 function TFPBaseInterpolation.Filter(x: double): double;
 begin
-  Result := 1.0 - x;
+  Result := 1.0 - Abs(x);
 end;
 
 function TFPBaseInterpolation.MaxSupport: double;
