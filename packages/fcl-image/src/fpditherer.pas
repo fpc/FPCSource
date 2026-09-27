@@ -111,11 +111,14 @@ begin
 end;
 
 constructor TFPBaseDitherer.Create(ThePalette : TFPPalette);
+var i : integer;
 begin
   FSorted:=false;
   FUseAlpha:=false;
   FImage:=nil;
-  FPalette:=ThePalette;
+  FPalette:=TFPPalette.Create(ThePalette.Count);
+  for i:=0 to ThePalette.Count-1 do
+    FPalette.Color[i]:=ThePalette.Color[i];
   FUseHash:=true;
   FHashMap:=TFPColorHashTable.Create;
 end;
@@ -124,6 +127,19 @@ destructor TFPBaseDitherer.Destroy;
 begin
   if Assigned(FHashMap) then
     FHashMap.Free;
+  FPalette.Free;
+  inherited Destroy;
+end;
+
+// Makes the palette of Dest a copy of Palette, entry by entry.
+procedure CopyPalette(Palette : TFPPalette; Dest : TFPCustomImage);
+var i : integer;
+begin
+  Dest.UsePalette:=true;
+  Dest.Palette.Clear;
+  Dest.Palette.Count:=Palette.Count;
+  for i:=0 to Palette.Count-1 do
+    Dest.Palette.Color[i]:=Palette.Color[i];
 end;
 
 procedure TFPBaseDitherer.SetUseHash(Value : boolean);
@@ -272,12 +288,15 @@ begin
       tmpdinst:=ColorCompare(OrigColor,Fpalette[i]);
       if tmpdinst<0 then bottom:=i-1
       else if tmpdinst>0 then top:=i+1
-      else break; { we found it }
+      else
+      begin
+        curr:=i;
+        dinst:=0;
+        break;
+      end;
     end;
-    curr:=i;
-    dinst:=GetColorDinst(OrigColor,Fpalette[i]);
-  end
-  else
+  end;
+  if dinst<>0 then
     for i:=0 to FPalette.Count-1 do
     begin
       tmpdinst:=GetColorDinst(OrigColor,FPalette[i]);
@@ -317,9 +336,7 @@ begin
   FContinue:=true;
   Progress (self,psStarting,0,'',FContinue);
   Dest.SetSize(0,0);
-  Dest.UsePalette:=true;
-  Dest.Palette.Clear;
-  Dest.Palette.Merge(FPalette);
+  CopyPalette(FPalette,Dest);
   Dest.SetSize(FImage.Width,FImage.Height);
   for j:=0 to FImage.Height-1 do
     for i:=0 to FImage.Width-1 do
@@ -409,7 +426,7 @@ begin
   getmem(line^.pixels,sizeof(TFPPixelReal)*(FImage.Width+2));
   if line^.pixels=nil then
     raise FPDithererException.Create('Out of memory');
-  if row<FImage.Height-1 then
+  if row<FImage.Height then
   begin
     line^.pixels[0]:=FSNullPixel;
     line^.pixels[FImage.Width+1]:=FSNullPixel;
@@ -506,13 +523,11 @@ var i : integer;
     FContinue : boolean;
 begin
   FImage:=Source;
-  if FImage.Height=0 then exit;
   Dest.SetSize(0,0);
+  CopyPalette(FPalette,Dest);
+  Dest.SetSize(FImage.Width,FImage.Height);
+  if (FImage.Height=0) or (FImage.Width=0) then exit;
   try
-    Dest.UsePalette:=true;
-    Dest.Palette.Clear;
-    Dest.Palette.Merge(FPalette);
-    Dest.SetSize(FImage.Width,FImage.Height);
     percent:=0;
     percentinterval:=(FImage.Height*4) div 100;
     if percentinterval=0 then percentinterval:=$FFFFFFFF;
