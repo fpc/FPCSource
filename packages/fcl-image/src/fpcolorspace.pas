@@ -312,7 +312,7 @@ type
     function ToStdCMYK: TStdCMYK;
     {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
     function ToYCbCr(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TYCbCr; overload;
-    function ToYCbCr(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TYCbCr; overload;
+    function ToYCbCr(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114; ASamplePrecision:Single=0.5): TYCbCr; overload;
   end;
 
   { TAdobeRGBAHelper }
@@ -470,6 +470,27 @@ uses System.Math;
 {$ELSE}
 uses math;
 {$ENDIF}
+
+const
+  AdobeRGBGamma = 563/256;
+
+// Returns the linear value of the sRGB component aValue (IEC 61966-2-1).
+function SRGBToLinearValue(aValue: single): single;
+begin
+  if aValue <= 0.04045 then
+    Result := aValue / 12.92
+  else
+    Result := Power((aValue + 0.055) / 1.055, 2.4);
+end;
+
+// Returns the sRGB component of the linear value aValue (IEC 61966-2-1).
+function LinearToSRGBValue(aValue: single): single;
+begin
+  if aValue <= 0.0031308 then
+    Result := aValue * 12.92
+  else
+    Result := 1.055 * Power(aValue, 1 / 2.4) - 0.055;
+end;
 
 type
   Int32or64 = {$IFDEF CPU64}Int64{$ELSE}LongInt{$ENDIF};
@@ -1358,7 +1379,7 @@ begin
   c.hue := FPHueGSBAToHSLA(self.hue);
   c.lightness := 32768;
   result :=c.ToExpanded;
-  result.SetLightness(self.lightness);
+  result :=result.SetLightness(self.lightness);
 end;
 
 function TGSBAPixel.ToHSLA: THSLAPixel;
@@ -1457,9 +1478,9 @@ end;
 
 function TExpandedPixelHelper.ToStdRGBA: TStdRGBA;
 begin
-  result.red := FPGammaCompression(self.red);
-  result.green := FPGammaCompression(self.green);
-  result.blue := FPGammaCompression(self.blue);
+  result.red := FPGammaCompression(self.red)/65535;
+  result.green := FPGammaCompression(self.green)/65535;
+  result.blue := FPGammaCompression(self.blue)/65535;
   result.alpha := self.alpha/65535;
 end;
 
@@ -1520,7 +1541,9 @@ end;
 
 function TStdRGBAHelper.ToLinearRGBA: TLinearRGBA;
 begin
-  result := self.ToExpandedPixel.ToLinearRGBA;
+  result.red := SRGBToLinearValue(self.red);
+  result.green := SRGBToLinearValue(self.green);
+  result.blue := SRGBToLinearValue(self.blue);
   result.alpha := self.alpha;
 end;
 
@@ -1626,13 +1649,13 @@ begin
   end;
 end;
 
-function TStdRGBAHelper.ToYCbCr(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TYCbCr;
+function TStdRGBAHelper.ToYCbCr(LumaRed: Single; LumaGreen: Single; LumaBlue: Single; ASamplePrecision:Single): TYCbCr;
 begin
   with self  do
   begin
     result.Y :=  ( LumaRed * red + LumaGreen * green + LumaBlue * blue );
-    result.Cb := ( blue - result.Y ) / ( 2 - 2 * LumaBlue );
-    result.Cr := ( red - result.Y ) / ( 2 - 2 * LumaRed );
+    result.Cb := ( blue - result.Y ) / ( 2 - 2 * LumaBlue ) + ASamplePrecision;
+    result.Cr := ( red - result.Y ) / ( 2 - 2 * LumaRed ) + ASamplePrecision;
   end;
 end;
 
@@ -1647,9 +1670,9 @@ end;
 function TAdobeRGBAHelper.ToXYZA(const AReferenceWhite: TXYZReferenceWhite): TXYZA;
 var R,G,B: single;
 begin
-  R := FPGammaExpansionTab[self.red]/65535;
-  G := FPGammaExpansionTab[self.green]/65535;
-  B := FPGammaExpansionTab[self.blue]/65535;
+  R := Power(self.red/255, AdobeRGBGamma);
+  G := Power(self.green/255, AdobeRGBGamma);
+  B := Power(self.blue/255, AdobeRGBGamma);
   if AReferenceWhite.Illuminant = 'D50' then
   begin
     result.X := R*0.6097559 + G*0.2052401 + B*0.1492240;
@@ -1743,6 +1766,7 @@ begin
   else
     Result.saturation := 0;
   Result.value := v;
+  Result.alpha := self.alpha;
 end;
 
 function TStdHSLAHelper.ToExpandedPixel: TExpandedPixel;
@@ -1823,11 +1847,12 @@ begin
   s := self.saturation;
   v := self.value;
   l := 0.5 * v * (2 - s);
-  if l <> 0 then
+  if (l > 0) and (l < 1) then
     Result.saturation := v * s / (1 - abs(2 * l - 1))
   else
     Result.saturation := 0;
   Result.lightness := l;
+  Result.alpha := self.alpha;
 end;
 
 { TStdCMYKHelper }
@@ -1850,7 +1875,7 @@ end;
 
 function TStdCMYKHelper.ToExpandedPixel(AAlpha: word): TExpandedPixel;
 begin
-  result :=self.ToStdRGBA(AAlpha).ToExpandedPixel;
+  result :=self.ToStdRGBA(AAlpha/65535).ToExpandedPixel;
 end;
 
 function TStdCMYKHelper.ToFPColor(const AAlpha: Word): TFPColor;
@@ -1946,6 +1971,7 @@ begin
     result.red := Y + e * (Cr-ASamplePrecision);
     result.green := Y - (a * e / b) * (Cr-ASamplePrecision) - (c * d / b) * (Cb-ASamplePrecision);
     result.blue := Y + d * (Cb-ASamplePrecision);
+    result.alpha := 1;
   end;
 end;
 
@@ -1956,6 +1982,7 @@ begin
     result.red := (Cr-ASamplePrecision) * ( 2 - 2 * LumaRed ) + Y;
     result.blue := (Cb-ASamplePrecision) * ( 2 - 2 * LumaBlue ) + Y;
     result.green :=  ( Y - LumaBlue * result.blue - LumaRed * result.red ) / LumaGreen;
+    result.alpha := 1;
   end;
 end;
 
@@ -2014,7 +2041,9 @@ end;
 
 function TLinearRGBAHelper.ToStdRGBA: TStdRGBA;
 begin
-  result := self.ToExpandedPixel.ToStdRGBA;
+  result.red := LinearToSRGBValue(Clamp(self.red, 0, 1));
+  result.green := LinearToSRGBValue(Clamp(self.green, 0, 1));
+  result.blue := LinearToSRGBValue(Clamp(self.blue, 0, 1));
   result.alpha := self.alpha;
 end;
 
@@ -2179,9 +2208,9 @@ begin
       B := Clamp(0.0134474*X - 0.1183897*Y + 1.0154096*Z,0,1);
     end;
   end;
-  result.red := FPGammaCompressionTab[round(R*65535)];
-  result.green := FPGammaCompressionTab[round(G*65535)];
-  result.blue := FPGammaCompressionTab[round(B*65535)];
+  result.red := round(Power(R, 1/AdobeRGBGamma)*255);
+  result.green := round(Power(G, 1/AdobeRGBGamma)*255);
+  result.blue := round(Power(B, 1/AdobeRGBGamma)*255);
   result.alpha := ClampInt(round(self.alpha*255),0,255);
 end;
 
@@ -2213,8 +2242,8 @@ var
         begin
           ill := GetIlluminantSpectrum(i);
           self.X :=self.X+(SpectralLocus[i].X*factor*ill);
-          self.X :=self.Y+(SpectralLocus[i].Y*factor*ill);
-          self.X :=self.Z+(SpectralLocus[i].Z*factor*ill);
+          self.Y :=self.Y+(SpectralLocus[i].Y*factor*ill);
+          self.Z :=self.Z+(SpectralLocus[i].Z*factor*ill);
         end;
       end;
   end;
@@ -2619,10 +2648,28 @@ begin
 end;
 
 function FPReferenceWhiteAdd(const AReferenceWhite: TXYZReferenceWhite):PXYZReferenceWhite;
+var
+  lHaveCurrent: boolean;
+  lAngle: integer;
+  lIlluminant: TIlluminant;
 begin
   if FPReferenceWhiteGet(AReferenceWhite.ObserverAngle, AReferenceWhite.Illuminant)<>nil then
     raise FPImageException.Create('Reference white already defined');
+  lHaveCurrent := FPReferenceWhite<>nil;
+  lAngle := 0;
+  lIlluminant := '';
+  if lHaveCurrent then
+  begin
+    lAngle := FPReferenceWhite^.ObserverAngle;
+    lIlluminant := FPReferenceWhite^.Illuminant;
+  end;
   SetLength(FPReferenceWhiteArray, Length(FPReferenceWhiteArray) + 1);
+  // the array may have moved: point the global reference whites at it again
+  FPReferenceWhite2D50 := FPReferenceWhiteGet(2, 'D50');
+  FPReferenceWhite2D65 := FPReferenceWhiteGet(2, 'D65');
+  FPReferenceWhite2E := FPReferenceWhiteGet(2, 'E');
+  if lHaveCurrent then
+    FPReferenceWhite := FPReferenceWhiteGet(lAngle, lIlluminant);
   FPReferenceWhiteArray[Length(FPReferenceWhiteArray) - 1] := AReferenceWhite;
   with FPReferenceWhiteArray[Length(FPReferenceWhiteArray) - 1] do
   begin
