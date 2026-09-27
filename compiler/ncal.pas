@@ -2774,7 +2774,14 @@ implementation
           exit;
         include(callnodeflags,cnf_call_self_node_done);
         if use_caller_self(true) then
-          call_self_node:=load_self_node;
+          begin
+            { in a "type of <SomePropOrMethod>" inside a record/object/class declaration
+              there is no self, the call is only typechecked, never generated }
+            if current_module.in_type_inquiry and
+               not assigned(get_local_or_para_sym('self')) then
+              exit;
+            call_self_node:=load_self_node;
+          end;
       end;
 
 
