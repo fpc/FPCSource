@@ -48,6 +48,20 @@ procedure FillPolygonImage(Canv: TFPCustomCanvas; const Points: array of TPoint;
   Winding: Boolean; Image: TFPCustomImage; Relative: Boolean);
 
 type
+  TPolygonPointF = record
+    X, Y: Double;
+  end;
+
+// Draws with DrawPenPixel the pixels whose centre lies inside the polygon (non-zero winding),
+// limited to aClip (Right and Bottom included).
+procedure FillPolygonPenF(Canv: TFPCustomCanvas; const Points: array of TPolygonPointF;
+  const aClip: TRect; const Color: TFPColor);
+
+// Fills the polygon with the hatch aStyle counted from (aOriginX, aOriginY).
+procedure FillPolygonHatch(Canv: TFPCustomCanvas; const Points: array of TPoint;
+  Winding: Boolean; aStyle: TFPBrushStyle; aWidth, aOriginX, aOriginY: Integer; Color: TFPColor);
+
+type
   TPolygonInfoData = record
     P: TPoint;               // Intersection point
     Index1, Index2: Integer; // Indices of adjacent polygon vertices
@@ -70,11 +84,15 @@ type
     function CalcBounds(const APoints: Array of TPoint): TRect;
     procedure DeleteInfoAt(AIndex: Integer);
     procedure GetIntersections(Position: Integer);
+    procedure GetCentreIntersections(Row: Integer);
     procedure RespectWindingRule(Position: Integer);
   public
     constructor Create;
     destructor Destroy; override;
     procedure GatherPolygonInfos(Position: Integer; Winding: Boolean);
+    // Collects where the edges of an unrotated polygon cross the centre line of pixel row Row;
+    // each pair (a, b) of crossings fills pixels a to b-1.
+    procedure GatherPixelSpans(Row: Integer; Winding: Boolean);
     procedure UsePoints(const APoints: Array of TPoint; Angle: Double);
 
     property OrigBounds: TRect read FOrigBounds;
@@ -223,6 +241,15 @@ begin
     end;
 end;
 
+procedure TPolygonInfo.GatherPixelSpans(Row: Integer; Winding: Boolean);
+begin
+  ClearList;
+  GetCentreIntersections(Row);
+  FInfoList.Sort(@CompareX);
+  if Winding and (Length(FPoints) > 3) then
+    RespectWindingRule(Row);
+end;
+
 function TPolygonInfo.GetCount: Integer;
 begin
   Result := FInfoList.Count;
@@ -254,6 +281,29 @@ begin
       else
         x := Round(FPoints[i].X + (Position - FPoints[i].Y) / (FPoints[j].Y - FPoints[i].Y) * (FPoints[j].X - FPoints[i].X));
       AddInfoData(x, Position, j, i);
+    end;
+    j := i;
+  end;
+end;
+
+{ Stores, for each edge crossing the centre of pixel row Row, the first pixel
+  whose centre lies at or right of the crossing. }
+procedure TPolygonInfo.GetCentreIntersections(Row: Integer);
+var
+  numPoints: Integer;
+  i, j: Integer;
+  yc, xf: Double;
+begin
+  numPoints := Length(FPoints);
+  yc := Row + 0.5;
+  j := numPoints - 1;
+  for i := 0 to numPoints-1 do
+  begin
+    if ((FPoints[i].Y < yc) and (FPoints[j].Y > yc)) or
+       ((FPoints[j].Y < yc) and (FPoints[i].Y > yc)) then
+    begin
+      xf := FPoints[i].X + (yc - FPoints[i].Y) / (FPoints[j].Y - FPoints[i].Y) * (FPoints[j].X - FPoints[i].X);
+      AddInfoData(Ceil(xf - 0.5), Row, j, i);
     end;
     j := i;
   end;
@@ -339,7 +389,7 @@ begin
         // Note: P1 and P2 are in the original coordinate system again
         P1 := info.Data[i]^.P;
         P2 := info.Data[i+1]^.P;
-        DrawSolidLine(Canv, P1.X, P1.Y, P2.X, P2.Y, Color);
+        DrawBrushLine(Canv, P1.X, P1.Y, P2.X, P2.Y, Color);
         inc(i, 2);
       end;
       inc(y, Step);
@@ -354,8 +404,118 @@ end;
 
 procedure FillPolygonSolid(Canv: TFPCustomCanvas; const Points: array of TPoint;
   Winding: Boolean; Color: TFPColor);
+var
+  info: TPolygonInfo;
+  i, x, y: Integer;
 begin
-  InternalFillColor(Canv, Points, Winding, Color, 0.0, 1);
+  info := TPolygonInfo.Create;
+  try
+    info.UsePoints(Points, 0.0);
+    for y := info.OrigBounds.Top to info.OrigBounds.Bottom - 1 do
+    begin
+      info.GatherPixelSpans(y, Winding);
+      i := 0;
+      while i + 1 < info.Count do
+      begin
+        for x := info.Data[i]^.P.X to info.Data[i+1]^.P.X - 1 do
+          Canv.DrawPixel(x, y, Color);
+        inc(i, 2);
+      end;
+    end;
+  finally
+    info.Free;
+  end;
+end;
+
+procedure FillPolygonPenF(Canv: TFPCustomCanvas; const Points: array of TPolygonPointF;
+  const aClip: TRect; const Color: TFPColor);
+var
+  n, i, j, k, y, y0, y1, x, x0, x1, count, winding, dir: Integer;
+  minY, maxY, yc, xf: Double;
+  xs: array of Double;
+  dirs: array of Integer;
+  a, b: TPolygonPointF;
+begin
+  n := Length(Points);
+  if n < 3 then
+    exit;
+  minY := Points[0].Y;
+  maxY := minY;
+  for i := 1 to n - 1 do
+  begin
+    if Points[i].Y < minY then minY := Points[i].Y;
+    if Points[i].Y > maxY then maxY := Points[i].Y;
+  end;
+  y0 := Max(Floor(minY), aClip.Top);
+  y1 := Min(Ceil(maxY), aClip.Bottom);
+  SetLength(xs, n);
+  SetLength(dirs, n);
+  for y := y0 to y1 do
+  begin
+    yc := y + 0.5;
+    count := 0;
+    for i := 0 to n - 1 do
+    begin
+      j := (i + 1) mod n;
+      a := Points[i];
+      b := Points[j];
+      if (a.Y <= yc) and (b.Y > yc) then
+        dir := 1
+      else if (b.Y <= yc) and (a.Y > yc) then
+        dir := -1
+      else
+        continue;
+      xf := a.X + (yc - a.Y) * (b.X - a.X) / (b.Y - a.Y);
+      // insertion by x
+      k := count;
+      while (k > 0) and (xs[k - 1] > xf) do
+      begin
+        xs[k] := xs[k - 1];
+        dirs[k] := dirs[k - 1];
+        dec(k);
+      end;
+      xs[k] := xf;
+      dirs[k] := dir;
+      inc(count);
+    end;
+    winding := 0;
+    for k := 0 to count - 2 do
+    begin
+      inc(winding, dirs[k]);
+      if winding = 0 then
+        continue;
+      x0 := Max(Ceil(xs[k] - 0.5), aClip.Left);
+      x1 := Min(Ceil(xs[k + 1] - 0.5) - 1, aClip.Right);
+      for x := x0 to x1 do
+        Canv.DrawPenPixel(x, y, Color);
+    end;
+  end;
+end;
+
+procedure FillPolygonHatch(Canv: TFPCustomCanvas; const Points: array of TPoint;
+  Winding: Boolean; aStyle: TFPBrushStyle; aWidth, aOriginX, aOriginY: Integer; Color: TFPColor);
+var
+  info: TPolygonInfo;
+  i, x, y: Integer;
+begin
+  info := TPolygonInfo.Create;
+  try
+    info.UsePoints(Points, 0.0);
+    for y := info.OrigBounds.Top to info.OrigBounds.Bottom - 1 do
+    begin
+      info.GatherPixelSpans(y, Winding);
+      i := 0;
+      while i + 1 < info.Count do
+      begin
+        for x := info.Data[i]^.P.X to info.Data[i+1]^.P.X - 1 do
+          if HatchPixel(aStyle, x, y, aWidth, aOriginX, aOriginY) then
+            Canv.DrawPixel(x, y, Color);
+        inc(i, 2);
+      end;
+    end;
+  finally
+    info.Free;
+  end;
 end;
 
 procedure FillPolygonHorizontal(Canv: TFPCustomCanvas; const Points: Array of TPoint;
@@ -385,51 +545,30 @@ end;
 procedure FillPolygonPattern(Canv: TFPCustomCanvas; const Points: array of TPoint;
   Winding: Boolean; Color: TFPColor; Pattern: TBrushPattern);
 
+  // Draws the pixels x1..x2 of row y whose pattern bit is set; the most significant bit is leftmost.
   procedure DrawPatternLine(x1, x2, y: Integer; PatternRow: TPenPattern);
   var
     x: Integer;
-    pixNo: Byte;
-    pixValue: TPenPattern;
   begin
-    pixNo := x1 mod patternBitCount;
-    pixValue := 1 shl pixNo;
     for x := x1 to x2 do
-    begin
-      if pixValue and PatternRow <> 0 then
+      if (PatternRow shr (PatternBitCount - 1 - (x and (PatternBitCount - 1)))) and 1 <> 0 then
         Canv.DrawPixel(x, y, Color);
-      if pixNo = patternBitCount-1 then
-      begin
-        pixNo := 0;
-        pixValue := 1;
-      end else
-      begin
-        inc(pixNo);
-        pixValue := pixvalue shl 1;
-      end;
-    end;
   end;
 
 var
   info: TPolygonInfo;
-  i, x1, x2, y: Integer;
-  patternHeight: Integer;
-  patternRow: TPenPattern;
+  i, y: Integer;
 begin
-  patternHeight := Length(Pattern);
   info := TPolygonInfo.Create;
   try
     info.UsePoints(Points, 0.0);
-    for y := info.OrigBounds.Top to info.OrigBounds.Bottom do
+    for y := info.OrigBounds.Top to info.OrigBounds.Bottom - 1 do
     begin
-      info.GatherPolygonInfos(y, Winding);
+      info.GatherPixelSpans(y, Winding);
       i := 0;
-      // Fill the pixels between pairs of intersection points
-      while i < info.Count do
+      while i + 1 < info.Count do
       begin
-        x1 := info.Data[i]^.P.X;
-        x2 := info.Data[i+1]^.P.X;
-        patternRow := Pattern[y mod patternHeight];
-        DrawPatternLine(x1, x2, y, patternRow);
+        DrawPatternLine(info.Data[i]^.P.X, info.Data[i+1]^.P.X - 1, y, Pattern[y and (PatternBitCount - 1)]);
         inc(i, 2);
       end;
     end;
@@ -447,8 +586,8 @@ var
   var
     x, imgX, imgY: Integer;
   begin
-    imgX := (x1 - x0) mod Image.Width;
-    ImgY := (y - y0) mod Image.Height;
+    imgX := ((x1 - x0) mod Image.Width + Image.Width) mod Image.Width;
+    ImgY := ((y - y0) mod Image.Height + Image.Height) mod Image.Height;
     for x := x1 to x2 do
     begin
       Canv.DrawPixel(x, y, Image.Colors[imgX, imgY]);
@@ -473,16 +612,16 @@ begin
       x0 := 0;
       y0 := 0;
     end;
-    for y := info.OrigBounds.Top to info.OrigBounds.Bottom do
+    for y := info.OrigBounds.Top to info.OrigBounds.Bottom - 1 do
     begin
-      info.GatherPolygonInfos(y, Winding);
+      info.GatherPixelSpans(y, Winding);
       i := 0;
-      // Fill the pixels between pairs of intersection points
-      while i < info.Count do
+      while i + 1 < info.Count do
       begin
         x1 := info.Data[i]^.P.X;
-        x2 := info.Data[i+1]^.P.X;
-        DrawImgLine(x1, x2, y);
+        x2 := info.Data[i+1]^.P.X - 1;
+        if x1 <= x2 then
+          DrawImgLine(x1, x2, y);
         inc(i, 2);
       end;
     end;
