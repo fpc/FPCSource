@@ -603,7 +603,11 @@ type
     ExtraData : pointer;
   end;
 
+{$IFDEF FPC_HAS_FEATURE_THREADING}
 threadvar
+{$ELSE}
+var
+{$ENDIF}
   FloodBorderActive : boolean;
   FloodBorderColor : TFPColor;
 
