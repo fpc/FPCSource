@@ -63,7 +63,7 @@ end;
 procedure TFPImageCanvas.SetColor (x,y:integer; const AValue:TFPColor);
 begin
   if (x >= 0) and (x < width) and (y >= 0) and (y < height) then
-    if not clipping or PointInside (x,y, ClipRect) then
+    if not clipping or PointInside (x,y, DeviceClipRect) then
       FImage.Colors[x,y] := AValue;
 end;
 
