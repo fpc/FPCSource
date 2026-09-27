@@ -152,25 +152,47 @@ begin
       PNMInfo:=Concat(PNMInfo,'65535'#10)
     else if (useBitMapType in [2,3,5,6]) then
       PNMInfo:=Concat(PNMInfo,'255'#10);
-    stream.seek(0,soFromBeginning);
-    stream.Write(PNMInfo[1],Length(PNMInfo));
+    Stream.WriteBuffer(PNMInfo[1],Length(PNMInfo));
     Result := true;
 end;
 
+// Returns True when the luma of aColor is below half intensity.
+function IsDark(const aColor: TFPColor): Boolean;
+
+begin
+  Result:=CalculateGray(aColor)<$8000;
+end;
+
+
 procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
+const
+    MaxLineLength = 70;
 var
     useBitMapType: integer;
-    Row,Coulumn,nBpLine,i:Integer;
+    Row,Coulumn,nBpLine:Integer;
     aColor:TFPColor;
     aLine:PByte;
     dLine : PWord;
-    strCol: String[3];
-    LinuxEndOfLine: AnsiChar;
+    TextLine: AnsiString;
+    LineStart: Integer;
     UseColorDepth: TPNMColorDepth;
 
-begin
-    LinuxEndOfLine := #10;
+  // Appends one text sample, starting a new line after MaxLineLength characters.
+  procedure AddSample(const aSample: AnsiString);
 
+  begin
+    if Length(TextLine)>LineStart then
+      if Length(TextLine)-LineStart+1+Length(aSample)>MaxLineLength then
+        begin
+        TextLine:=TextLine+#10;
+        LineStart:=Length(TextLine);
+        end
+      else
+        TextLine:=TextLine+' ';
+    TextLine:=TextLine+aSample;
+  end;
+
+begin
     //determine color depth
     if ColorDepth = pcdAuto then
       UseColorDepth := GuessColorDepthOfImage(Img) else
@@ -186,16 +208,42 @@ begin
     if FullWidth and Not BinaryFormat then
       Raise FPImageException.Create('Fullwidth can only be used with binary format');
     SaveHeader(useBitMapType, Stream, Img);
+    if useBitMapType in [1..3] then
+      begin
+      for Row:=0 to img.Height-1 do
+        begin
+        TextLine:='';
+        LineStart:=0;
+        for Coulumn:=0 to img.Width-1 do
+          begin
+          aColor:=img.Colors[Coulumn,Row];
+          case useBitMapType of
+            1: if IsDark(aColor) then
+                 AddSample('1')
+               else
+                 AddSample('0');
+            2: AddSample(IntToStr(Hi(CalculateGray(aColor))));
+            3: begin
+               AddSample(IntToStr(Hi(aColor.Red)));
+               AddSample(IntToStr(Hi(aColor.Green)));
+               AddSample(IntToStr(Hi(aColor.Blue)));
+               end;
+          end;
+          end;
+        TextLine:=TextLine+#10;
+        Stream.WriteBuffer(TextLine[1],Length(TextLine));
+        end;
+      exit;
+      end;
     case useBitMapType of
-      1:nBpLine:=Img.Width*2;{p p p}
-      2:nBpLine:=Img.Width*4;{lll lll lll}
-      3:nBpLine:=Img.Width*3*4;{rrr ggg bbb rrr ggg bbb}
       4:nBpLine:=(Img.Width+7) SHR 3;
       5:nBpLine:=Img.Width*(1+Ord(FullWidth));
-      6:nBpLine:=Img.Width*3*(1+Ord(FullWidth));
+    else
+      nBpLine:=Img.Width*3*(1+Ord(FullWidth));
     end;
 
-    GetMem(aLine,nBpLine);//3 extra byte for BMP 4Bytes alignment.
+    GetMem(aLine,nBpLine);
+    try
     dLine:=PWord(aLine);
     for Row:=0 to img.Height-1 do
       begin
@@ -205,45 +253,12 @@ begin
             aColor:=img.Colors[Coulumn,Row];
             with aColor do
               case useBitMapType of
-                1:begin
-                    if(Red<=$2F00)or(Green<=$2F00)or(Blue<=$2F00)
-                    then
-                      aLine[2*Coulumn]:=Ord('1')
-                    else
-                      aLine[2*Coulumn]:=Ord('0');
-                    aLine[2*Coulumn+1]:=32;
-                  end;
-                2:begin
-                    Str(Hi(Word(Round(Red*0.299+Green*0.587+Blue*0.114))),strCol);
-                    for i:=0 to Length(StrCol)-1 do
-                      aLine[4*Coulumn+i]:=Ord(StrCol[i+1]);
-                    for i:=Length(StrCol) to 4 do
-                      aLine[4*Coulumn+i]:=32;
-                  end;
-                3:begin
-                    Str(Hi(Red),strCol);
-                    for i:=0 to Length(StrCol)-1 do
-                      aLine[4*(3*Coulumn)+i]:=Ord(StrCol[i+1]);
-                    for i:=Length(StrCol) to 4 do
-                      aLine[4*(3*Coulumn)+i]:=32;
-                    Str(Hi(Green),strCol);
-                    for i:=0 to Length(StrCol)-1 do
-                      aLine[4*(3*Coulumn+1)+i]:=Ord(StrCol[i+1]);
-                    for i:=Length(StrCol) to 4 do
-                      aLine[4*(3*Coulumn+1)+i]:=32;
-                    Str(Hi(Blue),strCol);
-                    for i:=0 to Length(StrCol)-1 do
-                      aLine[4*(3*Coulumn+2)+i]:=Ord(StrCol[i+1]);
-                    for i:=Length(StrCol) to 4 do
-                      aLine[4*(3*Coulumn+2)+i]:=32;
-                  end;
-                4:if(Red<=$2F00)or(Green<=$2F00)or(Blue<=$2F00)
-                  then
+                4:if IsDark(aColor) then
                     aLine[Coulumn shr 3]:=aLine[Coulumn shr 3] or ($80 shr (Coulumn and $07));
                 5: if FullWidth then {16 bit per colour}
-                     dLine[Coulumn]:=NToBe(Word(Round(Red*0.299+Green*0.587+Blue*0.114))) {write in big-endian format}
+                     dLine[Coulumn]:=NToBe(CalculateGray(aColor)) {write in big-endian format}
                    else {8 bit per colour}
-                     aLine[Coulumn]:=Hi(Word(Round(Red*0.299+Green*0.587+Blue*0.114)));
+                     aLine[Coulumn]:=Hi(CalculateGray(aColor));
                 6:if FullWidth then
                   begin {16 bit per colour}
                     dLine[3*Coulumn]:=NToBE(Red); {write in big-endian format}
@@ -258,10 +273,11 @@ begin
                   end;
             end;
           end;
-        Stream.Write(aLine^,nBpLine);
-        if useBitMapType in[1..3] then Stream.Write(LinuxEndOfLine,1);
+        Stream.WriteBuffer(aLine^,nBpLine);
       end;
-    FreeMem(aLine,nBpLine);
+    finally
+      FreeMem(aLine);
+    end;
 end;
 
 function TFPWriterPNM.GetColorDepthOfExtension(AExtension: AnsiString
@@ -279,24 +295,18 @@ end;
 function TFPWriterPNM.GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
 var Row, Col: integer;
     aColor: TFPColor;
+    Gray: Byte;
 begin
    result := pcdBlackWhite;
    for Row:=0 to img.Height-1 do
      for Col:=0 to img.Width-1 do
      begin
        aColor:=img.Colors[Col,Row];
-       if (AColor.red >= 256) and (AColor.green >= 256) and (AColor.blue >= 256) and
-          (AColor.red < $FF00) and (AColor.green < $FF00) and (AColor.blue < $FF00) then
-       begin
-          if (AColor.red shr 8 <> AColor.Green shr 8) or
-             (AColor.blue shr 8 <> AColor.Green shr 8) or
-             (AColor.red shr 8 <> AColor.blue shr 8) then
-          begin
-             result := pcdRGB;
-             exit;
-          end else
-            result := pcdGrayscale;
-       end;
+       Gray:=Hi(aColor.Green);
+       if (Hi(aColor.Red)<>Gray) or (Hi(aColor.Blue)<>Gray) then
+         exit(pcdRGB);
+       if (Gray<>0) and (Gray<>$FF) then
+         result := pcdGrayscale;
      end;
 end;
 
