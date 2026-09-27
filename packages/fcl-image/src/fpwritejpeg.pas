@@ -71,7 +71,7 @@ begin
   {$ifdef FPC_Debug_Image}
   writeln('JPEGError ',CurInfo^.err^.msg_code,' ');
   {$endif}
-  raise Exception.CreateFmt('JPEG error',[CurInfo^.err^.msg_code]);
+  RaiseJPEGError(CurInfo);
 end;
 
 procedure EmitMessage(CurInfo: j_common_ptr; msg_level: Integer);
