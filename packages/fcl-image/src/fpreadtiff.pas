@@ -70,6 +70,8 @@ type
     FCheckIFDOrder: TTiffCheckIFDOrder;
     FDefaultMinSampleValue: Double;
     FDefaultMaxSampleValue: Double;
+    FMinSampleValue: Double;
+    FMaxSampleValue: Double;
     FFirstIFDStart: SizeUInt;
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
     {$ifdef FPC_Debug_Image}
@@ -209,7 +211,7 @@ begin
   Msg:=Msg+' at position '+IntToStr(s.Position);
   if fStartPos>0 then
     Msg:=Msg+' (TiffPosition='+IntToStr(fStartPos)+')';
-  raise Exception.Create(Msg);
+  raise FPImageException.Create(Msg);
 end;
 
 function TFPReaderTiff.GetImages(Index: integer): TTiffIFD;
@@ -262,7 +264,7 @@ begin
 
   RegularSampleCnt := SampleCnt - ExtraSampleCnt;
 
-  for i:=0 to ExtraSampleCnt-1 do begin
+  for i:=0 to Integer(ExtraSampleCnt)-1 do begin
     if ExtraSamples[i] in [1, 2] then begin
       AlphaChannel := RegularSampleCnt+i;
       PremultipliedAlpha:= ExtraSamples[i]=1;
@@ -272,7 +274,7 @@ begin
 
   ReAllocMem(ExtraSamples, 0);  //end of extra samples
 
-  for i:=0 to SampleCnt-1 do begin
+  for i:=0 to Integer(SampleCnt)-1 do begin
     if IFD.SampleFormat = TiffSampleFormatIEEEFloat then begin
       if not (SampleBits[i] in [32, 64]) then
         TiffError('Float samples must be 32 or 64 bit, but found '+IntToStr(SampleBits[i]));
@@ -534,8 +536,8 @@ begin
       RawSingle:=FixEndian(PDWord(Run)^);
       FloatValue:=PSingle(@RawSingle)^;
       inc(Run,4);
-      MinVal:=FDefaultMinSampleValue;
-      MaxVal:=FDefaultMaxSampleValue;
+      MinVal:=FMinSampleValue;
+      MaxVal:=FMaxSampleValue;
       Range:=MaxVal-MinVal;
       if Range<>0 then
         FloatValue:=(FloatValue-MinVal)/Range
@@ -554,8 +556,8 @@ begin
         RawDouble:=SwapEndian(RawDouble);
       FloatValue:=PDouble(@RawDouble)^;
       inc(Run,8);
-      MinVal:=FDefaultMinSampleValue;
-      MaxVal:=FDefaultMaxSampleValue;
+      MinVal:=FMinSampleValue;
+      MaxVal:=FMaxSampleValue;
       Range:=MaxVal-MinVal;
       if Range<>0 then
         FloatValue:=(FloatValue-MinVal)/Range
@@ -671,7 +673,10 @@ var
 begin
   Result:=false;
 
-  s.Read(TIFHeader, sizeof(TTiffHeader));
+  if s.Read(TIFHeader, sizeof(TTiffHeader))<>sizeof(TTiffHeader) then
+    if QuickTest
+    then exit
+    else TiffError('TIFF header too short');
 
   if TIFHeader.ByteOrder=TIFF_ByteOrderBIG
   then BigEndian:=true
@@ -722,6 +727,8 @@ begin
   Result:=0;
   SetStreamPos(Start);
   IFD.IFDStart:=Start;
+  IFD.MinSampleValue:=FDefaultMinSampleValue;
+  IFD.MaxSampleValue:=FDefaultMaxSampleValue;
 
   if FBigTiff
   then Count:=ReadQWord
@@ -1106,13 +1113,13 @@ begin
       ReadShortValues(GetPos,WordBuffer,Count);
       try
         if Count>=1 then
-          FDefaultMinSampleValue:=WordBuffer[0];
+          IFD.MinSampleValue:=WordBuffer[0];
       finally
         ReAllocMem(WordBuffer,0);
       end;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 280: MinSampleValue=',FDefaultMinSampleValue:0:6);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 280: MinSampleValue=',IFD.MinSampleValue:0:6);
       {$endif}
     end;
   281:
@@ -1121,13 +1128,13 @@ begin
       ReadShortValues(GetPos,WordBuffer,Count);
       try
         if Count>=1 then
-          FDefaultMaxSampleValue:=WordBuffer[0];
+          IFD.MaxSampleValue:=WordBuffer[0];
       finally
         ReAllocMem(WordBuffer,0);
       end;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 281: MaxSampleValue=',FDefaultMaxSampleValue:0:6);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 281: MaxSampleValue=',IFD.MaxSampleValue:0:6);
       {$endif}
     end;
   282:
@@ -2056,7 +2063,7 @@ var
   CurByteCnt: PtrInt;
   Run: PByte;
   BitPos: Byte;
-  x, y, cx, cy, dx1,dy1, dx2,dy2, sx: integer;
+  x, y, cx, cy, c, r: integer;
   SampleBitsPerPixel: DWord;
   CurFPImg: TFPCustomImage;
   aContinue: Boolean;
@@ -2080,6 +2087,8 @@ var
 begin
   if (IFD.ImageWidth=0) or (IFD.ImageHeight=0) then
     exit;
+  FMinSampleValue:=IFD.MinSampleValue;
+  FMaxSampleValue:=IFD.MaxSampleValue;
 
   if IFD.PhotoMetricInterpretation=High(IFD.PhotoMetricInterpretation) then
     TiffError('missing PhotometricInterpretation');
@@ -2103,7 +2112,7 @@ begin
       TiffError('missing StripByteCounts');
   end;
 
-  if IFD.PlanarConfiguration > 1 then
+  if (IFD.PlanarConfiguration > 1) and (IFD.SamplesPerPixel > 1) then
      TiffError('Planar configuration not handled');
 
   {$ifdef FPC_Debug_Image}
@@ -2231,47 +2240,27 @@ begin
       Progress(psRunning, 0, false, Rect(0,0,IFD.ImageWidth,ChunkTop), '', aContinue);
       if not aContinue then break;
 
-      // Orientation
-      if IFD.Orientation in [1..4] then begin
-        x:=ChunkLeft; y:=ChunkTop;
-        dy1 := 0; dx2 := 0;
-        case IFD.Orientation of
-        1: begin dx1:=1; dy2:=1; end;// 0,0 is left, top
-        2: begin x:=IFD.ImageWidth-x-1; dx1:=-1; dy2:=1; end;// 0,0 is right, top
-        3: begin x:=IFD.ImageWidth-x-1; dx1:=-1; y:=IFD.ImageHeight-y-1; dy2:=-1; end;// 0,0 is right, bottom
-        4: begin dx1:=1; y:=IFD.ImageHeight-y-1; dy2:=-1; end;// 0,0 is left, bottom
-        end;
-      end else begin
-        // rotated
-        x:=ChunkTop; y:=ChunkLeft;
-        dx1 := 0; dy2 := 0;
-        case IFD.Orientation of
-        5: begin dy1:=1; dx2:=1; end;// 0,0 is top, left (rotated)
-        6: begin dy1:=1; x:=IFD.ImageWidth-x-1; dx2:=-1; end;// 0,0 is top, right (rotated)
-        7: begin y:=IFD.ImageHeight-y-1; dy1:=-1; x:=IFD.ImageHeight-x-1; dx2:=-1; end;// 0,0 is bottom, right (rotated)
-        8: begin y:=IFD.ImageHeight-y-1; dy1:=-1; dx2:=1; end;// 0,0 is bottom, left (rotated)
-        end;
-      end;
-
-      //writeln('TFPReaderTiff.LoadImageFromStream Chunk ',ChunkIndex,' ChunkLeft=',ChunkLeft,' ChunkTop=',ChunkTop,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' ChunkWidth=',ChunkWidth,' ChunkHeight=',ChunkHeight,' PaddingRight=',PaddingRight);
-      sx:=x;
+      // the stored pixel at column c, row r of the chunk goes to the image pixel x, y given by Orientation
       for cy:=0 to ChunkHeight-1 do begin
-        //writeln('TFPReaderTiff.LoadImageFromStream y=',y);
         Run:=Chunk+ChunkBytesPerLine*cy;
         BitPos := 0;
         InitColor;
-        x:=sx;
-
+        r:=ChunkTop+cy;
         for cx:=0 to ChunkWidth-1 do begin
+          c:=ChunkLeft+cx;
+          case IFD.Orientation of
+          2: begin x:=IFD.ImageWidth-c-1; y:=r; end;
+          3: begin x:=IFD.ImageWidth-c-1; y:=IFD.ImageHeight-r-1; end;
+          4: begin x:=c; y:=IFD.ImageHeight-r-1; end;
+          5: begin x:=r; y:=c; end;
+          6: begin x:=IFD.ImageHeight-r-1; y:=c; end;
+          7: begin x:=IFD.ImageHeight-r-1; y:=IFD.ImageWidth-c-1; end;
+          8: begin x:=r; y:=IFD.ImageWidth-c-1; end;
+          else
+            begin x:=c; y:=r; end;
+          end;
           CurFPImg.Colors[x,y]:= ReadNextColor(Run,BitPos);
-          // next column
-          inc(x,dx1);
-          inc(y,dy1);
         end;
-
-        // next line
-        inc(x,dx2);
-        inc(y,dy2);
       end;
       // next chunk
     end;
@@ -2347,18 +2336,23 @@ begin
   aContinue:=true;
   Progress(psStarting, 0, False, Rect(0,0,0,0), '', aContinue);
   if not aContinue then exit;
-  LoadHeaderFromStream(Str);
-  LoadIFDsFromStream;
+  try
+    LoadHeaderFromStream(Str);
+    LoadIFDsFromStream;
 
-  // find the biggest image
-  BestIFD := GetBiggestImage;
-  Progress(psRunning, 25, False, Rect(0,0,0,0), '', aContinue);
-  if not aContinue then exit;
+    // find the biggest image
+    BestIFD := GetBiggestImage;
+    Progress(psRunning, 25, False, Rect(0,0,0,0), '', aContinue);
+    if not aContinue then exit;
 
-  // read image
-  if Assigned(BestIFD) then begin
-    BestIFD.Img := AnImage;
-    LoadImageFromStream(BestIFD);
+    // read image
+    if Assigned(BestIFD) then begin
+      BestIFD.Img := AnImage;
+      LoadImageFromStream(BestIFD);
+    end;
+  except
+    on E: EReadError do
+      raise FPImageException.Create('TIFF data truncated: '+E.Message);
   end;
 
   // end
@@ -2617,6 +2611,8 @@ begin
     -127..-1: begin inc(NewCount,1-n); inc(p,2);   end; // copy the next byte 1-n times
     else inc(p); // noop
     end;
+    if p>EndP then
+      raise FPImageException.Create('PackBits data truncated');
   end;
 
   // decompress
@@ -2679,7 +2675,7 @@ var
 
   procedure Error(const Msg: string);
   begin
-    raise Exception.Create(Msg);
+    raise FPImageException.Create(Msg);
   end;
 
   function GetNextCode: Word;
