@@ -51,6 +51,27 @@ type
     Fill:     array[0..57] of byte;        // Remplissage
   end;
 
+// Converts the word fields of a header between file (little-endian) and host order.
+procedure SwapPCXHeader(var aHeader: TPCXHeader);
+
 implementation
+
+procedure SwapPCXHeader(var aHeader: TPCXHeader);
+
+begin
+  {$IFDEF ENDIAN_BIG}
+  with aHeader do
+    begin
+    XMin := Swap(XMin);
+    YMin := Swap(YMin);
+    XMax := Swap(XMax);
+    YMax := Swap(YMax);
+    HRes := Swap(HRes);
+    VRes := Swap(VRes);
+    BytesPerLine := Swap(BytesPerLine);
+    PaletteType := Swap(PaletteType);
+    end;
+  {$ENDIF}
+end;
 
 end.
