@@ -74,9 +74,28 @@ type
 
 Implementation
 
+// The colour of a 16-bit 5-5-5 value, each channel expanded to 16 bits; opaque.
+function Color555(aValue : Word) : TFPColor;
+
+  function Expand(a5 : Word) : Word;
+  var
+    l8 : Word;
+  begin
+    l8:=(a5 shl 3) or (a5 shr 2);
+    Result:=l8*257;
+  end;
+
+begin
+  Result.Red:=Expand((aValue shr 10) and $1F);
+  Result.Green:=Expand((aValue shr 5) and $1F);
+  Result.Blue:=Expand(aValue and $1F);
+  Result.Alpha:=alphaOpaque;
+end;
+
 Constructor TFPReaderTarga.Create;
 
 begin
+  inherited Create;
 end;
 
 Destructor TFPReaderTarga.Destroy;
@@ -97,7 +116,7 @@ begin
   If (FPalette<>Nil) then
     begin
     FreeMem(FPalette);
-    FScanLine:=Nil;
+    FPalette:=Nil;
     end;
 end;
 
@@ -106,12 +125,14 @@ Procedure TFPReaderTarga.AnalyzeHeader(Img : TFPCustomImage);
 begin
   With Header do
     begin
-    if not (ImgType in [1, 2, 3, 9, 10, 11]) and
-       not (PixelSize in [8, 16, 24, 32]) then
-      Raise Exception.Create('Unknown/Unsupported Targa image type');
+    if not (ImgType in [1, 2, 3, 9, 10, 11]) or
+       not (PixelSize in [8, 15, 16, 24, 32]) then
+      Raise FPImageException.Create('Unknown/Unsupported Targa image type');
     BottomUp:=(Flags and $20) <>0;
     AlphaBits := Flags and $0F;
     BytesPerPixel:=PixelSize;
+    if BytesPerPixel=15 then
+      BytesPerPixel:=16;
     Compressed:=ImgType>8;
     If Compressed then
       ImgType:=ImgType-8;
@@ -123,6 +144,7 @@ begin
     else
       FPaletteSize:=SizeOf(TFPColor)*ToWord(MapLength);
     GetMem(FPalette,FPaletteSize);
+    FillChar(FPalette^,FPaletteSize,0);
     Img.Width:=ToWord(Width);
     Img.Height:=ToWord(Height);
     end;
@@ -138,9 +160,9 @@ Begin
   Begin
     With FPalette[I] do
       begin
-      Red:=I*255;
-      Green:=I*255;
-      Blue:=I*255;
+      Red:=I*257;
+      Green:=I*257;
+      Blue:=I*257;
       Alpha:=AlphaOpaque;
       end;
   end;
@@ -152,18 +174,25 @@ Var
   BGREntry : TBGREntry;
   BGRAEntry : TBGRAEntry;
   I : Integer;
+  W : Word;
 
 begin
   Case Header.MapEntrySize Of
-     16, 24:
+     15, 16:
+        For I:=0 to ToWord(Header.MapLength)-1 do
+        begin
+          Stream.ReadBuffer(W, SizeOf(W));
+          FPalette[I]:=Color555(LEtoN(W));
+        end;
+     24:
         For I:=0 to ToWord(Header.MapLength)-1 do
         begin
           Stream.ReadBuffer(BGREntry, SizeOf(BGREntry));
           With FPalette[I] do
             begin
-            Red:=BGREntry.Red shl 8;
-            Green:=BGREntry.Green shl 8;
-            Blue:=BGREntry.Blue shl 8;
+            Red:=BGREntry.Red*257;
+            Green:=BGREntry.Green*257;
+            Blue:=BGREntry.Blue*257;
             Alpha:=alphaOpaque;
             end;
         end;
@@ -173,14 +202,13 @@ begin
           Stream.ReadBuffer(BGRAEntry,SizeOf(BGRAEntry));
           With FPalette[I] do
             begin
-            Red:=BGRAEntry.Red shl 8;
-            Green:=BGRAEntry.Green shl 8;
-            Blue:=BGRAEntry.Blue shl 8;
+            Red:=BGRAEntry.Red*257;
+            Green:=BGRAEntry.Green*257;
+            Blue:=BGRAEntry.Blue*257;
             if alphaBits = 8 then
-               if (BGRAEntry.Alpha and $80) <> 0 then
-                 Alpha:=alphaTransparent
-               else
-                 Alpha:=AlphaOpaque;
+              Alpha:=BGRAEntry.Alpha*257
+            else
+              Alpha:=AlphaOpaque;
             end;
         end;
     end;
@@ -193,34 +221,41 @@ var
   H,Row : Integer;
 
 begin
-  Stream.Read(Header,SizeOf(Header));
-  AnalyzeHeader(Img);
-  If Header.IdLen>0 then
-    begin
-    SetLength(Identification,Header.IDLen);
-    Stream.Read(Identification[1],Header.Idlen);
-    If Length(Identification)<>0 then
-      Img.Extra[KeyIdentification]:=Identification;
-    end;
-
-  If Header.MapType<>0 then
-    ReadPalette(Stream);
-  if Header.ImgType = TARGA_GRAY_IMAGE then
-    CreateGrayPalette;
-
-  H:=Img.height;
-  If BottomUp then
-    For Row:=0 to H-1 do
+  FreeBuffers;
+  FPixelCount:=0;
+  FBlockCount:=0;
+  Stream.ReadBuffer(Header,SizeOf(Header));
+  try
+    AnalyzeHeader(Img);
+    If Header.IdLen>0 then
       begin
-      ReadScanLine(Row,Stream);
-      WriteScanLine(Row,Img);
-      end
-  else
-    For Row:=H-1 downto 0 do
-      begin
-      ReadScanLine(Row,Stream);
-      WriteScanLine(Row,Img);
+      SetLength(Identification,Header.IDLen);
+      Stream.ReadBuffer(Identification[1],Header.Idlen);
+      If Length(Identification)<>0 then
+        Img.Extra[KeyIdentification]:=Identification;
       end;
+
+    If Header.MapType<>0 then
+      ReadPalette(Stream);
+    if Header.ImgType = TARGA_GRAY_IMAGE then
+      CreateGrayPalette;
+
+    H:=Img.height;
+    If BottomUp then
+      For Row:=0 to H-1 do
+        begin
+        ReadScanLine(Row,Stream);
+        WriteScanLine(Row,Img);
+        end
+    else
+      For Row:=H-1 downto 0 do
+        begin
+        ReadScanLine(Row,Stream);
+        WriteScanLine(Row,Img);
+        end;
+  finally
+    FreeBuffers;
+  end;
 end;
 
 Procedure TFPReaderTarga.ReadScanLine(Row : Integer; Stream : TStream);
@@ -280,7 +315,8 @@ begin
     TARGA_INDEXED_IMAGE
       : for Col:=0 to Img.width-1 do
         begin
-          if P[Col] >= ToWord(Header.MapStart) then
+          if (P[Col] >= ToWord(Header.MapStart))
+             and (P[Col] - ToWord(Header.MapStart) < ToWord(Header.MapLength)) then
             Img.Colors[Col,Row]:=FPalette[P[Col] - ToWord(Header.MapStart)]
           else
             Img.Colors[Col,Row]:=colBlack;
@@ -294,12 +330,9 @@ begin
                  W:=P[0];
                  inc(P);
                  W:=W or (P[0] shl 8);
-                 With C do
-                   begin
-                   Red:=((W)shr 10) shl 11;
-                   Green:=((w)shr 5) shl 11;
-                   Blue:=((w)) shl 11;
-                   end;
+                 C:=Color555(W);
+                 if (alphaBits = 1) and ((W and $8000) = 0) then
+                   C.Alpha:=alphaTransparent;
                 end;
           24,32 : With C do
                   begin
@@ -308,13 +341,12 @@ begin
                   Green:=P[0] or (P[0] shl 8);
                   Inc(P);
                   Red:=P[0] or (P[0] shl 8);
+                  Alpha:=AlphaOpaque;
                   If bytesPerPixel=32 then
                     begin
                     Inc(P);
-                    Alpha:=AlphaOpaque;
                     if alphaBits = 8 then
-                      if (P[0] and $80) = 0 then
-                        Alpha:=alphaTransparent;
+                      Alpha:=P[0]*257;
                     end;
                   end;
           end; // Case BytesPerPixel;
@@ -335,8 +367,7 @@ begin
                    Inc(P);
                    Alpha:=AlphaOpaque;
                    if alphaBits = 8 then
-                    if (P[0] and $80) = 0 then
-                        Alpha:=alphaTransparent;
+                     Alpha:=P[0]*257;
                    Inc(P);
                  end;
                Img[Col,Row]:=C;
@@ -361,7 +392,7 @@ begin
     n := SizeOf(hdr);
     Result:=(Stream.Read(hdr, n)=n)
             and (hdr.ImgType in [1, 2, 3, 9, 10, 11])
-            and (hdr.PixelSize in [8, 16, 24, 32]);
+            and (hdr.PixelSize in [8, 15, 16, 24, 32]);
   finally
     Stream.Position := oldPos;
   end;
