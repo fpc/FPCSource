@@ -113,10 +113,6 @@ type
     FLineSpacing: Integer;
     LastX: Integer;
     LastY: Integer;
-    FHashWidth: Integer;
-    FHatchOrigin: THatchOrigin;
-    FRelativeBrushImage: Boolean;
-    FNonZeroWindingRule: Boolean;
     FEvenOdd: Boolean;
     FShadow: Boolean;
     FShadowImage, FSnapshot: TFPMemoryImage;
@@ -150,7 +146,10 @@ type
     procedure WriteArc(acx, acy, arx, ary: Double; aStart16, aLength16: Integer);
     // Draws the pie of the ellipse at (acx, acy) with radii arx, ary, from the ray at aStart16 over
     // aLength16, in 1/16 degree counter-clockwise from 3 o'clock.
-    procedure WritePie(acx, acy, arx, ary: Double; aStart16, aLength16: Integer; const aOrigin: TPoint);
+    procedure WritePie(acx, acy, arx, ary: Double; aStart16, aLength16: Integer; const aOrigin: TPoint;
+                       aChord: Boolean = False);
+    // Fills the region from (x, y) found in the shadow raster: the colour at (x, y), or up to aBorderColor when aBorder.
+    procedure FloodRegion(x, y: Integer; aBorder: Boolean; const aBorderColor: TFPColor);
     procedure SetShadow(aValue: Boolean);
     // Creates or frees the shadow raster to follow Shadow and the canvas size.
     procedure UpdateShadow;
@@ -195,11 +194,18 @@ type
     procedure DoGetTextSize(text: AnsiString; var w, h: Integer); override;
     function DoGetTextHeight(text: AnsiString): Integer; override;
     function DoGetTextWidth(text: AnsiString): Integer; override;
+    function DoGetTextMetrics(out aMetrics: TFPTextMetric): Boolean; override;
+    function GetNativeTextOrigin: TFPTextOrigin; override;
     procedure DoCopyRect(x, y: Integer; canvas: TFPCustomCanvas; const SourceRect: TRect); override;
     procedure DoDraw(x, y: Integer; const image: TFPCustomImage); override;
+    // Draws source over w x h pixels, scaled by PostScript when Interpolation is nil.
+    procedure DoStretchDraw(x, y, w, h: Integer; source: TFPCustomImage); override;
     procedure DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer); override;
     // Fills the region of the colour at (x, y) in the shadow raster with the brush.
     procedure DoFloodFill(x, y: Integer); override;
+    procedure DoFloodFillStyle(x, y: Integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle); override;
+    procedure DoChord(const Bounds: TRect; aStart16, aLength16: Integer); override;
+    procedure DoRoundRect(const Bounds: TRect; RX, RY: Integer); override;
   public
     constructor Create(AStream : TStream);
     destructor Destroy; override;
@@ -207,14 +213,6 @@ type
     function DoCreateDefaultPen : TFPCustomPen; override;
     function DoCreateDefaultBrush : TFPCustomBrush; override;
     property LineSpacing: Integer read FLineSpacing write FLineSpacing;
-    // The distance between the lines of hatch brushes.
-    property HashWidth: Integer read FHashWidth write FHashWidth;
-    // Where hatch brushes start counting their lines.
-    property HatchOrigin: THatchOrigin read FHatchOrigin write FHatchOrigin;
-    // Whether polygons fill by the non-zero winding rule instead of the even-odd rule.
-    property PolygonNonZeroWindingRule: Boolean read FNonZeroWindingRule write FNonZeroWindingRule;
-    // Whether bsImage brushes tile from the shape instead of the canvas origin.
-    property RelativeBrushImage: Boolean read FRelativeBrushImage write FRelativeBrushImage;
     // Whether a raster copy of the page is kept for pixel reads, flood fills and destination-dependent modes.
     property Shadow: Boolean read FShadow write SetShadow;
     // Clears the shadow raster to a white page.
@@ -231,12 +229,6 @@ type
     procedure DoPolygonFill(const Points: array of TPoint); override;
     // Writes the UTF-8 Text with its baseline at (X, Y) in the core font of Font.
     procedure DoTextOut(X, Y: Integer; Text: AnsiString); override;
-    // Copies SourceRect of canvas to (x, y) as an image.
-    procedure CopyRect(x, y: Integer; canvas: TFPCustomCanvas; SourceRect: TRect); override;
-    // Draws image with its top-left pixel at (x, y).
-    procedure Draw(x, y: Integer; image: TFPCustomImage); override;
-    // Draws source over w x h pixels, scaled by PostScript when Interpolation is nil.
-    procedure StretchDraw(x, y, w, h: Integer; source: TFPCustomImage); override;
     // Fills ARect with an axial shading from AStartColor to AEndColor.
     procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor;
                            ADirection: TFPGradientDirection); override;
@@ -514,7 +506,7 @@ begin
       WritePatternFill;
     bsImage:
       if Assigned(Brush.Image) then
-        if FRelativeBrushImage then
+        if RelativeBrushImage then
           WriteImageFill(aShapeOrigin)
         else
           WriteImageFill(Point(0, 0));
@@ -538,8 +530,8 @@ var
   lShape: Boolean;
   lWidth: Integer;
 begin
-  lWidth := Max(1, FHashWidth);
-  case FHatchOrigin of
+  lWidth := Max(1, HashWidth);
+  case HatchOrigin of
     hoShape: lShape := True;
     hoCanvas: lShape := False;
   else
@@ -699,7 +691,6 @@ constructor TPostScriptCanvas.Create(AStream : TStream);
 begin
   inherited create;
   FStream:=AStream;
-  FHashWidth:=15;
   Pen.Mode:=pmCopy;
   Height := 792; // length of page in points at 72 ppi
   { // Choose a standard font in case the user doesn't
@@ -944,10 +935,10 @@ begin
     DrawingMode := Self.DrawingMode;
     OnCombineColors := Self.OnCombineColors;
     EllipseMode := Self.EllipseMode;
-    HashWidth := FHashWidth;
-    HatchOrigin := FHatchOrigin;
-    RelativeBrushImage := FRelativeBrushImage;
-    PolygonNonZeroWindingRule := FNonZeroWindingRule;
+    HashWidth := Self.HashWidth;
+    HatchOrigin := Self.HatchOrigin;
+    RelativeBrushImage := Self.RelativeBrushImage;
+    PolygonNonZeroWindingRule := Self.PolygonNonZeroWindingRule;
     Interpolation := Self.Interpolation;
     Clipping := Self.Clipping;
     if Self.Clipping then
@@ -1137,40 +1128,109 @@ begin
 end;
 
 procedure TPostScriptCanvas.DoFloodFill(x, y: Integer);
+begin
+  FloodRegion(x, y, False, colTransparent);
+end;
+
+procedure TPostScriptCanvas.DoFloodFillStyle(x, y: Integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle);
+begin
+  if FillStyle = ffSurface then
+    inherited DoFloodFillStyle(x, y, FillColor, FillStyle)
+  else
+    FloodRegion(x, y, True, FillColor);
+end;
+
+{ The region of a surface fill is what a sentinel fill of a copy of the shadow changes; the region
+  of a border fill is searched in the shadow, limited to the clip rectangle. }
+procedure TPostScriptCanvas.FloodRegion(x, y: Integer; aBorder: Boolean; const aBorderColor: TFPColor);
 var
   lScratch: TFPImageCanvas;
   lSeed, lSentinel: TFPColor;
-  lMask: array of Boolean;
-  lX, lY, lLeft, lTop, lRight, lBottom: Integer;
+  lRegion, lMask: array of Boolean;
+  lStack: array of TPoint;
+  lClip: TRect;
+  lX, lY, lLeft, lTop, lRight, lBottom, lCount, i: Integer;
+  p: TPoint;
   lPatch: Boolean;
+
+  function Fillable(ax, ay: Integer): Boolean;
+  begin
+    Result := (ax >= lClip.Left) and (ax <= lClip.Right) and (ay >= lClip.Top) and (ay <= lClip.Bottom)
+              and not lRegion[ay * Width + ax] and (FShadowImage.Colors[ax, ay] <> aBorderColor);
+  end;
+
+  procedure Push(ax, ay: Integer);
+  begin
+    if lCount = Length(lStack) then
+      SetLength(lStack, 2 * lCount + 64);
+    lStack[lCount] := Point(ax, ay);
+    Inc(lCount);
+  end;
+
 begin
   if not FShadow then
     raise EPostScriptCanvas.Create(SErrNeedsShadow);
   if (Brush.Style = bsClear) or (x < 0) or (y < 0) or (x >= Width) or (y >= Height) then
     exit;
   SyncShadow;
-  TakeSnapshot;
-  lSeed := FSnapshot.Colors[x, y];
-  lSentinel := lSeed;
-  lSentinel.Red := lSentinel.Red xor $FFFF;
-  lScratch := TFPImageCanvas.Create(FSnapshot);
-  try
-    lScratch.Clipping := Clipping;
+  SetLength(lRegion, Width * Height);
+  if aBorder then
+    begin
+    lClip := Rect(0, 0, Width - 1, Height - 1);
     if Clipping then
-      lScratch.ClipRect := DeviceClipRect;
-    lScratch.Brush.Style := bsSolid;
-    lScratch.Brush.FPColor := lSentinel;
-    lScratch.FloodFill(x, y);
-  finally
-    lScratch.Free;
-  end;
+      begin
+      lClip.Left := Max(lClip.Left, DeviceClipRect.Left);
+      lClip.Top := Max(lClip.Top, DeviceClipRect.Top);
+      lClip.Right := Min(lClip.Right, DeviceClipRect.Right);
+      lClip.Bottom := Min(lClip.Bottom, DeviceClipRect.Bottom);
+      end;
+    lStack := nil;
+    lCount := 0;
+    Push(x, y);
+    while lCount > 0 do
+      begin
+      Dec(lCount);
+      p := lStack[lCount];
+      if not Fillable(p.X, p.Y) then
+        continue;
+      lRegion[p.Y * Width + p.X] := True;
+      if p.X > 0 then
+        Push(p.X - 1, p.Y);
+      if p.X < Width - 1 then
+        Push(p.X + 1, p.Y);
+      if p.Y > 0 then
+        Push(p.X, p.Y - 1);
+      if p.Y < Height - 1 then
+        Push(p.X, p.Y + 1);
+      end;
+    end
+  else
+    begin
+    TakeSnapshot;
+    lSeed := FSnapshot.Colors[x, y];
+    lSentinel := lSeed;
+    lSentinel.Red := lSentinel.Red xor $FFFF;
+    lScratch := TFPImageCanvas.Create(FSnapshot);
+    try
+      lScratch.Clipping := Clipping;
+      if Clipping then
+        lScratch.ClipRect := DeviceClipRect;
+      lScratch.Brush.Style := bsSolid;
+      lScratch.Brush.FPColor := lSentinel;
+      lScratch.FloodFill(x, y);
+    finally
+      lScratch.Free;
+    end;
+    for i := 0 to Width * Height - 1 do
+      lRegion[i] := FSnapshot.Colors[i mod Width, i div Width] <> FShadowImage.Colors[i mod Width, i div Width];
+    end;
   lLeft := Width;
   lTop := Height;
   lRight := -1;
   lBottom := -1;
   for lY := 0 to Height - 1 do
     for lX := 0 to Width - 1 do
-      if FSnapshot.Colors[lX, lY] <> FShadowImage.Colors[lX, lY] then
+      if lRegion[lY * Width + lX] then
         begin
         lLeft := Min(lLeft, lX);
         lRight := Max(lRight, lX);
@@ -1186,15 +1246,17 @@ begin
     SetLength(lMask, (lRight - lLeft + 1) * (lBottom - lTop + 1));
     for lY := lTop to lBottom do
       for lX := lLeft to lRight do
-        lMask[(lY - lTop) * (lRight - lLeft + 1) + lX - lLeft] :=
-          FSnapshot.Colors[lX, lY] <> FShadowImage.Colors[lX, lY];
+        lMask[(lY - lTop) * (lRight - lLeft + 1) + lX - lLeft] := lRegion[lY * Width + lX];
     WriteRegionPath(lMask, lLeft, lTop, lRight - lLeft + 1, lBottom - lTop + 1);
     AddFill(Point(x, y), True);
     WritePS('newpath');
     end
   else
     TakeSnapshot;
-  FShadowCanvas.FloodFill(x, y);
+  if aBorder then
+    FShadowCanvas.FloodFill(x, y, aBorderColor, ffBorder)
+  else
+    FShadowCanvas.FloodFill(x, y);
   if lPatch then
     WritePatch;
   ResetPos;
@@ -1327,7 +1389,7 @@ begin
     exit;
   BeginClip;
   WritePolygonPath(Self, Points);
-  FEvenOdd := not FNonZeroWindingRule;
+  FEvenOdd := not PolygonNonZeroWindingRule;
   AddFill(TopLeftOf(Points));
   FEvenOdd := False;
   WritePS('newpath');
@@ -1404,7 +1466,7 @@ begin
         lTopLeft.X := Min(lTopLeft.X, Points[i].X);
         lTopLeft.Y := Min(lTopLeft.Y, Points[i].Y);
         end;
-      FEvenOdd := not FNonZeroWindingRule;
+      FEvenOdd := not PolygonNonZeroWindingRule;
       AddFill(lTopLeft);
       FEvenOdd := False;
       end;
@@ -1525,12 +1587,17 @@ begin
                  [acx, Height - acy, arx, ary, t0, t0 + dt, cOperator[aLength16 < 0]], PSFormat));
 end;
 
-procedure TPostScriptCanvas.WritePie(acx, acy, arx, ary: Double; aStart16, aLength16: Integer; const aOrigin: TPoint);
+{ A chord closes the arc directly; a pie closes it through the centre. }
+procedure TPostScriptCanvas.WritePie(acx, acy, arx, ary: Double; aStart16, aLength16: Integer; const aOrigin: TPoint;
+  aChord: Boolean);
 begin
   if (arx <= 0) or (ary <= 0) then
     exit;
   BeginClip;
-  WritePS(Format('newpath %.1f %.1f moveto', [acx, Height - acy], PSFormat));
+  if aChord then
+    WritePS('newpath')
+  else
+    WritePS(Format('newpath %.1f %.1f moveto', [acx, Height - acy], PSFormat));
   WriteArc(acx, acy, arx, ary, aStart16, aLength16);
   WritePS('closepath');
   if Brush.Style<>bsClear then
@@ -1544,6 +1611,69 @@ begin
     WritePS('newpath');
   EndClip;
   ResetPos;
+end;
+
+procedure TPostScriptCanvas.DoChord(const Bounds: TRect; aStart16, aLength16: Integer);
+var
+  lPatch: Boolean;
+begin
+  lPatch := StartShape(True, True);
+  with Bounds do
+    begin
+    if not lPatch then
+      WritePie((Left + Right) / 2, (Top + Bottom) / 2, Abs(Right - Left) / 2, Abs(Bottom - Top) / 2,
+               aStart16, aLength16, Point(Min(Left, Right), Min(Top, Bottom)), True);
+    if FShadow then
+      FShadowCanvas.Chord(Left, Top, Right, Bottom, aStart16, aLength16);
+    end;
+  EndShape(lPatch);
+end;
+
+{ The corner radii follow the ellipse convention: RX pixels wide is a radius of (RX - 1) / 2. }
+procedure TPostScriptCanvas.DoRoundRect(const Bounds: TRect; RX, RY: Integer);
+var
+  lPatch: Boolean;
+  lLeft, lTop, lRight, lBottom, lRX, lRY: Double;
+begin
+  lPatch := StartShape(True, True);
+  if not lPatch then
+    begin
+    lLeft := Min(Bounds.Left, Bounds.Right);
+    lRight := Max(Bounds.Left, Bounds.Right);
+    lTop := Min(Bounds.Top, Bounds.Bottom);
+    lBottom := Max(Bounds.Top, Bounds.Bottom);
+    lRX := Min((RX - 1) / 2, (lRight - lLeft) / 2);
+    lRY := Min((RY - 1) / 2, (lBottom - lTop) / 2);
+    if (lRX <= 0) or (lRY <= 0) then
+      begin
+      DrawRectangle(Bounds, True);
+      DrawRectangle(Bounds, False);
+      end
+    else
+      begin
+      BeginClip;
+      WritePS('newpath');
+      WriteArc(lRight - lRX, lTop + lRY, lRX, lRY, 0, 90*16);
+      WriteArc(lLeft + lRX, lTop + lRY, lRX, lRY, 90*16, 90*16);
+      WriteArc(lLeft + lRX, lBottom - lRY, lRX, lRY, 180*16, 90*16);
+      WriteArc(lRight - lRX, lBottom - lRY, lRX, lRY, 270*16, 90*16);
+      WritePS('closepath');
+      if Brush.Style <> bsClear then
+        AddFill(Point(Round(lLeft), Round(lTop)));
+      if Pen.Style <> psClear then
+        begin
+        WritePen;
+        WritePS('stroke');
+        end
+      else
+        WritePS('newpath');
+      EndClip;
+      ResetPos;
+      end;
+    end;
+  if FShadow then
+    FShadowCanvas.RoundRect(Bounds, RX, RY);
+  EndShape(lPatch);
 end;
 
 procedure TPostScriptCanvas.DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
@@ -1687,6 +1817,22 @@ begin
   Result := Round(TextPoints(Latin1Text(text)));
 end;
 
+function TPostScriptCanvas.DoGetTextMetrics(out aMetrics: TFPTextMetric): Boolean;
+begin
+  with PSCoreFonts[FontIndex] do
+    begin
+    aMetrics.Ascender := Round(Ascender * FontSize / 1000);
+    aMetrics.Descender := Round(-Descender * FontSize / 1000);
+    aMetrics.Height := Round((Ascender - Descender) * FontSize / 1000);
+    end;
+  Result := True;
+end;
+
+function TPostScriptCanvas.GetNativeTextOrigin: TFPTextOrigin;
+begin
+  Result := toBaseline;
+end;
+
 procedure TPostScriptCanvas.SetColor(x, y: Integer; const Value: TFPColor);
 begin
   WritePS(PSColor(Value)+Format(' setrgbcolor %.1f %.1f 1 1 rectfill', [x - 0.5, Height - y - 0.5], PSFormat));
@@ -1801,6 +1947,11 @@ begin
       exit;
     lImage := TFPMemoryImage.Create(Right - Left + 1, Bottom - Top + 1);
     end;
+  if FShadow then
+    begin
+    SyncShadow;
+    FShadowCanvas.DrawingMode := dmOpaque;
+    end;
   try
     for lY := 0 to lImage.Height - 1 do
       for lX := 0 to lImage.Width - 1 do
@@ -1813,55 +1964,14 @@ begin
   end;
 end;
 
-procedure TPostScriptCanvas.CopyRect(x, y: Integer; canvas: TFPCustomCanvas; SourceRect: TRect);
-var
-  P: TPoint;
-begin
-  if HasTransform then
-    begin
-    P := TransformPoint(x, y);
-    x := P.X;
-    y := P.Y;
-    end;
-  if UserRect(SourceRect, SourceRect) then
-    begin
-    if FShadow then
-      begin
-      SyncShadow;
-      FShadowCanvas.DrawingMode := dmOpaque;
-      end;
-    DoCopyRect(x, y, canvas, SourceRect);
-    end;
-end;
-
-procedure TPostScriptCanvas.Draw(x, y: Integer; image: TFPCustomImage);
-var
-  P: TPoint;
-begin
-  if HasTransform then
-    begin
-    P := TransformPoint(x, y);
-    x := P.X;
-    y := P.Y;
-    end;
-  DoDraw(x, y, image);
-end;
-
-procedure TPostScriptCanvas.StretchDraw(x, y, w, h: Integer; source: TFPCustomImage);
+procedure TPostScriptCanvas.DoStretchDraw(x, y, w, h: Integer; source: TFPCustomImage);
 var
   lPatch: Boolean;
-  P: TPoint;
   lImage: TFPMemoryImage;
   lCanvas: TFPImageCanvas;
 begin
   if (w <= 0) or (h <= 0) then
     exit;
-  if HasTransform then
-    begin
-    P := TransformPoint(x, y);
-    x := P.X;
-    y := P.Y;
-    end;
   lPatch := (DrawingMode = dmCustom) or (FShadow and (DrawingMode = dmAlphaBlend) and HasTransparency(source));
   if lPatch and not FShadow then
     raise EPostScriptCanvas.Create(SErrNeedsShadow);

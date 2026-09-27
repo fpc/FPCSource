@@ -74,6 +74,10 @@ procedure FillRectangleHatch (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; aStyle
 // Flood fills from (x, y) with the hatch aStyle counted from (aOriginX, aOriginY).
 procedure FillFloodHatch (Canv:TFPCustomCanvas; x,y:integer; aStyle:TFPBrushStyle;
   aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
+// Makes the flood fills of the calling thread fill up to pixels of aColor instead of the colour at their start.
+procedure BeginFloodFillBorder (const aColor:TFPColor);
+// Makes the flood fills of the calling thread fill the colour at their start again.
+procedure EndFloodFillBorder;
 
 implementation
 
@@ -594,9 +598,35 @@ type
   TFloodFillData = record
     Canv : TFPCustomCanvas;
     ReplColor : TFPColor;
+    Border : boolean;
     SetColor : TFuncSetColor;
     ExtraData : pointer;
   end;
+
+threadvar
+  FloodBorderActive : boolean;
+  FloodBorderColor : TFPColor;
+
+procedure BeginFloodFillBorder (const aColor:TFPColor);
+begin
+  FloodBorderActive := true;
+  FloodBorderColor := aColor;
+end;
+
+procedure EndFloodFillBorder;
+begin
+  FloodBorderActive := false;
+end;
+
+// Sets the colour data^ replaces, or in a border fill the colour it stops at, for a fill from (x, y).
+procedure InitFloodColor (var d:TFloodFillData; x,y:integer);
+begin
+  d.Border := FloodBorderActive;
+  if d.Border then
+    d.ReplColor := FloodBorderColor
+  else
+    d.ReplColor := d.Canv.colors[x,y];
+end;
 
 // Calls data^.SetColor once for each pixel of colour data^.ReplColor that is connected to (x, y)
 // horizontally or vertically through pixels of that colour.
@@ -612,7 +642,7 @@ var
   begin
     idx := Int64(ay) * w + ax;
     Result := ((done[idx shr 3] and (1 shl (idx and 7))) = 0)
-              and (data^.Canv.Colors[ax, ay] = data^.ReplColor);
+              and ((data^.Canv.Colors[ax, ay] = data^.ReplColor) <> data^.Border);
   end;
 
   procedure SetDone (ax, ay : integer);
@@ -685,7 +715,7 @@ procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColo
 var d : TFloodFillData;
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := @SetFloodColor;
   d.ExtraData := @color;
   FloodFill (@d, x, y);
@@ -725,7 +755,7 @@ var rec : TFloodPatternRec;
 
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := @SetFloodPattern;
   d.ExtraData := @rec;
   FillPattern;
@@ -807,7 +837,7 @@ var rec : TFloodHashRec;
     d : TFloodFillData;
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := SetHashColor;
   d.ExtraData := @rec;
   rec.color := c;
@@ -897,7 +927,7 @@ var rec : TFloodImageRec;
     d : TFloodFillData;
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := @SetFloodImage;
   d.ExtraData := @rec;
   rec.image := image;
@@ -926,7 +956,7 @@ var rec : TFloodImageRec;
     d : TFloodFillData;
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := @SetFloodImageRel;
   d.ExtraData := @rec;
   rec.image := image;
@@ -988,7 +1018,7 @@ var rec : TFloodHatchRec;
     d : TFloodFillData;
 begin
   d.Canv := canv;
-  d.ReplColor := Canv.colors[x,y];
+  InitFloodColor (d, x, y);
   d.SetColor := @SetFloodHatch;
   d.ExtraData := @rec;
   rec.color := c;

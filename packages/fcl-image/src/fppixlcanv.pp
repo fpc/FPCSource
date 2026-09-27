@@ -38,10 +38,6 @@ type
 
   TFPPixelCanvas = class (TFPCustomCanvas)
   private
-    FHashWidth : word;
-    FNonZeroWindingRule : Boolean;
-    FRelativeBI : boolean;
-    FHatchOrigin : THatchOrigin;
     // True when the brush is a hatch and HatchOrigin is not hoDefault.
     function HatchByOrigin : boolean;
     procedure PenRectangle (const Bounds:TRect);
@@ -51,11 +47,9 @@ type
     procedure PenLine (x1,y1,x2,y2:integer);
     procedure StrokeThick (const points:array of TPoint; aClosed:boolean);
   protected
-    procedure DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect); override;
     function DoCreateDefaultFont : TFPCustomFont; override;
     function DoCreateDefaultPen : TFPCustomPen; override;
     function DoCreateDefaultBrush : TFPCustomBrush; override;
-    procedure DoDraw(x, y: integer; const image: TFPCustomImage); override;
     procedure DoTextOut (x,y:integer;text:AnsiString); override;
     procedure DoGetTextSize (text:AnsiString; var w,h:integer); override;
     function  DoGetTextHeight (text:AnsiString) : integer; override;
@@ -69,13 +63,10 @@ type
     procedure DoPolyline (const points:array of TPoint); override;
     procedure DoFloodFill (x,y:integer); override;
     procedure DoLine (x1,y1,x2,y2:integer); override;
+    function GetNativeTextOrigin : TFPTextOrigin; override;
+    function GetNativeTextMeasure : TFPTextMeasure; override;
+    procedure DoFloodFillStyle (x, y: integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle); override;
   public
-    constructor create;
-    property HashWidth : word read FHashWidth write FHashWidth;
-    property PolygonNonZeroWindingRule : Boolean read FNonZeroWindingRule write FNonZeroWindingRule;
-    property RelativeBrushImage : boolean read FRelativeBI write FRelativeBI;
-    // Where hatch brushes start counting their lines.
-    property HatchOrigin : THatchOrigin read FHatchOrigin write FHatchOrigin;
   end;
 
 const
@@ -92,32 +83,34 @@ uses System.Math, FpImage.Clipping;
 uses Math, Clipping;
 {$ENDIF FPC_DOTTEDUNITS}
 
-const
-  DefaultHashWidth = 15;
-
 procedure NotImplemented;
 begin
   raise ENotImplemented.Create(sErrNotAvailable);
 end;
 
-constructor TFPPixelCanvas.create;
+function TFPPixelCanvas.GetNativeTextOrigin : TFPTextOrigin;
 begin
-  inherited;
-  FHashWidth := DefaultHashWidth;
+  Result := toBaseline;
 end;
 
-procedure TFPPixelCanvas.DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect);
-Var
-  W,H,XS1,XS2,YS1,YS2 : Integer;
-
+function TFPPixelCanvas.GetNativeTextMeasure : TFPTextMeasure;
 begin
-  XS1:=SourceRect.Left;
-  XS2:=SourceRect.Right;
-  YS1:=SourceRect.Top;
-  YS2:=SourceRect.Bottom;
-  For H:=0 to YS2-YS1 do
-    For W:=0 to XS2-XS1 do
-      Colors[x+w,y+h]:=Canvas.Colors[XS1+W,YS1+H];
+  Result := tmInk;
+end;
+
+procedure TFPPixelCanvas.DoFloodFillStyle (x, y: integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle);
+begin
+  if FillStyle = ffSurface then
+    inherited DoFloodFillStyle(x, y, FillColor, FillStyle)
+  else
+    begin
+    BeginFloodFillBorder(FillColor);
+    try
+      DoFloodFill(x, y);
+    finally
+      EndFloodFillBorder;
+    end;
+    end;
 end;
 
 function TFPPixelCanvas.DoCreateDefaultFont : TFPCustomFont;
@@ -147,17 +140,6 @@ function TFPPixelCanvas.DoCreateDefaultBrush : TFPCustomBrush;
 begin
   result := TFPEmptyBrush.Create;
   result.Style := bsSolid;
-end;
-
-procedure TFPPixelCanvas.DoDraw(x, y: integer; const image: TFPCustomImage);
-
-Var
-  W,h : Integer;
-
-begin
-  For H:=0 to Image.Height-1 do
-    For W:=0 to Image.Width-1 do
-      Colors[x+w,y+h]:=Image.Colors[W,H];
 end;
 
 procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:AnsiString);
@@ -243,7 +225,7 @@ end;
 
 function TFPPixelCanvas.HatchByOrigin : boolean;
 begin
-  Result := (FHatchOrigin <> hoDefault)
+  Result := (HatchOrigin <> hoDefault)
             and (Brush.Style in [bsHorizontal, bsVertical, bsFDiagonal, bsBDiagonal, bsCross, bsDiagCross]);
 end;
 
@@ -255,7 +237,7 @@ begin
   SortRect (b);
   ox := 0;
   oy := 0;
-  if FHatchOrigin = hoShape then
+  if HatchOrigin = hoShape then
     begin
     ox := b.Left;
     oy := b.Top;
@@ -265,7 +247,7 @@ begin
   if HatchByOrigin then
     begin
     with b do
-      FillRectangleHatch (self, left,top, right,bottom, Brush.Style, FHashWidth, ox,oy, Brush.FPColor);
+      FillRectangleHatch (self, left,top, right,bottom, Brush.Style, HashWidth, ox,oy, Brush.FPColor);
     exit;
     end;
   with b do
@@ -274,26 +256,26 @@ begin
       bsPattern : FillRectanglePattern (self, left,top, right,bottom, brush.pattern);
       bsImage :
         if assigned (brush.image) then
-          if FRelativeBI then
+          if RelativeBrushImage then
             FillRectangleImageRel (self, left,top, right,bottom, brush.image)
           else
             FillRectangleImage (self, left,top, right,bottom, brush.image)
         else
           raise PixelCanvasException.Create (sErrNoImage);
-      bsBDiagonal : FillRectangleHashDiagonal (self, b, FHashWidth);
-      bsFDiagonal : FillRectangleHashBackDiagonal (self, b, FHashWidth);
+      bsBDiagonal : FillRectangleHashDiagonal (self, b, HashWidth);
+      bsFDiagonal : FillRectangleHashBackDiagonal (self, b, HashWidth);
       bsCross :
         begin
-        FillRectangleHashHorizontal (self, b, FHashWidth);
-        FillRectangleHashVertical (self, b, FHashWidth);
+        FillRectangleHashHorizontal (self, b, HashWidth);
+        FillRectangleHashVertical (self, b, HashWidth);
         end;
       bsDiagCross :
         begin
-        FillRectangleHashDiagonal (self, b, FHashWidth);
-        FillRectangleHashBackDiagonal (self, b, FHashWidth);
+        FillRectangleHashDiagonal (self, b, HashWidth);
+        FillRectangleHashBackDiagonal (self, b, HashWidth);
         end;
-      bsHorizontal : FillRectangleHashHorizontal (self, b, FHashWidth);
-      bsVertical : FillRectangleHashVertical (self, b, FHashWidth);
+      bsHorizontal : FillRectangleHashHorizontal (self, b, HashWidth);
+      bsVertical : FillRectangleHashVertical (self, b, HashWidth);
     end;
 end;
 
@@ -301,11 +283,11 @@ procedure TFPPixelCanvas.DoEllipseFill (const Bounds:TRect);
 begin
   if HatchByOrigin then
     begin
-    if FHatchOrigin = hoShape then
-      FillEllipseHatch (self, Bounds, Brush.Style, FHashWidth, Min(Bounds.Left, Bounds.Right),
+    if HatchOrigin = hoShape then
+      FillEllipseHatch (self, Bounds, Brush.Style, HashWidth, Min(Bounds.Left, Bounds.Right),
                         Min(Bounds.Top, Bounds.Bottom), Brush.FPColor)
     else
-      FillEllipseHatch (self, Bounds, Brush.Style, FHashWidth, 0, 0, Brush.FPColor);
+      FillEllipseHatch (self, Bounds, Brush.Style, HashWidth, 0, 0, Brush.FPColor);
     exit;
     end;
   case Brush.style of
@@ -313,18 +295,18 @@ begin
     bsPattern : FillEllipsePattern (self, Bounds, brush.pattern, Brush.FPColor);
     bsImage :
       if assigned (brush.image) then
-        if FRelativeBI then
+        if RelativeBrushImage then
           FillEllipseImageRel (self, Bounds, brush.image)
         else
           FillEllipseImage (self, Bounds, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, Brush.FPColor);
-    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, Brush.FPColor);
-    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsVertical : FillEllipseHashVertical (self, Bounds, FHashWidth, Brush.FPColor);
+    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, HashWidth, Brush.FPColor);
+    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, HashWidth, Brush.FPColor);
+    bsCross : FillEllipseHashCross (self, Bounds, HashWidth, Brush.FPColor);
+    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, HashWidth, Brush.FPColor);
+    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, HashWidth, Brush.FPColor);
+    bsVertical : FillEllipseHashVertical (self, Bounds, HashWidth, Brush.FPColor);
   end;
 end;
 
@@ -362,7 +344,7 @@ begin
     begin
     ox := 0;
     oy := 0;
-    if (FHatchOrigin = hoShape) and (Length(points) > 0) then
+    if (HatchOrigin = hoShape) and (Length(points) > 0) then
       begin
       ox := points[0].X;
       oy := points[0].Y;
@@ -372,34 +354,34 @@ begin
         oy := Min(oy, points[i].Y);
         end;
       end;
-    FillPolygonHatch (self, points, FNonZeroWindingRule, Brush.Style, HashWidth, ox, oy, Brush.FPColor);
+    FillPolygonHatch (self, points, PolygonNonZeroWindingRule, Brush.Style, HashWidth, ox, oy, Brush.FPColor);
     exit;
     end;
   case Brush.Style of
     bsSolid:
-      FillPolygonSolid(self, points, FNonZeroWindingRule, Brush.FPColor);
+      FillPolygonSolid(self, points, PolygonNonZeroWindingRule, Brush.FPColor);
     bsHorizontal:
-      FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonHorizontal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsVertical:
-      FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonVertical(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsCross:
       begin
-        FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
-        FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonHorizontal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonVertical(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
       end;
     bsFDiagonal:
-      FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsBDiagonal:
-      FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonBackDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsDiagCross:
       begin
-        FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
-        FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonBackDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
       end;
     bsPattern:
-      FillPolygonPattern(self, points, FNonZeroWindingRule, Brush.FPColor, Brush.Pattern);
+      FillPolygonPattern(self, points, PolygonNonZeroWindingRule, Brush.FPColor, Brush.Pattern);
     bsImage:
-      FillPolygonImage(self, points, FNonZeroWindingRule, Brush.Image, FRelativeBI);
+      FillPolygonImage(self, points, PolygonNonZeroWindingRule, Brush.Image, RelativeBrushImage);
   end;
 end;
 
@@ -407,10 +389,10 @@ procedure TFPPixelCanvas.DoFloodFill (x,y:integer);
 begin
   if HatchByOrigin then
     begin
-    if FHatchOrigin = hoShape then
-      FillFloodHatch (self, x,y, Brush.Style, FHashWidth, x,y, Brush.FPColor)
+    if HatchOrigin = hoShape then
+      FillFloodHatch (self, x,y, Brush.Style, HashWidth, x,y, Brush.FPColor)
     else
-      FillFloodHatch (self, x,y, Brush.Style, FHashWidth, 0,0, Brush.FPColor);
+      FillFloodHatch (self, x,y, Brush.Style, HashWidth, 0,0, Brush.FPColor);
     exit;
     end;
   case Brush.style of
@@ -418,18 +400,18 @@ begin
     bsPattern : FillFloodPattern (self, x,y, brush.pattern);
     bsImage :
       if assigned (brush.image) then
-        if FRelativeBI then
+        if RelativeBrushImage then
           FillFloodImageRel (self, x,y, brush.image)
         else
           FillFloodImage (self, x,y, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsBDiagonal : FillFloodHashDiagonal (self, x,y, FHashWidth);
-    bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, FHashWidth);
-    bsCross : FillFloodHashCross (self, x,y, FHashWidth);
-    bsDiagCross : FillFloodHashDiagCross (self, x,y, FHashWidth);
-    bsHorizontal : FillFloodHashHorizontal (self, x,y, FHashWidth);
-    bsVertical : FillFloodHashVertical (self, x,y, FHashWidth);
+    bsBDiagonal : FillFloodHashDiagonal (self, x,y, HashWidth);
+    bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, HashWidth);
+    bsCross : FillFloodHashCross (self, x,y, HashWidth);
+    bsDiagCross : FillFloodHashDiagCross (self, x,y, HashWidth);
+    bsHorizontal : FillFloodHashHorizontal (self, x,y, HashWidth);
+    bsVertical : FillFloodHashVertical (self, x,y, HashWidth);
   end;
 end;
 

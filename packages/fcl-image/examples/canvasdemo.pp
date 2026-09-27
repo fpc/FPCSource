@@ -103,45 +103,6 @@ begin
 end;
 
 
-// Sets the distance between hatch lines and where they start, on a pixel or PostScript canvas.
-procedure SetHatch(aCanvas: TFPCustomCanvas; aWidth: Integer; aOrigin: THatchOrigin = hoDefault);
-
-begin
-  if aCanvas is TFPPixelCanvas then
-    begin
-    TFPPixelCanvas(aCanvas).HashWidth := aWidth;
-    TFPPixelCanvas(aCanvas).HatchOrigin := aOrigin;
-    end
-  else if aCanvas is TPostScriptCanvas then
-    begin
-    TPostScriptCanvas(aCanvas).HashWidth := aWidth;
-    TPostScriptCanvas(aCanvas).HatchOrigin := aOrigin;
-    end;
-end;
-
-
-// Sets whether bsImage brushes tile from the shape, on a pixel or PostScript canvas.
-procedure SetRelativeBrushImage(aCanvas: TFPCustomCanvas; aValue: Boolean);
-
-begin
-  if aCanvas is TFPPixelCanvas then
-    TFPPixelCanvas(aCanvas).RelativeBrushImage := aValue
-  else if aCanvas is TPostScriptCanvas then
-    TPostScriptCanvas(aCanvas).RelativeBrushImage := aValue;
-end;
-
-
-// Sets the polygon fill rule on a pixel or PostScript canvas.
-procedure SetNonZeroWinding(aCanvas: TFPCustomCanvas; aValue: Boolean);
-
-begin
-  if aCanvas is TFPPixelCanvas then
-    TFPPixelCanvas(aCanvas).PolygonNonZeroWindingRule := aValue
-  else if aCanvas is TPostScriptCanvas then
-    TPostScriptCanvas(aCanvas).PolygonNonZeroWindingRule := aValue;
-end;
-
-
 // Sets the pen, brush and drawing properties every feature set starts from.
 procedure ResetCanvas(aCanvas: TFPCustomCanvas);
 
@@ -163,9 +124,10 @@ begin
     Clipping := False;
     Interpolation := nil;
     end;
-  SetHatch(aCanvas, 5);
-  SetRelativeBrushImage(aCanvas, False);
-  SetNonZeroWinding(aCanvas, False);
+  aCanvas.HashWidth := 5;
+  aCanvas.HatchOrigin := hoDefault;
+  aCanvas.RelativeBrushImage := False;
+  aCanvas.PolygonNonZeroWindingRule := False;
 end;
 
 
@@ -494,9 +456,9 @@ begin
   aCanvas.Pen.FPColor := RGB(139, 0, 0);
   aCanvas.Polygon(StarPoints(85, 85, 68));
   Caption(aCanvas, 30, 175, 'Even-odd rule');
-  SetNonZeroWinding(aCanvas, True);
+  aCanvas.PolygonNonZeroWindingRule := True;
   aCanvas.Polygon(StarPoints(240, 85, 68));
-  SetNonZeroWinding(aCanvas, False);
+  aCanvas.PolygonNonZeroWindingRule := False;
   Caption(aCanvas, 175, 175, 'Non-zero winding rule');
   aCanvas.Brush.FPColor := RGB(135, 206, 250);
   aCanvas.Pen.FPColor := RGB(0, 0, 139);
@@ -548,7 +510,8 @@ var
   lName: String;
 
 begin
-  SetHatch(aCanvas, 6);
+  aCanvas.HashWidth := 6;
+  aCanvas.HatchOrigin := hoDefault;
   aCanvas.Brush.Pattern := DiamondPattern;
   aCanvas.Brush.Image := TileImage;
   aCanvas.Brush.FPColor := RGB(0, 90, 160);
@@ -578,7 +541,8 @@ begin
   for lOrigin := Low(THatchOrigin) to High(THatchOrigin) do
     begin
     lY := 15 + Ord(lOrigin) * 102;
-    SetHatch(aCanvas, 12, lOrigin);
+    aCanvas.HashWidth := 12;
+    aCanvas.HatchOrigin := lOrigin;
     aCanvas.Rectangle(125, lY, 218, lY + 82);
     aCanvas.Rectangle(218, lY, 311, lY + 82);
     aCanvas.Ellipse(330, lY, 465, lY + 82);
@@ -611,7 +575,8 @@ begin
   aCanvas.FloodFill(180, 30);
   Caption(aCanvas, 175, 155, 'Pattern, around the notch');
   aCanvas.Brush.Style := bsCross;
-  SetHatch(aCanvas, 8);
+  aCanvas.HashWidth := 8;
+  aCanvas.HatchOrigin := hoDefault;
   aCanvas.Brush.FPColor := RGB(0, 120, 0);
   aCanvas.FloodFill(390, 100);
   Caption(aCanvas, 360, 155, 'Hatch');
@@ -619,9 +584,9 @@ begin
   aCanvas.Brush.Image := TileImage;
   aCanvas.FloodFill(80, 230);
   Caption(aCanvas, 25, 305, 'Image');
-  SetRelativeBrushImage(aCanvas, True);
+  aCanvas.RelativeBrushImage := True;
   aCanvas.FloodFill(172, 172);
-  SetRelativeBrushImage(aCanvas, False);
+  aCanvas.RelativeBrushImage := False;
   aCanvas.Brush.Image := nil;
   Caption(aCanvas, 175, 305, 'Image, relative');
   aCanvas.Brush.Style := bsSolid;
@@ -915,6 +880,173 @@ begin
 end;
 
 
+// Marks the point (aX, aY) with a small red square.
+procedure MarkPoint(aCanvas: TFPCustomCanvas; aX, aY: Integer);
+
+begin
+  aCanvas.Pen.FPColor := RGB(220, 0, 0);
+  aCanvas.Brush.Style := bsClear;
+  aCanvas.Rectangle(aX - 2, aY - 2, aX + 2, aY + 2);
+  aCanvas.Pen.FPColor := colBlack;
+end;
+
+
+procedure DrawLCLShapes(aCanvas: TFPCustomCanvas);
+
+var
+  lRect: TRect;
+
+begin
+  aCanvas.Brush.Style := bsSolid;
+  aCanvas.Brush.FPColor := RGB(70, 130, 180);
+  aCanvas.Frame(15, 20, 60, 110);
+  aCanvas.FrameRect(70, 20, 110, 110);
+  Caption(aCanvas, 15, 135, 'Frame, FrameRect');
+
+  aCanvas.Brush.FPColor := RGB(212, 208, 200);
+  aCanvas.FillRect(135, 20, 225, 110);
+  lRect := Rect(135, 20, 225, 110);
+  aCanvas.Frame3D(lRect, colWhite, RGB(128, 128, 128), 3);
+  InflateRect(lRect, -12, -12);
+  aCanvas.Frame3D(lRect, RGB(128, 128, 128), colWhite, 2);
+  Caption(aCanvas, 135, 135, 'Frame3D');
+
+  aCanvas.Pen.Width := 2;
+  aCanvas.Brush.FPColor := RGB(255, 200, 0);
+  aCanvas.RoundRect(255, 20, 345, 110, 36, 36);
+  Caption(aCanvas, 255, 135, 'RoundRect');
+
+  aCanvas.Brush.FPColor := RGB(144, 238, 144);
+  aCanvas.Chord(370, 20, 465, 110, 30 * 16, 210 * 16);
+  Caption(aCanvas, 370, 135, 'Chord');
+
+  aCanvas.Pen.Width := 1;
+  aCanvas.Brush.FPColor := RGB(255, 160, 122);
+  aCanvas.Pie(15, 170, 110, 265, 110, 180, 20, 250);
+  MarkPoint(aCanvas, 110, 180);
+  MarkPoint(aCanvas, 20, 250);
+  Caption(aCanvas, 15, 290, 'Pie by two points');
+
+  aCanvas.Pen.Width := 3;
+  aCanvas.Pen.FPColor := RGB(0, 100, 0);
+  aCanvas.MoveTo(135, 265);
+  aCanvas.ArcTo(150, 175, 210, 235, 210, 205, 150, 205);
+  aCanvas.AngleArc(190, 240, 20, 180, 180);
+  aCanvas.LineTo(225, 265);
+  aCanvas.Pen.Width := 1;
+  aCanvas.Pen.FPColor := colBlack;
+  Caption(aCanvas, 135, 290, 'ArcTo, AngleArc');
+
+  aCanvas.Brush.FPColor := RGB(212, 208, 200);
+  aCanvas.Rectangle(255, 195, 345, 235);
+  Caption(aCanvas, 272, 222, 'Button');
+  aCanvas.DrawFocusRect(Rect(260, 200, 340, 230));
+  aCanvas.DrawFocusRect(Rect(255, 245, 345, 265));
+  aCanvas.DrawFocusRect(Rect(255, 245, 345, 265));
+  Caption(aCanvas, 255, 290, 'DrawFocusRect');
+
+  aCanvas.Pen.Width := 2;
+  aCanvas.Pen.FPColor := RGB(0, 0, 200);
+  aCanvas.Brush.Style := bsClear;
+  aCanvas.Ellipse(370, 170, 465, 265);
+  aCanvas.Pen.FPColor := colBlack;
+  aCanvas.Line(390, 200, 445, 235);
+  aCanvas.Line(390, 235, 445, 200);
+  aCanvas.Pen.Width := 1;
+  aCanvas.Brush.Style := bsSolid;
+  aCanvas.Brush.FPColor := RGB(255, 235, 59);
+  aCanvas.FloodFill(417, 190, RGB(0, 0, 200), ffBorder);
+  Caption(aCanvas, 370, 290, 'FloodFill ffBorder');
+end;
+
+
+// Returns the text style of TextRect with an alignment and a layout, on one clipped line.
+function BoxStyle(aAlignment: TAlignment; aLayout: TFPTextLayout): TFPTextStyle;
+
+begin
+  Result := Default(TFPTextStyle);
+  Result.Alignment := aAlignment;
+  Result.Layout := aLayout;
+  Result.SingleLine := True;
+  Result.Clipping := True;
+end;
+
+
+// Draws aText in the box aRect with aStyle and a grey outline around the box.
+procedure TextBox(aCanvas: TFPCustomCanvas; const aRect: TRect; const aText: String; const aStyle: TFPTextStyle);
+
+begin
+  aCanvas.Pen.FPColor := RGB(170, 170, 170);
+  aCanvas.Brush.Style := bsClear;
+  aCanvas.Frame(aRect);
+  aCanvas.Pen.FPColor := colBlack;
+  aCanvas.TextRect(aRect, aRect.Left + 2, aRect.Top + 2, aText, aStyle);
+end;
+
+
+procedure DrawTextRect(aCanvas: TFPCustomCanvas);
+
+const
+  cAlignments: array[0..2] of TAlignment = (taLeftJustify, taCenter, taRightJustify);
+  cLayouts: array[0..2] of TFPTextLayout = (ftlTop, ftlCenter, ftlBottom);
+
+var
+  lColumn, lRow, lCount: Integer;
+  lStyle: TFPTextStyle;
+  lBox: TRect;
+
+begin
+  if not ((aCanvas is TPostScriptCanvas) or Assigned(CaptionFont)) then
+    exit;
+  aCanvas.RectangleMode := rmExclude;
+  for lRow := 0 to 2 do
+    for lColumn := 0 to 2 do
+      begin
+      lBox := Rect(15 + lColumn * 72, 15 + lRow * 52, 83 + lColumn * 72, 63 + lRow * 52);
+      TextBox(aCanvas, lBox, 'Text', BoxStyle(cAlignments[lColumn], cLayouts[lRow]));
+      end;
+  Caption(aCanvas, 15, 185, 'Alignment across, layout down');
+
+  lStyle := BoxStyle(taLeftJustify, ftlTop);
+  lStyle.SingleLine := False;
+  lStyle.Wordbreak := True;
+  TextBox(aCanvas, Rect(245, 15, 465, 80), 'Wordbreak breaks a long line of text between its words to fit the box.', lStyle);
+  lStyle := BoxStyle(taLeftJustify, ftlCenter);
+  lStyle.EndEllipsis := True;
+  TextBox(aCanvas, Rect(245, 90, 465, 112), 'EndEllipsis shortens a line that is too long for its box', lStyle);
+  lStyle := BoxStyle(taCenter, ftlCenter);
+  lStyle.ShowPrefix := True;
+  TextBox(aCanvas, Rect(245, 122, 350, 144), 'Show&Prefix', lStyle);
+  lStyle := BoxStyle(taCenter, ftlCenter);
+  lStyle.Opaque := True;
+  aCanvas.Brush.FPColor := RGB(255, 235, 59);
+  aCanvas.Brush.Style := bsSolid;
+  aCanvas.Pen.FPColor := RGB(170, 170, 170);
+  aCanvas.Frame(Rect(360, 122, 465, 144));
+  aCanvas.TextRect(Rect(360, 122, 465, 144), 362, 124, 'Opaque', lStyle);
+  TextBox(aCanvas, Rect(245, 154, 330, 176), 'Clipping at the edge', BoxStyle(taLeftJustify, ftlCenter));
+  Caption(aCanvas, 245, 200, 'TextStyle options');
+
+  aCanvas.Pen.FPColor := RGB(220, 0, 0);
+  aCanvas.Line(15, 250, 225, 250);
+  aCanvas.Pen.FPColor := colBlack;
+  aCanvas.TextOut(20, 250, 'toBaseline');
+  aCanvas.TextOrigin := toTop;
+  aCanvas.TextOut(125, 250, 'toTop');
+  aCanvas.TextOrigin := toBaseline;
+  Caption(aCanvas, 15, 290, 'TextOrigin at the red line');
+
+  lCount := aCanvas.TextFitInfo('TextFitInfo counts what fits', 150);
+  aCanvas.Pen.FPColor := RGB(170, 170, 170);
+  aCanvas.Frame(Rect(245, 235, 395, 260));
+  aCanvas.Pen.FPColor := colBlack;
+  aCanvas.TextRect(Rect(245, 235, 395, 260), 247, 237,
+    Copy('TextFitInfo counts what fits', 1, lCount), BoxStyle(taLeftJustify, ftlCenter));
+  Caption(aCanvas, 245, 290, Format('%d characters fit in 150 pixels', [lCount]));
+  aCanvas.RectangleMode := rmInclude;
+end;
+
+
 // Adds a feature set to FeatureSets.
 procedure AddSet(const aTitle, aFileName: String; const aFeatures: array of String; aDraw: TDrawProc;
   const aPostScriptNote: String = '');
@@ -1024,6 +1156,20 @@ begin
      'Font.Size and Font.FPColor',
      'TextWidth and TextExtent',
      'TFreeTypeFont.Angle or Font.Orientation for rotated text'], @DrawText,
+     'The text is Helvetica.');
+  AddSet('LCL canvas methods', 'lclshapes.png',
+    ['Frame outlines with the pen, FrameRect with the brush',
+     'Frame3D with a raised and a sunken ring',
+     'RoundRect with elliptic corners, Chord',
+     'Pie between the rays through two points (red squares)',
+     'ArcTo and AngleArc continue the pen path',
+     'DrawFocusRect; a second call removes it (lower rect)',
+     'FloodFill with ffBorder fills across the black lines'], @DrawLCLShapes);
+  AddSet('TextRect and text layout', 'textrect.png',
+    ['TextRect with the three alignments and the three layouts',
+     'Wordbreak, EndEllipsis, ShowPrefix, Opaque and Clipping',
+     'TextOrigin toBaseline and toTop',
+     'TextFitInfo'], @DrawTextRect,
      'The text is Helvetica.');
 end;
 

@@ -85,6 +85,12 @@ type
     procedure TestANewPageClearsTheShadow;
     procedure TestARelativeBrushImageTilesFromTheShape;
     procedure TestPolygonsFollowTheWindingRule;
+    procedure TestTextMetricsOfTheCoreFont;
+    procedure TestATopOriginMovesTheBaseline;
+    procedure TestAChordIsANativeArc;
+    procedure TestARoundRectHasFourNativeCorners;
+    procedure TestAFloodFillUpToABorder;
+    procedure TestTextRectClipsItsText;
   end;
 
 implementation
@@ -1081,6 +1087,104 @@ begin
   lBefore := Length(Output);
   FDoc.Canvas.FillRect(10, 10, 20, 20);
   AssertTrue('Other shapes keep the plain fill', Pos('setrgbcolor fill grestore', Copy(Output, lBefore + 1, MaxInt)) > 0);
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestTextMetricsOfTheCoreFont;
+
+var
+  lMetrics: TFPTextMetric;
+
+begin
+  FDoc.BeginDoc;
+  AssertTrue('The PostScript canvas draws text from the baseline', FDoc.Canvas.TextOrigin = toBaseline);
+  AssertTrue('and measures by the font', FDoc.Canvas.TextMeasure = tmFont);
+  AssertTrue('The core font has metrics', FDoc.Canvas.GetTextMetrics(lMetrics));
+  AssertEquals('Helvetica 10 rises 7.18 points above the baseline', 7, lMetrics.Ascender);
+  AssertEquals('and goes 2.07 points below it', 2, lMetrics.Descender);
+  AssertEquals('The height is the TextHeight', FDoc.Canvas.TextHeight('x'), lMetrics.Height);
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestATopOriginMovesTheBaseline;
+
+begin
+  FDoc.BeginDoc;
+  FDoc.Canvas.TextOrigin := toTop;
+  FDoc.Canvas.TextOut(5, 10, 'a');
+  AssertHas('With toTop the baseline is one ascender below y', 'gsave 5 775 translate');
+  FDoc.Canvas.Font.Orientation := 900;
+  FDoc.Canvas.TextOut(5, 10, 'a');
+  AssertHas('Text turned a quarter moves its baseline one ascender to the right', 'gsave 12 782 translate');
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestAChordIsANativeArc;
+
+var
+  lBefore: Integer;
+
+begin
+  FDoc.BeginDoc;
+  lBefore := Length(Output);
+  FDoc.Canvas.Chord(10, 10, 50, 50, 0, 90 * 16);
+  AssertTrue('A chord does not start at the centre', Pos('30.0 762.0 moveto', Copy(Output, lBefore + 1, MaxInt)) = 0);
+  AssertHas('It is a native arc closed by its chord', '0 0 1 0.000 90.000 arc setmatrix' + LineEnding + 'closepath');
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestARoundRectHasFourNativeCorners;
+
+var
+  lBefore: Integer;
+
+begin
+  FDoc.BeginDoc;
+  lBefore := Length(Output);
+  FDoc.Canvas.RoundRect(10, 10, 50, 40, 11, 11);
+  AssertEquals('Each corner is a native arc', 4, Occurrences(' arc setmatrix', Copy(Output, lBefore + 1, MaxInt)));
+  AssertHas('The top-right corner has a radius of 5', '45.000 777.000 translate 5.000 5.000 scale 0 0 1 0.000 90.000 arc');
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestAFloodFillUpToABorder;
+
+begin
+  FDoc.BeginDoc;
+  FDoc.Canvas.Shadow := True;
+  FDoc.Canvas.Pen.Width := 1;
+  FDoc.Canvas.Brush.Style := bsClear;
+  FDoc.Canvas.Rectangle(10, 10, 20, 20);
+  FDoc.Canvas.Pen.FPColor := colBlue;
+  FDoc.Canvas.Line(12, 15, 18, 15);
+  FDoc.Canvas.Brush.Style := bsSolid;
+  FDoc.Canvas.Brush.FPColor := colRed;
+  FDoc.Canvas.FloodFill(15, 12, FPColor(0, 0, 0, 0), ffBorder);
+  AssertHas('The region up to the black outline is filled across the blue line',
+    '10.5 781.5 moveto 19.5 781.5 lineto 19.5 772.5 lineto 10.5 772.5 lineto closepath');
+  AssertTrue('The shadow is filled over the line', FDoc.Canvas.Colors[15, 15] = colRed);
+  FDoc.EndDoc;
+end;
+
+
+procedure TTestPostScript.TestTextRectClipsItsText;
+
+var
+  lStyle: TFPTextStyle;
+
+begin
+  FDoc.BeginDoc;
+  lStyle := FDoc.Canvas.TextStyle;
+  FDoc.Canvas.TextRect(Rect(10, 10, 60, 30), 12, 12, 'Hello', lStyle);
+  AssertHas('TextRect clips to its rect',
+    'gsave newpath 9.5 782.5 moveto 60.5 782.5 lineto 60.5 761.5 lineto 9.5 761.5 lineto closepath clip newpath');
+  AssertHas('and draws the text from the top at Y', 'gsave 12 773 translate');
+  AssertFalse('Afterwards the canvas no longer clips', FDoc.Canvas.Clipping);
   FDoc.EndDoc;
 end;
 

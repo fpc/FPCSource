@@ -46,12 +46,14 @@ type
     FFace : PFT_Face;
     FRealSize: real;
     FAngle : real;
+    FSettingAngle : boolean;
     procedure ClearLastText;
   protected
     procedure DrawLastText (atX,atY:integer);
     procedure DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
     procedure DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
     procedure SetAngle(const aAngle: real); virtual;
+    procedure SetOrientation (AValue:integer); override;
     procedure SetName (AValue:string); override;
     procedure SetIndex (AValue : integer);
     procedure SetSize (AValue : integer); override;
@@ -69,6 +71,11 @@ type
     procedure DoGetTextSize (text:unicodestring; var w,h:integer); override;
     function DoGetTextHeight (text:unicodestring) : integer; override;
     function DoGetTextWidth (text: unicodestring) : integer; override;
+    function DoGetTextMetrics (out aMetrics: TFPTextMetric) : boolean; override;
+    function DoGetTextAdvance (text:ansistring) : integer; override;
+    function DoGetTextAdvance (text: unicodestring) : integer; override;
+    // Returns the length of the pen movement over the glyphs of FLastText.
+    function LastTextAdvance : integer;
     procedure GetText (aText:ansistring);
     procedure GetText (aText:unicodestring);
     procedure GetFace;
@@ -80,6 +87,7 @@ type
     property Resolution : longword read FResolution write FResolution;
     property AntiAliased : boolean read FAntiAliased write FAntiAliased;
     property Size : real read FRealSize write SetRealSize;
+    // The rotation of the text in radians, counter-clockwise; Orientation follows it in tenths of a degree.
     property Angle : real read FAngle write SetAngle;
   end;
 
@@ -143,6 +151,7 @@ procedure TFreeTypeFont.SetName (AValue:string);
 begin
   inherited;
   ClearLastText;
+  FFace := nil;
   if allocated then
     FFontID := FontMgr.RequestFont(Name, FIndex);
 end;
@@ -159,6 +168,7 @@ procedure TFreeTypeFont.SetIndex (AValue : integer);
 begin
   FIndex := AValue;
   ClearLastText;
+  FFace := nil;
   if allocated then
     FFontID := FontMgr.RequestFont(Name, FIndex);
 end;
@@ -346,6 +356,64 @@ begin
   if FAngle = aAngle then Exit;
   ClearLastText;
   FAngle := aAngle;
+  FSettingAngle := True;
+  try
+    Orientation := Round(RadToDeg(aAngle) * 10);
+  finally
+    FSettingAngle := False;
+  end;
+end;
+
+procedure TFreeTypeFont.SetOrientation (AValue:integer);
+begin
+  inherited SetOrientation(AValue);
+  if not FSettingAngle then
+    begin
+    ClearLastText;
+    FAngle := DegToRad(AValue / 10);
+    end;
+end;
+
+function TFreeTypeFont.DoGetTextMetrics (out aMetrics: TFPTextMetric) : boolean;
+var
+  lScale: double;
+begin
+  aMetrics := Default(TFPTextMetric);
+  Result := False;
+  if FFontID < 0 then
+    exit;
+  GetFace;
+  if not assigned(FFace) or (FFace^.units_per_EM = 0) then
+    exit;
+  lScale := FRealSize * FResolution / 72 / FFace^.units_per_EM;
+  aMetrics.Ascender := Round(FFace^.ascender * lScale);
+  aMetrics.Descender := Round(-FFace^.descender * lScale);
+  aMetrics.Height := aMetrics.Ascender + aMetrics.Descender;
+  Result := True;
+end;
+
+function TFreeTypeFont.LastTextAdvance : integer;
+var
+  lFirst, lLast: PFontBitmap;
+begin
+  Result := 0;
+  if FLastText.Count = 0 then
+    exit;
+  lFirst := FLastText.Bitmaps[0];
+  lLast := FLastText.Bitmaps[FLastText.Count - 1];
+  Result := Round(Sqrt(Sqr(lLast^.x + lLast^.advanceX - lFirst^.x) + Sqr(lLast^.y + lLast^.advanceY - lFirst^.y)));
+end;
+
+function TFreeTypeFont.DoGetTextAdvance (text:ansistring) : integer;
+begin
+  GetText (text);
+  Result := LastTextAdvance;
+end;
+
+function TFreeTypeFont.DoGetTextAdvance (text: unicodestring) : integer;
+begin
+  GetText (text);
+  Result := LastTextAdvance;
 end;
 
 procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:unicodestring);

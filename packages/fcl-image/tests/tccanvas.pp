@@ -205,6 +205,56 @@ type
     procedure TestResetTransform;
   end;
 
+  // An image canvas that logs the image hooks it is called with.
+  TRecordingCanvas = class(TFPImageCanvas)
+  protected
+    procedure DoDraw(x, y: Integer; const aImage: TFPCustomImage); override;
+    procedure DoCopyRect(x, y: Integer; aCanvas: TFPCustomCanvas; const aSourceRect: TRect); override;
+    procedure DoStretchDraw(x, y, w, h: Integer; aSource: TFPCustomImage); override;
+  public
+    Log: String;
+  end;
+
+  TTestCanvasLCLMethods = class(TCanvasTestCase)
+  private
+    // Returns a copy of the image drawn so far and starts a new white canvas.
+    function TakeImage: TFPMemoryImage;
+    procedure DrawStar(aWinding: Boolean);
+  published
+    procedure TestFrameOutlinesWithoutFilling;
+    procedure TestFrameRectDrawsABrushBorder;
+    procedure TestFrame3DColoursItsSidesAndShrinksTheRect;
+    procedure TestRoundRectRoundsTheCorners;
+    procedure TestRoundRectWithoutRadiiIsARectangle;
+    procedure TestChordCutsTheEllipseAlongItsChord;
+    procedure TestPieTakesTheRaysThroughTwoPoints;
+    procedure TestArcToDrawsTheLineAndMovesThePen;
+    procedure TestAngleArcFollowsTheLCLFormula;
+    procedure TestDrawFocusRectTwiceRestoresThePixels;
+    procedure TestPolygonTakesTheWindingRuleForOneCall;
+    procedure TestPolygonDrawsARangeOfPoints;
+    procedure TestPolygonAndPolylineFromAPointer;
+    procedure TestCopyRectScalesTheSource;
+    procedure TestStretchDrawIntoARect;
+    procedure TestFloodFillSurfaceNeedsTheSeedColour;
+    procedure TestFloodFillBorderFillsUpToTheBorderColour;
+    procedure TestTheTextStyleStartsAsTheLCLDefault;
+  end;
+
+  TTestCanvasHooks = class(TTestCase)
+  private
+    FImage, FSource: TFPMemoryImage;
+    FCanvas: TRecordingCanvas;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestDrawCallsDoDrawInDevicePixels;
+    procedure TestCopyRectCallsDoCopyRectWithIncludedBounds;
+    procedure TestStretchDrawCallsDoStretchDrawInDevicePixels;
+    procedure TestThePortablePropertiesAreOnTheBaseClass;
+  end;
+
 implementation
 
 const
@@ -2071,8 +2121,457 @@ begin
 end;
 
 
+function TTestCanvasLCLMethods.TakeImage: TFPMemoryImage;
+
+var
+  lX, lY: Integer;
+
+begin
+  Result := TFPMemoryImage.Create(FImage.Width, FImage.Height);
+  for lY := 0 to FImage.Height - 1 do
+    for lX := 0 to FImage.Width - 1 do
+      Result.Colors[lX, lY] := FImage.Colors[lX, lY];
+  NewCanvas(FImage.Width, FImage.Height, colWhite);
+end;
+
+
+procedure TTestCanvasLCLMethods.DrawStar(aWinding: Boolean);
+
+begin
+  FCanvas.Pen.Style := psClear;
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.Polygon([Point(20, 1), Point(27, 25), Point(8, 10), Point(32, 10), Point(13, 25)], aWinding);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestFrameOutlinesWithoutFilling;
+
+begin
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.Frame(2, 2, 10, 8);
+  AssertTrue('The top-left corner is drawn with the pen', FImage[2, 2] = colBlack);
+  AssertTrue('the bottom-right corner too, Right and Bottom excluded', FImage[9, 7] = colBlack);
+  AssertTrue('The inside is not filled', FImage[5, 5] = colWhite);
+  AssertEquals('Only the outline is painted', 2 * (8 + 6) - 4, CountPainted);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestFrameRectDrawsABrushBorder;
+
+begin
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.FrameRect(2, 2, 10, 8);
+  AssertTrue('The border has the brush colour', FImage[2, 2] = colRed);
+  AssertTrue('on all four sides', (FImage[9, 7] = colRed) and (FImage[9, 2] = colRed) and (FImage[2, 7] = colRed));
+  AssertTrue('The inside is not filled', FImage[5, 5] = colWhite);
+  AssertEquals('The border is one pixel wide', 2 * (8 + 6) - 4, CountPainted);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestFrame3DColoursItsSidesAndShrinksTheRect;
+
+var
+  lRect: TRect;
+
+begin
+  lRect := Rect(2, 2, 12, 10);
+  FCanvas.Frame3D(lRect, colBlue, colGreen, 2);
+  AssertTrue('The top-left corner has the top colour', FImage[2, 2] = colBlue);
+  AssertTrue('the bottom-left corner too', FImage[2, 9] = colBlue);
+  AssertTrue('The top-right corner has the bottom colour', FImage[11, 2] = colGreen);
+  AssertTrue('the bottom-right corner too', FImage[11, 9] = colGreen);
+  AssertTrue('The second ring is drawn inside the first', (FImage[3, 3] = colBlue) and (FImage[10, 8] = colGreen));
+  AssertTrue('Inside the rings nothing is drawn', FImage[4, 4] = colWhite);
+  AssertTrue('The rect shrinks by the frame width', lRect = Rect(4, 4, 10, 8));
+  AssertTrue('The brush is left as it was', FCanvas.Brush.FPColor = colRed);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestRoundRectRoundsTheCorners;
+
+begin
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.RoundRect(2, 2, 32, 26, 12, 12);
+  AssertTrue('The corners of the bounds stay empty', (FImage[2, 2] = colWhite) and (FImage[31, 25] = colWhite)
+    and (FImage[31, 2] = colWhite) and (FImage[2, 25] = colWhite));
+  AssertTrue('The middles of the sides are drawn with the pen', (FImage[17, 2] = colBlack) and (FImage[2, 14] = colBlack)
+    and (FImage[31, 14] = colBlack) and (FImage[17, 25] = colBlack));
+  AssertTrue('The inside is filled with the brush', FImage[17, 14] = colRed);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestRoundRectWithoutRadiiIsARectangle;
+
+var
+  lRect: TFPMemoryImage;
+
+begin
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.Rectangle(2, 2, 32, 26);
+  lRect := TakeImage;
+  try
+    FCanvas.Brush.Style := bsSolid;
+    FCanvas.RoundRect(2, 2, 32, 26, 0, 0);
+    AssertImagesEqual('RoundRect without corner radii draws the rectangle', lRect, FImage);
+  finally
+    lRect.Free;
+  end;
+end;
+
+
+procedure TTestCanvasLCLMethods.TestChordCutsTheEllipseAlongItsChord;
+
+begin
+  FCanvas.Pen.Style := psClear;
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.Chord(0, 0, 21, 21, 0, 180 * 16);
+  AssertTrue('The half above the chord is filled', FImage[10, 4] = colRed);
+  AssertTrue('The half below it stays empty', FImage[10, 16] = colWhite);
+  AssertTrue('Outside the ellipse nothing is drawn', FImage[0, 0] = colWhite);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestPieTakesTheRaysThroughTwoPoints;
+
+var
+  lRadial: TFPMemoryImage;
+
+begin
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.RadialPie(0, 0, 22, 22, 0, 90 * 16);
+  lRadial := TakeImage;
+  try
+    FCanvas.Brush.Style := bsSolid;
+    FCanvas.Pie(0, 0, 22, 22, 30, 11, 11, -5);
+    AssertImagesEqual('Pie from the ray through (30,11) to the ray through (11,-5) is the quarter RadialPie', lRadial, FImage);
+  finally
+    lRadial.Free;
+  end;
+end;
+
+
+procedure TTestCanvasLCLMethods.TestArcToDrawsTheLineAndMovesThePen;
+
+begin
+  FCanvas.MoveTo(0, 0);
+  FCanvas.ArcTo(10, 10, 30, 30, 40, 20, 20, 0);
+  AssertTrue('A line is drawn from the pen position', Painted(0, 0));
+  AssertEquals('The pen ends at the top of the circle', 10, FCanvas.PenPos.Y);
+  AssertTrue('in the middle', Abs(FCanvas.PenPos.X - 20) <= 1);
+  AssertTrue('The arc is drawn', Painted(29, 20) or Painted(29, 19));
+end;
+
+
+procedure TTestCanvasLCLMethods.TestAngleArcFollowsTheLCLFormula;
+
+begin
+  FCanvas.MoveTo(0, 0);
+  FCanvas.AngleArc(20, 15, 10, 0, 90);
+  AssertTrue('A line is drawn from the pen position', Painted(0, 0));
+  AssertTrue('The pen ends at the end of the arc, a quarter turn up', FCanvas.PenPos = Point(20, 5));
+  AssertTrue('The arc is drawn', Painted(20, 5) or Painted(20, 6));
+end;
+
+
+procedure TTestCanvasLCLMethods.TestDrawFocusRectTwiceRestoresThePixels;
+
+begin
+  FCanvas.Pen.Width := 3;
+  FCanvas.DrawFocusRect(Rect(2, 2, 20, 12));
+  AssertTrue('A focus rect changes pixels', CountPainted > 0);
+  AssertTrue('as a dotted outline', CountPainted < 2 * (18 + 10) - 4);
+  FCanvas.DrawFocusRect(Rect(2, 2, 20, 12));
+  AssertEquals('Drawing it again removes it', 0, CountPainted);
+  AssertEquals('The pen is left as it was', 3, FCanvas.Pen.Width);
+  AssertTrue('in its mode too', FCanvas.Pen.Mode = pmCopy);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestPolygonTakesTheWindingRuleForOneCall;
+
+begin
+  DrawStar(True);
+  AssertTrue('With Winding the centre of the star is filled', FImage[20, 13] = colRed);
+  AssertFalse('and the canvas keeps its own rule', FCanvas.PolygonNonZeroWindingRule);
+  NewCanvas(40, 30, colWhite);
+  DrawStar(False);
+  AssertTrue('Without Winding the centre stays empty', FImage[20, 13] = colWhite);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestPolygonDrawsARangeOfPoints;
+
+begin
+  FCanvas.Brush.Style := bsClear;
+  FCanvas.Polygon([Point(0, 0), Point(1, 1), Point(10, 5), Point(20, 5), Point(15, 20), Point(39, 29)], False, 2, 3);
+  AssertTrue('Only the points from StartIndex are used', PaintedBounds = Rect(10, 5, 20, 20));
+  NewCanvas(40, 30, colWhite);
+  FCanvas.Polyline([Point(0, 0), Point(5, 5), Point(15, 5), Point(39, 29)], 1, 2);
+  AssertTrue('Polyline draws NumPts points from StartIndex', PaintedBounds = Rect(5, 5, 15, 5));
+end;
+
+
+procedure TTestCanvasLCLMethods.TestPolygonAndPolylineFromAPointer;
+
+var
+  lPoints: array[0..3] of TPoint;
+  lArray: TFPMemoryImage;
+
+begin
+  lPoints[0] := Point(3, 3);
+  lPoints[1] := Point(30, 5);
+  lPoints[2] := Point(25, 25);
+  lPoints[3] := Point(5, 20);
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.Polygon(lPoints);
+  FCanvas.Polyline([Point(0, 29), Point(39, 0)]);
+  lArray := TakeImage;
+  try
+    FCanvas.Brush.Style := bsSolid;
+    FCanvas.Polygon(@lPoints[0], 4);
+    lPoints[0] := Point(0, 29);
+    lPoints[1] := Point(39, 0);
+    FCanvas.Polyline(@lPoints[0], 2);
+    AssertImagesEqual('The pointer forms draw as the array forms', lArray, FImage);
+  finally
+    lArray.Free;
+  end;
+end;
+
+
+procedure TTestCanvasLCLMethods.TestCopyRectScalesTheSource;
+
+var
+  lSource, lPart, lStretched: TFPMemoryImage;
+  lSourceCanvas: TFPImageCanvas;
+  lBox: TFPBoxInterpolation;
+  lX, lY: Integer;
+
+begin
+  lSource := CreateCheckerImage(6, 6, 1, colBlue, colGreen);
+  lPart := TFPMemoryImage.Create(4, 3);
+  for lY := 0 to 2 do
+    for lX := 0 to 3 do
+      lPart.Colors[lX, lY] := lSource.Colors[1 + lX, 2 + lY];
+  lSourceCanvas := TFPImageCanvas.Create(lSource);
+  lBox := TFPBoxInterpolation.Create;
+  try
+    FCanvas.Interpolation := lBox;
+    FCanvas.StretchDraw(2, 3, 12, 9, lPart);
+    lStretched := TakeImage;
+    try
+      FCanvas.Interpolation := lBox;
+      FCanvas.CopyRect(Rect(2, 3, 14, 12), lSourceCanvas, Rect(1, 2, 5, 5));
+      AssertImagesEqual('A scaled CopyRect draws the source pixels as StretchDraw does', lStretched, FImage);
+    finally
+      lStretched.Free;
+    end;
+    NewCanvas(40, 30, colWhite);
+    FCanvas.CopyRect(Rect(20, 10, 24, 13), lSourceCanvas, Rect(1, 2, 5, 5));
+    AssertTrue('At the same size the pixels are copied', (FImage[20, 10] = lSource[1, 2]) and (FImage[23, 12] = lSource[4, 4]));
+    AssertTrue('and nothing beyond Dest', FImage[24, 13] = colWhite);
+  finally
+    FCanvas.Interpolation := nil;
+    lBox.Free;
+    lSourceCanvas.Free;
+    lPart.Free;
+    lSource.Free;
+  end;
+end;
+
+
+procedure TTestCanvasLCLMethods.TestStretchDrawIntoARect;
+
+var
+  lSource, lSized: TFPMemoryImage;
+  lBox: TFPBoxInterpolation;
+
+begin
+  lSource := CreateCheckerImage(4, 3, 1, colBlue, colGreen);
+  lBox := TFPBoxInterpolation.Create;
+  try
+    FCanvas.Interpolation := lBox;
+    FCanvas.StretchDraw(2, 3, 12, 9, lSource);
+    FCanvas.Interpolation := nil;
+    lSized := TakeImage;
+    try
+      FCanvas.Interpolation := lBox;
+      FCanvas.StretchDraw(Rect(2, 3, 14, 12), lSource);
+      AssertImagesEqual('StretchDraw into a rect draws as StretchDraw with its size', lSized, FImage);
+    finally
+      lSized.Free;
+    end;
+  finally
+    FCanvas.Interpolation := nil;
+    lBox.Free;
+    lSource.Free;
+  end;
+end;
+
+
+procedure TTestCanvasLCLMethods.TestFloodFillSurfaceNeedsTheSeedColour;
+
+begin
+  FCanvas.Brush.Style := bsClear;
+  FCanvas.Rectangle(2, 2, 20, 14);
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.FloodFill(8, 8, colBlue, ffSurface);
+  AssertTrue('ffSurface does nothing when the start pixel has another colour', FImage[8, 8] = colWhite);
+  FCanvas.FloodFill(8, 8, colWhite, ffSurface);
+  AssertTrue('It fills the area of FillColor around the start', FImage[8, 8] = colRed);
+  AssertTrue('up to the outline', (FImage[2, 8] = colBlack) and (FImage[0, 0] = colWhite));
+end;
+
+
+procedure TTestCanvasLCLMethods.TestFloodFillBorderFillsUpToTheBorderColour;
+
+begin
+  FCanvas.Pen.FPColor := colBlue;
+  FCanvas.Brush.Style := bsClear;
+  FCanvas.Rectangle(2, 2, 20, 14);
+  FCanvas.Pen.FPColor := colBlack;
+  FCanvas.Line(6, 5, 12, 5);
+  FCanvas.Brush.Style := bsSolid;
+  FCanvas.FloodFill(8, 8, colBlue, ffBorder);
+  AssertTrue('ffBorder fills from the start', FImage[8, 8] = colRed);
+  AssertTrue('over pixels of other colours', FImage[8, 5] = colRed);
+  AssertTrue('up to the border colour', (FImage[2, 8] = colBlue) and (FImage[0, 0] = colWhite));
+  NewCanvas(40, 30, colWhite);
+  FCanvas.Pen.FPColor := colBlue;
+  FCanvas.Brush.Style := bsClear;
+  FCanvas.Rectangle(2, 2, 20, 14);
+  FCanvas.Brush.Style := bsCross;
+  FCanvas.HashWidth := 4;
+  FCanvas.FloodFill(8, 8, colBlue, ffBorder);
+  AssertTrue('A hatch brush fills on its lines', FImage[4, 8] = colRed);
+  AssertTrue('and leaves the pixels between them', FImage[5, 9] = colWhite);
+  AssertTrue('inside the border only', FImage[24, 8] = colWhite);
+end;
+
+
+procedure TTestCanvasLCLMethods.TestTheTextStyleStartsAsTheLCLDefault;
+
+begin
+  with FCanvas.TextStyle do
+    begin
+    AssertTrue('Left aligned', Alignment = taLeftJustify);
+    AssertTrue('at the top', Layout = ftlTop);
+    AssertTrue('on a single line', SingleLine);
+    AssertTrue('breaking words', Wordbreak);
+    AssertTrue('clipped', Clipping);
+    AssertFalse('not opaque', Opaque);
+    AssertFalse('without prefixes', ShowPrefix);
+    end;
+end;
+
+
+procedure TRecordingCanvas.DoDraw(x, y: Integer; const aImage: TFPCustomImage);
+
+begin
+  Log := Log + Format('DoDraw %d,%d;', [x, y]);
+  inherited DoDraw(x, y, aImage);
+end;
+
+
+procedure TRecordingCanvas.DoCopyRect(x, y: Integer; aCanvas: TFPCustomCanvas; const aSourceRect: TRect);
+
+begin
+  with aSourceRect do
+    Log := Log + Format('DoCopyRect %d,%d %d,%d,%d,%d;', [x, y, Left, Top, Right, Bottom]);
+  inherited DoCopyRect(x, y, aCanvas, aSourceRect);
+end;
+
+
+procedure TRecordingCanvas.DoStretchDraw(x, y, w, h: Integer; aSource: TFPCustomImage);
+
+begin
+  Log := Log + Format('DoStretchDraw %d,%d %dx%d;', [x, y, w, h]);
+  inherited DoStretchDraw(x, y, w, h, aSource);
+end;
+
+
+procedure TTestCanvasHooks.SetUp;
+
+begin
+  inherited SetUp;
+  FImage := CreateSolidImage(40, 30, colWhite);
+  FSource := CreateSolidImage(4, 3, colRed);
+  FCanvas := TRecordingCanvas.Create(FImage);
+end;
+
+
+procedure TTestCanvasHooks.TearDown;
+
+begin
+  FreeAndNil(FCanvas);
+  FreeAndNil(FSource);
+  FreeAndNil(FImage);
+  inherited TearDown;
+end;
+
+
+procedure TTestCanvasHooks.TestDrawCallsDoDrawInDevicePixels;
+
+begin
+  FCanvas.Translate(5, 7);
+  FCanvas.Draw(1, 2, FSource);
+  AssertEquals('Draw passes the transformed position to DoDraw', 'DoDraw 6,9;', FCanvas.Log);
+  AssertTrue('and DoDraw paints there', FImage.Colors[6, 9] = colRed);
+  AssertTrue('not at the untransformed position', FImage.Colors[1, 2] = colWhite);
+end;
+
+
+procedure TTestCanvasHooks.TestCopyRectCallsDoCopyRectWithIncludedBounds;
+
+var
+  lSource: TFPImageCanvas;
+
+begin
+  lSource := TFPImageCanvas.Create(FSource);
+  try
+    FCanvas.RectangleMode := rmExclude;
+    FCanvas.CopyRect(3, 4, lSource, Rect(0, 0, 2, 2));
+    AssertEquals('CopyRect passes DoCopyRect the source with Right and Bottom included',
+      'DoCopyRect 3,4 0,0,1,1;', FCanvas.Log);
+    AssertTrue('and DoCopyRect copies the last pixel', FImage.Colors[4, 5] = colRed);
+    AssertTrue('but not beyond it', FImage.Colors[5, 5] = colWhite);
+  finally
+    lSource.Free;
+  end;
+end;
+
+
+procedure TTestCanvasHooks.TestStretchDrawCallsDoStretchDrawInDevicePixels;
+
+begin
+  FCanvas.Translate(5, 7);
+  FCanvas.StretchDraw(1, 2, 8, 6, FSource);
+  AssertEquals('StretchDraw passes the transformed position to DoStretchDraw', 'DoStretchDraw 6,9 8x6;', FCanvas.Log);
+  AssertTrue('and DoStretchDraw paints there', FImage.Colors[13, 14] = colRed);
+  AssertTrue('not at the untransformed position', FImage.Colors[1, 2] = colWhite);
+end;
+
+
+procedure TTestCanvasHooks.TestThePortablePropertiesAreOnTheBaseClass;
+
+var
+  lCanvas: TFPCustomCanvas;
+
+begin
+  lCanvas := FCanvas;
+  AssertEquals('HashWidth starts at 15', 15, lCanvas.HashWidth);
+  AssertTrue('HatchOrigin starts at hoDefault', lCanvas.HatchOrigin = hoDefault);
+  AssertFalse('RelativeBrushImage starts off', lCanvas.RelativeBrushImage);
+  AssertFalse('PolygonNonZeroWindingRule starts off', lCanvas.PolygonNonZeroWindingRule);
+  lCanvas.HashWidth := 7;
+  lCanvas.PolygonNonZeroWindingRule := True;
+  AssertEquals('The pixel canvas sees the HashWidth set through the base class', 7, TFPPixelCanvas(lCanvas).HashWidth);
+  AssertTrue('and the winding rule', TFPPixelCanvas(lCanvas).PolygonNonZeroWindingRule);
+end;
+
+
 initialization
   RegisterTests('canvas', [TTestCanvasPixels, TTestCanvasLines, TTestCanvasPenModes,
     TTestCanvasRectangles, TTestCanvasRectangleMode, TTestCanvasEllipses, TTestCanvasPolygons, TTestCanvasFlood,
-    TTestCanvasCopy]);
+    TTestCanvasCopy, TTestCanvasHooks, TTestCanvasLCLMethods]);
 end.
