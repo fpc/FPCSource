@@ -49,7 +49,7 @@ Type
       CountBitsUsed : byte;  // number of bit groups (1 pixel) per byte (when bytewidth = 1)
       //CFmt : TColorFormat; // format of the colors to convert from
       StartX,StartY, DeltaX,DeltaY, StartPass,EndPass : integer;  // number and format of passes
-      FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
+      FSwitchLine, FCurrentLine, FPreviousLine : PPNGByteArray;
       FPalette : TFPPalette;
       FGamma : Single;      // from gAMA, 0 when the file declares none
       FSetPixel : TSetPixelProc;
@@ -321,11 +321,18 @@ procedure TFPReaderPNG.ReadResolutionValues;
 begin
   if (chunk.alength<>sizeof(TPNGPhysicalDimensions))
   then raise Exception.Create('ctpHYs Chunk Size not Valid for TPNGPhysicalDimensions');
-  if (PPNGPhysicalDimensions(chunk.data)^.Unit_Specifier = 1)
-  then TheImage.ResolutionUnit :=ruPixelsPerCentimeter
-  else TheImage.ResolutionUnit :=ruNone;
-  TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
-  TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+  if (PPNGPhysicalDimensions(chunk.data)^.Unit_Specifier = 1) then
+    begin
+    TheImage.ResolutionUnit :=ruPixelsPerCentimeter;
+    TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
+    TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+    end
+  else
+    begin
+    TheImage.ResolutionUnit :=ruNone;
+    TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels);
+    TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels);
+    end;
 end;
 
 // gAMA holds the gamma of the file times 100000, in one big-endian
@@ -457,7 +464,7 @@ var diff : byte;
     l := PrevSample(index);
     lp := PrevLinePrevSample(index);
     p := PreviousLine(index);
-    r := l + p - lp;
+    r := integer(l) + integer(p) - integer(lp);
     dl := abs (r - l);
     dlp := abs (r - lp);
     dp := abs (r - p);
@@ -481,6 +488,8 @@ end;
 
 function TFPReaderPNG.DecideSetPixel : TSetPixelProc;
 begin
+  if Pltte and not assigned(ThePalette) then
+    raise PNGImageException.Create('PNG of colour type 3 without PLTE chunk');
   if Pltte then
     if TheImage.UsePalette then
       result := @SetPalettePixel
@@ -888,7 +897,7 @@ procedure TFPReaderPNG.DoDecompress;
             if lf <> 0 then  // Do nothing when there is no filter used
               for rx := 0 to l-1 do
                 FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
-            HandleScanLine (y, FCurrentLine);
+            HandleScanLine (y, PByteArray(FCurrentLine));
             end;
         finally
           freemem (FPreviousLine);
@@ -963,7 +972,7 @@ class function TFPReaderPNG.InternalSize(Str: TStream): TPoint;
 var
   SigCheck: array[0..7] of byte;
   r: Integer;
-  Width, Height: Word;
+  Width, Height: LongWord;
   StartPos: Int64;
 begin
   Result.X := 0;
@@ -978,17 +987,13 @@ begin
       Exit;
   end;
   if not(
-        (Str.Seek(10, soFromCurrent)=StartPos+18)
-    and (Str.Read(Width, 2)=2)
-    and (Str.Seek(2, soFromCurrent)=StartPos+22)
-    and (Str.Read(Height, 2)=2))
+        (Str.Seek(8, soFromCurrent)=StartPos+16)
+    and (Str.Read(Width, 4)=4)
+    and (Str.Read(Height, 4)=4))
   then
     Exit;
-
-  {$IFDEF ENDIAN_LITTLE}
-  Width := Swap(Width);
-  Height := Swap(Height);
-  {$ENDIF}
+  Width := BEtoN(Width);
+  Height := BEtoN(Height);
 
   Result.X := Width;
   Result.Y := Height;
@@ -1012,7 +1017,7 @@ begin
     end;
   // Check IHDR
   ReadChunk;
-  if chunk.alength < 13 then  // IHDR is always 13 bytes (2*longword + 5*byte)
+  if chunk.alength <> 13 then  // IHDR is always 13 bytes (2*longword + 5*byte)
     exit;
   if chunk.aType <> ctIHDR then
     exit;
@@ -1026,6 +1031,13 @@ begin
     {$ENDIF}
     result :=(width > 0) and (height > 0) and (compression = 0)
               and (filter = 0) and (Interlace in [0,1]);
+    case ColorType of
+      0 : result := result and (BitDepth in [1,2,4,8,16]);
+      3 : result := result and (BitDepth in [1,2,4,8]);
+      2,4,6 : result := result and (BitDepth in [8,16]);
+    else
+      result := false;
+    end;
     end;
 end;
 
