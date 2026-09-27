@@ -96,55 +96,87 @@ function ComputeGaussianBlurMatrix2D(Radius: integer): PWord;
 implementation
 
 type
+  // A colour with real channels for the running sums of the blurs.
+  TRealColor = record
+    red, green, blue, alpha: double;
+  end;
+  TRealColorArray = array of TRealColor;
 
-  { TIntRingBuffer }
+// Returns aColor with real channels.
+function ToRealColor(const aColor: TFPColor): TRealColor;
+begin
+  Result.red := aColor.red;
+  Result.green := aColor.green;
+  Result.blue := aColor.blue;
+  Result.alpha := aColor.alpha;
+end;
 
-  TIntRingBuffer = object
-  private
-    FSize: integer;
-    procedure SetSize(AValue: integer);
-  public
-    RingBuffer: PFPColor;
-    procedure Put(Index: integer; const Col: TFPColor);
-    procedure Get(Index: integer; out Col: TFPColor);
-    property Size: integer read FSize write SetSize;
-    procedure Init(len: integer);
-    procedure Clear;
+// Returns aColor rounded and limited to 0..$FFFF.
+function ToFPColor(const aColor: TRealColor): TFPColor;
+
+  function ToWord(v: double): word;
+  begin
+    if v <= 0 then
+      Result := 0
+    else if v >= $FFFF then
+      Result := $FFFF
+    else
+      Result := Round(v);
   end;
 
-{ TIntRingBuffer }
-
-procedure TIntRingBuffer.SetSize(AValue: integer);
 begin
-  if FSize=AValue then Exit;
-  FSize:=AValue;
-  ReAllocMem(RingBuffer,AValue*SizeOf(TFPColor));
+  Result.red := ToWord(aColor.red);
+  Result.green := ToWord(aColor.green);
+  Result.blue := ToWord(aColor.blue);
+  Result.alpha := ToWord(aColor.alpha);
 end;
 
-procedure TIntRingBuffer.Put(Index: integer; const Col: TFPColor);
+{ Replaces each of the n values a[i] by the average of a[i-aLeft]..a[i+aRight];
+  positions before the first or after the last value use that value. tmp is
+  work space for n values. }
+procedure BoxPass(var a, tmp: TRealColorArray; n, aLeft, aRight: integer);
+var
+  i, j, w: integer;
+  sum: TRealColor;
+
+  procedure Add(const c: TRealColor; f: double);
+  begin
+    sum.red := sum.red + f * c.red;
+    sum.green := sum.green + f * c.green;
+    sum.blue := sum.blue + f * c.blue;
+    sum.alpha := sum.alpha + f * c.alpha;
+  end;
+
 begin
-  Index:=Index mod FSize;
-  if Index<0 then inc(Index,FSize);
-  RingBuffer[Index]:=Col;
+  w := aLeft + aRight + 1;
+  sum.red := 0; sum.green := 0; sum.blue := 0; sum.alpha := 0;
+  for j := -aLeft to aRight do
+    Add(a[Min(Max(j, 0), n - 1)], 1);
+  for i := 0 to n - 1 do
+  begin
+    tmp[i].red := sum.red / w;
+    tmp[i].green := sum.green / w;
+    tmp[i].blue := sum.blue / w;
+    tmp[i].alpha := sum.alpha / w;
+    Add(a[Min(i + aRight + 1, n - 1)], 1);
+    Add(a[Max(i - aLeft, 0)], -1);
+  end;
+  for i := 0 to n - 1 do
+    a[i] := tmp[i];
 end;
 
-procedure TIntRingBuffer.Get(Index: integer; out Col: TFPColor);
+{ Blurs the n values of a with four box averages of width Radius; for an even
+  Radius two lean left and two right of each value, so the blur stays centred. }
+procedure BinominalBlur1D(var a, tmp: TRealColorArray; n, Radius: integer);
+var
+  l, r: integer;
 begin
-  Index:=Index mod FSize;
-  if Index<0 then inc(Index,FSize);
-  Col:=RingBuffer[Index];
-end;
-
-procedure TIntRingBuffer.Init(len: integer);
-begin
-  FSize:=0;
-  RingBuffer:=nil;
-  Size:=len;
-end;
-
-procedure TIntRingBuffer.Clear;
-begin
-  Size:=0;
+  l := (Radius - 1) div 2;
+  r := Radius - 1 - l;
+  BoxPass(a, tmp, n, l, r);
+  BoxPass(a, tmp, n, r, l);
+  BoxPass(a, tmp, n, l, r);
+  BoxPass(a, tmp, n, r, l);
 end;
 
 procedure GaussianBlurBinominal4(AImg: TFPCustomImage; Radius: integer;
@@ -155,23 +187,9 @@ end;
 
 procedure GaussianBlurBinominal4(SrcImg, DestImg: TFPCustomImage;
   Radius: integer; SrcArea: TRect; DestXY: TPoint);
-type
-  TIntegerColor = record
-    red, green, blue, alpha: integer;
-  end;
-const
-  clearIntegerColor: TIntegerColor = (red:0;green:0;blue:0;alpha:0);
 var
-  x,y,i: LongInt;
-  Pixel: TFPColor;
-  difference: TIntegerColor;
-  derivative1: TIntegerColor;
-  derivative2: TIntegerColor;
-  sum: TIntegerColor;
-  Weight: Single;
-  col: TFPColor;
-  buffer: TIntRingBuffer;
-  Col1, Col2, Col3, Col4: TFPColor;
+  x, y, margin, colLeft, colRight, cols, rows, n, i: integer;
+  line, tmp, vert: TRealColorArray;
 begin
   // clip
   if SrcArea.Left<0 then begin
@@ -182,164 +200,60 @@ begin
     dec(DestXY.Y,SrcArea.Top);
     SrcArea.Top:=0;
   end;
+  if DestXY.X<0 then begin
+    dec(SrcArea.Left,DestXY.X);
+    DestXY.X:=0;
+  end;
+  if DestXY.Y<0 then begin
+    dec(SrcArea.Top,DestXY.Y);
+    DestXY.Y:=0;
+  end;
   SrcArea.Right:=Min(SrcImg.Width,SrcArea.Right);
-  SrcArea.Top:=Min(SrcImg.Height,SrcArea.Top);
+  SrcArea.Bottom:=Min(SrcImg.Height,SrcArea.Bottom);
   SrcArea.Right:=Min(SrcArea.Right,DestImg.Width-DestXY.X+SrcArea.Left);
   SrcArea.Bottom:=Min(SrcArea.Bottom,DestImg.Height-DestXY.Y+SrcArea.Top);
   if SrcArea.Left>=SrcArea.Right then exit;
   if SrcArea.Top>=SrcArea.Bottom then exit;
 
-  // blur  -- RingBuffer of Size 147 is needed. range=(0,(int)(N_CELLS/4/1.73))
-  //                     N_CELLS=1024 don't ask! see paper: gauss.pdf, 3.source code
-  //                     Or 4*Radius+1, sounds better. see Comment underneath
-  //Radius:=round(sqrt(3*Radius*Radius));
-  buffer.Init(4*Radius);
-  Weight := 1.0/(single(Radius*Radius*Radius*Radius));
-  // vertical blur
-  for x:=SrcArea.Left to SrcArea.Right-1 do begin
-    // set up init values for the first blur
-    difference:=clearIntegerColor;
-    derivative1:=clearIntegerColor;
-    derivative2:=clearIntegerColor;
-    sum:=clearIntegerColor;
-    for y:=SrcArea.Top-4*Radius to SrcArea.Bottom-1 do begin
-      if y >= SrcArea.Top then begin //{+1,-4,+6,-4,+1}
-        buffer.Get(y-2*Radius,Col1);
-        buffer.Get(y-Radius,Col2);
-        buffer.Get(y,Col3);
-        buffer.Get(y+Radius,Col4);
-        difference.alpha :=difference.alpha+Col1.alpha-4*(Col2.alpha+Col4.alpha)+6*Col3.alpha;
-        difference.red   :=difference.red  +Col1.red  -4*(Col2.red  +Col4.red)  +6*Col3.red;
-        difference.green :=difference.green+Col1.green-4*(Col2.green+Col4.green)+6*Col3.green;
-        difference.blue  :=difference.blue +Col1.blue -4*(Col2.blue +Col4.blue) +6*Col3.blue;
-        col:=SrcImg.Colors[x,y];
-        col.alpha:=min($FFFF,max(0,round(sum.alpha*Weight)));
-        col.red  :=min($FFFF,max(0,round(sum.red  *Weight)));
-        col.green:=min($FFFF,max(0,round(sum.green*Weight)));
-        col.blue :=min($FFFF,max(0,round(sum.blue *Weight)));
-        DestImg.Colors[x,y]:=col; // set blurred pixel
-      end else begin
-        if (y+3*Radius) >= SrcArea.Top then begin
-          // -4*buffer(y+Radius)
-          buffer.Get(y+Radius,Col4);
-          difference.alpha:=difference.alpha-4*Col4.alpha;
-          difference.red  :=difference.red  -4*Col4.red;
-          difference.green:=difference.green-4*Col4.green;
-          difference.blue :=difference.blue -4*Col4.blue;
-        end;
-        if (y+2*Radius) >= SrcArea.Top then begin
-          // +6*buffer(y)
-          buffer.Get(y,Col3);
-          difference.alpha:=difference.alpha+6*Col4.alpha;
-          difference.red  :=difference.red  +6*Col4.red;
-          difference.green:=difference.green+6*Col4.green;
-          difference.blue :=difference.blue +6*Col4.blue;
-        end;
-        if (y+  Radius) >= SrcArea.Top then begin
-          // -4*buffer(y-Radius)
-          buffer.Get(y-Radius,Col2);
-          difference.alpha:=difference.alpha-4*Col2.alpha;
-          difference.red  :=difference.red  -4*Col2.red;
-          difference.green:=difference.green-4*Col2.green;
-          difference.blue :=difference.blue -4*Col2.blue;
-        end;
-      end;
-      i:=Min(DestImg.Height-1,Max(0,y+2*Radius-1));
-      // accumulate pixel blur
-      pixel := SrcImg.Colors[x,i];
-      difference.alpha := difference.alpha+pixel.alpha;
-      difference.red   := difference.red  +pixel.red;
-      difference.green := difference.green+pixel.green;
-      difference.blue  := difference.blue +pixel.blue;
-      derivative2.alpha := derivative2.alpha+difference.alpha;
-      derivative2.red   := derivative2.red  +difference.red;
-      derivative2.green := derivative2.green+difference.green;
-      derivative2.blue  := derivative2.blue +difference.blue;
-      derivative1.alpha := derivative1.alpha+derivative2.alpha;
-      derivative1.red   := derivative1.red  +derivative2.red;
-      derivative1.green := derivative1.green+derivative2.green;
-      derivative1.blue  := derivative1.blue +derivative2.blue;
-      sum.alpha := sum.alpha+derivative1.alpha;
-      sum.red   := sum.red  +derivative1.red;
-      sum.green := sum.green+derivative1.green;
-      sum.blue  := sum.blue +derivative1.blue;
-      buffer.Put(y+2*Radius,pixel);  // buffer pixel, min buffer size: 4*Radius
-    end;
+  if Radius<1 then begin
+    if (SrcImg<>DestImg) or (DestXY.X<>SrcArea.Left) or (DestXY.Y<>SrcArea.Top) then
+      for y:=SrcArea.Top to SrcArea.Bottom-1 do
+        for x:=SrcArea.Left to SrcArea.Right-1 do
+          DestImg.Colors[DestXY.X+x-SrcArea.Left,DestXY.Y+y-SrcArea.Top]:=SrcImg.Colors[x,y];
+    exit;
   end;
 
-  //horizontal blur
-  for y:=SrcArea.Top to SrcArea.Bottom-1 do begin
-    // set up init values for the first blur
-    difference:=clearIntegerColor;
-    derivative1:=clearIntegerColor;
-    derivative2:=clearIntegerColor;
-    sum:=clearIntegerColor;
-    for x:=SrcArea.Left-4*Radius to SrcArea.Right-1 do begin
-      if x >= SrcArea.Left then begin //{+1,-4,+6,-4,+1}
-        buffer.Get(x-2*Radius,Col1);
-        buffer.Get(x-Radius,Col2);
-        buffer.Get(x,Col3);
-        buffer.Get(x+Radius,Col4);
-        difference.alpha :=difference.alpha+Col1.alpha-4*(Col2.alpha+Col4.alpha)+6*Col3.alpha;
-        difference.red   :=difference.red  +Col1.red  -4*(Col2.red  +Col4.red)  +6*Col3.red;
-        difference.green :=difference.green+Col1.green-4*(Col2.green+Col4.green)+6*Col3.green;
-        difference.blue  :=difference.blue +Col1.blue -4*(Col2.blue +Col4.blue) +6*Col3.blue;
-        col:=DestImg.Colors[x,y];
-        col.alpha:=min($FFFF,max(0,round(sum.alpha*Weight)));
-        col.red  :=min($FFFF,max(0,round(sum.red  *Weight)));
-        col.green:=min($FFFF,max(0,round(sum.green*Weight)));
-        col.blue :=min($FFFF,max(0,round(sum.blue *Weight)));
-        DestImg.Colors[x,y]:=col; // set blurred pixel
-      end else begin
-        if (x+3*Radius) >= SrcArea.Left then begin
-          // -4*buffer(x+Radius)
-          buffer.Get(x+Radius,Col4);
-          difference.alpha:=difference.alpha-4*Col4.alpha;
-          difference.red  :=difference.red  -4*Col4.red;
-          difference.green:=difference.green-4*Col4.green;
-          difference.blue :=difference.blue -4*Col4.blue;
-        end;
-        if (x+2*Radius) >= SrcArea.Left then begin
-          // +6*buffer(x)
-          buffer.Get(x,Col3);
-          difference.alpha:=difference.alpha+6*Col3.alpha;
-          difference.red  :=difference.red  +6*Col3.red;
-          difference.green:=difference.green+6*Col3.green;
-          difference.blue :=difference.blue +6*Col3.blue;
-        end;
-        if (x+  Radius) >= SrcArea.Left then begin
-          // -4*buffer(x-Radius)
-          buffer.Get(x-Radius,Col2);
-          difference.alpha:=difference.alpha-4*Col2.alpha;
-          difference.red  :=difference.red  -4*Col2.red;
-          difference.green:=difference.green-4*Col2.green;
-          difference.blue :=difference.blue -4*Col2.blue;
-        end;
-      end;
-      i:=Min(DestImg.Width-1,Max(0,x+2*Radius-1));
-      // accumulate pixel blur
-      pixel := DestImg.Colors[i,y];
-      difference.alpha := difference.alpha+pixel.alpha;
-      difference.red   := difference.red  +pixel.red;
-      difference.green := difference.green+pixel.green;
-      difference.blue  := difference.blue +pixel.blue;
-      derivative2.alpha := derivative2.alpha+difference.alpha;
-      derivative2.red   := derivative2.red  +difference.red;
-      derivative2.green := derivative2.green+difference.green;
-      derivative2.blue  := derivative2.blue +difference.blue;
-      derivative1.alpha := derivative1.alpha+derivative2.alpha;
-      derivative1.red   := derivative1.red  +derivative2.red;
-      derivative1.green := derivative1.green+derivative2.green;
-      derivative1.blue  := derivative1.blue +derivative2.blue;
-      sum.alpha := sum.alpha+derivative1.alpha;
-      sum.red   := sum.red  +derivative1.red;
-      sum.green := sum.green+derivative1.green;
-      sum.blue  := sum.blue +derivative1.blue;
+  // positions beyond the image edge take the edge pixel; the blur reads up to 2*Radius pixels away
+  margin:=2*Radius;
+  colLeft:=Max(0,SrcArea.Left-margin);
+  colRight:=Min(SrcImg.Width-1,SrcArea.Right-1+margin);
+  cols:=colRight-colLeft+1;
+  rows:=SrcArea.Bottom-SrcArea.Top;
+  SetLength(vert,cols*rows);
 
-      buffer.Put(x+2*Radius,pixel);  // buffer pixel, min buffer size: 4*Radius
-    end;
+  // vertical pass over every column the horizontal pass needs, margin columns included
+  n:=rows+2*margin;
+  SetLength(line,n);
+  SetLength(tmp,n);
+  for x:=colLeft to colRight do begin
+    for i:=0 to n-1 do
+      line[i]:=ToRealColor(SrcImg.Colors[x,Min(Max(SrcArea.Top-margin+i,0),SrcImg.Height-1)]);
+    BinominalBlur1D(line,tmp,n,Radius);
+    for y:=0 to rows-1 do
+      vert[y*cols+x-colLeft]:=line[y+margin];
   end;
-  buffer.Clear;
+
+  // horizontal pass
+  n:=(SrcArea.Right-SrcArea.Left)+2*margin;
+  SetLength(line,n);
+  SetLength(tmp,n);
+  for y:=0 to rows-1 do begin
+    for i:=0 to n-1 do
+      line[i]:=vert[y*cols+Min(Max(SrcArea.Left-margin+i,colLeft),colRight)-colLeft];
+    BinominalBlur1D(line,tmp,n,Radius);
+    for x:=SrcArea.Left to SrcArea.Right-1 do
+      DestImg.Colors[DestXY.X+x-SrcArea.Left,DestXY.Y+y]:=ToFPColor(line[x-SrcArea.Left+margin]);
+  end;
 end;
 
 procedure GaussianBlur(Img: TFPCustomImage; Radius: integer; Area: TRect);
@@ -363,30 +277,30 @@ begin
   end;
 end;
 
+// Returns the colour whose channels are aRed, aGreen, aBlue and aAlpha divided by 65536, each limited to $FFFF.
+function WeightedColor(const aRed, aGreen, aBlue, aAlpha: QWord): TFPColor;
+begin
+  Result.red:=Min(aRed shr 16,$FFFF);
+  Result.green:=Min(aGreen shr 16,$FFFF);
+  Result.blue:=Min(aBlue shr 16,$FFFF);
+  Result.alpha:=Min(aAlpha shr 16,$FFFF);
+end;
+
 procedure MatrixBlur1D(Img: TFPCustomImage; Radius: integer; Area: TRect;
   Matrix1D: PWord);
-{ Implementation:
-    It runs line by line from Area.Left to Area.Bottom-1.
-    It allocates some temporary memory to store the original pixel values
-    above the current line.
-}
+{ The vertical sums of every column the horizontal pass needs are computed
+  from the original pixels before any pixel is replaced, and are not rounded. }
+type
+  TColorSums = record
+    red, green, blue, alpha: QWord;
+  end;
 var
-  y: Integer;
-  x: Integer;
-  OrigWidth: Integer;
-  OrigHeight: LongInt;
-  OrigPixels: PFPColor;
-  VertSums: PFPColor;
-  NewRed, NewGreen, NewBlue, NewAlpha: cardinal;
-  yd: LongInt;
-  xd: LongInt;
-  xr: Integer;
-  yr: Integer;
+  x, y, xd, yd, StartX, EndX, SumWidth: Integer;
+  VertSums: array of TColorSums;
+  NewRed, NewGreen, NewBlue, NewAlpha: QWord;
   Col: TFPColor;
-  NewCol: TFPColor;
+  Sums: TColorSums;
   Multiplier: Word;
-  StartX: Integer;
-  EndX: Integer;
 begin
   // check input
   if (Radius<1) then exit;
@@ -396,131 +310,55 @@ begin
   Area.Bottom:=Min(Area.Bottom,Img.Height);
   if (Area.Left>=Area.Right) or (Area.Top>=Area.Bottom) then exit;
 
-  //for x:=0 to MatrixWidth-1 do WriteLn('GaussianBlurNew ',x,' ',Matrix[x]);
-  OrigPixels:=nil;
-  VertSums:=nil;
-  try
-    // allocate space for original pixels
-    OrigWidth:=Area.Right-Area.Left;
-    OrigHeight:=Radius+1;
-    //writeln('GaussianBlur ',OrigWidth,'*',OrigHeight,'*',SizeOf(TFPColor));
-    GetMem(OrigPixels,OrigWidth*OrigHeight*SizeOf(TFPColor));
-    // get original pixels (the bottom line of OrigPixels will be Area.Top)
-    y:=Area.Top;
-    for yd:=-Radius to 0 do begin
-      yr:=Max(0,y+yd);
-      for x:=Area.Left to Area.Right-1 do begin
-        OrigPixels[x-Area.Left+(yd+Radius)*OrigWidth]:=Img.Colors[x,yr];
+  StartX:=Area.Left-Radius;
+  EndX:=Area.Right-1+Radius;
+  SumWidth:=EndX-StartX+1;
+  SetLength(VertSums,SumWidth*(Area.Bottom-Area.Top));
+  // vertical sums (coordinates out of the image are mapped to the edges)
+  for y:=Area.Top to Area.Bottom-1 do
+    for x:=StartX to EndX do begin
+      NewRed:=0; NewGreen:=0; NewBlue:=0; NewAlpha:=0;
+      for yd:=-Radius to Radius do begin
+        Col:=Img.Colors[Min(Max(0,x),Img.Width-1),Min(Max(0,y+yd),Img.Height-1)];
+        Multiplier:=Matrix1D[yd+Radius];
+        inc(NewRed,QWord(Col.red)*Multiplier);
+        inc(NewGreen,QWord(Col.green)*Multiplier);
+        inc(NewBlue,QWord(Col.blue)*Multiplier);
+        inc(NewAlpha,QWord(Col.alpha)*Multiplier);
       end;
+      Sums.red:=NewRed;
+      Sums.green:=NewGreen;
+      Sums.blue:=NewBlue;
+      Sums.alpha:=NewAlpha;
+      VertSums[(y-Area.Top)*SumWidth+x-StartX]:=Sums;
     end;
-
-    GetMem(VertSums,(OrigWidth+2*Radius)*SizeOf(TFPColor));
-
-    // compute new pixels
-    for y:=Area.Top to Area.Bottom-1 do begin
-      // move OrigPixels one line up
-      System.Move(OrigPixels[OrigWidth],OrigPixels[0],
-        OrigWidth*(OrigHeight-1)*SizeOf(TFPColor));
-      // and copy current line to OrigPixels
-      for x:=Area.Left to Area.Right-1 do begin
-        OrigPixels[x-Area.Left+Radius*OrigWidth]:=Img.Colors[x,y];
+  // horizontal sums
+  for y:=Area.Top to Area.Bottom-1 do
+    for x:=Area.Left to Area.Right-1 do begin
+      NewRed:=0; NewGreen:=0; NewBlue:=0; NewAlpha:=0;
+      for xd:=-Radius to Radius do begin
+        Sums:=VertSums[(y-Area.Top)*SumWidth+x+xd-StartX];
+        Multiplier:=Matrix1D[xd+Radius];
+        inc(NewRed,Sums.red*Multiplier);
+        inc(NewGreen,Sums.green*Multiplier);
+        inc(NewBlue,Sums.blue*Multiplier);
+        inc(NewAlpha,Sums.alpha*Multiplier);
       end;
-
-      // compute vertical sums
-      // (for each x compute the sum of y-Radius..y+Radius colors
-      //  multiplied with the gaussian matrix)
-      StartX:=Area.Left-Radius;
-      EndX:=Area.Right-1+Radius;
-      for x:=StartX to EndX do begin
-        // xr: x coordinate on img (coords out of bounds are mapped to the edges)
-        xr:=Min(Max(0,x),Img.Width-1);
-        // compute new color for this pixel
-        NewRed:=0;
-        NewGreen:=0;
-        NewBlue:=0;
-        NewAlpha:=0;
-        for yd:=-Radius to Radius do begin
-          // yr: y coordinate on img (coords out of bounds are mapped to the edges)
-          yr:=Min(Max(0,y+yd),Img.Height-1);
-          // get color
-          if (yd<=0) and (xr>=Area.Left) and (xr<Area.Right) then begin
-            // this pixel was replaced => use the OrigPixels
-            Col:=OrigPixels[xr-Area.Left+(yd+Radius)*OrigWidth];
-          end else begin
-            Col:=Img.Colors[xr,yr];
-          end;
-          // multiply with gaussian matrix
-          Multiplier:=Matrix1D[yd+Radius];
-          inc(NewRed,Col.red*Multiplier);
-          inc(NewGreen,Col.green*Multiplier);
-          inc(NewBlue,Col.blue*Multiplier);
-          inc(NewAlpha,Col.alpha*Multiplier);
-          //writeln('GaussianBlur x=',x,' y=',y,' xd=',xd,' yd=',yd,' xr=',xr,' yr=',yr,' Col=',dbgs(Col),' NewCol=r=',hexstr(NewRed,8),'g=',hexstr(NewGreen,8),'b=',hexstr(NewBlue,8),'a=',hexstr(NewAlpha,8));
-        end;
-        NewCol.red:=NewRed shr 16;
-        NewCol.green:=NewGreen shr 16;
-        NewCol.blue:=NewBlue shr 16;
-        NewCol.alpha:=NewAlpha shr 16;
-        VertSums[x-StartX]:=NewCol;
-      end;
-
-      // compute horizontal sums
-      // (for each x compute the sum of x-Radius..x+Radius vertical sums
-      //  multiplied with the gaussian matrix)
-      for x:=Area.Left to Area.Right-1 do begin
-        // compute new color for this pixel
-        NewRed:=0;
-        NewGreen:=0;
-        NewBlue:=0;
-        NewAlpha:=0;
-        for xd:=-Radius to Radius do begin
-          xr:=x+xd;
-          Col:=VertSums[xr-StartX];
-          // multiply with gaussian matrix
-          Multiplier:=Matrix1D[xd+Radius];
-          inc(NewRed,Col.red*Multiplier);
-          inc(NewGreen,Col.green*Multiplier);
-          inc(NewBlue,Col.blue*Multiplier);
-          inc(NewAlpha,Col.alpha*Multiplier);
-          //writeln('GaussianBlur x=',x,' y=',y,' xd=',xd,' yd=',yd,' xr=',xr,' yr=',yr,' Col=',dbgs(Col),' NewCol=r=',hexstr(NewRed,8),'g=',hexstr(NewGreen,8),'b=',hexstr(NewBlue,8),'a=',hexstr(NewAlpha,8));
-        end;
-        NewCol.red:=NewRed shr 16;
-        NewCol.green:=NewGreen shr 16;
-        NewCol.blue:=NewBlue shr 16;
-        NewCol.alpha:=NewAlpha shr 16;
-        // set new pixel
-        //writeln('GaussianBlur x=',x,' y=',y,' OldCol=',dbgs(img.Colors[x,y]),' NewCol=',dbgs(NewCol));
-        Img.Colors[x,y]:=NewCol;
-      end;
+      Img.Colors[x,y]:=WeightedColor(NewRed shr 16,NewGreen shr 16,NewBlue shr 16,NewAlpha shr 16);
     end;
-  finally
-    if OrigPixels<>nil then FreeMem(OrigPixels);
-    if VertSums<>nil then FreeMem(VertSums);
-  end;
 end;
 
 procedure MatrixBlur2D(Img: TFPCustomImage; Radius: integer; Area: TRect;
   Matrix2D: PWord);
-{ Implementation:
-    It runs line by line from Area.Left to Area.Bottom-1.
-    It allocates some temporary memory to store the original pixel values
-    above the current line.
-}
+{ Before any pixel is replaced, the original pixels of the area and of a border
+  of Radius around it are copied; border positions outside the image take the
+  nearest edge pixel. }
 var
-  y: Integer;
-  x: Integer;
-  OrigWidth: Integer;
-  OrigHeight: LongInt;
-  OrigPixels: PFPColor;
-  NewRed, NewGreen, NewBlue, NewAlpha: cardinal;
-  yd: LongInt;
-  xd: LongInt;
-  xr: Integer;
-  yr: Integer;
+  x, y, xd, yd, MatrixWidth, OrigLeft, OrigTop, OrigWidth, OrigHeight: Integer;
+  OrigPixels: array of TFPColor;
+  NewRed, NewGreen, NewBlue, NewAlpha: QWord;
   Col: TFPColor;
-  NewCol: TFPColor;
   Multiplier: Word;
-  MatrixWidth: Integer;
 begin
   // check input
   if (Radius<1) then exit;
@@ -531,73 +369,29 @@ begin
   if (Area.Left>=Area.Right) or (Area.Top>=Area.Bottom) then exit;
 
   MatrixWidth:=Radius*2+1;
-  //WriteM('matrix ',Matrix2D,MatrixWidth);
-  OrigPixels:=nil;
-  try
-    // allocate space for original pixels
-    OrigWidth:=Area.Right-Area.Left;
-    OrigHeight:=Radius+1;
-    //DebugLn(['GaussianBlur ',OrigWidth,'*',OrigHeight,'*',SizeOf(TFPColor)]);
-    GetMem(OrigPixels,OrigWidth*OrigHeight*SizeOf(TFPColor));
-    // get original pixels (the bottom line of OrigPixels will be Area.Top)
-    y:=Area.Top;
-    for yd:=-Radius to 0 do begin
-      yr:=Max(0,y+yd);
-      for x:=Area.Left to Area.Right-1 do begin
-        OrigPixels[x-Area.Left+(yd+Radius)*OrigWidth]:=Img.Colors[x,yr];
-      end;
-    end;
-
-    // compute new pixels
-    for y:=Area.Top to Area.Bottom-1 do begin
-      // move OrigPixels one line up
-      System.Move(OrigPixels[OrigWidth],OrigPixels[0],
-        OrigWidth*(OrigHeight-1)*SizeOf(TFPColor));
-      // and copy current line to OrigPixels
-      for x:=Area.Left to Area.Right-1 do begin
-        OrigPixels[x-Area.Left+Radius*OrigWidth]:=Img.Colors[x,y];
-      end;
-      // compute line
-      for x:=Area.Left to Area.Right-1 do begin
-        // compute new color for this pixel
-        NewRed:=0;
-        NewGreen:=0;
-        NewBlue:=0;
-        NewAlpha:=0;
-        for yd:=-Radius to Radius do begin
-          // yr: y coordinate on img (coords out of bounds are mapped to the edges)
-          yr:=Min(Max(0,y+yd),Img.Height-1);
-          for xd:=-Radius to Radius do begin
-            // xr: x coordinate on img (coords out of bounds are mapped to the edges)
-            xr:=Min(Max(0,x+xd),Img.Width-1);
-            // get color
-            if (yd<=0) and (xr>=Area.Left) and (xr<Area.Right) then begin
-              // this pixel was replaced => use the OrigPixels
-              Col:=OrigPixels[xr-Area.Left+(yd+Radius)*OrigWidth];
-            end else begin
-              Col:=Img.Colors[xr,yr];
-            end;
-            // multiply with gauss Matrix2D
-            Multiplier:=Matrix2D[xd+Radius+(yd+Radius)*MatrixWidth];
-            inc(NewRed,Col.red*Multiplier);
-            inc(NewGreen,Col.green*Multiplier);
-            inc(NewBlue,Col.blue*Multiplier);
-            inc(NewAlpha,Col.alpha*Multiplier);
-            //DebugLn(['GaussianBlur x=',x,' y=',y,' xd=',xd,' yd=',yd,' xr=',xr,' yr=',yr,' Col=',dbgs(Col),' NewCol=r=',hexstr(NewRed,8),'g=',hexstr(NewGreen,8),'b=',hexstr(NewBlue,8),'a=',hexstr(NewAlpha,8)]);
-          end;
+  OrigLeft:=Area.Left-Radius;
+  OrigTop:=Area.Top-Radius;
+  OrigWidth:=Area.Right-Area.Left+2*Radius;
+  OrigHeight:=Area.Bottom-Area.Top+2*Radius;
+  SetLength(OrigPixels,OrigWidth*OrigHeight);
+  for y:=0 to OrigHeight-1 do
+    for x:=0 to OrigWidth-1 do
+      OrigPixels[y*OrigWidth+x]:=Img.Colors[Min(Max(0,OrigLeft+x),Img.Width-1),
+                                            Min(Max(0,OrigTop+y),Img.Height-1)];
+  for y:=Area.Top to Area.Bottom-1 do
+    for x:=Area.Left to Area.Right-1 do begin
+      NewRed:=0; NewGreen:=0; NewBlue:=0; NewAlpha:=0;
+      for yd:=-Radius to Radius do
+        for xd:=-Radius to Radius do begin
+          Col:=OrigPixels[(y+yd-OrigTop)*OrigWidth+x+xd-OrigLeft];
+          Multiplier:=Matrix2D[xd+Radius+(yd+Radius)*MatrixWidth];
+          inc(NewRed,QWord(Col.red)*Multiplier);
+          inc(NewGreen,QWord(Col.green)*Multiplier);
+          inc(NewBlue,QWord(Col.blue)*Multiplier);
+          inc(NewAlpha,QWord(Col.alpha)*Multiplier);
         end;
-        NewCol.red:=NewRed shr 16;
-        NewCol.green:=NewGreen shr 16;
-        NewCol.blue:=NewBlue shr 16;
-        NewCol.alpha:=NewAlpha shr 16;
-        // set new pixel
-        //DebugLn(['GaussianBlur x=',x,' y=',y,' OldCol=',dbgs(img.Colors[x,y]),' NewCol=',dbgs(NewCol)]);
-        Img.Colors[x,y]:=NewCol;
-      end;
+      Img.Colors[x,y]:=WeightedColor(NewRed,NewGreen,NewBlue,NewAlpha);
     end;
-  finally
-    if OrigPixels<>nil then FreeMem(OrigPixels);
-  end;
 end;
 
 function ComputeGaussianBlurMatrix1D(Radius: integer): PWord;
@@ -608,34 +402,32 @@ const
   StandardDeviationToRadius = 3; // Pixels more far away as 3*Deviation are too small
 var
   Width: Integer;
-  Size: Integer;
   Matrix: PWord;
-  Deviation: Single;
-  m,p: Single;
+  Deviation, p, total: double;
+  g: array of double;
   x: Integer;
-  Value: Integer;
   MatrixSum: Integer;
-  g: Single;
 begin
   Width:=Radius*2+1;
-  Size:=SizeOf(Word)*Width*Width;
-  Matrix:=nil;
-  GetMem(Matrix,Size);
+  GetMem(Matrix,SizeOf(Word)*Width);
   Result:=Matrix;
-  FillByte(Matrix^,Size,0);
-  // Deviation := Radius / 3
-  // G(x) := (1 / SQRT( 2 * pi * Deviation^2)) * e^( - (x^2) / (2 * Deviation^2) )
-  //                     m                     * e^(    x^2  *  p )
-  // m := 1 / SQRT( 2 * pi * Deviation^2)
-  // p := -1 / (2 * Deviation^2)
-  Deviation:=single(Radius)/StandardDeviationToRadius;
-  m:=1/Sqrt(2*pi*Deviation*Deviation);
+  // G(x) = e^(-x^2 / (2 * Deviation^2)), normalized to a sum of 1
+  Deviation:=Radius/StandardDeviationToRadius;
+  if Deviation<=0 then
+    Deviation:=1;
   p:=-1/(2*Deviation*Deviation);
+  SetLength(g,Radius+1);
+  total:=0;
   for x:=0 to Radius do begin
-    g:=m*exp(single(x*x)*p);
-    Value:=floor(g*65536);
-    Matrix[Radius+x]:=Value;
-    Matrix[Radius-x]:=Value;
+    g[x]:=exp(x*x*p);
+    if x=0 then
+      total:=total+g[x]
+    else
+      total:=total+2*g[x];
+  end;
+  for x:=0 to Radius do begin
+    Matrix[Radius+x]:=Floor(g[x]/total*65536);
+    Matrix[Radius-x]:=Matrix[Radius+x];
   end;
   // fix sum to 65536
   MatrixSum:=0;
@@ -652,57 +444,33 @@ const
   StandardDeviationToRadius = 3; // Pixels more far away as 3*Deviation are too small
 var
   Matrix: PWord;
-  Size: Integer;
-  Deviation: single;
-  m,p: single;
-  g: single;
-  y: Integer;
-  x: Integer;
-  yd: Integer;
-  xd: Integer;
-  MatrixSum: Integer;
-  Value: Word;
-  Width: Integer;
+  Width, x, y, MatrixSum: Integer;
+  Deviation, p, total: double;
+  g: array of double;
 begin
   Width:=Radius*2+1;
-  Size:=SizeOf(Word)*Width*Width;
-  Matrix:=nil;
-  GetMem(Matrix,Size);
+  GetMem(Matrix,SizeOf(Word)*Width*Width);
   Result:=Matrix;
-  FillByte(Matrix^,Size,0);
-  // Deviation = Radius / StandardDeviationToRadius
-  // G(x,y) := (1 / (2 * pi * Deviation^2)) * e^( - (x^2 + y^2) / (2 * Deviation^2) )
-  //         =              m               * e^(   (x^2 + y^2) *   p       )
-  // m := 1 / (2 * pi * Deviation^2)
-  // p := -1 / (2 * Deviation^2)
-  Deviation:=single(Radius)/StandardDeviationToRadius;
-  m:=1/(2*pi*Deviation*Deviation);
+  // G(x,y) = e^(-(x^2 + y^2) / (2 * Deviation^2)), normalized to a sum of 1
+  Deviation:=Radius/StandardDeviationToRadius;
+  if Deviation<=0 then
+    Deviation:=1;
   p:=-1/(2*Deviation*Deviation);
-  for y:=0 to Radius do begin
-    yd:=Radius-y;
-    yd:=yd*yd;
-    for x:=y to Radius do begin
-      xd:=Radius-x;
-      xd:=xd*xd;
-      g:=m*exp((single(xd)+single(yd))*p);
-      Value:=floor(g*65536);
-      Matrix[x+y*Width]:=Value;
-      // mirror diagonally
-      Matrix[y+x*Width]:=Value;
+  SetLength(g,Width*Width);
+  total:=0;
+  for y:=0 to Width-1 do
+    for x:=0 to Width-1 do begin
+      g[y*Width+x]:=exp((Sqr(x-Radius)+Sqr(y-Radius))*p);
+      total:=total+g[y*Width+x];
     end;
-    // mirror horizontally
-    for x:=Radius+1 to Width-1 do
-      Matrix[x+y*Width]:=Matrix[(Width-x-1)+y*Width];
-    // mirror vertically
-    System.Move(Matrix[y*Width],Matrix[(Width-y-1)*Width],SizeOf(Word)*Width);
-  end;
-  // fix sum to 65536
   MatrixSum:=0;
   for y:=0 to Width-1 do
-    for x:=0 to Width-1 do
-      inc(MatrixSum,Matrix[x+y*Width]);
+    for x:=0 to Width-1 do begin
+      Matrix[y*Width+x]:=Floor(g[y*Width+x]/total*65536);
+      inc(MatrixSum,Matrix[y*Width+x]);
+    end;
+  // fix sum to 65536
   Matrix[Radius+Radius*Width]:=Min(High(Word),65536-MatrixSum+Matrix[Radius+Radius*Width]);
 end;
 
 end.
-
