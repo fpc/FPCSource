@@ -205,6 +205,7 @@ begin
       while true do
       begin
         fppal.Color[i]:=Col;
+        inc(i);
         if Col.Blue=0 then break;
         dec(Col.Blue,$3333);
       end;
