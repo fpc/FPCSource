@@ -3170,6 +3170,18 @@ implementation
   {$maxfpuregisters 0}
 
 
+    function load_self_or_inquiry_base(def:tdef):tnode;
+      begin
+        { in a "type of" operand inside a record/object/class declaration
+          there is no self; only the type is needed, so use the type as base }
+        if current_module.in_type_inquiry and
+           not assigned(get_local_or_para_sym('self')) then
+          result:=ctypenode.create(def)
+        else
+          result:=load_self_node;
+      end;
+
+
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
       var
         hdef : tdef;
@@ -3230,10 +3242,10 @@ implementation
                             if assigned(pd) and pd.no_self_node then
                               result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
                             else
-                              result:=load_self_node;
+                              result:=load_self_or_inquiry_base(hdef);
                           end
                         else
-                          result:=load_self_node;
+                          result:=load_self_or_inquiry_base(hdef);
                       end;
                   { now, if the field itself is part of an objectsymtab }
                   { (it can be even if it was found in a withsymtable,  }
