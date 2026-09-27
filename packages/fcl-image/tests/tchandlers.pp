@@ -13,7 +13,7 @@ uses sysutils, classes, fpcunit, testregistry, fpimage, fpimgtests,
      fpreadbmp, fpwritebmp, fpreadpng, fpwritepng, fpreadjpeg, fpwritejpeg,
      fpreadgif, fpwritegif, fpreadtga, fpwritetga, fpreadtiff, fpwritetiff,
      fpreadpcx, fpwritepcx, fpreadpnm, fpwritepnm, fpreadxpm, fpwritexpm,
-     fpreadqoi, fpwriteqoi, fpreadpsd, fpreadxwd, fptiffcmn;
+     fpreadqoi, fpwriteqoi, fpreadpsd, fpreadxwd, fptiffcmn, fpreadico, fpwriteico;
 
 type
   TTestHandlers = class(TTestCase)
@@ -48,6 +48,8 @@ type
     procedure TestDetectXPM;
     procedure TestDetectQOI;
     procedure TestDetectTGA;
+    procedure TestDetectICO;
+    procedure TestDetectCUR;
     procedure TestDetectionRestoresThePosition;
     procedure TestTextIsNoImage;
     procedure TestLoadingGarbageRaises;
@@ -183,9 +185,9 @@ end;
 procedure TTestHandlers.TestEveryFormatHasAReader;
 
 const
-  cExtensions: array[0..17] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+  cExtensions: array[0..19] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
     'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi',
-    'psd', 'pdd', 'xwd');
+    'psd', 'pdd', 'xwd', 'ico', 'cur');
 
 var
   lExt: String;
@@ -199,8 +201,8 @@ end;
 procedure TTestHandlers.TestEveryWritableFormatHasAWriter;
 
 const
-  cExtensions: array[0..14] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
-    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi');
+  cExtensions: array[0..16] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur');
 
 var
   lExt: String;
@@ -214,8 +216,8 @@ end;
 procedure TTestHandlers.TestReaderAndWriterOfAnExtensionShareOneEntry;
 
 const
-  cExtensions: array[0..14] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
-    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi');
+  cExtensions: array[0..16] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur');
 
 var
   lExt: String;
@@ -336,6 +338,20 @@ procedure TTestHandlers.TestDetectTGA;
 
 begin
   CheckDetected('TGA', TFPWriterTarga, TFPReaderTarga);
+end;
+
+
+procedure TTestHandlers.TestDetectICO;
+
+begin
+  CheckDetected('ICO', TFPWriterICO, TFPReaderICO);
+end;
+
+
+procedure TTestHandlers.TestDetectCUR;
+
+begin
+  CheckDetected('CUR', TFPWriterCUR, TFPReaderCUR);
 end;
 
 

@@ -333,6 +333,25 @@ begin
           AddUnit('fpimage');
           AddUnit('qoicomn');
         end;
+    // ico
+    T:=P.Targets.AddUnit('icocomn.pas');
+    T:=P.Targets.AddUnit('fpreadico.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('bmpcomn');
+          AddUnit('fpreadbmp');
+          AddUnit('fpreadpng');
+          AddUnit('icocomn');
+        end;
+    T:=P.Targets.AddUnit('fpwriteico.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('bmpcomn');
+          AddUnit('fpwritepng');
+          AddUnit('icocomn');
+        end;
     T:=P.Targets.AddUnit('fpcolorspace.pas');
       with T.Dependencies do
         begin
