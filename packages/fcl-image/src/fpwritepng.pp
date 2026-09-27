@@ -43,7 +43,7 @@ type
       FFmtColor : TColorFormatFunction;
       FTransparentColor : TFPColor;
       FTransparentColorOk: boolean;
-      FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
+      FSwitchLine, FCurrentLine, FPreviousLine : PPNGByteArray;
       FPalette : TFPPalette;
       OwnsPalette : boolean;
       FHeader : THeaderChunk;
@@ -90,7 +90,7 @@ type
       function ColorDataColorAB(color:TFPColor) : TColorData;
       function ColorDataGrayAW(color:TFPColor) : TColorData;
       function ColorDataColorAW(color:TFPColor) : TColorData;
-      property ChunkDataBuffer : pByteArray read FChunk.data;
+      property ChunkDataBuffer : PPNGByteArray read FChunk.data;
       property UsetRNS : boolean read FUsetRNS;
       property SingleTransparentColor : TFPColor read FTransparentColor;
       property SingleTransparentColorOk : boolean read FTransparentColorOk;
@@ -685,19 +685,24 @@ begin
 
   with PPNGPhysicalDimensions(ChunkDataBuffer)^ do
   begin
-    if (TheImage.ResolutionUnit=ruPixelsPerInch)
-    then TheImage.ResolutionUnit :=ruPixelsPerCentimeter;
-    if (TheImage.ResolutionUnit=ruPixelsPerCentimeter)
-    then begin
-           Unit_Specifier:=1;
-           X_Pixels :=Trunc(TheImage.ResolutionX*100);
-           Y_Pixels :=Trunc(TheImage.ResolutionY*100);
-         end
-    else begin //ruNone
-           Unit_Specifier:=0;
-           X_Pixels :=Trunc(TheImage.ResolutionX);
-           Y_Pixels :=Trunc(TheImage.ResolutionY);
-       end;
+    case TheImage.ResolutionUnit of
+      ruPixelsPerInch :
+        begin
+        Unit_Specifier:=1;
+        X_Pixels :=Round(TheImage.ResolutionX*100/2.54);
+        Y_Pixels :=Round(TheImage.ResolutionY*100/2.54);
+        end;
+      ruPixelsPerCentimeter :
+        begin
+        Unit_Specifier:=1;
+        X_Pixels :=Round(TheImage.ResolutionX*100);
+        Y_Pixels :=Round(TheImage.ResolutionY*100);
+        end;
+    else
+      Unit_Specifier:=0;
+      X_Pixels :=Round(TheImage.ResolutionX);
+      Y_Pixels :=Round(TheImage.ResolutionY);
+    end;
 
     {$IFDEF ENDIAN_LITTLE}
     X_Pixels :=swap(X_Pixels);
@@ -721,7 +726,8 @@ end;
 
 procedure TFPWriterPNG.FinalWriteIDAT;
 begin
-  ZData.Free;
+  FreeAndNil(Compressor);
+  FreeAndNil(ZData);
   FreeMem (FPreviousLine);
   FreeMem (FCurrentLine);
 end;
@@ -736,7 +742,9 @@ var r, x : integer;
     cd : TColorData;
     index : longword;
     b : byte;
+    Line : PPNGByteArray;
 begin
+  Line := PPNGByteArray(ScanLine);
   index := 0;
   for x := 0 to pred(TheImage.Width) do
     begin
@@ -744,15 +752,15 @@ begin
     {$IFDEF ENDIAN_BIG}
     cd:=swap(cd);
     {$ENDIF}
-    move (cd, ScanLine^[index], FBytewidth);
+    move (cd, Line^[index], FBytewidth);
     if WordSized then
       begin
       r := 1;
       while (r < FByteWidth) do
         begin
-        b := Scanline^[index+r];
-        Scanline^[index+r] := Scanline^[index+r-1];
-        Scanline^[index+r-1] := b;
+        b := Line^[index+r];
+        Line^[index+r] := Line^[index+r-1];
+        Line^[index+r-1] := b;
         inc (r,2);
         end;
       end;
@@ -769,8 +777,8 @@ begin
     FSwitchLine := FCurrentLine;
     FCurrentLine := FPreviousLine;
     FPreviousLine := FSwitchLine;
-    FillScanLine (y, FCurrentLine);
-    lf := DetermineFilter (FCurrentLine, FpreviousLine, FDataLineLength);
+    FillScanLine (y, PByteArray(FCurrentLine));
+    lf := DetermineFilter (PByteArray(FCurrentLine), PByteArray(FpreviousLine), FDataLineLength);
     for x := 0 to FDatalineLength-1 do
       FCurrentLine^[x] := DoFilter (lf, x, FCurrentLine^[x]);
     Compressor.Write (lf, sizeof(lf));
@@ -781,7 +789,7 @@ end;
 procedure TFPWriterPNG.WriteCompressedData;
 var l : longword;
 begin
-  Compressor.Free;  // Close compression and finish the writing in ZData
+  FreeAndNil(Compressor);  // Close compression and finish the writing in ZData
   l := ZData.position;
   ZData.position := 0;
   SetChunkLength(l);
@@ -793,9 +801,12 @@ end;
 procedure TFPWriterPNG.WriteIDAT;
 begin
   InitWriteIDAT;
-  GatherData;
-  WriteCompressedData;
-  FinalWriteIDAT;
+  try
+    GatherData;
+    WriteCompressedData;
+  finally
+    FinalWriteIDAT;
+  end;
 end;
 
 procedure TFPWriterPNG.WritetRNS;
@@ -888,7 +899,8 @@ begin
   if Fheader.colorType = 3 then
     WritePLTE;
 
-  WriteResolutionValues;
+  if (Round(Img.ResolutionX)>0) and (Round(Img.ResolutionY)>0) then
+    WriteResolutionValues;
 
   if FUsetRNS then
     WritetRNS;

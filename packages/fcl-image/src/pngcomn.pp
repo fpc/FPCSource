@@ -39,12 +39,15 @@ type
     );
 
   EightLong = array[0..7] of longword;
+  // Bytes of a chunk or a scan line, of any length
+  TPNGByteArray = array[0..MaxInt-1] of byte;
+  PPNGByteArray = ^TPNGByteArray;
   TChunkCode = array[0..3] of AnsiChar;
 
   TChunk = record
     acapacity, alength, CRC : longword;
     ReadType : TChunkCode;
-    data : PByteArray;
+    data : PPNGByteArray;
     aType : TChunkTypes;
   end;
 
