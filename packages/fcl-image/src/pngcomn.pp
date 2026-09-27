@@ -35,6 +35,7 @@ type
     ctoFFs,  ctpHYs,  ctIDAT,  cttIME,
     ctsCAL,  cttEXt,  ctzTXt,  ctIEND,
     ctsRGB,  ctiCCP,  ctiTXt,  ctsPLT,
+    ctacTL,  ctfcTL,  ctfdAT,  cteXIf,
     ctUnknown
     );
 
@@ -61,6 +62,18 @@ type
     BitDepth, ColorType, Compression, Filter, Interlace : byte;
   end;
 
+  { acTL: the number of frames of an animated PNG and how often it plays, big-endian. }
+  TAPNGAnimationControl = packed record
+    NumFrames, NumPlays : longword;
+  end;
+
+  { fcTL: the place, delay, disposal and blending of one frame, big-endian. }
+  TAPNGFrameControl = packed record
+    SequenceNumber, Width, Height, XOffset, YOffset : longword;
+    DelayNum, DelayDen : word;
+    DisposeOp, BlendOp : byte;
+  end;
+
   TPNGPhysicalDimensions = packed record
     X_Pixels, Y_Pixels :DWord;
     Unit_Specifier :Byte;
@@ -80,8 +93,15 @@ const
     'oFFs',  'pHYs',  'IDAT',  'tIME',
     'sCAL',  'tEXt',  'zTXt',  'IEND',
     'sRGB',  'iCCP',  'iTXt',  'sPLT',
+    'acTL',  'fcTL',  'fdAT',  'eXIf',
     'Unkn'
     );
+
+  APNGDisposeNone = 0;
+  APNGDisposeBackground = 1;
+  APNGDisposePrevious = 2;
+  APNGBlendSource = 0;
+  APNGBlendOver = 1;
 
   ChunkAncillary = $10000000;
   ChunkPrivate   = $00100000;

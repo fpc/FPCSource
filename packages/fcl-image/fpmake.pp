@@ -147,6 +147,7 @@ begin
           AddUnit('fpimage');
           AddUnit('fpimgcmn');
           AddUnit('pngcomn');
+          AddUnit('fpimagelist');
         end;
     T:=P.Targets.AddUnit('fpreadpnm.pp');
       with T.Dependencies do

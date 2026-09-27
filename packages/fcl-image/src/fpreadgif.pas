@@ -337,19 +337,20 @@ begin
     exit;
   Frame:=Images[FFrames.Count-1];
   aInfo.Kind:=fkAnimation;
+  aInfo.Delay:=Frame.Delay*10;
+  // A composited frame is the whole canvas, which replaces the one before.
   if not FComposite then
   begin
     aInfo.Left:=Frame.Left;
     aInfo.Top:=Frame.Top;
+    case Frame.Disposal of
+      gdBackground: aInfo.Disposal:=fdBackground;
+      gdPrevious: aInfo.Disposal:=fdPrevious;
+    else
+      aInfo.Disposal:=fdNone;
+    end;
+    aInfo.Blend:=fbOver;
   end;
-  aInfo.Delay:=Frame.Delay*10;
-  case Frame.Disposal of
-    gdBackground: aInfo.Disposal:=fdBackground;
-    gdPrevious: aInfo.Disposal:=fdPrevious;
-  else
-    aInfo.Disposal:=fdNone;
-  end;
-  aInfo.Blend:=fbOver;
   if (FFramesInfo.Width=0) and (FFramesInfo.Height=0) then
   begin
     FFramesInfo.Width:=ScreenWidth;

@@ -52,7 +52,14 @@ type
       ZData : TMemoryStream;  // holds uncompressed data until all blocks are written
       Compressor : TCompressionStream; // compresses the data
       FCompressionLevel : TCompressionLevel;
+      FSequence : longword;      // next sequence number of an fcTL or fdAT chunk
+      FAnimationStart : Int64;   // stream position of the acTL chunk
+      FFramesAnnounced : longword;
       procedure WriteChunk;
+      procedure WriteAnimationHeader (AWidth, AHeight : longword);
+      procedure WriteAnimationControl (AFrames : longword);
+      procedure WriteFrameControl (Img : TFPCustomImage; const AInfo : TFPFrameInfo);
+      procedure WriteFrameData;
       function GetColorPixel (x,y:longword) : TColorData;
       function GetPalettePixel (x,y:longword) : TColorData;
       function GetColPalPixel (x,y:longword) : TColorData;
@@ -70,6 +77,9 @@ type
       procedure WriteIDAT; virtual;
       procedure WriteTexts; virtual;
       procedure WriteIEND; virtual;
+      procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); override;
+      procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); override;
+      procedure InternalEndFrames(Str: TStream); override;
       function CurrentLine (x:longword) : byte;
       function PrevSample (x:longword): byte;
       function PreviousLine (x:longword) : byte;
@@ -102,6 +112,8 @@ type
     public
       constructor create; override;
       destructor destroy; override;
+      // Returns the kinds of frames an animated PNG holds several of; its frames are written as RGBA.
+      class function FrameKinds: TFPFrameKinds; override;
       property GrayScale : boolean read FGrayscale write FGrayScale;
       property Indexed : boolean read FIndexed write FIndexed;
       property CompressedText : boolean read FCompressedText write FCompressedText;
@@ -891,6 +903,192 @@ begin
   SetChunkLength(0);
   SetChunkType (ctIEND);
   WriteChunk;
+end;
+
+class function TFPWriterPNG.FrameKinds: TFPFrameKinds;
+begin
+  Result := [fkAnimation];
+end;
+
+// Writes the signature, an RGBA header for a canvas of AWidth x AHeight and the acTL chunk.
+procedure TFPWriterPNG.WriteAnimationHeader (AWidth, AHeight : longword);
+begin
+  TheStream.WriteBuffer(Signature, SizeOf(Signature));
+  FillChar(FHeader, SizeOf(FHeader), 0);
+  with FHeader do
+    begin
+    Width := NtoBE(AWidth);
+    Height := NtoBE(AHeight);
+    ColorType := 6;
+    if FWordSized then
+      begin
+      BitDepth := 16;
+      FByteWidth := 8;
+      FFmtColor := @ColorDataColorAW;
+      end
+    else
+      begin
+      BitDepth := 8;
+      FByteWidth := 4;
+      FFmtColor := @ColorDataColorAB;
+      end;
+    end;
+  FUsetRNS := False;
+  SetChunkLength (13);
+  move (FHeader, ChunkDataBuffer^, 13);
+  SetChunkType (ctIHDR);
+  WriteChunk;
+  FAnimationStart := TheStream.Position;
+  if FramesInfo.FrameCount > 0 then
+    WriteAnimationControl (FramesInfo.FrameCount)
+  else
+    WriteAnimationControl (0);
+end;
+
+procedure TFPWriterPNG.WriteAnimationControl (AFrames : longword);
+var
+  Control : TAPNGAnimationControl;
+begin
+  FFramesAnnounced := AFrames;
+  Control.NumFrames := NtoBE(AFrames);
+  if FramesInfo.LoopCount > 0 then
+    Control.NumPlays := NtoBE(longword(FramesInfo.LoopCount))
+  else
+    Control.NumPlays := 0;
+  SetChunkLength (SizeOf(Control));
+  move (Control, ChunkDataBuffer^, SizeOf(Control));
+  SetChunkType (ctacTL);
+  WriteChunk;
+end;
+
+procedure TFPWriterPNG.WriteFrameControl (Img : TFPCustomImage; const AInfo : TFPFrameInfo);
+var
+  Control : TAPNGFrameControl;
+begin
+  Control.SequenceNumber := NtoBE(FSequence);
+  Inc(FSequence);
+  Control.Width := NtoBE(longword(Img.Width));
+  Control.Height := NtoBE(longword(Img.Height));
+  Control.XOffset := NtoBE(longword(AInfo.Left));
+  Control.YOffset := NtoBE(longword(AInfo.Top));
+  if AInfo.Delay <= High(Word) then
+    begin
+    Control.DelayNum := AInfo.Delay;
+    Control.DelayDen := 1000;
+    end
+  else if AInfo.Delay div 10 <= High(Word) then
+    begin
+    Control.DelayNum := AInfo.Delay div 10;
+    Control.DelayDen := 100;
+    end
+  else
+    begin
+    if AInfo.Delay div 1000 <= High(Word) then
+      Control.DelayNum := AInfo.Delay div 1000
+    else
+      Control.DelayNum := High(Word);
+    Control.DelayDen := 1;
+    end;
+  Control.DelayNum := NtoBE(Control.DelayNum);
+  Control.DelayDen := NtoBE(Control.DelayDen);
+  case AInfo.Disposal of
+    fdBackground : Control.DisposeOp := APNGDisposeBackground;
+    fdPrevious : Control.DisposeOp := APNGDisposePrevious;
+  else
+    Control.DisposeOp := APNGDisposeNone;
+  end;
+  if AInfo.Blend = fbOver then
+    Control.BlendOp := APNGBlendOver
+  else
+    Control.BlendOp := APNGBlendSource;
+  SetChunkLength (SizeOf(Control));
+  move (Control, ChunkDataBuffer^, SizeOf(Control));
+  SetChunkType (ctfcTL);
+  WriteChunk;
+end;
+
+// Writes the data compressed by GatherData as an fdAT chunk.
+procedure TFPWriterPNG.WriteFrameData;
+var
+  l, Sequence : longword;
+begin
+  FreeAndNil(Compressor);
+  l := ZData.Position;
+  ZData.Position := 0;
+  SetChunkLength (l + 4);
+  SetChunkType (ctfdAT);
+  Sequence := NtoBE(FSequence);
+  Inc(FSequence);
+  move (Sequence, ChunkDataBuffer^[0], 4);
+  ZData.Read (ChunkDataBuffer^[4], l);
+  WriteChunk;
+end;
+
+procedure TFPWriterPNG.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+begin
+  FSequence := 0;
+  FAnimationStart := -1;
+  FFramesAnnounced := 0;
+end;
+
+procedure TFPWriterPNG.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+var
+  CanvasWidth, CanvasHeight : Integer;
+begin
+  if FramesInfo.FrameCount = 1 then
+    begin
+    inherited InternalWriteFrame(Str, Img, aInfo);
+    exit;
+    end;
+  if (Img.Width <= 0) or (Img.Height <= 0) then
+    raise FPImageException.Create('PNG image dimensions must be positive');
+  CanvasWidth := FramesInfo.Width;
+  CanvasHeight := FramesInfo.Height;
+  if FramesWritten = 0 then
+    begin
+    if (CanvasWidth = 0) and (CanvasHeight = 0) then
+      begin
+      CanvasWidth := Img.Width;
+      CanvasHeight := Img.Height;
+      FFramesInfo.Width := CanvasWidth;
+      FFramesInfo.Height := CanvasHeight;
+      end;
+    if (Img.Width <> CanvasWidth) or (Img.Height <> CanvasHeight) or (aInfo.Left <> 0) or (aInfo.Top <> 0) then
+      raise PNGImageException.Create('The first frame of an animated PNG covers the whole canvas');
+    WriteAnimationHeader (CanvasWidth, CanvasHeight);
+    if (Round(Img.ResolutionX) > 0) and (Round(Img.ResolutionY) > 0) then
+      WriteResolutionValues;
+    end
+  else if (aInfo.Left < 0) or (aInfo.Top < 0) or (aInfo.Left + Img.Width > CanvasWidth)
+          or (aInfo.Top + Img.Height > CanvasHeight) then
+    raise PNGImageException.Create('APNG frame outside the canvas');
+  WriteFrameControl (Img, aInfo);
+  InitWriteIDAT;
+  try
+    GatherData;
+    if FramesWritten = 0 then
+      WriteCompressedData
+    else
+      WriteFrameData;
+  finally
+    FinalWriteIDAT;
+  end;
+end;
+
+procedure TFPWriterPNG.InternalEndFrames(Str: TStream);
+var
+  EndPos : Int64;
+begin
+  if FramesInfo.FrameCount = 1 then
+    exit;
+  WriteIEND;
+  if FFramesAnnounced <> longword(FramesWritten) then
+    begin
+    EndPos := Str.Position;
+    Str.Position := FAnimationStart;
+    WriteAnimationControl (FramesWritten);
+    Str.Position := EndPos;
+    end;
 end;
 
 procedure TFPWriterPNG.InternalWrite (Str:TStream; Img:TFPCustomImage);
