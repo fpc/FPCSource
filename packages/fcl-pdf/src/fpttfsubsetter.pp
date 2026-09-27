@@ -268,6 +268,8 @@ begin
   result := $00010000 + ToUInt32(nTables, searchRange) + ToUInt32(entrySelector, rangeShift);
 end;
 
+// The checksum is a sum of 32-bit words modulo 2^32.
+{$push}{$R-}{$Q-}
 function TFontSubsetter.WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32;
   const AData: TStream): UInt32;
 var
@@ -304,6 +306,7 @@ begin
   // account for the checksum twice, once for the header field, once for the content itself
   Result := ToUInt32(ATag) + checksum + checksum + AOffset + AData.Size;
 end;
+{$pop}
 
 function TFontSubsetter.GetNewGlyphId(const OldGid: integer): Integer;
 var
@@ -1109,7 +1112,9 @@ begin
   begin
     if tables.Objects[i] <> nil then
     begin
+      {$push}{$R-}{$Q-}
       checksum := checksum + WriteTableHeader(AStream, tables.Strings[i], offset, TStream(tables.Objects[i]));
+      {$pop}
       p := TStream(tables.Objects[i]).Size;
       // table bodies must be 4-byte aligned - calculate the padding so the tableHeader.Offset field can reflect that.
       if (p mod 4) = 0 then
@@ -1120,7 +1125,9 @@ begin
       offset := offset + o;
     end;
   end;
+  {$push}{$R-}{$Q-}
   checksum := UInt32($B1B0AFBA) - checksum;
+  {$pop}
 
   // update head.ChecksumAdjustment field
   head.Seek(8, soBeginning);

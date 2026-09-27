@@ -1294,6 +1294,7 @@ type
     FWidth,FHeight : Integer;
     FBitsPerComponent: Integer;
     FColorSpace: TPDFColorSpace;
+    FInterpolate: Boolean;
 
     function GetHasMask: Boolean;
     function GetHeight: Integer;
@@ -1330,6 +1331,8 @@ type
     Property HasMask : Boolean read GetHasMask;
     property ColorSpace: TPDFColorSpace read FColorSpace write FColorSpace;
     property BitsPerComponent: Integer read FBitsPerComponent write FBitsPerComponent;
+    // True when a viewer smooths the image as it scales it.
+    property Interpolate: Boolean read FInterpolate write FInterpolate;
   end;
 
 
@@ -1444,7 +1447,6 @@ type
     FPendingDestPageIdx: array of Integer;    // target page index for each pending array, same order
     function GetForm(AIndex: Integer): TPDFForm;
     function GetFormCount: Integer;
-    function GetStdFontCharWidthsArray(const AFontName: string): TPDFFontWidthArray;
     function GetX(AIndex : Integer): TPDFXRef;
     function GetXC: Integer;
     function GetTotalAnnotsCount: integer;
@@ -1538,6 +1540,8 @@ type
     procedure SaveToStream(const AStream: TStream); virtual;
     Procedure SaveToFile(Const AFileName : String);
     function  IsStandardPDFFont(AFontName: string): boolean;
+    // Returns the widths of the WinAnsi characters of the standard font AFontName, in 1/2048 em.
+    function GetStdFontCharWidthsArray(const AFontName: string): TPDFFontWidthArray;
     // Create objects, owned by this document.
     Function CreateEmbeddedFont(const APage: TPDFPage; AFontIndex : Integer; AFontSize : TPDFFloat;
       const ASimulateBold: Boolean = False; const ASimulateItalic: Boolean = False) : TPDFEmbeddedFont;
@@ -6804,6 +6808,8 @@ begin
   begin
     ImageDict.AddName('ColorSpace', PDFColorSpace[curImg.FColorSpace]);
     ImageDict.AddInteger('BitsPerComponent', curImg.FBitsPerComponent);
+    if curImg.Interpolate then
+      ImageDict.AddElement('Interpolate', TPDFBoolean.Create(Self, True));
   end
   else
   begin
