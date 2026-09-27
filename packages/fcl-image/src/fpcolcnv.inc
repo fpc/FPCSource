@@ -297,8 +297,16 @@ end;
 *)
 
 function AlphaBlend(const color1, color2: TFPColor): TFPColor;
+  function Clamp(aValue: double): word;
+  begin
+    if aValue >= $ffff then
+      Result := $ffff
+    else
+      Result := Round(aValue);
+  end;
+
 var
-  factor1, factor2: single;
+  factor1, factor2, outalpha: double;
 begin
   if color2.alpha = $ffff then
     Result := color2
@@ -312,11 +320,11 @@ begin
   begin
     factor1 := (color1.alpha / $ffff) * (1 - color2.alpha / $ffff);
     factor2 := color2.alpha / $ffff;
-
-    Result.red := Round(color1.red * factor1 + color2.red * factor2);
-    Result.green := Round(color1.green * factor1 + color2.green * factor2);
-    Result.blue := Round(color1.blue * factor1 + color2.blue * factor2);
-    Result.alpha := Round(factor1 * $ffff + color2.alpha);
+    outalpha := factor1 + factor2;
+    Result.red := Clamp((color1.red * factor1 + color2.red * factor2) / outalpha);
+    Result.green := Clamp((color1.green * factor1 + color2.green * factor2) / outalpha);
+    Result.blue := Clamp((color1.blue * factor1 + color2.blue * factor2) / outalpha);
+    Result.alpha := Clamp(outalpha * $ffff);
   end;
 end;
 
