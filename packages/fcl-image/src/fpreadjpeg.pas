@@ -137,38 +137,10 @@ type
   end;
 
 
-procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
-                                     StartSize: integer);
-var
-  NewLength: Integer;
-  ReadLen: Integer;
-  Buffer: AnsiString;
-begin
-  if (SrcStream is TMemoryStream) or (SrcStream is TFileStream)
-  or (SrcStream is TStringStream)
-  then begin
-    // read as one block
-    DestStream.CopyFrom(SrcStream,SrcStream.Size-SrcStream.Position);
-  end else begin
-    // read exponential
-    if StartSize<=0 then StartSize:=1024;
-    SetLength(Buffer,StartSize);
-    NewLength:=0;
-    repeat
-      ReadLen:=SrcStream.Read(Buffer[NewLength+1],length(Buffer)-NewLength);
-      inc(NewLength,ReadLen);
-      if NewLength<length(Buffer) then break;
-      SetLength(Buffer,length(Buffer)*2);
-    until false;
-    if NewLength>0 then
-      DestStream.Write(Buffer[1],NewLength);
-  end;
-end;
-
 procedure JPEGError(CurInfo: j_common_ptr);
 begin
   if CurInfo=nil then exit;
-  raise Exception.CreateFmt('JPEG error',[CurInfo^.err^.msg_code]);
+  RaiseJPEGError(CurInfo);
 end;
 
 procedure EmitMessage(CurInfo: j_common_ptr; msg_level: Integer);
@@ -272,6 +244,7 @@ var
 
   procedure InitReadingPixels;
   var d1,d2:integer;
+      lScale:TJPEGScale;
 
     function DToScale(inp:integer):TJPEGScale;
     begin
@@ -283,16 +256,17 @@ var
 
   begin
     FInfo.scale_num := 1;
+    lScale:=FScale;
 
     if (FMinWidth>0) and (FMinHeight>0) then
       if (FInfo.image_width>FMinWidth) or (FInfo.image_height>FMinHeight) then
         begin
         d1:=Round((FInfo.image_width / FMinWidth)-0.5);
         d2:=Round((FInfo.image_height /  FMinHeight)-0.5);
-        if d1>d2 then fScale:=DToScale(d2) else fScale:=DtoScale(d1);
+        if d1>d2 then lScale:=DToScale(d2) else lScale:=DtoScale(d1);
         end;
 
-    FInfo.scale_denom :=1 shl Byte(FScale); //1
+    FInfo.scale_denom :=1 shl Byte(lScale);
     FInfo.do_block_smoothing := FSmoothing;
 
     if FGrayscale then FInfo.out_color_space := JCS_GRAYSCALE;
@@ -449,7 +423,7 @@ var
     end;
   end;
 
-  function TranslateSize(out ASize: TSize): TSize;
+  procedure TranslateSize(var ASize: TSize);
   var
     iInt: Integer;
   begin
@@ -567,48 +541,32 @@ end;
 
 
 procedure TFPReaderJPEG.InternalRead(Str: TStream; Img: TFPCustomImage);
-var
-  MemStream: TMemoryStream;
-
 begin
   FWidth:=0;
   FHeight:=0;
-  MemStream:=nil;
   FillChar(FInfo,SizeOf(FInfo),0);
+  FError:=jpeg_std_error;
+  FInfo.err := @FError;
+  jpeg_CreateDecompress(@FInfo, JPEG_LIB_VERSION, SizeOf(FInfo));
   try
-    if Str is TMemoryStream then
-      MemStream:=TMemoryStream(Str)
-    else begin
-      MemStream:=TMemoryStream.Create;
-      ReadCompleteStreamToStream(Str,MemStream,1024);
-      MemStream.Position:=0;
-    end;
-    if MemStream.Size > 0 then begin
-      FError:=jpeg_std_error;
-      FInfo.err := @FError;
-      jpeg_CreateDecompress(@FInfo, JPEG_LIB_VERSION, SizeOf(FInfo));
-      try
-        FProgressMgr.pub.progress_monitor := @ProgressCallback;
-        FProgressMgr.instance := Self;
-        FInfo.progress := @FProgressMgr.pub;
+    FProgressMgr.pub.progress_monitor := @ProgressCallback;
+    FProgressMgr.instance := Self;
+    FInfo.progress := @FProgressMgr.pub;
 
-        MemStream.Position:=0;
-        jpeg_stdio_src(@FInfo, @MemStream);
+    jpeg_stdio_src(@FInfo, @Str);
 
-        FInfo.extensions := @FExtensions;
-        FExtensions.read_ext_appn := @ReadExtAPPnCallback;
+    FInfo.extensions := @FExtensions;
+    FExtensions.read_ext_appn := @ReadExtAPPnCallback;
 
-        FInfo.client_data := Self;
+    FInfo.client_data := Self;
 
-        ReadHeader(MemStream, Img);
-        ReadPixels(MemStream, Img);
-      finally
-        jpeg_Destroy_Decompress(@FInfo);
-      end;
-    end;
+    ReadHeader(Str, Img);
+    ReadPixels(Str, Img);
+    // move the stream back over the bytes the decoder read past the end of the image
+    if FInfo.src^.bytes_in_buffer>0 then
+      Str.Seek(-Int64(FInfo.src^.bytes_in_buffer),soCurrent);
   finally
-    if (MemStream<>nil) and (MemStream<>Str) then
-      MemStream.Free;
+    jpeg_Destroy_Decompress(@FInfo);
   end;
 end;
 
