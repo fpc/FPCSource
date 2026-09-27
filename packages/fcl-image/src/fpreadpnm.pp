@@ -50,8 +50,11 @@ type
       FBufLen : Integer;
       FBuffer : Array of AnsiChar;
       function DropWhiteSpaces(Stream: TStream): AnsiChar;
+      function TryReadChar(Stream: TStream; out aChar: AnsiChar): Boolean;
       function ReadChar(Stream: TStream): AnsiChar;
       function ReadInteger(Stream: TStream): Integer;
+      function ReadSample(Stream: TStream): Word;
+      function ReadBit(Stream: TStream): Byte;
       procedure ReadScanlineBuffer(Stream: TStream;p:Pbyte;Len:Integer);
     protected
       FMaxVal     : Cardinal;
@@ -71,7 +74,7 @@ const
   WhiteSpaces=[#9,#10,#13,#32];
   {Whitespace (TABs, CRs, LFs, blanks) are separators in the PNM Headers}
 
-{ The magic number at the beginning of a pnm file is 'P1', 'P2', ..., 'P7'
+{ The magic number at the beginning of a pnm file is 'P1', 'P2', ..., 'P6'
   followed by a WhiteSpace character }
 
 function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
@@ -91,11 +94,12 @@ begin
     For I:=0 to N-1 do
       hdr[i]:=ReadChar(Stream);
     Result:=(hdr[0] = 'P')
-            and (hdr[1] in ['1'..'7'])
+            and (hdr[1] in ['1'..'6'])
             and (hdr[2] in WhiteSpaces);
   finally
     Stream.Position := oldPos;
     FBufLen:=0;
+    FBufPos:=0;
   end;
 end;
 
@@ -118,16 +122,59 @@ end;
 function TFPReaderPNM.ReadInteger(Stream : TStream) :Integer;
 
 var
-  s:String[7];
+  C : AnsiChar;
+  Value : Int64;
+  HaveChar : Boolean;
 
 begin
-  s:='';
-  s[1]:=DropWhiteSpaces(Stream);
+  C:=DropWhiteSpaces(Stream);
+  if not (C in ['0'..'9']) then
+    Raise FPImageException.CreateFmt('Invalid character in PNM data: #%d',[Ord(C)]);
+  Value:=0;
   repeat
-    Inc(s[0]);
-    s[Length(s)+1]:=ReadChar(Stream);
-  until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
-  Result:=StrToInt(s);
+    Value:=Value*10+Ord(C)-Ord('0');
+    if Value>MaxInt then
+      Raise FPImageException.Create('Number too large in PNM data');
+    HaveChar:=TryReadChar(Stream,C);
+  until not (HaveChar and (C in ['0'..'9']));
+  if HaveChar and not (C in WhiteSpaces) then
+    if C='#' then
+      repeat
+      until not TryReadChar(Stream,C) or (C=#10)
+    else
+      Raise FPImageException.CreateFmt('Invalid character in PNM data: #%d',[Ord(C)]);
+  Result:=Value;
+end;
+
+
+// Reads one text sample, limited to the maximum value of the header.
+function TFPReaderPNM.ReadSample(Stream: TStream): Word;
+
+var
+  Value : Integer;
+
+begin
+  Value:=ReadInteger(Stream);
+  if Value>FMaxVal then
+    Value:=FMaxVal;
+  Result:=Value;
+end;
+
+
+// Reads one P1 pixel: a single 0 or 1 digit.
+function TFPReaderPNM.ReadBit(Stream: TStream): Byte;
+
+var
+  C : AnsiChar;
+
+begin
+  C:=DropWhiteSpaces(Stream);
+  case C of
+    '0' : Result:=0;
+    '1' : Result:=1;
+  else
+    Raise FPImageException.CreateFmt('Invalid character in PBM data: #%d',[Ord(C)]);
+  end;
 end;
 
 procedure TFPReaderPNM.ReadScanlineBuffer(Stream: TStream;p:Pbyte;Len:Integer);
@@ -151,7 +198,8 @@ begin
     Stream.ReadBuffer(p^,len);
 end;
 
-Function TFPReaderPNM.ReadChar(Stream : TStream) : AnsiChar;
+// Reads the next character from the buffer; returns False at the end of the stream.
+function TFPReaderPNM.TryReadChar(Stream: TStream; out aChar: AnsiChar): Boolean;
 
 begin
   If (FBufPos>=FBufLen) then
@@ -159,12 +207,25 @@ begin
     if Length(FBuffer)=0 then
       SetLength(FBuffer,BufSize);
     FBufLen:=Stream.Read(FBuffer[0],Length(FBuffer));
-    if FBuflen=0 then
-      Raise EReadError.Create('Failed to read from stream');
     FBufPos:=0;
+    if FBuflen<=0 then
+      begin
+      FBufLen:=0;
+      aChar:=#0;
+      Exit(False);
+      end;
     end;
-  Result:=FBuffer[FBufPos];
+  aChar:=FBuffer[FBufPos];
   Inc(FBufPos);
+  Result:=True;
+end;
+
+
+Function TFPReaderPNM.ReadChar(Stream : TStream) : AnsiChar;
+
+begin
+  if not TryReadChar(Stream,Result) then
+    Raise FPImageException.Create('Unexpected end of PNM data');
 end;
 
 procedure TFPReaderPNM.ReadHeader(Stream : TStream);
@@ -175,11 +236,11 @@ Var
 begin
   C:=ReadChar(Stream);
   If (C<>'P') then
-    Raise Exception.Create('Not a valid PNM image.');
+    Raise FPImageException.Create('Not a valid PNM image.');
   C:=ReadChar(Stream);
   FBitmapType:=Ord(C)-Ord('0');
   If Not (FBitmapType in [1..6]) then
-    Raise Exception.CreateFmt('Unknown PNM subtype : %s',[C]);
+    Raise FPImageException.CreateFmt('Unknown PNM subtype : %s',[C]);
   FWidth:=ReadInteger(Stream);
   FHeight:=ReadInteger(Stream);
   if FBitMapType in [1,4]
@@ -187,7 +248,7 @@ begin
     FMaxVal:=1
   else
     FMaxVal:=ReadInteger(Stream);
-  If (FWidth<=0) or (FHeight<=0) or (FMaxVal<=0) then
+  If (FWidth<=0) or (FHeight<=0) or (FMaxVal<=0) or (FMaxVal>65535) then
     Raise FPImageException.Create('Invalid PNM header data');
   if (FWidth > 100000) or (FHeight > 100000) then
     Raise FPImageException.Create('PNM dimensions too large');
@@ -214,6 +275,8 @@ var
   Row:Integer;
 
 begin
+  FBufPos:=0;
+  FBufLen:=0;
   ReadHeader(Stream);
   Img.SetSize(FWidth,FHeight);
   Case FBitmapType of
@@ -227,9 +290,12 @@ begin
       begin
       ReadScanLine(Row,Stream);
       WriteScanLine(Row,Img);
-//      Writeln(Stream.Position,' ',Stream.Size);
       end;
+    if FBufPos<FBufLen then
+      Stream.Seek(FBufPos-FBufLen,soCurrent);
   finally
+    FBufPos:=0;
+    FBufLen:=0;
     FreeMem(FScanLine);
   end;
 end;
@@ -251,7 +317,7 @@ begin
             bitsLeft := FWidth-(I shl 3)-1;
             if bitsLeft > 7 then bitsLeft := 7;
             for j:=0 to bitsLeft do
-              PB^:=PB^ or (ReadInteger(Stream) shl (7-j));
+              PB^:=PB^ or (ReadBit(Stream) shl (7-j));
             Inc(PB);
           end;
         end;
@@ -259,7 +325,7 @@ begin
         P:=PWord(FScanLine);
         For I:=0 to FWidth-1 do
           begin
-          P^:=ReadInteger(Stream);
+          P^:=ReadSample(Stream);
           Inc(P);
           end;
         end;
@@ -267,18 +333,26 @@ begin
         P:=PWord(FScanLine);
         For I:=0 to FWidth-1 do
           begin
-          P^:=ReadInteger(Stream); // Red
+          P^:=ReadSample(Stream); // Red
           Inc(P);
-          P^:=ReadInteger(Stream); // Green
+          P^:=ReadSample(Stream); // Green
           Inc(P);
-          P^:=ReadInteger(Stream); // Blue;
+          P^:=ReadSample(Stream); // Blue;
           Inc(P)
           end;
         end;
-    4,5,6 : if FBufPos>=FBufLen then // still bytes in buffer?
-              Stream.ReadBuffer(FScanLine^,FScanLineSize)
-            else
-              ReadScanLineBuffer(Stream,FScanLine,FScanLineSize);
+    4,5,6 : begin
+            ReadScanLineBuffer(Stream,FScanLine,FScanLineSize);
+            if FMaxVal>255 then
+              begin
+              P:=PWord(FScanLine);
+              For I:=0 to (FScanLineSize div 2)-1 do
+                begin
+                P^:=BEtoN(P^);
+                Inc(P);
+                end;
+              end;
+            end;
     end;
 end;
 
@@ -295,15 +369,23 @@ Var
     if FMaxVal = 255 then
       Result := (B shl 8) or B { As used for reading .BMP files }
     else { Mimic the above with multiplications }
-      Result := (B*(FMaxVal+1) + B) * 65535 div Scale;
+      begin
+      if B>FMaxVal then
+        B:=FMaxVal;
+      Result := (Int64(B)*(FMaxVal+1) + B) * 65535 div Scale;
+      end;
   end;
 
   function ScaleWord(W: Word):Word;
   begin
     if FMaxVal = 65535 then
-      Result := BEtoN(W)
+      Result := W
     else { Mimic the above with multiplications }
-      Result := Int64(W*(FMaxVal+1) + W) * 65535 div Scale;
+      begin
+      if W>FMaxVal then
+        W:=FMaxVal;
+      Result := (Int64(W)*(FMaxVal+1) + W) * 65535 div Scale;
+      end;
   end;
 
   Procedure ByteBnWScanLine;
@@ -413,7 +495,7 @@ Var
 
 begin
   C.Alpha:=AlphaOpaque;
-  Scale := FMaxVal*(FMaxVal+1) + FMaxVal;
+  Scale := Int64(FMaxVal)*(FMaxVal+1) + FMaxVal;
   Case FBitmapType of
     1 : ByteBnWScanLine;
     2 : WordGrayScanline;
@@ -432,6 +514,9 @@ end;
 
 initialization
 
-  ImageHandlers.RegisterImageReader ('Netpbm format', 'PNM;PGM;PBM;PPM', TFPReaderPNM);
+  ImageHandlers.RegisterImageReader ('Netpbm Portable aNyMap', 'pnm', TFPReaderPNM);
+  ImageHandlers.RegisterImageReader ('Netpbm Portable BitMap', 'pbm', TFPReaderPNM);
+  ImageHandlers.RegisterImageReader ('Netpbm Portable GrayMap', 'pgm', TFPReaderPNM);
+  ImageHandlers.RegisterImageReader ('Netpbm Portable PixelMap', 'ppm', TFPReaderPNM);
 
 end.
