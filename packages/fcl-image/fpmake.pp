@@ -168,6 +168,7 @@ begin
     T:=P.Targets.AddUnit('fpreadxpm.pp');
       with T.Dependencies do
         begin
+          AddInclude('x11colors.inc');
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('fpreadgif.pas');
@@ -181,6 +182,7 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('psdcomn');
+          AddUnit('fpcolorspace');
         end;
     T:=P.Targets.AddUnit('xwdfile.pp');
     T:=P.Targets.AddUnit('fpreadxwd.pas');
@@ -286,6 +288,8 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('fpcanvas');
+          AddUnit('fpimgcanv');
+          AddInclude('pscorefonts.inc');
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
     T:=P.Targets.AddUnit('fpimggauss.pp');
@@ -353,6 +357,7 @@ begin
     T:=P.Targets.AddExampleProgram('createbarcode.lpr');
     T:=P.Targets.AddExampleProgram('wrpngf.pas');
     T:=P.Targets.AddExampleProgram('wrqoif.pas');
+    T:=P.Targets.AddExampleProgram('canvasdemo.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
