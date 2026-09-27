@@ -374,6 +374,90 @@ begin
     FExtra.Delete (p);
 end;
 
+
+function TFPCustomImage.IndexOfMetadata(const aName: String): Integer;
+
+begin
+  Result := High(FMetadataNames);
+  while (Result >= 0) and not SameText(FMetadataNames[Result], aName) do
+    Dec(Result);
+end;
+
+
+function TFPCustomImage.GetMetadata(const aName: String): TBytes;
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex := IndexOfMetadata(aName);
+  if lIndex >= 0 then
+    Result := Copy(FMetadataValues[lIndex])
+  else
+    Result := nil;
+end;
+
+
+procedure TFPCustomImage.SetMetadata(const aName: String; const aValue: TBytes);
+
+var
+  lIndex: Integer;
+
+begin
+  if Length(aValue) = 0 then
+    begin
+    RemoveMetadata(aName);
+    exit;
+    end;
+  lIndex := IndexOfMetadata(aName);
+  if lIndex < 0 then
+    begin
+    lIndex := Length(FMetadataNames);
+    SetLength(FMetadataNames, lIndex + 1);
+    SetLength(FMetadataValues, lIndex + 1);
+    FMetadataNames[lIndex] := aName;
+    end;
+  FMetadataValues[lIndex] := Copy(aValue);
+end;
+
+
+function TFPCustomImage.GetMetadataName(aIndex: Integer): String;
+
+begin
+  if (aIndex < 0) or (aIndex > High(FMetadataNames)) then
+    FPImgError(StrInvalidIndex, [ErrorText[StrImageExtra], aIndex]);
+  Result := FMetadataNames[aIndex];
+end;
+
+
+procedure TFPCustomImage.RemoveMetadata(const aName: String);
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex := IndexOfMetadata(aName);
+  if lIndex < 0 then
+    exit;
+  Delete(FMetadataNames, lIndex, 1);
+  Delete(FMetadataValues, lIndex, 1);
+end;
+
+
+procedure TFPCustomImage.ClearMetadata;
+
+begin
+  FMetadataNames := nil;
+  FMetadataValues := nil;
+end;
+
+
+function TFPCustomImage.MetadataCount: Integer;
+
+begin
+  Result := Length(FMetadataNames);
+end;
+
 procedure TFPCustomImage.SetPixel (x,y:integer; Value:integer);
 begin
   CheckPaletteIndex (Value);
@@ -519,6 +603,8 @@ begin
     ResolutionY :=Src.ResolutionY;
     // Copy extra info
     FExtra.Assign(Src.Fextra);
+    FMetadataNames := Copy(Src.FMetadataNames);
+    FMetadataValues := Copy(Src.FMetadataValues);
     // Copy palette if needed.
     SetSize(0,0); { avoid side-effects in descendant classes }
     UsePalette:=Src.UsePalette;

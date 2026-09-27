@@ -333,6 +333,11 @@ begin
           AddUnit('fpimage');
           AddUnit('qoicomn');
         end;
+    T:=P.Targets.AddUnit('fpimagelist.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
     // ico
     T:=P.Targets.AddUnit('icocomn.pas');
     T:=P.Targets.AddUnit('fpreadico.pas');
@@ -377,6 +382,7 @@ begin
     T:=P.Targets.AddExampleProgram('wrpngf.pas');
     T:=P.Targets.AddExampleProgram('wrqoif.pas');
     T:=P.Targets.AddExampleProgram('canvasdemo.pp');
+    T:=P.Targets.AddExampleProgram('convertframes.pp');
 
     P.NamespaceMap:='namespaces.lst';
 

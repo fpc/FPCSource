@@ -26,6 +26,7 @@ type
     FStart: Int64;
     FEnd: Int64;
     FEntries: array of TIconEntry;
+    FNextFrame: Integer;
     function GetEntry(aIndex: Integer): TIconEntry;
     function GetEntryCount: Integer;
     function ReadDirectory(aStream: TStream): Boolean;
@@ -38,6 +39,9 @@ type
     procedure InternalRead(Stream: TStream; Img: TFPCustomImage); override;
     function InternalCheck(Stream: TStream): Boolean; override;
     class function InternalSize(Stream: TStream): TPoint; override;
+    function InternalBeginFrames(Str: TStream): TFPFramesInfo; override;
+    function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     // Reads the directory of the file that starts at the current position of aStream.
     procedure LoadFromStream(aStream: TStream);
@@ -362,6 +366,44 @@ begin
     ScanEntry(Stream, FEntries[i]);
   ReadEntry(Stream, BestEntry, Img);
   Stream.Position := FStart + FEnd;
+end;
+
+
+function TFPReaderICO.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+
+var
+  i: Integer;
+
+begin
+  for i := 0 to High(FEntries) do
+    ScanEntry(Str, FEntries[i]);
+  FNextFrame := 0;
+  Result := DefaultFramesInfo;
+  Result.FrameCount := Length(FEntries);
+  if Length(FEntries) > 0 then
+    begin
+    Result.Width := FEntries[0].Width;
+    Result.Height := FEntries[0].Height;
+    end;
+end;
+
+
+function TFPReaderICO.InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean;
+
+begin
+  Result := FNextFrame < Length(FEntries);
+  if not Result then
+    exit;
+  ReadEntry(Str, FNextFrame, Img);
+  Inc(FNextFrame);
+  aInfo.Kind := fkVariant;
+end;
+
+
+procedure TFPReaderICO.InternalEndFrames(Str: TStream);
+
+begin
+  Str.Position := FStart + FEnd;
 end;
 
 

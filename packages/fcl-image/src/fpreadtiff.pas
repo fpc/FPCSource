@@ -82,6 +82,7 @@ type
     fStartPos: SizeUInt;
     s: TStream;
     FBigTiff: Boolean;
+    FNextFrame: Integer;
 
   protected
     function GetImages(Index: integer): TTiffIFD;
@@ -126,6 +127,9 @@ type
     function InternalCheck(Str: TStream): boolean; override;
     class function InternalSize(Stream: TStream): TPoint; override;
     procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
+    function InternalBeginFrames(Str: TStream): TFPFramesInfo; override;
+    function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -2553,8 +2557,63 @@ begin
     OnCreateImage(Self,ImgFileDir);
 end;
 
+function TFPReaderTiff.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+begin
+  Clear;
+  FNextFrame:=0;
+  try
+    LoadHeaderFromStream(Str);
+    LoadIFDsFromStream;
+  except
+    on E: EReadError do
+      raise FPImageException.Create('TIFF data truncated: '+E.Message);
+  end;
+  Result:=DefaultFramesInfo;
+  Result.FrameCount:=ImageCount;
+  if ImageCount>0 then
+    if Images[0].Orientation in [5..8] then
+    begin
+      Result.Width:=Images[0].ImageHeight;
+      Result.Height:=Images[0].ImageWidth;
+    end
+    else
+    begin
+      Result.Width:=Images[0].ImageWidth;
+      Result.Height:=Images[0].ImageHeight;
+    end;
+end;
+
+function TFPReaderTiff.InternalReadFrame(Str: TStream; Img: TFPCustomImage;
+  var aInfo: TFPFrameInfo): Boolean;
+var
+  IFD: TTiffIFD;
+begin
+  Result:=FNextFrame<ImageCount;
+  if not Result then exit;
+  IFD:=Images[FNextFrame];
+  Inc(FNextFrame);
+  IFD.Img:=Img;
+  try
+    LoadImageFromStream(IFD);
+  except
+    on E: EReadError do
+      raise FPImageException.Create('TIFF data truncated: '+E.Message);
+  end;
+  if IFD.ImageIsThumbNail or IFD.ImageIsMask then
+    aInfo.Kind:=fkVariant
+  else
+    aInfo.Kind:=fkPage;
+  aInfo.Name:=IFD.PageName;
+end;
+
+procedure TFPReaderTiff.InternalEndFrames(Str: TStream);
+begin
+  ReleaseStream;
+end;
+
 constructor TFPReaderTiff.Create;
 begin
+  inherited Create;
   ImageList:=TFPList.Create;
   FDefaultMinSampleValue:=0.0;
   FDefaultMaxSampleValue:=1.0;

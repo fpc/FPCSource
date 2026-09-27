@@ -108,8 +108,8 @@ type
     FOnCreateImage: TGifCreateCompatibleImgEvent;
     FFrames: TFPList;
     FGlobalPalette: TFPPalette;
-    FComposite: Boolean;
     FLoopCount: Word;
+    FLoopFound: Boolean;
     FCanvas: TFPMemoryImage;
     FRestore: TFPMemoryImage;
     function GetImages(Index: integer): TGifFrame;
@@ -141,6 +141,9 @@ type
     function InternalCheck (Stream: TStream) : boolean; override;
     function SkipBlock(Stream: TStream): byte;
     class function InternalSize(Stream: TStream): TPoint; override;
+    function InternalBeginFrames(Str: TStream): TFPFramesInfo; override;
+    function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -154,11 +157,6 @@ type
     function ImageCount: integer;
     // One of the frames read, in the order the file holds them.
     property Images[Index: integer]: TGifFrame read GetImages;
-    // Whether a frame is read as the image of the whole screen that it
-    // amounts to, with the frames before it showing through where it is
-    // transparent. With it off a frame is the picture the file holds,
-    // which Left and Top say the place of.
-    property Composite: Boolean read FComposite write FComposite;
     // Times an animation plays, nought for over and over again. Nought
     // as well when the file says nothing about it.
     property LoopCount: Word read FLoopCount;
@@ -276,12 +274,100 @@ begin
   ReadFrames(aStream, nil, True);
 end;
 
+function TFPReaderGif.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+var
+  ColorTableSize :Integer;
+begin
+  Clear;
+  FScanLine:=nil;
+  FPalette := TFPPalette.Create(0);
+  FGlobalPalette := TFPPalette.Create(0);
+
+  // header
+  Str.Read(FHeader,SizeOf(FHeader));
+
+  // Endian Fix Mantis 8541. Gif is always little endian
+  {$IFDEF ENDIAN_BIG}
+    with FHeader do
+      begin
+        ScreenWidth := LEtoN(ScreenWidth);
+        ScreenHeight := LEtoN(ScreenHeight);
+      end;
+  {$ENDIF}
+  // global palette
+  if (FHeader.Packedbit and $80) <> 0 then
+  begin
+    ColorTableSize := FHeader.Packedbit and 7 + 1;
+    ReadPalette(Str, 1 shl ColorTableSize);
+    FGlobalPalette.Copy(FPalette);
+  end;
+  Result:=DefaultFramesInfo;
+  Result.Width:=FHeader.ScreenWidth;
+  Result.Height:=FHeader.ScreenHeight;
+end;
+
+function TFPReaderGif.InternalReadFrame(Str: TStream; Img: TFPCustomImage;
+  var aInfo: TFPFrameInfo): Boolean;
+var
+  Introducer:byte;
+  Count: Integer;
+  Frame: TGifFrame;
+begin
+  Result:=False;
+  if Str.Position>=Str.Size then
+    exit;
+  // The control block of a frame stands before it, so what the frame
+  // before it was given does not reach one that has none of its own.
+  FGraphCtrlExt:=False;
+  // skip extensions
+  Repeat
+    Introducer:=SkipBlock(Str);
+  until (Introducer = $2C) or (Introducer = $3B) or (Str.Position>=Str.Size);
+  if not FLoopFound then
+    FFramesInfo.LoopCount:=1
+  else if FLoopCount=0 then
+    FFramesInfo.LoopCount:=0
+  else
+    FFramesInfo.LoopCount:=FLoopCount+1;
+  if Introducer <> $2C then
+    exit;
+  Count:=FFrames.Count;
+  ReadFrame(Str, Img);
+  if FFrames.Count=Count then
+    exit;
+  Frame:=Images[FFrames.Count-1];
+  aInfo.Kind:=fkAnimation;
+  if not FComposite then
+  begin
+    aInfo.Left:=Frame.Left;
+    aInfo.Top:=Frame.Top;
+  end;
+  aInfo.Delay:=Frame.Delay*10;
+  case Frame.Disposal of
+    gdBackground: aInfo.Disposal:=fdBackground;
+    gdPrevious: aInfo.Disposal:=fdPrevious;
+  else
+    aInfo.Disposal:=fdNone;
+  end;
+  aInfo.Blend:=fbOver;
+  if (FFramesInfo.Width=0) and (FFramesInfo.Height=0) then
+  begin
+    FFramesInfo.Width:=ScreenWidth;
+    FFramesInfo.Height:=ScreenHeight;
+  end;
+  Result:=True;
+end;
+
+procedure TFPReaderGif.InternalEndFrames(Str: TStream);
+begin
+  ReAllocMem(FScanLine,0);
+end;
+
 procedure TFPReaderGif.ReadFrames(Stream: TStream; AFirst: TFPCustomImage;
   AAllFrames: Boolean);
 var
-  Introducer:byte;
-  ColorTableSize :Integer;
   ContProgress: Boolean;
+  Info: TFPFrameInfo;
 begin
   Clear;
   FScanLine:=nil;
@@ -290,48 +376,18 @@ begin
     Progress(psStarting, 0, False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
 
-    FPalette := TFPPalette.Create(0);
-    FGlobalPalette := TFPPalette.Create(0);
-
-    Stream.Position:=0;
-    // header
-    Stream.Read(FHeader,SizeOf(FHeader));
+    FFramesInfo:=InternalBeginFrames(Stream);
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)), False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
 
-    // Endian Fix Mantis 8541. Gif is always little endian
-    {$IFDEF ENDIAN_BIG}
-      with FHeader do
-        begin
-          ScreenWidth := LEtoN(ScreenWidth);
-          ScreenHeight := LEtoN(ScreenHeight);
-        end;
-    {$ENDIF}
-    // global palette
-    if (FHeader.Packedbit and $80) <> 0 then
-    begin
-      ColorTableSize := FHeader.Packedbit and 7 + 1;
-      ReadPalette(stream, 1 shl ColorTableSize);
-      FGlobalPalette.Copy(FPalette);
-    end;
-
     repeat
-      // The control block of a frame stands before it, so what the frame
-      // before it was given does not reach one that has none of its own.
-      FGraphCtrlExt:=False;
-      // skip extensions
-      Repeat
-        Introducer:=SkipBlock(Stream);
-      until (Introducer = $2C) or (Introducer = $3B) or (Stream.Position>=Stream.Size);
-
-      if Introducer <> $2C then
+      Info:=DefaultFrameInfo;
+      if not InternalReadFrame(Stream, AFirst, Info) then
         Break;
-
-      ReadFrame(Stream, AFirst);
       AFirst:=nil;
-    until not AAllFrames or (Stream.Position>=Stream.Size);
+    until not AAllFrames;
   finally
-    ReAllocMem(FScanLine,0);
+    InternalEndFrames(Stream);
   end;
   Progress(FPimage.psEnding, 100, false, Rect(0,0,FWidth,FHeight), '', ContProgress);
 end;
@@ -788,7 +844,10 @@ begin
     begin
       Stream.Read(BlockSize,1);
       if (BlockSize >= 3) and (Stream.Read(Data,3) = 3) then
+      begin
         FLoopCount:=Data[1] or (Data[2] shl 8);
+        FLoopFound:=True;
+      end;
       if BlockSize > 3 then
         Stream.Seek(BlockSize-3, soFromCurrent);
     end;
@@ -892,6 +951,7 @@ begin
   FreeAndNil(FCanvas);
   FreeAndNil(FRestore);
   FLoopCount:=0;
+  FLoopFound:=False;
 end;
 
 function TFPReaderGif.ImageCount: integer;

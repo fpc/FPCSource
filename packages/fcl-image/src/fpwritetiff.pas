@@ -115,9 +115,14 @@ type
     procedure AddEntry(Entry: TTiffWriterEntry);
     procedure TiffError(Msg: string);
     procedure EncodeDeflate(var Buffer: Pointer; var Count: DWord);
+    procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); override;
+    procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     constructor Create; override;
     destructor Destroy; override;
+    // Returns the kinds of frames a TIFF holds several of: pages and thumbnails or masks.
+    class function FrameKinds: TFPFrameKinds; override;
     procedure Clear;
     procedure AddImage(Img: TFPCustomImage);
     procedure SaveToStream(Stream: TStream);
@@ -814,6 +819,61 @@ begin
   try
     AddImage(Img);
     SaveToStream(Stream);
+  finally
+    Clear;
+  end;
+end;
+
+class function TFPWriterTiff.FrameKinds: TFPFrameKinds;
+begin
+  Result:=[fkPage,fkVariant];
+end;
+
+procedure TFPWriterTiff.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+begin
+  Clear;
+end;
+
+procedure TFPWriterTiff.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+var
+  Added: TStringList;
+  i: Integer;
+
+  procedure AddExtra(const aKey, aValue: String);
+  begin
+    if Img.Extra[aKey]<>'' then exit;
+    Img.Extra[aKey]:=aValue;
+    Added.Add(aKey);
+  end;
+
+begin
+  Added:=TStringList.Create;
+  try
+    if aInfo.Name<>'' then
+      AddExtra(TiffPageName,aInfo.Name);
+    case aInfo.Kind of
+      fkVariant:
+        if Img.Extra[TiffIsMask]='' then
+          AddExtra(TiffIsThumbnail,'1');
+      fkPage, fkAnimation:
+        if (FramesInfo.FrameCount>1) and (Img.Extra[TiffPageCount]='') then
+        begin
+          AddExtra(TiffPageNumber,IntToStr(FramesWritten));
+          AddExtra(TiffPageCount,IntToStr(FramesInfo.FrameCount));
+        end;
+    end;
+    AddImage(Img);
+  finally
+    for i:=0 to Added.Count-1 do
+      Img.RemoveExtra(Added[i]);
+    Added.Free;
+  end;
+end;
+
+procedure TFPWriterTiff.InternalEndFrames(Str: TStream);
+begin
+  try
+    SaveToStream(Str);
   finally
     Clear;
   end;

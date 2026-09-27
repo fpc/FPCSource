@@ -23,6 +23,7 @@ src/qoicomn.pas=namespaced/FpImage.Common.QOI.pas
 src/icocomn.pas=namespaced/FpImage.Common.ICO.pas
 src/fpreadico.pas=namespaced/FpImage.Reader.ICO.pas
 src/fpwriteico.pas=namespaced/FpImage.Writer.ICO.pas
+src/fpimagelist.pp=namespaced/FpImage.ImageList.pp
 src/fpditherer.pas=namespaced/FpImage.Ditherer.pas
 src/pixtools.pp=namespaced/FpImage.PixelTools.pp
 src/freetypehdyn.pp=namespaced/Api.Freetypehdyn.pp

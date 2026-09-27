@@ -41,7 +41,12 @@ type
     // Returns the file type the writer writes, IcoTypeIcon or IcoTypeCursor.
     class function IconType: Word; virtual;
     procedure InternalWrite(Stream: TStream; Img: TFPCustomImage); override;
+    procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); override;
+    procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
+    // Returns the kinds of frames an icon holds several of: sizes and depths of one picture.
+    class function FrameKinds: TFPFrameKinds; override;
     // Removes the images added.
     procedure Clear;
     // Encodes aImage as the next entry; it is at most 256 pixels wide and high.
@@ -247,6 +252,38 @@ begin
     SaveToStream(Stream);
   finally
     FEntries := lSaved;
+  end;
+end;
+
+
+class function TFPWriterICO.FrameKinds: TFPFrameKinds;
+
+begin
+  Result := [fkVariant];
+end;
+
+
+procedure TFPWriterICO.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+
+begin
+  Clear;
+end;
+
+
+procedure TFPWriterICO.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+
+begin
+  AddImage(Img);
+end;
+
+
+procedure TFPWriterICO.InternalEndFrames(Str: TStream);
+
+begin
+  try
+    SaveToStream(Str);
+  finally
+    Clear;
   end;
 end;
 
