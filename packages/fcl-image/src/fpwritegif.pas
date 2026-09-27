@@ -749,5 +749,5 @@ end;
 
 
 initialization
-  ImageHandlers.RegisterImageWriter('GIF Format', 'gif', TFPWriterGIF);
+  ImageHandlers.RegisterImageWriter('GIF Graphics', 'gif', TFPWriterGIF);
 end.
