@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2008 by the Free Pascal development team
 
-    Tiff reader for fpImage.
+    PSD reader for fpImage.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -32,10 +32,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpImage, FpImage.Common.PSD;
+  System.Classes, System.SysUtils, FpImage, FpImage.Common.PSD, FpImage.ColorSpace;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, PSDcomn, FPimage;
+  Classes, SysUtils, PSDcomn, FPimage, FPColorSpace;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -62,6 +62,10 @@ type
     FChannelCount  : word;
     FLengthOfLine  : array of Word;
     FByteRead      : PtrInt;
+    FRowBytes      : PtrInt;
+    FPlaneSize     : PtrInt;
+    // Returns channel aChannel of pixel (aX, aY) scaled to 16 bits.
+    function Sample(aChannel, aX, aY: Integer): Word;
     procedure CreateGrayPalette;
     procedure CreateBWPalette;
     function ReadPalette(Stream: TStream): boolean;
@@ -113,17 +117,6 @@ begin
   Result.alpha:=alphaOpaque;
 end;
 
-function XYZToRGB(const X, Y, Z :double):TFPColor;
-begin
-  // ToDo
-  Result:=colBlack;
-end;
-
-function LabToRGB(const L:TLab):TFPColor;
-begin
-  // ToDo
-  Result:=colBlack;
-end;
 
 { TFPReaderPSD }
 
@@ -137,9 +130,9 @@ Begin
   Begin
     With c do
     begin
-      Red:=I*255;
-      Green:=I*255;
-      Blue:=I*255;
+      Red:=I*257;
+      Green:=I*257;
+      Blue:=I*257;
       Alpha:=alphaOpaque;
     end;
     ThePalette.Add (c);
@@ -165,7 +158,7 @@ Var
     ContProgress: Boolean;
 
   begin
-    Stream.Read({%H-}PalBuf, BufSize);
+    Stream.ReadBuffer({%H-}PalBuf, BufSize);
     ContProgress:=true;
     Progress(FPimage.psRunning, 0, False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
@@ -173,9 +166,9 @@ Var
     begin
       with c do
       begin
-        Red:=PalBuf[I] shl 8;
-        Green:=PalBuf[I+(BufSize div 3)] shl 8;
-        Blue:=PalBuf[I+(BufSize div 3)* 2] shl 8;
+        Red:=PalBuf[I]*257;
+        Green:=PalBuf[I+(BufSize div 3)]*257;
+        Blue:=PalBuf[I+(BufSize div 3)* 2]*257;
         Alpha:=alphaOpaque;
       end;
       FPalette.Add(c);
@@ -185,10 +178,12 @@ Var
 begin
   Result:=False;
   BufSize:=0;
-  Stream.Read(BufSize, SizeOf(BufSize));
+  Stream.ReadBuffer(BufSize, SizeOf(BufSize));
   BufSize:=BEtoN(BufSize);
-  if BufSize > 768 then
-    raise FPImageException.Create('Invalid PSD palette size');
+  if (BufSize < 0) or ((FHeader.Mode = PSD_INDEXED) and (BufSize > 768)) then
+    raise FPImageException.Create('Invalid PSD color mode data size');
+  if FHeader.Mode <> PSD_INDEXED then
+    Stream.Seek(BufSize, soCurrent);
 
   Case FHeader.Mode of
   PSD_BITMAP :begin  // Bitmap (monochrome)
@@ -211,12 +206,16 @@ begin
 end;
 
 procedure TFPReaderPSD.AnalyzeHeader;
+var
+  lMinChannels: Integer;
 begin
   With FHeader do
   begin
     Depth:=BEtoN(Depth);
     if (Signature <> '8BPS') then
       Raise FPImageException.Create('Unknown/Unsupported PSD image type');
+    if BEtoN(Version) <> 1 then
+      Raise FPImageException.CreateFmt('Unsupported PSD version %d',[BEtoN(Version)]);
     Channels:=BEtoN(Channels);
     if Channels > 4 then
       FBytesPerPixel:=Depth*4
@@ -227,12 +226,49 @@ begin
     FHeight:=BEtoN(Rows);
     if (FWidth <= 0) or (FWidth > 300000) or (FHeight <= 0) or (FHeight > 300000) then
       raise FPImageException.Create('Invalid PSD dimensions');
+    case Mode of
+      PSD_BITMAP: if Depth <> 1 then
+                    raise FPImageException.Create('A PSD bitmap has 1 bit per sample');
+      PSD_INDEXED: if Depth <> 8 then
+                     raise FPImageException.Create('An indexed PSD has 8 bits per sample');
+      PSD_GRAYSCALE, PSD_DUOTONE, PSD_MULTICHANNEL, PSD_RGB, PSD_CMYK, PSD_LAB:
+        if not (Depth in [8, 16]) then
+          raise FPImageException.CreateFmt('Unsupported PSD depth %d',[Depth]);
+    else
+      raise FPImageException.CreateFmt('Unsupported PSD color mode %d',[Mode]);
+    end;
+    case Mode of
+      PSD_RGB, PSD_LAB: lMinChannels:=3;
+      PSD_CMYK: lMinChannels:=4;
+    else
+      lMinChannels:=1;
+    end;
+    if Channels < lMinChannels then
+      raise FPImageException.CreateFmt('Too few channels (%d) for PSD color mode %d',[Channels, Mode]);
     FChannelCount:=Channels;
-    FLineSize:=Int64(FHeight)*FWidth*Depth div 8;
-    FLineSize:=FLineSize*Channels;
+    FRowBytes:=(Int64(FWidth)*Depth+7) div 8;
+    FPlaneSize:=FRowBytes*FHeight;
+    FLineSize:=Int64(FPlaneSize)*Channels;
     if (FLineSize <= 0) or (FLineSize > 2*1024*1024*1024) then
       raise FPImageException.Create('PSD image data too large');
     GetMem(FScanLine,FLineSize);
+  end;
+end;
+
+
+function TFPReaderPSD.Sample(aChannel, aX, aY: Integer): Word;
+var
+  P: PByte;
+begin
+  P:=FScanLine+aChannel*FPlaneSize+aY*FRowBytes;
+  case FHeader.Depth of
+    1: if (P[aX shr 3] and ($80 shr (aX and 7))) <> 0 then
+         Result:=$FFFF
+       else
+         Result:=0;
+    8: Result:=P[aX]*257;
+  else
+    Result:=(P[2*aX] shl 8) or P[2*aX+1];
   end;
 end;
 
@@ -287,14 +323,14 @@ var
 
   begin
     //MaxM: Do NOT Remove the Casts after BEToN
-    Stream.Read(TotalBlockSize, 4);
+    Stream.ReadBuffer(TotalBlockSize, 4);
     TotalBlockSize :=BEtoN(DWord(TotalBlockSize));
     if TotalBlockSize > 256*1024*1024 then
       raise FPImageException.Create('PSD resource section too large');
     if TotalBlockSize = 0 then exit;
     GetMem(blockData, TotalBlockSize);
     try
-       Stream.Read(blockData^, TotalBlockSize);
+       Stream.ReadBuffer(blockData^, TotalBlockSize);
 
        pPosition :=0;
        curBlock :=blockData;
@@ -350,12 +386,12 @@ begin
   FScanLine:=nil;
   FPalette:=nil;
   try
-    Stream.Position:=0;
+  try
     ContProgress:=true;
     Progress(FPimage.psStarting, 0, False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
     // read header
-    Stream.Read(FHeader, SizeOf(FHeader));
+    Stream.ReadBuffer(FHeader, SizeOf(FHeader));
     Progress(FPimage.psRunning, trunc(100.0 * (Stream.position / Stream.size)), False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
     AnalyzeHeader;
@@ -371,12 +407,12 @@ begin
     ReadResourceBlocks;
 
     //  mask
-    Stream.Read(BufSize, SizeOf(BufSize));
+    Stream.ReadBuffer(BufSize, SizeOf(BufSize));
     BufSize:=BEtoN(BufSize);
     Stream.Seek(BufSize, soCurrent);
     //  compression type
     Encoding:=0;
-    Stream.Read(Encoding, SizeOf(Encoding));
+    Stream.ReadBuffer(Encoding, SizeOf(Encoding));
     FCompressed:=BEtoN(Encoding) = 1;
     if BEtoN(Encoding)>1 then
       Raise FPImageException.Create('Unknown compression type');
@@ -389,8 +425,6 @@ begin
       if not ContProgress then exit;
       for H := 0 to High(FLengthOfLine) do
         Inc(FByteRead, BEtoN(FLengthOfLine[H]));
-      if not FHeader.Mode in [ 0, 2] then
-        FByteRead := FByteRead * FHeader.Depth div 8;
     end else
       FByteRead:= FLineSize;
 
@@ -399,9 +433,13 @@ begin
     if not ContProgress then exit;
     WriteScanLine(Img);
 
-   {$ifdef FPC_Debug_Image}
+    {$ifdef FPC_Debug_Image}
     WriteLn('TFPReaderPSD.InternalRead AAA1 ',Stream.position,' ',Stream.size);
     {$endif}
+  except
+    on E: EReadError do
+      raise FPImageException.Create('PSD data truncated: '+E.Message);
+  end;
   finally
     FreeAndNil(FPalette);
     ReAllocMem(FScanLine,0);
@@ -472,156 +510,87 @@ end;
 
 procedure TFPReaderPSD.WriteScanLine(Img: TFPCustomImage);
 Var
-  Col : Integer;
-  C   : TFPColor;
-  P, P1, P2, P3   : PByte;
-  Z2  : Longint;
-  Row : Integer;
-  Lab : TLab;
+  Col, Row, Index : Integer;
+  C : TFPColor;
+  HasAlpha : Boolean;
 begin
-  C.Alpha:=AlphaOpaque;
-  P:=FScanLine;
-  Z2:=FHeader.Depth div 8;
-  Z2:=Z2 *FHeight*FWidth;
-  begin
-    case FBytesPerPixel of
-      1 : begin
-           for Row:=0 to Img.Height-1 do
-           begin
-             for Col:=0 to Img.Width-1 do
-               if (P[col div 8] and (128 shr (col mod 8))) <> 0 then
-                 Img.Colors[Col,Row]:=ThePalette[0]
-  	       else
-                 Img.Colors[Col,Row]:=ThePalette[1];
-             inc(P, Img.Width div 8);
-           end;
-           end;
-      8 : begin
-           for Row:=0 to Img.Height-1 do
-             for Col:=0 to Img.Width-1 do
-             begin
-               Img.Colors[Col,Row]:=ThePalette[P[0]];
-               inc(p);
-             end;
+  case FHeader.Mode of
+    PSD_BITMAP:
+      for Row:=0 to Img.Height-1 do
+        for Col:=0 to Img.Width-1 do
+          if Sample(0,Col,Row) <> 0 then
+            Img.Colors[Col,Row]:=colBlack
+          else
+            Img.Colors[Col,Row]:=colWhite;
+    PSD_GRAYSCALE, PSD_DUOTONE, PSD_MULTICHANNEL:
+      begin
+        HasAlpha:=(FChannelCount >= 2) and (FHeader.Mode <> PSD_MULTICHANNEL);
+        for Row:=0 to Img.Height-1 do
+          for Col:=0 to Img.Width-1 do
+          begin
+            C.Red:=Sample(0,Col,Row);
+            C.Green:=C.Red;
+            C.Blue:=C.Red;
+            if HasAlpha then
+              C.Alpha:=Sample(1,Col,Row)
+            else
+              C.Alpha:=alphaOpaque;
+            Img.Colors[Col,Row]:=C;
           end;
-      16 : begin
-           for Row:=0 to Img.Height-1 do
-             for Col:=0 to Img.Width-1 do
-             begin
-               Img.Colors[Col,Row]:=ThePalette[BEtoN(PWord(P)^)];
-               inc(p,2);
-            end;
+      end;
+    PSD_INDEXED:
+      for Row:=0 to Img.Height-1 do
+        for Col:=0 to Img.Width-1 do
+        begin
+          Index:=FScanLine[Row*FRowBytes+Col];
+          if Index < ThePalette.Count then
+            Img.Colors[Col,Row]:=ThePalette[Index]
+          else
+            Img.Colors[Col,Row]:=colBlack;
+        end;
+    PSD_RGB:
+      begin
+        HasAlpha:=FChannelCount >= 4;
+        for Row:=0 to Img.Height-1 do
+          for Col:=0 to Img.Width-1 do
+          begin
+            C.Red:=Sample(0,Col,Row);
+            C.Green:=Sample(1,Col,Row);
+            C.Blue:=Sample(2,Col,Row);
+            if HasAlpha then
+              C.Alpha:=Sample(3,Col,Row)
+            else
+              C.Alpha:=alphaOpaque;
+            Img.Colors[Col,Row]:=C;
           end;
-      24 :begin
-           P1:=P;
-           inc(P1,Z2);
-           P2:=P;
-           inc(P2,Z2*2);
-           for Row:=0 to Img.Height-1 do
-           for Col:=0 to Img.Width-1 do
-           begin
-             if (FHeader.Mode =9) then
-             begin
-               Lab.L:=(P[0]);
-               Lab.a:=(P1[0]);
-               Lab.b:=(P2[0]);
-               C:=LabToRGB(Lab);
-             end
-             else
-              With C do
-              begin
-                Red:=P[0] or (P[0] shl 8);
-                green:=P1[0] or (P1[0] shl 8);
-                blue:=P2[0] or (P2[0] shl 8);
-                alpha:=alphaOpaque;
-              end;
-              Inc(P);
-              Inc(P1);
-              Inc(P2);
-//              if (Header.Mode =9) then  C:=XYZtoRGB(C); // Lab color
-              Img[col, row] := C;
-           end;
+      end;
+    PSD_CMYK:
+      // ink is stored inverted; CMYKtoRGB takes the black ink in Alpha
+      for Row:=0 to Img.Height-1 do
+        for Col:=0 to Img.Width-1 do
+        begin
+          C.Red:=$FFFF-Sample(0,Col,Row);
+          C.Green:=$FFFF-Sample(1,Col,Row);
+          C.Blue:=$FFFF-Sample(2,Col,Row);
+          C.Alpha:=$FFFF-Sample(3,Col,Row);
+          Img.Colors[Col,Row]:=CMYKtoRGB(C);
+        end;
+    PSD_LAB:
+      begin
+        HasAlpha:=FChannelCount >= 4;
+        for Row:=0 to Img.Height-1 do
+          for Col:=0 to Img.Width-1 do
+          begin
+            C:=TLabA.New(Sample(0,Col,Row)*100/$FFFF,
+                         Sample(1,Col,Row)*255/$FFFF-128,
+                         Sample(2,Col,Row)*255/$FFFF-128).ToExpandedPixel.ToFPColor;
+            if HasAlpha then
+              C.Alpha:=Sample(3,Col,Row)
+            else
+              C.Alpha:=alphaOpaque;
+            Img.Colors[Col,Row]:=C;
           end;
-      32 :begin
-           P1:=P;
-           inc(P1,Z2);
-           P2:=P;
-           inc(P2,Z2*2);
-           P3:=P;
-           inc(P3,Z2*3);
-           for Row:=0 to Img.Height-1 do
-           for Col:=0 to Img.Width-1 do
-           begin
-             if (FHeader.Mode =4) then
-             begin
-                 P^ := 255 - P^;
-                 P1^ := 255 - P1^;
-                 P2^ := 255 - P2^;
-                 P3^ := 255 - P3^;
-             end;
-             C.Red:=P[0] or (P[0] shl 8);
-             C.green:=P1[0] or (P1[0] shl 8);
-             C.blue:=P2[0] or (P2[0] shl 8);
-             C.alpha:=P3[0] or (P3[0] shl 8);
-             if (FHeader.Mode =4) then  C:=CMYKtoRGB(C); // CMYK to RGB
-             Img[col, row] := C;
-             Inc(P);
-             Inc(P1);
-             Inc(P2);
-             Inc(P3);
-           end;
-          end;
-      48 :begin
-           P1:=P;
-           inc(P1,Z2);
-           P2:=P;
-           inc(P2,Z2*2);
-           C.alpha:=alphaOpaque;
-           for Row:=0 to Img.Height-1 do
-           for Col:=0 to Img.Width-1 do
-           begin
-              With C do
-              begin
-                Red:=BEtoN(PWord(P)^);
-                green:=BEtoN(PWord(P1)^);
-                blue:=BEtoN(PWord(P2)^);
-              end;
-              Inc(P,2);
-              Inc(P1,2);
-              Inc(P2,2);
-              Img[col, row] := C;
-           end;
-          end;
-      64 :begin
-           P1:=P;
-           inc(P1,Z2);
-           P2:=P;
-           inc(P2,Z2*2);
-           P3:=P;
-           inc(P3,Z2*3);
-           for Row:=0 to Img.Height-1 do
-           for Col:=0 to Img.Width-1 do
-           begin
-             C.Red:=BEtoN(PWord(P)^);
-             C.green:=BEtoN(PWord(P1)^);
-             C.blue:=BEtoN(PWord(P2)^);
-             C.alpha:=BEtoN(PWord(P3)^);
-             if (FHeader.Mode =4) then
-             begin
-                 C.red:=$ffff-C.red;
-                 C.green:=$ffff-C.green;
-                 C.blue:=$ffff-C.blue;
-                 C.alpha:=$ffff-C.alpha;
-             end;
-             if (FHeader.Mode =4) then  C:=CMYKtoRGB(C); // CMYK to RGB
-             Img[col, row] := C;
-             Inc(P,2);
-             Inc(P1,2);
-             Inc(P2,2);
-             Inc(P3,2);
-           end;
-          end;
-    end;
+      end;
   end;
 end;
 
@@ -639,6 +608,7 @@ begin
     n := SizeOf(FHeader);
     Result:=(Stream.Read(FHeader, n) = n)
             and (FHeader.Signature = '8BPS')
+            and (BEtoN(FHeader.Version) = 1)
   finally
     Stream.Position := OldPos;
   end;
