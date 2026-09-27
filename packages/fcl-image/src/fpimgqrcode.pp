@@ -181,14 +181,14 @@ begin
       Writer.Free;
     end;
   end else
-    FPImageException.CreateFmt(ErrorText[StrCantDetermineType], [AFileName]);
+    raise FPImageException.CreateFmt(ErrorText[StrCantDetermineType], [AFileName]);
 end;
 
 function TImageQRCodeGenerator.SaveToStream(const AStream: TStream;
   AWriter: TFPCustomImageWriter): Boolean;
 Var
   Img : TFPCustomImage;
-  D,S : Word;
+  D,S : Integer;
 
 
 begin
