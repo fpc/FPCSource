@@ -1035,6 +1035,8 @@ begin
  165 : begin
 
          yyval:=yyv[yysp-1];
+         if assigned(yyval) then
+         yyval^.grouped:=true;
 
        end;
  166 : begin

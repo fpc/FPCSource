@@ -1382,15 +1382,138 @@ begin
     end;
 end;
 
+// Returns true when aName is one of the macro parameters in aParams (t_enumlist).
+function IsMacroParam(const aName : string; aParams : presobject) : boolean;
+
+begin
+  Result:=false;
+  while assigned(aParams) and not Result do
+    begin
+    Result:=assigned(aParams^.p1) and (aParams^.p1^.str=aName);
+    aParams:=aParams^.next;
+    end;
+end;
+
+
+// Returns the binding strength of the Pascal binary operator aOp, as parsed by the grammar.
+function OperatorPrecedence(const aOp : string) : integer;
+
+begin
+  case aOp of
+    ':=' : Result:=0;
+    '=','<>','<','<=','>','>=' : Result:=1;
+    ' or ' : Result:=3;
+    ' and ' : Result:=4;
+    '+','-' : Result:=5;
+    ' shl ',' shr ' : Result:=6;
+    '*','/',' div ' : Result:=7;
+  else
+    Result:=9;
+  end;
+end;
+
+
+// Rewrites casts to a macro parameter, such as (a)+1 or (a)-1, into binary operations.
+// aRotatable collects the rewritten operations that were not between parentheses.
+function FixParamCasts(p,aParams : presobject; aRotatable : TFPList) : presobject;
+
+var
+  lUnary, lRes : presobject;
+  lOp : string;
+
+begin
+  Result:=p;
+  if not assigned(p) then
+    exit;
+  p^.p1:=FixParamCasts(p^.p1,aParams,aRotatable);
+  p^.p2:=FixParamCasts(p^.p2,aParams,aRotatable);
+  p^.p3:=FixParamCasts(p^.p3,aParams,aRotatable);
+  p^.next:=FixParamCasts(p^.next,aParams,aRotatable);
+  if (p^.typ=t_typespec) and assigned(p^.p1) and (p^.p1^.typ=t_id) and IsMacroParam(p^.p1^.str,aParams)
+     and assigned(p^.p2) and (p^.p2^.typ=t_preop) and ((p^.p2^.str='+') or (p^.p2^.str='-') or (p^.p2^.str='@')) then
+    begin
+    lUnary:=p^.p2;
+    lOp:=lUnary^.str;
+    if lOp='@' then
+      lOp:=' and ';
+    lRes:=NewBinaryOp(lOp,p^.p1,lUnary^.p1);
+    lRes^.grouped:=p^.grouped;
+    lRes^.next:=p^.next;
+    lUnary^.p1:=nil;
+    p^.p1:=nil;
+    p^.next:=nil;
+    dispose(p,done);
+    if not lRes^.grouped then
+      aRotatable.Add(lRes);
+    Result:=lRes;
+    exit;
+    end;
+  (* the rewritten operation binds weaker than its parent: re-associate *)
+  if (p^.typ=t_bop) and assigned(p^.p2) and (aRotatable.IndexOf(p^.p2)<>-1)
+     and (OperatorPrecedence(p^.str)>=OperatorPrecedence(p^.p2^.str)) then
+    begin
+    Result:=p^.p2;
+    p^.p2:=Result^.p1;
+    Result^.p1:=p;
+    end
+  else if (p^.typ=t_bop) and assigned(p^.p1) and (aRotatable.IndexOf(p^.p1)<>-1)
+     and (OperatorPrecedence(p^.str)>OperatorPrecedence(p^.p1^.str)) then
+    begin
+    Result:=p^.p1;
+    p^.p1:=Result^.p2;
+    Result^.p2:=p;
+    end
+  else if (p^.typ=t_typespec) and assigned(p^.p2) and (aRotatable.IndexOf(p^.p2)<>-1) then
+    begin
+    Result:=p^.p2;
+    p^.p2:=Result^.p1;
+    Result^.p1:=p;
+    end
+  else if (p^.typ=t_preop) and assigned(p^.p1) and (aRotatable.IndexOf(p^.p1)<>-1) then
+    begin
+    Result:=p^.p1;
+    p^.p1:=Result^.p1;
+    Result^.p1:=p;
+    end;
+  if Result<>p then
+    begin
+    Result^.next:=p^.next;
+    p^.next:=nil;
+    if p^.grouped then
+      begin
+      Result^.grouped:=true;
+      p^.grouped:=false;
+      aRotatable.Remove(Result);
+      end;
+    end;
+end;
+
+
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
 
 var
   hp,ph : presobject;
+  lRotatable : TFPList;
 
 begin
   HandleDefineMacro:=Nil;
   hp:=nil;
   ph:=nil;
+  if assigned(enum_list) then
+    begin
+    lRotatable:=TFPList.Create;
+    para_def_expr^.p1:=FixParamCasts(para_def_expr^.p1,enum_list,lRotatable);
+    para_def_expr^.p2:=FixParamCasts(para_def_expr^.p2,enum_list,lRotatable);
+    para_def_expr^.next:=FixParamCasts(para_def_expr^.next,enum_list,lRotatable);
+    lRotatable.Free;
+    (* the result type of a cast to a parameter is no type *)
+    if assigned(para_def_expr^.p3) and (para_def_expr^.p3^.typ=t_id)
+       and IsMacroParam(para_def_expr^.p3^.str,enum_list) then
+      begin
+      dispose(para_def_expr^.p3,done);
+      para_def_expr^.p3:=nil;
+      end;
+    end;
   (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
   if not stripinfo then
   begin

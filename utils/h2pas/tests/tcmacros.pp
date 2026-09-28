@@ -66,6 +66,12 @@ type
     procedure TestParameterMacroBody;
     procedure TestTernary;
     procedure TestDivision;
+    procedure TestParenthesizedParameter;
+    procedure TestParenthesizedParameterOperators;
+    procedure TestParenthesizedParameterPrecedence;
+    procedure TestParenthesizedParameterGrouping;
+    procedure TestParenthesizedParameterCast;
+    procedure TestCastToTypeKept;
     procedure TestUnparenthesizedBody;
     procedure TestUnparenthesizedTernary;
     procedure TestContinuedBody;
@@ -401,6 +407,69 @@ begin
   AssertImplementation('integer division in a macro',['HALF:=a div 2;']);
   AssertImplementation('float literal division in a macro',['FHALF:=a/2.0;']);
   AssertImplementation('division of a float cast in a macro',['CHALF:=(double(a))/2;']);
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedParameter;
+
+begin
+  Convert(['#define PAR1(a) ((a) + 1)']);
+  AssertConverted;
+  AssertInterface('parenthesized parameter is no typecast',['function PAR1(a : longint) : longint;']);
+  AssertImplementation('parenthesized parameter body',['PAR1:=a+1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedParameterOperators;
+
+begin
+  Convert(['#define M1(a) (a) - 1','#define M6(a) (a) & 1','#define M10(a) (a) - -1','#define M11(a,b) ((a) + (b))']);
+  AssertConverted;
+  AssertImplementation('minus after a parenthesized parameter',['M1:=a-1;']);
+  AssertImplementation('and after a parenthesized parameter',['M6:=a and 1;']);
+  AssertImplementation('minus before a negative number',['M10:=a-(-(1));']);
+  AssertImplementation('two parenthesized parameters',['M11:=a+b;']);
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedParameterPrecedence;
+
+begin
+  Convert(['#define M2(a,x) x * (a) - 1','#define M3(a,x) (a) - 1 * x','#define M4(a,x) x - (a) - 1']);
+  AssertConverted;
+  AssertImplementation('higher precedence on the left',['M2:=(x*a)-1;']);
+  AssertImplementation('higher precedence on the right',['M3:=a-(1*x);']);
+  AssertImplementation('left associative',['M4:=(x-a)-1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedParameterGrouping;
+
+begin
+  Convert(['#define M7(a,x) x * ((a) - 1)','#define N6(a,x,y) y * ((x) * (a) - 1)']);
+  AssertConverted;
+  AssertImplementation('explicit parentheses are kept',['M7:=x*(a-1);']);
+  AssertImplementation('explicit parentheses around a re-associated operation',['N6:=y*((x*a)-1);']);
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedParameterCast;
+
+begin
+  Convert(['#define M8(a) ((int)(a) + 1)','#define M9(a) -(a) + 1']);
+  AssertConverted;
+  AssertImplementation('cast of a parenthesized parameter',['M8:=(longint(a))+1;']);
+  AssertImplementation('negation of a parenthesized parameter',['M9:=(-(a))+1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestCastToTypeKept;
+
+begin
+  Convert(['#define NOPARAM(x) ((mytype) + 1)']);
+  AssertConverted;
+  AssertInterface('cast to a name that is no parameter gives the result type',['function NOPARAM(x : longint) : mytype;']);
+  AssertImplementation('cast to a name that is no parameter',['NOPARAM:=mytype(+(1));']);
 end;
 
 

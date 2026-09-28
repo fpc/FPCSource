@@ -18,7 +18,7 @@ type
 
   TTestKnownMacroIssues = class(TH2PasTestCase)
   published
-    procedure TestParenthesizedParameter;
+    procedure TestParenthesizedProduct;
     procedure TestElif;
     procedure TestIfExpression;
   end;
@@ -26,13 +26,12 @@ type
 implementation
 
 
-procedure TTestKnownMacroIssues.TestParenthesizedParameter;
+procedure TTestKnownMacroIssues.TestParenthesizedProduct;
 
 begin
-  Convert(['#define PAR1(a) ((a) + 1)']);
+  Convert(['#define N4 (X * 2)']);
   AssertConverted;
-  AssertInterface('parenthesized parameter is no typecast',['function PAR1(a : longint) : longint;']);
-  AssertImplementation('parenthesized parameter body',['PAR1:=a+1;']);
+  AssertInterface('parenthesized product of a name is no pointer cast',['N4 = X*2;']);
 end;
 
 

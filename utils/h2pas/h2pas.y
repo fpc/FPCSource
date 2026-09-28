@@ -885,6 +885,8 @@ unary_expr:
      LKLAMMER shift_expr RKLAMMER
      {
      $$:=$2;
+     if assigned($$) then
+       $$^.grouped:=true;
      } |
      LKLAMMER STAR unary_expr RKLAMMER maybe_space LKLAMMER exprlist RKLAMMER
      {
