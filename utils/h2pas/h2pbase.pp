@@ -73,6 +73,8 @@ function handleSizedArrayDecl(aType,aSizeExpr: presobject): presobject;
 function handleFuncNoArg(aType: presobject): presobject;
 function handleFuncExpr(aType,aList: presobject): presobject;
 function handlePointerType(aType,aPointer,aSize : presobject): presobject;
+// Returns the cast of aExpr to a pointer to aType, one pointer level for each * in aStars.
+function HandlePointerCast(aType,aStars,aExpr : presobject): presobject;
 function HandleUnaryDefExpr(aExpr : presobject) : presobject;
 function HandleTernary(expr,colonexpr : presobject) : presobject;
 // Returns the division aLeft/aRight: div unless an operand is a floating point value.
@@ -279,6 +281,21 @@ begin
   hp:=NewType1(t_exprlist,aType);
   Result:=NewType3(t_funexprlist,hp,aList,nil);
 end;
+
+function HandlePointerCast(aType,aStars,aExpr : presobject): presobject;
+
+var
+  lType : presobject;
+  lLevel : integer;
+
+begin
+  lType:=aType;
+  for lLevel:=1 to aStars^.strlength do
+    lType:=NewType1(t_pointerdef,lType);
+  dispose(aStars,done);
+  Result:=NewType2(t_typespec,lType,aExpr);
+end;
+
 
 function handlePointerType(aType, aPointer, aSize: presobject): presobject;
 
@@ -1366,11 +1383,11 @@ begin
       else
         begin
             write(outfile,' : ');
-            write_type_specifier(outfile,def_expr^.p3);
+            write_cast_type(outfile,def_expr^.p3);
             writeln(outfile,';',aktspace,commentstr);
             flush(outfile);
             write(implemfile,' : ');
-            write_type_specifier(implemfile,def_expr^.p3);
+            write_cast_type(implemfile,def_expr^.p3);
             writeln(implemfile,';');
         end;
       writeln(outfile);
@@ -1588,11 +1605,11 @@ begin
   else
     begin
       write(outfile,' : ');
-      write_type_specifier(outfile,para_def_expr^.p3);
+      write_cast_type(outfile,para_def_expr^.p3);
       writeln(outfile,';',aktspace,commentstr);
       flush(outfile);
       write(implemfile,' : ');
-      write_type_specifier(implemfile,para_def_expr^.p3);
+      write_cast_type(implemfile,para_def_expr^.p3);
       writeln(implemfile,';');
     end;
   writeln(outfile);

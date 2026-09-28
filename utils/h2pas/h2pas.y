@@ -870,14 +870,14 @@ unary_expr:
      {
      $$:=NewType2(t_typespec,$2,$4);
      } |
-     LKLAMMER type_specifier STAR RKLAMMER unary_expr
+     LKLAMMER type_specifier pointer_stars RKLAMMER unary_expr
      {
-     $$:=HandlePointerType($2,$5,Nil);
+     $$:=HandlePointerCast($2,$3,$5);
      } |
-     LKLAMMER dname STAR RKLAMMER unary_expr
+     LKLAMMER dname pointer_stars RKLAMMER unary_expr
      {
      (* pointer cast to a named type *)
-     $$:=HandlePointerType(CheckUnderscore($2),$5,Nil);
+     $$:=HandlePointerCast(CheckUnderscore($2),$3,$5);
      } |
      LKLAMMER dname STAR shift_expr RKLAMMER
      {
@@ -906,6 +906,20 @@ unary_expr:
      dname LECKKLAMMER exprlist RECKKLAMMER
      {
        $$:=NewType2(t_arrayop,$1,$3);
+     }
+     ;
+
+pointer_stars :
+     STAR
+     {
+       (* STAR *)
+       $$:=NewID('*');
+     } |
+     pointer_stars STAR
+     {
+       (* pointer_stars STAR *)
+       $1^.setstr($1^.str+'*');
+       $$:=$1;
      }
      ;
 

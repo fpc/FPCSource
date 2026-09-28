@@ -27,6 +27,8 @@ function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boole
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
+// Writes the type p of a cast or macro result, with the pointer type names used for parameters.
+procedure write_cast_type(var outfile:text; p : presobject);
 procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
 procedure write_ifexpr(var outfile:text; p : presobject);
 procedure write_funexpr(var outfile:text; p : presobject);
@@ -525,7 +527,7 @@ begin
       end;
     t_typespec :
       begin
-      write_type_specifier(outfile,p^.p1);
+      write_cast_type(outfile,p^.p1);
       write(outfile,'(');
       write_expr(outfile,p^.p2);
       write(outfile,')');
@@ -687,7 +689,7 @@ begin
       begin
       if assigned(p^.p3) then
         begin
-        write_type_specifier(outfile,p^.p3);
+        write_cast_type(outfile,p^.p3);
         write(outfile,'(');
         end;
       if assigned(p^.p1) then
@@ -1401,6 +1403,19 @@ begin
     internalerror(3);
   end;
 end;
+
+procedure write_cast_type(var outfile:text; p : presobject);
+
+var
+  lOldInArgs : boolean;
+
+begin
+  lOldInArgs:=in_args;
+  in_args:=true;
+  write_type_specifier(outfile,p);
+  in_args:=lOldInArgs;
+end;
+
 
 procedure write_def_params(var outfile:text; p : presobject);
 

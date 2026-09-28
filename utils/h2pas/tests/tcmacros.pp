@@ -77,6 +77,11 @@ type
     procedure TestParenthesizedParameterCast;
     procedure TestCastToTypeKept;
     procedure TestPointerCastToNamedType;
+    procedure TestDoublePointerCast;
+    procedure TestDoublePointerCastToBaseType;
+    procedure TestPointerCastTypesDeclared;
+    procedure TestPointerCastPrefix;
+    procedure TestPointerCastsCompile;
     procedure TestProductInParameterMacro;
     procedure TestUnparenthesizedBody;
     procedure TestUnparenthesizedTernary;
@@ -522,9 +527,60 @@ procedure TTestFunctionMacros.TestPointerCastToNamedType;
 begin
   Convert(['#define P1(p) ((foo *)(p))','#define P2(p) ((foo *) p)']);
   AssertConverted;
-  AssertInterface('pointer cast to a named type gives the result type',['function P1(p : longint) : pfoo;']);
-  AssertImplementation('pointer cast to a named type',['P1:=pfoo(p);']);
-  AssertImplementation('pointer cast to a named type without parentheses around the operand',['P2:=pfoo(p);']);
+  AssertInterface('pointer cast to a named type gives the result type',['function P1(p : longint) : Pfoo;']);
+  AssertImplementation('pointer cast to a named type',['P1:=Pfoo(p);']);
+  AssertImplementation('pointer cast to a named type without parentheses around the operand',['P2:=Pfoo(p);']);
+end;
+
+
+procedure TTestFunctionMacros.TestDoublePointerCast;
+
+begin
+  Convert(['#define C2(p) ((foo **)(p))','#define C7(p) ((foo ***)(p))']);
+  AssertConverted;
+  AssertInterface('double pointer cast gives the result type',['function C2(p : longint) : PPfoo;']);
+  AssertImplementation('double pointer cast',['C2:=PPfoo(p);']);
+  AssertImplementation('triple pointer cast',['C7:=PPPfoo(p);']);
+end;
+
+
+procedure TTestFunctionMacros.TestDoublePointerCastToBaseType;
+
+begin
+  Convert(['#define C3(p) ((char **)(p))','#define C4(p) ((void **)(p))','#define C5(p) ((struct s **)(p))']);
+  AssertConverted;
+  AssertImplementation('double pointer cast to char',['C3:=PPansichar(p);']);
+  AssertImplementation('double pointer cast to void',['C4:=Ppointer(p);']);
+  AssertImplementation('double pointer cast to a struct',['C5:=PPs(p);']);
+end;
+
+
+procedure TTestFunctionMacros.TestPointerCastTypesDeclared;
+
+begin
+  Convert(['typedef struct { int a; } foo;','#define C1(p) ((foo *)(p))','#define C2(p) ((foo **)(p))']);
+  AssertConverted;
+  AssertInterface('pointer types of casts are declared after their target',['foo = record','a : longint;','end;','Pfoo = ^foo;','PPfoo = ^Pfoo;']);
+end;
+
+
+procedure TTestFunctionMacros.TestPointerCastPrefix;
+
+begin
+  Convert(['typedef struct { int a; } foo;','#define C2(p) ((foo **)(p))'],['-p','-T']);
+  AssertConverted;
+  AssertInterface('-p -T double pointer cast',['function C2(p : longint) : PPfoo;']);
+  AssertInterface('-p -T pointer types of casts',['Pfoo = ^Tfoo;','Tfoo = record','a : longint;','end;','PPfoo = ^Pfoo;']);
+end;
+
+
+procedure TTestFunctionMacros.TestPointerCastsCompile;
+
+begin
+  Convert(['typedef struct { int a; } foo;','#define C1(p) ((foo *)(p))','#define C2(p) ((foo **)(p))',
+           '#define C3(p) ((char **)(p))','#define C4(p) ((void **)(p))','#define C5(p) ((int *)(p))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
@@ -643,8 +699,8 @@ procedure TTestFunctionMacros.TestPointerCast;
 begin
   Convert(['#define PCAST(p) ((char *)(p))']);
   AssertConverted;
-  AssertInterface('pointer cast gives the result type',['function PCAST(p : longint) : pansichar;']);
-  AssertImplementation('pointer cast body',['PCAST:=pansichar(p);']);
+  AssertInterface('pointer cast gives the result type',['function PCAST(p : longint) : Pansichar;']);
+  AssertImplementation('pointer cast body',['PCAST:=Pansichar(p);']);
 end;
 
 
