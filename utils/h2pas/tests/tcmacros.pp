@@ -45,6 +45,12 @@ type
     procedure TestMultiply;
     procedure TestBitwiseNot;
     procedure TestLogicalNot;
+    procedure TestUnparenthesizedExpression;
+    procedure TestOperatorPrecedence;
+    procedure TestLineContinuation;
+    procedure TestMultiLineContinuation;
+    procedure TestContinuedValueOnNextLine;
+    procedure TestUnparenthesizedCompiles;
     procedure TestConstBlock;
     procedure TestLineCommentAfterDefine;
     procedure TestBlockCommentAfterDefine;
@@ -60,6 +66,9 @@ type
     procedure TestParameterMacroBody;
     procedure TestTernary;
     procedure TestDivision;
+    procedure TestUnparenthesizedBody;
+    procedure TestUnparenthesizedTernary;
+    procedure TestContinuedBody;
     procedure TestDeref;
     procedure TestDot;
     procedure TestIndex;
@@ -256,6 +265,56 @@ begin
 end;
 
 
+procedure TTestConstMacros.TestUnparenthesizedExpression;
+
+begin
+  CheckConst('ONE_LINE','1 + 2','1+2');
+end;
+
+
+procedure TTestConstMacros.TestOperatorPrecedence;
+
+begin
+  CheckConst('MASK','1 << 4 | 1 << 2','(1 shl 4) or (1 shl 2)');
+end;
+
+
+procedure TTestConstMacros.TestLineContinuation;
+
+begin
+  Convert(['#define LONGDEF 1 + \','  2']);
+  AssertConverted;
+  AssertInterface('define continued on the next line',['LONGDEF = 1+2;']);
+end;
+
+
+procedure TTestConstMacros.TestMultiLineContinuation;
+
+begin
+  Convert(['#define CONT 1 + \','   2 + \','   3']);
+  AssertConverted;
+  AssertInterface('define continued over three lines',['CONT = (1+2)+3;']);
+end;
+
+
+procedure TTestConstMacros.TestContinuedValueOnNextLine;
+
+begin
+  Convert(['#define PLAIN_CONT \','  42']);
+  AssertConverted;
+  AssertInterface('value on the continuation line',['PLAIN_CONT = 42;']);
+end;
+
+
+procedure TTestConstMacros.TestUnparenthesizedCompiles;
+
+begin
+  Convert(['#define A 1','#define B 1 << 4 | A','#define C B + \','  2 * A','#define D 1.0 / 3'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
 procedure TTestConstMacros.TestConstBlock;
 
 begin
@@ -342,6 +401,34 @@ begin
   AssertImplementation('integer division in a macro',['HALF:=a div 2;']);
   AssertImplementation('float literal division in a macro',['FHALF:=a/2.0;']);
   AssertImplementation('division of a float cast in a macro',['CHALF:=(double(a))/2;']);
+end;
+
+
+procedure TTestFunctionMacros.TestUnparenthesizedBody;
+
+begin
+  Convert(['#define F(a) a + 1','#define CMP(a,b) a == b']);
+  AssertConverted;
+  AssertImplementation('macro body without parentheses',['F:=a+1;']);
+  AssertImplementation('comparison without parentheses',['CMP:=a=b;']);
+end;
+
+
+procedure TTestFunctionMacros.TestUnparenthesizedTernary;
+
+begin
+  Convert(['#define T(a) a ? 1 : 2']);
+  AssertConverted;
+  AssertImplementation('ternary without parentheses',['if a then','if_local1:=1','else','if_local1:=2;','T:=if_local1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestContinuedBody;
+
+begin
+  Convert(['#define MACRO_CONT(a) ((a) * \','  2)']);
+  AssertConverted;
+  AssertImplementation('macro body continued on the next line',['MACRO_CONT:=a*2;']);
 end;
 
 

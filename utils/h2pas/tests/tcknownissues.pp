@@ -18,22 +18,12 @@ type
 
   TTestKnownMacroIssues = class(TH2PasTestCase)
   published
-    procedure TestLineContinuation;
     procedure TestParenthesizedParameter;
     procedure TestElif;
     procedure TestIfExpression;
   end;
 
 implementation
-
-
-procedure TTestKnownMacroIssues.TestLineContinuation;
-
-begin
-  Convert(['#define LONGDEF 1 + \','  2']);
-  AssertConverted;
-  AssertInterface('define continued on the next line',['LONGDEF = 1+2;']);
-end;
 
 
 procedure TTestKnownMacroIssues.TestParenthesizedParameter;

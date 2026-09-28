@@ -927,9 +927,9 @@ enum_element :
 
 
 def_expr :
-     unary_expr
+     expr
      {
-       (* unary_expr *)
+       (* expr *)
        $$:=HandleUnaryDefExpr($1);
      }
      ;
