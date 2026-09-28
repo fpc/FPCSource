@@ -51,6 +51,10 @@ type
     procedure TestMultiLineContinuation;
     procedure TestContinuedValueOnNextLine;
     procedure TestUnparenthesizedCompiles;
+    procedure TestParenthesizedProduct;
+    procedure TestParenthesizedProductPrecedence;
+    procedure TestParenthesizedProductGrouping;
+    procedure TestParenthesizedProductCompiles;
     procedure TestConstBlock;
     procedure TestLineCommentAfterDefine;
     procedure TestBlockCommentAfterDefine;
@@ -72,6 +76,8 @@ type
     procedure TestParenthesizedParameterGrouping;
     procedure TestParenthesizedParameterCast;
     procedure TestCastToTypeKept;
+    procedure TestPointerCastToNamedType;
+    procedure TestProductInParameterMacro;
     procedure TestUnparenthesizedBody;
     procedure TestUnparenthesizedTernary;
     procedure TestContinuedBody;
@@ -321,6 +327,44 @@ begin
 end;
 
 
+procedure TTestConstMacros.TestParenthesizedProduct;
+
+begin
+  CheckConst('N1','(X * 2)','X*2');
+end;
+
+
+procedure TTestConstMacros.TestParenthesizedProductPrecedence;
+
+begin
+  Convert(['#define N2 (X * 2 + 1)','#define N3 (X * 2 / 3)','#define N5 (X * 2 == 4)','#define N6 (X * 2 << 1)']);
+  AssertConverted;
+  AssertInterface('product before an addition',['N2 = (X*2)+1;']);
+  AssertInterface('product before a division',['N3 = (X*2) div 3;']);
+  AssertInterface('product before a comparison',['N5 = (X*2)=4;']);
+  AssertInterface('product before a shift',['N6 = (X*2) shl 1;']);
+end;
+
+
+procedure TTestConstMacros.TestParenthesizedProductGrouping;
+
+begin
+  Convert(['#define N4 (X * (2 + 1))','#define N7 (X * -1)']);
+  AssertConverted;
+  AssertInterface('parentheses on the right operand are kept',['N4 = X*(2+1);']);
+  AssertInterface('negative right operand',['N7 = X*(-(1));']);
+end;
+
+
+procedure TTestConstMacros.TestParenthesizedProductCompiles;
+
+begin
+  Convert(['#define X 3','#define N1 (X * 2)','#define N2 (X * 2 + 1)','#define N4 (X * (2 + 1))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
 procedure TTestConstMacros.TestConstBlock;
 
 begin
@@ -470,6 +514,27 @@ begin
   AssertConverted;
   AssertInterface('cast to a name that is no parameter gives the result type',['function NOPARAM(x : longint) : mytype;']);
   AssertImplementation('cast to a name that is no parameter',['NOPARAM:=mytype(+(1));']);
+end;
+
+
+procedure TTestFunctionMacros.TestPointerCastToNamedType;
+
+begin
+  Convert(['#define P1(p) ((foo *)(p))','#define P2(p) ((foo *) p)']);
+  AssertConverted;
+  AssertInterface('pointer cast to a named type gives the result type',['function P1(p : longint) : pfoo;']);
+  AssertImplementation('pointer cast to a named type',['P1:=pfoo(p);']);
+  AssertImplementation('pointer cast to a named type without parentheses around the operand',['P2:=pfoo(p);']);
+end;
+
+
+procedure TTestFunctionMacros.TestProductInParameterMacro;
+
+begin
+  Convert(['#define M5(a,x,y) y * (x * (a) - 1)','#define T1(a) (X * a ? 1 : 2)']);
+  AssertConverted;
+  AssertImplementation('product of a name with a parenthesized parameter',['M5:=y*((x*a)-1);']);
+  AssertImplementation('product in a ternary condition',['if X*a then']);
 end;
 
 

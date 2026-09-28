@@ -18,21 +18,11 @@ type
 
   TTestKnownMacroIssues = class(TH2PasTestCase)
   published
-    procedure TestParenthesizedProduct;
     procedure TestElif;
     procedure TestIfExpression;
   end;
 
 implementation
-
-
-procedure TTestKnownMacroIssues.TestParenthesizedProduct;
-
-begin
-  Convert(['#define N4 (X * 2)']);
-  AssertConverted;
-  AssertInterface('parenthesized product of a name is no pointer cast',['N4 = X*2;']);
-end;
 
 
 procedure TTestKnownMacroIssues.TestElif;

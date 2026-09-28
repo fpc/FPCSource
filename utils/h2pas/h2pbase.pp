@@ -77,6 +77,8 @@ function HandleUnaryDefExpr(aExpr : presobject) : presobject;
 function HandleTernary(expr,colonexpr : presobject) : presobject;
 // Returns the division aLeft/aRight: div unless an operand is a floating point value.
 function HandleDivision(aLeft,aRight : presobject) : presobject;
+// Returns aName * aRight with aName as leftmost operand of the operators in aRight that bind as weak or weaker.
+function HandleNamedProduct(aName,aRight : presobject) : presobject;
 
 // Macros
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
@@ -1486,6 +1488,33 @@ begin
       aRotatable.Remove(Result);
       end;
     end;
+end;
+
+
+// Returns aExpr with aLeft aOp inserted before its leftmost operand, below the operators that bind as weak or weaker.
+function InsertLeftOperand(const aOp : string; aLeft,aExpr : presobject) : presobject;
+
+begin
+  if assigned(aExpr) and not aExpr^.grouped and (aExpr^.typ=t_bop)
+     and (OperatorPrecedence(aExpr^.str)<=OperatorPrecedence(aOp)) then
+    begin
+    aExpr^.p1:=InsertLeftOperand(aOp,aLeft,aExpr^.p1);
+    Result:=aExpr;
+    end
+  else if assigned(aExpr) and not aExpr^.grouped and (aExpr^.typ=t_ifexpr) then
+    begin
+    aExpr^.p1:=InsertLeftOperand(aOp,aLeft,aExpr^.p1);
+    Result:=aExpr;
+    end
+  else
+    Result:=NewBinaryOp(aOp,aLeft,aExpr);
+end;
+
+
+function HandleNamedProduct(aName,aRight : presobject) : presobject;
+
+begin
+  Result:=InsertLeftOperand('*',aName,aRight);
 end;
 
 

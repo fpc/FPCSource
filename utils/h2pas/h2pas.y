@@ -874,6 +874,17 @@ unary_expr:
      {
      $$:=HandlePointerType($2,$5,Nil);
      } |
+     LKLAMMER dname STAR RKLAMMER unary_expr
+     {
+     (* pointer cast to a named type *)
+     $$:=HandlePointerType(CheckUnderscore($2),$5,Nil);
+     } |
+     LKLAMMER dname STAR shift_expr RKLAMMER
+     {
+     (* product of a name, between parentheses *)
+     $$:=HandleNamedProduct($2,$4);
+     $$^.grouped:=true;
+     } |
      LKLAMMER type_specifier size_overrider STAR RKLAMMER unary_expr
      {
      $$:=HandlePointerType($2,$6,$3);
