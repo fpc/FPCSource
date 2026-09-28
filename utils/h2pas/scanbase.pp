@@ -388,9 +388,19 @@ end;
 
 procedure HandleNumber;
 
+var
+  lPos : integer;
+
 begin
   if NotInCPlusBlock then
   begin
+    if yytext[length(yytext)] in ['F','f','L','l'] then
+      Delete(yytext,length(yytext),1);
+    if yytext[1]='.' then
+      yytext:='0'+yytext;
+    lPos:=pos('.',yytext);
+    if (lPos>0) and ((lPos=length(yytext)) or not (yytext[lPos+1] in ['0'..'9'])) then
+      Insert('0',yytext,lPos+1);
     return(NUMBER);
   end
   else

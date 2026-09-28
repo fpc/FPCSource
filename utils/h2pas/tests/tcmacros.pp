@@ -33,6 +33,9 @@ type
     procedure TestNegative;
     procedure TestFloat;
     procedure TestExponent;
+    procedure TestFloatSuffixes;
+    procedure TestFloatWithoutDigits;
+    procedure TestFloatsCompile;
     procedure TestString;
     procedure TestCharLiteral;
     procedure TestCharEscapes;
@@ -209,6 +212,34 @@ procedure TTestConstMacros.TestExponent;
 
 begin
   CheckConst('EXPF','1.5e10','1.5e10');
+end;
+
+
+procedure TTestConstMacros.TestFloatSuffixes;
+
+begin
+  Convert(['#define A 1.5f','#define B 2.5L','#define C 1e5f','#define D .5e-3F']);
+  AssertConverted;
+  AssertInterface('float suffixes are removed',['A = 1.5;','B = 2.5;','C = 1e5;','D = 0.5e-3;']);
+end;
+
+
+procedure TTestConstMacros.TestFloatWithoutDigits;
+
+begin
+  Convert(['#define A .5','#define B 1.','#define C 1.e3']);
+  AssertConverted;
+  AssertInterface('missing digits around the point are added',['A = 0.5;','B = 1.0;','C = 1.0e3;']);
+end;
+
+
+procedure TTestConstMacros.TestFloatsCompile;
+
+begin
+  Convert(['#define A 1.5f','#define B .5','#define C 1.','#define D 1e5f','#define E (1.0f/3)'],['-d']);
+  AssertConverted;
+  AssertInterface('division with a float suffix',['E = 1.0/3;']);
+  AssertCompiles;
 end;
 
 

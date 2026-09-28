@@ -50,7 +50,7 @@ D [0-9]
 {D}+[Uu]?[Ll]?[Ll]?     HandleLongInteger;
 "0x"[0-9A-Fa-f]*[Uu]?[Ll]?[Ll]?
                         HandleHexLongInteger;
-{D}+(\.{D}+)?([Ee][+-]?{D}+)?
+{D}+\.{D}*([Ee][+-]?{D}+)?[FfLl]?|\.{D}+([Ee][+-]?{D}+)?[FfLl]?|{D}+[Ee][+-]?{D}+[FfLl]?
                         HandleNumber;
 "->"                    HandleDeref;
 "-"                     if NotInCPlusBlock then return(MINUS) else skip_until_eol;
