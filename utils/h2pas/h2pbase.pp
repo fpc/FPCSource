@@ -90,6 +90,11 @@ Function CheckWideString(S : String) : presobject;
 // Returns the Pascal literal of the adjacent string literals aLeft and aRight, and disposes both.
 function ConcatStrings(aLeft,aRight : presobject) : presobject;
 function CheckUnderScore(pdecl : presobject) : presobject;
+// Returns the Pascal type for the type name aName when it is a standard C type such as uint8_t or size_t,
+// and disposes aName; returns CheckUnderScore(aName) otherwise.
+function MapCTypeName(aName : presobject) : presobject;
+// Returns true when the name aName is a standard C type that MapCTypeName maps.
+function IsCTypeName(aName : presobject) : boolean;
 
 Function NewCType(aCType,aPascalType : String) : PresObject;
 
@@ -590,6 +595,40 @@ begin
   if removeunderscore and (len>1) and (tn[1]='_') then
    result^.setstr(Copy(tn,2,len-1));
 end;
+
+function IsCTypeName(aName : presobject) : boolean;
+
+var
+  i : integer;
+
+begin
+  Result:=false;
+  if assigned(aName) and (aName^.typ=t_id) then
+    for i:=0 to MAX_CTYPEMAPPINGS do
+      if aName^.str=CTypeMappings[i].CName then
+        exit(true);
+end;
+
+
+function MapCTypeName(aName : presobject) : presobject;
+
+var
+  i : integer;
+
+begin
+  for i:=0 to MAX_CTYPEMAPPINGS do
+    if aName^.str=CTypeMappings[i].CName then
+      begin
+      if (CTypeMappings[i].CName='wchar_t') and Win32headers then
+        Result:=NewIntID(WCHAR_STR)
+      else
+        Result:=NewCType(CTypeMappings[i].CTypesName,CTypeMappings[i].PascalName);
+      dispose(aName,done);
+      exit;
+      end;
+  Result:=CheckUnderScore(aName);
+end;
+
 
 function yylex : Integer;
 begin

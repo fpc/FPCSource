@@ -82,6 +82,19 @@ type
     procedure TestCTypesDouble;
     procedure TestCTypesLongDouble;
     procedure TestCTypesUsesClause;
+    procedure TestStdintTypes;
+    procedure TestStdintTypesCTypes;
+    procedure TestSizeAndPointerTypes;
+    procedure TestSizeAndPointerTypesCTypes;
+    procedure TestBoolAndCharTypes;
+    procedure TestWideCharWin32;
+    procedure TestStandardTypePointers;
+    procedure TestStandardTypeInStruct;
+    procedure TestStandardTypeCasts;
+    procedure TestStandardTypesCompile;
+    procedure TestStandardTypesCompileCTypes;
+    procedure TestStandardTypesCompilePrefixes;
+    procedure TestCTypesPointerToPointer;
   end;
 
 implementation
@@ -526,6 +539,141 @@ begin
   Convert(['typedef int t;'],['-C']);
   AssertConverted;
   AssertOutput('ctypes unit is used',['interface','uses','ctypes;']);
+end;
+
+
+const
+  StdintFunction = 'int64_t a(uint8_t b, int8_t c, int16_t d, uint16_t e, int32_t f, uint32_t g, uint64_t h, intmax_t i, uintmax_t j);';
+  SizeFunction = 'size_t s(ssize_t a, intptr_t b, uintptr_t c, ptrdiff_t d);';
+  CharFunction = '_Bool ok(wchar_t w, char16_t c16, char32_t c32, bool b);';
+  PointerFunction = 'void p(uint8_t *pb, size_t *ps, wchar_t *pw, uint32_t **pp);';
+
+procedure TTestTypeMapping.TestStdintTypes;
+
+begin
+  Convert([StdintFunction],['-d']);
+  AssertConverted;
+  AssertInterface('stdint types',['function a(b:byte; c:shortint; d:smallint; e:word; f:longint;',
+    'g:longword; h:qword; i:int64; j:qword):int64;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestStdintTypesCTypes;
+
+begin
+  Convert([StdintFunction],['-d','-C']);
+  AssertConverted;
+  AssertInterface('stdint types with ctypes',
+    ['function a(b:cuint8; c:cint8; d:cint16; e:cuint16; f:cint32;',
+     'g:cuint32; h:cuint64; i:cint64; j:cuint64):cint64;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestSizeAndPointerTypes;
+
+begin
+  Convert([SizeFunction],['-d']);
+  AssertConverted;
+  AssertInterface('size and pointer sized types',['function s(a:SizeInt; b:PtrInt; c:PtrUInt; d:PtrInt):SizeUInt;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestSizeAndPointerTypesCTypes;
+
+begin
+  Convert([SizeFunction],['-d','-C']);
+  AssertConverted;
+  AssertInterface('size_t with ctypes',['function s(a:SizeInt; b:PtrInt; c:PtrUInt; d:PtrInt):csize_t;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestBoolAndCharTypes;
+
+begin
+  Convert([CharFunction],['-d']);
+  AssertConverted;
+  AssertInterface('bool and character types',['function ok(w:UCS4Char; c16:WideChar; c32:UCS4Char; b:Boolean):Boolean;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestWideCharWin32;
+
+begin
+  Convert(['int w(wchar_t c);'],['-d','-w']);
+  AssertConverted;
+  AssertInterface('wchar_t is widechar for Windows headers',['function w(c:widechar):longint;']);
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypePointers;
+
+begin
+  Convert([PointerFunction],['-d']);
+  AssertConverted;
+  AssertInterface('pointers to standard types',['procedure p(pb:Pbyte; ps:PSizeUInt; pw:PUCS4Char; pp:PPlongword);cdecl;external;']);
+  AssertNotOutput('the RTL pointer types are not declared','PSizeUInt = ^');
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypeInStruct;
+
+begin
+  Convert(['struct s { uint8_t x; size_t *len; _Bool flag; };','typedef uint32_t my_t;']);
+  AssertConverted;
+  AssertInterface('standard types in a struct',['s = record','x : byte;','len : ^SizeUInt;','flag : Boolean;','end;']);
+  AssertInterface('typedef of a standard type',['my_t = longword;']);
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypeCasts;
+
+begin
+  Convert(['#define B(x) ((uint8_t)(x))','#define D(q) ((size_t)*(q))','#define P(q) ((uint32_t *)(q))']);
+  AssertConverted;
+  AssertImplementation('cast to a standard type',['B:=byte(x);']);
+  AssertImplementation('cast of a dereference is no product',['D:=SizeUInt(q^);']);
+  AssertImplementation('pointer cast to a standard type',['P:=Plongword(q);']);
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypesCompile;
+
+begin
+  Convert([StdintFunction,SizeFunction,CharFunction,PointerFunction,'struct rec { uint8_t x; size_t *len; _Bool flag; };',
+           '#define B(x) ((uint8_t)(x))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypesCompileCTypes;
+
+begin
+  Convert([StdintFunction,SizeFunction,CharFunction,PointerFunction,'struct rec { uint8_t x; size_t *len; _Bool flag; };'],
+          ['-d','-C']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestCTypesPointerToPointer;
+
+begin
+  Convert(['void f(unsigned int **pp, int **qq, uint32_t **rr);'],['-d','-C']);
+  AssertConverted;
+  AssertInterface('pointer to pointer to a ctypes type',['procedure f(pp:Ppcuint; qq:Ppcint; rr:Ppcuint32);']);
+  AssertOutput('the pointer types are declared',['Ppcint = ^pcint;','Ppcuint = ^pcuint;','Ppcuint32 = ^pcuint32;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestStandardTypesCompilePrefixes;
+
+begin
+  Convert([SizeFunction,CharFunction,PointerFunction,'struct rec { uint8_t x; size_t *len; _Bool flag; };'],['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('standard types keep their names under -T',['Trec = record','x : byte;','len : PSizeUInt;']);
+  AssertCompiles;
 end;
 
 

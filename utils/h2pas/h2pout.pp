@@ -1044,7 +1044,9 @@ begin
       begin
         PTypeList.Add('P'+PointerBaseName(p^.str));
         RegisterPointerChain('P'+PointerBaseName(p^.str),pointer_level-1);
-      end;
+      end
+      else
+        RegisterPointerChain('p'+p^.str,pointer_level-1);
     end
     else
       begin
@@ -1875,6 +1877,14 @@ initialization
   WrittenPointers.Add('pword');
   WrittenPointers.Add('pqword');
   WrittenPointers.Add('pextended');
+  WrittenPointers.Add('plongword');
+  WrittenPointers.Add('psizeuint');
+  WrittenPointers.Add('psizeint');
+  WrittenPointers.Add('pptrint');
+  WrittenPointers.Add('pptruint');
+  WrittenPointers.Add('pboolean');
+  WrittenPointers.Add('pwidechar');
+  WrittenPointers.Add('pucs4char');
   WrittenPointers.Add('ppansichar');
   WrittenPointers.Add('ppchar');
   WrittenPointers.Add('ppbyte');

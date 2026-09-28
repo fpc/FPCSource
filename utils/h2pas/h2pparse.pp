@@ -708,7 +708,7 @@ begin
   98 : begin
 
          (* dname *)
-         yyval:=CheckUnderscore(yyv[yysp-0]);
+         yyval:=MapCTypeName(yyv[yysp-0]);
 
        end;
   99 : begin
@@ -1081,7 +1081,9 @@ begin
  172 : begin
 
          (* (x) * y is a product rather than the cast of *y *)
-         if assigned(yyv[yysp-0]) and (yyv[yysp-0]^.typ=t_preop) and (yyv[yysp-0]^.str='^') then
+         if assigned(yyv[yysp-0]) and IsCTypeName(yyv[yysp-2]) then
+         yyval:=NewType2(t_typespec,MapCTypeName(yyv[yysp-2]),yyv[yysp-0])
+         else if assigned(yyv[yysp-0]) and (yyv[yysp-0]^.typ=t_preop) and (yyv[yysp-0]^.str='^') then
          begin
          yyval:=NewBinaryOp('*',yyv[yysp-2],yyv[yysp-0]^.p1);
          yyv[yysp-0]^.p1:=nil;
@@ -1106,7 +1108,7 @@ begin
  175 : begin
 
          (* pointer cast to a named type *)
-         yyval:=HandlePointerCast(CheckUnderscore(yyv[yysp-3]),yyv[yysp-2],yyv[yysp-0]);
+         yyval:=HandlePointerCast(MapCTypeName(yyv[yysp-3]),yyv[yysp-2],yyv[yysp-0]);
 
        end;
  176 : begin

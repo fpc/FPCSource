@@ -603,7 +603,7 @@ simple_type_name :
      dname
      {
        (* dname *)
-       $$:=CheckUnderscore($1);
+       $$:=MapCTypeName($1);
      }
      ;
 
@@ -930,7 +930,9 @@ unary_expr:
      LKLAMMER dname RKLAMMER maybe_empty_unary_expr
      {
      (* (x) * y is a product rather than the cast of *y *)
-     if assigned($4) and ($4^.typ=t_preop) and ($4^.str='^') then
+     if assigned($4) and IsCTypeName($2) then
+       $$:=NewType2(t_typespec,MapCTypeName($2),$4)
+     else if assigned($4) and ($4^.typ=t_preop) and ($4^.str='^') then
        begin
        $$:=NewBinaryOp('*',$2,$4^.p1);
        $4^.p1:=nil;
@@ -952,7 +954,7 @@ unary_expr:
      LKLAMMER dname pointer_stars RKLAMMER unary_expr
      {
      (* pointer cast to a named type *)
-     $$:=HandlePointerCast(CheckUnderscore($2),$3,$5);
+     $$:=HandlePointerCast(MapCTypeName($2),$3,$5);
      } |
      LKLAMMER dname STAR shift_expr RKLAMMER
      {

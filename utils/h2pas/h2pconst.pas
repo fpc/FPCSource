@@ -141,8 +141,41 @@ const
   cdouble_STR     = 'cdouble';
   clongdouble_STR = 'clongdouble';
 
+  csize_t_STR     = 'csize_t';
+
+type
+  // A standard C type name with its ctypes and its Pascal type.
+  TCTypeMapping = record
+    CName, CTypesName, PascalName : string;
+  end;
+
 const
-  MAX_CTYPESARRAY = 25;
+  MAX_CTYPEMAPPINGS = 19;
+  CTypeMappings : array [0..MAX_CTYPEMAPPINGS] of TCTypeMapping = (
+    (CName: 'int8_t';    CTypesName: cint8_STR;   PascalName: 'shortint'),
+    (CName: 'uint8_t';   CTypesName: cuint8_STR;  PascalName: 'byte'),
+    (CName: 'int16_t';   CTypesName: cint16_STR;  PascalName: 'smallint'),
+    (CName: 'uint16_t';  CTypesName: cuint16_STR; PascalName: 'word'),
+    (CName: 'int32_t';   CTypesName: cint32_STR;  PascalName: 'longint'),
+    (CName: 'uint32_t';  CTypesName: cuint32_STR; PascalName: 'longword'),
+    (CName: 'int64_t';   CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'uint64_t';  CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'intmax_t';  CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'uintmax_t'; CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'size_t';    CTypesName: csize_t_STR; PascalName: 'SizeUInt'),
+    (CName: 'ssize_t';   CTypesName: 'SizeInt';   PascalName: 'SizeInt'),
+    (CName: 'intptr_t';  CTypesName: 'PtrInt';    PascalName: 'PtrInt'),
+    (CName: 'uintptr_t'; CTypesName: 'PtrUInt';   PascalName: 'PtrUInt'),
+    (CName: 'ptrdiff_t'; CTypesName: 'PtrInt';    PascalName: 'PtrInt'),
+    (CName: '_Bool';     CTypesName: 'Boolean';   PascalName: 'Boolean'),
+    (CName: 'bool';      CTypesName: 'Boolean';   PascalName: 'Boolean'),
+    (CName: 'wchar_t';   CTypesName: 'UCS4Char';  PascalName: 'UCS4Char'),
+    (CName: 'char16_t';  CTypesName: 'WideChar';  PascalName: 'WideChar'),
+    (CName: 'char32_t';  CTypesName: 'UCS4Char';  PascalName: 'UCS4Char')
+  );
+
+const
+  MAX_CTYPESARRAY = 26;
   CTypesArray : array [0..MAX_CTYPESARRAY] of string =
   (cint8_STR,     cuint8_STR,
     cchar_STR,     cschar_STR,     cuchar_STR,
@@ -155,7 +188,8 @@ const
     clonglong_STR, cslonglong_STR, culonglong_STR,
 
     cbool_STR,
-    clong_STR,      cslong_STR,    culong_STR);
+    clong_STR,      cslong_STR,    culong_STR,
+    csize_t_STR);
 
 
 
