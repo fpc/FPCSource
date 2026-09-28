@@ -1,5 +1,5 @@
 { %FAIL }
-{ Record composition: "contains" is only supported in records, not in classes }
+{ Record composition: "contains" is only supported in records, not in objects }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -10,8 +10,7 @@ type
     B: Integer;
   end;
 
-  TComposed = class
-  private
+  TComposed = object
     contains child: TChildRec;
   end;
 

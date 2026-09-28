@@ -1,9 +1,8 @@
 { %FAIL }
 { %OPT=-Sew }
-{ %NORUN }
-{ Record composition: in a specialization of a generic record composing its type
-  parameter, a field declared before the composition with the same name as
-  a composed member gives a duplicate identifier warning }
+{ Record composition: a field of the composing record declared before the
+  composition with the same name as a member of the composed record
+  gives a duplicate identifier warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -14,15 +13,15 @@ type
     B: Integer;
   end;
 
-  generic TComposed<T> = record
+  TComposed = record
     A: Integer;
     B: Integer;
-    contains child: T;
+    contains child: TChildRec;
     C: Integer;
   end;
 
 var
-  c: specialize TComposed<TChildRec>;
+  c: TComposed;
 begin
   WriteLn('@c:         ', IntPtr(@c));
   WriteLn('@c.B:       ', IntPtr(@c.B));

@@ -1,30 +1,35 @@
-{ Record composition: in a specialization of a generic record with an unnamed
-  composition of its type parameter declared first, the composed record is
-  at offset 0 }
+{ %NORUN }
+{ %OPT=-Sew }
+{ Record composition: operators of composed records are not composed, so
+  two composed records with the same operator give no collision warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
-    A: Integer;
+  TChild1 = record
+    class operator +(lhs: TChild1; rhs: TChild1): TChild1;
+  end;
+  TChild2 = record
+    class operator +(lhs: TChild2; rhs: TChild2): TChild2;
   end;
 
-  generic TComposed<T> = record
-    contains T;
-    B: Double;
+  TComposed = record
+    contains TChild1;
+    contains TChild2;
   end;
 
-var
-  c: specialize TComposed<TChildRec>;
+class operator TChild1.+(lhs: TChild1; rhs: TChild1): TChild1;
 begin
-  c.A := 42;
-  c.B := 3.14;
-  if (@c=@c.A) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
+  Result:=Default(TChild1);
+end;
+
+class operator TChild2.+(lhs: TChild2; rhs: TChild2): TChild2;
+begin
+  Result:=Default(TChild2);
+end;
+
+begin
 end.

@@ -1,26 +1,23 @@
-{ %FAIL }
-{ %NORUN }
-{ Record composition: in a specialization of a generic record with an unnamed
-  composition of its type parameter, a field declared after the composition
-  with the same name as a composed member is a duplicate identifier error }
+{ %RECOMPILE }
+{ Record composition: a composing record declared in a unit, loaded from the ppu,
+  composed members are accessible in a program without modeswitch RecordComposition }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch RecordComposition}
 
-type
-  TChildRec = record
-    C: Integer;
-  end;
-
-  generic TComposed<T> = record
-    A: Integer;
-    B: Integer;
-    contains T;
-    C: Integer;
-  end;
+uses
+  ureccomp52;
 
 var
-  c: specialize TComposed<TChildRec>;
+  c: TComposed;
 begin
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
+  if (@c.C=@c.child.C) then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.

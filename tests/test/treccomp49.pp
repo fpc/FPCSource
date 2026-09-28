@@ -1,9 +1,5 @@
-{ %FAIL }
-{ %OPT=-Sew }
-{ %NORUN }
-{ Record composition: in a specialization of a generic record composing its type
-  parameter, a field declared before the composition with the same name as
-  a composed member gives a duplicate identifier warning }
+{ Record composition: an unnamed composition inside a variant part overlaps
+  the other variant's field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -11,23 +7,25 @@ program record_compose_test;
 
 type
   TChildRec = record
-    B: Integer;
-  end;
-
-  generic TComposed<T> = record
-    A: Integer;
-    B: Integer;
-    contains child: T;
     C: Integer;
   end;
 
+  TComposed = record
+    A: Integer;
+    B: Integer;
+    case Boolean of
+    True: (contains TChildRec);
+    False: (D: Integer);
+  end;
+
 var
-  c: specialize TComposed<TChildRec>;
+  c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.B:       ', IntPtr(@c.B));
-  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
-  if (@c.B<>@c.child.B) then
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  WriteLn('@c.C: ', IntPtr(@c.C));
+  WriteLn('@c.D: ', IntPtr(@c.D));
+  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
+     (SizeUInt(@c.C)=SizeUInt(@c.D)) then
   begin
     WriteLn('ok');
     halt(0);

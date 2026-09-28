@@ -1,34 +1,21 @@
-{ Record composition: an unnamed composition inside a variant part overlaps
-  the other variant's field }
+{ %FAIL }
+{ Record composition: composing a type helper for a record is not allowed }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
+{$ModeSwitch TypeHelpers}
 
 type
-  TChildRec = record
-    C: Integer;
+  TTest = record
   end;
 
-  TComposed = record
-    A: Integer;
-    B: Integer;
-    case Boolean of
-    True: (contains TChildRec);
-    False: (D: Integer);
+  TTestHelper = type helper for TTest
   end;
 
-var
-  c: TComposed;
+  TTest1 = record
+    contains TTestHelper;
+  end;
+
 begin
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)=SizeUInt(@c.D)) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
 end.

@@ -1,69 +1,58 @@
-{ Record composition: the RTTI of a record with unnamed compositions lists the
-  composed fields flattened with their correct offsets }
+{ Record composition: a named composition of a record with management operators
+  Initialize and Finalize, a local composing record calls each exactly once }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
-uses
-  TypInfo;
-
 type
-  TVarRec = record
-  contains record
-    A, B: Integer;
+  TChildRec = record
+    C: Integer;
+    class operator Initialize(var r: TChildRec);
+    class operator Finalize(var r: TChildRec);
   end;
-  contains record
-    C, D: Integer;
-  end;
+
+  TComposed = record
+    A: Integer;
+    contains child: TChildRec;
+    B: Integer;
   end;
 
 var
-  ti: PTypeInfo;
-  td:PTypeData;
-  mf: PManagedField;
-  r: TVarRec;
+  InitCount: Integer = 0;
+  FinalCount: Integer = 0;
+
+class operator TChildRec.Initialize(var r: TChildRec);
 begin
-  ti:=TypeInfo(TVarRec);
-  if ti^.Kind<>tkRecord then
+  r.C := 42;
+  Inc(InitCount);
+end;
+
+class operator TChildRec.Finalize(var r: TChildRec);
+begin
+  Inc(FinalCount);
+end;
+
+procedure Test;
+var
+  c: TComposed;
+begin
+  WriteLn('InitCount: ', InitCount);
+  if InitCount<>1 then
     halt(1);
-  td:=GetTypeData(ti);
-  mf:=@td^.TotalFieldCount;
-  inc(pointer(mf),sizeof(td^.TotalFieldCount));
-  if td^.TotalFieldCount <> 4 then
-  begin
-    WriteLn('Mismatch on TotalFieldCount');
-    WriteLn('Expected: ', 4);
-    WriteLn('  Actual: ', td^.TotalFieldCount);
-    halt(1);
-  end;
-  if (UIntPtr(@r.A)-UIntPtr(@r)) <> mf[0].FldOffset then
-  begin
-    WriteLn('Mismatch on A');
-    WriteLn('Expected: ', UIntPtr(@r.A)-UIntPtr(@r));
-    WriteLn('  Actual: ', mf[0].FldOffset);
-    halt(1);
-  end;
-  if (UIntPtr(@r.B)-UIntPtr(@r)) <> mf[1].FldOffset then
-  begin
-    WriteLn('Mismatch on B');
-    WriteLn('Expected: ', UIntPtr(@r.B)-UIntPtr(@r));
-    WriteLn('  Actual: ', mf[1].FldOffset);
-    halt(1);
-  end;
-  if (UIntPtr(@r.C)-UIntPtr(@r)) <> mf[2].FldOffset then
-  begin
-    WriteLn('Mismatch on C');
-    WriteLn('Expected: ', UIntPtr(@r.C)-UIntPtr(@r));
-    WriteLn('  Actual: ', mf[2].FldOffset);
-    halt(1);
-  end;
-  if (UIntPtr(@r.D)-UIntPtr(@r)) <> mf[3].FldOffset then
-  begin
-    WriteLn('Mismatch on D');
-    WriteLn('Expected: ', UIntPtr(@r.D)-UIntPtr(@r));
-    WriteLn('  Actual: ', mf[3].FldOffset);
-    halt(1);
-  end;
-  WriteLn('Ok');
+  if c.C<>42 then
+    halt(2);
+  if FinalCount<>0 then
+    halt(3);
+end;
+
+begin
+  Test;
+  WriteLn('FinalCount: ', FinalCount);
+  if InitCount<>1 then
+    halt(4);
+  if FinalCount<>1 then
+    halt(5);
+  WriteLn('ok');
 end.

@@ -1,26 +1,24 @@
-{ Record composition: a private (non-strict) field of the composed record
-  is visible through the composing record within the same unit }
+{ Record composition: a generic record composing its type parameter, specialized
+  with a record declared after the generic, members are accessible }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
-  private
-    C: Integer;
-  end;
-
-  TComposed = record
+  generic TComposed<T> = record
     A: Integer;
     B: Integer;
-    contains child: TChildRec;
+    contains child: T;
     D: Integer;
   end;
 
+  TChildRec = record
+    C: Integer;
+  end;
+
 var
-  c: TComposed;
+  c: specialize TComposed<TChildRec>;
 begin
   WriteLn('@c:         ', IntPtr(@c));
   WriteLn('@c.C:       ', IntPtr(@c.C));

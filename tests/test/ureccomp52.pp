@@ -1,6 +1,6 @@
 { %NORUN }
 
-unit ureccomp60;
+unit ureccomp52;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}

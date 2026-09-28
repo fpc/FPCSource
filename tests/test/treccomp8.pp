@@ -1,5 +1,7 @@
-{ Record composition: a method of the composed record called via the composing
-  record gets the composed field as Self }
+{ %FAIL }
+{ %NORUN }
+{ Record composition: composing an existing field requires "contains alias",
+  plain "contains <field>;" is an error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,31 +10,22 @@ program record_compose_test;
 
 type
   TChildRec = record
-    function GetSelf: Pointer;
+    B: Integer;
   end;
 
-function TChildRec.GetSelf: Pointer;
-begin
-  Result := @Self;
-end;
-
-type
   TComposed = record
+  strict private
+    child: TChildRec;
+  public
     A: Integer;
-    contains child: TChildRec;
     C: Integer;
+    contains child;
   end;
 
 var
   c: TComposed;
 begin
   WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.GetSelf: ', IntPtr(c.GetSelf));
-  WriteLn('@c.child:   ', IntPtr(@c.child));
-  if c.GetSelf=@c.child then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
+  WriteLn('@c.B:       ', IntPtr(@c.B));
+  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
 end.

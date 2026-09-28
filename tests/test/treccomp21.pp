@@ -1,6 +1,6 @@
 { %FAIL }
-{ Record composition: a member of an unnamed composed record with the same
-  name as a field of the composing record is a duplicate identifier error }
+{ Record composition: the name of a named composition must not duplicate
+  an existing field of the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -13,8 +13,7 @@ type
 
   TComposed = record
     A: Integer;
-    B: Integer;
-    contains TChildRec;
+    contains A: TChildRec;
     C: Integer;
   end;
 

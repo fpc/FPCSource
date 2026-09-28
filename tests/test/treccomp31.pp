@@ -1,33 +1,35 @@
-{ Record composition: nested compositions, a member of a composed record's
-  composed record is accessible via the outer composing record }
+{ Record composition: a record with two unnamed compositions, both are placed
+  in memory in declaration order and their members are accessible }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildChildRec = record
-    C: Integer;
-  end;
-
-  TChildRec = record
+  TFirstChild = record
     B: Integer;
-    contains c2: TChildChildRec;
+  end;
+  TSecondChild = record
+    C: Integer;
   end;
 
   TComposed = record
     A: Integer;
-    contains c1: TChildRec;
+    contains TFirstChild;
+    contains TSecondChild;
     D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.C:       ', IntPtr(@c.C));
-  WriteLn('@c.c1.c2.C: ', IntPtr(@c.c1.c2.C));
-  if (@c.C=@c.c1.c2.C) then
+  WriteLn('@c:   ', IntPtr(@c));
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  WriteLn('@c.C: ', IntPtr(@c.C));
+  WriteLn('@c.D: ', IntPtr(@c.D));
+  if (SizeUInt(@c.A)<SizeUInt(@c.B)) and
+     (SizeUInt(@c.B)<SizeUInt(@c.C)) and
+     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
   begin
     WriteLn('ok');
     halt(0);

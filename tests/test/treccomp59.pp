@@ -1,33 +1,15 @@
-{ Record composition: an unnamed composition in the fixed part and another in
-  the variant part, their generated hidden field names must not collide }
+{ %FAIL }
+{ Record composition: with modeswitch RecordComposition "contains" is a keyword
+  in records and cannot be used as a field name }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec1 = record
-    A: Integer;
-  end;
-  TChildRec2 = record
-    B: Integer;
+  TTest = record
+    contains: Integer;
   end;
 
-  TComposed = record
-  contains TChildRec1;
-  case Boolean of
-    True: (contains TChildRec2);
-  end;
-
-var
-  c: TComposed;
 begin
-  WriteLn('@c.A: ', IntPtr(@c.A));
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  if @c.A<@c.B then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
 end.

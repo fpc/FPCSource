@@ -1,30 +1,30 @@
-{ Record composition: a named composition with an anonymous (inline declared)
-  record type, its members are accessible via the composing record }
+{ %FAIL }
+{ Record composition: members of an unnamed composition declared in a strict
+  private section are not accessible from outside the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
+  TChildRec = record
+  private
+    C: Integer;
+  end;
+
   TComposed = record
     A: Integer;
     B: Integer;
-    contains child: record
-      C: Integer;
-    end;
+  strict private
+    contains TChildRec;
+  public
     D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.C:       ', IntPtr(@c.C));
-  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
-  if (@c.C=@c.child.C) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
+  WriteLn('@c:   ', IntPtr(@c));
+  WriteLn('@c.C: ', IntPtr(@c.C));
 end.

@@ -1,23 +1,30 @@
-{ %FAIL }
-{ Record composition: in a specialization of a generic record composing its
-  type parameter, an identifier that is not a member of the actual type is an error }
+{ Record composition: in a specialization of a generic record with an unnamed
+  composition of its type parameter declared first, the composed record is
+  at offset 0 }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  generic TComposed<T> = record
+  TChildRec = record
     A: Integer;
-    B: Integer;
-    contains child: T;
-    D: Integer;
   end;
 
-  TNothing = record end;
+  generic TComposed<T> = record
+    contains T;
+    B: Double;
+  end;
 
 var
-  c: specialize TComposed<TNothing>;
+  c: specialize TComposed<TChildRec>;
 begin
-  c.C := 42;
+  c.A := 42;
+  c.B := 3.14;
+  if (@c=@c.A) then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.

@@ -1,36 +1,64 @@
-{ Record composition: inside a generic, accessing a member composed from a type
-  parameter (R.B) is accepted and resolved when the generic is specialized }
-program treccomp;
+{ Record composition: an unnamed composition of a record with management
+  operators Copy and AddRef, assigning the composing record calls Copy on the
+  composed record and passing it by value calls AddRef }
+program record_compose_test;
 
-{$mode objfpc}
-{$modeswitch recordcomposition}
-{$modeswitch advancedrecords}
+{$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
+{$ModeSwitch RecordComposition}
 
 type
-  generic TTest<T> = record
-    A: LongInt;
-    contains T;
-    C: LongInt;
+  TChildRec = record
+    C: Integer;
+    class operator Copy(constref aSrc: TChildRec; var aDst: TChildRec);
+    class operator AddRef(var r: TChildRec);
   end;
 
-  generic TTest2<T> = record
-    R: specialize TTest<T>;
-    procedure Test;
+  TComposed = record
+    A: Integer;
+    contains TChildRec;
+    B: Integer;
   end;
 
-  TNested = record
-    B: LongInt;
-  end;
+var
+  CopyCount: Integer = 0;
+  AddRefCount: Integer = 0;
 
-procedure TTest2.Test;
+class operator TChildRec.Copy(constref aSrc: TChildRec; var aDst: TChildRec);
 begin
-  if R.B<>42 then Halt(1);
+  aDst.C := aSrc.C+1;
+  Inc(CopyCount);
+end;
+
+class operator TChildRec.AddRef(var r: TChildRec);
+begin
+  Inc(AddRefCount);
+end;
+
+procedure TakeValue(c: TComposed);
+begin
+  if c.C<>11 then
+    halt(1);
 end;
 
 var
-  t: specialize TTest2<TNested>;
+  c1: TComposed;
+  c2: TComposed;
 begin
-  t.R.B:=42;
-  t.Test;
-  WriteLn('Ok');
-end. 
+  c1.A := 1;
+  c1.C := 10;
+  c1.B := 2;
+  c2 := c1;
+  WriteLn('CopyCount: ', CopyCount);
+  WriteLn('c2.C: ', c2.C);
+  if CopyCount<>1 then
+    halt(2);
+  if (c2.A<>1) or (c2.C<>11) or (c2.B<>2) then
+    halt(3);
+  AddRefCount := 0;
+  TakeValue(c2);
+  WriteLn('AddRefCount: ', AddRefCount);
+  if AddRefCount<>1 then
+    halt(4);
+  WriteLn('ok');
+end.

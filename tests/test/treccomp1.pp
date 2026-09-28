@@ -10,9 +10,9 @@ type
   end;
 
   TComposed = record
-    contains child: TChildRec;
     A: Integer;
     B: Integer;
+    contains child: TChildRec;
     D: Integer;
   end;
 

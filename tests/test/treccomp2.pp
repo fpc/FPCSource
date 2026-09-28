@@ -1,5 +1,3 @@
-{ Record composition: a private (non-strict) field of the composed record
-  is visible through the composing record within the same unit }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,14 +6,13 @@ program record_compose_test;
 
 type
   TChildRec = record
-  private
     C: Integer;
   end;
 
   TComposed = record
+    contains child: TChildRec;
     A: Integer;
     B: Integer;
-    contains child: TChildRec;
     D: Integer;
   end;
 

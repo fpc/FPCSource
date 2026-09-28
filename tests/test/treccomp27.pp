@@ -1,26 +1,33 @@
-{ Record composition: writing a composed member via the composing record
-  stores the value in the composed field, not overwritten by a neighbour field }
+{ Record composition: nested compositions, a member of a composed record's
+  composed record is accessible via the outer composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
+  TChildChildRec = record
+    C: Integer;
+  end;
+
   TChildRec = record
-    A: Integer;
+    B: Integer;
+    contains c2: TChildChildRec;
   end;
 
   TComposed = record
-    contains child: TChildRec;
-    B: Double;
+    A: Integer;
+    contains c1: TChildRec;
+    D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  c.A := 42;
-  c.B := 3.14;
-  if (c.child.A=42) then
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.c1.c2.C: ', IntPtr(@c.c1.c2.C));
+  if (@c.C=@c.c1.c2.C) then
   begin
     WriteLn('ok');
     halt(0);

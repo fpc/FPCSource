@@ -1,26 +1,33 @@
-{ %FAIL }
-{ %NORUN }
-{ Record composition: in a specialization of a generic record with an unnamed
-  composition of its type parameter, a field declared before the composition
-  with the same name as a composed member is a duplicate identifier error }
+{ Record composition: an unnamed composition in the fixed part and another in
+  the variant part, their generated hidden field names must not collide }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
+  TChildRec1 = record
+    A: Integer;
+  end;
+  TChildRec2 = record
     B: Integer;
   end;
 
-  generic TComposed<T> = record
-    A: Integer;
-    B: Integer;
-    contains T;
-    C: Integer;
+  TComposed = record
+  contains TChildRec1;
+  case Boolean of
+    True: (contains TChildRec2);
   end;
 
 var
-  c: specialize TComposed<TChildRec>;
+  c: TComposed;
 begin
+  WriteLn('@c.A: ', IntPtr(@c.A));
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  if @c.A<@c.B then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.

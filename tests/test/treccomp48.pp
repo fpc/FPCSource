@@ -1,33 +1,38 @@
-{ %FAIL }
-{ %OPT=-Sew }
-{ %NORUN }
-{ Record composition: in a specialization of a generic record composing its type
-  parameter, a field declared after the composition with the same name as
-  a composed member gives a duplicate identifier warning }
+{ Record composition: composing an anonymous record whose variant parts contain
+  compositions, members of both variants are accessible via the outer record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
+  TChildRec1 = record
+    B: Integer;
+  end;
+  TChildRec2 = record
     C: Integer;
   end;
 
-  generic TComposed<T> = record
+  TComposed = record
     A: Integer;
-    B: Integer;
-    contains child: T;
-    C: Integer;
+    contains union: record
+      case Boolean of
+      True: (contains c1: TChildRec1);
+      False: (contains c2: TChildRec2);
+    end;
+    D: Integer;
   end;
 
 var
-  c: specialize TComposed<TChildRec>;
+  c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.C:       ', IntPtr(@c.C));
-  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
-  if (@c.C<>@c.child.C) then
+  WriteLn('@c:      ', IntPtr(@c));
+  WriteLn('@c.B:    ', IntPtr(@c.B));
+  WriteLn('@c.c1.B: ', IntPtr(@c.c1.B));
+  WriteLn('@c.C:    ', IntPtr(@c.C));
+  WriteLn('@c.c2.C: ', IntPtr(@c.c2.C));
+  if (@c.B=@c.c1.B) and
+     (@c.C=@c.c2.C) then
   begin
     WriteLn('ok');
     halt(0);

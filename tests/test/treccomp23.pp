@@ -1,8 +1,6 @@
 { %FAIL }
-{ %OPT=-Sew }
-{ Record composition: a field of the composing record declared before the
-  composition with the same name as a member of the composed record
-  gives a duplicate identifier warning }
+{ Record composition: a field of the composing record declared after an unnamed
+  composition with the same name as a composed member is a duplicate identifier error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -10,26 +8,15 @@ program record_compose_test;
 
 type
   TChildRec = record
-    B: Integer;
+    C: Integer;
   end;
 
   TComposed = record
     A: Integer;
     B: Integer;
-    contains child: TChildRec;
+    contains TChildRec;
     C: Integer;
   end;
 
-var
-  c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.B:       ', IntPtr(@c.B));
-  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
-  if (@c.B<>@c.child.B) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
 end.

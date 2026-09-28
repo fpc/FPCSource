@@ -1,21 +1,17 @@
-{ Record composition: a private (non-strict) field of an unnamed composed
-  record is visible through the composing record within the same unit }
+{ Record composition: an unnamed composition with an anonymous (inline declared)
+  record type is placed in memory at its declaration position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
-  private
-    C: Integer;
-  end;
-
   TComposed = record
     A: Integer;
     B: Integer;
-    contains TChildRec;
+    contains record
+      C: Integer;
+    end;
     D: Integer;
   end;
 

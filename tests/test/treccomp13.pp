@@ -1,5 +1,5 @@
-{ Record composition: a private (non-strict) field of an unnamed composed
-  record is visible through the composing record within the same unit }
+{ Record composition: an unnamed composed record declared first
+  is placed at offset 0 of the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,25 +8,21 @@ program record_compose_test;
 
 type
   TChildRec = record
-  private
-    C: Integer;
+    A: Integer;
   end;
 
   TComposed = record
-    A: Integer;
-    B: Integer;
     contains TChildRec;
-    D: Integer;
+    B: Integer;
   end;
 
 var
   c: TComposed;
 begin
+  WriteLn('@c:   ', IntPtr(@c));
+  WriteLn('@c.A: ', IntPtr(@c.A));
   WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
+  if (@c=@c.A) then
   begin
     WriteLn('ok');
     halt(0);

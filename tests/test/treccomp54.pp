@@ -1,34 +1,40 @@
-{ Record composition: in a specialization of a generic record with an unnamed
-  composition of its type parameter, the composed record is placed in memory
-  at its declaration position }
+{ %FAIL }
+{ %OPT=-Sew }
+{ Record composition: methods with the same name from two named compositions
+  are not merged into overloads, the second gives a warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
-    C: Integer;
+  TTest = record
+    a, b: LongInt;
+    procedure Method1(aArg: LongInt);
   end;
 
-  generic TComposed<T> = record
-    A: Integer;
-    B: Integer;
-    contains T;
-    D: Integer;
+  TTest1 = record
+    c, d: LongInt;
+    procedure Method1(aArg: String);
   end;
+
+  TTest2 = record
+    contains f1: TTest;
+    contains f2: TTest1;
+  end;
+
+procedure TTest.Method1(aArg: LongInt);
+begin
+end;
+
+procedure TTest1.Method1(aArg: String);
+begin
+end;
 
 var
-  c: specialize TComposed<TChildRec>;
+  a: TTest2;
 begin
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
+  a.Method1(42); // ok
+  a.Method1('Hello World'); // error
 end.

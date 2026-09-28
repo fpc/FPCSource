@@ -1,5 +1,7 @@
-{ Record composition: a generic record composing its type parameter, in the
-  specialization writing a composed member stores it in the composed field }
+{ %FAIL }
+{ %NORUN }
+{ Record composition: in a generic record, the name of a named composition
+  must not duplicate an existing field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -7,23 +9,16 @@ program record_compose_test;
 
 type
   TChildRec = record
-    A: Integer;
+    B: Integer;
   end;
 
   generic TComposed<T> = record
-    contains child: T;
-    B: Double;
+    A: Integer;
+    contains A: T;
+    C: Integer;
   end;
 
 var
   c: specialize TComposed<TChildRec>;
 begin
-  c.A := 42;
-  c.B := 3.14;
-  if (c.child.A=42) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
 end.

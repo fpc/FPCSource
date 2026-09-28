@@ -1,36 +1,58 @@
-{ %FAIL }
-{ Record composition: inside a generic, a member access on a composed type
-  parameter (R.B) is an error if the specialized type has no such member }
-program treccomp;
+{ Record composition: nested unnamed compositions with an interface field in the
+  innermost record, finalizing a local outer record releases the interface }
+program record_compose_test;
 
-{$mode objfpc}
-{$modeswitch recordcomposition}
-{$modeswitch advancedrecords}
+{$Mode ObjFPC}{$H+}
+{$ModeSwitch RecordComposition}
 
 type
-  generic TTest<T> = record
-    A: LongInt;
-    contains T;
-    C: LongInt;
+  TTestObj = class(TInterfacedObject)
+  public
+    destructor Destroy; override;
   end;
 
-  generic TTest2<T> = record
-    R: specialize TTest<T>;
-    procedure Test;
+  TInnerRec = record
+    Intf: IInterface;
   end;
 
-  TNested = record
-    D: LongInt;
+  TMiddleRec = record
+    M: Integer;
+    contains TInnerRec;
   end;
 
-procedure TTest2.Test;
-begin
-  if R.B<>42 then Halt(1);
-end;
+  TOuterRec = record
+    A: Integer;
+    contains TMiddleRec;
+    B: Integer;
+  end;
 
 var
-  t: specialize TTest2<TNested>;
+  Destroyed: Boolean = False;
+
+destructor TTestObj.Destroy;
 begin
-  t.Test;
-  WriteLn('Ok');
-end. 
+  Destroyed := True;
+  inherited Destroy;
+end;
+
+procedure Test;
+var
+  c: TOuterRec;
+begin
+  c.A := 1;
+  c.M := 2;
+  c.Intf := TTestObj.Create;
+  c.B := 3;
+  if Destroyed then
+    halt(1);
+end;
+
+begin
+  Test;
+  if not Destroyed then
+  begin
+    WriteLn('interface was not released');
+    halt(2);
+  end;
+  WriteLn('ok');
+end.

@@ -1,13 +1,36 @@
-{ Record composition: without modeswitch RecordComposition "contains" can be
-  used as a field name }
-program record_compose_test;
+{ %FAIL }
+{ Record composition: inside a generic, a member access on a composed type
+  parameter (R.B) is an error if the specialized type has no such member }
+program treccomp;
 
-{$Mode ObjFPC}{$H+}
+{$mode objfpc}
+{$modeswitch recordcomposition}
+{$modeswitch advancedrecords}
 
 type
-  TTest = record
-    contains: Integer;
+  generic TTest<T> = record
+    A: LongInt;
+    contains T;
+    C: LongInt;
   end;
 
+  generic TTest2<T> = record
+    R: specialize TTest<T>;
+    procedure Test;
+  end;
+
+  TNested = record
+    D: LongInt;
+  end;
+
+procedure TTest2.Test;
 begin
-end.
+  if R.B<>42 then Halt(1);
+end;
+
+var
+  t: specialize TTest2<TNested>;
+begin
+  t.Test;
+  WriteLn('Ok');
+end. 

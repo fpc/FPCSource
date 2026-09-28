@@ -1,35 +1,30 @@
-{ Record composition: a record with two named compositions, the members of
-  both are accessible via the composing record }
+{ %FAIL }
+{ Record composition: composing an object is not allowed, only records }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TFirstChild = record
-    B: Integer;
-  end;
-  TSecondChild = record
+  TChildObj = object
+  public
     C: Integer;
   end;
 
   TComposed = record
     A: Integer;
-    contains c1: TFirstChild;
-    contains c2: TSecondChild;
+    B: Integer;
+    contains child: TChildObj;
     D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:      ', IntPtr(@c));
-  WriteLn('@c.B:    ', IntPtr(@c.B));
-  WriteLn('@c.c1.B: ', IntPtr(@c.c1.B));
-  WriteLn('@c.C:    ', IntPtr(@c.C));
-  WriteLn('@c.c2.C: ', IntPtr(@c.c2.C));
-  if (@c.B=@c.c1.B) and
-     (@c.C=@c.c2.C) then
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
+  if (@c.C=@c.child.C) then
   begin
     WriteLn('ok');
     halt(0);

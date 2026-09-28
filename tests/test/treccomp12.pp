@@ -1,5 +1,5 @@
-{ Record composition: an unnamed composed record declared first
-  is placed at offset 0 of the composing record }
+{ Record composition: an unnamed composed record is placed in memory
+  at its declaration position between the surrounding fields }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,21 +8,24 @@ program record_compose_test;
 
 type
   TChildRec = record
-    A: Integer;
+    C: Integer;
   end;
 
   TComposed = record
-    contains TChildRec;
+    A: Integer;
     B: Integer;
+    contains TChildRec;
+    D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:   ', IntPtr(@c));
-  WriteLn('@c.A: ', IntPtr(@c.A));
   WriteLn('@c.B: ', IntPtr(@c.B));
-  if (@c=@c.A) then
+  WriteLn('@c.C: ', IntPtr(@c.C));
+  WriteLn('@c.D: ', IntPtr(@c.D));
+  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
+     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
   begin
     WriteLn('ok');
     halt(0);

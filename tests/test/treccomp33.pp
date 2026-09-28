@@ -1,30 +1,36 @@
-{ %FAIL }
-{ Record composition: composing an object is not allowed, only records }
+{ Record composition: nested unnamed compositions, members of all levels are
+  accessible via the outer composing record and placed in declaration order }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildObj = object
-  public
+  TChildChildRec = record
     C: Integer;
+  end;
+
+  TChildRec = record
+    B: Integer;
+    contains TChildChildRec;
   end;
 
   TComposed = record
     A: Integer;
-    B: Integer;
-    contains child: TChildObj;
+    contains TChildRec;
     D: Integer;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.C:       ', IntPtr(@c.C));
-  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
-  if (@c.C=@c.child.C) then
+  WriteLn('@c.A: ', IntPtr(@c.A));
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  WriteLn('@c.C: ', IntPtr(@c.C));
+  WriteLn('@c.D: ', IntPtr(@c.D));
+  if (SizeUInt(@c.A)<SizeUInt(@c.B)) and
+     (SizeUInt(@c.B)<SizeUInt(@c.C)) and
+     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
   begin
     WriteLn('ok');
     halt(0);

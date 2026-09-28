@@ -1,40 +1,19 @@
 { %FAIL }
-{ %OPT=-Sew }
-{ Record composition: methods with the same name from two named compositions
-  are not merged into overloads, the second gives a warning }
+{ Record composition: "contains alias" cannot declare a new field, only
+  reference an existing one }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  TTest = record
-    a, b: LongInt;
-    procedure Method1(aArg: LongInt);
+  TChildRec = record
+    B: Integer;
   end;
 
-  TTest1 = record
-    c, d: LongInt;
-    procedure Method1(aArg: String);
+  TComposed = record
+    contains alias child: TChildRec;
   end;
 
-  TTest2 = record
-    contains f1: TTest;
-    contains f2: TTest1;
-  end;
-
-procedure TTest.Method1(aArg: LongInt);
 begin
-end;
-
-procedure TTest1.Method1(aArg: String);
-begin
-end;
-
-var
-  a: TTest2;
-begin
-  a.Method1(42); // ok
-  a.Method1('Hello World'); // error
 end.

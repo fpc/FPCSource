@@ -1,5 +1,5 @@
-{ Record composition: "contains alias" composes an existing field declared
-  earlier, its members are accessible via the composing record }
+{ Record composition: a generic record composing its type parameter, in the
+  specialization writing a composed member stores it in the composed field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -7,23 +7,20 @@ program record_compose_test;
 
 type
   TChildRec = record
-    B: Integer;
+    A: Integer;
   end;
 
-  TComposed = record
-    A: Integer;
-    child: TChildRec;
-    D: Integer;
-    contains alias child;
+  generic TComposed<T> = record
+    contains child: T;
+    B: Double;
   end;
 
 var
-  c: TComposed;
+  c: specialize TComposed<TChildRec>;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.B:       ', IntPtr(@c.B));
-  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
-  if (@c.B=@c.child.B) then
+  c.A := 42;
+  c.B := 3.14;
+  if (c.child.A=42) then
   begin
     WriteLn('ok');
     halt(0);

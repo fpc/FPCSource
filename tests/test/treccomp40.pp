@@ -1,36 +1,33 @@
-{ Record composition: nested unnamed compositions, members of all levels are
-  accessible via the outer composing record and placed in declaration order }
+{ %FAIL }
+{ %OPT=-Sew }
+{ %NORUN }
+{ Record composition: in a specialization of a generic record composing its type
+  parameter, a field declared after the composition with the same name as
+  a composed member gives a duplicate identifier warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildChildRec = record
+  TChildRec = record
     C: Integer;
   end;
 
-  TChildRec = record
-    B: Integer;
-    contains TChildChildRec;
-  end;
-
-  TComposed = record
+  generic TComposed<T> = record
     A: Integer;
-    contains TChildRec;
-    D: Integer;
+    B: Integer;
+    contains child: T;
+    C: Integer;
   end;
 
 var
-  c: TComposed;
+  c: specialize TComposed<TChildRec>;
 begin
-  WriteLn('@c.A: ', IntPtr(@c.A));
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.A)<SizeUInt(@c.B)) and
-     (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
+  if (@c.C<>@c.child.C) then
   begin
     WriteLn('ok');
     halt(0);

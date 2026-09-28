@@ -1,7 +1,10 @@
+{ %FAIL }
+{ %OPT=-Sew }
+{ Record composition: a field of the composing record with the same name as
+  a member of the composed record gives a duplicate identifier warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
@@ -13,7 +16,7 @@ type
     A: Integer;
     B: Integer;
     contains child: TChildRec;
-    D: Integer;
+    C: Integer;
   end;
 
 var
@@ -22,7 +25,7 @@ begin
   WriteLn('@c:         ', IntPtr(@c));
   WriteLn('@c.C:       ', IntPtr(@c.C));
   WriteLn('@c.child.C: ', IntPtr(@c.child.C));
-  if (@c.C=@c.child.C) then
+  if (@c.C<>@c.child.C) then
   begin
     WriteLn('ok');
     halt(0);

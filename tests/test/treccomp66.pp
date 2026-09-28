@@ -1,21 +1,34 @@
-{ %FAIL }
-{ Record composition: composing a type helper for a record is not allowed }
+{ Record composition: composed members are found inside a "with" statement
+  on the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
-{$ModeSwitch TypeHelpers}
 
 type
-  TTest = record
+  TChildRec = record
+    C: Integer;
   end;
 
-  TTestHelper = type helper for TTest
+  TComposed = record
+    A: Integer;
+    B: Integer;
+    contains child: TChildRec;
+    D: Integer;
   end;
 
-  TTest1 = record
-    contains TTestHelper;
-  end;
-
+var
+  c: TComposed;
 begin
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
+  with C do
+    if (@C=@child.C) then
+    begin
+      WriteLn('ok');
+      halt(0);
+    end;
+  halt(1);
 end.

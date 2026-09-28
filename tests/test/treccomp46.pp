@@ -1,37 +1,34 @@
-{ %FAIL }
-{ Record composition: composing a type parameter constrained to a class
-  is not allowed, only records }
+{ Record composition: in a specialization of a generic record with an unnamed
+  composition of its type parameter, the composed record is placed in memory
+  at its declaration position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
-  generic TComposed<T: TObject> = record
-    A: Integer;
-    contains cls: T;
+  TChildRec = record
     C: Integer;
   end;
 
-  TChildClass = class
-  public
+  generic TComposed<T> = record
+    A: Integer;
     B: Integer;
+    contains T;
+    D: Integer;
   end;
 
 var
-  c: specialize TComposed<TChildClass>;
+  c: specialize TComposed<TChildRec>;
 begin
-  c.cls:=TChildClass.Create;
-  WriteLn('@c:       ', IntPtr(@c));
-  WriteLn('@c.B:     ', IntPTr(@c.B));
-  WriteLn('@c.cls.B: ', IntPtr(@c.cls.B));
-  if (@c.cls.B=@c.B) then
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  WriteLn('@c.C: ', IntPtr(@c.C));
+  WriteLn('@c.D: ', IntPtr(@c.D));
+  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
+     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
   begin
-    c.cls.Free;
     WriteLn('ok');
     halt(0);
   end;
-  c.cls.Free;
   halt(1);
 end.

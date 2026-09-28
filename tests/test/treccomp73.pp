@@ -1,18 +1,28 @@
-{ %FAIL }
-{ Record composition: "contains" is only supported in records, not in objects }
+{ Record composition: composing a record with a static class method compiles
+  and the method still works on the composed record type }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
   TChildRec = record
-    B: Integer;
+    class function Foo: Integer;static;
   end;
 
-  TComposed = object
-    contains child: TChildRec;
+class function TChildRec.Foo: Integer;
+begin
+  Result:=42;
+end;
+
+type
+  TComposed = record
+    contains TChildRec;
   end;
 
 begin
+  if TChildRec.Foo<>42 then
+    Halt(1);
+  WriteLn('Ok');
 end.

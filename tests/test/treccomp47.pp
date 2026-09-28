@@ -1,22 +1,21 @@
-{ Record composition: a private (non-strict) field of the composed record
-  is visible through the composing record within the same unit }
+{ Record composition: a named composition inside a variant part, its members
+  are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
-{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
   TChildRec = record
-  private
     C: Integer;
   end;
 
   TComposed = record
     A: Integer;
     B: Integer;
-    contains child: TChildRec;
-    D: Integer;
+    case Boolean of
+    True: (contains child: TChildRec);
+    False: (D: Integer);
   end;
 
 var

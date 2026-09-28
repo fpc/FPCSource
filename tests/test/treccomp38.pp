@@ -1,38 +1,23 @@
-{ Record composition: a record with two unnamed compositions, both are placed
-  in memory in declaration order and their members are accessible }
+{ %FAIL }
+{ Record composition: in a specialization of a generic record composing its
+  type parameter, an identifier that is not a member of the actual type is an error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TFirstChild = record
-    B: Integer;
-  end;
-  TSecondChild = record
-    C: Integer;
-  end;
-
-  TComposed = record
+  generic TComposed<T> = record
     A: Integer;
-    contains TFirstChild;
-    contains TSecondChild;
+    B: Integer;
+    contains child: T;
     D: Integer;
   end;
 
+  TNothing = record end;
+
 var
-  c: TComposed;
+  c: specialize TComposed<TNothing>;
 begin
-  WriteLn('@c:   ', IntPtr(@c));
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.A)<SizeUInt(@c.B)) and
-     (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
+  c.C := 42;
 end.

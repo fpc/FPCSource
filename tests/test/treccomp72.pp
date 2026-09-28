@@ -1,19 +1,36 @@
-{ %FAIL }
-{ Record composition: "contains alias" cannot declare a new field, only
-  reference an existing one }
+{ Record composition: a method of the composing record declared before the
+  composition hides the composed method with the same name }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
+{$ModeSwitch AdvancedRecords}
 {$ModeSwitch RecordComposition}
 
 type
   TChildRec = record
-    B: Integer;
+    function Foo: Integer;
   end;
 
-  TComposed = record
-    contains alias child: TChildRec;
-  end;
-
+function TChildRec.Foo: Integer;
 begin
+  Result:=42;
+end;
+
+type
+  TComposed = record
+    function Foo: Integer;
+    public contains c: TChildRec;
+  end;
+
+function TComposed.Foo: Integer;
+begin
+  Result:=32;
+end;
+
+var
+  c: TComposed;
+begin
+  if c.Foo=c.c.Foo then
+    Halt(1);
+  WriteLn('Ok');
 end.

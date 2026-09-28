@@ -1,5 +1,6 @@
-{ Record composition: "contains alias" in a public section makes the members
-  of a strict private field public, and keeps the field's memory position }
+{ %FAIL }
+{ Record composition: a property of the composing record cannot use
+  a member of an unnamed composed record as read/write accessor }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -12,24 +13,11 @@ type
   end;
 
   TComposed = record
-  strict private
-    child: TChildRec;
-  public
     A: Integer;
+    contains TChildRec;
     C: Integer;
-    contains alias child;
+    property CB: Integer read B write B;
   end;
 
-var
-  c: TComposed;
 begin
-  WriteLn('@c:   ', IntPtr(@c));
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.A: ', IntPtr(@c.A));
-  if (@c.B<@c.A) then
-  begin
-    WriteLn('ok');
-    halt(0);
-  end;
-  halt(1);
 end.

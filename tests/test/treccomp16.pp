@@ -1,5 +1,5 @@
-{ Record composition: an unnamed composition with an anonymous (inline declared)
-  record type is placed in memory at its declaration position }
+{ Record composition: a named composition with an anonymous (inline declared)
+  record type, its members are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -9,7 +9,7 @@ type
   TComposed = record
     A: Integer;
     B: Integer;
-    contains record
+    contains child: record
       C: Integer;
     end;
     D: Integer;
@@ -18,11 +18,10 @@ type
 var
   c: TComposed;
 begin
-  WriteLn('@c.B: ', IntPtr(@c.B));
-  WriteLn('@c.C: ', IntPtr(@c.C));
-  WriteLn('@c.D: ', IntPtr(@c.D));
-  if (SizeUInt(@c.B)<SizeUInt(@c.C)) and
-     (SizeUInt(@c.C)<SizeUInt(@c.D)) then
+  WriteLn('@c:         ', IntPtr(@c));
+  WriteLn('@c.C:       ', IntPtr(@c.C));
+  WriteLn('@c.child.C: ', IntPtr(@c.child.C));
+  if (@c.C=@c.child.C) then
   begin
     WriteLn('ok');
     halt(0);

@@ -1,5 +1,5 @@
-{ Record composition: a method with parameters of the composed record called
-  via the composing record gets the composed field as Self, not a neighbour field }
+{ Record composition: a method of the composed record called via the composing
+  record gets the composed field as Self }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,14 +8,12 @@ program record_compose_test;
 
 type
   TChildRec = record
-    B: Integer;
-    function CheckAddr(ShouldBe: Pointer): Boolean;
+    function GetSelf: Pointer;
   end;
 
-function TChildRec.CheckAddr(ShouldBe: Pointer): Boolean;
+function TChildRec.GetSelf: Pointer;
 begin
-  Result := ShouldBe = @Self;
-  WriteLn('@self: ', IntPtr(@self));
+  Result := @Self;
 end;
 
 type
@@ -29,11 +27,9 @@ var
   c: TComposed;
 begin
   WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.B:       ', IntPtr(@c.B));
-  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
-  if not c.CheckAddr(@c.A) and 
-     c.CheckAddr(@c.child) and
-     not c.CheckAddr(@c.C) then
+  WriteLn('@c.GetSelf: ', IntPtr(c.GetSelf));
+  WriteLn('@c.child:   ', IntPtr(@c.child));
+  if c.GetSelf=@c.child then
   begin
     WriteLn('ok');
     halt(0);

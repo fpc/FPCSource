@@ -1,6 +1,5 @@
-{ %FAIL }
-{ Record composition: the name of a named composition must not duplicate
-  an existing field of the composing record }
+{ Record composition: writing a composed member via the composing record
+  stores the value in the composed field, not overwritten by a neighbour field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -8,14 +7,23 @@ program record_compose_test;
 
 type
   TChildRec = record
-    B: Integer;
+    A: Integer;
   end;
 
   TComposed = record
-    A: Integer;
-    contains A: TChildRec;
-    C: Integer;
+    contains child: TChildRec;
+    B: Double;
   end;
 
+var
+  c: TComposed;
 begin
+  c.A := 42;
+  c.B := 3.14;
+  if (c.child.A=42) then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.

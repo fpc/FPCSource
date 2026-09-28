@@ -1,7 +1,5 @@
-{ %FAIL }
-{ %NORUN }
-{ Record composition: composing an existing field requires "contains alias",
-  plain "contains <field>;" is an error }
+{ Record composition: "contains alias" in a public section makes the members
+  of a strict private field public, and keeps the field's memory position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -19,13 +17,19 @@ type
   public
     A: Integer;
     C: Integer;
-    contains child;
+    contains alias child;
   end;
 
 var
   c: TComposed;
 begin
-  WriteLn('@c:         ', IntPtr(@c));
-  WriteLn('@c.B:       ', IntPtr(@c.B));
-  WriteLn('@c.child.B: ', IntPtr(@c.child.B));
+  WriteLn('@c:   ', IntPtr(@c));
+  WriteLn('@c.B: ', IntPtr(@c.B));
+  WriteLn('@c.A: ', IntPtr(@c.A));
+  if (@c.B<@c.A) then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.

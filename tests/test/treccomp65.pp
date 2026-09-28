@@ -1,18 +1,24 @@
 { %FAIL }
-{ Record composition: composing a type helper (for Integer) is not allowed }
+{ Record composition: a strict private field of the composed record is not
+  composed, so it is not accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
-{$ModeSwitch TypeHelpers}
+{$ModeSwitch AdvancedRecords}
 
 type
-  TTestHelper = type helper for Integer
+  TChildRec = record
+  strict private
+    B: Integer;
   end;
 
-  TTest = record
-    contains TTestHelper;
+  TComposed = record
+    contains child: TChildRec;
   end;
 
+var
+  rec: TComposed;
 begin
+  rec.B := 42;
 end.

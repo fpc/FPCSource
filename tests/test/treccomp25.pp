@@ -1,22 +1,38 @@
-{ %FAIL }
-{ Record composition: a member of an unnamed composed record with the same
-  name as a field of the composing record is a duplicate identifier error }
+{ Record composition: a record with two named compositions, the members of
+  both are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
 {$ModeSwitch RecordComposition}
 
 type
-  TChildRec = record
+  TFirstChild = record
     B: Integer;
+  end;
+  TSecondChild = record
+    C: Integer;
   end;
 
   TComposed = record
     A: Integer;
-    B: Integer;
-    contains TChildRec;
-    C: Integer;
+    contains c1: TFirstChild;
+    contains c2: TSecondChild;
+    D: Integer;
   end;
 
+var
+  c: TComposed;
 begin
+  WriteLn('@c:      ', IntPtr(@c));
+  WriteLn('@c.B:    ', IntPtr(@c.B));
+  WriteLn('@c.c1.B: ', IntPtr(@c.c1.B));
+  WriteLn('@c.C:    ', IntPtr(@c.C));
+  WriteLn('@c.c2.C: ', IntPtr(@c.c2.C));
+  if (@c.B=@c.c1.B) and
+     (@c.C=@c.c2.C) then
+  begin
+    WriteLn('ok');
+    halt(0);
+  end;
+  halt(1);
 end.
