@@ -54,6 +54,11 @@ type
     procedure TestInclude;
     procedure TestSystemInclude;
     procedure TestPragma;
+    procedure TestPragmaPack;
+    procedure TestPragmaPackPushPop;
+    procedure TestPragmaPackDefault;
+    procedure TestPragmaPackInvalid;
+    procedure TestPragmaPackCompiles;
     procedure TestError;
     procedure TestLineInfoSkipped;
     procedure TestExternCRemoved;
@@ -347,9 +352,58 @@ end;
 procedure TTestPreprocessor.TestPragma;
 
 begin
-  Convert(['#pragma pack(1)','int x;']);
+  Convert(['#pragma once','int x;']);
   AssertConverted;
-  AssertOutput('#pragma is reported as unsupported',['(** unsupported pragma#pragma pack(1)*)']);
+  AssertOutput('#pragma is reported as unsupported',['(** unsupported pragma#pragma once*)']);
+end;
+
+
+procedure TTestPreprocessor.TestPragmaPack;
+
+begin
+  Convert(['#pragma pack(1)','struct s { char a; int b; };']);
+  AssertConverted;
+  AssertOutput('#pragma pack(n) sets the record alignment',['{$PACKRECORDS 1}','type','s = record']);
+  AssertNotOutput('#pragma pack is supported','unsupported pragma');
+end;
+
+
+procedure TTestPreprocessor.TestPragmaPackPushPop;
+
+begin
+  Convert(['#pragma pack(push, 2)','#pragma pack(push, r1, 4)','#pragma pack(pop)','#pragma pack(pop)',
+           '#pragma pack(push)','#pragma pack(8)','#pragma pack(pop)']);
+  AssertConverted;
+  AssertOutput('push and pop restore the previous alignment',
+    ['{$PACKRECORDS 2}','{$PACKRECORDS 4}','{$PACKRECORDS 2}','{$PACKRECORDS C}','{$PACKRECORDS C}','{$PACKRECORDS 8}',
+     '{$PACKRECORDS C}']);
+end;
+
+
+procedure TTestPreprocessor.TestPragmaPackDefault;
+
+begin
+  Convert(['#pragma pack(1)','#pragma pack()','#pragma pack(pop)']);
+  AssertConverted;
+  AssertOutput('pack() and pop without push restore the C alignment',['{$PACKRECORDS 1}','{$PACKRECORDS C}','{$PACKRECORDS C}']);
+end;
+
+
+procedure TTestPreprocessor.TestPragmaPackInvalid;
+
+begin
+  Convert(['#pragma pack(weird stuff)','int x;']);
+  AssertConverted;
+  AssertOutput('invalid pack arguments are reported as unsupported',['(** unsupported pragma#pragma pack(weird stuff)*)']);
+end;
+
+
+procedure TTestPreprocessor.TestPragmaPackCompiles;
+
+begin
+  Convert(['#pragma pack(push, 1)','struct s { char a; int b; };','#pragma pack(pop)','struct t { char a; int b; };'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

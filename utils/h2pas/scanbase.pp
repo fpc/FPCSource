@@ -108,13 +108,20 @@ const
 implementation
 
 uses
-   SysUtils,h2poptions,h2pconst;
+   SysUtils,Classes,h2poptions,h2pconst;
+
+const
+  MaxPackDepth = 32;
 
 var
   CondText : string;
   CondPos : integer;
   CondToken : string;
   CondOk : boolean;
+  // Record alignment of #pragma pack, and the alignments saved by pack(push).
+  PackCurrent : string = 'C';
+  PackStack : array[1..MaxPackDepth] of string;
+  PackDepth : integer = 0;
 
 procedure openInputfile;
 
@@ -855,19 +862,82 @@ begin
     skip_until_eol;
 end;
 
-procedure HandlePreProcPragma;
+// Writes the $PACKRECORDS directive for #pragma pack with the arguments aArgs; returns false for invalid arguments.
+function HandlePragmaPack(const aArgs : AnsiString) : boolean;
+
+var
+  lArgs : TStringList;
+  lValue : AnsiString;
+  i, lNumber : longint;
 
 begin
-  if not stripinfo then
-   begin
-     write(outfile,'(** unsupported pragma');
-     write(outfile,'#pragma');
-     copy_until_eol;
-     writeln(outfile,'*)');
-     flush(outfile);
-   end
+  lArgs:=TStringList.Create;
+  lArgs.StrictDelimiter:=true;
+  lArgs.CommaText:=aArgs;
+  for i:=0 to lArgs.Count-1 do
+    lArgs[i]:=Trim(lArgs[i]);
+  lValue:='';
+  if (lArgs.Count>0) and TryStrToInt(lArgs[lArgs.Count-1],lNumber) then
+    lValue:=IntToStr(lNumber);
+  Result:=true;
+  if (lArgs.Count=0) or ((lArgs.Count=1) and (lArgs[0]='')) then
+    PackCurrent:='C'
+  else if lArgs[0]='push' then
+    begin
+    if PackDepth<MaxPackDepth then
+      begin
+      inc(PackDepth);
+      PackStack[PackDepth]:=PackCurrent;
+      end;
+    if lValue<>'' then
+      PackCurrent:=lValue;
+    end
+  else if lArgs[0]='pop' then
+    begin
+    if PackDepth>0 then
+      begin
+      PackCurrent:=PackStack[PackDepth];
+      dec(PackDepth);
+      end
+    else
+      PackCurrent:='C';
+    if lValue<>'' then
+      PackCurrent:=lValue;
+    end
+  else if (lArgs.Count=1) and (lValue<>'') then
+    PackCurrent:=lValue
   else
-   skip_until_eol;
+    Result:=false;
+  lArgs.Free;
+  if Result then
+    writeln(outfile,'{$PACKRECORDS ',PackCurrent,'}');
+end;
+
+
+procedure HandlePreProcPragma;
+
+var
+  lText : AnsiString;
+  lOpen, lClose : integer;
+  lPack : boolean;
+
+begin
+  lText:='';
+  c:=get_char;
+  while (c<>newline) and (c<>#0) do
+    begin
+    lText:=lText+c;
+    c:=get_char;
+    end;
+  lText:=Trim(lText);
+  lOpen:=pos('(',lText);
+  lClose:=pos(')',lText);
+  lPack:=(copy(lText,1,4)='pack') and (lOpen>0) and (Trim(copy(lText,5,lOpen-5))='') and (lClose>lOpen);
+  if lPack then
+    lPack:=HandlePragmaPack(copy(lText,lOpen+1,lClose-lOpen-1));
+  if not lPack and not stripinfo then
+    writeln(outfile,'(** unsupported pragma#pragma ',lText,'*)');
+  flush(outfile);
   block_type:=bt_no;
 end;
 
