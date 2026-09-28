@@ -1,0 +1,454 @@
+{
+  h2pas test suite: expected output for defects of the current h2pas; these tests fail.
+  Copyright (c) 2026 by Michael Van Canneyt
+  See the file COPYING.FPC for details about the copyright.
+}
+unit tcKnownIssues;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, fpcunit, testregistry, tcH2PasBase;
+
+type
+
+  { TTestKnownPointerIssues }
+
+  TTestKnownPointerIssues = class(TH2PasTestCase)
+  published
+    procedure TestHeaderPointerTypeResolves;
+    procedure TestPointerResultInterface;
+    procedure TestPointerPrefixDeclaredOnce;
+    procedure TestPointerPrefixUnitCompiles;
+    procedure TestPointerPrefixPointerResult;
+    procedure TestPointerPrefixPointerToPointer;
+    procedure TestTypePrefixParams;
+    procedure TestTypePrefixUnitCompiles;
+    procedure TestUnderscorePrefixParams;
+    procedure TestUnderscorePrefixHeaderPointer;
+    procedure TestUnderscorePrefixUnitCompiles;
+    procedure TestPointerAndUnderscoreDeclaredOnce;
+    procedure TestPointerAndUnderscoreUnitCompiles;
+  end;
+
+  { TTestKnownDeclarationIssues }
+
+  TTestKnownDeclarationIssues = class(TH2PasTestCase)
+  published
+    procedure TestMultipleVariables;
+    procedure TestStructPointerResult;
+    procedure TestSignedAlone;
+    procedure TestLongDouble;
+    procedure TestReferenceParam;
+    procedure TestEllipsisStubMatchesInterface;
+    procedure TestUnsignedChar;
+    procedure TestSignedChar;
+    procedure TestBitFieldAccessorParamName;
+    procedure TestNoCdeclOnRecordField;
+    procedure TestTypedefStructTagAlias;
+    procedure TestVoidArgProcedureType;
+    procedure TestFunctionTypedef;
+    procedure TestNoShiftWarning;
+  end;
+
+  { TTestKnownMacroIssues }
+
+  TTestKnownMacroIssues = class(TH2PasTestCase)
+  published
+    procedure TestZeroLiteral;
+    procedure TestIntegerDivision;
+    procedure TestLineContinuation;
+    procedure TestParenthesizedParameter;
+    procedure TestLineCommentAfterDefine;
+    procedure TestElif;
+    procedure TestIfExpression;
+    procedure TestDirectiveOnlyHeader;
+  end;
+
+  { TTestKnownOptionIssues }
+
+  TTestKnownOptionIssues = class(TH2PasTestCase)
+  published
+    procedure TestEnumToConstTypedefCompiles;
+    procedure TestDynLibCdecl;
+    procedure TestWin32Stdcall;
+    procedure TestWin32CallbackType;
+  end;
+
+implementation
+
+const
+  PrefixHeader : array[0..4] of string = (
+    'typedef struct _point { int x; int y; } point;',
+    'typedef int myint;',
+    'struct _rect { point *tl; struct _point br; };',
+    'typedef enum { red, green } color;',
+    'void doit(point *p, myint *m, struct _rect *r, int);'
+  );
+
+
+procedure TTestKnownPointerIssues.TestHeaderPointerTypeResolves;
+
+begin
+  Convert(['typedef struct { int a; } rec;','void f(rec *r);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerResultInterface;
+
+begin
+  Convert(['char *name(void);']);
+  AssertConverted;
+  AssertInterface('pointer result in the interface uses a P type',['function name:Pansichar;']);
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerPrefixDeclaredOnce;
+
+begin
+  Convert(PrefixHeader,['-p']);
+  AssertConverted;
+  AssertEquals('-p declares Ppoint once',1,CountOf('Ppoint = ^point;'));
+  AssertEquals('-p declares P_rect once',1,CountOf('P_rect = ^_rect;'));
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerPrefixUnitCompiles;
+
+begin
+  Convert(PrefixHeader,['-p','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerPrefixPointerResult;
+
+begin
+  Convert(['int **pp(void);'],['-p']);
+  AssertConverted;
+  AssertInterface('-p pointer to pointer result',['function pp:PPlongint;']);
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerPrefixPointerToPointer;
+
+begin
+  Convert(['struct s { int a; };','void g(struct s **pp);'],['-p','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownPointerIssues.TestTypePrefixParams;
+
+begin
+  Convert(PrefixHeader,['-t']);
+  AssertConverted;
+  AssertInterface('-t parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:P_rect; _para4:longint);']);
+end;
+
+
+procedure TTestKnownPointerIssues.TestTypePrefixUnitCompiles;
+
+begin
+  Convert(PrefixHeader,['-t','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownPointerIssues.TestUnderscorePrefixParams;
+
+begin
+  Convert(PrefixHeader,['-T']);
+  AssertConverted;
+  AssertInterface('-T parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:Prect; para4:longint);']);
+end;
+
+
+procedure TTestKnownPointerIssues.TestUnderscorePrefixHeaderPointer;
+
+begin
+  Convert(PrefixHeader,['-T']);
+  AssertConverted;
+  AssertOutput('-T pointer to a struct tag without underscore',['Prect = ^Trect;']);
+  AssertNotOutput('-T refers to no type with an underscore','T_rect');
+end;
+
+
+procedure TTestKnownPointerIssues.TestUnderscorePrefixUnitCompiles;
+
+begin
+  Convert(PrefixHeader,['-T','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerAndUnderscoreDeclaredOnce;
+
+begin
+  Convert(PrefixHeader,['-p','-T']);
+  AssertConverted;
+  AssertEquals('-p -T declares Prect once',1,CountOf('Prect = ^Trect;'));
+end;
+
+
+procedure TTestKnownPointerIssues.TestPointerAndUnderscoreUnitCompiles;
+
+begin
+  Convert(PrefixHeader,['-p','-T','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestMultipleVariables;
+
+begin
+  Convert(['int iv, jv;']);
+  AssertConverted;
+  AssertInterface('first variable',['iv : longint;cvar;public;']);
+  AssertInterface('second variable',['jv : longint;cvar;public;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestStructPointerResult;
+
+begin
+  Convert(['struct s1 *f(struct s1 *p);']);
+  AssertConverted;
+  AssertInterface('function returning a struct pointer',['function f(p:Ps1):Ps1;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestSignedAlone;
+
+begin
+  Convert(['signed f(void);']);
+  AssertConverted;
+  AssertInterface('signed alone is signed int',['function f:longint;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestLongDouble;
+
+begin
+  Convert(['long double ld;']);
+  AssertConverted;
+  AssertInterface('long double variable',['ld : ']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestReferenceParam;
+
+begin
+  Convert(['void f(int &r);']);
+  AssertConverted;
+  AssertInterface('C++ reference parameter becomes a var parameter',['procedure f(var r:longint);']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestEllipsisStubMatchesInterface;
+
+begin
+  Convert(['int f(const char *fmt, ...);']);
+  AssertConverted;
+  AssertImplementation('stub without the variable arguments',['function f(fmt:Pansichar):longint;']);
+  AssertInterface('interface declares the stub signature',['function f(fmt:Pansichar):longint;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestUnsignedChar;
+
+begin
+  Convert(['typedef unsigned char t;']);
+  AssertConverted;
+  AssertInterface('unsigned char is byte',['t = byte;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestSignedChar;
+
+begin
+  Convert(['typedef signed char t;']);
+  AssertConverted;
+  AssertInterface('signed char is shortint',['t = shortint;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestBitFieldAccessorParamName;
+
+begin
+  Convert(['struct bits { unsigned int a : 1; };']);
+  AssertConverted;
+  AssertNotOutput('getter parameter does not repeat the getter name','function a(var a :');
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestNoCdeclOnRecordField;
+
+begin
+  Convert(['typedef int (*binop)(int a);','struct s { int m; };']);
+  AssertConverted;
+  AssertInterface('record field after a procedure type',['s = record','m : longint;','end;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestTypedefStructTagAlias;
+
+begin
+  Convert(['typedef struct tag4 t4;']);
+  AssertConverted;
+  AssertInterface('typedef name is the alias of the tag',['t4 = tag4;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestVoidArgProcedureType;
+
+begin
+  Convert(['typedef void (*cb)(void);']);
+  AssertConverted;
+  AssertInterface('(void) gives a procedure type without parameters',['cb = procedure ;cdecl;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestFunctionTypedef;
+
+begin
+  Convert(['typedef int (func_t)(int);']);
+  AssertConverted;
+  AssertInterface('function typedef',['func_t = function (_para1:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestNoShiftWarning;
+
+begin
+  Convert(['#define F(a) a']);
+  AssertConverted;
+  AssertEquals('no indentation warning','',Trim(ToolOutput));
+end;
+
+
+procedure TTestKnownMacroIssues.TestZeroLiteral;
+
+begin
+  Convert(['#define ZERO 0']);
+  AssertConverted;
+  AssertInterface('zero literal',['ZERO = 0;']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestIntegerDivision;
+
+begin
+  Convert(['#define DIV_E (6 / 2)']);
+  AssertConverted;
+  AssertInterface('integer division uses div',['DIV_E = 6 div 2;']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestLineContinuation;
+
+begin
+  Convert(['#define LONGDEF 1 + \','  2']);
+  AssertConverted;
+  AssertInterface('define continued on the next line',['LONGDEF = 1+2;']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestParenthesizedParameter;
+
+begin
+  Convert(['#define PAR1(a) ((a) + 1)']);
+  AssertConverted;
+  AssertInterface('parenthesized parameter is no typecast',['function PAR1(a : longint) : longint;']);
+  AssertImplementation('parenthesized parameter body',['PAR1:=a+1;']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestLineCommentAfterDefine;
+
+begin
+  Convert(['#define CMT 7 // the comment']);
+  AssertConverted;
+  AssertOutput('line comment of a define is kept',['{ the comment }']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestElif;
+
+begin
+  Convert(['#if A','int x;','#elif B','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('#elif becomes $elseif',['{$elseif B}']);
+end;
+
+
+procedure TTestKnownMacroIssues.TestIfExpression;
+
+begin
+  Convert(['#if defined(A) && B','int x;','#endif']);
+  AssertConverted;
+  AssertNotOutput('C operators are translated in conditions','&&');
+end;
+
+
+procedure TTestKnownMacroIssues.TestDirectiveOnlyHeader;
+
+begin
+  Convert(['#undef FOO']);
+  AssertConverted;
+  AssertOutput('header with only a directive',['{$undef FOO}']);
+end;
+
+
+procedure TTestKnownOptionIssues.TestEnumToConstTypedefCompiles;
+
+begin
+  Convert(['typedef enum { A, B } k;','extern k v;'],['-e','-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestKnownOptionIssues.TestDynLibCdecl;
+
+begin
+  Convert(['int getval(int a);'],['-P']);
+  AssertConverted;
+  AssertInterface('-P procedure variables are cdecl',['getval : function(a:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestKnownOptionIssues.TestWin32Stdcall;
+
+begin
+  Convert(['int STDCALL f1(int a);','int WINAPI f2(void);'],['-w']);
+  AssertConverted;
+  AssertInterface('STDCALL is stdcall',['function f1(a:longint):longint;stdcall;external External_library name ''f1'';']);
+  AssertInterface('WINAPI is stdcall',['function f2:longint;stdcall;external External_library name ''f2'';']);
+end;
+
+
+procedure TTestKnownOptionIssues.TestWin32CallbackType;
+
+begin
+  Convert(['typedef int (CALLBACK *cbp)(int);'],['-w']);
+  AssertConverted;
+  AssertInterface('CALLBACK procedure type is stdcall',['cbp = function (_para1:longint):longint;stdcall;']);
+end;
+
+
+initialization
+  RegisterTest('KnownIssues',TTestKnownPointerIssues);
+  RegisterTest('KnownIssues',TTestKnownDeclarationIssues);
+  RegisterTest('KnownIssues',TTestKnownMacroIssues);
+  RegisterTest('KnownIssues',TTestKnownOptionIssues);
+end.

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <Title Value="testh2pas"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <BuildModes>
+      <Item Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <CommandLineParams Value="--all --format=plain"/>
+      </local>
+      <FormatVersion Value="2"/>
+      <Modes>
+        <Mode Name="default">
+          <local>
+            <CommandLineParams Value="--all --format=plain"/>
+          </local>
+        </Mode>
+      </Modes>
+    </RunParams>
+    <RequiredPackages>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPackages>
+    <Units>
+      <Unit>
+        <Filename Value="testh2pas.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tch2pasbase.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcH2PasBase"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcdeclarations.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcDeclarations"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tctypemapping.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcTypeMapping"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcstructs.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcStructs"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tctypedefs.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcTypedefs"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcmacros.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcMacros"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcpreprocessor.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcPreprocessor"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcoptions.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcOptions"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcprefixes.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcPrefixes"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcknownissues.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcKnownIssues"/>
+      </Unit>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Target>
+      <Filename Value="testh2pas"/>
+    </Target>
+    <SearchPaths>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+  </CompilerOptions>
+</CONFIG>

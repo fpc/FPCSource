@@ -216,7 +216,7 @@ begin
          'o' : outputfilename:=GetNextParam('o','outputfilename');
          'P' : createdynlib:=true;
          'p' : begin
-                  if (cp[3] = 'r') then
+                  if (length(cp)>=3) and (cp[3] = 'r') then
                      begin
                         PackRecords := true;
                      end
