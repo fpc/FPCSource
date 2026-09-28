@@ -238,6 +238,8 @@ type
   { TTestResolver }
 
   TTestResolver = Class(TCustomTestResolver)
+  protected
+    procedure CheckCompositionPath(const aLabel: string; const Path: array of string);
   Protected
     // Returns the folded value of the program const named aName
     // (caller frees it via ReleaseEvalValue).
@@ -741,6 +743,40 @@ type
     Procedure TestAdvRecord_ForInEnumerator;
     Procedure TestAdvRecord_InFunctionFail;
     Procedure TestAdvRecord_SubClass;
+
+    // record composition
+    Procedure TestRecordComposition_Named;
+    Procedure TestRecordComposition_Unnamed;
+    Procedure TestRecordComposition_AnonymousRecord;
+    Procedure TestRecordComposition_Nested;
+    Procedure TestRecordComposition_With;
+    Procedure TestRecordComposition_Members;
+    Procedure TestRecordComposition_ClassVarNotComposedFail;
+    Procedure TestRecordComposition_OwnMemberWins;
+    Procedure TestRecordComposition_FirstWins;
+    Procedure TestRecordComposition_MethodNotOverloadedWarn;
+    Procedure TestRecordComposition_UnnamedDuplicateFail;
+    Procedure TestRecordComposition_NamedDuplicateFail;
+    Procedure TestRecordComposition_PrivateSameUnit;
+    Procedure TestRecordComposition_PrivateOtherUnitFail;
+    Procedure TestRecordComposition_StrictPrivateNotComposedFail;
+    Procedure TestRecordComposition_StrictPrivateSectionFail;
+    Procedure TestRecordComposition_Alias;
+    Procedure TestRecordComposition_AliasNotFieldFail;
+    Procedure TestRecordComposition_AliasDuplicateFail;
+    Procedure TestRecordComposition_AliasOfContainsFail;
+    Procedure TestRecordComposition_PropertyAccessorFail;
+    Procedure TestRecordComposition_ClassFail;
+    Procedure TestRecordComposition_ObjectFail;
+    Procedure TestRecordComposition_IntegerFail;
+    Procedure TestRecordComposition_TypeHelperFail;
+    Procedure TestRecordComposition_Variant;
+    Procedure TestRecordComposition_Generic;
+    Procedure TestRecordComposition_GenericRecordConstraint;
+    Procedure TestRecordComposition_GenericClassConstraintFail;
+    Procedure TestRecordComposition_GenericIntegerFail;
+    Procedure TestRecordComposition_GenericDeferred;
+    Procedure TestRecordComposition_GenericDeferredFail;
 
     // anonymous record
     Procedure TestRecordAnonym_ResultTypeFail;
@@ -12490,6 +12526,772 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.CheckCompositionPath(const aLabel: string;
+  const Path: array of string);
+var
+  Elements: TFPList;
+  i, j, Found: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  Found:=0;
+  Elements:=FindElementsAtSrcLabel(aLabel);
+  try
+    for i:=0 to Elements.Count-1 do
+      begin
+      El:=TPasElement(Elements[i]);
+      if not (El.CustomData is TResolvedReference) then continue;
+      Ref:=TResolvedReference(El.CustomData);
+      inc(Found);
+      AssertEquals(aLabel+' CompositionPath length',length(Path),length(Ref.CompositionPath));
+      for j:=0 to length(Path)-1 do
+        AssertEquals(aLabel+' CompositionPath['+IntToStr(j)+']',Path[j],Ref.CompositionPath[j].Name);
+      end;
+  finally
+    Elements.Free;
+  end;
+  AssertEquals(aLabel+' found references',true,Found>0);
+end;
+
+procedure TTestResolver.TestRecordComposition_Named;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    A: longint;',
+  '    contains {#child}child: TChildRec;',
+  '    D: longint;',
+  '  end;',
+  'var',
+  '  {#vc}c: TComposed;',
+  'begin',
+  '  {@vc}c.{#p1}{@C}C:=3;',
+  '  {@vc}c.{@child}child.{#p2}{@C}C:=c.{@C}C;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+  CheckCompositionPath('p2',[]);
+end;
+
+procedure TTestResolver.TestRecordComposition_Unnamed;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    A: longint;',
+  '    contains TChildRec;',
+  '    D: longint;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{#p1}{@C}C:=c.A+c.D;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['']);
+end;
+
+procedure TTestResolver.TestRecordComposition_AnonymousRecord;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TComposed = record',
+  '    contains {#child}child: record',
+  '      {#C}C: longint;',
+  '    end;',
+  '    contains record',
+  '      {#E}E: longint;',
+  '    end;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{@C}C:=c.{@child}child.{@C}C;',
+  '  c.{@E}E:=3;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordComposition_Nested;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TChildRec = record',
+  '    {#B}B: longint;',
+  '    contains {#c2}c2: TChildChildRec;',
+  '  end;',
+  '  TComposed = record',
+  '    A: longint;',
+  '    contains {#c1}c1: TChildRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{#p1}{@C}C:=c.{@B}B;',
+  '  c.{#p2}{@c2}c2.C:=c.{@c1}c1.{#p3}{@C}C;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['c1','c2']);
+  CheckCompositionPath('p2',['c1']);
+  CheckCompositionPath('p3',['c2']);
+end;
+
+procedure TTestResolver.TestRecordComposition_With;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    A: longint;',
+  '    contains child: TChildRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  with c do',
+  '    {#p1}{@C}C:=A;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+end;
+
+procedure TTestResolver.TestRecordComposition_Members;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '  private',
+  '    {#FSize}FSize: longint;',
+  '  public',
+  '    const {#Max}Max = 10;',
+  '    class var {#Count}Count: longint;',
+  '    function {#GetIt}GetIt(i: longint): longint;',
+  '    property {#Size}Size: longint read FSize write FSize;',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '    procedure {#Run}Run;',
+  '  end;',
+  'function TChildRec.GetIt(i: longint): longint;',
+  'begin',
+  '  Result:=i+FSize;',
+  'end;',
+  'procedure TComposed.Run;',
+  'begin',
+  '  {@FSize}FSize:={@Max}Max;',
+  '  {@Size}Size:={#p1}{@GetIt}GetIt(2);',
+  '  Self.{@Size}Size:=Self.{@GetIt}GetIt(3);',
+  'end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{@Size}Size:=c.{@Max}Max+c.{#p2}{@GetIt}GetIt(4);',
+  '  c.{@Run}Run;',
+  '  c.child.{@Count}Count:=1;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+  CheckCompositionPath('p2',['child']);
+end;
+
+procedure TTestResolver.TestRecordComposition_ClassVarNotComposedFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '    class var Count: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.Count:=1;',
+  '']);
+  CheckResolverException(sIdentifierNotFound,nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestRecordComposition_OwnMemberWins;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    A, C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    {#A}A: longint;',
+  '    contains child: TChildRec;',
+  '    {#C}C: longint;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{@A}A:=c.{#p1}{@C}C;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',[]);
+  CheckResolverHint(mtWarning,nDuplicateIdentifierX,'Duplicate identifier "A"');
+  CheckResolverHint(mtWarning,nDuplicateIdentifierX,'Duplicate identifier "C"');
+end;
+
+procedure TTestResolver.TestRecordComposition_FirstWins;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    {#A}A: longint;',
+  '  end;',
+  '  TOtherRec = record',
+  '    A: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '    contains other: TOtherRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{#p1}{@A}A:=1;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+  CheckResolverHint(mtWarning,nDuplicateIdentifierX,'Duplicate identifier "A"');
+end;
+
+procedure TTestResolver.TestRecordComposition_MethodNotOverloadedWarn;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '    procedure {#Run1}Run(i: longint);',
+  '  end;',
+  '  TOtherRec = record',
+  '    procedure Run(s: string);',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '    contains other: TOtherRec;',
+  '  end;',
+  'procedure TChildRec.Run(i: longint);',
+  'begin',
+  'end;',
+  'procedure TOtherRec.Run(s: string);',
+  'begin',
+  'end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{@Run1}Run(1);',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nIdentifierXCannotBeOverloadedForTypeY,
+    'Identifier "Run" cannot be overloaded for type "TComposed"');
+end;
+
+procedure TTestResolver.TestRecordComposition_UnnamedDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains TChildRec;',
+  '    C: longint;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "C" at afile.pp(9,5)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecordComposition_NamedDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    child: longint;',
+  '    contains child: TChildRec;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecordComposition_PrivateSameUnit;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '  private',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains TChildRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{@C}C:=1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordComposition_PrivateOtherUnitFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch advancedrecords}',
+    'type',
+    '  TChildRec = record',
+    '  private',
+    '    C: longint;',
+    '  public',
+    '    D: longint;',
+    '  end;',
+    '']),
+    '');
+  StartProgram(true);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'uses unit2;',
+  'type',
+  '  TComposed = record',
+  '    contains TChildRec;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.D:=1;',
+  '  c.C:=1;',
+  '']);
+  CheckResolverException('identifier not found "C"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestRecordComposition_StrictPrivateNotComposedFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '  strict private',
+  '    C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains TChildRec;',
+  '    procedure Run;',
+  '  end;',
+  'procedure TComposed.Run;',
+  'begin',
+  '  C:=1;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "C"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestRecordComposition_StrictPrivateSectionFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '    C: longint;',
+  '  end;',
+  '  TComposed = record',
+  '  strict private',
+  '    contains child: TChildRec;',
+  '  public',
+  '    procedure Run;',
+  '  end;',
+  'procedure TComposed.Run;',
+  'begin',
+  '  C:=1;',
+  'end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.C:=1;',
+  '']);
+  CheckResolverException('Can''t access strict private member C',nCantAccessXMember);
+end;
+
+procedure TTestResolver.TestRecordComposition_Alias;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '    {#B}B: longint;',
+  '  end;',
+  '  TComposed = record',
+  '  strict private',
+  '    {#child}child: TChildRec;',
+  '  public',
+  '    A: longint;',
+  '    contains alias {@child}child;',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{#p1}{@B}B:=c.A;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+end;
+
+procedure TTestResolver.TestRecordComposition_AliasNotFieldFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    B: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains alias TChildRec;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "TChildRec"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestRecordComposition_AliasDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    B: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    child: TChildRec;',
+  '    contains alias child;',
+  '    contains alias child;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "child" at afile.pp(9,20)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecordComposition_AliasOfContainsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    B: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '    contains alias child;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecordComposition_PropertyAccessorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TChildRec = record',
+  '    B: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TChildRec;',
+  '    property CB: longint read B;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "B"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestRecordComposition_ClassFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TComposed = record',
+  '    contains child: TObject;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sRecordTypeExpected,nRecordTypeExpected);
+end;
+
+procedure TTestResolver.TestRecordComposition_ObjectFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TObj = object',
+  '    A: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    contains TObj;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sRecordTypeExpected,nRecordTypeExpected);
+end;
+
+procedure TTestResolver.TestRecordComposition_IntegerFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TComposed = record',
+  '    contains i: longint;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sRecordTypeExpected,nRecordTypeExpected);
+end;
+
+procedure TTestResolver.TestRecordComposition_TypeHelperFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for longint',
+  '  end;',
+  '  TComposed = record',
+  '    contains THelper;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sHelpersCannotBeUsedAsTypes,nHelpersCannotBeUsedAsTypes);
+end;
+
+procedure TTestResolver.TestRecordComposition_Variant;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  '  TOtherRec = record',
+  '    {#E}E: longint;',
+  '  end;',
+  '  TComposed = record',
+  '    A: longint;',
+  '    case boolean of',
+  '    true: (contains child: TChildRec);',
+  '    false: (contains TOtherRec);',
+  '  end;',
+  'var',
+  '  c: TComposed;',
+  'begin',
+  '  c.{#p1}{@C}C:=c.{#p2}{@E}E;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+  CheckCompositionPath('p2',['']);
+end;
+
+procedure TTestResolver.TestRecordComposition_Generic;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  generic TComposed<T> = record',
+  '    A: longint;',
+  '    contains child: T;',
+  '    D: longint;',
+  '  end;',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  'var',
+  '  c: specialize TComposed<TChildRec>;',
+  'begin',
+  '  c.{#p1}{@C}C:=c.A;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['child']);
+end;
+
+procedure TTestResolver.TestRecordComposition_GenericRecordConstraint;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  generic TComposed<T: record> = record',
+  '    contains T;',
+  '  end;',
+  '  TChildRec = record',
+  '    {#C}C: longint;',
+  '  end;',
+  'var',
+  '  c: specialize TComposed<TChildRec>;',
+  'begin',
+  '  c.{#p1}{@C}C:=1;',
+  '']);
+  ParseProgram;
+  CheckCompositionPath('p1',['']);
+end;
+
+procedure TTestResolver.TestRecordComposition_GenericClassConstraintFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  TObject = class end;',
+  '  generic TComposed<T: class> = record',
+  '    contains child: T;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sRecordTypeExpected,nRecordTypeExpected);
+end;
+
+procedure TTestResolver.TestRecordComposition_GenericIntegerFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'type',
+  '  generic TComposed<T> = record',
+  '    contains child: T;',
+  '  end;',
+  'var',
+  '  c: specialize TComposed<longint>;',
+  'begin',
+  '']);
+  CheckResolverException(sRecordTypeExpected,nRecordTypeExpected);
+end;
+
+procedure TTestResolver.TestRecordComposition_GenericDeferred;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  generic TTest<T> = record',
+  '    A: longint;',
+  '    contains T;',
+  '  end;',
+  '  generic TTest2<T> = record',
+  '    R: specialize TTest<T>;',
+  '    procedure Run;',
+  '  end;',
+  '  TNested = record',
+  '    {#B}B: longint;',
+  '  end;',
+  'procedure TTest2.Run;',
+  'begin',
+  '  if R.B<>42 then ;',
+  '  with R do B:=3;',
+  'end;',
+  'var',
+  '  t: specialize TTest2<TNested>;',
+  'begin',
+  '  t.R.{@B}B:=42;',
+  '  t.Run;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordComposition_GenericDeferredFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  generic TTest<T> = record',
+  '    A: longint;',
+  '    contains T;',
+  '  end;',
+  '  generic TTest2<T> = record',
+  '    R: specialize TTest<T>;',
+  '    procedure Run;',
+  '  end;',
+  '  TNested = record',
+  '    D: longint;',
+  '  end;',
+  'procedure TTest2.Run;',
+  'begin',
+  '  if R.B<>42 then ;',
+  'end;',
+  'var',
+  '  t: specialize TTest2<TNested>;',
+  'begin',
+  '  t.Run;',
+  '']);
+  CheckResolverException('identifier not found "B"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestRecordAnonym_ResultTypeFail;

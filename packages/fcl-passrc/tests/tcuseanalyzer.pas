@@ -78,6 +78,7 @@ type
     procedure TestM_TryExceptExpr;
     procedure TestM_ResourceString;
     procedure TestM_Record;
+    procedure TestM_RecordComposition;
     procedure TestM_RecordGeneric;
     procedure TestM_PointerTyped_Record;
     procedure TestM_Array;
@@ -1037,6 +1038,36 @@ begin
   '  r.a:=3;',
   '  with r do c:=4;',
   '  r:=cr;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_RecordComposition;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'procedure {#DoIt_used}DoIt;',
+  'type',
+  '  {#tchild_used}TChild = record',
+  '    {#a_used}a: longint;',
+  '    {#b_notused}b: longint;',
+  '  end;',
+  '  {#tother_used}TOther = record',
+  '    {#c_used}c: longint;',
+  '  end;',
+  '  {#trec_used}TRec = record',
+  '    contains {#child_used}child: TChild;',
+  '    {#d_notused}d: longint;',
+  '    contains {#other_used}TOther;',
+  '  end;',
+  'var',
+  '  {#r_used}r: TRec;',
+  'begin',
+  '  r.a:=3;',
+  '  with r do c:=4;',
   'end;',
   'begin',
   '  DoIt;']);

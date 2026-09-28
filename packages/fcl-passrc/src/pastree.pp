@@ -74,6 +74,7 @@ resourcestring
   SPasTreeFunctionType = 'function type';
   SPasTreeUnresolvedTypeRef = 'unresolved type reference';
   SPasTreeVariable = 'variable';
+  SPasTreeContainsAlias = 'contains alias';
   SPasTreeConst = 'constant';
   SPasTreeProperty = 'property';
   SPasTreeOverloadedProcedure = 'overloaded procedure';
@@ -1067,7 +1068,9 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic, vmfar, vmThread);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic, vmfar, vmThread,
+    vmContains // record composition "contains [Name:] Type", Name='' for an unnamed composition
+    );
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -1088,6 +1091,19 @@ type
     AbsoluteExpr: TPasExpr;
     Expr: TPasExpr;
     Function Value : TPasTreeString;
+  end;
+
+  { TPasContainsAlias - record composition "contains alias FieldName" }
+
+  TPasContainsAlias = class(TPasElement)
+  public
+    procedure FreeChildren(Prepare: boolean); override;
+    function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full : boolean) : TPasTreeString; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  public
+    Expr: TPasExpr; // the field name
   end;
 
   { TPasExportSymbol }
@@ -2019,7 +2035,8 @@ const
                    'section','rtlproc','internproc','weakexternal');
 
   VariableModifierNames : Array[TVariableModifier] of TPasTreeString
-     = ('cvar', 'external', 'public', 'export', 'class', 'static','far','thread');
+     = ('cvar', 'external', 'public', 'export', 'class', 'static','far','thread',
+        'contains');
 
 procedure FreeProcNameParts(var NameParts: TProcedureNameParts);
 procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray; Prepare: boolean);
@@ -3115,6 +3132,33 @@ begin
   ForEachChildCall(aMethodCall,Arg,NameExpr,false);
   ForEachChildCall(aMethodCall,Arg,ExportName,false);
   ForEachChildCall(aMethodCall,Arg,ExportIndex,false);
+end;
+
+{ TPasContainsAlias }
+
+procedure TPasContainsAlias.FreeChildren(Prepare: boolean);
+begin
+  Expr:=TPasExpr(FreeChild(Expr,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+function TPasContainsAlias.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreeContainsAlias;
+end;
+
+function TPasContainsAlias.GetDeclaration(full: boolean): TPasTreeString;
+begin
+  Result:='contains alias ';
+  if Expr<>nil then
+    Result:=Result+Expr.GetDeclaration(full);
+end;
+
+procedure TPasContainsAlias.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
 end;
 
 { TPasUnresolvedUnitRef }
@@ -5339,7 +5383,8 @@ begin
     Member:=TPasElement(Members[i]);
     if (Member.Visibility<>visPublic) then
       Exit(True);
-    if (Member.ClassType<>TPasVariable) then
+    if (Member.ClassType<>TPasVariable)
+        and (Member.ClassType<>TPasContainsAlias) then
       Exit(True);
     end;
 end;
@@ -5451,7 +5496,12 @@ begin
     Result:=Value;
   If Full then
     begin
-    Result:=SafeName+' '+Seps[Assigned(VarType)]+' '+Result;
+    if (vmContains in VarModifiers) and (Name='') then
+      Result:='contains '+Result
+    else if vmContains in VarModifiers then
+      Result:='contains '+SafeName+' '+Seps[Assigned(VarType)]+' '+Result
+    else
+      Result:=SafeName+' '+Seps[Assigned(VarType)]+' '+Result;
     Result:=Result+HintsString;
     end;
 end;

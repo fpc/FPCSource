@@ -238,7 +238,8 @@ const
     'DelphiMultilineStrings',
     'InlineVars',
     'StatementExpressions',
-    'TypeInquiry'
+    'TypeInquiry',
+    'RecordComposition'
     ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
@@ -359,7 +360,8 @@ const
     'Class',
     'Static',
     'Far',
-    'ThreadVar'
+    'ThreadVar',
+    'Contains'
     );
 
   PCUDefaultExprKind = pekIdent;
@@ -1731,6 +1733,7 @@ begin
     msDelphiMultiLineStrings: Result:=52;
     msStatementExpressions: Result:=53;
     msTypeInquiry: Result:=54;
+    msRecordComposition: Result:=55;
   else
     Result:=0;
   end;

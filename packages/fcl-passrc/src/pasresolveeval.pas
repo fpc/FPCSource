@@ -199,6 +199,9 @@ const
   nAbsoluteOnlyToVarOrConst = 3096; // same ID as FPC parser_e_absolute_only_to_var_or_const
   nSealedClassCannotHaveAbstractMethod = 3255; // FPC parser_e_sealed_class_cannot_have_abstract_methods
   nForInLoopCannotBeUsedForType = 3265; // FPC parser_e_for_in_loop_cannot_be_used_for_the_type
+  nDuplicateIdentifierX = 5095; // FPC sym_w_duplicate_id
+  nRecordTypeExpected = 5102; // FPC sym_e_type_must_be_record
+  nIdentifierXCannotBeOverloadedForTypeY = 5103; // FPC sym_w_overload_not_possible
 
 // resourcestring patterns of messages
 resourcestring
@@ -358,6 +361,9 @@ resourcestring
   sAbsoluteOnlyToVarOrConst = 'absolute can only be associated with a variable or constant representing an address';
   sSealedClassCannotHaveAbstractMethod = 'SEALED class cannot have an ABSTRACT method';
   sForInLoopCannotBeUsedForType = 'For in loop cannot be used for the type "%s"';
+  sDuplicateIdentifierX = 'Duplicate identifier "%s"';
+  sRecordTypeExpected = 'Record type expected';
+  sIdentifierXCannotBeOverloadedForTypeY = 'Identifier "%s" cannot be overloaded for type "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

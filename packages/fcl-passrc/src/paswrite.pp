@@ -124,6 +124,7 @@ type
     procedure WriteClass(AClass: TPasClassType); virtual;
     procedure WriteConst(AConst: TPasConst); virtual;
     procedure WriteVariable(aVar: TPasVariable); virtual;
+    procedure WriteContainsAlias(aAlias: TPasContainsAlias); virtual;
     procedure WriteArgument(aArg: TPasArgument); virtual;
     procedure WriteDummyExternalFunctions(aSection: TPasSection); virtual;
     procedure WriteOverloadedProc(aProc : TPasOverloadedProc; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
@@ -281,6 +282,8 @@ begin
     WriteConst(TPasConst(AElement)) // Must be before variable
   else if AElement.InheritsFrom(TPasVariable) then
     WriteVariable(TPasVariable(AElement))
+  else if AElement.InheritsFrom(TPasContainsAlias) then
+    WriteContainsAlias(TPasContainsAlias(AElement))
   else if AElement.InheritsFrom(TPasArgument) then
     WriteArgument(TPasArgument(AElement))
   else if AElement.InheritsFrom(TPasType) then
@@ -740,7 +743,9 @@ Var
     Result := (LastMember <> nil) and
       // variables can't be declared directly after methods nor properties
       // (visibility section or var keyword is required)
-      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
+      (((Member is TPasVariable) and not (Member is TPasProperty))
+        or (Member is TPasContainsAlias))
+      and not (LastMember is TPasVariable) and not (LastMember is TPasContainsAlias);
   end;
 
 Var
@@ -841,7 +846,10 @@ begin
     PrepareDeclSectionInStruct('class var')
   else if (CurDeclSection<>'') and not (aVar.Parent.ClassType = TPasRecordType) then
     PrepareDeclSectionInStruct('var');
-  Add(aVar.SafeName + ': ');
+  if vmContains in aVar.VarModifiers then
+    Add('contains ');
+  if not ((vmContains in aVar.VarModifiers) and (aVar.Name='')) then
+    Add(aVar.SafeName + ': ');
   if Not Assigned(aVar.VarType) then
     Add('unknown_type') // Raise EWriteError.CreateFmt('No type for variable %s',[aVar.SafeName]);
   else
@@ -866,6 +874,14 @@ begin
   if Not LParentIsClassOrRecord then
     if Assigned(aVar.Expr) then
       Add(' = '+aVar.Expr.GetDeclaration(true));
+  AddLn(';');
+end;
+
+procedure TPasWriter.WriteContainsAlias(aAlias: TPasContainsAlias);
+begin
+  Add('contains alias ');
+  if aAlias.Expr<>nil then
+    Add(aAlias.Expr.GetDeclaration(true));
   AddLn(';');
 end;
 

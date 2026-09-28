@@ -408,6 +408,7 @@ type
     procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement); virtual;
     procedure ParseRecordMembers(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
+    procedure ParseRecordContains(ARec: TPasRecordType; AVisibility: TPasMemberVisibility; ClosingBrace: Boolean);
     function GetProcedureClass(ProcType : TProcType): TPTreeElement;
     procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility; IsClassField : Boolean; IsThreadVar : Boolean = False);
     procedure ParseClassMembers(AType: TPasClassType);
@@ -8020,6 +8021,72 @@ begin
   Until Done;
 end;
 
+// record composition, on entry CurToken is 'contains', on exit ; or end or )
+procedure TPasParser.ParseRecordContains(ARec: TPasRecordType;
+  AVisibility: TPasMemberVisibility; ClosingBrace: Boolean);
+var
+  tt: TTokens;
+  AliasEl: TPasContainsAlias;
+  VarEl: TPasVariable;
+  El: TPasElement;
+  OldCount, i: Integer;
+  IsNamed: Boolean;
+  TypePos: TPasSourcePos;
+begin
+  tt:=[tkEnd,tkSemicolon];
+  if ClosingBrace then
+    Include(tt,tkBraceClose);
+  NextToken;
+  if CurTokenIsIdentifier('alias') then
+    begin
+    // contains alias FieldName
+    ExpectIdentifier;
+    AliasEl:=TPasContainsAlias(CreateElement(TPasContainsAlias,'',ARec,AVisibility,CurTokenPos));
+    ARec.Members.Add(AliasEl);
+    AliasEl.Expr:=CreatePrimitiveExpr(AliasEl,pekIdent,CurTokenString);
+    NextToken;
+    if not (CurToken in tt) then
+      ParseExc(nParserExpectedSemiColonEnd,SParserExpectedSemiColonEnd);
+    Engine.FinishScope(stDeclaration,AliasEl);
+    exit;
+    end;
+
+  IsNamed:=false;
+  if CurToken=tkIdentifier then
+    begin
+    NextToken;
+    IsNamed:=CurToken=tkColon;
+    UngetToken;
+    end;
+  if IsNamed then
+    begin
+    // contains Name: Type
+    OldCount:=ARec.Members.Count;
+    ParseInlineVarDecl(ARec,ARec.Members,AVisibility,ClosingBrace);
+    for i:=OldCount to ARec.Members.Count-1 do
+      begin
+      El:=TPasElement(ARec.Members[i]);
+      if El.ClassType<>TPasVariable then continue;
+      with TPasVariable(El) do
+        VarModifiers:=VarModifiers+[vmContains];
+      end;
+    end
+  else
+    begin
+    // contains Type
+    TypePos:=CurTokenPos;
+    UngetToken;
+    VarEl:=TPasVariable(CreateElement(TPasVariable,'',ARec,AVisibility,TypePos));
+    VarEl.VarModifiers:=[vmContains];
+    VarEl.VarType:=ParseType(VarEl,TypePos);
+    ARec.Members.Add(VarEl);
+    VarEl.Hints:=CheckHint(nil,False);
+    NextToken;
+    if not (CurToken in tt) then
+      ParseExc(nParserExpectedSemiColonEnd,SParserExpectedSemiColonEnd);
+    end;
+end;
+
 {$ifdef VerbosePasParserWriteln}
 procedure TPasParser.DumpCurToken(const Msg: String; IndentAction: TIndentAction
   );
@@ -8243,7 +8310,15 @@ begin
           Continue;
           end;
         OldCount:=ARec.Members.Count;
-        ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
+        if (msRecordComposition in CurrentModeswitches)
+            and CurTokenIsIdentifier('contains') then
+          begin
+          if isClass then
+            ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError);
+          ParseRecordContains(ARec, v, AEndToken=tkBraceClose);
+          end
+        else
+          ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
         for i:=OldCount to ARec.Members.Count-1 do
           begin
           CurEl:=TPasElement(ARec.Members[i]);

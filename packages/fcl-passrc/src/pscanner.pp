@@ -351,7 +351,8 @@ type
     msDelphiMultiLineStrings, { Delpi-compatible multiline strings }
     msInlineVars,             { Allow inline var declarations }
     msStatementExpressions,   { allow if-expressions }
-    msTypeInquiry             { allow "type of" operator }
+    msTypeInquiry,            { allow "type of" operator }
+    msRecordComposition       { allow "contains" in records }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1237,7 +1238,8 @@ const
     'DELPHIMULTILINESTRINGS',
     'INLINEVARS',
     'STATEMENTEXPRESSIONS',
-    'TYPEINQUIRY'
+    'TYPEINQUIRY',
+    'RECORDCOMPOSITION'
     );
 
   LetterSwitchNames: array['A'..'Z'] of TPasScannerString=(

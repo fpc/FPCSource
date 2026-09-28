@@ -899,6 +899,7 @@ type
     property Element: TPasElement read FElement write SetElement;
   end;
   TPasIdentifierArray = array of TPasIdentifier;
+  TPasVariableArray = array of TPasVariable;
 
   { TPasIdentifierScope - elements with a list of sub identifiers }
 
@@ -1050,9 +1051,36 @@ type
     ClassDestructor: TPasClassDestructor;
   end;
 
+  { TPasCompositionIdentifier - a member composed via record "contains" }
+
+  TPasCompositionIdentifier = Class(TPasIdentifier)
+  public
+    Path: TPasVariableArray; // composition fields, from the composing record down to the record of Element
+    Visibility: TPasMemberVisibility; // composed visibility, relative to the composing record
+  end;
+
+  { TPasRecordCompositionScope - the members a record composes via "contains",
+    owned by the TPasRecordScope, Element is the composing record }
+
+  TPasRecordCompositionScope = Class(TPasIdentifierScope)
+  public
+    Items: TFPList; // list of TPasCompositionIdentifier in order of adding, not owned
+    constructor Create; override;
+    destructor Destroy; override;
+    class function IsStoredInElement: boolean; override;
+    class function FreeOnPop: boolean; override;
+    function AddComposition(const aName: string; El: TPasElement;
+      const aPath: TPasVariableArray; aVisibility: TPasMemberVisibility): TPasCompositionIdentifier;
+    function FindComposition(El: TPasElement): TPasCompositionIdentifier;
+  end;
+
   { TPasRecordScope }
 
   TPasRecordScope = Class(TPasClassOrRecordScope)
+  public
+    CompositionScope: TPasRecordCompositionScope; // members composed via "contains", can be nil
+    ComposedTemplate: TPasGenericTemplateType; // not nil if a generic template type is composed, members are unknown until specialization
+    destructor Destroy; override;
   end;
   TPasRecordScopeClass = class of TPasRecordScope;
 
@@ -1365,6 +1393,7 @@ type
     Access: TResolvedRefAccess;
     Context: TResolvedRefContext;
     WithExprScope: TPasWithExprScope;// if set, this reference used a With-block expression.
+    CompositionPath: TPasVariableArray; // if set, Declaration is a member composed via these record composition fields
     destructor Destroy; override;
     property Declaration: TPasElement read FDeclaration write SetDeclaration;
   end;
@@ -1821,6 +1850,8 @@ type
     procedure FinishConstRangeExpr(RangeExpr: TBinaryExpr;
       out LeftResolved, RightResolved: TPasResolverResult);
     procedure FinishRecordType(El: TPasRecordType); virtual;
+    procedure FinishRecordCompositions(El: TPasRecordType; Scope: TPasRecordScope); virtual;
+    procedure FinishContainsAlias(El: TPasContainsAlias); virtual;
     procedure FinishClassType(El: TPasClassType); virtual;
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishPointerType(El: TPasPointerType); virtual;
@@ -2043,6 +2074,7 @@ type
     procedure SpecializeElement(GenEl, SpecEl: TPasElement);
     procedure SpecializePasElementProperties(GenEl, SpecEl: TPasElement);
     procedure SpecializeVariable(GenEl, SpecEl: TPasVariable; Finish: boolean);
+    procedure SpecializeContainsAlias(GenEl, SpecEl: TPasContainsAlias);
     procedure SpecializeConst(GenEl, SpecEl: TPasConst);
     procedure SpecializeProperty(GenEl, SpecEl: TPasProperty);
     function SpecializationRootOf(El: TPasElement): TPasElement;
@@ -2373,6 +2405,7 @@ type
     function CreateReference(DeclEl, RefEl: TPasElement;
       Access: TResolvedRefAccess;
       FindData: PPRFindData = nil): TResolvedReference; virtual;
+    procedure SetCompositionPath(Ref: TResolvedReference; ElScope: TPasScope); virtual;
     // scopes
     function GetLocalScope: TPasScope; inline;
     function GetParentLocalScope: TPasScope; inline;
@@ -2820,6 +2853,7 @@ type
     property TypeOfOperandLevel: integer read FTypeOfOperandLevel;
     function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function IsDeferredTemplMember(Expr: TPasExpr): boolean;
+    function IsRecordComposingTemplate(El: TPasRecordType): boolean;
     function ClassOfTemplType(const ResolvedEl: TPasResolverResult): TPasGenericTemplateType;
     function DerefPointerToArray(var R: TPasResolverResult;
       PosEl: TPasElement): boolean;
@@ -3351,6 +3385,8 @@ begin
     Result:='var'
   else if C=TPasExportSymbol then
     Result:='export'
+  else if C=TPasContainsAlias then
+    Result:='contains alias'
   else if C=TPasConst then
     Result:='const'
   else if C=TPasProperty then
@@ -3933,6 +3969,70 @@ procedure TPasDotEnumTypeScope.WriteIdentifiers(Prefix: string);
 begin
   EnumScope.WriteIdentifiers(Prefix);
   inherited WriteIdentifiers(Prefix);
+end;
+
+{ TPasRecordCompositionScope }
+
+constructor TPasRecordCompositionScope.Create;
+begin
+  inherited Create;
+  Items:=TFPList.Create;
+end;
+
+destructor TPasRecordCompositionScope.Destroy;
+begin
+  FreeAndNil(Items);
+  inherited Destroy;
+end;
+
+class function TPasRecordCompositionScope.IsStoredInElement: boolean;
+begin
+  Result:=false;
+end;
+
+class function TPasRecordCompositionScope.FreeOnPop: boolean;
+begin
+  Result:=false;
+end;
+
+function TPasRecordCompositionScope.AddComposition(const aName: string;
+  El: TPasElement; const aPath: TPasVariableArray;
+  aVisibility: TPasMemberVisibility): TPasCompositionIdentifier;
+begin
+  Result:=TPasCompositionIdentifier.Create;
+  Result.Identifier:=aName;
+  Result.Element:=El;
+  if El is TPasProcedure then
+    Result.Kind:=pikProc
+  else
+    Result.Kind:=pikSimple;
+  Result.Path:=aPath;
+  Result.Visibility:=aVisibility;
+  InternalAdd(Result);
+  Items.Add(Result);
+end;
+
+function TPasRecordCompositionScope.FindComposition(El: TPasElement
+  ): TPasCompositionIdentifier;
+var
+  Item: TPasIdentifier;
+begin
+  Item:=FindLocalIdentifier(El.Name);
+  while Item<>nil do
+    begin
+    if Item.Element=El then
+      exit(Item as TPasCompositionIdentifier);
+    Item:=Item.NextSameIdentifier;
+    end;
+  Result:=nil;
+end;
+
+{ TPasRecordScope }
+
+destructor TPasRecordScope.Destroy;
+begin
+  FreeAndNil(CompositionScope);
+  inherited Destroy;
 end;
 
 { TPasGroupScope }
@@ -5328,7 +5428,15 @@ begin
       and (TBinaryExpr(Expr.Parent).OpCode=eopSubIdent)
       and (TBinaryExpr(Expr.Parent).right=Expr)) then exit;
   ComputeElement(TBinaryExpr(Expr.Parent).left,ResolvedEl,[]);
-  Result:=IsGenericTemplType(ResolvedEl) or (ClassOfTemplType(ResolvedEl)<>nil);
+  Result:=IsGenericTemplType(ResolvedEl) or (ClassOfTemplType(ResolvedEl)<>nil)
+    or ((ResolvedEl.LoTypeEl is TPasRecordType)
+        and IsRecordComposingTemplate(TPasRecordType(ResolvedEl.LoTypeEl)));
+end;
+
+function TPasResolver.IsRecordComposingTemplate(El: TPasRecordType): boolean;
+begin
+  Result:=(El.CustomData is TPasRecordScope)
+      and (TPasRecordScope(El.CustomData).ComposedTemplate<>nil);
 end;
 
 function TPasResolver.ClassOfTemplType(const ResolvedEl: TPasResolverResult
@@ -8292,7 +8400,280 @@ begin
   PopScope;
 
   Scope:=El.CustomData as TPasRecordScope;
+  FinishRecordCompositions(El,Scope);
   FinishGenericClassOrRecIntf(Scope);
+end;
+
+procedure TPasResolver.FinishRecordCompositions(El: TPasRecordType;
+  Scope: TPasRecordScope);
+// Record composition: collect the members composed via "contains".
+// Own members hide composed members, the first composition wins.
+
+  function VisRank(Vis: TPasMemberVisibility): integer;
+  begin
+    case Vis of
+    visStrictPrivate: Result:=0;
+    visPrivate: Result:=1;
+    visStrictProtected: Result:=2;
+    visProtected: Result:=3;
+    visPublished: Result:=5;
+    else Result:=4; // default, public
+    end;
+  end;
+
+  function IsComposable(Member: TPasElement): boolean;
+  var
+    C: TClass;
+  begin
+    Result:=false;
+    if Member.Name='' then exit;
+    C:=Member.ClassType;
+    if C=TPasVariable then
+      Result:=[vmClass,vmStatic]*TPasVariable(Member).VarModifiers=[]
+    else if (C=TPasConst) or (C=TPasProperty) then
+      Result:=true
+    else if Member is TPasProcedure then
+      Result:=not (Member is TPasOperator)
+          and (C<>TPasClassConstructor) and (C<>TPasClassDestructor);
+  end;
+
+  procedure AddComposed(Member: TPasElement; const Path: TPasVariableArray;
+    MemberVis, SectionVis: TPasMemberVisibility; IsUnnamed: boolean;
+    ErrorEl: TPasElement);
+  var
+    Existing: TPasIdentifier;
+    Vis: TPasMemberVisibility;
+  begin
+    // only members visible to the composing record are composed
+    case MemberVis of
+    visStrictPrivate,visStrictProtected:
+      exit;
+    visPrivate,visProtected:
+      if Member.GetModule<>El.GetModule then exit;
+    end;
+    if VisRank(SectionVis)<VisRank(MemberVis) then
+      Vis:=SectionVis
+    else
+      Vis:=MemberVis;
+
+    // check collisions
+    Existing:=Scope.FindLocalIdentifier(Member.Name);
+    if (Existing=nil) and (Scope.CompositionScope<>nil) then
+      begin
+      Existing:=Scope.CompositionScope.FindLocalIdentifier(Member.Name);
+      if (Existing<>nil)
+          and (TPasCompositionIdentifier(Existing).Path[0]=Path[0]) then
+        Existing:=nil; // e.g. overloads of the same composition
+      end;
+    if Existing<>nil then
+      begin
+      if IsUnnamed then
+        RaiseMsg(20260928120010,nDuplicateIdentifier,sDuplicateIdentifier,
+          [Member.Name,GetElementSourcePosStr(Existing.Element)],ErrorEl)
+      else if (Member is TPasProcedure)
+          or ((Member is TPasProperty) and (TPasProperty(Member).Args.Count>0)) then
+        LogMsg(20260928120020,mtWarning,nIdentifierXCannotBeOverloadedForTypeY,
+          sIdentifierXCannotBeOverloadedForTypeY,[Member.Name,El.Name],ErrorEl)
+      else
+        LogMsg(20260928120030,mtWarning,nDuplicateIdentifierX,
+          sDuplicateIdentifierX,[Member.Name],ErrorEl);
+      exit;
+      end;
+
+    if Scope.CompositionScope=nil then
+      begin
+      Scope.CompositionScope:=TPasRecordCompositionScope.Create;
+      Scope.CompositionScope.Element:=El;
+      Scope.CompositionScope.VisibilityContext:=El;
+      end;
+    Scope.CompositionScope.AddComposition(Member.Name,Member,Path,Vis);
+  end;
+
+  procedure AddMembers(Members: TFPList; const Path: TPasVariableArray;
+    SectionVis: TPasMemberVisibility; IsUnnamed: boolean; ErrorEl: TPasElement);
+  var
+    i, j: Integer;
+    Member: TPasElement;
+    Overloads: TFPList;
+  begin
+    for i:=0 to Members.Count-1 do
+      begin
+      Member:=TPasElement(Members[i]);
+      if Member is TPasOverloadedProc then
+        begin
+        Overloads:=TPasOverloadedProc(Member).Overloads;
+        for j:=0 to Overloads.Count-1 do
+          begin
+          Member:=TPasElement(Overloads[j]);
+          if IsComposable(Member) then
+            AddComposed(Member,Path,Member.Visibility,SectionVis,IsUnnamed,ErrorEl);
+          end;
+        end
+      else if IsComposable(Member) then
+        AddComposed(Member,Path,Member.Visibility,SectionVis,IsUnnamed,ErrorEl);
+      end;
+  end;
+
+  procedure AddVariantMembers(Rec: TPasRecordType; const Path: TPasVariableArray;
+    SectionVis: TPasMemberVisibility; IsUnnamed: boolean; ErrorEl: TPasElement);
+  var
+    i: Integer;
+    SubRec: TPasRecordType;
+  begin
+    if Rec.Variants=nil then exit;
+    for i:=0 to Rec.Variants.Count-1 do
+      begin
+      SubRec:=TPasVariant(Rec.Variants[i]).Members;
+      if SubRec=nil then continue;
+      AddMembers(SubRec.Members,Path,SectionVis,IsUnnamed,ErrorEl);
+      AddVariantMembers(SubRec,Path,SectionVis,IsUnnamed,ErrorEl);
+      end;
+  end;
+
+  function IsRecordConstraint(TemplType: TPasGenericTemplateType): boolean;
+  var
+    i: Integer;
+  begin
+    for i:=0 to length(TemplType.Constraints)-1 do
+      if GetGenericConstraintKeyword(TemplType.Constraints[i])<>tkrecord then
+        exit(false);
+    Result:=true;
+  end;
+
+  procedure AddComposition(Field: TPasVariable; SectionVis: TPasMemberVisibility;
+    ErrorEl: TPasElement);
+  var
+    LoType: TPasType;
+    ChildRec: TPasRecordType;
+    ChildScope: TPasRecordScope;
+    Path, SubPath: TPasVariableArray;
+    IsUnnamed: Boolean;
+    i, j: Integer;
+    Item: TPasCompositionIdentifier;
+  begin
+    LoType:=ResolveAliasType(Field.VarType);
+    if LoType is TPasGenericTemplateType then
+      begin
+      // composition is deferred until specialization
+      if not IsRecordConstraint(TPasGenericTemplateType(LoType)) then
+        RaiseMsg(20260928120040,nRecordTypeExpected,sRecordTypeExpected,[],ErrorEl);
+      if Scope.ComposedTemplate=nil then
+        Scope.ComposedTemplate:=TPasGenericTemplateType(LoType);
+      exit;
+      end;
+    if not (LoType is TPasRecordType)
+        or not (LoType.CustomData is TPasRecordScope) then
+      RaiseMsg(20260928120050,nRecordTypeExpected,sRecordTypeExpected,[],ErrorEl);
+    ChildRec:=TPasRecordType(LoType);
+    ChildScope:=TPasRecordScope(ChildRec.CustomData);
+    if (ChildScope.ComposedTemplate<>nil) and (Scope.ComposedTemplate=nil) then
+      Scope.ComposedTemplate:=ChildScope.ComposedTemplate;
+    IsUnnamed:=Field.Name='';
+    Path:=nil;
+    SetLength(Path,1);
+    Path[0]:=Field;
+    AddMembers(ChildRec.Members,Path,SectionVis,IsUnnamed,ErrorEl);
+    AddVariantMembers(ChildRec,Path,SectionVis,IsUnnamed,ErrorEl);
+    if ChildScope.CompositionScope<>nil then
+      for i:=0 to ChildScope.CompositionScope.Items.Count-1 do
+        begin
+        Item:=TPasCompositionIdentifier(ChildScope.CompositionScope.Items[i]);
+        SubPath:=nil;
+        SetLength(SubPath,length(Item.Path)+1);
+        SubPath[0]:=Field;
+        for j:=0 to length(Item.Path)-1 do
+          SubPath[j+1]:=Item.Path[j];
+        AddComposed(Item.Element,SubPath,Item.Visibility,SectionVis,IsUnnamed,ErrorEl);
+        end;
+  end;
+
+  procedure AddCompositions(Members: TFPList);
+  var
+    i: Integer;
+    Member: TPasElement;
+    Ref: TResolvedReference;
+  begin
+    for i:=0 to Members.Count-1 do
+      begin
+      Member:=TPasElement(Members[i]);
+      if (Member.ClassType=TPasVariable)
+          and (vmContains in TPasVariable(Member).VarModifiers) then
+        AddComposition(TPasVariable(Member),Member.Visibility,Member)
+      else if Member.ClassType=TPasContainsAlias then
+        begin
+        if not (TPasContainsAlias(Member).Expr.CustomData is TResolvedReference) then
+          continue;
+        Ref:=TResolvedReference(TPasContainsAlias(Member).Expr.CustomData);
+        AddComposition(Ref.Declaration as TPasVariable,Member.Visibility,Member);
+        end;
+      end;
+  end;
+
+  procedure AddVariantCompositions(Rec: TPasRecordType);
+  var
+    i: Integer;
+    SubRec: TPasRecordType;
+  begin
+    if Rec.Variants=nil then exit;
+    for i:=0 to Rec.Variants.Count-1 do
+      begin
+      SubRec:=TPasVariant(Rec.Variants[i]).Members;
+      if SubRec=nil then continue;
+      AddCompositions(SubRec.Members);
+      AddVariantCompositions(SubRec);
+      end;
+  end;
+
+begin
+  AddCompositions(El.Members);
+  AddVariantCompositions(El);
+end;
+
+procedure TPasResolver.FinishContainsAlias(El: TPasContainsAlias);
+// record composition: "contains alias FieldName"
+var
+  aName: String;
+  Rec: TPasRecordType;
+  RecScope: TPasRecordScope;
+  Item: TPasIdentifier;
+  Field: TPasElement;
+  i: Integer;
+  Member: TPasElement;
+  Ref: TResolvedReference;
+begin
+  if El.Expr.CustomData is TResolvedReference then exit;
+  if not (El.Expr is TPrimitiveExpr) then
+    RaiseNotYetImplemented(20260928120100,El.Expr);
+  aName:=TPrimitiveExpr(El.Expr).Value;
+  Rec:=El.Parent as TPasRecordType;
+  while Rec.Parent is TPasVariant do
+    Rec:=Rec.Parent.Parent as TPasRecordType;
+  RecScope:=Rec.CustomData as TPasRecordScope;
+  Item:=RecScope.FindLocalIdentifier(aName);
+  if Item=nil then
+    RaiseIdentifierNotFound(20260928120110,aName,El.Expr);
+  Field:=Item.Element;
+  if (Field.ClassType<>TPasVariable)
+      or ([vmClass,vmStatic]*TPasVariable(Field).VarModifiers<>[]) then
+    RaiseXExpectedButYFound(20260928120120,'field',GetElementTypeName(Field),El.Expr);
+  if vmContains in TPasVariable(Field).VarModifiers then
+    RaiseMsg(20260928120130,nDuplicateIdentifier,sDuplicateIdentifier,
+      [aName,GetElementSourcePosStr(Field)],El.Expr);
+  // check duplicate alias
+  for i:=0 to TPasRecordType(El.Parent).Members.Count-1 do
+    begin
+    Member:=TPasElement(TPasRecordType(El.Parent).Members[i]);
+    if Member=El then break;
+    if (Member.ClassType=TPasContainsAlias)
+        and (TPasContainsAlias(Member).Expr.CustomData is TResolvedReference) then
+      begin
+      Ref:=TResolvedReference(TPasContainsAlias(Member).Expr.CustomData);
+      if Ref.Declaration=Field then
+        RaiseMsg(20260928120140,nDuplicateIdentifier,sDuplicateIdentifier,
+          [aName,GetElementSourcePosStr(Member)],El.Expr);
+      end;
+    end;
+  CreateReference(Field,El.Expr,rraRead);
 end;
 
 procedure TPasResolver.FinishClassType(El: TPasClassType);
@@ -10081,6 +10462,8 @@ begin
     FinishAttributes(TPasAttributes(El))
   else if C=TPasExportSymbol then
     FinishExportSymbol(TPasExportSymbol(El))
+  else if C=TPasContainsAlias then
+    FinishContainsAlias(TPasContainsAlias(El))
   else
     begin
     {$IFDEF VerbosePasResolver}
@@ -14906,6 +15289,9 @@ begin
         end;
       if DeferUndecidedMember(LHiTypeEl) then
         exit;
+      // record composition of a template type: members are known after specialization
+      if IsRecordComposingTemplate(RecordEl) and DeferMissingMember then
+        exit;
       ResolveRight;
       exit;
       end
@@ -15672,6 +16058,7 @@ begin
     Include(Ref.Flags,rrfTypeOfCast);
   if FindCallData.StartScope.ClassType=ScopeClass_WithExpr then
     Ref.WithExprScope:=TPasWithExprScope(FindCallData.StartScope);
+  SetCompositionPath(Ref,FindCallData.ElScope);
   FindData:=Default(TPRFindData);
   FindData.ErrorPosEl:=NameExpr;
   FindData.StartScope:=FindCallData.StartScope;
@@ -24940,6 +25327,8 @@ begin
     AddVariable(TPasConst(SpecEl));
     SpecializeConst(TPasConst(GenEl),TPasConst(SpecEl));
     end
+  else if C=TPasContainsAlias then
+    SpecializeContainsAlias(TPasContainsAlias(GenEl),TPasContainsAlias(SpecEl))
   else if C=TPasProperty then
     begin
     AddProperty(TPasProperty(SpecEl));
@@ -25022,6 +25411,12 @@ begin
     SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
   if Finish then
     FinishVariable(SpecEl);
+end;
+
+procedure TPasResolver.SpecializeContainsAlias(GenEl, SpecEl: TPasContainsAlias);
+begin
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
+  FinishContainsAlias(SpecEl);
 end;
 
 procedure TPasResolver.SpecializeConst(GenEl, SpecEl: TPasConst);
@@ -29878,6 +30273,8 @@ begin
   else if AClass=TPasAttributes then
   else if AClass=TPasExportSymbol then
     AddExportSymbol(TPasExportSymbol(El))
+  else if AClass=TPasContainsAlias then
+    // resolved by FinishContainsAlias
   else if AClass=TPasUnresolvedUnitRef then
     RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
   else
@@ -31313,6 +31710,8 @@ procedure TPasResolver.CheckFoundElementVisibility(const FindData: TPRFindData;
 var
   Context: TPasElement;
   FoundContext: TPasMembersType;
+  FoundVisibility: TPasMemberVisibility;
+  CompItem: TPasCompositionIdentifier;
   CurScope: TPasScope;
   AncProp: TPasProperty;
   {$IFDEF VerbosePasResolver}
@@ -31380,11 +31779,24 @@ begin
       exit;
       end;
     end;
-  if FindData.Found.Visibility in [visPrivate,visProtected,visStrictPrivate,visStrictProtected] then
+  FoundVisibility:=FindData.Found.Visibility;
+  FoundContext:=nil;
+  if FindData.ElScope is TPasRecordCompositionScope then
+    begin
+    // record composition: the composed visibility relative to the composing record
+    CompItem:=TPasRecordCompositionScope(FindData.ElScope).FindComposition(FindData.Found);
+    if CompItem<>nil then
+      begin
+      FoundVisibility:=CompItem.Visibility;
+      FoundContext:=FindData.ElScope.Element as TPasMembersType;
+      end;
+    end;
+  if FoundVisibility in [visPrivate,visProtected,visStrictPrivate,visStrictProtected] then
     begin
     Context:=GetVisibilityContext;
-    FoundContext:=FindData.Found.Parent as TPasMembersType;
-    case FindData.Found.Visibility of
+    if FoundContext=nil then
+      FoundContext:=FindData.Found.Parent as TPasMembersType;
+    case FoundVisibility of
       visPrivate:
         // private members can only be accessed in same module -- EXCEPT an
         // `inherited Create` chaining to a private ancestor constructor (e.g.
@@ -32122,9 +32534,22 @@ begin
     end;
   AddResolveData(RefEl,Result,lkModule);
   Result.Declaration:=DeclEl;
+  if FindData<>nil then
+    SetCompositionPath(Result,FindData^.ElScope);
   if RefEl is TPasExpr then
     SetResolvedRefAccess(TPasExpr(RefEl),Result,Access);
   EmitElementHints(RefEl,DeclEl);
+end;
+
+procedure TPasResolver.SetCompositionPath(Ref: TResolvedReference;
+  ElScope: TPasScope);
+var
+  CompItem: TPasCompositionIdentifier;
+begin
+  if not (ElScope is TPasRecordCompositionScope) then exit;
+  CompItem:=TPasRecordCompositionScope(ElScope).FindComposition(Ref.Declaration);
+  if CompItem<>nil then
+    Ref.CompositionPath:=CompItem.Path;
 end;
 
 procedure TPasResolver.WriteScopesShort(Title: string);
@@ -32352,6 +32777,10 @@ begin
     C:=LoType.ClassType;
     if (C=TPasClassType) or (C=TPasRecordType) then
       Scope.Add(LoType.CustomData as TPasIdentifierScope);
+    // then add the members composed via record composition
+    if (C=TPasRecordType) and (LoType.CustomData is TPasRecordScope)
+        and (TPasRecordScope(LoType.CustomData).CompositionScope<>nil) then
+      Scope.Add(TPasRecordScope(LoType.CustomData).CompositionScope);
     // continue with ancestor
     if not IsClass then break;
     AncestorScope:=(LoType.CustomData as TPasClassScope).AncestorScope;
@@ -32766,7 +33195,9 @@ begin
   HiType:=ExprResolved.HiTypeEl;
   LoType:=ExprResolved.LoTypeEl;
   // ToDo: use last element in Expr for error position
-  if (LoType<>nil) and (LoType.ClassType=TPasGenericTemplateType) then
+  if (LoType<>nil) and ((LoType.ClassType=TPasGenericTemplateType)
+      or ((LoType.ClassType=TPasRecordType)
+        and IsRecordComposingTemplate(TPasRecordType(LoType)))) then
     begin
     // Inside a generic body, "with v" where v has a template type cannot be
     // resolved until specialization (the member set is unknown). Create a
@@ -39937,6 +40368,15 @@ begin
               begin
               SetResolverValueExpr(ResolvedEl,btContext,TemplEl,TemplEl,
                 TPasExpr(El),[rrfReadable]);
+              exit;
+              end;
+            // a member of a record composing a template type
+            if (ResolvedEl.LoTypeEl is TPasRecordType)
+                and IsRecordComposingTemplate(TPasRecordType(ResolvedEl.LoTypeEl)) then
+              begin
+              TemplEl:=TPasRecordScope(ResolvedEl.LoTypeEl.CustomData).ComposedTemplate;
+              SetResolverValueExpr(ResolvedEl,btContext,TemplEl,TemplEl,
+                TPasExpr(El),[rrfReadable,rrfWritable]);
               exit;
               end;
             // The mirror of the deferral in ResolveSubIdent: the left is a type

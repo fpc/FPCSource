@@ -1812,6 +1812,12 @@ begin
     Access:=Ref.Access;
     MarkImplScopeRef(El,Decl,ResolvedToPSRefAccess[Access]);
     UseElement(Decl,Access,false);
+    // record composition: the member is accessed via the composition fields
+    for i:=0 to length(Ref.CompositionPath)-1 do
+      if Decl is TPasVariable then
+        UseElement(Ref.CompositionPath[i],Access,false)
+      else
+        UseElement(Ref.CompositionPath[i],rraRead,false);
     if Ref.Context<>nil then
       begin
       if Ref.Context.ClassType=TResolvedRefCtxAttrProc then

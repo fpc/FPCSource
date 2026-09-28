@@ -283,6 +283,7 @@ type
     Procedure TestDottedUnitExpr;
     Procedure Test_ModeFPCFail;
     Procedure Test_ModeSwitchCBlocksFail;
+    Procedure Test_ModeSwitchRecordCompositionFail;
     Procedure TestUnit_UseSystem;
     Procedure TestUnit_Intf1Impl2Intf1;
     Procedure TestIncludeVersion;
@@ -3398,6 +3399,16 @@ begin
   Add('begin');
   ConvertProgram;
   CheckHint(mtWarning,nErrInvalidModeSwitch,'Warning: test1.pp(3,23) : Invalid mode switch: "cblocks"');
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.Test_ModeSwitchRecordCompositionFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch recordcomposition}');
+  Add('begin');
+  ConvertProgram;
+  CheckHint(mtWarning,nErrInvalidModeSwitch,'Warning: test1.pp(3,32) : Invalid mode switch: "recordcomposition"');
   CheckResolverUnexpectedHints();
 end;
 
