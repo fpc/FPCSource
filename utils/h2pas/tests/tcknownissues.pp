@@ -31,7 +31,6 @@ type
     procedure TestReferenceParam;
     procedure TestEllipsisStubMatchesInterface;
     procedure TestBitFieldAccessorParamName;
-    procedure TestNoCdeclOnRecordField;
     procedure TestFunctionTypedef;
     procedure TestNoShiftWarning;
   end;
@@ -55,9 +54,6 @@ type
   TTestKnownOptionIssues = class(TH2PasTestCase)
   published
     procedure TestEnumToConstTypedefCompiles;
-    procedure TestDynLibCdecl;
-    procedure TestWin32Stdcall;
-    procedure TestWin32CallbackType;
   end;
 
 implementation
@@ -124,15 +120,6 @@ begin
   Convert(['struct bits { unsigned int a : 1; };']);
   AssertConverted;
   AssertNotOutput('getter parameter does not repeat the getter name','function a(var a :');
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestNoCdeclOnRecordField;
-
-begin
-  Convert(['typedef int (*binop)(int a);','struct s { int m; };']);
-  AssertConverted;
-  AssertInterface('record field after a procedure type',['s = record','m : longint;','end;']);
 end;
 
 
@@ -233,34 +220,6 @@ begin
   Convert(['typedef enum { A, B } k;','extern k v;'],['-e','-d']);
   AssertConverted;
   AssertCompiles;
-end;
-
-
-procedure TTestKnownOptionIssues.TestDynLibCdecl;
-
-begin
-  Convert(['int getval(int a);'],['-P']);
-  AssertConverted;
-  AssertInterface('-P procedure variables are cdecl',['getval : function(a:longint):longint;cdecl;']);
-end;
-
-
-procedure TTestKnownOptionIssues.TestWin32Stdcall;
-
-begin
-  Convert(['int STDCALL f1(int a);','int WINAPI f2(void);'],['-w']);
-  AssertConverted;
-  AssertInterface('STDCALL is stdcall',['function f1(a:longint):longint;stdcall;external External_library name ''f1'';']);
-  AssertInterface('WINAPI is stdcall',['function f2:longint;stdcall;external External_library name ''f2'';']);
-end;
-
-
-procedure TTestKnownOptionIssues.TestWin32CallbackType;
-
-begin
-  Convert(['typedef int (CALLBACK *cbp)(int);'],['-w']);
-  AssertConverted;
-  AssertInterface('CALLBACK procedure type is stdcall',['cbp = function (_para1:longint):longint;stdcall;']);
 end;
 
 

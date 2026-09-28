@@ -46,6 +46,10 @@ type
     procedure TestVarParamsKeepCharPointers;
     procedure TestWin32;
     procedure TestWin32CallingConventions;
+    procedure TestWin32DefaultCdecl;
+    procedure TestWin32CallbackType;
+    procedure TestWin32Compiles;
+    procedure TestDynLibCallingConventions;
     procedure TestWin32WideString;
     procedure TestWin32Packed;
     procedure TestCallingConventionNeedsWin32;
@@ -342,13 +346,51 @@ begin
   Convert(['int STDCALL f1(int a);','int WINAPI f2(void);','int CALLBACK f3(void);',
            'int PASCAL f4(void);','int CDECL f5(void);','int WINGDIAPI f6(void);'],['-w']);
   AssertConverted;
-  AssertInterface('STDCALL function',['function f1(a:longint):longint;']);
-  AssertInterface('WINAPI function',['function f2:longint;']);
-  AssertInterface('CALLBACK function',['function f3:longint;']);
-  AssertInterface('PASCAL function',['function f4:longint;']);
-  AssertInterface('CDECL function is cdecl',['function f5:longint;cdecl;external External_library name ''f5'';']);
-  AssertInterface('WINGDIAPI function',['function f6:longint;']);
-  AssertNotOutput('only CDECL gives cdecl',':longint;cdecl;external External_library name ''f1''');
+  AssertInterface('STDCALL is stdcall',['function f1(a:longint):longint;stdcall;external External_library name ''f1'';']);
+  AssertInterface('WINAPI is stdcall',['function f2:longint;stdcall;external External_library name ''f2'';']);
+  AssertInterface('CALLBACK is stdcall',['function f3:longint;stdcall;external External_library name ''f3'';']);
+  AssertInterface('PASCAL is stdcall',['function f4:longint;stdcall;external External_library name ''f4'';']);
+  AssertInterface('CDECL is cdecl',['function f5:longint;cdecl;external External_library name ''f5'';']);
+  AssertInterface('WINGDIAPI is stdcall',['function f6:longint;stdcall;external External_library name ''f6'';']);
+end;
+
+
+procedure TTestOptions.TestWin32DefaultCdecl;
+
+begin
+  Convert(['int f(int a);'],['-w']);
+  AssertConverted;
+  AssertInterface('-w function without modifier is cdecl',['function f(a:longint):longint;cdecl;external External_library name ''f'';']);
+end;
+
+
+procedure TTestOptions.TestWin32CallbackType;
+
+begin
+  Convert(['typedef int (CALLBACK *cbp)(int);','typedef int (*cbq)(int);'],['-w']);
+  AssertConverted;
+  AssertInterface('CALLBACK procedure type is stdcall',['cbp = function (_para1:longint):longint;stdcall;']);
+  AssertInterface('procedure type without modifier is cdecl',['cbq = function (_para1:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestOptions.TestWin32Compiles;
+
+begin
+  Convert(['int STDCALL f1(int a);','int CDECL f2(void);','typedef int (CALLBACK *cbp)(int);',
+           'struct s { int (*fn)(int); };'],['-w']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestOptions.TestDynLibCallingConventions;
+
+begin
+  Convert(['int getval(int a);','int STDCALL wingetval(int a);'],['-P','-w']);
+  AssertConverted;
+  AssertInterface('-P procedure variables are cdecl',['getval : function(a:longint):longint;cdecl;']);
+  AssertInterface('-P procedure variables for STDCALL are stdcall',['wingetval : function(a:longint):longint;stdcall;']);
 end;
 
 

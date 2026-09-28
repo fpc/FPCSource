@@ -27,6 +27,7 @@ type
     procedure TestSelfPointerMember;
     procedure TestStructKeywordMember;
     procedure TestFunctionPointerMember;
+    procedure TestNoCdeclAfterProcedureType;
     procedure TestNestedUnionMember;
     procedure TestNestedStructMember;
     procedure TestReservedWordMember;
@@ -121,6 +122,17 @@ begin
   Convert(['struct s { int (*fn)(int); };']);
   AssertConverted;
   AssertInterface('function pointer member is a cdecl procedural type',['fn : function (_para1:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestStructs.TestNoCdeclAfterProcedureType;
+
+begin
+  Convert(['typedef int (*binop)(int a);','struct s { int m; int (*fn)(int); int n; };'],['-d']);
+  AssertConverted;
+  AssertInterface('only the function pointer field is cdecl',
+    ['s = record','m : longint;','fn : function (_para1:longint):longint;cdecl;','n : longint;','end;']);
+  AssertCompiles;
 end;
 
 

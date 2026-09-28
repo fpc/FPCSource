@@ -1164,6 +1164,7 @@ begin
             write(outfile,aktspace,FixId(hp3^.p1^.p2^.p));
             write(outfile,' : ');
             shift(2);
+            is_procvar:=false;
             write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
             popshift;
             end;
@@ -1222,8 +1223,7 @@ begin
             begin
             if is_procvar then
               begin
-              if not no_pop then
-                write(outfile,';cdecl');
+              write(outfile,';cdecl');
               is_procvar:=false;
               end;
             writeln(outfile,';');

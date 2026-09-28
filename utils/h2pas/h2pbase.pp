@@ -438,6 +438,31 @@ begin
 end;
 
 
+// Writes the calling convention of a function declaration: stdcall for no_pop, cdecl when external or for -P.
+procedure WriteCallingConvention(aIsExtern : boolean);
+
+begin
+  if no_pop then
+    write(outfile,';stdcall')
+  else if aIsExtern or createdynlib then
+    write(outfile,';cdecl');
+end;
+
+
+// Writes the calling convention of a procedure type: stdcall for no_pop, cdecl otherwise.
+procedure WriteProcVarCallingConvention;
+
+begin
+  if not is_procvar then
+    exit;
+  if no_pop then
+    write(outfile,';stdcall')
+  else
+    write(outfile,';cdecl');
+  is_procvar:=false;
+end;
+
+
 // Returns true when the argument aArg (t_arg) is a function pointer: its declarator is a pointer to a procdef.
 function IsProcVarArg(aArg : presobject) : boolean;
 
@@ -620,9 +645,7 @@ begin
                 in_args:=old_in_args;
               end;
           end;
-        (* No CDECL in interface for Uselib *)
-        if IsExtern and (not no_pop) then
-          write(outfile,';cdecl');
+        WriteCallingConvention(IsExtern);
         popshift;
         if createdynlib then
           begin
@@ -822,9 +845,7 @@ begin
           end;
         if assigned(sys_trap) then
           write(outfile,';systrap ',sys_trap^.p);
-        (* No CDECL in interface for Uselib *)
-        if IsExtern and (not no_pop) then
-          write(outfile,';cdecl');
+        WriteCallingConvention(IsExtern);
         popshift;
         if createdynlib then
           begin
@@ -1019,10 +1040,7 @@ begin
         shift(2);
         write_p_a_def(outfile,hp^.p1,type_spec);
         popshift;
-        (* if no_pop it is normal fpc calling convention *)
-        if is_procvar and
-          (not no_pop) then
-          write(outfile,';cdecl');
+        WriteProcVarCallingConvention;
         writeln(outfile,';');
         WritePointerMarker(outfile,TypeName(hp^.p2^.p));
         flush(outfile);
@@ -1087,10 +1105,7 @@ begin
   shift(2);
   write_p_a_def(outfile,declarator_list^.p1^.p1,type_spec);
   popshift;
-  (* if no_pop it is normal fpc calling convention *)
-  if is_procvar and
-    (not no_pop) then
-    write(outfile,';cdecl');
+  WriteProcVarCallingConvention;
   writeln(outfile,';');
   WritePointerMarker(outfile,TN);
   flush(outfile);
