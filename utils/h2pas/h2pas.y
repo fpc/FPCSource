@@ -847,6 +847,11 @@ unary_expr:
      {
      $$:=NewUnaryOp('-',$2);
      }|
+     STAR unary_expr
+     {
+     (* dereference *)
+     $$:=NewUnaryOp('^',$2);
+     }|
      _PLUS unary_expr
      {
      $$:=NewUnaryOp('+',$2);
@@ -861,7 +866,14 @@ unary_expr:
      } |
      LKLAMMER dname RKLAMMER maybe_empty_unary_expr
      {
-     if assigned($4) then
+     (* (x) * y is a product rather than the cast of *y *)
+     if assigned($4) and ($4^.typ=t_preop) and ($4^.str='^') then
+       begin
+       $$:=NewBinaryOp('*',$2,$4^.p1);
+       $4^.p1:=nil;
+       dispose($4,done);
+       end
+     else if assigned($4) then
        $$:=NewType2(t_typespec,$2,$4)
      else
        $$:=$2;
@@ -903,6 +915,12 @@ unary_expr:
      {
        $$:=NewType2(t_callop,$3,$7);
      } |
+     LKLAMMER STAR unary_expr RKLAMMER
+     {
+       (* dereference between parentheses *)
+       $$:=NewUnaryOp('^',$3);
+       $$^.grouped:=true;
+     } |
      dname LECKKLAMMER exprlist RECKKLAMMER
      {
        $$:=NewType2(t_arrayop,$1,$3);
@@ -915,11 +933,11 @@ pointer_stars :
        (* STAR *)
        $$:=NewID('*');
      } |
-     pointer_stars STAR
+     STAR pointer_stars
      {
-       (* pointer_stars STAR *)
-       $1^.setstr($1^.str+'*');
-       $$:=$1;
+       (* STAR pointer_stars *)
+       $2^.setstr($2^.str+'*');
+       $$:=$2;
      }
      ;
 

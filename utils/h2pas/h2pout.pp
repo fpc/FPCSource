@@ -514,17 +514,31 @@ begin
         write_expr(outfile,p^.p1);
       if assigned(p^.next) then
         begin
-          write(', ');
+          write(outfile,', ');
           write_expr(outfile,p^.next);
         end;
       DoFlush:=False;
       end;
     t_preop:
-      begin
-      write(outfile,p^.p,'(');
-      write_expr(outfile,p^.p1);
-      write(outfile,')');
-      end;
+      if p^.str='^' then
+        begin
+        (* dereference is postfix in Pascal *)
+        if p^.p1^.typ=t_id then
+          write_expr(outfile,p^.p1)
+        else
+          begin
+          write(outfile,'(');
+          write_expr(outfile,p^.p1);
+          write(outfile,')');
+          end;
+        write(outfile,'^');
+        end
+      else
+        begin
+        write(outfile,p^.p,'(');
+        write_expr(outfile,p^.p1);
+        write(outfile,')');
+        end;
     t_typespec :
       begin
       write_cast_type(outfile,p^.p1);

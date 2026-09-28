@@ -83,6 +83,12 @@ type
     procedure TestPointerCastPrefix;
     procedure TestPointerCastsCompile;
     procedure TestProductInParameterMacro;
+    procedure TestDereference;
+    procedure TestDereferenceOfCast;
+    procedure TestDoubleDereference;
+    procedure TestDereferenceInExpression;
+    procedure TestFunctionPointerCall;
+    procedure TestParenthesizedNameTimesName;
     procedure TestUnparenthesizedBody;
     procedure TestUnparenthesizedTernary;
     procedure TestContinuedBody;
@@ -581,6 +587,68 @@ begin
            '#define C3(p) ((char **)(p))','#define C4(p) ((void **)(p))','#define C5(p) ((int *)(p))'],['-d']);
   AssertConverted;
   AssertCompiles;
+end;
+
+
+procedure TTestFunctionMacros.TestDereference;
+
+begin
+  Convert(['#define D1(p) (*(p))','#define D6(p) ((*p))']);
+  AssertConverted;
+  AssertImplementation('dereference of a parenthesized name',['D1:=p^;']);
+  AssertImplementation('dereference between parentheses',['D6:=p^;']);
+end;
+
+
+procedure TTestFunctionMacros.TestDereferenceOfCast;
+
+begin
+  Convert(['typedef struct { int a; } foo;','#define D2(p) (*(foo **)(p))','#define D9(p) (*(int *)(p) + 1)']);
+  AssertConverted;
+  AssertImplementation('dereference of a pointer cast',['D2:=(PPfoo(p))^;']);
+  AssertImplementation('dereference of a cast in an addition',['D9:=((Plongint(p))^)+1;']);
+  AssertInterface('pointer type of the dereferenced cast is declared',['Pfoo = ^foo;','PPfoo = ^Pfoo;']);
+end;
+
+
+procedure TTestFunctionMacros.TestDoubleDereference;
+
+begin
+  Convert(['#define D3(pp) (**pp)']);
+  AssertConverted;
+  AssertImplementation('double dereference',['D3:=(pp^)^;']);
+end;
+
+
+procedure TTestFunctionMacros.TestDereferenceInExpression;
+
+begin
+  Convert(['#define D4(p) (*p + 1)','#define D5(a,p) ((a) * *p)','#define D8(x,p) (x * *p)']);
+  AssertConverted;
+  AssertImplementation('dereference before an addition',['D4:=(p^)+1;']);
+  AssertImplementation('product of a parenthesized parameter and a dereference',['D5:=a*(p^);']);
+  AssertImplementation('product of a name and a dereference',['D8:=x*(p^);']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionPointerCall;
+
+begin
+  Convert(['#define D7(fp) ((*fp)(1, 2))']);
+  AssertConverted;
+  AssertImplementation('call through a function pointer with its arguments',['D7:=fp(1, 2);']);
+  AssertEquals('no output to the console','',Trim(ToolOutput));
+end;
+
+
+procedure TTestFunctionMacros.TestParenthesizedNameTimesName;
+
+begin
+  Convert(['#define M1(a,b) ((a) * (b))','#define M2(a,b) ((a) * b + 1)','#define M3 ((X) * Y)']);
+  AssertConverted;
+  AssertImplementation('parenthesized parameters',['M1:=a*b;']);
+  AssertImplementation('parenthesized parameter times a name',['M2:=(a*b)+1;']);
+  AssertInterface('parenthesized name times a name',['M3 = X*Y;']);
 end;
 
 
