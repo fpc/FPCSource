@@ -54,6 +54,8 @@ begin
       writeln(outfile,'implementation');
       writeln(outfile);
     end;
+  if createdynlib then
+    WriteLibraryUses;
    { here we have a problem if a line is longer than 255 chars !! }
    reset(implemfile);
    while not eof(implemfile) do

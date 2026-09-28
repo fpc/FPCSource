@@ -39,6 +39,7 @@ type
     procedure TestDynLibVariables;
     procedure TestDynLibLoader;
     procedure TestDynLibCompiles;
+    procedure TestDynLibWithMacro;
     procedure TestStripComments;
     procedure TestStripInfo;
     procedure TestVarParams;
@@ -248,7 +249,8 @@ procedure TTestOptions.TestDynLibLoader;
 begin
   Convert(['int getval(int a);','void setval(int a);'],['-P']);
   AssertConverted;
-  AssertImplementation('-P uses dynlibs',['uses','SysUtils, dynlibs;','var','hlib : tlibhandle;']);
+  AssertOutput('-P uses dynlibs at the start of the implementation',['implementation','uses','SysUtils, dynlibs;']);
+  AssertImplementation('-P declares the library handle',['var','hlib : tlibhandle;']);
   AssertImplementation('-P frees the library',
     ['procedure Freeoutput;','begin','FreeLibrary(hlib);','getval:=nil;','setval:=nil;','end;']);
   AssertImplementation('-P loads the library',
@@ -265,6 +267,17 @@ procedure TTestOptions.TestDynLibCompiles;
 begin
   Convert(ScalarHeader,['-P']);
   AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestOptions.TestDynLibWithMacro;
+
+begin
+  Convert(['#define SQR(x) ((x)*(x))','int getval(int a);'],['-P']);
+  AssertConverted;
+  AssertOutput('-P uses clause precedes the macro function bodies',['implementation','uses','SysUtils, dynlibs;']);
+  AssertImplementation('macro function body',['function SQR(x : longint) : longint;','begin','SQR:=x*x;','end;']);
   AssertCompiles;
 end;
 

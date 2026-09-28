@@ -61,7 +61,6 @@ type
   published
     procedure TestEnumToConstTypedefCompiles;
     procedure TestDynLibCdecl;
-    procedure TestDynLibWithMacroCompiles;
     procedure TestWin32Stdcall;
     procedure TestWin32CallbackType;
   end;
@@ -294,15 +293,6 @@ begin
   Convert(['int getval(int a);'],['-P']);
   AssertConverted;
   AssertInterface('-P procedure variables are cdecl',['getval : function(a:longint):longint;cdecl;']);
-end;
-
-
-procedure TTestKnownOptionIssues.TestDynLibWithMacroCompiles;
-
-begin
-  Convert(['#define SQR(x) ((x)*(x))','int getval(int a);'],['-P']);
-  AssertConverted;
-  AssertCompiles;
 end;
 
 

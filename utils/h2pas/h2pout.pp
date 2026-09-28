@@ -12,6 +12,8 @@ procedure OpenOutputFiles;
 procedure CloseTempFiles;
 
 procedure WriteFileHeader(var headerfile: Text);
+// Writes the uses clause of the implementation section for -P.
+procedure WriteLibraryUses;
 procedure WriteLibraryInitialization;
 
 // This will write each pointer type only once.
@@ -1549,15 +1551,21 @@ begin
   erase(tempfile);
 end;
 
+procedure WriteLibraryUses;
+
+begin
+  writeln(outfile,'  uses');
+  writeln(outfile,'    SysUtils, dynlibs;');
+  writeln(outfile);
+end;
+
+
 procedure WriteLibraryInitialization;
 
 var
  I : Integer;
 
 begin
-  writeln(outfile,'  uses');
-  writeln(outfile,'    SysUtils, dynlibs;');
-  writeln(outfile);
   writeln(outfile,'  var');
   writeln(outfile,'    hlib : tlibhandle;');
   writeln(outfile);
