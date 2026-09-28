@@ -57,6 +57,8 @@ type
     procedure TestArrayVariable;
     procedure TestPointerVariable;
     procedure TestUnknownTypeVariable;
+    procedure TestMultipleVariables;
+    procedure TestMultipleExternVariables;
   end;
 
 implementation
@@ -377,6 +379,26 @@ begin
   Convert(['double d;']);
   AssertConverted;
   AssertInterface('unknown type names are copied',['d : double;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestMultipleVariables;
+
+begin
+  Convert(['int iv, jv;']);
+  AssertConverted;
+  AssertInterface('each declarator becomes a variable',['var','iv : longint;cvar;public;','jv : longint;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestMultipleExternVariables;
+
+begin
+  Convert(['extern int a, *b, c[4];'],['-d']);
+  AssertConverted;
+  AssertInterface('plain, pointer and array declarators',
+    ['a : longint;cvar;external;','b : ^longint;cvar;external;','c : array[0..3] of longint;cvar;external;']);
+  AssertCompiles;
 end;
 
 

@@ -25,7 +25,6 @@ type
 
   TTestKnownDeclarationIssues = class(TH2PasTestCase)
   published
-    procedure TestMultipleVariables;
     procedure TestStructPointerResult;
     procedure TestSignedAlone;
     procedure TestLongDouble;
@@ -74,16 +73,6 @@ begin
   Convert(['struct s { int a; };','void g(struct s **pp);'],['-p','-d']);
   AssertConverted;
   AssertCompiles;
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestMultipleVariables;
-
-begin
-  Convert(['int iv, jv;']);
-  AssertConverted;
-  AssertInterface('first variable',['iv : longint;cvar;public;']);
-  AssertInterface('second variable',['jv : longint;cvar;public;']);
 end;
 
 

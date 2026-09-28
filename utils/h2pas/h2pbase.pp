@@ -616,7 +616,7 @@ begin
               end;
             writeln(outfile,';');
             popshift;
-            hp:=hp^.p2;
+            hp:=hp^.next;
           end;
         popshift;
         popshift;
@@ -816,7 +816,7 @@ begin
               end;
             writeln(outfile,';');
             popshift;
-            hp:=hp^.p2;
+            hp:=hp^.next;
           end;
         popshift;
         popshift;
