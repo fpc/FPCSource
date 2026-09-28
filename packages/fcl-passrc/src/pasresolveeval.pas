@@ -2115,15 +2115,23 @@ begin
     UInt:=TResEvalUInt(LeftValue).UInt;
     case RightValue.Kind of
     revkInt:
-      // uint - int
+      // uint - int: a small uint with a signed result, or a big uint minus a
+      // negative int, must not trip the range check of the qword conversion
+      // (SynEdit)
       try
         {$Q+}
-        UInt:=UInt - TResEvalInt(RightValue).Int;
+        if UInt<=TMaxPrecUInt(High(TMaxPrecInt)) then
+          Result:=TResEvalInt.CreateValue(TMaxPrecInt(UInt) - TResEvalInt(RightValue).Int)
+        else if TResEvalInt(RightValue).Int<0 then
+          Result:=TResEvalUInt.CreateValue(UInt + TMaxPrecUInt(-(TResEvalInt(RightValue).Int+1))+1)
+        else
+          Result:=TResEvalUInt.CreateValue(UInt - TMaxPrecUInt(TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
-        Result:=TResEvalUInt.CreateValue(UInt);
       except
         on E: EOverflow do
           RaiseOverflowArithmetic(20170711151405,Expr);
+        on E: ERangeError do
+          RaiseOverflowArithmetic(20260927150000,Expr);
       end;
     revkUInt:
       // uint - uint
@@ -3997,7 +4005,12 @@ begin
         if Result.ElKind=revskNone then
           begin
           Result.ElKind:=revskEnum;
-          Result.ElType:=Value.IdentEl.Parent as TPasEnumType;
+          // The value's own enum type: IdentEl may be a constant naming the
+          // enum value, whose parent is a section.
+          if TResEvalEnum(Value).ElType<>nil then
+            Result.ElType:=TResEvalEnum(Value).ElType
+          else
+            Result.ElType:=Value.IdentEl.Parent as TPasEnumType;
           end
         else if Result.ElKind<>revskEnum then
           RaiseNotYetImplemented(20170713143559,El)
@@ -5719,6 +5732,20 @@ end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
   Flags: TResEvalFlags): TResEvalEnum;
+
+  function SetBitMask(aSet: TResEvalSet): Integer;
+  // bit N set for element N, as a small set is stored
+  var
+    i: Integer;
+    j: TMaxPrecInt;
+  begin
+    Result:=0;
+    for i:=0 to length(aSet.Ranges)-1 do
+      for j:=aSet.Ranges[i].RangeStart to aSet.Ranges[i].RangeEnd do
+        if (j>=0) and (j<31) then
+          Result:=Result or (1 shl j);
+  end;
+
 var
   Value: TResEvalValue;
   MaxIndex, Index: Integer;
@@ -5749,6 +5776,9 @@ begin
           IntToStr(TResEvalEnum(Value).Index),'0',IntToStr(MaxIndex),Expr,mtError)
       else
         Index:=TResEvalEnum(Value).Index;
+    revkSetOfInt:
+      // a small set reinterpreted as an enum (FPC): its bit mask is the ordinal
+      Index:=SetBitMask(TResEvalSet(Value));
     else
       RaiseNotYetImplemented(20170713105625,Expr);
     end;

@@ -349,6 +349,8 @@ type
     Procedure TestResourcestringInTypedConst;
     Procedure TestResourcestringInTypedConstArray;
     Procedure TestResourcestringInTypedCompoundFail;
+    Procedure TestSet_LowHighOfSetType;
+    Procedure TestSet_LowHighOfSetVar;
     Procedure TestSet_IntRange_Const;
     Procedure TestSet_Byte_Const;
     Procedure TestEnumRange;
@@ -450,6 +452,10 @@ type
     Procedure TestStr_StringFail;
     Procedure TestStr_CharFail;
     Procedure TestIncDec;
+    Procedure TestIncConstDynArrayElement;
+    Procedure TestIncConstArgFail;
+    Procedure TestConstUnitQualifiedTypecast;
+    Procedure TestResourcestringInRecordInitializer;
     Procedure TestIncStringFail;
     Procedure TestTypeInfo;
     Procedure TestTypeInfo_FailRTTIDisabled;
@@ -651,6 +657,45 @@ type
     // record
     Procedure TestRecord;
     Procedure TestRecord_FieldNameEqualsTypeNameByCase;
+    Procedure TestProc_ParamNameEqualsTypeName;
+    Procedure TestProc_VarPointerTypesSameTarget;
+    Procedure TestProc_VarPointerTypesOtherTargetFail;
+    Procedure TestProc_ArrayOfConstBeatsVarargs;
+    Procedure TestProperty_ProtectedRedeclarationOfPublic;
+    Procedure TestProperty_FieldOfSameSignatureProcType;
+    Procedure TestProperty_FieldOfOtherSignatureProcTypeFail;
+    Procedure TestForLoop_VarOverloadCandidateSkipped;
+    Procedure TestProc_VarArgTypeAliasPrefersOwnType;
+    Procedure TestArray_Const2DOfRecords;
+    Procedure TestClass_OverrideResultSubrangeSameStorage;
+    Procedure TestClass_OverrideResultOtherStorageFail;
+    Procedure TestClass_OverrideResultTypeCopy;
+    Procedure TestClass_OverrideResultTypeCopyOtherStorageFail;
+    Procedure TestClass_MethodAddrHidesGlobalProcVarOfSameName;
+    Procedure TestClass_MethodAddrToLocalWithGlobalProcVarOfSameName;
+    Procedure TestConst_SetTypeCastOfSetLiteral;
+    Procedure TestDynArray_EqualTwoAnonymousOfSameElement;
+    Procedure TestPropertyArgs_OpenArrayIndex;
+    Procedure TestClass_NestedTypeUsesStrictProtectedType;
+    Procedure TestClass_NestedProcHidesInheritedMethod;
+    Procedure TestClass_OverrideArgSetAlias;
+    Procedure TestClass_MethodHidesAncestorPrivateField;
+    Procedure TestProcType_BareOverloadedMethodAddrAsArg;
+    Procedure TestArray_ConstOfEnumSubrange;
+    Procedure TestProperty_ReadArrayFieldElement;
+    Procedure TestProperty_ReadArrayFieldElementVarIndexFail;
+    Procedure TestProperty_ReadDynArrayElementFail;
+    Procedure TestVar_AbsoluteRecordFieldProperty;
+    Procedure TestVar_AbsoluteRecordGetterPropertyFail;
+    Procedure TestProcType_AssignMemberAddrOverloadInDescendant;
+    Procedure TestProc_VarSubrangeOfSameStorage;
+    Procedure TestProc_VarLongintToSubrangeFail;
+    Procedure TestProc_VarSubrangeOtherStorageFail;
+    Procedure TestSet_ConstNamingEnumValueInConstSet;
+    Procedure TestProc_ExitWithClassNameForClassOfResult;
+    Procedure TestProc_ExitWithUnrelatedClassNameFail;
+    Procedure TestProcType_AssignStringParamToAnsiStringParam;
+    Procedure TestProcType_AssignShortStringParamToAnsiStringParamFail;
     Procedure TestRecordVariant;
     Procedure TestRecordVariantNested;
     Procedure TestRecord_WriteConstParamFail;
@@ -744,6 +789,8 @@ type
     Procedure TestClass_MethodOverrideFixCase;
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
+    Procedure TestClass_MethodOverrideDescendantIntfResult;
+    Procedure TestClass_MethodOverrideUnrelatedIntfResultFail;
     Procedure TestClass_MethodOverrideDiffVarName;
     Procedure TestClass_MethodOverloadMissingInDelphi;
     Procedure TestClass_MethodOverloadAncestor;
@@ -774,6 +821,9 @@ type
     Procedure TestClass_OperatorIsNotOnNonTypeFail;
     Procedure TestClass_OperatorAsOnNonDescendantFail;
     Procedure TestClass_OperatorAsOnNonTypeFail;
+    Procedure TestClass_OperatorAsClassRefValue;
+    Procedure TestClass_StrictPrivateNestedHidden;
+    Procedure TestClass_PrivateNestedSameUnitDuplicateFail;
     Procedure TestClassAsFuncResult;
     Procedure TestClassTypeCast;
     Procedure TestClassTypeCastUnrelatedWarn;
@@ -789,6 +839,8 @@ type
     Procedure TestClass_PrivateProtectedInSameUnit;
     Procedure TestClass_PrivateInMainBeginFail;
     Procedure TestClass_PrivateInDescendantFail;
+    Procedure TestClass_PrivateConstOtherUnitHidesNothing;
+    Procedure TestClass_PrivateMethodOtherUnitHidesNothing;
     Procedure TestClass_ProtectedInDescendant;
     Procedure TestClass_StrictPrivateInMainBeginFail;
     Procedure TestClass_StrictProtectedInMainBeginFail;
@@ -880,6 +932,13 @@ type
     Procedure TestPropertyReadAccessorFuncWrongResult;
     Procedure TestPropertyReadAccessorFuncWrongArgCount;
     Procedure TestPropertyReadAccessorFunc;
+    Procedure TestPropertyReadAccessorFieldPath;
+    Procedure TestPropertyArgsCountPicksGetterOverload;
+    Procedure TestArray_CompareStaticCharArrays;
+    Procedure TestProc_OuterFuncResultInNested;
+    Procedure TestTypeCast_ClassTypeToInteger;
+    Procedure TestPropertyDefault_CallProcTypeElement;
+    Procedure TestProcType_AssignOverloadedMemberAddr;
     Procedure TestPropertyReadAccessorStrictPrivate;
     Procedure TestPropertyReadAccessorNonClassFail;
     Procedure TestPropertyWriteAccessorVarWrongType;
@@ -976,6 +1035,9 @@ type
     Procedure TestArray_LowHigh;
     Procedure TestArray_LowVarFail;
     Procedure TestArray_AssignDiffElTypeFail;
+    Procedure TestArray_AssignStringRawByteString;
+    Procedure TestArray_AssignStringUnicodeStringFail;
+    Procedure TestArray_TypecastStringDynArray;
     Procedure TestArray_AssignSameSignatureDelphiFail;
     Procedure TestArray_Assigned;
     Procedure TestPropertyOfTypeArray;
@@ -5837,6 +5899,44 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestSet_LowHighOfSetType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TColor = (cRed, cGreen, cBlue);',
+  '  TColors = set of TColor;',
+  '  TSmall = set of 3..9;',
+  '  TRange = low(TColors)..high(TColors);',
+  'const',
+  '  First = low(TColors);',
+  '  Last = high(TSmall);',
+  'var',
+  '  r: TRange;',
+  'begin',
+  '  r:=First;',
+  '  if Last=9 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSet_LowHighOfSetVar;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  Flags: set of (fA, fB, fC);',
+  '  Small: set of 3..9;',
+  '  NewFlags: set of low(Flags)..high(Flags);',
+  'const',
+  '  Last = high(Small);',
+  'begin',
+  '  NewFlags:=[high(Flags)];',
+  '  if Last=9 then ;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestSet_IntRange_Const;
 begin
   StartProgram(false);
@@ -6699,6 +6799,69 @@ begin
   Add('  dec({#d_var}i,3);');
   ParseProgram;
   CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestIncConstDynArrayElement;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArr = array of longint;',
+  'procedure Run(const a: TArr);',
+  'begin',
+  '  inc(a[0]);',
+  '  dec(a[1],2);',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInRecordInitializer;
+begin
+  StartProgram(false);
+  Add([
+  'resourcestring',
+  '  rsFirst = ''first'';',
+  'type',
+  '  TInfo = record Name: string; Level: longint; end;',
+  'var',
+  '  Infos: array[0..0] of TInfo = ((Name: rsFirst; Level: 1));',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestConstUnitQualifiedTypecast;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TMyInt = longint;',
+      '  TMySmall = 0..255;',
+      'implementation',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'const',
+  '  a = unit1.TMyInt(-3);',
+  '  b: array[0..1] of longint = (a, unit1.TMySmall(250));',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIncConstArgFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Run(const i: longint);',
+  'begin',
+  '  inc(i);',
+  'end;',
+  'begin']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
 procedure TTestResolver.TestIncStringFail;
@@ -10521,6 +10684,843 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProc_ParamNameEqualsTypeName;
+// A parameter may have the name of its own type, and a later parameter may use
+// that type too; inside the body the name is the parameter.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  WParam = longint;',
+  '  TFunc = function(Msg: longint; WParam: WParam): longint;',
+  'function Send(Msg: longint; WParam: WParam; X: WParam): longint;',
+  'begin',
+  '  Result:=Msg+WParam+X;',
+  'end;',
+  'var F: TFunc;',
+  'begin',
+  '  F:=nil;',
+  '  Send(1,2,3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarPointerTypesSameTarget;
+// Two pointer types to aliases of one record match a var parameter (ppcx64).
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDrawable = record X: longint; end;',
+  '  TPixmap = TDrawable;',
+  '  PPixmap = ^TPixmap;',
+  '  TBitmap = TDrawable;',
+  '  PBitmap = ^TBitmap;',
+  'procedure Render(var Mask: PBitmap); begin end;',
+  'var A: PPixmap;',
+  'begin',
+  '  Render(A);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarPointerTypesOtherTargetFail;
+// Pointers to different records still do not match.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TA = record X: longint; end;',
+  '  TB = record X: longint; end;',
+  '  PA = ^TA;',
+  '  PB = ^TB;',
+  'procedure Render(var Mask: PB); begin end;',
+  'var A: PA;',
+  'begin',
+  '  Render(A);',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "PA", expected "PB". Var param must match exactly.',
+    nIncompatibleTypeArgNoVarParamMustMatchExactly);
+end;
+
+procedure TTestResolver.TestProc_ArrayOfConstBeatsVarargs;
+// With the same leading parameters, the `array of const` overload takes the
+// trailing [...] rather than the `varargs` one.
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'function sig(name: pointer; n: longint; args: array of const): longint; cdecl; overload; external;',
+  'function {#V}sig(name: pointer; n: longint): longint; cdecl; varargs; overload; external;',
+  'var r: longint;',
+  'begin',
+  '  r:=sig(nil,2,[1,2]);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_ProtectedRedeclarationOfPublic;
+// `property Align;` re-declared protected over a public TControl.Align: from
+// another unit, S.Align is the public one.
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class end;',
+    '  TControl = class',
+    '  private',
+    '    FAlign: longint;',
+    '  public',
+    '    property Align: longint read FAlign write FAlign;',
+    '  end;',
+    '  TSide = class(TControl)',
+    '  protected',
+    '    property Align;',
+    '  end;',
+    '']),
+    '');
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'var S: TSide;',
+  'begin',
+  '  S.Align:=3;',
+  '  if S.Align=3 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_FieldOfSameSignatureProcType;
+// A property of one procedure type may read a field of another with the same
+// signature, as ppcx64 allows.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TEventA = procedure(Sender: TObject; N: longint) of object;',
+  '  TEventB = procedure(Sender: TObject; N: longint) of object;',
+  '  TC = class',
+  '    FOnAdd: TEventA;',
+  '    property OnAdd: TEventB read FOnAdd write FOnAdd;',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_FieldOfOtherSignatureProcTypeFail;
+// A different signature is still refused.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TEventA = procedure(Sender: TObject; N: longint) of object;',
+  '  TEventB = procedure(Sender: TObject) of object;',
+  '  TC = class',
+  '    FOnAdd: TEventA;',
+  '    property OnAdd: TEventB read FOnAdd;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Incompatible types: got "procedure(TObject)" expected "procedure(TObject;Longint)"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestForLoop_VarOverloadCandidateSkipped;
+// An overload with an untyped `out` parameter does not make a loop variable
+// argument illegal when another overload takes it by value.
+begin
+  StartProgram(false);
+  Add([
+  'function GetValue(const APath: string; ADefault: longint): longint; overload;',
+  'begin Result:=ADefault; end;',
+  'procedure GetValue(const APath: string; out AResult; P: pointer); overload;',
+  'begin end;',
+  'var i, s: longint;',
+  'begin',
+  '  for i:=0 to 2 do',
+  '    s:=GetValue(''x'',i);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarArgTypeAliasPrefersOwnType;
+// A `type String` variable goes to the `var s: String` overload, not to the
+// one taking another `type AnsiString`.
+begin
+  StartProgram(false);
+  Add([
+  '{$H+}',
+  'type',
+  '  TUtf8 = type AnsiString;',
+  '  TTranslateString = type String;',
+  '  TCaption = TTranslateString;',
+  'procedure Del(var s: TUtf8); overload; begin end;',
+  'procedure {#Del2}Del(var s: String); overload; begin end;',
+  'var C: TCaption;',
+  'begin',
+  '  {@Del2}Del(C);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_Const2DOfRecords;
+// The inner (...) of `array[A, B] of TRec` is a row of records.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record X, Y: longint; end;',
+  '  TLayout = (clNormal, clSimple);',
+  '  TKind = (kA, kB);',
+  'const',
+  '  Pos2: array[TLayout, TKind] of TPoint = (',
+  '    ((X: 1; Y: 2), (X: 3; Y: 4)),',
+  '    ((X: 5; Y: 6), (X: 7; Y: 8)));',
+  'begin',
+  '  if Pos2[clSimple, kB].X=7 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_OverrideResultSubrangeSameStorage;
+// An override may return a subrange stored like the ancestor's result.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TModalResult = low(longint)..high(longint);',
+  '  TForm = class',
+  '    function ShowModal: longint; virtual;',
+  '  end;',
+  '  TDlg = class(TForm)',
+  '    function ShowModal: TModalResult; override;',
+  '  end;',
+  'function TForm.ShowModal: longint; begin Result:=1; end;',
+  'function TDlg.ShowModal: TModalResult; begin Result:=2; end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_OverrideResultOtherStorageFail;
+// A byte result does not override a longint one.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TForm = class',
+  '    function ShowModal: longint; virtual;',
+  '  end;',
+  '  TDlg = class(TForm)',
+  '    function ShowModal: byte; override;',
+  '  end;',
+  'function TForm.ShowModal: longint; begin Result:=1; end;',
+  'function TDlg.ShowModal: byte; begin Result:=2; end;',
+  'begin',
+  '']);
+  CheckResolverException('Result type mismatch, expected Longint, but found Byte',
+    nResultTypeMismatchExpectedButFound);
+end;
+
+procedure TTestResolver.TestClass_OverrideResultTypeCopy;
+// An override may return a `type` copy of the ancestor's integer result.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  THandle = longint;',
+  '  HWND = type THandle;',
+  '  TForm = class',
+  '    function CreateHandle: THandle; virtual;',
+  '  end;',
+  '  TDlg = class(TForm)',
+  '    function CreateHandle: HWND; override;',
+  '  end;',
+  'function TForm.CreateHandle: THandle; begin Result:=1; end;',
+  'function TDlg.CreateHandle: HWND; begin Result:=2; end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodAddrHidesGlobalProcVarOfSameName;
+// Inside a method, @Name takes the method, not a global procvar of that name.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TRelease = function(p: pointer): boolean of object;',
+  'var',
+  '  Release: TRelease;',
+  'type',
+  '  TWS = class',
+  '    function Release(p: pointer): boolean;',
+  '    procedure Init;',
+  '  end;',
+  'function TWS.Release(p: pointer): boolean; begin Result:=p=nil; end;',
+  'procedure TWS.Init;',
+  'begin',
+  '  afile.Release:=@Release;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodAddrToLocalWithGlobalProcVarOfSameName;
+// As above, assigned to a local procvar.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TRelease = function(p: pointer): boolean of object;',
+  'var',
+  '  Release: TRelease;',
+  'type',
+  '  TWS = class',
+  '    function Release(p: pointer): boolean;',
+  '    procedure Init;',
+  '  end;',
+  'function TWS.Release(p: pointer): boolean; begin Result:=p=nil; end;',
+  'procedure TWS.Init;',
+  'var l: TRelease;',
+  'begin',
+  '  l:=@Release;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestConst_SetTypeCastOfSetLiteral;
+// A set literal cast to its set type is a constant, also inside set operators.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCharSet = set of char;',
+  'const',
+  '  Ident = TCharSet([''A''..''Z'', ''_'']);',
+  '  Other = TCharSet([#33..#127] - Ident - [''#'']);',
+  'var c: char;',
+  'begin',
+  '  if c in Other then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestDynArray_EqualTwoAnonymousOfSameElement;
+// Two fields `array of T`, each its own anonymous type, compare with =.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TList = class',
+  '    FAll: array of word;',
+  '    FSome: array of word;',
+  '    function Same: boolean;',
+  '  end;',
+  'function TList.Same: boolean;',
+  'begin',
+  '  FSome:=FAll;',
+  '  Result:=FSome=FAll;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyArgs_OpenArrayIndex;
+// An open-array property index read by a getter with its own `array of T`.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetCount(const AIndex: array of longint): longint;',
+  '    property CountEx[const AIndex: array of longint]: longint read GetCount;',
+  '  end;',
+  'function TObject.GetCount(const AIndex: array of longint): longint;',
+  'begin',
+  '  Result:=length(AIndex);',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  if o.CountEx[[1,2]]=2 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_NestedTypeUsesStrictProtectedType;
+// A record nested in a class may name the class's strict protected type.
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  TMap = class',
+  '  strict protected type',
+  '    TEntry = record x: word; end;',
+  '    PEntry = ^TEntry;',
+  '  public type',
+  '    TEnumData = record',
+  '      Ptr: PEntry;',
+  '    end;',
+  '  end;',
+  'implementation',
+  '']);
+  ParseUnit;
+end;
+
+procedure TTestResolver.TestClass_NestedProcHidesInheritedMethod;
+// A routine nested in a method may carry the name of an inherited method.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetSign: longint; virtual;',
+  '  end;',
+  '  TChild = class(TObject)',
+  '    function Read: longint;',
+  '  end;',
+  'function TObject.GetSign: longint; begin Result:=1; end;',
+  'function TChild.Read: longint;',
+  '  function GetSign: longint;',
+  '  begin',
+  '    Result:=2;',
+  '  end;',
+  'begin',
+  '  Result:=GetSign;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_OverrideArgSetAlias;
+// An override may name a set parameter's type through an alias.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TChange = (cA, cB);',
+  '  TChanges = set of TChange;',
+  '  TObject = class',
+  '    procedure Changed(A: TChanges); virtual; abstract;',
+  '  end;',
+  '  TMyChanges = TChanges;',
+  '  TEdit = class(TObject)',
+  '    procedure Changed(A: TMyChanges); override;',
+  '  end;',
+  'procedure TEdit.Changed(A: TMyChanges); begin end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_OverrideResultTypeCopyOtherStorageFail;
+// A `type word` copy does not override a longint result.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TSmall = type word;',
+  '  TForm = class',
+  '    function CreateHandle: longint; virtual;',
+  '  end;',
+  '  TDlg = class(TForm)',
+  '    function CreateHandle: TSmall; override;',
+  '  end;',
+  'function TForm.CreateHandle: longint; begin Result:=1; end;',
+  'function TDlg.CreateHandle: TSmall; begin Result:=2; end;',
+  'begin',
+  '']);
+  CheckResolverException('Result type mismatch, expected Longint, but found TSmall',
+    nResultTypeMismatchExpectedButFound);
+end;
+
+procedure TTestResolver.TestClass_MethodHidesAncestorPrivateField;
+// `@D.FOnClick` names D's public method, not the ancestor's private field of
+// the same name.
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class end;',
+    '  TNotifyEvent = procedure(Sender: TObject) of object;',
+    '  TControl = class',
+    '  private',
+    '    FOnClick: TNotifyEvent;',
+    '  public',
+    '    property OnClick: TNotifyEvent read FOnClick write FOnClick;',
+    '  end;',
+    '']),
+    '');
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'type',
+  '  TDummy = class(TControl)',
+  '  public',
+  '    procedure FOnClick(Sender: TObject);',
+  '  end;',
+  'procedure TDummy.FOnClick(Sender: TObject); begin end;',
+  'var',
+  '  D: TDummy;',
+  '  B: TControl;',
+  'begin',
+  '  B.OnClick:=@D.FOnClick;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_BareOverloadedMethodAddrAsArg;
+// A bare `@WriteData` argument picks the class's overload that fits the
+// parameter's procedure type.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TStreamProc = procedure(N: longint) of object;',
+  '  TFiler = class',
+  '    procedure Define(ReadProc, WriteProc: TStreamProc);',
+  '  end;',
+  '  TNodes = class',
+  '    procedure WriteData(N: longint; Flag: boolean); overload;',
+  '    procedure WriteData(N: longint); overload;',
+  '    procedure ReadData(N: longint);',
+  '    procedure DefineProps(F: TFiler);',
+  '  end;',
+  'procedure TFiler.Define(ReadProc, WriteProc: TStreamProc); begin end;',
+  'procedure TNodes.WriteData(N: longint; Flag: boolean); begin end;',
+  'procedure TNodes.WriteData(N: longint); begin end;',
+  'procedure TNodes.ReadData(N: longint); begin end;',
+  'procedure TNodes.DefineProps(F: TFiler);',
+  'begin',
+  '  F.Define(@ReadData, @WriteData);',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_ConstOfEnumSubrange;
+// The elements of an array of an enum subrange are values of that enum.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPanelButtonEx = (pbOK, pbCancel, pbClose, pbHelp, pbNone);',
+  '  TPanelButton = pbOK..pbHelp;',
+  '  TOrder = (boDefault, boOther);',
+  'const',
+  '  Row: array[0..1] of TPanelButton = (pbHelp, pbCancel);',
+  '  Tab: array[TOrder, 0..1] of TPanelButton = ((pbOK, pbCancel), (pbHelp, pbClose));',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_ReadArrayFieldElement;
+// A property may read and write one element of a static array field.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TKind = (kOK, kHelp);',
+  '  TPanel = class',
+  '    FButtons: array[TKind] of TObject;',
+  '    FVals: array[5..8] of longint;',
+  '    property OKButton: TObject read FButtons[kOK];',
+  '    property Six: longint read FVals[6] write FVals[6];',
+  '  end;',
+  'var P: TPanel;',
+  'begin',
+  '  P.Six:=P.Six+1;',
+  '  if P.OKButton=nil then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_ReadArrayFieldElementVarIndexFail;
+// The index of such an accessor must be a constant.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TPanel = class',
+  '    FIdx: longint;',
+  '    FVals: array[0..3] of longint;',
+  '    property Cur: longint read FVals[FIdx];',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestProperty_ReadDynArrayElementFail;
+// A dynamic array element has no fixed place in the object.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TPanel = class',
+  '    FVals: array of longint;',
+  '    property First: longint read FVals[0];',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('static array expected, but array found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestVar_AbsoluteRecordFieldProperty;
+// `absolute Size.Width` over a record property that reads a plain field.
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TSize = record',
+  '    cx, cy: longint;',
+  '    property Width: longint read cx write cx;',
+  '  end;',
+  'var',
+  '  Size: TSize;',
+  '  W: longint absolute Size.Width;',
+  'begin',
+  '  W:=3;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestVar_AbsoluteRecordGetterPropertyFail;
+// A property read through a function has no storage to be absolute over.
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TSize = record',
+  '    cx: longint;',
+  '    function GetW: longint;',
+  '    property Width: longint read GetW;',
+  '  end;',
+  'function TSize.GetW: longint; begin Result:=cx; end;',
+  'var',
+  '  Size: TSize;',
+  '  W: longint absolute Size.Width;',
+  'begin',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestProcType_AssignMemberAddrOverloadInDescendant;
+// @Self.Changed picks the descendant's Changed(Sender) for a TNotifyEvent,
+// although an ancestor declares a Changed without parameters.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TNotifyEvent = procedure(Sender: TObject) of object;',
+  '  TControl = class',
+  '    procedure Changed; virtual;',
+  '  end;',
+  '  TGroup = class(TControl)',
+  '    OnChange: TNotifyEvent;',
+  '    procedure Changed(Sender: TObject);',
+  '    procedure Build;',
+  '  end;',
+  'procedure TControl.Changed; begin end;',
+  'procedure TGroup.Changed(Sender: TObject); begin end;',
+  'procedure TGroup.Build;',
+  'begin',
+  '  OnChange:=@Self.Changed;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarSubrangeOfSameStorage;
+// A 0..MaxInt subrange is stored as a longint, so it may be passed to a var
+// longint parameter, as ppcx64 allows.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSize = 0..2147483647;',
+  'procedure Scale(var Value: longint);',
+  'begin',
+  'end;',
+  'var W: TSize;',
+  'begin',
+  '  Scale(W);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarLongintToSubrangeFail;
+// The reverse does not fit: a longint may hold values outside the subrange.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSize = 0..2147483647;',
+  'procedure Scale(var Value: TSize);',
+  'begin',
+  'end;',
+  'var W: longint;',
+  'begin',
+  '  Scale(W);',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "Longint", expected "TSize". Var param must match exactly.',
+    nIncompatibleTypeArgNoVarParamMustMatchExactly);
+end;
+
+procedure TTestResolver.TestProc_VarSubrangeOtherStorageFail;
+// 0..100 is stored as a shortint, so it does not match a var byte.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSmall = 0..100;',
+  'procedure Tiny(var Value: byte);',
+  'begin',
+  'end;',
+  'var S: TSmall;',
+  'begin',
+  '  Tiny(S);',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "Longint", expected "Byte". Var param must match exactly.',
+    nIncompatibleTypeArgNoVarParamMustMatchExactly);
+end;
+
+procedure TTestResolver.TestSet_ConstNamingEnumValueInConstSet;
+// A constant naming an enum value is an element of a constant set.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TKind = (kRed, kGreen, kBlue);',
+  '  TKinds = set of TKind;',
+  'const',
+  '  kDefault = kGreen;',
+  'var',
+  '  s: TKinds = [kDefault, kBlue];',
+  'begin',
+  '  if kRed in s then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ExitWithClassNameForClassOfResult;
+// Exit(TBmp) returns the class itself from a function whose result is a class-of.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TRaster = class end;',
+  '  TRasterClass = class of TRaster;',
+  '  TBmp = class(TRaster) end;',
+  'function GetClass(N: longint): TRasterClass;',
+  'begin',
+  '  if N=1 then Exit(TBmp);',
+  '  Result:=TRaster;',
+  'end;',
+  'begin',
+  '  GetClass(1);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ExitWithUnrelatedClassNameFail;
+// Exit with a class that does not descend from the class-of result is refused.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TRaster = class end;',
+  '  TRasterClass = class of TRaster;',
+  '  TOther = class end;',
+  'function GetClass: TRasterClass;',
+  'begin',
+  '  Exit(TOther);',
+  'end;',
+  'begin',
+  '  GetClass;',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "class TOther", expected "TRasterClass"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProcType_AssignStringParamToAnsiStringParam;
+// Under $H+ a `const Msg: string` method fits a `const Msg: AnsiString` event.
+begin
+  StartProgram(false);
+  Add([
+  '{$H+}',
+  'type',
+  '  TObject = class end;',
+  '  TEvent = procedure(const Msg: AnsiString) of object;',
+  '  TObj = class',
+  '    procedure Progress(const Msg: string);',
+  '  end;',
+  'procedure TObj.Progress(const Msg: string);',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObj;',
+  '  e: TEvent;',
+  'begin',
+  '  e:=@o.Progress;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_AssignShortStringParamToAnsiStringParamFail;
+// A ShortString parameter never fits an AnsiString one.
+begin
+  StartProgram(false);
+  Add([
+  '{$H+}',
+  'type',
+  '  TObject = class end;',
+  '  TEvent = procedure(const Msg: AnsiString) of object;',
+  '  TObj = class',
+  '    procedure Progress(const Msg: ShortString);',
+  '  end;',
+  'procedure TObj.Progress(const Msg: ShortString);',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObj;',
+  '  e: TEvent;',
+  'begin',
+  '  e:=@o.Progress;',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "AnsiString", expected "ShortString"',
+    nIncompatibleTypeArgNo);
+end;
+
 procedure TTestResolver.TestRecordVariant;
 begin
   StartProgram(false);
@@ -12354,6 +13354,45 @@ begin
     nResultTypeMismatchExpectedButFound);
 end;
 
+procedure TTestResolver.TestClass_MethodOverrideDescendantIntfResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IBase = interface end;',
+  '  IDerived = interface(IBase) end;',
+  '  TObject = class',
+  '    function Make: IBase; virtual; abstract;',
+  '  end;',
+  '  TCar = class',
+  '    function Make: IDerived; override;',
+  '  end;',
+  'function TCar.Make: IDerived; begin end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideUnrelatedIntfResultFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IBase = interface end;',
+  '  IOther = interface end;',
+  '  TObject = class',
+  '    function Make: IBase; virtual; abstract;',
+  '  end;',
+  '  TCar = class',
+  '    function Make: IOther; override;',
+  '  end;',
+  'function TCar.Make: IOther; begin end;',
+  'begin']);
+  CheckResolverException('Result type mismatch, expected IBase, but found IOther',
+    nResultTypeMismatchExpectedButFound);
+end;
+
 procedure TTestResolver.TestClass_MethodOverrideDiffVarName;
 begin
   StartProgram(false);
@@ -13068,6 +14107,70 @@ begin
     nXExpectedButYFound);
 end;
 
+procedure TTestResolver.TestClass_StrictPrivateNestedHidden;
+// A strict private nested type or constant is hidden from a descendant, which
+// may declare its own; `strict private type` must keep its `strict`.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBase = class',
+  '  private type',
+  '    TInner = longint;',
+  '  strict private type',
+  '    TSecret = byte;',
+  '  strict private const',
+  '    CSecret = 2;',
+  '  end;',
+  '  TChild = class(TBase)',
+  '  public type',
+  '    TSecret = word;',
+  '  public const',
+  '    CSecret = 20;',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_PrivateNestedSameUnitDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBase = class',
+  '  private type',
+  '    TInner = longint;',
+  '  end;',
+  '  TChild = class(TBase)',
+  '  public type',
+  '    TInner = word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TInner" at afile.pp(6,11)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestClass_OperatorAsClassRefValue;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TClassA = class');
+  Add('    i: longint;');
+  Add('  end;');
+  Add('  TClassAOf = class of TClassA;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('  c: TClassAOf;');
+  Add('begin');
+  Add('  if (o as c).i=3 then ;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClassAsFuncResult;
 begin
   StartProgram(false);
@@ -13401,6 +14504,66 @@ begin
   Add('begin');
   CheckResolverException('Can''t access private member v',
     nCantAccessXMember);
+end;
+
+procedure TTestResolver.TestClass_PrivateConstOtherUnitHidesNothing;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TObject = class',
+      '  private const c = 3;',
+      '  end;',
+      'implementation',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'const',
+  '  {#c}c = ''abc'';',
+  'type',
+  '  TClassA = class(TObject)',
+  '    procedure ProcA;',
+  '  end;',
+  'procedure TClassA.ProcA;',
+  'var s: string;',
+  'begin',
+  '  s:={@c}c;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_PrivateMethodOtherUnitHidesNothing;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TObject = class',
+      '  public',
+      '    function {#base}Count: longint;',
+      '  end;',
+      '  TList = class(TObject)',
+      '  private',
+      '    function Count: longint;',
+      '  end;',
+      'implementation',
+      'function TObject.Count: longint; begin end;',
+      'function TList.Count: longint; begin end;',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'var L: TList;',
+  'begin',
+  '  if L.Count=0 then ;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_ProtectedInDescendant;
@@ -15348,6 +16511,131 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestPropertyReadAccessorFieldPath;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TInner = record {#Cap}Cap: longint; end;',
+  '  TMid = record {#Inner}Inner: TInner; end;',
+  '  TObject = class',
+  '    FData: TMid;',
+  '    property Cap: longint read FData.{@Inner}Inner.{@Cap}Cap write FData.Inner.Cap;',
+  '  end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Cap:=o.Cap+1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_AssignOverloadedMemberAddr;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TOnExists = function(f: string): boolean of object;',
+  '  TObject = class',
+  '    function {#A}Exists(f: string): boolean; overload;',
+  '    function {#B}Exists(f: string; m: longint): boolean; overload;',
+  '  end;',
+  'function TObject.Exists(f: string): boolean; begin end;',
+  'function TObject.Exists(f: string; m: longint): boolean; begin end;',
+  'var o: TObject; p: TOnExists;',
+  'begin',
+  '  p:=@o.{@A}Exists;',
+  '  if p=@o.Exists then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyDefault_CallProcTypeElement;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TEvent = procedure(Sender: TObject) of object;',
+  '  TList = class',
+  '    function GetItem(i: longint): TEvent;',
+  '    property Items[i: longint]: TEvent read GetItem; default;',
+  '  end;',
+  'function TList.GetItem(i: longint): TEvent; begin end;',
+  'var l: TList;',
+  'begin',
+  '  l[0](l);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeCast_ClassTypeToInteger;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  'var i: longint;',
+  'begin',
+  '  i:=longint(TObject);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_OuterFuncResultInNested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TMod = (mA, mB);',
+  '  TMods = set of TMod;',
+  'function {#F}GetMods(N: longint): TMods;',
+  '  procedure AddOne(M: TMod);',
+  '  begin',
+  '    Include(GetMods, M);',
+  '  end;',
+  'begin',
+  '  Result:=[];',
+  '  AddOne(mA);',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_CompareStaticCharArrays;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSig = array[1..4] of char;',
+  'const',
+  '  Sig: array[1..4] of char = ''TPF0'';',
+  'var s: TSig;',
+  'begin',
+  '  if s<>Sig then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyArgsCountPicksGetterOverload;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetIt(A: longint): longint; overload;',
+  '    function GetIt(A, B: longint): longint; overload;',
+  '    property It[Index: longint]: longint read GetIt;',
+  '  end;',
+  'function TObject.GetIt(A: longint): longint; begin end;',
+  'function TObject.GetIt(A, B: longint): longint; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  if o.It[1]=o.It[2,3] then ;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestPropertyReadAccessorStrictPrivate;
 begin
   StartProgram(false);
@@ -17232,6 +18520,53 @@ begin
   Add('  a:=b;');
   CheckResolverException('Incompatible types: got "array of Longint" expected "array of Byte"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_AssignStringRawByteString;
+begin
+  StartProgram(false);
+  Add('{$mode objfpc}{$H+}');
+  Add('type');
+  Add('  TStrArr = array of String;');
+  Add('  TRawArr = array of RawByteString;');
+  Add('var');
+  Add('  s: TStrArr;');
+  Add('  r: TRawArr;');
+  Add('begin');
+  Add('  s:=r;');
+  Add('  r:=s;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_AssignStringUnicodeStringFail;
+begin
+  StartProgram(false);
+  Add('{$mode objfpc}{$H+}');
+  Add('type');
+  Add('  TStrArr = array of String;');
+  Add('  TUniArr = array of UnicodeString;');
+  Add('var');
+  Add('  s: TStrArr;');
+  Add('  u: TUniArr;');
+  Add('begin');
+  Add('  s:=u;');
+  CheckResolverException('Incompatible types: got "array of String" expected "array of UnicodeString"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_TypecastStringDynArray;
+begin
+  StartProgram(false);
+  Add('{$mode objfpc}{$H+}');
+  Add('type');
+  Add('  TBytes = array of byte;');
+  Add('var');
+  Add('  s: String;');
+  Add('  b: TBytes;');
+  Add('begin');
+  Add('  b:=TBytes(s);');
+  Add('  s:=String(b);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestArray_AssignSameSignatureDelphiFail;

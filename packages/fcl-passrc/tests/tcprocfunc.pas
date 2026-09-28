@@ -77,6 +77,7 @@ type
     Procedure TestFunctionTwoArgsSeparate;
     procedure TestProcedureOneArgDefault;
     Procedure TestFunctionOneArgDefault;
+    Procedure TestProcedureOpenArrayAfterDefault;
     procedure TestProcedureOneArgDefaultSet;
     Procedure TestFunctionOneArgDefaultSet;
     procedure TestProcedureOneArgDefaultExpr;
@@ -178,6 +179,7 @@ type
     Procedure TestProcedureCdeclExternal;
     Procedure TestProcedureAlias;
     Procedure TestFunctionCdeclExternal;
+    Procedure TestFunctionCdeclExternalNoSemicolons;
     Procedure TestProcedureCdeclExternalLibName;
     Procedure TestFunctionCdeclExternalLibName;
     Procedure TestProcedureCdeclExternalLibNameName;
@@ -636,6 +638,14 @@ begin
   ParseFunction('(B : Integer = 1)');
   AssertFunc([],[],ccDefault,1);
   AssertArg(FuncType,0,'B',argDefault,'Integer','1');
+end;
+
+procedure TTestProcedureFunction.TestProcedureOpenArrayAfterDefault;
+// fpc does not ask an open array for a default, so it may follow one.
+begin
+  ParseProcedure('(B : Integer = 1; const C : array of Integer)');
+  AssertProc([],[],ccDefault,2);
+  AssertArg(ProcType,0,'B',argDefault,'Integer','1');
 end;
 
 procedure TTestProcedureFunction.TestFunctionOneArgEnumeratedExplicit;
@@ -1330,6 +1340,14 @@ begin
   ParseFunction;
   AssertFunc([pmExternal],[],ccCdecl,0);
   AssertNull('No Library name expression',Func.LibraryExpr);
+end;
+
+procedure TTestProcedureFunction.TestFunctionCdeclExternalNoSemicolons;
+begin
+  AddDeclaration('function A : Integer cdecl external ''libname''');
+  ParseFunction;
+  AssertFunc([pmExternal],[],ccCdecl,0);
+  AssertExpression('Library name expression',Func.LibraryExpr,pekString,'''libname''');
 end;
 
 procedure TTestProcedureFunction.TestProcedureCdeclExternalLibName;

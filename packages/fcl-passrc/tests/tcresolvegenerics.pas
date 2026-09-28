@@ -39,6 +39,10 @@ type
     procedure TestGen_ConstraintUnit;
     // ToDo: constraint T:Unit2.specialize TGen<word>
     procedure TestGen_ConstraintSpecialize;
+    procedure TestGen_SpecializeForwardClassBodyInUnit;
+    procedure TestGen_SelfRefObjFPCGenericFromDelphiUnit;
+    procedure TestGen_AddressOfTemplateMember;
+    procedure TestGen_SelfRefTypecastInNestedType;
     procedure TestGen_ConstraintInterfaceAndClassMember;
     procedure TestGen_ConstraintTSpecializeWithT;
     procedure TestGen_ConstraintTSpecializeAsTFail; // TBird<T; U: T<word>>  and no T<>
@@ -94,6 +98,8 @@ type
     procedure TestGen_Class_AncestorTFail;
     procedure TestGen_Class_AncestorTClassConstraint;
     procedure TestGen_Class_ClassConstrainedTemplateAncestor;
+    procedure TestGen_Class_TemplateAncestorSelfIsConstraint;
+    procedure TestGen_Class_ClassConstraintAncestorSelfFail;
     procedure TestGen_Class_DeferredAncestorTransitive;
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
@@ -242,6 +248,7 @@ type
     procedure TestGen_ConstGeneric_MultiTypedArray;
     procedure TestGen_ConstGeneric_TypedExprArith;
     // Step 5c: type-checking const args against type annotation
+    procedure TestGen_ConstGeneric_TypecastInConst;
     procedure TestGen_ConstGeneric_ByteOutOfRangeFail;
     procedure TestGen_ConstGeneric_SubrangeOutOfRangeFail;
     procedure TestGen_ConstGeneric_DelphiClassMethodTyped;
@@ -561,6 +568,128 @@ begin
   'begin',
   '  cat.v:=eagle;',
   '  fish.v:=redant;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_SelfRefObjFPCGenericFromDelphiUnit;
+// A bare self-reference inside an objfpc generic stays valid when a Delphi-mode
+// module specializes it.
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    'type',
+    '  generic TAnt<T> = class',
+    '    procedure Assign(Source: TAnt);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TAnt.Assign(Source: TAnt); begin end;',
+    '']));
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  'uses unit1;',
+  'type',
+  '  TRedAnt = class(TAnt<word>);',
+  'var',
+  '  a, b: TRedAnt;',
+  'begin',
+  '  a.Assign(b);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_SelfRefTypecastInNestedType;
+// The bare generic name as a typecast, in a method of the generic and of a
+// type nested in it, means the enclosing specialization.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TGen<T> = class',
+  '    FData: T;',
+  '    function Get(O: TObject): T;',
+  '  public type',
+  '    TStore = class',
+  '      function Grab(O: TObject): T;',
+  '    end;',
+  '  end;',
+  'function TGen.Get(O: TObject): T;',
+  'begin',
+  '  Result:=TGen(O).FData;',
+  'end;',
+  'function TGen.TStore.Grab(O: TObject): T;',
+  'var Me: TGen.TStore;',
+  'begin',
+  '  Me:=Self;',
+  '  if O is TGen then Result:=TGen(O).FData;',
+  'end;',
+  'var',
+  '  g: specialize TGen<word>;',
+  '  s: specialize TGen<word>.TStore;',
+  'begin',
+  '  if g.Get(nil)=s.Grab(nil) then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_AddressOfTemplateMember;
+// `@T.Method` in a generic body is judged when the generic is specialized.
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TValue = object',
+  '    procedure AfterAssign;',
+  '  end;',
+  '  generic TStore<T> = object',
+  '    function Own: boolean;',
+  '  end;',
+  'procedure TValue.AfterAssign; begin end;',
+  'function TStore.Own: boolean;',
+  'begin',
+  '  Result:=@T.AfterAssign <> @TValue.AfterAssign;',
+  'end;',
+  'var s: specialize TStore<TValue>;',
+  'begin',
+  '  if s.Own then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_SpecializeForwardClassBodyInUnit;
+// A generic whose bodies are already parsed, specialized with a class that is
+// still only declared forward: the bodies use the class's members.
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    'type',
+    '  generic TList<T> = class',
+    '    Item: T;',
+    '    function GetValue: word;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'function TList.GetValue: word;',
+    'begin',
+    '  Result:=Item.Value;',
+    'end;',
+    '']));
+  StartProgram(true,[supTObject]);
+  Add([
+  'uses unit1;',
+  'type',
+  '  TFoo = class;',
+  '  TFooList = specialize TList<TFoo>;',
+  '  TFoo = class',
+  '    Value: word;',
+  '  end;',
+  'var',
+  '  l: TFooList;',
+  'begin',
+  '  if l.GetValue=1 then ;',
   '']);
   ParseProgram;
 end;
@@ -1631,6 +1760,60 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_TemplateAncestorSelfIsConstraint;
+// Inside TFish<T: TBird> = class(T), Self is a TBird and so a TObject, and
+// inherited searches TBird.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    procedure Fly;',
+  '  end;',
+  '  generic TFish<T: TBird> = class(T)',
+  '    procedure Swim;',
+  '  end;',
+  'procedure TBird.Fly; begin end;',
+  'procedure TakeObj(o: TObject); begin end;',
+  'procedure TakeBird(b: TBird); begin end;',
+  'procedure TFish.Swim;',
+  'begin',
+  '  TakeObj(Self);',
+  '  TakeBird(Self);',
+  '  inherited Fly;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_ClassConstraintAncestorSelfFail;
+// With only T: class, Self is a TObject but not a specific class.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class end;',
+  '  generic TFish<T: class> = class(T)',
+  '    procedure Swim;',
+  '  end;',
+  'procedure TakeObj(o: TObject); begin end;',
+  'procedure TakeBird(b: TBird); begin end;',
+  'procedure TFish.Swim;',
+  'begin',
+  '  TakeObj(Self);',
+  '  TakeBird(Self);',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Incompatible type for arg no. 1: Got "TFish<>", expected "TBird"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_DeferredAncestorTransitive;
@@ -4087,6 +4270,24 @@ begin
   'begin',
   '  X.Data[0] := 1;',
   '  X.Data[7] := 8;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypecastInConst;
+begin
+  StartProgram(true);
+  Add([
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  generic TPage<const T: longint> = record',
+  '  public const',
+  '    Mask = longint(not(longint(-1) shl T));',
+  '  end;',
+  '  TPage8 = specialize TPage<8>;',
+  'var X: array[0..TPage8.Mask] of Byte;',
+  'begin',
+  '  X[255] := 1;',
   '']);
   ParseProgram;
 end;
