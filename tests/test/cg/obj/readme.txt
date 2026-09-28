@@ -43,6 +43,7 @@ FreeBSD-i386 : gcc (GCC) 4.2.1 20070719  [FreeBSD] 8.2-RELEASE
                (tcext7.o): gcc (FreeBSD Ports Collection for amd64) 15.2.0
 
 Linux-sparc : gcc (Debian 4.3.2-1.1) 4.3.2
+              (tcext7.o): gcc (Debian 16.2.0-2) 16.2.0
 
 OpenBSD-x86_64 : gcc (GCC) 4.2.1 20070719
 
