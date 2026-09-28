@@ -462,12 +462,100 @@ begin
   hp^.p1:=NewType1(atyp,nil);
 end;
 
+// Returns the Pascal literal for the body aBody of a C string or character literal, with escapes as character codes.
+function CStringToPascal(const aBody : AnsiString) : AnsiString;
+
+var
+  lResult : AnsiString;
+  lQuoted : boolean;
+  i, lCode, lDigits : integer;
+
+  procedure AddChar(c : char);
+
+  begin
+    if not lQuoted then
+      lResult:=lResult+'''';
+    lQuoted:=true;
+    if c='''' then
+      lResult:=lResult+''''''
+    else
+      lResult:=lResult+c;
+  end;
+
+  procedure AddCode(aCode : integer);
+
+  begin
+    if lQuoted then
+      lResult:=lResult+'''';
+    lQuoted:=false;
+    lResult:=lResult+'#'+IntToStr(aCode);
+  end;
+
+begin
+  lResult:='';
+  lQuoted:=false;
+  i:=1;
+  while i<=length(aBody) do
+    begin
+    if (aBody[i]<>'\') or (i=length(aBody)) then
+      AddChar(aBody[i])
+    else
+      begin
+      inc(i);
+      case aBody[i] of
+        'n' : AddCode(10);
+        't' : AddCode(9);
+        'r' : AddCode(13);
+        'a' : AddCode(7);
+        'b' : AddCode(8);
+        'f' : AddCode(12);
+        'v' : AddCode(11);
+        'e' : AddCode(27);
+        '0'..'7' :
+          begin
+          lCode:=0;
+          lDigits:=0;
+          while (i<=length(aBody)) and (lDigits<3) and (aBody[i] in ['0'..'7']) do
+            begin
+            lCode:=lCode*8+ord(aBody[i])-ord('0');
+            inc(i);
+            inc(lDigits);
+            end;
+          dec(i);
+          AddCode(lCode and 255);
+          end;
+        'x' :
+          begin
+          lCode:=0;
+          lDigits:=0;
+          while (i<length(aBody)) and (lDigits<2) and (aBody[i+1] in ['0'..'9','a'..'f','A'..'F']) do
+            begin
+            inc(i);
+            lCode:=lCode*16+StrToInt('$'+aBody[i]);
+            inc(lDigits);
+            end;
+          AddCode(lCode);
+          end;
+      else
+        AddChar(aBody[i]);
+      end;
+      end;
+    inc(i);
+    end;
+  if lQuoted then
+    lResult:=lResult+'''';
+  if lResult='' then
+    lResult:='''''';
+  Result:=lResult;
+end;
+
+
 function CheckWideString(S: String): presobject;
 
 begin
   if Win32headers and (s[1]='L') then
     delete(s,1,1);
-  CheckWideString:=NewID(''''+copy(s,2,length(s)-2)+'''');
+  CheckWideString:=NewID(CStringToPascal(copy(s,2,length(s)-2)));
 end;
 
 function CheckUnderScore(pdecl: presobject): presobject;

@@ -43,10 +43,10 @@ D [0-9]
 
 "/*"                    HandleMultiLineComment;
 "//"                    HandleSingleLineComment;
-\"[^\"]*\"              if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
-\'[^\']*\'              if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
-"L"\"[^\"]*\"           CheckLongString;
-"L"\'[^\']*\'           CheckLongString;
+\"([^\"\\]|\\.)*\"      if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
+\'([^\'\\]|\\.)*\'      if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
+"L"\"([^\"\\]|\\.)*\"   CheckLongString;
+"L"\'([^\'\\]|\\.)*\'   CheckLongString;
 {D}+[Uu]?[Ll]?[Ll]?     HandleLongInteger;
 "0x"[0-9A-Fa-f]*[Uu]?[Ll]?[Ll]?
                         HandleHexLongInteger;

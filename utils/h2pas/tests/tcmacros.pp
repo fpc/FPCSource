@@ -35,6 +35,11 @@ type
     procedure TestExponent;
     procedure TestString;
     procedure TestCharLiteral;
+    procedure TestCharEscapes;
+    procedure TestOctalAndHexEscapes;
+    procedure TestStringEscapes;
+    procedure TestQuotesInStrings;
+    procedure TestEscapesCompile;
     procedure TestAlias;
     procedure TestOr;
     procedure TestAnd;
@@ -215,6 +220,54 @@ procedure TTestConstMacros.TestCharLiteral;
 
 begin
   CheckConst('CHC','''x''','''x''');
+end;
+
+
+procedure TTestConstMacros.TestCharEscapes;
+
+begin
+  Convert(['#define NL ''\n''','#define TB ''\t''','#define CR ''\r''','#define NUL ''\0''','#define BSL ''\\''']);
+  AssertConverted;
+  AssertInterface('character escapes become character codes',['NL = #10;','TB = #9;','CR = #13;','NUL = #0;','BSL = ''\'';']);
+end;
+
+
+procedure TTestConstMacros.TestOctalAndHexEscapes;
+
+begin
+  Convert(['#define HX ''\x41''','#define OC ''\101''','#define ESC "\033[0m"']);
+  AssertConverted;
+  AssertInterface('hexadecimal and octal escapes',['HX = #65;','OC = #65;','ESC = #27''[0m'';']);
+end;
+
+
+procedure TTestConstMacros.TestStringEscapes;
+
+begin
+  Convert(['#define S "a\tb\n"','#define E ""']);
+  AssertConverted;
+  AssertInterface('escapes inside a string',['S = ''a''#9''b''#10;','E = '''';']);
+end;
+
+
+procedure TTestConstMacros.TestQuotesInStrings;
+
+begin
+  Convert(['#define DQ "say \"hi\""','#define AP "it''s"','#define SQ ''\''''']);
+  AssertConverted;
+  AssertInterface('escaped double quote',['DQ = ''say "hi"'';']);
+  AssertInterface('apostrophe is doubled',['AP = ''it''''s'';']);
+  AssertInterface('escaped apostrophe',['SQ = '''''''';']);
+end;
+
+
+procedure TTestConstMacros.TestEscapesCompile;
+
+begin
+  Convert(['#define NL ''\n''','#define S "a\tb\n"','#define E ""','#define DQ "say \"hi\""','#define AP "it''s"',
+           '#define SQ ''\''''','#define ESC "\033[0m"','#define BSL ''\\'''],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
