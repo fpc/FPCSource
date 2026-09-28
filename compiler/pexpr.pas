@@ -3518,6 +3518,10 @@ implementation
           Message(parser_e_no_type_not_allowed_here)
         else if assigned(n.resultdef) then
           result:=n.resultdef;
+        { in a generic the operand can be an undefineddef without typesym (e.g. "type of PT^") }
+        if (result.typ=undefineddef) and
+           not assigned(result.typesym) then
+          result:=cundefinedtype;
         { only the type is needed, discard the node }
         n.free;
       end;

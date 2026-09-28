@@ -19,6 +19,8 @@ type
 
   TIntArray = array of integer;
 
+  TPWord = ^word;
+
   TEnum = (eA, eB, eC);
 
 const
@@ -40,6 +42,8 @@ type
   TInt = type of GlobalInt;
   { a distinct type }
   TUniqueInt = type type of GlobalInt;
+  { dereferencing a pointer type gives the pointed-to type }
+  TDerefType = type of TPWord^;
 
   TObj = class
   private
@@ -70,6 +74,7 @@ var
   Member: type of GlobalRec.w;
   Element: type of GlobalArr[0];
   Deref: type of PtrTo^;
+  DerefOfType: type of TPWord^;
   StrVar: type of GlobalStr;
   AliasVar: TInt;
   UniqueVar: TUniqueInt;
@@ -158,6 +163,11 @@ begin
   StrVar:='abc';
   Check(StrVar='abc',63);
   Check(TypeInfo(StrVar)=TypeInfo(string),64);
+  DerefOfType:=$1234;
+  Check(DerefOfType=$1234,65);
+  Check(TypeInfo(DerefOfType)=TypeInfo(word),66);
+  Check(TypeInfo(TDerefType)=TypeInfo(word),67);
+  Check(SizeOf(type of TPWord^)=SizeOf(word),68);
 
   { alias and distinct type }
   AliasVar:=1;
