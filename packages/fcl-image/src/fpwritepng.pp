@@ -60,6 +60,7 @@ type
       procedure WriteAnimationControl (AFrames : longword);
       procedure WriteFrameControl (Img : TFPCustomImage; const AInfo : TFPFrameInfo);
       procedure WriteFrameData;
+      procedure WriteMetadata;
       function GetColorPixel (x,y:longword) : TColorData;
       function GetPalettePixel (x,y:longword) : TColorData;
       function GetColPalPixel (x,y:longword) : TColorData;
@@ -1056,6 +1057,7 @@ begin
     if (Img.Width <> CanvasWidth) or (Img.Height <> CanvasHeight) or (aInfo.Left <> 0) or (aInfo.Top <> 0) then
       raise PNGImageException.Create('The first frame of an animated PNG covers the whole canvas');
     WriteAnimationHeader (CanvasWidth, CanvasHeight);
+    WriteMetadata;
     if (Round(Img.ResolutionX) > 0) and (Round(Img.ResolutionY) > 0) then
       WriteResolutionValues;
     end
@@ -1091,9 +1093,62 @@ begin
     end;
 end;
 
+// Writes the ICC profile, EXIF data and XMP packet of the image as iCCP, eXIf and iTXt chunks.
+procedure TFPWriterPNG.WriteMetadata;
+var
+  Data, Chunk : TBytes;
+  Output : TMemoryStream;
+  Deflate : TCompressionStream;
+
+  procedure Put (ct : TChunkTypes; const aBytes : TBytes);
+  begin
+    SetChunkLength (Length(aBytes));
+    SetChunkType (ct);
+    if Length(aBytes) > 0 then
+      move (aBytes[0], ChunkDataBuffer^, Length(aBytes));
+    WriteChunk;
+  end;
+
+  function Text (const aText : AnsiString) : TBytes;
+  begin
+    Result := nil;
+    SetLength(Result, Length(aText));
+    if Length(aText) > 0 then
+      move (aText[1], Result[0], Length(aText));
+  end;
+
+begin
+  Data := TheImage.Metadata[MetaICC];
+  if Length(Data) > 0 then
+    begin
+    Output := TMemoryStream.Create;
+    try
+      Deflate := TCompressionStream.Create (clDefault, Output);
+      try
+        Deflate.WriteBuffer (Data[0], Length(Data));
+      finally
+        Deflate.Free;
+      end;
+      Chunk := Concat(Text(PNGICCName), TBytes.Create(0, 0));
+      SetLength(Chunk, Length(Chunk) + Output.Size);
+      move (Output.Memory^, Chunk[Length(Chunk) - Output.Size], Output.Size);
+    finally
+      Output.Free;
+    end;
+    Put (ctiCCP, Chunk);
+    end;
+  Data := TheImage.Metadata[MetaExif];
+  if Length(Data) > 0 then
+    Put (cteXIf, Data);
+  Data := TheImage.Metadata[MetaXMP];
+  if Length(Data) > 0 then
+    Put (ctiTXt, Concat(Text(PNGXMPKeyword), TBytes.Create(0, 0, 0, 0, 0), Data));
+end;
+
 procedure TFPWriterPNG.InternalWrite (Str:TStream; Img:TFPCustomImage);
 begin
   WriteIHDR;
+  WriteMetadata;
   if Fheader.colorType = 3 then
     WritePLTE;
 

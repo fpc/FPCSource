@@ -13,10 +13,10 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, System.Types, FpImage, FpImage.ImageList, FpImage.Common.WebP,
-  FpImage.WebP.VP8L, FpImage.WebP.VP8;
+  FpImage.WebP.VP8L, FpImage.WebP.VP8, FpImage.Exif;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FpImage, FPImageList, webpcomn, fpwebpvp8l, fpwebpvp8;
+  Classes, SysUtils, Types, FpImage, FPImageList, webpcomn, fpwebpvp8l, fpwebpvp8, fpimgexif;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -34,6 +34,7 @@ type
     FFrames: array of Integer;
     FNextFrame: Integer;
     FCompositor: TFPFrameCompositor;
+    FApplyOrientation: Boolean;
     procedure ReadStructure(aStream: TStream);
     function ChunkBytes(aStream: TStream; const aChunk: TWebPChunk): TBytes;
     procedure DecodeImage(aStream: TStream; const aChunks: TWebPChunks; aWidth, aHeight: Integer;
@@ -47,10 +48,21 @@ type
     function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
     procedure InternalEndFrames(Str: TStream); override;
   public
+    constructor Create; override;
     destructor Destroy; override;
+    // Whether a still image is turned upright as the orientation of its EXIF data asks, which is then set to 1.
+    property ApplyOrientation: Boolean read FApplyOrientation write FApplyOrientation;
   end;
 
 implementation
+
+constructor TFPReaderWebP.Create;
+
+begin
+  inherited Create;
+  FApplyOrientation := True;
+end;
+
 
 destructor TFPReaderWebP.Destroy;
 
@@ -249,7 +261,7 @@ begin
     if FChunks[i].FourCC = WebPICCP then
       aImage.Metadata[MetaICC] := ChunkBytes(aStream, FChunks[i])
     else if FChunks[i].FourCC = WebPEXIF then
-      aImage.Metadata[MetaExif] := ChunkBytes(aStream, FChunks[i])
+      aImage.Metadata[MetaExif] := ExifWithoutHeader(ChunkBytes(aStream, FChunks[i]))
     else if FChunks[i].FourCC = WebPXMP then
       aImage.Metadata[MetaXMP] := ChunkBytes(aStream, FChunks[i]);
 end;
@@ -338,6 +350,8 @@ begin
   end;
   if FNextFrame = 0 then
     ReadMetadata(Str, Img);
+  if FApplyOrientation and not FAnimated then
+    ExifApplyImageOrientation(Img);
   Inc(FNextFrame);
 end;
 

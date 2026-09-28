@@ -184,6 +184,8 @@ type
     PageNumber: word; // the page number starting at 0, the total number of pages is PageCount
     PageCount: word; // see PageNumber
     PageName: AnsiString;
+    ICCProfile: TBytes; // tag 34675
+    XMP: TBytes; // tag 700
     PhotoMetricInterpretation: DWord;
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
@@ -335,6 +337,8 @@ procedure TTiffIFD.Clear;
 begin
   IFDStart:=0;
   IFDNext:=0;
+  ICCProfile:=nil;
+  XMP:=nil;
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=TiffPlanarConfigurationChunky;
   Compression:=TiffCompressionNone;
@@ -397,6 +401,8 @@ procedure TTiffIFD.Assign(IFD: TTiffIFD);
 begin
   IFDStart:=IFD.IFDStart;
   IFDNext:=IFD.IFDNext;
+  ICCProfile:=Copy(IFD.ICCProfile);
+  XMP:=Copy(IFD.XMP);
 
   PhotoMetricInterpretation:=IFD.PhotoMetricInterpretation;
   PlanarConfiguration:=IFD.PlanarConfiguration;
@@ -455,6 +461,8 @@ end;
 procedure TTiffIFD.ReadFPImgExtras(Src: TFPCustomImage);
 begin
   Clear;
+  ICCProfile:=Src.Metadata[MetaICC];
+  XMP:=Src.Metadata[MetaXMP];
   PhotoMetricInterpretation:=2;
   if Src.Extra[TiffPhotoMetric]<>'' then
     PhotoMetricInterpretation:=

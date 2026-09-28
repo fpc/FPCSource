@@ -134,6 +134,7 @@ begin
         begin
           AddUnit('fpimage');
           Addunit('jpegcomn');
+          AddUnit('fpimgexif');
         end;
     T:=P.Targets.AddUnit('fpreadpcx.pas');
       with T.Dependencies do
@@ -148,6 +149,7 @@ begin
           AddUnit('fpimgcmn');
           AddUnit('pngcomn');
           AddUnit('fpimagelist');
+          AddUnit('fpimgexif');
         end;
     T:=P.Targets.AddUnit('fpreadpnm.pp');
       with T.Dependencies do
@@ -339,6 +341,11 @@ begin
         begin
           AddUnit('fpimage');
         end;
+    T:=P.Targets.AddUnit('fpimgexif.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
     // webp
     T:=P.Targets.AddUnit('webpcomn.pas');
     T:=P.Targets.AddUnit('fpwebpvp8l.pas');
@@ -361,6 +368,7 @@ begin
           AddUnit('webpcomn');
           AddUnit('fpwebpvp8l');
           AddUnit('fpwebpvp8');
+          AddUnit('fpimgexif');
         end;
     T:=P.Targets.AddUnit('fpwritewebp.pas');
       with T.Dependencies do

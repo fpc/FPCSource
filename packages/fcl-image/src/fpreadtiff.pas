@@ -441,6 +441,8 @@ begin
   end;
   if IFD.PageName<>'' then
     CurImg.Extra[TiffPageName]:=IFD.PageName;
+  CurImg.Metadata[MetaICC]:=IFD.ICCProfile;
+  CurImg.Metadata[MetaXMP]:=IFD.XMP;
   if IFD.ImageIsThumbNail then
     CurImg.Extra[TiffIsThumbnail]:='1';
   if IFD.ImageIsMask then
@@ -788,6 +790,25 @@ var
   function GetPos: SizeUInt;
   begin
      Result:=SizeUInt(s.Position-fStartPos-2)
+  end;
+
+  // Returns the bytes of the values of the entry.
+  function ReadEntryBytes: TBytes;
+  var
+    lType: Word;
+    lCount: SizeUInt;
+    lBuffer: Pointer;
+    lBytes: PtrUInt;
+  begin
+    Result:=nil;
+    ReadValues(GetPos,lType,lCount,lBuffer,lBytes);
+    try
+      SetLength(Result,lBytes);
+      if lBytes>0 then
+        Move(lBuffer^,Result[0],lBytes);
+    finally
+      FreeMem(lBuffer);
+    end;
   end;
 
 begin
@@ -1553,13 +1574,8 @@ begin
       {$endif}
     end;
   700:
-    begin
-      // ToDo: XMP
-      {$ifdef FPC_Debug_Image}
-      if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 700: skipping XMP');
-      {$endif}
-    end;
+    // XMP
+    IFD.XMP:=ReadEntryBytes;
   33432:
     begin
       // Copyright
@@ -1570,13 +1586,8 @@ begin
       {$endif}
     end;
   34675:
-    begin
-      // ToDo: ICC Profile
-      {$ifdef FPC_Debug_Image}
-      if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 34675: skipping ICC profile');
-      {$endif}
-    end;
+    // ICC Profile
+    IFD.ICCProfile:=ReadEntryBytes;
   else
     begin
       EntryType:=ReadWord;

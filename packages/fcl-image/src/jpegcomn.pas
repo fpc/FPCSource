@@ -49,6 +49,12 @@ type
       eoMirrorHorRot270, eoRotate90, eoMirrorHorRot90, eoRotate270
     );
 
+const
+  // The starts of the APP1 markers of EXIF and XMP data and of the APP2 markers of an ICC profile.
+  JPEGExifHeader: AnsiString = 'Exif'#0#0;
+  JPEGXMPHeader: AnsiString = 'http://ns.adobe.com/xap/1.0/'#0;
+  JPEGICCHeader: AnsiString = 'ICC_PROFILE'#0;
+
 
 function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
 function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;

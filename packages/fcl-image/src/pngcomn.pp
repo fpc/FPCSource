@@ -97,6 +97,10 @@ const
     'Unkn'
     );
 
+  // The keyword of the iTXt chunk of an XMP packet, and the profile name the writer gives iCCP.
+  PNGXMPKeyword: AnsiString = 'XML:com.adobe.xmp';
+  PNGICCName: AnsiString = 'ICC profile';
+
   APNGDisposeNone = 0;
   APNGDisposeBackground = 1;
   APNGDisposePrevious = 2;

@@ -22,10 +22,10 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.SysUtils,System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream,
-  FpImage.ImageList;
+  FpImage.ImageList, FpImage.Exif;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream, FPImageList;
+  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream, FPImageList, fpimgexif;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -61,6 +61,8 @@ Type
       FPending : TAPNGFrameControl;
       FFrameIndex : integer;
       FCompositor : TFPFrameCompositor;
+      FApplyOrientation : boolean;
+      procedure ReadMetadataChunk;
       function ReadFrameControl : TAPNGFrameControl;
       procedure DecodeFrame (Img : TFPCustomImage; const AControl : TAPNGFrameControl);
       function GetGrayScale: Boolean;
@@ -137,6 +139,8 @@ Type
       Property ColorType : Byte Index 1 Read GetHeaderByte;
       Property Compression : Byte Index 2 Read GetHeaderByte;
       Property Filter : Byte Index 3 Read GetHeaderByte;
+      // Whether a still image is turned upright as the orientation of its EXIF data asks, which is then set to 1.
+      Property ApplyOrientation : Boolean Read FApplyOrientation Write FApplyOrientation;
       // Gamma the gAMA chunk of the file - zero when there is no such chunk.
       // The gamma is not applied, needs to be applied later when displaying.
       Property Gamma : Single Read FGamma;
@@ -161,6 +165,7 @@ begin
   chunk.acapacity := 0;
   chunk.data := nil;
   UseTransparent := False;
+  FApplyOrientation := True;
 end;
 
 destructor TFPReaderPNG.destroy;
@@ -935,7 +940,99 @@ begin
     cttRNS : HandleAlpha;
     ctgAMA : ReadGamma;
     ctpHYs : ReadResolutionValues;
+    cteXIf, ctiCCP, ctiTXt : ReadMetadataChunk;
     else HandleUnknown;
+  end;
+end;
+
+// Reads eXIf, iCCP and the iTXt of an XMP packet into the metadata of the image.
+procedure TFPReaderPNG.ReadMetadataChunk;
+var
+  Data, Profile : TBytes;
+  Zero, Start, i : Integer;
+  Compressed : TMemoryStream;
+  Inflate : TDecompressionStream;
+  Buffer : array[0..4095] of Byte;
+  Count : Integer;
+
+  // Returns the position of the zero byte ending the text starting at aFrom, or -1.
+  function ZeroFrom(aFrom : Integer) : Integer;
+  begin
+    Result := aFrom;
+    while (Result < Length(Data)) and (Data[Result] <> 0) do
+      Inc(Result);
+    if Result >= Length(Data) then
+      Result := -1;
+  end;
+
+  function Uncompress(aFrom : Integer) : TBytes;
+  begin
+    Result := nil;
+    Compressed := TMemoryStream.Create;
+    try
+      if aFrom < Length(Data) then
+        Compressed.WriteBuffer(Data[aFrom], Length(Data) - aFrom);
+      Compressed.Position := 0;
+      Inflate := TDecompressionStream.Create(Compressed);
+      try
+        repeat
+          Count := Inflate.Read(Buffer, SizeOf(Buffer));
+          if Count > 0 then
+            begin
+            SetLength(Result, Length(Result) + Count);
+            Move(Buffer, Result[Length(Result) - Count], Count);
+            end;
+        until Count <= 0;
+      finally
+        Inflate.Free;
+      end;
+    finally
+      Compressed.Free;
+    end;
+  end;
+
+begin
+  Data := nil;
+  SetLength(Data, chunk.alength);
+  if chunk.alength > 0 then
+    Move(chunk.data^, Data[0], chunk.alength);
+  case chunk.aType of
+    cteXIf :
+      TheImage.Metadata[MetaExif] := ExifWithoutHeader(Data);
+    ctiCCP :
+      begin
+      Zero := ZeroFrom(0);
+      if (Zero > 0) and (Zero + 1 < Length(Data)) and (Data[Zero + 1] = 0) then
+        try
+          Profile := Uncompress(Zero + 2);
+          TheImage.Metadata[MetaICC] := Profile;
+        except
+          on E : EDecompressionError do
+            raise PNGImageException.Create('Invalid iCCP chunk: ' + E.Message);
+        end;
+      end;
+    ctiTXt :
+      begin
+      Zero := ZeroFrom(0);
+      if (Zero = Length(PNGXMPKeyword)) and CompareMem(@Data[0], @PNGXMPKeyword[1], Zero)
+         and (Zero + 2 < Length(Data)) then
+        begin
+        Start := Zero + 3;
+        for i := 1 to 2 do
+          begin
+          Start := ZeroFrom(Start);
+          if Start < 0 then
+            exit;
+          Inc(Start);
+          end;
+        if Data[Zero + 1] = 0 then
+          TheImage.Metadata[MetaXMP] := Copy(Data, Start, Length(Data) - Start)
+        else
+          TheImage.Metadata[MetaXMP] := Uncompress(Start);
+        end;
+      end;
+  else
+    ;
   end;
 end;
 
@@ -972,6 +1069,8 @@ begin
     finally
       Decompress.Free;
     end;
+    if FApplyOrientation then
+      ExifApplyImageOrientation(Img);
   finally
     ZData.Free;
     if not img.UsePalette and assigned(FPalette) then
@@ -1130,6 +1229,8 @@ begin
   finally
     FreeAndNil(ZData);
   end;
+  if not FAnimated and FApplyOrientation then
+    ExifApplyImageOrientation(Img);
   if FAnimated then
     begin
     aInfo.Kind := fkAnimation;

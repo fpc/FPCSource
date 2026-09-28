@@ -127,7 +127,8 @@ type
   end;
 
 const
-  // Names of the standard metadata blocks of an image.
+  // Names of the standard metadata blocks of an image: EXIF data starting with its TIFF header,
+  // an ICC profile, and an XMP packet.
   MetaExif = 'exif';
   MetaICC = 'icc';
   MetaXMP = 'xmp';

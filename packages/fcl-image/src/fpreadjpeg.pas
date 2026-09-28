@@ -28,14 +28,16 @@ unit FPReadJPEG;
 {$mode objfpc}
 {$H+}
 {$openstrings on}
+{$modeswitch nestedprocvars}
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg, FpImage.Common.Jpeg;
+  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg, FpImage.Common.Jpeg,
+  System.Jpeg.Jdmarker, FpImage.Exif;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FpImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  Classes, SysUtils, Types, FpImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg, JdMarker, fpimgexif;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -92,6 +94,8 @@ type
     procedure ReadExtAPPn(Marker: int; var Header: array of JOCTET; HeaderLen: uint;
       var Remaining: INT32; ReadData: jpeg_ext_appn_readdata); virtual;
 
+    // Reads the EXIF, XMP and ICC metadata of the saved APP1 and APP2 markers into Img.
+    procedure ReadMarkers(Img: TFPCustomImage); virtual;
     procedure ReadHeader(Str: TStream; Img: TFPCustomImage); virtual;
     procedure ReadPixels(Str: TStream; Img: TFPCustomImage); virtual;
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
@@ -216,10 +220,7 @@ begin
   if (FWidth <= 0) or (FHeight <= 0) or (FWidth > 65535) or (FHeight > 65535) then
     raise FPImageException.Create('Invalid JPEG dimensions');
 
-  if FInfo.saw_EXIF_marker and (FInfo.orientation >= Ord(Low(TExifOrientation))) and (FInfo.orientation <= Ord(High(TExifOrientation))) then
-    FOrientation := TExifOrientation(FInfo.orientation)
-  else
-    FOrientation := Low(TExifOrientation);
+  ReadMarkers(Img);
 
   FGrayscale := FInfo.jpeg_color_space = JCS_GRAYSCALE;
   FProgressiveEncoding := jpeg_has_multiple_scans(@FInfo);
@@ -228,6 +229,81 @@ begin
   Img.ResolutionX :=CompressInfo.X_density;
   Img.ResolutionY :=CompressInfo.Y_density;
 end;
+
+procedure TFPReaderJPEG.ReadMarkers(Img: TFPCustomImage);
+
+var
+  lMarker: jpeg_saved_marker_ptr;
+  lData, lExif, lICC: TBytes;
+  lChunks: array of TBytes;
+  lOrientation, lSeq, i: Integer;
+  lRemaining: INT32;
+  lComplete: Boolean;
+
+  function NoMoreData(const Buffer: Pointer; numtoread: uint): Boolean;
+
+  begin
+    Result := False;
+  end;
+
+  function StartsWith(const aText: AnsiString): Boolean;
+
+  begin
+    Result := (Length(lData) >= Length(aText)) and CompareMem(@lData[0], @aText[1], Length(aText));
+  end;
+
+begin
+  FOrientation := eoUnknown;
+  lChunks := nil;
+  lMarker := FInfo.marker_list;
+  while lMarker <> nil do
+    begin
+    lData := nil;
+    SetLength(lData, lMarker^.data_length);
+    if lMarker^.data_length > 0 then
+      Move(lMarker^.data^[0], lData[0], lMarker^.data_length);
+    if lMarker^.marker = JPEG_APP0 + 1 then
+      begin
+      if StartsWith(JPEGExifHeader) then
+        begin
+        lExif := ExifWithoutHeader(lData);
+        lOrientation := ExifOrientation(lExif);
+        if lOrientation > 0 then
+          FOrientation := TExifOrientation(lOrientation);
+        // the pixels are turned upright as they are read
+        if lOrientation > 1 then
+          ExifSetOrientation(lExif, 1);
+        Img.Metadata[MetaExif] := lExif;
+        end
+      else if Length(lData) > 0 then
+        begin
+        if StartsWith(JPEGXMPHeader) then
+          Img.Metadata[MetaXMP] := Copy(lData, Length(JPEGXMPHeader), Length(lData));
+        lRemaining := 0;
+        ReadExtAPPn(JPEG_APP0 + 1, lData, Length(lData), lRemaining, @NoMoreData);
+        end;
+      end
+    else if (lMarker^.marker = JPEG_APP0 + 2) and (Length(lData) > 14) and StartsWith(JPEGICCHeader) then
+      begin
+      lSeq := lData[12];
+      if Length(lChunks) = 0 then
+        SetLength(lChunks, lData[13]);
+      if (lSeq >= 1) and (lSeq <= Length(lChunks)) then
+        lChunks[lSeq - 1] := Copy(lData, 14, Length(lData) - 14);
+      end;
+    lMarker := lMarker^.next;
+    end;
+  lComplete := Length(lChunks) > 0;
+  lICC := nil;
+  for i := 0 to High(lChunks) do
+    if Length(lChunks[i]) = 0 then
+      lComplete := False
+    else
+      lICC := Concat(lICC, lChunks[i]);
+  if lComplete then
+    Img.Metadata[MetaICC] := lICC;
+end;
+
 
 procedure TFPReaderJPEG.ReadPixels(Str: TStream; Img: TFPCustomImage);
 var
@@ -559,6 +635,8 @@ begin
     FExtensions.read_ext_appn := @ReadExtAPPnCallback;
 
     FInfo.client_data := Self;
+    jpeg_save_markers(@FInfo, JPEG_APP0 + 1, $FFFF);
+    jpeg_save_markers(@FInfo, JPEG_APP0 + 2, $FFFF);
 
     ReadHeader(Str, Img);
     ReadPixels(Str, Img);

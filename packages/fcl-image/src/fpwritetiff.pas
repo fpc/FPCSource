@@ -592,6 +592,10 @@ begin
       AddEntryString(285,IFD.PageName);
     if IFD.Copyright<>'' then
       AddEntryString(33432,IFD.Copyright);
+    if Length(IFD.XMP)>0 then
+      AddEntry(700,1,Length(IFD.XMP),@IFD.XMP[0],Length(IFD.XMP));
+    if Length(IFD.ICCProfile)>0 then
+      AddEntry(34675,7,Length(IFD.ICCProfile),@IFD.ICCProfile[0],Length(IFD.ICCProfile));
 
     // chunks
     ChunkType:=tctStrip;

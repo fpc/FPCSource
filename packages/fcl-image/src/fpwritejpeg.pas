@@ -32,10 +32,10 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, FpImage, System.Jpeg.Jpeglib, FpImage.Common.Jpeg, System.Jpeg.Jcapistd, System.Jpeg.Jcapimin, System.Jpeg.Jdatadst,
-  System.Jpeg.Jcparam, System.Jpeg.Jerror;
+  System.Jpeg.Jcparam, System.Jpeg.Jerror, System.Jpeg.Jmorecfg;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, FpImage, JPEGLib, JPEGComn, JcAPIstd, JcAPImin, JDataDst, JcParam, JError;
+  Classes, SysUtils, FpImage, JPEGLib, JPEGComn, JcAPIstd, JcAPImin, JDataDst, JcParam, JError, JMoreCfg;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -53,6 +53,8 @@ type
     procedure InitWriting(Str: TStream; Img: TFPCustomImage); virtual;
     procedure WriteHeader(Str: TStream; Img: TFPCustomImage); virtual;
     procedure WritePixels(Str: TStream; Img: TFPCustomImage); virtual;
+    // Writes the EXIF and XMP metadata of Img as APP1 markers and its ICC profile as APP2 markers.
+    procedure WriteMetadata(Img: TFPCustomImage); virtual;
     procedure InternalWrite(Str: TStream; Img: TFPCustomImage); override;
     property CompressInfo : jpeg_compress_struct Read FInfo Write FInfo;
   public
@@ -161,6 +163,7 @@ begin
   Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
   if not Continue then exit;
   jpeg_start_compress(@FInfo, True);
+  WriteMetadata(Img);
 
   // write one line per call
   GetMem(SampArray,SizeOf(JSAMPROW));
@@ -191,6 +194,47 @@ begin
   jpeg_finish_compress(@FInfo);
   Progress(psEnding, 100, False, Rect(0,0,0,0), '', Continue);
 end;
+
+procedure TFPWriterJPEG.WriteMetadata(Img: TFPCustomImage);
+
+const
+  MaxMarkerData = 65533;
+  MaxICCChunk = MaxMarkerData - 14;
+
+var
+  lData, lMarker: TBytes;
+  lCount, i, lSize: Integer;
+
+  procedure Write(aMarker: Integer; const aHeader: AnsiString; const aData: TBytes; aStart, aSize: Integer);
+
+  begin
+    lMarker := nil;
+    SetLength(lMarker, Length(aHeader) + aSize);
+    Move(aHeader[1], lMarker[0], Length(aHeader));
+    if aSize > 0 then
+      Move(aData[aStart], lMarker[Length(aHeader)], aSize);
+    jpeg_write_marker(@FInfo, aMarker, JOCTETptr(@lMarker[0]), Length(lMarker));
+  end;
+
+begin
+  lData := Img.Metadata[MetaExif];
+  if (Length(lData) > 0) and (Length(lData) + Length(JPEGExifHeader) <= MaxMarkerData) then
+    Write(JPEG_APP0 + 1, JPEGExifHeader, lData, 0, Length(lData));
+  lData := Img.Metadata[MetaXMP];
+  if (Length(lData) > 0) and (Length(lData) + Length(JPEGXMPHeader) <= MaxMarkerData) then
+    Write(JPEG_APP0 + 1, JPEGXMPHeader, lData, 0, Length(lData));
+  lData := Img.Metadata[MetaICC];
+  lCount := (Length(lData) + MaxICCChunk - 1) div MaxICCChunk;
+  if (lCount > 0) and (lCount <= 255) then
+    for i := 0 to lCount - 1 do
+      begin
+      lSize := Length(lData) - i * MaxICCChunk;
+      if lSize > MaxICCChunk then
+        lSize := MaxICCChunk;
+      Write(JPEG_APP0 + 2, JPEGICCHeader + AnsiChar(i + 1) + AnsiChar(lCount), lData, i * MaxICCChunk, lSize);
+      end;
+end;
+
 
 procedure TFPWriterJPEG.InternalWrite(Str: TStream; Img: TFPCustomImage);
 var

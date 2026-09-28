@@ -24,6 +24,7 @@ src/icocomn.pas=namespaced/FpImage.Common.ICO.pas
 src/fpreadico.pas=namespaced/FpImage.Reader.ICO.pas
 src/fpwriteico.pas=namespaced/FpImage.Writer.ICO.pas
 src/fpimagelist.pp=namespaced/FpImage.ImageList.pp
+src/fpimgexif.pas=namespaced/FpImage.Exif.pas
 src/webpcomn.pas=namespaced/FpImage.Common.WebP.pas
 src/fpwebpvp8l.pas=namespaced/FpImage.WebP.VP8L.pas
 src/fpwebpvp8.pas=namespaced/FpImage.WebP.VP8.pas
