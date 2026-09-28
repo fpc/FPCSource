@@ -53,6 +53,8 @@ type
     procedure TestEmptyHeader;
     procedure TestInclude;
     procedure TestSystemInclude;
+    procedure TestSystemIncludeStripped;
+    procedure TestIncludesCompile;
     procedure TestPragma;
     procedure TestPragmaPack;
     procedure TestPragmaPackPushPop;
@@ -334,18 +336,39 @@ end;
 procedure TTestPreprocessor.TestInclude;
 
 begin
-  Convert(['#include "other.h"','int x;']);
+  Convert(['#include "other.h" /* comment after */','int x;']);
   AssertConverted;
   AssertOutput('#include',['{$include "other.h"}']);
+  AssertNotOutput('the comment after the file name is dropped','comment after');
 end;
 
 
 procedure TTestPreprocessor.TestSystemInclude;
 
 begin
-  Convert(['#include <stdio.h>','int x;']);
+  Convert(['#include <stdio.h> // comment after','int x;']);
   AssertConverted;
-  AssertOutput('#include of a system header',['{$include <stdio.h>}']);
+  AssertOutput('#include of a system header is ignored',['(* #include <stdio.h> ignored *)']);
+  AssertNotOutput('no include directive for a system header','{$include <');
+  AssertNotOutput('the comment after the header name is dropped','comment after ignored');
+end;
+
+
+procedure TTestPreprocessor.TestSystemIncludeStripped;
+
+begin
+  Convert(['#include <stdio.h>','int x;'],['-S']);
+  AssertConverted;
+  AssertNotOutput('-S drops the comment','stdio.h');
+end;
+
+
+procedure TTestPreprocessor.TestIncludesCompile;
+
+begin
+  Convert(['#include <stdio.h>','#include <sys/types.h>','int x;'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

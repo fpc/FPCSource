@@ -805,12 +805,31 @@ end;
 
 Procedure HandlePreProcInclude;
 
+var
+  lText : AnsiString;
+
 begin
   if NotInCPlusBlock then
     begin
-      write(outfile,'{$include');
-      copy_until_eol;
-      writeln(outfile,'}');
+      lText:='';
+      c:=get_char;
+      while (c<>newline) and (c<>#0) do
+        begin
+        lText:=lText+c;
+        c:=get_char;
+        end;
+      lText:=Trim(lText);
+      if (lText<>'') and (lText[1]='<') and (pos('>',lText)>0) then
+        lText:=copy(lText,1,pos('>',lText))
+      else if (lText<>'') and (lText[1]='"') and (pos('"',copy(lText,2,length(lText)))>0) then
+        lText:=copy(lText,1,pos('"',copy(lText,2,length(lText)))+1);
+      if (lText<>'') and (lText[1]='<') then
+        begin
+        if not stripinfo then
+          writeln(outfile,'(* #include ',lText,' ignored *)');
+        end
+      else
+        writeln(outfile,'{$include ',lText,'}');
       flush(outfile);
       block_type:=bt_no;
     end
