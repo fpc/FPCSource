@@ -6264,7 +6264,13 @@ begin
             // After this, we're on ), which must be unget.
             LastHadDefaultValue:=true;
             end
-          else if LastHadDefaultValue then
+          else if LastHadDefaultValue
+              // fpc does not ask an open array parameter for a default (it
+              // cannot have one), so it may follow a defaulted parameter:
+              // lazutils' WriteProperty(...; DefInstance: TObject = nil;
+              // const OnlyProperty: array of String).
+              and not ((ArgType is TPasArrayType)
+                       and (length(TPasArrayType(ArgType).Ranges)=0)) then
             ParseExc(nParserDefaultParameterRequiredFor,
               SParserDefaultParameterRequiredFor,[TPasArgument(Args[OldArgCount]).Name]);
           UngetToken;
@@ -6832,7 +6838,15 @@ begin
       else if IsAnonymous then
         // No semicolon
       else
-        ExpectTokens([tkSemicolon]);
+        begin
+        // fpc also takes a directive right after it: `cdecl external 'lib'`
+        NextToken;
+        if (CurToken<>tkSemicolon)
+            and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
+          UngetToken
+        else
+          CheckToken(tkSemicolon);
+        end;
       end
     else if IsAnonymous and TokenIsAnonymousProcedureModifier(Parent,CurTokenString,PM) then
       HandleProcedureModifier(Parent,PM)
@@ -7017,11 +7031,12 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
       Expr.Parent:=Params;
       Expr:=Params;
       NextToken;
+      // the index belongs to the [...] expression, not to the property
       case CurToken of
-        tkChar:             Param:=CreatePrimitiveExpr(aParent,pekString, CurTokenText);
-        tkNumber:           Param:=CreatePrimitiveExpr(aParent,pekNumber, CurTokenString);
-        tkIdentifier:       Param:=CreatePrimitiveExpr(aParent,pekIdent, CurTokenText);
-        tkfalse, tktrue:    Param:=CreateBoolConstExpr(aParent,pekBoolConst, CurToken=tktrue);
+        tkChar:             Param:=CreatePrimitiveExpr(Params,pekString, CurTokenText);
+        tkNumber:           Param:=CreatePrimitiveExpr(Params,pekNumber, CurTokenString);
+        tkIdentifier:       Param:=CreatePrimitiveExpr(Params,pekIdent, CurTokenText);
+        tkfalse, tktrue:    Param:=CreateBoolConstExpr(Params,pekBoolConst, CurToken=tktrue);
       else
         ParseExcExpectedIdentifier;
       end;
@@ -8474,7 +8489,13 @@ begin
       end;
     tkIdentifier:
       begin
-      Done:=CheckVisibility(AVisibility);
+      // Only RECOGNISE a visibility here: the caller reads it. Consuming
+      // `strict private` and putting back one token lost the `strict`.
+      TmpVis:=visPublic;
+      Done:=(not CurTokenEscaped)
+        and (SameText(CurTokenString,'strict')
+             or IsVisibility(LowerCase(CurTokenString),TmpVis,
+                  (AType is TPasClassType) and (TPasClassType(AType).ObjKind=okObjcProtocol)));
       if not done and CheckCurtokenIsFinal(aType) then
         Done:=True;
       end;
@@ -8505,6 +8526,19 @@ end;
 procedure TPasParser.ParseMembersLocalConsts(AType: TPasMembersType;
   AVisibility: TPasMemberVisibility);
 
+  // A visibility starts here (`strict private`, `public`, ...). Only RECOGNISED:
+  // the caller reads it, so the `strict` is not lost.
+  function VisibilityAhead: Boolean;
+  var
+    TmpVis: TPasMemberVisibility;
+  begin
+    TmpVis:=visPublic;
+    Result:=(CurToken=tkIdentifier) and (not CurTokenEscaped)
+      and (SameText(CurTokenString,'strict')
+           or IsVisibility(LowerCase(CurTokenString),TmpVis,
+                (AType is TPasClassType) and (TPasClassType(AType).ObjKind=okObjcProtocol)));
+  end;
+
 Var
   C : TPasConst;
   Done : Boolean;
@@ -8523,7 +8557,12 @@ begin
     case CurToken of
     tkAbsolute,
     tkIdentifier:
-      if CheckVisibility(AVisibility) or CheckCurtokenIsFinal(aType) then
+      if VisibilityAhead then
+        begin
+        UngetToken;
+        Exit;
+        end
+      else if CheckCurtokenIsFinal(aType) then
         Exit;
     end;
     SaveIdentifierPosition;
@@ -8542,7 +8581,7 @@ begin
     case CurToken of
     tkAbsolute,
     tkIdentifier:
-      Done:=CheckVisibility(AVisibility) or CheckCurtokenIsFinal(aType);
+      Done:=VisibilityAhead or CheckCurtokenIsFinal(aType);
     tkSquaredBraceOpen:
       if msPrefixedAttributes in CurrentModeswitches then
         repeat
