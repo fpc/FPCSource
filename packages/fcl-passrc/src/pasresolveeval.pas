@@ -5736,14 +5736,25 @@ function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
   function SetBitMask(aSet: TResEvalSet): Integer;
   // bit N set for element N, as a small set is stored
   var
-    i: Integer;
-    j: TMaxPrecInt;
+    i, j, lo, hi: Integer;
   begin
     Result:=0;
     for i:=0 to length(aSet.Ranges)-1 do
-      for j:=aSet.Ranges[i].RangeStart to aSet.Ranges[i].RangeEnd do
-        if (j>=0) and (j<31) then
-          Result:=Result or (1 shl j);
+      begin
+      // only bits 0..30 fit; clip first, a loop variable must be an Integer
+      if (aSet.Ranges[i].RangeEnd<0) or (aSet.Ranges[i].RangeStart>30) then
+        continue;
+      if aSet.Ranges[i].RangeStart<0 then
+        lo:=0
+      else
+        lo:=aSet.Ranges[i].RangeStart;
+      if aSet.Ranges[i].RangeEnd>30 then
+        hi:=30
+      else
+        hi:=aSet.Ranges[i].RangeEnd;
+      for j:=lo to hi do
+        Result:=Result or (1 shl j);
+      end;
   end;
 
 var
