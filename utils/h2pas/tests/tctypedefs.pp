@@ -36,6 +36,10 @@ type
     procedure TestVoidArgFunctionPointer;
     procedure TestVoidPointerArg;
     procedure TestFunctionPointerArg;
+    procedure TestFunctionType;
+    procedure TestFunctionTypeWithoutParentheses;
+    procedure TestFunctionTypeUse;
+    procedure TestFunctionTypePrefix;
     procedure TestGenericTypedef;
     procedure TestTypedefsShareTypeBlock;
   end;
@@ -221,6 +225,53 @@ begin
   AssertConverted;
   AssertInterface('function pointer argument gets a named type before the typedef',
     ['cb_inner = procedure (x:longint);cdecl;','cb = procedure (inner:cb_inner);cdecl;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionType;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef void (vfunc_t)(void);']);
+  AssertConverted;
+  AssertInterface('function type becomes a procedural type',['func_t = function (_para1:longint):longint;cdecl;']);
+  AssertInterface('procedure type becomes a procedural type',['vfunc_t = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypeWithoutParentheses;
+
+begin
+  Convert(['typedef int func2_t(int a, int b);']);
+  AssertConverted;
+  AssertInterface('function type without parentheses',['func2_t = function (a:longint; b:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypeUse;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef int func2_t(int a, int b);',
+           'void usef(func_t *f, func_t g, func2_t *w);','extern func_t *fp;','struct cb { func_t *handler; };'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to a function type is the procedural type',['procedure usef(f:func_t; g:func_t; w:func2_t);cdecl;external;']);
+  AssertInterface('variable of a pointer to a function type',['fp : func_t;cvar;external;']);
+  AssertInterface('field of a pointer to a function type',['handler : func_t;']);
+  AssertNotOutput('no pointer type to a function type','Pfunc_t');
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypePrefix;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef int func2_t(int a, int b);',
+           'void usef(func_t *f, func2_t *w);','struct cb { func_t *handler; };'],['-d','-p','-T']);
+  AssertConverted;
+  AssertInterface('-p -T function type',['Tfunc_t = function (para1:longint):longint;cdecl;']);
+  AssertInterface('-p -T pointer to a function type',['procedure usef(f:Tfunc_t; w:Tfunc2_t);cdecl;external;']);
+  AssertInterface('-p -T field of a pointer to a function type',['handler : Tfunc_t;']);
+  AssertNotOutput('-p -T declares no pointer to a function type','Pfunc2_t');
   AssertCompiles;
 end;
 

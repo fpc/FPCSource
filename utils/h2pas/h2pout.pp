@@ -20,6 +20,8 @@ procedure WriteLibraryInitialization;
 function WritePointerTypeDef(var aFile : text; const PN,TN : AnsiString) : Boolean;
 // Writes a marker line for type TN, replaced by the pointer types to TN when the unit is assembled.
 procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
+// Registers aName as a typedef of a function type: a pointer to it is the Pascal procedural type itself.
+procedure RegisterFunctionType(const aName : AnsiString);
 // Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
 function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
 
@@ -79,10 +81,21 @@ const
 var
   WrittenPointers : TStringList;
   DeclaredTypes : TStringList;
+  // Targets of pointer types to pointer types, as PPname=Pname.
+  PointerTargets : TStringList;
+  // Names of typedefs of a function type, without T prefix.
+  FunctionTypes : TStringList;
+  // Number of P prefixes written for the pointer type being written.
+  pointer_level : Integer = 0;
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
   typedef_level : longint = 0;
+
+// Registers the pointer types P<aPointer>, PP<aPointer>, ... up to aLevels levels.
+procedure RegisterPointerChain(const aPointer : AnsiString; aLevels : Integer); forward;
+// Returns true when aType names a typedef of a function type.
+function IsFunctionType(aType : presobject) : Boolean; forward;
 
 procedure EmitAndOutput(S : string; aLine : integer);
 
@@ -828,6 +841,7 @@ Procedure write_pointerdef(var outfile:text; p,simple_type : presobject);
 var
   pointerwritten : Boolean;
   lVarArgs : Boolean;
+  lName : AnsiString;
 
 begin
   (* procedure variable ? *)
@@ -876,18 +890,27 @@ begin
     else
       begin
       pointerwritten:=false;
-      if (p^.p1=nil) and UsePPointers then
+      if (p^.p1=nil) and IsFunctionType(simple_type) then
+        begin
+        write_type_specifier(outfile,simple_type);
+        pointerwritten:=true;
+        end;
+      if not pointerwritten and (p^.p1=nil) and UsePPointers then
         begin
         if (simple_type^.typ=t_id) then
           begin
-          write(outfile,PointerName(simple_type^.p));
+          lName:=PointerName(simple_type^.p);
+          write(outfile,lName);
+          RegisterPointerChain(lName,pointer_level);
           pointerwritten:=true;
           end
         { structure }
         else if (simple_type^.typ in [t_uniondef,t_structdef]) and
                 (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
           begin
-          write(outfile,PointerName(simple_type^.p2^.p));
+          lName:=PointerName(simple_type^.p2^.p);
+          write(outfile,lName);
+          RegisterPointerChain(lName,pointer_level);
           pointerwritten:=true;
           end;
         end;
@@ -897,10 +920,13 @@ begin
           begin
           write(outfile,'P');
           pointerprefix:=true;
+          Inc(pointer_level);
           end
         else
           write(outfile,'^');
         write_p_a_def(outfile,p^.p1,simple_type);
+        if in_args then
+          Dec(pointer_level);
         pointerprefix:=false;
         end;
       end;
@@ -972,11 +998,13 @@ begin
       if not IsACType(p^.p) then
       begin
         PTypeList.Add('P'+PointerBaseName(p^.str));
+        RegisterPointerChain('P'+PointerBaseName(p^.str),pointer_level-1);
       end;
     end
     else
       begin
       PTypeList.Add('P'+PointerBaseName(p^.str));
+      RegisterPointerChain('P'+PointerBaseName(p^.str),pointer_level-1);
       end;
   if p^.skiptprefix then
     write(outfile,p^.p)
@@ -991,6 +1019,7 @@ procedure write_type_specifier_pointer(var outfile:text; p : presobject);
 
 var
   pointerwritten : Boolean;
+  lName : AnsiString;
 
 begin
   pointerwritten:=false;
@@ -999,18 +1028,27 @@ begin
     write(outfile,'pointer');
     pointerwritten:=true;
     end
+  else if IsFunctionType(p^.p1) then
+    begin
+    write_type_specifier(outfile,p^.p1);
+    pointerwritten:=true;
+    end
   else if UsePPointers then
     begin
     if (p^.p1^.typ=t_id) then
     begin
-      write(outfile,PointerName(p^.p1^.p));
+      lName:=PointerName(p^.p1^.p);
+      write(outfile,lName);
+      RegisterPointerChain(lName,pointer_level);
       pointerwritten:=true;
     end
     { structure }
     else if (p^.p1^.typ in [t_uniondef,t_structdef]) and
             (p^.p1^.p1=nil) and (p^.p1^.p2^.typ=t_id) then
     begin
-      write(outfile,PointerName(p^.p1^.p2^.p));
+      lName:=PointerName(p^.p1^.p2^.p);
+      write(outfile,lName);
+      RegisterPointerChain(lName,pointer_level);
       pointerwritten:=true;
     end;
     end;
@@ -1023,6 +1061,7 @@ begin
       else
         write(outfile,'P');
       pointerprefix:=true;
+      Inc(pointer_level);
       end
     else
       begin
@@ -1032,6 +1071,8 @@ begin
           write(outfile,'p');
       end;
     write_type_specifier(outfile,p^.p1);
+    if in_args then
+      Dec(pointer_level);
     pointerprefix:=false;
     end;
 end;
@@ -1413,7 +1454,63 @@ end;
 function PointerTarget(const PN : AnsiString) : AnsiString;
 
 begin
-  Result:=TypeName(Copy(PN,2,Length(PN)-1));
+  Result:=PointerTargets.Values[PN];
+  if Result='' then
+    Result:=TypeName(Copy(PN,2,Length(PN)-1));
+end;
+
+
+procedure RegisterPointerChain(const aPointer : AnsiString; aLevels : Integer);
+
+var
+  lName, lTarget : AnsiString;
+  lLevel : Integer;
+
+begin
+  lTarget:=aPointer;
+  for lLevel:=1 to aLevels do
+    begin
+    lName:='P'+lTarget;
+    PTypeList.Add(lName);
+    if PointerTargets.IndexOfName(lName)=-1 then
+      PointerTargets.Values[lName]:=lTarget;
+    lTarget:=lName;
+    end;
+end;
+
+
+function IsFunctionType(aType : presobject) : Boolean;
+
+begin
+  Result:=assigned(aType) and (aType^.typ=t_id)
+          and (FunctionTypes.IndexOf(PointerBaseName(aType^.str))<>-1);
+end;
+
+
+procedure RegisterFunctionType(const aName : AnsiString);
+
+begin
+  FunctionTypes.Add(PointerBaseName(aName));
+end;
+
+
+// Writes the pointer types to aTarget, and recursively the pointer types to those.
+procedure WritePointersTo(var aFile : text; const aIndent, aTarget : AnsiString);
+
+var
+  lIndex : Integer;
+  lName : AnsiString;
+
+begin
+  for lIndex:=0 to PTypeList.Count-1 do
+    begin
+    lName:=PTypeList[lIndex];
+    if SameText(PointerTarget(lName),aTarget) then
+      begin
+      WriteIndentedPointerTypeDef(aFile,aIndent,lName,aTarget);
+      WritePointersTo(aFile,aIndent,lName);
+      end;
+    end;
 end;
 
 
@@ -1431,7 +1528,7 @@ function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boole
 
 var
   lIndent, lTN : AnsiString;
-  lPos, lIndex : Integer;
+  lPos : Integer;
 
 begin
   Result:=(aLine<>'') and (aLine[1]=PointerMarker);
@@ -1442,17 +1539,21 @@ begin
     Inc(lPos);
   lIndent:=Copy(aLine,2,lPos-2);
   lTN:=Copy(aLine,lPos,Length(aLine)-lPos+1);
-  for lIndex:=0 to PTypeList.Count-1 do
-    if SameText(PointerTarget(PTypeList[lIndex]),lTN) then
-      WriteIndentedPointerTypeDef(aFile,lIndent,PTypeList[lIndex],lTN);
+  WritePointersTo(aFile,lIndent,lTN);
 end;
 
 
 // Returns true when the pointer type PN belongs in the pointer list of the unit header.
 function IsHeaderPointer(const PN : AnsiString) : Boolean;
 
+var
+  lBase : AnsiString;
+
 begin
-  Result:=MayWritePointerTypeDef(PN) and (DeclaredTypes.IndexOf(PointerTarget(PN))=-1);
+  lBase:=PointerTarget(PN);
+  while (PTypeList.IndexOf(lBase)<>-1) and not SameText(lBase,PN) do
+    lBase:=PointerTarget(lBase);
+  Result:=MayWritePointerTypeDef(PN) and (DeclaredTypes.IndexOf(lBase)=-1);
 end;
 
 procedure write_statement_block(var outfile:text; p : presobject);
@@ -1646,11 +1747,25 @@ initialization
   WrittenPointers.Add('pword');
   WrittenPointers.Add('pqword');
   WrittenPointers.Add('pextended');
+  WrittenPointers.Add('ppansichar');
+  WrittenPointers.Add('ppchar');
+  WrittenPointers.Add('ppbyte');
+  WrittenPointers.Add('ppdouble');
+  WrittenPointers.Add('pplongint');
+  WrittenPointers.Add('pppansichar');
+  WrittenPointers.Add('pppchar');
+  WrittenPointers.Add('pppointer');
+  PointerTargets:=TStringList.Create;
+  FunctionTypes:=TStringList.Create;
+  FunctionTypes.Sorted:=true;
+  FunctionTypes.Duplicates:=dupIgnore;
   DeclaredTypes:=TStringList.Create;
   DeclaredTypes.Sorted:=true;
   DeclaredTypes.Duplicates:=dupIgnore;
 
 finalization
   DeclaredTypes.Free;
+  FunctionTypes.Free;
+  PointerTargets.Free;
   WrittenPointers.Free;
 end.

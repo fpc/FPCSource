@@ -89,6 +89,22 @@ type
     procedure TestPointerAndUnderscoreCompiles;
   end;
 
+  { TTestPointerToPointer }
+
+  TTestPointerToPointer = class(TH2PasTestCase)
+  protected
+    // Converts the pointer to pointer sample header with aOptions and -d.
+    procedure ConvertSample(const aOptions: array of string);
+  published
+    procedure TestDeclaredAfterTarget;
+    procedure TestSystemTypesNotDeclared;
+    procedure TestPointerToBaseType;
+    procedure TestPointerPrefix;
+    procedure TestUnderscorePrefix;
+    procedure TestTypePrefix;
+    procedure TestCompiles;
+  end;
+
 implementation
 
 const
@@ -529,6 +545,110 @@ begin
 end;
 
 
+const
+  PointerToPointerHeader : array[0..3] of string = (
+    'struct s { int a; };',
+    'typedef struct _node { int b; } node;',
+    'void g(struct s **pp, node **np, node ***npp, int **ip, char **cp, unsigned short **wp);',
+    'node **getn(void);'
+  );
+
+
+procedure TTestPointerToPointer.ConvertSample(const aOptions: array of string);
+
+var
+  lOptions: array of string;
+  lIndex: integer;
+
+begin
+  lOptions:=[];
+  SetLength(lOptions,Length(aOptions)+1);
+  for lIndex:=0 to Length(aOptions)-1 do
+    lOptions[lIndex]:=aOptions[lIndex];
+  lOptions[Length(aOptions)]:='-d';
+  Convert(PointerToPointerHeader,lOptions);
+  AssertConverted;
+end;
+
+
+procedure TTestPointerToPointer.TestDeclaredAfterTarget;
+
+begin
+  ConvertSample([]);
+  AssertInterface('pointer to pointer to a struct follows the pointer',['a : longint;','end;','Ps = ^s;','PPs = ^Ps;']);
+  AssertInterface('pointer to pointer to a typedef follows the pointer',
+    ['node = _node;','Pnode = ^node;','PPnode = ^Pnode;','PPPnode = ^PPnode;']);
+  AssertInterface('parameters',['procedure g(pp:PPs; np:PPnode; npp:PPPnode; ip:PPlongint; cp:PPansichar;','wp:PPword);cdecl;external;']);
+  AssertInterface('pointer to pointer result',['function getn:PPnode;cdecl;external;']);
+end;
+
+
+procedure TTestPointerToPointer.TestSystemTypesNotDeclared;
+
+begin
+  ConvertSample([]);
+  AssertNotOutput('PPlongint comes from the system unit','PPlongint =');
+  AssertNotOutput('PPansichar comes from the system unit','PPansichar =');
+end;
+
+
+procedure TTestPointerToPointer.TestPointerToBaseType;
+
+begin
+  ConvertSample([]);
+  AssertOutput('pointer to a system pointer type is in the header pointer list',['Type','PPword = ^Pword;']);
+end;
+
+
+procedure TTestPointerToPointer.TestPointerPrefix;
+
+begin
+  ConvertSample(['-p']);
+  AssertInterface('-p pointer to pointer to a struct',['Ps = ^s;','s = record','a : longint;','end;','PPs = ^Ps;']);
+  AssertInterface('-p pointer to pointer to a typedef',['Pnode = ^node;','PPnode = ^Pnode;','PPPnode = ^PPnode;']);
+  AssertEquals('-p declares PPnode once',1,CountOf('PPnode = ^Pnode;'));
+end;
+
+
+procedure TTestPointerToPointer.TestUnderscorePrefix;
+
+begin
+  ConvertSample(['-T']);
+  AssertInterface('-T pointer to pointer to a struct',['Ps = ^Ts;','PPs = ^Ps;']);
+  AssertInterface('-T pointer to pointer to a typedef',['Pnode = ^Tnode;','PPnode = ^Pnode;','PPPnode = ^PPnode;']);
+end;
+
+
+procedure TTestPointerToPointer.TestTypePrefix;
+
+begin
+  ConvertSample(['-t']);
+  AssertInterface('-t pointer to pointer to a typedef',['Tnode = T_node;','Pnode = ^Tnode;','PPnode = ^Pnode;']);
+  AssertInterface('-t parameters',['procedure g(pp:PPs; np:PPnode; npp:PPPnode;']);
+end;
+
+
+procedure TTestPointerToPointer.TestCompiles;
+
+const
+  OptionSets : array[0..4] of string = ('','-p','-t','-T','-p -T');
+
+var
+  lSet: string;
+  lOptions: TStringArray;
+
+begin
+  for lSet in OptionSets do
+    begin
+    lOptions:=[];
+    if lSet<>'' then
+      lOptions:=lSet.Split(' ');
+    ConvertSample(lOptions);
+    AssertCompiles;
+    end;
+end;
+
+
 initialization
-  RegisterTests('H2Pas',[TTestNoPrefix,TTestTypePrefix,TTestPointerPrefix,TTestCombinedPrefixes]);
+  RegisterTests('H2Pas',[TTestNoPrefix,TTestTypePrefix,TTestPointerPrefix,TTestCombinedPrefixes,TTestPointerToPointer]);
 end.

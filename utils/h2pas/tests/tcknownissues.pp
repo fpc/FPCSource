@@ -14,19 +14,11 @@ uses
 
 type
 
-  { TTestKnownPointerIssues }
-
-  TTestKnownPointerIssues = class(TH2PasTestCase)
-  published
-    procedure TestPointerPrefixPointerToPointer;
-  end;
-
   { TTestKnownDeclarationIssues }
 
   TTestKnownDeclarationIssues = class(TH2PasTestCase)
   published
     procedure TestReferenceParam;
-    procedure TestFunctionTypedef;
   end;
 
   { TTestKnownMacroIssues }
@@ -42,30 +34,12 @@ type
 implementation
 
 
-procedure TTestKnownPointerIssues.TestPointerPrefixPointerToPointer;
-
-begin
-  Convert(['struct s { int a; };','void g(struct s **pp);'],['-p','-d']);
-  AssertConverted;
-  AssertCompiles;
-end;
-
-
 procedure TTestKnownDeclarationIssues.TestReferenceParam;
 
 begin
   Convert(['void f(int &r);']);
   AssertConverted;
   AssertInterface('C++ reference parameter becomes a var parameter',['procedure f(var r:longint);']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestFunctionTypedef;
-
-begin
-  Convert(['typedef int (func_t)(int);']);
-  AssertConverted;
-  AssertInterface('function typedef',['func_t = function (_para1:longint):longint;cdecl;']);
 end;
 
 
@@ -107,7 +81,6 @@ end;
 
 
 initialization
-  RegisterTest('KnownIssues',TTestKnownPointerIssues);
   RegisterTest('KnownIssues',TTestKnownDeclarationIssues);
   RegisterTest('KnownIssues',TTestKnownMacroIssues);
 end.

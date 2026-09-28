@@ -1037,6 +1037,18 @@ begin
     end;
 end;
 
+// Makes the typedef declarator aDecl of a function type a pointer to the function, and registers its name.
+procedure WrapFunctionType(aDecl : presobject);
+
+begin
+  if not assigned(aDecl) or not assigned(aDecl^.p1) or (aDecl^.p1^.typ<>t_procdef) then
+    exit;
+  aDecl^.p1:=NewType1(t_pointerdef,aDecl^.p1);
+  if assigned(aDecl^.p2) and assigned(aDecl^.p2^.p) then
+    RegisterFunctionType(aDecl^.p2^.str);
+end;
+
+
 // Returns true when aList is the argument list (void): one unnamed argument of type void.
 function IsVoidArgList(aList : presobject) : boolean;
 
@@ -1086,6 +1098,7 @@ begin
       hp:=hp^.p1;
     hp^.p1:=new(presobject,init_two(t_procdef,nil,arg_decl_list));
     hp:=declarator;
+    WrapFunctionType(hp);
     if assigned(hp^.p1) and assigned(hp^.p1^.p1) then
       begin
         writeln(outfile);
@@ -1116,6 +1129,7 @@ function HandleTypedefList(type_spec,dec_modifier,declarator_list: presobject) :
 var
   hp,ph : presobject;
   lDecl : presobject;
+  lFunctionType : boolean;
 
 
 begin
@@ -1155,11 +1169,17 @@ begin
     ph:=type_spec^.p2
   else
     ph:=lDecl^.p2;
+  lFunctionType:=assigned(lDecl) and assigned(lDecl^.p1) and (lDecl^.p1^.typ=t_procdef);
+  if lFunctionType then
+    WrapFunctionType(lDecl);
   (* write type definition *)
   is_procvar:=false;
   TN:=TypeName(ph^.p);
-  PN:=PointerName(ph^.p);
-  if UsePPointers and (not SameText(tn,pn)) and
+  if lFunctionType then
+    PN:=TN
+  else
+    PN:=PointerName(ph^.p);
+  if UsePPointers and (not SameText(tn,pn)) and not lFunctionType and
     assigned(type_spec) and (type_spec^.typ<>t_procdef) then
     WritePointerTypeDef(outfile,PN,TN);
   (* write new type name *)
@@ -1194,11 +1214,11 @@ begin
           write(outfile,aktspace,TN,' = ');
           write_p_a_def(outfile,hp^.p1^.p1,ph);
           writeln(outfile,';');
-          WritePointerMarker(outfile,TN);
           PN:=PointerName(hp^.p1^.p2^.p);
           if UsePPointers and (not sametext(tn,pn)) and
             assigned(type_spec) and (type_spec^.typ<>t_procdef) then
             WritePointerTypeDef(outfile,PN,TN);
+          WritePointerMarker(outfile,TN);
         end;
       end;
     hp:=hp^.next;
