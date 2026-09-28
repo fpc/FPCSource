@@ -34,6 +34,8 @@ type
 function VP8LReadInfo(aData: PByte; aSize: Integer; out aInfo: TVP8LInfo): Boolean;
 // Decodes the VP8L bitstream in aData; raises EWebPError when it is invalid.
 function VP8LDecode(aData: PByte; aSize: Integer; out aInfo: TVP8LInfo): TWebPPixels;
+// Decodes a VP8L image stream of aWidth x aHeight without the VP8L header, as in an ALPH chunk.
+function VP8LDecodeImageStream(aData: PByte; aSize, aWidth, aHeight: Integer): TWebPPixels;
 // Encodes aPixels of aWidth x aHeight as a VP8L bitstream.
 function VP8LEncode(const aPixels: TWebPPixels; aWidth, aHeight: Integer): TBytes;
 // Returns the colour of pixel aPixel.
@@ -124,6 +126,7 @@ type
   public
     constructor Create(aData: PByte; aSize: Integer);
     function Decode(out aInfo: TVP8LInfo): TWebPPixels;
+    function DecodeStream(aWidth, aHeight: Integer): TWebPPixels;
   end;
 
 function DivRoundUp(aValue, aBits: Integer): Integer;
@@ -718,13 +721,6 @@ end;
 
 function TVP8LDecoder.Decode(out aInfo: TVP8LInfo): TWebPPixels;
 
-var
-  lTransforms: array[0..3] of TTransform;
-  lCount, lWidth, lKind, i, j, x, y, lBits, lSize, lPos, lMode, lPerByte, lPixelBits: Integer;
-  lSeen: set of 0..3;
-  lPixel, lBlock, lRed, lBlue, lGreen: LongWord;
-  lIndexed: TWebPPixels;
-
 begin
   if ReadBits(8) <> VP8LSignature then
     raise EWebPError.Create('Not a VP8L bitstream');
@@ -733,9 +729,23 @@ begin
   aInfo.AlphaUsed := ReadBits(1) = 1;
   if ReadBits(3) <> 0 then
     raise EWebPError.Create('Unknown VP8L version');
+  Result := DecodeStream(aInfo.Width, aInfo.Height);
+end;
+
+
+function TVP8LDecoder.DecodeStream(aWidth, aHeight: Integer): TWebPPixels;
+
+var
+  lTransforms: array[0..3] of TTransform;
+  lCount, lWidth, lKind, i, j, x, y, lBits, lSize, lPos, lMode, lPerByte, lPixelBits: Integer;
+  lSeen: set of 0..3;
+  lPixel, lBlock, lRed, lBlue, lGreen: LongWord;
+  lIndexed: TWebPPixels;
+
+begin
   lCount := 0;
   lSeen := [];
-  lWidth := aInfo.Width;
+  lWidth := aWidth;
   while ReadBits(1) = 1 do
     begin
     lKind := ReadBits(2);
@@ -746,7 +756,7 @@ begin
       begin
       Kind := lKind;
       Width := lWidth;
-      Height := aInfo.Height;
+      Height := aHeight;
       Bits := 0;
       Data := nil;
       case lKind of
@@ -773,7 +783,7 @@ begin
       end;
     Inc(lCount);
     end;
-  Result := DecodeImage(lWidth, aInfo.Height, True);
+  Result := DecodeImage(lWidth, aHeight, True);
   for i := lCount - 1 downto 0 do
     with lTransforms[i] do
       case Kind of
@@ -873,6 +883,21 @@ begin
   lDecoder := TVP8LDecoder.Create(aData, aSize);
   try
     Result := lDecoder.Decode(aInfo);
+  finally
+    lDecoder.Free;
+  end;
+end;
+
+
+function VP8LDecodeImageStream(aData: PByte; aSize, aWidth, aHeight: Integer): TWebPPixels;
+
+var
+  lDecoder: TVP8LDecoder;
+
+begin
+  lDecoder := TVP8LDecoder.Create(aData, aSize);
+  try
+    Result := lDecoder.DecodeStream(aWidth, aHeight);
   finally
     lDecoder.Free;
   end;

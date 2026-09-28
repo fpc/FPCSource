@@ -346,6 +346,13 @@ begin
         begin
           AddUnit('fpimage');
         end;
+    T:=P.Targets.AddUnit('fpwebpvp8.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('fpwebpvp8tables.inc');
+          AddUnit('fpimage');
+          AddUnit('fpwebpvp8l');
+        end;
     T:=P.Targets.AddUnit('fpreadwebp.pas');
       with T.Dependencies do
         begin
@@ -353,6 +360,7 @@ begin
           AddUnit('fpimagelist');
           AddUnit('webpcomn');
           AddUnit('fpwebpvp8l');
+          AddUnit('fpwebpvp8');
         end;
     T:=P.Targets.AddUnit('fpwritewebp.pas');
       with T.Dependencies do

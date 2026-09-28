@@ -1,5 +1,5 @@
 {
-    Reader of WebP files: lossless images, animations and their EXIF, ICC and XMP metadata.
+    Reader of WebP files: lossless and lossy images, animations and their EXIF, ICC and XMP metadata.
     This file is part of the Free Pascal run time library.
     See the file COPYING.FPC, included in this distribution, for details.
 }
@@ -13,10 +13,10 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, System.Types, FpImage, FpImage.ImageList, FpImage.Common.WebP,
-  FpImage.WebP.VP8L;
+  FpImage.WebP.VP8L, FpImage.WebP.VP8;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FpImage, FPImageList, webpcomn, fpwebpvp8l;
+  Classes, SysUtils, Types, FpImage, FPImageList, webpcomn, fpwebpvp8l, fpwebpvp8;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -152,13 +152,22 @@ begin
       SetLength(FFrames, 1);
       FFrames[0] := i;
       end;
-  if (FCanvasWidth = 0) and (Length(FFrames) > 0) and (FChunks[FFrames[0]].FourCC = WebPVP8L) then
+  if (FCanvasWidth = 0) and (Length(FFrames) > 0) then
     begin
     lData := ChunkBytes(aStream, FChunks[FFrames[0]]);
-    if VP8LReadInfo(@lData[0], Length(lData), lInfo) then
+    if Length(lData) = 0 then
+    else if FChunks[FFrames[0]].FourCC = WebPVP8L then
       begin
-      FCanvasWidth := lInfo.Width;
-      FCanvasHeight := lInfo.Height;
+      if VP8LReadInfo(@lData[0], Length(lData), lInfo) then
+        begin
+        FCanvasWidth := lInfo.Width;
+        FCanvasHeight := lInfo.Height;
+        end;
+      end
+    else if not VP8ReadInfo(@lData[0], Length(lData), FCanvasWidth, FCanvasHeight) then
+      begin
+      FCanvasWidth := 0;
+      FCanvasHeight := 0;
       end;
     end;
 end;
@@ -180,14 +189,21 @@ procedure TFPReaderWebP.DecodeImage(aStream: TStream; const aChunks: TWebPChunks
   aImage: TFPCustomImage);
 
 var
-  lData: TBytes;
+  lData, lAlpha: TBytes;
   lPixels: TWebPPixels;
   lInfo: TVP8LInfo;
-  i, x, y: Integer;
+  lWidth, lHeight, i, x, y: Integer;
+  lFound: Boolean;
 
 begin
+  lFound := False;
+  lAlpha := nil;
+  lWidth := 0;
+  lHeight := 0;
   for i := 0 to High(aChunks) do
-    if aChunks[i].FourCC = WebPVP8L then
+    if aChunks[i].FourCC = WebPALPH then
+      lAlpha := ChunkBytes(aStream, aChunks[i])
+    else if aChunks[i].FourCC = WebPVP8L then
       begin
       lData := ChunkBytes(aStream, aChunks[i]);
       if not VP8LReadInfo(@lData[0], Length(lData), lInfo) then
@@ -195,16 +211,31 @@ begin
       if (aWidth > 0) and ((lInfo.Width <> aWidth) or (lInfo.Height <> aHeight)) then
         raise EWebPError.Create('WebP image of another size than its frame or canvas');
       lPixels := VP8LDecode(@lData[0], Length(lData), lInfo);
-      aImage.UsePalette := False;
-      aImage.SetSize(lInfo.Width, lInfo.Height);
-      for y := 0 to lInfo.Height - 1 do
-        for x := 0 to lInfo.Width - 1 do
-          aImage.Colors[x, y] := WebPPixelToColor(lPixels[y * lInfo.Width + x]);
-      exit;
+      lWidth := lInfo.Width;
+      lHeight := lInfo.Height;
+      lFound := True;
+      break;
       end
     else if aChunks[i].FourCC = WebPVP8 then
-      raise EWebPError.Create('Lossy WebP (VP8) images are not supported');
-  raise EWebPError.Create('WebP frame without an image');
+      begin
+      lData := ChunkBytes(aStream, aChunks[i]);
+      if not VP8ReadInfo(@lData[0], Length(lData), lWidth, lHeight) then
+        raise EWebPError.Create('Invalid VP8 chunk');
+      if (aWidth > 0) and ((lWidth <> aWidth) or (lHeight <> aHeight)) then
+        raise EWebPError.Create('WebP image of another size than its frame or canvas');
+      lPixels := VP8Decode(@lData[0], Length(lData), lWidth, lHeight);
+      if Length(lAlpha) > 0 then
+        WebPApplyAlpha(@lAlpha[0], Length(lAlpha), lWidth, lHeight, lPixels);
+      lFound := True;
+      break;
+      end;
+  if not lFound then
+    raise EWebPError.Create('WebP frame without an image');
+  aImage.UsePalette := False;
+  aImage.SetSize(lWidth, lHeight);
+  for y := 0 to lHeight - 1 do
+    for x := 0 to lWidth - 1 do
+      aImage.Colors[x, y] := WebPPixelToColor(lPixels[y * lWidth + x]);
 end;
 
 
@@ -295,9 +326,7 @@ begin
       end
     else
       begin
-      lSingle := nil;
-      SetLength(lSingle, 1);
-      lSingle[0] := lChunk;
+      lSingle := Copy(FChunks, 0, FFrames[FNextFrame] + 1);
       if FChunks[0].FourCC = WebPVP8X then
         DecodeImage(Str, lSingle, FCanvasWidth, FCanvasHeight, Img)
       else

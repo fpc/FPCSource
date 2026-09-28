@@ -26,6 +26,7 @@ src/fpwriteico.pas=namespaced/FpImage.Writer.ICO.pas
 src/fpimagelist.pp=namespaced/FpImage.ImageList.pp
 src/webpcomn.pas=namespaced/FpImage.Common.WebP.pas
 src/fpwebpvp8l.pas=namespaced/FpImage.WebP.VP8L.pas
+src/fpwebpvp8.pas=namespaced/FpImage.WebP.VP8.pas
 src/fpreadwebp.pas=namespaced/FpImage.Reader.WebP.pas
 src/fpwritewebp.pas=namespaced/FpImage.Writer.WebP.pas
 src/fpditherer.pas=namespaced/FpImage.Ditherer.pas

@@ -1,6 +1,6 @@
 {
-    Tests for the lossless WebP reader and writer: files written by libwebp, round trips through every
-    path of the encoder, the chunks written, metadata, animations and damaged files.
+    Tests for the WebP reader and writer: lossless and lossy files written by libwebp, round trips
+    through every path of the encoder, the chunks written, metadata, animations and damaged files.
     See the file COPYING.FPC, included in this distribution, for details.
 }
 unit tcwebp;
@@ -9,8 +9,8 @@ unit tcwebp;
 
 interface
 
-uses sysutils, classes, types, fpcunit, testregistry, fpimage, fpimgtests, fpimagelist,
-     webpcomn, fpwebpvp8l, fpreadwebp, fpwritewebp, fpreadgif, fpwritegif;
+uses sysutils, classes, types, fpcunit, testregistry, fpimage, fpimgtests, fpimagelist, fpimgcmn,
+     webpcomn, fpwebpvp8l, fpwebpvp8, fpreadwebp, fpwritewebp, fpreadgif, fpwritegif;
 
 type
   TPixelFunc = function(x, y: Integer): TFPColor;
@@ -41,7 +41,13 @@ type
     procedure WriteTooWide;
     procedure ReadTruncated;
     procedure ReadDamaged;
-    procedure ReadLossy;
+    // Returns the CRC32 of the 8-bit RGBA bytes of aImage, row by row.
+    function RGBACRC(aImage: TFPCustomImage): LongWord;
+    // Reads every frame of a lossy fixture and checks its size and the CRC32 of each frame.
+    procedure CheckLossy(const aName, aHex: String; aWidth, aHeight: Integer; const aCRCs: array of LongWord);
+    // Replaces the ALPH chunk of the raw alpha fixture by alpha filtered with aFilter, and checks it is read back.
+    procedure CheckAlphaFilter(aFilter: Integer);
+    procedure ReadTruncatedLossy;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -78,13 +84,24 @@ type
     procedure TestImageSize;
     procedure TestTruncatedDataRaises;
     procedure TestDamagedDataRaises;
-    procedure TestLossyIsNotSupported;
+    procedure TestLossyWithTheNormalFilterAndSegments;
+    procedure TestLossyOfAnOddSize;
+    procedure TestLossyWithTheSimpleFilterAndPartitions;
+    procedure TestLossyWithCompressedFilteredAlpha;
+    procedure TestLossyWithRawAlpha;
+    procedure TestALossyAnimation;
+    procedure TestAlphaHorizontalFilter;
+    procedure TestAlphaVerticalFilter;
+    procedure TestAlphaGradientFilter;
+    procedure TestTheSizeOfALossyImage;
+    procedure TestATruncatedLossyImageRaises;
     procedure TestGIFToWebP;
   end;
 
 implementation
 
 {$i webpfixtures.inc}
+{$i webplossyfixtures.inc}
 
 function PhotoPixel(x, y: Integer): TFPColor;
 
@@ -325,17 +342,123 @@ begin
 end;
 
 
-procedure TTestWebP.ReadLossy;
+function TTestWebP.RGBACRC(aImage: TFPCustomImage): LongWord;
 
 var
-  lSize: LongWord;
+  lBytes: array of Byte;
+  lColor: TFPColor;
+  x, y, lPos: Integer;
 
 begin
-  FStream.WriteBuffer(WebPRIFF, 4);
-  lSize := NtoLE(LongWord(4 + 8 + 10));
+  lBytes := nil;
+  SetLength(lBytes, aImage.Width * aImage.Height * 4);
+  lPos := 0;
+  for y := 0 to aImage.Height - 1 do
+    for x := 0 to aImage.Width - 1 do
+      begin
+      lColor := aImage.Colors[x, y];
+      lBytes[lPos] := lColor.Red shr 8;
+      lBytes[lPos + 1] := lColor.Green shr 8;
+      lBytes[lPos + 2] := lColor.Blue shr 8;
+      lBytes[lPos + 3] := lColor.Alpha shr 8;
+      Inc(lPos, 4);
+      end;
+  Result := CalculateCRC($FFFFFFFF, lBytes[0], Length(lBytes)) xor $FFFFFFFF;
+end;
+
+
+procedure TTestWebP.CheckLossy(const aName, aHex: String; aWidth, aHeight: Integer; const aCRCs: array of LongWord);
+
+var
+  i: Integer;
+
+begin
+  LoadHex(aHex);
+  FList := TFPImageList.Create;
+  FList.LoadFromStream(FStream, FReader);
+  AssertEquals(aName + ': the frames', Length(aCRCs), FList.Count);
+  for i := 0 to FList.Count - 1 do
+    begin
+    AssertEquals(aName + ': width', aWidth, FList.Images[i].Width);
+    AssertEquals(aName + ': height', aHeight, FList.Images[i].Height);
+    AssertEquals(Format('%s: frame %d decodes as libwebp decodes it', [aName, i]), aCRCs[i], RGBACRC(FList.Images[i]));
+    end;
+end;
+
+
+procedure TTestWebP.CheckAlphaFilter(aFilter: Integer);
+
+var
+  lSource: TMemoryStream;
+  lChunks: TWebPChunks;
+  lAlpha, lFiltered: array[0..127] of Byte;
+  lData: array[0..128] of Byte;
+  lSize: LongWord;
+  i, x, y, lPred: Integer;
+
+begin
+  for y := 0 to 7 do
+    for x := 0 to 15 do
+      lAlpha[y * 16 + x] := (x * 29 + y * y * 13 + (x * y) mod 7) and $FF;
+  for y := 0 to 7 do
+    for x := 0 to 15 do
+      begin
+      if (x = 0) and (y = 0) then
+        lPred := 0
+      else if y = 0 then
+        lPred := lAlpha[x - 1]
+      else if x = 0 then
+        lPred := lAlpha[(y - 1) * 16]
+      else if aFilter = 1 then
+        lPred := lAlpha[y * 16 + x - 1]
+      else if aFilter = 2 then
+        lPred := lAlpha[(y - 1) * 16 + x]
+      else
+        begin
+        lPred := Integer(lAlpha[y * 16 + x - 1]) + lAlpha[(y - 1) * 16 + x] - lAlpha[(y - 1) * 16 + x - 1];
+        if lPred < 0 then
+          lPred := 0
+        else if lPred > 255 then
+          lPred := 255;
+        end;
+      lFiltered[y * 16 + x] := (lAlpha[y * 16 + x] - lPred) and $FF;
+      end;
+  lData[0] := aFilter shl 2;
+  Move(lFiltered, lData[1], 128);
+  LoadHex(FixtureLossyRawalpha);
+  lChunks := WebPReadChunks(FStream, 12, FStream.Size - 12);
+  lSource := TMemoryStream.Create;
+  try
+    lSource.CopyFrom(FStream, 0);
+    FStream.Clear;
+    FStream.WriteBuffer(WebPRIFF, 4);
+    FStream.WriteBuffer(lSize, 4);
+    FStream.WriteBuffer(WebPWEBP, 4);
+    for i := 0 to High(lChunks) do
+      if lChunks[i].FourCC = WebPALPH then
+        WebPWriteChunk(FStream, WebPALPH, lData, SizeOf(lData))
+      else
+        WebPWriteChunk(FStream, lChunks[i].FourCC, (PByte(lSource.Memory) + lChunks[i].Offset)^, lChunks[i].Size);
+  finally
+    lSource.Free;
+  end;
+  lSize := NtoLE(LongWord(FStream.Size - 8));
+  FStream.Position := 4;
   FStream.WriteBuffer(lSize, 4);
-  FStream.WriteBuffer(WebPWEBP, 4);
-  WebPWriteChunk(FStream, WebPVP8, PChar(#$9D#$01#$2A#1#0#1#0#0#0#0)^, 10);
+  FStream.Position := 0;
+  ReadIt;
+  for y := 0 to 7 do
+    for x := 0 to 15 do
+      AssertEquals(Format('Filter %d: the alpha of pixel (%d,%d)', [aFilter, x, y]), lAlpha[y * 16 + x],
+        FRead.Colors[x, y].Alpha shr 8);
+end;
+
+
+procedure TTestWebP.ReadTruncatedLossy;
+
+begin
+  LoadHex(FixtureLossyLossy);
+  FStream.Size := FStream.Size - 200;
   FStream.Position := 0;
   ReadIt;
 end;
@@ -736,10 +859,89 @@ begin
 end;
 
 
-procedure TTestWebP.TestLossyIsNotSupported;
+procedure TTestWebP.TestLossyWithTheNormalFilterAndSegments;
 
 begin
-  AssertRaises('A lossy image raises', EWebPError, @ReadLossy);
+  CheckLossy('The normal loop filter and segments', FixtureLossyLossy, 32, 24, FixtureLossyLossyCRC);
+end;
+
+
+procedure TTestWebP.TestLossyOfAnOddSize;
+
+begin
+  CheckLossy('An odd size, cropped from its macroblocks', FixtureLossyOdd, 13, 7, FixtureLossyOddCRC);
+end;
+
+
+procedure TTestWebP.TestLossyWithTheSimpleFilterAndPartitions;
+
+begin
+  CheckLossy('The simple loop filter, sharpness and four token partitions', FixtureLossySimple, 24, 16,
+    FixtureLossySimpleCRC);
+end;
+
+
+procedure TTestWebP.TestLossyWithCompressedFilteredAlpha;
+
+begin
+  CheckLossy('Lossless alpha, filtered and preprocessed', FixtureLossyAlpha, 24, 16, FixtureLossyAlphaCRC);
+end;
+
+
+procedure TTestWebP.TestLossyWithRawAlpha;
+
+begin
+  CheckLossy('Raw alpha', FixtureLossyRawalpha, 16, 8, FixtureLossyRawalphaCRC);
+end;
+
+
+procedure TTestWebP.TestALossyAnimation;
+
+begin
+  CheckLossy('A lossy animation with alpha', FixtureLossyAnim, 24, 16, FixtureLossyAnimCRC);
+  AssertEquals('The delay of the second frame', 90, FList[1].Info.Delay);
+end;
+
+
+procedure TTestWebP.TestAlphaHorizontalFilter;
+
+begin
+  CheckAlphaFilter(1);
+end;
+
+
+procedure TTestWebP.TestAlphaVerticalFilter;
+
+begin
+  CheckAlphaFilter(2);
+end;
+
+
+procedure TTestWebP.TestAlphaGradientFilter;
+
+begin
+  CheckAlphaFilter(3);
+end;
+
+
+procedure TTestWebP.TestTheSizeOfALossyImage;
+
+var
+  lSize: TPoint;
+
+begin
+  LoadHex(FixtureLossyLossy);
+  AssertTrue('A lossy WebP is accepted', FReader.CheckContents(FStream));
+  lSize := TFPReaderWebP.ImageSize(FStream);
+  AssertEquals('The width of a lossy image', 32, lSize.X);
+  AssertEquals('The height of a lossy image', 24, lSize.Y);
+end;
+
+
+procedure TTestWebP.TestATruncatedLossyImageRaises;
+
+begin
+  AssertRaises('A truncated lossy image raises', EWebPError, @ReadTruncatedLossy);
 end;
 
 
