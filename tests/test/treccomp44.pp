@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: specializing a generic record composing its type
+  parameter with a non-record type (Integer) is not allowed }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

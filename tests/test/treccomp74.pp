@@ -1,4 +1,5 @@
 { %FAIL }
+{ Record composition: "contains" is only supported in records, not in classes }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

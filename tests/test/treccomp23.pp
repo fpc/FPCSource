@@ -1,5 +1,8 @@
 { %FAIL }
 { %OPT=-Sew }
+{ Record composition: a field of the composing record declared before the
+  composition with the same name as a member of the composed record
+  gives a duplicate identifier warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

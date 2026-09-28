@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: "contains alias" cannot declare a new field, only
+  reference an existing one }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

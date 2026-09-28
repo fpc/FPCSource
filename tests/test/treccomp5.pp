@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: a property of the composing record cannot use
+  a member of an unnamed composed record as read/write accessor }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

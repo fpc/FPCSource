@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: members of a composition declared in a strict private
+  section are not accessible from outside the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

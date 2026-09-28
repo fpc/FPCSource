@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: a strict private field of the composed record is not
+  composed, so it is not accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

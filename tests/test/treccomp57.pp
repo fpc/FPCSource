@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composition inside a variant part overlaps
+  the other variant's field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

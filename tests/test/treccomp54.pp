@@ -1,3 +1,6 @@
+{ Record composition: in a specialization of a generic record with an unnamed
+  composition of its type parameter, the composed record is placed in memory
+  at its declaration position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composition with an anonymous (inline declared)
+  record type is placed in memory at its declaration position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

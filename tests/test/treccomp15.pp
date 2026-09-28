@@ -1,3 +1,5 @@
+{ Record composition: a named composition with an anonymous (inline declared)
+  record type, its members are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

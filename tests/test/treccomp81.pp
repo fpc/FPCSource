@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: like a field, a composition cannot appear after a method
+    declaration without starting a new visibility section }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -18,7 +20,7 @@ end;
 type
   TComposed = record
     function Foo: Integer;
-    contains c: TChildRec;
+    contains c: TChildRec; // needs a visibility
   end;
 
 function TComposed.Foo: Integer;
@@ -29,7 +31,6 @@ end;
 var
   c: TComposed;
 begin
-  if c.Foo=c.c.Foo then
-    Halt(1);
+  if c.Foo=c.c.Foo then ;
   WriteLn('Ok');
 end.

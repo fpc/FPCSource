@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: composing a type parameter constrained to a class
+  is not allowed, only records }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

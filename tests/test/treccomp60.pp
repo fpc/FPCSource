@@ -1,4 +1,6 @@
 { %RECOMPILE }
+{ Record composition: a composing record declared in a unit, loaded from the ppu,
+  composed members are accessible in a program without modeswitch RecordComposition }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

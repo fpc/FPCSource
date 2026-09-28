@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composition in the fixed part and another in
+  the variant part, their generated hidden field names must not collide }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

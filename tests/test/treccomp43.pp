@@ -1,3 +1,5 @@
+{ Record composition: a generic record composing its type parameter, specialized
+  with a record declared after the generic, members are accessible }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

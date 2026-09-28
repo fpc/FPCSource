@@ -1,3 +1,5 @@
+{ Record composition: nested compositions, a member of a composed record's
+  composed record is accessible via the outer composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

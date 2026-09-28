@@ -1,3 +1,5 @@
+{ Record composition: a private (non-strict) field of the composed record
+  is visible through the composing record within the same unit }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

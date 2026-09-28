@@ -1,3 +1,5 @@
+{ Record composition: the RTTI of a record with unnamed compositions lists the
+  composed fields flattened with their correct offsets }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -58,7 +60,7 @@ begin
   end;
   if (UIntPtr(@r.D)-UIntPtr(@r)) <> mf[3].FldOffset then
   begin
-    WriteLn('Mismatch on A');
+    WriteLn('Mismatch on D');
     WriteLn('Expected: ', UIntPtr(@r.D)-UIntPtr(@r));
     WriteLn('  Actual: ', mf[3].FldOffset);
     halt(1);

@@ -1,3 +1,5 @@
+{ Record composition: "contains alias" in a public section makes the members
+  of a strict private field public, and keeps the field's memory position }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

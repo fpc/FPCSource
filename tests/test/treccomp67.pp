@@ -1,4 +1,5 @@
 { %FAIL }
+{ Record composition: composing an interface is not allowed, only records }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

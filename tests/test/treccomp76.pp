@@ -1,3 +1,5 @@
+{ Record composition: composed members are found inside a "with" statement
+  on the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

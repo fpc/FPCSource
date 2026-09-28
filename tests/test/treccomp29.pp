@@ -1,3 +1,5 @@
+{ Record composition: a record with two named compositions, the members of
+  both are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

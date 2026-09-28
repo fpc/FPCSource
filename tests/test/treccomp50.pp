@@ -1,5 +1,7 @@
 { %FAIL }
 { %NORUN }
+{ Record composition: in a generic record, the name of a named composition
+  must not duplicate an existing field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

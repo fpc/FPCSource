@@ -1,4 +1,5 @@
 { %FAIL }
+{ Record composition: composing a type helper (for Integer) is not allowed }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

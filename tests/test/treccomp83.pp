@@ -1,3 +1,5 @@
+{ Record composition: composing a record with a static class method compiles
+  and the method still works on the composed record type }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

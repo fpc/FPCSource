@@ -1,3 +1,5 @@
+{ Record composition: inside a generic, accessing a member composed from a type
+  parameter (R.B) is accepted and resolved when the generic is specialized }
 program treccomp;
 
 {$mode objfpc}

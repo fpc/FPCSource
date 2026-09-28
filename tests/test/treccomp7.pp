@@ -1,5 +1,7 @@
 { %FAIL }
 { %NORUN }
+{ Record composition: composing an existing field requires "contains alias",
+  plain "contains <field>;" is an error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

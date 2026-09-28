@@ -1,3 +1,6 @@
+{ Record composition: in a specialization of a generic record with an unnamed
+  composition of its type parameter declared first, the composed record is
+  at offset 0 }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

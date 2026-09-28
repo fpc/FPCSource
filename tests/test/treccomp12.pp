@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composed record declared first
+  is placed at offset 0 of the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

@@ -1,3 +1,5 @@
+{ Record composition: composing an anonymous record whose variant parts contain
+  compositions, members of both variants are accessible via the outer record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

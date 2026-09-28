@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composition of an anonymous record whose variant
+  parts contain unnamed compositions, the variants overlap in memory }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

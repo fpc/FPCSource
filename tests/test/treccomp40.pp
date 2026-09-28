@@ -1,3 +1,5 @@
+{ Record composition: nested unnamed compositions, members of all levels are
+  accessible via the outer composing record and placed in declaration order }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

@@ -1,3 +1,5 @@
+{ Record composition: a method of the composing record declared before the
+  composition hides the composed method with the same name }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

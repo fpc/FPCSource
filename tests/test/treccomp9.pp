@@ -1,3 +1,5 @@
+{ Record composition: a method with parameters of the composed record called
+  via the composing record gets the composed field as Self, not a neighbour field }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
@@ -29,7 +31,8 @@ begin
   WriteLn('@c:         ', IntPtr(@c));
   WriteLn('@c.B:       ', IntPtr(@c.B));
   WriteLn('@c.child.B: ', IntPtr(@c.child.B));
-  if not c.CheckAddr(@c.A) and c.CheckAddr(@c.child) and
+  if not c.CheckAddr(@c.A) and 
+     c.CheckAddr(@c.child) and
      not c.CheckAddr(@c.C) then
   begin
     WriteLn('ok');

@@ -1,3 +1,5 @@
+{ Record composition: in a specialization of a generic record, a field declared
+  after a named composition hides the composed member with the same name }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

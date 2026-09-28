@@ -1,5 +1,8 @@
 { %FAIL }
 { %NORUN }
+{ Record composition: in a specialization of a generic record with an unnamed
+  composition of its type parameter, a field declared after the composition
+  with the same name as a composed member is a duplicate identifier error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

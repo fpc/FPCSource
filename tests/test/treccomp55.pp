@@ -1,3 +1,5 @@
+{ Record composition: a named composition inside a variant part, its members
+  are accessible via the composing record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

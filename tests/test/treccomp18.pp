@@ -1,4 +1,5 @@
 { %FAIL }
+{ Record composition: composing a class is not allowed, only records }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

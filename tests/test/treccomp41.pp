@@ -1,3 +1,5 @@
+{ Record composition: assigning a composing record copies the fields of
+  an unnamed composed record }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: inside a generic, a member access on a composed type
+  parameter (R.B) is an error if the specialized type has no such member }
 program treccomp;
 
 {$mode objfpc}
@@ -29,7 +31,6 @@ end;
 var
   t: specialize TTest2<TNested>;
 begin
-  t.R.B:=42;
   t.Test;
   WriteLn('Ok');
 end. 

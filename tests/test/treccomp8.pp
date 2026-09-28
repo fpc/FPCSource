@@ -1,3 +1,5 @@
+{ Record composition: a method of the composed record called via the composing
+  record gets the composed field as Self }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

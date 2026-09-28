@@ -1,5 +1,7 @@
 { %FAIL }
 { %OPT=-Sew }
+{ Record composition: methods with the same name from two named compositions
+  are not merged into overloads, the second gives a warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

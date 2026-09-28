@@ -1,3 +1,5 @@
+{ Record composition: an unnamed composed record is placed in memory
+  at its declaration position between the surrounding fields }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

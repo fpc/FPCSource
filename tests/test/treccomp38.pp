@@ -1,3 +1,5 @@
+{ Record composition: a record with two unnamed compositions, both are placed
+  in memory in declaration order and their members are accessible }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

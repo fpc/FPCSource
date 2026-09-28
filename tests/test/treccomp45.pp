@@ -1,4 +1,6 @@
 { %FAIL }
+{ Record composition: in a specialization of a generic record composing its
+  type parameter, an identifier that is not a member of the actual type is an error }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}

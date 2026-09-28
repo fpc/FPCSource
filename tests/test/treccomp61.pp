@@ -1,5 +1,7 @@
 { %NORUN }
 { %OPT=-Sew }
+{ Record composition: operators of composed records are not composed, so
+  two composed records with the same operator give no collision warning }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
