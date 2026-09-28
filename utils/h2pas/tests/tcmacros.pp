@@ -116,6 +116,10 @@ type
     procedure TestTernaryValueCondition;
     procedure TestTernaryValueConditionCompiles;
     procedure TestLogicalMacros;
+    procedure TestLogicalNotOfValue;
+    procedure TestLogicalNotOfComparison;
+    procedure TestBitwiseNotKept;
+    procedure TestNotsCompile;
     procedure TestTernaryAndLogicalCompile;
     procedure TestContinuedBody;
     procedure TestDeref;
@@ -456,7 +460,7 @@ end;
 procedure TTestConstMacros.TestLogicalNot;
 
 begin
-  CheckConst('NOT_E','(!1)','not (1)');
+  CheckConst('NOT_E','(!1)','1=0');
 end;
 
 
@@ -963,6 +967,48 @@ begin
   AssertImplementation('&& of values',['LA:=(a<>0) and (b<>0);']);
   AssertImplementation('&& of a value and a comparison',['LM:=(a<>0) and (b>1);']);
   AssertImplementation('|| of comparisons',['LO:=(a>0) or (b<2);']);
+end;
+
+
+procedure TTestFunctionMacros.TestLogicalNotOfValue;
+
+begin
+  Convert(['#define N3(a) (!(a))','#define N5(a) (!(a) ? 1 : 2)','#define N6(a,b) (!(a) && (b))']);
+  AssertConverted;
+  AssertInterface('! of a value returns boolean',['function N3(a : longint) : boolean;']);
+  AssertImplementation('! of a value is a comparison to 0',['N3:=a=0;']);
+  AssertImplementation('! as ternary condition',['if a=0 then']);
+  AssertImplementation('! in a logical and',['N6:=(a=0) and (b<>0);']);
+end;
+
+
+procedure TTestFunctionMacros.TestLogicalNotOfComparison;
+
+begin
+  Convert(['#define N4(a,b) (!((a) > (b)))']);
+  AssertConverted;
+  AssertInterface('! of a comparison returns boolean',['function N4(a,b : longint) : boolean;']);
+  AssertImplementation('! of a comparison is not',['N4:= not (a>b);']);
+end;
+
+
+procedure TTestFunctionMacros.TestBitwiseNotKept;
+
+begin
+  Convert(['#define N7(a) (~(a) & 0xff)']);
+  AssertConverted;
+  AssertInterface('~ keeps an integer result',['function N7(a : longint) : longint;']);
+  AssertImplementation('~ is a bitwise not',['N7:=( not (a)) and $ff;']);
+end;
+
+
+procedure TTestFunctionMacros.TestNotsCompile;
+
+begin
+  Convert(['#define N1 (!1)','#define N2 (~1)','#define N3(a) (!(a))','#define N4(a,b) (!((a) > (b)))',
+           '#define N5(a) (!(a) ? 1 : 2)','#define N6(a,b) (!(a) && (b))','#define N7(a) (~(a) & 0xff)'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

@@ -106,7 +106,7 @@ begin
   27:
                         if NotInCPlusBlock then return(_NOT) else skip_until_eol; (* inverse, but handled as not operation *)
   28:
-                        if NotInCPlusBlock then return(_NOT) else skip_until_eol;
+                        if NotInCPlusBlock then return(_LNOT) else skip_until_eol;
   29:
                         if NotInCPlusBlock then return(_SLASH) else skip_until_eol;
   30:

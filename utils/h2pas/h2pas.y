@@ -48,7 +48,7 @@ end;
 %left _SHR _SHL
 %left _PLUS MINUS
 %left STAR _SLASH _MOD
-%right _NOT
+%right _NOT _LNOT
 %right LKLAMMER
 %right PSTAR
 %right P_AND
@@ -939,6 +939,10 @@ unary_expr:
      _NOT unary_expr
      {
      $$:=NewUnaryOp(' not ',$2);
+     } |
+     _LNOT unary_expr
+     {
+     $$:=HandleLogicalNot($2);
      } |
      LKLAMMER dname RKLAMMER maybe_empty_unary_expr
      {

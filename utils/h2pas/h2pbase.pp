@@ -81,6 +81,8 @@ function HandleTernary(expr,colonexpr : presobject) : presobject;
 function HandleDivision(aLeft,aRight : presobject) : presobject;
 // Returns the C logical operator && or || as aOp (and, or) of aLeft and aRight, operands that are no comparison compared to 0.
 function HandleLogicalOp(const aOp : string; aLeft,aRight : presobject) : presobject;
+// Returns the C logical not !aExpr: not for a comparison, a comparison to 0 otherwise.
+function HandleLogicalNot(aExpr : presobject) : presobject;
 // Returns aName * aRight with aName as leftmost operand of the operators in aRight that bind as weak or weaker.
 function HandleNamedProduct(aName,aRight : presobject) : presobject;
 
@@ -102,7 +104,7 @@ Function NewCType(aCType,aPascalType : String) : PresObject;
 
 Implementation
 
-// Returns true when the expression aExpr is a comparison, or an and or or of comparisons.
+// Returns true when the expression aExpr is a comparison, or an and, or or not of comparisons.
 function IsBooleanExpr(aExpr : presobject) : boolean;
 
 var
@@ -112,6 +114,8 @@ begin
   Result:=false;
   while assigned(aExpr) and (aExpr^.typ=t_exprlist) and not assigned(aExpr^.next) do
     aExpr:=aExpr^.p1;
+  if assigned(aExpr) and (aExpr^.typ=t_preop) and (aExpr^.str=' not ') then
+    exit(IsBooleanExpr(aExpr^.p1));
   if not assigned(aExpr) or (aExpr^.typ<>t_bop) then
     exit;
   lOp:=aExpr^.str;
@@ -182,6 +186,16 @@ begin
   if not IsBooleanExpr(aRight) then
     aRight:=NewBinaryOp('<>',aRight,NewID('0'));
   Result:=NewBinaryOp(aOp,aLeft,aRight);
+end;
+
+
+function HandleLogicalNot(aExpr : presobject) : presobject;
+
+begin
+  if IsBooleanExpr(aExpr) then
+    Result:=NewUnaryOp(' not ',aExpr)
+  else
+    Result:=NewBinaryOp('=',aExpr,NewID('0'));
 end;
 
 

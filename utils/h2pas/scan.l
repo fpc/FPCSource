@@ -70,7 +70,7 @@ D [0-9]
 "|"                     if NotInCPlusBlock then return(_OR) else skip_until_eol;
 "&"                     if NotInCPlusBlock then return(_AND) else skip_until_eol;
 "~"                     if NotInCPlusBlock then return(_NOT) else skip_until_eol; (* inverse, but handled as not operation *)
-"!"                     if NotInCPlusBlock then return(_NOT) else skip_until_eol;
+"!"                     if NotInCPlusBlock then return(_LNOT) else skip_until_eol;
 "/"                     if NotInCPlusBlock then return(_SLASH) else skip_until_eol;
 "+"                     if NotInCPlusBlock then return(_PLUS) else skip_until_eol;
 "?"                     if NotInCPlusBlock then return(QUESTIONMARK) else skip_until_eol;
