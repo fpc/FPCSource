@@ -9,7 +9,7 @@ program convertframes;
 
 uses
   SysUtils, FPImage, FPImageList, FPReadBMP, FPWriteBMP, FPReadPNG, FPWritePNG, FPReadJPEG, FPWriteJPEG,
-  FPReadGif, FPWriteGIF, FPReadTiff, FPWriteTiff, FPReadICO, FPWriteICO;
+  FPReadGif, FPWriteGIF, FPReadTiff, FPWriteTiff, FPReadICO, FPWriteICO, FPReadWebP, FPWriteWebP;
 
 const
   cKinds: array[TFPFrameKind] of String = ('animation frame', 'page', 'variant');

@@ -339,6 +339,28 @@ begin
         begin
           AddUnit('fpimage');
         end;
+    // webp
+    T:=P.Targets.AddUnit('webpcomn.pas');
+    T:=P.Targets.AddUnit('fpwebpvp8l.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadwebp.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpimagelist');
+          AddUnit('webpcomn');
+          AddUnit('fpwebpvp8l');
+        end;
+    T:=P.Targets.AddUnit('fpwritewebp.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('webpcomn');
+          AddUnit('fpwebpvp8l');
+        end;
     // ico
     T:=P.Targets.AddUnit('icocomn.pas');
     T:=P.Targets.AddUnit('fpreadico.pas');

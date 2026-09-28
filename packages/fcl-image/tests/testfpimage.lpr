@@ -22,7 +22,7 @@ uses
 {$ENDIF}
   fpimgtests,
   tccolor, tcpalette, tcmemimage, tccompactimg, tchandlers,
-  tcbmp, tcpng, tctga, tcpcx, tcpnm, tcxpm, tcqoi, tcico, tcframes, tcapng,
+  tcbmp, tcpng, tctga, tcpcx, tcpnm, tcxpm, tcqoi, tcico, tcframes, tcapng, tcwebp,
   tcjpeg, tctiff, tcpsd, tcxwd,
   tccanvas, tcpscanvas, tcinterp, tcgauss, tcquantize,
   tccolorspace, tcmisc, tcqrcode, tcbarcodedraw,

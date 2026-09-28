@@ -13,7 +13,7 @@ uses sysutils, classes, fpcunit, testregistry, fpimage, fpimgtests,
      fpreadbmp, fpwritebmp, fpreadpng, fpwritepng, fpreadjpeg, fpwritejpeg,
      fpreadgif, fpwritegif, fpreadtga, fpwritetga, fpreadtiff, fpwritetiff,
      fpreadpcx, fpwritepcx, fpreadpnm, fpwritepnm, fpreadxpm, fpwritexpm,
-     fpreadqoi, fpwriteqoi, fpreadpsd, fpreadxwd, fptiffcmn, fpreadico, fpwriteico;
+     fpreadqoi, fpwriteqoi, fpreadpsd, fpreadxwd, fptiffcmn, fpreadico, fpwriteico, fpreadwebp, fpwritewebp;
 
 type
   TTestHandlers = class(TTestCase)
@@ -50,6 +50,7 @@ type
     procedure TestDetectTGA;
     procedure TestDetectICO;
     procedure TestDetectCUR;
+    procedure TestDetectWebP;
     procedure TestDetectionRestoresThePosition;
     procedure TestTextIsNoImage;
     procedure TestLoadingGarbageRaises;
@@ -185,9 +186,9 @@ end;
 procedure TTestHandlers.TestEveryFormatHasAReader;
 
 const
-  cExtensions: array[0..19] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+  cExtensions: array[0..20] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
     'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi',
-    'psd', 'pdd', 'xwd', 'ico', 'cur');
+    'psd', 'pdd', 'xwd', 'ico', 'cur', 'webp');
 
 var
   lExt: String;
@@ -201,8 +202,8 @@ end;
 procedure TTestHandlers.TestEveryWritableFormatHasAWriter;
 
 const
-  cExtensions: array[0..16] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
-    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur');
+  cExtensions: array[0..17] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur', 'webp');
 
 var
   lExt: String;
@@ -216,8 +217,8 @@ end;
 procedure TTestHandlers.TestReaderAndWriterOfAnExtensionShareOneEntry;
 
 const
-  cExtensions: array[0..16] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
-    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur');
+  cExtensions: array[0..17] of String = ('bmp', 'png', 'jpg', 'jpeg', 'gif',
+    'tga', 'tif', 'tiff', 'pcx', 'pnm', 'pgm', 'pbm', 'ppm', 'xpm', 'qoi', 'ico', 'cur', 'webp');
 
 var
   lExt: String;
@@ -352,6 +353,13 @@ procedure TTestHandlers.TestDetectCUR;
 
 begin
   CheckDetected('CUR', TFPWriterCUR, TFPReaderCUR);
+end;
+
+
+procedure TTestHandlers.TestDetectWebP;
+
+begin
+  CheckDetected('WebP', TFPWriterWebP, TFPReaderWebP);
 end;
 
 
