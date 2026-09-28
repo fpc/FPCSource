@@ -1,8 +1,17 @@
 {
-    Shared definitions of the Radiance HDR (RGBE) reader and writer.
     This file is part of the Free Pascal run time library.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    Copyright (c) 2026 by the Free Pascal development team
+
+    Radiance HDR (RGBE) image shared data for reader & writer
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit hdrcomn;

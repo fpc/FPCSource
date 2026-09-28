@@ -1,8 +1,17 @@
 {
-    The WebP lossy (VP8 key frame) bitstream decoder, with the YUV to RGB conversion and chroma
-    upsampling of libwebp, and the decoder of ALPH alpha chunks.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2026 by the Free Pascal development team
+
+    VP8 reader/writer common structures.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebpvp8;
@@ -38,8 +47,20 @@ const
   Cat6: array[0..10] of Byte = (254, 254, 243, 230, 196, 177, 153, 140, 133, 130, 129);
 
   // Modes of the 4x4 intra predictors, and of the 16x16 and chroma ones.
-  BDC = 0; BTM = 1; BVE = 2; BHE = 3; BRD = 4; BVR = 5; BLD = 6; BVL = 7; BHD = 8; BHU = 9;
-  DCPred = 0; TMPred = 1; VPred = 2; HPred = 3;
+  BDC = 0; 
+  BTM = 1; 
+  BVE = 2; 
+  BHE = 3; 
+  BRD = 4; 
+  BVR = 5; 
+  BLD = 6; 
+  BVL = 7; 
+  BHD = 8; 
+  BHU = 9;
+  DCPred = 0; 
+  TMPred = 1; 
+  VPred = 2; 
+  HPred = 3;
 
   // The tree of the 4x4 intra modes: positive entries are nodes, others minus a mode.
   YModesIntra4: array[0..17] of ShortInt =

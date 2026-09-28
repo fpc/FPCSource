@@ -1,8 +1,17 @@
 {
-    The WebP lossless (VP8L) bitstream: a decoder of every feature of the format and an encoder
-    using subtract-green and predictor transforms or a colour index, with LZ77 back references.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2026 by the Free Pascal development team
+
+    Read the WebP lossless (VP8L) bitstream.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebpvp8l;

@@ -1,8 +1,17 @@
 {
-    Writer of Radiance HDR (RGBE) images, run-length encoded.
     This file is part of the Free Pascal run time library.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    Copyright (c) 2026 by the Free Pascal development team
+
+    Radiance HDR (RGBE) image writer:  run-length encoded.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpwritehdr;

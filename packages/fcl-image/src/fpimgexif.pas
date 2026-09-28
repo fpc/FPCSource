@@ -1,8 +1,17 @@
 {
-    The orientation tag of EXIF data, and turning an image upright as it asks.
-    EXIF data here starts with its TIFF header, without the 'Exif'#0#0 of a JPEG APP1 marker.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2026 by the Free Pascal development team
+
+    Handle EXIF data in images
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpimgexif;

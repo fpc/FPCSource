@@ -1,8 +1,17 @@
 {
-    Reader of WebP files: lossless and lossy images, animations and their EXIF, ICC and XMP metadata.
     This file is part of the Free Pascal run time library.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    Copyright (c) 2026 by the Free Pascal development team
+
+    WebP file reader. lossless and lossy images, animations, EXIF, ICC and XMP metadata.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpreadwebp;

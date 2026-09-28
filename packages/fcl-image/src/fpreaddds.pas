@@ -1,9 +1,17 @@
 {
-    Reader of DirectDraw Surface (DDS) images: uncompressed, BC1, BC2 and BC3;
-    mipmaps, cube faces, array elements and depth slices are frames.
     This file is part of the Free Pascal run time library.
-    See the file COPYING.FPC, included in this distribution, for details.
-}
+    Copyright (c) 2026 by the Free Pascal development team
+
+    DDS image reader. Handles multiple images.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpreaddds;

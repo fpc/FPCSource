@@ -1,7 +1,18 @@
 {
-    Constant tables of the VP8 key frame format (RFC 6386): default and update probabilities of the
-    DCT tokens, probabilities of the 4x4 intra modes, and the quantizer steps.
-}
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2026 by the Free Pascal development team
+
+    Tables needed for WebP image data (RFC 6386).
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 const
   // Default probabilities of the DCT tokens, by block type, band, context and tree node.
   CoeffsProba0: array[0..3, 0..7, 0..2, 0..10] of Byte = (
