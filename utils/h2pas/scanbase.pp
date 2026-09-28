@@ -108,7 +108,7 @@ const
 implementation
 
 uses
-   SysUtils,Classes,h2poptions,h2pconst;
+   SysUtils,Classes,h2poptions,h2pconst,h2pCpp;
 
 const
   MaxPackDepth = 32;
@@ -126,7 +126,10 @@ var
 procedure openInputfile;
 
 begin
-  assign(yyinput, inputfilename);
+  if Preprocess then
+    assign(yyinput, PreprocessInput(inputfilename))
+  else
+    assign(yyinput, inputfilename);
   {$I-}
   reset(yyinput);
   {$I+}
@@ -862,6 +865,9 @@ end;
 
 Procedure HandlePreProcLineInfo;
 
+var
+  lLine, lError : longint;
+
 begin
   if NotInCPlusBlock then
     (* preprocessor line info *)
@@ -871,6 +877,10 @@ begin
         newline :
           begin
             unget_char(c);
+            (* the next line is line number lLine of its file *)
+            val(Trim(copy(yytext,2,length(yytext)-1)),lLine,lError);
+            if (lError=0) and (lLine>0) then
+              yylineno:=lLine-1;
             exit;
           end;
         #0 :

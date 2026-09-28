@@ -49,6 +49,10 @@ var
    palmpilot : boolean;       { handling of PalmOS SYS_CALLs }
    packrecords: boolean;      { All records should be packed in the file }
    pointerprefix: boolean;    { put P in front of pointers }
+   Preprocess : boolean;      { run the C preprocessor on the input file first }
+   PreprocessorProgram,       { C preprocessor program, gcc by default }
+   PreprocessorOptions,       { extra options for the C preprocessor }
+   PreprocessorKeep : string; { files whose text is kept after preprocessing, separated by ; }
    PTypeList : TStringList;   { list of all pointer types }
    freedynlibproc,
    loaddynlibproc : tstringlist;
@@ -126,6 +130,11 @@ begin
   writeln ('        -d                 Use external;');
   writeln ('        -D                 use external libname name ''func_name'';');
   writeln ('        -e                 change enum type to list of constants');
+  writeln ('        -E                 run the C preprocessor (gcc -E -dD) on the file first,');
+  writeln ('                           and keep only the text of the file itself');
+  writeln ('        -Ec program        C preprocessor program to use instead of gcc (implies -E)');
+  writeln ('        -Eo options        extra options for the C preprocessor, e.g. "-I dir -DNAME" (implies -E)');
+  writeln ('        -Ek files          other files whose text is kept, separated by ; (implies -E)');
   writeln ('        -c                 Compact outputmode, less spaces and empty lines');
   WriteLn ('        -C                 Use types in ctypes unit');
   writeln ('        -i                 create include files (no unit header)');
@@ -195,6 +204,10 @@ begin
   packrecords:=false;
   createdynlib:=false;
   useansichar:=True;
+  Preprocess:=false;
+  PreprocessorProgram:='gcc';
+  PreprocessorOptions:='';
+  PreprocessorKeep:='';
   i:=1;
   while i<=paramcount do
    begin
@@ -206,6 +219,17 @@ begin
          'c' : CompactMode:=true;
          'C' : UseCTypesUnit := true;
          'e' : EnumToConst :=true;
+         'E' : begin
+                 Preprocess:=true;
+                 if length(cp)>=3 then
+                   case cp[3] of
+                     'c' : PreprocessorProgram:=GetNextParam('Ec','program');
+                     'o' : PreprocessorOptions:=GetNextParam('Eo','options');
+                     'k' : PreprocessorKeep:=GetNextParam('Ek','files');
+                   else
+                     Writeln ('Illegal option : ',cp);
+                   end;
+               end;
          'd' : UseLib      :=true;
          'D' : begin
                  UseLib      :=true;

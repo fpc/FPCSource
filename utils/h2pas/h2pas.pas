@@ -24,7 +24,7 @@ uses
   cwstring,
   {$endif}
   classes, h2poptions, scan, h2pconst, scanbase,
-  h2pbase, h2pparse, h2pout, h2ptypes;
+  h2pbase, h2pparse, h2pout, h2ptypes, h2pCpp;
 
 var
   SS : string;
@@ -72,6 +72,7 @@ begin
      writeln(outfile,'end.');
    { close and erase tempfiles }
   CloseTempFiles;
+  RemovePreprocessedFiles;
   flush(outfile);
 
   {**** generate full file ****}

@@ -92,6 +92,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcErrorRecovery"/>
       </Unit>
+      <Unit>
+        <Filename Value="tccpreprocessor.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcCPreprocessor"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
