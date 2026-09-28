@@ -463,29 +463,23 @@ end;
 
 Procedure HandlePreProcElif;
 
-begin
-  if cplusblocklevel < -1 then
+  // Writes the #elif condition as an $elseif directive.
+  procedure WriteElseIf;
+
   begin
-    if not stripinfo then
-      write(outfile,'(*** was #elif ****)');
-    write(outfile,'{$else');
+    write(outfile,'{$elseif');
     copy_until_eol;
     writeln(outfile,'}');
     block_type:=bt_no;
     flush(outfile);
-  end
+  end;
+
+begin
+  if cplusblocklevel < -1 then
+    WriteElseIf
   else
     case cplusblocklevel of
-    0 :
-        begin
-          if not stripinfo then
-            write(outfile,'(*** was #elif ****)');
-          write(outfile,'{$else');
-          copy_until_eol;
-          writeln(outfile,'}');
-          block_type:=bt_no;
-          flush(outfile);
-        end;
+    0 : WriteElseIf;
     1 : cplusblocklevel := -1;
     -1 : cplusblocklevel := 1;
     end;

@@ -32,6 +32,10 @@ type
     procedure TestIfdefElse;
     procedure TestIf;
     procedure TestBlockKeywordAfterConditional;
+    procedure TestElif;
+    procedure TestElifAfterIfdef;
+    procedure TestElifStripInfo;
+    procedure TestElifCompiles;
     procedure TestUndef;
     procedure TestDirectiveOnlyHeader;
     procedure TestEmptyHeader;
@@ -131,6 +135,46 @@ begin
   Convert(['#undef FOO','int x;']);
   AssertConverted;
   AssertOutput('#undef',['{$undef FOO}']);
+end;
+
+
+procedure TTestPreprocessor.TestElif;
+
+begin
+  Convert(['#if A','int x;','#elif B','int y;','#else','int z;','#endif']);
+  AssertConverted;
+  AssertInterface('#elif becomes $elseif',
+    ['{$if A}','var','x : longint;cvar;public;','{$elseif B}','var','y : longint;cvar;public;',
+     '{$else}','var','z : longint;cvar;public;','{$endif}']);
+  AssertNotOutput('#elif is no $else','{$else B}');
+  AssertNotOutput('#elif gets no comment','was #elif');
+end;
+
+
+procedure TTestPreprocessor.TestElifAfterIfdef;
+
+begin
+  Convert(['#ifdef A','int x;','#elif B','int y;','#endif']);
+  AssertConverted;
+  AssertInterface('#elif after #ifdef',['{$ifdef A}','var','x : longint;cvar;public;','{$elseif B}']);
+end;
+
+
+procedure TTestPreprocessor.TestElifStripInfo;
+
+begin
+  Convert(['#if A','int x;','#elif B','int y;','#endif'],['-S']);
+  AssertConverted;
+  AssertInterface('-S #elif',['{$elseif B}']);
+end;
+
+
+procedure TTestPreprocessor.TestElifCompiles;
+
+begin
+  Convert(['#ifdef A','extern int x;','#elif defined(B)','extern int y;','#elif 1','extern int z;','#endif'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

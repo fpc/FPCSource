@@ -18,20 +18,10 @@ type
 
   TTestKnownMacroIssues = class(TH2PasTestCase)
   published
-    procedure TestElif;
     procedure TestIfExpression;
   end;
 
 implementation
-
-
-procedure TTestKnownMacroIssues.TestElif;
-
-begin
-  Convert(['#if A','int x;','#elif B','int y;','#endif']);
-  AssertConverted;
-  AssertOutput('#elif becomes $elseif',['{$elseif B}']);
-end;
 
 
 procedure TTestKnownMacroIssues.TestIfExpression;
