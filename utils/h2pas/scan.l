@@ -63,6 +63,10 @@ D [0-9]
 "<<"                    if NotInCPlusBlock then return(_SHL) else skip_until_eol;
 ">"                     if NotInCPlusBlock then return(GT) else skip_until_eol;
 "<"                     if NotInCPlusBlock then return(LT) else skip_until_eol;
+"||"                    if NotInCPlusBlock then return(_LOR) else skip_until_eol;
+"&&"                    if NotInCPlusBlock then return(_LAND) else skip_until_eol;
+"^"                     if NotInCPlusBlock then return(_XOR) else skip_until_eol;
+"%"                     if NotInCPlusBlock then return(_MOD) else skip_until_eol;
 "|"                     if NotInCPlusBlock then return(_OR) else skip_until_eol;
 "&"                     if NotInCPlusBlock then return(_AND) else skip_until_eol;
 "~"                     if NotInCPlusBlock then return(_NOT) else skip_until_eol; (* inverse, but handled as not operation *)

@@ -61,6 +61,12 @@ type
     procedure TestLogicalNot;
     procedure TestUnparenthesizedExpression;
     procedure TestOperatorPrecedence;
+    procedure TestAdditionBindsTighterThanShift;
+    procedure TestComparisonBindsTighterThanBitwise;
+    procedure TestBitwisePrecedence;
+    procedure TestXorAndMod;
+    procedure TestLogicalOperators;
+    procedure TestOperatorsCompile;
     procedure TestLineContinuation;
     procedure TestMultiLineContinuation;
     procedure TestContinuedValueOnNextLine;
@@ -105,6 +111,10 @@ type
     procedure TestParenthesizedNameTimesName;
     procedure TestUnparenthesizedBody;
     procedure TestUnparenthesizedTernary;
+    procedure TestTernaryWithComparison;
+    procedure TestNestedTernary;
+    procedure TestLogicalMacros;
+    procedure TestTernaryAndLogicalCompile;
     procedure TestContinuedBody;
     procedure TestDeref;
     procedure TestDot;
@@ -459,6 +469,65 @@ procedure TTestConstMacros.TestOperatorPrecedence;
 
 begin
   CheckConst('MASK','1 << 4 | 1 << 2','(1 shl 4) or (1 shl 2)');
+end;
+
+
+procedure TTestConstMacros.TestAdditionBindsTighterThanShift;
+
+begin
+  Convert(['#define A1 (1 + 2 << 3)','#define A2 (1 << 2 + 3)','#define A3 (8 >> 1 - 1)']);
+  AssertConverted;
+  AssertInterface('+ and - bind tighter than shifts',['A1 = (1+2) shl 3;','A2 = 1 shl (2+3);','A3 = 8 shr (1-1);']);
+end;
+
+
+procedure TTestConstMacros.TestComparisonBindsTighterThanBitwise;
+
+begin
+  Convert(['#define B1 (1 < 2 & 3 > 2)','#define B2 (1 == 1 | 2 != 2)','#define B3 (1 < 2 == 3 > 2)']);
+  AssertConverted;
+  AssertInterface('comparisons bind tighter than & and |',['B1 = (1<2) and (3>2);','B2 = (1=1) or (2<>2);']);
+  AssertInterface('relational operators bind tighter than equality',['B3 = (1<2)=(3>2);']);
+end;
+
+
+procedure TTestConstMacros.TestBitwisePrecedence;
+
+begin
+  Convert(['#define C1 (1 | 2 ^ 3 & 4)','#define C2 (1 & 2 | 3)']);
+  AssertConverted;
+  AssertInterface('& binds tighter than ^, ^ tighter than |',['C1 = 1 or (2 xor (3 and 4));','C2 = (1 and 2) or 3;']);
+end;
+
+
+procedure TTestConstMacros.TestXorAndMod;
+
+begin
+  Convert(['#define X1 (5 ^ 3)','#define M1 (7 % 3 * 2)','#define M2 (1 + 7 % 3)']);
+  AssertConverted;
+  AssertInterface('^ becomes xor',['X1 = 5 xor 3;']);
+  AssertInterface('% becomes mod with the precedence of *',['M1 = (7 mod 3)*2;','M2 = 1+(7 mod 3);']);
+end;
+
+
+procedure TTestConstMacros.TestLogicalOperators;
+
+begin
+  Convert(['#define L1 (1 && 0)','#define L2 (1 < 2 || 3 < 2)','#define L3 (1 || 2 && 3)']);
+  AssertConverted;
+  AssertInterface('&& of values compares them to 0',['L1 = (1<>0) and (0<>0);']);
+  AssertInterface('|| of comparisons',['L2 = (1<2) or (3<2);']);
+  AssertInterface('&& binds tighter than ||',['L3 = (1<>0) or ((2<>0) and (3<>0));']);
+end;
+
+
+procedure TTestConstMacros.TestOperatorsCompile;
+
+begin
+  Convert(['#define A1 (1 + 2 << 3)','#define A2 (1 << 2 + 3)','#define B1 (1 < 2 & 3 > 2)','#define B3 (1 < 2 == 3 > 2)',
+           '#define C1 (1 | 2 ^ 3 & 4)','#define M1 (7 % 3 * 2)','#define L1 (1 && 0)','#define L3 (1 || 2 && 3)'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
@@ -838,6 +907,51 @@ begin
   Convert(['#define T(a) a ? 1 : 2']);
   AssertConverted;
   AssertImplementation('ternary without parentheses',['if a then','if_local1:=1','else','if_local1:=2;','T:=if_local1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestTernaryWithComparison;
+
+begin
+  Convert(['#define MAX(a,b) ((a)>(b)?(a):(b))','#define ROW(pass) ((pass)>2?(8>>(((pass)-1)>>1)):8)']);
+  AssertConverted;
+  AssertImplementation('comparison is the condition of the ternary',
+    ['if a>b then','if_local1:=a','else','if_local1:=b;','MAX:=if_local1;']);
+  AssertImplementation('comparison with a constant',
+    ['if pass>2 then','if_local1:=8 shr ((pass-1) shr 1)','else','if_local1:=8;','ROW:=if_local1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestNestedTernary;
+
+begin
+  Convert(['#define NEST(a) ((a)>1?1:(a)<0?2:3)']);
+  AssertConverted;
+  AssertImplementation('the ternary is right associative',
+    ['if a<0 then','if_local1:=2','else','if_local1:=3;','if a>1 then','if_local2:=1','else','if_local2:=if_local1;',
+     'NEST:=if_local2;']);
+end;
+
+
+procedure TTestFunctionMacros.TestLogicalMacros;
+
+begin
+  Convert(['#define LA(a,b) ((a) && (b))','#define LM(a,b) ((a) && (b) > 1)','#define LO(a,b) ((a) > 0 || (b) < 2)']);
+  AssertConverted;
+  AssertInterface('logical macros return boolean',['function LA(a,b : longint) : boolean;']);
+  AssertImplementation('&& of values',['LA:=(a<>0) and (b<>0);']);
+  AssertImplementation('&& of a value and a comparison',['LM:=(a<>0) and (b>1);']);
+  AssertImplementation('|| of comparisons',['LO:=(a>0) or (b<2);']);
+end;
+
+
+procedure TTestFunctionMacros.TestTernaryAndLogicalCompile;
+
+begin
+  Convert(['#define MAX(a,b) ((a)>(b)?(a):(b))','#define NEST(a) ((a)>1?1:(a)<0?2:3)','#define LA(a,b) ((a) && (b))',
+           '#define LO(a,b) ((a) > 0 || (b) < 2)','#define XO(a,b) ((a) ^ (b))','#define MO(a,b) ((a) % (b))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

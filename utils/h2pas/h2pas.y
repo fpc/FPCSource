@@ -37,13 +37,17 @@ end;
 %token ELLIPSIS
 %right _ASSIGN
 %right R_AND
-%left EQUAL UNEQUAL GT LT GTE LTE
-%left QUESTIONMARK COLON
+%right QUESTIONMARK COLON
+%left _LOR
+%left _LAND
 %left _OR
+%left _XOR
 %left _AND
-%left _PLUS MINUS
+%left EQUAL UNEQUAL
+%left GT LT GTE LTE
 %left _SHR _SHL
-%left STAR _SLASH
+%left _PLUS MINUS
+%left STAR _SLASH _MOD
 %right _NOT
 %right LKLAMMER
 %right PSTAR
@@ -57,6 +61,7 @@ end;
 %token _DOUBLE
 %token _RETURN
 %token _STATIC
+%token _LOR _LAND _XOR _MOD
 %%
 
 file : declaration_list
@@ -848,9 +853,17 @@ shift_expr :
             { $$:=NewBinaryOp(' shl ',$1,$3);}
           | expr _SHR expr
             { $$:=NewBinaryOp(' shr ',$1,$3);}
+          | expr _LOR expr
+            { $$:=HandleLogicalOp(' or ',$1,$3);}
+          | expr _LAND expr
+            { $$:=HandleLogicalOp(' and ',$1,$3);}
+          | expr _XOR expr
+            { $$:=NewBinaryOp(' xor ',$1,$3);}
+          | expr _MOD expr
+            { $$:=NewBinaryOp(' mod ',$1,$3);}
           | expr QUESTIONMARK colon_expr
           {
-            HandleTernary($1,$3);
+            $$:=HandleTernary($1,$3);
           } |
           unary_expr {$$:=$1;}
           ;

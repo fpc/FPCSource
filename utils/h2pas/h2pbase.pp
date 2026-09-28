@@ -79,6 +79,8 @@ function HandleUnaryDefExpr(aExpr : presobject) : presobject;
 function HandleTernary(expr,colonexpr : presobject) : presobject;
 // Returns the division aLeft/aRight: div unless an operand is a floating point value.
 function HandleDivision(aLeft,aRight : presobject) : presobject;
+// Returns the C logical operator && or || as aOp (and, or) of aLeft and aRight, operands that are no comparison compared to 0.
+function HandleLogicalOp(const aOp : string; aLeft,aRight : presobject) : presobject;
 // Returns aName * aRight with aName as leftmost operand of the operators in aRight that bind as weak or weaker.
 function HandleNamedProduct(aName,aRight : presobject) : presobject;
 
@@ -167,6 +169,17 @@ begin
     Result:=NewBinaryOp('/',aLeft,aRight)
   else
     Result:=NewBinaryOp(' div ',aLeft,aRight);
+end;
+
+
+function HandleLogicalOp(const aOp : string; aLeft,aRight : presobject) : presobject;
+
+begin
+  if not IsBooleanExpr(aLeft) then
+    aLeft:=NewBinaryOp('<>',aLeft,NewID('0'));
+  if not IsBooleanExpr(aRight) then
+    aRight:=NewBinaryOp('<>',aRight,NewID('0'));
+  Result:=NewBinaryOp(aOp,aLeft,aRight);
 end;
 
 
