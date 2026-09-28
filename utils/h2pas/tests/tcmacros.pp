@@ -42,6 +42,7 @@ type
     procedure TestBitwiseNot;
     procedure TestLogicalNot;
     procedure TestConstBlock;
+    procedure TestLineCommentAfterDefine;
     procedure TestBlockCommentAfterDefine;
   end;
 
@@ -226,6 +227,15 @@ begin
   Convert(['#define A 1','#define B 2']);
   AssertConverted;
   AssertInterface('consecutive constants share one const block',['const','A = 1;','B = 2;']);
+end;
+
+
+procedure TTestConstMacros.TestLineCommentAfterDefine;
+
+begin
+  Convert(['#define CMT 7 // the comment']);
+  AssertConverted;
+  AssertInterface('line comment of a define follows the constant',['CMT = 7; { the comment }']);
 end;
 
 

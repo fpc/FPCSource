@@ -41,7 +41,6 @@ type
     procedure TestIntegerDivision;
     procedure TestLineContinuation;
     procedure TestParenthesizedParameter;
-    procedure TestLineCommentAfterDefine;
     procedure TestElif;
     procedure TestIfExpression;
     procedure TestDirectiveOnlyHeader;
@@ -147,15 +146,6 @@ begin
   AssertConverted;
   AssertInterface('parenthesized parameter is no typecast',['function PAR1(a : longint) : longint;']);
   AssertImplementation('parenthesized parameter body',['PAR1:=a+1;']);
-end;
-
-
-procedure TTestKnownMacroIssues.TestLineCommentAfterDefine;
-
-begin
-  Convert(['#define CMT 7 // the comment']);
-  AssertConverted;
-  AssertOutput('line comment of a define is kept',['{ the comment }']);
 end;
 
 

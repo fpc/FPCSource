@@ -31,6 +31,7 @@ type
     procedure TestIfdef;
     procedure TestIfdefElse;
     procedure TestIf;
+    procedure TestBlockKeywordAfterConditional;
     procedure TestUndef;
     procedure TestInclude;
     procedure TestSystemInclude;
@@ -106,6 +107,19 @@ begin
   Convert(['#if FOO','int x;','#endif']);
   AssertConverted;
   AssertInterface('#if',['{$if FOO}','var','x : longint;cvar;public;','{$endif}']);
+end;
+
+
+procedure TTestPreprocessor.TestBlockKeywordAfterConditional;
+
+begin
+  Convert(['#ifdef A','typedef int a_t;','#endif','typedef int b_t;',
+           '#ifdef B','extern int x;','#else','extern int y;','#endif','extern int z;'],['-d']);
+  AssertConverted;
+  AssertInterface('type keyword is repeated after #endif',['{$endif}','type','b_t = longint;']);
+  AssertInterface('var keyword is repeated after #else',['{$else}','var','y : longint;cvar;external;']);
+  AssertInterface('var keyword is repeated after the second #endif',['{$endif}','var','z : longint;cvar;external;']);
+  AssertCompiles;
 end;
 
 
