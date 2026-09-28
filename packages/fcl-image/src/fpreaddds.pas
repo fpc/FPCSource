@@ -1,5 +1,6 @@
 {
-    Reader of DirectDraw Surface (DDS) images: uncompressed, BC1, BC2 and BC3.
+    Reader of DirectDraw Surface (DDS) images: uncompressed, BC1, BC2 and BC3;
+    mipmaps, cube faces, array elements and depth slices are frames.
     This file is part of the Free Pascal run time library.
     See the file COPYING.FPC, included in this distribution, for details.
 }
@@ -27,6 +28,11 @@ const
   DDPF_FOURCC = $4;
   DDPF_RGB = $40;
   DDPF_LUMINANCE = $20000;
+  DDSCAPS2_CUBEMAP = $200;
+  DDSCAPS2_CUBEMAP_POSITIVEX = $400;
+  DDSCAPS2_VOLUME = $200000;
+  DDS_RESOURCE_MISC_TEXTURECUBE = $4;
+  DDS_DIMENSION_TEXTURE3D = 4;
   DXGI_FORMAT_R8G8B8A8_UNORM = 28;
   DXGI_FORMAT_R8G8B8A8_UNORM_SRGB = 29;
   DXGI_FORMAT_BC1_UNORM = 71;
@@ -41,6 +47,10 @@ const
   DXGI_FORMAT_B8G8R8X8_UNORM_SRGB = 93;
   // Largest width or height of an image.
   DDSMaxSize = 16384;
+  // Largest number of array elements or depth slices.
+  DDSMaxLayers = 2048;
+  // Names of the six faces of a cube map, in the order of the file.
+  DDSCubeFaceNames: array[0..5] of String = ('+X', '-X', '+Y', '-Y', '+Z', '-Z');
 
 type
   // The pixel format of a DDS header.
@@ -64,24 +74,58 @@ type
   // The encoding of the pixels of a DDS file.
   TDDSEncoding = (deMasks, deBC1, deBC2, deBC3);
 
-  { Reads the first surface of a DDS file, the largest mipmap of its first face. }
+  // One image of a DDS file: a mipmap level of a face, an array element or a depth slice.
+  TDDSSurface = record
+    // Position of the pixel data in the stream.
+    Offset: Int64;
+    Width, Height: Integer;
+    // Index of the face or array element; the face of a cube map is Element mod 6.
+    Element: Integer;
+    MipLevel: Integer;
+    // Index of the depth slice of a volume texture.
+    Slice: Integer;
+    // Description of the surface, such as 'face +X, mip 1'.
+    Name: String;
+  end;
+
+  { Reads the largest mipmap of the first face of a DDS file; the frames are all its surfaces. }
   TFPReaderDDS = class(TFPCustomImageReader)
   private
     FHeader: TDDSHeader;
+    FDX10: TDDSHeaderDX10;
+    FHasDX10: Boolean;
     FEncoding: TDDSEncoding;
     FPremultiplied: Boolean;
+    FSurfaces: array of TDDSSurface;
+    FNextFrame: Integer;
+    FEnd: Int64;
+    function GetSurface(aIndex: Integer): TDDSSurface;
+    function GetSurfaceCount: Integer;
+    function SurfaceSize(aWidth, aHeight: Integer): Int64;
     procedure ReadHeader(aStream: TStream);
+    procedure ListSurfaces(aStream: TStream; aLimit: Int64);
     procedure ReadMasks(aStream: TStream; aImage: TFPCustomImage);
     procedure ReadBlocks(aStream: TStream; aImage: TFPCustomImage);
   protected
     function InternalCheck(Stream: TStream): Boolean; override;
     procedure InternalRead(Stream: TStream; Img: TFPCustomImage); override;
     class function InternalSize(Stream: TStream): TPoint; override;
+    function InternalBeginFrames(Str: TStream): TFPFramesInfo; override;
+    function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
+    // Reads the headers of the file at the current position of aStream and lists the surfaces that fit in it.
+    procedure LoadFromStream(aStream: TStream);
+    // Reads surface aIndex of the file read last into aImage.
+    procedure ReadSurface(aStream: TStream; aIndex: Integer; aImage: TFPCustomImage);
     // The header of the file read last.
     property Header: TDDSHeader read FHeader;
     // The encoding of the file read last.
     property Encoding: TDDSEncoding read FEncoding;
+    // Number of surfaces of the file read last.
+    property SurfaceCount: Integer read GetSurfaceCount;
+    // The surfaces of the file read last, in the order of the file.
+    property Surfaces[aIndex: Integer]: TDDSSurface read GetSurface;
   end;
 
 // Returns the four-character code of aText as a number.
@@ -151,6 +195,8 @@ var
   end;
 
 begin
+  FHasDX10 := False;
+  FillChar(FDX10, SizeOf(FDX10), 0);
   aStream.ReadBuffer(lMagic, 4);
   if LEtoN(lMagic) <> DDSMagic then
     raise FPImageException.Create('Not a DDS image');
@@ -201,7 +247,13 @@ begin
   else if lFormat.FourCC = DDSFourCC('DX10') then
     begin
     aStream.ReadBuffer(lDX10, SizeOf(lDX10));
-    case LEtoN(lDX10.DXGIFormat) of
+    FHasDX10 := True;
+    FDX10.DXGIFormat := LEtoN(lDX10.DXGIFormat);
+    FDX10.ResourceDimension := LEtoN(lDX10.ResourceDimension);
+    FDX10.MiscFlag := LEtoN(lDX10.MiscFlag);
+    FDX10.ArraySize := LEtoN(lDX10.ArraySize);
+    FDX10.MiscFlags2 := LEtoN(lDX10.MiscFlags2);
+    case FDX10.DXGIFormat of
       DXGI_FORMAT_BC1_UNORM, DXGI_FORMAT_BC1_UNORM_SRGB : FEncoding := deBC1;
       DXGI_FORMAT_BC2_UNORM, DXGI_FORMAT_BC2_UNORM_SRGB : FEncoding := deBC2;
       DXGI_FORMAT_BC3_UNORM, DXGI_FORMAT_BC3_UNORM_SRGB : FEncoding := deBC3;
@@ -212,7 +264,7 @@ begin
       DXGI_FORMAT_B8G8R8X8_UNORM, DXGI_FORMAT_B8G8R8X8_UNORM_SRGB :
         SetMasks(32, $FF0000, $FF00, $FF, 0);
     else
-      raise FPImageException.CreateFmt('Unsupported DDS DXGI format: %d', [LEtoN(lDX10.DXGIFormat)]);
+      raise FPImageException.CreateFmt('Unsupported DDS DXGI format: %d', [Int64(FDX10.DXGIFormat)]);
     end;
     end
   else
@@ -224,11 +276,184 @@ begin
   if FEncoding = deMasks then
     begin
     if not (lFormat.RGBBitCount in [8, 16, 24, 32]) then
-      raise FPImageException.CreateFmt('Unsupported DDS bit count: %d', [lFormat.RGBBitCount]);
+      raise FPImageException.CreateFmt('Unsupported DDS bit count: %d', [Int64(lFormat.RGBBitCount)]);
     if lFormat.Flags and (DDPF_RGB or DDPF_LUMINANCE or DDPF_ALPHA) = 0 then
       raise FPImageException.Create('Unsupported DDS pixel format');
     end;
   FHeader.PixelFormat := lFormat;
+end;
+
+
+function TFPReaderDDS.GetSurface(aIndex: Integer): TDDSSurface;
+
+begin
+  Result := FSurfaces[aIndex];
+end;
+
+
+function TFPReaderDDS.GetSurfaceCount: Integer;
+
+begin
+  Result := Length(FSurfaces);
+end;
+
+
+// Returns the number of bytes of a surface of the given size.
+function TFPReaderDDS.SurfaceSize(aWidth, aHeight: Integer): Int64;
+
+begin
+  case FEncoding of
+    deBC1 : Result := Int64((aWidth + 3) div 4) * ((aHeight + 3) div 4) * 8;
+    deBC2, deBC3 : Result := Int64((aWidth + 3) div 4) * ((aHeight + 3) div 4) * 16;
+  else
+    Result := Int64((aWidth * Integer(FHeader.PixelFormat.RGBBitCount) + 7) div 8) * aHeight;
+  end;
+end;
+
+
+// Lists the surfaces that follow the headers, as far as aLimit; the first surface is always listed.
+procedure TFPReaderDDS.ListSurfaces(aStream: TStream; aLimit: Int64);
+
+var
+  lFaces: array of Integer;
+  lCube, lVolume: Boolean;
+  lArraySize, lDepth, lMips, lMaxSide, lElement, lMip, lSlices, lSlice, lWidth, lHeight, I: Integer;
+  lOffset, lSize: Int64;
+  lName: String;
+
+  // Appends one part to the name of a surface.
+  procedure AddName(const aPart: String);
+
+  begin
+    if lName <> '' then
+      lName := lName + ', ';
+    lName := lName + aPart;
+  end;
+
+begin
+  FSurfaces := nil;
+  lCube := False;
+  lVolume := False;
+  lArraySize := 1;
+  if FHasDX10 then
+    begin
+    if FDX10.ArraySize > DDSMaxLayers then
+      raise FPImageException.CreateFmt('Too many DDS array elements: %d', [Int64(FDX10.ArraySize)]);
+    if FDX10.ArraySize > 1 then
+      lArraySize := FDX10.ArraySize;
+    lCube := FDX10.MiscFlag and DDS_RESOURCE_MISC_TEXTURECUBE <> 0;
+    lVolume := FDX10.ResourceDimension = DDS_DIMENSION_TEXTURE3D;
+    if lCube then
+      begin
+      SetLength(lFaces, 6);
+      for I := 0 to 5 do
+        lFaces[I] := I;
+      end;
+    end
+  else
+    begin
+    lCube := FHeader.Caps2 and DDSCAPS2_CUBEMAP <> 0;
+    lVolume := FHeader.Caps2 and DDSCAPS2_VOLUME <> 0;
+    if lCube then
+      for I := 0 to 5 do
+        if FHeader.Caps2 and (DDSCAPS2_CUBEMAP_POSITIVEX shl I) <> 0 then
+          begin
+          SetLength(lFaces, Length(lFaces) + 1);
+          lFaces[High(lFaces)] := I;
+          end;
+    end;
+  if lCube and (Length(lFaces) = 0) then
+    raise FPImageException.Create('DDS cube map without faces');
+  if not lCube then
+    begin
+    SetLength(lFaces, 1);
+    lFaces[0] := -1;
+    end;
+  lDepth := 1;
+  if lVolume and (FHeader.Depth > 1) then
+    begin
+    if FHeader.Depth > DDSMaxLayers then
+      raise FPImageException.CreateFmt('Too many DDS depth slices: %d', [Int64(FHeader.Depth)]);
+    lDepth := FHeader.Depth;
+    end;
+  lMaxSide := FHeader.Width;
+  if Integer(FHeader.Height) > lMaxSide then
+    lMaxSide := FHeader.Height;
+  lMips := 1;
+  while (lMips < Integer(FHeader.MipMapCount)) and ((lMaxSide shr lMips) > 0) do
+    Inc(lMips);
+  lOffset := aStream.Position;
+  for lElement := 0 to lArraySize * Length(lFaces) - 1 do
+    for lMip := 0 to lMips - 1 do
+      begin
+      lSlices := lDepth shr lMip;
+      if lSlices = 0 then
+        lSlices := 1;
+      for lSlice := 0 to lSlices - 1 do
+        begin
+        lWidth := FHeader.Width shr lMip;
+        if lWidth = 0 then
+          lWidth := 1;
+        lHeight := FHeader.Height shr lMip;
+        if lHeight = 0 then
+          lHeight := 1;
+        lSize := SurfaceSize(lWidth, lHeight);
+        if (Length(FSurfaces) > 0) and (lOffset + lSize > aLimit) then
+          Exit;
+        lName := '';
+        if lArraySize > 1 then
+          AddName('element ' + IntToStr(lElement div Length(lFaces)));
+        if lCube then
+          AddName('face ' + DDSCubeFaceNames[lFaces[lElement mod Length(lFaces)]]);
+        if lDepth > 1 then
+          AddName('slice ' + IntToStr(lSlice));
+        if lMips > 1 then
+          AddName('mip ' + IntToStr(lMip));
+        SetLength(FSurfaces, Length(FSurfaces) + 1);
+        with FSurfaces[High(FSurfaces)] do
+          begin
+          Offset := lOffset;
+          Width := lWidth;
+          Height := lHeight;
+          if lCube then
+            Element := (lElement div Length(lFaces)) * 6 + lFaces[lElement mod Length(lFaces)]
+          else
+            Element := lElement;
+          MipLevel := lMip;
+          Slice := lSlice;
+          Name := lName;
+          end;
+        Inc(lOffset, lSize);
+        end;
+      end;
+end;
+
+
+procedure TFPReaderDDS.LoadFromStream(aStream: TStream);
+
+begin
+  ReadHeader(aStream);
+  ListSurfaces(aStream, aStream.Size);
+  with FSurfaces[High(FSurfaces)] do
+    FEnd := Offset + SurfaceSize(Width, Height);
+end;
+
+
+procedure TFPReaderDDS.ReadSurface(aStream: TStream; aIndex: Integer; aImage: TFPCustomImage);
+
+begin
+  if (aIndex < 0) or (aIndex >= Length(FSurfaces)) then
+    raise FPImageException.CreateFmt('No DDS surface %d', [aIndex]);
+  with FSurfaces[aIndex] do
+    begin
+    if aStream.Position <> Offset then
+      aStream.Position := Offset;
+    aImage.SetSize(Width, Height);
+    end;
+  if FEncoding = deMasks then
+    ReadMasks(aStream, aImage)
+  else
+    ReadBlocks(aStream, aImage);
 end;
 
 
@@ -263,7 +488,7 @@ var
 begin
   lFormat := FHeader.PixelFormat;
   lBytes := lFormat.RGBBitCount div 8;
-  SetLength(lRow, lBytes * Integer(FHeader.Width));
+  SetLength(lRow, lBytes * aImage.Width);
   for lY := 0 to aImage.Height - 1 do
     begin
     aStream.ReadBuffer(lRow[0], Length(lRow));
@@ -432,11 +657,44 @@ procedure TFPReaderDDS.InternalRead(Stream: TStream; Img: TFPCustomImage);
 
 begin
   ReadHeader(Stream);
-  Img.SetSize(FHeader.Width, FHeader.Height);
-  if FEncoding = deMasks then
-    ReadMasks(Stream, Img)
+  ListSurfaces(Stream, 0);
+  ReadSurface(Stream, 0, Img);
+end;
+
+
+function TFPReaderDDS.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+
+begin
+  LoadFromStream(Str);
+  FNextFrame := 0;
+  Result := DefaultFramesInfo;
+  Result.Width := FHeader.Width;
+  Result.Height := FHeader.Height;
+  Result.FrameCount := Length(FSurfaces);
+end;
+
+
+function TFPReaderDDS.InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean;
+
+begin
+  Result := FNextFrame < Length(FSurfaces);
+  if not Result then
+    Exit;
+  ReadSurface(Str, FNextFrame, Img);
+  if FSurfaces[FNextFrame].MipLevel > 0 then
+    aInfo.Kind := fkVariant
   else
-    ReadBlocks(Stream, Img);
+    aInfo.Kind := fkPage;
+  aInfo.Name := FSurfaces[FNextFrame].Name;
+  Inc(FNextFrame);
+end;
+
+
+procedure TFPReaderDDS.InternalEndFrames(Str: TStream);
+
+begin
+  if Str.Position <> FEnd then
+    Str.Position := FEnd;
 end;
 
 

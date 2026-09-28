@@ -1,6 +1,6 @@
 {
     Tests for the DDS reader: uncompressed pixels given by bit masks, the
-    BC1, BC2 and BC3 block encodings and the DX10 header.
+    BC1, BC2 and BC3 block encodings, the DX10 header, and the surfaces as frames.
     See the file COPYING.FPC, included in this distribution, for details.
 }
 unit tcdds;
@@ -9,13 +9,14 @@ unit tcdds;
 
 interface
 
-uses sysutils, classes, fpcunit, testregistry, fpimage, fpimgtests, fpreaddds;
+uses sysutils, classes, fpcunit, testregistry, fpimage, fpimgtests, fpimagelist, fpreaddds;
 
 type
   TTestDDS = class(TTestCase)
   private
     FReader: TFPReaderDDS;
     FRead: TFPMemoryImage;
+    FList: TFPImageList;
     FStream: TMemoryStream;
     // Replaces the stream with a DDS header of the given pixel format, followed by the bytes.
     procedure Build(aWidth, aHeight: Integer; aFlags, aFourCC, aBits, aRed, aGreen, aBlue, aAlpha: Cardinal;
@@ -23,8 +24,13 @@ type
     // Replaces the stream with a DDS file of the four-character code and the bytes.
     procedure BuildFourCC(aWidth, aHeight: Integer; const aFourCC: AnsiString; const aBytes: array of Byte);
     procedure ReadIt;
+    // Sets the little-endian value at aOffset of the stream.
+    procedure Patch(aOffset: Integer; aValue: Cardinal);
+    // Reads all frames of the stream into FList.
+    procedure ReadFrames;
     procedure ReadUnknownFourCC;
     procedure ReadTruncated;
+    procedure ReadHugeBitCount;
     procedure CheckColor(const aMessage: String; aX, aY: Integer; const aColor: TFPColor);
   protected
     procedure SetUp; override;
@@ -46,8 +52,18 @@ type
     procedure TestReadDX10;
     procedure TestUnknownFourCCRaises;
     procedure TestTruncatedRaises;
+    procedure TestHugeBitCountRaises;
     procedure TestImageSize;
     procedure TestDDSIsRegistered;
+    procedure TestMipmapsAreFrames;
+    procedure TestMipLevelsStopAtOnePixel;
+    procedure TestMissingSurfacesAreNotFrames;
+    procedure TestCubeFacesAreFrames;
+    procedure TestPartialCubeMap;
+    procedure TestDX10ArrayElementsAreFrames;
+    procedure TestVolumeSlicesAreFrames;
+    procedure TestSingleImageIsTheFirstSurface;
+    procedure TestEndFramesIsAfterTheSurfaces;
   end;
 
 implementation
@@ -69,6 +85,7 @@ procedure TTestDDS.TearDown;
 
 begin
   FreeAndNil(FStream);
+  FreeAndNil(FList);
   FreeAndNil(FRead);
   FreeAndNil(FReader);
   inherited TearDown;
@@ -123,6 +140,31 @@ begin
 end;
 
 
+procedure TTestDDS.Patch(aOffset: Integer; aValue: Cardinal);
+
+begin
+  aValue := NtoLE(aValue);
+  Move(aValue, PByte(FStream.Memory)[aOffset], 4);
+end;
+
+
+procedure TTestDDS.ReadFrames;
+
+begin
+  FreeAndNil(FList);
+  FList := TFPImageList.Create;
+  FList.LoadFromStream(FStream, FReader);
+end;
+
+
+// Returns a BC1 block of one 5:6:5 colour.
+function SolidBC1(aColor: Word): TBytes;
+
+begin
+  Result := TBytes.Create(Lo(aColor), Hi(aColor), Lo(aColor), Hi(aColor), 0, 0, 0, 0);
+end;
+
+
 procedure TTestDDS.ReadUnknownFourCC;
 
 begin
@@ -135,6 +177,14 @@ procedure TTestDDS.ReadTruncated;
 
 begin
   BuildFourCC(8, 4, 'DXT1', BC1RedBlue);
+  ReadIt;
+end;
+
+
+procedure TTestDDS.ReadHugeBitCount;
+
+begin
+  Build(1, 1, DDPF_RGB, 0, $FFFFFFFF, $FF, $FF00, $FF0000, 0, [0, 0, 0, 0]);
   ReadIt;
 end;
 
@@ -334,6 +384,13 @@ begin
 end;
 
 
+procedure TTestDDS.TestHugeBitCountRaises;
+
+begin
+  AssertRaises('A bit count above the range of Integer raises', FPImageException, @ReadHugeBitCount);
+end;
+
+
 procedure TTestDDS.TestImageSize;
 
 var
@@ -351,6 +408,145 @@ procedure TTestDDS.TestDDSIsRegistered;
 
 begin
   AssertTrue('DDS has a reader', ImageHandlers.ImageReader['DirectDraw Surface'] = TFPReaderDDS);
+end;
+
+
+procedure TTestDDS.TestMipmapsAreFrames;
+
+begin
+  BuildFourCC(8, 4, 'DXT1', Concat(SolidBC1($F800), SolidBC1($F800), SolidBC1($07E0), SolidBC1($001F), SolidBC1($FFFF)));
+  Patch(28, 4);
+  ReadFrames;
+  AssertEquals('One frame for each mip level', 4, FList.Count);
+  AssertEquals('The frame count of the file', 4, FList.Info.FrameCount);
+  AssertEquals('Level 1 is half as wide', 4, FList.Images[1].Width);
+  AssertEquals('and half as high', 2, FList.Images[1].Height);
+  AssertEquals('Level 3 is one pixel', 1, FList.Images[3].Width);
+  AssertColorsEqual('Level 0', colRed, FList.Images[0].Colors[7, 3]);
+  AssertColorsEqual('Level 1', colGreen, FList.Images[1].Colors[3, 1]);
+  AssertColorsEqual('Level 2', colBlue, FList.Images[2].Colors[1, 0]);
+  AssertColorsEqual('Level 3', colWhite, FList.Images[3].Colors[0, 0]);
+  AssertEquals('The name of a level', 'mip 2', FList[2].Info.Name);
+  AssertTrue('Level 0 is a page', FList[0].Info.Kind = fkPage);
+  AssertTrue('Smaller levels are variants', FList[1].Info.Kind = fkVariant);
+end;
+
+
+procedure TTestDDS.TestMipLevelsStopAtOnePixel;
+
+begin
+  BuildFourCC(4, 4, 'DXT1', Concat(SolidBC1($F800), SolidBC1($F800), SolidBC1($F800), SolidBC1($F800)));
+  Patch(28, 10);
+  ReadFrames;
+  AssertEquals('A 4x4 image has 3 mip levels, whatever the header says', 3, FList.Count);
+end;
+
+
+procedure TTestDDS.TestMissingSurfacesAreNotFrames;
+
+begin
+  BuildFourCC(8, 4, 'DXT1', Concat(SolidBC1($F800), SolidBC1($F800), SolidBC1($07E0)));
+  Patch(28, 4);
+  ReadFrames;
+  AssertEquals('Only the levels in the file are frames', 2, FList.Count);
+end;
+
+
+procedure TTestDDS.TestCubeFacesAreFrames;
+
+var
+  I: Integer;
+
+begin
+  Build(1, 1, DDPF_RGB, 0, 32, $FF0000, $FF00, $FF, 0,
+        [0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0]);
+  Patch(112, $FE00);
+  ReadFrames;
+  AssertEquals('Six faces', 6, FList.Count);
+  for I := 0 to 5 do
+    AssertColorsEqual('Face ' + IntToStr(I), RGB8(I + 1, 0, 0), FList.Images[I].Colors[0, 0]);
+  AssertEquals('The name of a face', 'face -Y', FList[3].Info.Name);
+  AssertEquals('The surface of a face', 3, FReader.Surfaces[3].Element);
+end;
+
+
+procedure TTestDDS.TestPartialCubeMap;
+
+begin
+  Build(1, 1, DDPF_RGB, 0, 32, $FF0000, $FF00, $FF, 0, [0, 0, 1, 0, 0, 0, 2, 0]);
+  Patch(112, DDSCAPS2_CUBEMAP or $400 or $8000);
+  ReadFrames;
+  AssertEquals('Only the faces of the header', 2, FList.Count);
+  AssertEquals('The second face is -Z', 'face -Z', FList[1].Info.Name);
+  AssertEquals('with the element of -Z', 5, FReader.Surfaces[1].Element);
+end;
+
+
+procedure TTestDDS.TestDX10ArrayElementsAreFrames;
+
+var
+  lDX10: TDDSHeaderDX10;
+  lPixels: array[0..7] of Byte = (10, 0, 0, 255, 20, 0, 0, 255);
+
+begin
+  BuildFourCC(1, 1, 'DX10', []);
+  FillChar(lDX10, SizeOf(lDX10), 0);
+  lDX10.DXGIFormat := NtoLE(Cardinal(DXGI_FORMAT_R8G8B8A8_UNORM));
+  lDX10.ResourceDimension := NtoLE(Cardinal(3));
+  lDX10.ArraySize := NtoLE(Cardinal(2));
+  FStream.Position := FStream.Size;
+  FStream.WriteBuffer(lDX10, SizeOf(lDX10));
+  FStream.WriteBuffer(lPixels, SizeOf(lPixels));
+  FStream.Position := 0;
+  ReadFrames;
+  AssertEquals('Two array elements', 2, FList.Count);
+  AssertEquals('The name of an element', 'element 1', FList[1].Info.Name);
+  AssertColorsEqual('The second element', RGB8(20, 0, 0), FList.Images[1].Colors[0, 0]);
+end;
+
+
+procedure TTestDDS.TestVolumeSlicesAreFrames;
+
+var
+  lPixels: TBytes;
+  I: Integer;
+
+begin
+  SetLength(lPixels, 2 * 2 * 2 * 4 + 4);
+  for I := 0 to High(lPixels) div 4 do
+    lPixels[4 * I + 2] := I;
+  Build(2, 2, DDPF_RGB, 0, 32, $FF0000, $FF00, $FF, 0, lPixels);
+  Patch(24, 2);
+  Patch(28, 2);
+  Patch(112, DDSCAPS2_VOLUME);
+  ReadFrames;
+  AssertEquals('Two slices of level 0 and one of level 1', 3, FList.Count);
+  AssertEquals('The name of a slice', 'slice 1, mip 0', FList[1].Info.Name);
+  AssertColorsEqual('The second slice', RGB8(4, 0, 0), FList.Images[1].Colors[0, 0]);
+  AssertColorsEqual('The slice of level 1', RGB8(8, 0, 0), FList.Images[2].Colors[0, 0]);
+end;
+
+
+procedure TTestDDS.TestSingleImageIsTheFirstSurface;
+
+begin
+  Build(1, 1, DDPF_RGB, 0, 32, $FF0000, $FF00, $FF, 0, [0, 0, 1, 0, 0, 0, 2, 0]);
+  Patch(112, DDSCAPS2_CUBEMAP or $400 or $800);
+  ReadIt;
+  CheckColor('A single image is the first face', 0, 0, RGB8(1, 0, 0));
+end;
+
+
+procedure TTestDDS.TestEndFramesIsAfterTheSurfaces;
+
+begin
+  BuildFourCC(8, 4, 'DXT1', Concat(SolidBC1($F800), SolidBC1($F800), SolidBC1($07E0), SolidBC1($001F), SolidBC1($FFFF)));
+  Patch(28, 4);
+  FStream.Position := FStream.Size;
+  FStream.WriteBuffer(PChar('tail')^, 4);
+  FStream.Position := 0;
+  ReadFrames;
+  AssertEquals('The stream is left after the last surface', FStream.Size - 4, FStream.Position);
 end;
 
 
