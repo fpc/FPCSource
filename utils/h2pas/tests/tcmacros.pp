@@ -113,6 +113,8 @@ type
     procedure TestUnparenthesizedTernary;
     procedure TestTernaryWithComparison;
     procedure TestNestedTernary;
+    procedure TestTernaryValueCondition;
+    procedure TestTernaryValueConditionCompiles;
     procedure TestLogicalMacros;
     procedure TestTernaryAndLogicalCompile;
     procedure TestContinuedBody;
@@ -679,7 +681,7 @@ begin
   AssertConverted;
   AssertImplementation('ternary operator becomes an if statement on a local',
     ['var','if_local1 : longint;','(* result types are not known *)','begin',
-     'if a then','if_local1:=1','else','if_local1:=2;','TERN:=if_local1;','end;']);
+     'if a<>0 then','if_local1:=1','else','if_local1:=2;','TERN:=if_local1;','end;']);
 end;
 
 
@@ -887,7 +889,7 @@ begin
   Convert(['#define M5(a,x,y) y * (x * (a) - 1)','#define T1(a) (X * a ? 1 : 2)']);
   AssertConverted;
   AssertImplementation('product of a name with a parenthesized parameter',['M5:=y*((x*a)-1);']);
-  AssertImplementation('product in a ternary condition',['if X*a then']);
+  AssertImplementation('product in a ternary condition',['if (X*a)<>0 then']);
 end;
 
 
@@ -906,7 +908,7 @@ procedure TTestFunctionMacros.TestUnparenthesizedTernary;
 begin
   Convert(['#define T(a) a ? 1 : 2']);
   AssertConverted;
-  AssertImplementation('ternary without parentheses',['if a then','if_local1:=1','else','if_local1:=2;','T:=if_local1;']);
+  AssertImplementation('ternary without parentheses',['if a<>0 then','if_local1:=1','else','if_local1:=2;','T:=if_local1;']);
 end;
 
 
@@ -930,6 +932,25 @@ begin
   AssertImplementation('the ternary is right associative',
     ['if a<0 then','if_local1:=2','else','if_local1:=3;','if a>1 then','if_local2:=1','else','if_local2:=if_local1;',
      'NEST:=if_local2;']);
+end;
+
+
+procedure TTestFunctionMacros.TestTernaryValueCondition;
+
+begin
+  Convert(['#define T1(a) ((a) & 0x80 ? 1 : 2)','#define T2(a,b) (((a) > 0) & ((b) < 2) ? 1 : 2)']);
+  AssertConverted;
+  AssertImplementation('a value as condition is compared to 0',['if (a and $80)<>0 then']);
+  AssertImplementation('a combination of comparisons is kept',['if (a>0) and (b<2) then']);
+end;
+
+
+procedure TTestFunctionMacros.TestTernaryValueConditionCompiles;
+
+begin
+  Convert(['#define T1(a) ((a) & 0x80 ? 1 : 2)','#define T2(a) ((a) ? 1 : 2)','#define T3(a,b) ((a) > (b) ? (a) : (b))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
