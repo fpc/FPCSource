@@ -16,6 +16,10 @@ procedure WriteLibraryInitialization;
 
 // This will write each pointer type only once.
 function WritePointerTypeDef(var aFile : text; const PN,TN : AnsiString) : Boolean;
+// Writes a marker line for type TN, replaced by the pointer types to TN when the unit is assembled.
+procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
+// Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
+function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
@@ -59,8 +63,12 @@ Var
 
 implementation
 
+const
+  PointerMarker = #1;
+
 var
   WrittenPointers : TStringList;
+  DeclaredTypes : TStringList;
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
@@ -292,10 +300,18 @@ begin
   IsACType := False;
 end;
 
-function PointerName(const s:string):string;
+// Returns s as it follows the P of a pointer type name: without T prefix, and without leading underscore for -T.
+function PointerBaseName(const s:string):string;
 
-var
-  i : longint;
+begin
+  if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
+    PointerBaseName:=Copy(s,2,255)
+  else
+    PointerBaseName:=s;
+end;
+
+
+function PointerName(const s:string):string;
 
 begin
   if UseCTypesUnit then
@@ -306,18 +322,15 @@ begin
     exit;
     end;
   end;
-  i:=1;
-  if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
-    i:=2;
   if UsePPointers then
   begin
-    PointerName:='P'+Copy(s,i,255);
+    PointerName:='P'+PointerBaseName(s);
     PTypeList.Add(PointerName);
   end
   else
-    PointerName:=Copy(s,i,255);
+    PointerName:=PointerBaseName(s);
   if PointerPrefix then
-    PTypeList.Add('P'+s);
+    PTypeList.Add('P'+PointerBaseName(s));
 end;
 
 
@@ -924,15 +937,17 @@ begin
     begin
       if not IsACType(p^.p) then
       begin
-        PTypeList.Add('P'+p^.str);
+        PTypeList.Add('P'+PointerBaseName(p^.str));
       end;
     end
     else
       begin
-      PTypeList.Add('P'+p^.str);
+      PTypeList.Add('P'+PointerBaseName(p^.str));
       end;
   if p^.skiptprefix then
     write(outfile,p^.p)
+  else if pointerprefix then
+    write(outfile,PointerBaseName(p^.str))
   else
     write(outfile,TypeName(p^.p));
 end;
@@ -1341,15 +1356,70 @@ begin
   Result:=WrittenPointers.IndexOf(PN)=-1;
 end;
 
-function WritePointerTypeDef(var aFile : text; const PN, TN: AnsiString): Boolean;
+// Writes PN = ^TN with indentation aIndent unless PN was written before.
+function WriteIndentedPointerTypeDef(var aFile : text; const aIndent, PN, TN: AnsiString): Boolean;
 
 begin
-  Result:=MayWritePointerTypeDef(PN);;
+  Result:=MayWritePointerTypeDef(PN);
   if Result then
     begin
     WrittenPointers.Add(PN);
-    Writeln(aFile,aktspace,PN,' = ^',TN,';');
+    Writeln(aFile,aIndent,PN,' = ^',TN,';');
    end;
+end;
+
+
+function WritePointerTypeDef(var aFile : text; const PN, TN: AnsiString): Boolean;
+
+begin
+  Result:=WriteIndentedPointerTypeDef(aFile,aktspace,PN,TN);
+end;
+
+
+// Returns the Pascal name of the type the pointer type PN points to.
+function PointerTarget(const PN : AnsiString) : AnsiString;
+
+begin
+  Result:=TypeName(Copy(PN,2,Length(PN)-1));
+end;
+
+
+procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
+
+begin
+  if block_type<>bt_type then
+    exit;
+  DeclaredTypes.Add(TN);
+  Writeln(aFile,PointerMarker,aktspace,TN);
+end;
+
+
+function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
+
+var
+  lIndent, lTN : AnsiString;
+  lPos, lIndex : Integer;
+
+begin
+  Result:=(aLine<>'') and (aLine[1]=PointerMarker);
+  if not Result then
+    exit;
+  lPos:=2;
+  while (lPos<=Length(aLine)) and (aLine[lPos]=' ') do
+    Inc(lPos);
+  lIndent:=Copy(aLine,2,lPos-2);
+  lTN:=Copy(aLine,lPos,Length(aLine)-lPos+1);
+  for lIndex:=0 to PTypeList.Count-1 do
+    if SameText(PointerTarget(PTypeList[lIndex]),lTN) then
+      WriteIndentedPointerTypeDef(aFile,lIndent,PTypeList[lIndex],lTN);
+end;
+
+
+// Returns true when the pointer type PN belongs in the pointer list of the unit header.
+function IsHeaderPointer(const PN : AnsiString) : Boolean;
+
+begin
+  Result:=MayWritePointerTypeDef(PN) and (DeclaredTypes.IndexOf(PointerTarget(PN))=-1);
 end;
 
 procedure write_statement_block(var outfile:text; p : presobject);
@@ -1386,26 +1456,21 @@ procedure WritePointerList(var headerfile: Text);
 var
   I : Integer;
   MustWritePointers : Boolean;
-  originalstr : String;
 
 begin
   I:=PTypeList.count-1;
   MustWritePointers:=False;
   While (Not MustWritePointers) and (I>=0) do
     begin
-    MustWritePointers:=MayWritePointerTypeDef(PTypelist[i]);
+    MustWritePointers:=IsHeaderPointer(PTypelist[i]);
     Dec(I);
     end;
   if not MustWritePointers then
     exit;
   Writeln(headerfile,'Type');
   for i:=0 to (PTypeList.Count-1) do
-     begin
-       originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
-       if PrependTypes then
-         originalstr:='T'+originalstr;
-       WritePointerTypeDef(HeaderFile,PTypeList[i],OriginalStr);
-     end;
+    if IsHeaderPointer(PTypeList[i]) then
+      WritePointerTypeDef(HeaderFile,PTypeList[i],PointerTarget(PTypeList[i]));
 end;
 
 procedure WriteFileHeader(var headerfile: Text);
@@ -1541,7 +1606,11 @@ initialization
   WrittenPointers.Add('pint64');
   WrittenPointers.Add('pword');
   WrittenPointers.Add('pqword');
+  DeclaredTypes:=TStringList.Create;
+  DeclaredTypes.Sorted:=true;
+  DeclaredTypes.Duplicates:=dupIgnore;
 
 finalization
+  DeclaredTypes.Free;
   WrittenPointers.Free;
 end.

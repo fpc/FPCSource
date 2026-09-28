@@ -40,6 +40,8 @@ type
     procedure TestUnionPointerParam;
     procedure TestEnumParam;
     procedure TestPointerParamDeclaresPointerType;
+    procedure TestPointerParamExternalType;
+    procedure TestPointerParamUnitCompiles;
     procedure TestFunctionBody;
     procedure TestWhileStatement;
   end;
@@ -265,8 +267,30 @@ procedure TTestFunctions.TestPointerParamDeclaresPointerType;
 begin
   Convert(['typedef struct { int a; } rec;','void f(rec *r);']);
   AssertConverted;
-  AssertOutput('pointer type used by a parameter is declared in the header',['Type','Prec = ^rec;']);
+  AssertInterface('pointer type used by a parameter follows the declaration of its target',
+    ['type','rec = record','a : longint;','end;','Prec = ^rec;']);
+  AssertNotOutput('pointer to a declared type is not in the header pointer list','Type');
   AssertInterface('parameter uses the pointer type',['procedure f(r:Prec);']);
+end;
+
+
+procedure TTestFunctions.TestPointerParamExternalType;
+
+begin
+  Convert(['void f(mytype *p);']);
+  AssertConverted;
+  AssertOutput('pointer to a type not declared in the header is in the header pointer list',
+    ['Type','Pmytype = ^mytype;']);
+  AssertInterface('parameter uses the pointer type',['procedure f(p:Pmytype);']);
+end;
+
+
+procedure TTestFunctions.TestPointerParamUnitCompiles;
+
+begin
+  Convert(['typedef struct { int a; } rec;','void f(rec *r);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

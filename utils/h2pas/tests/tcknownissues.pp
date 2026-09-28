@@ -18,19 +18,10 @@ type
 
   TTestKnownPointerIssues = class(TH2PasTestCase)
   published
-    procedure TestHeaderPointerTypeResolves;
     procedure TestPointerResultInterface;
-    procedure TestPointerPrefixDeclaredOnce;
-    procedure TestPointerPrefixUnitCompiles;
     procedure TestPointerPrefixPointerResult;
     procedure TestPointerPrefixPointerToPointer;
-    procedure TestTypePrefixParams;
-    procedure TestTypePrefixUnitCompiles;
-    procedure TestUnderscorePrefixParams;
-    procedure TestUnderscorePrefixHeaderPointer;
-    procedure TestUnderscorePrefixUnitCompiles;
-    procedure TestPointerAndUnderscoreDeclaredOnce;
-    procedure TestPointerAndUnderscoreUnitCompiles;
+    procedure TestTypePrefixCTypes;
   end;
 
   { TTestKnownDeclarationIssues }
@@ -79,24 +70,6 @@ type
 
 implementation
 
-const
-  PrefixHeader : array[0..4] of string = (
-    'typedef struct _point { int x; int y; } point;',
-    'typedef int myint;',
-    'struct _rect { point *tl; struct _point br; };',
-    'typedef enum { red, green } color;',
-    'void doit(point *p, myint *m, struct _rect *r, int);'
-  );
-
-
-procedure TTestKnownPointerIssues.TestHeaderPointerTypeResolves;
-
-begin
-  Convert(['typedef struct { int a; } rec;','void f(rec *r);'],['-d']);
-  AssertConverted;
-  AssertCompiles;
-end;
-
 
 procedure TTestKnownPointerIssues.TestPointerResultInterface;
 
@@ -104,25 +77,6 @@ begin
   Convert(['char *name(void);']);
   AssertConverted;
   AssertInterface('pointer result in the interface uses a P type',['function name:Pansichar;']);
-end;
-
-
-procedure TTestKnownPointerIssues.TestPointerPrefixDeclaredOnce;
-
-begin
-  Convert(PrefixHeader,['-p']);
-  AssertConverted;
-  AssertEquals('-p declares Ppoint once',1,CountOf('Ppoint = ^point;'));
-  AssertEquals('-p declares P_rect once',1,CountOf('P_rect = ^_rect;'));
-end;
-
-
-procedure TTestKnownPointerIssues.TestPointerPrefixUnitCompiles;
-
-begin
-  Convert(PrefixHeader,['-p','-d']);
-  AssertConverted;
-  AssertCompiles;
 end;
 
 
@@ -144,67 +98,13 @@ begin
 end;
 
 
-procedure TTestKnownPointerIssues.TestTypePrefixParams;
+procedure TTestKnownPointerIssues.TestTypePrefixCTypes;
 
 begin
-  Convert(PrefixHeader,['-t']);
+  Convert(['struct s { int a; };','int g;'],['-t','-C']);
   AssertConverted;
-  AssertInterface('-t parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:P_rect; _para4:longint);']);
-end;
-
-
-procedure TTestKnownPointerIssues.TestTypePrefixUnitCompiles;
-
-begin
-  Convert(PrefixHeader,['-t','-d']);
-  AssertConverted;
-  AssertCompiles;
-end;
-
-
-procedure TTestKnownPointerIssues.TestUnderscorePrefixParams;
-
-begin
-  Convert(PrefixHeader,['-T']);
-  AssertConverted;
-  AssertInterface('-T parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:Prect; para4:longint);']);
-end;
-
-
-procedure TTestKnownPointerIssues.TestUnderscorePrefixHeaderPointer;
-
-begin
-  Convert(PrefixHeader,['-T']);
-  AssertConverted;
-  AssertOutput('-T pointer to a struct tag without underscore',['Prect = ^Trect;']);
-  AssertNotOutput('-T refers to no type with an underscore','T_rect');
-end;
-
-
-procedure TTestKnownPointerIssues.TestUnderscorePrefixUnitCompiles;
-
-begin
-  Convert(PrefixHeader,['-T','-d']);
-  AssertConverted;
-  AssertCompiles;
-end;
-
-
-procedure TTestKnownPointerIssues.TestPointerAndUnderscoreDeclaredOnce;
-
-begin
-  Convert(PrefixHeader,['-p','-T']);
-  AssertConverted;
-  AssertEquals('-p -T declares Prect once',1,CountOf('Prect = ^Trect;'));
-end;
-
-
-procedure TTestKnownPointerIssues.TestPointerAndUnderscoreUnitCompiles;
-
-begin
-  Convert(PrefixHeader,['-p','-T','-d']);
-  AssertConverted;
-  AssertCompiles;
+  AssertInterface('-t does not prefix ctypes field types',['a : cint;']);
+  AssertInterface('-t does not prefix ctypes variable types',['g : cint;cvar;public;']);
 end;
 
 

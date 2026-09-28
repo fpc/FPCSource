@@ -108,7 +108,8 @@ begin
   while not eof(outfile) do
     begin
       readln(outfile,SS);
-      writeln(finaloutfile,SS);
+      if not WriteMarkedPointers(finaloutfile,SS) then
+        writeln(finaloutfile,SS);
     end;
 
   close(HeaderFile);

@@ -29,6 +29,7 @@ type
     procedure TestTypes;
     procedure TestParams;
     procedure TestHeaderPointerTypes;
+    procedure TestUnitCompiles;
   end;
 
   { TTestTypePrefix }
@@ -37,6 +38,9 @@ type
   published
     procedure TestTypes;
     procedure TestHeaderPointerTypes;
+    procedure TestParams;
+    procedure TestParamsImplementation;
+    procedure TestUnitCompiles;
     procedure TestBaseTypesNotPrefixed;
     procedure TestUnnamedParams;
     procedure TestVariableType;
@@ -46,6 +50,9 @@ type
     procedure TestUnderscoreUnnamedParams;
     procedure TestUnderscoreIdentifiers;
     procedure TestUnderscoreParamType;
+    procedure TestUnderscoreParams;
+    procedure TestUnderscorePointerNames;
+    procedure TestUnderscoreUnitCompiles;
   end;
 
   { TTestPointerPrefix }
@@ -62,6 +69,8 @@ type
     procedure TestPointerTypedef;
     procedure TestVarParamsWin;
     procedure TestCTypes;
+    procedure TestPointerTypesDeclaredOnce;
+    procedure TestUnitCompiles;
   end;
 
   { TTestCombinedPrefixes }
@@ -73,6 +82,8 @@ type
     procedure TestPointerAndUnderscoreTypes;
     procedure TestPointerAndUnderscoreParams;
     procedure TestPointerAndUnderscoreAlias;
+    procedure TestPointerAndUnderscoreDeclaredOnce;
+    procedure TestPointerAndUnderscoreCompiles;
   end;
 
 implementation
@@ -120,9 +131,18 @@ procedure TTestNoPrefix.TestHeaderPointerTypes;
 
 begin
   ConvertSample([]);
-  AssertOutput('pointer to typedef',['Ppoint = ^point;']);
-  AssertOutput('pointer to base type typedef',['Pmyint = ^myint;']);
-  AssertOutput('pointer to struct tag',['P_rect = ^_rect;']);
+  AssertInterface('pointer to typedef follows the typedef',['point = _point;','Ppoint = ^point;']);
+  AssertInterface('pointer to base type typedef follows the typedef',['myint = longint;','Pmyint = ^myint;']);
+  AssertInterface('pointer to struct tag follows the struct',['br : _point;','end;','P_rect = ^_rect;']);
+  AssertNotOutput('no header pointer list','Type');
+end;
+
+
+procedure TTestNoPrefix.TestUnitCompiles;
+
+begin
+  ConvertSample(['-d']);
+  AssertCompiles;
 end;
 
 
@@ -146,6 +166,32 @@ begin
   AssertOutput('-t pointer to typedef points to the T type',['Ppoint = ^Tpoint;']);
   AssertOutput('-t pointer to base type typedef points to the T type',['Pmyint = ^Tmyint;']);
   AssertOutput('-t pointer to struct tag points to the T type',['P_rect = ^T_rect;']);
+end;
+
+
+procedure TTestTypePrefix.TestParams;
+
+begin
+  ConvertSample(['-t']);
+  AssertInterface('-t parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:P_rect; _para4:longint);']);
+  AssertNotOutput('-t pointer names have no T','PT');
+end;
+
+
+procedure TTestTypePrefix.TestParamsImplementation;
+
+begin
+  Convert(['typedef int myint;','myint *f(myint *a);'],['-t']);
+  AssertConverted;
+  AssertImplementation('-t stub uses the declared pointer types',['function f(a:Pmyint):Pmyint;']);
+end;
+
+
+procedure TTestTypePrefix.TestUnitCompiles;
+
+begin
+  ConvertSample(['-t','-d']);
+  AssertCompiles;
 end;
 
 
@@ -230,6 +276,32 @@ begin
   AssertInterface('-T typedef',['Tmyint = longint;']);
   AssertInterface('-T variable type',['v : Tmyint;cvar;external;']);
   AssertInterface('-T parameter type',['procedure f(a:Tmyint);']);
+end;
+
+
+procedure TTestTypePrefix.TestUnderscoreParams;
+
+begin
+  ConvertSample(['-T']);
+  AssertInterface('-T parameters use the declared pointer types',['procedure doit(p:Ppoint; m:Pmyint; r:Prect; para4:longint);']);
+  AssertNotOutput('-T pointer names have no T','PT');
+end;
+
+
+procedure TTestTypePrefix.TestUnderscorePointerNames;
+
+begin
+  ConvertSample(['-T']);
+  AssertInterface('-T pointer to a struct tag without underscore',['br : Tpoint;','end;','Prect = ^Trect;']);
+  AssertNotOutput('-T refers to no type with an underscore','T_rect');
+end;
+
+
+procedure TTestTypePrefix.TestUnderscoreUnitCompiles;
+
+begin
+  ConvertSample(['-T','-d']);
+  AssertCompiles;
 end;
 
 
@@ -332,6 +404,24 @@ begin
 end;
 
 
+procedure TTestPointerPrefix.TestPointerTypesDeclaredOnce;
+
+begin
+  ConvertSample(['-p']);
+  AssertEquals('-p declares Ppoint once',1,CountOf('Ppoint = ^point;'));
+  AssertEquals('-p declares P_rect once',1,CountOf('P_rect = ^_rect;'));
+  AssertNotOutput('-p writes no header pointer list','Type');
+end;
+
+
+procedure TTestPointerPrefix.TestUnitCompiles;
+
+begin
+  ConvertSample(['-p','-d']);
+  AssertCompiles;
+end;
+
+
 procedure TTestCombinedPrefixes.TestPointerAndTypeTypes;
 
 begin
@@ -380,6 +470,23 @@ begin
   AssertConverted;
   AssertInterface('-p -T struct with pointer alias',
     ['Pnode = ^Tnode;','Tnode = record','value : longint;','next : Pnode;','end;','Tpnode = Pnode;','Ppnode = ^Tpnode;']);
+end;
+
+
+procedure TTestCombinedPrefixes.TestPointerAndUnderscoreDeclaredOnce;
+
+begin
+  ConvertSample(['-p','-T']);
+  AssertEquals('-p -T declares Prect once',1,CountOf('Prect = ^Trect;'));
+  AssertNotOutput('-p -T writes no header pointer list','Type');
+end;
+
+
+procedure TTestCombinedPrefixes.TestPointerAndUnderscoreCompiles;
+
+begin
+  ConvertSample(['-p','-T','-d']);
+  AssertCompiles;
 end;
 
 

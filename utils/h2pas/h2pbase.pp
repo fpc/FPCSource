@@ -845,7 +845,7 @@ begin
     (* define a Pointer type also for structs *)
     if UsePPointers and (not SameText(tn,pn)) and
       assigned(aType) and (aType^.typ in [t_uniondef,t_structdef]) then
-    writeln(outfile,aktspace,PN,' = ^',TN,';');
+      WritePointerTypeDef(outfile,PN,TN);
     write(outfile,aktspace,TN,' = ');
     shift(2);
     hp:=aType;
@@ -853,7 +853,10 @@ begin
     popshift;
     (* enum_to_const can make a switch to const *)
     if block_type=bt_type then
-    writeln(outfile,';');
+      begin
+      writeln(outfile,';');
+      WritePointerMarker(outfile,TN);
+      end;
     writeln(outfile);
     flush(outfile);
     popshift;
@@ -866,13 +869,15 @@ begin
     begin
     TN:=TypeName(aType^.str);
     PN:=PointerName(aType^.str);
-    if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
+    if UsePPointers then
+      WritePointerTypeDef(outfile,PN,TN);
     if PackRecords then
       writeln(outfile, aktspace, TN, ' = packed record')
     else
       writeln(outfile, aktspace, TN, ' = record');
     writeln(outfile, aktspace, '    {undefined structure}');
     writeln(outfile, aktspace, '  end;');
+    WritePointerMarker(outfile,TN);
     writeln(outfile);
     popshift;
     end;
@@ -917,6 +922,7 @@ begin
           (not no_pop) then
           write(outfile,';cdecl');
         writeln(outfile,';');
+        WritePointerMarker(outfile,TypeName(hp^.p2^.p));
         flush(outfile);
       end;
   end;
@@ -984,6 +990,7 @@ begin
     (not no_pop) then
     write(outfile,';cdecl');
   writeln(outfile,';');
+  WritePointerMarker(outfile,TN);
   flush(outfile);
   (* write alias names, ph points to the name already used *)
   hp:=declarator_list;
@@ -998,10 +1005,11 @@ begin
           write(outfile,aktspace,TN,' = ');
           write_p_a_def(outfile,hp^.p1^.p1,ph);
           writeln(outfile,';');
+          WritePointerMarker(outfile,TN);
           PN:=PointerName(hp^.p1^.p2^.p);
           if UsePPointers and (not sametext(tn,pn)) and
             assigned(type_spec) and (type_spec^.typ<>t_procdef) then
-            writeln(outfile,aktspace,PN,' = ^',TN,';');
+            WritePointerTypeDef(outfile,PN,TN);
         end;
       end;
     hp:=hp^.next;
@@ -1038,6 +1046,7 @@ begin
   begin
     shift(2);
     writeln(outfile,aktspace,PN,' = ',TN,';');
+    WritePointerMarker(outfile,PN);
     popshift;
   end;
   if assigned(dname1) then
@@ -1063,6 +1072,7 @@ begin
   (* write as pointer *)
   writeln(outfile,'(* generic typedef  *)');
   writeln(outfile,aktspace,tname^.p,' = pointer;');
+  WritePointerMarker(outfile,tname^.p);
   flush(outfile);
   popshift;
   if assigned(tname) then
