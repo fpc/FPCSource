@@ -52,9 +52,10 @@ NetBSD-x86_64 : gcc (GCC) 4.1.3 20080704 prerelease (NetBSD nb2 20081120)
 Linux-arm-gnueabihf : gcc version 4.6.3 (Debian 4.6.3-8+rpi1)
 
 Linux-mipsel : gcc (Debian 4.4.5-8) 4.4.5
+               (tcext7.o): gcc (Debian 8.3.0-6) 8.3.0
 
 Linux-mips : gcc (Debian 4.4.5-8) 4.4.5
-
+             (tcext7.o): gcc (Debian 8.3.0-6) 8.3.0
 
 Android-arm    : GCC 4.7
 
