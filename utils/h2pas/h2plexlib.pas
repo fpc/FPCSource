@@ -77,6 +77,9 @@ procedure unget_char ( c : Char );
 procedure put_char ( c : Char );
   (* write one character to the output file *)
 
+// Returns the characters left in the current input line, without reading them.
+function PeekLine : AnsiString;
+
 (* Utility routines: *)
 
 procedure echo;
@@ -212,6 +215,19 @@ procedure unget_char ( c : Char );
     dec(yycolno);
     buf[bufptr] := c;
   end(*unget_char*);
+
+function PeekLine : AnsiString;
+
+  var
+    i : Integer;
+    lLine : AnsiString;
+
+  begin
+    lLine:='';
+    for i:=bufptr downto 1 do
+      lLine:=lLine+buf[i];
+    PeekLine:=lLine;
+  end;
 
 procedure put_char ( c : Char );
   begin

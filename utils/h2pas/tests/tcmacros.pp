@@ -116,6 +116,12 @@ type
     procedure TestGreaterEqual;
     procedure TestPointerCast;
     procedure TestNoParameters;
+    procedure TestStatementMacro;
+    procedure TestContinuedStatementMacro;
+    procedure TestSideEffectMacros;
+    procedure TestCallMacrosKept;
+    procedure TestStatementMacroStripped;
+    procedure TestStatementMacrosCompile;
     procedure TestIndentationAfterMacros;
     procedure TestCompactIndentationAfterMacros;
   end;
@@ -919,6 +925,74 @@ begin
   AssertConverted;
   AssertInterface('pointer cast gives the result type',['function PCAST(p : longint) : Pansichar;']);
   AssertImplementation('pointer cast body',['PCAST:=Pansichar(p);']);
+end;
+
+
+procedure TTestFunctionMacros.TestStatementMacro;
+
+begin
+  Convert(['#define SWAP(a,b) do { int t = a; a = b; b = t; } while (0)','#define BEGIN_DECLS {','#define A 1']);
+  AssertConverted;
+  AssertOutput('statement macro is ignored',['(* macro SWAP with statements or side effects ignored *)']);
+  AssertOutput('macro with a brace is ignored',['(* macro BEGIN_DECLS with statements or side effects ignored *)']);
+  AssertNotOutput('no function for a statement macro','function SWAP');
+  AssertInterface('next define is converted',['A = 1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestContinuedStatementMacro;
+
+begin
+  Convert(['#define L(x) \','  do { x; \','  } while (0)','#define B 2','int after;']);
+  AssertConverted;
+  AssertOutput('continued statement macro is ignored',['(* macro L with statements or side effects ignored *)']);
+  AssertInterface('declarations after the macro are converted',['B = 2;','var','after : longint;cvar;public;']);
+end;
+
+
+procedure TTestFunctionMacros.TestSideEffectMacros;
+
+begin
+  Convert(['#define M(a) ((a)++, (a))','#define N(g) ((g)->have ? ((g)->have--, (g)->pos) : 0)',
+           '#define SET(c, v) (c) = (v)','#define ADD(c, v) (c) += (v)']);
+  AssertConverted;
+  AssertOutput('comma operator and increment',['(* macro M with statements or side effects ignored *)']);
+  AssertOutput('decrement',['(* macro N with statements or side effects ignored *)']);
+  AssertOutput('assignment',['(* macro SET with statements or side effects ignored *)']);
+  AssertOutput('compound assignment',['(* macro ADD with statements or side effects ignored *)']);
+end;
+
+
+procedure TTestFunctionMacros.TestCallMacrosKept;
+
+begin
+  Convert(['#define C(x) f(x, 2)','#define S "a;b{"','#define K(x) (x) /* a; b */','#define E(a,b) ((a) == (b))',
+           '#define LE(a,b) ((a) <= (b))','#define D (1 - -1)']);
+  AssertConverted;
+  AssertNotOutput('macros without statements or side effects are converted','side effects ignored');
+  AssertImplementation('comma between call arguments',['C:=f(x,2);']);
+  AssertInterface('semicolon and brace inside a string',['S = ''a;b{'';']);
+  AssertImplementation('semicolon inside a comment',['K:=x;']);
+end;
+
+
+procedure TTestFunctionMacros.TestStatementMacroStripped;
+
+begin
+  Convert(['#define SWAP(a,b) do { a = b; } while (0)','#define A 1'],['-S']);
+  AssertConverted;
+  AssertNotOutput('-S drops the comment','side effects ignored');
+  AssertInterface('next define is converted',['A = 1;']);
+end;
+
+
+procedure TTestFunctionMacros.TestStatementMacrosCompile;
+
+begin
+  Convert(['#define SWAP(a,b) do { int t = a; a = b; b = t; } while (0)','#define L(x) \','  do { x; \','  } while (0)',
+           '#define M(a) ((a)++, (a))','#define A 1','int after;'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

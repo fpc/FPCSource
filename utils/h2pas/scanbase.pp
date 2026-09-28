@@ -905,10 +905,179 @@ begin
   end;
 end;
 
-Procedure HandlePreProcDefine;
+// Returns true when the define aText (the text after #define) has statements, assignments, ++, -- or a comma operator in its body;
+// aName is the name of the macro.
+function IsStatementDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
+
+const
+  IdentChars = ['A'..'Z','a'..'z','0'..'9','_'];
+  MaxDepth = 64;
+
+var
+  i, lDepth : integer;
+  lCall : array[1..MaxDepth] of boolean;
+  lPrev, lQuote : char;
+  lLine : AnsiString;
 
 begin
-  if NotInCPlusBlock then
+  Result:=false;
+  aName:='';
+  lLine:=StringReplace(StringReplace(aText,'\'#13#10,' ',[rfReplaceAll]),'\'#10,' ',[rfReplaceAll]);
+  i:=1;
+  while (i<=length(lLine)) and (lLine[i] in [' ',#9]) do
+    inc(i);
+  while (i<=length(lLine)) and (lLine[i] in IdentChars) do
+    begin
+    aName:=aName+lLine[i];
+    inc(i);
+    end;
+  if (i<=length(lLine)) and (lLine[i]='(') then
+    begin
+    while (i<=length(lLine)) and (lLine[i]<>')') do
+      inc(i);
+    inc(i);
+    end;
+  lDepth:=0;
+  lPrev:=' ';
+  while i<=length(lLine) do
+    begin
+    case lLine[i] of
+      #10, #13 :
+        exit;
+      '"', '''' :
+        begin
+        lQuote:=lLine[i];
+        inc(i);
+        while (i<=length(lLine)) and (lLine[i]<>lQuote) do
+          begin
+          if lLine[i]='\' then
+            inc(i);
+          inc(i);
+          end;
+        lPrev:='a';
+        end;
+      '/' :
+        if (i<length(lLine)) and (lLine[i+1]='/') then
+          exit
+        else if (i<length(lLine)) and (lLine[i+1]='*') then
+          begin
+          inc(i,2);
+          while (i<length(lLine)) and not ((lLine[i]='*') and (lLine[i+1]='/')) do
+            inc(i);
+          inc(i);
+          end
+        else
+          lPrev:='/';
+      '{', '}', ';' :
+        exit(true);
+      '=' :
+        if (i<length(lLine)) and (lLine[i+1]='=') then
+          begin
+          inc(i);
+          lPrev:='=';
+          end
+        else if lPrev in ['!','<','>'] then
+          lPrev:='='
+        else
+          exit(true);
+      '+', '-' :
+        if (i<length(lLine)) and (lLine[i+1]=lLine[i]) then
+          exit(true)
+        else
+          lPrev:=lLine[i];
+      '(' :
+        begin
+        if lDepth<MaxDepth then
+          begin
+          inc(lDepth);
+          lCall[lDepth]:=(lPrev in IdentChars) or (lPrev in [')',']']);
+          end;
+        lPrev:='(';
+        end;
+      ')' :
+        begin
+        if lDepth>0 then
+          dec(lDepth);
+        lPrev:=')';
+        end;
+      ',' :
+        if (lDepth=0) or not lCall[lDepth] then
+          exit(true)
+        else
+          lPrev:=',';
+      ' ', #9, '\' : ;
+    else
+      lPrev:=lLine[i];
+    end;
+    inc(i);
+    end;
+end;
+
+
+// Returns the rest of the define with its continuation lines, without reading it.
+function PeekDefine : AnsiString;
+
+const
+  MaxDefine = 2000;
+
+var
+  c, lPrev : char;
+  i : integer;
+  lText : AnsiString;
+
+begin
+  lText:=TrimRight(PeekLine);
+  if (lText='') or (lText[length(lText)]<>'\') then
+    exit(PeekLine);
+  lText:='';
+  lPrev:=' ';
+  repeat
+    c:=get_char;
+    if c=#0 then
+      break;
+    lText:=lText+c;
+    if ((c=newline) and (lPrev<>'\')) or (length(lText)>=MaxDefine) then
+      break;
+    if c<>#13 then
+      lPrev:=c;
+  until false;
+  for i:=length(lText) downto 1 do
+    unget_char(lText[i]);
+  Result:=lText;
+end;
+
+
+// Skips the rest of the define, with its continuation lines.
+procedure SkipDefine;
+
+var
+  c, lPrev : char;
+
+begin
+  lPrev:=' ';
+  repeat
+    c:=get_char;
+    if (c=#0) or ((c=newline) and (lPrev<>'\')) then
+      break;
+    if c<>#13 then
+      lPrev:=c;
+  until false;
+end;
+
+
+Procedure HandlePreProcDefine;
+
+var
+  lName : AnsiString;
+
+begin
+  if NotInCPlusBlock and IsStatementDefine(PeekDefine,lName) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* macro ',lName,' with statements or side effects ignored *)');
+    SkipDefine;
+    end
+  else if NotInCPlusBlock then
    begin
      commentstr:='';
      in_define:=true;
