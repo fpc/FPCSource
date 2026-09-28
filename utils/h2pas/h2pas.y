@@ -55,6 +55,7 @@ end;
 %token SIGNED
 %token INT8 INT16 INT32 INT64
 %token _DOUBLE
+%token _RETURN
 %%
 
 file : declaration_list
@@ -178,6 +179,16 @@ statement :
        {
          (* _WHILE LKLAMMER expr RKLAMMER statement_list  *)
          $$:=NewType2(t_whilenode,$3,$5);
+       } |
+     _RETURN expr SEMICOLON
+       {
+         (* _RETURN expr SEMICOLON *)
+         $$:=NewUnaryOp('exit',$2);
+       } |
+     _RETURN SEMICOLON
+       {
+         (* _RETURN SEMICOLON *)
+         $$:=NewID('exit');
        }
      ;
 
@@ -236,6 +247,11 @@ declaration :
      special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
      {
        (* special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
+       HandleDeclarationSysTrap(NewID('intern'),$1,$2,$3,$4);
+     } |
+     anonymous_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+     {
+       (* anonymous_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
        HandleDeclarationSysTrap(NewID('intern'),$1,$2,$3,$4);
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
@@ -322,6 +338,37 @@ closed_enum_list :
           $$:=nil;
          }
       ;
+
+anonymous_type_specifier :
+     STRUCT closed_list _PACKED
+     {
+       (* STRUCT closed_list _PACKED *)
+       emitpacked(1);
+       $$:=NewType1(t_structdef,$2);
+     } |
+     STRUCT closed_list
+     {
+       (* STRUCT closed_list *)
+       emitpacked(4);
+       $$:=NewType1(t_structdef,$2);
+     } |
+     UNION closed_list _PACKED
+     {
+       (* UNION closed_list _PACKED *)
+       emitpacked(1);
+       $$:=NewType1(t_uniondef,$2);
+     } |
+     UNION closed_list
+     {
+       (* UNION closed_list *)
+       $$:=NewType1(t_uniondef,$2);
+     } |
+     ENUM closed_enum_list
+     {
+       (* ENUM closed_enum_list *)
+       $$:=NewType1(t_enumdef,$2);
+     }
+     ;
 
 special_type_specifier :
      STRUCT dname closed_list _PACKED

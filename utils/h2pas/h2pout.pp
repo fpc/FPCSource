@@ -53,7 +53,7 @@ procedure shift(space_number : byte);
 procedure popshift;
 procedure resetshift;
 function str(i : longint) : string;
-function hexstr(i : cardinal) : string;
+function hexstr(i : qword) : string;
 function uppercase(s : string) : string;
 function PointerName(const s:string):string;
 function IsACType(const s : String) : Boolean;
@@ -89,6 +89,8 @@ var
   FunctionTypes : TStringList;
   // Number of P prefixes written for the pointer type being written.
   pointer_level : Integer = 0;
+  // Flag field index of each bit field of the record being written, as name=index.
+  BitFieldFlags : TStringList;
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
@@ -208,7 +210,7 @@ begin
 end;
 
 
-function hexstr(i : cardinal) : string;
+function hexstr(i : qword) : string;
 
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
@@ -386,9 +388,8 @@ procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string
 
 var
     hp1,hp2,hp3 : presobject;
-    is_sized : boolean;
     line : string;
-    flag_index : longint;
+    flag_index : string;
     name : pansichar;
     ps : byte;
 
@@ -396,8 +397,6 @@ begin
   { write out the tempfile created }
   close(tempfile);
   reset(tempfile);
-  is_sized:=false;
-  flag_index:=0;
   writeln(outfile);
   writeln(outfile,aktspace,'const');
   shift(2);
@@ -423,11 +422,11 @@ begin
     hp3:=hp2^.p2;
     while assigned(hp3) do
       begin
-      if assigned(hp3^.p1^.p3) and
+      if assigned(hp3^.p1) and assigned(hp3^.p1^.p3) and
         (hp3^.p1^.p3^.typ = t_size_specifier) then
         begin
-        is_sized:=true;
         name:=hp3^.p1^.p2^.p;
+        flag_index:=BitFieldFlags.Values[hp3^.p1^.p2^.str];
         { get function in interface }
         write(outfile,aktspace,'function ',name);
         write(outfile,'(var __rec : ',ph,') : ');
@@ -475,16 +474,12 @@ begin
         if not compactmode then
           popshift;
         writeln(implemfile,'');
-        end
-      else if is_sized then
-        begin
-        is_sized:=false;
-        inc(flag_index);
         end;
       hp3:=hp3^.next;
       end;
     hp1:=hp1^.next;
     end;
+  BitFieldFlags.Clear;
   must_write_packed_field:=false;
   block_type:=bt_no;
 end;
@@ -747,7 +742,8 @@ procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 var
     len,para : longint;
     old_in_args : boolean;
-    varpara, refpara : boolean;
+    varpara, refpara, arraypara : boolean;
+    lElement, lInner, lPointer : presobject;
     hs : string;
 
 begin
@@ -783,6 +779,9 @@ begin
       varpara:=IsVarPara(p);
       (* C++ reference parameter *)
       refpara:=assigned(p^.p1^.p2) and assigned(p^.p1^.p2^.p1) and (p^.p1^.p2^.p1^.typ=t_addrdef);
+      arraypara:=assigned(p^.p1^.p2) and assigned(p^.p1^.p2^.p1) and (p^.p1^.p2^.p1^.typ=t_arraydef);
+      if arraypara then
+        varpara:=false;
       if varpara or refpara then
         begin
         write(outfile,'var ');
@@ -812,6 +811,23 @@ begin
       write(outfile,':');
       if refpara then
         write_p_a_def(outfile,p^.p1^.p2^.p1^.p1,p^.p1^.p1)
+      else if arraypara then
+        begin
+        (* an array parameter is a pointer to its element *)
+        lElement:=p^.p1^.p2^.p1^.p1;
+        lInner:=lElement;
+        while assigned(lInner) and (lInner^.typ<>t_arraydef) do
+          lInner:=lInner^.p1;
+        if assigned(lInner) then
+          write(outfile,'pointer')
+        else
+          begin
+          lPointer:=NewType1(t_pointerdef,lElement);
+          write_p_a_def(outfile,lPointer,p^.p1^.p1);
+          lPointer^.p1:=nil;
+          dispose(lPointer,done);
+          end;
+        end
       else if varpara then
       begin
         write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
@@ -1205,10 +1221,23 @@ var
   i,l : longint;
   error : integer;
   current_power,
-  mask : cardinal;
+  mask : qword;
   flag_index : longint;
-  current_level : byte;
+  current_level : longint;
     is_sized : boolean;
+
+  // Ends the current flag field with the type that holds current_level bits.
+  procedure CloseFlag;
+
+  begin
+    if current_level <= 16 then
+      writeln(outfile,'word;')
+    else if current_level <= 32 then
+      writeln(outfile,'longint;')
+    else
+      writeln(outfile,'qword;');
+    is_sized:=false;
+  end;
 
 begin
   inc(typedef_level);
@@ -1245,15 +1274,7 @@ begin
               (hp3^.p1^.p3^.typ <> t_size_specifier)) then
             begin
             if is_sized then
-              begin
-                if current_level <= 16 then
-                  writeln(outfile,'word;')
-                else if current_level <= 32 then
-                  writeln(outfile,'longint;')
-                else
-                  internalerror(11);
-                is_sized:=false;
-              end;
+              CloseFlag;
 
             write(outfile,aktspace,FixId(hp3^.p1^.p2^.p));
             write(outfile,' : ');
@@ -1270,6 +1291,16 @@ begin
             { because we need to respect the positions }
             if hp3^.p1^.p3^.typ = t_size_specifier then
               begin
+              l:=0;
+              error:=1;
+              { can it be something else than a constant ? }
+              { it can be a macro !! }
+              if hp3^.p1^.p3^.p1^.typ=t_id then
+                val(hp3^.p1^.p3^.p1^.str,l,error);
+              (* a field that does not fit starts a new flag: 32 bits, 64 for wider fields *)
+              if is_sized and (error=0) and (current_level+l>32)
+                 and ((l<=32) or (current_level+l>64)) then
+                CloseFlag;
               if not is_sized then
                 begin
                 current_power:=1;
@@ -1279,31 +1310,20 @@ begin
                 end;
               must_write_packed_field:=true;
               is_sized:=true;
-              { can it be something else than a constant ? }
-              { it can be a macro !! }
-              if hp3^.p1^.p3^.p1^.typ=t_id then
+              BitFieldFlags.Values[hp3^.p1^.p2^.str]:=IntToStr(flag_index);
+              if error=0 then
                 begin
-                val(hp3^.p1^.p3^.p1^.str,l,error);
-                if error=0 then
+                mask:=0;
+                for i:=1 to l do
                   begin
-                  mask:=0;
-                  for i:=1 to l do
-                    begin
-                      inc(mask,current_power);
-                      current_power:=current_power*2;
-                    end;
-                  write(tempfile,'bm_&',hp3^.p1^.p2^.p);
-                  writeln(tempfile,' = ',hexstr(mask),';');
-                  write(tempfile,'bp_&',hp3^.p1^.p2^.p);
-                  writeln(tempfile,' = ',current_level,';');
-                  current_level:=current_level + l;
-                  { go to next flag if 31 }
-                  if current_level = 32 then
-                    begin
-                      write(outfile,'longint');
-                      is_sized:=false;
-                    end;
+                    inc(mask,current_power);
+                    current_power:=current_power*2;
                   end;
+                write(tempfile,'bm_&',hp3^.p1^.p2^.p);
+                writeln(tempfile,' = ',hexstr(mask),';');
+                write(tempfile,'bp_&',hp3^.p1^.p2^.p);
+                writeln(tempfile,' = ',current_level,';');
+                current_level:=current_level + l;
                 end;
               end
             else if hp3^.p1^.p3^.typ = t_default_value then
@@ -1323,15 +1343,7 @@ begin
         hp1:=hp1^.next;
         end;
       if is_sized then
-        begin
-        if current_level <= 16 then
-          writeln(outfile,'word;')
-        else if current_level <= 32 then
-          writeln(outfile,'longint;')
-        else
-          internalerror(11);
-        is_sized:=false;
-        end;
+        CloseFlag;
       popshift;
       write(outfile,aktspace,'end');
       flush(outfile);
@@ -1790,6 +1802,7 @@ initialization
   WrittenPointers.Add('pppchar');
   WrittenPointers.Add('pppointer');
   PointerTargets:=TStringList.Create;
+  BitFieldFlags:=TStringList.Create;
   FunctionTypes:=TStringList.Create;
   FunctionTypes.Sorted:=true;
   FunctionTypes.Duplicates:=dupIgnore;
@@ -1801,5 +1814,6 @@ finalization
   DeclaredTypes.Free;
   FunctionTypes.Free;
   PointerTargets.Free;
+  BitFieldFlags.Free;
   WrittenPointers.Free;
 end.

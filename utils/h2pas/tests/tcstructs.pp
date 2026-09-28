@@ -39,6 +39,11 @@ type
     procedure TestBitFieldAccessorBodies;
     procedure TestBitFieldNamedLikeParameter;
     procedure TestWideBitFields;
+    procedure TestBitFieldWiderThan32;
+    procedure TestBitFieldGroupFull;
+    procedure TestBitFieldDoesNotFit;
+    procedure TestBitFieldsCompile;
+    procedure TestVolatileMember;
     procedure TestSelfContainedUnitCompiles;
   end;
 
@@ -248,6 +253,59 @@ begin
   AssertConverted;
   AssertInterface('more than 16 bits use a longint flag field',['wide = record','flag0 : longint;','end;']);
   AssertInterface('second bit field mask and position',['bm_wide_fb = $FFC00;','bp_wide_fb = 10;']);
+end;
+
+
+procedure TTestStructs.TestBitFieldWiderThan32;
+
+begin
+  Convert(['struct s { unsigned long long x : 40; unsigned int y : 3; };']);
+  AssertConverted;
+  AssertInterface('a bit field wider than 32 bits uses a qword flag',['s = record','flag0 : qword;','flag1 : word;','end;']);
+  AssertInterface('mask of the wide bit field',['bm_s_x = $FFFFFFFFFF;']);
+  AssertInterface('getter of the wide bit field',['function x(var __rec : s) : qword;']);
+end;
+
+
+procedure TTestStructs.TestBitFieldGroupFull;
+
+begin
+  Convert(['struct s { unsigned int a : 1; unsigned int b : 31; unsigned int c : 2; };']);
+  AssertConverted;
+  AssertInterface('a full 32 bit group is followed by a new flag',['s = record','flag0 : longint;','flag1 : word;','end;']);
+  AssertImplementation('bit field in the first flag',['b:=(__rec.flag0 and bm_s_b) shr bp_s_b;']);
+  AssertImplementation('bit field in the second flag',['c:=(__rec.flag1 and bm_s_c) shr bp_s_c;']);
+end;
+
+
+procedure TTestStructs.TestBitFieldDoesNotFit;
+
+begin
+  Convert(['struct s { unsigned int a : 30; unsigned int b : 10; };']);
+  AssertConverted;
+  AssertInterface('a bit field that does not fit starts a new flag',['s = record','flag0 : longint;','flag1 : word;','end;']);
+  AssertInterface('position in the new flag',['bm_s_b = $3FF;','bp_s_b = 0;']);
+  AssertImplementation('bit field in the new flag',['b:=(__rec.flag1 and bm_s_b) shr bp_s_b;']);
+end;
+
+
+procedure TTestStructs.TestBitFieldsCompile;
+
+begin
+  Convert(['struct w { unsigned long long x : 40; unsigned int y : 3; };',
+           'struct f { unsigned int a : 1; unsigned int b : 31; unsigned int c : 2; };'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestVolatileMember;
+
+begin
+  Convert(['struct s { volatile int flag; int (*fn)(void volatile **p); };']);
+  AssertConverted;
+  AssertInterface('volatile member',['flag : longint;']);
+  AssertInterface('volatile in a procedure type',['fn : function (p:Ppointer):longint;cdecl;']);
 end;
 
 

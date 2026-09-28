@@ -592,10 +592,16 @@ var
   hp : presobject;
   IsExtern : boolean;
   lSkipEllipsis, lDone, lVarArgs : boolean;
+  lUseLib, lDynLib : boolean;
 
 begin
   HandleDeclarationStatement:=Nil;
   IsExtern:=false;
+  (* a function with a body is implemented here: not external, no procedure variable *)
+  lUseLib:=UseLib;
+  lDynLib:=createdynlib;
+  UseLib:=false;
+  createdynlib:=false;
   (* by default we must pop the args pushed on stack *)
   no_pop:=false;
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
@@ -791,6 +797,8 @@ begin
     dispose(decllist_spec,done);
   if assigned(block_spec) then
     dispose(block_spec,done);
+  UseLib:=lUseLib;
+  createdynlib:=lDynLib;
 end;
 
 function HandleDeclarationSysTrap(decl, type_spec, modifier_spec,

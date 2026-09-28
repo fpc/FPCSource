@@ -58,6 +58,14 @@ type
     procedure TestReferenceResult;
     procedure TestReferenceInProcedureType;
     procedure TestReferencesCompile;
+    procedure TestQualifiersIgnored;
+    procedure TestAttributesIgnored;
+    procedure TestMicrosoftCallingConventions;
+    procedure TestStaticInlineFunction;
+    procedure TestStaticInlineNotExternal;
+    procedure TestStaticInlineCompiles;
+    procedure TestArrayParams;
+    procedure TestArrayParamsCompile;
     procedure TestFunctionBody;
     procedure TestWhileStatement;
   end;
@@ -74,6 +82,9 @@ type
     procedure TestMultipleVariables;
     procedure TestMultipleExternVariables;
     procedure TestProcedureTypeVariable;
+    procedure TestAnonymousStructVariable;
+    procedure TestAnonymousUnionAndEnumVariables;
+    procedure TestAnonymousVariablesCompile;
   end;
 
 implementation
@@ -487,6 +498,92 @@ begin
 end;
 
 
+procedure TTestFunctions.TestQualifiersIgnored;
+
+begin
+  Convert(['extern volatile int v;','extern const volatile unsigned long * __restrict p;',
+           'void f(char * restrict a, const char *__restrict b, volatile int *c);'],['-d']);
+  AssertConverted;
+  AssertInterface('volatile is ignored',['v : longint;cvar;external;']);
+  AssertInterface('__restrict is ignored',['p : ^dword;cvar;external;']);
+  AssertInterface('restrict in parameters is ignored',['procedure f(a:Pansichar; b:Pansichar; c:Plongint);cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestAttributesIgnored;
+
+begin
+  Convert(['int f(int a) __attribute__((deprecated, nonnull(1)));',
+           'extern int __attribute__((visibility("default"))) g(void);',
+           '__declspec(dllimport) int h(void);','int k(void) __asm__("k64");'],['-d']);
+  AssertConverted;
+  AssertInterface('__attribute__ after the declaration',['function f(a:longint):longint;cdecl;external;']);
+  AssertInterface('__attribute__ before the name',['function g:longint;cdecl;external;']);
+  AssertInterface('__declspec',['function h:longint;cdecl;external;']);
+  AssertInterface('__asm__',['function k:longint;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestMicrosoftCallingConventions;
+
+begin
+  Convert(['int __stdcall ws(int a);','int __cdecl cs(int a);'],['-d']);
+  AssertConverted;
+  AssertInterface('__stdcall is stdcall without -w',['function ws(a:longint):longint;stdcall;external;']);
+  AssertInterface('__cdecl is cdecl',['function cs(a:longint):longint;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestStaticInlineFunction;
+
+begin
+  Convert(['static inline int twice(int a) { return a * 2; }','static __inline__ void nothing(void) { return; }']);
+  AssertConverted;
+  AssertInterface('static inline function',['function twice(a:longint):longint;']);
+  AssertImplementation('return with a value',['function twice(a:longint):longint;','begin','exit(a*2);','end;']);
+  AssertImplementation('return without a value',['procedure nothing;','begin','exit;','end;']);
+end;
+
+
+procedure TTestFunctions.TestStaticInlineNotExternal;
+
+begin
+  Convert(['static inline int twice(int a) { return a * 2; }'],['-D','-l','mylib']);
+  AssertConverted;
+  AssertInterface('function with a body is not external',['function twice(a:longint):longint;']);
+  AssertNotOutput('function with a body is not imported','external External_library name ''twice''');
+  AssertImplementation('function with a body is implemented',['exit(a*2);']);
+end;
+
+
+procedure TTestFunctions.TestStaticInlineCompiles;
+
+begin
+  Convert(['static inline int twice(int a) { return a * 2; }','static inline void nothing(void) { return; }',
+           'int imported(int a);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestArrayParams;
+
+begin
+  Convert(['struct s { int a; };','void f(struct s arr[4], int m[3][4], char *names[8], int n[]);'],['-d']);
+  AssertConverted;
+  AssertInterface('array parameters are pointers',['procedure f(arr:Ps; m:pointer; names:PPansichar; n:Plongint);cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestArrayParamsCompile;
+
+begin
+  Convert(['struct s { int a; };','void f(struct s arr[4], int m[3][4], char *names[8]);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
 procedure TTestFunctions.TestFunctionBody;
 
 begin
@@ -578,6 +675,34 @@ begin
   AssertConverted;
   AssertInterface('procedure variable is cdecl',['gv : procedure ;cdecl;cvar;external;']);
   AssertInterface('function variable is cdecl',['gf : function (a:longint):longint;cdecl;cvar;external;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestAnonymousStructVariable;
+
+begin
+  Convert(['struct { int a; } v;']);
+  AssertConverted;
+  AssertInterface('variable of an anonymous struct',['var','v : record','a : longint;','end;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestAnonymousUnionAndEnumVariables;
+
+begin
+  Convert(['union { int i; float f; } u;','enum { E1, E2 } e;']);
+  AssertConverted;
+  AssertInterface('variable of an anonymous union',['u : record','case longint of']);
+  AssertInterface('variable of an anonymous enum',['e : (E1,E2);cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestAnonymousVariablesCompile;
+
+begin
+  Convert(['struct { int a; } v;','union { int i; float f; } u;','enum { E1, E2 } e;'],['-d']);
+  AssertConverted;
   AssertCompiles;
 end;
 

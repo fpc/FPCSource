@@ -79,6 +79,8 @@ Procedure HandleDeref;
 Procedure HandleCallingConvention(aCC : Integer);
 Procedure HandlePalmPilotCallingConvention;
 Procedure HandleIllegalCharacter;
+// Skips the parenthesized argument of __attribute__, __declspec or __asm__.
+Procedure HandleSkipParenthesized;
 
 // Preprocessor routines...
 
@@ -990,6 +992,37 @@ begin
     skip_until_eol;
   end;
 end;
+
+Procedure HandleSkipParenthesized;
+
+var
+  lDepth : integer;
+
+begin
+  if not NotInCPlusBlock then
+    begin
+    skip_until_eol;
+    exit;
+    end;
+  repeat
+    c:=get_char;
+  until not ((c in [' ',#9]) or ((c=newline) and not in_define));
+  if c<>'(' then
+    begin
+    unget_char(c);
+    exit;
+    end;
+  lDepth:=1;
+  repeat
+    c:=get_char;
+    case c of
+      '(' : Inc(lDepth);
+      ')' : Dec(lDepth);
+      #0 : lDepth:=0;
+    end;
+  until lDepth=0;
+end;
+
 
 Procedure HandleIllegalCharacter;
 begin
