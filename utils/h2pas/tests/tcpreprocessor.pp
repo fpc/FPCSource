@@ -36,6 +36,18 @@ type
     procedure TestElifAfterIfdef;
     procedure TestElifStripInfo;
     procedure TestElifCompiles;
+    procedure TestIfLogicalOperators;
+    procedure TestIfComparisonPrecedence;
+    procedure TestIfDefinedWithoutParentheses;
+    procedure TestIfArithmetic;
+    procedure TestIfNumbers;
+    procedure TestIfComment;
+    procedure TestIfContinuation;
+    procedure TestIfUntranslatable;
+    procedure TestIfndef;
+    procedure TestIfdefComment;
+    procedure TestElifCondition;
+    procedure TestIfCompiles;
     procedure TestUndef;
     procedure TestDirectiveOnlyHeader;
     procedure TestEmptyHeader;
@@ -173,6 +185,123 @@ procedure TTestPreprocessor.TestElifCompiles;
 
 begin
   Convert(['#ifdef A','extern int x;','#elif defined(B)','extern int y;','#elif 1','extern int z;','#endif'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestPreprocessor.TestIfLogicalOperators;
+
+begin
+  Convert(['#if defined(A) && B','int x;','#endif','#if !defined(A) || (B > 1)','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('&& becomes and',['{$if defined(A) and B}']);
+  AssertOutput('! and || become not and or',['{$if not defined(A) or (B > 1)}']);
+  AssertNotOutput('no C operators remain','&&');
+end;
+
+
+procedure TTestPreprocessor.TestIfComparisonPrecedence;
+
+begin
+  Convert(['#if A == 1 && B != 2','int x;','#endif','#if V << 2 | 1 >= 4','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('comparisons are parenthesized',['{$if (A = 1) and (B <> 2)}']);
+  AssertOutput('C precedence is kept',['{$if (V shl 2) or (1 >= 4)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfDefinedWithoutParentheses;
+
+begin
+  Convert(['#if defined A && !defined B','int x;','#endif']);
+  AssertConverted;
+  AssertOutput('defined without parentheses',['{$if defined(A) and not defined(B)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfArithmetic;
+
+begin
+  Convert(['#if V % 3 == 0','int x;','#endif','#if V / 2 > 1','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('% becomes mod',['{$if (V mod 3) = 0}']);
+  AssertOutput('/ becomes div',['{$if (V div 2) > 1}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfNumbers;
+
+begin
+  Convert(['#if (V & 0x10) != 0 && V < 010L','int x;','#endif']);
+  AssertConverted;
+  AssertOutput('hexadecimal and octal numbers',['{$if ((V and $10) <> 0) and (V < &10)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfComment;
+
+begin
+  Convert(['#if defined(A) /* comment */','int x;','#endif','#if defined(B) // comment','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('block comment is removed',['{$if defined(A)}']);
+  AssertOutput('line comment is removed',['{$if defined(B)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfContinuation;
+
+begin
+  Convert(['#if defined(A) && \','    defined(B)','int x;','#endif']);
+  AssertConverted;
+  AssertOutput('continued condition',['{$if defined(A) and defined(B)}','var','x : longint;cvar;public;']);
+end;
+
+
+procedure TTestPreprocessor.TestIfUntranslatable;
+
+begin
+  Convert(['#if A ? B : C','int x;','#endif','#if MACRO(1)','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('ternary is copied',['{$if A ? B : C}']);
+  AssertOutput('macro call is copied',['{$if MACRO(1)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfndef;
+
+begin
+  Convert(['#ifndef GUARD_H /* guard */','int x;','#endif']);
+  AssertConverted;
+  AssertOutput('#ifndef',['{$ifndef GUARD_H}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfdefComment;
+
+begin
+  Convert(['#ifdef FOO // comment','int x;','#endif']);
+  AssertConverted;
+  AssertOutput('#ifdef without comment',['{$ifdef FOO}']);
+end;
+
+
+procedure TTestPreprocessor.TestElifCondition;
+
+begin
+  Convert(['#if 0','int x;','#elif defined(X) || defined(Y)','int y;','#endif']);
+  AssertConverted;
+  AssertOutput('#elif condition is translated',['{$elseif defined(X) or defined(Y)}']);
+end;
+
+
+procedure TTestPreprocessor.TestIfCompiles;
+
+begin
+  Convert(['#if defined(A) && !defined(B)','extern int x;','#endif',
+           '#if (1 << 4) == 16 && 7 % 3 == 1','extern int y;','#endif',
+           '#if !defined(A) || 0x10 > 010','extern int z;','#endif',
+           '#ifndef GUARD_H','extern int w;','#elif defined(A) || \','  defined(B)','extern int v;','#endif'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

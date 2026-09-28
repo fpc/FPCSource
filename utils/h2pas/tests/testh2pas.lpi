@@ -92,11 +92,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcErrorRecovery"/>
       </Unit>
-      <Unit>
-        <Filename Value="tcknownissues.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tcKnownIssues"/>
-      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

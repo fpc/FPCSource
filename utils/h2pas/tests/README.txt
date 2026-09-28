@@ -37,13 +37,11 @@ Test units
   tcoptions.pp       command-line options
   tcprefixes.pp      the -t, -T and -p prefixes and their combinations
   tcerrorrecovery.pp conversion after syntax errors in the header
-  tcknownissues.pp   expected output for defects of the current h2pas
 
-The tests of tcknownissues.pp are registered below the KnownIssues suite and
-fail with the current h2pas; all other tests are below the H2Pas suite:
+All tests are registered below the H2Pas suite; a single test class or a
+list of them can be run with --suite:
 
   ./testh2pas --suite=H2Pas
-  ./testh2pas --suite=KnownIssues
   ./testh2pas --suite=TTestPointerPrefix,TTestTypePrefix
 
 Output matching

@@ -20,6 +20,8 @@
 
 unit scanbase;
 {$H+}
+{$modeswitch result}
+{$modeswitch out}
 
 interface
 
@@ -93,6 +95,8 @@ Procedure HandlePreProcDefine;
 Procedure HandlePreProcError;
 Procedure HandlePreProcStripConditional(isEnd : Boolean);
 Procedure EnterCplusPlus;
+// Returns the C preprocessor condition aText as FPC $if expression, or aText without comments when it cannot be translated.
+function TranslateCondition(const aText : string) : string;
 
 procedure openInputfile;
 
@@ -102,7 +106,13 @@ const
 implementation
 
 uses
-   h2poptions,h2pconst;
+   SysUtils,h2poptions,h2pconst;
+
+var
+  CondText : string;
+  CondPos : integer;
+  CondToken : string;
+  CondOk : boolean;
 
 procedure openInputfile;
 
@@ -399,6 +409,290 @@ begin
     skip_until_eol;
 end;
 
+// Returns the rest of the directive line, with lines continued by a backslash joined.
+function ReadDirectiveLine : string;
+
+var
+  lLine : string;
+
+begin
+  lLine:='';
+  repeat
+    c:=get_char;
+    while (c<>newline) and (c<>#0) do
+      begin
+      lLine:=lLine+c;
+      c:=get_char;
+      end;
+    lLine:=TrimRight(lLine);
+    if (c=#0) or (lLine='') or (lLine[Length(lLine)]<>'\') then
+      break;
+    lLine[Length(lLine)]:=' ';
+  until false;
+  Result:=lLine;
+end;
+
+
+// Returns aText without C comments.
+function StripComments(const aText : string) : string;
+
+var
+  lPos : integer;
+
+begin
+  Result:='';
+  lPos:=1;
+  while lPos<=Length(aText) do
+    if Copy(aText,lPos,2)='/*' then
+      begin
+      lPos:=lPos+2;
+      while (lPos<=Length(aText)) and (Copy(aText,lPos,2)<>'*/') do
+        Inc(lPos);
+      lPos:=lPos+2;
+      Result:=Result+' ';
+      end
+    else if Copy(aText,lPos,2)='//' then
+      break
+    else
+      begin
+      Result:=Result+aText[lPos];
+      Inc(lPos);
+      end;
+end;
+
+
+// Reads the next token of CondText into CondToken; an empty token marks the end.
+procedure NextCondToken;
+
+var
+  lStart : integer;
+  lTwo : string;
+
+begin
+  while (CondPos<=Length(CondText)) and (CondText[CondPos] in [' ',#9]) do
+    Inc(CondPos);
+  CondToken:='';
+  if CondPos>Length(CondText) then
+    exit;
+  lStart:=CondPos;
+  if CondText[CondPos] in ['0'..'9'] then
+    begin
+    while (CondPos<=Length(CondText)) and (CondText[CondPos] in ['0'..'9','A'..'Z','a'..'z','.']) do
+      Inc(CondPos);
+    end
+  else if CondText[CondPos] in ['A'..'Z','a'..'z','_'] then
+    begin
+    while (CondPos<=Length(CondText)) and (CondText[CondPos] in ['0'..'9','A'..'Z','a'..'z','_']) do
+      Inc(CondPos);
+    end
+  else
+    begin
+    lTwo:=Copy(CondText,CondPos,2);
+    if (lTwo='&&') or (lTwo='||') or (lTwo='==') or (lTwo='!=') or (lTwo='<=') or (lTwo='>=')
+       or (lTwo='<<') or (lTwo='>>') then
+      Inc(CondPos,2)
+    else
+      Inc(CondPos);
+    end;
+  CondToken:=Copy(CondText,lStart,CondPos-lStart);
+end;
+
+
+// Returns the C number aNumber in Pascal notation.
+function ConvertCondNumber(const aNumber : string) : string;
+
+var
+  lIndex : integer;
+  lOctal : boolean;
+
+begin
+  Result:=aNumber;
+  if pos('.',Result)>0 then
+    exit;
+  while (Length(Result)>1) and (Result[Length(Result)] in ['u','U','l','L']) do
+    SetLength(Result,Length(Result)-1);
+  if (Length(Result)>2) and (Result[1]='0') and (Result[2] in ['x','X']) then
+    Result:='$'+Copy(Result,3,Length(Result)-2)
+  else if (Length(Result)>1) and (Result[1]='0') then
+    begin
+    lOctal:=true;
+    for lIndex:=2 to Length(Result) do
+      lOctal:=lOctal and (Result[lIndex] in ['0'..'7']);
+    if lOctal then
+      Result:='&'+Copy(Result,2,Length(Result)-1);
+    end;
+end;
+
+
+// Returns the C precedence of the binary operator aOp, 0 for no binary operator.
+function CondPrecedence(const aOp : string) : integer;
+
+begin
+  case aOp of
+    '||' : Result:=1;
+    '&&' : Result:=2;
+    '|' : Result:=3;
+    '^' : Result:=4;
+    '&' : Result:=5;
+    '==','!=' : Result:=6;
+    '<','<=','>','>=' : Result:=7;
+    '<<','>>' : Result:=8;
+    '+','-' : Result:=9;
+    '*','/','%' : Result:=10;
+  else
+    Result:=0;
+  end;
+end;
+
+
+// Returns the Pascal operator for the C binary operator aOp.
+function CondPascalOp(const aOp : string) : string;
+
+begin
+  case aOp of
+    '||','|' : Result:=' or ';
+    '&&','&' : Result:=' and ';
+    '^' : Result:=' xor ';
+    '==' : Result:=' = ';
+    '!=' : Result:=' <> ';
+    '<<' : Result:=' shl ';
+    '>>' : Result:=' shr ';
+    '/' : Result:=' div ';
+    '%' : Result:=' mod ';
+  else
+    Result:=' '+aOp+' ';
+  end;
+end;
+
+
+function ParseCondExpr(aMinPrecedence : integer; out aComposite : boolean) : string; forward;
+
+
+// Parses a primary condition expression: number, name, defined(name) or parenthesized expression.
+function ParseCondPrimary(out aComposite : boolean) : string;
+
+var
+  lInner : boolean;
+
+begin
+  aComposite:=false;
+  Result:='';
+  if CondToken='(' then
+    begin
+    NextCondToken;
+    Result:='('+ParseCondExpr(1,lInner)+')';
+    CondOk:=CondOk and (CondToken=')');
+    NextCondToken;
+    end
+  else if CondToken='defined' then
+    begin
+    NextCondToken;
+    if CondToken='(' then
+      begin
+      NextCondToken;
+      Result:='defined('+CondToken+')';
+      NextCondToken;
+      CondOk:=CondOk and (CondToken=')');
+      NextCondToken;
+      end
+    else
+      begin
+      Result:='defined('+CondToken+')';
+      CondOk:=CondOk and (CondToken<>'') and (CondToken[1] in ['A'..'Z','a'..'z','_']);
+      NextCondToken;
+      end;
+    end
+  else if (CondToken<>'') and (CondToken[1] in ['A'..'Z','a'..'z','_']) then
+    begin
+    Result:=CondToken;
+    NextCondToken;
+    (* a macro call cannot be translated *)
+    CondOk:=CondOk and (CondToken<>'(');
+    end
+  else if (CondToken<>'') and (CondToken[1] in ['0'..'9']) then
+    begin
+    Result:=ConvertCondNumber(CondToken);
+    NextCondToken;
+    end
+  else
+    CondOk:=false;
+end;
+
+
+// Parses a unary condition expression.
+function ParseCondUnary(out aComposite : boolean) : string;
+
+var
+  lOperand : string;
+  lInner : boolean;
+
+begin
+  aComposite:=false;
+  if (CondToken='!') or (CondToken='~') or (CondToken='-') or (CondToken='+') then
+    begin
+    Result:=CondToken;
+    NextCondToken;
+    lOperand:=ParseCondUnary(lInner);
+    if lInner then
+      lOperand:='('+lOperand+')';
+    if (Result='!') or (Result='~') then
+      Result:='not '+lOperand
+    else if Result='-' then
+      Result:='-'+lOperand
+    else
+      Result:=lOperand;
+    end
+  else
+    Result:=ParseCondPrimary(aComposite);
+end;
+
+
+// Parses binary condition operators of at least precedence aMinPrecedence; aComposite is set for a binary result.
+function ParseCondExpr(aMinPrecedence : integer; out aComposite : boolean) : string;
+
+var
+  lOp, lRight : string;
+  lPrecedence : integer;
+  lRightComposite : boolean;
+
+begin
+  Result:=ParseCondUnary(aComposite);
+  while CondOk do
+    begin
+    lPrecedence:=CondPrecedence(CondToken);
+    if (lPrecedence=0) or (lPrecedence<aMinPrecedence) then
+      break;
+    lOp:=CondToken;
+    NextCondToken;
+    lRight:=ParseCondExpr(lPrecedence+1,lRightComposite);
+    if aComposite then
+      Result:='('+Result+')';
+    if lRightComposite then
+      lRight:='('+lRight+')';
+    Result:=Result+CondPascalOp(lOp)+lRight;
+    aComposite:=true;
+    end;
+end;
+
+
+function TranslateCondition(const aText : string) : string;
+
+var
+  lText : string;
+  lComposite : boolean;
+
+begin
+  lText:=Trim(StripComments(aText));
+  CondText:=lText;
+  CondPos:=1;
+  CondOk:=true;
+  NextCondToken;
+  Result:=ParseCondExpr(1,lComposite);
+  if not CondOk or (CondToken<>'') or (Result='') then
+    Result:=lText;
+end;
+
+
 Procedure HandlePreProcIfDef;
 
 begin
@@ -408,9 +702,7 @@ begin
   begin
     if cplusblocklevel < 0 then
       Dec(cplusblocklevel);
-    write(outfile,'{$ifdef ');
-    copy_until_eol;
-    writeln(outfile,'}');
+    writeln(outfile,'{$ifdef ',Trim(StripComments(ReadDirectiveLine)),'}');
     flush(outfile);
   end;
 end;
@@ -467,9 +759,7 @@ Procedure HandlePreProcElif;
   procedure WriteElseIf;
 
   begin
-    write(outfile,'{$elseif');
-    copy_until_eol;
-    writeln(outfile,'}');
+    writeln(outfile,'{$elseif ',TranslateCondition(ReadDirectiveLine),'}');
     block_type:=bt_no;
     flush(outfile);
   end;
@@ -511,6 +801,9 @@ end;
 
 Procedure HandlePreProcIf;
 
+var
+  lText : string;
+
 begin
   if cplusblocklevel > 0 then
     Inc(cplusblocklevel)
@@ -518,9 +811,12 @@ begin
   begin
     if cplusblocklevel < 0 then
       Dec(cplusblocklevel);
-    write(outfile,'{$if');
-    copy_until_eol;
-    writeln(outfile,'}');
+    lText:=ReadDirectiveLine;
+    (* #ifndef has no rule of its own and comes here *)
+    if Copy(lText,1,4)='ndef' then
+      writeln(outfile,'{$ifndef ',Trim(StripComments(Copy(lText,5,Length(lText)-4))),'}')
+    else
+      writeln(outfile,'{$if ',TranslateCondition(lText),'}');
     flush(outfile);
     block_type:=bt_no;
   end;
