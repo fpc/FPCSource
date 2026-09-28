@@ -24,6 +24,9 @@ type
     procedure TestCharArrayMember;
     procedure TestMultiDimArrayMember;
     procedure TestMacroSizedArrayMember;
+    procedure TestFlexibleArrayMember;
+    procedure TestFlexibleArrayMemberKinds;
+    procedure TestFlexibleArrayMembersCompile;
     procedure TestSelfPointerMember;
     procedure TestStructKeywordMember;
     procedure TestFunctionPointerMember;
@@ -105,6 +108,41 @@ begin
   Convert(['struct s { int dyn[SIZE]; };']);
   AssertConverted;
   AssertInterface('array member sized by an identifier',['dyn : array[0..(SIZE)-1] of longint;']);
+end;
+
+
+procedure TTestStructs.TestFlexibleArrayMember;
+
+begin
+  Convert(['struct s { int n; char data[]; };','struct v { int n; char *p; };']);
+  AssertConverted;
+  AssertInterface('flexible array member is an array of one element',
+    ['s = record','n : longint;','data : array[0..0] of ansichar;','end;']);
+  AssertInterface('pointer member stays a pointer',['v = record','n : longint;','p : ^ansichar;','end;']);
+end;
+
+
+procedure TTestStructs.TestFlexibleArrayMemberKinds;
+
+begin
+  Convert(['struct t { int n; char *names[]; };','struct u { int n; int m[][4]; };',
+           'typedef struct { int n; double vals[]; } w;','void f(char *list[]);']);
+  AssertConverted;
+  AssertInterface('flexible array of pointers',['names : array[0..0] of ^ansichar;']);
+  AssertInterface('flexible array of arrays',['m : array[0..0] of array[0..3] of longint;']);
+  AssertInterface('flexible array member in a typedef',['w = record','n : longint;','vals : array[0..0] of double;','end;']);
+  AssertInterface('open array parameter stays a pointer',['procedure f(list:PPansichar);']);
+end;
+
+
+procedure TTestStructs.TestFlexibleArrayMembersCompile;
+
+begin
+  Convert(['struct s { int n; struct s *next; char data[]; };','struct t { int n; char *names[]; };',
+           'typedef struct { int n; double vals[]; } w;'],['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('flexible array member under -T -p',['next : Ps;','data : array[0..0] of ansichar;']);
+  AssertCompiles;
 end;
 
 

@@ -1293,7 +1293,14 @@ begin
             write(outfile,' : ');
             shift(2);
             is_procvar:=false;
-            write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
+            (* a flexible array member becomes an array of one element *)
+            if assigned(hp3^.p1^.p1) and (hp3^.p1^.p1^.typ=t_pointerdef) and hp3^.p1^.p1^.openarray then
+              begin
+              write(outfile,'array[0..0] of ');
+              write_p_a_def(outfile,hp3^.p1^.p1^.p1,hp2^.p1);
+              end
+            else
+              write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
             popshift;
             end;
           { size specifier  or default value ? }

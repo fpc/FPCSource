@@ -744,7 +744,7 @@ declarator :
      declarator LECKKLAMMER RECKKLAMMER
      {
        (* declarator LECKKLAMMER RECKKLAMMER *)
-       $$:=HandleDeclarator(t_pointerdef,$1);
+       $$:=HandleArrayDecl($1);
      } |
      LKLAMMER declarator RKLAMMER
      {

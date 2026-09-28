@@ -862,7 +862,7 @@ begin
  123 : begin
 
          (* declarator LECKKLAMMER RECKKLAMMER *)
-         yyval:=HandleDeclarator(t_pointerdef,yyv[yysp-2]);
+         yyval:=HandleArrayDecl(yyv[yysp-2]);
 
        end;
  124 : begin

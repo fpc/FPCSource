@@ -332,6 +332,7 @@ begin
   while assigned(hp^.p1) do
     hp:=hp^.p1;
   hp^.p1:=NewType1(t_pointerdef,nil);
+  hp^.p1^.openarray:=true;
 end;
 
 function HandlePointerAbstractDeclarator(psym: presobject): presobject;
