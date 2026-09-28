@@ -146,8 +146,8 @@ D [0-9]
 "union"                 if NotInCPlusBlock then return(UNION) else skip_until_eol;
 "enum"                  if NotInCPlusBlock then return(ENUM) else skip_until_eol;
 "struct"                if NotInCPlusBlock then return(STRUCT) else skip_until_eol;
-"{"                     if NotInCPlusBlock then return(LGKLAMMER) else skip_until_eol;
-"}"                     if NotInCPlusBlock then return(RGKLAMMER) else skip_until_eol;
+"{"                     if NotInCPlusBlock then begin HandleBrace(true); return(LGKLAMMER); end else skip_until_eol;
+"}"                     if NotInCPlusBlock then begin HandleBrace(false); return(RGKLAMMER); end else skip_until_eol;
 "typedef"               if NotInCPlusBlock then return(TYPEDEF) else skip_until_eol;
 "int"                   if NotInCPlusBlock then return(INT) else skip_until_eol;
 "short"                 if NotInCPlusBlock then return(SHORT) else skip_until_eol;
@@ -174,7 +174,7 @@ D [0-9]
 "huge"                  if NotInCPlusBlock then return(_HUGE) else skip_until_eol;
 "while"                 if NotInCPlusBlock then return(_WHILE) else skip_until_eol;
 [A-Za-z_][A-Za-z0-9_]*  HandleIdentifier;
-";"                     if NotInCPlusBlock then return(SEMICOLON) else skip_until_eol;
+";"                     if NotInCPlusBlock then begin HandleSemicolon; return(SEMICOLON); end else skip_until_eol;
 [ \f\t]                 HandleWhiteSpace;
 \n                      HandleEOL;
 \\$                     HandleContinuation;

@@ -51,6 +51,9 @@ type
     procedure TestBitFieldsCompile;
     procedure TestBitFieldSetterClearsField;
     procedure TestVolatileMember;
+    procedure TestDefinesInStruct;
+    procedure TestDefinesInEnum;
+    procedure TestDefinesInBracesCompile;
     procedure TestSelfContainedUnitCompiles;
   end;
 
@@ -396,6 +399,42 @@ begin
   AssertConverted;
   AssertInterface('volatile member',['flag : longint;']);
   AssertInterface('volatile in a procedure type',['fn : function (p:Ppointer):longint;cdecl;']);
+end;
+
+
+procedure TTestStructs.TestDefinesInStruct;
+
+begin
+  Convert(['typedef struct {','  int a;','#define FLAG_A 1','#define FLAG_B(x) ((x)&2)','  int b;','} s_t, *ps_t;',
+           'int after(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('the record is complete',['s_t = record','a : longint;','b : longint;','end;','ps_t = ^s_t;']);
+  AssertInterface('the constant follows the record',['ps_t = ^s_t;','const','FLAG_A = 1;']);
+  AssertInterface('the macro follows the record',['function FLAG_B(x : longint) : longint;']);
+  AssertInterface('the declarations after the record',['function after:longint;cdecl;external;']);
+end;
+
+
+procedure TTestStructs.TestDefinesInEnum;
+
+begin
+  Convert(['enum XML_Status {','  XML_STATUS_ERROR = 0,','#define XML_STATUS_ERROR XML_STATUS_ERROR','  XML_STATUS_OK = 1,',
+           '#define XML_STATUS_OK XML_STATUS_OK','  XML_STATUS_SUSPENDED = 2','};','#define LIMIT 3']);
+  AssertConverted;
+  AssertInterface('the enum is complete',['XML_Status = (XML_STATUS_ERROR := 0,XML_STATUS_OK := 1,']);
+  AssertOutput('the defines follow the enum',
+    ['(* self-referencing #define XML_STATUS_ERROR ignored *)','(* self-referencing #define XML_STATUS_OK ignored *)']);
+  AssertInterface('defines after the enum',['LIMIT = 3;']);
+end;
+
+
+procedure TTestStructs.TestDefinesInBracesCompile;
+
+begin
+  Convert(['typedef struct {','  int a;','#define FLAG_A 1','  int b;','} s_t;','enum e {','  E1 = 0,','#define E1 E1','  E2 = 1','};',
+           'int after(void);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

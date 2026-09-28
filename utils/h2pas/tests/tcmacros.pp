@@ -51,6 +51,9 @@ type
     procedure TestAdjacentStringsWithEscapes;
     procedure TestAdjacentStringsCompile;
     procedure TestAlias;
+    procedure TestKeywordDefines;
+    procedure TestKeywordDefinesStripped;
+    procedure TestKeywordDefinesCompile;
     procedure TestSelfReferencingDefine;
     procedure TestSelfReferencingDefineStripped;
     procedure TestSelfReferencingDefineCompiles;
@@ -410,6 +413,39 @@ procedure TTestConstMacros.TestAlias;
 
 begin
   CheckConst('ALIAS','OTHER','OTHER');
+end;
+
+
+procedure TTestConstMacros.TestKeywordDefines;
+
+begin
+  Convert(['#define SQLITE_EXTERN extern','#define API __declspec(dllexport)',
+           '#define ATTR __attribute__((visibility("default"))) extern','#define CST const /* c */','#define N 1']);
+  AssertConverted;
+  AssertOutput('storage class',['(* macro SQLITE_EXTERN with declaration keywords ignored *)']);
+  AssertOutput('__declspec',['(* macro API with declaration keywords ignored *)']);
+  AssertOutput('attribute and storage class',['(* macro ATTR with declaration keywords ignored *)']);
+  AssertOutput('qualifier with a comment',['(* macro CST with declaration keywords ignored *)']);
+  AssertInterface('other defines are converted',['N = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestKeywordDefinesStripped;
+
+begin
+  Convert(['#define SQLITE_EXTERN extern','#define N 1'],['-S']);
+  AssertConverted;
+  AssertNotOutput('-S drops the comment','SQLITE_EXTERN');
+  AssertInterface('other defines are converted',['N = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestKeywordDefinesCompile;
+
+begin
+  Convert(['#define SQLITE_EXTERN extern','#define API __declspec(dllexport)','#define CST const','#define N 1'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

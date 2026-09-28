@@ -81,6 +81,10 @@ Procedure HandlePalmPilotCallingConvention;
 Procedure HandleIllegalCharacter;
 // Skips the parenthesized argument of __attribute__, __declspec or __asm__.
 Procedure HandleSkipParenthesized;
+// Counts the brace nesting: aOpen for {, otherwise for }.
+Procedure HandleBrace(aOpen : Boolean);
+// Returns the defines met inside braces to the input, after a semicolon outside braces.
+Procedure HandleSemicolon;
 
 // Preprocessor routines...
 
@@ -122,6 +126,9 @@ var
   PackCurrent : string = 'C';
   PackStack : array[1..MaxPackDepth] of string;
   PackDepth : integer = 0;
+  // Brace nesting outside defines, and the text of the defines met inside braces.
+  BraceDepth : integer = 0;
+  PendingDefines : AnsiString = '';
 
 procedure openInputfile;
 
@@ -1113,6 +1120,79 @@ begin
 end;
 
 
+// Returns true when the body of the define aText (the text after #define) consists of declaration keywords only:
+// storage classes, qualifiers, calling conventions and attributes; aName is the name of the macro.
+function IsKeywordDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
+
+const
+  IdentChars = ['A'..'Z','a'..'z','0'..'9','_'];
+  MaxKeywords = 17;
+  Keywords : array[1..MaxKeywords] of string = (
+    'extern','static','inline','__inline','__inline__','const','volatile','register','__extension__',
+    '__cdecl','__stdcall','__fastcall','__declspec','__attribute__','__attribute','__asm__','__asm');
+
+var
+  i, j, lDepth : integer;
+  lWord : AnsiString;
+  lFound, lKnown : boolean;
+
+begin
+  Result:=false;
+  aName:='';
+  i:=1;
+  while (i<=length(aText)) and (aText[i] in [' ',#9]) do
+    inc(i);
+  while (i<=length(aText)) and (aText[i] in IdentChars) do
+    begin
+    aName:=aName+aText[i];
+    inc(i);
+    end;
+  if (i<=length(aText)) and (aText[i]='(') then
+    exit;
+  lFound:=false;
+  while i<=length(aText) do
+    begin
+    case aText[i] of
+      ' ', #9, #10, #13, '\' :
+        inc(i);
+      '/' :
+        exit(lFound and (i<length(aText)) and (aText[i+1] in ['/','*']));
+      '(' :
+        begin
+        (* the argument of __declspec or __attribute__ *)
+        if not lFound then
+          exit;
+        lDepth:=0;
+        repeat
+          if aText[i]='(' then
+            inc(lDepth)
+          else if aText[i]=')' then
+            dec(lDepth);
+          inc(i);
+        until (lDepth=0) or (i>length(aText));
+        end;
+    else
+      if not (aText[i] in IdentChars) then
+        exit;
+      lWord:='';
+      while (i<=length(aText)) and (aText[i] in IdentChars) do
+        begin
+        lWord:=lWord+aText[i];
+        inc(i);
+        end;
+      lKnown:=false;
+      for j:=1 to MaxKeywords do
+        if lWord=Keywords[j] then
+          lKnown:=true;
+      if not lKnown then
+        exit;
+      lFound:=true;
+    end;
+    end;
+  Result:=lFound;
+end;
+
+
 // Returns the rest of the define with its continuation lines, without reading it.
 function PeekDefine : AnsiString;
 
@@ -1164,16 +1244,59 @@ begin
 end;
 
 
+Procedure HandleBrace(aOpen : Boolean);
+
+begin
+  if in_define then
+    exit;
+  if aOpen then
+    inc(BraceDepth)
+  else if BraceDepth>0 then
+    dec(BraceDepth);
+end;
+
+
+Procedure HandleSemicolon;
+
+var
+  i : integer;
+
+begin
+  if in_define or (BraceDepth>0) or (PendingDefines='') then
+    exit;
+  unget_char(newline);
+  for i:=length(PendingDefines) downto 1 do
+    unget_char(PendingDefines[i]);
+  unget_char(newline);
+  PendingDefines:='';
+end;
+
+
 Procedure HandlePreProcDefine;
 
 var
   lName : AnsiString;
 
 begin
-  if NotInCPlusBlock and IsStatementDefine(PeekDefine,lName) then
+  if NotInCPlusBlock and (BraceDepth>0) then
+    begin
+    (* a define inside a struct, union, enum or function body follows the declaration *)
+    lName:=PeekDefine;
+    SkipDefine;
+    PendingDefines:=PendingDefines+'#define'+lName;
+    if (lName='') or (lName[length(lName)]<>newline) then
+      PendingDefines:=PendingDefines+newline;
+    end
+  else if NotInCPlusBlock and IsStatementDefine(PeekDefine,lName) then
     begin
     if not stripinfo then
       writeln(outfile,aktspace,'(* macro ',lName,' with statements or side effects ignored *)');
+    SkipDefine;
+    end
+  else if NotInCPlusBlock and IsKeywordDefine(PeekDefine,lName) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* macro ',lName,' with declaration keywords ignored *)');
     SkipDefine;
     end
   else if NotInCPlusBlock then

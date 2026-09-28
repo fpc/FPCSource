@@ -234,9 +234,9 @@ begin
   79:
                         if NotInCPlusBlock then return(STRUCT) else skip_until_eol;
   80:
-                        if NotInCPlusBlock then return(LGKLAMMER) else skip_until_eol;
+                        if NotInCPlusBlock then begin HandleBrace(true); return(LGKLAMMER); end else skip_until_eol;
   81:
-                        if NotInCPlusBlock then return(RGKLAMMER) else skip_until_eol;
+                        if NotInCPlusBlock then begin HandleBrace(false); return(RGKLAMMER); end else skip_until_eol;
   82:
                         if NotInCPlusBlock then return(TYPEDEF) else skip_until_eol;
   83:
@@ -290,7 +290,7 @@ begin
   107:
                         HandleIdentifier;
   108:
-                        if NotInCPlusBlock then return(SEMICOLON) else skip_until_eol;
+                        if NotInCPlusBlock then begin HandleSemicolon; return(SEMICOLON); end else skip_until_eol;
   109:
                         HandleWhiteSpace;
   110:
