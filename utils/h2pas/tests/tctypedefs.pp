@@ -54,6 +54,9 @@ type
     procedure TestEnumValues;
     procedure TestEnumExpressionValue;
     procedure TestEnumMemberNotPrefixed;
+    procedure TestReservedWordEnumMembers;
+    procedure TestReservedWordEnumConstants;
+    procedure TestReservedWordEnumMembersCompile;
   end;
 
 implementation
@@ -345,6 +348,35 @@ begin
   Convert(['typedef enum { red, green } color;'],['-T']);
   AssertConverted;
   AssertInterface('enum members keep their names under -T',['Tcolor = (red,green);']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumMembers;
+
+begin
+  Convert(['enum e { nil, uses, other };']);
+  AssertConverted;
+  AssertInterface('reserved word enum members get an underscore prefix',['e = (_nil,_uses,other);']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumConstants;
+
+begin
+  Convert(['enum e { nil, uses = nil + 1 };','#define X (uses)'],['-e']);
+  AssertConverted;
+  AssertInterface('reserved word enum constants get an underscore prefix',['_nil = 0;','_uses = _nil+1;']);
+  AssertInterface('references to the constants use the prefix',['X = _uses;']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumMembersCompile;
+
+begin
+  Convert(['enum e { nil, uses, other };','struct s { int in; int end; int of; int set; int file; int xor; };',
+           'void f(int begin, int with, int then);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

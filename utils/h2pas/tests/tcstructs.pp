@@ -31,6 +31,7 @@ type
     procedure TestNestedUnionMember;
     procedure TestNestedStructMember;
     procedure TestReservedWordMember;
+    procedure TestMoreReservedWordMembers;
     procedure TestConstMember;
     procedure TestUnion;
     procedure TestBitFields;
@@ -168,6 +169,17 @@ begin
   Convert(['struct s { int type; int label; };']);
   AssertConverted;
   AssertInterface('reserved word members get an underscore prefix',['_type : longint;','_label : longint;']);
+end;
+
+
+procedure TTestStructs.TestMoreReservedWordMembers;
+
+begin
+  Convert(['struct s { int in; int end; int of; int set; int file; int unit; int xor; };']);
+  AssertConverted;
+  AssertInterface('all Pascal reserved words get an underscore prefix',
+    ['_in : longint;','_end : longint;','_of : longint;','_set : longint;','_file : longint;','_unit : longint;',
+     '_xor : longint;']);
 end;
 
 

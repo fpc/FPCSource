@@ -246,25 +246,17 @@ the correct syntax.
 function FixId(const s:string):string;
 
 const
-  maxtokens = 17;
+  maxtokens = 68;
   reservedid: array[1..maxtokens] of string[14] = (
-    'CLASS',
-    'DISPOSE',
-    'FUNCTION',
-    'FALSE',
-    'LABEL',
-    'NEW',
-    'OUT',
-    'PROPERTY',
-    'PROCEDURE',
-    'RECORD',
-    'REPEAT',
-    'STRING',
-    'TYPE',
-    'TRUE',
-    'UNTIL',
-    'VAR',
-    'OBJECT'
+    'AND','ARRAY','AS','ASM','BEGIN','CASE','CLASS','CONST',
+    'CONSTRUCTOR','DESTRUCTOR','DISPOSE','DIV','DO','DOWNTO','ELSE','END',
+    'EXCEPT','EXPORTS','FALSE','FILE','FINALIZATION','FINALLY','FOR','FUNCTION',
+    'GOTO','IF','IMPLEMENTATION','IN','INHERITED','INITIALIZATION','INTERFACE','IS',
+    'LABEL','LIBRARY','MOD','NEW','NIL','NOT','OBJECT','OF',
+    'OPERATOR','OR','OUT','PACKED','PROCEDURE','PROGRAM','PROPERTY','RAISE',
+    'RECORD','REPEAT','RESOURCESTRING','SET','SHL','SHR','STRING','THEN',
+    'THREADVAR','TO','TRUE','TRY','TYPE','UNIT','UNTIL','USES',
+    'VAR','WHILE','WITH','XOR'
     );
 
 var
@@ -1120,7 +1112,7 @@ var
   error : integer;
 
 begin
-  write(outfile,aktspace,hp1^.p1^.p,' = ');
+  write(outfile,aktspace,FixId(hp1^.p1^.p),' = ');
   if assigned(hp1^.p2) then
     begin
     write_expr(outfile,hp1^.p2);
@@ -1175,7 +1167,7 @@ begin
     w:=length(aktspace);
     while assigned(hp1) do
       begin
-      write(outfile,hp1^.p1^.p);
+      write(outfile,FixId(hp1^.p1^.p));
       if assigned(hp1^.p2) then
         begin
         write(outfile,' := ');
