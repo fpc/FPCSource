@@ -33,8 +33,8 @@ type
     procedure TestBitFieldAccessorParamName;
     procedure TestNoCdeclOnRecordField;
     procedure TestTypedefStructTagAlias;
-    procedure TestVoidArgProcedureType;
     procedure TestFunctionTypedef;
+    procedure TestFunctionPointerParamCompiles;
     procedure TestNoShiftWarning;
   end;
 
@@ -147,21 +147,21 @@ begin
 end;
 
 
-procedure TTestKnownDeclarationIssues.TestVoidArgProcedureType;
-
-begin
-  Convert(['typedef void (*cb)(void);']);
-  AssertConverted;
-  AssertInterface('(void) gives a procedure type without parameters',['cb = procedure ;cdecl;']);
-end;
-
-
 procedure TTestKnownDeclarationIssues.TestFunctionTypedef;
 
 begin
   Convert(['typedef int (func_t)(int);']);
   AssertConverted;
   AssertInterface('function typedef',['func_t = function (_para1:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestKnownDeclarationIssues.TestFunctionPointerParamCompiles;
+
+begin
+  Convert(['void f(void (*vcb)(void), int (*icb)(int a));'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

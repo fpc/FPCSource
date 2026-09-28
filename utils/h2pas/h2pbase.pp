@@ -890,6 +890,22 @@ begin
     end;
 end;
 
+// Returns true when aList is the argument list (void): one unnamed argument of type void.
+function IsVoidArgList(aList : presobject) : boolean;
+
+var
+  lArg : presobject;
+
+begin
+  Result:=false;
+  if not assigned(aList) or (aList^.typ<>t_arglist) or assigned(aList^.next) then
+    exit;
+  lArg:=aList^.p1;
+  Result:=assigned(lArg) and assigned(lArg^.p1) and (lArg^.p1^.typ=t_void)
+          and assigned(lArg^.p2) and not assigned(lArg^.p2^.p1) and not assigned(lArg^.p2^.p2);
+end;
+
+
 function HandleTypedef(type_spec,dec_modifier,declarator,arg_decl_list: presobject) : presobject;
 var
   hp : presobject;
@@ -897,6 +913,11 @@ var
 begin
   hp:=nil;
   HandleTypedef:=nil;
+  if IsVoidArgList(arg_decl_list) then
+    begin
+    dispose(arg_decl_list,done);
+    arg_decl_list:=nil;
+    end;
   (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
   if block_type<>bt_type then
     begin

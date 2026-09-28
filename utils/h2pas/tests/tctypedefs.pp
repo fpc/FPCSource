@@ -29,6 +29,9 @@ type
     procedure TestOpenArray;
     procedure TestFunctionPointer;
     procedure TestProcedurePointer;
+    procedure TestVoidArgProcedurePointer;
+    procedure TestVoidArgFunctionPointer;
+    procedure TestVoidPointerArg;
     procedure TestGenericTypedef;
     procedure TestTypedefsShareTypeBlock;
   end;
@@ -146,6 +149,35 @@ begin
   Convert(['typedef void (*cb)();']);
   AssertConverted;
   AssertInterface('procedure pointer typedef without arguments',['cb = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidArgProcedurePointer;
+
+begin
+  Convert(['typedef void (*cb)(void);']);
+  AssertConverted;
+  AssertInterface('(void) gives a procedure type without parameters',['cb = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidArgFunctionPointer;
+
+begin
+  Convert(['typedef int (*cb)(void);']);
+  AssertConverted;
+  AssertInterface('(void) gives a function type without parameters',['cb = function :longint;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidPointerArg;
+
+begin
+  Convert(['typedef void (*cb1)(void *);','typedef void (*cb2)(void *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('unnamed void pointer argument is kept',['cb1 = procedure (_para1:pointer);cdecl;']);
+  AssertInterface('named void pointer argument is kept',['cb2 = procedure (p:pointer);cdecl;']);
+  AssertCompiles;
 end;
 
 
