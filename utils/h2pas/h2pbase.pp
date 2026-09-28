@@ -571,6 +571,17 @@ begin
       lArg^.p1:=NewIntID(lName);
       dispose(lDec^.p1,done);
       lDec^.p1:=nil;
+      end
+    else if assigned(lArg) and assigned(lArg^.p2) and assigned(lArg^.p2^.p1) then
+      begin
+      lDec:=lArg^.p2;
+      if assigned(lDec^.p2) and assigned(lDec^.p2^.p) then
+        lParam:=lDec^.p2^.str
+      else if RemoveUnderscore then
+        lParam:='para'+str(lIndex)
+      else
+        lParam:='_para'+str(lIndex);
+      HoistProcVarElement(aOwner+'_'+lParam,lDec^.p1,lArg^.p1);
       end;
     aArgs:=aArgs^.next;
     end;
@@ -611,6 +622,22 @@ begin
   aType:=NewIntID(lName);
   dispose(lResult,done);
   aProc^.p1:=nil;
+end;
+
+
+// Declares named element types for the arrays of and pointers to function pointers among the variables aDecls of type aType.
+procedure HoistVariableProcVarElements(aDecls, aType : presobject);
+
+begin
+  while assigned(aDecls) do
+    begin
+    if assigned(aDecls^.p1) and assigned(aDecls^.p1^.p2) and assigned(aDecls^.p1^.p2^.p) then
+      begin
+      HoistStructProcVarElements(aDecls^.p1^.p2^.str,aType);
+      HoistProcVarElement(aDecls^.p1^.p2^.str+'_element',aDecls^.p1^.p1,aType);
+      end;
+    aDecls:=aDecls^.next;
+    end;
 end;
 
 
@@ -784,6 +811,7 @@ begin
   else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
   if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
     begin
+        HoistVariableProcVarElements(decllist_spec,type_spec);
         shift(2);
         if block_type<>bt_var then
           begin
@@ -1003,6 +1031,7 @@ begin
   else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
   if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
     begin
+        HoistVariableProcVarElements(decllist_spec,type_spec);
         shift(2);
         if block_type<>bt_var then
           begin
@@ -1061,6 +1090,8 @@ begin
     writeln(outfile,aktspace,'type');
     block_type:=bt_type;
     end;
+  if assigned(aType^.p2) and assigned(aType^.p2^.p) then
+    HoistStructProcVarElements(aType^.p2^.str,aType);
   shift(2);
   if ( aType^.p2  <> nil ) then
     begin
@@ -1169,6 +1200,12 @@ begin
       hp:=hp^.p1;
     hp^.p1:=new(presobject,init_two(t_procdef,nil,arg_decl_list));
     hp:=declarator;
+    if assigned(hp^.p2) and assigned(hp^.p2^.p) then
+      begin
+      popshift;
+      HoistProcVarElement(hp^.p2^.str+'_element',hp^.p1,type_spec);
+      shift(2);
+      end;
     WrapFunctionType(hp);
     if assigned(hp^.p1) and assigned(hp^.p1^.p1) then
       begin
@@ -1232,6 +1269,17 @@ begin
     end
   else
     writeln(outfile);
+  if assigned(type_spec^.p2) and assigned(type_spec^.p2^.p) then
+    HoistStructProcVarElements(type_spec^.p2^.str,type_spec)
+  else if assigned(lDecl) and assigned(lDecl^.p2) and assigned(lDecl^.p2^.p) then
+    HoistStructProcVarElements(lDecl^.p2^.str,type_spec);
+  hp:=declarator_list;
+  while assigned(hp) do
+    begin
+    if assigned(hp^.p1) and assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
+      HoistProcVarElement(hp^.p1^.p2^.str+'_element',hp^.p1^.p1,type_spec);
+    hp:=hp^.next;
+    end;
   no_pop:=assigned(dec_modifier) and (dec_modifier^.str='no_pop');
   shift(2);
   (* Get the name to write the type definition for, try

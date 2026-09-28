@@ -19,6 +19,8 @@ type
   TTestTypedefs = class(TH2PasTestCase)
   published
     procedure TestSimpleTypedef;
+    procedure TestFunctionPointerArrayTypedef;
+    procedure TestFunctionPointerArrayTypedefCompiles;
     procedure TestNamedTypeTypedef;
     procedure TestAnonymousStruct;
     procedure TestTaggedStruct;
@@ -71,6 +73,25 @@ begin
   Convert(['typedef int myint;']);
   AssertConverted;
   AssertInterface('typedef of a base type',['type','myint = longint;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArrayTypedef;
+
+begin
+  Convert(['typedef void (*tbl[4])(int);']);
+  AssertConverted;
+  AssertInterface('array of function pointers gets a named element type',
+    ['tbl_element = procedure (_para1:longint);cdecl;','tbl = array[0..3] of tbl_element;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArrayTypedefCompiles;
+
+begin
+  Convert(['typedef void (*tbl[4])(int);','typedef int (*ops[2][3])(int a);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

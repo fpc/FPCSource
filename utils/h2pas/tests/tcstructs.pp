@@ -27,6 +27,8 @@ type
     procedure TestSelfPointerMember;
     procedure TestStructKeywordMember;
     procedure TestFunctionPointerMember;
+    procedure TestFunctionPointerArrayMember;
+    procedure TestFunctionPointerArrayMemberCompiles;
     procedure TestNoCdeclAfterProcedureType;
     procedure TestNestedUnionMember;
     procedure TestNestedStructMember;
@@ -130,6 +132,29 @@ begin
   Convert(['struct s { int (*fn)(int); };']);
   AssertConverted;
   AssertInterface('function pointer member is a cdecl procedural type',['fn : function (_para1:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestStructs.TestFunctionPointerArrayMember;
+
+begin
+  Convert(['struct s { void (*cb[4])(int); int n; };','typedef struct { int (*ops[2])(void); } t;']);
+  AssertConverted;
+  AssertInterface('array of function pointers member gets a named element type',
+    ['s_cb = procedure (_para1:longint);cdecl;','s = record','cb : array[0..3] of s_cb;','n : longint;','end;']);
+  AssertInterface('element type in a typedef of an anonymous struct',
+    ['t_ops = function :longint;cdecl;','t = record','ops : array[0..1] of t_ops;','end;']);
+end;
+
+
+procedure TTestStructs.TestFunctionPointerArrayMemberCompiles;
+
+begin
+  Convert(['struct s { void (*cb[4])(int); int n; };','typedef struct { int (*ops[2])(void); } t;',
+           'struct { void (*cb[2])(int); } v;'],['-d']);
+  AssertConverted;
+  AssertInterface('element type of a member of an anonymous struct variable',['v_cb = procedure (_para1:longint);cdecl;']);
+  AssertCompiles;
 end;
 
 

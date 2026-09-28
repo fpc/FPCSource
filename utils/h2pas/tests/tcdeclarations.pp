@@ -69,6 +69,8 @@ type
     procedure TestFunctionPointerResult;
     procedure TestFunctionPointerResultWithFunctionPointerArg;
     procedure TestFunctionPointerResultCompiles;
+    procedure TestFunctionPointerArrayParam;
+    procedure TestFunctionPointerArrayParamCompiles;
     procedure TestStaticPrototypeIgnored;
     procedure TestStaticPrototypeNotImported;
     procedure TestExternFunctionBody;
@@ -90,6 +92,9 @@ type
     procedure TestMultipleVariables;
     procedure TestMultipleExternVariables;
     procedure TestProcedureTypeVariable;
+    procedure TestFunctionPointerArrayVariable;
+    procedure TestFunctionPointerArrayVariablesCompile;
+    procedure TestPointerToFunctionPointer;
     procedure TestAnonymousStructVariable;
     procedure TestAnonymousUnionAndEnumVariables;
     procedure TestAnonymousVariablesCompile;
@@ -627,6 +632,27 @@ begin
 end;
 
 
+procedure TTestFunctions.TestFunctionPointerArrayParam;
+
+begin
+  Convert(['void f(void (*cbs[4])(int));']);
+  AssertConverted;
+  AssertInterface('array of function pointers parameter is a pointer to a named element type',
+    ['f_cbs = procedure (_para1:longint);cdecl;','Pf_cbs = ^f_cbs;','procedure f(cbs:Pf_cbs);']);
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerArrayParamCompiles;
+
+begin
+  Convert(['void f(void (*cbs[4])(int));','void g(int (*ops[])(int a));'],['-d','-T']);
+  AssertConverted;
+  AssertInterface('element type under -T',['Tf_cbs = procedure (para1:longint);cdecl;','Pf_cbs = ^Tf_cbs;']);
+  AssertInterface('open array of function pointers parameter',['Tg_ops = function (a:longint):longint;cdecl;','Pg_ops = ^Tg_ops;','procedure g(ops:Pg_ops);']);
+  AssertCompiles;
+end;
+
+
 procedure TTestFunctions.TestStaticPrototypeIgnored;
 
 begin
@@ -772,6 +798,44 @@ begin
   AssertConverted;
   AssertInterface('procedure variable is cdecl',['gv : procedure ;cdecl;cvar;external;']);
   AssertInterface('function variable is cdecl',['gf : function (a:longint):longint;cdecl;cvar;external;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestFunctionPointerArrayVariable;
+
+begin
+  Convert(['extern void (*handlers[4])(int);','int (*ops[2][3])(int a), plain;']);
+  AssertConverted;
+  AssertInterface('array of function pointers variable gets a named element type',
+    ['handlers_element = procedure (_para1:longint);cdecl;','var','handlers : array[0..3] of handlers_element;cvar;external;']);
+  AssertInterface('two-dimensional array of function pointers',
+    ['ops_element = function (a:longint):longint;cdecl;','var','ops : array[0..1] of array[0..2] of ops_element;cvar;public;',
+     'plain : longint;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestFunctionPointerArrayVariablesCompile;
+
+begin
+  Convert(['extern void (*handlers[4])(int);','int (*ops[2][3])(int a), plain;'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestPointerToFunctionPointer;
+
+begin
+  Convert(['extern void (**pp)(int);','void h(void (**out)(int));','struct s { int (**tab)(void); };',
+           'typedef void (**ppf)(int);'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to function pointer variable',
+    ['pp_element = procedure (_para1:longint);cdecl;','var','pp : ^pp_element;cvar;external;']);
+  AssertInterface('pointer to function pointer parameter',['h_out = procedure (_para1:longint);cdecl;','Ph_out = ^h_out;',
+    'procedure h(_out:Ph_out);']);
+  AssertInterface('pointer to function pointer member',['s_tab = function :longint;cdecl;','s = record','tab : ^s_tab;']);
+  AssertInterface('pointer to function pointer typedef',['ppf_element = procedure (_para1:longint);cdecl;','ppf = ^ppf_element;']);
   AssertCompiles;
 end;
 
