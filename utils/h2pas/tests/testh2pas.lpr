@@ -9,7 +9,7 @@ program testh2pas;
 
 uses
   Classes, consoletestrunner, tcH2PasBase, tcDeclarations, tcTypeMapping, tcStructs,
-  tcTypedefs, tcMacros, tcPreprocessor, tcOptions, tcPrefixes, tcKnownIssues;
+  tcTypedefs, tcMacros, tcPreprocessor, tcOptions, tcPrefixes, tcErrorRecovery, tcKnownIssues;
 
 var
   Application: TTestRunner;

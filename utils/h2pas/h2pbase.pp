@@ -337,6 +337,11 @@ var
   hp : presobject;
 
 begin
+  if not assigned(plist) then
+    begin
+    Result:=NewType1(t_declist,pelem);
+    exit;
+    end;
   hp:=plist;
   result:=hp;
   while assigned(hp^.next) do
@@ -1110,11 +1115,29 @@ function HandleTypedefList(type_spec,dec_modifier,declarator_list: presobject) :
 
 var
   hp,ph : presobject;
+  lDecl : presobject;
 
 
 begin
   HandleTypedefList:=Nil;
   ph:=nil;
+  lDecl:=nil;
+  if assigned(declarator_list) then
+    lDecl:=declarator_list^.p1;
+  (* after a syntax error the declarator list can be missing *)
+  if not assigned(type_spec) or
+     (not assigned(type_spec^.p2) and not (assigned(lDecl) and assigned(lDecl^.p2))) then
+    begin
+    if not stripinfo then
+      writeln(outfile,'(* typedef without name at line ',line_no,' ignored *)');
+    if assigned(type_spec) then
+      dispose(type_spec,done);
+    if assigned(dec_modifier) then
+      dispose(dec_modifier,done);
+    if assigned(declarator_list) then
+      dispose(declarator_list,done);
+    exit;
+    end;
   if block_type<>bt_type then
     begin
       if not(compactmode) then
@@ -1129,19 +1152,9 @@ begin
   (* Get the name to write the type definition for, try
     to use the tag name first *)
   if assigned(type_spec^.p2) then
-  begin
-    ph:=type_spec^.p2;
-  end
+    ph:=type_spec^.p2
   else
-  begin
-    if not assigned(declarator_list) then
-      internalerror(5555);
-    if not assigned(declarator_list^.p1) then
-      internalerror(666);
-    if not assigned(declarator_list^.p1^.p2) then
-      internalerror(4444);
-    ph:=declarator_list^.p1^.p2;
-  end;
+    ph:=lDecl^.p2;
   (* write type definition *)
   is_procvar:=false;
   TN:=TypeName(ph^.p);
@@ -1152,7 +1165,10 @@ begin
   (* write new type name *)
   write(outfile,aktspace,TN,' = ');
   shift(2);
-  write_p_a_def(outfile,declarator_list^.p1^.p1,type_spec);
+  if assigned(lDecl) then
+    write_p_a_def(outfile,lDecl^.p1,type_spec)
+  else
+    write_p_a_def(outfile,nil,type_spec);
   popshift;
   WriteProcVarDirectives(outfile,no_pop);
   (* enum_to_const can make a switch to const *)
@@ -1164,7 +1180,7 @@ begin
   hp:=declarator_list;
   while assigned(hp) do
   begin
-    if (hp<>ph) and assigned(hp^.p1^.p2) then
+    if (hp<>ph) and assigned(hp^.p1) and assigned(hp^.p1^.p2) then
       begin
         PN:=TypeName(ph^.p);
         TN:=TypeName(hp^.p1^.p2^.p);

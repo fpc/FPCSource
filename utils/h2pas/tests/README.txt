@@ -36,6 +36,7 @@ Test units
   tcpreprocessor.pp  comments and preprocessor directives
   tcoptions.pp       command-line options
   tcprefixes.pp      the -t, -T and -p prefixes and their combinations
+  tcerrorrecovery.pp conversion after syntax errors in the header
   tcknownissues.pp   expected output for defects of the current h2pas
 
 The tests of tcknownissues.pp are registered below the KnownIssues suite and

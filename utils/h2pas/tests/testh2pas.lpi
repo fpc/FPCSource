@@ -88,6 +88,11 @@
         <UnitName Value="tcPrefixes"/>
       </Unit>
       <Unit>
+        <Filename Value="tcerrorrecovery.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcErrorRecovery"/>
+      </Unit>
+      <Unit>
         <Filename Value="tcknownissues.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcKnownIssues"/>

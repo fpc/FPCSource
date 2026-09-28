@@ -76,6 +76,7 @@ maybe_space :
 error_info : {
                (* error_info *)
                EmitErrorStart(yyline);
+               $$:=nil;
              };
 
 declaration_list : declaration_list  declaration
@@ -572,6 +573,7 @@ declarator_list :
        (* error error_info *)
        EmitWriteln(' in declarator_list *)');
        yyerrok;
+       $$:=nil;
      }|
      declarator
      {

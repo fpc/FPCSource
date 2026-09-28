@@ -1176,7 +1176,7 @@ begin
         hp3:=hp2^.p2;
         while assigned(hp3) do
           begin
-          if assigned(hp3^.p1) and
+          if assigned(hp3^.p1) and assigned(hp3^.p1^.p2) and
               (not assigned(hp3^.p1^.p3) or
               (hp3^.p1^.p3^.typ <> t_size_specifier)) then
             begin
@@ -1309,14 +1309,17 @@ begin
       hp3:=hp2^.p2;
       while assigned(hp3) do
         begin
-        write(outfile,aktspace,l,' : ( ');
-        write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
-        shift(2);
-        write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-        popshift;
-        writeln(outfile,' );');
+        if assigned(hp3^.p1) and assigned(hp3^.p1^.p2) then
+          begin
+          write(outfile,aktspace,l,' : ( ');
+          write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
+          shift(2);
+          write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
+          popshift;
+          writeln(outfile,' );');
+          inc(l);
+          end;
         hp3:=hp3^.next;
-        inc(l);
         end;
       hp1:=hp1^.next;
       end;

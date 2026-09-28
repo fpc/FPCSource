@@ -137,6 +137,7 @@ begin
 
          (* error_info *)
          EmitErrorStart(yyline);
+         yyval:=nil;
 
        end;
    6 : begin
@@ -671,6 +672,7 @@ begin
          (* error error_info *)
          EmitWriteln(' in declarator_list *)');
          yyerrok;
+         yyval:=nil;
 
        end;
   93 : begin
