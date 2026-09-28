@@ -1237,7 +1237,7 @@ function HandleTypedefList(type_spec,dec_modifier,declarator_list: presobject) :
 var
   hp,ph : presobject;
   lDecl : presobject;
-  lFunctionType : boolean;
+  lFunctionType, lInlineType : boolean;
 
 
 begin
@@ -1284,6 +1284,13 @@ begin
   shift(2);
   (* Get the name to write the type definition for, try
     to use the tag name first *)
+  lInlineType:=(type_spec^.typ in [t_structdef,t_uniondef,t_enumdef]) and assigned(type_spec^.p1)
+               and assigned(lDecl) and assigned(lDecl^.p1) and assigned(lDecl^.p2) and assigned(lDecl^.p2^.p);
+  if lInlineType and not assigned(type_spec^.p2) then
+    if type_spec^.typ=t_enumdef then
+      type_spec^.p2:=NewID(lDecl^.p2^.str+'_enum')
+    else
+      type_spec^.p2:=NewID(lDecl^.p2^.str+'_record');
   if assigned(type_spec^.p2) then
     ph:=type_spec^.p2
   else
@@ -1304,7 +1311,7 @@ begin
   (* write new type name *)
   write(outfile,aktspace,TN,' = ');
   shift(2);
-  if assigned(lDecl) then
+  if assigned(lDecl) and not lInlineType then
     write_p_a_def(outfile,lDecl^.p1,type_spec)
   else
     write_p_a_def(outfile,nil,type_spec);

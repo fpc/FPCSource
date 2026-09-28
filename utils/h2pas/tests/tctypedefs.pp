@@ -25,6 +25,10 @@ type
     procedure TestAnonymousStruct;
     procedure TestTaggedStruct;
     procedure TestPointerAlias;
+    procedure TestTaggedStructPointerTypedef;
+    procedure TestUntaggedStructPointerTypedef;
+    procedure TestEnumPointerTypedef;
+    procedure TestInlineTypePointerTypedefsCompile;
     procedure TestStructTagAlias;
     procedure TestStructTagAliasPointer;
     procedure TestStructTagAliasPrefix;
@@ -129,6 +133,49 @@ begin
   Convert(['typedef struct { int x; } anon_t, *panon_t;']);
   AssertConverted;
   AssertInterface('second declarator is a pointer alias',['anon_t = record','x : longint;','end;','panon_t = ^anon_t;']);
+end;
+
+
+procedure TTestTypedefs.TestTaggedStructPointerTypedef;
+
+begin
+  Convert(['typedef union u { int i; } *pu;','typedef struct s { int a; } *ps, sarr[2];']);
+  AssertConverted;
+  AssertInterface('tagged union is declared under its tag',
+    ['u = record','case longint of','0 : ( i : longint );','end;','pu = ^u;']);
+  AssertInterface('tagged struct with pointer and array declarators',
+    ['s = record','a : longint;','end;','ps = ^s;','sarr = array[0..1] of s;']);
+end;
+
+
+procedure TTestTypedefs.TestUntaggedStructPointerTypedef;
+
+begin
+  Convert(['typedef struct { int a; } *pt;']);
+  AssertConverted;
+  AssertInterface('untagged struct of a pointer typedef gets a record name',
+    ['pt_record = record','a : longint;','end;','pt = ^pt_record;']);
+end;
+
+
+procedure TTestTypedefs.TestEnumPointerTypedef;
+
+begin
+  Convert(['typedef enum e { A, B } *pe;','typedef enum { C, D } *pf;']);
+  AssertConverted;
+  AssertInterface('tagged enum of a pointer typedef',['e = (A,B);','pe = ^e;']);
+  AssertInterface('untagged enum of a pointer typedef gets an enum name',['pf_enum = (C,D);','pf = ^pf_enum;']);
+end;
+
+
+procedure TTestTypedefs.TestInlineTypePointerTypedefsCompile;
+
+begin
+  Convert(['typedef union u { int i; } *pu;','typedef struct s { int a; } *ps, sarr[2];',
+           'typedef struct { int a; } *pt;','typedef enum e { A, B } *pe;'],['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('pointer typedef under -T -p',['Ppt_record = ^Tpt_record;','Tpt_record = record','a : longint;','end;','Tpt = Ppt_record;']);
+  AssertCompiles;
 end;
 
 
