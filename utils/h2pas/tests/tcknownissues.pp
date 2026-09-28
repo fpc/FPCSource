@@ -32,7 +32,6 @@ type
     procedure TestEllipsisStubMatchesInterface;
     procedure TestBitFieldAccessorParamName;
     procedure TestNoCdeclOnRecordField;
-    procedure TestTypedefStructTagAlias;
     procedure TestFunctionTypedef;
     procedure TestNoShiftWarning;
   end;
@@ -134,15 +133,6 @@ begin
   Convert(['typedef int (*binop)(int a);','struct s { int m; };']);
   AssertConverted;
   AssertInterface('record field after a procedure type',['s = record','m : longint;','end;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestTypedefStructTagAlias;
-
-begin
-  Convert(['typedef struct tag4 t4;']);
-  AssertConverted;
-  AssertInterface('typedef name is the alias of the tag',['t4 = tag4;']);
 end;
 
 

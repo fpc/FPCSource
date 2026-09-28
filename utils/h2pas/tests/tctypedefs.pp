@@ -23,6 +23,9 @@ type
     procedure TestAnonymousStruct;
     procedure TestTaggedStruct;
     procedure TestPointerAlias;
+    procedure TestStructTagAlias;
+    procedure TestStructTagAliasPointer;
+    procedure TestStructTagAliasPrefix;
     procedure TestAnonymousUnion;
     procedure TestCharPointer;
     procedure TestArray;
@@ -95,6 +98,35 @@ begin
   Convert(['typedef struct { int x; } anon_t, *panon_t;']);
   AssertConverted;
   AssertInterface('second declarator is a pointer alias',['anon_t = record','x : longint;','end;','panon_t = ^anon_t;']);
+end;
+
+
+procedure TTestTypedefs.TestStructTagAlias;
+
+begin
+  Convert(['typedef struct tag4 t4;']);
+  AssertConverted;
+  AssertInterface('typedef name is the alias of the tag',['type','t4 = tag4;']);
+end;
+
+
+procedure TTestTypedefs.TestStructTagAliasPointer;
+
+begin
+  Convert(['struct tag4 { int a; };','typedef struct tag4 t4;','void f(t4 *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to the alias follows the alias',['t4 = tag4;','Pt4 = ^t4;']);
+  AssertInterface('parameter uses the pointer to the alias',['procedure f(p:Pt4);']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestStructTagAliasPrefix;
+
+begin
+  Convert(['typedef struct _tag4 t4;'],['-T']);
+  AssertConverted;
+  AssertInterface('-T alias of a tag',['Tt4 = Ttag4;']);
 end;
 
 

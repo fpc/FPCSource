@@ -1147,8 +1147,8 @@ begin
   if not SameText(tn,pn) then
   begin
     shift(2);
-    writeln(outfile,aktspace,PN,' = ',TN,';');
-    WritePointerMarker(outfile,PN);
+    writeln(outfile,aktspace,TN,' = ',PN,';');
+    WritePointerMarker(outfile,TN);
     popshift;
   end;
   if assigned(dname1) then
