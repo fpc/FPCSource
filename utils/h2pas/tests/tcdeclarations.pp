@@ -66,6 +66,9 @@ type
     procedure TestStaticInlineCompiles;
     procedure TestArrayParams;
     procedure TestArrayParamsCompile;
+    procedure TestFunctionPointerResult;
+    procedure TestFunctionPointerResultWithFunctionPointerArg;
+    procedure TestFunctionPointerResultCompiles;
     procedure TestStaticPrototypeIgnored;
     procedure TestStaticPrototypeNotImported;
     procedure TestExternFunctionBody;
@@ -586,6 +589,39 @@ procedure TTestFunctions.TestArrayParamsCompile;
 
 begin
   Convert(['struct s { int a; };','void f(struct s arr[4], int m[3][4], char *names[8]);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerResult;
+
+begin
+  Convert(['void (*signal(int sig, void (*func)(int)))(int);','int (*getop(char c))(int a, int b);']);
+  AssertConverted;
+  AssertInterface('function pointer result gets a named procedural type',
+    ['type','signal_func = procedure (_para1:longint);cdecl;','signal_result = procedure (_para1:longint);cdecl;']);
+  AssertInterface('function uses the result type',['function signal(sig:longint; func:signal_func):signal_result;']);
+  AssertInterface('function result type of a function pointer',
+    ['getop_result = function (a:longint; b:longint):longint;cdecl;','function getop(c:ansichar):getop_result;']);
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerResultWithFunctionPointerArg;
+
+begin
+  Convert(['void (*reg(void))(int (*cb)(void));']);
+  AssertConverted;
+  AssertInterface('function pointer argument of the result type is declared first',
+    ['reg_result_cb = function :longint;cdecl;','reg_result = procedure (cb:reg_result_cb);cdecl;','function reg:reg_result;']);
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerResultCompiles;
+
+begin
+  Convert(['void (*signal(int sig, void (*func)(int)))(int);','int (*getop(char c))(int a, int b);',
+           'void (*reg(void))(int (*cb)(void));'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

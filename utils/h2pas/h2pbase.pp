@@ -577,12 +577,52 @@ begin
 end;
 
 
-// Hoists the function pointer arguments of the function declared by aDecl (t_declist).
-procedure HoistDeclarationProcVarArgs(aDecl : presobject);
+// Declares a named procedural type aOwner_result for a function pointer result of aProc (t_procdef),
+// and replaces the result type aType by the name.
+procedure HoistProcVarResult(const aOwner : string; aProc : presobject; var aType : presobject);
+
+var
+  lResult : presobject;
+  lName : string;
+
+begin
+  lResult:=aProc^.p1;
+  if not (assigned(lResult) and (lResult^.typ=t_pointerdef) and assigned(lResult^.p1)
+          and (lResult^.p1^.typ=t_procdef)) then
+    exit;
+  HoistProcVarArgs(aOwner+'_result',lResult^.p1^.p2);
+  lName:=TypeName(aOwner+'_result');
+  if block_type<>bt_type then
+    begin
+    if not compactmode then
+      writeln(outfile);
+    writeln(outfile,aktspace,'type');
+    block_type:=bt_type;
+    end;
+  shift(2);
+  write(outfile,aktspace,lName,' = ');
+  write_p_a_def(outfile,lResult,aType);
+  WriteProcVarDirectives(outfile,false);
+  writeln(outfile,';');
+  is_procvar:=false;
+  WritePointerMarker(outfile,lName);
+  popshift;
+  dispose(aType,done);
+  aType:=NewIntID(lName);
+  dispose(lResult,done);
+  aProc^.p1:=nil;
+end;
+
+
+// Hoists the function pointer arguments and result of the function declared by aDecl (t_declist).
+procedure HoistDeclarationProcVarArgs(aDecl : presobject; var aType : presobject);
 
 begin
   if assigned(aDecl^.p1^.p2) and assigned(aDecl^.p1^.p2^.p) then
+    begin
     HoistProcVarArgs(aDecl^.p1^.p2^.str,aDecl^.p1^.p1^.p2);
+    HoistProcVarResult(aDecl^.p1^.p2^.str,aDecl^.p1^.p1,aType);
+    end;
 end;
 
 
@@ -607,7 +647,7 @@ begin
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
-        HoistDeclarationProcVarArgs(decllist_spec);
+        HoistDeclarationProcVarArgs(decllist_spec,type_spec);
         lVarArgs:=false;
         lSkipEllipsis:=false;
         repeat
@@ -821,7 +861,7 @@ begin
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
-        HoistDeclarationProcVarArgs(decllist_spec);
+        HoistDeclarationProcVarArgs(decllist_spec,type_spec);
         lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
           (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
         lSkipEllipsis:=lVarArgs;
