@@ -1533,6 +1533,17 @@ var
 begin
   HandleDefineConst:=Nil;
   (* DEFINE dname SPACE_DEFINE def_expr NEW_LINE *)
+  hp:=def_expr;
+  while assigned(hp) and (hp^.typ=t_exprlist) and not assigned(hp^.next) do
+    hp:=hp^.p1;
+  if assigned(hp) and (hp^.typ=t_id) and SameText(hp^.str,dname^.str) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* self-referencing #define ',dname^.p,' ignored *)');
+    dispose(dname,done);
+    dispose(def_expr,done);
+    exit;
+    end;
   if (def_expr^.typ=t_exprlist) and
     def_expr^.p1^.is_const and
     not assigned(def_expr^.next) then

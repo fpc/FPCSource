@@ -41,6 +41,9 @@ type
     procedure TestQuotesInStrings;
     procedure TestEscapesCompile;
     procedure TestAlias;
+    procedure TestSelfReferencingDefine;
+    procedure TestSelfReferencingDefineStripped;
+    procedure TestSelfReferencingDefineCompiles;
     procedure TestOr;
     procedure TestAnd;
     procedure TestShl;
@@ -275,6 +278,38 @@ procedure TTestConstMacros.TestAlias;
 
 begin
   CheckConst('ALIAS','OTHER','OTHER');
+end;
+
+
+procedure TTestConstMacros.TestSelfReferencingDefine;
+
+begin
+  Convert(['#define X X','#define Y (Y)','#define foo FOO','#define Z 1']);
+  AssertConverted;
+  AssertOutput('define of its own name is ignored',['(* self-referencing #define X ignored *)']);
+  AssertOutput('parenthesized own name is ignored',['(* self-referencing #define Y ignored *)']);
+  AssertOutput('own name in another case is ignored',['(* self-referencing #define foo ignored *)']);
+  AssertNotOutput('no constant for a define of its own name','X = X;');
+  AssertInterface('other defines are converted',['Z = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestSelfReferencingDefineStripped;
+
+begin
+  Convert(['#define X X','#define Z 1'],['-S']);
+  AssertConverted;
+  AssertNotOutput('-S drops the comment','self-referencing');
+  AssertInterface('other defines are converted',['Z = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestSelfReferencingDefineCompiles;
+
+begin
+  Convert(['#define X X','#define Y (Y)','#define Z 1'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
