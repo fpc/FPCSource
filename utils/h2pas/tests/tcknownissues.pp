@@ -21,7 +21,6 @@ type
     procedure TestPointerResultInterface;
     procedure TestPointerPrefixPointerResult;
     procedure TestPointerPrefixPointerToPointer;
-    procedure TestTypePrefixCTypes;
   end;
 
   { TTestKnownDeclarationIssues }
@@ -95,16 +94,6 @@ begin
   Convert(['struct s { int a; };','void g(struct s **pp);'],['-p','-d']);
   AssertConverted;
   AssertCompiles;
-end;
-
-
-procedure TTestKnownPointerIssues.TestTypePrefixCTypes;
-
-begin
-  Convert(['struct s { int a; };','int g;'],['-t','-C']);
-  AssertConverted;
-  AssertInterface('-t does not prefix ctypes field types',['a : cint;']);
-  AssertInterface('-t does not prefix ctypes variable types',['g : cint;cvar;public;']);
 end;
 
 

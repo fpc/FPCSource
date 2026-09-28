@@ -42,6 +42,8 @@ type
     procedure TestParamsImplementation;
     procedure TestUnitCompiles;
     procedure TestBaseTypesNotPrefixed;
+    procedure TestCTypesNotPrefixed;
+    procedure TestUnderscoreCTypesNotPrefixed;
     procedure TestUnnamedParams;
     procedure TestVariableType;
     procedure TestFunctionPointerArgType;
@@ -201,6 +203,27 @@ begin
   Convert(['typedef int myint;','void f(int a, float b, char *c);'],['-t']);
   AssertConverted;
   AssertInterface('-t does not prefix Pascal base types',['procedure f(a:longint; b:single; c:Pansichar);']);
+end;
+
+
+procedure TTestTypePrefix.TestCTypesNotPrefixed;
+
+begin
+  Convert(['struct s { int a; unsigned long b; };','int g;','void f(int *p, char *c, unsigned int u);'],['-t','-C']);
+  AssertConverted;
+  AssertInterface('-t does not prefix ctypes field types',['Ts = record','a : cint;','b : culong;','end;']);
+  AssertInterface('-t does not prefix ctypes variable types',['g : cint;cvar;public;']);
+  AssertInterface('-t keeps the ctypes pointer types',['procedure f(p:pcint; c:pcchar; u:cuint);']);
+end;
+
+
+procedure TTestTypePrefix.TestUnderscoreCTypesNotPrefixed;
+
+begin
+  Convert(['typedef int _myint;','struct s { short a; _myint b; };'],['-T','-C']);
+  AssertConverted;
+  AssertInterface('-T does not prefix ctypes but prefixes typedefs',['Ts = record','a : cshort;','b : Tmyint;','end;']);
+  AssertInterface('-T typedef of a ctypes type',['Tmyint = cint;']);
 end;
 
 

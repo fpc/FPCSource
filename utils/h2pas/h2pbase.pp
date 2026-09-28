@@ -101,7 +101,7 @@ Function NewCType(aCType,aPascalType : String) : PresObject;
 
 begin
   if UseCTypesUnit then
-    Result:=NewID(aCType)
+    Result:=NewIntID(aCType)
   else
     result:=NewIntID(aPascalType);
 end;
