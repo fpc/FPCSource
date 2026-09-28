@@ -39,6 +39,11 @@ type
     procedure TestUnsignedCharPointer;
     procedure TestSignedChar;
     procedure TestSignedCharWithoutAnsiChar;
+    procedure TestSigned;
+    procedure TestSignedFunction;
+    procedure TestLongDouble;
+    procedure TestLongDoubleVariable;
+    procedure TestDoublePrefix;
     procedure TestSignedInt;
     procedure TestSignedLong;
     procedure TestSignedShort;
@@ -73,6 +78,9 @@ type
     procedure TestCTypesLongLong;
     procedure TestCTypesUnsignedLongLong;
     procedure TestCTypesFloat;
+    procedure TestCTypesSigned;
+    procedure TestCTypesDouble;
+    procedure TestCTypesLongDouble;
     procedure TestCTypesUsesClause;
   end;
 
@@ -206,6 +214,50 @@ procedure TTestTypeMapping.TestSignedCharWithoutAnsiChar;
 
 begin
   CheckTypedef('signed char','shortint',['-a']);
+end;
+
+
+procedure TTestTypeMapping.TestSigned;
+
+begin
+  CheckTypedef('signed','longint');
+end;
+
+
+procedure TTestTypeMapping.TestSignedFunction;
+
+begin
+  Convert(['signed f(signed a);']);
+  AssertConverted;
+  AssertInterface('signed alone as result and parameter type',['function f(a:longint):longint;']);
+end;
+
+
+procedure TTestTypeMapping.TestLongDouble;
+
+begin
+  CheckTypedef('long double','extended');
+end;
+
+
+procedure TTestTypeMapping.TestLongDoubleVariable;
+
+begin
+  Convert(['extern long double ld;','void f(long double *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('long double variable',['ld : extended;cvar;external;']);
+  AssertInterface('pointer to long double',['procedure f(p:Pextended);cdecl;external;']);
+  AssertNotOutput('Pextended comes from the system unit','Pextended =');
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestDoublePrefix;
+
+begin
+  Convert(['typedef double t;'],['-t']);
+  AssertConverted;
+  AssertInterface('-t does not prefix double',['Tt = double;']);
 end;
 
 
@@ -444,6 +496,27 @@ procedure TTestTypeMapping.TestCTypesFloat;
 
 begin
   CheckTypedef('float','cfloat',['-C']);
+end;
+
+
+procedure TTestTypeMapping.TestCTypesSigned;
+
+begin
+  CheckTypedef('signed','csigned',['-C']);
+end;
+
+
+procedure TTestTypeMapping.TestCTypesDouble;
+
+begin
+  CheckTypedef('double','cdouble',['-C']);
+end;
+
+
+procedure TTestTypeMapping.TestCTypesLongDouble;
+
+begin
+  CheckTypedef('long double','clongdouble',['-C']);
 end;
 
 

@@ -33,6 +33,8 @@ type
     procedure TestIf;
     procedure TestBlockKeywordAfterConditional;
     procedure TestUndef;
+    procedure TestDirectiveOnlyHeader;
+    procedure TestEmptyHeader;
     procedure TestInclude;
     procedure TestSystemInclude;
     procedure TestPragma;
@@ -129,6 +131,25 @@ begin
   Convert(['#undef FOO','int x;']);
   AssertConverted;
   AssertOutput('#undef',['{$undef FOO}']);
+end;
+
+
+procedure TTestPreprocessor.TestDirectiveOnlyHeader;
+
+begin
+  Convert(['#undef FOO']);
+  AssertConverted;
+  AssertOutput('header with only a directive',['{$undef FOO}']);
+end;
+
+
+procedure TTestPreprocessor.TestEmptyHeader;
+
+begin
+  Convert(['/* nothing */'],['-d']);
+  AssertConverted;
+  AssertOutput('empty header gives an empty unit',['unit output;','interface']);
+  AssertCompiles;
 end;
 
 

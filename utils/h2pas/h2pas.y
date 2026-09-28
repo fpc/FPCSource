@@ -54,9 +54,11 @@ end;
 %left STICK
 %token SIGNED
 %token INT8 INT16 INT32 INT64
+%token _DOUBLE
 %%
 
 file : declaration_list
+     |
      ;
 
 maybe_space :
@@ -224,6 +226,16 @@ declaration :
      {
        (* special_type_specifier SEMICOLON *)
        HandleSpecialType($1);
+     } |
+     special_type_specifier dec_modifier declarator_list statement_block
+     {
+       (* special_type_specifier dec_modifier declarator_list statement_block *)
+       HandleDeclarationStatement(NewID('intern'),$1,$2,$3,$4);
+     } |
+     special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+     {
+       (* special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
+       HandleDeclarationSysTrap(NewID('intern'),$1,$2,$3,$4);
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
      {
@@ -496,6 +508,16 @@ special_type_name :
        (* FLOAT *)
         $$:=NewCType(cfloat_STR,FLOAT_STR);
      } |
+     _DOUBLE
+     {
+       (* DOUBLE *)
+        $$:=NewCType(cdouble_STR,DOUBLE_STR);
+     } |
+     LONG _DOUBLE
+     {
+       (* LONG DOUBLE *)
+        $$:=NewCType(clongdouble_STR,EXTENDED_STR);
+     } |
      VOID
      {
        (* VOID *)
@@ -510,6 +532,11 @@ special_type_name :
      {
        (* UNSIGNED *)
        $$:=NewCType(cunsigned_STR,UINT_STR);
+     } |
+     SIGNED
+     {
+       (* SIGNED *)
+       $$:=NewCType(csigned_STR,INT_STR);
      }
      ;
 
@@ -751,7 +778,7 @@ shift_expr :
           | expr STAR expr
             { $$:=NewBinaryOp('*',$1,$3);}
           | expr _SLASH expr
-            { $$:=NewBinaryOp('/',$1,$3);}
+            { $$:=HandleDivision($1,$3);}
           | expr _OR expr
             { $$:=NewBinaryOp(' or ',$1,$3);}
           | expr _AND expr

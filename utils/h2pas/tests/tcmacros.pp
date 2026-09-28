@@ -25,6 +25,10 @@ type
     procedure TestDecimal;
     procedure TestHexadecimal;
     procedure TestOctal;
+    procedure TestZero;
+    procedure TestZeroSuffix;
+    procedure TestIntegerDivision;
+    procedure TestFloatDivision;
     procedure TestIntegerSuffix;
     procedure TestNegative;
     procedure TestFloat;
@@ -55,6 +59,7 @@ type
     procedure TestParameterMacroInterface;
     procedure TestParameterMacroBody;
     procedure TestTernary;
+    procedure TestDivision;
     procedure TestDeref;
     procedure TestDot;
     procedure TestIndex;
@@ -106,6 +111,34 @@ procedure TTestConstMacros.TestOctal;
 
 begin
   CheckConst('OCT','0755','&755');
+end;
+
+
+procedure TTestConstMacros.TestZero;
+
+begin
+  CheckConst('ZERO','0','0');
+end;
+
+
+procedure TTestConstMacros.TestZeroSuffix;
+
+begin
+  CheckConst('ZEROL','0L','0');
+end;
+
+
+procedure TTestConstMacros.TestIntegerDivision;
+
+begin
+  CheckConst('DIV_E','(6 / 2)','6 div 2');
+end;
+
+
+procedure TTestConstMacros.TestFloatDivision;
+
+begin
+  CheckConst('FDIV_E','(6.0 / 2)','6.0/2');
 end;
 
 
@@ -296,6 +329,17 @@ begin
   AssertImplementation('ternary operator becomes an if statement on a local',
     ['var','if_local1 : longint;','(* result types are not known *)','begin',
      'if a then','if_local1:=1','else','if_local1:=2;','TERN:=if_local1;','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestDivision;
+
+begin
+  Convert(['#define HALF(a) ((a) / 2)','#define FHALF(a) ((a) / 2.0)','#define CHALF(a) ((double)(a) / 2)']);
+  AssertConverted;
+  AssertImplementation('integer division in a macro',['HALF:=a div 2;']);
+  AssertImplementation('float literal division in a macro',['FHALF:=a/2.0;']);
+  AssertImplementation('division of a float cast in a macro',['CHALF:=(double(a))/2;']);
 end;
 
 

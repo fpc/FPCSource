@@ -79,6 +79,7 @@ const INT8 = 328;
 const INT16 = 329;
 const INT32 = 330;
 const INT64 = 331;
+const _DOUBLE = 332;
 
 const
   SHORT_STR = 'shortint';
@@ -95,6 +96,8 @@ const
   INT64_STR  = 'int64';
   QWORD_STR  = 'qword';
   FLOAT_STR  = 'single';
+  DOUBLE_STR = 'double';
+  EXTENDED_STR = 'extended';
   WCHAR_STR  = 'widechar';
 
   {ctypes strings}

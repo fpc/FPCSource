@@ -343,7 +343,7 @@ Procedure HandleLongInteger;
 begin
   if NotInCPlusBlock then
   begin
-     if yytext[1]='0' then
+     if (length(yytext)>1) and (yytext[1]='0') and (yytext[2] in ['0'..'7']) then
        begin
           delete(yytext,1,1);
           yytext:='&'+yytext;

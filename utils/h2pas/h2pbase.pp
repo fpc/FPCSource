@@ -75,6 +75,8 @@ function handleFuncExpr(aType,aList: presobject): presobject;
 function handlePointerType(aType,aPointer,aSize : presobject): presobject;
 function HandleUnaryDefExpr(aExpr : presobject) : presobject;
 function HandleTernary(expr,colonexpr : presobject) : presobject;
+// Returns the division aLeft/aRight: div unless an operand is a floating point value.
+function HandleDivision(aLeft,aRight : presobject) : presobject;
 
 // Macros
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
@@ -94,6 +96,46 @@ begin
   Result:=colonexpr;
   inc(if_nb);
   result^.p:=strpnew('if_local'+str(if_nb));
+end;
+
+
+// Returns true when the expression aExpr contains a floating point literal or a cast to a floating point type.
+function IsFloatExpr(aExpr : presobject) : boolean;
+
+var
+  lStr : string;
+
+begin
+  Result:=false;
+  if not assigned(aExpr) then
+    exit;
+  case aExpr^.typ of
+    t_id :
+      begin
+      lStr:=aExpr^.str;
+      Result:=(lStr<>'') and (lStr[1] in ['0'..'9']) and ((pos('.',lStr)>0) or (pos('e',lStr)>0) or (pos('E',lStr)>0));
+      end;
+    t_typespec :
+      Result:=(assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_id)
+               and ((aExpr^.p1^.str=FLOAT_STR) or (aExpr^.p1^.str=DOUBLE_STR) or (aExpr^.p1^.str=EXTENDED_STR)
+                    or (aExpr^.p1^.str=cfloat_STR) or (aExpr^.p1^.str=cdouble_STR) or (aExpr^.p1^.str=clongdouble_STR)))
+              or IsFloatExpr(aExpr^.p2);
+    t_bop :
+      Result:=IsFloatExpr(aExpr^.p1) or IsFloatExpr(aExpr^.p2);
+    t_preop,
+    t_exprlist :
+      Result:=IsFloatExpr(aExpr^.p1);
+  end;
+end;
+
+
+function HandleDivision(aLeft,aRight : presobject) : presobject;
+
+begin
+  if IsFloatExpr(aLeft) or IsFloatExpr(aRight) then
+    Result:=NewBinaryOp('/',aLeft,aRight)
+  else
+    Result:=NewBinaryOp(' div ',aLeft,aRight);
 end;
 
 

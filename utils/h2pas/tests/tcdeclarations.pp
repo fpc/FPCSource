@@ -44,6 +44,9 @@ type
     procedure TestPointerResultImplementation;
     procedure TestPointerResultInterface;
     procedure TestPointerResultUnitCompiles;
+    procedure TestStructPointerResult;
+    procedure TestStructPointerResultStub;
+    procedure TestStructPointerResultCompiles;
     procedure TestExternFunction;
     procedure TestUnionPointerParam;
     procedure TestEnumParam;
@@ -336,6 +339,36 @@ begin
   Convert(['typedef struct { int a; } rec;','rec *getrec(int i);','char *name(void);'],['-d']);
   AssertConverted;
   AssertInterface('pointer to a declared type as result',['function getrec(i:longint):Prec;cdecl;external;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestStructPointerResult;
+
+begin
+  Convert(['struct s1 { int a; };','struct s1 *f(struct s1 *p);','union u1 *g(void);','enum e1 h(int a);'],['-d']);
+  AssertConverted;
+  AssertInterface('function returning a struct pointer',['function f(p:Ps1):Ps1;cdecl;external;']);
+  AssertInterface('function returning a union pointer',['function g:Pu1;cdecl;external;']);
+  AssertInterface('function returning an enum',['function h(a:longint):e1;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestStructPointerResultStub;
+
+begin
+  Convert(['struct s1 *f(struct s1 *p);']);
+  AssertConverted;
+  AssertImplementation('stub of a function returning a struct pointer',
+    ['function f(p:Ps1):Ps1;','begin','{ You must implement this function }','end;']);
+end;
+
+
+procedure TTestFunctions.TestStructPointerResultCompiles;
+
+begin
+  Convert(['struct s1 { int a; };','struct s1 *f(struct s1 *p);'],['-d']);
+  AssertConverted;
   AssertCompiles;
 end;
 

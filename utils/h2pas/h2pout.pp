@@ -1640,6 +1640,7 @@ initialization
   WrittenPointers.Add('pint64');
   WrittenPointers.Add('pword');
   WrittenPointers.Add('pqword');
+  WrittenPointers.Add('pextended');
   DeclaredTypes:=TStringList.Create;
   DeclaredTypes.Sorted:=true;
   DeclaredTypes.Duplicates:=dupIgnore;
