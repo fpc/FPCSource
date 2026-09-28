@@ -66,6 +66,8 @@ type
     procedure TestEnumValueUsesMember;
     procedure TestEnumValueUsesMemberCompiles;
     procedure TestEnumConstantUsesMember;
+    procedure TestCharLiteralEnumValues;
+    procedure TestCharLiteralEnumValuesCompile;
   end;
 
 implementation
@@ -467,6 +469,25 @@ begin
   Convert(['enum e { A = 4, B = A + 1, C = A | B };','enum f { X = B + 1, Y };','#define M (A)'],['-d']);
   AssertConverted;
   AssertInterface('member outside an enum value is not converted',['M = A;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestCharLiteralEnumValues;
+
+begin
+  Convert(['enum e { X = ((''n''<<8) | ''x''), Y = ''a'', Z = ''\n'' + 1 };']);
+  AssertConverted;
+  AssertInterface('character literals in enum values are ordinal values',
+    ['e = (X := (ord(''n'') shl 8) or ord(''x''),Y := ord(''a''),Z := ord(#10)+1);']);
+end;
+
+
+procedure TTestEnums.TestCharLiteralEnumValuesCompile;
+
+begin
+  Convert(['enum e { X = ((''n''<<8) | ''x''), Y = ''z'', Z = ''~'' + 1 };'],['-d']);
+  AssertConverted;
   AssertCompiles;
 end;
 

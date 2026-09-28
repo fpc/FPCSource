@@ -38,6 +38,10 @@ type
     procedure TestFloatsCompile;
     procedure TestString;
     procedure TestCharLiteral;
+    procedure TestCharLiteralArithmetic;
+    procedure TestCharLiteralComparison;
+    procedure TestCharLiteralKeptAlone;
+    procedure TestCharLiteralsCompile;
     procedure TestCharEscapes;
     procedure TestOctalAndHexEscapes;
     procedure TestStringEscapes;
@@ -283,6 +287,46 @@ procedure TTestConstMacros.TestCharLiteral;
 
 begin
   CheckConst('CHC','''x''','''x''');
+end;
+
+
+procedure TTestConstMacros.TestCharLiteralArithmetic;
+
+begin
+  Convert(['#define FOURCC (((''n''<<24) | (''c''<<16)) | ''x'')','#define DIFF (''a'' - ''A'')','#define NEXT (''\n'' + 1)']);
+  AssertConverted;
+  AssertInterface('character literals in bit operations',['FOURCC = ((ord(''n'') shl 24) or (ord(''c'') shl 16)) or ord(''x'');']);
+  AssertInterface('difference of two characters',['DIFF = ord(''a'')-ord(''A'');']);
+  AssertInterface('character code in an addition',['NEXT = ord(#10)+1;']);
+end;
+
+
+procedure TTestConstMacros.TestCharLiteralComparison;
+
+begin
+  Convert(['#define ISA(c) ((c) == ''a'')','#define SAME (''a'' == ''b'')']);
+  AssertConverted;
+  AssertImplementation('a value compared with a character',['ISA:=c=ord(''a'');']);
+  AssertInterface('two characters are compared directly',['SAME = ''a''=''b'';']);
+end;
+
+
+procedure TTestConstMacros.TestCharLiteralKeptAlone;
+
+begin
+  Convert(['#define CH ''a''','#define NL ''\n''','#define S "a"']);
+  AssertConverted;
+  AssertInterface('a character literal alone stays a character',['CH = ''a'';','NL = #10;','S = ''a'';']);
+end;
+
+
+procedure TTestConstMacros.TestCharLiteralsCompile;
+
+begin
+  Convert(['#define FOURCC (((''n''<<24) | (''c''<<16)) | ''x'')','#define DIFF (''a'' - ''A'')','#define NEXT (''\n'' + 1)',
+           '#define ISA(c) ((c) == ''a'')','#define SAME (''a'' == ''b'')','#define UP(c) ((c) - ''a'' + ''A'')'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

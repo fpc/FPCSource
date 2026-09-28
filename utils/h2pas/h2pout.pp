@@ -486,10 +486,61 @@ begin
 end;
 
 
+// Returns true when p is a character literal: 'x', '''' or #n.
+function IsCharLiteral(p : presobject) : boolean;
+
+var
+  s : string;
+  i : integer;
+
+begin
+  Result:=false;
+  if not assigned(p) or (p^.typ<>t_id) then
+    exit;
+  s:=p^.str;
+  if (s='''''''') or ((length(s)=3) and (s[1]='''') and (s[3]='''')) then
+    exit(true);
+  if (length(s)<2) or (s[1]<>'#') then
+    exit;
+  for i:=2 to length(s) do
+    if not (s[i] in ['0'..'9']) then
+      exit;
+  Result:=true;
+end;
+
+
+// Returns true when the binary operator aOp takes the integer value of a character literal operand.
+function IsIntegerOperator(const aOp : string) : boolean;
+
+begin
+  Result:=(aOp='+') or (aOp='-') or (aOp='*') or (aOp=' div ') or (aOp=' mod ') or (aOp=' shl ') or (aOp=' shr ')
+          or (aOp=' and ') or (aOp=' or ') or (aOp=' xor ') or (aOp='=') or (aOp='<>') or (aOp='<') or (aOp='<=')
+          or (aOp='>') or (aOp='>=');
+end;
+
+
+// Writes the operand p of the binary operator aOp, a character literal as its ordinal value when aOrd is set.
+procedure write_operand(var outfile:text; p : presobject; aOrd : boolean);
+
+begin
+  if aOrd and IsCharLiteral(p) then
+    write(outfile,'ord(',p^.p,')')
+  else if p^.typ<>t_id then
+    begin
+    write(outfile,'(');
+    write_expr(outfile,p);
+    write(outfile,')');
+    end
+  else
+    write_expr(outfile,p);
+end;
+
+
 procedure write_expr(var outfile:text; p : presobject);
 
 var
   DoFlush:Boolean;
+  lOrd : boolean;
 
 begin
   if Not assigned(p) then
@@ -503,6 +554,8 @@ begin
     t_ifexpr :
       if in_enum_value and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0) then
         write(outfile,'ord(',FixId(p^.p),')')
+      else if in_enum_value and IsCharLiteral(p) then
+        write(outfile,'ord(',p^.p,')')
       else if p^.skiptprefix then
         write(outfile,p^.p)
       else
@@ -549,17 +602,12 @@ begin
       end;
     t_bop :
       begin
-      if p^.p1^.typ<>t_id then
-        write(outfile,'(');
-      write_expr(outfile,p^.p1);
-      if p^.p1^.typ<>t_id then
-      write(outfile,')');
+      (* C character literals are integers; Pascal compares two characters directly *)
+      lOrd:=IsIntegerOperator(p^.p)
+            and not ((p^.str[1] in ['=','<','>']) and IsCharLiteral(p^.p1) and IsCharLiteral(p^.p2));
+      write_operand(outfile,p^.p1,lOrd);
       write(outfile,p^.p);
-      if p^.p2^.typ<>t_id then
-        write(outfile,'(');
-      write_expr(outfile,p^.p2);
-      if p^.p2^.typ<>t_id then
-        write(outfile,')');
+      write_operand(outfile,p^.p2,lOrd);
       end;
     t_arrayop :
       begin
