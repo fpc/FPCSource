@@ -30,7 +30,6 @@ type
     procedure TestLongDouble;
     procedure TestReferenceParam;
     procedure TestEllipsisStubMatchesInterface;
-    procedure TestUnsignedChar;
     procedure TestSignedChar;
     procedure TestBitFieldAccessorParamName;
     procedure TestNoCdeclOnRecordField;
@@ -119,15 +118,6 @@ begin
   AssertConverted;
   AssertImplementation('stub without the variable arguments',['function f(fmt:Pansichar):longint;']);
   AssertInterface('interface declares the stub signature',['function f(fmt:Pansichar):longint;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestUnsignedChar;
-
-begin
-  Convert(['typedef unsigned char t;']);
-  AssertConverted;
-  AssertInterface('unsigned char is byte',['t = byte;']);
 end;
 
 

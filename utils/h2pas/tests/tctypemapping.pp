@@ -35,6 +35,8 @@ type
     procedure TestUnsignedLong;
     procedure TestUnsignedShort;
     procedure TestUnsignedLongLong;
+    procedure TestUnsignedChar;
+    procedure TestUnsignedCharPointer;
     procedure TestSignedInt;
     procedure TestSignedLong;
     procedure TestSignedShort;
@@ -172,6 +174,22 @@ procedure TTestTypeMapping.TestUnsignedLongLong;
 
 begin
   CheckTypedef('unsigned long long','qword');
+end;
+
+
+procedure TTestTypeMapping.TestUnsignedChar;
+
+begin
+  CheckTypedef('unsigned char','byte');
+end;
+
+
+procedure TTestTypeMapping.TestUnsignedCharPointer;
+
+begin
+  Convert(['void f(unsigned char *buf, unsigned char c);']);
+  AssertConverted;
+  AssertInterface('unsigned char parameters use byte',['procedure f(buf:Pbyte; c:byte);']);
 end;
 
 

@@ -192,6 +192,7 @@ begin
       SHORT_STR : tp:=USHORT_STR;
       SMALL_STR : tp:=USMALL_STR;
       CHAR_STR :  tp:=UCHAR_STR;
+      ANSICHAR_STR : tp:=UCHAR_STR;
       INT64_STR : tp:=QWORD_STR;
     else
       tp:='';
