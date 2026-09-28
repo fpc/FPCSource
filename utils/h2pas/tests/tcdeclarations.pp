@@ -53,6 +53,11 @@ type
     procedure TestPointerParamDeclaresPointerType;
     procedure TestPointerParamExternalType;
     procedure TestPointerParamUnitCompiles;
+    procedure TestReferenceParams;
+    procedure TestUnnamedReferenceParam;
+    procedure TestReferenceResult;
+    procedure TestReferenceInProcedureType;
+    procedure TestReferencesCompile;
     procedure TestFunctionBody;
     procedure TestWhileStatement;
   end;
@@ -428,6 +433,55 @@ procedure TTestFunctions.TestPointerParamUnitCompiles;
 
 begin
   Convert(['typedef struct { int a; } rec;','void f(rec *r);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestReferenceParams;
+
+begin
+  Convert(['typedef struct { int a; } rec;','void f(int &r, rec &s, const rec &c, int *&pr);']);
+  AssertConverted;
+  AssertInterface('C++ references become var parameters',
+    ['procedure f(var r:longint; var s:rec; var c:rec; var pr:Plongint);']);
+  AssertImplementation('stub with var parameters',['procedure f(var r:longint; var s:rec; var c:rec; var pr:Plongint);']);
+end;
+
+
+procedure TTestFunctions.TestUnnamedReferenceParam;
+
+begin
+  Convert(['void h(int &);']);
+  AssertConverted;
+  AssertInterface('unnamed reference parameter',['procedure h(var _para1:longint);']);
+end;
+
+
+procedure TTestFunctions.TestReferenceResult;
+
+begin
+  Convert(['int &g(int &a);'],['-d']);
+  AssertConverted;
+  AssertInterface('function returning a reference returns a pointer',['function g(var a:longint):Plongint;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestReferenceInProcedureType;
+
+begin
+  Convert(['typedef void (*cb)(int &x);','struct holder { int &ref; };']);
+  AssertConverted;
+  AssertInterface('reference parameter of a procedure type',['cb = procedure (var x:longint);cdecl;']);
+  AssertInterface('reference field becomes a pointer',['ref : ^longint;']);
+end;
+
+
+procedure TTestFunctions.TestReferencesCompile;
+
+begin
+  Convert(['typedef struct { int a; } rec;','void f(int &r, rec &s, int *&pr);','int &g(int &a);','void h(int &);',
+           'typedef void (*cb)(int &x);','struct holder { int &ref; };'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

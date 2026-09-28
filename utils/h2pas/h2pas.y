@@ -654,9 +654,9 @@ declarator :
        (* %prec PSTAR this was wrong!! *)
        $$:=HandleDeclarator(t_pointerdef,$2);
      } |
-     _AND declarator %prec P_AND
+     _AND declarator
      {
-       (* _AND declarator %prec P_AND *)
+       (* _AND declarator *)
        $$:=HandleDeclarator(t_addrdef,$2);
      } |
      dname COLON expr
@@ -720,6 +720,11 @@ abstract_declarator :
      {
        (* STAR abstract_declarator %prec PSTAR *)
        $$:=HandlePointerAbstractDeclarator($2);
+     } |
+     _AND abstract_declarator %prec PSTAR
+     {
+       (* _AND abstract_declarator %prec PSTAR *)
+       $$:=HandleDeclarator(t_addrdef,$2);
      } |
      abstract_declarator LKLAMMER argument_declaration_list RKLAMMER
      {

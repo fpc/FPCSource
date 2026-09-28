@@ -14,13 +14,6 @@ uses
 
 type
 
-  { TTestKnownDeclarationIssues }
-
-  TTestKnownDeclarationIssues = class(TH2PasTestCase)
-  published
-    procedure TestReferenceParam;
-  end;
-
   { TTestKnownMacroIssues }
 
   TTestKnownMacroIssues = class(TH2PasTestCase)
@@ -32,15 +25,6 @@ type
   end;
 
 implementation
-
-
-procedure TTestKnownDeclarationIssues.TestReferenceParam;
-
-begin
-  Convert(['void f(int &r);']);
-  AssertConverted;
-  AssertInterface('C++ reference parameter becomes a var parameter',['procedure f(var r:longint);']);
-end;
 
 
 procedure TTestKnownMacroIssues.TestLineContinuation;
@@ -81,6 +65,5 @@ end;
 
 
 initialization
-  RegisterTest('KnownIssues',TTestKnownDeclarationIssues);
   RegisterTest('KnownIssues',TTestKnownMacroIssues);
 end.

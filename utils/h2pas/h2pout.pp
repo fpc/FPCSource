@@ -731,7 +731,7 @@ procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 var
     len,para : longint;
     old_in_args : boolean;
-    varpara : boolean;
+    varpara, refpara : boolean;
     hs : string;
 
 begin
@@ -765,7 +765,9 @@ begin
       begin
       (* generate a call by reference parameter ?       *)
       varpara:=IsVarPara(p);
-      if varpara then
+      (* C++ reference parameter *)
+      refpara:=assigned(p^.p1^.p2) and assigned(p^.p1^.p2^.p1) and (p^.p1^.p2^.p1^.typ=t_addrdef);
+      if varpara or refpara then
         begin
         write(outfile,'var ');
         inc(len,4);
@@ -792,7 +794,9 @@ begin
             end;
         end;
       write(outfile,':');
-      if varpara then
+      if refpara then
+        write_p_a_def(outfile,p^.p1^.p2^.p1^.p1,p^.p1^.p1)
+      else if varpara then
       begin
         write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
       end
@@ -980,7 +984,8 @@ begin
     exit;
     end;
   case p^.typ of
-    t_pointerdef :
+    t_pointerdef,
+    t_addrdef :
       Write_pointerdef(outfile,p,simple_type);
     t_arraydef :
       Write_arraydef(outfile,p,simple_type);
