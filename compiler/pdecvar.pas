@@ -1833,7 +1833,7 @@ implementation
                          begin
                            consume(_ID);
                            { existing fields must be referenced with alias }
-                           if token=_COLON then
+                           if current_scanner.token=_COLON then
                              Message1(sym_e_duplicate_id,srsym.realname)
                            else
                              Message(type_e_type_id_expected);
