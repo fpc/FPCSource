@@ -91,6 +91,10 @@ var
   pointer_level : Integer = 0;
   // Flag field index of each bit field of the record being written, as name=index.
   BitFieldFlags : TStringList;
+  // Members of the enum types written so far.
+  EnumMembers : TStringList;
+  // Set while the value of an enum member is written.
+  in_enum_value : boolean = false;
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
@@ -492,7 +496,10 @@ begin
   case p^.typ of
     t_id,
     t_ifexpr :
-      write(outfile,FixId(p^.p));
+      if in_enum_value and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0) then
+        write(outfile,'ord(',FixId(p^.p),')')
+      else
+        write(outfile,FixId(p^.p));
     t_funexprlist :
       write_funexpr(outfile,p);
     t_exprlist:
@@ -1171,9 +1178,12 @@ begin
       if assigned(hp1^.p2) then
         begin
         write(outfile,' := ');
+        in_enum_value:=true;
         write_expr(outfile,hp1^.p2);
+        in_enum_value:=false;
         w:=w+6;(* strlen(hp1^.p); *)
         end;
+      EnumMembers.Add(hp1^.p1^.p);
       w:=w+length(hp1^.p1^.str);
       hp1:=hp1^.next;
       if assigned(hp1) then
@@ -1795,6 +1805,7 @@ initialization
   WrittenPointers.Add('pppointer');
   PointerTargets:=TStringList.Create;
   BitFieldFlags:=TStringList.Create;
+  EnumMembers:=TStringList.Create;
   FunctionTypes:=TStringList.Create;
   FunctionTypes.Sorted:=true;
   FunctionTypes.Duplicates:=dupIgnore;
@@ -1807,5 +1818,6 @@ finalization
   FunctionTypes.Free;
   PointerTargets.Free;
   BitFieldFlags.Free;
+  EnumMembers.Free;
   WrittenPointers.Free;
 end.

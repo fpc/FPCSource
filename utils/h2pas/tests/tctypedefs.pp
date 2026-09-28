@@ -57,6 +57,9 @@ type
     procedure TestReservedWordEnumMembers;
     procedure TestReservedWordEnumConstants;
     procedure TestReservedWordEnumMembersCompile;
+    procedure TestEnumValueUsesMember;
+    procedure TestEnumValueUsesMemberCompiles;
+    procedure TestEnumConstantUsesMember;
   end;
 
 implementation
@@ -377,6 +380,35 @@ begin
            'void f(int begin, int with, int then);'],['-d']);
   AssertConverted;
   AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestEnumValueUsesMember;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1, C = A | B };','enum f { X = B + 1, Y };']);
+  AssertConverted;
+  AssertInterface('members in a value are converted with ord',['e = (A := 4,B := ord(A)+1,C := ord(A) or ord(B));']);
+  AssertInterface('members of another enum are converted with ord',['f = (X := ord(B)+1,Y);']);
+end;
+
+
+procedure TTestEnums.TestEnumValueUsesMemberCompiles;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1, C = A | B };','enum f { X = B + 1, Y };','#define M (A)'],['-d']);
+  AssertConverted;
+  AssertInterface('member outside an enum value is not converted',['M = A;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestEnumConstantUsesMember;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1 };'],['-e']);
+  AssertConverted;
+  AssertInterface('enum constants use members directly',['A = 4;','B = A+1;']);
 end;
 
 
