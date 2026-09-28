@@ -18,8 +18,6 @@ type
 
   TTestKnownPointerIssues = class(TH2PasTestCase)
   published
-    procedure TestPointerResultInterface;
-    procedure TestPointerPrefixPointerResult;
     procedure TestPointerPrefixPointerToPointer;
   end;
 
@@ -63,29 +61,12 @@ type
   published
     procedure TestEnumToConstTypedefCompiles;
     procedure TestDynLibCdecl;
+    procedure TestDynLibWithMacroCompiles;
     procedure TestWin32Stdcall;
     procedure TestWin32CallbackType;
   end;
 
 implementation
-
-
-procedure TTestKnownPointerIssues.TestPointerResultInterface;
-
-begin
-  Convert(['char *name(void);']);
-  AssertConverted;
-  AssertInterface('pointer result in the interface uses a P type',['function name:Pansichar;']);
-end;
-
-
-procedure TTestKnownPointerIssues.TestPointerPrefixPointerResult;
-
-begin
-  Convert(['int **pp(void);'],['-p']);
-  AssertConverted;
-  AssertInterface('-p pointer to pointer result',['function pp:PPlongint;']);
-end;
 
 
 procedure TTestKnownPointerIssues.TestPointerPrefixPointerToPointer;
@@ -313,6 +294,15 @@ begin
   Convert(['int getval(int a);'],['-P']);
   AssertConverted;
   AssertInterface('-P procedure variables are cdecl',['getval : function(a:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestKnownOptionIssues.TestDynLibWithMacroCompiles;
+
+begin
+  Convert(['#define SQR(x) ((x)*(x))','int getval(int a);'],['-P']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

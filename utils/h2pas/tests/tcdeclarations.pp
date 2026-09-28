@@ -36,6 +36,8 @@ type
     procedure TestParamListWraps;
     procedure TestVoidPointerResult;
     procedure TestPointerResultImplementation;
+    procedure TestPointerResultInterface;
+    procedure TestPointerResultUnitCompiles;
     procedure TestExternFunction;
     procedure TestUnionPointerParam;
     procedure TestEnumParam;
@@ -231,6 +233,26 @@ begin
   AssertConverted;
   AssertImplementation('pointer result in the stub uses a P type',['function name:Pansichar;']);
   AssertImplementation('pointer to pointer result in the stub uses a PP type',['function pp:PPlongint;']);
+end;
+
+
+procedure TTestFunctions.TestPointerResultInterface;
+
+begin
+  Convert(['char *name(void);','int **pp(void);']);
+  AssertConverted;
+  AssertInterface('pointer result in the interface uses a P type',['function name:Pansichar;']);
+  AssertInterface('pointer to pointer result in the interface uses a PP type',['function pp:PPlongint;']);
+end;
+
+
+procedure TTestFunctions.TestPointerResultUnitCompiles;
+
+begin
+  Convert(['typedef struct { int a; } rec;','rec *getrec(int i);','char *name(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to a declared type as result',['function getrec(i:longint):Prec;cdecl;external;']);
+  AssertCompiles;
 end;
 
 

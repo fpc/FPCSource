@@ -721,7 +721,11 @@ begin
             if assigned(decllist_spec^.p1^.p1^.p2) then
               write_args(outfile,decllist_spec^.p1^.p1^.p2);
             write(outfile,':');
+            old_in_args:=in_args;
+            (* write pointers as P.... instead of ^.... *)
+            in_args:=true;
             write_p_a_def(outfile,decllist_spec^.p1^.p1^.p1,type_spec);
+            in_args:=old_in_args;
             if createdynlib then
               begin
                 loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');

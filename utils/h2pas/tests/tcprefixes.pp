@@ -388,6 +388,9 @@ begin
   AssertConverted;
   AssertInterface('-p pointer result',['function name:Pansichar;']);
   AssertInterface('-p untyped pointer result',['function data:pointer;']);
+  Convert(['int **pp(void);'],['-p']);
+  AssertConverted;
+  AssertInterface('-p pointer to pointer result',['function pp:PPlongint;']);
 end;
 
 
