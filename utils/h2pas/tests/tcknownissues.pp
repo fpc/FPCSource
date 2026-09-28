@@ -27,7 +27,6 @@ type
   published
     procedure TestReferenceParam;
     procedure TestFunctionTypedef;
-    procedure TestNoShiftWarning;
   end;
 
   { TTestKnownMacroIssues }
@@ -67,15 +66,6 @@ begin
   Convert(['typedef int (func_t)(int);']);
   AssertConverted;
   AssertInterface('function typedef',['func_t = function (_para1:longint):longint;cdecl;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestNoShiftWarning;
-
-begin
-  Convert(['#define F(a) a']);
-  AssertConverted;
-  AssertEquals('no indentation warning','',Trim(ToolOutput));
 end;
 
 

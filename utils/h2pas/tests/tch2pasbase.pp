@@ -68,7 +68,7 @@ type
     procedure AssertNotImplementation(const aMsg: string; const aUnexpected: string);
     // Fails unless aLine occurs verbatim, trailing blanks excepted, as a line of the output.
     procedure AssertRawLine(const aMsg: string; const aLine: string);
-    // Fails unless h2pas exited with code 0 and reported no syntax or internal error.
+    // Fails unless h2pas exited with code 0 and reported no syntax error, internal error or indentation warning.
     procedure AssertConverted;
     // Fails unless the compiler accepts output.pp; ignored when no compiler is found.
     procedure AssertCompiles;
@@ -441,6 +441,8 @@ begin
     Fail('h2pas reported a syntax error'+DumpOutput);
   if Pos('Internal error',FToolOutput)>0 then
     Fail('h2pas reported an internal error'+DumpOutput);
+  if Pos('decrease the indentation',FToolOutput)>0 then
+    Fail('h2pas reported unbalanced indentation'+DumpOutput);
   if FRawOutput.Count=0 then
     Fail('h2pas did not write output.pp'+DumpOutput);
 end;

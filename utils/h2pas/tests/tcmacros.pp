@@ -70,6 +70,8 @@ type
     procedure TestGreaterEqual;
     procedure TestPointerCast;
     procedure TestNoParameters;
+    procedure TestIndentationAfterMacros;
+    procedure TestCompactIndentationAfterMacros;
   end;
 
 implementation
@@ -432,6 +434,33 @@ begin
   AssertConverted;
   AssertInterface('macro with an empty parameter list',['function F : longint;']);
   AssertImplementation('macro with an empty parameter list body',['F:=foo;']);
+end;
+
+
+procedure TTestFunctionMacros.TestIndentationAfterMacros;
+
+begin
+  Convert(['#define F(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;']);
+  AssertConverted;
+  AssertEquals('no indentation warning','',Trim(ToolOutput));
+  AssertRawLine('const block after macros','  const');
+  AssertRawLine('constant after macros','    G = 1;');
+  AssertRawLine('function after macros','  function f:longint;');
+  AssertRawLine('type block after macros','  type');
+  AssertRawLine('type after macros','    t = longint;');
+end;
+
+
+procedure TTestFunctionMacros.TestCompactIndentationAfterMacros;
+
+begin
+  Convert(['#define F(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;'],['-c']);
+  AssertConverted;
+  AssertEquals('no indentation warning','',Trim(ToolOutput));
+  AssertRawLine('-c const block after macros','const');
+  AssertRawLine('-c constant after macros','  G = 1;');
+  AssertRawLine('-c function after macros','function f:longint;');
+  AssertRawLine('-c type block after macros','type');
 end;
 
 

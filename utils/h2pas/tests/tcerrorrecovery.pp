@@ -29,6 +29,7 @@ type
     procedure TestMemberError;
     procedure TestMacroDecoratedPrototypes;
     procedure TestRecoveredUnitCompiles;
+    procedure TestIndentationAfterError;
   end;
 
 implementation
@@ -40,6 +41,7 @@ begin
   AssertTrue('h2pas reports the syntax error',Pos('syntax error',ToolOutput)>0);
   AssertEquals('h2pas exit code',0,ToolExitCode);
   AssertTrue('h2pas reports no internal error',Pos('Internal error',ToolOutput)=0);
+  AssertTrue('h2pas reports no indentation warning',Pos('decrease the indentation',ToolOutput)=0);
   AssertTrue('h2pas writes the unit',RawOutput.Count>0);
 end;
 
@@ -125,6 +127,16 @@ begin
            'struct t { int a b; int c; };','extern int z;'],['-d']);
   AssertRecovered;
   AssertCompiles;
+end;
+
+
+procedure TTestErrorRecovery.TestIndentationAfterError;
+
+begin
+  Convert(['int bad bad;','int f(void);','typedef int t;']);
+  AssertRecovered;
+  AssertRawLine('function after an error has the base indentation','  function f:longint;');
+  AssertRawLine('type block after an error has the base indentation','  type');
 end;
 
 

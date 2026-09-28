@@ -166,8 +166,8 @@ begin
   dec(space_index);
   if space_index<0 then
     begin
-    Writeln('Warning: atempt to decrease index below zero');
-    space_index:=1;
+    Writeln('Warning: attempt to decrease the indentation below zero');
+    space_index:=0;
     end
   else
     delete(aktspace,1,space_array[space_index]);
@@ -175,7 +175,11 @@ end;
 
 procedure resetshift;
 begin
-  space_index:=1;
+  space_index:=0;
+  if compactmode then
+    aktspace:=''
+  else
+    aktspace:='  ';
 end;
 
 function str(i : longint) : string;
@@ -664,8 +668,6 @@ begin
       writeln(outfile,';');
       popshift;
       writeln(outfile,aktspace,'end;');
-      if not compactmode then
-        popshift;
       flush(outfile);
       end;
     t_funexprlist :

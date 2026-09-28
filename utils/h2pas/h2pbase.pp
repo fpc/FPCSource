@@ -1273,12 +1273,10 @@ function HandleErrorDecl(e1,e2 : presobject) : presobject;
 begin
   HandleErrorDecl:=Nil;
   writeln(outfile,'in declaration at line ',line_no,' *)');
-  aktspace:='';
   in_space_define:=0;
   in_define:=false;
   arglevel:=0;
   if_nb:=0;
-  aktspace:='    ';
   resetshift;
   yyerrok;
 end;
