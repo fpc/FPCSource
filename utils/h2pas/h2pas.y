@@ -869,6 +869,18 @@ maybe_empty_unary_expr :
                   { $$:=nil;}
                   ;
 
+string_list :
+     CSTRING
+     {
+     (* remove L prefix for widestrings *)
+     $$:=CheckWideString(act_token);
+     } |
+     string_list CSTRING
+     {
+     $$:=ConcatStrings($1,CheckWideString(act_token));
+     }
+     ;
+
 unary_expr:
      dname
      {
@@ -878,10 +890,9 @@ unary_expr:
      {
      $$:=$1;
      } |
-     CSTRING
+     string_list
      {
-     (* remove L prefix for widestrings *)
-     $$:=CheckWideString(act_token);
+     $$:=$1;
      } |
      NUMBER
      {

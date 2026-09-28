@@ -43,6 +43,9 @@ type
     procedure TestStringEscapes;
     procedure TestQuotesInStrings;
     procedure TestEscapesCompile;
+    procedure TestAdjacentStrings;
+    procedure TestAdjacentStringsWithEscapes;
+    procedure TestAdjacentStringsCompile;
     procedure TestAlias;
     procedure TestSelfReferencingDefine;
     procedure TestSelfReferencingDefineStripped;
@@ -300,6 +303,34 @@ procedure TTestConstMacros.TestEscapesCompile;
 begin
   Convert(['#define NL ''\n''','#define S "a\tb\n"','#define E ""','#define DQ "say \"hi\""','#define AP "it''s"',
            '#define SQ ''\''''','#define ESC "\033[0m"','#define BSL ''\\'''],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestAdjacentStrings;
+
+begin
+  Convert(['#define S "ab" "cd"','#define V "" "x"','#define W ("p" \','  "q")']);
+  AssertConverted;
+  AssertInterface('adjacent strings are joined',['S = ''abcd'';','V = ''x'';','W = ''pq'';']);
+end;
+
+
+procedure TTestConstMacros.TestAdjacentStringsWithEscapes;
+
+begin
+  Convert(['#define T "a\n" "b" "c\t"','#define U "it''" "s"']);
+  AssertConverted;
+  AssertInterface('adjacent strings with character codes',['T = ''a''#10''bc''#9;']);
+  AssertInterface('adjacent strings with an apostrophe',['U = ''it''''s'';']);
+end;
+
+
+procedure TTestConstMacros.TestAdjacentStringsCompile;
+
+begin
+  Convert(['#define S "ab" "cd"','#define T "a\n" "b" "c\t"','#define U "it''" "s"','#define V "" "x"'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

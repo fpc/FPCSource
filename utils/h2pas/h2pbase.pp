@@ -87,6 +87,8 @@ function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobje
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
 function HandleDefine(dname : presobject) : presobject;
 Function CheckWideString(S : String) : presobject;
+// Returns the Pascal literal of the adjacent string literals aLeft and aRight, and disposes both.
+function ConcatStrings(aLeft,aRight : presobject) : presobject;
 function CheckUnderScore(pdecl : presobject) : presobject;
 
 Function NewCType(aCType,aPascalType : String) : PresObject;
@@ -556,6 +558,23 @@ begin
   if Win32headers and (s[1]='L') then
     delete(s,1,1);
   CheckWideString:=NewID(CStringToPascal(copy(s,2,length(s)-2)));
+end;
+
+
+function ConcatStrings(aLeft,aRight : presobject) : presobject;
+
+var
+  lLeft, lRight : AnsiString;
+
+begin
+  lLeft:=aLeft^.str;
+  lRight:=aRight^.str;
+  if (lLeft<>'') and (lLeft[length(lLeft)]='''') and (lRight<>'') and (lRight[1]='''') then
+    Result:=NewID(copy(lLeft,1,length(lLeft)-1)+copy(lRight,2,length(lRight)-1))
+  else
+    Result:=NewID(lLeft+lRight);
+  dispose(aLeft,done);
+  dispose(aRight,done);
 end;
 
 function CheckUnderScore(pdecl: presobject): presobject;
