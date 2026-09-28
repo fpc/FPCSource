@@ -34,7 +34,6 @@ type
     procedure TestNoCdeclOnRecordField;
     procedure TestTypedefStructTagAlias;
     procedure TestFunctionTypedef;
-    procedure TestFunctionPointerParamCompiles;
     procedure TestNoShiftWarning;
   end;
 
@@ -153,15 +152,6 @@ begin
   Convert(['typedef int (func_t)(int);']);
   AssertConverted;
   AssertInterface('function typedef',['func_t = function (_para1:longint):longint;cdecl;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestFunctionPointerParamCompiles;
-
-begin
-  Convert(['void f(void (*vcb)(void), int (*icb)(int a));'],['-d']);
-  AssertConverted;
-  AssertCompiles;
 end;
 
 

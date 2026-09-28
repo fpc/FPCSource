@@ -313,7 +313,7 @@ begin
   Convert(['void f(int *a, void *c, int **d, int (*cb)(int));'],['-v']);
   AssertConverted;
   AssertInterface('-v turns typed pointer parameters into var parameters',
-    ['procedure f(var a:longint; c:pointer; var d:Plongint; cb:function (_para1:longint):longint);']);
+    ['procedure f(var a:longint; c:pointer; var d:Plongint; cb:f_cb);']);
 end;
 
 

@@ -438,6 +438,76 @@ begin
 end;
 
 
+// Returns true when the argument aArg (t_arg) is a function pointer: its declarator is a pointer to a procdef.
+function IsProcVarArg(aArg : presobject) : boolean;
+
+begin
+  Result:=assigned(aArg) and assigned(aArg^.p1) and assigned(aArg^.p2)
+          and (aArg^.p2^.typ=t_dec) and assigned(aArg^.p2^.p1)
+          and (aArg^.p2^.p1^.typ=t_pointerdef) and assigned(aArg^.p2^.p1^.p1)
+          and (aArg^.p2^.p1^.p1^.typ=t_procdef);
+end;
+
+
+// Declares a named procedural type aOwner_param for each function pointer argument in aArgs,
+// and replaces the type of that argument by the name.
+procedure HoistProcVarArgs(const aOwner : string; aArgs : presobject);
+
+var
+  lArg, lDec : presobject;
+  lIndex : integer;
+  lParam, lName : string;
+
+begin
+  lIndex:=0;
+  while assigned(aArgs) do
+    begin
+    Inc(lIndex);
+    lArg:=aArgs^.p1;
+    if IsProcVarArg(lArg) then
+      begin
+      lDec:=lArg^.p2;
+      if assigned(lDec^.p2) and assigned(lDec^.p2^.p) then
+        lParam:=lDec^.p2^.str
+      else if RemoveUnderscore then
+        lParam:='para'+str(lIndex)
+      else
+        lParam:='_para'+str(lIndex);
+      HoistProcVarArgs(aOwner+'_'+lParam,lDec^.p1^.p1^.p2);
+      lName:=TypeName(aOwner+'_'+lParam);
+      if block_type<>bt_type then
+        begin
+        if not compactmode then
+          writeln(outfile);
+        writeln(outfile,aktspace,'type');
+        block_type:=bt_type;
+        end;
+      shift(2);
+      write(outfile,aktspace,lName,' = ');
+      write_p_a_def(outfile,lDec^.p1,lArg^.p1);
+      writeln(outfile,';cdecl;');
+      is_procvar:=false;
+      WritePointerMarker(outfile,lName);
+      popshift;
+      dispose(lArg^.p1,done);
+      lArg^.p1:=NewIntID(lName);
+      dispose(lDec^.p1,done);
+      lDec^.p1:=nil;
+      end;
+    aArgs:=aArgs^.next;
+    end;
+end;
+
+
+// Hoists the function pointer arguments of the function declared by aDecl (t_declist).
+procedure HoistDeclarationProcVarArgs(aDecl : presobject);
+
+begin
+  if assigned(aDecl^.p1^.p2) and assigned(aDecl^.p1^.p2^.p) then
+    HoistProcVarArgs(aDecl^.p1^.p2^.str,aDecl^.p1^.p1^.p2);
+end;
+
+
 function HandleDeclarationStatement(decl, type_spec, modifier_spec,
   decllist_spec, block_spec: presobject): presobject;
 var
@@ -452,6 +522,7 @@ begin
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
+        HoistDeclarationProcVarArgs(decllist_spec);
         repeat
         If UseLib then
           IsExtern:=true
@@ -651,6 +722,7 @@ begin
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
+        HoistDeclarationProcVarArgs(decllist_spec);
         repeat
         If UseLib then
           IsExtern:=true
@@ -926,6 +998,8 @@ begin
       writeln(outfile,aktspace,'type');
       block_type:=bt_type;
     end;
+  if assigned(declarator) and assigned(declarator^.p2) and assigned(declarator^.p2^.p) then
+    HoistProcVarArgs(declarator^.p2^.str,arg_decl_list);
   no_pop:=assigned(dec_modifier) and (dec_modifier^.str='no_pop');
   shift(2);
   (* walk through all declarations *)

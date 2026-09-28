@@ -32,6 +32,7 @@ type
     procedure TestVoidArgProcedurePointer;
     procedure TestVoidArgFunctionPointer;
     procedure TestVoidPointerArg;
+    procedure TestFunctionPointerArg;
     procedure TestGenericTypedef;
     procedure TestTypedefsShareTypeBlock;
   end;
@@ -177,6 +178,17 @@ begin
   AssertConverted;
   AssertInterface('unnamed void pointer argument is kept',['cb1 = procedure (_para1:pointer);cdecl;']);
   AssertInterface('named void pointer argument is kept',['cb2 = procedure (p:pointer);cdecl;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArg;
+
+begin
+  Convert(['typedef void (*cb)(void (*inner)(int x));'],['-d']);
+  AssertConverted;
+  AssertInterface('function pointer argument gets a named type before the typedef',
+    ['cb_inner = procedure (x:longint);cdecl;','cb = procedure (inner:cb_inner);cdecl;']);
   AssertCompiles;
 end;
 

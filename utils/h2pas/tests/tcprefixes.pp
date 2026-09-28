@@ -55,6 +55,7 @@ type
     procedure TestUnderscoreParams;
     procedure TestUnderscorePointerNames;
     procedure TestUnderscoreUnitCompiles;
+    procedure TestFunctionPointerParamType;
   end;
 
   { TTestPointerPrefix }
@@ -325,6 +326,18 @@ procedure TTestTypePrefix.TestUnderscoreUnitCompiles;
 begin
   ConvertSample(['-T','-d']);
   AssertCompiles;
+end;
+
+
+procedure TTestTypePrefix.TestFunctionPointerParamType;
+
+begin
+  Convert(['void f(void (*vcb)(void));','void g(void (*)(void));'],['-T']);
+  AssertConverted;
+  AssertInterface('-T prefixes the procedural type of a parameter',['Tf_vcb = procedure ;cdecl;']);
+  AssertInterface('-T parameter uses the prefixed type',['procedure f(vcb:Tf_vcb);']);
+  AssertInterface('-T unnamed parameter type',['Tg_para1 = procedure ;cdecl;']);
+  AssertInterface('-T unnamed parameter',['procedure g(para1:Tg_para1);']);
 end;
 
 

@@ -30,6 +30,9 @@ type
     procedure TestOpenArrayParam;
     procedure TestConstParam;
     procedure TestFunctionPointerParams;
+    procedure TestUnnamedFunctionPointerParam;
+    procedure TestNestedFunctionPointerParam;
+    procedure TestFunctionPointerParamCompiles;
     procedure TestEllipsis;
     procedure TestEllipsisExternal;
     procedure TestFarNearPointers;
@@ -170,8 +173,41 @@ procedure TTestFunctions.TestFunctionPointerParams;
 begin
   Convert(['void f(int (*cb)(int x), void (*vcb)(void));']);
   AssertConverted;
-  AssertInterface('function pointer parameters become procedural types',
-    ['procedure f(cb:function (x:longint):longint; vcb:procedure );']);
+  AssertInterface('function pointer parameters get named procedural types',
+    ['type','f_cb = function (x:longint):longint;cdecl;','f_vcb = procedure ;cdecl;']);
+  AssertInterface('parameters use the named types',['procedure f(cb:f_cb; vcb:f_vcb);']);
+  AssertImplementation('stub uses the named types',['procedure f(cb:f_cb; vcb:f_vcb);']);
+end;
+
+
+procedure TTestFunctions.TestUnnamedFunctionPointerParam;
+
+begin
+  Convert(['void g(void (*)(void));']);
+  AssertConverted;
+  AssertInterface('unnamed function pointer parameter type',['g__para1 = procedure ;cdecl;']);
+  AssertInterface('unnamed function pointer parameter',['procedure g(_para1:g__para1);']);
+end;
+
+
+procedure TTestFunctions.TestNestedFunctionPointerParam;
+
+begin
+  Convert(['int h(int (*cmp)(void (*deep)(void), int), char *s);']);
+  AssertConverted;
+  AssertInterface('function pointer parameter of a function pointer parameter is declared first',
+    ['h_cmp_deep = procedure ;cdecl;','h_cmp = function (deep:h_cmp_deep; _para2:longint):longint;cdecl;']);
+  AssertInterface('outer parameter',['function h(cmp:h_cmp; s:Pansichar):longint;']);
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerParamCompiles;
+
+begin
+  Convert(['void f(void (*vcb)(void), int (*icb)(int a));',
+           'int h(int (*cmp)(void (*deep)(void), int), char *s);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
