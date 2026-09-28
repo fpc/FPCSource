@@ -140,6 +140,26 @@ begin
 end;
 
 
+// Returns true when the expression aExpr is a comparison, or an and or or of comparisons.
+function IsBooleanExpr(aExpr : presobject) : boolean;
+
+var
+  lOp : string;
+
+begin
+  Result:=false;
+  while assigned(aExpr) and (aExpr^.typ=t_exprlist) and not assigned(aExpr^.next) do
+    aExpr:=aExpr^.p1;
+  if not assigned(aExpr) or (aExpr^.typ<>t_bop) then
+    exit;
+  lOp:=aExpr^.str;
+  if (lOp='=') or (lOp='<>') or (lOp='<') or (lOp='<=') or (lOp='>') or (lOp='>=') then
+    Result:=true
+  else if (lOp=' and ') or (lOp=' or ') then
+    Result:=IsBooleanExpr(aExpr^.p1) and IsBooleanExpr(aExpr^.p2);
+end;
+
+
 function HandleDivision(aLeft,aRight : presobject) : presobject;
 
 begin
@@ -1855,6 +1875,8 @@ begin
       end;
     end;
   (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
+  if not assigned(para_def_expr^.p3) and IsBooleanExpr(para_def_expr) then
+    para_def_expr^.p3:=NewIntID('boolean');
   if not stripinfo then
   begin
     writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');

@@ -114,6 +114,10 @@ type
     procedure TestNotEqual;
     procedure TestLess;
     procedure TestGreaterEqual;
+    procedure TestComparisonMacroIsBoolean;
+    procedure TestCombinedComparisonsAreBoolean;
+    procedure TestArithmeticMacroIsLongint;
+    procedure TestBooleanMacrosCompile;
     procedure TestPointerCast;
     procedure TestNoParameters;
     procedure TestStatementMacro;
@@ -915,6 +919,50 @@ begin
   Convert(['#define GE_E(a,b) ((a) >= (b))']);
   AssertConverted;
   AssertImplementation('greater or equal',['GE_E:=a>=b;']);
+end;
+
+
+procedure TTestFunctionMacros.TestComparisonMacroIsBoolean;
+
+begin
+  Convert(['#define GE(a, b) ((a) >= (b))','#define EQ(a,b) (a == b)','#define V 3','#define HAVE(h) (V >= (h))']);
+  AssertConverted;
+  AssertInterface('comparison macro returns boolean',['function GE(a,b : longint) : boolean;']);
+  AssertInterface('equality macro returns boolean',['function EQ(a,b : longint) : boolean;']);
+  AssertInterface('comparison with a constant returns boolean',['function HAVE(h : longint) : boolean;']);
+  AssertNotOutput('the result type of a comparison is known','return type might be wrong');
+end;
+
+
+procedure TTestFunctionMacros.TestCombinedComparisonsAreBoolean;
+
+begin
+  Convert(['#define BOTH(a,b) (((a) > 0) & ((b) < 2))','#define EITHER(a,b) (((a) != 0) | ((b) <= 2))']);
+  AssertConverted;
+  AssertInterface('and of comparisons',['function BOTH(a,b : longint) : boolean;']);
+  AssertInterface('or of comparisons',['function EITHER(a,b : longint) : boolean;']);
+  AssertImplementation('and of comparisons body',['BOTH:=(a>0) and (b<2);']);
+end;
+
+
+procedure TTestFunctionMacros.TestArithmeticMacroIsLongint;
+
+begin
+  Convert(['#define ADD(a,b) ((a) + (b))','#define MIX(a,b) (((a) > 0) | (b))','#define CAST(a) ((int)((a) > 0))']);
+  AssertConverted;
+  AssertInterface('arithmetic macro keeps longint',['function ADD(a,b : longint) : longint;']);
+  AssertInterface('or of a comparison and a value keeps longint',['function MIX(a,b : longint) : longint;']);
+  AssertInterface('cast result type is kept',['function CAST(a : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestBooleanMacrosCompile;
+
+begin
+  Convert(['#define GE(a, b) ((a) >= (b))','#define EQ(a,b) (a == b)','#define V 3','#define HAVE(h) (V >= (h))',
+           '#define BOTH(a,b) (((a) > 0) & ((b) < 2))','#define ADD(a,b) ((a) + (b))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
