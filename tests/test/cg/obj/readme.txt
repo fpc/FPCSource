@@ -82,6 +82,7 @@ solaris-sparc : GCC: (GNU) 5.5.0
 linux-arm : GCC: (GNU) 2.95.1 19990816 (release)
 linux-arm-eabi : GCC: (Debian 4.3.2-1) 4.3.2
 linux-powerpc : GCC: (GNU) 4.0.0 to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
+                (tcext7.o): gcc (Debian 16.2.0-2) 16.2.0
 linux-powerpc64 : GCC: (GNU) 3.3.3 (SuSE Linux) to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
 linux-powerpc64-le : GCC: (Red Hat 4.9.2-1) 4.9.2 20141101
 linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
