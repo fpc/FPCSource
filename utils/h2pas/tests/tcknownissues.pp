@@ -30,7 +30,6 @@ type
     procedure TestLongDouble;
     procedure TestReferenceParam;
     procedure TestEllipsisStubMatchesInterface;
-    procedure TestSignedChar;
     procedure TestBitFieldAccessorParamName;
     procedure TestNoCdeclOnRecordField;
     procedure TestTypedefStructTagAlias;
@@ -118,15 +117,6 @@ begin
   AssertConverted;
   AssertImplementation('stub without the variable arguments',['function f(fmt:Pansichar):longint;']);
   AssertInterface('interface declares the stub signature',['function f(fmt:Pansichar):longint;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestSignedChar;
-
-begin
-  Convert(['typedef signed char t;']);
-  AssertConverted;
-  AssertInterface('signed char is shortint',['t = shortint;']);
 end;
 
 

@@ -37,6 +37,8 @@ type
     procedure TestUnsignedLongLong;
     procedure TestUnsignedChar;
     procedure TestUnsignedCharPointer;
+    procedure TestSignedChar;
+    procedure TestSignedCharWithoutAnsiChar;
     procedure TestSignedInt;
     procedure TestSignedLong;
     procedure TestSignedShort;
@@ -190,6 +192,20 @@ begin
   Convert(['void f(unsigned char *buf, unsigned char c);']);
   AssertConverted;
   AssertInterface('unsigned char parameters use byte',['procedure f(buf:Pbyte; c:byte);']);
+end;
+
+
+procedure TTestTypeMapping.TestSignedChar;
+
+begin
+  CheckTypedef('signed char','shortint');
+end;
+
+
+procedure TTestTypeMapping.TestSignedCharWithoutAnsiChar;
+
+begin
+  CheckTypedef('signed char','shortint',['-a']);
 end;
 
 

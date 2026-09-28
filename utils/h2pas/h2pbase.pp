@@ -151,6 +151,8 @@ begin
       USHORT_STR: tp:=SHORT_STR;
       USMALL_STR: tp:=SMALL_STR;
       // UCHAR_STR: tp:=CHAR_STR; identical to USHORT_STR....
+      CHAR_STR: tp:=SHORT_STR;
+      ANSICHAR_STR: tp:=SHORT_STR;
       QWORD_STR: tp:=INT64_STR;
     else
       tp:='';
