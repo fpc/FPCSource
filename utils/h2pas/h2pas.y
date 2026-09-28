@@ -56,6 +56,7 @@ end;
 %token INT8 INT16 INT32 INT64
 %token _DOUBLE
 %token _RETURN
+%token _STATIC
 %%
 
 file : declaration_list
@@ -106,6 +107,10 @@ dec_specifier :
      EXTERN
       { (* EXTERN *)
         $$:=NewID('extern');
+      }
+     | _STATIC
+      { (* STATIC *)
+        $$:=NewID('static');
       }
      |
        { (* not extern  *)

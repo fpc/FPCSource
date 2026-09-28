@@ -43,6 +43,7 @@ type
     procedure TestBitFieldGroupFull;
     procedure TestBitFieldDoesNotFit;
     procedure TestBitFieldsCompile;
+    procedure TestBitFieldSetterClearsField;
     procedure TestVolatileMember;
     procedure TestSelfContainedUnitCompiles;
   end;
@@ -232,7 +233,7 @@ begin
     ['function fa(var __rec : bits) : dword;','begin','fa:=(__rec.flag0 and bm_bits_fa) shr bp_bits_fa;','end;']);
   AssertImplementation('bit field setter body',
     ['procedure set_fb(var __rec : bits; __fb : dword);','begin',
-     '__rec.flag0:=__rec.flag0 or ((__fb shl bp_bits_fb) and bm_bits_fb);','end;']);
+     '__rec.flag0:=(__rec.flag0 and not bm_bits_fb) or ((__fb shl bp_bits_fb) and bm_bits_fb);','end;']);
 end;
 
 
@@ -251,7 +252,7 @@ procedure TTestStructs.TestWideBitFields;
 begin
   Convert(['struct wide { unsigned fa : 10; unsigned fb : 10; };']);
   AssertConverted;
-  AssertInterface('more than 16 bits use a longint flag field',['wide = record','flag0 : longint;','end;']);
+  AssertInterface('more than 16 bits use a dword flag field',['wide = record','flag0 : dword;','end;']);
   AssertInterface('second bit field mask and position',['bm_wide_fb = $FFC00;','bp_wide_fb = 10;']);
 end;
 
@@ -272,7 +273,7 @@ procedure TTestStructs.TestBitFieldGroupFull;
 begin
   Convert(['struct s { unsigned int a : 1; unsigned int b : 31; unsigned int c : 2; };']);
   AssertConverted;
-  AssertInterface('a full 32 bit group is followed by a new flag',['s = record','flag0 : longint;','flag1 : word;','end;']);
+  AssertInterface('a full 32 bit group is followed by a new flag',['s = record','flag0 : dword;','flag1 : word;','end;']);
   AssertImplementation('bit field in the first flag',['b:=(__rec.flag0 and bm_s_b) shr bp_s_b;']);
   AssertImplementation('bit field in the second flag',['c:=(__rec.flag1 and bm_s_c) shr bp_s_c;']);
 end;
@@ -283,7 +284,7 @@ procedure TTestStructs.TestBitFieldDoesNotFit;
 begin
   Convert(['struct s { unsigned int a : 30; unsigned int b : 10; };']);
   AssertConverted;
-  AssertInterface('a bit field that does not fit starts a new flag',['s = record','flag0 : longint;','flag1 : word;','end;']);
+  AssertInterface('a bit field that does not fit starts a new flag',['s = record','flag0 : dword;','flag1 : word;','end;']);
   AssertInterface('position in the new flag',['bm_s_b = $3FF;','bp_s_b = 0;']);
   AssertImplementation('bit field in the new flag',['b:=(__rec.flag1 and bm_s_b) shr bp_s_b;']);
 end;
@@ -295,6 +296,20 @@ begin
   Convert(['struct w { unsigned long long x : 40; unsigned int y : 3; };',
            'struct f { unsigned int a : 1; unsigned int b : 31; unsigned int c : 2; };'],['-d']);
   AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestBitFieldSetterClearsField;
+
+begin
+  Convert(['struct s { unsigned long long x : 40; unsigned int a : 1; unsigned int b : 3; };'],['-d']);
+  AssertConverted;
+  AssertImplementation('setter of a qword flag clears the field',
+    ['procedure set_x(var __rec : s; __x : qword);','begin',
+     '__rec.flag0:=(__rec.flag0 and not bm_s_x) or ((__x shl bp_s_x) and bm_s_x);','end;']);
+  AssertImplementation('setter in the second flag clears the field',
+    ['__rec.flag1:=(__rec.flag1 and not bm_s_b) or ((__b shl bp_s_b) and bm_s_b);']);
   AssertCompiles;
 end;
 

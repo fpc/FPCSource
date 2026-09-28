@@ -106,12 +106,13 @@ D [0-9]
 "WINGDIAPI"             HandleCallingConvention(WINGDIAPI);
 "CALLBACK"              HandleCallingConvention(CALLBACK);
 "EXPENTRY"              HandleCallingConvention(CALLBACK);
-"volatile"|"__volatile"|"__volatile__"|"restrict"|"__restrict"|"__restrict__"|"inline"|"__inline"|"__inline__"|"static"|"__extension__"|"__cdecl"
+"volatile"|"__volatile"|"__volatile__"|"restrict"|"__restrict"|"__restrict__"|"inline"|"__inline"|"__inline__"|"__extension__"|"__cdecl"
                         if not NotInCPlusBlock then skip_until_eol;
 "__attribute__"|"__attribute"|"__declspec"|"__asm__"|"__asm"
                         HandleSkipParenthesized;
 "__stdcall"             if NotInCPlusBlock then return(STDCALL) else skip_until_eol;
 "return"                if NotInCPlusBlock then return(_RETURN) else skip_until_eol;
+"static"                if NotInCPlusBlock then return(_STATIC) else skip_until_eol;
 "void"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
 "VOID"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
 "#ifdef"[ \t]*"__cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"

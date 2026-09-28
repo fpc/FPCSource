@@ -81,6 +81,7 @@ const INT32 = 330;
 const INT64 = 331;
 const _DOUBLE = 332;
 const _RETURN = 333;
+const _STATIC = 334;
 
 const
   SHORT_STR = 'shortint';

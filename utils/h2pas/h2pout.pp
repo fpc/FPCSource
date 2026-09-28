@@ -467,7 +467,7 @@ begin
         writeln(implemfile,aktspace,'begin');
         shift(2);
         write(implemfile,aktspace,'__rec.flag',flag_index,':=');
-        write(implemfile,'__rec.flag',flag_index,' or ');
+        write(implemfile,'(__rec.flag',flag_index,' and not bm_',ph,'_',name,') or ');
         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
         popshift;
         writeln(implemfile,aktspace,'end;');
@@ -1233,7 +1233,7 @@ var
     if current_level <= 16 then
       writeln(outfile,'word;')
     else if current_level <= 32 then
-      writeln(outfile,'longint;')
+      writeln(outfile,'dword;')
     else
       writeln(outfile,'qword;');
     is_sized:=false;

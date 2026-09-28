@@ -66,6 +66,11 @@ type
     procedure TestStaticInlineCompiles;
     procedure TestArrayParams;
     procedure TestArrayParamsCompile;
+    procedure TestStaticPrototypeIgnored;
+    procedure TestStaticPrototypeNotImported;
+    procedure TestExternFunctionBody;
+    procedure TestExternFunctionBodyNotImported;
+    procedure TestExternFunctionBodyCompiles;
     procedure TestFunctionBody;
     procedure TestWhileStatement;
   end;
@@ -85,6 +90,8 @@ type
     procedure TestAnonymousStructVariable;
     procedure TestAnonymousUnionAndEnumVariables;
     procedure TestAnonymousVariablesCompile;
+    procedure TestStaticVariable;
+    procedure TestStaticVariablesCompile;
   end;
 
 implementation
@@ -584,6 +591,60 @@ begin
 end;
 
 
+procedure TTestFunctions.TestStaticPrototypeIgnored;
+
+begin
+  Convert(['static int helper(int a);','int imported(int a);'],['-d']);
+  AssertConverted;
+  AssertOutput('static prototype is reported as ignored',['(* static function helper ignored *)']);
+  AssertNotOutput('static prototype is not declared','function helper(');
+  AssertInterface('other prototypes are declared',['function imported(a:longint):longint;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestStaticPrototypeNotImported;
+
+begin
+  Convert(['static int helper(int a);','int imported(int a);'],['-D','-l','mylib']);
+  AssertConverted;
+  AssertNotOutput('static prototype is not imported','name ''helper''');
+  AssertInterface('other prototypes are imported',
+    ['function imported(a:longint):longint;cdecl;external External_library name ''imported'';']);
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestExternFunctionBody;
+
+begin
+  Convert(['extern int twice(int a) { return a * 2; }','extern inline void nothing(void) { return; }'],['-d']);
+  AssertConverted;
+  AssertInterface('extern function with a body is not external',['function twice(a:longint):longint;','procedure nothing;']);
+  AssertNotOutput('extern function with a body has no external directive','cdecl;external');
+  AssertImplementation('extern function with a body is implemented',
+    ['function twice(a:longint):longint;','begin','exit(a*2);','end;','procedure nothing;','begin','exit;','end;']);
+end;
+
+
+procedure TTestFunctions.TestExternFunctionBodyNotImported;
+
+begin
+  Convert(['extern int twice(int a) { return a * 2; }'],['-D','-l','mylib']);
+  AssertConverted;
+  AssertNotOutput('extern function with a body is not imported','name ''twice''');
+  AssertImplementation('extern function with a body is implemented',['exit(a*2);']);
+end;
+
+
+procedure TTestFunctions.TestExternFunctionBodyCompiles;
+
+begin
+  Convert(['extern int twice(int a) { return a * 2; }','extern inline void nothing(void) { return; }'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
 procedure TTestFunctions.TestFunctionBody;
 
 begin
@@ -702,6 +763,27 @@ procedure TTestVariables.TestAnonymousVariablesCompile;
 
 begin
   Convert(['struct { int a; } v;','union { int i; float f; } u;','enum { E1, E2 } e;'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestStaticVariable;
+
+begin
+  Convert(['static int counter;','static const char *names[4];','int pub;']);
+  AssertConverted;
+  AssertInterface('static variable is a plain variable',['var','counter : longint;']);
+  AssertNotOutput('static variable is not public','counter : longint;cvar');
+  AssertInterface('static array variable',['names : array[0..3] of ^ansichar;']);
+  AssertInterface('other variables stay public',['pub : longint;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestStaticVariablesCompile;
+
+begin
+  Convert(['static int counter;','static const char *names[4];','int pub;'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

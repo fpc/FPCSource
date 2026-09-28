@@ -608,14 +608,10 @@ begin
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
         HoistDeclarationProcVarArgs(decllist_spec);
-        lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
-          (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
-        lSkipEllipsis:=lVarArgs;
+        lVarArgs:=false;
+        lSkipEllipsis:=false;
         repeat
-        If UseLib then
-          IsExtern:=true
-        else
-          IsExtern:=assigned(decl)and(decl^.str='extern');
+        IsExtern:=false;
         no_pop:=assigned(modifier_spec) and (modifier_spec^.str='no_pop');
 
         if (block_type<>bt_func) and not(createdynlib) then
@@ -777,7 +773,7 @@ begin
               begin
                   if isExtern then
                     write(outfile,';cvar;external')
-                  else
+                  else if not (assigned(decl) and (decl^.str='static')) then
                     write(outfile,';cvar;public');
               end;
             writeln(outfile,';');
@@ -814,6 +810,14 @@ begin
   IsExtern:=false;
   (* by default we must pop the args pushed on stack *)
   no_pop:=false;
+  if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
+    and (decllist_spec^.p1^.p1^.typ=t_procdef)
+    and assigned(decl) and (decl^.str='static') then
+    begin
+      if assigned(decllist_spec^.p1^.p2) and assigned(decllist_spec^.p1^.p2^.p) then
+        writeln(outfile,aktspace,'(* static function ',decllist_spec^.p1^.p2^.p,' ignored *)');
+    end
+  else
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
@@ -988,7 +992,7 @@ begin
               begin
                   if isExtern then
                     write(outfile,';cvar;external')
-                  else
+                  else if not (assigned(decl) and (decl^.str='static')) then
                     write(outfile,';cvar;public');
               end;
             writeln(outfile,';');
