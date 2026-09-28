@@ -732,6 +732,33 @@ begin
 end;
 
 
+// Replaces 0 and NULL as value of the return statements in the statement tree aNode by nil.
+procedure NilPointerExits(aNode : presobject);
+
+var
+  lValue : presobject;
+
+begin
+  if not assigned(aNode) then
+    exit;
+  if (aNode^.typ=t_preop) and (aNode^.str='exit') and assigned(aNode^.p1) then
+    begin
+    lValue:=aNode^.p1;
+    while (lValue^.typ=t_exprlist) and not assigned(lValue^.next) and assigned(lValue^.p1) do
+      lValue:=lValue^.p1;
+    if (lValue^.typ=t_id) and ((lValue^.str='0') or (lValue^.str='NULL')) then
+      begin
+      dispose(aNode^.p1,done);
+      aNode^.p1:=NewIntID('nil');
+      end;
+    end;
+  NilPointerExits(aNode^.p1);
+  NilPointerExits(aNode^.p2);
+  NilPointerExits(aNode^.p3);
+  NilPointerExits(aNode^.next);
+end;
+
+
 // Declares named element types for the arrays of and pointers to function pointers among the variables aDecls of type aType.
 procedure HoistVariableProcVarElements(aDecls, aType : presobject);
 
@@ -781,6 +808,8 @@ begin
   if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
+        if assigned(decllist_spec^.p1^.p1^.p1) and (decllist_spec^.p1^.p1^.p1^.typ=t_pointerdef) then
+          NilPointerExits(block_spec);
         HoistDeclarationProcVarArgs(decllist_spec,type_spec);
         lVarArgs:=false;
         lSkipEllipsis:=false;

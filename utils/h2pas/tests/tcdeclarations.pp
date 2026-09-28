@@ -64,6 +64,8 @@ type
     procedure TestStaticInlineFunction;
     procedure TestStaticInlineNotExternal;
     procedure TestStaticInlineCompiles;
+    procedure TestPointerResultReturnsNil;
+    procedure TestPointerResultReturnsNilCompiles;
     procedure TestArrayParams;
     procedure TestArrayParamsCompile;
     procedure TestFunctionPointerResult;
@@ -576,6 +578,29 @@ procedure TTestFunctions.TestStaticInlineCompiles;
 begin
   Convert(['static inline int twice(int a) { return a * 2; }','static inline void nothing(void) { return; }',
            'int imported(int a);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestPointerResultReturnsNil;
+
+begin
+  Convert(['static char *name(int a) { return NULL; }','static int *p(void) { return (0); }',
+           'static void (*pick(void))(int) { return 0; }','static int zero(void) { return 0; }']);
+  AssertConverted;
+  AssertImplementation('NULL result of a pointer function',['function name(a:longint):Pansichar;','begin','exit(nil);','end;']);
+  AssertImplementation('0 result of a pointer function',['function p:Plongint;','begin','exit(nil);','end;']);
+  AssertImplementation('0 result of a function pointer function',['function pick:pick_result;','begin','exit(nil);','end;']);
+  AssertImplementation('0 result of an integer function',['function zero:longint;','begin','exit(0);','end;']);
+end;
+
+
+procedure TTestFunctions.TestPointerResultReturnsNilCompiles;
+
+begin
+  Convert(['static char *name(int a) { return NULL; }','static int *p(void) { return (0); }',
+           'static void (*pick(void))(int) { return 0; }','static void **pp(void) { return 0; }'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

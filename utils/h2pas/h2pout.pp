@@ -503,6 +503,8 @@ begin
     t_ifexpr :
       if in_enum_value and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0) then
         write(outfile,'ord(',FixId(p^.p),')')
+      else if p^.skiptprefix then
+        write(outfile,p^.p)
       else
         write(outfile,FixId(p^.p));
     t_funexprlist :
