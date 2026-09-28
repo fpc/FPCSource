@@ -377,6 +377,30 @@ begin
           AddUnit('webpcomn');
           AddUnit('fpwebpvp8l');
         end;
+    // radiance hdr
+    T:=P.Targets.AddUnit('hdrcomn.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadhdr.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('hdrcomn');
+        end;
+    T:=P.Targets.AddUnit('fpwritehdr.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('hdrcomn');
+        end;
+    // dds
+    T:=P.Targets.AddUnit('fpreaddds.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
     // ico
     T:=P.Targets.AddUnit('icocomn.pas');
     T:=P.Targets.AddUnit('fpreadico.pas');

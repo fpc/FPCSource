@@ -27,7 +27,7 @@ type
     // The first two characters of what was written.
     function Magic: String;
     procedure WriteFullWidthText;
-    procedure ReadP7;
+    procedure ReadP8;
     procedure ReadBadP1;
     procedure CheckColor(const aMessage: String; aX, aY: Integer; const aColor: TFPColor);
   protected
@@ -138,10 +138,10 @@ begin
 end;
 
 
-procedure TTestPNM.ReadP7;
+procedure TTestPNM.ReadP8;
 
 begin
-  Build('P7'#10'WIDTH 1'#10'HEIGHT 1'#10'DEPTH 1'#10'MAXVAL 255'#10'ENDHDR'#10, [0]);
+  Build('P8'#10'1 1'#10'255'#10, [0]);
   ReadIt;
 end;
 
@@ -503,9 +503,9 @@ end;
 procedure TTestPNM.TestUnsupportedSubtypeIsRejected;
 
 begin
-  Build('P7'#10'WIDTH 1'#10, []);
-  AssertFalse('P7 is not accepted by the contents check', FReader.CheckContents(FStream));
-  AssertRaises('Reading P7 raises', Exception, @ReadP7);
+  Build('P8'#10'1 1'#10, []);
+  AssertFalse('P8 is not accepted by the contents check', FReader.CheckContents(FStream));
+  AssertRaises('Reading P8 raises', Exception, @ReadP8);
 end;
 
 

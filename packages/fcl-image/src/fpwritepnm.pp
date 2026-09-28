@@ -16,7 +16,9 @@
 {Support for writing PNM (Portable aNyMap) formats added :
     * PBM (P1,P4) : Portable BitMap format : 1 bit per pixel
     * PGM (P2,P5) : Portable GrayMap format : 8 bits per pixel for P2 (ASCII), 8 or 16 bit for P5 (binary)
-    * PPM (P3,P6) : Portable PixelMap format : 24 bits per pixel for P3 (ASCII), 24 or 48 bit for P6 (binary)}
+    * PPM (P3,P6) : Portable PixelMap format : 24 bits per pixel for P3 (ASCII), 24 or 48 bit for P6 (binary)
+    * PAM (P7) : Portable Arbitrary Map : 8 or 16 bit samples, with an optional alpha channel
+    * PFM (PF,Pf) : Portable Float Map : 32-bit float samples}
 {$mode objfpc}{$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit FPWritePNM;
@@ -72,9 +74,83 @@ type
       constructor Create; override;
   end;
 
+  { TFPWriterPAM }
+
+  TFPWriterPAM = class(TFPCustomImageWriter)
+  private
+    FColorDepth: TPNMColorDepth;
+    FFullWidth: Boolean;
+    FUseAlpha: Boolean;
+  protected
+    procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
+  public
+    // Creates a writer that chooses the tuple type from the image.
+    constructor Create; override;
+    // Tuple type written; pcdAuto chooses it from the image.
+    Property ColorDepth: TPNMColorDepth Read FColorDepth Write FColorDepth;
+    // Writes 16-bit samples instead of 8-bit ones.
+    Property FullWidth: Boolean Read FFullWidth Write FFullWidth;
+    // Adds an alpha channel when the image has a pixel that is not opaque.
+    Property UseAlpha: Boolean Read FUseAlpha Write FUseAlpha;
+  end;
+
+  { TFPWriterPFM }
+
+  TFPWriterPFM = class(TFPCustomImageWriter)
+  private
+    FColorDepth: TPNMColorDepth;
+  protected
+    procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
+  public
+    // Creates a writer that chooses between grey (Pf) and RGB (PF) from the image.
+    constructor Create; override;
+    // pcdRGB writes PF, the other depths write Pf; pcdAuto chooses from the image.
+    Property ColorDepth: TPNMColorDepth Read FColorDepth Write FColorDepth;
+  end;
+
 procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: AnsiString; UseBinaryFormat: boolean = true);
 
 implementation
+
+// Returns the smallest PNM colour depth that holds every pixel of Img.
+function GuessPNMColorDepth(Img: TFPCustomImage): TPNMColorDepth;
+
+var
+  Row, Col: integer;
+  aColor: TFPColor;
+  Gray: Byte;
+
+begin
+  result := pcdBlackWhite;
+  for Row:=0 to img.Height-1 do
+    for Col:=0 to img.Width-1 do
+      begin
+      aColor:=img.Colors[Col,Row];
+      Gray:=Hi(aColor.Green);
+      if (Hi(aColor.Red)<>Gray) or (Hi(aColor.Blue)<>Gray) then
+        exit(pcdRGB);
+      if (Gray<>0) and (Gray<>$FF) then
+        result := pcdGrayscale;
+      end;
+end;
+
+
+// Returns True when Img has a pixel that is not opaque.
+function HasTranslucentPixel(Img: TFPCustomImage): Boolean;
+
+var
+  Row, Col: integer;
+
+begin
+  Result:=True;
+  for Row:=0 to Img.Height-1 do
+    for Col:=0 to Img.Width-1 do
+      if Img.Colors[Col,Row].Alpha<>AlphaOpaque then
+        Exit;
+  Result:=False;
+end;
+
+
 
 procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: AnsiString; UseBinaryFormat: boolean = true);
 var writer: TFPWriterPNM;
@@ -293,21 +369,8 @@ begin
 end;
 
 function TFPWriterPNM.GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
-var Row, Col: integer;
-    aColor: TFPColor;
-    Gray: Byte;
 begin
-   result := pcdBlackWhite;
-   for Row:=0 to img.Height-1 do
-     for Col:=0 to img.Width-1 do
-     begin
-       aColor:=img.Colors[Col,Row];
-       Gray:=Hi(aColor.Green);
-       if (Hi(aColor.Red)<>Gray) or (Hi(aColor.Blue)<>Gray) then
-         exit(pcdRGB);
-       if (Gray<>0) and (Gray<>$FF) then
-         result := pcdGrayscale;
-     end;
+  Result:=GuessPNMColorDepth(Img);
 end;
 
 function TFPWriterPNM.GetFileExtension(AColorDepth: TPNMColorDepth): AnsiString;
@@ -321,9 +384,162 @@ begin
   end;
 end;
 
+{ TFPWriterPAM }
+
+constructor TFPWriterPAM.Create;
+
+begin
+  inherited Create;
+  FColorDepth:=pcdAuto;
+  FUseAlpha:=True;
+end;
+
+
+procedure TFPWriterPAM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
+
+const
+  TupleTypes: array[TPNMColorDepth] of AnsiString = ('', 'BLACKANDWHITE', 'GRAYSCALE', 'RGB');
+
+var
+  lDepth: TPNMColorDepth;
+  lAlpha: Boolean;
+  lMaxVal, lChannels, lSampleSize, lPos, lRow, lCol: Integer;
+  lHeader, lTuple: AnsiString;
+  lLine: TBytes;
+  lColor: TFPColor;
+
+  // Stores a 16-bit value as one sample of lMaxVal.
+  procedure Put(aValue: Word);
+
+  begin
+    case lMaxVal of
+      1 : lLine[lPos]:=Ord(aValue>=$8000);
+      255 : lLine[lPos]:=Hi(aValue);
+    else
+      lLine[lPos]:=Hi(aValue);
+      lLine[lPos+1]:=Lo(aValue);
+    end;
+    Inc(lPos,lSampleSize);
+  end;
+
+begin
+  lDepth:=ColorDepth;
+  if lDepth=pcdAuto then
+    lDepth:=GuessPNMColorDepth(Img);
+  lAlpha:=UseAlpha and HasTranslucentPixel(Img);
+  if lDepth=pcdRGB then
+    lChannels:=3
+  else
+    lChannels:=1;
+  lTuple:=TupleTypes[lDepth];
+  if lAlpha then
+    begin
+    Inc(lChannels);
+    lTuple:=lTuple+'_ALPHA';
+    end;
+  if lDepth=pcdBlackWhite then
+    lMaxVal:=1
+  else if FullWidth then
+    lMaxVal:=65535
+  else
+    lMaxVal:=255;
+  lSampleSize:=1+Ord(lMaxVal=65535);
+  lHeader:=Format('P7'#10'WIDTH %d'#10'HEIGHT %d'#10'DEPTH %d'#10'MAXVAL %d'#10'TUPLTYPE %s'#10'ENDHDR'#10,
+                  [Img.Width,Img.Height,lChannels,lMaxVal,lTuple]);
+  Stream.WriteBuffer(lHeader[1],Length(lHeader));
+  SetLength(lLine,Img.Width*lChannels*lSampleSize);
+  for lRow:=0 to Img.Height-1 do
+    begin
+    lPos:=0;
+    for lCol:=0 to Img.Width-1 do
+      begin
+      lColor:=Img.Colors[lCol,lRow];
+      case lDepth of
+        pcdBlackWhite : Put(65535*Ord(not IsDark(lColor)));
+        pcdGrayscale : Put(CalculateGray(lColor));
+      else
+        Put(lColor.Red);
+        Put(lColor.Green);
+        Put(lColor.Blue);
+      end;
+      if lAlpha then
+        Put(lColor.Alpha);
+      end;
+    if Length(lLine)>0 then
+      Stream.WriteBuffer(lLine[0],Length(lLine));
+    end;
+end;
+
+
+{ TFPWriterPFM }
+
+constructor TFPWriterPFM.Create;
+
+begin
+  inherited Create;
+  FColorDepth:=pcdAuto;
+end;
+
+
+procedure TFPWriterPFM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
+
+var
+  lRGB: Boolean;
+  lPos, lRow, lCol: Integer;
+  lHeader: AnsiString;
+  lLine: array of Cardinal;
+  lColor: TFPColor;
+
+  // Stores a 16-bit value as a little-endian float of 0..1.
+  procedure Put(aValue: Word);
+
+  var
+    lValue: Single;
+
+  begin
+    lValue:=aValue/65535;
+    lLine[lPos]:=NtoLE(PCardinal(@lValue)^);
+    Inc(lPos);
+  end;
+
+begin
+  if ColorDepth=pcdAuto then
+    lRGB:=GuessPNMColorDepth(Img)=pcdRGB
+  else
+    lRGB:=ColorDepth=pcdRGB;
+  if lRGB then
+    lHeader:='PF'
+  else
+    lHeader:='Pf';
+  lHeader:=Format('%s'#10'%d %d'#10'-1.0'#10,[lHeader,Img.Width,Img.Height]);
+  Stream.WriteBuffer(lHeader[1],Length(lHeader));
+  SetLength(lLine,Img.Width*(1+2*Ord(lRGB)));
+  for lRow:=Img.Height-1 downto 0 do
+    begin
+    lPos:=0;
+    for lCol:=0 to Img.Width-1 do
+      begin
+      lColor:=Img.Colors[lCol,lRow];
+      if lRGB then
+        begin
+        Put(lColor.Red);
+        Put(lColor.Green);
+        Put(lColor.Blue);
+        end
+      else
+        Put(CalculateGray(lColor));
+      end;
+    if Length(lLine)>0 then
+      Stream.WriteBuffer(lLine[0],Length(lLine)*SizeOf(Cardinal));
+    end;
+end;
+
+
 initialization
   ImageHandlers.RegisterImageWriter ('Netpbm Portable aNyMap', 'pnm', TFPWriterPNM);
   ImageHandlers.RegisterImageWriter ('Netpbm Portable BitMap', 'pbm', TFPWriterPBM);
   ImageHandlers.RegisterImageWriter ('Netpbm Portable GrayMap', 'pgm', TFPWriterPGM);
   ImageHandlers.RegisterImageWriter ('Netpbm Portable PixelMap', 'ppm', TFPWriterPPM);
+  ImageHandlers.RegisterImageWriter ('Netpbm Portable Arbitrary Map', 'pam', TFPWriterPAM);
+  ImageHandlers.RegisterImageWriter ('Portable Float Map', 'pfm', TFPWriterPFM);
 end.
