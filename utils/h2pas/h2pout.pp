@@ -29,9 +29,12 @@ procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
 procedure write_ifexpr(var outfile:text; p : presobject);
 procedure write_funexpr(var outfile:text; p : presobject);
 procedure write_def_params(var outfile:text; p : presobject);
-procedure write_args(var outfile:text; p : presobject);
+// Writes the argument list p; with aSkipEllipsis the ellipsis argument is left out.
+procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
 procedure write_expr(var outfile:text; p : presobject);
+// Writes the directives of the procedure type just written: stdcall for aStdCall, else cdecl, and varargs.
+procedure WriteProcVarDirectives(var aFile : text; aStdCall : Boolean);
 
 procedure emitignoreconst;
 procedure emitignore(p : presobject);
@@ -50,7 +53,8 @@ function hexstr(i : cardinal) : string;
 function uppercase(s : string) : string;
 function PointerName(const s:string):string;
 function IsACType(const s : String) : Boolean;
-function NeedEllipsisOverload : Boolean;
+// Returns true when the argument list aArgs ends in an ellipsis.
+function HasEllipsis(aArgs : presobject) : Boolean;
 function TypeName(const s:string):string;
 
 Var
@@ -60,6 +64,10 @@ Var
   old_in_args : boolean = false;
   must_write_packed_field : boolean;
   is_procvar : boolean = false;
+  // Set when the last procedure type written takes variable arguments.
+  is_varargs : boolean = false;
+  // Set when an array of const parameter was written.
+  UsesArrayOfConst : boolean = false;
   is_packed : boolean = false;
   if_nb : longint = 0;
 
@@ -74,7 +82,6 @@ var
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
-  _NeedEllipsisOverload : boolean;
   typedef_level : longint = 0;
 
 procedure EmitAndOutput(S : string; aLine : integer);
@@ -138,13 +145,6 @@ begin
   if not stripinfo then
    writeln(outfile,'(* Const before declarator ignored *)');
 end;
-
-function NeedEllipsisOverload : Boolean;
-
-begin
-  NeedEllipsisOverload:=_NeedEllipsisOverload
-end;
-
 
 
 procedure shift(space_number : byte);
@@ -411,21 +411,21 @@ begin
         name:=hp3^.p1^.p2^.p;
         { get function in interface }
         write(outfile,aktspace,'function ',name);
-        write(outfile,'(var a : ',ph,') : ');
+        write(outfile,'(var __rec : ',ph,') : ');
         shift(2);
         write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
         writeln(outfile,';');
         popshift;
         { get function in implementation }
         write(implemfile,aktspace,'function ',name);
-        write(implemfile,'(var a : ',ph,') : ');
+        write(implemfile,'(var __rec : ',ph,') : ');
         if not compactmode then
           shift(2);
         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
         writeln(implemfile,';');
         writeln(implemfile,aktspace,'begin');
         shift(2);
-        write(implemfile,aktspace,name,':=(a.flag',flag_index);
+        write(implemfile,aktspace,name,':=(__rec.flag',flag_index);
         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
         popshift;
         writeln(implemfile,aktspace,'end;');
@@ -434,22 +434,22 @@ begin
         writeln(implemfile,'');
         { set function in interface }
         write(outfile,aktspace,'procedure set_',name);
-        write(outfile,'(var a : ',ph,'; __',name,' : ');
+        write(outfile,'(var __rec : ',ph,'; __',name,' : ');
         shift(2);
         write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
         writeln(outfile,');');
         popshift;
         { set function in implementation }
         write(implemfile,aktspace,'procedure set_',name);
-        write(implemfile,'(var a : ',ph,'; __',name,' : ');
+        write(implemfile,'(var __rec : ',ph,'; __',name,' : ');
         if not compactmode then
           shift(2);
         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
         writeln(implemfile,');');
         writeln(implemfile,aktspace,'begin');
         shift(2);
-        write(implemfile,aktspace,'a.flag',flag_index,':=');
-        write(implemfile,'a.flag',flag_index,' or ');
+        write(implemfile,aktspace,'__rec.flag',flag_index,':=');
+        write(implemfile,'__rec.flag',flag_index,' or ');
         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
         popshift;
         writeln(implemfile,aktspace,'end;');
@@ -691,20 +691,37 @@ begin
   end;
 end;
 
-procedure write_args(var outfile:text; p : presobject);
+// Returns true when aArg (t_arg) is the ellipsis argument.
+function IsEllipsisArg(aArg : presobject) : Boolean;
+
+begin
+  Result:=assigned(aArg) and not assigned(aArg^.p1) and not assigned(aArg^.next);
+end;
+
+
+function HasEllipsis(aArgs : presobject) : Boolean;
+
+begin
+  Result:=false;
+  while assigned(aArgs) and not Result do
+    begin
+    Result:=IsEllipsisArg(aArgs^.p1);
+    aArgs:=aArgs^.next;
+    end;
+end;
+
+
+procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 
 var
     len,para : longint;
     old_in_args : boolean;
     varpara : boolean;
-    lastp : presobject;
     hs : string;
 
 begin
-  _NeedEllipsisOverload:=false;
   para:=1;
   len:=0;
-  lastp:=nil;
   old_in_args:=in_args;
   in_args:=true;
   write(outfile,'(');
@@ -717,20 +734,15 @@ begin
     if p^.typ<>t_arglist then
       internalerror(10);
     (* is ellipsis ? *)
-    if not assigned(p^.p1^.p1) and not assigned(p^.p1^.next) then
+    if IsEllipsisArg(p^.p1) then
       begin
-      write(outfile,'args:array of const');
+      if not aSkipEllipsis then
+        begin
+        write(outfile,'args:array of const');
+        UsesArrayOfConst:=true;
+        end;
       (* if variable number of args we must always pop *)
       no_pop:=false;
-      (* Needs 2 declarations, also one without args, because
-        in C you can omit the second parameter. Default parameter
-        doesn't help as that isn't possible with array of const *)
-      _NeedEllipsisOverload:=true;
-      (* Remove this para *)
-      if assigned(lastp) then
-      lastp^.next:=nil;
-      dispose(p,done);
-      (* leave the loop as p is not valid anymore *)
       break;
       end
     (* we need to correct this in the pp file after *)
@@ -772,9 +784,8 @@ begin
       else
         write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1);
       end;
-    lastp:=p;
     p:=p^.next;
-    if assigned(p) then
+    if assigned(p) and not (aSkipEllipsis and IsEllipsisArg(p^.p1)) then
       begin
           write(outfile,'; ');
           { if len>40 then : too complicated to compute }
@@ -794,16 +805,33 @@ end;
 
 
 
+procedure WriteProcVarDirectives(var aFile : text; aStdCall : Boolean);
+
+begin
+  if not is_procvar then
+    exit;
+  if aStdCall then
+    write(aFile,';stdcall')
+  else
+    write(aFile,';cdecl');
+  if is_varargs then
+    write(aFile,';varargs');
+  is_procvar:=false;
+  is_varargs:=false;
+end;
+
+
 Procedure write_pointerdef(var outfile:text; p,simple_type : presobject);
 
 var
   pointerwritten : Boolean;
+  lVarArgs : Boolean;
 
 begin
   (* procedure variable ? *)
   if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
     begin
-    is_procvar:=true;
+    lVarArgs:=HasEllipsis(p^.p1^.p2);
     (* distinguish between procedure and function *)
     if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
       begin
@@ -811,7 +839,7 @@ begin
       shift(10);
       (* write arguments *)
       if assigned(p^.p1^.p2) then
-        write_args(outfile,p^.p1^.p2);
+        write_args(outfile,p^.p1^.p2,true);
       flush(outfile);
       popshift;
       end
@@ -821,7 +849,7 @@ begin
       shift(9);
       (* write arguments *)
       if assigned(p^.p1^.p2) then
-        write_args(outfile,p^.p1^.p2);
+        write_args(outfile,p^.p1^.p2,true);
       write(outfile,':');
       flush(outfile);
 
@@ -831,7 +859,9 @@ begin
       write_p_a_def(outfile,p^.p1^.p1,simple_type);
       in_args:=old_in_args;
       popshift;
-      end
+      end;
+    is_procvar:=true;
+    is_varargs:=lVarArgs;
     end
   else
     begin
@@ -1221,11 +1251,7 @@ begin
             end;
           if not is_sized then
             begin
-            if is_procvar then
-              begin
-              write(outfile,';cdecl');
-              is_procvar:=false;
-              end;
+            WriteProcVarDirectives(outfile,false);
             writeln(outfile,';');
             end;
           hp3:=hp3^.next;
@@ -1483,7 +1509,7 @@ begin
 { write unit header }
   if not includefile then
    begin
-     if createdynlib then
+     if createdynlib or UsesArrayOfConst then
        writeln(headerfile,'{$mode objfpc}');
      writeln(headerfile,'unit ',unitname,';');
      writeln(headerfile,'interface');

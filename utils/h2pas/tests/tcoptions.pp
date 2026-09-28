@@ -33,6 +33,7 @@ type
     procedure TestExternalName;
     procedure TestExternalNameCompiles;
     procedure TestEnumToConst;
+    procedure TestEnumToConstTypedef;
     procedure TestEnumToConstCompiles;
     procedure TestPackRecords;
     procedure TestPackRecordsUnion;
@@ -206,6 +207,16 @@ begin
   AssertConverted;
   AssertInterface('-e writes the enum as longint constants',
     ['e = Longint;','Const','A = 0;','B = 5;','C = 6;','D = X;','E = (X)+1;']);
+end;
+
+
+procedure TTestOptions.TestEnumToConstTypedef;
+
+begin
+  Convert(['typedef enum { A, B } k, *pk;','extern k v;'],['-e','-d']);
+  AssertConverted;
+  AssertInterface('-e typedef enum',['k = Longint;','Const','A = 0;','B = 1;','type','pk = ^k;']);
+  AssertCompiles;
 end;
 
 

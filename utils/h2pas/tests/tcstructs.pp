@@ -37,6 +37,7 @@ type
     procedure TestBitFieldConstants;
     procedure TestBitFieldAccessors;
     procedure TestBitFieldAccessorBodies;
+    procedure TestBitFieldNamedLikeParameter;
     procedure TestWideBitFields;
     procedure TestSelfContainedUnitCompiles;
   end;
@@ -212,8 +213,8 @@ begin
   Convert(['struct bits { unsigned int fa : 1; unsigned int fb : 3; };']);
   AssertConverted;
   AssertInterface('bit fields get getter and setter declarations',
-    ['function fa(var a : bits) : dword;','procedure set_fa(var a : bits; __fa : dword);',
-     'function fb(var a : bits) : dword;','procedure set_fb(var a : bits; __fb : dword);']);
+    ['function fa(var __rec : bits) : dword;','procedure set_fa(var __rec : bits; __fa : dword);',
+     'function fb(var __rec : bits) : dword;','procedure set_fb(var __rec : bits; __fb : dword);']);
 end;
 
 
@@ -223,10 +224,20 @@ begin
   Convert(['struct bits { unsigned int fa : 1; unsigned int fb : 3; };']);
   AssertConverted;
   AssertImplementation('bit field getter body',
-    ['function fa(var a : bits) : dword;','begin','fa:=(a.flag0 and bm_bits_fa) shr bp_bits_fa;','end;']);
+    ['function fa(var __rec : bits) : dword;','begin','fa:=(__rec.flag0 and bm_bits_fa) shr bp_bits_fa;','end;']);
   AssertImplementation('bit field setter body',
-    ['procedure set_fb(var a : bits; __fb : dword);','begin',
-     'a.flag0:=a.flag0 or ((__fb shl bp_bits_fb) and bm_bits_fb);','end;']);
+    ['procedure set_fb(var __rec : bits; __fb : dword);','begin',
+     '__rec.flag0:=__rec.flag0 or ((__fb shl bp_bits_fb) and bm_bits_fb);','end;']);
+end;
+
+
+procedure TTestStructs.TestBitFieldNamedLikeParameter;
+
+begin
+  Convert(['struct bits { unsigned int a : 1; unsigned int b : 3; };'],['-d']);
+  AssertConverted;
+  AssertInterface('getter of a field named a',['function a(var __rec : bits) : dword;']);
+  AssertCompiles;
 end;
 
 

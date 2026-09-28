@@ -29,8 +29,6 @@ type
     procedure TestSignedAlone;
     procedure TestLongDouble;
     procedure TestReferenceParam;
-    procedure TestEllipsisStubMatchesInterface;
-    procedure TestBitFieldAccessorParamName;
     procedure TestFunctionTypedef;
     procedure TestNoShiftWarning;
   end;
@@ -47,13 +45,6 @@ type
     procedure TestElif;
     procedure TestIfExpression;
     procedure TestDirectiveOnlyHeader;
-  end;
-
-  { TTestKnownOptionIssues }
-
-  TTestKnownOptionIssues = class(TH2PasTestCase)
-  published
-    procedure TestEnumToConstTypedefCompiles;
   end;
 
 implementation
@@ -101,25 +92,6 @@ begin
   Convert(['void f(int &r);']);
   AssertConverted;
   AssertInterface('C++ reference parameter becomes a var parameter',['procedure f(var r:longint);']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestEllipsisStubMatchesInterface;
-
-begin
-  Convert(['int f(const char *fmt, ...);']);
-  AssertConverted;
-  AssertImplementation('stub without the variable arguments',['function f(fmt:Pansichar):longint;']);
-  AssertInterface('interface declares the stub signature',['function f(fmt:Pansichar):longint;']);
-end;
-
-
-procedure TTestKnownDeclarationIssues.TestBitFieldAccessorParamName;
-
-begin
-  Convert(['struct bits { unsigned int a : 1; };']);
-  AssertConverted;
-  AssertNotOutput('getter parameter does not repeat the getter name','function a(var a :');
 end;
 
 
@@ -214,18 +186,8 @@ begin
 end;
 
 
-procedure TTestKnownOptionIssues.TestEnumToConstTypedefCompiles;
-
-begin
-  Convert(['typedef enum { A, B } k;','extern k v;'],['-e','-d']);
-  AssertConverted;
-  AssertCompiles;
-end;
-
-
 initialization
   RegisterTest('KnownIssues',TTestKnownPointerIssues);
   RegisterTest('KnownIssues',TTestKnownDeclarationIssues);
   RegisterTest('KnownIssues',TTestKnownMacroIssues);
-  RegisterTest('KnownIssues',TTestKnownOptionIssues);
 end.

@@ -449,20 +449,6 @@ begin
 end;
 
 
-// Writes the calling convention of a procedure type: stdcall for no_pop, cdecl otherwise.
-procedure WriteProcVarCallingConvention;
-
-begin
-  if not is_procvar then
-    exit;
-  if no_pop then
-    write(outfile,';stdcall')
-  else
-    write(outfile,';cdecl');
-  is_procvar:=false;
-end;
-
-
 // Returns true when the argument aArg (t_arg) is a function pointer: its declarator is a pointer to a procdef.
 function IsProcVarArg(aArg : presobject) : boolean;
 
@@ -510,7 +496,8 @@ begin
       shift(2);
       write(outfile,aktspace,lName,' = ');
       write_p_a_def(outfile,lDec^.p1,lArg^.p1);
-      writeln(outfile,';cdecl;');
+      WriteProcVarDirectives(outfile,false);
+      writeln(outfile,';');
       is_procvar:=false;
       WritePointerMarker(outfile,lName);
       popshift;
@@ -538,6 +525,7 @@ function HandleDeclarationStatement(decl, type_spec, modifier_spec,
 var
   hp : presobject;
   IsExtern : boolean;
+  lSkipEllipsis, lDone, lVarArgs : boolean;
 
 begin
   HandleDeclarationStatement:=Nil;
@@ -548,6 +536,9 @@ begin
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
         HoistDeclarationProcVarArgs(decllist_spec);
+        lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
+          (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
+        lSkipEllipsis:=lVarArgs;
         repeat
         If UseLib then
           IsExtern:=true
@@ -593,7 +584,7 @@ begin
                 write(outfile,'procedure ',decllist_spec^.p1^.p2^.p);
               end;
             if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2);
+              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             if createdynlib then
               begin
                 loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
@@ -603,7 +594,7 @@ begin
             begin
               write(implemfile,'procedure ',decllist_spec^.p1^.p2^.p);
               if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2);
+                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             end;
           end
         else
@@ -619,7 +610,7 @@ begin
               end;
 
             if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2);
+              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             write(outfile,':');
             old_in_args:=in_args;
             (* write pointers as P.... instead of ^.... *)
@@ -635,7 +626,7 @@ begin
               begin
                 write(implemfile,'function ',decllist_spec^.p1^.p2^.p);
                 if assigned(decllist_spec^.p1^.p1^.p2) then
-                  write_args(implemfile,decllist_spec^.p1^.p1^.p2);
+                  write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
                 write(implemfile,':');
 
                 old_in_args:=in_args;
@@ -646,6 +637,8 @@ begin
               end;
           end;
         WriteCallingConvention(IsExtern);
+        if lVarArgs then
+          write(outfile,';varargs');
         popshift;
         if createdynlib then
           begin
@@ -676,7 +669,9 @@ begin
         IsExtern:=false;
         if not(compactmode) and not(createdynlib) then
         writeln(outfile);
-      until not NeedEllipsisOverload;
+        lDone:=lSkipEllipsis or createdynlib or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
+        lSkipEllipsis:=true;
+      until lDone;
     end
   else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
   if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
@@ -703,7 +698,9 @@ begin
             write(outfile,' : ');
             shift(2);
             (* write its type *)
+            is_procvar:=false;
             write_p_a_def(outfile,hp^.p1^.p1,type_spec);
+            WriteProcVarDirectives(outfile,false);
             if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
               begin
                   if isExtern then
@@ -736,6 +733,7 @@ function HandleDeclarationSysTrap(decl, type_spec, modifier_spec,
 var
   hp : presobject;
   IsExtern : boolean;
+  lSkipEllipsis, lDone, lVarArgs : boolean;
 
 begin
   HandleDeclarationSysTrap:=Nil;
@@ -746,6 +744,9 @@ begin
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
         HoistDeclarationProcVarArgs(decllist_spec);
+        lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
+          (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
+        lSkipEllipsis:=lVarArgs;
         repeat
         If UseLib then
           IsExtern:=true
@@ -791,7 +792,7 @@ begin
                 write(outfile,'procedure ',decllist_spec^.p1^.p2^.p);
               end;
             if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2);
+              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             if createdynlib then
               begin
                 loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
@@ -801,7 +802,7 @@ begin
             begin
               write(implemfile,'procedure ',decllist_spec^.p1^.p2^.p);
               if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2);
+                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             end;
           end
         else
@@ -817,7 +818,7 @@ begin
               end;
 
             if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2);
+              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             write(outfile,':');
             old_in_args:=in_args;
             (* write pointers as P.... instead of ^.... *)
@@ -833,7 +834,7 @@ begin
               begin
                 write(implemfile,'function ',decllist_spec^.p1^.p2^.p);
                 if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2);
+                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
                 write(implemfile,':');
 
                 old_in_args:=in_args;
@@ -846,6 +847,8 @@ begin
         if assigned(sys_trap) then
           write(outfile,';systrap ',sys_trap^.p);
         WriteCallingConvention(IsExtern);
+        if lVarArgs then
+          write(outfile,';varargs');
         popshift;
         if createdynlib then
           begin
@@ -875,7 +878,9 @@ begin
         IsExtern:=false;
         if not(compactmode) and not(createdynlib) then
         writeln(outfile);
-      until not NeedEllipsisOverload;
+        lDone:=lSkipEllipsis or createdynlib or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
+        lSkipEllipsis:=true;
+      until lDone;
     end
   else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
   if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
@@ -902,7 +907,9 @@ begin
             write(outfile,' : ');
             shift(2);
             (* write its type *)
+            is_procvar:=false;
             write_p_a_def(outfile,hp^.p1^.p1,type_spec);
+            WriteProcVarDirectives(outfile,false);
             if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
               begin
                   if isExtern then
@@ -1040,7 +1047,7 @@ begin
         shift(2);
         write_p_a_def(outfile,hp^.p1,type_spec);
         popshift;
-        WriteProcVarCallingConvention;
+        WriteProcVarDirectives(outfile,no_pop);
         writeln(outfile,';');
         WritePointerMarker(outfile,TypeName(hp^.p2^.p));
         flush(outfile);
@@ -1105,8 +1112,10 @@ begin
   shift(2);
   write_p_a_def(outfile,declarator_list^.p1^.p1,type_spec);
   popshift;
-  WriteProcVarCallingConvention;
-  writeln(outfile,';');
+  WriteProcVarDirectives(outfile,no_pop);
+  (* enum_to_const can make a switch to const *)
+  if block_type=bt_type then
+    writeln(outfile,';');
   WritePointerMarker(outfile,TN);
   flush(outfile);
   (* write alias names, ph points to the name already used *)
@@ -1119,6 +1128,11 @@ begin
         TN:=TypeName(hp^.p1^.p2^.p);
         if not SameText(TN,PN) then
         begin
+          if block_type<>bt_type then
+            begin
+            writeln(outfile,Copy(aktspace,1,Length(aktspace)-2),'type');
+            block_type:=bt_type;
+            end;
           write(outfile,aktspace,TN,' = ');
           write_p_a_def(outfile,hp^.p1^.p1,ph);
           writeln(outfile,';');

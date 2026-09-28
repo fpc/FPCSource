@@ -35,6 +35,9 @@ type
     procedure TestFunctionPointerParamCompiles;
     procedure TestEllipsis;
     procedure TestEllipsisExternal;
+    procedure TestEllipsisStdcall;
+    procedure TestEllipsisProcedureTypes;
+    procedure TestEllipsisDynLib;
     procedure TestFarNearPointers;
     procedure TestParamListWraps;
     procedure TestVoidPointerResult;
@@ -62,6 +65,7 @@ type
     procedure TestUnknownTypeVariable;
     procedure TestMultipleVariables;
     procedure TestMultipleExternVariables;
+    procedure TestProcedureTypeVariable;
   end;
 
 implementation
@@ -214,21 +218,63 @@ end;
 procedure TTestFunctions.TestEllipsis;
 
 begin
-  Convert(['int f(const char *fmt, ...);']);
+  Convert(['int f(const char *fmt, ...);','void g(...);']);
   AssertConverted;
-  AssertInterface('ellipsis becomes array of const',['function f(fmt:Pansichar; args:array of const):longint;']);
+  AssertOutput('array of const needs objfpc mode',['{$mode objfpc}','unit output;']);
+  AssertInterface('stub with array of const and overload without it',
+    ['function f(fmt:Pansichar; args:array of const):longint;','function f(fmt:Pansichar):longint;']);
+  AssertInterface('stub with only an ellipsis',['procedure g(args:array of const);','procedure g();']);
+  AssertImplementation('stub with array of const',['function f(fmt:Pansichar; args:array of const):longint;']);
+  AssertImplementation('stub without array of const',['function f(fmt:Pansichar):longint;']);
+  AssertCompiles;
 end;
 
 
 procedure TTestFunctions.TestEllipsisExternal;
 
 begin
-  Convert(['int f(const char *fmt, ...);'],['-d']);
+  Convert(['int f(const char *fmt, ...);','void g(...);'],['-d']);
   AssertConverted;
-  AssertInterface('external ellipsis function with array of const',
-    ['function f(fmt:Pansichar; args:array of const):longint;cdecl;external;']);
-  AssertInterface('external ellipsis function overload without the variable arguments',
-    ['function f(fmt:Pansichar):longint;cdecl;external;']);
+  AssertInterface('external ellipsis function is varargs',['function f(fmt:Pansichar):longint;cdecl;varargs;external;']);
+  AssertInterface('external function with only an ellipsis',['procedure g();cdecl;varargs;external;']);
+  AssertNotOutput('external ellipsis function has no array of const','array of const');
+  AssertNotOutput('external ellipsis function needs no objfpc mode','{$mode objfpc}');
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestEllipsisStdcall;
+
+begin
+  Convert(['int STDCALL f(const char *fmt, ...);'],['-w']);
+  AssertConverted;
+  AssertInterface('ellipsis function is cdecl despite STDCALL',
+    ['function f(fmt:Pansichar):longint;cdecl;varargs;external External_library name ''f'';']);
+end;
+
+
+procedure TTestFunctions.TestEllipsisProcedureTypes;
+
+begin
+  Convert(['typedef int (*logfn)(const char *fmt, ...);','struct s { int (*pf)(const char *, ...); };',
+           'extern int (*gvf)(const char *fmt, ...);','void setlog(int (*fn)(const char *, ...));'],['-d']);
+  AssertConverted;
+  AssertInterface('procedure type typedef is varargs',['logfn = function (fmt:Pansichar):longint;cdecl;varargs;']);
+  AssertInterface('record field is varargs',['pf : function (_para1:Pansichar):longint;cdecl;varargs;']);
+  AssertInterface('variable is varargs',['gvf : function (fmt:Pansichar):longint;cdecl;varargs;cvar;external;']);
+  AssertInterface('parameter type is varargs',['setlog_fn = function (_para1:Pansichar):longint;cdecl;varargs;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestEllipsisDynLib;
+
+begin
+  Convert(['int f(const char *fmt, ...);'],['-P']);
+  AssertConverted;
+  AssertEquals('-P declares one variable',1,CountOf('f : function'));
+  AssertInterface('-P variable is varargs',['f : function(fmt:Pansichar):longint;cdecl;varargs;']);
+  AssertCompiles;
 end;
 
 
@@ -434,6 +480,17 @@ begin
   AssertConverted;
   AssertInterface('plain, pointer and array declarators',
     ['a : longint;cvar;external;','b : ^longint;cvar;external;','c : array[0..3] of longint;cvar;external;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestProcedureTypeVariable;
+
+begin
+  Convert(['extern void (*gv)(void);','extern int (*gf)(int a);'],['-d']);
+  AssertConverted;
+  AssertInterface('procedure variable is cdecl',['gv : procedure ;cdecl;cvar;external;']);
+  AssertInterface('function variable is cdecl',['gf : function (a:longint):longint;cdecl;cvar;external;']);
   AssertCompiles;
 end;
 
