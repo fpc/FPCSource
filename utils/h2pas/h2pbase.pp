@@ -1697,6 +1697,34 @@ begin
     dispose(def_expr,done);
     exit;
     end;
+  (* a type keyword or a standard C type name: a type alias *)
+  if assigned(hp) and (hp^.typ=t_id) and (hp^.skiptprefix or IsCTypeName(hp)) then
+    begin
+    if block_type<>bt_type then
+      begin
+      if block_type<>bt_func then
+        writeln(outfile);
+      writeln(outfile,aktspace,'type');
+      block_type:=bt_type;
+      end;
+    shift(2);
+    TN:=TypeName(dname^.p);
+    write(outfile,aktspace,TN,' = ');
+    if IsCTypeName(hp) then
+      begin
+      hp:=MapCTypeName(NewID(hp^.str));
+      write_type_specifier(outfile,hp);
+      dispose(hp,done);
+      end
+    else
+      write_type_specifier(outfile,hp);
+    writeln(outfile,';',aktspace,commentstr);
+    WritePointerMarker(outfile,TN);
+    popshift;
+    dispose(dname,done);
+    dispose(def_expr,done);
+    exit;
+    end;
   if (def_expr^.typ=t_exprlist) and
     def_expr^.p1^.is_const and
     not assigned(def_expr^.next) then

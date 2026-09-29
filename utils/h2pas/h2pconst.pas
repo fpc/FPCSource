@@ -155,7 +155,7 @@ type
   end;
 
 const
-  MAX_CTYPEMAPPINGS = 19;
+  MAX_CTYPEMAPPINGS = 24;
   CTypeMappings : array [0..MAX_CTYPEMAPPINGS] of TCTypeMapping = (
     (CName: 'int8_t';    CTypesName: cint8_STR;   PascalName: 'shortint'),
     (CName: 'uint8_t';   CTypesName: cuint8_STR;  PascalName: 'byte'),
@@ -176,7 +176,12 @@ const
     (CName: 'bool';      CTypesName: 'Boolean';   PascalName: 'Boolean'),
     (CName: 'wchar_t';   CTypesName: 'UCS4Char';  PascalName: 'UCS4Char'),
     (CName: 'char16_t';  CTypesName: 'WideChar';  PascalName: 'WideChar'),
-    (CName: 'char32_t';  CTypesName: 'UCS4Char';  PascalName: 'UCS4Char')
+    (CName: 'char32_t';  CTypesName: 'UCS4Char';  PascalName: 'UCS4Char'),
+    (CName: 'off_t';     CTypesName: 'coff_t';    PascalName: 'PtrInt'),
+    (CName: 'off64_t';   CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'va_list';   CTypesName: 'pointer';   PascalName: 'pointer'),
+    (CName: '__gnuc_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
+    (CName: '__builtin_va_list'; CTypesName: 'pointer'; PascalName: 'pointer')
   );
 
 const

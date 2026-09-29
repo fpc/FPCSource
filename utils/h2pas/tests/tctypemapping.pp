@@ -95,6 +95,11 @@ type
     procedure TestStandardTypesCompileCTypes;
     procedure TestStandardTypesCompilePrefixes;
     procedure TestCTypesPointerToPointer;
+    procedure TestOffT;
+    procedure TestOffTCTypes;
+    procedure TestVaList;
+    procedure TestOffTAndVaListCompile;
+    procedure TestOffTAndVaListCompileCTypes;
   end;
 
 implementation
@@ -663,6 +668,57 @@ begin
   AssertConverted;
   AssertInterface('pointer to pointer to a ctypes type',['procedure f(pp:Ppcuint; qq:Ppcint; rr:Ppcuint32);']);
   AssertOutput('the pointer types are declared',['Ppcint = ^pcint;','Ppcuint = ^pcuint;','Ppcuint32 = ^pcuint32;']);
+  AssertCompiles;
+end;
+
+
+const
+  OffTFunction = 'off_t seekit(int fd, off_t pos, off64_t *big, off_t *p);';
+  VaListFunction = 'int vlog2(char *fmt, va_list ap, __gnuc_va_list gap, va_list *pap);';
+
+procedure TTestTypeMapping.TestOffT;
+
+begin
+  Convert([OffTFunction],['-d']);
+  AssertConverted;
+  AssertInterface('off_t is pointer sized, off64_t is int64',
+    ['function seekit(fd:longint; pos:PtrInt; big:Pint64; p:PPtrInt):PtrInt;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestOffTCTypes;
+
+begin
+  Convert([OffTFunction],['-d','-C']);
+  AssertConverted;
+  AssertInterface('off_t with ctypes',['function seekit(fd:cint; pos:coff_t; big:pcint64; p:Pcoff_t):coff_t;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestVaList;
+
+begin
+  Convert([VaListFunction],['-d']);
+  AssertConverted;
+  AssertInterface('va_list is a pointer',['function vlog2(fmt:Pansichar; ap:pointer; gap:pointer; pap:Ppointer):longint;cdecl;external;']);
+  AssertNotOutput('Ppointer comes from the system unit','Ppointer =');
+end;
+
+
+procedure TTestTypeMapping.TestOffTAndVaListCompile;
+
+begin
+  Convert([OffTFunction,VaListFunction],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestOffTAndVaListCompileCTypes;
+
+begin
+  Convert([OffTFunction,VaListFunction],['-d','-C']);
+  AssertConverted;
   AssertCompiles;
 end;
 

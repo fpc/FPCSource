@@ -51,6 +51,9 @@ type
     procedure TestAdjacentStringsWithEscapes;
     procedure TestAdjacentStringsCompile;
     procedure TestAlias;
+    procedure TestTypeMacros;
+    procedure TestTypeMacrosPrefixes;
+    procedure TestTypeMacrosCompile;
     procedure TestKeywordDefines;
     procedure TestKeywordDefinesStripped;
     procedure TestKeywordDefinesCompile;
@@ -417,6 +420,38 @@ procedure TTestConstMacros.TestAlias;
 
 begin
   CheckConst('ALIAS','OTHER','OTHER');
+end;
+
+
+procedure TTestConstMacros.TestTypeMacros;
+
+begin
+  Convert(['#define z_off_t off_t','#define T int','#define U unsigned long','#define LL long long','#define SZ size_t',
+           '#define ALIAS OTHER']);
+  AssertConverted;
+  AssertInterface('a define of a type is a type alias',
+    ['type','z_off_t = PtrInt;','T = longint;','U = dword;','LL = int64;','SZ = SizeUInt;']);
+  AssertInterface('a define of another name stays a constant',['const','ALIAS = OTHER;']);
+end;
+
+
+procedure TTestConstMacros.TestTypeMacrosPrefixes;
+
+begin
+  Convert(['#define z_off_t off_t','#define T int','z_off_t f(T a, T *b);'],['-d','-T','-C']);
+  AssertConverted;
+  AssertInterface('type macros under -T -C',['Tz_off_t = coff_t;','TT = cint;','PT = ^TT;']);
+  AssertInterface('declarations use the type macros',['function f(a:TT; b:PT):Tz_off_t;cdecl;external;']);
+end;
+
+
+procedure TTestConstMacros.TestTypeMacrosCompile;
+
+begin
+  Convert(['#define z_off_t off_t','#define T int','#define U unsigned long','#define SZ size_t',
+           'z_off_t f(T a, U *b, SZ c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

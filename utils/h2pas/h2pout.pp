@@ -2027,6 +2027,7 @@ initialization
   WrittenPointers.Add('pboolean');
   WrittenPointers.Add('pwidechar');
   WrittenPointers.Add('pucs4char');
+  WrittenPointers.Add('ppointer');
   WrittenPointers.Add('ppansichar');
   WrittenPointers.Add('ppchar');
   WrittenPointers.Add('ppbyte');
