@@ -32,6 +32,9 @@ type
     procedure TestStructTagAlias;
     procedure TestStructTagAliasPointer;
     procedure TestStructTagAliasPrefix;
+    procedure TestTypedefOfTheSamePascalType;
+    procedure TestTypedefOfTheSamePascalTypePrefix;
+    procedure TestTypedefOfTheSamePascalTypeCompiles;
     procedure TestOpaqueStruct;
     procedure TestOpaqueStructWithAlias;
     procedure TestOpaqueStructDefinedLater;
@@ -214,6 +217,35 @@ begin
   Convert(['typedef struct _tag4 t4;'],['-T']);
   AssertConverted;
   AssertInterface('-T alias of a tag',['Tt4 = Ttag4;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalType;
+
+begin
+  Convert(['typedef unsigned char Byte;','typedef Byte Bytef;','typedef int myint;']);
+  AssertConverted;
+  AssertOutput('typedef of the type itself is ignored',['(* typedef Byte of the same Pascal type ignored *)']);
+  AssertNotOutput('no self-referencing type','Byte = byte;');
+  AssertInterface('typedefs of it use the Pascal type',['Bytef = Byte;','myint = longint;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalTypePrefix;
+
+begin
+  Convert(['typedef unsigned char Byte;'],['-T']);
+  AssertConverted;
+  AssertInterface('-T gives the typedef its own name',['TByte = byte;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalTypeCompiles;
+
+begin
+  Convert(['typedef unsigned char Byte;','typedef Byte Bytef;','void f(Bytef *b, Byte c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

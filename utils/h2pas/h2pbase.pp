@@ -1487,6 +1487,20 @@ begin
       dispose(declarator_list,done);
     exit;
     end;
+  (* typedef unsigned char Byte: the Pascal name is the type itself *)
+  if (type_spec^.typ=t_id) and assigned(lDecl) and not assigned(lDecl^.p1) and assigned(lDecl^.p2)
+     and not assigned(declarator_list^.next)
+     and ((type_spec^.skiptprefix and SameText(TypeName(lDecl^.p2^.p),type_spec^.str))
+          or (not type_spec^.skiptprefix and SameText(TypeName(lDecl^.p2^.p),TypeName(type_spec^.str)))) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* typedef ',TypeName(lDecl^.p2^.p),' of the same Pascal type ignored *)');
+    dispose(type_spec,done);
+    if assigned(dec_modifier) then
+      dispose(dec_modifier,done);
+    dispose(declarator_list,done);
+    exit;
+    end;
   if block_type<>bt_type then
     begin
       if not(compactmode) then
@@ -1678,6 +1692,32 @@ begin
   dispose(dname,done);
 end;
 
+var
+  // Names of the defines converted so far, as written in the header.
+  DefineNames : TStringList = nil;
+
+// Returns true, and writes a comment, when the define dname has the Pascal name of an earlier define
+// that differs from it in case only; registers the name otherwise.
+function IsDefineNameClash(dname : presobject) : boolean;
+
+var
+  lIndex : integer;
+
+begin
+  if not assigned(DefineNames) then
+    DefineNames:=TStringList.Create;
+  lIndex:=DefineNames.IndexOf(dname^.str);
+  Result:=(lIndex>=0) and (DefineNames[lIndex]<>dname^.str);
+  if Result then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* #define ',dname^.p,' ignored, the Pascal name of ',DefineNames[lIndex],' *)');
+    end
+  else if lIndex<0 then
+    DefineNames.Add(dname^.str);
+end;
+
+
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
 
 var
@@ -1697,8 +1737,15 @@ begin
     dispose(def_expr,done);
     exit;
     end;
-  (* a type keyword or a standard C type name: a type alias *)
-  if assigned(hp) and (hp^.typ=t_id) and (hp^.skiptprefix or IsCTypeName(hp)) then
+  if IsDefineNameClash(dname) then
+    begin
+    dispose(dname,done);
+    dispose(def_expr,done);
+    exit;
+    end;
+  (* a type keyword, a standard C type name or a declared type: a type alias *)
+  if assigned(hp) and (hp^.typ=t_id)
+     and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(hp^.str))) then
     begin
     if block_type<>bt_type then
       begin
@@ -1930,6 +1977,14 @@ var
 
 begin
   HandleDefineMacro:=Nil;
+  if IsDefineNameClash(dname) then
+    begin
+    dispose(dname,done);
+    if assigned(enum_list) then
+      dispose(enum_list,done);
+    dispose(para_def_expr,done);
+    exit;
+    end;
   hp:=nil;
   ph:=nil;
   if assigned(enum_list) then
@@ -2011,4 +2066,7 @@ begin
 end;
 
 
+initialization
+finalization
+  DefineNames.Free;
 end.

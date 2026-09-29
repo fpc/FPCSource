@@ -54,6 +54,9 @@ type
     procedure TestTypeMacros;
     procedure TestTypeMacrosPrefixes;
     procedure TestTypeMacrosCompile;
+    procedure TestTypeMacroOfDeclaredType;
+    procedure TestDefineNameCaseClash;
+    procedure TestDefineNameCaseClashCompiles;
     procedure TestKeywordDefines;
     procedure TestKeywordDefinesStripped;
     procedure TestKeywordDefinesCompile;
@@ -450,6 +453,38 @@ procedure TTestConstMacros.TestTypeMacrosCompile;
 begin
   Convert(['#define z_off_t off_t','#define T int','#define U unsigned long','#define SZ size_t',
            'z_off_t f(T a, U *b, SZ c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestTypeMacroOfDeclaredType;
+
+begin
+  Convert(['#define z_off_t long','typedef int myint;','#define z_off64_t z_off_t','#define MI myint']);
+  AssertConverted;
+  AssertInterface('define of a type macro',['z_off64_t = z_off_t;']);
+  AssertInterface('define of a typedef',['MI = myint;']);
+  AssertNotOutput('no constant of a type','const');
+end;
+
+
+procedure TTestConstMacros.TestDefineNameCaseClash;
+
+begin
+  Convert(['#define ZLIB_VERSION "1.2.11"','#define zlib_version zlibVersion()','#define Zlib_Version(a) (a)']);
+  AssertConverted;
+  AssertInterface('the first define',['ZLIB_VERSION = ''1.2.11'';']);
+  AssertOutput('a define that differs in case only is ignored',['(* #define zlib_version ignored, the Pascal name of ZLIB_VERSION *)']);
+  AssertOutput('a macro that differs in case only is ignored',['(* #define Zlib_Version ignored, the Pascal name of ZLIB_VERSION *)']);
+  AssertNotOutput('no function of the same Pascal name','function zlib_version');
+end;
+
+
+procedure TTestConstMacros.TestDefineNameCaseClashCompiles;
+
+begin
+  Convert(['#define ZLIB_VERSION "1.2.11"','char *zlibVersion(void);','#define zlib_version zlibVersion()'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;
