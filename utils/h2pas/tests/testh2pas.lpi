@@ -97,6 +97,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcCPreprocessor"/>
       </Unit>
+      <Unit>
+        <Filename Value="tconetypesection.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcOneTypeSection"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

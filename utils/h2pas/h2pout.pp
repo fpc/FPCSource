@@ -45,6 +45,17 @@ procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
 procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
 // Removes the lines of the moved records from aLines, for WriteMarkedPointers to write them at their opaque marker.
 procedure CollectMovedRecords(aLines : TStringList);
+// Writes a marker line: the declarations that follow are of kind aKind: T type, C constant, D constant that uses types,
+// V variable, F function, I implementation.
+procedure WriteSectionMarker(var aFile : text; aKind : char);
+// Writes the section keyword aKeyword with indentation aIndent, as a marker line that -1 replaces.
+procedure WriteSectionKeyword(var aFile : text; const aIndent, aKeyword : AnsiString);
+// Returns true when the constant expression aExpr uses only literals, casts to base types and plain constants.
+function IsPlainConstExpr(aExpr : presobject) : Boolean;
+// Registers aName as a plain constant, which -1 writes before the types.
+procedure RegisterPlainConst(const aName : AnsiString);
+// Arranges the lines of the unit in aLines for -1: the constants, then all types in one section, then the rest.
+procedure ArrangeSections(aLines : TStringList);
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
@@ -106,6 +117,9 @@ const
   RecordMarker = #3;
   MovedStartMarker = #4;
   MovedEndMarker = #5;
+  SectionMarker = #6;
+  KeywordMarker = #7;
+  HeaderPointersMarker = #8;
 
 var
   WrittenPointers : TStringList;
@@ -119,6 +133,8 @@ var
   OpaqueSequence : TStringList;
   // The lines of the moved records, as objects of their names.
   MovedRecordLines : TStringList;
+  // Constants of literals and other plain constants only.
+  PlainConsts : TStringList;
   // Targets of pointer types to pointer types, as PPname=Pname.
   PointerTargets : TStringList;
   // Names of typedefs of a function type, without T prefix.
@@ -140,6 +156,10 @@ var
 procedure RegisterPointerChain(const aPointer : AnsiString; aLevels : Integer); forward;
 // Returns true when aType names a typedef of a function type.
 function IsFunctionType(aType : presobject) : Boolean; forward;
+// Returns true when the unit header needs pointer types to types that are not declared in the unit.
+function HasHeaderPointers : Boolean; forward;
+// Writes the pointer types of the unit header with indentation aIndent.
+procedure WriteHeaderPointers(var aFile : text; const aIndent : AnsiString); forward;
 
 procedure EmitAndOutput(S : string; aLine : integer);
 
@@ -430,7 +450,8 @@ begin
   close(tempfile);
   reset(tempfile);
   writeln(outfile);
-  writeln(outfile,aktspace,'const');
+  WriteSectionMarker(outfile,'C');
+  WriteSectionKeyword(outfile,aktspace,'const');
   shift(2);
   while not eof(tempfile) do
     begin
@@ -444,6 +465,7 @@ begin
   close(tempfile);
   rewrite(tempfile);
   popshift;
+  WriteSectionMarker(outfile,'F');
   (* walk through all members *)
   hp1 := p^.p1;
   while assigned(hp1) do
@@ -1210,6 +1232,7 @@ var
 
 begin
   write(outfile,aktspace,FixId(hp1^.p1^.p),' = ');
+  RegisterPlainConst(hp1^.p1^.str);
   if assigned(hp1^.p2) then
     begin
     write_expr(outfile,hp1^.p2);
@@ -1295,7 +1318,8 @@ begin
     hp1:=p^.p1;
     lastexpr:=nil;
     l:=0;
-    Writeln (outfile,copy(aktspace,1,length(aktspace)-2),'Const');
+    WriteSectionMarker(outfile,'C');
+    WriteSectionKeyword(outfile,copy(aktspace,1,length(aktspace)-2),'Const');
     while assigned(hp1) do
       begin
       write_enum_const(outfile,hp1,lastexpr,l);
@@ -1679,11 +1703,12 @@ begin
     lArray:=lElement;
   until false;
   lName:=TypeName(aName);
+  WriteSectionMarker(outfile,'T');
   if block_type<>bt_type then
     begin
     if not compactmode then
       writeln(outfile);
-    writeln(outfile,aktspace,'type');
+    WriteSectionKeyword(outfile,aktspace,'type');
     block_type:=bt_type;
     end;
   shift(2);
@@ -1767,7 +1792,7 @@ end;
 function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
 
 begin
-  Result:=(OpaqueSequence.IndexOfName(TN)>=0) and (DefinedOpaqueTypes.IndexOf(TN)<0)
+  Result:=not OneTypeSection and (OpaqueSequence.IndexOfName(TN)>=0) and (DefinedOpaqueTypes.IndexOf(TN)<0)
           and RefersToEarlierTypes(aType^.p1,TN,StrToInt(OpaqueSequence.Values[TN]));
 end;
 
@@ -1821,6 +1846,187 @@ begin
 end;
 
 
+procedure WriteSectionMarker(var aFile : text; aKind : char);
+
+begin
+  Writeln(aFile,SectionMarker,aKind);
+end;
+
+
+procedure WriteSectionKeyword(var aFile : text; const aIndent, aKeyword : AnsiString);
+
+begin
+  Writeln(aFile,KeywordMarker,aIndent,aKeyword);
+end;
+
+
+function IsPlainConstExpr(aExpr : presobject) : Boolean;
+
+var
+  lStr : AnsiString;
+
+begin
+  Result:=true;
+  if not assigned(aExpr) then
+    exit;
+  case aExpr^.typ of
+    t_typespec :
+      (* a cast to a base type *)
+      exit(assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_id) and aExpr^.p1^.skiptprefix and IsPlainConstExpr(aExpr^.p2));
+    t_id :
+      if not aExpr^.skiptprefix then
+        begin
+        lStr:=aExpr^.str;
+        if (lStr='') or not ((lStr[1] in ['0'..'9','''','#','$','&']) or (PlainConsts.IndexOf(lStr)>=0)) then
+          exit(false);
+        end;
+    t_funexprlist :
+      exit(false);
+  end;
+  Result:=IsPlainConstExpr(aExpr^.p1) and IsPlainConstExpr(aExpr^.p2) and IsPlainConstExpr(aExpr^.p3)
+          and IsPlainConstExpr(aExpr^.next);
+end;
+
+
+procedure RegisterPlainConst(const aName : AnsiString);
+
+begin
+  PlainConsts.Add(aName);
+end;
+
+
+// Returns true when the line aTrimmed, without leading spaces, is a whole comment line or starts a comment;
+// aClose is set to the text that closes the comment when it continues on the next lines, '' otherwise.
+function IsCommentLine(const aTrimmed : AnsiString; var aClose : AnsiString) : Boolean;
+
+var
+  lEnd : Integer;
+
+begin
+  aClose:='';
+  Result:=false;
+  if (aTrimmed<>'') and (aTrimmed[1]='{') and (Copy(aTrimmed,1,2)<>'{$') then
+    begin
+    lEnd:=Pos('}',aTrimmed);
+    if lEnd=0 then
+      aClose:='}';
+    Result:=(lEnd=0) or (lEnd=Length(TrimRight(aTrimmed)));
+    end
+  else if Copy(aTrimmed,1,2)='(*' then
+    begin
+    lEnd:=Pos('*)',aTrimmed);
+    if lEnd=0 then
+      aClose:='*)';
+    Result:=(lEnd=0) or (lEnd=Length(TrimRight(aTrimmed))-1);
+    end;
+end;
+
+
+procedure ArrangeSections(aLines : TStringList);
+
+var
+  lConsts, lTypes, lRest, lPending : TStringList;
+  lKind, lRestKind : char;
+  lConstKeyword, lHasTypes, lHasConsts : Boolean;
+  i : Integer;
+  lLine, lTrimmed, lClose, lIndent : AnsiString;
+
+  // Adds the pending comments and aLine to aStream.
+  procedure AddContent(aStream : TStringList; const aLine : AnsiString);
+
+  begin
+    aStream.AddStrings(lPending);
+    lPending.Clear;
+    aStream.Add(aLine);
+  end;
+
+begin
+  lConsts:=TStringList.Create;
+  lTypes:=TStringList.Create;
+  lRest:=TStringList.Create;
+  lPending:=TStringList.Create;
+  if compactmode then
+    lIndent:=''
+  else
+    lIndent:='  ';
+  lKind:='F';
+  lRestKind:=#0;
+  lConstKeyword:=false;
+  lHasTypes:=false;
+  lHasConsts:=false;
+  lClose:='';
+  for i:=0 to aLines.Count-1 do
+    begin
+    lLine:=aLines[i];
+    lTrimmed:=TrimLeft(lLine);
+    if lClose<>'' then
+      begin
+      (* inside a comment of several lines *)
+      lPending.Add(lLine);
+      if Pos(lClose,lLine)>0 then
+        lClose:='';
+      end
+    else if lTrimmed='' then
+      lPending.Add(lLine)
+    else if lLine[1]=SectionMarker then
+      lKind:=lLine[2]
+    else if lLine[1]=KeywordMarker then
+      (* the sections are written again below *)
+    else if (Copy(lTrimmed,1,2)='{$') and not SameText(Copy(lTrimmed,1,4),'{$i ')
+            and not SameText(Copy(lTrimmed,1,9),'{$include') then
+      begin
+      (* conditions and switches apply to every section *)
+      lConsts.Add(lLine);
+      lTypes.Add(lLine);
+      lRest.Add(lLine);
+      lConstKeyword:=false;
+      lRestKind:=#0;
+      end
+    else if IsCommentLine(lTrimmed,lClose) then
+      lPending.Add(lLine)
+    else if lKind='T' then
+      begin
+      lHasTypes:=true;
+      AddContent(lTypes,lLine);
+      end
+    else if lKind='C' then
+      begin
+      if not lConstKeyword then
+        lConsts.Add(lIndent+'const');
+      lConstKeyword:=true;
+      lHasConsts:=true;
+      AddContent(lConsts,lLine);
+      end
+    else
+      begin
+      if lKind<>lRestKind then
+        if lKind='D' then
+          lRest.Add(lIndent+'const')
+        else if lKind='V' then
+          lRest.Add(lIndent+'var');
+      lRestKind:=lKind;
+      AddContent(lRest,lLine);
+      end;
+    end;
+  lRest.AddStrings(lPending);
+  aLines.Clear;
+  if lHasConsts then
+    aLines.AddStrings(lConsts);
+  (* one type keyword: forward pointers are resolved within one type section *)
+  if lHasTypes or HasHeaderPointers then
+    begin
+    aLines.Add(lIndent+'type');
+    aLines.Add(HeaderPointersMarker+lIndent+'  ');
+    aLines.AddStrings(lTypes);
+    end;
+  aLines.AddStrings(lRest);
+  lPending.Free;
+  lRest.Free;
+  lTypes.Free;
+  lConsts.Free;
+end;
+
+
 function IsDeclaredType(const TN : AnsiString) : Boolean;
 
 begin
@@ -1865,9 +2071,24 @@ var
   lLines : TStringList;
 
 begin
-  Result:=(aLine<>'') and (aLine[1] in [PointerMarker,OpaqueMarker,RecordMarker]);
+  Result:=(aLine<>'') and (aLine[1] in [PointerMarker,OpaqueMarker,RecordMarker,SectionMarker,KeywordMarker,
+                                        HeaderPointersMarker]);
   if not Result then
     exit;
+  case aLine[1] of
+    SectionMarker :
+      exit;
+    KeywordMarker :
+      begin
+      Writeln(aFile,Copy(aLine,2,Length(aLine)-1));
+      exit;
+      end;
+    HeaderPointersMarker :
+      begin
+      WriteHeaderPointers(aFile,Copy(aLine,2,Length(aLine)-1));
+      exit;
+      end;
+  end;
   lPos:=2;
   while (lPos<=Length(aLine)) and (aLine[lPos]=' ') do
     Inc(lPos);
@@ -1890,7 +2111,8 @@ begin
     if lIndex>=0 then
       begin
       (* the record declared later, moved here *)
-      Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
+      if not OneTypeSection then
+        Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
       if lAN<>'' then
         WritePointersTo(aFile,lIndent,lAN);
       lLines:=TStringList(MovedRecordLines.Objects[lIndex]);
@@ -1907,7 +2129,8 @@ begin
         PendingAliases.Add(lTN+'='+lAN);
       exit;
       end;
-    Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
+    if not OneTypeSection then
+      Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
     if PackRecords then
       Writeln(aFile,lIndent,lTN,' = packed record')
     else
@@ -1990,6 +2213,32 @@ begin
       WritePointerTypeDef(HeaderFile,PTypeList[i],PointerTarget(PTypeList[i]));
 end;
 
+
+function HasHeaderPointers : Boolean;
+
+var
+  i : Integer;
+
+begin
+  Result:=false;
+  for i:=0 to PTypeList.Count-1 do
+    if IsHeaderPointer(PTypeList[i]) or (OneTypeSection and MayWritePointerTypeDef(PTypeList[i])) then
+      exit(true);
+end;
+
+
+procedure WriteHeaderPointers(var aFile : text; const aIndent : AnsiString);
+
+var
+  i : Integer;
+
+begin
+  (* with one type section, all pointer types come first, as forward pointers *)
+  for i:=0 to PTypeList.Count-1 do
+    if IsHeaderPointer(PTypeList[i]) or (OneTypeSection and MayWritePointerTypeDef(PTypeList[i])) then
+      WriteIndentedPointerTypeDef(aFile,aIndent,PTypeList[i],PointerTarget(PTypeList[i]));
+end;
+
 procedure WriteFileHeader(var headerfile: Text);
 var
  i: integer;
@@ -2023,7 +2272,7 @@ begin
      writeln(headerfile,'  External_library=''',libfilename,'''; {Setup as you need}');
      writeln(headerfile);
    end;
-  if PTypeList.count <> 0 then
+  if (PTypeList.count <> 0) and not OneTypeSection then
     WritePointerList(headerfile);
   writeln(headerfile);
   if not packrecords then
@@ -2157,6 +2406,7 @@ initialization
   OpaqueSequence:=TStringList.Create;
   MovedRecordLines:=TStringList.Create;
   MovedRecordLines.OwnsObjects:=true;
+  PlainConsts:=TStringList.Create;
   FunctionTypes:=TStringList.Create;
   FunctionTypes.Sorted:=true;
   FunctionTypes.Duplicates:=dupIgnore;
@@ -2176,5 +2426,6 @@ finalization
   DeclaredSequence.Free;
   OpaqueSequence.Free;
   MovedRecordLines.Free;
+  PlainConsts.Free;
   WrittenPointers.Free;
 end.

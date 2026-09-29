@@ -53,6 +53,7 @@ var
    PreprocessorProgram,       { C preprocessor program, gcc by default }
    PreprocessorOptions,       { extra options for the C preprocessor }
    PreprocessorKeep : string; { files whose text is kept after preprocessing, separated by ; }
+   OneTypeSection : boolean;  { write all types in one type section }
    PTypeList : TStringList;   { list of all pointer types }
    freedynlibproc,
    loaddynlibproc : tstringlist;
@@ -126,6 +127,7 @@ Procedure Usage;
 begin
   writeln ('Usage : ',paramstr(0),' [options]  filename');
   writeln ('        Where [options] is one or more of:');
+  writeln ('        -1                 write all types in one type section, after the constants they use');
   writeln ('        -a                 Do not use ansichar, use char instead;');
   writeln ('        -d                 Use external;');
   writeln ('        -D                 use external libname name ''func_name'';');
@@ -205,6 +207,7 @@ begin
   createdynlib:=false;
   useansichar:=True;
   Preprocess:=false;
+  OneTypeSection:=false;
   PreprocessorProgram:='gcc';
   PreprocessorOptions:='';
   PreprocessorKeep:='';
@@ -218,6 +221,7 @@ begin
          'a' : useansichar:=false;
          'c' : CompactMode:=true;
          'C' : UseCTypesUnit := true;
+         '1' : OneTypeSection:=true;
          'e' : EnumToConst :=true;
          'E' : begin
                  Preprocess:=true;

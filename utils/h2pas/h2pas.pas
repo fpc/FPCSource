@@ -50,6 +50,7 @@ begin
 { Parse! }
   yyparse;
 { Write implementation if needed }
+  WriteSectionMarker(outfile,'I');
    if not(includefile) then
     begin
       writeln(outfile);
@@ -117,6 +118,8 @@ begin
       Lines.Add(SS);
     end;
   CollectMovedRecords(Lines);
+  if OneTypeSection then
+    ArrangeSections(Lines);
   for I:=0 to Lines.Count-1 do
     if not WriteMarkedPointers(finaloutfile,Lines[I]) then
       writeln(finaloutfile,Lines[I]);

@@ -748,11 +748,12 @@ begin
         lParam:='_para'+str(lIndex);
       HoistProcVarArgs(aOwner+'_'+lParam,lDec^.p1^.p1^.p2);
       lName:=TypeName(aOwner+'_'+lParam);
+      WriteSectionMarker(outfile,'T');
       if block_type<>bt_type then
         begin
         if not compactmode then
           writeln(outfile);
-        writeln(outfile,aktspace,'type');
+        WriteSectionKeyword(outfile,aktspace,'type');
         block_type:=bt_type;
         end;
       shift(2);
@@ -799,11 +800,12 @@ begin
     exit;
   HoistProcVarArgs(aOwner+'_result',lResult^.p1^.p2);
   lName:=TypeName(aOwner+'_result');
+  WriteSectionMarker(outfile,'T');
   if block_type<>bt_type then
     begin
     if not compactmode then
       writeln(outfile);
-    writeln(outfile,aktspace,'type');
+    WriteSectionKeyword(outfile,aktspace,'type');
     block_type:=bt_type;
     end;
   shift(2);
@@ -906,6 +908,10 @@ begin
         IsExtern:=false;
         no_pop:=assigned(modifier_spec) and (modifier_spec^.str='no_pop');
 
+        if createdynlib then
+          WriteSectionMarker(outfile,'V')
+        else
+          WriteSectionMarker(outfile,'F');
         if (block_type<>bt_func) and not(createdynlib) then
           begin
             writeln(outfile);
@@ -919,7 +925,7 @@ begin
             begin
                 if not(compactmode) then
                   writeln(outfile);
-                writeln(outfile,aktspace,'var');
+                WriteSectionKeyword(outfile,aktspace,'var');
                 block_type:=bt_var;
             end;
             shift(2);
@@ -1038,11 +1044,12 @@ begin
     begin
         HoistVariableProcVarElements(decllist_spec,type_spec);
         shift(2);
+        WriteSectionMarker(outfile,'V');
         if block_type<>bt_var then
           begin
             if not(compactmode) then
               writeln(outfile);
-            writeln(outfile,aktspace,'var');
+            WriteSectionKeyword(outfile,aktspace,'var');
           end;
         block_type:=bt_var;
 
@@ -1125,6 +1132,10 @@ begin
           IsExtern:=assigned(decl)and(decl^.str='extern');
         no_pop:=assigned(modifier_spec) and (modifier_spec^.str='no_pop');
 
+        if createdynlib then
+          WriteSectionMarker(outfile,'V')
+        else
+          WriteSectionMarker(outfile,'F');
         if (block_type<>bt_func) and not(createdynlib) then
           begin
             writeln(outfile);
@@ -1138,7 +1149,7 @@ begin
             begin
                 if not(compactmode) then
                   writeln(outfile);
-                writeln(outfile,aktspace,'var');
+                WriteSectionKeyword(outfile,aktspace,'var');
                 block_type:=bt_var;
             end;
             shift(2);
@@ -1258,11 +1269,12 @@ begin
     begin
         HoistVariableProcVarElements(decllist_spec,type_spec);
         shift(2);
+        WriteSectionMarker(outfile,'V');
         if block_type<>bt_var then
           begin
             if not(compactmode) then
               writeln(outfile);
-            writeln(outfile,aktspace,'var');
+            WriteSectionKeyword(outfile,aktspace,'var');
           end;
         block_type:=bt_var;
 
@@ -1314,6 +1326,7 @@ begin
   lMoved:=(aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p1) and assigned(aType^.p2)
           and assigned(aType^.p2^.p) and CanMoveRecord(TypeName(aType^.p2^.p),aType);
   lBlockType:=block_type;
+  WriteSectionMarker(outfile,'T');
   if lMoved then
     begin
     WriteMovedRecordStart(outfile,TypeName(aType^.p2^.p));
@@ -1323,7 +1336,7 @@ begin
     begin
     if not(compactmode) then
       writeln(outfile);
-    writeln(outfile,aktspace,'type');
+    WriteSectionKeyword(outfile,aktspace,'type');
     block_type:=bt_type;
     end;
   if (aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p2) and assigned(aType^.p2^.p) then
@@ -1427,11 +1440,12 @@ begin
     arg_decl_list:=nil;
     end;
   (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
+  WriteSectionMarker(outfile,'T');
   if block_type<>bt_type then
     begin
       if not(compactmode) then
         writeln(outfile);
-      writeln(outfile,aktspace,'type');
+      WriteSectionKeyword(outfile,aktspace,'type');
       block_type:=bt_type;
     end;
   if assigned(declarator) and assigned(declarator^.p2) and assigned(declarator^.p2^.p) then
@@ -1529,11 +1543,12 @@ begin
     popshift;
     block_type:=bt_no;
     end;
+  WriteSectionMarker(outfile,'T');
   if block_type<>bt_type then
     begin
       if not(compactmode) then
         writeln(outfile);
-      writeln(outfile,aktspace,'type');
+      WriteSectionKeyword(outfile,aktspace,'type');
       block_type:=bt_type;
     end
   else
@@ -1604,9 +1619,10 @@ begin
         TN:=TypeName(hp^.p1^.p2^.p);
         if not SameText(TN,PN) then
         begin
+          WriteSectionMarker(outfile,'T');
           if block_type<>bt_type then
             begin
-            writeln(outfile,Copy(aktspace,1,Length(aktspace)-2),'type');
+            WriteSectionKeyword(outfile,Copy(aktspace,1,Length(aktspace)-2),'type');
             block_type:=bt_type;
             end;
           write(outfile,aktspace,TN,' = ');
@@ -1640,13 +1656,14 @@ function HandleStructDef(dname1,dname2 : presobject) : presobject;
 begin
   HandleStructDef:=nil;
   (* TYPEDEF STRUCT dname dname SEMICOLON *)
+  WriteSectionMarker(outfile,'T');
   PN:=TypeName(dname1^.p);
   TN:=TypeName(dname2^.p);
   if IsDeclaredType(PN) and (block_type<>bt_type) and not SameText(TN,PN) then
     begin
       if not(compactmode) then
         writeln(outfile);
-      writeln(outfile,aktspace,'type');
+      WriteSectionKeyword(outfile,aktspace,'type');
       block_type:=bt_type;
     end;
   if not IsDeclaredType(PN) then
@@ -1677,11 +1694,12 @@ function HandleSimpleTypeDef(tname : presobject) : presobject;
 
 begin
   HandleSimpleTypeDef:=Nil;
+  WriteSectionMarker(outfile,'T');
   if block_type<>bt_type then
     begin
       if not(compactmode) then
         writeln(outfile);
-      writeln(outfile,aktspace,'type');
+      WriteSectionKeyword(outfile,aktspace,'type');
       block_type:=bt_type;
     end
   else
@@ -1790,11 +1808,12 @@ begin
   if assigned(hp) and (hp^.typ=t_id)
      and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(hp^.str))) then
     begin
+    WriteSectionMarker(outfile,'T');
     if block_type<>bt_type then
       begin
       if block_type<>bt_func then
         writeln(outfile);
-      writeln(outfile,aktspace,'type');
+      WriteSectionKeyword(outfile,aktspace,'type');
       block_type:=bt_type;
       end;
     shift(2);
@@ -1819,11 +1838,18 @@ begin
     def_expr^.p1^.is_const and
     not assigned(def_expr^.next) then
     begin
+      if IsPlainConstExpr(def_expr^.p1) then
+        begin
+        WriteSectionMarker(outfile,'C');
+        RegisterPlainConst(dname^.str);
+        end
+      else
+        WriteSectionMarker(outfile,'D');
       if block_type<>bt_const then
         begin
           if block_type<>bt_func then
             writeln(outfile);
-          writeln(outfile,aktspace,'const');
+          WriteSectionKeyword(outfile,aktspace,'const');
         end;
       block_type:=bt_const;
       shift(2);
@@ -1840,6 +1866,7 @@ begin
     end
   else
     begin
+      WriteSectionMarker(outfile,'F');
       if block_type<>bt_func then
         writeln(outfile);
       if not stripinfo then
@@ -2063,6 +2090,7 @@ begin
         writeln(implemfile,aktspace,'{ return type might be wrong }   ');
       end;
   end;
+  WriteSectionMarker(outfile,'F');
   if block_type<>bt_func then
     writeln(outfile);
 
