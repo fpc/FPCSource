@@ -408,11 +408,13 @@ special_type_specifier :
      {
        (* UNION dname  *)
        $$:=$2;
+       $$^.structtag:=true;
      } |
      STRUCT dname
      {
        (* STRUCT dname *)
        $$:=$2;
+       $$^.structtag:=true;
      } |
      ENUM dname closed_enum_list
      {

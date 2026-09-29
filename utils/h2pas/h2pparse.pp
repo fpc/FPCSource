@@ -489,12 +489,14 @@ begin
 
          (* UNION dname  *)
          yyval:=yyv[yysp-0];
+         yyval^.structtag:=true;
 
        end;
   62 : begin
 
          (* STRUCT dname *)
          yyval:=yyv[yysp-0];
+         yyval^.structtag:=true;
 
        end;
   63 : begin

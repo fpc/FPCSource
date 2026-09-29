@@ -30,6 +30,8 @@ var
   SS : string;
   headerfile: Text;
   finaloutfile: Text;
+  Lines : TStringList;
+  I : Integer;
 
 begin
   pointerprefix:=false;
@@ -108,12 +110,17 @@ begin
     end;
   { Read interface and implementation file }
   reset(outfile);
+  Lines:=TStringList.Create;
   while not eof(outfile) do
     begin
       readln(outfile,SS);
-      if not WriteMarkedPointers(finaloutfile,SS) then
-        writeln(finaloutfile,SS);
+      Lines.Add(SS);
     end;
+  CollectMovedRecords(Lines);
+  for I:=0 to Lines.Count-1 do
+    if not WriteMarkedPointers(finaloutfile,Lines[I]) then
+      writeln(finaloutfile,Lines[I]);
+  Lines.Free;
 
   close(HeaderFile);
   close(outfile);

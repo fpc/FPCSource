@@ -153,6 +153,8 @@ type
      grouped : boolean;
      { pointer declared as an array without size }
      openarray : boolean;
+     { name of a struct or union tag after the struct or union keyword }
+     structtag : boolean;
      constructor init_no(t : ttyp);
      constructor init_one(t : ttyp;_p1 : presobject);
      constructor init_two(t : ttyp;_p1,_p2 : presobject);
@@ -260,6 +262,7 @@ constructor tresobject.init_preop(const s : string;_p1 : presobject);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
@@ -273,6 +276,7 @@ constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_id(const s : string);
@@ -286,6 +290,7 @@ constructor tresobject.init_id(const s : string);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_intid(const s : string);
@@ -302,6 +307,7 @@ constructor tresobject.init_intid(const s : string);
      skiptprefix:=true;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
@@ -315,6 +321,7 @@ constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
@@ -328,6 +335,7 @@ constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_one(t : ttyp;_p1 : presobject);
@@ -341,6 +349,7 @@ constructor tresobject.init_one(t : ttyp;_p1 : presobject);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_no(t : ttyp);
@@ -354,6 +363,7 @@ constructor tresobject.init_no(t : ttyp);
      skiptprefix:=false;
      grouped:=false;
      openarray:=false;
+     structtag:=false;
   end;
 
 procedure tresobject.setstr(const s : string);
@@ -399,6 +409,7 @@ function tresobject.get_copy : presobject;
      newres^.skiptprefix:=skiptprefix;
      newres^.grouped:=grouped;
      newres^.openarray:=openarray;
+     newres^.structtag:=structtag;
      if assigned(p) then
        newres^.p:=strnew(p);
      if assigned(p1) then

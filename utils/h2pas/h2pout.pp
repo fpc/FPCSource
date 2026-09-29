@@ -37,6 +37,14 @@ function IsDeclaredType(const TN : AnsiString) : Boolean;
 procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
 // Writes a marker line before the record TN, replaced by the pointer types to TN and its later aliases.
 procedure WriteRecordMarker(var aFile : text; const TN : AnsiString);
+// Returns true when the record TN with the definition aType can move to its opaque marker:
+// all the types it refers to were declared before that marker.
+function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
+// Writes the marker lines around the record TN that moves to its opaque marker.
+procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
+procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
+// Removes the lines of the moved records from aLines, for WriteMarkedPointers to write them at their opaque marker.
+procedure CollectMovedRecords(aLines : TStringList);
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
@@ -96,6 +104,8 @@ const
   PointerMarker = #1;
   OpaqueMarker = #2;
   RecordMarker = #3;
+  MovedStartMarker = #4;
+  MovedEndMarker = #5;
 
 var
   WrittenPointers : TStringList;
@@ -104,6 +114,11 @@ var
   OpaqueTypes : TStringList;
   DefinedOpaqueTypes : TStringList;
   PendingAliases : TStringList;
+  // The declared types in the order of declaration, and the number of them at each opaque marker, as TN=count.
+  DeclaredSequence : TStringList;
+  OpaqueSequence : TStringList;
+  // The lines of the moved records, as objects of their names.
+  MovedRecordLines : TStringList;
   // Targets of pointer types to pointer types, as PPname=Pname.
   PointerTargets : TStringList;
   // Names of typedefs of a function type, without T prefix.
@@ -1723,7 +1738,86 @@ begin
   if OpaqueTypes.IndexOf(TN)>=0 then
     DefinedOpaqueTypes.Add(TN);
   DeclaredTypes.Add(TN);
+  DeclaredSequence.Add(TN);
   Writeln(aFile,PointerMarker,aktspace,TN);
+end;
+
+
+// Returns false when a type name in the tree aNode other than TN was declared at or after position aLimit.
+function RefersToEarlierTypes(aNode : presobject; const TN : AnsiString; aLimit : Integer) : Boolean;
+
+var
+  lIndex : Integer;
+
+begin
+  Result:=true;
+  if not assigned(aNode) then
+    exit;
+  if (aNode^.typ=t_id) and not aNode^.skiptprefix and not SameText(TypeName(aNode^.str),TN) then
+    begin
+    lIndex:=DeclaredSequence.IndexOf(TypeName(aNode^.str));
+    if lIndex>=aLimit then
+      exit(false);
+    end;
+  Result:=RefersToEarlierTypes(aNode^.p1,TN,aLimit) and RefersToEarlierTypes(aNode^.p2,TN,aLimit)
+          and RefersToEarlierTypes(aNode^.p3,TN,aLimit) and RefersToEarlierTypes(aNode^.next,TN,aLimit);
+end;
+
+
+function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
+
+begin
+  Result:=(OpaqueSequence.IndexOfName(TN)>=0) and (DefinedOpaqueTypes.IndexOf(TN)<0)
+          and RefersToEarlierTypes(aType^.p1,TN,StrToInt(OpaqueSequence.Values[TN]));
+end;
+
+
+procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
+
+begin
+  Writeln(aFile,MovedStartMarker,TN);
+end;
+
+
+procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
+
+begin
+  Writeln(aFile,MovedEndMarker,TN);
+end;
+
+
+procedure CollectMovedRecords(aLines : TStringList);
+
+var
+  i : Integer;
+  lName : AnsiString;
+  lRecord : TStringList;
+
+begin
+  lRecord:=nil;
+  i:=0;
+  while i<aLines.Count do
+    begin
+    if (aLines[i]<>'') and (aLines[i][1]=MovedStartMarker) then
+      begin
+      lName:=Copy(aLines[i],2,Length(aLines[i])-1);
+      lRecord:=TStringList.Create;
+      MovedRecordLines.AddObject(lName,lRecord);
+      aLines.Delete(i);
+      end
+    else if (aLines[i]<>'') and (aLines[i][1]=MovedEndMarker) then
+      begin
+      lRecord:=nil;
+      aLines.Delete(i);
+      end
+    else if assigned(lRecord) then
+      begin
+      lRecord.Add(aLines[i]);
+      aLines.Delete(i);
+      end
+    else
+      inc(i);
+    end;
 end;
 
 
@@ -1738,6 +1832,7 @@ procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
 
 begin
   OpaqueTypes.Add(TN);
+  OpaqueSequence.Values[TN]:=IntToStr(DeclaredSequence.Count);
   DeclaredTypes.Add(TN);
   if AN<>'' then
     DeclaredTypes.Add(AN);
@@ -1767,6 +1862,7 @@ function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boole
 var
   lIndent, lTN, lAN : AnsiString;
   lPos, lIndex : Integer;
+  lLines : TStringList;
 
 begin
   Result:=(aLine<>'') and (aLine[1] in [PointerMarker,OpaqueMarker,RecordMarker]);
@@ -1790,6 +1886,21 @@ begin
     begin
     lAN:=Trim(Copy(lTN,Pos(' ',lTN)+1,Length(lTN)));
     lTN:=Copy(lTN,1,Pos(' ',lTN)-1);
+    lIndex:=MovedRecordLines.IndexOf(lTN);
+    if lIndex>=0 then
+      begin
+      (* the record declared later, moved here *)
+      Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
+      if lAN<>'' then
+        WritePointersTo(aFile,lIndent,lAN);
+      lLines:=TStringList(MovedRecordLines.Objects[lIndex]);
+      for lPos:=0 to lLines.Count-1 do
+        if not WriteMarkedPointers(aFile,lLines[lPos]) then
+          Writeln(aFile,lLines[lPos]);
+      if lAN<>'' then
+        WriteAlias(aFile,lIndent,lAN,lTN);
+      exit;
+      end;
     if DefinedOpaqueTypes.IndexOf(lTN)>=0 then
       begin
       if lAN<>'' then
@@ -2042,6 +2153,10 @@ initialization
   OpaqueTypes:=TStringList.Create;
   DefinedOpaqueTypes:=TStringList.Create;
   PendingAliases:=TStringList.Create;
+  DeclaredSequence:=TStringList.Create;
+  OpaqueSequence:=TStringList.Create;
+  MovedRecordLines:=TStringList.Create;
+  MovedRecordLines.OwnsObjects:=true;
   FunctionTypes:=TStringList.Create;
   FunctionTypes.Sorted:=true;
   FunctionTypes.Duplicates:=dupIgnore;
@@ -2058,5 +2173,8 @@ finalization
   OpaqueTypes.Free;
   DefinedOpaqueTypes.Free;
   PendingAliases.Free;
+  DeclaredSequence.Free;
+  OpaqueSequence.Free;
+  MovedRecordLines.Free;
   WrittenPointers.Free;
 end.

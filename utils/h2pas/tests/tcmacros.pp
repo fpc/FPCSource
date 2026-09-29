@@ -22,6 +22,8 @@ type
     procedure CheckConst(const aName, aValue, aPascal: string);
   published
     procedure TestEmptyDefine;
+    procedure TestDefineOfEmptyDefine;
+    procedure TestDefineOfEmptyDefineCompiles;
     procedure TestDecimal;
     procedure TestHexadecimal;
     procedure TestOctal;
@@ -181,6 +183,28 @@ begin
   Convert(['#define EMPTY']);
   AssertConverted;
   AssertInterface('define without value becomes a conditional define',['{$define EMPTY}']);
+end;
+
+
+procedure TTestConstMacros.TestDefineOfEmptyDefine;
+
+begin
+  Convert(['#define SQLITE_APICALL','#define SQLITE_STDCALL SQLITE_APICALL','#define DEEPER SQLITE_STDCALL',
+           '#define PAREN (SQLITE_APICALL)','#define other 1','#define ALIAS other']);
+  AssertConverted;
+  AssertOutput('a define of an empty define is empty',
+    ['{$define SQLITE_APICALL}','{$define SQLITE_STDCALL}','{$define DEEPER}','{$define PAREN}']);
+  AssertNotOutput('no constant of an empty define','SQLITE_STDCALL =');
+  AssertInterface('a define of a constant stays a constant',['other = 1;','ALIAS = other;']);
+end;
+
+
+procedure TTestConstMacros.TestDefineOfEmptyDefineCompiles;
+
+begin
+  Convert(['#define SQLITE_APICALL','#define SQLITE_STDCALL SQLITE_APICALL','#ifdef SQLITE_STDCALL','int x;','#endif'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

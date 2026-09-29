@@ -41,6 +41,11 @@ type
     procedure TestOpaqueAliasDefinedLater;
     procedure TestOpaqueStructPrefixes;
     procedure TestOpaqueStructsCompile;
+    procedure TestRecordMovedToPointerTypedef;
+    procedure TestOpaquePointerTypedef;
+    procedure TestRecordMovedToTypedefWithAlias;
+    procedure TestRecordNotMovedAfterLaterFieldType;
+    procedure TestMovedRecordsCompile;
     procedure TestAnonymousUnion;
     procedure TestCharPointer;
     procedure TestArray;
@@ -308,6 +313,62 @@ begin
   Convert(['int a(void);','typedef struct sqlite3 sqlite3;','int f(sqlite3 *db);','typedef struct foo_s foo_t;',
            'typedef struct bar bar;','struct bar { int a; bar *next; };','typedef struct w_s w_t;',
            'struct w_s { int (*f)(w_t *p); };','int g(foo_t *p, bar *b, w_t *w);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestRecordMovedToPointerTypedef;
+
+begin
+  Convert(['typedef long z_off64_t;','typedef struct gzFile_s *gzFile;','int gzread(gzFile file, void *buf);',
+           'struct gzFile_s { unsigned have; unsigned char *next; z_off64_t pos; };','int gzgetc_(gzFile file);'],['-d']);
+  AssertConverted;
+  AssertInterface('the record declared later precedes the pointer typedef',
+    ['gzFile_s = record','have : dword;','next : ^byte;','pos : z_off64_t;','end;','type','gzFile = ^gzFile_s;',
+     'function gzread(_file:gzFile; buf:pointer):longint;cdecl;external;']);
+  AssertTrue('the record is declared once',CountOf('gzFile_s = record')=1);
+end;
+
+
+procedure TTestTypedefs.TestOpaquePointerTypedef;
+
+begin
+  Convert(['typedef struct h_s *h_t;','int f(h_t h);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct without declaration becomes an empty record',
+    ['h_s = record','{undefined structure}','end;','type','h_t = ^h_s;']);
+end;
+
+
+procedure TTestTypedefs.TestRecordMovedToTypedefWithAlias;
+
+begin
+  Convert(['typedef struct cb_s cb_t;','int use(cb_t *c);','struct cb_s { void (*fns[2])(cb_t *c); int n; };'],['-d']);
+  AssertConverted;
+  AssertInterface('the record, its element type and its alias move to the typedef',
+    ['Pcb_t = ^cb_t;','cb_s_fns = procedure (c:Pcb_t);cdecl;','cb_s = record','fns : array[0..1] of cb_s_fns;','n : longint;',
+     'end;','cb_t = cb_s;','function use(c:Pcb_t):longint;cdecl;external;']);
+end;
+
+
+procedure TTestTypedefs.TestRecordNotMovedAfterLaterFieldType;
+
+begin
+  Convert(['typedef struct m_s *m_t;','int f(m_t h);','typedef int later_t;','struct m_s { later_t a; };'],['-d']);
+  AssertConverted;
+  AssertInterface('a record that refers to a later type stays in place',
+    ['later_t = longint;','m_s = record','a : later_t;','end;']);
+  AssertNotOutput('no empty record for a struct declared later','undefined structure');
+end;
+
+
+procedure TTestTypedefs.TestMovedRecordsCompile;
+
+begin
+  Convert(['typedef long z_off64_t;','typedef struct gzFile_s *gzFile;','int gzread(gzFile file, void *buf);',
+           'struct gzFile_s { unsigned have; unsigned char *next; z_off64_t pos; };','typedef struct h_s *h_t;',
+           'typedef struct cb_s cb_t;','int use(cb_t *c, h_t h);','struct cb_s { void (*fns[2])(cb_t *c); int n; };'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

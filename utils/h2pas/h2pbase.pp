@@ -1305,15 +1305,37 @@ function HandleSpecialType(aType: presobject) : presobject;
 
 var
   hp : presobject;
+  lMoved : boolean;
+  lBlockType : tblocktype;
 
 begin
   HandleSpecialType:=Nil;
-  if block_type<>bt_type then
+  (* a struct used before its declaration moves to its first use *)
+  lMoved:=(aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p1) and assigned(aType^.p2)
+          and assigned(aType^.p2^.p) and CanMoveRecord(TypeName(aType^.p2^.p),aType);
+  lBlockType:=block_type;
+  if lMoved then
+    begin
+    WriteMovedRecordStart(outfile,TypeName(aType^.p2^.p));
+    block_type:=bt_type;
+    end
+  else if block_type<>bt_type then
     begin
     if not(compactmode) then
       writeln(outfile);
     writeln(outfile,aktspace,'type');
     block_type:=bt_type;
+    end;
+  if (aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p2) and assigned(aType^.p2^.p) then
+    begin
+    shift(2);
+    TN:=TypeName(aType^.p2^.p);
+    PN:=PointerName(aType^.p2^.p);
+    (* define a Pointer type also for structs *)
+    if UsePPointers and not SameText(TN,PN) then
+      WritePointerTypeDef(outfile,PN,TN);
+    WriteRecordMarker(outfile,TN);
+    popshift;
     end;
   if assigned(aType^.p2) and assigned(aType^.p2^.p) then
     HoistStructProcVarElements(aType^.p2^.str,aType);
@@ -1322,13 +1344,6 @@ begin
     begin
     (* write new type name *)
     TN:=TypeName(aType^.p2^.p);
-    PN:=PointerName(aType^.p2^.p);
-    (* define a Pointer type also for structs *)
-    if UsePPointers and (not SameText(tn,pn)) and
-      assigned(aType) and (aType^.typ in [t_uniondef,t_structdef]) then
-      WritePointerTypeDef(outfile,PN,TN);
-    if aType^.typ in [t_uniondef,t_structdef] then
-      WriteRecordMarker(outfile,TN);
     write(outfile,aktspace,TN,' = ');
     shift(2);
     hp:=aType;
@@ -1343,6 +1358,11 @@ begin
     writeln(outfile);
     flush(outfile);
     popshift;
+    if lMoved then
+      begin
+      WriteMovedRecordEnd(outfile,TN);
+      block_type:=lBlockType;
+      end;
     if must_write_packed_field then
       write_packed_fields_info(outfile,hp,TN);
     if assigned(hp) then
@@ -1500,6 +1520,14 @@ begin
       dispose(dec_modifier,done);
     dispose(declarator_list,done);
     exit;
+    end;
+  (* typedef struct tag *name: the struct tag without declaration yet *)
+  if (type_spec^.typ=t_id) and type_spec^.structtag and not IsDeclaredType(TypeName(type_spec^.p)) then
+    begin
+    shift(2);
+    WriteOpaqueMarker(outfile,TypeName(type_spec^.p),'');
+    popshift;
+    block_type:=bt_no;
     end;
   if block_type<>bt_type then
     begin
@@ -1682,19 +1710,27 @@ begin
   yyerrok;
 end;
 
+var
+  // Names of the defines converted so far, as written in the header.
+  DefineNames : TStringList = nil;
+  // Names of the defines without value, such as calling convention macros.
+  EmptyDefines : TStringList = nil;
+
 function HandleDefine(dname : presobject) : presobject;
 
 begin
   HandleDefine:=Nil;
   writeln(outfile,'{$define ',dname^.p,'}',aktspace,commentstr);
   flush(outfile);
+  if not assigned(EmptyDefines) then
+    begin
+    EmptyDefines:=TStringList.Create;
+    EmptyDefines.CaseSensitive:=true;
+    end;
+  EmptyDefines.Add(dname^.str);
   if assigned(dname)then
   dispose(dname,done);
 end;
-
-var
-  // Names of the defines converted so far, as written in the header.
-  DefineNames : TStringList = nil;
 
 // Returns true, and writes a comment, when the define dname has the Pascal name of an earlier define
 // that differs from it in case only; registers the name otherwise.
@@ -1735,6 +1771,13 @@ begin
       writeln(outfile,aktspace,'(* self-referencing #define ',dname^.p,' ignored *)');
     dispose(dname,done);
     dispose(def_expr,done);
+    exit;
+    end;
+  (* the name of a define without value, as #define SQLITE_STDCALL SQLITE_APICALL: a define without value *)
+  if assigned(hp) and (hp^.typ=t_id) and assigned(EmptyDefines) and (EmptyDefines.IndexOf(hp^.str)>=0) then
+    begin
+    dispose(def_expr,done);
+    HandleDefine(dname);
     exit;
     end;
   if IsDefineNameClash(dname) then
@@ -2069,4 +2112,5 @@ end;
 initialization
 finalization
   DefineNames.Free;
+  EmptyDefines.Free;
 end.
