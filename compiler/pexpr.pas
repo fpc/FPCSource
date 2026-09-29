@@ -3493,17 +3493,49 @@ implementation
       end;
 
 
+    { finds a variable, field or parameter whose type is not yet parsed,
+      i.e. which still has the placeholder generrordef }
+    function find_incomplete_varsym(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        sym : tsym;
+      begin
+        result:=fen_false;
+        sym:=nil;
+        case n.nodetype of
+          loadn:
+            sym:=tloadnode(n).symtableentry;
+          subscriptn:
+            sym:=tsubscriptnode(n).vs;
+          else
+            ;
+        end;
+        if assigned(sym) and
+           (sym is tabstractvarsym) and
+           (tabstractvarsym(sym).vardef=generrordef) then
+          begin
+            if not assigned(tsym(arg^)) then
+              tsym(arg^):=sym;
+            result:=fen_norecurse_true;
+          end;
+      end;
+
+
     function parse_type_inquiry(typetokenconsumed:boolean):tdef;
       var
         n : tnode;
         oldlocalswitches : tlocalswitches;
         old_block_type : tblock_type;
         old_in_type_inquiry : boolean;
+        ecnt : longint;
+        operandpos : tfileposinfo;
+        incompletesym : tsym;
       begin
         result:=generrordef;
         if not typetokenconsumed then
           consume(_TYPE);
         consume(_OF);
+        ecnt:=errorcount;
+        operandpos:=current_tokenpos;
         old_block_type:=block_type;
         oldlocalswitches:=current_settings.localswitches;
         old_in_type_inquiry:=current_module.in_type_inquiry;
@@ -3528,6 +3560,18 @@ implementation
           Message(parser_e_no_type_not_allowed_here)
         else if assigned(n.resultdef) then
           result:=n.resultdef;
+        { a symbol used inside its own declaration, e.g. "var a: array of type of a;",
+          has not yet a type and silently yields generrordef }
+        if (result=generrordef) and
+           (errorcount=ecnt) then
+          begin
+            incompletesym:=nil;
+            foreachnodestatic(n,@find_incomplete_varsym,@incompletesym);
+            if assigned(incompletesym) then
+              MessagePos1(operandpos,type_e_type_is_not_completly_defined,'type of '+incompletesym.realname)
+            else
+              MessagePos1(operandpos,type_e_type_is_not_completly_defined,'type of');
+          end;
         { in a generic the operand can be an undefineddef without typesym (e.g. "type of PT^") }
         if (result.typ=undefineddef) and
            not assigned(result.typesym) then
