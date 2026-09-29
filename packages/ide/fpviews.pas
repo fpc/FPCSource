@@ -562,7 +562,7 @@ uses
   {$else}
   itcpugas,
   {$endif jvm}
-  {$if defined(I386) or defined(x64_86)}
+  {$if defined(I386) or defined(x86_64) or defined(i8086)}
      rax86,
   {$endif}
   {$ifdef m68k}
@@ -993,7 +993,7 @@ end;
     CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64) or defined(i8086)}
   {$define USE_TasmCond}
   {$define Use_std_op2str}
 {$endif}
@@ -1141,7 +1141,7 @@ begin
     begin
       S:=UpcaseStr(S);
       _Is:=AsmReservedWords[Idx]^.Search(@S,Item);
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
       if not _Is and (Length(S)>1) then
         begin
           LastC:=S[Length(S)];
