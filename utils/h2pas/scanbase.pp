@@ -1193,6 +1193,83 @@ begin
 end;
 
 
+// Splits the define aText (the text after #define) into its name aName, its parameters aParams
+// (comma separated, '' without parameter list) and its body aBody, without continuations and trailing comment.
+procedure SplitDefine(const aText : AnsiString; out aName, aParams, aBody : AnsiString);
+
+const
+  IdentChars = ['A'..'Z','a'..'z','0'..'9','_'];
+
+var
+  i, lEnd : integer;
+  lText : AnsiString;
+
+begin
+  aName:='';
+  aParams:='';
+  lText:=StringReplace(StringReplace(aText,'\'#13#10,' ',[rfReplaceAll]),'\'#10,' ',[rfReplaceAll]);
+  i:=1;
+  while (i<=length(lText)) and (lText[i] in [' ',#9]) do
+    inc(i);
+  while (i<=length(lText)) and (lText[i] in IdentChars) do
+    begin
+    aName:=aName+lText[i];
+    inc(i);
+    end;
+  if (i<=length(lText)) and (lText[i]='(') then
+    begin
+    lEnd:=i;
+    while (lEnd<=length(lText)) and (lText[lEnd]<>')') do
+      inc(lEnd);
+    aParams:=StringReplace(copy(lText,i+1,lEnd-i-1),' ','',[rfReplaceAll]);
+    i:=lEnd+1;
+    end;
+  aBody:=copy(lText,i,length(lText));
+  lEnd:=pos('//',aBody);
+  if lEnd>0 then
+    aBody:=copy(aBody,1,lEnd-1);
+  lEnd:=pos('/*',aBody);
+  if lEnd>0 then
+    aBody:=copy(aBody,1,lEnd-1);
+  aBody:=Trim(aBody);
+end;
+
+
+// Returns true when the function macro aText has the body (), as #define OF(args) (); aName is the name of the macro.
+function IsEmptyBodyDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
+
+var
+  lParams, lBody : AnsiString;
+
+begin
+  SplitDefine(aText,aName,lParams,lBody);
+  Result:=(lParams<>'') and (StringReplace(lBody,' ','',[rfReplaceAll])='()');
+end;
+
+
+// Returns true when the define aText defines a name that h2pas reads as a keyword, such as FAR or CDECL;
+// aName is the name of the macro.
+function IsKeywordNameDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
+
+const
+  MaxNames = 22;
+  Names : array[1..MaxNames] of string = (
+    'STDCALL','CDECL','PASCAL','PACKED','WINAPI','SYS_TRAP','WINGDIAPI','CALLBACK','EXPENTRY','VOID','CONST',
+    'FAR','far','NEAR','near','HUGE','huge','int8','int16','int32','int64','__stdcall');
+
+var
+  lParams, lBody : AnsiString;
+  i : integer;
+
+begin
+  Result:=false;
+  SplitDefine(aText,aName,lParams,lBody);
+  for i:=1 to MaxNames do
+    if aName=Names[i] then
+      exit(true);
+end;
+
+
 // Returns the rest of the define with its continuation lines, without reading it.
 function PeekDefine : AnsiString;
 
@@ -1291,6 +1368,18 @@ begin
     begin
     if not stripinfo then
       writeln(outfile,aktspace,'(* macro ',lName,' with statements or side effects ignored *)');
+    SkipDefine;
+    end
+  else if NotInCPlusBlock and IsKeywordNameDefine(PeekDefine,lName) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* define of the keyword ',lName,' ignored *)');
+    SkipDefine;
+    end
+  else if NotInCPlusBlock and IsEmptyBodyDefine(PeekDefine,lName) then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* macro ',lName,' with an empty body ignored *)');
     SkipDefine;
     end
   else if NotInCPlusBlock and IsKeywordDefine(PeekDefine,lName) then

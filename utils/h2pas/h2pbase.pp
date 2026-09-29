@@ -1327,6 +1327,8 @@ begin
     if UsePPointers and (not SameText(tn,pn)) and
       assigned(aType) and (aType^.typ in [t_uniondef,t_structdef]) then
       WritePointerTypeDef(outfile,PN,TN);
+    if aType^.typ in [t_uniondef,t_structdef] then
+      WriteRecordMarker(outfile,TN);
     write(outfile,aktspace,TN,' = ');
     shift(2);
     hp:=aType;
@@ -1533,6 +1535,9 @@ begin
   if UsePPointers and (not SameText(tn,pn)) and not lFunctionType and
     assigned(type_spec) and (type_spec^.typ<>t_procdef) then
     WritePointerTypeDef(outfile,PN,TN);
+  if (type_spec^.typ in [t_uniondef,t_structdef]) and assigned(type_spec^.p1)
+     and (lInlineType or not (assigned(lDecl) and assigned(lDecl^.p1))) then
+    WriteRecordMarker(outfile,TN);
   (* write new type name *)
   write(outfile,aktspace,TN,' = ');
   shift(2);
@@ -1593,16 +1598,27 @@ function HandleStructDef(dname1,dname2 : presobject) : presobject;
 begin
   HandleStructDef:=nil;
   (* TYPEDEF STRUCT dname dname SEMICOLON *)
-  if block_type<>bt_type then
+  PN:=TypeName(dname1^.p);
+  TN:=TypeName(dname2^.p);
+  if IsDeclaredType(PN) and (block_type<>bt_type) and not SameText(TN,PN) then
     begin
       if not(compactmode) then
         writeln(outfile);
       writeln(outfile,aktspace,'type');
       block_type:=bt_type;
     end;
-  PN:=TypeName(dname1^.p);
-  TN:=TypeName(dname2^.p);
-  if not SameText(tn,pn) then
+  if not IsDeclaredType(PN) then
+  begin
+    (* a struct without declaration yet: an empty record with its own type keyword, unless it is declared later *)
+    shift(2);
+    if SameText(TN,PN) then
+      WriteOpaqueMarker(outfile,PN,'')
+    else
+      WriteOpaqueMarker(outfile,PN,TN);
+    popshift;
+    block_type:=bt_no;
+  end
+  else if not SameText(tn,pn) then
   begin
     shift(2);
     writeln(outfile,aktspace,TN,' = ',PN,';');
@@ -1693,7 +1709,7 @@ begin
         end;
       block_type:=bt_const;
       shift(2);
-      write(outfile,aktspace,dname^.p);
+      write(outfile,aktspace,FixId(dname^.p));
       write(outfile,' = ');
       flush(outfile);
       write_expr(outfile,def_expr^.p1);
@@ -1714,8 +1730,8 @@ begin
           writeln (implemfile,aktspace,'{ was #define dname def_expr }');
         end;
       block_type:=bt_func;
-      write(outfile,aktspace,'function ',dname^.p);
-      write(implemfile,aktspace,'function ',dname^.p);
+      write(outfile,aktspace,'function ',FixId(dname^.p));
+      write(implemfile,aktspace,'function ',FixId(dname^.p));
       shift(2);
       if not assigned(def_expr^.p3) then
         begin
@@ -1925,8 +1941,8 @@ begin
     writeln(outfile);
 
   block_type:=bt_func;
-  write(outfile,aktspace,'function ',dname^.p);
-  write(implemfile,aktspace,'function ',dname^.p);
+  write(outfile,aktspace,'function ',FixId(dname^.p));
+  write(implemfile,aktspace,'function ',FixId(dname^.p));
 
   if assigned(enum_list) then
     begin

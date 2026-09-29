@@ -152,7 +152,7 @@ begin
   ConvertSample([]);
   AssertInterface('pointer to typedef follows the typedef',['point = _point;','Ppoint = ^point;']);
   AssertInterface('pointer to base type typedef follows the typedef',['myint = longint;','Pmyint = ^myint;']);
-  AssertInterface('pointer to struct tag follows the struct',['br : _point;','end;','P_rect = ^_rect;']);
+  AssertInterface('pointer to struct tag precedes the struct',['P_rect = ^_rect;','_rect = record']);
   AssertNotOutput('no header pointer list','Type');
 end;
 
@@ -332,7 +332,7 @@ procedure TTestTypePrefix.TestUnderscorePointerNames;
 
 begin
   ConvertSample(['-T']);
-  AssertInterface('-T pointer to a struct tag without underscore',['br : Tpoint;','end;','Prect = ^Trect;']);
+  AssertInterface('-T pointer to a struct tag without underscore',['Prect = ^Trect;','Trect = record']);
   AssertNotOutput('-T refers to no type with an underscore','T_rect');
 end;
 
@@ -575,7 +575,7 @@ procedure TTestPointerToPointer.TestDeclaredAfterTarget;
 
 begin
   ConvertSample([]);
-  AssertInterface('pointer to pointer to a struct follows the pointer',['a : longint;','end;','Ps = ^s;','PPs = ^Ps;']);
+  AssertInterface('pointer to pointer to a struct follows the pointer',['Ps = ^s;','PPs = ^Ps;','s = record','a : longint;','end;']);
   AssertInterface('pointer to pointer to a typedef follows the pointer',
     ['node = _node;','Pnode = ^node;','PPnode = ^Pnode;','PPPnode = ^PPnode;']);
   AssertInterface('parameters',['procedure g(pp:PPs; np:PPnode; npp:PPPnode; ip:PPlongint; cp:PPansichar;','wp:PPword);cdecl;external;']);
@@ -604,7 +604,7 @@ procedure TTestPointerToPointer.TestPointerPrefix;
 
 begin
   ConvertSample(['-p']);
-  AssertInterface('-p pointer to pointer to a struct',['Ps = ^s;','s = record','a : longint;','end;','PPs = ^Ps;']);
+  AssertInterface('-p pointer to pointer to a struct',['Ps = ^s;','PPs = ^Ps;','s = record','a : longint;','end;']);
   AssertInterface('-p pointer to pointer to a typedef',['Pnode = ^node;','PPnode = ^Pnode;','PPPnode = ^PPnode;']);
   AssertEquals('-p declares PPnode once',1,CountOf('PPnode = ^Pnode;'));
 end;

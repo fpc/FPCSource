@@ -32,6 +32,12 @@ type
     procedure TestStructTagAlias;
     procedure TestStructTagAliasPointer;
     procedure TestStructTagAliasPrefix;
+    procedure TestOpaqueStruct;
+    procedure TestOpaqueStructWithAlias;
+    procedure TestOpaqueStructDefinedLater;
+    procedure TestOpaqueAliasDefinedLater;
+    procedure TestOpaqueStructPrefixes;
+    procedure TestOpaqueStructsCompile;
     procedure TestAnonymousUnion;
     procedure TestCharPointer;
     procedure TestArray;
@@ -186,7 +192,8 @@ procedure TTestTypedefs.TestStructTagAlias;
 begin
   Convert(['typedef struct tag4 t4;']);
   AssertConverted;
-  AssertInterface('typedef name is the alias of the tag',['type','t4 = tag4;']);
+  AssertInterface('an undeclared tag becomes an empty record, the typedef name its alias',
+    ['type','tag4 = record','{undefined structure}','end;','t4 = tag4;']);
 end;
 
 
@@ -207,6 +214,70 @@ begin
   Convert(['typedef struct _tag4 t4;'],['-T']);
   AssertConverted;
   AssertInterface('-T alias of a tag',['Tt4 = Ttag4;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStruct;
+
+begin
+  Convert(['typedef struct sqlite3 sqlite3;','int f(sqlite3 *db);'],['-d']);
+  AssertConverted;
+  AssertInterface('opaque struct becomes an empty record',
+    ['type','sqlite3 = record','{undefined structure}','end;','Psqlite3 = ^sqlite3;','function f(db:Psqlite3):longint;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructWithAlias;
+
+begin
+  Convert(['typedef struct foo_s foo_t;','int g(foo_t *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('opaque tag and its alias',
+    ['foo_s = record','{undefined structure}','end;','foo_t = foo_s;','Pfoo_t = ^foo_t;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructDefinedLater;
+
+begin
+  Convert(['typedef struct bar bar;','typedef int other;','struct bar { int a; };','int h(bar *p);'],['-d']);
+  AssertConverted;
+  AssertNotOutput('no empty record for a struct declared later','undefined structure');
+  AssertInterface('the struct is declared once',['Pbar = ^bar;','bar = record','a : longint;','end;']);
+  AssertTrue('bar is declared once',CountOf('bar = record')=1);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueAliasDefinedLater;
+
+begin
+  Convert(['typedef struct w_s w_t;','struct w_s { int (*f)(w_t *p); };','int g(w_t *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('the alias follows the record declared later',
+    ['Pw_t = ^w_t;','w_s = record','f : function (p:Pw_t):longint;cdecl;','end;','w_t = w_s;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructPrefixes;
+
+begin
+  Convert(['typedef struct sqlite3 sqlite3;','typedef struct foo_s foo_t;','int f(sqlite3 *db, foo_t *p, sqlite3 **pp);'],
+          ['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('opaque struct under -T -p',
+    ['Tsqlite3 = record','{undefined structure}','end;','Psqlite3 = ^Tsqlite3;','PPsqlite3 = ^Psqlite3;']);
+  AssertInterface('opaque alias under -T -p',['Tfoo_s = record','{undefined structure}','end;','Tfoo_t = Tfoo_s;','Pfoo_t = ^Tfoo_t;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructsCompile;
+
+begin
+  Convert(['int a(void);','typedef struct sqlite3 sqlite3;','int f(sqlite3 *db);','typedef struct foo_s foo_t;',
+           'typedef struct bar bar;','struct bar { int a; bar *next; };','typedef struct w_s w_t;',
+           'struct w_s { int (*f)(w_t *p); };','int g(foo_t *p, bar *b, w_t *w);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

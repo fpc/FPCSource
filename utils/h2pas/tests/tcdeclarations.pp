@@ -439,8 +439,8 @@ procedure TTestFunctions.TestPointerParamDeclaresPointerType;
 begin
   Convert(['typedef struct { int a; } rec;','void f(rec *r);']);
   AssertConverted;
-  AssertInterface('pointer type used by a parameter follows the declaration of its target',
-    ['type','rec = record','a : longint;','end;','Prec = ^rec;']);
+  AssertInterface('pointer type used by a parameter precedes its target record',
+    ['type','Prec = ^rec;','rec = record','a : longint;','end;']);
   AssertNotOutput('pointer to a declared type is not in the header pointer list','Type');
   AssertInterface('parameter uses the pointer type',['procedure f(r:Prec);']);
 end;

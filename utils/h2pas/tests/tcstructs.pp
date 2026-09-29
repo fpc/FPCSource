@@ -28,6 +28,8 @@ type
     procedure TestFlexibleArrayMemberKinds;
     procedure TestFlexibleArrayMembersCompile;
     procedure TestSelfPointerMember;
+    procedure TestSelfPointerInFunctionPointerMember;
+    procedure TestSelfPointerInFunctionPointerMemberCompiles;
     procedure TestStructKeywordMember;
     procedure TestFunctionPointerMember;
     procedure TestFunctionPointerArrayMember;
@@ -155,6 +157,27 @@ begin
   Convert(['struct s { struct s *next; };']);
   AssertConverted;
   AssertInterface('pointer to the struct itself',['next : ^s;']);
+end;
+
+
+procedure TTestStructs.TestSelfPointerInFunctionPointerMember;
+
+begin
+  Convert(['struct s { int a; void (*cb)(struct s *p); };','typedef struct t { void (*cb)(struct t *p); } t_t;']);
+  AssertConverted;
+  AssertInterface('pointer type precedes the record that uses it',
+    ['Ps = ^s;','s = record','a : longint;','cb : procedure (p:Ps);cdecl;','end;']);
+  AssertInterface('pointer type precedes a typedef record',['Pt = ^t;','t = record','cb : procedure (p:Pt);cdecl;','end;','t_t = t;']);
+end;
+
+
+procedure TTestStructs.TestSelfPointerInFunctionPointerMemberCompiles;
+
+begin
+  Convert(['struct s { int a; void (*cb)(struct s *p); };','typedef struct t { void (*cb)(struct t *p); } t_t;',
+           'void f(struct s *p, t_t *q);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

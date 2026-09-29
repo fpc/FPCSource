@@ -54,6 +54,10 @@ type
     procedure TestKeywordDefines;
     procedure TestKeywordDefinesStripped;
     procedure TestKeywordDefinesCompile;
+    procedure TestKeywordNameDefines;
+    procedure TestEmptyBodyMacro;
+    procedure TestReservedWordMacroNames;
+    procedure TestZconfDefinesCompile;
     procedure TestSelfReferencingDefine;
     procedure TestSelfReferencingDefineStripped;
     procedure TestSelfReferencingDefineCompiles;
@@ -444,6 +448,51 @@ procedure TTestConstMacros.TestKeywordDefinesCompile;
 
 begin
   Convert(['#define SQLITE_EXTERN extern','#define API __declspec(dllexport)','#define CST const','#define N 1'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestKeywordNameDefines;
+
+begin
+  Convert(['#define FAR','#define NEAR far','#define CDECL __cdecl','#define N 1']);
+  AssertConverted;
+  AssertOutput('define of FAR',['(* define of the keyword FAR ignored *)']);
+  AssertOutput('define of NEAR',['(* define of the keyword NEAR ignored *)']);
+  AssertOutput('define of CDECL',['(* define of the keyword CDECL ignored *)']);
+  AssertInterface('other defines are converted',['N = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestEmptyBodyMacro;
+
+begin
+  Convert(['#define Z_ARG(args) ()','#define N 1']);
+  AssertConverted;
+  AssertOutput('macro with the body ()',['(* macro Z_ARG with an empty body ignored *)']);
+  AssertNotOutput('no function for the macro','function Z_ARG');
+  AssertInterface('other defines are converted',['N = 1;']);
+end;
+
+
+procedure TTestConstMacros.TestReservedWordMacroNames;
+
+begin
+  Convert(['#define OF(args) args','#define in(x) ((x)+1)','#define end 3']);
+  AssertConverted;
+  AssertInterface('macro named OF',['function _OF(args : longint) : longint;']);
+  AssertImplementation('body of the macro named OF',['_OF:=args;']);
+  AssertInterface('macro named in',['function _in(x : longint) : longint;']);
+  AssertInterface('constant named end',['_end = 3;']);
+end;
+
+
+procedure TTestConstMacros.TestZconfDefinesCompile;
+
+begin
+  Convert(['#define OF(args) args','#define Z_ARG(args) ()','#define FAR','#define NEAR far','#define in(x) ((x)+1)',
+           '#define end 3','#define N 1'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;
@@ -881,7 +930,7 @@ procedure TTestFunctionMacros.TestPointerCastTypesDeclared;
 begin
   Convert(['typedef struct { int a; } foo;','#define C1(p) ((foo *)(p))','#define C2(p) ((foo **)(p))']);
   AssertConverted;
-  AssertInterface('pointer types of casts are declared after their target',['foo = record','a : longint;','end;','Pfoo = ^foo;','PPfoo = ^Pfoo;']);
+  AssertInterface('pointer types of casts precede their target record',['Pfoo = ^foo;','PPfoo = ^Pfoo;','foo = record','a : longint;','end;']);
 end;
 
 
@@ -891,7 +940,7 @@ begin
   Convert(['typedef struct { int a; } foo;','#define C2(p) ((foo **)(p))'],['-p','-T']);
   AssertConverted;
   AssertInterface('-p -T double pointer cast',['function C2(p : longint) : PPfoo;']);
-  AssertInterface('-p -T pointer types of casts',['Pfoo = ^Tfoo;','Tfoo = record','a : longint;','end;','PPfoo = ^Pfoo;']);
+  AssertInterface('-p -T pointer types of casts',['Pfoo = ^Tfoo;','PPfoo = ^Pfoo;','Tfoo = record','a : longint;','end;']);
 end;
 
 

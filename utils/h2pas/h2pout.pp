@@ -29,6 +29,14 @@ procedure HoistStructProcVarElements(const aOwner : AnsiString; aType : presobje
 procedure RegisterFunctionType(const aName : AnsiString);
 // Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
 function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
+// Returns true when the type TN was declared before.
+function IsDeclaredType(const TN : AnsiString) : Boolean;
+// Writes a marker line for the struct TN that has no declaration yet, with its typedef alias AN ('' for none).
+// When the unit is assembled, the marker becomes an empty record TN and the alias, unless TN is declared later:
+// the alias then follows that declaration.
+procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
+// Writes a marker line before the record TN, replaced by the pointer types to TN and its later aliases.
+procedure WriteRecordMarker(var aFile : text; const TN : AnsiString);
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
@@ -65,6 +73,8 @@ function IsACType(const s : String) : Boolean;
 // Returns true when the argument list aArgs ends in an ellipsis.
 function HasEllipsis(aArgs : presobject) : Boolean;
 function TypeName(const s:string):string;
+// Returns s with an underscore prefix when it is a Pascal reserved word.
+function FixId(const s:string):string;
 
 Var
   No_pop   : boolean;
@@ -84,10 +94,16 @@ implementation
 
 const
   PointerMarker = #1;
+  OpaqueMarker = #2;
+  RecordMarker = #3;
 
 var
   WrittenPointers : TStringList;
   DeclaredTypes : TStringList;
+  // Structs written as an opaque marker, those declared later, and the aliases that follow them, as TN=AN.
+  OpaqueTypes : TStringList;
+  DefinedOpaqueTypes : TStringList;
+  PendingAliases : TStringList;
   // Targets of pointer types to pointer types, as PPname=Pname.
   PointerTargets : TStringList;
   // Names of typedefs of a function type, without T prefix.
@@ -1704,19 +1720,56 @@ procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
 begin
   if block_type<>bt_type then
     exit;
+  if OpaqueTypes.IndexOf(TN)>=0 then
+    DefinedOpaqueTypes.Add(TN);
   DeclaredTypes.Add(TN);
   Writeln(aFile,PointerMarker,aktspace,TN);
+end;
+
+
+function IsDeclaredType(const TN : AnsiString) : Boolean;
+
+begin
+  Result:=DeclaredTypes.IndexOf(TN)>=0;
+end;
+
+
+procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
+
+begin
+  OpaqueTypes.Add(TN);
+  DeclaredTypes.Add(TN);
+  if AN<>'' then
+    DeclaredTypes.Add(AN);
+  Writeln(aFile,OpaqueMarker,aktspace,TN,' ',AN);
+end;
+
+
+procedure WriteRecordMarker(var aFile : text; const TN : AnsiString);
+
+begin
+  if block_type=bt_type then
+    Writeln(aFile,RecordMarker,aktspace,TN);
+end;
+
+
+// Writes the alias AN = TN with the pointer types to AN.
+procedure WriteAlias(var aFile : text; const aIndent, AN, TN : AnsiString);
+
+begin
+  Writeln(aFile,aIndent,AN,' = ',TN,';');
+  WritePointersTo(aFile,aIndent,AN);
 end;
 
 
 function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
 
 var
-  lIndent, lTN : AnsiString;
-  lPos : Integer;
+  lIndent, lTN, lAN : AnsiString;
+  lPos, lIndex : Integer;
 
 begin
-  Result:=(aLine<>'') and (aLine[1]=PointerMarker);
+  Result:=(aLine<>'') and (aLine[1] in [PointerMarker,OpaqueMarker,RecordMarker]);
   if not Result then
     exit;
   lPos:=2;
@@ -1724,7 +1777,41 @@ begin
     Inc(lPos);
   lIndent:=Copy(aLine,2,lPos-2);
   lTN:=Copy(aLine,lPos,Length(aLine)-lPos+1);
+  if aLine[1]=RecordMarker then
+    begin
+    (* pointers before the record, for the fields that refer to it *)
+    WritePointersTo(aFile,lIndent,lTN);
+    for lIndex:=0 to PendingAliases.Count-1 do
+      if SameText(PendingAliases.Names[lIndex],lTN) then
+        WritePointersTo(aFile,lIndent,PendingAliases.ValueFromIndex[lIndex]);
+    exit;
+    end;
+  if aLine[1]=OpaqueMarker then
+    begin
+    lAN:=Trim(Copy(lTN,Pos(' ',lTN)+1,Length(lTN)));
+    lTN:=Copy(lTN,1,Pos(' ',lTN)-1);
+    if DefinedOpaqueTypes.IndexOf(lTN)>=0 then
+      begin
+      if lAN<>'' then
+        PendingAliases.Add(lTN+'='+lAN);
+      exit;
+      end;
+    Writeln(aFile,Copy(lIndent,1,Length(lIndent)-2),'type');
+    if PackRecords then
+      Writeln(aFile,lIndent,lTN,' = packed record')
+    else
+      Writeln(aFile,lIndent,lTN,' = record');
+    Writeln(aFile,lIndent,'    {undefined structure}');
+    Writeln(aFile,lIndent,'  end;');
+    WritePointersTo(aFile,lIndent,lTN);
+    if lAN<>'' then
+      WriteAlias(aFile,lIndent,lAN,lTN);
+    exit;
+    end;
   WritePointersTo(aFile,lIndent,lTN);
+  for lIndex:=0 to PendingAliases.Count-1 do
+    if SameText(PendingAliases.Names[lIndex],lTN) then
+      WriteAlias(aFile,lIndent,PendingAliases.ValueFromIndex[lIndex],lTN);
 end;
 
 
@@ -1951,6 +2038,9 @@ initialization
   PointerTargets:=TStringList.Create;
   BitFieldFlags:=TStringList.Create;
   EnumMembers:=TStringList.Create;
+  OpaqueTypes:=TStringList.Create;
+  DefinedOpaqueTypes:=TStringList.Create;
+  PendingAliases:=TStringList.Create;
   FunctionTypes:=TStringList.Create;
   FunctionTypes.Sorted:=true;
   FunctionTypes.Duplicates:=dupIgnore;
@@ -1964,5 +2054,8 @@ finalization
   PointerTargets.Free;
   BitFieldFlags.Free;
   EnumMembers.Free;
+  OpaqueTypes.Free;
+  DefinedOpaqueTypes.Free;
+  PendingAliases.Free;
   WrittenPointers.Free;
 end.
