@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2008 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
-    This unit includes the AVR code generator into the compiler
+    This unit handles the temporary variables stuff for AVR.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,32 +19,41 @@
 
  ****************************************************************************
 }
-unit cpunode;
+unit tgcpu;
 
 {$i fpcdefs.inc}
 
   interface
 
-  implementation
-
     uses
-       { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,ncgmat,ncgadd
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       ,navradd
-       ,navrmat
-       ,navrcnv
-       ,navrinl
-       ,navrmem
-       ,navrutil,
-       { symtable }
-       symcpu,
-       aasmdef,
-       tgcpu
-       ;
+      tgobj,globtype,aasmdata,cgutils,symtype;
 
+    type
+      ttgavr = class(ttgobj)
+      public
+        procedure setfirsttemp(l: asizeint); override;
+      end;
 
+implementation
+
+uses
+  globals,
+  verbose,
+  cpubase,
+  cutils;
+
+procedure ttgavr.setfirsttemp(l: asizeint);
+  begin
+    { this is a negative value normally }
+    if l*direction<0 then
+      internalerror(20260929);
+    firsttemp:=l;
+    lasttemp:=l;
+{$ifdef EXTDEBUG}
+    Comment(V_Note,'ttavr: (SetFirstTempGen) set to '+tostr(l));
+{$endif}
+  end;
+
+begin
+  tgobjclass:=ttgavr;
 end.
