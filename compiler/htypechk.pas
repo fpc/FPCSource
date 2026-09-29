@@ -1289,6 +1289,7 @@ implementation
                          if assigned(hsym.owner) and
                             not(vo_is_external in hsym.varoptions) and
                             (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
+                            assigned(current_procinfo) and
                             ((hsym.owner=current_procinfo.procdef.localst) or
                              (hsym.owner=current_procinfo.procdef.parast)) then
                            begin
