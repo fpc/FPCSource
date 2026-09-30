@@ -188,6 +188,12 @@ type
     procedure TestMacroParamVarargs;
     procedure TestMacroParamNameOfType;
     procedure TestMacroParamsCompile;
+    procedure TestVoidCallMacro;
+    procedure TestVoidCallMacroDynamic;
+    procedure TestVoidCastMacro;
+    procedure TestValueCallMacro;
+    procedure TestTernaryInCallArguments;
+    procedure TestVoidCallMacrosCompile;
   end;
 
 implementation
@@ -1789,6 +1795,82 @@ begin
   AssertConverted;
   AssertCompiles;
   Convert(['#define XML_GetUserData(parser) (*(void **)(parser))','int fi(int a);','#define TWICE(x) (fi(x) - fi(x))'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+const
+  VoidCallHeader : array[0..6] of string = (
+    'void nothing(int a);',
+    'int some(int a);',
+    '#define NOTHING1(a) nothing(a+1)',
+    '#define NOTHING2(a) (nothing((a)*2))',
+    '#define CASTV(a) ((void)nothing(a+1))',
+    '#define CASTI(a) (void)some((a))',
+    '#define TERN(a) nothing(a ? 1 : 2)');
+
+procedure TTestFunctionMacros.TestVoidCallMacro;
+
+begin
+  Convert(VoidCallHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a macro that calls a procedure is a procedure',
+    ['{ argument types are unknown }','procedure NOTHING1(a : longint);']);
+  AssertInterface('with parentheses around the call',['{ argument types are unknown }','procedure NOTHING2(a : longint);']);
+  AssertImplementation('the body calls the procedure',['procedure NOTHING1(a : longint);','begin','nothing(a+1);','end;']);
+  AssertNotOutput('no result type','return type might be wrong');
+end;
+
+
+procedure TTestFunctionMacros.TestVoidCallMacroDynamic;
+
+begin
+  Convert(['void nothing(int a);','#define NOTHING1(a) nothing(a+1)'],['-P','-l','libx.so']);
+  AssertConverted;
+  AssertInterface('a macro that calls a procedure variable is a procedure',
+    ['{ argument types are unknown }','procedure NOTHING1(a : longint);']);
+  AssertImplementation('the body calls the procedure variable',['begin','nothing(a+1);','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestVoidCastMacro;
+
+begin
+  Convert(VoidCallHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a void cast of a procedure call is a procedure',
+    ['{ argument types are unknown }','procedure CASTV(a : longint);']);
+  AssertInterface('a void cast of a function call is a procedure',
+    ['{ was #define dname(params) para_def_expr }','procedure CASTI(a : longint);']);
+  AssertImplementation('the body calls the function without cast',['procedure CASTI(a : longint);','begin','some(a);','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestValueCallMacro;
+
+begin
+  Convert(['void *mem(int a);','#define MEM1(a) mem(a+1)'],['-d']);
+  AssertConverted;
+  AssertInterface('a macro that calls a function stays a function',
+    ['{ argument types are unknown }','function MEM1(a : longint) : pointer;']);
+end;
+
+
+procedure TTestFunctionMacros.TestTernaryInCallArguments;
+
+begin
+  Convert(['int some(int a);','#define TERN3(a) some(a ? 1 : 2)'],['-d']);
+  AssertConverted;
+  AssertImplementation('a conditional in a call argument is assigned before the call',
+    ['begin','if a<>0 then','if_local1:=1','else','if_local1:=2;','TERN3:=some(if_local1);','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestVoidCallMacrosCompile;
+
+begin
+  Convert(VoidCallHeader,['-d']);
   AssertConverted;
   AssertCompiles;
 end;

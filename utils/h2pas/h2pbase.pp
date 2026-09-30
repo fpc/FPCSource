@@ -2285,6 +2285,25 @@ begin
 end;
 
 
+// Returns true when the macro body aExpr is a call of a declared function without result.
+function IsProcedureCall(aExpr : presobject) : boolean;
+
+var
+  lFunction : PStoredFunction;
+
+begin
+  Result:=false;
+  while assigned(aExpr) and (aExpr^.typ=t_exprlist) and not assigned(aExpr^.next) and assigned(aExpr^.p1) do
+    aExpr:=aExpr^.p1;
+  if not assigned(aExpr) or (aExpr^.typ<>t_funexprlist) or assigned(aExpr^.p3) or not assigned(aExpr^.p1)
+     or not assigned(aExpr^.p1^.p1) or (aExpr^.p1^.p1^.typ<>t_id) then
+    exit;
+  lFunction:=FindFunction(aExpr^.p1^.p1^.str);
+  Result:=assigned(lFunction) and assigned(lFunction^.TypeSpec) and (lFunction^.TypeSpec^.typ=t_void)
+          and not assigned(lFunction^.DeclList^.p1^.p1^.p1);
+end;
+
+
 // Returns true when the cast types aLeft and aRight, either of them nil, are the same.
 function SameCastType(aLeft, aRight : presobject) : boolean;
 
@@ -2554,7 +2573,7 @@ var
   lCount : integer;
   lResultType : presobject;
   lParamTypes : TFPList;
-  lUnknownParams : boolean;
+  lUnknownParams, lProcedure, lVoidCast : boolean;
 
 begin
   HandleDefineMacro:=Nil;
@@ -2603,11 +2622,29 @@ begin
       para_def_expr^.p3:=nil;
       end;
     end;
+  (* (void)call: the call as statement *)
+  lVoidCast:=(para_def_expr^.typ=t_exprlist) and assigned(para_def_expr^.p1) and (para_def_expr^.p1^.typ=t_typespec)
+             and assigned(para_def_expr^.p1^.p1) and (para_def_expr^.p1^.p1^.typ=t_void)
+             and assigned(UnwrappedExpr(para_def_expr^.p1^.p2))
+             and (UnwrappedExpr(para_def_expr^.p1^.p2)^.typ=t_funexprlist);
+  if lVoidCast then
+    begin
+    hp:=para_def_expr^.p1;
+    para_def_expr^.p1:=hp^.p2;
+    hp^.p2:=nil;
+    dispose(hp,done);
+    if assigned(para_def_expr^.p3) then
+      dispose(para_def_expr^.p3,done);
+    para_def_expr^.p3:=nil;
+    end;
   (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
   if not assigned(para_def_expr^.p3) and IsBooleanExpr(para_def_expr) then
     para_def_expr^.p3:=NewIntID('boolean');
   lResultType:=nil;
-  if assigned(para_def_expr^.p3) then
+  lProcedure:=lVoidCast or (not assigned(para_def_expr^.p3) and IsProcedureCall(para_def_expr));
+  if lProcedure then
+    lResultType:=nil
+  else if assigned(para_def_expr^.p3) then
     lResultType:=para_def_expr^.p3^.get_copy
   else
     lResultType:=MacroResultType(para_def_expr,enum_list);
@@ -2630,7 +2667,7 @@ begin
         writeln (outfile,aktspace,'{ argument types are unknown }');
         writeln (implemfile,aktspace,'{ argument types are unknown }');
       end;
-    if not assigned(lResultType) then
+    if not assigned(lResultType) and not lProcedure then
       begin
         writeln(outfile,aktspace,'{ return type might be wrong }   ');
         writeln(implemfile,aktspace,'{ return type might be wrong }   ');
@@ -2641,8 +2678,16 @@ begin
     writeln(outfile);
 
   block_type:=bt_func;
-  write(outfile,aktspace,'function ',FixId(dname^.p));
-  write(implemfile,aktspace,'function ',FixId(dname^.p));
+  if lProcedure then
+    begin
+    write(outfile,aktspace,'procedure ',FixId(dname^.p));
+    write(implemfile,aktspace,'procedure ',FixId(dname^.p));
+    end
+  else
+    begin
+    write(outfile,aktspace,'function ',FixId(dname^.p));
+    write(implemfile,aktspace,'function ',FixId(dname^.p));
+    end;
 
   if assigned(enum_list) then
     begin
@@ -2658,7 +2703,13 @@ begin
     if assigned(lParamTypes[lCount]) then
       dispose(presobject(lParamTypes[lCount]),done);
   lParamTypes.Free;
-  if not assigned(lResultType) then
+  if lProcedure then
+    begin
+      writeln(outfile,';',aktspace,commentstr);
+      writeln(implemfile,';');
+      flush(outfile);
+    end
+  else if not assigned(lResultType) then
     begin
       writeln(outfile,' : longint;',aktspace,commentstr);
       writeln(implemfile,' : longint;');
@@ -2677,6 +2728,11 @@ begin
     end;
   writeln(outfile);
   flush(outfile);
+  if lProcedure then
+    begin
+    dispose(dname,done);
+    dname:=nil;
+    end;
   hp:=new(presobject,init_two(t_funcname,dname,para_def_expr));
   write_funexpr(implemfile,hp);
   writeln(implemfile);

@@ -767,6 +767,8 @@ begin
       begin
       if assigned(p^.p1) then
         write_all_ifexpr(outfile,p^.p1);
+      if (p^.typ=t_funexprlist) and assigned(p^.p2) then
+        write_all_ifexpr(outfile,p^.p2);
       if assigned(p^.next) then
         write_all_ifexpr(outfile,p^.next);
       end
@@ -818,8 +820,11 @@ begin
       shift(2);
       write(outfile,aktspace);
       write_all_ifexpr(outfile,p^.p2);
-      write_expr(outfile,p^.p1);
-      write(outfile,':=');
+      if assigned(p^.p1) then
+        begin
+        write_expr(outfile,p^.p1);
+        write(outfile,':=');
+        end;
       write_funexpr(outfile,p^.p2);
       writeln(outfile,';');
       popshift;
