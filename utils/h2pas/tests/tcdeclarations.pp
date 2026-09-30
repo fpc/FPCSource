@@ -23,6 +23,9 @@ type
     procedure TestFunctionResult;
     procedure TestLongInputLine;
     procedure TestCommentsInArgumentList;
+    procedure TestFunctionNamesDifferingInCase;
+    procedure TestFunctionNamesDifferingInCaseDynamic;
+    procedure TestFunctionNameOfMacroInOtherCase;
     procedure TestFunctionPointerArgumentResult;
     procedure TestNestedFunctionPointerResult;
     procedure TestImplementationStub;
@@ -110,6 +113,11 @@ type
     procedure TestFunctionPointerVariableResult;
     procedure TestFunctionPointerVariableArgument;
     procedure TestFunctionPointerResultsCompile;
+    procedure TestVariableNameOfDefineInOtherCase;
+    procedure TestDefineNameOfVariableInOtherCase;
+    procedure TestVariableNameOfTypeInOtherCase;
+    procedure TestEnumMemberNameOfDefineInOtherCase;
+    procedure TestNamesDifferingInCaseCompile;
   end;
 
 implementation
@@ -130,6 +138,42 @@ begin
   Convert(['void f();']);
   AssertConverted;
   AssertInterface('empty parameter list gives no parameters',['procedure f;']);
+end;
+
+
+procedure TTestFunctions.TestFunctionNamesDifferingInCase;
+
+begin
+  Convert(['int rl_vi_fWord(int a, int b);','int rl_vi_fword(int a, int b);','#define CALLW(a) rl_vi_fword(a, 0)'],['-d']);
+  AssertConverted;
+  AssertInterface('the first function keeps its name',['function rl_vi_fWord(a:longint; b:longint):longint;cdecl;external;']);
+  AssertInterface('the second function has an underscore and imports its C name',
+    ['function rl_vi_fword_(a:longint; b:longint):longint;cdecl;external name ''rl_vi_fword'';']);
+  AssertImplementation('a macro calls the renamed function',['CALLW:=rl_vi_fword_(a,0);']);
+end;
+
+
+procedure TTestFunctions.TestFunctionNamesDifferingInCaseDynamic;
+
+begin
+  Convert(['int rl_vi_fWord(int a, int b);','int rl_vi_fword(int a, int b);'],['-P','-l','libx.so']);
+  AssertConverted;
+  AssertInterface('the procedure variable has an underscore',['rl_vi_fword_ : function(a:longint; b:longint):longint;cdecl;']);
+  AssertImplementation('it is loaded from the C name',['pointer(rl_vi_fword_):=GetProcAddress(hlib,''rl_vi_fword'');']);
+  Convert(['int rl_vi_fWord(int a, int b);','int rl_vi_fword(int a, int b);'],['-D','-l','libx.so']);
+  AssertConverted;
+  AssertInterface('the library import of the C name',
+    ['function rl_vi_fword_(a:longint; b:longint):longint;cdecl;external External_library name ''rl_vi_fword'';']);
+end;
+
+
+procedure TTestFunctions.TestFunctionNameOfMacroInOtherCase;
+
+begin
+  Convert(['#define LZMA_VERSION_STRING(a) (a)','const char *lzma_version_string(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('a function after a macro of that name in other case has an underscore',
+    ['function lzma_version_string_:Pansichar;cdecl;external name ''lzma_version_string'';']);
 end;
 
 
@@ -1027,6 +1071,66 @@ begin
   AssertConverted;
   AssertCompiles;
   Convert(Header,['-P','-l','libx.so']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestVariableNameOfDefineInOtherCase;
+
+begin
+  Convert(['#define MAD_AUTHOR "Underbit"','extern char const mad_author[];','char mad_title[8];'],['-d']);
+  AssertConverted;
+  AssertInterface('the define keeps its name',['MAD_AUTHOR = ''Underbit'';']);
+  AssertInterface('an external variable with an underscore imports its C name',
+    ['mad_author_ : ^ansichar;external name ''mad_author'';']);
+end;
+
+
+procedure TTestVariables.TestDefineNameOfVariableInOtherCase;
+
+begin
+  Convert(['int mad_count;','#define MAD_COUNT 3'],['-d']);
+  AssertConverted;
+  AssertInterface('the variable keeps its name',['mad_count : longint;cvar;public;']);
+  AssertOutput('the define is left out',['(* #define MAD_COUNT ignored, the Pascal name of mad_count *)']);
+  AssertNotOutput('no constant','MAD_COUNT = 3');
+end;
+
+
+procedure TTestVariables.TestVariableNameOfTypeInOtherCase;
+
+begin
+  Convert(['typedef struct { int x; } FUNMAP;','extern FUNMAP **funmap;','int keycount;','int KeyCount;'],['-d']);
+  AssertConverted;
+  AssertInterface('a variable with the name of a type in other case has an underscore',
+    ['funmap_ : ^PFUNMAP;external name ''funmap'';']);
+  AssertInterface('a public variable with an underscore exports its C name',
+    ['keycount : longint;cvar;public;','KeyCount_ : longint;public name ''KeyCount'';']);
+end;
+
+
+procedure TTestVariables.TestEnumMemberNameOfDefineInOtherCase;
+
+begin
+  Convert(['#define XKB_KEY_Up 0xff52','enum xkb_key_direction { XKB_KEY_UP, XKB_KEY_DOWN = XKB_KEY_UP + 1 };'],['-d']);
+  AssertConverted;
+  AssertInterface('an enum member with the name of a define in other case has an underscore',
+    ['xkb_key_direction = (XKB_KEY_UP_,XKB_KEY_DOWN := ord(XKB_KEY_UP_)+1);']);
+end;
+
+
+procedure TTestVariables.TestNamesDifferingInCaseCompile;
+
+begin
+  Convert(['#define MAD_AUTHOR "Underbit"','extern char const mad_author[];','int mad_count;','#define MAD_COUNT 3',
+           'int rl_vi_fWord(int a, int b);','int rl_vi_fword(int a, int b);','#define CALLW(a) rl_vi_fword(a, 0)',
+           'typedef struct { int x; } FUNMAP;','extern FUNMAP **funmap;','char pubname;','int PUBNAME(void);',
+           '#define XKB_KEY_Up 0xff52','enum xkb_key_direction { XKB_KEY_UP, XKB_KEY_DOWN = XKB_KEY_UP + 1 };'],['-d']);
+  AssertConverted;
+  AssertInterface('a public variable before a function of that name in other case',['pubname : ansichar;cvar;public;']);
+  AssertCompiles;
+  Convert(['int rl_vi_fWord(int a, int b);','int rl_vi_fword(int a, int b);'],['-P','-l','libx.so']);
   AssertConverted;
   AssertCompiles;
 end;

@@ -1278,11 +1278,12 @@ procedure WriteFunctionDeclaration(aDeclList, aType, aSysTrap, aBody : presobjec
 
 var
   lProc, lArgs : presobject;
-  lName, lKeyword : AnsiString;
+  lName, lPascalName, lKeyword : AnsiString;
   lIsProcedure : boolean;
 
 begin
   lName:=aDeclList^.p1^.p2^.p;
+  lPascalName:=UniqueName(lName,lName);
   lProc:=aDeclList^.p1^.p1;
   lArgs:=lProc^.p2;
   lIsProcedure:=assigned(aType) and (aType^.typ=t_void) and not assigned(lProc^.p1);
@@ -1314,21 +1315,21 @@ begin
   if assigned(aType) then
     begin
     if createdynlib then
-      write(outfile,lName,' : ',lKeyword)
+      write(outfile,lPascalName,' : ',lKeyword)
     else
       begin
       shift(length(lKeyword)+1);
-      write(outfile,lKeyword,' ',lName);
+      write(outfile,lKeyword,' ',lPascalName);
       end;
     WriteSignature(outfile,lArgs,lProc^.p1,aType,lIsProcedure,aSkipEllipsis);
     if createdynlib then
       begin
-      loaddynlibproc.add('pointer('+lName+'):=GetProcAddress(hlib,'''+ExternalName(aDeclList)+''');');
-      freedynlibproc.add(lName+':=nil;');
+      loaddynlibproc.add('pointer('+lPascalName+'):=GetProcAddress(hlib,'''+ExternalName(aDeclList)+''');');
+      freedynlibproc.add(lPascalName+':=nil;');
       end
     else if not aExtern then
       begin
-      write(implemfile,lKeyword,' ',lName);
+      write(implemfile,lKeyword,' ',lPascalName);
       WriteSignature(implemfile,lArgs,lProc^.p1,aType,lIsProcedure,aSkipEllipsis);
       end;
     end;
@@ -1348,7 +1349,9 @@ begin
       if UseName then
         write(outfile,' External_library name ''',ExternalName(aDeclList),'''')
       else if AliasTarget<>'' then
-        write(outfile,' name ''',AliasTarget,'''');
+        write(outfile,' name ''',AliasTarget,'''')
+      else if lPascalName<>lName then
+        write(outfile,' name ''',lName,'''');
       end;
     writeln(outfile,';');
     end
@@ -1373,7 +1376,7 @@ begin
         else if lIsProcedure then
           writeln(implemfile,aktspace,'  ',AliasTarget,CallArguments(lArgs,not aSkipEllipsis),';')
         else
-          writeln(implemfile,aktspace,'  ',lName,':=',AliasTarget,CallArguments(lArgs,not aSkipEllipsis),';');
+          writeln(implemfile,aktspace,'  ',lPascalName,':=',AliasTarget,CallArguments(lArgs,not aSkipEllipsis),';');
         writeln(implemfile,aktspace,'end;');
         end;
       end;
@@ -1388,7 +1391,7 @@ procedure WriteVariables(decl : presobject; var aType : presobject; aDeclList : 
 
 var
   hp : presobject;
-  lName : AnsiString;
+  lName, lPascalName : AnsiString;
 
 begin
   HoistVariableProcVarElements(aDeclList,aType);
@@ -1400,18 +1403,29 @@ begin
   while assigned(hp) and assigned(hp^.p1) do
     begin
     lName:=DeclaratorName(hp^.p1);
+    lPascalName:='';
     if lName<>'' then
-      write(outfile,aktspace,lName);
+      begin
+      lPascalName:=UniqueName(lName,lName);
+      write(outfile,aktspace,lPascalName);
+      end;
     write(outfile,' : ');
     shift(2);
     is_procvar:=false;
     write_p_a_def(outfile,hp^.p1^.p1,aType);
     WriteProcVarDirectives(outfile,false);
+    (* a renamed variable keeps its C name as symbol *)
     if lName<>'' then
       if HasSpecifier(decl,'extern') then
-        write(outfile,';cvar;external')
+        if lPascalName<>lName then
+          write(outfile,';external name ''',lName,'''')
+        else
+          write(outfile,';cvar;external')
       else if not HasSpecifier(decl,'static') then
-        write(outfile,';cvar;public');
+        if lPascalName<>lName then
+          write(outfile,';public name ''',lName,'''')
+        else
+          write(outfile,';cvar;public');
     writeln(outfile,';');
     popshift;
     hp:=hp^.next;
@@ -1881,7 +1895,6 @@ end;
 
 var
   // Names of the defines converted so far, as written in the header.
-  DefineNames : TStringList = nil;
   // Names of the defines without value, such as calling convention macros.
   EmptyDefines : TStringList = nil;
 
@@ -1899,25 +1912,16 @@ begin
   DisposeNode(dname);
 end;
 
-// Returns true, and writes a comment, when the define dname has the Pascal name of an earlier define
+// Returns true, and writes a comment, when the define dname has the Pascal name of an earlier identifier
 // that differs from it in case only; registers the name otherwise.
 function IsDefineNameClash(dname : presobject) : boolean;
 
-var
-  lIndex : integer;
-
 begin
-  if not assigned(DefineNames) then
-    DefineNames:=TStringList.Create;
-  lIndex:=DefineNames.IndexOf(dname^.str);
-  Result:=(lIndex>=0) and (DefineNames[lIndex]<>dname^.str);
-  if Result then
-    begin
-    if not stripinfo then
-      writeln(outfile,aktspace,'(* #define ',dname^.p,' ignored, the Pascal name of ',DefineNames[lIndex],' *)');
-    end
-  else if lIndex<0 then
-    DefineNames.Add(dname^.str);
+  Result:=IsNameClash(dname^.str);
+  if not Result then
+    RegisterName(dname^.str)
+  else if not stripinfo then
+    writeln(outfile,aktspace,'(* #define ',dname^.p,' ignored, the Pascal name of ',RegisteredName(dname^.str),' *)');
 end;
 
 
@@ -2624,7 +2628,6 @@ end;
 
 initialization
 finalization
-  DefineNames.Free;
   EmptyDefines.Free;
   FreeStoredFunctions;
 end.

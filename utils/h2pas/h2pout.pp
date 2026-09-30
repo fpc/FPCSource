@@ -111,6 +111,15 @@ function TypeName(const s:string):string;
 procedure RegisterEnumTypeName(const aName : string; aMembers : presobject);
 // Returns s with an underscore prefix when it is a Pascal reserved word.
 function FixId(const s:string):string;
+// Returns true when aName differs in case only from a registered global Pascal name.
+function IsNameClash(const aName : AnsiString) : Boolean;
+// Returns the registered global Pascal name that equals aName ignoring case, or ''.
+function RegisteredName(const aName : AnsiString) : AnsiString;
+// Registers the global Pascal name aName.
+procedure RegisterName(const aName : AnsiString);
+// Returns aName with underscores appended until it is no clash, and registers it; the identifier aCName is written
+// with that name in expressions when it differs from aName.
+function UniqueName(const aCName, aName : AnsiString) : AnsiString;
 
 Var
   No_pop   : boolean;
@@ -161,6 +170,10 @@ var
   BitFieldFlags : TStringList;
   // Members of the enum types written so far.
   EnumMembers : TStringList;
+  // The global Pascal names written so far.
+  GlobalNames : TStringList;
+  // The identifiers written with another name, as C name=Pascal name.
+  RenamedIds : TStringList;
   // Enum type names that are the name of one of their members, written with T prefix.
   EnumClashTypes : TStringList;
   // Set while the value of an enum member is written.
@@ -349,6 +362,61 @@ begin
     FixId:='_'+s
   else
     FixId:=s;
+end;
+
+
+function IsNameClash(const aName : AnsiString) : Boolean;
+
+var
+  lIndex : Integer;
+
+begin
+  lIndex:=GlobalNames.IndexOf(aName);
+  Result:=(lIndex>=0) and (GlobalNames[lIndex]<>aName);
+end;
+
+
+function RegisteredName(const aName : AnsiString) : AnsiString;
+
+var
+  lIndex : Integer;
+
+begin
+  lIndex:=GlobalNames.IndexOf(aName);
+  if lIndex>=0 then
+    Result:=GlobalNames[lIndex]
+  else
+    Result:='';
+end;
+
+
+procedure RegisterName(const aName : AnsiString);
+
+begin
+  if (aName<>'') and (GlobalNames.IndexOf(aName)<0) then
+    GlobalNames.Add(aName);
+end;
+
+
+function UniqueName(const aCName, aName : AnsiString) : AnsiString;
+
+begin
+  Result:=aName;
+  while IsNameClash(Result) do
+    Result:=Result+'_';
+  RegisterName(Result);
+  if Result<>aName then
+    RenamedIds.Values[aCName]:=Result;
+end;
+
+
+// Returns the Pascal name of the identifier aName in an expression: its new name when it was renamed.
+function RenamedId(const aName : AnsiString) : AnsiString;
+
+begin
+  Result:=RenamedIds.Values[aName];
+  if Result='' then
+    Result:=FixId(aName);
 end;
 
 
@@ -612,11 +680,13 @@ begin
     t_id,
     t_ifexpr :
       if in_enum_value and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0) then
-        write(outfile,'ord(',FixId(p^.p),')')
+        write(outfile,'ord(',RenamedId(p^.p),')')
       else if in_enum_value and IsCharLiteral(p) then
         write(outfile,'ord(',p^.p,')')
       else if p^.skiptprefix then
         write(outfile,p^.p)
+      else if p^.typ=t_id then
+        write(outfile,RenamedId(p^.p))
       else
         write(outfile,FixId(p^.p));
     t_funexprlist :
@@ -1157,7 +1227,7 @@ var
   error : integer;
 
 begin
-  write(outfile,aktspace,FixId(hp1^.p1^.p),' = ');
+  write(outfile,aktspace,UniqueName(hp1^.p1^.str,FixId(hp1^.p1^.p)),' = ');
   RegisterPlainConst(hp1^.p1^.str);
   if assigned(hp1^.p2) then
     begin
@@ -1213,7 +1283,7 @@ begin
     w:=length(aktspace);
     while assigned(hp1) do
       begin
-      write(outfile,FixId(hp1^.p1^.p));
+      write(outfile,UniqueName(hp1^.p1^.str,FixId(hp1^.p1^.p)));
       if assigned(hp1^.p2) then
         begin
         write(outfile,' := ');
@@ -1612,6 +1682,7 @@ end;
 procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
 
 begin
+  RegisterName(TN);
   if block_type<>bt_type then
     exit;
   if OpaqueTypes.IndexOf(TN)>=0 then
@@ -2368,6 +2439,10 @@ initialization
   EnumMembers:=TStringList.Create;
   EnumClashTypes:=TStringList.Create;
   EnumClashTypes.CaseSensitive:=true;
+  GlobalNames:=TStringList.Create;
+  GlobalNames.Sorted:=true;
+  RenamedIds:=TStringList.Create;
+  RenamedIds.CaseSensitive:=true;
   OpaqueTypes:=TStringList.Create;
   DefinedOpaqueTypes:=TStringList.Create;
   PendingAliases:=TStringList.Create;
@@ -2390,6 +2465,8 @@ finalization
   BitFieldFlags.Free;
   EnumMembers.Free;
   EnumClashTypes.Free;
+  GlobalNames.Free;
+  RenamedIds.Free;
   OpaqueTypes.Free;
   DefinedOpaqueTypes.Free;
   PendingAliases.Free;

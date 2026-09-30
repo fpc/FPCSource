@@ -1492,7 +1492,7 @@ end;
 procedure TTestFunctionMacros.TestIndentationAfterMacros;
 
 begin
-  Convert(['#define F(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;']);
+  Convert(['#define FM(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;']);
   AssertConverted;
   AssertEquals('no indentation warning','',Trim(ToolOutput));
   AssertRawLine('const block after macros','  const');
@@ -1772,10 +1772,10 @@ end;
 procedure TTestFunctionMacros.TestMacroParamVarargs;
 
 begin
-  Convert(['int pr(const char *f, ...);','#define PR(f, x) pr(f, x)'],['-d']);
+  Convert(['int pr(const char *f, ...);','#define PRX(f, x) pr(f, x)'],['-d']);
   AssertConverted;
   AssertInterface('a parameter passed as variable argument has no type',
-    ['{ argument types are unknown }','function PR(f : Pansichar; x : longint) : longint;']);
+    ['{ argument types are unknown }','function PRX(f : Pansichar; x : longint) : longint;']);
 end;
 
 
@@ -1879,7 +1879,7 @@ end;
 procedure TTestFunctionMacros.TestCompactIndentationAfterMacros;
 
 begin
-  Convert(['#define F(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;'],['-c']);
+  Convert(['#define FM(a) a','#define CAST_E ((int)5)','#define G 1','int f(void);','typedef int t;'],['-c']);
   AssertConverted;
   AssertEquals('no indentation warning','',Trim(ToolOutput));
   AssertRawLine('-c const block after macros','const');
