@@ -121,6 +121,8 @@ function IsNameClash(const aName : AnsiString) : Boolean;
 function RegisteredName(const aName : AnsiString) : AnsiString;
 // Registers the global Pascal name aName.
 procedure RegisterName(const aName : AnsiString);
+// Registers aName as the C name of a macro written as function with untyped parameters.
+procedure RegisterMacroFunction(const aName : AnsiString);
 // Returns aName with underscores appended until it is no clash, and registers it; the identifier aCName is written
 // with that name in expressions when it differs from aName.
 function UniqueName(const aCName, aName : AnsiString) : AnsiString;
@@ -178,6 +180,8 @@ var
   GlobalNames : TStringList;
   // The identifiers written with another name, as C name=Pascal name.
   RenamedIds : TStringList;
+  // The C names of the macros written as functions.
+  MacroFunctions : TStringList;
   // Enum type names that are the name of one of their members, written with T prefix.
   EnumClashTypes : TStringList;
   // Set while the value of an enum member is written.
@@ -399,6 +403,23 @@ procedure RegisterName(const aName : AnsiString);
 begin
   if (aName<>'') and (GlobalNames.IndexOf(aName)<0) then
     GlobalNames.Add(aName);
+end;
+
+
+procedure RegisterMacroFunction(const aName : AnsiString);
+
+begin
+  if MacroFunctions.IndexOf(aName)<0 then
+    MacroFunctions.Add(aName);
+end;
+
+
+// Returns true when p is a call (t_funexprlist) of a macro written as function.
+function IsMacroFunctionCall(p : presobject) : Boolean;
+
+begin
+  Result:=assigned(p^.p1) and (p^.p1^.typ=t_exprlist) and assigned(p^.p1^.p1) and (p^.p1^.p1^.typ=t_id)
+          and (MacroFunctions.IndexOf(p^.p1^.p1^.str)>=0);
 end;
 
 
@@ -839,6 +860,30 @@ begin
   end;
 end;
 
+// Writes the arguments aArgs (t_exprlist) of a call of a macro written as function, character literals as their
+// ordinal value.
+procedure WriteMacroArguments(var outfile:text; aArgs : presobject);
+
+var
+  lArg : presobject;
+
+begin
+  while assigned(aArgs) do
+    begin
+    lArg:=aArgs^.p1;
+    while assigned(lArg) and (lArg^.typ=t_exprlist) and not assigned(lArg^.next) and assigned(lArg^.p1) do
+      lArg:=lArg^.p1;
+    if IsCharLiteral(lArg) then
+      write(outfile,'ord(',lArg^.p,')')
+    else
+      write_expr(outfile,aArgs^.p1);
+    aArgs:=aArgs^.next;
+    if assigned(aArgs) then
+      write(outfile,',');
+    end;
+end;
+
+
 procedure write_funexpr(var outfile:text; p : presobject);
 var
     i : longint;
@@ -904,7 +949,10 @@ begin
       if assigned(p^.p2) then
         begin
         write(outfile,'(');
-        write_funexpr(outfile,p^.p2);
+        if IsMacroFunctionCall(p) then
+          WriteMacroArguments(outfile,p^.p2)
+        else
+          write_funexpr(outfile,p^.p2);
         write(outfile,')');
         end;
       if assigned(p^.p3) then
@@ -2489,6 +2537,9 @@ initialization
   GlobalNames.Sorted:=true;
   RenamedIds:=TStringList.Create;
   RenamedIds.CaseSensitive:=true;
+  MacroFunctions:=TStringList.Create;
+  MacroFunctions.CaseSensitive:=true;
+  MacroFunctions.Sorted:=true;
   OpaqueTypes:=TStringList.Create;
   DefinedOpaqueTypes:=TStringList.Create;
   PendingAliases:=TStringList.Create;
@@ -2513,6 +2564,7 @@ finalization
   EnumClashTypes.Free;
   GlobalNames.Free;
   RenamedIds.Free;
+  MacroFunctions.Free;
   OpaqueTypes.Free;
   DefinedOpaqueTypes.Free;
   PendingAliases.Free;

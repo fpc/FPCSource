@@ -804,6 +804,67 @@ begin
 end;
 
 
+var
+  // The members of the declared structs, as member=struct, with an empty struct for a member of several structs.
+  StructMembers : TStringList = nil;
+
+// Registers the members of the struct aType with the C name aName.
+procedure RegisterStructMembers(const aName : AnsiString; aType : presobject);
+
+var
+  lMembers, lDecls : presobject;
+  lMember : AnsiString;
+  lIndex : integer;
+
+begin
+  if not (assigned(aType) and (aType^.typ=t_structdef)) then
+    exit;
+  if not assigned(StructMembers) then
+    begin
+    StructMembers:=TStringList.Create;
+    StructMembers.CaseSensitive:=true;
+    end;
+  lMembers:=aType^.p1;
+  while assigned(lMembers) do
+    begin
+    if assigned(lMembers^.p1) and (lMembers^.p1^.typ=t_memberdec) then
+      begin
+      lDecls:=lMembers^.p1^.p2;
+      while assigned(lDecls) do
+        begin
+        lMember:=DeclaratorName(lDecls^.p1);
+        if lMember<>'' then
+          begin
+          lIndex:=StructMembers.IndexOfName(lMember);
+          if lIndex<0 then
+            StructMembers.Values[lMember]:=aName
+          else if StructMembers.ValueFromIndex[lIndex]<>aName then
+            StructMembers.ValueFromIndex[lIndex]:='';
+          end;
+        lDecls:=lDecls^.next;
+        end;
+      end;
+    lMembers:=lMembers^.next;
+    end;
+end;
+
+
+// Returns a new cast type for a pointer to the only declared struct with the member aMember, or nil.
+function StructPointerType(const aMember : AnsiString) : presobject;
+
+var
+  lStruct : AnsiString;
+
+begin
+  Result:=nil;
+  if not assigned(StructMembers) then
+    exit;
+  lStruct:=StructMembers.Values[aMember];
+  if lStruct<>'' then
+    Result:=NewType1(t_pointerdef,NewID(lStruct));
+end;
+
+
 // Returns true when one of the declarators in aDecls (t_declist) is a pointer.
 function HasPointerDeclarator(aDecls : presobject) : boolean;
 
@@ -1564,7 +1625,10 @@ begin
     popshift;
     end;
   if lNamed then
+    begin
+    RegisterStructMembers(aType^.p2^.str,aType);
     HoistStructProcVarElements(aType^.p2^.str,aType);
+    end;
   shift(2);
   if assigned(aType^.p2) then
     begin
@@ -1747,9 +1811,15 @@ begin
   else
     OpenSection(bt_type,'type');
   if assigned(type_spec^.p2) and assigned(type_spec^.p2^.p) then
-    HoistStructProcVarElements(type_spec^.p2^.str,type_spec)
+    begin
+    RegisterStructMembers(type_spec^.p2^.str,type_spec);
+    HoistStructProcVarElements(type_spec^.p2^.str,type_spec);
+    end
   else if DeclaratorName(lDecl)<>'' then
+    begin
+    RegisterStructMembers(lDecl^.p2^.str,type_spec);
     HoistStructProcVarElements(lDecl^.p2^.str,type_spec);
+    end;
   hp:=declarator_list;
   while assigned(hp) do
     begin
@@ -2347,6 +2417,20 @@ begin
 end;
 
 
+// Returns the name of the member that the member expression aExpr, as a[i] or a.b, starts with, or ''.
+function MemberName(aExpr : presobject) : AnsiString;
+
+begin
+  aExpr:=UnwrappedExpr(aExpr);
+  while assigned(aExpr) and ((aExpr^.typ=t_arrayop) or ((aExpr^.typ=t_bop) and ((aExpr^.str='.') or (aExpr^.str='^.')))) do
+    aExpr:=UnwrappedExpr(aExpr^.p1);
+  if assigned(aExpr) and (aExpr^.typ=t_id) then
+    Result:=aExpr^.str
+  else
+    Result:='';
+end;
+
+
 // Collects the uses of the macro parameter aName in aExpr: aType is the type of the uses that give one,
 // aUntyped is set by a use without type or with another type.
 procedure CollectParamType(const aName : string; aExpr : presobject; var aType : presobject; var aUntyped : boolean);
@@ -2385,6 +2469,17 @@ begin
       else
         CollectParamType(aName,aExpr^.p2,aType,aUntyped);
       end;
+    t_bop :
+      if (aExpr^.str='^.') and IsNamedId(UnwrappedExpr(aExpr^.p1),aName) then
+        begin
+        AddType(StructPointerType(MemberName(aExpr^.p2)));
+        CollectParamType(aName,aExpr^.p2,aType,aUntyped);
+        end
+      else
+        begin
+        CollectParamType(aName,aExpr^.p1,aType,aUntyped);
+        CollectParamType(aName,aExpr^.p2,aType,aUntyped);
+        end;
     t_funexprlist :
       begin
       lFunction:=FindFunction(CalleeName(aExpr));
@@ -2706,6 +2801,7 @@ begin
     lResultType:=para_def_expr^.p3^.get_copy
   else
     lResultType:=MacroResultType(para_def_expr,enum_list);
+  RegisterMacroFunction(dname^.str);
   lParamTypes:=TFPList.Create;
   lUnknownParams:=false;
   hp:=enum_list;
@@ -2764,6 +2860,7 @@ end;
 
 initialization
 finalization
+  StructMembers.Free;
   PendingDefines.Free;
   WrittenDefines.Free;
   EmptyDefines.Free;

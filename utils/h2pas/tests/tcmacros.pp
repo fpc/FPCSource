@@ -199,6 +199,10 @@ type
     procedure TestMacroParamVarargs;
     procedure TestMacroParamNameOfType;
     procedure TestMacroParamsCompile;
+    procedure TestCharArgumentsOfMacroFunction;
+    procedure TestMacroParamFromMemberAccess;
+    procedure TestMacroParamFromAmbiguousMember;
+    procedure TestMacroArgumentsAndMembersCompile;
     procedure TestVoidCallMacro;
     procedure TestVoidCallMacroDynamic;
     procedure TestVoidCastMacro;
@@ -1929,6 +1933,65 @@ begin
   Convert(['typedef int sp;','int g(sp a, int b);','#define G1(sp) g(sp, 1)'],['-d']);
   AssertConverted;
   AssertInterface('a parameter with the name of its type has no type',['{ argument types are unknown }','function G1(sp : longint) : longint;']);
+end;
+
+
+const
+  FourccHeader : array[0..1] of string = (
+    '#define __gbm_fourcc_code(a,b,c,d) ((unsigned int)(a) | ((unsigned int)(b) << 8) | ((unsigned int)(c) << 16) | ((unsigned int)(d) << 24))',
+    '#define GBM_FORMAT_C8 __gbm_fourcc_code(''C'', ''8'', '' '', '' '')');
+  GdHeader : array[0..3] of string = (
+    'typedef struct gdImageStruct { unsigned char **pixels; int sx; int sy; int trueColor; } gdImage;',
+    'typedef gdImage *gdImagePtr;',
+    '#define gdImageSX(im) ((im)->sx)',
+    '#define gdImageSXY(im) ((im)->sx * (im)->sy)');
+
+procedure TTestFunctionMacros.TestCharArgumentsOfMacroFunction;
+
+begin
+  Convert(FourccHeader,['-d']);
+  AssertConverted;
+  AssertImplementation('character arguments of a macro function are ordinal values',
+    ['GBM_FORMAT_C8:=__gbm_fourcc_code(ord(''C''),ord(''8''),ord('' ''),ord('' ''));']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamFromMemberAccess;
+
+begin
+  Convert(GdHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a parameter whose member is accessed points to the struct with that member',
+    ['function gdImageSX(im : PgdImageStruct) : longint;']);
+  AssertInterface('several members of the same struct',['function gdImageSXY(im : PgdImageStruct) : longint;']);
+  AssertImplementation('the body accesses the member',['gdImageSX:=im^.sx;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamFromAmbiguousMember;
+
+begin
+  Convert(['struct a { int x; };','struct b { int x; int y; };','#define GETX(p) ((p)->x)','#define GETY(p) ((p)->y)',
+           '#define GETXY(p) ((p)->x + (p)->y)'],['-d']);
+  AssertConverted;
+  AssertInterface('a member of several structs gives no type',['function GETX(p : longint) : longint;']);
+  AssertInterface('a member of one struct does',['function GETY(p : Pb) : longint;']);
+  AssertInterface('a member of several structs with one of one struct gives no type',['function GETXY(p : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroArgumentsAndMembersCompile;
+
+begin
+  Convert(FourccHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(GdHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(GdHeader,['-d','-T','-p']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
