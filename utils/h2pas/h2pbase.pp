@@ -92,7 +92,7 @@ function NewRecordType(aTyp : ttyp; aMembers, aName : presobject; aPack : intege
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
 // Writes the defines that wait for the declaration of the identifier that is their value, once it is declared;
-// with aAll all of them.
+// with aAll all of them, those of an identifier that is never declared as a comment for -E.
 procedure FlushPendingDefines(aAll : boolean);
 function HandleDefine(dname : presobject) : presobject;
 Function CheckWideString(S : String) : presobject;
@@ -2239,7 +2239,13 @@ begin
       if aAll or IsDeclaredName(lTarget) then
         begin
         PendingDefines.Delete(i);
-        WriteDefineConstant(lDefine^.Name,lDefine^.Value^.p1);
+        if Preprocess and not IsDeclaredName(lTarget) then
+          begin
+          if not stripinfo then
+            writeln(outfile,aktspace,'(* #define ',lDefine^.Name^.p,' ignored, ',lTarget,' is not declared *)');
+          end
+        else
+          WriteDefineConstant(lDefine^.Name,lDefine^.Value^.p1);
         dispose(lDefine^.Name,done);
         dispose(lDefine^.Value,done);
         Dispose(lDefine);

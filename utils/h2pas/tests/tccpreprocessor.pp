@@ -28,6 +28,8 @@ type
     procedure TestKeepOtherFile;
     procedure TestKeepListFile;
     procedure TestUsedBuiltinDefines;
+    procedure TestAliasOfUndeclaredName;
+    procedure TestAliasOfUndeclaredNameWithoutPreprocessor;
     procedure TestBuiltinExpect;
     procedure TestBuiltinsCompile;
     procedure TestMissingKeepListFile;
@@ -110,6 +112,30 @@ begin
   AssertInterface('the define of the kept file',['const','OTHER = 1;']);
   AssertInterface('the typedef of the kept file',['type','other_t = longint;']);
   AssertInterface('the declaration of the header itself',['function f:longint;cdecl;external;']);
+end;
+
+
+procedure TTestCPreprocessor.TestAliasOfUndeclaredName;
+
+begin
+  Convert(['#define cairo_current_operator cairo_current_operator_REPLACED_BY_cairo_get_operator',
+           '#define _ogg_malloc malloc','#define ALIAS2 ALIAS1','#define ALIAS1 NOWHERE','int cairo_get_operator(void);'],['-d','-E']);
+  AssertConverted;
+  AssertOutput('an alias of a name that is never declared is left out',
+    ['(* #define cairo_current_operator ignored, cairo_current_operator_REPLACED_BY_cairo_get_operator is not declared *)']);
+  AssertOutput('an alias of a library function',['(* #define _ogg_malloc ignored, malloc is not declared *)']);
+  AssertOutput('an alias of such an alias',['(* #define ALIAS2 ignored, ALIAS1 is not declared *)']);
+  AssertNotOutput('no constant for them','_ogg_malloc =');
+  AssertCompiles;
+end;
+
+
+procedure TTestCPreprocessor.TestAliasOfUndeclaredNameWithoutPreprocessor;
+
+begin
+  Convert(['#define _ogg_malloc malloc'],['-d']);
+  AssertConverted;
+  AssertInterface('without -E the alias stays a constant',['_ogg_malloc = malloc;']);
 end;
 
 
