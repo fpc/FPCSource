@@ -140,6 +140,32 @@ begin
 end;
 
 
+// Adds the files listed in the file aListFile, one per line, to aKeep.
+procedure ReadKeepList(const aListFile : AnsiString; aKeep : TStrings);
+
+var
+  lList : TStringList;
+  i : integer;
+
+begin
+  if not FileExists(aListFile) then
+    begin
+    writeln('Error : the list of kept files ',aListFile,' does not exist');
+    RemovePreprocessedFiles;
+    halt(1);
+    end;
+  lList:=TStringList.Create;
+  try
+    lList.LoadFromFile(aListFile);
+    for i:=0 to lList.Count-1 do
+      if Trim(lList[i])<>'' then
+        aKeep.Add(Trim(lList[i]));
+  finally
+    lList.Free;
+  end;
+end;
+
+
 function PreprocessInput(const aInput : AnsiString) : AnsiString;
 
 var
@@ -187,9 +213,14 @@ begin
       RemovePreprocessedFiles;
       halt(1);
       end;
-    lKeep.StrictDelimiter:=true;
-    lKeep.Delimiter:=';';
-    lKeep.DelimitedText:=PreprocessorKeep;
+    if Copy(PreprocessorKeep,1,1)='@' then
+      ReadKeepList(Copy(PreprocessorKeep,2,Length(PreprocessorKeep)-1),lKeep)
+    else
+      begin
+      lKeep.StrictDelimiter:=true;
+      lKeep.Delimiter:=';';
+      lKeep.DelimitedText:=PreprocessorKeep;
+      end;
     lKeep.Add(aInput);
     FilterPreprocessed(RawFileName,KeptFileName,lKeep);
     DeleteFile(RawFileName);

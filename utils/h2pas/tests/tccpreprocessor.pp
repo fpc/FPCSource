@@ -26,7 +26,8 @@ type
     procedure TestSystemIncludeDropped;
     procedure TestLocalIncludeDropped;
     procedure TestKeepOtherFile;
-    procedure TestLongKeepList;
+    procedure TestKeepListFile;
+    procedure TestMissingKeepListFile;
     procedure TestPreprocessorOptions;
     procedure TestLineNumbersOfTheHeader;
     procedure TestCommentsKept;
@@ -109,21 +110,31 @@ begin
 end;
 
 
-procedure TTestCPreprocessor.TestLongKeepList;
+procedure TTestCPreprocessor.TestKeepListFile;
 
 var
-  lKeep : AnsiString;
+  lList : AnsiString;
   i : integer;
 
 begin
   WriteWorkFile('other.h',Lines(['#define OTHER 1']));
-  lKeep:='';
+  lList:='';
   for i:=1 to 40 do
-    lKeep:=lKeep+'some_directory/header_number_'+IntToStr(i)+'.h;';
-  lKeep:=lKeep+'other.h';
-  Convert(['#include "other.h"','int f(void);'],['-d','-E','-Ek',lKeep]);
+    lList:=lList+'some_directory/header_number_'+IntToStr(i)+'.h'+LineEnding;
+  WriteWorkFile('keep.lst',lList+LineEnding+'  other.h  '+LineEnding);
+  Convert(['#include "other.h"','int f(void);'],['-d','-E','-Ek@keep.lst']);
   AssertConverted;
-  AssertInterface('a kept file after 255 characters of the list',['const','OTHER = 1;']);
+  AssertInterface('a file of the list file is kept',['const','OTHER = 1;']);
+  AssertInterface('the declaration of the header itself',['function f:longint;cdecl;external;']);
+end;
+
+
+procedure TTestCPreprocessor.TestMissingKeepListFile;
+
+begin
+  Convert(['int f(void);'],['-d','-E','-Ek@missing.lst']);
+  AssertTrue('h2pas reports the missing list file',Pos('missing.lst does not exist',ToolOutput)>0);
+  AssertTrue('h2pas stops',ToolExitCode<>0);
 end;
 
 

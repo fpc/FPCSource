@@ -137,6 +137,7 @@ begin
   writeln ('        -Ec program        C preprocessor program to use instead of gcc (implies -E)');
   writeln ('        -Eo options        extra options for the C preprocessor, e.g. "-I dir -DNAME" (implies -E)');
   writeln ('        -Ek files          other files whose text is kept, separated by ; (implies -E)');
+  writeln ('        -Ek@listfile       other files whose text is kept, one per line in listfile (implies -E)');
   writeln ('        -c                 Compact outputmode, less spaces and empty lines');
   WriteLn ('        -C                 Use types in ctypes unit');
   writeln ('        -i                 create include files (no unit header)');
@@ -180,8 +181,7 @@ Var
     end
    else
     begin
-      (* the argument, of any length *)
-      GetNextParam:=AnsiString(argv[i+1]);
+      GetNextParam:=paramstr(i+1);
       inc(i);
     end;
   end;
@@ -230,7 +230,10 @@ begin
                    case cp[3] of
                      'c' : PreprocessorProgram:=GetNextParam('Ec','program');
                      'o' : PreprocessorOptions:=GetNextParam('Eo','options');
-                     'k' : PreprocessorKeep:=GetNextParam('Ek','files');
+                     'k' : if (length(cp)>4) and (cp[4]='@') then
+                             PreprocessorKeep:=Copy(cp,4,length(cp)-3)
+                           else
+                             PreprocessorKeep:=GetNextParam('Ek','files');
                    else
                      Writeln ('Illegal option : ',cp);
                    end;
