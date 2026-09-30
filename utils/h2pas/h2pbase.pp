@@ -733,6 +733,9 @@ begin
 end;
 
 
+procedure HoistProcVarResult(const aOwner : string; aProc : presobject; var aType : presobject); forward;
+
+
 // Declares a named procedural type aOwner_param for each function pointer argument in aArgs,
 // and replaces the type of that argument by the name.
 procedure HoistProcVarArgs(const aOwner : string; aArgs : presobject);
@@ -758,6 +761,7 @@ begin
       if IsProcVarArg(lArg) then
         begin
         HoistProcVarArgs(lName,lDec^.p1^.p1^.p2);
+        HoistProcVarResult(lName,lDec^.p1^.p1,lArg^.p1);
         lName:=WriteProcVarType(lName,lDec^.p1,lArg^.p1);
         dispose(lArg^.p1,done);
         lArg^.p1:=NewIntID(lName);
@@ -785,6 +789,7 @@ begin
   if not IsProcPointer(lResult) then
     exit;
   HoistProcVarArgs(aOwner+'_result',lResult^.p1^.p2);
+  HoistProcVarResult(aOwner+'_result',lResult^.p1,aType);
   lName:=WriteProcVarType(aOwner+'_result',lResult,aType);
   dispose(aType,done);
   aType:=NewIntID(lName);
@@ -923,20 +928,32 @@ begin
 end;
 
 
-// Declares named element types for the arrays of and pointers to function pointers among the variables aDecls of type aType.
-procedure HoistVariableProcVarElements(aDecls, aType : presobject);
+// Declares named types for the function pointers among the variables aDecls of type aType: arrays of and pointers
+// to function pointers, and the function pointer arguments and results of function pointer variables.
+procedure HoistVariableProcVarElements(aDecls : presobject; var aType : presobject);
 
 var
   lName : AnsiString;
+  lChain : presobject;
+  lSingle : boolean;
 
 begin
+  lSingle:=assigned(aDecls) and not assigned(aDecls^.next);
   while assigned(aDecls) do
     begin
     lName:=DeclaratorName(aDecls^.p1);
     if lName<>'' then
       begin
       HoistStructProcVarElements(lName,aType);
-      HoistProcVarElement(lName+'_element',aDecls^.p1^.p1,aType);
+      lChain:=aDecls^.p1^.p1;
+      if IsProcPointer(lChain) then
+        begin
+        HoistProcVarArgs(lName,lChain^.p1^.p2);
+        if lSingle then
+          HoistProcVarResult(lName,lChain^.p1,aType);
+        end
+      else
+        HoistProcVarElement(lName+'_element',lChain,aType);
       end;
     aDecls:=aDecls^.next;
     end;
@@ -1367,7 +1384,7 @@ end;
 
 
 // Writes the variables of the declaration list aDeclList with type aType; decl is the extern or static specifier.
-procedure WriteVariables(decl, aType, aDeclList : presobject);
+procedure WriteVariables(decl : presobject; var aType : presobject; aDeclList : presobject);
 
 var
   hp : presobject;
@@ -1606,6 +1623,13 @@ begin
       shift(2);
       end;
     WrapFunctionType(declarator);
+    if (DeclaratorName(declarator)<>'') and IsProcPointer(declarator^.p1) then
+      begin
+      popshift;
+      HoistProcVarArgs(declarator^.p2^.str,declarator^.p1^.p1^.p2);
+      HoistProcVarResult(declarator^.p2^.str,declarator^.p1^.p1,type_spec);
+      shift(2);
+      end;
     if assigned(declarator^.p1) and assigned(declarator^.p1^.p1) then
       begin
         writeln(outfile);

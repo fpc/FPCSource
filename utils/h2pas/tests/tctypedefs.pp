@@ -29,6 +29,7 @@ type
     procedure TestUntaggedStructPointerTypedef;
     procedure TestEnumPointerTypedef;
     procedure TestInlineTypePointerTypedefsCompile;
+    procedure TestFunctionPointerResultTypedef;
     procedure TestStructTagAlias;
     procedure TestStructTagAliasPointer;
     procedure TestStructTagAliasPrefix;
@@ -573,6 +574,17 @@ begin
   Convert(['typedef int a_t;','typedef long b_t;']);
   AssertConverted;
   AssertEquals('consecutive typedefs share one type block',1,CountOf('type'));
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerResultTypedef;
+
+begin
+  Convert(['typedef void (*(*fp_t)(int))(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('the function pointer result of a function pointer typedef is a named type',
+    ['fp_t_result = procedure ;cdecl;','fp_t = function (_para1:longint):fp_t_result;cdecl;']);
+  AssertCompiles;
 end;
 
 

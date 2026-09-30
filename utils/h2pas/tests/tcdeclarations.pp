@@ -21,6 +21,8 @@ type
     procedure TestVoidParamList;
     procedure TestEmptyParamList;
     procedure TestFunctionResult;
+    procedure TestFunctionPointerArgumentResult;
+    procedure TestNestedFunctionPointerResult;
     procedure TestImplementationStub;
     procedure TestNamedParams;
     procedure TestUnnamedParams;
@@ -103,6 +105,9 @@ type
     procedure TestStaticVariable;
     procedure TestStaticVariablesCompile;
     procedure TestPointersAfterFunctionResultOfFunctionPointer;
+    procedure TestFunctionPointerVariableResult;
+    procedure TestFunctionPointerVariableArgument;
+    procedure TestFunctionPointerResultsCompile;
   end;
 
 implementation
@@ -910,6 +915,74 @@ procedure TTestVariables.TestStaticVariablesCompile;
 
 begin
   Convert(['static int counter;','static const char *names[4];','int pub;'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestFunctionPointerArgumentResult;
+
+begin
+  Convert(['void reg(int (*(*cb)(int))(char *s), int n);'],['-d']);
+  AssertConverted;
+  AssertInterface('the function pointer result of a function pointer argument is a named type',
+    ['reg_cb_result = function (s:Pansichar):longint;cdecl;','reg_cb = function (_para1:longint):reg_cb_result;cdecl;']);
+  AssertInterface('the argument uses the named type',['procedure reg(cb:reg_cb; n:longint);cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestNestedFunctionPointerResult;
+
+begin
+  Convert(['void (*(*getter(int k))(int))(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('the result of a function pointer result is a named type',
+    ['getter_result_result = procedure ;cdecl;','getter_result = function (_para1:longint):getter_result_result;cdecl;']);
+  AssertInterface('the function uses the named result',['function getter(k:longint):getter_result;cdecl;external;']);
+end;
+
+
+procedure TTestVariables.TestFunctionPointerVariableResult;
+
+begin
+  Convert(['extern int (*(*gfi)(int))(char *s);'],['-d']);
+  AssertConverted;
+  AssertInterface('the function pointer result of a function pointer variable is a named type',
+    ['gfi_result = function (s:Pansichar):longint;cdecl;']);
+  AssertInterface('the variable uses the named type',['gfi : function (_para1:longint):gfi_result;cdecl;cvar;external;']);
+end;
+
+
+procedure TTestVariables.TestFunctionPointerVariableArgument;
+
+begin
+  Convert(['extern void (*gcb)(void (*f)(int));'],['-d']);
+  AssertConverted;
+  AssertInterface('a function pointer argument of a function pointer variable is a named type',
+    ['gcb_f = procedure (_para1:longint);cdecl;']);
+  AssertInterface('the variable uses the named type',['gcb : procedure (f:gcb_f);cdecl;cvar;external;']);
+end;
+
+
+procedure TTestVariables.TestFunctionPointerResultsCompile;
+
+const
+  Header : array[0..5] of string = (
+    'extern void (*(*gfp)(int))(void);',
+    'extern int (*(*gfi)(int))(char *s);',
+    'extern void (*gcb)(void (*f)(int));',
+    'typedef int (*(*fi_t)(int))(char *s);',
+    'void reg(int (*(*cb)(int))(char *s), int n);',
+    'void (*(*getter(int k))(int))(void);');
+
+begin
+  Convert(Header,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(Header,['-d','-1']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(Header,['-P','-l','libx.so']);
   AssertConverted;
   AssertCompiles;
 end;
