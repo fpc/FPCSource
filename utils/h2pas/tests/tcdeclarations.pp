@@ -27,6 +27,7 @@ type
     procedure TestPointerToLaterStruct;
     procedure TestPointerToUndeclaredStruct;
     procedure TestForwardDeclaredStruct;
+    procedure TestForwardDeclaredStructThatCannotMove;
     procedure TestPointersToLaterStructsCompile;
     procedure TestFunctionNamesDifferingInCaseDynamic;
     procedure TestFunctionNameOfMacroInOtherCase;
@@ -190,6 +191,28 @@ begin
   AssertInterface('it moves to its forward declaration',['Ppci_device = ^pci_device;','pci_device = record',
     'domain : longint;','end;','type','pci_opaque = record']);
   AssertInterface('a struct declared forward only is an empty record',['pci_opaque = record','{undefined structure}','end;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestForwardDeclaredStructThatCannotMove;
+
+const
+  Header : array[0..4] of string = (
+    'struct pci_device;','int probe(struct pci_device *dev);','int probe_all(struct pci_device **devs);',
+    'struct pci_mem { int base; };','struct pci_device { struct pci_mem regions[6]; struct pci_device *next; };');
+
+begin
+  Convert(Header,['-d']);
+  AssertConverted;
+  AssertInterface('a struct that refers to later types has untyped pointers before its first use',
+    ['Ppci_device = pointer;','PPpci_device = ^Ppci_device;','function probe(dev:Ppci_device):longint;cdecl;external;']);
+  AssertEquals('the untyped pointer type is declared once',1,CountOf('Ppci_device = pointer;'));
+  AssertNotOutput('no typed pointer type as well','Ppci_device = ^pci_device;');
+  AssertCompiles;
+  Convert(Header,['-d','-1']);
+  AssertConverted;
+  AssertInterface('with -1 the pointer type is typed',['Ppci_device = ^pci_device;']);
   AssertCompiles;
 end;
 

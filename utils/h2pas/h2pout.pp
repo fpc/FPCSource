@@ -1721,6 +1721,33 @@ begin
 end;
 
 
+// Writes the pointer types to aTarget that were not written yet as untyped pointers, in a type section of their own,
+// and the pointer types to those.
+procedure WriteUntypedPointersTo(var aFile : text; const aIndent, aTarget : AnsiString);
+
+var
+  lIndex : Integer;
+  lName : AnsiString;
+  lFirst : Boolean;
+
+begin
+  lFirst:=true;
+  for lIndex:=0 to PTypeList.Count-1 do
+    begin
+    lName:=PTypeList[lIndex];
+    if SameText(PointerTarget(lName),aTarget) and MayWritePointerTypeDef(lName) then
+      begin
+      if lFirst then
+        Writeln(aFile,OuterIndent(aIndent),'type');
+      lFirst:=false;
+      WrittenPointers.Add(lName);
+      Writeln(aFile,aIndent,lName,' = pointer;');
+      WritePointersTo(aFile,aIndent,lName);
+      end;
+    end;
+end;
+
+
 procedure HoistProcVarElement(const aName : AnsiString; aChain, aType : presobject);
 
 var
@@ -2220,8 +2247,11 @@ begin
     end
   else if DefinedOpaqueTypes.IndexOf(lTN)>=0 then
     begin
+    (* the record declared later that cannot move here *)
     if lAN<>'' then
       PendingAliases.Add(lTN+'='+lAN);
+    if not OneTypeSection then
+      WriteUntypedPointersTo(aFile,aIndent,lTN);
     exit;
     end
   else
