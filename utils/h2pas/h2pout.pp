@@ -578,12 +578,12 @@ begin
         name:=lDecl^.p2^.p;
         flag_index:=BitFieldFlags.Values[lDecl^.p2^.str];
         { get function }
-        WriteHeader(outfile,'function '+name+'(var __rec : '+ph+') : ',';',true);
+        WriteHeader(outfile,'function '+FixId(name)+'(var __rec : '+ph+') : ',';',true);
         popshift;
-        WriteHeader(implemfile,'function '+name+'(var __rec : '+ph+') : ',';',not compactmode);
+        WriteHeader(implemfile,'function '+FixId(name)+'(var __rec : '+ph+') : ',';',not compactmode);
         writeln(implemfile,aktspace,'begin');
         shift(2);
-        write(implemfile,aktspace,name,':=(__rec.flag',flag_index);
+        write(implemfile,aktspace,FixId(name),':=(__rec.flag',flag_index);
         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
         popshift;
         writeln(implemfile,aktspace,'end;');

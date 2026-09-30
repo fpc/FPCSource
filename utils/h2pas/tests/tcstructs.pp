@@ -61,6 +61,7 @@ type
     procedure TestBitFieldAccessors;
     procedure TestBitFieldAccessorBodies;
     procedure TestBitFieldNamedLikeParameter;
+    procedure TestBitFieldNamedLikeReservedWord;
     procedure TestWideBitFields;
     procedure TestBitFieldWiderThan32;
     procedure TestBitFieldGroupFull;
@@ -370,6 +371,18 @@ begin
   Convert(['struct bits { unsigned int a : 1; unsigned int b : 3; };'],['-d']);
   AssertConverted;
   AssertInterface('getter of a field named a',['function a(var __rec : bits) : dword;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestBitFieldNamedLikeReservedWord;
+
+begin
+  Convert(['struct track { unsigned int type : 1; unsigned int end : 3; };'],['-d']);
+  AssertConverted;
+  AssertInterface('the getter of a field named like a reserved word',['function _type(var __rec : track) : dword;']);
+  AssertInterface('the setter keeps its prefix',['procedure set_type(var __rec : track; __type : dword);']);
+  AssertImplementation('the getter body',['_end:=(__rec.flag0 and bm_track_end) shr bp_track_end;']);
   AssertCompiles;
 end;
 
