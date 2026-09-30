@@ -54,6 +54,10 @@ type
     procedure TestAdjacentStringsCompile;
     procedure TestAlias;
     procedure TestAliasOfLaterEnumMember;
+    procedure TestRepeatedDefine;
+    procedure TestRedefinedAfterUndef;
+    procedure TestDefinesInConditionalBranches;
+    procedure TestRedefinedDefinesCompile;
     procedure TestAliasOfLaterDefine;
     procedure TestAliasChainBeforeUse;
     procedure TestAliasesOfLaterNamesCompile;
@@ -473,6 +477,48 @@ procedure TTestConstMacros.TestAdjacentStringsCompile;
 
 begin
   Convert(['#define S "ab" "cd"','#define T "a\n" "b" "c\t"','#define U "it''" "s"','#define V "" "x"'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestRepeatedDefine;
+
+begin
+  Convert(['#define MAD_F_FRACBITS 28','#define MAD_F_SCALEBITS MAD_F_FRACBITS','int x;','#define MAD_F_SCALEBITS MAD_F_FRACBITS'],['-d']);
+  AssertConverted;
+  AssertEquals('the constant is written once',1,CountOf('MAD_F_SCALEBITS = MAD_F_FRACBITS;'));
+  AssertOutput('the repeated define is left out',['(* #define MAD_F_SCALEBITS ignored, defined before *)']);
+end;
+
+
+procedure TTestConstMacros.TestRedefinedAfterUndef;
+
+begin
+  Convert(['#define PCRE2_LOCAL_WIDTH 8','#undef PCRE2_LOCAL_WIDTH','#define PCRE2_LOCAL_WIDTH 16'],['-d']);
+  AssertConverted;
+  AssertInterface('the first definition is the constant',['PCRE2_LOCAL_WIDTH = 8;']);
+  AssertNotOutput('the second definition is left out','PCRE2_LOCAL_WIDTH = 16');
+end;
+
+
+procedure TTestConstMacros.TestDefinesInConditionalBranches;
+
+begin
+  Convert(['#ifdef WIDE','#define BUILD_TYPE 1','#else','#define BUILD_TYPE 2','#endif'],['-d']);
+  AssertConverted;
+  AssertInterface('a define in each branch of a condition',
+    ['{$ifdef WIDE}','const','BUILD_TYPE = 1;','{$else}','const','BUILD_TYPE = 2;','{$endif}']);
+  AssertNotOutput('no define is left out','defined before');
+end;
+
+
+procedure TTestConstMacros.TestRedefinedDefinesCompile;
+
+begin
+  Convert(['#define MAD_F_FRACBITS 28','#define MAD_F_SCALEBITS MAD_F_FRACBITS','#define MAD_F_SCALEBITS MAD_F_FRACBITS',
+           '#define PCRE2_LOCAL_WIDTH 8','#undef PCRE2_LOCAL_WIDTH','#define PCRE2_LOCAL_WIDTH 16',
+           '#define SQR(x) ((x)*(x))','#define SQR(x) ((x)*(x))','#define FLAG','#define FLAG 1'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

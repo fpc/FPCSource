@@ -1937,6 +1937,38 @@ begin
 end;
 
 
+var
+  // The names of the defines written as constants or functions, with the conditional section as object.
+  WrittenDefines : TStringList = nil;
+
+// Returns true, and writes a comment, when a define of the name of dname was written before in the same
+// conditional section; registers the name and section otherwise.
+function IsRedefinedDefine(dname : presobject) : boolean;
+
+var
+  lIndex : integer;
+
+begin
+  if not assigned(WrittenDefines) then
+    begin
+    WrittenDefines:=TStringList.Create;
+    WrittenDefines.CaseSensitive:=true;
+    WrittenDefines.Sorted:=true;
+    end;
+  lIndex:=WrittenDefines.IndexOf(dname^.str);
+  Result:=(lIndex>=0) and (PtrInt(WrittenDefines.Objects[lIndex])=CondSection);
+  if Result then
+    begin
+    if not stripinfo then
+      writeln(outfile,aktspace,'(* #define ',dname^.p,' ignored, defined before *)');
+    end
+  else if lIndex>=0 then
+    WrittenDefines.Objects[lIndex]:=TObject(PtrInt(CondSection))
+  else
+    WrittenDefines.AddObject(dname^.str,TObject(PtrInt(CondSection)));
+end;
+
+
 // Writes the define dname of the type name aType as a type alias.
 procedure WriteDefineTypeAlias(dname, aType : presobject);
 
@@ -2149,7 +2181,7 @@ begin
     HandleDefine(dname);
     dname:=nil;
     end
-  else if IsDefineNameClash(dname) then
+  else if IsDefineNameClash(dname) or IsRedefinedDefine(dname) then
   (* the name of a declared function: a function alias *)
   else if assigned(lFunction) then
     WriteFunctionAlias(dname^.str,lFunction,lName)
@@ -2658,7 +2690,7 @@ var
 
 begin
   HandleDefineMacro:=Nil;
-  if IsDefineNameClash(dname) or TryWriteMacroAlias(dname,enum_list,para_def_expr) then
+  if IsDefineNameClash(dname) or IsRedefinedDefine(dname) or TryWriteMacroAlias(dname,enum_list,para_def_expr) then
     begin
     dispose(dname,done);
     DisposeNode(enum_list);
@@ -2733,6 +2765,7 @@ end;
 initialization
 finalization
   PendingDefines.Free;
+  WrittenDefines.Free;
   EmptyDefines.Free;
   FreeStoredFunctions;
 end.

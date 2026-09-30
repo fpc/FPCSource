@@ -38,6 +38,8 @@ var
    aktspace : string;
    block_type : tblocktype;
    commentstr: string;
+   // The number of conditional directives written: the text between two of them is one conditional section.
+   CondSection : longint = 0;
 
 const
    in_define : boolean = false;
@@ -688,6 +690,7 @@ procedure WriteDirective(const aKeyword, aText : string);
 
 begin
   writeln(outfile,'{$',aKeyword,aText,'}');
+  inc(CondSection);
   block_type:=bt_no;
   flush(outfile);
 end;
@@ -723,6 +726,7 @@ begin
   if EnterCondition then
     begin
     writeln(outfile,'{$ifdef ',Trim(StripComments(ReadDirectiveLine)),'}');
+    inc(CondSection);
     flush(outfile);
     end;
 end;
