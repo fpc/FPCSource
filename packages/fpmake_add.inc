@@ -87,6 +87,7 @@
   add_libgbafpc(ADirectory+IncludeTrailingPathDelimiter('libgbafpc'));
   add_libgc(ADirectory+IncludeTrailingPathDelimiter('libgc'));
   add_libgd(ADirectory+IncludeTrailingPathDelimiter('libgd'));
+  add_libheif(ADirectory+IncludeTrailingPathDelimiter('libheif'));
   add_libjack(ADirectory+IncludeTrailingPathDelimiter('libjack'));
   add_libmagic(ADirectory+IncludeTrailingPathDelimiter('libmagic'));
   add_libmicrohttpd(ADirectory+IncludeTrailingPathDelimiter('libmicrohttpd'));
