@@ -64,7 +64,6 @@ procedure write_cast_type(var outfile:text; p : presobject);
 procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
 procedure write_ifexpr(var outfile:text; p : presobject);
 procedure write_funexpr(var outfile:text; p : presobject);
-procedure write_def_params(var outfile:text; p : presobject);
 // Writes the argument list p; with aSkipEllipsis the ellipsis argument is left out.
 procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
@@ -1591,33 +1590,6 @@ begin
   in_args:=lOldInArgs;
 end;
 
-
-procedure write_def_params(var outfile:text; p : presobject);
-
-var
-  hp1 : presobject;
-
-begin
-  case p^.typ of
-  t_enumdef:
-    begin
-    hp1:=p^.p1;
-    while assigned(hp1) do
-      begin
-      write(outfile,FixId(hp1^.p1^.p));
-      hp1:=hp1^.next;
-      if assigned(hp1) then
-        write(outfile,',')
-      else
-        write(outfile);
-      flush(outfile);
-      end;
-    flush(outfile);
-    end;
-  else
-    internalerror(4);
-  end;
-end;
 
 function MayWritePointerTypeDef(const PN: AnsiString): Boolean;
 

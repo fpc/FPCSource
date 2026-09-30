@@ -181,6 +181,13 @@ type
     procedure TestMacroResultCallDynamic;
     procedure TestMacroResultCallBeforeFunction;
     procedure TestMacroResultCompiles;
+    procedure TestMacroParamFromCall;
+    procedure TestMacroParamFromPointerCast;
+    procedure TestMacroParamOtherUse;
+    procedure TestMacroParamConflictingTypes;
+    procedure TestMacroParamVarargs;
+    procedure TestMacroParamNameOfType;
+    procedure TestMacroParamsCompile;
   end;
 
 implementation
@@ -1009,7 +1016,7 @@ procedure TTestFunctionMacros.TestPointerCastToNamedType;
 begin
   Convert(['#define P1(p) ((foo *)(p))','#define P2(p) ((foo *) p)']);
   AssertConverted;
-  AssertInterface('pointer cast to a named type gives the result type',['function P1(p : longint) : Pfoo;']);
+  AssertInterface('pointer cast to a named type gives the result type',['function P1(p : pointer) : Pfoo;']);
   AssertImplementation('pointer cast to a named type',['P1:=Pfoo(p);']);
   AssertImplementation('pointer cast to a named type without parentheses around the operand',['P2:=Pfoo(p);']);
 end;
@@ -1020,7 +1027,7 @@ procedure TTestFunctionMacros.TestDoublePointerCast;
 begin
   Convert(['#define C2(p) ((foo **)(p))','#define C7(p) ((foo ***)(p))']);
   AssertConverted;
-  AssertInterface('double pointer cast gives the result type',['function C2(p : longint) : PPfoo;']);
+  AssertInterface('double pointer cast gives the result type',['function C2(p : pointer) : PPfoo;']);
   AssertImplementation('double pointer cast',['C2:=PPfoo(p);']);
   AssertImplementation('triple pointer cast',['C7:=PPPfoo(p);']);
 end;
@@ -1051,7 +1058,7 @@ procedure TTestFunctionMacros.TestPointerCastPrefix;
 begin
   Convert(['typedef struct { int a; } foo;','#define C2(p) ((foo **)(p))'],['-p','-T']);
   AssertConverted;
-  AssertInterface('-p -T double pointer cast',['function C2(p : longint) : PPfoo;']);
+  AssertInterface('-p -T double pointer cast',['function C2(p : pointer) : PPfoo;']);
   AssertInterface('-p -T pointer types of casts',['Pfoo = ^Tfoo;','PPfoo = ^Pfoo;','Tfoo = record','a : longint;','end;']);
 end;
 
@@ -1393,7 +1400,7 @@ procedure TTestFunctionMacros.TestPointerCast;
 begin
   Convert(['#define PCAST(p) ((char *)(p))']);
   AssertConverted;
-  AssertInterface('pointer cast gives the result type',['function PCAST(p : longint) : Pansichar;']);
+  AssertInterface('pointer cast gives the result type',['function PCAST(p : pointer) : Pansichar;']);
   AssertImplementation('pointer cast body',['PCAST:=Pansichar(p);']);
 end;
 
@@ -1585,8 +1592,8 @@ begin
   Convert(['int crc(int seed, const char *buf, int len);','#define swapped(s, b, l) crc(b, s, l)',
            '#define extra(s, b) crc(s, b, 0)'],['-d']);
   AssertConverted;
-  AssertInterface('parameters in another order give a macro function',['function swapped(s,b,l : longint) : longint;']);
-  AssertInterface('an argument that is no parameter gives a macro function',['function extra(s,b : longint) : longint;']);
+  AssertInterface('parameters in another order give a macro function',['function swapped(s : Pansichar; b,l : longint) : longint;']);
+  AssertInterface('an argument that is no parameter gives a macro function',['function extra(s : longint; b : Pansichar) : longint;']);
   AssertNotOutput('no alias','external name');
 end;
 
@@ -1628,9 +1635,9 @@ begin
   Convert(['#define XML_GetUserData(parser) (*(void **)(parser))','#define GETI(p) (*(int *)(p))'],['-d']);
   AssertConverted;
   AssertInterface('the dereference of a void pointer pointer is a pointer',
-    ['{ argument types are unknown }','function XML_GetUserData(parser : longint) : pointer;']);
+    ['{ was #define dname(params) para_def_expr }','function XML_GetUserData(parser : pointer) : pointer;']);
   AssertInterface('the dereference of an int pointer is an int',
-    ['{ argument types are unknown }','function GETI(p : longint) : longint;']);
+    ['{ was #define dname(params) para_def_expr }','function GETI(p : pointer) : longint;']);
   AssertNotOutput('the result types are known','return type might be wrong');
 end;
 
@@ -1640,7 +1647,7 @@ procedure TTestFunctionMacros.TestMacroResultNestedCast;
 begin
   Convert(['#define CAST(x) ((unsigned char *)(x) + 1)'],['-d']);
   AssertConverted;
-  AssertInterface('the type of a cast inside the body',['{ argument types are unknown }','function CAST(x : longint) : Pbyte;']);
+  AssertInterface('the type of a cast inside the body',['{ was #define dname(params) para_def_expr }','function CAST(x : pointer) : Pbyte;']);
 end;
 
 
@@ -1659,7 +1666,7 @@ begin
   Convert(['typedef struct s *sp;','sp mk(int a, int b);','char *getname(int a);','char **names(void);',
            '#define MK1(a) mk(a, 0)','#define NAME1(a) (getname((a)+1))','#define FIRST(a) (*names())'],['-d']);
   AssertConverted;
-  AssertInterface('the result type of the called function',['{ argument types are unknown }','function MK1(a : longint) : sp;']);
+  AssertInterface('the result type of the called function',['{ was #define dname(params) para_def_expr }','function MK1(a : longint) : sp;']);
   AssertInterface('a called function that returns a pointer',
     ['{ argument types are unknown }','function NAME1(a : longint) : Pansichar;']);
   AssertInterface('the dereference of the result of a call',
@@ -1695,6 +1702,93 @@ begin
            '#define MK1(a) mk(a, 0)','#define NAME1(a) (getname((a)+1))','#define FIRST(a) (*names())',
            '#define XML_GetUserData(parser) (*(void **)(parser))','#define GETI(p) (*(int *)(p))',
            '#define CAST(x) ((unsigned char *)(x) + 1)'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+const
+  ZlibMacroHeader : array[0..5] of string = (
+    'typedef struct z_stream_s { int avail_in; } z_stream;',
+    'typedef z_stream *z_streamp;',
+    'int deflateInit_(z_streamp strm, int level, const char *version, int stream_size);',
+    'int inflateBackInit_(z_streamp strm, int windowBits, unsigned char *window, const char *version, int stream_size);',
+    '#define deflateInit(strm, level) deflateInit_((strm), (level), "1.3", (int)sizeof(z_stream))',
+    '#define inflateBackInit(strm, windowBits, window) inflateBackInit_((strm), (windowBits), (window), "1.3", (int)sizeof(z_stream))');
+
+procedure TTestFunctionMacros.TestMacroParamFromCall;
+
+begin
+  Convert(ZlibMacroHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a parameter passed to a declared function has the type of the argument',
+    ['{ was #define dname(params) para_def_expr }','function deflateInit(strm : z_streamp; level : longint) : longint;']);
+  AssertInterface('parameters of different types',
+    ['function inflateBackInit(strm : z_streamp; windowBits : longint; window : Pbyte) : longint;']);
+  AssertNotOutput('the argument types are known','argument types are unknown');
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamFromPointerCast;
+
+begin
+  Convert(['#define XML_GetUserData(parser) (*(void **)(parser))'],['-d']);
+  AssertConverted;
+  AssertInterface('a parameter cast to a pointer is a pointer',['function XML_GetUserData(parser : pointer) : pointer;']);
+  AssertImplementation('the body is unchanged',['XML_GetUserData:=(Ppointer(parser))^;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamOtherUse;
+
+begin
+  Convert(['int f(char *a);','#define MIXED(p) (*(int *)(p) + p)','#define SUM(p) f((p) + 1)'],['-d']);
+  AssertConverted;
+  AssertInterface('a parameter that is also used otherwise has no type',
+    ['{ argument types are unknown }','{ return type might be wrong }','function MIXED(p : longint) : longint;']);
+  AssertInterface('a parameter in an argument expression has no type',
+    ['{ argument types are unknown }','function SUM(p : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamConflictingTypes;
+
+begin
+  Convert(['int fi(int a);','int fp(char *a);','#define BOTH(x) (fi(x) + fp(x))','#define TWICE(x) (fi(x) - fi(x))'],['-d']);
+  AssertConverted;
+  AssertInterface('arguments of different types give no type',['{ argument types are unknown }','{ return type might be wrong }',
+    'function BOTH(x : longint) : longint;']);
+  AssertInterface('arguments of the same type give that type',['{ was #define dname(params) para_def_expr }',
+    '{ return type might be wrong }','function TWICE(x : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamVarargs;
+
+begin
+  Convert(['int pr(const char *f, ...);','#define PR(f, x) pr(f, x)'],['-d']);
+  AssertConverted;
+  AssertInterface('a parameter passed as variable argument has no type',
+    ['{ argument types are unknown }','function PR(f : Pansichar; x : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamNameOfType;
+
+begin
+  Convert(['typedef int sp;','int g(sp a, int b);','#define G1(sp) g(sp, 1)'],['-d']);
+  AssertConverted;
+  AssertInterface('a parameter with the name of its type has no type',['{ argument types are unknown }','function G1(sp : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroParamsCompile;
+
+begin
+  Convert(ZlibMacroHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(['#define XML_GetUserData(parser) (*(void **)(parser))','int fi(int a);','#define TWICE(x) (fi(x) - fi(x))'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

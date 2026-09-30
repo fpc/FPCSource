@@ -2183,33 +2183,63 @@ begin
 end;
 
 
-// Returns the result type of the declared function aFunction as a cast type, or nil for void or an unsupported type.
-function FunctionResultType(aFunction : PStoredFunction) : presobject;
-
-var
-  lModifier : presobject;
+// Returns a new cast type for the type aType with the modifiers aModifiers of a declarator, or nil when a modifier
+// is no pointer.
+function DeclaredType(aType, aModifiers : presobject) : presobject;
 
 begin
   Result:=nil;
-  if not assigned(aFunction^.TypeSpec) then
+  if not assigned(aType) then
     exit;
-  Result:=aFunction^.TypeSpec^.get_copy;
-  lModifier:=aFunction^.DeclList^.p1^.p1^.p1;
-  while assigned(lModifier) do
+  Result:=aType^.get_copy;
+  while assigned(aModifiers) do
     begin
-    if lModifier^.typ<>t_pointerdef then
+    if aModifiers^.typ<>t_pointerdef then
       begin
       dispose(Result,done);
       exit(nil);
       end;
     Result:=NewType1(t_pointerdef,Result);
-    lModifier:=lModifier^.p1;
+    aModifiers:=aModifiers^.p1;
     end;
   if Result^.typ=t_void then
     begin
     dispose(Result,done);
     Result:=nil;
     end;
+end;
+
+
+// Returns the result type of the declared function aFunction as a cast type, or nil for void or an unsupported type.
+function FunctionResultType(aFunction : PStoredFunction) : presobject;
+
+begin
+  Result:=DeclaredType(aFunction^.TypeSpec,aFunction^.DeclList^.p1^.p1^.p1);
+end;
+
+
+// Returns the type of argument aIndex (from 0) of the declared function aFunction as a cast type, or nil.
+function FunctionArgumentType(aFunction : PStoredFunction; aIndex : integer) : presobject;
+
+var
+  lArgs : presobject;
+
+begin
+  Result:=nil;
+  lArgs:=aFunction^.DeclList^.p1^.p1^.p2;
+  if IsVoidArgList(lArgs) then
+    exit;
+  while assigned(lArgs) and (aIndex>0) do
+    begin
+    lArgs:=lArgs^.next;
+    dec(aIndex);
+    end;
+  if not assigned(lArgs) or not assigned(lArgs^.p1) or not assigned(lArgs^.p1^.p1) then
+    exit;
+  if assigned(lArgs^.p1^.p2) then
+    Result:=DeclaredType(lArgs^.p1^.p1,lArgs^.p1^.p2^.p1)
+  else
+    Result:=DeclaredType(lArgs^.p1^.p1,nil);
 end;
 
 
@@ -2252,6 +2282,145 @@ begin
           Result:=FunctionResultType(lFunction);
         end;
   end;
+end;
+
+
+// Returns true when the cast types aLeft and aRight, either of them nil, are the same.
+function SameCastType(aLeft, aRight : presobject) : boolean;
+
+begin
+  if not assigned(aLeft) or not assigned(aRight) then
+    exit(aLeft=aRight);
+  Result:=(aLeft^.typ=aRight^.typ) and (aLeft^.str=aRight^.str)
+          and SameCastType(aLeft^.p1,aRight^.p1) and SameCastType(aLeft^.p2,aRight^.p2);
+end;
+
+
+// Returns aExpr without the expression lists of one element around it.
+function UnwrappedExpr(aExpr : presobject) : presobject;
+
+begin
+  Result:=aExpr;
+  while assigned(Result) and (Result^.typ=t_exprlist) and not assigned(Result^.next) and assigned(Result^.p1) do
+    Result:=Result^.p1;
+end;
+
+
+// Collects the uses of the macro parameter aName in aExpr: aType is the type of the uses that give one,
+// aUntyped is set by a use without type or with another type.
+procedure CollectParamType(const aName : string; aExpr : presobject; var aType : presobject; var aUntyped : boolean);
+
+  procedure AddType(aUseType : presobject);
+
+  begin
+    if not assigned(aUseType) then
+      aUntyped:=true
+    else if not assigned(aType) then
+      aType:=aUseType
+    else
+      begin
+      if not SameCastType(aType,aUseType) then
+        aUntyped:=true;
+      dispose(aUseType,done);
+      end;
+  end;
+
+var
+  lFunction : PStoredFunction;
+  lArgs, lArg : presobject;
+  lIndex : integer;
+
+begin
+  if not assigned(aExpr) or aUntyped then
+    exit;
+  case aExpr^.typ of
+    t_id :
+      if aExpr^.str=aName then
+        aUntyped:=true;
+    t_typespec :
+      begin
+      lArg:=UnwrappedExpr(aExpr^.p2);
+      if assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_pointerdef) and assigned(lArg) and (lArg^.typ=t_id)
+         and (lArg^.str=aName) then
+        AddType(NewType1(t_pointerdef,NewVoid))
+      else
+        CollectParamType(aName,aExpr^.p2,aType,aUntyped);
+      end;
+    t_funexprlist :
+      begin
+      lFunction:=nil;
+      if assigned(aExpr^.p1) and assigned(aExpr^.p1^.p1) and (aExpr^.p1^.p1^.typ=t_id) then
+        lFunction:=FindFunction(aExpr^.p1^.p1^.str);
+      if not assigned(lFunction) then
+        CollectParamType(aName,aExpr^.p1,aType,aUntyped);
+      lArgs:=aExpr^.p2;
+      lIndex:=0;
+      while assigned(lArgs) do
+        begin
+        lArg:=UnwrappedExpr(lArgs^.p1);
+        if assigned(lFunction) and assigned(lArg) and (lArg^.typ=t_id) and (lArg^.str=aName) then
+          AddType(FunctionArgumentType(lFunction,lIndex))
+        else
+          CollectParamType(aName,lArgs^.p1,aType,aUntyped);
+        lArgs:=lArgs^.next;
+        inc(lIndex);
+        end;
+      end;
+  else
+    begin
+    CollectParamType(aName,aExpr^.p1,aType,aUntyped);
+    CollectParamType(aName,aExpr^.p2,aType,aUntyped);
+    CollectParamType(aName,aExpr^.p3,aType,aUntyped);
+    end;
+  end;
+  CollectParamType(aName,aExpr^.next,aType,aUntyped);
+end;
+
+
+// Returns a new cast type for the macro parameter aName in the macro body aBody, or nil when it is unknown.
+function MacroParamType(const aName : string; aBody : presobject) : presobject;
+
+var
+  lUntyped : boolean;
+
+begin
+  Result:=nil;
+  lUntyped:=false;
+  CollectParamType(aName,aBody,Result,lUntyped);
+  if assigned(Result) and (lUntyped or ((Result^.typ=t_id) and SameText(TypeName(Result^.str),FixId(aName)))) then
+    begin
+    dispose(Result,done);
+    Result:=nil;
+    end;
+end;
+
+
+// Writes the macro parameters aParams (t_enumlist) with the types aTypes, longint for a nil type.
+procedure WriteMacroParams(var aFile : text; aParams : presobject; aTypes : TFPList);
+
+var
+  i : integer;
+
+begin
+  i:=0;
+  while assigned(aParams) do
+    begin
+    write(aFile,FixId(aParams^.p1^.p));
+    if assigned(aParams^.next) and SameCastType(presobject(aTypes[i]),presobject(aTypes[i+1])) then
+      write(aFile,',')
+    else
+      begin
+      write(aFile,' : ');
+      if assigned(aTypes[i]) then
+        write_cast_type(aFile,presobject(aTypes[i]))
+      else
+        write(aFile,'longint');
+      if assigned(aParams^.next) then
+        write(aFile,'; ');
+      end;
+    aParams:=aParams^.next;
+    inc(i);
+    end;
 end;
 
 
@@ -2384,6 +2553,8 @@ var
   lTarget : AnsiString;
   lCount : integer;
   lResultType : presobject;
+  lParamTypes : TFPList;
+  lUnknownParams : boolean;
 
 begin
   HandleDefineMacro:=Nil;
@@ -2440,11 +2611,21 @@ begin
     lResultType:=para_def_expr^.p3^.get_copy
   else
     lResultType:=MacroResultType(para_def_expr,enum_list);
+  lParamTypes:=TFPList.Create;
+  lUnknownParams:=false;
+  hp:=enum_list;
+  while assigned(hp) do
+    begin
+    lParamTypes.Add(MacroParamType(hp^.p1^.str,para_def_expr));
+    if lParamTypes.Last=nil then
+      lUnknownParams:=true;
+    hp:=hp^.next;
+    end;
   if not stripinfo then
   begin
     writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');
     writeln (implemfile,aktspace,'{ was #define dname(params) para_def_expr }');
-    if assigned(enum_list) then
+    if lUnknownParams then
       begin
         writeln (outfile,aktspace,'{ argument types are unknown }');
         writeln (implemfile,aktspace,'{ argument types are unknown }');
@@ -2467,15 +2648,16 @@ begin
     begin
       write(outfile,'(');
       write(implemfile,'(');
-      ph:=new(presobject,init_one(t_enumdef,enum_list));
-      write_def_params(outfile,ph);
-      write_def_params(implemfile,ph);
-      if assigned(ph) then dispose(ph,done);
-      ph:=nil;
-      (* types are unknown *)
-      write(outfile,' : longint)');
-      write(implemfile,' : longint)');
+      WriteMacroParams(outfile,enum_list,lParamTypes);
+      WriteMacroParams(implemfile,enum_list,lParamTypes);
+      write(outfile,')');
+      write(implemfile,')');
+      dispose(enum_list,done);
     end;
+  for lCount:=0 to lParamTypes.Count-1 do
+    if assigned(lParamTypes[lCount]) then
+      dispose(presobject(lParamTypes[lCount]),done);
+  lParamTypes.Free;
   if not assigned(lResultType) then
     begin
       writeln(outfile,' : longint;',aktspace,commentstr);
