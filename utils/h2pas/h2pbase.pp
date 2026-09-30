@@ -2183,6 +2183,78 @@ begin
 end;
 
 
+// Returns the result type of the declared function aFunction as a cast type, or nil for void or an unsupported type.
+function FunctionResultType(aFunction : PStoredFunction) : presobject;
+
+var
+  lModifier : presobject;
+
+begin
+  Result:=nil;
+  if not assigned(aFunction^.TypeSpec) then
+    exit;
+  Result:=aFunction^.TypeSpec^.get_copy;
+  lModifier:=aFunction^.DeclList^.p1^.p1^.p1;
+  while assigned(lModifier) do
+    begin
+    if lModifier^.typ<>t_pointerdef then
+      begin
+      dispose(Result,done);
+      exit(nil);
+      end;
+    Result:=NewType1(t_pointerdef,Result);
+    lModifier:=lModifier^.p1;
+    end;
+  if Result^.typ=t_void then
+    begin
+    dispose(Result,done);
+    Result:=nil;
+    end;
+end;
+
+
+// Returns a new type object for the type of the macro body aExpr with the parameters aParams, or nil when unknown.
+function MacroResultType(aExpr, aParams : presobject) : presobject;
+
+var
+  lType : presobject;
+  lFunction : PStoredFunction;
+
+begin
+  Result:=nil;
+  if not assigned(aExpr) then
+    exit;
+  case aExpr^.typ of
+    t_exprlist :
+      if not assigned(aExpr^.next) then
+        Result:=MacroResultType(aExpr^.p1,aParams);
+    t_typespec :
+      if assigned(aExpr^.p1) and not ((aExpr^.p1^.typ=t_id) and IsMacroParam(aExpr^.p1^.str,aParams)) then
+        Result:=aExpr^.p1^.get_copy;
+    t_preop :
+      if aExpr^.str='@' then
+        Result:=NewType1(t_pointerdef,NewVoid)
+      else if aExpr^.str='^' then
+        begin
+        lType:=MacroResultType(aExpr^.p1,aParams);
+        if assigned(lType) and (lType^.typ=t_pointerdef) and assigned(lType^.p1) and (lType^.p1^.typ<>t_void) then
+          Result:=lType^.p1^.get_copy;
+        if assigned(lType) then
+          dispose(lType,done);
+        end;
+    t_funexprlist :
+      if assigned(aExpr^.p3) then
+        Result:=aExpr^.p3^.get_copy
+      else if assigned(aExpr^.p1) and assigned(aExpr^.p1^.p1) and (aExpr^.p1^.p1^.typ=t_id) then
+        begin
+        lFunction:=FindFunction(aExpr^.p1^.p1^.str);
+        if assigned(lFunction) then
+          Result:=FunctionResultType(lFunction);
+        end;
+  end;
+end;
+
+
 // Returns the binding strength of the Pascal binary operator aOp, as parsed by the grammar.
 function OperatorPrecedence(const aOp : string) : integer;
 
@@ -2311,6 +2383,7 @@ var
   lRotatable : TFPList;
   lTarget : AnsiString;
   lCount : integer;
+  lResultType : presobject;
 
 begin
   HandleDefineMacro:=Nil;
@@ -2362,6 +2435,11 @@ begin
   (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
   if not assigned(para_def_expr^.p3) and IsBooleanExpr(para_def_expr) then
     para_def_expr^.p3:=NewIntID('boolean');
+  lResultType:=nil;
+  if assigned(para_def_expr^.p3) then
+    lResultType:=para_def_expr^.p3^.get_copy
+  else
+    lResultType:=MacroResultType(para_def_expr,enum_list);
   if not stripinfo then
   begin
     writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');
@@ -2371,7 +2449,7 @@ begin
         writeln (outfile,aktspace,'{ argument types are unknown }');
         writeln (implemfile,aktspace,'{ argument types are unknown }');
       end;
-    if not assigned(para_def_expr^.p3) then
+    if not assigned(lResultType) then
       begin
         writeln(outfile,aktspace,'{ return type might be wrong }   ');
         writeln(implemfile,aktspace,'{ return type might be wrong }   ');
@@ -2398,7 +2476,7 @@ begin
       write(outfile,' : longint)');
       write(implemfile,' : longint)');
     end;
-  if not assigned(para_def_expr^.p3) then
+  if not assigned(lResultType) then
     begin
       writeln(outfile,' : longint;',aktspace,commentstr);
       writeln(implemfile,' : longint;');
@@ -2407,12 +2485,13 @@ begin
   else
     begin
       write(outfile,' : ');
-      write_cast_type(outfile,para_def_expr^.p3);
+      write_cast_type(outfile,lResultType);
       writeln(outfile,';',aktspace,commentstr);
       flush(outfile);
       write(implemfile,' : ');
-      write_cast_type(implemfile,para_def_expr^.p3);
+      write_cast_type(implemfile,lResultType);
       writeln(implemfile,';');
+      dispose(lResultType,done);
     end;
   writeln(outfile);
   flush(outfile);

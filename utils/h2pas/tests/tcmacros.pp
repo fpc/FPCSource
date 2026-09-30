@@ -174,6 +174,13 @@ type
     procedure TestWrapperMacroArgumentCount;
     procedure TestFunctionAliasBeforeFunction;
     procedure TestFunctionAliasesCompile;
+    procedure TestMacroResultDereference;
+    procedure TestMacroResultNestedCast;
+    procedure TestMacroResultAddress;
+    procedure TestMacroResultCall;
+    procedure TestMacroResultCallDynamic;
+    procedure TestMacroResultCallBeforeFunction;
+    procedure TestMacroResultCompiles;
   end;
 
 implementation
@@ -1610,6 +1617,84 @@ begin
            '#define crc_alias(s, b, l) crc(s, b, l)','void reset(void);','#define reset2() reset()',
            'static inline int twice(int a) { return a * 2; }','#define twice2 twice','int logf_(const char *fmt, ...);',
            '#define logf2 logf_'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultDereference;
+
+begin
+  Convert(['#define XML_GetUserData(parser) (*(void **)(parser))','#define GETI(p) (*(int *)(p))'],['-d']);
+  AssertConverted;
+  AssertInterface('the dereference of a void pointer pointer is a pointer',
+    ['{ argument types are unknown }','function XML_GetUserData(parser : longint) : pointer;']);
+  AssertInterface('the dereference of an int pointer is an int',
+    ['{ argument types are unknown }','function GETI(p : longint) : longint;']);
+  AssertNotOutput('the result types are known','return type might be wrong');
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultNestedCast;
+
+begin
+  Convert(['#define CAST(x) ((unsigned char *)(x) + 1)'],['-d']);
+  AssertConverted;
+  AssertInterface('the type of a cast inside the body',['{ argument types are unknown }','function CAST(x : longint) : Pbyte;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultAddress;
+
+begin
+  Convert(['#define ADDR(x) (&(x))'],['-d']);
+  AssertConverted;
+  AssertInterface('an address is a pointer',['{ argument types are unknown }','function ADDR(x : longint) : pointer;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultCall;
+
+begin
+  Convert(['typedef struct s *sp;','sp mk(int a, int b);','char *getname(int a);','char **names(void);',
+           '#define MK1(a) mk(a, 0)','#define NAME1(a) (getname((a)+1))','#define FIRST(a) (*names())'],['-d']);
+  AssertConverted;
+  AssertInterface('the result type of the called function',['{ argument types are unknown }','function MK1(a : longint) : sp;']);
+  AssertInterface('a called function that returns a pointer',
+    ['{ argument types are unknown }','function NAME1(a : longint) : Pansichar;']);
+  AssertInterface('the dereference of the result of a call',
+    ['{ argument types are unknown }','function FIRST(a : longint) : Pansichar;']);
+  AssertNotOutput('the result types are known','return type might be wrong');
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultCallDynamic;
+
+begin
+  Convert(['char *getname(int a);','#define NAME1(a) getname(a + 1)'],['-P','-l','libx.so']);
+  AssertConverted;
+  AssertInterface('the result type of a function loaded at run time',
+    ['{ argument types are unknown }','function NAME1(a : longint) : Pansichar;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultCallBeforeFunction;
+
+begin
+  Convert(['#define LATER(a) later(a, 1)','char *later(int a, int b);'],['-d']);
+  AssertConverted;
+  AssertInterface('a function declared after the macro gives no type',
+    ['{ return type might be wrong }','function LATER(a : longint) : longint;']);
+end;
+
+
+procedure TTestFunctionMacros.TestMacroResultCompiles;
+
+begin
+  Convert(['typedef struct s *sp;','sp mk(int a, int b);','char *getname(int a);','char **names(void);',
+           '#define MK1(a) mk(a, 0)','#define NAME1(a) (getname((a)+1))','#define FIRST(a) (*names())',
+           '#define XML_GetUserData(parser) (*(void **)(parser))','#define GETI(p) (*(int *)(p))',
+           '#define CAST(x) ((unsigned char *)(x) + 1)'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;
