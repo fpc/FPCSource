@@ -102,6 +102,7 @@ type
     procedure TestAnonymousVariablesCompile;
     procedure TestStaticVariable;
     procedure TestStaticVariablesCompile;
+    procedure TestPointersAfterFunctionResultOfFunctionPointer;
   end;
 
 implementation
@@ -911,6 +912,16 @@ begin
   Convert(['static int counter;','static const char *names[4];','int pub;'],['-d']);
   AssertConverted;
   AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestPointersAfterFunctionResultOfFunctionPointer;
+
+begin
+  Convert(['extern int (*(*gfp)(int))(char *s);','struct after { int *p; };','extern int *gp;'],['-d']);
+  AssertConverted;
+  AssertInterface('a member pointer after a function pointer result is written with ^',['p : ^longint;']);
+  AssertInterface('a variable pointer after a function pointer result is written with ^',['gp : ^longint;cvar;external;']);
 end;
 
 

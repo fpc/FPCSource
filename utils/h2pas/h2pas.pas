@@ -37,7 +37,6 @@ begin
   pointerprefix:=false;
 { Initialize }
   InitGlobals;
-  EnableDebug;
   aktspace:='';
   block_type:=bt_no;
 { Read commandline options }

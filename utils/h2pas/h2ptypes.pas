@@ -86,8 +86,6 @@ type
         p2 the typecast expr }
       t_size_specifier,
       { p1 expr for size }
-      t_default_value,
-      { p1 expr for value }
       t_statement_list,
       { p1 is the statement
         next is next if it exist }
@@ -129,7 +127,6 @@ const
     't_funcname',
     't_typespec',
     't_size_specifier',
-    't_default_value',
     't_statement_list',
     't_whilenode',
     't_fornode',

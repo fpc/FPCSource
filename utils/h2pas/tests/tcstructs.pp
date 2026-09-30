@@ -22,6 +22,7 @@ type
     procedure TestForwardStruct;
     procedure TestMultipleDeclarators;
     procedure TestCharArrayMember;
+    procedure TestLargeArrayMember;
     procedure TestMultiDimArrayMember;
     procedure TestMacroSizedArrayMember;
     procedure TestFlexibleArrayMember;
@@ -100,6 +101,17 @@ begin
   Convert(['struct s { int x, y; };']);
   AssertConverted;
   AssertInterface('each declarator of a member becomes a field',['s = record','x : longint;','y : longint;','end;']);
+end;
+
+
+procedure TTestStructs.TestLargeArrayMember;
+
+begin
+  Convert(['struct s { char buf[40000]; int big[0x10000]; };'],['-d']);
+  AssertConverted;
+  AssertInterface('an array size above 32767 is a constant bound',
+    ['buf : array[0..39999] of ansichar;','big : array[0..65535] of longint;']);
+  AssertCompiles;
 end;
 
 

@@ -8,16 +8,9 @@ interface
 uses
   scan, h2pconst, h2plexlib, h2pyacclib, scanbase, h2pbase, h2ptypes,h2pout;
 
-procedure EnableDebug;
 function yyparse : integer;
 
 Implementation
-
-procedure EnableDebug;
-
-begin
-  yydebug:=true;
-end;
 
 %}
 
@@ -99,7 +92,7 @@ declaration_list : declaration_list  declaration
      | declaration
      {
        (* declaration *)
-       EmitAndOutput('define declaration reduced at line ',line_no);
+       EmitAndOutput('declaration reduced at line ',line_no);
      }
      | define_dec
      {
@@ -353,25 +346,22 @@ anonymous_type_specifier :
      STRUCT closed_list _PACKED
      {
        (* STRUCT closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,1);
      } |
      STRUCT closed_list
      {
        (* STRUCT closed_list *)
-       emitpacked(4);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,4);
      } |
      UNION closed_list _PACKED
      {
        (* UNION closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,1);
      } |
      UNION closed_list
      {
        (* UNION closed_list *)
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,0);
      } |
      ENUM closed_enum_list
      {
@@ -384,25 +374,22 @@ special_type_specifier :
      STRUCT dname closed_list _PACKED
      {
        (* STRUCT dname closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType2(t_structdef,$3,$2);
+       $$:=NewRecordType(t_structdef,$3,$2,1);
      } |
      STRUCT dname closed_list
      {
        (* STRUCT dname closed_list *)
-       emitpacked(4);
-       $$:=NewType2(t_structdef,$3,$2);
+       $$:=NewRecordType(t_structdef,$3,$2,4);
      } |
      UNION dname closed_list _PACKED
      {
        (* UNION dname closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType2(t_uniondef,$3,$2);
+       $$:=NewRecordType(t_uniondef,$3,$2,1);
      } |
      UNION dname closed_list
      {
        (* UNION dname closed_list *)
-       $$:=NewType2(t_uniondef,$3,$2);
+       $$:=NewRecordType(t_uniondef,$3,$2,0);
      } |
      UNION dname
      {
@@ -438,25 +425,22 @@ type_specifier :
      UNION closed_list  _PACKED
      {
        (* UNION closed_list  _PACKED *)
-       EmitPacked(1);
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,1);
      } |
      UNION closed_list
      {
        (* UNION closed_list *)
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,0);
      } |
      STRUCT closed_list _PACKED
      {
        (* STRUCT closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,1);
      } |
      STRUCT closed_list
      {
        (* STRUCT closed_list  *)
-       emitpacked(4);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,4);
      } |
      ENUM closed_enum_list
      {
@@ -724,11 +708,6 @@ declarator :
          (* dname COLON expr *)
          $$:=HandleSizedDeclarator($1,$3);
         }|
-     dname ASSIGN expr
-       {
-         (*     dname ASSIGN expr *)
-         $$:=HandleDefaultDeclarator($1,$3);
-        }|
      dname
        {
          (* dname *)
@@ -949,19 +928,7 @@ unary_expr:
      } |
      LKLAMMER dname RKLAMMER maybe_empty_unary_expr
      {
-     (* (x) * y is a product rather than the cast of *y *)
-     if assigned($4) and IsCTypeName($2) then
-       $$:=NewType2(t_typespec,MapCTypeName($2),$4)
-     else if assigned($4) and ($4^.typ=t_preop) and ($4^.str='^') then
-       begin
-       $$:=NewBinaryOp('*',$2,$4^.p1);
-       $4^.p1:=nil;
-       dispose($4,done);
-       end
-     else if assigned($4) then
-       $$:=NewType2(t_typespec,$2,$4)
-     else
-       $$:=$2;
+     $$:=HandleParenthesizedName($2,$4);
      } |
      LKLAMMER type_specifier RKLAMMER unary_expr
      {

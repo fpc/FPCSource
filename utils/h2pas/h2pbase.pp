@@ -20,7 +20,6 @@
 unit h2pbase;
 
 {$modeswitch result}
-{$message TODO: warning Unit types is only needed due to issue 7910}
 
 interface
 
@@ -33,7 +32,7 @@ type
 
 
 var
-  s,TN,PN  : String;
+  TN,PN  : String;
 
 
 (* $ define yydebug
@@ -60,7 +59,6 @@ function HandleDeclarator2(aTyp : ttyp; aleft,aright: presobject): presobject;
 function HandleSizedDeclarator(psym,psize : presobject) : presobject;
 function HandleSizedPointerDeclarator(psym,psize : presobject) : presobject;
 function HandleSizeOverrideDeclarator(psize,psym : presobject) : presobject;
-function HandleDefaultDeclarator(psym,pdefault : presobject) : presobject;
 function HandleArgList(aEl,aList : PResObject) : PResObject;
 function HandlePointerArgDeclarator(ptype, psym : presobject): presobject;
 function HandlePointerAbstractDeclarator(psym : presobject): presobject;
@@ -85,6 +83,10 @@ function HandleLogicalOp(const aOp : string; aLeft,aRight : presobject) : presob
 function HandleLogicalNot(aExpr : presobject) : presobject;
 // Returns aName * aRight with aName as leftmost operand of the operators in aRight that bind as weak or weaker.
 function HandleNamedProduct(aName,aRight : presobject) : presobject;
+// Returns (aName) aOperand: a cast of aOperand to the type aName, a product for (aName) *x, aName without operand.
+function HandleParenthesizedName(aName,aOperand : presobject) : presobject;
+// Returns a struct or union definition (aTyp) with the members aMembers and the tag aName, packed to aPack unless 0.
+function NewRecordType(aTyp : ttyp; aMembers, aName : presobject; aPack : integer) : presobject;
 
 // Macros
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
@@ -104,6 +106,58 @@ Function NewCType(aCType,aPascalType : String) : PresObject;
 
 Implementation
 
+// Disposes aNode when it is assigned, and sets it to nil.
+procedure DisposeNode(var aNode : presobject);
+
+begin
+  if assigned(aNode) then
+    dispose(aNode,done);
+  aNode:=nil;
+end;
+
+
+// Returns aExpr without the expression lists of one element around it.
+function UnwrappedExpr(aExpr : presobject) : presobject;
+
+begin
+  Result:=aExpr;
+  while assigned(Result) and (Result^.typ=t_exprlist) and not assigned(Result^.next) and assigned(Result^.p1) do
+    Result:=Result^.p1;
+end;
+
+
+// Returns the name of the function that the call aExpr (t_funexprlist) calls, or '' when aExpr is no call of a name.
+function CalleeName(aExpr : presobject) : AnsiString;
+
+begin
+  Result:='';
+  if assigned(aExpr) and (aExpr^.typ=t_funexprlist) and assigned(aExpr^.p1) and assigned(aExpr^.p1^.p1)
+     and (aExpr^.p1^.p1^.typ=t_id) then
+    Result:=aExpr^.p1^.p1^.str;
+end;
+
+
+// Returns true when aExpr is the identifier aName.
+function IsNamedId(aExpr : presobject; const aName : AnsiString) : boolean;
+
+begin
+  Result:=assigned(aExpr) and (aExpr^.typ=t_id) and (aExpr^.str=aName);
+end;
+
+
+// Returns the number of elements of the list aList, linked by next.
+function ListLength(aList : presobject) : integer;
+
+begin
+  Result:=0;
+  while assigned(aList) do
+    begin
+    inc(Result);
+    aList:=aList^.next;
+    end;
+end;
+
+
 // Returns true when the expression aExpr is a comparison, or an and, or or not of comparisons.
 function IsBooleanExpr(aExpr : presobject) : boolean;
 
@@ -112,8 +166,7 @@ var
 
 begin
   Result:=false;
-  while assigned(aExpr) and (aExpr^.typ=t_exprlist) and not assigned(aExpr^.next) do
-    aExpr:=aExpr^.p1;
+  aExpr:=UnwrappedExpr(aExpr);
   if assigned(aExpr) and (aExpr^.typ=t_preop) and (aExpr^.str=' not ') then
     exit(IsBooleanExpr(aExpr^.p1));
   if not assigned(aExpr) or (aExpr^.typ<>t_bop) then
@@ -134,7 +187,20 @@ begin
   colonexpr^.p1:=expr;
   Result:=colonexpr;
   inc(if_nb);
-  result^.p:=strpnew('if_local'+str(if_nb));
+  result^.p:=strpnew('if_local'+IntToStr(if_nb));
+end;
+
+
+// Returns true when aName is the Pascal name of a floating point type.
+function IsFloatTypeName(const aName : string) : boolean;
+
+begin
+  case aName of
+    FLOAT_STR,DOUBLE_STR,EXTENDED_STR,cfloat_STR,cdouble_STR,clongdouble_STR :
+      Result:=true;
+  else
+    Result:=false;
+  end;
 end;
 
 
@@ -143,6 +209,7 @@ function IsFloatExpr(aExpr : presobject) : boolean;
 
 var
   lStr : string;
+  lType : presobject;
 
 begin
   Result:=false;
@@ -155,10 +222,10 @@ begin
       Result:=(lStr<>'') and (lStr[1] in ['0'..'9']) and ((pos('.',lStr)>0) or (pos('e',lStr)>0) or (pos('E',lStr)>0));
       end;
     t_typespec :
-      Result:=(assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_id)
-               and ((aExpr^.p1^.str=FLOAT_STR) or (aExpr^.p1^.str=DOUBLE_STR) or (aExpr^.p1^.str=EXTENDED_STR)
-                    or (aExpr^.p1^.str=cfloat_STR) or (aExpr^.p1^.str=cdouble_STR) or (aExpr^.p1^.str=clongdouble_STR)))
-              or IsFloatExpr(aExpr^.p2);
+      begin
+      lType:=aExpr^.p1;
+      Result:=(assigned(lType) and (lType^.typ=t_id) and IsFloatTypeName(lType^.str)) or IsFloatExpr(aExpr^.p2);
+      end;
     t_bop :
       Result:=IsFloatExpr(aExpr^.p1) or IsFloatExpr(aExpr^.p2);
     t_preop,
@@ -305,37 +372,35 @@ begin
     hp^.setstr(tp);
 end;
 
+// Returns the last node of the p1 chain of aNode.
+function LastInChain(aNode : presobject) : presobject;
+
+begin
+  Result:=aNode;
+  while assigned(Result^.p1) do
+    Result:=Result^.p1;
+end;
+
+
+// Returns the declarator aType with an array of size aSizeExpr appended.
 function handleSizedArrayDecl(aType,aSizeExpr: presobject): presobject;
 
-var
-  hp : presobject;
 begin
-  hp:=aType;
-  result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType2(t_arraydef,nil,aSizeExpr);
+  Result:=HandleDeclarator2(t_arraydef,aType,aSizeExpr);
 end;
 
+// Returns the declarator aType with a function without arguments appended.
 function handleFuncNoArg(aType: presobject): presobject;
-var
-  hp : presobject;
+
 begin
-  hp:=aType;
-  Result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType2(t_procdef,nil,nil);
+  Result:=HandleDeclarator2(t_procdef,aType,nil);
 end;
 
+// Returns the call of aType with the arguments aList.
 function handleFuncExpr(aType, aList: presobject): presobject;
 
-var
-  hp : presobject;
-
 begin
-  hp:=NewType1(t_exprlist,aType);
-  Result:=NewType3(t_funexprlist,hp,aList,nil);
+  Result:=NewType3(t_funexprlist,NewType1(t_exprlist,aType),aList,nil);
 end;
 
 function HandlePointerCast(aType,aStars,aExpr : presobject): presobject;
@@ -371,40 +436,26 @@ begin
   Result:=NewType2(t_typespec,hp,aPointer);
 end;
 
+// Returns the declarator aType with an open array appended, written as a pointer.
 function handleArrayDecl(aType: presobject): presobject;
-var
-  hp : presobject;
+
 begin
-  (* this is translated into a pointer *)
-  hp:=aType;
-  Result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType1(t_pointerdef,nil);
-  hp^.p1^.openarray:=true;
+  Result:=HandleDeclarator(t_pointerdef,aType);
+  LastInChain(Result)^.openarray:=true;
 end;
 
+// Returns the abstract declarator psym with a pointer appended.
 function HandlePointerAbstractDeclarator(psym: presobject): presobject;
-var
-  hp : presobject;
+
 begin
-  hp:=psym;
-  Result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType1(t_pointerdef,nil);
+  Result:=HandleDeclarator(t_pointerdef,psym);
 end;
 
-function HandlePointerAbstractListDeclarator(psym, plist: presobject
-  ): presobject;
-var
-  hp : presobject;
+// Returns the abstract declarator psym with a function with the arguments plist appended.
+function HandlePointerAbstractListDeclarator(psym, plist: presobject): presobject;
+
 begin
-  hp:=psym;
-  result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType2(t_procdef,nil,plist);
+  Result:=HandleDeclarator2(t_procdef,psym,plist);
 end;
 
 function HandleDeclarationList(plist,pelem : presobject) : presobject;
@@ -425,98 +476,59 @@ begin
   hp^.next:=NewType1(t_declist,pelem);
 end;
 
+// Returns the bit field declarator of psym with the size psize.
 function HandleSizedDeclarator(psym,psize : presobject) : presobject;
 
-var
-  hp : presobject;
-
 begin
-  hp:=NewType1(t_size_specifier,psize);
-  Result:=NewType3(t_dec,nil,psym,hp);
+  Result:=NewType3(t_dec,nil,psym,NewType1(t_size_specifier,psize));
 end;
 
 
-function HandleDefaultDeclarator(psym,pdefault : presobject) : presobject;
-
-var
-  hp : presobject;
-
-begin
-  EmitIgnoreDefault(psym);
-  hp:=NewType1(t_default_value,pdefault);
-  HandleDefaultDeclarator:=NewType3(t_dec,nil,psym,hp);
-end;
-
+// Returns the argument list with aEl before aList.
 function HandleArgList(aEl, aList: PResObject): PResObject;
+
 begin
   Result:=NewType2(t_arglist,aEl,nil);
   Result^.next:=aList;
 end;
 
+// Returns the argument psym of type pointer to ptype.
 function HandlePointerArgDeclarator(ptype, psym : presobject): presobject;
 
-var
-  hp : presobject;
 begin
-  (* type_specifier STAR declarator *)
-  hp:=NewType1(t_pointerdef,ptype);
-  Result:=NewType2(t_arg,hp,psym);
+  Result:=NewType2(t_arg,NewType1(t_pointerdef,ptype),psym);
 end;
 
+// Returns the declarator psym with a pointer of the ignored size psize appended.
 function HandleSizedPointerDeclarator(psym, psize: presobject): presobject;
 
-var
-  hp : presobject;
-
 begin
-  emitignore(psize);
-  dispose(psize,done);
-  hp:=psym;
-  Result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType1(t_pointerdef,nil);
+  Result:=HandleSizeOverrideDeclarator(psize,psym);
 end;
 
+// Returns the declarator psym with a pointer of the ignored size psize appended.
 function HandleSizeOverrideDeclarator(psize,psym : presobject) : presobject;
 
-var
-  hp : presobject;
 begin
   EmitIgnore(psize);
   dispose(psize,done);
-  hp:=psym;
-  HandleSizeOverrideDeclarator:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType1(t_pointerdef,nil);
+  Result:=HandleDeclarator(t_pointerdef,psym);
 end;
 
+// Returns the declarator aLeft with a node of type aTyp with p2 aRight appended at the end of its p1 chain.
 function HandleDeclarator2(aTyp : ttyp; aleft,aright: presobject): presobject;
 
-var
-  hp : presobject;
-
 begin
-  hp:=aLeft;
-  result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType2(aTyp,nil,aRight);
+  Result:=aLeft;
+  LastInChain(aLeft)^.p1:=NewType2(aTyp,nil,aRight);
 end;
 
 
+// Returns the declarator aRight with a node of type aTyp appended at the end of its p1 chain.
 function HandleDeclarator(aTyp : ttyp; aright: presobject): presobject;
 
-var
-  hp : presobject;
-
 begin
-  hp:=aright;
-  Result:=hp;
-  while assigned(hp^.p1) do
-    hp:=hp^.p1;
-  hp^.p1:=NewType1(atyp,nil);
+  Result:=HandleDeclarator2(aTyp,aRight,nil);
 end;
 
 // Returns the Pascal literal for the body aBody of a C string or character literal, with escapes as character codes.
@@ -688,8 +700,7 @@ begin
   line_no:=yylineno;
 end;
 
-(* writes an argument list, where p is t_arglist *)
-
+// Writes msg with the current line number.
 procedure yymsg(const msg : string);
 begin
   writeln('line ',line_no,': ',msg);
@@ -718,9 +729,7 @@ function IsProcVarArg(aArg : presobject) : boolean;
 
 begin
   Result:=assigned(aArg) and assigned(aArg^.p1) and assigned(aArg^.p2)
-          and (aArg^.p2^.typ=t_dec) and assigned(aArg^.p2^.p1)
-          and (aArg^.p2^.p1^.typ=t_pointerdef) and assigned(aArg^.p2^.p1^.p1)
-          and (aArg^.p2^.p1^.p1^.typ=t_procdef);
+          and (aArg^.p2^.typ=t_dec) and IsProcPointer(aArg^.p2^.p1);
 end;
 
 
@@ -731,7 +740,7 @@ procedure HoistProcVarArgs(const aOwner : string; aArgs : presobject);
 var
   lArg, lDec : presobject;
   lIndex : integer;
-  lParam, lName : string;
+  lName : string;
 
 begin
   lIndex:=0;
@@ -739,48 +748,24 @@ begin
     begin
     Inc(lIndex);
     lArg:=aArgs^.p1;
-    if IsProcVarArg(lArg) then
+    if assigned(lArg) and assigned(lArg^.p2) then
       begin
       lDec:=lArg^.p2;
-      if assigned(lDec^.p2) and assigned(lDec^.p2^.p) then
-        lParam:=lDec^.p2^.str
-      else if RemoveUnderscore then
-        lParam:='para'+str(lIndex)
-      else
-        lParam:='_para'+str(lIndex);
-      HoistProcVarArgs(aOwner+'_'+lParam,lDec^.p1^.p1^.p2);
-      lName:=TypeName(aOwner+'_'+lParam);
-      WriteSectionMarker(outfile,'T');
-      if block_type<>bt_type then
+      lName:=DeclaratorName(lDec);
+      if lName='' then
+        lName:=UnnamedParamName(lIndex);
+      lName:=aOwner+'_'+lName;
+      if IsProcVarArg(lArg) then
         begin
-        if not compactmode then
-          writeln(outfile);
-        WriteSectionKeyword(outfile,aktspace,'type');
-        block_type:=bt_type;
-        end;
-      shift(2);
-      write(outfile,aktspace,lName,' = ');
-      write_p_a_def(outfile,lDec^.p1,lArg^.p1);
-      WriteProcVarDirectives(outfile,false);
-      writeln(outfile,';');
-      is_procvar:=false;
-      WritePointerMarker(outfile,lName);
-      popshift;
-      dispose(lArg^.p1,done);
-      lArg^.p1:=NewIntID(lName);
-      dispose(lDec^.p1,done);
-      lDec^.p1:=nil;
-      end
-    else if assigned(lArg) and assigned(lArg^.p2) and assigned(lArg^.p2^.p1) then
-      begin
-      lDec:=lArg^.p2;
-      if assigned(lDec^.p2) and assigned(lDec^.p2^.p) then
-        lParam:=lDec^.p2^.str
-      else if RemoveUnderscore then
-        lParam:='para'+str(lIndex)
-      else
-        lParam:='_para'+str(lIndex);
-      HoistProcVarElement(aOwner+'_'+lParam,lDec^.p1,lArg^.p1);
+        HoistProcVarArgs(lName,lDec^.p1^.p1^.p2);
+        lName:=WriteProcVarType(lName,lDec^.p1,lArg^.p1);
+        dispose(lArg^.p1,done);
+        lArg^.p1:=NewIntID(lName);
+        dispose(lDec^.p1,done);
+        lDec^.p1:=nil;
+        end
+      else if assigned(lDec^.p1) then
+        HoistProcVarElement(lName,lDec^.p1,lArg^.p1);
       end;
     aArgs:=aArgs^.next;
     end;
@@ -797,27 +782,10 @@ var
 
 begin
   lResult:=aProc^.p1;
-  if not (assigned(lResult) and (lResult^.typ=t_pointerdef) and assigned(lResult^.p1)
-          and (lResult^.p1^.typ=t_procdef)) then
+  if not IsProcPointer(lResult) then
     exit;
   HoistProcVarArgs(aOwner+'_result',lResult^.p1^.p2);
-  lName:=TypeName(aOwner+'_result');
-  WriteSectionMarker(outfile,'T');
-  if block_type<>bt_type then
-    begin
-    if not compactmode then
-      writeln(outfile);
-    WriteSectionKeyword(outfile,aktspace,'type');
-    block_type:=bt_type;
-    end;
-  shift(2);
-  write(outfile,aktspace,lName,' = ');
-  write_p_a_def(outfile,lResult,aType);
-  WriteProcVarDirectives(outfile,false);
-  writeln(outfile,';');
-  is_procvar:=false;
-  WritePointerMarker(outfile,lName);
-  popshift;
+  lName:=WriteProcVarType(aOwner+'_result',lResult,aType);
   dispose(aType,done);
   aType:=NewIntID(lName);
   dispose(lResult,done);
@@ -856,22 +824,25 @@ procedure HoistInlineRecord(const aOwner : AnsiString; aMember : presobject);
 var
   lType, lDecls, lRef : presobject;
   lTagged : boolean;
+  lMemberName : AnsiString;
 
 begin
   lType:=aMember^.p1;
   lDecls:=aMember^.p2;
   if not (assigned(lType) and (lType^.typ in [t_structdef,t_uniondef]) and assigned(lType^.p1)) then
     exit;
-  if not (assigned(lDecls) and assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) and assigned(lDecls^.p1^.p2^.p)) then
+  if not assigned(lDecls) then
+    exit;
+  lMemberName:=DeclaratorName(lDecls^.p1);
+  if lMemberName='' then
     exit;
   lTagged:=assigned(lType^.p2) and assigned(lType^.p2^.p);
   if not lTagged and not HasPointerDeclarator(lDecls) then
     exit;
   if not lTagged then
     begin
-    if assigned(lType^.p2) then
-      dispose(lType^.p2,done);
-    lType^.p2:=NewID(aOwner+'_'+lDecls^.p1^.p2^.str);
+    DisposeNode(lType^.p2);
+    lType^.p2:=NewID(aOwner+'_'+lMemberName);
     end;
   lRef:=NewID(lType^.p2^.str);
   lRef^.structtag:=true;
@@ -888,6 +859,7 @@ procedure HoistStructProcVarElements(const aOwner : AnsiString; aType : presobje
 var
   lMembers, lMember, lDecls, lChain : presobject;
   lName : AnsiString;
+  lSingle : boolean;
 
 begin
   if not (assigned(aType) and (aType^.typ in [t_structdef,t_uniondef])) then
@@ -900,18 +872,19 @@ begin
       begin
       HoistInlineRecord(aOwner,lMember);
       lDecls:=lMember^.p2;
+      lSingle:=assigned(lDecls) and not assigned(lDecls^.next);
       while assigned(lDecls) do
         begin
-        if assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) and assigned(lDecls^.p1^.p2^.p) then
+        lName:=DeclaratorName(lDecls^.p1);
+        if lName<>'' then
           begin
-          lName:=aOwner+'_'+lDecls^.p1^.p2^.str;
+          lName:=aOwner+'_'+lName;
           HoistStructProcVarElements(lName,lMember^.p1);
           lChain:=lDecls^.p1^.p1;
-          if assigned(lChain) and (lChain^.typ=t_pointerdef) and assigned(lChain^.p1)
-             and (lChain^.p1^.typ=t_procdef) then
+          if IsProcPointer(lChain) then
             begin
             HoistProcVarArgs(lName,lChain^.p1^.p2);
-            if not assigned(lMember^.p2^.next) then
+            if lSingle then
               HoistProcVarResult(lName,lChain^.p1,lMember^.p1);
             end
           else
@@ -936,10 +909,8 @@ begin
     exit;
   if (aNode^.typ=t_preop) and (aNode^.str='exit') and assigned(aNode^.p1) then
     begin
-    lValue:=aNode^.p1;
-    while (lValue^.typ=t_exprlist) and not assigned(lValue^.next) and assigned(lValue^.p1) do
-      lValue:=lValue^.p1;
-    if (lValue^.typ=t_id) and ((lValue^.str='0') or (lValue^.str='NULL')) then
+    lValue:=UnwrappedExpr(aNode^.p1);
+    if IsNamedId(lValue,'0') or IsNamedId(lValue,'NULL') then
       begin
       dispose(aNode^.p1,done);
       aNode^.p1:=NewIntID('nil');
@@ -955,13 +926,17 @@ end;
 // Declares named element types for the arrays of and pointers to function pointers among the variables aDecls of type aType.
 procedure HoistVariableProcVarElements(aDecls, aType : presobject);
 
+var
+  lName : AnsiString;
+
 begin
   while assigned(aDecls) do
     begin
-    if assigned(aDecls^.p1) and assigned(aDecls^.p1^.p2) and assigned(aDecls^.p1^.p2^.p) then
+    lName:=DeclaratorName(aDecls^.p1);
+    if lName<>'' then
       begin
-      HoistStructProcVarElements(aDecls^.p1^.p2^.str,aType);
-      HoistProcVarElement(aDecls^.p1^.p2^.str+'_element',aDecls^.p1^.p1,aType);
+      HoistStructProcVarElements(lName,aType);
+      HoistProcVarElement(lName+'_element',aDecls^.p1^.p1,aType);
       end;
     aDecls:=aDecls^.next;
     end;
@@ -971,11 +946,17 @@ end;
 // Hoists the function pointer arguments and result of the function declared by aDecl (t_declist).
 procedure HoistDeclarationProcVarArgs(aDecl : presobject; var aType : presobject);
 
+var
+  lDecl : presobject;
+  lName : AnsiString;
+
 begin
-  if assigned(aDecl^.p1^.p2) and assigned(aDecl^.p1^.p2^.p) then
+  lDecl:=aDecl^.p1;
+  lName:=DeclaratorName(lDecl);
+  if lName<>'' then
     begin
-    HoistProcVarArgs(aDecl^.p1^.p2^.str,aDecl^.p1^.p1^.p2);
-    HoistProcVarResult(aDecl^.p1^.p2^.str,aDecl^.p1^.p1,aType);
+    HoistProcVarArgs(lName,lDecl^.p1^.p2);
+    HoistProcVarResult(lName,lDecl^.p1,aType);
     end;
 end;
 
@@ -1026,27 +1007,27 @@ procedure StoreFunction(decl, type_spec, modifier_spec, decllist_spec : presobje
 
 var
   lFunction : PStoredFunction;
+  lName : AnsiString;
 
 begin
-  if (AliasTarget<>'') or not assigned(decllist_spec^.p1^.p2) or not assigned(decllist_spec^.p1^.p2^.p) then
+  lName:=DeclaratorName(decllist_spec^.p1);
+  if (AliasTarget<>'') or (lName='') then
     exit;
   if not assigned(StoredFunctions) then
     begin
     StoredFunctions:=TStringList.Create;
     StoredFunctions.CaseSensitive:=true;
     end;
-  if StoredFunctions.IndexOf(decllist_spec^.p1^.p2^.str)>=0 then
+  if StoredFunctions.IndexOf(lName)>=0 then
     exit;
   New(lFunction);
   lFunction^.Decl:=CopyOf(decl);
   lFunction^.TypeSpec:=CopyOf(type_spec);
   lFunction^.Modifier:=CopyOf(modifier_spec);
   lFunction^.DeclList:=decllist_spec^.get_copy;
-  if assigned(lFunction^.DeclList^.next) then
-    dispose(lFunction^.DeclList^.next,done);
-  lFunction^.DeclList^.next:=nil;
+  DisposeNode(lFunction^.DeclList^.next);
   lFunction^.HasBody:=aHasBody;
-  StoredFunctions.AddObject(decllist_spec^.p1^.p2^.str,TObject(lFunction));
+  StoredFunctions.AddObject(lName,TObject(lFunction));
 end;
 
 
@@ -1063,12 +1044,9 @@ begin
   for i:=0 to StoredFunctions.Count-1 do
     begin
     lFunction:=PStoredFunction(StoredFunctions.Objects[i]);
-    if assigned(lFunction^.Decl) then
-      dispose(lFunction^.Decl,done);
-    if assigned(lFunction^.TypeSpec) then
-      dispose(lFunction^.TypeSpec,done);
-    if assigned(lFunction^.Modifier) then
-      dispose(lFunction^.Modifier,done);
+    DisposeNode(lFunction^.Decl);
+    DisposeNode(lFunction^.TypeSpec);
+    DisposeNode(lFunction^.Modifier);
     dispose(lFunction^.DeclList,done);
     Dispose(lFunction);
     end;
@@ -1092,6 +1070,23 @@ begin
 end;
 
 
+// Returns the procdef of the declared function aFunction: its arguments (p2) and result modifiers (p1).
+function FunctionProcDef(aFunction : PStoredFunction) : presobject;
+
+begin
+  Result:=aFunction^.DeclList^.p1^.p1;
+end;
+
+
+// Returns true when the declared function aFunction has no result.
+function IsProcedureFunction(aFunction : PStoredFunction) : boolean;
+
+begin
+  Result:=assigned(aFunction) and assigned(aFunction^.TypeSpec) and (aFunction^.TypeSpec^.typ=t_void)
+          and not assigned(FunctionProcDef(aFunction)^.p1);
+end;
+
+
 // Returns the number of arguments of the declared function aFunction, -1 when it takes a variable number.
 function ArgumentCount(aFunction : PStoredFunction) : integer;
 
@@ -1099,17 +1094,12 @@ var
   lArgs : presobject;
 
 begin
-  lArgs:=aFunction^.DeclList^.p1^.p1^.p2;
+  lArgs:=FunctionProcDef(aFunction)^.p2;
   if HasEllipsis(lArgs) then
     exit(-1);
-  Result:=0;
   if IsVoidArgList(lArgs) then
-    exit;
-  while assigned(lArgs) do
-    begin
-    inc(Result);
-    lArgs:=lArgs^.next;
-    end;
+    exit(0);
+  Result:=ListLength(lArgs);
 end;
 
 
@@ -1130,6 +1120,7 @@ function CallArguments(aArgs : presobject; aArrayOfConst : boolean) : AnsiString
 
 var
   lIndex : integer;
+  lArg : presobject;
 
 begin
   Result:='';
@@ -1138,7 +1129,8 @@ begin
   lIndex:=1;
   while assigned(aArgs) do
     begin
-    if not assigned(aArgs^.p1^.p1) then
+    lArg:=aArgs^.p1;
+    if not assigned(lArg^.p1) then
       begin
       (* the ellipsis *)
       if aArrayOfConst then
@@ -1151,12 +1143,10 @@ begin
       end;
     if Result<>'' then
       Result:=Result+',';
-    if assigned(aArgs^.p1^.p2^.p2) then
-      Result:=Result+FixId(aArgs^.p1^.p2^.p2^.p)
-    else if RemoveUnderscore then
-      Result:=Result+'para'+str(lIndex)
+    if assigned(lArg^.p2^.p2) then
+      Result:=Result+FixId(lArg^.p2^.p2^.p)
     else
-      Result:=Result+'_para'+str(lIndex);
+      Result:=Result+UnnamedParamName(lIndex);
     inc(lIndex);
     aArgs:=aArgs^.next;
     end;
@@ -1193,8 +1183,7 @@ begin
   AliasTarget:='';
   UseLib:=lUseLib;
   createdynlib:=lDynLib;
-  if assigned(lModifier) then
-    dispose(lModifier,done);
+  DisposeNode(lModifier);
 end;
 
 
@@ -1203,44 +1192,227 @@ end;
 function IsWrapperMacro(aParams, aBody : presobject; var aTarget : AnsiString) : boolean;
 
 var
-  lArgs, lArg : presobject;
+  lArgs : presobject;
+  lCallee : AnsiString;
 
 begin
   Result:=false;
   aTarget:='';
-  while assigned(aBody) and (aBody^.typ=t_exprlist) and not assigned(aBody^.next) and assigned(aBody^.p1) do
-    aBody:=aBody^.p1;
-  if not assigned(aBody) or (aBody^.typ<>t_funexprlist) or assigned(aBody^.p3)
-     or not assigned(aBody^.p1) or not assigned(aBody^.p1^.p1) or (aBody^.p1^.p1^.typ<>t_id) then
+  aBody:=UnwrappedExpr(aBody);
+  lCallee:=CalleeName(aBody);
+  if (lCallee='') or assigned(aBody^.p3) then
     exit;
   lArgs:=aBody^.p2;
   while assigned(lArgs) and assigned(aParams) do
     begin
-    lArg:=lArgs^.p1;
-    while assigned(lArg) and (lArg^.typ=t_exprlist) and not assigned(lArg^.next) and assigned(lArg^.p1) do
-      lArg:=lArg^.p1;
-    if not assigned(lArg) or (lArg^.typ<>t_id) or not assigned(aParams^.p1) or (lArg^.str<>aParams^.p1^.str) then
+    if not assigned(aParams^.p1) or not IsNamedId(UnwrappedExpr(lArgs^.p1),aParams^.p1^.str) then
       exit;
     lArgs:=lArgs^.next;
     aParams:=aParams^.next;
     end;
   Result:=not assigned(lArgs) and not assigned(aParams);
   if Result then
-    aTarget:=aBody^.p1^.p1^.str;
+    aTarget:=lCallee;
+end;
+
+
+// Returns true when aNode is the specifier or modifier aText.
+function HasSpecifier(aNode : presobject; const aText : AnsiString) : boolean;
+
+begin
+  Result:=assigned(aNode) and (aNode^.str=aText);
+end;
+
+
+// Returns true when the declaration list aDeclList declares a function.
+function IsFunctionDeclList(aDeclList : presobject) : boolean;
+
+begin
+  Result:=assigned(aDeclList) and assigned(aDeclList^.p1) and assigned(aDeclList^.p1^.p1)
+          and (aDeclList^.p1^.p1^.typ=t_procdef);
+end;
+
+
+// Writes the arguments aArgs and, unless aIsProcedure, the result type with modifiers aResult and type aType to aFile.
+procedure WriteSignature(var aFile : text; aArgs, aResult, aType : presobject; aIsProcedure, aSkipEllipsis : boolean);
+
+var
+  lOldInArgs : boolean;
+
+begin
+  if assigned(aArgs) then
+    write_args(aFile,aArgs,aSkipEllipsis);
+  if aIsProcedure then
+    exit;
+  write(aFile,':');
+  lOldInArgs:=in_args;
+  (* write pointers as P.... instead of ^.... *)
+  in_args:=true;
+  write_p_a_def(aFile,aResult,aType);
+  in_args:=lOldInArgs;
+end;
+
+
+// Writes the function declared by aDeclList with result type aType: a procedure variable for -P, an external when
+// aExtern, else its header in both files and aBody (t_statement_list) or a stub in the implementation.
+// aSysTrap is the PalmOS trap, aVarArgs adds varargs, aSkipEllipsis leaves the ellipsis argument out.
+procedure WriteFunctionDeclaration(aDeclList, aType, aSysTrap, aBody : presobject;
+                                   aExtern, aVarArgs, aSkipEllipsis : boolean);
+
+var
+  lProc, lArgs : presobject;
+  lName, lKeyword : AnsiString;
+  lIsProcedure : boolean;
+
+begin
+  lName:=aDeclList^.p1^.p2^.p;
+  lProc:=aDeclList^.p1^.p1;
+  lArgs:=lProc^.p2;
+  lIsProcedure:=assigned(aType) and (aType^.typ=t_void) and not assigned(lProc^.p1);
+  if lIsProcedure then
+    lKeyword:='procedure'
+  else
+    lKeyword:='function';
+  if createdynlib then
+    WriteSectionMarker(outfile,'V')
+  else
+    WriteSectionMarker(outfile,'F');
+  if (block_type<>bt_func) and not createdynlib then
+    begin
+    writeln(outfile);
+    block_type:=bt_func;
+    end;
+  (* dyn. procedures must be put into a var block *)
+  if createdynlib then
+    begin
+    OpenSection(bt_var,'var');
+    shift(2);
+    end;
+  if not CompactMode then
+    begin
+    write(outfile,aktspace);
+    if not aExtern then
+      write(implemfile,aktspace);
+    end;
+  if assigned(aType) then
+    begin
+    if createdynlib then
+      write(outfile,lName,' : ',lKeyword)
+    else
+      begin
+      shift(length(lKeyword)+1);
+      write(outfile,lKeyword,' ',lName);
+      end;
+    WriteSignature(outfile,lArgs,lProc^.p1,aType,lIsProcedure,aSkipEllipsis);
+    if createdynlib then
+      begin
+      loaddynlibproc.add('pointer('+lName+'):=GetProcAddress(hlib,'''+ExternalName(aDeclList)+''');');
+      freedynlibproc.add(lName+':=nil;');
+      end
+    else if not aExtern then
+      begin
+      write(implemfile,lKeyword,' ',lName);
+      WriteSignature(implemfile,lArgs,lProc^.p1,aType,lIsProcedure,aSkipEllipsis);
+      end;
+    end;
+  if assigned(aSysTrap) then
+    write(outfile,';systrap ',aSysTrap^.p);
+  WriteCallingConvention(aExtern);
+  if aVarArgs then
+    write(outfile,';varargs');
+  popshift;
+  if createdynlib then
+    writeln(outfile,';')
+  else if UseLib then
+    begin
+    if aExtern then
+      begin
+      write(outfile,';external');
+      if UseName then
+        write(outfile,' External_library name ''',ExternalName(aDeclList),'''')
+      else if AliasTarget<>'' then
+        write(outfile,' name ''',AliasTarget,'''');
+      end;
+    writeln(outfile,';');
+    end
+  else
+    begin
+    writeln(outfile,';');
+    if not aExtern then
+      begin
+      writeln(implemfile,';');
+      if assigned(aBody) then
+        begin
+        shift(2);
+        if aBody^.typ=t_statement_list then
+          write_statement_block(implemfile,aBody);
+        popshift;
+        end
+      else
+        begin
+        writeln(implemfile,aktspace,'begin');
+        if AliasTarget='' then
+          writeln(implemfile,aktspace,'  { You must implement this function }')
+        else if lIsProcedure then
+          writeln(implemfile,aktspace,'  ',AliasTarget,CallArguments(lArgs,not aSkipEllipsis),';')
+        else
+          writeln(implemfile,aktspace,'  ',lName,':=',AliasTarget,CallArguments(lArgs,not aSkipEllipsis),';');
+        writeln(implemfile,aktspace,'end;');
+        end;
+      end;
+    end;
+  if not compactmode and not createdynlib then
+    writeln(outfile);
+end;
+
+
+// Writes the variables of the declaration list aDeclList with type aType; decl is the extern or static specifier.
+procedure WriteVariables(decl, aType, aDeclList : presobject);
+
+var
+  hp : presobject;
+  lName : AnsiString;
+
+begin
+  HoistVariableProcVarElements(aDeclList,aType);
+  shift(2);
+  WriteSectionMarker(outfile,'V');
+  OpenSection(bt_var,'var');
+  shift(2);
+  hp:=aDeclList;
+  while assigned(hp) and assigned(hp^.p1) do
+    begin
+    lName:=DeclaratorName(hp^.p1);
+    if lName<>'' then
+      write(outfile,aktspace,lName);
+    write(outfile,' : ');
+    shift(2);
+    is_procvar:=false;
+    write_p_a_def(outfile,hp^.p1^.p1,aType);
+    WriteProcVarDirectives(outfile,false);
+    if lName<>'' then
+      if HasSpecifier(decl,'extern') then
+        write(outfile,';cvar;external')
+      else if not HasSpecifier(decl,'static') then
+        write(outfile,';cvar;public');
+    writeln(outfile,';');
+    popshift;
+    hp:=hp^.next;
+    end;
+  popshift;
+  popshift;
 end;
 
 
 function HandleDeclarationStatement(decl, type_spec, modifier_spec,
   decllist_spec, block_spec: presobject): presobject;
+
 var
-  hp : presobject;
-  IsExtern : boolean;
-  lSkipEllipsis, lDone, lVarArgs : boolean;
+  lSkipEllipsis, lDone : boolean;
   lUseLib, lDynLib : boolean;
 
 begin
   HandleDeclarationStatement:=Nil;
-  IsExtern:=false;
   (* a function with a body is implemented here: not external, no procedure variable *)
   lUseLib:=UseLib;
   lDynLib:=createdynlib;
@@ -1248,204 +1420,27 @@ begin
   createdynlib:=false;
   (* by default we must pop the args pushed on stack *)
   no_pop:=false;
-  if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
-    and (decllist_spec^.p1^.p1^.typ=t_procdef) then
+  if IsFunctionDeclList(decllist_spec) then
     begin
-        if assigned(decllist_spec^.p1^.p1^.p1) and (decllist_spec^.p1^.p1^.p1^.typ=t_pointerdef) then
-          NilPointerExits(block_spec);
-        HoistDeclarationProcVarArgs(decllist_spec,type_spec);
-        StoreFunction(decl,type_spec,modifier_spec,decllist_spec,true);
-        lVarArgs:=false;
-        lSkipEllipsis:=false;
-        repeat
-        IsExtern:=false;
-        no_pop:=assigned(modifier_spec) and (modifier_spec^.str='no_pop');
-
-        if createdynlib then
-          WriteSectionMarker(outfile,'V')
-        else
-          WriteSectionMarker(outfile,'F');
-        if (block_type<>bt_func) and not(createdynlib) then
-          begin
-            writeln(outfile);
-            block_type:=bt_func;
-          end;
-
-        (* dyn. procedures must be put into a var block *)
-        if createdynlib then
-          begin
-            if (block_type<>bt_var) then
-            begin
-                if not(compactmode) then
-                  writeln(outfile);
-                WriteSectionKeyword(outfile,aktspace,'var');
-                block_type:=bt_var;
-            end;
-            shift(2);
-          end;
-        if not CompactMode then
-        begin
-          write(outfile,aktspace);
-          if not IsExtern then
-            write(implemfile,aktspace);
-        end;
-        (* distinguish between procedure and function *)
-        if assigned(type_spec) then
-        if (type_spec^.typ=t_void) and (decllist_spec^.p1^.p1^.p1=nil) then
-          begin
-            if createdynlib then
-              begin
-                write(outfile,decllist_spec^.p1^.p2^.p,' : procedure');
-              end
-            else
-              begin
-                shift(10);
-                write(outfile,'procedure ',decllist_spec^.p1^.p2^.p);
-              end;
-            if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            if createdynlib then
-              begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
-                freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
-              end
-            else if not IsExtern then
-            begin
-              write(implemfile,'procedure ',decllist_spec^.p1^.p2^.p);
-              if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            end;
-          end
-        else
-          begin
-            if createdynlib then
-              begin
-                write(outfile,decllist_spec^.p1^.p2^.p,' : function');
-              end
-            else
-              begin
-                shift(9);
-                write(outfile,'function ',decllist_spec^.p1^.p2^.p);
-              end;
-
-            if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            write(outfile,':');
-            old_in_args:=in_args;
-            (* write pointers as P.... instead of ^.... *)
-            in_args:=true;
-            write_p_a_def(outfile,decllist_spec^.p1^.p1^.p1,type_spec);
-            in_args:=old_in_args;
-            if createdynlib then
-              begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
-                freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
-              end
-            else if not IsExtern then
-              begin
-                write(implemfile,'function ',decllist_spec^.p1^.p2^.p);
-                if assigned(decllist_spec^.p1^.p1^.p2) then
-                  write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-                write(implemfile,':');
-
-                old_in_args:=in_args;
-                (* write pointers as P.... instead of ^.... *)
-                in_args:=true;
-                write_p_a_def(implemfile,decllist_spec^.p1^.p1^.p1,type_spec);
-                in_args:=old_in_args;
-              end;
-          end;
-        WriteCallingConvention(IsExtern);
-        if lVarArgs then
-          write(outfile,';varargs');
-        popshift;
-        if createdynlib then
-          begin
-            writeln(outfile,';');
-          end
-        else if UseLib then
-          begin
-            if IsExtern then
-            begin
-              write (outfile,';external');
-              If UseName then
-                Write(outfile,' External_library name ''',decllist_spec^.p1^.p2^.p,'''');
-            end;
-            writeln(outfile,';');
-          end
-        else
-          begin
-            writeln(outfile,';');
-            if not IsExtern then
-            begin
-              writeln(implemfile,';');
-              shift(2);
-              if block_spec^.typ=t_statement_list then
-                write_statement_block(implemfile,block_spec);
-              popshift;
-            end;
-          end;
-        IsExtern:=false;
-        if not(compactmode) and not(createdynlib) then
-        writeln(outfile);
-        lDone:=lSkipEllipsis or createdynlib or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
-        lSkipEllipsis:=true;
-      until lDone;
+    if assigned(decllist_spec^.p1^.p1^.p1) and (decllist_spec^.p1^.p1^.p1^.typ=t_pointerdef) then
+      NilPointerExits(block_spec);
+    HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+    StoreFunction(decl,type_spec,modifier_spec,decllist_spec,true);
+    lSkipEllipsis:=false;
+    repeat
+      no_pop:=HasSpecifier(modifier_spec,'no_pop');
+      WriteFunctionDeclaration(decllist_spec,type_spec,nil,block_spec,false,false,lSkipEllipsis);
+      lDone:=lSkipEllipsis or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
+      lSkipEllipsis:=true;
+    until lDone;
     end
-  else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
-  if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
-    begin
-        HoistVariableProcVarElements(decllist_spec,type_spec);
-        shift(2);
-        WriteSectionMarker(outfile,'V');
-        if block_type<>bt_var then
-          begin
-            if not(compactmode) then
-              writeln(outfile);
-            WriteSectionKeyword(outfile,aktspace,'var');
-          end;
-        block_type:=bt_var;
-
-        shift(2);
-
-        IsExtern:=assigned(decl)and(decl^.str='extern');
-        (* walk through all declarations *)
-        hp:=decllist_spec;
-        while assigned(hp) and assigned(hp^.p1) do
-          begin
-            (* write new var name *)
-            if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
-              write(outfile,aktspace,hp^.p1^.p2^.p);
-            write(outfile,' : ');
-            shift(2);
-            (* write its type *)
-            is_procvar:=false;
-            write_p_a_def(outfile,hp^.p1^.p1,type_spec);
-            WriteProcVarDirectives(outfile,false);
-            if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
-              begin
-                  if isExtern then
-                    write(outfile,';cvar;external')
-                  else if not (assigned(decl) and (decl^.str='static')) then
-                    write(outfile,';cvar;public');
-              end;
-            writeln(outfile,';');
-            popshift;
-            hp:=hp^.next;
-          end;
-        popshift;
-        popshift;
-    end;
-  if assigned(decl) then
-    dispose(decl,done);
-  if assigned(type_spec) then
-    dispose(type_spec,done);
-  if assigned(modifier_spec) then
-    dispose(modifier_spec,done);
-  if assigned(decllist_spec) then
-    dispose(decllist_spec,done);
-  if assigned(block_spec) then
-    dispose(block_spec,done);
+  else if assigned(decllist_spec) and assigned(decllist_spec^.p1) then
+    WriteVariables(decl,type_spec,decllist_spec);
+  DisposeNode(decl);
+  DisposeNode(type_spec);
+  DisposeNode(modifier_spec);
+  DisposeNode(decllist_spec);
+  DisposeNode(block_spec);
   UseLib:=lUseLib;
   createdynlib:=lDynLib;
 end;
@@ -1454,257 +1449,70 @@ function HandleDeclarationSysTrap(decl, type_spec, modifier_spec,
   decllist_spec, sys_trap: presobject): presobject;
 
 var
-  hp : presobject;
-  IsExtern : boolean;
-  lSkipEllipsis, lDone, lVarArgs : boolean;
+  lExtern, lSkipEllipsis, lDone, lVarArgs : boolean;
+  lName : AnsiString;
 
 begin
   HandleDeclarationSysTrap:=Nil;
-  IsExtern:=false;
   (* by default we must pop the args pushed on stack *)
   no_pop:=false;
-  if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
-    and (decllist_spec^.p1^.p1^.typ=t_procdef)
-    and assigned(decl) and (decl^.str='static') then
+  if IsFunctionDeclList(decllist_spec) and HasSpecifier(decl,'static') then
     begin
-      if assigned(decllist_spec^.p1^.p2) and assigned(decllist_spec^.p1^.p2^.p) then
-        writeln(outfile,aktspace,'(* static function ',decllist_spec^.p1^.p2^.p,' ignored *)');
+    lName:=DeclaratorName(decllist_spec^.p1);
+    if lName<>'' then
+      writeln(outfile,aktspace,'(* static function ',lName,' ignored *)');
     end
-  else
-  if (assigned(decllist_spec)and assigned(decllist_spec^.p1)and assigned(decllist_spec^.p1^.p1))
-    and (decllist_spec^.p1^.p1^.typ=t_procdef) then
+  else if IsFunctionDeclList(decllist_spec) then
     begin
-        HoistDeclarationProcVarArgs(decllist_spec,type_spec);
-        StoreFunction(decl,type_spec,modifier_spec,decllist_spec,false);
-        lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
-          (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
-        lSkipEllipsis:=lVarArgs;
-        repeat
-        If UseLib then
-          IsExtern:=true
-        else
-          IsExtern:=assigned(decl)and(decl^.str='extern');
-        no_pop:=assigned(modifier_spec) and (modifier_spec^.str='no_pop');
-
-        if createdynlib then
-          WriteSectionMarker(outfile,'V')
-        else
-          WriteSectionMarker(outfile,'F');
-        if (block_type<>bt_func) and not(createdynlib) then
-          begin
-            writeln(outfile);
-            block_type:=bt_func;
-          end;
-
-        (* dyn. procedures must be put into a var block *)
-        if createdynlib then
-          begin
-            if (block_type<>bt_var) then
-            begin
-                if not(compactmode) then
-                  writeln(outfile);
-                WriteSectionKeyword(outfile,aktspace,'var');
-                block_type:=bt_var;
-            end;
-            shift(2);
-          end;
-        if not CompactMode then
-        begin
-          write(outfile,aktspace);
-          if not IsExtern then
-            write(implemfile,aktspace);
-        end;
-        (* distinguish between procedure and function *)
-        if assigned(type_spec) then
-        if (type_spec^.typ=t_void) and (decllist_spec^.p1^.p1^.p1=nil) then
-          begin
-            if createdynlib then
-              begin
-                write(outfile,decllist_spec^.p1^.p2^.p,' : procedure');
-              end
-            else
-              begin
-                shift(10);
-                write(outfile,'procedure ',decllist_spec^.p1^.p2^.p);
-              end;
-            if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            if createdynlib then
-              begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+ExternalName(decllist_spec)+''');');
-                freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
-              end
-            else if not IsExtern then
-            begin
-              write(implemfile,'procedure ',decllist_spec^.p1^.p2^.p);
-              if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            end;
-          end
-        else
-          begin
-            if createdynlib then
-              begin
-                write(outfile,decllist_spec^.p1^.p2^.p,' : function');
-              end
-            else
-              begin
-                shift(9);
-                write(outfile,'function ',decllist_spec^.p1^.p2^.p);
-              end;
-
-            if assigned(decllist_spec^.p1^.p1^.p2) then
-              write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-            write(outfile,':');
-            old_in_args:=in_args;
-            (* write pointers as P.... instead of ^.... *)
-            in_args:=true;
-            write_p_a_def(outfile,decllist_spec^.p1^.p1^.p1,type_spec);
-            in_args:=old_in_args;
-            if createdynlib then
-              begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+ExternalName(decllist_spec)+''');');
-                freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
-              end
-            else if not IsExtern then
-              begin
-                write(implemfile,'function ',decllist_spec^.p1^.p2^.p);
-                if assigned(decllist_spec^.p1^.p1^.p2) then
-                write_args(implemfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
-                write(implemfile,':');
-
-                old_in_args:=in_args;
-                (* write pointers as P.... instead of ^.... *)
-                in_args:=true;
-                write_p_a_def(implemfile,decllist_spec^.p1^.p1^.p1,type_spec);
-                in_args:=old_in_args;
-              end;
-          end;
-        if assigned(sys_trap) then
-          write(outfile,';systrap ',sys_trap^.p);
-        WriteCallingConvention(IsExtern);
-        if lVarArgs then
-          write(outfile,';varargs');
-        popshift;
-        if createdynlib then
-          begin
-            writeln(outfile,';');
-          end
-        else if UseLib then
-          begin
-            if IsExtern then
-            begin
-              write (outfile,';external');
-              If UseName then
-                Write(outfile,' External_library name ''',ExternalName(decllist_spec),'''')
-              else if AliasTarget<>'' then
-                Write(outfile,' name ''',AliasTarget,'''');
-            end;
-            writeln(outfile,';');
-          end
-        else
-          begin
-            writeln(outfile,';');
-            if not IsExtern then
-            begin
-              writeln(implemfile,';');
-              writeln(implemfile,aktspace,'begin');
-              if AliasTarget='' then
-                writeln(implemfile,aktspace,'  { You must implement this function }')
-              else if (type_spec^.typ=t_void) and (decllist_spec^.p1^.p1^.p1=nil) then
-                writeln(implemfile,aktspace,'  ',AliasTarget,CallArguments(decllist_spec^.p1^.p1^.p2,not lSkipEllipsis),';')
-              else
-                writeln(implemfile,aktspace,'  ',decllist_spec^.p1^.p2^.p,':=',AliasTarget,
-                        CallArguments(decllist_spec^.p1^.p1^.p2,not lSkipEllipsis),';');
-              writeln(implemfile,aktspace,'end;');
-            end;
-          end;
-        IsExtern:=false;
-        if not(compactmode) and not(createdynlib) then
-        writeln(outfile);
-        lDone:=lSkipEllipsis or createdynlib or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
-        lSkipEllipsis:=true;
-      until lDone;
+    HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+    StoreFunction(decl,type_spec,modifier_spec,decllist_spec,false);
+    lExtern:=UseLib or HasSpecifier(decl,'extern');
+    lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and (lExtern or createdynlib);
+    lSkipEllipsis:=lVarArgs;
+    repeat
+      no_pop:=HasSpecifier(modifier_spec,'no_pop');
+      WriteFunctionDeclaration(decllist_spec,type_spec,sys_trap,nil,lExtern,lVarArgs,lSkipEllipsis);
+      lDone:=lSkipEllipsis or createdynlib or not HasEllipsis(decllist_spec^.p1^.p1^.p2);
+      lSkipEllipsis:=true;
+    until lDone;
     end
-  else (* decllist_spec^.p1^.p1^.typ=t_procdef *)
-  if assigned(decllist_spec)and assigned(decllist_spec^.p1) then
-    begin
-        HoistVariableProcVarElements(decllist_spec,type_spec);
-        shift(2);
-        WriteSectionMarker(outfile,'V');
-        if block_type<>bt_var then
-          begin
-            if not(compactmode) then
-              writeln(outfile);
-            WriteSectionKeyword(outfile,aktspace,'var');
-          end;
-        block_type:=bt_var;
-
-        shift(2);
-
-        IsExtern:=assigned(decl)and(decl^.str='extern');
-        (* walk through all declarations *)
-        hp:=decllist_spec;
-        while assigned(hp) and assigned(hp^.p1) do
-          begin
-            (* write new var name *)
-            if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
-              write(outfile,aktspace,hp^.p1^.p2^.p);
-            write(outfile,' : ');
-            shift(2);
-            (* write its type *)
-            is_procvar:=false;
-            write_p_a_def(outfile,hp^.p1^.p1,type_spec);
-            WriteProcVarDirectives(outfile,false);
-            if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
-              begin
-                  if isExtern then
-                    write(outfile,';cvar;external')
-                  else if not (assigned(decl) and (decl^.str='static')) then
-                    write(outfile,';cvar;public');
-              end;
-            writeln(outfile,';');
-            popshift;
-            hp:=hp^.next;
-          end;
-        popshift;
-        popshift;
-    end;
-  if assigned(decl)then  dispose(decl,done);
-  if assigned(type_spec)then  dispose(type_spec,done);
-  if assigned(decllist_spec)then  dispose(decllist_spec,done);
+  else if assigned(decllist_spec) and assigned(decllist_spec^.p1) then
+    WriteVariables(decl,type_spec,decllist_spec);
+  DisposeNode(decl);
+  DisposeNode(type_spec);
+  DisposeNode(decllist_spec);
 end;
+
 
 function HandleSpecialType(aType: presobject) : presobject;
 
 var
-  hp : presobject;
-  lMoved : boolean;
+  lMoved, lNamed, lRecord : boolean;
   lBlockType : tblocktype;
+  lName : AnsiString;
 
 begin
   HandleSpecialType:=Nil;
+  lNamed:=assigned(aType^.p2) and assigned(aType^.p2^.p);
+  lRecord:=aType^.typ in [t_uniondef,t_structdef];
+  lName:='';
+  if lNamed then
+    lName:=TypeName(aType^.p2^.p);
   (* a struct used before its declaration moves to its first use *)
-  lMoved:=(aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p1) and assigned(aType^.p2)
-          and assigned(aType^.p2^.p) and CanMoveRecord(TypeName(aType^.p2^.p),aType);
+  lMoved:=lRecord and assigned(aType^.p1) and lNamed and CanMoveRecord(lName,aType);
   lBlockType:=block_type;
   WriteSectionMarker(outfile,'T');
   if lMoved then
     begin
-    WriteMovedRecordStart(outfile,TypeName(aType^.p2^.p));
+    WriteMovedRecordStart(outfile,lName);
     block_type:=bt_type;
     end
-  else if block_type<>bt_type then
-    begin
-    if not(compactmode) then
-      writeln(outfile);
-    WriteSectionKeyword(outfile,aktspace,'type');
-    block_type:=bt_type;
-    end;
-  if (aType^.typ in [t_uniondef,t_structdef]) and assigned(aType^.p2) and assigned(aType^.p2^.p) then
+  else
+    OpenSection(bt_type,'type');
+  if lRecord and lNamed then
     begin
     shift(2);
-    TN:=TypeName(aType^.p2^.p);
+    TN:=lName;
     PN:=PointerName(aType^.p2^.p);
     (* define a Pointer type also for structs *)
     if UsePPointers and not SameText(TN,PN) then
@@ -1712,17 +1520,16 @@ begin
     WriteRecordMarker(outfile,TN);
     popshift;
     end;
-  if assigned(aType^.p2) and assigned(aType^.p2^.p) then
+  if lNamed then
     HoistStructProcVarElements(aType^.p2^.str,aType);
   shift(2);
-  if ( aType^.p2  <> nil ) then
+  if assigned(aType^.p2) then
     begin
     (* write new type name *)
     TN:=TypeName(aType^.p2^.p);
     write(outfile,aktspace,TN,' = ');
     shift(2);
-    hp:=aType;
-    write_type_specifier(outfile,hp);
+    write_type_specifier(outfile,aType);
     popshift;
     (* enum_to_const can make a switch to const *)
     if block_type=bt_type then
@@ -1731,7 +1538,6 @@ begin
       WritePointerMarker(outfile,TN);
       end;
     writeln(outfile);
-    flush(outfile);
     popshift;
     if lMoved then
       begin
@@ -1739,9 +1545,8 @@ begin
       block_type:=lBlockType;
       end;
     if must_write_packed_field then
-      write_packed_fields_info(outfile,hp,TN);
-    if assigned(hp) then
-      dispose(hp,done)
+      write_packed_fields_info(outfile,aType,TN);
+    dispose(aType,done)
     end
   else
     begin
@@ -1749,12 +1554,7 @@ begin
     PN:=PointerName(aType^.str);
     if UsePPointers then
       WritePointerTypeDef(outfile,PN,TN);
-    if PackRecords then
-      writeln(outfile, aktspace, TN, ' = packed record')
-    else
-      writeln(outfile, aktspace, TN, ' = record');
-    writeln(outfile, aktspace, '    {undefined structure}');
-    writeln(outfile, aktspace, '  end;');
+    WriteUndefinedRecord(outfile,aktspace,TN);
     WritePointerMarker(outfile,TN);
     writeln(outfile);
     popshift;
@@ -1776,10 +1576,10 @@ end;
 
 function HandleTypedef(type_spec,dec_modifier,declarator,arg_decl_list: presobject) : presobject;
 var
-  hp : presobject;
+  lTail : presobject;
+  lName : AnsiString;
 
 begin
-  hp:=nil;
   HandleTypedef:=nil;
   if IsVoidArgList(arg_decl_list) then
     begin
@@ -1788,52 +1588,41 @@ begin
     end;
   (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
   WriteSectionMarker(outfile,'T');
-  if block_type<>bt_type then
-    begin
-      if not(compactmode) then
-        writeln(outfile);
-      WriteSectionKeyword(outfile,aktspace,'type');
-      block_type:=bt_type;
-    end;
+  OpenSection(bt_type,'type');
   if assigned(declarator) and assigned(declarator^.p2) and assigned(declarator^.p2^.p) then
     HoistProcVarArgs(declarator^.p2^.str,arg_decl_list);
   no_pop:=assigned(dec_modifier) and (dec_modifier^.str='no_pop');
   shift(2);
-  (* walk through all declarations *)
-  hp:=declarator;
-  if assigned(hp) then
+  if assigned(declarator) then
   begin
-    hp:=declarator;
-    while assigned(hp^.p1) do
-      hp:=hp^.p1;
-    hp^.p1:=new(presobject,init_two(t_procdef,nil,arg_decl_list));
-    hp:=declarator;
-    if assigned(hp^.p2) and assigned(hp^.p2^.p) then
+    lTail:=declarator;
+    while assigned(lTail^.p1) do
+      lTail:=lTail^.p1;
+    lTail^.p1:=NewType2(t_procdef,nil,arg_decl_list);
+    if DeclaratorName(declarator)<>'' then
       begin
       popshift;
-      HoistProcVarElement(hp^.p2^.str+'_element',hp^.p1,type_spec);
+      HoistProcVarElement(declarator^.p2^.str+'_element',declarator^.p1,type_spec);
       shift(2);
       end;
-    WrapFunctionType(hp);
-    if assigned(hp^.p1) and assigned(hp^.p1^.p1) then
+    WrapFunctionType(declarator);
+    if assigned(declarator^.p1) and assigned(declarator^.p1^.p1) then
       begin
         writeln(outfile);
         (* write new type name *)
-        write(outfile,aktspace,TypeName(hp^.p2^.p),' = ');
+        lName:=TypeName(declarator^.p2^.p);
+        write(outfile,aktspace,lName,' = ');
         shift(2);
-        write_p_a_def(outfile,hp^.p1,type_spec);
+        write_p_a_def(outfile,declarator^.p1,type_spec);
         popshift;
         WriteProcVarDirectives(outfile,no_pop);
         writeln(outfile,';');
-        WritePointerMarker(outfile,TypeName(hp^.p2^.p));
-        flush(outfile);
+        WritePointerMarker(outfile,lName);
       end;
   end;
   popshift;
-  if assigned(type_spec)then
-  dispose(type_spec,done);
-  if assigned(dec_modifier)then
-  dispose(dec_modifier,done);
+  DisposeNode(type_spec);
+  DisposeNode(dec_modifier);
   if assigned(declarator)then (* disposes also arg_decl_list *)
   dispose(declarator,done);
 end;
@@ -1846,11 +1635,10 @@ var
   hp,ph : presobject;
   lDecl : presobject;
   lFunctionType, lInlineType : boolean;
-
+  lName, lTypeName, lMainName : AnsiString;
 
 begin
   HandleTypedefList:=Nil;
-  ph:=nil;
   lDecl:=nil;
   if assigned(declarator_list) then
     lDecl:=declarator_list^.p1;
@@ -1860,12 +1648,9 @@ begin
     begin
     if not stripinfo then
       writeln(outfile,'(* typedef without name at line ',line_no,' ignored *)');
-    if assigned(type_spec) then
-      dispose(type_spec,done);
-    if assigned(dec_modifier) then
-      dispose(dec_modifier,done);
-    if assigned(declarator_list) then
-      dispose(declarator_list,done);
+    DisposeNode(type_spec);
+    DisposeNode(dec_modifier);
+    DisposeNode(declarator_list);
     exit;
     end;
   if type_spec^.typ=t_enumdef then
@@ -1873,24 +1658,30 @@ begin
     hp:=declarator_list;
     while assigned(hp) do
       begin
-      if assigned(hp^.p1) and assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
-        RegisterEnumTypeName(hp^.p1^.p2^.str,type_spec^.p1);
+      lName:=DeclaratorName(hp^.p1);
+      if lName<>'' then
+        RegisterEnumTypeName(lName,type_spec^.p1);
       hp:=hp^.next;
       end;
     end;
   (* typedef unsigned char Byte: the Pascal name is the type itself *)
   if (type_spec^.typ=t_id) and assigned(lDecl) and not assigned(lDecl^.p1) and assigned(lDecl^.p2)
-     and not assigned(declarator_list^.next)
-     and ((type_spec^.skiptprefix and SameText(TypeName(lDecl^.p2^.p),type_spec^.str))
-          or (not type_spec^.skiptprefix and SameText(TypeName(lDecl^.p2^.p),TypeName(type_spec^.str)))) then
+     and not assigned(declarator_list^.next) then
     begin
-    if not stripinfo then
-      writeln(outfile,aktspace,'(* typedef ',TypeName(lDecl^.p2^.p),' of the same Pascal type ignored *)');
-    dispose(type_spec,done);
-    if assigned(dec_modifier) then
-      dispose(dec_modifier,done);
-    dispose(declarator_list,done);
-    exit;
+    lName:=TypeName(lDecl^.p2^.p);
+    if type_spec^.skiptprefix then
+      lTypeName:=type_spec^.str
+    else
+      lTypeName:=TypeName(type_spec^.str);
+    if SameText(lName,lTypeName) then
+      begin
+      if not stripinfo then
+        writeln(outfile,aktspace,'(* typedef ',lName,' of the same Pascal type ignored *)');
+      dispose(type_spec,done);
+      DisposeNode(dec_modifier);
+      dispose(declarator_list,done);
+      exit;
+      end;
     end;
   (* typedef struct tag *name: the struct tag without declaration yet *)
   if (type_spec^.typ=t_id) and type_spec^.structtag and not IsDeclaredType(TypeName(type_spec^.p)) then
@@ -1901,24 +1692,20 @@ begin
     block_type:=bt_no;
     end;
   WriteSectionMarker(outfile,'T');
-  if block_type<>bt_type then
-    begin
-      if not(compactmode) then
-        writeln(outfile);
-      WriteSectionKeyword(outfile,aktspace,'type');
-      block_type:=bt_type;
-    end
+  if block_type=bt_type then
+    writeln(outfile)
   else
-    writeln(outfile);
+    OpenSection(bt_type,'type');
   if assigned(type_spec^.p2) and assigned(type_spec^.p2^.p) then
     HoistStructProcVarElements(type_spec^.p2^.str,type_spec)
-  else if assigned(lDecl) and assigned(lDecl^.p2) and assigned(lDecl^.p2^.p) then
+  else if DeclaratorName(lDecl)<>'' then
     HoistStructProcVarElements(lDecl^.p2^.str,type_spec);
   hp:=declarator_list;
   while assigned(hp) do
     begin
-    if assigned(hp^.p1) and assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
-      HoistProcVarElement(hp^.p1^.p2^.str+'_element',hp^.p1^.p1,type_spec);
+    lName:=DeclaratorName(hp^.p1);
+    if lName<>'' then
+      HoistProcVarElement(lName+'_element',hp^.p1^.p1,type_spec);
     hp:=hp^.next;
     end;
   no_pop:=assigned(dec_modifier) and (dec_modifier^.str='no_pop');
@@ -1946,8 +1733,7 @@ begin
     PN:=TN
   else
     PN:=PointerName(ph^.p);
-  if UsePPointers and (not SameText(tn,pn)) and not lFunctionType and
-    assigned(type_spec) and (type_spec^.typ<>t_procdef) then
+  if UsePPointers and not SameText(TN,PN) and (type_spec^.typ<>t_procdef) then
     WritePointerTypeDef(outfile,PN,TN);
   if (type_spec^.typ in [t_uniondef,t_structdef]) and assigned(type_spec^.p1)
      and (lInlineType or not (assigned(lDecl) and assigned(lDecl^.p1))) then
@@ -1965,29 +1751,28 @@ begin
   if block_type=bt_type then
     writeln(outfile,';');
   WritePointerMarker(outfile,TN);
-  flush(outfile);
-  (* write alias names, ph points to the name already used *)
+  (* write the other names as aliases *)
+  lMainName:=TypeName(ph^.p);
   hp:=declarator_list;
   while assigned(hp) do
   begin
-    if (hp<>ph) and assigned(hp^.p1) and assigned(hp^.p1^.p2) then
+    if assigned(hp^.p1) and assigned(hp^.p1^.p2) then
       begin
-        PN:=TypeName(ph^.p);
+        PN:=lMainName;
         TN:=TypeName(hp^.p1^.p2^.p);
         if not SameText(TN,PN) then
         begin
           WriteSectionMarker(outfile,'T');
           if block_type<>bt_type then
             begin
-            WriteSectionKeyword(outfile,Copy(aktspace,1,Length(aktspace)-2),'type');
+            WriteSectionKeyword(outfile,OuterIndent(aktspace),'type');
             block_type:=bt_type;
             end;
           write(outfile,aktspace,TN,' = ');
           write_p_a_def(outfile,hp^.p1^.p1,ph);
           writeln(outfile,';');
           PN:=PointerName(hp^.p1^.p2^.p);
-          if UsePPointers and (not sametext(tn,pn)) and
-            assigned(type_spec) and (type_spec^.typ<>t_procdef) then
+          if UsePPointers and not SameText(TN,PN) and (type_spec^.typ<>t_procdef) then
             WritePointerTypeDef(outfile,PN,TN);
           WritePointerMarker(outfile,TN);
         end;
@@ -1996,16 +1781,10 @@ begin
   end;
   popshift;
   if must_write_packed_field then
-    if assigned(ph) then
-      write_packed_fields_info(outfile,type_spec,ph^.str)
-    else if assigned(type_spec^.p2) then
-      write_packed_fields_info(outfile,type_spec,type_spec^.p2^.str);
-  if assigned(type_spec)then
-  dispose(type_spec,done);
-  if assigned(dec_modifier)then
-  dispose(dec_modifier,done);
-  if assigned(declarator_list)then
-  dispose(declarator_list,done);
+    write_packed_fields_info(outfile,type_spec,ph^.str);
+  DisposeNode(type_spec);
+  DisposeNode(dec_modifier);
+  DisposeNode(declarator_list);
 end;
 
 function HandleStructDef(dname1,dname2 : presobject) : presobject;
@@ -2041,10 +1820,8 @@ begin
     WritePointerMarker(outfile,TN);
     popshift;
   end;
-  if assigned(dname1) then
-    dispose(dname1,done);
-  if assigned(dname2) then
-    dispose(dname2,done);
+  DisposeNode(dname1);
+  DisposeNode(dname2);
 end;
 
 function HandleSimpleTypeDef(tname : presobject) : presobject;
@@ -2052,24 +1829,17 @@ function HandleSimpleTypeDef(tname : presobject) : presobject;
 begin
   HandleSimpleTypeDef:=Nil;
   WriteSectionMarker(outfile,'T');
-  if block_type<>bt_type then
-    begin
-      if not(compactmode) then
-        writeln(outfile);
-      WriteSectionKeyword(outfile,aktspace,'type');
-      block_type:=bt_type;
-    end
+  if block_type=bt_type then
+    writeln(outfile)
   else
-    writeln(outfile);
+    OpenSection(bt_type,'type');
   shift(2);
   (* write as pointer *)
   writeln(outfile,'(* generic typedef  *)');
   writeln(outfile,aktspace,tname^.p,' = pointer;');
   WritePointerMarker(outfile,tname^.p);
-  flush(outfile);
   popshift;
-  if assigned(tname) then
-  dispose(tname,done);
+  DisposeNode(tname);
 end;
 
 function HandleErrorDecl(e1,e2 : presobject) : presobject;
@@ -2096,15 +1866,13 @@ function HandleDefine(dname : presobject) : presobject;
 begin
   HandleDefine:=Nil;
   writeln(outfile,'{$define ',dname^.p,'}',aktspace,commentstr);
-  flush(outfile);
   if not assigned(EmptyDefines) then
     begin
     EmptyDefines:=TStringList.Create;
     EmptyDefines.CaseSensitive:=true;
     end;
   EmptyDefines.Add(dname^.str);
-  if assigned(dname)then
-  dispose(dname,done);
+  DisposeNode(dname);
 end;
 
 // Returns true, and writes a comment, when the define dname has the Pascal name of an earlier define
@@ -2129,146 +1897,153 @@ begin
 end;
 
 
+// Writes the define dname of the type name aType as a type alias.
+procedure WriteDefineTypeAlias(dname, aType : presobject);
+
+var
+  lMapped : presobject;
+
+begin
+  WriteSectionMarker(outfile,'T');
+  if block_type<>bt_type then
+    begin
+    if block_type<>bt_func then
+      writeln(outfile);
+    WriteSectionKeyword(outfile,aktspace,'type');
+    block_type:=bt_type;
+    end;
+  shift(2);
+  TN:=TypeName(dname^.p);
+  write(outfile,aktspace,TN,' = ');
+  if IsCTypeName(aType) then
+    begin
+    lMapped:=MapCTypeName(NewID(aType^.str));
+    write_type_specifier(outfile,lMapped);
+    dispose(lMapped,done);
+    end
+  else
+    write_type_specifier(outfile,aType);
+  writeln(outfile,';',aktspace,commentstr);
+  WritePointerMarker(outfile,TN);
+  popshift;
+end;
+
+
+// Writes the define dname with the constant value aValue as a constant.
+procedure WriteDefineConstant(dname, aValue : presobject);
+
+begin
+  if IsPlainConstExpr(aValue) then
+    begin
+    WriteSectionMarker(outfile,'C');
+    RegisterPlainConst(dname^.str);
+    end
+  else
+    WriteSectionMarker(outfile,'D');
+  if block_type<>bt_const then
+    begin
+    if block_type<>bt_func then
+      writeln(outfile);
+    WriteSectionKeyword(outfile,aktspace,'const');
+    end;
+  block_type:=bt_const;
+  shift(2);
+  write(outfile,aktspace,FixId(dname^.p),' = ');
+  write_expr(outfile,aValue);
+  writeln(outfile,';',aktspace,commentstr);
+  popshift;
+end;
+
+
+// Writes the define dname with the value def_expr as a function without parameters, and disposes both.
+procedure WriteDefineFunction(dname, def_expr : presobject);
+
+var
+  lFunc : presobject;
+
+begin
+  WriteSectionMarker(outfile,'F');
+  if block_type<>bt_func then
+    writeln(outfile);
+  if not stripinfo then
+    begin
+    writeln(outfile,aktspace,'{ was #define dname def_expr }');
+    writeln(implemfile,aktspace,'{ was #define dname def_expr }');
+    end;
+  block_type:=bt_func;
+  write(outfile,aktspace,'function ',FixId(dname^.p));
+  write(implemfile,aktspace,'function ',FixId(dname^.p));
+  shift(2);
+  if not assigned(def_expr^.p3) then
+    begin
+    writeln(outfile,' : longint; { return type might be wrong }');
+    writeln(implemfile,' : longint; { return type might be wrong }');
+    end
+  else
+    begin
+    write(outfile,' : ');
+    write_cast_type(outfile,def_expr^.p3);
+    writeln(outfile,';',aktspace,commentstr);
+    write(implemfile,' : ');
+    write_cast_type(implemfile,def_expr^.p3);
+    writeln(implemfile,';');
+    end;
+  writeln(outfile);
+  lFunc:=NewType2(t_funcname,dname,def_expr);
+  write_funexpr(implemfile,lFunc);
+  popshift;
+  dispose(lFunc,done);
+  writeln(implemfile);
+end;
+
+
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
 
 var
   hp : presobject;
+  lName : AnsiString;
+  lFunction : PStoredFunction;
 
 begin
   HandleDefineConst:=Nil;
   (* DEFINE dname SPACE_DEFINE def_expr NEW_LINE *)
-  hp:=def_expr;
-  while assigned(hp) and (hp^.typ=t_exprlist) and not assigned(hp^.next) do
-    hp:=hp^.p1;
-  if assigned(hp) and (hp^.typ=t_id) and SameText(hp^.str,dname^.str) then
+  hp:=UnwrappedExpr(def_expr);
+  lName:='';
+  if assigned(hp) and (hp^.typ=t_id) then
+    lName:=hp^.str;
+  lFunction:=nil;
+  if lName<>'' then
+    lFunction:=FindFunction(lName);
+  if (lName<>'') and SameText(lName,dname^.str) then
     begin
     if not stripinfo then
       writeln(outfile,aktspace,'(* self-referencing #define ',dname^.p,' ignored *)');
-    dispose(dname,done);
-    dispose(def_expr,done);
-    exit;
-    end;
-  (* the name of a define without value, as #define SQLITE_STDCALL SQLITE_APICALL: a define without value *)
-  if assigned(hp) and (hp^.typ=t_id) and assigned(EmptyDefines) and (EmptyDefines.IndexOf(hp^.str)>=0) then
-    begin
-    dispose(def_expr,done);
-    HandleDefine(dname);
-    exit;
-    end;
-  if IsDefineNameClash(dname) then
-    begin
-    dispose(dname,done);
-    dispose(def_expr,done);
-    exit;
-    end;
-  (* the name of a declared function: a function alias *)
-  if assigned(hp) and (hp^.typ=t_id) and assigned(FindFunction(hp^.str)) then
-    begin
-    WriteFunctionAlias(dname^.str,FindFunction(hp^.str),hp^.str);
-    dispose(dname,done);
-    dispose(def_expr,done);
-    exit;
-    end;
-  (* a type keyword, a standard C type name or a declared type: a type alias *)
-  if assigned(hp) and (hp^.typ=t_id)
-     and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(hp^.str))) then
-    begin
-    WriteSectionMarker(outfile,'T');
-    if block_type<>bt_type then
-      begin
-      if block_type<>bt_func then
-        writeln(outfile);
-      WriteSectionKeyword(outfile,aktspace,'type');
-      block_type:=bt_type;
-      end;
-    shift(2);
-    TN:=TypeName(dname^.p);
-    write(outfile,aktspace,TN,' = ');
-    if IsCTypeName(hp) then
-      begin
-      hp:=MapCTypeName(NewID(hp^.str));
-      write_type_specifier(outfile,hp);
-      dispose(hp,done);
-      end
-    else
-      write_type_specifier(outfile,hp);
-    writeln(outfile,';',aktspace,commentstr);
-    WritePointerMarker(outfile,TN);
-    popshift;
-    dispose(dname,done);
-    dispose(def_expr,done);
-    exit;
-    end;
-  if (def_expr^.typ=t_exprlist) and
-    def_expr^.p1^.is_const and
-    not assigned(def_expr^.next) then
-    begin
-      if IsPlainConstExpr(def_expr^.p1) then
-        begin
-        WriteSectionMarker(outfile,'C');
-        RegisterPlainConst(dname^.str);
-        end
-      else
-        WriteSectionMarker(outfile,'D');
-      if block_type<>bt_const then
-        begin
-          if block_type<>bt_func then
-            writeln(outfile);
-          WriteSectionKeyword(outfile,aktspace,'const');
-        end;
-      block_type:=bt_const;
-      shift(2);
-      write(outfile,aktspace,FixId(dname^.p));
-      write(outfile,' = ');
-      flush(outfile);
-      write_expr(outfile,def_expr^.p1);
-      writeln(outfile,';',aktspace,commentstr);
-      popshift;
-      if assigned(dname) then
-      dispose(dname,done);
-      if assigned(def_expr) then
-      dispose(def_expr,done);
     end
+  (* the name of a define without value, as #define SQLITE_STDCALL SQLITE_APICALL: a define without value *)
+  else if (lName<>'') and assigned(EmptyDefines) and (EmptyDefines.IndexOf(lName)>=0) then
+    begin
+    HandleDefine(dname);
+    dname:=nil;
+    end
+  else if IsDefineNameClash(dname) then
+  (* the name of a declared function: a function alias *)
+  else if assigned(lFunction) then
+    WriteFunctionAlias(dname^.str,lFunction,lName)
+  (* a type keyword, a standard C type name or a declared type: a type alias *)
+  else if (lName<>'') and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(lName))) then
+    WriteDefineTypeAlias(dname,hp)
+  else if (def_expr^.typ=t_exprlist) and def_expr^.p1^.is_const and not assigned(def_expr^.next) then
+    WriteDefineConstant(dname,def_expr^.p1)
   else
     begin
-      WriteSectionMarker(outfile,'F');
-      if block_type<>bt_func then
-        writeln(outfile);
-      if not stripinfo then
-        begin
-          writeln (outfile,aktspace,'{ was #define dname def_expr }');
-          writeln (implemfile,aktspace,'{ was #define dname def_expr }');
-        end;
-      block_type:=bt_func;
-      write(outfile,aktspace,'function ',FixId(dname^.p));
-      write(implemfile,aktspace,'function ',FixId(dname^.p));
-      shift(2);
-      if not assigned(def_expr^.p3) then
-        begin
-            writeln(outfile,' : longint; { return type might be wrong }');
-            flush(outfile);
-            writeln(implemfile,' : longint; { return type might be wrong }');
-        end
-      else
-        begin
-            write(outfile,' : ');
-            write_cast_type(outfile,def_expr^.p3);
-            writeln(outfile,';',aktspace,commentstr);
-            flush(outfile);
-            write(implemfile,' : ');
-            write_cast_type(implemfile,def_expr^.p3);
-            writeln(implemfile,';');
-        end;
-      writeln(outfile);
-      flush(outfile);
-      hp:=new(presobject,init_two(t_funcname,dname,def_expr));
-      write_funexpr(implemfile,hp);
-      popshift;
-      dispose(hp,done);
-      writeln(implemfile);
-      flush(implemfile);
+    WriteDefineFunction(dname,def_expr);
+    dname:=nil;
+    def_expr:=nil;
     end;
+  DisposeNode(dname);
+  DisposeNode(def_expr);
 end;
+
 
 // Returns true when aName is one of the macro parameters in aParams (t_enumlist).
 function IsMacroParam(const aName : string; aParams : presobject) : boolean;
@@ -2314,7 +2089,7 @@ end;
 function FunctionResultType(aFunction : PStoredFunction) : presobject;
 
 begin
-  Result:=DeclaredType(aFunction^.TypeSpec,aFunction^.DeclList^.p1^.p1^.p1);
+  Result:=DeclaredType(aFunction^.TypeSpec,FunctionProcDef(aFunction)^.p1);
 end;
 
 
@@ -2326,7 +2101,7 @@ var
 
 begin
   Result:=nil;
-  lArgs:=aFunction^.DeclList^.p1^.p1^.p2;
+  lArgs:=FunctionProcDef(aFunction)^.p2;
   if IsVoidArgList(lArgs) then
     exit;
   while assigned(lArgs) and (aIndex>0) do
@@ -2369,15 +2144,14 @@ begin
         lType:=MacroResultType(aExpr^.p1,aParams);
         if assigned(lType) and (lType^.typ=t_pointerdef) and assigned(lType^.p1) and (lType^.p1^.typ<>t_void) then
           Result:=lType^.p1^.get_copy;
-        if assigned(lType) then
-          dispose(lType,done);
+        DisposeNode(lType);
         end;
     t_funexprlist :
       if assigned(aExpr^.p3) then
         Result:=aExpr^.p3^.get_copy
-      else if assigned(aExpr^.p1) and assigned(aExpr^.p1^.p1) and (aExpr^.p1^.p1^.typ=t_id) then
+      else
         begin
-        lFunction:=FindFunction(aExpr^.p1^.p1^.str);
+        lFunction:=FindFunction(CalleeName(aExpr));
         if assigned(lFunction) then
           Result:=FunctionResultType(lFunction);
         end;
@@ -2389,18 +2163,12 @@ end;
 function IsProcedureCall(aExpr : presobject) : boolean;
 
 var
-  lFunction : PStoredFunction;
+  lCallee : AnsiString;
 
 begin
-  Result:=false;
-  while assigned(aExpr) and (aExpr^.typ=t_exprlist) and not assigned(aExpr^.next) and assigned(aExpr^.p1) do
-    aExpr:=aExpr^.p1;
-  if not assigned(aExpr) or (aExpr^.typ<>t_funexprlist) or assigned(aExpr^.p3) or not assigned(aExpr^.p1)
-     or not assigned(aExpr^.p1^.p1) or (aExpr^.p1^.p1^.typ<>t_id) then
-    exit;
-  lFunction:=FindFunction(aExpr^.p1^.p1^.str);
-  Result:=assigned(lFunction) and assigned(lFunction^.TypeSpec) and (lFunction^.TypeSpec^.typ=t_void)
-          and not assigned(lFunction^.DeclList^.p1^.p1^.p1);
+  aExpr:=UnwrappedExpr(aExpr);
+  lCallee:=CalleeName(aExpr);
+  Result:=(lCallee<>'') and not assigned(aExpr^.p3) and IsProcedureFunction(FindFunction(lCallee));
 end;
 
 
@@ -2412,16 +2180,6 @@ begin
     exit(aLeft=aRight);
   Result:=(aLeft^.typ=aRight^.typ) and (aLeft^.str=aRight^.str)
           and SameCastType(aLeft^.p1,aRight^.p1) and SameCastType(aLeft^.p2,aRight^.p2);
-end;
-
-
-// Returns aExpr without the expression lists of one element around it.
-function UnwrappedExpr(aExpr : presobject) : presobject;
-
-begin
-  Result:=aExpr;
-  while assigned(Result) and (Result^.typ=t_exprlist) and not assigned(Result^.next) and assigned(Result^.p1) do
-    Result:=Result^.p1;
 end;
 
 
@@ -2446,7 +2204,7 @@ procedure CollectParamType(const aName : string; aExpr : presobject; var aType :
 
 var
   lFunction : PStoredFunction;
-  lArgs, lArg : presobject;
+  lArgs : presobject;
   lIndex : integer;
 
 begin
@@ -2458,26 +2216,21 @@ begin
         aUntyped:=true;
     t_typespec :
       begin
-      lArg:=UnwrappedExpr(aExpr^.p2);
-      if assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_pointerdef) and assigned(lArg) and (lArg^.typ=t_id)
-         and (lArg^.str=aName) then
+      if assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_pointerdef) and IsNamedId(UnwrappedExpr(aExpr^.p2),aName) then
         AddType(NewType1(t_pointerdef,NewVoid))
       else
         CollectParamType(aName,aExpr^.p2,aType,aUntyped);
       end;
     t_funexprlist :
       begin
-      lFunction:=nil;
-      if assigned(aExpr^.p1) and assigned(aExpr^.p1^.p1) and (aExpr^.p1^.p1^.typ=t_id) then
-        lFunction:=FindFunction(aExpr^.p1^.p1^.str);
+      lFunction:=FindFunction(CalleeName(aExpr));
       if not assigned(lFunction) then
         CollectParamType(aName,aExpr^.p1,aType,aUntyped);
       lArgs:=aExpr^.p2;
       lIndex:=0;
       while assigned(lArgs) do
         begin
-        lArg:=UnwrappedExpr(lArgs^.p1);
-        if assigned(lFunction) and assigned(lArg) and (lArg^.typ=t_id) and (lArg^.str=aName) then
+        if assigned(lFunction) and IsNamedId(UnwrappedExpr(lArgs^.p1),aName) then
           AddType(FunctionArgumentType(lFunction,lIndex))
         else
           CollectParamType(aName,lArgs^.p1,aType,aUntyped);
@@ -2641,13 +2394,9 @@ end;
 function InsertLeftOperand(const aOp : string; aLeft,aExpr : presobject) : presobject;
 
 begin
-  if assigned(aExpr) and not aExpr^.grouped and (aExpr^.typ=t_bop)
-     and (OperatorPrecedence(aExpr^.str)<=OperatorPrecedence(aOp)) then
-    begin
-    aExpr^.p1:=InsertLeftOperand(aOp,aLeft,aExpr^.p1);
-    Result:=aExpr;
-    end
-  else if assigned(aExpr) and not aExpr^.grouped and (aExpr^.typ=t_ifexpr) then
+  if assigned(aExpr) and not aExpr^.grouped
+     and ((aExpr^.typ=t_ifexpr)
+          or ((aExpr^.typ=t_bop) and (OperatorPrecedence(aExpr^.str)<=OperatorPrecedence(aOp)))) then
     begin
     aExpr^.p1:=InsertLeftOperand(aOp,aLeft,aExpr^.p1);
     Result:=aExpr;
@@ -2664,84 +2413,129 @@ begin
 end;
 
 
+// Writes the macro dname with the parameters aParams and the body aBody as a function alias when it only passes its
+// parameters to a declared function with as many arguments; returns true when it did.
+function TryWriteMacroAlias(dname, aParams, aBody : presobject) : boolean;
+
+var
+  lTarget : AnsiString;
+  lFunction : PStoredFunction;
+
+begin
+  Result:=false;
+  if not IsWrapperMacro(aParams,aBody,lTarget) then
+    exit;
+  lFunction:=FindFunction(lTarget);
+  Result:=assigned(lFunction) and (ArgumentCount(lFunction)=ListLength(aParams));
+  if Result then
+    WriteFunctionAlias(dname^.str,lFunction,lTarget);
+end;
+
+
+// Prepares the body aBody of a macro with the parameters aParams for writing: casts of parameters, a void cast of
+// a call and a boolean result type; returns true for a void cast of a call.
+function PrepareMacroBody(aBody, aParams : presobject) : boolean;
+
+var
+  lRotatable : TFPList;
+  lCast : presobject;
+
+begin
+  if assigned(aParams) then
+    begin
+    lRotatable:=TFPList.Create;
+    aBody^.p1:=FixParamCasts(aBody^.p1,aParams,lRotatable);
+    aBody^.p2:=FixParamCasts(aBody^.p2,aParams,lRotatable);
+    aBody^.next:=FixParamCasts(aBody^.next,aParams,lRotatable);
+    lRotatable.Free;
+    (* the result type of a cast to a parameter is no type *)
+    if assigned(aBody^.p3) and (aBody^.p3^.typ=t_id) and IsMacroParam(aBody^.p3^.str,aParams) then
+      DisposeNode(aBody^.p3);
+    end;
+  (* (void)call: the call as statement *)
+  lCast:=nil;
+  if aBody^.typ=t_exprlist then
+    lCast:=aBody^.p1;
+  Result:=assigned(lCast) and (lCast^.typ=t_typespec) and assigned(lCast^.p1) and (lCast^.p1^.typ=t_void)
+          and assigned(UnwrappedExpr(lCast^.p2)) and (UnwrappedExpr(lCast^.p2)^.typ=t_funexprlist);
+  if Result then
+    begin
+    aBody^.p1:=lCast^.p2;
+    lCast^.p2:=nil;
+    dispose(lCast,done);
+    DisposeNode(aBody^.p3);
+    end;
+  if not assigned(aBody^.p3) and IsBooleanExpr(aBody) then
+    aBody^.p3:=NewIntID('boolean');
+end;
+
+
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
 
 var
-  hp,ph : presobject;
-  lRotatable : TFPList;
-  lTarget : AnsiString;
+  hp : presobject;
   lCount : integer;
   lResultType : presobject;
   lParamTypes : TFPList;
-  lUnknownParams, lProcedure, lVoidCast : boolean;
+  lUnknownParams, lProcedure : boolean;
+
+  // Writes the comments and the header of the function or procedure to aFile, the interface when aInterface is set.
+  procedure WriteHeader(var aFile : text; aInterface : boolean);
+
+  begin
+    if not stripinfo then
+      begin
+      writeln(aFile,aktspace,'{ was #define dname(params) para_def_expr }');
+      if lUnknownParams then
+        writeln(aFile,aktspace,'{ argument types are unknown }');
+      if not assigned(lResultType) and not lProcedure then
+        writeln(aFile,aktspace,'{ return type might be wrong }   ');
+      end;
+    if aInterface then
+      begin
+      WriteSectionMarker(outfile,'F');
+      if block_type<>bt_func then
+        writeln(outfile);
+      block_type:=bt_func;
+      end;
+    if lProcedure then
+      write(aFile,aktspace,'procedure ',FixId(dname^.p))
+    else
+      write(aFile,aktspace,'function ',FixId(dname^.p));
+    if assigned(enum_list) then
+      begin
+      write(aFile,'(');
+      WriteMacroParams(aFile,enum_list,lParamTypes);
+      write(aFile,')');
+      end;
+    if lProcedure then
+      write(aFile,';')
+    else if not assigned(lResultType) then
+      write(aFile,' : longint;')
+    else
+      begin
+      write(aFile,' : ');
+      write_cast_type(aFile,lResultType);
+      write(aFile,';');
+      end;
+    if aInterface then
+      writeln(aFile,aktspace,commentstr)
+    else
+      writeln(aFile);
+  end;
 
 begin
   HandleDefineMacro:=Nil;
-  if IsDefineNameClash(dname) then
+  if IsDefineNameClash(dname) or TryWriteMacroAlias(dname,enum_list,para_def_expr) then
     begin
     dispose(dname,done);
-    if assigned(enum_list) then
-      dispose(enum_list,done);
+    DisposeNode(enum_list);
     dispose(para_def_expr,done);
     exit;
     end;
-  (* a macro that calls a declared function with its parameters: a function alias *)
-  if IsWrapperMacro(enum_list,para_def_expr,lTarget) and assigned(FindFunction(lTarget)) then
-    begin
-    lCount:=0;
-    hp:=enum_list;
-    while assigned(hp) do
-      begin
-      inc(lCount);
-      hp:=hp^.next;
-      end;
-    if ArgumentCount(FindFunction(lTarget))=lCount then
-      begin
-      WriteFunctionAlias(dname^.str,FindFunction(lTarget),lTarget);
-      dispose(dname,done);
-      if assigned(enum_list) then
-        dispose(enum_list,done);
-      dispose(para_def_expr,done);
-      exit;
-      end;
-    end;
-  hp:=nil;
-  ph:=nil;
-  if assigned(enum_list) then
-    begin
-    lRotatable:=TFPList.Create;
-    para_def_expr^.p1:=FixParamCasts(para_def_expr^.p1,enum_list,lRotatable);
-    para_def_expr^.p2:=FixParamCasts(para_def_expr^.p2,enum_list,lRotatable);
-    para_def_expr^.next:=FixParamCasts(para_def_expr^.next,enum_list,lRotatable);
-    lRotatable.Free;
-    (* the result type of a cast to a parameter is no type *)
-    if assigned(para_def_expr^.p3) and (para_def_expr^.p3^.typ=t_id)
-       and IsMacroParam(para_def_expr^.p3^.str,enum_list) then
-      begin
-      dispose(para_def_expr^.p3,done);
-      para_def_expr^.p3:=nil;
-      end;
-    end;
-  (* (void)call: the call as statement *)
-  lVoidCast:=(para_def_expr^.typ=t_exprlist) and assigned(para_def_expr^.p1) and (para_def_expr^.p1^.typ=t_typespec)
-             and assigned(para_def_expr^.p1^.p1) and (para_def_expr^.p1^.p1^.typ=t_void)
-             and assigned(UnwrappedExpr(para_def_expr^.p1^.p2))
-             and (UnwrappedExpr(para_def_expr^.p1^.p2)^.typ=t_funexprlist);
-  if lVoidCast then
-    begin
-    hp:=para_def_expr^.p1;
-    para_def_expr^.p1:=hp^.p2;
-    hp^.p2:=nil;
-    dispose(hp,done);
-    if assigned(para_def_expr^.p3) then
-      dispose(para_def_expr^.p3,done);
-    para_def_expr^.p3:=nil;
-    end;
   (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
-  if not assigned(para_def_expr^.p3) and IsBooleanExpr(para_def_expr) then
-    para_def_expr^.p3:=NewIntID('boolean');
-  lResultType:=nil;
-  lProcedure:=lVoidCast or (not assigned(para_def_expr^.p3) and IsProcedureCall(para_def_expr));
+  lProcedure:=PrepareMacroBody(para_def_expr,enum_list);
+  lProcedure:=lProcedure or (not assigned(para_def_expr^.p3) and IsProcedureCall(para_def_expr));
   if lProcedure then
     lResultType:=nil
   else if assigned(para_def_expr^.p3) then
@@ -2758,86 +2552,49 @@ begin
       lUnknownParams:=true;
     hp:=hp^.next;
     end;
-  if not stripinfo then
-  begin
-    writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');
-    writeln (implemfile,aktspace,'{ was #define dname(params) para_def_expr }');
-    if lUnknownParams then
-      begin
-        writeln (outfile,aktspace,'{ argument types are unknown }');
-        writeln (implemfile,aktspace,'{ argument types are unknown }');
-      end;
-    if not assigned(lResultType) and not lProcedure then
-      begin
-        writeln(outfile,aktspace,'{ return type might be wrong }   ');
-        writeln(implemfile,aktspace,'{ return type might be wrong }   ');
-      end;
-  end;
-  WriteSectionMarker(outfile,'F');
-  if block_type<>bt_func then
-    writeln(outfile);
-
-  block_type:=bt_func;
-  if lProcedure then
-    begin
-    write(outfile,aktspace,'procedure ',FixId(dname^.p));
-    write(implemfile,aktspace,'procedure ',FixId(dname^.p));
-    end
-  else
-    begin
-    write(outfile,aktspace,'function ',FixId(dname^.p));
-    write(implemfile,aktspace,'function ',FixId(dname^.p));
-    end;
-
-  if assigned(enum_list) then
-    begin
-      write(outfile,'(');
-      write(implemfile,'(');
-      WriteMacroParams(outfile,enum_list,lParamTypes);
-      WriteMacroParams(implemfile,enum_list,lParamTypes);
-      write(outfile,')');
-      write(implemfile,')');
-      dispose(enum_list,done);
-    end;
+  WriteHeader(outfile,true);
+  WriteHeader(implemfile,false);
+  writeln(outfile);
+  DisposeNode(enum_list);
+  DisposeNode(lResultType);
   for lCount:=0 to lParamTypes.Count-1 do
     if assigned(lParamTypes[lCount]) then
       dispose(presobject(lParamTypes[lCount]),done);
   lParamTypes.Free;
   if lProcedure then
-    begin
-      writeln(outfile,';',aktspace,commentstr);
-      writeln(implemfile,';');
-      flush(outfile);
-    end
-  else if not assigned(lResultType) then
-    begin
-      writeln(outfile,' : longint;',aktspace,commentstr);
-      writeln(implemfile,' : longint;');
-      flush(outfile);
-    end
-  else
-    begin
-      write(outfile,' : ');
-      write_cast_type(outfile,lResultType);
-      writeln(outfile,';',aktspace,commentstr);
-      flush(outfile);
-      write(implemfile,' : ');
-      write_cast_type(implemfile,lResultType);
-      writeln(implemfile,';');
-      dispose(lResultType,done);
-    end;
-  writeln(outfile);
-  flush(outfile);
-  if lProcedure then
-    begin
-    dispose(dname,done);
-    dname:=nil;
-    end;
-  hp:=new(presobject,init_two(t_funcname,dname,para_def_expr));
+    DisposeNode(dname);
+  hp:=NewType2(t_funcname,dname,para_def_expr);
   write_funexpr(implemfile,hp);
   writeln(implemfile);
-  flush(implemfile);
-  if assigned(hp)then dispose(hp,done);
+  dispose(hp,done);
+end;
+
+
+function HandleParenthesizedName(aName,aOperand : presobject) : presobject;
+
+begin
+  (* (x) * y is a product rather than the cast of *y *)
+  if not assigned(aOperand) then
+    Result:=aName
+  else if IsCTypeName(aName) then
+    Result:=NewType2(t_typespec,MapCTypeName(aName),aOperand)
+  else if (aOperand^.typ=t_preop) and (aOperand^.str='^') then
+    begin
+    Result:=NewBinaryOp('*',aName,aOperand^.p1);
+    aOperand^.p1:=nil;
+    dispose(aOperand,done);
+    end
+  else
+    Result:=NewType2(t_typespec,aName,aOperand);
+end;
+
+
+function NewRecordType(aTyp : ttyp; aMembers, aName : presobject; aPack : integer) : presobject;
+
+begin
+  if aPack>0 then
+    EmitPacked(aPack);
+  Result:=NewType2(aTyp,aMembers,aName);
 end;
 
 

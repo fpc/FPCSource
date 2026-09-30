@@ -22,6 +22,8 @@ type
     procedure TestLineComment;
     procedure TestMultiLineComment;
     procedure TestCommentBracesRemoved;
+    procedure TestUnterminatedComment;
+    procedure TestLineCommentAtEndOfFile;
   end;
 
   { TTestPreprocessor }
@@ -96,6 +98,28 @@ begin
   Convert(['/* multi','   line */','int x;']);
   AssertConverted;
   AssertOutput('multi-line comment',['{ multi','line }']);
+end;
+
+
+procedure TTestComments.TestUnterminatedComment;
+
+begin
+  Convert(['int x;','/* never closed'],['-d']);
+  AssertConverted;
+  AssertEquals('the end of file inside a comment is reported once',Length('unexpected EOF'),
+    Length(ToolOutput)-Length(StringReplace(ToolOutput,'unexpected EOF','',[rfReplaceAll])));
+  AssertOutput('the comment is closed',['{ never closed','}']);
+  AssertCompiles;
+end;
+
+
+procedure TTestComments.TestLineCommentAtEndOfFile;
+
+begin
+  Convert(['int x;','// last line'],['-d']);
+  AssertConverted;
+  AssertOutput('a line comment that ends the file',['{ last line }']);
+  AssertNotOutput('no error for a line comment at the end of the file','unexpected EOF');
 end;
 
 
