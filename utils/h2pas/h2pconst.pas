@@ -155,7 +155,7 @@ type
   end;
 
 const
-  MAX_CTYPEMAPPINGS = 25;
+  MAX_CTYPEMAPPINGS = 36;
   CTypeMappings : array [0..MAX_CTYPEMAPPINGS] of TCTypeMapping = (
     (CName: 'int8_t';    CTypesName: cint8_STR;   PascalName: 'shortint'),
     (CName: 'uint8_t';   CTypesName: cuint8_STR;  PascalName: 'byte'),
@@ -182,7 +182,67 @@ const
     (CName: 'va_list';   CTypesName: 'pointer';   PascalName: 'pointer'),
     (CName: '__gnuc_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
     (CName: '__builtin_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
+    (CName: 'time_t';    CTypesName: clong_STR;   PascalName: 'PtrInt'),
+    (CName: 'clock_t';   CTypesName: clong_STR;   PascalName: 'PtrInt'),
+    (CName: 'suseconds_t'; CTypesName: clong_STR; PascalName: 'PtrInt'),
+    (CName: 'useconds_t'; CTypesName: cuint_STR;  PascalName: 'longword'),
+    (CName: 'dev_t';     CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'ino_t';     CTypesName: culong_STR;  PascalName: 'PtrUInt'),
+    (CName: 'pid_t';     CTypesName: cint_STR;    PascalName: 'longint'),
+    (CName: 'uid_t';     CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'gid_t';     CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'mode_t';    CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'socklen_t'; CTypesName: cuint_STR;   PascalName: 'longword'),
     (CName: 'FILE';      CTypesName: '';          PascalName: '')
+  );
+
+type
+  // A standard C constant, of stdint.h or limits.h, with its Pascal value.
+  TCConstMapping = record
+    CName, PascalValue : string;
+  end;
+
+const
+  MAX_CCONSTMAPPINGS = 37;
+  CConstMappings : array [0..MAX_CCONSTMAPPINGS] of TCConstMapping = (
+    (CName: 'INT8_MIN';    PascalValue: 'Low(ShortInt)'),
+    (CName: 'INT8_MAX';    PascalValue: 'High(ShortInt)'),
+    (CName: 'UINT8_MAX';   PascalValue: 'High(Byte)'),
+    (CName: 'INT16_MIN';   PascalValue: 'Low(SmallInt)'),
+    (CName: 'INT16_MAX';   PascalValue: 'High(SmallInt)'),
+    (CName: 'UINT16_MAX';  PascalValue: 'High(Word)'),
+    (CName: 'INT32_MIN';   PascalValue: 'Low(LongInt)'),
+    (CName: 'INT32_MAX';   PascalValue: 'High(LongInt)'),
+    (CName: 'UINT32_MAX';  PascalValue: 'High(LongWord)'),
+    (CName: 'INT64_MIN';   PascalValue: 'Low(Int64)'),
+    (CName: 'INT64_MAX';   PascalValue: 'High(Int64)'),
+    (CName: 'UINT64_MAX';  PascalValue: 'High(QWord)'),
+    (CName: 'INTMAX_MIN';  PascalValue: 'Low(Int64)'),
+    (CName: 'INTMAX_MAX';  PascalValue: 'High(Int64)'),
+    (CName: 'UINTMAX_MAX'; PascalValue: 'High(QWord)'),
+    (CName: 'SIZE_MAX';    PascalValue: 'High(SizeUInt)'),
+    (CName: 'SSIZE_MAX';   PascalValue: 'High(SizeInt)'),
+    (CName: 'INTPTR_MIN';  PascalValue: 'Low(PtrInt)'),
+    (CName: 'INTPTR_MAX';  PascalValue: 'High(PtrInt)'),
+    (CName: 'UINTPTR_MAX'; PascalValue: 'High(PtrUInt)'),
+    (CName: 'PTRDIFF_MIN'; PascalValue: 'Low(PtrInt)'),
+    (CName: 'PTRDIFF_MAX'; PascalValue: 'High(PtrInt)'),
+    (CName: 'CHAR_BIT';    PascalValue: '8'),
+    (CName: 'SCHAR_MIN';   PascalValue: 'Low(ShortInt)'),
+    (CName: 'SCHAR_MAX';   PascalValue: 'High(ShortInt)'),
+    (CName: 'UCHAR_MAX';   PascalValue: 'High(Byte)'),
+    (CName: 'SHRT_MIN';    PascalValue: 'Low(SmallInt)'),
+    (CName: 'SHRT_MAX';    PascalValue: 'High(SmallInt)'),
+    (CName: 'USHRT_MAX';   PascalValue: 'High(Word)'),
+    (CName: 'INT_MIN';     PascalValue: 'Low(LongInt)'),
+    (CName: 'INT_MAX';     PascalValue: 'High(LongInt)'),
+    (CName: 'UINT_MAX';    PascalValue: 'High(LongWord)'),
+    (CName: 'LONG_MIN';    PascalValue: 'Low(PtrInt)'),
+    (CName: 'LONG_MAX';    PascalValue: 'High(PtrInt)'),
+    (CName: 'ULONG_MAX';   PascalValue: 'High(PtrUInt)'),
+    (CName: 'LLONG_MIN';   PascalValue: 'Low(Int64)'),
+    (CName: 'LLONG_MAX';   PascalValue: 'High(Int64)'),
+    (CName: 'ULLONG_MAX';  PascalValue: 'High(QWord)')
   );
 
 const

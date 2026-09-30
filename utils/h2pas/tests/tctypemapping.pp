@@ -101,6 +101,10 @@ type
     procedure TestOffTAndVaListCompile;
     procedure TestOffTAndVaListCompileCTypes;
     procedure TestFilePointer;
+    procedure TestSystemTypes;
+    procedure TestSystemTypesCTypes;
+    procedure TestLimitConstants;
+    procedure TestSystemTypesAndLimitsCompile;
     procedure TestFilePointerCompiles;
   end;
 
@@ -720,6 +724,54 @@ procedure TTestTypeMapping.TestOffTAndVaListCompileCTypes;
 
 begin
   Convert([OffTFunction,VaListFunction],['-d','-C']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestSystemTypes;
+
+begin
+  Convert(['time_t uuid_time(const unsigned char *uu);','int accept2(int s, socklen_t *len);',
+           'struct st { dev_t d; pid_t p; uid_t u; gid_t g; mode_t m; clock_t c; suseconds_t us; ino_t i; useconds_t uu; };'],['-d']);
+  AssertConverted;
+  AssertInterface('time_t is a long',['function uuid_time(uu:Pbyte):PtrInt;cdecl;external;']);
+  AssertInterface('socklen_t is an unsigned int',['function accept2(s:longint; len:Plongword):longint;cdecl;external;']);
+  AssertInterface('the other system types',['d : qword;','p : longint;','u : longword;','g : longword;','m : longword;',
+    'c : PtrInt;','us : PtrInt;','i : PtrUInt;','uu : longword;']);
+end;
+
+
+procedure TTestTypeMapping.TestSystemTypesCTypes;
+
+begin
+  Convert(['time_t uuid_time(void);','dev_t dn(void);','int accept2(int s, socklen_t *len);'],['-d','-C']);
+  AssertConverted;
+  AssertInterface('with -C the types of the ctypes unit',['function uuid_time:clong;cdecl;external;',
+    'function dn:cuint64;cdecl;external;','function accept2(s:cint; len:pcuint):cint;cdecl;external;']);
+end;
+
+
+procedure TTestTypeMapping.TestLimitConstants;
+
+begin
+  Convert(['#define MHD_SIZE_UNKNOWN UINT64_MAX','#define MAXS (SIZE_MAX - 1)','#define BIG INT_MAX','#define SMALL LLONG_MIN'],['-d']);
+  AssertConverted;
+  AssertInterface('the limits of stdint.h and limits.h are Pascal values',
+    ['MHD_SIZE_UNKNOWN = High(QWord);','MAXS = High(SizeUInt)-1;','BIG = High(LongInt);','SMALL = Low(Int64);']);
+end;
+
+
+procedure TTestTypeMapping.TestSystemTypesAndLimitsCompile;
+
+begin
+  Convert(['time_t uuid_time(const unsigned char *uu);','int accept2(int s, socklen_t *len);',
+           'struct st { dev_t d; pid_t p; uid_t u; gid_t g; mode_t m; clock_t c; suseconds_t us; ino_t i; useconds_t uu; };',
+           '#define MHD_SIZE_UNKNOWN UINT64_MAX','#define MAXS (SIZE_MAX - 1)','#define BIG INT_MAX',
+           'struct bits { char b[CHAR_BIT]; };'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(['time_t uuid_time(void);','dev_t dn(void);','int accept2(int s, socklen_t *len);'],['-d','-C']);
   AssertConverted;
   AssertCompiles;
 end;

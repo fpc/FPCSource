@@ -2305,7 +2305,7 @@ begin
     WriteDefineTypeAlias(dname,hp)
   (* an identifier declared later: the constant follows its declaration *)
   else if (lName<>'') and (lName[1] in ['A'..'Z','a'..'z','_']) and not hp^.skiptprefix
-          and not IsDeclaredName(lName) then
+          and not IsDeclaredName(lName) and (MappedConstant(lName)='') then
     begin
     AddPendingDefine(dname,def_expr);
     dname:=nil;

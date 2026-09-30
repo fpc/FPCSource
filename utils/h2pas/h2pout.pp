@@ -121,6 +121,8 @@ function IsNameClash(const aName : AnsiString) : Boolean;
 function RegisteredName(const aName : AnsiString) : AnsiString;
 // Registers the global Pascal name aName.
 procedure RegisterName(const aName : AnsiString);
+// Returns the Pascal value of the standard C constant aName, as UINT64_MAX, or ''.
+function MappedConstant(const aName : AnsiString) : AnsiString;
 // Registers aName as the C name of a macro written as function with untyped parameters.
 procedure RegisterMacroFunction(const aName : AnsiString);
 // Returns aName with underscores appended until it is no clash, and registers it; the identifier aCName is written
@@ -444,11 +446,27 @@ begin
 end;
 
 
-// Returns the Pascal name of the identifier aName in an expression: its new name when it was renamed.
+function MappedConstant(const aName : AnsiString) : AnsiString;
+
+var
+  i : Integer;
+
+begin
+  for i:=Low(CConstMappings) to High(CConstMappings) do
+    if CConstMappings[i].CName=aName then
+      exit(CConstMappings[i].PascalValue);
+  Result:='';
+end;
+
+
+// Returns the Pascal text of the identifier aName in an expression: its new name when it was renamed, the value of
+// a standard C constant.
 function RenamedId(const aName : AnsiString) : AnsiString;
 
 begin
   Result:=RenamedIds.Values[aName];
+  if Result='' then
+    Result:=MappedConstant(aName);
   if Result='' then
     Result:=FixId(aName);
 end;
