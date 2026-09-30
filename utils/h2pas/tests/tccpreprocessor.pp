@@ -27,6 +27,9 @@ type
     procedure TestLocalIncludeDropped;
     procedure TestKeepOtherFile;
     procedure TestKeepListFile;
+    procedure TestUsedBuiltinDefines;
+    procedure TestBuiltinExpect;
+    procedure TestBuiltinsCompile;
     procedure TestMissingKeepListFile;
     procedure TestPreprocessorOptions;
     procedure TestLineNumbersOfTheHeader;
@@ -107,6 +110,44 @@ begin
   AssertInterface('the define of the kept file',['const','OTHER = 1;']);
   AssertInterface('the typedef of the kept file',['type','other_t = longint;']);
   AssertInterface('the declaration of the header itself',['function f:longint;cdecl;external;']);
+end;
+
+
+procedure TTestCPreprocessor.TestUsedBuiltinDefines;
+
+begin
+  Convert(['#define GCC_VERSION_AT_LEAST(major, minor) ((__GNUC__ > major) || (__GNUC__ == major && __GNUC_MINOR__ >= minor))',
+           'int f(int x);'],['-d','-E']);
+  AssertConverted;
+  AssertInterface('the defines of the preprocessor that the header uses',['const','__GNUC__ =']);
+  AssertOutput('both of them',['__GNUC_MINOR__ =']);
+  AssertNotOutput('no other define of the preprocessor','__STDC_VERSION__');
+  Convert(['int f(int x);'],['-d','-E']);
+  AssertConverted;
+  AssertNotOutput('none when the header uses none','__GNUC__');
+end;
+
+
+procedure TTestCPreprocessor.TestBuiltinExpect;
+
+begin
+  Convert(['int f(int x);','#define LIKELY_F(x) (__builtin_expect(f(x), 1))','#define UNLIKELY(c) __builtin_expect(!!(c), 0)'],['-d','-E']);
+  AssertConverted;
+  AssertInterface('the result type of the expected expression',['function LIKELY_F(x : longint) : longint;']);
+  AssertInterface('a boolean expected expression',['function UNLIKELY(c : longint) : boolean;']);
+  AssertImplementation('the hint is left out',['LIKELY_F:=(f(x));']);
+  AssertNotOutput('no call of the hint','__builtin_expect');
+end;
+
+
+procedure TTestCPreprocessor.TestBuiltinsCompile;
+
+begin
+  Convert(['#define GCC_VERSION_AT_LEAST(major, minor) ((__GNUC__ > major) || (__GNUC__ == major && __GNUC_MINOR__ >= minor))',
+           '#define _ASN1_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)',
+           'int f(int x);','#define LIKELY_F(x) (__builtin_expect(f(x), 1))','#define UNLIKELY(c) __builtin_expect(!!(c), 0)'],['-d','-E']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

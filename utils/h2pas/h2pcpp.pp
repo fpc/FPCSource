@@ -78,35 +78,127 @@ begin
 end;
 
 
-// Copies the lines of the kept files in aRaw to aKept, with the line markers of the kept files.
+// Returns the name of the macro that the define line aLine (#define name...) defines, or ''.
+function DefineName(const aLine : AnsiString) : AnsiString;
+
+var
+  i : integer;
+
+begin
+  Result:='';
+  if copy(aLine,1,8)<>'#define ' then
+    exit;
+  i:=9;
+  while (i<=length(aLine)) and (aLine[i] in ['A'..'Z','a'..'z','0'..'9','_']) do
+    inc(i);
+  Result:=copy(aLine,9,i-9);
+end;
+
+
+// Adds the identifiers of aLine that start with an underscore to aNames.
+procedure AddUnderscoreNames(const aLine : AnsiString; aNames : TStrings);
+
+var
+  i, lStart : integer;
+
+begin
+  i:=1;
+  while i<=length(aLine) do
+    if aLine[i] in ['A'..'Z','a'..'z','_'] then
+      begin
+      lStart:=i;
+      while (i<=length(aLine)) and (aLine[i] in ['A'..'Z','a'..'z','0'..'9','_']) do
+        inc(i);
+      if aLine[lStart]='_' then
+        aNames.Add(copy(aLine,lStart,i-lStart));
+      end
+    else
+      inc(i);
+end;
+
+
+// Inserts at the start of aOut the defines of the preprocessor itself in aBuiltins, as name=line, that the lines
+// of aOut, or of the inserted defines, use.
+procedure InsertUsedBuiltins(aOut, aBuiltins : TStringList);
+
+var
+  lUsed, lAdded : TStringList;
+  i, lIndex, lCount : integer;
+
+begin
+  lUsed:=TStringList.Create;
+  lAdded:=TStringList.Create;
+  try
+    lUsed.Sorted:=true;
+    lUsed.Duplicates:=dupIgnore;
+    lUsed.CaseSensitive:=true;
+    for i:=0 to aOut.Count-1 do
+      AddUnderscoreNames(aOut[i],lUsed);
+    repeat
+      lCount:=lAdded.Count;
+      for i:=0 to aBuiltins.Count-1 do
+        if (lUsed.IndexOf(aBuiltins.Names[i])>=0) and (lAdded.IndexOf(aBuiltins[i])<0) then
+          begin
+          lAdded.Add(aBuiltins[i]);
+          AddUnderscoreNames(aBuiltins.ValueFromIndex[i],lUsed);
+          end;
+    until lAdded.Count=lCount;
+    (* in the order of the preprocessor *)
+    lIndex:=0;
+    for i:=0 to aBuiltins.Count-1 do
+      if lAdded.IndexOf(aBuiltins[i])>=0 then
+        begin
+        aOut.Insert(lIndex,aBuiltins.ValueFromIndex[i]);
+        inc(lIndex);
+        end;
+  finally
+    lAdded.Free;
+    lUsed.Free;
+  end;
+end;
+
+
+// Copies the lines of the kept files in aRaw to aKept, with the line markers of the kept files, after the
+// defines of the preprocessor itself that they use.
 procedure FilterPreprocessed(const aRaw, aKept : AnsiString; aKeep : TStrings);
 
 var
-  lIn, lOut : TStringList;
-  lFile : AnsiString;
+  lIn, lOut, lBuiltins : TStringList;
+  lFile, lName : AnsiString;
   i : integer;
-  lOn : boolean;
+  lOn, lBuiltin : boolean;
 
 begin
   lIn:=TStringList.Create;
   lOut:=TStringList.Create;
+  lBuiltins:=TStringList.Create;
   try
     lIn.LoadFromFile(aRaw);
     lOn:=false;
+    lBuiltin:=false;
     for i:=0 to lIn.Count-1 do
       begin
       lFile:=MarkerFileName(lIn[i]);
       if lFile<>'' then
         begin
+        lBuiltin:=lFile='<built-in>';
         lOn:=IsKeptFile(lFile,aKeep);
         if lOn then
           lOut.Add(lIn[i]);
         end
       else if lOn then
-        lOut.Add(lIn[i]);
+        lOut.Add(lIn[i])
+      else if lBuiltin then
+        begin
+        lName:=DefineName(lIn[i]);
+        if lName<>'' then
+          lBuiltins.Add(lName+'='+lIn[i]);
+        end;
       end;
+    InsertUsedBuiltins(lOut,lBuiltins);
     lOut.SaveToFile(aKept);
   finally
+    lBuiltins.Free;
     lOut.Free;
     lIn.Free;
   end;

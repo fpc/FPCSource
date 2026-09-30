@@ -414,6 +414,15 @@ begin
 end;
 
 
+// Returns true when p is a call (t_funexprlist) of the function with the name aName.
+function IsCallOf(p : presobject; const aName : AnsiString) : Boolean;
+
+begin
+  Result:=assigned(p^.p1) and (p^.p1^.typ=t_exprlist) and assigned(p^.p1^.p1) and (p^.p1^.p1^.typ=t_id)
+          and (p^.p1^.p1^.str=aName);
+end;
+
+
 // Returns true when p is a call (t_funexprlist) of a macro written as function.
 function IsMacroFunctionCall(p : presobject) : Boolean;
 
@@ -944,9 +953,16 @@ begin
         write_cast_type(outfile,p^.p3);
         write(outfile,'(');
         end;
-      if assigned(p^.p1) then
+      (* the branch hint __builtin_expect(e,c) is e *)
+      if IsCallOf(p,'__builtin_expect') and assigned(p^.p2) then
+        begin
+        write(outfile,'(');
+        write_expr(outfile,p^.p2^.p1);
+        write(outfile,')');
+        end
+      else if assigned(p^.p1) then
         write_funexpr(outfile,p^.p1);
-      if assigned(p^.p2) then
+      if assigned(p^.p2) and not IsCallOf(p,'__builtin_expect') then
         begin
         write(outfile,'(');
         if IsMacroFunctionCall(p) then

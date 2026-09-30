@@ -161,6 +161,17 @@ begin
 end;
 
 
+// Returns the expression e of the branch hint __builtin_expect(e,c) aExpr, or nil when aExpr is no such hint.
+function ExpectedExpr(aExpr : presobject) : presobject;
+
+begin
+  Result:=nil;
+  aExpr:=UnwrappedExpr(aExpr);
+  if (CalleeName(aExpr)='__builtin_expect') and assigned(aExpr^.p2) then
+    Result:=aExpr^.p2^.p1;
+end;
+
+
 // Returns true when the expression aExpr is a comparison, or an and, or or not of comparisons.
 function IsBooleanExpr(aExpr : presobject) : boolean;
 
@@ -169,6 +180,8 @@ var
 
 begin
   Result:=false;
+  if assigned(ExpectedExpr(aExpr)) then
+    exit(IsBooleanExpr(ExpectedExpr(aExpr)));
   aExpr:=UnwrappedExpr(aExpr);
   if assigned(aExpr) and (aExpr^.typ=t_preop) and (aExpr^.str=' not ') then
     exit(IsBooleanExpr(aExpr^.p1));
@@ -2415,6 +2428,8 @@ begin
     t_funexprlist :
       if assigned(aExpr^.p3) then
         Result:=aExpr^.p3^.get_copy
+      else if assigned(ExpectedExpr(aExpr)) then
+        Result:=MacroResultType(ExpectedExpr(aExpr),aParams)
       else
         begin
         lFunction:=FindFunction(CalleeName(aExpr));
