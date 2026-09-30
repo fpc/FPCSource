@@ -64,6 +64,9 @@ type
     procedure TestPragmaPackInvalid;
     procedure TestPragmaPackCompiles;
     procedure TestError;
+    procedure TestIndentedIfdef;
+    procedure TestIndentedCPlusPlusBlock;
+    procedure TestIndentedCPlusPlusConditional;
     procedure TestLineInfoSkipped;
     procedure TestExternCRemoved;
     procedure TestExternCEndRemoved;
@@ -450,6 +453,40 @@ procedure TTestPreprocessor.TestPragmaPackCompiles;
 begin
   Convert(['#pragma pack(push, 1)','struct s { char a; int b; };','#pragma pack(pop)','struct t { char a; int b; };'],['-d']);
   AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestPreprocessor.TestIndentedIfdef;
+
+begin
+  Convert(['#  ifdef FOO','#    define A 1','#  else','#    define A 2','#  endif',#9'#'#9'ifdef BAR','int x;','#endif'],['-d']);
+  AssertConverted;
+  AssertOutput('#ifdef with spaces after the #',['{$ifdef FOO}','const','A = 1;','{$else}','const','A = 2;','{$endif}']);
+  AssertOutput('#ifdef with tabs',['{$ifdef BAR}']);
+  AssertNotOutput('no condition def','{$if def');
+  AssertCompiles;
+end;
+
+
+procedure TTestPreprocessor.TestIndentedCPlusPlusBlock;
+
+begin
+  Convert(['#  ifdef __cplusplus','extern "C" {','#  endif','int f(void);','#  ifdef __cplusplus','}','#  endif'],['-d']);
+  AssertConverted;
+  AssertOutput('the extern C block with spaces after the #',
+    ['{ C++ extern C conditional removed }','function f:longint;cdecl;external;','{ C++ end of extern C conditional removed }']);
+end;
+
+
+procedure TTestPreprocessor.TestIndentedCPlusPlusConditional;
+
+begin
+  Convert(['#ifndef PCRE_EXP_DECL','#  ifdef __cplusplus','#    define PCRE_EXP_DECL extern "C"','#  else',
+           '#    define PCRE_EXP_DECL extern','#  endif','#endif','int g(void);'],['-d']);
+  AssertConverted;
+  AssertNotOutput('the C++ part is left out','extern "C"');
+  AssertInterface('the declaration after it',['function g:longint;cdecl;external;']);
   AssertCompiles;
 end;
 

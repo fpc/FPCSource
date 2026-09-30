@@ -119,19 +119,19 @@ D [0-9]
 "static"                if NotInCPlusBlock then return(_STATIC) else skip_until_eol;
 "void"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
 "VOID"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
-"#ifdef"[ \t]*"__cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
+"#"[ \t]*"ifdef"[ \t]*"__cplusplus"[ \t]*\n"extern \"C\" {"\n"#"[ \t]*"endif"
                         HandlePreProcStripConditional(false);
-"#ifdef"[ \t]*"cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
+"#"[ \t]*"ifdef"[ \t]*"cplusplus"[ \t]*\n"extern \"C\" {"\n"#"[ \t]*"endif"
                         HandlePreProcStripConditional(false);
-"#ifdef"[ \t]*"__cplusplus"[ \t]*\n"}"\n"#endif"
+"#"[ \t]*"ifdef"[ \t]*"__cplusplus"[ \t]*\n"}"\n"#"[ \t]*"endif"
                         HandlePreProcStripConditional(true);
-"#ifdef"[ \t]*"cplusplus"[ \t]*\n"}"\n"#endif"
+"#"[ \t]*"ifdef"[ \t]*"cplusplus"[ \t]*\n"}"\n"#"[ \t]*"endif"
                         HandlePreProcStripConditional(true);
-"#ifdef"[ \t]*"cplusplus"[ \t]*
+"#"[ \t]*"ifdef"[ \t]*"cplusplus"[ \t]*
                         EnterCplusPlus;
-"#ifdef"[ \t]*"__cplusplus"[ \t]*
+"#"[ \t]*"ifdef"[ \t]*"__cplusplus"[ \t]*
                         EnterCplusPlus;
-"#ifdef"[ \t]           HandlePreProcIfDef;
+"#"[ \t]*"ifdef"[ \t]   HandlePreProcIfDef;
 "#"[ \t]*"else"         HandlePreProcElse;
 "#"[ \t]*"endif"        HandlePreProcEndif;
 "#"[ \t]*"elif"         HandlePreProcElIf;
