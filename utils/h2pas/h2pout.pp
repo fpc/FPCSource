@@ -92,6 +92,8 @@ function IsACType(const s : String) : Boolean;
 // Returns true when the argument list aArgs ends in an ellipsis.
 function HasEllipsis(aArgs : presobject) : Boolean;
 function TypeName(const s:string):string;
+// Registers aName as a type name with T prefix when a member of the enum list aMembers has the same name.
+procedure RegisterEnumTypeName(const aName : string; aMembers : presobject);
 // Returns s with an underscore prefix when it is a Pascal reserved word.
 function FixId(const s:string):string;
 
@@ -145,6 +147,8 @@ var
   BitFieldFlags : TStringList;
   // Members of the enum types written so far.
   EnumMembers : TStringList;
+  // Enum type names that are the name of one of their members, written with T prefix.
+  EnumClashTypes : TStringList;
   // Set while the value of an enum member is written.
   in_enum_value : boolean = false;
  tempfile : text;
@@ -355,10 +359,32 @@ begin
   i:=1;
   if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
     i:=2;
-  if PrependTypes then
+  if PrependTypes or (EnumClashTypes.IndexOf(s)>=0) then
     TypeName:=FixId('T'+Copy(s,i,255))
   else
     TypeName:=FixId(Copy(s,i,255));
+end;
+
+
+procedure RegisterEnumTypeName(const aName : string; aMembers : presobject);
+
+var
+  hp : presobject;
+
+begin
+  if PrependTypes or (aName='') then
+    exit;
+  hp:=aMembers;
+  while assigned(hp) do
+    begin
+    if assigned(hp^.p1) and SameText(hp^.p1^.str,aName) then
+      begin
+      if EnumClashTypes.IndexOf(aName)<0 then
+        EnumClashTypes.Add(aName);
+      exit;
+      end;
+    hp:=hp^.next;
+    end;
 end;
 
 function IsACType(const s : String) : Boolean;
@@ -2399,6 +2425,8 @@ initialization
   PointerTargets:=TStringList.Create;
   BitFieldFlags:=TStringList.Create;
   EnumMembers:=TStringList.Create;
+  EnumClashTypes:=TStringList.Create;
+  EnumClashTypes.CaseSensitive:=true;
   OpaqueTypes:=TStringList.Create;
   DefinedOpaqueTypes:=TStringList.Create;
   PendingAliases:=TStringList.Create;
@@ -2420,6 +2448,7 @@ finalization
   PointerTargets.Free;
   BitFieldFlags.Free;
   EnumMembers.Free;
+  EnumClashTypes.Free;
   OpaqueTypes.Free;
   DefinedOpaqueTypes.Free;
   PendingAliases.Free;

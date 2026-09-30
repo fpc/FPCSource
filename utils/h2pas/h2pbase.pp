@@ -1768,6 +1768,16 @@ begin
       dispose(declarator_list,done);
     exit;
     end;
+  if type_spec^.typ=t_enumdef then
+    begin
+    hp:=declarator_list;
+    while assigned(hp) do
+      begin
+      if assigned(hp^.p1) and assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
+        RegisterEnumTypeName(hp^.p1^.p2^.str,type_spec^.p1);
+      hp:=hp^.next;
+      end;
+    end;
   (* typedef unsigned char Byte: the Pascal name is the type itself *)
   if (type_spec^.typ=t_id) and assigned(lDecl) and not assigned(lDecl^.p1) and assigned(lDecl^.p2)
      and not assigned(declarator_list^.next)

@@ -85,6 +85,11 @@ type
     procedure TestEnumConstantUsesMember;
     procedure TestCharLiteralEnumValues;
     procedure TestCharLiteralEnumValuesCompile;
+    procedure TestEnumTagNameOfMember;
+    procedure TestEnumTypedefNameOfMember;
+    procedure TestEnumConstantsTypeNameOfMember;
+    procedure TestEnumTypeNameOfMemberPrefix;
+    procedure TestEnumTypeNameOfMemberCompiles;
   end;
 
 implementation
@@ -699,6 +704,61 @@ begin
   Convert(['enum e { A = 4, B = A + 1 };'],['-e']);
   AssertConverted;
   AssertInterface('enum constants use members directly',['A = 4;','B = A+1;']);
+end;
+
+
+procedure TTestEnums.TestEnumTagNameOfMember;
+
+begin
+  Convert(['enum XML_Parsing { XML_INITIALIZED, XML_PARSING };',
+           'typedef struct { enum XML_Parsing parsing; } XML_ParsingStatus;',
+           'void f(enum XML_Parsing p, enum XML_Parsing *pp);'],['-d']);
+  AssertConverted;
+  AssertInterface('an enum tag that is the name of a member has a T prefix',['TXML_Parsing = (XML_INITIALIZED,XML_PARSING);']);
+  AssertInterface('uses of the tag have the T prefix',['parsing : TXML_Parsing;']);
+  AssertInterface('the pointer type keeps its name',['procedure f(p:TXML_Parsing; pp:PXML_Parsing);cdecl;external;']);
+end;
+
+
+procedure TTestEnums.TestEnumTypedefNameOfMember;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','void h(Color c);'],['-d']);
+  AssertConverted;
+  AssertInterface('a typedef name that is the name of a member has a T prefix',['TColor = (COLOR,RED);']);
+  AssertInterface('uses of the typedef have the T prefix',['procedure h(c:TColor);cdecl;external;']);
+end;
+
+
+procedure TTestEnums.TestEnumConstantsTypeNameOfMember;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','void h(Color c);'],['-d','-e']);
+  AssertConverted;
+  AssertInterface('the integer type of enum constants has a T prefix',['TColor =  Longint;']);
+  AssertInterface('the members keep their names',['COLOR = 0;','RED = 1;']);
+end;
+
+
+procedure TTestEnums.TestEnumTypeNameOfMemberPrefix;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','enum mode { MODE };','void h(Color c, enum mode m);'],['-d','-T']);
+  AssertConverted;
+  AssertInterface('a single T prefix with -T',['procedure h(c:TColor; m:Tmode);cdecl;external;']);
+  AssertNotOutput('no double prefix','TTColor');
+end;
+
+
+procedure TTestEnums.TestEnumTypeNameOfMemberCompiles;
+
+begin
+  Convert(['enum XML_Parsing { XML_INITIALIZED, XML_PARSING };',
+           'typedef struct { enum XML_Parsing parsing; } XML_ParsingStatus;',
+           'void f(enum XML_Parsing p, enum XML_Parsing *pp);','typedef enum Mode { MODE, OTHER } Mode;',
+           'typedef enum { COLOR, RED } Color;','void h(Color c, Color *pc, Mode m);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

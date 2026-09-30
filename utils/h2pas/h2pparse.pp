@@ -502,6 +502,7 @@ begin
   63 : begin
 
          (* ENUM dname closed_enum_list *)
+         RegisterEnumTypeName(yyv[yysp-1]^.str,yyv[yysp-0]);
          yyval:=NewType2(t_enumdef,yyv[yysp-0],yyv[yysp-1]);
 
        end;

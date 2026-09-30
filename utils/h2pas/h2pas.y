@@ -419,6 +419,7 @@ special_type_specifier :
      ENUM dname closed_enum_list
      {
        (* ENUM dname closed_enum_list *)
+       RegisterEnumTypeName($2^.str,$3);
        $$:=NewType2(t_enumdef,$3,$2);
      } |
      ENUM dname

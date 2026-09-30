@@ -206,7 +206,7 @@ begin
   Convert(['enum e { A, B = 5, C, D = X, E };'],['-e']);
   AssertConverted;
   AssertInterface('-e writes the enum as longint constants',
-    ['e = Longint;','Const','A = 0;','B = 5;','C = 6;','D = X;','E = (X)+1;']);
+    ['Te = Longint;','Const','A = 0;','B = 5;','C = 6;','D = X;','E = (X)+1;']);
 end;
 
 
