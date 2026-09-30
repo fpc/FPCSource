@@ -1011,7 +1011,7 @@ Procedure write_pointerdef(var outfile:text; p,simple_type : presobject);
 
 var
   pointerwritten : Boolean;
-  lVarArgs : Boolean;
+  lVarArgs, lNested : Boolean;
   lName : AnsiString;
 
 begin
@@ -1087,6 +1087,8 @@ begin
         end;
       if not pointerwritten then
         begin
+        lNested:=not in_args and assigned(p^.p1) and (p^.p1^.typ=t_pointerdef)
+                 and not (assigned(p^.p1^.p1) and (p^.p1^.p1^.typ=t_procdef));
         if in_args then
           begin
           write(outfile,'P');
@@ -1095,8 +1097,13 @@ begin
           end
         else
           write(outfile,'^');
+        (* a pointer to a pointer: ^ followed by the named pointer type *)
+        if lNested then
+          in_args:=true;
         write_p_a_def(outfile,p^.p1,simple_type);
-        if in_args then
+        if lNested then
+          in_args:=false
+        else if in_args then
           Dec(pointer_level);
         pointerprefix:=false;
         end;

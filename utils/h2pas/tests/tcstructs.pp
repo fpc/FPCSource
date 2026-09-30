@@ -47,6 +47,10 @@ type
     procedure TestPointerToAnonymousUnionMember;
     procedure TestNestedPointerToStructMembers;
     procedure TestPointerToStructMembersCompile;
+    procedure TestDoublePointerMembers;
+    procedure TestDoublePointerMembersPrefix;
+    procedure TestDoublePointerVariableAndTypedef;
+    procedure TestDoublePointersCompile;
     procedure TestReservedWordMember;
     procedure TestMoreReservedWordMembers;
     procedure TestConstMember;
@@ -553,6 +557,61 @@ begin
   AssertConverted;
   AssertCompiles;
   Convert(['struct info { struct cons { int col; } *aCons; struct { int x; } *anon; };'],['-d','-1']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+const
+  DoublePointerHeader : array[0..2] of string = (
+    'typedef struct sqlite3_value sqlite3_value;',
+    'struct cons { int col; };',
+    'struct info { struct cons **pp; int **ip; char ***cpp; sqlite3_value **apSqlParam; int **parr[2]; void **vp; };');
+
+procedure TTestStructs.TestDoublePointerMembers;
+
+begin
+  Convert(DoublePointerHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a pointer to a pointer is a pointer to the named pointer type',
+    ['pp : ^Pcons;','ip : ^Plongint;','cpp : ^PPansichar;','apSqlParam : ^Psqlite3_value;','parr : array[0..1] of ^Plongint;',
+     'vp : ^pointer;']);
+  AssertInterface('the named pointer types are declared',['Pcons = ^cons;']);
+  AssertNotOutput('no pointer to a pointer written with ^^','^^');
+end;
+
+
+procedure TTestStructs.TestDoublePointerMembersPrefix;
+
+begin
+  Convert(DoublePointerHeader,['-d','-T']);
+  AssertConverted;
+  AssertInterface('the named pointer type with -T',['pp : ^Pcons;','ip : ^Plongint;']);
+  AssertInterface('the pointer type points to the T type',['Pcons = ^Tcons;']);
+end;
+
+
+procedure TTestStructs.TestDoublePointerVariableAndTypedef;
+
+begin
+  Convert(['extern int **gip;','typedef int **ipp_t;','typedef struct cons { int c; } **cpp_t;'],['-d']);
+  AssertConverted;
+  AssertInterface('a variable',['gip : ^Plongint;cvar;external;']);
+  AssertInterface('a typedef',['ipp_t = ^Plongint;']);
+  AssertInterface('a typedef of a struct',['cpp_t = ^Pcons;']);
+end;
+
+
+procedure TTestStructs.TestDoublePointersCompile;
+
+begin
+  Convert(DoublePointerHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(DoublePointerHeader,['-d','-T','-1']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(['extern int **gip;','typedef int **ipp_t;','typedef struct cons { int c; } **cpp_t;'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;
