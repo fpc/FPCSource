@@ -3,4 +3,4 @@
 rm -rf tests/build
 mkdir -p tests/build
 fpc -Mobjfpc -Sh -Criot -gl -gh -B -vew \
-  -Fusrc -Futests -FUtests/build -FEtests/build "$@" tests/testfpimage.lpr
+  -Fusrc -Futests -Fu../libheif/src -FUtests/build -FEtests/build "$@" tests/testfpimage.lpr

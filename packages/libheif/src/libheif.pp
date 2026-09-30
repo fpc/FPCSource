@@ -567,7 +567,9 @@ end;
 
   procedure Freelibheif;
     begin
-      FreeLibrary(hlib);
+      if hlib<>NilHandle then
+        FreeLibrary(hlib);
+      hlib:=NilHandle;
       heif_get_version:=nil;
       heif_get_version_number:=nil;
       heif_get_version_number_major:=nil;

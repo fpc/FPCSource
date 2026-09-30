@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('libheif', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
 
     P.Author := 'Michael Van Canneyt of the Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -400,6 +401,25 @@ begin
       with T.Dependencies do
         begin
           AddUnit('fpimage');
+        end;
+    // heif, through libheif
+    T:=P.Targets.AddUnit('heifcomn.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadheif.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpimgexif');
+          AddUnit('heifcomn');
+        end;
+    T:=P.Targets.AddUnit('fpwriteheif.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('heifcomn');
         end;
     // ico
     T:=P.Targets.AddUnit('icocomn.pas');

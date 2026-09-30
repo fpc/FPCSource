@@ -266,7 +266,7 @@ var
 
 begin
   lTested := 0;
-  lImage := CreateGradientImage(8, 6);
+  lImage := CreateGradientImage(24, 18);
   try
     for i := 0 to ImageHandlers.Count - 1 do
       begin
@@ -288,8 +288,8 @@ begin
         lReader.BeginFrames(FStream);
         lRead := lReader.ReadNextFrame(lInfo);
         AssertNotNull(lName + ': the frame is read', lRead);
-        AssertEquals(lName + ': width of the frame', 8, lRead.Width);
-        AssertEquals(lName + ': height of the frame', 6, lRead.Height);
+        AssertEquals(lName + ': width of the frame', 24, lRead.Width);
+        AssertEquals(lName + ': height of the frame', 18, lRead.Height);
         AssertNull(lName + ': there is no second frame', lReader.ReadNextFrame(lInfo));
         AssertEquals(lName + ': one frame read', 1, lReader.FramesRead);
         lReader.EndFrames;
