@@ -825,6 +825,61 @@ begin
 end;
 
 
+// Returns true when one of the declarators in aDecls (t_declist) is a pointer.
+function HasPointerDeclarator(aDecls : presobject) : boolean;
+
+var
+  lChain : presobject;
+
+begin
+  Result:=false;
+  while assigned(aDecls) and not Result do
+    begin
+    if assigned(aDecls^.p1) then
+      begin
+      lChain:=aDecls^.p1^.p1;
+      while assigned(lChain) and not Result do
+        begin
+        Result:=lChain^.typ=t_pointerdef;
+        lChain:=lChain^.p1;
+        end;
+      end;
+    aDecls:=aDecls^.next;
+    end;
+end;
+
+
+// Declares the struct or union defined in the member aMember (t_memberdec) of aOwner as a record type of its own
+// when it has a tag or a pointer declarator, named after the tag or aOwner_member, and makes the member use it.
+procedure HoistInlineRecord(const aOwner : AnsiString; aMember : presobject);
+
+var
+  lType, lDecls, lRef : presobject;
+  lTagged : boolean;
+
+begin
+  lType:=aMember^.p1;
+  lDecls:=aMember^.p2;
+  if not (assigned(lType) and (lType^.typ in [t_structdef,t_uniondef]) and assigned(lType^.p1)) then
+    exit;
+  if not (assigned(lDecls) and assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) and assigned(lDecls^.p1^.p2^.p)) then
+    exit;
+  lTagged:=assigned(lType^.p2) and assigned(lType^.p2^.p);
+  if not lTagged and not HasPointerDeclarator(lDecls) then
+    exit;
+  if not lTagged then
+    begin
+    if assigned(lType^.p2) then
+      dispose(lType^.p2,done);
+    lType^.p2:=NewID(aOwner+'_'+lDecls^.p1^.p2^.str);
+    end;
+  lRef:=NewID(lType^.p2^.str);
+  lRef^.structtag:=true;
+  aMember^.p1:=lRef;
+  HandleSpecialType(lType);
+end;
+
+
 // Declares named types for the function pointers among the members of the struct or union aType, with type names
 // aOwner_member: arrays of and pointers to function pointers, and the function pointer arguments and results
 // of function pointer members.
@@ -843,6 +898,7 @@ begin
     lMember:=lMembers^.p1;
     if assigned(lMember) and (lMember^.typ=t_memberdec) then
       begin
+      HoistInlineRecord(aOwner,lMember);
       lDecls:=lMember^.p2;
       while assigned(lDecls) do
         begin

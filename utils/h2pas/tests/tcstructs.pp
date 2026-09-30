@@ -41,6 +41,12 @@ type
     procedure TestFunctionPointerMemberArgumentsCompile;
     procedure TestNestedUnionMember;
     procedure TestNestedStructMember;
+    procedure TestPointerToTaggedStructMember;
+    procedure TestPointerToAnonymousStructMember;
+    procedure TestTaggedStructMember;
+    procedure TestPointerToAnonymousUnionMember;
+    procedure TestNestedPointerToStructMembers;
+    procedure TestPointerToStructMembersCompile;
     procedure TestReservedWordMember;
     procedure TestMoreReservedWordMembers;
     procedure TestConstMember;
@@ -474,6 +480,79 @@ begin
            'extern int counter;',
            'int add(int a, int b);',
            'void reset(void);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestPointerToTaggedStructMember;
+
+begin
+  Convert(['struct info { int n; struct cons { int col; unsigned char op; } *aCons; struct cons *again; };',
+           'void f(struct cons *c);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct defined in a member is a record type of its own',
+    ['Pcons = ^cons;','cons = record','col : longint;','op : byte;','end;']);
+  AssertInterface('the member points to the record type',['aCons : ^cons;','again : ^cons;']);
+  AssertInterface('the tag is known after the struct',['procedure f(c:Pcons);cdecl;external;']);
+  AssertNotOutput('no pointer to an inline record','^record');
+end;
+
+
+procedure TTestStructs.TestPointerToAnonymousStructMember;
+
+begin
+  Convert(['struct info { struct { int x; } *anon; };'],['-d']);
+  AssertConverted;
+  AssertInterface('an anonymous struct with a pointer declarator is named after the member',
+    ['info_anon = record','x : longint;','end;']);
+  AssertInterface('the member points to it',['anon : ^info_anon;']);
+end;
+
+
+procedure TTestStructs.TestTaggedStructMember;
+
+begin
+  Convert(['struct info2 { struct inner { int col; } in; struct { int y; } an; };'],['-d']);
+  AssertConverted;
+  AssertInterface('a tagged struct member is a record type of its own',['inner = record','col : longint;','end;']);
+  AssertInterface('the member uses it, an anonymous struct member stays nested',
+    ['_in : inner;','an : record','y : longint;','end;']);
+end;
+
+
+procedure TTestStructs.TestPointerToAnonymousUnionMember;
+
+begin
+  Convert(['struct info2 { union { int i; float f; } *pu; };'],['-d']);
+  AssertConverted;
+  AssertInterface('an anonymous union with a pointer declarator is a variant record type',
+    ['info2_pu = record','case longint of','0 : ( i : longint );','1 : ( f : single );','end;']);
+  AssertInterface('the member points to it',['pu : ^info2_pu;']);
+end;
+
+
+procedure TTestStructs.TestNestedPointerToStructMembers;
+
+begin
+  Convert(['typedef struct info { int n; struct { int a; struct deep { int z; } *d; } *list; } info;'],['-d']);
+  AssertConverted;
+  AssertInterface('the innermost struct comes first',
+    ['deep = record','z : longint;','end;','info_list = record','a : longint;','d : ^deep;','end;',
+     'info = record','n : longint;','list : ^info_list;','end;']);
+end;
+
+
+procedure TTestStructs.TestPointerToStructMembersCompile;
+
+begin
+  Convert(['struct info { int n; struct cons { int col; unsigned char op; } *aCons; struct { int x; } *anon;',
+           '  struct cons *again; union { int i; float f; } *pu; struct inner { int c; } in; };',
+           'typedef struct t { struct { int a; struct deep { int z; } *d; } *list; } t;',
+           'void f(struct cons *c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(['struct info { struct cons { int col; } *aCons; struct { int x; } *anon; };'],['-d','-1']);
   AssertConverted;
   AssertCompiles;
 end;
