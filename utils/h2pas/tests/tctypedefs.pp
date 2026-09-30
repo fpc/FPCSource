@@ -35,6 +35,9 @@ type
     procedure TestTypedefOfTheSamePascalType;
     procedure TestTypedefOfTheSamePascalTypePrefix;
     procedure TestTypedefOfTheSamePascalTypeCompiles;
+    procedure TestReservedWordTypeNames;
+    procedure TestReservedWordTypeNamesPrefix;
+    procedure TestReservedWordTypeNamesCompile;
     procedure TestOpaqueStruct;
     procedure TestOpaqueStructWithAlias;
     procedure TestOpaqueStructDefinedLater;
@@ -249,6 +252,40 @@ procedure TTestTypedefs.TestTypedefOfTheSamePascalTypeCompiles;
 
 begin
   Convert(['typedef unsigned char Byte;','typedef Byte Bytef;','void f(Bytef *b, Byte c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNames;
+
+begin
+  Convert(['typedef struct file file_t;','struct file { int fd; struct file *next; };','typedef int set;',
+           'enum label { L1 };','int f(struct file *p, set s, enum label l, file_t *q);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct named like a reserved word',
+    ['Pfile = ^_file;','_file = record','fd : longint;','next : ^_file;','end;','file_t = _file;']);
+  AssertInterface('a typedef named like a reserved word',['_set = longint;']);
+  AssertInterface('an enum named like a reserved word',['_label = (L1);']);
+  AssertInterface('parameters use the prefixed names',['function f(p:Pfile; s:_set; l:_label; q:Pfile_t):longint;']);
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNamesPrefix;
+
+begin
+  Convert(['typedef int o;','o g(o a);','struct file { int fd; };'],['-d','-t']);
+  AssertConverted;
+  AssertInterface('a T prefix that gives a reserved word',['_To = longint;','function g(a:_To):_To;']);
+  AssertInterface('a T prefix that gives no reserved word',['Tfile = record']);
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNamesCompile;
+
+begin
+  Convert(['typedef struct file file_t;','struct file { int fd; struct file *next; };','typedef int set;',
+           'enum label { L1 };','int f(struct file *p, set s, enum label l, file_t *q);'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

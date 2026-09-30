@@ -356,9 +356,9 @@ begin
   if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
     i:=2;
   if PrependTypes then
-    TypeName:='T'+Copy(s,i,255)
+    TypeName:=FixId('T'+Copy(s,i,255))
   else
-    TypeName:=Copy(s,i,255);
+    TypeName:=FixId(Copy(s,i,255));
 end;
 
 function IsACType(const s : String) : Boolean;

@@ -149,13 +149,13 @@ const
   csize_t_STR     = 'csize_t';
 
 type
-  // A standard C type name with its ctypes and its Pascal type.
+  // A standard C type name with its ctypes and its Pascal type; '' for a type that is written as void, such as FILE.
   TCTypeMapping = record
     CName, CTypesName, PascalName : string;
   end;
 
 const
-  MAX_CTYPEMAPPINGS = 24;
+  MAX_CTYPEMAPPINGS = 25;
   CTypeMappings : array [0..MAX_CTYPEMAPPINGS] of TCTypeMapping = (
     (CName: 'int8_t';    CTypesName: cint8_STR;   PascalName: 'shortint'),
     (CName: 'uint8_t';   CTypesName: cuint8_STR;  PascalName: 'byte'),
@@ -181,7 +181,8 @@ const
     (CName: 'off64_t';   CTypesName: cint64_STR;  PascalName: 'int64'),
     (CName: 'va_list';   CTypesName: 'pointer';   PascalName: 'pointer'),
     (CName: '__gnuc_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
-    (CName: '__builtin_va_list'; CTypesName: 'pointer'; PascalName: 'pointer')
+    (CName: '__builtin_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
+    (CName: 'FILE';      CTypesName: '';          PascalName: '')
   );
 
 const

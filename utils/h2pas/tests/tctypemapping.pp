@@ -100,6 +100,8 @@ type
     procedure TestVaList;
     procedure TestOffTAndVaListCompile;
     procedure TestOffTAndVaListCompileCTypes;
+    procedure TestFilePointer;
+    procedure TestFilePointerCompiles;
   end;
 
 implementation
@@ -718,6 +720,27 @@ procedure TTestTypeMapping.TestOffTAndVaListCompileCTypes;
 
 begin
   Convert([OffTFunction,VaListFunction],['-d','-C']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypeMapping.TestFilePointer;
+
+begin
+  Convert(['typedef FILE *png_FILE_p;','void init_io(FILE *fp);','FILE **pp(void);','struct s { FILE *f; };'],['-d']);
+  AssertConverted;
+  AssertInterface('a FILE pointer is a pointer',['png_FILE_p = pointer;','procedure init_io(fp:pointer);cdecl;external;']);
+  AssertInterface('a pointer to a FILE pointer',['function pp:Ppointer;cdecl;external;']);
+  AssertInterface('a FILE pointer field',['f : pointer;']);
+end;
+
+
+procedure TTestTypeMapping.TestFilePointerCompiles;
+
+begin
+  Convert(['typedef FILE *png_FILE_p;','void init_io(FILE *fp);','FILE **pp(void);','struct s { FILE *f; };',
+           '#define CASTF(x) ((FILE *)(x))'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

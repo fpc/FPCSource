@@ -671,6 +671,8 @@ begin
       begin
       if (CTypeMappings[i].CName='wchar_t') and Win32headers then
         Result:=NewIntID(WCHAR_STR)
+      else if CTypeMappings[i].PascalName='' then
+        Result:=NewVoid
       else
         Result:=NewCType(CTypeMappings[i].CTypesName,CTypeMappings[i].PascalName);
       dispose(aName,done);
@@ -878,6 +880,256 @@ begin
 end;
 
 
+// Returns true when aList is the argument list (void): one unnamed argument of type void.
+function IsVoidArgList(aList : presobject) : boolean;
+
+var
+  lArg : presobject;
+
+begin
+  Result:=false;
+  if not assigned(aList) or (aList^.typ<>t_arglist) or assigned(aList^.next) then
+    exit;
+  lArg:=aList^.p1;
+  Result:=assigned(lArg) and assigned(lArg^.p1) and (lArg^.p1^.typ=t_void)
+          and assigned(lArg^.p2) and not assigned(lArg^.p2^.p1) and not assigned(lArg^.p2^.p2);
+end;
+
+
+type
+  // A declared function, as copies of the parts of its declaration.
+  PStoredFunction = ^TStoredFunction;
+  TStoredFunction = record
+    Decl, TypeSpec, Modifier, DeclList : presobject;
+    HasBody : boolean;
+  end;
+
+var
+  // The declared functions by C name, with a PStoredFunction as object.
+  StoredFunctions : TStringList = nil;
+  // The C name of the function that the function being written is an alias of.
+  AliasTarget : AnsiString = '';
+
+// Returns a copy of aNode, or nil.
+function CopyOf(aNode : presobject) : presobject;
+
+begin
+  if assigned(aNode) then
+    Result:=aNode^.get_copy
+  else
+    Result:=nil;
+end;
+
+
+// Registers the function declared by the parts of a declaration, as the target of later aliases.
+procedure StoreFunction(decl, type_spec, modifier_spec, decllist_spec : presobject; aHasBody : boolean);
+
+var
+  lFunction : PStoredFunction;
+
+begin
+  if (AliasTarget<>'') or not assigned(decllist_spec^.p1^.p2) or not assigned(decllist_spec^.p1^.p2^.p) then
+    exit;
+  if not assigned(StoredFunctions) then
+    begin
+    StoredFunctions:=TStringList.Create;
+    StoredFunctions.CaseSensitive:=true;
+    end;
+  if StoredFunctions.IndexOf(decllist_spec^.p1^.p2^.str)>=0 then
+    exit;
+  New(lFunction);
+  lFunction^.Decl:=CopyOf(decl);
+  lFunction^.TypeSpec:=CopyOf(type_spec);
+  lFunction^.Modifier:=CopyOf(modifier_spec);
+  lFunction^.DeclList:=decllist_spec^.get_copy;
+  if assigned(lFunction^.DeclList^.next) then
+    dispose(lFunction^.DeclList^.next,done);
+  lFunction^.DeclList^.next:=nil;
+  lFunction^.HasBody:=aHasBody;
+  StoredFunctions.AddObject(decllist_spec^.p1^.p2^.str,TObject(lFunction));
+end;
+
+
+// Frees the registered functions.
+procedure FreeStoredFunctions;
+
+var
+  i : integer;
+  lFunction : PStoredFunction;
+
+begin
+  if not assigned(StoredFunctions) then
+    exit;
+  for i:=0 to StoredFunctions.Count-1 do
+    begin
+    lFunction:=PStoredFunction(StoredFunctions.Objects[i]);
+    if assigned(lFunction^.Decl) then
+      dispose(lFunction^.Decl,done);
+    if assigned(lFunction^.TypeSpec) then
+      dispose(lFunction^.TypeSpec,done);
+    if assigned(lFunction^.Modifier) then
+      dispose(lFunction^.Modifier,done);
+    dispose(lFunction^.DeclList,done);
+    Dispose(lFunction);
+    end;
+  StoredFunctions.Free;
+end;
+
+
+// Returns the declared function with the C name aName, or nil.
+function FindFunction(const aName : AnsiString) : PStoredFunction;
+
+var
+  lIndex : integer;
+
+begin
+  Result:=nil;
+  if not assigned(StoredFunctions) then
+    exit;
+  lIndex:=StoredFunctions.IndexOf(aName);
+  if lIndex>=0 then
+    Result:=PStoredFunction(StoredFunctions.Objects[lIndex]);
+end;
+
+
+// Returns the number of arguments of the declared function aFunction, -1 when it takes a variable number.
+function ArgumentCount(aFunction : PStoredFunction) : integer;
+
+var
+  lArgs : presobject;
+
+begin
+  lArgs:=aFunction^.DeclList^.p1^.p1^.p2;
+  if HasEllipsis(lArgs) then
+    exit(-1);
+  Result:=0;
+  if IsVoidArgList(lArgs) then
+    exit;
+  while assigned(lArgs) do
+    begin
+    inc(Result);
+    lArgs:=lArgs^.next;
+    end;
+end;
+
+
+// Returns the name of the imported symbol of the function declared by decllist_spec: the alias target, if any.
+function ExternalName(decllist_spec : presobject) : AnsiString;
+
+begin
+  if AliasTarget<>'' then
+    Result:=AliasTarget
+  else
+    Result:=decllist_spec^.p1^.p2^.p;
+end;
+
+
+// Returns the arguments of a call that passes the parameters aArgs (t_arglist) on, as written by write_args;
+// an ellipsis passes the array of const args when aArrayOfConst is set, and nothing otherwise.
+function CallArguments(aArgs : presobject; aArrayOfConst : boolean) : AnsiString;
+
+var
+  lIndex : integer;
+
+begin
+  Result:='';
+  if not assigned(aArgs) or IsVoidArgList(aArgs) then
+    exit;
+  lIndex:=1;
+  while assigned(aArgs) do
+    begin
+    if not assigned(aArgs^.p1^.p1) then
+      begin
+      (* the ellipsis *)
+      if aArrayOfConst then
+        begin
+        if Result<>'' then
+          Result:=Result+',';
+        Result:=Result+'args';
+        end;
+      break;
+      end;
+    if Result<>'' then
+      Result:=Result+',';
+    if assigned(aArgs^.p1^.p2^.p2) then
+      Result:=Result+FixId(aArgs^.p1^.p2^.p2^.p)
+    else if RemoveUnderscore then
+      Result:=Result+'para'+str(lIndex)
+    else
+      Result:=Result+'_para'+str(lIndex);
+    inc(lIndex);
+    aArgs:=aArgs^.next;
+    end;
+  Result:='('+Result+')';
+end;
+
+
+
+// Writes the function aAlias as an alias of the declared function aFunction with the C name aTarget:
+// an import of the same symbol, or a function that calls it.
+procedure WriteFunctionAlias(const aAlias : AnsiString; aFunction : PStoredFunction; const aTarget : AnsiString);
+
+var
+  lDeclList, lModifier : presobject;
+  lUseLib, lDynLib : boolean;
+
+begin
+  lDeclList:=aFunction^.DeclList^.get_copy;
+  dispose(lDeclList^.p1^.p2,done);
+  lDeclList^.p1^.p2:=NewID(aAlias);
+  lModifier:=CopyOf(aFunction^.Modifier);
+  lUseLib:=UseLib;
+  lDynLib:=createdynlib;
+  if aFunction^.HasBody then
+    begin
+    UseLib:=false;
+    createdynlib:=false;
+    end;
+  AliasTarget:=aTarget;
+  if aFunction^.HasBody then
+    HandleDeclarationSysTrap(NewID('intern'),CopyOf(aFunction^.TypeSpec),lModifier,lDeclList,nil)
+  else
+    HandleDeclarationSysTrap(CopyOf(aFunction^.Decl),CopyOf(aFunction^.TypeSpec),lModifier,lDeclList,nil);
+  AliasTarget:='';
+  UseLib:=lUseLib;
+  createdynlib:=lDynLib;
+  if assigned(lModifier) then
+    dispose(lModifier,done);
+end;
+
+
+// Returns true when the macro with the parameters aParams (t_enumlist) and the body aBody only calls a function
+// with its parameters, in order; aTarget is the name of that function.
+function IsWrapperMacro(aParams, aBody : presobject; var aTarget : AnsiString) : boolean;
+
+var
+  lArgs, lArg : presobject;
+
+begin
+  Result:=false;
+  aTarget:='';
+  while assigned(aBody) and (aBody^.typ=t_exprlist) and not assigned(aBody^.next) and assigned(aBody^.p1) do
+    aBody:=aBody^.p1;
+  if not assigned(aBody) or (aBody^.typ<>t_funexprlist) or assigned(aBody^.p3)
+     or not assigned(aBody^.p1) or not assigned(aBody^.p1^.p1) or (aBody^.p1^.p1^.typ<>t_id) then
+    exit;
+  lArgs:=aBody^.p2;
+  while assigned(lArgs) and assigned(aParams) do
+    begin
+    lArg:=lArgs^.p1;
+    while assigned(lArg) and (lArg^.typ=t_exprlist) and not assigned(lArg^.next) and assigned(lArg^.p1) do
+      lArg:=lArg^.p1;
+    if not assigned(lArg) or (lArg^.typ<>t_id) or not assigned(aParams^.p1) or (lArg^.str<>aParams^.p1^.str) then
+      exit;
+    lArgs:=lArgs^.next;
+    aParams:=aParams^.next;
+    end;
+  Result:=not assigned(lArgs) and not assigned(aParams);
+  if Result then
+    aTarget:=aBody^.p1^.p1^.str;
+end;
+
+
 function HandleDeclarationStatement(decl, type_spec, modifier_spec,
   decllist_spec, block_spec: presobject): presobject;
 var
@@ -902,6 +1154,7 @@ begin
         if assigned(decllist_spec^.p1^.p1^.p1) and (decllist_spec^.p1^.p1^.p1^.typ=t_pointerdef) then
           NilPointerExits(block_spec);
         HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+        StoreFunction(decl,type_spec,modifier_spec,decllist_spec,true);
         lVarArgs:=false;
         lSkipEllipsis:=false;
         repeat
@@ -1122,6 +1375,7 @@ begin
     and (decllist_spec^.p1^.p1^.typ=t_procdef) then
     begin
         HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+        StoreFunction(decl,type_spec,modifier_spec,decllist_spec,false);
         lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and
           (UseLib or createdynlib or (assigned(decl) and (decl^.str='extern')));
         lSkipEllipsis:=lVarArgs;
@@ -1177,7 +1431,7 @@ begin
               write_args(outfile,decllist_spec^.p1^.p1^.p2,lSkipEllipsis);
             if createdynlib then
               begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
+                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+ExternalName(decllist_spec)+''');');
                 freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
               end
             else if not IsExtern then
@@ -1209,7 +1463,7 @@ begin
             in_args:=old_in_args;
             if createdynlib then
               begin
-                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+decllist_spec^.p1^.p2^.p+''');');
+                loaddynlibproc.add('pointer('+decllist_spec^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+ExternalName(decllist_spec)+''');');
                 freedynlibproc.add(decllist_spec^.p1^.p2^.p+':=nil;');
               end
             else if not IsExtern then
@@ -1242,7 +1496,9 @@ begin
             begin
               write (outfile,';external');
               If UseName then
-                Write(outfile,' External_library name ''',decllist_spec^.p1^.p2^.p,'''');
+                Write(outfile,' External_library name ''',ExternalName(decllist_spec),'''')
+              else if AliasTarget<>'' then
+                Write(outfile,' name ''',AliasTarget,'''');
             end;
             writeln(outfile,';');
           end
@@ -1253,7 +1509,13 @@ begin
             begin
               writeln(implemfile,';');
               writeln(implemfile,aktspace,'begin');
-              writeln(implemfile,aktspace,'  { You must implement this function }');
+              if AliasTarget='' then
+                writeln(implemfile,aktspace,'  { You must implement this function }')
+              else if (type_spec^.typ=t_void) and (decllist_spec^.p1^.p1^.p1=nil) then
+                writeln(implemfile,aktspace,'  ',AliasTarget,CallArguments(decllist_spec^.p1^.p1^.p2,not lSkipEllipsis),';')
+              else
+                writeln(implemfile,aktspace,'  ',decllist_spec^.p1^.p2^.p,':=',AliasTarget,
+                        CallArguments(decllist_spec^.p1^.p1^.p2,not lSkipEllipsis),';');
               writeln(implemfile,aktspace,'end;');
             end;
           end;
@@ -1410,21 +1672,6 @@ begin
     RegisterFunctionType(aDecl^.p2^.str);
 end;
 
-
-// Returns true when aList is the argument list (void): one unnamed argument of type void.
-function IsVoidArgList(aList : presobject) : boolean;
-
-var
-  lArg : presobject;
-
-begin
-  Result:=false;
-  if not assigned(aList) or (aList^.typ<>t_arglist) or assigned(aList^.next) then
-    exit;
-  lArg:=aList^.p1;
-  Result:=assigned(lArg) and assigned(lArg^.p1) and (lArg^.p1^.typ=t_void)
-          and assigned(lArg^.p2) and not assigned(lArg^.p2^.p1) and not assigned(lArg^.p2^.p2);
-end;
 
 
 function HandleTypedef(type_spec,dec_modifier,declarator,arg_decl_list: presobject) : presobject;
@@ -1804,6 +2051,14 @@ begin
     dispose(def_expr,done);
     exit;
     end;
+  (* the name of a declared function: a function alias *)
+  if assigned(hp) and (hp^.typ=t_id) and assigned(FindFunction(hp^.str)) then
+    begin
+    WriteFunctionAlias(dname^.str,FindFunction(hp^.str),hp^.str);
+    dispose(dname,done);
+    dispose(def_expr,done);
+    exit;
+    end;
   (* a type keyword, a standard C type name or a declared type: a type alias *)
   if assigned(hp) and (hp^.typ=t_id)
      and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(hp^.str))) then
@@ -2044,6 +2299,8 @@ function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobje
 var
   hp,ph : presobject;
   lRotatable : TFPList;
+  lTarget : AnsiString;
+  lCount : integer;
 
 begin
   HandleDefineMacro:=Nil;
@@ -2054,6 +2311,26 @@ begin
       dispose(enum_list,done);
     dispose(para_def_expr,done);
     exit;
+    end;
+  (* a macro that calls a declared function with its parameters: a function alias *)
+  if IsWrapperMacro(enum_list,para_def_expr,lTarget) and assigned(FindFunction(lTarget)) then
+    begin
+    lCount:=0;
+    hp:=enum_list;
+    while assigned(hp) do
+      begin
+      inc(lCount);
+      hp:=hp^.next;
+      end;
+    if ArgumentCount(FindFunction(lTarget))=lCount then
+      begin
+      WriteFunctionAlias(dname^.str,FindFunction(lTarget),lTarget);
+      dispose(dname,done);
+      if assigned(enum_list) then
+        dispose(enum_list,done);
+      dispose(para_def_expr,done);
+      exit;
+      end;
     end;
   hp:=nil;
   ph:=nil;
@@ -2141,4 +2418,5 @@ initialization
 finalization
   DefineNames.Free;
   EmptyDefines.Free;
+  FreeStoredFunctions;
 end.

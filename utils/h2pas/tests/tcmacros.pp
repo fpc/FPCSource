@@ -163,6 +163,17 @@ type
     procedure TestStatementMacrosCompile;
     procedure TestIndentationAfterMacros;
     procedure TestCompactIndentationAfterMacros;
+    procedure TestFunctionAlias;
+    procedure TestFunctionAliasWithLibraryName;
+    procedure TestFunctionAliasDynamic;
+    procedure TestFunctionAliasWrapper;
+    procedure TestFunctionAliasOfFunctionWithBody;
+    procedure TestFunctionAliasVarargs;
+    procedure TestWrapperMacro;
+    procedure TestWrapperMacroOtherArguments;
+    procedure TestWrapperMacroArgumentCount;
+    procedure TestFunctionAliasBeforeFunction;
+    procedure TestFunctionAliasesCompile;
   end;
 
 implementation
@@ -1469,6 +1480,138 @@ begin
   AssertRawLine('function after macros','  function f:longint;');
   AssertRawLine('type block after macros','  type');
   AssertRawLine('type after macros','    t = longint;');
+end;
+
+
+const
+  AliasHeader : array[0..3] of string = (
+    'typedef long XML_Size;',
+    'XML_Size XML_GetCurrentLineNumber(void *parser);',
+    '#define XML_GetErrorLineNumber XML_GetCurrentLineNumber',
+    'void reset(void);');
+
+procedure TTestFunctionMacros.TestFunctionAlias;
+
+begin
+  Convert(AliasHeader,['-d']);
+  AssertConverted;
+  AssertInterface('an alias of an external function imports the same symbol',
+    ['function XML_GetErrorLineNumber(parser:pointer):XML_Size;cdecl;external name ''XML_GetCurrentLineNumber'';']);
+  AssertNotOutput('no constant for the alias','XML_GetErrorLineNumber =');
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasWithLibraryName;
+
+begin
+  Convert(AliasHeader,['-D','-l','libexpat']);
+  AssertConverted;
+  AssertInterface('an alias with the library name',
+    ['function XML_GetErrorLineNumber(parser:pointer):XML_Size;cdecl;external External_library name ''XML_GetCurrentLineNumber'';']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasDynamic;
+
+begin
+  Convert(AliasHeader,['-P','-l','libexpat.so']);
+  AssertConverted;
+  AssertInterface('an alias is a procedure variable',['XML_GetErrorLineNumber : function(parser:pointer):XML_Size;cdecl;']);
+  AssertImplementation('the alias is loaded from the symbol of the function',
+    ['pointer(XML_GetErrorLineNumber):=GetProcAddress(hlib,''XML_GetCurrentLineNumber'');']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasWrapper;
+
+begin
+  Convert(AliasHeader);
+  AssertConverted;
+  AssertInterface('an alias of a function to implement',['function XML_GetErrorLineNumber(parser:pointer):XML_Size;']);
+  AssertImplementation('the alias calls the function',
+    ['function XML_GetErrorLineNumber(parser:pointer):XML_Size;','begin',
+     'XML_GetErrorLineNumber:=XML_GetCurrentLineNumber(parser);','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasOfFunctionWithBody;
+
+begin
+  Convert(['static inline int twice(int a) { return a * 2; }','#define twice2 twice'],['-d']);
+  AssertConverted;
+  AssertInterface('an alias of a function with a body is no import',['function twice2(a:longint):longint;']);
+  AssertNotOutput('the alias imports nothing','external name');
+  AssertImplementation('the alias calls the function',['function twice2(a:longint):longint;','begin','twice2:=twice(a);','end;']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasVarargs;
+
+begin
+  Convert(['int logf_(const char *fmt, ...);','#define logf2 logf_'],['-d']);
+  AssertConverted;
+  AssertInterface('an alias of a varargs function',['function logf2(fmt:Pansichar):longint;cdecl;varargs;external name ''logf_'';']);
+  Convert(['int logf_(const char *fmt, ...);','#define logf2 logf_']);
+  AssertConverted;
+  AssertImplementation('the array of const variant passes the arguments',['logf2:=logf_(fmt,args);']);
+  AssertImplementation('the variant without arguments',['logf2:=logf_(fmt);']);
+end;
+
+
+procedure TTestFunctionMacros.TestWrapperMacro;
+
+begin
+  Convert(['int crc(int seed, const char *buf, int len);','#define crc_alias(s, b, l) crc(s, b, l)',
+           '#define crc_paren(s, b, l) (crc((s), (b), (l)))','void reset(void);','#define reset2() reset()'],['-d']);
+  AssertConverted;
+  AssertInterface('a macro that passes its parameters is an alias',
+    ['function crc_alias(seed:longint; buf:Pansichar; len:longint):longint;cdecl;external name ''crc'';']);
+  AssertInterface('with parentheses around the call and the arguments',
+    ['function crc_paren(seed:longint; buf:Pansichar; len:longint):longint;cdecl;external name ''crc'';']);
+  AssertInterface('a macro without parameters',['procedure reset2;cdecl;external name ''reset'';']);
+end;
+
+
+procedure TTestFunctionMacros.TestWrapperMacroOtherArguments;
+
+begin
+  Convert(['int crc(int seed, const char *buf, int len);','#define swapped(s, b, l) crc(b, s, l)',
+           '#define extra(s, b) crc(s, b, 0)'],['-d']);
+  AssertConverted;
+  AssertInterface('parameters in another order give a macro function',['function swapped(s,b,l : longint) : longint;']);
+  AssertInterface('an argument that is no parameter gives a macro function',['function extra(s,b : longint) : longint;']);
+  AssertNotOutput('no alias','external name');
+end;
+
+
+procedure TTestFunctionMacros.TestWrapperMacroArgumentCount;
+
+begin
+  Convert(['int one(int a);','#define two(a, b) one(a, b)'],['-d']);
+  AssertConverted;
+  AssertNotOutput('a call with another number of arguments is no alias','external name');
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasBeforeFunction;
+
+begin
+  Convert(['#define early later','int later(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('an alias before its function stays a constant',['early = later;']);
+end;
+
+
+procedure TTestFunctionMacros.TestFunctionAliasesCompile;
+
+begin
+  Convert(['typedef long XML_Size;','XML_Size XML_GetCurrentLineNumber(void *parser);',
+           '#define XML_GetErrorLineNumber XML_GetCurrentLineNumber','int crc(int seed, const char *buf, int len);',
+           '#define crc_alias(s, b, l) crc(s, b, l)','void reset(void);','#define reset2() reset()',
+           'static inline int twice(int a) { return a * 2; }','#define twice2 twice','int logf_(const char *fmt, ...);',
+           '#define logf2 logf_'],['-d']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
