@@ -30,6 +30,7 @@ type
     procedure TestMacroDecoratedPrototypes;
     procedure TestRecoveredUnitCompiles;
     procedure TestIndentationAfterError;
+    procedure TestCommentBracketsInErrorText;
   end;
 
 implementation
@@ -137,6 +138,21 @@ begin
   AssertRecovered;
   AssertRawLine('function after an error has the base indentation','  function f:longint;');
   AssertRawLine('type block after an error has the base indentation','  type');
+end;
+
+
+procedure TTestErrorRecovery.TestCommentBracketsInErrorText;
+
+begin
+  Convert(['#define JMETHOD(type,methodname,arglist) type (*methodname) arglist','int x;',
+           '#define wl_cast(ptr) (__typeof__(ptr))((char *)(ptr) - 1) @','int y;'],['-d']);
+  AssertRecovered;
+  AssertOutput('an opening comment bracket in the C text is split',
+    ['#define JMETHOD(type,methodname,arglist) type ( *methodname) arglist']);
+  AssertOutput('a closing comment bracket in the C text is split',
+    ['#define wl_cast(ptr) (__typeof__(ptr))((char * )(ptr) - 1) @']);
+  AssertInterface('the declarations after the errors',['x : longint;cvar;public;']);
+  AssertCompiles;
 end;
 
 

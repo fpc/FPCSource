@@ -90,6 +90,7 @@ procedure EmitAbstractIgnored;
 procedure EmitWriteln(S : string);
 procedure EmitPacked(aPack : integer);
 procedure EmitAndOutput(S : string; aLine : integer);
+// Writes the start of the comment for a syntax error in the C text S.
 procedure EmitErrorStart(S : string);
 
 procedure shift(space_number : byte);
@@ -187,7 +188,8 @@ procedure EmitErrorStart(S : string);
 
 begin
   writeln(outfile,'(* error ');
-  writeln(outfile,s);
+  // the C text, with the comment brackets split
+  writeln(outfile,StringReplace(StringReplace(S,'(*','( *',[rfReplaceAll]),'*)','* )',[rfReplaceAll]));
 end;
 
 procedure EmitWriteln(S : string);
