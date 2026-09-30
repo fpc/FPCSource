@@ -26,6 +26,7 @@ type
     procedure TestFunctionNamesDifferingInCase;
     procedure TestPointerToLaterStruct;
     procedure TestPointerToUndeclaredStruct;
+    procedure TestForwardDeclaredStruct;
     procedure TestPointersToLaterStructsCompile;
     procedure TestFunctionNamesDifferingInCaseDynamic;
     procedure TestFunctionNameOfMacroInOtherCase;
@@ -176,6 +177,20 @@ begin
   AssertInterface('a struct without declaration is an empty record before the function',
     ['snd_shm_area = record','{undefined structure}','end;','Psnd_shm_area = ^snd_shm_area;',
      'function snd_shm_area_create(shmid:longint; ptr:pointer):Psnd_shm_area;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestForwardDeclaredStruct;
+
+begin
+  Convert(['struct pci_device;','struct pci_opaque;','int pci_device_probe(struct pci_device *dev);',
+           'int pci_opaque_use(struct pci_opaque *o);','struct pci_device { int domain; };'],['-d']);
+  AssertConverted;
+  AssertEquals('the struct declared forward is declared once',1,CountOf('pci_device = record'));
+  AssertInterface('it moves to its forward declaration',['Ppci_device = ^pci_device;','pci_device = record',
+    'domain : longint;','end;','type','pci_opaque = record']);
+  AssertInterface('a struct declared forward only is an empty record',['pci_opaque = record','{undefined structure}','end;']);
+  AssertCompiles;
 end;
 
 

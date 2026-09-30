@@ -1632,6 +1632,12 @@ var
 
 begin
   HandleSpecialType:=Nil;
+  (* struct tag; declares the tag only *)
+  if aType^.typ=t_id then
+    begin
+    MarkUndeclaredTag(aType);
+    exit;
+    end;
   lNamed:=assigned(aType^.p2) and assigned(aType^.p2^.p);
   lRecord:=aType^.typ in [t_uniondef,t_structdef];
   lName:='';
@@ -1691,16 +1697,7 @@ begin
     dispose(aType,done)
     end
   else
-    begin
-    TN:=TypeName(aType^.str);
-    PN:=PointerName(aType^.str);
-    if UsePPointers then
-      WritePointerTypeDef(outfile,PN,TN);
-    WriteUndefinedRecord(outfile,aktspace,TN);
-    WritePointerMarker(outfile,TN);
-    writeln(outfile);
     popshift;
-    end;
 end;
 
 // Makes the typedef declarator aDecl of a function type a pointer to the function, and registers its name.
