@@ -177,15 +177,20 @@ procedure fatal ( msg : String );
 
 const nl = #10;  (* newline character *)
 
-const max_chars = 2048;
-
 var
 
-bufptr : Integer;
-buf    : array [1..max_chars] of Char;
+bufptr : longint;
+buf    : array of Char;   (* buf[1..bufptr] holds the characters to read, the next one last *)
+
+// Makes buf hold at least aCount characters.
+procedure GrowBuffer(aCount : longint);
+  begin
+    if aCount>=Length(buf) then
+      SetLength(buf,2*aCount+1);
+  end;
 
 function get_char : Char;
-  var i : Integer;
+  var i : longint;
   begin
     if (bufptr=0) and not eof(yyinput) then
       begin
@@ -193,6 +198,7 @@ function get_char : Char;
         readln(yyinput, yyline);
         inc(yylineno);
         yycolno := 1;
+        GrowBuffer(length(yyline)+1);
         buf[1] := nl;
         for i := 1 to length(yyline) do
           buf[i+1] := yyline[length(yyline)-i+1];
@@ -210,7 +216,7 @@ function get_char : Char;
 
 procedure unget_char ( c : Char );
   begin
-    if bufptr=max_chars then fatal('input buffer overflow');
+    GrowBuffer(bufptr+1);
     inc(bufptr);
     dec(yycolno);
     buf[bufptr] := c;
@@ -219,7 +225,7 @@ procedure unget_char ( c : Char );
 function PeekLine : AnsiString;
 
   var
-    i : Integer;
+    i : longint;
     lLine : AnsiString;
 
   begin

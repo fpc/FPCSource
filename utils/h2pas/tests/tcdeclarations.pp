@@ -21,6 +21,7 @@ type
     procedure TestVoidParamList;
     procedure TestEmptyParamList;
     procedure TestFunctionResult;
+    procedure TestLongInputLine;
     procedure TestFunctionPointerArgumentResult;
     procedure TestNestedFunctionPointerResult;
     procedure TestImplementationStub;
@@ -128,6 +129,24 @@ begin
   Convert(['void f();']);
   AssertConverted;
   AssertInterface('empty parameter list gives no parameters',['procedure f;']);
+end;
+
+
+procedure TTestFunctions.TestLongInputLine;
+
+var
+  lLine : AnsiString;
+  i : integer;
+
+begin
+  lLine:='int longargs(int a0';
+  for i:=1 to 400 do
+    lLine:=lLine+', int argument_number_'+IntToStr(i);
+  lLine:=lLine+'); int after(void);';
+  Convert([lLine],['-d']);
+  AssertConverted;
+  AssertOutput('the declaration of a line longer than the input buffer',['argument_number_400:longint):longint;cdecl;external;']);
+  AssertInterface('the declaration after it on the same line',['function after:longint;cdecl;external;']);
 end;
 
 
