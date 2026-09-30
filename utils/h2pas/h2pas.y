@@ -83,21 +83,25 @@ declaration_list : declaration_list  declaration
      {
        (* declaration_list  declaration *)
        EmitAndOutput('declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | declaration_list define_dec
      {
        (* declaration_list define_dec *)
        EmitAndOutput('define declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | declaration
      {
        (* declaration *)
        EmitAndOutput('declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | define_dec
      {
        (* define_dec *)
        EmitAndOutput('define declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      ;
 

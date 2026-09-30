@@ -49,6 +49,7 @@ begin
 { Parse! }
   yyparse;
   EmitErrorEnd('*)');
+  FlushPendingDefines(true);
 { Write implementation if needed }
   WriteSectionMarker(outfile,'I');
    if not(includefile) then

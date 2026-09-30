@@ -91,6 +91,9 @@ function NewRecordType(aTyp : ttyp; aMembers, aName : presobject; aPack : intege
 // Macros
 function HandleDefineMacro(dname,enum_list,para_def_expr: presobject) : presobject;
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
+// Writes the defines that wait for the declaration of the identifier that is their value, once it is declared;
+// with aAll all of them.
+procedure FlushPendingDefines(aAll : boolean);
 function HandleDefine(dname : presobject) : presobject;
 Function CheckWideString(S : String) : presobject;
 // Returns the Pascal literal of the adjacent string literals aLeft and aRight, and disposes both.
@@ -2034,6 +2037,90 @@ begin
 end;
 
 
+type
+  // A define that waits for the declaration of the identifier that is its value.
+  PPendingDefine = ^TPendingDefine;
+  TPendingDefine = record
+    Name, Value : presobject;
+  end;
+
+var
+  // The waiting defines, in the order of the header.
+  PendingDefines : TFPList = nil;
+
+// Returns true when aName is the name of a waiting define.
+function IsPendingDefine(const aName : AnsiString) : boolean;
+
+var
+  i : integer;
+
+begin
+  Result:=false;
+  if assigned(PendingDefines) then
+    for i:=0 to PendingDefines.Count-1 do
+      if PPendingDefine(PendingDefines[i])^.Name^.str=aName then
+        exit(true);
+end;
+
+
+// Returns true when the identifier aName is declared, and is no waiting define.
+function IsDeclaredName(const aName : AnsiString) : boolean;
+
+begin
+  Result:=((RegisteredName(aName)<>'') or (RegisteredName(FixId(aName))<>'')) and not IsPendingDefine(aName);
+end;
+
+
+procedure FlushPendingDefines(aAll : boolean);
+
+var
+  i : integer;
+  lDefine : PPendingDefine;
+  lDone : boolean;
+  lTarget : AnsiString;
+
+begin
+  if not assigned(PendingDefines) then
+    exit;
+  repeat
+    lDone:=true;
+    i:=0;
+    while i<PendingDefines.Count do
+      begin
+      lDefine:=PPendingDefine(PendingDefines[i]);
+      lTarget:=UnwrappedExpr(lDefine^.Value)^.str;
+      if aAll or IsDeclaredName(lTarget) then
+        begin
+        PendingDefines.Delete(i);
+        WriteDefineConstant(lDefine^.Name,lDefine^.Value^.p1);
+        dispose(lDefine^.Name,done);
+        dispose(lDefine^.Value,done);
+        Dispose(lDefine);
+        lDone:=false;
+        end
+      else
+        inc(i);
+      end;
+  until lDone;
+end;
+
+
+// Makes the define dname with the value def_expr wait for the declaration of the identifier that is its value.
+procedure AddPendingDefine(dname, def_expr : presobject);
+
+var
+  lDefine : PPendingDefine;
+
+begin
+  if not assigned(PendingDefines) then
+    PendingDefines:=TFPList.Create;
+  New(lDefine);
+  lDefine^.Name:=dname;
+  lDefine^.Value:=def_expr;
+  PendingDefines.Add(lDefine);
+end;
+
+
 function HandleDefineConst(dname,def_expr: presobject) : presobject;
 
 var
@@ -2069,6 +2156,14 @@ begin
   (* a type keyword, a standard C type name or a declared type: a type alias *)
   else if (lName<>'') and (hp^.skiptprefix or IsCTypeName(hp) or IsDeclaredType(TypeName(lName))) then
     WriteDefineTypeAlias(dname,hp)
+  (* an identifier declared later: the constant follows its declaration *)
+  else if (lName<>'') and (lName[1] in ['A'..'Z','a'..'z','_']) and not hp^.skiptprefix
+          and not IsDeclaredName(lName) then
+    begin
+    AddPendingDefine(dname,def_expr);
+    dname:=nil;
+    def_expr:=nil;
+    end
   else if (def_expr^.typ=t_exprlist) and def_expr^.p1^.is_const and not assigned(def_expr^.next) then
     WriteDefineConstant(dname,def_expr^.p1)
   else
@@ -2637,6 +2732,7 @@ end;
 
 initialization
 finalization
+  PendingDefines.Free;
   EmptyDefines.Free;
   FreeStoredFunctions;
 end.

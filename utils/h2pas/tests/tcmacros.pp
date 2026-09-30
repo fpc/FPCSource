@@ -53,6 +53,10 @@ type
     procedure TestAdjacentStringsWithEscapes;
     procedure TestAdjacentStringsCompile;
     procedure TestAlias;
+    procedure TestAliasOfLaterEnumMember;
+    procedure TestAliasOfLaterDefine;
+    procedure TestAliasChainBeforeUse;
+    procedure TestAliasesOfLaterNamesCompile;
     procedure TestTypeMacros;
     procedure TestTypeMacrosPrefixes;
     procedure TestTypeMacrosCompile;
@@ -469,6 +473,57 @@ procedure TTestConstMacros.TestAdjacentStringsCompile;
 
 begin
   Convert(['#define S "ab" "cd"','#define T "a\n" "b" "c\t"','#define U "it''" "s"','#define V "" "x"'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestAliasOfLaterEnumMember;
+
+begin
+  Convert(['#define CAIRO_FONT_TYPE_ATSUI CAIRO_FONT_TYPE_QUARTZ',
+           'typedef enum _cairo_font_type { CAIRO_FONT_TYPE_TOY, CAIRO_FONT_TYPE_QUARTZ } cairo_font_type_t;'],['-d']);
+  AssertConverted;
+  AssertInterface('the alias of an enum member follows the enum',
+    ['cairo_font_type_t = _cairo_font_type;','const','CAIRO_FONT_TYPE_ATSUI = CAIRO_FONT_TYPE_QUARTZ;']);
+end;
+
+
+procedure TTestConstMacros.TestAliasOfLaterDefine;
+
+begin
+  Convert(['#define LZMA_VERSION_STABILITY LZMA_VERSION_STABILITY_STABLE','#define LZMA_VERSION_STABILITY_ALPHA 0',
+           '#define LZMA_VERSION_STABILITY_STABLE 2','int after(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('the alias follows the define it names',
+    ['LZMA_VERSION_STABILITY_STABLE = 2;','LZMA_VERSION_STABILITY = LZMA_VERSION_STABILITY_STABLE;',
+     'function after:longint;cdecl;external;']);
+end;
+
+
+procedure TTestConstMacros.TestAliasChainBeforeUse;
+
+begin
+  Convert(['#define A1 B1','#define B1 C1','#define C1 7','struct s { char buf[A1]; };'],['-d']);
+  AssertConverted;
+  AssertInterface('a chain of aliases in the order of their declarations, before their use',
+    ['C1 = 7;','B1 = C1;','A1 = B1;','type','s = record','buf : array[0..(A1)-1] of ansichar;']);
+end;
+
+
+procedure TTestConstMacros.TestAliasesOfLaterNamesCompile;
+
+const
+  Header : array[0..5] of string = (
+    '#define CAIRO_FONT_TYPE_ATSUI CAIRO_FONT_TYPE_QUARTZ',
+    'typedef enum _cairo_font_type { CAIRO_FONT_TYPE_TOY, CAIRO_FONT_TYPE_QUARTZ } cairo_font_type_t;',
+    '#define A1 B1','#define B1 C1','#define C1 7','struct s { char buf[A1]; };');
+
+begin
+  Convert(Header,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(Header,['-d','-1']);
   AssertConverted;
   AssertCompiles;
 end;

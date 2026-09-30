@@ -144,24 +144,28 @@ begin
 
          (* declaration_list  declaration *)
          EmitAndOutput('declaration reduced at line ',line_no);
+         FlushPendingDefines(false);
 
        end;
    7 : begin
 
          (* declaration_list define_dec *)
          EmitAndOutput('define declaration reduced at line ',line_no);
+         FlushPendingDefines(false);
 
        end;
    8 : begin
 
          (* declaration *)
          EmitAndOutput('declaration reduced at line ',line_no);
+         FlushPendingDefines(false);
 
        end;
    9 : begin
 
          (* define_dec *)
          EmitAndOutput('define declaration reduced at line ',line_no);
+         FlushPendingDefines(false);
 
        end;
   10 : begin
