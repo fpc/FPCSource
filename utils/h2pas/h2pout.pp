@@ -652,12 +652,22 @@ begin
 end;
 
 
-// Writes the operand p of the binary operator aOp, a character literal as its ordinal value when aOrd is set.
+// Returns true when p is the identifier of a member of an enum type written before.
+function IsEnumMember(p : presobject) : boolean;
+
+begin
+  Result:=assigned(p) and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0);
+end;
+
+
+// Writes the operand p of a binary operator, a character literal or enum member as its ordinal value when aOrd is set.
 procedure write_operand(var outfile:text; p : presobject; aOrd : boolean);
 
 begin
   if aOrd and IsCharLiteral(p) then
     write(outfile,'ord(',p^.p,')')
+  else if aOrd and IsEnumMember(p) then
+    write(outfile,'ord(',RenamedId(p^.p),')')
   else if p^.typ<>t_id then
     begin
     write(outfile,'(');
@@ -722,7 +732,10 @@ begin
       else
         begin
         write(outfile,p^.p,'(');
-        write_expr(outfile,p^.p1);
+        if IsEnumMember(p^.p1) then
+          write(outfile,'ord(',RenamedId(p^.p1^.p),')')
+        else
+          write_expr(outfile,p^.p1);
         write(outfile,')');
         end;
     t_typespec :

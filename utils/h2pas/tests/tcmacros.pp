@@ -55,6 +55,9 @@ type
     procedure TestAlias;
     procedure TestAliasOfLaterEnumMember;
     procedure TestRepeatedDefine;
+    procedure TestEnumMemberInConstantExpression;
+    procedure TestEnumMemberInMacroBody;
+    procedure TestEnumArithmeticCompiles;
     procedure TestRedefinedAfterUndef;
     procedure TestDefinesInConditionalBranches;
     procedure TestRedefinedDefinesCompile;
@@ -477,6 +480,46 @@ procedure TTestConstMacros.TestAdjacentStringsCompile;
 
 begin
   Convert(['#define S "ab" "cd"','#define T "a\n" "b" "c\t"','#define U "it''" "s"','#define V "" "x"'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestEnumMemberInConstantExpression;
+
+begin
+  Convert(['typedef enum { GPG_ERR_NO_ERROR = 0, GPG_ERR_CODE_DIM = 65536 } gpg_err_code_t;',
+           '#define GPG_ERR_CODE_MASK (GPG_ERR_CODE_DIM - 1)','#define NEG (-GPG_ERR_CODE_DIM)','#define ALIAS GPG_ERR_NO_ERROR'],['-d']);
+  AssertConverted;
+  AssertInterface('an enum member in arithmetic is its ordinal value',
+    ['GPG_ERR_CODE_MASK = ord(GPG_ERR_CODE_DIM)-1;','NEG = -(ord(GPG_ERR_CODE_DIM));']);
+  AssertInterface('an enum member alone keeps its type',['ALIAS = GPG_ERR_NO_ERROR;']);
+end;
+
+
+procedure TTestConstMacros.TestEnumMemberInMacroBody;
+
+begin
+  Convert(['typedef enum { IDN2_NFC_INPUT = 1, IDN2_NONTRANSITIONAL = 8 } idn2_flags;',
+           'int idn2_to_ascii_4i(const char *i, int l, char *o, int f);',
+           '#define idna_to_ascii_4i(i, l, o, f) idn2_to_ascii_4i(i, l, o, f | IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL)',
+           '#define IS_NFC(f) ((f) == IDN2_NFC_INPUT)'],['-d']);
+  AssertConverted;
+  AssertImplementation('enum members in an or',
+    ['idna_to_ascii_4i:=idn2_to_ascii_4i(i,l,o,(f or ord(IDN2_NFC_INPUT)) or ord(IDN2_NONTRANSITIONAL));']);
+  AssertImplementation('an enum member in a comparison',['IS_NFC:=f=ord(IDN2_NFC_INPUT);']);
+end;
+
+
+procedure TTestConstMacros.TestEnumArithmeticCompiles;
+
+begin
+  Convert(['typedef enum { GPG_ERR_NO_ERROR = 0, GPG_ERR_CODE_DIM = 65536 } gpg_err_code_t;',
+           '#define GPG_ERR_CODE_MASK (GPG_ERR_CODE_DIM - 1)','#define NEG (-GPG_ERR_CODE_DIM)','#define ALIAS GPG_ERR_NO_ERROR',
+           'typedef enum { IDN2_NFC_INPUT = 1, IDN2_NONTRANSITIONAL = 8 } idn2_flags;',
+           'int idn2_to_ascii_4i(const char *i, int l, char *o, int f);',
+           '#define idna_to_ascii_4i(i, l, o, f) idn2_to_ascii_4i(i, l, o, f | IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL)',
+           '#define IS_NFC(f) ((f) == IDN2_NFC_INPUT)'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;
