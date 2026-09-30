@@ -114,6 +114,8 @@ type
     procedure TestFunctionPointerVariableArgument;
     procedure TestFunctionPointerResultsCompile;
     procedure TestVariableNameOfDefineInOtherCase;
+    procedure TestPointerToArrayVariable;
+    procedure TestPointerToArrayArgument;
     procedure TestDefineNameOfVariableInOtherCase;
     procedure TestVariableNameOfTypeInOtherCase;
     procedure TestEnumMemberNameOfDefineInOtherCase;
@@ -1073,6 +1075,26 @@ begin
   Convert(Header,['-P','-l','libx.so']);
   AssertConverted;
   AssertCompiles;
+end;
+
+
+procedure TTestVariables.TestPointerToArrayVariable;
+
+begin
+  Convert(['extern int (*grid)[16];'],['-d']);
+  AssertConverted;
+  AssertInterface('the array a variable points to is a named type',['grid_array = array[0..15] of longint;']);
+  AssertInterface('the variable points to it',['grid : ^grid_array;cvar;external;']);
+end;
+
+
+procedure TTestVariables.TestPointerToArrayArgument;
+
+begin
+  Convert(['void fill(int (*m)[3], int n);'],['-d']);
+  AssertConverted;
+  AssertInterface('the array an argument points to is a named type',['fill_m = array[0..2] of longint;']);
+  AssertInterface('the argument is a pointer to it',['procedure fill(m:Pfill_m; n:longint);cdecl;external;']);
 end;
 
 

@@ -49,6 +49,9 @@ type
     procedure TestNestedPointerToStructMembers;
     procedure TestPointerToStructMembersCompile;
     procedure TestDoublePointerMembers;
+    procedure TestPointerToArrayMember;
+    procedure TestArrayOfPointersToArraysMember;
+    procedure TestPointersToArraysCompile;
     procedure TestDoublePointerMembersPrefix;
     procedure TestDoublePointerVariableAndTypedef;
     procedure TestDoublePointersCompile;
@@ -582,6 +585,47 @@ begin
   AssertConverted;
   AssertCompiles;
   Convert(['struct info { struct cons { int col; } *aCons; struct { int x; } *anon; };'],['-d','-1']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestPointerToArrayMember;
+
+begin
+  Convert(['struct mad_layer { int x; unsigned char (*main_data)[2559 + 8]; int (*m2)[3][4]; };'],['-d']);
+  AssertConverted;
+  AssertInterface('the array a member points to is a named type',
+    ['mad_layer_main_data = array[0..(2559+8)-1] of byte;','mad_layer_m2 = array[0..2] of array[0..3] of longint;']);
+  AssertInterface('the member points to the named type',['main_data : ^mad_layer_main_data;','m2 : ^mad_layer_m2;']);
+  AssertNotOutput('no pointer to an inline array','^array');
+end;
+
+
+procedure TTestStructs.TestArrayOfPointersToArraysMember;
+
+begin
+  Convert(['struct s { int *ptrs[3]; char (*names[2])[8]; };'],['-d']);
+  AssertConverted;
+  AssertInterface('the pointed array of the elements is a named type',['s_names = array[0..7] of ansichar;']);
+  AssertInterface('an array of pointers to it',['ptrs : array[0..2] of ^longint;','names : array[0..1] of ^s_names;']);
+end;
+
+
+procedure TTestStructs.TestPointersToArraysCompile;
+
+const
+  Header : array[0..3] of string = (
+    'struct mad_layer { int x; unsigned char (*main_data)[2559 + 8]; int (*m2)[3][4]; char (*names[2])[8]; };',
+    'extern int (*grid)[16];',
+    'void fill(int (*m)[3], int n);',
+    'struct cb { void (*(*handlers)[4])(int); };');
+
+begin
+  Convert(Header,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(Header,['-d','-1','-T','-p']);
   AssertConverted;
   AssertCompiles;
 end;

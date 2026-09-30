@@ -762,14 +762,17 @@ begin
         begin
         HoistProcVarArgs(lName,lDec^.p1^.p1^.p2);
         HoistProcVarResult(lName,lDec^.p1^.p1,lArg^.p1);
-        lName:=WriteProcVarType(lName,lDec^.p1,lArg^.p1);
+        lName:=WriteNamedType(lName,lDec^.p1,lArg^.p1);
         dispose(lArg^.p1,done);
         lArg^.p1:=NewIntID(lName);
         dispose(lDec^.p1,done);
         lDec^.p1:=nil;
         end
       else if assigned(lDec^.p1) then
+        begin
         HoistProcVarElement(lName,lDec^.p1,lArg^.p1);
+        HoistPointedArray(lName,lDec^.p1,lArg^.p1);
+        end;
       end;
     aArgs:=aArgs^.next;
     end;
@@ -790,7 +793,7 @@ begin
     exit;
   HoistProcVarArgs(aOwner+'_result',lResult^.p1^.p2);
   HoistProcVarResult(aOwner+'_result',lResult^.p1,aType);
-  lName:=WriteProcVarType(aOwner+'_result',lResult,aType);
+  lName:=WriteNamedType(aOwner+'_result',lResult,aType);
   dispose(aType,done);
   aType:=NewIntID(lName);
   dispose(lResult,done);
@@ -893,7 +896,10 @@ begin
               HoistProcVarResult(lName,lChain^.p1,lMember^.p1);
             end
           else
+            begin
             HoistProcVarElement(lName,lChain,lMember^.p1);
+            HoistPointedArray(lName,lDecls^.p1^.p1,lMember^.p1);
+            end;
           end;
         lDecls:=lDecls^.next;
         end;
@@ -953,7 +959,10 @@ begin
           HoistProcVarResult(lName,lChain^.p1,aType);
         end
       else
+        begin
         HoistProcVarElement(lName+'_element',lChain,aType);
+        HoistPointedArray(lName+'_array',aDecls^.p1^.p1,aType);
+        end;
       end;
     aDecls:=aDecls^.next;
     end;

@@ -25,6 +25,9 @@ procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
 // Declares the type aName for the function pointer element of the array or pointer declarator chain aChain with base type aType,
 // and replaces the element by the type name; does nothing when aChain is no array of or pointer to function pointers.
 procedure HoistProcVarElement(const aName : AnsiString; aChain, aType : presobject);
+// Declares the type aName for the array that a pointer in the declarator chain aChain with base type aType points to,
+// and replaces the array by the type name; does nothing when aChain has no pointer to an array.
+procedure HoistPointedArray(const aName : AnsiString; aChain, aType : presobject);
 // Registers aName as a typedef of a function type: a pointer to it is the Pascal procedural type itself.
 procedure RegisterFunctionType(const aName : AnsiString);
 // Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
@@ -56,8 +59,9 @@ procedure WriteSectionKeyword(var aFile : text; const aIndent, aKeyword : AnsiSt
 // Opens a section of kind aBlock with the keyword aKeyword in outfile, after an empty line unless compactmode,
 // when the current section is of another kind.
 procedure OpenSection(aBlock : tblocktype; const aKeyword : AnsiString);
-// Writes the procedural type aName = aDef with result type aType in a type section, and returns its Pascal name.
-function WriteProcVarType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
+// Writes the type aName = aDef with base type aType in a type section, with the directives of a procedural type,
+// and returns its Pascal name.
+function WriteNamedType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
 // Returns true when aNode is a pointer to a function (t_pointerdef of a t_procdef).
 function IsProcPointer(aNode : presobject) : Boolean;
 // Returns aIndent without its last level of indentation.
@@ -1673,9 +1677,37 @@ begin
       break;
     lArray:=lElement;
   until false;
-  WriteProcVarType(aName,lElement,aType);
+  WriteNamedType(aName,lElement,aType);
   dispose(lElement,done);
   lArray^.p1:=NewID(aName);
+end;
+
+
+procedure HoistPointedArray(const aName : AnsiString; aChain, aType : presobject);
+
+var
+  lNode, lArray : presobject;
+  lName : AnsiString;
+
+begin
+  lNode:=aChain;
+  while assigned(lNode) and (lNode^.typ in [t_arraydef,t_pointerdef]) do
+    begin
+    lArray:=lNode^.p1;
+    (* a flexible array member is an open array, not a pointer *)
+    if (lNode^.typ=t_pointerdef) and not lNode^.openarray and assigned(lArray) and (lArray^.typ=t_arraydef) then
+      begin
+      lName:=aName;
+      if IsDeclaredType(TypeName(lName)) then
+        lName:=aName+'_array';
+      HoistPointedArray(lName+'_element',lArray,aType);
+      WriteNamedType(lName,lArray,aType);
+      dispose(lArray,done);
+      lNode^.p1:=NewID(lName);
+      exit;
+      end;
+    lNode:=lArray;
+    end;
 end;
 
 
@@ -1836,13 +1868,14 @@ begin
 end;
 
 
-function WriteProcVarType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
+function WriteNamedType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
 
 begin
   Result:=TypeName(aName);
   WriteSectionMarker(outfile,'T');
   OpenSection(bt_type,'type');
   shift(2);
+  is_procvar:=false;
   write(outfile,aktspace,Result,' = ');
   write_p_a_def(outfile,aDef,aType);
   WriteProcVarDirectives(outfile,false);
