@@ -43,6 +43,9 @@ function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
 // Writes the marker lines around the record TN that moves to its opaque marker.
 procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
 procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
+// Moves the markers that follow other text on their line in aLines, as after a comment, to lines of their own
+// before that text.
+procedure SplitMarkerLines(aLines : TStringList);
 // Removes the lines of the moved records from aLines, for WriteMarkedPointers to write them at their opaque marker.
 procedure CollectMovedRecords(aLines : TStringList);
 // Writes a marker line: the declarations that follow are of kind aKind: T type, C constant, D constant that uses types,
@@ -1641,6 +1644,44 @@ procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
 
 begin
   Writeln(aFile,MovedEndMarker,TN);
+end;
+
+
+// Returns the position of the first marker character in aLine after its first character, or 0.
+function MarkerPos(const aLine : AnsiString) : Integer;
+
+var
+  lPos : Integer;
+
+begin
+  for lPos:=2 to Length(aLine) do
+    if aLine[lPos] in [PointerMarker..HeaderPointersMarker] then
+      exit(lPos);
+  Result:=0;
+end;
+
+
+procedure SplitMarkerLines(aLines : TStringList);
+
+var
+  lIndex, lPos : Integer;
+  lLine : AnsiString;
+
+begin
+  lIndex:=0;
+  while lIndex<aLines.Count do
+    begin
+    lLine:=aLines[lIndex];
+    lPos:=MarkerPos(lLine);
+    if lPos=0 then
+      inc(lIndex)
+    else
+      begin
+      aLines[lIndex]:=Copy(lLine,lPos,MaxInt);
+      if Trim(Copy(lLine,1,lPos-1))<>'' then
+        aLines.Insert(lIndex+1,Copy(lLine,1,lPos-1));
+      end;
+    end;
 end;
 
 

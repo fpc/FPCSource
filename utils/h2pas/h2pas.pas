@@ -116,6 +116,7 @@ begin
       readln(outfile,SS);
       Lines.Add(SS);
     end;
+  SplitMarkerLines(Lines);
   CollectMovedRecords(Lines);
   if OneTypeSection then
     ArrangeSections(Lines);

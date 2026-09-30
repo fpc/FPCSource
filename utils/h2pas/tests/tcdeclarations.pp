@@ -22,6 +22,7 @@ type
     procedure TestEmptyParamList;
     procedure TestFunctionResult;
     procedure TestLongInputLine;
+    procedure TestCommentsInArgumentList;
     procedure TestFunctionPointerArgumentResult;
     procedure TestNestedFunctionPointerResult;
     procedure TestImplementationStub;
@@ -129,6 +130,30 @@ begin
   Convert(['void f();']);
   AssertConverted;
   AssertInterface('empty parameter list gives no parameters',['procedure f;']);
+end;
+
+
+procedure TTestFunctions.TestCommentsInArgumentList;
+
+const
+  Header : array[0..2] of string = (
+    'struct s { int x; };',
+    'extern struct s *make(int /* width */, int /* height */);',
+    'typedef struct t { int y; } t_t;');
+
+begin
+  Convert(Header,['-d']);
+  AssertConverted;
+  AssertNotOutput('no section marker after the comments',#6);
+  AssertInterface('the comments precede the function',
+    ['{ width  }  { height  }','function make(_para1:longint; _para2:longint):Ps;cdecl;external;']);
+  AssertCompiles;
+  Convert(Header,['-d','-1']);
+  AssertConverted;
+  AssertNotOutput('no section marker after the comments with -1',#6);
+  AssertInterface('the comments stay with the function with -1',
+    ['{ width  }  { height  }','function make(_para1:longint; _para2:longint):Ps;cdecl;external;']);
+  AssertCompiles;
 end;
 
 
