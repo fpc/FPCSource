@@ -52,7 +52,7 @@ var
    Preprocess : boolean;      { run the C preprocessor on the input file first }
    PreprocessorProgram,       { C preprocessor program, gcc by default }
    PreprocessorOptions,       { extra options for the C preprocessor }
-   PreprocessorKeep : string; { files whose text is kept after preprocessing, separated by ; }
+   PreprocessorKeep : AnsiString; { files whose text is kept after preprocessing, separated by ; }
    OneTypeSection : boolean;  { write all types in one type section }
    PTypeList : TStringList;   { list of all pointer types }
    freedynlibproc,
@@ -171,7 +171,7 @@ Var
   cp : string[255];   {because of cp[3] indexing}
   I : longint;
 
-  Function GetNextParam (const Opt,Name : String) : string;
+  Function GetNextParam (const Opt,Name : String) : AnsiString;
   begin
    if i=paramcount then
     begin
@@ -180,7 +180,8 @@ Var
     end
    else
     begin
-      GetNextParam:=paramstr(i+1);
+      (* the argument, of any length *)
+      GetNextParam:=AnsiString(argv[i+1]);
       inc(i);
     end;
   end;

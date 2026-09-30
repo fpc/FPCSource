@@ -26,6 +26,7 @@ type
     procedure TestSystemIncludeDropped;
     procedure TestLocalIncludeDropped;
     procedure TestKeepOtherFile;
+    procedure TestLongKeepList;
     procedure TestPreprocessorOptions;
     procedure TestLineNumbersOfTheHeader;
     procedure TestCommentsKept;
@@ -105,6 +106,24 @@ begin
   AssertInterface('the define of the kept file',['const','OTHER = 1;']);
   AssertInterface('the typedef of the kept file',['type','other_t = longint;']);
   AssertInterface('the declaration of the header itself',['function f:longint;cdecl;external;']);
+end;
+
+
+procedure TTestCPreprocessor.TestLongKeepList;
+
+var
+  lKeep : AnsiString;
+  i : integer;
+
+begin
+  WriteWorkFile('other.h',Lines(['#define OTHER 1']));
+  lKeep:='';
+  for i:=1 to 40 do
+    lKeep:=lKeep+'some_directory/header_number_'+IntToStr(i)+'.h;';
+  lKeep:=lKeep+'other.h';
+  Convert(['#include "other.h"','int f(void);'],['-d','-E','-Ek',lKeep]);
+  AssertConverted;
+  AssertInterface('a kept file after 255 characters of the list',['const','OTHER = 1;']);
 end;
 
 
