@@ -35,6 +35,10 @@ type
     procedure TestFunctionPointerArrayMember;
     procedure TestFunctionPointerArrayMemberCompiles;
     procedure TestNoCdeclAfterProcedureType;
+    procedure TestFunctionPointerMemberArguments;
+    procedure TestFunctionPointerMemberResult;
+    procedure TestFunctionPointerMemberArgumentsOneTypeSection;
+    procedure TestFunctionPointerMemberArgumentsCompile;
     procedure TestNestedUnionMember;
     procedure TestNestedStructMember;
     procedure TestReservedWordMember;
@@ -470,6 +474,56 @@ begin
            'extern int counter;',
            'int add(int a, int b);',
            'void reset(void);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+const
+  ModuleHeader : array[0..2] of string = (
+    'typedef struct m {',
+    '  int (*find)(int n, void (*cb)(int), void (**pcb)(int, char *));',
+    '  void (*(*sym)(void *h))(void); } m;');
+
+procedure TTestStructs.TestFunctionPointerMemberArguments;
+
+begin
+  Convert(ModuleHeader,['-d']);
+  AssertConverted;
+  AssertInterface('function pointer arguments of a function pointer member are named types',
+    ['m_find_cb = procedure (_para1:longint);cdecl;','m_find_pcb = procedure (_para1:longint; _para2:Pansichar);cdecl;',
+     'Pm_find_pcb = ^m_find_pcb;']);
+  AssertInterface('the member uses the named types',
+    ['find : function (n:longint; cb:m_find_cb; pcb:Pm_find_pcb):longint;cdecl;']);
+  AssertNotOutput('no pointer to an anonymous procedure type','Pprocedure');
+end;
+
+
+procedure TTestStructs.TestFunctionPointerMemberResult;
+
+begin
+  Convert(ModuleHeader,['-d']);
+  AssertConverted;
+  AssertInterface('the function pointer result of a function pointer member is a named type',
+    ['m_sym_result = procedure ;cdecl;']);
+  AssertInterface('the member uses the named result type',['sym : function (h:pointer):m_sym_result;cdecl;']);
+end;
+
+
+procedure TTestStructs.TestFunctionPointerMemberArgumentsOneTypeSection;
+
+begin
+  Convert(ModuleHeader,['-d','-1']);
+  AssertConverted;
+  AssertInterface('the named types precede the record',['m_sym_result = procedure ;cdecl;','m = record']);
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestFunctionPointerMemberArgumentsCompile;
+
+begin
+  Convert(ModuleHeader,['-d']);
   AssertConverted;
   AssertCompiles;
 end;

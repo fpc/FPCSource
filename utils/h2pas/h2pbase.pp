@@ -825,6 +825,50 @@ begin
 end;
 
 
+// Declares named types for the function pointers among the members of the struct or union aType, with type names
+// aOwner_member: arrays of and pointers to function pointers, and the function pointer arguments and results
+// of function pointer members.
+procedure HoistStructProcVarElements(const aOwner : AnsiString; aType : presobject);
+
+var
+  lMembers, lMember, lDecls, lChain : presobject;
+  lName : AnsiString;
+
+begin
+  if not (assigned(aType) and (aType^.typ in [t_structdef,t_uniondef])) then
+    exit;
+  lMembers:=aType^.p1;
+  while assigned(lMembers) do
+    begin
+    lMember:=lMembers^.p1;
+    if assigned(lMember) and (lMember^.typ=t_memberdec) then
+      begin
+      lDecls:=lMember^.p2;
+      while assigned(lDecls) do
+        begin
+        if assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) and assigned(lDecls^.p1^.p2^.p) then
+          begin
+          lName:=aOwner+'_'+lDecls^.p1^.p2^.str;
+          HoistStructProcVarElements(lName,lMember^.p1);
+          lChain:=lDecls^.p1^.p1;
+          if assigned(lChain) and (lChain^.typ=t_pointerdef) and assigned(lChain^.p1)
+             and (lChain^.p1^.typ=t_procdef) then
+            begin
+            HoistProcVarArgs(lName,lChain^.p1^.p2);
+            if not assigned(lMember^.p2^.next) then
+              HoistProcVarResult(lName,lChain^.p1,lMember^.p1);
+            end
+          else
+            HoistProcVarElement(lName,lChain,lMember^.p1);
+          end;
+        lDecls:=lDecls^.next;
+        end;
+      end;
+    lMembers:=lMembers^.next;
+    end;
+end;
+
+
 // Replaces 0 and NULL as value of the return statements in the statement tree aNode by nil.
 procedure NilPointerExits(aNode : presobject);
 

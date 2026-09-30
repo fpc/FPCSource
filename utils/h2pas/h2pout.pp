@@ -23,8 +23,6 @@ procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
 // Declares the type aName for the function pointer element of the array or pointer declarator chain aChain with base type aType,
 // and replaces the element by the type name; returns false when aChain is no array of or pointer to function pointers.
 function HoistProcVarElement(const aName : AnsiString; aChain, aType : presobject) : Boolean;
-// Applies HoistProcVarElement to the members of the struct or union aType, with type names aOwner_member.
-procedure HoistStructProcVarElements(const aOwner : AnsiString; aType : presobject);
 // Registers aName as a typedef of a function type: a pointer to it is the Pascal procedural type itself.
 procedure RegisterFunctionType(const aName : AnsiString);
 // Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
@@ -1725,36 +1723,6 @@ begin
   dispose(lElement,done);
   lArray^.p1:=NewID(aName);
   Result:=true;
-end;
-
-
-procedure HoistStructProcVarElements(const aOwner : AnsiString; aType : presobject);
-
-var
-  lMembers, lMember, lDecls : presobject;
-
-begin
-  if not (assigned(aType) and (aType^.typ in [t_structdef,t_uniondef])) then
-    exit;
-  lMembers:=aType^.p1;
-  while assigned(lMembers) do
-    begin
-    lMember:=lMembers^.p1;
-    if assigned(lMember) and (lMember^.typ=t_memberdec) then
-      begin
-      lDecls:=lMember^.p2;
-      while assigned(lDecls) do
-        begin
-        if assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) and assigned(lDecls^.p1^.p2^.p) then
-          begin
-          HoistStructProcVarElements(aOwner+'_'+lDecls^.p1^.p2^.str,lMember^.p1);
-          HoistProcVarElement(aOwner+'_'+lDecls^.p1^.p2^.str,lDecls^.p1^.p1,lMember^.p1);
-          end;
-        lDecls:=lDecls^.next;
-        end;
-      end;
-    lMembers:=lMembers^.next;
-    end;
 end;
 
 
