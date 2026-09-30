@@ -399,7 +399,7 @@ begin
   49 : begin
 
          (* error  error_info RGKLAMMER *)
-         emitwriteln(' in member_list *)');
+         EmitErrorEnd(' in member_list *)');
          yyerrok;
          yyval:=nil;
 
@@ -413,7 +413,7 @@ begin
   51 : begin
 
          (* error  error_info RGKLAMMER *)
-         emitwriteln(' in enum_list *)');
+         EmitErrorEnd(' in enum_list *)');
          yyerrok;
          yyval:=nil;
 
@@ -712,7 +712,7 @@ begin
  100 : begin
 
          (* error error_info COMMA declarator_list *)
-         EmitWriteln(' in declarator_list *)');
+         EmitErrorEnd(' in declarator_list *)');
          yyval:=yyv[yysp-0];
          yyerrok;
 
@@ -720,7 +720,7 @@ begin
  101 : begin
 
          (* error error_info *)
-         EmitWriteln(' in declarator_list *)');
+         EmitErrorEnd(' in declarator_list *)');
          yyerrok;
          yyval:=nil;
 

@@ -31,6 +31,7 @@ type
     procedure TestRecoveredUnitCompiles;
     procedure TestIndentationAfterError;
     procedure TestCommentBracketsInErrorText;
+    procedure TestRepeatedRecoveryInOneError;
   end;
 
 implementation
@@ -152,6 +153,17 @@ begin
   AssertOutput('a closing comment bracket in the C text is split',
     ['#define wl_cast(ptr) (__typeof__(ptr))((char * )(ptr) - 1) @']);
   AssertInterface('the declarations after the errors',['x : longint;cvar;public;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestErrorRecovery.TestRepeatedRecoveryInOneError;
+
+begin
+  Convert(['static inline void report(struct r *report, int data) { report->valid = data & 1; report->x = data >> 1; }',
+           'int after;'],['-d']);
+  AssertRecovered;
+  AssertEquals('every error comment is closed',CountOf('(* error'),CountOf('line 2 *)')+CountOf('list *)'));
   AssertCompiles;
 end;
 

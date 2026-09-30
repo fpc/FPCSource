@@ -321,7 +321,7 @@ closed_list :
      | error  error_info RGKLAMMER
        {
          (* error  error_info RGKLAMMER *)
-         emitwriteln(' in member_list *)');
+         EmitErrorEnd(' in member_list *)');
          yyerrok;
          $$:=nil;
        }
@@ -336,7 +336,7 @@ closed_enum_list :
       |  error  error_info  RGKLAMMER
         {
           (* error  error_info RGKLAMMER *)
-          emitwriteln(' in enum_list *)');
+          EmitErrorEnd(' in enum_list *)');
           yyerrok;
           $$:=nil;
          }
@@ -608,14 +608,14 @@ declarator_list :
      error error_info COMMA declarator_list
      {
        (* error error_info COMMA declarator_list *)
-       EmitWriteln(' in declarator_list *)');
+       EmitErrorEnd(' in declarator_list *)');
        $$:=$4;
        yyerrok;
      }|
      error error_info
      {
        (* error error_info *)
-       EmitWriteln(' in declarator_list *)');
+       EmitErrorEnd(' in declarator_list *)');
        yyerrok;
        $$:=nil;
      }|

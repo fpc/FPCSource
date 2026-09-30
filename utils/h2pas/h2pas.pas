@@ -48,6 +48,7 @@ begin
   OpenOutputFiles;
 { Parse! }
   yyparse;
+  EmitErrorEnd('*)');
 { Write implementation if needed }
   WriteSectionMarker(outfile,'I');
    if not(includefile) then

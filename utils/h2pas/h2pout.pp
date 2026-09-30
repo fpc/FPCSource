@@ -93,8 +93,10 @@ procedure EmitAbstractIgnored;
 procedure EmitWriteln(S : string);
 procedure EmitPacked(aPack : integer);
 procedure EmitAndOutput(S : string; aLine : integer);
-// Writes the start of the comment for a syntax error in the C text S.
+// Writes the start of the comment for a syntax error in the C text S, unless that comment is open.
 procedure EmitErrorStart(S : string);
+// Ends the open comment of a syntax error with S, which ends with the closing bracket.
+procedure EmitErrorEnd(const S : string);
 
 procedure shift(space_number : byte);
 procedure popshift;
@@ -187,12 +189,28 @@ begin
     end;
 end;
 
+var
+  // Set while the comment of a syntax error is open.
+  ErrorCommentOpen : boolean = false;
+
 procedure EmitErrorStart(S : string);
 
 begin
+  if ErrorCommentOpen then
+    exit;
+  ErrorCommentOpen:=true;
   writeln(outfile,'(* error ');
   // the C text, with the comment brackets split
   writeln(outfile,StringReplace(StringReplace(S,'(*','( *',[rfReplaceAll]),'*)','* )',[rfReplaceAll]));
+end;
+
+procedure EmitErrorEnd(const S : string);
+
+begin
+  if not ErrorCommentOpen then
+    exit;
+  writeln(outfile,S);
+  ErrorCommentOpen:=false;
 end;
 
 procedure EmitWriteln(S : string);
