@@ -24,6 +24,9 @@ type
     procedure TestLongInputLine;
     procedure TestCommentsInArgumentList;
     procedure TestFunctionNamesDifferingInCase;
+    procedure TestPointerToLaterStruct;
+    procedure TestPointerToUndeclaredStruct;
+    procedure TestPointersToLaterStructsCompile;
     procedure TestFunctionNamesDifferingInCaseDynamic;
     procedure TestFunctionNameOfMacroInOtherCase;
     procedure TestFunctionPointerArgumentResult;
@@ -140,6 +143,54 @@ begin
   Convert(['void f();']);
   AssertConverted;
   AssertInterface('empty parameter list gives no parameters',['procedure f;']);
+end;
+
+
+const
+  LaterStructHeader : array[0..5] of string = (
+    'struct pci_device { int x; };',
+    'const struct pci_agp_info *pci_device_get_agp_info(struct pci_device *dev);',
+    'extern struct pci_state *gstate;',
+    'struct pci_agp_info { unsigned int fast_writes:1; int rate; };',
+    'struct pci_state { int s; };',
+    'struct snd_shm_area *snd_shm_area_create(int shmid, void *ptr);');
+
+procedure TTestFunctions.TestPointerToLaterStruct;
+
+begin
+  Convert(LaterStructHeader,['-d']);
+  AssertConverted;
+  AssertInterface('a struct declared after the function that points to it moves before the function',
+    ['Ppci_agp_info = ^pci_agp_info;','pci_agp_info = record','flag0 : word;','rate : longint;','end;',
+     'function pci_device_get_agp_info(dev:Ppci_device):Ppci_agp_info;cdecl;external;']);
+  AssertInterface('and before a variable that points to it',['pci_state = record','s : longint;','end;','var',
+    'gstate : ^pci_state;cvar;external;']);
+end;
+
+
+procedure TTestFunctions.TestPointerToUndeclaredStruct;
+
+begin
+  Convert(['struct snd_shm_area *snd_shm_area_create(int shmid, void *ptr);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct without declaration is an empty record before the function',
+    ['snd_shm_area = record','{undefined structure}','end;','Psnd_shm_area = ^snd_shm_area;',
+     'function snd_shm_area_create(shmid:longint; ptr:pointer):Psnd_shm_area;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestPointersToLaterStructsCompile;
+
+begin
+  Convert(LaterStructHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(LaterStructHeader,['-d','-1']);
+  AssertConverted;
+  AssertCompiles;
+  Convert(LaterStructHeader,['-P','-l','libx.so']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 

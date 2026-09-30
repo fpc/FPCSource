@@ -1306,6 +1306,38 @@ begin
 end;
 
 
+// Writes an opaque marker, as for a typedef of a struct tag, for the struct or union tag that the type aType is
+// or points to when that tag is not declared yet.
+procedure MarkUndeclaredTag(aType : presobject);
+
+begin
+  while assigned(aType) and (aType^.typ=t_pointerdef) do
+    aType:=aType^.p1;
+  if assigned(aType) and (aType^.typ=t_id) and aType^.structtag and not IsDeclaredType(TypeName(aType^.p)) then
+    begin
+    WriteSectionMarker(outfile,'T');
+    shift(2);
+    WriteOpaqueMarker(outfile,TypeName(aType^.p),'');
+    popshift;
+    block_type:=bt_no;
+    end;
+end;
+
+
+// Writes the opaque markers for the undeclared struct tags of the result type aType and the arguments aArgs.
+procedure MarkUndeclaredFunctionTags(aType, aArgs : presobject);
+
+begin
+  MarkUndeclaredTag(aType);
+  while assigned(aArgs) do
+    begin
+    if assigned(aArgs^.p1) then
+      MarkUndeclaredTag(aArgs^.p1^.p1);
+    aArgs:=aArgs^.next;
+    end;
+end;
+
+
 // Returns true when aNode is the specifier or modifier aText.
 function HasSpecifier(aNode : presobject; const aText : AnsiString) : boolean;
 
@@ -1468,6 +1500,7 @@ var
 
 begin
   HoistVariableProcVarElements(aDeclList,aType);
+  MarkUndeclaredTag(aType);
   shift(2);
   WriteSectionMarker(outfile,'V');
   OpenSection(bt_var,'var');
@@ -1529,6 +1562,7 @@ begin
     if assigned(decllist_spec^.p1^.p1^.p1) and (decllist_spec^.p1^.p1^.p1^.typ=t_pointerdef) then
       NilPointerExits(block_spec);
     HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+    MarkUndeclaredFunctionTags(type_spec,decllist_spec^.p1^.p1^.p2);
     StoreFunction(decl,type_spec,modifier_spec,decllist_spec,true);
     lSkipEllipsis:=false;
     repeat
@@ -1569,6 +1603,7 @@ begin
   else if IsFunctionDeclList(decllist_spec) then
     begin
     HoistDeclarationProcVarArgs(decllist_spec,type_spec);
+    MarkUndeclaredFunctionTags(type_spec,decllist_spec^.p1^.p1^.p2);
     StoreFunction(decl,type_spec,modifier_spec,decllist_spec,false);
     lExtern:=UseLib or HasSpecifier(decl,'extern');
     lVarArgs:=HasEllipsis(decllist_spec^.p1^.p1^.p2) and (lExtern or createdynlib);
