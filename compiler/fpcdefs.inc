@@ -161,6 +161,7 @@
   {$define SUPPORT_SAFECALL}
   {$define support_rodata}
   {$define sparcgen}
+  {$define support_rodata}
 
   { the official name of the 32 Bit SPARC port is still "sparc" but
     using the sparc32 define makes things more clear }
