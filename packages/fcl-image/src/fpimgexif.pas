@@ -62,7 +62,8 @@ end;
 function FindOrientation(const aExif: TBytes; out aBig: Boolean): Integer;
 
 var
-  lIFD, lCount, i, lEntry: Int64;
+  lIFD, lEntry: Int64;
+  i, lCount: Integer;
 
   function Get16(aPos: Int64): Integer;
 
