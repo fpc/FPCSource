@@ -42,14 +42,18 @@ uses
 const
   {$IFDEF WINDOWS}
   libheif_library = 'libheif.dll';
-  {$ENDIF}
+  {$ELSE}
   {$IFDEF DARWIN}
   libheif_library = 'libheif.dylib';
-  {$ENDIF}
+  {$ELSE}
   {$IFDEF UNIX}
   libheif_library = 'libheif.so';
+  {$ELSE}
+  {$ERROR Unknown libheif name}
   {$ENDIF}
-  
+  {$ENDIF}
+  {$ENDIF}
+
     heif_error_Ok = 0;
     heif_error_Input_does_not_exist = 1;
     heif_error_Invalid_input = 2;
