@@ -3929,6 +3929,7 @@ BEGIN
          + (Size.Y*(Mouse.X DIV Cw))+TopItem          { Calc item to focus }
          Else Ni := Oi;                               { Focus old item }
        Ct := 0;                                       { Clear count value }
+       If NOT Event.Double Then
        Repeat
          If (Ni <> Oi) Then Begin                     { Item is different }
            MoveFocus(Ni);                             { Move the focus }
