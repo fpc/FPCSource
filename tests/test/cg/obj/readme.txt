@@ -89,6 +89,8 @@ linux-powerpc : GCC: (GNU) 4.0.0 to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
 linux-powerpc64 : GCC: (GNU) 3.3.3 (SuSE Linux) to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
 linux-powerpc64-le : GCC: (Red Hat 4.9.2-1) 4.9.2 20141101
 linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
+linux-riscv64 : GCC: (GNU) 13.0.0 20220801 (experimental)
+                (tcext7.o): gcc (Debian 14.2.0-19) 14.2.0
 
 Data retrieved from Dwarf producer information:
 
