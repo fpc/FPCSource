@@ -58,30 +58,48 @@ begin
 end;
 
 
+// Returns the 16-bit value at aPos in aExif; aBig tells the byte order.
+function ExifRead16(const aExif: TBytes; aPos: Int64; aBig: Boolean): Word;
+
+begin
+  Result := Unaligned(PWord(@aExif[aPos])^);
+  if aBig then
+    Result := BEtoN(Result)
+  else
+    Result := LEtoN(Result);
+end;
+
+
+// Returns the 32-bit value at aPos in aExif; aBig tells the byte order.
+function ExifRead32(const aExif: TBytes; aPos: Int64; aBig: Boolean): Cardinal;
+
+begin
+  Result := Unaligned(PCardinal(@aExif[aPos])^);
+  if aBig then
+    Result := BEtoN(Result)
+  else
+    Result := LEtoN(Result);
+end;
+
+
+// Writes the 16-bit aValue at aPos in aExif; aBig tells the byte order.
+procedure ExifWrite16(var aExif: TBytes; aPos: Int64; aBig: Boolean; aValue: Word);
+
+begin
+  if aBig then
+    aValue := NtoBE(aValue)
+  else
+    aValue := NtoLE(aValue);
+  Unaligned(PWord(@aExif[aPos])^) := aValue;
+end;
+
+
 // Returns the offset of the value of the orientation entry of IFD0 in aExif, or -1; aBig tells the byte order.
 function FindOrientation(const aExif: TBytes; out aBig: Boolean): Integer;
 
 var
   lIFD, lEntry: Int64;
   i, lCount: Integer;
-
-  function Get16(aPos: Int64): Integer;
-
-  begin
-    if aBig then
-      Result := (aExif[aPos] shl 8) or aExif[aPos + 1]
-    else
-      Result := aExif[aPos] or (aExif[aPos + 1] shl 8);
-  end;
-
-  function Get32(aPos: Int64): Int64;
-
-  begin
-    if aBig then
-      Result := (Int64(aExif[aPos]) shl 24) or (aExif[aPos + 1] shl 16) or (aExif[aPos + 2] shl 8) or aExif[aPos + 3]
-    else
-      Result := aExif[aPos] or (aExif[aPos + 1] shl 8) or (aExif[aPos + 2] shl 16) or (Int64(aExif[aPos + 3]) shl 24);
-  end;
 
 begin
   Result := -1;
@@ -92,18 +110,20 @@ begin
     aBig := True
   else if (aExif[0] <> Ord('I')) or (aExif[1] <> Ord('I')) then
     exit;
-  if Get16(2) <> 42 then
+  if ExifRead16(aExif, 2, aBig) <> 42 then
     exit;
-  lIFD := Get32(4);
+  lIFD := ExifRead32(aExif, 4, aBig);
   if lIFD + 2 > Length(aExif) then
     exit;
-  lCount := Get16(lIFD);
+  lCount := ExifRead16(aExif, lIFD, aBig);
   for i := 0 to lCount - 1 do
     begin
     lEntry := lIFD + 2 + i * 12;
     if lEntry + 12 > Length(aExif) then
       exit;
-    if (Get16(lEntry) = TagOrientation) and (Get16(lEntry + 2) = TypeShort) and (Get32(lEntry + 4) = 1) then
+    if (ExifRead16(aExif, lEntry, aBig) = TagOrientation)
+       and (ExifRead16(aExif, lEntry + 2, aBig) = TypeShort)
+       and (ExifRead32(aExif, lEntry + 4, aBig) = 1) then
       exit(lEntry + 8);
     end;
 end;
@@ -120,10 +140,7 @@ begin
   lPos := FindOrientation(aExif, lBig);
   if lPos < 0 then
     exit;
-  if lBig then
-    Result := (aExif[lPos] shl 8) or aExif[lPos + 1]
-  else
-    Result := aExif[lPos] or (aExif[lPos + 1] shl 8);
+  Result := ExifRead16(aExif, lPos, lBig);
   if (Result < 1) or (Result > 8) then
     Result := 0;
 end;
@@ -140,16 +157,7 @@ begin
   Result := lPos >= 0;
   if not Result then
     exit;
-  if lBig then
-    begin
-    aExif[lPos] := (aValue shr 8) and $FF;
-    aExif[lPos + 1] := aValue and $FF;
-    end
-  else
-    begin
-    aExif[lPos] := aValue and $FF;
-    aExif[lPos + 1] := (aValue shr 8) and $FF;
-    end;
+  ExifWrite16(aExif, lPos, lBig, aValue);
 end;
 
 
