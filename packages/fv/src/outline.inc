@@ -633,6 +633,7 @@ begin
       begin
         count:=1;
         mouse_drag:=false;
+        if not Event.Double then
         repeat
           makelocal(event.where,mouse);
           if mouseinview(event.where) then
