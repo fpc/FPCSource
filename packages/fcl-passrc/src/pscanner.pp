@@ -453,7 +453,7 @@ const
      'com', // vsInterfaces
      'Msg', // vsDispatchField
      'MsgStr', // vsDispatchStrField
-     '0', // vsMinEnumSize (0 = natural size)
+     '4', // vsMinEnumSize (FPC mode default; Delphi/TP use 1, MacPas 2)
      '0', // vsPackSet (0 = natural)
      '0' // vsPackRecords (0 = natural alignment)
      );
@@ -5021,15 +5021,18 @@ end;
 
 procedure TPascalScanner.HandlePackValue(vs: TValueSwitch; const Param: TPasScannerString);
 // {$MINENUMSIZE/$PACKENUM/$PACKSET/$PACKRECORDS n}: n is 1/2/4/8, or
-// "default"/"normal" (-> 0 = natural).
+// "default"/"normal" (4 for an enum, else 0 = natural).
 var
   S: TPasScannerString;
 begin
   if not (vs in AllowedValueSwitches) then
     Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,[ValueSwitchNames[vs]]);
   S:=Trim(Param);
-  if SameText(S,'DEFAULT') or SameText(S,'NORMAL') then
-    S:='0';
+  if SameText(S,'DEFAULT') or SameText(S,'NORMAL') or SameText(S,'FIXED') then
+    if vs=vsMinEnumSize then
+      S:='4'
+    else
+      S:='0';
   CurrentValueSwitch[vs]:=S;
 end;
 
@@ -5129,6 +5132,22 @@ procedure TPascalScanner.HandleMode(const Param: TPasScannerString);
         UnsetNonToken(tkotherwise)
       else
         SetNonToken(tkotherwise);
+      // Enum and set storage defaults of the mode, as fpc sets them.
+      case LangMode of
+      msDelphi,msDelphiUnicode,msTP7:
+        begin
+        CurrentValueSwitch[vsMinEnumSize]:='1';
+        CurrentValueSwitch[vsPackSet]:='1';
+        end;
+      msMac:
+        begin
+        CurrentValueSwitch[vsMinEnumSize]:='2';
+        CurrentValueSwitch[vsPackSet]:='0';
+        end;
+      else
+        CurrentValueSwitch[vsMinEnumSize]:='4';
+        CurrentValueSwitch[vsPackSet]:='0';
+      end;
       end;
     Handled:=false;
     FileResolver.Mode:=LangMode;
@@ -5569,6 +5588,8 @@ begin
         HandleDispatchField(Param,vsDispatchStrField);
       'MINENUMSIZE', 'PACKENUM':
         HandlePackValue(vsMinEnumSize,Param);
+      'Z1', 'Z2', 'Z4':
+        HandlePackValue(vsMinEnumSize,Directive[2]);
       'PACKSET':
         HandlePackValue(vsPackSet,Param);
       'PACKRECORDS':

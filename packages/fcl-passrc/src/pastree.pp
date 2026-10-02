@@ -780,6 +780,10 @@ type
       const Arg: Pointer); override;
   public
     Values: TFPList;      // List of TPasEnumValue
+    // Minimum storage size in bytes from {$PACKENUM}/{$MINENUMSIZE} at the declaration (0 = none)
+    MinSize: Integer;
+    // Storage size in bytes, set when the declaration is finished (0 = not known yet)
+    Size: Integer;
   end;
 
   { TPasSetType }
@@ -795,6 +799,8 @@ type
   public
     EnumType: TPasType; // alias or enumtype
     IsPacked : Boolean;
+    // Storage granularity in bytes from {$PACKSET} at the declaration (0 = normal)
+    PackSet: Integer;
   end;
 
   TPasRecordType = class;
