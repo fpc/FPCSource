@@ -2291,11 +2291,11 @@ var
           // Standard keys
           $41..$5A : VKToScanCode := cScanValue[vk]; // 'A'..'Z'
           $30..$39 : VKToScanCode := cScanValue[vk]; // '0'..'9'
-          $08: VKToScanCode := kbBack;
-          $09: VKToScanCode := kbTab;
-          $0D: VKToScanCode := kbEnter;
-          $1B: VKToScanCode := kbEsc;
-          $20: VKToScanCode := kbSpaceBar;
+          $08: VKToScanCode := cScanValue[vk]; //kbBack;
+          $09: VKToScanCode := cScanValue[vk]; //kbTab;
+          $0D: VKToScanCode := cScanValue[vk]; //kbEnter;
+          $1B: VKToScanCode := cScanValue[vk]; //kbEsc;
+          $20: VKToScanCode := cScanValue[vk]; //kbSpaceBar;
           // Function keys
           $70..$79: VKToScanCode := vk - $70 + kbF1; // F1-F10
           $7A..$7B: VKToScanCode := vk - $7A + kbF11; // F11-F12
