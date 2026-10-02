@@ -80,6 +80,9 @@ procedure RedirEnableAll;
 { unused in UNIX }
 const
   UseComSpec : boolean = true;
+{ timeout in milliseconds }
+const
+  timeout_ms : longint = 60000;
 
 Implementation
 
@@ -798,9 +801,6 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifdef EXECUTEREDIR_USES_PROCESS}
 function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 
-const
-  max_count = 60000;
-
 var
   P : TProcess;
 
@@ -818,7 +818,7 @@ begin
       P.ErrorDescriptor.FileName:=RedirStdErr;
     try
       P.Execute;
-      Result:=P.WaitOnExit(max_count);
+      Result:=P.WaitOnExit(timeout_ms);
     except
       on e : exception do
         begin
@@ -1125,8 +1125,6 @@ end;
 ****************************************************************************}
 
 {$ifdef USES_UNIT_PROCESS}
-const
-  max_count = 60000; { should be 60 seconds }
 
 function ExecuteProcess(const Path: string; const ComLine: string; Flags:TExecuteFlags=[]): integer;
 var
@@ -1147,19 +1145,19 @@ begin
     P.Execute;
 {$if FPC_FULLVERSION < 30100}
 {$ifdef Windows}
-    WaitForSingleObject(P.ProcessHandle,max_count);
-    counter:=max_count;
+    WaitForSingleObject(P.ProcessHandle,timeout_ms);
+    counter:=timeout_ms;
 {$else not Windows}
     counter:=0;
 {$endif not Windows}
 {$else}
-    P.WaitOnExit(max_count);
-    counter:=max_count;
+    P.WaitOnExit(timeout_ms);
+    counter:=timeout_ms;
 {$endif}
 
     while P.Running do
       begin
-        if counter>max_count then
+        if counter>timeout_ms then
           begin
             P.Terminate(255);
             if TerminateSentCount=0 then

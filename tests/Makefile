@@ -2728,8 +2728,12 @@ endif
 ifdef TEST_DELTEMP
 override DOTESTOPT+=-Z
 endif
+ifdef TEST_TIMEOUT_VALUE
+override DOTESTOPT+=-O$(TEST_TIMEOUT_VALUE)
+else
 ifdef TEST_TIMEOUT
 override DOTESTOPT+=-O
+endif
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
