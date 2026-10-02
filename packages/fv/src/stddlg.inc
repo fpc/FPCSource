@@ -1091,14 +1091,7 @@ var
   K : pointer;
   Value : Sw_integer;
 begin
-  if (Event.What = evMouseDown) and (Event.Double) then
-  begin
-    Event.What := evCommand;
-    Event.Command := cmOK;
-    PutEvent(Event);
-    ClearEvent(Event);
-  end
-  else if (Event.What = evKeyDown) and (Event.CharCode='<') then
+  if (Event.What = evKeyDown) and (Event.CharCode='<') then
   begin
     { select '..' }
       S := '..';
