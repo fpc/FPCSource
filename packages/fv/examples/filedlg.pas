@@ -1,25 +1,31 @@
-program demofiledialog;
-{$codepage utf8}
+program DemoFileDialog;
+
+{ Have FV_UNICODE defined to compile and run with Free Vision Unicode version,
+  otherwise single byte code page ShortString Free Vision version will be used }
+{$define FV_UNICODE}
+
+{$ifdef FV_UNICODE}
+  {$codepage utf8}
+{$endif}
+
 uses
   {$ifdef UNIX}cwstring,{$endif}
-  //Objects, Drivers, Views, Menus, Dialogs, App, Stddlg, MsgBox, FVCommon; { for legacy uncomment this line and comment next line }
-  Objects, uDrivers, uViews, uMenus, uDialogs, uApp, uStddlg, uMsgBox, uFVCommon; { for unicode support uncomment this line and comment previous line }
+{$ifdef FV_UNICODE}
+  Objects, uDrivers, uViews, uMenus, uDialogs, uApp, uStddlg, uMsgBox, uFVCommon;
+{$else}
+  Objects, Drivers, Views, Menus, Dialogs, App, Stddlg, MsgBox, FVCommon;
+{$endif}
 
 const cmOpneFileDlg =14523;
       cmDirChangeDlg=26745;
       cmDirChangeDlg2=3412;
 
 {$if sizeof(sw_string)<=8}
-const  cStr1: utf8String = '◀ ◌ ◂ ◃ ◄ ◅ ◆ ◇ ';
-       cStr2: utf8String = ' ◈ ◉ ◊ ○ ◌ ◍ ◎ ●';
-       cMoStr = '◇ ';
+const  cMoStr = '◇ ';
        cMcStr = '◊ ';
        cMeStr = '◌ ';
-
 {$else}
-const  cStr1: AnsiString = '';
-       cStr2: AnsiString = '';
-       cMoStr = '';
+const  cMoStr = '';
        cMcStr = '';
        cMeStr = '';
 {$endif}
@@ -39,7 +45,7 @@ begin
   R.B.Y := R.A.Y + 1;
   MenuBar := New(PMenubar, Init(R, NewMenu(NewSubMenu('~M~enu',  hcNoContext,
     NewMenu(
-    NewItem(cMoStr+'~O~pen File Dialog', 'F2', kbF2, cmOpneFileDlg, hcNoContext,
+    NewItem(cMoStr+'~O~pen File Dialog', 'F3', kbF3, cmOpneFileDlg, hcNoContext,
     NewItem(cMcStr+'~C~hange Directory Dialog', 'F4', kbF4, cmDirChangeDlg, hcNoContext,
     NewItem(cMeStr+'Change ~D~irectory Dialog II', 'F6', kbF6, cmDirChangeDlg2, hcNoContext,
 
@@ -59,9 +65,8 @@ var
   S: Sw_String;
   P : pointer;
 begin
-  S:='*.pas';
-  D := New(PFileDialog, Init(S,cStr1+'File dialog'+cStr2,'Chosen ~f~ile ',fdOkButton,199));
-  //D := New(PFileDialog, Init(S,'File dialog','Chosen ~f~ile ',fdOkButton,199));
+  S:='*.pas;*.txt';
+  D := New(PFileDialog, Init(S,'File dialog','File to ~o~pen ',fdOkButton,199));
   { Resize }
   if Desktop^.Size.Y > 26 then
     D^.GrowTo(D^.Size.X,Desktop^.Size.Y-6);
@@ -119,8 +124,6 @@ begin
     MessageBox('The directory '+S, nil, mfInformation + mfOKButton);
   end;
 end;
-
-
 
 begin
   inherited HandleEvent(Event);
