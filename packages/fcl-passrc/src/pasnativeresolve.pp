@@ -94,19 +94,17 @@ type
     // Injects the native scope subclasses that carry the packing values.
     constructor Create; reintroduce;
     destructor Destroy; override;
-    // Byte size of an enum's storage (1/2/4 by value count, honouring {$MINENUMSIZE}).
+    // Byte size of an enum's storage (1/2/4 by ordinal range, at least its {$PACKENUM} value).
     function GetEnumTypeSize(EnumType: TPasEnumType): Integer;
+    // Resolves the member values, then stores the enum's storage size in El.Size.
+    procedure FinishEnumType(El: TPasEnumType); override;
     // Bit width of a bit-packed ordinal access (0 if Expr is not one). 
     function BitPackedOrdinalBitSize(Expr: TPasExpr): integer;
     // Adds the base ObjFPC identifiers, then the native-only const-eval intrinsics and compiler-intrinsic type names.
     procedure AddObjFPCBuiltInIdentifiers(
       const TheBaseTypes: TResolveBaseTypes = btAllFPCTypes;
       const TheBaseProcs: TResolverBuiltInProcs = bfAllStandardProcs); override;
-    // Native memory-layout packing directives, stored per element
-    procedure SetMinEnumSize(El: TPasElement; ASize: Integer); override;
-    function GetMinEnumSize(El: TPasElement): Integer; override;
-    procedure SetPackSet(El: TPasElement; ASize: Integer); override;
-    function GetPackSet(El: TPasElement): Integer; override;
+    // Native record packing directive, stored per record
     procedure SetPackRecords(El: TPasElement; ASize: Integer); override;
     function GetPackRecords(El: TPasElement): Integer; override;
     (*
@@ -155,21 +153,11 @@ type
 implementation
 
 type
-  { Native scope subclasses that carry the packing value with the element, so
-    it persists across resolvers with no process-global. }
-  TNativeEnumTypeScope = class(TPasEnumTypeScope)
-  public
-    MinEnumSize: Integer;
-  end;
+  { Native record scope that carries the packing value with the record, so it
+    persists across resolvers with no process-global. }
   TNativeRecordScope = class(TPasRecordScope)
   public
     PackRecords: Integer;
-  end;
-  { A set type owns no scope, so its pack-set value rides on a resolve-data
-    attached to the otherwise-free CustomData slot. }
-  TNativePackSetData = class(TResolveData)
-  public
-    PackSet: Integer;
   end;
 
 procedure TPasNativeResolver.AddObjFPCBuiltInIdentifiers(
@@ -518,7 +506,6 @@ constructor TPasNativeResolver.Create;
 
 begin
   inherited Create;
-  ScopeClass_EnumType:=TNativeEnumTypeScope;
   ScopeClass_Record:=TNativeRecordScope;
   FEnumOrdinalBusy:=TFPList.Create;
 end;
@@ -529,24 +516,6 @@ destructor TPasNativeResolver.Destroy;
 begin
   FreeAndNil(FEnumOrdinalBusy);
   inherited Destroy;
-end;
-
-
-procedure TPasNativeResolver.SetMinEnumSize(El: TPasElement; ASize: Integer);
-
-begin
-  if (El<>nil) and (ASize>0) and (El.CustomData is TNativeEnumTypeScope) then
-    TNativeEnumTypeScope(El.CustomData).MinEnumSize:=ASize;
-end;
-
-
-function TPasNativeResolver.GetMinEnumSize(El: TPasElement): Integer;
-
-begin
-  if (El<>nil) and (El.CustomData is TNativeEnumTypeScope) then
-    Result:=TNativeEnumTypeScope(El.CustomData).MinEnumSize
-  else
-    Result:=0;
 end;
 
 
@@ -568,34 +537,6 @@ begin
 end;
 
 
-procedure TPasNativeResolver.SetPackSet(El: TPasElement; ASize: Integer);
-
-var
-  Data: TNativePackSetData;
-
-begin
-  if (El=nil) or (ASize<=0) then exit;
-  if El.CustomData is TNativePackSetData then
-    TNativePackSetData(El.CustomData).PackSet:=ASize
-  else if El.CustomData=nil then
-    begin
-    Data:=TNativePackSetData.Create;
-    Data.PackSet:=ASize;
-    AddResolveData(El,Data,lkModule);
-    end;
-end;
-
-
-function TPasNativeResolver.GetPackSet(El: TPasElement): Integer;
-
-begin
-  if (El<>nil) and (El.CustomData is TNativePackSetData) then
-    Result:=TNativePackSetData(El.CustomData).PackSet
-  else
-    Result:=0;
-end;
-
-
 function TPasNativeResolver.GetEnumTypeSize(EnumType: TPasEnumType): Integer;
 // Sized by the ORDINAL RANGE, not by the member count: an assigned value puts a
 // member far outside the count (cgbase.pas spans a TRegister enum over the whole
@@ -606,6 +547,8 @@ var
   MinOrd, MaxOrd: TMaxPrecInt;
 
 begin
+  if (EnumType<>nil) and (EnumType.Size>0) then
+    exit(EnumType.Size);
   Result:=1;
   if (EnumType<>nil) and (EnumType.Values<>nil) and (EnumType.Values.Count>0) then
     begin
@@ -621,6 +564,15 @@ begin
   MinSize:=GetMinEnumSize(EnumType);
   if MinSize>Result then
     Result:=MinSize;
+end;
+
+
+procedure TPasNativeResolver.FinishEnumType(El: TPasEnumType);
+
+begin
+  inherited FinishEnumType(El);
+  El.Size:=0;
+  El.Size:=GetEnumTypeSize(El);
 end;
 
 
@@ -935,32 +887,31 @@ begin
 end;
 
 function TPasNativeResolver.EnumHasHoles(El: TPasEnumType): boolean;
+// FPC's rule (tenumsymtable.insertsym): a first value above 0 is a jump, and so
+// is a later value above the highest value so far plus one.
 var
   i: Integer;
-  EnumVal: TPasEnumValue;
-  V: TResEvalValue;
-  Expected: TMaxPrecInt;
+  Value, MaxValue: TMaxPrecInt;
 begin
   Result:=false;
   if El=nil then exit;
-  Expected:=0;
+  MaxValue:=0;
   for i:=0 to El.Values.Count-1 do
     begin
-    EnumVal:=TPasEnumValue(El.Values[i]);
-    if EnumVal.Value<>nil then
+    Value:=GetEnumValueOrdinal(TPasEnumValue(El.Values[i]));
+    if i=0 then
       begin
-      V:=Eval(EnumVal.Value,[refConst]);
-      try
-        if (V<>nil) and (V is TResEvalInt) and (TResEvalInt(V).Int<>Expected) then
-          begin
-          Result:=true;
-          exit;
-          end;
-      finally
-        ReleaseEvalValue(V);
+      if Value>0 then
+        exit(true);
+      MaxValue:=Value;
+      end
+    else
+      begin
+      if Value>MaxValue+1 then
+        exit(true);
+      if Value>MaxValue then
+        MaxValue:=Value;
       end;
-      end;
-    inc(Expected);
     end;
 end;
 
