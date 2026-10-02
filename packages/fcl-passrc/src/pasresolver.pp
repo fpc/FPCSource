@@ -2413,6 +2413,7 @@ type
     function CreateGroupScope(HiType: TPasType; WithTopHelpers: boolean = true): TPasGroupScope; virtual;
     function IsActiveHelperVisible(Helper: TPasClassType): boolean;
     procedure GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope; HiType: TPasType; WithTopHelpers: boolean = true);
+    procedure GroupScope_AddHelpersFor(Scope: TPasGroupScope; ForType: TPasType; out BestEntry: TPRHelperEntry);
     procedure PopScope;
     procedure PopWithScope(El: TPasImplWithDo);
     procedure PopGenericParamScope(El: TPasGenericType); virtual;
@@ -2422,7 +2423,7 @@ type
     function PushModuleDotScope(aModule: TPasModule): TPasModuleDotScope;
     function GenericOfBuildingSpecialization(El: TPasElement): TPasElement;
     function PushClassDotScope(var CurClassType: TPasClassType; WithTopHelpers: boolean = true): TPasDotClassScope;
-    function PushRecordDotScope(CurRecordType: TPasRecordType): TPasDotClassOrRecordScope;
+    function PushRecordDotScope(CurRecordType: TPasRecordType; HiType: TPasType = nil): TPasDotClassOrRecordScope;
     function PushInheritedScope(ClassOrRec: TPasMembersType;
       WithTopHelpers: boolean; AncestorScope: TPasClassScope): TPasInheritedScope;
     function PushEnumDotScope(HiType: TPasType; EnumLoType: TPasEnumType): TPasDotEnumTypeScope;
@@ -2582,9 +2583,7 @@ type
     // True when El is (part of) the argument of the built-in NameOf(), where
     // only the declared name is needed and no instance is required.
     function IsNameOfArgument(El: TPasElement): boolean; virtual;
-    // Copies the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} pack values from a
-    // generic template element to its specialized element (called from both the
-    // nested-element and the top-level generic-type specialization paths).
+    // Copies the {$PACKRECORDS} pack value from a generic template element to its specialized element.
     procedure SpecializePackValues(GenEl, SpecEl: TPasElement);
     procedure SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
       Const Fmt : String; Args : Array of const;
@@ -6310,6 +6309,55 @@ var
       end;
   end;
 
+  // Tie-break of two equally good candidates: ppcx64 ranks an integer passed to a
+  // SINGLE better than to a double or extended (defcmp: te_convert_l3 vs l4), so
+  // Ldexp(1, n) picks the single overload. 1 when P1 wins, -1 when P2 wins, 0
+  // when they differ in any other way.
+  function IntToSingleTie(P1, P2: TPasElement): Integer;
+  var
+    a, ArgCount: Integer;
+    R1, R2, RA: TPasResolverResult;
+    B1, B2: TResolverBaseType;
+  begin
+    Result:=0;
+    if not (P1 is TPasProcedure) or not (P2 is TPasProcedure)
+        or (Data^.Params=nil) then
+      exit;
+    ArgCount:=length(Data^.Params.Params);
+    if (TPasProcedure(P1).ProcType.Args.Count<ArgCount)
+        or (TPasProcedure(P2).ProcType.Args.Count<ArgCount) then
+      exit;
+    for a:=0 to ArgCount-1 do
+      begin
+      if (TPasArgument(TPasProcedure(P1).ProcType.Args[a]).ArgType=nil)
+          or (TPasArgument(TPasProcedure(P2).ProcType.Args[a]).ArgType=nil) then
+        exit(0);
+      ComputeElement(TPasArgument(TPasProcedure(P1).ProcType.Args[a]).ArgType,R1,[rcType]);
+      ComputeElement(TPasArgument(TPasProcedure(P2).ProcType.Args[a]).ArgType,R2,[rcType]);
+      B1:=GetActualBaseType(R1.BaseType);
+      B2:=GetActualBaseType(R2.BaseType);
+      if (B1=B2) and (R1.LoTypeEl=R2.LoTypeEl) then
+        continue;
+      if not ((B1 in btAllFloats) and (B2 in btAllFloats)) then
+        exit(0);
+      ComputeElement(Data^.Params.Params[a],RA,[rcNoImplicitProcType]);
+      if not (RA.BaseType in btAllInteger) then
+        exit(0);
+      if (B1=btSingle) and (B2<>btSingle) then
+        begin
+        if Result<0 then exit(0);
+        Result:=1;
+        end
+      else if (B2=btSingle) and (B1<>btSingle) then
+        begin
+        if Result>0 then exit(0);
+        Result:=-1;
+        end
+      else
+        exit(0);
+      end;
+  end;
+
 begin
 
   {$IFDEF VerbosePasResolver}
@@ -6702,6 +6750,25 @@ begin
         exit;
         end;
       end;
+    // Integer argument: a SINGLE parameter beats a double/extended one.
+    case IntToSingleTie(El,Data^.Found) of
+    1:
+      begin
+      Data^.Found:=El;
+      Data^.ElScope:=ElScope;
+      Data^.StartScope:=StartScope;
+      Data^.Distance:=Distance;
+      Data^.Count:=1;
+      if Data^.List<>nil then
+        begin
+        Data^.List.Clear;
+        Data^.List.Add(El);
+        end;
+      exit;
+      end;
+    -1:
+      exit; // keep the single candidate already found
+    end;
     // String-family tie-break: when the first argument is a string/char, prefer the
     // candidate whose first PARAMETER is the SAME family (ansi vs unicode) over one
     // of the OPPOSITE family. Verified vs ppcx64: StringReplace(ShortString, AnsiChar,
@@ -10196,7 +10263,7 @@ var
   TypeEl, ElType: TPasType;
   C: TClass;
   IdentEl: TPasElement;
-  FlattenDepth: Integer;
+  FlattenDepth, i: Integer;
 begin
   CreateScope(Loop,TPasForLoopScope);
 
@@ -10292,6 +10359,21 @@ begin
               InRange:=Eval(StartResolved.ExprEl,[]);
             if InRange=nil then
               InRange:=EvalTypeRange(StartResolved.LoTypeEl,[]);
+            end
+          else if (bt=btArrayLit) and (StartResolved.ExprEl is TParamsExpr)
+              and (TParamsExpr(StartResolved.ExprEl).Kind=pekSet) then
+            begin
+            // for s in ['a', b, c] do: an array constructor of non-ordinal
+            // values (strings) - every element must fit the loop variable.
+            for i:=0 to length(TParamsExpr(StartResolved.ExprEl).Params)-1 do
+              begin
+              ComputeElement(TParamsExpr(StartResolved.ExprEl).Params[i],ElResolved,[]);
+              if CheckAssignResCompatibility(VarResolved,ElResolved,
+                  TParamsExpr(StartResolved.ExprEl).Params[i],true)=cIncompatible then
+                RaiseIncompatibleTypeRes(20261001120000,nIncompatibleTypesGotExpected,
+                  [],ElResolved,VarResolved,TParamsExpr(StartResolved.ExprEl).Params[i]);
+              end;
+            EnumeratorFound:=true;
             end
           else if bt=btContext then
             begin
@@ -12195,7 +12277,7 @@ begin
           end
         else if LTypeEl.ClassType=TPasRecordType then
           begin
-          DotScope:=PushRecordDotScope(TPasRecordType(LTypeEl));
+          DotScope:=PushRecordDotScope(TPasRecordType(LTypeEl),LeftResolved.HiTypeEl);
           DotScope.OnlyTypeMembers:=true;
           end
         else
@@ -19957,8 +20039,11 @@ begin
     // twice. fcl-stl's ghashmap reads (FData[Fh])[Fp].
     ComputeIndexProperty(TPasProperty(TResolvedReference(Params.CustomData).Declaration))
   else if (ResolvedEl.IdentEl is TPasProperty)
-      and (GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
-    // property with args
+      and (GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0)
+      and not ((Params.Value is TParamsExpr)
+               and (TParamsExpr(Params.Value).Kind=pekArrayParams)) then
+    // property with args. Not when Params.Value already passed them: in
+    // Obj.Prop['a'][2] the [2] indexes the value Prop['a'] returns.
     ComputeIndexProperty(TPasProperty(ResolvedEl.IdentEl))
   else if ResolvedEl.BaseType=btContext then
     begin
@@ -25375,7 +25460,7 @@ begin
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
 
-  (*  propagate the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} packing values now
+  (*  propagate the {$PACKRECORDS} packing value now
      that the specialized type's scope/resolve-data (its storage site) exists.
      (Nested-element path; top-level generic types are handled in
      SpecializeGenericIntf, which does not route through here.) 
@@ -27143,6 +27228,7 @@ end;
 
 procedure TPasResolver.SpecializeEnumType(GenEl, SpecEl: TPasEnumType);
 begin
+  SpecEl.MinSize:=GenEl.MinSize;
   SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false);
   FinishEnumType(SpecEl);
 end;
@@ -27150,6 +27236,7 @@ end;
 procedure TPasResolver.SpecializeSetType(GenEl, SpecEl: TPasSetType);
 begin
   SpecEl.IsPacked:=GenEl.IsPacked;
+  SpecEl.PackSet:=GenEl.PackSet;
   SpecializeElType(GenEl,SpecEl,GenEl.EnumType,SpecEl.EnumType);
   FinishSetType(SpecEl);
 end;
@@ -30349,25 +30436,30 @@ end;
 
 procedure TPasResolver.SetMinEnumSize(El: TPasElement; ASize: Integer);
 begin
-  // pas2js-safe default: no native packing recorded.
-  if (El=nil) or (ASize=0) then ;
+  if El is TPasEnumType then
+    TPasEnumType(El).MinSize:=ASize;
 end;
 
 function TPasResolver.GetMinEnumSize(El: TPasElement): Integer;
 begin
-  Result:=0; // natural size
-  if El=nil then ;
+  if El is TPasEnumType then
+    Result:=TPasEnumType(El).MinSize
+  else
+    Result:=0; // natural size
 end;
 
 procedure TPasResolver.SetPackSet(El: TPasElement; ASize: Integer);
 begin
-  if (El=nil) or (ASize=0) then ;
+  if El is TPasSetType then
+    TPasSetType(El).PackSet:=ASize;
 end;
 
 function TPasResolver.GetPackSet(El: TPasElement): Integer;
 begin
-  Result:=0;
-  if El=nil then ;
+  if El is TPasSetType then
+    Result:=TPasSetType(El).PackSet
+  else
+    Result:=0;
 end;
 
 procedure TPasResolver.SetPackRecords(El: TPasElement; ASize: Integer);
@@ -30592,10 +30684,7 @@ end;
 
 procedure TPasResolver.SpecializePackValues(GenEl, SpecEl: TPasElement);
 begin
-  if GetMinEnumSize(GenEl)>0 then
-    SetMinEnumSize(SpecEl,GetMinEnumSize(GenEl));
-  if GetPackSet(GenEl)>0 then
-    SetPackSet(SpecEl,GetPackSet(GenEl));
+  // Enum and set pack values are fields, copied by SpecializeEnumType/SpecializeSetType.
   if GetPackRecords(GenEl)>0 then
     SetPackRecords(SpecEl,GetPackRecords(GenEl));
 end;
@@ -32667,8 +32756,16 @@ begin
 end;
 
 function TPasResolver.MatchHelperForType(HelperForType, HiType: TPasType): boolean;
+var
+  LoHelperFor: TPasType;
 begin
   Result:=IsSameType(HelperForType,HiType,prraNone);
+  if Result then exit;
+  // A strict alias of a RECORD (`TSVGColor = type TFPColor`) shares its
+  // helpers with the record, as in ppcx64: a helper for either applies to both,
+  // and the nearest one wins.
+  LoHelperFor:=ResolveAliasType(HelperForType);
+  Result:=(LoHelperFor is TPasRecordType) and (LoHelperFor=ResolveAliasType(HiType));
 end;
 
 
@@ -32676,9 +32773,8 @@ procedure TPasResolver.GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope;
   HiType: TPasType; WithTopHelpers: boolean);
 var
   IsClass: Boolean;
-  i, Prio, BestPrio, MatchCount: Integer;
-  Entry, BestEntry: TPRHelperEntry;
-  HelperForType, LoType: TPasType;
+  BestEntry: TPRHelperEntry;
+  LoType: TPasType;
   AncestorScope, HelperScope: TPasClassScope;
   C: TClass;
 begin
@@ -32710,6 +32806,39 @@ begin
     // first add helper(s)
     if WithTopHelpers then
       begin
+      GroupScope_AddHelpersFor(Scope,HiType,BestEntry);
+      end
+    else
+      WithTopHelpers:=true;
+    // then add scope of LoType
+    C:=LoType.ClassType;
+    if (C=TPasClassType) or (C=TPasRecordType) then
+      Scope.Add(LoType.CustomData as TPasIdentifierScope);
+    // then add the members composed via record composition
+    if (C=TPasRecordType) and (LoType.CustomData is TPasRecordScope)
+        and (TPasRecordScope(LoType.CustomData).CompositionScope<>nil) then
+      Scope.Add(TPasRecordScope(LoType.CustomData).CompositionScope);
+    // continue with ancestor
+    if not IsClass then break;
+    AncestorScope:=(LoType.CustomData as TPasClassScope).AncestorScope;
+    if AncestorScope=nil then break;
+    HiType:=TPasClassType(AncestorScope.Element);
+    LoType:=HiType;
+  until LoType=nil;
+end;
+
+procedure TPasResolver.GroupScope_AddHelpersFor(Scope: TPasGroupScope;
+  ForType: TPasType; out BestEntry: TPRHelperEntry);
+// Adds the active helpers for ForType: all of them under {$modeswitch
+// multihelpers}, else the one nearest in uses order (BestEntry).
+var
+  i, Prio, BestPrio, MatchCount: Integer;
+  Entry: TPRHelperEntry;
+  HelperForType: TPasType;
+  HelperScope: TPasClassScope;
+  HiType: TPasType;
+begin
+      HiType:=ForType;
       BestEntry:=nil;
       BestPrio:=-2;
       MatchCount:=0;
@@ -32770,24 +32899,6 @@ begin
           HelperScope:=HelperScope.AncestorScope;
           end;
         end;
-      end
-    else
-      WithTopHelpers:=true;
-    // then add scope of LoType
-    C:=LoType.ClassType;
-    if (C=TPasClassType) or (C=TPasRecordType) then
-      Scope.Add(LoType.CustomData as TPasIdentifierScope);
-    // then add the members composed via record composition
-    if (C=TPasRecordType) and (LoType.CustomData is TPasRecordScope)
-        and (TPasRecordScope(LoType.CustomData).CompositionScope<>nil) then
-      Scope.Add(TPasRecordScope(LoType.CustomData).CompositionScope);
-    // continue with ancestor
-    if not IsClass then break;
-    AncestorScope:=(LoType.CustomData as TPasClassScope).AncestorScope;
-    if AncestorScope=nil then break;
-    HiType:=TPasClassType(AncestorScope.Element);
-    LoType:=HiType;
-  until LoType=nil;
 end;
 
 procedure TPasResolver.PopScope;
@@ -32999,7 +33110,8 @@ begin
   PushScope(Result);
 end;
 
-function TPasResolver.PushRecordDotScope(CurRecordType: TPasRecordType): TPasDotClassOrRecordScope;
+function TPasResolver.PushRecordDotScope(CurRecordType: TPasRecordType;
+  HiType: TPasType): TPasDotClassOrRecordScope;
 var
   RecScope: TPasRecordScope;
 begin
@@ -33007,7 +33119,10 @@ begin
   Result:=TPasDotClassOrRecordScope.Create;
   Result.Owner:=Self;
   Result.ClassRecScope:=RecScope;
-  Result.GroupScope:=CreateGroupScope(CurRecordType);
+  // A strict alias of the record (`TColor = type TBase`) has helpers of its own.
+  if HiType=nil then
+    HiType:=CurRecordType;
+  Result.GroupScope:=CreateGroupScope(HiType);
   PushScope(Result);
 end;
 
@@ -33141,7 +33256,7 @@ begin
   if C=TPasClassType then
     Result:=PushClassDotScope(TPasClassType(LoType))
   else if C=TPasRecordType then
-    Result:=PushRecordDotScope(TPasRecordType(LoType))
+    Result:=PushRecordDotScope(TPasRecordType(LoType),HiType)
   else if C=TPasEnumType then
     Result:=PushEnumDotScope(HiType,TPasEnumType(LoType))
   else if C=TPasGenericTemplateType then
@@ -34115,7 +34230,8 @@ begin
     // indistinguishable there and the call remains ambiguous (tover3), while an
     // argument on which one candidate is exact and the other is not still
     // separates them.
-    if ParamCompatibility>=cIntToFloatConversion then
+    // an int-to-float cost may lie just below its band value (ord(LBT)-ord(RBT)<0)
+    if ParamCompatibility>=cIntToFloatConversion-1000 then
       ParamCompatibility:=cIntToFloatConversion
     else if ParamCompatibility>=cLossyConversion then
       ParamCompatibility:=cLossyConversion;

@@ -348,6 +348,8 @@ type
     Procedure TestProgramHeaderParameters;
     Procedure TestRTTIDirectiveInvalidFail;
     Procedure TestForInMultiDimArrayFlatten;
+    Procedure TestForInStringArrayLiteral;
+    Procedure TestForInStringArrayLiteralWrongVarFail;
     Procedure TestResourcestringInTypedConst;
     Procedure TestResourcestringInTypedConstArray;
     Procedure TestResourcestringInTypedCompoundFail;
@@ -566,6 +568,8 @@ type
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadWithDefaultArgs;
     Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcOverloadIntToSinglePreferred;
+    Procedure TestProcOverloadIntToDoubleExtendedFail;
     Procedure TestProcOverloadForLoopIntDouble;
     Procedure TestProcOverloadStringArgCount;
     Procedure TestProcOverload_PCharAndCharArrayByStringWidth;
@@ -1000,6 +1004,7 @@ type
     Procedure TestPropertyReadNonReadableFail;
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
+    Procedure TestPropertyArgsArrayResultIndexed;
     Procedure TestPropertyArgsWithDefaultsFail;
     Procedure TestPropertyArgs_StringConstDefault;
     Procedure TestPropertyInherited;
@@ -1259,6 +1264,7 @@ type
     Procedure TestRecordHelper;
     Procedure TestRecordHelper_ForByteFail;
     Procedure TestRecordHelper_ClassNonStaticFail;
+    Procedure TestRecordHelper_StrictAliasOfRecord;
     Procedure TestRecordHelper_InheritedObjFPC;
     Procedure TestRecordHelper_Constructor_NewInstance;
     Procedure TestTypeHelper;
@@ -5895,6 +5901,30 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestForInStringArrayLiteral;
+begin
+  StartProgram(false);
+  Add([
+  'const c = ''bb'';',
+  'var s: string;',
+  'begin',
+  '  for s in [''aa'', c, ''cc''] do ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestForInStringArrayLiteralWrongVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: longint;',
+  'begin',
+  '  for i in [''aa'', ''bb''] do ;',
+  '']);
+  CheckResolverException('Incompatible types: got "String" expected "Longint"',
+    nIncompatibleTypesGotExpected);
+end;
+
 procedure TTestResolver.TestRTTIDirectiveInvalidFail;
 begin
   StartProgram(false);
@@ -8910,6 +8940,35 @@ begin
   '  {@longint}DoIt(w);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadIntToSinglePreferred;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#single}DoIt(x: single; p: longint); external;',
+  'procedure DoIt(x: double; p: longint); external;',
+  'procedure DoIt(x: extended; p: longint); external;',
+  'var b: byte; q: int64;',
+  'begin',
+  '  {@single}DoIt(1, b);',
+  '  {@single}DoIt(b, 2);',
+  '  {@single}DoIt(q, 2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadIntToDoubleExtendedFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(x: double); external;',
+  'procedure DoIt(x: extended); external;',
+  'begin',
+  '  DoIt(1);',
+  '']);
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
+    nCantDetermineWhichOverloadedFunctionToCall);
 end;
 
 procedure TTestResolver.TestProcOverloadForLoopIntDouble;
@@ -17818,6 +17877,30 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestPropertyArgsArrayResultIndexed;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TBytes = array of byte;');
+  Add('  TObject = class');
+  Add('    function GetB(const ID: string): TBytes;');
+  Add('    property B[const ID: string]: TBytes read GetB;');
+  Add('  end;');
+  Add('function TObject.GetB(const ID: string): TBytes;');
+  Add('begin');
+  Add('end;');
+  Add('procedure DoIt(i: longint);');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=o.B[''a''][2];');
+  Add('  DoIt(o.B[''a''][2]);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestPropertyArgsWithDefaultsFail;
 begin
   StartProgram(false);
@@ -23389,6 +23472,40 @@ begin
   'begin',
   '']);
   CheckResolverException('Class methods must be static in record helper',nClassMethodsMustBeStaticInX);
+end;
+
+procedure TTestResolver.TestRecordHelper_StrictAliasOfRecord;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TBase = record',
+  '    R: word;',
+  '  end;',
+  '  TBaseHelper = record helper for TBase',
+  '    function Twice: word;',
+  '  end;',
+  '  TColor = type TBase;',
+  '  TColorHelper = record helper for TColor',
+  '    class function FromByte(b: byte): TColor; static;',
+  '  end;',
+  'function TBaseHelper.Twice: word;',
+  'begin',
+  'end;',
+  'class function TColorHelper.FromByte(b: byte): TColor;',
+  'begin',
+  'end;',
+  'var',
+  '  c: TColor;',
+  '  b: TBase;',
+  'begin',
+  '  c:=TColor.FromByte(1);',
+  '  c:=c.FromByte(2);',
+  '  c:=b.FromByte(3);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestRecordHelper_InheritedObjFPC;
