@@ -8,6 +8,7 @@ uses
   {$ENDIf}
   punit,
   utcbasenenc,
+  utcascii85,
   utcExprParsOps,
   utcExprParsAggr,
   utcExprBuiltin,
@@ -60,6 +61,7 @@ begin
   utcCSVDocument.RegisterTests;
   utcfptemplate.RegisterTests;
   utcbasenenc.RegisterTests;
+  utcascii85.RegisterTests;
   utclzw.RegisterTests;
   lSuite:=AddSuite('ExpressionParser');
   utcExprParsScanner.RegisterTests(lSuite);

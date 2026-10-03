@@ -63,6 +63,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="utcascii85.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="utclzw.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcLZW"/>
