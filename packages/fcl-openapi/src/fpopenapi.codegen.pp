@@ -114,7 +114,6 @@ type
     procedure DoLog(const aType: TEventType; const aFmt: string; aArgs: array of const);
     function ResolveUnit(aKind: TUnitKind; FullPath : Boolean = False): String;
     procedure Configure(aCodegen: TJSONSchemaCodeGenerator); virtual;
-    function CreateAPIData(aAPI: TOpenAPI): TAPIData; virtual;
 
     procedure GenerateRecordDefs(aData: TAPIData); virtual;
     procedure GenerateSerializerDefs(aData: TAPIData); virtual;
@@ -126,6 +125,8 @@ type
     procedure GetUUIDMap(aData: TAPIData);
     procedure PrepareAPIData(aData: TAPIData); virtual;
   public
+    // Create API data structure from OpenAPI. Caller is responsible for freeing.
+    function CreateAPIData(aAPI: TOpenAPI): TAPIData; virtual;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // Called during create, use to reset.
