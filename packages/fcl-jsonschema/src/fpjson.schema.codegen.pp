@@ -25,6 +25,7 @@ uses
   Classes, SysUtils, dateutils, pascodegen, contnrs,
   {$ENDIF}
   fpjson.schema.types,
+  fpjson.schema.consts,
   fpjson.schema.Pascaltypes;
 
 Type
@@ -37,8 +38,11 @@ Type
   private
     FData: TSchemaData;
     FDelphiCode: boolean;
+    FTrackChanges: boolean;
+    FUseProperties: boolean;
     FVerboseHeader: Boolean;
     FWriteClassType: boolean;
+    function GetUseProperties: boolean;
   protected
     procedure GenerateHeader; virtual;
     procedure GenerateFPCDirectives(modeswitches : array of string);
@@ -51,6 +55,10 @@ Type
     property DelphiCode: boolean read FDelphiCode write FDelphiCode;
     Property VerboseHeader : Boolean Read FVerboseHeader Write FVerboseHeader;
     property WriteClassType: boolean read FWriteClassType write FWriteClassType;
+    // Dto classes expose their members as properties with private fields. Implied by TrackChanges.
+    property UseProperties: boolean read GetUseProperties write FUseProperties;
+    // Dto classes record which properties were assigned; only those are serialized.
+    property TrackChanges: boolean read FTrackChanges write FTrackChanges;
   end;
 
   { TTypeCodeGenerator }
@@ -66,6 +74,9 @@ Type
     procedure GenerateStringTypes(aData: TSchemaData);
     procedure WriteDtoConstructor(aType: TPascalTypeData); virtual;
     procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteDtoProperty(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteDtoPropertyClassType(aType: TPascalTypeData); virtual;
+    procedure WriteDtoTrackingImplementation(aType: TPascalTypeData); virtual;
     procedure WriteDtoType(aType: TPascalTypeData); virtual;
     procedure WriteDtoForwardType(aType: TPascalTypeData); virtual;
     procedure WriteDtoArrayType(aType: TPascalTypeData); virtual;
@@ -90,10 +101,19 @@ Type
   private
     FConvertUTC: Boolean;
     FDataUnitName: string;
+    FSkipReadOnly: Boolean;
   protected
+    // True if the property schema is marked readOnly
+    function IsReadOnly(aProperty: TPascalPropertyData) : boolean; virtual;
+    // Name of the local variable used to deserialize a property when UseProperties is set
+    function DeserializeLocalName(aProperty: TPascalPropertyData) : string;
+    // True if deserializing the property needs a local variable
+    function NeedsDeserializeLocal(aProperty: TPascalPropertyData) : boolean;
     // Get qualified type name for deserializer references (handles rtbQualify for reserved types)
     function QualifyTypeName(const aTypeName: string): string; virtual;
     function MustSerializeType(aType : TPascalTypeData) : boolean; virtual;
+    // True if the property is a TDateTime with schema format 'date'
+    function IsDateOnly(aProperty: TPascalPropertyData) : boolean; virtual;
     function FieldToJSON(aProperty: TPascalPropertyData) : string; virtual;
     function ArrayMemberToField(aType: TPascalType; const aPropertyTypeName: String; const aFieldName: string): string; virtual;
     function FieldToJSON(aType: TPascalType; aFieldName: String): string; virtual;
@@ -101,7 +121,7 @@ Type
     function JSONToField(aProperty: TPascalPropertyData) : string; virtual;
     function JSONToField(aType: TPascalType; const aPropertyTypeName: string; const aKeyName: string): string; virtual;
     procedure WriteFieldDeSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData); virtual;
-    procedure WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData; aIndex: Integer); virtual;
     // Dto (object) type helpers
     procedure WriteDtoObjectSerializer(aType: TPascalTypeData); virtual;
     procedure WriteDtoSerializer(aType: TPascalTypeData); virtual;
@@ -119,6 +139,8 @@ Type
     procedure Execute(aData: TSchemaData);
     property DataUnitName: string read FDataUnitName write FDataUnitName;
     property ConvertUTC : Boolean Read FConvertUTC Write FConvertUTC;
+    // Do not serialize readOnly properties (client side code)
+    property SkipReadOnly : Boolean Read FSkipReadOnly Write FSkipReadOnly;
   end;
 
 implementation
@@ -198,6 +220,13 @@ begin
 end;
 
 
+function TJSONSchemaCodeGenerator.GetUseProperties: boolean;
+
+begin
+  Result:=FUseProperties or FTrackChanges;
+end;
+
+
 procedure TJSONSchemaCodeGenerator.GenerateHeader;
 
 begin
@@ -241,10 +270,260 @@ var
 begin
   lFieldName := aProperty.PascalName;
   lTypeName := aProperty.PascalTypeName;
+  if UseProperties and WriteClassType then
+    lFieldName:='F'+lFieldName;
   if lTypeName = '' then
     Addln('// Unknown type for field %s...', [lFieldName])
   else
     Addln('%s : %s;', [lFieldName, lTypeName]);
+end;
+
+
+procedure TTypeCodeGenerator.WriteDtoProperty(aType: TPascalTypeData; aProperty: TPascalPropertyData);
+
+var
+  lName, lTypeName, lWriter: string;
+
+begin
+  lName := aProperty.PascalName;
+  lTypeName := aProperty.PascalTypeName;
+  if lTypeName = '' then
+    exit;
+  if TrackChanges then
+    lWriter:='Set'+lName
+  else
+    lWriter:='F'+lName;
+  Addln('property %s : %s read F%s write %s;', [lName, lTypeName, lName, lWriter]);
+end;
+
+
+procedure TTypeCodeGenerator.WriteDtoPropertyClassType(aType: TPascalTypeData);
+
+var
+  I: integer;
+  lProp: TPascalPropertyData;
+
+begin
+  Addln('%s = Class(%s)', [aType.PascalName, TypeParentClass]);
+  Addln('private');
+  indent;
+  for I:=0 to aType.PropertyCount-1 do
+    WriteDtoField(aType,aType.Properties[I]);
+  if TrackChanges then
+    begin
+    if aType.PropertyCount>0 then
+      Addln('FChanged : array[0..%d] of Boolean;', [aType.PropertyCount-1]);
+    for I:=0 to aType.PropertyCount-1 do
+      begin
+      lProp:=aType.Properties[I];
+      if lProp.PascalTypeName<>'' then
+        Addln('procedure Set%s(const aValue : %s);', [lProp.PascalName, lProp.PascalTypeName]);
+      end;
+    end;
+  undent;
+  Addln('public');
+  indent;
+  if aType.HasObjectProperty(True) then
+    Addln('constructor CreateWithMembers;');
+  if TrackChanges then
+    begin
+    Addln('// True if property aIndex (declaration order) was assigned, or an object in it has changes.');
+    Addln('function FieldChanged(aIndex : Integer) : Boolean;');
+    Addln('// Mark property aIndex (declaration order) as changed.');
+    Addln('procedure MarkChanged(aIndex : Integer);');
+    Addln('// True if any property was assigned, or an object in it has changes.');
+    Addln('function HasChanges : Boolean;');
+    Addln('// Forget all changes, also in the objects this object refers to.');
+    Addln('procedure ClearChanges;');
+    Addln('// Mark all properties as changed, also in the objects this object refers to.');
+    Addln('procedure MarkAllChanged;');
+    end;
+  for I:=0 to aType.PropertyCount-1 do
+    WriteDtoProperty(aType,aType.Properties[I]);
+  undent;
+  Addln('end;');
+  Addln('');
+end;
+
+
+procedure TTypeCodeGenerator.WriteDtoTrackingImplementation(aType: TPascalTypeData);
+
+var
+  I, lCount: integer;
+  lProp: TPascalPropertyData;
+  lName, lField: string;
+  lHasObjects, lHasObjectArrays: Boolean;
+
+  // Write method aMethod that sets all change flags to aValue, recursively.
+  procedure WriteSetAllChanged(const aMethod: string; aValue: Boolean);
+
+  var
+    lJ: integer;
+    lSubProp: TPascalPropertyData;
+    lSubField: string;
+
+  begin
+    Addln('procedure %s.%s;', [lName, aMethod]);
+    Addln('');
+    if lHasObjectArrays then
+      begin
+      Addln('var');
+      indent;
+      Addln('lI : Integer;');
+      undent;
+      Addln('');
+      end;
+    Addln('begin');
+    indent;
+    if lCount>0 then
+      Addln('FillChar(FChanged,SizeOf(FChanged),Ord(%s));', [BoolToStr(aValue,'True','False')]);
+    for lJ:=0 to lCount-1 do
+      begin
+      lSubProp:=aType.Properties[lJ];
+      lSubField:='F'+lSubProp.PascalName;
+      if lSubProp.PropertyType in [ptSchemaStruct,ptAnonStruct] then
+        begin
+        Addln('if Assigned(%s) then', [lSubField]);
+        indent;
+        Addln('%s.%s;', [lSubField, aMethod]);
+        undent;
+        end
+      else if (lSubProp.PropertyType=ptArray) and (lSubProp.ElementType in [ptSchemaStruct,ptAnonStruct]) then
+        begin
+        Addln('for lI:=0 to Length(%s)-1 do', [lSubField]);
+        indent;
+        Addln('if Assigned(%s[lI]) then', [lSubField]);
+        indent;
+        Addln('%s[lI].%s;', [lSubField, aMethod]);
+        undent;
+        undent;
+        end;
+      end;
+    undent;
+    Addln('end;');
+    Addln('');
+  end;
+
+begin
+  lName:=aType.PascalName;
+  lCount:=aType.PropertyCount;
+  lHasObjects:=False;
+  lHasObjectArrays:=False;
+  for I:=0 to lCount-1 do
+    begin
+    lProp:=aType.Properties[I];
+    if lProp.PropertyType in [ptSchemaStruct,ptAnonStruct] then
+      lHasObjects:=True
+    else if (lProp.PropertyType=ptArray) and (lProp.ElementType in [ptSchemaStruct,ptAnonStruct]) then
+      lHasObjectArrays:=True;
+    end;
+  for I:=0 to lCount-1 do
+    begin
+    lProp:=aType.Properties[I];
+    if lProp.PascalTypeName='' then
+      continue;
+    Addln('procedure %s.Set%s(const aValue : %s);', [lName, lProp.PascalName, lProp.PascalTypeName]);
+    Addln('');
+    Addln('begin');
+    indent;
+    Addln('F%s:=aValue;', [lProp.PascalName]);
+    Addln('FChanged[%d]:=True;', [I]);
+    undent;
+    Addln('end;');
+    Addln('');
+    end;
+  Addln('function %s.FieldChanged(aIndex : Integer) : Boolean;', [lName]);
+  Addln('');
+  if lHasObjectArrays then
+    begin
+    Addln('var');
+    indent;
+    Addln('lI : Integer;');
+    undent;
+    Addln('');
+    end;
+  Addln('begin');
+  indent;
+  if lCount=0 then
+    Addln('Result:=False;')
+  else
+    begin
+    Addln('if (aIndex<0) or (aIndex>%d) then', [lCount-1]);
+    indent;
+    Addln('Exit(False);');
+    undent;
+    Addln('Result:=FChanged[aIndex];');
+    if lHasObjects or lHasObjectArrays then
+      begin
+      Addln('if Result then');
+      indent;
+      Addln('Exit;');
+      undent;
+      Addln('case aIndex of');
+      indent;
+      for I:=0 to lCount-1 do
+        begin
+        lProp:=aType.Properties[I];
+        lField:='F'+lProp.PascalName;
+        if lProp.PropertyType in [ptSchemaStruct,ptAnonStruct] then
+          Addln('%d: Result:=Assigned(%s) and %s.HasChanges;', [I, lField, lField])
+        else if (lProp.PropertyType=ptArray) and (lProp.ElementType in [ptSchemaStruct,ptAnonStruct]) then
+          begin
+          Addln('%d:', [I]);
+          indent;
+          Addln('for lI:=0 to Length(%s)-1 do', [lField]);
+          indent;
+          Addln('if Assigned(%s[lI]) and %s[lI].HasChanges then', [lField, lField]);
+          indent;
+          Addln('Exit(True);');
+          undent;
+          undent;
+          undent;
+          end;
+        end;
+      undent;
+      Addln('end;');
+      end;
+    end;
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('procedure %s.MarkChanged(aIndex : Integer);', [lName]);
+  Addln('');
+  Addln('begin');
+  indent;
+  if lCount>0 then
+    begin
+    Addln('if (aIndex>=0) and (aIndex<=%d) then', [lCount-1]);
+    indent;
+    Addln('FChanged[aIndex]:=True;');
+    undent;
+    end;
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('function %s.HasChanges : Boolean;', [lName]);
+  Addln('');
+  Addln('var');
+  indent;
+  Addln('lI : Integer;');
+  undent;
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('Result:=False;');
+  Addln('for lI:=0 to %d do', [lCount-1]);
+  indent;
+  Addln('if FieldChanged(lI) then');
+  indent;
+  Addln('Exit(True);');
+  undent;
+  undent;
+  undent;
+  Addln('end;');
+  Addln('');
+  WriteSetAllChanged('ClearChanges',False);
+  WriteSetAllChanged('MarkAllChanged',True);
 end;
 
 
@@ -253,9 +532,13 @@ procedure TTypeCodeGenerator.WriteDtoConstructor(aType: TPascalTypeData);
 var
   I : Integer;
   lProp : TPascalPropertyData;
-  lConstructor : String;
+  lConstructor, lPrefix : String;
 
 begin
+  if UseProperties then
+    lPrefix:='F'
+  else
+    lPrefix:='';
   Addln('constructor %s.CreateWithMembers;',[aType.PascalName]);
   Addln('');
   Addln('begin');
@@ -269,7 +552,7 @@ begin
         lConstructor:='CreateWithMembers'
       else
         lConstructor:='Create';
-      AddLn('%s := %s.%s;',[lProp.PascalName,lProp.TypeData.PascalName,lConstructor]);
+      AddLn('%s%s := %s.%s;',[lPrefix,lProp.PascalName,lProp.TypeData.PascalName,lConstructor]);
       end;
     end;
   Undent;
@@ -285,6 +568,11 @@ var
 
 begin
   fGenerated.Add(aType.PascalName,aType);
+  if WriteClassType and UseProperties then
+    begin
+    WriteDtoPropertyClassType(aType);
+    exit;
+    end;
   if WriteClassType then
     Addln('%s = Class(%s)', [aType.PascalName, TypeParentClass])
   else
@@ -554,6 +842,8 @@ begin
           DoLog('Generating type %s constructor', [aData.Types[I].PascalName]);
           WriteDtoConstructor(aData.Types[I]);
           end;
+        if TrackChanges and (aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct]) then
+          WriteDtoTrackingImplementation(aData.Types[I]);
         end;
     Addln('end.');
   finally
@@ -578,10 +868,47 @@ begin
   Result:=Assigned(aType);
 end;
 
+function TSerializerCodeGenerator.IsReadOnly(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=Assigned(aProperty.Schema)
+          and Assigned(aProperty.Schema.MetaData)
+          and aProperty.Schema.MetaData.ReadOnly;
+end;
+
+
+function TSerializerCodeGenerator.DeserializeLocalName(aProperty: TPascalPropertyData): string;
+
+begin
+  Result:='lF'+aProperty.PascalName;
+end;
+
+
+function TSerializerCodeGenerator.NeedsDeserializeLocal(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=UseProperties and WriteClassType
+          and (aProperty.PropertyType in [ptEnum,ptArray])
+          and (aProperty.PascalTypeName<>'');
+end;
+
+
+function TSerializerCodeGenerator.IsDateOnly(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=(aProperty.PropertyType=ptDateTime)
+          and Assigned(aProperty.Schema)
+          and SameText(aProperty.Schema.Validations.Format,SFmtDate);
+end;
+
+
 function TSerializerCodeGenerator.FieldToJSON(aProperty: TPascalPropertyData): string;
 
 begin
-  Result:=FieldToJSON(aProperty.PropertyType,aProperty.PascalName)
+  if IsDateOnly(aProperty) then
+    Result:=Format('DateOnlyToISO8601(%s)', [aProperty.PascalName])
+  else
+    Result:=FieldToJSON(aProperty.PropertyType,aProperty.PascalName)
 end;
 
 
@@ -679,12 +1006,7 @@ begin
           Result := Format('aJSON.Get(''%s'',%s)', [aKeyName, lPasDefault]);
       end;
       ptJSON:
-      begin
-        if DelphiCode then
-          Result := ObjectField(aKeyName)+'.ToJSON'
-        else
-          Result := ObjectField(aKeyName)+'.AsJSON';
-      end;
+        Result := 'JSONDataAsString('+ObjectField(aKeyName)+')';
     else
       Result := aKeyName;
     end;
@@ -756,30 +1078,44 @@ begin
 end;
 
 
-procedure TSerializerCodeGenerator.WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData);
+procedure TSerializerCodeGenerator.WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData; aIndex: Integer);
 
 var
-  lAssign, lValue, lKeyName, lFieldName: string;
+  lAssign, lValue, lKeyName, lFieldName, lCondition: string;
   lType: TPascalType;
-  lNilCheck : Boolean;
+
+  procedure AddCondition(const aCondition: string);
+
+  begin
+    if lCondition='' then
+      lCondition:=aCondition
+    else
+      lCondition:=lCondition+' and '+aCondition;
+  end;
 
 begin
   lKeyName := aProperty.SchemaName;
   lFieldName := aProperty.PascalName;
   lValue := FieldToJSON(aProperty);
   lType:=aProperty.PropertyType;
-  lNilCheck:=WriteClassType and (lType in [ptJSON,ptAnonStruct,ptSchemaStruct]);
+  lCondition:='';
   case lType of
     ptEnum:
-      begin
-      Addln('if (%s<>%s._empty_) then',[lFieldName,aProperty.PascalTypeName]);
-      indent;
-      if DelphiCode then
-        Addln('Result.AddPair(''%s'',%s);', [lKeyName, lValue])
-      else
-        Addln('Result.Add(''%s'',%s);', [lKeyName, lValue]);
-      undent;
-      end;
+      AddCondition(Format('(%s<>%s._empty_)',[lFieldName,aProperty.PascalTypeName]));
+    ptDateTime:
+      AddCondition(Format('(%s<>0)',[lFieldName]));
+    ptJSON:
+      if WriteClassType then
+        AddCondition(Format('(%s<>'''')',[lFieldName]));
+    ptAnonStruct,
+    ptSchemaStruct:
+      if WriteClassType then
+        AddCondition(Format('Assigned(%s)',[lFieldName]));
+  end;
+  if TrackChanges and WriteClassType then
+    AddCondition(Format('FieldChanged(%d)',[aIndex]));
+  case lType of
+    ptEnum,
     ptDatetime,
     ptInteger,
     ptInt64,
@@ -791,24 +1127,26 @@ begin
     ptAnonStruct,
     ptSchemaStruct:
     begin
-      if lNilCheck then
+      if lCondition<>'' then
         begin
-        if (lType=ptJSON) then
-          // JSON string...
-          AddLn('if (%s<>'''') then',[lFieldName])
-        else
-          AddLn('if Assigned(%s) then',[lFieldName]);
+        AddLn('if %s then',[lCondition]);
         indent;
         end;
       if DelphiCode then
         Addln('Result.AddPair(''%s'',%s);', [lKeyName, lValue])
       else
         Addln('Result.Add(''%s'',%s);', [lKeyName, lValue]);
-      if lNilCheck then
+      if lCondition<>'' then
         undent;
     end;
     ptArray:
     begin
+      if lCondition<>'' then
+        begin
+        AddLn('if %s then',[lCondition]);
+        indent;
+        Addln('begin');
+        end;
       Addln('Arr:=TJSONArray.Create;');
       if DelphiCode then
         Addln('Result.AddPair(''%s'',Arr);', [lKeyName])
@@ -820,6 +1158,11 @@ begin
       indent;
       Addln('Arr.Add(%s);', [lAssign]);
       undent;
+      if lCondition<>'' then
+        begin
+        Addln('end;');
+        undent;
+        end;
     end;
     else
       DoLog('Unknown type for property %s', [aProperty.PascalName]);
@@ -830,22 +1173,32 @@ end;
 procedure TSerializerCodeGenerator.WriteFieldDeSerializer(aType: TPascalTypeData; aProperty: TPascalPropertyData);
 
 var
-  lElName, lValue, lKeyName, lFieldName: string;
+  lElName, lValue, lKeyName, lFieldName, lLocal: string;
+  lUseLocal: Boolean;
 
 begin
   lKeyName := aProperty.SchemaName;
   lFieldName := aProperty.PascalName;
+  lUseLocal := NeedsDeserializeLocal(aProperty);
+  lLocal := DeserializeLocalName(aProperty);
   if aProperty.PropertyType<>ptArray then
     lValue := JSONToField(aProperty)
   else
     lValue := ArrayMemberToField(aProperty.ElementType,aProperty.ElementTypeName,'lArr[i]');
   case aProperty.PropertyType of
     ptEnum :
-      Addln('Result.%s.AsString:=%s;', [lFieldName, lValue]);
+      if lUseLocal then
+        begin
+        Addln('%s.AsString:=%s;', [lLocal, lValue]);
+        Addln('Result.%s:=%s;', [lFieldName, lLocal]);
+        end
+      else
+        Addln('Result.%s.AsString:=%s;', [lFieldName, lValue]);
     ptDateTime:
-      begin
-      Addln('Result.%s:=ISO8601ToDateDef(%s,0,%s);', [lFieldName, lValue, Bools[Not ConvertUTC]]);
-      end;
+      if IsDateOnly(aProperty) then
+        Addln('Result.%s:=ISO8601ToDateOnlyDef(%s,0);', [lFieldName, lValue])
+      else
+        Addln('Result.%s:=ISO8601ToDateDef(%s,0,%s);', [lFieldName, lValue, Bools[Not ConvertUTC]]);
     ptInteger,
     ptInt64,
     ptFloat32,
@@ -865,13 +1218,24 @@ begin
       Addln('if Assigned(lArr) then');
       indent;
       Addln('begin');
-      Addln('SetLength(Result.%s,lArr.Count);', [lFieldName]);
-      lElName := Format('%s[i]', [lFieldName]);
-
-      Addln('For I:=0 to Length(Result.%s)-1 do', [lFieldName]);
-      indent;
-      Addln('Result.%s:=%s;', [lElName, lValue]);
-      undent;
+      if lUseLocal then
+        begin
+        Addln('SetLength(%s,lArr.Count);', [lLocal]);
+        Addln('For I:=0 to Length(%s)-1 do', [lLocal]);
+        indent;
+        Addln('%s[i]:=%s;', [lLocal, lValue]);
+        undent;
+        Addln('Result.%s:=%s;', [lFieldName, lLocal]);
+        end
+      else
+        begin
+        Addln('SetLength(Result.%s,lArr.Count);', [lFieldName]);
+        lElName := Format('%s[i]', [lFieldName]);
+        Addln('For I:=0 to Length(Result.%s)-1 do', [lFieldName]);
+        indent;
+        Addln('Result.%s:=%s;', [lElName, lValue]);
+        undent;
+        end;
       Addln('end;');
       undent;
     end;
@@ -906,7 +1270,8 @@ begin
   Addln('try');
   indent;
   for I := 0 to aType.PropertyCount-1 do
-    WriteFieldSerializer(aType, aType.Properties[I]);
+    if not (SkipReadOnly and IsReadOnly(aType.Properties[I])) then
+      WriteFieldSerializer(aType, aType.Properties[I], I);
   undent;
   Addln('except');
   indent;
@@ -957,14 +1322,17 @@ procedure TSerializerCodeGenerator.WriteDtoObjectDeserializer(aType: TPascalType
 
 var
   I: integer;
-  lHasArray: boolean;
+  lHasArray, lHasLocals: boolean;
 
 begin
   Addln('class function %s.Deserialize(aJSON : TJSONObject) : %s;', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Addln('');
   lHasArray := aType.HasArrayProperty;
-  //  lHasObject:=aType.HasObjectProperty(True);
-  if lHasArray then
+  lHasLocals := False;
+  for I := 0 to aType.PropertyCount-1 do
+    if NeedsDeserializeLocal(aType.Properties[I]) then
+      lHasLocals := True;
+  if lHasArray or lHasLocals then
   begin
     Addln('var');
     indent;
@@ -973,6 +1341,9 @@ begin
       Addln('lArr : TJSONArray;');
       Addln('i : Integer;');
     end;
+    for I := 0 to aType.PropertyCount-1 do
+      if NeedsDeserializeLocal(aType.Properties[I]) then
+        Addln('%s : %s;', [DeserializeLocalName(aType.Properties[I]), aType.Properties[I].PascalTypeName]);
     undent;
   end;
   undent;
@@ -988,6 +1359,8 @@ begin
   undent;
   for I := 0 to aType.PropertyCount-1 do
     WriteFieldDeSerializer(aType, aType.Properties[I]);
+  if TrackChanges and WriteClassType then
+    Addln('Result.ClearChanges;');
   undent;
   Addln('end;');
   Addln('');
@@ -1234,6 +1607,43 @@ begin
   Addln('Result:=aDefault;');
   undent;
   Addln('end;');
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('function ISO8601ToDateOnlyDef(S: String; aDefault : TDateTime) : TDateTime;');
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('Result:=DateOf(ISO8601ToDateDef(S,aDefault,True));');
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('function DateOnlyToISO8601(aDate : TDateTime) : String;');
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('Result:=FormatDateTime(''yyyy"-"mm"-"dd'',aDate);');
+  undent;
+  Addln('end;');
+  Addln('');
+  if DelphiCode then
+    Addln('function JSONDataAsString(aData: TJSONValue) : String;')
+  else
+    Addln('function JSONDataAsString(aData: TJSONData) : String;');
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('if aData=Nil then');
+  indent;
+  Addln('Result:=''''');
+  undent;
+  Addln('else');
+  indent;
+  if DelphiCode then
+    Addln('Result:=aData.ToJSON;')
+  else
+    Addln('Result:=aData.AsJSON;');
+  undent;
   undent;
   Addln('end;');
   Addln('');
