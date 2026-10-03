@@ -77,9 +77,11 @@ Type
     FOnPrepareRequest: TAPIServicePrepareRequestEvent;
     FOnProcessResponse: TAPIServiceProcessResponseEvent;
     FRequestHeaders: TStrings;
+    FRequestSigner: TAbstractRequestSigner;
     FWebClient: TAbstractWebClient;
     procedure SetBaseURL(AValue: String);
     procedure SetRequestHeaders(const aValue: TStrings);
+    procedure SetRequestSigner(AValue: TAbstractRequestSigner);
     procedure SetWebClient(AValue: TAbstractWebClient);
   protected
     function StreamToString(aStream : TStream) : string;
@@ -105,6 +107,8 @@ Type
     Property WebClient : TAbstractWebClient Read FWebClient Write SetWebClient;
     Property BaseURL : String Read FBaseURL Write SetBaseURL;
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
+    // Signs every request after OnPrepareRequest, e.g. with an OAuth2 bearer token
+    Property RequestSigner : TAbstractRequestSigner Read FRequestSigner Write SetRequestSigner;
     Property OnPrepareRequest : TAPIServicePrepareRequestEvent Read FOnPrepareRequest Write FOnPrepareRequest;
     Property OnProcessResponse : TAPIServiceProcessResponseEvent Read FOnProcessResponse Write FOnProcessResponse;
   end;
@@ -173,6 +177,18 @@ begin
 end;
 
 
+procedure TFPOpenAPIServiceClient.SetRequestSigner(AValue: TAbstractRequestSigner);
+
+begin
+  if FRequestSigner=AValue then Exit;
+  if Assigned(FRequestSigner) then
+    FRequestSigner.RemoveFreeNotification(Self);
+  FRequestSigner:=AValue;
+  if Assigned(FRequestSigner) then
+    FRequestSigner.FreeNotification(Self);
+end;
+
+
 procedure TFPOpenAPIServiceClient.SetWebClient(AValue: TAbstractWebClient);
 
 begin
@@ -200,6 +216,8 @@ begin
     end;
   if assigned(OnPrepareRequest) then
     OnPrepareRequest(Self,aRequest);
+  if Assigned(FRequestSigner) then
+    FRequestSigner.SignRequest(aRequest);
 end;
 
 
@@ -223,8 +241,12 @@ procedure TFPOpenAPIServiceClient.Notification(AComponent: TComponent; Operation
 begin
   inherited Notification(AComponent, Operation);
   if (Operation=opRemove) then
+    begin
     if aComponent=FWebClient then
       FWebClient:=Nil;
+    if aComponent=FRequestSigner then
+      FRequestSigner:=Nil;
+    end;
 end;
 
 
