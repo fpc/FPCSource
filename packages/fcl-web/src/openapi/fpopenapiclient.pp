@@ -292,6 +292,8 @@ begin
   Result:=Default(TServiceResponse);
   if Not Assigned(WebClient) then
     Raise EOpenAPIClient.Create('No webclient assigned');
+  lReq:=Nil;
+  lResponse:=Nil;
   try
     lReq:=WebClient.CreateRequest(False,aRequestID);
     LReq.ResponseContent:=aResponseBody;
@@ -438,6 +440,8 @@ begin
   Result:=Default(TServiceResponse);
   if Not Assigned(WebClient) then
     Raise EOpenAPIClient.Create('No webclient assigned');
+  lReq:=Nil;
+  lResponse:=Nil;
   try
     Result.RequestID:=aRequestID;
     lReq:=WebClient.CreateRequest;
