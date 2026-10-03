@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s calendar -L -o calendar -q
   Source OpenAPI document data:
@@ -509,17 +509,22 @@ begin
   Result := TAcl.Create;
   If (aJSON=Nil) then
     exit;
-  Result.etag:=aJSON.Get('etag','');
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TAclRule.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  try
+    Result.etag:=aJSON.Get('etag','');
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TAclRule.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TAclSerializer.Deserialize(aJSON : String) : TAcl;
@@ -702,13 +707,18 @@ begin
   Result := TLabelProperties.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('eventLabels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.eventLabels,lArr.Count);
-    For I:=0 to Length(Result.eventLabels)-1 do
-      Result.eventLabels[i]:=TEventLabel.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    lArr:=aJSON.Get('eventLabels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.eventLabels,lArr.Count);
+      For I:=0 to Length(Result.eventLabels)-1 do
+        Result.eventLabels[i]:=TEventLabel.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TLabelPropertiesSerializer.Deserialize(aJSON : String) : TLabelProperties;
@@ -771,17 +781,22 @@ begin
   Result := TCalendar.Create;
   If (aJSON=Nil) then
     exit;
-  Result.autoAcceptInvitations:=aJSON.Get('autoAcceptInvitations',False);
-  Result.conferenceProperties:=TConferenceProperties.Deserialize(aJSON.Get('conferenceProperties',TJSONObject(Nil)));
-  Result.dataOwner:=aJSON.Get('dataOwner','');
-  Result.description:=aJSON.Get('description','');
-  Result.etag:=aJSON.Get('etag','');
-  Result.id:=aJSON.Get('id','');
-  Result.kind:=aJSON.Get('kind','');
-  Result.labelProperties:=TLabelProperties.Deserialize(aJSON.Get('labelProperties',TJSONObject(Nil)));
-  Result.location:=aJSON.Get('location','');
-  Result.summary:=aJSON.Get('summary','');
-  Result.timeZone:=aJSON.Get('timeZone','');
+  try
+    Result.autoAcceptInvitations:=aJSON.Get('autoAcceptInvitations',False);
+    Result.conferenceProperties:=TConferenceProperties.Deserialize(aJSON.Get('conferenceProperties',TJSONObject(Nil)));
+    Result.dataOwner:=aJSON.Get('dataOwner','');
+    Result.description:=aJSON.Get('description','');
+    Result.etag:=aJSON.Get('etag','');
+    Result.id:=aJSON.Get('id','');
+    Result.kind:=aJSON.Get('kind','');
+    Result.labelProperties:=TLabelProperties.Deserialize(aJSON.Get('labelProperties',TJSONObject(Nil)));
+    Result.location:=aJSON.Get('location','');
+    Result.summary:=aJSON.Get('summary','');
+    Result.timeZone:=aJSON.Get('timeZone','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCalendarSerializer.Deserialize(aJSON : String) : TCalendar;
@@ -917,33 +932,38 @@ begin
   Result := TCalendarListEntry.Create;
   If (aJSON=Nil) then
     exit;
-  Result.accessRole:=aJSON.Get('accessRole','');
-  Result.autoAcceptInvitations:=aJSON.Get('autoAcceptInvitations',False);
-  Result.backgroundColor:=aJSON.Get('backgroundColor','');
-  Result.colorId:=aJSON.Get('colorId','');
-  Result.conferenceProperties:=TConferenceProperties.Deserialize(aJSON.Get('conferenceProperties',TJSONObject(Nil)));
-  Result.dataOwner:=aJSON.Get('dataOwner','');
-  lArr:=aJSON.Get('defaultReminders',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.defaultReminders,lArr.Count);
-    For I:=0 to Length(Result.defaultReminders)-1 do
-      Result.defaultReminders[i]:=TEventReminder.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.deleted:=aJSON.Get('deleted',False);
-  Result.description:=aJSON.Get('description','');
-  Result.etag:=aJSON.Get('etag','');
-  Result.foregroundColor:=aJSON.Get('foregroundColor','');
-  Result.hidden:=aJSON.Get('hidden',False);
-  Result.id:=aJSON.Get('id','');
-  Result.kind:=aJSON.Get('kind','');
-  Result.location:=aJSON.Get('location','');
-  Result.notificationSettings:=JSONDataAsString(aJSON.Get('notificationSettings',TJSONObject(Nil)));
-  Result.primary:=aJSON.Get('primary',False);
-  Result.selected:=aJSON.Get('selected',False);
-  Result.summary:=aJSON.Get('summary','');
-  Result.summaryOverride:=aJSON.Get('summaryOverride','');
-  Result.timeZone:=aJSON.Get('timeZone','');
+  try
+    Result.accessRole:=aJSON.Get('accessRole','');
+    Result.autoAcceptInvitations:=aJSON.Get('autoAcceptInvitations',False);
+    Result.backgroundColor:=aJSON.Get('backgroundColor','');
+    Result.colorId:=aJSON.Get('colorId','');
+    Result.conferenceProperties:=TConferenceProperties.Deserialize(aJSON.Get('conferenceProperties',TJSONObject(Nil)));
+    Result.dataOwner:=aJSON.Get('dataOwner','');
+    lArr:=aJSON.Get('defaultReminders',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.defaultReminders,lArr.Count);
+      For I:=0 to Length(Result.defaultReminders)-1 do
+        Result.defaultReminders[i]:=TEventReminder.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.deleted:=aJSON.Get('deleted',False);
+    Result.description:=aJSON.Get('description','');
+    Result.etag:=aJSON.Get('etag','');
+    Result.foregroundColor:=aJSON.Get('foregroundColor','');
+    Result.hidden:=aJSON.Get('hidden',False);
+    Result.id:=aJSON.Get('id','');
+    Result.kind:=aJSON.Get('kind','');
+    Result.location:=aJSON.Get('location','');
+    Result.notificationSettings:=JSONDataAsString(aJSON.Get('notificationSettings',TJSONObject(Nil)));
+    Result.primary:=aJSON.Get('primary',False);
+    Result.selected:=aJSON.Get('selected',False);
+    Result.summary:=aJSON.Get('summary','');
+    Result.summaryOverride:=aJSON.Get('summaryOverride','');
+    Result.timeZone:=aJSON.Get('timeZone','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCalendarListEntrySerializer.Deserialize(aJSON : String) : TCalendarListEntry;
@@ -1008,17 +1028,22 @@ begin
   Result := TCalendarList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.etag:=aJSON.Get('etag','');
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TCalendarListEntry.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  try
+    Result.etag:=aJSON.Get('etag','');
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TCalendarListEntry.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCalendarListSerializer.Deserialize(aJSON : String) : TCalendarList;
@@ -1359,9 +1384,14 @@ begin
   Result := TConferenceSolution.Create;
   If (aJSON=Nil) then
     exit;
-  Result.iconUri:=aJSON.Get('iconUri','');
-  Result.key:=TConferenceSolutionKey.Deserialize(aJSON.Get('key',TJSONObject(Nil)));
-  Result.name:=aJSON.Get('name','');
+  try
+    Result.iconUri:=aJSON.Get('iconUri','');
+    Result.key:=TConferenceSolutionKey.Deserialize(aJSON.Get('key',TJSONObject(Nil)));
+    Result.name:=aJSON.Get('name','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TConferenceSolutionSerializer.Deserialize(aJSON : String) : TConferenceSolution;
@@ -1467,9 +1497,14 @@ begin
   Result := TCreateConferenceRequest.Create;
   If (aJSON=Nil) then
     exit;
-  Result.conferenceSolutionKey:=TConferenceSolutionKey.Deserialize(aJSON.Get('conferenceSolutionKey',TJSONObject(Nil)));
-  Result.requestId:=aJSON.Get('requestId','');
-  Result.status:=TConferenceRequestStatus.Deserialize(aJSON.Get('status',TJSONObject(Nil)));
+  try
+    Result.conferenceSolutionKey:=TConferenceSolutionKey.Deserialize(aJSON.Get('conferenceSolutionKey',TJSONObject(Nil)));
+    Result.requestId:=aJSON.Get('requestId','');
+    Result.status:=TConferenceRequestStatus.Deserialize(aJSON.Get('status',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCreateConferenceRequestSerializer.Deserialize(aJSON : String) : TCreateConferenceRequest;
@@ -1658,7 +1693,12 @@ begin
   Result := TConferenceParameters.Create;
   If (aJSON=Nil) then
     exit;
-  Result.addOnParameters:=TConferenceParametersAddOnParameters.Deserialize(aJSON.Get('addOnParameters',TJSONObject(Nil)));
+  try
+    Result.addOnParameters:=TConferenceParametersAddOnParameters.Deserialize(aJSON.Get('addOnParameters',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TConferenceParametersSerializer.Deserialize(aJSON : String) : TConferenceParameters;
@@ -1728,19 +1768,24 @@ begin
   Result := TConferenceData.Create;
   If (aJSON=Nil) then
     exit;
-  Result.conferenceId:=aJSON.Get('conferenceId','');
-  Result.conferenceSolution:=TConferenceSolution.Deserialize(aJSON.Get('conferenceSolution',TJSONObject(Nil)));
-  Result.createRequest:=TCreateConferenceRequest.Deserialize(aJSON.Get('createRequest',TJSONObject(Nil)));
-  lArr:=aJSON.Get('entryPoints',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.entryPoints,lArr.Count);
-    For I:=0 to Length(Result.entryPoints)-1 do
-      Result.entryPoints[i]:=TEntryPoint.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.notes:=aJSON.Get('notes','');
-  Result.parameters:=TConferenceParameters.Deserialize(aJSON.Get('parameters',TJSONObject(Nil)));
-  Result.signature:=aJSON.Get('signature','');
+  try
+    Result.conferenceId:=aJSON.Get('conferenceId','');
+    Result.conferenceSolution:=TConferenceSolution.Deserialize(aJSON.Get('conferenceSolution',TJSONObject(Nil)));
+    Result.createRequest:=TCreateConferenceRequest.Deserialize(aJSON.Get('createRequest',TJSONObject(Nil)));
+    lArr:=aJSON.Get('entryPoints',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.entryPoints,lArr.Count);
+      For I:=0 to Length(Result.entryPoints)-1 do
+        Result.entryPoints[i]:=TEntryPoint.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.notes:=aJSON.Get('notes','');
+    Result.parameters:=TConferenceParameters.Deserialize(aJSON.Get('parameters',TJSONObject(Nil)));
+    Result.signature:=aJSON.Get('signature','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TConferenceDataSerializer.Deserialize(aJSON : String) : TConferenceData;
@@ -2329,68 +2374,73 @@ begin
   Result := TEvent.Create;
   If (aJSON=Nil) then
     exit;
-  Result.anyoneCanAddSelf:=aJSON.Get('anyoneCanAddSelf',False);
-  lArr:=aJSON.Get('attachments',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.attachments,lArr.Count);
-    For I:=0 to Length(Result.attachments)-1 do
-      Result.attachments[i]:=TEventAttachment.Deserialize(lArr[i] as TJSONObject);
-    end;
-  lArr:=aJSON.Get('attendees',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.attendees,lArr.Count);
-    For I:=0 to Length(Result.attendees)-1 do
-      Result.attendees[i]:=TEventAttendee.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.attendeesOmitted:=aJSON.Get('attendeesOmitted',False);
-  Result.birthdayProperties:=TEventBirthdayProperties.Deserialize(aJSON.Get('birthdayProperties',TJSONObject(Nil)));
-  Result.colorId:=aJSON.Get('colorId','');
-  Result.conferenceData:=TConferenceData.Deserialize(aJSON.Get('conferenceData',TJSONObject(Nil)));
-  Result.created:=ISO8601ToDateDef(aJSON.Get('created',''),0,False);
-  Result.creator:=JSONDataAsString(aJSON.Get('creator',TJSONObject(Nil)));
-  Result.description:=aJSON.Get('description','');
-  Result.endTimeUnspecified:=aJSON.Get('endTimeUnspecified',False);
-  Result.end_:=TEventDateTime.Deserialize(aJSON.Get('end',TJSONObject(Nil)));
-  Result.etag:=aJSON.Get('etag','');
-  Result.eventLabelId:=aJSON.Get('eventLabelId','');
-  Result.eventType:=aJSON.Get('eventType','');
-  Result.extendedProperties:=JSONDataAsString(aJSON.Get('extendedProperties',TJSONObject(Nil)));
-  Result.focusTimeProperties:=TEventFocusTimeProperties.Deserialize(aJSON.Get('focusTimeProperties',TJSONObject(Nil)));
-  Result.gadget:=JSONDataAsString(aJSON.Get('gadget',TJSONObject(Nil)));
-  Result.guestsCanInviteOthers:=aJSON.Get('guestsCanInviteOthers',False);
-  Result.guestsCanModify:=aJSON.Get('guestsCanModify',False);
-  Result.guestsCanSeeOtherGuests:=aJSON.Get('guestsCanSeeOtherGuests',False);
-  Result.hangoutLink:=aJSON.Get('hangoutLink','');
-  Result.htmlLink:=aJSON.Get('htmlLink','');
-  Result.iCalUID:=aJSON.Get('iCalUID','');
-  Result.id:=aJSON.Get('id','');
-  Result.kind:=aJSON.Get('kind','');
-  Result.location:=aJSON.Get('location','');
-  Result.locked:=aJSON.Get('locked',False);
-  Result.organizer:=JSONDataAsString(aJSON.Get('organizer',TJSONObject(Nil)));
-  Result.originalStartTime:=TEventDateTime.Deserialize(aJSON.Get('originalStartTime',TJSONObject(Nil)));
-  Result.outOfOfficeProperties:=TEventOutOfOfficeProperties.Deserialize(aJSON.Get('outOfOfficeProperties',TJSONObject(Nil)));
-  Result.privateCopy:=aJSON.Get('privateCopy',False);
-  lArr:=aJSON.Get('recurrence',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.recurrence,lArr.Count);
-    For I:=0 to Length(Result.recurrence)-1 do
-      Result.recurrence[i]:=lArr[i].Asstring;
-    end;
-  Result.recurringEventId:=aJSON.Get('recurringEventId','');
-  Result.reminders:=JSONDataAsString(aJSON.Get('reminders',TJSONObject(Nil)));
-  Result.sequence:=aJSON.Get('sequence',0);
-  Result.source:=JSONDataAsString(aJSON.Get('source',TJSONObject(Nil)));
-  Result.start:=TEventDateTime.Deserialize(aJSON.Get('start',TJSONObject(Nil)));
-  Result.status:=aJSON.Get('status','');
-  Result.summary:=aJSON.Get('summary','');
-  Result.transparency:=aJSON.Get('transparency','');
-  Result.updated:=ISO8601ToDateDef(aJSON.Get('updated',''),0,False);
-  Result.visibility:=aJSON.Get('visibility','');
-  Result.workingLocationProperties:=TEventWorkingLocationProperties.Deserialize(aJSON.Get('workingLocationProperties',TJSONObject(Nil)));
+  try
+    Result.anyoneCanAddSelf:=aJSON.Get('anyoneCanAddSelf',False);
+    lArr:=aJSON.Get('attachments',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.attachments,lArr.Count);
+      For I:=0 to Length(Result.attachments)-1 do
+        Result.attachments[i]:=TEventAttachment.Deserialize(lArr[i] as TJSONObject);
+      end;
+    lArr:=aJSON.Get('attendees',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.attendees,lArr.Count);
+      For I:=0 to Length(Result.attendees)-1 do
+        Result.attendees[i]:=TEventAttendee.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.attendeesOmitted:=aJSON.Get('attendeesOmitted',False);
+    Result.birthdayProperties:=TEventBirthdayProperties.Deserialize(aJSON.Get('birthdayProperties',TJSONObject(Nil)));
+    Result.colorId:=aJSON.Get('colorId','');
+    Result.conferenceData:=TConferenceData.Deserialize(aJSON.Get('conferenceData',TJSONObject(Nil)));
+    Result.created:=ISO8601ToDateDef(aJSON.Get('created',''),0,False);
+    Result.creator:=JSONDataAsString(aJSON.Get('creator',TJSONObject(Nil)));
+    Result.description:=aJSON.Get('description','');
+    Result.endTimeUnspecified:=aJSON.Get('endTimeUnspecified',False);
+    Result.end_:=TEventDateTime.Deserialize(aJSON.Get('end',TJSONObject(Nil)));
+    Result.etag:=aJSON.Get('etag','');
+    Result.eventLabelId:=aJSON.Get('eventLabelId','');
+    Result.eventType:=aJSON.Get('eventType','');
+    Result.extendedProperties:=JSONDataAsString(aJSON.Get('extendedProperties',TJSONObject(Nil)));
+    Result.focusTimeProperties:=TEventFocusTimeProperties.Deserialize(aJSON.Get('focusTimeProperties',TJSONObject(Nil)));
+    Result.gadget:=JSONDataAsString(aJSON.Get('gadget',TJSONObject(Nil)));
+    Result.guestsCanInviteOthers:=aJSON.Get('guestsCanInviteOthers',False);
+    Result.guestsCanModify:=aJSON.Get('guestsCanModify',False);
+    Result.guestsCanSeeOtherGuests:=aJSON.Get('guestsCanSeeOtherGuests',False);
+    Result.hangoutLink:=aJSON.Get('hangoutLink','');
+    Result.htmlLink:=aJSON.Get('htmlLink','');
+    Result.iCalUID:=aJSON.Get('iCalUID','');
+    Result.id:=aJSON.Get('id','');
+    Result.kind:=aJSON.Get('kind','');
+    Result.location:=aJSON.Get('location','');
+    Result.locked:=aJSON.Get('locked',False);
+    Result.organizer:=JSONDataAsString(aJSON.Get('organizer',TJSONObject(Nil)));
+    Result.originalStartTime:=TEventDateTime.Deserialize(aJSON.Get('originalStartTime',TJSONObject(Nil)));
+    Result.outOfOfficeProperties:=TEventOutOfOfficeProperties.Deserialize(aJSON.Get('outOfOfficeProperties',TJSONObject(Nil)));
+    Result.privateCopy:=aJSON.Get('privateCopy',False);
+    lArr:=aJSON.Get('recurrence',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.recurrence,lArr.Count);
+      For I:=0 to Length(Result.recurrence)-1 do
+        Result.recurrence[i]:=lArr[i].Asstring;
+      end;
+    Result.recurringEventId:=aJSON.Get('recurringEventId','');
+    Result.reminders:=JSONDataAsString(aJSON.Get('reminders',TJSONObject(Nil)));
+    Result.sequence:=aJSON.Get('sequence',0);
+    Result.source:=JSONDataAsString(aJSON.Get('source',TJSONObject(Nil)));
+    Result.start:=TEventDateTime.Deserialize(aJSON.Get('start',TJSONObject(Nil)));
+    Result.status:=aJSON.Get('status','');
+    Result.summary:=aJSON.Get('summary','');
+    Result.transparency:=aJSON.Get('transparency','');
+    Result.updated:=ISO8601ToDateDef(aJSON.Get('updated',''),0,False);
+    Result.visibility:=aJSON.Get('visibility','');
+    Result.workingLocationProperties:=TEventWorkingLocationProperties.Deserialize(aJSON.Get('workingLocationProperties',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TEventSerializer.Deserialize(aJSON : String) : TEvent;
@@ -2465,29 +2515,34 @@ begin
   Result := TEvents.Create;
   If (aJSON=Nil) then
     exit;
-  Result.accessRole:=aJSON.Get('accessRole','');
-  lArr:=aJSON.Get('defaultReminders',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.defaultReminders,lArr.Count);
-    For I:=0 to Length(Result.defaultReminders)-1 do
-      Result.defaultReminders[i]:=TEventReminder.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.description:=aJSON.Get('description','');
-  Result.etag:=aJSON.Get('etag','');
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TEvent.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
-  Result.summary:=aJSON.Get('summary','');
-  Result.timeZone:=aJSON.Get('timeZone','');
-  Result.updated:=ISO8601ToDateDef(aJSON.Get('updated',''),0,False);
+  try
+    Result.accessRole:=aJSON.Get('accessRole','');
+    lArr:=aJSON.Get('defaultReminders',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.defaultReminders,lArr.Count);
+      For I:=0 to Length(Result.defaultReminders)-1 do
+        Result.defaultReminders[i]:=TEventReminder.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.description:=aJSON.Get('description','');
+    Result.etag:=aJSON.Get('etag','');
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TEvent.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+    Result.summary:=aJSON.Get('summary','');
+    Result.timeZone:=aJSON.Get('timeZone','');
+    Result.updated:=ISO8601ToDateDef(aJSON.Get('updated',''),0,False);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TEventsSerializer.Deserialize(aJSON : String) : TEvents;
@@ -2607,20 +2662,25 @@ begin
   Result := TFreeBusyCalendar.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('busy',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.busy,lArr.Count);
-    For I:=0 to Length(Result.busy)-1 do
-      Result.busy[i]:=TTimePeriod.Deserialize(lArr[i] as TJSONObject);
-    end;
-  lArr:=aJSON.Get('errors',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.errors,lArr.Count);
-    For I:=0 to Length(Result.errors)-1 do
-      Result.errors[i]:=TError.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    lArr:=aJSON.Get('busy',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.busy,lArr.Count);
+      For I:=0 to Length(Result.busy)-1 do
+        Result.busy[i]:=TTimePeriod.Deserialize(lArr[i] as TJSONObject);
+      end;
+    lArr:=aJSON.Get('errors',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.errors,lArr.Count);
+      For I:=0 to Length(Result.errors)-1 do
+        Result.errors[i]:=TError.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFreeBusyCalendarSerializer.Deserialize(aJSON : String) : TFreeBusyCalendar;
@@ -2685,20 +2745,25 @@ begin
   Result := TFreeBusyGroup.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('calendars',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.calendars,lArr.Count);
-    For I:=0 to Length(Result.calendars)-1 do
-      Result.calendars[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('errors',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.errors,lArr.Count);
-    For I:=0 to Length(Result.errors)-1 do
-      Result.errors[i]:=TError.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    lArr:=aJSON.Get('calendars',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.calendars,lArr.Count);
+      For I:=0 to Length(Result.calendars)-1 do
+        Result.calendars[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('errors',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.errors,lArr.Count);
+      For I:=0 to Length(Result.errors)-1 do
+        Result.errors[i]:=TError.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFreeBusyGroupSerializer.Deserialize(aJSON : String) : TFreeBusyGroup;
@@ -2817,18 +2882,23 @@ begin
   Result := TFreeBusyRequest.Create;
   If (aJSON=Nil) then
     exit;
-  Result.calendarExpansionMax:=aJSON.Get('calendarExpansionMax',0);
-  Result.groupExpansionMax:=aJSON.Get('groupExpansionMax',0);
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TFreeBusyRequestItem.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.timeMax:=ISO8601ToDateDef(aJSON.Get('timeMax',''),0,False);
-  Result.timeMin:=ISO8601ToDateDef(aJSON.Get('timeMin',''),0,False);
-  Result.timeZone:=aJSON.Get('timeZone','');
+  try
+    Result.calendarExpansionMax:=aJSON.Get('calendarExpansionMax',0);
+    Result.groupExpansionMax:=aJSON.Get('groupExpansionMax',0);
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TFreeBusyRequestItem.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.timeMax:=ISO8601ToDateDef(aJSON.Get('timeMax',''),0,False);
+    Result.timeMin:=ISO8601ToDateDef(aJSON.Get('timeMin',''),0,False);
+    Result.timeZone:=aJSON.Get('timeZone','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFreeBusyRequestSerializer.Deserialize(aJSON : String) : TFreeBusyRequest;
@@ -3013,17 +3083,22 @@ begin
   Result := TSettings.Create;
   If (aJSON=Nil) then
     exit;
-  Result.etag:=aJSON.Get('etag','');
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TSetting.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  try
+    Result.etag:=aJSON.Get('etag','');
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TSetting.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.nextSyncToken:=aJSON.Get('nextSyncToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TSettingsSerializer.Deserialize(aJSON : String) : TSettings;

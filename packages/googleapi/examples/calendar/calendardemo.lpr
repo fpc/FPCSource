@@ -54,36 +54,6 @@ begin
 end;
 
 
-// Free a calendar list and its entries.
-procedure FreeCalendarList(aList: TCalendarList);
-
-var
-  lEntry: TCalendarListEntry;
-
-begin
-  if aList=nil then
-    exit;
-  for lEntry in aList.items do
-    lEntry.Free;
-  aList.Free;
-end;
-
-
-// Free an event list and its events.
-procedure FreeEvents(aEvents: TEvents);
-
-var
-  lEvent: TEvent;
-
-begin
-  if aEvents=nil then
-    exit;
-  for lEvent in aEvents.items do
-    lEvent.Free;
-  aEvents.Free;
-end;
-
-
 // Return the start of an event as display text.
 function EventStartText(aEvent: TEvent): String;
 
@@ -213,7 +183,7 @@ begin
         end;
       lPageToken:=lResult.Value.nextPageToken;
     finally
-      FreeCalendarList(lResult.Value);
+      lResult.Value.Free;
     end;
   until lPageToken='';
 end;
@@ -244,7 +214,7 @@ begin
     if lCount=0 then
       Writeln('No upcoming events.');
   finally
-    FreeEvents(lResult.Value);
+    lResult.Value.Free;
   end;
 end;
 

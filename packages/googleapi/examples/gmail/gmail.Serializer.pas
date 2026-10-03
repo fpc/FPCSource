@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s gmail -C codegen.ini -o gmail -q
   Source OpenAPI document data:
@@ -797,15 +797,20 @@ begin
   Result := TClassificationLabelValue.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('fields',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFfields,lArr.Count);
-    For I:=0 to Length(lFfields)-1 do
-      lFfields[i]:=TClassificationLabelFieldValue.Deserialize(lArr[i] as TJSONObject);
-    Result.fields:=lFfields;
-    end;
-  Result.labelId:=aJSON.Get('labelId','');
+  try
+    lArr:=aJSON.Get('fields',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFfields,lArr.Count);
+      For I:=0 to Length(lFfields)-1 do
+        lFfields[i]:=TClassificationLabelFieldValue.Deserialize(lArr[i] as TJSONObject);
+      Result.fields:=lFfields;
+      end;
+    Result.labelId:=aJSON.Get('labelId','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TClassificationLabelValueSerializer.Deserialize(aJSON : String) : TClassificationLabelValue;
@@ -887,46 +892,51 @@ begin
   Result := TBatchModifyMessagesRequest.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('addClassificationLabels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFaddClassificationLabels,lArr.Count);
-    For I:=0 to Length(lFaddClassificationLabels)-1 do
-      lFaddClassificationLabels[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
-    Result.addClassificationLabels:=lFaddClassificationLabels;
-    end;
-  lArr:=aJSON.Get('addLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFaddLabelIds,lArr.Count);
-    For I:=0 to Length(lFaddLabelIds)-1 do
-      lFaddLabelIds[i]:=lArr[i].Asstring;
-    Result.addLabelIds:=lFaddLabelIds;
-    end;
-  lArr:=aJSON.Get('ids',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFids,lArr.Count);
-    For I:=0 to Length(lFids)-1 do
-      lFids[i]:=lArr[i].Asstring;
-    Result.ids:=lFids;
-    end;
-  lArr:=aJSON.Get('removeClassificationLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFremoveClassificationLabelIds,lArr.Count);
-    For I:=0 to Length(lFremoveClassificationLabelIds)-1 do
-      lFremoveClassificationLabelIds[i]:=lArr[i].Asstring;
-    Result.removeClassificationLabelIds:=lFremoveClassificationLabelIds;
-    end;
-  lArr:=aJSON.Get('removeLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFremoveLabelIds,lArr.Count);
-    For I:=0 to Length(lFremoveLabelIds)-1 do
-      lFremoveLabelIds[i]:=lArr[i].Asstring;
-    Result.removeLabelIds:=lFremoveLabelIds;
-    end;
+  try
+    lArr:=aJSON.Get('addClassificationLabels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFaddClassificationLabels,lArr.Count);
+      For I:=0 to Length(lFaddClassificationLabels)-1 do
+        lFaddClassificationLabels[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
+      Result.addClassificationLabels:=lFaddClassificationLabels;
+      end;
+    lArr:=aJSON.Get('addLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFaddLabelIds,lArr.Count);
+      For I:=0 to Length(lFaddLabelIds)-1 do
+        lFaddLabelIds[i]:=lArr[i].Asstring;
+      Result.addLabelIds:=lFaddLabelIds;
+      end;
+    lArr:=aJSON.Get('ids',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFids,lArr.Count);
+      For I:=0 to Length(lFids)-1 do
+        lFids[i]:=lArr[i].Asstring;
+      Result.ids:=lFids;
+      end;
+    lArr:=aJSON.Get('removeClassificationLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFremoveClassificationLabelIds,lArr.Count);
+      For I:=0 to Length(lFremoveClassificationLabelIds)-1 do
+        lFremoveClassificationLabelIds[i]:=lArr[i].Asstring;
+      Result.removeClassificationLabelIds:=lFremoveClassificationLabelIds;
+      end;
+    lArr:=aJSON.Get('removeLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFremoveLabelIds,lArr.Count);
+      For I:=0 to Length(lFremoveLabelIds)-1 do
+        lFremoveLabelIds[i]:=lArr[i].Asstring;
+      Result.removeLabelIds:=lFremoveLabelIds;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TBatchModifyMessagesRequestSerializer.Deserialize(aJSON : String) : TBatchModifyMessagesRequest;
@@ -1033,9 +1043,14 @@ begin
   Result := TCseIdentity.Create;
   If (aJSON=Nil) then
     exit;
-  Result.emailAddress:=aJSON.Get('emailAddress','');
-  Result.primaryKeyPairId:=aJSON.Get('primaryKeyPairId','');
-  Result.signAndEncryptKeyPairs:=TSignAndEncryptKeyPairs.Deserialize(aJSON.Get('signAndEncryptKeyPairs',TJSONObject(Nil)));
+  try
+    Result.emailAddress:=aJSON.Get('emailAddress','');
+    Result.primaryKeyPairId:=aJSON.Get('primaryKeyPairId','');
+    Result.signAndEncryptKeyPairs:=TSignAndEncryptKeyPairs.Deserialize(aJSON.Get('signAndEncryptKeyPairs',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCseIdentitySerializer.Deserialize(aJSON : String) : TCseIdentity;
@@ -1193,9 +1208,14 @@ begin
   Result := TCsePrivateKeyMetadata.Create;
   If (aJSON=Nil) then
     exit;
-  Result.hardwareKeyMetadata:=THardwareKeyMetadata.Deserialize(aJSON.Get('hardwareKeyMetadata',TJSONObject(Nil)));
-  Result.kaclsKeyMetadata:=TKaclsKeyMetadata.Deserialize(aJSON.Get('kaclsKeyMetadata',TJSONObject(Nil)));
-  Result.privateKeyMetadataId:=aJSON.Get('privateKeyMetadataId','');
+  try
+    Result.hardwareKeyMetadata:=THardwareKeyMetadata.Deserialize(aJSON.Get('hardwareKeyMetadata',TJSONObject(Nil)));
+    Result.kaclsKeyMetadata:=TKaclsKeyMetadata.Deserialize(aJSON.Get('kaclsKeyMetadata',TJSONObject(Nil)));
+    Result.privateKeyMetadataId:=aJSON.Get('privateKeyMetadataId','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCsePrivateKeyMetadataSerializer.Deserialize(aJSON : String) : TCsePrivateKeyMetadata;
@@ -1259,27 +1279,32 @@ begin
   Result := TCseKeyPair.Create;
   If (aJSON=Nil) then
     exit;
-  Result.disableTime:=aJSON.Get('disableTime','');
-  Result.enablementState:=aJSON.Get('enablementState','');
-  Result.keyPairId:=aJSON.Get('keyPairId','');
-  Result.pem:=aJSON.Get('pem','');
-  Result.pkcs7:=aJSON.Get('pkcs7','');
-  lArr:=aJSON.Get('privateKeyMetadata',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFprivateKeyMetadata,lArr.Count);
-    For I:=0 to Length(lFprivateKeyMetadata)-1 do
-      lFprivateKeyMetadata[i]:=TCsePrivateKeyMetadata.Deserialize(lArr[i] as TJSONObject);
-    Result.privateKeyMetadata:=lFprivateKeyMetadata;
-    end;
-  lArr:=aJSON.Get('subjectEmailAddresses',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFsubjectEmailAddresses,lArr.Count);
-    For I:=0 to Length(lFsubjectEmailAddresses)-1 do
-      lFsubjectEmailAddresses[i]:=lArr[i].Asstring;
-    Result.subjectEmailAddresses:=lFsubjectEmailAddresses;
-    end;
+  try
+    Result.disableTime:=aJSON.Get('disableTime','');
+    Result.enablementState:=aJSON.Get('enablementState','');
+    Result.keyPairId:=aJSON.Get('keyPairId','');
+    Result.pem:=aJSON.Get('pem','');
+    Result.pkcs7:=aJSON.Get('pkcs7','');
+    lArr:=aJSON.Get('privateKeyMetadata',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFprivateKeyMetadata,lArr.Count);
+      For I:=0 to Length(lFprivateKeyMetadata)-1 do
+        lFprivateKeyMetadata[i]:=TCsePrivateKeyMetadata.Deserialize(lArr[i] as TJSONObject);
+      Result.privateKeyMetadata:=lFprivateKeyMetadata;
+      end;
+    lArr:=aJSON.Get('subjectEmailAddresses',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFsubjectEmailAddresses,lArr.Count);
+      For I:=0 to Length(lFsubjectEmailAddresses)-1 do
+        lFsubjectEmailAddresses[i]:=lArr[i].Asstring;
+      Result.subjectEmailAddresses:=lFsubjectEmailAddresses;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCseKeyPairSerializer.Deserialize(aJSON : String) : TCseKeyPair;
@@ -1561,26 +1586,31 @@ begin
   Result := TMessagePart.Create;
   If (aJSON=Nil) then
     exit;
-  Result.body:=TMessagePartBody.Deserialize(aJSON.Get('body',TJSONObject(Nil)));
-  Result.filename:=aJSON.Get('filename','');
-  lArr:=aJSON.Get('headers',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFheaders,lArr.Count);
-    For I:=0 to Length(lFheaders)-1 do
-      lFheaders[i]:=TMessagePartHeader.Deserialize(lArr[i] as TJSONObject);
-    Result.headers:=lFheaders;
-    end;
-  Result.mimeType:=aJSON.Get('mimeType','');
-  Result.partId:=aJSON.Get('partId','');
-  lArr:=aJSON.Get('parts',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFparts,lArr.Count);
-    For I:=0 to Length(lFparts)-1 do
-      lFparts[i]:=TMessagePart.Deserialize(lArr[i] as TJSONObject);
-    Result.parts:=lFparts;
-    end;
+  try
+    Result.body:=TMessagePartBody.Deserialize(aJSON.Get('body',TJSONObject(Nil)));
+    Result.filename:=aJSON.Get('filename','');
+    lArr:=aJSON.Get('headers',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFheaders,lArr.Count);
+      For I:=0 to Length(lFheaders)-1 do
+        lFheaders[i]:=TMessagePartHeader.Deserialize(lArr[i] as TJSONObject);
+      Result.headers:=lFheaders;
+      end;
+    Result.mimeType:=aJSON.Get('mimeType','');
+    Result.partId:=aJSON.Get('partId','');
+    lArr:=aJSON.Get('parts',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFparts,lArr.Count);
+      For I:=0 to Length(lFparts)-1 do
+        lFparts[i]:=TMessagePart.Deserialize(lArr[i] as TJSONObject);
+      Result.parts:=lFparts;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TMessagePartSerializer.Deserialize(aJSON : String) : TMessagePart;
@@ -1656,30 +1686,35 @@ begin
   Result := TMessage.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('classificationLabelValues',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFclassificationLabelValues,lArr.Count);
-    For I:=0 to Length(lFclassificationLabelValues)-1 do
-      lFclassificationLabelValues[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
-    Result.classificationLabelValues:=lFclassificationLabelValues;
-    end;
-  Result.historyId:=aJSON.Get('historyId','');
-  Result.id:=aJSON.Get('id','');
-  Result.internalDate:=aJSON.Get('internalDate','');
-  lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabelIds,lArr.Count);
-    For I:=0 to Length(lFlabelIds)-1 do
-      lFlabelIds[i]:=lArr[i].Asstring;
-    Result.labelIds:=lFlabelIds;
-    end;
-  Result.payload:=TMessagePart.Deserialize(aJSON.Get('payload',TJSONObject(Nil)));
-  Result.raw:=aJSON.Get('raw','');
-  Result.sizeEstimate:=aJSON.Get('sizeEstimate',0);
-  Result.snippet:=aJSON.Get('snippet','');
-  Result.threadId:=aJSON.Get('threadId','');
+  try
+    lArr:=aJSON.Get('classificationLabelValues',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFclassificationLabelValues,lArr.Count);
+      For I:=0 to Length(lFclassificationLabelValues)-1 do
+        lFclassificationLabelValues[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
+      Result.classificationLabelValues:=lFclassificationLabelValues;
+      end;
+    Result.historyId:=aJSON.Get('historyId','');
+    Result.id:=aJSON.Get('id','');
+    Result.internalDate:=aJSON.Get('internalDate','');
+    lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabelIds,lArr.Count);
+      For I:=0 to Length(lFlabelIds)-1 do
+        lFlabelIds[i]:=lArr[i].Asstring;
+      Result.labelIds:=lFlabelIds;
+      end;
+    Result.payload:=TMessagePart.Deserialize(aJSON.Get('payload',TJSONObject(Nil)));
+    Result.raw:=aJSON.Get('raw','');
+    Result.sizeEstimate:=aJSON.Get('sizeEstimate',0);
+    Result.snippet:=aJSON.Get('snippet','');
+    Result.threadId:=aJSON.Get('threadId','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TMessageSerializer.Deserialize(aJSON : String) : TMessage;
@@ -1732,8 +1767,13 @@ begin
   Result := TDraft.Create;
   If (aJSON=Nil) then
     exit;
-  Result.id:=aJSON.Get('id','');
-  Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  try
+    Result.id:=aJSON.Get('id','');
+    Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TDraftSerializer.Deserialize(aJSON : String) : TDraft;
@@ -1988,9 +2028,14 @@ begin
   Result := TFilter.Create;
   If (aJSON=Nil) then
     exit;
-  Result.action:=TFilterAction.Deserialize(aJSON.Get('action',TJSONObject(Nil)));
-  Result.criteria:=TFilterCriteria.Deserialize(aJSON.Get('criteria',TJSONObject(Nil)));
-  Result.id:=aJSON.Get('id','');
+  try
+    Result.action:=TFilterAction.Deserialize(aJSON.Get('action',TJSONObject(Nil)));
+    Result.criteria:=TFilterCriteria.Deserialize(aJSON.Get('criteria',TJSONObject(Nil)));
+    Result.id:=aJSON.Get('id','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFilterSerializer.Deserialize(aJSON : String) : TFilter;
@@ -2107,15 +2152,20 @@ begin
   Result := THistoryLabelAdded.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabelIds,lArr.Count);
-    For I:=0 to Length(lFlabelIds)-1 do
-      lFlabelIds[i]:=lArr[i].Asstring;
-    Result.labelIds:=lFlabelIds;
-    end;
-  Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  try
+    lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabelIds,lArr.Count);
+      For I:=0 to Length(lFlabelIds)-1 do
+        lFlabelIds[i]:=lArr[i].Asstring;
+      Result.labelIds:=lFlabelIds;
+      end;
+    Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function THistoryLabelAddedSerializer.Deserialize(aJSON : String) : THistoryLabelAdded;
@@ -2179,15 +2229,20 @@ begin
   Result := THistoryLabelRemoved.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabelIds,lArr.Count);
-    For I:=0 to Length(lFlabelIds)-1 do
-      lFlabelIds[i]:=lArr[i].Asstring;
-    Result.labelIds:=lFlabelIds;
-    end;
-  Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  try
+    lArr:=aJSON.Get('labelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabelIds,lArr.Count);
+      For I:=0 to Length(lFlabelIds)-1 do
+        lFlabelIds[i]:=lArr[i].Asstring;
+      Result.labelIds:=lFlabelIds;
+      end;
+    Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function THistoryLabelRemovedSerializer.Deserialize(aJSON : String) : THistoryLabelRemoved;
@@ -2239,7 +2294,12 @@ begin
   Result := THistoryMessageAdded.Create;
   If (aJSON=Nil) then
     exit;
-  Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  try
+    Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function THistoryMessageAddedSerializer.Deserialize(aJSON : String) : THistoryMessageAdded;
@@ -2291,7 +2351,12 @@ begin
   Result := THistoryMessageDeleted.Create;
   If (aJSON=Nil) then
     exit;
-  Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  try
+    Result.message:=TMessage.Deserialize(aJSON.Get('message',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function THistoryMessageDeletedSerializer.Deserialize(aJSON : String) : THistoryMessageDeleted;
@@ -2374,47 +2439,52 @@ begin
   Result := THistory.Create;
   If (aJSON=Nil) then
     exit;
-  Result.id:=aJSON.Get('id','');
-  lArr:=aJSON.Get('labelsAdded',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabelsAdded,lArr.Count);
-    For I:=0 to Length(lFlabelsAdded)-1 do
-      lFlabelsAdded[i]:=THistoryLabelAdded.Deserialize(lArr[i] as TJSONObject);
-    Result.labelsAdded:=lFlabelsAdded;
-    end;
-  lArr:=aJSON.Get('labelsRemoved',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabelsRemoved,lArr.Count);
-    For I:=0 to Length(lFlabelsRemoved)-1 do
-      lFlabelsRemoved[i]:=THistoryLabelRemoved.Deserialize(lArr[i] as TJSONObject);
-    Result.labelsRemoved:=lFlabelsRemoved;
-    end;
-  lArr:=aJSON.Get('messages',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFmessages,lArr.Count);
-    For I:=0 to Length(lFmessages)-1 do
-      lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
-    Result.messages:=lFmessages;
-    end;
-  lArr:=aJSON.Get('messagesAdded',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFmessagesAdded,lArr.Count);
-    For I:=0 to Length(lFmessagesAdded)-1 do
-      lFmessagesAdded[i]:=THistoryMessageAdded.Deserialize(lArr[i] as TJSONObject);
-    Result.messagesAdded:=lFmessagesAdded;
-    end;
-  lArr:=aJSON.Get('messagesDeleted',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFmessagesDeleted,lArr.Count);
-    For I:=0 to Length(lFmessagesDeleted)-1 do
-      lFmessagesDeleted[i]:=THistoryMessageDeleted.Deserialize(lArr[i] as TJSONObject);
-    Result.messagesDeleted:=lFmessagesDeleted;
-    end;
+  try
+    Result.id:=aJSON.Get('id','');
+    lArr:=aJSON.Get('labelsAdded',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabelsAdded,lArr.Count);
+      For I:=0 to Length(lFlabelsAdded)-1 do
+        lFlabelsAdded[i]:=THistoryLabelAdded.Deserialize(lArr[i] as TJSONObject);
+      Result.labelsAdded:=lFlabelsAdded;
+      end;
+    lArr:=aJSON.Get('labelsRemoved',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabelsRemoved,lArr.Count);
+      For I:=0 to Length(lFlabelsRemoved)-1 do
+        lFlabelsRemoved[i]:=THistoryLabelRemoved.Deserialize(lArr[i] as TJSONObject);
+      Result.labelsRemoved:=lFlabelsRemoved;
+      end;
+    lArr:=aJSON.Get('messages',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFmessages,lArr.Count);
+      For I:=0 to Length(lFmessages)-1 do
+        lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
+      Result.messages:=lFmessages;
+      end;
+    lArr:=aJSON.Get('messagesAdded',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFmessagesAdded,lArr.Count);
+      For I:=0 to Length(lFmessagesAdded)-1 do
+        lFmessagesAdded[i]:=THistoryMessageAdded.Deserialize(lArr[i] as TJSONObject);
+      Result.messagesAdded:=lFmessagesAdded;
+      end;
+    lArr:=aJSON.Get('messagesDeleted',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFmessagesDeleted,lArr.Count);
+      For I:=0 to Length(lFmessagesDeleted)-1 do
+        lFmessagesDeleted[i]:=THistoryMessageDeleted.Deserialize(lArr[i] as TJSONObject);
+      Result.messagesDeleted:=lFmessagesDeleted;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function THistorySerializer.Deserialize(aJSON : String) : THistory;
@@ -2585,16 +2655,21 @@ begin
   Result := TLabel.Create;
   If (aJSON=Nil) then
     exit;
-  Result.color:=TLabelColor.Deserialize(aJSON.Get('color',TJSONObject(Nil)));
-  Result.id:=aJSON.Get('id','');
-  Result.labelListVisibility:=aJSON.Get('labelListVisibility','');
-  Result.messageListVisibility:=aJSON.Get('messageListVisibility','');
-  Result.messagesTotal:=aJSON.Get('messagesTotal',0);
-  Result.messagesUnread:=aJSON.Get('messagesUnread',0);
-  Result.name:=aJSON.Get('name','');
-  Result.threadsTotal:=aJSON.Get('threadsTotal',0);
-  Result.threadsUnread:=aJSON.Get('threadsUnread',0);
-  Result.type_:=aJSON.Get('type','');
+  try
+    Result.color:=TLabelColor.Deserialize(aJSON.Get('color',TJSONObject(Nil)));
+    Result.id:=aJSON.Get('id','');
+    Result.labelListVisibility:=aJSON.Get('labelListVisibility','');
+    Result.messageListVisibility:=aJSON.Get('messageListVisibility','');
+    Result.messagesTotal:=aJSON.Get('messagesTotal',0);
+    Result.messagesUnread:=aJSON.Get('messagesUnread',0);
+    Result.name:=aJSON.Get('name','');
+    Result.threadsTotal:=aJSON.Get('threadsTotal',0);
+    Result.threadsUnread:=aJSON.Get('threadsUnread',0);
+    Result.type_:=aJSON.Get('type','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TLabelSerializer.Deserialize(aJSON : String) : TLabel;
@@ -2708,15 +2783,20 @@ begin
   Result := TListCseIdentitiesResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('cseIdentities',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFcseIdentities,lArr.Count);
-    For I:=0 to Length(lFcseIdentities)-1 do
-      lFcseIdentities[i]:=TCseIdentity.Deserialize(lArr[i] as TJSONObject);
-    Result.cseIdentities:=lFcseIdentities;
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('cseIdentities',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFcseIdentities,lArr.Count);
+      For I:=0 to Length(lFcseIdentities)-1 do
+        lFcseIdentities[i]:=TCseIdentity.Deserialize(lArr[i] as TJSONObject);
+      Result.cseIdentities:=lFcseIdentities;
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListCseIdentitiesResponseSerializer.Deserialize(aJSON : String) : TListCseIdentitiesResponse;
@@ -2779,15 +2859,20 @@ begin
   Result := TListCseKeyPairsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('cseKeyPairs',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFcseKeyPairs,lArr.Count);
-    For I:=0 to Length(lFcseKeyPairs)-1 do
-      lFcseKeyPairs[i]:=TCseKeyPair.Deserialize(lArr[i] as TJSONObject);
-    Result.cseKeyPairs:=lFcseKeyPairs;
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('cseKeyPairs',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFcseKeyPairs,lArr.Count);
+      For I:=0 to Length(lFcseKeyPairs)-1 do
+        lFcseKeyPairs[i]:=TCseKeyPair.Deserialize(lArr[i] as TJSONObject);
+      Result.cseKeyPairs:=lFcseKeyPairs;
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListCseKeyPairsResponseSerializer.Deserialize(aJSON : String) : TListCseKeyPairsResponse;
@@ -2849,14 +2934,19 @@ begin
   Result := TListDelegatesResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('delegates',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFdelegates,lArr.Count);
-    For I:=0 to Length(lFdelegates)-1 do
-      lFdelegates[i]:=TDelegate.Deserialize(lArr[i] as TJSONObject);
-    Result.delegates:=lFdelegates;
-    end;
+  try
+    lArr:=aJSON.Get('delegates',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFdelegates,lArr.Count);
+      For I:=0 to Length(lFdelegates)-1 do
+        lFdelegates[i]:=TDelegate.Deserialize(lArr[i] as TJSONObject);
+      Result.delegates:=lFdelegates;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListDelegatesResponseSerializer.Deserialize(aJSON : String) : TListDelegatesResponse;
@@ -2920,16 +3010,21 @@ begin
   Result := TListDraftsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('drafts',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFdrafts,lArr.Count);
-    For I:=0 to Length(lFdrafts)-1 do
-      lFdrafts[i]:=TDraft.Deserialize(lArr[i] as TJSONObject);
-    Result.drafts:=lFdrafts;
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
+  try
+    lArr:=aJSON.Get('drafts',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFdrafts,lArr.Count);
+      For I:=0 to Length(lFdrafts)-1 do
+        lFdrafts[i]:=TDraft.Deserialize(lArr[i] as TJSONObject);
+      Result.drafts:=lFdrafts;
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListDraftsResponseSerializer.Deserialize(aJSON : String) : TListDraftsResponse;
@@ -2991,14 +3086,19 @@ begin
   Result := TListFiltersResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('filter',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFfilter,lArr.Count);
-    For I:=0 to Length(lFfilter)-1 do
-      lFfilter[i]:=TFilter.Deserialize(lArr[i] as TJSONObject);
-    Result.filter:=lFfilter;
-    end;
+  try
+    lArr:=aJSON.Get('filter',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFfilter,lArr.Count);
+      For I:=0 to Length(lFfilter)-1 do
+        lFfilter[i]:=TFilter.Deserialize(lArr[i] as TJSONObject);
+      Result.filter:=lFfilter;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListFiltersResponseSerializer.Deserialize(aJSON : String) : TListFiltersResponse;
@@ -3060,14 +3160,19 @@ begin
   Result := TListForwardingAddressesResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('forwardingAddresses',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFforwardingAddresses,lArr.Count);
-    For I:=0 to Length(lFforwardingAddresses)-1 do
-      lFforwardingAddresses[i]:=TForwardingAddress.Deserialize(lArr[i] as TJSONObject);
-    Result.forwardingAddresses:=lFforwardingAddresses;
-    end;
+  try
+    lArr:=aJSON.Get('forwardingAddresses',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFforwardingAddresses,lArr.Count);
+      For I:=0 to Length(lFforwardingAddresses)-1 do
+        lFforwardingAddresses[i]:=TForwardingAddress.Deserialize(lArr[i] as TJSONObject);
+      Result.forwardingAddresses:=lFforwardingAddresses;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListForwardingAddressesResponseSerializer.Deserialize(aJSON : String) : TListForwardingAddressesResponse;
@@ -3131,16 +3236,21 @@ begin
   Result := TListHistoryResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('history',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFhistory,lArr.Count);
-    For I:=0 to Length(lFhistory)-1 do
-      lFhistory[i]:=THistory.Deserialize(lArr[i] as TJSONObject);
-    Result.history:=lFhistory;
-    end;
-  Result.historyId:=aJSON.Get('historyId','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('history',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFhistory,lArr.Count);
+      For I:=0 to Length(lFhistory)-1 do
+        lFhistory[i]:=THistory.Deserialize(lArr[i] as TJSONObject);
+      Result.history:=lFhistory;
+      end;
+    Result.historyId:=aJSON.Get('historyId','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListHistoryResponseSerializer.Deserialize(aJSON : String) : TListHistoryResponse;
@@ -3202,14 +3312,19 @@ begin
   Result := TListLabelsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('labels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFlabels,lArr.Count);
-    For I:=0 to Length(lFlabels)-1 do
-      lFlabels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
-    Result.labels:=lFlabels;
-    end;
+  try
+    lArr:=aJSON.Get('labels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFlabels,lArr.Count);
+      For I:=0 to Length(lFlabels)-1 do
+        lFlabels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
+      Result.labels:=lFlabels;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListLabelsResponseSerializer.Deserialize(aJSON : String) : TListLabelsResponse;
@@ -3273,16 +3388,21 @@ begin
   Result := TListMessagesResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('messages',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFmessages,lArr.Count);
-    For I:=0 to Length(lFmessages)-1 do
-      lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
-    Result.messages:=lFmessages;
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
+  try
+    lArr:=aJSON.Get('messages',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFmessages,lArr.Count);
+      For I:=0 to Length(lFmessages)-1 do
+        lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
+      Result.messages:=lFmessages;
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListMessagesResponseSerializer.Deserialize(aJSON : String) : TListMessagesResponse;
@@ -3401,15 +3521,20 @@ begin
   Result := TSendAs.Create;
   If (aJSON=Nil) then
     exit;
-  Result.displayName:=aJSON.Get('displayName','');
-  Result.isDefault:=aJSON.Get('isDefault',False);
-  Result.isPrimary:=aJSON.Get('isPrimary',False);
-  Result.replyToAddress:=aJSON.Get('replyToAddress','');
-  Result.sendAsEmail:=aJSON.Get('sendAsEmail','');
-  Result.signature:=aJSON.Get('signature','');
-  Result.smtpMsa:=TSmtpMsa.Deserialize(aJSON.Get('smtpMsa',TJSONObject(Nil)));
-  Result.treatAsAlias:=aJSON.Get('treatAsAlias',False);
-  Result.verificationStatus:=aJSON.Get('verificationStatus','');
+  try
+    Result.displayName:=aJSON.Get('displayName','');
+    Result.isDefault:=aJSON.Get('isDefault',False);
+    Result.isPrimary:=aJSON.Get('isPrimary',False);
+    Result.replyToAddress:=aJSON.Get('replyToAddress','');
+    Result.sendAsEmail:=aJSON.Get('sendAsEmail','');
+    Result.signature:=aJSON.Get('signature','');
+    Result.smtpMsa:=TSmtpMsa.Deserialize(aJSON.Get('smtpMsa',TJSONObject(Nil)));
+    Result.treatAsAlias:=aJSON.Get('treatAsAlias',False);
+    Result.verificationStatus:=aJSON.Get('verificationStatus','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TSendAsSerializer.Deserialize(aJSON : String) : TSendAs;
@@ -3471,14 +3596,19 @@ begin
   Result := TListSendAsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('sendAs',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFsendAs,lArr.Count);
-    For I:=0 to Length(lFsendAs)-1 do
-      lFsendAs[i]:=TSendAs.Deserialize(lArr[i] as TJSONObject);
-    Result.sendAs:=lFsendAs;
-    end;
+  try
+    lArr:=aJSON.Get('sendAs',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFsendAs,lArr.Count);
+      For I:=0 to Length(lFsendAs)-1 do
+        lFsendAs[i]:=TSendAs.Deserialize(lArr[i] as TJSONObject);
+      Result.sendAs:=lFsendAs;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListSendAsResponseSerializer.Deserialize(aJSON : String) : TListSendAsResponse;
@@ -3603,14 +3733,19 @@ begin
   Result := TListSmimeInfoResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('smimeInfo',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFsmimeInfo,lArr.Count);
-    For I:=0 to Length(lFsmimeInfo)-1 do
-      lFsmimeInfo[i]:=TSmimeInfo.Deserialize(lArr[i] as TJSONObject);
-    Result.smimeInfo:=lFsmimeInfo;
-    end;
+  try
+    lArr:=aJSON.Get('smimeInfo',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFsmimeInfo,lArr.Count);
+      For I:=0 to Length(lFsmimeInfo)-1 do
+        lFsmimeInfo[i]:=TSmimeInfo.Deserialize(lArr[i] as TJSONObject);
+      Result.smimeInfo:=lFsmimeInfo;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListSmimeInfoResponseSerializer.Deserialize(aJSON : String) : TListSmimeInfoResponse;
@@ -3675,17 +3810,22 @@ begin
   Result := TThread_.Create;
   If (aJSON=Nil) then
     exit;
-  Result.historyId:=aJSON.Get('historyId','');
-  Result.id:=aJSON.Get('id','');
-  lArr:=aJSON.Get('messages',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFmessages,lArr.Count);
-    For I:=0 to Length(lFmessages)-1 do
-      lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
-    Result.messages:=lFmessages;
-    end;
-  Result.snippet:=aJSON.Get('snippet','');
+  try
+    Result.historyId:=aJSON.Get('historyId','');
+    Result.id:=aJSON.Get('id','');
+    lArr:=aJSON.Get('messages',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFmessages,lArr.Count);
+      For I:=0 to Length(lFmessages)-1 do
+        lFmessages[i]:=TMessage.Deserialize(lArr[i] as TJSONObject);
+      Result.messages:=lFmessages;
+      end;
+    Result.snippet:=aJSON.Get('snippet','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TThread_Serializer.Deserialize(aJSON : String) : TThread_;
@@ -3749,16 +3889,21 @@ begin
   Result := TListThreadsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
-  lArr:=aJSON.Get('threads',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFthreads,lArr.Count);
-    For I:=0 to Length(lFthreads)-1 do
-      lFthreads[i]:=TThread_.Deserialize(lArr[i] as TJSONObject);
-    Result.threads:=lFthreads;
-    end;
+  try
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    Result.resultSizeEstimate:=aJSON.Get('resultSizeEstimate',0);
+    lArr:=aJSON.Get('threads',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFthreads,lArr.Count);
+      For I:=0 to Length(lFthreads)-1 do
+        lFthreads[i]:=TThread_.Deserialize(lArr[i] as TJSONObject);
+      Result.threads:=lFthreads;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListThreadsResponseSerializer.Deserialize(aJSON : String) : TListThreadsResponse;
@@ -3835,38 +3980,43 @@ begin
   Result := TModifyMessageRequest.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('addClassificationLabels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFaddClassificationLabels,lArr.Count);
-    For I:=0 to Length(lFaddClassificationLabels)-1 do
-      lFaddClassificationLabels[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
-    Result.addClassificationLabels:=lFaddClassificationLabels;
-    end;
-  lArr:=aJSON.Get('addLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFaddLabelIds,lArr.Count);
-    For I:=0 to Length(lFaddLabelIds)-1 do
-      lFaddLabelIds[i]:=lArr[i].Asstring;
-    Result.addLabelIds:=lFaddLabelIds;
-    end;
-  lArr:=aJSON.Get('removeClassificationLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFremoveClassificationLabelIds,lArr.Count);
-    For I:=0 to Length(lFremoveClassificationLabelIds)-1 do
-      lFremoveClassificationLabelIds[i]:=lArr[i].Asstring;
-    Result.removeClassificationLabelIds:=lFremoveClassificationLabelIds;
-    end;
-  lArr:=aJSON.Get('removeLabelIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(lFremoveLabelIds,lArr.Count);
-    For I:=0 to Length(lFremoveLabelIds)-1 do
-      lFremoveLabelIds[i]:=lArr[i].Asstring;
-    Result.removeLabelIds:=lFremoveLabelIds;
-    end;
+  try
+    lArr:=aJSON.Get('addClassificationLabels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFaddClassificationLabels,lArr.Count);
+      For I:=0 to Length(lFaddClassificationLabels)-1 do
+        lFaddClassificationLabels[i]:=TClassificationLabelValue.Deserialize(lArr[i] as TJSONObject);
+      Result.addClassificationLabels:=lFaddClassificationLabels;
+      end;
+    lArr:=aJSON.Get('addLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFaddLabelIds,lArr.Count);
+      For I:=0 to Length(lFaddLabelIds)-1 do
+        lFaddLabelIds[i]:=lArr[i].Asstring;
+      Result.addLabelIds:=lFaddLabelIds;
+      end;
+    lArr:=aJSON.Get('removeClassificationLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFremoveClassificationLabelIds,lArr.Count);
+      For I:=0 to Length(lFremoveClassificationLabelIds)-1 do
+        lFremoveClassificationLabelIds[i]:=lArr[i].Asstring;
+      Result.removeClassificationLabelIds:=lFremoveClassificationLabelIds;
+      end;
+    lArr:=aJSON.Get('removeLabelIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(lFremoveLabelIds,lArr.Count);
+      For I:=0 to Length(lFremoveLabelIds)-1 do
+        lFremoveLabelIds[i]:=lArr[i].Asstring;
+      Result.removeLabelIds:=lFremoveLabelIds;
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TModifyMessageRequestSerializer.Deserialize(aJSON : String) : TModifyMessageRequest;

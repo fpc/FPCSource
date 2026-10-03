@@ -115,6 +115,8 @@ UseProperties=1
 TrackChanges=1
 ; Same as -L
 ConvertUTC=1
+; Dto classes do not free the objects in their properties and arrays
+NoObjectOwnership=1
 ```
 
 With `TrackChanges`, each Dto class has `FieldChanged`, `MarkChanged`,
@@ -207,9 +209,14 @@ Some useful odds and ends:
 * **Results**: each method returns a `TServiceResult` record. Check `Success`;
   on failure `ErrorCode` and `ErrorText` give the HTTP status. `Value` is a
   new object owned by the caller.
-* **Freeing**: the Dto classes do not free the objects they refer to. 
-  Free the objects in arrays and object-valued properties yourself before freeing the
-  result `Value`. (this may change in the future)
+* **Freeing**: a Dto object owns the objects in its object-valued properties
+  and arrays, and frees them when it is freed. Freeing the result `Value`
+  frees everything in it. Do not put one object in two places, and do not
+  free an object that is still in a property or array.
+* With `UseProperties`, assigning a new object to a property frees the old
+  one, and assigning a new array frees the objects that are not in the new array. 
+* With `NoObjectOwnership=1` the Dto classes free nothing; 
+  free the objects in arrays and properties yourself.
 * **Parameters**: parameters without a default value come first, 
   then those with the default from the Discovery document (Gmail's `userId`,
   for example,  defaults to `me`).

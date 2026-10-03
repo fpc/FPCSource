@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s drive -o drive -q
   Source OpenAPI document data:
@@ -121,6 +121,7 @@ Type
     teamDriveThemes : stringArray;
     user : TUser;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TAccessProposalRoleAndView = Class(TObject)
@@ -136,6 +137,7 @@ Type
     requesterEmailAddress : string;
     requestMessage : string;
     rolesAndViews : TAccessProposalRoleAndViewArray;
+    destructor Destroy; override;
   end;
   
   TAddReviewer = Class(TObject)
@@ -173,6 +175,7 @@ Type
     supportsMultiOpen : boolean;
     supportsOfflineCreate : boolean;
     useByDefault : boolean;
+    destructor Destroy; override;
   end;
   
   TAppList = Class(TObject)
@@ -180,6 +183,7 @@ Type
     items : TAppArray;
     kind : string;
     selfLink : string;
+    destructor Destroy; override;
   end;
   
   TReviewerResponse = Class(TObject)
@@ -187,6 +191,7 @@ Type
     response : string;
     reviewer : TUser;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TApproval = Class(TObject)
@@ -202,12 +207,14 @@ Type
     status : string;
     targetFileId : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TApprovalList = Class(TObject)
     items : TApprovalArray;
     kind : string;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TApproveApprovalRequest = Class(TObject)
@@ -247,6 +254,7 @@ Type
     decryptionMetadata : TDecryptionMetadata;
     encryptionState : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TContentRestriction = Class(TObject)
@@ -258,6 +266,7 @@ Type
     systemRestricted : boolean;
     type_ : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TDownloadRestriction = Class(TObject)
@@ -269,6 +278,7 @@ Type
     effectiveDownloadRestrictionWithContext : TDownloadRestriction;
     itemDownloadRestriction : TDownloadRestriction;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TPermission = Class(TObject)
@@ -357,6 +367,7 @@ Type
     webViewLink : string;
     writersCanShare : boolean;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TTeamDrive = Class(TObject)
@@ -386,6 +397,7 @@ Type
     time : TDateTime;
     type_ : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TChangeList = Class(TObject)
@@ -393,6 +405,7 @@ Type
     kind : string;
     newStartPageToken : string;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TChannel = Class(TObject)
@@ -421,6 +434,7 @@ Type
     mentionedEmailAddresses : TStringDynArray;
     modifiedTime : TDateTime;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TComment = Class(TObject)
@@ -439,6 +453,7 @@ Type
     replies : TReplyArray;
     resolved : boolean;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TCommentApprovalRequest = Class(TObject)
@@ -449,6 +464,7 @@ Type
     comments : TCommentArray;
     kind : string;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TDeclineApprovalRequest = Class(TObject)
@@ -459,6 +475,7 @@ Type
     drives : TDriveArray;
     kind : string;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TFileList = Class(TObject)
@@ -466,6 +483,7 @@ Type
     incompleteSearch : boolean;
     kind : string;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TGenerateCseTokenResponse = Class(TObject)
@@ -498,6 +516,7 @@ Type
     text : TStringDynArray;
     user : TUserArray;
     valueType : string;
+    destructor Destroy; override;
   end;
   
   TLabelFieldModification = Class(TObject)
@@ -515,6 +534,7 @@ Type
     kind : string;
     labels : TLabelArray;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TLabelModification = Class(TObject)
@@ -522,21 +542,25 @@ Type
     kind : string;
     labelId : string;
     removeLabel : boolean;
+    destructor Destroy; override;
   end;
   
   TListAccessProposalsResponse = Class(TObject)
     accessProposals : TAccessProposalArray;
     nextPageToken : string;
+    destructor Destroy; override;
   end;
   
   TModifyLabelsRequest = Class(TObject)
     kind : string;
     labelModifications : TLabelModificationArray;
+    destructor Destroy; override;
   end;
   
   TModifyLabelsResponse = Class(TObject)
     kind : string;
     modifiedLabels : TLabelArray;
+    destructor Destroy; override;
   end;
   
   TStatus = Class(TObject)
@@ -552,12 +576,14 @@ Type
     name : string;
     response : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TPermissionList = Class(TObject)
     kind : string;
     nextPageToken : string;
     permissions : TPermissionArray;
+    destructor Destroy; override;
   end;
   
   TReplaceReviewer = Class(TObject)
@@ -569,12 +595,14 @@ Type
     addReviewers : TAddReviewerArray;
     message : string;
     replaceReviewers : TReplaceReviewerArray;
+    destructor Destroy; override;
   end;
   
   TReplyList = Class(TObject)
     kind : string;
     nextPageToken : string;
     replies : TReplyArray;
+    destructor Destroy; override;
   end;
   
   TResolveAccessProposalRequest = Class(TObject)
@@ -600,12 +628,14 @@ Type
     published_ : boolean;
     size : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TRevisionList = Class(TObject)
     kind : string;
     nextPageToken : string;
     revisions : TRevisionArray;
+    destructor Destroy; override;
   end;
   
   TStartApprovalRequest = Class(TObject)
@@ -625,6 +655,7 @@ Type
     kind : string;
     nextPageToken : string;
     teamDrives : TTeamDriveArray;
+    destructor Destroy; override;
   end;
   
 implementation
@@ -635,10 +666,57 @@ begin
   user := TUser.Create;
 end;
 
+destructor TAbout.Destroy;
+
+begin
+  user.Free;
+  inherited Destroy;
+end;
+
+destructor TAccessProposal.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(rolesAndViews)-1 do
+    rolesAndViews[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TApp.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(icons)-1 do
+    icons[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TAppList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TReviewerResponse.CreateWithMembers;
 
 begin
   reviewer := TUser.Create;
+end;
+
+destructor TReviewerResponse.Destroy;
+
+begin
+  reviewer.Free;
+  inherited Destroy;
 end;
 
 constructor TApproval.CreateWithMembers;
@@ -647,10 +725,40 @@ begin
   initiator := TUser.Create;
 end;
 
+destructor TApproval.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  initiator.Free;
+  for lI:=0 to Length(reviewerResponses)-1 do
+    reviewerResponses[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TApprovalList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TClientEncryptionDetails.CreateWithMembers;
 
 begin
   decryptionMetadata := TDecryptionMetadata.Create;
+end;
+
+destructor TClientEncryptionDetails.Destroy;
+
+begin
+  decryptionMetadata.Free;
+  inherited Destroy;
 end;
 
 constructor TContentRestriction.CreateWithMembers;
@@ -659,11 +767,26 @@ begin
   restrictingUser := TUser.Create;
 end;
 
+destructor TContentRestriction.Destroy;
+
+begin
+  restrictingUser.Free;
+  inherited Destroy;
+end;
+
 constructor TDownloadRestrictionsMetadata.CreateWithMembers;
 
 begin
   effectiveDownloadRestrictionWithContext := TDownloadRestriction.Create;
   itemDownloadRestriction := TDownloadRestriction.Create;
+end;
+
+destructor TDownloadRestrictionsMetadata.Destroy;
+
+begin
+  effectiveDownloadRestrictionWithContext.Free;
+  itemDownloadRestriction.Free;
+  inherited Destroy;
 end;
 
 constructor TFile.CreateWithMembers;
@@ -676,6 +799,26 @@ begin
   trashingUser := TUser.Create;
 end;
 
+destructor TFile.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  clientEncryptionDetails.Free;
+  for lI:=0 to Length(contentRestrictions)-1 do
+    contentRestrictions[lI].Free;
+  downloadRestrictions.Free;
+  lastModifyingUser.Free;
+  for lI:=0 to Length(owners)-1 do
+    owners[lI].Free;
+  for lI:=0 to Length(permissions)-1 do
+    permissions[lI].Free;
+  sharingUser.Free;
+  trashingUser.Free;
+  inherited Destroy;
+end;
+
 constructor TChange.CreateWithMembers;
 
 begin
@@ -684,10 +827,37 @@ begin
   teamDrive := TTeamDrive.Create;
 end;
 
+destructor TChange.Destroy;
+
+begin
+  drive.Free;
+  file_.Free;
+  teamDrive.Free;
+  inherited Destroy;
+end;
+
+destructor TChangeList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(changes)-1 do
+    changes[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TReply.CreateWithMembers;
 
 begin
   author := TUser.Create;
+end;
+
+destructor TReply.Destroy;
+
+begin
+  author.Free;
+  inherited Destroy;
 end;
 
 constructor TComment.CreateWithMembers;
@@ -696,16 +866,198 @@ begin
   author := TUser.Create;
 end;
 
+destructor TComment.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  author.Free;
+  for lI:=0 to Length(replies)-1 do
+    replies[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TCommentList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(comments)-1 do
+    comments[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TDriveList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(drives)-1 do
+    drives[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TFileList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(files)-1 do
+    files[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TLabelField.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(user)-1 do
+    user[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TLabelList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(labels)-1 do
+    labels[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TLabelModification.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(fieldModifications)-1 do
+    fieldModifications[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TListAccessProposalsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(accessProposals)-1 do
+    accessProposals[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TModifyLabelsRequest.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(labelModifications)-1 do
+    labelModifications[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TModifyLabelsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(modifiedLabels)-1 do
+    modifiedLabels[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TOperation.CreateWithMembers;
 
 begin
   error := TStatus.Create;
 end;
 
+destructor TOperation.Destroy;
+
+begin
+  error.Free;
+  inherited Destroy;
+end;
+
+destructor TPermissionList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(permissions)-1 do
+    permissions[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TReassignApprovalRequest.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(addReviewers)-1 do
+    addReviewers[lI].Free;
+  for lI:=0 to Length(replaceReviewers)-1 do
+    replaceReviewers[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TReplyList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(replies)-1 do
+    replies[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TRevision.CreateWithMembers;
 
 begin
   lastModifyingUser := TUser.Create;
+end;
+
+destructor TRevision.Destroy;
+
+begin
+  lastModifyingUser.Free;
+  inherited Destroy;
+end;
+
+destructor TRevisionList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(revisions)-1 do
+    revisions[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TTeamDriveList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(teamDrives)-1 do
+    teamDrives[lI].Free;
+  inherited Destroy;
 end;
 
 end.

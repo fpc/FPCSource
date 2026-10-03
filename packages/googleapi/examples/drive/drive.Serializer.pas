@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s drive -o drive -q
   Source OpenAPI document data:
@@ -688,37 +688,42 @@ begin
   Result := TAbout.Create;
   If (aJSON=Nil) then
     exit;
-  Result.appInstalled:=aJSON.Get('appInstalled',False);
-  Result.canCreateDrives:=aJSON.Get('canCreateDrives',False);
-  Result.canCreateTeamDrives:=aJSON.Get('canCreateTeamDrives',False);
-  lArr:=aJSON.Get('driveThemes',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.driveThemes,lArr.Count);
-    For I:=0 to Length(Result.driveThemes)-1 do
-      Result.driveThemes[i]:=lArr[i].AsJSON;
-    end;
-  Result.exportFormats:=JSONDataAsString(aJSON.Get('exportFormats',TJSONObject(Nil)));
-  lArr:=aJSON.Get('folderColorPalette',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.folderColorPalette,lArr.Count);
-    For I:=0 to Length(Result.folderColorPalette)-1 do
-      Result.folderColorPalette[i]:=lArr[i].Asstring;
-    end;
-  Result.importFormats:=JSONDataAsString(aJSON.Get('importFormats',TJSONObject(Nil)));
-  Result.kind:=aJSON.Get('kind','');
-  Result.maxImportSizes:=JSONDataAsString(aJSON.Get('maxImportSizes',TJSONObject(Nil)));
-  Result.maxUploadSize:=aJSON.Get('maxUploadSize','');
-  Result.storageQuota:=JSONDataAsString(aJSON.Get('storageQuota',TJSONObject(Nil)));
-  lArr:=aJSON.Get('teamDriveThemes',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.teamDriveThemes,lArr.Count);
-    For I:=0 to Length(Result.teamDriveThemes)-1 do
-      Result.teamDriveThemes[i]:=lArr[i].AsJSON;
-    end;
-  Result.user:=TUser.Deserialize(aJSON.Get('user',TJSONObject(Nil)));
+  try
+    Result.appInstalled:=aJSON.Get('appInstalled',False);
+    Result.canCreateDrives:=aJSON.Get('canCreateDrives',False);
+    Result.canCreateTeamDrives:=aJSON.Get('canCreateTeamDrives',False);
+    lArr:=aJSON.Get('driveThemes',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.driveThemes,lArr.Count);
+      For I:=0 to Length(Result.driveThemes)-1 do
+        Result.driveThemes[i]:=lArr[i].AsJSON;
+      end;
+    Result.exportFormats:=JSONDataAsString(aJSON.Get('exportFormats',TJSONObject(Nil)));
+    lArr:=aJSON.Get('folderColorPalette',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.folderColorPalette,lArr.Count);
+      For I:=0 to Length(Result.folderColorPalette)-1 do
+        Result.folderColorPalette[i]:=lArr[i].Asstring;
+      end;
+    Result.importFormats:=JSONDataAsString(aJSON.Get('importFormats',TJSONObject(Nil)));
+    Result.kind:=aJSON.Get('kind','');
+    Result.maxImportSizes:=JSONDataAsString(aJSON.Get('maxImportSizes',TJSONObject(Nil)));
+    Result.maxUploadSize:=aJSON.Get('maxUploadSize','');
+    Result.storageQuota:=JSONDataAsString(aJSON.Get('storageQuota',TJSONObject(Nil)));
+    lArr:=aJSON.Get('teamDriveThemes',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.teamDriveThemes,lArr.Count);
+      For I:=0 to Length(Result.teamDriveThemes)-1 do
+        Result.teamDriveThemes[i]:=lArr[i].AsJSON;
+      end;
+    Result.user:=TUser.Deserialize(aJSON.Get('user',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TAboutSerializer.Deserialize(aJSON : String) : TAbout;
@@ -838,19 +843,24 @@ begin
   Result := TAccessProposal.Create;
   If (aJSON=Nil) then
     exit;
-  Result.createTime:=aJSON.Get('createTime','');
-  Result.fileId:=aJSON.Get('fileId','');
-  Result.proposalId:=aJSON.Get('proposalId','');
-  Result.recipientEmailAddress:=aJSON.Get('recipientEmailAddress','');
-  Result.requesterEmailAddress:=aJSON.Get('requesterEmailAddress','');
-  Result.requestMessage:=aJSON.Get('requestMessage','');
-  lArr:=aJSON.Get('rolesAndViews',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.rolesAndViews,lArr.Count);
-    For I:=0 to Length(Result.rolesAndViews)-1 do
-      Result.rolesAndViews[i]:=TAccessProposalRoleAndView.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.createTime:=aJSON.Get('createTime','');
+    Result.fileId:=aJSON.Get('fileId','');
+    Result.proposalId:=aJSON.Get('proposalId','');
+    Result.recipientEmailAddress:=aJSON.Get('recipientEmailAddress','');
+    Result.requesterEmailAddress:=aJSON.Get('requesterEmailAddress','');
+    Result.requestMessage:=aJSON.Get('requestMessage','');
+    lArr:=aJSON.Get('rolesAndViews',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.rolesAndViews,lArr.Count);
+      For I:=0 to Length(Result.rolesAndViews)-1 do
+        Result.rolesAndViews[i]:=TAccessProposalRoleAndView.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TAccessProposalSerializer.Deserialize(aJSON : String) : TAccessProposal;
@@ -1051,60 +1061,65 @@ begin
   Result := TApp.Create;
   If (aJSON=Nil) then
     exit;
-  Result.authorized:=aJSON.Get('authorized',False);
-  Result.createInFolderTemplate:=aJSON.Get('createInFolderTemplate','');
-  Result.createUrl:=aJSON.Get('createUrl','');
-  Result.hasDriveWideScope:=aJSON.Get('hasDriveWideScope',False);
-  lArr:=aJSON.Get('icons',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.icons,lArr.Count);
-    For I:=0 to Length(Result.icons)-1 do
-      Result.icons[i]:=TAppIcons.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.id:=aJSON.Get('id','');
-  Result.installed:=aJSON.Get('installed',False);
-  Result.kind:=aJSON.Get('kind','');
-  Result.longDescription:=aJSON.Get('longDescription','');
-  Result.name:=aJSON.Get('name','');
-  Result.objectType:=aJSON.Get('objectType','');
-  Result.openUrlTemplate:=aJSON.Get('openUrlTemplate','');
-  lArr:=aJSON.Get('primaryFileExtensions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.primaryFileExtensions,lArr.Count);
-    For I:=0 to Length(Result.primaryFileExtensions)-1 do
-      Result.primaryFileExtensions[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('primaryMimeTypes',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.primaryMimeTypes,lArr.Count);
-    For I:=0 to Length(Result.primaryMimeTypes)-1 do
-      Result.primaryMimeTypes[i]:=lArr[i].Asstring;
-    end;
-  Result.productId:=aJSON.Get('productId','');
-  Result.productUrl:=aJSON.Get('productUrl','');
-  lArr:=aJSON.Get('secondaryFileExtensions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.secondaryFileExtensions,lArr.Count);
-    For I:=0 to Length(Result.secondaryFileExtensions)-1 do
-      Result.secondaryFileExtensions[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('secondaryMimeTypes',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.secondaryMimeTypes,lArr.Count);
-    For I:=0 to Length(Result.secondaryMimeTypes)-1 do
-      Result.secondaryMimeTypes[i]:=lArr[i].Asstring;
-    end;
-  Result.shortDescription:=aJSON.Get('shortDescription','');
-  Result.supportsCreate:=aJSON.Get('supportsCreate',False);
-  Result.supportsImport:=aJSON.Get('supportsImport',False);
-  Result.supportsMultiOpen:=aJSON.Get('supportsMultiOpen',False);
-  Result.supportsOfflineCreate:=aJSON.Get('supportsOfflineCreate',False);
-  Result.useByDefault:=aJSON.Get('useByDefault',False);
+  try
+    Result.authorized:=aJSON.Get('authorized',False);
+    Result.createInFolderTemplate:=aJSON.Get('createInFolderTemplate','');
+    Result.createUrl:=aJSON.Get('createUrl','');
+    Result.hasDriveWideScope:=aJSON.Get('hasDriveWideScope',False);
+    lArr:=aJSON.Get('icons',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.icons,lArr.Count);
+      For I:=0 to Length(Result.icons)-1 do
+        Result.icons[i]:=TAppIcons.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.id:=aJSON.Get('id','');
+    Result.installed:=aJSON.Get('installed',False);
+    Result.kind:=aJSON.Get('kind','');
+    Result.longDescription:=aJSON.Get('longDescription','');
+    Result.name:=aJSON.Get('name','');
+    Result.objectType:=aJSON.Get('objectType','');
+    Result.openUrlTemplate:=aJSON.Get('openUrlTemplate','');
+    lArr:=aJSON.Get('primaryFileExtensions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.primaryFileExtensions,lArr.Count);
+      For I:=0 to Length(Result.primaryFileExtensions)-1 do
+        Result.primaryFileExtensions[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('primaryMimeTypes',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.primaryMimeTypes,lArr.Count);
+      For I:=0 to Length(Result.primaryMimeTypes)-1 do
+        Result.primaryMimeTypes[i]:=lArr[i].Asstring;
+      end;
+    Result.productId:=aJSON.Get('productId','');
+    Result.productUrl:=aJSON.Get('productUrl','');
+    lArr:=aJSON.Get('secondaryFileExtensions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.secondaryFileExtensions,lArr.Count);
+      For I:=0 to Length(Result.secondaryFileExtensions)-1 do
+        Result.secondaryFileExtensions[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('secondaryMimeTypes',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.secondaryMimeTypes,lArr.Count);
+      For I:=0 to Length(Result.secondaryMimeTypes)-1 do
+        Result.secondaryMimeTypes[i]:=lArr[i].Asstring;
+      end;
+    Result.shortDescription:=aJSON.Get('shortDescription','');
+    Result.supportsCreate:=aJSON.Get('supportsCreate',False);
+    Result.supportsImport:=aJSON.Get('supportsImport',False);
+    Result.supportsMultiOpen:=aJSON.Get('supportsMultiOpen',False);
+    Result.supportsOfflineCreate:=aJSON.Get('supportsOfflineCreate',False);
+    Result.useByDefault:=aJSON.Get('useByDefault',False);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TAppSerializer.Deserialize(aJSON : String) : TApp;
@@ -1170,22 +1185,27 @@ begin
   Result := TAppList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('defaultAppIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.defaultAppIds,lArr.Count);
-    For I:=0 to Length(Result.defaultAppIds)-1 do
-      Result.defaultAppIds[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TApp.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.selfLink:=aJSON.Get('selfLink','');
+  try
+    lArr:=aJSON.Get('defaultAppIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.defaultAppIds,lArr.Count);
+      For I:=0 to Length(Result.defaultAppIds)-1 do
+        Result.defaultAppIds[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TApp.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.selfLink:=aJSON.Get('selfLink','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TAppListSerializer.Deserialize(aJSON : String) : TAppList;
@@ -1239,9 +1259,14 @@ begin
   Result := TReviewerResponse.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  Result.response:=aJSON.Get('response','');
-  Result.reviewer:=TUser.Deserialize(aJSON.Get('reviewer',TJSONObject(Nil)));
+  try
+    Result.kind:=aJSON.Get('kind','');
+    Result.response:=aJSON.Get('response','');
+    Result.reviewer:=TUser.Deserialize(aJSON.Get('reviewer',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TReviewerResponseSerializer.Deserialize(aJSON : String) : TReviewerResponse;
@@ -1308,23 +1333,28 @@ begin
   Result := TApproval.Create;
   If (aJSON=Nil) then
     exit;
-  Result.approvalId:=aJSON.Get('approvalId','');
-  Result.completeTime:=aJSON.Get('completeTime','');
-  Result.createTime:=aJSON.Get('createTime','');
-  Result.dueTime:=aJSON.Get('dueTime','');
-  Result.fileContentChangeBehavior:=aJSON.Get('fileContentChangeBehavior','');
-  Result.initiator:=TUser.Deserialize(aJSON.Get('initiator',TJSONObject(Nil)));
-  Result.kind:=aJSON.Get('kind','');
-  Result.modifyTime:=aJSON.Get('modifyTime','');
-  lArr:=aJSON.Get('reviewerResponses',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.reviewerResponses,lArr.Count);
-    For I:=0 to Length(Result.reviewerResponses)-1 do
-      Result.reviewerResponses[i]:=TReviewerResponse.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.status:=aJSON.Get('status','');
-  Result.targetFileId:=aJSON.Get('targetFileId','');
+  try
+    Result.approvalId:=aJSON.Get('approvalId','');
+    Result.completeTime:=aJSON.Get('completeTime','');
+    Result.createTime:=aJSON.Get('createTime','');
+    Result.dueTime:=aJSON.Get('dueTime','');
+    Result.fileContentChangeBehavior:=aJSON.Get('fileContentChangeBehavior','');
+    Result.initiator:=TUser.Deserialize(aJSON.Get('initiator',TJSONObject(Nil)));
+    Result.kind:=aJSON.Get('kind','');
+    Result.modifyTime:=aJSON.Get('modifyTime','');
+    lArr:=aJSON.Get('reviewerResponses',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.reviewerResponses,lArr.Count);
+      For I:=0 to Length(Result.reviewerResponses)-1 do
+        Result.reviewerResponses[i]:=TReviewerResponse.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.status:=aJSON.Get('status','');
+    Result.targetFileId:=aJSON.Get('targetFileId','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TApprovalSerializer.Deserialize(aJSON : String) : TApproval;
@@ -1387,15 +1417,20 @@ begin
   Result := TApprovalList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('items',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.items,lArr.Count);
-    For I:=0 to Length(Result.items)-1 do
-      Result.items[i]:=TApproval.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('items',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.items,lArr.Count);
+      For I:=0 to Length(Result.items)-1 do
+        Result.items[i]:=TApproval.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TApprovalListSerializer.Deserialize(aJSON : String) : TApprovalList;
@@ -1684,8 +1719,13 @@ begin
   Result := TClientEncryptionDetails.Create;
   If (aJSON=Nil) then
     exit;
-  Result.decryptionMetadata:=TDecryptionMetadata.Deserialize(aJSON.Get('decryptionMetadata',TJSONObject(Nil)));
-  Result.encryptionState:=aJSON.Get('encryptionState','');
+  try
+    Result.decryptionMetadata:=TDecryptionMetadata.Deserialize(aJSON.Get('decryptionMetadata',TJSONObject(Nil)));
+    Result.encryptionState:=aJSON.Get('encryptionState','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TClientEncryptionDetailsSerializer.Deserialize(aJSON : String) : TClientEncryptionDetails;
@@ -1740,13 +1780,18 @@ begin
   Result := TContentRestriction.Create;
   If (aJSON=Nil) then
     exit;
-  Result.ownerRestricted:=aJSON.Get('ownerRestricted',False);
-  Result.readOnly:=aJSON.Get('readOnly',False);
-  Result.reason:=aJSON.Get('reason','');
-  Result.restrictingUser:=TUser.Deserialize(aJSON.Get('restrictingUser',TJSONObject(Nil)));
-  Result.restrictionTime:=ISO8601ToDateDef(aJSON.Get('restrictionTime',''),0,True);
-  Result.systemRestricted:=aJSON.Get('systemRestricted',False);
-  Result.type_:=aJSON.Get('type','');
+  try
+    Result.ownerRestricted:=aJSON.Get('ownerRestricted',False);
+    Result.readOnly:=aJSON.Get('readOnly',False);
+    Result.reason:=aJSON.Get('reason','');
+    Result.restrictingUser:=TUser.Deserialize(aJSON.Get('restrictingUser',TJSONObject(Nil)));
+    Result.restrictionTime:=ISO8601ToDateDef(aJSON.Get('restrictionTime',''),0,True);
+    Result.systemRestricted:=aJSON.Get('systemRestricted',False);
+    Result.type_:=aJSON.Get('type','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TContentRestrictionSerializer.Deserialize(aJSON : String) : TContentRestriction;
@@ -1851,8 +1896,13 @@ begin
   Result := TDownloadRestrictionsMetadata.Create;
   If (aJSON=Nil) then
     exit;
-  Result.effectiveDownloadRestrictionWithContext:=TDownloadRestriction.Deserialize(aJSON.Get('effectiveDownloadRestrictionWithContext',TJSONObject(Nil)));
-  Result.itemDownloadRestriction:=TDownloadRestriction.Deserialize(aJSON.Get('itemDownloadRestriction',TJSONObject(Nil)));
+  try
+    Result.effectiveDownloadRestrictionWithContext:=TDownloadRestriction.Deserialize(aJSON.Get('effectiveDownloadRestrictionWithContext',TJSONObject(Nil)));
+    Result.itemDownloadRestriction:=TDownloadRestriction.Deserialize(aJSON.Get('itemDownloadRestriction',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TDownloadRestrictionsMetadataSerializer.Deserialize(aJSON : String) : TDownloadRestrictionsMetadata;
@@ -2049,107 +2099,112 @@ begin
   Result := TFile.Create;
   If (aJSON=Nil) then
     exit;
-  Result.appProperties:=JSONDataAsString(aJSON.Get('appProperties',TJSONObject(Nil)));
-  Result.capabilities:=JSONDataAsString(aJSON.Get('capabilities',TJSONObject(Nil)));
-  Result.clientEncryptionDetails:=TClientEncryptionDetails.Deserialize(aJSON.Get('clientEncryptionDetails',TJSONObject(Nil)));
-  Result.contentHints:=JSONDataAsString(aJSON.Get('contentHints',TJSONObject(Nil)));
-  lArr:=aJSON.Get('contentRestrictions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.contentRestrictions,lArr.Count);
-    For I:=0 to Length(Result.contentRestrictions)-1 do
-      Result.contentRestrictions[i]:=TContentRestriction.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.copyRequiresWriterPermission:=aJSON.Get('copyRequiresWriterPermission',False);
-  Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
-  Result.description:=aJSON.Get('description','');
-  Result.downloadRestrictions:=TDownloadRestrictionsMetadata.Deserialize(aJSON.Get('downloadRestrictions',TJSONObject(Nil)));
-  Result.driveId:=aJSON.Get('driveId','');
-  Result.explicitlyTrashed:=aJSON.Get('explicitlyTrashed',False);
-  Result.exportLinks:=JSONDataAsString(aJSON.Get('exportLinks',TJSONObject(Nil)));
-  Result.fileExtension:=aJSON.Get('fileExtension','');
-  Result.folderColorRgb:=aJSON.Get('folderColorRgb','');
-  Result.fullFileExtension:=aJSON.Get('fullFileExtension','');
-  Result.hasAugmentedPermissions:=aJSON.Get('hasAugmentedPermissions',False);
-  Result.hasThumbnail:=aJSON.Get('hasThumbnail',False);
-  Result.headRevisionId:=aJSON.Get('headRevisionId','');
-  Result.iconLink:=aJSON.Get('iconLink','');
-  Result.id:=aJSON.Get('id','');
-  Result.imageMediaMetadata:=JSONDataAsString(aJSON.Get('imageMediaMetadata',TJSONObject(Nil)));
-  Result.inheritedPermissionsDisabled:=aJSON.Get('inheritedPermissionsDisabled',False);
-  Result.isAppAuthorized:=aJSON.Get('isAppAuthorized',False);
-  Result.kind:=aJSON.Get('kind','');
-  Result.labelInfo:=JSONDataAsString(aJSON.Get('labelInfo',TJSONObject(Nil)));
-  Result.lastModifyingUser:=TUser.Deserialize(aJSON.Get('lastModifyingUser',TJSONObject(Nil)));
-  Result.linkShareMetadata:=JSONDataAsString(aJSON.Get('linkShareMetadata',TJSONObject(Nil)));
-  Result.md5Checksum:=aJSON.Get('md5Checksum','');
-  Result.mimeType:=aJSON.Get('mimeType','');
-  Result.modifiedByMe:=aJSON.Get('modifiedByMe',False);
-  Result.modifiedByMeTime:=ISO8601ToDateDef(aJSON.Get('modifiedByMeTime',''),0,True);
-  Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
-  Result.name:=aJSON.Get('name','');
-  Result.originalFilename:=aJSON.Get('originalFilename','');
-  Result.ownedByMe:=aJSON.Get('ownedByMe',False);
-  lArr:=aJSON.Get('owners',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.owners,lArr.Count);
-    For I:=0 to Length(Result.owners)-1 do
-      Result.owners[i]:=TUser.Deserialize(lArr[i] as TJSONObject);
-    end;
-  lArr:=aJSON.Get('parents',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.parents,lArr.Count);
-    For I:=0 to Length(Result.parents)-1 do
-      Result.parents[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('permissionIds',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.permissionIds,lArr.Count);
-    For I:=0 to Length(Result.permissionIds)-1 do
-      Result.permissionIds[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('permissions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.permissions,lArr.Count);
-    For I:=0 to Length(Result.permissions)-1 do
-      Result.permissions[i]:=TPermission.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.properties:=JSONDataAsString(aJSON.Get('properties',TJSONObject(Nil)));
-  Result.quotaBytesUsed:=aJSON.Get('quotaBytesUsed','');
-  Result.resourceKey:=aJSON.Get('resourceKey','');
-  Result.sha1Checksum:=aJSON.Get('sha1Checksum','');
-  Result.sha256Checksum:=aJSON.Get('sha256Checksum','');
-  Result.shared:=aJSON.Get('shared',False);
-  Result.sharedWithMeTime:=ISO8601ToDateDef(aJSON.Get('sharedWithMeTime',''),0,True);
-  Result.sharingUser:=TUser.Deserialize(aJSON.Get('sharingUser',TJSONObject(Nil)));
-  Result.shortcutDetails:=JSONDataAsString(aJSON.Get('shortcutDetails',TJSONObject(Nil)));
-  Result.size:=aJSON.Get('size','');
-  lArr:=aJSON.Get('spaces',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.spaces,lArr.Count);
-    For I:=0 to Length(Result.spaces)-1 do
-      Result.spaces[i]:=lArr[i].Asstring;
-    end;
-  Result.starred:=aJSON.Get('starred',False);
-  Result.teamDriveId:=aJSON.Get('teamDriveId','');
-  Result.thumbnailLink:=aJSON.Get('thumbnailLink','');
-  Result.thumbnailVersion:=aJSON.Get('thumbnailVersion','');
-  Result.trashed:=aJSON.Get('trashed',False);
-  Result.trashedTime:=ISO8601ToDateDef(aJSON.Get('trashedTime',''),0,True);
-  Result.trashingUser:=TUser.Deserialize(aJSON.Get('trashingUser',TJSONObject(Nil)));
-  Result.version:=aJSON.Get('version','');
-  Result.videoMediaMetadata:=JSONDataAsString(aJSON.Get('videoMediaMetadata',TJSONObject(Nil)));
-  Result.viewedByMe:=aJSON.Get('viewedByMe',False);
-  Result.viewedByMeTime:=ISO8601ToDateDef(aJSON.Get('viewedByMeTime',''),0,True);
-  Result.viewersCanCopyContent:=aJSON.Get('viewersCanCopyContent',False);
-  Result.webContentLink:=aJSON.Get('webContentLink','');
-  Result.webViewLink:=aJSON.Get('webViewLink','');
-  Result.writersCanShare:=aJSON.Get('writersCanShare',False);
+  try
+    Result.appProperties:=JSONDataAsString(aJSON.Get('appProperties',TJSONObject(Nil)));
+    Result.capabilities:=JSONDataAsString(aJSON.Get('capabilities',TJSONObject(Nil)));
+    Result.clientEncryptionDetails:=TClientEncryptionDetails.Deserialize(aJSON.Get('clientEncryptionDetails',TJSONObject(Nil)));
+    Result.contentHints:=JSONDataAsString(aJSON.Get('contentHints',TJSONObject(Nil)));
+    lArr:=aJSON.Get('contentRestrictions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.contentRestrictions,lArr.Count);
+      For I:=0 to Length(Result.contentRestrictions)-1 do
+        Result.contentRestrictions[i]:=TContentRestriction.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.copyRequiresWriterPermission:=aJSON.Get('copyRequiresWriterPermission',False);
+    Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
+    Result.description:=aJSON.Get('description','');
+    Result.downloadRestrictions:=TDownloadRestrictionsMetadata.Deserialize(aJSON.Get('downloadRestrictions',TJSONObject(Nil)));
+    Result.driveId:=aJSON.Get('driveId','');
+    Result.explicitlyTrashed:=aJSON.Get('explicitlyTrashed',False);
+    Result.exportLinks:=JSONDataAsString(aJSON.Get('exportLinks',TJSONObject(Nil)));
+    Result.fileExtension:=aJSON.Get('fileExtension','');
+    Result.folderColorRgb:=aJSON.Get('folderColorRgb','');
+    Result.fullFileExtension:=aJSON.Get('fullFileExtension','');
+    Result.hasAugmentedPermissions:=aJSON.Get('hasAugmentedPermissions',False);
+    Result.hasThumbnail:=aJSON.Get('hasThumbnail',False);
+    Result.headRevisionId:=aJSON.Get('headRevisionId','');
+    Result.iconLink:=aJSON.Get('iconLink','');
+    Result.id:=aJSON.Get('id','');
+    Result.imageMediaMetadata:=JSONDataAsString(aJSON.Get('imageMediaMetadata',TJSONObject(Nil)));
+    Result.inheritedPermissionsDisabled:=aJSON.Get('inheritedPermissionsDisabled',False);
+    Result.isAppAuthorized:=aJSON.Get('isAppAuthorized',False);
+    Result.kind:=aJSON.Get('kind','');
+    Result.labelInfo:=JSONDataAsString(aJSON.Get('labelInfo',TJSONObject(Nil)));
+    Result.lastModifyingUser:=TUser.Deserialize(aJSON.Get('lastModifyingUser',TJSONObject(Nil)));
+    Result.linkShareMetadata:=JSONDataAsString(aJSON.Get('linkShareMetadata',TJSONObject(Nil)));
+    Result.md5Checksum:=aJSON.Get('md5Checksum','');
+    Result.mimeType:=aJSON.Get('mimeType','');
+    Result.modifiedByMe:=aJSON.Get('modifiedByMe',False);
+    Result.modifiedByMeTime:=ISO8601ToDateDef(aJSON.Get('modifiedByMeTime',''),0,True);
+    Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
+    Result.name:=aJSON.Get('name','');
+    Result.originalFilename:=aJSON.Get('originalFilename','');
+    Result.ownedByMe:=aJSON.Get('ownedByMe',False);
+    lArr:=aJSON.Get('owners',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.owners,lArr.Count);
+      For I:=0 to Length(Result.owners)-1 do
+        Result.owners[i]:=TUser.Deserialize(lArr[i] as TJSONObject);
+      end;
+    lArr:=aJSON.Get('parents',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.parents,lArr.Count);
+      For I:=0 to Length(Result.parents)-1 do
+        Result.parents[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('permissionIds',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.permissionIds,lArr.Count);
+      For I:=0 to Length(Result.permissionIds)-1 do
+        Result.permissionIds[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('permissions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.permissions,lArr.Count);
+      For I:=0 to Length(Result.permissions)-1 do
+        Result.permissions[i]:=TPermission.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.properties:=JSONDataAsString(aJSON.Get('properties',TJSONObject(Nil)));
+    Result.quotaBytesUsed:=aJSON.Get('quotaBytesUsed','');
+    Result.resourceKey:=aJSON.Get('resourceKey','');
+    Result.sha1Checksum:=aJSON.Get('sha1Checksum','');
+    Result.sha256Checksum:=aJSON.Get('sha256Checksum','');
+    Result.shared:=aJSON.Get('shared',False);
+    Result.sharedWithMeTime:=ISO8601ToDateDef(aJSON.Get('sharedWithMeTime',''),0,True);
+    Result.sharingUser:=TUser.Deserialize(aJSON.Get('sharingUser',TJSONObject(Nil)));
+    Result.shortcutDetails:=JSONDataAsString(aJSON.Get('shortcutDetails',TJSONObject(Nil)));
+    Result.size:=aJSON.Get('size','');
+    lArr:=aJSON.Get('spaces',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.spaces,lArr.Count);
+      For I:=0 to Length(Result.spaces)-1 do
+        Result.spaces[i]:=lArr[i].Asstring;
+      end;
+    Result.starred:=aJSON.Get('starred',False);
+    Result.teamDriveId:=aJSON.Get('teamDriveId','');
+    Result.thumbnailLink:=aJSON.Get('thumbnailLink','');
+    Result.thumbnailVersion:=aJSON.Get('thumbnailVersion','');
+    Result.trashed:=aJSON.Get('trashed',False);
+    Result.trashedTime:=ISO8601ToDateDef(aJSON.Get('trashedTime',''),0,True);
+    Result.trashingUser:=TUser.Deserialize(aJSON.Get('trashingUser',TJSONObject(Nil)));
+    Result.version:=aJSON.Get('version','');
+    Result.videoMediaMetadata:=JSONDataAsString(aJSON.Get('videoMediaMetadata',TJSONObject(Nil)));
+    Result.viewedByMe:=aJSON.Get('viewedByMe',False);
+    Result.viewedByMeTime:=ISO8601ToDateDef(aJSON.Get('viewedByMeTime',''),0,True);
+    Result.viewersCanCopyContent:=aJSON.Get('viewersCanCopyContent',False);
+    Result.webContentLink:=aJSON.Get('webContentLink','');
+    Result.webViewLink:=aJSON.Get('webViewLink','');
+    Result.writersCanShare:=aJSON.Get('writersCanShare',False);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFileSerializer.Deserialize(aJSON : String) : TFile;
@@ -2289,17 +2344,22 @@ begin
   Result := TChange.Create;
   If (aJSON=Nil) then
     exit;
-  Result.changeType:=aJSON.Get('changeType','');
-  Result.drive:=TDrive.Deserialize(aJSON.Get('drive',TJSONObject(Nil)));
-  Result.driveId:=aJSON.Get('driveId','');
-  Result.fileId:=aJSON.Get('fileId','');
-  Result.file_:=TFile.Deserialize(aJSON.Get('file',TJSONObject(Nil)));
-  Result.kind:=aJSON.Get('kind','');
-  Result.removed:=aJSON.Get('removed',False);
-  Result.teamDrive:=TTeamDrive.Deserialize(aJSON.Get('teamDrive',TJSONObject(Nil)));
-  Result.teamDriveId:=aJSON.Get('teamDriveId','');
-  Result.time:=ISO8601ToDateDef(aJSON.Get('time',''),0,True);
-  Result.type_:=aJSON.Get('type','');
+  try
+    Result.changeType:=aJSON.Get('changeType','');
+    Result.drive:=TDrive.Deserialize(aJSON.Get('drive',TJSONObject(Nil)));
+    Result.driveId:=aJSON.Get('driveId','');
+    Result.fileId:=aJSON.Get('fileId','');
+    Result.file_:=TFile.Deserialize(aJSON.Get('file',TJSONObject(Nil)));
+    Result.kind:=aJSON.Get('kind','');
+    Result.removed:=aJSON.Get('removed',False);
+    Result.teamDrive:=TTeamDrive.Deserialize(aJSON.Get('teamDrive',TJSONObject(Nil)));
+    Result.teamDriveId:=aJSON.Get('teamDriveId','');
+    Result.time:=ISO8601ToDateDef(aJSON.Get('time',''),0,True);
+    Result.type_:=aJSON.Get('type','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TChangeSerializer.Deserialize(aJSON : String) : TChange;
@@ -2363,16 +2423,21 @@ begin
   Result := TChangeList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('changes',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.changes,lArr.Count);
-    For I:=0 to Length(Result.changes)-1 do
-      Result.changes[i]:=TChange.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.newStartPageToken:=aJSON.Get('newStartPageToken','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('changes',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.changes,lArr.Count);
+      For I:=0 to Length(Result.changes)-1 do
+        Result.changes[i]:=TChange.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.newStartPageToken:=aJSON.Get('newStartPageToken','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TChangeListSerializer.Deserialize(aJSON : String) : TChangeList;
@@ -2505,23 +2570,28 @@ begin
   Result := TReply.Create;
   If (aJSON=Nil) then
     exit;
-  Result.action:=aJSON.Get('action','');
-  Result.assigneeEmailAddress:=aJSON.Get('assigneeEmailAddress','');
-  Result.author:=TUser.Deserialize(aJSON.Get('author',TJSONObject(Nil)));
-  Result.content:=aJSON.Get('content','');
-  Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
-  Result.deleted:=aJSON.Get('deleted',False);
-  Result.htmlContent:=aJSON.Get('htmlContent','');
-  Result.id:=aJSON.Get('id','');
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('mentionedEmailAddresses',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.mentionedEmailAddresses,lArr.Count);
-    For I:=0 to Length(Result.mentionedEmailAddresses)-1 do
-      Result.mentionedEmailAddresses[i]:=lArr[i].Asstring;
-    end;
-  Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
+  try
+    Result.action:=aJSON.Get('action','');
+    Result.assigneeEmailAddress:=aJSON.Get('assigneeEmailAddress','');
+    Result.author:=TUser.Deserialize(aJSON.Get('author',TJSONObject(Nil)));
+    Result.content:=aJSON.Get('content','');
+    Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
+    Result.deleted:=aJSON.Get('deleted',False);
+    Result.htmlContent:=aJSON.Get('htmlContent','');
+    Result.id:=aJSON.Get('id','');
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('mentionedEmailAddresses',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.mentionedEmailAddresses,lArr.Count);
+      For I:=0 to Length(Result.mentionedEmailAddresses)-1 do
+        Result.mentionedEmailAddresses[i]:=lArr[i].Asstring;
+      end;
+    Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TReplySerializer.Deserialize(aJSON : String) : TReply;
@@ -2586,32 +2656,37 @@ begin
   Result := TComment.Create;
   If (aJSON=Nil) then
     exit;
-  Result.anchor:=aJSON.Get('anchor','');
-  Result.assigneeEmailAddress:=aJSON.Get('assigneeEmailAddress','');
-  Result.author:=TUser.Deserialize(aJSON.Get('author',TJSONObject(Nil)));
-  Result.content:=aJSON.Get('content','');
-  Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
-  Result.deleted:=aJSON.Get('deleted',False);
-  Result.htmlContent:=aJSON.Get('htmlContent','');
-  Result.id:=aJSON.Get('id','');
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('mentionedEmailAddresses',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.mentionedEmailAddresses,lArr.Count);
-    For I:=0 to Length(Result.mentionedEmailAddresses)-1 do
-      Result.mentionedEmailAddresses[i]:=lArr[i].Asstring;
-    end;
-  Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
-  Result.quotedFileContent:=JSONDataAsString(aJSON.Get('quotedFileContent',TJSONObject(Nil)));
-  lArr:=aJSON.Get('replies',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.replies,lArr.Count);
-    For I:=0 to Length(Result.replies)-1 do
-      Result.replies[i]:=TReply.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.resolved:=aJSON.Get('resolved',False);
+  try
+    Result.anchor:=aJSON.Get('anchor','');
+    Result.assigneeEmailAddress:=aJSON.Get('assigneeEmailAddress','');
+    Result.author:=TUser.Deserialize(aJSON.Get('author',TJSONObject(Nil)));
+    Result.content:=aJSON.Get('content','');
+    Result.createdTime:=ISO8601ToDateDef(aJSON.Get('createdTime',''),0,True);
+    Result.deleted:=aJSON.Get('deleted',False);
+    Result.htmlContent:=aJSON.Get('htmlContent','');
+    Result.id:=aJSON.Get('id','');
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('mentionedEmailAddresses',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.mentionedEmailAddresses,lArr.Count);
+      For I:=0 to Length(Result.mentionedEmailAddresses)-1 do
+        Result.mentionedEmailAddresses[i]:=lArr[i].Asstring;
+      end;
+    Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
+    Result.quotedFileContent:=JSONDataAsString(aJSON.Get('quotedFileContent',TJSONObject(Nil)));
+    lArr:=aJSON.Get('replies',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.replies,lArr.Count);
+      For I:=0 to Length(Result.replies)-1 do
+        Result.replies[i]:=TReply.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.resolved:=aJSON.Get('resolved',False);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCommentSerializer.Deserialize(aJSON : String) : TComment;
@@ -2725,15 +2800,20 @@ begin
   Result := TCommentList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('comments',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.comments,lArr.Count);
-    For I:=0 to Length(Result.comments)-1 do
-      Result.comments[i]:=TComment.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('comments',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.comments,lArr.Count);
+      For I:=0 to Length(Result.comments)-1 do
+        Result.comments[i]:=TComment.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TCommentListSerializer.Deserialize(aJSON : String) : TCommentList;
@@ -2847,15 +2927,20 @@ begin
   Result := TDriveList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('drives',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.drives,lArr.Count);
-    For I:=0 to Length(Result.drives)-1 do
-      Result.drives[i]:=TDrive.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('drives',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.drives,lArr.Count);
+      For I:=0 to Length(Result.drives)-1 do
+        Result.drives[i]:=TDrive.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TDriveListSerializer.Deserialize(aJSON : String) : TDriveList;
@@ -2919,16 +3004,21 @@ begin
   Result := TFileList.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('files',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.files,lArr.Count);
-    For I:=0 to Length(Result.files)-1 do
-      Result.files[i]:=TFile.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.incompleteSearch:=aJSON.Get('incompleteSearch',False);
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('files',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.files,lArr.Count);
+      For I:=0 to Length(Result.files)-1 do
+        Result.files[i]:=TFile.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.incompleteSearch:=aJSON.Get('incompleteSearch',False);
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TFileListSerializer.Deserialize(aJSON : String) : TFileList;
@@ -3195,44 +3285,49 @@ begin
   Result := TLabelField.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('dateString',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.dateString,lArr.Count);
-    For I:=0 to Length(Result.dateString)-1 do
-      Result.dateString[i]:=lArr[i].Asstring;
-    end;
-  Result.id:=aJSON.Get('id','');
-  lArr:=aJSON.Get('integer',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.integer,lArr.Count);
-    For I:=0 to Length(Result.integer)-1 do
-      Result.integer[i]:=lArr[i].Asstring;
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('selection',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.selection,lArr.Count);
-    For I:=0 to Length(Result.selection)-1 do
-      Result.selection[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('text',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.text,lArr.Count);
-    For I:=0 to Length(Result.text)-1 do
-      Result.text[i]:=lArr[i].Asstring;
-    end;
-  lArr:=aJSON.Get('user',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.user,lArr.Count);
-    For I:=0 to Length(Result.user)-1 do
-      Result.user[i]:=TUser.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.valueType:=aJSON.Get('valueType','');
+  try
+    lArr:=aJSON.Get('dateString',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.dateString,lArr.Count);
+      For I:=0 to Length(Result.dateString)-1 do
+        Result.dateString[i]:=lArr[i].Asstring;
+      end;
+    Result.id:=aJSON.Get('id','');
+    lArr:=aJSON.Get('integer',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.integer,lArr.Count);
+      For I:=0 to Length(Result.integer)-1 do
+        Result.integer[i]:=lArr[i].Asstring;
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('selection',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.selection,lArr.Count);
+      For I:=0 to Length(Result.selection)-1 do
+        Result.selection[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('text',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.text,lArr.Count);
+      For I:=0 to Length(Result.text)-1 do
+        Result.text[i]:=lArr[i].Asstring;
+      end;
+    lArr:=aJSON.Get('user',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.user,lArr.Count);
+      For I:=0 to Length(Result.user)-1 do
+        Result.user[i]:=TUser.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.valueType:=aJSON.Get('valueType','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TLabelFieldSerializer.Deserialize(aJSON : String) : TLabelField;
@@ -3412,15 +3507,20 @@ begin
   Result := TLabelList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('labels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.labels,lArr.Count);
-    For I:=0 to Length(Result.labels)-1 do
-      Result.labels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('labels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.labels,lArr.Count);
+      For I:=0 to Length(Result.labels)-1 do
+        Result.labels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TLabelListSerializer.Deserialize(aJSON : String) : TLabelList;
@@ -3484,16 +3584,21 @@ begin
   Result := TLabelModification.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('fieldModifications',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.fieldModifications,lArr.Count);
-    For I:=0 to Length(Result.fieldModifications)-1 do
-      Result.fieldModifications[i]:=TLabelFieldModification.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.kind:=aJSON.Get('kind','');
-  Result.labelId:=aJSON.Get('labelId','');
-  Result.removeLabel:=aJSON.Get('removeLabel',False);
+  try
+    lArr:=aJSON.Get('fieldModifications',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.fieldModifications,lArr.Count);
+      For I:=0 to Length(Result.fieldModifications)-1 do
+        Result.fieldModifications[i]:=TLabelFieldModification.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.kind:=aJSON.Get('kind','');
+    Result.labelId:=aJSON.Get('labelId','');
+    Result.removeLabel:=aJSON.Get('removeLabel',False);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TLabelModificationSerializer.Deserialize(aJSON : String) : TLabelModification;
@@ -3555,14 +3660,19 @@ begin
   Result := TListAccessProposalsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('accessProposals',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.accessProposals,lArr.Count);
-    For I:=0 to Length(Result.accessProposals)-1 do
-      Result.accessProposals[i]:=TAccessProposal.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  try
+    lArr:=aJSON.Get('accessProposals',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.accessProposals,lArr.Count);
+      For I:=0 to Length(Result.accessProposals)-1 do
+        Result.accessProposals[i]:=TAccessProposal.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TListAccessProposalsResponseSerializer.Deserialize(aJSON : String) : TListAccessProposalsResponse;
@@ -3624,14 +3734,19 @@ begin
   Result := TModifyLabelsRequest.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('labelModifications',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.labelModifications,lArr.Count);
-    For I:=0 to Length(Result.labelModifications)-1 do
-      Result.labelModifications[i]:=TLabelModification.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('labelModifications',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.labelModifications,lArr.Count);
+      For I:=0 to Length(Result.labelModifications)-1 do
+        Result.labelModifications[i]:=TLabelModification.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TModifyLabelsRequestSerializer.Deserialize(aJSON : String) : TModifyLabelsRequest;
@@ -3693,14 +3808,19 @@ begin
   Result := TModifyLabelsResponse.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  lArr:=aJSON.Get('modifiedLabels',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.modifiedLabels,lArr.Count);
-    For I:=0 to Length(Result.modifiedLabels)-1 do
-      Result.modifiedLabels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    lArr:=aJSON.Get('modifiedLabels',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.modifiedLabels,lArr.Count);
+      For I:=0 to Length(Result.modifiedLabels)-1 do
+        Result.modifiedLabels[i]:=TLabel.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TModifyLabelsResponseSerializer.Deserialize(aJSON : String) : TModifyLabelsResponse;
@@ -3829,11 +3949,16 @@ begin
   Result := TOperation.Create;
   If (aJSON=Nil) then
     exit;
-  Result.done:=aJSON.Get('done',False);
-  Result.error:=TStatus.Deserialize(aJSON.Get('error',TJSONObject(Nil)));
-  Result.metadata:=JSONDataAsString(aJSON.Get('metadata',TJSONObject(Nil)));
-  Result.name:=aJSON.Get('name','');
-  Result.response:=JSONDataAsString(aJSON.Get('response',TJSONObject(Nil)));
+  try
+    Result.done:=aJSON.Get('done',False);
+    Result.error:=TStatus.Deserialize(aJSON.Get('error',TJSONObject(Nil)));
+    Result.metadata:=JSONDataAsString(aJSON.Get('metadata',TJSONObject(Nil)));
+    Result.name:=aJSON.Get('name','');
+    Result.response:=JSONDataAsString(aJSON.Get('response',TJSONObject(Nil)));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TOperationSerializer.Deserialize(aJSON : String) : TOperation;
@@ -3896,15 +4021,20 @@ begin
   Result := TPermissionList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  lArr:=aJSON.Get('permissions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.permissions,lArr.Count);
-    For I:=0 to Length(Result.permissions)-1 do
-      Result.permissions[i]:=TPermission.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    lArr:=aJSON.Get('permissions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.permissions,lArr.Count);
+      For I:=0 to Length(Result.permissions)-1 do
+        Result.permissions[i]:=TPermission.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TPermissionListSerializer.Deserialize(aJSON : String) : TPermissionList;
@@ -4023,21 +4153,26 @@ begin
   Result := TReassignApprovalRequest.Create;
   If (aJSON=Nil) then
     exit;
-  lArr:=aJSON.Get('addReviewers',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.addReviewers,lArr.Count);
-    For I:=0 to Length(Result.addReviewers)-1 do
-      Result.addReviewers[i]:=TAddReviewer.Deserialize(lArr[i] as TJSONObject);
-    end;
-  Result.message:=aJSON.Get('message','');
-  lArr:=aJSON.Get('replaceReviewers',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.replaceReviewers,lArr.Count);
-    For I:=0 to Length(Result.replaceReviewers)-1 do
-      Result.replaceReviewers[i]:=TReplaceReviewer.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    lArr:=aJSON.Get('addReviewers',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.addReviewers,lArr.Count);
+      For I:=0 to Length(Result.addReviewers)-1 do
+        Result.addReviewers[i]:=TAddReviewer.Deserialize(lArr[i] as TJSONObject);
+      end;
+    Result.message:=aJSON.Get('message','');
+    lArr:=aJSON.Get('replaceReviewers',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.replaceReviewers,lArr.Count);
+      For I:=0 to Length(Result.replaceReviewers)-1 do
+        Result.replaceReviewers[i]:=TReplaceReviewer.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TReassignApprovalRequestSerializer.Deserialize(aJSON : String) : TReassignApprovalRequest;
@@ -4100,15 +4235,20 @@ begin
   Result := TReplyList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  lArr:=aJSON.Get('replies',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.replies,lArr.Count);
-    For I:=0 to Length(Result.replies)-1 do
-      Result.replies[i]:=TReply.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    lArr:=aJSON.Get('replies',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.replies,lArr.Count);
+      For I:=0 to Length(Result.replies)-1 do
+        Result.replies[i]:=TReply.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TReplyListSerializer.Deserialize(aJSON : String) : TReplyList;
@@ -4237,20 +4377,25 @@ begin
   Result := TRevision.Create;
   If (aJSON=Nil) then
     exit;
-  Result.exportLinks:=JSONDataAsString(aJSON.Get('exportLinks',TJSONObject(Nil)));
-  Result.id:=aJSON.Get('id','');
-  Result.keepForever:=aJSON.Get('keepForever',False);
-  Result.kind:=aJSON.Get('kind','');
-  Result.lastModifyingUser:=TUser.Deserialize(aJSON.Get('lastModifyingUser',TJSONObject(Nil)));
-  Result.md5Checksum:=aJSON.Get('md5Checksum','');
-  Result.mimeType:=aJSON.Get('mimeType','');
-  Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
-  Result.originalFilename:=aJSON.Get('originalFilename','');
-  Result.publishAuto:=aJSON.Get('publishAuto',False);
-  Result.publishedLink:=aJSON.Get('publishedLink','');
-  Result.publishedOutsideDomain:=aJSON.Get('publishedOutsideDomain',False);
-  Result.published_:=aJSON.Get('published',False);
-  Result.size:=aJSON.Get('size','');
+  try
+    Result.exportLinks:=JSONDataAsString(aJSON.Get('exportLinks',TJSONObject(Nil)));
+    Result.id:=aJSON.Get('id','');
+    Result.keepForever:=aJSON.Get('keepForever',False);
+    Result.kind:=aJSON.Get('kind','');
+    Result.lastModifyingUser:=TUser.Deserialize(aJSON.Get('lastModifyingUser',TJSONObject(Nil)));
+    Result.md5Checksum:=aJSON.Get('md5Checksum','');
+    Result.mimeType:=aJSON.Get('mimeType','');
+    Result.modifiedTime:=ISO8601ToDateDef(aJSON.Get('modifiedTime',''),0,True);
+    Result.originalFilename:=aJSON.Get('originalFilename','');
+    Result.publishAuto:=aJSON.Get('publishAuto',False);
+    Result.publishedLink:=aJSON.Get('publishedLink','');
+    Result.publishedOutsideDomain:=aJSON.Get('publishedOutsideDomain',False);
+    Result.published_:=aJSON.Get('published',False);
+    Result.size:=aJSON.Get('size','');
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TRevisionSerializer.Deserialize(aJSON : String) : TRevision;
@@ -4313,15 +4458,20 @@ begin
   Result := TRevisionList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  lArr:=aJSON.Get('revisions',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.revisions,lArr.Count);
-    For I:=0 to Length(Result.revisions)-1 do
-      Result.revisions[i]:=TRevision.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    lArr:=aJSON.Get('revisions',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.revisions,lArr.Count);
+      For I:=0 to Length(Result.revisions)-1 do
+        Result.revisions[i]:=TRevision.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TRevisionListSerializer.Deserialize(aJSON : String) : TRevisionList;
@@ -4512,15 +4662,20 @@ begin
   Result := TTeamDriveList.Create;
   If (aJSON=Nil) then
     exit;
-  Result.kind:=aJSON.Get('kind','');
-  Result.nextPageToken:=aJSON.Get('nextPageToken','');
-  lArr:=aJSON.Get('teamDrives',TJSONArray(Nil));
-  if Assigned(lArr) then
-    begin
-    SetLength(Result.teamDrives,lArr.Count);
-    For I:=0 to Length(Result.teamDrives)-1 do
-      Result.teamDrives[i]:=TTeamDrive.Deserialize(lArr[i] as TJSONObject);
-    end;
+  try
+    Result.kind:=aJSON.Get('kind','');
+    Result.nextPageToken:=aJSON.Get('nextPageToken','');
+    lArr:=aJSON.Get('teamDrives',TJSONArray(Nil));
+    if Assigned(lArr) then
+      begin
+      SetLength(Result.teamDrives,lArr.Count);
+      For I:=0 to Length(Result.teamDrives)-1 do
+        Result.teamDrives[i]:=TTeamDrive.Deserialize(lArr[i] as TJSONObject);
+      end;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 class function TTeamDriveListSerializer.Deserialize(aJSON : String) : TTeamDriveList;

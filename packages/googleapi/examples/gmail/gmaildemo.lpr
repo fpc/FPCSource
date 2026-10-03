@@ -198,7 +198,6 @@ begin
       begin
       Inc(lCount);
       Writeln(Format('%-7s  %-30s  %s',[lLabel.type_,lLabel.id,lLabel.name]));
-      lLabel.Free;
       end;
     Writeln;
     Writeln(lCount,' label(s)');
@@ -220,11 +219,8 @@ begin
   CheckServiceResult(lResult.Success,lResult.ErrorCode,lResult.ErrorText,'list labels');
   try
     for lLabel in lResult.Value.labels do
-      begin
       if (Result='') and (SameText(lLabel.id,aLabel) or SameText(lLabel.name,aLabel)) then
         Result:=lLabel.id;
-      lLabel.Free;
-      end;
   finally
     lResult.Value.Free;
   end;
@@ -269,7 +265,6 @@ begin
     CheckServiceResult(lResult.Success,lResult.ErrorCode,lResult.ErrorText,'list messages');
     try
       for lRef in lResult.Value.messages do
-        begin
         if lCount<aCount then
           begin
           Inc(lCount);
@@ -284,8 +279,6 @@ begin
             lMessage.Free;
           end;
           end;
-        lRef.Free;
-        end;
       lPageToken:=lResult.Value.nextPageToken;
     finally
       lResult.Value.Free;

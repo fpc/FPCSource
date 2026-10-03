@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s gmail -C codegen.ini -o gmail -q
   Source OpenAPI document data:
@@ -129,8 +129,10 @@ Type
   private
     Ffields : TClassificationLabelFieldValueArray;
     FlabelId : string;
+    procedure Setfields(const aValue : TClassificationLabelFieldValueArray);
   public
-    property fields : TClassificationLabelFieldValueArray read Ffields write Ffields;
+    destructor Destroy; override;
+    property fields : TClassificationLabelFieldValueArray read Ffields write Setfields;
     property labelId : string read FlabelId write FlabelId;
   end;
   
@@ -141,8 +143,10 @@ Type
     Fids : TStringDynArray;
     FremoveClassificationLabelIds : TStringDynArray;
     FremoveLabelIds : TStringDynArray;
+    procedure SetaddClassificationLabels(const aValue : TClassificationLabelValueArray);
   public
-    property addClassificationLabels : TClassificationLabelValueArray read FaddClassificationLabels write FaddClassificationLabels;
+    destructor Destroy; override;
+    property addClassificationLabels : TClassificationLabelValueArray read FaddClassificationLabels write SetaddClassificationLabels;
     property addLabelIds : TStringDynArray read FaddLabelIds write FaddLabelIds;
     property ids : TStringDynArray read Fids write Fids;
     property removeClassificationLabelIds : TStringDynArray read FremoveClassificationLabelIds write FremoveClassificationLabelIds;
@@ -163,11 +167,13 @@ Type
     FemailAddress : string;
     FprimaryKeyPairId : string;
     FsignAndEncryptKeyPairs : TSignAndEncryptKeyPairs;
+    procedure SetsignAndEncryptKeyPairs(const aValue : TSignAndEncryptKeyPairs);
   public
     constructor CreateWithMembers;
+    destructor Destroy; override;
     property emailAddress : string read FemailAddress write FemailAddress;
     property primaryKeyPairId : string read FprimaryKeyPairId write FprimaryKeyPairId;
-    property signAndEncryptKeyPairs : TSignAndEncryptKeyPairs read FsignAndEncryptKeyPairs write FsignAndEncryptKeyPairs;
+    property signAndEncryptKeyPairs : TSignAndEncryptKeyPairs read FsignAndEncryptKeyPairs write SetsignAndEncryptKeyPairs;
   end;
   
   THardwareKeyMetadata = Class(TObject)
@@ -191,10 +197,13 @@ Type
     FhardwareKeyMetadata : THardwareKeyMetadata;
     FkaclsKeyMetadata : TKaclsKeyMetadata;
     FprivateKeyMetadataId : string;
+    procedure SethardwareKeyMetadata(const aValue : THardwareKeyMetadata);
+    procedure SetkaclsKeyMetadata(const aValue : TKaclsKeyMetadata);
   public
     constructor CreateWithMembers;
-    property hardwareKeyMetadata : THardwareKeyMetadata read FhardwareKeyMetadata write FhardwareKeyMetadata;
-    property kaclsKeyMetadata : TKaclsKeyMetadata read FkaclsKeyMetadata write FkaclsKeyMetadata;
+    destructor Destroy; override;
+    property hardwareKeyMetadata : THardwareKeyMetadata read FhardwareKeyMetadata write SethardwareKeyMetadata;
+    property kaclsKeyMetadata : TKaclsKeyMetadata read FkaclsKeyMetadata write SetkaclsKeyMetadata;
     property privateKeyMetadataId : string read FprivateKeyMetadataId write FprivateKeyMetadataId;
   end;
   
@@ -207,13 +216,15 @@ Type
     Fpkcs7 : string;
     FprivateKeyMetadata : TCsePrivateKeyMetadataArray;
     FsubjectEmailAddresses : TStringDynArray;
+    procedure SetprivateKeyMetadata(const aValue : TCsePrivateKeyMetadataArray);
   public
+    destructor Destroy; override;
     property disableTime : string read FdisableTime write FdisableTime;
     property enablementState : string read FenablementState write FenablementState;
     property keyPairId : string read FkeyPairId write FkeyPairId;
     property pem : string read Fpem write Fpem;
     property pkcs7 : string read Fpkcs7 write Fpkcs7;
-    property privateKeyMetadata : TCsePrivateKeyMetadataArray read FprivateKeyMetadata write FprivateKeyMetadata;
+    property privateKeyMetadata : TCsePrivateKeyMetadataArray read FprivateKeyMetadata write SetprivateKeyMetadata;
     property subjectEmailAddresses : TStringDynArray read FsubjectEmailAddresses write FsubjectEmailAddresses;
   end;
   
@@ -259,14 +270,18 @@ Type
     FmimeType : string;
     FpartId : string;
     Fparts : TMessagePartArray;
+    procedure Setbody(const aValue : TMessagePartBody);
+    procedure Setheaders(const aValue : TMessagePartHeaderArray);
+    procedure Setparts(const aValue : TMessagePartArray);
   public
     constructor CreateWithMembers;
-    property body : TMessagePartBody read Fbody write Fbody;
+    destructor Destroy; override;
+    property body : TMessagePartBody read Fbody write Setbody;
     property filename : string read Ffilename write Ffilename;
-    property headers : TMessagePartHeaderArray read Fheaders write Fheaders;
+    property headers : TMessagePartHeaderArray read Fheaders write Setheaders;
     property mimeType : string read FmimeType write FmimeType;
     property partId : string read FpartId write FpartId;
-    property parts : TMessagePartArray read Fparts write Fparts;
+    property parts : TMessagePartArray read Fparts write Setparts;
   end;
   
   TMessage = Class(TObject)
@@ -281,14 +296,17 @@ Type
     FsizeEstimate : integer;
     Fsnippet : string;
     FthreadId : string;
+    procedure SetclassificationLabelValues(const aValue : TClassificationLabelValueArray);
+    procedure Setpayload(const aValue : TMessagePart);
   public
     constructor CreateWithMembers;
-    property classificationLabelValues : TClassificationLabelValueArray read FclassificationLabelValues write FclassificationLabelValues;
+    destructor Destroy; override;
+    property classificationLabelValues : TClassificationLabelValueArray read FclassificationLabelValues write SetclassificationLabelValues;
     property historyId : string read FhistoryId write FhistoryId;
     property id : string read Fid write Fid;
     property internalDate : string read FinternalDate write FinternalDate;
     property labelIds : TStringDynArray read FlabelIds write FlabelIds;
-    property payload : TMessagePart read Fpayload write Fpayload;
+    property payload : TMessagePart read Fpayload write Setpayload;
     property raw : string read Fraw write Fraw;
     property sizeEstimate : integer read FsizeEstimate write FsizeEstimate;
     property snippet : string read Fsnippet write Fsnippet;
@@ -299,10 +317,12 @@ Type
   private
     Fid : string;
     Fmessage : TMessage;
+    procedure Setmessage(const aValue : TMessage);
   public
     constructor CreateWithMembers;
+    destructor Destroy; override;
     property id : string read Fid write Fid;
-    property message : TMessage read Fmessage write Fmessage;
+    property message : TMessage read Fmessage write Setmessage;
   end;
   
   TEnableCseKeyPairRequest = Class(TObject)
@@ -349,10 +369,13 @@ Type
     Faction : TFilterAction;
     Fcriteria : TFilterCriteria;
     Fid : string;
+    procedure Setaction(const aValue : TFilterAction);
+    procedure Setcriteria(const aValue : TFilterCriteria);
   public
     constructor CreateWithMembers;
-    property action : TFilterAction read Faction write Faction;
-    property criteria : TFilterCriteria read Fcriteria write Fcriteria;
+    destructor Destroy; override;
+    property action : TFilterAction read Faction write Setaction;
+    property criteria : TFilterCriteria read Fcriteria write Setcriteria;
     property id : string read Fid write Fid;
   end;
   
@@ -369,36 +392,44 @@ Type
   private
     FlabelIds : TStringDynArray;
     Fmessage : TMessage;
+    procedure Setmessage(const aValue : TMessage);
   public
     constructor CreateWithMembers;
+    destructor Destroy; override;
     property labelIds : TStringDynArray read FlabelIds write FlabelIds;
-    property message : TMessage read Fmessage write Fmessage;
+    property message : TMessage read Fmessage write Setmessage;
   end;
   
   THistoryLabelRemoved = Class(TObject)
   private
     FlabelIds : TStringDynArray;
     Fmessage : TMessage;
+    procedure Setmessage(const aValue : TMessage);
   public
     constructor CreateWithMembers;
+    destructor Destroy; override;
     property labelIds : TStringDynArray read FlabelIds write FlabelIds;
-    property message : TMessage read Fmessage write Fmessage;
+    property message : TMessage read Fmessage write Setmessage;
   end;
   
   THistoryMessageAdded = Class(TObject)
   private
     Fmessage : TMessage;
+    procedure Setmessage(const aValue : TMessage);
   public
     constructor CreateWithMembers;
-    property message : TMessage read Fmessage write Fmessage;
+    destructor Destroy; override;
+    property message : TMessage read Fmessage write Setmessage;
   end;
   
   THistoryMessageDeleted = Class(TObject)
   private
     Fmessage : TMessage;
+    procedure Setmessage(const aValue : TMessage);
   public
     constructor CreateWithMembers;
-    property message : TMessage read Fmessage write Fmessage;
+    destructor Destroy; override;
+    property message : TMessage read Fmessage write Setmessage;
   end;
   
   THistory = Class(TObject)
@@ -409,13 +440,19 @@ Type
     Fmessages : TMessageArray;
     FmessagesAdded : THistoryMessageAddedArray;
     FmessagesDeleted : THistoryMessageDeletedArray;
+    procedure SetlabelsAdded(const aValue : THistoryLabelAddedArray);
+    procedure SetlabelsRemoved(const aValue : THistoryLabelRemovedArray);
+    procedure Setmessages(const aValue : TMessageArray);
+    procedure SetmessagesAdded(const aValue : THistoryMessageAddedArray);
+    procedure SetmessagesDeleted(const aValue : THistoryMessageDeletedArray);
   public
+    destructor Destroy; override;
     property id : string read Fid write Fid;
-    property labelsAdded : THistoryLabelAddedArray read FlabelsAdded write FlabelsAdded;
-    property labelsRemoved : THistoryLabelRemovedArray read FlabelsRemoved write FlabelsRemoved;
-    property messages : TMessageArray read Fmessages write Fmessages;
-    property messagesAdded : THistoryMessageAddedArray read FmessagesAdded write FmessagesAdded;
-    property messagesDeleted : THistoryMessageDeletedArray read FmessagesDeleted write FmessagesDeleted;
+    property labelsAdded : THistoryLabelAddedArray read FlabelsAdded write SetlabelsAdded;
+    property labelsRemoved : THistoryLabelRemovedArray read FlabelsRemoved write SetlabelsRemoved;
+    property messages : TMessageArray read Fmessages write Setmessages;
+    property messagesAdded : THistoryMessageAddedArray read FmessagesAdded write SetmessagesAdded;
+    property messagesDeleted : THistoryMessageDeletedArray read FmessagesDeleted write SetmessagesDeleted;
   end;
   
   TImapSettings = Class(TObject)
@@ -452,9 +489,11 @@ Type
     FthreadsTotal : integer;
     FthreadsUnread : integer;
     Ftype_ : string;
+    procedure Setcolor(const aValue : TLabelColor);
   public
     constructor CreateWithMembers;
-    property color : TLabelColor read Fcolor write Fcolor;
+    destructor Destroy; override;
+    property color : TLabelColor read Fcolor write Setcolor;
     property id : string read Fid write Fid;
     property labelListVisibility : string read FlabelListVisibility write FlabelListVisibility;
     property messageListVisibility : string read FmessageListVisibility write FmessageListVisibility;
@@ -477,8 +516,10 @@ Type
   private
     FcseIdentities : TCseIdentityArray;
     FnextPageToken : string;
+    procedure SetcseIdentities(const aValue : TCseIdentityArray);
   public
-    property cseIdentities : TCseIdentityArray read FcseIdentities write FcseIdentities;
+    destructor Destroy; override;
+    property cseIdentities : TCseIdentityArray read FcseIdentities write SetcseIdentities;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
   end;
   
@@ -486,16 +527,20 @@ Type
   private
     FcseKeyPairs : TCseKeyPairArray;
     FnextPageToken : string;
+    procedure SetcseKeyPairs(const aValue : TCseKeyPairArray);
   public
-    property cseKeyPairs : TCseKeyPairArray read FcseKeyPairs write FcseKeyPairs;
+    destructor Destroy; override;
+    property cseKeyPairs : TCseKeyPairArray read FcseKeyPairs write SetcseKeyPairs;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
   end;
   
   TListDelegatesResponse = Class(TObject)
   private
     Fdelegates : TDelegateArray;
+    procedure Setdelegates(const aValue : TDelegateArray);
   public
-    property delegates : TDelegateArray read Fdelegates write Fdelegates;
+    destructor Destroy; override;
+    property delegates : TDelegateArray read Fdelegates write Setdelegates;
   end;
   
   TListDraftsResponse = Class(TObject)
@@ -503,8 +548,10 @@ Type
     Fdrafts : TDraftArray;
     FnextPageToken : string;
     FresultSizeEstimate : Cardinal;
+    procedure Setdrafts(const aValue : TDraftArray);
   public
-    property drafts : TDraftArray read Fdrafts write Fdrafts;
+    destructor Destroy; override;
+    property drafts : TDraftArray read Fdrafts write Setdrafts;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
     property resultSizeEstimate : Cardinal read FresultSizeEstimate write FresultSizeEstimate;
   end;
@@ -512,15 +559,19 @@ Type
   TListFiltersResponse = Class(TObject)
   private
     Ffilter : TFilterArray;
+    procedure Setfilter(const aValue : TFilterArray);
   public
-    property filter : TFilterArray read Ffilter write Ffilter;
+    destructor Destroy; override;
+    property filter : TFilterArray read Ffilter write Setfilter;
   end;
   
   TListForwardingAddressesResponse = Class(TObject)
   private
     FforwardingAddresses : TForwardingAddressArray;
+    procedure SetforwardingAddresses(const aValue : TForwardingAddressArray);
   public
-    property forwardingAddresses : TForwardingAddressArray read FforwardingAddresses write FforwardingAddresses;
+    destructor Destroy; override;
+    property forwardingAddresses : TForwardingAddressArray read FforwardingAddresses write SetforwardingAddresses;
   end;
   
   TListHistoryResponse = Class(TObject)
@@ -528,8 +579,10 @@ Type
     Fhistory : THistoryArray;
     FhistoryId : string;
     FnextPageToken : string;
+    procedure Sethistory(const aValue : THistoryArray);
   public
-    property history : THistoryArray read Fhistory write Fhistory;
+    destructor Destroy; override;
+    property history : THistoryArray read Fhistory write Sethistory;
     property historyId : string read FhistoryId write FhistoryId;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
   end;
@@ -537,8 +590,10 @@ Type
   TListLabelsResponse = Class(TObject)
   private
     Flabels : TLabelArray;
+    procedure Setlabels(const aValue : TLabelArray);
   public
-    property labels : TLabelArray read Flabels write Flabels;
+    destructor Destroy; override;
+    property labels : TLabelArray read Flabels write Setlabels;
   end;
   
   TListMessagesResponse = Class(TObject)
@@ -546,8 +601,10 @@ Type
     Fmessages : TMessageArray;
     FnextPageToken : string;
     FresultSizeEstimate : Cardinal;
+    procedure Setmessages(const aValue : TMessageArray);
   public
-    property messages : TMessageArray read Fmessages write Fmessages;
+    destructor Destroy; override;
+    property messages : TMessageArray read Fmessages write Setmessages;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
     property resultSizeEstimate : Cardinal read FresultSizeEstimate write FresultSizeEstimate;
   end;
@@ -578,15 +635,17 @@ Type
     FsmtpMsa : TSmtpMsa;
     FtreatAsAlias : boolean;
     FverificationStatus : string;
+    procedure SetsmtpMsa(const aValue : TSmtpMsa);
   public
     constructor CreateWithMembers;
+    destructor Destroy; override;
     property displayName : string read FdisplayName write FdisplayName;
     property isDefault : boolean read FisDefault write FisDefault;
     property isPrimary : boolean read FisPrimary write FisPrimary;
     property replyToAddress : string read FreplyToAddress write FreplyToAddress;
     property sendAsEmail : string read FsendAsEmail write FsendAsEmail;
     property signature : string read Fsignature write Fsignature;
-    property smtpMsa : TSmtpMsa read FsmtpMsa write FsmtpMsa;
+    property smtpMsa : TSmtpMsa read FsmtpMsa write SetsmtpMsa;
     property treatAsAlias : boolean read FtreatAsAlias write FtreatAsAlias;
     property verificationStatus : string read FverificationStatus write FverificationStatus;
   end;
@@ -594,8 +653,10 @@ Type
   TListSendAsResponse = Class(TObject)
   private
     FsendAs : TSendAsArray;
+    procedure SetsendAs(const aValue : TSendAsArray);
   public
-    property sendAs : TSendAsArray read FsendAs write FsendAs;
+    destructor Destroy; override;
+    property sendAs : TSendAsArray read FsendAs write SetsendAs;
   end;
   
   TSmimeInfo = Class(TObject)
@@ -620,8 +681,10 @@ Type
   TListSmimeInfoResponse = Class(TObject)
   private
     FsmimeInfo : TSmimeInfoArray;
+    procedure SetsmimeInfo(const aValue : TSmimeInfoArray);
   public
-    property smimeInfo : TSmimeInfoArray read FsmimeInfo write FsmimeInfo;
+    destructor Destroy; override;
+    property smimeInfo : TSmimeInfoArray read FsmimeInfo write SetsmimeInfo;
   end;
   
   TThread_ = Class(TObject)
@@ -630,10 +693,12 @@ Type
     Fid : string;
     Fmessages : TMessageArray;
     Fsnippet : string;
+    procedure Setmessages(const aValue : TMessageArray);
   public
+    destructor Destroy; override;
     property historyId : string read FhistoryId write FhistoryId;
     property id : string read Fid write Fid;
-    property messages : TMessageArray read Fmessages write Fmessages;
+    property messages : TMessageArray read Fmessages write Setmessages;
     property snippet : string read Fsnippet write Fsnippet;
   end;
   
@@ -642,10 +707,12 @@ Type
     FnextPageToken : string;
     FresultSizeEstimate : Cardinal;
     Fthreads : TThread_Array;
+    procedure Setthreads(const aValue : TThread_Array);
   public
+    destructor Destroy; override;
     property nextPageToken : string read FnextPageToken write FnextPageToken;
     property resultSizeEstimate : Cardinal read FresultSizeEstimate write FresultSizeEstimate;
-    property threads : TThread_Array read Fthreads write Fthreads;
+    property threads : TThread_Array read Fthreads write Setthreads;
   end;
   
   TModifyMessageRequest = Class(TObject)
@@ -654,8 +721,10 @@ Type
     FaddLabelIds : TStringDynArray;
     FremoveClassificationLabelIds : TStringDynArray;
     FremoveLabelIds : TStringDynArray;
+    procedure SetaddClassificationLabels(const aValue : TClassificationLabelValueArray);
   public
-    property addClassificationLabels : TClassificationLabelValueArray read FaddClassificationLabels write FaddClassificationLabels;
+    destructor Destroy; override;
+    property addClassificationLabels : TClassificationLabelValueArray read FaddClassificationLabels write SetaddClassificationLabels;
     property addLabelIds : TStringDynArray read FaddLabelIds write FaddLabelIds;
     property removeClassificationLabelIds : TStringDynArray read FremoveClassificationLabelIds write FremoveClassificationLabelIds;
     property removeLabelIds : TStringDynArray read FremoveLabelIds write FremoveLabelIds;
@@ -742,10 +811,87 @@ Type
   
 implementation
 
+destructor TClassificationLabelValue.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Ffields)-1 do
+    Ffields[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TClassificationLabelValue.Setfields(const aValue : TClassificationLabelFieldValueArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Ffields)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Ffields[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Ffields[lI].Free;
+    end;
+  Ffields:=aValue;
+end;
+
+destructor TBatchModifyMessagesRequest.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FaddClassificationLabels)-1 do
+    FaddClassificationLabels[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TBatchModifyMessagesRequest.SetaddClassificationLabels(const aValue : TClassificationLabelValueArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FaddClassificationLabels)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FaddClassificationLabels[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FaddClassificationLabels[lI].Free;
+    end;
+  FaddClassificationLabels:=aValue;
+end;
+
 constructor TCseIdentity.CreateWithMembers;
 
 begin
   FsignAndEncryptKeyPairs := TSignAndEncryptKeyPairs.Create;
+end;
+
+destructor TCseIdentity.Destroy;
+
+begin
+  FsignAndEncryptKeyPairs.Free;
+  inherited Destroy;
+end;
+
+procedure TCseIdentity.SetsignAndEncryptKeyPairs(const aValue : TSignAndEncryptKeyPairs);
+
+begin
+  if FsignAndEncryptKeyPairs<>aValue then
+    FsignAndEncryptKeyPairs.Free;
+  FsignAndEncryptKeyPairs:=aValue;
 end;
 
 constructor TCsePrivateKeyMetadata.CreateWithMembers;
@@ -755,10 +901,127 @@ begin
   FkaclsKeyMetadata := TKaclsKeyMetadata.Create;
 end;
 
+destructor TCsePrivateKeyMetadata.Destroy;
+
+begin
+  FhardwareKeyMetadata.Free;
+  FkaclsKeyMetadata.Free;
+  inherited Destroy;
+end;
+
+procedure TCsePrivateKeyMetadata.SethardwareKeyMetadata(const aValue : THardwareKeyMetadata);
+
+begin
+  if FhardwareKeyMetadata<>aValue then
+    FhardwareKeyMetadata.Free;
+  FhardwareKeyMetadata:=aValue;
+end;
+
+procedure TCsePrivateKeyMetadata.SetkaclsKeyMetadata(const aValue : TKaclsKeyMetadata);
+
+begin
+  if FkaclsKeyMetadata<>aValue then
+    FkaclsKeyMetadata.Free;
+  FkaclsKeyMetadata:=aValue;
+end;
+
+destructor TCseKeyPair.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FprivateKeyMetadata)-1 do
+    FprivateKeyMetadata[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TCseKeyPair.SetprivateKeyMetadata(const aValue : TCsePrivateKeyMetadataArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FprivateKeyMetadata)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FprivateKeyMetadata[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FprivateKeyMetadata[lI].Free;
+    end;
+  FprivateKeyMetadata:=aValue;
+end;
+
 constructor TMessagePart.CreateWithMembers;
 
 begin
   Fbody := TMessagePartBody.Create;
+end;
+
+destructor TMessagePart.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  Fbody.Free;
+  for lI:=0 to Length(Fheaders)-1 do
+    Fheaders[lI].Free;
+  for lI:=0 to Length(Fparts)-1 do
+    Fparts[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TMessagePart.Setbody(const aValue : TMessagePartBody);
+
+begin
+  if Fbody<>aValue then
+    Fbody.Free;
+  Fbody:=aValue;
+end;
+
+procedure TMessagePart.Setheaders(const aValue : TMessagePartHeaderArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fheaders)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fheaders[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fheaders[lI].Free;
+    end;
+  Fheaders:=aValue;
+end;
+
+procedure TMessagePart.Setparts(const aValue : TMessagePartArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fparts)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fparts[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fparts[lI].Free;
+    end;
+  Fparts:=aValue;
 end;
 
 constructor TMessage.CreateWithMembers;
@@ -767,10 +1030,65 @@ begin
   Fpayload := TMessagePart.CreateWithMembers;
 end;
 
+destructor TMessage.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FclassificationLabelValues)-1 do
+    FclassificationLabelValues[lI].Free;
+  Fpayload.Free;
+  inherited Destroy;
+end;
+
+procedure TMessage.SetclassificationLabelValues(const aValue : TClassificationLabelValueArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FclassificationLabelValues)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FclassificationLabelValues[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FclassificationLabelValues[lI].Free;
+    end;
+  FclassificationLabelValues:=aValue;
+end;
+
+procedure TMessage.Setpayload(const aValue : TMessagePart);
+
+begin
+  if Fpayload<>aValue then
+    Fpayload.Free;
+  Fpayload:=aValue;
+end;
+
 constructor TDraft.CreateWithMembers;
 
 begin
   Fmessage := TMessage.CreateWithMembers;
+end;
+
+destructor TDraft.Destroy;
+
+begin
+  Fmessage.Free;
+  inherited Destroy;
+end;
+
+procedure TDraft.Setmessage(const aValue : TMessage);
+
+begin
+  if Fmessage<>aValue then
+    Fmessage.Free;
+  Fmessage:=aValue;
 end;
 
 constructor TFilter.CreateWithMembers;
@@ -780,10 +1098,49 @@ begin
   Fcriteria := TFilterCriteria.Create;
 end;
 
+destructor TFilter.Destroy;
+
+begin
+  Faction.Free;
+  Fcriteria.Free;
+  inherited Destroy;
+end;
+
+procedure TFilter.Setaction(const aValue : TFilterAction);
+
+begin
+  if Faction<>aValue then
+    Faction.Free;
+  Faction:=aValue;
+end;
+
+procedure TFilter.Setcriteria(const aValue : TFilterCriteria);
+
+begin
+  if Fcriteria<>aValue then
+    Fcriteria.Free;
+  Fcriteria:=aValue;
+end;
+
 constructor THistoryLabelAdded.CreateWithMembers;
 
 begin
   Fmessage := TMessage.CreateWithMembers;
+end;
+
+destructor THistoryLabelAdded.Destroy;
+
+begin
+  Fmessage.Free;
+  inherited Destroy;
+end;
+
+procedure THistoryLabelAdded.Setmessage(const aValue : TMessage);
+
+begin
+  if Fmessage<>aValue then
+    Fmessage.Free;
+  Fmessage:=aValue;
 end;
 
 constructor THistoryLabelRemoved.CreateWithMembers;
@@ -792,10 +1149,40 @@ begin
   Fmessage := TMessage.CreateWithMembers;
 end;
 
+destructor THistoryLabelRemoved.Destroy;
+
+begin
+  Fmessage.Free;
+  inherited Destroy;
+end;
+
+procedure THistoryLabelRemoved.Setmessage(const aValue : TMessage);
+
+begin
+  if Fmessage<>aValue then
+    Fmessage.Free;
+  Fmessage:=aValue;
+end;
+
 constructor THistoryMessageAdded.CreateWithMembers;
 
 begin
   Fmessage := TMessage.CreateWithMembers;
+end;
+
+destructor THistoryMessageAdded.Destroy;
+
+begin
+  Fmessage.Free;
+  inherited Destroy;
+end;
+
+procedure THistoryMessageAdded.Setmessage(const aValue : TMessage);
+
+begin
+  if Fmessage<>aValue then
+    Fmessage.Free;
+  Fmessage:=aValue;
 end;
 
 constructor THistoryMessageDeleted.CreateWithMembers;
@@ -804,16 +1191,614 @@ begin
   Fmessage := TMessage.CreateWithMembers;
 end;
 
+destructor THistoryMessageDeleted.Destroy;
+
+begin
+  Fmessage.Free;
+  inherited Destroy;
+end;
+
+procedure THistoryMessageDeleted.Setmessage(const aValue : TMessage);
+
+begin
+  if Fmessage<>aValue then
+    Fmessage.Free;
+  Fmessage:=aValue;
+end;
+
+destructor THistory.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FlabelsAdded)-1 do
+    FlabelsAdded[lI].Free;
+  for lI:=0 to Length(FlabelsRemoved)-1 do
+    FlabelsRemoved[lI].Free;
+  for lI:=0 to Length(Fmessages)-1 do
+    Fmessages[lI].Free;
+  for lI:=0 to Length(FmessagesAdded)-1 do
+    FmessagesAdded[lI].Free;
+  for lI:=0 to Length(FmessagesDeleted)-1 do
+    FmessagesDeleted[lI].Free;
+  inherited Destroy;
+end;
+
+procedure THistory.SetlabelsAdded(const aValue : THistoryLabelAddedArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FlabelsAdded)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FlabelsAdded[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FlabelsAdded[lI].Free;
+    end;
+  FlabelsAdded:=aValue;
+end;
+
+procedure THistory.SetlabelsRemoved(const aValue : THistoryLabelRemovedArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FlabelsRemoved)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FlabelsRemoved[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FlabelsRemoved[lI].Free;
+    end;
+  FlabelsRemoved:=aValue;
+end;
+
+procedure THistory.Setmessages(const aValue : TMessageArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fmessages)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fmessages[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fmessages[lI].Free;
+    end;
+  Fmessages:=aValue;
+end;
+
+procedure THistory.SetmessagesAdded(const aValue : THistoryMessageAddedArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FmessagesAdded)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FmessagesAdded[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FmessagesAdded[lI].Free;
+    end;
+  FmessagesAdded:=aValue;
+end;
+
+procedure THistory.SetmessagesDeleted(const aValue : THistoryMessageDeletedArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FmessagesDeleted)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FmessagesDeleted[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FmessagesDeleted[lI].Free;
+    end;
+  FmessagesDeleted:=aValue;
+end;
+
 constructor TLabel.CreateWithMembers;
 
 begin
   Fcolor := TLabelColor.Create;
 end;
 
+destructor TLabel.Destroy;
+
+begin
+  Fcolor.Free;
+  inherited Destroy;
+end;
+
+procedure TLabel.Setcolor(const aValue : TLabelColor);
+
+begin
+  if Fcolor<>aValue then
+    Fcolor.Free;
+  Fcolor:=aValue;
+end;
+
+destructor TListCseIdentitiesResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FcseIdentities)-1 do
+    FcseIdentities[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListCseIdentitiesResponse.SetcseIdentities(const aValue : TCseIdentityArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FcseIdentities)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FcseIdentities[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FcseIdentities[lI].Free;
+    end;
+  FcseIdentities:=aValue;
+end;
+
+destructor TListCseKeyPairsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FcseKeyPairs)-1 do
+    FcseKeyPairs[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListCseKeyPairsResponse.SetcseKeyPairs(const aValue : TCseKeyPairArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FcseKeyPairs)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FcseKeyPairs[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FcseKeyPairs[lI].Free;
+    end;
+  FcseKeyPairs:=aValue;
+end;
+
+destructor TListDelegatesResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fdelegates)-1 do
+    Fdelegates[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListDelegatesResponse.Setdelegates(const aValue : TDelegateArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fdelegates)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fdelegates[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fdelegates[lI].Free;
+    end;
+  Fdelegates:=aValue;
+end;
+
+destructor TListDraftsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fdrafts)-1 do
+    Fdrafts[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListDraftsResponse.Setdrafts(const aValue : TDraftArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fdrafts)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fdrafts[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fdrafts[lI].Free;
+    end;
+  Fdrafts:=aValue;
+end;
+
+destructor TListFiltersResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Ffilter)-1 do
+    Ffilter[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListFiltersResponse.Setfilter(const aValue : TFilterArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Ffilter)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Ffilter[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Ffilter[lI].Free;
+    end;
+  Ffilter:=aValue;
+end;
+
+destructor TListForwardingAddressesResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FforwardingAddresses)-1 do
+    FforwardingAddresses[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListForwardingAddressesResponse.SetforwardingAddresses(const aValue : TForwardingAddressArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FforwardingAddresses)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FforwardingAddresses[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FforwardingAddresses[lI].Free;
+    end;
+  FforwardingAddresses:=aValue;
+end;
+
+destructor TListHistoryResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fhistory)-1 do
+    Fhistory[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListHistoryResponse.Sethistory(const aValue : THistoryArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fhistory)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fhistory[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fhistory[lI].Free;
+    end;
+  Fhistory:=aValue;
+end;
+
+destructor TListLabelsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Flabels)-1 do
+    Flabels[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListLabelsResponse.Setlabels(const aValue : TLabelArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Flabels)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Flabels[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Flabels[lI].Free;
+    end;
+  Flabels:=aValue;
+end;
+
+destructor TListMessagesResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fmessages)-1 do
+    Fmessages[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListMessagesResponse.Setmessages(const aValue : TMessageArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fmessages)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fmessages[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fmessages[lI].Free;
+    end;
+  Fmessages:=aValue;
+end;
+
 constructor TSendAs.CreateWithMembers;
 
 begin
   FsmtpMsa := TSmtpMsa.Create;
+end;
+
+destructor TSendAs.Destroy;
+
+begin
+  FsmtpMsa.Free;
+  inherited Destroy;
+end;
+
+procedure TSendAs.SetsmtpMsa(const aValue : TSmtpMsa);
+
+begin
+  if FsmtpMsa<>aValue then
+    FsmtpMsa.Free;
+  FsmtpMsa:=aValue;
+end;
+
+destructor TListSendAsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FsendAs)-1 do
+    FsendAs[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListSendAsResponse.SetsendAs(const aValue : TSendAsArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FsendAs)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FsendAs[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FsendAs[lI].Free;
+    end;
+  FsendAs:=aValue;
+end;
+
+destructor TListSmimeInfoResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FsmimeInfo)-1 do
+    FsmimeInfo[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListSmimeInfoResponse.SetsmimeInfo(const aValue : TSmimeInfoArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FsmimeInfo)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FsmimeInfo[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FsmimeInfo[lI].Free;
+    end;
+  FsmimeInfo:=aValue;
+end;
+
+destructor TThread_.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fmessages)-1 do
+    Fmessages[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TThread_.Setmessages(const aValue : TMessageArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fmessages)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fmessages[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fmessages[lI].Free;
+    end;
+  Fmessages:=aValue;
+end;
+
+destructor TListThreadsResponse.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(Fthreads)-1 do
+    Fthreads[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TListThreadsResponse.Setthreads(const aValue : TThread_Array);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(Fthreads)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=Fthreads[lI] then
+        lKeep:=True;
+    if not lKeep then
+      Fthreads[lI].Free;
+    end;
+  Fthreads:=aValue;
+end;
+
+destructor TModifyMessageRequest.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(FaddClassificationLabels)-1 do
+    FaddClassificationLabels[lI].Free;
+  inherited Destroy;
+end;
+
+procedure TModifyMessageRequest.SetaddClassificationLabels(const aValue : TClassificationLabelValueArray);
+
+var
+  lI, lJ : Integer;
+  lKeep : Boolean;
+
+begin
+  // Free the objects that are not in the new array
+  for lI:=0 to Length(FaddClassificationLabels)-1 do
+    begin
+    lKeep:=False;
+    for lJ:=0 to Length(aValue)-1 do
+      if aValue[lJ]=FaddClassificationLabels[lI] then
+        lKeep:=True;
+    if not lKeep then
+      FaddClassificationLabels[lI].Free;
+    end;
+  FaddClassificationLabels:=aValue;
 end;
 
 end.

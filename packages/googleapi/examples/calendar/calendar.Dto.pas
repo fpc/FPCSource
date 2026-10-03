@@ -1,7 +1,7 @@
 { -----------------------------------------------------------------------
   Do not edit !
   
-  This file was automatically generated on 2026-10-03 10:20.
+  This file was automatically generated on 2026-10-03 18:11.
   Used command-line parameters:
      -s calendar -L -o calendar -q
   Source OpenAPI document data:
@@ -86,6 +86,7 @@ Type
     kind : string;
     nextPageToken : string;
     nextSyncToken : string;
+    destructor Destroy; override;
   end;
   
   TConferenceProperties = Class(TObject)
@@ -100,6 +101,7 @@ Type
   
   TLabelProperties = Class(TObject)
     eventLabels : TEventLabelArray;
+    destructor Destroy; override;
   end;
   
   TCalendar = Class(TObject)
@@ -115,6 +117,7 @@ Type
     summary : string;
     timeZone : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TEventReminder = Class(TObject)
@@ -145,6 +148,7 @@ Type
     summaryOverride : string;
     timeZone : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TCalendarList = Class(TObject)
@@ -153,6 +157,7 @@ Type
     kind : string;
     nextPageToken : string;
     nextSyncToken : string;
+    destructor Destroy; override;
   end;
   
   TCalendarNotification = Class(TObject)
@@ -194,6 +199,7 @@ Type
     key : TConferenceSolutionKey;
     name : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TConferenceRequestStatus = Class(TObject)
@@ -205,6 +211,7 @@ Type
     requestId : string;
     status : TConferenceRequestStatus;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TEntryPoint = Class(TObject)
@@ -227,6 +234,7 @@ Type
   TConferenceParameters = Class(TObject)
     addOnParameters : TConferenceParametersAddOnParameters;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TConferenceData = Class(TObject)
@@ -238,6 +246,7 @@ Type
     parameters : TConferenceParameters;
     signature : string;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TError = Class(TObject)
@@ -343,6 +352,7 @@ Type
     visibility : string;
     workingLocationProperties : TEventWorkingLocationProperties;
     constructor CreateWithMembers;
+    destructor Destroy; override;
   end;
   
   TEvents = Class(TObject)
@@ -357,6 +367,7 @@ Type
     summary : string;
     timeZone : string;
     updated : TDateTime;
+    destructor Destroy; override;
   end;
   
   TTimePeriod = Class(TObject)
@@ -367,11 +378,13 @@ Type
   TFreeBusyCalendar = Class(TObject)
     busy : TTimePeriodArray;
     errors : TErrorArray;
+    destructor Destroy; override;
   end;
   
   TFreeBusyGroup = Class(TObject)
     calendars : TStringDynArray;
     errors : TErrorArray;
+    destructor Destroy; override;
   end;
   
   TFreeBusyRequestItem = Class(TObject)
@@ -385,6 +398,7 @@ Type
     timeMax : TDateTime;
     timeMin : TDateTime;
     timeZone : string;
+    destructor Destroy; override;
   end;
   
   TFreeBusyResponse = Class(TObject)
@@ -408,9 +422,32 @@ Type
     kind : string;
     nextPageToken : string;
     nextSyncToken : string;
+    destructor Destroy; override;
   end;
   
 implementation
+
+destructor TAcl.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TLabelProperties.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(eventLabels)-1 do
+    eventLabels[lI].Free;
+  inherited Destroy;
+end;
 
 constructor TCalendar.CreateWithMembers;
 
@@ -419,16 +456,54 @@ begin
   labelProperties := TLabelProperties.Create;
 end;
 
+destructor TCalendar.Destroy;
+
+begin
+  conferenceProperties.Free;
+  labelProperties.Free;
+  inherited Destroy;
+end;
+
 constructor TCalendarListEntry.CreateWithMembers;
 
 begin
   conferenceProperties := TConferenceProperties.Create;
 end;
 
+destructor TCalendarListEntry.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  conferenceProperties.Free;
+  for lI:=0 to Length(defaultReminders)-1 do
+    defaultReminders[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TCalendarList.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
 constructor TConferenceSolution.CreateWithMembers;
 
 begin
   key := TConferenceSolutionKey.Create;
+end;
+
+destructor TConferenceSolution.Destroy;
+
+begin
+  key.Free;
+  inherited Destroy;
 end;
 
 constructor TCreateConferenceRequest.CreateWithMembers;
@@ -438,10 +513,25 @@ begin
   status := TConferenceRequestStatus.Create;
 end;
 
+destructor TCreateConferenceRequest.Destroy;
+
+begin
+  conferenceSolutionKey.Free;
+  status.Free;
+  inherited Destroy;
+end;
+
 constructor TConferenceParameters.CreateWithMembers;
 
 begin
   addOnParameters := TConferenceParametersAddOnParameters.Create;
+end;
+
+destructor TConferenceParameters.Destroy;
+
+begin
+  addOnParameters.Free;
+  inherited Destroy;
 end;
 
 constructor TConferenceData.CreateWithMembers;
@@ -450,6 +540,20 @@ begin
   conferenceSolution := TConferenceSolution.CreateWithMembers;
   createRequest := TCreateConferenceRequest.CreateWithMembers;
   parameters := TConferenceParameters.CreateWithMembers;
+end;
+
+destructor TConferenceData.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  conferenceSolution.Free;
+  createRequest.Free;
+  for lI:=0 to Length(entryPoints)-1 do
+    entryPoints[lI].Free;
+  parameters.Free;
+  inherited Destroy;
 end;
 
 constructor TEvent.CreateWithMembers;
@@ -463,6 +567,86 @@ begin
   outOfOfficeProperties := TEventOutOfOfficeProperties.Create;
   start := TEventDateTime.Create;
   workingLocationProperties := TEventWorkingLocationProperties.Create;
+end;
+
+destructor TEvent.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(attachments)-1 do
+    attachments[lI].Free;
+  for lI:=0 to Length(attendees)-1 do
+    attendees[lI].Free;
+  birthdayProperties.Free;
+  conferenceData.Free;
+  end_.Free;
+  focusTimeProperties.Free;
+  originalStartTime.Free;
+  outOfOfficeProperties.Free;
+  start.Free;
+  workingLocationProperties.Free;
+  inherited Destroy;
+end;
+
+destructor TEvents.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(defaultReminders)-1 do
+    defaultReminders[lI].Free;
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TFreeBusyCalendar.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(busy)-1 do
+    busy[lI].Free;
+  for lI:=0 to Length(errors)-1 do
+    errors[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TFreeBusyGroup.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(errors)-1 do
+    errors[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TFreeBusyRequest.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
+end;
+
+destructor TSettings.Destroy;
+
+var
+  lI : Integer;
+
+begin
+  for lI:=0 to Length(items)-1 do
+    items[lI].Free;
+  inherited Destroy;
 end;
 
 end.

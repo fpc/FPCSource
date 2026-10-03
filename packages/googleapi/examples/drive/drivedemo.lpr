@@ -70,21 +70,6 @@ begin
 end;
 
 
-// Free a file list and the files in it.
-procedure FreeFileList(aList: TFileList);
-
-var
-  lFile: TFile;
-
-begin
-  if aList=nil then
-    exit;
-  for lFile in aList.files do
-    lFile.Free;
-  aList.Free;
-end;
-
-
 // Return the MIME type for a local file name, based on its extension.
 function GuessMimeType(const aFileName: String): String;
 
@@ -261,7 +246,7 @@ begin
     Result.Name:=lResult.Value.files[0].name;
     Result.MimeType:=lResult.Value.files[0].mimeType;
   finally
-    FreeFileList(lResult.Value);
+    lResult.Value.Free;
   end;
 end;
 
@@ -324,7 +309,7 @@ begin
         end;
       lPageToken:=lResult.Value.nextPageToken;
     finally
-      FreeFileList(lResult.Value);
+      lResult.Value.Free;
     end;
   until lPageToken='';
   Writeln;
