@@ -595,14 +595,13 @@ begin
     MaybeField('Version',Version);
     if addDate<>0 then
       MaybeField('Add date',FormatDateTime('yyy-mm-dd',addDate));
-    MaybeField('Version',Version);
     MaybeField('Graph',Graph);
     MaybeField('Interactive',Interactive);
     MaybeField('Result',Result);
     MaybeField('Fail',Fail);
     MaybeField('Recompile',Recompile);
     MaybeField('NoRun',NoRun);
-    MaybeField('NeedLibrary',NoRun);
+    MaybeField('NeedLibrary',NeedLibrary);
     MaybeField('KnownRunError',KnownRunError);
     MaybeField('Note',Note);
     MaybeField('Description',Description);
