@@ -91,6 +91,7 @@ type
     FServiceNamePrefix: String;
     FServiceNameSuffix: String;
     FSkipServerServiceImplementationModule: Boolean;
+    FNoObjectOwnership: Boolean;
     FTrackChanges: Boolean;
     FUnitExtension: String;
     FUnitSuffix: String;
@@ -163,6 +164,8 @@ type
     property UseProperties: Boolean read GetUseProperties write FUseProperties;
     // Dto classes record assigned properties; only those are serialized.
     property TrackChanges: Boolean read FTrackChanges write FTrackChanges;
+    // Dto classes do not free the objects and object arrays in their properties.
+    property NoObjectOwnership: Boolean read FNoObjectOwnership write FNoObjectOwnership;
     // Write command-line options into header
     property VerboseHeader: boolean read FVerboseHeader write FVerboseHeader;
     // User enumerateds (default is to use string)
@@ -264,6 +267,7 @@ Const
   KeyConvertUTC                     = 'ConvertUTC';
   KeyUseProperties                  = 'UseProperties';
   KeyTrackChanges                   = 'TrackChanges';
+  KeyNoObjectOwnership              = 'NoObjectOwnership';
 
 { TOpenAPICodeGen }
 
@@ -355,6 +359,7 @@ begin
     ConvertUTC:=ReadBool(lSection,KeyConvertUTC,ConvertUTC);
     UseProperties:=ReadBool(lSection,KeyUseProperties,FUseProperties);
     TrackChanges:=ReadBool(lSection,KeyTrackChanges,TrackChanges);
+    NoObjectOwnership:=ReadBool(lSection,KeyNoObjectOwnership,NoObjectOwnership);
     end;
 end;
 
@@ -410,6 +415,7 @@ begin
     WriteBool(lSection,KeyConvertUTC,ConvertUTC);
     WriteBool(lSection,KeyUseProperties,FUseProperties);
     WriteBool(lSection,KeyTrackChanges,TrackChanges);
+    WriteBool(lSection,KeyNoObjectOwnership,NoObjectOwnership);
     end;
 
 end;
@@ -660,6 +666,7 @@ begin
   acodegen.WriteClassType := True;
   acodegen.UseProperties := Self.UseProperties;
   acodegen.TrackChanges := Self.TrackChanges;
+  acodegen.NoObjectOwnership := Self.NoObjectOwnership;
   if acodegen is TOpenAPIServiceCodeGen then
     TOpenAPIServiceCodeGen(aCodegen).AsyncService:=Self.AsyncService;
   if acodegen is TSerializerCodeGenerator then

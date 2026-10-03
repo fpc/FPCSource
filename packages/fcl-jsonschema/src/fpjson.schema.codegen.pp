@@ -38,6 +38,7 @@ Type
   private
     FData: TSchemaData;
     FDelphiCode: boolean;
+    FNoObjectOwnership: boolean;
     FTrackChanges: boolean;
     FUseProperties: boolean;
     FVerboseHeader: Boolean;
@@ -50,6 +51,14 @@ Type
     function GetPascalTypeAndDefault(aType: TSchemaSimpleType; out aPasType, aPasDefault: string) : boolean;
     function GetJSONDefault(aType: TPascalType) : String;
     procedure SetTypeData(aData : TSchemaData);
+    // True if Dto classes free the objects they refer to
+    function OwnsObjects : boolean;
+    // True if the property holds a Dto object
+    function IsObjectProperty(aProperty: TPascalPropertyData) : boolean;
+    // True if the property holds an array of Dto objects
+    function IsObjectArrayProperty(aProperty: TPascalPropertyData) : boolean;
+    // True if OwnsObjects is set and the type has a property holding Dto objects
+    function HasOwnedMembers(aType: TPascalTypeData) : boolean;
   public
     Property TypeData : TSchemaData Read FData;
     property DelphiCode: boolean read FDelphiCode write FDelphiCode;
@@ -59,6 +68,8 @@ Type
     property UseProperties: boolean read GetUseProperties write FUseProperties;
     // Dto classes record which properties were assigned; only those are serialized.
     property TrackChanges: boolean read FTrackChanges write FTrackChanges;
+    // Dto classes do not free the objects and object arrays in their properties.
+    property NoObjectOwnership: boolean read FNoObjectOwnership write FNoObjectOwnership;
   end;
 
   { TTypeCodeGenerator }
@@ -72,7 +83,10 @@ Type
     procedure GenerateIntegerTypes(aData: TSchemaData);
     procedure GeneratePascalArrayTypes(aData: TSchemaData);
     procedure GenerateStringTypes(aData: TSchemaData);
+    function NeedsSetter(aProperty: TPascalPropertyData): boolean;
     procedure WriteDtoConstructor(aType: TPascalTypeData); virtual;
+    procedure WriteDtoDestructor(aType: TPascalTypeData); virtual;
+    procedure WriteDtoSetters(aType: TPascalTypeData); virtual;
     procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
     procedure WriteDtoProperty(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
     procedure WriteDtoPropertyClassType(aType: TPascalTypeData); virtual;
@@ -227,6 +241,45 @@ begin
 end;
 
 
+function TJSONSchemaCodeGenerator.OwnsObjects: boolean;
+
+begin
+  Result:=WriteClassType and not NoObjectOwnership;
+end;
+
+
+function TJSONSchemaCodeGenerator.IsObjectProperty(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=(aProperty.PropertyType in [ptSchemaStruct,ptAnonStruct])
+          and (aProperty.PascalTypeName<>'');
+end;
+
+
+function TJSONSchemaCodeGenerator.IsObjectArrayProperty(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=(aProperty.PropertyType=ptArray)
+          and (aProperty.ElementType in [ptSchemaStruct,ptAnonStruct])
+          and (aProperty.PascalTypeName<>'');
+end;
+
+
+function TJSONSchemaCodeGenerator.HasOwnedMembers(aType: TPascalTypeData): boolean;
+
+var
+  I : Integer;
+
+begin
+  Result:=False;
+  if not OwnsObjects then
+    exit;
+  for I:=0 to aType.PropertyCount-1 do
+    if IsObjectProperty(aType.Properties[I]) or IsObjectArrayProperty(aType.Properties[I]) then
+      exit(True);
+end;
+
+
 procedure TJSONSchemaCodeGenerator.GenerateHeader;
 
 begin
@@ -289,11 +342,20 @@ begin
   lTypeName := aProperty.PascalTypeName;
   if lTypeName = '' then
     exit;
-  if TrackChanges then
+  if NeedsSetter(aProperty) then
     lWriter:='Set'+lName
   else
     lWriter:='F'+lName;
   Addln('property %s : %s read F%s write %s;', [lName, lTypeName, lName, lWriter]);
+end;
+
+
+function TTypeCodeGenerator.NeedsSetter(aProperty: TPascalPropertyData): boolean;
+
+begin
+  Result:=(aProperty.PascalTypeName<>'')
+          and (TrackChanges
+               or (OwnsObjects and (IsObjectProperty(aProperty) or IsObjectArrayProperty(aProperty))));
 end;
 
 
@@ -309,22 +371,21 @@ begin
   indent;
   for I:=0 to aType.PropertyCount-1 do
     WriteDtoField(aType,aType.Properties[I]);
-  if TrackChanges then
+  if TrackChanges and (aType.PropertyCount>0) then
+    Addln('FChanged : array[0..%d] of Boolean;', [aType.PropertyCount-1]);
+  for I:=0 to aType.PropertyCount-1 do
     begin
-    if aType.PropertyCount>0 then
-      Addln('FChanged : array[0..%d] of Boolean;', [aType.PropertyCount-1]);
-    for I:=0 to aType.PropertyCount-1 do
-      begin
-      lProp:=aType.Properties[I];
-      if lProp.PascalTypeName<>'' then
-        Addln('procedure Set%s(const aValue : %s);', [lProp.PascalName, lProp.PascalTypeName]);
-      end;
+    lProp:=aType.Properties[I];
+    if NeedsSetter(lProp) then
+      Addln('procedure Set%s(const aValue : %s);', [lProp.PascalName, lProp.PascalTypeName]);
     end;
   undent;
   Addln('public');
   indent;
   if aType.HasObjectProperty(True) then
     Addln('constructor CreateWithMembers;');
+  if HasOwnedMembers(aType) then
+    Addln('destructor Destroy; override;');
   if TrackChanges then
     begin
     Addln('// True if property aIndex (declaration order) was assigned, or an object in it has changes.');
@@ -416,21 +477,6 @@ begin
       lHasObjects:=True
     else if (lProp.PropertyType=ptArray) and (lProp.ElementType in [ptSchemaStruct,ptAnonStruct]) then
       lHasObjectArrays:=True;
-    end;
-  for I:=0 to lCount-1 do
-    begin
-    lProp:=aType.Properties[I];
-    if lProp.PascalTypeName='' then
-      continue;
-    Addln('procedure %s.Set%s(const aValue : %s);', [lName, lProp.PascalName, lProp.PascalTypeName]);
-    Addln('');
-    Addln('begin');
-    indent;
-    Addln('F%s:=aValue;', [lProp.PascalName]);
-    Addln('FChanged[%d]:=True;', [I]);
-    undent;
-    Addln('end;');
-    Addln('');
     end;
   Addln('function %s.FieldChanged(aIndex : Integer) : Boolean;', [lName]);
   Addln('');
@@ -561,6 +607,122 @@ begin
 end;
 
 
+procedure TTypeCodeGenerator.WriteDtoSetters(aType: TPascalTypeData);
+
+var
+  I : Integer;
+  lProp : TPascalPropertyData;
+  lName, lField : String;
+  lOwned : Boolean;
+
+begin
+  lName:=aType.PascalName;
+  for I:=0 to aType.PropertyCount-1 do
+    begin
+    lProp:=aType.Properties[I];
+    if not NeedsSetter(lProp) then
+      continue;
+    lField:='F'+lProp.PascalName;
+    lOwned:=OwnsObjects and IsObjectArrayProperty(lProp);
+    Addln('procedure %s.Set%s(const aValue : %s);', [lName, lProp.PascalName, lProp.PascalTypeName]);
+    Addln('');
+    if lOwned then
+      begin
+      Addln('var');
+      indent;
+      Addln('lI, lJ : Integer;');
+      Addln('lKeep : Boolean;');
+      undent;
+      Addln('');
+      end;
+    Addln('begin');
+    indent;
+    if OwnsObjects and IsObjectProperty(lProp) then
+      begin
+      Addln('if %s<>aValue then', [lField]);
+      indent;
+      Addln('%s.Free;', [lField]);
+      undent;
+      end
+    else if lOwned then
+      begin
+      Addln('// Free the objects that are not in the new array');
+      Addln('for lI:=0 to Length(%s)-1 do', [lField]);
+      indent;
+      Addln('begin');
+      Addln('lKeep:=False;');
+      Addln('for lJ:=0 to Length(aValue)-1 do');
+      indent;
+      Addln('if aValue[lJ]=%s[lI] then', [lField]);
+      indent;
+      Addln('lKeep:=True;');
+      undent;
+      undent;
+      Addln('if not lKeep then');
+      indent;
+      Addln('%s[lI].Free;', [lField]);
+      undent;
+      Addln('end;');
+      undent;
+      end;
+    Addln('%s:=aValue;', [lField]);
+    if TrackChanges then
+      Addln('FChanged[%d]:=True;', [I]);
+    undent;
+    Addln('end;');
+    Addln('');
+    end;
+end;
+
+
+procedure TTypeCodeGenerator.WriteDtoDestructor(aType: TPascalTypeData);
+
+var
+  I : Integer;
+  lProp : TPascalPropertyData;
+  lField : String;
+  lHasArrays : Boolean;
+
+begin
+  lHasArrays:=False;
+  for I:=0 to aType.PropertyCount-1 do
+    if IsObjectArrayProperty(aType.Properties[I]) then
+      lHasArrays:=True;
+  Addln('destructor %s.Destroy;', [aType.PascalName]);
+  Addln('');
+  if lHasArrays then
+    begin
+    Addln('var');
+    indent;
+    Addln('lI : Integer;');
+    undent;
+    Addln('');
+    end;
+  Addln('begin');
+  indent;
+  for I:=0 to aType.PropertyCount-1 do
+    begin
+    lProp:=aType.Properties[I];
+    lField:=lProp.PascalName;
+    if UseProperties then
+      lField:='F'+lField;
+    if IsObjectProperty(lProp) then
+      Addln('%s.Free;', [lField])
+    else if IsObjectArrayProperty(lProp) then
+      begin
+      Addln('for lI:=0 to Length(%s)-1 do', [lField]);
+      indent;
+      Addln('%s[lI].Free;', [lField]);
+      undent;
+      end;
+    end;
+  Addln('inherited Destroy;');
+  undent;
+  Addln('end;');
+  Addln('');
+end;
+
+
 procedure TTypeCodeGenerator.WriteDtoType(aType: TPascalTypeData);
 
 var
@@ -582,6 +744,8 @@ begin
     WriteDtoField(aType,aType.Properties[i]);
   if WriteClassType and aType.HasObjectProperty(True) then
     Addln('constructor CreateWithMembers;');
+  if HasOwnedMembers(aType) then
+    Addln('destructor Destroy; override;');
   undent;
   Addln('end;');
   Addln('');
@@ -841,6 +1005,12 @@ begin
           DoLog('Generating type %s constructor', [aData.Types[I].PascalName]);
           WriteDtoConstructor(aData.Types[I]);
           end;
+        if not (aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct]) then
+          continue;
+        if HasOwnedMembers(aData.Types[I]) then
+          WriteDtoDestructor(aData.Types[I]);
+        if UseProperties then
+          WriteDtoSetters(aData.Types[I]);
         if TrackChanges and (aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct]) then
           WriteDtoTrackingImplementation(aData.Types[I]);
         end;
@@ -1356,8 +1526,23 @@ begin
   indent;
   Addln('exit;');
   undent;
+  if HasOwnedMembers(aType) then
+    begin
+    Addln('try');
+    indent;
+    end;
   for I := 0 to aType.PropertyCount-1 do
     WriteFieldDeSerializer(aType, aType.Properties[I]);
+  if HasOwnedMembers(aType) then
+    begin
+    undent;
+    Addln('except');
+    indent;
+    Addln('Result.Free;');
+    Addln('raise;');
+    undent;
+    Addln('end;');
+    end;
   if TrackChanges and WriteClassType then
     Addln('Result.ClearChanges;');
   undent;
