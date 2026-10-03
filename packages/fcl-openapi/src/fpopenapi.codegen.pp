@@ -74,6 +74,7 @@ type
     FAsyncService: boolean;
     FBaseOutputFileName: string;
     FClientParentClass: String;
+    FConvertUTC: boolean;
     FDelphiCode: boolean;
     FGenerateClient: boolean;
     FGenerateServer: boolean;
@@ -90,15 +91,18 @@ type
     FServiceNamePrefix: String;
     FServiceNameSuffix: String;
     FSkipServerServiceImplementationModule: Boolean;
+    FTrackChanges: Boolean;
     FUnitExtension: String;
     FUnitSuffix: String;
     FUseEnums: boolean;
+    FUseProperties: Boolean;
     FUUIDMap: TStrings;
     FTypeAliases: TStrings;
     FVerboseHeader: boolean;
     FUnitNames : Array [TUnitKind] of string;
     procedure CleanMaps;
     function GetBaseOutputUnitName: string;
+    function GetUseProperties: Boolean;
     function GetServerProxyModuleName: String;
     function GetServerProxyModuleParentUnit: String;
     function GetUnitName(AIndex: TUnitKind): String;
@@ -152,6 +156,12 @@ type
     property ServiceMap: TStrings read FServiceMap;
     // Generate Dto/Serializer code compilable with Delphi
     property DelphiCode: boolean read FDelphiCode write FDelphiCode;
+    // Convert date-time values between UTC in JSON and local time in Pascal (date-only values are not converted)
+    property ConvertUTC: boolean read FConvertUTC write FConvertUTC;
+    // Dto classes expose their members as properties with private fields. Implied by TrackChanges.
+    property UseProperties: Boolean read GetUseProperties write FUseProperties;
+    // Dto classes record assigned properties; only those are serialized.
+    property TrackChanges: Boolean read FTrackChanges write FTrackChanges;
     // Write command-line options into header
     property VerboseHeader: boolean read FVerboseHeader write FVerboseHeader;
     // User enumerateds (default is to use string)
@@ -250,6 +260,9 @@ Const
   KeyServerProxyUseServiceInterface = 'ServerProxyModuleUseInterface';
   KeyServerProxyFormFile            = 'ServerProxyFormFile';
   KeyServerProxyUnit                = 'ServerProxyUnit' ;
+  KeyConvertUTC                     = 'ConvertUTC';
+  KeyUseProperties                  = 'UseProperties';
+  KeyTrackChanges                   = 'TrackChanges';
 
 { TOpenAPICodeGen }
 
@@ -338,6 +351,9 @@ begin
     ServerProxyUseServiceInterface:=ReadBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
     ServerProxyUnit:=ReadString(lSection,KeyServerProxyUnit,ServerProxyUnit);
     ServerProxyFormFile:=ReadBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
+    ConvertUTC:=ReadBool(lSection,KeyConvertUTC,ConvertUTC);
+    UseProperties:=ReadBool(lSection,KeyUseProperties,FUseProperties);
+    TrackChanges:=ReadBool(lSection,KeyTrackChanges,TrackChanges);
     end;
 end;
 
@@ -390,6 +406,9 @@ begin
     WriteBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
     WriteBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
     WriteBool(lSection,KeyGenerateServerProxyModule, GenerateServerProxyModule);
+    WriteBool(lSection,KeyConvertUTC,ConvertUTC);
+    WriteBool(lSection,KeyUseProperties,FUseProperties);
+    WriteBool(lSection,KeyTrackChanges,TrackChanges);
     end;
 
 end;
@@ -441,6 +460,13 @@ begin
     Result := BaseOutputUnitName + GetUnitSuffix(aKind);
   if FullPath then
     Result:=ExtractFilePath(BaseOutputFileName)+Result+UnitExtension;
+end;
+
+
+function TOpenAPICodeGen.GetUseProperties: Boolean;
+
+begin
+  Result:=FUseProperties or FTrackChanges;
 end;
 
 
@@ -631,8 +657,15 @@ begin
   acodegen.DelphiCode := Self.DelphiCode;
   acodegen.VerboseHeader := Self.VerboseHeader;
   acodegen.WriteClassType := True;
+  acodegen.UseProperties := Self.UseProperties;
+  acodegen.TrackChanges := Self.TrackChanges;
   if acodegen is TOpenAPIServiceCodeGen then
-    TOpenAPIServiceCodeGen(aCodegen).AsyncService:=Self.AsyncService
+    TOpenAPIServiceCodeGen(aCodegen).AsyncService:=Self.AsyncService;
+  if acodegen is TSerializerCodeGenerator then
+    begin
+    TSerializerCodeGenerator(aCodegen).ConvertUTC:=Self.ConvertUTC;
+    TSerializerCodeGenerator(aCodegen).SkipReadOnly:=GenerateClient and not GenerateServer;
+    end;
 end;
 
 
