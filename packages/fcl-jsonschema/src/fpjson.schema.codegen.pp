@@ -803,7 +803,6 @@ procedure TTypeCodeGenerator.Execute(aData: TSchemaData);
 
 var
   I: integer;
-  False: Boolean;
 
 begin
   FData := aData;
