@@ -1508,12 +1508,13 @@ end;
 function TAPIData.AllowOperation(aKeyword: TPathItemOperationKeyword; aOperation: TAPIOperation): boolean;
 
 begin
-  Result:=True;
+  if aKeyword=pkDelete then
+    Exit(True);
   Result:=IsResponseContentApplicationJSON(aOperation)
           or IsResponseContentStreamable(aOperation);
   if (aKeyword in [pkPost,pkPut,pkPatch]) then
-    Result:=IsRequestBodyApplicationJSON(aOperation)
-            or IsRequestBodyStreamable(aOperation);
+    Result:=Result and (IsRequestBodyApplicationJSON(aOperation)
+                        or IsRequestBodyStreamable(aOperation));
 end;
 
 procedure TAPIData.CreateServiceDefs;
