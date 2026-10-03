@@ -236,6 +236,7 @@ function __FPC_default_handler(
 var
   Exc: TExceptObject;
   code: longint;
+  errbase: pointer;
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
@@ -260,6 +261,9 @@ begin
       Exc.Addr:=rec.ExceptionInformation[0];
       Exc.Frames:=PCodePointer(rec.ExceptionInformation[3]);
       Exc.FrameCount:=ptruint(rec.ExceptionInformation[2]);
+      { the frame fpc_RaiseException passes as its fifth parameter; the
+        operating system's exceptions do not have one }
+      errbase:=pointer(rec.ExceptionInformation[4]);
       code:=217;
       LinkExceptEntry(Exc,@frame,@rec,@frame);
     end;
@@ -276,6 +280,7 @@ begin
       if code<0 then
         SysResetFPU;
       code:=abs(code);
+      errbase:=pointer(context.Ebp);
       Exc.Addr:=rec.ExceptionAddress;
       Exc.FObject:=nil;
       if Assigned(ExceptObjProc) then
@@ -304,7 +309,7 @@ begin
     else
     begin
       errorcode:=word(code);
-      errorbase:=pointer(rec.ExceptionInformation[4]);
+      errorbase:=errbase;
       erroraddr:=pointer(Exc.Addr);
       Halt(code);
     end;
