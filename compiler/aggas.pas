@@ -117,9 +117,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
-{$ifndef DISABLE_WIN64_SEH}
       itcpugas,
-{$endif DISABLE_WIN64_SEH}
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
