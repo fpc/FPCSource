@@ -1,0 +1,207 @@
+{
+  GoogleDiscovery.ServiceMap - Auto-generate service maps from operationIds
+
+  Parses Google-style dotted operationIds (e.g., drive.files.list) and
+  generates ServiceMap entries for fcl-openapi code generator.
+}
+unit GoogleDiscovery.ServiceMap;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpJson.Data;
+  {$ELSE}
+  Classes, SysUtils, fpjson;
+  {$ENDIF}
+
+{ Parse a single operationId into service and method names }
+procedure ParseOperationId(const AOperationId: string;
+  out AServiceName, AMethodName: string);
+
+{ Generate service map from a list of operationIds }
+function GenerateServiceMapFromOperationIds(AOperationIds: TStrings): TStrings;
+
+{ Extract all operationIds from an OpenAPI JSON document }
+function ExtractOperationIds(const AOpenAPIJson: TJSONObject): TStrings;
+
+{ Generate complete service map from OpenAPI JSON }
+function GenerateServiceMap(const AOpenAPIJson: TJSONObject): TStrings;
+
+{ Write service map to file with comments }
+procedure WriteServiceMapToFile(AServiceMap: TStrings; const AFileName: string;
+  const AServiceName: string = '');
+
+implementation
+
+uses
+  GoogleDiscovery.Transform;
+
+{ Parse operationId into service and method names }
+procedure ParseOperationId(const AOperationId: string;
+  out AServiceName, AMethodName: string);
+var
+  Parts: TStringArray;
+  I, PartCount: Integer;
+begin
+  AServiceName := '';
+  AMethodName := '';
+
+  if AOperationId = '' then
+    Exit;
+
+  // Split by dots
+  Parts := SplitString(AOperationId, '.');
+  PartCount := Length(Parts);
+
+  if PartCount = 0 then
+    Exit;
+
+  if PartCount = 1 then
+  begin
+    // Single part - use as method name, no service
+    AServiceName := 'Default';
+    AMethodName := Parts[0];
+  end
+  else if PartCount = 2 then
+  begin
+    // Two parts: service.method (e.g., about.get)
+    AServiceName := ToUpperFirst(Parts[0]);
+    AMethodName := Parts[1];
+  end
+  else
+  begin
+    // Three or more parts: api.resource.method (e.g., drive.files.list)
+    // Use second-to-last as service name, last as method name
+    AServiceName := ToUpperFirst(Parts[PartCount - 2]);
+    AMethodName := Parts[PartCount - 1];
+  end;
+end;
+
+{ Generate service map from operationId list }
+function GenerateServiceMapFromOperationIds(AOperationIds: TStrings): TStrings;
+var
+  I: Integer;
+  OperationId, ServiceName, MethodName: string;
+begin
+  Result := TStringList.Create;
+
+  for I := 0 to AOperationIds.Count - 1 do
+  begin
+    OperationId := AOperationIds[I];
+    if OperationId = '' then
+      Continue;
+
+    ParseOperationId(OperationId, ServiceName, MethodName);
+
+    if (ServiceName <> '') and (MethodName <> '') then
+      Result.Add(OperationId + '=' + ServiceName + '.' + MethodName);
+  end;
+end;
+
+{ Recursively extract operationIds from paths }
+procedure ExtractOperationIdsFromPaths(const APaths: TJSONObject; AResult: TStrings);
+var
+  I, J: Integer;
+  PathItem: TJSONObject;
+  Operation: TJSONObject;
+  OperationId: string;
+  HttpMethods: array[0..7] of string = ('get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace');
+begin
+  if APaths = nil then
+    Exit;
+
+  for I := 0 to APaths.Count - 1 do
+  begin
+    if APaths.Items[I].JSONType <> jtObject then
+      Continue;
+
+    PathItem := TJSONObject(APaths.Items[I]);
+
+    // Check each HTTP method
+    for J := 0 to High(HttpMethods) do
+    begin
+      if PathItem.Find(HttpMethods[J]) = nil then
+        Continue;
+
+      if PathItem.Find(HttpMethods[J]).JSONType <> jtObject then
+        Continue;
+
+      Operation := TJSONObject(PathItem.Find(HttpMethods[J]));
+
+      // Extract operationId
+      if Operation.Find('operationId') <> nil then
+      begin
+        OperationId := Operation.Get('operationId', '');
+        if OperationId <> '' then
+          AResult.Add(OperationId);
+      end;
+    end;
+  end;
+end;
+
+{ Extract all operationIds from OpenAPI JSON }
+function ExtractOperationIds(const AOpenAPIJson: TJSONObject): TStrings;
+var
+  Paths: TJSONObject;
+begin
+  Result := TStringList.Create;
+
+  if AOpenAPIJson = nil then
+    Exit;
+
+  // Get paths object
+  if AOpenAPIJson.Find('paths') = nil then
+    Exit;
+
+  if AOpenAPIJson.Find('paths').JSONType <> jtObject then
+    Exit;
+
+  Paths := TJSONObject(AOpenAPIJson.Find('paths'));
+  ExtractOperationIdsFromPaths(Paths, Result);
+end;
+
+{ Generate complete service map from OpenAPI JSON }
+function GenerateServiceMap(const AOpenAPIJson: TJSONObject): TStrings;
+var
+  OperationIds: TStrings;
+begin
+  OperationIds := ExtractOperationIds(AOpenAPIJson);
+  try
+    Result := GenerateServiceMapFromOperationIds(OperationIds);
+  finally
+    OperationIds.Free;
+  end;
+end;
+
+{ Write service map to file with header comments }
+procedure WriteServiceMapToFile(AServiceMap: TStrings; const AFileName: string;
+  const AServiceName: string);
+var
+  Output: TStringList;
+  I: Integer;
+begin
+  Output := TStringList.Create;
+  try
+    // Add header comments
+    Output.Add('# Service map for ' + AServiceName);
+    Output.Add('# Generated by discovery2pas');
+    Output.Add('#');
+    Output.Add('# Format: operationId=ServiceName.MethodName');
+    Output.Add('# Edit this file to customize service/method organization');
+    Output.Add('#');
+    Output.Add('');
+
+    // Add all mappings
+    for I := 0 to AServiceMap.Count - 1 do
+      Output.Add(AServiceMap[I]);
+
+    Output.SaveToFile(AFileName);
+  finally
+    Output.Free;
+  end;
+end;
+
+end.

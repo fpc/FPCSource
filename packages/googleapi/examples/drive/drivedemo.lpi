@@ -8,7 +8,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="Google Calendar demo"/>
+      <Title Value="Google Drive demo"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -25,8 +25,13 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="calendardemo.lpr"/>
+        <Filename Value="drivedemo.lpr"/>
         <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivefiles.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DriveFiles"/>
       </Unit>
       <Unit>
         <Filename Value="../../src/googleapi.oauthredirect.pp"/>
@@ -38,7 +43,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="calendardemo"/>
+      <Filename Value="drivedemo"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
