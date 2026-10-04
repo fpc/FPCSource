@@ -670,6 +670,8 @@ interface
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
         FExeSectionList   : TFPHashObjectList;
+        { sections taken out of FExeSectionList; see RemoveExeSection }
+        FRemovedExeSections : TFPObjectList;
         Fzeronr           : longint;
         Fvaluesnr         : longint;
         { Symbols }
@@ -709,6 +711,8 @@ interface
         function MemAlign(exesec: TExeSection): longword;
         function DataAlign(exesec: TExeSection): longword;
         procedure ReplaceExeSectionList(newlist: TFPList);
+        { takes ExeSectionList[i] out, leaving nil for the caller's Pack }
+        procedure RemoveExeSection(i: longint);
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -2392,6 +2396,7 @@ implementation
         ComdatGroups:=TFPHashList.Create;
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
+        FRemovedExeSections:=TFPObjectList.Create(true);
         FImageBase:=0;
 {$ifdef cpu16bitaddr}
         SectionMemAlign:=$10;
@@ -2423,6 +2428,8 @@ implementation
         FCommonObjSymbols := nil;
         FExeVTableList.free;
         FExeVTableList := nil;
+        FRemovedExeSections.free;
+        FRemovedExeSections := nil;
         FExeSectionList.free;
         FExeSectionList := nil;
         ComdatGroups.free;
@@ -3778,7 +3785,7 @@ implementation
           begin
             exesec:=TExeSection(ExeSectionList[i]);
             if exesec.Disabled then
-              ExeSectionList[i]:=nil;
+              RemoveExeSection(i);
           end;
         ExeSectionList.Pack;
       end;
@@ -3793,9 +3800,19 @@ implementation
           begin
             exesec:=TExeSection(ExeSectionList[i]);
             if (oso_debug in exesec.SecOptions) then
-              ExeSectionList[i]:=nil;
+              RemoveExeSection(i);
           end;
         ExeSectionList.Pack;
+      end;
+
+
+    procedure TExeOutput.RemoveExeSection(i: longint);
+      begin
+        { The objsections of a removed section, and the symbols defined in them,
+          still refer to it, and later passes still read it (the symbol writers
+          among them), so it is kept until the output is destroyed. }
+        FRemovedExeSections.Add(ExeSectionList[i]);
+        ExeSectionList.List[i]:=nil;
       end;
 
 
