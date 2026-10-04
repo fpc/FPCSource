@@ -48,6 +48,7 @@ function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}
 function WinGetCurrentThread: THandle; stdcall; external KernelDLL name 'GetCurrentThread';
 function WinOpenThread(dwDesiredAccess: DWord; bInheritHandle: Boolean; dwThreadId: DWord): THandle; stdcall; external KernelDLL name 'OpenThread';
 function WinIsDebuggerPresent: Boolean; stdcall; external KernelDLL name 'IsDebuggerPresent';
+function TerminateProcess(hProcess : THandle;uExitCode : UINT) : longbool; stdcall; external KernelDLL name 'TerminateProcess';
 type
   TSetThreadDescription = function(threadHandle: THandle; lpThreadDescription: PWideChar): HResult; stdcall;
 var
@@ -117,6 +118,45 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
       end;
 
 
+    { A thread without its threadvars cannot run the code that reports a run
+      time error once threadvars are relocated: InternalExit uses threadvars,
+      so RunError would come back here over and over. Report it with the
+      operating system alone and end the process. Not ExitProcess: it would run
+      the finalization of a library on this thread, which needs threadvars
+      again. }
+    procedure ThreadvarsUnavailable;
+{$ifndef WINCE}
+      const
+        msg : array[0..18] of AnsiChar = 'Runtime error 226'#13#10;
+      var
+        h : THandle;
+        written : longint;
+{$endif WINCE}
+      begin
+{$ifndef WINCE}
+        { A library's own threadvars, set up while it is loaded: they are not
+          relocated yet, so RunError cannot come back here, and it makes
+          LoadLibrary fail instead of ending the process that loads it }
+        if IsLibrary and not assigned(fpc_threadvar_relocate_proc) then
+          RunError(226);
+        if WriteErrorsToStdErr then
+          h:=StdErrorHandle
+        else
+          h:=StdOutputHandle;
+        { still 0 when the main thread's block fails, before SysInitStdIO }
+        if h=0 then
+          if WriteErrorsToStdErr then
+            h:=THandle(GetStdHandle(cardinal(STD_ERROR_HANDLE)))
+          else
+            h:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+        WriteFile(h,@msg,sizeof(msg),written,nil);
+        TerminateProcess(GetCurrentProcess,226);
+{$else WINCE}
+        RunError(226);
+{$endif WINCE}
+      end;
+
+
     procedure SysAllocateThreadVars; public name '_FPC_SysAllocateThreadVars';
       var
         tn,nx : PThreadvarNode;
@@ -129,14 +169,21 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
         { allocate room on the heap for the thread vars }
         errorsave:=GetLastError;
         if tlskey^=$ffffffff then
-          RunError(226);
+          ThreadvarsUnavailable;
         if TlsGetValue(tlskey^)=nil then
           begin
             prepend:=ord(IsLibrary)*AlignedThreadvarNodeSize;
             tn:=HeapAlloc(GetProcessHeap,HEAP_ZERO_MEMORY,prepend+threadvarblocksize);
             if tn=nil then
-              RunError(226);
-            TlsSetValue(tlskey^,pointer(tn)+prepend);
+              ThreadvarsUnavailable;
+            { a slot of 64 or above has its storage made for a thread when it
+              is first set, which can fail: then the thread has no threadvars
+              either, and every threadvar it uses would allocate a block again }
+            if not TlsSetValue(tlskey^,pointer(tn)+prepend) then
+              begin
+                HeapFree(GetProcessHeap,0,tn);
+                ThreadvarsUnavailable;
+              end;
 
             if IsLibrary then
             begin
