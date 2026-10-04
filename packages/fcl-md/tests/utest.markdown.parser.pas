@@ -91,6 +91,13 @@ type
     procedure TestQuoteFencedCode;
     procedure TestQuoteFencedCodeThenText;
     procedure TestQuoteIndentedCode;
+    procedure TestBlankLineEndsQuote;
+    procedure TestNestedQuoteBlankLine;
+    procedure TestQuoteUnorderedList;
+    procedure TestQuoteOrderedListContinuation;
+    procedure TestQuoteNestedList;
+    procedure TestQuoteListThenParagraph;
+    procedure TestQuoteListLazy;
   end;
 
   { TTestLists }
@@ -124,7 +131,10 @@ type
     // Blocks starting inside an indented item are recognised and lose that indentation.
     procedure TestItemHeading;
     procedure TestItemQuote;
+    procedure TestItemQuoteList;
     procedure TestItemFencedCode;
+    procedure TestListThenThematicBreak;
+    procedure TestSpacedThematicBreakEndsList;
   end;
 
   { TTestThematicBreaks }
@@ -554,6 +564,94 @@ begin
   Code := Quote.Blocks[1] as TMarkDownCodeBlock;
   AssertEquals('Both lines belong to one code block', 2, Code.Blocks.Count);
   AssertEquals('Second code line', 'code two', (Code.Blocks[1] as TMarkDownTextBlock).Text);
+end;
+
+
+procedure TTestBlockQuotes.TestBlankLineEndsQuote;
+
+begin
+  SetupParser('> text'#10#10'after');
+  AssertEquals('Quote and paragraph', 2, Doc.Blocks.Count);
+  AssertTrue('First block is a quote', GetBlock(0) is TMarkDownQuoteBlock);
+  AssertTrue('Second block is a paragraph', GetBlock(1) is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestBlockQuotes.TestNestedQuoteBlankLine;
+var
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('> > a'#10'>'#10'> b');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Outer quote has the inner quote and a paragraph', 2, Quote.Blocks.Count);
+  AssertTrue('First block is the inner quote', Quote.Blocks[0] is TMarkDownQuoteBlock);
+  AssertTrue('Second block is a paragraph', Quote.Blocks[1] is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteUnorderedList;
+var
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('> - a'#10'> - b');
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 1 block', 1, Quote.Blocks.Count);
+  AssertTrue('Quote block is a list', Quote.Blocks[0] is TMarkDownListBlock);
+  AssertEquals('Both items in one list', 2, Quote.Blocks[0].ChildCount);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteOrderedListContinuation;
+var
+  Quote: TMarkDownQuoteBlock;
+  List: TMarkDownListBlock;
+begin
+  SetupParser('> 1. one'#10'>    more'#10'> 2. two');
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 1 block', 1, Quote.Blocks.Count);
+  List := Quote.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Both items in one list', 2, List.Blocks.Count);
+  AssertEquals('Continuation line stays in the first item', 1, List.Blocks[0].ChildCount);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteNestedList;
+var
+  Quote: TMarkDownQuoteBlock;
+  List: TMarkDownListBlock;
+begin
+  SetupParser('> - a'#10'>   - nested'#10'> - b');
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  List := Quote.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Two items in the outer list', 2, List.Blocks.Count);
+  AssertEquals('First item has a paragraph and a list', 2, List.Blocks[0].ChildCount);
+  AssertTrue('Nested list in the first item', List.Blocks[0].Children[1] is TMarkDownListBlock);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteListThenParagraph;
+var
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('> - a'#10'>'#10'> text');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote has a list and a paragraph', 2, Quote.Blocks.Count);
+  AssertTrue('First block is a list', Quote.Blocks[0] is TMarkDownListBlock);
+  AssertTrue('Second block is a paragraph', Quote.Blocks[1] is TMarkDownParagraphBlock);
+end;
+
+
+procedure TTestBlockQuotes.TestQuoteListLazy;
+var
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('> - a'#10'lazy');
+  AssertEquals('Lazy line stays in the quote', 1, Doc.Blocks.Count);
+  Quote := GetBlock(0) as TMarkDownQuoteBlock;
+  AssertEquals('Quote should have 1 block', 1, Quote.Blocks.Count);
+  AssertEquals('One item', 1, Quote.Blocks[0].ChildCount);
 end;
 
 
@@ -1001,6 +1099,40 @@ begin
   Item := (Doc.Blocks[0] as TMarkDownListBlock).Blocks[0] as TMarkDownListItemBlock;
   AssertEquals('Item should have 2 blocks', 2, Item.Blocks.Count);
   AssertTrue('Second item block is a quote', Item.Blocks[1] is TMarkDownQuoteBlock);
+end;
+
+
+procedure TTestLists.TestItemQuoteList;
+var
+  List: TMarkDownListBlock;
+  Quote: TMarkDownQuoteBlock;
+begin
+  SetupParser('- item'#10'  > quoted'#10'  > - inner'#10'- next');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  List := GetBlock(0) as TMarkDownListBlock;
+  AssertEquals('Two items in the outer list', 2, List.Blocks.Count);
+  Quote := List.Blocks[0].Children[1] as TMarkDownQuoteBlock;
+  AssertEquals('Quote has a paragraph and a list', 2, Quote.Blocks.Count);
+  AssertTrue('List inside the quote', Quote.Blocks[1] is TMarkDownListBlock);
+end;
+
+
+procedure TTestLists.TestListThenThematicBreak;
+
+begin
+  SetupParser('- a'#10#10'---');
+  AssertEquals('List and thematic break', 2, Doc.Blocks.Count);
+  AssertEquals('One item', 1, GetBlock(0).ChildCount);
+  AssertTrue('Second block is a thematic break', GetBlock(1) is TMarkDownThematicBreakBlock);
+end;
+
+
+procedure TTestLists.TestSpacedThematicBreakEndsList;
+
+begin
+  SetupParser('- a'#10'- - -');
+  AssertEquals('List and thematic break', 2, Doc.Blocks.Count);
+  AssertTrue('Second block is a thematic break', GetBlock(1) is TMarkDownThematicBreakBlock);
 end;
 
 

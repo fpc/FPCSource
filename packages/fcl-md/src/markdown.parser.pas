@@ -692,6 +692,9 @@ begin
               and not lList.closed;
     if Result then
       aList:=lList;
+    // A list does not continue outside the container holding it
+    if not ((lBlock is TMarkdownListBlock) or (lBlock is TMarkdownListItemBlock)) then
+      Break;
     lBlock:=lBlock.Parent;
     end;
 end;

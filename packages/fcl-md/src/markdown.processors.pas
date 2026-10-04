@@ -59,10 +59,22 @@ type
     FEmptyLine : integer;
     FLastList : TMarkdownListBlock;
     FLastItem : TMarkdownListItemBlock;
+    FOuter : TMarkdownBlockProcessor;
   protected
     function inListOrQuote : boolean; override;
     function Root : Boolean;
     function LastList : TMarkdownListBlock;
+    // Set the processor enclosing the outermost list, returns the previous one.
+    function EnterList : TMarkdownBlockProcessor;
+    // Strip the prefix of the processor enclosing the outermost list from aLine.
+    function StripOuter(aLine : TMarkdownLine) : Boolean;
+    // Length of the prefix of the processor enclosing the outermost list in aLine.
+    function OuterPrefixLength(aLine : TMarkdownLine) : Integer;
+    // Does a line that is not inside the enclosing block end aBlock ?
+    function OutsideLineEndsBlock(aBlock : TMarkdownContainerBlock; aLine : TMarkdownLine) : Boolean;
+    // Is the next line an item of aList ? If so, it becomes the current line.
+    function NextItemLine(aList : TMarkdownListBlock; out aLine : TMarkdownLine) : Boolean;
+    function IsItemInList(aList : TMarkdownListBlock; aLine : TMarkdownLine) : Boolean; virtual; abstract;
     // Column at which the content of an item starts, for a line positioned just after the marker.
     class function ContentIndent(aLine : TMarkdownLine) : Integer;
   public
@@ -74,7 +86,8 @@ type
   TUListProcessor = class (TMarkdownListProcessor)
   private
     function HasMarker(aLine: TMarkdownLine; out aIndent: Integer; out aMarker: String): boolean;
-    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean;
+  protected
+    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean; override;
   public
     function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
     function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
@@ -87,7 +100,8 @@ type
   private
     FStart : Integer;
     function HasMarker(aLine: TMarkdownLine; out aIndent: integer; out aMarker: String; out aValue: Integer): boolean;
-    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean;
+  protected
+    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean; override;
   Public
     function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
     function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
@@ -289,7 +303,6 @@ function TMarkdownQuoteProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; 
 
 var
   len : integer;
-  Inquote : Boolean;
 
 begin
   Result:=(aLine=Nil);
@@ -302,14 +315,12 @@ begin
   Len:=SkipQuotes(aLine,FLevel);
   if Len=0 then
     Exit(False);
-  inQuote:=(Len=FLevel);
-  //  InQuote:=StartsWithWhiteSpace(aLine.Remainder,'>',len);
   // Not enough markers -> check continuation.
   // end of block if:
   // - empty line
   // - starts a new kind of block
   // - It is not plain text (laziness rule)
-  if aLine.isWhitespace and not InQuote then // empty line
+  if aLine.isWhitespace then // empty line
     Result:=True
   else if IsBlock(aBlock, aBlock.Blocks, aLine.Remainder) then // New kind of block
     Result:=True
@@ -320,6 +331,8 @@ begin
     Result:=False;
     Parser.Lazy:=true;
     end;
+  if Result then
+    aLine.Rewind;
 end;
 
 function TMarkdownQuoteProcessor.SkipQuotes(aLine : TMarkdownLine; aLevel : Integer) : integer;
@@ -438,6 +451,71 @@ end;
 function TMarkdownListProcessor.LastList: TMarkdownListBlock;
 begin
   Result:=FLastList;
+end;
+
+
+function TMarkdownListProcessor.EnterList: TMarkdownBlockProcessor;
+
+begin
+  Result:=FOuter;
+  if ParentProcessor is TMarkdownListProcessor then
+    FOuter:=TMarkdownListProcessor(ParentProcessor).FOuter
+  else
+    FOuter:=ParentProcessor;
+end;
+
+
+function TMarkdownListProcessor.StripOuter(aLine: TMarkdownLine): Boolean;
+
+begin
+  Result:=True;
+  if Assigned(FOuter) then
+    Result:=FOuter.StripLinePrefix(aLine);
+end;
+
+
+function TMarkdownListProcessor.OuterPrefixLength(aLine: TMarkdownLine): Integer;
+
+var
+  lPos : Integer;
+
+begin
+  lPos:=aLine.CursorPos;
+  aLine.Reset;
+  StripOuter(aLine);
+  Result:=aLine.CursorPos-1;
+  aLine.CursorPos:=lPos;
+end;
+
+
+function TMarkdownListProcessor.OutsideLineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean;
+
+begin
+  Result:=aLine.isWhitespace
+          or (Assigned(CurrentLine) and CurrentLine.isWhitespace)
+          or not TMarkdownParser.InPara(aBlock.Blocks,False)
+          or IsBlock(aBlock,aBlock.Blocks,aLine.Remainder);
+  if not Result then
+    Parser.Lazy:=True;
+end;
+
+
+function TMarkdownListProcessor.NextItemLine(aList: TMarkdownListBlock; out aLine: TMarkdownLine): Boolean;
+
+var
+  lPos : Integer;
+
+begin
+  aLine:=PeekLine;
+  Result:=Assigned(aLine);
+  if not Result then
+    Exit;
+  lPos:=aLine.CursorPos;
+  Result:=StripOuter(aLine) and IsItemInList(aList,aLine);
+  if Result then
+    aLine:=NextLine
+  else
+    aLine.CursorPos:=lPos;
 end;
 
 
@@ -572,11 +650,20 @@ var
   lBlock : TMarkdownContainerBlock;
   lList : TMarkdownListBlock absolute lBlock;
   lProc : TMarkdownBlockProcessor;
+  lStart : Integer;
 begin
   lBlock:=aBlock;
   Result:=aBlock.line<>aLine.LineNo;
   if Not Result then
     Exit;
+  lStart:=aLine.CursorPos;
+  if not StripOuter(aLine) then
+    begin
+    Result:=OutsideLineEndsBlock(aBlock,aLine);
+    if Result then
+      aLine.CursorPos:=lStart;
+    Exit;
+    end;
   if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkdownListBlock) then
      lBlock:=lBlock.Parent as TMarkdownListBlock;
   if (lBlock is TMarkdownListBlock) then
@@ -605,6 +692,8 @@ begin
           Result:=True;
         end;
       end;
+  if Result then
+    aLine.CursorPos:=lStart;
 end;
 
 function TUListProcessor.HasMarker(aLine: TMarkdownLine; Out aIndent : Integer; out aMarker : String): boolean;
@@ -642,14 +731,25 @@ function TUListProcessor.IsItemInList(aList : TMarkdownListBlock; aLine : TMarkd
 
 var
   len : integer;
+  lLine : String;
 
 begin
   Result:=Assigned(aLine);
   if Not Result then
     exit;
-  Result:=StartsWithWhitespace(aLine.line,aList.marker[1],len,aList.baseIndent);
+  lLine:=aLine.Remainder;
+  Result:=StartsWithWhitespace(lLine,aList.marker[1],len,aList.baseIndent);
   if Result then
     Result := (len >= aList.baseIndent);
+  if not Result then
+    exit;
+  // The marker is followed by whitespace, and the line is not a thematic break
+  Result:=(Length(lLine)=len+1) or (lLine[len+2] in [' ',#9]);
+  if Result then
+    begin
+    lLine:=StripWhitespace(lLine);
+    Result:=not ((CountStartChars(lLine,lLine[1])>2) and IsStringOfChar(lLine));
+    end;
 end;
 
 function TUListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): boolean;
@@ -657,6 +757,7 @@ function TUListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TM
 var
   lOldLastList, lList : TMarkdownListBlock;
   lOldLastItem, lItem : TMarkdownListItemBlock;
+  lOldOuter : TMarkdownBlockProcessor;
   lRemain,lMarker : string;
   lIndent,lContentIndent : Integer;
   lNewItem : Boolean;
@@ -665,9 +766,9 @@ begin
   Result:=False;
   lRemain:=aLine.Remainder;
   if not HasMarker(aLine,lIndent,lMarker) then exit;
-
+  lOldOuter:=EnterList;
   aLine.Advance(Pos(lMarker,aLine.Remainder)+1);
-  lContentIndent:=ContentIndent(aLine);
+  lContentIndent:=ContentIndent(aLine)-OuterPrefixLength(aLine);
   lRemain:=aLine.Remainder;
   lOldLastList:=FLastList;
   lOldLastItem:=FLastItem;
@@ -690,19 +791,13 @@ begin
     PrepareLine(aLine,bpGeneral);
     RedoLine(False);
     Parse(lItem,Self);
-    lNewItem:=Not Done;
-    if lNewItem then
-      begin
-      aLine:=PeekLine;
-      // Check if next line is a list item at the SAME level
-      lNewItem:=IsItemInList(lList,aLine);
-      if lnewItem then
-        aLine:=NextLine;
-      end;
+    // Check if next line is a list item at the SAME level
+    lNewItem:=(Not Done) and NextItemLine(lList,aLine);
     lItem.Closed:=true;
   until not lNewItem;
   FLastItem:=lOldLastItem;
   FLastList:=lOldLastList;
+  FOuter:=lOldOuter;
   Result:=True;
 end;
 
@@ -756,13 +851,13 @@ begin
   Result:=Assigned(aLine);
   if Not Result then
     exit;
-  Result:=StartsWithWhitespace(aLine.Line,['0'..'9'],len,aList.baseIndent);
+  Result:=StartsWithWhitespace(aLine.Remainder,['0'..'9'],len,aList.baseIndent);
   if Not Result then
     exit;
   // Ensure indentation is exactly at the expected level for this list
   if len = aList.baseIndent then
     begin
-    lLine:=aLine.Line;
+    lLine:=aLine.Remainder;
     if Len>0 then
       Delete(lLine,1,Len);
     lLine:=CopySkipped(lLine,['0'..'9']);
@@ -779,16 +874,28 @@ var
   lBlock : TMarkdownContainerBlock;
   lList : TMarkdownListBlock absolute lBlock;
   lProc : TMarkdownBlockProcessor;
+  lStart : Integer;
 
 begin
   lBlock:=aBlock;
   Result:=aBlock.line<>aLine.LineNo;
   if Not Result then
     Exit;
+  lStart:=aLine.CursorPos;
+  if not StripOuter(aLine) then
+    begin
+    Result:=OutsideLineEndsBlock(aBlock,aLine);
+    if Result then
+      aLine.CursorPos:=lStart;
+    Exit;
+    end;
   if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkdownListBlock) then
      lBlock:=lBlock.Parent as TMarkdownListBlock;
   if not (lBlock is TMarkdownListBlock) then
+    begin
+    aLine.CursorPos:=lStart;
     Exit;
+    end;
   // Check if we're still in the parent list
   if aLine.LeadingWhitespace>=lList.baseIndent then
     begin
@@ -817,6 +924,8 @@ begin
     if not Result then
       aLine.Advance(lList.LastIndent);
     end;
+  if Result then
+    aLine.CursorPos:=lStart;
 end;
 
 
@@ -824,6 +933,7 @@ function TOListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TM
 var
   lOldLastList, lList : TMarkdownListBlock;
   lOldLastItem, lItem : TMarkdownListItemBlock;
+  lOldOuter : TMarkdownBlockProcessor;
   lNewItem : Boolean;
   lMarker : String;
   lStart,lIndent,lContentIndent : Integer;
@@ -831,8 +941,9 @@ begin
   Result:=False;
   if not HasMarker(aLine,lIndent,lMarker,lStart) then
     exit;
+  lOldOuter:=EnterList;
   aLine.Advance(Pos(lMarker,aLine.Remainder)+1);
-  lContentIndent:=ContentIndent(aLine);
+  lContentIndent:=ContentIndent(aLine)-OuterPrefixLength(aLine);
   lOldLastList:=FLastList;
   if inList(aParent, true, lMarker, lindent, 2, lList) then
     begin
@@ -859,18 +970,12 @@ begin
     PrepareLine(aLine,bpGeneral);
     RedoLine(False);
     Parse(lItem,Self);
-    lNewItem:=Not Done;
-    if lNewItem then
-      begin
-      aLine:=PeekLine;
-      // Check if next line is a list item at the SAME level
-      lNewItem:=IsItemInList(lList,aLine);
-      if lNewItem then
-        aLine:=NextLine;
-      end;
+    // Check if next line is a list item at the SAME level
+    lNewItem:=(Not Done) and NextItemLine(lList,aLine);
   until not lNewItem;
   FLastItem:=lOldLastItem;
   FLastList:=lOldLastList;
+  FOuter:=lOldOuter;
   Result:=True;
 end;
 
