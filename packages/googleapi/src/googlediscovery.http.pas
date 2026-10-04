@@ -51,9 +51,9 @@ implementation
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
-  FpWeb.Http.Client, System.Net.Opensslsockets, Fcl.UriParser,
+  FpWeb.Http.Client, Fcl.UriParser,
   {$ELSE}
-  fphttpclient, opensslsockets, URIParser,
+  fphttpclient, URIParser,
   {$ENDIF}
   GoogleDiscovery.Json, GoogleDiscovery.Logging;
 

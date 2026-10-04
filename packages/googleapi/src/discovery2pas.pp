@@ -12,22 +12,44 @@
     discovery2pas -f discovery.json -o ./output/myapi
     discovery2pas -s calendar -w calendar.map  # Write service map only
 }
+
+// Define this if you want to use GNU TLS (libgnutls)
+{ $DEFINE USE_GNUTLS }
+
 program discovery2pas;
 
 {$mode objfpc}{$H+}
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
+  
   {$IFDEF UNIX}
   UnixApi.CThreads,
+  {$ENDIF UNIX}
+  System.Classes, System.SysUtils, Fcl.CustApp, FpJson.Data, 
+  
+  // Link in SSL support
+  {$IFDEF USE_GNUTLS}
+  System.Net.Gnutlssockets
+  {$ELSE USE_GNUTLS}
+  System.Net.Opensslsockets, 
   {$ENDIF}
-  System.Classes, System.SysUtils, Fcl.CustApp, FpJson.Data,
-  {$ELSE}
+  
+  {$ELSE FPC_DOTTEDUNITS}
+  
   {$IFDEF UNIX}
   cthreads,
-  {$ENDIF}
-  Classes, SysUtils, CustApp, fpjson,
-  {$ENDIF}
+  {$ENDIF UNIX}
+  Classes, SysUtils, CustApp, fpjson, 
+  
+  // Link in SSL support
+  {$IFDEF USE_GNUTLS}
+  gnutlssockets,
+  {$ELSE USE_GNUTLS}
+  opensslsockets, 
+  {$ENDIF USE_GNUTLS}
+  
+  {$ENDIF FPC_DOTTEDUNITS }
   // GoogleDiscovery units
   GoogleDiscovery.Types,
   GoogleDiscovery.Http,
