@@ -269,7 +269,7 @@ end;
 
 function TFpSonarToken.IsKeyword: boolean;
 begin
-  Result := Kind in [tkabsolute..tkxor];
+  Result := Kind in ([tkabsolute..tkxor] - [tkTrue,tkFalse]);
 end;
 
 
