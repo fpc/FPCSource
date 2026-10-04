@@ -133,7 +133,7 @@ Type
 
 class function TPulseData.Create: TPulseData;
 begin
-  Result.Event:=RTLEventCreate;
+  Result.Event:=BasicEventCreate(nil,False,False,'');
   if (Result.Event=Nil) then
     Raise EMonitor.Create('Could not create event');
   Result.Next:=nil; // Support the comment on Next. Prev is set by AddToPulseData and is otherwise unimportant.
@@ -144,7 +144,7 @@ end;
 
 procedure TPulseData.Done;
 begin
-  RTLEventDestroy(Event);
+  BasicEventDestroy(Event);
 end;
 
 function TPulseData.Wait(aTimeout: Cardinal): boolean;
