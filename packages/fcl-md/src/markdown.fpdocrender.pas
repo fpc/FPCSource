@@ -41,6 +41,7 @@ type
 
   TMarkdownFPDocRenderer = class(TMarkdownRenderer)
   private
+    FDocument : TMarkdownDocument;
     FDoc : TXMLDocument;
     FFPDoc: String;
     FPackageName: String;
@@ -66,6 +67,8 @@ type
     Procedure RenderDocument(aDocument : TMarkdownDocument); override;overload;
     Procedure RenderDocument(aDocument : TMarkdownDocument; aDest : TStrings); overload;
     function RenderFPDoc(aDocument : TMarkdownDocument) : string;
+    // The document being rendered
+    Property Document : TMarkdownDocument read FDocument;
     Property PackageName : String read FPackageName Write FPackageName;
     Property FPDoc : String Read FFPDoc;
   end;
@@ -109,6 +112,10 @@ type
     procedure PopStyle;
     procedure Append(const S : String); inline;
     procedure DoRender(aElement: TMarkdownTextNode); override;
+    // Render a link node, after OnResolveLink
+    procedure RenderLink(aElement: TMarkdownTextNode); virtual;
+    // Render a footnote reference as the note text in parentheses
+    procedure RenderFootnoteRef(aElement: TMarkdownTextNode); virtual;
   Public
     procedure BeginBlock; override;
     procedure EndBlock; override;
@@ -225,6 +232,53 @@ type
     class function BlockClass : TMarkdownBlockClass; override;
   end;
 
+  { TFPDocMarkdownCommentBlockRenderer }
+
+  TFPDocMarkdownCommentBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { TFPDocMarkdownDefinitionListBlockRenderer }
+
+  // Writes dt and dd alternately: consecutive definitions of one term share a dd.
+  TFPDocMarkdownDefinitionListBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure RenderDefinition(aDef : TMarkdownDefinitionBlock; aTight : Boolean);
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { TFPDocMarkdownAlertBlockRenderer }
+
+  TFPDocMarkdownAlertBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { TFPDocMarkdownFootnoteBlockRenderer }
+
+  TFPDocMarkdownFootnoteBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { TFPDocMarkdownFigureBlockRenderer }
+
+  TFPDocMarkdownFigureBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
 
 implementation
 
@@ -322,7 +376,7 @@ end;
 
 procedure TFPDocMarkdownBlockRenderer.AppendNl(const S: String);
 begin
-  FPDoc.AppendText(S);
+  FPDoc.AppendText(S+#10);
 end;
 
 
@@ -405,6 +459,7 @@ end;
 procedure TMarkdownFPDocRenderer.RenderToXML(aDocument: TMarkdownDocument; aXML: TXMLDocument);
 begin
   FDoc:=aXML;
+  FDocument:=aDocument;
   try
     Push('fpdoc-descriptions');
     Push('package',FPackageName);
@@ -412,6 +467,7 @@ begin
     Pop;
     Pop;
   finally
+    FDocument:=Nil;
     FDoc:=Nil;
   end;
 end;
@@ -548,7 +604,22 @@ var
   lName : String;
 
 begin
+  if aElement.Kind=nkComment then
+    begin
+    Renderer.DoMarkerNode(aElement);
+    Exit;
+    end;
   EmitStyleDiff(aElement.StyleList);
+  if aElement.Kind=nkFootnoteRef then
+    begin
+    RenderFootnoteRef(aElement);
+    Exit;
+    end;
+  if aElement.Kind in [nkURI,nkEmail] then
+    begin
+    RenderLink(aElement);
+    Exit;
+    end;
   lName:='';
   if aElement.Kind<>nkText then
     begin
@@ -576,6 +647,59 @@ begin
     FPDoc.Pop;
   aElement.Active:=False;
 end;
+
+procedure TFPDocMarkdownTextRenderer.RenderLink(aElement: TMarkdownTextNode);
+
+var
+  lHref,lText : String;
+  lChild : TMarkdownTextNode;
+
+begin
+  aElement.Active:=False;
+  lHref:=aElement.Attrs['href'];
+  lText:=aElement.NodeText;
+  if aElement.HasChildren then
+    lText:=lText+aElement.Children.PlainText;
+  if Renderer.DoResolveLink(lHref,lText) then
+    Exit;
+  FPDoc.Push('link');
+  FPDoc.Parent['id']:=UTF8Decode(lHref);
+  if (aElement.NodeText='') and not aElement.HasChildren then
+    begin
+    if lText='' then
+      lText:=lHref;
+    FPDoc.AppendText(lText);
+    end
+  else
+    begin
+    if aElement.NodeText<>'' then
+      FPDoc.AppendText(aElement.NodeText);
+    if aElement.HasChildren then
+      begin
+      for lChild in aElement.Children do
+        DoRender(lChild);
+      EmitStyleDiff(aElement.StyleList);
+      end;
+    end;
+  FPDoc.Pop;
+end;
+
+
+procedure TFPDocMarkdownTextRenderer.RenderFootnoteRef(aElement: TMarkdownTextNode);
+
+var
+  lDef : TMarkdownFootnoteBlock;
+
+begin
+  lDef:=Nil;
+  if Assigned(FPDoc.Document) then
+    lDef:=FPDoc.Document.FindFootnoteDef(aElement.Attrs['label']);
+  if Assigned(lDef) then
+    FPDoc.AppendText(' ('+lDef.PlainText+')')
+  else
+    FPDoc.AppendText('[^'+aElement.Attrs['label']+']');
+end;
+
 
 procedure TFPDocMarkdownTextRenderer.BeginBlock;
 begin
@@ -642,10 +766,13 @@ var
   et : TElementType;
   st : TSectionType;
   lText : string;
+  lPushed : Boolean;
 begin
+  lPushed:=False;
   if lNode.header=0 then
     begin
-    if not FPDoc.SkipParagraph then
+    lPushed:=not FPDoc.SkipParagraph;
+    if lPushed then
       FPDoc.Push('p');
     end
   else
@@ -673,6 +800,8 @@ begin
     end;
     end;
   Renderer.RenderChildren(lNode);
+  if lPushed then
+    FPDoc.Pop;
 end;
 
 class function TFPDocParagraphBlockRenderer.BlockClass: TMarkdownBlockClass;
@@ -768,8 +897,9 @@ begin
   FPDoc.Push('code');
   for lBlock in LNode.Blocks do
     begin
+    if lBlock<>LNode.Blocks.First then
+      AppendNl;
     Renderer.RenderBlock(LBlock);
-    AppendNl;
     end;
   FPDoc.Pop;
 end;
@@ -798,6 +928,12 @@ var
   i : integer;
 begin
   fpdoc.Push('table');
+  if Assigned(lNode.Caption) then
+    begin
+    fpdoc.Push('caption');
+    Renderer.RenderTextNodes(lNode.Caption);
+    fpdoc.Pop;
+    end;
   Renderer.RenderBlock(lNode.blocks[0]);
   if lNode.blocks.Count > 1 then
   begin
@@ -841,19 +977,17 @@ end;
 
 procedure TFPDocMarkdownTableRowBlockRenderer.DoRender(aElement : TMarkdownBlock);
 const
-  CellTypes : Array[Boolean] of string = ('td','th'); //
+  RowTypes : Array[Boolean] of string = ('tr','th');
 var
   lNode : TMarkdownTableRowBlock absolute aElement;
   first : boolean;
   i : integer;
-  cType : String;
 begin
-  first:=(lNode.parent as TMarkdownContainerBlock).blocks.First = self;
-  cType:=Celltypes[First];
-  fpDoc.Push('tr');
+  first:=(lNode.parent as TMarkdownContainerBlock).blocks.First = lNode;
+  fpDoc.Push(RowTypes[First]);
   for i := 0 to length((lNode.parent as TMarkdownTableBlock).Columns) - 1 do
     begin
-    fpDoc.Push(cType);
+    fpDoc.Push('td');
     if i < lNode.blocks.Count then
       Renderer.RenderBlock(lNode.blocks[i]);
     fpDoc.Pop;
@@ -903,6 +1037,154 @@ begin
   Result:=TMarkdownHeadingBlock;
 end;
 
+{ TFPDocMarkdownCommentBlockRenderer }
+
+procedure TFPDocMarkdownCommentBlockRenderer.DoRender(aElement: TMarkdownBlock);
+
+var
+  lNode : TMarkdownCommentBlock absolute aElement;
+
+begin
+  if lNode.IsMarker then
+    Renderer.DoMarker(lNode.MarkerName,lNode.MarkerArgument,lNode.MarkerValue);
+end;
+
+
+class function TFPDocMarkdownCommentBlockRenderer.BlockClass: TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownCommentBlock;
+end;
+
+{ TFPDocMarkdownDefinitionListBlockRenderer }
+
+procedure TFPDocMarkdownDefinitionListBlockRenderer.RenderDefinition(aDef: TMarkdownDefinitionBlock; aTight: Boolean);
+
+var
+  lBlock : TMarkdownBlock;
+
+begin
+  for lBlock in aDef.Blocks do
+    if aTight and (lBlock.ClassType=TMarkdownParagraphBlock) and TMarkdownParagraphBlock(lBlock).IsPlainPara then
+      FPDoc.RenderChildren(TMarkdownParagraphBlock(lBlock))
+    else
+      Renderer.RenderBlock(lBlock);
+end;
+
+
+procedure TFPDocMarkdownDefinitionListBlockRenderer.DoRender(aElement: TMarkdownBlock);
+
+var
+  lList : TMarkdownDefinitionListBlock absolute aElement;
+  lBlock : TMarkdownBlock;
+  lInDD : Boolean;
+
+begin
+  FPDoc.Push('dl');
+  lInDD:=False;
+  for lBlock in lList.Blocks do
+    if lBlock is TMarkdownDefinitionTermBlock then
+      begin
+      if lInDD then
+        FPDoc.Pop;
+      lInDD:=False;
+      FPDoc.Push('dt');
+      FPDoc.RenderChildren(TMarkdownDefinitionTermBlock(lBlock));
+      FPDoc.Pop;
+      end
+    else if lBlock is TMarkdownDefinitionBlock then
+      begin
+      if not lInDD then
+        FPDoc.Push('dd');
+      lInDD:=True;
+      RenderDefinition(TMarkdownDefinitionBlock(lBlock),not lList.Loose);
+      end;
+  if lInDD then
+    FPDoc.Pop;
+  FPDoc.Pop;
+end;
+
+
+class function TFPDocMarkdownDefinitionListBlockRenderer.BlockClass: TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionListBlock;
+end;
+
+{ TFPDocMarkdownAlertBlockRenderer }
+
+procedure TFPDocMarkdownAlertBlockRenderer.DoRender(aElement: TMarkdownBlock);
+
+var
+  lNode : TMarkdownAlertBlock absolute aElement;
+
+begin
+  if (lNode.AlertType in [atNote,atTip,atImportant]) and (UTF8Encode(Parent.NodeName)='descr') then
+    begin
+    FPDoc.Push('remark');
+    Renderer.RenderChildren(lNode);
+    FPDoc.Pop;
+    end
+  else
+    begin
+    FPDoc.Push('p');
+    FPDoc.Push('b');
+    FPDoc.AppendText(Renderer.AlertTitles[lNode.AlertType]+':');
+    FPDoc.Pop;
+    FPDoc.Pop;
+    Renderer.RenderChildren(lNode);
+    end;
+end;
+
+
+class function TFPDocMarkdownAlertBlockRenderer.BlockClass: TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownAlertBlock;
+end;
+
+{ TFPDocMarkdownFootnoteBlockRenderer }
+
+procedure TFPDocMarkdownFootnoteBlockRenderer.DoRender(aElement: TMarkdownBlock);
+
+begin
+  if aElement=Nil then ; // Silence warning
+end;
+
+
+class function TFPDocMarkdownFootnoteBlockRenderer.BlockClass: TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownFootnoteBlock;
+end;
+
+{ TFPDocMarkdownFigureBlockRenderer }
+
+procedure TFPDocMarkdownFigureBlockRenderer.DoRender(aElement: TMarkdownBlock);
+
+var
+  lNode : TMarkdownFigureBlock absolute aElement;
+  lImg : TDOMElement;
+
+begin
+  if not Assigned(lNode.Image) then
+    Exit;
+  lImg:=FPDoc.Push('img');
+  lImg['file']:=UTF8Decode(lNode.Image.Attrs['src']);
+  if Assigned(lNode.Caption) and (lNode.Caption.Count>0) then
+    lImg['caption']:=UTF8Decode(lNode.Caption.PlainText);
+  if lNode.ID<>'' then
+    lImg['name']:=UTF8Decode(lNode.ID);
+  FPDoc.Pop;
+end;
+
+
+class function TFPDocMarkdownFigureBlockRenderer.BlockClass: TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownFigureBlock;
+end;
+
 initialization
   TFPDocMarkdownHeadingBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocParagraphBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
@@ -917,6 +1199,11 @@ initialization
   TFPDocMarkdownTableRowBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownFrontmatterBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownDocumentRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownCommentBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownDefinitionListBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownAlertBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownFootnoteBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownFigureBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTextRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
 end.
 

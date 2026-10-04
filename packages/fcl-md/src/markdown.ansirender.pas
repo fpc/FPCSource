@@ -87,6 +87,10 @@ type
     procedure SetMarker(const aStyled : string; aVis : Integer);
     function PrefixWidth : Integer;
     procedure RenderInline(aNode : TMarkdownTextNode);
+    // Write aText as-is; it counts as visible text.
+    procedure WriteRaw(const aText : String); override;
+    // Render the referenced footnotes of aDocument as a numbered list.
+    procedure RenderFootnotes(aDocument : TMarkdownDocument); virtual;
     // Theme/state accessed by block renderers
     property BaseStyle : TRunStyle read FBaseStyle write FBaseStyle;
     property InListItem : Boolean read FInListItem write FInListItem;
@@ -104,6 +108,8 @@ type
   TANSIBlockRenderer = class(TMarkdownBlockRenderer)
   protected
     function ANSI : TMarkDownANSIRenderer; inline;
+    // Write aBlock as a heading
+    procedure RenderHeading(aBlock : TMarkdownContainerBlock);
   end;
 
 implementation
@@ -188,6 +194,55 @@ type
   end;
 
   TANSIFrontmatterRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSICommentRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIDefinitionListRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIDefinitionTermRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIDefinitionRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIAlertRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIFootnoteRenderer = class(TANSIBlockRenderer)
+  protected
+    procedure DoRender(aBlock : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  TANSIFigureRenderer = class(TANSIBlockRenderer)
   protected
     procedure DoRender(aBlock : TMarkdownBlock); override;
   public
@@ -420,7 +475,7 @@ end;
 procedure TMarkDownANSIRenderer.RenderInline(aNode : TMarkdownTextNode);
 var
   lStyle,lSaveBase : TRunStyle;
-  lText : string;
+  lText,lHref : string;
   lChild : TMarkdownTextNode;
 begin
   if not assigned(aNode) then
@@ -439,10 +494,23 @@ begin
       end;
     nkURI,nkEmail:
       begin
+      lHref:=aNode.Attrs['href'];
+      lText:=aNode.NodeText;
+      if aNode.HasChildren then
+        lText:=lText+aNode.Children.PlainText;
+      if DoResolveLink(lHref,lText) then
+        Exit;
       lStyle.Underline:=True;
       lStyle.Fg:=clLink;
-      lStyle.Href:=aNode.Attrs['href'];
-      AddRun(aNode.NodeText,lStyle,False);
+      lStyle.Href:=lHref;
+      if (aNode.NodeText='') and not aNode.HasChildren then
+        begin
+        if lText='' then
+          lText:=lHref;
+        AddRun(lText,lStyle,False);
+        end
+      else
+        AddRun(aNode.NodeText,lStyle,False);
       if aNode.HasChildren then
         begin
         lSaveBase:=FBaseStyle;
@@ -451,6 +519,16 @@ begin
           RenderInline(lChild);
         FBaseStyle:=lSaveBase;
         end;
+      end;
+    nkComment:
+      DoMarkerNode(aNode);
+    nkFootnoteRef:
+      begin
+      lText:=aNode.Attrs['number'];
+      if lText='' then
+        lText:=aNode.Attrs['label'];
+      lStyle.Fg:=clLink;
+      AddRun('['+lText+']',lStyle,False);
       end;
     nkImg:
       begin
@@ -478,9 +556,43 @@ begin
   FBaseStyle:=DefaultStyle;
   RenderChildren(aDocument);
   FlushLine;
+  RenderFootnotes(aDocument);
   // drop a trailing blank line if present
   while (FOutput.Count>0) and (FOutput[FOutput.Count-1]='') do
     FOutput.Delete(FOutput.Count-1);
+end;
+
+
+procedure TMarkDownANSIRenderer.WriteRaw(const aText : String);
+
+begin
+  if Assigned(FOutput) then
+    AddRaw(aText,aText);
+end;
+
+
+procedure TMarkDownANSIRenderer.RenderFootnotes(aDocument : TMarkdownDocument);
+
+var
+  lBlock : TMarkdownBlock;
+  lMarker : string;
+  lWasInItem : Boolean;
+begin
+  if aDocument.Footnotes.Count=0 then
+    exit;
+  BlankLine;
+  lWasInItem:=FInListItem;
+  FInListItem:=True;
+  for lBlock in aDocument.Footnotes do
+    begin
+    lMarker:='['+IntToStr(TMarkdownFootnoteBlock(lBlock).Number)+'] ';
+    PushPrefix(VisibleWidth(lMarker),Spaces(VisibleWidth(lMarker)));
+    SetMarker(lMarker,VisibleWidth(lMarker));
+    RenderChildren(TMarkdownFootnoteBlock(lBlock));
+    FlushLine;
+    PopPrefix;
+    end;
+  FInListItem:=lWasInItem;
 end;
 
 
@@ -513,10 +625,37 @@ begin
 end;
 
 
+procedure TANSIBlockRenderer.RenderHeading(aBlock : TMarkdownContainerBlock);
+
+var
+  lSaved, lStyle : TRunStyle;
+  lNumber : string;
+begin
+  ANSI.BlankLine;
+  lSaved:=ANSI.BaseStyle;
+  lStyle:=lSaved;
+  lStyle.Bold:=True;
+  lStyle.Fg:=clHeading;
+  ANSI.BaseStyle:=lStyle;
+  lNumber:=Renderer.GetHeadingNumber(aBlock);
+  if lNumber<>'' then
+    ANSI.AddRun(lNumber+' ',lStyle,True);
+  Renderer.RenderChildren(aBlock);
+  ANSI.BaseStyle:=lSaved;
+  ANSI.FlushLine;
+  ANSI.BlankLine;
+end;
+
+
 { TANSIParagraphRenderer }
 
 procedure TANSIParagraphRenderer.DoRender(aBlock : TMarkdownBlock);
 begin
+  if TMarkdownParagraphBlock(aBlock).Header>0 then
+    begin
+    RenderHeading(TMarkdownParagraphBlock(aBlock));
+    exit;
+    end;
   Renderer.RenderChildren(aBlock as TMarkdownContainerBlock);
   ANSI.FlushLine;
   if not ANSI.InListItem then
@@ -554,19 +693,8 @@ end;
 { TANSIHeadingRenderer }
 
 procedure TANSIHeadingRenderer.DoRender(aBlock : TMarkdownBlock);
-var
-  lSaved, lStyle : TRunStyle;
 begin
-  ANSI.BlankLine;
-  lSaved:=ANSI.BaseStyle;
-  lStyle:=lSaved;
-  lStyle.Bold:=True;
-  lStyle.Fg:=clHeading;
-  ANSI.BaseStyle:=lStyle;
-  Renderer.RenderChildren(aBlock as TMarkdownContainerBlock);
-  ANSI.BaseStyle:=lSaved;
-  ANSI.FlushLine;
-  ANSI.BlankLine;
+  RenderHeading(aBlock as TMarkdownContainerBlock);
 end;
 
 class function TANSIHeadingRenderer.BlockClass : TMarkdownBlockClass;
@@ -734,16 +862,14 @@ var
   lColW : array of Integer;
   lCellText : array of array of string;
   lRow, lCell : TMarkdownBlock;
-  lText, lLine, lSep : string;
+  lText, lLine, lSep, lLabel : string;
   lStyle : TRunStyle;
 
   function CellText(aCell : TMarkdownBlock) : string;
-  var n : Integer;
   begin
     Result:='';
-    if aCell is TMarkdownTextBlock then
-      for n:=0 to TMarkdownTextBlock(aCell).Nodes.Count-1 do
-        Result:=Result+TMarkdownTextBlock(aCell).Nodes[n].NodeText;
+    if (aCell is TMarkdownTextBlock) and Assigned(TMarkdownTextBlock(aCell).Nodes) then
+      Result:=TMarkdownTextBlock(aCell).Nodes.PlainText;
   end;
 
 begin
@@ -775,6 +901,18 @@ begin
       end;
     end;
   ANSI.BlankLine;
+  lLabel:=Renderer.GetCaptionNumber(lTable);
+  if Assigned(lTable.Caption) or (lLabel<>'') then
+    begin
+    lStyle:=ANSI.DefaultStyle;
+    lStyle.Bold:=True;
+    if lLabel<>'' then
+      ANSI.AddRun(lLabel+':',lStyle,True);
+    if Assigned(lTable.Caption) then
+      for c:=0 to lTable.Caption.Count-1 do
+        ANSI.RenderInline(lTable.Caption[c]);
+    ANSI.FlushLine;
+    end;
   // separator line "+----+----+"
   lSep:='+';
   for c:=0 to lCols-1 do
@@ -827,6 +965,166 @@ begin
 end;
 
 
+{ TANSICommentRenderer }
+
+procedure TANSICommentRenderer.DoRender(aBlock : TMarkdownBlock);
+
+var
+  lNode : TMarkdownCommentBlock absolute aBlock;
+begin
+  if lNode.IsMarker then
+    Renderer.DoMarker(lNode.MarkerName,lNode.MarkerArgument,lNode.MarkerValue);
+end;
+
+
+class function TANSICommentRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownCommentBlock;
+end;
+
+
+{ TANSIDefinitionListRenderer }
+
+procedure TANSIDefinitionListRenderer.DoRender(aBlock : TMarkdownBlock);
+
+begin
+  ANSI.BlankLine;
+  Renderer.RenderChildren(aBlock as TMarkdownContainerBlock);
+  ANSI.BlankLine;
+end;
+
+
+class function TANSIDefinitionListRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionListBlock;
+end;
+
+
+{ TANSIDefinitionTermRenderer }
+
+procedure TANSIDefinitionTermRenderer.DoRender(aBlock : TMarkdownBlock);
+
+var
+  lSaved, lStyle : TRunStyle;
+begin
+  lSaved:=ANSI.BaseStyle;
+  lStyle:=lSaved;
+  lStyle.Bold:=True;
+  ANSI.BaseStyle:=lStyle;
+  Renderer.RenderChildren(aBlock as TMarkdownContainerBlock);
+  ANSI.BaseStyle:=lSaved;
+  ANSI.FlushLine;
+end;
+
+
+class function TANSIDefinitionTermRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionTermBlock;
+end;
+
+
+{ TANSIDefinitionRenderer }
+
+procedure TANSIDefinitionRenderer.DoRender(aBlock : TMarkdownBlock);
+
+var
+  lWasInItem : Boolean;
+begin
+  ANSI.PushPrefix(4,Spaces(4));
+  lWasInItem:=ANSI.InListItem;
+  ANSI.InListItem:=True;
+  Renderer.RenderChildren(aBlock as TMarkdownContainerBlock);
+  ANSI.InListItem:=lWasInItem;
+  ANSI.FlushLine;
+  ANSI.PopPrefix;
+end;
+
+
+class function TANSIDefinitionRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionBlock;
+end;
+
+
+{ TANSIAlertRenderer }
+
+procedure TANSIAlertRenderer.DoRender(aBlock : TMarkdownBlock);
+
+var
+  lNode : TMarkdownAlertBlock absolute aBlock;
+  lStyle : TRunStyle;
+begin
+  ANSI.BlankLine;
+  lStyle:=ANSI.DefaultStyle;
+  lStyle.Bold:=True;
+  lStyle.Fg:=clQuote;
+  ANSI.AddRun(Renderer.AlertTitles[lNode.AlertType],lStyle,True);
+  ANSI.FlushLine;
+  ANSI.PushPrefix(2,Spaces(2));
+  Renderer.RenderChildren(lNode);
+  ANSI.FlushLine;
+  ANSI.PopPrefix;
+  ANSI.BlankLine;
+end;
+
+
+class function TANSIAlertRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownAlertBlock;
+end;
+
+
+{ TANSIFootnoteRenderer }
+
+procedure TANSIFootnoteRenderer.DoRender(aBlock : TMarkdownBlock);
+
+begin
+  if aBlock=nil then ; // Silence warning
+end;
+
+
+class function TANSIFootnoteRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownFootnoteBlock;
+end;
+
+
+{ TANSIFigureRenderer }
+
+procedure TANSIFigureRenderer.DoRender(aBlock : TMarkdownBlock);
+
+var
+  lNode : TMarkdownFigureBlock absolute aBlock;
+  lText, lLabel : string;
+  lStyle : TRunStyle;
+begin
+  lText:='';
+  if Assigned(lNode.Caption) then
+    lText:=lNode.Caption.PlainText;
+  lLabel:=Renderer.GetCaptionNumber(lNode);
+  if lLabel='' then
+    lLabel:='Figure';
+  lStyle:=ANSI.DefaultStyle;
+  lStyle.Faint:=True;
+  ANSI.AddRun('['+lLabel+': '+lText+']',lStyle,True);
+  ANSI.FlushLine;
+  ANSI.BlankLine;
+end;
+
+
+class function TANSIFigureRenderer.BlockClass : TMarkdownBlockClass;
+
+begin
+  Result:=TMarkdownFigureBlock;
+end;
+
+
 initialization
   TANSIParagraphRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSITextBlockRenderer.RegisterRenderer(TMarkDownANSIRenderer);
@@ -838,4 +1136,11 @@ initialization
   TANSIThematicBreakRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSITableRenderer.RegisterRenderer(TMarkDownANSIRenderer);
   TANSIFrontmatterRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSICommentRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIDefinitionListRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIDefinitionTermRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIDefinitionRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIAlertRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIFootnoteRenderer.RegisterRenderer(TMarkDownANSIRenderer);
+  TANSIFigureRenderer.RegisterRenderer(TMarkDownANSIRenderer);
 end.

@@ -74,6 +74,19 @@ type
     procedure TestHardLineBreakBackslash;
     procedure TestTextIsNotEscaped;
     procedure TestInlineLinkUrlIsNotEscaped;
+    procedure TestEmptyLinkText;
+    procedure TestInlineComment;
+    procedure TestInlineCommentMarker;
+    procedure TestInlineCommentSpansLines;
+    procedure TestEmptyComment;
+    procedure TestUnclosedCommentIsText;
+    procedure TestCommentOptionOff;
+    procedure TestFootnoteReference;
+    procedure TestFootnoteReferenceWithSpaceIsText;
+    procedure TestFootnoteOptionOff;
+    procedure TestReferenceLink;
+    procedure TestReferenceImage;
+    procedure TestReferenceLinkWithoutDocument;
   end;
 
 implementation
@@ -479,6 +492,184 @@ begin
   FProcessor.Process(True);
   AssertEquals('Should have one node', 1, FNodes.Count);
   AssertEquals('Link href', 'http://x/?p=1&q=2', NodeAsNamed(0, nkURI).attrs['href']);
+end;
+
+procedure TTestInlineTextProcessor.TestEmptyLinkText;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('See [](#target).');
+  FProcessor.Process(True);
+  Node := NodeAsNamed(1, nkURI);
+  AssertEquals('Link target', '#target', Node.Attrs['href']);
+  AssertEquals('Link has no text', '', Node.NodeText);
+  AssertFalse('Link has no children', Node.HasChildren);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineComment;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('a <!-- remark --> b');
+  FProcessor.Comments:=True;
+  FProcessor.Process(True);
+  AssertEquals('Three nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkComment);
+  AssertEquals('Comment text', ' remark ', Node.NodeText);
+  AssertFalse('Plain comment is no marker', Node.HasAttrs and Node.Attrs.Contains('marker'));
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineCommentMarker;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('x<!-- index[msgnr]: 1000 -->');
+  FProcessor.Comments:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(1, nkComment);
+  AssertEquals('Marker name', 'index', Node.Attrs['marker']);
+  AssertEquals('Marker argument', 'msgnr', Node.Attrs['argument']);
+  AssertEquals('Marker value', '1000', Node.Attrs['value']);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineCommentSpansLines;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('a <!-- one'#10'two --> b');
+  FProcessor.Comments:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(1, nkComment);
+  AssertEquals('Comment over two lines', ' one'#10'two ', Node.NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmptyComment;
+
+begin
+  SetupProcessor('a <!--> b');
+  FProcessor.Comments:=True;
+  FProcessor.Process(True);
+  AssertEquals('Empty comment', '', NodeAsNamed(1, nkComment).NodeText);
+  AssertEquals('Text after', ' b', NodeAsText(2).NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestUnclosedCommentIsText;
+
+begin
+  SetupProcessor('a <!-- b');
+  FProcessor.Comments:=True;
+  FProcessor.Process(True);
+  AssertEquals('Literal text', 'a <!-- b', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestCommentOptionOff;
+
+begin
+  SetupProcessor('a <!-- b --> c');
+  FProcessor.Process(True);
+  AssertEquals('Literal text without option', 'a <!-- b --> c', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestFootnoteReference;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('Text.[^speed] More');
+  FProcessor.Footnotes:=True;
+  FProcessor.Process(True);
+  AssertEquals('Three nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkFootnoteRef);
+  AssertEquals('Label', 'speed', Node.Attrs['label']);
+  AssertEquals('Text after', ' More', NodeAsText(2).NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestFootnoteReferenceWithSpaceIsText;
+
+begin
+  SetupProcessor('Text [^a b] more');
+  FProcessor.Footnotes:=True;
+  FProcessor.Process(True);
+  AssertEquals('Literal text', 'Text [^a b] more', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestFootnoteOptionOff;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('Text[^a]');
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No footnote reference without option', FNodes[I].Kind=nkFootnoteRef);
+end;
+
+
+procedure TTestInlineTextProcessor.TestReferenceLink;
+
+var
+  lDoc : TMarkdownDocument;
+  Node: TMarkDownTextNode;
+begin
+  lDoc:=TMarkdownDocument.Create(Nil,1);
+  try
+    lDoc.AddLinkRef('Foo','/url','The title');
+    SetupProcessor('A [link][foo] and [foo].');
+    FProcessor.LinkReferences:=lDoc;
+    FProcessor.Process(True);
+    Node := NodeAsNamed(1, nkURI);
+    AssertEquals('Full reference target', '/url', Node.Attrs['href']);
+    AssertEquals('Full reference title', 'The title', Node.Attrs['title']);
+    AssertEquals('Full reference text', 'link', Node.NodeText);
+    Node := NodeAsNamed(3, nkURI);
+    AssertEquals('Shortcut reference target', '/url', Node.Attrs['href']);
+    AssertEquals('Shortcut reference text', 'foo', Node.NodeText);
+  finally
+    lDoc.Free;
+  end;
+end;
+
+
+procedure TTestInlineTextProcessor.TestReferenceImage;
+
+var
+  lDoc : TMarkdownDocument;
+  Node: TMarkDownTextNode;
+begin
+  lDoc:=TMarkdownDocument.Create(Nil,1);
+  try
+    lDoc.AddLinkRef('logo','logo.png','');
+    SetupProcessor('![The logo][logo]');
+    FProcessor.LinkReferences:=lDoc;
+    FProcessor.Process(True);
+    Node := NodeAsNamed(0, nkImg);
+    AssertEquals('Image source', 'logo.png', Node.Attrs['src']);
+    AssertEquals('Image alt', 'The logo', Node.Attrs['alt']);
+  finally
+    lDoc.Free;
+  end;
+end;
+
+
+procedure TTestInlineTextProcessor.TestReferenceLinkWithoutDocument;
+
+begin
+  SetupProcessor('[foo]');
+  FProcessor.Process(True);
+  AssertEquals('Literal text', '[foo]', FNodes.PlainText);
 end;
 
 initialization

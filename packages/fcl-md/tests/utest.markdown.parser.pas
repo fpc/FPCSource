@@ -153,6 +153,147 @@ type
     procedure TestUnclosedFrontmatter;
   end;
 
+  { TExtensionTestCase }
+
+  TExtensionTestCase = class(TBlockTestCase)
+  private
+    FMessages : TStringList;
+    procedure DoMessage(Sender : TObject; aLevel : TMarkdownMessageLevel; aLine : Integer; const aMessage : String);
+  protected
+    procedure SetupExt(const aText : String; aOptions : TMarkdownOptions = MarkdownDocExtensions);
+    function TextBlockOf(aBlock : TMarkdownBlock) : TMarkdownTextBlock;
+    function PlainOf(aBlock : TMarkdownBlock) : String;
+    // Parser messages as level:line:text
+    property Messages : TStringList read FMessages;
+  public
+    procedure SetUp; override;
+    procedure TearDown; override;
+  end;
+
+  { TTestComments }
+
+  TTestComments = class(TExtensionTestCase)
+  published
+    procedure TestCommentBlock;
+    procedure TestCommentBlockMultiLine;
+    procedure TestCommentBlockTextAfterClose;
+    procedure TestCommentBlockMarker;
+    procedure TestCommentDoesNotInterruptParagraph;
+    procedure TestPlainCommentIsNoMarker;
+    procedure TestMarkerInsideEmphasis;
+    procedure TestCommentBetweenListItems;
+    procedure TestMarkersInDocumentOrder;
+    procedure TestCommentOptionOff;
+  end;
+
+  { TTestAttributes }
+
+  TTestAttributes = class(TExtensionTestCase)
+  published
+    procedure TestATXHeading;
+    procedure TestATXHeadingClosingHashes;
+    procedure TestSetextHeading;
+    procedure TestFencedCode;
+    procedure TestAnchorRegistered;
+    procedure TestDuplicateID;
+    procedure TestInvalidSpecStaysText;
+    procedure TestAttributesOptionOff;
+  end;
+
+  { TTestHeadingIDs }
+
+  TTestHeadingIDs = class(TExtensionTestCase)
+  published
+    procedure TestAutoID;
+    procedure TestAutoIDCollision;
+    procedure TestAutoIDExplicitClash;
+    procedure TestAutoIDUnicode;
+    procedure TestAutoIDSetext;
+    procedure TestHeadingIDsOptionOff;
+  end;
+
+  { TTestDefinitionLists }
+
+  TTestDefinitionLists = class(TExtensionTestCase)
+  published
+    procedure TestSimple;
+    procedure TestMultipleDefinitions;
+    procedure TestMultiParagraphDefinition;
+    procedure TestBlankLineBeforeDefinition;
+    procedure TestTermIsLastParagraphLine;
+    procedure TestSecondTermJoinsList;
+    procedure TestLazyContinuation;
+    procedure TestNoTerm;
+    procedure TestDefinitionListInListItem;
+    procedure TestDefinitionListsOptionOff;
+  end;
+
+  { TTestAlerts }
+
+  TTestAlerts = class(TExtensionTestCase)
+  published
+    procedure TestNote;
+    procedure TestCaseInsensitive;
+    procedure TestMarkerOnlyLine;
+    procedure TestExtraTextStaysQuote;
+    procedure TestUnknownTypeStaysQuote;
+    procedure TestAlertWithCodeAndDefinitionList;
+    procedure TestAlertAfterList;
+    procedure TestAlertsOptionOff;
+  end;
+
+  { TTestFootnotes }
+
+  TTestFootnotes = class(TExtensionTestCase)
+  published
+    procedure TestDefinition;
+    procedure TestNumberingByFirstReference;
+    procedure TestRepeatedReference;
+    procedure TestContinuationLines;
+    procedure TestUndefinedReference;
+    procedure TestUnusedDefinition;
+    procedure TestDuplicateLabel;
+    procedure TestDefinitionInsideQuote;
+    procedure TestFootnotesOptionOff;
+  end;
+
+  { TTestCaptions }
+
+  TTestCaptions = class(TExtensionTestCase)
+  published
+    procedure TestTableCaptionAfter;
+    procedure TestTableCaptionBefore;
+    procedure TestTableCaptionID;
+    procedure TestCaptionNotNextToTable;
+    procedure TestFigure;
+    procedure TestFigureAttributes;
+    procedure TestImageWithTextIsNoFigure;
+    procedure TestCaptionsOptionOff;
+  end;
+
+  { TTestLinkReferences }
+
+  TTestLinkReferences = class(TExtensionTestCase)
+  private
+    function FirstNode : TMarkdownTextNode;
+  published
+    procedure TestDefinition;
+    procedure TestFullReference;
+    procedure TestCollapsedReference;
+    procedure TestShortcutReference;
+    procedure TestCaseInsensitiveLabel;
+    procedure TestUndefinedLabelStaysText;
+    procedure TestDefinitionDoesNotInterruptParagraph;
+    procedure TestLinkReferencesOptionOff;
+  end;
+
+  { TTestTransformRegistry }
+
+  TTestTransformRegistry = class(TTestCase)
+  published
+    procedure TestDefaultTransforms;
+  end;
+
 implementation
 
 { TBlockTestCase }
@@ -1008,9 +1149,888 @@ begin
   AssertEquals('Frontmatter line 2', 'more content', Doc.Frontmatter.Content[1]);
 end;
 
+{ TExtensionTestCase }
+
+procedure TExtensionTestCase.SetUp;
+
+begin
+  inherited SetUp;
+  FMessages:=TStringList.Create;
+end;
+
+
+procedure TExtensionTestCase.TearDown;
+
+begin
+  FreeAndNil(FMessages);
+  inherited TearDown;
+end;
+
+
+procedure TExtensionTestCase.DoMessage(Sender: TObject; aLevel: TMarkdownMessageLevel; aLine: Integer; const aMessage: String);
+
+begin
+  FMessages.Add(Format('%d:%d:%s',[Ord(aLevel),aLine,aMessage]));
+end;
+
+
+procedure TExtensionTestCase.SetupExt(const aText: String; aOptions: TMarkdownOptions);
+
+begin
+  FParser.Options:=aOptions;
+  FParser.OnMessage:=@DoMessage;
+  SetupParser(aText);
+end;
+
+
+function TExtensionTestCase.TextBlockOf(aBlock: TMarkdownBlock): TMarkdownTextBlock;
+
+var
+  lBlock : TMarkdownBlock;
+begin
+  lBlock:=aBlock;
+  while Assigned(lBlock) and not (lBlock is TMarkdownTextBlock) and (lBlock.ChildCount>0) do
+    lBlock:=lBlock.Children[0];
+  AssertTrue('Found a text block',lBlock is TMarkdownTextBlock);
+  Result:=TMarkdownTextBlock(lBlock);
+end;
+
+
+function TExtensionTestCase.PlainOf(aBlock: TMarkdownBlock): String;
+
+begin
+  Result:=TextBlockOf(aBlock).Nodes.PlainText;
+end;
+
+{ TTestComments }
+
+procedure TTestComments.TestCommentBlock;
+
+var
+  lComment : TMarkdownCommentBlock;
+begin
+  SetupExt('<!-- hello -->');
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Comment block',TMarkdownCommentBlock,GetBlock(0).ClassType);
+  lComment:=TMarkdownCommentBlock(GetBlock(0));
+  AssertEquals('Comment text',' hello ',lComment.Text);
+  AssertFalse('Not a marker',lComment.IsMarker);
+end;
+
+
+procedure TTestComments.TestCommentBlockMultiLine;
+
+begin
+  SetupExt('<!-- first'#10'second -->'#10'After');
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('Comment text spans lines',' first'#10'second ',TMarkdownCommentBlock(GetBlock(0)).Text);
+  AssertEquals('Paragraph after comment',TMarkdownParagraphBlock,GetBlock(1).ClassType);
+end;
+
+
+procedure TTestComments.TestCommentBlockTextAfterClose;
+
+begin
+  SetupExt('<!-- a --> trailing'#10'Next');
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('Comment block',TMarkdownCommentBlock,GetBlock(0).ClassType);
+  AssertEquals('Next line is a paragraph','Next',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestComments.TestCommentBlockMarker;
+
+var
+  lComment : TMarkdownCommentBlock;
+begin
+  SetupExt('<!-- index[msgnr]: 1000 -->');
+  lComment:=TMarkdownCommentBlock(GetBlock(0));
+  AssertTrue('Is marker',lComment.IsMarker);
+  AssertEquals('Marker name','index',lComment.MarkerName);
+  AssertEquals('Marker argument','msgnr',lComment.MarkerArgument);
+  AssertEquals('Marker value','1000',lComment.MarkerValue);
+  AssertEquals('Document has one marker',1,Doc.Markers.Count);
+  AssertSame('Marker block',lComment,Doc.Markers[0].Block);
+  AssertNull('Block marker has no node',Doc.Markers[0].Node);
+  AssertEquals('Block marker node index',-1,Doc.Markers[0].NodeIndex);
+end;
+
+
+procedure TTestComments.TestCommentDoesNotInterruptParagraph;
+
+var
+  lMarker : TMarkdownMarker;
+begin
+  SetupExt('Some text'#10'<!-- index: Tokens!Comments -->');
+  AssertEquals('One paragraph',1,Doc.Blocks.Count);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+  AssertEquals('Comment has no visible text','Some text',Trim(PlainOf(GetBlock(0))));
+  AssertEquals('One marker',1,Doc.Markers.Count);
+  lMarker:=Doc.Markers[0];
+  AssertNotNull('Inline marker has a node',lMarker.Node);
+  AssertEquals('Inline marker node kind',Ord(nkComment),Ord(lMarker.Node.Kind));
+  AssertEquals('Inline marker value','Tokens!Comments',lMarker.Value);
+  AssertEquals('Inline marker block is the text block',TMarkdownTextBlock,lMarker.Block.ClassType);
+end;
+
+
+procedure TTestComments.TestPlainCommentIsNoMarker;
+
+begin
+  SetupExt('<!-- just a remark -->'#10#10'Text <!-- another remark --> here');
+  AssertEquals('No markers',0,Doc.Markers.Count);
+end;
+
+
+procedure TTestComments.TestMarkerInsideEmphasis;
+
+var
+  lMarker : TMarkdownMarker;
+begin
+  SetupExt('*with <!-- index: emph --> marker*');
+  AssertEquals('One marker',1,Doc.Markers.Count);
+  lMarker:=Doc.Markers[0];
+  AssertEquals('Marker value','emph',lMarker.Value);
+  AssertTrue('Marker node is emphasized',nsEmph in lMarker.Node.Styles);
+end;
+
+
+procedure TTestComments.TestCommentBetweenListItems;
+
+begin
+  SetupExt('- a'#10#10'<!-- index: between -->'#10#10'- b');
+  AssertEquals('List, comment, list',3,Doc.Blocks.Count);
+  AssertEquals('First list',TMarkdownListBlock,GetBlock(0).ClassType);
+  AssertEquals('Comment',TMarkdownCommentBlock,GetBlock(1).ClassType);
+  AssertEquals('Second list',TMarkdownListBlock,GetBlock(2).ClassType);
+  AssertEquals('Marker collected',1,Doc.Markers.Count);
+end;
+
+
+procedure TTestComments.TestMarkersInDocumentOrder;
+
+begin
+  SetupExt('<!-- a: 1 -->'#10#10'x <!-- b: 2 --> y'#10#10'<!-- c: 3 -->');
+  AssertEquals('Three markers',3,Doc.Markers.Count);
+  AssertEquals('First','a',Doc.Markers[0].Name);
+  AssertEquals('Second','b',Doc.Markers[1].Name);
+  AssertEquals('Third','c',Doc.Markers[2].Name);
+end;
+
+
+procedure TTestComments.TestCommentOptionOff;
+
+begin
+  SetupExt('<!-- hello -->',[]);
+  AssertEquals('Paragraph without option',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+  AssertEquals('No markers without option',0,Doc.Markers.Count);
+end;
+
+{ TTestAttributes }
+
+procedure TTestAttributes.TestATXHeading;
+
+var
+  lHeading : TMarkdownHeadingBlock;
+begin
+  SetupExt('## Title {#my-id .c1 .c2 key=value other="quoted value"}');
+  lHeading:=GetBlock(0) as TMarkdownHeadingBlock;
+  AssertEquals('Heading id','my-id',lHeading.ID);
+  AssertEquals('Class count',2,Length(lHeading.Classes));
+  AssertEquals('First class','c1',lHeading.Classes[0]);
+  AssertEquals('Second class','c2',lHeading.Classes[1]);
+  AssertEquals('key attribute','value',lHeading.Attrs.Values['key']);
+  AssertEquals('quoted attribute','quoted value',lHeading.Attrs.Values['other']);
+  AssertEquals('Heading text without attributes','Title',PlainOf(lHeading));
+end;
+
+
+procedure TTestAttributes.TestATXHeadingClosingHashes;
+
+var
+  lHeading : TMarkdownHeadingBlock;
+begin
+  SetupExt('## Title ## {#t}');
+  lHeading:=GetBlock(0) as TMarkdownHeadingBlock;
+  AssertEquals('Heading id','t',lHeading.ID);
+  AssertEquals('Heading text','Title',PlainOf(lHeading));
+end;
+
+
+procedure TTestAttributes.TestSetextHeading;
+
+var
+  lPar : TMarkdownParagraphBlock;
+begin
+  SetupExt('Title {#st}'#10'=====');
+  lPar:=GetBlock(0) as TMarkdownParagraphBlock;
+  AssertEquals('Setext level',1,lPar.Header);
+  AssertEquals('Setext id','st',lPar.ID);
+  AssertEquals('Setext text','Title',PlainOf(lPar));
+end;
+
+
+procedure TTestAttributes.TestFencedCode;
+
+var
+  lCode : TMarkdownCodeBlock;
+begin
+  SetupExt('```pascal {#lst-hello .numbered title="hello.pp"}'#10'begin'#10'```');
+  lCode:=GetBlock(0) as TMarkdownCodeBlock;
+  AssertEquals('Language stays first word','pascal',lCode.Lang);
+  AssertEquals('Code id','lst-hello',lCode.ID);
+  AssertEquals('Code class','numbered',lCode.Classes[0]);
+  AssertEquals('Code title','hello.pp',lCode.Attrs.Values['title']);
+end;
+
+
+procedure TTestAttributes.TestAnchorRegistered;
+
+begin
+  SetupExt('# A {#first}'#10#10'```'#10'x'#10'``` ');
+  AssertSame('Anchor maps to heading',GetBlock(0),Doc.FindAnchor('first'));
+end;
+
+
+procedure TTestAttributes.TestDuplicateID;
+
+begin
+  SetupExt('# A {#x}'#10#10'# B {#x}');
+  AssertEquals('One message',1,Messages.Count);
+  AssertTrue('Message names the id',Pos('"x"',Messages[0])>0);
+  AssertTrue('Message is an error on line 3',Messages[0].StartsWith(IntToStr(Ord(mlError))+':3:'));
+  AssertSame('First registration wins',GetBlock(0),Doc.FindAnchor('x'));
+end;
+
+
+procedure TTestAttributes.TestInvalidSpecStaysText;
+
+var
+  lHeading : TMarkdownHeadingBlock;
+begin
+  SetupExt('## Title {not valid}',MarkdownDocExtensions-[mdoHeadingIds]);
+  lHeading:=GetBlock(0) as TMarkdownHeadingBlock;
+  AssertEquals('No id','',lHeading.ID);
+  AssertEquals('Text keeps braces','Title {not valid}',PlainOf(lHeading));
+end;
+
+
+procedure TTestAttributes.TestAttributesOptionOff;
+
+var
+  lHeading : TMarkdownHeadingBlock;
+begin
+  SetupExt('## Title {#id}',[]);
+  lHeading:=GetBlock(0) as TMarkdownHeadingBlock;
+  AssertEquals('No id without option','',lHeading.ID);
+  AssertEquals('Text keeps specification','Title {#id}',PlainOf(lHeading));
+end;
+
+{ TTestHeadingIDs }
+
+procedure TTestHeadingIDs.TestAutoID;
+
+begin
+  SetupExt('# Hello, *World*!');
+  AssertEquals('Automatic id','hello-world',GetBlock(0).ID);
+  AssertSame('Automatic id registered',GetBlock(0),Doc.FindAnchor('hello-world'));
+end;
+
+
+procedure TTestHeadingIDs.TestAutoIDCollision;
+
+begin
+  SetupExt('# Intro'#10'# Intro'#10'# Intro');
+  AssertEquals('First','intro',GetBlock(0).ID);
+  AssertEquals('Second','intro-1',GetBlock(1).ID);
+  AssertEquals('Third','intro-2',GetBlock(2).ID);
+  AssertEquals('Collisions between automatic ids are not reported',0,Messages.Count);
+end;
+
+
+procedure TTestHeadingIDs.TestAutoIDExplicitClash;
+
+begin
+  SetupExt('# Foo'#10'# Bar {#foo}');
+  AssertEquals('Explicit id kept','foo',GetBlock(1).ID);
+  AssertEquals('Automatic id gets suffix','foo-1',GetBlock(0).ID);
+  AssertEquals('Clash reported',1,Messages.Count);
+end;
+
+
+procedure TTestHeadingIDs.TestAutoIDUnicode;
+
+begin
+  SetupExt('# Café über_alles 2');
+  AssertEquals('Unicode letters kept','café-über_alles-2',GetBlock(0).ID);
+end;
+
+
+procedure TTestHeadingIDs.TestAutoIDSetext;
+
+begin
+  SetupExt('Some Title'#10'----');
+  AssertEquals('Setext automatic id','some-title',GetBlock(0).ID);
+end;
+
+
+procedure TTestHeadingIDs.TestHeadingIDsOptionOff;
+
+begin
+  SetupExt('# Intro',MarkdownDocExtensions-[mdoHeadingIds]);
+  AssertEquals('No automatic id','',GetBlock(0).ID);
+end;
+
+{ TTestDefinitionLists }
+
+procedure TTestDefinitionLists.TestSimple;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Term'#10': Definition');
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  AssertFalse('Tight list',lList.Loose);
+  AssertEquals('Term and definition',2,lList.ChildCount);
+  AssertEquals('Term',TMarkdownDefinitionTermBlock,lList.Children[0].ClassType);
+  AssertEquals('Term text','Term',PlainOf(lList.Children[0]));
+  AssertEquals('Definition',TMarkdownDefinitionBlock,lList.Children[1].ClassType);
+  AssertEquals('Definition text','Definition',PlainOf(lList.Children[1]));
+end;
+
+
+procedure TTestDefinitionLists.TestMultipleDefinitions;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Term'#10': One'#10': Two');
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  AssertEquals('Term and two definitions',3,lList.ChildCount);
+  AssertEquals('First definition','One',PlainOf(lList.Children[1]));
+  AssertEquals('Second definition','Two',PlainOf(lList.Children[2]));
+  AssertFalse('Tight list',lList.Loose);
+end;
+
+
+procedure TTestDefinitionLists.TestMultiParagraphDefinition;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+  lDef : TMarkdownBlock;
+begin
+  SetupExt('Term'#10':   Definition, first paragraph.'#10#10'    Second paragraph, indented 4.'#10#10'After');
+  AssertEquals('List and paragraph',2,Doc.Blocks.Count);
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  lDef:=lList.Children[1];
+  AssertEquals('Content indentation',4,lDef.ContentIndentation);
+  AssertEquals('Two paragraphs in definition',2,lDef.ChildCount);
+  AssertEquals('Second paragraph','Second paragraph, indented 4.',PlainOf(lDef.Children[1]));
+  AssertTrue('Loose list',lList.Loose);
+  AssertEquals('Paragraph after the list','After',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDefinitionLists.TestBlankLineBeforeDefinition;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Term'#10#10': Definition');
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  AssertEquals('Term text','Term',PlainOf(lList.Children[0]));
+  AssertTrue('Blank line makes the list loose',lList.Loose);
+end;
+
+
+procedure TTestDefinitionLists.TestTermIsLastParagraphLine;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Para line'#10'Term'#10': Definition');
+  AssertEquals('Paragraph and list',2,Doc.Blocks.Count);
+  AssertEquals('Earlier lines stay in the paragraph','Para line',PlainOf(GetBlock(0)));
+  lList:=GetBlock(1) as TMarkdownDefinitionListBlock;
+  AssertEquals('Term is the last line','Term',PlainOf(lList.Children[0]));
+end;
+
+
+procedure TTestDefinitionLists.TestSecondTermJoinsList;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Term'#10': One'#10#10'Second term'#10': Two'#10': Three');
+  AssertEquals('One list',1,Doc.Blocks.Count);
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  AssertEquals('Two terms and three definitions',5,lList.ChildCount);
+  AssertEquals('Second term',TMarkdownDefinitionTermBlock,lList.Children[2].ClassType);
+  AssertEquals('Second term text','Second term',PlainOf(lList.Children[2]));
+end;
+
+
+procedure TTestDefinitionLists.TestLazyContinuation;
+
+var
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('Term'#10': Definition line'#10'lazy line');
+  lList:=GetBlock(0) as TMarkdownDefinitionListBlock;
+  AssertEquals('Lazy line continues the definition','Definition line'#10'lazy line',TextBlockOf(lList.Children[1]).Text);
+end;
+
+
+procedure TTestDefinitionLists.TestNoTerm;
+
+begin
+  SetupExt(': not a definition');
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestDefinitionLists.TestDefinitionListInListItem;
+
+var
+  lItem : TMarkdownBlock;
+  lList : TMarkdownDefinitionListBlock;
+begin
+  SetupExt('- item'#10'  Term'#10'  : Definition'#10#10'- next');
+  lItem:=GetBlock(0).Children[0];
+  AssertEquals('Item has paragraph and definition list',2,lItem.ChildCount);
+  lList:=lItem.Children[1] as TMarkdownDefinitionListBlock;
+  AssertEquals('Term in item','Term',PlainOf(lList.Children[0]));
+  AssertEquals('Definition in item','Definition',PlainOf(lList.Children[1]));
+  AssertEquals('Second item kept',2,GetBlock(0).ChildCount);
+end;
+
+
+procedure TTestDefinitionLists.TestDefinitionListsOptionOff;
+
+begin
+  SetupExt('Term'#10': Definition',[]);
+  AssertEquals('One paragraph',1,Doc.Blocks.Count);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+{ TTestAlerts }
+
+procedure TTestAlerts.TestNote;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupExt('> [!NOTE]'#10'> This is a note');
+  AssertEquals('Alert block',TMarkdownAlertBlock,GetBlock(0).ClassType);
+  lAlert:=TMarkdownAlertBlock(GetBlock(0));
+  AssertEquals('Alert type',Ord(atNote),Ord(lAlert.AlertType));
+  AssertEquals('Marker line removed','This is a note',PlainOf(lAlert));
+end;
+
+
+procedure TTestAlerts.TestCaseInsensitive;
+
+begin
+  SetupExt('> [!warning]'#10'> Careful');
+  AssertEquals('Alert block',TMarkdownAlertBlock,GetBlock(0).ClassType);
+  AssertEquals('Alert type',Ord(atWarning),Ord(TMarkdownAlertBlock(GetBlock(0)).AlertType));
+end;
+
+
+procedure TTestAlerts.TestMarkerOnlyLine;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupExt('> [!TIP]'#10'>'#10'> Paragraph');
+  lAlert:=GetBlock(0) as TMarkdownAlertBlock;
+  AssertEquals('Marker paragraph removed',1,lAlert.ChildCount);
+  AssertEquals('Remaining paragraph','Paragraph',PlainOf(lAlert));
+end;
+
+
+procedure TTestAlerts.TestExtraTextStaysQuote;
+
+begin
+  SetupExt('> [!NOTE] extra'#10'> Text');
+  AssertEquals('Ordinary quote',TMarkdownQuoteBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestAlerts.TestUnknownTypeStaysQuote;
+
+begin
+  SetupExt('> [!FOO]'#10'> Text');
+  AssertEquals('Ordinary quote',TMarkdownQuoteBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestAlerts.TestAlertWithCodeAndDefinitionList;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupExt('> [!CAUTION]'#10'> Careful:'#10'>'#10'> ```pascal'#10'> writeln;'#10'> ```'#10'>'#10'> Term'#10'> : Definition');
+  lAlert:=GetBlock(0) as TMarkdownAlertBlock;
+  AssertEquals('Alert type',Ord(atCaution),Ord(lAlert.AlertType));
+  AssertEquals('Paragraph, code, definition list',3,lAlert.ChildCount);
+  AssertEquals('Code block',TMarkdownCodeBlock,lAlert.Children[1].ClassType);
+  AssertEquals('Code line','writeln;',TMarkdownTextBlock(lAlert.Children[1].Children[0]).Text);
+  AssertEquals('Definition list',TMarkdownDefinitionListBlock,lAlert.Children[2].ClassType);
+  AssertEquals('Definition','Definition',PlainOf(lAlert.Children[2].Children[1]));
+end;
+
+
+procedure TTestAlerts.TestAlertAfterList;
+
+begin
+  SetupExt('- item'#10#10'> [!IMPORTANT]'#10'> Text');
+  AssertEquals('List and alert',2,Doc.Blocks.Count);
+  AssertEquals('Alert block',TMarkdownAlertBlock,GetBlock(1).ClassType);
+  AssertEquals('Alert text','Text',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestAlerts.TestAlertsOptionOff;
+
+begin
+  SetupExt('> [!NOTE]'#10'> Text',[]);
+  AssertEquals('Ordinary quote',TMarkdownQuoteBlock,GetBlock(0).ClassType);
+end;
+
+{ TTestFootnotes }
+
+procedure TTestFootnotes.TestDefinition;
+
+var
+  lNote : TMarkdownFootnoteBlock;
+begin
+  SetupExt('Text[^a]'#10#10'[^a]: The note.');
+  lNote:=GetBlock(1) as TMarkdownFootnoteBlock;
+  AssertEquals('Label','a',lNote.FootnoteLabel);
+  AssertSame('Registered',lNote,Doc.FindFootnoteDef('a'));
+  AssertEquals('Note text','The note.',Trim(PlainOf(lNote)));
+  AssertEquals('Number',1,lNote.Number);
+end;
+
+
+procedure TTestFootnotes.TestNumberingByFirstReference;
+
+var
+  lNodes : TMarkdownTextNodeList;
+begin
+  SetupExt('x[^b] y[^a]'#10#10'[^a]: A'#10#10'[^b]: B');
+  AssertEquals('b is first',1,Doc.FindFootnoteDef('b').Number);
+  AssertEquals('a is second',2,Doc.FindFootnoteDef('a').Number);
+  AssertEquals('Two footnotes',2,Doc.Footnotes.Count);
+  AssertSame('Footnotes in number order',Doc.FindFootnoteDef('b'),Doc.Footnotes[0]);
+  lNodes:=TextBlockOf(GetBlock(0)).Nodes;
+  AssertEquals('Reference node',Ord(nkFootnoteRef),Ord(lNodes[1].Kind));
+  AssertEquals('Reference number','1',lNodes[1].Attrs['number']);
+end;
+
+
+procedure TTestFootnotes.TestRepeatedReference;
+
+var
+  lNodes : TMarkdownTextNodeList;
+begin
+  SetupExt('x[^a] y[^a]'#10#10'[^a]: A');
+  lNodes:=TextBlockOf(GetBlock(0)).Nodes;
+  AssertEquals('First reference index','1',lNodes[1].Attrs['refindex']);
+  AssertEquals('Second reference index','2',lNodes[3].Attrs['refindex']);
+  AssertEquals('Same number','1',lNodes[3].Attrs['number']);
+end;
+
+
+procedure TTestFootnotes.TestContinuationLines;
+
+var
+  lNote : TMarkdownFootnoteBlock;
+begin
+  SetupExt('x[^a]'#10#10'[^a]: First line'#10'    second line'#10#10'    Second paragraph'#10#10'After');
+  lNote:=GetBlock(1) as TMarkdownFootnoteBlock;
+  AssertEquals('Two paragraphs',2,lNote.ChildCount);
+  AssertEquals('Second paragraph','Second paragraph',PlainOf(lNote.Children[1]));
+  AssertEquals('Paragraph after note','After',PlainOf(GetBlock(2)));
+end;
+
+
+procedure TTestFootnotes.TestUndefinedReference;
+
+var
+  lNodes : TMarkdownTextNodeList;
+begin
+  SetupExt('Ref to [^missing] here.');
+  AssertEquals('Undefined reference reported',1,Messages.Count);
+  AssertTrue('Message is an error',Messages[0].StartsWith(IntToStr(Ord(mlError))+':'));
+  lNodes:=TextBlockOf(GetBlock(0)).Nodes;
+  AssertEquals('Rendered as literal text','Ref to [^missing] here.',lNodes.PlainText);
+end;
+
+
+procedure TTestFootnotes.TestUnusedDefinition;
+
+begin
+  SetupExt('[^unused]: Nobody refers to me.');
+  AssertEquals('Unused definition reported',1,Messages.Count);
+  AssertTrue('Message is a warning',Messages[0].StartsWith(IntToStr(Ord(mlWarning))+':1:'));
+  AssertEquals('Not numbered',0,(GetBlock(0) as TMarkdownFootnoteBlock).Number);
+  AssertEquals('Not in footnote list',0,Doc.Footnotes.Count);
+end;
+
+
+procedure TTestFootnotes.TestDuplicateLabel;
+
+begin
+  SetupExt('x[^a]'#10#10'[^a]: One'#10#10'[^a]: Two');
+  AssertTrue('Duplicate reported',Messages.Count>=1);
+  AssertTrue('Duplicate is an error on line 5',Messages[0].StartsWith(IntToStr(Ord(mlError))+':5:'));
+end;
+
+
+procedure TTestFootnotes.TestDefinitionInsideQuote;
+
+var
+  lQuote : TMarkdownBlock;
+begin
+  SetupExt('> Quote with note[^q].'#10'>'#10'> [^q]: Footnote in quote.');
+  lQuote:=GetBlock(0);
+  AssertEquals('Quote',TMarkdownQuoteBlock,lQuote.ClassType);
+  AssertEquals('Paragraph and footnote',2,lQuote.ChildCount);
+  AssertEquals('Footnote in quote',TMarkdownFootnoteBlock,lQuote.Children[1].ClassType);
+  AssertEquals('Footnote numbered',1,TMarkdownFootnoteBlock(lQuote.Children[1]).Number);
+  AssertEquals('No messages',0,Messages.Count);
+end;
+
+
+procedure TTestFootnotes.TestFootnotesOptionOff;
+
+begin
+  SetupExt('x[^a]'#10#10'[^a]: A',[]);
+  AssertEquals('Two paragraphs',2,Doc.Blocks.Count);
+  AssertEquals('Definition is a paragraph',TMarkdownParagraphBlock,GetBlock(1).ClassType);
+end;
+
+{ TTestCaptions }
+
+const
+  cTable = '| a | b |'#10'|---|---|'#10'| 1 | 2 |';
+
+procedure TTestCaptions.TestTableCaptionAfter;
+
+var
+  lTable : TMarkdownTableBlock;
+begin
+  SetupExt(cTable+#10#10'Table: The *caption*');
+  AssertEquals('Caption merged',1,Doc.Blocks.Count);
+  lTable:=GetBlock(0) as TMarkdownTableBlock;
+  AssertNotNull('Caption',lTable.Caption);
+  AssertEquals('Caption text','The caption',lTable.Caption.PlainText);
+end;
+
+
+procedure TTestCaptions.TestTableCaptionBefore;
+
+var
+  lTable : TMarkdownTableBlock;
+begin
+  SetupExt('Table: Before'#10#10+cTable);
+  AssertEquals('Caption merged',1,Doc.Blocks.Count);
+  lTable:=GetBlock(0) as TMarkdownTableBlock;
+  AssertEquals('Caption text','Before',lTable.Caption.PlainText);
+end;
+
+
+procedure TTestCaptions.TestTableCaptionID;
+
+var
+  lTable : TMarkdownTableBlock;
+begin
+  SetupExt(cTable+#10#10'Table: Caption {#tab-x .wide}');
+  lTable:=GetBlock(0) as TMarkdownTableBlock;
+  AssertEquals('Table id','tab-x',lTable.ID);
+  AssertEquals('Table class','wide',lTable.Classes[0]);
+  AssertEquals('Caption without attributes','Caption',lTable.Caption.PlainText);
+  AssertSame('Table anchor',lTable,Doc.FindAnchor('tab-x'));
+end;
+
+
+procedure TTestCaptions.TestCaptionNotNextToTable;
+
+begin
+  SetupExt('Table: alone'#10#10'Text');
+  AssertEquals('Two paragraphs',2,Doc.Blocks.Count);
+  AssertEquals('Caption stays a paragraph','Table: alone',PlainOf(GetBlock(0)));
+end;
+
+
+procedure TTestCaptions.TestFigure;
+
+var
+  lFigure : TMarkdownFigureBlock;
+begin
+  SetupExt('![A *nice* picture](pic.png)');
+  AssertEquals('Figure',TMarkdownFigureBlock,GetBlock(0).ClassType);
+  lFigure:=TMarkdownFigureBlock(GetBlock(0));
+  AssertNotNull('Image node',lFigure.Image);
+  AssertEquals('Image source','pic.png',lFigure.Image.Attrs['src']);
+  AssertEquals('Caption from alt text','A nice picture',lFigure.Caption.PlainText);
+  AssertTrue('Caption keeps emphasis',nsEmph in lFigure.Caption[1].Styles);
+end;
+
+
+procedure TTestCaptions.TestFigureAttributes;
+
+var
+  lFigure : TMarkdownFigureBlock;
+begin
+  SetupExt('![Caption](file.png){#fig-x width=80%}');
+  lFigure:=GetBlock(0) as TMarkdownFigureBlock;
+  AssertEquals('Figure id','fig-x',lFigure.ID);
+  AssertEquals('Figure width','80%',lFigure.Attrs.Values['width']);
+  AssertEquals('Attribute text removed','',TextBlockOf(lFigure).Nodes.PlainText.Replace('Caption',''));
+  AssertSame('Figure anchor',lFigure,Doc.FindAnchor('fig-x'));
+end;
+
+
+procedure TTestCaptions.TestImageWithTextIsNoFigure;
+
+begin
+  SetupExt('See ![x](a.png) here');
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestCaptions.TestCaptionsOptionOff;
+
+begin
+  SetupExt(cTable+#10#10'Table: caption'#10#10'![x](a.png)',[]);
+  AssertEquals('Table, caption paragraph, image paragraph',3,Doc.Blocks.Count);
+  AssertEquals('Image stays in a paragraph',TMarkdownParagraphBlock,GetBlock(2).ClassType);
+end;
+
+{ TTestLinkReferences }
+
+function TTestLinkReferences.FirstNode: TMarkdownTextNode;
+
+begin
+  Result:=TextBlockOf(GetBlock(0)).Nodes[0];
+end;
+
+
+procedure TTestLinkReferences.TestDefinition;
+
+var
+  lRef : TMarkdownLinkReference;
+begin
+  SetupExt('[foo]: /url "The title"');
+  AssertEquals('No blocks',0,Doc.Blocks.Count);
+  lRef:=Doc.FindLinkRef('foo');
+  AssertNotNull('Definition registered',lRef);
+  AssertEquals('URL','/url',lRef.URL);
+  AssertEquals('Title','The title',lRef.Title);
+end;
+
+
+procedure TTestLinkReferences.TestFullReference;
+
+var
+  lNode : TMarkdownTextNode;
+begin
+  SetupExt('[some text][foo]'#10#10'[foo]: /url "T"');
+  lNode:=FirstNode;
+  AssertEquals('Link node',Ord(nkURI),Ord(lNode.Kind));
+  AssertEquals('Link target','/url',lNode.Attrs['href']);
+  AssertEquals('Link title','T',lNode.Attrs['title']);
+  AssertEquals('Link text','some text',lNode.NodeText+lNode.Children.PlainText);
+end;
+
+
+procedure TTestLinkReferences.TestCollapsedReference;
+
+var
+  lNode : TMarkdownTextNode;
+begin
+  SetupExt('[foo][] after'#10#10'[foo]: /url');
+  lNode:=FirstNode;
+  AssertEquals('Link node',Ord(nkURI),Ord(lNode.Kind));
+  AssertEquals('Link text','foo',lNode.NodeText+lNode.Children.PlainText);
+  AssertEquals('Brackets consumed','foo after',TextBlockOf(GetBlock(0)).Nodes.PlainText);
+end;
+
+
+procedure TTestLinkReferences.TestShortcutReference;
+
+var
+  lNode : TMarkdownTextNode;
+begin
+  SetupExt('[foo] after'#10#10'[foo]: /url');
+  lNode:=FirstNode;
+  AssertEquals('Link node',Ord(nkURI),Ord(lNode.Kind));
+  AssertEquals('Link target','/url',lNode.Attrs['href']);
+end;
+
+
+procedure TTestLinkReferences.TestCaseInsensitiveLabel;
+
+begin
+  SetupExt('[FOO   Bar]'#10#10'[foo bar]: /url');
+  AssertEquals('Link node',Ord(nkURI),Ord(FirstNode.Kind));
+end;
+
+
+procedure TTestLinkReferences.TestUndefinedLabelStaysText;
+
+begin
+  SetupExt('[nothing] here');
+  AssertEquals('Literal text','[nothing] here',TextBlockOf(GetBlock(0)).Nodes.PlainText);
+end;
+
+
+procedure TTestLinkReferences.TestDefinitionDoesNotInterruptParagraph;
+
+begin
+  SetupExt('para'#10'[foo]: /url');
+  AssertEquals('One paragraph',1,Doc.Blocks.Count);
+  AssertNull('Not a definition',Doc.FindLinkRef('foo'));
+end;
+
+
+procedure TTestLinkReferences.TestLinkReferencesOptionOff;
+
+begin
+  SetupExt('[foo]'#10#10'[foo]: /url',[]);
+  AssertEquals('Two paragraphs',2,Doc.Blocks.Count);
+  AssertNull('No definition',Doc.FindLinkRef('foo'));
+end;
+
+{ TTestTransformRegistry }
+
+procedure TTestTransformRegistry.TestDefaultTransforms;
+
+var
+  lAll : TMarkdownTransformClassArray;
+  lNames : Array of String;
+  I : Integer;
+begin
+  lNames:=['alerts','captions','footnotes','headingids','markers'];
+  lAll:=TMarkdownTransformFactory.Instance.All;
+  AssertTrue('At least the default transforms',Length(lAll)>=Length(lNames));
+  for I:=0 to Length(lNames)-1 do
+    begin
+    AssertNotNull('Registered: '+lNames[I],TMarkdownTransformFactory.Instance.FindTransform(lNames[I]));
+    AssertTrue('Order: '+lNames[I],lAll[I]=TMarkdownTransformFactory.Instance.FindTransform(lNames[I]));
+    end;
+end;
+
 initialization
   RegisterTests('Parser',[TTestParagraphs, TTestHeadings, TTestCodeBlocks,
                           TTestBlockQuotes, TTestLists, TTestThematicBreaks,
                           TTestTables, TTestFrontmatter, TTestInlineProcessorHook]);
+  RegisterTests('Extensions',[TTestComments, TTestAttributes, TTestHeadingIDs, TTestDefinitionLists,
+                              TTestAlerts, TTestFootnotes, TTestCaptions, TTestLinkReferences,
+                              TTestTransformRegistry]);
 end.
 

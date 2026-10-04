@@ -164,6 +164,21 @@ type
 
   TMarkdownImageEvent = procedure(Sender : TObject; const aURL : string; var aImage : TFPCustomImage) of object;
 
+  { TPDFDestination }
+
+  // Position of an element with an id
+  TPDFDestination = class(TObject)
+  private
+    FPageIndex: Integer;
+    FY: TPDFFloat;
+  public
+    constructor Create(aPageIndex : Integer; aY : TPDFFloat);
+    // Index of the page in the renderer's page list
+    property PageIndex : Integer read FPageIndex;
+    // Top of the element on the page
+    property Y : TPDFFloat read FY;
+  end;
+
   { TMarkDownPDFRenderer }
 
   TMarkDownPDFRenderer = class(TMarkDownRenderer)
@@ -206,6 +221,8 @@ type
     FNextLineIndent : Integer;
     FSuppressParagraphBreak : Boolean;
     FImageCache : TFPObjectHashTable;
+    FDestinations : TStringList;
+    FAlertBarColor : TARGBColor;
 
     // PDF-specific fields
     FCurrentPage: TPDFPage;
@@ -257,8 +274,14 @@ type
     procedure LayoutTextWrapped(const aText: utf8string; const aFontSize: LongInt;
       const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
       const aPreserveWhitespace, aDryRun: boolean); virtual;
-    function LayoutImage(aImageURL: UTF8String): Boolean; virtual;
+    // Lay out an image. aWidth is a percentage of the text width or a size in points; empty keeps the natural size.
+    // aKeepOnPage moves an image that starts a line to the next page when it does not fit.
+    function LayoutImage(aImageURL: UTF8String; const aWidth : String = ''; aKeepOnPage : Boolean = False): Boolean; virtual;
     procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
+    // Lay out a footnote reference as a raised number
+    procedure RenderFootnoteRef(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext); virtual;
+    // Lay out the referenced footnotes at the end of the document
+    procedure RenderFootnotes; virtual;
 
     // Copy the frontmatter keys that have a counterpart in the document information dictionary
     procedure ApplyFrontmatterInfo(aBlock: TMarkdownFrontmatterBlock); virtual;
@@ -290,9 +313,15 @@ type
     procedure RenderDocument(aDocument: TMarkDownDocument; aPDFDocument: TPDFDocument);
 
     function HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: utf8string): boolean;
+    // Record the current page and position as the destination of aID
+    procedure AddDestination(const aID : String);
 
     // Properties
     Property Document : TMarkdownDocument Read FDocument;
+    // Id to TPDFDestination, filled during layout
+    Property Destinations : TStringList Read FDestinations;
+    // Colour of the bar at the left of an alert
+    property AlertBarColor: TARGBColor read FAlertBarColor write FAlertBarColor;
     property TargetDPI: LongInt read FTargetDPI write FTargetDPI;
     property FontName: utf8string read FFontName write FFontName;
     property MonoFontName: utf8string read FMonoFontName write FMonoFontName;
@@ -369,20 +398,22 @@ type
 
   { Individual PDF Block Renderers }
 
-  { TPDFMarkDownParagraphBlockRenderer }
-  TPDFMarkDownParagraphBlockRenderer = class(TPDFMarkDownBlockRenderer)
-  protected
-    procedure DoRender(aBlock: TMarkDownBlock); override;
-  public
-    class function BlockClass: TMarkDownBlockClass; override;
-  end;
-
   { TPDFMarkDownHeadingBlockRenderer }
   TPDFMarkDownHeadingBlockRenderer = class(TPDFMarkDownBlockRenderer)
   protected
+    // Lay out aBlock as a heading of level aLevel
+    procedure RenderHeading(aBlock: TMarkDownContainerBlock; aLevel: Integer);
     procedure DoRender(aBlock: TMarkDownBlock); override;
   public
     fontSize: LongInt;
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownParagraphBlockRenderer }
+  TPDFMarkDownParagraphBlockRenderer = class(TPDFMarkDownHeadingBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
     class function BlockClass: TMarkDownBlockClass; override;
   end;
 
@@ -503,6 +534,62 @@ type
     procedure DoRender(aBlock: TMarkDownBlock); override;
     // The enclosing table renderer, located through the parent renderer chain
     property TableRenderer : TPDFMarkDownTableBlockRenderer read FTableRenderer;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownCommentBlockRenderer }
+  TPDFMarkDownCommentBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownDefinitionListBlockRenderer }
+  TPDFMarkDownDefinitionListBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownDefinitionTermBlockRenderer }
+  TPDFMarkDownDefinitionTermBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownDefinitionBlockRenderer }
+  TPDFMarkDownDefinitionBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownAlertBlockRenderer }
+  TPDFMarkDownAlertBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownFootnoteBlockRenderer }
+  TPDFMarkDownFootnoteBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
+  public
+    class function BlockClass: TMarkDownBlockClass; override;
+  end;
+
+  { TPDFMarkDownFigureBlockRenderer }
+  TPDFMarkDownFigureBlockRenderer = class(TPDFMarkDownBlockRenderer)
+  protected
+    procedure DoRender(aBlock: TMarkDownBlock); override;
   public
     class function BlockClass: TMarkDownBlockClass; override;
   end;
@@ -748,9 +835,17 @@ end;
 { TPDFMarkDownParagraphBlockRenderer }
 
 procedure TPDFMarkDownParagraphBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+var
+  lPar : TMarkDownParagraphBlock absolute aBlock;
 begin
+  if lPar.Header>0 then
+    begin
+    RenderHeading(lPar,lPar.Header);
+    exit;
+    end;
+  fontSize:=PDFRenderer.BaseFontSize;
   MaybeStartParagraph;
-  Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
+  Renderer.RenderChildren(lPar);
 end;
 
 class function TPDFMarkDownParagraphBlockRenderer.BlockClass: TMarkDownBlockClass;
@@ -760,24 +855,32 @@ end;
 
 { TPDFMarkDownHeadingBlockRenderer }
 
-procedure TPDFMarkDownHeadingBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+procedure TPDFMarkDownHeadingBlockRenderer.RenderHeading(aBlock: TMarkDownContainerBlock; aLevel: Integer);
 const
   // Per-level point increment over the base size (matches the canvas renderer)
   HeadingSizes : array[1..5] of Integer = (10,8,6,4,2);
 var
-  lHeadingBlock: TMarkDownHeadingBlock;
+  lNumber : String;
 begin
-  lHeadingBlock := TMarkDownHeadingBlock(aBlock);
-
   // The computed size is read back by the text block renderer through the parent
   // renderer chain (see TPDFMarkDownTextBlockRenderer.DoRender).
   fontSize := PDFRenderer.BaseFontSize;
-  if lHeadingBlock.Level in [1..5] then
-    Inc(fontSize, HeadingSizes[lHeadingBlock.Level]);
+  if aLevel in [1..5] then
+    Inc(fontSize, HeadingSizes[aLevel]);
 
   MaybeStartParagraph;
-  Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
+  PDFRenderer.AddDestination(aBlock.ID);
+  lNumber:=Renderer.GetHeadingNumber(aBlock);
+  if lNumber<>'' then
+    LayoutText(lNumber+' ', fontSize, [], '', []);
+  Renderer.RenderChildren(aBlock);
   ParagraphBreak;
+end;
+
+
+procedure TPDFMarkDownHeadingBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+begin
+  RenderHeading(aBlock as TMarkDownContainerBlock,TMarkDownHeadingBlock(aBlock).Level);
 end;
 
 class function TPDFMarkDownHeadingBlockRenderer.BlockClass: TMarkDownBlockClass;
@@ -898,6 +1001,7 @@ begin
   if not assigned(aBlock) or (aBlock.ChildCount=0) then
     exit;
   MaybeStartParagraph;
+  PDFRenderer.AddDestination(aBlock.ID);
   lPad := DIP(4);
   lLineHeight := MeasureTextHeight(PDFRenderer.BaseFontSize, [], [fcMono]);
   lStartX := LayoutData.CurrentIndent;
@@ -990,6 +1094,8 @@ begin
     Parent := Parents[i];
     if Parent is TPDFMarkDownHeadingBlockRenderer then
       FontSize := TPDFMarkDownHeadingBlockRenderer(Parent).fontSize;
+    if Parent is TPDFMarkDownDefinitionTermBlockRenderer then
+      Include(FontStyles, fsBold);
     if Parent is TPDFMarkDownQuoteBlockRenderer then
       Include(FontContext, fcQuote);
     if Parent is TPDFMarkDownCodeBlockRenderer then
@@ -1020,7 +1126,8 @@ begin
   if aCell is TMarkDownTextBlock then
     begin
     for i:=0 to lText.Nodes.Count-1 do
-      aTexts.Add(lText.Nodes[i].NodeText);
+      if lText.Nodes[i].Kind<>nkComment then
+        aTexts.Add(lText.Nodes[i].NodeText);
     end
   else if aCell is TMarkDownContainerBlock then
     for i:=0 to lCont.ChildCount-1 do
@@ -1252,6 +1359,7 @@ procedure TPDFMarkDownTableBlockRenderer.DoRender(aBlock: TMarkDownBlock);
 var
   lTable : TMarkDownTableBlock absolute aBlock;
   i : Integer;
+  lLabel : String;
 begin
   if not assigned(aBlock) then
     exit;
@@ -1267,8 +1375,23 @@ begin
   MeasureTableColumns(lTable);
   DistributeColumns(AvailableWidth);
   CalcRowHeights(lTable, PDFRenderer.BaseFontSize, [], []);
+  // The caption goes above the table, on the same page
+  lLabel:=Renderer.GetCaptionNumber(lTable);
+  if Assigned(lTable.Caption) or (lLabel<>'') then
+    begin
+    PDFRenderer.CheckPageBreak(MeasureTextHeight(PDFRenderer.BaseFontSize,[fsBold],[])+TotalHeight);
+    PDFRenderer.AddDestination(lTable.ID);
+    if lLabel<>'' then
+      LayoutText(lLabel+': ', PDFRenderer.BaseFontSize, [fsBold], '', []);
+    if Assigned(lTable.Caption) then
+      for i:=0 to lTable.Caption.Count-1 do
+        PDFRenderer.RenderTextNode(lTable.Caption[i], PDFRenderer.BaseFontSize, [fsBold], []);
+    NewLine;
+    end;
   // Move the whole table to the next page if it does not fit on the current one
   PDFRenderer.CheckPageBreak(TotalHeight);
+  if not (Assigned(lTable.Caption) or (lLabel<>'')) then
+    PDFRenderer.AddDestination(lTable.ID);
   // CurrentIndent already includes the left margin, so it is the table's left edge.
   FStartX:=Round(LayoutData.CurrentIndent);
   FStartY:=Round(LayoutData.LineY);
@@ -1481,10 +1604,14 @@ begin
   LeftMargin:=72;
   RightMargin:=72;
   FBlockQuoteIndent:=DIP(24); // indent for block quotes (was uninitialised)
+  FDestinations:=TStringList.Create;
+  FDestinations.OwnsObjects:=True;
+  FAlertBarColor:=RGBToColor(9,105,218);
 end;
 
 destructor TMarkDownPDFRenderer.Destroy;
 begin
+  FreeAndNil(FDestinations);
   FreeAndNil(FImageCache);
   FreeAndNil(FPageList);
   FreeAndNil(FLists.Items);
@@ -1538,7 +1665,7 @@ begin
   FPDFDocument.Sections[0].AddPage(FCurrentPage);
   FPageList.Add(FCurrentPage);
   Inc(FLayout.CurrentPageIndex);
-  // LineX is 0 at the start of a line; CurrentIndent (set in BeginLayout) carries
+  // LineX is 0 at the start of a line; CurrentIndent (set in BeginLayout) includes
   // the left margin. CurrentIndent is preserved across page breaks.
   FLayout.LineX:=0;
   FLayout.LineY:=TopMargin;
@@ -1568,6 +1695,7 @@ begin
   FLayout.NeedSpaceBeforeNextText:=False;
   FLayout.CurrentPageIndex:=-1;
   FPageList.Clear;
+  FDestinations.Clear;
 end;
 
 procedure TMarkDownPDFRenderer.BeginLayout;
@@ -1955,6 +2083,7 @@ begin
   FLayout.MaxWidth:=FPDFDocument.Pages[0].Paper.W-RightMargin;
   // Render all child blocks
   RenderChildren(FDocument);
+  RenderFootnotes;
   EndLayout;
   DrawLayout;
 end;
@@ -2050,6 +2179,61 @@ begin
     Inc(I);
     end;
 end;
+
+procedure TMarkDownPDFRenderer.AddDestination(const aID: String);
+
+begin
+  if (aID<>'') and (FDestinations.IndexOf(aID)<0) then
+    FDestinations.AddObject(aID,TPDFDestination.Create(FLayout.CurrentPageIndex,FLayout.LineY));
+end;
+
+
+procedure TMarkDownPDFRenderer.RenderFootnoteRef(aTextNode: TMarkDownTextNode; aFontSize: LongInt;
+  aFontStyle: TFontStyles; const aContext: TFontContext);
+
+var
+  lText : String;
+  lSaved : TPDFFloat;
+begin
+  lText:=aTextNode.Attrs['number'];
+  if lText='' then
+    lText:=aTextNode.Attrs['label'];
+  lSaved:=FLayout.BaselineShiftCurrent;
+  FLayout.BaselineShiftCurrent:=lSaved-Round(aFontSize*0.3);
+  FlushTextRun(lText, Max(Round(aFontSize*0.7),5), aFontStyle, '', aContext, False);
+  FLayout.BaselineShiftCurrent:=lSaved;
+end;
+
+
+procedure TMarkDownPDFRenderer.RenderFootnotes;
+
+var
+  lBlock : TMarkdownBlock;
+  lPrefix : String;
+  lIndent : Integer;
+  Itm : TLayoutItem;
+begin
+  if (FDocument=Nil) or (FDocument.Footnotes.Count=0) then
+    exit;
+  MaybeStartParagraph;
+  Itm:=CreateLayoutItem(likLine, FLayout.CurrentIndent, FLayout.LineY);
+  Itm.DeltaX:=(FLayout.MaxWidth-FLayout.CurrentIndent)/3;
+  Itm.DeltaY:=0;
+  FLayout.LineY:=FLayout.LineY+DIP(4);
+  for lBlock in FDocument.Footnotes do
+    begin
+    lPrefix:=IntToStr(TMarkdownFootnoteBlock(lBlock).Number)+'.';
+    LayoutTextWrapped(lPrefix+' ', FBaseFontSize, [], '', [], False, False);
+    lIndent:=MeasureTextWidth(lPrefix+'_', FBaseFontSize, [], []);
+    Indent(lIndent);
+    SuppressNextParagraphBreak;
+    RenderChildren(TMarkdownFootnoteBlock(lBlock));
+    FSuppressParagraphBreak:=False;
+    Undent(lIndent);
+    NewLine;
+    end;
+end;
+
 
 function TMarkDownPDFRenderer.CreateLayoutItem(aKind: TLayoutItemKind; aX, aY: TPDFFloat): TLayoutItem;
 begin
@@ -2309,11 +2493,12 @@ begin
   FLayout.NeedSpaceBeforeNextText:=(lLength>0) and (lText[lLength] in WhiteSpace);
 end;
 
-function TMarkDownPDFRenderer.LayoutImage(aImageURL: UTF8String): Boolean;
+function TMarkDownPDFRenderer.LayoutImage(aImageURL: UTF8String; const aWidth: String; aKeepOnPage: Boolean): Boolean;
+
 var
-  lPath: string;
+  lPath, lSpec: string;
   lIdx, pxW, pxH: Integer;
-  dispW, dispH, maxW, scale: TPDFFloat;
+  dispW, dispH, maxW, scale, lWanted: TPDFFloat;
   Item: TLayoutItem;
 begin
   Result := False;
@@ -2346,11 +2531,37 @@ begin
     NewLine;
   // Scale down proportionally if wider than the available content width
   maxW := FLayout.MaxWidth - FLayout.CurrentIndent;
+  lSpec := Trim(aWidth);
+  lWanted := 0;
+  if lSpec.EndsWith('%') then
+    begin
+    if TryStrToFloat(Copy(lSpec,1,Length(lSpec)-1),lWanted,DefaultFormatSettings) then
+      lWanted := maxW*lWanted/100;
+    end
+  else if lSpec.EndsWith('px') then
+    begin
+    if TryStrToFloat(Copy(lSpec,1,Length(lSpec)-2),lWanted,DefaultFormatSettings) then
+      lWanted := lWanted*scale;
+    end
+  else if lSpec<>'' then
+    begin
+    if lSpec.EndsWith('pt') then
+      SetLength(lSpec,Length(lSpec)-2);
+    if not TryStrToFloat(lSpec,lWanted,DefaultFormatSettings) then
+      lWanted := 0;
+    end;
+  if lWanted>0 then
+    begin
+    dispH := dispH * (lWanted / dispW);
+    dispW := lWanted;
+    end;
   if (dispW > maxW) and (maxW > 0) then
     begin
     dispH := dispH * (maxW / dispW);
     dispW := maxW;
     end;
+  if aKeepOnPage and (FLayout.LineX=0) then
+    CheckPageBreak(dispH);
   Item := FLists.Items.NewItem(TLayoutItemKind.likImage, FLayout.CurrentIndent + FLayout.LineX + FImageMargin, FLayout.LineY);
   Item.Width := dispW;
   Item.Height := dispH;
@@ -2369,6 +2580,7 @@ procedure TMarkDownPDFRenderer.RenderTextNode(aTextNode: TMarkDownTextNode; aFon
 var
   fontStyle: TFontStyles;
   lText,linkHref: utf8string;
+  lPlain,lResolveHref : String;
   lContext : TFontContext;
   lChild : TMarkDownTextNode;
 begin
@@ -2389,9 +2601,25 @@ begin
         LayoutTextWrapped(lText, aFontSize, fontStyle, linkHref, lContext, false, False);
     nkLineBreak:
       NewLine;
+    nkComment:
+      DoMarkerNode(aTextNode);
+    nkFootnoteRef:
+      RenderFootnoteRef(aTextNode, aFontSize, fontStyle, lContext);
     nkURI, nkEmail:
       begin
-      linkHref:=aTextNode.Attrs['href'];
+      lResolveHref:=aTextNode.Attrs['href'];
+      lPlain:=lText;
+      if aTextNode.HasChildren then
+        lPlain:=lPlain+aTextNode.Children.PlainText;
+      if DoResolveLink(lResolveHref,lPlain) then
+        exit;
+      linkHref:=lResolveHref;
+      if (lText='') and not aTextNode.HasChildren then
+        begin
+        if lPlain='' then
+          lPlain:=linkHref;
+        lText:=lPlain;
+        end;
       LayoutTextWrapped(lText, aFontSize, fontStyle + [fsUnderline], linkHref,
         lContext+[fcHyperLink], False, False);
       if aTextNode.HasChildren then
@@ -2409,6 +2637,209 @@ begin
   end;
 end;
 
+{ TPDFDestination }
+
+constructor TPDFDestination.Create(aPageIndex: Integer; aY: TPDFFloat);
+
+begin
+  FPageIndex:=aPageIndex;
+  FY:=aY;
+end;
+
+{ TPDFMarkDownCommentBlockRenderer }
+
+procedure TPDFMarkDownCommentBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+var
+  lNode : TMarkdownCommentBlock absolute aBlock;
+begin
+  if lNode.IsMarker then
+    Renderer.DoMarker(lNode.MarkerName,lNode.MarkerArgument,lNode.MarkerValue);
+end;
+
+
+class function TPDFMarkDownCommentBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownCommentBlock;
+end;
+
+{ TPDFMarkDownDefinitionListBlockRenderer }
+
+procedure TPDFMarkDownDefinitionListBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+begin
+  MaybeStartParagraph;
+  Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
+  ParagraphBreak;
+end;
+
+
+class function TPDFMarkDownDefinitionListBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionListBlock;
+end;
+
+{ TPDFMarkDownDefinitionTermBlockRenderer }
+
+procedure TPDFMarkDownDefinitionTermBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+var
+  lHeight : Integer;
+begin
+  if LayoutData.LineX<>0 then
+    NewLine;
+  if (aBlock.Parent as TMarkdownContainerBlock).IndexOfChild(aBlock)>0 then
+    SetCurrentY(GetCurrentY+DIP(4));
+  // Keep the term with the first line of its definition
+  lHeight:=MeasureTextHeight(PDFRenderer.BaseFontSize,[fsBold],[]);
+  PDFRenderer.CheckPageBreak(2*lHeight);
+  Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
+  NewLine;
+end;
+
+
+class function TPDFMarkDownDefinitionTermBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionTermBlock;
+end;
+
+{ TPDFMarkDownDefinitionBlockRenderer }
+
+procedure TPDFMarkDownDefinitionBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+var
+  lIndent : Integer;
+begin
+  if LayoutData.LineX<>0 then
+    NewLine;
+  lIndent:=DIP(24);
+  Indent(lIndent);
+  PDFRenderer.SuppressNextParagraphBreak;
+  Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
+  PDFRenderer.FSuppressParagraphBreak:=False;
+  Undent(lIndent);
+  if LayoutData.LineX<>0 then
+    NewLine;
+end;
+
+
+class function TPDFMarkDownDefinitionBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownDefinitionBlock;
+end;
+
+{ TPDFMarkDownAlertBlockRenderer }
+
+procedure TPDFMarkDownAlertBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+var
+  lNode : TMarkdownAlertBlock absolute aBlock;
+  lStartPage, lPage : Integer;
+  lStartY, lBarX, lTop, lBottom : TPDFFloat;
+  Itm : TLayoutItem;
+begin
+  MaybeStartParagraph;
+  lStartPage:=LayoutData.CurrentPageIndex;
+  lStartY:=LayoutData.LineY;
+  lBarX:=LayoutData.CurrentIndent;
+  Indent(PDFRenderer.BlockQuoteIndent);
+  LayoutText(Renderer.AlertTitles[lNode.AlertType], PDFRenderer.BaseFontSize, [fsBold], '', []);
+  NewLine;
+  PDFRenderer.SuppressNextParagraphBreak;
+  Renderer.RenderChildren(lNode);
+  PDFRenderer.FSuppressParagraphBreak:=False;
+  if LayoutData.LineX<>0 then
+    NewLine;
+  Undent(PDFRenderer.BlockQuoteIndent);
+  // The bar spans the alert, one piece per page
+  for lPage:=lStartPage to LayoutData.CurrentPageIndex do
+    begin
+    if lPage=lStartPage then
+      lTop:=lStartY
+    else
+      lTop:=PDFRenderer.TopMargin;
+    if lPage=LayoutData.CurrentPageIndex then
+      lBottom:=LayoutData.LineY
+    else
+      lBottom:=TPDFPage(PDFRenderer.PageList[lPage]).Paper.H-PDFRenderer.BottomMargin;
+    if lBottom<=lTop then
+      continue;
+    Itm:=CreateLayoutItem(likBackground, lBarX, lTop);
+    Itm.PageIndex:=lPage;
+    Itm.Width:=DIP(3);
+    Itm.Height:=lBottom-lTop;
+    Itm.BGColor:=PDFRenderer.AlertBarColor;
+    end;
+  ParagraphBreak;
+end;
+
+
+class function TPDFMarkDownAlertBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownAlertBlock;
+end;
+
+{ TPDFMarkDownFootnoteBlockRenderer }
+
+procedure TPDFMarkDownFootnoteBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+begin
+  if aBlock=Nil then ; // Silence warning
+end;
+
+
+class function TPDFMarkDownFootnoteBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownFootnoteBlock;
+end;
+
+{ TPDFMarkDownFigureBlockRenderer }
+
+procedure TPDFMarkDownFigureBlockRenderer.DoRender(aBlock: TMarkDownBlock);
+
+var
+  lNode : TMarkdownFigureBlock absolute aBlock;
+  lLabel, lWidth, lAlt : String;
+  i : Integer;
+begin
+  MaybeStartParagraph;
+  PDFRenderer.AddDestination(lNode.ID);
+  if Assigned(lNode.Image) then
+    begin
+    lWidth:='';
+    if lNode.HasAttrs then
+      lWidth:=lNode.Attrs.Values['width'];
+    if not PDFRenderer.LayoutImage(lNode.Image.Attrs['src'],lWidth,True) then
+      begin
+      lAlt:=lNode.Image.Attrs['alt'];
+      if lAlt='' then
+        lAlt:='img';
+      LayoutText('['+lAlt+']', PDFRenderer.BaseFontSize, [], '', [fcQuote]);
+      end;
+    NewLine;
+    end;
+  lLabel:=Renderer.GetCaptionNumber(lNode);
+  if lLabel<>'' then
+    LayoutText(lLabel+': ', PDFRenderer.BaseFontSize, [fsBold], '', []);
+  if Assigned(lNode.Caption) then
+    for i:=0 to lNode.Caption.Count-1 do
+      PDFRenderer.RenderTextNode(lNode.Caption[i], PDFRenderer.BaseFontSize, [fsItalic], []);
+  ParagraphBreak;
+end;
+
+
+class function TPDFMarkDownFigureBlockRenderer.BlockClass: TMarkDownBlockClass;
+
+begin
+  Result:=TMarkdownFigureBlock;
+end;
+
 initialization
   // Register all PDF block renderers
   TPDFMarkDownParagraphBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
@@ -2422,6 +2853,13 @@ initialization
   TPDFMarkDownTextBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownTableBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
   TPDFMarkDownTableRowBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownCommentBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownDefinitionListBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownDefinitionTermBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownDefinitionBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownAlertBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownFootnoteBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
+  TPDFMarkDownFigureBlockRenderer.RegisterRenderer(TMarkDownPDFRenderer);
 
   // Register text renderer
   TPDFMarkDownTextRenderer.RegisterRenderer(TMarkDownPDFRenderer);

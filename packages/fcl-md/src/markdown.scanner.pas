@@ -82,6 +82,12 @@ type
     procedure SkipWhitespace;
     // Current location. Takes into account offset from aLineNo
     function Location : TPosition;
+    // Text from position aStart up to, not including, position aEnd.
+    function TextRange(aStart, aEnd : Integer) : String;
+    // Position of the first occurrence of aText at or after the cursor position plus aOffset, 0 if there is none.
+    function FindText(const aText : String; aOffset : Integer = 0) : Integer;
+    // Cursor position in the text
+    property CursorPos : Integer read FCursor;
     // Are we at the end of the text ?
     property EOF : boolean read GetEOF;
     // Character at the current cursor position. Do not modify cursor position
@@ -342,6 +348,20 @@ function TMarkdownTextScanner.PeekLen(aLength: integer): String;
 
 begin
   Result:=Copy(FText,FCursor,aLength);
+end;
+
+
+function TMarkdownTextScanner.TextRange(aStart, aEnd: Integer): String;
+
+begin
+  Result:=Copy(FText,aStart,aEnd-aStart);
+end;
+
+
+function TMarkdownTextScanner.FindText(const aText: String; aOffset: Integer): Integer;
+
+begin
+  Result:=Pos(aText,FText,FCursor+aOffset);
 end;
 
 end.
