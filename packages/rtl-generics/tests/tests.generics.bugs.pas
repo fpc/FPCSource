@@ -44,6 +44,8 @@ type
     Procedure TestDictionaryWithStringKeys;
     Procedure TestListIndexOf;
     Procedure TestContainsValue;
+    Procedure TestIStringComparerHashList;
+    Procedure TestHashMapIStringComparer;
   end;
 
 implementation
@@ -145,6 +147,58 @@ begin
     AssertTrue('Not ContainsValue four', not Dict.ContainsValue('four'));
   finally
     Dict.Free;
+  end;
+end;
+
+procedure TTestBugs.TestIStringComparerHashList;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/40483
+var
+  Cmp: TGOrdinalIStringComparer<String>;
+  H1, H2: array[0..1] of UInt32;
+begin
+  AssertTrue('TDelphiQuadrupleHashFactory is an extended hash factory',
+    TDelphiQuadrupleHashFactory.InheritsFrom(TExtendedHashFactory));
+  Cmp := TGOrdinalIStringComparer<String>.Create;
+  try
+    // Element 0 is the number of requested hashes
+    H1[0] := 1;
+    H1[1] := 0;
+    H2[0] := 1;
+    H2[1] := 0;
+    Cmp.GetHashList('test', @H1[0]);
+    Cmp.GetHashList('TEST', @H2[0]);
+    AssertTrue('GetHashList returns a hash', H1[1] <> 0);
+    AssertEquals('GetHashList ignores case', H1[1], H2[1]);
+  finally
+    Cmp.Free;
+  end;
+end;
+
+procedure TTestBugs.TestHashMapIStringComparer;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/40483
+var
+  Map: THashMap<String, TEmptyRecord>;
+  Raised: Boolean;
+begin
+  Map := THashMap<String, TEmptyRecord>.Create(TIStringComparer.Ordinal);
+  try
+    Map.Add('Cat', EmptyRecord);
+    AssertEquals('Count after Add', 1, Map.Count);
+    AssertTrue('ContainsKey Cat', Map.ContainsKey('Cat'));
+    AssertTrue('ContainsKey cat ignores case', Map.ContainsKey('cat'));
+    AssertTrue('ContainsKey CAT ignores case', Map.ContainsKey('CAT'));
+    AssertFalse('ContainsKey Dog', Map.ContainsKey('Dog'));
+    Raised := False;
+    try
+      Map.Add('CAT', EmptyRecord);
+    except
+      on EListError do
+        Raised := True;
+    end;
+    AssertTrue('Adding CAT after Cat raises EListError', Raised);
+    AssertEquals('Count after duplicate Add', 1, Map.Count);
+  finally
+    Map.Free;
   end;
 end;
 
