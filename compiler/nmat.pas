@@ -276,7 +276,7 @@ implementation
     function tmoddivnode.pass_typecheck:tnode;
       var
         else_block,
-        hp,t : tnode;
+        hp,l,r,t : tnode;
         rd,ld : torddef;
         else_statements,
         statements : tstatementnode;
@@ -455,12 +455,48 @@ implementation
             not(nf_internal in flags) and
             not(nf_is_currency in flags) and
             is_currency(resultdef) and
-            (nf_is_currency in left.flags) and
-            not (nf_is_currency in right.flags) then
+            (nf_is_currency in left.flags) then
           begin
-            hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false));
-            include(hp.flags,nf_is_currency);
-            result:=hp;
+            if (nf_is_currency in right.flags) then
+              begin
+                { Create a copy of the node but avoid processing the left and right
+                  nodes again unnecessarily }
+                l:=left;
+                left:=nil;
+                r:=right;
+                right:=nil;
+                t:=getcopy;
+                tbinarynode(t).left:=l;
+                tbinarynode(t).right:=r;
+
+                if s64currencytype.typ = floatdef then
+                  hp:=caddnode.create_internal(muln,t,crealconstnode.create_currency_scalar(s64currencytype))
+                else
+                  hp:=caddnode.create_internal(muln,t,cordconstnode.create_currency_scalar(s64currencytype));
+                include(hp.flags,nf_is_currency);
+                result:=hp;
+              end
+            else
+              begin
+                { If dividing a Currency by a non-Currency integer, the result
+                  is already scaled }
+                include(flags,nf_is_currency);
+              end;
+          end;
+
+         { When calculating A mod B, the result is already scaled if both are
+           Currency, and if B is a non-Currency integer, then it must be
+           converted. }
+         if (nodetype=modn) and
+            not(nf_internal in flags) and
+            not(nf_is_currency in flags) and
+            is_currency(resultdef) and
+            (nf_is_currency in left.flags) then
+          begin
+            if not (nf_is_currency in right.flags) then
+              inserttypeconv(right,s64currencytype);
+
+            include(flags,nf_is_currency)
           end;
 
          if (nodetype=modn) and (mdnf_isomod in moddivnodeflags) then
