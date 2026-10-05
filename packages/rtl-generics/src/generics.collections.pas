@@ -1226,7 +1226,7 @@ class function TArrayHelper<T>.BinarySearch(const AValues: array of T; const AIt
   out ASearchResult: TBinarySearchResult; const AComparer: IComparer<T>;
   AIndex, ACount: SizeInt): Boolean;
 var
-  imin, imax, imid: Int32;
+  imin, imax, imid: SizeInt;
 begin
   if Length(AValues) = 0 then
   begin
@@ -1458,12 +1458,12 @@ class function TArrayHelper<T>.BinarySearch(const AValues: array of T; const AIt
   out AFoundIndex: SizeInt; const AComparer: IComparer<T>;
   AIndex, ACount: SizeInt): Boolean;
 var
-  imin, imax, imid: Int32;
+  imin, imax, imid: SizeInt;
   LCompare: SizeInt;
 begin
-  if Length(AValues) = 0 then
+  if ACount <= 0 then
   begin
-    AFoundIndex := -1;
+    AFoundIndex := AIndex;
     Exit(False);
   end;
 

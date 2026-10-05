@@ -46,6 +46,8 @@ type
     Procedure TestContainsValue;
     Procedure TestIStringComparerHashList;
     Procedure TestHashMapIStringComparer;
+    Procedure TestListBinarySearchInsertIndex;
+    Procedure TestListBinarySearchEmpty;
   end;
 
 implementation
@@ -199,6 +201,52 @@ begin
     AssertEquals('Count after duplicate Add', 1, Map.Count);
   finally
     Map.Free;
+  end;
+end;
+
+procedure TTestBugs.TestListBinarySearchInsertIndex;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/41165
+var
+  List: TList<Integer>;
+  Idx: SizeInt;
+begin
+  List := TList<Integer>.Create;
+  try
+    List.Add(3);
+    List.Add(5);
+    AssertFalse('BinarySearch 4 not found', List.BinarySearch(4, Idx));
+    AssertEquals('BinarySearch 4 gives the index of 5', 1, Idx);
+    AssertTrue('BinarySearch 5 found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch 5 gives index 1', 1, Idx);
+    AssertTrue('BinarySearch 3 found', List.BinarySearch(3, Idx));
+    AssertEquals('BinarySearch 3 gives index 0', 0, Idx);
+    AssertFalse('BinarySearch 1 not found', List.BinarySearch(1, Idx));
+    AssertEquals('BinarySearch 1 gives index 0', 0, Idx);
+    AssertFalse('BinarySearch 7 not found', List.BinarySearch(7, Idx));
+    AssertEquals('BinarySearch 7 gives Count', 2, Idx);
+    List.Add(9);
+    AssertFalse('BinarySearch 6 in 3,5,9 not found', List.BinarySearch(6, Idx));
+    AssertEquals('BinarySearch 6 in 3,5,9 gives index 2', 2, Idx);
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBugs.TestListBinarySearchEmpty;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/41165
+var
+  List: TList<Integer>;
+  Idx: SizeInt;
+begin
+  List := TList<Integer>.Create;
+  try
+    AssertFalse('BinarySearch in empty list not found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch in empty list gives index 0', 0, Idx);
+    List.Capacity := 4;
+    AssertFalse('BinarySearch in empty list with capacity not found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch in empty list with capacity gives index 0', 0, Idx);
+  finally
+    List.Free;
   end;
 end;
 
