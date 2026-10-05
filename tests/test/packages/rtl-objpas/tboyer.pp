@@ -1,13 +1,35 @@
 {$mode objfpc}
 
 uses
-  StrUtils;
+  SysUtils, StrUtils;
 const
   result1 : array of SizeInt = (1, 4, 7, 10, 13, 16);
   result2 : array of SizeInt = (7, 9);
+  result3 : array of SizeInt = (1, 10);
+  IdeoSpace2 = #$E3#$80#$80#$E3#$80#$80;
 var
   a : array of SizeInt;
   i : LongInt;
+
+{ Halts with aCode+1, aCode+2 or aCode+3 when the case insensitive search of
+  aPattern in aSource does not find all matches at result3 }
+procedure CheckInsensitive(const aSource, aPattern: string; aCode: LongInt);
+
+var
+  lMatches : array of SizeInt;
+  l : LongInt;
+
+begin
+  if not FindMatchesBoyerMooreCaseInSensitive(aSource,aPattern,lMatches,true) then
+    halt(aCode+1);
+  if Length(lMatches)<>Length(result3) then
+    halt(aCode+2);
+  for l:=Low(lMatches) to High(lMatches) do
+    if lMatches[l]<>result3[l] then
+      halt(aCode+3);
+end;
+
+
 begin
   if FindMatchesBoyerMooreCaseSensitive('abcabcabcabcabcabcab','abcab',a,false) then
     begin
@@ -82,6 +104,16 @@ begin
     end
   else
     halt(61);
+
+  { issue #32770 }
+  CheckInsensitive('abbabbcdeabbabb','abbabb',70);
+  CheckInsensitive('ABBABBcdeABBABB','abbabb',80);
+  CheckInsensitive('abbabbcdeabbabb','abbABB',90);
+  CheckInsensitive(IdeoSpace2+#$E7#$A9#$BA+IdeoSpace2,IdeoSpace2,100);
+  if StringReplace(IdeoSpace2+#$E7#$A9#$BA+IdeoSpace2,IdeoSpace2,'',[rfReplaceAll,rfIgnoreCase],sraBoyerMoore)<>#$E7#$A9#$BA then
+    halt(111);
+  if StringReplace('abbabbcdeABBABB','abbabb','',[rfReplaceAll,rfIgnoreCase],sraBoyerMoore)<>'cde' then
+    halt(112);
 
   writeln('ok');
 end.
