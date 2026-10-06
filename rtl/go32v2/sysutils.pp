@@ -393,7 +393,7 @@ begin
   if result = 0 then
    begin
      Rslt.Time := Sr^.Time;
-     Rslt.Size := Sr^.Size;
+     Rslt.Size := Cardinal(Sr^.Size);
      Rslt.Attr := Sr^.Attr;
      Rslt.ExcludeAttr := 0;
      Name := Sr^.Name;
@@ -414,7 +414,7 @@ begin
      if result = 0 then
       begin
         Rslt.Time := Sr^.Time;
-        Rslt.Size := Sr^.Size;
+        Rslt.Size := Cardinal(Sr^.Size);
         Rslt.Attr := Sr^.Attr;
         Rslt.ExcludeAttr := 0;
         Name := Sr^.Name;
