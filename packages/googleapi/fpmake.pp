@@ -24,6 +24,7 @@ begin
     P.Description := 'Google Discovery to Pascal converter and Google API client support.';
     P.NeedLibC:= false;
     P.OSes := AllUnixOSes+AllWindowsOSes+[OS2,EMX]-[qnx];
+    P.CPUs := AllCPUs - [jvm];
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
