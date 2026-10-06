@@ -92,12 +92,31 @@ Const
       MinDouble    =  2.2250738585072014e-308;
       MaxDouble    =  1.7976931348623157e+308;
 {$endif FPC_HAS_TYPE_DOUBLE}
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
       MinExtended  =  3.36210314311209350626e-4932;
       MaxExtended  =  1.18973149535723176502e+4932;
+{$ELSE FPC_HAS_TYPE_EXTENDED}
+
+{$IFDEF FPC_HAS_TYPE_DOUBLE}
+    // Delphi defines them too for Win64
+    const
+      MinExtended = MinDouble;
+      MaxExtended = MaxDouble; 
+{$ELSE FPC_HAS_TYPE_DOUBLE} 
+
+{$IFDEF FPC_HAS_TYPE_SINGLE}
+    // Delphi defines them too for Win64
+    const
+      MinExtended = MinSingle;
+      MaxExtended = MaxSingle; 
+{$ENDIF FPC_HAS_TYPE_SINGLE}     
+
+{$ENDIF FPC_HAS_TYPE_DOUBLE}   
 
 {$endif FPC_HAS_TYPE_EXTENDED}
+
 {$ifdef FPC_HAS_TYPE_COMP}
     const
       MinComp      = -9.223372036854775807e+18;
