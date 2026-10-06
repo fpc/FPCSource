@@ -73,6 +73,13 @@ type
 function Sysinfo(Info: PSysinfo): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
 const
+  { getrandom flags }
+  GRND_NONBLOCK        = $0001; // do not block, return -1 with errno set to EAGAIN
+  GRND_RANDOM          = $0002; // use /dev/random source instead of /dev/urandom
+
+function getrandom(buf: pointer; buflen: size_t; flags: cuint): ssize_t; {$ifdef FPC_USE_LIBC} cdecl; external name 'getrandom'; {$endif}
+
+const
   CSIGNAL              = $000000ff; // signal mask to be sent at exit
   CLONE_VM             = $00000100; // set if VM shared between processes
   CLONE_FS             = $00000200; // set if fs info shared between processes
@@ -674,6 +681,12 @@ Uses Syscall;
 function Sysinfo(Info: PSysinfo): cInt;
 begin
   Sysinfo := do_SysCall(SysCall_nr_Sysinfo, TSysParam(info));
+end;
+
+function getrandom(buf: pointer; buflen: size_t; flags: cuint): ssize_t;
+begin
+  getrandom := do_SysCall(syscall_nr_getrandom, TSysParam(buf),
+    TSysParam(buflen), TSysParam(flags));
 end;
 
 {$ifdef clone_implemented}
