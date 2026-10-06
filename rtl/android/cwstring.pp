@@ -34,7 +34,7 @@ uses dynlibs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  UErrorCode = SizeInt;
+  UErrorCode = longint;
   int32_t = longint;
   uint32_t = longword;
   PUConverter = pointer;
@@ -98,6 +98,7 @@ begin
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
   if Result <> nil then begin
+    err:=0;
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;

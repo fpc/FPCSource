@@ -14,7 +14,7 @@
  **********************************************************************}
 
 type
-  UErrorCode = SizeInt;
+  UErrorCode = longint;
   int32_t = longint;
   uint32_t = longword;
   UBool = LongBool;
@@ -68,14 +68,17 @@ begin
   cal:=ucal_open(PUnicodeChar(tz), Length(tz), PAnsiChar(locale), 0, err);
   if cal = nil then
     exit;
+  err:=0;
   lTzinfo.daylight:=ucal_inDaylightTime(cal, err);
 
   SetLength(res, 200);
+  err:=0;
   SetLength(res, ucal_getTimeZoneDisplayName(cal, UCAL_SHORT_STANDARD, PAnsiChar(locale), PUnicodeChar(res), Length(res), err));
   TZStandardName:=utf8string(res);
   lTZInfoEx.name[False]:=TZStandardName;
 
   SetLength(res, 200);
+  err:=0;
   SetLength(res, ucal_getTimeZoneDisplayName(cal, UCAL_SHORT_DST, PAnsiChar(locale), PUnicodeChar(res), Length(res), err));
   TZDaylightName:=utf8string(res);
   lTZInfoEx.name[True]:=TZDaylightName;
@@ -83,9 +86,13 @@ begin
   lTZInfoEx.leap_correct:=0;
   lTZInfoEx.leap_hit:=0;
 
+  err:=0;
   lTZInfo.seconds:=ucal_get(cal, UCAL_ZONE_OFFSET, err) div 1000;
   if lTZInfo.daylight then
+    begin
+    err:=0;
     lTZInfo.seconds:=Tzinfo.seconds + ucal_get(cal, UCAL_DST_OFFSET, err) div 1000;
+    end;
 
   // ToDo: correct validsince/validuntil values
   lTZInfo.validsince:=low(lTZInfo.validsince);
