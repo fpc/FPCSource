@@ -433,9 +433,9 @@ function GetCharABCWidthsFloatA(DC: HDC; p2, p3: UINT; const ABCFloatSturcts): B
 function GetCharABCWidthsFloatW(DC: HDC; p2, p3: UINT; const ABCFloatSturcts): BOOL; external 'gdi32' name 'GetCharABCWidthsFloatW';
 //function GetCharABCWidthsI(DC: HDC; p2, p3: UINT; p4: PWORD; const Widths): BOOL;external 'gdi32' name 'GetCharABCWidthsI';
 function GetCharABCWidthsW(DC: HDC; p2, p3: UINT; const ABCStructs): BOOL; external 'gdi32' name 'GetCharABCWidthsW';
-function GetCharacterPlacement(DC: HDC; p2: PAnsiChar; p3, p4: BOOL; var p5: TGCPResults; p6: DWORD): DWORD;external 'gdi32' name 'GetCharacterPlacementA';
-function GetCharacterPlacementA(DC: HDC; p2: LPCSTR; p3, p4: BOOL; var p5: TGCPResults; p6: DWORD): DWORD; external 'gdi32' name 'GetCharacterPlacementA';
-function GetCharacterPlacementW(DC: HDC; p2: LPWSTR; p3, p4: BOOL; var p5: TGCPResults; p6: DWORD): DWORD; external 'gdi32' name 'GetCharacterPlacementW';
+function GetCharacterPlacement(DC: HDC; p2: PAnsiChar; p3, p4: Integer; var p5: TGCPResultsA; p6: DWORD): DWORD;external 'gdi32' name 'GetCharacterPlacementA';
+function GetCharacterPlacementA(DC: HDC; p2: LPCSTR; p3, p4: Integer; var p5: TGCPResultsA; p6: DWORD): DWORD; external 'gdi32' name 'GetCharacterPlacementA';
+function GetCharacterPlacementW(DC: HDC; p2: LPCWSTR; p3, p4: Integer; var p5: TGCPResultsW; p6: DWORD): DWORD; external 'gdi32' name 'GetCharacterPlacementW';
 function GetCharWidth(DC: HDC; p2, p3: UINT; const Widths): BOOL;external 'gdi32' name 'GetCharWidthA';
 function GetCharWidth32(DC: HDC; p2, p3: UINT; const Widths): BOOL;external 'gdi32' name 'GetCharWidth32A';
 function GetCharWidth32A(DC: HDC; p2, p3: UINT; const Widths): BOOL; external 'gdi32' name 'GetCharWidth32A';
