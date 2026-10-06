@@ -1288,7 +1288,7 @@ procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
    tag,
    nr,
    attr,
-   form : Int64;
+   form : QWord;
    curAbbrev : ^TAbbrevRec;
    curAttr : ^TAttrRec;
   begin
@@ -1303,18 +1303,17 @@ procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
       if nr=0 then
         break;
 
-      if nr>=abbrevs.nAbbrevs then
+      if nr>8*1024*1024 then { Safeguard. }
         begin
-          abbrevs.nAbbrevs:=nr+1;
-          if nr>high(abbrevs.Abbrevs) then
-          begin
-            if nr>8*1024*1024 then { Safeguard. }
-            begin
-              DEBUG_WRITELN('Implausible abbreviation ID (', nr, ') — GIVING UP.');
-              exit;
-            end;
+          DEBUG_WRITELN('Implausible abbreviation ID (', nr, ') — GIVING UP.');
+          exit;
+        end;
+
+      if nr>=QWord(abbrevs.nAbbrevs) then
+        begin
+          abbrevs.nAbbrevs:=SizeInt(nr)+1;
+          if nr>=QWord(Length(abbrevs.Abbrevs)) then
             SetLength(abbrevs.Abbrevs,SizeUint(nr)+128+SizeUint(nr) div 4);
-          end;
         end;
 
       { read tag }
