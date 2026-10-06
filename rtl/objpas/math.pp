@@ -875,6 +875,7 @@ function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
 function CompareValue ( const A, B  : QWord) : TValueRelationship; inline;
 
+function CompareValue(const A, B: Currency): TValueRelationship;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CompareValue ( const A, B : Single; delta : Single = 0.0 ) : TValueRelationship; inline;
 {$endif}
@@ -3850,6 +3851,14 @@ begin
    if a<b then
      result:=LessThanValue;
 end;
+
+function CompareValue(const A, B: Currency): TValueRelationship;
+begin
+  if A=B then Result:=EqualsValue
+  else if A<B then Result:=LessThanValue
+  else Result:=GreaterThanValue;
+end;
+
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CompareValue(const A, B: Single; delta: Single = 0.0): TValueRelationship;
