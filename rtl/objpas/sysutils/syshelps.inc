@@ -128,7 +128,7 @@ begin
     L:=system.Length(A)-IndexA;
   If (L>system.Length(B)-IndexB) then
     L:=system.Length(B)-IndexB;
-  if (coIgnoreCase in Options) then
+  if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then
     begin
     Result:=strlicomp(PTStringChar(@A[IndexA+1]),PTStringChar(@B[IndexB+1]),L)
     end

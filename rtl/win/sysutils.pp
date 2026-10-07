@@ -1775,28 +1775,48 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
 
 const
   WinAPICompareFlags : array [TCompareOption] of LongWord
-    = ({LINGUISTIC_IGNORECASE,  LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
+    = (LINGUISTIC_IGNORECASE, {LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
        NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
        NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT});
 
-function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+var
+  { LINGUISTIC_IGNORECASE if CompareString supports it, NORM_IGNORECASE otherwise }
+  IgnoreCaseCompareFlag : DWORD = NORM_IGNORECASE;
 
-Var
-  O : LongWord;
-  CO : TCompareOption;
+// Set IgnoreCaseCompareFlag to LINGUISTIC_IGNORECASE if CompareString accepts it
+procedure InitIgnoreCaseCompareFlag;
 
 begin
-  O:=0;
-  for CO in TCompareOption do
-    if CO in Options then
-      O:=O or WinAPICompareFlags[CO];
-  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+  if CompareStringA(LOCALE_USER_DEFAULT,LINGUISTIC_IGNORECASE,'a',1,'A',1)<>0 then
+    IgnoreCaseCompareFlag:=LINGUISTIC_IGNORECASE;
+end;
+
+
+// Convert compare options to CompareString flags, coLingIgnoreCase takes precedence over coIgnoreCase
+function CompareOptionsToFlags(aOptions : TCompareOptions) : DWORD;
+
+var
+  lOption : TCompareOption;
+
+begin
+  Result:=0;
+  for lOption in aOptions do
+    Result:=Result or WinAPICompareFlags[lOption];
+  if coLingIgnoreCase in aOptions then
+    Result:=(Result and not (NORM_IGNORECASE or LINGUISTIC_IGNORECASE)) or IgnoreCaseCompareFlag;
+end;
+
+
+function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+begin
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), CompareOptionsToFlags(Options));
 end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), IgnoreCaseCompareFlag);
   end;
 
 
@@ -1835,7 +1855,7 @@ function Win32AnsiCompareStr(const S1, S2: AnsiString): PtrInt;
 
 function Win32AnsiCompareText(const S1, S2: AnsiString): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,PAnsiChar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,PAnsiChar(s1),length(s1),
       PAnsiChar(s2),length(s2))-2;
   end;
 
@@ -1848,7 +1868,7 @@ function Win32AnsiStrComp(S1, S2: PAnsiChar): PtrInt;
 
 function Win32AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,s1,-1,s2,-1)-2;
   end;
 
 
@@ -1860,7 +1880,7 @@ function Win32AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 
 function Win32AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,s1,maxlen,s2,maxlen)-2;
   end;
 
 
@@ -1879,22 +1899,14 @@ function Win32AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 
 function Win32CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 
-Var
-  O : LongWord;
-  CO : TCompareOption;
-
 begin
-  O:=0;
-  for CO in TCompareOption do
-    if CO in Options then
-      O:=O or WinAPICompareFlags[CO];
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), CompareOptionsToFlags(Options));
 end;
 
 
 function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
   begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), IgnoreCaseCompareFlag);
   end;
 
 
@@ -1912,6 +1924,7 @@ procedure InitWin32Widestrings;
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
+    InitIgnoreCaseCompareFlag;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;

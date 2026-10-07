@@ -82,13 +82,13 @@ function WideSameStr(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE
 
 function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase]);
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase]);
   end;
 
 
 function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase])=0;
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase])=0;
   end;
 
 

@@ -836,7 +836,7 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
 
   begin
     { wcscoll interprets null chars as end-of-string -> filter out }
-    if coIgnoreCase in Options then
+    if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
       begin
       us1:=UpperWideString(s1);
       us2:=UpperWideString(s2);
@@ -857,7 +857,7 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
     us1,us2 : WideString;
     hs1, hs2: array of widechar;
   begin
-    if coIgnoreCase in Options then
+    if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
       begin
       us1:=UpperWideString(s1);
       us2:=UpperWideString(s2);

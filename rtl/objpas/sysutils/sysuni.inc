@@ -121,13 +121,13 @@ function UnicodeSameStr(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTILS
 
 function UnicodeCompareText(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase]);
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase]);
   end;
 
 
 function UnicodeSameText(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase])=0;
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase])=0;
   end;
 
 

@@ -296,7 +296,7 @@ begin
     Result:=_CompareStr(s1, s2);
     exit;
   end;
-  if (coIgnoreCase in Options) then begin
+  if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then begin
     err:=0;
     Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
   end

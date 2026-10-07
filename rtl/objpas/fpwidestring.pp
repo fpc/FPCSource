@@ -446,7 +446,7 @@ function CompareUnicodeString(const s1, s2 : UnicodeString;Options : TCompareOpt
   begin
     changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
     try
-      if (coIgnoreCase in Options) then
+      if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then
         current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
       Result:=CompareUnicodeString(
                 PUnicodeChar(Pointer(s1)),
@@ -482,7 +482,7 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
   begin
     changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
     try
-      if (coIgnoreCase in Options) then
+      if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then
         current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
       Result:=CompareUnicodeString(
                 PUnicodeChar(Pointer(s1)),

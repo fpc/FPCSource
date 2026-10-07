@@ -1261,16 +1261,7 @@ begin
   { UniStrColl interprets null chars as end-of-string -> filter out }
   HS1 := NoNullsUnicodeString (S1);
   HS2 := NoNullsUnicodeString (S2);
-(*
-  if coLingIgnoreCase in Options then
-   begin
-    HS1:=OS2UpperUnicodeString(HS1);
-    HS2:=OS2UpperUnicodeString(HS2);
-{$WARNING TODO: Exclude null characters and convert to uppercase in one-pass}
-   end
-  else
-*)
-  if coIgnoreCase in Options then
+  if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
    begin
     HS1:=OS2UpperUnicodeString(HS1);
     HS2:=OS2UpperUnicodeString(HS2);

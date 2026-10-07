@@ -375,7 +375,7 @@ implementation
     begin
       cfstr1:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s1),length(s1),temp1);
       cfstr2:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s2),length(s2),temp2);
-      result:=CompareCFStrings(cfstr1,cfstr2,coIgnoreCase in Options);
+      result:=CompareCFStrings(cfstr1,cfstr2,Options*[coIgnoreCase,coLingIgnoreCase]<>[]);
       CFRelease(cfstr1);
       CFRelease(cfstr2);
     end;
