@@ -83,6 +83,8 @@ Const
       }
       MinSingle    =  1.1754943508e-38;
       MaxSingle    =  3.4028234664e+38;
+      { distance from 1.0 to the next larger Single, 2^-23 }
+      MachEpsSingle = 1.1920928955078125e-7;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
     const
@@ -91,26 +93,32 @@ Const
       }
       MinDouble    =  2.2250738585072014e-308;
       MaxDouble    =  1.7976931348623157e+308;
+      { distance from 1.0 to the next larger Double, 2^-52 }
+      MachEpsDouble = 2.220446049250313080847e-16;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
       MinExtended  =  3.36210314311209350626e-4932;
       MaxExtended  =  1.18973149535723176502e+4932;
+      { distance from 1.0 to the next larger Extended, 2^-63 }
+      MachEpsExtended = 1.084202172485504434007e-19;
 {$ELSE FPC_HAS_TYPE_EXTENDED}
 
 {$IFDEF FPC_HAS_TYPE_DOUBLE}
     // Delphi defines them too for Win64
     const
       MinExtended = MinDouble;
-      MaxExtended = MaxDouble; 
+      MaxExtended = MaxDouble;
+      MachEpsExtended = MachEpsDouble;
 {$ELSE FPC_HAS_TYPE_DOUBLE} 
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
     // Delphi defines them too for Win64
     const
       MinExtended = MinSingle;
-      MaxExtended = MaxSingle; 
+      MaxExtended = MaxSingle;
+      MachEpsExtended = MachEpsSingle;
 {$ENDIF FPC_HAS_TYPE_SINGLE}     
 
 {$ENDIF FPC_HAS_TYPE_DOUBLE}   
@@ -135,6 +143,7 @@ Const
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
+         MachEpsFloat = 1.925929944387235853056e-34;
 {$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
          Float = extended;
@@ -142,6 +151,7 @@ Const
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
+         MachEpsFloat = MachEpsExtended;
 {$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
          Float = double;
@@ -149,6 +159,7 @@ Const
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
+         MachEpsFloat = MachEpsDouble;
 {$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
          Float = single;
@@ -156,6 +167,7 @@ Const
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
+         MachEpsFloat = MachEpsSingle;
 {$else}
         {$fatal At least one floating point type must be supported}
 {$endif}

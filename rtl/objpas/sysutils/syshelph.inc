@@ -684,6 +684,7 @@ Type
 {$Q-}
     const
       Epsilon          : Single = 1.4012984643248170709e-45;
+      MachineEpsilon   : Single = 1.1920928955078125e-7;
       MaxValue         : Single = 340282346638528859811704183484516925440.0;
       MinValue         : Single = -340282346638528859811704183484516925440.0;
       PositiveInfinity : Single = 1.0/0.0;
@@ -746,6 +747,7 @@ Type
     {$R-}
     {$Q-}
       Epsilon          : Double = 4.9406564584124654418e-324;
+      MachineEpsilon   : Double = 2.220446049250313080847e-16;
       MaxValue         : Double = 1.7976931348623157081e+308;
       MinValue         : Double = -1.7976931348623157081e+308;
       PositiveInfinity : Double = 1.0/0.0;
@@ -812,6 +814,7 @@ Type
     {$Q-}
     const
       Epsilon           : Extended = 3.64519953188247460253e-4951;
+      MachineEpsilon    : Extended = 1.084202172485504434007e-19;
       MaxValue          : Extended = 1.18973149535723176505e+4932;
       MinValue          : Extended = -1.18973149535723176505e+4932;
       PositiveInfinity  : Extended = 1.0/0.0;
