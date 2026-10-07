@@ -559,8 +559,10 @@ begin
       us:=UpperUnicodeString(us);
 
       ulen:=Length(us);
+      if ulen=0 then
+        exit('');
       slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
-      SetLength(Result,slen);
+      SetLength(Result,slen-1);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
     end;
@@ -592,12 +594,13 @@ begin
           usl:=UpperUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
-              aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
+              aalen:=getascii(tunicodechar(usl[k]),locMap,@aa[Low(aa)],Length(aa));
               for ai:=0 to aalen-1 do
                 ConcatCharToAnsiStr(aa[ai],result,resindex);
             end;
         end;
       Inc(p,mblen);
+      Inc(i,mblen);
     end;
   SetLength(result,resindex-1);
 end;
@@ -625,8 +628,10 @@ begin
       us:=LowerUnicodeString(us);
 
       ulen:=Length(us);
+      if ulen=0 then
+        exit('');
       slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
-      SetLength(Result,slen);
+      SetLength(Result,slen-1);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
     end;
@@ -657,12 +662,13 @@ begin
           usl:=LowerUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
-              aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
+              aalen:=getascii(tunicodechar(usl[k]),locMap,@aa[Low(aa)],Length(aa));
               for ai:=0 to aalen-1 do
                 ConcatCharToAnsiStr(aa[ai],result,resindex);
             end;
         end;
       Inc(p,mblen);
+      Inc(i,mblen);
     end;
   SetLength(result,resindex-1);
 end;
