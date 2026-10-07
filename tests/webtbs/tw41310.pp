@@ -1,5 +1,3 @@
-{ %norun }
-
 {
   The test source tw41340.pp
   was first moved from webtbs to webtbf
