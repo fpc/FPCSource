@@ -963,21 +963,24 @@ begin
         Exit(fn);
         end;
       end;
-  if (fn='') then
-    fn:=TimeZoneLocationFile;
   f:=fpopen(TimeZoneLocationFile,Open_RdOnly);
-  if f>0 then
+  if f>=0 then
     begin
     len:=fpread(f,s[1],high(s));
-    s[0]:=chr(len);
-    len:=pos(#10,s);
-    if len<>0 then
-     s[0]:=chr(len-1);
     fpclose(f);
-    GetTimezoneFile:=s;
-    end
+    { on a read error or an empty name, try the alternatives below }
+    if len>0 then
+      begin
+      s[0]:=chr(len);
+      len:=pos(#10,s);
+      if len<>0 then
+        s[0]:=chr(len-1);
+      if s<>'' then
+        Exit(s);
+      end;
+    end;
   // Try SuSE
-  else if fpstat(TimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
+  if fpstat(TimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
     GetTimeZoneFile:=TimeZoneFile
   // Try RedHat
   else If fpstat(AltTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
