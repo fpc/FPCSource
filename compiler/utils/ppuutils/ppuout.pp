@@ -387,7 +387,7 @@ type
   public
     OrdType: TPpuOrdType;
     Size: byte;
-    RangeLow, RangeHigh: Int64;
+    RangeLow, RangeHigh: Int128;
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
