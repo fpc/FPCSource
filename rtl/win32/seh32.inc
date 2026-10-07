@@ -230,6 +230,7 @@ begin
     if Assigned(ExceptProc) then
     begin
       ExceptProc(Exc.FObject,Exc.Addr,Exc.FrameCount,Exc.Frames);
+      FreeUnhandledException(False);
       Halt(217);
     end
     else

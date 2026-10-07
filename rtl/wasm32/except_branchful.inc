@@ -134,6 +134,33 @@ begin
   Result:=NewObj;
 end;
 
+var
+  UnhandledExceptionFreeing : Boolean;
+
+{ Remove the top entry of the exception object stack and free its frames, the
+  entry itself, and the exception object unless it was acquired. Does nothing
+  when called again while freeing. }
+procedure FreeUnhandledException;
+var
+  lEntry : PExceptObject;
+  lObj : TObject;
+begin
+  lEntry:=ExceptObjectStack;
+  if (lEntry=nil) or UnhandledExceptionFreeing then
+    exit;
+  UnhandledExceptionFreeing:=True;
+  if lEntry^.refcount=0 then
+    lObj:=lEntry^.FObject
+  else
+    lObj:=nil;
+  ExceptObjectStack:=lEntry^.next;
+  if assigned(lEntry^.frames) then
+    freemem(lEntry^.frames);
+  dispose(lEntry);
+  lObj.Free;
+end;
+
+
 Procedure DoUnHandledException;[Public, Alias : 'FPC_DOUNHANDLEDEXCEPTION'];
 var
   _ExceptObjectStack : PExceptObject;
@@ -143,6 +170,7 @@ begin
     with _ExceptObjectStack^ do
       begin
         TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
+        FreeUnhandledException;
         halt(217)
       end;
   if erroraddr = nil then

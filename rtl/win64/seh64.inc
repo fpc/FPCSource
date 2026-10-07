@@ -536,6 +536,7 @@ begin
       if Assigned(ExceptProc) then
       begin
         ExceptProc(Exc^.FObject,Exc^.Addr,Exc^.FrameCount,Exc^.Frames);
+        FreeUnhandledException(True);
         Halt(217);
       end;
 L1:
