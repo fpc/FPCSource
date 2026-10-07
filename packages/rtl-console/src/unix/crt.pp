@@ -1663,19 +1663,19 @@ end;
 
 procedure CursorBig;
 begin
-  ttySendStr(#27'[?17;0;64c');
+  ttySendStr(#27'[?25h'#27'[?17;0;64c');
 end;
 
 
 procedure CursorOn;
 begin
-  ttySendStr(#27'[?2c');
+  ttySendStr(#27'[?25h'#27'[?2c');
 end;
 
 
 procedure CursorOff;
 begin
-  ttySendStr(#27'[?1c');
+  ttySendStr(#27'[?25l'#27'[?1c');
 end;
 
 
