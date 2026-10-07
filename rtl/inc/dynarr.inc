@@ -669,6 +669,13 @@ procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; 
 function DynArraySize(a : pointer): tdynarrayindex;
   external name 'FPC_DYNARRAY_LENGTH';
 
+function DynArrayRefCount(a : pointer): SizeInt;
+  begin
+    if a=nil then
+      exit(0);
+    result:=pdynarray(a)[-1].refcount;
+  end;
+
 procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
   external name 'FPC_DYNARRAY_CLEAR';
 

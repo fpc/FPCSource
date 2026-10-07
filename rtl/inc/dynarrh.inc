@@ -32,6 +32,8 @@ type
 
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
 function DynArraySize(a : pointer): tdynarrayindex;
+// Return the reference count of a dynamic array, 0 for nil, -1 for a constant array
+function DynArrayRefCount(a : pointer): SizeInt;
 procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
 function DynArrayDim(typeInfo: Pointer): Integer;
 function DynArrayBounds(a: Pointer; typeInfo: Pointer): TBoundArray;
