@@ -20,6 +20,10 @@ interface
 
 {$i crth.inc}
 
+var
+  ScreenHeight: Longint = 25;
+  ScreenWidth : Longint = 80;
+
 procedure SetSafeCPSwitching(Switching:Boolean);
 procedure SetUseACP(ACP:Boolean);
 procedure Window32(X1,Y1,X2,Y2: DWord);
@@ -1063,6 +1067,8 @@ Initialization
   WindMaxX := (ConsoleInfo.srWindow.Right) + 1;
   WindMaxY := (ConsoleInfo.srWindow.Bottom) + 1;
   WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
+  ScreenWidth := ConsoleInfo.dwSize.X;
+  ScreenHeight := ConsoleInfo.dwSize.Y;
 
   DoingNumChars := false;
   DoingNumCode := 0;
