@@ -2043,7 +2043,9 @@ begin
   for i:=0 to length(s)-2 do  { -2 because s contains explicit terminating #0 }
     begin
       nc:=s[i];
-      if (nc<=$ffff) then
+      if (nc>=$d800) and (nc<=$dfff) then  { surrogate code point }
+        dest^:='?'
+      else if (nc<=$ffff) then
         dest^:=widechar(nc)
       else if (dword(nc)<=$10ffff) then
         begin
