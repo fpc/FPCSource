@@ -27,6 +27,7 @@ unit cgutils;
   interface
 
     uses
+      uinteger128,
       globtype,
       cclasses,
       aasmbase,
@@ -136,15 +137,24 @@ unit cgutils;
             LOC_CONSTANT : (
               case longint of
 {$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
+    {$ifdef FPC_BIG_ENDIAN}
+                1 : (_valuedummy0,value : Int64);
+    {$else FPC_BIG_ENDIAN}
                 1 : (value : Int64);
+    {$endif FPC_BIG_ENDIAN}
 {$else cpu64bitalu or cpuhighleveltarget}
     {$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : longint);
+                1 : (_valuedummy1,_valuedummy2,_valuedummy3,value : longint);
     {$else FPC_BIG_ENDIAN}
                 1 : (value : longint);
     {$endif FPC_BIG_ENDIAN}
 {$endif cpu64bitalu or cpuhighleveltarget}
+    {$ifdef FPC_BIG_ENDIAN}
+                2 : (_valuedummy4,value64 : Int64);
+    {$else FPC_BIG_ENDIAN}
                 2 : (value64 : Int64);
+    {$endif FPC_BIG_ENDIAN}
+                3 : (value128 : Int128);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
