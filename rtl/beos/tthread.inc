@@ -158,8 +158,8 @@ begin
   end;
   FreeThread := Thread.FFreeOnTerminate;
   Result := Thread.FReturnValue;
-  Thread.FFinished := True;
   Thread.DoTerminate;
+  Thread.FFinished := True;
   if FreeThread then
     Thread.Free;
   fpexit(Result);
@@ -404,6 +404,7 @@ end;
 function ThreadFunc(parameter: Pointer): LongInt; // cdecl;
 var
   LThread: TThread;
+  LFreeOnTerminate: Boolean;
   c: AnsiChar;
 begin
   WRITE_DEBUG('ThreadFunc is here...');
@@ -440,9 +441,10 @@ begin
   WRITE_DEBUG('thread done running');
   Result := LThread.FReturnValue;
   WRITE_DEBUG('Result is ',Result);
-  LThread.FFinished := True;
+  LFreeOnTerminate := LThread.FreeOnTerminate;
   LThread.DoTerminate;
-  if LThread.FreeOnTerminate then begin
+  LThread.FFinished := True;
+  if LFreeOnTerminate then begin
     WRITE_DEBUG('Thread should be freed');
     LThread.Free;
     WRITE_DEBUG('Thread freed');

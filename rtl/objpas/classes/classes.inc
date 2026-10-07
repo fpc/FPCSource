@@ -246,8 +246,8 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
     end;
     FreeThread := Thread.FFreeOnTerminate;
     Result := Thread.FReturnValue;
-    Thread.FFinished := True;
     Thread.DoTerminate;
+    Thread.FFinished := True;
     if FreeThread then
       Thread.Free;
 {$ifdef FPC_HAS_FEATURE_THREADING}
