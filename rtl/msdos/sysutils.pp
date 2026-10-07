@@ -932,14 +932,14 @@ begin
    though - the smallest step is 10 ms even in the best case. *)
   R.AH := $2C;
   MsDos(R);
-  T0 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
+  T0 := LongInt(R.CH) * 3600000 + LongInt(R.CL) * 60000 + LongInt(R.DH) * 1000 + LongInt(R.DL) * 10;
   T2 := T0 + MilliSeconds;
   DayOver := T2 > (24 * 3600000);
   repeat
     Intr ($28, R);
 (*    R.AH := $2C; - should be preserved. *)
     MsDos(R);
-    T1 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
+    T1 := LongInt(R.CH) * 3600000 + LongInt(R.CL) * 60000 + LongInt(R.DH) * 1000 + LongInt(R.DL) * 10;
     if DayOver and (T1 < T0) then
      Inc (T1, 24 * 3600000);
   until T1 >= T2;
