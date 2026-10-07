@@ -4621,9 +4621,10 @@ var
       AddHash(u);
       exit;
       end;
-    // non ASCII
+    // non ASCII; a value that is already UTF-16 stays UTF-16
     FetchTargetCP;
-    if (TargetCP=CP_UTF16) or (TargetCP=CP_UTF16BE) or (u>255) then
+    if (TargetCP=CP_UTF16) or (TargetCP=CP_UTF16BE) or (u>255)
+        or (Value.Kind=revkUnicodeString) then
       begin
       ForceUTF16;
       ValueUTF16:=TResEvalUTF16(Value);
