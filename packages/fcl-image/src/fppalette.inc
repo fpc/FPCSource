@@ -115,7 +115,7 @@ begin
   GetMem (NewData, sizeof(TFPColor)*FCapacity);
   if old > 0 then
     begin
-    move (FData^[0], NewData^[0], sizeof(TFPColor)*FCount);
+    move (FData^[0], NewData^[0], sizeof(TFPColor)*old);
     FreeMem (FData);
     end;
   FData := NewData;
