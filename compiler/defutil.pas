@@ -1485,10 +1485,10 @@ implementation
               rangedef:=def;
               size:=def.size;
               case size of
-                1: mask:=$ff;
-                2: mask:=$ffff;
-                4: mask:=$ffffffff;
-                8: mask:=$ffffffffffffffff;
+                1: mask:=byte($ff);
+                2: mask:=word($ffff);
+                4: mask:=dword($ffffffff);
+                8: mask:=qword($ffffffffffffffff);
                 16: mask:=MaxUInt128;
                 else
                   internalerror(2019062305);
