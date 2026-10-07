@@ -79,6 +79,8 @@ procedure OutputDebugString(lpOutputString:LPCWSTR); external 'kernel32' name 'O
 function FindResource(hModule:HINST; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC; external 'kernel32' name 'FindResourceW';
 function FindResourceEx(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExW';
 function EnumResourceTypes(hModule:HMODULE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceTypesW';
+// EnumResourceTypesEx requires Windows Vista or higher
+function EnumResourceTypesEx(hModule:HMODULE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG_PTR; dwFlags:DWORD; LangId:LANGID):WINBOOL; external 'kernel32' name 'EnumResourceTypesExW';
 function EnumResourceNames(hModule:HMODULE; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceNamesW';
 function EnumResourceLanguages(hModule:HMODULE; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesW';
 function BeginUpdateResource(pFileName:LPCWSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32' name 'BeginUpdateResourceW';
