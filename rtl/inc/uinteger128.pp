@@ -111,8 +111,8 @@ unit uinteger128;
 
     function BinStr(const v: UInt128; cnt: Byte): string; overload;
     function HexStr(const v: UInt128; cnt: Byte): string; overload;
-    function IntToStr(Value: UInt128): string;
-    function IntToStr(Value: Int128): string;
+    function IntToStr(Value: UInt128): string; overload;
+    function IntToStr(Value: Int128): string; overload;
 
   const
     MaxUInt128: UInt128 = (QWords: (High(QWord), High(QWord)));
@@ -166,7 +166,7 @@ unit uinteger128;
           HexStr:=System.HexStr(v.QWords[QWORD_HI],cnt-16)+System.HexStr(v.QWords[QWORD_LO],16);
       end;
 
-    function IntToStr(Value: UInt128): string;
+    function IntToStr(Value: UInt128): string; overload;
       var
         I: Integer;
         tmpC: Char;
@@ -190,7 +190,7 @@ unit uinteger128;
           end;
       end;
 
-    function IntToStr(Value: Int128): string;
+    function IntToStr(Value: Int128): string; overload;
       var
         UValue: UInt128 absolute Value;
       begin
