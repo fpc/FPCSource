@@ -121,6 +121,63 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     GetLocaleChar := nl_langinfo(item)^;
   end;
 
+  { Return the separator in aStr: an ASCII character as is, a UTF-8 encoded
+    space or punctuation variant as its ASCII form, a lone byte of a single-byte
+    code page as is, aDef otherwise. }
+  function LocaleSepChar(const aStr: AnsiString; aDef: AnsiChar): AnsiChar;
+  var
+    lLen, lIndex: Integer;
+    lCode: Cardinal;
+  begin
+    Result:=aDef;
+    if aStr='' then
+      exit;
+    if Ord(aStr[1])<$80 then
+      exit(aStr[1]);
+    case Ord(aStr[1]) of
+      $C0..$DF:
+        begin
+        lLen:=2;
+        lCode:=Ord(aStr[1]) and $1F;
+        end;
+      $E0..$EF:
+        begin
+        lLen:=3;
+        lCode:=Ord(aStr[1]) and $0F;
+        end;
+      $F0..$F7:
+        begin
+        lLen:=4;
+        lCode:=Ord(aStr[1]) and $07;
+        end;
+    else
+      lLen:=0;
+      lCode:=0;
+    end;
+    if (lLen=0) or (Length(aStr)<lLen) then
+      begin
+      if Length(aStr)=1 then
+        Result:=aStr[1];
+      exit;
+      end;
+    for lIndex:=2 to lLen do
+      begin
+      if (Ord(aStr[lIndex]) and $C0)<>$80 then
+        exit;
+      lCode:=(lCode shl 6) or (Ord(aStr[lIndex]) and $3F);
+      end;
+    case lCode of
+      $A0, $2009, $202F:
+        Result:=' ';
+      $2019:
+        Result:='''';
+      $066B:
+        Result:='.';
+      $066C:
+        Result:=',';
+    end;
+  end;
+
   function SkipModifiers(const s: string; var i: integer): string;
   var
     l: Integer;
@@ -344,7 +401,7 @@ begin
      if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
        fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-     fmts.ThousandSeparator:=plocale^.THOUSANDS_SEP[0];
+     fmts.ThousandSeparator:=LocaleSepChar(plocale^.THOUSANDS_SEP,#0);
   {$else}
    //Currency stuff
   fmts.CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
@@ -364,12 +421,11 @@ begin
   if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
     fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-  fmts.ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
-  Sep := ord(GetLocaleChar(__MON_THOUSANDS_SEP));
+  fmts.ThousandSeparator:=LocaleSepChar(GetLocaleStr(__THOUSANDS_SEP),#0);
   if fmts.ThousandSeparator=#0 then
-    fmts.ThousandSeparator := AnsiChar(Sep);
+    fmts.ThousandSeparator:=LocaleSepChar(GetLocaleStr(__MON_THOUSANDS_SEP),#0);
   {$endif}
-  fmts.DecimalSeparator:=GetLocaleChar(RADIXCHAR);
+  fmts.DecimalSeparator:=LocaleSepChar(GetLocaleStr(RADIXCHAR),fmts.DecimalSeparator);
 end;
 
 initialization
