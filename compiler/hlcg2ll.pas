@@ -155,7 +155,7 @@ unit hlcg2ll;
           function a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
           { move instructions }
-          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
+          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : thlcgint;register : tregister);override;
           procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
           procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);override;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
@@ -461,7 +461,7 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
+  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: thlcgint; register: tregister);
     begin
       cg.a_load_const_reg(list,def_cgsize(tosize),a,register);
     end;
