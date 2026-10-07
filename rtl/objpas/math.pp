@@ -277,6 +277,10 @@ function FMod(const a, b: Extended): Extended;inline;overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 operator mod(const a,b:float) c:float;inline;
+{ a-b*Int(a/b); a result equal to abs(b) is returned as 0. Equal means within
+  Float resolution, or, unless a and b are both integral, within abs(a) times
+  the machine epsilon of Single when a and b are both exactly representable as
+  Single, of Double when both are as Double, of Float otherwise. }
 
 // Sign functions
 Type
@@ -3828,10 +3832,36 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{ Return true if the remainder c of a mod b equals abs(b) within Float resolution,
+  or, for operands that are not both integral, within abs(a) times the machine
+  epsilon of the narrowest type that a and b are both exactly representable in }
+function ModIsFullDivisor(const a,b,c: float): boolean;
+var
+  lEps,lAbsB,lAbsC: float;
+begin
+  lAbsB:=abs(b);
+  lAbsC:=abs(c);
+  if SameValue(lAbsC,lAbsB) then
+    exit(true);
+  if (frac(a)=0.0) and (frac(b)=0.0) then
+    exit(false);
+  lEps:=MachEpsFloat;
+{$if defined(FPC_HAS_TYPE_DOUBLE) and (defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128))}
+  if (abs(a)<=MaxDouble) and (lAbsB<=MaxDouble) and (double(a)=a) and (double(b)=b) then
+    lEps:=MachEpsDouble;
+{$endif}
+{$if defined(FPC_HAS_TYPE_SINGLE) and (defined(FPC_HAS_TYPE_DOUBLE) or defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128))}
+  if (abs(a)<=MaxSingle) and (lAbsB<=MaxSingle) and (single(a)=a) and (single(b)=b) then
+    lEps:=MachEpsSingle;
+{$endif}
+  result:=abs(lAbsC-lAbsB)<=abs(a)*lEps;
+end;
+
+
 operator mod(const a,b:float) c:float;inline;
 begin
   c:= a-b * Int(a/b);
-  if SameValue(abs(c),abs(b)) then
+  if ModIsFullDivisor(a,b,c) then
     c:=0.0;
 end;
 
