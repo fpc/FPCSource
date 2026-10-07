@@ -1053,8 +1053,12 @@ begin
       DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
       DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
     end;
-    IsDST:=(DSTStart<=DateTime) and (DateTime<DSTEnd);
-    if isDst then
+    if DSTStart < DSTEnd then
+      IsDST := (DSTStart<=DateTime) and (DateTime<DSTEnd)
+    else
+      // Southern hemisphere countries, when daylight saving observer over the year end
+      IsDST := (DateTime >= DSTStart) or (DateTime < DSTEnd);
+    if IsDST then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else
       Offset := TZInfo.Bias+TZInfo.StandardBias;
