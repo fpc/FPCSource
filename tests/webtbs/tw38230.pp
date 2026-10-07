@@ -16,6 +16,7 @@ type
 var
   e: TFPUException;
   expectedfpumask: tfpuexceptionmask;
+  error: longint;
 
 constructor tmythread.create;
   begin
@@ -34,7 +35,7 @@ procedure tmythread.execute;
       begin
         writeln(hexstr(cardinal(GetExceptionMask),8));
         writeln(hexstr(cardinal(expectedfpumask),8));
-        halt(1);
+	error:=1;
       end;
     with tmychildthread.create do
       begin
@@ -60,14 +61,16 @@ procedure tmychildthread.execute;
       write(e,', ');
     writeln;
     if GetExceptionMask<>expectedfpumask then
-      halt(2);
+      error:=2;
   end;
 
+
 begin
-    write('main: ');
-    for e in GetExceptionMask do
-      write(e,', ');
-    writeln;
+  error:=0;
+  write('main: ');
+  for e in GetExceptionMask do
+    write(e,', ');
+  writeln;
   expectedfpumask:=GetExceptionMask;
   with tmythread.create do
     begin
@@ -81,4 +84,7 @@ begin
       waitfor;
       free;
     end;
+  if error<>0 then
+    writeln('Test fails, error=',error);
+  halt(error);
 end.
