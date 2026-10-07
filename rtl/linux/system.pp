@@ -407,9 +407,16 @@ begin
 End;
 
 
+// Return the number of parameters, in a library up to the first nil entry of argv
 Function ParamCount: Longint;
+var
+  lIndex : Longint;
 Begin
-  Paramcount:=argc-1
+  Paramcount:=argc-1;
+  if IsLibrary then
+    for lIndex:=1 to argc-1 do
+      if argv[lIndex]=nil then
+        exit(lIndex-1);
 End;
 
 
@@ -453,7 +460,7 @@ function paramstr(l: longint) : shortstring;
          SysInitExecPath;
        paramstr := execpathstr;
      end
-   else if (l > 0) and (l < argc) then
+   else if (l > 0) and (l < argc) and (argv[l]<>nil) then
      paramstr:=strpas(argv[l])
    else
      paramstr:='';

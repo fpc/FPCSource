@@ -323,7 +323,7 @@ Function ParamStr(Param : Integer) : ansistring;
   }
     if (Param=0) then
       Result:=System.Paramstr(0)
-    else if (Param>0) and (Param<argc) then
+    else if (Param>0) and (Param<argc) and (Argv[Param]<>nil) then
       Result:=Argv[Param]
     else
       Result:='';
