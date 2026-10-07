@@ -952,6 +952,13 @@ begin
   RawT(rhs):=tmp;
 end;
 
+generic function EnsureOrder<T>(var A,B: T): Boolean;
+begin
+  Result:=A>B;
+  if Result then
+    specialize Swap<T>(A,B);
+end;
+
 Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
 
 var

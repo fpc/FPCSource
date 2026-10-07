@@ -289,6 +289,8 @@ generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inli
 generic function Exchange<T>(var target:T; const newvalue:T) :T; inline;
 generic function Extract<T>(var from: T) :T;inline;overload;
 generic procedure Swap<T>(var lhs,rhs: T);inline;overload;
+// Swaps A and B when A>B; returns True if they were swapped
+generic function EnsureOrder<T>(var A,B: T): Boolean;inline;
 
 Var
    OnShowException : Procedure (Msg : ShortString);
