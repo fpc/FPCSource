@@ -118,6 +118,8 @@ interface
 
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;
+       { type used for handling constants etc. in the high level code generator }
+       THLCGInt = Int64;
 
        { This must be an ordinal type with the same size as a pointer
          Note: Must be unsigned! Otherwise, ugly code like
