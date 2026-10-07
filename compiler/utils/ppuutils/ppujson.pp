@@ -25,7 +25,7 @@ unit ppujson;
 interface
 
 uses
-  SysUtils, Classes, ppuout;
+  SysUtils, Classes, ppuout, uinteger128;
 
 type
   { TPpuJsonOutput }
@@ -42,7 +42,7 @@ type
     procedure WriteArrayStart(const AName: string); override;
     procedure WriteArrayEnd(const AName: string); override;
     procedure WriteStr(const AName, AValue: string); override;
-    procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean); override;
+    procedure WriteInt(const AName: string; AValue: Int128; Signed: boolean); override;
     procedure WriteFloat(const AName: string; AValue: extended); override;
     procedure WriteBool(const AName: string; AValue: boolean); override;
     procedure WriteNull(const AName: string); override;
@@ -159,12 +159,12 @@ begin
   WriteAttr(AName, JsonStr(AValue));
 end;
 
-procedure TPpuJsonOutput.WriteInt(const AName: string; AValue: Int64; Signed: boolean);
+procedure TPpuJsonOutput.WriteInt(const AName: string; AValue: Int128; Signed: boolean);
 begin
   if Signed then
     WriteAttr(AName, IntToStr(AValue))
   else
-    WriteAttr(AName, IntToStr(QWord(AValue)));
+    WriteAttr(AName, IntToStr(UInt128(AValue)));
 end;
 
 procedure TPpuJsonOutput.WriteFloat(const AName: string; AValue: extended);

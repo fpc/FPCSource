@@ -30,6 +30,7 @@ uses
   { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
   cutils,
   SysUtils,
+  uinteger128,
   constexp,
   symconst,
   ppu,
@@ -1374,7 +1375,7 @@ function getexprint:Tconstexprint;
 begin
   getexprint.overflow:=false;
   getexprint.signed:=ppufile.getboolean;
-  getexprint.svalue:=ppufile.getint64;
+  getexprint.svalue:=ppufile.getint128;
 end;
 
 Procedure ReadPosInfo(Def: TPpuDef = nil);
@@ -3832,7 +3833,7 @@ begin
                    write  ([space,'  PointerType : ']);
                    readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctInt;
-                   constdef.VInt:=int64(getptruint);
+                   constdef.VInt:=int128(getptruint);
                    writeln([space,'        Value : ',constdef.VInt])
                  end;
                conststring,

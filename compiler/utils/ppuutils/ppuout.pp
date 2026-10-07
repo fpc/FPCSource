@@ -25,7 +25,7 @@ unit ppuout;
 
 interface
 
-uses SysUtils, cclasses, Classes;
+uses SysUtils, cclasses, Classes, uinteger128;
 
 type
   TPpuDefType = (dtNone, dtUnit, dtObject, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
@@ -55,7 +55,7 @@ type
     procedure WriteArrayStart(const AName: string); virtual;
     procedure WriteArrayEnd(const AName: string); virtual;
     procedure WriteStr(const AName, AValue: string); virtual;
-    procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean = True); virtual;
+    procedure WriteInt(const AName: string; AValue: Int128; Signed: boolean = True); virtual;
     procedure WriteFloat(const AName: string; AValue: extended); virtual;
     procedure WriteBool(const AName: string; AValue: boolean); virtual;
     procedure WriteNull(const AName: string); virtual;
@@ -235,7 +235,7 @@ type
   public
     ConstType: TPpuConstType;
     TypeRef: TPpuRef;
-    VInt: Int64;
+    VInt: Int128;
     VFloat: extended;
     VStr: string;
     VSet: array[0..31] of byte;
@@ -715,10 +715,10 @@ begin
         if VInt = 0 then
           WriteNull(s)
         else
-          if QWord(VInt) > $FFFFFFFF then
-            WriteStr(s, hexStr(QWord(VInt), 8))
+          if UInt128(VInt) > $FFFFFFFF then
+            WriteStr(s, hexStr(UInt128(VInt), 8))
           else
-            WriteStr(s, hexStr(QWord(VInt), 16));
+            WriteStr(s, hexStr(UInt128(VInt), 16));
       ctSet:
         begin
           ss:='';
@@ -1146,12 +1146,12 @@ procedure TPpuOutput.WriteStr(const AName, AValue: string);
 begin
 end;
 
-procedure TPpuOutput.WriteInt(const AName: string; AValue: Int64; Signed: boolean);
+procedure TPpuOutput.WriteInt(const AName: string; AValue: Int128; Signed: boolean);
 begin
   if Signed then
     WriteStr(AName, IntToStr(AValue))
   else
-    WriteStr(AName, IntToStr(QWord(AValue)));
+    WriteStr(AName, IntToStr(UInt128(AValue)));
 end;
 
 procedure TPpuOutput.WriteFloat(const AName: string; AValue: extended);
