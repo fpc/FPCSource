@@ -4753,6 +4753,7 @@ var
  I64: Int64;
  Qw: QWord;
  S: AnsiString;
+ U: UnicodeString;
  B: Boolean;
  dynarr: Pointer;
 
@@ -4765,6 +4766,7 @@ begin
        { to support the strings 'true' and 'false' }
        if (VarType(Value)=varOleStr) or
           (VarType(Value)=varString) or
+          (VarType(Value)=varUString) or
           (VarType(Value)=varBoolean) then
          begin
            B:=Value;
@@ -4773,14 +4775,40 @@ begin
        else
          begin
            I64:=Value;
-           if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
-             raise ERangeError.Create(SRangeError);
+           { Boolean..Boolean64 are unsigned with range 0..1, ByteBool..QWordBool are signed and store -1 for True }
+           if TypeData^.OrdType in [otUByte,otUWord,otULong,otUQWord] then
+             begin
+             if (I64<0) or (I64>1) then
+               raise ERangeError.Create(SRangeError);
+             end
+           else if I64<>0 then
+             I64:=-1;
            SetOrdProp(Instance, PropInfo, I64);
          end;
        end;
      tkInteger, tkChar, tkWChar:
        begin
-       I64:=Value;
+       if (PropInfo^.PropType^.Kind<>tkInteger) and
+          ((VarType(Value)=varOleStr) or
+           (VarType(Value)=varString) or
+           (VarType(Value)=varUString)) then
+         begin
+         I64:=0;
+         if PropInfo^.PropType^.Kind=tkChar then
+           begin
+           S:=Value;
+           if S<>'' then
+             I64:=Ord(S[1]);
+           end
+         else
+           begin
+           U:=Value;
+           if U<>'' then
+             I64:=Ord(U[1]);
+           end;
+         end
+       else
+         I64:=Value;
        if (TypeData^.OrdType=otULong) then
          if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
            raise ERangeError.Create(SRangeError)
