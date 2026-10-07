@@ -1557,7 +1557,7 @@ end;
           else
             if is_char(sym.constdef) or
                is_widechar(sym.constdef) then
-              Name:=''''+chr(sym.value.valueord.svalue)+''''
+              Name:=''''+chr(sym.value.valueord.AsByte)+''''
           else
             Name:=tostr(sym.value.valueord);
         end;
