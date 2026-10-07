@@ -481,7 +481,7 @@ begin
       end;
     Inc(PS);
     end;
-  SetString(Result,@Res[0],PD-@Res[0]);
+  SetString(Result,PTStringChar(@Res[0]),PD-PTStringChar(@Res[0]));
 end;
 
 
