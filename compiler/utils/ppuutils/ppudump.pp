@@ -3834,7 +3834,7 @@ begin
                    readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctInt;
                    constdef.VInt:=int128(getptruint);
-                   writeln([space,'        Value : ',constdef.VInt])
+                   writeln([space,'        Value : ',IntToStr(constdef.VInt)])
                  end;
                conststring,
                constresourcestring :
@@ -4067,7 +4067,7 @@ begin
              readderef('');
              TPpuConstDef(def).ConstType:=ctInt;
              TPpuConstDef(def).VInt:=getlongint;
-             writeln([space,'        Value : ',TPpuConstDef(def).VInt]);
+             writeln([space,'        Value : ',IntToStr(TPpuConstDef(def).VInt)]);
              if (ParentDef <> nil) and (ParentDef.DefType = dtEnum) then
                def.Parent:=ParentDef;
            end;
