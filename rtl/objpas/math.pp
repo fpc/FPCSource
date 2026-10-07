@@ -639,7 +639,11 @@ function ExpM1(x : extended) : extended;
 { exponential functions }
 
 function Power(base,exponent : float) : float;
-{ base^exponent }
+{ base^exponent, with the C99 border cases:
+  power(x,0)=1 and power(1,y)=1, also for NaN; otherwise NaN in either argument gives NaN;
+  power(-1,+-Inf)=1; power(x,+Inf) is 0 for abs(x)<1 and +Inf for abs(x)>1;
+  power(x,-Inf) is +Inf for abs(x)<1 and 0 for abs(x)>1;
+  a negative base with an integral exponent beyond the longint range keeps the sign of an odd power }
 function IntPower(base : float;exponent : longint) : float;
 
 operator ** (base,exponent : float) e: float; inline;
@@ -1999,12 +2003,29 @@ end;
 
 function power(base,exponent : float) : float;
   begin
-    if Exponent=0.0 then
+    if (exponent=0.0) or (base=1.0) then
       result:=1.0
+    else if IsNan(base) or IsNan(exponent) then
+      result:=NaN
+    else if IsInfinite(exponent) then
+      begin
+        if abs(base)=1.0 then
+          result:=1.0
+        else if (abs(base)<1.0)=(exponent>0.0) then
+          result:=0.0
+        else
+          result:=Infinity;
+      end
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
     else if (frac(exponent)=0.0) and (abs(exponent)<=maxint) then
       result:=intpower(base,trunc(exponent))
+    else if (base<0.0) and (frac(exponent)=0.0) then
+      begin
+        result:=exp(exponent*ln(-base));
+        if frac(exponent*0.5)<>0.0 then
+          result:=-result;
+      end
     else
       result:=exp(exponent * ln (base));
   end;
