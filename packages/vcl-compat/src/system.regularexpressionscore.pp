@@ -741,7 +741,7 @@ procedure TPerlRegEx.Compile;
 
 var
   ErrorNr: Integer;
-  ErrorPos: Integer;
+  ErrorPos: SizeInt;
 {$IFDEF NEED_UTF_CONVERSION}
   UTF8Regex: RawByteString;
 {$ENDIF}
