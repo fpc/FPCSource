@@ -1132,14 +1132,29 @@ begin
 end;
 
 
-function GetLocaleChar(LID, LT: Longint; Def: AnsiChar): AnsiChar;
+{ Return the first character of a locale item: ASCII as is, no-break spaces as
+  a space, other characters if they are a single byte in DefaultSystemCodePage,
+  aDef otherwise. }
+function GetLocaleChar(aLID, aLT: Longint; aDef: AnsiChar): AnsiChar;
 var
-  Buf: array[0..3] of AnsiChar; // sdate allows 4 chars.
+  lBuf: array[0..3] of WideChar; // sdate allows 4 chars.
+  lAnsi: RawByteString;
 begin
-  if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
-    Result := Buf[0]
+  Result := aDef;
+  if GetLocaleInfoW(aLID, aLT, @lBuf[0], Length(lBuf)) <= 0 then
+    exit;
+  case Ord(lBuf[0]) of
+    0:
+      ;
+    1..127:
+      Result := AnsiChar(Ord(lBuf[0]));
+    $A0, $202F:
+      Result := ' ';
   else
-    Result := Def;
+    widestringmanager.Unicode2AnsiMoveProc(@lBuf[0], lAnsi, DefaultSystemCodePage, 1);
+    if (Length(lAnsi) = 1) and (lAnsi[1] <> '?') then
+      Result := lAnsi[1];
+  end;
 end;
 
 function ConvertEraString(Count ,Year,Month,Day : integer) : string;
