@@ -158,6 +158,10 @@ type
    EInOutError = class(Exception)
      public
        ErrorCode : Integer;
+       // Create with a message and set ErrorCode
+       constructor Create(const aMsg: string; aErrorCode: Integer); overload;
+       // Create with a formatted message and set ErrorCode
+       constructor CreateFmt(const aFmt: string; const aArgs: array of const; aErrorCode: Integer); overload;
    end;
 
    EHeapMemoryError = class(Exception)

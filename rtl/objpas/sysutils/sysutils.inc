@@ -325,6 +325,22 @@ Var OutOfMemory : EOutOfMemory;
     end;
 
 
+constructor EInOutError.Create(const aMsg: string; aErrorCode: Integer); overload;
+
+begin
+  Inherited Create(aMsg);
+  ErrorCode:=aErrorCode;
+end;
+
+
+constructor EInOutError.CreateFmt(const aFmt: string; const aArgs: array of const; aErrorCode: Integer); overload;
+
+begin
+  Inherited CreateFmt(aFmt,aArgs);
+  ErrorCode:=aErrorCode;
+end;
+
+
 constructor EInOutArgumentException.Create(const aMsg, aPath: string); overload;
 
 begin
