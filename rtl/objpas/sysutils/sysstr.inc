@@ -729,7 +729,10 @@ begin
  if P=Q then
    exit;
  if P^<>quote then
-   exit(strpas(P));
+   begin
+   SetString(Result,P,Q-P);
+   exit;
+   end;
  inc(p);
  setlength(result,(Q-P)+1);
  R:=@Result[1];
@@ -763,7 +766,10 @@ begin
  if P=Q then
    exit;
  if P^<>quote then
-   exit(strpas(P));
+   begin
+   SetString(Result,P,Q-P);
+   exit;
+   end;
  inc(p);
  setlength(result,(Q-P)+1);
  R:=@Result[1];
@@ -2459,8 +2465,7 @@ Var
 
 Begin
   Len:=FloatToTextFmt(PChar(@Buf[0]),Value,PChar(Format),FormatSettings);
-  Buf[Len]:=#0;
-  Result:=StrPas(Pchar(@Buf[0]));
+  SetString(Result,PChar(@Buf[0]),Len);
 End;
 
 Function FormatFloat(Const format: String; Value: Extended): String;
