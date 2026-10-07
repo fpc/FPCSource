@@ -16,6 +16,7 @@ uses
   syntax.ini,
   syntax.sql,
   syntax.json,
+  syntax.go,
   unittest.pascal,
   unittest.assembler,
   unittest.bash,
@@ -25,6 +26,7 @@ uses
   unittest.ini,
   unittest.sql,
   unittest.json,
+  unittest.go,
   unittest.htmlrender,
   consoletestrunner;
 
