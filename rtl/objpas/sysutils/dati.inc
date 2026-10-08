@@ -57,6 +57,8 @@ function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 Var
   D : Double;
 begin
+  if not ((DateTime>=MinDateTime) and (DateTime<=MaxDateTime)) then
+    Raise EConvertError.CreateFmt(SInvalidDateTimeFloat,[DateTime]);
   D:=DateTime * Single(MSecsPerDay);
   if D<0 then
     D:=D-0.5
