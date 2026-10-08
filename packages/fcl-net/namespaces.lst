@@ -9,3 +9,5 @@ src/netdb.pp=namespaced/System.Net.Netdb.pp
 src/ssockets.pp=namespaced/System.Net.Ssockets.pp
 src/fpsock.pp=namespaced/System.Net.Fpsock.pp
 src/fpsockets.pp=namespaced/System.Net.FPSockets.pp
+src/schannelsspi.pp=namespaced/WinApi.SchannelSSPI.pp
+src/schannelsslsockets.pp=namespaced/System.Net.SchannelSSLSockets.pp

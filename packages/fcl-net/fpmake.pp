@@ -66,6 +66,12 @@ begin
         end;
     T.ResourceStrings := True;
 
+    T:=P.Targets.AddUnit('schannelsspi.pp',[win32,win64]);
+    T:=P.Targets.AddUnit('schannelsslsockets.pp',[win32,win64]);
+    T.Dependencies.AddUnit('schannelsspi');
+    T.Dependencies.AddUnit('sslsockets');
+    T.ResourceStrings := True;
+
     // HTTP Client
     T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd,dragonfly]);
       with T.Dependencies do
