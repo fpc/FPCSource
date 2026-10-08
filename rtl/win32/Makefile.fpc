@@ -20,8 +20,6 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof $(INITCUNIT) $(EXTPASUNIT) $(HE
       $(CP_UNITS) $(UNICODEDATAUNIT) \
       $(CPU_UNITS)
 
-# shared=$(DLLS)
-
 rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 
 [require]
@@ -48,8 +46,13 @@ WININC=../win/wininc
 WINDIR=../win
 NSOSDIR=$(NSDIR)/windows
 
+# Shared memory manager library used by the sharemem unit
+FPCMEMDLL=$(COMPILER_UNITTARGETDIR)/fpcmemdll.dll
+override ALLTARGET+=$(FPCMEMDLL)
+override CLEANTARGET+=fpcmemdll_clean
+override INSTALLTARGET+=fpcmemdll_install
+
 UNITPREFIX=rtl
-DLLS=fpcmemdll
 CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT) $(MMXUNIT) $(INTRINSICSUNIT)
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -109,5 +112,19 @@ BUILDRTL_DEPS=buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINDOW
 
 buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)
 	$(COMPILER) $(BUILDUNITPATHS) $(BUILDINCLUDEPATHS) $(BUILDRTL_OPT) $<
+
+#
+# Shared memory manager library
+#
+
+$(FPCMEMDLL): $(WINDIR)/fpcmemdll.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) | fpc_units
+	$(COMPILER) -FE$(COMPILER_UNITTARGETDIR) $<
+
+fpcmemdll_clean:
+	-$(DEL) $(FPCMEMDLL) $(COMPILER_UNITTARGETDIR)/fpcmemdll$(OEXT) $(COMPILER_UNITTARGETDIR)/$(IMPORTLIBPREFIX)fpcmemdll$(STATICLIBEXT)
+
+fpcmemdll_install: $(FPCMEMDLL)
+	$(MKDIR) $(INSTALL_BINDIR)
+	$(INSTALLEXE) $(FPCMEMDLL) $(INSTALL_BINDIR)
 
 
