@@ -1953,17 +1953,24 @@ var
    OutStr(res);
   end;
 
-  procedure OutString(s: RawByteString);
-  begin
-    OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
-  end;
-
-  procedure OutWString(W: WideString);
+  procedure OutUString(W: UnicodeString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
 
-  procedure OutUString(W: UnicodeString);
+  procedure OutString(s: RawByteString);
+  begin
+    if Encoding=oteLFM then
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,True)
+    else
+      begin
+      { dfm: #NNN denotes a code point of the value in the default system code page }
+      SetCodePage(s,DefaultSystemCodePage,False);
+      OutUString(UnicodeString(s));
+      end;
+  end;
+
+  procedure OutWString(W: WideString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
@@ -2457,7 +2464,7 @@ var
       WriteSString(s);
     end else begin
       Output.WriteByte(Ord(vaLString));
-      WriteSString(s);
+      WriteLString(s);
     end;
   end;
 
