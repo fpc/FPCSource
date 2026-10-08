@@ -188,7 +188,7 @@ function GetFileVersion(const AFileName:UnicodeString):Cardinal;
     if size>sizeof(buf) then
       bufp:=getmem(size);
     if GetFileVersionInfoW(PUnicodeChar(AFileName),0,size,bufp) then
-      if VerQueryValue(bufp,'\',valrec,valsize) then
+      if VerQueryValueW(bufp,'\',valrec,valsize) then
         result:=valrec^.dwFileVersionMS;
     if bufp<>@buf then
       freemem(bufp);
@@ -1474,59 +1474,37 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 
-var
-   oemenvvar, oemstr : RawByteString;
-   i, hplen : longint;
-   hp,p : PAnsiChar;
 begin
-   oemenvvar:=uppercase(envvar);
-   SetCodePage(oemenvvar,CP_OEMCP);
-   Result:='';
-   p:=GetEnvironmentStringsA;
-   hp:=p;
-   while hp^<>#0 do
-     begin
-        oemstr:=hp;
-        { cache length, may change after uppercasing depending on code page }
-        hplen:=length(oemstr);
-        { all environment variables are encoded in the oem code page }
-        SetCodePage(oemstr,CP_OEMCP,false);
-        i:=pos('=',oemstr);
-        if uppercase(copy(oemstr,1,i-1))=oemenvvar then
-          begin
-             Result:=copy(oemstr,i+1,length(oemstr)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+hplen+1;
-     end;
-   FreeEnvironmentStringsA(p);
+  Result:=AnsiString(GetEnvironmentVariable(UnicodeString(EnvVar)));
 end;
 
 Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
 
 var
-   s, upperenv : Unicodestring;
-   i : longint;
-   hp,p : pwidechar;
+  lBuf : array[0..1023] of WideChar;
+  lLen, lNew : DWORD;
+
 begin
-   Result:='';
-   p:=GetEnvironmentStringsW;
-   hp:=p;
-   upperenv:=uppercase(envvar);
-   while hp^<>#0 do
-     begin
-        s:=hp;
-        i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upperenv then
-          begin
-             Result:=copy(s,i+1,length(s)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-     end;
-   FreeEnvironmentStringsW(p);
+  Result:='';
+  if EnvVar='' then
+    exit;
+  lLen:=GetEnvironmentVariableW(PWideChar(EnvVar),@lBuf,Length(lBuf));
+  if lLen<Length(lBuf) then
+    begin
+    SetString(Result,PWideChar(@lBuf),lLen);
+    exit;
+    end;
+  { retry with a heap buffer until the value fits }
+  repeat
+    SetLength(Result,lLen);
+    lNew:=GetEnvironmentVariableW(PWideChar(EnvVar),PWideChar(Result),lLen);
+    if lNew<lLen then
+      begin
+      SetLength(Result,lNew);
+      exit;
+      end;
+    lLen:=lNew;
+  until false;
 end;
 
 Function GetEnvironmentVariableCount : Integer;
