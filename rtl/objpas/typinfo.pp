@@ -2883,10 +2883,16 @@ begin
     tkClass:
       DataSize:=8;
 {$endif cpu64}
-    tkChar, tkBool:
+    tkChar:
       DataSize:=1;
     tkWChar:
       DataSize:=2;
+    tkBool:
+      case GetTypeData(TypeInfo)^.OrdType of
+        otSByte,otUByte: DataSize := 1;
+        otSWord,otUWord: DataSize := 2;
+        otSQWord,otUQWord: DataSize := 8;
+      end;
     tkSet,
     tkEnumeration,
     tkInteger:
@@ -3000,6 +3006,8 @@ begin
             Value:=Value and $ff;
             DataSize := 1;
           end;
+        otSQWord,otUQWord:
+          DataSize := 8;
        end;
     end;
   case (PropInfo^.PropProcs shr 2) and 3 of

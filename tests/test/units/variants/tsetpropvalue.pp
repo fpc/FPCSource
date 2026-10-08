@@ -18,6 +18,8 @@ type
     FQWordBool: QWordBool;
     FChar: AnsiChar;
     FWideChar: WideChar;
+    FSetterBool64: Boolean64;
+    procedure SetSetterBool64(aValue: Boolean64);
   published
     // Boolean property
     property BoolProp: Boolean read FBool write FBool;
@@ -35,8 +37,17 @@ type
     property CharProp: AnsiChar read FChar write FChar;
     // WideChar property
     property WideCharProp: WideChar read FWideChar write FWideChar;
+    // Boolean64 property with a setter method
+    property SetterBool64Prop: Boolean64 read FSetterBool64 write SetSetterBool64;
   end;
   {$M-}
+
+procedure TPropHolder.SetSetterBool64(aValue: Boolean64);
+
+begin
+  FSetterBool64:=aValue;
+end;
+
 
 var
   lHolder: TPropHolder;
@@ -122,11 +133,29 @@ begin
     if not lRaised then
       halt(42);
     SetPropValue(lHolder,'QWordBoolProp',3);
-    if not lHolder.QWordBoolProp then
+    if Int64(lHolder.QWordBoolProp)<>-1 then
       halt(43);
     SetPropValue(lHolder,'QWordBoolProp',0);
     if lHolder.QWordBoolProp then
       halt(44);
+    SetPropValue(lHolder,'SetterBool64Prop',1);
+    if Int64(lHolder.SetterBool64Prop)<>1 then
+      halt(45);
+
+    SetOrdProp(lHolder,'Bool64Prop',Int64($100000000));
+    if Int64(lHolder.Bool64Prop)<>Int64($100000000) then
+      halt(51);
+    SetOrdProp(lHolder,'SetterBool64Prop',Int64($100000000));
+    if Int64(lHolder.SetterBool64Prop)<>Int64($100000000) then
+      halt(52);
+    if GetOrdProp(lHolder,'Bool64Prop')<>Int64($100000000) then
+      halt(53);
+    lHolder.WordBoolProp:=WordBool($0100);
+    if GetOrdProp(lHolder,'WordBoolProp')<>$0100 then
+      halt(54);
+    lHolder.LongBoolProp:=LongBool($01000000);
+    if GetOrdProp(lHolder,'LongBoolProp')<>$01000000 then
+      halt(55);
   finally
     lHolder.Free;
   end;
