@@ -1227,7 +1227,7 @@ begin
    if (EraNames[i] = '') then
    begin
      EraNames[i] := Names;
-     Result := True;
+     Result := WINBOOL(1);
      break;
    end;
 end;
@@ -1241,7 +1241,7 @@ begin
    if (EraYearOffsets[i] = -1) then
    begin
      EraYearOffsets[i] := StrToIntDef(YearOffsets, 0);
-     Result := True;
+     Result := WINBOOL(1);
      break;
    end;
 end;
