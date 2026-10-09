@@ -23,6 +23,8 @@ rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT
 
 programs=
 
+shared=fpcmemdll
+
 [require]
 nortl=y
 
@@ -52,12 +54,6 @@ SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
 WINDIRSDIR=$(WINDIR)
 DYNLIBSINCDIR=$(WINDIR)
 TTHREADINCDIR=$(WINDIR)
-
-# Shared memory manager library used by the sharemem unit
-FPCMEMDLL=$(COMPILER_UNITTARGETDIR)/fpcmemdll.dll
-override ALLTARGET+=$(FPCMEMDLL)
-override CLEANTARGET+=fpcmemdll_clean
-override INSTALLTARGET+=fpcmemdll_install
 
 UNITPREFIX=rtl
 EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
@@ -132,18 +128,4 @@ buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)
 
 WinApi.Signals$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.Signals.pp
 	$(COMPILER) $<
-
-#
-# Shared memory manager library
-#
-
-$(FPCMEMDLL): $(WINDIR)/fpcmemdll.pp | fpc_units
-	$(COMPILER) -FE$(COMPILER_UNITTARGETDIR) $<
-
-fpcmemdll_clean:
-	-$(DEL) $(FPCMEMDLL) $(COMPILER_UNITTARGETDIR)/fpcmemdll$(OEXT) $(COMPILER_UNITTARGETDIR)/$(IMPORTLIBPREFIX)fpcmemdll$(STATICLIBEXT)
-
-fpcmemdll_install: $(FPCMEMDLL)
-	$(MKDIR) $(INSTALL_BINDIR)
-	$(INSTALLEXE) $(FPCMEMDLL) $(INSTALL_BINDIR)
 
