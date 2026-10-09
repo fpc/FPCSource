@@ -56,9 +56,14 @@ begin
     halt(2);
   lExpected:=lCount;
   lCount:=0;
-  Check(10,EnumResourceTypesExA(lModule,@EnumTypeA,0,RESOURCE_ENUM_LN,0),lExpected);
-  Check(20,EnumResourceTypesExW(lModule,@EnumTypeW,0,RESOURCE_ENUM_LN or RESOURCE_ENUM_VALIDATE,0),lExpected);
-  Check(30,EnumResourceTypesEx(lModule,ENUMRESTYPEPROC(@EnumTypeA),0,RESOURCE_ENUM_LN,0),lExpected);
+  Check(10,EnumResourceTypesExA(lModule,@EnumTypeA,0,RESOURCE_ENUM_LN or RESOURCE_ENUM_MUI,0),lExpected);
+  Check(20,EnumResourceTypesExW(lModule,@EnumTypeW,0,RESOURCE_ENUM_LN or RESOURCE_ENUM_MUI or RESOURCE_ENUM_VALIDATE,0),lExpected);
+  Check(30,EnumResourceTypesEx(lModule,ENUMRESTYPEPROC(@EnumTypeA),0,RESOURCE_ENUM_LN or RESOURCE_ENUM_MUI,0),lExpected);
+  if not EnumResourceTypesExA(lModule,@EnumTypeA,0,RESOURCE_ENUM_LN,0) or (lCount=0) or (lCount>lExpected) then
+    begin
+    writeln('40: ',lCount,' language neutral types, expected 1 to ',lExpected);
+    halt(40);
+    end;
   FreeLibrary(lModule);
   writeln('ok');
 end.
