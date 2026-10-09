@@ -96,6 +96,10 @@ type
     constructor Create; virtual;
     // Called after the connect call succeeded. Returns True to continue, false to close connection.
     function Connect: boolean; virtual;
+    // Return True if Connect establishes the connection itself, e.g. when a platform
+    // API owns both TCP and TLS. TInetSocket.Connect then only calls Connect.
+    // The socket handle is not used in that case.
+    function HandlesConnect: boolean; virtual;
     // Called after the accept call succeeded on the NEW client socket
     function Accept : Boolean; virtual;
     Function Close : Boolean; virtual;
@@ -478,6 +482,11 @@ function TSocketHandler.Connect: boolean;
 begin
   // Only descendents can change this
   Result:=True;
+end;
+
+function TSocketHandler.HandlesConnect: boolean;
+begin
+  Result:=False;
 end;
 
 function TSocketHandler.Accept : Boolean;
@@ -1770,6 +1779,12 @@ Var
   TimeV: TTimeVal;
 {$endif}
 begin
+  if Assigned(FHandler) and FHandler.HandlesConnect then
+    begin
+    if not FHandler.Connect then
+      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FEndPoint.First.Address, Port]),FHandler.GetLastErrorDescription]);
+    Exit;
+    end;
   { Hack: atUnixSock is basically anything thats not an IP address
     therefore hostnames fall under this }
   if FEndPoint.First.AddressType=atUnixSock then
