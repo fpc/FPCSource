@@ -251,6 +251,8 @@ type
       function    IsChangedOnDisk : boolean;
     public
       procedure   BindingsChanged; virtual;
+    private
+      Procedure   ChangeFileName(AFileName:String); { change FileName for all binded Editors }
     end;
 
 function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
@@ -1926,6 +1928,24 @@ begin
   ReloadFile:=OK;
 end;
 
+Procedure TFileEditor.ChangeFileName(AFileName:String);
+procedure ChangeEditorFileName(P: PEditorBinding);
+begin
+  if P^.Editor^.IsClipboard then
+    PFileEditor(P^.Editor)^.FileName := ''
+  else
+    PFileEditor(P^.Editor)^.FileName:=AFileName;
+  if P^.Editor<>@Self then
+  begin
+    Message(Application,evBroadcast,cmUpdateTitle,P^.Editor);
+    Message(Application,evBroadcast,cmFileNameChanged,P^.Editor);
+  end;
+end;
+begin
+  if Assigned(Core) then
+    Core^.Bindings^.ForEach(TCallbackProcParam(@ChangeEditorFileName));
+end;
+
 function TFileEditor.ShouldSave: boolean;
 begin
   ShouldSave:=GetModified{ or (FileName='')};
@@ -1940,7 +1960,7 @@ end;
 function TFileEditor.SaveAs: Boolean;
 var
   SavedName : String;
-  SavedDiskLoadTime : cardinal;
+  SavedDiskLoadTime : Cardinal;
 begin
   SaveAs := False;
   SavedName:=FileName;
@@ -1954,6 +1974,9 @@ begin
     if SaveFile then
       begin
         SaveAs := true;
+        if Assigned(Core) and (Core^.IsEditorBound(@Self)) then
+          if Core^.GetBindingCount > 1 then       { file is open more than once }
+            ChangeFileName(FileName);
       end
     else
       begin
