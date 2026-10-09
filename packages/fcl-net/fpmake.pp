@@ -72,6 +72,10 @@ begin
     T.Dependencies.AddUnit('sslsockets');
     T.ResourceStrings := True;
 
+    T:=P.Targets.AddUnit('networkframeworksslsockets.pp',[darwin]);
+    T.Dependencies.AddUnit('sslsockets');
+    T.ResourceStrings := True;
+
     // HTTP Client
     T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd,dragonfly]);
       with T.Dependencies do

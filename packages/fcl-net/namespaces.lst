@@ -11,3 +11,4 @@ src/fpsock.pp=namespaced/System.Net.Fpsock.pp
 src/fpsockets.pp=namespaced/System.Net.FPSockets.pp
 src/schannelsspi.pp=namespaced/WinApi.SchannelSSPI.pp
 src/schannelsslsockets.pp=namespaced/System.Net.SchannelSSLSockets.pp
+src/networkframeworksslsockets.pp=namespaced/System.Net.NetworkFrameworkSSLSockets.pp
