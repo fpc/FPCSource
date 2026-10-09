@@ -34,9 +34,6 @@
 Unit DIVE;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{Warning: This code is alfa. Future versions of this unit will probably
- not be compatible.}
-
 Interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -144,8 +141,8 @@ Type  HDIVE  = cardinal;
         ulPlaneCount  : cardinal;  { * Number of defined planes * }
 
         { * Following info applies to ulPlaneID * }
-        fScreenDirect : Boolean;  { * Direct screen access (was type BOOL in C) * }
-        fBankSwitched : Boolean;  { * VRAM bank-switched? (was type BOOL in C) * }
+        fScreenDirect : longbool;  { * Direct screen access (was type BOOL in C); in previous versions of this unit wrongly Boolean * }
+        fBankSwitched : longbool;  { * VRAM bank-switched? (was type BOOL in C); in previous versions of this unit wrongly Boolean * }
         ulDepth       : cardinal;  { * Number of bits per pixel * }
         ulHorizontalResolution : cardinal;
         ulVerticalResolution   : cardinal;
