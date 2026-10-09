@@ -137,7 +137,7 @@ WinApi.Signals$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.Signals.pp
 # Shared memory manager library
 #
 
-$(FPCMEMDLL): $(WINDIR)/fpcmemdll.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) | fpc_units
+$(FPCMEMDLL): $(WINDIR)/fpcmemdll.pp | fpc_units
 	$(COMPILER) -FE$(COMPILER_UNITTARGETDIR) $<
 
 fpcmemdll_clean:
