@@ -3152,7 +3152,7 @@ end;
 
 function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer;
 begin
-  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+  Result:=HexToBin(HexText, PAnsiChar(@BinBuffer), BinBufSize);
 end;
 
 function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
@@ -3240,7 +3240,7 @@ end;
 
 function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer;
 begin
-  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+  Result:=HexToBin(HexText, PAnsiChar(@BinBuffer), BinBufSize);
 end;
 
 function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
