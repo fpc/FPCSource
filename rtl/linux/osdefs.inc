@@ -53,6 +53,10 @@
   {$define NO_SYSCALL_IPC}
 {$endif}
 
+{$ifndef cpu64}
+  {$define use_prlimit64}       // FpGetRLimit/FpSetRLimit use the prlimit64 syscall
+{$endif}
+
 {$ifdef CPUARM}
 {$define WAIT4}
 {$endif CPUARM}
