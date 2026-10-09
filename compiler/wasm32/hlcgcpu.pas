@@ -1946,7 +1946,7 @@ implementation
               -> Simplified boolean equivalent (in terms of sign bits):
                  not(src2 xor src1) and (src2 xor dst)
 
-             for subtraction, multiplication: invert src2 sign bit
+             for subtraction: invert src2 sign bit
              for division: handle separately (div by zero, low(inttype) div -1),
                not supported by this code
 
@@ -1956,7 +1956,30 @@ implementation
           { not pasbool8, because then we'd still have to convert the integer to
             a boolean via branches for Dalvik}
           ovloc.register:=getintregister(list,s32inttype);
-          if not ((size.typ=pointerdef) or
+          if (op in [OP_MUL,OP_IMUL]) and (size.size=4) then
+            begin
+              { Compare the full 64-bit product with the extended 32-bit result.
+                Addition's carry/sign tests do not detect multiplication overflow. }
+              a_load_reg_stack(list,size,orgsrc1);
+              if is_signed(size) then
+                list.concat(taicpu.op_none(a_i64_extend_i32_s))
+              else
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+              a_load_reg_stack(list,size,orgsrc2);
+              if is_signed(size) then
+                list.concat(taicpu.op_none(a_i64_extend_i32_s))
+              else
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+              a_op_stack(list,OP_MUL,u64inttype);
+              a_load_reg_stack(list,size,dst);
+              if is_signed(size) then
+                list.concat(taicpu.op_none(a_i64_extend_i32_s))
+              else
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+              a_cmp_stack_stack(list,u64inttype,OC_NE);
+              a_load_stack_reg(list,s32inttype,ovloc.register);
+            end
+          else if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
                                              pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
@@ -1987,11 +2010,8 @@ implementation
                 end
               else
                 begin
-                  { can be optimized by removing duplicate xor'ing to convert dst from
-                    signed to unsigned quadrant }
-                  a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc1);
-                  a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc2);
-                  a_op_stack(list,OP_AND,s32inttype);
+                  { Unsigned addition carries iff its result is below an operand. }
+                  a_cmp_reg_reg_stack(list,size,OC_A,dst,orgsrc1);
                   a_load_stack_reg(list,s32inttype,ovloc.register);
                 end;
             end;
