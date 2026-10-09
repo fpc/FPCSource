@@ -300,4 +300,51 @@ const
      FPE_INTOVF    =  8;  { integer overflow -NOTIMP on Mac OS X 10.4.7 }
 
 { Codes for SIGILL }
+     ILL_NOOP      = 0;   { if only I knew... }
+     ILL_ILLOPC    = 1;   { illegal opcode }
      ILL_ILLTRP    = 2;   {  /* [XSI] illegal trap */ }
+     ILL_PRVOPC    = 3;   { privileged opcode }
+     ILL_ILLOPN    = 4;   { illegal operand }
+     ILL_ILLADR    = 5;   { illegal addressing mode }
+     ILL_PRVREG    = 6;   { privileged register }
+     ILL_COPROC    = 7;   { coprocessor error }
+     ILL_BADSTK    = 8;   { internal stack error }
+
+{ Codes for SIGSEGV }
+     SEGV_NOOP     = 0;   { if only I knew... }
+     SEGV_MAPERR   = 1;   { address not mapped to object }
+     SEGV_ACCERR   = 2;   { invalid permission for mapped object }
+
+{ Codes for SIGBUS }
+     BUS_NOOP      = 0;   { if only I knew... }
+     BUS_ADRALN    = 1;   { invalid address alignment }
+     BUS_ADRERR    = 2;   { nonexistent physical address }
+     BUS_OBJERR    = 3;   { object-specific hardware error }
+
+{ Codes for SIGTRAP }
+     TRAP_BRKPT    = 1;   { process breakpoint }
+     TRAP_TRACE    = 2;   { process trace trap }
+
+{ Codes for SIGCHLD }
+     CLD_NOOP      = 0;   { if only I knew... }
+     CLD_EXITED    = 1;   { child has exited }
+     CLD_KILLED    = 2;   { terminated abnormally, no core file }
+     CLD_DUMPED    = 3;   { terminated abnormally, core file }
+     CLD_TRAPPED   = 4;   { traced child has trapped }
+     CLD_STOPPED   = 5;   { child has stopped }
+     CLD_CONTINUED = 6;   { stopped child has continued }
+
+{ Codes for SIGPOLL }
+     POLL_IN       = 1;   { data input available }
+     POLL_OUT      = 2;   { output buffers available }
+     POLL_MSG      = 3;   { input message available }
+     POLL_ERR      = 4;   { i/o error }
+     POLL_PRI      = 5;   { high priority input available }
+     POLL_HUP      = 6;   { device disconnected }
+
+{ Codes for any signal }
+     SI_USER       = $10001; { signal from kill() }
+     SI_QUEUE      = $10002; { signal from sigqueue() }
+     SI_TIMER      = $10003; { timer expiration }
+     SI_ASYNCIO    = $10004; { aio request completion }
+     SI_MESGQ      = $10005; { from message arrival on empty queue }

@@ -13,28 +13,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{
-/* SIGFPE */
-#define	FPE_INTDIV	1	/* Integer divide by zero		*/
-#define	FPE_INTOVF	2	/* Integer overflow			*/
-#define	FPE_FLTDIV	3	/* Floating point divide by zero	*/
-#define	FPE_FLTOVF	4	/* Floating point overflow		*/
-#define	FPE_FLTUND	5	/* Floating point underflow		*/
-#define	FPE_FLTRES	6	/* Floating point inexact result	*/
-#define	FPE_FLTINV	7	/* Invalid Floating point operation	*/
-#define	FPE_FLTSUB	8	/* Subscript out of range		*/
-}
-
-const
-  FPE_IntDiv = 1;
-  FPE_IntOvf = 2;
-  FPE_FltDiv = 3;
-  FPE_FltOvf = 4;
-  FPE_FltUnd = 5;
-  FPE_FltRes = 6;
-  FPE_FltInv = 7;
-  FPE_FltSub = 8;
-
 procedure SignalToRunerror(Sig: longint;info : PSigInfo;SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
