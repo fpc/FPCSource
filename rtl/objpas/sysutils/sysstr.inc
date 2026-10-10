@@ -2321,7 +2321,7 @@ var
   InfNan: string[3];
   Error, N, L, Start, C: Integer;
   GotNonZeroBeforeDot, BeforeDot : boolean;
-
+  ValueAsCur: Currency absolute Value;
 begin
   case ValueType of
     fvExtended:
@@ -2332,7 +2332,7 @@ begin
     fvSingle:
       Str(Single(Value):16, Buffer);
     fvCurrency:
-      Str(Currency(Value):25, Buffer);
+      Str(ValueAsCur:25, Buffer);
     fvComp:
       Str(Currency(Value):23, Buffer);
   end;
@@ -2402,8 +2402,8 @@ begin
     N := Decimals + Result.Exponent
   Else
     N := Precision;
-  if N >= L Then
-    N := L-1;
+  if N > L Then
+    N := L;
   if N = 0 Then
     begin
       if Result.Digits[0] >= '5' Then
@@ -2417,7 +2417,7 @@ begin
     end  //N=0
   Else if N > 0 Then
     begin
-      if Result.Digits[N] >= '5' Then
+      if (N < L) and (Result.Digits[N] >= '5') Then
         begin
           Repeat
             Result.Digits[N] := #0;
@@ -2432,7 +2432,10 @@ begin
         end
       Else
         begin
-          Result.Digits[N] := '0';
+          if N = L then
+            Dec(N)
+          else
+            Result.Digits[N] := '0';
           While (N > -1) And (Result.Digits[N] = '0') Do
             begin
               Result.Digits[N] := #0;
@@ -2475,8 +2478,13 @@ begin
 end;
 
 Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
-begin
-  Result := FormatFloat(Format, Value,FormatSettings);
+Var
+  buf : Array[0..1024] of Char;
+  Len: Integer;
+
+Begin
+  Len:=IntFloatToTextFmt(PChar(@Buf[0]),Value,fvCurrency,PChar(Format),FormatSettings);
+  SetString(Result,PChar(@Buf[0]),Len);
 end;
 
 function FormatCurr(const Format: string; Value: Currency): string;
