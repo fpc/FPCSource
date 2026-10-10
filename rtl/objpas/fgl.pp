@@ -1980,7 +1980,7 @@ procedure TFPGMapInterfacedObjectData.CopyData(Src, Dest: Pointer);
 begin
   if Assigned(Pointer(Dest^)) then
     TData(Dest^)._Release;
-  TData(Dest^) := TData(Src^);
+  Pointer(Dest^) := Pointer(Src^);
   if Assigned(Pointer(Dest^)) then
     TData(Dest^)._AddRef;
 end;
