@@ -142,6 +142,74 @@ begin
 end;
 
 
+{ Link aExc on top of the exception object stack for the handler established at
+  aFrame, unwinding to aUnwindFrame (nil when no unwind is in progress). }
+procedure LinkExceptEntry(var aExc: TExceptObject; aFrame, aRec, aUnwindFrame: Pointer);
+begin
+  aExc.Refcount:=0;
+  aExc.SEHFrame:=aFrame;
+  aExc.ExceptRec:=aRec;
+  aExc.UnwindFrame:=aUnwindFrame;
+  aExc.Next:=ExceptObjectStack;
+  ExceptObjectStack:=@aExc;
+end;
+
+
+{ Remove the entry of the handler established at aFrame from the exception object
+  stack and free its frames. Returns the entry, or nil when there is none. }
+function UnlinkExceptEntry(aFrame: Pointer): PExceptObject;
+var
+  lPrev: PExceptObject;
+begin
+  lPrev:=nil;
+  result:=ExceptObjectStack;
+  while assigned(result) and (result^.SEHFrame<>aFrame) do
+  begin
+    lPrev:=result;
+    result:=result^.Next;
+  end;
+  if result=nil then
+    exit;
+  if lPrev=nil then
+    ExceptObjectStack:=result^.Next
+  else
+    lPrev^.Next:=result^.Next;
+  if assigned(result^.Frames) then
+    freemem(result^.Frames);
+end;
+
+
+{ Remove the entries below the top of the exception object stack whose unwind
+  targets a frame at or above aFrame, freeing their frames and the exception
+  objects that were not acquired. }
+procedure ReleaseAbandonedExceptions(aFrame: Pointer);
+var
+  lTop, lPrev, lEntry: PExceptObject;
+  lObj: TObject;
+begin
+  lTop:=ExceptObjectStack;
+  lPrev:=lTop;
+  lEntry:=lTop^.Next;
+  while lEntry<>nil do
+  begin
+    if (lEntry^.UnwindFrame=nil) or (PtrUInt(lEntry^.UnwindFrame)>PtrUInt(aFrame)) then
+      lPrev:=lEntry
+    else
+    begin
+      lPrev^.Next:=lEntry^.Next;
+      if (lEntry^.refcount=0) and (lEntry^.FObject<>lTop^.FObject) then
+        lObj:=lEntry^.FObject
+      else
+        lObj:=nil;
+      if assigned(lEntry^.Frames) then
+        freemem(lEntry^.Frames);
+      lObj.Free;
+    end;
+    lEntry:=lPrev^.Next;
+  end;
+end;
+
+
 function __FPC_finally_handler(
   var rec: TExceptionRecord;
   var frame: TSEHFrame;
@@ -184,6 +252,16 @@ begin
       exit;
     end;
 
+    if rec.ExceptionCode=FPC_EXCEPTION_CODE then
+    begin
+      Exc.FObject:=TObject(rec.ExceptionInformation[1]);
+      Exc.Addr:=rec.ExceptionInformation[0];
+      Exc.Frames:=PCodePointer(rec.ExceptionInformation[3]);
+      Exc.FrameCount:=ptruint(rec.ExceptionInformation[2]);
+      code:=217;
+      LinkExceptEntry(Exc,@frame,@rec,@frame);
+    end;
+
     RtlUnwind(@frame,nil,@rec,nil);
     asm
       { RtlUnwind destroys nonvolatile registers, this assembler block prevents
@@ -210,22 +288,10 @@ begin
         Halt(code);
       end;
       Exc.FrameCount:=GetBacktrace(context,nil,Exc.Frames);
+      LinkExceptEntry(Exc,@frame,@rec,nil);
     end
     else
-    begin
-      Exc.FObject:=TObject(rec.ExceptionInformation[1]);
-      Exc.Addr:=rec.ExceptionInformation[0];
-      Exc.Frames:=PCodePointer(rec.ExceptionInformation[3]);
-      Exc.FrameCount:=ptruint(rec.ExceptionInformation[2]);
-      code:=217;
-    end;
-
-    Exc.Refcount:=0;
-    Exc.SEHFrame:=@frame;
-    Exc.ExceptRec:=@rec;
-    { link to ExceptObjectStack }
-    Exc.Next:=ExceptObjectStack;
-    ExceptObjectStack:=@Exc;
+      Exc.UnwindFrame:=nil;
 
     if Assigned(ExceptProc) then
     begin
@@ -255,8 +321,8 @@ var
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)<>0 then
   begin
-    hp:=PopObjectStack;
-    if hp^.refcount=0 then
+    hp:=UnlinkExceptEntry(@frame);
+    if assigned(hp) and (hp^.refcount=0) then
       hp^.FObject.Free;
   end;
   result:=ExceptionContinueSearch;
@@ -299,6 +365,7 @@ begin
     Exc.Framecount:=Longint(PtrUInt(rec.ExceptionInformation[2]));
     Exc.Frames:=rec.ExceptionInformation[3];
   end;
+  LinkExceptEntry(Exc,@frame,@rec,@frame);
 
   asm
     movl %ebx,_oldebx
@@ -315,13 +382,8 @@ begin
     movl _oldedi,%edi
   end;
 
-  Exc.Refcount:=0;
-  Exc.SEHFrame:=@frame;
-  Exc.ExceptRec:=@rec;
-  { link to ExceptObjectStack }
-  Exc.Next:=ExceptObjectStack;
-  ExceptObjectStack:=@Exc;
-
+  Exc.UnwindFrame:=nil;
+  ReleaseAbandonedExceptions(@frame);
   frame.Addr:=@NestedHandler;
   if setjmp(Exc.ReraiseBuf)=0 then
   asm
