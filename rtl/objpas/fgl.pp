@@ -36,7 +36,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  MaxListSize = Maxint div 16;
+  MaxListSize = Maxint div 4;
 
 type
   EListError = class(Exception);
@@ -522,8 +522,11 @@ begin
     Error(SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
-  ReallocMem(FList, (NewCapacity+1) * FItemSize);
-  FillChar(InternalItems[FCapacity]^, (NewCapacity+1-FCapacity) * FItemSize, #0);
+  if SizeUInt(NewCapacity) >= High(SizeUInt) div SizeUInt(FItemSize) then
+    Error(SListCapacityError, NewCapacity);
+  ReallocMem(FList, SizeUInt(NewCapacity+1) * SizeUInt(FItemSize));
+  if NewCapacity > FCapacity then
+    FillChar(InternalItems[FCapacity]^, SizeUInt(NewCapacity+1-FCapacity) * SizeUInt(FItemSize), #0);
   FCapacity := NewCapacity;
 end;
 
@@ -691,9 +694,11 @@ begin
     IncSize := 8
   else
     IncSize := 4;
-  // If we were at max capacity already, force error.
-  If IncSize<=0 then
-    IncSize:=1; // Will trigger error
+  if IncSize > MaxListSize - FCapacity then
+    if FCapacity < MaxListSize then
+      IncSize := MaxListSize - FCapacity
+    else
+      Error(SListCapacityError, FCapacity);
   SetCapacity(FCapacity + IncSize);
 end;
 
