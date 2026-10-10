@@ -2734,7 +2734,8 @@ Var
   L : String;
   C,LQ,BC : AnsiChar;
   P,BLen,Len : Integer;
-  HB,IBC : Boolean;
+  lLastBreak,lCut : Integer;
+  HB : Boolean;
 
 begin
   Result:='';
@@ -2750,8 +2751,9 @@ begin
     P:=1;
     LQ:=#0;
     HB:=False;
-    IBC:=False;
-    While ((P<=Len) and ((P<=MaxCol) or not IBC)) and ((LQ<>#0) or Not HB) do
+    lLastBreak:=0;
+    lCut:=0;
+    While (P<=Len) and (lCut=0) and ((LQ<>#0) or Not HB) do
       begin
       C:=L[P];
       If (C=LQ) then
@@ -2767,13 +2769,22 @@ begin
           Inc(P,Blen)
         else
           begin
-          If (P>=MaxCol) then
-            IBC:=C in BreakChars;
+          // Cut after the last break character within MaxCol, else after the first one beyond it
+          If (P>MaxCol) and (lLastBreak>0) then
+            lCut:=lLastBreak
+          else If (C in BreakChars) then
+            begin
+            If (P<=MaxCol) then
+              lLastBreak:=P
+            else
+              lCut:=P;
+            end;
           Inc(P);
           end;
         end;
-//      Writeln('"',C,'" : IBC : ',IBC,' HB  : ',HB,' LQ  : ',LQ,' P>MaxCol : ',P>MaxCol);
       end;
+    If (lCut>0) then
+      P:=lCut+1;
     Result:=Result+Copy(L,1,P-1);
     Delete(L,1,P-1);
     Len:=Length(L);
