@@ -144,28 +144,31 @@ end;
 var
   UnhandledExceptionFreeing : Boolean;
 
-{ Remove the top entry of the exception object stack and free its frames, the
-  entry itself if aDisposeEntry is true, and the exception object unless it was
-  acquired. Does nothing when called again while freeing. }
+{ Remove all entries of the exception object stack and free their frames, the
+  entries themselves if aDisposeEntry is true, and the exception objects that
+  were not acquired. Does nothing when called again while freeing. }
 procedure FreeUnhandledException(aDisposeEntry : Boolean);
 var
   lEntry : PExceptObject;
   lObj : TObject;
 begin
-  lEntry:=ExceptObjectStack;
-  if (lEntry=nil) or UnhandledExceptionFreeing then
+  if UnhandledExceptionFreeing then
     exit;
   UnhandledExceptionFreeing:=True;
-  if lEntry^.refcount=0 then
-    lObj:=lEntry^.FObject
-  else
-    lObj:=nil;
-  ExceptObjectStack:=lEntry^.next;
-  if assigned(lEntry^.frames) then
-    freemem(lEntry^.frames);
-  if aDisposeEntry then
-    dispose(lEntry);
-  lObj.Free;
+  while ExceptObjectStack<>nil do
+    begin
+      lEntry:=ExceptObjectStack;
+      if lEntry^.refcount=0 then
+        lObj:=lEntry^.FObject
+      else
+        lObj:=nil;
+      ExceptObjectStack:=lEntry^.next;
+      if assigned(lEntry^.frames) then
+        freemem(lEntry^.frames);
+      if aDisposeEntry then
+        dispose(lEntry);
+      lObj.Free;
+    end;
 end;
 
 
@@ -187,6 +190,54 @@ begin
     Halt(errorcode);
 end;
 
+{$if not defined(FPC_SYSTEM_HAS_RAISEEXCEPTION) or not defined(FPC_SYSTEM_HAS_RERAISE)}
+{ Return true if aFrame is found in the exception frame chain starting at aStart,
+  or is nil }
+function ExceptFrameInChain(aFrame, aStart : PExceptAddr) : Boolean;
+begin
+  while (aStart<>nil) and (aStart<>aFrame) do
+    aStart:=aStart^.Next;
+  Result:=aStart=aFrame;
+end;
+
+
+{ Mark the top entry of the exception object stack as unwinding to aTarget, and
+  remove the entries below it whose unwinding stops when the top one reaches
+  aTarget, freeing their frames and the exception objects that were not
+  acquired. }
+procedure ReleaseAbandonedExceptions(aTarget : PExceptAddr);
+var
+  lTop, lPrev, lEntry : PExceptObject;
+  lObj : TObject;
+begin
+  lTop:=ExceptObjectStack;
+  if lTop=nil then
+    exit;
+  lTop^.UnwindFrame:=aTarget^.Next;
+  lPrev:=lTop;
+  lEntry:=lTop^.Next;
+  while lEntry<>nil do
+    begin
+      if ExceptFrameInChain(lEntry^.UnwindFrame,aTarget^.Next) then
+        lPrev:=lEntry
+      else
+        begin
+          lPrev^.Next:=lEntry^.Next;
+          if (lEntry^.refcount=0) and (lEntry^.FObject<>lTop^.FObject) then
+            lObj:=lEntry^.FObject
+          else
+            lObj:=nil;
+          if assigned(lEntry^.frames) then
+            freemem(lEntry^.frames);
+          dispose(lEntry);
+          lObj.Free;
+        end;
+      lEntry:=lPrev^.Next;
+    end;
+end;
+{$endif}
+
+
 {$ifndef FPC_SYSTEM_HAS_RAISEEXCEPTION}
 procedure fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
@@ -206,6 +257,7 @@ begin
   _ExceptAddrstack:=ExceptAddrStack;
   If _ExceptAddrStack=Nil then
     DoUnhandledException;
+  ReleaseAbandonedExceptions(_ExceptAddrStack);
   _ExceptObjectStack:=ExceptObjectStack;
   if (RaiseProc <> nil) and (_ExceptObjectStack <> nil) then
     with _ExceptObjectStack^ do
@@ -313,6 +365,7 @@ begin
   If _ExceptAddrStack=Nil then
     DoUnHandledException;
   ExceptObjectStack^.refcount := 0;
+  ReleaseAbandonedExceptions(_ExceptAddrStack);
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 {$endif FPC_SYSTEM_HAS_RERAISE}

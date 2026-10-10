@@ -443,8 +443,42 @@ begin
 end;
 {$endif DEBUG_SEH}
 
+{ Remove the entries below the top of the exception object stack whose unwind
+  was in progress deeper on the stack than aFrame, freeing their frames and the
+  exception objects that were not acquired. }
+procedure ReleaseAbandonedExceptions(aFrame: Pointer);
+var
+  lTop, lPrev, lEntry: PExceptObject;
+  lObj: TObject;
+begin
+  lTop:=ExceptObjectStack;
+  lPrev:=lTop;
+  lEntry:=lTop^.Next;
+  while lEntry<>nil do
+  begin
+    if (lEntry^.UnwindFrame=nil) or (PtrUInt(lEntry^.UnwindFrame)>PtrUInt(aFrame)) then
+      lPrev:=lEntry
+    else
+    begin
+      lPrev^.Next:=lEntry^.Next;
+      if (lEntry^.refcount=0) and (lEntry^.FObject<>lTop^.FObject) then
+        lObj:=lEntry^.FObject
+      else
+        lObj:=nil;
+      if assigned(lEntry^.Frames) then
+        freemem(lEntry^.Frames);
+      dispose(lEntry);
+      lObj.Free;
+    end;
+    lEntry:=lPrev^.Next;
+  end;
+end;
+
+
+{ Push the exception of rec on the exception object stack for the handler
+  established at aFrame. }
 function PushException(var rec: TExceptionRecord; var context: TContext;
-  out obj: TObject; AcceptNull: Boolean): Boolean;
+  out obj: TObject; AcceptNull: Boolean; aFrame: Pointer): Boolean;
 var
   adr: Pointer;
   Exc: PExceptObject;
@@ -478,9 +512,11 @@ begin
   Exc^.Frames:=Frames;
   Exc^.FrameCount:=FrameCount;
   Exc^.Refcount:=0;
+  Exc^.UnwindFrame:=nil;
   { link to RaiseList }
   Exc^.Next:=ExceptObjectStack;
   ExceptObjectStack:=Exc;
+  ReleaseAbandonedExceptions(aFrame);
   Result:=True;
 end;
 
@@ -508,7 +544,7 @@ begin
       exit;
     end;
 {$endif CPUX86_64}
-    PushException(rec,context,obj,True);
+    PushException(rec,context,obj,True,frame);
     RtlUnwindEx(frame, @L1, @rec, nil, dispatch.ContextRecord, dispatch.HistoryTable);
   end
   else if (rec.ExceptionFlags and EXCEPTION_TARGET_UNWIND)<>0 then
@@ -617,8 +653,9 @@ begin
         if IsConsole then
           writeln(stderr,'match at scope #',scopeIdx,', unwind target=',hexstr(TargetAddr));
 {$endif DEBUG_SEH}
-        if not PushException(rec,context,obj,Scope^.Typ=SCOPE_IMPLICIT) then
+        if not PushException(rec,context,obj,Scope^.Typ=SCOPE_IMPLICIT,frame) then
           Exit;
+        ExceptObjectStack^.UnwindFrame:=@TargetAddr;
 
         { Does not return, control is transferred to TargetAddr,
           obj is placed into RAX. }
@@ -646,7 +683,7 @@ begin
         if (TargetRva>=scope^.RvaStart) and (TargetRva<scope^.RvaEnd) and
           ((rec.ExceptionFlags and EXCEPTION_TARGET_UNWIND)<>0) then
         begin
-          Exit;
+          Break;
         end;
 
         dispatch.ScopeIndex:=ScopeIdx+1;
@@ -658,6 +695,9 @@ begin
       end;
       Inc(ScopeIdx);
     end;
+    { the unwind has reached its target }
+    if ((rec.ExceptionFlags and EXCEPTION_TARGET_UNWIND)<>0) and assigned(ExceptObjectStack) then
+      ExceptObjectStack^.UnwindFrame:=nil;
   end;
 end;
 {$endif SYSTEM_USE_WIN_SEH}

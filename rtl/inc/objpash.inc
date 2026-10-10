@@ -528,6 +528,10 @@
          refcount   : Longint;
          Framecount : Longint;
          Frames     : PCodePointer;
+         { setjmp exceptions: parent of the exception frame the exception unwinds to;
+           win64 SEH: stack position of the unwind in progress, nil once it reached
+           its target }
+         UnwindFrame : Pointer;
 {$ifdef FPC_USE_WIN32_SEH}
          SEHFrame   : Pointer;
          ExceptRec  : Pointer;
