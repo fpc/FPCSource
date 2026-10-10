@@ -2249,8 +2249,8 @@ var
             end;
             OutLn('>');
           end;
+        vaCurrency: OutLn(IntToStr(Int64(ReadQWord)) + 'c');
         {vaSingle: begin OutLn('!!Single!!'); exit end;
-        vaCurrency: begin OutLn('!!Currency!!'); exit end;
         vaDate: begin OutLn('!!Date!!'); exit end;}
         vaUTF8String: begin
             OutUtf8Str(ReadLStr);
@@ -2528,6 +2528,7 @@ var
   var
 {$ifndef FPUNONE}
     flt: Extended;
+    curr: Int64;
 {$endif}
     s: RawByteString;
     stream: TMemoryStream;
@@ -2541,9 +2542,21 @@ var
 {$ifndef FPUNONE}
       toFloat:
         begin
-          Output.WriteByte(Ord(vaExtended));
-          flt := Parser.TokenFloat;
-          WriteExtended(flt);
+          if Parser.FloatType in ['c','C'] then
+          begin
+            // Currency is written as its scaled 64-bit integer value
+            s := Parser.TokenString;
+            if not TryStrToInt64(Copy(s, 1, Length(s) - 1), curr) then
+              curr := Round(Parser.TokenFloat);
+            Output.WriteByte(Ord(vaCurrency));
+            WriteQWord(qword(curr));
+          end
+          else
+          begin
+            Output.WriteByte(Ord(vaExtended));
+            flt := Parser.TokenFloat;
+            WriteExtended(flt);
+          end;
           parser.NextToken;
         end;
 {$endif}

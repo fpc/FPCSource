@@ -565,8 +565,8 @@ begin
 {$else}
       SkipBytes(4);
 {$endif}
-    {!!!: vaCurrency:
-      SkipBytes(SizeOf(Currency));}
+    vaCurrency:
+      SkipBytes(SizeOf(Currency));
     vaDate, vaInt64:
       SkipBytes(8);
   end;
@@ -1865,8 +1865,8 @@ begin
     vaSingle:
       Writer.WriteSingle(ReadSingle);
 {$endif}
-    {!!!: vaCurrency:
-      Writer.WriteCurrency(ReadCurrency);}
+    vaCurrency:
+      Writer.WriteCurrency(ReadCurrency);
 {$ifndef FPUNONE}
     vaDate:
       Writer.WriteDate(ReadDate);

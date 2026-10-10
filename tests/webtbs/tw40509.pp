@@ -3,7 +3,7 @@ program tw40509;
 {$mode objfpc}{$h+}
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, Variants;
 
 type
   TCurrHolder = class(TComponent)
@@ -12,6 +12,14 @@ type
   published
     // Currency value streamed as a published property
     property Value: Currency read FValue write FValue;
+  end;
+
+  TVariantHolder = class(TComponent)
+  private
+    FValue: Variant;
+  published
+    // Variant value streamed as vaCurrency when it holds a currency
+    property Value: Variant read FValue write FValue;
   end;
 
 const
@@ -97,6 +105,92 @@ begin
 end;
 
 
+// Skips and copies a vaCurrency value with TReader
+procedure TestSkipCopy(aIndex: Integer; aValue: Currency);
+
+var
+  lStream, lCopy: TMemoryStream;
+  lWriter: TWriter;
+  lReader: TReader;
+
+begin
+  lStream:=TMemoryStream.Create;
+  lCopy:=TMemoryStream.Create;
+  try
+    lWriter:=TWriter.Create(lStream,4096);
+    try
+      lWriter.WriteCurrency(aValue);
+      lWriter.WriteInteger(42);
+    finally
+      lWriter.Free;
+    end;
+    lStream.Position:=0;
+    lReader:=TReader.Create(lStream,4096);
+    try
+      lReader.SkipValue;
+      Check(60+aIndex,lReader.ReadInteger=42,'value after skipped currency '+CurrToStr(aValue));
+    finally
+      lReader.Free;
+    end;
+    lStream.Position:=0;
+    lReader:=TReader.Create(lStream,4096);
+    try
+      lWriter:=TWriter.Create(lCopy,4096);
+      try
+        lReader.CopyValue(lWriter);
+      finally
+        lWriter.Free;
+      end;
+    finally
+      lReader.Free;
+    end;
+    Check(70+aIndex,(lCopy.Size=9) and (CompareByte(lCopy.Memory^,lStream.Memory^,9)=0),'copied currency '+CurrToStr(aValue));
+  finally
+    lCopy.Free;
+    lStream.Free;
+  end;
+end;
+
+
+// Converts a component with a currency variant to text and back
+procedure TestText(aIndex: Integer; aValue: Currency);
+
+var
+  lBin, lText, lBin2: TMemoryStream;
+  lSrc, lDest: TVariantHolder;
+  lStr, lExpected: string;
+
+begin
+  lBin:=TMemoryStream.Create;
+  lText:=TMemoryStream.Create;
+  lBin2:=TMemoryStream.Create;
+  lSrc:=TVariantHolder.Create(nil);
+  lDest:=TVariantHolder.Create(nil);
+  try
+    lSrc.Value:=aValue;
+    lBin.WriteComponent(lSrc);
+    lBin.Position:=0;
+    ObjectBinaryToText(lBin,lText);
+    SetLength(lStr,lText.Size);
+    Move(lText.Memory^,lStr[1],lText.Size);
+    lExpected:='Value = '+IntToStr(PInt64(@aValue)^)+'c';
+    Check(80+aIndex,Pos(lExpected,lStr)>0,'text contains '+lExpected+': '+lStr);
+    lText.Position:=0;
+    ObjectTextToBinary(lText,lBin2);
+    Check(90+aIndex,(lBin2.Size=lBin.Size) and (CompareByte(lBin2.Memory^,lBin.Memory^,lBin.Size)=0),'binary from text equals original for '+CurrToStr(aValue));
+    lBin2.Position:=0;
+    lBin2.ReadComponent(lDest);
+    Check(100+aIndex,(VarType(lDest.Value)=varCurrency) and (lDest.Value=aValue),'variant read back from text for '+CurrToStr(aValue));
+  finally
+    lDest.Free;
+    lSrc.Free;
+    lBin2.Free;
+    lText.Free;
+    lBin.Free;
+  end;
+end;
+
+
 var
   i: Integer;
 
@@ -106,6 +200,8 @@ begin
     TestRoundTrip(i,cValues[i]);
     if i<=cLastDouble then
       TestComponent(i,cValues[i]);
+    TestSkipCopy(i,cValues[i]);
+    TestText(i,cValues[i]);
     end;
   Writeln('ok');
 end.
