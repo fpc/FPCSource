@@ -1294,16 +1294,19 @@ type
     FTypesList: specialize TArray<TRttiType>;
     FTypeCount: LongInt;
     FLock: TRTLCriticalSection;
+    FUsePublishedOnly: Boolean;
+    procedure Adopt(aObject: TRttiObject);
   public
     function GetTypes: specialize TArray<TRttiType>;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
-    function GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
     function GetByHandle(aHandle: Pointer): TRttiObject;
     procedure AddObject(aObject: TRttiObject);
     function GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
     procedure Clear;
-    constructor Create;
+    constructor Create(aUsePublishedOnly: Boolean);
     destructor Destroy; override;
+    // Visibility of the members of the objects held by this pool
+    property UsePublishedOnly: Boolean read FUsePublishedOnly;
   end;
 
   { TValueDataIntImpl }
@@ -1540,6 +1543,22 @@ var
   // Boolean = UsePublishedOnly
   GRttiPool : Array [Boolean] of TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+// Returns the pool that holds aObject
+function PoolOf(aObject: TRttiObject): TRttiPool; inline;
+
+begin
+  Result:=GRttiPool[aObject.FUsePublishedOnly];
+end;
+
+
+// Returns a context on the pool that holds aObject
+function ContextOf(aObject: TRttiObject): TRttiContext; inline;
+
+begin
+  Result:=TRttiContext.Create(aObject.FUsePublishedOnly);
+end;
+
 
 {$ifndef use_thunk_class}
 
@@ -2279,7 +2298,7 @@ function TRttiInstanceMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FHandle^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
+    Result := ContextOf(Self).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiInstanceMethod.GetVirtualIndex: SmallInt;
@@ -2295,35 +2314,50 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter;
+  params, paramsAll: TRttiParameterArray;
 
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams[False],FHandle^.ParamCount);
-  SetLength(FParams[True],FHandle^.ParamCount);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := FHandle^.Param[0];
-  while total < FHandle^.ParamCount do
-    begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams[True]) = 0 then
       begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
+      total := 0;
+      visible := 0;
+      SetLength(params,FHandle^.ParamCount);
+      SetLength(paramsAll,FHandle^.ParamCount);
+      context := ContextOf(Self);
+      param := FHandle^.Param[0];
+      while total < FHandle^.ParamCount do
+        begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        paramsAll[total]:=prtti;
+        if not (pfHidden in param^.Flags) then
+          begin
+          params[visible] := prtti;
+          Inc(visible);
+          end;
+        param := param^.Next;
+        Inc(total);
+        end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams[False] := params;
+      FParams[True] := paramsAll;
       end;
-    FParams[True][total]:=prtti;
-    if not (pfHidden in param^.Flags) then
-      begin
-      FParams[False][visible] := prtti;
-      Inc(visible);
-    end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams[False], visible);
+{$endif}
 end;
 
 procedure TRttiInstanceMethod.ResolveAttributes;
@@ -2477,13 +2511,14 @@ begin
 {$endif}
 end;
 
-function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
+procedure TRttiPool.Adopt(aObject: TRttiObject);
 
 begin
-  Result:=GetType(aTypeInfo,GlobalUsePublishedOnly);
+  aObject.FUsePublishedOnly:=FUsePublishedOnly;
 end;
 
-function TRttiPool.GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
+
+function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
 
 var
   obj: TRttiObject;
@@ -2505,30 +2540,31 @@ begin
             SetLength(FTypesList, FTypeCount * 2);
           end;
         case ATypeInfo^.Kind of
-          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo,UsePublishedOnly);
-          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo,UsePublishedOnly);
-          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo,UsePublishedOnly);
-          tkArray: Result := TRttiArrayType.Create(ATypeInfo);
-          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo);
+          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkArray: Result := TRttiArrayType.Create(ATypeInfo,FUsePublishedOnly);
+          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo,FUsePublishedOnly);
           tkInt64,
-          tkQWord: Result := TRttiInt64Type.Create(ATypeInfo);
+          tkQWord: Result := TRttiInt64Type.Create(ATypeInfo,FUsePublishedOnly);
           tkInteger,
           tkChar,
-          tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo);
-          tkEnumeration : Result := TRttiEnumerationType.Create(ATypeInfo);
+          tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo,FUsePublishedOnly);
+          tkEnumeration : Result := TRttiEnumerationType.Create(ATypeInfo,FUsePublishedOnly);
           tkSString,
           tkLString,
           tkAString,
           tkUString,
-          tkWString : Result := TRttiStringType.Create(ATypeInfo);
-          tkFloat   : Result := TRttiFloatType.Create(ATypeInfo);
-          tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
-          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo);
-          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo);
-          tkRecord : Result:=TRttiRecordType.Create(aTypeInfo,UsePublishedOnly);
+          tkWString : Result := TRttiStringType.Create(ATypeInfo,FUsePublishedOnly);
+          tkFloat   : Result := TRttiFloatType.Create(ATypeInfo,FUsePublishedOnly);
+          tkPointer : Result := TRttiPointerType.Create(ATypeInfo,FUsePublishedOnly);
+          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo,FUsePublishedOnly);
+          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo,FUsePublishedOnly);
+          tkRecord : Result:=TRttiRecordType.Create(aTypeInfo,FUsePublishedOnly);
         else
-          Result := TRttiType.Create(ATypeInfo);
+          Result := TRttiType.Create(ATypeInfo,FUsePublishedOnly);
         end;
+        Adopt(Result);
         FTypesList[FTypeCount] := Result;
         FObjectMap.Add(ATypeInfo, Result);
         Inc(FTypeCount);
@@ -2576,7 +2612,10 @@ begin
 {$endif}
     idx := FObjectMap.IndexOf(aObject.Handle);
     if idx < 0 then
-      FObjectMap.Add(aObject.Handle, aObject)
+      begin
+        Adopt(aObject);
+        FObjectMap.Add(aObject.Handle, aObject);
+      end
     else if FObjectMap.Data[idx] <> aObject then
       raise EInvalidOpException.CreateFmt(SErrRttiObjectAlreadyRegistered, [aObject.Handle]);
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2591,7 +2630,11 @@ var
   idx: LongInt;
 begin
   if not Assigned(aHandle) then
-    Exit(aClass.Create(aParent, aHandle));
+    begin
+      Result:=aClass.Create(aParent, aHandle);
+      Adopt(Result);
+      Exit;
+    end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalsection(FLock);
   try
@@ -2602,6 +2645,7 @@ begin
     else
     begin
       Result:=aClass.Create(aParent, aHandle);
+      Adopt(Result);
       FObjectMap.Add(aHandle, Result);
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2611,11 +2655,12 @@ begin
 {$endif}
 end;
 
-constructor TRttiPool.Create;
+constructor TRttiPool.Create(aUsePublishedOnly: Boolean);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
 {$endif}
+  FUsePublishedOnly := aUsePublishedOnly;
   SetLength(FTypesList, 32);
   FObjectMap := TRttiObjectMap.Create;
 end;
@@ -2633,6 +2678,9 @@ begin
   for i := 0 to FObjectMap.Count - 1 do
     FObjectMap.Data[i].Free;
   FObjectMap.Clear;
+  FTypeCount := 0;
+  if Length(FTypesList) > 0 then
+    FillChar(FTypesList[0], Length(FTypesList) * SizeOf(TRttiType), 0);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalsection(FLock);
@@ -5258,7 +5306,7 @@ end;
 
 function TRttiPointerType.GetReferredType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.RefType);
+  Result := PoolOf(Self).GetType(FTypeData^.RefType);
 end;
 
 { TRttiArrayType }
@@ -5272,12 +5320,12 @@ function TRttiArrayType.GetDimension(aIndex: SizeInt): TRttiType;
 begin
   if aIndex >= FTypeData^.ArrayData.DimCount then
     raise ERtti.CreateFmt(SErrDimensionOutOfRange, [aIndex, FTypeData^.ArrayData.DimCount]);
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
+  Result := PoolOf(Self).GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
 end;
 
 function TRttiArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.ElType);
+  Result := PoolOf(Self).GetType(FTypeData^.ArrayData.ElType);
 end;
 
 function TRttiArrayType.GetTotalElementCount: SizeInt;
@@ -5299,7 +5347,7 @@ end;
 
 function TRttiDynamicArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ElType2);
+  Result := PoolOf(Self).GetType(FTypeData^.ElType2);
 end;
 
 function TRttiDynamicArrayType.GetOleAutoVarType: TVarType;
@@ -5323,7 +5371,7 @@ function TRttiRefCountedInterfaceType.GetIntfBaseType: TRttiInterfaceType;
 begin
   Result := nil;
   if Assigned(IntfData^.Parent) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
+    Result := ContextOf(Self).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRefCountedInterfaceType.GetDeclaringUnitName: String;
@@ -5365,7 +5413,7 @@ var
 begin
   Result := nil;
   if Assigned(IntfData^.Parent) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
+    Result := ContextOf(Self).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRawInterfaceType.GetDeclaringUnitName: String;
@@ -5414,7 +5462,7 @@ function TRttiVmtMethodParameter.GetParamType: TRttiType;
 begin
   Result := nil;
   if Assigned(FVmtMethodParam^.ParamType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FVmtMethodParam^.ParamType^);
+    Result := ContextOf(Self).GetType(FVmtMethodParam^.ParamType^);
 end;
 
 constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
@@ -5447,7 +5495,7 @@ end;
 
 function TRttiMethodTypeParameter.GetParamType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FType);
+  Result := ContextOf(Self).GetType(FType);
 end;
 
 constructor TRttiMethodTypeParameter.Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
@@ -5524,7 +5572,7 @@ function TRttiIntfMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FIntfMethodEntry^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FIntfMethodEntry^.ResultType^);
+    Result := ContextOf(Self).GetType(FIntfMethodEntry^.ResultType^);
 end;
 
 function TRttiIntfMethod.GetVirtualIndex: SmallInt;
@@ -5594,14 +5642,14 @@ begin
     and publish complete arrays under the same lock that already guards
     TRttiInstanceType.GetDeclaredMethods. }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if Length(FParamsAll) = 0 then begin
       SetLength(params, FIntfMethodEntry^.ParamCount);
       SetLength(paramsAll, FIntfMethodEntry^.ParamCount);
 
-      context := TRttiContext.Create(FUsePublishedOnly);
+      context := ContextOf(Self);
       total := 0;
       visible := 0;
       param := FIntfMethodEntry^.Param[0];
@@ -5631,7 +5679,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -5759,7 +5807,7 @@ end;
 function TRttiEnumerationType.GetUnderlyingType: TRttiType;
 
 begin
-  Result:=GRttiPool[FUsePublishedOnly].GetType(GetTypeData(Handle)^.BaseType);
+  Result:=PoolOf(Self).GetType(GetTypeData(Handle)^.BaseType);
 end;
 
 
@@ -6106,7 +6154,7 @@ end;
 
 function TRttiIndexedProperty.GetPropertyType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
+  Result := ContextOf(Self).GetType(FPropInfo^.PropType);
 end;
 
 procedure TRttiIndexedProperty.ResolveIndexParams;
@@ -6116,33 +6164,46 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter;
+  params: TRttiParameterArray;
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams,FPropInfo^.PropParams^.Count);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := @FPropInfo^.PropParams^.Params[0];
-  while total < FPropInfo^.PropParams^.Count do
-  begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
-      begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
-      end;
-    FParams[total]:=prtti;
-    if not (pfHidden in param^.Flags) then
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams) = 0 then
     begin
-      FParams[visible] := prtti;
-      Inc(visible);
+      total := 0;
+      visible := 0;
+      SetLength(params,FPropInfo^.PropParams^.Count);
+      context := ContextOf(Self);
+      param := @FPropInfo^.PropParams^.Params[0];
+      while total < FPropInfo^.PropParams^.Count do
+      begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        if not (pfHidden in param^.Flags) then
+        begin
+          params[visible] := prtti;
+          Inc(visible);
+        end;
+        param := param^.Next;
+        Inc(total);
+      end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams := params;
     end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams, visible);
+{$endif}
 end;
 
 function TRttiIndexedProperty.GetIndexParameters: TRttiParameterArray;
@@ -6457,76 +6518,91 @@ var
   paramtype: PTypeInfo;
   context: TRttiContext;
   obj: TRttiObject;
+  params, paramsAll: TRttiParameterArray;
 begin
   if aWithHidden and (Length(FParamsAll) > 0) then
     Exit(FParamsAll);
   if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
-  ptr := @FTypeData^.ParamList[0];
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+  if Length(FParamsAll) = 0 then begin
+    ptr := @FTypeData^.ParamList[0];
 
-  visible := 0;
-  total := 0;
-
-  if FTypeData^.ParamCount > 0 then begin
-    infos:=[];
-    SetLength(infos, FTypeData^.ParamCount);
-    while total < FTypeData^.ParamCount do begin
-      { align }
-      ptr := AlignTParamFlags(ptr);
-      infos[total].Handle := ptr;
-      infos[total].Flags := PParamFlags(ptr)^;
-      Inc(ptr, SizeOf(TParamFlags));
-      { handle name }
-      infos[total].Name := PShortString(ptr)^;
-      Inc(ptr, ptr^ + SizeOf(Byte));
-      { skip type name }
-      Inc(ptr, ptr^ + SizeOf(Byte));
-
-      if not (pfHidden in infos[total].Flags) then
-        Inc(visible);
-      Inc(total);
-    end;
-  end;
-
-  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
-    { skip return type name }
-    ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
-    { handle return type }
-    FReturnType := GRttiPool[FUsePublishedOnly].GetType(PPPTypeInfo(ptr)^^);
-    Inc(ptr, SizeOf(PPTypeInfo));
-  end;
-
-  { handle calling convention }
-  FCallConv := PCallConv(ptr)^;
-  Inc(ptr, SizeOf(TCallConv));
-
-  SetLength(FParamsAll, FTypeData^.ParamCount);
-  SetLength(FParams, visible);
-
-  if FTypeData^.ParamCount > 0 then begin
-    context := TRttiContext.Create(FUsePublishedOnly);
-    paramtypes := PPPTypeInfo(AlignTypeData(ptr));
     visible := 0;
-    for i := 0 to FTypeData^.ParamCount - 1 do begin
-      obj := context.GetByHandle(infos[i].Handle);
-      if Assigned(obj) then
-        FParamsAll[i] := obj as TRttiMethodTypeParameter
-      else begin
-        if Assigned(paramtypes[i]) then
-          paramtype := paramtypes[i]^
-        else
-          paramtype := Nil;
-        FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
-        context.AddObject(FParamsAll[i]);
-      end;
+    total := 0;
 
-      if not (pfHidden in infos[i].Flags) then begin
-        FParams[visible] := FParamsAll[i];
-        Inc(visible);
+    if FTypeData^.ParamCount > 0 then begin
+      infos:=[];
+      SetLength(infos, FTypeData^.ParamCount);
+      while total < FTypeData^.ParamCount do begin
+        { align }
+        ptr := AlignTParamFlags(ptr);
+        infos[total].Handle := ptr;
+        infos[total].Flags := PParamFlags(ptr)^;
+        Inc(ptr, SizeOf(TParamFlags));
+        { handle name }
+        infos[total].Name := PShortString(ptr)^;
+        Inc(ptr, ptr^ + SizeOf(Byte));
+        { skip type name }
+        Inc(ptr, ptr^ + SizeOf(Byte));
+
+        if not (pfHidden in infos[total].Flags) then
+          Inc(visible);
+        Inc(total);
       end;
     end;
+
+    if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+      { skip return type name }
+      ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
+      { handle return type }
+      FReturnType := PoolOf(Self).GetType(PPPTypeInfo(ptr)^^);
+      Inc(ptr, SizeOf(PPTypeInfo));
+    end;
+
+    { handle calling convention }
+    FCallConv := PCallConv(ptr)^;
+    Inc(ptr, SizeOf(TCallConv));
+
+    SetLength(paramsAll, FTypeData^.ParamCount);
+    SetLength(params, visible);
+
+    if FTypeData^.ParamCount > 0 then begin
+      context := ContextOf(Self);
+      paramtypes := PPPTypeInfo(AlignTypeData(ptr));
+      visible := 0;
+      for i := 0 to FTypeData^.ParamCount - 1 do begin
+        obj := context.GetByHandle(infos[i].Handle);
+        if Assigned(obj) then
+          paramsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          if Assigned(paramtypes[i]) then
+            paramtype := paramtypes[i]^
+          else
+            paramtype := Nil;
+          paramsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
+          context.AddObject(paramsAll[i]);
+        end;
+
+        if not (pfHidden in infos[i].Flags) then begin
+          params[visible] := paramsAll[i];
+          Inc(visible);
+        end;
+      end;
+    end;
+
+    FParams := params;
+    FParamsAll := paramsAll;
   end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
+  end;
+{$endif}
 
   if aWithHidden then
     Result := FParamsAll
@@ -6589,6 +6665,7 @@ var
   param: PProcedureParam;
   obj: TRttiObject;
   context: TRttiContext;
+  params, paramsAll: TRttiParameterArray;
 begin
   if aWithHidden and (Length(FParamsAll) > 0) then
     Exit(FParamsAll);
@@ -6598,29 +6675,43 @@ begin
   if FTypeData^.ProcSig.ParamCount = 0 then
     Exit(Nil);
 
-  SetLength(FParamsAll, FTypeData^.ProcSig.ParamCount);
-  SetLength(FParams, FTypeData^.ProcSig.ParamCount);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParamsAll) = 0 then begin
+      SetLength(paramsAll, FTypeData^.ProcSig.ParamCount);
+      SetLength(params, FTypeData^.ProcSig.ParamCount);
 
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
-  visible := 0;
-  for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      FParamsAll[i] := obj as TRttiMethodTypeParameter
-    else begin
-      FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
-      context.AddObject(FParamsAll[i]);
+      context := ContextOf(Self);
+      param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+      visible := 0;
+      for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          paramsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          paramsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
+          context.AddObject(paramsAll[i]);
+        end;
+
+        if not (pfHidden in param^.ParamFlags) then begin
+          params[visible] := paramsAll[i];
+          Inc(visible);
+        end;
+
+        param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+      end;
+      SetLength(params, visible);
+
+      FParams := params;
+      FParamsAll := paramsAll;
     end;
-
-    if not (pfHidden in param^.ParamFlags) then begin
-      FParams[visible] := FParamsAll[i];
-      Inc(visible);
-    end;
-
-    param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  SetLength(FParams, visible);
+{$endif}
 
   if aWithHidden then
     Result := FParamsAll
@@ -6637,7 +6728,7 @@ function TRttiProcedureType.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FTypeData^.ProcSig.ResultTypeRef) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ProcSig.ResultTypeRef^);
+    Result := ContextOf(Self).GetType(FTypeData^.ProcSig.ResultTypeRef^);
 end;
 
 function TRttiProcedureType.GetFlags: TFunctionCallFlags;
@@ -6729,7 +6820,7 @@ begin
     TVirtualInterface thunk and RTTI-based (de)serializers call GetMethods on
     every invocation). }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if not Assigned(fDeclaredMethods) then begin
@@ -6741,7 +6832,7 @@ begin
 
       SetLength(methods, methtable^.Count);
 
-      context := TRttiContext.Create(FUsePublishedOnly);
+      context := ContextOf(Self);
       method := methtable^.Method[0];
       count := methtable^.Count;
       while count > 0 do begin
@@ -6762,7 +6853,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -6783,7 +6874,7 @@ end;
 
 function TRttiInstanceType.GetBaseType: TRttiType;
 begin
-  result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ParentInfo);
+  result := ContextOf(Self).GetType(FTypeData^.ParentInfo);
 end;
 
 function TRttiInstanceType.GetIsInstance: boolean;
@@ -6827,7 +6918,7 @@ begin
         Dec(PropCount);
         continue;
       end;
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -6860,8 +6951,7 @@ begin
     TP:=PPropInfo(@Table^.PropList);
     For I:=0 to Len-1 do
       begin
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
-      Prop.FUsePublishedOnly:=FUsePublishedOnly;
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       FDeclaredProperties[I]:=Prop;
       TP:=TP^.Next;
       end;
@@ -6875,7 +6965,7 @@ begin
   if Not FPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if Not FPropertiesResolved then
@@ -6885,7 +6975,7 @@ begin
           ResolveExtendedDeclaredProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -6922,7 +7012,7 @@ begin
       end;
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
+      IProp := TRttiIndexedProperty(PoolOf(Self).GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
@@ -6937,14 +7027,14 @@ begin
   if not FIndexedPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FIndexedPropertiesResolved then
         ResolveDeclaredIndexedProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -6970,7 +7060,7 @@ begin
       FFieldsResolved:=True;
       exit;
     end;
-    Ctx:=TRttiContext.Create(FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6995,7 +7085,7 @@ Var
 
 begin
   tbl:=Nil;
-  Ctx:=TRttiContext.Create(FUsePublishedOnly);
+  Ctx:=ContextOf(Self);
   try
     Len:=GetMethodList(FTypeInfo,Tbl,[],False);
     if not FUsePublishedOnly then
@@ -7032,14 +7122,14 @@ begin
   if not FFieldsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FFieldsResolved then
         ResolveDeclaredFields;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7051,14 +7141,14 @@ begin
   if not FMethodsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FMethodsResolved then
         ResolveDeclaredMethods;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7095,7 +7185,7 @@ begin
       exit;
     end;
     SetLength(FDeclaredFields,Len);
-    Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -7133,7 +7223,7 @@ begin
       exit;
     end;
     SetLength(FDeclaredMethods,aCount);
-    Ctx:=TRttiContext.Create(FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     Idx:=0;
     For I:=0 to aCount-1 do
     begin
@@ -7181,7 +7271,7 @@ begin
         continue;
       end;
 
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -7233,7 +7323,7 @@ begin
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
 
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
+      IProp := TRttiIndexedProperty(PoolOf(Self).GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
@@ -7265,14 +7355,14 @@ begin
   If not FFieldsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FFieldsResolved then
         ResolveFields;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7284,14 +7374,14 @@ begin
   If not FMethodsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FMethodsResolved then
         ResolveMethods;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7303,14 +7393,14 @@ begin
   if not FPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FPropertiesResolved then
         ResolveProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7322,14 +7412,14 @@ begin
   if not FIndexedPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FIndexedPropertiesResolved then
         ResolveIndexedProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7395,7 +7485,7 @@ end;
 
 function TRttiProperty.GetPropertyType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
+  Result := ContextOf(Self).GetType(FPropInfo^.PropType);
 end;
 
 function TRttiProperty.GetIsReadable: boolean;
@@ -8280,7 +8370,7 @@ begin
     Two concurrent initializers assigning the managed fMethods field race on its
     reference count and can leave a reader with a dangling array }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if not Assigned(fMethods) then begin
@@ -8295,7 +8385,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -8399,7 +8489,7 @@ end;
 class function TRttiContext.Create: TRttiContext;
 begin
   result.Free;
-  result.FUsePublishedOnly:=DefaultUsePublishedOnly;
+  result.FUsePublishedOnly:=GlobalUsePublishedOnly;
 end;
 
 class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
@@ -8428,7 +8518,7 @@ end;
 class operator TRttiContext.Initialize(var self: TRttiContext);
 begin
   self.FPoolIndex := -1;
-  self.FUsePublishedOnly := DefaultUsePublishedOnly;
+  self.FUsePublishedOnly := GlobalUsePublishedOnly;
 end;
 
 class operator TRttiContext.Finalize(var self: TRttiContext);
@@ -8454,15 +8544,12 @@ end;
 
 procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
-  { Set the flag before publishing the object in the pool}
-  AObject.FUsePublishedOnly := UsePublishedOnly;
   EnsurePool(Self).AddObject(AObject);
 end;
 
 function TRttiContext.GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
 begin
   Result := EnsurePool(Self).GetOrAddObject(aHandle, aClass, aParent);
-  Result.FUsePublishedOnly := UsePublishedOnly;
 end;
 
 procedure TRttiContext.SetUsePublishedOnly(Value: Boolean);
@@ -8474,7 +8561,7 @@ end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
 begin
-  result := EnsurePool(Self).GetType(ATypeInfo,UsePublishedOnly);
+  result := EnsurePool(Self).GetType(ATypeInfo);
 end;
 
 function TRttiContext.GetType(AClass: TClass): TRttiType;
@@ -9027,7 +9114,7 @@ function TRttiRecordMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FHandle^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
+    Result := ContextOf(Self).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiRecordMethod.GetDispatchKind: TDispatchKind;
@@ -9078,36 +9165,51 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter ;
+  params, paramsAll: TRttiParameterArray;
 
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams[False],FHandle^.ParamCount);
-  SetLength(FParams[True],FHandle^.ParamCount);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams[True]) = 0 then
+      begin
+      total := 0;
+      visible := 0;
+      SetLength(params,FHandle^.ParamCount);
+      SetLength(paramsAll,FHandle^.ParamCount);
 
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := FHandle^.Param[0];
-  while total < FHandle^.ParamCount do
-    begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
-      begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
+      context := ContextOf(Self);
+      param := FHandle^.Param[0];
+      while total < FHandle^.ParamCount do
+        begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        paramsAll[total]:=prtti;
+        if not (pfHidden in param^.Flags) then
+          begin
+          params[visible]:=prtti;
+          Inc(visible);
+          end;
+        param := param^.Next;
+        Inc(total);
+        end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams[False] := params;
+      FParams[True] := paramsAll;
       end;
-    FParams[True][total]:=prtti;
-    if not (pfHidden in param^.Flags) then
-      begin
-      FParams[False][visible]:=prtti;
-      Inc(visible);
-      end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams[False], visible);
+{$endif}
 end;
 
 function TRttiRecordMethod.GetParameters(aWithHidden : Boolean): TRttiParameterArray;
@@ -9203,8 +9305,8 @@ initialization
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(PoolLock);
 {$endif}
-  GRttiPool[False] := TRttiPool.Create;
-  GRttiPool[True] := TRttiPool.Create;
+  GRttiPool[False] := TRttiPool.Create(False);
+  GRttiPool[True] := TRttiPool.Create(True);
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;
