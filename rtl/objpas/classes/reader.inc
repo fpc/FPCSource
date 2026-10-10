@@ -295,7 +295,7 @@ var
       2: (c: currency);
   end;
 begin
-  r.c:=ReadQWord;
+  r.q:=ReadQWord;
   Result:=r.c;
 end;
 

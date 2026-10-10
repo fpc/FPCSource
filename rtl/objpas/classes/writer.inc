@@ -199,9 +199,16 @@ end;
 {$endif}
 
 procedure TBinaryObjectWriter.WriteCurrency(const Value: Currency);
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (c: currency);
+  end;
 begin
+  r.c:=Value;
   WriteValue(vaCurrency);
-  WriteQWord(qword(Value));
+  WriteQWord(r.q);
 end;
 
 
