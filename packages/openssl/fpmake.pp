@@ -33,6 +33,8 @@ begin
     T:=P.Targets.AddUnit('opensslsockets.pp');
       T.ResourceStrings:=true;
       T.Dependencies.AddUnit('openssl');
+    T:=P.Targets.AddUnit('smartsslsockets.pp');
+      T.Dependencies.AddUnit('opensslsockets');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('test1.pas');

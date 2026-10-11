@@ -3,3 +3,4 @@ src/opensslsockets.pp=namespaced/System.Net.Opensslsockets.pp
 {i+:src/}
 src/openssl.pas=namespaced/Api.Openssl.pas
 src/fpopenssl.pp=namespaced/System.Net.Fpopenssl.pp
+src/smartsslsockets.pp=namespaced/System.Net.SmartSSLSockets.pp
