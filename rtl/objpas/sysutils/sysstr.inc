@@ -1604,6 +1604,18 @@ const
   maxdigits = 15;
 {$endif}
 
+// Returns the largest number of significant digits FloatToStrF produces for ValueType
+Function MaxFloatPrecision(ValueType: TFloatValue): Integer;
+
+begin
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  if ValueType=fvExtended then
+    Exit(21);
+{$endif}
+  Result:=17;
+end;
+
+
 Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
 Var
   P, PE, Q, Exponent: Integer;
@@ -1644,7 +1656,7 @@ Begin
           fvCurrency:
               If (Precision = -1) Or (Precision > 19) Then Precision := 19;
           else
-              If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
+              If (Precision = -1) Or (Precision > MaxFloatPrecision(ValueType)) Then Precision := MaxFloatPrecision(ValueType);
         end;
         { First convert to scientific format, with correct precision }
         case ValueType of
@@ -1739,7 +1751,7 @@ Begin
     ffExponent:
 
       Begin
-        If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
+        If (Precision = -1) Or (Precision > MaxFloatPrecision(ValueType)) Then Precision := MaxFloatPrecision(ValueType);
         case ValueType of
           fvDouble:
             Str(Double(Extended(Aligned(Value))):Precision+7, Result);
@@ -2377,7 +2389,11 @@ var
 begin
   case ValueType of
     fvExtended:
-      Str(Extended(Value):25, Buffer);
+      if Precision>17 then
+        // 19 significant digits, the size of TFloatRec.Digits
+        Str(Extended(Value):27, Buffer)
+      else
+        Str(Extended(Value):25, Buffer);
     fvDouble,
     fvReal:
       Str(Double(Value):23, Buffer);
