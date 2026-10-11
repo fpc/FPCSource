@@ -337,6 +337,8 @@ type
       procedure RemoveFromPool;
       procedure SafeTerminate;
       procedure Execute; override;
+      // Sets the running event, also when Execute was never called
+      procedure DoTerminate; override;
       property ThreadPool: TThreadPool read FThreadPool;
       property RunningEvent: TLightweightEvent read FRunningEvent;
       property MyWorkerID : Integer Write FMyWorkerID;
@@ -2421,6 +2423,13 @@ procedure TThreadPool.TBaseWorkerThread.Execute;
 begin
   NameThreadForDebugging(GetWorkerThreadName);
   FRunningEvent.SetEvent;
+end;
+
+procedure TThreadPool.TBaseWorkerThread.DoTerminate;
+begin
+  if Assigned(FRunningEvent) then
+    FRunningEvent.SetEvent;
+  inherited DoTerminate;
 end;
 
 constructor TThreadPool.TBaseWorkerThread.Create(aThreadPool: TThreadPool);

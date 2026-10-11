@@ -265,6 +265,19 @@ type
     procedure TestGetValue;
   end;
 
+  { TFreePoolThread }
+
+  TFreePoolThread = class(TThreadedTestCase.TNotifyThread)
+  private
+    FPool: TThreadPool;
+    procedure DoEmptyExecute(Sender: TObject);
+  protected
+    procedure Execute; override;
+  public
+    // Creates a thread that queues work in aPool, frees aPool at once and then calls aOnTerminate
+    constructor Create(aPool: TThreadPool; aOnTerminate: TNotifyEvent);
+  end;
+
   { TTestThreading }
 
   TTestThreading = class(TThreadedTestCase)
@@ -292,6 +305,8 @@ type
     procedure TestSetMinWorkerThreads;
     procedure TestExecuteWork;
     procedure TestExecuteLotsOfWork;
+    // Frees a pool whose worker threads have just been created
+    procedure TestFreeWithNewThreads;
   end;
 
   { TTestTask }
@@ -961,6 +976,27 @@ begin
   OnTerminate:=aOnTerminate;
   FreeOnTerminate:=True;
   Inherited Create(False);
+end;
+
+{ TFreePoolThread }
+
+constructor TFreePoolThread.Create(aPool: TThreadPool; aOnTerminate: TNotifyEvent);
+
+begin
+  FPool:=aPool;
+  Inherited Create(aOnTerminate);
+end;
+
+procedure TFreePoolThread.DoEmptyExecute(Sender: TObject);
+
+begin
+end;
+
+procedure TFreePoolThread.Execute;
+
+begin
+  FPool.QueueWorkItem(Self,@DoEmptyExecute);
+  FreeAndNil(FPool);
 end;
 
 { TTestSparseArray }
@@ -1635,6 +1671,20 @@ begin
   Writeln('Milliseconds ',MillisecondsBetween(Now,T));
 {$ENDIF}
   FreeAndNil(FThreadPool);
+  AssertEquals('Threads all stopped',FThreadsStarted,FThreadsTerminated);
+end;
+
+procedure TTestThreading.TestFreeWithNewThreads;
+
+var
+  Pool : TThreadPool;
+
+begin
+  Pool:=FThreadPool;
+  FThreadPool:=Nil;
+  FWaitTerminatedCount:=1;
+  TFreePoolThread.Create(Pool,@ThreadTerminated);
+  AssertTrue('Pool freed',WaitForCondition(@WaitForTerminateCount,5000));
   AssertEquals('Threads all stopped',FThreadsStarted,FThreadsTerminated);
 end;
 
