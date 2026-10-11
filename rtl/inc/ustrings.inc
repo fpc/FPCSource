@@ -1676,7 +1676,7 @@ begin
 end;
 {$else EXCLUDE_COMPLEX_PROCS}
   var
-    i,j : SizeUInt;
+    i,j,maxj : SizeUInt;
     lw : longword;
   begin
     result:=0;
@@ -1686,7 +1686,11 @@ end;
     j:=0;
     if assigned(Dest) then
       begin
-        while (i<SourceChars) and (j<MaxDestBytes) do
+        if MaxDestBytes=0 then
+          exit;
+        { last byte is reserved for the terminating #0 }
+        maxj:=MaxDestBytes-1;
+        while (i<SourceChars) and (j<maxj) do
           begin
             lw:=ord(Source[i]);
             case lw of
@@ -1697,7 +1701,7 @@ end;
                 end;
               $80..$7ff:
                 begin
-                  if j+1>=MaxDestBytes then
+                  if j+1>=maxj then
                     break;
                   Dest[j]:=AnsiChar($c0 or (lw shr 6));
                   Dest[j+1]:=AnsiChar($80 or (lw and $3f));
@@ -1705,7 +1709,7 @@ end;
                 end;
               $800..$d7ff,$e000..$ffff:
                 begin
-                  if j+2>=MaxDestBytes then
+                  if j+2>=maxj then
                     break;
                   Dest[j]:=AnsiChar($e0 or (lw shr 12));
                   Dest[j+1]:=AnsiChar($80 or ((lw shr 6) and $3f));
@@ -1715,7 +1719,7 @@ end;
               $d800..$dbff:
                 {High Surrogates}
                 begin
-                  if j+3>=MaxDestBytes then
+                  if j+3>=maxj then
                     break;
                   if (i+1<sourcechars) and
                      (word(Source[i+1]) >= $dc00) and
@@ -1734,9 +1738,6 @@ end;
               end;
             inc(i);
           end;
-
-        if j>SizeUInt(MaxDestBytes-1) then
-          j:=MaxDestBytes-1;
 
         Dest[j]:=#0;
       end
@@ -1793,7 +1794,7 @@ begin
 end;
 {$else EXCLUDE_COMPLEX_PROCS}
   var
-    SourcePos,DestPos: SizeUint;
+    SourcePos,DestPos,MaxDestPos: SizeUint;
     UC: int32;
   begin
     if not Assigned(Source) then
@@ -1803,10 +1804,14 @@ end;
 
     if Assigned(Dest) then
       begin
+        if MaxDestChars=0 then
+          exit(0);
+        { last unicodechar is reserved for the terminating #0 }
+        MaxDestPos:=MaxDestChars-1;
         if SourcePos<SourceBytes then { “repeat until false” + “if C then continue else break” is used instead of “while C” + “continue” for better codegen. }
           repeat
             { See generic.inc:Utf8CodePointLen for explanations. Not continuing = invalid or incomplete character. }
-            if DestPos>=MaxDestChars then { Speculate 1 unicodechar. }
+            if DestPos>=MaxDestPos then { Speculate 1 unicodechar. }
               break;
             inc(DestPos);
             UC:=ord(Source[SourcePos]);
@@ -1842,7 +1847,7 @@ end;
                     if Cardinal(UC)<=$10FFFF-$10000 then
                       begin
                         dec(DestPos);
-                        if DestPos+1>=MaxDestChars then { 2 unicodechars. }
+                        if DestPos+1>=MaxDestPos then { 2 unicodechars. }
                           break;
                         Dest[DestPos]:=unicodechar($D800+UC shr 10);
                         Dest[DestPos+1]:=unicodechar($DC00+UC and $3ff);
@@ -1862,8 +1867,7 @@ end;
             Dest[DestPos-1]:='?';
             if SourcePos>=SourceBytes then break; { Do not add a condition to the loop, or “continue”s will jump to it instead of the beginning! }
           until false;
-        if DestPos<MaxDestChars then { Null-terminate... if there is space. Count in result in either case. }
-          Dest[DestPos]:=#0;
+        Dest[DestPos]:=#0;
       end
     else
       { Same as above but without writing Dest. }
