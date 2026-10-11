@@ -553,10 +553,12 @@ const
     ERROR_BAD_NETPATH,
     ERROR_BAD_NET_NAME
   ];
+  ERROR_CANT_RESOLVE_FILENAME = 1921;
+  CShareAny = FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE;
 var
-  Attr : DWord;
-  slr : TUnicodeSymLinkRec;
-  res : TSymLinkResult;
+  Attr, Err : DWord;
+  Handle : THandle;
+  Info : TByHandleFileInformation;
 begin
   Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
   if Attr = INVALID_FILE_ATTRIBUTES then
@@ -564,14 +566,16 @@ begin
   else begin
     Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
     if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then begin
-      res := FileGetSymLinkTargetInt(FileOrDirName, slr, False);
-      case res of
-        slrOk:
-          Result := FileOrDirExists(slr.TargetName, CheckDir, False);
-        slrNoSymLink:
-          Result := True;
-        else
-          Result := False;
+      { let Windows resolve the reparse point }
+      Handle := CreateFileW(PUnicodeChar(FileOrDirName), FILE_READ_ATTRIBUTES, CShareAny, Nil,
+                  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
+      if Handle <> INVALID_HANDLE_VALUE then begin
+        if GetFileInformationByHandle(Handle, Info) then
+          Result := (Info.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+        CloseHandle(Handle);
+      end else begin
+        Err := GetLastError;
+        Result := not ((Err in CNotExistsErrors) or (Err = ERROR_CANT_RESOLVE_FILENAME));
       end;
     end;
   end;
