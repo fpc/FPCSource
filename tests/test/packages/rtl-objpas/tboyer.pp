@@ -1,7 +1,7 @@
 {$mode objfpc}
 
 uses
-  SysUtils, StrUtils;
+  {$ifdef unix}cwstring,{$endif} SysUtils, StrUtils;
 const
   result1 : array of SizeInt = (1, 4, 7, 10, 13, 16);
   result2 : array of SizeInt = (7, 9);
@@ -109,7 +109,9 @@ begin
   CheckInsensitive('abbabbcdeabbabb','abbabb',70);
   CheckInsensitive('ABBABBcdeABBABB','abbabb',80);
   CheckInsensitive('abbabbcdeabbabb','abbABB',90);
+{$if sizeof(Char)=1}
   CheckInsensitive(IdeoSpace2+#$E7#$A9#$BA+IdeoSpace2,IdeoSpace2,100);
+{$endif}
   if StringReplace(IdeoSpace2+#$E7#$A9#$BA+IdeoSpace2,IdeoSpace2,'',[rfReplaceAll,rfIgnoreCase],sraBoyerMoore)<>#$E7#$A9#$BA then
     halt(111);
   if StringReplace('abbabbcdeABBABB','abbabb','',[rfReplaceAll,rfIgnoreCase],sraBoyerMoore)<>'cde' then
