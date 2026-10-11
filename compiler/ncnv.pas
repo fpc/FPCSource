@@ -1496,6 +1496,17 @@ implementation
               end
              else
               internalerror(200105131);
+             { the type converted to can be another type of that char type (a distinct type, a
+               subrange): what is left is a conversion within one char type, an ordinary
+               ordinal one. For an absolute conversion it is internal: the character is
+               converted already, nothing is left to reinterpret }
+             if resultdef<>hp.typedef then
+               begin
+                 result:=ctypeconvnode.create(hp,resultdef);
+                 result.flags:=result.flags+(flags*[nf_explicit,nf_internal]);
+                 if nf_absolute in flags then
+                   include(result.flags,nf_internal);
+               end;
              exit;
            end;
       end;
