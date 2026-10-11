@@ -15,7 +15,7 @@ uses
   TestFramework,
 {$ENDIF FPC}
   types,
-  sysutils, typinfo, Rtti,
+  sysutils, typinfo, Rtti, variants,
   tests.rtti.attrtypes2,
   tests.rtti.invoketypes,
   Tests.Rtti.Util;
@@ -65,6 +65,10 @@ type
     procedure TestWideString;
     procedure TestUnicodeString;
     procedure TestVariant;
+    // By-value Variant argument changed by the called function
+    procedure TestVariantModify;
+    // Variant arguments mixed with ordinals, in registers and on the stack
+    procedure TestVariantMixed;
 
     procedure TestLongInt;
     procedure TestInt64;
@@ -655,6 +659,21 @@ function TestVariantPascal(aArg1 : variant): string; pascal;
 
 begin
   Result:=aArg1;
+end;
+
+// Changes its by-value argument and returns the new value
+function TestVariantModifyArg(aArg1 : variant): string;
+
+begin
+  aArg1:='Changed';
+  Result:=aArg1;
+end;
+
+// Concatenates ordinal and Variant arguments, the last ones passed on the stack on Win64
+function TestVariantMixedArgs(aArg1: LongInt; aArg2: variant; aArg3: LongInt; aArg4, aArg5: variant): string;
+
+begin
+  Result:=IntToStr(aArg1)+VarToStr(aArg2)+IntToStr(aArg3)+VarToStr(aArg4)+VarToStr(aArg5);
 end;
 
 // Int64 parameters
@@ -1505,6 +1524,36 @@ begin
   DoStaticInvokeTestVariant('Test register',@TestVariantRegister,ccReg,values,TypeInfo(AnsiString),S);
   DoStaticInvokeTestVariant('Test cdecl',@TestVariantCdecl,ccCdecl,values,TypeInfo(AnsiString),S);
   DoStaticInvokeTestVariant('Test pascal',@TestVariantPascal,ccCdecl,values,TypeInfo(AnsiString),S);
+end;
+
+procedure TTestInvoke.TestVariantModify;
+
+var
+  values: TValueArray;
+  aValue : variant;
+
+begin
+  aValue:='Original';
+  values:=[TValue.{$ifdef fpc}specialize{$endif} From<Variant>(aValue)];
+  DoStaticInvokeTestVariant('Test modify',@TestVariantModifyArg,ccReg,values,TypeInfo(AnsiString),'Changed');
+  CheckEquals('Original',String(values[0].AsVariant),'Argument value unchanged');
+  CheckEquals('Original',String(aValue),'Variable unchanged');
+end;
+
+procedure TTestInvoke.TestVariantMixed;
+
+var
+  values: TValueArray;
+
+begin
+  values:=[
+    TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(1),
+    TValue.{$ifdef fpc}specialize{$endif} From<Variant>('A'),
+    TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(2),
+    TValue.{$ifdef fpc}specialize{$endif} From<Variant>('B'),
+    TValue.{$ifdef fpc}specialize{$endif} From<Variant>(3)
+  ];
+  DoStaticInvokeTestVariant('Test mixed',@TestVariantMixedArgs,ccReg,values,TypeInfo(AnsiString),'1A2B3');
 end;
 
 procedure TTestInvoke.TestIntfVariant;

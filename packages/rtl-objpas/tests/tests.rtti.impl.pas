@@ -178,6 +178,8 @@ TTestImpl = class(TTestCase)
     procedure TestMethodVar21;
     procedure TestMethodVar21as;
     procedure TestMethodVar21ss;
+    // Variant arguments by value and const
+    procedure TestMethodVarVariant;
   end;
 
   { TTestProcVars }
@@ -207,6 +209,8 @@ TTestImpl = class(TTestCase)
     procedure TestProcVar21;
     procedure TestProcVar21as;
     procedure TestProcVar21ss;
+    // Variant arguments by value and const
+    procedure TestProcVarVariant;
   end;
 
 
@@ -1553,6 +1557,13 @@ begin
   *)
 end;
 
+procedure TTestMethodVars.TestMethodVarVariant;
+begin
+  DoMethodImpl(TypeInfo(TTestMethodVariant),[
+    GetIntValue(42), GetVariant('Alpha'), GetVariant(3.5), GetVariant(84)
+  ], [], [], TValue.Empty);
+end;
+
 { TTestProcVars }
 
 procedure TTestProcVars.TestProcVar1;
@@ -1759,6 +1770,13 @@ begin
     GetShortString('Gamma'), GetShortString('Epsilon')
   ], [0, 1], TValue.Empty);}
 
+end;
+
+procedure TTestProcVars.TestProcVarVariant;
+begin
+  DoProcImpl(TypeInfo(TTestProcVariant),[
+    GetIntValue(42), GetVariant('Alpha'), GetVariant(3.5), GetVariant(84), GetIntValue(21)
+  ], [], [], TValue.Empty);
 end;
 
 {$endif fpc}

@@ -165,7 +165,8 @@ begin
       td := GetTypeData(aArgs[i].Info.ParamType);
       case aArgs[i].Info.ParamType^.Kind of
         tkSString,
-        tkMethod:
+        tkMethod,
+        tkVariant:
           val := PtrUInt(aArgs[i].ValueRef);
         tkArray:
           if td^.ArrayData.Size in [1, 2, 4, 8] then
@@ -557,7 +558,8 @@ begin
       td := GetTypeData(fArgs[i].ParamType);
       case fArgs[i].ParamType^.Kind of
         tkSString,
-        tkMethod:
+        tkMethod,
+        tkVariant:
           fArgInfos[argidx].Deref := True;
         tkArray:
           if not (td^.ArrayData.Size in [1, 2, 4, 8]) then
