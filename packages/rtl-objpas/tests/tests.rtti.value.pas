@@ -17,6 +17,10 @@ Type
     procedure TestReferenceRawDataEmpty;
     procedure TestIsManaged;
     procedure TestCasts;
+    // Casts of Int64 and QWord values to float types
+    procedure TestCastInt64ToFloat;
+    // Casts of the empty value to managed types
+    procedure TestCastEmptyToManaged;
     procedure TestAssignPointer;
     procedure TestAssignDateTime;
     procedure TestAssignDate;
@@ -48,6 +52,14 @@ Type
 
 
     procedure TestMakeGenericNil;
+    // Nil and assigned interfaces
+    procedure TestMakeNilInterface;
+    // Nil and assigned dynamic arrays
+    procedure TestMakeNilDynArray;
+    // Nil and assigned procedure variables
+    procedure TestMakeNilProcVar;
+    // Nil and assigned method variables
+    procedure TestMakeNilMethod;
     procedure TestMakeGenericLongInt;
     procedure TestMakeGenericString;
     procedure TestMakeGenericObject;
@@ -69,6 +81,10 @@ Type
     procedure TestMakeArrayDynamic;
     procedure TestMakeArrayStatic;
     procedure TestMakeFromArray;
+    // Set array elements from values of other ordinal and float types
+    procedure TestSetArrayElementCast;
+    // Set array elements from the empty value and from nil values
+    procedure TestSetArrayElementEmpty;
     {$ifdef fpc}
     procedure TestMakeArrayOpen;
     Procedure TestOpenArrayToDyn;
@@ -1343,6 +1359,68 @@ begin
   Check(String(v.AsVariant) = 'Some String');
 end;
 
+procedure TTestValueArray.TestSetArrayElementCast;
+
+type
+  TDoubleArrayDyn = array of Double;
+
+var
+  arr: TArrayOfLongintDyn;
+  darr: TDoubleArrayDyn;
+  v: TValue;
+
+begin
+  SetLength(arr, 2);
+  TValue.Make(@arr, TypeInfo(TArrayOfLongintDyn), v);
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<Byte>(85));
+  CheckEquals(85, arr[0], 'LongInt element from Byte');
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<ShortInt>(-5));
+  CheckEquals(-5, arr[0], 'LongInt element from ShortInt');
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<Int64>(87));
+  CheckEquals(87, arr[0], 'LongInt element from Int64');
+  try
+    v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<Double>(1.5));
+    Fail('LongInt element from Double raises EInvalidCast');
+  except
+    on E: EInvalidCast do ;
+  end;
+  try
+    v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<String>('88'));
+    Fail('LongInt element from String raises EInvalidCast');
+  except
+    on E: EInvalidCast do ;
+  end;
+  SetLength(darr, 2);
+  TValue.Make(@darr, TypeInfo(TDoubleArrayDyn), v);
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<Single>(3.5));
+  CheckEquals(3.5, darr[0], 0, 'Double element from Single');
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(4));
+  CheckEquals(4.0, darr[0], 0, 'Double element from LongInt');
+  v.SetArrayElement(0, TValue.{$ifdef fpc}specialize{$endif} From<Int64>(5));
+  CheckEquals(5.0, darr[0], 0, 'Double element from Int64');
+end;
+
+
+procedure TTestValueArray.TestSetArrayElementEmpty;
+
+var
+  arr: TArrayOfLongintDyn;
+  sarr: TArrayOfString;
+  v: TValue;
+
+begin
+  SetLength(arr, 2);
+  arr[0]:=42;
+  TValue.Make(@arr, TypeInfo(TArrayOfLongintDyn), v);
+  v.SetArrayElement(0, TValue.Empty);
+  CheckEquals(0, arr[0], 'LongInt element from the empty value');
+  sarr[0]:='abc';
+  TValue.Make(@sarr, TypeInfo(TArrayOfString), v);
+  v.SetArrayElement(0, TValue.Empty);
+  CheckEquals('', v.GetArrayElement(0).AsString, 'String element from the empty value');
+end;
+
+
 procedure TTestValueArray.TestMakeFromArray;
 var
   arr, subarr: array of TValue;
@@ -1416,6 +1494,93 @@ begin
   CheckTrue(value.AsInterface=Nil);
   CheckEquals(0, value.AsOrdinal);
 end;
+
+procedure TTestValueSimple.TestMakeNilInterface;
+
+var
+  value: TValue;
+  intf: IInterface;
+
+begin
+  intf:=Nil;
+  TValue.Make(@intf, TypeInfo(IInterface), value);
+  CheckTrue(value.IsEmpty, 'Nil interface is empty');
+  CheckTrue(value.TypeInfo=TypeInfo(IInterface), 'Nil interface keeps type info');
+  CheckTrue(value.AsInterface=Nil, 'Nil interface AsInterface');
+  CheckEquals('(empty)', value.ToString, 'Nil interface ToString');
+  TValue.Make(Nil, TypeInfo(IInterface), value);
+  CheckTrue(value.IsEmpty, 'Interface made from nil buffer is empty');
+  value:=TValue.{$ifdef fpc}specialize{$endif} From<IInterface>(Nil);
+  CheckTrue(value.IsEmpty, 'Nil interface from generic is empty');
+  intf:=TInterfacedObject.Create;
+  TValue.Make(@intf, TypeInfo(IInterface), value);
+  CheckFalse(value.IsEmpty, 'Assigned interface is not empty');
+end;
+
+
+procedure TTestValueSimple.TestMakeNilDynArray;
+
+var
+  value: TValue;
+  arr: TArrayOfLongintDyn;
+
+begin
+  arr:=Nil;
+  TValue.Make(@arr, TypeInfo(TArrayOfLongintDyn), value);
+  CheckTrue(value.IsEmpty, 'Nil dynamic array is empty');
+  CheckTrue(value.IsArray, 'Nil dynamic array is an array');
+  CheckEquals(0, value.GetArrayLength, 'Nil dynamic array length');
+  CheckEquals('(empty)', value.ToString, 'Nil dynamic array ToString');
+  TValue.Make(Nil, TypeInfo(TArrayOfLongintDyn), value);
+  CheckTrue(value.IsEmpty, 'Dynamic array made from nil buffer is empty');
+  SetLength(arr, 1);
+  TValue.Make(@arr, TypeInfo(TArrayOfLongintDyn), value);
+  CheckFalse(value.IsEmpty, 'Assigned dynamic array is not empty');
+end;
+
+
+// Empty procedure assigned to procedure variables
+procedure DummyProc;
+
+begin
+end;
+
+
+procedure TTestValueSimple.TestMakeNilProcVar;
+
+var
+  value: TValue;
+  proc: TTestProc;
+
+begin
+  proc:=Nil;
+  TValue.Make(@proc, TypeInfo(TTestProc), value);
+  CheckTrue(value.IsEmpty, 'Nil procedure variable is empty');
+  TValue.Make(Nil, TypeInfo(TTestProc), value);
+  CheckTrue(value.IsEmpty, 'Procedure variable made from nil buffer is empty');
+  proc:=@DummyProc;
+  TValue.Make(@proc, TypeInfo(TTestProc), value);
+  CheckFalse(value.IsEmpty, 'Assigned procedure variable is not empty');
+end;
+
+
+procedure TTestValueSimple.TestMakeNilMethod;
+
+var
+  value: TValue;
+  meth: TTestMethod;
+
+begin
+  meth:=Nil;
+  TValue.Make(@meth, TypeInfo(TTestMethod), value);
+  CheckTrue(value.IsEmpty, 'Nil method variable is empty');
+  TValue.Make(Nil, TypeInfo(TTestMethod), value);
+  CheckTrue(value.IsEmpty, 'Method variable made from nil buffer is empty');
+  meth:=@TestMakeNilMethod;
+  TValue.Make(@meth, TypeInfo(TTestMethod), value);
+  CheckFalse(value.IsEmpty, 'Assigned method variable is not empty');
+end;
+
 
 procedure TTestValueSimple.TestMakeGenericLongInt;
 var
@@ -2025,6 +2190,40 @@ begin
               .{$ifdef fpc}specialize{$endif} AsType<AnsiString>, 'TValue.From<shortring>.Cast<AnsiString> failed');
 end;
 
+procedure TTestValueGeneral.TestCastInt64ToFloat;
+
+var
+  V : TValue;
+
+begin
+  V:=TValue.{$ifdef fpc}specialize{$endif} From<Int64>(5).Cast(TypeInfo(Double));
+  CheckEquals(5.0, V.AsExtended, 0, 'Int64 to Double');
+  V:=TValue.{$ifdef fpc}specialize{$endif} From<Int64>(-6).Cast(TypeInfo(Single));
+  CheckEquals(-6.0, V.AsExtended, 0, 'Int64 to Single');
+  V:=TValue.{$ifdef fpc}specialize{$endif} From<Int64>(7).Cast(TypeInfo(Currency));
+  CheckEquals(7.0, V.AsCurrency, 0, 'Int64 to Currency');
+  V:=TValue.{$ifdef fpc}specialize{$endif} From<QWord>(QWord(10000000000000000000)).Cast(TypeInfo(Double));
+  CheckEquals(1e19, V.AsExtended, 1e4, 'QWord to Double');
+end;
+
+
+procedure TTestValueGeneral.TestCastEmptyToManaged;
+
+var
+  V : TValue;
+
+begin
+  V:=TValue.Empty.Cast(TypeInfo(AnsiString));
+  CheckTrue(V.TypeInfo=TypeInfo(AnsiString), 'Empty to AnsiString type info');
+  CheckEquals('', V.AsString, 'Empty to AnsiString');
+  V:=TValue.Empty.Cast(TypeInfo(IInterface));
+  CheckTrue(V.IsEmpty, 'Empty to IInterface is empty');
+  CheckTrue(V.AsInterface=Nil, 'Empty to IInterface');
+  V:=TValue.Empty.Cast(TypeInfo(TArrayOfLongintDyn));
+  CheckEquals(0, V.GetArrayLength, 'Empty to dynamic array');
+end;
+
+
 procedure TTestValueGeneral.TestAssignPointer;
 var
   V : TValue;
@@ -2146,6 +2345,6 @@ end;
 initialization
   RegisterTest(TTestValueGeneral);
   RegisterTest(TTestValueSimple);
-  RegisterTest(TTestValueSimple);
+  RegisterTest(TTestValueArray);
   RegisterTest(TTestValueVariant);
 end.

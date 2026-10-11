@@ -2890,7 +2890,10 @@ function TValue.GetIsEmpty: boolean;
 begin
   result := (FData.FTypeInfo=nil) or
             ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
-            ((Kind in [tkPointer, tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
+            ((Kind in [tkPointer, tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer)) or
+            ((Kind in [tkProcVar, tkMethod]) and not Assigned(FData.FAsMethod.Code)) or
+            ((Kind in [tkInterface, tkDynArray]) and
+              (not Assigned(FData.FValueData) or not Assigned(PPointer(FData.FValueData.GetReferenceToRawData)^)));
 end;
 
 
@@ -3622,24 +3625,33 @@ procedure TValue.CastQWordToFloat(out aRes: Boolean; out ADest: TValue; aDestTyp
 var
   Tmp : QWord;
   Ti : PTypeInfo;
-
+  DestFloatType: TFloatType;
+  S: Single;
+  D: Double;
+  E: Extended;
+  Co: Comp;
+  Cu: Currency;
 begin
   Tmp:=FData.FAsUInt64;
-  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
-  TValue.Make(@Tmp,Ti,aDest);
+  DestFloatType := GetTypeData(aDestType)^.FloatType;
+  Ti:=FloatTypeToTypeInfo(DestFloatType);
+  case DestFloatType of
+    ftSingle:   begin S  := Tmp; TValue.Make(@S, Ti,aDest); end;
+    ftDouble:   begin D  := Tmp; TValue.Make(@D, Ti,aDest); end;
+    ftExtended: begin E  := Tmp; TValue.Make(@E, Ti,aDest); end;
+    ftComp:     begin Co := Tmp; TValue.Make(@Co,Ti,aDest); end;
+    ftCurr:     begin Cu := Tmp; TValue.Make(@Cu,Ti,aDest); end;
+  else
+    aRes := False;
+    Exit;
+  end;
   aRes:=True;
 end;
 
 procedure TValue.CastInt64ToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
-var
-  Tmp : Int64;
-  Ti : PTypeInfo;
 begin
-  Tmp:=AsInt64;
-  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
-  TValue.Make(@Tmp,Ti,aDest);
-  aRes:=True;
+  CastIntegerToFloat(aRes,aDest,aDestType);
 end;
 
 procedure TValue.CastFloatToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
@@ -4577,7 +4589,7 @@ begin
     aResult:=TValue.Empty;
     if (aTypeInfo=nil) then
       exit;
-    AResult.FData.FTypeInfo:=aTypeInfo;
+    TValue.Make(Nil,aTypeInfo,aResult);
     Exit(True);
     end;
   if not aEmptyAsAnyType and (Self.TypeInfo=nil) then
@@ -5054,7 +5066,8 @@ var
   data: Pointer;
   eltype: PTypeInfo;
   elsize: SizeInt;
-  td, tdv: PTypeData;
+  td: PTypeData;
+  elvalue: TValue;
 begin
   if not IsArray then
     raise EInvalidCast.Create(SErrInvalidTypecast);
@@ -5074,18 +5087,12 @@ begin
     end;
     data := PByte(data) + AIndex * elsize;
   end;
-  { maybe we'll later on allow some typecasts, but for now be restrictive }
-  if eltype^.Kind <> AValue.Kind then
+  if not AValue.TryCast(eltype, elvalue) then
     raise EInvalidCast.Create(SErrInvalidTypecast);
-  td := GetTypeData(eltype);
-  tdv := AValue.TypeData;
-  if ((eltype^.Kind in [tkInteger, tkBool, tkEnumeration, tkSet]) and (td^.OrdType <> tdv^.OrdType)) or
-      ((eltype^.Kind = tkFloat) and (td^.FloatType <> tdv^.FloatType)) then
-    raise EInvalidCast.Create(SErrInvalidTypecast);
-  if Assigned(AValue.FData.FValueData) and (eltype^.Kind <> tkSString) then
-    IntCopy(AValue.FData.FValueData.GetReferenceToRawData, data, eltype)
+  if Assigned(elvalue.FData.FValueData) and (eltype^.Kind <> tkSString) then
+    IntCopy(elvalue.FData.FValueData.GetReferenceToRawData, data, eltype)
   else
-    Move(AValue.GetReferenceToRawData^, data^, AValue.DataSize);
+    Move(elvalue.GetReferenceToRawData^, data^, elvalue.DataSize);
 end;
 
 function TValue.TryAsOrdinal(out AResult: int64): boolean;
