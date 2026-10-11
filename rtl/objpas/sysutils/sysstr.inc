@@ -1298,6 +1298,58 @@ end;
 
 {$ifndef FPUNONE}
 
+// Returns true when S, after leading spaces and a sign, starts like a number instead of an Inf or Nan text
+Function IsNumericFloatText(const S: String): Boolean;
+
+Var
+  I: Integer;
+
+Begin
+  I:=1;
+  While (I<=Length(S)) and (S[I]=' ') do
+    Inc(I);
+  If (I<=Length(S)) and ((S[I]='+') or (S[I]='-')) then
+    Inc(I);
+  Result:=(I<=Length(S)) and (((S[I]>='0') and (S[I]<='9')) or (S[I]='.') or (S[I]='E') or (S[I]='e'));
+End;
+
+
+{$IF SIZEOF(CHAR)=2}
+// Returns true when S, after leading spaces and a sign, starts like a number instead of an Inf or Nan text
+Function IsNumericFloatText(const S: AnsiString): Boolean;
+
+Var
+  I: Integer;
+
+Begin
+  I:=1;
+  While (I<=Length(S)) and (S[I]=' ') do
+    Inc(I);
+  If (I<=Length(S)) and ((S[I]='+') or (S[I]='-')) then
+    Inc(I);
+  Result:=(I<=Length(S)) and (((S[I]>='0') and (S[I]<='9')) or (S[I]='.') or (S[I]='E') or (S[I]='e'));
+End;
+{$ENDIF}
+
+
+// Returns true when Value of type ValueType holds an infinity
+Function IsInfiniteFloat(const Value; ValueType: TFloatValue): Boolean;
+
+Begin
+  case ValueType of
+    fvExtended:
+      Result:=Extended(Value).IsInfinity;
+    fvDouble,
+    fvReal:
+      Result:=Double(Value).IsInfinity;
+    fvSingle:
+      Result:=Single(Value).IsInfinity;
+  else
+    Result:=False;
+  end;
+End;
+
+
 Function InternalTextToFloat(S: String; Out Value; ValueType: TFloatValue;
   Const FormatSettings: TFormatSettings): Boolean;
 
@@ -1352,7 +1404,7 @@ Begin
   except
     E:=1;
   end;
-  Result:=(E=0);
+  Result:=(E=0) and not (IsInfiniteFloat(Value,ValueType) and IsNumericFloatText(S));
 End;
 
 Function InternalTextToFloat(S: String; Out Value: Extended;
@@ -1394,7 +1446,7 @@ Begin
   except
     E:=1;
   end;
-  Result:=(E=0);
+  Result:=(E=0) and not (Value.IsInfinity and IsNumericFloatText(S));
 End;
 
 {$IF SIZEOF(CHAR)=2}
@@ -1456,7 +1508,7 @@ Begin
   except
     E:=1;
   end;
-  Result:=(E=0);
+  Result:=(E=0) and not (IsInfiniteFloat(Value,ValueType) and IsNumericFloatText(S));
 End;
 {$ENDIF}
 

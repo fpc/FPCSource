@@ -190,11 +190,19 @@ type
     function ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
     function ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
     function ReadFloat(const Section, Ident: string; Default: Double): Double; virtual;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    // Reads an Extended value, returns Default when the value is missing or not a valid Extended
+    function ReadExFloat(const Section, Ident: string; Default: Extended): Extended; virtual;
+{$endif FPC_HAS_TYPE_EXTENDED}
     function ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
     function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer; virtual;
     procedure WriteDate(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteDateTime(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteFloat(const Section, Ident: string; Value: Double); virtual;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    // Writes an Extended value with the digits needed to read it back unchanged
+    procedure WriteExFloat(const Section, Ident: string; Value: Extended); virtual;
+{$endif FPC_HAS_TYPE_EXTENDED}
     procedure WriteTime(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteBinaryStream(const Section, Name: string; Value: TStream); virtual;
     procedure ReadSection(const Section: string; Strings: TStrings); virtual; abstract;
@@ -299,6 +307,48 @@ function IsComment(const AString: string): boolean;
 begin
   Result:=(Length(aString)>0) and (Copy(AString, 1, 1) = Comment);
 end;
+
+// Returns aValue with the fewest digits that read back as the same Double
+function FloatToIniStr(aValue: Double; const aFormatSettings: TFormatSettings): string;
+
+var
+  lDigits: Integer;
+  lBack: Double;
+
+begin
+  for lDigits:=15 to 17 do
+    begin
+    Result:=FloatToStrF(aValue,ffGeneral,lDigits,0,aFormatSettings);
+    if TryStrToFloat(Result,lBack,aFormatSettings) and (lBack=aValue) then
+      Exit;
+    end;
+  // Str writes all significant digits
+  Str(aValue,Result);
+  Result:=StringReplace(Trim(Result),'.',aFormatSettings.DecimalSeparator,[]);
+end;
+
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+// Returns aValue with the fewest digits that read back as the same Extended
+function FloatToIniStr(aValue: Extended; const aFormatSettings: TFormatSettings): string;
+
+var
+  lDigits: Integer;
+  lBack: Extended;
+
+begin
+  for lDigits:=15 to 17 do
+    begin
+    Result:=FloatToStrF(aValue,ffGeneral,lDigits,0,aFormatSettings);
+    if TryStrToFloat(Result,lBack,aFormatSettings) and (lBack=aValue) then
+      Exit;
+    end;
+  // Str writes all significant digits
+  Str(aValue,Result);
+  Result:=StringReplace(Trim(Result),'.',aFormatSettings.DecimalSeparator,[]);
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
 
 { TStringHash }
 
@@ -793,12 +843,39 @@ end;
 
 function TCustomIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
 
+var
+  lValue: Double;
+  lOK: Boolean;
+
 begin
   if FormatSettingsActive then
-    Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default, FormatSettings)
+    lOK:=TryStrToFloat(ReadString(Section, Ident, ''),lValue, FormatSettings)
   else
-    Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default);
+    lOK:=TryStrToFloat(ReadString(Section, Ident, ''),lValue);
+  if lOK then
+    Result:=lValue
+  else
+    Result:=Default;
 end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function TCustomIniFile.ReadExFloat(const Section, Ident: string; Default: Extended): Extended;
+
+var
+  lValue: Extended;
+  lOK: Boolean;
+
+begin
+  if FormatSettingsActive then
+    lOK:=TryStrToFloat(ReadString(Section, Ident, ''),lValue, FormatSettings)
+  else
+    lOK:=TryStrToFloat(ReadString(Section, Ident, ''),lValue);
+  if lOK then
+    Result:=lValue
+  else
+    Result:=Default;
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function TCustomIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
 
@@ -828,10 +905,20 @@ end;
 procedure TCustomIniFile.WriteFloat(const Section, Ident: string; Value: Double);
 begin
   if FormatSettingsActive then
-    WriteString(Section, Ident, FloatToStr(Value, FormatSettings))
+    WriteString(Section, Ident, FloatToIniStr(Value, FormatSettings))
   else
-    WriteString(Section, Ident, FloatToStr(Value));
+    WriteString(Section, Ident, FloatToIniStr(Value, DefaultFormatSettings));
 end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure TCustomIniFile.WriteExFloat(const Section, Ident: string; Value: Extended);
+begin
+  if FormatSettingsActive then
+    WriteString(Section, Ident, FloatToIniStr(Value, FormatSettings))
+  else
+    WriteString(Section, Ident, FloatToIniStr(Value, DefaultFormatSettings));
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 procedure TCustomIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
 begin
