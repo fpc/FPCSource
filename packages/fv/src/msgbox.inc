@@ -324,11 +324,11 @@ BEGIN
      Insert(New(PLabel, Init(R, ALabel, Control)));   { Insert label }
      R.Assign(Size.X - 24, Size.Y - 4, Size.X - 14,
        Size.Y - 2);                                   { Assign screen area }
-     Insert(New(PButton, Init(R, 'O~K~', cmOk,
+     Insert(New(PButton, Init(R, slOK, cmOk,
        bfDefault)));                                  { Insert okay button }
      Inc(R.A.X, 12);                                  { New start x position }
      Inc(R.B.X, 12);                                  { New end x position }
-     Insert(New(PButton, Init(R, 'Cancel', cmCancel,
+     Insert(New(PButton, Init(R, slCancel, cmCancel,
        bfNormal)));                                   { Insert cancel button }
      Inc(R.A.X, 12);                                  { New start x position }
      Inc(R.B.X, 12);                                  { New end x position }

@@ -1078,6 +1078,10 @@ CONST
                 slSaveAs='S~a~ve as...';
                 slSaveFileAs='~S~ave file as';
 
+                slNew = '~N~ew';
+                slEdit = '~E~dit';
+                slDelete = '~D~elete';
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -4575,30 +4579,30 @@ begin
     Line := 2;
     if (AButtons and ldNew) = ldNew then
     begin
-      Insert(NewButton(Size.X - 12,Line,10,2,'~N~ew',cmNew,hcInsert,bfNormal));
+      Insert(NewButton(Size.X - 12,Line,10,2,slNew,cmNew,hcInsert,bfNormal));
       Inc(Line,Gap);
     end;
     if (AButtons and ldEdit) = ldEdit then
     begin
-      Insert(NewButton(Size.X - 12,Line,10,2,'~E~dit',cmEdit,hcEdit,
+      Insert(NewButton(Size.X - 12,Line,10,2,slEdit,cmEdit,hcEdit,
         bfNormal));
       Inc(Line,Gap);
     end;
     if (AButtons and ldDelete) = ldDelete then
     begin
-      Insert(NewButton(Size.X - 12,Line,10,2,'~D~elete',cmDelete,hcDelete,
+      Insert(NewButton(Size.X - 12,Line,10,2,slDelete,cmDelete,hcDelete,
         bfNormal));
       Inc(Line,Gap);
     end;
-    Insert(NewButton(Size.X - 12,Line,10,2,'O~k~',cmOK,hcOk,bfDefault or
+    Insert(NewButton(Size.X - 12,Line,10,2,slOk,cmOK,hcOk,bfDefault or
       bfNormal));
     Inc(Line,Gap);
-    Insert(NewButton(Size.X - 12,Line,10,2,'Cancel',cmCancel,hcCancel,
+    Insert(NewButton(Size.X - 12,Line,10,2,slCancel,cmCancel,hcCancel,
       bfNormal));
     if (AButtons and ldHelp) = ldHelp then
     begin
       Inc(Line,Gap);
-      Insert(NewButton(Size.X - 12,Line,10,2,'~H~elp',cmHelp,hcNoContext,
+      Insert(NewButton(Size.X - 12,Line,10,2,slHelp,cmHelp,hcNoContext,
         bfNormal));
     end;
   end;

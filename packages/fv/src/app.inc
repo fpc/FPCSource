@@ -418,6 +418,29 @@ uses
                 sVideoFailed='Video initialization failed.';
                 sTypeExitOnReturn='Type EXIT to return...';
 
+                slNew = '~N~ew';
+                slOpen = '~O~pen...';
+                slSave = '~S~ave';
+                slSaveAs = 'S~a~ve as...';
+                slSaveAll = 'Save a~l~l';
+                slChangeDir = '~C~hange dir...';
+                slOSShell = 'OS shell';
+                slExit = 'E~x~it';
+
+                slUndo = '~U~ndo';
+                slCut = 'Cu~t~';
+                slCopy = '~C~opy';
+                slPaste = '~P~aste';
+                slClear = 'C~l~ear';
+
+                slTile = '~T~ile';
+                slCascade = 'C~a~scade';
+                slCloseAll = 'Cl~o~se all';
+                slSizeMove = '~S~ize/Move';
+                slZoom = '~Z~oom';
+                slNext = '~N~ext';
+                slPrevious = '~P~revious';
+                slClose = '~C~lose';
 
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
@@ -1351,15 +1374,15 @@ END;
 FUNCTION StdFileMenuItems (Next: PMenuItem): PMenuItem;
 BEGIN
    StdFileMenuItems :=
-     NewItem('~N~ew', '', kbNoKey, cmNew, hcNew,
-     NewItem('~O~pen...', 'F3', kbF3, cmOpen, hcOpen,
-     NewItem('~S~ave', 'F2', kbF2, cmSave, hcSave,
-     NewItem('S~a~ve as...', '', kbNoKey, cmSaveAs, hcSaveAs,
-     NewItem('Save a~l~l', '', kbNoKey, cmSaveAll, hcSaveAll,
+     NewItem(slNew, '', kbNoKey, cmNew, hcNew,
+     NewItem(slOpen, 'F3', kbF3, cmOpen, hcOpen,
+     NewItem(slSave, 'F2', kbF2, cmSave, hcSave,
+     NewItem(slSaveAs, '', kbNoKey, cmSaveAs, hcSaveAs,
+     NewItem(slSaveAll, '', kbNoKey, cmSaveAll, hcSaveAll,
      NewLine(
-     NewItem('~C~hange dir...', '', kbNoKey, cmChangeDir, hcChangeDir,
-     NewItem('OS shell', '', kbNoKey, cmDosShell, hcDosShell,
-     NewItem('E~x~it', 'Alt+X', kbAltX, cmQuit, hcExit,
+     NewItem(slChangeDir, '', kbNoKey, cmChangeDir, hcChangeDir,
+     NewItem(slOSShell, '', kbNoKey, cmDosShell, hcDosShell,
+     NewItem(slExit, 'Alt+X', kbAltX, cmQuit, hcExit,
      Next)))))))));
 END;
 
@@ -1369,12 +1392,12 @@ END;
 FUNCTION StdEditMenuItems (Next: PMenuItem): PMenuItem;
 BEGIN
    StdEditMenuItems :=
-     NewItem('~U~ndo', '', kbAltBack, cmUndo, hcUndo,
+     NewItem(slUndo, '', kbAltBack, cmUndo, hcUndo,
      NewLine(
-     NewItem('Cu~t~', 'Shift+Del', kbShiftDel, cmCut, hcCut,
-     NewItem('~C~opy', 'Ctrl+Ins', kbCtrlIns, cmCopy, hcCopy,
-     NewItem('~P~aste', 'Shift+Ins', kbShiftIns, cmPaste, hcPaste,
-     NewItem('C~l~ear', 'Ctrl+Del', kbCtrlDel, cmClear, hcClear,
+     NewItem(slCut, 'Shift+Del', kbShiftDel, cmCut, hcCut,
+     NewItem(slCopy, 'Ctrl+Ins', kbCtrlIns, cmCopy, hcCopy,
+     NewItem(slPaste, 'Shift+Ins', kbShiftIns, cmPaste, hcPaste,
+     NewItem(slClear, 'Ctrl+Del', kbCtrlDel, cmClear, hcClear,
      Next))))));
 END;
 
@@ -1384,15 +1407,15 @@ END;
 FUNCTION StdWindowMenuItems (Next: PMenuItem): PMenuItem;
 BEGIN
    StdWindowMenuItems :=
-     NewItem('~T~ile', '', kbNoKey, cmTile, hcTile,
-     NewItem('C~a~scade', '', kbNoKey, cmCascade, hcCascade,
-     NewItem('Cl~o~se all', '', kbNoKey, cmCloseAll, hcCloseAll,
+     NewItem(slTile, '', kbNoKey, cmTile, hcTile,
+     NewItem(slCascade, '', kbNoKey, cmCascade, hcCascade,
+     NewItem(slCloseAll, '', kbNoKey, cmCloseAll, hcCloseAll,
      NewLine(
-     NewItem('~S~ize/Move','Ctrl+F5', kbCtrlF5, cmResize, hcResize,
-     NewItem('~Z~oom', 'F5', kbF5, cmZoom, hcZoom,
-     NewItem('~N~ext', 'F6', kbF6, cmNext, hcNext,
-     NewItem('~P~revious', 'Shift+F6', kbShiftF6, cmPrev, hcPrev,
-     NewItem('~C~lose', 'Alt+F3', kbAltF3, cmClose, hcClose,
+     NewItem(slSizeMove,'Ctrl+F5', kbCtrlF5, cmResize, hcResize,
+     NewItem(slZoom, 'F5', kbF5, cmZoom, hcZoom,
+     NewItem(slNext, 'F6', kbF6, cmNext, hcNext,
+     NewItem(slPrevious, 'Shift+F6', kbShiftF6, cmPrev, hcPrev,
+     NewItem(slClose, 'Alt+F3', kbAltF3, cmClose, hcClose,
      Next)))))))));
 END;
 

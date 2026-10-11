@@ -720,6 +720,14 @@ uses
 {$endif}
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                slPause = '~P~ause';
+                slResume = '~R~esume';
+
 {****************************************************************************}
 {                    Local procedures and functions                          }
 {****************************************************************************}
@@ -1370,16 +1378,16 @@ begin
     { insert buttons }
     if ((AFlags and sdCancelButton) = sdCancelButton) then
     begin
-      P := NewButton(X,Y,10,2,'Cancel',cmCancel,hcCancel,bfDefault);
+      P := NewButton(X,Y,10,2,slCancel,cmCancel,hcCancel,bfDefault);
       P^.GrowMode := gfGrowHiY or gfGrowLoY;
       Inc(X,12 + Gap);
     end;
     if ((AFlags and sdPauseButton) = sdPauseButton) then
     begin
-      P := NewButton(X,Y,10,2,'~P~ause',cmStatusPause,hcStatusPause,bfNormal);
+      P := NewButton(X,Y,10,2,slPause,cmStatusPause,hcStatusPause,bfNormal);
       P^.GrowMode := gfGrowHiY or gfGrowLoY;
       Inc(X,12 + Gap);
-      P := NewButton(X,Y,10,2,'~R~esume',cmStatusResume,hcStatusResume,
+      P := NewButton(X,Y,10,2,slResume,cmStatusResume,hcStatusResume,
                      bfBroadcast);
       P^.GrowMode := gfGrowHiY or gfGrowLoY;
     end;
