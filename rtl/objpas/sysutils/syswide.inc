@@ -204,8 +204,24 @@ begin
   Result:=WideStringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : SizeInt): WideString;
+{$i syssr.inc}
+
+
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=WideStringReplace(S,OldPattern,NewPattern,Flags,C);
+  aCount:=ReplaceCountToInteger(C);
+end;
+{$else}
 function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
 {$i syssr.inc}
+{$endif}
 
 {$undef INWIDESTRINGREPLACE}
 {$undef SRString}

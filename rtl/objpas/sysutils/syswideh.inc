@@ -37,5 +37,8 @@ function StrLCopy(Dest,Source: PWideChar; MaxLen: SizeInt): PWideChar; overload;
 Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
 function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags): WideString;
 function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : SizeInt): WideString;
+{$endif}
 function IsLeadChar(Ch: WideChar): Boolean; inline; overload;
 

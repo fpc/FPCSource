@@ -300,6 +300,9 @@ Type
                             );
 
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+{$if sizeof(SizeInt)>sizeof(Integer)}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : SizeInt; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+{$endif}
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 { We need these for backwards compatibility:
   The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
@@ -524,7 +527,7 @@ begin
   Result:=bm.MatchesCount>0;
 end;
 
-function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : Integer): string;
+function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : SizeInt): string;
 const
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
 var
@@ -708,7 +711,7 @@ end;
 
 *)
 
-function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : Integer): string;
+function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : SizeInt): string;
 var
   Matches: SizeIntArray;
   OldPatternSize: SizeInt;
@@ -771,8 +774,8 @@ begin
   Result:=StringReplace(S, OldPattern, NewPattern, Flags,C,Algorithm);
 end;
 
-Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
-
+{$if sizeof(SizeInt)>sizeof(Integer)}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : SizeInt; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 
 begin
   Case Algorithm of
@@ -781,6 +784,42 @@ begin
     sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
 end;
+
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=StringReplace(S,OldPattern,NewPattern,Flags,C,Algorithm);
+  if C>High(Integer) then
+    aCount:=High(Integer)
+  else
+    aCount:=C;
+end;
+{$else}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+Var
+  C : SizeInt;
+
+begin
+  Case Algorithm of
+    sraDefault    : Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraManySmall  :
+      begin
+      Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,C);
+      aCount:=C;
+      end;
+    sraBoyerMoore :
+      begin
+      Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,C);
+      aCount:=C;
+      end;
+  end;
+end;
+{$endif}
 
 {$IF SIZEOF(CHAR)=1}
 

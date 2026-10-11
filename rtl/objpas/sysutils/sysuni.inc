@@ -544,7 +544,7 @@ begin
     Move(Value[0],Result[1],Len*SizeOf(UnicodeChar));
 end;
 
-function ByteLength(const S: UnicodeString): Integer;
+function ByteLength(const S: UnicodeString): SizeInt;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
 end;
@@ -574,8 +574,24 @@ begin
   Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : SizeInt): UnicodeString;
+{$i syssr.inc}
+
+
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
+  aCount:=ReplaceCountToInteger(C);
+end;
+{$else}
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 {$i syssr.inc}
+{$endif}
 
 {$undef INUNICODESTRINGREPLACE}
 {$undef SRString}
@@ -594,3 +610,11 @@ function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: T
 begin
   Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,aCount);
 end;
+
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : SizeInt): UnicodeString;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,aCount);
+end;
+{$endif}

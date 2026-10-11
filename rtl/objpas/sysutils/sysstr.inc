@@ -2632,6 +2632,19 @@ end;
 {$define SRPCHAR:=PAnsiChar}
 {$define SRCHAR:=AnsiChar}
 
+{$if sizeof(SizeInt)>sizeof(Integer)}
+// Returns aCount limited to the Integer range
+Function ReplaceCountToInteger(aCount: SizeInt): Integer; inline;
+
+begin
+  if aCount>High(Integer) then
+    Result:=High(Integer)
+  else
+    Result:=aCount;
+end;
+{$endif}
+
+
 Function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags): Ansistring;
 
 Var
@@ -2641,9 +2654,26 @@ begin
   Result:=StringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags; Out aCount : SizeInt): Ansistring;
+
+{$i syssr.inc}
+
+
+function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags; Out aCount : Integer): Ansistring;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=StringReplace(S,OldPattern,NewPattern,Flags,C);
+  aCount:=ReplaceCountToInteger(C);
+end;
+{$else}
 function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags; Out aCount : Integer): Ansistring;
 
 {$i syssr.inc}
+{$endif}
 
 {$undef INSTRINGREPLACE}
 {$undef SRString}
@@ -2938,7 +2968,7 @@ const
 
 {$endif FPC_NOGENERICANSIROUTINES}
 
-function sscanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
+function sscanf(const s: string; const fmt : string;const Pointers : array of Pointer) : SizeInt;
   var
     i,j,n,m : SizeInt;
     s1      : string;

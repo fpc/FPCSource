@@ -256,10 +256,13 @@ function TryStrToBool(const S: string; out Value: Boolean; Const FormatSettings:
 
 function LastDelimiter(const Delimiters, S: string): SizeInt;
 function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags; Out aCount : Integer): ansistring;
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags; Out aCount : SizeInt): ansistring;
+{$endif}
 function StringReplace(const S, OldPattern, NewPattern: Ansistring;  Flags: TReplaceFlags): ansistring;
 Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
-function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
+function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : SizeInt;
 
 {// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.}
 Type
