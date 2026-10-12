@@ -2545,7 +2545,10 @@ end;
 procedure YieldProcessor;
 
 begin
+{ fpc_x86_pause is only available from 3.3 branch }
+{$if FPC_FULLVERSION>=30301}
   fpc_x86_pause;
+{$endif}
 end;
 {$elseif defined(cpuaarch64)}
 procedure YieldProcessor; assembler; nostackframe;
