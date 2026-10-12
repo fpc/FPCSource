@@ -1055,7 +1055,7 @@ type  key_sequence=packed record
         st:string[10];
       end;
 
-const key_sequences:array[0..435] of key_sequence=(
+const key_sequences:array[0..447] of key_sequence=(
        (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
@@ -1121,6 +1121,18 @@ const key_sequences:array[0..435] of key_sequence=(
        (AnsiChar:0;scan:kbAlt7;shift:[essAlt];st:#27'7'),
        (AnsiChar:0;scan:kbAlt8;shift:[essAlt];st:#27'8'),
        (AnsiChar:0;scan:kbAlt9;shift:[essAlt];st:#27'9'),
+       (AnsiChar:0;scan:kbAltMinus;shift:[essAlt,essShift];st:#27'_'),
+       (AnsiChar:0;scan:kbAltEqual;shift:[essAlt,essShift];st:#27'+'),
+       (AnsiChar:0;scan:kbAlt0;shift:[essAlt,essShift];st:#27')'),
+       (AnsiChar:0;scan:kbAlt1;shift:[essAlt,essShift];st:#27'!'),
+       (AnsiChar:0;scan:kbAlt2;shift:[essAlt,essShift];st:#27'@'),
+       (AnsiChar:0;scan:kbAlt3;shift:[essAlt,essShift];st:#27'#'),
+       (AnsiChar:0;scan:kbAlt4;shift:[essAlt,essShift];st:#27'$'),
+       (AnsiChar:0;scan:kbAlt5;shift:[essAlt,essShift];st:#27'%'),
+       (AnsiChar:0;scan:kbAlt6;shift:[essAlt,essShift];st:#27'^'),
+       (AnsiChar:0;scan:kbAlt7;shift:[essAlt,essShift];st:#27'&'),
+       (AnsiChar:0;scan:kbAlt8;shift:[essAlt,essShift];st:#27'*'),
+       (AnsiChar:0;scan:kbAlt9;shift:[essAlt,essShift];st:#27'('),
 
        (AnsiChar:0;scan:kbF1;shift:[];st:#27'[[A'),                   {linux,konsole,xterm}
        (AnsiChar:0;scan:kbF2;shift:[];st:#27'[[B'),                   {linux,konsole,xterm}
