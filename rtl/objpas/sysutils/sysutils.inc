@@ -642,24 +642,93 @@ end;
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
                                Buffer: PAnsiChar; Size: Integer): Integer;
 
+// fills Buffer without heap allocations
+
 Var
-  S : AnsiString;
   Len : Integer;
 
+  { Appends aCount characters of aSrc, non-ASCII characters of a unicode string become '?' }
+  procedure AppendChars(aSrc: PChar; aCount: SizeInt);
+
+  var
+    i : Integer;
+
+  begin
+    if aCount>Size-Len then
+      aCount:=Size-Len;
+    for i:=0 to Integer(aCount)-1 do
+      begin
+{$if SizeOf(Char)=1}
+      Buffer[Len]:=aSrc[i];
+{$else}
+      if Ord(aSrc[i])<128 then
+        Buffer[Len]:=AnsiChar(Ord(aSrc[i]))
+      else
+        Buffer[Len]:='?';
+{$endif}
+      Inc(Len);
+      end;
+  end;
+
+
+  { Appends aStr }
+  procedure AppendShort(const aStr: ShortString);
+
+  var
+    lCount : Integer;
+
+  begin
+    lCount:=Length(aStr);
+    if lCount>Size-Len then
+      lCount:=Size-Len;
+    if lCount>0 then
+      begin
+      Move(aStr[1],Buffer[Len],lCount);
+      Inc(Len,lCount);
+      end;
+  end;
+
+
+Var
+  lFmt : PChar;
+  lFmtLen, i : Integer;
+
 begin
-  S:=Format(SExceptionErrorMessage,[ExceptAddr,ExceptObject.ClassName]);
+  Len:=0;
+  { SExceptionErrorMessage with %p replaced by the address and %s by the class name }
+  lFmt:=PChar(SExceptionErrorMessage);
+  lFmtLen:=Length(SExceptionErrorMessage);
+  i:=0;
+  while i<lFmtLen do
+    if lFmt[i]<>'%' then
+      begin
+      AppendChars(@lFmt[i],1);
+      Inc(i);
+      end
+    else
+      begin
+      Inc(i);
+      { skip index, width and precision }
+      while (i<lFmtLen) and (lFmt[i] in ['0'..'9',':','-','.','*']) do
+        Inc(i);
+      if i<lFmtLen then
+        begin
+        case lFmt[i] of
+          'p','P' : AppendShort(HexStr(PtrUInt(ExceptAddr),SizeOf(PtrUInt)*2));
+          's','S' : AppendShort(ExceptObject.ClassName);
+        else
+          AppendChars(@lFmt[i],1);
+        end;
+        Inc(i);
+        end;
+      end;
   If ExceptObject is Exception then
-    S:=Format('%s:'#10'%s',[S,Exception(ExceptObject).Message]);
-  Len:=Length(S);
-  If S[Len]<>'.' then
     begin
-    S:=S+'.';
-    Inc(len);
+    AppendChars(':'#10,2);
+    AppendChars(PChar(Exception(ExceptObject).Message),Length(Exception(ExceptObject).Message));
     end;
-  If Len>Size then
-    Len:=Size;
-  if Len > 0 then
-    Move(S[1],Buffer^,Len);
+  If (Len>0) and (Buffer[Len-1]<>'.') then
+    AppendChars('.',1);
   Result:=Len;
 end;
 
