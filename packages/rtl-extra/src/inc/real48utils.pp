@@ -64,20 +64,36 @@ var
    res : array[0..5] of byte;
    rrec:TReal48Rec absolute res;
    drec:TDoubleRec absolute d;
+   i64:Int64 absolute d;
+   e:Longint;
 begin
-  { copy mantissa }
-  rrec.F1 := drec.F1;
-  rrec.F2 := drec.F2 shr 13;
-
-  { copy exponent }
-  { correct exponent: }
-  if drec.E<>0 then
-    rrec.E := drec.E - 1023 + 129
-  else
-    rrec.E:=0;         // signed zero exception.  Note E=2047=inf.
-
-  { set sign }
-  rrec.S := drec.S;
+  FillChar(res,SizeOf(res),0);
+  { zero and denormals become zero }
+  if (drec.E=2047) and ((drec.F1<>0) or (drec.F2<>0)) then
+    float_raise(exInvalidOp)
+  else if drec.E<>0 then
+    begin
+    { round the 13 dropped mantissa bits to nearest, ties to even }
+    if ((drec.F2 and $1000)<>0) and ((drec.F2 and $2FFF)<>0) then
+      i64:=i64+(1 shl 12);
+    e:=drec.E-1023+129;
+    if e>255 then
+      begin
+      float_raise(exOverflow);
+      { largest real48 when the exception is masked }
+      rrec.F1 := High(TBit32);
+      rrec.F2 := High(TBit07);
+      rrec.E := 255;
+      rrec.S := drec.S;
+      end
+    else if e>0 then
+      begin
+      rrec.F1 := drec.F1;
+      rrec.F2 := drec.F2 shr 13;
+      rrec.E := e;
+      rrec.S := drec.S;
+      end;
+    end;
   double2real:=res;
 end;
 
