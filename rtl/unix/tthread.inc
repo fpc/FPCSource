@@ -55,6 +55,8 @@ const
   // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
    (-20,-19,-10,0,9,18,19);
+  { flag in TThread.FWaitState, set when a FreeOnTerminate thread has finished }
+  WaitStateDone = $40000000;
 
 
 procedure DoneThreads;
@@ -133,6 +135,9 @@ begin
   LThread.FFinished := True;
   if LFreeOnTerminate then
     begin
+      { threads in WaitFor join this thread and free the object }
+      if InterlockedExchangeAdd(LThread.FWaitState,WaitStateDone)<>0 then
+        exit;
       WRITE_DEBUG('Thread ',ptruint(lthread),' should be freed');
       LThread.Free;
       WRITE_DEBUG('Thread freed');
@@ -253,6 +258,9 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',ptruint(FHandle));
+  { a FreeOnTerminate thread that finished without waiters has freed itself }
+  if InterlockedIncrement(FWaitState)=WaitStateDone+1 then
+    exit(0);
   If (MainThreadID=GetCurrentThreadID) then
     {
      FFinished is set after DoTerminate, which does a synchronize of OnTerminate,
@@ -265,6 +273,9 @@ begin
   { should actually check for errors in WaitForThreadTerminate, but no }
   { error api is defined for that function                             }
   FThreadReaped:=true;
+  { the last waiter frees a FreeOnTerminate thread that finished during the wait }
+  if (InterlockedDecrement(FWaitState)=WaitStateDone) and FFreeOnTerminate then
+    Free;
   WRITE_DEBUG('thread terminated');
 end;
 

@@ -2436,6 +2436,8 @@ type
     FInitialSuspended: boolean;
     FSuspendedInternal: longbool;
     FThreadReaped: boolean;
+    // number of threads in WaitFor, plus WaitStateDone once a FreeOnTerminate thread finished
+    FWaitState: longint;
 {$endif}
 {$ifdef netwlibc}
   private
