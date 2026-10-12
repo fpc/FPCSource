@@ -430,11 +430,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
       {$if not defined(HAIKU)and not defined(BEOS) and not defined(ANDROID)}
-      {$if defined (solaris) or defined (netbsd) }
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
-      {$else not solaris}
-      pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
-      {$endif not solaris}
       {$ifend}
 
       // will fail under linux -- apparently unimplemented
