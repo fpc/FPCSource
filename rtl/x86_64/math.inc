@@ -444,15 +444,19 @@ const
 {$push}
 {$codealign constmin=16}
   const
-    FPC_M25_24_ARRAY:      array[0..1] of Double = (-25.0,   24.0);
-    FPC_300_252_ARRAY:     array[0..1] of Double = (300.0,   252.0);
-    FPC_M2100_1344_ARRAY:  array[0..1] of Double = (-2100.0, 1344.0);
-    FPC_8400_3024_ARRAY:   array[0..1] of Double = (8400.0,  3024.0);
+    { coefficients of P(-x) and P(x), P(x) = x^6 + 42x^5 + 840x^4 + 10080x^3 + 75600x^2 + 332640x + 665280 }
+    FPC_EXP_C5_ARRAY: array[0..1] of Double = (-42.0,     42.0);
+    FPC_EXP_C4_ARRAY: array[0..1] of Double = (840.0,     840.0);
+    FPC_EXP_C3_ARRAY: array[0..1] of Double = (-10080.0,  10080.0);
+    FPC_EXP_C2_ARRAY: array[0..1] of Double = (75600.0,   75600.0);
+    FPC_EXP_C1_ARRAY: array[0..1] of Double = (-332640.0, 332640.0);
+    FPC_EXP_C0_ARRAY: array[0..1] of Double = (665280.0,  665280.0);
 {$pop}
     FPC_HALF_DOUBLE: Double = 0.5;
     FPC_ONE_DOUBLE: Double = 1.0;
-    FPC_M15120_DOUBLE: Double = -15120.0;
-    FPC_M5_DOUBLE: Double = -5.0;
+    { ln 2 = FPC_LN2_HI + FPC_LN2_LO; k * FPC_LN2_HI is exact for abs(k) <= 1024 }
+    FPC_LN2_HI: QWord = $3FE62E42FEE00000;
+    FPC_LN2_LO: QWord = $3DEA39EF35793C76;
 
     function fpc_exp_real(d : ValReal) : ValReal; compilerproc; assembler; nostackframe;
     {*****************************************************************}
@@ -476,8 +480,8 @@ const
     {    e  = 2   => 2      = 2 2                                     }
     {                                                                 }
     { 2^k can be calculated very quickly with bit manipulation, then  }
-    { convert 2^f to e^x via x = f ln 2 and use a Padé approximant to }
-    { calculate e^x for x between -0.5 ln 2 and 0.5 ln 2              }
+    { x = d - k ln 2 = f ln 2 and a Padé approximant gives e^x for x  }
+    { between -0.5 ln 2 and 0.5 ln 2                                  }
     {*****************************************************************}
       asm
         movsd     FPC_LOG2E(%rip), %xmm4
@@ -503,62 +507,75 @@ const
         ret
         .balign   16
     .LNotZero:
-        mulsd     %xmm4, %xmm0
-        addsd     %xmm2, %xmm0 { Add 0.5 to make sure the fractional part falls between -0.5 and 0.5 }
-        { %xmm0 won't be out of range due to the earlier checks }
-        cvttsd2si %xmm0, %rax
-        subsd     %xmm2, %xmm0
-        cvtsi2sd  %rax,  %xmm1
+        movapd    %xmm0, %xmm5 { d }
+        mulsd     %xmm4, %xmm0 { z }
+        { k = trunc(z + copysign(0.5, z)): z rounded half away from zero }
+        movupd    FPC_ABSMASK_DOUBLE(%rip), %xmm1
+        andnpd    %xmm0, %xmm1 { sign of z }
+        orpd      %xmm2, %xmm1 { copysign(0.5, z) }
+        addsd     %xmm0, %xmm1
+        { %xmm1 won't be out of range due to the earlier checks }
+        cvttsd2si %xmm1, %rax
+        cvtsi2sd  %rax,  %xmm1 { k }
 
-        movapd    FPC_M25_24_ARRAY(%rip), %xmm5
+        { x = (d - k ln2_hi) - k ln2_lo }
+        movsd     FPC_LN2_HI(%rip), %xmm0
+        mulsd     %xmm1, %xmm0
+        subsd     %xmm0, %xmm5
+        mulsd     FPC_LN2_LO(%rip), %xmm1
+        subsd     %xmm1, %xmm5
+        movapd    %xmm5, %xmm0 { x }
 
+        { %rcx: bits of the extra factor 2.0 for k=1024 or 0.5 for k=-1023, 0 otherwise }
+        xorl      %ecx,  %ecx
+        cmpl      $1023, %eax
+        jg        .LBigK
+        cmpl      $-1022, %eax
+        jl        .LSmallK
+    .LKReady:
         { Some slightly evil floating-point bit manipulation to calculate 2^k }
         addw      $1023, %ax
         shlw      $4,    %ax
-        subsd     %xmm1, %xmm0 { %xmm0 now contains the fractional component }
         pinsrw $3,%eax,  %xmm3 { Insert into the most-significant 16 bits }
                                { %xmm3 now contains 2^k }
 
-        { Calculate the Padé approximant that is:
-
-            -5(x(x(x(x + 24) + 252) + 1344) + 3024)
-        ----------------------------------------------
-        x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120
-
-        Aligned for easier calculation:
-
-             -5(x(x(x(x + 24) + 252) + 1344) + 3024)
-         ----------------------------------------------------
-              x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120
-        }
-        movapd    FPC_300_252_ARRAY(%rip), %xmm2 { 300, 252 }
-        divsd     %xmm4, %xmm0 { Reapply the factor of ln 2 to x }
-
-        movapd    FPC_M2100_1344_ARRAY(%rip), %xmm1 { -2100, 1344 }
+        { [6/6] Padé approximant e^x = P(x) / P(-x), both evaluated with Horner, P(-x) in the low lane }
         shufpd $0,%xmm0, %xmm0 { x, x }
         movapd    %xmm0, %xmm4 { x, x }
+        addpd     FPC_EXP_C5_ARRAY(%rip), %xmm0
+        mulpd     %xmm4, %xmm0
+        addpd     FPC_EXP_C4_ARRAY(%rip), %xmm0
+        mulpd     %xmm4, %xmm0
+        addpd     FPC_EXP_C3_ARRAY(%rip), %xmm0
+        mulpd     %xmm4, %xmm0
+        addpd     FPC_EXP_C2_ARRAY(%rip), %xmm0
+        mulpd     %xmm4, %xmm0
+        addpd     FPC_EXP_C1_ARRAY(%rip), %xmm0
+        mulpd     %xmm4, %xmm0
+        addpd     FPC_EXP_C0_ARRAY(%rip), %xmm0 { P(-x), P(x) }
 
-        addpd     %xmm5, %xmm0 { x - 25, x - 24 }
-        mulpd     %xmm4, %xmm0 { x(x - 25), x(x + 24) }
-        addpd     %xmm2, %xmm0 { x(x - 25) + 300, x(x + 24) + 252 }
-        movapd    FPC_8400_3024_ARRAY(%rip), %xmm2 { 8400, 3024 }
-        mulpd     %xmm4, %xmm0 { x(x(x - 25) + 300), x(x(x + 24) + 252) }
-        addpd     %xmm1, %xmm0 { x(x(x - 25) + 300) - 2100, x(x(x + 24) + 252) + 1344 }
-        movsd     FPC_M5_DOUBLE(%rip), %xmm1 { -5, 0 }
-        mulpd     %xmm4, %xmm0 { x(x(x(x - 25) + 300) - 2100), x(x(x(x + 24) + 252) + 1344) }
-        shufpd $1,%xmm1, %xmm4 { x, -5 }
-        movsd     FPC_M15120_DOUBLE(%rip), %xmm1 { -15120, 0 }
-        addpd     %xmm2, %xmm0 { x(x(x(x - 25) + 300) - 2100) + 8400, x(x(x(x + 24) + 252) + 1344) + 3024 }
-        movsd     FPC_ONE_DOUBLE(%rip), %xmm2 { 1, 0 }
-        mulpd     %xmm4, %xmm0 { x(x(x(x(x - 25) + 300) - 2100) + 8400), -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
-        addpd     %xmm1, %xmm0 { x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120, -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
-
-        movapd    %xmm0, %xmm4 { x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120, -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
-        shufpd $1,%xmm0, %xmm0 { -5(x(x(x(x + 24) + 252) + 1344) + 3024), x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120 }
-
-        divsd     %xmm4, %xmm0 { Padé approximant for e^x computed }
+        movapd    %xmm0, %xmm4
+        shufpd $1,%xmm0, %xmm0 { P(x), P(-x) }
+        divsd     %xmm4, %xmm0 { e^x }
 
         mulsd     %xmm3, %xmm0 { Apply the integer component calculated earlier }
+        testq     %rcx,  %rcx
+        jnz       .LExtraFactor
+        ret
+    .LExtraFactor:
+        movq      %rcx,  %xmm1
+        mulsd     %xmm1, %xmm0
+        ret
+    .LBigK:
+        decl      %eax { 2^1024 = 2^1023 * 2.0 }
+        movl      $0x400, %ecx
+        shlq      $52,   %rcx
+        jmp       .LKReady
+    .LSmallK:
+        incl      %eax { 2^-1023 = 2^-1022 * 0.5 }
+        movl      $0x3FE, %ecx
+        shlq      $52,   %rcx
+        jmp       .LKReady
       end;
     {$endif FPC_SYSTEM_HAS_EXP}
 
