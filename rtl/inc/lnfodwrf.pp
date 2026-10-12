@@ -985,6 +985,9 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+    { line number program versions 2 to 5 are supported }
+    if (header32.version < 2) or (header32.version > 5) then
+      exit;
 
     if header32.version >= 4 then begin
       i := 1;
@@ -1019,6 +1022,8 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+    if (header64.version < 2) or (header64.version > 5) then
+      exit;
 
     if header64.version >= 4 then begin
       i := 1;
@@ -1418,6 +1423,10 @@ begin
       er.ReadNext(header64, sizeof(header64));
     end;
 
+  { 2 is the only .debug_aranges version }
+  if header64.version <> 2 then
+    exit;
+
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
   DEBUG_WRITELN('address_size: ', header64.address_size);
   DEBUG_WRITELN('segment_size: ', header64.segment_size);
@@ -1580,6 +1589,9 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+    { compilation unit versions 2 to 5 are supported }
+    if (header32.version < 2) or (header32.version > 5) then
+      exit;
 
     if header32.version >= 5 then begin
       if header32_v5.unit_type <> DW_UT_compile then
@@ -1601,6 +1613,8 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+    if (header64.version < 2) or (header64.version > 5) then
+      exit;
 
     if header64.version >= 5 then begin
       if header64_v5.unit_type <> DW_UT_compile then
