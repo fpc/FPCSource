@@ -470,7 +470,9 @@ begin
   Result:=PWideChar(LCaseArrayW);
   if Result<>nil then
     begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
     ReadBarrier; // Read LCaseArrayW contents only after LCaseArrayW.
+{$endif FPC_HAS_FEATURE_THREADING}
     Exit;
     end;
   lTable:=GetMem(65536*SizeOf(WideChar));
@@ -489,12 +491,17 @@ begin
       else
         lTable[Ord(c)]:=c;
       end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   WriteBarrier; // Write LCaseArrayW only after its contents.
   Result:=InterlockedCompareExchangePointer(LCaseArrayW,lTable,nil);
   if Result=nil then
     Result:=lTable
   else
     FreeMem(lTable);
+{$else FPC_HAS_FEATURE_THREADING}
+  LCaseArrayW:=lTable;
+  result:=lTable;
+{$endif not def FPC_HAS_FEATURE_THREADING}
 end;
 
 (*
