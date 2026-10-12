@@ -421,7 +421,11 @@ begin
               end
             else if poNoConsole in Options then
               begin
-                fd:=FileOpen('/dev/null',fmOpenReadWrite or fmShareDenyNone);
+                // do not use FileOpen, it converts the filename codepage, risk of
+                // deadlock with other thread also converting strings
+                repeat
+                  fd:=fpopen(PAnsiChar('/dev/null'),O_RDWR);
+                until (fd<>-1) or (fpgeterrno<>ESysEINTR);
                 safefpdup2(fd,0);
                 safefpdup2(fd,1);
                 safefpdup2(fd,2);
