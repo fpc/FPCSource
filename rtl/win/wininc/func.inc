@@ -118,6 +118,12 @@ function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
 function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
 procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
 function SwitchToThread():WinBool; external 'kernel32' name 'SwitchToThread';
+// Signals the processor that the thread is in a spin-wait loop
+{$if defined(cpui386) or defined(cpux86_64)}
+procedure YieldProcessor; inline;
+{$else}
+procedure YieldProcessor;
+{$endif}
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
 function SetProcessAffinityMask(hProcess: THandle; dwProcessAffinityMask: DWORD_PTR): BOOL; external 'kernel32' name 'SetProcessAffinityMask';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
@@ -2534,6 +2540,26 @@ function ATTACH_PARENT_PROCESS : DWORD;
 begin
   ATTACH_PARENT_PROCESS:=DWORD(-(1));
 end;
+
+{$if defined(cpui386) or defined(cpux86_64)}
+procedure YieldProcessor;
+
+begin
+  fpc_x86_pause;
+end;
+{$elseif defined(cpuaarch64)}
+procedure YieldProcessor; assembler; nostackframe;
+
+asm
+  yield
+end;
+{$else}
+procedure YieldProcessor;
+
+begin
+end;
+{$endif}
+
 
 {$endif read_implementation}
 
