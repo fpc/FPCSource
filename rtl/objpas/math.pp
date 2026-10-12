@@ -3963,11 +3963,16 @@ end;
 function RoundTo(const AValue: Double; const Digits: TRoundToRange): Double;
 
 var
-  RV : Double;
+  RV, Q : Double;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^52: from here on every Double is an integer
+  if IsNan(Q) or (Abs(Q)>=4503599627370496.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 
@@ -3975,11 +3980,16 @@ end;
 function RoundTo(const AVAlue: Extended; const Digits: TRoundToRange): Extended;
 
 var
-  RV : Extended;
+  RV, Q : Extended;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^63: outside the Int64 range of Round every Extended is an integer
+  if IsNan(Q) or (Abs(Q)>=9223372036854775808.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 
@@ -3987,11 +3997,16 @@ end;
 function RoundTo(const AValue: Single; const Digits: TRoundToRange): Single;
 
 var
-  RV : Single;
+  RV, Q : Single;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^23: from here on every Single is an integer
+  if IsNan(Q) or (Abs(Q)>=8388608.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 
