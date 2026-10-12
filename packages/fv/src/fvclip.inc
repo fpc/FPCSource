@@ -369,12 +369,10 @@ begin
       end;
   end; {while do }
   len:=length(zt);
-  if len=0 then exit;
-  if len>6 then
-  begin
-    len:=length(zt)-6;
-    SetLength(zt,len); {get rid of bracketed paste end sequence}
-  end;
+  if len<=6 then
+    exit; { Incompleat or empty messages ignore. Xfce sends empty data in. }
+  len:=length(zt)-6;
+  SetLength(zt,len); {get rid of bracketed paste end sequence}
   PutInEventQue(zt,len);
 end;
 {$endif}
