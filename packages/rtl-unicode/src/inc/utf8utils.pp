@@ -382,21 +382,19 @@ end;
 var
   FNeedRTLAnsi: boolean = false;
   FNeedRTLAnsiValid: boolean = false;
+  // ansi code page of the widestring manager, before InitUTF8 changes DefaultSystemCodePage
+  FAnsiCodePage: TSystemCodePage = CP_ACP;
 
-function NeedRTLAnsi: boolean;
-{$IFNDEF Windows}
+{$IFDEF Unix}
+// Returns true if the encoding in LC_ALL, LC_MESSAGES or LANG is not UTF-8
+function EnvironmentNeedsRTLAnsi: boolean;
+
 var
   Lang: AnsiString;
   i: LongInt;
   Encoding: AnsiString;
-{$ENDIF}
 begin
-  if FNeedRTLAnsiValid then
-    exit(FNeedRTLAnsi);
-  {$IFDEF Windows}
-  FNeedRTLAnsi:=DefaultSystemCodePage<>CP_UTF8;
-  {$ELSE}
-  FNeedRTLAnsi:=false;
+  Result:=false;
   Lang := GetEnvironmentVariable('LC_ALL');
   if lang = '' then
   begin
@@ -409,10 +407,24 @@ begin
   i:=System.Pos('.',Lang);
   if (i>0) then begin
     Encoding:=copy(Lang,i+1,length(Lang)-i);
-    FNeedRTLAnsi:=({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(Encoding,'UTF-8')<>0)
-              and ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(Encoding,'UTF8')<>0);
+    Result:=({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(Encoding,'UTF-8')<>0)
+            and ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(Encoding,'UTF8')<>0);
   end;
+end;
+{$ENDIF}
+
+
+function NeedRTLAnsi: boolean;
+begin
+  if FNeedRTLAnsiValid then
+    exit(FNeedRTLAnsi);
+  {$IFDEF Unix}
+  // CP_ACP: no widestring manager such as cwstring is installed
+  if FAnsiCodePage=CP_ACP then
+    FNeedRTLAnsi:=EnvironmentNeedsRTLAnsi
+  else
   {$ENDIF}
+    FNeedRTLAnsi:=FAnsiCodePage<>CP_UTF8;
   FNeedRTLAnsiValid:=true;
   Result:=FNeedRTLAnsi;
 end;
@@ -4102,6 +4114,17 @@ begin
     FPUpChars[c]:=UpCase(c);
 end;
 
+// Stores the ansi code page reported by the widestring manager in FAnsiCodePage
+procedure InitAnsiCodePage;
+
+begin
+  if Assigned(WideStringManager.GetStandardCodePageProc) then
+    FAnsiCodePage:=WideStringManager.GetStandardCodePageProc(scpAnsi)
+  else
+    FAnsiCodePage:=DefaultSystemCodePage;
+end;
+
+
 procedure InitUTF8;
 begin
   {$ifdef UTF8_RTL}
@@ -4113,6 +4136,7 @@ end;
 
 initialization
   InitFPUpchars;
+  InitAnsiCodePage;
   InitUTF8;
 
 end.
