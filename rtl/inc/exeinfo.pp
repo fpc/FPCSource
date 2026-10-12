@@ -1128,6 +1128,8 @@ end;
 
 
 function FindSectionElf(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
+const
+  SHF_COMPRESSED = $800;
 var
   elfsec     : telfsechdr;
   secname    : string;
@@ -1148,9 +1150,13 @@ begin
      secname:=strpas(secnamebuf);
      if asecname=secname then
        begin
-         secofs:=e.ImgOffset+elfsec.sh_offset;
-         seclen:=elfsec.sh_size;
-         FindSectionElf:=true;
+         { compressed sections are reported as absent }
+         if (elfsec.sh_flags and SHF_COMPRESSED)=0 then
+           begin
+             secofs:=e.ImgOffset+elfsec.sh_offset;
+             seclen:=elfsec.sh_size;
+             FindSectionElf:=true;
+           end;
          exit;
        end;
    end;
