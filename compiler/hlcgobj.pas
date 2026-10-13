@@ -361,7 +361,7 @@ unit hlcgobj;
           { basic arithmetic operations }
           procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; const ref: TReference); virtual;
-          procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sreg: tsubsetregister); virtual;
+          procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : thlcgint; const sreg: tsubsetregister); virtual;
           procedure a_op_const_subsetref(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sref: tsubsetreference); virtual;
           procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);virtual;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); virtual; abstract;
@@ -3133,7 +3133,7 @@ implementation
       a_load_reg_ref(list,size,size,tmpreg,ref);
     end;
 
-  procedure thlcgobj.a_op_const_subsetreg(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
+  procedure thlcgobj.a_op_const_subsetreg(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: thlcgint; const sreg: tsubsetregister);
     var
       tmpreg: tregister;
     begin
