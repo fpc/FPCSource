@@ -3320,7 +3320,7 @@ begin {main}
       // This ensures backward compatibility with older code.
       // We check for Ctrl without Alt to avoid interfering with AltGr.
       if (essCtrl in SState) and not (essAlt in SState) and (UpCase(MyChar) in ['A'..'Z']) then
-        SysGetEnhancedKeyEvent.VirtualScanCode := Ord(UpCase(MyChar)) - Ord('A') + 1
+        SysGetEnhancedKeyEvent.VirtualScanCode := (MyScan shl 8) or Ord(UpCase(MyChar)) - Ord('A') + 1
       else
         // Default behavior for all other key combinations.
         SysGetEnhancedKeyEvent.VirtualScanCode := (MyScan shl 8) or Ord(MyChar);
