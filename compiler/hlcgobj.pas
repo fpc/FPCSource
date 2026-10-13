@@ -359,7 +359,7 @@ unit hlcgobj;
           procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tdef; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual; abstract;
 
           { basic arithmetic operations }
-          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); virtual; abstract;
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); virtual;
           procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sreg: tsubsetregister); virtual;
           procedure a_op_const_subsetref(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sref: tsubsetreference); virtual;

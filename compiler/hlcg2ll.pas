@@ -203,7 +203,7 @@ unit hlcg2ll;
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; reg: TRegister); override;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); override;
           procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);override;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
@@ -774,9 +774,9 @@ implementation
       cg.a_loadmm_reg_intreg(list,fromcgsize,def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
 
-  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
+  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: thlcgint; reg: TRegister);
     begin
-      cg.a_op_const_reg(list,op,def_cgsize(size),a,reg);
+      cg.a_op_const_reg(list,op,def_cgsize(size),hlcgint_lo(a),reg);
     end;
 
   procedure thlcg2ll.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);

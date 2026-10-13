@@ -75,6 +75,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       globtype,constexp,
       verbose,globals,compinnr,
       symconst,symdef,defutil,

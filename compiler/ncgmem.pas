@@ -82,6 +82,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       systems,
       cutils,cclasses,verbose,globals,constexp,fmodule,
       symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
