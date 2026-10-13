@@ -1720,17 +1720,41 @@ function arctanh(x : float) : float;inline;
   end;
 
 function arcosh(x : float) : float;
+  const
+    Ln2 = 0.693147180559945309417232121458176568;
+  var
+    t: float;
   begin
-    { Provides accuracy about 4*eps near 1.0 }
-    arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
+    if IsNan(x) then
+      arcosh:=x
+    { arcosh(x)=ln(2x) above 1/sqrt(eps) }
+    else if x>1/sqrt(MachEpsFloat) then
+      arcosh:=Ln(x)+Ln2
+    else if x<2.0 then
+      begin
+        { arcosh(1+t)=lnxp1(t+sqrt(t*(t+2))) }
+        t:=x-1.0;
+        arcosh:=lnxp1(t+Sqrt(t*(t+2.0)));
+      end
+    else
+      arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
   end;
 
 function arsinh(x : float) : float;
+  const
+    Ln2 = 0.693147180559945309417232121458176568;
   var
     z: float;
   begin
+    if IsNan(x) then
+      exit(x);
     z:=abs(x);
-    z:=Ln(z+Sqrt(1+z*z));
+    if z>1/sqrt(MachEpsFloat) then
+      z:=Ln(z)+Ln2
+    else if z>0.5 then
+      z:=Ln(2*z+1/(z+Sqrt(1+z*z)))
+    else
+      z:=lnxp1(z+z*z/(1+Sqrt(1+z*z)));
     { copysign ensures that arsinh(-Inf)=-Inf and arsinh(-0.0)=-0.0 }
     arsinh:=copysign(z,x);
   end;
