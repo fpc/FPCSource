@@ -1973,6 +1973,9 @@ implementation
                 { TP allows also @TMenu.Load if Load is only }
                 { defined in an ancestor class               }
                 srsym:=search_struct_member(tabstractrecorddef(hdef),current_scanner.pattern);
+                { search_struct_member does not register the use of the symbol }
+                if assigned(srsym) then
+                  addsymref(srsym);
                 if isspecialize and assigned(srsym) then
                   begin
                     consume(_ID);
@@ -2033,6 +2036,8 @@ implementation
                   srsym:=search_struct_member(tobjectdef(hdef),current_scanner.pattern);
                   if assigned(srsym) then
                    begin
+                     { search_struct_member does not register the use of the symbol }
+                     addsymref(srsym);
                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                      consume(_ID);
                      { in case of @Object.Method1.Method2, we have to call
