@@ -88,6 +88,16 @@ begin
     if TReal48Bytes(lReal)[0]=0 then
       TReal48Bytes(lReal)[0]:=1;
     lGot:=Double2Real(Real2Double(lReal));
+{$ifdef verbose}
+    write('lReal=');
+    for j:=0 to 5 do
+      write(hexstr(TReal48Bytes(lReal)[j],2));
+    writeln;
+    write(' lGot=');
+    for j:=0 to 5 do
+      write(hexstr(TReal48Bytes(lGot)[j],2));
+    writeln;
+{$endif}
     Check(1,SameReal48(lGot,lReal),'real48 to double and back is exact');
     end;
 
