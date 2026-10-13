@@ -89,6 +89,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       systems,
       globtype,globals,
       verbose,compinnr,fmodule,

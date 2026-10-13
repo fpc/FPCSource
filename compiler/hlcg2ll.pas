@@ -205,7 +205,7 @@ unit hlcg2ll;
           { destination (JM)                                                    }
           procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; reg: TRegister); override;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; const ref: TReference); override;
-          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);override;
+          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: thlcgint; const loc: tlocation);override;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: tdef; reg: TRegister; const ref: TReference); override;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); override;
@@ -784,7 +784,7 @@ implementation
       cg.a_op_const_ref(list,op,def_cgsize(size),hlcgint_lo(a),ref);
     end;
 
-  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);
+  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: thlcgint; const loc: tlocation);
     begin
 {$ifdef extdebug}
       if def_cgsize(size)<>loc.size then
@@ -795,7 +795,7 @@ implementation
         LOC_SUBSETREF,LOC_CSUBSETREF:
           inherited
         else
-          cg.a_op_const_loc(list,op,a,loc);
+          cg.a_op_const_loc(list,op,hlcgint_lo(a),loc);
       end;
     end;
 
