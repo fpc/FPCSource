@@ -73,6 +73,7 @@ interface
   implementation
 
     uses
+      uinteger128,
       globtype,systems,
       verbose,globals,
       symconst,symdef,

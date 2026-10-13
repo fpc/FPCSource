@@ -108,7 +108,7 @@ unit hlcg2ll;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
+          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : thlcgint;const cgpara : TCGPara);override;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -156,7 +156,7 @@ unit hlcg2ll;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : thlcgint;register : tregister);override;
-          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
+          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : thlcgint;const ref : treference);override;
           procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);override;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
@@ -333,6 +333,7 @@ unit hlcg2ll;
 implementation
 
     uses
+       uinteger128,
        globals,systems,
        verbose,defutil,symsym,
        procinfo,paramgr,
@@ -423,9 +424,9 @@ implementation
       cg.a_load_reg_cgpara(list,def_cgsize(size),r,cgpara);
     end;
 
-  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
+  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: thlcgint; const cgpara: TCGPara);
     begin
-      cg.a_load_const_cgpara(list,def_cgsize(tosize),a,cgpara);
+      cg.a_load_const_cgpara(list,def_cgsize(tosize),hlcgint_lo(a),cgpara);
     end;
 
   procedure thlcg2ll.a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara);
@@ -463,12 +464,12 @@ implementation
 
   procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: thlcgint; register: tregister);
     begin
-      cg.a_load_const_reg(list,def_cgsize(tosize),a,register);
+      cg.a_load_const_reg(list,def_cgsize(tosize),hlcgint_lo(a),register);
     end;
 
-  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
+  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: thlcgint; const ref: treference);
     begin
-       cg.a_load_const_ref(list,def_cgsize(tosize),a,ref);
+       cg.a_load_const_ref(list,def_cgsize(tosize),hlcgint_lo(a),ref);
     end;
 
   procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);

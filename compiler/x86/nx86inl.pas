@@ -1779,7 +1779,7 @@ implementation
                            ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
                          begin
                            tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value128,tmpreg);
                            emit_reg_ref(A_CMP,opsize,tmpreg,paraarray[2].location.reference);
                          end
                        else
@@ -1797,7 +1797,7 @@ implementation
                            ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
                          begin
                            tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value128,tmpreg);
                            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
                              tmpreg,paraarray[2].location.register));
                          end

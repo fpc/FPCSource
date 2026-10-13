@@ -172,7 +172,7 @@ unit hlcgobj;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);virtual;
+          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : thlcgint;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -249,7 +249,7 @@ unit hlcgobj;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : thlcgint;register : tregister);virtual;abstract;
-          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);virtual;
+          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : thlcgint;const ref : treference);virtual;
           procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);virtual;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;abstract;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;
@@ -740,6 +740,7 @@ unit hlcgobj;
 implementation
 
     uses
+       uinteger128,
        globals,systems,
        fmodule,
        verbose,defutil,paramgr,
@@ -1073,7 +1074,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
+  procedure thlcgobj.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: thlcgint; const cgpara: TCGPara);
     var
        ref : treference;
     begin
@@ -1257,7 +1258,7 @@ implementation
         LOC_CREGISTER :
           a_load_reg_cgpara(list,size,l.register,cgpara);
         LOC_CONSTANT :
-          a_load_const_cgpara(list,size,l.value,cgpara);
+          a_load_const_cgpara(list,size,l.value128,cgpara);
         LOC_CREFERENCE,
         LOC_REFERENCE :
           a_load_ref_cgpara(list,size,l.reference,cgpara);
@@ -1300,7 +1301,7 @@ implementation
       result:=a_call_name(list,pd,s,paras,nil,false);
     end;
 
-  procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
+  procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: thlcgint; const ref: treference);
     var
       tmpreg: tregister;
     begin

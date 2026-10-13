@@ -90,6 +90,7 @@ unit cgexcept;
   implementation
 
     uses
+      uinteger128,
       globals,
       systems,
       fmodule,

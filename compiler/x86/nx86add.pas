@@ -677,7 +677,7 @@ unit nx86add;
                       left.location.register,location.register)
                 else
                   hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
-                      left.location.value,location.register);
+                      left.location.value128,location.register);
                 emit_reg_reg(A_BTS,TCGSize2Opsize[def_cgsize(resultdef)],right.location.register,location.register);
               end;
           end;
@@ -2227,7 +2227,7 @@ unit nx86add;
                 begin
                   tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
-                    left.location.value,tmpreg);
+                    left.location.value128,tmpreg);
 
                   if checkoverflow then
                     cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);

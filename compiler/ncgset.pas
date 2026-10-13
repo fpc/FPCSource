@@ -92,6 +92,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       verbose,
       cutils,
       symconst,symdef,symsym,defutil,

@@ -24,6 +24,9 @@ unit globtype;
 
 interface
 
+    uses
+      uinteger128;
+
     const
        maxidlen = 127;
 
@@ -119,7 +122,7 @@ interface
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;
        { type used for handling constants etc. in the high level code generator }
-       THLCGInt = Int64;
+       THLCGInt = Int128;
 
        { This must be an ordinal type with the same size as a pointer
          Note: Must be unsigned! Otherwise, ugly code like
@@ -1001,6 +1004,19 @@ interface
       options: array[trtti_option] of trtti_visibilities;
     end;
 
+  function hlcgint_lo(const a: thlcgint): tcgint;
+  function hlcgint_hi(const a: thlcgint): tcgint;
+
 implementation
+
+  function hlcgint_lo(const a: thlcgint): tcgint;
+    begin
+      result:=tcgint(Lo(UInt128(a)));
+    end;
+
+  function hlcgint_hi(const a: thlcgint): tcgint;
+    begin
+      result:=tcgint(Hi(UInt128(a)));
+    end;
 
 end.

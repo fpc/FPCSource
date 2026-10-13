@@ -67,6 +67,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       cutils,
       systems,
       verbose,globals,constexp,fmodule,

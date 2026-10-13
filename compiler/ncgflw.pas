@@ -112,6 +112,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       cutils,
       verbose,globals,systems,
       symconst,symsym,symtable,aasmtai,aasmcpu,defutil,

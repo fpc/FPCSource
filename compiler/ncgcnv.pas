@@ -70,6 +70,7 @@ interface
   implementation
 
     uses
+      uinteger128,
       cutils,verbose,globtype,globals,
       aasmbase,aasmdata,symconst,symdef,symtable,
       nutils,ncon,
