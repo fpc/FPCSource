@@ -250,7 +250,7 @@ unit hlcgobj;
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : thlcgint;register : tregister);virtual;abstract;
           procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : thlcgint;const ref : treference);virtual;
-          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);virtual;
+          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : thlcgint;const loc : tlocation);virtual;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;abstract;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;
           procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);virtual;abstract;
@@ -1310,7 +1310,7 @@ implementation
       a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
     end;
 
-  procedure thlcgobj.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);
+  procedure thlcgobj.a_load_const_loc(list: TAsmList; tosize: tdef; a: thlcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REFERENCE,LOC_CREFERENCE:

@@ -157,7 +157,7 @@ unit hlcg2ll;
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : thlcgint;register : tregister);override;
           procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : thlcgint;const ref : treference);override;
-          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);override;
+          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : thlcgint;const loc : tlocation);override;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
@@ -472,14 +472,14 @@ implementation
        cg.a_load_const_ref(list,def_cgsize(tosize),hlcgint_lo(a),ref);
     end;
 
-  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);
+  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: thlcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           inherited
         else
-          cg.a_load_const_loc(list,a,loc);
+          cg.a_load_const_loc(list,hlcgint_lo(a),loc);
       end;
     end;
 
