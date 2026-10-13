@@ -1,121 +1,94 @@
 {
-  Tiny PS1 heap manager.
+  Tiny PS1 heap manager - PCSX-Redux PSYQo Heap Viewer compatible.
 
-  Layout of every allocation:
+  Layout of EVERY block (allocated or free):
 
-      +------------------+
-      | SizeFlags        |  4 bytes
-      | Next             |  4 bytes
-      +------------------+
-      | user data        |
-      | ...              |
-      +------------------+
+      offset 0: Next    (4 bytes; used only while free)
+      offset 4: Size    (4 bytes; total size INCLUDING this header)
+      offset 8: user payload
 
-  All blocks are 8-byte aligned.
+  Size must be 8-byte aligned and contain NO allocation/free flags.
+  Free blocks are linked in ascending-address order.  Their list ends at
+  @(_heapMetadata.MarkerNext), never at nil.
 
-  SizeFlags bit 0:
-      0 = used
-      1 = free
+  The growing heap is [_heapStart, _heapEnd).  Above _heapEnd remains
+  untouched space available up to _heapLimit.  The PCSX viewer shows the
+  committed portion, not the entire maximum heap capacity.
 
-  The remaining bits contain the payload size.
-
-  This allocator directly implements the FPC Sys* memory-manager
-  functions.  The generic heap.inc HeapInc backend is therefore
-  disabled.
+  This file implements the FPC Sys* memory-manager functions, so normal
+  GetMem/FreeMem/ReAllocMem and most RTL dynamic allocations are visible.
+  This implementation is not interrupt-safe or thread-safe.
 }
 
 {$define HAS_MEMORYMANAGER}
 
-
 const
   PS1_HEAP_ALIGN = SizeUInt(8);
-  PS1_BLOCK_FREE = SizeUInt(1);
+  PS1_HEAP_HEADER = SizeUInt(8);
 
 
 type
   PHeapBlock = ^THeapBlock;
-
-  THeapBlock = record
-    SizeFlags : SizeUInt;
-    Next      : PHeapBlock;
+  THeapBlock = packed record
+    Next : PHeapBlock;      { +0: next FREE block (otherwise unused) }
+    Size : SizeUInt;        { +4: TOTAL bytes, 8-aligned, no flags }
   end;
 
+  THeapMetadata = packed record
+    Head           : PHeapBlock; { +0: first free block or Marker }
+    Bottom         : Pointer;    { +4: heap beginning }
+    Top            : Pointer;    { +8: current committed heap end }
+    MaximumHeapEnd : Pointer;    { +12: highest historical heap end }
+    MarkerNext     : PHeapBlock; { +16: embedded end-of-list sentinel }
+  end;
 
 var
   _heapStart   : PtrUInt = 0;
   _heapEnd     : PtrUInt = 0;
   _heapLimit   : PtrUInt = 0;
 
-  _heapHead    : PHeapBlock = nil;
-  _heapTail    : PHeapBlock = nil;
+  _heapMetadata: THeapMetadata;
 
+  { Payload byte counters; allocation headers are excluded. }
   _heapUsed    : SizeUInt = 0;
   _heapMaxUsed : SizeUInt = 0;
 
-
 { --------------------------------------------------------------------------
-  Small helpers
+  Internal helpers
   -------------------------------------------------------------------------- }
+
+function _HeapMarker: PHeapBlock; inline;
+begin
+  Result := PHeapBlock(@_heapMetadata.MarkerNext);
+end;
 
 function _AlignHeapSize(Value: SizeUInt): SizeUInt; inline;
 begin
-  Result :=
-    (Value + PS1_HEAP_ALIGN - 1) and
-    not SizeUInt(PS1_HEAP_ALIGN - 1);
+  Result := (Value + PS1_HEAP_ALIGN - 1) and
+            not SizeUInt(PS1_HEAP_ALIGN - 1);
 end;
-
 
 function _BlockSize(Block: PHeapBlock): SizeUInt; inline;
 begin
-  Result :=
-    Block^.SizeFlags and
-    not SizeUInt(PS1_HEAP_ALIGN - 1);
+  Result := Block^.Size - PS1_HEAP_HEADER;
 end;
-
-
-function _BlockIsFree(Block: PHeapBlock): Boolean; inline;
-begin
-  Result := (Block^.SizeFlags and PS1_BLOCK_FREE) <> 0;
-end;
-
-
-procedure _SetBlock(Block: PHeapBlock;
-                    Size: SizeUInt;
-                    IsFree: Boolean); inline;
-begin
-  Block^.SizeFlags := Size;
-
-  if IsFree then
-    Block^.SizeFlags := Block^.SizeFlags or PS1_BLOCK_FREE;
-end;
-
 
 function _BlockData(Block: PHeapBlock): Pointer; inline;
 begin
-  Result :=
-    Pointer(
-      PtrUInt(Block) + SizeUInt(SizeOf(THeapBlock))
-    );
+  Result := Pointer(PtrUInt(Block) + PS1_HEAP_HEADER);
 end;
-
 
 function _DataBlock(P: Pointer): PHeapBlock; inline;
 begin
-  Result :=
-    PHeapBlock(
-      PtrUInt(P) - SizeUInt(SizeOf(THeapBlock))
-    );
+  Result := PHeapBlock(PtrUInt(P) - PS1_HEAP_HEADER);
 end;
-
 
 procedure _HeapAddUsed(Size: SizeUInt); inline;
 begin
   _heapUsed := _heapUsed + Size;
-
   if _heapUsed > _heapMaxUsed then
     _heapMaxUsed := _heapUsed;
 end;
-
 
 procedure _HeapSubUsed(Size: SizeUInt); inline;
 begin
@@ -125,308 +98,240 @@ begin
     _heapUsed := 0;
 end;
 
-
-{ --------------------------------------------------------------------------
-  Split a block.
-
-       old block
-
-       [ header |                 payload                  ]
-
-  becomes
-
-       [ header | wanted ][ header | remaining free       ]
-  -------------------------------------------------------------------------- }
-
-function _SplitBlock(Block: PHeapBlock;
-                     Wanted: SizeUInt): PHeapBlock;
+{ Validate that Addr is an actual block boundary by scanning the heap.
+  A corrupted block size makes the function return False. }
+function _IsBlockStart(Addr: PtrUInt): Boolean;
 var
-  OldSize : SizeUInt;
-  Remain  : SizeUInt;
-  NewBlock: PHeapBlock;
-  WasFree : Boolean;
+  Cur, N: PtrUInt;
+  Total: SizeUInt;
 begin
-  Result := nil;
+  Result := False;
+  if (Addr < _heapStart) or (Addr >= _heapEnd) then Exit;
 
-  OldSize := _BlockSize(Block);
+  Cur := _heapStart;
+  while Cur < _heapEnd do
+  begin
+    if Cur = Addr then
+    begin
+      Result := True;
+      Exit;
+    end;
 
-  if OldSize <
-     Wanted +
-     SizeUInt(SizeOf(THeapBlock)) +
-     PS1_HEAP_ALIGN then
-    Exit;
+    Total := PHeapBlock(Cur)^.Size;
+    if (Total < PS1_HEAP_HEADER + PS1_HEAP_ALIGN) or
+       ((Total and (PS1_HEAP_ALIGN - 1)) <> 0) or
+       (Total > _heapEnd - Cur) then Exit;
 
-  WasFree := _BlockIsFree(Block);
-
-  NewBlock :=
-    PHeapBlock(
-      PtrUInt(Block) +
-      SizeUInt(SizeOf(THeapBlock)) +
-      Wanted
-    );
-
-  Remain :=
-    OldSize -
-    Wanted -
-    SizeUInt(SizeOf(THeapBlock));
-
-  NewBlock^.Next := Block^.Next;
-  _SetBlock(NewBlock, Remain, True);
-
-  Block^.Next := NewBlock;
-  _SetBlock(Block, Wanted, WasFree);
-
-  if _heapTail = Block then
-    _heapTail := NewBlock;
-
-  Result := NewBlock;
+    N := Cur + Total;
+    if N <= Cur then Exit;
+    Cur := N;
+  end;
 end;
 
-
-{ --------------------------------------------------------------------------
-  Merge Block with the free block immediately following it.
-  -------------------------------------------------------------------------- }
-
-procedure _MergeNext(Block: PHeapBlock);
-var
-  NextBlock: PHeapBlock;
-  NewSize  : SizeUInt;
-  WasFree  : Boolean;
-begin
-  if Block = nil then
-    Exit;
-
-  NextBlock := Block^.Next;
-
-  if NextBlock = nil then
-    Exit;
-
-  if not _BlockIsFree(NextBlock) then
-    Exit;
-
-  WasFree := _BlockIsFree(Block);
-
-  NewSize :=
-    _BlockSize(Block) +
-    SizeUInt(SizeOf(THeapBlock)) +
-    _BlockSize(NextBlock);
-
-  Block^.Next := NextBlock^.Next;
-
-  _SetBlock(Block, NewSize, WasFree);
-
-  if _heapTail = NextBlock then
-    _heapTail := Block;
-end;
-
-
-function _FindPrevious(Block: PHeapBlock): PHeapBlock;
+{ Find a free block by exact address; optional result Prev is nil when
+  the matching block is first in the free list. }
+function _FindFree(Block: PHeapBlock; var Prev: PHeapBlock): Boolean;
 var
   Cur: PHeapBlock;
 begin
-  Result := nil;
-
-  Cur := _heapHead;
-
-  while Cur <> nil do
+  Prev := nil;
+  Cur := _heapMetadata.Head;
+  while Cur <> _HeapMarker do
   begin
-    if Cur^.Next = Block then
-    begin
-      Result := Cur;
-      Exit;
-    end;
-
+    if Cur = nil then Break;
+    if PtrUInt(Cur) >= PtrUInt(Block) then Break;
+    Prev := Cur;
     Cur := Cur^.Next;
+  end;
+  Result := Cur = Block;
+end;
+
+{ Unlink a known free block, with its preceding free block (or nil). }
+procedure _UnlinkFree(Block, Prev: PHeapBlock); inline;
+begin
+  if Prev = nil then
+    _heapMetadata.Head := Block^.Next
+  else
+    Prev^.Next := Block^.Next;
+end;
+
+{ Insert an existing free block into the sorted free list.  Merge adjacent
+  blocks and discard the final free block by moving heap Top downward. }
+procedure _InsertFree(Block: PHeapBlock);
+var
+  Prev, PrevPrev, Cur: PHeapBlock;
+begin
+  Prev := nil;
+  PrevPrev := nil;
+  Cur := _heapMetadata.Head;
+
+  while (Cur <> nil) and (Cur <> _HeapMarker) and
+        (PtrUInt(Cur) < PtrUInt(Block)) do
+  begin
+    PrevPrev := Prev;
+    Prev := Cur;
+    Cur := Cur^.Next;
+  end;
+
+  { Normally impossible for a valid non-free block. }
+  if Cur = nil then Exit;
+  if Cur = Block then Exit;
+  if (Prev <> nil) and
+     (PtrUInt(Prev) + Prev^.Size > PtrUInt(Block)) then Exit;
+  if (Cur <> _HeapMarker) and
+     (PtrUInt(Block) + Block^.Size > PtrUInt(Cur)) then Exit;
+
+  Block^.Next := Cur;
+  if Prev = nil then
+    _heapMetadata.Head := Block
+  else
+    Prev^.Next := Block;
+
+  { Coalesce forwards. }
+  if (Cur <> _HeapMarker) and
+     (PtrUInt(Block) + Block^.Size = PtrUInt(Cur)) then
+  begin
+    Block^.Size := Block^.Size + Cur^.Size;
+    Block^.Next := Cur^.Next;
+  end;
+
+  { Coalesce backwards. }
+  if (Prev <> nil) and
+     (PtrUInt(Prev) + Prev^.Size = PtrUInt(Block)) then
+  begin
+    Prev^.Size := Prev^.Size + Block^.Size;
+    Prev^.Next := Block^.Next;
+    Block := Prev;
+    { Remember the predecessor of the newly merged block. }
+    Prev := PrevPrev;
+  end;
+
+  { Release a free block at the top of the committed heap.  The free
+    list must not contain blocks beyond Top. }
+  if PtrUInt(Block) + Block^.Size = _heapEnd then
+  begin
+    _UnlinkFree(Block, Prev);
+    _heapEnd := PtrUInt(Block);
+    _heapMetadata.Top := Pointer(_heapEnd);
   end;
 end;
 
-
 { --------------------------------------------------------------------------
-  Heap initialization
-
-  Use BSS end as bottom and StackBottom as upper limit.
+  Initialize the heap after BSS.  Called by the PS1 RTL startup code.
   -------------------------------------------------------------------------- }
-
 procedure _InitHeap(TheBSSend, TheHeapLimit: PtrUInt);
 begin
-  _heapStart :=
-    (TheBSSend + PS1_HEAP_ALIGN - 1) and
-    not PtrUInt(PS1_HEAP_ALIGN - 1);
-
+  _heapStart := (TheBSSend + PS1_HEAP_ALIGN - 1) and
+                not PtrUInt(PS1_HEAP_ALIGN - 1);
+  _heapLimit := TheHeapLimit and not PtrUInt(PS1_HEAP_ALIGN - 1);
+  if _heapLimit < _heapStart then _heapLimit := _heapStart;
   _heapEnd := _heapStart;
-
-  _heapLimit :=
-    TheHeapLimit and
-    not PtrUInt(PS1_HEAP_ALIGN - 1);
-
-  _heapHead := nil;
-  _heapTail := nil;
 
   _heapUsed := 0;
   _heapMaxUsed := 0;
+
+  _heapMetadata.Bottom := Pointer(_heapStart);
+  _heapMetadata.Top := Pointer(_heapEnd);
+  _heapMetadata.MaximumHeapEnd := Pointer(_heapEnd);
+  _heapMetadata.MarkerNext := nil;
+  _heapMetadata.Head := _HeapMarker;
+
+  if pcsxPresent then 
+    PLongWord(PtrUInt($1F8020A0))^ := LongWord(PtrUInt(@_heapMetadata));
+  
 end;
 
-
 { --------------------------------------------------------------------------
-  Allocate
+  Allocate: first-fit reuse of free blocks, or extend the committed heap.
   -------------------------------------------------------------------------- }
-
 function _Malloc(Size: SizeUInt): Pointer;
 var
-  Block    : PHeapBlock;
-  NewBlock : PHeapBlock;
-  NewSize  : SizeUInt;
-  Total    : SizeUInt;
+  Prev, Block, Remain: PHeapBlock;
+  Needed, Left, Payload: SizeUInt;
 begin
   Result := nil;
+  if Size = 0 then Exit;
+  if (_heapStart = 0) or (_heapEnd > _heapLimit) then Exit;
+  if Size > High(SizeUInt) - (PS1_HEAP_HEADER + PS1_HEAP_ALIGN - 1) then Exit;
 
-  if Size = 0 then
-    Exit;
+  Payload := _AlignHeapSize(Size);
+  Needed := Payload + PS1_HEAP_HEADER;
 
-  NewSize := _AlignHeapSize(Size);
-
-
-  { First-fit search through previously freed blocks. }
-
-  Block := _heapHead;
-
-  while Block <> nil do
+  Prev := nil;
+  Block := _heapMetadata.Head;
+  while Block <> _HeapMarker do
   begin
-    if _BlockIsFree(Block) and
-       (_BlockSize(Block) >= NewSize) then
+    if Block = nil then Exit; { corrupted free list }
+    if Block^.Size >= Needed then
     begin
+      Left := Block^.Size - Needed;
+      if Left >= PS1_HEAP_HEADER + PS1_HEAP_ALIGN then
+      begin
+        Remain := PHeapBlock(PtrUInt(Block) + Needed);
+        Remain^.Next := Block^.Next;
+        Remain^.Size := Left;
+        if Prev = nil then
+          _heapMetadata.Head := Remain
+        else
+          Prev^.Next := Remain;
+        Block^.Size := Needed;
+      end
+      else
+        _UnlinkFree(Block, Prev);
 
-      _SplitBlock(Block, NewSize);
-
-      _SetBlock(
-        Block,
-        _BlockSize(Block),
-        False
-      );
-
+      Block^.Next := nil;
       _HeapAddUsed(_BlockSize(Block));
-
       Result := _BlockData(Block);
       Exit;
     end;
-
+    Prev := Block;
     Block := Block^.Next;
   end;
 
+  if Needed > _heapLimit - _heapEnd then Exit;
+  Block := PHeapBlock(_heapEnd);
+  Block^.Next := nil;
+  Block^.Size := Needed;
+  _heapEnd := _heapEnd + Needed;
+  _heapMetadata.Top := Pointer(_heapEnd);
+  if _heapEnd > PtrUInt(_heapMetadata.MaximumHeapEnd) then
+    _heapMetadata.MaximumHeapEnd := Pointer(_heapEnd);
 
-  { Nothing reusable. Append a new block. }
-
-  Total :=
-    SizeUInt(SizeOf(THeapBlock)) +
-    NewSize;
-
-  if _heapEnd >= _heapLimit then
-    Exit;
-
-  if Total > (_heapLimit - _heapEnd) then
-    Exit;
-
-
-  NewBlock := PHeapBlock(_heapEnd);
-
-  NewBlock^.Next := nil;
-  _SetBlock(NewBlock, NewSize, False);
-
-
-  if _heapTail <> nil then
-    _heapTail^.Next := NewBlock
-  else
-    _heapHead := NewBlock;
-
-  _heapTail := NewBlock;
-
-
-  _heapEnd :=
-    _heapEnd +
-    Total;
-
-
-  _HeapAddUsed(NewSize);
-
-  Result := _BlockData(NewBlock);
+  _HeapAddUsed(Payload);
+  Result := _BlockData(Block);
 end;
 
-
 { --------------------------------------------------------------------------
-  Free
+  Free: insert in the free list, merge adjacent blocks, trim free tail.
   -------------------------------------------------------------------------- }
-
 procedure _Free(P: Pointer);
 var
-  Block: PHeapBlock;
-  Prev : PHeapBlock;
-  Size : SizeUInt;
+  Block, Prev: PHeapBlock;
+  Addr: PtrUInt;
+  Size: SizeUInt;
 begin
-  if P = nil then
-    Exit;
-
-  Block := _DataBlock(P);
-
-  if _BlockIsFree(Block) then
-    Exit;
-
+  if P = nil then Exit;
+  if (PtrUInt(P) and (PS1_HEAP_ALIGN - 1)) <> 0 then Exit;
+  if PtrUInt(P) < _heapStart + PS1_HEAP_HEADER then Exit;
+  Addr := PtrUInt(P) - PS1_HEAP_HEADER;
+  if not _IsBlockStart(Addr) then Exit;
+  Block := PHeapBlock(Addr);
+  if _FindFree(Block, Prev) then Exit; { double free }
 
   Size := _BlockSize(Block);
-
   _HeapSubUsed(Size);
-
-  _SetBlock(Block, Size, True);
-
-
-  { Merge forward. }
-
-  _MergeNext(Block);
-
-
-  { Merge backward. }
-
-  Prev := _FindPrevious(Block);
-
-  if (Prev <> nil) and _BlockIsFree(Prev) then
-  begin
-    _MergeNext(Prev);
-    Block := Prev;
-  end;
-
-
-  { If the final block is free we can move the heap end backwards. }
-
-  if Block^.Next = nil then
-  begin
-    _heapEnd := PtrUInt(Block);
-
-    Prev := _FindPrevious(Block);
-
-    if Prev <> nil then
-    begin
-      Prev^.Next := nil;
-      _heapTail := Prev;
-    end
-    else
-    begin
-      _heapHead := nil;
-      _heapTail := nil;
-    end;
-  end;
+  _InsertFree(Block);
 end;
 
-
 { --------------------------------------------------------------------------
-  Reallocate
+  Copy bytes (avoids libc dependencies).
   -------------------------------------------------------------------------- }
-
 procedure _CopyMem(Src, Dst: Pointer; Count: SizeUInt); inline;
 var
   S, D: PByte;
 begin
   S := PByte(Src);
   D := PByte(Dst);
-
   while Count <> 0 do
   begin
     D^ := S^;
@@ -436,181 +341,135 @@ begin
   end;
 end;
 
-
+{ --------------------------------------------------------------------------
+  Reallocate, preferring in-place shrink/grow.
+  -------------------------------------------------------------------------- }
 function _Realloc(P: Pointer; Size: SizeUInt): Pointer;
 var
-  Block    : PHeapBlock;
-  FreePart : PHeapBlock;
-
-  OldSize  : SizeUInt;
-  NewSize  : SizeUInt;
-  Capacity : SizeUInt;
-  Extra    : SizeUInt;
-  CopySize : SizeUInt;
-
-  NewPtr   : Pointer;
+  Block, Neighbor, FreePart, Prev: PHeapBlock;
+  OldPayload, NewPayload, OldTotal, Needed, Capacity, Extra: SizeUInt;
+  NewPtr: Pointer;
 begin
   Result := nil;
-
-
   if P = nil then
   begin
     Result := _Malloc(Size);
     Exit;
   end;
-
-
   if Size = 0 then
   begin
     _Free(P);
     Exit;
   end;
-
+  if Size > High(SizeUInt) - (PS1_HEAP_HEADER + PS1_HEAP_ALIGN - 1) then Exit;
+  if PtrUInt(P) < _heapStart + PS1_HEAP_HEADER then Exit;
+  if not _IsBlockStart(PtrUInt(P) - PS1_HEAP_HEADER) then Exit;
 
   Block := _DataBlock(P);
+  if _FindFree(Block, Prev) then Exit;
+  OldTotal := Block^.Size;
+  OldPayload := OldTotal - PS1_HEAP_HEADER;
+  NewPayload := _AlignHeapSize(Size);
+  Needed := NewPayload + PS1_HEAP_HEADER;
 
-  OldSize := _BlockSize(Block);
-  NewSize := _AlignHeapSize(Size);
-
-
-  { --------------------------------------------------------
-    Same size.
-    -------------------------------------------------------- }
-
-  if NewSize = OldSize then
+  if Needed = OldTotal then
   begin
     Result := P;
     Exit;
   end;
 
-
-  { --------------------------------------------------------
-    Shrink in place.
-    -------------------------------------------------------- }
-
-  if NewSize < OldSize then
+  if Needed < OldTotal then
   begin
-    FreePart := _SplitBlock(Block, NewSize);
-
-    if FreePart <> nil then
+    { A 0..8 byte remainder is left inside the allocation. }
+    if OldTotal - Needed >= PS1_HEAP_HEADER + PS1_HEAP_ALIGN then
     begin
-      _HeapSubUsed(
-        OldSize - _BlockSize(Block)
-      );
-
-      { New free tail may touch an already free block. }
-
-      _MergeNext(FreePart);
+      FreePart := PHeapBlock(PtrUInt(Block) + Needed);
+      FreePart^.Size := OldTotal - Needed;
+      FreePart^.Next := nil;
+      Block^.Size := Needed;
+      _HeapSubUsed(OldPayload - NewPayload);
+      _InsertFree(FreePart);
     end;
-
     Result := P;
     Exit;
   end;
 
-
-  { --------------------------------------------------------
-    Try growing into the following free block.
-    -------------------------------------------------------- }
-
-  if (Block^.Next <> nil) and
-     _BlockIsFree(Block^.Next) then
+  { Expand into an immediately following free block if possible. }
+  if PtrUInt(Block) + OldTotal < _heapEnd then
   begin
-    Capacity :=
-      OldSize +
-      SizeUInt(SizeOf(THeapBlock)) +
-      _BlockSize(Block^.Next);
-
-    if Capacity >= NewSize then
+    Neighbor := PHeapBlock(PtrUInt(Block) + OldTotal);
+    if _FindFree(Neighbor, Prev) then
     begin
-      _MergeNext(Block);
-
-      _SplitBlock(Block, NewSize);
-
-      _HeapAddUsed(
-        _BlockSize(Block) - OldSize
-      );
-
-      Result := P;
-      Exit;
+      Capacity := OldTotal + Neighbor^.Size;
+      if Capacity >= Needed then
+      begin
+        _UnlinkFree(Neighbor, Prev);
+        Block^.Size := Capacity;
+        Block^.Next := nil;
+        if Capacity - Needed >= PS1_HEAP_HEADER + PS1_HEAP_ALIGN then
+        begin
+          FreePart := PHeapBlock(PtrUInt(Block) + Needed);
+          FreePart^.Size := Capacity - Needed;
+          FreePart^.Next := nil;
+          Block^.Size := Needed;
+          _InsertFree(FreePart);
+        end;
+        _HeapAddUsed(_BlockSize(Block) - OldPayload);
+        Result := P;
+        Exit;
+      end;
     end;
   end;
 
-
-  { --------------------------------------------------------
-    Last block can grow directly upward.
-    -------------------------------------------------------- }
-
-  if Block = _heapTail then
+  { Expand an allocation at the very top without copying. }
+  if PtrUInt(Block) + OldTotal = _heapEnd then
   begin
-    Extra := NewSize - OldSize;
-
-    if (_heapEnd <= _heapLimit) and
-       (Extra <= (_heapLimit - _heapEnd)) then
+    Extra := Needed - OldTotal;
+    if Extra <= _heapLimit - _heapEnd then
     begin
+      Block^.Size := Needed;
       _heapEnd := _heapEnd + Extra;
-
-      _SetBlock(Block, NewSize, False);
-
+      _heapMetadata.Top := Pointer(_heapEnd);
+      if _heapEnd > PtrUInt(_heapMetadata.MaximumHeapEnd) then
+        _heapMetadata.MaximumHeapEnd := Pointer(_heapEnd);
       _HeapAddUsed(Extra);
-
       Result := P;
       Exit;
     end;
   end;
 
-
-  { --------------------------------------------------------
-    Generic fallback: allocate, copy, free.
-    -------------------------------------------------------- }
-
-  NewPtr := _Malloc(NewSize);
-
-  if NewPtr = nil then
-    Exit;
-
-
-  CopySize := OldSize;
-
-  if CopySize > NewSize then
-    CopySize := NewSize;
-
-
-  if CopySize <> 0 then
-    _CopyMem(P, NewPtr, CopySize);
-
-
+  { Fallback: allocate elsewhere, copy, then release the old block. }
+  NewPtr := _Malloc(Size);
+  if NewPtr = nil then Exit;
+  if OldPayload < Size then
+    _CopyMem(P, NewPtr, OldPayload)
+  else
+    _CopyMem(P, NewPtr, Size);
   _Free(P);
-
   Result := NewPtr;
 end;
 
-
 { --------------------------------------------------------------------------
-  Optional libc-style internal helpers
+  Optional libc-style internal helper.
   -------------------------------------------------------------------------- }
-
 function _Calloc(Num, Size: SizeUInt): Pointer;
 var
   Total: SizeUInt;
 begin
+  Result := nil;
+  if (Num <> 0) and (Size > High(SizeUInt) div Num) then Exit;
   Total := Num * Size;
-
   Result := _Malloc(Total);
-
-  if Result <> nil then
-    FillChar(Result^, Total, 0);
+  if Result <> nil then FillChar(Result^, Total, 0);
 end;
 
-
 { --------------------------------------------------------------------------
-  Functions expected by FPC's MemoryManager record
+  Functions expected by FPC's MemoryManager record.
   -------------------------------------------------------------------------- }
-
 function SysGetMem(Size: PtrUInt): Pointer;
 begin
   Result := _Malloc(Size);
 end;
-
 
 function SysFreeMem(P: Pointer): PtrUInt;
 var
@@ -621,76 +480,46 @@ begin
     Result := 0;
     Exit;
   end;
-
-  Size := _BlockSize(_DataBlock(P));
-
-  _Free(P);
-
-  Result := Size;
-end;
-
-
-function SysFreeMemSize(P: Pointer;
-                        Size: PtrUInt): PtrUInt;
-begin
-  { FPC cannot partially free an allocation. }
-
-  Result := SysFreeMem(P);
-end;
-
-
-function SysMemSize(P: Pointer): PtrUInt;
-begin
-  if P = nil then
+  if (PtrUInt(P) < _heapStart + PS1_HEAP_HEADER) or
+     (not _IsBlockStart(PtrUInt(P) - PS1_HEAP_HEADER)) then
   begin
     Result := 0;
     Exit;
   end;
-
-  Result := _BlockSize(_DataBlock(P));
+  Size := _BlockSize(_DataBlock(P));
+  _Free(P);
+  Result := Size;
 end;
 
+function SysFreeMemSize(P: Pointer; Size: PtrUInt): PtrUInt;
+begin
+  Result := SysFreeMem(P);
+end;
+
+function SysMemSize(P: Pointer): PtrUInt;
+begin
+  Result := 0;
+  if P = nil then Exit;
+  if PtrUInt(P) < _heapStart + PS1_HEAP_HEADER then Exit;
+  if not _IsBlockStart(PtrUInt(P) - PS1_HEAP_HEADER) then Exit;
+  Result := _BlockSize(_DataBlock(P));
+end;
 
 function SysAllocMem(Size: PtrUInt): Pointer;
 begin
   Result := _Malloc(Size);
-
-  if Result <> nil then
-    FillChar(
-      Result^,
-      SysMemSize(Result),
-      0
-    );
+  if Result <> nil then FillChar(Result^, SysMemSize(Result), 0);
 end;
 
-
-function SysReAllocMem(var P: Pointer;
-                       Size: PtrUInt): Pointer;
+function SysReAllocMem(var P: Pointer; Size: PtrUInt): Pointer;
 var
   NewPtr: Pointer;
 begin
   NewPtr := _Realloc(P, Size);
-
-  {
-    ReAlloc semantics:
-
-      success      -> replace P
-      Size = 0     -> P becomes nil
-      grow failure -> preserve original P
-  }
-
-  if (NewPtr <> nil) or (Size = 0) then
-    P := NewPtr;
-
+  { On failure, keep the old pointer.  Size=0 releases it. }
+  if (NewPtr <> nil) or (Size = 0) then P := NewPtr;
   Result := NewPtr;
 end;
-
-
-{ --------------------------------------------------------------------------
-  Tiny heap-status implementations.
-
-  These are mainly here because TMemoryManager contains pointers to them.
-  -------------------------------------------------------------------------- }
 
 function SysGetFPCHeapStatus: TFPCHeapStatus;
 begin
@@ -702,39 +531,25 @@ begin
   FillChar(Result, SizeOf(Result), 0);
 end;
 
-
-{ --------------------------------------------------------------------------
-  Kept for compatibility with PS1 RTL code that may still reference the
-  low-level OS allocator interface.
-  -------------------------------------------------------------------------- }
-
+{ Kept for compatibility with the PS1 RTL OS allocator interface. }
 function SysOSAlloc(Size: PtrUInt): Pointer;
 begin
   Result := _Malloc(Size);
 end;
 
-
-procedure SysOSFree(P: Pointer;
-                    Size: PtrUInt);
+procedure SysOSFree(P: Pointer; Size: PtrUInt);
 begin
   _Free(P);
 end;
 
-
-{ --------------------------------------------------------------------------
-  Generic heap.inc normally supplies these, but HAS_MEMORYMANAGER removes
-  that implementation, so provide tiny versions here.
-  -------------------------------------------------------------------------- }
-
+{ Generic heap.inc normally supplies these, disabled by HAS_MEMORYMANAGER. }
 procedure InitHeap; public name '_FPC_InitHeap';
 begin
 end;
 
-
 procedure RelocateHeap;
 begin
 end;
-
 
 procedure FinalizeHeap;
 begin

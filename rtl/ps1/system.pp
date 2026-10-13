@@ -60,23 +60,45 @@ var
 procedure Randomize;
 function Random(l: LongInt): LongInt;
 
+
+function pcsxPresent: Boolean;
+
+
 implementation
 
 var
   StkLen : SizeUInt; external name '__stklen';
-  bss_end: record end; external name '__bss_end__';
+  bss_end : record end; external name '__bss_end__';
 
-  
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+
 function pcsxPresent: Boolean;
+var
+  ctrl: LongWord;
 begin
-  Result := PDWord($1f802080)^ = $58534350;
+  // Read DEV8 memory configuration
+  ctrl := PLongWord($1F80101C)^;
+
+  // DEV8 must cover at least 256 bytes
+  if ((ctrl shr 16) and $1F) < 8 then
+  begin
+    ctrl := (ctrl and not LongWord($001F0000))
+            or $00080000;
+
+    PLongWord($1F80101C)^ := ctrl;
+  end;
+
+  // Check PCSX-Redux signature
+  Result := PLongWord($1F802080)^ = $58534350;
 end;
+
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
+
 
 procedure _putchar(ch: Char);
 begin
   if pcsxPresent then
-    PByte($1f802080)^ := Byte(ch);
+    PByte($1f802080)^:= Byte(ch);
 end;
 {$endif}
 
@@ -85,12 +107,12 @@ end;
 
 function RaiseList: PExceptObject;
 begin
-  Result := nil;
+  Result:= nil;
 end;
 
 function AcquireExceptionObject: Pointer;
 begin
-  Result := nil;
+  Result:= nil;
 end;
 
 procedure ReleaseExceptionObject;
@@ -131,51 +153,52 @@ end;
 
 procedure Randomize;
 begin
-  PS1RandSeed :=
-    PS1RandSeed xor
-    LongWord(PtrUInt(@PS1RandSeed)) xor
-    $A5A5A5A5;
 
-  if PS1RandSeed = 0 then
-    PS1RandSeed := $12345678;
+  PS1RandSeed:= PS1RandSeed xor LongWord(PtrUInt(@PS1RandSeed)) xor $A5A5A5A5;
+
+  if PS1RandSeed = 0 then PS1RandSeed:= $12345678;
+
 end;
 
 
 function Random(l: LongInt): LongInt;
 var
-  r: LongWord;
+  r : LongWord;
+
 begin
-  r := PS1RandSeed;
 
-  r := r xor (r shl 13);
-  r := r xor (r shr 17);
-  r := r xor (r shl 5);
+  r:= PS1RandSeed;
 
-  PS1RandSeed := r;
+  r:= r xor (r shl 13);
+  r:= r xor (r shr 17);
+  r:= r xor (r shl 5);
+
+  PS1RandSeed:= r;
 
   if l > 0 then
-    Result := LongInt(r mod LongWord(l))
+    Result:= LongInt(r mod LongWord(l))
   else
-    Result := 0;
+    Result:= 0;
+
 end;
 
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: LongWord;
 begin
-  Result := 0;
+  Result:= 0;
 end;
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 function ParamCount: LongInt;
 begin
-  Result := 0;
+  Result:= 0;
 end;
 
 function ParamStr(l: LongInt): ShortString;
 begin
-  Result := '';
+  Result:= '';
 end;
 {$endif}
 
@@ -194,32 +217,34 @@ function CheckInitialStkLen(stklen: SizeUInt): SizeUInt;
 const
   MinHeap = 1024;
 var
-  MaxStack: SizeInt;
+  MaxStack : SizeInt;
+
 begin
-  MaxStack := SizeInt(PtrUInt($801ffff0) - PtrUInt(@bss_end)) - MinHeap;
-  if MaxStack < 0 then
-    MaxStack := 0;
+
+  MaxStack:= SizeInt(PtrUInt($801ffff0) - PtrUInt(@bss_end)) - MinHeap;
+
+  if MaxStack < 0 then MaxStack := 0;
 
   if stklen < SizeUInt(MaxStack) then
-    Result := stklen
+    Result:= stklen
   else
-    Result := SizeUInt(MaxStack);
+    Result:= SizeUInt(MaxStack);
+
 end;
 
 procedure system_exit;
 begin
-  repeat
-  until false;
+  repeat until false;
 end;
 
 begin
-  StackLength := CheckInitialStkLen(StkLen);
-  StackBottom := Pointer(PtrUInt($801ffff0) - PtrUInt(StackLength));
+  StackLength:= CheckInitialStkLen(StkLen);
+  StackBottom:= Pointer(PtrUInt($801ffff0) - PtrUInt(StackLength));
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-  IsConsole := True;
+  IsConsole:= True;
 {$else}
-  IsConsole := False;
+  IsConsole:= False;
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -237,7 +262,7 @@ begin
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
   SysInitStdIO;
-  InOutRes := 0;
+  InOutRes:= 0;
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
