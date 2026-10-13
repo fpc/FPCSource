@@ -280,7 +280,7 @@ unit hlcgobj;
           procedure a_load_subsetref_subsetref(list: TAsmlist; fromsubsetsize, tosubsetsize : tdef; const fromsref, tosref: tsubsetreference); virtual;
           procedure a_load_subsetref_ref(list : TAsmList; fromsubsetsize, tosize: tdef; const sref: tsubsetreference; const destref: treference); virtual;
           procedure a_load_ref_subsetref(list : TAsmList; fromsize, tosubsetsize: tdef; const fromref: treference; const sref: tsubsetreference); virtual;
-          procedure a_load_const_subsetref(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sref: tsubsetreference); virtual;
+          procedure a_load_const_subsetref(list: TAsmlist; tosubsetsize: tdef; a: thlcgint; const sref: tsubsetreference); virtual;
           procedure a_load_subsetref_loc(list: TAsmlist; fromsubsetsize, tosize: tdef; const sref: tsubsetreference; const loc: tlocation); virtual;
           procedure a_load_subsetref_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tdef; const fromsref: tsubsetreference; const tosreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_subsetref(list: TAsmlist; fromsubsetsize, tosubsetsize : tdef; const fromsreg: tsubsetregister; const tosref: tsubsetreference); virtual;
@@ -1813,48 +1813,46 @@ implementation
       a_load_reg_subsetref(list,tosubsetsize,tosubsetsize,tmpreg,sref);
     end;
 
-  procedure thlcgobj.a_load_const_subsetref(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sref: tsubsetreference);
+  procedure thlcgobj.a_load_const_subsetref(list: TAsmlist; tosubsetsize: tdef; a: thlcgint; const sref: tsubsetreference);
     var
       tmpsref: tsubsetreference;
       tmpreg: tregister;
       slopt: tsubsetloadopt;
+      q: integer;
     begin
       if sref.bitlen>AIntBits then
         begin
           if ((sref.bitlen mod AIntBits)<>0) then
             internalerror(2019052902);
           tmpsref:=sref;
-          tmpsref.bitlen:=AIntBits;
-          if target_info.endian=endian_big then
+          for q:=0 to ((sref.bitlen + AIntBits - 1) div AIntBits) - 1 do
             begin
-              inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
+              tmpsref.bitlen:=min(sref.bitlen-q*AIntBits,AIntBits);
+              if target_info.endian=endian_big then
+                begin
+                  tmpsref.ref.offset:=sref.ref.offset + (sref.bitlen - q*AIntBits) div 8;
+                end
+              else
+                begin
+                  tmpsref.ref.offset:=sref.ref.offset + q*(AIntBits div 8);
+                end;
+              a_load_const_subsetref(list,tosubsetsize,aint(hlcgint_lo(a shr q*AIntBits)),tmpsref);
             end;
-          a_load_const_subsetref(list,tosubsetsize,aint(a),tmpsref);
-          if target_info.endian=endian_big then
-            begin
-              tmpsref.ref.offset:=sref.ref.offset;
-            end
-          else
-            begin
-              inc(tmpsref.ref.offset,AIntBits div 8);
-            end;
-          tmpsref.bitlen:=sref.bitlen-AIntBits;
-          a_load_const_subsetref(list,tosubsetsize,a shr AIntBits,tmpsref);
           exit;
         end;
       { perform masking of the source value in advance }
       slopt:=SL_REGNOSRCMASK;
       if (sref.bitlen<>AIntBits) then
-        a:=tcgint(aword(a) and ((aword(1) shl sref.bitlen) -1));
+        a:=tcgint(aword(hlcgint_lo(a)) and ((aword(1) shl sref.bitlen) -1));
       if (
           { broken x86 "x shl regbitsize = x" }
           ((sref.bitlen<>AIntBits) and
-           ((aword(a) and ((aword(1) shl sref.bitlen)-1))=(aword(1) shl sref.bitlen)-1)) or
+           ((aword(hlcgint_lo(a)) and ((aword(1) shl sref.bitlen)-1))=(aword(1) shl sref.bitlen)-1)) or
           ((sref.bitlen=AIntBits) and
-           (a=-1))
+           (hlcgint_lo(a)=-1))
          ) then
         slopt:=SL_SETMAX
-      else if (a=0) then
+      else if (hlcgint_lo(a)=0) then
         slopt:=SL_SETZERO;
       if not(slopt in [SL_SETZERO,SL_SETMAX]) then
         begin
