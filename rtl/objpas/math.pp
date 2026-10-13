@@ -1810,60 +1810,102 @@ begin
 end;
 {$ENDIF}
 
+// arsech(x) = ln(1+sqrt(1-x^2)) - ln(x); +Inf for x=0
+function FloatArcSecH(x : float) : float;
+begin
+  if IsNan(x) then
+    FloatArcSecH:=x
+  else if x=0.0 then
+    FloatArcSecH:=Infinity
+  else
+    FloatArcSecH:=lnxp1(sqrt((1.0-x)*(1.0+x)))-ln(x);
+end;
+
+// arcsch(x) = sign(x)*arsinh(1/abs(x)), without forming 1/x for abs(x)<1; +-Inf for x=+-0
+function FloatArcCscH(x : float) : float;
+var
+  ax, z: float;
+begin
+  if IsNan(x) then
+    exit(x);
+  ax:=abs(x);
+  if ax=0.0 then
+    z:=Infinity
+  else if ax>=1.0 then
+    begin
+      z:=1.0/ax;
+      z:=lnxp1(z+z*z/(1.0+sqrt(1.0+z*z)));
+    end
+  else
+    z:=ln(1.0+sqrt(1.0+ax*ax))-ln(ax);
+  FloatArcCscH:=copysign(z,x);
+end;
+
+// arcoth(x) = sign(x)*0.5*ln(1+2/(abs(x)-1)); +-Inf for x=+-1
+function FloatArcCotH(x : float) : float;
+begin
+  if IsNan(x) then
+    FloatArcCotH:=x
+  else if abs(x)=1.0 then
+    FloatArcCotH:=copysign(Infinity,x)
+  else
+    FloatArcCotH:=copysign(0.5*lnxp1(2.0/(abs(x)-1.0)),x);
+end;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcSecH(X : Single): Single;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);  //replacing division inside ln() by subtracting 2 ln()'s seems to be slower
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcSecH(X : Double): Double;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcSecH(X : Extended): Extended;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcCscH(X: Single): Single;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcCscH(X: Double): Double;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcCscH(X: Extended): Extended;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcCotH(X: Single): Single;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcCotH(X: Double): Double;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcCotH(X: Extended): Extended;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 
