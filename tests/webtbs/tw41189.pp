@@ -57,7 +57,8 @@ begin
   CheckStr(FloatToStrF(lThird,ffGeneral,21,0,aFormatSettings),'0.333333333333333333342','FloatToStrF Extended ffGeneral 21');
   CheckStr(FloatToStrF(lThird,ffGeneral,25,0,aFormatSettings),'0.333333333333333333342','FloatToStrF Extended ffGeneral 25');
   CheckStr(FloatToStrF(lThird,ffGeneral,18,0,aFormatSettings),'0.333333333333333333','FloatToStrF Extended ffGeneral 18');
-  CheckStr(FloatToStrF(lThird,ffGeneral,-1,0,aFormatSettings),'0.333333333333333333342','FloatToStrF Extended ffGeneral -1');
+  CheckStr(FloatToStrF(lThird,ffGeneral,-1,0,aFormatSettings),'0.33333333333333333','FloatToStrF Extended ffGeneral -1');
+  CheckStr(FloatToStrF(lThird,ffExponent,-1,3,aFormatSettings),'3.3333333333333333E-001','FloatToStrF Extended ffExponent -1');
   CheckStr(FloatToStrF(lThird,ffExponent,21,0,aFormatSettings),'3.33333333333333333342E-1','FloatToStrF Extended ffExponent 21');
   CheckStr(FloatToStr(lThird,aFormatSettings),'0.333333333333333','FloatToStr Extended');
   CheckStr(FormatFloat('0.0000000000000000000',lThird,aFormatSettings),'0.3333333333333333333','FormatFloat Extended 1/3');

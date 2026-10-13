@@ -1656,7 +1656,10 @@ Begin
           fvCurrency:
               If (Precision = -1) Or (Precision > 19) Then Precision := 19;
           else
-              If (Precision = -1) Or (Precision > MaxFloatPrecision(ValueType)) Then Precision := MaxFloatPrecision(ValueType);
+              If (Precision = -1) Then
+                Precision := maxdigits
+              Else If (Precision > MaxFloatPrecision(ValueType)) Then
+                Precision := MaxFloatPrecision(ValueType);
         end;
         { First convert to scientific format, with correct precision }
         case ValueType of
@@ -1751,7 +1754,10 @@ Begin
     ffExponent:
 
       Begin
-        If (Precision = -1) Or (Precision > MaxFloatPrecision(ValueType)) Then Precision := MaxFloatPrecision(ValueType);
+        If (Precision = -1) Then
+          Precision := maxdigits
+        Else If (Precision > MaxFloatPrecision(ValueType)) Then
+          Precision := MaxFloatPrecision(ValueType);
         case ValueType of
           fvDouble:
             Str(Double(Extended(Aligned(Value))):Precision+7, Result);
