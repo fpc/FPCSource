@@ -272,7 +272,7 @@ unit hlcgobj;
           procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tdef; const fromsreg, tosreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_ref(list : TAsmList; fromsubsetsize, tosize: tdef; const sreg: tsubsetregister; const destref: treference); virtual;
           procedure a_load_ref_subsetreg(list : TAsmList; fromsize, tosubsetsize: tdef; const fromref: treference; const sreg: tsubsetregister); virtual;
-          procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); virtual;
+          procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: thlcgint; const sreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_loc(list: TAsmlist; fromsubsetsize, tosize: tdef; const sreg: tsubsetregister; const loc: tlocation); virtual;
 
           procedure a_load_subsetref_reg(list : TAsmList; fromsubsetsize, tosize: tdef; const sref: tsubsetreference; destreg: tregister); virtual;
@@ -1574,22 +1574,22 @@ implementation
       a_load_reg_subsetreg(list,tosubsetsize,tosubsetsize,tmpreg,sreg);
     end;
 
-  procedure thlcgobj.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
+  procedure thlcgobj.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: thlcgint; const sreg: tsubsetregister);
     var
       subsetregdef: torddef;
-      bitmask: aword;
+      bitmask: uint128;
       stopbit: byte;
     begin
        subsetregdef:=cgsize_orddef(sreg.subsetregsize);
        stopbit:=sreg.startbit+sreg.bitlen;
-       // on x86(64), 1 shl 32(64) = 1 instead of 0
-       if (stopbit<>AIntBits) then
-         bitmask:=not(((aword(1) shl stopbit)-1) xor ((aword(1) shl sreg.startbit)-1))
+       // 1 shl 128 = 1 instead of 0
+       if (stopbit<>128) then
+         bitmask:=not(((uint128(1) shl stopbit)-1) xor ((uint128(1) shl sreg.startbit)-1))
        else
-         bitmask:=(aword(1) shl sreg.startbit)-1;
-       if (((aword(a) shl sreg.startbit) and not bitmask)<>not bitmask) then
-         a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),sreg.subsetreg);
-       a_op_const_reg(list,OP_OR,subsetregdef,tcgint((aword(a) shl sreg.startbit) and not(bitmask)),sreg.subsetreg);
+         bitmask:=(uint128(1) shl sreg.startbit)-1;
+       if (((uint128(a) shl sreg.startbit) and not bitmask)<>not bitmask) then
+         a_op_const_reg(list,OP_AND,subsetregdef,thlcgint(bitmask),sreg.subsetreg);
+       a_op_const_reg(list,OP_OR,subsetregdef,thlcgint((uint128(a) shl sreg.startbit) and not(bitmask)),sreg.subsetreg);
     end;
 
   procedure thlcgobj.a_load_subsetreg_loc(list: TAsmlist; fromsubsetsize, tosize: tdef; const sreg: tsubsetregister; const loc: tlocation);
