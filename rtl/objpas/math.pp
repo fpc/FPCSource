@@ -1938,6 +1938,10 @@ function hypot(x,y : float) : float;
   begin
     x:=abs(x);
     y:=abs(y);
+    if IsInfinite(x) or IsInfinite(y) then
+      exit(Infinity);
+    if IsNan(x) or IsNan(y) then
+      exit(NaN);
     if (x>y) then
       hypot:=x*sqrt(1.0+sqr(y/x))
     else if (x>0.0) then
