@@ -131,6 +131,7 @@ interface
 implementation
 
     uses
+      uinteger128,
       globtype,systems,
       cutils,verbose,globals,
       symtable,symconst,symdef,aasmbase,aasmdata,aasmcpu,defutil,
