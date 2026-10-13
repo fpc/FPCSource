@@ -61,7 +61,21 @@ procedure Randomize;
 function Random(l: LongInt): LongInt;
 
 
-function pcsxPresent: Boolean;
+function pcsxPresent: Boolean;      // Check if the PCSX-Redux Emulator is running
+
+
+{ FromHere is the EXACT 8-aligned user-data address. On success it advances
+  to the address of the next possible payload; on failure it is unchanged,
+  the result is nil, and the RTL emits a WriteLn diagnostic. }
+procedure GetMemFrom(var FromHere: Pointer; var P: Pointer; Size: PtrUInt);
+
+{ Predict the first-fit GetMem(Size) result, WITHOUT reserving it. }
+function GetNextFreeAddress(Size: PtrUInt): Pointer;
+
+{ Given an ALLOCATED payload pointer, return the following payload address
+  accounting for the real 8-byte header and aligned/absorbed block size. }
+function GetAddressAfterBlock(P: Pointer): Pointer;
+
 
 
 implementation
@@ -73,22 +87,23 @@ var
 
 function pcsxPresent: Boolean;
 var
-  ctrl: LongWord;
+  ctrl : LongWord;
+
 begin
   // Read DEV8 memory configuration
-  ctrl := PLongWord($1F80101C)^;
+  ctrl:= PLongWord($1F80101C)^;
 
   // DEV8 must cover at least 256 bytes
   if ((ctrl shr 16) and $1F) < 8 then
   begin
-    ctrl := (ctrl and not LongWord($001F0000))
-            or $00080000;
+    ctrl:= (ctrl and not LongWord($001F0000)) or $00080000;
 
-    PLongWord($1F80101C)^ := ctrl;
+    PLongWord($1F80101C)^:= ctrl;
   end;
 
   // Check PCSX-Redux signature
-  Result := PLongWord($1F802080)^ = $58534350;
+  Result:= PLongWord($1F802080)^ = $58534350;
+
 end;
 
 
