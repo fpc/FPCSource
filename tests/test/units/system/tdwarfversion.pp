@@ -1,5 +1,5 @@
 { %target=linux }
-{ %opt=-gl }
+{ %opt=-gwl }
 { Line info skips DWARF units with an unsupported version, issue #41395 }
 program tdwarfversion;
 

@@ -1,5 +1,5 @@
 { %target=linux }
-{ %opt=-gl }
+{ %opt=-gwl }
 { Line info lookups end without hang or exception on malformed .debug_* sections, issue #41394 }
 program tdwarfmalformed;
 

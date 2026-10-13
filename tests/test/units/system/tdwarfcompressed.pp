@@ -1,5 +1,5 @@
 { %target=linux }
-{ %opt=-gl }
+{ %opt=-gwl }
 { Line info ignores .debug_* sections flagged SHF_COMPRESSED, issue #41394 }
 program tdwarfcompressed;
 
