@@ -1645,7 +1645,6 @@ begin
   R.Assign(4+CStrLen(InputName), 13, 31, 14);
   FileName := New(PFileInputLine, Init(R, 79));
   FileName^.GrowMode := gfGrowHiX or gfGrowLoY or gfGrowHiY;
-  FileName^.Data Sw_PString_DeRef := WildCard;
   Insert(FileName);
 
   R.Assign(2,13,3+CStrLen(InputName),14);
@@ -1709,6 +1708,7 @@ begin
   SelectNext(False);
 
   if AOptions and fdNoLoadDir = 0 then ReadDirectory;
+  FileName^.Data Sw_PString_DeRef := WildCard;
 end;
 
 constructor TFileDialog.Load(var S: TStream);
