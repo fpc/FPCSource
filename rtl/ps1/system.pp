@@ -81,6 +81,11 @@ function CurrentSP: PtrUInt;
 function SetStackLength(NewLength: SizeUInt): Boolean;
 
 
+procedure TraceHeap(const stage: ShortString);
+procedure TraceHeapBuffer(const labelText: ShortString; buffer: Pointer; bytes: PtrUInt);
+
+
+function PrintHexValue(value: LongWord): ShortString;
 
 implementation
 
@@ -94,6 +99,23 @@ asm
   addu $v0, $sp, $zero
 end;
 
+
+
+function PrintHexValue(value: LongWord): ShortString;
+const
+  digits: string[16] = '0123456789abcdef';
+var
+  i: LongInt;
+begin
+  SetLength(Result, 10);
+  Result[1] := '0';
+  Result[2] := 'x';
+
+  for i := 10 downto 3 do begin
+    Result[i] := digits[(value and 15) + 1];
+    value := value shr 4;
+  end;
+end;
 
 
 function pcsxPresent: Boolean;

@@ -810,9 +810,6 @@ procedure InterruptHandlerFunction(arg: Pointer); cdecl;
 procedure InitIRQ;
 
 
-function PrintHexValue(value: LongWord): ShortString;
-
-
 implementation
 
 const
@@ -1195,23 +1192,6 @@ begin
     nop
 
     sh $t1, 0($t0)
-  end;
-end;
-
-
-const
-
-  HexDigits: PChar = '0123456789abcdef';
-
-function PrintHexValue(value: LongWord): ShortString;
-var
-  i: Integer;
-begin
-  result:= '0x';
-  for i := 8 downto 1 do
-  begin
-    result:= result + HexDigits[(value shr 28) and $F];
-    value := value shl 4;
   end;
 end;
 

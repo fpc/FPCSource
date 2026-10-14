@@ -85,6 +85,47 @@ begin
 end;
 
 
+procedure TraceHeapBuffer(const labelText: ShortString; buffer: Pointer; bytes: PtrUInt);
+begin
+  WriteLn('HEAP BUFFER ', labelText, ' payload=', PrintHexValue(PtrUInt(buffer)),
+          ' requested=', bytes);
+end;
+
+procedure TraceHeap(const stage: ShortString);
+var
+  block: PHeapBlock;
+  bottom, top, address, previousEnd, totalFree, largestFree, blocks: PtrUInt;
+begin
+  bottom := PtrUInt(_heapMetadata.bottom);
+  top := PtrUInt(_heapMetadata.top);
+  WriteLn('HEAP ', stage, ' bottom=', PrintHexValue(bottom), ' top=', PrintHexValue(top));
+  block := _heapMetadata.head;
+  previousEnd := bottom;
+  totalFree := 0;
+  largestFree := 0;
+  blocks := 0;
+  while block <> PHeapBlock(@_heapMetadata.markerNext) do begin
+    address := PtrUInt(block);
+    if (address < previousEnd) or (address >= top) or
+       ((address and 7) <> 0) or (top - address < SizeOf(THeapBlock)) then begin
+      WriteLn('HEAP CORRUPT free-list address=', PrintHexValue(address));
+      Exit;
+    end;
+    if (block^.size < 16) or ((block^.size and 7) <> 0) or
+       (block^.size > top - address) then begin
+      WriteLn('HEAP CORRUPT block=', PrintHexValue(address), ' size=', block^.size);
+      Exit;
+    end;
+    WriteLn('HEAP FREE header=', PrintHexValue(address), ' end=', PrintHexValue(address + block^.size), ' bytes=', block^.size);
+    Inc(totalFree, block^.size);
+    if block^.size > largestFree then largestFree := block^.size;
+    Inc(blocks);
+    previousEnd := address + block^.size;
+    block := block^.next;
+  end;
+  WriteLn('HEAP SUMMARY committed=', top - bottom, ' free=', totalFree,
+          ' largest=', largestFree, ' blocks=', blocks);
+end;
 
 
 { --------------------------------------------------------------------------
