@@ -1090,7 +1090,16 @@ var
   S : Sw_String;
   K : pointer;
   Value : Sw_integer;
+  WasMouseClick : Boolean;
+  CurFocused : Sw_Integer;
 begin
+  WasMouseClick:=false;
+  if (Event.What=evMouseDown) and (Event.Double=false) then
+  begin
+    if (State and sfFocused = 0) then
+      WasMouseClick:=true; {Mark mouse click when not in focus}
+    CurFocused:=Focused;
+  end;
   if (Event.What = evKeyDown) and (Event.CharCode='<') then
   begin
     { select '..' }
@@ -1100,6 +1109,11 @@ begin
         FocusItem(Value);
   end
   else TSortedListBox.HandleEvent(Event);
+
+  { report first click on already focused item }
+  if WasMouseClick and (CurFocused=Focused)  then
+     if (List^.Count > 0) and (Focused<Range) then
+       Message(Owner, evBroadcast, cmFileFocused, List^.At(Focused));
 end;
 
 procedure TFileList.ReadDirectory(AWildCard: PathStr);
