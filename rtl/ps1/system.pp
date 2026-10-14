@@ -61,7 +61,7 @@ procedure Randomize;
 function Random(l: LongInt): LongInt;
 
 
-function pcsxPresent: Boolean;      // Check if the PCSX-Redux Emulator is running
+var pcsxPresent: Boolean = false;
 
 
 { FromHere is the EXACT 8-aligned user-data address. On success it advances
@@ -118,25 +118,25 @@ begin
 end;
 
 
-function pcsxPresent: Boolean;
+function check4pcsxPresent: Boolean;
 var
-  ctrl : LongWord;
-
+  ctrl: LongWord;
 begin
-  // Read DEV8 memory configuration
-  ctrl:= PLongWord($1F80101C)^;
+  // Read DEV8 configuration
+  ctrl := PLongWord($1F80101C)^;
 
-  // DEV8 must cover at least 256 bytes
-  if ((ctrl shr 16) and $1F) < 8 then
-  begin
-    ctrl:= (ctrl and not LongWord($001F0000)) or $00080000;
-
-    PLongWord($1F80101C)^:= ctrl;
-  end;
+  // Expand DEV8 from 128 to at least 256 bytes
+  if (ctrl and $001F0000) < $00080000 then
+    PLongWord($1F80101C)^ :=
+      (ctrl and not $001F0000) or $00080000;
 
   // Check PCSX-Redux signature
-  Result:= PLongWord($1F802080)^ = $58534350;
-
+  Result :=
+    (PByte($1F802080)^ = Ord('P')) and
+    (PByte($1F802081)^ = Ord('C')) and
+    (PByte($1F802082)^ = Ord('S')) and
+    (PByte($1F802083)^ = Ord('X'));
+    
 end;
 
 
@@ -288,6 +288,8 @@ end;
 begin
   StackLength:= CheckInitialStkLen(StkLen);
   StackBottom:= Pointer(PtrUInt($801ffff0) - PtrUInt(StackLength));
+
+  pcsxPresent:= check4pcsxPresent;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
   IsConsole:= True;
