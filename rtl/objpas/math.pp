@@ -1981,6 +1981,8 @@ function lnxp1(x : float) : float;
   var
     y: float;
   begin
+    if IsNan(x) then
+      exit(x);
     if (x>=4.0) then
       lnxp1:=ln(1.0+x)
     else
