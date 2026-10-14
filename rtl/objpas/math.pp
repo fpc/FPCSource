@@ -1543,86 +1543,95 @@ function tanh(x : Extended) : Extended;
 {$ENDIF}
 
 
-{$ifdef FPC_HAS_TYPE_SINGLE}
-function SecH(const X: Single): Single;
+// sech(x) = 2*e^-|x|/(1+e^-2|x|)
+function FloatSecH(X: ValReal): ValReal;
 var
   Ex: ValReal;
 begin
-  //https://en.wikipedia.org/wiki/Hyperbolic_functions#Definitions
-  //SecH = 2 / (e^X + e^-X)
-  Ex:=Exp(X);
+  if IsNan(X) then
+    exit(X);
+  if IsInfinite(X) then
+    exit(0.0);
+  Ex:=Exp(-Abs(X));
 {$push}
 {$checkfpuexceptions on}
 {$safefpuexceptions on}
-  SecH:=2/(Ex+1/Ex);
+  FloatSecH:=2*Ex/(1+Ex*Ex);
 {$pop}
+end;
+
+
+// csch(x) = 2*(t+1)/(t*(t+2)) with t=e^|x|-1 for |x|<=0.5, 2*e^-|x|/(1-e^-2|x|) above; division by zero for x=+-0
+function FloatCscH(X: ValReal): ValReal;
+var
+  a, t: ValReal;
+begin
+  if IsNan(X) then
+    exit(X);
+  if IsInfinite(X) then
+    exit(copysign(0.0,X));
+  a:=Abs(X);
+{$push}
+{$checkfpuexceptions on}
+{$safefpuexceptions on}
+  if a<=0.5 then
+    begin
+      t:=ExpM1(a);
+      t:=2*(t+1)/(t*(t+2));
+    end
+  else
+    begin
+      t:=Exp(-a);
+      t:=2*t/(1-t*t);
+    end;
+{$pop}
+  FloatCscH:=copysign(t,X);
+end;
+
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SecH(const X: Single): Single;
+begin
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function SecH(const X: Double): Double;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  SecH:=2/(Ex+1/Ex);
-{$pop}
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SecH(const X: Extended): Extended;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-  SecH:=2/(Ex+1/Ex);
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CscH(const X: Single): Single;
-var
-  Ex: ValReal;
 begin
-  //CscH = 2 / (e^X - e^-X)
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  CscH:=2/(Ex-1/Ex);
-{$pop}
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function CscH(const X: Double): Double;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  CscH:=2/(Ex-1/Ex);
-{$pop}
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CscH(const X: Extended): Extended;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-  CscH:=2/(Ex-1/Ex);
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
