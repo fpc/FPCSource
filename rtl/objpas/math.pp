@@ -2252,12 +2252,15 @@ function Ldexp(X: single; p: integer): single;
     end else
     begin
       TSingleRec(result).Exp := 0;
-      if xp >= -TSingleRec.Bias + 2 - 23 then
+      if xp >= -TSingleRec.Bias + 2 - 24 then
       begin
         // Denormalized.
         M := TSingleRec(result).Frac or uint32(1) shl 23;
         sh := -TSingleRec.Bias + 1 - xp;
-        TSingleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint32(1) shl sh - 1) <> 0);
+        M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint32(1) shl sh - 1) <> 0);
+        // Rounding up to 1 shl 23 gives the smallest normal number.
+        TSingleRec(result).Exp := M shr 23;
+        TSingleRec(result).Frac := M;
       end else
         // Underflow.
         TSingleRec(result).Frac := 0;
@@ -2321,12 +2324,15 @@ function Ldexp(X: double; p: integer): double;
     end else
     begin
       TDoubleRec(result).Exp := 0;
-      if xp >= -TDoubleRec.Bias + 2 - 52 then
+      if xp >= -TDoubleRec.Bias + 2 - 53 then
       begin
         // Denormalized.
         M := TDoubleRec(result).Frac or uint64(1) shl 52;
-        sh := -TSingleRec.Bias + 1 - xp;
-        TDoubleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+        sh := -TDoubleRec.Bias + 1 - xp;
+        M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+        // Rounding up to 1 shl 52 gives the smallest normal number.
+        TDoubleRec(result).Exp := M shr 52;
+        TDoubleRec(result).Frac := M;
       end else
         // Underflow.
         TDoubleRec(result).Frac := 0;
@@ -2388,14 +2394,15 @@ function Ldexp(X: extended; p: integer): extended;
       TExtended80Rec(result).Exp := 2 * TExtended80Rec.Bias + 1;
       TExtended80Rec(result).Frac := uint64(1) shl 63;
     end
-    else if xp >= -TExtended80Rec.Bias + 2 - 63 then
+    else if xp >= -TExtended80Rec.Bias + 2 - 64 then
     begin
       // Denormalized... usually.
       // Mantissa of subnormal 'extended' (Exp = 0) must always start with 0.
       // If the calculated mantissa starts with 1, extended instead becomes normalized with Exp = 1.
       M := TExtended80Rec(result).Frac;
       sh := -TExtended80Rec.Bias + 1 - xp;
-      M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+      // Two-step shift for sh+1=64.
+      M := M shr sh shr 1 + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
       TExtended80Rec(result).Exp := M shr 63;
       TExtended80Rec(result).Frac := M;
     end else
