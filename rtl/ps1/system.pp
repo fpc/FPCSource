@@ -87,6 +87,15 @@ procedure TraceHeapBuffer(const labelText: ShortString; buffer: Pointer; bytes: 
 
 function PrintHexValue(value: LongWord): ShortString;
 
+
+const
+  StackCalibrationFrames = 300;
+procedure InitStackWatermark;
+procedure ReportStackUsage(const stage: ShortString);
+procedure TuneStackReservation;
+function BorrowStackBuffer(bytes: SizeUInt): Pointer;
+procedure ReleaseStackBuffer;
+
 implementation
 
 var
@@ -136,7 +145,7 @@ begin
     (PByte($1F802081)^ = Ord('C')) and
     (PByte($1F802082)^ = Ord('S')) and
     (PByte($1F802083)^ = Ord('X'));
-    
+
 end;
 
 
@@ -197,6 +206,8 @@ end;
 {$IMPLICITEXCEPTIONS OFF}
 
 {$I system.inc}
+
+{$I sysstack.inc}
 
 
 procedure Randomize;
