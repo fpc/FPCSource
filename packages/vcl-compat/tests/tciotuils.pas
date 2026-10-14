@@ -90,8 +90,18 @@ type
   { TTestTDirectory }
 
   TTestTDirectory = Class(TTestIO)
+  protected
+    // Checks that TDirectory.Delete(aPath,aRecursive) raises an exception of class aClass
+    procedure AssertDeleteRaises(const aMsg, aPath: string; aRecursive: Boolean; aClass: ExceptClass);
   Published
     Procedure TestGetDirectories;
+    Procedure TestDeleteEmptyDir;
+    Procedure TestDeleteNotEmpty;
+    Procedure TestDeleteRecursive;
+    Procedure TestDeleteNotExisting;
+    Procedure TestDeleteEmptyPath;
+    Procedure TestDeleteInvalidChars;
+    Procedure TestDeleteFile;
   end;
 
 
@@ -1254,6 +1264,85 @@ begin
   AssertTrue('Dir 2',Find('dir3')<>-1);
 end;
 
+procedure TTestTDirectory.AssertDeleteRaises(const aMsg, aPath: string; aRecursive: Boolean; aClass: ExceptClass);
+
+var
+  lClass: TClass;
+
+begin
+  lClass:=nil;
+  try
+    TDirectory.Delete(aPath,aRecursive);
+  except
+    on E: Exception do
+      lClass:=E.ClassType;
+  end;
+  AssertTrue(aMsg+': exception raised',lClass<>nil);
+  AssertEquals(aMsg+': exception class',aClass.ClassName,lClass.ClassName);
+end;
+
+procedure TTestTDirectory.TestDeleteEmptyDir;
+begin
+  CreateTestDirs;
+  TDirectory.Delete(FBaseDir+'testpath/dir1');
+  AssertFalse('dir1 deleted',DirectoryExists(FBaseDir+'testpath/dir1'));
+  TDirectory.Delete(FBaseDir+'testpath/dir2',False);
+  AssertFalse('dir2 deleted',DirectoryExists(FBaseDir+'testpath/dir2'));
+  TDirectory.Delete(FBaseDir+'testpath/dir3',True);
+  AssertFalse('dir3 deleted',DirectoryExists(FBaseDir+'testpath/dir3'));
+end;
+
+procedure TTestTDirectory.TestDeleteNotEmpty;
+begin
+  CreateTestFiles(1,True);
+  AssertDeleteRaises('Non-recursive delete of non-empty directory',FBaseDir+'testpath',False,EInOutError);
+  AssertTrue('Directory still exists',DirectoryExists(FBaseDir+'testpath'));
+end;
+
+procedure TTestTDirectory.TestDeleteRecursive;
+begin
+  CreateTestFiles(2,True);
+  TDirectory.Delete(FBaseDir+'testpath',True);
+  AssertFalse('Directory deleted',DirectoryExists(FBaseDir+'testpath'));
+end;
+
+procedure TTestTDirectory.TestDeleteNotExisting;
+begin
+  AssertDeleteRaises('Non-recursive',FBaseDir+'nonexisting',False,EDirectoryNotFoundException);
+  AssertDeleteRaises('Recursive',FBaseDir+'nonexisting',True,EDirectoryNotFoundException);
+end;
+
+procedure TTestTDirectory.TestDeleteEmptyPath;
+
+var
+  lDir: string;
+
+begin
+  CreateTestDirs;
+  lDir:=ExpandFileName(FBaseDir+'testpath/dir1');
+  FileClose(FileCreate(IncludeTrailingPathDelimiter(lDir)+'cwd.marker'));
+  AssertTrue('Change to '+lDir,SetCurrentDir(lDir));
+  AssertTrue('Current directory is '+lDir,FileExists('cwd.marker'));
+  AssertDeleteRaises('Non-recursive','',False,EInOutError);
+  AssertDeleteRaises('Recursive','',True,EInOutError);
+end;
+
+procedure TTestTDirectory.TestDeleteInvalidChars;
+begin
+  CreateTestDirs;
+  AssertDeleteRaises('Non-recursive',FBaseDir+'testpath/dir*',False,EInOutError);
+  AssertDeleteRaises('Recursive',FBaseDir+'testpath/dir*',True,EInOutError);
+  AssertTrue('dir1 still exists',DirectoryExists(FBaseDir+'testpath/dir1'));
+end;
+
+procedure TTestTDirectory.TestDeleteFile;
+begin
+  CreateTestFiles(1,True);
+  AssertDeleteRaises('Non-recursive',FBaseDir+'testpath/testfile1.txt',False,EDirectoryNotFoundException);
+  AssertDeleteRaises('Recursive',FBaseDir+'testpath/testfile1.txt',True,EDirectoryNotFoundException);
+  AssertTrue('File still exists',FileExists(FBaseDir+'testpath/testfile1.txt'));
+end;
+
 { TTestIO }
 
 procedure TTestIO.CreateTestDirs;
@@ -1332,15 +1421,25 @@ begin
 end;
 
 procedure TTestIO.SetUp;
+
+var
+  lTemp: string;
+
 begin
   FCWD:=IncludeTrailingPathDelimiter(GetCurrentDir);
-  FBaseDir:=GetTempDir(False)+'testio/';
+  FBaseDir:='';
+  lTemp:=GetTempDir(False);
+  AssertTrue('Temporary directory is not empty',lTemp<>'');
+  AssertEquals('Temporary directory is absolute',ExpandFileName(lTemp),lTemp);
+  AssertTrue('Temporary directory '+lTemp+' exists',DirectoryExists(lTemp));
+  FBaseDir:=IncludeTrailingPathDelimiter(lTemp)+'testio/';
 end;
 
 procedure TTestIO.TearDown;
 begin
-  CleanDirs(FBaseDir);
-  ChDir(FCWD);
+  SetCurrentDir(FCWD);
+  if FBaseDir<>'' then
+    CleanDirs(FBaseDir);
 end;
 
 initialization
