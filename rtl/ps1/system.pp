@@ -77,12 +77,23 @@ function GetNextFreeAddress(Size: PtrUInt): Pointer;
 function GetAddressAfterBlock(P: Pointer): Pointer;
 
 
+function CurrentSP: PtrUInt;
+function SetStackLength(NewLength: SizeUInt): Boolean;
+
+
 
 implementation
 
 var
   StkLen : SizeUInt; external name '__stklen';
   bss_end : record end; external name '__bss_end__';
+
+
+function CurrentSP: PtrUInt; assembler; nostackframe;
+asm
+  addu $v0, $sp, $zero
+end;
+
 
 
 function pcsxPresent: Boolean;

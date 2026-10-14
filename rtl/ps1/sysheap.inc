@@ -49,6 +49,44 @@ var
   _heapUsed    : SizeUInt = 0;
   _heapMaxUsed : SizeUInt = 0;
 
+{ Call with interrupts disabled, outside an interrupt handler.
+  Guard is space below the active stack, not a measured peak margin. }
+function SetStackLength(NewLength: SizeUInt): Boolean;
+const
+  Guard = PtrUInt(4096);
+var
+  StackTop, NewBottom, ActiveSP: PtrUInt;
+begin
+  Result := False;
+
+  if (_heapStart = 0) or
+     (NewLength < Guard) or
+     (NewLength > High(SizeUInt) - 63) then Exit;
+
+  NewLength := (NewLength + 63) and not SizeUInt(63);
+  StackTop := PtrUInt(StackBottom) + StackLength;
+
+  if NewLength > StackTop - _heapStart then Exit;
+  NewBottom := StackTop - NewLength;
+
+  { Never overlap committed heap blocks. }
+  if NewBottom < _heapEnd then Exit;
+
+  { Never cut into the current stack. }
+  ActiveSP := CurrentSP;
+  if ActiveSP <= NewBottom then Exit;
+  if ActiveSP - NewBottom < Guard then Exit;
+
+  _heapLimit := NewBottom;
+  StackBottom := Pointer(NewBottom);
+  StackLength := NewLength;
+
+  Result := True;
+end;
+
+
+
+
 { --------------------------------------------------------------------------
   Internal helpers
   -------------------------------------------------------------------------- }
