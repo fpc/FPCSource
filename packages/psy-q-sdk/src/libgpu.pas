@@ -54,6 +54,10 @@
  *		 depth	4bit	8bit	16bit
  *		 color	CLUT	CLUT	DIRECT
 }
+{$LINKLIB gpu, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgpu;
 {$ENDIF FPC_DOTTEDUNITS}

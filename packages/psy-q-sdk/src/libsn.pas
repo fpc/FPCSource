@@ -1,3 +1,8 @@
+{$LINKLIB sn, static}
+{$LINKLIB api, static}
+{$LINKLIB math, static}
+{$LINKLIB c2, static}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libsn;
 {$ENDIF FPC_DOTTEDUNITS}

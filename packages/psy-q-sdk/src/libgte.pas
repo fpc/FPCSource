@@ -1,4 +1,10 @@
 {$MODE OBJFPC}
+{$LINKLIB gte, static}
+{$LINKLIB gs, static}
+{$LINKLIB gpu, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgte;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -220,7 +226,7 @@ function RotTransPers3(v0, v1, v2: PSVECTOR; sxy0, sxy1, sxy2: plongint; p: plon
 procedure RotTrans(v0: PSVECTOR; v1: PVECTOR; flag: plongint); stdcall; external;
 procedure RotTransSV(v0, v1: PSVECTOR; flag: plongint); stdcall; external;
 procedure LocalLight(v0: PSVECTOR; v1: PVECTOR); stdcall; external;
-procedure LightColor(v0, v1: PVECTOR); stdcall; external;
+//procedure LightColor(v0, v1: PVECTOR); stdcall; external;
 procedure DpqColorLight(v0: PVECTOR; v1: PCVECTOR; p: longint; v2: PCVECTOR); stdcall; external;
 procedure DpqColor(v0: PCVECTOR; p: longint; v1: PCVECTOR); stdcall; external;
 procedure DpqColor3(v0, v1, v2: PCVECTOR; p: longint; v3, v4, v5: PCVECTOR); stdcall; external;
@@ -243,7 +249,7 @@ function NormalClip(sxy0, sxy1, sxy2: longint): longint; stdcall; external;
 function AverageZ3(sz0, sz1, sz2: longint): longint; stdcall; external;
 function AverageZ4(sz0, sz1, sz2, sz3: longint): longint; stdcall; external;
 procedure OuterProduct12(v0, v1, v2: PVECTOR); stdcall; external;
-procedure OuterProduct0(v0, v1, v2: PVECTOR); stdcall; external;
+//procedure OuterProduct0(v0, v1, v2: PVECTOR); stdcall; external;
 function Lzc(data: longint): longint; stdcall; external;
 
 function RotTransPers4(v0, v1, v2, v3: PSVECTOR; sxy0, sxy1, sxy2, sxy3: plongint; p, flag: plongint): longint; stdcall; external;
@@ -317,18 +323,18 @@ function Clip3F(v0, v1, v2: PSVECTOR; evmx: PPEVECTOR): longint; stdcall; extern
 function Clip3FP(v0, v1, v2: PSVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip4F(v0, v1, v2, v3: PSVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip4FP(v0, v1, v2, v3: PSVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip3FT(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip3FTP(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip4FT(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip4FTP(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
+// function Clip3FT(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip3FTP(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip4FT(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip4FTP(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip3G(v0, v1, v2: PSVECTOR; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip3GP(v0, v1, v2: PSVECTOR; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip4G(v0, v1, v2, v3: PSVECTOR; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 function Clip4GP(v0, v1, v2, v3: PSVECTOR; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip3GT(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip3GTP(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip4GT(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
-function Clip4GTP(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip3GT(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip3GTP(v0, v1, v2: PSVECTOR; uv0, uv1, uv2: psmallint; rgb0, rgb1, rgb2: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip4GT(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
+//function Clip4GTP(v0, v1, v2, v3: PSVECTOR; uv0, uv1, uv2, uv3: psmallint; rgb0, rgb1, rgb2, rgb3: PCVECTOR; evmx: PPEVECTOR): longint; stdcall; external;
 
 procedure RotTransPers_nom(v0: PSVECTOR); stdcall; external;
 procedure RotTransPers3_nom(v0, v1, v2: PSVECTOR); stdcall; external;

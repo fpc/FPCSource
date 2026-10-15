@@ -1,3 +1,8 @@
+{$LINKLIB mcrd, static}
+{$LINKLIB api, static}
+{$LINKLIB card, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libmcrd;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -1,3 +1,10 @@
+{$LINKLIB hmd, static}
+{$LINKLIB gs, static}
+{$LINKLIB gte, static}
+{$LINKLIB gpu, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libhmd;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -512,7 +519,7 @@ const
 	function GsU_0000000c(arg: PGsARGUNIT): pdword; external;
 	function GsU_0000000d(arg: PGsARGUNIT): pdword; external;
 	function GsU_00000010(arg: PGsARGUNIT): pdword; external;
-	function GsU_00000020(arg: PGsARGUNIT): pdword; external;
+//	function GsU_00000020(arg: PGsARGUNIT): pdword; external;
 	function GsU_00000011(arg: PGsARGUNIT): pdword; external;
 	function GsU_00000014(arg: PGsARGUNIT): pdword; external;
 	function GsU_00000015(arg: PGsARGUNIT): pdword; external;

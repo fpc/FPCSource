@@ -1,3 +1,8 @@
+{$LINKLIB snd, static}
+{$LINKLIB api, static}
+{$LINKLIB etc, static}
+{$LINKLIB spu, static}
+{$LINKLIB c2, static}
 {$MODE OBJFPC}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libsnd;

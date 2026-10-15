@@ -1,3 +1,6 @@
+{$LINKLIB pad, static}
+{$LINKLIB api, static}
+{$LINKLIB c2, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libpad;
 {$ENDIF FPC_DOTTEDUNITS}

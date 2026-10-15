@@ -1,3 +1,9 @@
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
+{$LINKLIB etc, static}
+{$LINKLIB card, static}
+{$LINKLIB gpu, static}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libapi;
 {$ENDIF FPC_DOTTEDUNITS}
