@@ -1986,8 +1986,11 @@ begin
   else case Param.DataType of
     ftGuid,
     ftMemo,
+    ftWideMemo,
     ftFixedChar,
-    ftString   : Result := QuotedStr(GetAsString(Param));
+    ftFixedWideChar,
+    ftString,
+    ftWideString : Result := QuotedStr(GetAsString(Param));
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftTime     : Result := '''' + TimeIntervalToString(Param.AsDateTime) + '''';
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
