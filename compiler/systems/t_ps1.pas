@@ -64,7 +64,7 @@ end;
 
 procedure TLinkerPS1.SetDefaultInfo;
 begin
-  info.ExeCmd[1]:= 'ld $OPT $MAP $RES';
+  info.ExeCmd[1]:= 'ld $MAP $RES $OPT';
 end;
 
 
@@ -103,6 +103,13 @@ begin
     while not ObjectFiles.Empty do begin
         LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');
     end;
+
+    
+    while not StaticLibFiles.Empty do begin
+      s:= StaticLibFiles.GetFirst;
+      if s <> '' then LinkRes.Add('INPUT("' + s + '")');
+    end;
+    
     
     LinkRes.Add('SECTIONS');
     LinkRes.Add('{');
