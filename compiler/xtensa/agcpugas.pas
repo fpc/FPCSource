@@ -66,8 +66,8 @@ unit agcpugas;
     function TXtensaGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-	{ Released FreeRTOS binutils do not support -EB/-EL options }
-        if target_info.system=system_xtensa_freertos then
+	{ Espressif binutils do not support -EB/-EL options }
+        if target_info.system in [system_xtensa_embedded,system_xtensa_freertos] then
           Replace(result,'$SHORTENDIAN','')
         else if target_info.endian=endian_little then
           Replace(result,'$SHORTENDIAN','-EL')
