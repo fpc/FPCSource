@@ -1538,6 +1538,8 @@ begin
     R.Intersect(P);
     Dec(R.B.Y,1);
     HistoryWindow := InitHistoryWindow(R);
+    if Assigned(Link) then
+      HistoryWindow^.GrowMode := Link^.GrowMode;
     if HistoryWindow <> nil then
     begin
       C := Owner^.ExecView(HistoryWindow);

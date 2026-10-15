@@ -529,6 +529,7 @@ TYPE
       FUNCTION GetSelection: Sw_String; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE InitViewer (HistoryId: Word); Virtual;
+      PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
    END;
    PHistoryWindow = ^THistoryWindow;
 
@@ -3760,6 +3761,7 @@ BEGIN
    Inherited Init(Bounds, 1, AHScrollBar,
      AVScrollBar);                                    { Call ancestor }
    HistoryId := AHistoryId;                           { Hold history id }
+   GrowMode:=gfGrowHiX+gfGrowHiY;
    SetRange(HistoryCount(AHistoryId));                { Set history range }
    If (Range > 1) Then FocusItem(1);                  { Set to item 1 }
    If (HScrollBar <> Nil) Then
@@ -3866,6 +3868,20 @@ BEGIN
    If (Viewer <> Nil) Then Insert(Viewer);            { Insert viewer }
 END;
 
+{--THistoryWindow-----------------------------------------------------------}
+{  ChangeBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Oct2026 M      }
+{---------------------------------------------------------------------------}
+PROCEDURE THistoryWindow.ChangeBounds (Var Bounds: TRect);
+BEGIN
+     Inherited ChangeBounds(Bounds);
+     If Assigned(Viewer) then
+     Begin
+       Viewer^.SetRange(Viewer^.Range); { Set again for scrollbar min max values }
+       If (Viewer^.HScrollBar <> Nil) Then
+         Viewer^.HScrollBar^.SetRange(1,PHistoryViewer(Viewer)^.HistoryWidth-Viewer^.Size.X + 3);{ Set scrollbar range }
+     End;
+END;
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          THistory OBJECT METHODS                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -3965,6 +3981,8 @@ BEGIN
      R.Intersect(P);                                  { Intersect views }
      Dec(R.B.Y,1);                                    { Shorten length by one }
      HistoryWindow := InitHistoryWindow(R);           { Create history window }
+     if Assigned(Link) then
+       HistoryWindow^.GrowMode := Link^.GrowMode;
      If (HistoryWindow <> Nil) Then Begin             { Window crested okay }
        C := Owner^.ExecView(HistoryWindow);           { Execute this window }
        If (C = cmOk) Then Begin                       { Result was okay }
