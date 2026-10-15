@@ -1,3 +1,4 @@
+{ %target=darwin,win32,win64,linux,freebsd,netbsd,openbsd }
 {
     Tests for the HEIF reader and writer through libheif: HEIC and AVIF,
     lossy and lossless, alpha, metadata, several top-level images and errors.
