@@ -34,8 +34,6 @@ type
       procedure WriteScriptFile;
       function CreatePSXEXE(name: string): boolean;
 
-      function check4PSYQunit(name: string): boolean;
-
     public
 
       constructor Create; override;
@@ -70,44 +68,6 @@ begin
 end;
 
 
-function TLinkerPS1.check4PSYQunit(name: string): boolean;
-begin
-  result:= false;
-  case name of
-    'libcd.o' : result:= true;
-    'libcomb.o' : result:= true;
-    'libds.o' : result:= true;
-    'libetc.o' : result:= true;
-    'libgpu.o' : result:= true;
-    'libgs.o' : result:= true;
-    'libgte.o' : result:= true;
-    'libhmd.o' : result:= true;
-    'libmcgui.o' : result:= true;
-    'libmcrd.o' : result:= true;
-    'libpress.o' : result:= true;
-    'libsnd.o' : result:= true;
-    'libspu.o' : result:= true;
-    'libstd.o' : result:= true;
-  else
-    result:= false;
-  end;
-end;
-
-  
-  
- 
-  
-  
-  
- 
- 
-  
-  
-  
-  
-  
-
-
 procedure TLinkerPS1.WriteScriptFile;
 Var
     i : integer;
@@ -116,11 +76,9 @@ Var
     megastr : ansistring;
     newname : ansistring;
     HPath    : TCmdStrListItem;
-    writePSYQgroup : boolean;
+    isgroup : boolean;
 
 begin
-
-    writePSYQgroup:= false;
 
     { Open link.res file }
     LinkRes:= TLinkRes.Create(outputexedir + Info.ResName, true);
@@ -146,43 +104,22 @@ begin
 
     while not ObjectFiles.Empty do begin
         s:= ExtractFileName(ObjectFiles.GetFirst);
-        
-        if check4PSYQunit(s) then writePSYQgroup:= true;
+        if s <> '' then LinkRes.Add('INPUT(' + s + ')');
+    end;
 
-        LinkRes.Add('INPUT(' + s + ')');
+    
+    isgroup:= not StaticLibFiles.Empty;
+    if isgroup then begin
+      LinkRes.Add('');
+      LinkRes.Add('GROUP(');
     end;
     
     while not StaticLibFiles.Empty do begin
-      s:= StaticLibFiles.GetFirst;
-      if s <> '' then LinkRes.Add('INPUT("' + s + '")');
+      s:= ExtractFileName(StaticLibFiles.GetFirst);
+      if s <> '' then LinkRes.Add('       ' + s);
     end;
 
-
-    LinkRes.Add('');
-    if writePSYQgroup then begin
-      LinkRes.Add('GROUP(');
-      LinkRes.Add('       libapi.a');
-      LinkRes.Add('       libc2.a');
-      LinkRes.Add('       libcard.a');
-      LinkRes.Add('       libcd.a');
-      LinkRes.Add('       libcomb.a');
-      LinkRes.Add('       libds.a');
-      LinkRes.Add('       libetc.a');
-      LinkRes.Add('       libgpu.a');
-      LinkRes.Add('       libgs.a');
-      LinkRes.Add('       libgte.a');
-      LinkRes.Add('       libgun.a');
-      LinkRes.Add('       libhmd.a');
-      LinkRes.Add('       libmath.a');
-      LinkRes.Add('       libmcrd.a');
-      LinkRes.Add('       libmcx.a');
-      LinkRes.Add('       libpad.a');
-      LinkRes.Add('       libpress.a');
-      LinkRes.Add('       libsio.a');
-      LinkRes.Add('       libsn.a');
-      LinkRes.Add('       libsnd.a');
-      LinkRes.Add('       libspu.a');
-      LinkRes.Add('       libtap.a');
+    if isgroup then begin
       LinkRes.Add(')');
       LinkRes.Add('');
     end;
