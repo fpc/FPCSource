@@ -387,6 +387,7 @@ type
     FMethods: TRttiMethodArray;
     FFields : TRttiFieldArray;
     FProperties : TRttiPropertyArray;
+    FPropertiesInDeclOrder : TRttiPropertyArray;
     FIndexedProperties : TRttiIndexedPropertyArray;
     function GetAsInstance: TRttiInstanceType;
     function GetAsOrdinal: TRttiOrdinalType;
@@ -416,6 +417,7 @@ type
     function GetDeclaredIndexedProperties: TRttiIndexedPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetProperties: TRttiPropertyArray; virtual;
+    function GetPropertiesInDeclOrder: TRttiPropertyArray; virtual;
     function GetIndexedProperty(const AName: string): TRttiIndexedProperty; virtual;
     function GetIndexedProperties: TRttiIndexedPropertyArray; virtual;
     function GetMethods: TRttiMethodArray; virtual; overload;
@@ -923,6 +925,7 @@ type
     function GetFields : TRttiFieldArray; override;
     function GetMethods: TRttiMethodArray; override;
     function GetProperties: TRttiPropertyArray; override;
+    function GetPropertiesInDeclOrder: TRttiPropertyArray; override;
     function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray; override;
     function GetDeclaredProperties: TRttiPropertyArray; override;
@@ -7358,6 +7361,11 @@ begin
   Result:=GetDeclaredProperties;
 end;
 
+function TRttiRecordType.GetPropertiesInDeclOrder: TRttiPropertyArray;
+begin
+  Result:=GetDeclaredProperties;
+end;
+
 function TRttiRecordType.GetDeclaredFields: TRttiFieldArray;
 begin
   If not FFieldsResolved then
@@ -8209,6 +8217,31 @@ begin
   else
     fProperties := selfproperties + parentproperties;
   Result := fProperties;
+end;
+
+function TRttiType.GetPropertiesInDeclOrder: TRttiPropertyArray;
+var
+  parentproperties, selfproperties: TRttiPropertyArray;
+  parent: TRttiType;
+begin
+  if Assigned(fPropertiesInDeclOrder) then
+    Exit(fPropertiesInDeclOrder);
+
+  selfproperties := GetDeclaredProperties;
+
+  parent := GetBaseType;
+  if Assigned(parent) then
+    parentproperties := parent.GetPropertiesInDeclOrder
+  else
+    parentproperties := nil;
+
+  if (not Assigned(parent)) or (Length(parentproperties) = 0) then
+    fPropertiesInDeclOrder := selfproperties
+  else if Length(selfproperties) = 0 then
+    fPropertiesInDeclOrder := parentproperties
+  else
+    fPropertiesInDeclOrder := parentproperties + selfproperties;
+  Result := fPropertiesInDeclOrder;
 end;
 
 function TRttiType.GetIndexedProperties: TRttiIndexedPropertyArray;
