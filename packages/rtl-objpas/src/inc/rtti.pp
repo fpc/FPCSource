@@ -25,6 +25,7 @@ unit Rtti;
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 {$modeswitch functionreferences}
+{$modeswitch arrayoperators}
 {$goto on}
 {$Assertions on}
 
@@ -8189,21 +8190,7 @@ function TRttiType.GetProperties: TRttiPropertyArray;
 var
   parentproperties, selfproperties: TRttiPropertyArray;
   parent: TRttiType;
-  prop: TRttiProperty;
-  NameIndexes : Array of Integer;
-  Idx, IdxCount, aCount, I: Integer;
-
-  Function IndexOfNameIndex(Idx : Integer) : integer;
-  begin
-    Result:=IdxCount-1;
-    While (Result>=0) and (NameIndexes[Result]<>Idx) do
-      Dec(Result);
-  end;
-
 begin
-  NameIndexes:=[];
-  IdxCount:=0;
-
   if Assigned(fProperties) then
     Exit(fProperties);
 
@@ -8216,46 +8203,11 @@ begin
     parentproperties := nil;
 
   if (not Assigned(parent)) or (Length(parentproperties) = 0) then
-  begin
-    fProperties := selfproperties;
-    Exit(fProperties);
-  end
+    fProperties := selfproperties
   else if Length(selfproperties) = 0 then
-  begin
-    fProperties := parentproperties;
-    Exit(fProperties);
-  end;
-
-  aCount := Length(parentproperties) + Length(selfproperties);
-  SetLength(fProperties,aCount);
-  SetLength(NameIndexes,aCount);
-
-  IdxCount := 0;
-
-  For I:=0 to Length(selfproperties)-1 do
-  begin
-    prop := selfproperties[I];
-
-    NameIndexes[IdxCount]:=Prop.FPropInfo^.NameIndex;
-    fProperties[IdxCount]:=Prop;
-    Inc(IdxCount);
-  end;
-
-  For I:=0 to Length(parentproperties)-1 do
-  begin
-    Prop := parentproperties[I];
-    Idx:=IndexOfNameIndex(Prop.FPropInfo^.NameIndex);
-
-    if Idx = -1 then
-    begin
-      NameIndexes[IdxCount]:=Prop.FPropInfo^.NameIndex;
-      fProperties[IdxCount]:=Prop;
-      Inc(IdxCount);
-    end;
-  end;
-
-  SetLength(fProperties, IdxCount);
-
+    fProperties := parentproperties
+  else
+    fProperties := selfproperties + parentproperties;
   Result := fProperties;
 end;
 
@@ -8263,21 +8215,7 @@ function TRttiType.GetIndexedProperties: TRttiIndexedPropertyArray;
 var
   parentproperties, selfproperties: TRttiIndexedPropertyArray;
   parent: TRttiType;
-  iprop: TRttiIndexedProperty;
-  NameIndexes : Array of Integer;
-  Idx, IdxCount, aCount, I: Integer;
-
-  Function IndexOfNameIndex(Idx : Integer) : integer;
-  begin
-    Result:=IdxCount-1;
-    While (Result>=0) and (NameIndexes[Result]<>Idx) do
-      Dec(Result);
-  end;
-
 begin
-  NameIndexes:=[];
-  IdxCount:=0;
-
   if Assigned(fIndexedProperties) then
     Exit(fIndexedProperties);
 
@@ -8290,46 +8228,11 @@ begin
     parentproperties := nil;
 
   if (not Assigned(parent)) or (Length(parentproperties) = 0) then
-  begin
-    fIndexedProperties := selfproperties;
-    Exit(fIndexedProperties);
-  end
+    fIndexedProperties := selfproperties
   else if Length(selfproperties) = 0 then
-  begin
-    fIndexedProperties := parentproperties;
-    Exit(fIndexedProperties);
-  end;
-
-  aCount := Length(parentproperties) + Length(selfproperties);
-  SetLength(fIndexedProperties,aCount);
-  SetLength(NameIndexes,aCount);
-
-  IdxCount := 0;
-
-  For I:=0 to Length(selfproperties)-1 do
-  begin
-    IProp := selfproperties[I];
-
-    NameIndexes[IdxCount]:=IProp.FPropInfo^.NameIndex;
-    fIndexedProperties[IdxCount]:=IProp;
-    Inc(IdxCount);
-  end;
-
-  For I:=0 to Length(parentproperties)-1 do
-  begin
-    IProp := parentproperties[I];
-    Idx:=IndexOfNameIndex(IProp.FPropInfo^.NameIndex);
-
-    if Idx = -1 then
-    begin
-      NameIndexes[IdxCount]:=IProp.FPropInfo^.NameIndex;
-      fIndexedProperties[IdxCount]:=IProp;
-      Inc(IdxCount);
-    end;
-  end;
-
-  SetLength(fIndexedProperties, IdxCount);
-
+    fIndexedProperties := parentproperties
+  else
+    fIndexedProperties := selfproperties + parentproperties;
   Result := fIndexedProperties;
 end;
 
