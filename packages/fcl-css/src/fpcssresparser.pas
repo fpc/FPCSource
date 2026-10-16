@@ -841,6 +841,7 @@ type
     procedure CheckSelectorList(aList: TCSSListElement); virtual;
     procedure CheckNthChildParams(aCall: TCSSResolvedCallElement); virtual;
     function ComputeValue(El: TCSSElement): TCSSString; virtual;
+    function GetValueAsString(El: TCSSElement): TCSSString; virtual;
   public
     CSSNthChildParamsClass: TCSSNthChildParamsClass;
     CSSAttributeKeyDataClass: TCSSAttributeKeyDataClass;
@@ -4237,7 +4238,7 @@ begin
     begin
       if (i>0) then
         ValueStr+=', ';
-      ValueStr+=Result.Children[i].AsString;
+      ValueStr+=GetValueAsString(Result.Children[i]);
     end;
 
     // tokenize the value once, for every known attribute (including 'all' and
@@ -4635,6 +4636,29 @@ begin
 
   if (aCall.NameNumericalID in [CSSCallID_NthOfType,CSSCallID_NthLastOfType]) then
     Params.HasOf:=true;
+end;
+
+function TCSSResolverParser.GetValueAsString(El: TCSSElement): TCSSString;
+// TCSSURLElement.AsString writes simple urls unquoted, e.g. url(a.png), which
+// Tokenize does not support, so write them as url("a.png")
+var
+  List: TCSSListElement;
+  i: Integer;
+begin
+  if El is TCSSURLElement then
+    Result:='url('+StringToCSSString(TCSSURLElement(El).Value)+')'
+  else if El.ClassType=TCSSListElement then
+  begin
+    List:=TCSSListElement(El);
+    Result:='';
+    for i:=0 to List.ChildCount-1 do
+    begin
+      if i>0 then
+        Result+=' ';
+      Result+=GetValueAsString(List.Children[i]);
+    end;
+  end else
+    Result:=El.AsString;
 end;
 
 function TCSSResolverParser.ComputeValue(El: TCSSElement): TCSSString;
