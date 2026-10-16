@@ -433,6 +433,26 @@ begin
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
 end;
 
+{ ends an except block. The exception it handled is destroyed while its entry
+  is still on the stack, emptied as fpc_reraise leaves it: an exception out of
+  the destructor is raised inside the except block, where __FPC_specific_handler
+  takes the top entry off the stack -- this one, and not the entry of an
+  exception handled further out }
+procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
+var
+  hp : PExceptObject;
+  obj : TObject;
+begin
+  hp:=ExceptObjectStack;
+  if hp^.refcount=0 then
+    obj:=hp^.FObject
+  else
+    obj:=nil;
+  hp^.FObject:=nil;
+  obj.Free;
+  Internal_PopObjectStack;
+end;
+
 
 {$ifdef DEBUG_SEH}
 procedure PrintScope(idx: integer; scope: PScopeRec);
@@ -444,6 +464,28 @@ begin
   end;
 end;
 {$endif DEBUG_SEH}
+
+{ destroys an exception object that the handler releases while an exception is
+  dispatched: an exception out of its destructor, and out of that one's, goes
+  no further -- raised there, it would be dispatched inside the dispatch, and
+  the handler would release the exception of the except block it is raised in
+  once more }
+procedure FreeReleasedException(obj: TObject);
+var
+  o: TObject;
+begin
+  while assigned(obj) do
+  begin
+    o:=obj;
+    obj:=nil;
+    try
+      o.Free;
+    except
+      obj:=TObject(AcquireExceptionObject);
+    end;
+  end;
+end;
+
 
 { Remove the entries below the top of the exception object stack whose unwind
   was in progress deeper on the stack than aFrame, freeing their frames and the
@@ -470,7 +512,7 @@ begin
       if assigned(lEntry^.Frames) then
         freemem(lEntry^.Frames);
       dispose(lEntry);
-      lObj.Free;
+      FreeReleasedException(lObj);
     end;
     lEntry:=lPrev^.Next;
   end;
@@ -627,7 +669,7 @@ begin
         and dispose the existing exception object if so. }
       if (ControlRva>=scope^.RvaEnd) and (ControlRva<scope^.RvaHandler) and
         ((scope^.Typ=SCOPE_CATCHALL) or (scope^.Typ>SCOPE_IMPLICIT)) then
-        Internal_PopObjectStack.Free
+        FreeReleasedException(Internal_PopObjectStack)
       else if (ControlRva>=scope^.RvaStart) and (ControlRva<scope^.RvaEnd) and
         (scope^.Typ<>SCOPE_FINALLY)then
       begin

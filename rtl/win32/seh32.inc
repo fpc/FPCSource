@@ -181,6 +181,28 @@ begin
 end;
 
 
+{ destroys an exception object that the handler releases while an exception is
+  dispatched: an exception out of its destructor, and out of that one's, goes
+  no further -- raised there, it would be caught by the except block the
+  dispatched exception is about to enter, and that one's entry would be left
+  on the stack }
+procedure FreeReleasedException(obj: TObject);
+var
+  o: TObject;
+begin
+  while assigned(obj) do
+  begin
+    o:=obj;
+    obj:=nil;
+    try
+      o.Free;
+    except
+      obj:=TObject(AcquireExceptionObject);
+    end;
+  end;
+end;
+
+
 { Remove the entries below the top of the exception object stack whose unwind
   targets a frame at or above aFrame, freeing their frames and the exception
   objects that were not acquired. }
@@ -205,7 +227,7 @@ begin
         lObj:=nil;
       if assigned(lEntry^.Frames) then
         freemem(lEntry^.Frames);
-      lObj.Free;
+      FreeReleasedException(lObj);
     end;
     lEntry:=lPrev^.Next;
   end;
