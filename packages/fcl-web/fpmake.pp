@@ -148,6 +148,14 @@ begin
           AddUnit('fphttp');
           AddUnit('httpdefs');
         end;
+    T:=P.Targets.AddUnit('dbwebsession.pp');
+    T.ResourceStrings:=true;
+    T.OSes:=SqldbConnectionOSes;
+      with T.Dependencies do
+        begin
+          AddUnit('fphttp');
+          AddUnit('httpdefs');
+        end;
     T:=P.Targets.AddUnit('websession.pp');
       with T.Dependencies do
         begin

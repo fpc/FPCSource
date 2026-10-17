@@ -17,6 +17,7 @@ src/base/custhttpapp.pp=namespaced/FpWeb.HostApp.Custom.HttpApp.pp
 src/base/ezcgi.pp=namespaced/FpWeb.HostApp.EzCgi.pp
 src/base/fpmimetypes.pp=namespaced/FpWeb.MimeTypes.pp
 src/base/iniwebsession.pp=namespaced/FpWeb.Session.Ini.pp
+src/base/dbwebsession.pp=namespaced/FpWeb.Session.DB.pp
 src/base/httpprotocol.pp=namespaced/FpWeb.Http.Protocol.pp
 src/base/custapache24.pp=namespaced/FpWeb.HostApp.Custom.Apache24.pp
 src/base/custmicrohttpapp.pp=namespaced/FpWeb.HostApp.Custom.MicroHttpApp.pp
