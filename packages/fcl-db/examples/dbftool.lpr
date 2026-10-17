@@ -12,6 +12,7 @@ and exporting datasets.
 
 uses {$IFDEF UNIX} {$IFDEF UseCThreads}
   cthreads, {$ENDIF} {$ENDIF}
+  {$IFDEF UNIX} clocale, {$ENDIF}
   Classes,
   SysUtils,
   CustApp,

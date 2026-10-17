@@ -12,6 +12,7 @@ program dbtestframework_gui;
 // options.
 
 uses
+  {$ifdef unix}clocale,{$endif}
   Interfaces, Forms,
   // GUI:
   StdCtrls {to extend GuiTestRunner},

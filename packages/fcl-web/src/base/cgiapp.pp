@@ -22,17 +22,13 @@ unit CgiApp;
 
 Interface
 
+{ On Unix, programs using this unit will normally need the cwstring unit. }
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  {$ifdef Unix}
-  UnixApi.CWString,
-  {$endif}
   Fcl.CustApp,System.Classes, System.SysUtils, FpWeb.Http.Defs, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  {$ifdef unix}
-  cwstring,
-  {$endif}
   CustApp,Classes, SysUtils, httpdefs, htmlelements;
 {$ENDIF FPC_DOTTEDUNITS}
 

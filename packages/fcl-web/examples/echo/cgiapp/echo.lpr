@@ -1,6 +1,6 @@
 program echo;
 
-uses classes,sysutils,cgiapp;
+uses {$ifdef unix}cwstring,{$endif} classes,sysutils,cgiapp;
 
 Type
 
