@@ -103,7 +103,7 @@ interface
         procedure g_save_registers(list: TAsmList);override;
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
-        procedure g_check_for_fpu_exception(list: TAsmList; force, clear: boolean);override;
+        procedure g_check_for_fpu_exception(list: TAsmList; force, clear, preserve_flags: boolean);override;
         procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
         procedure adjust_exceptfilter_ref(var ref: treference; for_finalization: boolean);override;
         procedure g_profilecode(list: TAsmList);override;
@@ -2690,9 +2690,9 @@ implementation
       end;
 
 
-    procedure tcgaarch64.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+    procedure tcgaarch64.g_check_for_fpu_exception(list: TAsmList;force,clear,preserve_flags : boolean);
       var
-        r, tmpreg: TRegister;
+        r, rnzcv, tmpreg: TRegister;
         ai: taicpu;
         l1,l2: TAsmLabel;
       begin
@@ -2702,6 +2702,11 @@ implementation
           begin
             r:=getintregister(list,OS_INT);
             tmpreg:=getintregister(list,OS_INT);
+            if preserve_flags then
+              begin
+                rnzcv:=getintregister(list,OS_INT);
+                list.concat(taicpu.op_reg_reg(A_MRS,rnzcv,NR_NZCV));
+              end;
             list.concat(taicpu.op_reg_reg(A_MRS,r,NR_FPSR));
             list.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,r,$1f));
             current_asmdata.getjumplabel(l1);
@@ -2718,6 +2723,8 @@ implementation
             cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l2);
+            if preserve_flags then
+              list.concat(taicpu.op_reg_reg(A_MSR,NR_NZCV,rnzcv));
             if clear then
               current_procinfo.FPUExceptionCheckNeeded:=false;
           end;

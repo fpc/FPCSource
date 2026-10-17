@@ -238,7 +238,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
                  location.register,left.location.register,right.location.register),pf));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              cg.maybe_check_for_fpu_exception(current_asmdata.currasmlist);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
             begin
@@ -346,6 +346,7 @@ interface
             { this case should be handled already by pass1 }
             internalerror(2009112404);
         end;
+        cg.maybe_check_for_fpu_compare_exception(current_asmdata.currasmlist);
       end;
 
 

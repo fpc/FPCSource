@@ -464,9 +464,13 @@ unit cgobj;
           procedure g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister); virtual;
 
           { some CPUs do not support hardware fpu exceptions, this procedure is called after instructions which
-            might set FPU exception related flags, so it has to check these flags if needed and throw an exeception }
-          procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); virtual;
+            might set FPU exception related flags, so it has to check these flags if needed and throw an exception.
+	    force: Always generate specific code
+	    clear: Reset procinfo flag after generation
+	    preserve_flags: Add specific code to store/reload flags for fpu comparisons }
+          procedure g_check_for_fpu_exception(list: TAsmList;force,clear,preserve_flags : boolean); virtual;
           procedure maybe_check_for_fpu_exception(list: TAsmList);
+          procedure maybe_check_for_fpu_compare_exception(list: TAsmList);
 
           { Called to adjust references in exceptfilter handlers. Override
             in CPU-specific code generator for platforms that need special handling
@@ -3116,7 +3120,7 @@ implementation
       end;
 
 
-    procedure tcg.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+    procedure tcg.g_check_for_fpu_exception(list: TAsmList;force,clear,preserve_flags : boolean);
       begin
         { empty by default }
       end;
@@ -3125,7 +3129,13 @@ implementation
     procedure tcg.maybe_check_for_fpu_exception(list: TAsmList);
       begin
         current_procinfo.FPUExceptionCheckNeeded:=true;
-        g_check_for_fpu_exception(list,false,true);
+        g_check_for_fpu_exception(list,false,true,false);
+      end;
+
+    procedure tcg.maybe_check_for_fpu_compare_exception(list: TAsmList);
+      begin
+        current_procinfo.FPUExceptionCheckNeeded:=true;
+        g_check_for_fpu_exception(list,false,true,true);
       end;
 
 
