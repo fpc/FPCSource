@@ -3545,7 +3545,7 @@ function TCustomSession.IsValidSessionID(const S: String): Boolean;
 var
   C: Char;
 begin
-  Result := (Length(S) = 34);
+  Result := (Length(S) = 36);
   if Result then
     for C in S do
       if not (C in ['0'..'9','a'..'f','A'..'F','-']) then
