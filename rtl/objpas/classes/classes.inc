@@ -635,12 +635,43 @@ begin
     end;
 end;
 
+{ Returns the number of queued entries that can be executed now }
+Function CountDueThreadQueueEntries : SizeInt;
+var
+  lEntry : TThread.PThreadQueueEntry;
+  lNow : TDateTime;
+
+begin
+  Result:=0;
+  if ThreadQueueHead=Nil then
+    Exit;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  System.EnterCriticalSection(ThreadQueueLock);
+  try
+{$endif}
+    lNow:=Now;
+    lEntry:=ThreadQueueHead;
+    While Assigned(lEntry) do
+      begin
+      if (lEntry^.ExecuteAfter=0) or (lEntry^.ExecuteAfter<=lNow) then
+        Inc(Result);
+      lEntry:=lEntry^.Next;
+      end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    System.LeaveCriticalSection(ThreadQueueLock);
+  end;
+{$endif}
+end;
+
+
 function CheckSynchronize(timeout : longint=0) : boolean;
 
 { assumes being called from GUI thread }
 var
   ExceptObj: TObject;
   tmpentry: TThread.PThreadQueueEntry;
+  lCount: SizeInt;
 
 begin
   result:=false;
@@ -655,9 +686,14 @@ begin
     RtlEventWaitFor(SynchronizeTimeoutEvent,timeout)
   else
     RtlEventResetEvent(SynchronizeTimeoutEvent);
-  tmpentry := PopThreadQueueHead;
-  while Assigned(tmpentry) do
+  { entries queued while the loop runs are left for the next call }
+  lCount := CountDueThreadQueueEntries;
+  while lCount>0 do
     begin
+    tmpentry := PopThreadQueueHead;
+    if not Assigned(tmpentry) then
+      break;
+    Dec(lCount);
     { at least one method is handled, so return true }
     result := true;
     { step 2: execute the method }
@@ -682,9 +718,11 @@ begin
       if Assigned(exceptobj) then
         raise exceptobj;
       end;
-    tmpentry := PopThreadQueueHead;
-    end
-{$endif};
+    end;
+  { wake up the next wait for the entries that are left }
+  if CountDueThreadQueueEntries>0 then
+    RtlEventSetEvent(SynchronizeTimeoutEvent);
+{$endif}
 end;
 
 
