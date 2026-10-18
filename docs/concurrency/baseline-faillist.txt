@@ -1,0 +1,20 @@
+test/opt/tdfa11
+test/opt/tdfa8
+test/packages/webtbs/tw11142
+test/packages/webtbs/tw14265
+test/timplements4a
+test/timplements4b
+test/tisoreset
+test/tlibrary3
+test/tmultilinestring26
+test/tset6
+webtbs/tw0876
+This test needs C libraries
+webtbs/tw11563
+webtbs/tw2536b
+webtbs/tw39722
+webtbs/tw40453
+webtbs/tw41487
+webtbs/tw41865c
+webtbs/tw7756
+webtbf/tw3930a

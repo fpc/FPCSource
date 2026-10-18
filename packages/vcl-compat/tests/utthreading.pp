@@ -397,6 +397,10 @@ type
     procedure CheckLocal;
     procedure DoEvent(aSender: TObject; aIndex: Integer);
     procedure DoEvent64(aSender: TObject; aIndex: Int64);
+    procedure DoSleepEvent(aSender: TObject; aIndex: Integer);
+    procedure DoCountEvent(aSender: TObject; aIndex: Integer);
+    procedure DoCountEvent64(aSender: TObject; aIndex: Int64);
+    procedure CheckCountedOnce(const aMsg: String);
   Protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -405,6 +409,11 @@ type
     Procedure TestForEvent;
     {$IFDEF CPU64}
     Procedure TestForEvent64;
+    {$ENDIF}
+    Procedure TestForColdPoolParallel;
+    Procedure TestForEachIterationOnce;
+    {$IFDEF CPU64}
+    Procedure TestForEachIterationOnce64;
     {$ENDIF}
   end;
 
@@ -2184,6 +2193,110 @@ begin
   L:=TParallel.&For(Self,1,1,255,@DoEvent64);
   AssertTrue('Correct result',L.Completed);
   CheckLocal;
+end;
+{$ENDIF}
+
+procedure TTestParallel.DoSleepEvent(aSender: TObject; aIndex: Integer);
+begin
+  Sleep(20);
+  FResults[aIndex]:=aIndex;
+end;
+
+procedure TTestParallel.TestForColdPoolParallel;
+// Regression test: on a freshly created pool the loop replicas are pushed on
+// the local queue of the worker running the root task. Idle workers only looked
+// at other local queues after a wake-up signal, which is not sent while the pool
+// is still starting threads, so the root task ran all iterations by itself.
+const
+  Iterations = 48;
+  IterationTime = 20;
+  Rounds = 5;
+var
+  Pool : TThreadPool;
+  L : TParallel.TLoopResult;
+  R, I : Integer;
+  Start, Elapsed : QWord;
+begin
+  if TThread.ProcessorCount<2 then
+    Ignore('Needs at least 2 CPUs');
+  For R:=1 to Rounds do
+    begin
+    FillChar(FResults,SizeOf(FResults),0);
+    Pool:=TThreadPool.Create;
+    try
+      Start:=GetTickCount64;
+      L:=TParallel.&For(Self,1,1,Iterations,@DoSleepEvent,Pool);
+      Elapsed:=GetTickCount64-Start;
+    finally
+      Pool.Free;
+    end;
+    AssertTrue('Completed',L.Completed);
+    For I:=1 to Iterations do
+      AssertEquals('Element '+IntToStr(I),I,FResults[I]);
+    AssertTrue(Format('Round %d ran (nearly) sequentially: %d ms',[R,Elapsed]),
+               Elapsed<(Iterations*IterationTime) div 2);
+    end;
+end;
+
+const
+  CountIterations = 200000;
+  CountRounds = 200;
+
+var
+  // One counter per iteration; must be exactly 1 after each loop.
+  _Counts : array of Integer;
+
+procedure TTestParallel.DoCountEvent(aSender: TObject; aIndex: Integer);
+begin
+  AtomicIncrement(_Counts[aIndex]);
+end;
+
+procedure TTestParallel.DoCountEvent64(aSender: TObject; aIndex: Int64);
+begin
+  AtomicIncrement(_Counts[aIndex]);
+end;
+
+procedure TTestParallel.CheckCountedOnce(const aMsg: String);
+var
+  I : Integer;
+begin
+  For I:=0 to CountIterations-1 do
+    if _Counts[I]<>1 then
+      Fail(Format('%s: iteration %d executed %d times',[aMsg,I,_Counts[I]]));
+end;
+
+procedure TTestParallel.TestForEachIterationOnce;
+// Regression test: a worker claimed a range using one stride value and then
+// executed a range computed with another one, read separately while other
+// workers were growing the stride. Iterations got lost or ran twice.
+var
+  R : Integer;
+  L : TParallel.TLoopResult;
+begin
+  SetLength(_Counts,CountIterations);
+  For R:=1 to CountRounds do
+    begin
+    FillChar(_Counts[0],CountIterations*SizeOf(Integer),0);
+    L:=TParallel.&For(Self,0,CountIterations-1,@DoCountEvent);
+    AssertTrue('Completed',L.Completed);
+    CheckCountedOnce('Round '+IntToStr(R));
+    end;
+end;
+
+{$IFDEF CPU64}
+procedure TTestParallel.TestForEachIterationOnce64;
+var
+  R : Integer;
+  L : TParallel.TLoopResult;
+begin
+  SetLength(_Counts,CountIterations);
+  For R:=1 to CountRounds do
+    begin
+    FillChar(_Counts[0],CountIterations*SizeOf(Integer),0);
+    L:=TParallel.&For(Self,Int64(0),Int64(CountIterations-1),@DoCountEvent64);
+    AssertTrue('Completed',L.Completed);
+    CheckCountedOnce('Round '+IntToStr(R));
+    end;
 end;
 {$ENDIF}
 

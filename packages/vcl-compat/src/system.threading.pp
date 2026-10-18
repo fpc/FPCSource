@@ -431,6 +431,7 @@ type
     function CheckShouldTerminate(aThread: TQueueWorkerThread): Boolean;
     function GetWorkItemForThread(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
     function GetWorkItemFromQueues(aSkip: TWorkStealingQueueThreadPoolWorkItem; out Itm: IThreadPoolWorkItem): Boolean;
+    function TryGetStolenWorkItem(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
     // Notification when work was queued
     procedure SignalExecuting(aThread: TQueueWorkerThread);
     // Monitoring & Thread management
@@ -839,7 +840,7 @@ type
       FMaxStride : Integer;
       Procedure UpdateBreakAt(aValue : Integer);
       Function GetCurrentStride : Integer;
-      Function GetCurrentStart : Integer;
+      Function GetCurrentStart(out aStride : Integer) : Integer;
       Function GetNextStride : Integer;
       function ShouldExitLoop(CurrentIter: Integer): Boolean; overload;
       function ShouldExitLoop: Boolean; inline; overload;
@@ -864,7 +865,7 @@ type
       FMaxStride : Int64;
       Procedure UpdateBreakAt(aValue : Int64);
       Function GetCurrentStride : Int64;
-      Function GetCurrentStart : Int64;
+      Function GetCurrentStart(out aStride : Int64) : Int64;
       Function GetNextStride : int64;
       function ShouldExitLoop(CurrentIter: Int64): Boolean; overload;
       function ShouldExitLoop: Boolean; inline; overload;
@@ -2007,6 +2008,20 @@ begin
   Result:=QueueThread.WorkQueue.LocalFindAndRemove(WorkerData);
 end;
 
+// Steal an item from another thread's local queue.
+// If more work is pending, wake another idle thread: a thread that resets
+// FQueueEvent may consume a signal that was meant for several items.
+
+function TThreadPool.TryGetStolenWorkItem(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
+
+begin
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TryGetStolenWorkItem','Checking other queues');{$ENDIF USE_THREADLOG}
+  Result:=GetWorkItemFromQueues(aThread.WorkQueue,Itm);
+  if Result and (FRequestCount>1) then
+    FQueueEvent.SetEvent;
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TryGetStolenWorkItem','Got work: %s',[BToS(Result)]);{$ENDIF USE_THREADLOG}
+end;
+
 // if there is work, return it in Itm.
 // If there is no work, return True if the thread should continue, False if it should terminate.
 
@@ -2047,6 +2062,16 @@ begin
     AtomicIncrement(FIdleThreads);
     aThread.Idle:=True;
     end;
+  // FQueueEvent is a manual-reset event. Reset it *before* looking at the other
+  // threads' local queues: work pushed after the check sets it again, so no
+  // wake-up is lost. Checking before sleeping is needed because work may have
+  // been queued while this thread was starting, when WorkQueued grew the pool
+  // instead of signalling the event.
+  FQueueEvent.ResetEvent;
+  if FShutdown then
+    Exit(False); // Stop thread
+  if TryGetStolenWorkItem(aThread,Itm) then
+    Exit(True); // We got work, do not stop thread
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Waiting for queue event (%d ms.)',[aThread.CheckWaitTime]);{$ENDIF USE_THREADLOG}
   CheckThreadQueues:=(FQueueEvent.WaitFor(aThread.CheckWaitTime)<>wrTimeout);
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Work queued triggered: %s',[BToS(CheckThreadQueues)]);{$ENDIF USE_THREADLOG}
@@ -2055,16 +2080,8 @@ begin
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');{$ENDIF USE_THREADLOG}
     Exit(False); // Stop thread
     end;
-  if CheckThreadQueues then
-    begin
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checking other queues');{$ENDIF USE_THREADLOG}
-    if GetWorkItemFromQueues(aThread.WorkQueue,Itm) then
-      begin
-      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checked other queues, got work -> no quit');{$ENDIF USE_THREADLOG}
-      Exit(True); // We got work, do not stop thread
-      end;
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','No work in other queues');{$ENDIF USE_THREADLOG}
-    end;
+  if CheckThreadQueues and TryGetStolenWorkItem(aThread,Itm) then
+    Exit(True); // We got work, do not stop thread
   if FShutdown then
     begin
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');{$ENDIF USE_THREADLOG}
@@ -4511,10 +4528,11 @@ end;
 
 
 
-function TParallel.TInt32LoopParams.GetCurrentStart: Integer;
+// Claim the next range of iterations. The stride used for the claim is
+// returned in aStride: the caller must execute exactly that many iterations,
+// since other workers may change the stride concurrently (GetNextStride).
 
-var
-  aStride : Integer;
+function TParallel.TInt32LoopParams.GetCurrentStart(out aStride: Integer): Integer;
 
 begin
   aStride:=GetCurrentStride;
@@ -4548,8 +4566,7 @@ begin
   {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);{$ENDIF USE_THREADLOG}
   UpperLimit:=HighExclusive;
   Try
-    Start:=GetCurrentStart;
-    MyStride:=GetCurrentStride;
+    Start:=GetCurrentStart(MyStride);
     {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);{$ENDIF USE_THREADLOG}
     while Start<UpperLimit do
       begin
@@ -4567,8 +4584,7 @@ begin
       if ShouldExitLoop(Start) then
         Break;
       GetNextStride;
-      MyStride:=GetCurrentStride;
-      Start:=GetCurrentStart;
+      Start:=GetCurrentStart(MyStride);
       {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
       end;
   except
@@ -4657,10 +4673,11 @@ end;
 
 
 
-function TParallel.TInt64LoopParams.GetCurrentStart: Int64;
+// Claim the next range of iterations. The stride used for the claim is
+// returned in aStride: the caller must execute exactly that many iterations,
+// since other workers may change the stride concurrently (GetNextStride).
 
-var
-  aStride : Int64;
+function TParallel.TInt64LoopParams.GetCurrentStart(out aStride: Int64): Int64;
 
 begin
   aStride:=GetCurrentStride;
@@ -4694,8 +4711,7 @@ begin
   {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);{$ENDIF USE_THREADLOG}
   UpperLimit:=HighExclusive;
   Try
-    Start:=GetCurrentStart;
-    MyStride:=GetCurrentStride;
+    Start:=GetCurrentStart(MyStride);
     {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);{$ENDIF USE_THREADLOG}
     while Start<UpperLimit do
       begin
@@ -4713,8 +4729,7 @@ begin
       if ShouldExitLoop(Start) then
         Break;
       GetNextStride;
-      MyStride:=GetCurrentStride;
-      Start:=GetCurrentStart;
+      Start:=GetCurrentStart(MyStride);
       {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
       end;
   except
