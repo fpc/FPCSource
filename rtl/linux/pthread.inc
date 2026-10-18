@@ -276,6 +276,7 @@ Var
 
     pthread_mutexattr_settype : function(__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;
     pthread_setname_np : function(thread: pthread_t; name: PAnsiChar):cint;cdecl;
+    pthread_timedjoin_np : function(__th:pthread_t; __thread_return:ppointer; __abstime:ptimespec):cint;cdecl;
 
 
 Var
@@ -369,6 +370,7 @@ begin
   Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
   Pointer(pthread_mutexattr_settype) := dlsym(PthreadDLL,'pthread_mutexattr_settype');
   Pointer(pthread_setname_np) := dlsym(PthreadDLL,'pthread_setname_np');
+  Pointer(pthread_timedjoin_np) := dlsym(PthreadDLL,'pthread_timedjoin_np');
 end;
 
 Function UnLoadPthreads : Boolean;

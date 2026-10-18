@@ -97,6 +97,15 @@ function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external;
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external;
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
+
+type
+  sched_param = record
+    __sched_priority: cint;
+  end;
+  psched_param = ^sched_param;
+
+function  pthread_setschedparam(__target_thread:pthread_t; __policy:cint; __param:psched_param):cint;cdecl;external;
+function  pthread_getschedparam(__target_thread:pthread_t; __policy:pcint; __param:psched_param):cint;cdecl;external;
 function pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external;
 function pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external;
 function pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external;

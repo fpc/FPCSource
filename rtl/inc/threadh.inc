@@ -152,8 +152,11 @@ function  ResumeThread  (threadHandle : TThreadID) : dword;
 function  CloseThread   (threadHandle : TThreadID) : dword;
 procedure ThreadSwitch;                                                                {give time to other threads}
 function  KillThread (threadHandle : TThreadID) : dword;
-function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
-function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
+{ Returns the exit code of the thread, or dword(-1) on timeout or error.
+  TimeoutMs: 0 or -1 waits without timeout. }
+function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
+{ Prio: -15 (idle) .. +15 (time critical), 0=normal. Returns false if the OS refuses. }
+function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;
 function  ThreadGetPriority (threadHandle : TThreadID): longint;
 function  GetCurrentThreadId : TThreadID;
 procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: AnsiString);

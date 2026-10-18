@@ -52,9 +52,8 @@
 var
   ThreadsInited: boolean = false;
 const
-  // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
-   (-20,-19,-10,0,9,18,19);
+   (-15,-10,-5,0,5,10,15);
   { flag in TThread.FWaitState, set when a FreeOnTerminate thread has finished }
   WaitStateDone = $40000000;
 
@@ -299,8 +298,9 @@ var
 begin
   P := ThreadGetPriority(FHandle);
   Result := tpNormal;
+  { nearest priority level }
   for I := Low(TThreadPriority) to High(TThreadPriority) do
-    if Priorities[I] = P then
+    if Abs(Priorities[I] - P) < Abs(Priorities[Result] - P) then
       Result := I;
 end;
 
