@@ -685,7 +685,10 @@ end;
 function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
-  Result:=Format(SUnknownErrorCode,[ErrorCode]);
+  if (ErrorCode>=Low(__fpc_wasi_sys_errlist)) and (ErrorCode<=High(__fpc_wasi_sys_errlist)) then
+    Result:=__fpc_wasi_sys_errlist[ErrorCode]
+  else
+    Result:=Format(SUnknownErrorCode,[ErrorCode]);
 end;
 
 {****************************************************************************
