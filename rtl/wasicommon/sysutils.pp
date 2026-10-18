@@ -40,6 +40,7 @@ uses
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 {$DEFINE HAS_GETTICKCOUNT64}
 
 { used OS file system APIs use ansistring }
@@ -93,6 +94,10 @@ end;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+function GetLastOSError: Integer;
+begin
+  Result:=__fpc_wasm_LastOSError;
+end;
 
 function GetTickCount64: QWord;
 var
