@@ -3007,6 +3007,9 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
           inc(n);
         end;
       Result := Length(s1);
+      { a sign without digits is no number }
+      if (Result=1) and (s1[1] in ['+','-']) then
+        Result:=0;
     end;
 
 
@@ -3041,47 +3044,53 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 
   function ScanStr(c : AnsiChar) : Boolean;
     begin
-      while (Length(s) > n) and (s[n] <> c) do
+      Result := (n <= Length(s)) and (s[n] = c);
+      if Result then
         inc(n);
-      inc(n);
-      If (n <= Length(s)) then
-        Result := True
-      else
-        Result := False;
     end;
 
 
   function GetFmt : Integer;
     begin
       Result := -1;
-      while true do
+      while (m <= Length(fmt)) do
         begin
-
-          while (Length(fmt) > m) and (fmt[m] = ' ') do
-            inc(m);
-
-          if (m >= Length(fmt)) then
-            break;
+          { whitespace in the format matches any amount of whitespace in the input }
+          if (fmt[m] = ' ') then
+            begin
+              while (m <= Length(fmt)) and (fmt[m] = ' ') do
+                inc(m);
+              while (n <= Length(s)) and (s[n] = ' ') do
+                inc(n);
+              continue;
+            end;
 
           if (fmt[m] = '%') then
             begin
               inc(m);
-              case fmt[m] of
-                'd':
-                  Result:=vtInteger;
+              if (m > Length(fmt)) then
+                raise EFormatError.CreateFmt(SInvalidFormat,[fmt]);
+              if (fmt[m] <> '%') then
+                begin
+                  case fmt[m] of
+                    'd':
+                      Result:=vtInteger;
+                    'u':
+                      Result:=vtQWord;
 {$ifndef FPUNONE}
-                'f':
-                  Result:=vtExtended;
+                    'f':
+                      Result:=vtExtended;
 {$endif}
-                's':
-                  Result:=vtString;
-                'c':
-                  Result:=vtChar;
-                else
-                  raise EFormatError.CreateFmt(SInvalidFormat,[fmt]);
-              end;
-              inc(m);
-              break;
+                    's':
+                      Result:=vtString;
+                    'c':
+                      Result:=vtChar;
+                    else
+                      raise EFormatError.CreateFmt(SInvalidFormat,[fmt]);
+                  end;
+                  inc(m);
+                  break;
+                end;
             end;
 
           if not(ScanStr(fmt[m])) then
@@ -3112,9 +3121,21 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 
             end;
 
+          { %u }
+          vtQWord :
+            begin
+              if GetInt(true)>0 then
+                begin
+                  pLongWord(Pointers[i])^:=StrToDWord(s1);
+                  inc(Result);
+                end
+              else
+                break;
+            end;
+
           vtchar :
             begin
-              if Length(s)>n then
+              if Length(s)>=n then
                 begin
                   PChar(Pointers[i])^:=s[n];
                   inc(n);
