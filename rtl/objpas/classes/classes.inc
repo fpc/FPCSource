@@ -219,6 +219,32 @@ begin
 end;
 
 
+{ Runs aThread.DoTerminate, returns False if the OnTerminate handler destroyed aThread }
+function ThreadDoTerminate(aThread: TThread): Boolean;
+
+var
+  lInfo: TThread.TTerminateInfo;
+begin
+  lInfo.Freed:=False;
+  lInfo.SyncEntry:=nil;
+  aThread.FTerminateInfo:=@lInfo;
+  try
+    aThread.DoTerminate;
+  finally
+    Result:=not lInfo.Freed;
+    if Result then
+      aThread.FTerminateInfo:=nil
+    else if Assigned(lInfo.SyncEntry) then
+      begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      RtlEventDestroy(lInfo.SyncEntry^.SyncEvent);
+{$endif}
+      Dispose(lInfo.SyncEntry);
+      end;
+  end;
+end;
+
+
 function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
   var
     FreeThread: Boolean;
@@ -246,10 +272,12 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
     end;
     FreeThread := Thread.FFreeOnTerminate;
     Result := Thread.FReturnValue;
-    Thread.DoTerminate;
-    Thread.FFinished := True;
-    if FreeThread then
-      Thread.Free;
+    if ThreadDoTerminate(Thread) then
+      begin
+      Thread.FFinished := True;
+      if FreeThread then
+        Thread.Free;
+      end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     EndThread(Result);
 {$endif}
@@ -432,6 +460,16 @@ procedure TThread.DoneSynchronizeEvent;
     Dispose(FSynchronizeEntry);
     FSynchronizeEntry := Nil;
   end;
+
+
+{ Tells the thread function that Self is destroyed by its OnTerminate handler }
+procedure TThread.ReleaseTerminateInfo;
+
+begin
+  FTerminateInfo^.SyncEntry:=FSynchronizeEntry;
+  FSynchronizeEntry:=nil;
+  FTerminateInfo^.Freed:=True;
+end;
 
 
 

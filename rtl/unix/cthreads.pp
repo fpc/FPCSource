@@ -411,6 +411,38 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         end;
       pthread_mutex_unlock(@ThreadTidLock);
     end;
+
+
+    // Frees the entries of threads that are still running at program exit
+    procedure DoneTidEntries;
+
+    var
+      lPrev, lEntry, lNext: PThreadTidEntry;
+
+    begin
+      if ThreadTidList=nil then
+        exit;
+      pthread_mutex_lock(@ThreadTidLock);
+      lPrev:=nil;
+      lEntry:=ThreadTidList;
+      while assigned(lEntry) do
+        begin
+          lNext:=lEntry^.Next;
+          { a thread that has not started yet still uses its entry in StartTidEntry }
+          if lEntry^.Tid<>0 then
+            begin
+              if assigned(lPrev) then
+                lPrev^.Next:=lNext
+              else
+                ThreadTidList:=lNext;
+              dispose(lEntry);
+            end
+          else
+            lPrev:=lEntry;
+          lEntry:=lNext;
+        end;
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
 {$endif linux}
 
 
@@ -1426,6 +1458,9 @@ initialization
     end;
   SetCThreadManager;
 finalization
+{$ifdef linux}
+  DoneTidEntries;
+{$endif linux}
   // Release the dynamically loaded pthread library.
   CDoneThreads;
 end.

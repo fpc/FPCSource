@@ -18,7 +18,9 @@ end;
 
 procedure TThread.SysDestroy;
 begin
-  if FHandle<>0 then
+  if FInOnTerminate then
+    ReleaseTerminateInfo
+  else if FHandle<>0 then
     begin
       { Don't check Suspended. If the thread has been externally suspended (which is
         deprecated and strongly discouraged), it's better to deadlock here than
@@ -39,8 +41,18 @@ begin
 end;
 
 procedure TThread.CallOnTerminate;
+var
+  lInfo: PTerminateInfo;
 begin
-  FOnTerminate(Self);
+  lInfo:=FTerminateInfo;
+  FInOnTerminate:=Assigned(lInfo);
+  try
+    FOnTerminate(Self);
+  finally
+    { Self is invalid if the handler destroyed it }
+    if not (Assigned(lInfo) and lInfo^.Freed) then
+      FInOnTerminate:=False;
+  end;
 end;
 
 procedure TThread.DoTerminate;

@@ -130,7 +130,12 @@ begin
   Result := LThread.FReturnValue;
   WRITE_DEBUG('Result is ',Result);
   LFreeOnTerminate := LThread.FreeOnTerminate;
-  LThread.DoTerminate;
+  if not ThreadDoTerminate(LThread) then
+    begin
+      { destroyed by its OnTerminate handler, nobody joins this thread }
+      EndThread(Result);
+      exit;
+    end;
   LThread.FFinished := True;
   if LFreeOnTerminate then
     begin
@@ -178,7 +183,9 @@ begin
       RtlEventDestroy(FSuspendEvent);
       exit;
     end;
-  if (FThreadID = GetCurrentThreadID) then
+  if FInOnTerminate then
+    ReleaseTerminateInfo
+  else if (FThreadID = GetCurrentThreadID) then
     begin
       if not(FFreeOnTerminate) and not FFinished then
         raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
@@ -279,10 +286,20 @@ begin
 end;
 
 procedure TThread.CallOnTerminate;
+var
+  lInfo: PTerminateInfo;
 begin
   // no need to check if FOnTerminate <> nil, because
   // thats already done in DoTerminate
-  FOnTerminate(self);
+  lInfo:=FTerminateInfo;
+  FInOnTerminate:=Assigned(lInfo);
+  try
+    FOnTerminate(self);
+  finally
+    { Self is invalid if the handler destroyed it }
+    if not (Assigned(lInfo) and lInfo^.Freed) then
+      FInOnTerminate:=False;
+  end;
 end;
 
 procedure TThread.DoTerminate;

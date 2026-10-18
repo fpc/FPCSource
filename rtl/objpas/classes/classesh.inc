@@ -2394,6 +2394,14 @@ type
       Next: PThreadQueueEntry;
       ExecuteAfter : TDateTime;
     end;
+    PTerminateInfo = ^TTerminateInfo;
+    // state of the thread function while DoTerminate runs
+    TTerminateInfo = record
+      // set when the OnTerminate handler destroyed the thread object
+      Freed: Boolean;
+      // synchronize entry of the destroyed thread object, disposed by the thread function
+      SyncEntry: PThreadQueueEntry;
+    end;
   public type
     TSystemTimes = record
       IdleTime: QWord;
@@ -2414,6 +2422,10 @@ type
     FFatalException: TObject;
     FExternalThread, FThreadQueueLockCounted: Boolean;
     FSynchronizeEntry: PThreadQueueEntry;
+    // the thread function's TTerminateInfo while DoTerminate runs
+    FTerminateInfo: PTerminateInfo;
+    // True while CallOnTerminate runs the OnTerminate handler of a running thread
+    FInOnTerminate: Boolean;
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
     class procedure InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean; aExecuteAfter: TDateTime); static;
@@ -2427,6 +2439,7 @@ type
     function GetSuspended: Boolean;
     procedure InitSynchronizeEvent;
     procedure DoneSynchronizeEvent;
+    procedure ReleaseTerminateInfo;
     { these two need to be implemented per platform }
     procedure SysCreate(CreateSuspended: Boolean;
                              const StackSize: SizeUInt);
