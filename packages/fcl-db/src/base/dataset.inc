@@ -564,7 +564,7 @@ begin
   // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : StrLCopy(PWideChar(aDest), PWideChar(aSource), aField.Size);
+      ftWideString, ftFixedWideChar: StrLCopy(PWideChar(aDest), PWideChar(aSource), aField.Size);
       end
     end
   else
@@ -576,7 +576,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : StrLCopy(PWideChar(aDest), PWideChar(aSource), aField.Size);
+      ftWideString, ftFixedWideChar: StrLCopy(PWideChar(aDest), PWideChar(aSource), aField.Size);
       end
     end
 end;
