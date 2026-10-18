@@ -8223,7 +8223,7 @@ begin
             if not NotFixedLen then
               FirstVarLenOp := op;
             NotFixedLen := True;
-            if (ABranchMaxLen = high(ABranchMaxLen)) and not(flfForceToStopAt in Flags) then
+            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
               exit;
           end;
           assert(s^=OP_CLOSE);
@@ -8241,7 +8241,7 @@ begin
             if not NotFixedLen then
               FirstVarLenOp := op;
             NotFixedLen := True;
-            if (ABranchMaxLen = high(ABranchMaxLen)) and not(flfForceToStopAt in Flags) then
+            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
               exit;
           end;
           assert(s^=OP_CLOSE_ATOMIC);
@@ -8394,7 +8394,7 @@ begin
           begin
             if not NotFixedLen then
               FirstVarLenOp := op;
-            if (ABranchMaxLen = high(ABranchMaxLen)) and not(flfForceToStopAt in Flags) then
+            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
               exit;
           end;
 
