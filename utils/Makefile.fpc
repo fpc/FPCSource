@@ -127,8 +127,8 @@ endif
 #####################################################################
 
 PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu) $(wildcard units/$(TARGETSUFFIX)/*.ppu)
-PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
-RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+PPULOGLIST:=$(patsubst %.ppu,%.log-ppu,$(PPULIST))
+RMPPULOGLIST:=$(patsubst %.ppu,%.rm-log-ppu,$(PPULIST))
 ALLPPUDIRS:=$(wildcard units/*) $(wildcard */units/*)
 
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
