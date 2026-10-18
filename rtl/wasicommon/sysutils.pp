@@ -408,7 +408,7 @@ begin
 
   res:=MaybeUpdateLastOSError(__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info));
   if res<>__WASI_ERRNO_SUCCESS then
-    raise EDirectoryNotFoundException.Create('Error ' + IntToStr(res){todo: SysErrorMessage SysErrorMessage(GetLastOSError)});
+    raise EDirectoryNotFoundException.Create(SysErrorMessage(res));
   SymLinkRec.Attr := WasiToWinAttr(FileName,fd,PAnsiChar(pr),length(pr),Info);
   SymLinkRec.Size := Info.size;
   result:=true;
