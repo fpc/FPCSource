@@ -1523,6 +1523,16 @@ begin
   SetAsUnicodeString(AValue);
 end;
 
+function TWideStringField.GetAsAnsiString: AnsiString;
+begin
+  Result := GetAsUnicodeString;
+end;
+
+procedure TWideStringField.SetAsAnsiString(const AValue: AnsiString);
+begin
+  SetAsUnicodeString(AValue);
+end;
+
 function TWideStringField.GetAsUnicodeString: UnicodeString;
 begin
   if not GetValue(Result) then

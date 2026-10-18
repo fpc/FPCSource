@@ -556,6 +556,9 @@ type
     function GetAsString: string; override;
     procedure SetAsString(const AValue: string); override;
 
+    function GetAsAnsiString: AnsiString; override;
+    procedure SetAsAnsiString(const AValue: AnsiString); override;
+
     function GetAsVariant: Variant; override;
     procedure SetVarValue(const AValue: Variant); override;
 
