@@ -1912,7 +1912,18 @@ implementation
     var
       orgsrc1: tregister = NR_NO;
       orgsrc2: tregister = NR_NO;
-      docheck: boolean;
+      prod: tregister;
+      prodsize: tdef;
+      docheck, checkmul32: boolean;
+
+    procedure extend_to_64bit;
+      begin
+        if is_signed(size) then
+          list.concat(taicpu.op_none(a_i64_extend_i32_s))
+        else
+          list.concat(taicpu.op_none(a_i64_extend_i32_u));
+      end;
+
     begin
       if not setflags then
         begin
@@ -1921,7 +1932,8 @@ implementation
         end;
       { anything else cannot overflow }
       docheck:=size.size in [4,8];
-      if docheck then
+      checkmul32:=docheck and (op in [OP_MUL,OP_IMUL]) and (size.size=4);
+      if docheck and not checkmul32 then
         begin
           orgsrc1:=src1;
           orgsrc2:=src2;
@@ -1936,7 +1948,26 @@ implementation
               a_load_reg_reg(list,size,size,src2,orgsrc2);
             end;
         end;
-      a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+      if checkmul32 then
+        begin
+          { multiply once at 64 bit; the result is the low 32 bits }
+          if is_signed(size) then
+            prodsize:=s64inttype
+          else
+            prodsize:=u64inttype;
+          prod:=getintregister(list,prodsize);
+          a_load_reg_stack(list,size,src1);
+          extend_to_64bit;
+          a_load_reg_stack(list,size,src2);
+          extend_to_64bit;
+          a_op_stack(list,OP_MUL,prodsize);
+          a_load_stack_reg(list,prodsize,prod);
+          a_load_reg_stack(list,prodsize,prod);
+          list.concat(taicpu.op_none(a_i32_wrap_i64));
+          a_load_stack_reg(list,size,dst);
+        end
+      else
+        a_op_reg_reg_reg(list,op,size,src1,src2,dst);
       if docheck then
         begin
           { * signed overflow for addition iff
@@ -1956,27 +1987,13 @@ implementation
           { not pasbool8, because then we'd still have to convert the integer to
             a boolean via branches for Dalvik}
           ovloc.register:=getintregister(list,s32inttype);
-          if (op in [OP_MUL,OP_IMUL]) and (size.size=4) then
+          if checkmul32 then
             begin
-              { Compare the full 64-bit product with the extended 32-bit result.
-                Addition's carry/sign tests do not detect multiplication overflow. }
-              a_load_reg_stack(list,size,orgsrc1);
-              if is_signed(size) then
-                list.concat(taicpu.op_none(a_i64_extend_i32_s))
-              else
-                list.concat(taicpu.op_none(a_i64_extend_i32_u));
-              a_load_reg_stack(list,size,orgsrc2);
-              if is_signed(size) then
-                list.concat(taicpu.op_none(a_i64_extend_i32_s))
-              else
-                list.concat(taicpu.op_none(a_i64_extend_i32_u));
-              a_op_stack(list,OP_MUL,u64inttype);
+              { the product fits in 32 bits iff it equals its extended low half }
+              a_load_reg_stack(list,prodsize,prod);
               a_load_reg_stack(list,size,dst);
-              if is_signed(size) then
-                list.concat(taicpu.op_none(a_i64_extend_i32_s))
-              else
-                list.concat(taicpu.op_none(a_i64_extend_i32_u));
-              a_cmp_stack_stack(list,u64inttype,OC_NE);
+              extend_to_64bit;
+              a_cmp_stack_stack(list,prodsize,OC_NE);
               a_load_stack_reg(list,s32inttype,ovloc.register);
             end
           else if not ((size.typ=pointerdef) or
@@ -2010,6 +2027,8 @@ implementation
                 end
               else
                 begin
+                  if op<>OP_ADD then
+                    internalerror(2026101801);
                   { Unsigned addition carries iff its result is below an operand. }
                   a_cmp_reg_reg_stack(list,size,OC_A,dst,orgsrc1);
                   a_load_stack_reg(list,s32inttype,ovloc.register);

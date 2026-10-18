@@ -1,5 +1,5 @@
 { %OPT=-O2 -Cro }
-program twasmoverflow;
+program toverflow2;
 {$mode objfpc}{$H+}{$R+}{$Q+}
 uses SysUtils;
 
