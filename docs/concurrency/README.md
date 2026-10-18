@@ -7,6 +7,9 @@
 
 | Файл / тека | Зміст |
 |---|---|
+| `concurrency-guide.pdf` | **Що нового**: огляд змін з короткими прикладами (генерується `build_pdf.py`) |
+| `examples/` | Приклади з документації; кожен компілюється й запускається |
+| `valgrind.md` | Перевірка гонок даних (helgrind/drd), анотації, відомі обмеження |
 | `baseline.md` | Базова лінія тестів trunk до наших змін (відомі падіння) |
 | `adr/` | Дизайн-рішення (Architecture Decision Records) |
 | `guide-*.md` | Посібник користувача за темами |
@@ -51,3 +54,13 @@ cd tests && make full TEST_FPC=$HOME/fpc-trunk/lib/fpc/3.3.1/ppcx64 \
 
 Bootstrap-компілятор 3.2.2 розпаковано без root з пакета Ubuntu
 (`apt-get download fp-compiler-3.2.2` + `dpkg -x`) у `~/fpc-bootstrap/root/`.
+
+## Документація PDF
+
+```sh
+python3 -m venv /tmp/venv && /tmp/venv/bin/pip install reportlab
+/tmp/venv/bin/python docs/concurrency/build_pdf.py
+```
+
+Приклади читаються безпосередньо з `examples/*.pp`; після зміни прикладу
+перевірте його (`fpc` з `tests/concurrency/fpcenv.sh`) і перегенеруйте PDF.
