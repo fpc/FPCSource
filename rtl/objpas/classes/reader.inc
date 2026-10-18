@@ -130,6 +130,7 @@ begin
     Raise EReadError.Create(SEmptyStreamIllegalReader);
   FStream := Stream;
   FBufSize := BufSize;
+  FDelphiCompatible := DelphiCompatibleStreams;
   GetMem(FBuffer, BufSize);
 end;
 
@@ -144,12 +145,20 @@ begin
   inherited Destroy;
 end;
 
+function TBinaryObjectReader.ByteToValueType(aValue: Byte): TValueType;
+begin
+  if FDelphiCompatible and (aValue=DelphiDoubleValue) then
+    Result:=vaDouble
+  else
+    Result:=TValueType(aValue);
+end;
+
 function TBinaryObjectReader.ReadValue: TValueType;
 var
   b: byte;
 begin
   Read(b, 1);
-  FCurrentValue:=TValueType(b);
+  FCurrentValue:=ByteToValueType(b);
   Result := FCurrentValue;
 end;
 
@@ -166,7 +175,7 @@ var
 
 begin
   Read(b,1);
-  Result:=TValueType(b);
+  Result:=ByteToValueType(b);
   { We only 'peek' at the next value, so seek back to unget the read value: }
   Dec(FBufPos);
 end;
@@ -528,7 +537,7 @@ begin
       SkipBytes(10);
     vaString, vaIdent:
       ReadStr;
-    vaBinary, vaLString:
+    vaBinary, vaLString, vaUTF8String:
       begin
         Count:=LongInt(ReadDWord);
         SkipBytes(Count);
@@ -567,7 +576,7 @@ begin
 {$endif}
     vaCurrency:
       SkipBytes(SizeOf(Currency));
-    vaDate, vaInt64:
+    vaDate, vaInt64, vaQWord, vaDouble:
       SkipBytes(8);
   end;
 end;
@@ -692,6 +701,17 @@ end;
 function TReader.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader;
 begin
   Result := TBinaryObjectReader.Create(Stream, BufSize);
+end;
+
+function TReader.GetDelphiCompatible: Boolean;
+begin
+  Result := (FDriver is TBinaryObjectReader) and TBinaryObjectReader(FDriver).DelphiCompatible;
+end;
+
+procedure TReader.SetDelphiCompatible(aValue: Boolean);
+begin
+  if FDriver is TBinaryObjectReader then
+    TBinaryObjectReader(FDriver).DelphiCompatible := aValue;
 end;
 
 procedure TReader.BeginReferences;
@@ -1123,17 +1143,29 @@ end;
 {$ifndef FPUNONE}
 function TReader.ReadFloat: Extended;
 begin
-  if FDriver.NextValue = vaExtended then
-  begin
+  Case FDriver.NextValue of
+  vaExtended:
+    begin
     ReadValue;
     Result := FDriver.ReadFloat
-  end else
+    end;
+  vaSingle:
+    begin
+    ReadValue;
+    Result := FDriver.ReadSingle
+    end;
+  vaDouble:
+    begin
+    ReadValue;
+    Result := FDriver.ReadDouble
+    end;
+  else
     Result := ReadInt64;
+  end;
 end;
 
 function TReader.ReadDouble: Double;
 begin
-  // We have no vaDouble
   Case FDriver.NextValue of
   vaExtended:
     begin
@@ -1238,7 +1270,7 @@ end;
 
 function TReader.ReadInt64: Int64;
 begin
-  if FDriver.NextValue = vaInt64 then
+  if FDriver.NextValue in [vaInt64,vaQWord] then
   begin
     FDriver.ReadValue;
     Result := FDriver.ReadInt64;
@@ -1319,6 +1351,10 @@ begin
     vaExtended:
       begin
         Result:=ReadFloat;
+      end;
+    vaDouble:
+      begin
+        Result:=ReadDouble;
       end;
     vaDate:
       begin
@@ -1845,7 +1881,7 @@ begin
     vaInt8, vaInt16, vaInt32:
       Writer.WriteInteger(ReadInteger);
 {$ifndef FPUNONE}
-    vaExtended:
+    vaExtended, vaDouble:
       Writer.WriteFloat(ReadFloat);
 {$endif}
     {!!!: vaString:

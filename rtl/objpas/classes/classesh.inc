@@ -1891,6 +1891,8 @@ type
     {$ScopedEnums off}
     const
       UnitnameSeparator = '/';
+      // Stream ordinal of vaDouble in Delphi streams.
+      DelphiDoubleValue = 21;
   protected
     FStream: TStream;
     FBuffer: Pointer;
@@ -1899,7 +1901,9 @@ type
     FBufEnd: Integer;
     FVersion: TBOVersion;
     FCurrentValue : TValueType;
+    FDelphiCompatible : Boolean;
     Function CurrentValue : TValueType; override;
+    function ByteToValueType(aValue: Byte): TValueType;
     function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     function ReadDWord : longword; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     function ReadQWord : qword; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1945,6 +1949,8 @@ type
     procedure SkipComponent(SkipComponentInfos: Boolean); override;
     procedure SkipValue; override;
     property Version: TBOVersion read FVersion;
+    // Read value type 21 as vaDouble, as written by Delphi, instead of vaUString.
+    property DelphiCompatible: Boolean read FDelphiCompatible write FDelphiCompatible;
   end;
 
 
@@ -2002,6 +2008,8 @@ type
     FRawMode : Boolean;
     FCanHandleExcepts: Boolean;
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
+    function GetDelphiCompatible: Boolean;
+    procedure SetDelphiCompatible(aValue: Boolean);
     procedure DoFixupReferences;
     function FindComponentClass(const AName, anUnitName, AClassName: rawbytestring): TComponentClass;
     procedure Lock;
@@ -2086,6 +2094,8 @@ type
     property OnFindComponentClassEx: TFindComponentClassExEvent read FOnFindComponentClassEx write FOnFindComponentClassEx;
     property OnReadStringProperty: TReadWriteStringPropertyEvent read FOnReadStringProperty write FOnReadStringProperty;
     Property RawMode : Boolean Read FRawMode Write FRawMode;
+    // DelphiCompatible of the driver, if it is a TBinaryObjectReader.
+    property DelphiCompatible: Boolean read GetDelphiCompatible write SetDelphiCompatible;
   end;
 
 
@@ -2117,6 +2127,8 @@ type
 {$ifndef FPUNONE}
     procedure WriteFloat(const Value: Extended); virtual; abstract;
     procedure WriteSingle(const Value: Single); virtual; abstract;
+    // Write a vaDouble value; the default implementation calls WriteFloat.
+    procedure WriteDouble(const Value: Double); virtual;
     procedure WriteDate(const Value: TDateTime); virtual; abstract;
 {$endif}
     procedure WriteCurrency(const Value: Currency); virtual; abstract;
@@ -2141,6 +2153,7 @@ type
     FBufPos: Integer;
     FBufEnd: Integer;
     FVersion: TBinaryObjectReader.TBOVersion;
+    FDelphiCompatible: Boolean;
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -2168,6 +2181,7 @@ type
 {$ifndef FPUNONE}
     procedure WriteFloat(const Value: Extended); override;
     procedure WriteSingle(const Value: Single); override;
+    procedure WriteDouble(const Value: Double); override;
     procedure WriteDate(const Value: TDateTime); override;
 {$endif}
     procedure WriteCurrency(const Value: Currency); override;
@@ -2183,6 +2197,8 @@ type
     procedure WriteVariant(const VarValue: Variant);override;
 
     property Version: TBinaryObjectReader.TBOVersion read FVersion write FVersion;
+    // Write only value types known to Delphi: vaWString for vaUString, vaInt64 for vaQWord, 21 for vaDouble, version 0 signature.
+    property DelphiCompatible: Boolean read FDelphiCompatible write FDelphiCompatible;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
@@ -2208,6 +2224,8 @@ type
     FOnFindAncestor: TFindAncestorEvent;
     FOnWriteMethodProperty: TWriteMethodPropertyEvent;
     FOnWriteStringProperty:TReadWriteStringPropertyEvent;
+    function GetDelphiCompatible: Boolean;
+    procedure SetDelphiCompatible(aValue: Boolean);
     procedure AddToAncestorList(Component: TComponent);
     procedure WriteComponentData(Instance: TComponent);
     Procedure DetermineAncestor(Component: TComponent);
@@ -2242,6 +2260,8 @@ type
 {$ifndef FPUNONE}
     procedure WriteFloat(const Value: Extended);
     procedure WriteSingle(const Value: Single);
+    // Write Value as vaDouble.
+    procedure WriteDouble(const Value: Double);
     procedure WriteDate(const Value: TDateTime);
 {$endif}
     procedure WriteCurrency(const Value: Currency);
@@ -2264,6 +2284,8 @@ type
 
     property Driver: TAbstractObjectWriter read FDriver;
     property PropertyPath: string read FPropPath;
+    // DelphiCompatible of the driver, if it is a TBinaryObjectWriter.
+    property DelphiCompatible: Boolean read GetDelphiCompatible write SetDelphiCompatible;
   end;
 
 
@@ -2965,6 +2987,8 @@ var
     AxRegType: TActiveXRegType) = nil;
   CurrentGroup: Integer = -1;}
   CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
+  // Initial value of DelphiCompatible for new binary object readers and writers.
+  DelphiCompatibleStreams: Boolean = False;
 
 { Point and rectangle constructors }
 
