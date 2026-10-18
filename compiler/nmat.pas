@@ -147,14 +147,19 @@ implementation
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
         rv,lv : tconstexprint;
+        identity : int64;
         hp: tnode;
       begin
         result:=nil;
 
         if is_constintnode(right) then
           begin
+            if is_currency(right.resultdef) and (nf_is_currency in right.flags) then
+              identity:=10000
+            else
+              identity:=1;
             rv:=tordconstnode(right).value;
-            if rv = 1 then
+            if rv = identity then
               begin
                 case nodetype of
                   modn:
@@ -178,7 +183,7 @@ implementation
             { the following simplification is also required for correctness
               on x86, as its transformation of divisions by constants to
               multiplications and shifts does not handle -1 correctly }
-            if (rv=-1) and
+            if (rv=-identity) and
                (nodetype=divn) then
               begin
                 result:=cunaryminusnode.create(left);
@@ -192,7 +197,7 @@ implementation
                  { recover }
                  tordconstnode(right).value := 1;
                end
-            else if (rv=-1) and
+            else if (rv=-identity) and
               (nodetype=modn) then
               begin
                 result:=cordconstnode.create(0,left.resultdef,true);
