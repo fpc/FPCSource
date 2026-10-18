@@ -976,12 +976,20 @@ end;
 function setregid(rgid,egid : uid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+  setregid:=do_syscall(syscall_nr_setregid32,rgid,egid);
+{$else}
   setregid:=do_syscall(syscall_nr_setregid,rgid,egid);
+{$endif}
 end;
 
 function setreuid(ruid,euid : uid_t): cint;
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+  setreuid:=do_syscall(syscall_nr_setreuid32,ruid,euid);
+{$else}
   setreuid:=do_syscall(syscall_nr_setreuid,ruid,euid);
+{$endif}
 end;
 
 

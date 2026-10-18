@@ -253,37 +253,61 @@ end;
 function fpgetuid : uid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetuid:=do_syscall(syscall_nr_getuid32);
+{$else}
  fpgetuid:=do_syscall(syscall_nr_getuid);
+{$endif}
 end;
 
 function fpgeteuid : uid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgeteuid:=do_syscall(syscall_nr_geteuid32);
+{$else}
  fpgeteuid:=do_syscall(syscall_nr_geteuid);
+{$endif}
 end;
 
 function fpgetgid : gid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetgid:=do_syscall(syscall_nr_getgid32);
+{$else}
  fpgetgid:=do_syscall(syscall_nr_getgid);
+{$endif}
 end;
 
 function fpgetegid : gid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetegid:=do_syscall(syscall_nr_getegid32);
+{$else}
  fpgetegid:=do_syscall(syscall_nr_getegid);
+{$endif}
 end;
 
 function fpsetuid(uid : uid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpsetuid:=do_syscall(syscall_nr_setuid32,uid);
+{$else}
  fpsetuid:=do_syscall(syscall_nr_setuid,uid);
+{$endif}
 end;
 
 function fpsetgid(gid : gid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpsetgid:=do_syscall(syscall_nr_setgid32,gid);
+{$else}
  fpsetgid:=do_syscall(syscall_nr_setgid,gid);
+{$endif}
 end;
 
 // type tgrparr=array[0..0] of gid_t;
@@ -291,7 +315,11 @@ end;
 function fpgetgroups(gidsetsize : cint; var grouplist:tgrparr): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetgroups:=do_syscall(syscall_nr_getgroups32,gidsetsize,TSysParam(@grouplist));
+{$else}
  fpgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,TSysParam(@grouplist));
+{$endif}
 end;
 
 function fpgetpgrp : pid_t;
@@ -364,6 +392,8 @@ Function fpchown(path:PAnsiChar;owner:uid_t;group:gid_t):cint;
 begin
 {$if defined(generic_linux_syscalls)}
   fpChOwn:=do_syscall(syscall_nr_fchownat,AT_FDCWD,TSysParam(path),TSysParam(owner),TSysParam(group),0);
+{$elseif defined(FPC_LINUX_ID32_SYSCALLS)}
+  fpChOwn:=do_syscall(syscall_nr_chown32,TSysParam(path),TSysParam(owner),TSysParam(group));
 {$else}
   fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
 {$endif}

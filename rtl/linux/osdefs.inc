@@ -133,3 +133,8 @@
   {$define use_prlimit64}
   {$undef usestime}
 {$endif cpuloongarch64}
+
+{ use the system calls with 32-bit user and group ids instead of the 16-bit ones }
+{$if (defined(cpui386) or defined(cpuarm) or defined(cpum68k) or defined(cpusparc32)) and not defined(android)}
+  {$define FPC_LINUX_ID32_SYSCALLS}
+{$endif}
