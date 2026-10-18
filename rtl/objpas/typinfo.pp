@@ -184,6 +184,7 @@ unit TypInfo;
       end;
 
       PParameterLocations = ^TParameterLocations;
+      PPParameterLocations = ^PParameterLocations;
       TParameterLocations =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -403,7 +404,7 @@ unit TypInfo;
       record
       private
         function GetParam(Index: Word): PVmtMethodParam;
-        function GetResultLocs: PParameterLocations; inline;
+        function GetResultLocs: PPParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PIntfMethodEntry; inline;
         function GetName: ShortString; inline;
@@ -421,7 +422,7 @@ unit TypInfo;
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
-        property ResultLocs: PParameterLocations read GetResultLocs;
+        property ResultLocs: PPParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
         property Next: PIntfMethodEntry read GetNext;
       end;
@@ -478,7 +479,7 @@ unit TypInfo;
         function GetParamsStart: PByte; inline;
         function GetMethodVisibility: TVisibilityClass;
         function GetParam(Index: Word): PVmtMethodParam;
-        function GetResultLocs: PParameterLocations; inline;
+        function GetResultLocs: PPParameterLocations; inline;
         function GetStrictVisibility: Boolean;
         function GetTail: Pointer; inline;
         function GetNext: PVmtMethodExEntry; inline;
@@ -501,7 +502,7 @@ unit TypInfo;
         {$ENDIF}
         property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
-        property ResultLocs: PParameterLocations read GetResultLocs;
+        property ResultLocs: PPParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodExEntry read GetNext;
         property MethodVisibility: TVisibilityClass read GetMethodVisibility;
@@ -637,7 +638,7 @@ unit TypInfo;
         function GetParamsStart: PByte; inline;
         function GetMethodVisibility: TVisibilityClass;
         function GetParam(Index: Word): PRecMethodParam;
-        function GetResultLocs: PParameterLocations; inline;
+        function GetResultLocs: PPParameterLocations; inline;
         function GetStrictVisibility: Boolean;
         function GetTail: Pointer; inline;
         function GetNext: PRecMethodExEntry; inline;
@@ -661,7 +662,7 @@ unit TypInfo;
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
         property Param[Index: Word]: PRecMethodParam read GetParam;
-        property ResultLocs: PParameterLocations read GetResultLocs;
+        property ResultLocs: PPParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
         property Next: PRecMethodExEntry read GetNext;
         property MethodVisibility: TVisibilityClass read GetMethodVisibility;
@@ -4555,12 +4556,12 @@ begin
     Result := PVmtMethodParam(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
-function TIntfMethodEntry.GetResultLocs: PParameterLocations;
+function TIntfMethodEntry.GetResultLocs: PPParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
   else
-    Result := PParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+    Result := PPParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 function TIntfMethodEntry.GetTail: Pointer;
@@ -4619,12 +4620,14 @@ begin
     Result := PVmtMethodParam(@params) + Index;
 end;
 
-function TVMTMethodExEntry.GetResultLocs: PParameterLocations;
+function TVMTMethodExEntry.GetResultLocs: PPParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
+  else if ParamCount = 0 then
+    Result := PPParameterLocations(AlignToPtr(GetParamsStart))
   else
-    Result := PParameterLocations(AlignToPtr(Param[ParamCount-1]^.Tail))
+    Result := PPParameterLocations(AlignToPtr(Param[ParamCount-1]^.Tail));
 end;
 
 function TVmtMethodExEntry.GetStrictVisibility: Boolean;
@@ -4683,12 +4686,12 @@ begin
     Result := PRecMethodParam(GetParamsStart + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TRecMethodParam)))));
 end;
 
-function TRecMethodExEntry.GetResultLocs: PParameterLocations;
+function TRecMethodExEntry.GetResultLocs: PPParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
   else
-    Result := PParameterLocations(GetParamsStart + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TRecMethodParam)))));
+    Result := PPParameterLocations(GetParamsStart + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TRecMethodParam)))));
 end;
 
 function TRecMethodExEntry.GetStrictVisibility: Boolean;
