@@ -22,7 +22,24 @@
   (200 000 ітерацій × 200 раундів, кожна має виконатися рівно один раз;
   з поверненою гонкою тест падає в 10 з 10 запусків).
 
+- `TTask.GetIsComplete` (швидкий шлях `TTask.Wait`): читання стану без
+  блокування не мало бар'єра пам'яті; на ARM64 потік міг побачити задачу
+  завершеною раніше за її результат. Додано `ReadBarrier`.
+- `TThreadPool.Destroy`: use-after-free. `StopCPUStats` скидав
+  `FMonitorStatus` до завершення монітора, `Destroy` звільняв пул, а потік
+  монітора потім писав у звільнену пам'ять. Статус тепер скидається атомарно
+  останньою дією монітора.
+- `TTask.WaitForAny`: результат (`Res`) читався без блокування в умовах
+  циклів очікування; тепер під тим самим `Lock`, що й запис.
+- Тести `utthreading.pp`: глобальний `Random` викликався з потоків пулу;
+  замінено на потокобезпечний `ThreadRandom`.
+
 ### Додано
+- `fcl-base/src/fpvalgrind.pp`: клієнтські запити valgrind (happens-before/after,
+  clean memory, benign race); анотації в `TSpinLock` і `System.Threading`
+  під `-dFPC_VALGRIND`. Див. `docs/concurrency/valgrind.md`.
+- `tests/concurrency/build-testcompat-valgrind.sh`, `fpc-helgrind.supp`,
+  `hgsummary.py`: збірка й аналіз прогонів helgrind/drd.
 - Документація: `docs/concurrency/` (огляд, шаблон ADR, базова лінія тестів).
 - `tests/concurrency/fpcenv.sh`: середовище для компіляції тестів свіжозібраним компілятором.
 - `tests/concurrency/build-testcompat.sh`: збірка тестів vcl-compat з поточних джерел.

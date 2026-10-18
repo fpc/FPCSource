@@ -110,3 +110,4 @@ bin/
 fpmake
 packages/fcl-db/tests/database.ini
 tests/concurrency/out/
+tests/concurrency/out-valgrind/

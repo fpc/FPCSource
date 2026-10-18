@@ -1,0 +1,27 @@
+# Винятки valgrind (helgrind/drd) для FPC RTL.
+# Використання: valgrind --tool=helgrind --suppressions=tests/concurrency/fpc-helgrind.supp ...
+# Кожен виняток — свідомо прийнята поведінка, а не прихована помилка.
+
+# cthreads.CDoneCriticalSection навмисно розблоковує м'ютекс, доки вдається
+# (сумісність із Delphi-кодом, що знищує заблоковану секцію), а потім
+# викликає pthread_mutex_destroy. Розблокування незаблокованого м'ютекса
+# повертає помилку й нічого не змінює.
+{
+   fpc-cthreads-done-critical-section-unlock
+   Helgrind:UnlockUnlocked
+   ...
+   fun:CTHREADS_$$_CDONECRITICALSECTION$formal
+}
+{
+   fpc-cthreads-done-critical-section-unlock-drd
+   drd:MutexErr
+   ...
+   fun:CTHREADS_$$_CDONECRITICALSECTION$formal
+}
+{
+   fpc-cthreads-done-critical-section-unlock-eperm
+   Helgrind:PthAPIerror
+   ...
+   fun:CTHREADS_$$_CDONECRITICALSECTION$formal
+}
+

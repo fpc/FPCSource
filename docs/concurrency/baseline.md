@@ -73,16 +73,8 @@ $FPC_TRUNK @"$FPC_CFG" -gl -Fupackages/vcl-compat/src -FU<out> -FE<out> \
 
 ### valgrind --tool=helgrind
 
-Програма: `TParallel.For` 5 × 2000 ітерацій з `AtomicIncrement` (результат правильний).
-Звіт: ~600–1500 «possible data race» у ~120 місцях. Вибірково перевірені місця
-(`TTask.UpdateStateAtomic`, `TSparseArray.Add`, `TWorkStealingQueue.LocalPop`,
-`TAbstractWorkerData.ShouldExecute`, `GetWorkItemFromQueues`) захищені `TSpinLock`
-або атомарними операціями, які helgrind не розпізнає → хибні спрацювання.
-Також шум від перевикористання пам'яті (кеш об'єктів `TThreadPool.Caches`).
-
-**Задача:** додати в `TSpinLock` і кеш об'єктів клієнтські запити valgrind
-(`ANNOTATE_HAPPENS_BEFORE/AFTER`) під умовою `{$IFDEF VALGRIND_ANNOTATE}`,
-щоб helgrind/drd давали придатний для аналізу звіт.
+Див. [valgrind.md](valgrind.md): після анотацій і двох виправлень —
+0 конфліктів у `System.Threading`, 7 у RTL (відкриті задачі).
 
 ## Тестовий набір компілятора (`tests/`, `make full`)
 

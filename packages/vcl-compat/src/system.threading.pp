@@ -36,7 +36,8 @@ uses
   System.SysUtils, System.Classes, System.Generics.Collections,
   System.Timespan, System.SyncObjs, System.Contnrs, Fcl.ThreadPool;
 {$ELSE}
-  Contnrs, SysUtils, Classes, System.Timespan, Generics.Collections, SyncObjs, fpthreadpool;
+  Contnrs, SysUtils, Classes, System.Timespan, Generics.Collections, SyncObjs, fpthreadpool
+  {$IFDEF FPC_VALGRIND}, fpvalgrind{$ENDIF};
 {$ENDIF}
 
 type
@@ -1779,6 +1780,10 @@ procedure TThreadPool.WaitForMonitorThread;
 begin
   While (FMonitorStatus<>MonitorNone) do
     TThread.Sleep(MonitorThreadDelay div 4);
+  ReadBarrier;
+  {$IFDEF FPC_VALGRIND}
+  VgHappensAfter(@FMonitorStatus);
+  {$ENDIF}
 end;
 
 procedure TThreadPool.DoQueueWorkItem(WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
@@ -1805,6 +1810,14 @@ begin
   FWorkQueue:=TWorkItemQueue.Create;
   PC:=TThread.ProcessorCount;
   FQueues:=TWorkStealingQueueThreadPoolWorkItemArray.Create(PC);
+  {$IFDEF FPC_VALGRIND}
+  // Flags polled without a lock; hand-offs are annotated separately.
+  VgBenignRace(@FShutdown,SizeOf(FShutdown));
+  VgBenignRace(@FMonitorStatus,SizeOf(FMonitorStatus));
+  // Statistics for the pool growth heuristics, read without a lock.
+  VgBenignRace(@FAvgCPUUsage,SizeOf(FAvgCPUUsage));
+  VgBenignRace(@FThreadCreationAt,SizeOf(FThreadCreationAt));
+  {$ENDIF}
   FMinThreads:=PC div 4;
   if FMinThreads<2 then
     FMinThreads:=2;
@@ -2128,7 +2141,8 @@ procedure TThreadPool.StopCPUStats;
 begin
   FCurUsageSlot:=0;
   FillChar(FCPUUsageArray, SizeOf(FCPUUsageArray), 0);
-  FMonitorStatus:=MonitorNone;
+  // FMonitorStatus is reset by the monitor thread when it is done: once it is
+  // MonitorNone, Destroy may free the pool.
 end;
 
 function TThreadPool.HaveNoWorkers : boolean;
@@ -2355,6 +2369,10 @@ begin
     Obj:=ObjCache.Remove;
     if Assigned(Obj) then
       begin
+      {$IFDEF FPC_VALGRIND}
+      // Recycled memory: earlier accesses by other threads are unrelated.
+      VgCleanMemory(Obj,InstanceSize);
+      {$ENDIF}
       Result:=InitInstance(Obj);
       TAbstractWorkerData(Result).FRefCount:=1;
       end;
@@ -2697,7 +2715,12 @@ begin
     FThreadPool.StopCPUStats;
 
   finally
-    FThreadPool.FMonitorStatus:=MonitorNone;
+    // Last access to FThreadPool: after this, WaitForMonitorThread returns and
+    // the pool may be freed.
+    {$IFDEF FPC_VALGRIND}
+    VgHappensBefore(@FThreadPool.FMonitorStatus);
+    {$ENDIF}
+    AtomicExchange(FThreadPool.FMonitorStatus,MonitorNone);
   end;
 end;
 
@@ -2799,7 +2822,17 @@ end;
 
 function TTask.GetIsComplete: Boolean;
 begin
+  // Lock-free check (fast path of Wait). The flags are written under
+  // FStateLock, whose Exit is a full barrier; the read barrier pairs with it,
+  // so a caller that sees the task complete also sees its results.
   Result:=(FStateFlags*CompleteStates) <> [];
+  if Result then
+    begin
+    ReadBarrier;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensAfter(@FStateLock); // Same address as the TSpinLock annotation
+    {$ENDIF}
+    end;
 end;
 
 function TTask.GetIsReplicating: Boolean;
@@ -3544,6 +3577,12 @@ begin
     Include(FStateFlags, TOptionStateFlag.Replica);
   FStateLock:=TSpinLock.Create(False);
   FDoneEvent:=TEvent.Create;
+  {$IFDEF FPC_VALGRIND}
+  // FStateFlags is written under FStateLock only, but read without the lock
+  // in several places (e.g. GetIsComplete, the fast path of Wait).
+  VgBenignRace(@FStateFlags,SizeOf(FStateFlags));
+  VgBenignRace(@FStatus,SizeOf(FStatus)); // Snapshot derived from FStateFlags
+  {$ENDIF}
 end;
 
 class function TTask.DoWaitForAll(const aTasks: array of ITask; aTimeout: Cardinal): Boolean;
@@ -3657,6 +3696,18 @@ var
       end;
     end;
 
+  // Res is written by the completion callbacks under Lock.
+  Function NoResult : Boolean;
+
+  begin
+    Lock.Enter;
+    try
+      Result:=(Res=-1);
+    finally
+      Lock.Exit;
+    end;
+  end;
+
 var
   I,Len,lAdded : Integer;
   WaitProcs: Array of TITaskProc;
@@ -3678,14 +3729,14 @@ begin
   Lock:=TSpinLock.Create(False);
   Event:=TEvent.Create;
   try
-    While (lAdded<Len) and (Res=-1) do
+    While (lAdded<Len) and NoResult do
       begin
       WaitProcs[lAdded]:=MakeCompleted(lAdded);
       (aTasks[lAdded] as TTask).AddCompleteEvent(WaitProcs[lAdded]);
       Inc(lAdded);
       end;
     lRemaining:=RemainingTime(Watch,aTimeout);
-    While (Res=-1) and (lRemaining>0) do
+    While NoResult and (lRemaining>0) do
       begin
       if NeedSync then
         CheckSynchronize(1)

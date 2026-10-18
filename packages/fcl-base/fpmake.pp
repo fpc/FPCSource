@@ -107,6 +107,7 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpvalgrind.pp');
     T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[go32v2,nativent,atari]);
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('uriparser.pp');

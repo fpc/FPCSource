@@ -3,6 +3,8 @@ program testcompat;
 {$mode objfpc}{$H+}
 
 uses
+  // valgrind sees frees across threads only with the C memory manager.
+  {$IFDEF FPC_VALGRIND}cmem,{$ENDIF}
   {$IFDEF UNIX}cwstring, cthreads,{$ENDIF}
   Classes, consoletestrunner, tcnetencoding, tciotuils, utmessagemanager, utcdevices, utcanalytics, utcimagelist, utcnotifications,
   utcjson, utcpush, utchash, utcregex, utcjsontypes, utcregexapi, utthreading, utccredentials, utcjsonbuilders, utcjsoniterator,

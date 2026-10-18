@@ -422,6 +422,22 @@ implementation
 
 uses DateUtils;
 
+// The global Random is not thread-safe, and these helpers run in pool threads.
+// Thread-safe replacement: hash of an atomic counter (splitmix32 finalizer).
+var
+  _RandCounter : Cardinal;
+
+function ThreadRandom(aRange: Integer): Integer;
+var
+  X : Cardinal;
+begin
+  X:=Cardinal(AtomicIncrement(_RandCounter))*$9E3779B9;
+  X:=(X xor (X shr 16))*$85EBCA6B;
+  X:=(X xor (X shr 13))*$C2B2AE35;
+  X:=X xor (X shr 16);
+  Result:=X mod Cardinal(aRange);
+end;
+
 procedure HandleEx(const aException: Exception; var aHandled: Boolean); forward;
 
 { TMyTask }
@@ -1134,7 +1150,7 @@ begin
   {$ENDIF}
   For O in FList do
     begin
-    Sleep(Random(100));
+    Sleep(ThreadRandom(100));
     {$IFDEF DEBUGTEST}
     Writeln('Handling ',O.ToString);
     {$ENDIF}
@@ -1335,7 +1351,7 @@ var
 begin
   For I in FList do
     begin
-    Sleep(Random(100));
+    Sleep(ThreadRandom(100));
     {$IFDEF DEBUGTEST}
     Writeln('Pushing');
     {$ENDIF}
@@ -1372,7 +1388,7 @@ var
 begin
   For I:=0 to Length(FList)-1 do
     begin
-    Sleep(Random(100));
+    Sleep(ThreadRandom(100));
     if not FQueue.LocalPop(FList[I]) then
       raise Exception.CreateFmt('Failed to get item %d',[I]);
     end;
@@ -1640,16 +1656,16 @@ begin
 {$ENDIF}
   AssertSame('Sender',Self,Sender);
   T:=Now;
-  Cycles:=10+Random(2);
+  Cycles:=10+ThreadRandom(2);
   For I:=1 to Cycles do
     begin
-    BurnCount:=100000*(1+Random(5));
+    BurnCount:=100000*(1+ThreadRandom(5));
     For J:=1 to BurnCount do
       if (J and 1)=1 then
         K:=K+J
       else
         K:=K-J;
-    Sleep(10+Random(10));
+    Sleep(10+ThreadRandom(10));
     end;
 {$IFDEF DEBUGTEST}
   Writeln('Thread ',TThread.CurrentThread.ThreadID,': worked milliseconds ',MillisecondsBetween(Now,T));
@@ -2163,13 +2179,13 @@ procedure TTestParallel.DoEvent(aSender: TObject; aIndex: Integer);
 
 begin
 //  Writeln(TThread.CurrentThread.ThreadID,' EventIdx ',aIndex);
-  Sleep(50+(10*(1+Random(5))));
+  Sleep(50+(10*(1+ThreadRandom(5))));
   FResults[aIndex]:=aIndex;
 end;
 
 procedure TTestParallel.DoEvent64(aSender: TObject; aIndex: Int64);
 begin
-  Sleep(50+(10*(1+Random(5))));
+  Sleep(50+(10*(1+ThreadRandom(5))));
   FResults[aIndex]:=aIndex;
 end;
 

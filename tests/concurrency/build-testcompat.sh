@@ -9,4 +9,5 @@ mkdir -p "$OUT"
 rm -f "$OUT"/*.ppu "$OUT"/*.o
 "$FPC_TRUNK" @"$FPC_CFG" -gl -Sa "$@" -FU"$OUT" -FE"$OUT" \
   "$ROOT/packages/vcl-compat/tests/testcompat.lpr"
+rm -f "$FPC_CFG"
 echo "Готово: $OUT/testcompat"

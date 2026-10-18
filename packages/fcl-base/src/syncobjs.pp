@@ -321,11 +321,12 @@ uses Windows;
 {$ENDIF}
 {$endif}
 
+// Compile with -dFPC_VALGRIND to annotate TSpinLock for Helgrind/DRD.
 {$ifdef UNIX}
 {$IFDEF FPC_DOTTEDUNITS}
 uses UnixApi.Unix, UnixApi.Base, UnixApi.Pthreads;
 {$ELSE}
-uses unix, baseunix, pthreads;
+uses unix, baseunix, pthreads{$IFDEF FPC_VALGRIND}, fpvalgrind{$ENDIF};
 {$ENDIF}
 {$endif}
 
@@ -1370,6 +1371,9 @@ begin
   Spinner.Reset;
   while TInterlocked.CompareExchange(FLock,1,0)<>0 do
     Spinner.SpinCycle;
+  {$IFDEF FPC_VALGRIND}
+  VgHappensAfter(@FLock);
+  {$ENDIF}
 
   if FThreadTracking then
     begin
@@ -1396,7 +1400,9 @@ begin
       System.Exit;
     FOwningThread:=TThreadID(0);
     end;
-  
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FLock);
+  {$ENDIF}
   if PublishNow then
     TInterlocked.Exchange(FLock, 0)
   else
@@ -1418,7 +1424,10 @@ begin
     end;
 
   Result:=TInterlocked.CompareExchange(FLock,1,0)=0;
-  
+  {$IFDEF FPC_VALGRIND}
+  if Result then
+    VgHappensAfter(@FLock);
+  {$ENDIF}
   if Result and FThreadTracking then
   begin
     FOwningThread:=GetCurrentThreadId;
