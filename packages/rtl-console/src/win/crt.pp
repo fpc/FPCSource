@@ -717,6 +717,8 @@ end;
 
 var
   CurrX, CurrY : DWord;
+  { DBCS lead byte at the end of the previous CrtWrite buffer }
+  PendingLeadByte : string[1];
 
 procedure WriteChar(c : AnsiChar);
 var
@@ -762,35 +764,44 @@ begin
 end;
 
 
-procedure WriteStr(const s: shortstring);
+// Writes s at the cursor; a DBCS lead and trail byte in aCodePage are written together into 2 cells
+procedure WriteStr(const s: shortstring; aCodePage: UINT);
+
+  procedure NextLine;
+  begin
+    CurrX:=WindMinX;
+    Inc(CurrY);
+    While CurrY>WindMaxY do
+      begin
+        RemoveLine(1);
+        Dec(CurrY);
+      end;
+  end;
+
 var
   WritePos: Coord; { Upper-left cell to write from }
   numWritten : DWord;
-  WinAttr : word;
-  i: integer;
+  WinAttr : array[0..1] of word;
+  i, lLen: integer;
 begin
-  WritePos.X:=currX-2;
-  WritePos.Y:=currY-1;
-
-  WinAttr:=TextAttr;
-  for i:=1 to Length(s) do
+  WinAttr[0]:=TextAttr;
+  WinAttr[1]:=TextAttr;
+  i:=1;
+  while i<=Length(s) do
     begin
-      Inc(WritePos.X);
-      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], 1, writePos, numWritten);
-      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, 1, writePos, numWritten);
-      Inc(CurrX);
+      lLen:=1;
+      if (i<Length(s)) and IsDBCSLeadByteEx(aCodePage,Byte(s[i])) then
+        lLen:=2;
+      if CurrX+lLen-1>WindMaxX then
+        NextLine;
+      WritePos.X:=currX-1;
+      WritePos.Y:=currY-1;
+      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], lLen, writePos, numWritten);
+      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, lLen, writePos, numWritten);
+      Inc(CurrX,lLen);
+      Inc(i,lLen);
       if CurrX>WindMaxX then
-        begin
-          CurrX:=WindMinX;
-          Inc(CurrY);
-          While CurrY>WindMaxY do
-            begin
-              RemoveLine(1);
-              Dec(CurrY);
-            end;
-          WritePos.X:=currX-2;
-          WritePos.Y:=currY-1;
-        end;
+        NextLine;
     end;
 end;
 
@@ -800,6 +811,8 @@ var
   i : longint;
   s : shortstring;
   OldConsoleOutputCP : Word;
+  lCodePage : UINT;
+  lTrail : boolean;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
     begin
@@ -808,28 +821,39 @@ begin
     end;
 
   GetScreenCursor(CurrX, CurrY);
-  s:='';
+  lCodePage:=GetConsoleOutputCP;
+  s:=PendingLeadByte;
+  lTrail:=s<>'';
+  PendingLeadByte:='';
   for i:=0 to f.bufpos-1 do
     if f.buffer[i] in [#7,#8,#10,#13] then // special chars directly.
       begin
         if s<>'' then
           begin
-            WriteStr(s);
+            WriteStr(s,lCodePage);
  	    s:='';
           end;
+        lTrail:=false;
         WriteChar(f.buffer[i]);
       end
     else
       begin
-        if length(s)=255 then
+        { a trail byte stays with its lead byte }
+        if (length(s)>=254) and not lTrail then
           begin
-            WriteStr(s);
+            WriteStr(s,lCodePage);
             s:='';
           end;
         s:=s+f.buffer[i];
+        lTrail:=not lTrail and IsDBCSLeadByteEx(lCodePage,Byte(f.buffer[i]));
       end;
+  if lTrail then
+    begin
+      PendingLeadByte:=s[length(s)];
+      SetLength(s,length(s)-1);
+    end;
   if s<>'' then
-    WriteStr(s);
+    WriteStr(s,lCodePage);
   SetScreenCursor(CurrX, CurrY);
 
   if SafeCPSwitching and UseACP then     //restore codepage on every write if set previously
