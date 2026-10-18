@@ -7,12 +7,14 @@
 
 | Файл / тека | Зміст |
 |---|---|
-| `concurrency-guide.pdf` | **Що нового**: огляд змін з короткими прикладами (генерується `build_pdf.py`) |
-| `examples/` | Приклади з документації; кожен компілюється й запускається |
+| `concurrency-guide.pdf` | **Що нового**: огляд змін, порівняння та приклади (генерується `build_pdf.py`) |
+| `guide-system-threading.md` | **Посібник користувача `System.Threading`**: API, шаблони використання (`For`, `Break`/`Stop`, `Join`, `IFuture`, `WaitForAll`/`WaitForAny`, `TThreadPool`), правила безпеки |
+| `examples/` | Приклади з документації (`parallel_for.pp`, `tasks.pp`, `pool_lifetime.pp`, `valgrind_annotate.pp`, `primes_*`, `report_*`, `batch_processing.pp`, `showcase_pipeline.pp`); кожен компілюється й запускається |
 | `valgrind.md` | Перевірка гонок даних (helgrind/drd), анотації, відомі обмеження |
 | `baseline.md` | Базова лінія тестів trunk до наших змін (відомі падіння) |
-| `adr/` | Дизайн-рішення (Architecture Decision Records) |
-| `guide-*.md` | Посібник користувача за темами |
+| `adr/` | Дизайн-рішення (ADR-0001: життєвий цикл потоків пулу; ADR-0002: клієнтські запити Valgrind; ADR-0003: детермінованість `TParallel.For` і `Join`) |
+| `../../packages/fcl-base/xml/fpvalgrind.xml` | Довідник API `fpvalgrind` у стандартному форматі `fpdoc` |
+| `../../packages/vcl-compat/xml/system.threading.xml` | Довідник API `System.Threading` у стандартному форматі `fpdoc` |
 | `../../CHANGELOG-concurrency.md` | Журнал змін гілки |
 
 ## Фази

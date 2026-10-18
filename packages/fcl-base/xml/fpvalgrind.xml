@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpdoc-descriptions>
+<package name="fcl-base">
+
+<!--
+  ====================================================================
+    fpvalgrind
+  ====================================================================
+-->
+
+<module name="fpvalgrind">
+<short>Valgrind Helgrind and DRD client request annotations for custom synchronization primitives</short>
+<descr>
+<p><file>fpvalgrind</file> provides lightweight inline client requests for the Valgrind thread error detectors (<b>Helgrind</b> and <b>DRD</b>). Use these routines to annotate user-space synchronization primitives that do not rely on POSIX <var>pthread_mutex</var> locks, such as spin locks (<var>TSpinLock</var>), lock-free atomic hand-offs, and recycled object caches.</p>
+<p>On <var>x86_64</var> targets using the System V ABI (Linux, BSD, Solaris, macOS), the routines emit the standard Valgrind client-request instruction sequence. When the program runs outside Valgrind, the sequence executes as a few register rotations with no side effects. On all other architectures and operating systems, the routines compile to empty no-op procedures.</p>
+<p>In standard FCL units (<file>syncobjs</file>, <file>system.threading</file>), calls to <file>fpvalgrind</file> are guarded by the <var>FPC_VALGRIND</var> conditional define so that production builds incur zero overhead.</p>
+</descr>
+
+<!-- procedure Visibility: default -->
+<element name="VgHappensBefore">
+<short>Publishes memory writes performed by the calling thread associated with a synchronization tag</short>
+<descr>
+<p><var>VgHappensBefore</var> emits the <var>ANNOTATE_HAPPENS_BEFORE</var> (<var>VG_USERREQ__HG_USERSO_SEND_PRE</var>) client request for the synchronization address <var>aObj</var>.</p>
+<p>Call <var>VgHappensBefore</var> immediately <b>before</b> releasing a custom lock or setting an atomic completion flag. Any subsequent thread that observes the state change and calls <link id="VgHappensAfter"/> with the same <var>aObj</var> pointer will inherit a happens-before edge in Helgrind and DRD, preventing false-positive data race reports on the protected data.</p>
+</descr>
+<seealso>
+<link id="VgHappensAfter"/>
+<link id="VgForgetAll"/>
+</seealso>
+</element>
+
+<element name="VgHappensBefore.aObj">
+<short>Unique memory address identifying the synchronization object or atomic variable</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="VgHappensAfter">
+<short>Acquires visibility of memory writes previously published with the same synchronization tag</short>
+<descr>
+<p><var>VgHappensAfter</var> emits the <var>ANNOTATE_HAPPENS_AFTER</var> (<var>VG_USERREQ__HG_USERSO_RECV_POST</var>) client request for the synchronization address <var>aObj</var>.</p>
+<p>Call <var>VgHappensAfter</var> immediately <b>after</b> acquiring a custom lock or observing an atomic completion flag that was preceded by <link id="VgHappensBefore"/>.</p>
+</descr>
+<seealso>
+<link id="VgHappensBefore"/>
+<link id="VgForgetAll"/>
+</seealso>
+</element>
+
+<element name="VgHappensAfter.aObj">
+<short>Unique memory address identifying the synchronization object or atomic variable</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="VgForgetAll">
+<short>Discards all recorded happens-before tracking state for a synchronization address</short>
+<descr>
+<p><var>VgForgetAll</var> emits the <var>VG_USERREQ__HG_USERSO_FORGET_ALL</var> client request for <var>aObj</var>. Call this routine before freeing or repurposing memory that served as a synchronization tag.</p>
+</descr>
+<seealso>
+<link id="VgHappensBefore"/>
+<link id="VgHappensAfter"/>
+</seealso>
+</element>
+
+<element name="VgForgetAll.aObj">
+<short>Synchronization object address to forget</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="VgCleanMemory">
+<short>Resets shadow memory access history for a recycled memory block</short>
+<descr>
+<p><var>VgCleanMemory</var> emits the <var>VALGRIND_HG_CLEAN_MEMORY</var> client request for the range <var>[aStart, aStart + aLen)</var>.</p>
+<p>Use <var>VgCleanMemory</var> when an allocator or lock-free object pool (such as <var>TThreadPool.TObjectCache</var>) hands out a recycled object to a new thread without going through the system heap manager (<var>malloc</var>/<var>free</var>). This informs Helgrind that accesses by previous owners of the memory block must not be compared against accesses by the new owner.</p>
+</descr>
+<seealso>
+<link id="VgBenignRace"/>
+</seealso>
+</element>
+
+<element name="VgCleanMemory.aStart">
+<short>Starting address of the memory range to clean</short>
+</element>
+
+<element name="VgCleanMemory.aLen">
+<short>Length in bytes of the memory range</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="VgBenignRace">
+<short>Disables data-race reporting on an intentionally lock-free or polled memory range</short>
+<descr>
+<p><var>VgBenignRace</var> emits the <var>VALGRIND_HG_DISABLE_CHECKING</var> (<var>VG_USERREQ__HG_ARANGE_MAKE_UNTRACKED</var>) client request for the range <var>[aStart, aStart + aLen)</var>.</p>
+<p>Use <var>VgBenignRace</var> sparingly, and only for fields that are intentionally read without a lock as an optimistic fast path or monotonic status hint (for example, loop exit flags or adaptive stride hints).</p>
+</descr>
+<seealso>
+<link id="VgCleanMemory"/>
+</seealso>
+</element>
+
+<element name="VgBenignRace.aStart">
+<short>Starting address of the untracked field</short>
+</element>
+
+<element name="VgBenignRace.aLen">
+<short>Size in bytes of the untracked field</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="VgRunningOnValgrind">
+<short>Returns <var>True</var> when the process is executing under Valgrind</short>
+<descr>
+<p><var>VgRunningOnValgrind</var> queries <var>VG_USERREQ__RUNNING_ON_VALGRIND</var> and returns <var>True</var> if the current process is supervised by Valgrind, or <var>False</var> when running natively or on an unsupported target.</p>
+</descr>
+</element>
+
+<element name="VgRunningOnValgrind.Result">
+<short><var>True</var> if running under Valgrind, <var>False</var> otherwise</short>
+</element>
+
+</module> <!-- fpvalgrind -->
+</package>
+</fpdoc-descriptions>
+

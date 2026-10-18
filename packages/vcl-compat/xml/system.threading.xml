@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpdoc-descriptions>
+<package name="vcl-compat">
+
+<!--
+  ====================================================================
+    System.Threading
+  ====================================================================
+-->
+
+<module name="System.Threading">
+<short>Task-based parallel programming library (thread pools, tasks, futures, and parallel loops)</short>
+<descr>
+<p><file>System.Threading</file> implements a Delphi-compatible Parallel Programming Library (PPL) for Free Pascal. Instead of manually managing operating-system threads (<var>TThread</var>), applications express concurrency in terms of lightweight tasks (<link id="ITask"/>, <link id="TTask"/>), typed asynchronous results (<link id="IFuture"/>), and data-parallel loops (<link id="TParallel"/>).</p>
+<p>Work items are scheduled across a work-stealing thread pool (<link id="TThreadPool"/>) that reuses worker threads, balances uneven workloads via per-thread work-stealing queues, and propagates unhandled exceptions to the waiting caller inside a flattened <link id="EAggregateException"/>.</p>
+</descr>
+
+<!-- object Visibility: default -->
+<element name="EAggregateException">
+<short>Aggregates one or more exceptions raised by concurrent tasks or parallel loop iterations</short>
+<descr>
+<p><var>EAggregateException</var> collects exceptions thrown by asynchronous tasks (<link id="TTask.Wait"/>, <link id="TTask.WaitForAll"/>) or parallel loop replicas (<link id="TParallel.For"/>, <link id="TParallel.Join"/>). Nested aggregate exceptions are automatically flattened into a single list of inner exceptions.</p>
+<p>Iterate over the collected exceptions using a <var>for..in</var> loop (which yields exactly <link id="EAggregateException.Count">Count</link> elements), index them via <link id="EAggregateException.InnerExceptions">InnerExceptions</link>, or filter handled exceptions with <link id="EAggregateException.Handle">Handle</link>.</p>
+</descr>
+<seealso>
+<link id="TTask.Wait"/>
+<link id="TTask.WaitForAll"/>
+<link id="TParallel.For"/>
+</seealso>
+</element>
+
+<element name="EAggregateException.Count">
+<short>Number of inner exceptions contained in the aggregate exception</short>
+</element>
+
+<element name="EAggregateException.InnerExceptions">
+<short>Indexed access (<var>0..Count - 1</var>) to the captured exceptions</short>
+</element>
+
+<element name="EAggregateException.GetEnumerator">
+<short>Returns an enumerator over the <var>0..Count - 1</var> inner exceptions</short>
+</element>
+
+<element name="EAggregateException.Handle">
+<short>Invokes a predicate for each inner exception and re-raises any unhandled exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TThreadPool">
+<short>Work-stealing thread pool that executes queued tasks and parallel loops</short>
+<descr>
+<p><var>TThreadPool</var> manages a set of reusable worker threads and a background monitor thread. Each worker thread maintains a local work-stealing queue alongside the global queue; idle workers steal pending work items from other threads before blocking on the queue event.</p>
+<p>All worker threads and the monitor thread are owned by the pool (<var>FreeOnTerminate = False</var>). When a worker finishes, it moves to an internal finished-thread list and is joined (<var>WaitFor</var>) and freed by the monitor thread or during <link id="TThreadPool.Destroy"/>. Consequently, <var>Pool.Free</var> guarantees that no pool thread is still executing user code, destructors, or RTL thread epilogues after destruction returns.</p>
+<p>Note: <link id="TThreadPool.OnThreadTerminate"/> executes in the terminating worker thread before it is joined. Avoid calling <var>TThread.Synchronize</var> from <var>OnThreadTerminate</var> if the pool may be destroyed from the main thread.</p>
+</descr>
+<seealso>
+<link id="TTask"/>
+<link id="TParallel"/>
+</seealso>
+</element>
+
+<element name="TThreadPool.Default">
+<short>Process-wide default thread pool used when no explicit pool is supplied</short>
+</element>
+
+<element name="TThreadPool.Destroy">
+<short>Signals shutdown, wakes all workers, joins and frees all worker and monitor threads</short>
+</element>
+
+<element name="TThreadPool.SetMinWorkerThreads">
+<short>Sets the minimum number of worker threads maintained by the pool</short>
+</element>
+
+<element name="TThreadPool.SetMaxWorkerThreads">
+<short>Sets the maximum number of concurrent worker threads allowed in the pool</short>
+</element>
+
+<element name="TThreadPool.QueueWorkItem">
+<short>Queues a procedure or method for asynchronous execution on the pool</short>
+</element>
+
+<element name="TThreadPool.OnThreadTerminate">
+<short>Callback invoked on a worker thread just before it terminates</short>
+</element>
+
+<!-- interface Visibility: default -->
+<element name="ITask">
+<short>Interface representing an asynchronous unit of work</short>
+<descr>
+<p><var>ITask</var> provides lifecycle control (<link id="ITask.Start"/>, <link id="ITask.Cancel"/>, <link id="ITask.Wait"/>) and status inspection (<link id="ITask.Status"/>) for asynchronous tasks managed by <link id="TTask"/>.</p>
+</descr>
+<seealso>
+<link id="TTask"/>
+<link id="IFuture"/>
+</seealso>
+</element>
+
+<element name="ITask.Wait">
+<short>Blocks until the task completes, the timeout expires, or the task faults/cancels</short>
+<descr>
+<p><var>Wait</var> checks completion using an acquire read barrier on the fast path before waiting on the completion event. If the task or any of its child replicas raised an unhandled exception, <var>Wait</var> raises an <link id="EAggregateException"/>. If the task was canceled, <var>Wait</var> raises <var>EOperationCancelled</var>.</p>
+</descr>
+</element>
+
+<element name="ITask.Start">
+<short>Schedules the task for execution on its associated thread pool</short>
+</element>
+
+<element name="ITask.Cancel">
+<short>Requests cancellation of the task</short>
+</element>
+
+<element name="ITask.Status">
+<short>Current execution status of the task (<var>TTaskStatus</var>)</short>
+</element>
+
+<!-- interface Visibility: default -->
+<element name="IFuture">
+<short>Generic interface representing an asynchronous computation that produces a typed value</short>
+<descr>
+<p><var>IFuture&lt;T&gt;</var> extends <link id="ITask"/> with a <link id="IFuture.Value">Value</link> property that waits for completion if necessary and returns the computed result of type <var>T</var> (or re-raises any captured exception).</p>
+</descr>
+<seealso>
+<link id="TTask.Future"/>
+<link id="ITask"/>
+</seealso>
+</element>
+
+<element name="IFuture.Value">
+<short>Waits for the computation to finish and returns its result</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TTask">
+<short>Factory and implementation class for asynchronous tasks and futures</short>
+<descr>
+<p><var>TTask</var> provides class methods to create and start tasks (<link id="TTask.Run"/>, <link id="TTask.Create"/>), start typed asynchronous functions (<link id="TTask.Future"/>), and synchronize across task arrays (<link id="TTask.WaitForAll"/>, <link id="TTask.WaitForAny"/>).</p>
+</descr>
+<seealso>
+<link id="ITask"/>
+<link id="IFuture"/>
+<link id="TParallel"/>
+</seealso>
+</element>
+
+<element name="TTask.Run">
+<short>Creates and immediately starts an asynchronous task</short>
+</element>
+
+<element name="TTask.Future">
+<short>Creates and immediately starts a typed asynchronous function returning <var>IFuture&lt;T&gt;</var></short>
+</element>
+
+<element name="TTask.WaitForAll">
+<short>Waits for all tasks in the array to complete within an optional timeout</short>
+</element>
+
+<element name="TTask.WaitForAny">
+<short>Waits for at least one task in the array to complete and returns its index (<var>-1</var> on timeout)</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TParallel">
+<short>Static class providing data-parallel loops (<var>For</var>) and fork-join task execution (<var>Join</var>)</short>
+<descr>
+<p><var>TParallel</var> partitions iteration ranges (<link id="TParallel.For"/>) and heterogeneous procedure lists (<link id="TParallel.Join"/>) across a <link id="TThreadPool"/> using self-replicating tasks and dynamic stride sizing.</p>
+</descr>
+<seealso>
+<link id="TParallel.For"/>
+<link id="TParallel.Join"/>
+<link id="TParallel.TLoopState"/>
+<link id="TParallel.TLoopResult"/>
+</seealso>
+</element>
+
+<element name="TParallel.For">
+<short>Executes a loop range (<var>Integer</var> or <var>Int64</var>) in parallel across the thread pool</short>
+<descr>
+<p><var>TParallel.For</var> partitions the inclusive range <var>[aLowInclusive..aHighInclusive]</var> into dynamically sized strides. Each worker claims a range atomically together with the stride value for that batch, ensuring that every iteration in a completed loop executes <b>exactly once</b>.</p>
+<p>Overloads accepting a <link id="TParallel.TLoopState"/> parameter provide each worker replica with its own state instance to request early loop termination via <link id="TParallel.TLoopState.Break">Break</link> (ordered: all iterations below the lowest break index still run) or <link id="TParallel.TLoopState.Stop">Stop</link> (immediate: all replicas exit as soon as possible).</p>
+<p>If one or more iterations raise an exception, the loop transitions to the faulted state, stops scheduling new iterations, collects the exceptions from all worker replicas, and raises a flattened <link id="EAggregateException"/> in the calling thread.</p>
+</descr>
+</element>
+
+<element name="TParallel.Join">
+<short>Creates and starts a task that executes multiple procedures or events in parallel</short>
+<descr>
+<p><var>TParallel.Join</var> schedules an array of procedures (<var>TProcRef</var>) or <var>TNotifyEvent</var> handlers concurrently on the thread pool and returns the started <link id="ITask"/>. Call <var>.Wait</var> on the returned task to block until all joined procedures finish.</p>
+</descr>
+</element>
+
+<element name="TParallel.TLoopState">
+<short>Per-replica loop control object passed to <var>TParallel.For</var> iterations</short>
+<descr>
+<p><var>TLoopState</var> allows an iteration body of <link id="TParallel.For"/> to cooperate with other worker threads:</p>
+<ul>
+<li><var>Break</var> records the current iteration index as a candidate for <var>LowestBreakIteration</var> and prevents workers from starting iterations above that index, while guaranteeing that all iterations prior to the lowest break index still execute.</li>
+<li><var>Stop</var> signals all worker threads to stop executing further iterations immediately; <var>LowestBreakIteration</var> remains <var>Null</var>.</li>
+<li><var>ShouldExit</var> returns <var>True</var> when any replica has called <var>Stop</var>, raised an exception, or called <var>Break</var> at an index lower than the current iteration.</li>
+</ul>
+</descr>
+</element>
+
+<element name="TParallel.TLoopResult">
+<short>Completion summary returned by <var>TParallel.For</var></short>
+<descr>
+<p><var>Completed</var> is <var>True</var> when the loop ran all iterations without calling <var>Break</var> or <var>Stop</var>. When terminated via <var>Break</var>, <var>LowestBreakIteration</var> contains the smallest iteration index that invoked <var>Break</var>; when terminated via <var>Stop</var> (or completed normally), <var>LowestBreakIteration</var> is <var>Null</var>.</p>
+</descr>
+</element>
+
+</module> <!-- System.Threading -->
+</package>
+</fpdoc-descriptions>
+

@@ -16,8 +16,9 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (KeepTogether, PageBreak, Paragraph, SimpleDocTemplate,
-                                Spacer, Table, TableStyle, XPreformatted)
+from reportlab.platypus import (CondPageBreak, KeepTogether, PageBreak, Paragraph,
+                                SimpleDocTemplate, Spacer, Table, TableStyle,
+                                XPreformatted)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXAMPLES = os.path.join(HERE, "examples")
@@ -58,6 +59,7 @@ S_CODE = ParagraphStyle("code", fontName="Mono", fontSize=7.8, leading=10,
 S_OUT = ParagraphStyle("out", parent=S_CODE, textColor=colors.HexColor("#1a7f37"))
 S_CAPTION = ParagraphStyle("caption", parent=S_NOTE, keepWithNext=True,
                            spaceAfter=7, spaceBefore=2)
+S_CAPTION_LONG = ParagraphStyle("captionlong", parent=S_CAPTION, keepWithNext=False)
 
 
 def c(text):
@@ -69,11 +71,9 @@ def p(text, style=S_BODY):
     return Paragraph(text, style)
 
 
-class CodeBlock(XPreformatted):
+def CodeBlock(text, style):
     """Code listing: keeps line breaks, draws background, splits across pages."""
-
-    def __init__(self, text, style):
-        super().__init__(escape(text), style)
+    return XPreformatted(escape(text), style)
 
 
 def code_block(text, style=S_CODE, title=None):
@@ -81,8 +81,11 @@ def code_block(text, style=S_CODE, title=None):
     pre = CodeBlock(text.rstrip("\n"), style)
     if not title:
         return pre
-    caption = Paragraph(escape(title), S_CAPTION)  # keepWithNext: stays with the code
-    return KeepTogether([caption, pre]) if text.count("\n") < 12 else _Seq([caption, pre])
+    if text.count("\n") < 12:
+        # Short block: caption and code on the same page.
+        return KeepTogether([Paragraph(escape(title), S_CAPTION), pre])
+    # Long block: it is split across pages; just avoid an orphan caption.
+    return _Seq([CondPageBreak(40 * mm), Paragraph(escape(title), S_CAPTION_LONG), pre])
 
 
 class _Seq(list):
@@ -138,6 +141,224 @@ def footer(canvas, doc):
     canvas.restoreState()
 
 
+def listing(name):
+    with open(os.path.join(EXAMPLES, name), encoding="utf-8") as f:
+        return f.read()
+
+
+def comparison():
+    """Section 10: classic TThread vs System.Threading, measured on 12 cores."""
+    s = [PageBreak()]
+    s.append(p("10. Порівняння: класичний TThread і System.Threading", S_H1))
+    s.append(p("Дві невеликі програми, кожна у двох варіантах: лише " + c("TThread") +
+               " з RTL і " + c("System.Threading") + ". Обидва варіанти дають однаковий "
+               "результат; заміри на 12 ядрах, компіляція " + c("-O2") + ", по 3 запуски. "
+               "Повні тексти — у додатку."))
+
+    s.append(p("Приклад А. Обробка даних: прості числа до 5 000 000", S_H2))
+    s.append(p("Порахувати кількість і суму простих чисел. Обчислювальна задача, "
+               "одна операція над великим діапазоном."))
+    s.append(table([
+        ["", "А1: " + c("TThread"), "А2: " + c("System.Threading")],
+        ["Результат", "348 513 простих, сума 838 596 693 108", "той самий"],
+        ["Час", "201 / 201 / 302 мс", "<b>125 / 122 / 123 мс</b>"],
+        ["Додатково", "—", "паралельно знаходить найбільше просте (4 999 999)"],
+        ["Рядків коду", "80 (1 клас потоку)", "<b>52</b> (жодного класу)"],
+        ["Ручна робота", "поділ діапазону, клас потоку, WaitFor, Free, збирання "
+         "результатів, перевірка FatalException", "лише тіло ітерації"],
+    ], [30, 70, 70]))
+    s.append(Spacer(1, 5))
+    s.append(p("<b>Чому А2 швидший.</b> Перевірка великих чисел триває довше, тому в А1 "
+               "потоки з першими шматками рано простоюють, а останній працює найдовше "
+               "(звідси й розкид 201–302 мс). " + c("TParallel.For") + " роздає роботу "
+               "невеликими порціями, і вільний потік бере наступну — навантаження "
+               "вирівнюється само. Щоб зробити так у А1, потрібна власна черга задач."))
+    s.append(code_block(
+        "TParallel.&For(1, N,\n"
+        "  procedure(I: Integer)\n"
+        "  begin\n"
+        "    if IsPrime(I) then\n"
+        "    begin\n"
+        "      AtomicIncrement(Count);\n"
+        "      InterlockedExchangeAdd64(Sum, I);\n"
+        "    end;\n"
+        "  end);", title="А2: уся паралельна частина"))
+
+    s.append(p("Приклад Б. Оркестрація задач: звіт з 4 джерел", S_H2))
+    s.append(p("Чотири незалежні джерела різної тривалості (150–400 мс), одне з них "
+               "завершується помилкою. Вимоги: виконати одночасно, загальний ліміт 2 с, "
+               "показати помилки, зібрати решту результатів. Так виглядає типова "
+               "програма, що одночасно звертається до бази, файлів чи мережі."))
+    s.append(table([
+        ["", "Б1: " + c("TThread"), "Б2: " + c("System.Threading")],
+        ["Результат", "помилка показана, 3 значення зібрано", "той самий"],
+        ["Час", "400 / 401 / 401 мс", "402 / 401 / 401 мс"],
+        ["Рядків коду", "88 (<b>5 класів</b>)", "<b>42</b> (жодного класу)"],
+        ["Таймаут", "власна подія + лічильник (TThread.WaitFor без таймауту)",
+         c("WaitForAll(..., 2000)")],
+        ["Помилки", "перевірка " + c("FatalException") + " кожного потоку окремо",
+         "усі в одному " + c("EAggregateException")],
+        ["Типи результатів", "поле в кожному класі + приведення типу",
+         c("IFuture<Int64>") + ", " + c("IFuture<string>") + ", ..."],
+    ], [30, 70, 70]))
+    s.append(Spacer(1, 5))
+    s.append(p("Швидкість однакова: час визначає найдовше джерело (послідовно було б "
+               "~1100 мс). Виграш — у коді: удвічі менше рядків, жодного допоміжного "
+               "класу, помилки й таймаут — вбудовані."))
+    s.append(code_block(
+        "try\n"
+        "  if not TTask.WaitForAll([Orders, TopCustomer, Average, Rate], 2000) then\n"
+        "    WriteLn('Timeout: report is incomplete');\n"
+        "except\n"
+        "  on Agg: EAggregateException do      // усі помилки в одному місці\n"
+        "    for E in Agg do\n"
+        "      WriteLn('Error: ', E.Message);\n"
+        "end;", title="Б2: очікування, таймаут і помилки"))
+    s.append(p("<b>Знахідка.</b> Саме цей приклад виявив ще одну ваду trunk: цикл "
+               + c("for E in Agg") + " видавав зайвий елемент за межами масиву, і "
+               "програма падала з " + c("Access violation") + ". Виправлено (" +
+               c("EAggregateException.GetEnumerator") + "), додано тести "
+               + c("TestEnumerate") + " і " + c("TestEnumerateAfterAdd") + ".", S_NOTE))
+
+    s.append(p("Приклад В. Повторювані порції задач: 20 раундів × 500 задач", S_H2))
+    s.append(p("Типовий серверний сценарій: задачі надходять пачками по 500 штук, "
+               "кожна триває ~0,1 мс. П'ять підходів на тій самій роботі (12 ядер):"))
+    s.append(table([
+        ["Підхід", "Час", "Прискорення", "Примітка"],
+        ["1. Послідовно", "926 мс", "×1,00", "базова лінія"],
+        ["2. Потік на кожну задачу", "898 мс", "×1,03",
+         "10 000 разів створити/знищити потік ОС з'їдає весь виграш"],
+        ["3. Робочі потоки + " + c("WaitFor"), "2031 мс", "×0,46",
+         "у головному потоці " + c("WaitFor") + " опитує раз на 100 мс (20 × 100 мс)"],
+        ["4. Робочі потоки + власна подія", "190 мс", "×4,87",
+         "ручна черга + " + c("TSimpleEvent") + ", але потоки створюються на кожен раунд"],
+        ["5. " + c("TParallel.For"), "<b>160 мс</b>", "<b>×5,79</b>",
+         "пул перевикористовує потоки між раундами; 6 рядків коду"],
+    ], [52, 22, 26, 70]))
+    s.append(Spacer(1, 5))
+    s.append(p("<b>Знахідка.</b> Під час перевірки цього прикладу виявилося, що "
+               + c("TWorkStealingQueue.TrySteal(Item, 0)") + " на порожній черзі зайво "
+               "виконував два системні виклики події (" + c("ResetEvent") + " + "
+               + c("WaitFor(0)") + ") під спін-блокуванням списку черг пулу. Вільні "
+               "потоки переходили в " + c("Sleep(1)") + " і приєднувалися до короткого "
+               "циклу по одному. Після виправлення (" + c("TestStealNoWaitIsCheap") + ") "
+               "час " + c("TParallel.For") + " зменшився до 160 мс.", S_NOTE))
+
+    s.append(p("Приклад Г. Комплексний конвеєр розробника: стандартний TThread vs System.Threading (showcase_pipeline.pp)", S_H2))
+    s.append(p("Одна програма виконує чотири типові прикладні задачі двічі — стандартним "
+               "методом (класи-спадкоємці " + c("TThread") + " з ручною синхронізацією) і "
+               "через " + c("System.Threading") + " — та звіряє збіг результатів, час і "
+               "обсяг коду (12 ядер, " + c("-O2") + "):"))
+    s.append(table([
+        ["Задача", "Стандартний " + c("TThread"), c("System.Threading"), "Виграш"],
+        ["1. Пошук першої помилки за індексом (" + c("Break") + ")",
+         "101 мс · 38 рядків · 1 клас + ручний CAS-цикл для " + c("LowestIdx"),
+         "<b>16 мс · 10 рядків</b> · " + c("State.Break") + " + " + c("LowestBreakIteration"),
+         "<b>×6,3 швидше</b>, у 3,8 раза менше коду"],
+        ["2. Пошук будь-якого збігу (" + c("Stop") + ")",
+         "101 мс · 30 рядків · 1 клас + спільний прапорець " + c("StopFlag"),
+         "<b>6 мс · 11 рядків</b> · " + c("State.Stop"),
+         "<b>×16,8 швидше</b>, у 2,7 раза менше коду"],
+        ["3. Пакетна валідація з винятками",
+         "100 мс · 36 рядків · 1 клас + ручний обхід " + c("FatalException") + " до " + c("Free"),
+         "<b>1 мс · 14 рядків</b> · " + c("try..except on EAggregateException"),
+         "<b>×100 швидше</b>, помилки неможливо загубити"],
+        ["4. Найшвидша репліка + паралельне зведення",
+         "141 мс · 64 рядки · 2 класи + " + c("TSimpleEvent") + " + " + c("WinnerIdx"),
+         "<b>41 мс · 16 рядків</b> · " + c("WaitForAny") + " + " + c("TParallel.Join"),
+         "<b>×3,4 швидше</b>, у 4 рази менше коду"],
+        ["<b>Разом по 4 задачах</b>",
+         "<b>443 мс · 168 рядків · 5 класів</b>",
+         "<b>64 мс · 51 рядок · 0 класів</b>",
+         "<b>×6,9 швидше, −70% коду</b>"],
+    ], [38, 46, 46, 40]))
+    s.append(Spacer(1, 5))
+    s.append(p("<b>Чому стандартний метод програє в 3,4–100 разів за часом на коротких "
+               "етапах:</b> (1) створення й знищення потоків ОС на кожну задачу; "
+               "(2) " + c("TThread.WaitFor") + " у головному потоці опитує завершення з "
+               "кроком 100 мс (" + c("CheckSynchronize(100)") + "), тому кожне приєднання "
+               "додає ~100 мс затримки. Пул " + c("System.Threading") + " тримає робочі "
+               "потоки напоготові й синхронізується через легковагові події без затримки."))
+    s.append(p("<b>Головні переваги нових інструментів при розробці програм:</b>"))
+    s.append(p("• <b>Декларативність замість інфраструктурного коду.</b> Розробник описує "
+               "<i>що</i> потрібно зробити (тіло ітерації, функцію майбутнього результату, "
+               "перелік процедур у " + c("Join") + "), а не <i>як</i> ділити діапазони, "
+               "створювати класи-спадкоємці " + c("TThread") + ", крутити CAS-цикли, "
+               "сигналізувати події чи звільняти пам'ять."))
+    s.append(p("• <b>Детермінована семантика зупинки (" + c("Break") + " vs " + c("Stop") +
+               ").</b> " + c("Break") + " зберігає послідовний інваріант «знайти перший за "
+               "порядком індексу», тоді як " + c("Stop") + " дає максимальну економію часу, "
+               "коли підходить будь-який результат. Зі звичайним " + c("TThread") + " кожен "
+               "із цих режимів потребує окремого протоколу синхронізації."))
+    s.append(p("• <b>Наскрізна безпека щодо винятків.</b> У класичних потоках необроблений "
+               "виняток тихо осідає в " + c("FatalException") + " (якщо програміст забув "
+               "його перевірити до " + c("Free") + " — помилка зникає). У " +
+               c("System.Threading") + " винятки з задач, майбутніх обчислень і паралельних "
+               "циклів гарантовано доставляються в потік-викликач як " +
+               c("EAggregateException") + "."))
+    s.append(p("• <b>Композиційність і перевикористання пулу.</b> Послідовні та вкладені "
+               "виклики " + c("TParallel.For") + ", " + c("TParallel.Join") + " та " +
+               c("TTask.Future") + " працюють на спільному пулі з крадіжкою роботи "
+               "(work-stealing), автоматично балансуючи нерівномірне навантаження."))
+
+    s.append(p("Підсумок порівняння", S_H2))
+    s.append(table([
+        ["Аспект", "Класичний " + c("TThread"), c("System.Threading")],
+        ["Обсяг коду", "80–168 рядків", "42–52 рядки (−50…−70%)"],
+        ["Допоміжні класи", "1–5 на задачу", "0"],
+        ["Розподіл роботи", "вручну, статично", "автоматично, з вирівнюванням"],
+        ["Ранній вихід із циклу", "власний CAS-цикл мінімуму і прапорці",
+         c("State.Break") + " (за індексом) / " + c("State.Stop") + " (миттєво)"],
+        ["Помилки в потоках", "легко пропустити (FatalException)", "повторно виникають "
+         "у коді, що чекає (" + c("EAggregateException") + ")"],
+        ["Таймаут і хеджування", "власні події й лічильники",
+         c("WaitForAll") + " / " + c("WaitForAny") + " з таймаутом"],
+        ["Потоки", "створюються щоразу (+100 мс у WaitFor)", "перевикористовуються пулом"],
+    ], [38, 66, 66]))
+    s.append(Spacer(1, 6))
+    s.append(p("<b>Коли класичний TThread кращий:</b> довгоживучий окремий потік "
+               "(фоновий сервіс, цикл повідомлень, потік на з'єднання з блокуючим I/O); "
+               "потрібен контроль пріоритету чи прив'язки до ядра; дуже дрібні ітерації, "
+               "де накладні витрати на кожну ітерацію й атомарні операції з'їдають "
+               "виграш (тоді обробляйте дані блоками з локальним підсумком)."))
+    s.append(p("<b>Чому це стало практичним саме тут.</b> API " + c("System.Threading") +
+               " був у trunk і раніше, але без виправлень гілки варіант А2 міг випадково "
+               "виконатися в одному потоці (у 12 разів повільніше) або загубити чи "
+               "подвоїти ітерації з неправильним результатом, Б2 — упасти під час "
+               "перебору помилок, а приклад Г — впасти з AV на " + c("TLoopState") +
+               ", загубити виняток циклу та назавжди зависнути на " + c("TParallel.Join") + "."))
+    return s
+
+
+def appendix():
+    s = [PageBreak(), p("Додаток. Повні тексти прикладів порівняння", S_H1)]
+    outputs = {
+        "primes_classic.pp": "Primes: 348513, sum: 838596693108\n"
+                             "Threads: 12, time: 201 ms",
+        "primes_threading.pp": "Primes: 348513, sum: 838596693108\n"
+                               "Largest prime <= N: 4999999\nTime: 122 ms",
+        "report_classic.pp": "Error: Rates service: connection refused\nOrders: 1234\n"
+                             "Top customer: Acme Ltd\nAverage check: 87.5\nTime: 401 ms",
+        "report_threading.pp": "Error: Rates service: connection refused\nOrders: 1234\n"
+                               "Top customer: Acme Ltd\nAverage check: 87.5\nTime: 401 ms",
+        "batch_processing.pp": "20 rounds x 500 jobs, 12 logical CPUs\n"
+                               "1. Sequential                               926 ms  x 1.00  OK\n"
+                               "2. TThread per job                          898 ms  x 1.03  OK\n"
+                               "3. Worker threads + WaitFor                2031 ms  x 0.46  OK\n"
+                               "4. Worker threads + event (expert)          190 ms  x 4.87  OK\n"
+                               "5. TParallel.For                            160 ms  x 5.79  OK",
+        "showcase_pipeline.pp": "=== Standard TThread vs System.Threading (12 logical CPUs) ===\n"
+                                "1. Ordered Break (index=24000=24000):   TThread  101 ms (38 lines) | System.Threading  16 ms (10 lines)\n"
+                                "2. Immediate Stop (completed=F): TThread  101 ms (30 lines) | System.Threading   6 ms (11 lines)\n"
+                                "3. Exception handling (match=TRUE):  TThread  100 ms (36 lines) | System.Threading   1 ms (14 lines)\n"
+                                "4. WaitForAny + Join (eu-central, 1249975000): TThread  141 ms (64 lines) | System.Threading  41 ms (16 lines)\n"
+                                "Total helper thread classes:        TThread = 5 classes (168 lines) | System.Threading = 0 classes (51 lines)",
+    }
+    for name, out in outputs.items():
+        s.extend(example(name, out))
+    return s
+
+
 def build():
     s = []
     s.append(p("Багатопоточність у Free Pascal: що нового", S_TITLE))
@@ -152,8 +373,14 @@ def build():
     s.append(table([
         ["Що", "Було", "Стало"],
         [c("TParallel.For"), "Іноді виконувався в одному потоці (20,7 с замість 1,7 с); "
-         "ітерації могли губитися або виконуватися двічі", "Стабільно паралельний; кожна "
-         "ітерація рівно один раз"],
+         "ітерації могли губитися або виконуватися двічі; цикли з " + c("TLoopState") +
+         " падали з AV; " + c("Break") + "/" + c("Stop") + " не зупиняли цикл; "
+         "винятки в ітераціях губилися",
+         "Стабільно паралельний; кожна ітерація рівно один раз; працюють " +
+         c("TLoopState") + ", " + c("Break") + ", " + c("Stop") + " і передавання винятків"],
+        [c("TParallel.Join"), "Не запускав задачу; " + c("Params") + " зі сміттям зі "
+         "стеку; " + c("Parent := Self") + " вічно блокував " + c("Wait"),
+         "Запускає процедури паралельно й коректно завершує " + c("Wait")],
         [c("TTask.Wait") + ", " + c("WaitForAny"), "Читання стану без бар'єра / без "
          "блокування", "Коректно і на x86, і на ARM64"],
         [c("TThreadPool.Free"), "Повертав керування, поки потоки пулу ще працювали; "
@@ -161,17 +388,22 @@ def build():
          "всіх потоків"],
         ["valgrind / helgrind", "Сотні хибних попереджень; падіння valgrind", "Модуль "
          + c("fpvalgrind") + ", анотації, скрипти; 0 попереджень у System.Threading"],
+        [c("for E in EAggregateException"), "Видавав зайвий елемент за межами "
+         "масиву — падіння (Access violation)", "Рівно ті помилки, що зібрано"],
         ["Тести", c("Assert") + " з робочих потоків міг загубити невдачу",
          c("ThreadCheck") + " / " + c("ThreadCheckSame")],
     ], [38, 62, 70]))
 
     s.append(p("1. Паралельний цикл TParallel.For", S_H1))
-    s.append(p("Виправлено дві помилки. Перша: на щойно створеному («холодному») пулі "
+    s.append(p("Виправлено низку помилок. (1) На щойно створеному («холодному») пулі "
                "вільні потоки не помічали роботу в локальній черзі кореневої задачі й "
-               "спали до 40 с, тож увесь цикл виконувався одним потоком. Друга: потік "
+               "спали до 40 с, тож увесь цикл виконувався одним потоком. (2) Потік "
                "забирав діапазон ітерацій з одним розміром кроку, а виконував з іншим, "
-               "тому частина ітерацій губилася або виконувалася двічі, а "
-               + c("TLoopResult.Completed") + " при цьому був " + c("True") + "."))
+               "тому частина ітерацій губилася або виконувалася двічі при "
+               + c("TLoopResult.Completed = True") + ". (3) " + c("TLoopState") +
+               " не створювався (" + c("nil") + "), " + c("Break") + " і " + c("Stop") +
+               " не зупиняли цикл, а винятки з дочірніх реплік губилися (" +
+               c("EAggregateException.Count = 0") + ")."))
     s.extend(example("parallel_for.pp",
                      "Completed: TRUE, iterations not run exactly once: 0"))
 
@@ -301,7 +533,7 @@ def build():
     s.append(p("8. Перевірено", S_H1))
     s.append(table([
         ["Перевірка", "Результат"],
-        ["Тести vcl-compat", "702 тести; 2 відомі падіння, не пов'язані з потоками"],
+        ["Тести vcl-compat", "710 тестів; 2 відомі падіння, не пов'язані з потоками"],
         ["Стрес-прогін", "9 наборів × 50 повторів: 450/450; після останніх змін у "
          "тестах — 20 повторів: 180/180. Без падінь і зависань"],
         ["Тести компілятора", "той самий список падінь, що й до змін"],
@@ -316,9 +548,15 @@ def build():
                "після нього " + c("pthread_join") + " дає повну синхронізацію. "
                "Доброякісно."))
     s.append(p("• Анотації valgrind реалізовано лише для x86_64."))
-    s.append(p("Докладніше: " + c("docs/concurrency/valgrind.md") + ", "
-               + c("docs/concurrency/baseline.md") + ", " + c("CHANGELOG-concurrency.md")
-               + ".", S_NOTE))
+    s.append(p("Докладніше: " + c("docs/concurrency/guide-system-threading.md") + ", "
+               + c("docs/concurrency/valgrind.md") + ", " + c("docs/concurrency/adr/")
+               + ", " + c("docs/concurrency/baseline.md") + ", fpdoc-описи "
+               + c("packages/fcl-base/xml/fpvalgrind.xml") + " і "
+               + c("packages/vcl-compat/xml/system.threading.xml") + ", "
+               + c("CHANGELOG-concurrency.md") + ".", S_NOTE))
+
+    s.extend(comparison())
+    s.extend(appendix())
 
     doc = SimpleDocTemplate(OUT, pagesize=A4, leftMargin=20 * mm, rightMargin=20 * mm,
                             topMargin=18 * mm, bottomMargin=20 * mm,

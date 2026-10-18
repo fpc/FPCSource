@@ -61,8 +61,50 @@
   записується під блокуванням, а `TThreadedTestCase.TearDown` після
   приєднання потоків валить тест з переліком невдач.
   Тест механізму: `TTestThreading.TestThreadCheckRecordsFailure`.
+- `EAggregateException`: перебір `for E in Agg` видавав зайвий елемент за
+  межами масиву (`MoveNext` перевіряв межу до збільшення індексу), а після
+  `Add` — ще й порожні місця запасу місткості; програма падала з
+  `Access violation`. Тепер перебираються рівно `Count` помилок.
+  Тести: `TTestAggregateException.TestEnumerate`, `TestEnumerateAfterAdd`.
+- `TWorkStealingQueue.TrySteal`: при `aTimeout = 0` на порожній черзі зайво
+  викликалися `FEvent.ResetEvent` і `FEvent.WaitFor(0)` (два системні виклики)
+  під спін-блокуванням списку черг пулу, через що вільні потоки переходили в
+  `Sleep(1)` у `TSpinWait` і приєднувалися до коротких циклів по одному.
+  Тест: `TTestWorkStealingQueue.TestStealNoWaitIsCheap`.
+- `TParallel.For` з `TLoopState`, `Break`, `Stop`:
+  - `TLoopState` ніколи не створювався (`nil`), тож кожен цикл із параметром
+    стану падав з `Access violation`; тепер кожна репліка створює власний
+    `TLoopState32`/`TLoopState64` в `Invoke`.
+  - `TLoopParams.Break` завжди повертав `False`, тож `FBreakAt` не
+    оновлювався; `ShouldExitLoop(CurrentIter)` у режимі `objfpc` читав змінну
+    результату замість виклику `ShouldExitLoop()`, тому `Stop` і винятки не
+    зупиняли цикл; у `Invoke` викликався `TLoopParams.Break` замість
+    `system.Break` та перевірявся `ShouldExitLoop(Start)` замість
+    `ShouldExitLoop(I)`.
+  - Тести: `TTestParallel.TestForWithState`, `TestForBreak`, `TestForStop`.
+- `TParallel.For` і винятки в ітераціях:
+  - `TExceptionList.Create(Initial, aCapacity)` не збільшував `Count` і не
+    розгортав `EAggregateException`;
+  - `FTasksWithExceptions` зберігав необліковувані `TTask` замість `ITask`,
+    через що дочірня репліка з винятком знищувалася потоком пулу при
+    `Itm := Nil` разом із `FException` ще до того, як коренева задача збирала
+    помилки, а `ReplicaCallUserCode` двічі викликав `Complete`.
+  - Тест: `TTestParallel.TestForExceptionPreserved`.
+- `TThreadPool.Destroy` / `GetWorkItemForThread`: потік міг скинути
+  `FQueueEvent.ResetEvent` після `FQueueEvent.SetEvent` у `Destroy`, залишаючи
+  інші потоки спати до `IdleTimeout` (40 с).
+- `TParallel.Join` (`TProcJoinTask`, `TEventJoinTask`):
+  - локальний запис `Params: TTaskParams` не обнулявся (`Default(TTaskParams)`),
+    через що поле `Params.Event` містило сміття зі стеку;
+  - `Params.Parent := Self` робив задачу дочірньою для самої себе
+    (`FSubTasks = 2`), через що `Wait` зависав назавжди;
+  - `TParallel.Join` не запускав створену задачу (`.Start`).
+  - Тест: `TTestParallel.TestJoin`.
 
 ### Додано
+- `docs/concurrency/examples/`: приклади порівняння «класичний TThread vs
+  System.Threading» (`primes_*`, `report_*`, `batch_processing.pp`,
+  `showcase_pipeline.pp`) і розділ 10 у PDF.
 - `fcl-base/src/fpvalgrind.pp`: клієнтські запити valgrind (happens-before/after,
   clean memory, benign race); анотації в `TSpinLock` і `System.Threading`
   під `-dFPC_VALGRIND`. Див. `docs/concurrency/valgrind.md`.

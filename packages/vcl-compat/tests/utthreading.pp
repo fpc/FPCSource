@@ -3,6 +3,7 @@ unit utthreading;
 {$mode objfpc}{$H+}
 
 {$modeswitch functionreferences}
+{$modeswitch anonymousfunctions}
 
 { $DEFINE DEBUGTEST}
 
@@ -85,6 +86,9 @@ type
     procedure TestHandleException1;
     procedure TestHandleException2;
     procedure TestHandleException3;
+    // for E in Aggregate: exactly the inner exceptions, in order
+    procedure TestEnumerate;
+    procedure TestEnumerateAfterAdd;
   end;
 
   { TTestSparseArray }
@@ -228,6 +232,8 @@ type
     procedure TestStealFailTimeout;
     procedure TestRemove;
     procedure TestFindAndRemove;
+    // TrySteal without timeout must be about as cheap as LocalPop
+    procedure TestStealNoWaitIsCheap;
   end;
 
   { TCachedObject }
@@ -428,12 +434,20 @@ type
     {$IFDEF CPU64}
     Procedure TestForEachIterationOnce64;
     {$ENDIF}
+    // Loops with a TLoopState parameter
+    Procedure TestForWithState;
+    Procedure TestForBreak;
+    Procedure TestForStop;
+    // The exception raised in an iteration reaches the caller
+    Procedure TestForExceptionPreserved;
+    // TParallel.Join starts the task and completes without deadlocking
+    Procedure TestJoin;
   end;
 
 
 implementation
 
-uses DateUtils;
+uses DateUtils, System.Diagnostics;
 
 // The global Random is not thread-safe, and these helpers run in pool threads.
 // Thread-safe replacement: hash of an atomic counter (splitmix32 finalizer).
@@ -831,6 +845,39 @@ begin
     FreeAndNil(FEx);
   end;
   AssertNull('Exception freed',E);
+end;
+
+function EnumeratedMessages(aEx: EAggregateException): String;
+var
+  E : Exception;
+begin
+  Result:='';
+  for E in aEx do
+    begin
+    if not Assigned(E) then
+      Exit(Result+'<nil>');
+    Result:=Result+E.Message+';';
+    end;
+end;
+
+procedure TTestAggregateException.TestEnumerate;
+// Regression test: MoveNext checked the bound before incrementing, so the
+// enumerator returned one element past the end.
+begin
+  FreeAndNil(Fex);
+  Fex:=EAggregateException.Create('X',[Exception.Create('a'),Exception.Create('b')]);
+  AssertEquals('Enumerated','a;b;',EnumeratedMessages(Ex));
+end;
+
+procedure TTestAggregateException.TestEnumerateAfterAdd;
+// Regression test: Add grows the list by 10, and the enumerator walked the
+// whole array instead of the Count used elements.
+begin
+  Ex.Add(Exception.Create('a'));
+  Ex.Add(Exception.Create('b'));
+  Ex.Add(Exception.Create('c'));
+  AssertEquals('Count',3,Ex.Count);
+  AssertEquals('Enumerated','a;b;c;',EnumeratedMessages(Ex));
 end;
 
 procedure TTestAggregateException.TestCreateWithArray;
@@ -1382,6 +1429,31 @@ begin
   TSingleAddThread.Create(FQueue,1000,321,@ThreadTerminated);
   AssertFalse('Cannot steal',FQueue.TrySteal(I,400));
   AssertEquals('All added',True,WaitForCondition(@WaitForTerminateCount,4000));
+end;
+
+procedure TTestWorkStealingQueue.TestStealNoWaitIsCheap;
+// Regression test: TrySteal(Item, 0) on an empty queue reset and waited on the
+// queue event (two system calls) although no wait was requested. The pool
+// calls it for every queue while holding a spin lock, so idle workers ended
+// up in TSpinWait's Sleep(1) and joined a parallel loop one by one.
+const
+  Calls = 200000;
+var
+  I : Integer;
+  Item : Int64;
+  W : TStopWatch;
+  PopTime, StealTime : Int64;
+begin
+  W:=TStopWatch.StartNew;
+  For I:=1 to Calls do
+    FQueue.LocalPop(Item);
+  PopTime:=W.ElapsedMilliseconds;
+  W:=TStopWatch.StartNew;
+  For I:=1 to Calls do
+    AssertFalse('Nothing to steal',FQueue.TrySteal(Item,0));
+  StealTime:=W.ElapsedMilliseconds;
+  AssertTrue(Format('TrySteal(0): %d ms, LocalPop: %d ms',[StealTime,PopTime]),
+             StealTime<=4*PopTime+20);
 end;
 
 procedure TTestWorkStealingQueue.TestRemove;
@@ -2530,6 +2602,129 @@ begin
     end;
 end;
 {$ENDIF}
+
+var
+  _StateHits : array of Integer;
+
+procedure TTestParallel.TestForWithState;
+// Regression test: the TLoopState passed to the iteration was never created
+// (nil), so every loop with a state parameter raised access violations.
+var
+  L : TParallel.TLoopResult;
+  I : Integer;
+begin
+  SetLength(_StateHits,1000);
+  FillChar(_StateHits[0],Length(_StateHits)*SizeOf(Integer),0);
+  L:=TParallel.&For(0,999,
+    procedure(aIndex: Integer; aState: TParallel.TLoopState)
+    begin
+      if Assigned(aState) and not aState.ShouldExit then
+        AtomicIncrement(_StateHits[aIndex]);
+    end);
+  AssertTrue('Completed',L.Completed);
+  For I:=0 to 999 do
+    AssertEquals('Iteration '+IntToStr(I),1,_StateHits[I]);
+  {$IFDEF CPU64}
+  FillChar(_StateHits[0],Length(_StateHits)*SizeOf(Integer),0);
+  L:=TParallel.&For(Int64(0),Int64(999),
+    procedure(aIndex: Int64; aState: TParallel.TLoopState)
+    begin
+      if Assigned(aState) and not aState.ShouldExit then
+        AtomicIncrement(_StateHits[aIndex]);
+    end);
+  AssertTrue('Completed 64',L.Completed);
+  For I:=0 to 999 do
+    AssertEquals('Iteration 64 '+IntToStr(I),1,_StateHits[I]);
+  {$ENDIF}
+end;
+
+procedure TTestParallel.TestForBreak;
+var
+  L : TParallel.TLoopResult;
+  I : Integer;
+begin
+  SetLength(_StateHits,10000);
+  FillChar(_StateHits[0],Length(_StateHits)*SizeOf(Integer),0);
+  L:=TParallel.&For(0,9999,
+    procedure(aIndex: Integer; aState: TParallel.TLoopState)
+    begin
+      AtomicIncrement(_StateHits[aIndex]);
+      if aIndex=100 then
+        aState.Break;
+    end);
+  AssertFalse('Not completed',L.Completed);
+  AssertEquals('Lowest break iteration',100,Integer(L.LowestBreakIteration));
+  // Break guarantees that all iterations before the break index ran.
+  For I:=0 to 100 do
+    AssertEquals('Iteration '+IntToStr(I),1,_StateHits[I]);
+end;
+
+procedure TTestParallel.TestForStop;
+var
+  L : TParallel.TLoopResult;
+  Ran, I : Integer;
+begin
+  SetLength(_StateHits,100000);
+  FillChar(_StateHits[0],Length(_StateHits)*SizeOf(Integer),0);
+  L:=TParallel.&For(0,99999,
+    procedure(aIndex: Integer; aState: TParallel.TLoopState)
+    begin
+      AtomicIncrement(_StateHits[aIndex]);
+      if aIndex=0 then
+        aState.Stop;
+      Sleep(0);
+    end);
+  AssertFalse('Not completed',L.Completed);
+  AssertEquals('LowestBreakIteration is Null',varNull,TVarData(L.LowestBreakIteration).VType);
+  Ran:=0;
+  For I:=0 to High(_StateHits) do
+    Inc(Ran,_StateHits[I]);
+  AssertTrue('Stopped early: '+IntToStr(Ran)+' iterations ran',Ran<100000);
+end;
+
+procedure TTestParallel.TestForExceptionPreserved;
+// Regression test: the iteration's exception was lost; the caller got an
+// EAggregateException with Count=0.
+var
+  Raised : Boolean;
+begin
+  Raised:=False;
+  try
+    TParallel.&For(0,99,
+      procedure(aIndex: Integer)
+      begin
+        if aIndex=42 then
+          raise ESomeThing.Create('bad 42');
+      end);
+  except
+    on E : EAggregateException do
+      begin
+      Raised:=True;
+      AssertEquals('One inner exception',1,E.Count);
+      AssertEquals('Inner class',ESomeThing.ClassName,E.InnerExceptions[0].ClassName);
+      AssertEquals('Inner message','bad 42',E.InnerExceptions[0].Message);
+      end;
+  end;
+  AssertTrue('EAggregateException raised',Raised);
+end;
+
+procedure TTestParallel.TestJoin;
+// Regression test: TProcJoinTask/TEventJoinTask left Params uninitialized,
+// set Params.Parent := Self (causing FSubTasks=2 and Wait to hang), and
+// TParallel.Join did not start the returned task.
+var
+  A, B : Integer;
+  T : ITask;
+begin
+  A:=0;
+  B:=0;
+  T:=TParallel.Join(
+    procedure begin AtomicIncrement(A, 10); end,
+    procedure begin AtomicIncrement(B, 20); end);
+  AssertTrue('Join completed',T.Wait(5000));
+  AssertEquals('Proc 1 ran',10,A);
+  AssertEquals('Proc 2 ran',20,B);
+end;
 
 initialization
   _TestThreads:=TThreadList.Create;
