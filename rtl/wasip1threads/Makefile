@@ -3002,7 +3002,7 @@ wasmsem$(PPUEXT) : $(WASMSEMDEPS)
 	$(COMPILER) $<
 Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WASMSEMDEPS)
 	$(COMPILER) $< 
-WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
+WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(WASICOMMONINC)/wasiinc/wasierrnostr.inc $(SYSTEMUNIT)$(PPUEXT)
 wasiapi$(PPUEXT) : $(WASICOMMONINC)/wasiapi.pp $(WASIAPIDEPS)
 	$(COMPILER) $< -Fiwasiinc
 WASIApi.WASIApi$(PPUEXT) : $(NSOSDIR)/WASIApi.WASIApi.pp $(WASIAPIDEPS)
