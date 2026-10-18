@@ -96,7 +96,7 @@ end;
 
 function GetLastOSError: Integer;
 begin
-  Result:=__fpc_wasm_LastOSError;
+  Result:=__fpc_wasi_LastOSError;
 end;
 
 function GetTickCount64: QWord;
