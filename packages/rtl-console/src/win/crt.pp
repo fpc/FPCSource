@@ -57,6 +57,8 @@ var
                                   will only be set on Initialization and
                                   Finalization *)
     OriginalConsoleOutputCP : Word;
+    FullConsoleWindow : Boolean; (* True until Window is called: the CRT
+                                    window follows the console viewport. *)
 
 
 {****************************************************************************
@@ -210,6 +212,7 @@ Begin
   if (X1 > X2) or (X2 > GetScreenWidth) or
     (Y1 > Y2) or (Y2 > GetScreenHeight) then
     exit;
+  FullConsoleWindow := False;
   WindMinY := Y1;
   WindMaxY := Y2;
   WindMinX := X1;
@@ -720,6 +723,57 @@ var
   { DBCS lead byte at the end of the previous CrtWrite buffer }
   PendingLeadByte : string[1];
 
+// Scrolls the output up one line and adjusts CurrY; in the full console window the top line moves into the scrollback
+procedure ScrollOutputUp;
+
+var
+  lHandle: THandle;
+  lInfo: TConsoleScreenBufferInfo;
+  lRect, lClip: TSmallRect;
+  lDest: TCoord;
+  lFill: TCharInfo;
+begin
+  lHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
+  FillChar(lInfo,SizeOf(lInfo),0);
+  if not FullConsoleWindow or (WindMinX<>1)
+     or not GetConsoleScreenBufferInfo(lHandle,lInfo)
+     or (WindMaxX<>DWord(lInfo.dwSize.X)) then
+    begin
+      RemoveLine(1);
+      Dec(CurrY);
+      Exit;
+    end;
+  if WindMaxY<DWord(lInfo.dwSize.Y) then
+    begin
+      { move the viewport one line down the buffer }
+      lRect:=lInfo.srWindow;
+      lRect.Top:=WindMinY;
+      lRect.Bottom:=WindMaxY;
+      if SetConsoleWindowInfo(lHandle,True,lRect) then
+        begin
+          Inc(WindMinY);
+          Inc(WindMaxY);
+          WindMin:=((WindMinY-1) Shl 8)+(WindMinX-1);
+          WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
+          Exit;
+        end;
+    end;
+  { scroll the buffer from row 0 down to the bottom of the window }
+  lRect.Left:=0;
+  lRect.Top:=1;
+  lRect.Right:=lInfo.dwSize.X-1;
+  lRect.Bottom:=WindMaxY-1;
+  lClip:=lRect;
+  lClip.Top:=0;
+  lDest.X:=0;
+  lDest.Y:=0;
+  lFill.UnicodeChar:=#32;
+  lFill.Attributes:=TextAttr;
+  ScrollConsoleScreenBuffer(lHandle,lRect,lClip,lDest,lFill);
+  Dec(CurrY);
+end;
+
+
 procedure WriteChar(c : AnsiChar);
 var
     WritePos: Coord;                       { Upper-left cell to write from }
@@ -757,10 +811,8 @@ begin
     CurrX := WindMinX;
     Inc(CurrY);
   end; { if }
-  While CurrY > WindMaxY do begin
-    RemoveLine(1);
-    Dec(CurrY);
-  end; { while }
+  While CurrY > WindMaxY do
+    ScrollOutputUp;
 end;
 
 
@@ -772,10 +824,7 @@ procedure WriteStr(const s: shortstring; aCodePage: UINT);
     CurrX:=WindMinX;
     Inc(CurrY);
     While CurrY>WindMaxY do
-      begin
-        RemoveLine(1);
-        Dec(CurrY);
-      end;
+      ScrollOutputUp;
   end;
 
 var
@@ -1091,6 +1140,7 @@ Initialization
   WindMaxX := (ConsoleInfo.srWindow.Right) + 1;
   WindMaxY := (ConsoleInfo.srWindow.Bottom) + 1;
   WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
+  FullConsoleWindow := True;
   ScreenWidth := ConsoleInfo.dwSize.X;
   ScreenHeight := ConsoleInfo.dwSize.Y;
 
