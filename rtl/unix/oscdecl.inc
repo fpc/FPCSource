@@ -57,7 +57,7 @@ end;
 { fpopen                                                                }
 { ********************************************************************* }
 
-function  real_FpOpen(path: PAnsiChar; flags : cint):cint; varargs; cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
+function  real_FpOpen(path: PAnsiChar; flags : cint):cint; varargs; cdecl; external clib name 'open'{$if defined(aix) or defined(solaris)}+suffix64bit{$endif};
 
 function  FpOpen    (path: PAnsiChar; flags : cint; mode: TMode):cint;
 begin

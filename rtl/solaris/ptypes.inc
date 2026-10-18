@@ -20,7 +20,8 @@
 {***********************************************************************}
 
 { Introduced defines
-    - 64bitfs   (should be on if libc switches to a 64-bit system.
+    - fs32bit, use the 32-bit file interfaces of libc on 32-bit targets
+               instead of the large file (*64) interfaces
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
 and all three 32-bit systems returned completely identical types too
@@ -46,7 +47,11 @@ Type
     pGid     = ^gid_t;
     TIOCtlRequest = cInt;
 
+{$if defined(cpu64) or defined(fs32bit)}
     ino_t    = clong;           { used for file serial numbers }
+{$else}
+    ino_t    = cuint64;         { ino64_t }
+{$endif}
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -58,14 +63,10 @@ Type
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 
-{$ifdef cpu64}
+{$if defined(cpu64) or not defined(fs32bit)}
     off_t    = cint64;          { used for file sizes          }
 {$else}
-   {$ifdef 64BitFS}
-    off_t    = cint64;
-   {$else}
     off_t    = cint;
-   {$endif}
 {$endif}
     TOff     = off_t;
     pOff     = ^off_t;
