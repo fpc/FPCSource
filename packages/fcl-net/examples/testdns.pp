@@ -25,7 +25,7 @@ begin
   With H do
     begin
     Writeln('Name     : ',Name);
-    Writeln('Addr     : ',HostAddrToStr(Addr));
+    Writeln('Addr     : ',NetAddrToStr(Addr));
     Writeln('Aliases  : ',Aliases);
     Writeln;
     end;
@@ -68,7 +68,7 @@ begin
   l:=ResolveName('db.wisa.be',Ans);
   Writeln('Got : ',l,' answers');
   For I:=1 to l do
-    Writeln(i:2,': ',hostAddrtostr(Ans[i]));
+    Writeln(i:2,': ',NetAddrToStr(Ans[i]));
   Writeln('Resolving address ');
   H:=StrtoHostAddr('212.224.143.202');
   L:=ResolveAddress(H,NAns);
