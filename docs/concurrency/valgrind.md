@@ -92,13 +92,25 @@ tests/concurrency/hgsummary.py hg.log                     # групування
 Усі тести під helgrind проходять. Решта конфліктів — поза `System.Threading`
 (див. нижче).
 
-## Відкриті задачі (RTL, поза `System.Threading`)
+## Виправлено після аналізу RTL-груп (2026-10-19)
+
+| Група | Рішення | Стан |
+|---|---|---|
+| Потоки пулу живуть довше за `Destroy` / програму | Потоки належать пулу (`FreeOnTerminate := False`), `Destroy` приєднує їх (`WaitFor`) і звільняє; тест `TestFreeJoinsThreads` | ✅ виправлено |
+| `TThread.Resume` ↔ `ThreadFunc` (`rtl/unix/tthread.inc`) | прибрано повторний запис `FSuspendedInternal` у новому потоці | ✅ виправлено |
+| `cthreads.RemoveTidEntries` / `DoneTidEntries` | `ThreadTidList` читається лише під `ThreadTidLock` | ✅ виправлено |
+| Тестові потоки (`TNotifyThread`, `TTaskThread`) | ті самі ваду в тестах: тепер приєднуються в `TearDown` | ✅ виправлено |
+| `pthread_mutex_init` ↔ `TThread.Terminate` | пам'ять звільненого об'єкта перевикористано; helgrind не вважає free/malloc синхронізацією | ⚪ хибна тривога |
+| `TThread.WaitFor` ↔ `ThreadFunc` (`FFinished`) | `WaitFor` у головному потоці опитує прапорець `FFinished`, далі `pthread_join` дає синхронізацію | ⚪ доброякісне опитування в RTL |
+
+Під час виправлення helgrind упіймав і нову гонку в щойно написаному коді:
+`ReapFinishedThreads` викликав `Free` для потоку, який ще виконував
+`DoTerminate`; деструктор виконувався до приєднання. Тепер спершу `WaitFor`,
+потім `Free` (так само для монітора, `FreeMonitorThread`).
+
+## Відкриті задачі (поза `System.Threading`)
 
 | Конфлікт | Опис |
 |---|---|
-| `TThread.Resume` ↔ `ThreadFunc` (`Classes`) | рукостискання при старті потоку читає/пише поля без синхронізації |
-| `cthreads.RemoveTIDEntries` ↔ `CBeginThread` | облік ідентифікаторів потоків (`ThreadTIDLock`) |
-| `SetMemoryManager` ↔ `FreeMem` у `TThread.Destroy` | потоки пулу (`FreeOnTerminate`) ще завершуються, коли програма вже фіналізує модулі. `WaitForThreads` чекає дереєстрації потоку, а не його фактичного завершення. Потрібно: пул чекає потоки через `WaitFor` перед звільненням. |
-| `TInterfacedObject._Release` ↔ `_Release`/`Destroy` (`System`) | лічильник посилань атомарний, але helgrind цього не бачить. Потрібні анотації в RTL: happens-before перед декрементом, happens-after перед `Destroy` (як у libstdc++ для `shared_ptr`). Звідси ж хибні конфлікти «звільнення задачі ↔ `FDoneEvent.SetEvent`». |
+| `TInterfacedObject._Release` ↔ `_Release`/`Destroy` (`System`) | лічильник посилань атомарний, але helgrind цього не бачить. Потрібні анотації в RTL (happens-before перед декрементом, happens-after перед `Destroy`), як у libstdc++ для `shared_ptr`. Звідси ж хибні конфлікти «звільнення задачі ↔ `FDoneEvent.SetEvent`». |
 | `fpcunit` `AssertTrue`/`AssertSame` з різних потоків | лічильник перевірок у `fpcunit` не потокобезпечний; тести не повинні викликати `Assert*` з робочих потоків. |
-| `SetMemoryManager`/`SetWideStringManager` ↔ `DoneThread` | те саме, що й вище: потоки пулу живуть довше за фіналізацію програми. |

@@ -33,6 +33,26 @@
   циклів очікування; тепер під тим самим `Lock`, що й запис.
 - Тести `utthreading.pp`: глобальний `Random` викликався з потоків пулу;
   замінено на потокобезпечний `ThreadRandom`.
+- `TThreadPool.Destroy` не чекав фактичного завершення потоків: робочі потоки
+  й монітор були `FreeOnTerminate` і виходили зі списку пулу у власному
+  деструкторі, тож `Destroy` повертав керування, поки вони ще виконували
+  деструктор і завершальну частину RTL. Для пулу за замовчуванням це
+  перетиналося з фіналізацією програми (вимкнення менеджера пам'яті).
+  Тепер потоки належать пулу (`FreeOnTerminate := False`): завершуючись,
+  потік переходить у `FFinishedThreads` (раніше, ніж залишає `FThreads`),
+  а пул приєднує й звільняє їх (`ReapFinishedThreads`) у моніторі та в
+  `Destroy`; монітор зберігається в `FMonitorThread`.
+  Регресійний тест: `TTestThreading.TestFreeJoinsThreads` (до виправлення:
+  після `Pool.Free` живих потоків 25 замість 1).
+- RTL `rtl/unix/tthread.inc` (`ThreadFunc`): новий потік повторно записував
+  `FSuspendedInternal := true` без синхронізації; запис міг відбутися після
+  того, як `Resume` у потоці-творці вже скинув прапорець. Рядок прибрано
+  (значення встановлює `SysCreate` до старту потоку).
+- RTL `rtl/unix/cthreads.pp` (`RemoveTidEntries`, `DoneTidEntries`):
+  `ThreadTidList` перевірявся без `ThreadTidLock`; тепер лише під блокуванням.
+- Тести `utthreading.pp`: потоки тестів (`TNotifyThread`, `TTaskThread`) були
+  `FreeOnTerminate` і вважалися завершеними за `OnTerminate`, тобто до
+  фактичного завершення; тепер `TThreadedTestCase.TearDown` їх приєднує й звільняє.
 
 ### Додано
 - `fcl-base/src/fpvalgrind.pp`: клієнтські запити valgrind (happens-before/after,

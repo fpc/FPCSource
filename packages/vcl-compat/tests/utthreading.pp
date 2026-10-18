@@ -292,6 +292,8 @@ type
     procedure WaitForWorkDoneCount(out Done : Boolean);
     procedure DoBurnCyclesExecute(Sender: TObject);
     procedure DoSimpleExecute(Sender: TObject);
+    procedure DoCountWork(Sender: TObject);
+    procedure DoSlowThreadTerminate(arg: TThread);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -307,6 +309,8 @@ type
     procedure TestExecuteLotsOfWork;
     // Frees a pool whose worker threads have just been created
     procedure TestFreeWithNewThreads;
+    // Pool.Free must return only when its threads have really ended
+    procedure TestFreeJoinsThreads;
   end;
 
   { TTestTask }
@@ -436,6 +440,40 @@ begin
   X:=(X xor (X shr 13))*$C2B2AE35;
   X:=X xor (X shr 16);
   Result:=X mod Cardinal(aRange);
+end;
+
+// Threads created by the tests. They are not FreeOnTerminate: OnTerminate runs
+// before a thread has really ended, so TThreadedTestCase.TearDown joins and
+// frees them. Otherwise they could outlive the test (or the program).
+var
+  _TestThreads : TThreadList;
+
+procedure RegisterTestThread(aThread: TThread);
+begin
+  _TestThreads.Add(aThread);
+end;
+
+procedure JoinTestThreads;
+var
+  L : TList;
+  Threads : array of TThread;
+  I : Integer;
+begin
+  Threads:=[];
+  L:=_TestThreads.LockList;
+  try
+    SetLength(Threads,L.Count);
+    For I:=0 to L.Count-1 do
+      Threads[I]:=TThread(L[I]);
+    L.Clear;
+  finally
+    _TestThreads.UnlockList;
+  end;
+  For I:=0 to Length(Threads)-1 do
+    begin
+    Threads[I].WaitFor;
+    Threads[I].Free;
+    end;
 end;
 
 procedure HandleEx(const aException: Exception; var aHandled: Boolean); forward;
@@ -939,6 +977,7 @@ end;
 
 procedure TThreadedTestCase.TearDown;
 begin
+  JoinTestThreads;
   inherited TearDown;
 end;
 
@@ -1022,8 +1061,9 @@ end;
 constructor TThreadedTestCase.TNotifyThread.create(aOnTerminate: TNotifyEvent);
 begin
   OnTerminate:=aOnTerminate;
-  FreeOnTerminate:=True;
+  FreeOnTerminate:=False; // Joined and freed in TThreadedTestCase.TearDown
   Inherited Create(False);
+  RegisterTestThread(Self);
 end;
 
 { TFreePoolThread }
@@ -1626,6 +1666,90 @@ begin
   ThreadTerminated(TThread.CurrentThread); // Will reduce count
 end;
 
+var
+  _PoolWorkDone : Integer;
+  _SlowTerminateCalls : Integer;
+
+procedure TTestThreading.DoCountWork(Sender: TObject);
+begin
+  Sleep(5);
+  AtomicIncrement(_PoolWorkDone);
+end;
+
+// Number of OS threads of this process, -1 if unknown.
+function LiveThreadCount: Integer;
+{$IFDEF LINUX}
+var
+  Info : TSearchRec;
+begin
+  Result:=0;
+  if FindFirst('/proc/self/task/*',faDirectory,Info)=0 then
+    try
+      repeat
+        if (Info.Name<>'.') and (Info.Name<>'..') then
+          Inc(Result);
+      until FindNext(Info)<>0;
+    finally
+      FindClose(Info);
+    end;
+end;
+{$ELSE}
+begin
+  Result:=-1;
+end;
+{$ENDIF}
+
+procedure TTestThreading.DoSlowThreadTerminate(arg: TThread);
+begin
+  // Keep the terminating worker alive a little longer, after it left the
+  // pool's thread list: Destroy must still wait for it. Longer than the
+  // monitor tick (500 ms), which otherwise hides the problem.
+  AtomicIncrement(_SlowTerminateCalls);
+  Sleep(1500);
+end;
+
+procedure TTestThreading.TestFreeJoinsThreads;
+// Regression test: worker and monitor threads were FreeOnTerminate and left
+// the pool's list in their destructor, so Destroy returned while they were
+// still running their destructors and the RTL thread epilogue. At program
+// exit this raced with unit finalization (memory manager shutdown).
+// OnThreadTerminate runs after the thread left the list, so a slow handler
+// makes the window deterministic.
+const
+  Rounds = 3;
+  Items = 32;
+var
+  Pool : TThreadPool;
+  R, I, Before, After : Integer;
+  Start : QWord;
+begin
+  Before:=LiveThreadCount;
+  if Before<0 then
+    Ignore('Thread count not available on this platform');
+  For R:=1 to Rounds do
+    begin
+    _PoolWorkDone:=0;
+    _SlowTerminateCalls:=0;
+    Pool:=TThreadPool.Create;
+    try
+      Pool.OnThreadTerminate:=@DoSlowThreadTerminate;
+      For I:=1 to Items do
+        Pool.QueueWorkItem(Self,@DoCountWork);
+      Start:=GetTickCount64;
+      While (_PoolWorkDone<Items) and (GetTickCount64-Start<10000) do
+        Sleep(1);
+      AssertEquals('All work done',Items,_PoolWorkDone);
+    finally
+      Pool.Free;
+    end;
+    AssertTrue('OnThreadTerminate called',_SlowTerminateCalls>0);
+    // No sleep: the threads must already be gone.
+    After:=LiveThreadCount;
+    AssertTrue(Format('Round %d: %d threads before, %d after Free',[R,Before,After]),
+               After<=Before);
+    end;
+end;
+
 procedure TTestThreading.WaitForWorkDoneCount(out Done: Boolean);
 begin
   Done:=(WorkCount>0) and (WorkDone>=WorkCount);
@@ -2111,8 +2235,9 @@ constructor TTestTask.TTaskThread.Create(aTask: ITask; aSleep: Integer);
 begin
   FTask:=aTask;
   FSleep:=aSleep;
-  FreeOnTerminate:=True;
+  FreeOnTerminate:=False; // Joined and freed in TThreadedTestCase.TearDown
   Inherited Create(False);
+  RegisterTestThread(Self);
 end;
 
 procedure TTestTask.TTaskThread.Execute;
@@ -2317,6 +2442,7 @@ end;
 {$ENDIF}
 
 initialization
+  _TestThreads:=TThreadList.Create;
   RegisterTests([
                  TTestTExceptionList,
                  TTestAggregateException,
@@ -2328,5 +2454,8 @@ initialization
                  TTestTask,
                  TTestParallel
                  ]);
-end.
 
+finalization
+  JoinTestThreads;
+  FreeAndNil(_TestThreads);
+end.

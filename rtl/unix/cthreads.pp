@@ -389,8 +389,8 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       lPrev, lEntry, lNext: PThreadTidEntry;
 
     begin
-      if ThreadTidList=nil then
-        exit;
+      { ThreadTidList is only read with ThreadTidLock held: other threads add
+        and remove entries concurrently. }
       pthread_mutex_lock(@ThreadTidLock);
       lPrev:=nil;
       lEntry:=ThreadTidList;
@@ -420,8 +420,8 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       lPrev, lEntry, lNext: PThreadTidEntry;
 
     begin
-      if ThreadTidList=nil then
-        exit;
+      { ThreadTidList is only read with ThreadTidLock held: other threads add
+        and remove entries concurrently. }
       pthread_mutex_lock(@ThreadTidLock);
       lPrev:=nil;
       lEntry:=ThreadTidList;

@@ -412,11 +412,18 @@ type
       FWorkQueue : TWorkItemQueue;
       FQueues : TWorkStealingQueueThreadPoolWorkItemArray;
       FThreads: TBaseWorkerThreadList;
+      // Threads that left Execute; the pool joins and frees them (ReapFinishedThreads).
+      FFinishedThreads: TBaseWorkerThreadList;
+      // Owned by the pool, freed (joined) when a new monitor is created or in Destroy.
+      FMonitorThread : TThread;
 
       FMonitorStatus : Integer;
       FShutDown : Boolean;
     procedure NewThread(aThread : TBaseWorkerThread);
     procedure RemoveThread(aThread : TBaseWorkerThread);
+    procedure ThreadFinished(aThread : TBaseWorkerThread);
+    procedure ReapFinishedThreads;
+    procedure FreeMonitorThread;
   protected
     class threadvar QueueThread : TQueueWorkerThread;
     class var Caches : TObjectCaches;
@@ -1733,6 +1740,55 @@ begin
     FOnThreadTerminate(aThread);
 end;
 
+procedure TThreadPool.ThreadFinished(aThread: TBaseWorkerThread);
+begin
+  // Called by the thread itself, before it leaves FThreads: a thread is
+  // always in one of the two lists, so Destroy cannot miss it.
+  If Assigned(FFinishedThreads) then
+    FFinishedThreads.Add(aThread);
+end;
+
+// Join and free a monitor thread that has finished (FMonitorStatus=MonitorNone).
+procedure TThreadPool.FreeMonitorThread;
+begin
+  if Assigned(FMonitorThread) then
+    begin
+    FMonitorThread.WaitFor;
+    FreeAndNil(FMonitorThread);
+    end;
+end;
+
+// Join and free the threads that have left Execute.
+procedure TThreadPool.ReapFinishedThreads;
+
+var
+  List : specialize TList<TBaseWorkerThread>;
+  Finished : array of TBaseWorkerThread;
+  I : Integer;
+
+begin
+  if not Assigned(FFinishedThreads) then
+    exit;
+  Finished:=[];
+  List:=FFinishedThreads.LockList;
+  try
+    SetLength(Finished,List.Count);
+    For I:=0 to List.Count-1 do
+      Finished[I]:=List[I];
+    List.Clear;
+  finally
+    FFinishedThreads.UnlockList;
+  end;
+  For I:=0 to Length(Finished)-1 do
+    begin
+    // Join first: the thread entered the list from DoTerminate and may still
+    // be running (RemoveFromPool, OnThreadTerminate). Free alone would run
+    // the destructor before TThread.Destroy waits for the thread.
+    Finished[I].WaitFor;
+    Finished[I].Free;
+    end;
+end;
+
 procedure TThreadPool.AssignWorkToLocalQueue(WorkerData: IThreadPoolWorkItem; aThread: TQueueWorkerThread);
 
 begin
@@ -1767,7 +1823,10 @@ begin
   Status:=AtomicCmpExchange(FMonitorStatus, MonitorCreated, MonitorNone);
   if Status=MonitorNone then
     try
-      TThreadPoolMonitor.Create(Self);
+      // The previous monitor (if any) has finished: it resets FMonitorStatus
+      // as its last action. Join and free it before replacing it.
+      FreeMonitorThread;
+      FMonitorThread:=TThreadPoolMonitor.Create(Self);
     except
       AtomicExchange(FMonitorStatus,MonitorNone);
      raise;
@@ -1824,6 +1883,8 @@ begin
   FMaxThreads:=PC*MaxThreadsPerCPU;
   FThreads:=TBaseWorkerThreadList.Create;
   FThreads.Duplicates:=dupIgnore;
+  FFinishedThreads:=TBaseWorkerThreadList.Create;
+  FFinishedThreads.Duplicates:=dupIgnore;
 {
   FThreads := TThreadList<TBaseWorkerThread>.Create;
   FThreads.Duplicates := dupIgnore;
@@ -1866,6 +1927,12 @@ begin
   FQueueEvent.SetEvent;
   WaitForThreads;
   WaitForMonitorThread;
+  // All threads are now in FFinishedThreads: wait until they have really
+  // ended, so none of them is still running when the pool (or, for the
+  // default pool, the program) is finalized.
+  ReapFinishedThreads;
+  FreeMonitorThread;
+  FreeAndNil(FFinishedThreads);
   FreeAndNil(FWorkQueue);
   FreeAndNil(FQueues);
   FreeAndNil(FRetireEvent);
@@ -2212,6 +2279,8 @@ function TThreadPool.AddThreadToPool : TQueueWorkerThread;
 
 begin
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AddThreadToPool','Enter');{$ENDIF USE_THREADLOG}
+  // No ReapFinishedThreads here: this runs with the queue lock held, and
+  // joining a thread that is still in OnThreadTerminate could block or deadlock.
   FThreadCreationAt:=GetTickCount64;
   Result:=TQueueWorkerThread.Create(Self);
   AtomicIncrement(FThreadCount);
@@ -2228,6 +2297,7 @@ begin
   Result:=TMonitorResult.mrContinue;
   if FShutdown then
     Exit(TMonitorResult.mrTerminate);
+  ReapFinishedThreads;
   TThread.Sleep(MonitorThreadDelay);
 //  FCurrentCPUUsage:=TThread.GetCPUUsage(CPUInfo);
   FCPUUsageArray[FCurUsageSlot]:=FCPUUsage;
@@ -2444,9 +2514,7 @@ end;
 
 procedure TThreadPool.TBaseWorkerThread.SafeTerminate;
 begin
-  FreeOnTerminate:=True;
-  RemoveFromPool;
-  Terminate;
+  Terminate; // DoTerminate hands the thread over to the pool for freeing.
 end;
 
 Function TThreadPool.TBaseWorkerThread.GetWorkerThreadName : string;
@@ -2466,12 +2534,18 @@ procedure TThreadPool.TBaseWorkerThread.DoTerminate;
 begin
   if Assigned(FRunningEvent) then
     FRunningEvent.SetEvent;
+  // Hand the thread over to the pool, which will join and free it.
+  if Assigned(FThreadPool) then
+    FThreadPool.ThreadFinished(Self);
+  RemoveFromPool;
   inherited DoTerminate;
 end;
 
 constructor TThreadPool.TBaseWorkerThread.Create(aThreadPool: TThreadPool);
 begin
-  FreeOnTerminate:=True;
+  // Not FreeOnTerminate: the pool joins and frees its threads, see
+  // DoTerminate and TThreadPool.ReapFinishedThreads.
+  FreeOnTerminate:=False;
   inherited Create(False);
   FRunningEvent:=TLightweightEvent.Create(False);
   FThreadPool:= AThreadPool;
@@ -2713,7 +2787,7 @@ begin
     end;
     end;
     FThreadPool.StopCPUStats;
-
+    FThreadPool.ReapFinishedThreads;
   finally
     // Last access to FThreadPool: after this, WaitForMonitorThread returns and
     // the pool may be freed.
@@ -2732,7 +2806,7 @@ end;
 constructor TThreadPool.TThreadPoolMonitor.Create(aThreadPool: TThreadPool);
 begin
   FThreadPool:=aThreadPool;
-  FreeOnTerminate:=True;
+  FreeOnTerminate:=False; // Owned by the pool (FMonitorThread)
   Inherited Create(False);
 end;
 

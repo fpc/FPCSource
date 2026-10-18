@@ -102,7 +102,10 @@ begin
       end
      else
        begin
-         LThread.FSuspendedInternal := true;
+         { FSuspendedInternal was set by SysCreate before the thread started.
+           Do not set it again here: Resume (called from AfterConstruction in
+           the creating thread) may already have reset it, and writing it
+           again would be a data race that leaves it set while running. }
          WRITE_DEBUG('waiting for SuspendedInternal - ', LThread.ClassName);
          RtlEventWaitFor(LThread.FSuspendEvent);
          CurrentThreadVar := LThread;
