@@ -72,7 +72,14 @@ var
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
   WasmGrowMemoryCallback : TWasmGrowMemoryCallBack;
   WasmOnException : TWasmExceptionCallBack;
-  
+
+{$ifdef FPC_HAS_FEATURE_THREADING}
+threadvar
+{$else FPC_HAS_FEATURE_THREADING}
+var
+{$endif FPC_HAS_FEATURE_THREADING}
+  __fpc_wasm_LastOSError: longint;
+
 function __fpc_get_wasm_suspender: WasmExternRef;
 procedure __fpc_set_wasm_suspender(v: WasmExternRef);
 
