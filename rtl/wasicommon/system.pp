@@ -97,6 +97,12 @@ var
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
 
+function MaybeUpdateLastOSError(ErrorCode: longint): longint;
+begin
+  if ErrorCode<>__WASI_ERRNO_SUCCESS then
+    __fpc_wasm_LastOSError:=ErrorCode;
+end;
+
 function IntToStr(I : Longint) : ShortString;
 
 Var
