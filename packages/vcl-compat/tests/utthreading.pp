@@ -105,10 +105,17 @@ type
       FTerminatedCount : Integer;
       FWaitTerminatedCount: Integer;
       FErrors : TStrings;
+      FCheckFailures : TStrings;
       FLock : TCriticalSection;
   Protected
       Procedure SetUp; override;
+      // Joins the test threads, then fails if a ThreadCheck failed.
       Procedure TearDown; override;
+      // Assert* must not be called from worker threads: the exception is
+      // raised in that thread, not in the test, and fpcunit's counters are
+      // not thread-safe. These record the failure; TearDown reports it.
+      Procedure ThreadCheck(aCondition : Boolean; const aMsg : String);
+      Procedure ThreadCheckSame(const aMsg : String; aExpected, aActual : TObject);
       Procedure ThreadTerminated(Sender : TObject);
       procedure WaitForTerminateCount(out Done : Boolean);
       Procedure AssertNoThreadErrors;
@@ -311,6 +318,8 @@ type
     procedure TestFreeWithNewThreads;
     // Pool.Free must return only when its threads have really ended
     procedure TestFreeJoinsThreads;
+    // A failed ThreadCheck in a worker thread must be recorded
+    procedure TestThreadCheckRecordsFailure;
   end;
 
   { TTestTask }
@@ -970,15 +979,46 @@ begin
   FLock.Enter;
   try
     FErrors.Clear;
+    FCheckFailures.Clear;
   finally
     FLock.Leave;
   end;
 end;
 
 procedure TThreadedTestCase.TearDown;
+
+var
+  Failures : String;
+
 begin
   JoinTestThreads;
   inherited TearDown;
+  FLock.Enter;
+  try
+    Failures:=FCheckFailures.Text;
+    FCheckFailures.Clear;
+  finally
+    FLock.Leave;
+  end;
+  if Failures<>'' then
+    Fail('Checks failed in worker threads:'+sLineBreak+Failures);
+end;
+
+procedure TThreadedTestCase.ThreadCheck(aCondition: Boolean; const aMsg: String);
+begin
+  if aCondition then
+    exit;
+  FLock.Enter;
+  try
+    FCheckFailures.Add(Format('[thread %d] %s',[PtrUInt(GetCurrentThreadId),aMsg]));
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TThreadedTestCase.ThreadCheckSame(const aMsg: String; aExpected, aActual: TObject);
+begin
+  ThreadCheck(aExpected=aActual,Format('%s: expected %p, got %p',[aMsg,Pointer(aExpected),Pointer(aActual)]));
 end;
 
 procedure TThreadedTestCase.ThreadTerminated(Sender: TObject);
@@ -1032,12 +1072,14 @@ begin
   FLock:=TCriticalSection.Create;
   Flush(output);
   FErrors:=TStringList.Create;
+  FCheckFailures:=TStringList.Create;
 end;
 
 destructor TThreadedTestCase.destroy;
 begin
   Flush(output);
   FreeAndNil(FErrors);
+  FreeAndNil(FCheckFailures);
   FreeAndNil(FLock);
   inherited destroy;
 end;
@@ -1662,7 +1704,7 @@ end;
 procedure TTestThreading.DoSimpleExecute(Sender : TObject);
 
 begin
-  AssertSame('Sender',Self,Sender);
+  ThreadCheckSame('Sender',Self,Sender);
   ThreadTerminated(TThread.CurrentThread); // Will reduce count
 end;
 
@@ -1750,6 +1792,53 @@ begin
     end;
 end;
 
+type
+  TCheckingThread = class(TThread)
+  private
+    FTest : TTestThreading;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(aTest : TTestThreading);
+  end;
+
+constructor TCheckingThread.Create(aTest: TTestThreading);
+begin
+  FTest:=aTest;
+  inherited Create(False);
+end;
+
+procedure TCheckingThread.Execute;
+begin
+  FTest.ThreadCheck(True,'Must not be recorded');
+  FTest.ThreadCheck(False,'Expected failure');
+end;
+
+procedure TTestThreading.TestThreadCheckRecordsFailure;
+
+var
+  T : TCheckingThread;
+  Recorded : String;
+
+begin
+  T:=TCheckingThread.Create(Self);
+  try
+    T.WaitFor;
+  finally
+    T.Free;
+  end;
+  FLock.Enter;
+  try
+    Recorded:=FCheckFailures.Text;
+    // Clear it, so TearDown does not fail this test.
+    FCheckFailures.Clear;
+  finally
+    FLock.Leave;
+  end;
+  AssertTrue('Failure recorded: '+Recorded,Pos('Expected failure',Recorded)>0);
+  AssertTrue('Passed check not recorded',Pos('Must not be recorded',Recorded)=0);
+end;
+
 procedure TTestThreading.WaitForWorkDoneCount(out Done: Boolean);
 begin
   Done:=(WorkCount>0) and (WorkDone>=WorkCount);
@@ -1778,7 +1867,7 @@ begin
 {$IFDEF DEBUGTEST}
   Writeln('Thread ',TThread.CurrentThread.ThreadID,': Starting');
 {$ENDIF}
-  AssertSame('Sender',Self,Sender);
+  ThreadCheckSame('Sender',Self,Sender);
   T:=Now;
   Cycles:=10+ThreadRandom(2);
   For I:=1 to Cycles do
@@ -1881,10 +1970,11 @@ end;
 procedure TTestTask.OnTask(Sender : TObject);
 
 begin
-  AssertSame('Sender',Self,Sender);
-  AssertSame('Current task',FTask,TTask.CurrentTask);
+  // Runs in a pool thread.
+  ThreadCheckSame('Sender',Self,Sender);
+  ThreadCheck(FTask=TTask.CurrentTask,'Current task');
 //  Writeln('FTask.Status = ',FTask.Status,', current : ',TTask.CurrentTask.Status); //TTaskStatus.Running
-  AssertTrue('Task status',TTask.CurrentTask.Status=TTaskStatus.Running);
+  ThreadCheck(TTask.CurrentTask.Status=TTaskStatus.Running,'Task status');
   if FRaise then
     Raise ESomeThing.Create('MrDo');
   FWorkExecuted:=True;
@@ -2089,7 +2179,7 @@ function TTestTask.CalcIntegerEvent(Sender : TObject) : Integer;
 begin
 //  Writeln('Here');
   Sleep(40);
-  AssertSame('Sender',self,Sender);
+  ThreadCheckSame('Sender',self,Sender); // Runs in a pool thread
   Result:=43;
 //  Writeln('Here 2');
 end;

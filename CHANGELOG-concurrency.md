@@ -53,6 +53,14 @@
 - Тести `utthreading.pp`: потоки тестів (`TNotifyThread`, `TTaskThread`) були
   `FreeOnTerminate` і вважалися завершеними за `OnTerminate`, тобто до
   фактичного завершення; тепер `TThreadedTestCase.TearDown` їх приєднує й звільняє.
+- Тести `utthreading.pp`: `Assert*` викликався з робочих потоків
+  (`DoSimpleExecute`, `DoBurnCyclesExecute`, `OnTask`, `CalcIntegerEvent`).
+  Виняток виникав у потоці, а не в тесті, тож невдала перевірка могла
+  залишитися непоміченою; лічильники `fpcunit` не потокобезпечні. Тепер
+  ці місця використовують `ThreadCheck`/`ThreadCheckSame`: невдача
+  записується під блокуванням, а `TThreadedTestCase.TearDown` після
+  приєднання потоків валить тест з переліком невдач.
+  Тест механізму: `TTestThreading.TestThreadCheckRecordsFailure`.
 
 ### Додано
 - `fcl-base/src/fpvalgrind.pp`: клієнтські запити valgrind (happens-before/after,
