@@ -128,9 +128,12 @@ implementation
           begin
             v:=Tordconstnode(right).value and 63;
 
-            { load left operator in a register }
+            { load left operator in a register; a register variable too when
+              the result is not its register pair as it stands: by 32, the
+              result would have its low register as the high one, which an
+              assignment back to the variable overwrites before reading it }
             if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
-              ((left.location.loc=LOC_CREGISTER) and ((v.svalue and 31)<>0)) then
+              ((left.location.loc=LOC_CREGISTER) and (v<>0)) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
