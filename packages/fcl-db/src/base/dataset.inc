@@ -680,8 +680,8 @@ begin
       begin
       GetMem(ADynBuffer,Field.DataSize);
       try
-        DataConvert(Field,Buffer,@AStatBuffer,True);
-        SetfieldData(Field, @AStatBuffer);
+        DataConvert(Field,Buffer,ADynBuffer,True);
+        SetfieldData(Field, ADynBuffer);
       finally
         FreeMem(ADynBuffer);
         end;
