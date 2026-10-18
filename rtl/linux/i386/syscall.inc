@@ -58,7 +58,9 @@ begin
   while ep^ <> nil do
     Inc(ep);
 
-  Inc(ep);
+  { skip the nil slots between the environment and auxv }
+  while ep^ = nil do
+    Inc(ep);
 
   auxv := PElf32AuxiliaryVector(ep);
 
