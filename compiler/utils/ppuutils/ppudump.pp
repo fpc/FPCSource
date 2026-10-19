@@ -2156,7 +2156,13 @@ var
             tokenreadset(targetswitches,sizeof(targetswitches));
             tokenreadset(moduleswitches,sizeof(moduleswitches));
             tokenreadset(localswitches,sizeof(localswitches));
-            tokenreadset(modeswitches,sizeof(modeswitches));
+            if expected_size < 119 then
+              begin
+                fillchar(modeswitches,sizeof(modeswitches),0);
+                tokenreadset(modeswitches,sizeof(modeswitches)-1);
+              end
+            else
+              tokenreadset(modeswitches,sizeof(modeswitches));
             tokenreadset(optimizerswitches,sizeof(optimizerswitches));
             tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
             tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
@@ -2513,7 +2519,8 @@ const
          'm_reordered_operators',  { reordered operators, e.g. "a is not b", "a not in b" }
          'm_type_inquiry',         { the compile time operator "type of <operand>" }
          'm_record_composition',   { enables record composition }
-         'm_implicit_generics'     { allow omitting specialize in objfpc mode and generic type inference }
+         'm_implicit_generics',    { allow omitting specialize in objfpc mode and generic type inference }
+         'm_arrow_functions'       { short lambda syntax (=>) for anonymous functions }
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =

@@ -240,6 +240,7 @@ interface
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
           function is_recording_tokens:boolean;
+          function is_arrow_function:boolean;
           procedure replaytoken;
           procedure startreplaytokens(buf:tdynamicarray; change_endian:boolean);
           { bit length asizeint is target depend }
@@ -456,6 +457,21 @@ implementation
                 include(current_settings.modeswitches,m_implicit_function_specialization);
                 if changeinit then
                   include(init_settings.modeswitches,m_implicit_function_specialization);
+              end;
+          end;
+
+        { enable anonymous functions and function references when arrow functions are enabled }
+        if switch in [m_none,m_arrow_functions] then
+          begin
+            if (m_arrow_functions in current_settings.modeswitches) then
+              begin
+                include(current_settings.modeswitches,m_anonymous_functions);
+                include(current_settings.modeswitches,m_function_references);
+                if changeinit then
+                  begin
+                    include(init_settings.modeswitches,m_anonymous_functions);
+                    include(init_settings.modeswitches,m_function_references);
+                  end;
               end;
           end;
 
@@ -3300,6 +3316,208 @@ type
       end;
 {$endif}
 
+    function tscannerfile.is_arrow_function: boolean;
+      var
+        p: PAnsiChar;
+        paren_depth: integer;
+      begin
+        result := false;
+        if not (m_arrow_functions in current_settings.modeswitches) then
+          exit;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        if assigned(hidden_inputpointer) and (hidden_inputpointer > hidden_inputbuffer) then
+          p := hidden_inputpointer - 1
+        else
+          p := hidden_inputpointer;
+{$else}
+        if assigned(inputpointer) and (inputpointer > inputbuffer) then
+          p := inputpointer - 1
+        else
+          p := inputpointer;
+{$endif}
+        if p = nil then
+          exit;
+
+        if token = _LKLAMMER then
+          begin
+            paren_depth := 1;
+            while p^ <> #0 do
+              begin
+                case p^ of
+                  '(':
+                    begin
+                      if (p + 1)^ = '*' then
+                        begin
+                          inc(p, 2);
+                          while (p^ <> #0) and not ((p^ = '*') and ((p + 1)^ = ')')) do
+                            inc(p);
+                          if (p^ = '*') and ((p + 1)^ = ')') then
+                            inc(p, 2);
+                        end
+                      else
+                        begin
+                          inc(paren_depth);
+                          inc(p);
+                        end;
+                    end;
+                  ')':
+                    begin
+                      dec(paren_depth);
+                      if paren_depth = 0 then
+                        begin
+                          inc(p);
+                          while p^ <> #0 do
+                            begin
+                              case p^ of
+                                ' ', #9..#13:
+                                  inc(p);
+                                '{':
+                                  begin
+                                    inc(p);
+                                    while (p^ <> #0) and (p^ <> '}') do
+                                      inc(p);
+                                    if p^ = '}' then
+                                      inc(p);
+                                  end;
+                                '/':
+                                  begin
+                                    if (p + 1)^ = '/' then
+                                      begin
+                                        inc(p, 2);
+                                        while (p^ <> #0) and not (p^ in [#10, #13]) do
+                                          inc(p);
+                                      end
+                                    else if (p + 1)^ = '*' then
+                                      begin
+                                        inc(p, 2);
+                                        while (p^ <> #0) and not ((p^ = '*') and ((p + 1)^ = '/')) do
+                                          inc(p);
+                                        if (p^ = '*') and ((p + 1)^ = '/') then
+                                          inc(p, 2);
+                                      end
+                                    else
+                                      break;
+                                  end;
+                                '(':
+                                  begin
+                                    if (p + 1)^ = '*' then
+                                      begin
+                                        inc(p, 2);
+                                        while (p^ <> #0) and not ((p^ = '*') and ((p + 1)^ = ')')) do
+                                          inc(p);
+                                        if (p^ = '*') and ((p + 1)^ = ')') then
+                                          inc(p, 2);
+                                      end
+                                    else
+                                      break;
+                                  end;
+                                else
+                                  break;
+                              end;
+                            end;
+                          if p^ = ':' then
+                            begin
+                              inc(p);
+                              while (p^ <> #0) and not (p^ in [';', #10, #13]) do
+                                begin
+                                  if (p^ = '=') and ((p + 1)^ = '>') then
+                                    begin
+                                      result := true;
+                                      exit;
+                                    end;
+                                  inc(p);
+                                end;
+                            end
+                          else if (p^ = '=') and ((p + 1)^ = '>') then
+                            begin
+                              result := true;
+                              exit;
+                            end;
+                          exit(false);
+                        end;
+                    end;
+                  #39:
+                    begin
+                      inc(p);
+                      while (p^ <> #0) and (p^ <> #39) do
+                        inc(p);
+                      if p^ = #39 then
+                        inc(p);
+                    end;
+                  '{':
+                    begin
+                      inc(p);
+                      while (p^ <> #0) and (p^ <> '}') do
+                        inc(p);
+                      if p^ = '}' then
+                        inc(p);
+                    end;
+                  '/':
+                    begin
+                      if (p + 1)^ = '/' then
+                        begin
+                          inc(p, 2);
+                          while (p^ <> #0) and not (p^ in [#10, #13]) do
+                            inc(p);
+                        end
+                      else if (p + 1)^ = '*' then
+                        begin
+                          inc(p, 2);
+                          while (p^ <> #0) and not ((p^ = '*') and ((p + 1)^ = '/')) do
+                            inc(p);
+                          if (p^ = '*') and ((p + 1)^ = '/') then
+                            inc(p, 2);
+                        end
+                      else
+                        inc(p);
+                    end;
+                  ';':
+                    begin
+                      if paren_depth <> 1 then
+                        exit(false);
+                      inc(p);
+                    end;
+                  else
+                    inc(p);
+                end;
+              end;
+          end
+        else if token in [_ID, _NOID] then
+          begin
+            while p^ <> #0 do
+              begin
+                case p^ of
+                  ' ', #9..#13:
+                    inc(p);
+                  '{':
+                    begin
+                      inc(p);
+                      while (p^ <> #0) and (p^ <> '}') do
+                        inc(p);
+                      if p^ = '}' then
+                        inc(p);
+                    end;
+                  '/':
+                    begin
+                      if (p + 1)^ = '/' then
+                        begin
+                          inc(p, 2);
+                          while (p^ <> #0) and not (p^ in [#10, #13]) do
+                            inc(p);
+                        end
+                      else
+                        break;
+                    end;
+                  else
+                    break;
+                end;
+              end;
+            if (p^ = '=') and ((p + 1)^ = '>') then
+              result := true;
+          end;
+      end;
+
+
     procedure tscannerfile.startrecordtokens(buf:tdynamicarray);
       begin
         if not assigned(buf) then
@@ -3503,7 +3721,13 @@ type
             tokenreadset(targetswitches,sizeof(targetswitches));
             tokenreadset(moduleswitches,sizeof(moduleswitches));
             tokenreadset(localswitches,sizeof(localswitches));
-            tokenreadset(modeswitches,sizeof(modeswitches));
+            if expected_size < 119 then
+              begin
+                fillchar(modeswitches,sizeof(modeswitches),0);
+                tokenreadset(modeswitches,sizeof(modeswitches)-1);
+              end
+            else
+              tokenreadset(modeswitches,sizeof(modeswitches));
             tokenreadset(optimizerswitches,sizeof(optimizerswitches));
             tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
             tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
@@ -6550,6 +6774,12 @@ type
              '=' :
                begin
                  readchar;
+                 if (c = '>') and (m_arrow_functions in current_settings.modeswitches) then
+                   begin
+                     readchar;
+                     token := _ARROW;
+                     goto exit_label;
+                   end;
                  token:=_EQ;
                  goto exit_label;
                end;

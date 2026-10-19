@@ -185,4 +185,17 @@
     - Для анонімних функцій (`anonymous functions`) та посилань на функції (`reference to function/procedure`, `is_invokable` інтерфейси), зокрема виведення параметра `<TResult>` із типу повернення функції (`returndef`) та вирівнювання прихованих параметрів (`vo_is_hidden_para`).
     - Підтримка виведення у багатопотокових ланцюжках задач `TTask.Future(function: string begin Result := 'ok'; end)` та `task.ThenBy(...)`.
   - Модульний тестовий набір `tests/concurrency/test_implicit_generics.pp`.
+- **Розділ 2.2 (`compiler/ppcx64`) — Короткий синтаксис лямбда-виразів (`=>`):**
+  - Додано новий перемикач режимів `{$modeswitch arrowfunctions}` (у `globtype.pas`, `scanner.pas`, `ppudump.pp`), що автоматично активує `anonymousfunctions` та `functionreferences`.
+  - Додано токен `_ARROW` (`=>`) та реалізовано підтримку стрілкових функцій у парсері компілятора (`compiler/pexpr.pas`, `compiler/psub.pas`):
+    - Безпараметричні лямбди: `() => Expr`;
+    - Один аргумент без дужок або з дужками: `I => Stmt`, `(I) => Stmt`;
+    - Кілька аргументів із контекстним виведенням типів: `(A, B) => A + B`;
+    - Явно типізовані аргументи зі специфікаторами (`const`, `var`, `out`): `(A: Integer, B: Integer) => A + B`;
+    - Опціональна явна декларація типу повернення: `(X): Integer => X * 2`;
+    - Тіло-вираз (Expression body) з автоприсвоєнням результату для функцій або виконанням дії для процедур, включаючи коректну роботу з керованими типами (`string`, інтерфейси, динамічні масиви);
+    - Тіло-блок (Block body): `(I) => begin ... end;`.
+  - Повна інтеграція зі збіркою `System.Threading` (`TParallel.&For`, `TTask.Future`), колекціями та подіями зі скороченням шаблонного коду у 2–3 рази.
+  - Повний модульний тестовий набір: `tests/concurrency/test_arrow_functions.pp`.
+  - Окремий посібник користувача: `docs/concurrency/guide-arrow-functions.md`.
 

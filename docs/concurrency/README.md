@@ -12,6 +12,7 @@
 | `guide-system-threading.md` | **Посібник користувача `System.Threading`**: API, шаблони використання (`For`, `Break`/`Stop`, `Join`, `IFuture`, `ContinueWith`/`ThenBy`/`Map`, `TCancellationToken`, `WaitForAll`/`WaitForAny`, `TThreadPool`), правила безпеки |
 | `guide-syncobjs.md` | **Посібник користувача `SyncObjs` (Фаза 2)**: `TCountdownEvent`, `TBarrier`, `TSlimReaderWriterLock` (+ RAII-гарди), `TChannel<T>` (CSP-канали та `for..in`) |
 | `guide-eventloop.md` | **Посібник користувача `fcl-eventloop` (Фаза 1.3)**: `IEventLoop`, `TEventLoopGroup`, неблокуючі сокети C100K+, пайпи, файли, таймери Min-Heap, інтеграція з `IFuture` та `TCancellationToken` |
+| `guide-arrow-functions.md` | **Посібник користувача стрілкових функцій (Розділ 2.2)**: синтаксис `=>`, скорочення шаблонного коду в `System.Threading` та `fcl-async`, виведення типів параметрів і результату |
 | `guide-async.md` | **Посібник користувача `fcl-async` та `async/await` (Фаза 1.4)**: `TFiber` (стекові корутини System V AMD64), `TGenerator<T>` (`for..in`), `TTaskCompletionSource<T>`, компіляторна директива `async` та оператор `await` |
 | `examples/` | Приклади з документації (`parallel_for.pp`, `tasks.pp`, `pool_lifetime.pp`, `valgrind_annotate.pp`, `primes_*`, `report_*`, `batch_processing.pp`, `showcase_pipeline.pp`, `syncobjs_phase2.pp`, `continuations_cancel.pp`, `eventloop_benchmark.pp`, `coroutine_showcase.pp`); кожен компілюється й запускається |
 | `valgrind.md` | Перевірка гонок даних (helgrind/drd), анотації, відомі обмеження |

@@ -126,6 +126,8 @@ interface
     { parses only the body of a non nested routine; needs a correctly setup pd }
     procedure read_proc_body(pd:tprocdef);
 
+    function read_arrow_proc(expected_funcref:tobjectdef;expected_procvar:tprocvardef):tprocdef;
+
     procedure import_external_proc(pd:tprocdef);
 
 
@@ -154,7 +156,7 @@ implementation
 {$endif}
        { parser }
        scanner,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,ptype,pexpr,parabase,
        { codegen }
        tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
 
@@ -2761,6 +2763,373 @@ implementation
         read_proc_body(nil,pd);
         current_procinfo:=old_current_procinfo;
         current_module.procinfo:=old_module_procinfo;
+      end;
+
+
+    function read_arrow_proc(expected_funcref:tobjectdef;expected_procvar:tprocvardef):tprocdef;
+      var
+        old_current_procinfo : tprocinfo;
+        old_current_structdef: tabstractrecorddef;
+        old_current_genericdef,
+        old_current_specializedef: tstoreddef;
+        checkstack : psymtablestackitem;
+        insertst, st : tsymtable;
+        orgsp : string[127];
+        aprocsym : tprocsym;
+        pd : tprocdef;
+        exp_invoke_pd : tprocdef;
+        para_idx, paranr : longint;
+        varspez : tvarspez;
+        param_type, curr_param_type : tdef;
+        param_names : TFPList;
+        param_name : pshortstring;
+        i : integer;
+        has_cc_handled : boolean;
+        retsym : tsym;
+        vs : tparavarsym;
+        bodynode, code, p_ret : tnode;
+
+      function get_expected_para_type(idx: longint): tdef;
+        var
+          cand_paras: tparalist;
+          pi, actual_idx: longint;
+          curr_para: tparavarsym;
+        begin
+          result := nil;
+          cand_paras := nil;
+          if assigned(exp_invoke_pd) then
+            cand_paras := exp_invoke_pd.paras
+          else if assigned(expected_procvar) then
+            cand_paras := expected_procvar.paras;
+
+          if assigned(cand_paras) then
+            begin
+              actual_idx := 0;
+              for pi := 0 to cand_paras.count - 1 do
+                begin
+                  curr_para := tparavarsym(cand_paras[pi]);
+                  if not (vo_is_hidden_para in curr_para.varoptions) and
+                     not (vo_is_funcret in curr_para.varoptions) then
+                    begin
+                      if actual_idx = idx then
+                        begin
+                          result := curr_para.vardef;
+                          exit;
+                        end;
+                      inc(actual_idx);
+                    end;
+                end;
+            end;
+        end;
+
+      begin
+        old_current_procinfo := current_procinfo;
+        old_current_structdef := current_structdef;
+        old_current_genericdef := current_genericdef;
+        old_current_specializedef := current_specializedef;
+
+        current_procinfo := nil;
+        current_structdef := nil;
+        current_genericdef := nil;
+        current_specializedef := nil;
+
+        checkstack := symtablestack.stack;
+        while checkstack^.symtable.symtabletype in [withsymtable] do
+          checkstack := checkstack^.next;
+        insertst := checkstack^.symtable;
+
+        str(insertst.symlist.count, orgsp);
+        orgsp := '__FPCINTERNAL__Anonymous_' + orgsp;
+
+        aprocsym := cprocsym.create(orgsp);
+        include(aprocsym.symoptions, sp_internal);
+        insertst.insertsym(aprocsym);
+
+        checkstack := symtablestack.stack;
+        while assigned(checkstack) do
+          begin
+            st := checkstack^.symtable;
+            if st.symtabletype in [staticsymtable, globalsymtable, localsymtable] then
+              break;
+            checkstack := checkstack^.next;
+          end;
+
+        pd := cprocdef.create(st.symtablelevel + 1, true);
+        pd.struct := nil;
+        pd.procsym := aprocsym;
+        aprocsym.ProcdefList.Add(pd);
+        pd.proctypeoption := potype_procedure;
+        include(pd.procoptions, po_anonymous);
+        if (st.symtabletype = localsymtable) and
+           (st.defowner.typ = procdef) and
+           ([po_staticmethod, po_classmethod] * tprocdef(st.defowner).procoptions <> []) then
+          pd.procoptions := pd.procoptions + ([po_staticmethod, po_classmethod] * tprocdef(st.defowner).procoptions);
+
+        exp_invoke_pd := nil;
+        if assigned(expected_funcref) and is_invokable(expected_funcref) then
+          exp_invoke_pd := get_invoke_procdef(expected_funcref);
+
+        param_names := TFPList.Create;
+        paranr := 0;
+        para_idx := 0;
+
+        if current_scanner.token = _LKLAMMER then
+          begin
+            consume(_LKLAMMER);
+            if current_scanner.token <> _RKLAMMER then
+              begin
+                repeat
+                  param_names.clear;
+                  varspez := vs_value;
+                  if current_scanner.token = _CONST then
+                    begin
+                      consume(_CONST);
+                      varspez := vs_const;
+                    end
+                  else if current_scanner.token = _CONSTREF then
+                    begin
+                      consume(_CONSTREF);
+                      varspez := vs_constref;
+                    end
+                  else if current_scanner.token = _VAR then
+                    begin
+                      consume(_VAR);
+                      varspez := vs_var;
+                    end
+                  else if current_scanner.token = _OUT then
+                    begin
+                      consume(_OUT);
+                      varspez := vs_out;
+                    end;
+
+                  repeat
+                    if current_scanner.token in [_ID, _NOID] then
+                      begin
+                        new(param_name);
+                        param_name^ := current_scanner.orgpattern;
+                        param_names.add(param_name);
+                        consume(current_scanner.token);
+                      end
+                    else
+                      begin
+                        Message(parser_e_illegal_parameter_list);
+                        break;
+                      end;
+                  until not try_to_consume(_COMMA);
+
+                  param_type := nil;
+                  if try_to_consume(_COLON) then
+                    single_type(param_type, []);
+
+                  for i := 0 to param_names.count - 1 do
+                    begin
+                      param_name := pshortstring(param_names[i]);
+                      inc(paranr);
+                      if param_type <> nil then
+                        curr_param_type := param_type
+                      else
+                        curr_param_type := get_expected_para_type(para_idx);
+                      if curr_param_type = nil then
+                        begin
+                          Message(parser_e_illegal_parameter_list);
+                          curr_param_type := generrordef;
+                        end;
+                      vs := cparavarsym.create(param_name^, paranr * 10, varspez, curr_param_type, []);
+                      pd.parast.insertsym(vs);
+                      inc(para_idx);
+                      dispose(param_name);
+                    end;
+                  param_names.clear;
+
+                  if not (try_to_consume(_SEMICOLON) or try_to_consume(_COMMA)) then
+                    break;
+                until current_scanner.token = _RKLAMMER;
+              end;
+            consume(_RKLAMMER);
+          end
+        else if current_scanner.token in [_ID, _NOID] then
+          begin
+            new(param_name);
+            param_name^ := current_scanner.orgpattern;
+            consume(current_scanner.token);
+            inc(paranr);
+            param_type := get_expected_para_type(0);
+            if param_type = nil then
+              begin
+                Message(parser_e_illegal_parameter_list);
+                param_type := generrordef;
+              end;
+            vs := cparavarsym.create(param_name^, paranr * 10, vs_value, param_type, []);
+            pd.parast.insertsym(vs);
+            dispose(param_name);
+          end;
+        param_names.free;
+
+        if try_to_consume(_COLON) then
+          begin
+            single_type(pd.returndef, []);
+            pd.proctypeoption := potype_function;
+          end
+        else
+          pd.returndef := voidtype;
+
+        consume(_ARROW);
+
+        pd.calcparas;
+
+        if is_void(pd.returndef) then
+          begin
+            if assigned(exp_invoke_pd) and not is_void(exp_invoke_pd.returndef) then
+              begin
+                pd.proctypeoption := potype_function;
+                if not (exp_invoke_pd.returndef.typ in [undefineddef, forwarddef]) and
+                   not (df_generic in exp_invoke_pd.returndef.defoptions) then
+                  pd.returndef := exp_invoke_pd.returndef;
+              end
+            else if assigned(expected_procvar) and not is_void(expected_procvar.returndef) then
+              begin
+                pd.proctypeoption := potype_function;
+                if not (expected_procvar.returndef.typ in [undefineddef, forwarddef]) and
+                   not (df_generic in expected_procvar.returndef.defoptions) then
+                  pd.returndef := expected_procvar.returndef;
+              end;
+          end;
+
+        if assigned(old_current_procinfo) and
+           (old_current_procinfo.procdef.defoptions * [df_specialization, df_generic] <> []) then
+          begin
+            if df_generic in old_current_procinfo.procdef.defoptions then
+              include(pd.defoptions, df_generic);
+            if df_specialization in old_current_procinfo.procdef.defoptions then
+              include(pd.defoptions, df_specialization);
+          end;
+
+        current_procinfo := cprocinfo.create(old_current_procinfo);
+        current_module.procinfo := current_procinfo;
+        current_procinfo.procdef := pd;
+        current_procinfo.force_nested;
+        pd.aliasnames.insert(pd.mangledname);
+
+        has_cc_handled := false;
+        if (assigned(exp_invoke_pd) and (exp_invoke_pd.proctypeoption = potype_procedure)) or
+           (assigned(expected_procvar) and (expected_procvar.proctypeoption = potype_procedure)) or
+           ((pd.proctypeoption = potype_function) and not is_void(pd.returndef) and
+            not (pd.returndef.typ in [undefineddef, forwarddef]) and
+            not (df_generic in pd.returndef.defoptions)) then
+          begin
+            handle_calling_convention(pd, hcc_default_actions_impl);
+            proc_set_mangledname(pd);
+            if pd.proctypeoption = potype_function then
+              insert_funcret_local(pd);
+            has_cc_handled := true;
+          end
+        else
+          insert_parentfp_para(pd);
+
+        if not (pi_do_call in current_procinfo.flags) then
+          pd.parast.SymList.ForEachCall(@check_init_paras, nil);
+
+        alloc_proc_symbol(pd);
+        tcgprocinfo(current_procinfo).add_to_symtablestack;
+        current_procinfo.entrypos := current_filepos;
+        current_procinfo.entryswitches := current_settings.localswitches;
+        block_type := bt_body;
+        code := nil;
+
+        if current_scanner.token = _BEGIN then
+          begin
+            code := statement_block(_BEGIN);
+          end
+        else
+          begin
+            bodynode := expr(false);
+            if bodynode.nodetype = assignn then
+              begin
+                pd.proctypeoption := potype_procedure;
+                pd.returndef := voidtype;
+                do_typecheckpass(bodynode);
+                code := cblocknode.create(cstatementnode.create(bodynode, nil));
+              end
+            else if (assigned(exp_invoke_pd) and (exp_invoke_pd.proctypeoption = potype_procedure)) or
+                    (assigned(expected_procvar) and (expected_procvar.proctypeoption = potype_procedure)) then
+              begin
+                pd.proctypeoption := potype_procedure;
+                pd.returndef := voidtype;
+                do_typecheckpass(bodynode);
+                code := cblocknode.create(cstatementnode.create(bodynode, nil));
+              end
+            else
+              begin
+                if is_void(pd.returndef) or (pd.returndef.typ in [undefineddef, forwarddef]) or
+                   (df_generic in pd.returndef.defoptions) then
+                  begin
+                    do_typecheckpass(bodynode);
+                    if (bodynode.nodetype in [calln, inlinen]) and is_void(bodynode.resultdef) then
+                      begin
+                        pd.proctypeoption := potype_procedure;
+                        pd.returndef := voidtype;
+                        code := cblocknode.create(cstatementnode.create(bodynode, nil));
+                      end
+                    else
+                      begin
+                        pd.proctypeoption := potype_function;
+                        pd.returndef := bodynode.resultdef;
+                      end;
+                  end;
+              end;
+          end;
+
+        if not has_cc_handled then
+          begin
+            handle_calling_convention(pd, hcc_default_actions_impl);
+            proc_set_mangledname(pd);
+            if pd.proctypeoption = potype_function then
+              insert_funcret_local(pd);
+          end;
+
+        if (pd.proctypeoption = potype_function) and not assigned(code) then
+          begin
+            retsym := tsym(pd.localst.find('RESULT'));
+            if assigned(retsym) and (retsym.typ = absolutevarsym) and (tabsolutevarsym(retsym).abstyp = tovar) then
+              begin
+                p_ret := nil;
+                propaccesslist_to_node(p_ret, nil, tabsolutevarsym(retsym).ref);
+                p_ret := ctypeconvnode.create(p_ret, tabsolutevarsym(retsym).vardef);
+                include(p_ret.flags, nf_absolute);
+              end
+            else if assigned(pd.funcretsym) then
+              p_ret := cloadnode.create(pd.funcretsym, pd.funcretsym.owner)
+            else
+              p_ret := nil;
+            if assigned(p_ret) then
+              begin
+                code := cassignmentnode.create(p_ret, bodynode);
+                do_typecheckpass(code);
+                code := cblocknode.create(cstatementnode.create(code, nil));
+              end;
+          end;
+
+        postprocess_capturer(current_procinfo);
+        current_procinfo.exitpos := current_filepos;
+        current_procinfo.exitswitches := current_settings.localswitches;
+        pd.forwarddef := false;
+        pd.is_implemented := true;
+
+        if assigned(code) then
+          begin
+            tcgprocinfo(current_procinfo).code := code;
+            current_procinfo.entrypos := code.fileinfo;
+            do_typecheckpass(tcgprocinfo(current_procinfo).code);
+          end;
+
+        tcgprocinfo(current_procinfo).remove_from_symtablestack;
+        current_module.procinfo := current_procinfo.parent;
+        current_procinfo := old_current_procinfo;
+        current_structdef := old_current_structdef;
+        current_genericdef := old_current_genericdef;
+        current_specializedef := old_current_specializedef;
+
+        result := pd;
       end;
 
 

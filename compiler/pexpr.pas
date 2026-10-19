@@ -92,6 +92,10 @@ implementation
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
 
     var
+       { procsym and parameter index of current call for parameter type inference }
+       current_call_procsym : tprocsym = nil;
+       current_call_para_index : integer = 0;
+
        { true, if the inherited call is anonymous }
        anon_inherited : boolean = false;
        { last def found, only used by anon. inherited calls to insert proper type casts }
@@ -110,6 +114,54 @@ implementation
         nameof_sym:=sym;
         nameof_nextpos:=current_filepos;
       end;
+
+    procedure find_expected_funcref_or_procvar(ps: tprocsym; arg_index: longint; var funcref: tobjectdef; var procvar: tprocvardef);
+      var
+        i, pi, actual_idx: longint;
+        pd: tprocdef;
+        curr_para: tparavarsym;
+        vardef: tdef;
+      begin
+        funcref := nil;
+        procvar := nil;
+        if not assigned(ps) then
+          exit;
+        for i := 0 to ps.ProcdefList.count - 1 do
+          begin
+            pd := tprocdef(ps.ProcdefList[i]);
+            if not assigned(pd.paras) then
+              continue;
+            actual_idx := 0;
+            for pi := 0 to pd.paras.count - 1 do
+              begin
+                curr_para := tparavarsym(pd.paras[pi]);
+                if not (vo_is_hidden_para in curr_para.varoptions) and
+                   not (vo_is_funcret in curr_para.varoptions) then
+                  begin
+                    if actual_idx = arg_index then
+                      begin
+                        vardef := curr_para.vardef;
+                        if assigned(vardef) then
+                          begin
+                            if is_invokable(vardef) then
+                              begin
+                                funcref := tobjectdef(vardef);
+                                exit;
+                              end
+                            else if vardef.typ = procvardef then
+                              begin
+                                procvar := tprocvardef(vardef);
+                                exit;
+                              end;
+                          end;
+                        break;
+                      end;
+                    inc(actual_idx);
+                  end;
+              end;
+          end;
+      end;
+
 
     { returns the declared name of sym without generic parameters }
     function nameof_symname(sym:tsym):string;
@@ -211,6 +263,8 @@ implementation
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
       var
          p1,p2,argname : tnode;
+         oldprocvardef : tprocvardef;
+         oldfuncrefdef : tobjectdef;
          prev_in_args,
          old_named_args_allowed : boolean;
       begin
@@ -227,6 +281,10 @@ implementation
          named_args_allowed:=false;
          p2:=nil;
          repeat
+           oldprocvardef:=getprocvardef;
+           oldfuncrefdef:=getfuncrefdef;
+           if (getprocvardef=nil) and (getfuncrefdef=nil) and assigned(current_call_procsym) then
+             find_expected_funcref_or_procvar(current_call_procsym,current_call_para_index,getfuncrefdef,getprocvardef);
            if __namedpara then
              begin
                if current_scanner.token=_COMMA then
@@ -256,6 +314,9 @@ implementation
                p1:=comp_expr([ef_accept_equal]);
                p2:=ccallparanode.create(p1,p2);
              end;
+           getprocvardef:=oldprocvardef;
+           getfuncrefdef:=oldfuncrefdef;
+           inc(current_call_para_index);
            { it's for the str(l:5,s); }
            if __colon and (current_scanner.token=_COLON) then
              begin
@@ -1172,6 +1233,8 @@ implementation
     { reads the parameter for a subroutine call }
     procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       var
+         old_call_procsym : tprocsym;
+         old_call_para_index : integer;
          membercall,
          prevafterassn : boolean;
          i        : integer;
@@ -1325,7 +1388,16 @@ implementation
               begin
                 if try_to_consume(_LKLAMMER) then
                  begin
+                   old_call_procsym:=current_call_procsym;
+                   old_call_para_index:=current_call_para_index;
+                   if assigned(sym) and (sym.typ=procsym) then
+                     current_call_procsym:=tprocsym(sym)
+                   else
+                     current_call_procsym:=nil;
+                   current_call_para_index:=0;
                    para:=parse_paras(false,false,_RKLAMMER);
+                   current_call_procsym:=old_call_procsym;
+                   current_call_para_index:=old_call_para_index;
                    consume(_RKLAMMER);
                  end;
               end;
@@ -3581,6 +3653,32 @@ implementation
       end;
 
 
+    procedure parse_arrow_function(var p1:tnode;var again:boolean;getaddr:boolean);
+      var
+        filepos: tfileposinfo;
+        oldprocvardef: tprocvardef;
+        oldfuncrefdef: tobjectdef;
+        pd: tprocdef;
+      begin
+        filepos := current_filepos;
+        oldprocvardef := getprocvardef;
+        oldfuncrefdef := getfuncrefdef;
+        getprocvardef := nil;
+        getfuncrefdef := nil;
+        pd := read_arrow_proc(oldfuncrefdef, oldprocvardef);
+        getprocvardef := oldprocvardef;
+        getfuncrefdef := oldfuncrefdef;
+        do_proc_call(pd.procsym, pd.owner, nil, not (current_scanner.token in [_POINT, _CARET, _LECKKLAMMER]),
+                     again, p1, [], nil);
+        if (p1.nodetype <> errorn) and getaddr then
+          begin
+            p1.free;
+            p1 := cerrornode.create;
+            MessagePos(filepos, parser_e_illegal_expression);
+          end;
+      end;
+
+
     function factor(getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
@@ -3621,6 +3719,14 @@ implementation
            spezcontext : tspecializationcontext;
            cufflags : tconsume_unitsym_flags;
          begin
+           if (m_arrow_functions in current_settings.modeswitches) and
+              (block_type=bt_body) and
+              current_scanner.is_arrow_function then
+             begin
+               parse_arrow_function(p1,again,getaddr);
+               exit;
+             end;
+
            { allow post fix operators }
            again:=true;
 
@@ -4540,16 +4646,25 @@ implementation
 
              _LKLAMMER :
                begin
-                 consume(_LKLAMMER);
-                 p1:=comp_expr([ef_accept_equal]);
-                 consume(_RKLAMMER);
-                 { it's not a good solution
-                   but (a+b)^ makes some problems  }
-                 if current_scanner.token in postfixoperator_tokens then
-                  begin
-                    again:=true;
-                    postfixoperators(p1,again,getaddr);
-                  end;
+                 if (m_arrow_functions in current_settings.modeswitches) and
+                    (block_type=bt_body) and
+                    current_scanner.is_arrow_function then
+                   begin
+                     parse_arrow_function(p1,again,getaddr);
+                   end
+                 else
+                   begin
+                     consume(_LKLAMMER);
+                     p1:=comp_expr([ef_accept_equal]);
+                     consume(_RKLAMMER);
+                     { it's not a good solution
+                       but (a+b)^ makes some problems  }
+                     if current_scanner.token in postfixoperator_tokens then
+                      begin
+                        again:=true;
+                        postfixoperators(p1,again,getaddr);
+                      end;
+                   end;
                end;
 
              _LECKKLAMMER :

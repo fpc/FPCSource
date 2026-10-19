@@ -1345,6 +1345,12 @@ uses
           while assigned(pt) do
             begin
               paradef:=pt.paravalue.resultdef;
+              if not assigned(paradef) then
+                begin
+                  result.free;
+                  result:=nil;
+                  exit;
+                end;
               { unnamed parameter types can not be specialized }
               if not assigned(paradef.typesym) then
                 begin

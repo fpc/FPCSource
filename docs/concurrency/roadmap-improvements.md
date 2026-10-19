@@ -59,17 +59,29 @@
      ```
   3. Повний набір тестів додано до `tests/concurrency/test_implicit_generics.pp`.
 
-### 2.2. Короткий синтаксис лямбда-виразів (`=>`)
-- **Зараз**:
+### 2.2. Короткий синтаксис лямбда-виразів (`=>`) [РЕАЛІЗОВАНО]
+- **Статус**: Повністю реалізовано в компіляторі (`{$modeswitch arrowfunctions}`) разом із контекстним виведенням типів параметрів і результату.
+- **Синтаксис**:
   ```pascal
-  TParallel.&For(0, N - 1, procedure(I: Integer) begin Results[I] := Work(I); end);
-  ```
-- **Ціль** (`{$modeswitch arrowfunctions}`):
-  ```pascal
+  {$modeswitch arrowfunctions}
+  {$modeswitch implicitgenerics}
+
+  // Паралельний цикл (з дужками або без дужок для 1 аргументу):
   TParallel.&For(0, N - 1, (I) => Results[I] := Work(I));
+  TParallel.&For(0, N - 1, I => Results[I] := Work(I));
+
+  // Безпараметричні лямбди та Generic Type Inference:
   R := TTask.Future(() => ComputeResult(42));
+
+  // Лямбди з кількома аргументами та операціями над рядками / керованими типами:
+  ConcatOp := (Count, Msg) => Msg + ': ' + IntToStr(Count);
+
+  // Блоки з кількома інструкціями:
+  LogAndWork := (I) => begin Log(I); Work(I); end;
   ```
-  Це скорочує шаблонний код у `System.Threading`, колекціях `Generics.Collections` та обробниках подій у 2–3 рази.
+- **Документація та тести**:
+  - Детальний посібник: [`guide-arrow-functions.md`](guide-arrow-functions.md).
+  - Тестовий набір: [`tests/concurrency/test_arrow_functions.pp`](../../tests/concurrency/test_arrow_functions.pp).
 
 ### 2.3. Оголошення локальних змінних за місцем використання (`inlinevars`)
 - За опціональним `{$modeswitch inlinevars}` (сумісно з Delphi 10.3+) дозволити:
@@ -124,5 +136,5 @@
 | **2** | Розумні вказівники `TScoped<T>` / `TArc<T>` та `TSpan<T>` | `rtl/objpas` або `packages/rtl-objpas` | Низька–середня | Зникнення шаблонних блоків `try..finally` і витоків пам'яті в багатопоточному коді |
 | **3** | Необов'язковий `specialize` + виведення типів для дженериків [РЕАЛІЗОВАНО] | `compiler/` (`pexpr.pas`, `ptype.pas`, `pgenutil.pas`) | Середня | Суттєве очищення синтаксису `TTask.Future`, колекцій та алгоритмів |
 | **4** | Асинхронний цикл подій `fcl-eventloop` (`epoll`/`kqueue`/`IOCP`) [РЕАЛІЗОВАНО] | `packages/fcl-eventloop` | Висока | Високопродуктивні мережеві сервіси на FPC |
-| **5** | Короткі лямбди `=>` та `async`/`await` (`async`/`await` [РЕАЛІЗОВАНО]) | `compiler/`, `packages/fcl-async` | Висока | Рівень ергономіки сучасних C# / Rust / TypeScript при збереженні нативної швидкості FPC |
+| **5** | Короткі лямбди `=>` та `async`/`await` [РЕАЛІЗОВАНО] | `compiler/`, `packages/fcl-async` | Висока | Рівень ергономіки сучасних C# / Rust / TypeScript при збереженні нативної швидкості FPC |
 
