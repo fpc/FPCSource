@@ -2870,21 +2870,21 @@ begin
       C:=L[P];
       If (C=LQ) then
         LQ:=#0
-      else If (C in Quotes) then
+      else If (LQ=#0) and (C in Quotes) then
         LQ:=C;
       If (LQ<>#0) then
         Inc(P)
       else
         begin
-        HB:=((C=BC) and (BreakStr=Copy(L,P,BLen)));
+        HB:=(BLen>0) and (C=BC) and (BreakStr=Copy(L,P,BLen));
         If HB then
           Inc(P,Blen)
         else
           begin
-          // Cut after the last break character within MaxCol, else after the first one beyond it
+          // Cut after the last break character within MaxCol, else after the first one beyond it; never after the first character
           If (P>MaxCol) and (lLastBreak>0) then
             lCut:=lLastBreak
-          else If (C in BreakChars) then
+          else If (P>1) and (C in BreakChars) then
             begin
             If (P<=MaxCol) then
               lLastBreak:=P
