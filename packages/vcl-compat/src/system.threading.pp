@@ -24,6 +24,7 @@ interface
 {$modeswitch functionreferences}
 {$modeswitch anonymousfunctions}
 {$modeswitch advancedrecords}
+{$modeswitch typehelpers}
 
 { $DEFINE DEBUGTHREADPOOL}
 
@@ -47,6 +48,7 @@ type
   Generic TProc<T> = reference to procedure (arg : T);
   Generic TProc2<T1,T2> = reference to procedure (arg1 : T1;arg2 : T2);
   Generic TFunc<T> = Reference to function : T;
+  Generic TFunc1<TArg,TResult> = reference to function (const aArg : TArg) : TResult;
   TProcRef = Reference to Procedure;
 
   TExceptionHandlerEvent = procedure (const aException: Exception; var aHandled: Boolean) of object;
@@ -511,6 +513,85 @@ type
 
   TTaskStatus = (Created, WaitingToRun, Running, Completed, WaitingForChildren, Canceled, Exception);
 
+  TTaskContinuationOption = (
+    NotOnCompleted,
+    NotOnFaulted,
+    NotOnCanceled,
+    OnlyOnCompleted,
+    OnlyOnFaulted,
+    OnlyOnCanceled,
+    ExecuteSynchronously
+  );
+  TTaskContinuationOptions = set of TTaskContinuationOption;
+
+  ICancellationState = interface
+    ['{D791878A-02E6-4232-9577-6866310E2538}']
+    function IsCancellationRequested: Boolean;
+    function GetWaitHandle: TEvent;
+    procedure Cancel;
+    procedure CancelAfter(aMillisecondsDelay: Cardinal);
+    function RegisterCallback(const aCallback: TProcRef; aEvent: TNotifyEvent; aSender: TObject): Int64;
+    procedure UnregisterCallback(aId: Int64);
+  end;
+
+  { TCancellationTokenRegistration }
+
+  TCancellationTokenRegistration = record
+  private
+    FState: ICancellationState;
+    FId: Int64;
+  public
+    procedure Unregister;
+    procedure Dispose; inline;
+  end;
+
+  { TCancellationToken }
+
+  TCancellationToken = record
+  private
+    FState: ICancellationState;
+    function GetCanBeCanceled: Boolean; inline;
+    function GetIsCancellationRequested: Boolean; inline;
+    function GetWaitHandle: TEvent; inline;
+  public
+    class function None: TCancellationToken; static; inline;
+    procedure ThrowIfCancellationRequested; inline;
+    procedure CheckCanceled; inline;
+    function Register(const aCallback: TProcRef): TCancellationTokenRegistration; overload;
+    function Register(aEvent: TNotifyEvent; aSender: TObject = nil): TCancellationTokenRegistration; overload;
+    class operator =(const aLeft, aRight: TCancellationToken): Boolean; inline;
+    class operator <>(const aLeft, aRight: TCancellationToken): Boolean; inline;
+    property CanBeCanceled: Boolean read GetCanBeCanceled;
+    property IsCancellationRequested: Boolean read GetIsCancellationRequested;
+    property WaitHandle: TEvent read GetWaitHandle;
+  end;
+
+  { TCancellationTokenSource }
+
+  TCancellationTokenSource = class
+  private
+    FState: ICancellationState;
+    FLinkedRegistrations: array of TCancellationTokenRegistration;
+    procedure OnLinkedTokenCancel(Sender: TObject);
+    function GetIsCancellationRequested: Boolean; inline;
+    function GetToken: TCancellationToken; inline;
+    function GetWaitHandle: TEvent; inline;
+  public
+    constructor Create; overload;
+    constructor Create(aMillisecondsDelay: Cardinal); overload;
+    constructor Create(const aDelay: TTimeSpan); overload;
+    destructor Destroy; override;
+    class function CreateLinkedTokenSource(const aToken1, aToken2: TCancellationToken): TCancellationTokenSource; overload; static;
+    class function CreateLinkedTokenSource(const aTokens: array of TCancellationToken): TCancellationTokenSource; overload; static;
+    procedure Cancel;
+    procedure CancelAfter(aMillisecondsDelay: Cardinal); overload;
+    procedure CancelAfter(const aDelay: TTimeSpan); overload;
+    procedure Reset;
+    property IsCancellationRequested: Boolean read GetIsCancellationRequested;
+    property Token: TCancellationToken read GetToken;
+    property WaitHandle: TEvent read GetWaitHandle;
+  end;
+
   ITask = interface (TThreadPool.IThreadPoolWorkItem) ['{AD752DA0-556C-41B5-96F2-0B0CA932E364}']
     function Wait(aTimeout: Cardinal = INFINITE): Boolean; overload;
     function Wait(const aTimeout: TTimeSpan): Boolean; overload;
@@ -519,6 +600,9 @@ type
     function Start: ITask;
     function GetStatus: TTaskStatus;
     function GetId: Integer;
+    function ContinueWith(const aAction: specialize TProc<ITask>): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<ITask>; aOptions: TTaskContinuationOptions): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<ITask>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): ITask; overload;
     property Id: Integer read GetId;
     property Status: TTaskStatus read GetStatus;
   end;
@@ -529,6 +613,11 @@ type
   generic IFuture<T> = interface(ITask)
     function StartFuture: specialize IFuture<T>; overload;
     function GetValue: T;
+    function ContinueWith(const aAction: specialize TProc<specialize IFuture<T>>): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<specialize IFuture<T>>; aOptions: TTaskContinuationOptions): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<specialize IFuture<T>>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): ITask; overload;
+    function Map(const aFunc: specialize TFunc1<T, T>; aOptions: TTaskContinuationOptions = []): specialize IFuture<T>; overload;
+    function Map(const aFunc: specialize TFunc1<T, T>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<T>; overload;
     property Value: T read GetValue;
   end;
 
@@ -582,6 +671,7 @@ type
         Parent: TTask;
         CreateFlags: TCreateFlags;
         ParentControlFlag: TThreadPool.IControlFlag;
+        CancellationToken: TCancellationToken;
         Procedure ResolvePool;
       end;
 
@@ -598,6 +688,10 @@ type
     FCompletedEvents : TITaskProcArray;
     FCompletedEventCount : Integer;
     FDone : Boolean;
+    FCancelRegistration : TCancellationTokenRegistration;
+    FExceptionClass : ExceptClass;
+    FExceptionMessage : string;
+    procedure OnCancelToken(Sender: TObject);
     function GetDoneEvent: TLightweightEvent;
   protected
     FException: TObject;
@@ -609,6 +703,9 @@ type
     function CreateReplicaTask(const aProc: TProcRef; aParent: TTask; aCreateFlags: TCreateFlags; const aParentControlFlag: TThreadPool.IControlFlag): TTask; virtual;
     function CreateReplicaTask(const aParams : TTaskParams) : TTask; virtual;
     procedure CheckFaulted;
+    procedure PropagateExceptionFrom(aSource: TTask);
+    procedure AttachContinuation(aContTask: TTask; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions; aPropagateAntecedentState: Boolean);
+    class function ShouldRunContinuation(aStatus: TTaskStatus; aOptions: TTaskContinuationOptions): Boolean; static;
     procedure SetComplete;
     procedure AddChild;
     procedure ForgetChild;
@@ -651,6 +748,9 @@ type
     function Start: ITask;
     function GetId: Integer;
     function GetStatus: TTaskStatus;
+    function ContinueWith(const aAction: specialize TProc<ITask>): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<ITask>; aOptions: TTaskContinuationOptions): ITask; overload;
+    function ContinueWith(const aAction: specialize TProc<ITask>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): ITask; overload;
     { IInternalTask }
     // Registers aProc to be called on completion, calls it at once when the task is already done
     procedure AddCompleteEvent(const aProc: TITaskProc);
@@ -681,14 +781,25 @@ type
     class function Create(const aProc: TProcRef): ITask; overload; static;
     class function Create(aSender: TObject; aEvent: TNotifyEvent; const aPool: TThreadPool): ITask; overload; static;
     class function Create(const aProc: TProcref; aPool: TThreadPool): ITask; overload; static;
+    class function Create(aSender: TObject; aEvent: TNotifyEvent; const aCancelToken: TCancellationToken; const aPool: TThreadPool = nil): ITask; overload; static;
+    class function Create(const aProc: TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): ITask; overload; static;
     generic class function Future<T>(aSender: TObject; aEvent: specialize TFunctionEvent<T>): Specialize IFuture<T>; overload; static; inline;
     generic class function Future<T>(aSender: TObject; aEvent: specialize TFunctionEvent<T>; aPool: TThreadPool): Specialize IFuture<T>; overload; static; inline;
+    generic class function Future<T>(aSender: TObject; aEvent: specialize TFunctionEvent<T>; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): Specialize IFuture<T>; overload; static; inline;
     generic class function Future<T>(const aFunc: specialize TFunc<T>): Specialize IFuture<T>; overload; static; inline;
     generic class function Future<T>(const aFunc: specialize TFunc<T>; aPool: TThreadPool): Specialize IFuture<T>; overload; static; inline;
+    generic class function Future<T>(const aFunc: specialize TFunc<T>; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): Specialize IFuture<T>; overload; static; inline;
+    generic class function ThenBy<TResult>(const aTask: ITask; const aFunc: specialize TFunc1<ITask, TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload; static;
+    generic class function ThenBy<TResult>(const aTask: ITask; const aFunc: specialize TFunc<TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload; static;
+    generic class function ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>): specialize IFuture<TResult>; overload; static; inline;
+    generic class function ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>; aOptions: TTaskContinuationOptions): specialize IFuture<TResult>; overload; static; inline;
+    generic class function ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload; static;
     class function Run(aSender: TObject; aEvent: TNotifyEvent): ITask; overload; static; inline;
     class function Run(aSender: TObject; aEvent: TNotifyEvent; aPool: TThreadPool): ITask; overload; static; inline;
+    class function Run(aSender: TObject; aEvent: TNotifyEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): ITask; overload; static; inline;
     class function Run(const aFunc: TProcRef): ITask; overload; static; inline;
     class function Run(const aFunc: TProcRef; aPool: TThreadPool): ITask; overload; static; inline;
+    class function Run(const aFunc: TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): ITask; overload; static; inline;
     class function WaitForAll(const aTasks: array of ITask): Boolean; overload; static;
     class function WaitForAll(const aTasks: array of ITask; aTimeout: Cardinal): Boolean; overload; static;
     class function WaitForAll(const aTasks: array of ITask; const aTimeout: TTimeSpan): Boolean; overload; static;
@@ -697,15 +808,36 @@ type
     class function WaitForAny(const aTasks: array of ITask; const aTimeout: TTimeSpan): Integer; overload; static;
   end;
 
+  { TFutureContinuationTask }
+
+  generic TFutureContinuationTask<T> = class(TTask)
+  public type
+    IFutureT = specialize IFuture<T>;
+    TFutureProcT = specialize TProc<IFutureT>;
+  private
+    FAntecedent: IFutureT;
+    FAction: TFutureProcT;
+    procedure RunAction(Sender: TObject);
+  public
+    constructor CreateContinuation(const aAntecedent: IFutureT; const aAction: TFutureProcT;
+      const aCancelToken: TCancellationToken; aPool: TThreadPool);
+    destructor Destroy; override;
+  end;
+
   { TFuture }
 
-  generic TFuture<T> = class sealed(TTask, specialize IFuture<T>)
+  generic TFuture<T> = class(TTask, specialize IFuture<T>)
   Type
     TFunctionEventT = specialize TFunctionEvent<T>;
     TFunctionRefT = specialize TFunc<T>;
+    TFunctionTaskRefT = specialize TFunc1<ITask, T>;
+    TFutureProcT = specialize TProc<specialize IFuture<T>>;
+    TMapFuncT = specialize TFunc1<T, T>;
   Var
     FResult : T;
     FFuncRef : TFunctionRefT;
+    FFuncTaskRef : TFunctionTaskRefT;
+    FAntecedentTask : ITask;
     FFuncEvent : TFunctionEventT;
     procedure RunFunc(Sender: TObject);
   Protected
@@ -713,6 +845,44 @@ type
     function GetValue: T;
   Public
     constructor Create(aSender: TObject; aEvent: TFunctionEventT; const aFunc: TFunctionRefT; aPool: TThreadPool); overload;
+    constructor Create(aSender: TObject; aEvent: TFunctionEventT; const aFunc: TFunctionRefT; const aCancelToken: TCancellationToken; aPool: TThreadPool); overload;
+    constructor CreateTaskContinuation(const aAntecedent: ITask; const aTaskFunc: TFunctionTaskRefT; const aFunc: TFunctionRefT; const aCancelToken: TCancellationToken; aPool: TThreadPool); overload;
+    destructor Destroy; override;
+    function ContinueWith(const aAction: TFutureProcT): ITask; overload;
+    function ContinueWith(const aAction: TFutureProcT; aOptions: TTaskContinuationOptions): ITask; overload;
+    function ContinueWith(const aAction: TFutureProcT; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): ITask; overload;
+    function Map(const aFunc: TMapFuncT; aOptions: TTaskContinuationOptions = []): specialize IFuture<T>; overload;
+    function Map(const aFunc: TMapFuncT; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<T>; overload;
+  end;
+
+  { TTransformFuture }
+
+  generic TTransformFuture<T, TResult> = class sealed(specialize TFuture<TResult>)
+  public type
+    TTransformFunc = specialize TFunc1<T, TResult>;
+    TSourceFuture = specialize TFuture<T>;
+  private
+    FSourceTask: ITask;
+    FTransformFunc: TTransformFunc;
+    function RunTransform(Sender: TObject): TResult;
+  public
+    constructor CreateTransform(const aSource: ITask; const aTransform: TTransformFunc;
+      const aCancelToken: TCancellationToken; aPool: TThreadPool);
+    destructor Destroy; override;
+  end;
+
+  { TITaskHelper }
+
+  TITaskHelper = type helper for ITask
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>): specialize IFuture<TResult>; overload;
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>; aOptions: TTaskContinuationOptions): specialize IFuture<TResult>; overload;
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload;
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc<TResult>): specialize IFuture<TResult>; overload;
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc<TResult>; aOptions: TTaskContinuationOptions): specialize IFuture<TResult>; overload;
+    generic function ThenBy<TResult>(const aFunc: specialize TFunc<TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload;
+    generic function ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>): specialize IFuture<TResult>; overload;
+    generic function ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>; aOptions: TTaskContinuationOptions): specialize IFuture<TResult>; overload;
+    generic function ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>; const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions = []; aPool: TThreadPool = nil): specialize IFuture<TResult>; overload;
   end;
 
   { TParallel }
@@ -755,6 +925,7 @@ type
       Proc: TInt32Proc;
       StateEvent: TIteratorStateEvent32;
       ProcWithState: TInt32LoopStateProc;
+      CancelToken: TCancellationToken;
       LowInclusive,
       HighExclusive,
       Index,
@@ -778,6 +949,7 @@ type
       Proc: TInt64Proc;
       StateEvent: TIteratorStateEvent64;
       ProcWithState: TInt64LoopStateProc;
+      CancelToken: TCancellationToken;
       LowInclusive,
       HighExclusive,
       Index,
@@ -813,6 +985,9 @@ type
       FStrideCount : Integer;
       FNextStrideAt : Integer;
       FRootTask: ITask;
+      FCancelToken: TCancellationToken;
+      FCancelRegistration: TCancellationTokenRegistration;
+      procedure OnCancelToken(Sender: TObject);
     public
       Constructor Create;
       Destructor Destroy; override;
@@ -822,6 +997,7 @@ type
       procedure HandleException; overload;
       Function GetBreakAt : Variant; virtual; abstract;
       Procedure Stop;
+      Procedure Cancel;
       Function StartLoop : ITask;
       procedure CreateRootTask(aParams : TTask.TTaskParams; aCount : Integer);
       procedure ClearRootTask;
@@ -830,6 +1006,7 @@ type
       Procedure Invoke; virtual; abstract;
       function Break : Boolean;
       Function Stopped : Boolean;
+      Function Cancelled : Boolean;
       Function Faulted : Boolean;
       Property BreakAt : Variant Read GetBreakAt;
     end;
@@ -898,6 +1075,7 @@ type
 
     protected
       function GetStopped: Boolean; inline;
+      function GetCancelled: Boolean; inline;
       function GetFaulted: Boolean; inline;
       function GetLowestBreakIteration: Variant; inline;
       procedure DoBreak; virtual; abstract;
@@ -912,6 +1090,7 @@ type
 
       property Faulted: Boolean read GetFaulted;
       property Stopped: Boolean read GetStopped;
+      property Cancelled: Boolean read GetCancelled;
       property LowestBreakIteration: Variant read GetLowestBreakIteration;
     end;
 
@@ -969,44 +1148,62 @@ type
       TProcInt64LoopState = specialize TProc2<Int64,TLoopState>;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     {$IFDEF THREAD64BIT}
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64): TLoopResult; overload; static; inline;
     class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState): TLoopResult; overload; static; inline;
     class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState): TLoopResult; overload; static; inline;
     class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState; aPool: TThreadPool): TLoopResult; overload; static; inline;
+    class function &For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): TLoopResult; overload; static; inline;
     {$ENDIF}
     class function Join(aSender: TObject; aEvents: array of TNotifyEvent): ITask; overload; static;
     class function Join(aSender: TObject; aEvents: array of TNotifyEvent; aPool: TThreadPool): ITask; overload; static;
+    class function Join(aSender: TObject; aEvents: array of TNotifyEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): ITask; overload; static;
     class function Join(aSender: TObject; aEvent1, aEvent2: TNotifyEvent): ITask; overload; static; inline;
     class function Join(aSender: TObject; aEvent1, aEvent2: TNotifyEvent; aPool: TThreadPool): ITask; overload; static;
     class function Join(const aProcs: array of TProcRef): ITask; overload; static;
     class function Join(const aProcs: array of TProcRef; aPool: TThreadPool): ITask; overload; static;
+    class function Join(const aProcs: array of TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool = nil): ITask; overload; static;
     class function Join(const aProc1, aProc2: TProcRef): ITask; overload; static; inline;
     class function Join(const aProc1, aProc2: TProcRef; aPool: TThreadPool): ITask; overload; static;
   end;
@@ -1126,7 +1323,8 @@ Type
   TProcJoinTask = class(TReplicableTask)
     FProc : TParallel.TInt32LoopProc;
     FProcList : array of TProcref;
-    constructor Create(const AProcs: array of TProcRef; APool: TThreadPool);
+    constructor Create(const AProcs: array of TProcRef; APool: TThreadPool); overload;
+    constructor Create(const AProcs: array of TProcRef; const ACancelToken: TCancellationToken; APool: TThreadPool); overload;
   private
     procedure JoinTasks;
   end;
@@ -1136,10 +1334,508 @@ Type
   TEventJoinTask = class(TReplicableTask)
     FProc : TParallel.TInt32LoopProc;
     FEventList : array of TNotifyEvent;
-    constructor Create(Sender: TObject; const AEvents : array of TNotifyEvent; APool: TThreadPool);
+    constructor Create(Sender: TObject; const AEvents : array of TNotifyEvent; APool: TThreadPool); overload;
+    constructor Create(Sender: TObject; const AEvents : array of TNotifyEvent; const ACancelToken: TCancellationToken; APool: TThreadPool); overload;
   private
     procedure JoinTasks;
   end;
+
+  { TCancellationState }
+
+  TCancellationState = class(TInterfacedObject, ICancellationState)
+  private
+    type
+      TCallbackEntry = record
+        Id: Int64;
+        Callback: TProcRef;
+        Event: TNotifyEvent;
+        Sender: TObject;
+      end;
+
+      { TTimerThread }
+
+      TTimerThread = class(TThread)
+      private
+        FState: TCancellationState;
+        FAbortEvent: TEvent;
+        FDelayMs: Cardinal;
+      protected
+        procedure Execute; override;
+      public
+        constructor Create(aState: TCancellationState; aDelayMs: Cardinal);
+        destructor Destroy; override;
+        procedure AbortTimer;
+      end;
+  private
+    FCanceled: Integer;
+    FExecutingCount: Integer;
+    FExecutingThreadID: TThreadID;
+    FNextId: Int64;
+    FLock: TSpinLock;
+    FWaitEvent: TEvent;
+    FCallbacks: array of TCallbackEntry;
+    FCallbackCount: Integer;
+    FTimerThread: TTimerThread;
+    procedure StopTimer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function IsCancellationRequested: Boolean;
+    function GetWaitHandle: TEvent;
+    procedure Cancel;
+    procedure CancelAfter(aMillisecondsDelay: Cardinal);
+    function RegisterCallback(const aCallback: TProcRef; aEvent: TNotifyEvent; aSender: TObject): Int64;
+    procedure UnregisterCallback(aId: Int64);
+  end;
+
+{ *********************************************************************
+  TCancellationState & TCancellationToken & TCancellationTokenSource
+  *********************************************************************}
+
+constructor TCancellationState.TTimerThread.Create(aState: TCancellationState; aDelayMs: Cardinal);
+begin
+  FState:=aState;
+  FDelayMs:=aDelayMs;
+  FAbortEvent:=TEvent.Create(nil,True,False,'');
+  FreeOnTerminate:=False;
+  inherited Create(False);
+end;
+
+destructor TCancellationState.TTimerThread.Destroy;
+begin
+  FreeAndNil(FAbortEvent);
+  inherited Destroy;
+end;
+
+procedure TCancellationState.TTimerThread.AbortTimer;
+begin
+  if Assigned(FAbortEvent) then
+    FAbortEvent.SetEvent;
+end;
+
+procedure TCancellationState.TTimerThread.Execute;
+begin
+  if FAbortEvent.WaitFor(FDelayMs)=wrTimeout then
+    if Assigned(FState) then
+      FState.Cancel;
+end;
+
+constructor TCancellationState.Create;
+begin
+  inherited Create;
+  FCanceled:=0;
+  FExecutingCount:=0;
+  FExecutingThreadID:=TThreadID(0);
+  FNextId:=0;
+  FLock:=TSpinLock.Create(False);
+  FWaitEvent:=nil;
+  FCallbacks:=nil;
+  FCallbackCount:=0;
+  FTimerThread:=nil;
+  {$IFDEF FPC_VALGRIND}
+  VgBenignRace(@FCanceled,SizeOf(FCanceled));
+  VgBenignRace(@FExecutingCount,SizeOf(FExecutingCount));
+  VgBenignRace(@FExecutingThreadID,SizeOf(FExecutingThreadID));
+  {$ENDIF}
+end;
+
+destructor TCancellationState.Destroy;
+begin
+  StopTimer;
+  FreeAndNil(FWaitEvent);
+  inherited Destroy;
+end;
+
+procedure TCancellationState.StopTimer;
+var
+  Timer: TTimerThread;
+begin
+  Timer:=nil;
+  FLock.Enter;
+  try
+    if Assigned(FTimerThread) and (TThread.CurrentThread<>FTimerThread) then
+      begin
+      Timer:=FTimerThread;
+      FTimerThread:=nil;
+      end;
+  finally
+    FLock.Exit;
+  end;
+  if Assigned(Timer) then
+    begin
+    Timer.AbortTimer;
+    Timer.WaitFor;
+    Timer.Free;
+    end;
+end;
+
+function TCancellationState.IsCancellationRequested: Boolean;
+begin
+  Result:=FCanceled<>0;
+  if Result then
+    begin
+    ReadBarrier;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensAfter(@FCanceled);
+    {$ENDIF}
+    end;
+end;
+
+function TCancellationState.GetWaitHandle: TEvent;
+begin
+  FLock.Enter;
+  try
+    if not Assigned(FWaitEvent) then
+      FWaitEvent:=TEvent.Create(nil,True,FCanceled<>0,'');
+    Result:=FWaitEvent;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+procedure TCancellationState.Cancel;
+var
+  LocalCallbacks: array of TCallbackEntry;
+  Count, I: Integer;
+begin
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FCanceled);
+  {$ENDIF}
+  WriteBarrier;
+  if AtomicCmpExchange(FCanceled,1,0)<>0 then
+    begin
+    StopTimer;
+    Exit;
+    end;
+  LocalCallbacks:=nil;
+  Count:=0;
+  FLock.Enter;
+  try
+    if Assigned(FWaitEvent) then
+      FWaitEvent.SetEvent;
+    if Assigned(FTimerThread) then
+      FTimerThread.AbortTimer;
+    Count:=FCallbackCount;
+    if Count>0 then
+      begin
+      LocalCallbacks:=Copy(FCallbacks,0,Count);
+      FCallbacks:=nil;
+      FCallbackCount:=0;
+      FExecutingThreadID:=GetCurrentThreadId;
+      AtomicIncrement(FExecutingCount);
+      end;
+  finally
+    FLock.Exit;
+  end;
+  StopTimer;
+  if Count>0 then
+    try
+      for I:=0 to Count-1 do
+        begin
+        if Assigned(LocalCallbacks[I].Callback) then
+          LocalCallbacks[I].Callback()
+        else if Assigned(LocalCallbacks[I].Event) then
+          LocalCallbacks[I].Event(LocalCallbacks[I].Sender);
+        end;
+    finally
+      {$IFDEF FPC_VALGRIND}
+      VgHappensBefore(@FExecutingCount);
+      {$ENDIF}
+      AtomicDecrement(FExecutingCount);
+    end;
+end;
+
+procedure TCancellationState.CancelAfter(aMillisecondsDelay: Cardinal);
+begin
+  if IsCancellationRequested then
+    Exit;
+  if aMillisecondsDelay=0 then
+    begin
+    Cancel;
+    Exit;
+    end;
+  StopTimer;
+  FLock.Enter;
+  try
+    if FCanceled=0 then
+      FTimerThread:=TTimerThread.Create(Self,aMillisecondsDelay);
+  finally
+    FLock.Exit;
+  end;
+end;
+
+function TCancellationState.RegisterCallback(const aCallback: TProcRef; aEvent: TNotifyEvent; aSender: TObject): Int64;
+var
+  AlreadyCanceled: Boolean;
+begin
+  Result:=0;
+  if IsCancellationRequested then
+    begin
+    if Assigned(aCallback) then
+      aCallback()
+    else if Assigned(aEvent) then
+      aEvent(aSender);
+    Exit;
+    end;
+  AlreadyCanceled:=False;
+  FLock.Enter;
+  try
+    if FCanceled<>0 then
+      AlreadyCanceled:=True
+    else
+      begin
+      Inc(FNextId);
+      Result:=FNextId;
+      if FCallbackCount=Length(FCallbacks) then
+        SetLength(FCallbacks,FCallbackCount+8);
+      FCallbacks[FCallbackCount].Id:=Result;
+      FCallbacks[FCallbackCount].Callback:=aCallback;
+      FCallbacks[FCallbackCount].Event:=aEvent;
+      FCallbacks[FCallbackCount].Sender:=aSender;
+      Inc(FCallbackCount);
+      end;
+  finally
+    FLock.Exit;
+  end;
+  if AlreadyCanceled then
+    begin
+    if Assigned(aCallback) then
+      aCallback()
+    else if Assigned(aEvent) then
+      aEvent(aSender);
+    end;
+end;
+
+procedure TCancellationState.UnregisterCallback(aId: Int64);
+var
+  I: Integer;
+  Found: Boolean;
+  Spinner: TSpinWait;
+begin
+  if aId=0 then
+    Exit;
+  Found:=False;
+  FLock.Enter;
+  try
+    for I:=FCallbackCount-1 downto 0 do
+      if FCallbacks[I].Id=aId then
+        begin
+        if I<FCallbackCount-1 then
+          FCallbacks[I]:=FCallbacks[FCallbackCount-1];
+        FCallbacks[FCallbackCount-1]:=Default(TCallbackEntry);
+        Dec(FCallbackCount);
+        Found:=True;
+        Break;
+        end;
+  finally
+    FLock.Exit;
+  end;
+  if not Found and (FCanceled<>0) and (GetCurrentThreadId<>FExecutingThreadID) then
+    begin
+    Spinner.Reset;
+    while AtomicCmpExchange(FExecutingCount,0,0)>0 do
+      Spinner.SpinCycle;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensAfter(@FExecutingCount);
+    {$ENDIF}
+    end;
+end;
+
+procedure TCancellationTokenRegistration.Unregister;
+begin
+  if Assigned(FState) and (FId<>0) then
+    begin
+    FState.UnregisterCallback(FId);
+    FState:=nil;
+    FId:=0;
+    end;
+end;
+
+procedure TCancellationTokenRegistration.Dispose;
+begin
+  Unregister;
+end;
+
+class function TCancellationToken.None: TCancellationToken;
+begin
+  Result.FState:=nil;
+end;
+
+function TCancellationToken.GetCanBeCanceled: Boolean;
+begin
+  Result:=Assigned(FState);
+end;
+
+function TCancellationToken.GetIsCancellationRequested: Boolean;
+begin
+  Result:=Assigned(FState) and FState.IsCancellationRequested;
+end;
+
+function TCancellationToken.GetWaitHandle: TEvent;
+begin
+  if Assigned(FState) then
+    Result:=FState.GetWaitHandle
+  else
+    Result:=nil;
+end;
+
+procedure TCancellationToken.ThrowIfCancellationRequested;
+begin
+  if GetIsCancellationRequested then
+    raise EOperationCancelled.Create(SOperationCancelled);
+end;
+
+procedure TCancellationToken.CheckCanceled;
+begin
+  ThrowIfCancellationRequested;
+end;
+
+function TCancellationToken.Register(const aCallback: TProcRef): TCancellationTokenRegistration;
+begin
+  Result:=Default(TCancellationTokenRegistration);
+  if Assigned(FState) and Assigned(aCallback) then
+    begin
+    Result.FState:=FState;
+    Result.FId:=FState.RegisterCallback(aCallback,nil,nil);
+    end;
+end;
+
+function TCancellationToken.Register(aEvent: TNotifyEvent; aSender: TObject): TCancellationTokenRegistration;
+begin
+  Result:=Default(TCancellationTokenRegistration);
+  if Assigned(FState) and Assigned(aEvent) then
+    begin
+    Result.FState:=FState;
+    Result.FId:=FState.RegisterCallback(nil,aEvent,aSender);
+    end;
+end;
+
+class operator TCancellationToken.=(const aLeft, aRight: TCancellationToken): Boolean;
+begin
+  Result:=aLeft.FState=aRight.FState;
+end;
+
+class operator TCancellationToken.<>(const aLeft, aRight: TCancellationToken): Boolean;
+begin
+  Result:=aLeft.FState<>aRight.FState;
+end;
+
+constructor TCancellationTokenSource.Create;
+begin
+  inherited Create;
+  FState:=TCancellationState.Create;
+  FLinkedRegistrations:=nil;
+end;
+
+constructor TCancellationTokenSource.Create(aMillisecondsDelay: Cardinal);
+begin
+  Create;
+  CancelAfter(aMillisecondsDelay);
+end;
+
+constructor TCancellationTokenSource.Create(const aDelay: TTimeSpan);
+var
+  Ms: Int64;
+begin
+  Create;
+  Ms:=Trunc(aDelay.TotalMilliseconds);
+  if Ms<0 then
+    Ms:=0;
+  CancelAfter(Cardinal(Ms));
+end;
+
+destructor TCancellationTokenSource.Destroy;
+var
+  I: Integer;
+begin
+  for I:=0 to Length(FLinkedRegistrations)-1 do
+    FLinkedRegistrations[I].Unregister;
+  FLinkedRegistrations:=nil;
+  if Assigned(FState) then
+    (FState as TCancellationState).StopTimer;
+  FState:=nil;
+  inherited Destroy;
+end;
+
+procedure TCancellationTokenSource.OnLinkedTokenCancel(Sender: TObject);
+begin
+  if Sender=nil then;
+  Cancel;
+end;
+
+class function TCancellationTokenSource.CreateLinkedTokenSource(const aToken1, aToken2: TCancellationToken): TCancellationTokenSource;
+begin
+  Result:=CreateLinkedTokenSource([aToken1,aToken2]);
+end;
+
+class function TCancellationTokenSource.CreateLinkedTokenSource(const aTokens: array of TCancellationToken): TCancellationTokenSource;
+var
+  I, Count: Integer;
+begin
+  Result:=TCancellationTokenSource.Create;
+  SetLength(Result.FLinkedRegistrations,Length(aTokens));
+  Count:=0;
+  for I:=0 to Length(aTokens)-1 do
+    if aTokens[I].CanBeCanceled then
+      begin
+      Result.FLinkedRegistrations[Count]:=aTokens[I].Register(@Result.OnLinkedTokenCancel,Result);
+      Inc(Count);
+      end;
+  SetLength(Result.FLinkedRegistrations,Count);
+end;
+
+function TCancellationTokenSource.GetIsCancellationRequested: Boolean;
+begin
+  Result:=Assigned(FState) and FState.IsCancellationRequested;
+end;
+
+function TCancellationTokenSource.GetToken: TCancellationToken;
+begin
+  Result.FState:=FState;
+end;
+
+function TCancellationTokenSource.GetWaitHandle: TEvent;
+begin
+  if Assigned(FState) then
+    Result:=FState.GetWaitHandle
+  else
+    Result:=nil;
+end;
+
+procedure TCancellationTokenSource.Cancel;
+begin
+  if Assigned(FState) then
+    FState.Cancel;
+end;
+
+procedure TCancellationTokenSource.CancelAfter(aMillisecondsDelay: Cardinal);
+begin
+  if Assigned(FState) then
+    FState.CancelAfter(aMillisecondsDelay);
+end;
+
+procedure TCancellationTokenSource.CancelAfter(const aDelay: TTimeSpan);
+var
+  Ms: Int64;
+begin
+  Ms:=Trunc(aDelay.TotalMilliseconds);
+  if Ms<0 then
+    Ms:=0;
+  CancelAfter(Cardinal(Ms));
+end;
+
+procedure TCancellationTokenSource.Reset;
+var
+  I: Integer;
+begin
+  for I:=0 to Length(FLinkedRegistrations)-1 do
+    FLinkedRegistrations[I].Unregister;
+  FLinkedRegistrations:=nil;
+  if Assigned(FState) then
+    (FState as TCancellationState).StopTimer;
+  FState:=TCancellationState.Create;
+end;
+
 
 
 { *********************************************************************
@@ -2881,9 +3577,16 @@ end;
 
 destructor TTask.Destroy;
 begin
+  FCancelRegistration.Unregister;
   FreeAndNil(FException);
   FreeAndNil(FDoneEvent);
   inherited Destroy;
+end;
+
+procedure TTask.OnCancelToken(Sender: TObject);
+begin
+  if Sender=nil then;
+  DoCancel(False);
 end;
 
 class function TTask.Run(aSender: TObject; aEvent: TNotifyEvent; aPool: TThreadPool): ITask;
@@ -2897,6 +3600,12 @@ begin
   Result:=Run(aSender,aEvent,TThreadPool.Default);
 end;
 
+class function TTask.Run(aSender: TObject; aEvent: TNotifyEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool): ITask;
+begin
+  Result:=TTask.Create(aSender,aEvent,aCancelToken,aPool);
+  Result.Start;
+end;
+
 class function TTask.Run(const aFunc: TProcRef; aPool: TThreadPool): ITask;
 begin
   Result:=TTask.Create(aFunc,aPool);
@@ -2908,12 +3617,18 @@ begin
   Result:=Run(aFunc,TThreadPool.Default);
 end;
 
+class function TTask.Run(const aFunc: TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool): ITask;
+begin
+  Result:=TTask.Create(aFunc,aCancelToken,aPool);
+  Result.Start;
+end;
+
 function TTask.GetIsComplete: Boolean;
 begin
   // Lock-free check (fast path of Wait). The flags are written under
   // FStateLock, whose Exit is a full barrier; the read barrier pairs with it,
   // so a caller that sees the task complete also sees its results.
-  Result:=(FStateFlags*CompleteStates) <> [];
+  Result:=FDone or ((FStateFlags*CompleteStates) <> []);
   if Result then
     begin
     ReadBarrier;
@@ -2984,7 +3699,7 @@ Procedure TTask.CalcStatus;
     OSF:=FStateFlags;
     if Have(TOptionStateFlag.Faulted) then
       Exit(TTaskStatus.Exception);
-    if Have(TOptionStateFlag.Canceled) and Assigned(FParams.ParentControlFlag) and (FParams.ParentControlFlag.Value>0) then
+    if Have(TOptionStateFlag.Canceled) or (Assigned(FParams.ParentControlFlag) and (FParams.ParentControlFlag.Value>0)) then
       Exit(TTaskStatus.Canceled);
     if Have(TOptionStateFlag.Complete) then
       Exit(TTaskStatus.Completed);
@@ -3056,6 +3771,7 @@ begin
   aParams.Pool:=ThreadPool;
   aParams.CreateFlags:=aCreateFlags;
   aParams.ParentControlFlag:=aParentControlFlag;
+  aParams.CancellationToken:=aParent.FParams.CancellationToken;
   Result:=CreateReplicaTask(aParams);
   Result.FReplicaRoot:=aParent;
 end;
@@ -3073,6 +3789,55 @@ begin
     SetRaisedState;
     raise E;
     end;
+end;
+
+procedure TTask.PropagateExceptionFrom(aSource: TTask);
+var
+  Ex: Exception;
+  ExClass: ExceptClass;
+  ExMsg: string;
+begin
+  if not Assigned(aSource) then
+    Exit;
+  Ex:=aSource.GetExceptionObject;
+  if not Assigned(Ex) then
+    begin
+    aSource.LockState;
+    try
+      ExClass:=aSource.FExceptionClass;
+      ExMsg:=aSource.FExceptionMessage;
+    finally
+      aSource.UnLockState;
+    end;
+    if Assigned(ExClass) then
+      Ex:=EAggregateException.Create([ExClass.Create(ExMsg)])
+    else
+      Ex:=EAggregateException.Create([Exception.Create(SAggregateException)]);
+    end;
+  aSource.UpdateStateAtomic([TOptionStateFlag.Raised],[]);
+  LockState;
+  try
+    SetExceptionObject(Ex);
+  finally
+    UnLockState;
+  end;
+end;
+
+class function TTask.ShouldRunContinuation(aStatus: TTaskStatus; aOptions: TTaskContinuationOptions): Boolean;
+begin
+  if (TTaskContinuationOption.OnlyOnCompleted in aOptions) and (aStatus<>TTaskStatus.Completed) then
+    Exit(False);
+  if (TTaskContinuationOption.OnlyOnFaulted in aOptions) and (aStatus<>TTaskStatus.Exception) then
+    Exit(False);
+  if (TTaskContinuationOption.OnlyOnCanceled in aOptions) and (aStatus<>TTaskStatus.Canceled) then
+    Exit(False);
+  if (TTaskContinuationOption.NotOnCompleted in aOptions) and (aStatus=TTaskStatus.Completed) then
+    Exit(False);
+  if (TTaskContinuationOption.NotOnFaulted in aOptions) and (aStatus=TTaskStatus.Exception) then
+    Exit(False);
+  if (TTaskContinuationOption.NotOnCanceled in aOptions) and (aStatus=TTaskStatus.Canceled) then
+    Exit(False);
+  Result:=True;
 end;
 
 
@@ -3211,6 +3976,7 @@ var
   State: TOptionStateFlags;
 
 begin
+  FCancelRegistration.Unregister;
   State:=[];
   if HasExceptions then
     Include(State,TOptionStateFlag.Faulted);
@@ -3295,13 +4061,17 @@ begin
   if Not BusyCheck then
     begin
     {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','set running');{$ENDIF USE_THREADLOG}
-    ForceStateFlags([TOptionStateFlag.CallbackRun]);
+    if not UpdateStateAtomic([TOptionStateFlag.CallbackRun],[TOptionStateFlag.CallbackRun,TOptionStateFlag.Canceled,TOptionStateFlag.Complete,TOptionStateFlag.Faulted]) then
+      Exit(False);
     end
   else if not UpdateStateAtomic([TOptionStateFlag.CallbackRun], [TOptionStateFlag.CallbackRun]) and
     not (TOptionStateFlag.Canceled in FStateFlags) then
       Exit(False);
-  if IsCanceled then
-    Complete(False)
+  if IsCanceled or FParams.CancellationToken.IsCancellationRequested then
+    begin
+    UpdateStateAtomic([TOptionStateFlag.Canceled],[TOptionStateFlag.Faulted,TOptionStateFlag.Complete]);
+    Complete(False);
+    end
   else
     begin
     {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','calling internalexecute');{$ENDIF USE_THREADLOG}
@@ -3339,7 +4109,10 @@ begin
   try
     FReplicaRoot.CallUserCode;
   except
-    HandleException(Self, TObject(AcquireExceptionObject));
+    on E: EOperationCancelled do
+      UpdateStateAtomic([TOptionStateFlag.Canceled],[TOptionStateFlag.Faulted,TOptionStateFlag.Complete]);
+    else
+      HandleException(Self, TObject(AcquireExceptionObject));
   end;
 end;
 
@@ -3353,7 +4126,10 @@ begin
     try
       CallUserCode;
     except
-      HandleException(Self,TObject(AcquireExceptionObject));
+      on E: EOperationCancelled do
+        UpdateStateAtomic([TOptionStateFlag.Canceled],[TOptionStateFlag.Faulted,TOptionStateFlag.Complete]);
+      else
+        HandleException(Self,TObject(AcquireExceptionObject));
     end;
 end;
 
@@ -3391,7 +4167,12 @@ var
 begin
   if aChildTask=Self then
     begin
-    SetExceptionObject(aException);
+    LockState;
+    try
+      SetExceptionObject(aException);
+    finally
+      UnlockState;
+    end;
     Exit;
     end;
   LockState;
@@ -3506,20 +4287,24 @@ end;
 procedure TTask.DoCancel(aDestroying : Boolean);
 
 var
-  LFlags: TOptionStateFlags;
-  OldQueued: Boolean;
+  LFlags, OldFlags: TOptionStateFlags;
 
 begin
   if IsComplete then
     exit;
   SetTaskStop;
-  OldQueued:=IsQueued;
   LFlags:=[TOptionStateFlag.Canceled];
   if aDestroying then
     Include(LFlags, TOptionStateFlag.Destroying);
-  UpdateStateAtomic(LFlags,[TOptionStateFlag.Faulted,TOptionStateFlag.Complete]);
-  if not (OldQueued or IsQueued) then
+  if not UpdateStateAtomic(LFlags,[TOptionStateFlag.Faulted,TOptionStateFlag.Complete,TOptionStateFlag.Canceled],OldFlags) then
+    exit;
+  if not (TOptionStateFlag.CallbackRun in OldFlags) then
+    begin
+    if (TOptionStateFlag.Started in OldFlags) and Assigned(FParams.Pool) then
+      if FParams.Pool.DoRemoveWorkItem(Self) then
+        AtomicDecrement(FParams.Pool.FRequestCount);
     Complete(False);
+    end;
 end;
 
 procedure TTask.Cancel;
@@ -3531,12 +4316,18 @@ end;
 
 procedure TTask.CheckCanceled;
 begin
-  if TOptionStateFlag.Canceled in FStateFlags then
+  if (TOptionStateFlag.Canceled in FStateFlags) or FParams.CancellationToken.IsCancellationRequested then
     raise EOperationCancelled.Create(SOperationCancelled);
 end;
 
 function TTask.Start: ITask;
 begin
+  if IsCanceled then
+    begin
+    if not FDone then
+      Complete(False);
+    Exit(Self);
+    end;
   if IsComplete then
     raise EInvalidOperation.Create(SCannotStartCompletedTask);
   Result:=Self;
@@ -3560,6 +4351,85 @@ function TTask.GetStatus: TTaskStatus;
 
 begin
   Result:=FStatus;
+end;
+
+procedure TTask.AttachContinuation(aContTask: TTask; const aCancelToken: TCancellationToken;
+  aOptions: TTaskContinuationOptions; aPropagateAntecedentState: Boolean);
+var
+  AntecedentTask: TTask;
+  ContTaskI: ITask;
+  EffToken: TCancellationToken;
+begin
+  AntecedentTask:=Self;
+  ContTaskI:=aContTask;
+  EffToken:=aCancelToken;
+  AddCompleteEvent(
+    procedure(aCompletedTask: ITask)
+    begin
+      if aContTask.IsCanceled or EffToken.IsCancellationRequested or
+         not TTask.ShouldRunContinuation(aCompletedTask.Status,aOptions) then
+        begin
+        aContTask.Cancel;
+        Exit;
+        end;
+      if aPropagateAntecedentState then
+        begin
+        if aCompletedTask.Status=TTaskStatus.Canceled then
+          begin
+          aContTask.Cancel;
+          Exit;
+          end;
+        if aCompletedTask.Status=TTaskStatus.Exception then
+          begin
+          aContTask.PropagateExceptionFrom(AntecedentTask);
+          aContTask.Complete(False);
+          Exit;
+          end;
+        end;
+      if TTaskContinuationOption.ExecuteSynchronously in aOptions then
+        aContTask.ExecuteWork
+      else
+        ContTaskI.Start;
+    end);
+end;
+
+function TTask.ContinueWith(const aAction: specialize TProc<ITask>): ITask;
+begin
+  Result:=ContinueWith(aAction,TCancellationToken.None,[],FParams.Pool);
+end;
+
+function TTask.ContinueWith(const aAction: specialize TProc<ITask>; aOptions: TTaskContinuationOptions): ITask;
+begin
+  Result:=ContinueWith(aAction,TCancellationToken.None,aOptions,FParams.Pool);
+end;
+
+function TTask.ContinueWith(const aAction: specialize TProc<ITask>; const aCancelToken: TCancellationToken;
+  aOptions: TTaskContinuationOptions; aPool: TThreadPool): ITask;
+var
+  Antecedent: ITask;
+  ContTask: TTask;
+  Params: TTaskParams;
+  EffToken: TCancellationToken;
+begin
+  Antecedent:=Self;
+  EffToken:=aCancelToken;
+  if (not EffToken.CanBeCanceled) and (TTaskContinuationOption.NotOnCanceled in aOptions) then
+    EffToken:=FParams.CancellationToken;
+  Params:=Default(TTaskParams);
+  if Assigned(aPool) then
+    Params.Pool:=aPool
+  else
+    Params.Pool:=FParams.Pool;
+  Params.CancellationToken:=EffToken;
+  Params.Proc:=
+    procedure
+    begin
+      if Assigned(aAction) then
+        aAction(Antecedent);
+    end;
+  ContTask:=TTask.Create(Params);
+  Result:=ContTask;
+  AttachContinuation(ContTask,EffToken,aOptions,False);
 end;
 
 procedure TTask.AddCompleteEvent(const aProc: TITaskProc);
@@ -3606,6 +4476,27 @@ end;
 procedure TTask.SetExceptionObject(const aException: TObject);
 
 begin
+  if Assigned(aException) and (aException is Exception) and not Assigned(FExceptionClass) then
+    begin
+    if aException is EAggregateException then
+      begin
+      if EAggregateException(aException).Count>0 then
+        begin
+        FExceptionClass:=ExceptClass(EAggregateException(aException).InnerExceptions[0].ClassType);
+        FExceptionMessage:=EAggregateException(aException).InnerExceptions[0].Message;
+        end
+      else
+        begin
+        FExceptionClass:=ExceptClass(aException.ClassType);
+        FExceptionMessage:=Exception(aException).Message;
+        end;
+      end
+    else
+      begin
+      FExceptionClass:=ExceptClass(aException.ClassType);
+      FExceptionMessage:=Exception(aException).Message;
+      end;
+    end;
   if not assigned(FException) then
     FException:=aException
   else if aException is Exception then
@@ -3655,10 +4546,23 @@ begin
   FSubTasks:=1;
   FParams:=aParams;
   FParams.ResolvePool;
+  if not FParams.CancellationToken.CanBeCanceled then
+    if Assigned(FParams.Parent) then
+      FParams.CancellationToken:=FParams.Parent.FParams.CancellationToken
+    else if Assigned(_CurrentTask) then
+      FParams.CancellationToken:=_CurrentTask.FParams.CancellationToken;
   if FParams.Parent<>nil then
     FParams.Parent.AddChild;
   FStateFlags:=[];
   FStatus:=TTaskStatus.Created;
+  FDone:=False;
+  FCompletedEvents:=nil;
+  FCompletedEventCount:=0;
+  FTasksWithExceptions:=nil;
+  FException:=nil;
+  FExceptionClass:=nil;
+  FExceptionMessage:='';
+  FCancelRegistration:=Default(TCancellationTokenRegistration);
   if TCreateFlag.Replicating in aParams.CreateFlags then
     Include(FStateFlags, TOptionStateFlag.Replicating);
   if TCreateFlag.Replica in aParams.CreateFlags then
@@ -3670,7 +4574,10 @@ begin
   // in several places (e.g. GetIsComplete, the fast path of Wait).
   VgBenignRace(@FStateFlags,SizeOf(FStateFlags));
   VgBenignRace(@FStatus,SizeOf(FStatus)); // Snapshot derived from FStateFlags
+  VgBenignRace(@FDone,SizeOf(FDone));
   {$ENDIF}
+  if FParams.CancellationToken.CanBeCanceled then
+    FCancelRegistration:=FParams.CancellationToken.Register(@OnCancelToken,Self);
 end;
 
 class function TTask.DoWaitForAll(const aTasks: array of ITask; aTimeout: Cardinal): Boolean;
@@ -3872,6 +4779,29 @@ begin
   Result:=TTask.Create(Params);
 end;
 
+class function TTask.Create(aSender: TObject; aEvent: TNotifyEvent; const aCancelToken: TCancellationToken; const aPool: TThreadPool): ITask;
+var
+  Params : TTaskParams;
+begin
+  Params:=Default(TTaskParams);
+  Params.Sender:=aSender;
+  Params.Event:=aEvent;
+  Params.Pool:=aPool;
+  Params.CancellationToken:=aCancelToken;
+  Result:=TTask.Create(Params);
+end;
+
+class function TTask.Create(const aProc: TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool): ITask;
+var
+  Params : TTaskParams;
+begin
+  Params:=Default(TTaskParams);
+  Params.Proc:=aProc;
+  Params.Pool:=aPool;
+  Params.CancellationToken:=aCancelToken;
+  Result:=TTask.Create(Params);
+end;
+
 class function TTask.Create(aSender: TObject; aEvent: TNotifyEvent): ITask;
 begin
   Result:=Create(aSender,aEvent,TThreadPool.Default);
@@ -3924,6 +4854,12 @@ begin
   Result.StartFuture;
 end;
 
+generic class function TTask.Future<T>(aSender: TObject; aEvent: specialize TFunctionEvent<T>; const aCancelToken: TCancellationToken; aPool: TThreadPool): Specialize IFuture<T>;
+begin
+  Result:=specialize TFuture<T>.Create(aSender,aEvent,Nil,aCancelToken,aPool);
+  Result.StartFuture;
+end;
+
 generic class function TTask.Future<T>(const aFunc: specialize TFunc<T>): Specialize IFuture<T>; overload; static; inline;
 
 begin
@@ -3935,6 +4871,12 @@ generic class function TTask.Future<T>(const aFunc: specialize TFunc<T>; aPool: 
 
 begin
   Result:=specialize TFuture<T>.Create(Nil,Nil,aFunc,aPool);
+  Result.StartFuture;
+end;
+
+generic class function TTask.Future<T>(const aFunc: specialize TFunc<T>; const aCancelToken: TCancellationToken; aPool: TThreadPool): Specialize IFuture<T>; overload; static; inline;
+begin
+  Result:=specialize TFuture<T>.Create(Nil,Nil,aFunc,aCancelToken,aPool);
   Result.StartFuture;
 end;
 
@@ -3951,14 +4893,57 @@ begin
 end;
 
 { *********************************************************************
+  TFutureContinuationTask
+  *********************************************************************}
+
+constructor TFutureContinuationTask.CreateContinuation(const aAntecedent: IFutureT;
+  const aAction: TFutureProcT; const aCancelToken: TCancellationToken; aPool: TThreadPool);
+var
+  Params: TTaskParams;
+begin
+  Params:=Default(TTaskParams);
+  Params.Event:=@RunAction;
+  Params.Sender:=Self;
+  Params.Pool:=aPool;
+  Params.CancellationToken:=aCancelToken;
+  FAntecedent:=aAntecedent;
+  FAction:=aAction;
+  inherited Create(Params);
+end;
+
+destructor TFutureContinuationTask.Destroy;
+begin
+  FAntecedent:=nil;
+  FAction:=nil;
+  inherited Destroy;
+end;
+
+procedure TFutureContinuationTask.RunAction(Sender: TObject);
+var
+  Ant: IFutureT;
+begin
+  if Sender=nil then;
+  Ant:=FAntecedent;
+  FAntecedent:=nil;
+  if Assigned(FAction) then
+    FAction(Ant);
+end;
+
+{ *********************************************************************
   TFuture
   *********************************************************************}
 
 procedure TFuture.RunFunc(Sender: TObject);
+var
+  Ant: ITask;
 begin
   FResult:=Default(T);
+  Ant:=FAntecedentTask;
+  FAntecedentTask:=nil;
   if Assigned(FFuncRef) then
     FResult:=FFuncRef()
+  else if Assigned(FFuncTaskRef) then
+    FResult:=FFuncTaskRef(Ant)
   else if Assigned(FFuncEvent) then
     FResult:=FFuncEvent(Sender);
 end;
@@ -3976,18 +4961,263 @@ begin
 end;
 
 constructor TFuture.Create(aSender: TObject; aEvent: TFunctionEventT; const aFunc: specialize TFunc<T>; aPool: TThreadPool);
+begin
+  Create(aSender,aEvent,aFunc,TCancellationToken.None,aPool);
+end;
 
+constructor TFuture.Create(aSender: TObject; aEvent: TFunctionEventT; const aFunc: specialize TFunc<T>;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool);
 var
   Params : TTaskParams;
-
 begin
   Params:=Default(TTaskParams);
   Params.Event:=@RunFunc;
   Params.Sender:=aSender;
   Params.Pool:=aPool;
+  Params.CancellationToken:=aCancelToken;
   FFuncEvent:=aEvent;
   FFuncRef:=aFunc;
+  FFuncTaskRef:=nil;
+  FAntecedentTask:=nil;
   inherited Create(Params);
+end;
+
+constructor TFuture.CreateTaskContinuation(const aAntecedent: ITask; const aTaskFunc: TFunctionTaskRefT;
+  const aFunc: TFunctionRefT; const aCancelToken: TCancellationToken; aPool: TThreadPool);
+var
+  Params : TTaskParams;
+begin
+  Params:=Default(TTaskParams);
+  Params.Event:=@RunFunc;
+  Params.Sender:=Self;
+  Params.Pool:=aPool;
+  Params.CancellationToken:=aCancelToken;
+  FFuncEvent:=nil;
+  FFuncRef:=aFunc;
+  FFuncTaskRef:=aTaskFunc;
+  FAntecedentTask:=aAntecedent;
+  inherited Create(Params);
+end;
+
+destructor TFuture.Destroy;
+begin
+  FAntecedentTask:=nil;
+  FFuncTaskRef:=nil;
+  FFuncRef:=nil;
+  inherited Destroy;
+end;
+
+function TFuture.ContinueWith(const aAction: TFutureProcT): ITask;
+begin
+  Result:=ContinueWith(aAction,TCancellationToken.None,[],FParams.Pool);
+end;
+
+function TFuture.ContinueWith(const aAction: TFutureProcT; aOptions: TTaskContinuationOptions): ITask;
+begin
+  Result:=ContinueWith(aAction,TCancellationToken.None,aOptions,FParams.Pool);
+end;
+
+function TFuture.ContinueWith(const aAction: TFutureProcT; const aCancelToken: TCancellationToken;
+  aOptions: TTaskContinuationOptions; aPool: TThreadPool): ITask;
+type
+  TContTask = specialize TFutureContinuationTask<T>;
+var
+  ContTask: TContTask;
+  EffPool: TThreadPool;
+  EffToken: TCancellationToken;
+begin
+  if Assigned(aPool) then
+    EffPool:=aPool
+  else
+    EffPool:=FParams.Pool;
+  EffToken:=aCancelToken;
+  if (not EffToken.CanBeCanceled) and (TTaskContinuationOption.NotOnCanceled in aOptions) then
+    EffToken:=FParams.CancellationToken;
+  ContTask:=TContTask.CreateContinuation(Self,aAction,EffToken,EffPool);
+  Result:=ContTask;
+  AttachContinuation(ContTask,EffToken,aOptions,False);
+end;
+
+{ *********************************************************************
+  TTransformFuture
+  *********************************************************************}
+
+constructor TTransformFuture.CreateTransform(const aSource: ITask; const aTransform: TTransformFunc;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool);
+begin
+  FSourceTask:=aSource;
+  FTransformFunc:=aTransform;
+  inherited Create(Self,@RunTransform,nil,aCancelToken,aPool);
+end;
+
+destructor TTransformFuture.Destroy;
+begin
+  FSourceTask:=nil;
+  FTransformFunc:=nil;
+  inherited Destroy;
+end;
+
+function TTransformFuture.RunTransform(Sender: TObject): TResult;
+var
+  Src: ITask;
+begin
+  if Sender=nil then;
+  Src:=FSourceTask;
+  FSourceTask:=nil;
+  Result:=FTransformFunc(TSourceFuture(Src as TTask).GetValue);
+end;
+
+{ *********************************************************************
+  TTask.ThenBy & TFuture.Map
+  *********************************************************************}
+
+generic class function TTask.ThenBy<TResult>(const aTask: ITask; const aFunc: specialize TFunc1<ITask, TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions; aPool: TThreadPool): specialize IFuture<TResult>;
+type
+  TFutureResult = specialize TFuture<TResult>;
+var
+  AntecedentTask: TTask;
+  ContFuture: TFutureResult;
+  EffPool: TThreadPool;
+  EffToken: TCancellationToken;
+begin
+  AntecedentTask:=aTask as TTask;
+  if Assigned(aPool) then
+    EffPool:=aPool
+  else
+    EffPool:=AntecedentTask.FParams.Pool;
+  EffToken:=aCancelToken;
+  if not EffToken.CanBeCanceled then
+    EffToken:=AntecedentTask.FParams.CancellationToken;
+  ContFuture:=TFutureResult.CreateTaskContinuation(aTask,aFunc,nil,EffToken,EffPool);
+  Result:=ContFuture;
+  AntecedentTask.AttachContinuation(ContFuture,EffToken,aOptions,aOptions=[]);
+end;
+
+generic class function TTask.ThenBy<TResult>(const aTask: ITask; const aFunc: specialize TFunc<TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions; aPool: TThreadPool): specialize IFuture<TResult>;
+type
+  TFutureResult = specialize TFuture<TResult>;
+var
+  AntecedentTask: TTask;
+  ContFuture: TFutureResult;
+  EffPool: TThreadPool;
+  EffToken: TCancellationToken;
+begin
+  AntecedentTask:=aTask as TTask;
+  if Assigned(aPool) then
+    EffPool:=aPool
+  else
+    EffPool:=AntecedentTask.FParams.Pool;
+  EffToken:=aCancelToken;
+  if not EffToken.CanBeCanceled then
+    EffToken:=AntecedentTask.FParams.CancellationToken;
+  ContFuture:=TFutureResult.CreateTaskContinuation(aTask,nil,aFunc,EffToken,EffPool);
+  Result:=ContFuture;
+  AntecedentTask.AttachContinuation(ContFuture,EffToken,aOptions,aOptions=[]);
+end;
+
+generic class function TTask.ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions; aPool: TThreadPool): specialize IFuture<TResult>;
+type
+  TTransformResult = specialize TTransformFuture<T, TResult>;
+var
+  AntecedentTask: TTask;
+  ContFuture: TTransformResult;
+  EffPool: TThreadPool;
+  EffToken: TCancellationToken;
+begin
+  AntecedentTask:=aTask as TTask;
+  if Assigned(aPool) then
+    EffPool:=aPool
+  else
+    EffPool:=AntecedentTask.FParams.Pool;
+  EffToken:=aCancelToken;
+  if not EffToken.CanBeCanceled then
+    EffToken:=AntecedentTask.FParams.CancellationToken;
+  ContFuture:=TTransformResult.CreateTransform(aTask,aFunc,EffToken,EffPool);
+  Result:=ContFuture;
+  AntecedentTask.AttachContinuation(ContFuture,EffToken,aOptions,True);
+end;
+
+generic class function TTask.ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<T, TResult>(aTask,aFunc,TCancellationToken.None,[],nil);
+end;
+
+generic class function TTask.ThenBy<T, TResult>(const aTask: ITask; const aFunc: specialize TFunc1<T, TResult>;
+  aOptions: TTaskContinuationOptions): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<T, TResult>(aTask,aFunc,TCancellationToken.None,aOptions,nil);
+end;
+
+function TFuture.Map(const aFunc: TMapFuncT; aOptions: TTaskContinuationOptions): specialize IFuture<T>;
+begin
+  Result:=Map(aFunc,TCancellationToken.None,aOptions,FParams.Pool);
+end;
+
+function TFuture.Map(const aFunc: TMapFuncT; const aCancelToken: TCancellationToken;
+  aOptions: TTaskContinuationOptions; aPool: TThreadPool): specialize IFuture<T>;
+begin
+  Result:=TTask.specialize ThenBy<T, T>(Self,aFunc,aCancelToken,aOptions,aPool);
+end;
+
+{ *********************************************************************
+  TITaskHelper
+  *********************************************************************}
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,TCancellationToken.None,[],nil);
+end;
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>;
+  aOptions: TTaskContinuationOptions): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,TCancellationToken.None,aOptions,nil);
+end;
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc1<ITask, TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions;
+  aPool: TThreadPool): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,aCancelToken,aOptions,aPool);
+end;
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc<TResult>): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,TCancellationToken.None,[],nil);
+end;
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc<TResult>;
+  aOptions: TTaskContinuationOptions): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,TCancellationToken.None,aOptions,nil);
+end;
+
+generic function TITaskHelper.ThenBy<TResult>(const aFunc: specialize TFunc<TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions;
+  aPool: TThreadPool): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<TResult>(Self,aFunc,aCancelToken,aOptions,aPool);
+end;
+
+generic function TITaskHelper.ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<T, TResult>(Self,aFunc,TCancellationToken.None,[],nil);
+end;
+
+generic function TITaskHelper.ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>;
+  aOptions: TTaskContinuationOptions): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<T, TResult>(Self,aFunc,TCancellationToken.None,aOptions,nil);
+end;
+
+generic function TITaskHelper.ThenBy<T, TResult>(const aFunc: specialize TFunc1<T, TResult>;
+  const aCancelToken: TCancellationToken; aOptions: TTaskContinuationOptions;
+  aPool: TThreadPool): specialize IFuture<TResult>;
+begin
+  Result:=TTask.specialize ThenBy<T, TResult>(Self,aFunc,aCancelToken,aOptions,aPool);
 end;
 
 
@@ -3996,6 +5226,12 @@ end;
   *********************************************************************}
 
 constructor TEventJoinTask.Create(Sender: TObject; const AEvents: array of TNotifyEvent; APool: TThreadPool);
+begin
+  Create(Sender,AEvents,TCancellationToken.None,APool);
+end;
+
+constructor TEventJoinTask.Create(Sender: TObject; const AEvents: array of TNotifyEvent;
+  const ACancelToken: TCancellationToken; APool: TThreadPool);
 var
   I,Len : integer;
   Params : TTaskParams;
@@ -4010,6 +5246,7 @@ begin
   Params.Proc:=@JoinTasks;
   Params.Pool:=aPool;
   Params.Sender:=Sender;
+  Params.CancellationToken:=ACancelToken;
   Inherited Create(Params);
 end;
 
@@ -4025,6 +5262,7 @@ begin
       FEventList[aIndex](Self.FParams.Sender);
     end;
   Loop:=TParallel.TInt32LoopProc.create(0,Length(FEventList)-1,Proc);
+  Loop.CancelToken:=Self.FParams.CancellationToken;
   TParallel.Parallelize32(Loop,Self.ThreadPool);
 end;
 
@@ -4078,10 +5316,16 @@ begin
       FProcList[aIndex];
     end;
   Loop:=TParallel.TInt32LoopProc.create(0,Length(FProcList)-1,Proc);
+  Loop.CancelToken:=Self.FParams.CancellationToken;
   TParallel.Parallelize32(Loop,Self.ThreadPool);
 end;
 
 constructor TProcJoinTask.Create(const AProcs: array of TProcRef; APool: TThreadPool);
+begin
+  Create(AProcs,TCancellationToken.None,APool);
+end;
+
+constructor TProcJoinTask.Create(const AProcs: array of TProcRef; const ACancelToken: TCancellationToken; APool: TThreadPool);
 
 var
   I,Len : integer;
@@ -4096,6 +5340,7 @@ begin
   Params:=Default(TTaskParams);
   Params.Proc:=@JoinTasks;
   Params.Pool:=aPool;
+  Params.CancellationToken:=ACancelToken;
   Inherited Create(Params);
 end;
 
@@ -4119,6 +5364,14 @@ begin
   With aLoop do
     if HighExclusive<=LowInclusive then
       Exit;
+  if (not aLoop.CancelToken.CanBeCanceled) and Assigned(TTask._CurrentTask) then
+    aLoop.CancelToken:=TTask._CurrentTask.FParams.CancellationToken;
+  if aLoop.CancelToken.IsCancellationRequested then
+    begin
+    Result.FCompleted:=False;
+    Result.FLowestBreakIteration:=Null;
+    Exit;
+    end;
   aLoop.Index:=aLoop.LowInclusive;
   if aLoop.Stride<=0 then
     aLoop.Stride:=1;
@@ -4138,7 +5391,13 @@ begin
       aTask:=LoopI.StartLoop;
       aTask.Wait;
     except
-      LoopI.HandleException;
+      on E: EOperationCancelled do
+        begin
+        if not aLoop.CancelToken.CanBeCanceled then
+          LoopI.HandleException;
+        end;
+      else
+        LoopI.HandleException;
     end;
     With Result do
       begin
@@ -4170,6 +5429,16 @@ begin
   Result:=&For(aSender,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
+end;
+
 class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent;
   aPool: TThreadPool): TLoopResult;
 var
@@ -4182,6 +5451,16 @@ end;
 class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent): TLoopResult;
 begin
   Result:=&For(aSender,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
 end;
 
 class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent;
@@ -4200,6 +5479,17 @@ begin
   Result:=&For(aSender,aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorEvent;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
+end;
+
 class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer;
   aIteratorEvent: TIteratorStateEvent; aPool: TThreadPool): TLoopResult;
 var
@@ -4214,6 +5504,17 @@ class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInc
   ): TLoopResult;
 begin
   Result:=&For(aSender,aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TIteratorStateEvent;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
 end;
 
 
@@ -4231,6 +5532,16 @@ begin
   Result:=&For(aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
+end;
+
 
 class function TParallel.&For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState;
   aPool: TThreadPool): TLoopResult;
@@ -4244,6 +5555,16 @@ end;
 class function TParallel.&For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState): TLoopResult;
 begin
   Result:=&For(aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
 end;
 
 
@@ -4264,6 +5585,17 @@ begin
   Result:=&For(aStride, aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcInteger;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
+end;
+
 class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState;
   aPool: TThreadPool): TLoopResult;
 var
@@ -4278,6 +5610,17 @@ end;
 class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState): TLoopResult;
 begin
   Result:=&For(aStride, aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Integer; aIteratorEvent: TProcIntegerLoopState;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt32LoopProc;
+begin
+  aLoop:=TInt32LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize32(aLoop,aPool);
 end;
 
 
@@ -4297,6 +5640,14 @@ begin
   With aLoop do
     if HighExclusive<=LowInclusive then
       Exit;
+  if (not aLoop.CancelToken.CanBeCanceled) and Assigned(TTask._CurrentTask) then
+    aLoop.CancelToken:=TTask._CurrentTask.FParams.CancellationToken;
+  if aLoop.CancelToken.IsCancellationRequested then
+    begin
+    Result.FCompleted:=False;
+    Result.FLowestBreakIteration:=Null;
+    Exit;
+    end;
   aLoop.Index:=aLoop.LowInclusive;
   if aLoop.Stride<=0 then
     aLoop.Stride:=1;
@@ -4316,7 +5667,13 @@ begin
       aTask:=LoopI.StartLoop;
       aTask.Wait;
     except
-      LoopI.HandleException;
+      on E: EOperationCancelled do
+        begin
+        if not aLoop.CancelToken.CanBeCanceled then
+          LoopI.HandleException;
+        end;
+      else
+        LoopI.HandleException;
     end;
     With Result do
       begin
@@ -4349,6 +5706,16 @@ begin
   Result:=&For(aSender,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
+end;
+
 class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64;
   aPool: TThreadPool): TLoopResult;
 var
@@ -4361,6 +5728,16 @@ end;
 class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64): TLoopResult;
 begin
   Result:=&For(aSender,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aSender: TObject; aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
 end;
 
 class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64;
@@ -4377,6 +5754,17 @@ class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInc
   ): TLoopResult;
 begin
   Result:=&For(aSender,aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorEvent64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
 end;
 
 
@@ -4396,6 +5784,17 @@ begin
   Result:=&For(aSender,aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aSender: TObject; aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TIteratorStateEvent64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aSender,aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
+end;
+
 class function TParallel.&For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; aPool: TThreadPool
   ): TLoopResult;
 var
@@ -4410,6 +5809,16 @@ begin
   Result:=&For(aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
+end;
+
 class function TParallel.&For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState; aPool: TThreadPool
   ): TLoopResult;
 var
@@ -4422,6 +5831,16 @@ end;
 class function TParallel.&For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState): TLoopResult;
 begin
   Result:=&For(aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
+end;
+
+class function TParallel.&For(aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
 end;
 
 class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64; aPool: TThreadPool): TLoopResult;
@@ -4439,6 +5858,17 @@ begin
   Result:=&For(aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
 
+class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
+end;
+
 class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState;
   aPool: TThreadPool): TLoopResult;
 var
@@ -4454,6 +5884,17 @@ class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Int64; aIt
 begin
   Result:=&For(aStride,aLowInclusive,aHighInclusive,aIteratorEvent,TThreadPool.Default);
 end;
+
+class function TParallel.&For(aStride, aLowInclusive, aHighInclusive: Int64; aIteratorEvent: TProcInt64LoopState;
+  const aCancelToken: TCancellationToken; aPool: TThreadPool): TLoopResult;
+var
+  aLoop: TInt64LoopProc;
+begin
+  aLoop:=TInt64LoopProc.Create(aLowInclusive,aHighInclusive,aIteratorEvent);
+  aLoop.Stride:=aStride;
+  aLoop.CancelToken:=aCancelToken;
+  Result:=Parallelize64(aLoop,aPool);
+end;
 {$ENDIF}
 
 class function TParallel.Join(aSender: TObject; aEvents: array of TNotifyEvent; aPool: TThreadPool): ITask;
@@ -4461,9 +5902,19 @@ begin
   Result:=TEventJoinTask.Create(aSender,aEvents,aPool).Start;
 end;
 
+class function TParallel.Join(aSender: TObject; aEvents: array of TNotifyEvent; const aCancelToken: TCancellationToken; aPool: TThreadPool): ITask;
+begin
+  Result:=TEventJoinTask.Create(aSender,aEvents,aCancelToken,aPool).Start;
+end;
+
 class function TParallel.Join(const aProcs: array of TProcRef; aPool: TThreadPool): ITask;
 begin
   Result:=TProcJoinTask.Create(aProcs,aPool).Start;
+end;
+
+class function TParallel.Join(const aProcs: array of TProcRef; const aCancelToken: TCancellationToken; aPool: TThreadPool): ITask;
+begin
+  Result:=TProcJoinTask.Create(aProcs,aCancelToken,aPool).Start;
 end;
 
 class function TParallel.Join(aSender: TObject; aEvents: array of TNotifyEvent): ITask;
@@ -4509,6 +5960,11 @@ end;
 function TParallel.TLoopState.GetStopped: Boolean;
 begin
   Result:=FLoopParams.Stopped;
+end;
+
+function TParallel.TLoopState.GetCancelled: Boolean;
+begin
+  Result:=FLoopParams.Cancelled;
 end;
 
 function TParallel.TLoopState.GetFaulted: Boolean;
@@ -4655,6 +6111,11 @@ var
 
 begin
   Result:=False;
+  if FCancelToken.IsCancellationRequested then
+    begin
+    Cancel;
+    Exit(True);
+    end;
   Flags:=StateFlags;
   If (Flags=[]) then
     exit;
@@ -4691,6 +6152,9 @@ constructor TParallel.TInt32LoopParams.Create(aLoopProc: TInt32LoopProc);
 begin
   inherited Create;
   FLoopProc:=aLoopProc;
+  FCancelToken:=aLoopProc.CancelToken;
+  if FCancelToken.CanBeCanceled then
+    FCancelRegistration:=FCancelToken.Register(@OnCancelToken,Self);
   FNextStrideAt:=TThread.ProcessorCount;
   FBreakAt:=aLoopProc.HighExclusive+1;
   FMaxStride:=FNextStrideAt*16; // 16 loops max
@@ -4742,13 +6206,22 @@ begin
         {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
         end;
     except
-      Lock;
-      try
-        Include(StateFlags,TLoopStateFlag.Exception);
-      finally
-        Unlock;
-      end;
-      raise;
+      on E: EOperationCancelled do
+        begin
+        Cancel;
+        if not FCancelToken.CanBeCanceled then
+          raise;
+        end;
+      else
+        begin
+        Lock;
+        try
+          Include(StateFlags,TLoopStateFlag.Exception);
+        finally
+          Unlock;
+        end;
+        raise;
+        end;
     end;
   finally
     State.Free;
@@ -4823,6 +6296,11 @@ var
 
 begin
   Result:=False;
+  if FCancelToken.IsCancellationRequested then
+    begin
+    Cancel;
+    Exit(True);
+    end;
   Flags:=StateFlags;
   If (Flags=[]) then
     exit;
@@ -4859,6 +6337,9 @@ constructor TParallel.TInt64LoopParams.Create(aLoopProc: TInt64LoopProc);
 begin
   inherited Create;
   FLoopProc:=aLoopProc;
+  FCancelToken:=aLoopProc.CancelToken;
+  if FCancelToken.CanBeCanceled then
+    FCancelRegistration:=FCancelToken.Register(@OnCancelToken,Self);
   FNextStrideAt:=TThread.ProcessorCount;
   FBreakAt:=aLoopProc.HighExclusive+1;
   FMaxStride:=FNextStrideAt*16; // 16 loops max
@@ -4910,13 +6391,22 @@ begin
         {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
         end;
     except
-      Lock;
-      try
-        Include(StateFlags,TLoopStateFlag.Exception);
-      finally
-        Unlock;
-      end;
-      raise;
+      on E: EOperationCancelled do
+        begin
+        Cancel;
+        if not FCancelToken.CanBeCanceled then
+          raise;
+        end;
+      else
+        begin
+        Lock;
+        try
+          Include(StateFlags,TLoopStateFlag.Exception);
+        finally
+          Unlock;
+        end;
+        raise;
+        end;
     end;
   finally
     State.Free;
@@ -5114,7 +6604,14 @@ end;
 
 procedure TParallel.TLoopParams.ClearRootTask;
 begin
+  FCancelRegistration.Unregister;
   FRootTask:=Nil;
+end;
+
+procedure TParallel.TLoopParams.OnCancelToken(Sender: TObject);
+begin
+  if Sender=nil then;
+  Cancel;
 end;
 
 procedure TParallel.TLoopParams.Stop;
@@ -5122,6 +6619,16 @@ begin
   Lock;
   Try
     Include(StateFlags,TLoopStateFlag.Stopped);
+  finally
+    UnLock;
+  end;
+end;
+
+procedure TParallel.TLoopParams.Cancel;
+begin
+  Lock;
+  Try
+    Include(StateFlags,TLoopStateFlag.Cancelled);
   finally
     UnLock;
   end;
@@ -5148,6 +6655,11 @@ begin
   Result:=TLoopStateFlag.Stopped in StateFlags;
 end;
 
+function TParallel.TLoopParams.Cancelled: Boolean;
+begin
+  Result:=TLoopStateFlag.Cancelled in StateFlags;
+end;
+
 function TParallel.TLoopParams.Faulted: Boolean;
 begin
   Result:=TLoopStateFlag.Exception in StateFlags;
@@ -5156,6 +6668,7 @@ end;
 constructor TParallel.TLoopParams.Create;
 begin
   FStateLock:=TSpinLock.Create(False);
+  FCancelRegistration:=Default(TCancellationTokenRegistration);
   {$IFDEF FPC_VALGRIND}
   VgBenignRace(@StateFlags,SizeOf(StateFlags));
   {$ENDIF}
@@ -5163,6 +6676,7 @@ end;
 
 destructor TParallel.TLoopParams.Destroy;
 begin
+  FCancelRegistration.Unregister;
   inherited Destroy;
 end;
 

@@ -311,6 +311,185 @@ Type
     property IsDismantled: Boolean read GetIsDismantled;
   end;
 
+  { TCountdownEvent }
+
+  TCountdownEvent = class(TSynchroObject)
+  private
+    FInitialCount: Integer;
+    FCurrentCount: Integer;
+    FEvent: TSimpleEvent;
+    FLock: TSpinLock;
+    function GetCurrentCount: Integer; inline;
+    function GetIsSet: Boolean; inline;
+  public
+    constructor Create(aInitialCount: Integer = 1);
+    destructor Destroy; override;
+    function Signal(aSignalCount: Integer = 1): Boolean;
+    procedure AddCount(aSignalCount: Integer = 1);
+    function TryAddCount(aSignalCount: Integer = 1): Boolean;
+    procedure Reset; overload;
+    procedure Reset(aCount: Integer); overload;
+    function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+    {$IFNDEF VER3_2}
+    function WaitFor(const aTimeout: TTimeSpan): TWaitResult; overload;
+    {$ENDIF}
+    property CurrentCount: Integer read GetCurrentCount;
+    property InitialCount: Integer read FInitialCount;
+    property IsSet: Boolean read GetIsSet;
+  end;
+
+  { TBarrier }
+
+  TBarrier = class;
+  TBarrierPhaseAction = reference to procedure(aBarrier: TBarrier);
+  EBarrierPostPhaseException = class(ESyncObjectException);
+
+  TBarrier = class(TSynchroObject)
+  private
+    FParticipantCount: Integer;
+    FRemainingParticipants: Integer;
+    FCurrentPhaseNumber: Int64;
+    FPostPhaseAction: TBarrierPhaseAction;
+    FLock: TSpinLock;
+    FPhaseEvents: array[0..1] of TSimpleEvent;
+    FPhaseHasException: array[0..1] of Boolean;
+    FPhaseExceptions: array[0..1] of string;
+    function GetCurrentPhaseNumber: Int64; inline;
+    function GetParticipantCount: Integer; inline;
+    function GetParticipantsRemaining: Integer; inline;
+    procedure FinishPhase(aMyPhase: Int64);
+  public
+    constructor Create(aParticipantCount: Integer; const aPostPhaseAction: TBarrierPhaseAction = nil);
+    destructor Destroy; override;
+    function AddParticipant: Int64;
+    function AddParticipants(aParticipantCount: Integer): Int64;
+    procedure RemoveParticipant;
+    procedure RemoveParticipants(aParticipantCount: Integer);
+    function SignalAndWait(aTimeout: Cardinal = INFINITE): Boolean; overload;
+    {$IFNDEF VER3_2}
+    function SignalAndWait(const aTimeout: TTimeSpan): Boolean; overload;
+    {$ENDIF}
+    property CurrentPhaseNumber: Int64 read GetCurrentPhaseNumber;
+    property ParticipantCount: Integer read GetParticipantCount;
+    property ParticipantsRemaining: Integer read GetParticipantsRemaining;
+  end;
+
+  { TSlimReaderWriterLock }
+
+  TSlimReaderWriterLock = class(TSynchroObject)
+  private const
+    WRITER_HELD = LongInt($40000000);
+    READER_MASK = LongInt($000FFFFF);
+  private
+    FState: LongInt;
+    FWaitingWriters: LongInt;
+    FWaitingReaders: LongInt;
+    FLock: TSpinLock;
+    FReadEvent: TSimpleEvent;
+    FWriteEvent: TSimpleEvent;
+    function TryAcquireReadFast: Boolean; inline;
+    function TryAcquireWriteFast: Boolean; inline;
+    function GetReaderCount: Integer; inline;
+    function GetIsWriteLocked: Boolean; inline;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure BeginRead;
+    function TryBeginRead(aTimeout: Cardinal = 0): Boolean; overload;
+    {$IFNDEF VER3_2}
+    function TryBeginRead(const aTimeout: TTimeSpan): Boolean; overload;
+    {$ENDIF}
+    procedure EndRead;
+    procedure BeginWrite;
+    function TryBeginWrite(aTimeout: Cardinal = 0): Boolean; overload;
+    {$IFNDEF VER3_2}
+    function TryBeginWrite(const aTimeout: TTimeSpan): Boolean; overload;
+    {$ENDIF}
+    procedure EndWrite;
+    property ReaderCount: Integer read GetReaderCount;
+    property IsWriteLocked: Boolean read GetIsWriteLocked;
+  end;
+
+  { TSlimReadLockGuard }
+
+  TSlimReadLockGuard = record
+    Lock: TSlimReaderWriterLock;
+    class operator Initialize(var aGuard: TSlimReadLockGuard);
+    class operator Finalize(var aGuard: TSlimReadLockGuard);
+    procedure Init(aLock: TSlimReaderWriterLock);
+    procedure Release;
+  end;
+
+  { TSlimWriteLockGuard }
+
+  TSlimWriteLockGuard = record
+    Lock: TSlimReaderWriterLock;
+    class operator Initialize(var aGuard: TSlimWriteLockGuard);
+    class operator Finalize(var aGuard: TSlimWriteLockGuard);
+    procedure Init(aLock: TSlimReaderWriterLock);
+    procedure Release;
+  end;
+
+  { TChannel }
+
+  EChannelClosedException = class(ESyncObjectException);
+
+  TCustomChannel = class(TSynchroObject)
+  protected
+    FHead: Integer;
+    FTail: Integer;
+    FCount: Integer;
+    FCapacity: Integer;
+    FBounded: Boolean;
+    FClosed: Boolean;
+    FWaitingReceivers: Integer;
+    FWaitingSenders: Integer;
+    FLock: TSpinLock;
+    FNotEmptyEvent: TSimpleEvent;
+    FNotFullEvent: TSimpleEvent;
+    procedure NotifyItemSent;
+    procedure NotifyItemReceived;
+    class procedure RaiseChannelClosed; static;
+    function GetCount: Integer; inline;
+    function GetIsClosed: Boolean;
+  public
+    constructor Create(aCapacity: Integer = 0);
+    destructor Destroy; override;
+    procedure Close;
+    property Count: Integer read GetCount;
+    property Capacity: Integer read FCapacity;
+    property IsClosed: Boolean read GetIsClosed;
+  end;
+
+  generic TChannel<T> = class(TCustomChannel)
+  public type
+    TChannelEnumerator = record
+    private
+      FChannel: TChannel;
+      FCurrent: T;
+    public
+      function MoveNext: Boolean; inline;
+      property Current: T read FCurrent;
+    end;
+  private
+    FBuffer: array of T;
+    procedure GrowBuffer;
+  public
+    constructor Create(aCapacity: Integer = 0);
+    procedure Send(const aItem: T);
+    function TrySend(const aItem: T; aTimeout: Cardinal = 0): Boolean; overload;
+    {$IFNDEF VER3_2}
+    function TrySend(const aItem: T; const aTimeout: TTimeSpan): Boolean; overload;
+    {$ENDIF}
+    function Receive(out aItem: T): Boolean; overload;
+    function Receive: T; overload;
+    function TryReceive(out aItem: T; aTimeout: Cardinal = 0): Boolean; overload;
+    {$IFNDEF VER3_2}
+    function TryReceive(out aItem: T; const aTimeout: TTimeSpan): Boolean; overload;
+    {$ENDIF}
+    function GetEnumerator: TChannelEnumerator; inline;
+  end;
+
 implementation
 
 {$ifdef MSWindows}
@@ -340,6 +519,12 @@ Resourcestring
   SErrInvalidReleaseCount = '%d is not a valid release count, count must be >0';
   SErrFailedToSignalSemaphore = 'Failed to signal semaphore at count %d';
   SErrMutexNotSupported   = 'Mutexes are not supported on this platform';
+  SErrInvalidCount        = '%d is not a valid count';
+  SErrCountdownAlreadyZero = 'CountdownEvent count is already zero or would become negative';
+  SErrBarrierZeroParticipants = 'Barrier has no participants';
+  SErrBarrierTooManyRemovals = 'Cannot remove more participants than are currently registered';
+  SErrLockNotOwned        = 'Thread does not own the lock';
+  SErrChannelClosed       = 'Channel is closed';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -1479,5 +1664,995 @@ begin
   Result := FIsDismantled;
 end;
 
+{ ---------------------------------------------------------------------
+  TCountdownEvent
+  ---------------------------------------------------------------------}
+
+constructor TCountdownEvent.Create(aInitialCount: Integer);
+begin
+  inherited Create;
+  if aInitialCount < 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aInitialCount]);
+  FInitialCount := aInitialCount;
+  FCurrentCount := aInitialCount;
+  FLock := TSpinLock.Create(False);
+  FEvent := TSimpleEvent.Create;
+  {$IFDEF FPC_VALGRIND}
+  VgBenignRace(@FCurrentCount, SizeOf(FCurrentCount));
+  {$ENDIF}
+  if aInitialCount = 0 then
+    FEvent.SetEvent;
+end;
+
+destructor TCountdownEvent.Destroy;
+begin
+  FreeAndNil(FEvent);
+  inherited Destroy;
+end;
+
+function TCountdownEvent.GetCurrentCount: Integer;
+begin
+  Result := InterlockedCompareExchange(FCurrentCount, 0, 0);
+end;
+
+function TCountdownEvent.GetIsSet: Boolean;
+begin
+  Result := GetCurrentCount = 0;
+  if Result then
+  begin
+    ReadBarrier;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensAfter(@FCurrentCount);
+    {$ENDIF}
+  end;
+end;
+
+function TCountdownEvent.Signal(aSignalCount: Integer): Boolean;
+begin
+  if aSignalCount <= 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aSignalCount]);
+  FLock.Enter;
+  try
+    if FCurrentCount < aSignalCount then
+      raise ESyncObjectException.Create(SErrCountdownAlreadyZero);
+    InterlockedExchangeAdd(FCurrentCount, -aSignalCount);
+    Result := (FCurrentCount = 0);
+    if Result then
+    begin
+      {$IFDEF FPC_VALGRIND}
+      VgHappensBefore(@FCurrentCount);
+      {$ENDIF}
+      FEvent.SetEvent;
+    end;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+function TCountdownEvent.TryAddCount(aSignalCount: Integer): Boolean;
+begin
+  if aSignalCount <= 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aSignalCount]);
+  FLock.Enter;
+  try
+    if FCurrentCount = 0 then
+      Exit(False);
+    InterlockedExchangeAdd(FCurrentCount, aSignalCount);
+    Result := True;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+procedure TCountdownEvent.AddCount(aSignalCount: Integer);
+begin
+  if not TryAddCount(aSignalCount) then
+    raise ESyncObjectException.Create(SErrCountdownAlreadyZero);
+end;
+
+procedure TCountdownEvent.Reset;
+begin
+  Reset(FInitialCount);
+end;
+
+procedure TCountdownEvent.Reset(aCount: Integer);
+begin
+  if aCount < 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aCount]);
+  FLock.Enter;
+  try
+    FInitialCount := aCount;
+    InterlockedExchange(FCurrentCount, aCount);
+    if aCount = 0 then
+    begin
+      {$IFDEF FPC_VALGRIND}
+      VgHappensBefore(@FCurrentCount);
+      {$ENDIF}
+      FEvent.SetEvent;
+    end
+    else
+      FEvent.ResetEvent;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+function TCountdownEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
+begin
+  if GetIsSet then
+    Exit(wrSignaled);
+  if aTimeout = 0 then
+    Exit(wrTimeout);
+  Result := FEvent.WaitFor(aTimeout);
+  if Result = wrSignaled then
+  begin
+    ReadBarrier;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensAfter(@FCurrentCount);
+    {$ENDIF}
+  end;
+end;
+
+{$IFNDEF VER3_2}
+function TCountdownEvent.WaitFor(const aTimeout: TTimeSpan): TWaitResult;
+begin
+  Result := WaitFor(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+{ ---------------------------------------------------------------------
+  TBarrier
+  ---------------------------------------------------------------------}
+
+constructor TBarrier.Create(aParticipantCount: Integer; const aPostPhaseAction: TBarrierPhaseAction);
+begin
+  inherited Create;
+  if aParticipantCount < 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aParticipantCount]);
+  FParticipantCount := aParticipantCount;
+  FRemainingParticipants := aParticipantCount;
+  FCurrentPhaseNumber := 0;
+  FPostPhaseAction := aPostPhaseAction;
+  FLock := TSpinLock.Create(False);
+  FPhaseEvents[0] := TSimpleEvent.Create;
+  FPhaseEvents[1] := TSimpleEvent.Create;
+  {$IFDEF FPC_VALGRIND}
+  VgBenignRace(@FParticipantCount, SizeOf(FParticipantCount));
+  VgBenignRace(@FRemainingParticipants, SizeOf(FRemainingParticipants));
+  VgBenignRace(@FCurrentPhaseNumber, SizeOf(FCurrentPhaseNumber));
+  {$ENDIF}
+end;
+
+destructor TBarrier.Destroy;
+begin
+  FreeAndNil(FPhaseEvents[0]);
+  FreeAndNil(FPhaseEvents[1]);
+  inherited Destroy;
+end;
+
+function TBarrier.GetCurrentPhaseNumber: Int64;
+begin
+  {$IFDEF CPU64}
+  Result := InterlockedCompareExchange64(FCurrentPhaseNumber, 0, 0);
+  {$ELSE}
+  FLock.Enter;
+  try
+    Result := FCurrentPhaseNumber;
+  finally
+    FLock.Exit;
+  end;
+  {$ENDIF}
+end;
+
+function TBarrier.GetParticipantCount: Integer;
+begin
+  Result := InterlockedCompareExchange(FParticipantCount, 0, 0);
+end;
+
+function TBarrier.GetParticipantsRemaining: Integer;
+begin
+  Result := InterlockedCompareExchange(FRemainingParticipants, 0, 0);
+end;
+
+procedure TBarrier.FinishPhase(aMyPhase: Int64);
+var
+  Parity, NextParity: Integer;
+  HasExc: Boolean;
+  ExcMsg: string;
+begin
+  // Called with FLock held when FRemainingParticipants reaches 0.
+  Parity := aMyPhase and 1;
+  FPhaseHasException[Parity] := False;
+  FPhaseExceptions[Parity] := '';
+  FLock.Exit;
+  try
+    if Assigned(FPostPhaseAction) then
+      try
+        FPostPhaseAction(Self);
+      except
+        on E: Exception do
+        begin
+          FPhaseHasException[Parity] := True;
+          FPhaseExceptions[Parity] := E.Message;
+        end;
+      end;
+  finally
+    FLock.Enter;
+    NextParity := (aMyPhase + 1) and 1;
+    FPhaseEvents[NextParity].ResetEvent;
+    FRemainingParticipants := FParticipantCount;
+    {$IFDEF CPU64}
+    InterlockedIncrement64(FCurrentPhaseNumber);
+    {$ELSE}
+    Inc(FCurrentPhaseNumber);
+    {$ENDIF}
+    {$IFDEF FPC_VALGRIND}
+    VgHappensBefore(@FPhaseEvents[Parity]);
+    {$ENDIF}
+    FPhaseEvents[Parity].SetEvent;
+    HasExc := FPhaseHasException[Parity];
+    ExcMsg := FPhaseExceptions[Parity];
+    FLock.Exit;
+  end;
+  if HasExc then
+    raise EBarrierPostPhaseException.Create(ExcMsg);
+end;
+
+function TBarrier.AddParticipant: Int64;
+begin
+  Result := AddParticipants(1);
+end;
+
+function TBarrier.AddParticipants(aParticipantCount: Integer): Int64;
+begin
+  if aParticipantCount <= 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aParticipantCount]);
+  FLock.Enter;
+  try
+    Inc(FParticipantCount, aParticipantCount);
+    Inc(FRemainingParticipants, aParticipantCount);
+    Result := FCurrentPhaseNumber;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+procedure TBarrier.RemoveParticipant;
+begin
+  RemoveParticipants(1);
+end;
+
+procedure TBarrier.RemoveParticipants(aParticipantCount: Integer);
+var
+  MyPhase: Int64;
+begin
+  if aParticipantCount <= 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aParticipantCount]);
+  FLock.Enter;
+  if (FParticipantCount < aParticipantCount) or (FRemainingParticipants < aParticipantCount) then
+  begin
+    FLock.Exit;
+    raise ESyncObjectException.Create(SErrBarrierTooManyRemovals);
+  end;
+  Dec(FParticipantCount, aParticipantCount);
+  Dec(FRemainingParticipants, aParticipantCount);
+  if (FParticipantCount > 0) and (FRemainingParticipants = 0) then
+  begin
+    MyPhase := FCurrentPhaseNumber;
+    FinishPhase(MyPhase); // Releases FLock
+  end
+  else
+    FLock.Exit;
+end;
+
+function TBarrier.SignalAndWait(aTimeout: Cardinal): Boolean;
+var
+  MyPhase: Int64;
+  Parity: Integer;
+  StartTick, Elapsed, Rem: QWord;
+  HasExc: Boolean;
+  ExcMsg: string;
+begin
+  FLock.Enter;
+  if FParticipantCount = 0 then
+  begin
+    FLock.Exit;
+    raise ESyncObjectException.Create(SErrBarrierZeroParticipants);
+  end;
+  MyPhase := FCurrentPhaseNumber;
+  Parity := MyPhase and 1;
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FPhaseEvents[Parity]);
+  {$ENDIF}
+  Dec(FRemainingParticipants);
+  if FRemainingParticipants = 0 then
+  begin
+    FinishPhase(MyPhase); // Releases FLock
+    Exit(True);
+  end;
+  FLock.Exit;
+
+  StartTick := GetTickCount64;
+  while GetCurrentPhaseNumber = MyPhase do
+  begin
+    if aTimeout = 0 then
+      Rem := 0
+    else if aTimeout = INFINITE then
+      Rem := INFINITE
+    else
+    begin
+      Elapsed := GetTickCount64 - StartTick;
+      if Elapsed >= aTimeout then
+        Rem := 0
+      else
+        Rem := aTimeout - Elapsed;
+    end;
+
+    if (Rem = 0) or (FPhaseEvents[Parity].WaitFor(Rem) <> wrSignaled) then
+    begin
+      FLock.Enter;
+      if FCurrentPhaseNumber = MyPhase then
+      begin
+        Inc(FRemainingParticipants);
+        FLock.Exit;
+        Exit(False);
+      end;
+      FLock.Exit;
+      Break;
+    end;
+  end;
+
+  {$IFDEF FPC_VALGRIND}
+  VgHappensAfter(@FPhaseEvents[Parity]);
+  {$ENDIF}
+  FLock.Enter;
+  HasExc := FPhaseHasException[Parity];
+  ExcMsg := FPhaseExceptions[Parity];
+  FLock.Exit;
+  if HasExc then
+    raise EBarrierPostPhaseException.Create(ExcMsg);
+  Result := True;
+end;
+
+{$IFNDEF VER3_2}
+function TBarrier.SignalAndWait(const aTimeout: TTimeSpan): Boolean;
+begin
+  Result := SignalAndWait(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+{ ---------------------------------------------------------------------
+  TSlimReaderWriterLock
+  ---------------------------------------------------------------------}
+
+constructor TSlimReaderWriterLock.Create;
+begin
+  inherited Create;
+  FState := 0;
+  FWaitingWriters := 0;
+  FWaitingReaders := 0;
+  FLock := TSpinLock.Create(False);
+  FReadEvent := TSimpleEvent.Create;
+  FWriteEvent := TSimpleEvent.Create;
+  {$IFDEF FPC_VALGRIND}
+  VgBenignRace(@FState, SizeOf(FState));
+  VgBenignRace(@FWaitingWriters, SizeOf(FWaitingWriters));
+  VgBenignRace(@FWaitingReaders, SizeOf(FWaitingReaders));
+  {$ENDIF}
+end;
+
+destructor TSlimReaderWriterLock.Destroy;
+begin
+  FreeAndNil(FReadEvent);
+  FreeAndNil(FWriteEvent);
+  inherited Destroy;
+end;
+
+function TSlimReaderWriterLock.GetReaderCount: Integer;
+begin
+  Result := InterlockedCompareExchange(FState, 0, 0) and READER_MASK;
+end;
+
+function TSlimReaderWriterLock.GetIsWriteLocked: Boolean;
+begin
+  Result := (InterlockedCompareExchange(FState, 0, 0) and WRITER_HELD) <> 0;
+end;
+
+function TSlimReaderWriterLock.TryAcquireReadFast: Boolean;
+var
+  S: LongInt;
+begin
+  if FWaitingWriters > 0 then
+    Exit(False);
+  repeat
+    S := FState;
+    if (S and WRITER_HELD) <> 0 then
+      Exit(False);
+    if FWaitingWriters > 0 then
+      Exit(False);
+  until InterlockedCompareExchange(FState, S + 1, S) = S;
+  {$IFDEF FPC_VALGRIND}
+  VgHappensAfter(@FState);
+  {$ENDIF}
+  Result := True;
+end;
+
+function TSlimReaderWriterLock.TryAcquireWriteFast: Boolean;
+begin
+  Result := InterlockedCompareExchange(FState, WRITER_HELD, 0) = 0;
+  {$IFDEF FPC_VALGRIND}
+  if Result then
+    VgHappensAfter(@FState);
+  {$ENDIF}
+end;
+
+procedure TSlimReaderWriterLock.BeginRead;
+begin
+  if not TryAcquireReadFast then
+    TryBeginRead(INFINITE);
+end;
+
+function TSlimReaderWriterLock.TryBeginRead(aTimeout: Cardinal): Boolean;
+var
+  Spinner: TSpinWait;
+  StartTick, Elapsed, Rem: QWord;
+  I: Integer;
+begin
+  if TryAcquireReadFast then
+    Exit(True);
+
+  Spinner.Reset;
+  for I := 1 to 10 do
+  begin
+    if FWaitingWriters > 0 then
+      Break;
+    Spinner.SpinCycle;
+    if TryAcquireReadFast then
+      Exit(True);
+  end;
+
+  if aTimeout = 0 then
+    Exit(False);
+
+  if aTimeout <> INFINITE then
+    StartTick := GetTickCount64
+  else
+    StartTick := 0;
+
+  while True do
+  begin
+    FLock.Enter;
+    if TryAcquireReadFast then
+    begin
+      if (FWaitingReaders > 0) and (FWaitingWriters = 0) then
+        FReadEvent.SetEvent;
+      FLock.Exit;
+      Exit(True);
+    end;
+    FReadEvent.ResetEvent;
+    if TryAcquireReadFast then
+    begin
+      if (FWaitingReaders > 0) and (FWaitingWriters = 0) then
+        FReadEvent.SetEvent;
+      FLock.Exit;
+      Exit(True);
+    end;
+    InterlockedIncrement(FWaitingReaders);
+    FLock.Exit;
+
+    if aTimeout = INFINITE then
+      Rem := INFINITE
+    else
+    begin
+      Elapsed := GetTickCount64 - StartTick;
+      if Elapsed >= aTimeout then
+        Rem := 0
+      else
+        Rem := aTimeout - Elapsed;
+    end;
+
+    if Rem > 0 then
+      FReadEvent.WaitFor(Rem);
+
+    FLock.Enter;
+    InterlockedDecrement(FWaitingReaders);
+    Result := TryAcquireReadFast;
+    if Result and (FWaitingReaders > 0) and (FWaitingWriters = 0) then
+      FReadEvent.SetEvent;
+    FLock.Exit;
+
+    if Result then
+      Exit(True);
+    if (aTimeout <> INFINITE) and ((GetTickCount64 - StartTick) >= aTimeout) then
+      Exit(False);
+  end;
+end;
+
+{$IFNDEF VER3_2}
+function TSlimReaderWriterLock.TryBeginRead(const aTimeout: TTimeSpan): Boolean;
+begin
+  Result := TryBeginRead(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+procedure TSlimReaderWriterLock.EndRead;
+var
+  NewState: LongInt;
+begin
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FState);
+  {$ENDIF}
+  NewState := InterlockedDecrement(FState);
+  if NewState < 0 then
+    raise ELockException.Create(SErrLockNotOwned);
+  if (NewState = 0) and (FWaitingWriters > 0) then
+  begin
+    FLock.Enter;
+    try
+      if FWaitingWriters > 0 then
+        FWriteEvent.SetEvent;
+    finally
+      FLock.Exit;
+    end;
+  end;
+end;
+
+procedure TSlimReaderWriterLock.BeginWrite;
+begin
+  if not TryAcquireWriteFast then
+    TryBeginWrite(INFINITE);
+end;
+
+function TSlimReaderWriterLock.TryBeginWrite(aTimeout: Cardinal): Boolean;
+var
+  Spinner: TSpinWait;
+  StartTick, Elapsed, Rem: QWord;
+  I: Integer;
+begin
+  if TryAcquireWriteFast then
+    Exit(True);
+
+  if aTimeout = 0 then
+    Exit(False);
+
+  InterlockedIncrement(FWaitingWriters);
+  try
+    Spinner.Reset;
+    for I := 1 to 10 do
+    begin
+      if TryAcquireWriteFast then
+        Exit(True);
+      Spinner.SpinCycle;
+    end;
+
+    if aTimeout <> INFINITE then
+      StartTick := GetTickCount64
+    else
+      StartTick := 0;
+
+    FLock.Enter;
+    try
+      while True do
+      begin
+        if TryAcquireWriteFast then
+          Exit(True);
+        FWriteEvent.ResetEvent;
+        if TryAcquireWriteFast then
+          Exit(True);
+
+        if aTimeout = INFINITE then
+          Rem := INFINITE
+        else
+        begin
+          Elapsed := GetTickCount64 - StartTick;
+          if Elapsed >= aTimeout then
+            Exit(False);
+          Rem := aTimeout - Elapsed;
+        end;
+
+        FLock.Exit;
+        FWriteEvent.WaitFor(Rem);
+        FLock.Enter;
+
+        if TryAcquireWriteFast then
+          Exit(True);
+        if (aTimeout <> INFINITE) and ((GetTickCount64 - StartTick) >= aTimeout) then
+          Exit(False);
+      end;
+    finally
+      FLock.Exit;
+    end;
+  finally
+    if InterlockedDecrement(FWaitingWriters) = 0 then
+      if FWaitingReaders > 0 then
+      begin
+        FLock.Enter;
+        try
+          if (FWaitingReaders > 0) and (FWaitingWriters = 0) and ((FState and WRITER_HELD) = 0) then
+            FReadEvent.SetEvent;
+        finally
+          FLock.Exit;
+        end;
+      end;
+  end;
+end;
+
+{$IFNDEF VER3_2}
+function TSlimReaderWriterLock.TryBeginWrite(const aTimeout: TTimeSpan): Boolean;
+begin
+  Result := TryBeginWrite(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+procedure TSlimReaderWriterLock.EndWrite;
+begin
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FState);
+  {$ENDIF}
+  if InterlockedCompareExchange(FState, 0, WRITER_HELD) <> WRITER_HELD then
+    raise ELockException.Create(SErrLockNotOwned);
+  if (FWaitingWriters > 0) or (FWaitingReaders > 0) then
+  begin
+    FLock.Enter;
+    try
+      if FWaitingWriters > 0 then
+        FWriteEvent.SetEvent
+      else if FWaitingReaders > 0 then
+        FReadEvent.SetEvent;
+    finally
+      FLock.Exit;
+    end;
+  end;
+end;
+
+{ TSlimReadLockGuard }
+
+class operator TSlimReadLockGuard.Initialize(var aGuard: TSlimReadLockGuard);
+begin
+  aGuard.Lock := nil;
+end;
+
+class operator TSlimReadLockGuard.Finalize(var aGuard: TSlimReadLockGuard);
+begin
+  aGuard.Release;
+end;
+
+procedure TSlimReadLockGuard.Init(aLock: TSlimReaderWriterLock);
+begin
+  Release;
+  Lock := aLock;
+  Lock.BeginRead;
+end;
+
+procedure TSlimReadLockGuard.Release;
+begin
+  if Lock <> nil then
+  begin
+    Lock.EndRead;
+    Lock := nil;
+  end;
+end;
+
+{ TSlimWriteLockGuard }
+
+class operator TSlimWriteLockGuard.Initialize(var aGuard: TSlimWriteLockGuard);
+begin
+  aGuard.Lock := nil;
+end;
+
+class operator TSlimWriteLockGuard.Finalize(var aGuard: TSlimWriteLockGuard);
+begin
+  aGuard.Release;
+end;
+
+procedure TSlimWriteLockGuard.Init(aLock: TSlimReaderWriterLock);
+begin
+  Release;
+  Lock := aLock;
+  Lock.BeginWrite;
+end;
+
+procedure TSlimWriteLockGuard.Release;
+begin
+  if Lock <> nil then
+  begin
+    Lock.EndWrite;
+    Lock := nil;
+  end;
+end;
+
+{ ---------------------------------------------------------------------
+  TCustomChannel & TChannel<T>
+  ---------------------------------------------------------------------}
+
+constructor TCustomChannel.Create(aCapacity: Integer);
+begin
+  inherited Create;
+  if aCapacity < 0 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidCount, [aCapacity]);
+  FCapacity := aCapacity;
+  FBounded := aCapacity > 0;
+  FHead := 0;
+  FTail := 0;
+  FCount := 0;
+  FClosed := False;
+  FWaitingReceivers := 0;
+  FWaitingSenders := 0;
+  FLock := TSpinLock.Create(False);
+  FNotEmptyEvent := TSimpleEvent.Create;
+  FNotFullEvent := TSimpleEvent.Create;
+  FNotFullEvent.SetEvent;
+  {$IFDEF FPC_VALGRIND}
+  VgBenignRace(@FCount, SizeOf(FCount));
+  VgBenignRace(@FClosed, SizeOf(FClosed));
+  {$ENDIF}
+end;
+
+destructor TCustomChannel.Destroy;
+begin
+  Close;
+  FreeAndNil(FNotEmptyEvent);
+  FreeAndNil(FNotFullEvent);
+  inherited Destroy;
+end;
+
+procedure TCustomChannel.NotifyItemSent;
+begin
+  {$IFDEF FPC_VALGRIND}
+  VgHappensBefore(@FNotEmptyEvent);
+  {$ENDIF}
+  if FWaitingReceivers > 0 then
+    FNotEmptyEvent.SetEvent;
+end;
+
+procedure TCustomChannel.NotifyItemReceived;
+begin
+  {$IFDEF FPC_VALGRIND}
+  VgHappensAfter(@FNotEmptyEvent);
+  {$ENDIF}
+  if FWaitingSenders > 0 then
+    FNotFullEvent.SetEvent;
+end;
+
+class procedure TCustomChannel.RaiseChannelClosed;
+begin
+  raise EChannelClosedException.Create(SErrChannelClosed);
+end;
+
+function TCustomChannel.GetCount: Integer;
+begin
+  Result := InterlockedCompareExchange(FCount, 0, 0);
+end;
+
+function TCustomChannel.GetIsClosed: Boolean;
+begin
+  FLock.Enter;
+  try
+    Result := FClosed;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+procedure TCustomChannel.Close;
+begin
+  FLock.Enter;
+  try
+    if FClosed then
+      Exit;
+    FClosed := True;
+    {$IFDEF FPC_VALGRIND}
+    VgHappensBefore(@FNotEmptyEvent);
+    {$ENDIF}
+    FNotEmptyEvent.SetEvent;
+    FNotFullEvent.SetEvent;
+  finally
+    FLock.Exit;
+  end;
+end;
+
+function TChannel.TChannelEnumerator.MoveNext: Boolean;
+begin
+  Result := FChannel.Receive(FCurrent);
+end;
+
+constructor TChannel.Create(aCapacity: Integer);
+begin
+  inherited Create(aCapacity);
+  if FBounded then
+    SetLength(FBuffer, aCapacity)
+  else
+    SetLength(FBuffer, 16);
+end;
+
+procedure TChannel.GrowBuffer;
+var
+  NewCap, I, Idx: Integer;
+  NewBuf: array of T;
+begin
+  NewCap := Length(FBuffer) * 2;
+  if NewCap < 16 then
+    NewCap := 16;
+  SetLength(NewBuf, NewCap);
+  Idx := FHead;
+  for I := 0 to FCount - 1 do
+  begin
+    NewBuf[I] := FBuffer[Idx];
+    Idx := (Idx + 1) mod Length(FBuffer);
+  end;
+  FBuffer := NewBuf;
+  FHead := 0;
+  FTail := FCount;
+end;
+
+function TChannel.TrySend(const aItem: T; aTimeout: Cardinal): Boolean;
+var
+  StartTick, Elapsed, Rem: QWord;
+  HasStartTick: Boolean;
+begin
+  HasStartTick := False;
+  StartTick := 0;
+  while True do
+  begin
+    FLock.Enter;
+    if FClosed then
+    begin
+      FLock.Exit;
+      Exit(False);
+    end;
+    if (not FBounded) or (FCount < FCapacity) then
+    begin
+      if (not FBounded) and (FCount = Length(FBuffer)) then
+        GrowBuffer;
+      FBuffer[FTail] := aItem;
+      FTail := (FTail + 1) mod Length(FBuffer);
+      Inc(FCount);
+      NotifyItemSent;
+      FLock.Exit;
+      Exit(True);
+    end;
+    if aTimeout = 0 then
+    begin
+      FLock.Exit;
+      Exit(False);
+    end;
+    Inc(FWaitingSenders);
+    FNotFullEvent.ResetEvent;
+    FLock.Exit;
+
+    if aTimeout = INFINITE then
+      Rem := INFINITE
+    else
+    begin
+      if not HasStartTick then
+      begin
+        StartTick := GetTickCount64;
+        HasStartTick := True;
+      end;
+      Elapsed := GetTickCount64 - StartTick;
+      if Elapsed >= aTimeout then
+      begin
+        FLock.Enter;
+        Dec(FWaitingSenders);
+        FLock.Exit;
+        Exit(False);
+      end;
+      Rem := aTimeout - Elapsed;
+    end;
+
+    FNotFullEvent.WaitFor(Rem);
+
+    FLock.Enter;
+    Dec(FWaitingSenders);
+    if (FWaitingSenders > 0) and ((not FBounded) or (FCount < FCapacity) or FClosed) then
+      FNotFullEvent.SetEvent;
+    FLock.Exit;
+  end;
+end;
+
+{$IFNDEF VER3_2}
+function TChannel.TrySend(const aItem: T; const aTimeout: TTimeSpan): Boolean;
+begin
+  Result := TrySend(aItem, Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+procedure TChannel.Send(const aItem: T);
+begin
+  if not TrySend(aItem, INFINITE) then
+    RaiseChannelClosed;
+end;
+
+function TChannel.TryReceive(out aItem: T; aTimeout: Cardinal): Boolean;
+var
+  StartTick, Elapsed, Rem: QWord;
+  HasStartTick: Boolean;
+begin
+  HasStartTick := False;
+  StartTick := 0;
+  while True do
+  begin
+    FLock.Enter;
+    if FCount > 0 then
+    begin
+      aItem := FBuffer[FHead];
+      FBuffer[FHead] := Default(T);
+      FHead := (FHead + 1) mod Length(FBuffer);
+      Dec(FCount);
+      NotifyItemReceived;
+      FLock.Exit;
+      Exit(True);
+    end;
+    if FClosed then
+    begin
+      NotifyItemReceived;
+      FLock.Exit;
+      aItem := Default(T);
+      Exit(False);
+    end;
+    if aTimeout = 0 then
+    begin
+      FLock.Exit;
+      aItem := Default(T);
+      Exit(False);
+    end;
+    Inc(FWaitingReceivers);
+    FNotEmptyEvent.ResetEvent;
+    FLock.Exit;
+
+    if aTimeout = INFINITE then
+      Rem := INFINITE
+    else
+    begin
+      if not HasStartTick then
+      begin
+        StartTick := GetTickCount64;
+        HasStartTick := True;
+      end;
+      Elapsed := GetTickCount64 - StartTick;
+      if Elapsed >= aTimeout then
+      begin
+        FLock.Enter;
+        Dec(FWaitingReceivers);
+        FLock.Exit;
+        aItem := Default(T);
+        Exit(False);
+      end;
+      Rem := aTimeout - Elapsed;
+    end;
+
+    FNotEmptyEvent.WaitFor(Rem);
+
+    FLock.Enter;
+    Dec(FWaitingReceivers);
+    if (FWaitingReceivers > 0) and ((FCount > 0) or FClosed) then
+      FNotEmptyEvent.SetEvent;
+    FLock.Exit;
+  end;
+end;
+
+{$IFNDEF VER3_2}
+function TChannel.TryReceive(out aItem: T; const aTimeout: TTimeSpan): Boolean;
+begin
+  Result := TryReceive(aItem, Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+function TChannel.Receive(out aItem: T): Boolean;
+begin
+  Result := TryReceive(aItem, INFINITE);
+end;
+
+function TChannel.Receive: T;
+begin
+  if not Receive(Result) then
+    RaiseChannelClosed;
+end;
+
+function TChannel.GetEnumerator: TChannelEnumerator;
+begin
+  Result.FChannel := Self;
+  Result.FCurrent := Default(T);
+end;
 
 end.

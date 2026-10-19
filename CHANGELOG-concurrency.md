@@ -102,9 +102,56 @@
   - Тест: `TTestParallel.TestJoin`.
 
 ### Додано
+- **Фаза 1.1 (`packages/vcl-compat/src/system.threading.pp`) — неблокувальні продовження задач (`ContinueWith` / `ThenBy`) та кооперативне скасування (`TCancellationToken`):**
+  - `TCancellationTokenSource`, `TCancellationToken` та `TCancellationTokenRegistration` —
+    легковаговий потокобезпечний механізм кооперативного скасування з підрахунком посилань
+    (`ICancellationState`), неблокувальним читанням `IsCancellationRequested`,
+    таймаутним скасуванням `CancelAfter` (та конструкторами з `Cardinal` / `TTimeSpan`),
+    комбінованими джерелами `CreateLinkedTokenSource`, методом `Reset`, подією
+    `WaitHandle` і миттєвими зворотними викликами `Register` / `Unregister`.
+  - Підтримка передавання `TCancellationToken` у `TTask.Create`, `TTask.Run`,
+    `TTask.Future<T>`, `TParallel.&For` (32-бітні та 64-бітні перевантаження) та
+    `TParallel.Join`, а також автоматичне успадкування контекстного токена дочірніми
+    задачами та вкладеними циклами від `TTask.CurrentTask`.
+  - `ITask.ContinueWith` та `IFuture<T>.ContinueWith` з прапорцями
+    `TTaskContinuationOption` / `TTaskContinuationOptions` (`NotOnCompleted`,
+    `NotOnFaulted`, `NotOnCanceled`, `OnlyOnCompleted`, `OnlyOnFaulted`,
+    `OnlyOnCanceled`, `ExecuteSynchronously`).
+  - Типізовані неблокувальні конвеєри `.ThenBy<TResult>` і `.ThenBy<T, TResult>`
+    (через `TITaskHelper = type helper for ITask` та `TTask.ThenBy<T, TResult>`) і
+    метод `IFuture<T>.Map` із автоматичним прокиданням винятків (`PropagateExceptionFrom`)
+    та стану скасування крізь усі етапи конвеєра без блокування потоків пулу.
+  - Набір тестів `TTestContinuationsAndCancellation` у `packages/vcl-compat/tests/utthreading.pp`,
+    демонстраційна програма `docs/concurrency/examples/continuations_cancel.pp` та ADR-0005.
+- **Фаза 2 (`packages/fcl-base/src/syncobjs.pp`) — нові примітиви синхронізації:**
+  - `TCountdownEvent` — легковагова синхронізація завершення динамічної кількості
+    підзадач (`Signal`, `AddCount`, `TryAddCount`, `Reset`, `WaitFor`,
+    `CurrentCount`, `InitialCount`, `IsSet`) з атомарним швидким шляхом та
+    анотаціями Valgrind (`VgHappensBefore` / `VgHappensAfter`).
+  - `TBarrier` — пофазна циклічна синхронізація групи потоків для ітеративних
+    паралельних алгоритмів (`SignalAndWait`, `AddParticipant`, `AddParticipants`,
+    `RemoveParticipant`, `RemoveParticipants`, `CurrentPhaseNumber`,
+    `ParticipantCount`, `ParticipantsRemaining`) з подвійним буфером подій
+    `FPhaseEvents[0..1]`, підтримкою пост-фазної дії `TBarrierPhaseAction` та
+    пробросом `EBarrierPostPhaseException` усім учасникам фази.
+  - `TSlimReaderWriterLock` та RAII-гарди `TSlimReadLockGuard`,
+    `TSlimWriteLockGuard` — швидке блокування читання/запису в просторі
+    користувача (lock-free атомарний швидкий шлях `TryAcquireReadFast` /
+    `TryAcquireWriteFast`, короткий `TSpinWait`, пріоритет записувачів проти
+    голодування `FWaitingWriters` та автоматичне звільнення через `Finalize`).
+  - `TCustomChannel` і `generic TChannel<T>` — потокобезпечні обмежені
+    (`aCapacity > 0`, із автоматичним backpressure) та необмежені
+    (`aCapacity = 0`, із динамічним розширенням кільцевого буфера) канали за
+    моделлю CSP у стилі Go (`Send`, `TrySend`, `Receive`, `TryReceive`, `Close`,
+    `EChannelClosedException`) та стековий перелічувач `TChannelEnumerator` для
+    циклу `for Msg in Channel do` без алокацій у купі.
+  - Набір тестів `TTestSyncObjsPhase2` у `packages/vcl-compat/tests/utthreading.pp`,
+    демонстраційна програма `docs/concurrency/examples/syncobjs_phase2.pp`,
+    посібник `docs/concurrency/guide-syncobjs.md`, ADR-0004 та fpdoc-опис
+    `packages/fcl-base/xml/syncobjs-phase2.xml`.
 - `docs/concurrency/examples/`: приклади порівняння «класичний TThread vs
   System.Threading» (`primes_*`, `report_*`, `batch_processing.pp`,
-  `showcase_pipeline.pp`) і розділ 10 у PDF.
+  `showcase_pipeline.pp`, `syncobjs_phase2.pp`, `continuations_cancel.pp`) і розділ 10 у PDF.
 - `fcl-base/src/fpvalgrind.pp`: клієнтські запити valgrind (happens-before/after,
   clean memory, benign race); анотації в `TSpinLock` і `System.Threading`
   під `-dFPC_VALGRIND`. Див. `docs/concurrency/valgrind.md`.

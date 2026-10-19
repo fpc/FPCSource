@@ -444,6 +444,30 @@ type
     Procedure TestJoin;
   end;
 
+  { TTestSyncObjsPhase2 }
+
+  TTestSyncObjsPhase2 = Class(TThreadedTestCase)
+  Published
+    procedure TestCountdownEventBasic;
+    procedure TestCountdownEventParallel;
+    procedure TestBarrierMultiPhase;
+    procedure TestBarrierAddRemoveParticipant;
+    procedure TestBarrierPostPhaseException;
+    procedure TestSlimReaderWriterLockConcurrent;
+    procedure TestChannelUnboundedMultiProducer;
+    procedure TestChannelBoundedBackpressure;
+  end;
+
+  { TTestContinuationsAndCancellation }
+
+  TTestContinuationsAndCancellation = Class(TThreadedTestCase)
+  Published
+    procedure TestCancellationTokenBasics;
+    procedure TestContinueWithAndOptions;
+    procedure TestThenByPipeline;
+    procedure TestTreeCancellationAndParallelFor;
+  end;
+
 
 implementation
 
@@ -2726,6 +2750,767 @@ begin
   AssertEquals('Proc 2 ran',20,B);
 end;
 
+{ TTestSyncObjsPhase2 }
+
+procedure TTestSyncObjsPhase2.TestCountdownEventBasic;
+var
+  CDE: TCountdownEvent;
+  Raised: Boolean;
+begin
+  CDE := TCountdownEvent.Create(3);
+  try
+    AssertEquals('InitialCount', 3, CDE.InitialCount);
+    AssertEquals('CurrentCount', 3, CDE.CurrentCount);
+    AssertFalse('Not set initially', CDE.IsSet);
+    AssertTrue('WaitFor(0) times out', CDE.WaitFor(0) = wrTimeout);
+
+    CDE.AddCount(2);
+    AssertEquals('CurrentCount after AddCount(2)', 5, CDE.CurrentCount);
+    AssertTrue('TryAddCount(1)', CDE.TryAddCount(1));
+    AssertEquals('CurrentCount after TryAddCount(1)', 6, CDE.CurrentCount);
+
+    AssertFalse('Signal(3) does not set', CDE.Signal(3));
+    AssertEquals('CurrentCount is 3', 3, CDE.CurrentCount);
+    AssertTrue('Signal(3) sets event', CDE.Signal(3));
+    AssertTrue('IsSet is True', CDE.IsSet);
+    AssertTrue('WaitFor(0) succeeds', CDE.WaitFor(0) = wrSignaled);
+    AssertFalse('TryAddCount fails when set', CDE.TryAddCount(1));
+
+    Raised := False;
+    try
+      CDE.AddCount(1);
+    except
+      on E: ESyncObjectException do
+        Raised := True;
+    end;
+    AssertTrue('AddCount raises when set', Raised);
+
+    CDE.Reset(2);
+    AssertEquals('Reset InitialCount', 2, CDE.InitialCount);
+    AssertEquals('Reset CurrentCount', 2, CDE.CurrentCount);
+    AssertFalse('Reset clears IsSet', CDE.IsSet);
+    AssertTrue('Signal(2) sets after reset', CDE.Signal(2));
+  finally
+    CDE.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestCountdownEventParallel;
+const
+  WorkerCount = 32;
+var
+  CDE: TCountdownEvent;
+  Sum: Integer;
+  I: Integer;
+begin
+  Sum := 0;
+  CDE := TCountdownEvent.Create(1);
+  try
+    for I := 1 to WorkerCount do
+      begin
+      CDE.AddCount(1);
+      TTask.Run(
+        procedure
+        begin
+          AtomicIncrement(Sum, 1);
+          CDE.Signal;
+        end);
+      end;
+    // Release initial registration token
+    CDE.Signal;
+    AssertTrue('Countdown completed within 5s', CDE.WaitFor(5000) = wrSignaled);
+    AssertEquals('All workers contributed before WaitFor returned', WorkerCount, Sum);
+  finally
+    CDE.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestBarrierMultiPhase;
+const
+  NumWorkers = 4;
+  NumPhases = 6;
+var
+  Barrier: TBarrier;
+  Scratch, PhaseTotals: array[0..NumWorkers - 1] of Integer;
+  CallbacksRun, NextIdx: Integer;
+  Tasks: array[0..NumWorkers - 1] of ITask;
+  W: Integer;
+begin
+  FillChar(Scratch, SizeOf(Scratch), 0);
+  FillChar(PhaseTotals, SizeOf(PhaseTotals), 0);
+  CallbacksRun := 0;
+  NextIdx := 0;
+
+  Barrier := TBarrier.Create(NumWorkers,
+    procedure(aBarrier: TBarrier)
+    begin
+      Inc(CallbacksRun);
+    end);
+  try
+    for W := 0 to NumWorkers - 1 do
+      begin
+      Tasks[W] := TTask.Run(
+        procedure
+        var
+          WorkerIdx, P, J, S: Integer;
+        begin
+          WorkerIdx := AtomicIncrement(NextIdx) - 1;
+          for P := 1 to NumPhases do
+            begin
+            Scratch[WorkerIdx] := P * (WorkerIdx + 1);
+            Barrier.SignalAndWait;
+            S := 0;
+            for J := 0 to NumWorkers - 1 do
+              Inc(S, Scratch[J]);
+            PhaseTotals[WorkerIdx] := S;
+            Barrier.SignalAndWait;
+            end;
+        end);
+      end;
+
+    AssertTrue('All barrier tasks completed', TTask.WaitForAll(Tasks, 10000));
+    AssertEquals('Post-phase callback count', NumPhases * 2, CallbacksRun);
+    AssertEquals('CurrentPhaseNumber', NumPhases * 2, Barrier.CurrentPhaseNumber);
+    // Sum of (WorkerIdx+1) for 0..3 is 1+2+3+4 = 10; multiplied by NumPhases (6) = 60
+    for W := 0 to NumWorkers - 1 do
+      AssertEquals('Worker total after last phase', NumPhases * 10, PhaseTotals[W]);
+  finally
+    Barrier.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestBarrierAddRemoveParticipant;
+var
+  Barrier: TBarrier;
+  T: ITask;
+  Phase0Done: Integer;
+begin
+  Phase0Done := 0;
+  Barrier := TBarrier.Create(1);
+  try
+    AssertEquals('Start with 1 participant', 1, Barrier.ParticipantCount);
+    AssertEquals('AddParticipant returns phase 0', 0, Barrier.AddParticipant);
+    AssertEquals('Now 2 participants', 2, Barrier.ParticipantCount);
+
+    T := TTask.Run(
+      procedure
+      begin
+        AtomicIncrement(Phase0Done);
+        Barrier.SignalAndWait;
+      end);
+
+    AssertTrue('Main + worker finish phase 0', Barrier.SignalAndWait(5000));
+    AssertTrue('Task finished', T.Wait(5000));
+    AssertEquals('Phase0Done=1', 1, Phase0Done);
+    AssertEquals('Phase is now 1', 1, Barrier.CurrentPhaseNumber);
+
+    Barrier.RemoveParticipant;
+    AssertEquals('Back to 1 participant', 1, Barrier.ParticipantCount);
+    AssertTrue('Single participant advances phase immediately', Barrier.SignalAndWait(1000));
+    AssertEquals('Phase is now 2', 2, Barrier.CurrentPhaseNumber);
+  finally
+    Barrier.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestBarrierPostPhaseException;
+var
+  Barrier: TBarrier;
+  T: ITask;
+  CaughtMain, CaughtWorker: Integer;
+begin
+  CaughtMain := 0;
+  CaughtWorker := 0;
+  Barrier := TBarrier.Create(2,
+    procedure(aBarrier: TBarrier)
+    begin
+      raise ESomeThing.Create('post-phase boom');
+    end);
+  try
+    T := TTask.Run(
+      procedure
+      begin
+        try
+          Barrier.SignalAndWait(5000);
+        except
+          on E: EBarrierPostPhaseException do
+            AtomicIncrement(CaughtWorker);
+        end;
+      end);
+
+    try
+      Barrier.SignalAndWait(5000);
+    except
+      on E: EBarrierPostPhaseException do
+        begin
+        Inc(CaughtMain);
+        AssertTrue('Exception message contains cause', Pos('post-phase boom', E.Message) > 0);
+        end;
+    end;
+
+    AssertTrue('Worker finished', T.Wait(5000));
+    AssertEquals('Main caught EBarrierPostPhaseException', 1, CaughtMain);
+    AssertEquals('Worker caught EBarrierPostPhaseException', 1, CaughtWorker);
+    AssertEquals('Phase still advanced to 1', 1, Barrier.CurrentPhaseNumber);
+  finally
+    Barrier.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestSlimReaderWriterLockConcurrent;
+const
+  NumReaders = 6;
+  NumWriters = 2;
+  Iterations = 800;
+var
+  RWLock: TSlimReaderWriterLock;
+  SharedA, SharedB: Integer;
+  Tasks: array[0..NumReaders + NumWriters - 1] of ITask;
+  I: Integer;
+begin
+  SharedA := 1000;
+  SharedB := -1000;
+  RWLock := TSlimReaderWriterLock.Create;
+  try
+    // Verify basic non-contended TryBeginRead / TryBeginWrite
+    AssertTrue('TryBeginRead', RWLock.TryBeginRead(0));
+    AssertTrue('Second TryBeginRead', RWLock.TryBeginRead(0));
+    AssertEquals('ReaderCount is 2', 2, RWLock.ReaderCount);
+    AssertFalse('TryBeginWrite fails while readers active', RWLock.TryBeginWrite(0));
+    RWLock.EndRead;
+    RWLock.EndRead;
+
+    AssertTrue('TryBeginWrite succeeds when unlocked', RWLock.TryBeginWrite(0));
+    AssertTrue('IsWriteLocked', RWLock.IsWriteLocked);
+    AssertFalse('TryBeginRead fails while write locked', RWLock.TryBeginRead(0));
+    RWLock.EndWrite;
+
+    for I := 0 to NumReaders - 1 do
+      Tasks[I] := TTask.Run(
+        procedure
+        var
+          K, Sum: Integer;
+          G: TSlimReadLockGuard;
+        begin
+          for K := 1 to Iterations do
+            begin
+            G.Init(RWLock);
+            Sum := SharedA + SharedB;
+            G.Release;
+            if Sum <> 0 then
+              ThreadCheck(False, 'Invariant SharedA + SharedB = 0 violated: ' + IntToStr(Sum));
+            end;
+        end);
+
+    for I := 0 to NumWriters - 1 do
+      Tasks[NumReaders + I] := TTask.Run(
+        procedure
+        var
+          K: Integer;
+          G: TSlimWriteLockGuard;
+        begin
+          for K := 1 to Iterations do
+            begin
+            G.Init(RWLock);
+            Inc(SharedA, 7);
+            Dec(SharedB, 7);
+            G.Release;
+            end;
+        end);
+
+    AssertTrue('Readers and writers completed', TTask.WaitForAll(Tasks, 15000));
+    AssertEquals('Final SharedA + SharedB = 0', 0, SharedA + SharedB);
+    AssertEquals('Final SharedA value', 1000 + NumWriters * Iterations * 7, SharedA);
+  finally
+    RWLock.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestChannelUnboundedMultiProducer;
+type
+  TIntChannel = specialize TChannel<Integer>;
+const
+  NumProducers = 4;
+  ItemsPerProducer = 250;
+var
+  Ch: TIntChannel;
+  Producers: array[0..NumProducers - 1] of ITask;
+  P, Item, CountReceived, NextBase: Integer;
+  TotalSum, ExpectedSum: Int64;
+  CloserTask: ITask;
+begin
+  NextBase := 0;
+  Ch := TIntChannel.Create(0); // unbounded
+  try
+    for P := 0 to NumProducers - 1 do
+      Producers[P] := TTask.Run(
+        procedure
+        var
+          Base, K: Integer;
+        begin
+          Base := AtomicIncrement(NextBase) - 1;
+          for K := 1 to ItemsPerProducer do
+            Ch.Send(Base * ItemsPerProducer + K);
+        end);
+
+    CloserTask := TTask.Run(
+      procedure
+      begin
+        TTask.WaitForAll(Producers);
+        Ch.Close;
+      end);
+
+    CountReceived := 0;
+    TotalSum := 0;
+    for Item in Ch do
+      begin
+      Inc(CountReceived);
+      Inc(TotalSum, Item);
+      end;
+
+    AssertTrue('CloserTask finished', CloserTask.Wait(5000));
+    ExpectedSum := Int64(NumProducers * ItemsPerProducer) * (NumProducers * ItemsPerProducer + 1) div 2;
+    AssertEquals('All items received via for-in', NumProducers * ItemsPerProducer, CountReceived);
+    AssertEquals('Exact sum of all items', ExpectedSum, TotalSum);
+    AssertTrue('Channel is closed', Ch.IsClosed);
+  finally
+    Ch.Free;
+  end;
+end;
+
+procedure TTestSyncObjsPhase2.TestChannelBoundedBackpressure;
+type
+  TIntChannel = specialize TChannel<Integer>;
+const
+  TotalItems = 100;
+var
+  Ch: TIntChannel;
+  Producer: ITask;
+  I, Val: Integer;
+  Raised: Boolean;
+begin
+  Ch := TIntChannel.Create(4); // bounded capacity = 4
+  try
+    AssertEquals('Capacity is 4', 4, Ch.Capacity);
+    AssertTrue('TrySend 1', Ch.TrySend(10));
+    AssertTrue('TrySend 2', Ch.TrySend(20));
+    AssertTrue('TrySend 3', Ch.TrySend(30));
+    AssertTrue('TrySend 4', Ch.TrySend(40));
+    AssertFalse('TrySend(0ms) fails when full', Ch.TrySend(50, 0));
+
+    AssertEquals('Receive 10', 10, Ch.Receive);
+    AssertEquals('Receive 20', 20, Ch.Receive);
+    AssertEquals('Receive 30', 30, Ch.Receive);
+    AssertEquals('Receive 40', 40, Ch.Receive);
+    AssertFalse('TryReceive(0ms) fails when empty', Ch.TryReceive(Val, 0));
+
+    Producer := TTask.Run(
+      procedure
+      var
+        K: Integer;
+      begin
+        for K := 1 to TotalItems do
+          Ch.Send(K);
+        Ch.Close;
+      end);
+
+    for I := 1 to TotalItems do
+      begin
+      AssertTrue('TryReceive item ' + IntToStr(I), Ch.TryReceive(Val, 5000));
+      AssertEquals('FIFO order item ' + IntToStr(I), I, Val);
+      end;
+
+    AssertTrue('Producer finished', Producer.Wait(5000));
+    AssertFalse('TryReceive on closed & drained channel returns False', Ch.TryReceive(Val, 0));
+
+    Raised := False;
+    try
+      Ch.Send(999);
+    except
+      on E: EChannelClosedException do
+        Raised := True;
+    end;
+    AssertTrue('Send on closed channel raises EChannelClosedException', Raised);
+
+    Raised := False;
+    try
+      Ch.Receive;
+    except
+      on E: EChannelClosedException do
+        Raised := True;
+    end;
+    AssertTrue('Receive on closed & empty channel raises EChannelClosedException', Raised);
+  finally
+    Ch.Free;
+  end;
+end;
+
+{ TTestContinuationsAndCancellation }
+
+procedure TTestContinuationsAndCancellation.TestCancellationTokenBasics;
+var
+  NoneTok: TCancellationToken;
+  CTS1, CTS2, LinkedCTS, TimedCTS: TCancellationTokenSource;
+  Reg1, Reg2: TCancellationTokenRegistration;
+  CallbackCount: Integer;
+  Raised: Boolean;
+begin
+  NoneTok := TCancellationToken.None;
+  AssertFalse('None token CanBeCanceled is False', NoneTok.CanBeCanceled);
+  AssertFalse('None token IsCancellationRequested is False', NoneTok.IsCancellationRequested);
+  AssertTrue('None token equals TCancellationToken.None', NoneTok = TCancellationToken.None);
+
+  CallbackCount := 0;
+  CTS1 := TCancellationTokenSource.Create;
+  try
+    AssertTrue('CTS1.Token CanBeCanceled is True', CTS1.Token.CanBeCanceled);
+    AssertFalse('CTS1.Token IsCancellationRequested initially False', CTS1.Token.IsCancellationRequested);
+    AssertTrue('CTS1.Token <> NoneTok', CTS1.Token <> NoneTok);
+
+    Reg1 := CTS1.Token.Register(
+      procedure
+      begin
+        AtomicIncrement(CallbackCount);
+      end);
+    Reg2 := CTS1.Token.Register(
+      procedure
+      begin
+        AtomicIncrement(CallbackCount, 10);
+      end);
+    // Unregister Reg2 before Cancel
+    Reg2.Unregister;
+
+    CTS1.Cancel;
+    AssertTrue('CTS1.IsCancellationRequested is True after Cancel', CTS1.IsCancellationRequested);
+    AssertTrue('CTS1.Token.IsCancellationRequested is True after Cancel', CTS1.Token.IsCancellationRequested);
+    AssertEquals('Only Reg1 callback ran', 1, CallbackCount);
+    AssertTrue('WaitHandle is signaled', CTS1.Token.WaitHandle.WaitFor(0) = wrSignaled);
+
+    // Registering on already canceled token invokes callback immediately
+    CTS1.Token.Register(
+      procedure
+      begin
+        AtomicIncrement(CallbackCount, 100);
+      end);
+    AssertEquals('Immediate callback on canceled token ran', 101, CallbackCount);
+
+    Raised := False;
+    try
+      CTS1.Token.ThrowIfCancellationRequested;
+    except
+      on E: EOperationCancelled do
+        Raised := True;
+    end;
+    AssertTrue('ThrowIfCancellationRequested raised EOperationCancelled', Raised);
+
+    // Reset produces a fresh non-canceled state
+    CTS1.Reset;
+    AssertFalse('After Reset, IsCancellationRequested is False', CTS1.IsCancellationRequested);
+  finally
+    CTS1.Free;
+  end;
+
+  // Test linked token source
+  CTS1 := TCancellationTokenSource.Create;
+  CTS2 := TCancellationTokenSource.Create;
+  LinkedCTS := TCancellationTokenSource.CreateLinkedTokenSource([CTS1.Token, CTS2.Token]);
+  try
+    AssertFalse('LinkedCTS initially not canceled', LinkedCTS.IsCancellationRequested);
+    CTS2.Cancel;
+    AssertTrue('Canceling CTS2 cancels LinkedCTS', LinkedCTS.IsCancellationRequested);
+    AssertFalse('CTS1 remains uncanceled', CTS1.IsCancellationRequested);
+  finally
+    LinkedCTS.Free;
+    CTS2.Free;
+    CTS1.Free;
+  end;
+
+  // Test CancelAfter
+  TimedCTS := TCancellationTokenSource.Create(40);
+  try
+    AssertTrue('TimedCTS WaitHandle signals within 2000ms',
+      TimedCTS.Token.WaitHandle.WaitFor(2000) = wrSignaled);
+    AssertTrue('TimedCTS IsCancellationRequested is True', TimedCTS.IsCancellationRequested);
+  finally
+    TimedCTS.Free;
+  end;
+end;
+
+procedure TTestContinuationsAndCancellation.TestContinueWithAndOptions;
+var
+  StepLog: Integer;
+  T1, T2, T3: ITask;
+  FaultTask, OnCompTask, OnFaultTask, OnCancelTask: ITask;
+  CancelTask, COnComp, COnCancel: ITask;
+  Fut: specialize IFuture<Integer>;
+  FutCont: ITask;
+  CapturedValue: Integer;
+begin
+  StepLog := 0;
+  T1 := TTask.Run(
+    procedure
+    begin
+      AtomicIncrement(StepLog, 1);
+    end);
+  T2 := T1.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent.Status = TTaskStatus.Completed then
+        AtomicIncrement(StepLog, 10);
+    end);
+  T3 := T2.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent.Status = TTaskStatus.Completed then
+        AtomicIncrement(StepLog, 100);
+    end, [TTaskContinuationOption.ExecuteSynchronously]);
+
+  AssertTrue('T3 chain completed', T3.Wait(5000));
+  AssertEquals('All 3 stages executed in order', 111, StepLog);
+
+  // Faulted antecedent with OnlyOnCompleted / OnlyOnFaulted / OnlyOnCanceled
+  StepLog := 0;
+  FaultTask := TTask.Run(
+    procedure
+    begin
+      raise Exception.Create('Intentional fault');
+    end);
+  OnCompTask := FaultTask.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent = nil then;
+      AtomicIncrement(StepLog, 1);
+    end, [TTaskContinuationOption.OnlyOnCompleted]);
+  OnFaultTask := FaultTask.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent.Status = TTaskStatus.Exception then
+        AtomicIncrement(StepLog, 10);
+    end, [TTaskContinuationOption.OnlyOnFaulted]);
+  OnCancelTask := FaultTask.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent = nil then;
+      AtomicIncrement(StepLog, 100);
+    end, [TTaskContinuationOption.OnlyOnCanceled]);
+
+  AssertTrue('OnFaultTask completed', OnFaultTask.Wait(5000));
+  AssertTrue('OnCompTask canceled', OnCompTask.Status = TTaskStatus.Canceled);
+  AssertTrue('OnCancelTask canceled', OnCancelTask.Status = TTaskStatus.Canceled);
+  AssertEquals('Only OnlyOnFaulted ran', 10, StepLog);
+
+  // Canceled antecedent with OnlyOnCompleted / OnlyOnCanceled
+  StepLog := 0;
+  CancelTask := TTask.Create(
+    procedure
+    begin
+      AtomicIncrement(StepLog, 1);
+    end);
+  COnComp := CancelTask.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent = nil then;
+      AtomicIncrement(StepLog, 10);
+    end, [TTaskContinuationOption.OnlyOnCompleted]);
+  COnCancel := CancelTask.ContinueWith(
+    procedure(aAntecedent: ITask)
+    begin
+      if aAntecedent.Status = TTaskStatus.Canceled then
+        AtomicIncrement(StepLog, 100);
+    end, [TTaskContinuationOption.OnlyOnCanceled]);
+  CancelTask.Cancel;
+  AssertTrue('COnCancel completed after CancelTask.Cancel', COnCancel.Wait(5000));
+  AssertTrue('COnComp was canceled', COnComp.Status = TTaskStatus.Canceled);
+  AssertEquals('Only OnlyOnCanceled ran', 100, StepLog);
+
+  // IFuture<T>.ContinueWith
+  CapturedValue := 0;
+  Fut := TTask.specialize Future<Integer>(
+    function: Integer
+    begin
+      Result := 42;
+    end);
+  FutCont := Fut.ContinueWith(
+    procedure(aFut: specialize IFuture<Integer>)
+    begin
+      CapturedValue := aFut.Value * 2;
+    end);
+  AssertTrue('FutCont completed', FutCont.Wait(5000));
+  AssertEquals('FutCont captured 84', 84, CapturedValue);
+end;
+
+procedure TTestContinuationsAndCancellation.TestThenByPipeline;
+var
+  StartTask: ITask;
+  Stage1, Stage2, Stage3: specialize IFuture<Integer>;
+  FinalStage: specialize IFuture<string>;
+  FaultStage1: specialize IFuture<Integer>;
+  FaultStage2: specialize IFuture<Integer>;
+  FaultStage3: specialize IFuture<string>;
+  Stage2Ran, Stage3Ran: Integer;
+  Raised: Boolean;
+  CTS: TCancellationTokenSource;
+  CancelStage1, CancelStage2: specialize IFuture<Integer>;
+begin
+  // 1. Multi-stage non-blocking pipeline: ITask -> IFuture<Integer> -> IFuture<Integer> -> Map -> IFuture<string>
+  StartTask := TTask.Run(
+    procedure
+    begin
+      // initial preparation task
+    end);
+  Stage1 := StartTask.specialize ThenBy<Integer>(
+    function: Integer
+    begin
+      Result := 10;
+    end);
+  Stage2 := Stage1.specialize ThenBy<Integer, Integer>(
+    function(const aVal: Integer): Integer
+    begin
+      Result := aVal * 3; // 30
+    end);
+  Stage3 := Stage2.Map(
+    function(const aVal: Integer): Integer
+    begin
+      Result := aVal + 12; // 42
+    end);
+  FinalStage := TTask.specialize ThenBy<Integer, string>(Stage3,
+    function(const aVal: Integer): string
+    begin
+      Result := 'Answer=' + IntToStr(aVal);
+    end);
+
+  AssertTrue('FinalStage completed', FinalStage.Wait(5000));
+  AssertEquals('Pipeline produced expected string', 'Answer=42', FinalStage.Value);
+
+  // 2. Exception propagation through .ThenBy pipeline
+  Stage2Ran := 0;
+  Stage3Ran := 0;
+  FaultStage1 := TTask.specialize Future<Integer>(
+    function: Integer
+    begin
+      raise Exception.Create('Stage1 boom');
+      Result := 1;
+    end);
+  FaultStage2 := FaultStage1.specialize ThenBy<Integer, Integer>(
+    function(const aVal: Integer): Integer
+    begin
+      AtomicIncrement(Stage2Ran);
+      Result := aVal + 1;
+    end);
+  FaultStage3 := FaultStage2.specialize ThenBy<Integer, string>(
+    function(const aVal: Integer): string
+    begin
+      AtomicIncrement(Stage3Ran);
+      Result := IntToStr(aVal);
+    end);
+
+  Raised := False;
+  try
+    FaultStage3.Wait(5000);
+  except
+    on E: EAggregateException do
+      Raised := True;
+  end;
+  AssertTrue('Exception propagated to FaultStage3', Raised);
+  AssertTrue('FaultStage3 status is Exception', FaultStage3.Status = TTaskStatus.Exception);
+  AssertEquals('FaultStage2 body did not run', 0, Stage2Ran);
+  AssertEquals('FaultStage3 body did not run', 0, Stage3Ran);
+
+  // 3. Cancellation propagation through .ThenBy pipeline
+  CTS := TCancellationTokenSource.Create;
+  try
+    CTS.Cancel;
+    CancelStage1 := TTask.specialize Future<Integer>(
+      function: Integer
+      begin
+        Result := 100;
+      end, CTS.Token);
+    CancelStage2 := CancelStage1.specialize ThenBy<Integer, Integer>(
+      function(const aVal: Integer): Integer
+      begin
+        Result := aVal * 2;
+      end);
+    AssertTrue('CancelStage1 is Canceled', CancelStage1.Status = TTaskStatus.Canceled);
+    AssertTrue('CancelStage2 is Canceled', CancelStage2.Status = TTaskStatus.Canceled);
+  finally
+    CTS.Free;
+  end;
+end;
+
+procedure TTestContinuationsAndCancellation.TestTreeCancellationAndParallelFor;
+var
+  CTS: TCancellationTokenSource;
+  LoopRes: TParallel.TLoopResult;
+  IterationsDone: Integer;
+  ParentTask, ChildTask, DownstreamTask: ITask;
+  DownstreamRan: Integer;
+  StartedEvent: TLightweightEvent;
+begin
+  // 1. TParallel.&For with TCancellationToken canceled mid-loop
+  IterationsDone := 0;
+  CTS := TCancellationTokenSource.Create;
+  try
+    LoopRes := TParallel.&For(1, 200,
+      procedure(aIndex: Integer)
+      begin
+        if aIndex = 1 then;
+        if AtomicIncrement(IterationsDone) >= 8 then
+          CTS.Cancel;
+        Sleep(5);
+      end, CTS.Token);
+    AssertFalse('LoopRes.Completed is False when token canceled', LoopRes.Completed);
+    AssertTrue('Loop stopped early before all 200 iterations', IterationsDone < 200);
+  finally
+    CTS.Free;
+  end;
+
+  // 2. Coordinated tree cancellation: parent task + child task + continuation
+  DownstreamRan := 0;
+  StartedEvent := TLightweightEvent.Create;
+  CTS := TCancellationTokenSource.Create;
+  try
+    ParentTask := TTask.Run(
+      procedure
+      begin
+        // Child task inherits ambient token from ParentTask automatically
+        ChildTask := TTask.Run(
+          procedure
+          begin
+            StartedEvent.SetEvent;
+            while True do
+              begin
+              TTask.CurrentTask.CheckCanceled;
+              Sleep(5);
+              end;
+          end);
+        ChildTask.Wait;
+      end, CTS.Token);
+
+    DownstreamTask := ParentTask.ContinueWith(
+      procedure(aAntecedent: ITask)
+      begin
+        if aAntecedent = nil then;
+        AtomicIncrement(DownstreamRan);
+      end, [TTaskContinuationOption.OnlyOnCompleted]);
+
+    AssertTrue('ChildTask started', StartedEvent.WaitFor(5000) = wrSignaled);
+    CTS.Cancel;
+
+    try
+      ParentTask.Wait(5000);
+    except
+      on E: Exception do ;
+    end;
+
+    AssertTrue('ChildTask status is Canceled', ChildTask.Status = TTaskStatus.Canceled);
+    AssertTrue('DownstreamTask is Canceled', DownstreamTask.Status = TTaskStatus.Canceled);
+    AssertEquals('DownstreamTask body did not run', 0, DownstreamRan);
+  finally
+    CTS.Free;
+    StartedEvent.Free;
+  end;
+end;
+
 initialization
   _TestThreads:=TThreadList.Create;
   RegisterTests([
@@ -2737,7 +3522,9 @@ initialization
                  TTestObjectCaches,
                  TTestThreading,
                  TTestTask,
-                 TTestParallel
+                 TTestParallel,
+                 TTestSyncObjsPhase2,
+                 TTestContinuationsAndCancellation
                  ]);
 
 finalization

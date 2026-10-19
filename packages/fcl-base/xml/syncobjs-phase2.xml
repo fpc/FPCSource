@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpdoc-descriptions>
+<package name="fcl-base">
+<module name="syncobjs">
+
+<element name="TCountdownEvent">
+  <short>Lightweight synchronization primitive that unblocks waiting threads when its signal count reaches zero.</short>
+  <descr>
+    <p><var>TCountdownEvent</var> is a synchronization primitive for fork-join and dynamic task graphs where the number of subtasks may change dynamically during execution.</p>
+    <p>Unlike a manual counter combined with <var>TCriticalSection</var> and <var>TEvent</var>, <var>TCountdownEvent</var> uses lock-free atomic decrements on its fast path and only interacts with the underlying <var>TSimpleEvent</var> when transitioning between zero and non-zero counts.</p>
+  </descr>
+  <seealso>
+    <link id="TBarrier"/>
+    <link id="TSimpleEvent"/>
+  </seealso>
+</element>
+
+<element name="TCountdownEvent.Create">
+  <short>Creates a countdown event with the specified initial count.</short>
+  <descr>
+    <p>Initializes <var>CurrentCount</var> and <var>InitialCount</var> to <var>aInitialCount</var>. If <var>aInitialCount</var> is 0, the event is created in the signaled state (<var>IsSet = True</var>). Raises <var>ESyncObjectException</var> if <var>aInitialCount &lt; 0</var>.</p>
+  </descr>
+</element>
+
+<element name="TCountdownEvent.Signal">
+  <short>Decrements the current count by <var>aSignalCount</var> and signals waiting threads if the count reaches zero.</short>
+  <descr>
+    <p>Returns <var>True</var> if this call caused <var>CurrentCount</var> to transition to zero; returns <var>False</var> otherwise. Raises <var>ESyncObjectException</var> if <var>aSignalCount &lt;= 0</var> or if decrementing would make the count negative.</p>
+  </descr>
+</element>
+
+<element name="TCountdownEvent.AddCount">
+  <short>Increments <var>CurrentCount</var> by <var>aSignalCount</var>.</short>
+  <descr>
+    <p>Raises <var>ESyncObjectException</var> if the event is already set (<var>CurrentCount = 0</var>) or if <var>aSignalCount &lt;= 0</var>.</p>
+  </descr>
+</element>
+
+<element name="TCountdownEvent.TryAddCount">
+  <short>Attempts to increment <var>CurrentCount</var> if the event is not yet set.</short>
+  <descr>
+    <p>Returns <var>True</var> if <var>CurrentCount</var> was greater than zero and successfully incremented; returns <var>False</var> if the countdown has already reached zero.</p>
+  </descr>
+</element>
+
+<element name="TCountdownEvent.Reset">
+  <short>Resets <var>CurrentCount</var> and <var>InitialCount</var> to the specified value (or to <var>InitialCount</var>).</short>
+</element>
+
+<element name="TCountdownEvent.WaitFor">
+  <short>Blocks the calling thread until <var>CurrentCount</var> reaches zero or the timeout expires.</short>
+</element>
+
+<element name="TBarrier">
+  <short>Cyclic multi-phase barrier that synchronizes a group of threads at the end of each phase.</short>
+  <descr>
+    <p><var>TBarrier</var> enables multiple threads (participants) to work concurrently on iterative algorithms (such as stencil computations, matrix solvers, or graph algorithms) through a series of phases.</p>
+    <p>Each participant calls <var>SignalAndWait</var> upon completing its work for the current phase. When the last participant arrives, the optional <var>TBarrierPhaseAction</var> callback is executed by that thread before all participants are released into the next phase. Internally, <var>TBarrier</var> uses dual ping-pong events (<var>FPhaseEvents[0..1]</var>) indexed by phase parity to avoid race conditions between fast threads entering phase <var>P+1</var> and slow threads waking from phase <var>P</var>.</p>
+  </descr>
+  <seealso>
+    <link id="TCountdownEvent"/>
+    <link id="EBarrierPostPhaseException"/>
+  </seealso>
+</element>
+
+<element name="EBarrierPostPhaseException">
+  <short>Exception raised in all participating threads if the barrier's post-phase action raises an exception.</short>
+</element>
+
+<element name="TSlimReaderWriterLock">
+  <short>Fast user-space reader/writer lock with lock-free atomic fast paths and writer-preference anti-starvation.</short>
+  <descr>
+    <p><var>TSlimReaderWriterLock</var> allows multiple concurrent readers or a single exclusive writer. Uncontended acquisitions and releases execute purely in user space via atomic compare-and-swap (<var>TryAcquireReadFast</var>, <var>TryAcquireWriteFast</var>) and adaptive spinning (<var>TSpinWait</var>), falling back to kernel events only under contention.</p>
+    <p>Waiting writers set the <var>FWaitingWriters</var> counter, which prevents new readers from acquiring the lock and starving writers.</p>
+  </descr>
+  <seealso>
+    <link id="TSlimReadLockGuard"/>
+    <link id="TSlimWriteLockGuard"/>
+  </seealso>
+</element>
+
+<element name="TSlimReadLockGuard">
+  <short>Managed record RAII guard for automatic <var>BeginRead</var> / <var>EndRead</var> on <var>TSlimReaderWriterLock</var>.</short>
+</element>
+
+<element name="TSlimWriteLockGuard">
+  <short>Managed record RAII guard for automatic <var>BeginWrite</var> / <var>EndWrite</var> on <var>TSlimReaderWriterLock</var>.</short>
+</element>
+
+<element name="TChannel">
+  <short>Thread-safe generic CSP channel supporting bounded and unbounded capacities, closing, and <var>for..in</var> iteration.</short>
+  <descr>
+    <p><var>TChannel&lt;T&gt;</var> implements Go-style Communicating Sequential Processes (CSP) message passing between producer and consumer threads.</p>
+    <p>When created with <var>aCapacity = 0</var>, the channel is unbounded and grows its internal circular buffer dynamically. When created with <var>aCapacity &gt; 0</var>, the channel is bounded and applies backpressure by blocking <var>Send</var> when the buffer is full.</p>
+    <p>Calling <var>Close</var> marks the channel as closed and wakes all waiting senders and receivers. Receivers can still drain any buffered items before <var>Receive(out Item)</var> returns <var>False</var> and <var>for Msg in Channel do</var> terminates cleanly.</p>
+  </descr>
+  <seealso>
+    <link id="EChannelClosedException"/>
+    <link id="TCustomChannel"/>
+  </seealso>
+</element>
+
+<element name="EChannelClosedException">
+  <short>Exception raised when <var>Send</var> is called on a closed channel or <var>Receive</var> is called on a closed and empty channel.</short>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
+

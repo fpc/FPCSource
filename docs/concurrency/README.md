@@ -8,12 +8,15 @@
 | Файл / тека | Зміст |
 |---|---|
 | `concurrency-guide.pdf` | **Що нового**: огляд змін, порівняння та приклади (генерується `build_pdf.py`) |
-| `guide-system-threading.md` | **Посібник користувача `System.Threading`**: API, шаблони використання (`For`, `Break`/`Stop`, `Join`, `IFuture`, `WaitForAll`/`WaitForAny`, `TThreadPool`), правила безпеки |
-| `examples/` | Приклади з документації (`parallel_for.pp`, `tasks.pp`, `pool_lifetime.pp`, `valgrind_annotate.pp`, `primes_*`, `report_*`, `batch_processing.pp`, `showcase_pipeline.pp`); кожен компілюється й запускається |
+| `guide-system-threading.md` | **Посібник користувача `System.Threading`**: API, шаблони використання (`For`, `Break`/`Stop`, `Join`, `IFuture`, `ContinueWith`/`ThenBy`/`Map`, `TCancellationToken`, `WaitForAll`/`WaitForAny`, `TThreadPool`), правила безпеки |
+| `guide-syncobjs.md` | **Посібник користувача `SyncObjs` (Фаза 2)**: `TCountdownEvent`, `TBarrier`, `TSlimReaderWriterLock` (+ RAII-гарди), `TChannel<T>` (CSP-канали та `for..in`) |
+| `examples/` | Приклади з документації (`parallel_for.pp`, `tasks.pp`, `pool_lifetime.pp`, `valgrind_annotate.pp`, `primes_*`, `report_*`, `batch_processing.pp`, `showcase_pipeline.pp`, `syncobjs_phase2.pp`, `continuations_cancel.pp`); кожен компілюється й запускається |
 | `valgrind.md` | Перевірка гонок даних (helgrind/drd), анотації, відомі обмеження |
 | `baseline.md` | Базова лінія тестів trunk до наших змін (відомі падіння) |
-| `adr/` | Дизайн-рішення (ADR-0001: життєвий цикл потоків пулу; ADR-0002: клієнтські запити Valgrind; ADR-0003: детермінованість `TParallel.For` і `Join`) |
+| `adr/` | Дизайн-рішення (ADR-0001: життєвий цикл потоків пулу; ADR-0002: клієнтські запити Valgrind; ADR-0003: детермінованість `TParallel.For` і `Join`; ADR-0004: примітиви `SyncObjs` Фази 2; ADR-0005: неблокувальні продовження та `TCancellationToken`) |
+| `roadmap-improvements.md` | **Дорожня карта розвитку FPC**: рекомендації щодо бібліотек багатопоточності (Фази 2–4), синтаксичної ергономіки компілятора, безпеки пам'яті та інструментарію |
 | `../../packages/fcl-base/xml/fpvalgrind.xml` | Довідник API `fpvalgrind` у стандартному форматі `fpdoc` |
+| `../../packages/fcl-base/xml/syncobjs-phase2.xml` | Довідник API нових примітивів `SyncObjs` (Фаза 2) у стандартному форматі `fpdoc` |
 | `../../packages/vcl-compat/xml/system.threading.xml` | Довідник API `System.Threading` у стандартному форматі `fpdoc` |
 | `../../CHANGELOG-concurrency.md` | Журнал змін гілки |
 

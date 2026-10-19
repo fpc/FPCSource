@@ -110,6 +110,18 @@
 <short>Requests cancellation of the task</short>
 </element>
 
+<element name="ITask.CheckCanceled">
+<short>Raises <var>EOperationCancelled</var> if cancellation has been requested for the task or its token</short>
+</element>
+
+<element name="ITask.ContinueWith">
+<short>Schedules a non-blocking continuation task that executes when this task finishes</short>
+<descr>
+<p><var>ContinueWith</var> attaches a continuation callback (<var>TProc&lt;ITask&gt;</var>) that is automatically scheduled on the thread pool (or executed inline when <var>TTaskContinuationOption.ExecuteSynchronously</var> is specified) once the antecedent task reaches a terminal state (<var>Completed</var>, <var>Canceled</var>, or <var>Exception</var>).</p>
+<p>Filter execution using <link id="TTaskContinuationOptions"/> (for example, <var>OnlyOnCompleted</var>, <var>OnlyOnFaulted</var>, or <var>OnlyOnCanceled</var>) and optionally associate a <link id="TCancellationToken"/>.</p>
+</descr>
+</element>
+
 <element name="ITask.Status">
 <short>Current execution status of the task (<var>TTaskStatus</var>)</short>
 </element>
@@ -118,10 +130,11 @@
 <element name="IFuture">
 <short>Generic interface representing an asynchronous computation that produces a typed value</short>
 <descr>
-<p><var>IFuture&lt;T&gt;</var> extends <link id="ITask"/> with a <link id="IFuture.Value">Value</link> property that waits for completion if necessary and returns the computed result of type <var>T</var> (or re-raises any captured exception).</p>
+<p><var>IFuture&lt;T&gt;</var> extends <link id="ITask"/> with a <link id="IFuture.Value">Value</link> property that waits for completion if necessary and returns the computed result of type <var>T</var> (or re-raises any captured exception), as well as non-blocking continuation methods (<link id="IFuture.ContinueWith"/>, <link id="IFuture.Map"/>, and <link id="TITaskHelper.ThenBy"/>).</p>
 </descr>
 <seealso>
 <link id="TTask.Future"/>
+<link id="TITaskHelper.ThenBy"/>
 <link id="ITask"/>
 </seealso>
 </element>
@@ -130,25 +143,141 @@
 <short>Waits for the computation to finish and returns its result</short>
 </element>
 
+<element name="IFuture.ContinueWith">
+<short>Schedules a non-blocking continuation receiving the completed <var>IFuture&lt;T&gt;</var></short>
+</element>
+
+<element name="IFuture.Map">
+<short>Schedules a non-blocking transformation of type <var>T -&gt; T</var> returning a new <var>IFuture&lt;T&gt;</var></short>
+</element>
+
+<!-- record Visibility: default -->
+<element name="TCancellationTokenRegistration">
+<short>Handle representing a callback registered with a <var>TCancellationToken</var></short>
+<descr>
+<p>Call <link id="TCancellationTokenRegistration.Unregister">Unregister</link> (or <var>Dispose</var>) to detach the callback before the token is canceled.</p>
+</descr>
+</element>
+
+<element name="TCancellationTokenRegistration.Unregister">
+<short>Unregisters the associated cancellation callback</short>
+</element>
+
+<!-- record Visibility: default -->
+<element name="TCancellationToken">
+<short>Lightweight value token for cooperative cancellation of tasks, futures, and parallel loops</short>
+<descr>
+<p><var>TCancellationToken</var> is a lightweight, thread-safe value type obtained from <link id="TCancellationTokenSource.Token"/> (or <link id="TCancellationToken.None"/> for a non-cancelable token). Pass the same token to <link id="TTask.Run"/>, <link id="TTask.Future"/>, <link id="TParallel.For"/>, <link id="TParallel.Join"/>, or <link id="ITask.ContinueWith"/> to coordinate cancellation across an entire tree of asynchronous operations.</p>
+<p>Tasks created inside an executing parent task automatically inherit the parent task's ambient <var>TCancellationToken</var> unless an explicit token is supplied.</p>
+</descr>
+<seealso>
+<link id="TCancellationTokenSource"/>
+<link id="TCancellationTokenRegistration"/>
+</seealso>
+</element>
+
+<element name="TCancellationToken.None">
+<short>Returns an empty token that can never be canceled (<var>CanBeCanceled = False</var>)</short>
+</element>
+
+<element name="TCancellationToken.CanBeCanceled">
+<short><var>True</var> if the token is backed by a <var>TCancellationTokenSource</var></short>
+</element>
+
+<element name="TCancellationToken.IsCancellationRequested">
+<short>Lock-free atomic check returning <var>True</var> once cancellation has been requested</short>
+</element>
+
+<element name="TCancellationToken.WaitHandle">
+<short>Kernel event (<var>TEvent</var>) signaled when the token is canceled</short>
+</element>
+
+<element name="TCancellationToken.ThrowIfCancellationRequested">
+<short>Raises <var>EOperationCancelled</var> if <var>IsCancellationRequested</var> is <var>True</var></short>
+</element>
+
+<element name="TCancellationToken.Register">
+<short>Registers a callback invoked immediately upon cancellation (or synchronously if already canceled)</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TCancellationTokenSource">
+<short>Controller that issues a <var>TCancellationToken</var> and signals cooperative cancellation</short>
+<descr>
+<p><var>TCancellationTokenSource</var> manages the shared reference-counted cancellation state behind one or more <link id="TCancellationToken"/> instances. Call <link id="TCancellationTokenSource.Cancel">Cancel</link> for immediate cancellation, <link id="TCancellationTokenSource.CancelAfter">CancelAfter</link> (or the timed constructor) for deadline-based timeout cancellation, or <link id="TCancellationTokenSource.CreateLinkedTokenSource">CreateLinkedTokenSource</link> to combine multiple tokens into a composite source.</p>
+</descr>
+<seealso>
+<link id="TCancellationToken"/>
+</seealso>
+</element>
+
+<element name="TCancellationTokenSource.Cancel">
+<short>Transitions the token to the canceled state, signals <var>WaitHandle</var>, and invokes registered callbacks</short>
+</element>
+
+<element name="TCancellationTokenSource.CancelAfter">
+<short>Schedules automatic cancellation after the specified delay in milliseconds</short>
+</element>
+
+<element name="TCancellationTokenSource.CreateLinkedTokenSource">
+<short>Creates a composite token source that cancels automatically when any input token is canceled</short>
+</element>
+
+<element name="TCancellationTokenSource.Reset">
+<short>Reinitializes the source with a fresh, uncanceled state for reuse</short>
+</element>
+
+<element name="TCancellationTokenSource.Token">
+<short>Returns the <var>TCancellationToken</var> linked to this source</short>
+</element>
+
+<!-- enumeration Visibility: default -->
+<element name="TTaskContinuationOption">
+<short>Flags controlling when and how a task continuation executes</short>
+<descr>
+<p>Combine values in <var>TTaskContinuationOptions</var> (or use the predefined constants <var>OnlyOnCompleted</var>, <var>OnlyOnFaulted</var>, <var>OnlyOnCanceled</var>, and <var>ExecuteSynchronously</var>) to filter continuation execution based on the antecedent task's terminal status.</p>
+</descr>
+</element>
+
+<!-- helper Visibility: default -->
+<element name="TITaskHelper">
+<short>Type helper on <var>ITask</var> (and <var>IFuture&lt;T&gt;</var>) providing generic <var>ThenBy</var> pipeline methods</short>
+<descr>
+<p><var>TITaskHelper</var> extends <link id="ITask"/> and <link id="IFuture"/> with strongly-typed <link id="TITaskHelper.ThenBy">ThenBy</link> methods for composing non-blocking asynchronous pipelines without blocking pool threads in <var>.Wait</var> or <var>.Value</var>.</p>
+</descr>
+</element>
+
+<element name="TITaskHelper.ThenBy">
+<short>Chains a typed asynchronous transformation onto an <var>ITask</var> or <var>IFuture&lt;T&gt;</var>, returning <var>IFuture&lt;TResult&gt;</var></short>
+<descr>
+<p><var>ThenBy</var> schedules a continuation function after the antecedent task or future completes. If the antecedent faults with an exception, <var>ThenBy</var> skips the transformation body and automatically propagates the exception to the returned <var>IFuture&lt;TResult&gt;</var>. If the antecedent is canceled, the returned future transitions to <var>TTaskStatus.Canceled</var>.</p>
+</descr>
+</element>
+
 <!-- object Visibility: default -->
 <element name="TTask">
 <short>Factory and implementation class for asynchronous tasks and futures</short>
 <descr>
-<p><var>TTask</var> provides class methods to create and start tasks (<link id="TTask.Run"/>, <link id="TTask.Create"/>), start typed asynchronous functions (<link id="TTask.Future"/>), and synchronize across task arrays (<link id="TTask.WaitForAll"/>, <link id="TTask.WaitForAny"/>).</p>
+<p><var>TTask</var> provides class methods to create and start tasks (<link id="TTask.Run"/>, <link id="TTask.Create"/>), start typed asynchronous functions (<link id="TTask.Future"/>), chain typed continuations (<link id="TTask.ThenBy"/>), and synchronize across task arrays (<link id="TTask.WaitForAll"/>, <link id="TTask.WaitForAny"/>).</p>
 </descr>
 <seealso>
 <link id="ITask"/>
 <link id="IFuture"/>
+<link id="TCancellationToken"/>
 <link id="TParallel"/>
 </seealso>
 </element>
 
 <element name="TTask.Run">
-<short>Creates and immediately starts an asynchronous task</short>
+<short>Creates and immediately starts an asynchronous task (optionally bound to a <var>TCancellationToken</var>)</short>
 </element>
 
 <element name="TTask.Future">
 <short>Creates and immediately starts a typed asynchronous function returning <var>IFuture&lt;T&gt;</var></short>
+</element>
+
+<element name="TTask.ThenBy">
+<short>Chains a typed transformation <var>TFunc1&lt;T, TResult&gt;</var> onto an antecedent task or future</short>
 </element>
 
 <element name="TTask.WaitForAll">
@@ -177,7 +306,7 @@
 <short>Executes a loop range (<var>Integer</var> or <var>Int64</var>) in parallel across the thread pool</short>
 <descr>
 <p><var>TParallel.For</var> partitions the inclusive range <var>[aLowInclusive..aHighInclusive]</var> into dynamically sized strides. Each worker claims a range atomically together with the stride value for that batch, ensuring that every iteration in a completed loop executes <b>exactly once</b>.</p>
-<p>Overloads accepting a <link id="TParallel.TLoopState"/> parameter provide each worker replica with its own state instance to request early loop termination via <link id="TParallel.TLoopState.Break">Break</link> (ordered: all iterations below the lowest break index still run) or <link id="TParallel.TLoopState.Stop">Stop</link> (immediate: all replicas exit as soon as possible).</p>
+<p>Overloads accepting a <link id="TParallel.TLoopState"/> parameter provide each worker replica with its own state instance to request early loop termination via <link id="TParallel.TLoopState.Break">Break</link> (ordered: all iterations below the lowest break index still run) or <link id="TParallel.TLoopState.Stop">Stop</link> (immediate: all replicas exit as soon as possible). Overloads accepting a <link id="TCancellationToken"/> cooperatively stop claiming new strides and set <var>Completed = False</var> when the token is canceled.</p>
 <p>If one or more iterations raise an exception, the loop transitions to the faulted state, stops scheduling new iterations, collects the exceptions from all worker replicas, and raises a flattened <link id="EAggregateException"/> in the calling thread.</p>
 </descr>
 </element>
@@ -185,7 +314,7 @@
 <element name="TParallel.Join">
 <short>Creates and starts a task that executes multiple procedures or events in parallel</short>
 <descr>
-<p><var>TParallel.Join</var> schedules an array of procedures (<var>TProcRef</var>) or <var>TNotifyEvent</var> handlers concurrently on the thread pool and returns the started <link id="ITask"/>. Call <var>.Wait</var> on the returned task to block until all joined procedures finish.</p>
+<p><var>TParallel.Join</var> schedules an array of procedures (<var>TProcRef</var>) or <var>TNotifyEvent</var> handlers concurrently on the thread pool (optionally bound to a <link id="TCancellationToken"/>) and returns the started <link id="ITask"/>. Call <var>.Wait</var> on the returned task to block until all joined procedures finish.</p>
 </descr>
 </element>
 
@@ -196,7 +325,7 @@
 <ul>
 <li><var>Break</var> records the current iteration index as a candidate for <var>LowestBreakIteration</var> and prevents workers from starting iterations above that index, while guaranteeing that all iterations prior to the lowest break index still execute.</li>
 <li><var>Stop</var> signals all worker threads to stop executing further iterations immediately; <var>LowestBreakIteration</var> remains <var>Null</var>.</li>
-<li><var>ShouldExit</var> returns <var>True</var> when any replica has called <var>Stop</var>, raised an exception, or called <var>Break</var> at an index lower than the current iteration.</li>
+<li><var>ShouldExit</var> returns <var>True</var> when any replica has called <var>Stop</var>, raised an exception, been canceled via <var>TCancellationToken</var>, or called <var>Break</var> at an index lower than the current iteration.</li>
 </ul>
 </descr>
 </element>

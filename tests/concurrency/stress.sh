@@ -6,7 +6,8 @@ N="${1:-50}"
 LIMIT="${2:-60}"
 RUNNER="${3:-$(dirname "$0")/out/testcompat}"
 SUITES="TTestTExceptionList TTestAggregateException TTestSparseArray TTestWorkStealingQueue
-TTestObjectCache TTestObjectCaches TTestThreading TTestTask TTestParallel"
+TTestObjectCache TTestObjectCaches TTestThreading TTestTask TTestParallel TTestSyncObjsPhase2
+TTestContinuationsAndCancellation"
 LOGDIR=$(mktemp -d)
 total_bad=0
 for s in $SUITES; do
