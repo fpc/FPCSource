@@ -62,7 +62,8 @@ uses
 {$IFDEF HAS_MONITOR}
   utcfpmonitor, tests.rtti.attrtypes2,
 {$ENDIF}
-   utcStrUtils
+   utcStrUtils,
+  utcVariants
   ;
 
 

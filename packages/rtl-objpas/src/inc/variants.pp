@@ -628,8 +628,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varInteger);
-      Result := dest.vinteger;
+      try
+        Handler.CastTo(dest, TVarData(v), varInteger);
+        Result := VariantToLongInt(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     Result := VariantToLongInt(TVarData(V));
@@ -647,8 +651,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varInt64);
-      Result := dest.vint64;
+      try
+        Handler.CastTo(dest, TVarData(v), varInt64);
+        Result := VariantToInt64(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     Result := VariantToInt64(TVarData(V));
@@ -667,8 +675,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varQWord);
-      Result := dest.vqword;
+      try
+        Handler.CastTo(dest, TVarData(v), varQWord);
+        Result := VariantToQWord(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     Result := VariantToQWord (TVarData(V));
@@ -687,8 +699,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varBoolean);
-      Result := dest.vboolean;
+      try
+        Handler.CastTo(dest, TVarData(v), varBoolean);
+        Result := VariantToBoolean(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     Result := VariantToBoolean(TVarData(V));
@@ -709,8 +725,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
   begin
     VariantInit(dest);
-    Handler.CastTo(dest, TVarData(v), varDouble);
-    Result := dest.vDouble;
+    try
+      Handler.CastTo(dest, TVarData(v), varDouble);
+      Result := VariantToDouble(dest);
+    finally
+      DoVarClear(dest);
+    end;
   end
   else
     Result := VariantToDouble(TVarData(V));
@@ -730,8 +750,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varCurrency);
-      Result := dest.vcurrency;
+      try
+        Handler.CastTo(dest, TVarData(v), varCurrency);
+        Result := VariantToCurrency(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     Result := VariantToCurrency(TVarData(V));
@@ -746,10 +770,12 @@ begin
   if result then
   begin
     VariantInit(temp);
-    handler.CastTo(temp, v, varString);
-    { out-semantic ensures that s is finalized,
-      so just copy the pointer and don't finalize the temp }
-    Pointer(s) := temp.vString;
+    try
+      handler.CastTo(temp, v, varString);
+      s := VariantToAnsiString(temp);
+    finally
+      DoVarClear(temp);
+    end;
   end;
 end;
 
@@ -787,8 +813,12 @@ begin
    else if FindCustomVariantType(TVarData(v).vType, Handler) then
     begin
       VariantInit(dest);
-      Handler.CastTo(dest, TVarData(v), varOleStr);
-      s:= dest.volestr;
+      try
+        Handler.CastTo(dest, TVarData(v), varOleStr);
+        s := VariantToWideString(dest);
+      finally
+        DoVarClear(dest);
+      end;
     end
   else
     S := VariantToWideString(TVarData(V));
@@ -867,8 +897,12 @@ begin
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
      begin
        VariantInit(dest);
-       Handler.CastTo(dest, TVarData(v), vardate);
-       Result := dest.vdate;
+       try
+         Handler.CastTo(dest, TVarData(v), vardate);
+         Result := VariantToDate(dest);
+       finally
+         DoVarClear(dest);
+       end;
      end
    else
     Result:=VariantToDate(TVarData(v));
@@ -1769,7 +1803,10 @@ begin
         Handler.BinaryOp(vl, vr, OpCode)
       else
         begin
-          DoVarCast(vl, vl, lType);
+          FillChar(lTemp, SizeOf(lTemp), 0);
+          DoVarCast(lTemp, vl, lType);
+          DoVarClear(vl);
+          vl := lTemp;
           if lType = Handler.VarType then
             Handler.BinaryOp(vl, vr, OpCode)
           else
