@@ -3440,7 +3440,8 @@ const
     (mask:pio_nested_access; str:'NestedAccess'),
     (mask:pio_thunk; str:'Thunk'),
     (mask:pio_fastmath; str:'FastMath'),
-    (mask:pio_inline_forbidden; str:'InlineForbidden')
+    (mask:pio_inline_forbidden; str:'InlineForbidden'),
+    (mask:pio_async; str:'Async')
   );
 var
   i: timplprocoption;

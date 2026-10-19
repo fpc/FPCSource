@@ -4022,6 +4022,35 @@ implementation
                consume(_ID);
                again:=true;
              end
+           else if (current_scanner.pattern='AWAIT') then
+             begin
+               consume(_ID);
+               p1:=factor(false,[]);
+               if assigned(p1) then
+                 begin
+                   do_typecheckpass(p1);
+                   if assigned(p1.resultdef) and
+                      (is_interface(p1.resultdef) or is_class(p1.resultdef) or (p1.resultdef.typ=recorddef)) then
+                     begin
+                       srsym:=search_struct_member(tabstractrecorddef(p1.resultdef),'VALUE');
+                       if assigned(srsym) then
+                         begin
+                           again:=false;
+                           do_member_read(tabstractrecorddef(p1.resultdef),false,srsym,p1,again,[],nil);
+                         end
+                       else
+                         begin
+                           srsym:=search_struct_member(tabstractrecorddef(p1.resultdef),'WAIT');
+                           if assigned(srsym) then
+                             begin
+                               again:=false;
+                               do_member_read(tabstractrecorddef(p1.resultdef),false,srsym,p1,again,[],nil);
+                             end;
+                         end;
+                     end;
+                 end;
+               again:=false;
+             end
            else
              factor_read_id(p1,again);
 
@@ -4629,6 +4658,8 @@ implementation
                  consume(_RKLAMMER);
                  p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
                end;
+
+
 
              _PROCEDURE,
              _FUNCTION:

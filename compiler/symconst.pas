@@ -474,7 +474,9 @@ type
     { compiled with fastmath enabled }
     pio_fastmath,
     { inline is forbidden (calls get_frame) }
-    pio_inline_forbidden
+    pio_inline_forbidden,
+    { asynchronous routine returning ITask / IFuture<T> }
+    pio_async
   );
   timplprocoptions = set of timplprocoption;
 

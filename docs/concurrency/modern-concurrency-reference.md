@@ -1,5 +1,5 @@
 # Довідник API та Посібник з Конкурентності у Free Pascal
-### Сучасна модель багатопоточності, синхронізації та реактивного I/O (Фази 1.1, 1.2, 1.3)
+### Сучасна модель багатопоточності, синхронізації, реактивного I/O та async/await (Фази 1.1, 1.2, 1.3, 1.4)
 
 Цей документ побудовано за стандартами документації **Microsoft Learn (C# / .NET Runtime)** та **Qt Documentation (Qt Concurrent / Qt Core)**. Він містить концептуальний опис, детальний опис класів та інтерфейсів, сигнатури методів, оцінку алгоритмічної складності, гарантії потокобезпеки, типові помилки та готові приклади коду для всіх введених примітивів.
 
@@ -26,8 +26,13 @@
    - [4.3. `TEventLoopGroup`: Multi-Reactor на 100 000+ з'єднань](#43-teventloopgroup)
    - [4.4. `IAsyncSocket` та `IAsyncServerSocket`](#44-iasyncsocket-та-iasyncserversocket)
    - [4.5. `IAsyncPipe`, `IAsyncFile` та `TAsyncBufferPool`](#45-iasyncpipe-iasyncfile-та-tasyncbufferpool)
-5. [Комплексний приклад: Наскрізний реактивний конвеєр](#5-комплексний-приклад-наскрізний-реактивний-конвеєр)
-6. [Правила безпеки, діагностика та Valgrind](#6-правила-безпеки-діагностика-та-valgrind)
+5. [Пакет `fcl-async` та Компілятор: Корутини, Файбери та async/await (Фаза 1.4)](#5-пакет-fcl-async-та-компілятор-корутини-файбери-та-asyncawait-фаза-14)
+   - [5.1. `TFiber`: Стекові корутини поверх EventLoop та IFuture](#51-tfiber-стекові-корутини-поверх-eventloop-та-ifuture)
+   - [5.2. `generic TGenerator<T>`: Ледачі послідовності та for..in](#52-generic-tgeneratort-ледачі-послідовності-та-forin)
+   - [5.3. `TTaskCompletionSource<T>` та скінченні автомати](#53-ttaskcompletionsourcet-та-скінченні-автомати)
+   - [5.4. Компілятор: Директива `async` та оператор `await`](#54-компілятор-директива-async-та-оператор-await)
+6. [Комплексний приклад: Наскрізний реактивний конвеєр](#6-комплексний-приклад-наскрізний-реактивний-конвеєр)
+7. [Правила безпеки, діагностика та Valgrind](#7-правила-безпеки-діагностика-та-valgrind)
 
 ---
 
@@ -67,6 +72,9 @@
 | **Часте читання з рідкісним оновленням даних** | `TSlimReaderWriterLock` + `TSlimReadLockGuard` | Lock-free атомарний швидкий шлях у просторі користувача, нуль системних викликів, захист від голодування записувачів. | `TCriticalSection` (серіалізує читачів) або `pthread_rwlock` (повільний syscall). |
 | **Передавання повідомлень між потоками (CSP)** | `generic TChannel<T>` | Буферизований або небуферизований канал, backpressure, безпечне закриття, `for Msg in Channel do`. | Ручна черга на базі `TList` + `TCriticalSection` (ризик дедлоку, відсутність backpressure). |
 | **Мережевий сервер із 10 000 – 100 000+ клієнтів** | `fcl-eventloop` (`TEventLoopGroup`) | Нативні `epoll` / `io_uring` / `kqueue` / `IOCP`, витрата пам'яті ~2 КБ на клієнта, не потребує окремого стеку потоку на з'єднання. | Модель thread-per-connection (`ssockets` / блокуючі сокети — падіння ядра через вичерпання пам'яті). |
+| **Стекові корутини (user-space fibers) та послідовний асинхронний I/O** | `TFiber` (`fcl-async`) | Швидке перемикання контексту AMD64 (10 нс), неблокуючий `TFiber.Await<T>`, `Sleep` через EventLoop. | Жорсткий паралелізм (файбер виконується на одному потоці до `Yield`). |
+| **Ледачі послідовності з підтримкою `for..in`** | `generic TGenerator<T>` (`fcl-async`) | Генератор зі зворотним викликом `YieldValue`, сумісний з `IEnumerator<T>`. | Важкі міжпотокові конвеєри (використовуйте `TChannel<T>`). |
+| **Природний асинхронний код без callback hell** | `async` / `await` (компілятор trunk) | Процедурна директива `async`, оператор `await` розгортає `IFuture<T>.Value` або очікує `ITask.Wait`. | Блокуючі системні виклики. |
 
 ---
 
@@ -657,7 +665,123 @@ type
 
 ---
 
-## 5. Комплексний приклад: Наскрізний реактивний конвеєр
+## 5. Пакет `fcl-async` та Компілятор: Корутини, Файбери та async/await (Фаза 1.4)
+
+Пакет `fcl-async` (`packages/fcl-async/`) разом із доопрацюваннями компілятора FPC trunk реалізує гібридну модель асинхронного програмування:
+1. **Бібліотечні стекові корутини (`TFiber`)**: надшвидке перемикання контексту у System V AMD64 ABI (до 10 нс), вирівнювання стеку за 16-байтним стандартом, ізоляція системних стеків винятків FPC (`ExceptAddrStack`, `ExceptObjectStack`) через dynamic threadvar relocation та безпечна міграція файберів між системними потоками ОС.
+2. **Генератори (`TGenerator<T>`)**: ледачі послідовності з методом `YieldValue`, сумісні з інтерфейсами `IEnumerator<T>` / `IEnumerable<T>` та синтаксисом `for..in`.
+3. **Фундамент скінченних автоматів (`TTaskCompletionSource<T>`, `TAsyncTaskMethodBuilder<T>`)**: реалізація C# Roslyn-сумісного контракту обіцянок.
+4. **Компіляторні директиви `async` та оператор `await`**: процедурний модифікатор `async` у `timplprocoption` та контекстний оператор `await`, який автоматично розгортає значення `IFuture<T>.Value` або очікує завершення `ITask.Wait`.
+
+### 5.1. `TFiber`: Стекові корутини поверх EventLoop та IFuture
+
+```pascal
+type
+  TFiberState = (fsCreated, fsRunning, fsSuspended, fsCompleted, fsFaulted);
+  TFiberProc = procedure of object;
+
+  TFiber = class
+  public
+    constructor Create(AProc: TFiberProc; AStackSize: Cardinal = 128 * 1024; ALoop: IEventLoop = nil);
+    destructor Destroy; override;
+    procedure Resume;
+    class procedure Yield;
+    class function Await<T>(const AFuture: specialize IFuture<T>): T;
+    class procedure Await(const ATask: ITask);
+    class procedure Sleep(AMilliseconds: Cardinal; ALoop: IEventLoop = nil);
+    property State: TFiberState read FState;
+  end;
+```
+
+#### Приклад: Неблокуюче очікування Future у файбері
+```pascal
+TFiber.Create(
+  procedure
+  var
+    Fut: specialize IFuture<string>;
+    ResultStr: string;
+  begin
+    Fut := TTask.specialize Future<string>(
+      function: string
+      begin
+        Sleep(50);
+        Result := 'Обчислення завершено';
+      end);
+
+    // Файбер призупиняється (yield) і звільняє потік ОС до завершення Future
+    ResultStr := TFiber.specialize Await<string>(Fut);
+    WriteLn('Отримано: ', ResultStr);
+  end).Resume;
+```
+
+### 5.2. `generic TGenerator<T>`: Ледачі послідовності та for..in
+
+```pascal
+type
+  TIntGen = specialize TGenerator<Integer>;
+
+procedure Fibonacci(const Yield: TIntGen.TYieldProc);
+var
+  A, B, Temp, I: Integer;
+begin
+  A := 0; B := 1;
+  for I := 1 to 10 do
+  begin
+    Yield(B);
+    Temp := A + B; A := B; B := Temp;
+  end;
+end;
+
+var
+  Gen: TIntGen;
+  Val: Integer;
+begin
+  Gen := TIntGen.Create(@Fibonacci);
+  try
+    for Val in Gen do
+      Write(Val, ' ');
+    WriteLn;
+  finally
+    Gen.Free;
+  end;
+end;
+```
+
+### 5.3. `TTaskCompletionSource<T>` та скінченні автомати
+
+`TTaskCompletionSource<T>` створює об'єкт `specialize IFuture<T>`, чий результат може бути виставлений пізніше через `.SetResult(Value)`, `.SetException(Ex)` або `.SetCanceled`.
+
+### 5.4. Компілятор: Директива `async` та оператор `await`
+
+У компіляторі trunk `compiler/ppcx64`:
+- Процедурна директива `async` маркує процедури та функції, що повертають `ITask` або `specialize IFuture<T>`:
+  ```pascal
+  procedure BackgroundTask; async;
+  begin
+    WriteLn('Асинхронний метод');
+  end;
+
+  function FetchNumberAsync: specialize IFuture<Integer>; async;
+  begin
+    Result := TTask.specialize Future<Integer>(
+      function: Integer begin Result := 42; end);
+  end;
+  ```
+- Оператор `await <expr>` розпаковує типізовані `IFuture<T>` або очікує виконання `ITask`:
+  ```pascal
+  var
+    V: Integer;
+    T: ITask;
+  begin
+    V := await FetchNumberAsync; // V отримує значення Integer безпосередньо
+    T := TTask.Run(procedure begin DoWork; end);
+    await T;                     // Очікує завершення задачі
+  end;
+  ```
+
+---
+
+## 6. Комплексний приклад: Наскрізний реактивний конвеєр
 
 Поєднання **`fcl-eventloop`** (отримання даних із мережі), **`TChannel<T>`** (безпечний буфер передавання) та **`System.Threading`** (паралельна обробка в пулі потоків):
 
@@ -740,7 +864,7 @@ end.
 
 ---
 
-## 6. Правила безпеки, діагностика та Valgrind
+## 7. Правила безпеки, діагностика та Valgrind
 
 1. **Не блокуйте потік Event Loop**: Усі тривалі обчислення, звернення до БД або блокуючий I/O передавайте у `TTask.Run` або `TChannel<T>`. Потік реактора повинен лише пересилати байти.
 2. **Уникайте захоплення змінних циклу за посиланням**: В анонімних функціях усередині циклів копіюйте лічильник у локальну змінну (`var LocalI := I;`) або використовуйте параметри процедури.

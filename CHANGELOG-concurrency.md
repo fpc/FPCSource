@@ -173,3 +173,18 @@
   - Неблокуючі конвеєри (`TAsyncPipe`) та потоковий файловий ввід/вивід (`TAsyncFile`).
   - Пул попередньо виділених буферів `TAsyncBufferPool` для виключення фрагментації пам'яті при високих навантаженнях C100K+.
   - 15 модульних тестів у `packages/fcl-eventloop/tests/`, стрес-скрипт `tests/concurrency/stress-eventloop.sh`, приклад-бенчмарк `docs/concurrency/examples/eventloop_benchmark.pp`, fpdoc-опис `packages/fcl-eventloop/xml/fcleventloop.xml` та ADR-0006.
+- **Фаза 1.4 (`packages/fcl-async/` та компілятор `compiler/ppcx64`) — корутини, файбери та async / await:**
+  - **Крок 1 (бібліотечний)**: новий пакет `fcl-async` (`packages/fcl-async/`):
+    - `TFiber` (`async.fiber.pp`): легковагові стекові корутини (user-space fibers) для System V AMD64 ABI з надшвидким перемиканням контексту на вбудованому асемблері (`FiberSwitchContext`), збереженням і відновленням callee-saved регістрів (`%rbx, %rbp, %r12-%r15`) та покажчика стеку `%rsp` (<10 нс).
+    - Гарантоване 16-байтне вирівнювання стеку корутини згідно з System V AMD64 ABI (`%rsp % 16 == 8` на вході в процедуру), що запобігає апаратним аваріям інструкцій SSE/AVX (`movaps`).
+    - Динамічна релокація глобальних змінних threadvar винятків FPC (`ExceptAddrStack`, `ExceptObjectStack`) через `FPC_THREADVAR_RELOCATE`, повна симетрична ізоляція стеку винятків для кожного файбера та безпечна міграція файбера між різними потоками ОС.
+    - Методи `TFiber.Await<T>(IFuture<T>)` та `TFiber.Await(ITask)` для неблокуючого призупинення корутини без блокування системного потоку ОС, `TFiber.Sleep(ms, loop)` через таймери `fcl-eventloop` та неблокуюче читання/запис сокетів `TFiber.AwaitRead` / `TFiber.AwaitWrite`.
+    - `generic TGenerator<T>` (`async.generator.pp`): ледачі генератори послідовностей на базі корутин із зворотним викликом `YieldValue`, повною підтримкою `IEnumerator<T>` / `IEnumerable<T>` та прямим обходом у циклі `for..in`.
+    - Фундамент скінченних автоматів (`async.statemachine.pp`): `generic TTaskCompletionSource<TResult>` (`Task`, `SetResult`, `SetException`, `SetCanceled`), `TAsyncTaskMethodBuilder<TResult>` та `TAsyncTaskBuilder` за контрактом C# Roslyn.
+    - Модульні тести `packages/fcl-async/tests/utasync.pp` (12 тестів: `TTestFibers`, `TTestGenerators`, `TTestStateMachines`), скрипт `tests/concurrency/build-async.sh`.
+  - **Крок 2 (у компіляторі `compiler/ppcx64`)**:
+    - Додано процедурний модифікатор/директиву `async` (`pio_async` у `timplprocoption` в `compiler/symconst.pas`, парсер `compiler/pdecsub.pas`) для маркування процедур та функцій, що повертають `ITask` або `specialize IFuture<T>`.
+    - Додано контекстний оператор `await` (`compiler/pexpr.pas`) для очікування майбутніх задач у виразах (`Val := await Future;` автоматично читає властивість `.Value`) та задачах (`await Task;` викликає `.Wait`).
+    - Збережено 100% сумісність двійкових файлів PPU (`tppuset1` / `tppuset8`) та чинних модулів RTL завдяки контекстному аналізу без додавання зарезервованих слів у загальний лексер.
+  - Демонстраційний приклад `docs/concurrency/examples/coroutine_showcase.pp`, посібник користувача `docs/concurrency/guide-async.md` та оновлений повний довідник `docs/concurrency/modern-concurrency-reference.md`.
+

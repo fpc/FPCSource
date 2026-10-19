@@ -1,56 +1,47 @@
-{$ifndef ALLPACKAGES}
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2026 by the Free Pascal development team
+
+    fpmake.pp for fcl-async package
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+}
+
 {$mode objfpc}{$H+}
+
 program fpmake;
 
-uses {$ifdef unix}cthreads,{$endif} fpmkunit;
+uses fpmkunit;
 
-Var
-  T : TTarget;
-  P : TPackage;
+var
+  P: TPackage;
+  T: TTarget;
 begin
-  With Installer do
-    begin
-{$endif ALLPACKAGES}
+  with Installer do
+  begin
+    P := AddPackage('fcl-async');
+    P.ShortName := 'fclasyn';
+    P.Description := 'Coroutines, Fibers, and Async State Machines for Free Pascal';
+    P.Version := '3.3.1';
+    P.Author := 'Free Pascal development team';
+    P.License := 'LGPL with modification';
+    P.HomepageURL := 'http://www.freepascal.org/';
 
-    P:=AddPackage('fcl-async');
-    P.ShortName:='fcla';
-{$ifdef ALLPACKAGES}
-    P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
-    P.Version:='3.3.1';
-
-    P.Author := 'Mostly Sebastian Guenther';
-    P.License := 'LGPL with modification, ';
-    P.HomepageURL := 'www.freepascal.org';
-    P.Email := '';
-    P.Description := 'Asynchronous event management of Free Component Libraries (FCL), FPC''s OOP library.';
-    P.NeedLibC:= false;
-    P.OSes:=AllUnixOses;
-    if Defaults.CPU=jvm then
-      P.OSes := P.OSes - [java,android];
+    P.Dependencies.Add('rtl-extra');
+    P.Dependencies.Add('vcl-compat');
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-eventloop');
 
     P.SourcePath.Add('src');
-    P.SourcePath.Add('src/unix',AllUnixOSes);
-    P.SourcePath.Add('src/win',AllWindowsOSes);
-    P.SourcePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src');
-    T:=P.Targets.AddUnit('fpasync.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('libasync');
-        end;
-    T:=P.Targets.AddUnit('libasync.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddInclude('libasynch.inc');
-          AddInclude('libasync.inc');
-        end;
 
+    T := P.Targets.AddUnit('async.types.pp');
+    T := P.Targets.AddUnit('async.fiber.pp');
+    T := P.Targets.AddUnit('async.generator.pp');
+    T := P.Targets.AddUnit('async.statemachine.pp');
+    T := P.Targets.AddUnit('fclasync.pp');
 
-    P.NamespaceMap:='namespaces.lst';
-
-{$ifndef ALLPACKAGES}
     Run;
-    end;
+  end;
 end.
-{$endif ALLPACKAGES}

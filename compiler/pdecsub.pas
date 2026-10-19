@@ -3163,6 +3163,14 @@ var
       { Check if the procedure directive is known }
         if p=-1 then
          begin
+           if current_scanner.pattern='ASYNC' then
+             begin
+               consume(_ID);
+               if assigned(pd) and (pd.typ=procdef) then
+                 include(tprocdef(pd).implprocoptions,pio_async);
+               parse_proc_direc:=true;
+               exit;
+             end;
             { parsing a procvar type the name can be any
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
