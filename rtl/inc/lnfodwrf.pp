@@ -1714,11 +1714,15 @@ var
   found, found_aranges : Boolean;
   er: TEReader;
   abbrevs: TAbbrevs; { To reuse allocations between ParseCompilationUnitForFunctionName calls. }
+{$ifdef has_LineInfoCache}
+  lCacheAddr : CodePointer;
+{$endif has_LineInfoCache}
 
 begin
 {$ifdef has_LineInfoCache}
+  lCacheAddr := CodePointer(addr);
   Lock(LiCacheLock);
-  result := liCache.TryGet(CodePointer(addr), func, source, line);
+  result := liCache.TryGet(lCacheAddr, func, source, line);
   Unlock(LiCacheLock);
   if result then exit((func <> '') or (source <> '') or (line <> 0));
 {$endif has_LineInfoCache}
@@ -1734,7 +1738,7 @@ begin
     Unlock(DwarfLock);
   {$ifdef has_LineInfoCache}
     Lock(LiCacheLock);
-    liCache.Put(CodePointer(addr), '', '', 0); { Cache the failure, too; in particular, on Win64 some frames above main() point into kernel32 or something. }
+    liCache.Put(lCacheAddr, '', '', 0); { Cache the failure, too; in particular, on Win64 some frames above main() point into kernel32 or something. }
     Unlock(LiCacheLock);
   {$endif has_LineInfoCache}
     exit;
@@ -1817,7 +1821,7 @@ begin
 
 {$ifdef has_LineInfoCache}
   Lock(LiCacheLock);
-  liCache.Put(CodePointer(addr), func, source, line);
+  liCache.Put(lCacheAddr, func, source, line);
   Unlock(LiCacheLock);
 {$endif has_LineInfoCache}
   LookupLineInfo:=true;
