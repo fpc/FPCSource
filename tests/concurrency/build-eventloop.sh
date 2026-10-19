@@ -11,3 +11,4 @@ rm -f "$OUT"/*.ppu "$OUT"/*.o
   "$ROOT/packages/fcl-eventloop/tests/testeventloop.lpr"
 rm -f "$FPC_CFG"
 echo "Готово: $OUT/testeventloop"
+

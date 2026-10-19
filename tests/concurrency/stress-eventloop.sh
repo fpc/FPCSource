@@ -25,3 +25,4 @@ for s in $SUITES; do
 done
 if [ $total_bad -eq 0 ]; then rm -rf "$LOGDIR"; echo "УСЕ ГАРАЗД: fcl-eventloop пройшов стрес-тест"; else echo "ПРОБЛЕМИ: логи в $LOGDIR"; fi
 [ $total_bad -eq 0 ]
+

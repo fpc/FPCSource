@@ -7,6 +7,7 @@
 
 | Файл / тека | Зміст |
 |---|---|
+| `modern-concurrency-reference.md` | **Повний довідник API (у стилі MSDN / Qt Docs)**: єдиний систематизований посібник з архітектурою, порівняльною матрицею («When to use what»), детальним описом усіх нових класів, сигнатурами методів, гарантіями потокобезпеки, RAII-гардами, прикладами та реактивними конвеєрами |
 | `concurrency-guide.pdf` | **Що нового**: огляд змін, порівняння та приклади (генерується `build_pdf.py`) |
 | `guide-system-threading.md` | **Посібник користувача `System.Threading`**: API, шаблони використання (`For`, `Break`/`Stop`, `Join`, `IFuture`, `ContinueWith`/`ThenBy`/`Map`, `TCancellationToken`, `WaitForAll`/`WaitForAny`, `TThreadPool`), правила безпеки |
 | `guide-syncobjs.md` | **Посібник користувача `SyncObjs` (Фаза 2)**: `TCountdownEvent`, `TBarrier`, `TSlimReaderWriterLock` (+ RAII-гарди), `TChannel<T>` (CSP-канали та `for..in`) |
