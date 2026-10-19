@@ -2587,7 +2587,7 @@ constructor EUpdateError.Create(NativeError, Context : String;
                                 ErrCode, PrevError : integer; E: Exception);
 
 begin
-  Inherited CreateFmt(NativeError,[Context]);
+  Inherited Create(NativeError);
   FContext := Context;
   FErrorCode := ErrCode;
   FPreviousError := PrevError;

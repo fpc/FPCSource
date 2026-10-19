@@ -3716,7 +3716,7 @@ begin
   else
     ErrorCode := 0;
 
-  Result := EUpdateError.Create(SOnUpdateError, E.Message, ErrorCode, PrevErrorCode, E);
+  Result := EUpdateError.Create(Format(SOnUpdateError, [E.Message]), E.Message, ErrorCode, PrevErrorCode, E);
 end;
 
 function TCustomSQLQuery.PSGetTableName: string;
