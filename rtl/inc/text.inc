@@ -228,6 +228,7 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
+  TextRec(t)._private:=0;
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   { if no codepage is yet assigned then assign default ansi codepage }
@@ -437,6 +438,18 @@ Begin
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{ Refills the input buffer of t; _private becomes 1 when the consumed buffer ended inside a line, 0 when it ended with a line end }
+Procedure ReadTextBuf(var t : Text);
+Begin
+  if TextRec(t).BufEnd>0 then
+    if TextRec(t).Bufptr^[TextRec(t).BufEnd-1] in [#10,#13,#26] then
+      TextRec(t)._private:=0
+    else
+      TextRec(t)._private:=1;
+  FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+End;
+
+
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin
   If (InOutRes<>0) then
@@ -451,7 +464,7 @@ Begin
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
    begin
-     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+     ReadTextBuf(t);
      If TextRec(t).BufPos>=TextRec(t).BufEnd Then
       exit(true);
    end;
@@ -480,7 +493,7 @@ Begin
   repeat
     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
      begin
-       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+       ReadTextBuf(t);
        If TextRec(t).BufPos>=TextRec(t).BufEnd Then
         begin
           SeekEof := true;
@@ -527,7 +540,7 @@ Begin
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
    begin
-     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+     ReadTextBuf(t);
      If TextRec(t).BufPos>=TextRec(t).BufEnd Then
       exit(true);
    end;
@@ -558,7 +571,7 @@ Begin
   repeat
     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
      begin
-       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+       ReadTextBuf(t);
        If TextRec(t).BufPos>=TextRec(t).BufEnd Then
         exit(true);
      end;
@@ -1399,7 +1412,7 @@ begin
       end;
      Inc(TextRec(f).BufPos);
      If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-      FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+      ReadTextBuf(f);
      NextChar:=true;
    end;
 end;
@@ -1464,7 +1477,7 @@ begin
       exit;
     end;
   if TextRec(f).BufPos>=TextRec(f).BufEnd Then
-    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+    ReadTextBuf(f);
   CheckRead:=InOutRes=0;
 end;
 
@@ -1490,7 +1503,11 @@ begin
 
         IgnoreSpaces(f);
 
-        if BufPos >= BufEnd then Exit;
+        if BufPos >= BufEnd then
+        begin
+            _private := 0;
+            Exit;
+        end;
         if BufPtr^[BufPos] in ['+','-'] then
             NextChar(f,s);
 
@@ -1545,7 +1562,11 @@ begin
 
         IgnoreSpaces(f);
 
-        if BufPos >= BufEnd then Exit;
+        if BufPos >= BufEnd then
+        begin
+            _private := 0;
+            Exit;
+        end;
         if BufPtr^[BufPos] in ['+','-'] then
             NextChar(f,s);
 
@@ -1629,7 +1650,7 @@ Begin
     {$endif MACOS}
     if TextRec(f).BufPos>=TextRec(f).BufEnd Then
       begin
-        FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+        ReadTextBuf(f);
         if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
           { Flush if set }
           begin
@@ -1660,6 +1681,7 @@ Begin
   if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
     { Flush if set }
     begin
+      TextRec(f)._private:=0;
       if (TextRec(f).FlushFunc<>nil) then
         FileFunc(TextRec(f).FlushFunc)(TextRec(f));
       exit;
@@ -1684,10 +1706,11 @@ Begin
     {$endif MACOS}
     if TextRec(f).BufPos>=TextRec(f).BufEnd Then
       begin
-        FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+        ReadTextBuf(f);
         if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
           { Flush if set }
           begin
+           TextRec(f)._private:=0;
            if (TextRec(f).FlushFunc<>nil) then
              FileFunc(TextRec(f).FlushFunc)(TextRec(f));
            exit;
@@ -1728,7 +1751,7 @@ Begin
   repeat
     If TextRec(f).BufPos>=TextRec(f).BufEnd Then
      begin
-       FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+       ReadTextBuf(f);
        If TextRec(f).BufPos>=TextRec(f).BufEnd Then
          break;
      end;
@@ -1924,7 +1947,8 @@ Begin
     exit;
   If TextRec(f).BufPos>=TextRec(f).BufEnd Then
     begin
-      c:=' ';
+      { consumes the end of line implied at the end of the file }
+      TextRec(f)._private:=0;
       exit;
     end;
   c:=TextRec(f).Bufptr^[TextRec(f).BufPos];
