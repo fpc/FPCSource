@@ -4158,8 +4158,13 @@ writeln;
 {$if declared ( qword ) }
   operator := ( const i : qword ) z : tBCD; Inline;
 
+    var
+      v128 : Int128Rec;
+
     begin
-      z := IntegerToBCD ( myInttype ( i ) );
+      v128.Lo := i;
+      v128.Hi := 0;
+      z := Int128ToBCD ( v128 );
      end;
 
   operator := ( const BCD : tBCD ) z : qword; Inline;
@@ -4450,10 +4455,10 @@ function TFMTBcdFactory.GetInstance(const v : TVarData): tObject;
 
 
 function TFMTBcdFactory.LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean;
-// mantis 38496
 begin
-   if v.vtype in FloatVarTypes then  // floats can accept full result of a mixed float-bcd operation
-     RequiredVarType := v.vtype
+   // a Double left operand receives the result as Double
+   if v.vtype = varDouble then
+     RequiredVarType := varDouble
    else
      RequiredVarType := VarType;
    result:=true;
@@ -4542,8 +4547,12 @@ procedure TFMTBcdFactory.Copy(var Dest: TVarData; const Source: TVarData; const 
   end;
 
 procedure TFMTBcdFactory.Cast(var Dest: TVarData; const Source: TVarData);
+var b: TBCD;
 begin
-  not_implemented;
+  b:=VariantToBCD(Source);
+  VarDataClear(Dest);
+  Dest.VPointer:=TFMTBcdVarData.Create(b);
+  Dest.VType:=VarType;
 end;
 
 procedure TFMTBcdFactory.CastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
