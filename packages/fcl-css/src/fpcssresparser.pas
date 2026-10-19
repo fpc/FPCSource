@@ -2708,7 +2708,9 @@ begin
     for i:=0 to length(AllowedKeywordIDs)-1 do
       if KeywordID=AllowedKeywordIDs[i] then
       begin
-        if not ReadNext then
+        if ReadNext then
+          exit(false)
+        else
           exit(true);
       end;
   rtkFunction:

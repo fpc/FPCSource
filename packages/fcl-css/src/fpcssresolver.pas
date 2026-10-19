@@ -265,6 +265,8 @@ type
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
     Invalid: boolean;
     Tokens: TBytes; // tokenized value, the resolver has substituted all var() calls
+    Specificity: TCSSSpecificity;
+    Order: integer; // cascade merge sequence number, decides between equal specificities
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
 
@@ -4065,6 +4067,8 @@ begin
     Result.Values[Cnt]:=AttrValue;
     AttrValue.AttrID:=AttrID;
     AttrValue.Tokens:=AttrP^.Tokens;
+    AttrValue.Specificity:=AttrP^.Specificity;
+    AttrValue.Order:=AttrP^.Order;
     //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID);
     AttrID:=AttrP^.Next;
     inc(Cnt);
