@@ -1310,6 +1310,13 @@ begin
 end;
 
 
+{$ifndef FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{$define FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{ fpc_Val_UInt_Shortstr callable from the ansistring, widestring and unicodestring variants }
+Function int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2} Const S: ShortString; out Code: ValSInt): ValUInt; [external name 'FPC_VAL_UINT_SHORTSTR'];
+{$endif FPC_HAS_INT_VAL_UINT_SHORTSTR}
+
+
 {$ifndef CPU64}
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;

@@ -960,7 +960,7 @@ begin
   else
     begin
       SS := S;
-      Val(SS,fpc_Val_UInt_AnsiStr,code);
+      fpc_Val_UInt_AnsiStr := int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize,{$endif VER3_2}SS,Code);
     end;
 end;
 

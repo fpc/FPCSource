@@ -361,6 +361,12 @@ end;
 Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [external name 'fpc_val_sint_shortstr'];
 {$endif FPC_HAS_INT_VAL_SINT_SHORTSTR}
 
+{$ifndef FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{$define FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{ fpc_Val_UInt_Shortstr callable from the ansistring and unicodestring variants }
+Function int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2} Const S: ShortString; out Code: ValSInt): ValUInt; [external name 'fpc_val_uint_shortstr'];
+{$endif FPC_HAS_INT_VAL_UINT_SHORTSTR}
+
 
 {$define FPC_HAS_SETSTRING_SHORTSTR}
 Procedure fpc_setstring_shortstr(Out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); compilerproc;

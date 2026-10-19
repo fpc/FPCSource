@@ -835,7 +835,7 @@ begin
   else
     begin
       SS:=ShortString(S);
-      Val(SS,fpc_Val_UInt_WideStr,code);
+      fpc_Val_UInt_WideStr := int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize,{$endif VER3_2}SS,Code);
     end;
 end;
 
