@@ -562,7 +562,8 @@ interface
          m_statement_expressions, { if-, case-, try-except-expression }
          m_reordered_operators,  { reordered operators, e.g. "a is not b", "a not in b" }
          m_type_inquiry,         { compile time operator "type of <operand>" }
-         m_record_composition    { enables record composition }
+         m_record_composition,   { enables record composition }
+         m_implicit_generics     { allow omitting specialize in objfpc mode and generic type inference }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -774,7 +775,8 @@ interface
          'STATEMENTEXPRESSIONS',
          'REORDEREDOPERATORS',
          'TYPEINQUIRY',
-         'RECORDCOMPOSITION'
+         'RECORDCOMPOSITION',
+         'IMPLICITGENERICS'
          );
 
 

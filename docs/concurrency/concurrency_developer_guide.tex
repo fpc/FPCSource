@@ -1,0 +1,620 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{DejaVu Sans}
+\setmonofont[Scale=0.88]{DejaVu Sans Mono}
+
+\usepackage[a4paper,margin=20mm,top=24mm,bottom=24mm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+% --- Кольорова палітра ---
+\definecolor{primary}{HTML}{0969DA}
+\definecolor{primarydark}{HTML}{0B5CAD}
+\definecolor{ink}{HTML}{1F2328}
+\definecolor{muted}{HTML}{57606A}
+\definecolor{codebg}{HTML}{F6F8FA}
+\definecolor{codeframe}{HTML}{D0D7DE}
+\definecolor{keywordcolor}{HTML}{CF222E}
+\definecolor{stringcolor}{HTML}{0A3069}
+\definecolor{commentcolor}{HTML}{6E7781}
+\definecolor{tipborder}{HTML}{2DA44E}
+\definecolor{tipbg}{HTML}{F0FFF4}
+\definecolor{noteborder}{HTML}{0969DA}
+\definecolor{notebg}{HTML}{F0F8FF}
+
+% --- Налаштування заголовків ---
+\titleformat{\section}{\Large\bfseries\color{primarydark}}{§\,\thesection.}{0.6em}{}[\vspace{1pt}\color{codeframe}\hrule\vspace{4pt}]
+\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{primarydark}}{\thesubsubsection}{0.5em}{}
+
+% --- Верхній і нижній колонтитули ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{muted}Free Pascal: Посібник із сучасної конкурентності}
+\fancyhead[R]{\small\color{muted}Гілка \texttt{feature/concurrency}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% --- Налаштування підсвічування коду ---
+\lstdefinelanguage{ModernPascal}{
+  morekeywords={
+    program,unit,interface,implementation,uses,begin,end,type,var,const,
+    generic,specialize,function,procedure,class,record,object,
+    override,overload,sealed,helper,for,in,to,downto,do,while,repeat,until,
+    if,then,else,case,of,try,except,finally,raise,
+    async,await,reference,to,out,inline,constructor,destructor,property,read,write
+  },
+  morekeywords=[2]{
+    ITask,IFuture,TTask,TParallel,TCancellationToken,TCancellationTokenSource,
+    TChannel,TSlimReaderWriterLock,TCountdownEvent,TBarrier,
+    IEventLoop,TEventLoop,TEventLoopGroup,IAsyncSocket,IAsyncServerSocket,
+    TFiber,TGenerator,TTaskCompletionSource,TThreadPool
+  },
+  morekeywords=[3]{
+    implicitgenerics,anonymousfunctions,functionreferences,advancedrecords
+  },
+  sensitive=false,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morecomment=[s]{\{}{\}},
+  morestring=[b]',
+}
+
+\lstset{
+  language=ModernPascal,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small\color{ink},
+  keywordstyle=\bfseries\color{keywordcolor},
+  keywordstyle=[2]\bfseries\color{primarydark},
+  keywordstyle=[3]\color{primary},
+  commentstyle=\itshape\color{commentcolor},
+  stringstyle=\color{stringcolor},
+  numbers=left,
+  numberstyle=\tiny\color{muted},
+  numbersep=7pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  keepspaces=true,
+  columns=flexible,
+  tabsize=2,
+  showstringspaces=false,
+  xleftmargin=12pt,
+  framexleftmargin=8pt,
+  aboveskip=8pt,
+  belowskip=8pt
+}
+
+% --- Блоки приміток ---
+\newtcolorbox{infobox}[2][]{
+  colback=notebg,
+  colframe=noteborder,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={#2},
+  boxrule=0.8pt,
+  arc=3pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,
+  #1
+}
+
+\newtcolorbox{tipbox}[2][]{
+  colback=tipbg,
+  colframe=tipborder,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={#2},
+  boxrule=0.8pt,
+  arc=3pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,
+  #1
+}
+
+% --- Налаштування Hyperref ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primarydark,
+  urlcolor=primary,
+  citecolor=primarydark,
+  pdftitle={Free Pascal: Довідник і посібник з конкурентності, асинхронного I/O та узагальнень},
+  pdfauthor={Free Pascal Core Team / feature/concurrency},
+  pdfsubject={Concurrency, Async I/O, Generics, EventLoop, Fibers, CSP Channels}
+}
+
+\begin{document}
+
+% --- ТИТУЛЬНА СТОРІНКА ---
+\begin{titlepage}
+  \centering
+  \vspace*{15mm}
+  {\Huge\bfseries\color{primarydark} Free Pascal\par}
+  \vspace{4mm}
+  {\LARGE\bfseries Сучасна модель конкурентності, асинхронного I/O та узагальнень\par}
+  \vspace{2mm}
+  {\large Професійний посібник для користувача-розробника з описом нововведень\par}
+  \vspace{10mm}
+  \rule{0.6\textwidth}{1.2pt}\par
+  \vspace{10mm}
+  
+  \begin{tabular}{ll}
+    \textbf{Цільова версія:} & Free Pascal 3.3.1 (Trunk) \\
+    \textbf{Робоча гілка:} & \texttt{feature/concurrency} \\
+    \textbf{Охоплені етапи:} & Фази 1.1, 1.2, 1.3, 1.4 та Розділ 2.1 \\
+    \textbf{Підтримувані ОС:} & Linux (\texttt{io\_uring}, \texttt{epoll}), macOS / BSD (\texttt{kqueue}), Windows (\texttt{IOCP}) \\
+    \textbf{Архітектура CPU:} & x86\_64 (AMD64 System V ABI / Win64) та AArch64 \\
+  \end{tabular}
+  
+  \vfill
+  
+  \begin{infobox}{Ключові архітектурні зміни гілки}
+    \small
+    \textbf{1. Синтаксис мови:} \texttt{\{\$modeswitch implicitgenerics\}} дозволяє повністю відкинути архаїчне ключове слово \texttt{specialize} та вмикає автоматичне виведення типів для узагальнених методів і анонімних функцій.\\
+    \textbf{2. Оркестрація задач:} \texttt{System.Threading} з неблокувальними продовженнями (\texttt{.ThenBy}, \texttt{.ContinueWith}) та токенами кооперативного скасування (\texttt{TCancellationToken}).\\
+    \textbf{3. Потокобезпечна комунікація:} Модель каналів CSP (\texttt{TChannel<T>}) у стилі мови Go та ультрашвидкий \texttt{TSlimReaderWriterLock} із RAII-гардами.\\
+    \textbf{4. Реактивний I/O:} Пакет \texttt{fcl-eventloop} на нативних мультиплексорах ядра ОС для обслуговування 100\,000+ з'єднань.\\
+    \textbf{5. Корутини:} Пакет \texttt{fcl-async} (\texttt{TFiber}, генератори) та підтримка \texttt{async}/\texttt{await} на рівні компілятора.
+  \end{infobox}
+  
+  \vspace{10mm}
+  {\small\color{muted} 2026 рік}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% --- РОЗДІЛ 1 ---
+\section{Архітектурна модель та вибір парадигми}
+
+Сучасний Free Pascal у гілці \texttt{feature/concurrency} надає розробнику цілісний трирівневий набір інструментів, що усуває потребу в прямій низькорівневій роботі з системними потоками (\texttt{TThread}) та блокуючими м'ютексами.
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.5cm}p{4.2cm}X}
+\toprule
+\textbf{Клас задачі} & \textbf{Основний модуль} & \textbf{Ключові класи/типи} & \textbf{Переваги} \\
+\midrule
+\textbf{CPU-Bound} (обчислення, стиснення, парсинг) & \texttt{System.Threading} & \texttt{TParallel.For}, \texttt{ITask}, \texttt{IFuture<T>}, \texttt{ThenBy} & Автоматичне балансування навантаження (\emph{work stealing}), мінімум блокувань. \\
+\addlinespace
+\textbf{Синхронізація} (обмін повідомленнями, буферизація) & \texttt{SyncObjs} & \texttt{TChannel<T>}, \texttt{TSlimReaderWriterLock}, \texttt{TBarrier} & CSP-комунікація, усунення гонок даних, відсутність дескрипторів ядра ОС. \\
+\addlinespace
+\textbf{I/O-Bound} (High-Load мережа, сокети, таймери) & \texttt{fcl-eventloop} & \texttt{IEventLoop}, \texttt{TEventLoopGroup}, \texttt{IAsyncSocket} & Нативні мультиплексори (\texttt{io\_uring}, \texttt{epoll}), 100\,000+ з'єднань на групу потоків. \\
+\addlinespace
+\textbf{Корутини} (лінійний код для асинхронних операцій) & \texttt{fcl-async} та компілятор & \texttt{TFiber}, \texttt{TGenerator<T>}, \texttt{async} / \texttt{await} & Стек файбера перемикається за $<$10\,нс без переривання системного потоку ОС. \\
+\bottomrule
+\end{tabularx}
+\caption{Матриця підбору парадигми конкурентності}
+\end{table}
+
+\newpage
+
+% --- РОЗДІЛ 2 ---
+\section{Синтаксична ергономіка: \texttt{\{\$modeswitch implicitgenerics\}}}
+
+\subsection{Опущення ключового слова \texttt{specialize}}
+Раніше в режимі \texttt{\{\$mode objfpc\}} використання будь-якого узагальненого типу або виклику методу вимагало громіздкої конструкції \texttt{specialize}. 
+
+Перемикач \texttt{\{\$modeswitch implicitgenerics\}} дозволяє використовувати звичний, лаконічний синтаксис для **всіх** типів (як нових, так і стандартних FCL):
+
+\begin{lstlisting}
+{$mode objfpc}{$H+}
+{$modeswitch implicitgenerics}
+
+uses fgl, Generics.Collections, System.Threading;
+
+type
+  { Оголошення типів без specialize }
+  TIntList   = TFPGList<Integer>;
+  TUserCache = TDictionary<string, Int64>;
+
+var
+  List: TFPGList<Integer>;
+  Map:  TDictionary<string, Int64>;
+  Fut:  IFuture<string>;
+begin
+  List := TFPGList<Integer>.Create;
+  Map  := TDictionary<string, Int64>.Create;
+  
+  { Явний виклик generic-методу без specialize }
+  Fut := TTask.Future<string>(
+    function: string
+    begin
+      Result := 'Дані готові';
+    end);
+end.
+\end{lstlisting}
+
+\subsection{Автоматичне виведення типів (Generic Type Inference)}
+Компілятор автоматично визначає параметри \texttt{<T>} із переданих фактичних аргументів. Це стосується чисел, рядків, інтерфейсів, об'єктів та, що найважливіше, **типів повернення анонімних функцій**:
+
+\begin{lstlisting}
+var
+  FutStr: IFuture<string>;
+  FutInt: IFuture<Integer>;
+begin
+  // T = string виводиться автоматично з типу повернення:
+  FutStr := TTask.Future(
+    function: string
+    begin
+      Result := 'Привіт, світ';
+    end);
+
+  // T = Integer виводиться автоматично:
+  FutInt := TTask.Future(
+    function: Integer
+    begin
+      Result := 42;
+    end);
+end.
+\end{lstlisting}
+
+\begin{tipbox}{Працює для всіх функцій і методів}
+Type Inference не обмежується лише тасками. Будь-яка узагальнена функція на зразок \texttt{generic function MaxVal<T>(A, B: T): T} тепер викликається просто: \texttt{M := MaxVal(3.14, 2.71);} без вказування \texttt{<Double>}.
+\end{tipbox}
+
+\newpage
+
+% --- РОЗДІЛ 3 ---
+\section{Задачі, конвеєри та скасування (\texttt{System.Threading})}
+
+\subsection{Кооперативне скасування: \texttt{TCancellationTokenSource}}
+Джерело токенів скасування (\texttt{TCancellationTokenSource}) генерує легковагові структури \texttt{TCancellationToken}, які передаються в операції для їх узгодженого переривання:
+
+\begin{lstlisting}
+var
+  CTS: TCancellationTokenSource;
+  Token: TCancellationToken;
+  Task: ITask;
+begin
+  CTS := TCancellationTokenSource.Create;
+  Token := CTS.Token;
+
+  Task := TTask.Run(
+    procedure
+    begin
+      while not Token.IsCancellationRequested do
+      begin
+        DoWorkBatch;
+      end;
+      Token.ThrowIfCancellationRequested; // Генерує EOperationCancelled
+    end, Token);
+
+  // Скасування операції з іншого потоку або за таймаутом:
+  CTS.CancelAfter(500); // скасувати за 500 мс
+end.
+\end{lstlisting}
+
+\subsection{Неблокувальні ланцюжки задач: \texttt{.ThenBy} та \texttt{.ContinueWith}}
+Замість блокування потоку у виклику \texttt{.Wait} або \texttt{.Value}, використовується побудова неблокувальних конвеєрів:
+
+\begin{lstlisting}
+var
+  DownloadTask: IFuture<string>;
+  ParseTask:    IFuture<Integer>;
+begin
+  // 1. Початкова задача
+  DownloadTask := TTask.Future(
+    function: string
+    begin
+      Result := HttpGet('https://api.service.internal/count');
+    end);
+
+  // 2. Неблокувальне продовження ThenBy (TResult = Integer виведено автоматично)
+  ParseTask := DownloadTask.ThenBy(
+    function(const Prev: ITask): Integer
+    begin
+      Result := StrToIntDef(IFuture<string>(Prev).Value, 0);
+    end);
+
+  // 3. Фінальна обробка результату або винятку
+  ParseTask.ContinueWith(
+    procedure(const Completed: ITask)
+    begin
+      if Completed.Status = TTaskStatus.Completed then
+        WriteLn('Кількість: ', IFuture<Integer>(Completed).Value)
+      else
+        WriteLn('Помилка: ', Completed.ExceptionObject.Message);
+    end);
+end.
+\end{lstlisting}
+
+\newpage
+
+% --- РОЗДІЛ 4 ---
+\section{Нові примітиви синхронізації (\texttt{SyncObjs})}
+
+\subsection{Канали CSP: \texttt{generic TChannel<T>}}
+Канал реалізує модель Communicating Sequential Processes (як у мові Go). Він підтримує як обмежену буферизацію (\texttt{Capacity > 0} з автоматичним блокуванням записувачів при заповненні), так і необмежену.
+
+\begin{lstlisting}
+var
+  Channel: TChannel<string>;
+begin
+  Channel := TChannel<string>.Create(50); // Буфер на 50 повідомлень
+
+  // Письменник:
+  TTask.Run(
+    procedure
+    var I: Integer;
+    begin
+      for I := 1 to 1000 do
+        Channel.Send('Повідомлення #' + IntToStr(I)); // Backpressure
+      Channel.Close;
+    end);
+
+  // Читач з прямим обходом for..in без накладних алокацій:
+  TTask.Run(
+    procedure
+    var Item: string;
+    begin
+      for Item in Channel do
+      begin
+        ProcessItem(Item);
+      end;
+      WriteLn('Канал закрито, обробку завершено.');
+    end);
+end.
+\end{lstlisting}
+
+\subsection{\texttt{TSlimReaderWriterLock} та RAII-гарди}
+Надвисокопродуктивне блокування читання/запису без системних дескрипторів ядра ОС. Підтримує пріоритет записувачів, щоб запобігти голодуванню, та RAII-гарди:
+
+\begin{lstlisting}
+var
+  Lock: TSlimReaderWriterLock;
+
+procedure ReadResource;
+var
+  Guard: TSlimReaderWriterLock.IReadLock;
+begin
+  Guard := Lock.ReadLock; // Захоплює дозвіл на читання
+  // Ресурс захищено. Звільнення відбувається автоматично при виході зі скоупу!
+end;
+
+procedure WriteResource;
+var
+  Guard: TSlimReaderWriterLock.IWriteLock;
+begin
+  Guard := Lock.WriteLock; // Ексклюзивний дозвіл на запис
+  UpdateResourceData;
+end;
+\end{lstlisting}
+
+\newpage
+
+% --- РОЗДІЛ 5 ---
+\section{Масштабований асинхронний I/O (\texttt{fcl-eventloop})}
+
+Пакет \texttt{fcl-eventloop} реалізує патерн Reactor поверх найбільш ефективних нативних API операційної системи:
+\begin{itemize}
+  \item \textbf{Linux:} \texttt{io\_uring} (для ядер 5.1+) та високошвидкісний \texttt{epoll};
+  \item \textbf{macOS / FreeBSD:} \texttt{kqueue};
+  \item \textbf{Windows:} \texttt{IOCP} (I/O Completion Ports).
+\end{itemize}
+
+\subsection{Побудова сервера на базі \texttt{IEventLoop}}
+\begin{lstlisting}
+var
+  Loop:   IEventLoop;
+  Server: IAsyncServerSocket;
+begin
+  Loop := TEventLoop.Create(bkAuto); // Автоматичний вибір кращого бекенду
+  Server := TEventLoop.CreateTcpServer(Loop);
+  Server.Listen('0.0.0.0', 8080);
+
+  Server.AsyncAccept(
+    procedure(AHandle: TLoopHandle; const Addr: string; Port: Word; Status: Integer)
+    var
+      Client: IAsyncSocket;
+      Buffer: array[0..4095] of Byte;
+    begin
+      if Status <> 0 then Exit;
+      Client := TAsyncSocket.Create(Loop, AHandle, True);
+      
+      Client.AsyncRead(@Buffer[0], SizeOf(Buffer),
+        procedure(Bytes: NativeInt; ReadStatus: Integer)
+        begin
+          if (ReadStatus = 0) and (Bytes > 0) then
+          begin
+            // Неблокувальне відлуння (Echo)
+            Client.AsyncWrite(@Buffer[0], Bytes, nil);
+          end
+          else
+            Client.Close;
+        end);
+    end);
+
+  Loop.Run;
+end.
+\end{lstlisting}
+
+\subsection{\texttt{TEventLoopGroup}: Multi-Reactor на 100\,000+ з'єднань}
+Клас \texttt{TEventLoopGroup} створює пул незалежних потоків-реакторів (наприклад, по одному на кожне апаратне ядро процесора). Нові з'єднання балансуються між реакторами методом Round-Robin або Least-Connections, усуваючи конкуренцію за чергу подій.
+
+\newpage
+
+% --- РОЗДІЛ 6 ---
+\section{Корутини, файбери та \texttt{async}/\texttt{await} (\texttt{fcl-async})}
+
+\subsection{Легковагові стекові файбери: \texttt{TFiber}}
+\texttt{TFiber} дозволяє писати лінійний код, який призупиняється в очікуванні асинхронних операцій без блокування системного потоку ОС.
+\begin{itemize}
+  \item Контекст перемикається на вбудованому асемблері AMD64 менш ніж за 10\,нс;
+  \item Гарантується 16-байтне вирівнювання стеку під SIMD/AVX інструкції;
+  \item Стек винятків FPC (\texttt{ExceptAddrStack}) симетрично ізолюється для кожного файбера.
+\end{itemize}
+
+\begin{lstlisting}
+var
+  WorkerFiber: TFiber;
+begin
+  WorkerFiber := TFiber.Create(
+    procedure
+    var
+      Fut: IFuture<string>;
+      Data: string;
+    begin
+      WriteLn('Файбер розпочав виконання');
+
+      Fut := TTask.Future(
+        function: string
+        begin
+          Sleep(200);
+          Result := 'Завантажені дані';
+        end);
+
+      // Призупиняє ВИКЛЮЧНО поточний файбер, потік ОС продовжує іншу роботу!
+      Data := TFiber.Await(Fut);
+
+      WriteLn('Файбер відновився з результатом: ', Data);
+    end);
+
+  WorkerFiber.Start;
+end.
+\end{lstlisting}
+
+\subsection{Ледачі послідовності: \texttt{generic TGenerator<T>}}
+Генератори реалізують патерн ітератора, де кожне наступне значення обчислюється лише тоді, коли його запитує цикл \texttt{for..in}:
+
+\begin{lstlisting}
+function GenerateFibonacci(Limit: Integer): TGenerator<Int64>;
+begin
+  Result := TGenerator<Int64>.Create(
+    procedure(const Yield: TGenerator<Int64>.TYieldProc)
+    var A, B, C: Int64;
+    begin
+      A := 0; B := 1;
+      while A <= Limit do
+      begin
+        Yield(A); // Призупиняє генератор і повертає значення у for..in
+        C := A + B; A := B; B := C;
+      end;
+    end);
+end;
+
+var Num: Int64;
+begin
+  for Num in GenerateFibonacci(1000) do
+    WriteLn(Num);
+end.
+\end{lstlisting}
+
+\newpage
+
+% --- РОЗДІЛ 7 ---
+\section{Комплексний наскрізний приклад}
+
+Наведений нижче приклад демонструє спільну роботу всіх компонентів: високонавантажений TCP-сервер на \texttt{fcl-eventloop} приймає байти, через \texttt{TChannel<string>} передає їх у пул потоків \texttt{System.Threading}, де вони паралельно трансформуються через ланцюжок \texttt{.ThenBy} з автоматичним виведенням типів:
+
+\begin{lstlisting}
+program EndToEndModernConcurrency;
+{$mode objfpc}{$H+}
+{$modeswitch implicitgenerics}
+{$modeswitch anonymousfunctions}
+{$modeswitch functionreferences}
+
+uses
+  {$IFDEF UNIX}cthreads,{$ENDIF}
+  SysUtils, SyncObjs, System.Threading,
+  eventloop.types, eventloop.core, eventloop.sockets, fcleventloop;
+
+var
+  WorkQueue: TChannel<string>;
+  Loop:      IEventLoop;
+  Server:    IAsyncServerSocket;
+  CTS:       TCancellationTokenSource;
+
+begin
+  CTS := TCancellationTokenSource.Create;
+  WorkQueue := TChannel<string>.Create(1000); // Буфер із backpressure
+
+  // 1. Робочий потік-диспетчер пулу задач:
+  TTask.Run(
+    procedure
+    var Msg: string;
+    begin
+      for Msg in WorkQueue do
+      begin
+        // Обчислення в пулі потоків з автоматичним виведенням типів
+        TTask.Future(
+          function: Integer
+          begin
+            Result := Length(Msg);
+          end
+        ).ThenBy(
+          function(const Prev: ITask): string
+          begin
+            Result := 'Довжина вхідного пакета: ' + IntToStr(IFuture<Integer>(Prev).Value);
+          end
+        ).ContinueWith(
+          procedure(const T: ITask)
+          begin
+            WriteLn(IFuture<string>(T).Value);
+          end);
+      end;
+    end, CTS.Token);
+
+  // 2. Реактор мережевого I/O (fcl-eventloop):
+  Loop := TEventLoop.Create(bkAuto);
+  Server := TEventLoop.CreateTcpServer(Loop);
+  Server.Listen('0.0.0.0', 9000);
+
+  Server.AsyncAccept(
+    procedure(AHandle: TLoopHandle; const Addr: string; Port: Word; Status: Integer)
+    var
+      Sock: IAsyncSocket;
+      Buf: array[0..2047] of AnsiChar;
+    begin
+      if Status <> 0 then Exit;
+      Sock := TAsyncSocket.Create(Loop, AHandle, True);
+      Sock.AsyncRead(@Buf[0], SizeOf(Buf),
+        procedure(Bytes: NativeInt; ReadStatus: Integer)
+        begin
+          if (ReadStatus = 0) and (Bytes > 0) then
+            WorkQueue.Send(Copy(Buf, 1, Bytes))
+          else
+            Sock.Close;
+        end);
+    end);
+
+  WriteLn('Сервер запущено на порті 9000. Очікування клієнтів...');
+  Loop.Run;
+
+  WorkQueue.Close;
+  CTS.Cancel;
+  CTS.Free;
+  WorkQueue.Free;
+end.
+\end{lstlisting}
+
+\newpage
+
+% --- РОЗДІЛ 8 ---
+\section{Правила надійності та перевірка під Valgrind}
+
+\begin{enumerate}
+  \item \textbf{Ніколи не блокуйте потік реактора \texttt{IEventLoop}:} Будь-які блокуючі системні виклики (робота з диском, звернення до СУБД, важкі обчислення) повинні делегуватися у пул потоків через \texttt{TTask.Run} або передаватися в чергу \texttt{TChannel<T>}. Потік \texttt{EventLoop} повинен лише мультиплексувати дескриптори.
+  \item \textbf{Ініціалізація \texttt{cthreads} на Linux/Unix:} Будь-яка багатопотокова програма зобов'язана першим модулем у секції \texttt{uses} підключати модуль \texttt{cthreads}, інакше внутрішні примітиви синхронізації RTL працюватимуть некоректно.
+  \item \textbf{Перевірка детекторами гонок даних (Helgrind / DRD):} Усі нові примітиви (\texttt{TCancellationToken}, \texttt{TSlimReaderWriterLock}, \texttt{TChannel}, \texttt{TCountdownEvent}, \texttt{TBarrier}) підтримують ключ компілятора \texttt{-dFPC\_VALGRIND}. У бінарний код вбудовуються клієнтські запити Valgrind (\emph{happens-before / happens-after}), що гарантує повну відсутність хибних спрацювань під час аналізу.
+\end{enumerate}
+
+\begin{infobox}{Корисні посилання в репозиторії}
+\begin{itemize}
+  \item \texttt{docs/concurrency/modern-concurrency-reference.md} --- повний довідник API;
+  \item \texttt{docs/concurrency/guide-async.md} --- файбери та корутини;
+  \item \texttt{docs/concurrency/guide-eventloop.md} --- цикл подій та архітектура реактора;
+  \item \texttt{docs/concurrency/roadmap-improvements.md} --- дорожня карта гілки \texttt{feature/concurrency}.
+\end{itemize}
+\end{infobox}
+
+\end{document}

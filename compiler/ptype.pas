@@ -298,8 +298,8 @@ implementation
                      symtablestack:=oldsymtablestack;
                      if isspecialize or
                          (
-                           (m_delphi in current_settings.modeswitches) and
-                           (current_scanner.token=_LSHARPBRACKET)
+                           ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
+                           (current_scanner.token in [_LSHARPBRACKET,_LT])
                          ) then
                        begin
                          if not allowspecialization then
@@ -577,8 +577,8 @@ implementation
             end;
         until not again;
         if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
-           (m_delphi in current_settings.modeswitches) then
-          dospecialize:=current_scanner.token in [_LSHARPBRACKET,_LT];
+           ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) then
+          dospecialize:=dospecialize or (current_scanner.token in [_LSHARPBRACKET,_LT]);
         if dospecialize and
             (def.typ=forwarddef) then
           begin
@@ -1300,8 +1300,8 @@ implementation
                  begin
                    def:=ttypenode(pt1).resultdef;
                    { Delphi mode specialization? }
-                   if (m_delphi in current_settings.modeswitches) then
-                     dospecialize:=current_scanner.token=_LSHARPBRACKET
+                   if ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) then
+                     dospecialize:=current_scanner.token in [_LSHARPBRACKET,_LT]
                    else
                      begin
                        dospecialize:=false;

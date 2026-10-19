@@ -3349,7 +3349,7 @@ implementation
           exit;
         { if a specialization is better than a non-specialization then
           the non-generic always wins }
-        if m_implicit_function_specialization in current_settings.modeswitches then
+        if [m_implicit_function_specialization,m_implicit_generics] * current_settings.modeswitches <> [] then
           begin
             is_better_candidate:=ord(bestpd^.data.is_specialization)-ord(currpd^.data.is_specialization); { 1 if bestpd^.data.is_specialization and not currpd^.data.is_specialization, -1 if the reverse, 0 if same is_specialization. }
             if is_better_candidate<>0 then

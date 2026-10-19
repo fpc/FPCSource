@@ -671,7 +671,7 @@ implementation
                     (current_scanner.idtoken=_SPECIALIZE) then
                   hadspecialize:=true;
                 consume(_ID);
-                if ((ppf_generic in flags) or (m_delphi in current_settings.modeswitches)) and
+                if ((ppf_generic in flags) or ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> [])) and
                     (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                   begin
                     consume(current_scanner.token);

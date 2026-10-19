@@ -161,18 +161,6 @@
 - `tests/concurrency/fpcenv.sh`: середовище для компіляції тестів свіжозібраним компілятором.
 - `tests/concurrency/build-testcompat.sh`: збірка тестів vcl-compat з поточних джерел.
 - `tests/concurrency/stress.sh`: стрес-прогін наборів `System.Threading` (N повторів, таймаут).
-- **Фаза 1.3 (`packages/fcl-eventloop/`) — масштабований асинхронний I/O на нативних механізмах ОС:**
-  - Новий кросплатформний пакет `fcl-eventloop` із підтримкою нативних високопродуктивних мультиплексорів ядра:
-    - Linux `epoll` (`eventloop.backend.epoll.pp`) з міжпотоковим пробудженням через `eventfd2` / non-blocking self-pipe.
-    - Linux `io_uring` (`eventloop.backend.uring.pp`) із SQ/CQ кільцями через `mmap` та нульовим копіюванням.
-    - macOS / BSD `kqueue` (`eventloop.backend.kqueue.pp`) на фільтрах `EVFILT_READ` / `EVFILT_WRITE`.
-    - Windows `IOCP` (`eventloop.backend.iocp.pp`) на базі Completion Ports і Overlapped I/O.
-  - Multi-Reactor worker pool (`TEventLoopGroup`) для масштабування на 100 000+ одночасних з'єднань із Round-Robin балансуванням і нульовим блокуванням робочих ядер.
-  - Неблокуючі потокобезпечні таймери з пріоритетною чергою на базі Min-Heap ($O(\log N)$ алокація / скасування, $O(1)$ найближчий дедлайн).
-  - Асинхронні неблокуючі сокети (`TAsyncSocket`, `TAsyncServerSocket`, `TAsyncDatagramSocket`) з eager-write оптимізацією, підтримкою як методів об'єктів (`TAsyncReadCallback`), так і анонімних процедур (`reference to procedure`), динамічним вибором вільних портів (`Port`) та безшовною інтеграцією з `IFuture<T>` (`ReadAsync`, `WriteAsync`, `AcceptAsync`) і `TCancellationToken`.
-  - Неблокуючі конвеєри (`TAsyncPipe`) та потоковий файловий ввід/вивід (`TAsyncFile`).
-  - Пул попередньо виділених буферів `TAsyncBufferPool` для виключення фрагментації пам'яті при високих навантаженнях C100K+.
-  - 15 модульних тестів у `packages/fcl-eventloop/tests/`, стрес-скрипт `tests/concurrency/stress-eventloop.sh`, приклад-бенчмарк `docs/concurrency/examples/eventloop_benchmark.pp`, fpdoc-опис `packages/fcl-eventloop/xml/fcleventloop.xml` та ADR-0006.
 - **Фаза 1.4 (`packages/fcl-async/` та компілятор `compiler/ppcx64`) — корутини, файбери та async / await:**
   - **Крок 1 (бібліотечний)**: новий пакет `fcl-async` (`packages/fcl-async/`):
     - `TFiber` (`async.fiber.pp`): легковагові стекові корутини (user-space fibers) для System V AMD64 ABI з надшвидким перемиканням контексту на вбудованому асемблері (`FiberSwitchContext`), збереженням і відновленням callee-saved регістрів (`%rbx, %rbp, %r12-%r15`) та покажчика стеку `%rsp` (<10 нс).
@@ -187,4 +175,14 @@
     - Додано контекстний оператор `await` (`compiler/pexpr.pas`) для очікування майбутніх задач у виразах (`Val := await Future;` автоматично читає властивість `.Value`) та задачах (`await Task;` викликає `.Wait`).
     - Збережено 100% сумісність двійкових файлів PPU (`tppuset1` / `tppuset8`) та чинних модулів RTL завдяки контекстному аналізу без додавання зарезервованих слів у загальний лексер.
   - Демонстраційний приклад `docs/concurrency/examples/coroutine_showcase.pp`, посібник користувача `docs/concurrency/guide-async.md` та оновлений повний довідник `docs/concurrency/modern-concurrency-reference.md`.
+- **Розділ 2.1 (`compiler/ppcx64`) — Виведення типів для узагальнених методів (Generic Type Inference) та необов'язковий `specialize`:**
+  - Додано новий перемикач режимів `{$modeswitch implicitgenerics}` (у `globtype.pas`, `scanner.pas`, `ppudump.pp`).
+  - У режимі `objfpc` під `{$modeswitch implicitgenerics}` дозволено опускати ключове слово `specialize`:
+    - Для узагальнених типів (наприклад, `IFuture<string>`, `TFPGList<Integer>`, `TBox<T>`);
+    - Для явних викликів методів і процедур (наприклад, `Identity<string>('hello')`, `TTask.Future<string>(...)`).
+  - Реалізовано виведення типів для параметрів узагальнених методів і функцій (Generic Type Inference):
+    - Для звичайних значень аргументів (`Identity('hello')`, `TBoxFactory.Wrap(12345)`);
+    - Для анонімних функцій (`anonymous functions`) та посилань на функції (`reference to function/procedure`, `is_invokable` інтерфейси), зокрема виведення параметра `<TResult>` із типу повернення функції (`returndef`) та вирівнювання прихованих параметрів (`vo_is_hidden_para`).
+    - Підтримка виведення у багатопотокових ланцюжках задач `TTask.Future(function: string begin Result := 'ok'; end)` та `task.ThenBy(...)`.
+  - Модульний тестовий набір `tests/concurrency/test_implicit_generics.pp`.
 

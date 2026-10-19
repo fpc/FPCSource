@@ -31,8 +31,12 @@
    - [5.2. `generic TGenerator<T>`: Ледачі послідовності та for..in](#52-generic-tgeneratort-ледачі-послідовності-та-forin)
    - [5.3. `TTaskCompletionSource<T>` та скінченні автомати](#53-ttaskcompletionsourcet-та-скінченні-автомати)
    - [5.4. Компілятор: Директива `async` та оператор `await`](#54-компілятор-директива-async-та-оператор-await)
-6. [Комплексний приклад: Наскрізний реактивний конвеєр](#6-комплексний-приклад-наскрізний-реактивний-конвеєр)
-7. [Правила безпеки, діагностика та Valgrind](#7-правила-безпеки-діагностика-та-valgrind)
+6. [Синтаксична ергономіка: `{$modeswitch implicitgenerics}` та виведення типів](#6-синтаксична-ергономіка-modeswitch-implicitgenerics-та-виведення-типів)
+   - [6.1. Необов'язковий `specialize` для всіх типів і методів](#61-необов'язковий-specialize-для-всіх-типів-і-методів)
+   - [6.2. Автоматичне виведення типів (Type Inference)](#62-автоматичне-виведення-типів-type-inference)
+   - [6.3. Виведення типів у ланцюжках `TTask.Future` та `ThenBy`](#63-виведення-типів-у-ланцюжках-ttaskfuture-та-thenby)
+7. [Комплексний приклад: Наскрізний реактивний конвеєр](#7-комплексний-приклад-наскрізний-реактивний-конвеєр)
+8. [Правила безпеки, діагностика та Valgrind](#8-правила-безпеки-діагностика-та-valgrind)
 
 ---
 
@@ -781,7 +785,101 @@ end;
 
 ---
 
-## 6. Комплексний приклад: Наскрізний реактивний конвеєр
+## 6. Синтаксична ергономіка: `{$modeswitch implicitgenerics}` та виведення типів
+
+Новий перемикач компілятора `{$modeswitch implicitgenerics}` усуває синтаксичну надлишковість режиму `objfpc`, роблячи узагальнений і асинхронний код лаконічним на рівні сучасних C#, Rust та Delphi.
+
+### 6.1. Необов'язковий `specialize` для всіх типів і методів
+
+Більше не потрібно вказувати слово `specialize` перед ідентифікаторами узагальнених типів, викликами процедур, методів або в операторах `is`/`as`. Це працює як для нових примітивів конкурентності (`IFuture<T>`, `TChannel<T>`), так і для **всіх** типів стандартних бібліотек FPC (`TFPGList<T>`, `TDictionary<K, V>`, `TList<T>`):
+
+```pascal
+{$mode objfpc}{$H+}
+{$modeswitch implicitgenerics}
+
+uses fgl, Generics.Collections, System.Threading;
+
+type
+  { Чистий синтаксис оголошення типів без specialize }
+  TIntList = TFPGList<Integer>;
+  TUserMap = TDictionary<string, Int64>;
+
+var
+  Fut: IFuture<string>;
+  List: TFPGList<Integer>;
+  Map: TDictionary<string, Int64>;
+begin
+  List := TFPGList<Integer>.Create;
+  Map := TDictionary<string, Int64>.Create;
+  
+  { Явний виклик узагальненого методу без specialize }
+  Fut := TTask.Future<string>(
+    function: string
+    begin
+      Result := 'ready';
+    end);
+end;
+```
+
+### 6.2. Автоматичне виведення типів (Type Inference)
+
+Компілятор автоматично виводить типові параметри `<T>` з типів аргументів виклику (числа, рядки, записи, об'єкти, динамічні масиви):
+
+```pascal
+generic function MaxValue<T>(const A, B: T): T;
+begin
+  if A > B then Result := A else Result := B;
+end;
+
+var
+  M1: Double;
+  M2: string;
+begin
+  // T виводиться як Double:
+  M1 := MaxValue(3.14, 2.71);
+
+  // T виводиться як string:
+  M2 := MaxValue('apple', 'banana');
+end;
+```
+
+### 6.3. Виведення типів у ланцюжках `TTask.Future` та `ThenBy`
+
+Компілятор аналізує типи повернення (`returndef`) анонімних функцій та процедурних посилань (`reference to function`), автоматично виводячи `<TResult>` без необхідності дублювати тип:
+
+```pascal
+{$mode objfpc}{$H+}
+{$modeswitch implicitgenerics}
+{$modeswitch anonymousfunctions}
+{$modeswitch functionreferences}
+
+uses SysUtils, System.Threading;
+
+var
+  Task1: IFuture<string>;
+  Task2: IFuture<Integer>;
+begin
+  // Автоматично виводить T = string -> повертає IFuture<string>:
+  Task1 := TTask.Future(
+    function: string
+    begin
+      Result := '42';
+    end);
+
+  // Автоматично виводить TResult = Integer у неблокувальному конвеєрі ThenBy:
+  Task2 := Task1.ThenBy(
+    function(const Prev: ITask): Integer
+    begin
+      Result := StrToInt(IFuture<string>(Prev).Value) * 2;
+    end);
+
+  WriteLn('Результат: ', Task2.Value); // 84
+end;
+```
+
+---
+
+## 7. Комплексний приклад: Наскрізний реактивний конвеєр
 
 Поєднання **`fcl-eventloop`** (отримання даних із мережі), **`TChannel<T>`** (безпечний буфер передавання) та **`System.Threading`** (паралельна обробка в пулі потоків):
 
@@ -864,7 +962,7 @@ end.
 
 ---
 
-## 7. Правила безпеки, діагностика та Valgrind
+## 8. Правила безпеки, діагностика та Valgrind
 
 1. **Не блокуйте потік Event Loop**: Усі тривалі обчислення, звернення до БД або блокуючий I/O передавайте у `TTask.Run` або `TChannel<T>`. Потік реактора повинен лише пересилати байти.
 2. **Уникайте захоплення змінних циклу за посиланням**: В анонімних функціях усередині циклів копіюйте лічильник у локальну змінну (`var LocalI := I;`) або використовуйте параметри процедури.

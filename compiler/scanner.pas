@@ -448,6 +448,17 @@ implementation
               end;
           end;
 
+        { enable implicit function specialization when implicit generics is enabled }
+        if switch in [m_none,m_implicit_generics] then
+          begin
+            if (m_implicit_generics in current_settings.modeswitches) then
+              begin
+                include(current_settings.modeswitches,m_implicit_function_specialization);
+                if changeinit then
+                  include(init_settings.modeswitches,m_implicit_function_specialization);
+              end;
+          end;
+
         { turn inline on by default ? }
         if switch in [m_none,m_default_inline] then
           begin

@@ -3286,7 +3286,7 @@ implementation
                end
               else
                begin
-                 if (m_delphi in current_settings.modeswitches) and
+                 if ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                      (sp_generic_dummy in srsym.symoptions) and
                      (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                    begin
@@ -3348,7 +3348,7 @@ implementation
           procsym :
             begin
               result:=nil;
-              if (m_delphi in current_settings.modeswitches) and
+              if ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                   (sp_generic_dummy in srsym.symoptions) and
                   (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                 begin
@@ -3783,7 +3783,7 @@ implementation
                    (srsym.typ in [procsym,typesym]) and
                    (
                      (
-                       (m_delphi in current_settings.modeswitches) and
+                       ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                        not (current_scanner.token in [_LT, _LSHARPBRACKET]) and
                        (
                          (
@@ -3797,7 +3797,7 @@ implementation
                      )
                      or
                      (
-                       not (m_delphi in current_settings.modeswitches) and
+                       ([m_delphi,m_implicit_generics] * current_settings.modeswitches = []) and
                        not isspecialize and
                        (
                          not parse_generic or
@@ -4067,7 +4067,7 @@ implementation
              { post fix operators are handled after specialization }
              dopostfix:=false
            else
-             if (m_delphi in current_settings.modeswitches) and
+             if ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                  (block_type in inline_specialization_block_types) and
                  (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                begin
@@ -4206,7 +4206,7 @@ implementation
                      end;
                     if assigned(srsym) then
                      begin
-                       mightbegeneric:=(m_delphi in current_settings.modeswitches) and
+                       mightbegeneric:=([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                                          (current_scanner.token in [_LT,_LSHARPBRACKET]) and
                                          (sp_generic_dummy in srsym.symoptions);
                        { load the procdef from the inherited class and
@@ -4997,7 +4997,7 @@ implementation
              { Attention: when nested specializations are supported
                           p2 could be a loadn if a "<" follows }
              istypenode(p2) and
-              (m_delphi in current_settings.modeswitches) and
+              ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
               { TODO : add _LT, _LSHARPBRACKET for nested specializations }
               (current_scanner.token in [_GT,_RSHARPBRACKET,_COMMA]) then
             begin
@@ -5197,7 +5197,7 @@ implementation
                _OP_AS,
                _OP_IS :
                  begin
-                   if (m_delphi in current_settings.modeswitches) and
+                   if ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) and
                        (current_scanner.token in [_LT, _LSHARPBRACKET]) and
                        getgenericsym(p2,gensym) then
                      begin
@@ -5293,7 +5293,7 @@ implementation
         until false;
         if (p1.nodetype=specializen) and
             (current_scanner.token=_LSHARPBRACKET) and
-            (m_delphi in current_settings.modeswitches) then
+            ([m_delphi,m_implicit_generics] * current_settings.modeswitches <> []) then
           begin
             filepos:=current_tokenpos;
             consume(current_scanner.token);

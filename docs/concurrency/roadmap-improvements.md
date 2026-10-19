@@ -37,17 +37,27 @@
 
 У реальному багатопоточному й узагальненому коді Free Pascal поступається лаконічністю через надмірні синтаксичні вимоги режиму `objfpc`.
 
-### 2.1. Виведення типів для узагальнених методів (Generic Type Inference) та необов'язковий `specialize`
-- **Зараз**:
+### 2.1. Виведення типів для узагальнених методів (Generic Type Inference) та необов'язковий `specialize` [РЕАЛІЗОВАНО]
+- **Було**:
   ```pascal
   R := TTask.specialize Future<string>(function: string begin Result := 'ok'; end);
   ```
-- **Ціль**:
-  1. За перемикачем `{$modeswitch implicitgenerics}` дозволити опускати ключове слово `specialize` у режимі `objfpc`.
-  2. Виводити типовий параметр `<T>` автоматично з типів аргументів (зокрема з типу повернення анонімної функції):
+- **Реалізовано**:
+  1. За перемикачем `{$modeswitch implicitgenerics}` дозволено опускати ключове слово `specialize` у режимі `objfpc` для типів (`IFuture<string>`, `TFPGList<Integer>`) та явних викликів методів і функцій (`Identity<string>('hello')`, `TTask.Future<string>(...)`).
+  2. Реалізовано автоматичне виведення типового параметра `<T>` (Generic Type Inference) з типів переданих аргументів, зокрема з типу повернення та параметрів анонімних функцій і посилань на функції (`reference to function/procedure`):
      ```pascal
+     {$mode objfpc}{$H+}
+     {$modeswitch implicitgenerics}
+     {$modeswitch anonymousfunctions}
+     {$modeswitch functionreferences}
+
+     // Автоматичне виведення T = string -> IFuture<string>:
      R := TTask.Future(function: string begin Result := 'ok'; end);
+
+     // Автоматичне виведення в неблокувальних ланцюжках ThenBy:
+     Next := R.ThenBy(function(const Prev: ITask): Integer begin Result := Length(IFuture<string>(Prev).Value); end);
      ```
+  3. Повний набір тестів додано до `tests/concurrency/test_implicit_generics.pp`.
 
 ### 2.2. Короткий синтаксис лямбда-виразів (`=>`)
 - **Зараз**:
@@ -110,9 +120,9 @@
 
 | Пріоритет | Напрямок | Де реалізується | Складність | Очікуваний ефект |
 |---|---|---|---|---|
-| **1 (найближчий)** | `TChannel<T>`, `TCountdownEvent`, `TBarrier`, `TCancellationToken`, `.ContinueWith` | `packages/fcl-base`, `packages/vcl-compat` | Середня | Повноцінна оркестрація потоків і передавання повідомлень без низькорівневих блокувань |
+| **1** | `TChannel<T>`, `TCountdownEvent`, `TBarrier`, `TCancellationToken`, `.ContinueWith` [РЕАЛІЗОВАНО] | `packages/fcl-base`, `packages/vcl-compat` | Середня | Повноцінна оркестрація потоків і передавання повідомлень без низькорівневих блокувань |
 | **2** | Розумні вказівники `TScoped<T>` / `TArc<T>` та `TSpan<T>` | `rtl/objpas` або `packages/rtl-objpas` | Низька–середня | Зникнення шаблонних блоків `try..finally` і витоків пам'яті в багатопоточному коді |
-| **3** | Необов'язковий `specialize` + виведення типів для дженериків | `compiler/` (`pexpr.pas`, `pgentype.pas`) | Середня | Суттєве очищення синтаксису `TTask.Future`, колекцій та алгоритмів |
-| **4** | Асинхронний цикл подій `fcl-eventloop` (`epoll`/`kqueue`/`IOCP`) | `packages/fcl-eventloop` | Висока | Високопродуктивні мережеві сервіси на FPC |
-| **5** | Короткі лямбди `=>` та `async`/`await` | `compiler/` | Висока | Рівень ергономіки сучасних C# / Rust / TypeScript при збереженні нативної швидкості FPC |
+| **3** | Необов'язковий `specialize` + виведення типів для дженериків [РЕАЛІЗОВАНО] | `compiler/` (`pexpr.pas`, `ptype.pas`, `pgenutil.pas`) | Середня | Суттєве очищення синтаксису `TTask.Future`, колекцій та алгоритмів |
+| **4** | Асинхронний цикл подій `fcl-eventloop` (`epoll`/`kqueue`/`IOCP`) [РЕАЛІЗОВАНО] | `packages/fcl-eventloop` | Висока | Високопродуктивні мережеві сервіси на FPC |
+| **5** | Короткі лямбди `=>` та `async`/`await` (`async`/`await` [РЕАЛІЗОВАНО]) | `compiler/`, `packages/fcl-async` | Висока | Рівень ергономіки сучасних C# / Rust / TypeScript при збереженні нативної швидкості FPC |
 

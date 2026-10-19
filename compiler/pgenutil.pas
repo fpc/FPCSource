@@ -969,7 +969,26 @@ uses
         with "integer", as they are both parameter #1
       }
 
-      function handle_procvars(genericparams:tfphashlist;callerparams:tfplist;target_def:tdef;caller_def:tdef):boolean;
+       function is_proc_or_funcref(def: tdef): boolean; inline;
+         begin
+           result := assigned(def) and (
+             (def.typ in [procdef, procvardef]) or
+             ((def.typ = objectdef) and is_invokable(def))
+           );
+         end;
+
+       function get_proc_def(def: tdef): tabstractprocdef;
+         begin
+           result := nil;
+           if not assigned(def) then
+             exit;
+           if def.typ in [procdef, procvardef] then
+             result := tabstractprocdef(def)
+           else if (def.typ = objectdef) and is_invokable(def) then
+             result := get_invoke_procdef(tobjectdef(def));
+         end;
+
+      function handle_procvars(owner:tprocdef;genericparams:tfphashlist;callerparams:tfplist;target_def:tdef;caller_def:tdef;var unnamed_syms:tfplist):boolean;
         var
           newparams : tfphashlist;
 
@@ -977,106 +996,145 @@ uses
           var
             key : string;
             index : integer;
+            caller_sym : tsym;
           begin
-            if not assigned(callerparadef.typesym) then
-              internalerror(2021020908);
+            if not assigned(targetparadef) or not assigned(callerparadef) then
+              exit;
 
-            key:=generic_param_hash(targetparadef);
+            if not assigned(callerparadef.typesym) then
+              begin
+                caller_sym := create_unnamed_typesym(callerparadef);
+                if caller_sym.owner = callerparadef.owner then
+                  TFPList.AddOnDemand(unnamed_syms, caller_sym);
+              end
+            else
+              caller_sym := callerparadef.typesym;
+
+            key := generic_param_hash(targetparadef);
 
             { the generic param must not already be used }
-            index:=genericparams.findindexof(key);
-            if index<0 then
+            index := genericparams.findindexof(key);
+            if index < 0 then
               begin
                 { add the type to the list }
-                index:=newparams.findindexof(key);
-                if index<0 then
-                  newparams.add(key,callerparadef.typesym);
+                index := newparams.findindexof(key);
+                if index < 0 then
+                  newparams.add(key, caller_sym);
               end;
           end;
 
+        function count_visible_paras(proc: tabstractprocdef): integer;
+          var
+            idx: integer;
+            pv: tparavarsym;
+          begin
+            result := 0;
+            if not assigned(proc) or not assigned(proc.paras) then
+              exit;
+            for idx := 0 to proc.paras.count - 1 do
+              begin
+                pv := tparavarsym(proc.paras[idx]);
+                if not (vo_is_hidden_para in pv.varoptions) then
+                  inc(result);
+              end;
+          end;
+
+        function get_visible_para(proc: tabstractprocdef; visible_idx: integer): tparavarsym;
+          var
+            idx, cur: integer;
+            pv: tparavarsym;
+          begin
+            result := nil;
+            cur := 0;
+            for idx := 0 to proc.paras.count - 1 do
+              begin
+                pv := tparavarsym(proc.paras[idx]);
+                if not (vo_is_hidden_para in pv.varoptions) then
+                  begin
+                    if cur = visible_idx then
+                      exit(pv);
+                    inc(cur);
+                  end;
+              end;
+          end;
+
+        function is_generic_type_param(def: tdef): boolean;
+          begin
+            result := assigned(def) and (
+              owner.is_generic_param(def) or
+              (assigned(def.typesym) and (sp_generic_para in def.typesym.symoptions)) or
+              (def.typ = undefineddef)
+            );
+          end;
+
         var
-          i,j : integer;
-          paravar : tparavarsym;
+          i : integer;
           target_proc,
-          caller_proc : tprocvardef;
+          caller_proc : tabstractprocdef;
           target_proc_para,
           caller_proc_para : tparavarsym;
-          valid_params : integer;
+          valid_params, target_vis_count, caller_vis_count : integer;
+          target_has_ret, caller_has_ret : boolean;
         begin
           result := false;
 
-          target_proc:=tprocvardef(target_def);
-          caller_proc:=tprocvardef(caller_def);
-
-          { parameter count must match exactly
-            currently default values are not considered }
-          if target_proc.paras.count<>caller_proc.paras.count then
+          target_proc := get_proc_def(target_def);
+          caller_proc := get_proc_def(caller_def);
+          if not assigned(target_proc) or not assigned(caller_proc) then
             exit;
 
-          { a mixture of functions and procedures is not allowed }
-          if (not assigned(target_proc.returndef) or is_void(target_proc.returndef)) xor
-              (not assigned(caller_proc.returndef) or is_void(caller_proc.returndef)) then
+          target_vis_count := count_visible_paras(target_proc);
+          caller_vis_count := count_visible_paras(caller_proc);
+          if target_vis_count <> caller_vis_count then
             exit;
 
-          { reject generics with constants }
-          for i:=0 to target_proc.genericdef.genericparas.count-1 do
-            if tsym(target_proc.genericdef.genericparas[i]).typ=constsym then
-              exit;
+          target_has_ret := assigned(target_proc.returndef) and not is_void(target_proc.returndef);
+          caller_has_ret := assigned(caller_proc.returndef) and not is_void(caller_proc.returndef);
+          if target_has_ret xor caller_has_ret then
+            exit;
 
-          newparams:=tfphashlist.create;
-          valid_params:=0;
+          newparams := tfphashlist.create;
+          valid_params := 0;
 
-          for i:=0 to target_proc.paras.count-1 do
+          for i := 0 to target_vis_count - 1 do
             begin
-              target_proc_para:=tparavarsym(target_proc.paras[i]);
-              caller_proc_para:=tparavarsym(caller_proc.paras[i]);
+              target_proc_para := get_visible_para(target_proc, i);
+              caller_proc_para := get_visible_para(caller_proc, i);
 
-              { the parameters are not compatible }
-              if compare_defs(caller_proc_para.vardef,target_proc_para.vardef,nothingn)=te_incompatible then
+              if is_generic_type_param(target_proc_para.vardef) then
+                handle_generic_param(target_proc_para.vardef, caller_proc_para.vardef)
+              else
                 begin
-                  newparams.free;
-                  newparams := nil;
-                  exit(false);
-                end;
-
-              if sp_generic_para in target_proc_para.vardef.typesym.symoptions then
-                begin
-                  paravar:=tparavarsym(tprocvardef(target_proc.genericdef).paras[i]);
-
-                  { find the generic param name in the generic def parameters }
-                  j:=target_proc.genericdef.genericparas.findindexof(paravar.vardef.typesym.name);
-
-                  handle_generic_param(ttypesym(target_proc.genericparas[j]).typedef,caller_proc_para.vardef);
+                  if compare_defs(caller_proc_para.vardef, target_proc_para.vardef, nothingn) = te_incompatible then
+                    begin
+                      newparams.free;
+                      exit(false);
+                    end;
                 end;
 
               inc(valid_params);
             end;
 
-          if assigned(target_proc.returndef) and not is_void(target_proc.returndef) then
+          if target_has_ret then
             begin
-              { or check for exact? }
-              if compare_defs(caller_proc.returndef,target_proc.returndef,nothingn)<te_equal then
+              if is_generic_type_param(target_proc.returndef) then
+                handle_generic_param(target_proc.returndef, caller_proc.returndef)
+              else
                 begin
-                  newparams.free;
-                  newparams := nil;
-                  exit(false);
-                end;
-
-              if sp_generic_para in target_proc.returndef.typesym.symoptions then
-                begin
-                  handle_generic_param(target_proc.returndef,caller_proc.returndef);
+                  if compare_defs(caller_proc.returndef, target_proc.returndef, nothingn) < te_equal then
+                    begin
+                      newparams.free;
+                      exit(false);
+                    end;
                 end;
             end;
 
-          { if the count of valid params matches the target then
-            transfer the temporary params to the actual params }
-          result:=valid_params=target_proc.paras.count;
+          result := (valid_params = target_vis_count);
           if result then
-            for i := 0 to newparams.count-1 do
-              genericparams.add(newparams.nameofindex(i),newparams[i]);
+            for i := 0 to newparams.count - 1 do
+              genericparams.add(newparams.nameofindex(i), newparams[i]);
 
           newparams.free;
-          newparams := nil;
         end;
 
       function maybe_inherited_specialization(givendef,desireddef:tstoreddef;out basedef:tstoreddef):boolean;
@@ -1215,11 +1273,10 @@ uses
                   caller_def:=caller_element;
                   target_key:=generic_param_hash(target_def);
                 end
-              { handle generic procvars }
-              else if (caller_def.typ=procvardef) and
-                (target_def.typ=procvardef) and
-                tprocvardef(target_def).is_specialization and
-                handle_procvars(genericparams,callerparams,target_def,caller_def) then
+              { handle generic procvars and function references }
+              else if is_proc_or_funcref(caller_def) and
+                is_proc_or_funcref(target_def) and
+                handle_procvars(genericdef,genericparams,callerparams,target_def,caller_def,unnamed_syms) then
                 begin
                   continue;
                 end

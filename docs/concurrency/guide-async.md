@@ -249,3 +249,4 @@ $FPC_TRUNK @"$FPC_CFG" -FE./tests/concurrency/out-async -FU./tests/concurrency/o
   docs/concurrency/examples/coroutine_showcase.pp
 ./tests/concurrency/out-async/coroutine_showcase
 ```
+

@@ -8,8 +8,8 @@
     for details about the copyright.
 }
 
+{$ifndef ALLPACKAGES}
 {$mode objfpc}{$H+}
-
 program fpmake;
 
 uses fpmkunit;
@@ -20,8 +20,12 @@ var
 begin
   with Installer do
   begin
+{$endif ALLPACKAGES}
     P := AddPackage('fcl-async');
     P.ShortName := 'fclasyn';
+{$ifdef ALLPACKAGES}
+    P.Directory := ADirectory;
+{$endif ALLPACKAGES}
     P.Description := 'Coroutines, Fibers, and Async State Machines for Free Pascal';
     P.Version := '3.3.1';
     P.Author := 'Free Pascal development team';
@@ -42,6 +46,8 @@ begin
     T := P.Targets.AddUnit('async.statemachine.pp');
     T := P.Targets.AddUnit('fclasync.pp');
 
+{$ifndef ALLPACKAGES}
     Run;
   end;
 end.
+{$endif ALLPACKAGES}
