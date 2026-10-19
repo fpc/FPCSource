@@ -370,6 +370,45 @@ function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: PAnsiChar;
 {$i cwstraix.inc}
 {$endif aix}
 
+{ Converts len UTF-16 characters at source to UTF-8 without iconv }
+procedure Wide2Utf8Move(source:pwidechar; var dest:RawByteString; len:SizeInt);
+
+  var
+    lcount: SizeUInt;
+  begin
+    if len<=0 then
+      begin
+        dest:='';
+        exit;
+      end;
+    { UnicodeToUtf8 counts the terminating #0 }
+    lcount:=UnicodeToUtf8(nil,0,source,len)-1;
+    setlength(dest,lcount);
+    if lcount>0 then
+      UnicodeToUtf8(PAnsiChar(dest),lcount+1,source,len);
+    SetCodePage(dest,CP_UTF8,false);
+  end;
+
+
+{ Converts len UTF-8 bytes at source to UTF-16 without iconv }
+procedure Utf82WideMove(source:PAnsiChar; var dest:widestring; len:SizeInt);
+
+  var
+    lcount: SizeUInt;
+  begin
+    if len<=0 then
+      begin
+        dest:='';
+        exit;
+      end;
+    { Utf8ToUnicode counts the terminating #0 }
+    lcount:=Utf8ToUnicode(nil,0,source,len,true)-1;
+    setlength(dest,lcount);
+    if lcount>0 then
+      Utf8ToUnicode(PUnicodeChar(dest),lcount+1,source,len,true);
+  end;
+
+
 procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCodePage; len:SizeInt);
   var
     outlength,
@@ -424,7 +463,10 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     { unsupported encoding -> default move }
     if use_iconv=iconv_t(-1) then
       begin
-        DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
+        if cp=CP_UTF8 then
+          Wide2Utf8Move(source,dest,len)
+        else
+          DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
         exit;
       end;
     mynil:=nil;
@@ -518,7 +560,10 @@ procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestrin
         // Using Unicode RTL, we can end up here when iconv_ansi2wide is not yet initialized
         if (use_iconv=Nil) then
           begin
-          DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+          if cp=CP_UTF8 then
+            Utf82WideMove(source,dest,len)
+          else
+            DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
           exit;
           end;
       end
@@ -536,7 +581,10 @@ procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestrin
     { unsupported encoding -> default move }
     if use_iconv=iconv_t(-1) then
       begin
-        DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+        if cp=CP_UTF8 then
+          Utf82WideMove(source,dest,len)
+        else
+          DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
         exit;
       end;
     mynil:=nil;

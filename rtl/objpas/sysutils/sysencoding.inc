@@ -621,6 +621,56 @@ begin
   Result := TUTF8Encoding.Create;
 end;
 
+function TUTF8Encoding.GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer;
+begin
+  if (Chars = nil) or (CharCount <= 0) then
+    Result := 0
+  else
+    { UnicodeToUtf8 counts the terminating #0 }
+    Result := UnicodeToUtf8(nil, 0, Chars, CharCount) - 1;
+end;
+
+function TUTF8Encoding.GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte;
+  ByteCount: Integer): Integer;
+var
+  S: RawByteString;
+begin
+  Result := GetByteCount(Chars, CharCount);
+  if Result <= 0 then
+    Exit(0);
+  SetLength(S, Result);
+  UnicodeToUtf8(PAnsiChar(S), Result + 1, Chars, CharCount);
+  if ByteCount < Result then
+    Result := ByteCount;
+  if Result > 0 then
+    Move(S[1], Bytes[0], Result);
+end;
+
+function TUTF8Encoding.GetCharCount(Bytes: PByte; ByteCount: Integer): Integer;
+begin
+  if (Bytes = nil) or (ByteCount <= 0) then
+    Result := 0
+  else
+    { Utf8ToUnicode counts the terminating #0 }
+    Result := Utf8ToUnicode(nil, 0, PAnsiChar(Bytes), ByteCount, True) - 1;
+end;
+
+function TUTF8Encoding.GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar;
+  CharCount: Integer): Integer;
+var
+  U: UnicodeString;
+begin
+  Result := GetCharCount(Bytes, ByteCount);
+  if Result <= 0 then
+    Exit(0);
+  SetLength(U, Result);
+  Utf8ToUnicode(PUnicodeChar(U), Result + 1, PAnsiChar(Bytes), ByteCount, True);
+  if CharCount < Result then
+    Result := CharCount;
+  if Result > 0 then
+    Move(U[1], Chars[0], Result * SizeOf(UnicodeChar));
+end;
+
 function TUTF8Encoding.GetMaxByteCount(CharCount: Integer): Integer;
 begin
   Result := CharCount * 3;

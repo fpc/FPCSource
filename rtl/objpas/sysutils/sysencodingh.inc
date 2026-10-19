@@ -152,6 +152,11 @@ type
   { TUTF8Encoding }
 
   TUTF8Encoding = class(TUTF7Encoding)
+  strict protected
+    function GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
+    function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; override;
+    function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; override;
+    function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
   public
     constructor Create; override;
     function Clone: TEncoding; override;
