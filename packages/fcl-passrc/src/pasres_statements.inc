@@ -753,6 +753,25 @@ type
 
     if ValueSet=nil then
       RaiseNotYetImplemented(20180424215728,Expr,Value.AsDebugString);
+    if (Value.Kind=revkRangeUInt) and (RangeStart>RangeEnd) then
+      begin
+      // An unsigned range across 2^63 is two signed ranges.
+      i:=ValueSet.Intersects(RangeStart,High(TMaxPrecInt));
+      if i<0 then
+        i:=ValueSet.Intersects(Low(TMaxPrecInt),RangeEnd);
+      if i<0 then
+        begin
+        ValueSet.Add(RangeStart,High(TMaxPrecInt));
+        ValueSet.Add(Low(TMaxPrecInt),RangeEnd);
+        AddRangeItem(Values,RangeStart,High(TMaxPrecInt),Expr);
+        AddRangeItem(Values,Low(TMaxPrecInt),RangeEnd,Expr);
+        exit(true);
+        end;
+      if ValueSet.Intersects(RangeStart,High(TMaxPrecInt))>=0 then
+        RangeEnd:=High(TMaxPrecInt)
+      else
+        RangeStart:=Low(TMaxPrecInt);
+      end;
     i:=ValueSet.Intersects(RangeStart,RangeEnd);
     if i<0 then
       begin

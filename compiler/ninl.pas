@@ -1639,6 +1639,7 @@ implementation
     function tinlinenode.handle_val: tnode;
       var
         procname,
+        floatprocname,
         suffix        : string[31];
         sourcepara,
         destpara,
@@ -1802,6 +1803,19 @@ implementation
           procname := procname + 'ansistr'
         else
           procname := procname + 'shortstr';
+
+        { single and double destinations use their own helpers if the system unit has them }
+        if (destpara.resultdef.typ=floatdef) and
+           (tfloatdef(destpara.resultdef).floattype in [s32real,s64real]) then
+          begin
+            if tfloatdef(destpara.resultdef).floattype=s32real then
+              floatprocname:='fpc_val_single_'
+            else
+              floatprocname:='fpc_val_double_';
+            floatprocname:=floatprocname+copy(procname,length('fpc_val_real_')+1,length(procname));
+            if system_proc_exists(floatprocname) then
+              procname:=floatprocname;
+          end;
 
         { set up the correct parameters for the call: the code para... }
         newparas := codepara;

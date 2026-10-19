@@ -900,6 +900,36 @@ begin
       Val(SS,fpc_Val_Real_AnsiStr,code);
     end;
 end;
+
+
+Function fpc_Val_Single_AnsiStr(Const S : RawByteString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_Single_AnsiStr := 0;
+  if length(S) > 255 then
+    code := 256
+  else
+    begin
+      SS := S;
+      fpc_Val_Single_AnsiStr := val_single(SS,code);
+    end;
+end;
+
+
+Function fpc_Val_Double_AnsiStr(Const S : RawByteString; out Code : ValSInt): Double; [public, alias:'FPC_VAL_DOUBLE_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_Double_AnsiStr := 0;
+  if length(S) > 255 then
+    code := 256
+  else
+    begin
+      SS := S;
+      fpc_Val_Double_AnsiStr := val_double(SS,code);
+    end;
+end;
 {$endif}
 
 

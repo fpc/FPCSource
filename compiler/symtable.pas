@@ -372,6 +372,8 @@ interface
     function  try_search_system_type(const s: TIDString): ttypesym;
     function  try_search_current_module_type(const s: TIDString): ttypesym;
     function  search_system_proc(const s: TIDString): tprocdef;
+    { true if the system unit declares procedure s }
+    function  system_proc_exists(const s: TIDString): boolean;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
@@ -4496,6 +4498,19 @@ implementation
           message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
+
+
+    function  system_proc_exists(const s: TIDString): boolean;
+      var
+        srsym: tsym;
+      begin
+        check_systemunit_loaded;
+        srsym:=tsym(systemunit.find(s));
+        if not assigned(srsym) and
+           (cs_compilesystem in current_settings.moduleswitches) then
+          srsym:=tsym(systemunit.Find(upper(s)));
+        result:=assigned(srsym) and (srsym.typ=procsym);
+      end;
 
 
     function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
