@@ -1813,7 +1813,7 @@ const
   ExceptClsProc     : Pointer = nil;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$ifdef ENABLE_UNIT_INIT_TRACKING}
-  UnitInitTrackingProc : TUnitInitTrackProc;
+  UnitInitTrackingProc : TUnitInitTrackProc = nil;
 {$endif ENABLE_UNIT_INIT_TRACKING}
 
 {*****************************************************************************
