@@ -48,7 +48,7 @@ const
   cKindValues: array[TOperandKind] of String = ('-7', '-100', '123456', '200', '60000', '4000000000',
     '-9000000000000', '18000000000000000000', '7.25', '7', '-1', '-3.75', '1234.5', '0.125', '0',
     '42', '1.25', '0.5', '-12.375');
-  cBCDValues: array[1..5] of String = ('2', '-0.5', '1000000.001', '-3.2', '0.04');
+  cBCDValues: array[1..7] of String = ('2', '-0.5', '1000000.001', '-3.2', '0.04', '2.5', '-0.75');
   cOps: array[0..3] of TVarOp = (opAdd, opSubtract, opMultiply, opDivide);
   cOpNames: array[0..3] of String = ('+', '-', '*', '/');
 
@@ -145,14 +145,6 @@ begin
 end;
 
 
-// Returns True if aValue and aExpected are numerically equal, whatever their number of decimal places
-function SameBCD(const aValue, aExpected: TBCD): Boolean;
-
-begin
-  Result:=BCDToStr(aValue-aExpected)='0';
-end;
-
-
 // Checks aResult against aExpected, as a BCD or, if aAsDouble, as a Double
 procedure CheckResult(const aName: String; const aResult: Variant; const aExpected: TBCD; aAsDouble: Boolean);
 
@@ -167,7 +159,7 @@ begin
     begin
     Check(VarIsFmtBCD(aResult),aName+': result type is '+VarTypeAsText(VarType(aResult))+', expected FmtBCD');
     if VarIsFmtBCD(aResult) then
-      Check(SameBCD(VarToBCD(aResult),aExpected),aName+': result '+VarToStr(aResult)+', expected '+BCDToStr(aExpected));
+      Check(BCDCompare(VarToBCD(aResult),aExpected)=0,aName+': result '+VarToStr(aResult)+', expected '+BCDToStr(aExpected));
     end;
 end;
 
@@ -214,15 +206,26 @@ begin
             Check(False,lName+': '+E.ClassName+': '+E.Message);
         end;
         CheckUnchanged(lName,lOperand,lKind);
-        Check(SameBCD(VarToBCD(lBCD),StrToBCD(cBCDValues[I])),lName+': BCD operand changed to '+VarToStr(lBCD));
+        Check(BCDCompare(VarToBCD(lBCD),StrToBCD(cBCDValues[I]))=0,lName+': BCD operand changed to '+VarToStr(lBCD));
 
-        if (cOps[J]=opDivide) and (lKind=okEmpty) then
-          Continue;
         lOperand:=MakeOperand(lKind);
         lName:='BCD '+cBCDValues[I]+' '+cOpNames[J]+' '+cKindNames[lKind]+' '+cKindValues[lKind];
         try
-          lResult:=DoOp(lBCD,lOperand,cOps[J]);
-          CheckResult(lName,lResult,DoBCDOp(StrToBCD(cBCDValues[I]),StrToBCD(cKindValues[lKind]),cOps[J]),False);
+          if (cOps[J]=opDivide) and (lKind=okEmpty) then
+            begin
+            Inc(Checks);
+            try
+              lResult:=DoOp(lBCD,lOperand,cOps[J]);
+              Check(False,lName+': no exception for division by zero');
+            except
+              on E: eBCDException do ;
+            end;
+            end
+          else
+            begin
+            lResult:=DoOp(lBCD,lOperand,cOps[J]);
+            CheckResult(lName,lResult,DoBCDOp(StrToBCD(cBCDValues[I]),StrToBCD(cKindValues[lKind]),cOps[J]),False);
+            end;
         except
           on E: Exception do
             Check(False,lName+': '+E.ClassName+': '+E.Message);
@@ -292,8 +295,6 @@ var
         3: lResult:=lBCD shl lInt;
         4: lResult:=-lBCD;
         5: lResult:=lInt/lZero;
-        6: lResult:=Null+lBCD;
-        7: lResult:=lBCD+Null;
         8: lResult:=AnsiString('abc')+lBCD;
         9: lResult:=lInt**lBCD;
       end;
@@ -333,8 +334,10 @@ begin
   CheckRaises('BCD shl Integer',EVariantInvalidOpError,3);
   CheckRaises('-BCD',EVariantInvalidOpError,4);
   CheckRaises('Integer / BCD zero',eBCDException,5);
-  CheckRaises('Null + BCD',EVariantError,6);
-  CheckRaises('BCD + Null',EVariantError,7);
+  Check(VarIsNull(Null+lBCD),'Null + BCD is Null');
+  Check(VarIsNull(lBCD+Null),'BCD + Null is Null');
+  Check(VarIsNull(Null*lBCD),'Null * BCD is Null');
+  Check(VarIsNull(lBCD/Null),'BCD / Null is Null');
   CheckRaises('non-numeric AnsiString + BCD',Exception,8);
   CheckRaises('Integer ** BCD',EVariantInvalidOpError,9);
 end;

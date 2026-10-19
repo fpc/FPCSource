@@ -1746,7 +1746,9 @@ var
   lType: TVarType;
   lTemp: TVarData;
 begin
-  if FindCustomVariantType(vl.vType, Handler) and Handler.RightPromotion(vr, OpCode, lType) then
+  if (vl.vType = varNull) or (vr.vType = varNull) then
+    DoVarOpNull(vl, vr, OpCode)
+  else if FindCustomVariantType(vl.vType, Handler) and Handler.RightPromotion(vr, OpCode, lType) then
     begin
       if vr.vType = lType then
         Handler.BinaryOp(vl, vr, OpCode)
