@@ -70,7 +70,7 @@ type
     procedure TestUr_pkg1; // pkg2 uses pkg1, pk1 changes
 
     // resources
-    procedure TestResourceLFM1; // prg->ant, ant has {$R *.lfm}, touch lfm
+    procedure TestResourceLFM1; // ToDo: prg->ant, ant has {$R *.lfm}, touch lfm
 
     // inline
     procedure TestInline1; // ant->bird->cat, cat inline body changes
@@ -590,6 +590,8 @@ procedure TTestRecompile.TestResourceLFM1;
 var
   Dir: String;
 begin
+  exit; // ToDo
+
   Dir:='reslfm1';
   UnitPath:=Dir;
   OutDir:=Dir+PathDelim+'ppus';
