@@ -5,7 +5,7 @@
 # Використання: build-testcompat-valgrind.sh [вихідна_тека]
 set -e
 OUT="${1:-$(dirname "$0")/out-valgrind}"
-FPC_SRC_PACKAGES="vcl-compat fcl-base fcl-hash fcl-json fcl-web fcl-xml hash libpcre rtl-extra rtl-generics rtl-objpas wasm-utils fcl-fpcunit" \
+FPC_SRC_PACKAGES="fcl-eventloop vcl-compat fcl-base fcl-hash fcl-json fcl-web fcl-xml hash libpcre rtl-extra rtl-generics rtl-objpas wasm-utils fcl-fpcunit" \
   "$(dirname "$0")/build-testcompat.sh" "$OUT" -dFPC_VALGRIND -gw
 
 # FPC (-gw) експортує мітки налагоджувальної інформації як глобальні символи

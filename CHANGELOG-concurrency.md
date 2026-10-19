@@ -161,3 +161,15 @@
 - `tests/concurrency/fpcenv.sh`: середовище для компіляції тестів свіжозібраним компілятором.
 - `tests/concurrency/build-testcompat.sh`: збірка тестів vcl-compat з поточних джерел.
 - `tests/concurrency/stress.sh`: стрес-прогін наборів `System.Threading` (N повторів, таймаут).
+- **Фаза 1.3 (`packages/fcl-eventloop/`) — масштабований асинхронний I/O на нативних механізмах ОС:**
+  - Новий кросплатформний пакет `fcl-eventloop` із підтримкою нативних високопродуктивних мультиплексорів ядра:
+    - Linux `epoll` (`eventloop.backend.epoll.pp`) з міжпотоковим пробудженням через `eventfd2` / non-blocking self-pipe.
+    - Linux `io_uring` (`eventloop.backend.uring.pp`) із SQ/CQ кільцями через `mmap` та нульовим копіюванням.
+    - macOS / BSD `kqueue` (`eventloop.backend.kqueue.pp`) на фільтрах `EVFILT_READ` / `EVFILT_WRITE`.
+    - Windows `IOCP` (`eventloop.backend.iocp.pp`) на базі Completion Ports і Overlapped I/O.
+  - Multi-Reactor worker pool (`TEventLoopGroup`) для масштабування на 100 000+ одночасних з'єднань із Round-Robin балансуванням і нульовим блокуванням робочих ядер.
+  - Неблокуючі потокобезпечні таймери з пріоритетною чергою на базі Min-Heap ($O(\log N)$ алокація / скасування, $O(1)$ найближчий дедлайн).
+  - Асинхронні неблокуючі сокети (`TAsyncSocket`, `TAsyncServerSocket`, `TAsyncDatagramSocket`) з eager-write оптимізацією, підтримкою як методів об'єктів (`TAsyncReadCallback`), так і анонімних процедур (`reference to procedure`), динамічним вибором вільних портів (`Port`) та безшовною інтеграцією з `IFuture<T>` (`ReadAsync`, `WriteAsync`, `AcceptAsync`) і `TCancellationToken`.
+  - Неблокуючі конвеєри (`TAsyncPipe`) та потоковий файловий ввід/вивід (`TAsyncFile`).
+  - Пул попередньо виділених буферів `TAsyncBufferPool` для виключення фрагментації пам'яті при високих навантаженнях C100K+.
+  - 15 модульних тестів у `packages/fcl-eventloop/tests/`, стрес-скрипт `tests/concurrency/stress-eventloop.sh`, приклад-бенчмарк `docs/concurrency/examples/eventloop_benchmark.pp`, fpdoc-опис `packages/fcl-eventloop/xml/fcleventloop.xml` та ADR-0006.

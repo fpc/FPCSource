@@ -5,7 +5,7 @@
 ROOT=$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd)
 [ -x "$ROOT/compiler/ppcx64" ] || ROOT=$(git rev-parse --show-toplevel)
 TARGET=x86_64-linux
-FPC_SRC_PACKAGES="${FPC_SRC_PACKAGES:-vcl-compat fcl-base fcl-hash fcl-json fcl-web fcl-xml hash libpcre rtl-extra rtl-generics rtl-objpas wasm-utils fcl-fpcunit}"
+FPC_SRC_PACKAGES="${FPC_SRC_PACKAGES:-fcl-eventloop vcl-compat fcl-base fcl-hash fcl-json fcl-web fcl-xml hash libpcre rtl-generics rtl-objpas wasm-utils fcl-fpcunit}"
 FPC_TRUNK="$ROOT/compiler/ppcx64"
 # Окремий файл для кожного запуску: паралельні збірки не заважають одна одній.
 FPC_CFG=$(mktemp "${TMPDIR:-/tmp}/fpc-concurrency-XXXXXX.cfg")

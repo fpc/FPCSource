@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fpdoc-descriptions>
+  <package name="fcl-eventloop">
+    <description>
+      <p>High-performance, scalable cross-platform asynchronous I/O event loop library based on native OS multiplexers (epoll, io_uring, kqueue, IOCP).</p>
+    </description>
+  </package>
+  <module name="fcleventloop">
+    <description>
+      <p>Main entry point and factory unit for the <b>fcl-eventloop</b> package.</p>
+    </description>
+    <element name="TEventLoop">
+      <short>Static factory for event loops, worker groups, sockets, and non-blocking I/O primitives.</short>
+      <descr>
+        <p>Use <var>TEventLoop.Create</var> to instantiate an event loop with a preferred or automatic backend. Use <var>TEventLoop.CreateGroup</var> for multi-reactor worker pools capable of handling 100,000+ concurrent connections.</p>
+      </descr>
+    </element>
+  </module>
+  <module name="eventloop.types">
+    <description>
+      <p>Core interfaces, callback signatures, buffer definitions, and error classes for asynchronous event processing.</p>
+    </description>
+    <element name="IEventLoop">
+      <short>Primary interface representing a single-threaded asynchronous event reactor.</short>
+    </element>
+    <element name="IEventLoopGroup">
+      <short>Interface for managing a multi-threaded pool of event loop reactors.</short>
+    </element>
+  </module>
+  <module name="eventloop.sockets">
+    <description>
+      <p>Non-blocking asynchronous TCP client/server, datagram sockets, and integration with <var>IFuture</var> and <var>TCancellationToken</var>.</p>
+    </description>
+    <element name="IAsyncSocket">
+      <short>Non-blocking streaming socket connection.</short>
+    </element>
+    <element name="IAsyncServerSocket">
+      <short>Non-blocking TCP listening server socket with eager accept.</short>
+    </element>
+  </module>
+</fpdoc-descriptions>
