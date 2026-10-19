@@ -143,6 +143,7 @@ const
   SCharacterIndexOutOfBounds    = 'character index out of bounds [%d]';
   SInvalidDestinationArray      = 'invalid destination array';
   SInvalidDestinationIndex      = 'invalid destination index [%d]';
+  SNoMappingForUnicodeCharacter = 'No mapping for the Unicode character exists in the target multi-byte code page';
 
   SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
   SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';

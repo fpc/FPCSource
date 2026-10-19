@@ -379,8 +379,8 @@ end;
 function TEncoding.GetChars(const Bytes: TBytes): TUnicodeCharArray;
 begin
   SetLength(Result, GetCharCount(Bytes));
-  if Length(Result)>0 then
-    GetChars(@Bytes[0], Length(Bytes), @Result[0], Length(Result));
+  if Length(Bytes)>0 then
+    GetChars(@Bytes[0], Length(Bytes), PUnicodeChar(Result), Length(Result));
 end;
 
 function TEncoding.GetChars(const Bytes: TBytes; ByteIndex, ByteCount: Integer): TUnicodeCharArray;
@@ -447,7 +447,56 @@ begin
   SetString(Result, PUnicodeChar(Chars), Length(Chars));
 end;
 
+// Checks that Bytes is well-formed UTF-8: no overlong forms, surrogates, code points above U+10FFFF or truncated sequences
+function IsValidUtf8(Bytes: PByte; ByteCount: Integer): Boolean;
+var
+  lPos, lNeed: Integer;
+  lMin, lMax: Byte;
+begin
+  Result := False;
+  lPos := 0;
+  while lPos < ByteCount do
+  begin
+    lMin := $80;
+    lMax := $BF;
+    case Bytes[lPos] of
+      $00..$7F: lNeed := 0;
+      $C2..$DF: lNeed := 1;
+      $E0: begin lNeed := 2; lMin := $A0; end;
+      $E1..$EC, $EE, $EF: lNeed := 2;
+      $ED: begin lNeed := 2; lMax := $9F; end;
+      $F0: begin lNeed := 3; lMin := $90; end;
+      $F1..$F3: lNeed := 3;
+      $F4: begin lNeed := 3; lMax := $8F; end;
+    else
+      Exit;
+    end;
+    Inc(lPos);
+    if lNeed > 0 then
+    begin
+      if (ByteCount - lPos < lNeed) or (Bytes[lPos] < lMin) or (Bytes[lPos] > lMax) then
+        Exit;
+      Inc(lPos);
+      Dec(lNeed);
+      while lNeed > 0 do
+      begin
+        if (Bytes[lPos] and $C0) <> $80 then
+          Exit;
+        Inc(lPos);
+        Dec(lNeed);
+      end;
+    end;
+  end;
+  Result := True;
+end;
+
 { TMBCSEncoding }
+
+function TMBCSEncoding.IsInvalidInput(Bytes: PByte; ByteCount: Integer): Boolean;
+begin
+  Result := ((FMBToWCharFlags and MB_ERR_INVALID_CHARS) <> 0) and (FCodePage = CP_UTF8) and
+    (ByteCount > 0) and not IsValidUtf8(Bytes, ByteCount);
+end;
 
 function TMBCSEncoding.GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer;
 var
@@ -474,6 +523,8 @@ function TMBCSEncoding.GetCharCount(Bytes: PByte; ByteCount: Integer): Integer;
 var
   U: UnicodeString;
 begin
+  if IsInvalidInput(Bytes, ByteCount) then
+    Exit(0);
   widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(Bytes), CodePage, U, ByteCount);
   Result := Length(U);
 end;
@@ -483,6 +534,8 @@ function TMBCSEncoding.GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicod
 var
   U: UnicodeString;
 begin
+  if IsInvalidInput(Bytes, ByteCount) then
+    raise EEncodingError.Create(SNoMappingForUnicodeCharacter);
   widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(Bytes), CodePage, U, ByteCount);
   Result := Length(U);
   if CharCount < Result then
@@ -618,7 +671,7 @@ end;
 
 function TUTF8Encoding.Clone: TEncoding;
 begin
-  Result := TUTF8Encoding.Create;
+  Result := TUTF8Encoding.Create(CP_UTF8, FMBToWCharFlags, FWCharToMBFlags);
 end;
 
 function TUTF8Encoding.GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer;
@@ -648,7 +701,7 @@ end;
 
 function TUTF8Encoding.GetCharCount(Bytes: PByte; ByteCount: Integer): Integer;
 begin
-  if (Bytes = nil) or (ByteCount <= 0) then
+  if (Bytes = nil) or (ByteCount <= 0) or IsInvalidInput(Bytes, ByteCount) then
     Result := 0
   else
     { Utf8ToUnicode counts the terminating #0 }
@@ -660,6 +713,8 @@ function TUTF8Encoding.GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicod
 var
   U: UnicodeString;
 begin
+  if IsInvalidInput(Bytes, ByteCount) then
+    raise EEncodingError.Create(SNoMappingForUnicodeCharacter);
   Result := GetCharCount(Bytes, ByteCount);
   if Result <= 0 then
     Exit(0);
