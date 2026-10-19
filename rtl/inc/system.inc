@@ -925,8 +925,11 @@ End;
 {$ifndef FPC_SYSTEM_HAS_STACKTOP}
 function StackTop: pointer;
 begin
+  { No upper stack bound in a library }
+  if IsLibrary then
+    result:=pointer(ptruint(high(ptruint)))
   { Avoid wrap to zero on 32-bit }
-  if ptruint(StackBottom) > high(ptruint) - StackLength then
+  else if ptruint(StackBottom) > high(ptruint) - StackLength then
     result:=pointer(ptruint(high(ptruint)))
   else
     result:=StackBottom + StackLength;
