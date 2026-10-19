@@ -213,6 +213,7 @@ type
     AttrID: TCSSNumericalID;
     Specificity: TCSSSpecificity;
     DeclEl: TCSSDeclarationElement;
+    Order: integer; // merge sequence number, decides between equal specificities
   end;
   TCSSResolvedAttributeArray = array of TCSSResolvedAttribute;
   PCSSResolvedAttribute = ^TCSSResolvedAttribute;
@@ -264,6 +265,8 @@ type
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
     Invalid: boolean;
     Tokens: TBytes; // tokenized value, the resolver has substituted all var() calls
+    Specificity: TCSSSpecificity;
+    Order: integer; // cascade merge sequence number, decides between equal specificities
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
 
@@ -428,6 +431,7 @@ type
         DeclEl: TCSSDeclarationElement; // can be nil if set by a shorthand
         Tokens: TBytes; // tokenized value, see TCSSBaseResolver.Tokenize
         Complete: boolean;
+        Order: integer; // merge sequence number, decides between equal specificities
         Prev, Next: TCSSNumericalID; // valid if >0, see below FMergedAttributeFirst
       end;
       PMergedAttribute = ^TMergedAttribute;
@@ -481,6 +485,7 @@ type
     FMergedAttributes: TMergedAttributeArray;
     FMergedAttributesStamp: integer;
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
+    FMergedOrder: integer; // last merge sequence number given out
     FMergedAllDecl: TCSSDeclarationElement;
     FMergedAllSpecificity: TCSSSpecificity;
     FSourceSpecificity: TCSSSpecificity; // Origin specificity during Compute run
@@ -2149,6 +2154,7 @@ begin
   FMergedAllSpecificity:=CSSSpecificityInvalid;
   FMergedAttributeFirst:=0;
   FMergedAttributeLast:=0;
+  FMergedOrder:=0;
 end;
 
 procedure TCSSResolver.InitMerge;
@@ -2182,6 +2188,8 @@ begin
   AttrP:=@FMergedAttributes[AttrID];
   AttrP^.Specificity:=aSpecificity;
   AttrP^.DeclEl:=DeclEl;
+  inc(FMergedOrder);
+  AttrP^.Order:=FMergedOrder;
   if AttrP^.Stamp<>FMergedAttributesStamp then
   begin
     if FMergedAttributeFirst>0 then
@@ -3723,6 +3731,7 @@ begin
       SharedMerged.Values[Cnt].AttrID:=AttrID;
       SharedMerged.Values[Cnt].DeclEl:=AttrP^.DeclEl;
       SharedMerged.Values[Cnt].Specificity:=AttrP^.Specificity;
+      SharedMerged.Values[Cnt].Order:=AttrP^.Order;
       inc(Cnt);
     end;
     AttrID:=AttrP^.Next;
@@ -3740,7 +3749,12 @@ begin
   for i:=0 to length(SharedMerged.Values)-1 do
   begin
     with SharedMerged.Values[i] do
+    begin
       SetMergedAttribute(AttrID,Specificity,DeclEl);
+      FMergedAttributes[AttrID].Order:=Order;
+      if Order>FMergedOrder then
+        FMergedOrder:=Order;
+    end;
   end;
 end;
 
@@ -3988,11 +4002,14 @@ begin
             if SubAttrDesc.OnSplitShorthand<>nil then
               raise ECSSResolver.Create('20240709194634');
             SubAttrP:=@FMergedAttributes[SubAttrID];
-            if (SubAttrP^.Stamp=FMergedAttributesStamp) and (SubAttrP^.Specificity>=AttrP^.Specificity) then
+            if (SubAttrP^.Stamp=FMergedAttributesStamp)
+                and ((SubAttrP^.Specificity>AttrP^.Specificity)
+                  or ((SubAttrP^.Specificity=AttrP^.Specificity) and (SubAttrP^.Order>AttrP^.Order))) then
             begin
-              // longhand already exists -> keep
+              // longhand from a later or more specific declaration -> keep
             end else begin
               SetMergedAttribute(SubAttrID,AttrP^.Specificity,nil);
+              SubAttrP^.Order:=AttrP^.Order;
               // the split handler returns tokenized values; fall back to the initial value when empty
               if not CSSTokensEmpty(LHValues[i]) then
                 SubAttrP^.Tokens:=LHValues[i]
@@ -4050,6 +4067,8 @@ begin
     Result.Values[Cnt]:=AttrValue;
     AttrValue.AttrID:=AttrID;
     AttrValue.Tokens:=AttrP^.Tokens;
+    AttrValue.Specificity:=AttrP^.Specificity;
+    AttrValue.Order:=AttrP^.Order;
     //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID);
     AttrID:=AttrP^.Next;
     inc(Cnt);

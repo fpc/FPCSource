@@ -1737,15 +1737,47 @@ begin
 {$endif}
 end;
 
+procedure SysVarOp(var Left : Variant; const Right : Variant; OpCode : TVarOp); forward;
+
+{ Applies OpCode to a custom variant after promoting the other operand }
 procedure DoVarOpComplex(var vl : TVarData; const vr : TVarData; const OpCode : TVarOp);
-var Handler: TCustomVariantType;
+var
+  Handler: TCustomVariantType;
+  lType: TVarType;
+  lTemp: TVarData;
 begin
-  if FindCustomVariantType(vl.vType, Handler) then
-    Handler.BinaryOp(vl, vr, OpCode)
-  else if FindCustomVariantType(vr.vType, Handler) then
-    Handler.BinaryOp(vl, vr, OpCode)
+  if (vl.vType = varNull) or (vr.vType = varNull) then
+    DoVarOpNull(vl, vr, OpCode)
+  else if FindCustomVariantType(vl.vType, Handler) and Handler.RightPromotion(vr, OpCode, lType) then
+    begin
+      if vr.vType = lType then
+        Handler.BinaryOp(vl, vr, OpCode)
+      else
+        begin
+          FillChar(lTemp, SizeOf(lTemp), 0);
+          try
+            DoVarCast(lTemp, vr, lType);
+            Handler.BinaryOp(vl, lTemp, OpCode);
+          finally
+            DoVarClear(lTemp);
+          end;
+        end;
+    end
+  else if FindCustomVariantType(vr.vType, Handler) and Handler.LeftPromotion(vl, OpCode, lType) then
+    begin
+      if vl.vType = lType then
+        Handler.BinaryOp(vl, vr, OpCode)
+      else
+        begin
+          DoVarCast(vl, vl, lType);
+          if lType = Handler.VarType then
+            Handler.BinaryOp(vl, vr, OpCode)
+          else
+            SysVarOp(Variant(vl), Variant(vr), OpCode);
+        end;
+    end
   else
-   VarInvalidOp(vl.vType, vr.vType, OpCode);
+    VarInvalidOp(vl.vType, vr.vType, OpCode);
 end;
 
 procedure SysVarOp(var Left : Variant; const Right : Variant; OpCode : TVarOp);
@@ -3845,14 +3877,16 @@ end;
 function TCustomVariantType.LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.LeftPromotion');
+  RequiredVarType:=VarType;
+  Result:=True;
 end;
 
 
 function TCustomVariantType.RightPromotion(const V: TVarData; const Operation: TVarOp;  out RequiredVarType: TVarType): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.RightPromotion');
+  RequiredVarType:=VarType;
+  Result:=True;
 end;
 
 

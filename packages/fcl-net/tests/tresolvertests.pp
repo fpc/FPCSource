@@ -3,7 +3,10 @@ program tresolvertests;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, netdbtest;
+{$ifdef unix}
+  cthreads, netdbtest,
+{$endif}
+  Classes, consoletestrunner, resolvetest;
 
 type
 

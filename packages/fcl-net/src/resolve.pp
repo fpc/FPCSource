@@ -423,10 +423,12 @@ Function THostResolver.AddressLookup (Const Address: THostAddr) : Boolean;
 
 Var
   FHostEntry : PHostEntry;
+  lNet : THostAddr;
 
 begin
   ClearData;
-  FHostEntry:=GetHostByAddr(PAnsiChar(@Address),SizeOf(Address),AF_INET);
+  lNet:=HostToNet(Address);
+  FHostEntry:=GetHostByAddr(PAnsiChar(@lNet),SizeOf(lNet),AF_INET);
   Result:=FHostEntry<>Nil;
   If Result then
     SaveHostEntry(FHostEntry)

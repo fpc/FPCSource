@@ -31,7 +31,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pFilDes = ^TFilDes;
 
 const
-{$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
+{$if ((defined(linux) or defined(solaris)) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
     darwinsuffix64bit = '';
 {$elseif defined(darwin_new_iostructs) and (defined(cpui386) or defined(cpux86_64))}

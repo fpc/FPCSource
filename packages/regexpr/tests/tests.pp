@@ -49,6 +49,8 @@ type
     procedure AreEqual(AErrorMessage: AnsiString; s1, s2: AnsiString); overload;
     procedure AreEqual(AErrorMessage: AnsiString; i1, i2: integer); overload;
     procedure TestBadRegex(const AErrorMessage: AnsiString; const AExpression: RegExprString);
+    // Frees the regular expression of the test.
+    procedure TearDown; override;
   published
     procedure TestEmpty;
     procedure TestNotFound;
@@ -1190,6 +1192,14 @@ begin
     FreeAndNil(R);
   end;
 end;
+
+procedure TTestRegexpr.TearDown;
+
+begin
+  FreeAndNil(RE);
+  inherited TearDown;
+end;
+
 
 procedure TTestRegexpr.CompileRE(const AExpression: RegExprString);
 begin

@@ -554,6 +554,15 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       end
   end;
 
+
+  // Deletes the key whose destructor finalizes threads not started by the RTL
+  Procedure DoneCTLS;
+
+  begin
+    if TLSInitialized then
+      pthread_key_delete(CleanupKey);
+  end;
+
   function CBeginThread(sa : Pointer;stacksize : PtrUInt;
                        ThreadFunction : tthreadfunc;p : pointer;
                        creationFlags : dword; var ThreadId : TThreadId) : TThreadID;
@@ -1461,6 +1470,8 @@ finalization
 {$ifdef linux}
   DoneTidEntries;
 {$endif linux}
+  if IsLibrary then
+    DoneCTLS;
   // Release the dynamically loaded pthread library.
   CDoneThreads;
 end.

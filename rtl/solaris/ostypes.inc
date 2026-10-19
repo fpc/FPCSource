@@ -36,8 +36,37 @@ CONST
 
 TYPE
     blksize_t = clong;
+{$if defined(cpu64) or defined(fs32bit)}
     blkcnt_t = clong;
+{$else}
+    blkcnt_t = cint64;
+{$endif}
 
+{$if not defined(cpu64) and not defined(fs32bit)}
+   { struct stat64 }
+   stat = record
+     st_dev : dev_t;
+     st_pad1 : array[1..3] of clong;
+     st_ino : ino_t;
+     st_mode : mode_t;
+     st_nlink : nlink_t;
+     st_uid : uid_t;
+     st_gid : gid_t;
+     st_rdev : dev_t;
+     st_pad2 : array[1..2] of clong;
+     st_size : off_t;
+     st_atime : time_t;
+     st_atimens : clong;    { access time nanosecond field         }
+     st_mtime : time_t;
+     st_mtimens : clong;    { modification time nanosecond field   }
+     st_ctime : time_t;
+     st_ctimens : clong;    { modification time nanosecond field   }
+     st_blksize : blksize_t;
+     st_blocks : blkcnt_t;
+     st_fstype : array[0..ST_FSTYPSZ-1] of AnsiChar;
+     st_pad4 : array[1..8] of clong;
+   end;
+{$else}
    { file characteristics services }
    stat = packed record { verify the alignment of the members }
      st_dev : dev_t;
@@ -70,19 +99,15 @@ TYPE
      st_pad4 : array[1..8] of longint;
 {$endif ndef CPU64}
    end;
+{$endif}
    TStat             = Stat;
    PStat             = ^Stat;
 
    flock    = record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                {$ifdef 64bitfs}
-                l_start : off64_t;      { starting offset }
-                l_len   : off64_t;      { len = 0 means until end of file }
-                {$else}
                 l_start : off_t;        { starting offset }
                 l_len   : off_t;        { len = 0 means until end of file }
-                {$endif}
                 l_sysid : cint;
                 l_pid   : pid_t;        { lock owner }
                 l_pas   : array[0..3] of clong;
@@ -221,9 +246,16 @@ Const
   F_SetFd  = 2;
   F_GetFl  = 3;
   F_SetFl  = 4;
+{$if not defined(cpu64) and not defined(fs32bit)}
+  { F_GETLK64, F_SETLK64 and F_SETLKW64, these use struct flock64 }
+  F_GetLk  = 33;
+  F_SetLk  = 34;
+  F_SetLkW = 35;
+{$else}
   F_GetLk  = 14;
   F_SetLk  = 6;
   F_SetLkW = 7;
+{$endif}
   F_SetOwn = 23;
   F_GetOwn = 24;
 
