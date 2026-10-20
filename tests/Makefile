@@ -2604,7 +2604,7 @@ endif
 endif
 LOGFILES=$(TEST_LOG) $(TEST_LONGLOG) $(TEST_FAILLIST) $(TEST_SEPLOG)
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
-TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs linux unixutil types nullable contnrs convutils
+TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs linux unixutil types nullable contnrs convutils fgl
 TESTDIRECTDIRS=
 TESTSUBDIRS=cg cg/variants cg/cdecl cpu8/avr cpu16 cpu16/i8086 library opt wasm $(addprefix units/,$(TESTUNITDIRS))
 TESTPACKAGESDIRS=bzip2 cocoaint fcl-base fcl-db fcl-image fcl-registry fcl-xml hash rtl-extra rtl-objpas rtl-unicode univint webtbs win-base zlib
