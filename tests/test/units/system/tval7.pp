@@ -3,6 +3,9 @@ program tval7;
 
 {$mode objfpc}{$H+}
 
+{$R-}
+{$Q-}
+
 type
   TDoubleCase = record
     S: ShortString;
