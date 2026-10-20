@@ -8,7 +8,7 @@ procedure stackfill;
 var a: array[1..10000] of byte;
   i: Integer;
 begin
-  for i := low(a) to high(a) do a[i] := i;
+  for i := low(a) to high(a) do a[i] := (i and $ff);
 end;
 
 //equal comparison, case sensitive, stopping at #0-bytes in p1, ignoring #0-bytes in l2
