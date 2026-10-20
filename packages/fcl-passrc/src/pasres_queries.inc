@@ -1006,7 +1006,6 @@ var
   ProcScope: TPasProcedureScope;
   GenScope: TPasGenericScope;
   SpecItem: TPRSpecializedItem;
-  El: TPasElement;
 begin
     Result:=True;
     // ObjFPC allows a bare self-reference to the enclosing generic; Delphi

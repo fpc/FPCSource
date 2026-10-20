@@ -1773,7 +1773,6 @@ var
   GenProcType, NewProcType: TPasProcedureType;
   GenProc, NewProc: TPasProcedure;
   OldScopeState: TScopeStashState;
-  PendingItem: TPRSpecializedItem;
 begin
   if SpecializedItem.Step<>prssNone then
     exit;
