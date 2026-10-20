@@ -2752,6 +2752,18 @@ Function GetFullName(var t:Text) : UnicodeString;
                                Initializing
 *****************************************************************************}
 
+{$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
+{ Code page of a standard handle, DefaultSystemCodePage while no widestring manager is installed }
+function StdIOCodePage(aStdCP: TStandardCodePageEnum): TSystemCodePage;
+begin
+  if Assigned(WideStringManager.GetStandardCodePageProc) then
+    StdIOCodePage:=WideStringManager.GetStandardCodePageProc(aStdCP)
+  else
+    StdIOCodePage:=DefaultSystemCodePage;
+end;
+{$endif}
+
+
 procedure OpenStdIO(var f:text;mode:longint;hdl:thandle);
 begin
   Assign(f,'');
@@ -2763,14 +2775,14 @@ begin
       begin
         TextRec(f).InOutFunc:=@FileReadFunc;
       {$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
-        TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleInput);
+        TextRec(f).CodePage:=StdIOCodePage(scpConsoleInput);
       {$endif}
       end;
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
         {$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
-        TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleOutput);
+        TextRec(f).CodePage:=StdIOCodePage(scpConsoleOutput);
       {$endif}
         if Do_Isdevice(hdl) then
           TextRec(f).FlushFunc:=@FileWriteFunc;
