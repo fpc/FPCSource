@@ -3883,12 +3883,14 @@ begin
     CloseBracket:=']'
   else
     CloseBracket:=')';
+  inc(p);
   repeat
-    inc(p);
     case p^ of
     #0,'{','}',';': exit;
-    '''','"': SkipString(p);
-    '(','[': SkipBrackets(p,Lvl+1);
+    '''','"':
+      if not SkipString(p) then exit;
+    '(','[':
+      if not SkipBrackets(p,Lvl+1) then exit;
     ')',']':
       if p^=CloseBracket then
       begin
@@ -3898,6 +3900,8 @@ begin
         SkipToEndOfAttribute(p);
         exit;
       end;
+    else
+      inc(p);
     end;
   until false;
 end;
@@ -5315,12 +5319,14 @@ begin
     CloseBracket:=']'
   else
     CloseBracket:=')';
+  inc(p);
   repeat
-    inc(p);
     case p^ of
     #0,'{','}',';': exit;
-    '''','"': SkipString(p);
-    '(','[': SkipBrackets(p,Lvl+1);
+    '''','"':
+      if not SkipString(p) then exit;
+    '(','[':
+      if not SkipBrackets(p,Lvl+1) then exit;
     ')',']':
       if p^=CloseBracket then
       begin
@@ -5330,6 +5336,8 @@ begin
         SkipToEndOfAttribute(p);
         exit;
       end;
+    else
+      inc(p);
     end;
   until false;
 end;
