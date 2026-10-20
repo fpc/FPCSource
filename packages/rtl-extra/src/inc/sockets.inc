@@ -404,70 +404,67 @@ begin
   ShortNEtToHost:=ntohs(net);
 end;
 
-const digittab : shortstring = ('0123456789ABCDEF');
+{ Lowercase hexadecimal form of aValue without leading zeros }
+function HextetToStr(aValue: Word): AnsiString;
 
-function lclinttohex (i:longint;digits:longint): ansistring;
+const
+  Digits: array[0..15] of AnsiChar = '0123456789abcdef';
 
 begin
-  SetLength(lclinttohex,4);
-  lclinttohex[4]:=digittab[1+(i and 15)];
-  lclinttohex[3]:=digittab[1+((i shr 4) and 15)];
-  lclinttohex[2]:=digittab[1+((i shr 8) and 15)];
-  lclinttohex[1]:=digittab[1+((i shr 12) and 15)];;
+  HextetToStr:='';
+  repeat
+    HextetToStr:=Digits[aValue and 15]+HextetToStr;
+    aValue:=aValue shr 4;
+  until aValue=0;
 end;
 
-function HostAddrToStr6 (Entry : TIn6_Addr) :ansiString;
-var
-  i: byte;
-  zr1,zr2: set of byte;
-  zc1,zc2: byte;
-  have_skipped: boolean;
-begin
-  zr1 := [];
-  zr2 := [];
-  zc1 := 0;
-  zc2 := 0;
-  for i := 0 to 7 do begin
-    if Entry.u6_addr16[i] = 0 then begin
-      include(zr2, i);
-      inc(zc2);
-    end else begin
-      if zc1 < zc2 then begin
-        zc1 := zc2;
-        zr1 := zr2;
-        zc2 := 0; zr2 := [];
-      end;
-    end;
-  end;
-  if zc1 < zc2 then begin
-    zc1 := zc2;
-    zr1 := zr2;
-  end;
-  SetLength(HostAddrToStr6, 8*5-1);
-  SetLength(HostAddrToStr6, 0);
-  have_skipped := false;
-  for i := 0 to 7 do begin
-    if not (i in zr1) then begin
-      if have_skipped then begin
-        if HostAddrToStr6 = ''
-          then HostAddrToStr6 := '::'
-          else HostAddrToStr6 := HostAddrToStr6 + ':';
-        have_skipped := false;
-      end;
-      // FIXME: is that shortnettohost really proper there? I wouldn't be too sure...
-      HostAddrToStr6 := HostAddrToStr6 +lclIntToHex(ShortNetToHost(Entry.u6_addr16[i]), 1) + ':';
-    end else begin
-      have_skipped := true;
-    end;
-  end;
-  if have_skipped then
-    if HostAddrToStr6 = ''
-      then HostAddrToStr6 := '::'
-      else HostAddrToStr6 := HostAddrToStr6 + ':';
 
-  if HostAddrToStr6 = '' then HostAddrToStr6 := '::';
-  if not (7 in zr1) then
-    SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);
+{ RFC 5952 text form: longest run of 2 or more zero groups as '::', IPv4-mapped tail in dotted form }
+function HostAddrToStr6 (Entry : TIn6_Addr) :ansiString;
+
+var
+  i, lRunStart, lRunLen, lBestStart, lBestLen: Integer;
+
+begin
+  if (Entry.u6_addr16[0]=0) and (Entry.u6_addr16[1]=0) and (Entry.u6_addr16[2]=0)
+    and (Entry.u6_addr16[3]=0) and (Entry.u6_addr16[4]=0) and (Entry.u6_addr16[5]=$FFFF) then
+    begin
+      HostAddrToStr6:='::ffff:'+NetAddrToStr(in_addr(Entry.u6_addr32[3]));
+      exit;
+    end;
+  lBestStart:=-1;
+  lBestLen:=1;
+  lRunStart:=0;
+  lRunLen:=0;
+  for i:=0 to 7 do
+    if Entry.u6_addr16[i]=0 then
+      begin
+        if lRunLen=0 then
+          lRunStart:=i;
+        Inc(lRunLen);
+        if lRunLen>lBestLen then
+          begin
+            lBestStart:=lRunStart;
+            lBestLen:=lRunLen;
+          end;
+      end
+    else
+      lRunLen:=0;
+  HostAddrToStr6:='';
+  i:=0;
+  while i<=7 do
+    if i=lBestStart then
+      begin
+        HostAddrToStr6:=HostAddrToStr6+'::';
+        Inc(i,lBestLen);
+      end
+    else
+      begin
+        if (i>0) and (i<>lBestStart+lBestLen) then
+          HostAddrToStr6:=HostAddrToStr6+':';
+        HostAddrToStr6:=HostAddrToStr6+HextetToStr(ntohs(Entry.u6_addr16[i]));
+        Inc(i);
+      end;
 end;
 
 function StrToHostAddr6(IP: AnsiString): in6_addr;

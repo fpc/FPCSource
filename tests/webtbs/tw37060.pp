@@ -201,15 +201,15 @@ begin
   // easy way to verify that the StrToHostAddr6 function parsed the address
   // correctly.
   // The values on the right have been double-checked with libc's inet_pton.
-  addrlist.Add('::1|::0001');
+  addrlist.Add('::1|::1');
   addrlist.Add('::|::');
   addrlist.Add('2001:4860:4000::|2001:4860:4000::');
-  addrlist.Add('21ac:d349:07c4:198e:6fab:df5a:192.168.1.17|21AC:D349:07C4:198E:6FAB:DF5A:C0A8:0111');
-  addrlist.Add('21ac:d349:07c4:198e:6fab:df5a:0.0.0.0|21AC:D349:07C4:198E:6FAB:DF5A::');
-  addrlist.Add('::213.41.35.14|::D529:230E');
-  addrlist.Add('fe80:b46c:c2a1:a202:926e:9d2f:a520:4172|FE80:B46C:C2A1:A202:926E:9D2F:A520:4172');
-  addrlist.Add('a:b:c:d:e:f:0:1|000A:000B:000C:000D:000E:000F::0001');
-  addrlist.Add('a:B:c:D:e:f:9:1|000A:000B:000C:000D:000E:000F:0009:0001');
+  addrlist.Add('21ac:d349:07c4:198e:6fab:df5a:192.168.1.17|21ac:d349:7c4:198e:6fab:df5a:c0a8:111');
+  addrlist.Add('21ac:d349:07c4:198e:6fab:df5a:0.0.0.0|21ac:d349:7c4:198e:6fab:df5a::');
+  addrlist.Add('::213.41.35.14|::d529:230e');
+  addrlist.Add('fe80:b46c:c2a1:a202:926e:9d2f:a520:4172|fe80:b46c:c2a1:a202:926e:9d2f:a520:4172');
+  addrlist.Add('a:b:c:d:e:f:0:1|a:b:c:d:e:f:0:1');
+  addrlist.Add('a:B:c:D:e:f:9:1|a:b:c:d:e:f:9:1');
   addrlist.Add('::0.0.0.0|::');
 end;
 

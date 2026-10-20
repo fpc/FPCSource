@@ -1425,9 +1425,9 @@ begin
   AssertEquals('Wrong AAAA record name for RR 1', FAKEFQDN,
     RRArr[1].RRName);
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[0], qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4', HostAddrToStr6(ip));
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4', HostAddrToStr6(ip));
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1], qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::92E6:BAFF:FE44:FFBB', HostAddrToStr6(ip));
+  AssertEquals('Wrong ip for AAAA.', 'fe80::92e6:baff:fe44:ffbb', HostAddrToStr6(ip));
 end;
 
 procedure TNetDbTest.TestDnsQueryTCP_AAAA;
@@ -1454,11 +1454,11 @@ begin
     RRArr[1].RRName);
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[0],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip));
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::92E6:BAFF:FE44:FFBB',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::92e6:baff:fe44:ffbb',
     HostAddrToStr6(ip));
 end;
 
@@ -1486,11 +1486,11 @@ begin
     RRArr[1].RRName);
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[0],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip));
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::92E6:BAFF:FE44:FFBB',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::92e6:baff:fe44:ffbb',
     HostAddrToStr6(ip));
 end;
 
@@ -1518,11 +1518,11 @@ begin
     RRArr[1].RRName);
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[0],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip));
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1],
     qd.Payload, ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::92E6:BAFF:FE44:FFBB',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::92e6:baff:fe44:ffbb',
     HostAddrToStr6(ip));
 end;
 
@@ -1563,7 +1563,7 @@ begin
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1], qd.Payload, ip6));
 
   AssertEquals('Wrong ip for A.', '172.16.27.238', HostAddrToStr(ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip6));
 end;
 
@@ -1604,7 +1604,7 @@ begin
   AssertTrue('Did not get RR AAAA data.', DNSRRGetAAAA(RRArr[1], qd.Payload, ip6));
 
   AssertEquals('Wrong ip for A.', '172.16.27.238', HostAddrToStr(ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip6));
 end;
 
@@ -1646,7 +1646,7 @@ begin
     ip6));
 
   AssertEquals('Wrong ip for A.', '172.16.27.238', HostAddrToStr(ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip6));
 end;
 
@@ -1688,7 +1688,7 @@ begin
     ip6));
 
   AssertEquals('Wrong ip for A.', '172.16.27.238', HostAddrToStr(ip));
-  AssertEquals('Wrong ip for AAAA.', 'FE80::3B92:3429:FF16:A3E4',
+  AssertEquals('Wrong ip for AAAA.', 'fe80::3b92:3429:ff16:a3e4',
     HostAddrToStr6(ip6));
 end;
 
