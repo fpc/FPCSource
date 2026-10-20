@@ -1444,6 +1444,9 @@ begin
         begin
         // TypedPtr+=n / TypedPtr-=n, in element steps
         end
+      else if (El.Kind in [akAdd,akMinus,akMul,akDivision])
+          and TryResolveCompoundOperator(El,LeftResolved,RightResolved) then
+        // x op= y through the operator overload of x op y
       else
         RaiseIncompatibleTypeRes(20180615235749,nOperatorIsNotOverloadedAOpB,[AssignKindNames[El.Kind]],LeftResolved,RightResolved,El);
       end

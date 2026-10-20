@@ -1903,6 +1903,9 @@ type
     function TryResolveOperatorOverload(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult;
       var LeftResolved, RightResolved: TPasResolverResult): Boolean; virtual;
+    // True when the compound assignment El (+=, -=, *=, /=) of a structured type has an operator overload.
+    function TryResolveCompoundOperator(El: TPasImplAssign;
+      const LeftResolved, RightResolved: TPasResolverResult): Boolean; virtual;
     function TryResolveUnaryOperator(El: TUnaryExpr;
       var ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags): Boolean; virtual;

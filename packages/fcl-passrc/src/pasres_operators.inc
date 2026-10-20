@@ -1169,6 +1169,15 @@ begin
   if RightResolved.BaseType=btNone then ;
 end;
 
+function TPasResolver.TryResolveCompoundOperator(El: TPasImplAssign;
+  const LeftResolved, RightResolved: TPasResolverResult): Boolean;
+begin
+  Result := False;
+  if El=nil then ;
+  if LeftResolved.BaseType=btNone then ;
+  if RightResolved.BaseType=btNone then ;
+end;
+
 function TPasResolver.TryResolveUnaryOperator(El: TUnaryExpr;
   var ResolvedEl: TPasResolverResult;
   Flags: TPasResolverComputeFlags): Boolean;
