@@ -480,7 +480,9 @@ end;
 
 {$ifndef FPUNONE}
 {$I flt_conv.inc}
+{$ifndef CPU16}
 {$I flt_exact.inc}
+{$endif CPU16}
 {$endif}
 
 {$ifndef FPUNONE}
@@ -1613,6 +1615,7 @@ begin
     fpc_Val_Real_ShortStr := val_real( s, code );
 end;
 
+{$ifndef CPU16}
 Function fpc_Val_Single_ShortStr(const s : shortstring; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_SHORTSTR']; compilerproc;
 begin
     fpc_Val_Single_ShortStr := val_single( s, code );
@@ -1622,6 +1625,7 @@ Function fpc_Val_Double_ShortStr(const s : shortstring; out Code : ValSInt): Dou
 begin
     fpc_Val_Double_ShortStr := val_double( s, code );
 end;
+{$endif CPU16}
 {$endif FPUNONE}
 
 {$ifndef FPC_STR_ENUM_INTERN}

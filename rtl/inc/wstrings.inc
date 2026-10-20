@@ -766,6 +766,7 @@ begin
 end;
 
 
+{$ifndef CPU16}
 Function fpc_Val_Single_WideStr(Const S : WideString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_WIDESTR']; compilerproc;
 Var
   SS: ShortString;
@@ -794,6 +795,7 @@ begin
       fpc_Val_Double_WideStr:=val_double(SS,code);
     end;
 end;
+{$endif CPU16}
 {$endif}
 
 function fpc_val_enum_widestr(str2ordindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;

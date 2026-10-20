@@ -902,6 +902,7 @@ begin
 end;
 
 
+{$ifndef CPU16}
 Function fpc_Val_Single_AnsiStr(Const S : RawByteString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
@@ -930,6 +931,7 @@ begin
       fpc_Val_Double_AnsiStr := val_double(SS,code);
     end;
 end;
+{$endif CPU16}
 {$endif}
 
 

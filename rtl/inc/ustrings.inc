@@ -1383,6 +1383,7 @@ begin
 end;
 
 
+{$ifndef CPU16}
 Function fpc_Val_Single_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_UNICODESTR']; compilerproc;
 Var
   SS: ShortString;
@@ -1411,6 +1412,7 @@ begin
       fpc_Val_Double_UnicodeStr:=val_double(SS,code);
     end;
 end;
+{$endif CPU16}
 {$endif}
 
 
