@@ -1771,6 +1771,29 @@ const
 {$i rttih.inc}
 
 {*****************************************************************************
+                           Old-style object support
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
+type
+  PObjectVMT = ^TObjectVMT;
+  PPObjectVMT = ^PObjectVMT;
+  // Start of the VMT of an object type with virtual methods; the virtual method pointers follow it
+  TObjectVMT = record
+    vInstanceSize: SizeInt;
+    // -vInstanceSize
+    vInstanceSize2: SizeInt;
+    // Reference to the parent VMT, nil when the parent has no VMT
+    vParentRef: PPObjectVMT;
+  private
+    function GetvParent: PObjectVMT; inline;
+  public
+    // VMT of the parent object type, nil when the parent has no VMT
+    property vParent: PObjectVMT read GetvParent;
+  end;
+{$endif FPC_HAS_FEATURE_OBJECTS}
+
+{*****************************************************************************
                        Object Pascal support
 *****************************************************************************}
 
