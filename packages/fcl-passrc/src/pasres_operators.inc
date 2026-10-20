@@ -2485,6 +2485,9 @@ begin
         // `TDateTimeRec(aDest^) := ..` through an untyped Pointer parameter.
         if (not KeepWriteFlags) and OperandIsLValueExpr then
           KeepWriteFlags:=true;
+        // A reinterpretation the resolver accepts as an l-value, e.g. TObject(StringVar) in pas2llvm.
+        if (not KeepWriteFlags) and TypeCastKeepsLValue(ToLoType,ParamResolved) then
+          KeepWriteFlags:=true;
         end
       else
         begin

@@ -1260,7 +1260,8 @@ var
       else
         break;
       end;
-    List.Insert(i+1,NewEl);
+    inc(i);
+    List.Insert(i,NewEl);
   end;
 
 var
