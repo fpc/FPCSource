@@ -8937,8 +8937,8 @@ unit aoptx86;
      function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
        var
          v: TCGInt;
-         true_hp1, hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
-         FirstMatch, TempBool: Boolean;
+         true_hp1, hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label, hp_jcc, hp_mov: tai;
+         FirstMatch, do_opt: Boolean;
          NewReg: TRegister;
          JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
        begin
@@ -8974,9 +8974,9 @@ unit aoptx86;
                  { Do jump optimisations first in case the condition becomes
                    unnecessary }
 
-                 TempBool := True;
-                 if DoJumpOptimizations(p_jump, TempBool) or
-                   not TempBool then
+                 do_opt := True;
+                 if DoJumpOptimizations(p_jump, do_opt) or
+                   not do_opt then
                    begin
 
                      if Assigned(p_jump) then
@@ -9016,8 +9016,8 @@ unit aoptx86;
                  JumpLabel := TAsmLabel(taicpu(p_jump).oper[0]^.ref^.symbol);
                  if GetNextInstruction(p_jump, hp2) and
                    (
-                     OptimizeConditionalJump(JumpLabel, p_jump, hp2, TempBool) or
-                     not TempBool
+                     OptimizeConditionalJump(JumpLabel, p_jump, hp2, do_opt) or
+                     not do_opt
                    ) then
                    begin
                      hp1 := p_jump;
@@ -9275,6 +9275,105 @@ unit aoptx86;
                            modified, is still intact and might be optimised by the
                            SETcc optimisation below }
                        end;
+                   end;
+               end;
+           end;
+
+         {
+           Search for:
+             cmp   $x,ref
+             j(c)  @lbl
+             mov   ref,%reg   (same reference and size)
+
+           And change to:
+             mov   ref,%reg
+             cmp   $x,%reg
+             j(c)  @lbl
+
+           If %reg is not in use before the comparison, it is not in use at
+           @lbl either, so loading it on both paths is safe. This saves a
+           memory access and the comparison becomes shorter ("cmp $0,%reg" is
+           turned into "test %reg,%reg" on the next iteration).
+
+           The load may also be a zero (sign) extension if the condition is an
+           equality or unsigned (signed) one and the flags are not used
+           afterwards; the comparison is then done with the extended value.
+         }
+         if (taicpu(p).oper[0]^.typ = top_const) and
+           (taicpu(p).oper[1]^.typ = top_ref) and
+           GetNextInstruction(p, hp_jcc) and
+           MatchInstruction(hp_jcc, A_Jcc, []) and
+           GetNextInstruction(hp_jcc, hp_mov) and
+           MatchInstruction(hp_mov, [A_MOV, A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}], []) and
+           MatchOpType(taicpu(hp_mov), top_ref, top_reg) and
+           RefsEqual(taicpu(p).oper[1]^.ref^, taicpu(hp_mov).oper[0]^.ref^) then
+           begin
+             do_opt := False;
+             v := taicpu(p).oper[0]^.val;
+             if taicpu(hp_mov).opcode = A_MOV then
+               do_opt := (taicpu(hp_mov).opsize = taicpu(p).opsize)
+             else
+               begin
+                 { size of the memory operand of the extension }
+                 case taicpu(hp_mov).opsize of
+                   S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                     do_opt := (taicpu(p).opsize = S_B);
+                   S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                     do_opt := (taicpu(p).opsize = S_W);
+{$ifdef x86_64}
+                   S_LQ:
+                     do_opt := (taicpu(p).opsize = S_L);
+{$endif x86_64}
+                   else
+                     ;
+                 end;
+                 if do_opt then
+                   begin
+{$push}{$R-}{$Q-}
+                     if taicpu(hp_mov).opcode = A_MOVZX then
+                       begin
+                         do_opt := taicpu(hp_jcc).condition in [C_E, C_Z, C_NE, C_NZ,
+                           C_A, C_AE, C_B, C_BE, C_C, C_NA, C_NAE, C_NB, C_NBE, C_NC];
+                         case taicpu(p).opsize of
+                           S_B: v := v and $FF;
+                           S_W: v := v and $FFFF;
+                           else
+                             ;
+                         end;
+                       end
+                     else
+                       begin
+                         do_opt := taicpu(hp_jcc).condition in [C_E, C_Z, C_NE, C_NZ,
+                           C_G, C_GE, C_L, C_LE, C_NG, C_NGE, C_NL, C_NLE];
+                         case taicpu(p).opsize of
+                           S_B: v := shortint(v);
+                           S_W: v := smallint(v);
+                           S_L: v := longint(v);
+                           else
+                             ;
+                         end;
+                       end;
+{$pop}
+                   end;
+               end;
+
+             if do_opt then
+               begin
+                 { taicpu(hp_mov).oper[1]^.reg and flags could be in use (in theory) in a loop }
+                 TransferUsedRegs(TmpUsedRegs);
+                 UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                 if not RegInUsedRegs(taicpu(hp_mov).oper[1]^.reg, TmpUsedRegs) and
+                   not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp_jcc, TmpUsedRegs) then
+                   begin
+                     DebugMsg(SPeepholeOptimization + 'CmpJccMov2MovCmpJcc', p);
+                     asml.Remove(hp_mov);
+                     asml.InsertBefore(hp_mov, p);
+                     AllocRegBetween(taicpu(hp_mov).oper[1]^.reg, hp_mov, hp_jcc, UsedRegs);
+                     taicpu(p).loadreg(1, taicpu(hp_mov).oper[1]^.reg);
+                     taicpu(p).loadconst(0, v);
+                     taicpu(p).opsize := reg2opsize(taicpu(hp_mov).oper[1]^.reg);
+                     Result := True;
+                     Exit;
                    end;
                end;
            end;
