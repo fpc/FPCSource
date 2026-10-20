@@ -13,6 +13,7 @@
 
  **********************************************************************}
 
+{$ifndef FPC_NO_CLASSESINLINE}{$define CLASSESINLINE}{$endif}
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
 {$MACRO ON}
 {$IFDEF FPC_DOTTEDUNITS}
@@ -496,8 +497,8 @@ Type
     FPosition: Integer;
   public
     constructor Create(AList: TFPList);
-    function GetCurrent: Pointer;
-    function MoveNext: Boolean;
+    function GetCurrent: Pointer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function MoveNext: Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     property Current: Pointer read GetCurrent;
   end;
 
@@ -534,7 +535,7 @@ Type
     function Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Extract(Item: Pointer): Pointer;
     function First: Pointer;
-    function GetEnumerator: TFPListEnumerator;
+    function GetEnumerator: TFPListEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Contains(Item: Pointer): boolean;
     function IndexOf(Item: Pointer): Integer;
     function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
@@ -618,7 +619,7 @@ Type
     function Expand: TList;
     function Extract(item: Pointer): Pointer;
     function First: Pointer; inline;
-    function GetEnumerator: TListEnumerator;
+    function GetEnumerator: TListEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Contains(Item: Pointer): boolean;
     function IndexOf(Item: Pointer): Integer; inline;
     procedure Insert(Index: Integer; Item: Pointer);
@@ -905,8 +906,8 @@ type
     FPosition: Integer;
   public
     constructor Create(ACollection: TCollection);
-    function GetCurrent: TCollectionItem;
-    function MoveNext: Boolean;
+    function GetCurrent: TCollectionItem; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function MoveNext: Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     property Current: TCollectionItem read GetCurrent;
   end;
 
@@ -951,7 +952,7 @@ type
     procedure Clear;
     procedure EndUpdate; virtual;
     procedure Delete(Index: Integer);
-    function GetEnumerator: TCollectionEnumerator;
+    function GetEnumerator: TCollectionEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function GetNamePath: string; override;
     function Insert(Index: Integer): TCollectionItem;
     function FindItemID(ID: Integer): TCollectionItem;
@@ -992,8 +993,8 @@ type
     FPosition: Integer;
   public
     constructor Create(AStrings: TStrings);
-    function GetCurrent: String;
-    function MoveNext: Boolean;
+    function GetCurrent: String; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function MoveNext: Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     property Current: String read GetCurrent;
   end;
 
@@ -1126,7 +1127,7 @@ type
     procedure ForEach(aCallback: TStringsForeachMethod);
     procedure ForEach(aCallback: TStringsForeachMethodEx);
     procedure ForEach(aCallback: TStringsForeachMethodExObj);
-    function GetEnumerator: TStringsEnumerator;
+    function GetEnumerator: TStringsEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
     function Contains(const S: string): Boolean;
@@ -2595,8 +2596,8 @@ type
     FPosition: Integer;
   public
     constructor Create(AComponent: TComponent);
-    function GetCurrent: TComponent;
-    function MoveNext: Boolean;
+    function GetCurrent: TComponent; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function MoveNext: Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     property Current: TComponent read GetCurrent;
   end;
 
@@ -2698,7 +2699,7 @@ type
     procedure FreeNotification(AComponent: TComponent);
     procedure RemoveFreeNotification(AComponent: TComponent);
     procedure FreeOnRelease;
-    function GetEnumerator: TComponentEnumerator;
+    function GetEnumerator: TComponentEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function GetNamePath: string; override;
     function GetParentComponent: TComponent; dynamic;
     function HasParent: Boolean; dynamic;
@@ -2824,8 +2825,8 @@ type
     FPosition: Integer;
   public
     constructor Create(AList: TInterfaceList);
-    function GetCurrent: IUnknown;
-    function MoveNext: Boolean;
+    function GetCurrent: IUnknown; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function MoveNext: Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     property Current: IUnknown read GetCurrent;
   end;
 
@@ -2854,7 +2855,7 @@ type
     procedure Delete(index : Integer);
     procedure Exchange(index1,index2 : Integer);
     function First : IUnknown;
-    function GetEnumerator: TInterfaceListEnumerator;
+    function GetEnumerator: TInterfaceListEnumerator; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function IndexOf(const item : IUnknown) : Integer;
     function Add(item : IUnknown) : Integer;
     procedure Insert(i : Integer;item : IUnknown);
