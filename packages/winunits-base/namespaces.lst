@@ -29,6 +29,7 @@ src/htmlhelp.pp=namespaced/WinApi.Htmlhelp.pp
 src/imagehlp.pp=namespaced/WinApi.Imagehlp.pp
 src/typelib.pas=namespaced/WinApi.Typelib.pas
 src/dwmapi.pp=namespaced/WinApi.Dwmapi.pp
+src/wmpointer.pp=namespaced/WinApi.WmPointer.pp
 src/commctrl.pp=namespaced/WinApi.Commctrl.pp
 src/winver.pp=namespaced/WinApi.Winver.pp
 src/stdole2.pas=namespaced/WinApi.Stdole2.pas
