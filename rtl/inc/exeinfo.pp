@@ -134,7 +134,16 @@ end;
           TST[0]:= #0;
           if baseaddr <> nil then
             begin
+{$ifdef wince}
+              { AllocationBase is not a module handle on WinCE }
+              if GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST))=0 then
+                begin
+                  filename:=ParamStr(0);
+                  exit;
+                end;
+{$else wince}
               GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
+{$endif wince}
 {$ifdef FPC_OS_UNICODE}
               filename:= String(PWideChar(@TST));
 {$else}
