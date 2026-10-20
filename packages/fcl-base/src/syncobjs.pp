@@ -156,6 +156,42 @@ type
       constructor Create;
    end;
 
+   { TCountdownEvent }
+
+   TCountdownEvent = class(TSynchroObject)
+   private
+     FEvent: TEvent;
+     FInitialCount: Integer;
+     FCurrentCount: Integer;
+     function GetIsSet: Boolean;
+   public
+     // Creates the event with a count of aCount; the event is set when aCount is 0
+     constructor Create(aCount: Integer);
+     destructor Destroy; override;
+     // Decrements the count by aCount and sets the event at 0; returns True when the count reached 0
+     function Signal(aCount: Integer = 1): Boolean;
+     // Increments the count by aCount; raises when the event is already set
+     procedure AddCount(aCount: Integer = 1);
+     // Increments the count by aCount; returns False when the event is already set
+     function TryAddCount(aCount: Integer = 1): Boolean;
+     // Restores the count to InitialCount
+     procedure Reset; overload;
+     // Sets InitialCount and the count to aCount
+     procedure Reset(aCount: Integer); overload;
+     // Waits until the count reaches 0 or aTimeout milliseconds have passed
+     function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+     {$IFNDEF VER3_2}
+     // Waits until the count reaches 0 or aTimeout has passed
+     function WaitFor(const aTimeout: TTimeSpan): TWaitResult; overload;
+     {$ENDIF}
+     // Remaining number of signals before the event is set
+     property CurrentCount: Integer read FCurrentCount;
+     // Count the event starts from after Create or Reset
+     property InitialCount: Integer read FInitialCount;
+     // True when the count is 0
+     property IsSet: Boolean read GetIsSet;
+   end;
+
 {$IFDEF CPU16}
 {$DEFINE NOPOINTER}
 {$ENDIF}
@@ -339,6 +375,11 @@ Resourcestring
   SErrInvalidReleaseCount = '%d is not a valid release count, count must be >0';
   SErrFailedToSignalSemaphore = 'Failed to signal semaphore at count %d';
   SErrMutexNotSupported   = 'Mutexes are not supported on this platform';
+  SErrCountdownNegative   = 'Countdown event count %d must not be negative';
+  SErrCountdownInvalid    = 'Countdown event count change %d must be positive';
+  SErrCountdownSignal     = 'Cannot signal countdown event %d times, current count is %d';
+  SErrCountdownIsSet      = 'Cannot add to a countdown event that is already set';
+  SErrCountdownOverflow   = 'Adding %d to countdown event count %d overflows';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -544,6 +585,120 @@ constructor TSimpleEvent.Create;
 begin
   inherited Create(nil, True, False, '');
 end;
+
+{ ---------------------------------------------------------------------
+  TCountdownEvent
+  ---------------------------------------------------------------------}
+
+constructor TCountdownEvent.Create(aCount: Integer);
+
+begin
+  inherited Create;
+  if aCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownNegative, [aCount]);
+  FInitialCount:=aCount;
+  FCurrentCount:=aCount;
+  FEvent:=TEvent.Create(nil, True, aCount=0, '');
+end;
+
+
+destructor TCountdownEvent.Destroy;
+
+begin
+  FreeAndNil(FEvent);
+  inherited Destroy;
+end;
+
+
+function TCountdownEvent.GetIsSet: Boolean;
+
+begin
+  Result:=FCurrentCount=0;
+end;
+
+
+function TCountdownEvent.Signal(aCount: Integer): Boolean;
+
+var
+  lCurrent: Integer;
+
+begin
+  if aCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownInvalid, [aCount]);
+  repeat
+    lCurrent:=FCurrentCount;
+    if aCount>lCurrent then
+      raise ESyncObjectException.CreateFmt(SErrCountdownSignal, [aCount, lCurrent]);
+  until InterlockedCompareExchange(FCurrentCount, lCurrent-aCount, lCurrent)=lCurrent;
+  Result:=lCurrent=aCount;
+  if Result then
+    FEvent.SetEvent;
+end;
+
+
+procedure TCountdownEvent.AddCount(aCount: Integer);
+
+begin
+  if not TryAddCount(aCount) then
+    raise ESyncObjectException.Create(SErrCountdownIsSet);
+end;
+
+
+function TCountdownEvent.TryAddCount(aCount: Integer): Boolean;
+
+var
+  lCurrent: Integer;
+
+begin
+  if aCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownInvalid, [aCount]);
+  repeat
+    lCurrent:=FCurrentCount;
+    if lCurrent=0 then
+      Exit(False);
+    if lCurrent>High(Integer)-aCount then
+      raise ESyncObjectException.CreateFmt(SErrCountdownOverflow, [aCount, lCurrent]);
+  until InterlockedCompareExchange(FCurrentCount, lCurrent+aCount, lCurrent)=lCurrent;
+  Result:=True;
+end;
+
+
+procedure TCountdownEvent.Reset;
+
+begin
+  Reset(FInitialCount);
+end;
+
+
+procedure TCountdownEvent.Reset(aCount: Integer);
+
+begin
+  if aCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownNegative, [aCount]);
+  FInitialCount:=aCount;
+  InterlockedExchange(FCurrentCount, aCount);
+  if aCount=0 then
+    FEvent.SetEvent
+  else
+    FEvent.ResetEvent;
+end;
+
+
+function TCountdownEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=FEvent.WaitFor(aTimeout);
+end;
+
+
+{$IFNDEF VER3_2}
+function TCountdownEvent.WaitFor(const aTimeout: TTimeSpan): TWaitResult;
+
+begin
+  Result:=FEvent.WaitFor(aTimeout);
+end;
+{$ENDIF}
+
 
 { ---------------------------------------------------------------------
   TInterlocked
