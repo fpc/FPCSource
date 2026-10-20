@@ -35,6 +35,7 @@ uses
   utcFPObjectHashTable,
   utcExprParsNodes,
   utcInterlocked,
+  utcCountdownEvent,
   utcDirwatch
   ;
 
@@ -70,6 +71,7 @@ begin
   utcExprParsAggr.RegisterTests(lSuite);
   utcExprBuiltin.RegisterTests(lSuite);
   utcInterlocked.RegisterTests;
+  utcCountdownEvent.RegisterTests;
   utcDirwatch.RegisterTests;
   RunAllSysTests;
 end.
