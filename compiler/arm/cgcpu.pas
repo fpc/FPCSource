@@ -1801,7 +1801,7 @@ unit cgcpu;
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
             if preserve_flags then
-              list.concat(taicpu.op_reg_reg(A_FMXR,NR_APSR_nzcv,rf));
+              list.concat(taicpu.op_reg_reg(A_MSR,NR_APSR_nzcvq,rf));
             if clear then
               current_procinfo.FPUExceptionCheckNeeded:=false;
           end;
