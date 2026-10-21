@@ -336,7 +336,7 @@ function EqualSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32' name 'Equ
 function EqualPrefixSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32' name 'EqualPrefixSid';
 function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD; external 'advapi32' name 'GetSidLengthRequired';
 function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD;nSubAuthority3:DWORD; nSubAuthority4:DWORD;
-  nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;var pSid:PSID):WINBOOL; external 'advapi32' name 'AllocateAndInitializeSid';
+  nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;out pSid:PSID):WINBOOL; external 'advapi32' name 'AllocateAndInitializeSid';
 function FreeSid(pSid:PSID):PVOID; external 'advapi32' name 'FreeSid';
 function InitializeSid(Sid:PSID; pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE):WINBOOL; external 'advapi32' name 'InitializeSid';
 function GetSidIdentifierAuthority(pSid:PSID):PSID_IDENTIFIER_AUTHORITY; external 'advapi32' name 'GetSidIdentifierAuthority';
@@ -353,11 +353,11 @@ function GetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLen
 function SetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLength:DWORD; dwAclInformationClass:ACL_INFORMATION_CLASS):WINBOOL; external 'advapi32' name 'SetAclInformation';
 function AddAce(pAcl:PACL; dwAceRevision:DWORD; dwStartingAceIndex:DWORD; pAceList:LPVOID; nAceListLength:DWORD):WINBOOL; external 'advapi32' name 'AddAce';
 function DeleteAce(pAcl:PACL; dwAceIndex:DWORD):WINBOOL; external 'advapi32' name 'DeleteAce';
-function GetAce(pAcl:PACL; dwAceIndex:DWORD; var pAce:LPVOID):WINBOOL; external 'advapi32' name 'GetAce';
+function GetAce(pAcl:PACL; dwAceIndex:DWORD; out pAce:LPVOID):WINBOOL; external 'advapi32' name 'GetAce';
 function AddAccessAllowedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external 'advapi32' name 'AddAccessAllowedAce';
 function AddAccessDeniedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external 'advapi32' name 'AddAccessDeniedAce';
 function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL;bAuditFailure:WINBOOL):WINBOOL; external 'advapi32' name 'AddAuditAccessAce';
-function FindFirstFreeAce(pAcl:PACL; var pAce:LPVOID):WINBOOL; external 'advapi32' name 'FindFirstFreeAce';
+function FindFirstFreeAce(pAcl:PACL; out pAce:LPVOID):WINBOOL; external 'advapi32' name 'FindFirstFreeAce';
 function InitializeSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR; dwRevision:DWORD):WINBOOL; external 'advapi32' name 'InitializeSecurityDescriptor';
 function IsValidSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'IsValidSecurityDescriptor';
 function GetSecurityDescriptorLength(pSecurityDescriptor:PSECURITY_DESCRIPTOR):DWORD; external 'advapi32' name 'GetSecurityDescriptorLength';
@@ -367,10 +367,10 @@ function GetSecurityDescriptorDacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpb
 function SetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; bSaclPresent:WINBOOL; pSacl:PACL; bSaclDefaulted:WINBOOL):WINBOOL; external 'advapi32' name 'SetSecurityDescriptorSacl';
 function GetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpbSaclPresent:LPBOOL; var pSacl:PACL; lpbSaclDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorSacl';
 function SetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pOwner:PSID; bOwnerDefaulted:WINBOOL):WINBOOL; external 'advapi32' name 'SetSecurityDescriptorOwner';
-function GetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pOwner:PSID; lpbOwnerDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorOwner';
+function GetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; out pOwner:PSID; lpbOwnerDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorOwner';
 function SetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pGroup:PSID; bGroupDefaulted:WINBOOL):WINBOOL; external 'advapi32' name 'SetSecurityDescriptorGroup';
-function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorGroup';
-function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR;
+function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; out pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorGroup';
+function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; out NewDescriptor:PSECURITY_DESCRIPTOR;
   IsDirectoryObject:WINBOOL; Token:HANDLE;GenericMapping:PGENERIC_MAPPING):WINBOOL; external 'advapi32' name 'CreatePrivateObjectSecurity';
 function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;
   external 'advapi32' name 'SetPrivateObjectSecurity';
@@ -406,7 +406,7 @@ function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):HKL; external 'user32' name
 function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):WINBOOL; external 'user32' name 'ActivateKeyboardLayout';
 {$endif}
 function UnloadKeyboardLayout(hkl:HKL):WINBOOL; external 'user32' name 'UnloadKeyboardLayout';
-function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):longint; external 'user32' name 'GetKeyboardLayoutList';
+function GetKeyboardLayoutList(nBuff:longint; out lpList:HKL):longint; external 'user32' name 'GetKeyboardLayoutList';
 function GetKeyboardLayout(dwLayout:DWORD):HKL; external 'user32' name 'GetKeyboardLayout';
 function OpenInputDesktop(dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32' name 'OpenInputDesktop';
 function EnumDesktopWindows(hDesktop:HDESK; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumDesktopWindows';
@@ -467,7 +467,7 @@ function IsZoomed(hWnd:HWND):WINBOOL; external 'user32' name 'IsZoomed';
 function EndDialog(hDlg:HWND; nResult:longint):WINBOOL; external 'user32' name 'EndDialog';
 function GetDlgItem(hDlg:HWND; nIDDlgItem:longint):HWND; external 'user32' name 'GetDlgItem';
 function SetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; uValue:UINT; bSigned:WINBOOL):WINBOOL; external 'user32' name 'SetDlgItemInt';
-function GetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; var lpTranslated:WINBOOL; bSigned:WINBOOL):UINT; external 'user32' name 'GetDlgItemInt';
+function GetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; out lpTranslated:WINBOOL; bSigned:WINBOOL):UINT; external 'user32' name 'GetDlgItemInt';
 function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL; external 'user32' name 'CheckDlgButton';
 function CheckRadioButton(hDlg:HWND; nIDFirstButton:longint; nIDLastButton:longint; nIDCheckButton:longint):WINBOOL; external 'user32' name 'CheckRadioButton';
 function IsDlgButtonChecked(hDlg:HWND; nIDButton:longint):UINT; external 'user32' name 'IsDlgButtonChecked';
@@ -1062,9 +1062,9 @@ function DdeUninitialize(_para1:DWORD):WINBOOL; external 'user32' name 'DdeUnini
 function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD;_para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external 'netapi32' name 'NetUserEnum';
 function NetApiBufferFree(_para1:LPVOID):DWORD; external 'netapi32' name 'NetApiBufferFree';
 function NetUserGetInfo(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:LPBYTE):DWORD; external 'netapi32' name 'NetUserGetInfo';
-function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD; external 'netapi32' name 'NetGetDCName';
-function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetGroupEnum';
-function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetLocalGroupEnum';
+function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; out _para3:LPBYTE):DWORD; external 'netapi32' name 'NetGetDCName';
+function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; out _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetGroupEnum';
+function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; out _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetLocalGroupEnum';
 {$endif Unknown_functions}
 procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external 'shell32' name 'SHAddToRecentDocs';
 function SHBrowseForFolder(_para1:LPBROWSEINFO):LPITEMIDLIST; external 'shell32' name 'SHBrowseForFolder';
@@ -1073,7 +1073,7 @@ function SHFileOperation(_para1:LPSHFILEOPSTRUCT):longint; external 'shell32' na
 procedure SHFreeNameMappings(_para1:HANDLE); external 'shell32' name 'SHFreeNameMappings';
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD_PTR; external 'shell32' name 'SHGetFileInfo';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32' name 'SHGetPathFromIDList';
-function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
+function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; out _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
 function FlashWindowEx(pfwi : PFLASHWINFO) : BOOL; stdcall; external 'user32' name 'FlashWindowEx';
 function EnumTimeFormatsEx(TimeFormatsExEnum : TIMEFMT_ENUMPROCEX; LocaleName : LPCWSTR;Flags : DWORD;AppData : LPARAM) : BOOL; external 'kernel32' name 'EnumTimeFormatsEx';
 
@@ -1157,17 +1157,17 @@ function ListView_GetImageList(hwnd:HWND;iImageList : wINT) : LRESULT;
 function ListView_GetISearchString(hwndLV:HWND;lpsz : LPTSTR) : LRESULT;
 function ListView_GetItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
 function ListView_GetItemCount(hwnd : HWND) : LRESULT;
-function ListView_GetItemPosition(hwndLV:HWND;i : longint;var pt : POINT) : longint;
+function ListView_GetItemPosition(hwndLV:HWND;i : longint;out pt : POINT) : longint;
 function ListView_GetItemSpacing(hwndLV:HWND;fSmall : longint) : LRESULT;
 function ListView_GetItemState(hwndLV:HWND;i,mask : longint) : LRESULT;
 function ListView_GetNextItem(hwnd:HWND; iStart, flags : longint) : LRESULT;
-function ListView_GetOrigin(hwndLV:HWND;var pt : POINT) : LRESULT;
+function ListView_GetOrigin(hwndLV:HWND;out pt : POINT) : LRESULT;
 function ListView_GetSelectedCount(hwndLV : HWND) : LRESULT;
 function ListView_GetStringWidth(hwndLV:HWND;psz : LPCTSTR) : LRESULT;
 function ListView_GetTextBkColor(hwnd : HWND) : LRESULT;
 function ListView_GetTextColor(hwnd : HWND) : LRESULT;
 function ListView_GetTopIndex(hwndLV : HWND) : LRESULT;
-function ListView_GetViewRect(hwnd:HWND;var rc : RECT) : LRESULT;
+function ListView_GetViewRect(hwnd:HWND;out rc : RECT) : LRESULT;
 function ListView_HitTest(hwndLV:HWND;var info : LV_HITTESTINFO) : LRESULT;
 function ListView_InsertColumn(hwnd:HWND;iCol : longint;var col : LV_COLUMN) : LRESULT;
 function ListView_InsertItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
@@ -1232,7 +1232,7 @@ function TabCtrl_SetItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT
 function TabCtrl_InsertItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
 function TabCtrl_DeleteItem(hwnd:HWND;i : longint) : LRESULT;
 function TabCtrl_DeleteAllItems(hwnd : HWND) : LRESULT;
-function TabCtrl_GetItemRect(hwnd:HWND;i : longint;var rc : RECT) : LRESULT;
+function TabCtrl_GetItemRect(hwnd:HWND;i : longint;out rc : RECT) : LRESULT;
 function TabCtrl_GetCurSel(hwnd : HWND) : LRESULT;
 function TabCtrl_SetCurSel(hwnd:HWND;i : longint) : LRESULT;
 function TabCtrl_HitTest(hwndTC:HWND;var info : TC_HITTESTINFO) : LRESULT;
@@ -1820,7 +1820,7 @@ begin
 end;
 
 
-function ListView_GetItemPosition(hwndLV:HWND;i : longint;var pt : POINT) : longint;
+function ListView_GetItemPosition(hwndLV:HWND;i : longint;out pt : POINT) : longint;
 begin
   ListView_GetItemPosition:=SendMessage(hwndLV,LVM_GETITEMPOSITION,WPARAM(longint(i)),LPARAM(@pt));
 end;
@@ -1844,7 +1844,7 @@ begin
 end;
 
 
-function ListView_GetOrigin(hwndLV:HWND;var pt : POINT) : LRESULT;
+function ListView_GetOrigin(hwndLV:HWND;out pt : POINT) : LRESULT;
 begin
   ListView_GetOrigin:=SendMessage(hwndLV,LVM_GETORIGIN,WPARAM(0),LPARAM(@pt));
 end;
@@ -1880,7 +1880,7 @@ begin
 end;
 
 
-function ListView_GetViewRect(hwnd:HWND;var rc : RECT) : LRESULT;
+function ListView_GetViewRect(hwnd:HWND;out rc : RECT) : LRESULT;
 begin
   ListView_GetViewRect:=SendMessage(hwnd,LVM_GETVIEWRECT,0,LPARAM(@rc));
 end;
@@ -2282,7 +2282,7 @@ begin
 end;
 
 
-function TabCtrl_GetItemRect(hwnd:HWND;i : longint;var rc : RECT) : LRESULT;
+function TabCtrl_GetItemRect(hwnd:HWND;i : longint;out rc : RECT) : LRESULT;
 begin
   TabCtrl_GetItemRect:=SendMessage(hwnd,TCM_GETITEMRECT,WPARAM(longint(i)),LPARAM(@rc));
 end;
