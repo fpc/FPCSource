@@ -462,8 +462,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pend:=psrc+sizeof(ptruint);
     end;
   while (psrc<pend) and (psrc^=pdest^) do
     begin
@@ -509,8 +507,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pointer(pend):=pointer(psrc)+sizeof(ptruint);
     end;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
   if (PtrUInt(pdest) or PtrUInt(psrc)) and 1<>0 then
@@ -572,8 +568,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pointer(pend):=pointer(psrc)+sizeof(ptruint);
     end;
 {$endif sizeof(ptruint)>sizeof(dword)}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
