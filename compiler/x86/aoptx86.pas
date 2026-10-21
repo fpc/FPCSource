@@ -3349,7 +3349,7 @@ unit aoptx86;
               (ThisRef.base = current_procinfo.framepointer)
             ) then
             begin
-              case taicpu(p).opsize of
+              case taicpu(p1).opsize of
                 S_B:
                   begin
                     { Word writes must be on a 2-byte boundary }
