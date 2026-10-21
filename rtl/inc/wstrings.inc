@@ -40,6 +40,14 @@ Type
 Const
   WideRecLen = SizeOf(TWideRec);
   WideFirstOff = SizeOf(TWideRec);
+  { the most characters a Widestring can have: their byte length fits the
+    length field, a DWord, and with the length field and the terminator they
+    fit a SizeUInt -- the first bounds a 64-bit target, the second a 32-bit one }
+{$ifdef CPU64}
+  WideMaxLen = High(DWord) div sizeof(WideChar);
+{$else CPU64}
+  WideMaxLen = (High(SizeUInt)-(WideRecLen+sizeof(WideChar))) div sizeof(WideChar);
+{$endif CPU64}
 
 {
   Default WideChar <-> AnsiChar conversion is to only convert the
@@ -90,7 +98,8 @@ begin
   else
 {$endif MSWINDOWS}
     begin
-      GetMem(P,Len*sizeof(WideChar)+WideRecLen);
+      { and room for the terminating #0, which follows the characters }
+      GetMem(P,Len*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)));
       If P<>Nil then
         begin
          PWideRec(P)^.Len:=Len*2;     { Initial length }
@@ -495,6 +504,9 @@ Var
 begin
    if (l>0) then
     begin
+      { before any size is computed from it }
+      if l>WideMaxLen then
+        WideStringError;
       if Pointer(S)=nil then
        begin
          { Need a complete new widestring...}
@@ -514,9 +526,9 @@ begin
           { through a local, as an ansistring is: the variable holds the
             string, not its allocation, while that is reallocated }
           Temp:=Pointer(S)-WideFirstOff;
-          if SizeUInt(L*sizeof(WideChar)+WideRecLen)>MemSize(Temp) then
+          if SizeUInt(L*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)))>MemSize(Temp) then
             begin
-              reallocmem(Temp, L*sizeof(WideChar)+WideRecLen);
+              reallocmem(Temp, L*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)));
               Pointer(S):=Temp+WideFirstOff;
             end;
         end
