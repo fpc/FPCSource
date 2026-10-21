@@ -25,6 +25,8 @@ Type
     procedure TestAssignDateTime;
     procedure TestAssignDate;
     procedure TestAssignTime;
+    // IsObjectInstance for class values, nil instances and other kinds
+    procedure TestIsObjectInstance;
   end;
 
   TTestValueSimple = Class(TTestCase)
@@ -72,6 +74,14 @@ Type
 
     procedure TestMakeManagedRecord;
     procedure TestMakeStaticArrayOfManagedRecord;
+    // MakeWithoutCopy takes over a string reference
+    procedure TestMakeWithoutCopyString;
+    // MakeWithoutCopy takes over an interface reference and releases it
+    procedure TestMakeWithoutCopyInterface;
+    // MakeWithoutCopy of a record with a managed field
+    procedure TestMakeWithoutCopyRecord;
+    // MakeWithoutCopy of unmanaged types and of a nil buffer
+    procedure TestMakeWithoutCopyUnmanaged;
   end;
 
   { TTestValueArray }
@@ -85,10 +95,33 @@ Type
     procedure TestSetArrayElementCast;
     // Set array elements from the empty value and from nil values
     procedure TestSetArrayElementEmpty;
+    // GetReferenceToRawArrayElement of a static array points into the copy of the value
+    procedure TestRawArrayElementStatic;
+    // GetReferenceToRawArrayElement of a dynamic array points into the shared array data
+    procedure TestRawArrayElementDynamic;
+    // GetReferenceToRawArrayElement of non-array values and of a nil dynamic array
+    procedure TestRawArrayElementInvalid;
     {$ifdef fpc}
     procedure TestMakeArrayOpen;
     Procedure TestOpenArrayToDyn;
+    // GetReferenceToRawArrayElement of an open array points into the open array parameter
+    procedure TestRawArrayElementOpen;
     {$ENDIF}
+  end;
+
+  { TTestValueVarRec }
+
+  TTestValueVarRec = class(TTestCase)
+  Published
+    procedure TestAsVarRecOrdinal;
+    procedure TestAsVarRecInt64;
+    procedure TestAsVarRecFloat;
+    procedure TestAsVarRecString;
+    procedure TestAsVarRecReference;
+    procedure TestAsVarRecOfVarRec;
+    procedure TestAsVarRecInvalid;
+    procedure TestAsVarRecFormat;
+    procedure TestCastToVarRec;
   end;
 
   { TTestValueVariant }
@@ -2342,9 +2375,583 @@ begin
   Check(PLongInt(value.GetReferenceToRawData)^ = 0, 'Empty static array data is not 0');
 end;
 
+type
+  TVarRecEnum = (vreOne, vreTwo);
+  TVarRecSet = set of TVarRecEnum;
+  TVarRecDyn = array of LongInt;
+  TVarRecPlainRec = record
+    A: LongInt;
+  end;
+  TVarRecProc = procedure;
+  TRawStaticArr = array[0..3] of LongInt;
+  TRawStaticStrArr = array[0..2] of AnsiString;
+  TRawDynArr = array of LongInt;
+
+  TMoveRecord = record
+    I: LongInt;
+    Intf: IUnknown;
+  end;
+
+  { TTrackedObject }
+
+  // Interfaced object that sets a flag when destroyed
+  TTrackedObject = class(TInterfacedObject)
+  private
+    FDestroyed: PBoolean;
+  public
+    constructor Create(aDestroyed: PBoolean);
+    destructor Destroy; override;
+  end;
+
+
+constructor TTrackedObject.Create(aDestroyed: PBoolean);
+
+begin
+  inherited Create;
+  FDestroyed:=aDestroyed;
+  FDestroyed^:=False;
+end;
+
+
+destructor TTrackedObject.Destroy;
+
+begin
+  FDestroyed^:=True;
+  inherited Destroy;
+end;
+
+
+// Procedure whose address is stored in a procedure variable value
+procedure VarRecProc;
+
+begin
+end;
+
+
+// Returns True when AsVarRec raises EInvalidCast for aValue
+function AsVarRecRaises(const aValue: TValue): Boolean;
+
+begin
+  Result:=False;
+  try
+    aValue.AsVarRec;
+  except
+    on EInvalidCast do
+      Result:=True;
+  end;
+end;
+
+
+// Returns True when GetReferenceToRawArrayElement raises EInvalidCast for aValue
+function RawArrayElementRaises(const aValue: TValue): Boolean;
+
+begin
+  Result:=False;
+  try
+    aValue.GetReferenceToRawArrayElement(0);
+  except
+    on EInvalidCast do
+      Result:=True;
+  end;
+end;
+
+
+procedure TTestValueGeneral.TestIsObjectInstance;
+
+var
+  lObj: TObject;
+  lP: Pointer;
+
+begin
+  lObj:=TObject.Create;
+  try
+    AssertTrue('object', TValue.{$ifdef fpc}specialize{$endif} From<TObject>(lObj).IsObjectInstance);
+    AssertTrue('nil object', TValue.{$ifdef fpc}specialize{$endif} From<TObject>(nil).IsObjectInstance);
+    AssertFalse('class reference', TValue.{$ifdef fpc}specialize{$endif} From<TClass>(TObject).IsObjectInstance);
+    AssertFalse('empty value', TValue.Empty.IsObjectInstance);
+    AssertFalse('integer', TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(1).IsObjectInstance);
+    lP:=Pointer(lObj);
+    AssertFalse('pointer to an object', TValue.{$ifdef fpc}specialize{$endif} From<Pointer>(lP).IsObjectInstance);
+  finally
+    lObj.Free;
+  end;
+end;
+
+
+procedure TTestValueSimple.TestMakeWithoutCopyString;
+
+var
+  lS, lCopy: AnsiString;
+  lValue: TValue;
+
+begin
+  lS:='abc';
+  UniqueString(lS);
+  AssertEquals('reference count of the source', 1, StringRefCount(lS));
+  TValue.Make(@lS, TypeInfo(AnsiString), lValue);
+  AssertEquals('Make increments the reference count', 2, StringRefCount(lS));
+  lValue:=TValue.Empty;
+  AssertEquals('clearing the Make value releases its reference', 1, StringRefCount(lS));
+
+  TValue.MakeWithoutCopy(@lS, TypeInfo(AnsiString), lValue);
+  AssertEquals('MakeWithoutCopy leaves the reference count', 1, StringRefCount(lS));
+  AssertTrue('value shares the string data', PPointer(lValue.GetReferenceToRawData)^ = Pointer(lS));
+  Pointer(lS):=nil;
+  lCopy:=lValue.AsAnsiString;
+  AssertEquals('value after the source is cleared', 'abc', lCopy);
+  AssertEquals('reference count with the value and one copy', 2, StringRefCount(lCopy));
+  lValue:=TValue.Empty;
+  AssertEquals('clearing the value releases the moved reference', 1, StringRefCount(lCopy));
+end;
+
+
+procedure TTestValueSimple.TestMakeWithoutCopyInterface;
+
+var
+  lIntf: IUnknown;
+  lValue: TValue;
+  lDestroyed: Boolean;
+  lObj: TTrackedObject;
+  lRaw: Pointer;
+
+begin
+  lObj:=TTrackedObject.Create(@lDestroyed);
+  lIntf:=lObj;
+  AssertEquals('reference count of the source', 1, lObj.RefCount);
+  TValue.MakeWithoutCopy(@lIntf, TypeInfo(IUnknown), lValue);
+  AssertEquals('MakeWithoutCopy leaves the reference count', 1, lObj.RefCount);
+  lRaw:=Pointer(lIntf);
+  Pointer(lIntf):=nil;
+  AssertTrue('value holds the interface', PPointer(lValue.GetReferenceToRawData)^ = lRaw);
+  AssertFalse('object alive while the value exists', lDestroyed);
+  lValue:=TValue.Empty;
+  AssertTrue('clearing the value releases the moved reference', lDestroyed);
+
+  lObj:=TTrackedObject.Create(@lDestroyed);
+  lIntf:=lObj;
+  TValue.MakeWithoutCopy(@lIntf, TypeInfo(IUnknown), lValue, True);
+  AssertEquals('MakeWithoutCopy with AIsMoved leaves the reference count', 1, lObj.RefCount);
+  Pointer(lIntf):=nil;
+  lValue:=TValue.Empty;
+  AssertTrue('clearing the value releases the reference moved with AIsMoved', lDestroyed);
+end;
+
+
+procedure TTestValueSimple.TestMakeWithoutCopyRecord;
+
+var
+  lRec, lOut: TMoveRecord;
+  lValue: TValue;
+  lDestroyed: Boolean;
+  lObj: TTrackedObject;
+
+begin
+  lObj:=TTrackedObject.Create(@lDestroyed);
+  lRec.I:=42;
+  lRec.Intf:=lObj;
+  TValue.MakeWithoutCopy(@lRec, TypeInfo(TMoveRecord), lValue);
+  AssertEquals('MakeWithoutCopy leaves the reference count of the field', 1, lObj.RefCount);
+  AssertTrue('value has its own copy of the record data', lValue.GetReferenceToRawData <> @lRec);
+  FillChar(lRec, SizeOf(lRec), 0);
+  lOut:=lValue.{$ifdef fpc}specialize{$endif} AsType<TMoveRecord>;
+  AssertEquals('integer field', 42, lOut.I);
+  AssertTrue('interface field', lOut.Intf = IUnknown(lObj));
+  lOut:=Default(TMoveRecord);
+  AssertEquals('reference count held by the value', 1, lObj.RefCount);
+  lValue:=TValue.Empty;
+  AssertTrue('clearing the value releases the moved field', lDestroyed);
+end;
+
+
+procedure TTestValueSimple.TestMakeWithoutCopyUnmanaged;
+
+var
+  lInt: LongInt;
+  lDbl: Double;
+  lValue: TValue;
+
+begin
+  lInt:=7;
+  TValue.MakeWithoutCopy(@lInt, TypeInfo(LongInt), lValue);
+  AssertEquals('integer', 7, lValue.AsInteger);
+  lDbl:=2.5;
+  TValue.MakeWithoutCopy(@lDbl, TypeInfo(Double), lValue);
+  AssertEquals('double', 2.5, lValue.AsDouble, 1e-9);
+  TValue.MakeWithoutCopy(nil, TypeInfo(AnsiString), lValue);
+  AssertTrue('nil buffer gives a string value', lValue.Kind = tkAString);
+  AssertEquals('nil buffer gives an empty string', '', lValue.AsString);
+  TValue.MakeWithoutCopy(@lInt, nil, lValue);
+  AssertTrue('nil type info gives the empty value', lValue.IsEmpty);
+end;
+
+
+procedure TTestValueArray.TestRawArrayElementStatic;
+
+var
+  lArr: TRawStaticArr;
+  lStrArr: TRawStaticStrArr;
+  lValue: TValue;
+  i: Integer;
+
+begin
+  for i:=0 to 3 do
+    lArr[i]:=i*10;
+  TValue.Make(@lArr, TypeInfo(TRawStaticArr), lValue);
+  for i:=0 to 3 do
+    AssertTrue('element '+IntToStr(i)+' address',
+      lValue.GetReferenceToRawArrayElement(i) = PByte(lValue.GetReferenceToRawData)+i*SizeOf(LongInt));
+  AssertEquals('element 2', 20, PLongInt(lValue.GetReferenceToRawArrayElement(2))^);
+  PLongInt(lValue.GetReferenceToRawArrayElement(1))^:=99;
+  AssertEquals('write through the reference changes the value', 99, lValue.GetArrayElement(1).AsInteger);
+  AssertEquals('write through the reference leaves the source', 10, lArr[1]);
+
+  lStrArr[0]:='a';
+  lStrArr[1]:='b';
+  lStrArr[2]:='c';
+  TValue.Make(@lStrArr, TypeInfo(TRawStaticStrArr), lValue);
+  AssertEquals('managed element', 'c', PAnsiString(lValue.GetReferenceToRawArrayElement(2))^);
+end;
+
+
+procedure TTestValueArray.TestRawArrayElementDynamic;
+
+var
+  lArr: TRawDynArr;
+  lValue: TValue;
+
+begin
+  lArr:=[5, 6, 7];
+  TValue.Make(@lArr, TypeInfo(TRawDynArr), lValue);
+  AssertTrue('element 0 address', lValue.GetReferenceToRawArrayElement(0) = @lArr[0]);
+  AssertTrue('element 2 address', lValue.GetReferenceToRawArrayElement(2) = @lArr[2]);
+  AssertEquals('element 2', 7, PLongInt(lValue.GetReferenceToRawArrayElement(2))^);
+  PLongInt(lValue.GetReferenceToRawArrayElement(1))^:=60;
+  AssertEquals('write through the reference changes the shared array', 60, lArr[1]);
+end;
+
+
+procedure TTestValueArray.TestRawArrayElementInvalid;
+
+var
+  lArr: TRawDynArr;
+  lValue: TValue;
+
+begin
+  AssertTrue('integer value raises EInvalidCast', RawArrayElementRaises(TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(1)));
+  AssertTrue('string value raises EInvalidCast', RawArrayElementRaises(TValue.{$ifdef fpc}specialize{$endif} From<AnsiString>('abc')));
+  AssertTrue('empty value raises EInvalidCast', RawArrayElementRaises(TValue.Empty));
+  lArr:=nil;
+  TValue.Make(@lArr, TypeInfo(TRawDynArr), lValue);
+  AssertTrue('element 0 of a nil dynamic array', lValue.GetReferenceToRawArrayElement(0) = nil);
+end;
+
+
+{$ifdef fpc}
+procedure TTestValueArray.TestRawArrayElementOpen;
+
+  procedure CheckOpenArray(const aArr: array of LongInt);
+  var
+    lValue: TValue;
+  begin
+    lValue:=TValue.specialize FromOpenArray<LongInt>(aArr);
+    AssertTrue('open array element 0 address', lValue.GetReferenceToRawArrayElement(0) = @aArr[0]);
+    AssertTrue('open array element 2 address', lValue.GetReferenceToRawArrayElement(2) = @aArr[2]);
+    AssertEquals('open array element 2', 3, PLongInt(lValue.GetReferenceToRawArrayElement(2))^);
+  end;
+
+begin
+  CheckOpenArray([1, 2, 3]);
+end;
+{$endif}
+
+
+procedure TTestValueVarRec.TestAsVarRecOrdinal;
+
+var
+  lRec: TVarRec;
+
+begin
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(42).AsVarRec;
+  AssertEquals('LongInt VType', vtInteger, lRec.VType);
+  AssertEquals('LongInt VInteger', 42, lRec.VInteger);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<Byte>(200).AsVarRec;
+  AssertEquals('Byte VType', vtInteger, lRec.VType);
+  AssertEquals('Byte VInteger', 200, lRec.VInteger);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<ShortInt>(-5).AsVarRec;
+  AssertEquals('ShortInt VInteger', -5, lRec.VInteger);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<Cardinal>($FFFFFFFF).AsVarRec;
+  AssertEquals('Cardinal VType', vtInteger, lRec.VType);
+  AssertEquals('Cardinal VInteger has the bits of the value', -1, lRec.VInteger);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<Boolean>(True).AsVarRec;
+  AssertEquals('Boolean VType', vtBoolean, lRec.VType);
+  AssertTrue('Boolean VBoolean', lRec.VBoolean);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<ByteBool>(True).AsVarRec;
+  AssertEquals('ByteBool VType', vtBoolean, lRec.VType);
+  AssertTrue('ByteBool VBoolean', lRec.VBoolean);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<AnsiChar>('A').AsVarRec;
+  AssertEquals('AnsiChar VType', vtChar, lRec.VType);
+  AssertEquals('AnsiChar VChar', 'A', lRec.VChar);
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<WideChar>('B').AsVarRec;
+  AssertEquals('WideChar VType', vtWideChar, lRec.VType);
+  AssertTrue('WideChar VWideChar', lRec.VWideChar = 'B');
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecInt64;
+
+var
+  lValue: TValue;
+  lRec: TVarRec;
+
+begin
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<Int64>(1234567890123);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('Int64 VType', vtInt64, lRec.VType);
+  AssertEquals('Int64 VInt64^', 1234567890123, lRec.VInt64^);
+  AssertTrue('Int64 VInt64 points to the data of the value', Pointer(lRec.VInt64) = lValue.GetReferenceToRawData);
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<QWord>(High(QWord));
+  lRec:=lValue.AsVarRec;
+  AssertEquals('QWord VType', vtQWord, lRec.VType);
+  AssertTrue('QWord VQWord^', lRec.VQWord^ = High(QWord));
+  AssertTrue('QWord VQWord points to the data of the value', Pointer(lRec.VQWord) = lValue.GetReferenceToRawData);
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecFloat;
+
+var
+  lValue: TValue;
+  lRec: TVarRec;
+  lExt: Extended;
+
+begin
+  lExt:=3.5;
+  TValue.Make(@lExt, TypeInfo(Extended), lValue);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('Extended VType', vtExtended, lRec.VType);
+  AssertEquals('Extended VExtended^', 3.5, lRec.VExtended^, 1e-9);
+  AssertTrue('Extended VExtended points to the data of the value', Pointer(lRec.VExtended) = lValue.GetReferenceToRawData);
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<Currency>(4.25);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('Currency VType', vtCurrency, lRec.VType);
+  AssertEquals('Currency VCurrency^', 4.25, lRec.VCurrency^);
+  AssertTrue('Single raises EInvalidCast', AsVarRecRaises(TValue.{$ifdef fpc}specialize{$endif} From<Single>(1.5)));
+{$ifdef FPC_COMP_IS_INT64}
+  AssertEquals('Comp VType', vtInt64, TValue.{$ifdef fpc}specialize{$endif} From<Comp>(5).AsVarRec.VType);
+{$else}
+  AssertTrue('Comp raises EInvalidCast', AsVarRecRaises(TValue.{$ifdef fpc}specialize{$endif} From<Comp>(5)));
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  AssertTrue('Double raises EInvalidCast', AsVarRecRaises(TValue.{$ifdef fpc}specialize{$endif} From<Double>(2.5)));
+  AssertTrue('TDateTime raises EInvalidCast', AsVarRecRaises(TValue.{$ifdef fpc}specialize{$endif} From<TDateTime>(45000.5)));
+{$endif}
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecString;
+
+var
+  lValue: TValue;
+  lRec: TVarRec;
+  lA: AnsiString;
+  lU: UnicodeString;
+  lW: WideString;
+  lS: ShortString;
+
+begin
+  lA:='ansi';
+  lValue:=lA;
+  lRec:=lValue.AsVarRec;
+  AssertEquals('AnsiString VType', vtAnsiString, lRec.VType);
+  AssertEquals('AnsiString VAnsiString', 'ansi', AnsiString(lRec.VAnsiString));
+  lU:='uni';
+  lValue:=lU;
+  lRec:=lValue.AsVarRec;
+  AssertEquals('UnicodeString VType', vtUnicodeString, lRec.VType);
+  AssertEquals('UnicodeString VUnicodeString', 'uni', UnicodeString(lRec.VUnicodeString));
+  lW:='wide';
+  lValue:=lW;
+  lRec:=lValue.AsVarRec;
+{$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  AssertEquals('WideString VType', vtUnicodeString, lRec.VType);
+  AssertEquals('WideString VUnicodeString', 'wide', UnicodeString(lRec.VUnicodeString));
+{$else}
+  AssertEquals('WideString VType', vtWideString, lRec.VType);
+  AssertEquals('WideString VWideString', 'wide', WideString(lRec.VWideString));
+{$endif}
+  lS:='short';
+  lValue:=lS;
+  lRec:=lValue.AsVarRec;
+  AssertEquals('ShortString VType', vtString, lRec.VType);
+  AssertEquals('ShortString VString^', 'short', lRec.VString^);
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<AnsiString>('');
+  lRec:=lValue.AsVarRec;
+  AssertEquals('empty AnsiString VType', vtAnsiString, lRec.VType);
+  AssertTrue('empty AnsiString VAnsiString', lRec.VAnsiString = nil);
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecReference;
+
+var
+  lValue: TValue;
+  lRec: TVarRec;
+  lObj: TObject;
+  lIntf: IUnknown;
+  lVar: Variant;
+  lProc: TVarRecProc;
+
+begin
+  lObj:=TObject.Create;
+  try
+    lRec:=TValue.{$ifdef fpc}specialize{$endif} From<TObject>(lObj).AsVarRec;
+    AssertEquals('object VType', vtObject, lRec.VType);
+    AssertTrue('object VObject', lRec.VObject = lObj);
+    lRec:=TValue.{$ifdef fpc}specialize{$endif} From<TObject>(nil).AsVarRec;
+    AssertEquals('nil object VType', vtObject, lRec.VType);
+    AssertTrue('nil object VObject', lRec.VObject = nil);
+    lRec:=TValue.{$ifdef fpc}specialize{$endif} From<TClass>(TObject).AsVarRec;
+    AssertEquals('class VType', vtClass, lRec.VType);
+    AssertTrue('class VClass', lRec.VClass = TObject);
+    lRec:=TValue.{$ifdef fpc}specialize{$endif} From<Pointer>(Pointer(lObj)).AsVarRec;
+    AssertEquals('pointer VType', vtPointer, lRec.VType);
+    AssertTrue('pointer VPointer', lRec.VPointer = Pointer(lObj));
+  finally
+    lObj.Free;
+  end;
+  lProc:=@VarRecProc;
+  lRec:=TValue.{$ifdef fpc}specialize{$endif} From<TVarRecProc>(lProc).AsVarRec;
+  AssertEquals('procedure variable VType', vtPointer, lRec.VType);
+  AssertTrue('procedure variable VPointer', lRec.VPointer = Pointer(@VarRecProc));
+  lIntf:=TInterfacedObject.Create;
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<IUnknown>(lIntf);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('interface VType', vtInterface, lRec.VType);
+  AssertTrue('interface VInterface', lRec.VInterface = Pointer(lIntf));
+  lVar:='var';
+  lValue:=TValue.{$ifdef fpc}specialize{$endif} From<Variant>(lVar);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('variant VType', vtVariant, lRec.VType);
+  AssertEquals('variant VVariant^', 'var', string(lRec.VVariant^));
+  AssertTrue('variant VVariant points to the data of the value', Pointer(lRec.VVariant) = lValue.GetReferenceToRawData);
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecOfVarRec;
+
+var
+  lSrc, lRec: TVarRec;
+  lValue: TValue;
+
+begin
+  lSrc:=Default(TVarRec);
+  lSrc.VType:=vtInteger;
+  lSrc.VInteger:=11;
+  TValue.Make(@lSrc, TypeInfo(TVarRec), lValue);
+  lRec:=lValue.AsVarRec;
+  AssertEquals('VType of the stored TVarRec', vtInteger, lRec.VType);
+  AssertEquals('VInteger of the stored TVarRec', 11, lRec.VInteger);
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecInvalid;
+
+var
+  lSet: TVarRecSet;
+  lRec: TVarRecPlainRec;
+  lDyn: TVarRecDyn;
+  lValue: TValue;
+
+begin
+  AssertTrue('empty value raises EInvalidCast', AsVarRecRaises(TValue.Empty));
+  AssertTrue('enumeration raises EInvalidCast', AsVarRecRaises(TValue.{$ifdef fpc}specialize{$endif} From<TVarRecEnum>(vreTwo)));
+  lSet:=[vreTwo];
+  TValue.Make(@lSet, TypeInfo(TVarRecSet), lValue);
+  AssertTrue('set raises EInvalidCast', AsVarRecRaises(lValue));
+  lRec.A:=1;
+  TValue.Make(@lRec, TypeInfo(TVarRecPlainRec), lValue);
+  AssertTrue('record raises EInvalidCast', AsVarRecRaises(lValue));
+  lDyn:=[1];
+  TValue.Make(@lDyn, TypeInfo(TVarRecDyn), lValue);
+  AssertTrue('dynamic array raises EInvalidCast', AsVarRecRaises(lValue));
+end;
+
+
+procedure TTestValueVarRec.TestAsVarRecFormat;
+
+var
+  lStr, lInt, lCurr, lExtV: TValue;
+  lExt: Extended;
+  lArgs: array[0..3] of TVarRec;
+
+begin
+  lStr:=TValue.{$ifdef fpc}specialize{$endif} From<AnsiString>('fmt');
+  lInt:=TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(7);
+  lCurr:=TValue.{$ifdef fpc}specialize{$endif} From<Currency>(1.5);
+  lExt:=2.25;
+  TValue.Make(@lExt, TypeInfo(Extended), lExtV);
+  lArgs[0]:=lStr.AsVarRec;
+  lArgs[1]:=lInt.AsVarRec;
+  lArgs[2]:=lCurr.AsVarRec;
+  lArgs[3]:=lExtV.AsVarRec;
+  AssertEquals('Format with AsVarRec arguments', 'fmt/7/1.50/2.25',
+    Format('%s/%d/%.2f/%.2f', lArgs, DefaultFormatSettings));
+end;
+
+
+procedure TTestValueVarRec.TestCastToVarRec;
+
+var
+  lValue, lCast: TValue;
+  lExt: Extended;
+  lRec: TVarRecPlainRec;
+
+begin
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<Single>(1.5).CastToVarRec;
+  AssertTrue('Single becomes Extended', lCast.TypeInfo = TypeInfo(Extended));
+  AssertEquals('Single value', 1.5, lCast.AsExtended, 1e-9);
+  AssertEquals('Single value usable by AsVarRec', 1.5, lCast.AsVarRec.VExtended^, 1e-9);
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<Double>(2.5).CastToVarRec;
+  AssertTrue('Double becomes Extended', lCast.TypeInfo = TypeInfo(Extended));
+  AssertEquals('Double value', 2.5, lCast.AsExtended, 1e-9);
+{$ifndef FPC_COMP_IS_INT64}
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<Comp>(5).CastToVarRec;
+  AssertTrue('Comp becomes Extended', lCast.TypeInfo = TypeInfo(Extended));
+  AssertEquals('Comp value', 5, lCast.AsExtended, 1e-9);
+{$endif}
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<TDateTime>(45000.5).CastToVarRec;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  AssertTrue('TDateTime becomes Extended', lCast.TypeInfo = TypeInfo(Extended));
+{$else}
+  AssertTrue('TDateTime stays TDateTime when Extended is Double', lCast.TypeInfo = TypeInfo(TDateTime));
+{$endif}
+  AssertEquals('TDateTime value', 45000.5, lCast.AsExtended, 1e-9);
+  lExt:=3.5;
+  TValue.Make(@lExt, TypeInfo(Extended), lValue);
+  lCast:=lValue.CastToVarRec;
+  AssertTrue('Extended stays Extended', lCast.TypeInfo = TypeInfo(Extended));
+  AssertEquals('Extended value', 3.5, lCast.AsExtended, 1e-9);
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<Currency>(4.25).CastToVarRec;
+  AssertTrue('Currency stays Currency', lCast.TypeInfo = TypeInfo(Currency));
+  AssertEquals('Currency value usable by AsVarRec', 4.25, lCast.AsVarRec.VCurrency^);
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<LongInt>(42).CastToVarRec;
+  AssertTrue('LongInt stays LongInt', lCast.TypeInfo = TypeInfo(LongInt));
+  AssertEquals('LongInt value', 42, lCast.AsInteger);
+  lCast:=TValue.{$ifdef fpc}specialize{$endif} From<AnsiString>('abc').CastToVarRec;
+  AssertTrue('AnsiString stays AnsiString', lCast.TypeInfo = TypeInfo(AnsiString));
+  AssertEquals('AnsiString value', 'abc', lCast.AsString);
+  AssertTrue('empty value stays empty', TValue.Empty.CastToVarRec.IsEmpty);
+  lRec.A:=3;
+  TValue.Make(@lRec, TypeInfo(TVarRecPlainRec), lValue);
+  lCast:=lValue.CastToVarRec;
+  AssertTrue('record stays the record type', lCast.TypeInfo = TypeInfo(TVarRecPlainRec));
+end;
+
+
 initialization
   RegisterTest(TTestValueGeneral);
   RegisterTest(TTestValueSimple);
   RegisterTest(TTestValueArray);
   RegisterTest(TTestValueVariant);
+  RegisterTest(TTestValueVarRec);
 end.
