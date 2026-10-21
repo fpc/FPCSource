@@ -36,6 +36,7 @@ uses
   utcExprParsNodes,
   utcInterlocked,
   utcCountdownEvent,
+  utcSynchroObject,
   utcDirwatch
   ;
 
@@ -72,6 +73,7 @@ begin
   utcExprBuiltin.RegisterTests(lSuite);
   utcInterlocked.RegisterTests;
   utcCountdownEvent.RegisterTests;
+  utcSynchroObject.RegisterTests;
   utcDirwatch.RegisterTests;
   RunAllSysTests;
 end.

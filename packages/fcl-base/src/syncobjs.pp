@@ -86,6 +86,12 @@ type
    TSynchroObject = class(TObject)
       procedure Acquire;virtual;
       procedure Release;virtual;
+      // Waits until the object is signaled or aTimeout milliseconds have passed; returns wrError by default
+      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; virtual;
+      {$IFNDEF VER3_2}
+      // Waits until the object is signaled or aTimeout has passed
+      function WaitFor(const aTimeout: TTimeSpan): TWaitResult; overload;
+      {$ENDIF}
    end;
 
    { TLockGuard }
@@ -102,6 +108,8 @@ type
    public
       procedure Acquire;override;
       procedure Release;override;
+      // Enters the critical section, waiting at most aTimeout milliseconds; the caller releases it on wrSignaled
+      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
       procedure Enter;
       function  TryEnter:boolean;
       procedure Leave;
@@ -126,9 +134,8 @@ type
    public
       constructor Create(UseComWait : Boolean=false);
       destructor Destroy; override;
-      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;overload; virtual;
+      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;overload; override;
       {$IFNDEF VER3_2}
-      function WaitFor(const Timeout : TTimespan) : TWaitResult;overload;
       {$IFDEF MSWINDOWS}
         class function WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
       {$ENDIF MSWINDOWS}
@@ -179,11 +186,7 @@ type
      // Sets InitialCount and the count to aCount
      procedure Reset(aCount: Integer); overload;
      // Waits until the count reaches 0 or aTimeout milliseconds have passed
-     function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload;
-     {$IFNDEF VER3_2}
-     // Waits until the count reaches 0 or aTimeout has passed
-     function WaitFor(const aTimeout: TTimeSpan): TWaitResult; overload;
-     {$ENDIF}
+     function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
      // Remaining number of signals before the event is set
      property CurrentCount: Integer read FCurrentCount;
      // Count the event starts from after Create or Reset
@@ -402,6 +405,46 @@ procedure TSynchroObject.Release;
 begin
 end;
 
+function TSynchroObject.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=wrError;
+end;
+
+
+{$IFNDEF VER3_2}
+function TSynchroObject.WaitFor(const aTimeout: TTimeSpan): TWaitResult;
+
+begin
+  Result:=WaitFor(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+
+function TCriticalSection.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lWait: TSpinWait;
+
+begin
+  if aTimeout=INFINITE then
+    begin
+    Acquire;
+    Exit(wrSignaled);
+    end;
+  lStart:=GetTickCount64;
+  lWait.Reset;
+  while not TryEnter do
+    begin
+    if (GetTickCount64-lStart)>=aTimeout then
+      Exit(wrTimeout);
+    lWait.SpinCycle;
+    end;
+  Result:=wrSignaled;
+end;
+
+
 procedure TCriticalSection.Enter;
 begin
   Acquire;
@@ -468,13 +511,6 @@ begin
   {$endif}
 {$ENDIF OS2}
 end;
-
-{$IFNDEF VER3_2}
-function THandleObject.WaitFor(const Timeout: TTimespan): TWaitResult;
-begin
-  result:=waitfor(round(timeout.TotalMilliseconds));
-end;
-{$ENDIF}
 
 {$IFNDEF VER3_2}
 {$IFDEF MSWINDOWS}
@@ -689,15 +725,6 @@ function TCountdownEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
 begin
   Result:=FEvent.WaitFor(aTimeout);
 end;
-
-
-{$IFNDEF VER3_2}
-function TCountdownEvent.WaitFor(const aTimeout: TTimeSpan): TWaitResult;
-
-begin
-  Result:=FEvent.WaitFor(aTimeout);
-end;
-{$ENDIF}
 
 
 { ---------------------------------------------------------------------
@@ -1438,7 +1465,7 @@ end;
 class function TSpinWait.SpinUntil(const aCondition: TSpinFunction; aTimeout: Cardinal): Boolean; overload;
 static;
 begin
-  SpinUntil(aCondition, TTimeSpan.FromMilliseconds(aTimeout));
+  Result:=SpinUntil(aCondition, TTimeSpan.FromMilliseconds(aTimeout));
 end;
 
 
@@ -1459,7 +1486,7 @@ begin
     if aCondition() then
       Exit(True);
     lElapsedTime:=MilliSecondsBetween(Now,lStartTime);
-  until (lElapsedTime >= lWaitTime) or lWait.NextSpinCycleWillYield;
+  until (lElapsedTime >= lWaitTime);
 end;
 
 { ---------------------------------------------------------------------

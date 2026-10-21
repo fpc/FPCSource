@@ -158,6 +158,11 @@
         <UnitName Value="utcCountdownEvent"/>
       </Unit>
       <Unit>
+        <Filename Value="utcsynchroobject.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcSynchroObject"/>
+      </Unit>
+      <Unit>
         <Filename Value="utcdirwatch.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
