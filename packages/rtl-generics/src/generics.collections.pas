@@ -334,6 +334,8 @@ type
     function ExtractIndex(const AIndex: SizeInt): T; overload;
     Function ExtractAt(const AIndex: SizeInt): T; inline;
     function Extract(const AValue: T): T; overload;
+    // Removes the first or last occurrence of AValue without freeing it; Default(T) if not found.
+    function ExtractItem(const AValue: T; Direction: TDirection): T;
 
     procedure Exchange(AIndex1, AIndex2: SizeInt); virtual;
     procedure Move(AIndex, ANewIndex: SizeInt); virtual;
@@ -346,6 +348,8 @@ type
     function Contains(const AValue: T): Boolean; inline;
     function IndexOf(const AValue: T): SizeInt; virtual;
     function LastIndexOf(const AValue: T): SizeInt; virtual;
+    // Index of the first or last occurrence of AValue, -1 if not found.
+    function IndexOfItem(const AValue: T; Direction: TDirection): SizeInt;
 
     procedure Reverse;
 
@@ -2218,14 +2222,9 @@ end;
 function TList<T>.RemoveItem(const Value: T; Direction: TDirection): SizeInt;
 
 begin
-  if Direction=TDirection.FromBeginning then
-    Result:=Remove(Value)
-  else
-    begin
-    Result:=LastIndexOf(Value);
-    if Result>=0 then
-      DoRemove(Result, cnRemoved);
-    end;
+  Result:=IndexOfItem(Value,Direction);
+  if Result>=0 then
+    DoRemove(Result, cnRemoved);
 end;
 
 procedure TList<T>.Delete(AIndex: SizeInt);
@@ -2288,6 +2287,20 @@ begin
 
   Result := DoRemove(LIndex, cnExtracted);
 end;
+
+
+function TList<T>.ExtractItem(const AValue: T; Direction: TDirection): T;
+
+var
+  lIndex: SizeInt;
+
+begin
+  lIndex:=IndexOfItem(AValue,Direction);
+  if lIndex<0 then
+    Exit(Default(T));
+  Result:=DoRemove(lIndex,cnExtracted);
+end;
+
 
 procedure TList<T>.Exchange(AIndex1, AIndex2: SizeInt);
 var
@@ -2365,6 +2378,17 @@ begin
       Exit(i);
   Result := -1;
 end;
+
+
+function TList<T>.IndexOfItem(const AValue: T; Direction: TDirection): SizeInt;
+
+begin
+  if Direction=TDirection.FromBeginning then
+    Result:=IndexOf(AValue)
+  else
+    Result:=LastIndexOf(AValue);
+end;
+
 
 procedure TList<T>.Reverse;
 var
