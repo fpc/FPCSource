@@ -112,6 +112,7 @@ type
     class procedure HeapSort(p: PT; n: SizeUint; const cmp: IComparer<T>); static;
     class procedure HeapReplacePessimistic(q: PT; nq, id: SizeUint; const item: T; const cmp: IComparer<T>); static;
     class function ItemToString(const aItem: T; const aFormatSettings: TFormatSettings): string; static;
+    class procedure DoFreeValues(aValues: PT; aCount: SizeInt); static;
   protected
     class procedure QuickSort(var AValues: array of T; ALeft, ARight: SizeInt; const AComparer: IComparer<T>); override;
   public
@@ -146,6 +147,10 @@ type
     class function Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>) : Boolean; overload;
     // True if Args contains aItem, using the default comparer.
     class function Contains(const Args: array of T; const aItem: T) : Boolean; overload;
+    // Sets each object in Args to nil and frees it, in order; no effect if T is not a class type.
+    class procedure FreeValues(const Args: array of T); overload;
+    // Sets each object in Args to nil and frees it, in order; the length of Args is unchanged.
+    class procedure FreeValues(var Args: TArray<T>); overload;
     // Elements of Args as text, each between aDelim1 and aDelim2, separated by aSeparator.
     class function ToString(const Args: array of T; const aFormatSettings: TFormatSettings;
       const aSeparator: string = ','; const aDelim1: string = ''; const aDelim2: string = ''): string; reintroduce; overload;
@@ -1374,6 +1379,40 @@ class function TArrayHelper<T>.Contains(const Args: array of T; const aItem: T):
 
 begin
   Result:=IndexOf(Args,aItem)<>-1;
+end;
+
+
+class procedure TArrayHelper<T>.DoFreeValues(aValues: PT; aCount: SizeInt);
+
+var
+  I: SizeInt;
+  lObject: TObject;
+
+begin
+  if GetTypeKind(T)<>tkClass then
+    Exit;
+  for I:=0 to aCount-1 do
+    begin
+    lObject:=TObject(PPointer(@aValues[I])^);
+    PPointer(@aValues[I])^:=nil;
+    lObject.Free;
+    end;
+end;
+
+
+class procedure TArrayHelper<T>.FreeValues(const Args: array of T);
+
+begin
+  if Length(Args)>0 then
+    DoFreeValues(@Args[0],Length(Args));
+end;
+
+
+class procedure TArrayHelper<T>.FreeValues(var Args: TArray<T>);
+
+begin
+  if Length(Args)>0 then
+    DoFreeValues(@Args[0],Length(Args));
 end;
 
 

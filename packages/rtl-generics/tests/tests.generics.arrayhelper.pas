@@ -50,7 +50,19 @@ type
     function ToString: string; override;
   end;
 
-  TIndexOfKind = (ikIndexOfIndex, ikIndexOfRange, ikLastIndexOfIndex, ikLastIndexOfRange);
+  // Object that counts its destruction and optionally raises in its destructor.
+  TTestTracked = class
+  public
+    FRaise: Boolean;
+    // Increments the destroy count, raises Exception if FRaise is set.
+    destructor Destroy; override;
+  end;
+
+  TTestTrackedRecord = record
+    Obj: TTestTracked;
+  end;
+
+  TIndexOfKind =(ikIndexOfIndex, ikIndexOfRange, ikLastIndexOfIndex, ikLastIndexOfRange);
 
   { TTestArrayHelper }
 
@@ -100,9 +112,30 @@ type
     procedure Test_ToString_References;
     // ToString of types without a text form.
     procedure Test_ToString_Unsupported;
+    // FreeValues on a dynamic array.
+    procedure Test_FreeValues_Dynamic;
+    // FreeValues on a static array.
+    procedure Test_FreeValues_Static;
+    // FreeValues stops at a destructor that raises.
+    procedure Test_FreeValues_Raising;
+    // FreeValues on empty arrays and non-class element types.
+    procedure Test_FreeValues_NonClass;
   end;
 
 implementation
+
+var
+  gDestroyCount: Integer;
+
+destructor TTestTracked.Destroy;
+
+begin
+  Inc(gDestroyCount);
+  inherited Destroy;
+  if FRaise then
+    raise Exception.Create('destructor raised');
+end;
+
 
 function TTestNamed.ToString: string;
 
@@ -493,6 +526,92 @@ begin
   AssertEquals('Dynamic array', '?', TArrayHelper<TTestIntArray>.ToString([TTestIntArray.Create(1)]));
   AssertEquals('Interface', '?,?', TArrayHelper<IInterface>.ToString([lIntf,nil]));
   AssertEquals('Procedure variable', '?', TArrayHelper<TTestProc>.ToString([lProc]));
+end;
+
+
+procedure TTestArrayHelper.Test_FreeValues_Dynamic;
+
+var
+  a: TArray<TTestTracked>;
+
+begin
+  gDestroyCount:=0;
+  a:=[TTestTracked.Create,nil,TTestTracked.Create];
+  TArrayHelper<TTestTracked>.FreeValues(a);
+  AssertEquals('Objects freed', 2, gDestroyCount);
+  AssertEquals('Length unchanged', 3, Length(a));
+  AssertNull('Element 0 is nil', a[0]);
+  AssertNull('Element 1 is nil', a[1]);
+  AssertNull('Element 2 is nil', a[2]);
+end;
+
+
+procedure TTestArrayHelper.Test_FreeValues_Static;
+
+var
+  a: array[0..1] of TTestTracked;
+
+begin
+  gDestroyCount:=0;
+  a[0]:=TTestTracked.Create;
+  a[1]:=TTestTracked.Create;
+  TArrayHelper<TTestTracked>.FreeValues(a);
+  AssertEquals('Objects freed', 2, gDestroyCount);
+  AssertNull('Element 0 is nil', a[0]);
+  AssertNull('Element 1 is nil', a[1]);
+end;
+
+
+procedure TTestArrayHelper.Test_FreeValues_Raising;
+
+var
+  a: TArray<TTestTracked>;
+  lRaised: Boolean;
+
+begin
+  gDestroyCount:=0;
+  a:=[TTestTracked.Create,TTestTracked.Create,TTestTracked.Create];
+  a[1].FRaise:=True;
+  lRaised:=False;
+  try
+    TArrayHelper<TTestTracked>.FreeValues(a);
+  except
+    on E: Exception do
+      lRaised:=E.Message='destructor raised';
+  end;
+  AssertTrue('Exception of the destructor is passed on', lRaised);
+  AssertEquals('Freeing stops at the raising destructor', 2, gDestroyCount);
+  AssertNull('Element before the raising one is nil', a[0]);
+  AssertNull('Raising element is nil', a[1]);
+  AssertNotNull('Element after the raising one is kept', a[2]);
+  a[2].Free;
+end;
+
+
+procedure TTestArrayHelper.Test_FreeValues_NonClass;
+
+var
+  lInts: TArray<Integer>;
+  lRecs: TArray<TTestTrackedRecord>;
+  lEmpty: TArray<TTestTracked>;
+
+begin
+  gDestroyCount:=0;
+  lInts:=[1,2];
+  TArrayHelper<Integer>.FreeValues(lInts);
+  AssertEquals('Integer array length unchanged', 2, Length(lInts));
+  AssertEquals('Integer element unchanged', 2, lInts[1]);
+  SetLength(lRecs,1);
+  lRecs[0].Obj:=TTestTracked.Create;
+  TArrayHelper<TTestTrackedRecord>.FreeValues(lRecs);
+  AssertEquals('Objects inside records are not freed', 0, gDestroyCount);
+  AssertNotNull('Record field unchanged', lRecs[0].Obj);
+  lRecs[0].Obj.Free;
+  gDestroyCount:=0;
+  lEmpty:=nil;
+  TArrayHelper<TTestTracked>.FreeValues(lEmpty);
+  TArrayHelper<TTestTracked>.FreeValues([]);
+  AssertEquals('Empty arrays free nothing', 0, gDestroyCount);
 end;
 
 begin
