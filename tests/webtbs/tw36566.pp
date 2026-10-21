@@ -1,4 +1,4 @@
-{ %TARGET=linux,freebsd,darwin }
+{ %TARGET=linux }
 program tw36566;
 
 {$mode objfpc}{$H+}
