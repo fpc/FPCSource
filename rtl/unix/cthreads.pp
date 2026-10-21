@@ -86,7 +86,7 @@ Uses
   UnixApi.Types,
   System.InitC
 {$ifdef dynpthreads}
-  ,UnixApi.Dl
+  ,System.DynLibs
 {$endif}
 {$ifdef linux}
   ,UnixApi.SysCall
@@ -102,7 +102,7 @@ Uses
   unixtype,
   initc
 {$ifdef dynpthreads}
-  ,dl
+  ,dynlibs
 {$endif}
 {$ifdef linux}
   ,syscall
@@ -1404,9 +1404,9 @@ begin
   Result:=True;
 {$else}
   // The library may already have been closed by an earlier call.
-  Result:=(PthreadDLL=Nil) or UnloadPthreads;
+  Result:=(PthreadDLL=NilHandle) or UnloadPthreads;
   if Result then
-    PthreadDLL:=Nil;
+    PthreadDLL:=NilHandle;
 {$endif}
 end;
 

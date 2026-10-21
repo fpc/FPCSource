@@ -102,18 +102,20 @@ var
   pthread_setname_np: function(name: PAnsiChar):cint;cdecl;
 
 var
-  PthreadDLL: Pointer;
+  PthreadDLL: TLibHandle;
+  PthreadDLM: TDynLibsManager;
 
 function LoadPthreads: Boolean;
 begin
-  PThreadDLL:=DlOpen('libSystem.dylib',RTLD_LAZY);
-  Result:=PThreadDLL<>Nil;
+  GetDynLibsManager(PthreadDLM);
+  PThreadDLL:=PthreadDLM.LoadLibraryA('libSystem.dylib');
+  Result:=PThreadDLL<>NilHandle;
   if not Result then
     exit;
-  Pointer(pthread_setname_np):=dlsym(PthreadDLL,'pthread_setname_np');
+  Pointer(pthread_setname_np):=PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setname_np');
 end;
 
 function UnLoadPthreads: Boolean;
 begin
-  Result:=dlclose(PThreadDLL)=0;
+  Result:=PthreadDLM.UnloadLibrary(PThreadDLL);
 end;

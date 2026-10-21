@@ -69,6 +69,36 @@ begin
 {$ENDIF}
 end;
 
+// Looks up the dynamic symbol at or before Addr with dladdr
+Function SysGetSymbolByAddr(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
+
+var
+  lDlInfo: dl_info;
+  lLen: SizeInt;
+
+begin
+  Info.SymbolName:='';
+  Info.SymbolAddr:=nil;
+  Info.ModuleName:='';
+  FillChar(lDlInfo,SizeOf(lDlInfo),0);
+  Result:=dladdr(Addr,@lDlInfo)<>0;
+  if not Result then
+    exit;
+  if Assigned(lDlInfo.dli_sname) then
+    begin
+    Info.SymbolName:=lDlInfo.dli_sname;
+    Info.SymbolAddr:=lDlInfo.dli_saddr;
+    end;
+  if Assigned(lDlInfo.dli_fname) then
+    begin
+    lLen:=IndexByte(lDlInfo.dli_fname^,-1,0);
+    if lLen>255 then
+      Info.ModuleName:=PAnsiChar(lDlInfo.dli_fname+lLen-255)
+    else
+      Info.ModuleName:=lDlInfo.dli_fname;
+    end;
+end;
+
 const
   SysDynLibsManager: TDynLibsManager = (
     LoadLibraryU: @SysLoadLibraryU;
@@ -77,6 +107,7 @@ const
     GetProcAddressOrdinal: Nil;
     UnloadLibrary: @SysUnloadLibrary;
     GetLoadErrorStr: @SysGetLoadErrorStr;
+    GetSymbolByAddr: @SysGetSymbolByAddr;
   );
 
 procedure InitDynLibs;

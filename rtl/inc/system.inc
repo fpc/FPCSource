@@ -1380,9 +1380,40 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_BACKTRACESTR}
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+// Returns '  symbol+$offset  (module)' for Addr from the dynamic library manager, or an empty string
+function BackTraceSymbolStr(Addr: CodePointer): ShortString;
+var
+  lInfo: TSymbolAddressInfo;
+  lDigits: ShortString;
+  i: SizeInt;
+begin
+  BackTraceSymbolStr:='';
+  if not GetSymbolByAddress(Addr,lInfo) then
+    exit;
+  if lInfo.SymbolName<>'' then
+    begin
+    lDigits:=HexStr(CodePtrUInt(Addr)-CodePtrUInt(lInfo.SymbolAddr),SizeOf(CodePtrUInt)*2);
+    i:=1;
+    while (i<Length(lDigits)) and (lDigits[i]='0') do
+      inc(i);
+    BackTraceSymbolStr:='  '+lInfo.SymbolName+'+$'+Copy(lDigits,i,Length(lDigits));
+    end;
+  i:=Length(lInfo.ModuleName);
+  while (i>0) and not (lInfo.ModuleName[i] in ['/','\']) do
+    dec(i);
+  if Length(lInfo.ModuleName)>i then
+    BackTraceSymbolStr:=BackTraceSymbolStr+'  ('+Copy(lInfo.ModuleName,i+1,Length(lInfo.ModuleName))+')';
+end;
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+
+
 function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
   SysBackTraceStr:='  $'+hexstr(addr);
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  SysBackTraceStr:=SysBackTraceStr+BackTraceSymbolStr(Addr);
+{$endif FPC_HAS_FEATURE_DYNLIBS}
 end;
 {$endif FPC_SYSTEM_HAS_BACKTRACESTR}
 

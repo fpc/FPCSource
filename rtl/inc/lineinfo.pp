@@ -333,6 +333,8 @@ begin
   StabBackTraceStr:='  CodeStart + $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
 {$else}
   StabBackTraceStr:='  $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
+  if not Success then
+    StabBackTraceStr:=SysBackTraceStr(addr);
 {$endif}
   if Success then
   begin

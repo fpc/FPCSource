@@ -1867,7 +1867,9 @@ begin
   Success:=LookupLineInfo(CallSiteAddress(codeptruint(addr)), func, source, line);
   { create string }
   DwarfBackTraceStr :='  $' + HexStr(addr);
-  if Success then
+  if not Success then
+    DwarfBackTraceStr := SysBackTraceStr(addr)
+  else
   begin
     if func<>'' then
       DwarfBackTraceStr := DwarfBackTraceStr + '  ' + func;
