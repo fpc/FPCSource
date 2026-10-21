@@ -800,7 +800,7 @@ Var
 
 begin
   Result:=-1;
-  L:=StartIndex+ACount-1;
+  L:=StartIndex+ACount;
   if L>Length then
     L:=Length;
   I:=StartIndex+1;
