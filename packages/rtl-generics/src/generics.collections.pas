@@ -111,6 +111,7 @@ type
     class function Median(p: PT; n: SizeUint; const cmp: IComparer<T>): PT; static;
     class procedure HeapSort(p: PT; n: SizeUint; const cmp: IComparer<T>); static;
     class procedure HeapReplacePessimistic(q: PT; nq, id: SizeUint; const item: T; const cmp: IComparer<T>); static;
+    class function ItemToString(const aItem: T; const aFormatSettings: TFormatSettings): string; static;
   protected
     class procedure QuickSort(var AValues: array of T; ALeft, ARight: SizeInt; const AComparer: IComparer<T>); override;
   public
@@ -123,10 +124,18 @@ type
     class function Concat(const Args: array of TArray<T>): TArray<T>; static;
     class function IndexOf(const Args: array of T; Const aItem : T; const AComparer: IComparer<T>) : SizeInt; overload;
     class function IndexOf(const Args: array of T; Const aItem : T) : SizeInt; overload;
+    // First index of aItem from aIndex to the end of Args; aIndex must be a valid index.
+    class function IndexOf(const Args: array of T; const aItem: T; aIndex: SizeInt): SizeInt; overload;
+    // First index of aItem in the aCount elements starting at aIndex; a nil comparer means the default comparer.
+    class function IndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>; aIndex, aCount: SizeInt): SizeInt; overload;
     class function FirstIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt; overload;
     class function FirstIndexOf(const Args: array of T; const aItem: T): SizeInt; overload;
     class function LastIndexOf(const Args: array of T; Const aItem : T; const AComparer: IComparer<T>) : SizeInt; overload;
     class function LastIndexOf(const Args: array of T; Const aItem : T) : SizeInt; overload;
+    // Last index of aItem from aIndex down to 0; aIndex must be a valid index.
+    class function LastIndexOf(const Args: array of T; const aItem: T; aIndex: SizeInt): SizeInt; overload;
+    // Last index of aItem in the aCount elements from aIndex downwards; a nil comparer means the default comparer.
+    class function LastIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>; aIndex, aCount: SizeInt): SizeInt; overload;
     class function Min(const Args: array of T; const AComparer: IComparer<T>; const aDefault : T) : T; overload;
     class function Min(const Args: array of T; const aDefault : T) : T; overload;
     class function Max(const Args: array of T; const AComparer: IComparer<T>; const aDefault : T) : T; overload;
@@ -134,7 +143,15 @@ type
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aCount: NativeInt); overload;
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aSourceIndex, aDestIndex, aCount: SizeInt); overload;
     class procedure Reverse(const aSource: Tarray<T>; var aTarget : TArray<T>);
-    class function Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>) : Boolean;
+    class function Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>) : Boolean; overload;
+    // True if Args contains aItem, using the default comparer.
+    class function Contains(const Args: array of T; const aItem: T) : Boolean; overload;
+    // Elements of Args as text, each between aDelim1 and aDelim2, separated by aSeparator.
+    class function ToString(const Args: array of T; const aFormatSettings: TFormatSettings;
+      const aSeparator: string = ','; const aDelim1: string = ''; const aDelim2: string = ''): string; reintroduce; overload;
+    // Elements of Args as text using the global format settings.
+    class function ToString(const Args: array of T;
+      const aSeparator: string = ','; const aDelim1: string = ''; const aDelim2: string = ''): string; reintroduce; overload;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
   TCollectionNotification = (cnAdding, cnAdded, cnDeleting, cnRemoved, cnExtracting,  cnExtracted);
@@ -992,6 +1009,14 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  TypInfo, Variants;
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 procedure ErrorArgumentOutOfRange;
 
@@ -1344,6 +1369,105 @@ begin
   Result:=IndexOf(Args,aItem,aComparer)<>-1;
 end;
 
+
+class function TArrayHelper<T>.Contains(const Args: array of T; const aItem: T): Boolean;
+
+begin
+  Result:=IndexOf(Args,aItem)<>-1;
+end;
+
+
+class function TArrayHelper<T>.ItemToString(const aItem: T; const aFormatSettings: TFormatSettings): string;
+
+var
+  lValue: TValue;
+
+begin
+  TValue.Make(@aItem,TypeInfo(T),lValue);
+  case lValue.Kind of
+    tkInteger,
+    tkInt64:
+      Result:=IntToStr(lValue.AsInt64);
+    tkQWord:
+      Result:=UIntToStr(lValue.AsUInt64);
+    tkEnumeration:
+      Result:=GetEnumName(TypeInfo(T),lValue.AsOrdinal);
+    tkBool:
+      Result:=BoolToStr(lValue.AsBoolean,True);
+    tkSet:
+      Result:=SetToString(PTypeInfo(TypeInfo(T)),Pointer(@aItem),True);
+    tkChar:
+      Result:=string(PAnsiChar(@aItem)^);
+    tkWChar,
+    tkUChar:
+      Result:=string(PWideChar(@aItem)^);
+    tkSString,
+    tkLString,
+    tkAString,
+    tkWString,
+    tkUString:
+      Result:=lValue.AsString;
+    tkFloat:
+      if TypeInfo(T)=TypeInfo(TDateTime) then
+        Result:=DateTimeToStr(lValue.AsExtended,aFormatSettings)
+      else if TypeInfo(T)=TypeInfo(TDate) then
+        Result:=DateToStr(lValue.AsExtended,aFormatSettings)
+      else if TypeInfo(T)=TypeInfo(TTime) then
+        Result:=TimeToStr(lValue.AsExtended,aFormatSettings)
+      else
+        case GetTypeData(TypeInfo(T))^.FloatType of
+          ftCurr:
+            Result:=CurrToStr(lValue.AsCurrency,aFormatSettings);
+          ftSingle:
+            Result:=FloatToStr(Double(lValue.AsSingle),aFormatSettings);
+        else
+          Result:=FloatToStr(lValue.AsExtended,aFormatSettings);
+        end;
+    tkClass:
+      if lValue.AsObject=nil then
+        Result:='nil'
+      else
+        Result:=lValue.AsObject.ToString;
+    tkClassRef:
+      if lValue.AsClass=nil then
+        Result:='nil'
+      else
+        Result:=lValue.AsClass.ClassName;
+    tkPointer:
+      Result:='$'+IntToHex(PtrUInt(PPointer(@aItem)^),SizeOf(Pointer)*2);
+    tkVariant:
+      Result:=VarToStr(PVariant(@aItem)^);
+  else
+    Result:='?';
+  end;
+end;
+
+
+class function TArrayHelper<T>.ToString(const Args: array of T; const aFormatSettings: TFormatSettings;
+  const aSeparator: string; const aDelim1: string; const aDelim2: string): string;
+
+var
+  I: SizeInt;
+
+begin
+  Result:='';
+  for I:=0 to High(Args) do
+    begin
+    if I>0 then
+      Result:=Result+aSeparator;
+    Result:=Result+aDelim1+ItemToString(Args[I],aFormatSettings)+aDelim2;
+    end;
+end;
+
+
+class function TArrayHelper<T>.ToString(const Args: array of T;
+  const aSeparator: string; const aDelim1: string; const aDelim2: string): string;
+
+begin
+  Result:=ToString(Args,FormatSettings,aSeparator,aDelim1,aDelim2);
+end;
+
+
 class function TArrayHelper<T>.Concat(const Args: array of TArray<T>): TArray<T>;
 
 var
@@ -1378,13 +1502,48 @@ begin
   Result:=FirstIndexOf(Args,aItem,TComparer<T>.Default);
 end;
 
+
+class function TArrayHelper<T>.IndexOf(const Args: array of T; const aItem: T; aIndex: SizeInt): SizeInt;
+
+begin
+  if (aIndex<0) or (aIndex>=Length(Args)) then
+    ErrorArgumentOutOfRange;
+  Result:=IndexOf(Args,aItem,TComparer<T>.Default,aIndex,Length(Args)-aIndex);
+end;
+
+
+class function TArrayHelper<T>.IndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>; aIndex, aCount: SizeInt): SizeInt;
+
+var
+  lComparer: IComparer<T>;
+  lEnd: SizeInt;
+
+begin
+  if (aIndex<0) or (aCount<0) or (aIndex>Length(Args)-aCount) then
+    ErrorArgumentOutOfRange;
+  lComparer:=AComparer;
+  if lComparer=nil then
+    lComparer:=TComparer<T>.Default;
+  lEnd:=aIndex+aCount;
+  Result:=aIndex;
+  while (Result<lEnd) and (lComparer.Compare(Args[Result],aItem)<>0) do
+    Inc(Result);
+  if Result>=lEnd then
+    Result:=-1;
+end;
+
+
 class function TArrayHelper<T>.FirstIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt;
 var
   Len : SizeInt;
+  lComparer: IComparer<T>;
 begin
+  lComparer:=AComparer;
+  if lComparer=nil then
+    lComparer:=TComparer<T>.Default;
   Result:=0;
   Len:=Length(Args);
-  While (Result<Len) and (aComparer.Compare(Args[Result],aItem)<>0) do
+  While (Result<Len) and (lComparer.Compare(Args[Result],aItem)<>0) do
     Inc(Result);
   if Result>=Len then
     Result:=-1;
@@ -1397,9 +1556,15 @@ end;
 
 class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt;
 
+var
+  lComparer: IComparer<T>;
+
 begin
+  lComparer:=AComparer;
+  if lComparer=nil then
+    lComparer:=TComparer<T>.Default;
   Result:=Length(Args)-1;
-  While (Result>=0) and (aComparer.Compare(Args[Result],aItem)<>0) do
+  While (Result>=0) and (lComparer.Compare(Args[Result],aItem)<>0) do
     Dec(Result);
 end;
 
@@ -1407,6 +1572,37 @@ class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: 
 begin
   Result:=LastIndexOf(Args,aItem,TComparer<T>.Default);
 end;
+
+
+class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: T; aIndex: SizeInt): SizeInt;
+
+begin
+  Result:=LastIndexOf(Args,aItem,TComparer<T>.Default,aIndex,aIndex+1);
+end;
+
+
+class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>; aIndex, aCount: SizeInt): SizeInt;
+
+var
+  lComparer: IComparer<T>;
+  lStart: SizeInt;
+
+begin
+  if (aIndex<0) or (aIndex>=Length(Args)) or (aCount>aIndex+1) then
+    ErrorArgumentOutOfRange;
+  if aCount<=0 then
+    Exit(-1);
+  lComparer:=AComparer;
+  if lComparer=nil then
+    lComparer:=TComparer<T>.Default;
+  lStart:=aIndex-aCount+1;
+  Result:=aIndex;
+  while (Result>=lStart) and (lComparer.Compare(Args[Result],aItem)<>0) do
+    Dec(Result);
+  if Result<lStart then
+    Result:=-1;
+end;
+
 
 class function TArrayHelper<T>.Min(const Args: array of T; const AComparer: IComparer<T>; const aDefault: T): T;
 var
