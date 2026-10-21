@@ -109,19 +109,24 @@ Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the widestring;
 }
+Var
+  p: pointer;
 Begin
-  If S=Nil then
+  p:=S;
+  If p=Nil then
     exit;
+  { cleared first, as an ansistring is: freeing can run a hook of the memory
+    manager, which must not see the variable hold what is being freed }
+  S:=Nil;
 {$ifdef MSWINDOWS}
   if winwidestringalloc then
-    SysFreeString(S)
+    SysFreeString(p)
   else
 {$endif MSWINDOWS}
     begin
-      Dec (S,WideFirstOff);
-      Freemem(S);
+      Dec (p,WideFirstOff);
+      Freemem(p);
     end;
-  S:=Nil;
 end;
 
 { alias for internal use }
@@ -506,10 +511,14 @@ begin
               True
               then
         begin
-          Dec(Pointer(S),WideFirstOff);
-          if SizeUInt(L*sizeof(WideChar)+WideRecLen)>MemSize(Pointer(S)) then
-              reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
-          Inc(Pointer(S), WideFirstOff);
+          { through a local, as an ansistring is: the variable holds the
+            string, not its allocation, while that is reallocated }
+          Temp:=Pointer(S)-WideFirstOff;
+          if SizeUInt(L*sizeof(WideChar)+WideRecLen)>MemSize(Temp) then
+            begin
+              reallocmem(Temp, L*sizeof(WideChar)+WideRecLen);
+              Pointer(S):=Temp+WideFirstOff;
+            end;
         end
       else
         begin
