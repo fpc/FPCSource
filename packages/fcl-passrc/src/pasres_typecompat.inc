@@ -2165,7 +2165,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       IsLastRange:=RangeIndex+1=length(ArrType.Ranges);
       if Expr=nil then
         begin
-        if (ValueResolved.BaseType=btContext) and (ValueResolved.LoTypeEl.ClassType=TPasArrayType) then
+        if (Values.BaseType=btContext) and (Values.LoTypeEl.ClassType=TPasArrayType) then
           begin
           {$IFDEF VerbosePasResolver}
           writeln('CheckRange TODO StaticArr:=Arr');
