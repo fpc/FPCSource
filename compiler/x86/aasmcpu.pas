@@ -365,8 +365,10 @@ interface
         Ch_MXMM0
       );
 
+      TInsChanges = set of TInsChange;
+
       TInsProp = packed record
-        Ch : set of TInsChange;
+        Ch : TInsChanges;
       end;
 
       TMemRefSizeInfo = (msiUnknown, msiUnsupported, msiNoSize, msiNoMemRef,
@@ -699,6 +701,15 @@ interface
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
     function MightHaveExtension(AsmOp : TAsmOp) : Boolean;
 
+    { returns true if Ch determines that operand opidx is read
+      (including read-write and modify access) }
+    function InsChangeReadsOp(const Ch: TInsChanges; opidx: longint): boolean;
+    { returns true if Ch determines that operand opidx is written
+      (including read-write and modify access) }
+    function InsChangeWritesOp(const Ch: TInsChanges; opidx: longint): boolean;
+    { returns true if  Ch determines that operand opidx is only read }
+    function InsChangeOnlyReadsOp(const Ch: TInsChanges; opidx: longint): boolean;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -917,9 +928,45 @@ implementation
 {$endif}
 
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
-    begin
-      result := InsTabMemRefSizeInfoCache^[aAsmop];
-    end;
+      begin
+        result := InsTabMemRefSizeInfoCache^[aAsmop];
+      end;
+
+
+    type
+      TInsChangeOpFlags = record
+        Read, Write, ReadWrite, Modify : TInsChange;
+      end;
+
+
+    const
+      InsChangeOpFlags : array[0..max_operands-1] of TInsChangeOpFlags = (
+        (Read: Ch_Rop1; Write: Ch_Wop1; ReadWrite: Ch_RWop1; Modify: Ch_Mop1),
+        (Read: Ch_Rop2; Write: Ch_Wop2; ReadWrite: Ch_RWop2; Modify: Ch_Mop2),
+        (Read: Ch_Rop3; Write: Ch_Wop3; ReadWrite: Ch_RWop3; Modify: Ch_Mop3),
+        (Read: Ch_Rop4; Write: Ch_Wop4; ReadWrite: Ch_RWop4; Modify: Ch_Mop4)
+      );
+
+
+    function InsChangeReadsOp(const Ch: TInsChanges; opidx: longint): boolean;
+      begin
+        with InsChangeOpFlags[opidx] do
+          result:=[Read,ReadWrite,Modify]*Ch<>[];
+      end;
+
+
+    function InsChangeWritesOp(const Ch: TInsChanges; opidx: longint): boolean;
+      begin
+        with InsChangeOpFlags[opidx] do
+          result:=[Write,ReadWrite,Modify]*Ch<>[];
+      end;
+
+
+    function InsChangeOnlyReadsOp(const Ch: TInsChanges; opidx: longint): boolean;
+      begin
+        with InsChangeOpFlags[opidx] do
+          result:=(Read in Ch) and ([Write,ReadWrite,Modify]*Ch=[]);
+      end;
 
 
     function MightHaveExtension(AsmOp : TAsmOp): Boolean;
@@ -4863,37 +4910,21 @@ implementation
     procedure build_spilling_operation_type_table;
       var
         opcode : tasmop;
+        i : longint;
       begin
         new(operation_type_table);
         fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));
         for opcode:=low(tasmop) to high(tasmop) do
-          with InsProp[opcode] do
-          begin
-              if Ch_Rop1 in Ch then
-                    operation_type_table^[opcode,0]:=operand_read;
-              if Ch_Wop1 in Ch then
-                    operation_type_table^[opcode,0]:=operand_write;
-              if [Ch_RWop1,Ch_Mop1]*Ch<>[] then
-                    operation_type_table^[opcode,0]:=operand_readwrite;
-              if Ch_Rop2 in Ch then
-                    operation_type_table^[opcode,1]:=operand_read;
-              if Ch_Wop2 in Ch then
-                    operation_type_table^[opcode,1]:=operand_write;
-              if [Ch_RWop2,Ch_Mop2]*Ch<>[] then
-                    operation_type_table^[opcode,1]:=operand_readwrite;
-              if Ch_Rop3 in Ch then
-                    operation_type_table^[opcode,2]:=operand_read;
-              if Ch_Wop3 in Ch then
-                    operation_type_table^[opcode,2]:=operand_write;
-              if [Ch_RWop3,Ch_Mop3]*Ch<>[] then
-                    operation_type_table^[opcode,2]:=operand_readwrite;
-              if Ch_Rop4 in Ch then
-                operation_type_table^[opcode,3]:=operand_read;
-              if Ch_Wop4 in Ch then
-                operation_type_table^[opcode,3]:=operand_write;
-              if [Ch_RWop4,Ch_Mop4]*Ch<>[] then
-                operation_type_table^[opcode,3]:=operand_readwrite;
-                end;
+          for i:=0 to max_operands-1 do
+            with InsChangeOpFlags[i] do
+              begin
+                if Read in InsProp[opcode].Ch then
+                  operation_type_table^[opcode,i]:=operand_read;
+                if Write in InsProp[opcode].Ch then
+                  operation_type_table^[opcode,i]:=operand_write;
+                if [ReadWrite,Modify]*InsProp[opcode].Ch<>[] then
+                  operation_type_table^[opcode,i]:=operand_readwrite;
+              end;
               end;
 
 
