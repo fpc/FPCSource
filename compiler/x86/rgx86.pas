@@ -34,6 +34,11 @@ unit rgx86;
 
     type
        trgx86 = class(trgobj)
+{$ifdef x86_64}
+       protected
+         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);override;
+       public
+{$endif x86_64}
          function  get_spill_subreg(r : tregister) : tsubregister;override;
          function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
@@ -93,6 +98,28 @@ implementation
 {******************************************************************************
                                     Trgcpu
 ******************************************************************************}
+
+{$ifdef x86_64}
+    procedure trgx86.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
+      var
+        ins : taicpu;
+      begin
+        { spilling_create_store stores 32 bit registers with 64 bit because the upper
+          32 bits of the register are zeroed. This is not needed if the register
+          is never used as 64 bit register }
+        if (getregtype(tempreg)=R_INTREGISTER) and
+           (getsubreg(tempreg)=R_SUBD) and
+           not(ri_used_whole in reginfo[orgsupreg].flags) then
+          begin
+            ins:=taicpu.op_reg_ref(A_MOV,S_L,tempreg,spilltemp);
+            add_cpu_interferences(ins);
+            list.insertafter(ins,pos);
+          end
+        else
+          inherited do_spill_written(list,pos,spilltemp,tempreg,orgsupreg);
+      end;
+{$endif x86_64}
+
 
     function trgx86.get_spill_subreg(r : tregister) : tsubregister;
       begin
@@ -415,8 +442,15 @@ implementation
               with memory operations, so we have to perform these calculations
               in registers.
 
-              However, for instructions not modifying registers, this is not a problem }
-            if (opsize=S_L) and (opcode<>A_CMP) and (opcode<>A_TEST) and (opcode<>A_BT) then
+              However, for instructions not modifying registers, this is not a problem,
+              neither if the register is never used as 64 bit register.
+
+              (v)movd mm register => 32 bit int register has no opsize S_L, but zeroes
+              the upper 32 bits of the int register as well }
+            if (((opsize=S_L) and (opcode<>A_CMP) and (opcode<>A_TEST) and (opcode<>A_BT)) or
+                (((opcode=A_MOVD) or (opcode=A_VMOVD)) and (replaceoper=1) and
+                 (getregtype(oper[1]^.reg)=R_INTREGISTER))) and
+              (ri_used_whole in reginfo[orgreg].flags) then
               replaceoper:=-1;
 {$endif x86_64}
 

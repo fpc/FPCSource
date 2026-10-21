@@ -100,7 +100,8 @@ unit rgobj;
         ri_coalesced,       { the register is coalesced with other register }
         ri_selected,        { the register is put to selectstack }
         ri_spill_helper,    { the register contains a value of a previously spilled register }
-        ri_has_initial_loc  { the register has the initial memory location (e.g. a parameter in the stack) }
+        ri_has_initial_loc, { the register has the initial memory location (e.g. a parameter in the stack) }
+        ri_used_whole       { the register is used with its full size (R_SUBWHOLE) }
       );
       Treginfoflagset=set of Treginfoflag;
 
@@ -905,6 +906,10 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
+              { only instructions really use the register, e.g. a sync just extends the life time }
+              if (getsubreg(r)=R_SUBWHOLE) and
+                 (instr.typ=ait_instruction) then
+                include(flags,ri_used_whole);
               { avoid overflow }
               if high(weight)-aweight<weight then
                 weight:=high(weight)
@@ -1348,6 +1353,8 @@ unit rgobj;
       coalescednodes.add(v);
       include(reginfo[v].flags,ri_coalesced);
       reginfo[v].alias:=u;
+      if ri_used_whole in reginfo[v].flags then
+        include(reginfo[u].flags,ri_used_whole);
 
       {Combine both movelists. Since the movelists are sets, only add
        elements that are not already present. The movelists cannot be
