@@ -91,39 +91,11 @@ begin
   Result:=AnsiChar(B) in LeadBytes;
 end;
 
-Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
-  var
-    i : Integer;
-    P : PAnsiChar;
-    Unique : Boolean;
-  begin
-    Result := S;
-    if Result='' then
-      exit;
-    Unique:=false;
-    P:=PAnsiChar(Result);
-    for i:=1 to Length(Result) do
-      begin
-        if CharInSet(P^,Chars) then
-          begin
-            if not Unique then
-              begin
-                UniqueString(Result);
-                p:=@Result[i];
-                Unique:=true;
-              end;
-            P^:=AnsiChar(Ord(P^)+Adjustment);
-          end;
-        Inc(P);
-      end;
-  end;
-
-
 {   UpperCase returns a copy of S where all lowercase characters ( from a to z )
     have been converted to uppercase   }
 Function UpperCase(Const S : AnsiString) : AnsiString;
   begin
-    Result:=InternalChangeCase(S,['a'..'z'],-32);
+    Result:=System.UpCase(S);
   end;
 
 
@@ -139,7 +111,7 @@ function UpperCase(const s: ansistring; LocaleOptions: TLocaleOptions): ansistri
     have been converted to lowercase  }
 Function Lowercase(Const S : AnsiString) : AnsiString;
   begin
-    Result:=InternalChangeCase(S,['A'..'Z'],32);
+    Result:=System.LowerCase(S);
   end;
 
 

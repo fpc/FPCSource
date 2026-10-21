@@ -1343,11 +1343,31 @@ end;
 {$define FPC_HAS_UPCASE_ANSISTR}
 function upcase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
+  lIdx, lLen : SizeInt;
+  lSrc, lDest : PAnsiChar;
+  lChar : AnsiChar;
 begin
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := upcase(s[i]);
+  lSrc:=PAnsiChar(Pointer(s));
+  lLen:=length(s);
+  lIdx:=0;
+  while lIdx<lLen do
+    begin
+      lChar:=upcase(lSrc[lIdx]);
+      if lChar<>lSrc[lIdx] then
+        begin
+          SetLength(result,lLen);
+          SetCodePage(RawByteString(result),StringCodePage(s),false);
+          lDest:=PAnsiChar(Pointer(result));
+          Move(lSrc^,lDest^,lIdx);
+          lDest[lIdx]:=lChar;
+          for lIdx:=lIdx+1 to lLen-1 do
+            lDest[lIdx]:=upcase(lSrc[lIdx]);
+          exit;
+        end;
+      inc(lIdx);
+    end;
+  { nothing to convert: share the source }
+  result:=s;
 end;
 {$endif FPC_HAS_UPCASE_ANSISTR}
 
@@ -1356,11 +1376,31 @@ end;
 {$define FPC_HAS_LOWERCASE_ANSISTR}
 function lowercase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
+  lIdx, lLen : SizeInt;
+  lSrc, lDest : PAnsiChar;
+  lChar : AnsiChar;
 begin
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := lowercase(s[i]);
+  lSrc:=PAnsiChar(Pointer(s));
+  lLen:=length(s);
+  lIdx:=0;
+  while lIdx<lLen do
+    begin
+      lChar:=lowercase(lSrc[lIdx]);
+      if lChar<>lSrc[lIdx] then
+        begin
+          SetLength(result,lLen);
+          SetCodePage(RawByteString(result),StringCodePage(s),false);
+          lDest:=PAnsiChar(Pointer(result));
+          Move(lSrc^,lDest^,lIdx);
+          lDest[lIdx]:=lChar;
+          for lIdx:=lIdx+1 to lLen-1 do
+            lDest[lIdx]:=lowercase(lSrc[lIdx]);
+          exit;
+        end;
+      inc(lIdx);
+    end;
+  { nothing to convert: share the source }
+  result:=s;
 end;
 {$endif FPC_HAS_LOWERCASE_ANSISTR}
 
