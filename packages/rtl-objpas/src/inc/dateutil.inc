@@ -311,14 +311,24 @@ Function IncWeek(const AValue: TDateTime; const ANumberOfWeeks: Integer): TDateT
 Function IncWeek(const AValue: TDateTime): TDateTime; // ; const ANumberOfWeeks: Integer = 1)
 Function IncDay(const AValue: TDateTime; const ANumberOfDays: Integer): TDateTime;
 Function IncDay(const AValue: TDateTime): TDateTime; //; const ANumberOfDays: Integer = 1)
+// AValue plus a fractional number of days.
+Function IncDay(const AValue: TDateTime; const ANumberOfDays: Double): TDateTime;
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 Function IncHour(const AValue: TDateTime): TDateTime; //; const ANumberOfHours: Int64 = 1
+// AValue plus a fractional number of hours.
+Function IncHour(const AValue: TDateTime; const ANumberOfHours: Double): TDateTime;
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 Function IncMinute(const AValue: TDateTime): TDateTime; // ; const ANumberOfMinutes: Int64 = 1
+// AValue plus a fractional number of minutes.
+Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Double): TDateTime;
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 Function IncSecond(const AValue: TDateTime): TDateTime; // ; const ANumberOfSeconds: Int64 = 1
+// AValue plus a fractional number of seconds.
+Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Double): TDateTime;
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 Function IncMilliSecond(const AValue: TDateTime): TDateTime; // ; const ANumberOfMilliSeconds: Int64 = 1
+// AValue plus a fractional number of milliseconds.
+Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Double): TDateTime;
 
 { ---------------------------------------------------------------------
     Encode/Decode of complete timestamp
@@ -482,6 +492,8 @@ Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean = True): TD
 Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime ): TDateTime; deprecated;
 Function ISO8601ToDateDef(const DateString: string; aDefault : TDateTime; ReturnUTC : Boolean = True ): TDateTime;
 Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; ReturnUTC : Boolean = True) : Boolean;
+// As TryISO8601ToDate; ATimeOffset is the time zone offset in the string in hours, e.g. 1.0 for +01:00, 0 without zone.
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; out ATimeOffset: Double; ReturnUTC : Boolean = True) : Boolean;
 
 
 type
@@ -1777,6 +1789,13 @@ begin
 end;
 
 
+Function IncDay(const AValue: TDateTime; const ANumberOfDays: Double): TDateTime;
+
+begin
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfDays);
+end;
+
+
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
   Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfHours/24);
@@ -1786,6 +1805,13 @@ end;
 Function IncHour(const AValue: TDateTime): TDateTime; //; const ANumberOfHours: Int64 = 1
 begin
   Result:=IncHour(AValue,1);
+end;
+
+
+Function IncHour(const AValue: TDateTime; const ANumberOfHours: Double): TDateTime;
+
+begin
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfHours/HoursPerDay);
 end;
 
 
@@ -1801,6 +1827,13 @@ begin
 end;
 
 
+Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Double): TDateTime;
+
+begin
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfMinutes/MinsPerDay);
+end;
+
+
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
   Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfSeconds/SecsPerDay);
@@ -1813,6 +1846,13 @@ begin
 end;
 
 
+Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Double): TDateTime;
+
+begin
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfSeconds/SecsPerDay);
+end;
+
+
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
   Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfMilliSeconds/MSecsPerDay);
@@ -1822,6 +1862,13 @@ end;
 Function IncMilliSecond(const AValue: TDateTime): TDateTime; // ; const ANumberOfMilliSeconds: Int64 = 1
 begin
   Result:=IncMilliSecond(AValue,1);
+end;
+
+
+Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Double): TDateTime;
+
+begin
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfMilliSeconds/MSecsPerDay);
 end;
 
 
@@ -3135,12 +3182,22 @@ end;
 
 Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime;ReturnUTC : Boolean = True) : Boolean;
 
+Var
+  lTimeOffset: Double;
+
+begin
+  Result:=TryISO8601ToDate(DateString,ADateTime,lTimeOffset,ReturnUTC);
+end;
+
+
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; out ATimeOffset: Double; ReturnUTC : Boolean = True) : Boolean;
 
 Var
   S,TZ : String;
   L,Offset,TZOffset : Integer;
 
 begin
+  ATimeOffset:=0;
   S:=DateString;
   L:=Length(S);
   if L=0 then
@@ -3172,6 +3229,8 @@ begin
   Result:=TryIsoStrToDateTime(S,aDateTime) and TryISOTZStrToTZOffset(TZ,TZOffset);
   if not Result then
     exit;
+  // TZOffset has the opposite sign of the offset in the string
+  ATimeOffset:=-TZOffset/MinsPerHour;
   aDateTime:=IncMinute(aDateTime,TZOffSet);
   // offset for UTC or not
   if ReturnUTC then
