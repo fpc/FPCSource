@@ -2368,7 +2368,7 @@ begin
   case ValueType of
     fvExtended:
       if Precision>17 then
-        // 19 significant digits, the size of TFloatRec.Digits
+        // 19 significant digits
         Str(Extended(Value):27, Buffer)
       else
         Str(Extended(Value):25, Buffer);

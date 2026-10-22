@@ -48,12 +48,17 @@ procedure CheckExtended(const aFormatSettings: TFormatSettings);
 
 var
   lThird, lTwoThirds: Extended;
+  lRec: TFloatRec;
 
 begin
   lThird:=1;
   lThird:=lThird/3;
   lTwoThirds:=2;
   lTwoThirds:=lTwoThirds/3;
+  FloatToDecimal(lRec,lThird,50,50);
+  Check(IndexByte(lRec.Digits,SizeOf(lRec.Digits),0)>=0,'FloatToDecimal Extended precision 50 Digits ends with #0');
+  if IndexByte(lRec.Digits,SizeOf(lRec.Digits),0)>=0 then
+    CheckStr(StrPas(@lRec.Digits[0]),'3333333333333333333','FloatToDecimal Extended precision 50 Digits');
   CheckStr(FloatToStrF(lThird,ffGeneral,21,0,aFormatSettings),'0.333333333333333333342','FloatToStrF Extended ffGeneral 21');
   CheckStr(FloatToStrF(lThird,ffGeneral,25,0,aFormatSettings),'0.333333333333333333342','FloatToStrF Extended ffGeneral 25');
   CheckStr(FloatToStrF(lThird,ffGeneral,18,0,aFormatSettings),'0.333333333333333333','FloatToStrF Extended ffGeneral 18');

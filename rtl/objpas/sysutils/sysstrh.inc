@@ -31,7 +31,7 @@ type
    TFloatRec = Record
       Exponent: Integer;
       Negative: Boolean;
-      Digits: Array[0..18] Of AnsiChar;
+      Digits: Array[0..20] Of AnsiChar;
    End;
 
 const
