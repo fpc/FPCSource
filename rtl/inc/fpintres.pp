@@ -18,6 +18,13 @@ unit fpintres;
 
 interface
 
+{$ifdef FPC_HAS_WINLIKERESOURCES}
+  {$ifndef WINDOWS}
+// The resource header of this module; a library exports it with "exports rsrc;" for FindResource on its handle.
+function rsrc: pointer;
+  {$endif}
+{$endif}
+
 implementation
 
 {$ifdef FPC_HAS_WINLIKERESOURCES}
