@@ -625,7 +625,7 @@ begin
 end;
 
 type
-  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD;
+  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD; stdcall;
 var
   GetFinalPathNameByHandle:TGetFinalPathNameByHandle=nil;
 
