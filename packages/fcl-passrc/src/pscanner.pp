@@ -5476,7 +5476,7 @@ end;
 function TPascalScanner.HandleDirective(const ADirectiveText: TPasScannerString): TToken;
 
 Var
-  Directive,Param : TPasScannerString;
+  Directive,Param,Switches : TPasScannerString;
   P : Integer;
   IsFlowControl,Handled: Boolean;
 
@@ -5491,8 +5491,28 @@ Var
       Handled:=false;
   end;
 
+  // True if S is a comma-separated list of letter switches, such as Q-,R+
+  function IsLetterSwitchList(const S: TPasScannerString): Boolean;
+  var
+    i: Integer;
+  begin
+    Result:=(Length(S)>=5) and ((Length(S)+1) mod 3=0);
+    i:=1;
+    while Result and (i<=Length(S)) do
+      begin
+      Result:=(S[i] in ['a'..'z','A'..'Z']) and (S[i+1] in ['+','-'])
+        and ((i+2>Length(S)) or (S[i+2]=','));
+      Inc(i,3);
+      end;
+  end;
+
 begin
   Result:=tkComment;
+  Switches:='';
+  if Pos(',',ADirectiveText)>0 then
+    for P:=2 to Length(ADirectiveText) do
+      if not (ADirectiveText[P] in [' ',#9,#10,#13]) then
+        Switches:=Switches+ADirectiveText[P];
   // The directive NAME ends at the first whitespace, and a LINE ENDING counts:
   // an {$if} whose expression starts on the next line is legal, and taking only
   // space/tab left the line ending glued to the name so nothing matched below
@@ -5550,7 +5570,17 @@ begin
     if PPIsSkipping then exit;
     IsFlowControl:=False;
     Handled:=false;
-    if (length(Directive)=2)
+    if IsLetterSwitchList(Switches) then
+      begin
+      Handled:=true;
+      P:=1;
+      while P<Length(Switches) do
+        begin
+        Result:=HandleLetterDirective(Switches[P],Switches[P+1]='+');
+        Inc(P,3);
+        end;
+      end
+    else if (length(Directive)=2)
         and (Directive[1] in ['a'..'z','A'..'Z'])
         and (Directive[2] in ['-','+']) then
       begin
@@ -7109,8 +7139,12 @@ end;
 function TPascalScanner.IfOpt(Letter: AnsiChar): boolean;
 begin
   Letter:=upcase(Letter);
-  Result:=(Letter in ['A'..'Z']) and (LetterSwitchNames[Letter]<>'')
-    and IsDefined(LetterSwitchNames[Letter]);
+  if not (Letter in ['A'..'Z']) then
+    exit(false);
+  if LetterToBoolSwitch[Letter]<>bsNone then
+    Result:=LetterToBoolSwitch[Letter] in FCurrentBoolSwitches
+  else
+    Result:=(LetterSwitchNames[Letter]<>'') and IsDefined(LetterSwitchNames[Letter]);
 end;
 
 function TPascalScanner.AddMacro(const aName, aValue: TPasScannerString; Quiet: boolean
