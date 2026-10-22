@@ -262,6 +262,10 @@ procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word)
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
 procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
+// Quotient and remainder of a 64-bit unsigned division.
+procedure DivMod(Dividend: QWord; Divisor: QWord; var Result, Remainder: QWord);
+// Quotient truncated towards zero and remainder with the sign of the dividend, of a 64-bit signed division.
+procedure DivMod(Dividend: Int64; Divisor: Int64; var Result, Remainder: Int64);
 
 { Floating point modulo}
 {$ifdef FPC_HAS_TYPE_SINGLE}
@@ -3897,6 +3901,23 @@ begin
     end;
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
+
+
+procedure DivMod(Dividend: QWord; Divisor: QWord; var Result, Remainder: QWord);
+
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
+end;
+
+
+procedure DivMod(Dividend: Int64; Divisor: Int64; var Result, Remainder: Int64);
+
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
+end;
+
 
 { Floating point modulo}
 {$ifdef FPC_HAS_TYPE_SINGLE}
