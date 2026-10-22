@@ -542,7 +542,7 @@ procedure fixup_jmps(list: TAsmList);
     // record label positions
     while assigned(p) do
       begin
-        if p.typ = ait_label then
+        if (p.typ = ait_label) and (tai_label(p).labsym.labeltype=alt_jump) then
           begin
             if (tai_label(p).labsym.labelnr >= labelpositions.count) then
               labelpositions.count := tai_label(p).labsym.labelnr * 2;
@@ -581,12 +581,13 @@ procedure fixup_jmps(list: TAsmList);
             ait_label:
               // update labelposition in case it changed due to insertion
               // of jumps
-              begin
-                // can happen because of newly inserted labels
-                if (tai_label(p).labsym.labelnr > labelpositions.count) then
-                  labelpositions.count := tai_label(p).labsym.labelnr * 2;
-                labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
-              end;
+              if (tai_label(p).labsym.labeltype=alt_jump) then
+                begin
+                  // can happen because of newly inserted labels
+                  if (tai_label(p).labsym.labelnr > labelpositions.count) then
+                    labelpositions.count := tai_label(p).labsym.labelnr * 2;
+                  labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
+                end;
             ait_instruction:
               begin
                 inc(instrpos,2);
