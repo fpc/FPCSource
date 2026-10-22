@@ -27,10 +27,10 @@ unit Types;
         {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes;
 {$endif}
 
-{$if defined(win32) or defined(win64)}
+{$ifndef win16}
 const
-  RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
-{$elseif defined(win16)}
+  RT_RCDATA = System.RT_RCDATA;
+{$else}
 const
   RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
 {$endif}

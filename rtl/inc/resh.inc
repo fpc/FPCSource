@@ -22,11 +22,7 @@ type
 {$endif}
 {$endif not Win16}
 
-{$ifndef MSWINDOWS }
-{ windows has this in the windows unit. It probably would better
-  fit into the classes/sysutils unit but because it is resource
-  related, I put it here (FK)
-}
+{$ifndef Win16}
 const
   RT_CURSOR = MAKEINTRESOURCE(1);
   RT_BITMAP = MAKEINTRESOURCE(2);
@@ -47,7 +43,7 @@ const
   RT_HTML = MAKEINTRESOURCE(23);
   RT_MANIFEST = MAKEINTRESOURCE(24);
 
-{$endif MSWINDOWS }
+{$endif not Win16}
 
 // Win32 API compatible Resource callbacks
 type
