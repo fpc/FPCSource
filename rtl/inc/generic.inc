@@ -3161,6 +3161,62 @@ function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endi
 {$endif}
 {$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
+function Bsf(Const AValue: Byte): Byte;
+  begin
+    result:=BsfByte(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_BYTE}
+function Bsr(Const AValue: Byte): Byte;
+  begin
+    result:=BsrByte(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_WORD}
+function Bsf(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_WORD}
+function Bsr(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
+function Bsf(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfDWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
+function Bsr(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrDWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
+function Bsf(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfQWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
+function Bsr(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrQWord(AValue);
+  end;
+{$endif}
+
 const
   PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
 
