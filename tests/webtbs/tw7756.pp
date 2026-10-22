@@ -342,6 +342,14 @@ const results: array[1..324] of string =
 '4+9194',
 '4+9059');
 
+const
+  error_count : longint = 0;
+
+procedure add_error(cg : longint);
+  begin
+    inc(error_count);
+  end;
+
 function DecimalToStr(fr: TFloatRec): string;
 var
   s : string;
@@ -371,9 +379,10 @@ BEGIN
 //        writeln(DecimalToStr(fr));
         if DecimalToStr(fr) <> results[cg] then
           begin
-            writeln(' -- expected ',results[cg]);
-            writeln(cg);
-            halt(1);
+            writeln('Index: ',cg);
+            writeln(' -- expected: "',results[cg],'"');
+            writeln(' -- got:      "',DecimalToStr(fr),'"');
+            add_error(cg);
           end;
         inc(cg);
         end;
@@ -390,9 +399,19 @@ BEGIN
 //        write(DecimalToStr(fr):25, ';');
 //        writeln(DecimalToStr(fr));
         if DecimalToStr(fr) <> results[cg] then
-          halt(2);
+          begin
+            writeln('Index: ',cg);
+            writeln(' -- expected: "',results[cg],'"');
+            writeln(' -- got:      "',DecimalToStr(fr),'"');
+            add_error(cg);
+          end;
         inc(cg);
         end;
+  if error_count>0 then
+    begin
+      writeln('Test finished with ',error_count,' errors');
+      halt(1);
+    end;
 END.
 
 
