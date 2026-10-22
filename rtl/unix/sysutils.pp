@@ -811,8 +811,8 @@ begin
 end;
 
 
-{ assumes that pattern and name have the same code page }
-Function FNMatch(const Pattern,Name:string):Boolean;
+{ assumes that pattern and name have the same code page; aCaseInsensitive compares AnsiLowerCase of both }
+Function FNMatch(const Pattern,Name:string; aCaseInsensitive: Boolean):Boolean;
 Var
   LenPat,LenName : longint;
 
@@ -1001,6 +1001,8 @@ Var
   end;
 
 Begin {start FNMatch}
+  if aCaseInsensitive then
+    Exit(FNMatch(AnsiLowerCase(Pattern),AnsiLowerCase(Name),false));
   LenPat:=Length(Pattern);
   LenName:=Length(Name);
   FNMatch:=DoFNMatch(1,1);
@@ -1014,6 +1016,7 @@ Type
     SearchSpec : RawbyteString;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Longint;     {attribute we are searching for}
+    CaseInsensitive : Boolean; {match names case-insensitively}
   End;
   PUnixFindData = ^TUnixFindData;
 
@@ -1138,7 +1141,7 @@ Begin
      Else
       Begin
         SetCodePage(FName,DefaultFileSystemCodePage,false);
-        If FNMatch(SName,FName) Then
+        If FNMatch(SName,FName,UnixFindData^.CaseInsensitive) Then
          Begin
            Found:=FindGetFileInfo(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Rslt,Name);
            if Found then
@@ -1184,6 +1187,14 @@ Begin
     UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
     while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
       dec(UnixFindData^.NamePos);
+    UnixFindData^.CaseInsensitive:=not FileNameCaseSensitive;
+{$IF defined(DARWIN)}
+    if not UnixFindData^.CaseInsensitive then
+      if UnixFindData^.NamePos=0 then
+        UnixFindData^.CaseInsensitive:=not IsFileNameCaseSensitive(RawByteString('.'))
+      else
+        UnixFindData^.CaseInsensitive:=not IsFileNameCaseSensitive(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos));
+{$ENDIF}
     Result:=InternalFindNext(Rslt,Name);
     end;
   If (Result<>0) then
