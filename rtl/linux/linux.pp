@@ -239,11 +239,12 @@ const
 type
   TCloneFunc = function(args:pointer):longint;cdecl;
 
-{$ifdef cpui386}
+{$if defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64) or defined(cpuaarch64)}
   {$define clone_implemented}
 {$endif}
 
 {$ifdef clone_implemented}
+// Starts func(args) in a new process or thread with stack top sp; returns its id, or -1 and sets errno.
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 {$endif}
 
@@ -690,11 +691,70 @@ begin
 end;
 
 {$ifdef clone_implemented}
+{$if defined(cpux86_64) or defined(cpuaarch64)}
+// Clone syscall whose child runs aFunc(aArgs) on the 16-byte aligned aSp and exits with its result; returns the raw syscall result.
+function do_clone(aFunc:TCloneFunc;aSp:pointer;aFlags:longint;aArgs:pointer):longint; assembler; nostackframe;
+{$ifdef cpux86_64}
+asm
+        andq    $0xfffffffffffffff0,%rsi
+        subq    $16,%rsi
+        movq    %rcx,8(%rsi)
+        movq    %rdi,0(%rsi)
+        movl    %edx,%edi
+        xorl    %edx,%edx
+        xorl    %r10d,%r10d
+        xorl    %r8d,%r8d
+        movl    $syscall_nr_clone,%eax
+        syscall
+        testq   %rax,%rax
+        jz      .Lchild
+        ret
+.Lchild:
+        xorl    %ebp,%ebp
+        popq    %rax
+        popq    %rdi
+        call    *%rax
+        movl    %eax,%edi
+        movl    $syscall_nr_exit,%eax
+        syscall
+end;
+{$endif cpux86_64}
+{$ifdef cpuaarch64}
+asm
+        mov     x10,x0
+        mov     x11,x3
+        and     x1,x1,#0xfffffffffffffff0
+        mov     w0,w2
+        mov     x2,xzr
+        mov     x3,xzr
+        mov     x4,xzr
+        mov     x8,syscall_nr_clone
+        svc     #0
+        cbz     x0,.Lchild
+        ret
+.Lchild:
+        mov     x29,xzr
+        mov     x30,xzr
+        mov     x0,x11
+        blr     x10
+        mov     x8,syscall_nr_exit
+        svc     #0
+end;
+{$endif cpuaarch64}
+{$endif cpux86_64 or cpuaarch64}
+
+
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 
 begin
   if (pointer(func)=nil) or (sp=nil) then
-   exit(-1); // give an error result
+    begin
+    fpseterrno(ESysEINVAL);
+    exit(-1);
+    end;
+{$if defined(cpux86_64) or defined(cpuaarch64)}
+  clone:=do_clone(func,sp,flags,args);
+{$endif}
 {$ifdef cpui386}
 {$ASMMODE ATT}
   asm
@@ -730,6 +790,11 @@ begin
         movl    %eax,__RESULT
   end;
 {$endif cpui386}
+  if clone<0 then
+    begin
+    fpseterrno(-clone);
+    clone:=-1;
+    end;
 end;
 {$endif}
 
