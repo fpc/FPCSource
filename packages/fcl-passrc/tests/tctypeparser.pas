@@ -150,6 +150,7 @@ type
     Procedure TestIdentifierRangeTypeDeprecated;
     Procedure TestIdentifierRangeTypePlatform;
     Procedure TestNegativeIdentifierRangeType;
+    Procedure TestIdentifierExprRangeType;
     Procedure TestSimpleSet;
     Procedure TestPackedSet;
     Procedure TestSimpleSetDeprecated;
@@ -3875,6 +3876,11 @@ end;
 procedure TTestTypeParser.TestNegativeIdentifierRangeType;
 begin
   DoTestRangeType('-tkLast','tkLast','');
+end;
+
+procedure TTestTypeParser.TestIdentifierExprRangeType;
+begin
+  DoTestRangeType('tkFirst+1','tkLast*2','');
 end;
 
 procedure TTestTypeParser.TestSimpleSet;

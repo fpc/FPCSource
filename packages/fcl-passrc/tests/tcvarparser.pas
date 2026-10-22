@@ -28,6 +28,7 @@ Type
     Procedure TearDown; override;
   Published
     Procedure TestSimpleVar;
+    Procedure TestVarIdentifierExprRange;
     Procedure TestSimpleThreadVar;
     Procedure TestSimpleVarAbsoluteName;
     Procedure TestSimpleVarHelperName;
@@ -140,6 +141,12 @@ procedure TTestVarParser.TestSimpleVar;
 begin
   ParseVar('b','');
   AssertVariableType('b');
+end;
+
+procedure TTestVarParser.TestVarIdentifierExprRange;
+begin
+  ParseVar('cLo - 1 .. cHi div 2','');
+  AssertVariableType(TPasRangeType);
 end;
 
 procedure TTestVarParser.TestSimpleThreadVar;

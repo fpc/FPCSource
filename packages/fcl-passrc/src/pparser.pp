@@ -1997,7 +1997,7 @@ begin
     Result:=ParseSpecializeType(Parent,NamePos,TypeName,Name,Expr);
     exit;
     end
-  else if (CurToken in [tkBraceOpen,tkDotDot])  then // A: B..C or A: string(CP);
+  else if (CurToken in [tkBraceOpen,tkDotDot,tkPlus,tkMinus,tkMul,tkdiv,tkmod])  then // A: B..C, A: B+1..C or A: string(CP);
     begin
     if (lName='string') or (lName='ansistring') then
       K:=stkString
