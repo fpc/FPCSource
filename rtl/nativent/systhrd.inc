@@ -218,9 +218,9 @@ begin
 
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 begin
-
+  Result:=False;
 end;
 
 

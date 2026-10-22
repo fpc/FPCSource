@@ -255,7 +255,7 @@ begin
   fpc_wasm32_i32_atomic_store(@P^.Signal,0);
 end;
 
-procedure WasiRTLEventWaitFor_WaitAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64);
+function WasiRTLEventWaitFor_WaitAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64) : Boolean;
 
 Var
   a : Longint;
@@ -263,6 +263,7 @@ Var
   RemainingTime: Int64;
 
 begin
+  Result:=False;
   if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
     exit;  // abandoned
   if aTimeOutNS>=0 then
@@ -286,7 +287,7 @@ begin
           if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
             exit  // abandoned
           else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
-            exit  // signaled
+            exit(True)  // signaled
           else
             ; { try waiting again (loop continues) }
         end;
@@ -299,13 +300,14 @@ begin
 end;
 
 
-procedure WasiRTLEventWaitFor_WaitNotAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64);
+function WasiRTLEventWaitFor_WaitNotAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64) : Boolean;
 
 Var
   EndTime: TOSTime;
   RemainingTime: Int64;
 
 begin
+  Result:=False;
   if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
     exit;  // abandoned
   if aTimeOutNS>=0 then
@@ -325,7 +327,7 @@ begin
     if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
       exit  // abandoned
     else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
-      exit;  // signaled
+      exit(True);  // signaled
   until false;
 end;
 
@@ -341,7 +343,7 @@ begin
     WasiRTLEventWaitFor_WaitNotAllowed(P,-1);
 end;
 
-procedure WasiRTLEventWaitForTimeout(AEvent:PRTLEvent;timeout : longint);
+function WasiRTLEventWaitForTimeout(AEvent:PRTLEvent;timeout : longint) : Boolean;
 Var
   P : PWasmRTLEvent absolute aEvent;
   TimeoutNs: Int64;
@@ -352,9 +354,9 @@ begin
   else
     TimeoutNs:=Int64(timeout)*1000000;
   if IsWaitAllowed then
-    WasiRTLEventWaitFor_WaitAllowed(P,TimeoutNs)
+    Result:=WasiRTLEventWaitFor_WaitAllowed(P,TimeoutNs)
   else
-    WasiRTLEventWaitFor_WaitNotAllowed(P,TimeoutNs);
+    Result:=WasiRTLEventWaitFor_WaitNotAllowed(P,TimeoutNs);
 end;
 
 

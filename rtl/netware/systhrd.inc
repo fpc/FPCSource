@@ -450,9 +450,10 @@ begin
 {$WARNING TODO! intRTLEventWaitFor}
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 begin
   {$WARNING TODO! intRTLEventWaitForTimeout}
+  Result:=False;
 end;
 
 

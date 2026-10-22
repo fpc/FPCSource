@@ -59,7 +59,7 @@ type
   TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate;FUseComWait : Boolean=False):longint;
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
-  TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
+  TRTLEventHandlerTimeout   = function(AEvent:PRTLEvent;timeout : longint) : Boolean;
   TRTLCreateEventHandler    = function:PRTLEvent;
   // semaphores stuff
   TSempahoreInitHandler     = function: Pointer;
@@ -184,7 +184,8 @@ procedure RTLEventDestroy(state:pRTLEvent);
 procedure RTLEventSetEvent(state:pRTLEvent);
 procedure RTLEventResetEvent(state:pRTLEvent);
 procedure RTLEventWaitFor(state:pRTLEvent);
-procedure RTLEventWaitFor(state:pRTLEvent;timeout : longint);
+{ Returns True when the event was signalled, False when the timeout expired. }
+function  RTLEventWaitFor(state:pRTLEvent;timeout : longint) : Boolean;
 
 { lazy thread initialization support }
 procedure RegisterLazyInitThreadingProc(const proc: TProcedure);

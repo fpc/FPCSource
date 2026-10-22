@@ -721,9 +721,9 @@ begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 begin
-  WaitForSingleObject(THANDLE(AEvent), timeout);
+  Result:=WaitForSingleObject(THANDLE(AEvent), timeout)=WAIT_OBJECT_0;
 end;
 
 

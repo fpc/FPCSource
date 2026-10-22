@@ -873,7 +873,7 @@ begin
   ReleaseSemaphore(@p^.Sem);
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 var
   p : pintrtlevent;
 begin
@@ -887,6 +887,7 @@ begin
       dec(timeout);
       ObtainSemaphore(@p^.Sem);
     end;
+  Result:=p^.isset;
   p^.isset:=false;
   ReleaseSemaphore(@p^.Sem);
 end;

@@ -339,10 +339,10 @@ begin
   currenttm.RTLEventWaitFor(state);
 end;
 
-procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
+function RTLeventWaitFor(state:pRTLEvent;timeout : longint) : Boolean;
 
 begin
-  currenttm.RTLEventWaitForTimeout(state,timeout);
+  Result:=currenttm.RTLEventWaitForTimeout(state,timeout);
 end;
 
 { ---------------------------------------------------------------------
@@ -570,8 +570,9 @@ begin
     ThreadingAlreadyUsed:=true
 end;
 
-procedure NoRTLEventWaitForTimeout(state:pRTLEvent;timeout : longint);
+function NoRTLEventWaitForTimeout(state:pRTLEvent;timeout : longint) : Boolean;
 begin
+  Result:=False;
   if IsMultiThread then
     NoThreadError
   else

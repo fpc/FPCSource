@@ -1345,7 +1345,7 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
   var
     p : pintrtlevent;
     errres : cint;
@@ -1369,6 +1369,7 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
       begin
         errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
       end;
+    Result:=p^.isset;
     p^.isset:=false;
     pthread_mutex_unlock(@p^.mutex);
   end;
