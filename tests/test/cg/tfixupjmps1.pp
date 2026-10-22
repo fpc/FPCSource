@@ -1,4 +1,4 @@
-{ %cpu=powerpc,powerpc64 }
+{ %cpu=powerpc,powerpc64,mips,mipsel,mips64,mips64el }
 { fixup_jmps must also fix a conditional branch whose target label has the
   same number as a label of another type that precedes it (e.g. the CFI label
   at the procedure entry): the setjmp check of the implicit try/finally in Big
