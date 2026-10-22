@@ -172,25 +172,8 @@ end;
 
 function TStrings.GetCommaText: string;
 
-Var
-  C1,C2 : Char;
-  FSD : Boolean;
-
 begin
-  CheckSpecialChars;
-  FSD:=StrictDelimiter;
-  C1:=Delimiter;
-  C2:=QuoteChar;
-  Delimiter:=',';
-  QuoteChar:='"';
-  StrictDelimiter:=False;
-  Try
-    Result:=GetDelimitedText;
-  Finally
-    Delimiter:=C1;
-    QuoteChar:=C2;
-    StrictDelimiter:=FSD;
-  end;
+  Result:=DoGetDelimitedText(',','"',False);
 end;
 
 function TStrings.GetLineBreakCharLBS: string;
@@ -215,28 +198,34 @@ end;
 
 Function TStrings.GetDelimitedText: string;
 
+begin
+  CheckSpecialChars;
+  Result:=DoGetDelimitedText(FDelimiter,FQuoteChar,StrictDelimiter);
+end;
+
+
+Function TStrings.DoGetDelimitedText(aDelimiter, aQuoteChar: Char; aStrictDelimiter: Boolean): string;
+
 Var
   I : integer;
-  Pend,P : PChar;
+  P : PChar;
   S : String;
   doQuote : Boolean;
 
   Function IsBreakChar(C : Char) : Boolean;
 
   begin
-    Result:=(C=QuoteChar) or (C=Delimiter) or (C=#0);
-    if Not StrictDelimiter then
+    Result:=(C=aQuoteChar) or (C=aDelimiter) or (C=#0);
+    if Not aStrictDelimiter then
       Result:=Result or (Ord(C)<=Ord(' '));
   end;
 
 begin
-  CheckSpecialChars;
   result:='';
   // Check for break characters and quote if required.
   For i:=0 to count-1 do
     begin
     S:=Strings[i];
-    PEnd:=PChar(S)+length(S)*SizeOf(Char);
     doQuote:=FAlwaysQuote;
     If not DoQuote then
       begin
@@ -246,16 +235,16 @@ begin
         inc(p);
       DoQuote:=(p^<>#0);
       end;
-    if DoQuote and (QuoteChar<>#0) then
-      Result:=Result+QuoteString(S,QuoteChar)
+    if DoQuote and (aQuoteChar<>#0) then
+      Result:=Result+QuoteString(S,aQuoteChar)
     else
       Result:=Result+S;
     if I<Count-1 then
-      Result:=Result+Delimiter;
+      Result:=Result+aDelimiter;
     end;
   // Quote empty string:
-  If (Length(Result)=0) and (Count=1) and (QuoteChar<>#0) then
-    Result:=QuoteChar+QuoteChar;
+  If (Length(Result)=0) and (Count=1) and (aQuoteChar<>#0) then
+    Result:=aQuoteChar+aQuoteChar;
 end;
 
 procedure TStrings.GetNameValue(Index : Integer; Out AName,AValue : String);

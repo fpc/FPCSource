@@ -1078,6 +1078,8 @@ type
     property UpdateCount: Integer read FUpdateCount;
     Function DoCompareText(const s1,s2 : string) : PtrInt; virtual;
     Function GetDelimitedText: string;
+    // The strings joined with aDelimiter, quoted with aQuoteChar where needed, as in DelimitedText.
+    Function DoGetDelimitedText(aDelimiter, aQuoteChar: Char; aStrictDelimiter: Boolean): string;
     Procedure SetDelimitedText(Const AValue: string);
     Function GetValueFromIndex(Index: Integer): string;
     Procedure SetValueFromIndex(Index: Integer; const Value: string);
