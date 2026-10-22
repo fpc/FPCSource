@@ -47,10 +47,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 Uses
-  System.SysUtils, UnixApi.Types, System.InitC;
+  System.SysUtils, System.SysConst, UnixApi.Types, System.InitC;
 {$ELSE FPC_DOTTEDUNITS}
 Uses
-  SysUtils, unixtype, initc;
+  SysUtils, sysconst, unixtype, initc;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
@@ -108,6 +108,26 @@ function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; externa
 {$endif}
 
 function nl_langinfo(__item: cint):PAnsiChar;cdecl;external clib name 'nl_langinfo';
+
+{$if defined(linux) or defined(darwin) or defined(freebsd) or defined(netbsd) or defined(openbsd) or defined(dragonfly)}
+  {$define HAS_NEWLOCALE}
+{$endif}
+
+{$ifdef HAS_NEWLOCALE}
+type
+  TLocale_t = pointer;
+
+const
+{$ifdef linux}
+  LC_ALL_MASK = $1FBF;
+{$else}
+  LC_ALL_MASK = $3F;
+{$endif}
+
+function newlocale(category_mask: cint; locale: PAnsiChar; base: TLocale_t): TLocale_t; cdecl; external clib name 'newlocale';
+function uselocale(newloc: TLocale_t): TLocale_t; cdecl; external clib name 'uselocale';
+procedure freelocale(locobj: TLocale_t); cdecl; external clib name 'freelocale';
+{$endif HAS_NEWLOCALE}
 
 procedure GetFormatSettings(out fmts: TFormatSettings);
 
@@ -334,7 +354,6 @@ var
    plocale : plconv;
   {$ENDIF}
 begin
-  setlocale(__LC_ALL,'');
   for i := 1 to 12 do
     begin
     fmts.ShortMonthNames[i]:=GetLocaleStr(ABMON_1+i-1);
@@ -428,7 +447,54 @@ begin
   fmts.DecimalSeparator:=LocaleSepChar(GetLocaleStr(RADIXCHAR),fmts.DecimalSeparator);
 end;
 
+{$ifdef HAS_NEWLOCALE}
+// A libc locale for a locale name such as 'pt-BR' or 'pt_BR.UTF-8', or nil if there is none.
+function NewLocaleForName(const aLocale: RTLString): TLocale_t;
+
+var
+  lName: AnsiString;
+
+begin
+  lName:=AnsiString(StringReplace(aLocale,'-','_',[rfReplaceAll]));
+  Result:=nil;
+  if Pos('.',lName)=0 then
+    begin
+    Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName+'.UTF-8'),nil);
+    if Result=nil then
+      Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName+'.utf8'),nil);
+    end;
+  if Result=nil then
+    Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName),nil);
+end;
+
+
+// InitFormatSettingsHook: the format settings of a libc locale, the thread locale is restored afterwards.
+procedure CInitFormatSettings(const aLocale: RTLString; var aSettings: TFormatSettings);
+
+var
+  lLocale, lOldLocale: TLocale_t;
+
+begin
+  lLocale:=NewLocaleForName(aLocale);
+  if lLocale=nil then
+    raise EArgumentException.CreateFmt(SUnknownLocaleName,[aLocale]);
+  aSettings:=TFormatSettings.Invariant;
+  lOldLocale:=uselocale(lLocale);
+  try
+    GetFormatSettings(aSettings);
+  finally
+    uselocale(lOldLocale);
+    freelocale(lLocale);
+  end;
+end;
+{$endif HAS_NEWLOCALE}
+
+
 initialization
+  setlocale(__LC_ALL,'');
   GetFormatSettings(DefaultFormatSettings);
+{$ifdef HAS_NEWLOCALE}
+  InitFormatSettingsHook:=@CInitFormatSettings;
+{$endif HAS_NEWLOCALE}
 
 end.

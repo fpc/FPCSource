@@ -1360,6 +1360,32 @@ begin
   GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
 end;
 
+
+type
+  TLocaleNameToLCID = function(lpName: LPCWSTR; dwFlags: DWORD): LCID; stdcall;
+
+var
+  LocaleNameToLCID: TLocaleNameToLCID = nil;
+
+const
+  LOCALE_CUSTOM_UNSPECIFIED = $1000;
+
+// InitFormatSettingsHook: the format settings of a locale name such as 'pt-BR'.
+procedure WinInitFormatSettings(const aLocale: string; var aSettings: TFormatSettings);
+
+var
+  lLCID: LCID;
+
+begin
+  lLCID:=0;
+  if Assigned(LocaleNameToLCID) then
+    lLCID:=LocaleNameToLCID(PWideChar(UnicodeString(aLocale)),0);
+  if (lLCID=0) or (lLCID=LOCALE_CUSTOM_UNSPECIFIED) then
+    raise EArgumentException.CreateFmt(SUnknownLocaleName,[aLocale]);
+  aSettings:=TFormatSettings.Invariant;
+  GetLocaleFormatSettings(lLCID,aSettings);
+end;
+
 Procedure InitLeadBytes;
 
 var
@@ -1702,6 +1728,13 @@ begin
     GetTimeZoneInformationForYear:=TGetTimeZoneInformationForYear(GetProcAddress(kernel32dll,'GetTimeZoneInformationForYear'));
   if (kernel32dll<>0) then
     GetFinalPathNameByHandle:=TGetFinalPathNameByHandle(GetProcAddress(kernel32dll,'GetFinalPathNameByHandleA'));
+  // LocaleNameToLCID is supported only on Vista and newer
+  if (kernel32dll<>0) and (Win32MajorVersion>=6) then
+    begin
+    LocaleNameToLCID:=TLocaleNameToLCID(GetProcAddress(kernel32dll,'LocaleNameToLCID'));
+    if Assigned(LocaleNameToLCID) then
+      InitFormatSettingsHook:=@WinInitFormatSettings;
+    end;
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;

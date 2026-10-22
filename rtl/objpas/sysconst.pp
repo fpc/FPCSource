@@ -112,6 +112,7 @@ const
   SUnkOSError            = 'An operating system call failed.';
   SUnknown               = 'Unknown run-time error code: ';
   SUnknownErrorCode      = 'Unknown error code: %d';
+  SUnknownLocaleName     = 'Unknown locale name: "%s"';
   SVarArrayBounds        = 'Variant array bounds error';
   SVarArrayCreate        = 'Variant array cannot be created';
   SVarArrayLocked        = 'Variant array locked';
