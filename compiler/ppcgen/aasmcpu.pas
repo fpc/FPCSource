@@ -507,10 +507,13 @@ uses cutils, cclasses;
         labelpositions := TFPList.create;
         p := tai(list.first);
         instrpos := 1;
-        // record label positions
+        // record label positions. Only jump labels are recorded: branches only
+        // target jump labels, and label numbers are only unique per label type
+        // (e.g. the CFI label .Lc6 and the jump label .Lj6 are both number 6)
         while assigned(p) do
           begin
-            if p.typ = ait_label then
+            if (p.typ = ait_label) and
+               (tai_label(p).labsym.labeltype = alt_jump) then
               begin
                 if (tai_label(p).labsym.labelnr >= labelpositions.count) then
                   labelpositions.count := tai_label(p).labsym.labelnr * 2;
@@ -543,12 +546,13 @@ uses cutils, cclasses;
                 ait_label:
                   // update labelposition in case it changed due to insertion
                   // of jumps
-                  begin
-                    // can happen because of newly inserted labels
-                    if (tai_label(p).labsym.labelnr > labelpositions.count) then
-                      labelpositions.count := tai_label(p).labsym.labelnr * 2;
-                    labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
-                  end;
+                  if (tai_label(p).labsym.labeltype = alt_jump) then
+                    begin
+                      // can happen because of newly inserted labels
+                      if (tai_label(p).labsym.labelnr >= labelpositions.count) then
+                        labelpositions.count := tai_label(p).labsym.labelnr * 2;
+                      labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
+                    end;
                 ait_instruction:
                   begin
                     inc(instrpos);
@@ -557,6 +561,7 @@ uses cutils, cclasses;
                         if (taicpu(p).oper[0]^.typ = top_ref) and
                            assigned(taicpu(p).oper[0]^.ref^.symbol) and
                            (taicpu(p).oper[0]^.ref^.symbol is tasmlabel) and
+                           (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labeltype = alt_jump) and
                            (labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr] <> NIL) and
 {$push}
 {$q-}
