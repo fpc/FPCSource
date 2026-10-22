@@ -6692,10 +6692,12 @@ begin
 end;
 
 function TFPgtkWindow.GetAccelGroups (ID:integer) : PGtkAccelGroup;
+const
+ SAccelIndexError = 'List index (%d) empty or out of bounds';
 begin
   result := FAccelGroups[ID];
   if result = nil then
-    result := FAccelGroups[-1];
+    FAccelGroups.Error(SAccelIndexError, ID);
 end;
 
 function TFPgtkWindow.AccelGroupNew : integer;
