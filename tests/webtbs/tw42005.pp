@@ -46,7 +46,11 @@ procedure t2; noinline;
     r[10] := $AA; r[11] := $BB; r[14] := $CC; r[15] := $DD;
     PWord(@r[0])^ := $0304; PWord(@r[2])^ := $0102;
     PWord(@r[8])^ := $1111; PWord(@r[12])^ := 0;
+{$ifdef FPC_LITTLE_ENDIAN}
     check(r, [4, 3, 2, 1, 0, 0, 0, 0, $11, $11, $AA, $BB, 0, 0, $CC, $DD], 2);
+{$else FPC_LITTLE_ENDIAN}
+    check(r, [3, 4, 1, 2, 0, 0, 0, 0, $11, $11, $AA, $BB, 0, 0, $CC, $DD], 2);
+{$endif FPC_LITTLE_ENDIAN}
   end;
 
 { the intended merges of directly adjacent stores must still give the right bytes }
