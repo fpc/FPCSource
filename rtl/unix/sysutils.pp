@@ -97,6 +97,12 @@ const
 
 Function AddDisk(const path:string) : Byte;
 
+{$ifdef darwin}
+var
+  // GetAppConfigDir and GetAppConfigFile use ~/Library/Application Support and /Library/Application Support when True.
+  UseDarwinAppSupportDir : Boolean = False;
+{$endif darwin}
+
 { the following is Kylix compatibility stuff, it should be moved to a
   special compatibility unit (FK) }
   const
@@ -1798,13 +1804,37 @@ end;
 
 {$endif android}
 
-Function GetAppConfigDir(Global : Boolean) : String;
+// The base directory of GetAppConfigDir and GetAppConfigFile, ending with PathDelim.
+Function AppConfigBaseDir(Global : Boolean) : String;
 
 begin
+{$ifdef darwin}
+  if UseDarwinAppSupportDir then
+    begin
+    if Global then
+      Result:='/Library/Application Support/'
+    else
+      begin
+      Result:=GetEnvironmentVariable('XDG_CONFIG_HOME');
+      if Result='' then
+        Result:=GetHomeDir+'Library/Application Support/'
+      else
+        Result:=IncludeTrailingPathDelimiter(Result);
+      end;
+    exit;
+    end;
+{$endif darwin}
   If Global then
     Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+end;
+
+
+Function GetAppConfigDir(Global : Boolean) : String;
+
+begin
+  Result:=AppConfigBaseDir(Global);
 {$ifdef android}
   if _HasPackageDataDir then
     exit;
@@ -1817,10 +1847,7 @@ end;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  If Global then
-    Result:=IncludeTrailingPathDelimiter(SysConfigDir)
-  else
-    Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+  Result:=AppConfigBaseDir(Global);
 {$ifdef android}
   if _HasPackageDataDir then
     begin
