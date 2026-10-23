@@ -1226,6 +1226,11 @@ begin
         if not ProcArgsMatchForSignature(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
           exit(cIncompatible);
         end;
+      // two function types are one signature only with the same result type
+      if (Proc1 is TPasFunctionType) and (Proc2 is TPasFunctionType)
+          and (CheckElTypeCompatibility(TPasFunctionType(Proc1).ResultEl.ResultType,
+            TPasFunctionType(Proc2).ResultEl.ResultType,ResolveAlias)=cIncompatible) then
+        exit(cIncompatible);
       exit(cExact);
       end;
     end;

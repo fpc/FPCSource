@@ -611,6 +611,8 @@ type
     Procedure TestUnitIntfProcUnresolved;
     Procedure TestUnitIntfMismatchArgName;
     Procedure TestProcOverloadIsNotFunc;
+    Procedure TestProcOverloadFuncTypeResult;
+    Procedure TestProcOverloadFuncTypeSameResultFail;
     Procedure TestProcCallMissingParams;
     Procedure TestProcArgDefaultValue;
     Procedure TestProcArgDefaultValueTypeMismatch;
@@ -9832,6 +9834,36 @@ begin
   Add('begin');
   Add('end;');
   CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestProcOverloadFuncTypeResult;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunPtr = function: pointer;',
+  '  TFunBool = function: boolean;',
+  'function {#A}Call(f: TFunPtr): pointer; begin end;',
+  'function {#B}Call(f: TFunBool): boolean; begin end;',
+  'function GetPtr: pointer; begin end;',
+  'function GetBool: boolean; begin end;',
+  'begin',
+  '  {@A}Call(@GetPtr);',
+  '  {@B}Call(@GetBool);']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadFuncTypeSameResultFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunA = function: boolean;',
+  '  TFunB = function: boolean;',
+  'function Call(f: TFunA): pointer; begin end;',
+  'function Call(f: TFunB): boolean; begin end;',
+  'begin']);
+  CheckResolverException('Duplicate identifier "Call" at afile.pp(5,14)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestProcCallMissingParams;
