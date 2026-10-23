@@ -43,6 +43,18 @@ Const
   LibName = 'c';
 {$endif}
 
+{ CMEM_HAS_MSIZE: the C library returns the usable size of a block, no size header is stored }
+{$if defined(win32) or defined(win64)}
+  {$define CMEM_HAS_MSIZE}
+  MSizeName = '_msize';
+{$elseif defined(linux) or defined(android) or defined(freebsd)}
+  {$define CMEM_HAS_MSIZE}
+  MSizeName = 'malloc_usable_size';
+{$elseif defined(darwin)}
+  {$define CMEM_HAS_MSIZE}
+  MSizeName = 'malloc_size';
+{$endif}
+
 {$ifdef USE_STATIC_LIBC}
   {$linklib c}
 Function malloc (Size : ptruint) : Pointer;cdecl; external;
@@ -54,6 +66,10 @@ Function Malloc (Size : ptruint) : Pointer; cdecl; external LibName name 'malloc
 Procedure Free (P : pointer); cdecl; external LibName name 'free';
 function ReAlloc (P : Pointer; Size : ptruint) : pointer; cdecl; external LibName name 'realloc';
 Function CAlloc (unitSize,UnitCount : ptruint) : pointer; cdecl; external LibName name 'calloc';
+{$ifdef CMEM_HAS_MSIZE}
+// Returns the usable size of the block P allocated by Malloc, CAlloc or ReAlloc
+Function MSize (P : pointer) : ptruint; cdecl; external LibName name MSizeName;
+{$endif CMEM_HAS_MSIZE}
 {$endif not USE_STATIC_LIBC}
 
 implementation
@@ -61,9 +77,13 @@ implementation
 {$macro on}
 
 const
+{$ifdef CMEM_HAS_MSIZE}
+  headersize = 0;
+{$else CMEM_HAS_MSIZE}
   { poor man's max function for constants:
     headersize = max(sizeof(ptruint),FPC_STACKALIGNMENT); }
   headersize = ord(sizeof(ptruint)>FPC_STACKALIGNMENT)*sizeof(ptruint)+ord(sizeof(ptruint)<=FPC_STACKALIGNMENT)*FPC_STACKALIGNMENT;
+{$endif CMEM_HAS_MSIZE}
 
 {$macro off}
 
@@ -71,11 +91,13 @@ Function CGetMem  (Size : ptruint) : Pointer;
 
 begin
   CGetMem:=Malloc(Size+headersize);
+{$ifndef CMEM_HAS_MSIZE}
   if (CGetMem <> nil) then
     begin
       Pptruint(CGetMem)^ := size;
       inc(CGetMem,headersize);
     end;
+{$endif CMEM_HAS_MSIZE}
 end;
 
 Function CFreeMem (P : pointer) : ptruint;
@@ -94,7 +116,11 @@ begin
     exit;
   if (p <> nil) then
     begin
+{$ifdef CMEM_HAS_MSIZE}
+      if (size > MSize(p)) then
+{$else CMEM_HAS_MSIZE}
       if (size <> Pptruint(p-headersize)^) then
+{$endif CMEM_HAS_MSIZE}
         runerror(204);
     end;
   CFreeMemSize:=CFreeMem(P);
@@ -104,11 +130,13 @@ Function CAllocMem(Size : ptruint) : Pointer;
 
 begin
   CAllocMem:=calloc(Size+headersize,1);
+{$ifndef CMEM_HAS_MSIZE}
   if (CAllocMem <> nil) then
     begin
       Pptruint(CAllocMem)^ := size;
       inc(CAllocMem,headersize);
     end;
+{$endif CMEM_HAS_MSIZE}
 end;
 
 Function CReAllocMem (var p:pointer;Size:ptruint):Pointer;
@@ -133,11 +161,13 @@ begin
           dec(p,headersize);
           p:=realloc(p,size);
         end;
+{$ifndef CMEM_HAS_MSIZE}
       if (p <> nil) then
         begin
           Pptruint(p)^ := size-headersize;
           inc(p,headersize);
         end;
+{$endif CMEM_HAS_MSIZE}
     end;
   CReAllocMem:=p;
 end;
@@ -145,7 +175,14 @@ end;
 Function CMemSize (p:pointer): ptruint;
 
 begin
+{$ifdef CMEM_HAS_MSIZE}
+  if p=nil then
+    CMemSize:=0
+  else
+    CMemSize:=MSize(p);
+{$else CMEM_HAS_MSIZE}
   CMemSize:=Pptruint(p-headersize)^;
+{$endif CMEM_HAS_MSIZE}
 end;
 
 function CGetHeapStatus:THeapStatus;
