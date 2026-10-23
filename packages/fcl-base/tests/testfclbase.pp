@@ -38,6 +38,7 @@ uses
   utcCountdownEvent,
   utcSynchroObject,
   utcConditionVariable,
+  utcLightweight,
   utcDirwatch
   ;
 
@@ -76,6 +77,7 @@ begin
   utcCountdownEvent.RegisterTests;
   utcSynchroObject.RegisterTests;
   utcConditionVariable.RegisterTests;
+  utcLightweight.RegisterTests;
   utcDirwatch.RegisterTests;
   RunAllSysTests;
 end.

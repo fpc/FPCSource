@@ -340,6 +340,67 @@ type
     function WaitFor(var aCriticalSection: TRTLCriticalSection; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
   end;
 
+  { TLightweightEvent }
+
+  TLightweightEvent = class(TSynchroObject)
+  private
+    FState: LongInt;
+    FBlockedCount: LongInt;
+    FSpinCount: Integer;
+    FLock: TRTLCriticalSection;
+    FCondition: TConditionVariableCS;
+    function GetIsSet: Boolean;
+  public
+    // Creates a reset event
+    constructor Create; overload;
+    // Creates an event that is set when aInitialState is True
+    constructor Create(aInitialState: Boolean); overload;
+    // Creates an event that spins aSpinCount times before WaitFor blocks
+    constructor Create(aInitialState: Boolean; aSpinCount: Integer); overload;
+    destructor Destroy; override;
+    // Waits until the event is set
+    procedure Acquire; override;
+    // Clears the event
+    procedure ResetEvent;
+    // Sets the event and wakes all waiting threads
+    procedure SetEvent;
+    // Waits until the event is set or aTimeout milliseconds have passed
+    function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
+    // Number of threads blocked in WaitFor
+    property BlockedCount: LongInt read FBlockedCount;
+    // True when the event is set
+    property IsSet: Boolean read GetIsSet;
+    // Number of spin cycles WaitFor makes before it blocks
+    property SpinCount: Integer read FSpinCount;
+  end;
+
+  { TLightweightSemaphore }
+
+  TLightweightSemaphore = class(TSynchroObject)
+  private
+    FCount: LongInt;
+    FMaxCount: LongInt;
+    FBlockedCount: LongInt;
+    FSpinCount: Integer;
+    FLock: TRTLCriticalSection;
+    FCondition: TConditionVariableCS;
+    function TryTake: Boolean;
+  public
+    // Creates a semaphore with aInitialCount free slots out of at most aMaxCount
+    constructor Create(aInitialCount: Integer; aMaxCount: Integer = MaxInt);
+    destructor Destroy; override;
+    // Waits until a slot is free and takes it
+    procedure Acquire; override;
+    // Returns one slot
+    procedure Release; overload; override;
+    // Returns aReleaseCount slots and returns the count before the release
+    function Release(aReleaseCount: Integer): Integer; reintroduce; overload;
+    // Takes a slot, waiting at most aTimeout milliseconds for one to become free
+    function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
+    // Number of free slots
+    property CurrentCount: LongInt read FCount;
+  end;
+
   // Delphi compatible (hopefully) TSpinwait
   // Uses exponential backoff for first 10 SpinCycles, uses sleep(1) every 20 and sleep(1) every 5 cycles afterwards.
   TSpinFunction = reference to function : Boolean;
@@ -443,6 +504,9 @@ Resourcestring
   SErrCountdownIsSet      = 'Cannot add to a countdown event that is already set';
   SErrCountdownOverflow   = 'Adding %d to countdown event count %d overflows';
   SErrCondVarAcquire      = 'Cannot call Acquire on a condition variable, call WaitFor with an external lock';
+  SErrSpinCountNegative   = 'Spin count %d must not be negative';
+  SErrSemaphoreCounts     = 'Initial count %d and maximum count %d are not valid for a semaphore';
+  SErrSemaphoreOverflow   = 'Releasing %d slots exceeds the maximum semaphore count %d';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -1799,6 +1863,282 @@ begin
   LeaveCriticalSection(aCriticalSection);
   Result:=CondVarQueueWait(FQueue,lWaiter,aTimeout);
   EnterCriticalSection(aCriticalSection);
+end;
+
+
+{ ---------------------------------------------------------------------
+  TLightweightEvent
+  ---------------------------------------------------------------------}
+
+// Returns the spin count of the lightweight objects: 1 on a single CPU, 10 otherwise
+function DefaultLightweightSpinCount: Integer;
+
+begin
+  if TThread.ProcessorCount<=1 then
+    Result:=1
+  else
+    Result:=10;
+end;
+
+
+// Returns the milliseconds left of aTimeout since aStart, 0 when it has passed; INFINITE stays INFINITE
+function RemainingTimeout(aStart: QWord; aTimeout: Cardinal): Cardinal;
+
+var
+  lElapsed: QWord;
+
+begin
+  if aTimeout=INFINITE then
+    Exit(INFINITE);
+  lElapsed:=GetTickCount64-aStart;
+  if lElapsed>=aTimeout then
+    Result:=0
+  else
+    Result:=aTimeout-lElapsed;
+end;
+
+
+constructor TLightweightEvent.Create;
+
+begin
+  Create(False);
+end;
+
+
+constructor TLightweightEvent.Create(aInitialState: Boolean);
+
+begin
+  Create(aInitialState,DefaultLightweightSpinCount);
+end;
+
+
+constructor TLightweightEvent.Create(aInitialState: Boolean; aSpinCount: Integer);
+
+begin
+  inherited Create;
+  if aSpinCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrSpinCountNegative,[aSpinCount]);
+  FSpinCount:=aSpinCount;
+  FState:=Ord(aInitialState);
+  InitCriticalSection(FLock);
+  FCondition:=TConditionVariableCS.Create;
+end;
+
+
+destructor TLightweightEvent.Destroy;
+
+begin
+  if Assigned(FCondition) then
+    begin
+    FCondition.Free;
+    DoneCriticalSection(FLock);
+    end;
+  inherited Destroy;
+end;
+
+
+function TLightweightEvent.GetIsSet: Boolean;
+
+begin
+  Result:=InterlockedCompareExchange(FState,0,0)<>0;
+end;
+
+
+procedure TLightweightEvent.Acquire;
+
+begin
+  WaitFor(INFINITE);
+end;
+
+
+procedure TLightweightEvent.ResetEvent;
+
+begin
+  InterlockedExchange(FState,0);
+end;
+
+
+procedure TLightweightEvent.SetEvent;
+
+begin
+  InterlockedExchange(FState,1);
+  if InterlockedCompareExchange(FBlockedCount,0,0)>0 then
+    begin
+    EnterCriticalSection(FLock);
+    FCondition.ReleaseAll;
+    LeaveCriticalSection(FLock);
+    end;
+end;
+
+
+function TLightweightEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lSpin: TSpinWait;
+  lRemaining: Cardinal;
+  i: Integer;
+
+begin
+  if GetIsSet then
+    Exit(wrSignaled);
+  if aTimeout=0 then
+    Exit(wrTimeout);
+  lStart:=GetTickCount64;
+  lSpin.Reset;
+  for i:=1 to FSpinCount do
+    begin
+    lSpin.SpinCycle;
+    if GetIsSet then
+      Exit(wrSignaled);
+    end;
+  Result:=wrSignaled;
+  EnterCriticalSection(FLock);
+  try
+    InterlockedIncrement(FBlockedCount);
+    while not GetIsSet do
+      begin
+      lRemaining:=RemainingTimeout(lStart,aTimeout);
+      if lRemaining=0 then
+        begin
+        Result:=wrTimeout;
+        Break;
+        end;
+      FCondition.WaitFor(FLock,lRemaining);
+      end;
+    InterlockedDecrement(FBlockedCount);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
+end;
+
+
+{ ---------------------------------------------------------------------
+  TLightweightSemaphore
+  ---------------------------------------------------------------------}
+
+constructor TLightweightSemaphore.Create(aInitialCount: Integer; aMaxCount: Integer);
+
+begin
+  inherited Create;
+  if (aMaxCount<1) or (aInitialCount<0) or (aInitialCount>aMaxCount) then
+    raise ESyncObjectException.CreateFmt(SErrSemaphoreCounts,[aInitialCount,aMaxCount]);
+  FCount:=aInitialCount;
+  FMaxCount:=aMaxCount;
+  FSpinCount:=DefaultLightweightSpinCount;
+  InitCriticalSection(FLock);
+  FCondition:=TConditionVariableCS.Create;
+end;
+
+
+destructor TLightweightSemaphore.Destroy;
+
+begin
+  if Assigned(FCondition) then
+    begin
+    FCondition.Free;
+    DoneCriticalSection(FLock);
+    end;
+  inherited Destroy;
+end;
+
+
+function TLightweightSemaphore.TryTake: Boolean;
+
+var
+  lCount: LongInt;
+
+begin
+  repeat
+    lCount:=InterlockedCompareExchange(FCount,0,0);
+    if lCount<=0 then
+      Exit(False);
+  until InterlockedCompareExchange(FCount,lCount-1,lCount)=lCount;
+  Result:=True;
+end;
+
+
+procedure TLightweightSemaphore.Acquire;
+
+begin
+  WaitFor(INFINITE);
+end;
+
+
+procedure TLightweightSemaphore.Release;
+
+begin
+  Release(1);
+end;
+
+
+function TLightweightSemaphore.Release(aReleaseCount: Integer): Integer;
+
+var
+  lBlocked: LongInt;
+  i: Integer;
+
+begin
+  if aReleaseCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidReleaseCount,[aReleaseCount]);
+  repeat
+    Result:=InterlockedCompareExchange(FCount,0,0);
+    if Result>FMaxCount-aReleaseCount then
+      raise ESyncObjectException.CreateFmt(SErrSemaphoreOverflow,[aReleaseCount,FMaxCount]);
+  until InterlockedCompareExchange(FCount,Result+aReleaseCount,Result)=Result;
+  lBlocked:=InterlockedCompareExchange(FBlockedCount,0,0);
+  if lBlocked>0 then
+    begin
+    EnterCriticalSection(FLock);
+    if aReleaseCount>=lBlocked then
+      FCondition.ReleaseAll
+    else
+      for i:=1 to aReleaseCount do
+        FCondition.Release;
+    LeaveCriticalSection(FLock);
+    end;
+end;
+
+
+function TLightweightSemaphore.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lSpin: TSpinWait;
+  lRemaining: Cardinal;
+  i: Integer;
+
+begin
+  if TryTake then
+    Exit(wrSignaled);
+  if aTimeout=0 then
+    Exit(wrTimeout);
+  lStart:=GetTickCount64;
+  lSpin.Reset;
+  for i:=1 to FSpinCount do
+    begin
+    lSpin.SpinCycle;
+    if TryTake then
+      Exit(wrSignaled);
+    end;
+  Result:=wrSignaled;
+  EnterCriticalSection(FLock);
+  try
+    InterlockedIncrement(FBlockedCount);
+    while not TryTake do
+      begin
+      lRemaining:=RemainingTimeout(lStart,aTimeout);
+      if lRemaining=0 then
+        begin
+        Result:=wrTimeout;
+        Break;
+        end;
+      FCondition.WaitFor(FLock,lRemaining);
+      end;
+    InterlockedDecrement(FBlockedCount);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
 end;
 
 
