@@ -148,7 +148,8 @@ type
   TPasElementStateFlag = (
     pesfRangeChecked,    // parsed while {$R+} (range checking) was active
     pesfOverflowChecked, // parsed while {$Q+} (overflow checking) was active
-    pesfPointerMath      // a pointer type declared while {$POINTERMATH ON} was active
+    pesfPointerMath,     // a pointer type declared while {$POINTERMATH ON} was active
+    pesfAssertions       // a call parsed while {$C+} (assertions) was active
     );
   TPasElementStateFlags = set of TPasElementStateFlag;
 

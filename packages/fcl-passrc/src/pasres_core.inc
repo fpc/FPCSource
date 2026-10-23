@@ -239,9 +239,12 @@ begin
     if ((El is TPasImplElement) or (El is TParamsExpr))
         and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
       MarkRangeChecked(El);
-    if (El is TBinaryExpr)
+    if ((El is TBinaryExpr) or (El is TParamsExpr))
         and (bsOverflowChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
       MarkOverflowChecked(El);
+    if (El is TParamsExpr)
+        and (bsAssertions in CurrentParser.Scanner.CurrentBoolSwitches) then
+      Include(El.States,pesfAssertions);
 
     // Capture the active packing directive per type at its declaration. The
     // Set* seams are no-ops in the base (pas2js-safe); a native resolver stores

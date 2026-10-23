@@ -2363,6 +2363,8 @@ begin
     MarkRangeChecked(SpecEl);
   if IsOverflowChecked(GenEl) then
     MarkOverflowChecked(SpecEl);
+  if pesfAssertions in GenEl.States then
+    Include(SpecEl.States,pesfAssertions);
 
   C:=GenEl.ClassType;
   // expressions

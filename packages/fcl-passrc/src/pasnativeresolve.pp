@@ -263,6 +263,15 @@ procedure TPasNativeResolver.BI_CopyString_OnGetCallResult(
 begin
   if Proc=nil then ;
   ComputeElement(Params.Params[0],ResolvedEl,[]);
+  // a Char is copied as a ShortString, a WideChar as a UnicodeString
+  case ResolvedEl.BaseType of
+    btChar,btAnsiChar:
+      SetResolverValueExpr(ResolvedEl,btShortString,BaseTypes[btShortString],
+        BaseTypes[btShortString],Params,[rrfReadable]);
+    btWideChar:
+      SetResolverValueExpr(ResolvedEl,btUnicodeString,BaseTypes[btUnicodeString],
+        BaseTypes[btUnicodeString],Params,[rrfReadable]);
+  end;
   ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
   ResolvedEl.ExprEl:=Params;
   ResolvedEl.IdentEl:=nil;

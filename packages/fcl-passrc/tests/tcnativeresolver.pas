@@ -133,6 +133,9 @@ type
     procedure TestRangeCheckedMarked;
     procedure TestRangeCheckedOffNotMarked;
     procedure TestOverflowCheckedMarked;
+    procedure TestAssertionsMarked;
+    procedure TestAssertionsOffNotMarked;
+    procedure TestOverflowCheckedCallMarked;
     procedure TestBaseRecordsPacking;
     procedure TestInterfaceOnlyForwardProcGate;
     procedure TestForwardProcUnresolvedFail;
@@ -178,6 +181,7 @@ type
   published
     procedure TestCDeclVarArgsNeedExternal;
     procedure TestNoStackFrameNeedsAssembler;
+    procedure TestCopyOfCharIsShortString;
   end;
 
   TTestNativePointerMath = class(TCustomNativeTestResolver)
@@ -783,6 +787,88 @@ begin
   Assign:=FirstStatement as TPasImplAssign;
   AssertTrue('arithmetic under {$Q+} is overflow-checked',
     ResolverEngine.IsOverflowChecked(Assign.Right));
+end;
+
+
+procedure TTestElementStateFlags.TestAssertionsMarked;
+
+var
+  Simple: TPasImplSimple;
+
+begin
+  StartProgram(false);
+  Add('{$C+}');
+  Add('var b: boolean;');
+  Add('begin');
+  Add('  Assert(b);');
+  ParseProgram;
+  Simple:=FirstStatement as TPasImplSimple;
+  AssertEquals('Assert call is a params expression',TParamsExpr,Simple.Expr.ClassType);
+  AssertTrue('Assert call under {$C+} is marked for assertions',
+    pesfAssertions in Simple.Expr.States);
+end;
+
+
+procedure TTestElementStateFlags.TestAssertionsOffNotMarked;
+
+var
+  Simple: TPasImplSimple;
+
+begin
+  StartProgram(false);
+  Add('{$C-}');
+  Add('var b: boolean;');
+  Add('begin');
+  Add('  Assert(b);');
+  ParseProgram;
+  Simple:=FirstStatement as TPasImplSimple;
+  AssertFalse('Assert call under {$C-} is not marked for assertions',
+    pesfAssertions in Simple.Expr.States);
+end;
+
+
+procedure TTestElementStateFlags.TestOverflowCheckedCallMarked;
+
+var
+  Assign: TPasImplAssign;
+
+begin
+  StartProgram(false);
+  Add('{$Q+}');
+  Add('var i: longint;');
+  Add('function Twice(x: longint): longint;');
+  Add('begin');
+  Add('  Result:=x+x;');
+  Add('end;');
+  Add('begin');
+  Add('  i:=Twice(i);');
+  ParseProgram;
+  Assign:=FirstStatement as TPasImplAssign;
+  AssertEquals('right side is a call',TParamsExpr,Assign.Right.ClassType);
+  AssertTrue('a call under {$Q+} is overflow-checked',
+    ResolverEngine.IsOverflowChecked(Assign.Right));
+end;
+
+
+procedure TTestNativeProcChecks.TestCopyOfCharIsShortString;
+
+var
+  Assign: TPasImplAssign;
+  Resolved: TPasResolverResult;
+
+begin
+  StartProgram(false);
+  Add('var c: char; w: widechar; s: string;');
+  Add('begin');
+  Add('  s:=Copy(c,1,1);');
+  Add('  s:=Copy(w,1,1);');
+  ParseProgram;
+  Assign:=TPasImplAssign(PasProgram.InitializationSection.Elements[0]);
+  ResolverEngine.ComputeElement(Assign.Right,Resolved,[]);
+  AssertTrue('Copy of a Char is a ShortString',Resolved.BaseType=btShortString);
+  Assign:=TPasImplAssign(PasProgram.InitializationSection.Elements[1]);
+  ResolverEngine.ComputeElement(Assign.Right,Resolved,[]);
+  AssertTrue('Copy of a WideChar is a UnicodeString',Resolved.BaseType=btUnicodeString);
 end;
 
 
