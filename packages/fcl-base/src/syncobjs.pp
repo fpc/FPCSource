@@ -25,6 +25,16 @@
 {$DEFINE NO_MUTEX_SUPPORT}
 {$ENDIF}
 
+{ SYNCOBJS_PORTABLE_CONDVAR makes the condition variables use the RTL event based waiter queue on all platforms }
+{$IFNDEF SYNCOBJS_PORTABLE_CONDVAR}
+{$IF DEFINED(MSWINDOWS) and not DEFINED(WINCE)}
+{$DEFINE NATIVE_CONDVAR_CS}
+{$ENDIF}
+{$IFDEF UNIX}
+{$DEFINE NATIVE_CONDVAR_MUTEX}
+{$ENDIF}
+{$ENDIF}
+
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit SyncObjs;
@@ -279,7 +289,56 @@ type
     procedure Release; override;
   end;
   TMutexGuard = specialize TLockGuard<TMutex>;
+
+  { TConditionVariableMutex }
+
+  TConditionVariableMutex = class(TSynchroObject)
+  private
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+    FCondition: pthread_cond_t;
+{$ELSE}
+    FQueue: Pointer;
 {$ENDIF}
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Raises ESyncObjectException: a condition variable is waited on with WaitFor and an external mutex
+    procedure Acquire; override;
+    // Wakes one thread waiting in WaitFor
+    procedure Release; override;
+    // Wakes all threads waiting in WaitFor
+    procedure ReleaseAll;
+    // Releases aExternalMutex, waits until woken or aTimeout milliseconds have passed and acquires aExternalMutex again.
+    // aExternalMutex must be held exactly once by the calling thread. The wait can end without a Release,
+    // so the caller checks its condition again.
+    function WaitFor(aExternalMutex: TMutex; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+  end;
+{$ENDIF}
+
+  { TConditionVariableCS }
+
+  TConditionVariableCS = class(TSynchroObject)
+  private
+{$IFDEF NATIVE_CONDVAR_CS}
+    FCondition: Pointer;
+{$ENDIF}
+    FQueue: Pointer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Raises ESyncObjectException: a condition variable is waited on with WaitFor and an external critical section
+    procedure Acquire; override;
+    // Wakes one thread waiting in WaitFor
+    procedure Release; override;
+    // Wakes all threads waiting in WaitFor
+    procedure ReleaseAll;
+    // Leaves aCriticalSection, waits until woken or aTimeout milliseconds have passed and enters aCriticalSection again.
+    // aCriticalSection must be entered exactly once by the calling thread. The wait can end without a Release,
+    // so the caller checks its condition again.
+    function WaitFor(aCriticalSection: TCriticalSection; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+    // Same as WaitFor with a TCriticalSection, for a TRTLCriticalSection
+    function WaitFor(var aCriticalSection: TRTLCriticalSection; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+  end;
 
   // Delphi compatible (hopefully) TSpinwait
   // Uses exponential backoff for first 10 SpinCycles, uses sleep(1) every 20 and sleep(1) every 5 cycles afterwards.
@@ -383,6 +442,7 @@ Resourcestring
   SErrCountdownSignal     = 'Cannot signal countdown event %d times, current count is %d';
   SErrCountdownIsSet      = 'Cannot add to a countdown event that is already set';
   SErrCountdownOverflow   = 'Adding %d to countdown event count %d overflows';
+  SErrCondVarAcquire      = 'Cannot call Acquire on a condition variable, call WaitFor with an external lock';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -940,6 +1000,11 @@ begin
   tm:=aTimeout mod 1000;
   tfuture.tv_sec:=tnow.tv_sec+td;
   tfuture.tv_nsec:=tnow.tv_usec*1000+(tm*1000*1000);
+  if tfuture.tv_nsec>=1000000000 then
+    begin
+    inc(tfuture.tv_sec);
+    dec(tfuture.tv_nsec,1000000000);
+    end;
 end;
 {$ENDIF UNIX}
 
@@ -1375,6 +1440,368 @@ begin
 end;
 {$ENDIF NO_MUTEX_SUPPORT}
 
+{ ---------------------------------------------------------------------
+  Condition variable waiter queue
+  ---------------------------------------------------------------------}
+
+type
+  PCondVarWaiter = ^TCondVarWaiter;
+  TCondVarWaiter = record
+    Event: PRTLEvent;
+    Next: PCondVarWaiter;
+  end;
+
+  PCondVarQueue = ^TCondVarQueue;
+  TCondVarQueue = record
+    Lock: TRTLCriticalSection;
+    Head, Tail: PCondVarWaiter;
+  end;
+
+
+// Allocates an empty waiter queue
+function CondVarQueueCreate: PCondVarQueue;
+
+begin
+  New(Result);
+  InitCriticalSection(Result^.Lock);
+  Result^.Head:=nil;
+  Result^.Tail:=nil;
+end;
+
+
+// Frees aQueue
+procedure CondVarQueueFree(aQueue: PCondVarQueue);
+
+begin
+  DoneCriticalSection(aQueue^.Lock);
+  Dispose(aQueue);
+end;
+
+
+// Gives aWaiter a new event and appends it to aQueue
+procedure CondVarQueueAdd(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter);
+
+begin
+  aWaiter.Event:=RTLEventCreate;
+  aWaiter.Next:=nil;
+  EnterCriticalSection(aQueue^.Lock);
+  if aQueue^.Tail=nil then
+    aQueue^.Head:=@aWaiter
+  else
+    aQueue^.Tail^.Next:=@aWaiter;
+  aQueue^.Tail:=@aWaiter;
+  LeaveCriticalSection(aQueue^.Lock);
+end;
+
+
+// Removes aWaiter from aQueue, whose lock is held; False when it is no longer queued
+function CondVarQueueRemove(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter): Boolean;
+
+var
+  lPrev, lCur: PCondVarWaiter;
+
+begin
+  lPrev:=nil;
+  lCur:=aQueue^.Head;
+  while (lCur<>nil) and (lCur<>@aWaiter) do
+    begin
+    lPrev:=lCur;
+    lCur:=lCur^.Next;
+    end;
+  Result:=lCur<>nil;
+  if not Result then
+    exit;
+  if lPrev=nil then
+    aQueue^.Head:=lCur^.Next
+  else
+    lPrev^.Next:=lCur^.Next;
+  if aQueue^.Tail=lCur then
+    aQueue^.Tail:=lPrev;
+end;
+
+
+// Waits until aWaiter is woken or aTimeout milliseconds have passed, and frees its event
+function CondVarQueueWait(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter; aTimeout: Cardinal): TWaitResult;
+
+var
+  lTimeout: LongInt;
+
+begin
+  if aTimeout=INFINITE then
+    begin
+    RTLEventWaitFor(aWaiter.Event);
+    Result:=wrSignaled;
+    end
+  else
+    begin
+    if aTimeout>Cardinal(High(LongInt)) then
+      lTimeout:=High(LongInt)
+    else
+      lTimeout:=aTimeout;
+    if RTLEventWaitFor(aWaiter.Event,lTimeout) then
+      Result:=wrSignaled
+    else
+      Result:=wrTimeout;
+    end;
+  // Waits until a concurrent CondVarQueueWake has finished setting the event
+  EnterCriticalSection(aQueue^.Lock);
+  if (Result=wrTimeout) and not CondVarQueueRemove(aQueue,aWaiter) then
+    Result:=wrSignaled;
+  LeaveCriticalSection(aQueue^.Lock);
+  RTLEventDestroy(aWaiter.Event);
+end;
+
+
+// Wakes the first waiter of aQueue, or all of them when aAll is True
+procedure CondVarQueueWake(aQueue: PCondVarQueue; aAll: Boolean);
+
+var
+  lWaiter: PCondVarWaiter;
+
+begin
+  EnterCriticalSection(aQueue^.Lock);
+  repeat
+    lWaiter:=aQueue^.Head;
+    if lWaiter=nil then
+      break;
+    aQueue^.Head:=lWaiter^.Next;
+    if aQueue^.Head=nil then
+      aQueue^.Tail:=nil;
+    RTLEventSetEvent(lWaiter^.Event);
+  until not aAll;
+  LeaveCriticalSection(aQueue^.Lock);
+end;
+
+
+{$IFDEF NATIVE_CONDVAR_CS}
+type
+  TCondVarProc = procedure(aCondition: Pointer); stdcall;
+  TSleepCondVarCS = function(aCondition, aCriticalSection: Pointer; aMilliseconds: DWord): BOOL; stdcall;
+
+var
+  gInitializeConditionVariable: TCondVarProc;
+  gWakeConditionVariable: TCondVarProc;
+  gWakeAllConditionVariable: TCondVarProc;
+  gSleepConditionVariableCS: TSleepCondVarCS;
+
+
+// Loads the condition variable functions of kernel32, available since Windows Vista
+procedure LoadNativeCondVar;
+
+var
+  lKernel: HMODULE;
+
+begin
+  lKernel:=GetModuleHandle('kernel32.dll');
+  if lKernel=0 then
+    exit;
+  Pointer(gInitializeConditionVariable):=GetProcAddress(lKernel,'InitializeConditionVariable');
+  Pointer(gWakeConditionVariable):=GetProcAddress(lKernel,'WakeConditionVariable');
+  Pointer(gWakeAllConditionVariable):=GetProcAddress(lKernel,'WakeAllConditionVariable');
+  Pointer(gSleepConditionVariableCS):=GetProcAddress(lKernel,'SleepConditionVariableCS');
+  if not (Assigned(gInitializeConditionVariable) and Assigned(gWakeConditionVariable) and
+          Assigned(gWakeAllConditionVariable) and Assigned(gSleepConditionVariableCS)) then
+    gSleepConditionVariableCS:=nil;
+end;
+{$ENDIF NATIVE_CONDVAR_CS}
+
+
+{ ---------------------------------------------------------------------
+  TConditionVariableMutex
+  ---------------------------------------------------------------------}
+
+{$IFNDEF NO_MUTEX_SUPPORT}
+
+constructor TConditionVariableMutex.Create;
+
+begin
+  inherited Create;
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  CheckOSError(pthread_cond_init(@FCondition,nil));
+{$ELSE}
+  FQueue:=CondVarQueueCreate;
+{$ENDIF}
+end;
+
+
+destructor TConditionVariableMutex.Destroy;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_destroy(@FCondition);
+{$ELSE}
+  if Assigned(FQueue) then
+    CondVarQueueFree(FQueue);
+{$ENDIF}
+  inherited Destroy;
+end;
+
+
+procedure TConditionVariableMutex.Acquire;
+
+begin
+  raise ESyncObjectException.Create(SErrCondVarAcquire);
+end;
+
+
+procedure TConditionVariableMutex.Release;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_signal(@FCondition);
+{$ELSE}
+  CondVarQueueWake(FQueue,False);
+{$ENDIF}
+end;
+
+
+procedure TConditionVariableMutex.ReleaseAll;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_broadcast(@FCondition);
+{$ELSE}
+  CondVarQueueWake(FQueue,True);
+{$ENDIF}
+end;
+
+
+function TConditionVariableMutex.WaitFor(aExternalMutex: TMutex; aTimeout: Cardinal): TWaitResult;
+
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+var
+  lErr: cint;
+  lNow: TTimeVal;
+  lUntil: TTimeSpec;
+{$ELSE}
+var
+  lWaiter: TCondVarWaiter;
+{$ENDIF}
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  if aTimeout=INFINITE then
+    lErr:=pthread_cond_wait(@FCondition,@aExternalMutex.FMutex)
+  else
+    begin
+    fpgettimeofday(@lNow,nil);
+    if aTimeout>Cardinal(High(Integer)) then
+      aTimeout:=High(Integer);
+    MSecsFromNow(lNow,aTimeout,lUntil);
+    lErr:=pthread_cond_timedwait(@FCondition,@aExternalMutex.FMutex,@lUntil);
+    end;
+  if lErr=0 then
+    Result:=wrSignaled
+  else if lErr=ESysETIMEDOUT then
+    Result:=wrTimeout
+  else
+    Result:=wrError;
+{$ELSE}
+  CondVarQueueAdd(FQueue,lWaiter);
+  aExternalMutex.Release;
+  Result:=CondVarQueueWait(FQueue,lWaiter,aTimeout);
+  aExternalMutex.Acquire;
+{$ENDIF}
+end;
+
+{$ENDIF NO_MUTEX_SUPPORT}
+
+
+{ ---------------------------------------------------------------------
+  TConditionVariableCS
+  ---------------------------------------------------------------------}
+
+constructor TConditionVariableCS.Create;
+
+begin
+  inherited Create;
+{$IFDEF NATIVE_CONDVAR_CS}
+  if Assigned(gSleepConditionVariableCS) then
+    begin
+    gInitializeConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  FQueue:=CondVarQueueCreate;
+end;
+
+
+destructor TConditionVariableCS.Destroy;
+
+begin
+  if Assigned(FQueue) then
+    CondVarQueueFree(FQueue);
+  inherited Destroy;
+end;
+
+
+procedure TConditionVariableCS.Acquire;
+
+begin
+  raise ESyncObjectException.Create(SErrCondVarAcquire);
+end;
+
+
+procedure TConditionVariableCS.Release;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    gWakeConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueWake(FQueue,False);
+end;
+
+
+procedure TConditionVariableCS.ReleaseAll;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    gWakeAllConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueWake(FQueue,True);
+end;
+
+
+function TConditionVariableCS.WaitFor(aCriticalSection: TCriticalSection; aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=WaitFor(aCriticalSection.CriticalSection,aTimeout);
+end;
+
+
+function TConditionVariableCS.WaitFor(var aCriticalSection: TRTLCriticalSection; aTimeout: Cardinal): TWaitResult;
+
+var
+  lWaiter: TCondVarWaiter;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    if gSleepConditionVariableCS(@FCondition,@aCriticalSection,aTimeout) then
+      Result:=wrSignaled
+    else if GetLastError=ERROR_TIMEOUT then
+      Result:=wrTimeout
+    else
+      Result:=wrError;
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueAdd(FQueue,lWaiter);
+  LeaveCriticalSection(aCriticalSection);
+  Result:=CondVarQueueWait(FQueue,lWaiter,aTimeout);
+  EnterCriticalSection(aCriticalSection);
+end;
+
+
 { TLockGuard }
 
 class operator TLockGuard.Initialize(var hdl: TLockGuard);
@@ -1653,4 +2080,8 @@ begin
 end;
 
 
+{$IFDEF NATIVE_CONDVAR_CS}
+initialization
+  LoadNativeCondVar;
+{$ENDIF}
 end.

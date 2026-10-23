@@ -37,6 +37,7 @@ uses
   utcInterlocked,
   utcCountdownEvent,
   utcSynchroObject,
+  utcConditionVariable,
   utcDirwatch
   ;
 
@@ -74,6 +75,7 @@ begin
   utcInterlocked.RegisterTests;
   utcCountdownEvent.RegisterTests;
   utcSynchroObject.RegisterTests;
+  utcConditionVariable.RegisterTests;
   utcDirwatch.RegisterTests;
   RunAllSysTests;
 end.
