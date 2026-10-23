@@ -246,8 +246,12 @@ type
                    _uid : uid_t;
                 end );
               2 : ( _timer : record
-                   _timer1 : dword;
-                   _timer2 : dword;
+                   case longint of
+                     0 : ( _timer1 : dword;
+                           _timer2 : dword );
+                     1 : ( _tid : longint;
+                           _overrun : longint;
+                           _sigval : pointer );
                 end );
               3 : ( _rt : record
                    _pid : pid_t;
