@@ -418,6 +418,9 @@ type
     function GetTypeKind: TTypeKind; virtual;
     function GetTypeSize: integer; virtual;
     function GetBaseType: TRttiType; virtual;
+    // Name of the unit declaring the type, empty when the RTTI does not contain it
+    function GetDeclaringUnitName: string; virtual;
+    function GetQualifiedName: string; virtual;
   public
     constructor Create(ATypeInfo : PTypeInfo);
     constructor Create(ATypeInfo : PTypeInfo; aUsePublishedOnly : Boolean);
@@ -451,6 +454,8 @@ type
     property AsRecord: TRttiRecordType read GetAsRecord;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
+    // Unit name and type name separated by a dot; the type name alone when the unit name is unknown
+    property QualifiedName: string read GetQualifiedName;
   end;
 
   { TRttiFloatType }
@@ -485,7 +490,11 @@ type
   TRttiEnumerationType = class(TRttiOrdinalType)
   private
     function GetUnderlyingType: TRttiType;
+  protected
+    function GetDeclaringUnitName: string; override;
   public
+    // Name of the unit declaring the enumeration
+    property DeclaringUnitName: string read GetDeclaringUnitName;
     function GetNames: TStringDynArray;
     generic class function GetName<T{: enum}>(AValue: T): string; reintroduce; static;
     generic class function GetValue<T{: enum}>(const AName: string): T; static;
@@ -546,10 +555,11 @@ type
 
   TRttiDynamicArrayType = class(TRttiType)
   private
-    function GetDeclaringUnitName: String; inline;
     function GetElementSize: SizeUInt; inline;
     function GetElementType: TRttiType; inline;
     function GetOleAutoVarType: TVarType; inline;
+  protected
+    function GetDeclaringUnitName: String; override;
   public
     property DeclaringUnitName: String read GetDeclaringUnitName;
     property ElementSize: SizeUInt read GetElementSize;
@@ -867,7 +877,6 @@ type
     function MethodTable: PIntfMethodTable; virtual; abstract;
     function GetBaseType: TRttiType; override;
     function GetIntfBaseType: TRttiInterfaceType; virtual; abstract;
-    function GetDeclaringUnitName: String; virtual; abstract;
     function GetGUID: TGUID; virtual; abstract;
     function GetGUIDStr: String; virtual;
     function GetIntfFlags: TIntfFlags; virtual; abstract;
@@ -894,7 +903,6 @@ type
     FDeclaredMethods : TRttiMethodArray;
     FDeclaredProperties : TRttiPropertyArray;
     FDeclaredIndexedProperties : TRttiIndexedPropertyArray;
-    function GetDeclaringUnitName: string;
     function GetMetaClassType: TClass;
     procedure ResolveClassicDeclaredProperties;
     procedure ResolveExtendedDeclaredProperties;
@@ -905,6 +913,7 @@ type
     function GetIsInstance: boolean; override;
     function GetTypeSize: integer; override;
     function GetBaseType: TRttiType; override;
+    function GetDeclaringUnitName: string; override;
   public
     function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray; override;
@@ -6003,6 +6012,20 @@ begin
 end;
 
 
+function TRttiEnumerationType.GetDeclaringUnitName: string;
+
+var
+  lName: PShortString;
+
+begin
+  { the unit name follows the last value name and precedes a zero byte }
+  lName:=@FTypeData^.NameList;
+  while PByte(Pointer(lName)+Length(lName^)+1)^<>0 do
+    lName:=PShortString(Pointer(lName)+Length(lName^)+1);
+  Result:=lName^;
+end;
+
+
 function TRttiEnumerationType.GetNames: TStringDynArray;
 
 var
@@ -8285,6 +8308,22 @@ begin
   Result:=FTypeInfo^.Name;
 end;
 
+function TRttiType.GetDeclaringUnitName: string;
+begin
+  Result:='';
+end;
+
+function TRttiType.GetQualifiedName: string;
+var
+  lUnitName: string;
+begin
+  lUnitName:=GetDeclaringUnitName;
+  if lUnitName='' then
+    Result:=Name
+  else
+    Result:=lUnitName+'.'+Name;
+end;
+
 function TRttiType.GetHandle: Pointer;
 begin
   Result := FTypeInfo;
@@ -9386,7 +9425,6 @@ begin
   begin
     case aInstance.Kind of
       tkPointer:
-        { temporary implementation, before TValue.MakeWithoutCopy is added }
         inst := aInstance;
       tkRecord:
         inst := aInstance;
