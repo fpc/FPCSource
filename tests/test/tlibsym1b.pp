@@ -10,7 +10,7 @@ program tlibsym1b;
 
 {$ifdef unix}
 uses
-  cthreads;
+  cthreads, dl;
 {$endif}
 
 type
@@ -69,6 +69,59 @@ begin
 end;
 
 
+// Returns aValue as hexadecimal digits without leading zeroes
+function TrimmedHex(aValue: PtrUInt): string;
+
+begin
+  Result:=HexStr(aValue,SizeOf(PtrUInt)*2);
+  while (Length(Result)>1) and (Result[1]='0') do
+    Delete(Result,1,1);
+end;
+
+
+// Returns the address where the module containing aAddr is loaded, nil when unknown
+function ModuleBase(aAddr: CodePointer; aLib: TLibHandle): Pointer;
+
+{$ifdef unix}
+var
+  lDlInfo: dl_info;
+{$endif}
+
+begin
+{$ifdef windows}
+  if aLib<>NilHandle then
+    Result:=Pointer(aLib)
+  else
+    Result:=Pointer(HInstance);
+{$else}
+  FillChar(lDlInfo,SizeOf(lDlInfo),0);
+  if dladdr(aAddr,@lDlInfo)<>0 then
+    Result:=lDlInfo.dli_fbase
+  else
+    Result:=nil;
+{$endif}
+end;
+
+
+// Returns True when the program file is a position dependent ELF executable
+function ProgramIsElfExec: Boolean;
+
+var
+  lFile: File;
+  lHeader: array[0..17] of Byte;
+  lRead: LongInt;
+
+begin
+  Result:=False;
+  Assign(lFile,ParamStr(0));
+  FileMode:=0;
+  Reset(lFile,1);
+  BlockRead(lFile,lHeader,SizeOf(lHeader),lRead);
+  Close(lFile);
+  Result:=(lRead=SizeOf(lHeader)) and (lHeader[0]=$7F) and (lHeader[1]=Ord('E')) and (PWord(@lHeader[16])^=2);
+end;
+
+
 // Stores the current call stack in gFrames
 procedure CaptureFrames;
 
@@ -83,7 +136,8 @@ var
   lFunc: CodePointer;
   lCall: TCallProc;
   lInfo: TSymbolAddressInfo;
-  lHeap: Pointer;
+  lHeap, lLibBase: Pointer;
+  lExpected: PtrUInt;
   lFound: Boolean;
   lLine: ShortString;
   i: SizeInt;
@@ -111,6 +165,8 @@ begin
   Check(lInfo.SymbolName='libsym_func','symbol name of libsym_func: '+lInfo.SymbolName);
   Check(lInfo.SymbolAddr=lFunc,'symbol address of libsym_func');
   Check(EndsWith(lInfo.ModuleName,lLibName),'module of libsym_func: '+lInfo.ModuleName);
+  lLibBase:=ModuleBase(lFunc,lLib);
+  Check(lInfo.ModuleOffset=PtrUInt(lFunc)-PtrUInt(lLibBase),'module offset of libsym_func: $'+TrimmedHex(lInfo.ModuleOffset));
 
   Check(GetSymbolByAddress(CodePointer(PByte(lFunc)+1),lInfo),'GetSymbolByAddress finds an address inside libsym_func');
   Check(lInfo.SymbolName='libsym_func','symbol name inside libsym_func: '+lInfo.SymbolName);
@@ -119,17 +175,27 @@ begin
   lLine:=SysBackTraceStr(CodePointer(PByte(lFunc)+1));
   Writeln(lLine);
   Check(Pos('libsym_func+$1',lLine)>0,'SysBackTraceStr shows symbol and offset: '+lLine);
-  Check(Pos('('+lLibName+')',lLine)>0,'SysBackTraceStr shows the module: '+lLine);
+  Check(Pos('('+lLibName+'+$'+TrimmedHex(PtrUInt(lFunc)+1-PtrUInt(lLibBase))+')',lLine)>0,'SysBackTraceStr shows the module and offset: '+lLine);
   Check(Pos('  $'+HexStr(CodePointer(PByte(lFunc)+1)),lLine)=1,'SysBackTraceStr starts with the address: '+lLine);
 
   lHeap:=GetMem(16);
   Check(not GetSymbolByAddress(lHeap,lInfo),'GetSymbolByAddress fails for a heap address');
-  Check((lInfo.SymbolName='') and (lInfo.SymbolAddr=nil) and (lInfo.ModuleName=''),'failed lookup clears the results');
+  Check((lInfo.SymbolName='') and (lInfo.SymbolAddr=nil) and (lInfo.ModuleName='') and (lInfo.ModuleOffset=0),'failed lookup clears the results');
   FreeMem(lHeap);
   Check(not GetSymbolByAddress(nil,lInfo),'GetSymbolByAddress fails for nil');
 
   Check(GetSymbolByAddress(@CaptureFrames,lInfo) or (lInfo.ModuleName=''),'lookup in the program does not fail with a module name');
   Writeln('program address: ',SysBackTraceStr(@CaptureFrames));
+{$if defined(linux) or defined(android) or defined(windows)}
+  if lInfo.ModuleName<>'' then
+    begin
+    if ProgramIsElfExec then
+      lExpected:=PtrUInt(@CaptureFrames)
+    else
+      lExpected:=PtrUInt(@CaptureFrames)-PtrUInt(ModuleBase(@CaptureFrames,NilHandle));
+    Check(lInfo.ModuleOffset=lExpected,'module offset in the program: $'+TrimmedHex(lInfo.ModuleOffset)+', expected $'+TrimmedHex(lExpected));
+    end;
+{$endif}
 
   gFrameCount:=0;
   lCall(@CaptureFrames);
@@ -140,7 +206,7 @@ begin
       lFound:=True;
       lLine:=SysBackTraceStr(gFrames[i]);
       Writeln(lLine);
-      Check(Pos('('+lLibName+')',lLine)>0,'SysBackTraceStr of the library frame shows the module: '+lLine);
+      Check(Pos('('+lLibName+'+$'+TrimmedHex(lInfo.ModuleOffset)+')',lLine)>0,'SysBackTraceStr of the library frame shows the module and offset: '+lLine);
       if lInfo.SymbolName<>'' then
         Check(Pos('  '+lInfo.SymbolName+'+$',lLine)>0,'SysBackTraceStr of the library frame shows the symbol: '+lLine);
       lLine:=BackTraceStrFunc(gFrames[i]);

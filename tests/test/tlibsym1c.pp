@@ -36,13 +36,16 @@ begin
   lInfo.SymbolName:='x';
   lInfo.SymbolAddr:=@Target;
   lInfo.ModuleName:='x';
+  lInfo.ModuleOffset:=1;
 {$if defined(win32) or defined(win64)}
   Check(GetSymbolByAddress(@Target,lInfo),'GetSymbolByAddress finds the module of the program');
   Check(UpCase(Copy(lInfo.ModuleName,Length(lInfo.ModuleName)-12,13))='TLIBSYM1C.EXE','module of the program: '+lInfo.ModuleName);
   Check((lInfo.SymbolName='') and (lInfo.SymbolAddr=nil),'the program exports no symbol: '+lInfo.SymbolName);
+  Check(lInfo.ModuleOffset=CodePtrUInt(@Target)-CodePtrUInt(HInstance),'module offset is the RVA in the program');
+  Check(Pos('(TLIBSYM1C.EXE+$',UpCase(BackTraceStrFunc(@Target)))>0,'backtrace line shows the module and offset: '+BackTraceStrFunc(@Target));
 {$else}
   Check(not GetSymbolByAddress(@Target,lInfo),'GetSymbolByAddress fails when no library manager provides symbol lookup');
-  Check((lInfo.SymbolName='') and (lInfo.SymbolAddr=nil) and (lInfo.ModuleName=''),'failed lookup clears the results');
+  Check((lInfo.SymbolName='') and (lInfo.SymbolAddr=nil) and (lInfo.ModuleName='') and (lInfo.ModuleOffset=0),'failed lookup clears the results');
 {$endif}
   Check(not GetSymbolByAddress(nil,lInfo),'GetSymbolByAddress fails for nil');
 {$endif}

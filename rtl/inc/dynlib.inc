@@ -118,6 +118,7 @@ begin
     Info.SymbolName:='';
     Info.SymbolAddr:=nil;
     Info.ModuleName:='';
+    Info.ModuleOffset:=0;
     end;
 end;
 

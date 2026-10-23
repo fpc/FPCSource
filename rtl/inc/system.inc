@@ -1381,29 +1381,36 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_BACKTRACESTR}
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
-// Returns '  symbol+$offset  (module)' for Addr from the dynamic library manager, or an empty string
+// Returns aValue as hexadecimal digits without leading zeroes
+function BackTraceHexStr(aValue: CodePtrUInt): ShortString;
+var
+  i: SizeInt;
+begin
+  BackTraceHexStr:=HexStr(aValue,SizeOf(CodePtrUInt)*2);
+  i:=1;
+  while (i<Length(BackTraceHexStr)) and (BackTraceHexStr[i]='0') do
+    inc(i);
+  Delete(BackTraceHexStr,1,i-1);
+end;
+
+
+// Returns '  symbol+$offset  (module+$offset)' for Addr from the dynamic library manager, or an empty string
 function BackTraceSymbolStr(Addr: CodePointer): ShortString;
 var
   lInfo: TSymbolAddressInfo;
-  lDigits: ShortString;
   i: SizeInt;
 begin
   BackTraceSymbolStr:='';
   if not GetSymbolByAddress(Addr,lInfo) then
     exit;
   if lInfo.SymbolName<>'' then
-    begin
-    lDigits:=HexStr(CodePtrUInt(Addr)-CodePtrUInt(lInfo.SymbolAddr),SizeOf(CodePtrUInt)*2);
-    i:=1;
-    while (i<Length(lDigits)) and (lDigits[i]='0') do
-      inc(i);
-    BackTraceSymbolStr:='  '+lInfo.SymbolName+'+$'+Copy(lDigits,i,Length(lDigits));
-    end;
+    BackTraceSymbolStr:='  '+lInfo.SymbolName+'+$'+BackTraceHexStr(CodePtrUInt(Addr)-CodePtrUInt(lInfo.SymbolAddr));
   i:=Length(lInfo.ModuleName);
   while (i>0) and not (lInfo.ModuleName[i] in ['/','\']) do
     dec(i);
   if Length(lInfo.ModuleName)>i then
-    BackTraceSymbolStr:=BackTraceSymbolStr+'  ('+Copy(lInfo.ModuleName,i+1,Length(lInfo.ModuleName))+')';
+    BackTraceSymbolStr:=BackTraceSymbolStr+'  ('+Copy(lInfo.ModuleName,i+1,Length(lInfo.ModuleName))+
+      '+$'+BackTraceHexStr(lInfo.ModuleOffset)+')';
 end;
 {$endif FPC_HAS_FEATURE_DYNLIBS}
 

@@ -115,6 +115,7 @@ begin
   Info.SymbolName:='';
   Info.SymbolAddr:=nil;
   Info.ModuleName:='';
+  Info.ModuleOffset:=0;
   Result:=False;
   if (SysVirtualQuery(Addr,lMemInfo,SizeOf(lMemInfo))=0) or (lMemInfo.State<>SYS_MEM_COMMIT) or
      (lMemInfo.MemType<>SYS_MEM_IMAGE) or (lMemInfo.AllocationBase=nil) then
@@ -123,6 +124,7 @@ begin
   if PWord(lBase)^<>$5A4D then
     exit;
   Result:=True;
+  Info.ModuleOffset:=CodePtrUInt(Addr)-CodePtrUInt(lBase);
   lLen:=SysGetModuleFileNameA(THandle(lBase),@lPath[0],Length(lPath));
   if lLen>255 then
     Info.ModuleName:=PAnsiChar(@lPath[lLen-255])

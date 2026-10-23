@@ -45,6 +45,9 @@ type
     SymbolAddr: CodePointer;
     // Last 255 characters of the path of the module containing the address
     ModuleName: ShortString;
+    // Address in the module file as used by addr2line: the RVA on Windows, the address minus the load bias
+    // on ELF and Mach-O; valid when ModuleName is not empty
+    ModuleOffset: CodePtrUInt;
   end;
   TGetSymbolByAddrHandler = function(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
 
