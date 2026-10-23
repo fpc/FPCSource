@@ -62,6 +62,12 @@ const
     function  FpTimes	(var buffer : tms): TClock; cdecl; external clib name 'times';
 
     Function  FpAlarm      (seconds : cuint) : cuint; cdecl;external clib name 'alarm';
+{$ifdef FPC_HAS_ITIMER}
+    // Sets interval timer which (ITIMER_*) to value, returning the previous setting in ovalue when not nil
+    Function  FpSetITimer  (which : cint; value : PItimerVal; ovalue : PItimerVal): cint; cdecl; external clib name 'setitimer';
+    // Returns the current setting of interval timer which (ITIMER_*)
+    Function  FpGetITimer  (which : cint; value : PItimerVal): cint; cdecl; external clib name 'getitimer';
+{$endif FPC_HAS_ITIMER}
     Function  FpPause   : cInt; cdecl; external clib name 'pause';
     Function  FpSleep      (seconds : cuint): cuint; external clib name 'sleep';
 

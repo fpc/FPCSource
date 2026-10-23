@@ -67,26 +67,16 @@ end;
 {$endif ndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 
 
-Type // implementation side for now. Should move to BSD unit.
-  ITimerVal= Record
-              It_Interval,
-              It_Value      : TimeVal;
-             end;
-
-Const   ITimer_Real    =0;
-  ITimer_Virtual =1;
-  ITimer_Prof    =2;
-
-Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
+Function FpSetITimer(which : cint; value : PItimerVal; ovalue : PItimerVal): cint;
 
 Begin
-  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,TSysParam(@Value),TSysParam(@varovalue));
+  FpSetITimer:=Do_Syscall(syscall_nr_setitimer,TSysParam(which),TSysParam(value),TSysParam(ovalue));
 End;
 
-Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
+Function FpGetITimer(which : cint; value : PItimerVal): cint;
 
 Begin
-  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,TSysParam(@value));
+  FpGetITimer:=Do_Syscall(syscall_nr_getitimer,TSysParam(which),TSysParam(value));
 End;
 
 Function FPalarm(Seconds: cuint):cuint;
@@ -94,13 +84,11 @@ Function FPalarm(Seconds: cuint):cuint;
 Var it,oitv : Itimerval;
 
 Begin
-//      register struct itimerval *itp = &it;
-
  it.it_interval.tv_sec:=0;
  it.it_interval.tv_usec:=0;
  it.it_value.tv_sec:=seconds;
  it.it_value.tv_usec:=0;
- If SetITimer(ITIMER_REAL,it,oitv)<0 Then
+ If FpSetITimer(ITIMER_REAL,@it,@oitv)<0 Then
    Exit(cuint(-1));
 
  if oitv.it_value.tv_usec<>0 Then
