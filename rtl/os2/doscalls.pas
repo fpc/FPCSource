@@ -3117,7 +3117,7 @@ procedure DosSelToFlat; cdecl;
 
 type
  TFarPtr = record
-  Sel, Offset: word;
+  Offset, Sel: word;
  end;
 
 function SelToFlat (AFarPtr: TFarPtr): pointer;
