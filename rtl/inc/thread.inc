@@ -72,19 +72,39 @@ Var
 
     procedure DoneThread;
       begin
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+        { Write out the standard files before the managers and the heap clean
+          up after the thread -- the reverse of InitThread -- and again after
+          each manager's hook, for what that hook wrote. What a text device
+          allocates while it writes is then given up with the rest of the
+          thread's heap, instead of being left to the thread's heap state,
+          which is freed with the threadvars; and what the thread left in the
+          buffers is written before the memory manager cleans up. Flush is
+          called after each hook for each standard file open for output, even
+          when the hook wrote nothing, so its device can be called with an
+          empty buffer; and what the memory manager's DoneThread writes is
+          written after it }
+        SysFlushStdio;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
         if assigned(widestringmanager.ThreadFiniProc) then
-          widestringmanager.ThreadFiniProc;
+          begin
+            widestringmanager.ThreadFiniProc;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+            SysFlushStdio;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+          end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
         if MemoryManager.DoneThread <> nil then
-          MemoryManager.DoneThread();
+          begin
+            MemoryManager.DoneThread();
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+            SysFlushStdio;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+          end;
 {$ifndef HAS_MEMORYMANAGER}
         FinalizeHeap;
 {$endif ndef HAS_MEMORYMANAGER}
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-        { Open all stdio fds again }
-        SysFlushStdio;
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
         { Support platforms where threadvar memory is managed outside of the RTL:
           reset ThreadID and allow ReleaseThreadVars to be unassigned }
         ThreadID := TThreadID(0);
