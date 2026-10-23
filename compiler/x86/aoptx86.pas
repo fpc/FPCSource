@@ -282,6 +282,8 @@ unit aoptx86;
       compiler cannot be sure (e.g. "(%reg1)" and "4(%reg2)" with a range of 4
       might still overlap because %reg2 could be equal to %reg1-4 }
     function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
+    { Same as above, but r1 accesses Size1 and r2 accesses Size2 bytes }
+    function RefsMightOverlap(const r1, r2: treference; const Size1, Size2: asizeint): boolean;
 
     function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
 
@@ -525,18 +527,28 @@ unit aoptx86;
 
     function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
       begin
-        if (r1.symbol<>r2.symbol) then
-          { If the index registers are different, there's a chance one could
-            be set so it equals the other symbol }
-          Exit((r1.index<>r2.index) or (r1.scalefactor<>r2.scalefactor));
+        Result := RefsMightOverlap(r1, r2, Range, Range);
+      end;
 
-        if (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+
+    function RefsMightOverlap(const r1, r2: treference; const Size1, Size2: asizeint): boolean;
+      begin
+        if (r1.refaddr = r2.refaddr) and
           (r1.relsymbol = r2.relsymbol) and
           (r1.segment = r2.segment) and (r1.base = r2.base) and
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.volatility + r2.volatility = []) then
-          { In this case, it all depends on the offsets }
-          Exit(abs(r1.offset - r2.offset) < Range);
+          begin
+            if (r1.symbol = r2.symbol) then
+              { In this case, it all depends on the offsets }
+              Exit((r1.offset < r2.offset + Size2) and (r2.offset < r1.offset + Size1));
+
+            { Different symbols with the same registers address different
+              objects. If only one reference has a symbol, the registers
+              of the other one could point to it }
+            if Assigned(r1.symbol) and Assigned(r2.symbol) then
+              Exit(False);
+          end;
 
         { There's a chance things MIGHT overlap, so take no chances }
         Result := True;
