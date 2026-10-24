@@ -494,6 +494,7 @@ unit cgobj;
         procedure a_load128_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;
         procedure a_load128_reg_loc(list : TAsmList;reg : tregister128;const l : tlocation);virtual;
         procedure a_load128_const_reg(list : TAsmList;valuelo,valuehi : int64;reg : tregister128);virtual;
+        procedure a_load128_const_loc(list : TAsmList;valuelo,valuehi : int64;const l : tlocation);virtual;
 
         procedure a_load128_loc_cgpara(list : TAsmList;const l : tlocation;const paraloc : TCGPara);virtual;
         procedure a_load128_ref_cgpara(list: TAsmList; const r: treference;const paraloc: tcgpara);
@@ -3497,6 +3498,17 @@ implementation
        cg.a_load_const_reg(list,OS_64,aint(valuelo),reg.reglo);
        cg.a_load_const_reg(list,OS_64,aint(valuehi),reg.reghi);
      end;
+
+
+    procedure tcg128.a_load128_const_loc(list : TAsmList;valuelo,valuehi : int64;const l : tlocation);
+      begin
+        case l.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load128_const_reg(list,valuelo,valuehi,l.register128);
+          else
+            internalerror(2026102401);
+        end;
+      end;
 
 
     procedure tcg128.a_load128_loc_cgpara(list: TAsmList; const l: tlocation;
