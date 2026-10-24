@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { A thread can be destroyed by its own OnTerminate handler, issue #32759 }
 program tfreeinonterminate;
 
