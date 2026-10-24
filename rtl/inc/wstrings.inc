@@ -528,7 +528,10 @@ begin
           Temp:=Pointer(S)-WideFirstOff;
           if SizeUInt(L*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)))>MemSize(Temp) then
             begin
-              reallocmem(Temp, L*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)));
+              { nil when the memory manager cannot grow the block: an error,
+                as a failed allocation in NewWideString is }
+              if reallocmem(Temp, L*sizeof(WideChar)+(WideRecLen+sizeof(WideChar)))=nil then
+                WideStringError;
               Pointer(S):=Temp+WideFirstOff;
             end;
         end
