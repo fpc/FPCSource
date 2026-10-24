@@ -497,8 +497,10 @@ unit cgobj;
         procedure a_load128_const_ref(list : TAsmList;valuelo,valuehi : int64;const ref : treference);virtual;
         procedure a_load128_const_loc(list : TAsmList;valuelo,valuehi : int64;const l : tlocation);virtual;
 
-        procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;abstract;
-        procedure a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;abstract;
+        procedure a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);virtual;abstract;
+        procedure a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);virtual;abstract;
+        procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
 
         procedure a_load128_loc_cgpara(list : TAsmList;const l : tlocation;const paraloc : TCGPara);virtual;
         procedure a_load128_ref_cgpara(list: TAsmList; const r: treference;const paraloc: tcgpara);
@@ -3531,6 +3533,20 @@ implementation
           else
             internalerror(2026102401);
         end;
+      end;
+
+
+    procedure tcg128.a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);
+      begin
+        a_op128_const_reg_reg(list,op,size,valuelo,valuehi,regsrc,regdst);
+        ovloc.loc:=LOC_VOID;
+      end;
+
+
+    procedure tcg128.a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);
+      begin
+        a_op128_reg_reg_reg(list,op,size,regsrc1,regsrc2,regdst);
+        ovloc.loc:=LOC_VOID;
       end;
 
 
