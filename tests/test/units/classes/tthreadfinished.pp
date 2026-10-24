@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { TThread.Finished becomes True only after DoTerminate has run, issue #31267 }
 program tthreadfinished;
 
