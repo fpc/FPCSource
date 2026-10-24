@@ -1,3 +1,6 @@
+{$LINKLIB gun, static}
+{$LINKLIB api, static}
+{$LINKLIB c2, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgun;
 {$ENDIF FPC_DOTTEDUNITS}

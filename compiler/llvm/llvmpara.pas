@@ -270,8 +270,7 @@ unit llvmpara;
       until not assigned(paraloc);
       paraloc:=result.location;
       if assigned(paraloc^.next) and
-         (result.def.typ in [orddef,enumdef,floatdef]) and
-         (side=callerside) then
+         (result.def.typ in [orddef,enumdef,floatdef]) then
         begin
           if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
             internalerror(2019011901);

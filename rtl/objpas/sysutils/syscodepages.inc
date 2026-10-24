@@ -23,7 +23,7 @@ const
     all labels are stored in lowercase and each record has a
     hash value for the fast search. hash value was get using
     SysUtils.HashName() function }
-  CodePageHashes: array[0..421] of TCodePageHashEntry = (
+  CodePageHashes: array[0..429] of TCodePageHashEntry = (
     (hash: $000004F1; cp: 28591; name: 'l1'),
     (hash: $000004F2; cp: 28592; name: 'l2'),
     (hash: $000004F3; cp: 28593; name: 'l3'),
@@ -39,6 +39,7 @@ const
     (hash: $00046DA5; cp: 950; name: 'big5'),
     (hash: $000503C8; cp: 20866; name: 'koi8'),
     (hash: $00057EE3; cp: 932; name: 'sjis'),
+    (hash: $0005A898; cp: 65001; name: 'utf8'),
     (hash: $00270BA4; cp: 50225; name: 'iso-2022-kr-7bit'),
     (hash: $00277BA4; cp: 51949; name: 'iso-2022-kr-8bit'),
     (hash: $003CB225; cp: 21866; name: 'koi8-ru'),
@@ -89,6 +90,8 @@ const
     (hash: $00598602; cp: 1200; name: 'ucs-2'),
     (hash: $005A8907; cp: 65000; name: 'utf-7'),
     (hash: $005A8908; cp: 65001; name: 'utf-8'),
+    (hash: $005A8946; cp: 1200; name: 'utf16'),
+    (hash: $005A8962; cp: 12000; name: 'utf32'),
     (hash: $005B1A93; cp: 51932; name: 'x-euc'),
     (hash: $005B1D45; cp: 20105; name: 'x-ia5'),
     (hash: $00764A5F; cp: 858; name: 'pc-multilingual-850+euro'),
@@ -366,6 +369,7 @@ const
     (hash: $08904FC5; cp: 1201; name: 'utf-16be'),
     (hash: $089050A5; cp: 1200; name: 'utf-16le'),
     (hash: $089063C5; cp: 12001; name: 'utf-32be'),
+    (hash: $089064A5; cp: 12000; name: 'utf-32le'),
     (hash: $08B7920F; cp: 1149; name: 'ebcdic-is-871+euro'),
     (hash: $08B98E28; cp: 20107; name: 'swedish'),
     (hash: $08D1B2EF; cp: 1141; name: 'ebcdic-de-273+euro'),
@@ -397,6 +401,10 @@ const
     (hash: $0A2D83D5; cp: 1200; name: 'unicode'),
     (hash: $0A6B6127; cp: 949; name: 'ks_c_5601_1987'),
     (hash: $0A835A13; cp: 28595; name: 'csisolatincyrillic'),
+    (hash: $0A894A35; cp: 1201; name: 'utf16be'),
+    (hash: $0A894B55; cp: 1200; name: 'utf16le'),
+    (hash: $0A896635; cp: 12001; name: 'utf32be'),
+    (hash: $0A896755; cp: 12000; name: 'utf32le'),
     (hash: $0A8D99E7; cp: 28598; name: 'csisolatinhebrew'),
     (hash: $0AF1E70E; cp: 20108; name: 'x-ia5-norwegian'),
     (hash: $0B2DF3F2; cp: 1200; name: 'iso-10646-ucs-2'),

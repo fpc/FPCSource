@@ -15,6 +15,7 @@ uses
 
 var
   BinValueBytes: TBytes;
+  BinValueStatic: array[0..7] of Byte;
   HexValueBytes: TBytes;
   HexInLen, BinBufLen: Integer;
   ret: Integer;
@@ -75,7 +76,7 @@ begin
   SetLength(BinValueBytes, HexInLen);
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
-  ret := HexToBin(PAnsiChar(HexInputA), BinValueBytes, BinBufLen);
+  ret := HexToBin(PAnsiChar(HexInputA), BinValueBytes[0], BinBufLen);
   if ret <> 3 then halt(5);
   if BinValueBytes[0] <> 29 then halt(5);
   if BinValueBytes[1] <> 236 then halt(5);
@@ -118,7 +119,7 @@ begin
   SetLength(BinValueBytes, HexInLen);
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
-  ret := HexToBin(PWideChar(HexInputW), BinValueBytes, BinBufLen);
+  ret := HexToBin(PWideChar(HexInputW), BinValueBytes[0], BinBufLen);
   if ret <> 3 then halt(9);
   if BinValueBytes[0] <> 29 then halt(9);
   if BinValueBytes[1] <> 236 then halt(9);
@@ -149,7 +150,7 @@ begin
   SetLength(BinValueBytes, HexInLen);
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
-  ret := HexToBin(PWideChar(HexCorruptInputW), BinValueBytes, BinBufLen);
+  ret := HexToBin(PWideChar(HexCorruptInputW), BinValueBytes[0], BinBufLen);
   if ret <> 3 then halt(12);
   if BinValueBytes[0] <> 154 then halt(12);
   if BinValueBytes[1] <> 188 then halt(12);
@@ -227,6 +228,23 @@ begin
   if BinValueBytes[1] <> 117 then halt(18);
   if BinValueBytes[2] <> 0 then halt(18);
   if BinValueBytes[3] <> 0 then halt(18);
+
+  // untyped buffer that is not a pointer
+  FillChar(BinValueStatic, SizeOf(BinValueStatic), 0);
+  ret := HexToBin(PAnsiChar(HexInputA), BinValueStatic, 3);
+  if ret <> 3 then halt(19);
+  if BinValueStatic[0] <> 29 then halt(19);
+  if BinValueStatic[1] <> 236 then halt(19);
+  if BinValueStatic[2] <> 175 then halt(19);
+  if BinValueStatic[3] <> 0 then halt(19);
+
+  FillChar(BinValueStatic, SizeOf(BinValueStatic), 0);
+  ret := HexToBin(PWideChar(HexInputW), BinValueStatic, 3);
+  if ret <> 3 then halt(20);
+  if BinValueStatic[0] <> 29 then halt(20);
+  if BinValueStatic[1] <> 236 then halt(20);
+  if BinValueStatic[2] <> 175 then halt(20);
+  if BinValueStatic[3] <> 0 then halt(20);
 
   writeln('testing of HexToBin methods ended');
 end.

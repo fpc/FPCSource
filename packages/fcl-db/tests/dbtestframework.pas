@@ -8,7 +8,7 @@ program dbtestframework;
 
 uses
 {$ifdef unix}
-  cwstring,
+  cwstring, clocale,
 {$endif}
   SysUtils,
   fpcunit,  testreport, testregistry,

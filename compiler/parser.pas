@@ -437,6 +437,7 @@ implementation
 
          { Load current state from the init values }
          current_settings:=init_settings;
+         status.verbosity:=init_settings.verbosity;
 
          set_current_module(module);
          if not (module.state in [ms_compile]) then

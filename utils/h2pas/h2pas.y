@@ -8,16 +8,9 @@ interface
 uses
   scan, h2pconst, h2plexlib, h2pyacclib, scanbase, h2pbase, h2ptypes,h2pout;
 
-procedure EnableDebug;
 function yyparse : integer;
 
 Implementation
-
-procedure EnableDebug;
-
-begin
-  yydebug:=true;
-end;
 
 %}
 
@@ -37,14 +30,18 @@ end;
 %token ELLIPSIS
 %right _ASSIGN
 %right R_AND
-%left EQUAL UNEQUAL GT LT GTE LTE
-%left QUESTIONMARK COLON
+%right QUESTIONMARK COLON
+%left _LOR
+%left _LAND
 %left _OR
+%left _XOR
 %left _AND
-%left _PLUS MINUS
+%left EQUAL UNEQUAL
+%left GT LT GTE LTE
 %left _SHR _SHL
-%left STAR _SLASH
-%right _NOT
+%left _PLUS MINUS
+%left STAR _SLASH _MOD
+%right _NOT _LNOT
 %right LKLAMMER
 %right PSTAR
 %right P_AND
@@ -54,9 +51,14 @@ end;
 %left STICK
 %token SIGNED
 %token INT8 INT16 INT32 INT64
+%token _DOUBLE
+%token _RETURN
+%token _STATIC
+%token _LOR _LAND _XOR _MOD
 %%
 
 file : declaration_list
+     |
      ;
 
 maybe_space :
@@ -74,27 +76,32 @@ maybe_space :
 error_info : {
                (* error_info *)
                EmitErrorStart(yyline);
+               $$:=nil;
              };
 
 declaration_list : declaration_list  declaration
      {
        (* declaration_list  declaration *)
        EmitAndOutput('declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | declaration_list define_dec
      {
        (* declaration_list define_dec *)
        EmitAndOutput('define declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | declaration
      {
        (* declaration *)
-       EmitAndOutput('define declaration reduced at line ',line_no);
+       EmitAndOutput('declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      | define_dec
      {
        (* define_dec *)
        EmitAndOutput('define declaration reduced at line ',line_no);
+       FlushPendingDefines(false);
      }
      ;
 
@@ -102,6 +109,10 @@ dec_specifier :
      EXTERN
       { (* EXTERN *)
         $$:=NewID('extern');
+      }
+     | _STATIC
+      { (* STATIC *)
+        $$:=NewID('static');
       }
      |
        { (* not extern  *)
@@ -175,6 +186,16 @@ statement :
        {
          (* _WHILE LKLAMMER expr RKLAMMER statement_list  *)
          $$:=NewType2(t_whilenode,$3,$5);
+       } |
+     _RETURN expr SEMICOLON
+       {
+         (* _RETURN expr SEMICOLON *)
+         $$:=NewUnaryOp('exit',$2);
+       } |
+     _RETURN SEMICOLON
+       {
+         (* _RETURN SEMICOLON *)
+         $$:=NewID('exit');
        }
      ;
 
@@ -224,6 +245,21 @@ declaration :
      {
        (* special_type_specifier SEMICOLON *)
        HandleSpecialType($1);
+     } |
+     special_type_specifier dec_modifier declarator_list statement_block
+     {
+       (* special_type_specifier dec_modifier declarator_list statement_block *)
+       HandleDeclarationStatement(NewID('intern'),$1,$2,$3,$4);
+     } |
+     special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+     {
+       (* special_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
+       HandleDeclarationSysTrap(NewID('intern'),$1,$2,$3,$4);
+     } |
+     anonymous_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+     {
+       (* anonymous_type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
+       HandleDeclarationSysTrap(NewID('intern'),$1,$2,$3,$4);
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
      {
@@ -289,7 +325,7 @@ closed_list :
      | error  error_info RGKLAMMER
        {
          (* error  error_info RGKLAMMER *)
-         emitwriteln(' in member_list *)');
+         EmitErrorEnd(' in member_list *)');
          yyerrok;
          $$:=nil;
        }
@@ -304,49 +340,77 @@ closed_enum_list :
       |  error  error_info  RGKLAMMER
         {
           (* error  error_info RGKLAMMER *)
-          emitwriteln(' in enum_list *)');
+          EmitErrorEnd(' in enum_list *)');
           yyerrok;
           $$:=nil;
          }
       ;
 
+anonymous_type_specifier :
+     STRUCT closed_list _PACKED
+     {
+       (* STRUCT closed_list _PACKED *)
+       $$:=NewRecordType(t_structdef,$2,nil,1);
+     } |
+     STRUCT closed_list
+     {
+       (* STRUCT closed_list *)
+       $$:=NewRecordType(t_structdef,$2,nil,4);
+     } |
+     UNION closed_list _PACKED
+     {
+       (* UNION closed_list _PACKED *)
+       $$:=NewRecordType(t_uniondef,$2,nil,1);
+     } |
+     UNION closed_list
+     {
+       (* UNION closed_list *)
+       $$:=NewRecordType(t_uniondef,$2,nil,0);
+     } |
+     ENUM closed_enum_list
+     {
+       (* ENUM closed_enum_list *)
+       $$:=NewType1(t_enumdef,$2);
+     }
+     ;
+
 special_type_specifier :
      STRUCT dname closed_list _PACKED
      {
        (* STRUCT dname closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType2(t_structdef,$3,$2);
+       $$:=NewRecordType(t_structdef,$3,$2,1);
      } |
      STRUCT dname closed_list
      {
        (* STRUCT dname closed_list *)
-       emitpacked(4);
-       $$:=NewType2(t_structdef,$3,$2);
+       $$:=NewRecordType(t_structdef,$3,$2,4);
      } |
      UNION dname closed_list _PACKED
      {
        (* UNION dname closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType2(t_uniondef,$3,$2);
+       $$:=NewRecordType(t_uniondef,$3,$2,1);
      } |
      UNION dname closed_list
      {
        (* UNION dname closed_list *)
-       $$:=NewType2(t_uniondef,$3,$2);
+       $$:=NewRecordType(t_uniondef,$3,$2,0);
      } |
      UNION dname
      {
        (* UNION dname  *)
        $$:=$2;
+       $$^.structtag:=true;
      } |
      STRUCT dname
      {
        (* STRUCT dname *)
        $$:=$2;
+       $$^.structtag:=true;
      } |
      ENUM dname closed_enum_list
      {
        (* ENUM dname closed_enum_list *)
+       RegisterEnumTypeName($2^.str,$3);
        $$:=NewType2(t_enumdef,$3,$2);
      } |
      ENUM dname
@@ -365,25 +429,22 @@ type_specifier :
      UNION closed_list  _PACKED
      {
        (* UNION closed_list  _PACKED *)
-       EmitPacked(1);
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,1);
      } |
      UNION closed_list
      {
        (* UNION closed_list *)
-       $$:=NewType1(t_uniondef,$2);
+       $$:=NewRecordType(t_uniondef,$2,nil,0);
      } |
      STRUCT closed_list _PACKED
      {
        (* STRUCT closed_list _PACKED *)
-       emitpacked(1);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,1);
      } |
      STRUCT closed_list
      {
        (* STRUCT closed_list  *)
-       emitpacked(4);
-       $$:=NewType1(t_structdef,$2);
+       $$:=NewRecordType(t_structdef,$2,nil,4);
      } |
      ENUM closed_enum_list
      {
@@ -496,6 +557,16 @@ special_type_name :
        (* FLOAT *)
         $$:=NewCType(cfloat_STR,FLOAT_STR);
      } |
+     _DOUBLE
+     {
+       (* DOUBLE *)
+        $$:=NewCType(cdouble_STR,DOUBLE_STR);
+     } |
+     LONG _DOUBLE
+     {
+       (* LONG DOUBLE *)
+        $$:=NewCType(clongdouble_STR,EXTENDED_STR);
+     } |
      VOID
      {
        (* VOID *)
@@ -510,6 +581,11 @@ special_type_name :
      {
        (* UNSIGNED *)
        $$:=NewCType(cunsigned_STR,UINT_STR);
+     } |
+     SIGNED
+     {
+       (* SIGNED *)
+       $$:=NewCType(csigned_STR,INT_STR);
      }
      ;
 
@@ -523,7 +599,7 @@ simple_type_name :
      dname
      {
        (* dname *)
-       $$:=CheckUnderscore($1);
+       $$:=MapCTypeName($1);
      }
      ;
 
@@ -536,15 +612,16 @@ declarator_list :
      error error_info COMMA declarator_list
      {
        (* error error_info COMMA declarator_list *)
-       EmitWriteln(' in declarator_list *)');
+       EmitErrorEnd(' in declarator_list *)');
        $$:=$4;
        yyerrok;
      }|
      error error_info
      {
        (* error error_info *)
-       EmitWriteln(' in declarator_list *)');
+       EmitErrorEnd(' in declarator_list *)');
        yyerrok;
+       $$:=nil;
      }|
      declarator
      {
@@ -625,20 +702,15 @@ declarator :
        (* %prec PSTAR this was wrong!! *)
        $$:=HandleDeclarator(t_pointerdef,$2);
      } |
-     _AND declarator %prec P_AND
+     _AND declarator
      {
-       (* _AND declarator %prec P_AND *)
+       (* _AND declarator *)
        $$:=HandleDeclarator(t_addrdef,$2);
      } |
      dname COLON expr
        {
          (* dname COLON expr *)
          $$:=HandleSizedDeclarator($1,$3);
-        }|
-     dname ASSIGN expr
-       {
-         (*     dname ASSIGN expr *)
-         $$:=HandleDefaultDeclarator($1,$3);
         }|
      dname
        {
@@ -663,7 +735,7 @@ declarator :
      declarator LECKKLAMMER RECKKLAMMER
      {
        (* declarator LECKKLAMMER RECKKLAMMER *)
-       $$:=HandleDeclarator(t_pointerdef,$1);
+       $$:=HandleArrayDecl($1);
      } |
      LKLAMMER declarator RKLAMMER
      {
@@ -691,6 +763,11 @@ abstract_declarator :
      {
        (* STAR abstract_declarator %prec PSTAR *)
        $$:=HandlePointerAbstractDeclarator($2);
+     } |
+     _AND abstract_declarator %prec PSTAR
+     {
+       (* _AND abstract_declarator %prec PSTAR *)
+       $$:=HandleDeclarator(t_addrdef,$2);
      } |
      abstract_declarator LKLAMMER argument_declaration_list RKLAMMER
      {
@@ -751,7 +828,7 @@ shift_expr :
           | expr STAR expr
             { $$:=NewBinaryOp('*',$1,$3);}
           | expr _SLASH expr
-            { $$:=NewBinaryOp('/',$1,$3);}
+            { $$:=HandleDivision($1,$3);}
           | expr _OR expr
             { $$:=NewBinaryOp(' or ',$1,$3);}
           | expr _AND expr
@@ -762,9 +839,17 @@ shift_expr :
             { $$:=NewBinaryOp(' shl ',$1,$3);}
           | expr _SHR expr
             { $$:=NewBinaryOp(' shr ',$1,$3);}
+          | expr _LOR expr
+            { $$:=HandleLogicalOp(' or ',$1,$3);}
+          | expr _LAND expr
+            { $$:=HandleLogicalOp(' and ',$1,$3);}
+          | expr _XOR expr
+            { $$:=NewBinaryOp(' xor ',$1,$3);}
+          | expr _MOD expr
+            { $$:=NewBinaryOp(' mod ',$1,$3);}
           | expr QUESTIONMARK colon_expr
           {
-            HandleTernary($1,$3);
+            $$:=HandleTernary($1,$3);
           } |
           unary_expr {$$:=$1;}
           ;
@@ -783,6 +868,18 @@ maybe_empty_unary_expr :
                   { $$:=nil;}
                   ;
 
+string_list :
+     CSTRING
+     {
+     (* remove L prefix for widestrings *)
+     $$:=CheckWideString(act_token);
+     } |
+     string_list CSTRING
+     {
+     $$:=ConcatStrings($1,CheckWideString(act_token));
+     }
+     ;
+
 unary_expr:
      dname
      {
@@ -792,10 +889,9 @@ unary_expr:
      {
      $$:=$1;
      } |
-     CSTRING
+     string_list
      {
-     (* remove L prefix for widestrings *)
-     $$:=CheckWideString(act_token);
+     $$:=$1;
      } |
      NUMBER
      {
@@ -813,6 +909,11 @@ unary_expr:
      {
      $$:=NewUnaryOp('-',$2);
      }|
+     STAR unary_expr
+     {
+     (* dereference *)
+     $$:=NewUnaryOp('^',$2);
+     }|
      _PLUS unary_expr
      {
      $$:=NewUnaryOp('+',$2);
@@ -825,20 +926,32 @@ unary_expr:
      {
      $$:=NewUnaryOp(' not ',$2);
      } |
+     _LNOT unary_expr
+     {
+     $$:=HandleLogicalNot($2);
+     } |
      LKLAMMER dname RKLAMMER maybe_empty_unary_expr
      {
-     if assigned($4) then
-       $$:=NewType2(t_typespec,$2,$4)
-     else
-       $$:=$2;
+     $$:=HandleParenthesizedName($2,$4);
      } |
      LKLAMMER type_specifier RKLAMMER unary_expr
      {
      $$:=NewType2(t_typespec,$2,$4);
      } |
-     LKLAMMER type_specifier STAR RKLAMMER unary_expr
+     LKLAMMER type_specifier pointer_stars RKLAMMER unary_expr
      {
-     $$:=HandlePointerType($2,$5,Nil);
+     $$:=HandlePointerCast($2,$3,$5);
+     } |
+     LKLAMMER dname pointer_stars RKLAMMER unary_expr
+     {
+     (* pointer cast to a named type *)
+     $$:=HandlePointerCast(MapCTypeName($2),$3,$5);
+     } |
+     LKLAMMER dname STAR shift_expr RKLAMMER
+     {
+     (* product of a name, between parentheses *)
+     $$:=HandleNamedProduct($2,$4);
+     $$^.grouped:=true;
      } |
      LKLAMMER type_specifier size_overrider STAR RKLAMMER unary_expr
      {
@@ -851,14 +964,36 @@ unary_expr:
      LKLAMMER shift_expr RKLAMMER
      {
      $$:=$2;
+     if assigned($$) then
+       $$^.grouped:=true;
      } |
      LKLAMMER STAR unary_expr RKLAMMER maybe_space LKLAMMER exprlist RKLAMMER
      {
        $$:=NewType2(t_callop,$3,$7);
      } |
+     LKLAMMER STAR unary_expr RKLAMMER
+     {
+       (* dereference between parentheses *)
+       $$:=NewUnaryOp('^',$3);
+       $$^.grouped:=true;
+     } |
      dname LECKKLAMMER exprlist RECKKLAMMER
      {
        $$:=NewType2(t_arrayop,$1,$3);
+     }
+     ;
+
+pointer_stars :
+     STAR
+     {
+       (* STAR *)
+       $$:=NewID('*');
+     } |
+     STAR pointer_stars
+     {
+       (* STAR pointer_stars *)
+       $2^.setstr($2^.str+'*');
+       $$:=$2;
      }
      ;
 
@@ -893,9 +1028,9 @@ enum_element :
 
 
 def_expr :
-     unary_expr
+     expr
      {
-       (* unary_expr *)
+       (* expr *)
        $$:=HandleUnaryDefExpr($1);
      }
      ;

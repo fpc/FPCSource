@@ -44,6 +44,8 @@ type
 
 implementation
 
+{$i x11colors.inc}
+
 const
   WhiteSpace = ' '#9#10#13;
 
@@ -68,26 +70,27 @@ var l : integer;
     else if (c >= '0') and (c <= '9') then
       result := ord (c) - ord('0')
     else
-      raise exception.CreateFmt ('Wrong character (%s) in hexadecimal number', [c]);
+      raise FPImageException.CreateFmt ('Wrong character (%s) in hexadecimal number', [c]);
   end;
   function convert (n : AnsiString) : word;
-  var t,r: integer;
+  var r: integer;
+      v: longword;
   begin
-    result := 0;
-    t := length(n);
-    if t > 4 then
-      raise exception.CreateFmt ('Too many bytes for color (%s)',[s]);
+    v := 0;
     for r := 1 to length(n) do
-      result := (result shl 4) or CharConv(n[r]);
+      v := (v shl 4) or CharConv(n[r]);
     // fill missing bits
-    case t of
-      1: result:=result or (result shl 4) or (result shl 8) or (result shl 12);
-      2: result:=result or (result shl 8);
-      3: result:=result or (result shl 12);
+    case length(n) of
+      1: v := v * $1111;
+      2: v := v * $101;
+      3: v := (v shl 4) or (v shr 8);
     end;
+    result := v;
   end;
 begin
   s := uppercase (s);
+  if (length(s) = 0) or (length(s) > 12) or (length(s) mod 3 <> 0) then
+    raise FPImageException.CreateFmt ('Invalid hexadecimal color (#%s)',[s]);
   l := length(s) div 3;
   result.red   := (Convert(copy(s,1,l)));
   result.green := (Convert(copy(s,l+1,l)));
@@ -95,32 +98,38 @@ begin
   result.alpha := AlphaOpaque;
 end;
 
-function TFPReaderXPM.NameToColor(s : AnsiString) : TFPColor;
+// Looks up aName in the sorted X11 colour table; returns -1 when absent.
+function FindX11Color(const aName : AnsiString) : integer;
+var lo, hi, mid, cmp : integer;
 begin
-  s := lowercase (s);
-  if s = 'transparent' then
-    result := colTransparent
-  else if s = 'none' then
-    result := colTransparent
-  else if s = 'black' then
-    result := colBlack
-  else if s = 'blue' then
-    result := colBlue
-  else if s = 'green' then
-    result := colGreen
-  else if s = 'cyan' then
-    result := colCyan
-  else if s = 'red' then
-    result := colRed
-  else if s = 'magenta' then
-    result := colMagenta
-  else if s = 'yellow' then
-    result := colYellow
-  else if s = 'white' then
-    result := colWhite
-  else if s = 'gray' then
-    result := colGray
-  else if s = 'ltgray' then
+  lo := Low(X11Colors);
+  hi := High(X11Colors);
+  while lo <= hi do
+    begin
+    mid := (lo + hi) div 2;
+    cmp := CompareStr(X11Colors[mid].Name, aName);
+    if cmp = 0 then
+      exit(mid)
+    else if cmp < 0 then
+      lo := mid + 1
+    else
+      hi := mid - 1;
+    end;
+  result := -1;
+end;
+
+
+function TFPReaderXPM.NameToColor(s : AnsiString) : TFPColor;
+var i : integer;
+begin
+  s := StringReplace(lowercase(s), ' ', '', [rfReplaceAll]);
+  if (s = 'none') or (s = 'transparent') then
+    exit(colTransparent);
+  i := FindX11Color(s);
+  if i >= 0 then
+    with X11Colors[i] do
+      exit(FPColor(((RGB shr 16) and $FF) * 257, ((RGB shr 8) and $FF) * 257, (RGB and $FF) * 257));
+  if s = 'ltgray' then
     result := colLtGray
   else if s = 'dkblue' then
     result := colDkBlue
@@ -134,16 +143,10 @@ begin
     result := colDkMagenta
   else if s = 'dkyellow' then
     result := colDkYellow
-  else if s = 'maroon' then
-    result := colMaroon
   else if s = 'ltgreen' then
     result := colLtGreen
   else if s = 'olive' then
     result := colOlive
-  else if s = 'navy' then
-    result := colNavy
-  else if s = 'purple' then
-    result := colPurple
   else if s = 'teal' then
     result := colTeal
   else if s = 'silver' then
@@ -183,18 +186,15 @@ var l : TStringList;
 
   procedure TakeInteger (var s : AnsiString; var i : integer);
   var r : integer;
+      w : AnsiString;
   begin
     r := pos (' ', s);
     if r = 0 then
-      begin
-      i := StrToInt(s);
-      s := '';
-      end
-    else
-      begin
-      i := StrToInt(copy(s,1,r-1));
-      delete (s, 1, r);
-      end;
+      r := length(s) + 1;
+    w := copy(s,1,r-1);
+    if not TryStrToInt(w, i) then
+      raise FPImageException.CreateFmt ('Invalid number in XPM header: %s',[w]);
+    delete (s, 1, r);
   end;
 
   procedure ParseFirstLine;
@@ -207,14 +207,16 @@ var l : TStringList;
     Takeinteger (s, height);
     Takeinteger (s, ncols);
     Takeinteger (s, cpp);
-    if s <> '' then
+    xhot := -1;
+    yhot := -1;
+    if (s <> '') and (comparetext(s, 'XPMEXT') <> 0) then
       begin
       Takeinteger (s, xhot);
       Takeinteger (s, yhot);
-      xpmext := (comparetext(s, 'XPMEXT') = 0);
-      if (s <> '') and not xpmext then
-        Raise FPImageException.Create ('Wrong word for XPMEXT tag');
       end;
+    xpmext := (comparetext(s, 'XPMEXT') = 0);
+    if (s <> '') and not xpmext then
+      Raise FPImageException.Create ('Wrong word for XPMEXT tag');
   end;
 
   procedure AddPalette (const code:AnsiString;const Acolor:TFPColor);
@@ -224,33 +226,50 @@ var l : TStringList;
     img.palette.Color[r] := Acolor;
   end;
 
+  function IsKey(const aWord : AnsiString) : boolean;
+  begin
+    result := (aWord = 'c') or (aWord = 'm') or (aWord = 's') or (aWord = 'g') or (aWord = 'g4');
+  end;
+
   procedure AddToPalette(s : AnsiString);
-  var code : AnsiString;
+  var code, key, value : AnsiString;
+      words : array of AnsiString;
       c : TFPColor;
-       p : integer;
+      i, sp : integer;
   begin
     code := copy(s,1,cpp);
     s := trim(diminishWhiteSpace (copy(s,cpp+1,maxint)));
     if s = '' then
       raise FPImageException.Create('Empty color specification in XPM');
-    // Search for c-key in the color values
-    if s[1] = 'c' then
-      delete (s, 1, 2)
-    else
+    // key/value pairs; a value runs until the next key word
+    words := nil;
+    repeat
+      sp := pos(' ', s);
+      if sp = 0 then
+        sp := length(s) + 1;
+      SetLength(words, Length(words) + 1);
+      words[High(words)] := copy(s, 1, sp - 1);
+      delete(s, 1, sp);
+    until s = '';
+    i := 0;
+    while i < Length(words) do
       begin
-      p := pos (' c ',s);
-      if p = 0 then
-        s := ''
-      else
-        delete (s, 1, p+2);
+      key := words[i];
+      inc(i);
+      value := '';
+      while (i < Length(words)) and ((value = '') or not IsKey(words[i])) do
+        begin
+        if value <> '' then
+          value := value + ' ';
+        value := value + words[i];
+        inc(i);
+        end;
+      if key = 'c' then
+        s := value;
       end;
-    // c color value is first word, remove the rest of the line
-    p := pos(' ', s);
-    if p > 0 then
-      delete (s, p, maxint);
     // check if exists
     if s = '' then
-      raise exception.Create ('Only c-key is used for colors');
+      raise FPImageException.Create ('Only c-key is used for colors');
     // convert #hexadecimal value to integer and place in palette
     if s[1] = '#' then
       c := HexToColor(copy(s,2,maxint))
@@ -306,11 +325,15 @@ begin
       else
         l.delete(r);
       end;
+    if l.Count = 0 then
+      raise FPImageException.Create('Missing XPM header');
     ParseFirstLine;
     if (width <= 0) or (height <= 0) or (ncols <= 0) or (cpp <= 0) then
       raise FPImageException.Create('Invalid XPM header values');
     if (width > 65535) or (height > 65535) or (ncols > 65536) then
       raise FPImageException.Create('XPM dimensions too large');
+    if l.Count <= ncols + height then
+      raise FPImageException.Create('XPM data truncated');
     Img.SetSize (width, height);
     Img.UsePalette := True;
     ReadPalette;

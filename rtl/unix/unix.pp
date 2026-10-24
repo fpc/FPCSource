@@ -776,7 +776,11 @@ begin
   end;
 end;
 
+// Writes the whole buffer of an output pipe or fills the buffer of an input pipe; sets InOutRes on failure
 Function IOPipe(var F:text):cint;
+var
+  lPtr : PAnsiChar;
+  lLen, lRes : cint;
 begin
   IOPipe:=0;
   case textrec(f).mode of
@@ -784,12 +788,33 @@ begin
       begin
         { first check if we need something to write, else we may
           get a SigPipe when Close() is called (PFV) }
-        if textrec(f).bufpos>0 then
-          IOPipe:=fpwrite(textrec(f).handle,PAnsiChar(textrec(f).bufptr),textrec(f).bufpos);
+        lPtr:=PAnsiChar(textrec(f).bufptr);
+        lLen:=textrec(f).bufpos;
+        while lLen>0 do
+          begin
+          repeat
+            lRes:=fpwrite(textrec(f).handle,lPtr,lLen);
+          until (lRes<>-1) or ((fpgeterrno<>ESysEINTR) and (fpgeterrno<>ESysEAgain));
+          if lRes<=0 then
+            break;
+          inc(IOPipe,lRes);
+          inc(lPtr,lRes);
+          dec(lLen,lRes);
+          end;
+        if lLen>0 then
+          InOutRes:=101;
       end;
     fminput : Begin
-                textrec(f).bufend:=fpread(textrec(f).handle,PAnsiChar(textrec(f).bufptr),textrec(f).bufsize);
-                IOPipe:=textrec(f).bufend;
+                repeat
+                  lRes:=fpread(textrec(f).handle,PAnsiChar(textrec(f).bufptr),textrec(f).bufsize);
+                until (lRes<>-1) or ((fpgeterrno<>ESysEINTR) and (fpgeterrno<>ESysEAgain));
+                if lRes<0 then
+                  begin
+                  InOutRes:=100;
+                  lRes:=0;
+                  end;
+                textrec(f).bufend:=lRes;
+                IOPipe:=lRes;
               End;
   end;
   textrec(f).bufpos:=0;

@@ -67,218 +67,136 @@ begin
 end;
 
 function  TFPReaderQoi.InternalCheck (Stream:TStream) : boolean;
-// NOTE: Does not rewind the stream!
 var
-
   n: Int64;
+  oldPos: Int64;
 begin
   Result:=False;
   if Stream=nil then
     exit;
-  n:=SizeOf(TQoiHeader);
-  Result:=Stream.Read(QoiHeader,n)=n;
-  if Result then
-    begin
-   {$IFDEF ENDIAN_LITTLE}
-    QoiHeader.width:=SwapEndian(QoiHeader.width);
-    QoiHeader.height:=SwapEndian(QoiHeader.height);
-   {$ENDIF}
-    Result := (QoiHeader.magic = 'qoif'); // Just check magic number
-    end;
+  oldPos:=Stream.Position;
+  try
+    n:=SizeOf(TQoiHeader);
+    Result:=(Stream.Read(QoiHeader,n)=n) and (QoiHeader.magic = 'qoif');
+  finally
+    Stream.Position:=oldPos;
+  end;
 end;
 
-// NOTE: It is assumed that signature and IDHDR chunk already have been read.
+
 procedure TFPReaderQoi.InternalRead (Stream:TStream; Img:TFPCustomImage);
-var iP, q : qword;
-    b, run : byte;
-    g : shortint;
-    px : TQoiPixel;
-    arr : array [0..63] of TQoiPixel;
-    iA : dword; {index in pixel array}
+const
+  BufSize = 65536;
+  MaxPixels = 400000000;
+var
+  Buf : array of byte;
+  BufPos, BufLen : integer;
+  Index : array [0..63] of TQoiPixel;
+  px : TQoiPixel;
+  x, y, i, run, vg : integer;
+  w, h : dword;
+  b1, b2 : byte;
 
-    p, aQ : pbyte; orgSize, imgSize : qword;
-    Row, Col, w, h : dword;
-    aLine : pbyte;
+  function TryNextByte(out aByte : byte) : boolean;
+  begin
+    if BufPos >= BufLen then
+      begin
+      BufLen := Stream.Read(Buf[0], Length(Buf));
+      BufPos := 0;
+      if BufLen <= 0 then
+        begin
+        BufLen := 0;
+        aByte := 0;
+        exit(False);
+        end;
+      end;
+    aByte := Buf[BufPos];
+    inc(BufPos);
+    Result := True;
+  end;
 
+  function NextByte : byte;
+  begin
+    if not TryNextByte(Result) then
+      raise FPImageException.Create('QOI data truncated');
+  end;
 
 begin
-     with QoiHeader do
-     begin
-       Img.SetSize (Width, Height);
-       imgSize := Width * Height;
-       w:=Width;
-       h:=Height;
-     end;
-
-
-     orgSize:=Stream.size;
-     orgSize:=orgSize-sizeof(TQoiHeader);
-     getmem(aLine,orgSize);
-
-     q:=Stream.Read(aLine^,orgSize);
-     if orgSize>q then orgSize:=q;
-
-
-     ip:=0;
-     q:=0;
-     p:=aLine;
-
-     dword(px):=0;
-     px.a:=255;
-
-     {initialize previously seen pixel array}
-     FillQWord(arr,sizeof(arr) div sizeof(QWord),0);
-     iA:=QoiPixelIndex(px);
-     //for iA:=0 to 63 do
-     arr[iA]:=px;
-
-     Row:=0;
-     Col:=0;
-
-
-     {actual decoding loop}
-     while (orgSize> ip) and (imgSize>q) do
-     begin
-          b:=p^;
-          inc(p);
-          inc(ip);
-
-          case (b shr 6) of
-             0: begin  { pixel from previous pixel array}
-
-                     if b = p^ then {deal with end of encoding}
-                     begin
-                          if b = 0 then
-                          begin
-                               dec(p);
-                               for iA:=0 to 6 do
-                               begin
-                                    b:=p^;
-                                    inc(p);
-                                    inc(ip);
-                                    if b<>0 then break;
-                               end;
-                               if b<>0 then
-                               begin
-                                    {invalid encoding}
-                                    break;
-                               end;
-                               b:=p^;
-                               inc(p);
-                               inc(ip);
-                               if b = 1 then
-                               begin
-                                    //writeln('end of encoding ');
-                                    {success - no more encoded pixels}
-                                    break;
-                               end else
-                               begin
-                                    {invalid encoding}
-                                    break;
-                               end;
-
-                          end else
-                          begin
-                               {invalid encoding}
-                               break;
-                          end;
-                     end;
-
-                     {pixel from array}
-                     iA:= b and 63;
-                     px:=arr[iA];
-                     img.Colors[Col,Row] := RGBAToFPColor( px );
-                     inc(q);
-                     inc(Col);
-                     if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-
+  Stream.ReadBuffer(QoiHeader, SizeOf(TQoiHeader));
+  {$IFDEF ENDIAN_LITTLE}
+  QoiHeader.width:=SwapEndian(QoiHeader.width);
+  QoiHeader.height:=SwapEndian(QoiHeader.height);
+  {$ENDIF}
+  w := QoiHeader.width;
+  h := QoiHeader.height;
+  if (QoiHeader.magic <> 'qoif') or not (QoiHeader.channels in [qoChannelRGB, qoChannelRGBA])
+     or (QoiHeader.colorspace > 1) then
+    raise FPImageException.Create('Invalid QOI header');
+  if (w > MaxPixels) or (h > MaxPixels) or ((w > 0) and (h > MaxPixels div w)) then
+    raise FPImageException.Create('QOI dimensions too large');
+  Img.SetSize(w, h);
+  SetLength(Buf, BufSize);
+  BufPos := 0;
+  BufLen := 0;
+  FillChar(Index, SizeOf(Index), 0);
+  dword(px) := 0;
+  px.a := 255;
+  run := 0;
+  for y := 0 to integer(h)-1 do
+    for x := 0 to integer(w)-1 do
+      begin
+      if run > 0 then
+        dec(run)
+      else
+        begin
+        b1 := NextByte;
+        if b1 = $FE then
+          begin
+          px.r := NextByte;
+          px.g := NextByte;
+          px.b := NextByte;
+          end
+        else if b1 = $FF then
+          begin
+          px.r := NextByte;
+          px.g := NextByte;
+          px.b := NextByte;
+          px.a := NextByte;
+          end
+        else
+          case b1 shr 6 of
+            0 : px := Index[b1];
+            1 : begin
+                px.r := (integer(px.r) + ((b1 shr 4) and 3) - 2) and 255;
+                px.g := (integer(px.g) + ((b1 shr 2) and 3) - 2) and 255;
+                px.b := (integer(px.b) + (b1 and 3) - 2) and 255;
                 end;
-
-             1: begin { diff }
-                     b:=b and 63;
-                     px.r:=px.r+ byte(b shr 4) and 3+shortint(-2);
-                     px.g:=px.g+ byte(b shr 2) and 3+shortint(-2);
-                     px.b:=px.b+ byte(b shr 0) and 3+shortint(-2);
-
-                     img.Colors[Col,Row] := RGBAToFPColor( px );
-                     inc(q);
-                     inc(Col);
-                     if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-                     iA:=QoiPixelIndex(px);
-                     arr[iA]:=px;
-
+            2 : begin
+                b2 := NextByte;
+                vg := (b1 and 63) - 32;
+                px.r := (integer(px.r) + vg - 8 + (b2 shr 4)) and 255;
+                px.g := (integer(px.g) + vg) and 255;
+                px.b := (integer(px.b) + vg - 8 + (b2 and 15)) and 255;
                 end;
-
-             2: begin { luma }
-                     g:=b and 63 - 32;
-                     b:=p^;
-                     inc(p);
-                     inc(ip);
-                     px.g:=px.g + g;
-                     px.r:=px.r+g+shortint((b shr 4)-8);
-                     px.b:=px.b+g+shortint((b and 15)-8);
-                     img.Colors[Col,Row] := RGBAToFPColor( px );
-                     inc(q);
-                     inc(Col);
-                     if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-                     iA:=QoiPixelIndex(px);
-                     arr[iA]:=px;
-
-
-                end;
-
-             3: begin
-                     run:=b and 63+1;
-                     case run of
-                       64: begin  { rgba }
-                                px.r:=p^;
-                                inc(p);
-                                px.g:=p^;
-                                inc(p);
-                                px.b:=p^;
-                                inc(p);
-                                px.a:=p^;
-                                inc(p);
-                                inc(ip,4);
-                                img.Colors[Col,Row] := RGBAToFPColor( px );
-                                inc(q);
-                                inc(Col);
-                                if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-                                iA:=QoiPixelIndex(px);
-                                arr[iA]:=px;
-
-                          end;
-                       63: begin  { rgb  }
-                                px.r:=p^;
-                                inc(p);
-                                px.g:=p^;
-                                inc(p);
-                                px.b:=p^;
-                                inc(p);
-                                inc(ip,3);
-                                img.Colors[Col,Row] := RGBAToFPColor( px );
-                                inc(q);
-                                inc(Col);
-                                if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-                                iA:=QoiPixelIndex(px);
-                                arr[iA]:=px;
-
-                          end;
-                       otherwise { run - repeat previous pixel}
-                            repeat
-                                img.Colors[Col,Row] := RGBAToFPColor( px );
-                                inc(q);
-                                inc(Col);
-                                if Col = w then begin inc(Row); Col:=0; if Row>=h then break; end;
-                                dec(run);
-
-                            until run =0;
-                       end;
-                end;
-
-          end;   {case of }
-     end; { while do}
-     freeMem(aLine);
+            3 : run := b1 and 63;
+          end;
+        Index[QoiPixelIndex(px)] := px;
+        end;
+      Img.Colors[x,y] := RGBAToFPColor(px);
+      end;
+  // Skip the end marker: seven zero bytes and a one.
+  for i := 0 to 7 do
+    begin
+    if not TryNextByte(b1) then
+      break;
+    if b1 <> ord(i = 7) then
+      begin
+      dec(BufPos);
+      break;
+      end;
+    end;
+  if BufPos < BufLen then
+    Stream.Seek(BufPos - BufLen, soCurrent);
 end;
 
 initialization

@@ -462,8 +462,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pend:=psrc+sizeof(ptruint);
     end;
   while (psrc<pend) and (psrc^=pdest^) do
     begin
@@ -509,8 +507,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pointer(pend):=pointer(psrc)+sizeof(ptruint);
     end;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
   if (PtrUInt(pdest) or PtrUInt(psrc)) and 1<>0 then
@@ -572,8 +568,6 @@ begin
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
-      if psrc<pendpart then
-        pointer(pend):=pointer(psrc)+sizeof(ptruint);
     end;
 {$endif sizeof(ptruint)>sizeof(dword)}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -702,21 +696,23 @@ end;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
-type
-  pobjectvmt=^tobjectvmt;
-  tobjectvmt=record
-    size,msize:sizeuint;
-    parent:ppointer;
-  end;
+function TObjectVMT.GetvParent: PObjectVMT;
+begin
+  if Assigned(vParentRef) then
+    GetvParent:=vParentRef^
+  else
+    GetvParent:=nil;
+end;
+
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];compilerproc;
 var
-  vmtcopy : pobjectvmt;
+  vmtcopy : PObjectVMT;
 begin
-  vmtcopy:=pobjectvmt(_vmt);
+  vmtcopy:=PObjectVMT(_vmt);
   { Inherited call? }
   if vmtcopy=nil then
     begin
@@ -725,15 +721,15 @@ begin
     end;
 
   if (_self=nil) and
-     (vmtcopy^.size>0) then
+     (vmtcopy^.vInstanceSize>0) then
     begin
-      getmem(_self,vmtcopy^.size);
+      getmem(_self,vmtcopy^.vInstanceSize);
       { reset vmt needed for fail }
       _vmt:=pointer(-1);
     end;
   if _self<>nil then
     begin
-      fillchar(_self^,vmtcopy^.size,0);
+      fillchar(_self^,vmtcopy^.vInstanceSize,0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
   fpc_help_constructor:=_self;
@@ -750,8 +746,8 @@ begin
       (_vmt<>pointer(-1)) or
       (ppointer(_self+vmt_pos)^=nil) then
      exit;
-   if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
-      (pobjectvmt(ppointer(_self+vmt_pos)^)^.size+pobjectvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
+   if (PObjectVMT(ppointer(_self+vmt_pos)^)^.vInstanceSize=0) or
+      (PObjectVMT(ppointer(_self+vmt_pos)^)^.vInstanceSize+PObjectVMT(ppointer(_self+vmt_pos)^)^.vInstanceSize2<>0) then
      HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
@@ -789,8 +785,8 @@ end;
 procedure fpc_check_object(_vmt : pointer); [public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
 begin
   if (_vmt=nil) or
-     (pobjectvmt(_vmt)^.size=0) or
-     (pobjectvmt(_vmt)^.size+pobjectvmt(_vmt)^.msize<>0) then
+     (PObjectVMT(_vmt)^.vInstanceSize=0) or
+     (PObjectVMT(_vmt)^.vInstanceSize+PObjectVMT(_vmt)^.vInstanceSize2<>0) then
     HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
 end;
 
@@ -804,17 +800,14 @@ end;
 procedure fpc_check_object_ext(vmt, expvmt : pointer); [public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
 begin
    if (vmt=nil) or
-      (pobjectvmt(vmt)^.size=0) or
-      (pobjectvmt(vmt)^.size+pobjectvmt(vmt)^.msize<>0) then
+      (PObjectVMT(vmt)^.vInstanceSize=0) or
+      (PObjectVMT(vmt)^.vInstanceSize+PObjectVMT(vmt)^.vInstanceSize2<>0) then
         HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
    while assigned(vmt) do
      if vmt=expvmt then
        exit
      else
-       if assigned(pobjectvmt(vmt)^.parent) then
-         vmt:=pobjectvmt(vmt)^.parent^
-       else
-         vmt:=nil;
+       vmt:=PObjectVMT(vmt)^.vParent;
    HandleErrorAddrFrameInd(219,get_pc_addr,get_frame);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
@@ -3166,6 +3159,62 @@ function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endi
     result:=result or BsrDword(tmp);
   end;
 {$endif}
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
+function Bsf(Const AValue: Byte): Byte;
+  begin
+    result:=BsfByte(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_BYTE}
+function Bsr(Const AValue: Byte): Byte;
+  begin
+    result:=BsrByte(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_WORD}
+function Bsf(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_WORD}
+function Bsr(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
+function Bsf(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfDWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
+function Bsr(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrDWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
+function Bsf(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfQWord(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
+function Bsr(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrQWord(AValue);
+  end;
 {$endif}
 
 const

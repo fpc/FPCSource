@@ -48,7 +48,11 @@
  *	CdlReadS	-		status
  *	--------------------------------------------------------------
 }
-
+{$LINKLIB cd, static}
+{$LINKLIB etc, static}
+{$LINKLIB ds, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libcd;
 {$ENDIF FPC_DOTTEDUNITS}

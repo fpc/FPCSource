@@ -89,6 +89,10 @@ interface
          patternw : tcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
+         { read position inside tokenbuf at the time the replay was suspended:
+           the same buffer can be replayed re-entrantly (e.g. a generic whose
+           body specializes the same generic with different parameters) }
+         tokenbuf_pos : longint;
          tokenbuf_needs_swapping : boolean;
          next     : treplaystack;
          pending  : tpendingstate;
@@ -3023,6 +3027,10 @@ type
         pending:=apending;
         verbosity:=averbosity;
         tokenbuf:=atokenbuf;
+        if assigned(atokenbuf) then
+          tokenbuf_pos:=atokenbuf.pos
+        else
+          tokenbuf_pos:=0;
         tokenbuf_needs_swapping:=change_endian;
         next:=anext;
       end;
@@ -3829,6 +3837,9 @@ type
             copywidestring(replaystack.patternw,patternw);
             cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
+            { the suspended buffer may have been replayed again in the meantime }
+            if assigned(replaytokenbuf) then
+              replaytokenbuf.seek(replaystack.tokenbuf_pos);
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;

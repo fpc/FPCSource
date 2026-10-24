@@ -78,6 +78,7 @@ type
     procedure TestM_TryExceptExpr;
     procedure TestM_ResourceString;
     procedure TestM_Record;
+    procedure TestM_RecordComposition;
     procedure TestM_RecordGeneric;
     procedure TestM_PointerTyped_Record;
     procedure TestM_Array;
@@ -85,6 +86,7 @@ type
     procedure TestM_Enums;
     procedure TestM_ProcedureType;
     procedure TestM_AnonymousProc;
+    procedure TestM_TypeOf;
     procedure TestM_Params;
     procedure TestM_Class;
     procedure TestM_ClassForward;
@@ -124,6 +126,7 @@ type
     procedure TestM_Hint_ArrayStaticDim2_No_LocalArrayTypeNotUsed;
     procedure TestM_Hint_InheritedWithoutParams;
     procedure TestM_Hint_LocalVariableNotUsed;
+    procedure TestM_Hint_TypeOfOnlyVarNotUsed;
     procedure TestM_HintsOff_LocalVariableNotUsed;
     procedure TestM_Hint_ForVar_No_LocalVariableNotUsed;
     procedure TestM_Hint_InterfaceUnitVariableUsed;
@@ -1041,6 +1044,36 @@ begin
   AnalyzeProgram;
 end;
 
+procedure TTestUseAnalyzer.TestM_RecordComposition;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch recordcomposition}',
+  'procedure {#DoIt_used}DoIt;',
+  'type',
+  '  {#tchild_used}TChild = record',
+  '    {#a_used}a: longint;',
+  '    {#b_notused}b: longint;',
+  '  end;',
+  '  {#tother_used}TOther = record',
+  '    {#c_used}c: longint;',
+  '  end;',
+  '  {#trec_used}TRec = record',
+  '    contains {#child_used}child: TChild;',
+  '    {#d_notused}d: longint;',
+  '    contains {#other_used}TOther;',
+  '  end;',
+  'var',
+  '  {#r_used}r: TRec;',
+  'begin',
+  '  r.a:=3;',
+  '  with r do c:=4;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
 procedure TTestUseAnalyzer.TestM_RecordGeneric;
 begin
   StartProgram(false);
@@ -1195,6 +1228,56 @@ begin
   Add('begin');
   Add('  DoIt;');
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_TypeOf;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  {#TRec_used}TRec = record',
+  '    {#b_used}b: byte;',
+  '    {#w_notused}w: word;',
+  '  end;',
+  'function {#GetRec_notused}GetRec: TRec; begin end;',
+  'function {#GetWord_notused}GetWord: word; begin Result:=1; end;',
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#a_used}a: type of GetRec;',
+  '  {#c_notused}c: type of GetWord;',
+  '  {#i_used}i: longint;',
+  '  {#j_notused}j: longint;',
+  '  {#k_notused}k: longint;',
+  'begin',
+  '  a.b:=3;',
+  '  i:=Default(type of j);',
+  '  i:=type of k(a.b);',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_TypeOfOnlyVarNotUsed;
+begin
+  StartProgram(true);
+  Add([
+  '{$mode objfpc}',
+  'procedure DoIt;',
+  'var',
+  '  b: byte;',
+  '  c: type of b;',
+  'begin',
+  '  c:=3;',
+  '  if c=4 then ;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "b" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_AnonymousProc;

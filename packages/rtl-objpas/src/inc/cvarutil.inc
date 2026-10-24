@@ -34,6 +34,51 @@ begin
     Result:=VAR_EXCEPTION;
 end;
 
+
+procedure DispatchGetDefaultValue(var aDest: TVarData; const aSource: TVarData);
+
+const
+  DISPID_VALUE = 0;
+  DISPATCH_PROPERTYGET = 2;
+type
+  TNoDispParams = record
+    rgvarg, rgdispidNamedArgs: Pointer;
+    cArgs, cNamedArgs: LongWord;
+  end;
+var
+  lDisp: Pointer;
+  lParams: TNoDispParams;
+begin
+  if (aSource.vType and varByRef) <> 0 then
+    lDisp := PPointer(aSource.vPointer)^
+  else
+    lDisp := aSource.vDispatch;
+  if lDisp = nil then
+    VariantTypeMismatch(aSource.vType, varVariant);
+  FillChar(lParams, SizeOf(lParams), 0);
+  if IDispatch(lDisp).Invoke(DISPID_VALUE, GUID_NULL, VAR_LOCALE_USER_DEFAULT,
+    DISPATCH_PROPERTYGET, lParams, @aDest, nil, nil) <> S_OK then
+    VariantTypeMismatch(aSource.vType, varVariant);
+end;
+
+
+// Puts the default value of a varDispatch aSource in aValue; false for other sources.
+function DispatchValue(const aSource: TVarData; out aValue: TVarData): Boolean;
+
+begin
+  Result := Assigned(VarDispValueProc)
+    and ((aSource.vType = varDispatch) or (aSource.vType = varDispatch or varByRef));
+  if not Result then
+    Exit;
+  FillChar(aValue, SizeOf(aValue), 0);
+  VarDispValueProc(aValue, aSource);
+  if (aValue.vType and varTypeMask) = varDispatch then
+  begin
+    VarClearProc(aValue);
+    VariantTypeMismatch(aSource.vType, varVariant);
+  end;
+end;
+
 { ---------------------------------------------------------------------
     OS-independent functions not present in Windows
   ---------------------------------------------------------------------}
@@ -68,7 +113,16 @@ begin
 end;
 
 Function VariantToSmallInt(const VargSrc : TVarData) : SmallInt;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToSmallInt(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToSmallInt', VargSrc);
   end; {$ENDIF}
@@ -162,7 +216,16 @@ begin
 end;
 
 Function VariantToShortInt(const VargSrc : TVarData) : ShortInt;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToShortInt(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToShortInt', VargSrc);
   end; {$ENDIF}
@@ -256,7 +319,16 @@ begin
 end;
 
 Function VariantToLongInt(const VargSrc : TVarData) : LongInt;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToLongInt(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToLongInt', VargSrc);
   end; {$ENDIF}
@@ -350,7 +422,16 @@ begin
 end;
 
 Function VariantToCardinal(const VargSrc : TVarData) : Cardinal;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToCardinal(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToCardinal', VargSrc);
   end; {$ENDIF}
@@ -484,7 +565,16 @@ end;
 
 
 Function VariantToSingle(const VargSrc : TVarData) : Single;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToSingle(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToSingle', VargSrc);
   end; {$ENDIF}
@@ -595,7 +685,16 @@ begin
 end;
 
 Function VariantToDouble(const VargSrc : TVarData) : Double;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToDouble(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToDouble', VargSrc);
   end; {$ENDIF}
@@ -711,7 +810,16 @@ begin
 end;
 
 Function VariantToCurrency(const VargSrc : TVarData) : Currency;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToCurrency(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToCurrency', VargSrc);
   end; {$ENDIF}
@@ -826,7 +934,16 @@ begin
 end;
 
 Function VariantToDate(const VargSrc : TVarData) : TDateTime;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToDate(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToDate', VargSrc);
   end; {$ENDIF}
@@ -911,7 +1028,16 @@ begin
 end;
 
 Function VariantToBoolean(const VargSrc : TVarData) : Boolean;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToBoolean(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToBoolean', VargSrc);
   end; {$ENDIF}
@@ -1005,7 +1131,16 @@ begin
 end;
 
 Function VariantToByte(const VargSrc : TVarData) : Byte;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToByte(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToByte', VargSrc);
   end; {$ENDIF}
@@ -1099,7 +1234,16 @@ begin
 end;
 
 Function VariantToInt64(const VargSrc : TVarData) : Int64;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToInt64(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToInt64', VargSrc);
   end; {$ENDIF}
@@ -1193,7 +1337,16 @@ begin
 end;
 
 Function VariantToQWord(const VargSrc : TVarData) : QWord;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToQWord(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToQWord', VargSrc);
   end; {$ENDIF}
@@ -1268,7 +1421,16 @@ end;
 {--- WideString ---}
 
 Function VariantToWideString(const VargSrc : TVarData) : WideString;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToWideString(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToWideString', VargSrc);
   end; {$ENDIF}
@@ -1335,7 +1497,16 @@ end;
 {--- AnsiString ---}
 
 Function VariantToAnsiString(const VargSrc : TVarData) : AnsiString;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToAnsiString(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToAnsiString', VargSrc);
   end; {$ENDIF}
@@ -1401,7 +1572,16 @@ end;
 
 
 Function VariantToUnicodeString(const VargSrc : TVarData) : UnicodeString;
+var
+  lValue: TVarData;
 begin
+  if DispatchValue(VargSrc, lValue) then
+    try
+      Exit(VariantToUnicodeString(lValue));
+    finally
+      VarClearProc(lValue);
+    end;
+
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
   DumpVariant('VariantToUnicodeString', VargSrc);
   end; {$ENDIF}

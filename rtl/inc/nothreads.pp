@@ -230,9 +230,10 @@ procedure FakeRTLEventWaitFor(AEvent: PRTLEvent);
 begin
 end;
 
-procedure FakeRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function FakeRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 
 begin
+  Result:=True;
 end;
 
 

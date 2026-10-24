@@ -69,6 +69,85 @@ begin
 {$ENDIF}
 end;
 
+// Returns the load bias of the module whose headers are mapped at aBase
+Function ModuleLoadBias(aBase: PByte): CodePtrUInt;
+
+{$ifdef darwin}
+const
+  MH_MAGIC = $FEEDFACE;
+  MH_MAGIC_64 = $FEEDFACF;
+  LC_SEGMENT = $1;
+  LC_SEGMENT_64 = $19;
+  cTextSegment: array[0..6] of AnsiChar = '__TEXT'#0;
+
+var
+  lCmd: PByte;
+  lCount, i: LongWord;
+{$else darwin}
+const
+  ET_EXEC = 2;
+{$endif darwin}
+
+begin
+  Result:=CodePtrUInt(aBase);
+  if aBase=nil then
+    exit;
+{$ifdef darwin}
+  case PLongWord(aBase)^ of
+    MH_MAGIC: lCmd:=aBase+28;
+    MH_MAGIC_64: lCmd:=aBase+32;
+  else
+    exit;
+  end;
+  lCount:=PLongWord(aBase+16)^;
+  for i:=1 to lCount do
+    begin
+    if (PLongWord(lCmd)^=LC_SEGMENT_64) and (CompareByte(lCmd[8],cTextSegment,SizeOf(cTextSegment))=0) then
+      exit(CodePtrUInt(aBase)-CodePtrUInt(PQWord(lCmd+24)^));
+    if (PLongWord(lCmd)^=LC_SEGMENT) and (CompareByte(lCmd[8],cTextSegment,SizeOf(cTextSegment))=0) then
+      exit(CodePtrUInt(aBase)-CodePtrUInt(PLongWord(lCmd+24)^));
+    lCmd:=lCmd+PLongWord(lCmd+4)^;
+    end;
+{$else darwin}
+  if (aBase[0]=$7F) and (aBase[1]=Ord('E')) and (aBase[2]=Ord('L')) and (aBase[3]=Ord('F')) and
+     (PWord(aBase+16)^=ET_EXEC) then
+    Result:=0;
+{$endif darwin}
+end;
+
+
+// Looks up the dynamic symbol at or before Addr with dladdr
+Function SysGetSymbolByAddr(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
+
+var
+  lDlInfo: dl_info;
+  lLen: SizeInt;
+
+begin
+  Info.SymbolName:='';
+  Info.SymbolAddr:=nil;
+  Info.ModuleName:='';
+  Info.ModuleOffset:=0;
+  FillChar(lDlInfo,SizeOf(lDlInfo),0);
+  Result:=dladdr(Addr,@lDlInfo)<>0;
+  if not Result then
+    exit;
+  if Assigned(lDlInfo.dli_sname) then
+    begin
+    Info.SymbolName:=lDlInfo.dli_sname;
+    Info.SymbolAddr:=lDlInfo.dli_saddr;
+    end;
+  if Assigned(lDlInfo.dli_fname) then
+    begin
+    Info.ModuleOffset:=CodePtrUInt(Addr)-ModuleLoadBias(lDlInfo.dli_fbase);
+    lLen:=IndexByte(lDlInfo.dli_fname^,-1,0);
+    if lLen>255 then
+      Info.ModuleName:=PAnsiChar(lDlInfo.dli_fname+lLen-255)
+    else
+      Info.ModuleName:=lDlInfo.dli_fname;
+    end;
+end;
+
 const
   SysDynLibsManager: TDynLibsManager = (
     LoadLibraryU: @SysLoadLibraryU;
@@ -77,6 +156,7 @@ const
     GetProcAddressOrdinal: Nil;
     UnloadLibrary: @SysUnloadLibrary;
     GetLoadErrorStr: @SysGetLoadErrorStr;
+    GetSymbolByAddr: @SysGetSymbolByAddr;
   );
 
 procedure InitDynLibs;

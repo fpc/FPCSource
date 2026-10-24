@@ -152,7 +152,8 @@ const
         CPUXTENSA_HAS_MUL32HIGH,
         CPUXTENSA_HAS_DIV,
         CPUXTENSA_HAS_LOOPS,
-        CPUXTENSA_HAS_MINMAX
+        CPUXTENSA_HAS_MINMAX,
+        CPUXTENSA_HAS_DATACACHE
       );
 
    tfpuflags =

@@ -555,6 +555,7 @@ var
   p,pold   : penhancedvideocell;
   LastCharWasDoubleWidth: Boolean;
   CurCharWidth: Integer;
+  FirstChar : WideChar;
 
   function transform(const hstr:UnicodeString):RawByteString;
   var
@@ -735,7 +736,8 @@ begin
                chattr:=p^;
     {           if chattr.ch in [#0,#255] then
                 chattr.ch:=' ';}
-               if chattr.ExtendedGraphemeCluster=' ' then
+               FirstChar:=chattr.ExtendedGraphemeCluster[1];
+               if (FirstChar=' ') or (FirstChar=#0) then
                 begin
                   if Spaces=0 then
                    begin

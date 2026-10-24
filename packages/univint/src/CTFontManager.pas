@@ -229,7 +229,6 @@ uses MacTypes,CTFontDescriptor,CTFontManagerErrors,CFBase,CFArray,CFData,CFError
 }
 
 
-{$ifc TARGET_OS_MAC}
 {!
 	@constant	CTRegisterBundleFonts
 	@discussion If this key is defined in the application bundle info dictionary with a boolean value of true, CTFontManager will register all fonts in the Fonts subdirectory of the bundle's Resources directory in the process scope.
@@ -242,7 +241,7 @@ uses MacTypes,CTFontDescriptor,CTFontManagerErrors,CFBase,CFArray,CFData,CFError
 	@result     This function returns a retained reference to a CFArray of CFString references, or NULL on error. The caller is responsible for releasing the array.
  }
 function CTFontManagerCopyAvailablePostScriptNames: CFArrayRef; external name '_CTFontManagerCopyAvailablePostScriptNames';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_10_0) *)
 
 {!
     @function   CTFontManagerCopyAvailableFontFamilyNames
@@ -251,7 +250,7 @@ function CTFontManagerCopyAvailablePostScriptNames: CFArrayRef; external name '_
     @result     This function returns a retained reference to a CFArray of CFString references, or NULL on error. The caller is responsible for releasing the array.
 }
 function CTFontManagerCopyAvailableFontFamilyNames: CFArrayRef; external name '_CTFontManagerCopyAvailableFontFamilyNames';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_10_0) *)
 
 {!
     @function   CTFontManagerCopyAvailableFontURLs
@@ -259,6 +258,7 @@ function CTFontManagerCopyAvailableFontFamilyNames: CFArrayRef; external name '_
 
     @result     This function returns a retained reference to a CFArray of CFURL references, or NULL on error. The caller is responsible for releasing the array.
 }
+{$ifc TARGET_OS_MAC}
 function CTFontManagerCopyAvailableFontURLs: CFArrayRef; external name '_CTFontManagerCopyAvailableFontURLs';
 (* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_NA) *)
 
@@ -274,6 +274,7 @@ function CTFontManagerCopyAvailableFontURLs: CFArrayRef; external name '_CTFontM
                 Unused. Can be NULL.
     @result     A CFComparisonResult value indicating the sort order for the two family names. kCFComparisonResultGreaterThan if family1 is greater than family2, kCFComparisonResultLessThan if family1 is less than family2, and kCFComparisonResultEqualTo if they are equal.
 }
+
 function CTFontManagerCompareFontFamilyNames( family1: {const} UnivPtr; family2: {const} UnivPtr; context: UnivPtr ): CFComparisonResult; external name '_CTFontManagerCompareFontFamilyNames';
 (* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_NA) *)
 
@@ -287,8 +288,10 @@ function CTFontManagerCompareFontFamilyNames( family1: {const} UnivPtr; family2:
 
     @result     This function returns a retained reference to a CFArray, or NULL on error. The caller is responsible for releasing the array.
 }
+{$endc TARGET_OS_MAC}
+
 function CTFontManagerCreateFontDescriptorsFromURL( fileURL: CFURLRef ): CFArrayRef; external name '_CTFontManagerCreateFontDescriptorsFromURL';
-(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_NA) *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_7_0) *)
 
 {!
     @function   CTFontManagerCreateFontDescriptorFromData
@@ -301,8 +304,7 @@ function CTFontManagerCreateFontDescriptorsFromURL( fileURL: CFURLRef ): CFArray
     @result     A font descriptor created from the data, or NULL on error.
 }
 function CTFontManagerCreateFontDescriptorFromData( data: CFDataRef ): CTFontDescriptorRef; external name '_CTFontManagerCreateFontDescriptorFromData';
-(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_NA) *)
-{$endc} { TARGET_OS_MAC }
+(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_7_0) *)
 
 {!
     @enum       CTFontManagerScope

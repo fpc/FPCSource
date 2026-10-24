@@ -93,7 +93,7 @@ var
   OpRes : TOperationResult;
 
 begin
-  {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' Begin executing operation ',FOperation);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' Begin executing operation ',FOperation);{$ENDIF}
   try
     OpRes.Res:=True;
     Case FOperation of
@@ -128,7 +128,7 @@ begin
         if OpRes.Res then
           begin
           TMonitor.Exit(Fobj);
-            {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' Unlocking previously locked object ',FOperation);{$ENDIF}
+            {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' Unlocking previously locked object ',FOperation);{$ENDIF}
           end;
         end;
     else
@@ -139,7 +139,7 @@ begin
     On E : Exception do
       Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' exception ',E.ClassName,' during operation ',FOperation,' : ',E.Message);
   end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' End executing operation ',FOperation);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' End executing operation ',FOperation);{$ENDIF}
 end;
 
 { TTestMonitorSupport }
@@ -156,18 +156,18 @@ var
 
 begin
   aCount:=0;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' Begin done executing');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' Begin done executing');{$ENDIF}
   For I:=1 to MaxThrdCount do
     begin
     if FThrd[i]=Sender then
       begin
-      {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' Done executing: found thread at ',I){$ENDIF};
+      {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' Done executing: found thread at ',I){$ENDIF};
       FThrd[i]:=Nil;
       end
     else if assigned(FThrd[I]) then
       inc(aCount);
     end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' End done executing. Threads still active: ',aCount);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' End done executing. Threads still active: ',aCount);{$ENDIF}
 end;
 
 procedure TTestMonitorSupport.WaitForAllThreads(aTimeOut : Cardinal = 0);
@@ -181,7 +181,7 @@ begin
   If aTimeOut=0 then
     aTimeout:=WaitTimeout;
   Start:=GetTickCount64;
-  {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,Start,': Thread ',GetCurrentThreadID,' Waiting for ', FThrdCount,' threads to stop');{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}  Writeln(StdErr,Start,': Thread ',ptruint(GetCurrentThreadID),' Waiting for ', FThrdCount,' threads to stop');{$ENDIF}
   Timeout:=False;
   Repeat
     OK:=True;
@@ -197,7 +197,7 @@ begin
   Until OK or TimeOut;
   {$IFDEF DEBUG_MONITOR}
   if not OK then
-    Writeln(StdErr,Last,': Thread ',GetCurrentThreadId,' Not all threads stopped');
+    Writeln(StdErr,Last,': Thread ',ptruint(GetCurrentThreadId),' Not all threads stopped');
   {$ENDIF}
 end;
 
@@ -340,6 +340,10 @@ begin
     begin
     AssertEquals('Thread '+IntToStr(i)+' did a Wait',toPulseAll,Obj1.Res[i].Op);
     AssertTrue('Thread '+IntToStr(i)+' Wait was successful',Obj1.Res[i].Res);
+{$IFDEF DEBUG_MONITOR}
+    if FObj[1].Res[I].Tick<N then
+      writeln(StdErr,'Error for i=',I,': FObj[1].Res[I].Tick=',FObj[1].Res[I].Tick,', global N=',N,', diff=',FObj[1].Res[i].tick -N,' should be positive');
+{$ENDIF DEBUG_MONITOR}
     AssertTrue('Thread '+IntToStr(i)+' pulse timestamp ',N<=FObj[1].Res[i].Tick);
     end;
 end;

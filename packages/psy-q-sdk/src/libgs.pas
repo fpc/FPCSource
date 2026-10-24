@@ -1,3 +1,9 @@
+{$LINKLIB gs, static}
+{$LINKLIB gte, static}
+{$LINKLIB gpu, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgs;
 {$ENDIF FPC_DOTTEDUNITS}

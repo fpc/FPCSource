@@ -32,6 +32,10 @@ function PointInside (const x,y:integer; bounds:TRect) : boolean;
 Function CheckRectClipping (ClipRect:TRect; var Rect:Trect) : Boolean;
 Function CheckRectClipping (ClipRect:TRect; var x1,y1, x2,y2 : integer) : Boolean;
 procedure CheckLineClipping (ClipRect:TRect; var x1,y1, x2,y2 : integer);
+// Moves the endpoints (x1, y1) and (x2, y2) to the ends of the part of the line inside ClipRect
+// (Right and Bottom included) and returns True; returns False with the endpoints unchanged
+// when the whole line lies outside ClipRect.
+function ClipLine (ClipRect:TRect; var x1,y1, x2,y2 : integer) : boolean;
 
 implementation
 
@@ -104,127 +108,94 @@ begin
     end;
 end;
 
-procedure CheckLineClipping (ClipRect:TRect; var x1,y1, x2,y2 : integer);
-var a,b : single;
-    Calculated : boolean;
-    xdiff,n : integer;
-  procedure CalcLine;
+function ClipLine (ClipRect:TRect; var x1,y1, x2,y2 : integer) : boolean;
+const
+  cLeft = 1;
+  cRight = 2;
+  cTop = 4;
+  cBottom = 8;
+var
+  fx1, fy1, fx2, fy2, x, y : double;
+  c1, c2, c : integer;
+
+  function Code (ax, ay : double) : integer;
+  begin
+    Result := 0;
+    if ax < ClipRect.Left then
+      Result := cLeft
+    else if ax > ClipRect.Right then
+      Result := cRight;
+    if ay < ClipRect.Top then
+      Result := Result or cTop
+    else if ay > ClipRect.Bottom then
+      Result := Result or cBottom;
+  end;
+
+begin
+  SortRect (ClipRect);
+  fx1 := x1;
+  fy1 := y1;
+  fx2 := x2;
+  fy2 := y2;
+  c1 := Code (fx1, fy1);
+  c2 := Code (fx2, fy2);
+  while (c1 or c2) <> 0 do
+  begin
+    if (c1 and c2) <> 0 then
+      exit(false);
+    if c1 <> 0 then
+      c := c1
+    else
+      c := c2;
+    if (c and cTop) <> 0 then
     begin
-    if not Calculated then
-      begin
-      xdiff := (x1-x2);
-      a := (y1-y2) / xdiff;
-      b := (x1*y2 - x2*y1) / xdiff;
-      Calculated := true;
-      end;
+      x := fx1 + (fx2 - fx1) * (ClipRect.Top - fy1) / (fy2 - fy1);
+      y := ClipRect.Top;
+    end
+    else if (c and cBottom) <> 0 then
+    begin
+      x := fx1 + (fx2 - fx1) * (ClipRect.Bottom - fy1) / (fy2 - fy1);
+      y := ClipRect.Bottom;
+    end
+    else if (c and cRight) <> 0 then
+    begin
+      y := fy1 + (fy2 - fy1) * (ClipRect.Right - fx1) / (fx2 - fx1);
+      x := ClipRect.Right;
+    end
+    else
+    begin
+      y := fy1 + (fy2 - fy1) * (ClipRect.Left - fx1) / (fx2 - fx1);
+      x := ClipRect.Left;
     end;
-  procedure ClearLine;
+    if c = c1 then
     begin
+      fx1 := x;
+      fy1 := y;
+      c1 := Code (fx1, fy1);
+    end
+    else
+    begin
+      fx2 := x;
+      fy2 := y;
+      c2 := Code (fx2, fy2);
+    end;
+  end;
+  x1 := Round (fx1);
+  y1 := Round (fy1);
+  x2 := Round (fx2);
+  y2 := Round (fy2);
+  Result := true;
+end;
+
+procedure CheckLineClipping (ClipRect:TRect; var x1,y1, x2,y2 : integer);
+begin
+  if not ClipLine (ClipRect, x1,y1, x2,y2) then
+  begin
     x1 := -1;
     y1 := -1;
     x2 := -1;
     y2 := -1;
-    end;
-begin
-  Calculated := false;
-  SortRect (ClipRect);
-  xdiff := (x1-x2);
-  with ClipRect do
-    if xdiff = 0 then
-      begin  // vertical line
-      if y1 > bottom then
-        y1 := bottom
-      else if y1 < top then
-        y1 := top;
-      if y2 > bottom then
-        y2 := bottom
-      else if y2 < top then
-        y2 := top;
-      end
-    else if (y1-y2) = 0 then
-      begin  // horizontal line
-      if x1 < left then
-        x1 := left
-      else if x1 > right then
-        x1 := right;
-      if x2 < left then
-        x2 := left
-      else if x2 > right then
-        x2 := right;
-      end
-    else
-      if ( (y1 < top) and (y2 < top) ) or
-         ( (y1 > bottom) and (y2 > bottom) ) or
-         ( (x1 > right) and (x2 > right) ) or
-         ( (x1 < left) and (x2 < left) ) then
-        ClearLine // completely outside ClipRect
-      else
-        begin
-        if (y1 < top) or (y2 < top) then
-          begin
-          CalcLine;
-          n := round ((top - b) / a);
-          if (n >= left) and (n <= right) then
-            if (y1 < top) then
-              begin
-              x1 := n;
-              y1 := top;
-              end
-            else
-              begin
-              x2 := n;
-              y2 := top;
-              end;
-          end;
-        if (y1 > bottom) or (y2 > bottom) then
-          begin
-          CalcLine;
-          n := round ((bottom - b) / a);
-          if (n >= left) and (n <= right) then
-            if (y1 > bottom) then
-              begin
-              x1 := n;
-              y1 := bottom;
-              end
-            else
-              begin
-              x2 := n;
-              y2 := bottom;
-              end;
-          end;
-        if (x1 < left) or (x2 < left) then
-          begin
-          CalcLine;
-          n := round ((left * a) + b);
-          if (n <= bottom) and (n >= top) then
-            if (x1 < left) then
-              begin
-              x1 := left;
-              y1 := n;
-              end
-            else
-              begin
-              x2 := left;
-              y2 := n;
-              end;
-          end;
-        if (x1 > right) or (x2 > right) then
-          begin
-          CalcLine;
-          n := round ((right * a) + b);
-          if (n <= bottom) and (n >= top) then
-            if (x1 > right) then
-              begin
-              x1 := right;
-              y1 := n;
-              end
-            else
-              begin
-              x2 := right;
-              y2 := n;
-              end;
-          end;
-        end;
+  end;
 end;
 
 end.

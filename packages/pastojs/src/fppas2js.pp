@@ -1359,7 +1359,8 @@ const
     msImplicitFunctionSpec,
     msMultilineStrings,
     msDelphiMultilineStrings,
-    msStatementExpressions];
+    msStatementExpressions,
+    msTypeInquiry];
 
   bsAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
@@ -2766,7 +2767,7 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     OldItem:=TPasIdentifier(FElevatedLocals.List^[Index].Data);
     {$ELSE}
     OldItem:=TPasIdentifier(FElevatedLocals.List[Index].Data);
@@ -2776,7 +2777,7 @@ begin
       raise Exception.Create('20160925183438');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     FElevatedLocals.List^[Index].Data:=Item;
     {$ELSE}
     FElevatedLocals.List[Index].Data:=Item;
@@ -3348,7 +3349,7 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     OldItem:=TPasIdentifier(FExternalNames.List^[Index].Data);
     {$ELSE}
     OldItem:=TPasIdentifier(FExternalNames.List[Index].Data);
@@ -3358,7 +3359,7 @@ begin
       raise Exception.Create('20170322235429');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
-    {$IFDEF VER3_2}
+    {$IF FPC_FULLVERSION<30204}
     FExternalNames.List^[Index].Data:=Item;
     {$ELSE}
     FExternalNames.List[Index].Data:=Item;
@@ -8861,6 +8862,14 @@ begin
   aResolver:=AContext.Resolver;
   Result:=Nil;
   U:=nil;
+  if El.OpCode=eopTypeOf then
+    begin
+    // "type of a(b)" is a typecast -> convert the operand
+    // "type of a" is a type, it has no value
+    if (aResolver<>nil) and aResolver.IsTypeOfCastExpr(El) then
+      exit(ConvertExpression(El.Operand,AContext));
+    NotSupported(20260922100040);
+    end;
   Case El.OpCode of
     eopAdd:
       begin
@@ -9443,7 +9452,8 @@ Const
    Nil, // Address,
    Nil, // Deref
    Nil, // MemAddress
-   Nil  // SubIndent,
+   Nil, // SubIndent,
+   Nil  // TypeOf
   );
 
 Var
@@ -15709,7 +15719,6 @@ var
   Param: TPasExpr;
   TypeEl: TPasType;
   Value: TResEvalValue;
-  MinVal, MaxVal: TMaxPrecInt;
   C: TClass;
 begin
   Result:=nil;
@@ -15741,8 +15750,8 @@ begin
       begin
       if TypeEl.CustomData is TResElDataBaseType then
         begin
-        AContext.Resolver.GetIntegerRange(ResolvedEl.BaseType,MinVal,MaxVal);
-        Result:=CreateLiteralNumber(El,MinVal);
+        // the range of every integer base type contains 0
+        Result:=CreateLiteralNumber(El,0);
         exit;
         end;
       end
@@ -16073,6 +16082,7 @@ begin
   else if (C=TPasRangeType) then
     Result:=ConvertRangeType(TPasRangeType(El),GlobalCtx)
   else if (C=TPasAliasType) then
+  else if (C=TPasTypeOfType) then
   else if (C=TPasTypeAliasType) then
     Result:=ConvertTypeAliasType(TPasTypeAliasType(El),GlobalCtx)
   else if (C=TPasPointerType) then
@@ -26773,6 +26783,8 @@ var
       else if (C=TPasAliasType)
           or (C=TPasTypeAliasType) then
         SrcType:=TPasAliasType(SrcType).DestType
+      else if C=TPasTypeOfType then
+        SrcType:=TPasTypeOfType(SrcType).DestType
       else if C=TPasSpecializeType then
         begin
         if SrcType.CustomData is TPasSpecializeTypeData then

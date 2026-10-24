@@ -28,6 +28,11 @@
         <Filename Value="calendardemo.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="../../src/googleapi.oauthredirect.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GoogleAPI.OAuthRedirect"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -37,6 +42,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>

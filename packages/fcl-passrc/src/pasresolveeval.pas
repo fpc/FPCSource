@@ -199,6 +199,9 @@ const
   nAbsoluteOnlyToVarOrConst = 3096; // same ID as FPC parser_e_absolute_only_to_var_or_const
   nSealedClassCannotHaveAbstractMethod = 3255; // FPC parser_e_sealed_class_cannot_have_abstract_methods
   nForInLoopCannotBeUsedForType = 3265; // FPC parser_e_for_in_loop_cannot_be_used_for_the_type
+  nDuplicateIdentifierX = 5095; // FPC sym_w_duplicate_id
+  nRecordTypeExpected = 5102; // FPC sym_e_type_must_be_record
+  nIdentifierXCannotBeOverloadedForTypeY = 5103; // FPC sym_w_overload_not_possible
 
 // resourcestring patterns of messages
 resourcestring
@@ -358,6 +361,9 @@ resourcestring
   sAbsoluteOnlyToVarOrConst = 'absolute can only be associated with a variable or constant representing an address';
   sSealedClassCannotHaveAbstractMethod = 'SEALED class cannot have an ABSTRACT method';
   sForInLoopCannotBeUsedForType = 'For in loop cannot be used for the type "%s"';
+  sDuplicateIdentifierX = 'Duplicate identifier "%s"';
+  sRecordTypeExpected = 'Record type expected';
+  sIdentifierXCannotBeOverloadedForTypeY = 'Identifier "%s" cannot be overloaded for type "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -2115,15 +2121,23 @@ begin
     UInt:=TResEvalUInt(LeftValue).UInt;
     case RightValue.Kind of
     revkInt:
-      // uint - int
+      // uint - int: a small uint with a signed result, or a big uint minus a
+      // negative int, must not trip the range check of the qword conversion
+      // (SynEdit)
       try
         {$Q+}
-        UInt:=UInt - TResEvalInt(RightValue).Int;
+        if UInt<=TMaxPrecUInt(High(TMaxPrecInt)) then
+          Result:=TResEvalInt.CreateValue(TMaxPrecInt(UInt) - TResEvalInt(RightValue).Int)
+        else if TResEvalInt(RightValue).Int<0 then
+          Result:=TResEvalUInt.CreateValue(UInt + TMaxPrecUInt(-(TResEvalInt(RightValue).Int+1))+1)
+        else
+          Result:=TResEvalUInt.CreateValue(UInt - TMaxPrecUInt(TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
-        Result:=TResEvalUInt.CreateValue(UInt);
       except
         on E: EOverflow do
           RaiseOverflowArithmetic(20170711151405,Expr);
+        on E: ERangeError do
+          RaiseOverflowArithmetic(20260927150000,Expr);
       end;
     revkUInt:
       // uint - uint
@@ -2650,14 +2664,19 @@ begin
         Flo:=Int / TResEvalUInt(RightValue).UInt;
     revkFloat:
       // int / float
-      try
-        Flo:=Int / TResEvalFloat(RightValue).FloatValue;
-      except
-        Flo:=DivideByZero(Sign(Int),Sign(TResEvalFloat(RightValue).FloatValue))
-      end;
+      if TResEvalFloat(RightValue).FloatValue=0 then
+        Flo:=DivideByZero(Sign(Int),0)
+      else
+        try
+          Flo:=Int / TResEvalFloat(RightValue).FloatValue;
+        except
+          Flo:=DivideByZero(Sign(Int),Sign(TResEvalFloat(RightValue).FloatValue))
+        end;
     revkCurrency:
       begin
       // int / currency
+      if TResEvalCurrency(RightValue).Value=0 then
+        RaiseMsg(20180421164915,nDivByZero,sDivByZero,[],Expr);
       try
         aCurrency:=Int / TResEvalCurrency(RightValue).Value;
       except
@@ -2691,14 +2710,19 @@ begin
         Flo:=UInt / TResEvalUInt(RightValue).UInt;
     revkFloat:
       // uint / float
-      try
-        Flo:=UInt / TResEvalFloat(RightValue).FloatValue;
-      except
-        Flo:=DivideByZero(Sign(UInt),Sign(TResEvalFloat(RightValue).FloatValue))
-      end;
+      if TResEvalFloat(RightValue).FloatValue=0 then
+        Flo:=DivideByZero(Sign(UInt),0)
+      else
+        try
+          Flo:=UInt / TResEvalFloat(RightValue).FloatValue;
+        except
+          Flo:=DivideByZero(Sign(UInt),Sign(TResEvalFloat(RightValue).FloatValue))
+        end;
     revkCurrency:
       begin
       // uint / currency
+      if TResEvalCurrency(RightValue).Value=0 then
+        RaiseMsg(20180421164959,nDivByZero,sDivByZero,[],Expr);
       try
         aCurrency:=UInt / TResEvalCurrency(RightValue).Value;
       except
@@ -2732,14 +2756,19 @@ begin
         Flo:=Flo / TResEvalUInt(RightValue).UInt;
     revkFloat:
       // float / float
-      try
-        Flo:=Flo / TResEvalFloat(RightValue).FloatValue;
-      except
-        Flo:=DivideByZero(Sign(Flo),Sign(TResEvalFloat(RightValue).FloatValue))
-      end;
+      if TResEvalFloat(RightValue).FloatValue=0 then
+        Flo:=DivideByZero(Sign(Flo),0)
+      else
+        try
+          Flo:=Flo / TResEvalFloat(RightValue).FloatValue;
+        except
+          Flo:=DivideByZero(Sign(Flo),Sign(TResEvalFloat(RightValue).FloatValue))
+        end;
     revkCurrency:
       begin
       // float / currency
+      if TResEvalCurrency(RightValue).Value=0 then
+        RaiseMsg(20180421165058,nDivByZero,sDivByZero,[],Expr);
       try
         aCurrency:=Flo / TResEvalCurrency(RightValue).Value;
       except
@@ -2772,18 +2801,24 @@ begin
         aCurrency:=aCurrency / TResEvalUInt(RightValue).UInt;
     revkFloat:
       // currency / float
-      try
-        aCurrency:=aCurrency / TResEvalFloat(RightValue).FloatValue;
-      except
-        RaiseMsg(20180421165237,nDivByZero,sDivByZero,[],Expr);
-      end;
+      if TResEvalFloat(RightValue).FloatValue=0 then
+        RaiseMsg(20180421165237,nDivByZero,sDivByZero,[],Expr)
+      else
+        try
+          aCurrency:=aCurrency / TResEvalFloat(RightValue).FloatValue;
+        except
+          RaiseMsg(20180421165237,nDivByZero,sDivByZero,[],Expr);
+        end;
     revkCurrency:
       // currency / currency
-      try
-        aCurrency:=aCurrency / TResEvalCurrency(RightValue).Value;
-      except
-        RaiseMsg(20180421165252,nDivByZero,sDivByZero,[],Expr);
-      end;
+      if TResEvalCurrency(RightValue).Value=0 then
+        RaiseMsg(20180421165252,nDivByZero,sDivByZero,[],Expr)
+      else
+        try
+          aCurrency:=aCurrency / TResEvalCurrency(RightValue).Value;
+        except
+          RaiseMsg(20180421165252,nDivByZero,sDivByZero,[],Expr);
+        end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryDivideExpr currency / ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -3949,14 +3984,21 @@ begin
         end;
       revkUInt:
         begin
+        // Note: when FPC compares int64 with qword it converts the qword to an int64
+        if TResEvalUInt(Value).UInt>HighIntAsUInt then
+          begin
+          if AsArray then
+            begin
+            ReleaseEvalValue(Value);
+            continue;
+            end;
+          EmitRangeCheckConst(20170713201306,Value.AsString,
+            '0',IntToStr(High(TMaxPrecInt)),El,mtError);
+          end;
         if Result.ElKind=revskNone then
           Result.ElKind:=revskInt
         else if Result.ElKind<>revskInt then
-          RaiseNotYetImplemented(20170713201230,El)
-        // Note: when FPC compares int64 with qword it converts the qword to an int64
-        else if TResEvalUInt(Value).UInt>HighIntAsUInt then
-          EmitRangeCheckConst(20170713201306,Value.AsString,
-            '0',IntToStr(High(TMaxPrecInt)),El,mtError);
+          RaiseNotYetImplemented(20170713201230,El);
         RangeStart:=TResEvalUInt(Value).UInt;
         RangeEnd:=RangeStart;
         end;
@@ -3997,7 +4039,12 @@ begin
         if Result.ElKind=revskNone then
           begin
           Result.ElKind:=revskEnum;
-          Result.ElType:=Value.IdentEl.Parent as TPasEnumType;
+          // The value's own enum type: IdentEl may be a constant naming the
+          // enum value, whose parent is a section.
+          if TResEvalEnum(Value).ElType<>nil then
+            Result.ElType:=TResEvalEnum(Value).ElType
+          else
+            Result.ElType:=Value.IdentEl.Parent as TPasEnumType;
           end
         else if Result.ElKind<>revskEnum then
           RaiseNotYetImplemented(20170713143559,El)
@@ -4021,14 +4068,21 @@ begin
         end;
       revkRangeUInt:
         begin
+        // Note: when FPC compares int64 with qword it converts the qword to an int64
+        if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
+          begin
+          if AsArray then
+            begin
+            ReleaseEvalValue(Value);
+            continue;
+            end;
+          EmitRangeCheckConst(20170713203034,Value.AsString,
+            '0',IntToStr(High(TMaxPrecInt)),El,mtError);
+          end;
         if Result.ElKind=revskNone then
           Result.ElKind:=revskInt
         else if Result.ElKind<>revskInt then
-          RaiseNotYetImplemented(20170713202934,El)
-        // Note: when FPC compares int64 with qword it converts the qword to an int64
-        else if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
-          EmitRangeCheckConst(20170713203034,Value.AsString,
-            '0',IntToStr(High(TMaxPrecInt)),El,mtError);
+          RaiseNotYetImplemented(20170713202934,El);
         RangeStart:=TResEvalRangeUInt(Value).RangeStart;
         RangeEnd:=TResEvalRangeUInt(Value).RangeEnd;
         end
@@ -4602,9 +4656,10 @@ var
       AddHash(u);
       exit;
       end;
-    // non ASCII
+    // non ASCII; a value that is already UTF-16 stays UTF-16
     FetchTargetCP;
-    if (TargetCP=CP_UTF16) or (TargetCP=CP_UTF16BE) or (u>255) then
+    if (TargetCP=CP_UTF16) or (TargetCP=CP_UTF16BE) or (u>255)
+        or (Value.Kind=revkUnicodeString) then
       begin
       ForceUTF16;
       ValueUTF16:=TResEvalUTF16(Value);
@@ -5719,6 +5774,31 @@ end;
 
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
   Flags: TResEvalFlags): TResEvalEnum;
+
+  function SetBitMask(aSet: TResEvalSet): Integer;
+  // bit N set for element N, as a small set is stored
+  var
+    i, j, lo, hi: Integer;
+  begin
+    Result:=0;
+    for i:=0 to length(aSet.Ranges)-1 do
+      begin
+      // only bits 0..30 fit; clip first, a loop variable must be an Integer
+      if (aSet.Ranges[i].RangeEnd<0) or (aSet.Ranges[i].RangeStart>30) then
+        continue;
+      if aSet.Ranges[i].RangeStart<0 then
+        lo:=0
+      else
+        lo:=aSet.Ranges[i].RangeStart;
+      if aSet.Ranges[i].RangeEnd>30 then
+        hi:=30
+      else
+        hi:=aSet.Ranges[i].RangeEnd;
+      for j:=lo to hi do
+        Result:=Result or (1 shl j);
+      end;
+  end;
+
 var
   Value: TResEvalValue;
   MaxIndex, Index: Integer;
@@ -5749,6 +5829,9 @@ begin
           IntToStr(TResEvalEnum(Value).Index),'0',IntToStr(MaxIndex),Expr,mtError)
       else
         Index:=TResEvalEnum(Value).Index;
+    revkSetOfInt:
+      // a small set reinterpreted as an enum (FPC): its bit mask is the ordinal
+      Index:=SetBitMask(TResEvalSet(Value));
     else
       RaiseNotYetImplemented(20170713105625,Expr);
     end;

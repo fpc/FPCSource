@@ -73,6 +73,70 @@ Const   { For sending a signal }
 const
   SI_PAD_SIZE   = 128;
 
+{ si_code values when si_signo = SIGILL }
+  ILL_ILLOPC    = 1;  { illegal opcode }
+  ILL_ILLOPN    = 2;  { illegal operand }
+  ILL_ILLADR    = 3;  { illegal addressing mode }
+  ILL_ILLTRP    = 4;  { illegal trap }
+  ILL_PRVOPC    = 5;  { privileged opcode }
+  ILL_PRVREG    = 6;  { privileged register }
+  ILL_COPROC    = 7;  { coprocessor error }
+  ILL_BADSTK    = 8;  { internal stack error }
+
+{ si_code values when si_signo = SIGFPE }
+  FPE_INTDIV    = 1;  { integer divide by zero }
+  FPE_INTOVF    = 2;  { integer overflow }
+  FPE_FLTDIV    = 3;  { floating point divide by zero }
+  FPE_FLTOVF    = 4;  { floating point overflow }
+  FPE_FLTUND    = 5;  { floating point underflow }
+  FPE_FLTRES    = 6;  { floating point inexact result }
+  FPE_FLTINV    = 7;  { invalid floating point operation }
+  FPE_FLTSUB    = 8;  { subscript out of range }
+
+{ si_code values when si_signo = SIGSEGV }
+  SEGV_MAPERR   = 1;  { address not mapped to object }
+  SEGV_ACCERR   = 2;  { invalid permissions for mapped object }
+
+{ si_code values when si_signo = SIGBUS }
+  BUS_ADRALN    = 1;  { invalid address alignment }
+  BUS_ADRERR    = 2;  { non-existent physical address }
+  BUS_OBJERR    = 3;  { object specific hardware error }
+
+{ si_code values when si_signo = SIGTRAP }
+  TRAP_BRKPT    = 1;  { process breakpoint }
+  TRAP_TRACE    = 2;  { process trace trap }
+  TRAP_EXEC     = 3;  { process exec trap }
+  TRAP_CHLD     = 4;  { process child trap }
+  TRAP_LWP      = 5;  { process lwp trap }
+  TRAP_DBREG    = 6;  { process hardware debug register trap }
+  TRAP_SCE      = 7;  { process syscall entry trap }
+  TRAP_SCX      = 8;  { process syscall exit trap }
+
+{ si_code values when si_signo = SIGCHLD }
+  CLD_EXITED    = 1;  { child has exited }
+  CLD_KILLED    = 2;  { child has terminated abnormally, no core file }
+  CLD_DUMPED    = 3;  { child has terminated abnormally, core file }
+  CLD_TRAPPED   = 4;  { traced child has trapped }
+  CLD_STOPPED   = 5;  { child has stopped }
+  CLD_CONTINUED = 6;  { stopped child has continued }
+
+{ si_code values when si_signo = SIGPOLL }
+  POLL_IN       = 1;  { data input available }
+  POLL_OUT      = 2;  { output buffers available }
+  POLL_MSG      = 3;  { input message available }
+  POLL_ERR      = 4;  { i/o error }
+  POLL_PRI      = 5;  { high priority input available }
+  POLL_HUP      = 6;  { device disconnected }
+
+{ si_code values for any signal }
+  SI_USER       = 0;      { sent by kill(2) }
+  SI_QUEUE      = -1;     { sent by sigqueue(2) }
+  SI_TIMER      = -2;     { timer expiration }
+  SI_ASYNCIO    = -3;     { asynchronous i/o request completion }
+  SI_MESGQ      = -4;     { message arrival on an empty message queue }
+  SI_LWP        = -5;     { sent by _lwp_kill(2) }
+  SI_NOINFO     = 32767;  { no signal specific info available }
+
 type
 
   tsigval = record

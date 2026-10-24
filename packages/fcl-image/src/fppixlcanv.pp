@@ -38,15 +38,18 @@ type
 
   TFPPixelCanvas = class (TFPCustomCanvas)
   private
-    FHashWidth : word;
-    FNonZeroWindingRule : Boolean;
-    FRelativeBI : boolean;
+    // True when the brush is a hatch and HatchOrigin is not hoDefault.
+    function HatchByOrigin : boolean;
+    procedure PenRectangle (const Bounds:TRect);
+    procedure PenEllipse (const Bounds:TRect);
+    procedure PenPolygon (const points:array of TPoint);
+    procedure PenPolyline (const points:array of TPoint);
+    procedure PenLine (x1,y1,x2,y2:integer);
+    procedure StrokeThick (const points:array of TPoint; aClosed:boolean);
   protected
-    procedure DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect); override;
     function DoCreateDefaultFont : TFPCustomFont; override;
     function DoCreateDefaultPen : TFPCustomPen; override;
     function DoCreateDefaultBrush : TFPCustomBrush; override;
-    procedure DoDraw(x, y: integer; const image: TFPCustomImage); override;
     procedure DoTextOut (x,y:integer;text:AnsiString); override;
     procedure DoGetTextSize (text:AnsiString; var w,h:integer); override;
     function  DoGetTextHeight (text:AnsiString) : integer; override;
@@ -60,11 +63,10 @@ type
     procedure DoPolyline (const points:array of TPoint); override;
     procedure DoFloodFill (x,y:integer); override;
     procedure DoLine (x1,y1,x2,y2:integer); override;
+    function GetNativeTextOrigin : TFPTextOrigin; override;
+    function GetNativeTextMeasure : TFPTextMeasure; override;
+    procedure DoFloodFillStyle (x, y: integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle); override;
   public
-    constructor create;
-    property HashWidth : word read FHashWidth write FHashWidth;
-    property PolygonNonZeroWindingRule : Boolean read FNonZeroWindingRule write FNonZeroWindingRule;
-    property RelativeBrushImage : boolean read FRelativeBI write FRelativeBI;
   end;
 
 const
@@ -76,37 +78,39 @@ const
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses FpImage.Clipping;
+uses System.Math, FpImage.Clipping;
 {$ELSE FPC_DOTTEDUNITS}
-uses Clipping;
+uses Math, Clipping;
 {$ENDIF FPC_DOTTEDUNITS}
-
-const
-  DefaultHashWidth = 15;
 
 procedure NotImplemented;
 begin
   raise ENotImplemented.Create(sErrNotAvailable);
 end;
 
-constructor TFPPixelCanvas.create;
+function TFPPixelCanvas.GetNativeTextOrigin : TFPTextOrigin;
 begin
-  inherited;
-  FHashWidth := DefaultHashWidth;
+  Result := toBaseline;
 end;
 
-procedure TFPPixelCanvas.DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect);
-Var
-  W,H,XS1,XS2,YS1,YS2 : Integer;
-
+function TFPPixelCanvas.GetNativeTextMeasure : TFPTextMeasure;
 begin
-  XS1:=SourceRect.Left;
-  XS2:=SourceRect.Right;
-  YS1:=SourceRect.Top;
-  YS2:=SourceRect.Bottom;
-  For H:=0 to YS2-YS1 do
-    For W:=0 to XS2-XS1 do
-      Colors[x+h,y+h]:=Canvas.Colors[XS1+W,YS1+H];
+  Result := tmInk;
+end;
+
+procedure TFPPixelCanvas.DoFloodFillStyle (x, y: integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle);
+begin
+  if FillStyle = ffSurface then
+    inherited DoFloodFillStyle(x, y, FillColor, FillStyle)
+  else
+    begin
+    BeginFloodFillBorder(FillColor);
+    try
+      DoFloodFill(x, y);
+    finally
+      EndFloodFillBorder;
+    end;
+    end;
 end;
 
 function TFPPixelCanvas.DoCreateDefaultFont : TFPCustomFont;
@@ -138,17 +142,6 @@ begin
   result.Style := bsSolid;
 end;
 
-procedure TFPPixelCanvas.DoDraw(x, y: integer; const image: TFPCustomImage);
-
-Var
-  W,h : Integer;
-
-begin
-  For H:=0 to Image.Height-1 do
-    For W:=0 to Image.Width-1 do
-      Colors[x+w,y+h]:=Image.Colors[W,H];
-end;
-
 procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:AnsiString);
 begin
   NotImplemented;
@@ -172,21 +165,28 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoRectangle (const Bounds:TRect);
+begin
+  BeginPenShape;
+  try
+    PenRectangle (Bounds);
+  finally
+    EndPenShape;
+  end;
+end;
+
+// Draws the outline of a rectangle with the pen.
+procedure TFPPixelCanvas.PenRectangle (const Bounds:TRect);
 var pattern : longword;
 
   procedure CheckLine (x1,y1, x2,y2 : integer);
   begin
-    if clipping then
-      CheckLineClipping (ClipRect, x1,y1, x2,y2);
-    if x1 >= 0 then
+    if not clipping or ClipLine (DeviceClipRect, x1,y1, x2,y2) then
       DrawSolidLine (self, x1,y1, x2,y2, Pen.FPColor)
   end;
 
   procedure CheckPLine (x1,y1, x2,y2 : integer);
   begin
-    if clipping then
-      CheckLineClipping (ClipRect, x1,y1, x2,y2);
-    if x1 >= 0 then
+    if not clipping or ClipLine (DeviceClipRect, x1,y1, x2,y2) then
       DrawPatternLine (self, x1,y1, x2,y2, pattern, Pen.FPColor)
   end;
 
@@ -223,65 +223,105 @@ begin
     end;
 end;
 
+function TFPPixelCanvas.HatchByOrigin : boolean;
+begin
+  Result := (HatchOrigin <> hoDefault)
+            and (Brush.Style in [bsHorizontal, bsVertical, bsFDiagonal, bsBDiagonal, bsCross, bsDiagCross]);
+end;
+
 procedure TFPPixelCanvas.DoRectangleFill (const Bounds:TRect);
 var b : TRect;
+    ox, oy : integer;
 begin
   b := Bounds;
   SortRect (b);
+  ox := 0;
+  oy := 0;
+  if HatchOrigin = hoShape then
+    begin
+    ox := b.Left;
+    oy := b.Top;
+    end;
   if clipping then
-    CheckRectClipping (ClipRect, B);
+    CheckRectClipping (DeviceClipRect, B);
+  if HatchByOrigin then
+    begin
+    with b do
+      FillRectangleHatch (self, left,top, right,bottom, Brush.Style, HashWidth, ox,oy, Brush.FPColor);
+    exit;
+    end;
   with b do
     case Brush.style of
       bsSolid : FillRectangleColor (self, left,top, right,bottom);
       bsPattern : FillRectanglePattern (self, left,top, right,bottom, brush.pattern);
       bsImage :
         if assigned (brush.image) then
-          if FRelativeBI then
+          if RelativeBrushImage then
             FillRectangleImageRel (self, left,top, right,bottom, brush.image)
           else
             FillRectangleImage (self, left,top, right,bottom, brush.image)
         else
           raise PixelCanvasException.Create (sErrNoImage);
-      bsBDiagonal : FillRectangleHashDiagonal (self, b, FHashWidth);
-      bsFDiagonal : FillRectangleHashBackDiagonal (self, b, FHashWidth);
+      bsBDiagonal : FillRectangleHashDiagonal (self, b, HashWidth);
+      bsFDiagonal : FillRectangleHashBackDiagonal (self, b, HashWidth);
       bsCross :
         begin
-        FillRectangleHashHorizontal (self, b, FHashWidth);
-        FillRectangleHashVertical (self, b, FHashWidth);
+        FillRectangleHashHorizontal (self, b, HashWidth);
+        FillRectangleHashVertical (self, b, HashWidth);
         end;
       bsDiagCross :
         begin
-        FillRectangleHashDiagonal (self, b, FHashWidth);
-        FillRectangleHashBackDiagonal (self, b, FHashWidth);
+        FillRectangleHashDiagonal (self, b, HashWidth);
+        FillRectangleHashBackDiagonal (self, b, HashWidth);
         end;
-      bsHorizontal : FillRectangleHashHorizontal (self, b, FHashWidth);
-      bsVertical : FillRectangleHashVertical (self, b, FHashWidth);
+      bsHorizontal : FillRectangleHashHorizontal (self, b, HashWidth);
+      bsVertical : FillRectangleHashVertical (self, b, HashWidth);
     end;
 end;
 
 procedure TFPPixelCanvas.DoEllipseFill (const Bounds:TRect);
 begin
+  if HatchByOrigin then
+    begin
+    if HatchOrigin = hoShape then
+      FillEllipseHatch (self, Bounds, Brush.Style, HashWidth, Min(Bounds.Left, Bounds.Right),
+                        Min(Bounds.Top, Bounds.Bottom), Brush.FPColor)
+    else
+      FillEllipseHatch (self, Bounds, Brush.Style, HashWidth, 0, 0, Brush.FPColor);
+    exit;
+    end;
   case Brush.style of
     bsSolid : FillEllipseColor (self, Bounds, Brush.FPColor);
     bsPattern : FillEllipsePattern (self, Bounds, brush.pattern, Brush.FPColor);
     bsImage :
       if assigned (brush.image) then
-        if FRelativeBI then
+        if RelativeBrushImage then
           FillEllipseImageRel (self, Bounds, brush.image)
         else
           FillEllipseImage (self, Bounds, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, Brush.FPColor);
-    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, Brush.FPColor);
-    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, FHashWidth, Brush.FPColor);
-    bsVertical : FillEllipseHashVertical (self, Bounds, FHashWidth, Brush.FPColor);
+    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, HashWidth, Brush.FPColor);
+    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, HashWidth, Brush.FPColor);
+    bsCross : FillEllipseHashCross (self, Bounds, HashWidth, Brush.FPColor);
+    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, HashWidth, Brush.FPColor);
+    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, HashWidth, Brush.FPColor);
+    bsVertical : FillEllipseHashVertical (self, Bounds, HashWidth, Brush.FPColor);
   end;
 end;
 
 procedure TFPPixelCanvas.DoEllipse (const Bounds:TRect);
+begin
+  BeginPenShape;
+  try
+    PenEllipse (Bounds);
+  finally
+    EndPenShape;
+  end;
+end;
+
+// Draws the outline of an ellipse with the pen.
+procedure TFPPixelCanvas.PenEllipse (const Bounds:TRect);
 begin
   with pen do
     case style of
@@ -298,61 +338,103 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
+var ox, oy, i : integer;
 begin
+  if HatchByOrigin then
+    begin
+    ox := 0;
+    oy := 0;
+    if (HatchOrigin = hoShape) and (Length(points) > 0) then
+      begin
+      ox := points[0].X;
+      oy := points[0].Y;
+      for i := 1 to High(points) do
+        begin
+        ox := Min(ox, points[i].X);
+        oy := Min(oy, points[i].Y);
+        end;
+      end;
+    FillPolygonHatch (self, points, PolygonNonZeroWindingRule, Brush.Style, HashWidth, ox, oy, Brush.FPColor);
+    exit;
+    end;
   case Brush.Style of
     bsSolid:
-      FillPolygonSolid(self, points, FNonZeroWindingRule, Brush.FPColor);
+      FillPolygonSolid(self, points, PolygonNonZeroWindingRule, Brush.FPColor);
     bsHorizontal:
-      FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonHorizontal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsVertical:
-      FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonVertical(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsCross:
       begin
-        FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
-        FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonHorizontal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonVertical(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
       end;
     bsFDiagonal:
-      FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsBDiagonal:
-      FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      FillPolygonBackDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
     bsDiagCross:
       begin
-        FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
-        FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonBackDiagonal(self, points, PolygonNonZeroWindingRule, Brush.FPColor, HashWidth);
       end;
     bsPattern:
-      FillPolygonPattern(self, points, FNonZeroWindingRule, Brush.FPColor, Brush.Pattern);
+      FillPolygonPattern(self, points, PolygonNonZeroWindingRule, Brush.FPColor, Brush.Pattern);
     bsImage:
-      FillPolygonImage(self, points, FNonZeroWindingRule, Brush.Image, FRelativeBI);
+      FillPolygonImage(self, points, PolygonNonZeroWindingRule, Brush.Image, RelativeBrushImage);
   end;
 end;
 
 procedure TFPPixelCanvas.DoFloodFill (x,y:integer);
 begin
+  if HatchByOrigin then
+    begin
+    if HatchOrigin = hoShape then
+      FillFloodHatch (self, x,y, Brush.Style, HashWidth, x,y, Brush.FPColor)
+    else
+      FillFloodHatch (self, x,y, Brush.Style, HashWidth, 0,0, Brush.FPColor);
+    exit;
+    end;
   case Brush.style of
     bsSolid : FillFloodColor (self, x,y);
     bsPattern : FillFloodPattern (self, x,y, brush.pattern);
     bsImage :
       if assigned (brush.image) then
-        if FRelativeBI then
+        if RelativeBrushImage then
           FillFloodImageRel (self, x,y, brush.image)
         else
           FillFloodImage (self, x,y, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsBDiagonal : FillFloodHashDiagonal (self, x,y, FHashWidth);
-    bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, FHashWidth);
-    bsCross : FillFloodHashCross (self, x,y, FHashWidth);
-    bsDiagCross : FillFloodHashDiagCross (self, x,y, FHashWidth);
-    bsHorizontal : FillFloodHashHorizontal (self, x,y, FHashWidth);
-    bsVertical : FillFloodHashVertical (self, x,y, FHashWidth);
+    bsBDiagonal : FillFloodHashDiagonal (self, x,y, HashWidth);
+    bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, HashWidth);
+    bsCross : FillFloodHashCross (self, x,y, HashWidth);
+    bsDiagCross : FillFloodHashDiagCross (self, x,y, HashWidth);
+    bsHorizontal : FillFloodHashHorizontal (self, x,y, HashWidth);
+    bsVertical : FillFloodHashVertical (self, x,y, HashWidth);
   end;
 end;
 
 procedure TFPPixelCanvas.DoPolygon (const points:array of TPoint);
+begin
+  BeginPenShape;
+  try
+    PenPolygon (points);
+  finally
+    EndPenShape;
+  end;
+end;
+
+// Draws the closed outline of a polygon with the pen.
+procedure TFPPixelCanvas.PenPolygon (const points:array of TPoint);
 var i,a, r : integer;
     p : TPoint;
 begin
+  if (Pen.Style = psSolid) and (Pen.Width > 1) then
+    begin
+    StrokeThick (points, true);
+    exit;
+    end;
   i := low(points);
   a := high(points);
   p := points[i];
@@ -365,9 +447,25 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoPolyline (const points:array of TPoint);
+begin
+  BeginPenShape;
+  try
+    PenPolyline (points);
+  finally
+    EndPenShape;
+  end;
+end;
+
+// Draws connected lines through points with the pen.
+procedure TFPPixelCanvas.PenPolyline (const points:array of TPoint);
 var i,a, r : integer;
     p : TPoint;
 begin
+  if (Pen.Style = psSolid) and (Pen.Width > 1) then
+    begin
+    StrokeThick (points, false);
+    exit;
+    end;
   i := low(points);
   a := high(points);
   p := points[i];
@@ -379,58 +477,189 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoLine (x1,y1,x2,y2:integer);
-
-  procedure DrawOneLine (xx1,yy1, xx2,yy2:integer);
-  begin
-    if Clipping then
-      CheckLineClipping (ClipRect, xx1,yy1, xx2,yy2);
-    DrawSolidLine (self, xx1,yy1, xx2,yy2, Pen.FPColor);
-  end;
-
-  procedure SolidThickLine;
-  var w1, w2, r : integer;
-      MoreHor : boolean;
-  begin
-    // determine lines above and under
-    w1 := pen.width div 2;
-    w2 := w1;
-    if w1+w2 = pen.width then
-      dec (w1);
-    // determine slanting
-    MoreHor := (abs(x2-x1) < abs(y2-y1));
-    if MoreHor then
-      begin  // add lines left/right
-      for r := 1 to w1 do
-        DrawOneLine (x1-r,y1, x2-r,y2);
-      for r := 1 to w2 do
-        DrawOneLine (x1+r,y1, x2+r,y2);
-      end
-    else
-      begin  // add lines above/under
-      for r := 1 to w1 do
-        DrawOneLine (x1,y1-r, x2,y2-r);
-      for r := 1 to w2 do
-        DrawOneLine (x1,y1+r, x2,y2+r);
-      end;
-  end;
-
 begin
-  if Clipping then
-    CheckLineClipping (ClipRect, x1,y1, x2,y2);
-  case Pen.style of
-    psSolid :
-      begin
-      DrawSolidLine (self, x1,y1, x2,y2, Pen.FPColor);
-      if pen.width > 1 then
-        SolidThickLine;
-      end;
-    psPattern:
-      DrawPatternLine (self, x1,y1, x2,y2, pen.pattern);
-      // Patterned lines have width always at 1
-    psDash, psDot, psDashDot, psDashDotDot :
-      DrawPatternLine (self, x1,y1, x2,y2, PenPatterns[Pen.Style]);
+  BeginPenShape;
+  try
+    PenLine (x1,y1, x2,y2);
+  finally
+    EndPenShape;
   end;
 end;
 
+// Draws a line with the pen, both end points included.
+procedure TFPPixelCanvas.PenLine (x1,y1,x2,y2:integer);
+var
+  cx1, cy1, cx2, cy2 : integer;
+begin
+  case Pen.style of
+    psSolid :
+      if pen.width > 1 then
+        StrokeThick ([Point(x1,y1), Point(x2,y2)], false)
+      else if not Clipping or ClipLine (DeviceClipRect, x1,y1, x2,y2) then
+        DrawSolidLine (self, x1,y1, x2,y2, Pen.FPColor);
+    psPattern, psDash, psDot, psDashDot, psDashDotDot :
+      begin
+      // Patterned lines have width always at 1
+      cx1 := x1; cy1 := y1; cx2 := x2; cy2 := y2;
+      if not Clipping or ClipLine (DeviceClipRect, cx1,cy1, cx2,cy2) then
+        if Pen.Style = psPattern then
+          DrawPatternLine (self, cx1,cy1, cx2,cy2, pen.pattern)
+        else
+          DrawPatternLine (self, cx1,cy1, cx2,cy2, PenPatterns[Pen.Style]);
+      end;
+  end;
+end;
+
+{ Strokes the lines through points with a pen wider than one pixel: the width
+  is measured across each segment, ends follow Pen.EndCap and corners
+  Pen.JoinStyle. Pixel (x, y) has its centre at (x+0.5, y+0.5). }
+procedure TFPPixelCanvas.StrokeThick (const points:array of TPoint; aClosed:boolean);
+const
+  MiterLimit = 10;
+var
+  h : double;
+  clip : TRect;
+  pts : array of TPolygonPointF;
+  count, i, first, last : integer;
+
+  function PF (ax, ay : double) : TPolygonPointF;
+  begin
+    Result.X := ax;
+    Result.Y := ay;
+  end;
+
+  procedure Direction (const a, b : TPolygonPointF; out dx, dy : double);
+  var len : double;
+  begin
+    dx := b.X - a.X;
+    dy := b.Y - a.Y;
+    len := Sqrt(dx * dx + dy * dy);
+    dx := dx / len;
+    dy := dy / len;
+  end;
+
+  procedure Fill (const p : array of TPolygonPointF);
+  begin
+    FillPolygonPenF (self, p, clip, Pen.FPColor);
+  end;
+
+  procedure Circle (const c : TPolygonPointF);
+  var n, k : integer;
+      p : array of TPolygonPointF;
+  begin
+    n := Max(8, Ceil(2 * Pi * h));
+    SetLength(p, n);
+    for k := 0 to n - 1 do
+      p[k] := PF(c.X + h * Cos(2 * Pi * k / n), c.Y + h * Sin(2 * Pi * k / n));
+    Fill (p);
+  end;
+
+  procedure Body (const a, b : TPolygonPointF);
+  var dx, dy : double;
+  begin
+    Direction (a, b, dx, dy);
+    Fill ([PF(a.X - dy * h, a.Y + dx * h), PF(b.X - dy * h, b.Y + dx * h),
+           PF(b.X + dy * h, b.Y - dx * h), PF(a.X + dy * h, a.Y - dx * h)]);
+  end;
+
+  // Caps the end c of a segment; (dx, dy) points away from the segment.
+  procedure Cap (const c : TPolygonPointF; dx, dy : double);
+  var e : double;
+  begin
+    if Pen.EndCap = pecRound then
+    begin
+      Circle (c);
+      exit;
+    end;
+    if Pen.EndCap = pecSquare then
+      e := h
+    else
+      e := 0.5;
+    Fill ([PF(c.X - dy * h, c.Y + dx * h), PF(c.X - dy * h + dx * e, c.Y + dx * h + dy * e),
+           PF(c.X + dy * h + dx * e, c.Y - dx * h + dy * e), PF(c.X + dy * h, c.Y - dx * h)]);
+  end;
+
+  // Joins the segments a-p and p-b at p.
+  procedure Join (const a, p, b : TPolygonPointF);
+  var d1x, d1y, d2x, d2y, cross, side, n1x, n1y, n2x, n2y, dot, ratio : double;
+      o1, o2, m : TPolygonPointF;
+  begin
+    if Pen.JoinStyle = pjsRound then
+    begin
+      Circle (p);
+      exit;
+    end;
+    Direction (a, p, d1x, d1y);
+    Direction (p, b, d2x, d2y);
+    cross := d1x * d2y - d1y * d2x;
+    if Abs(cross) < 1e-9 then
+      exit;
+    if cross > 0 then
+      side := -1
+    else
+      side := 1;
+    n1x := -d1y * side; n1y := d1x * side;
+    n2x := -d2y * side; n2y := d2x * side;
+    o1 := PF(p.X + n1x * h, p.Y + n1y * h);
+    o2 := PF(p.X + n2x * h, p.Y + n2y * h);
+    dot := n1x * n2x + n1y * n2y;
+    ratio := Sqrt(2 / (1 + dot));
+    if (Pen.JoinStyle = pjsMiter) and (dot > -1 + 1e-9) and (ratio <= MiterLimit) then
+    begin
+      m := PF(p.X + (n1x + n2x) * h / (1 + dot), p.Y + (n1y + n2y) * h / (1 + dot));
+      Fill ([p, o1, m, o2]);
+    end
+    else
+      Fill ([p, o1, o2]);
+  end;
+
+var dx, dy : double;
+begin
+  if Clipping then
+    clip := DeviceClipRect
+  else
+    clip := Rect(0, 0, Width - 1, Height - 1);
+  h := Pen.Width / 2;
+  SetLength(pts, Length(points));
+  count := 0;
+  for i := 0 to High(points) do
+    if (count = 0) or (points[i].X + 0.5 <> pts[count - 1].X) or (points[i].Y + 0.5 <> pts[count - 1].Y) then
+    begin
+      pts[count] := PF(points[i].X + 0.5, points[i].Y + 0.5);
+      inc(count);
+    end;
+  if aClosed and (count > 1) and (pts[0].X = pts[count - 1].X) and (pts[0].Y = pts[count - 1].Y) then
+    dec(count);
+  if count = 0 then
+    exit;
+  if count = 1 then
+  begin
+    if Pen.EndCap = pecRound then
+      Circle (pts[0])
+    else
+      Fill ([PF(pts[0].X - h, pts[0].Y - h), PF(pts[0].X + h, pts[0].Y - h),
+             PF(pts[0].X + h, pts[0].Y + h), PF(pts[0].X - h, pts[0].Y + h)]);
+    exit;
+  end;
+  for i := 0 to count - 2 do
+    Body (pts[i], pts[i + 1]);
+  if aClosed and (count > 2) then
+  begin
+    Body (pts[count - 1], pts[0]);
+    for i := 0 to count - 1 do
+      Join (pts[(i + count - 1) mod count], pts[i], pts[(i + 1) mod count]);
+  end
+  else
+  begin
+    for i := 1 to count - 2 do
+      Join (pts[i - 1], pts[i], pts[i + 1]);
+    first := 0;
+    last := count - 1;
+    Direction (pts[first + 1], pts[first], dx, dy);
+    Cap (pts[first], dx, dy);
+    Direction (pts[last - 1], pts[last], dx, dy);
+    Cap (pts[last], dx, dy);
+  end;
+end;
 
 end.

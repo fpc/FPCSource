@@ -23,44 +23,67 @@ var
 
   GetIcuProc: pointer; public name 'ANDROID_GET_ICU_PROC';
 
-procedure CommonMainAndroid;
+const
+  CmdLineBufSize = 8192;
+  CmdLineMaxArgs = 1024;
+
+var
+  CmdLineBuf: array[0..CmdLineBufSize] of AnsiChar;
+  CmdLineArgs: array[0..CmdLineMaxArgs] of PAnsiChar;
+
+// Sets argc and argv from /proc/self/cmdline, without trailing empty entries when aStripEmpty is set; returns False when it yields no arguments
+function ReadCmdLineAndroid(aStripEmpty: boolean): boolean;
+var
+  lFd, lLen, lRead, lPos, lArgc: longint;
+begin
+  Result:=False;
+  lFd:=FpOpen('/proc/self/cmdline', O_RDONLY, 0);
+  if lFd < 0 then
+    exit;
+  lLen:=0;
+  repeat
+    lRead:=FpRead(lFd, @CmdLineBuf[lLen], CmdLineBufSize - lLen);
+    if lRead > 0 then
+      Inc(lLen, lRead);
+  until (lRead <= 0) or (lLen >= CmdLineBufSize);
+  FpClose(lFd);
+  CmdLineBuf[lLen]:=#0;
+  lArgc:=0;
+  lPos:=0;
+  while (lPos < lLen) and (lArgc < CmdLineMaxArgs) do
+    begin
+      CmdLineArgs[lArgc]:=@CmdLineBuf[lPos];
+      Inc(lArgc);
+      while CmdLineBuf[lPos] <> #0 do
+        Inc(lPos);
+      Inc(lPos);
+    end;
+  // An app process has its argument area overwritten with the process name followed by zeros
+  if aStripEmpty then
+    while (lArgc > 0) and (CmdLineArgs[lArgc - 1]^ = #0) do
+      Dec(lArgc);
+  if lArgc = 0 then
+    exit;
+  CmdLineArgs[lArgc]:=nil;
+  operatingsystem_parameter_argc:=lArgc;
+  operatingsystem_parameter_argv:=@CmdLineArgs;
+  Result:=True;
+end;
+
+// Sets the stack pointer, environment and command line at startup of a program or library
+procedure CommonMainAndroid(aIsLibrary: boolean);
 const
   EmptyEnv: array[0..2] of PAnsiChar = (nil, nil, nil);
-  EmptyCmdLine: array[0..0] of PAnsiChar = ( '' );
-var
-  i: cardinal;
-  p: PPAnsiChar;
+  EmptyCmdLine: array[0..1] of PAnsiChar = ( '', nil );
 begin
   // Get the current stack pointer, adjust and save it
   __stkptr:=pointer(ptruint(Sptr) or $FFFF);
   // Get the environment from the environ variable of libc
-  p:=_environ;
-  if p = nil then
+  if _environ = nil then
     operatingsystem_parameter_envp:=@EmptyEnv
   else
-    begin
-      operatingsystem_parameter_envp:=p;
-      // Finding argc and argv. They are placed before envp
-      Dec(p);
-      if p^ = nil then
-        begin
-          i:=0;
-          while i < 200 do
-            begin
-              Dec(p);
-              if ptruint(p^) = i then
-                begin
-                  // argc found
-                  operatingsystem_parameter_argc:=i;
-                  operatingsystem_parameter_argv:=p + 1;
-                  break;
-                end;
-              Inc(i);
-            end;
-        end;
-    end;
-
-  if operatingsystem_parameter_argc = 0 then
+    operatingsystem_parameter_envp:=_environ;
+  if not ReadCmdLineAndroid(aIsLibrary) then
     begin
       // argc and argv are not available
       operatingsystem_parameter_argc:=1;
@@ -72,7 +95,7 @@ end;
 
 procedure ProgMainAndroid; cdecl; [public, alias:'FPC_PROG_START_ANDROID'];
 begin
-  CommonMainAndroid;
+  CommonMainAndroid(False);
 end;
 
 // ************* Shared library startup code
@@ -116,7 +139,7 @@ end;
 
 procedure AndroidLibStart; cdecl; [public, alias:'FPC_LIB_START_ANDROID'];
 begin
-  CommonMainAndroid;
+  CommonMainAndroid(True);
   // Call main code FPC_LIB_MAIN_ANDROID of the library.
   // It points either to a standard PASCALMAIN or FPC_JNI_LIB_MAIN_ANDROID if JNI_OnLoad is exported by the library
   // The linker makes all the magic.

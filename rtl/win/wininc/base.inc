@@ -718,21 +718,22 @@
 
      PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
-     LOCALE_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
-     LOCALE_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
-     LOCALE_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
+     { the locale, code page, date and time format enumeration callbacks return exactly 1 to continue }
+     LOCALE_ENUMPROCA = function (_para1:LPSTR):Boolean32;stdcall;
+     LOCALE_ENUMPROCW = function (_para1:LPWSTR):Boolean32;stdcall;
+     LOCALE_ENUMPROC  = function (_para1:LPTSTR):Boolean32;stdcall;
 
-     CODEPAGE_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
-     CODEPAGE_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
-     CODEPAGE_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
+     CODEPAGE_ENUMPROCA = function (_para1:LPSTR):Boolean32;stdcall;
+     CODEPAGE_ENUMPROCW = function (_para1:LPWSTR):Boolean32;stdcall;
+     CODEPAGE_ENUMPROC  = function (_para1:LPTSTR):Boolean32;stdcall;
 
-     DATEFMT_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
-     DATEFMT_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
-     DATEFMT_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
+     DATEFMT_ENUMPROCA = function (_para1:LPSTR):Boolean32;stdcall;
+     DATEFMT_ENUMPROCW = function (_para1:LPWSTR):Boolean32;stdcall;
+     DATEFMT_ENUMPROC  = function (_para1:LPTSTR):Boolean32;stdcall;
 
-     TIMEFMT_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
-     TIMEFMT_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
-     TIMEFMT_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROCA = function (_para1:LPSTR):Boolean32;stdcall;
+     TIMEFMT_ENUMPROCW = function (_para1:LPWSTR):Boolean32;stdcall;
+     TIMEFMT_ENUMPROC  = function (_para1:LPTSTR):Boolean32;stdcall;
 
      CALINFO_ENUMPROCA= function (_para1:LPSTR):WINBOOL;stdcall;
      CALINFO_ENUMPROCW= function (_para1:LPWSTR):WINBOOL;stdcall;

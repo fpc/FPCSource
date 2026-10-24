@@ -184,6 +184,8 @@ type
     PageNumber: word; // the page number starting at 0, the total number of pages is PageCount
     PageCount: word; // see PageNumber
     PageName: AnsiString;
+    ICCProfile: TBytes; // tag 34675
+    XMP: TBytes; // tag 700
     PhotoMetricInterpretation: DWord;
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
@@ -201,6 +203,8 @@ type
     XResolution: TTiffRational;
     YResolution: TTiffRational;
     YCbCr_LumaRed, YCbCr_LumaGreen, YCbCr_LumaBlue :Single;
+    MinSampleValue: Double; // tag 280, or the reader default
+    MaxSampleValue: Double; // tag 281, or the reader default
     // image
     Img: TFPCustomImage;
     FreeImg: boolean;
@@ -333,6 +337,8 @@ procedure TTiffIFD.Clear;
 begin
   IFDStart:=0;
   IFDNext:=0;
+  ICCProfile:=nil;
+  XMP:=nil;
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=TiffPlanarConfigurationChunky;
   Compression:=TiffCompressionNone;
@@ -382,6 +388,8 @@ begin
   GrayBits:=0;
   AlphaBits:=0;
   BytesPerPixel:=0;
+  MinSampleValue:=0.0;
+  MaxSampleValue:=1.0;
 
   if FreeImg then begin
     FreeImg:=false;
@@ -393,6 +401,8 @@ procedure TTiffIFD.Assign(IFD: TTiffIFD);
 begin
   IFDStart:=IFD.IFDStart;
   IFDNext:=IFD.IFDNext;
+  ICCProfile:=Copy(IFD.ICCProfile);
+  XMP:=Copy(IFD.XMP);
 
   PhotoMetricInterpretation:=IFD.PhotoMetricInterpretation;
   PlanarConfiguration:=IFD.PlanarConfiguration;
@@ -442,6 +452,8 @@ begin
   BlueBits:=IFD.BlueBits;
   GrayBits:=IFD.GrayBits;
   AlphaBits:=IFD.AlphaBits;
+  MinSampleValue:=IFD.MinSampleValue;
+  MaxSampleValue:=IFD.MaxSampleValue;
   if (Img<>nil) and (IFD.Img<>nil) then
     Img.Assign(IFD.Img);
 end;
@@ -449,6 +461,8 @@ end;
 procedure TTiffIFD.ReadFPImgExtras(Src: TFPCustomImage);
 begin
   Clear;
+  ICCProfile:=Src.Metadata[MetaICC];
+  XMP:=Src.Metadata[MetaXMP];
   PhotoMetricInterpretation:=2;
   if Src.Extra[TiffPhotoMetric]<>'' then
     PhotoMetricInterpretation:=
@@ -489,7 +503,7 @@ end;
 
 constructor TTiffIFD.Create;
 begin
-  PlanarConfiguration:=TiffPlanarConfigurationChunky;
+  Clear;
 
   //Use the Standard 601 Constants
   YCbCr_LumaRed:=0;

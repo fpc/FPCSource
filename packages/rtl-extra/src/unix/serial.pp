@@ -364,6 +364,7 @@ function SerReadTimeout(Handle: TSerialHandle; var Buffer: array of byte; count,
 
 VAR     readSet: TFDSet;
         selectTimeout: TTimeVal;
+        lRead: TSsize;
 
 begin
   fpFD_ZERO(readSet);
@@ -376,9 +377,18 @@ begin
 // In the case of Linux the syscall DOES update the timeout parameter.
 
   while fpSelect(Handle + 1, @readSet, nil, nil, @selectTimeout) > 0 do begin
-    Inc(result,fpRead(Handle, Buffer[result], count - result));
+    lRead := fpRead(Handle, Buffer[result], count - result);
+    if lRead <= 0 then begin
+      { -1 on error, 0 on hangup, unless data was already read }
+      if result = 0 then
+        result := lRead;
+      break
+    end;
+    Inc(result, lRead);
     if result >= count then
       break;
+    fpFD_ZERO(readSet);
+    fpFD_SET(Handle, readSet);
     if Assigned(SerialIdle) then
       SerialIdle(Handle)
   end
@@ -391,6 +401,7 @@ function SerReadTimeout(Handle: TSerialHandle; var Buffer: array of byte; count,
 VAR     readSet: TFDSet;
         selectTimeout: TTimeVal;
         uSecOnEntry, uSecElapsed: QWord;
+        lRead: TSsize;
 
   function now64uSec: QWord;
 
@@ -413,12 +424,21 @@ begin
 // In the case of Solaris the syscall DOES NOT update the timeout parameter.
 
   while fpSelect(Handle + 1, @readSet, nil, nil, @selectTimeout) > 0 do begin
-    Inc(result,fpRead(Handle, Buffer[result], count - result));
+    lRead := fpRead(Handle, Buffer[result], count - result);
+    if lRead <= 0 then begin
+      { -1 on error, 0 on hangup, unless data was already read }
+      if result = 0 then
+        result := lRead;
+      break
+    end;
+    Inc(result, lRead);
     uSecElapsed := now64uSec - uSecOnEntry;
     if (result >= count) or (uSecElapsed >= mSec * 1000) then
       break;
     selectTimeout.tv_sec := (mSec * 1000 - uSecElapsed) div 1000000;
     selectTimeout.tv_usec := (mSec * 1000 - uSecElapsed) mod 1000000;
+    fpFD_ZERO(readSet);
+    fpFD_SET(Handle, readSet);
     if Assigned(SerialIdle) then
       SerialIdle(Handle)
   end

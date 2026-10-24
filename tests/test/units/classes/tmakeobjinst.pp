@@ -1,5 +1,5 @@
 { %opt=-S2 }
-{ %target=win32 }
+{ %target=win32,win64 }
 uses
   windows,messages,classes;
 

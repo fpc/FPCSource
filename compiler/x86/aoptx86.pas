@@ -282,6 +282,8 @@ unit aoptx86;
       compiler cannot be sure (e.g. "(%reg1)" and "4(%reg2)" with a range of 4
       might still overlap because %reg2 could be equal to %reg1-4 }
     function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
+    { Same as above, but r1 accesses Size1 and r2 accesses Size2 bytes }
+    function RefsMightOverlap(const r1, r2: treference; const Size1, Size2: asizeint): boolean;
 
     function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
 
@@ -525,18 +527,28 @@ unit aoptx86;
 
     function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
       begin
-        if (r1.symbol<>r2.symbol) then
-          { If the index registers are different, there's a chance one could
-            be set so it equals the other symbol }
-          Exit((r1.index<>r2.index) or (r1.scalefactor<>r2.scalefactor));
+        Result := RefsMightOverlap(r1, r2, Range, Range);
+      end;
 
-        if (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+
+    function RefsMightOverlap(const r1, r2: treference; const Size1, Size2: asizeint): boolean;
+      begin
+        if (r1.refaddr = r2.refaddr) and
           (r1.relsymbol = r2.relsymbol) and
           (r1.segment = r2.segment) and (r1.base = r2.base) and
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.volatility + r2.volatility = []) then
-          { In this case, it all depends on the offsets }
-          Exit(abs(r1.offset - r2.offset) < Range);
+          begin
+            if (r1.symbol = r2.symbol) then
+              { In this case, it all depends on the offsets }
+              Exit((r1.offset < r2.offset + Size2) and (r2.offset < r1.offset + Size1));
+
+            { Different symbols with the same registers address different
+              objects. If only one reference has a symbol, the registers
+              of the other one could point to it }
+            if Assigned(r1.symbol) and Assigned(r2.symbol) then
+              Exit(False);
+          end;
 
         { There's a chance things MIGHT overlap, so take no chances }
         Result := True;
@@ -851,7 +863,7 @@ unit aoptx86;
   class function TX86AsmOptimizer.RegReadByInstruction(reg: TRegister; hp: tai): boolean;
     var
       p: taicpu;
-      opcount: longint;
+      opcount, opidx: longint;
     begin
       RegReadByInstruction := false;
       if hp.typ <> ait_instruction then
@@ -1054,26 +1066,12 @@ unit aoptx86;
                    (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and
                    (p.oper[0]^.reg=p.oper[1]^.reg) then
                   exit;
-                if ([CH_RWOP1,CH_ROP1,CH_MOP1]*Ch<>[]) and reginop(reg,p.oper[0]^) then
-                  begin
-                    RegReadByInstruction := true;
-                    exit
-                  end;
-                if ([Ch_RWOP2,Ch_ROP2,Ch_MOP2]*Ch<>[]) and reginop(reg,p.oper[1]^) then
-                  begin
-                    RegReadByInstruction := true;
-                    exit
-                  end;
-                if ([Ch_RWOP3,Ch_ROP3,Ch_MOP3]*Ch<>[]) and reginop(reg,p.oper[2]^) then
-                  begin
-                    RegReadByInstruction := true;
-                    exit
-                  end;
-                if ([Ch_RWOP4,Ch_ROP4,Ch_MOP4]*Ch<>[]) and reginop(reg,p.oper[3]^) then
-                  begin
-                    RegReadByInstruction := true;
-                    exit
-                  end;
+                for opidx:=0 to max_operands-1 do
+                  if InsChangeReadsOp(Ch,opidx) and reginop(reg,p.oper[opidx]^) then
+                    begin
+                      RegReadByInstruction := true;
+                      exit
+                    end;
               end;
           end;
       end;
@@ -1193,12 +1191,6 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean;
-      const
-        WriteOps: array[0..3] of set of TInsChange =
-          ([CH_RWOP1,CH_WOP1,CH_MOP1],
-           [Ch_RWOP2,Ch_WOP2,Ch_MOP2],
-           [Ch_RWOP3,Ch_WOP3,Ch_MOP3],
-           [Ch_RWOP4,Ch_WOP4,Ch_MOP4]);
       var
         OperIdx: Integer;
       begin
@@ -1346,7 +1338,7 @@ unit aoptx86;
               end;
 
             for OperIdx := 0 to taicpu(p1).ops - 1 do
-              if (WriteOps[OperIdx]*Ch<>[]) and
+              if InsChangeWritesOp(Ch,OperIdx) and
                 { The register doesn't get modified inside a reference }
                 (taicpu(p1).oper[OperIdx]^.typ = top_reg) and
                 SuperRegistersEqual(reg,taicpu(p1).oper[OperIdx]^.reg) then
@@ -1359,12 +1351,6 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.RefModifiedBetween(Ref: TReference; RefSize: ASizeInt; p1, p2: tai): Boolean;
-      const
-        WriteOps: array[0..3] of set of TInsChange =
-          ([CH_RWOP1,CH_WOP1,CH_MOP1],
-           [Ch_RWOP2,Ch_WOP2,Ch_MOP2],
-           [Ch_RWOP3,Ch_WOP3,Ch_MOP3],
-           [Ch_RWOP4,Ch_WOP4,Ch_MOP4]);
       var
         X: Integer;
         CurrentP1Size: asizeint;
@@ -1405,7 +1391,7 @@ unit aoptx86;
                         { Reference is used, but does the instruction write to it? }
                         (
                           (Ch_All in Ch) or
-                          ((WriteOps[X] * Ch) <> [])
+                          InsChangeWritesOp(Ch, X)
                         ) then
                         begin
                           Result := True;
@@ -1956,7 +1942,7 @@ unit aoptx86;
     function TX86AsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
       var
         p: taicpu absolute hp; { Implicit typecast }
-        i: Integer;
+        i, opidx: Integer;
       begin
         Result := False;
         if not assigned(hp) or
@@ -2125,138 +2111,37 @@ unit aoptx86;
                   if (getregtype(reg) = R_INTREGISTER) then
                     begin
 
-                      if (p.ops > 0) then
-                        begin
-                          if RegInOp(reg, p.oper[0]^) then
-                            begin
-                              if (p.oper[0]^.typ = top_ref) then
-                                begin
-                                  if RegInRef(reg, p.oper[0]^.ref^) then
-                                    begin
-                                      Result := False;
-                                      Exit;
-                                    end;
-                                 end
-                              else if (p.oper[0]^.typ = top_reg) then
-                                begin
+                      for opidx := 0 to p.ops - 1 do
+                        if RegInOp(reg, p.oper[opidx]^) then
+                          begin
+                            if (p.oper[opidx]^.typ = top_ref) then
+                              begin
+                                if RegInRef(reg, p.oper[opidx]^.ref^) then
+                                  begin
+                                    Result := False;
+                                    Exit;
+                                  end;
+                               end
+                            else if (p.oper[opidx]^.typ = top_reg) then
+                              begin
 
-                                  if ([Ch_ROp1, Ch_RWOp1, Ch_MOp1]*Ch<>[]) then
-                                    begin
-                                      Result := False;
-                                      Exit;
-                                    end
-                                  else if ([Ch_WOp1]*Ch<>[]) then
-                                    begin
-                                      if Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg, reg) then
-                                        Result := True
-                                      else
-                                        begin
-                                          Result := False;
-                                          Exit;
-                                        end;
-                                    end;
-                                end;
-                            end;
-
-                          if (p.ops > 1) then
-                            begin
-                              if RegInOp(reg, p.oper[1]^) then
-                                begin
-                                  if (p.oper[1]^.typ = top_ref) then
-                                    begin
-                                      if RegInRef(reg, p.oper[1]^.ref^) then
-                                        begin
-                                          Result := False;
-                                          Exit;
-                                        end;
-                                     end
-                                  else if (p.oper[1]^.typ = top_reg) then
-                                    begin
-
-                                      if ([Ch_ROp2, Ch_RWOp2, Ch_MOp2]*Ch<>[]) then
-                                        begin
-                                          Result := False;
-                                          Exit;
-                                        end
-                                      else if ([Ch_WOp2]*Ch<>[]) then
-                                        begin
-                                          if Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg, reg) then
-                                            Result := True
-                                          else
-                                            begin
-                                              Result := False;
-                                              Exit;
-                                            end;
-                                        end;
-                                    end;
-                                end;
-
-                              if (p.ops > 2) then
-                                begin
-                                  if RegInOp(reg, p.oper[2]^) then
-                                    begin
-                                      if (p.oper[2]^.typ = top_ref) then
-                                        begin
-                                          if RegInRef(reg, p.oper[2]^.ref^) then
-                                            begin
-                                              Result := False;
-                                              Exit;
-                                            end;
-                                         end
-                                      else if (p.oper[2]^.typ = top_reg) then
-                                        begin
-
-                                          if ([Ch_ROp3, Ch_RWOp3, Ch_MOp3]*Ch<>[]) then
-                                            begin
-                                              Result := False;
-                                              Exit;
-                                            end
-                                          else if ([Ch_WOp3]*Ch<>[]) then
-                                            begin
-                                              if Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg, reg) then
-                                                Result := True
-                                              else
-                                                begin
-                                                  Result := False;
-                                                  Exit;
-                                                end;
-                                            end;
-                                        end;
-                                    end;
-
-                                  if (p.ops > 3) and RegInOp(reg, p.oper[3]^) then
-                                    begin
-                                      if (p.oper[3]^.typ = top_ref) then
-                                        begin
-                                          if RegInRef(reg, p.oper[3]^.ref^) then
-                                            begin
-                                              Result := False;
-                                              Exit;
-                                            end;
-                                         end
-                                      else if (p.oper[3]^.typ = top_reg) then
-                                        begin
-
-                                          if ([Ch_ROp4, Ch_RWOp4, Ch_MOp4]*Ch<>[]) then
-                                            begin
-                                              Result := False;
-                                              Exit;
-                                            end
-                                          else if ([Ch_WOp4]*Ch<>[]) then
-                                            begin
-                                              if Reg1WriteOverwritesReg2Entirely(p.oper[3]^.reg, reg) then
-                                                Result := True
-                                              else
-                                                begin
-                                                  Result := False;
-                                                  Exit;
-                                                end;
-                                            end;
-                                        end;
-                                    end;
-                                end;
-                            end;
-                        end;
+                                if InsChangeReadsOp(Ch, opidx) then
+                                  begin
+                                    Result := False;
+                                    Exit;
+                                  end
+                                else if InsChangeWritesOp(Ch, opidx) then
+                                  begin
+                                    if Reg1WriteOverwritesReg2Entirely(p.oper[opidx]^.reg, reg) then
+                                      Result := True
+                                    else
+                                      begin
+                                        Result := False;
+                                        Exit;
+                                      end;
+                                  end;
+                              end;
+                          end;
 
                       { Don't do these ones first in case an input operand is equal to an explicit output register }
                       case getsupreg(reg) of
@@ -2862,15 +2747,13 @@ unit aoptx86;
 
     { Replaces all references to AOldReg in an instruction to ANewReg }
     class function TX86AsmOptimizer.ReplaceRegisterInInstruction(const p: taicpu; const AOldReg, ANewReg: TRegister): Boolean;
-      const
-        ReadFlag: array[0..3] of TInsChange = (Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Rop4);
       var
         OperIdx: Integer;
       begin
         Result := False;
 
         for OperIdx := 0 to p.ops - 1 do
-          if (ReadFlag[OperIdx] in InsProp[p.Opcode].Ch) then
+          if InsChangeOnlyReadsOp(InsProp[p.Opcode].Ch, OperIdx) then
             begin
             { The shift and rotate instructions can only use CL }
               if not (
@@ -3349,7 +3232,7 @@ unit aoptx86;
               (ThisRef.base = current_procinfo.framepointer)
             ) then
             begin
-              case taicpu(p).opsize of
+              case taicpu(p1).opsize of
                 S_B:
                   begin
                     { Word writes must be on a 2-byte boundary }
@@ -8937,8 +8820,8 @@ unit aoptx86;
      function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
        var
          v: TCGInt;
-         true_hp1, hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
-         FirstMatch, TempBool: Boolean;
+         true_hp1, hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label, hp_jcc, hp_mov: tai;
+         FirstMatch, do_opt: Boolean;
          NewReg: TRegister;
          JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
        begin
@@ -8974,9 +8857,9 @@ unit aoptx86;
                  { Do jump optimisations first in case the condition becomes
                    unnecessary }
 
-                 TempBool := True;
-                 if DoJumpOptimizations(p_jump, TempBool) or
-                   not TempBool then
+                 do_opt := True;
+                 if DoJumpOptimizations(p_jump, do_opt) or
+                   not do_opt then
                    begin
 
                      if Assigned(p_jump) then
@@ -9016,8 +8899,8 @@ unit aoptx86;
                  JumpLabel := TAsmLabel(taicpu(p_jump).oper[0]^.ref^.symbol);
                  if GetNextInstruction(p_jump, hp2) and
                    (
-                     OptimizeConditionalJump(JumpLabel, p_jump, hp2, TempBool) or
-                     not TempBool
+                     OptimizeConditionalJump(JumpLabel, p_jump, hp2, do_opt) or
+                     not do_opt
                    ) then
                    begin
                      hp1 := p_jump;
@@ -9275,6 +9158,105 @@ unit aoptx86;
                            modified, is still intact and might be optimised by the
                            SETcc optimisation below }
                        end;
+                   end;
+               end;
+           end;
+
+         {
+           Search for:
+             cmp   $x,ref
+             j(c)  @lbl
+             mov   ref,%reg   (same reference and size)
+
+           And change to:
+             mov   ref,%reg
+             cmp   $x,%reg
+             j(c)  @lbl
+
+           If %reg is not in use before the comparison, it is not in use at
+           @lbl either, so loading it on both paths is safe. This saves a
+           memory access and the comparison becomes shorter ("cmp $0,%reg" is
+           turned into "test %reg,%reg" on the next iteration).
+
+           The load may also be a zero (sign) extension if the condition is an
+           equality or unsigned (signed) one and the flags are not used
+           afterwards; the comparison is then done with the extended value.
+         }
+         if (taicpu(p).oper[0]^.typ = top_const) and
+           (taicpu(p).oper[1]^.typ = top_ref) and
+           GetNextInstruction(p, hp_jcc) and
+           MatchInstruction(hp_jcc, A_Jcc, []) and
+           GetNextInstruction(hp_jcc, hp_mov) and
+           MatchInstruction(hp_mov, [A_MOV, A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}], []) and
+           MatchOpType(taicpu(hp_mov), top_ref, top_reg) and
+           RefsEqual(taicpu(p).oper[1]^.ref^, taicpu(hp_mov).oper[0]^.ref^) then
+           begin
+             do_opt := False;
+             v := taicpu(p).oper[0]^.val;
+             if taicpu(hp_mov).opcode = A_MOV then
+               do_opt := (taicpu(hp_mov).opsize = taicpu(p).opsize)
+             else
+               begin
+                 { size of the memory operand of the extension }
+                 case taicpu(hp_mov).opsize of
+                   S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                     do_opt := (taicpu(p).opsize = S_B);
+                   S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                     do_opt := (taicpu(p).opsize = S_W);
+{$ifdef x86_64}
+                   S_LQ:
+                     do_opt := (taicpu(p).opsize = S_L);
+{$endif x86_64}
+                   else
+                     ;
+                 end;
+                 if do_opt then
+                   begin
+{$push}{$R-}{$Q-}
+                     if taicpu(hp_mov).opcode = A_MOVZX then
+                       begin
+                         do_opt := taicpu(hp_jcc).condition in [C_E, C_Z, C_NE, C_NZ,
+                           C_A, C_AE, C_B, C_BE, C_C, C_NA, C_NAE, C_NB, C_NBE, C_NC];
+                         case taicpu(p).opsize of
+                           S_B: v := v and $FF;
+                           S_W: v := v and $FFFF;
+                           else
+                             ;
+                         end;
+                       end
+                     else
+                       begin
+                         do_opt := taicpu(hp_jcc).condition in [C_E, C_Z, C_NE, C_NZ,
+                           C_G, C_GE, C_L, C_LE, C_NG, C_NGE, C_NL, C_NLE];
+                         case taicpu(p).opsize of
+                           S_B: v := shortint(v);
+                           S_W: v := smallint(v);
+                           S_L: v := longint(v);
+                           else
+                             ;
+                         end;
+                       end;
+{$pop}
+                   end;
+               end;
+
+             if do_opt then
+               begin
+                 { taicpu(hp_mov).oper[1]^.reg and flags could be in use (in theory) in a loop }
+                 TransferUsedRegs(TmpUsedRegs);
+                 UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                 if not RegInUsedRegs(taicpu(hp_mov).oper[1]^.reg, TmpUsedRegs) and
+                   not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp_jcc, TmpUsedRegs) then
+                   begin
+                     DebugMsg(SPeepholeOptimization + 'CmpJccMov2MovCmpJcc', p);
+                     asml.Remove(hp_mov);
+                     asml.InsertBefore(hp_mov, p);
+                     AllocRegBetween(taicpu(hp_mov).oper[1]^.reg, hp_mov, hp_jcc, UsedRegs);
+                     taicpu(p).loadreg(1, taicpu(hp_mov).oper[1]^.reg);
+                     taicpu(p).loadconst(0, v);
+                     taicpu(p).opsize := reg2opsize(taicpu(hp_mov).oper[1]^.reg);
+                     Result := True;
+                     Exit;
                    end;
                end;
            end;
@@ -10348,13 +10330,7 @@ unit aoptx86;
 
 
   const
-    WriteOp: array[0..3] of set of TInsChange = (
-      [Ch_Wop1, Ch_RWop1, Ch_Mop1],
-      [Ch_Wop2, Ch_RWop2, Ch_Mop2],
-      [Ch_Wop3, Ch_RWop3, Ch_Mop3],
-      [Ch_Wop4, Ch_RWop4, Ch_Mop4]);
-
-    RegWriteFlags: array[0..7] of set of TInsChange = (
+    RegWriteFlags: array[0..7] of TInsChanges = (
       { The order is important: EAX, ECX, EDX, EBX, ESI, EDI, EBP, ESP }
       [Ch_WEAX, Ch_RWEAX, Ch_MEAX{$ifdef x86_64}, Ch_WRAX, Ch_RWRAX, Ch_MRAX{$endif x86_64}],
       [Ch_WECX, Ch_RWECX, Ch_MECX{$ifdef x86_64}, Ch_WRCX, Ch_RWRCX, Ch_MRCX{$endif x86_64}],
@@ -10408,7 +10384,7 @@ unit aoptx86;
       for X := 0 to taicpu(hp1).ops - 1 do
         begin
           { Check to see if this operand writes to something }
-          if ((WriteOp[X] * InsProp[taicpu(hp1).opcode].Ch) <> []) and
+          if InsChangeWritesOp(InsProp[taicpu(hp1).opcode].Ch, X) and
             { And matches something in the CMP/TEST instruction }
             (
               MatchOperand(taicpu(hp1).oper[X]^, taicpu(p).oper[0]^) or
@@ -10435,7 +10411,7 @@ unit aoptx86;
       for X := 0 to taicpu(p).ops - 1 do
         begin
           { Check to see if this operand writes to something }
-          if ((WriteOp[X] * InsProp[taicpu(p).opcode].Ch) <> []) and
+          if InsChangeWritesOp(InsProp[taicpu(p).opcode].Ch, X) and
             { And matches something in hp1 }
             (taicpu(p).oper[X]^.typ = top_reg) and
             RegInInstruction(taicpu(p).oper[X]^.reg, hp1) then
@@ -13962,7 +13938,7 @@ unit aoptx86;
                       RefsEqual(taicpu(cond_p).oper[0]^.ref^, taicpu(p).oper[0]^.ref^) and
                       (
                         { Check that we're not modifying a register that appears in the reference }
-                        (InsProp[taicpu(cond_p).opcode].Ch * [Ch_Mop2, Ch_RWop2, Ch_Wop2] = []) or
+                        not InsChangeWritesOp(InsProp[taicpu(cond_p).opcode].Ch, 1) or
                         (taicpu(cond_p).oper[1]^.typ <> top_reg) or
                         not RegInRef(taicpu(cond_p).oper[1]^.reg, taicpu(cond_p).oper[0]^.ref^)
                       )

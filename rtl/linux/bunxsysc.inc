@@ -63,26 +63,16 @@ begin
 end;
 
 
-Type
-  ITimerVal= Record
-              It_Interval,
-              It_Value      : TimeVal;
-             end;
-
-Const   ITimer_Real    =0;
-        ITimer_Virtual =1;
-        ITimer_Prof    =2;
-
-Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
+Function FpSetITimer(which : cint; value : PItimerVal; ovalue : PItimerVal): cint;
 
 Begin
-  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,TSysParam(@Value),TSysParam(@varovalue));
+  FpSetITimer:=Do_Syscall(syscall_nr_setitimer,TSysParam(which),TSysParam(value),TSysParam(ovalue));
 End;
 
-Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
+Function FpGetITimer(which : cint; value : PItimerVal): cint;
 
 Begin
-  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,TSysParam(@value));
+  FpGetITimer:=Do_Syscall(syscall_nr_getitimer,TSysParam(which),TSysParam(value));
 End;
 
 Function fpalarm(Seconds: cuint):cuint;
@@ -91,17 +81,15 @@ Var it,oitv : Itimerval;
     retval  : cuint;
 
 Begin
-//      register struct itimerval *itp = &it;
-
  it.it_interval.tv_sec:=0;
  it.it_interval.tv_usec:=0;
  it.it_value.tv_usec:=0;
  it.it_value.tv_sec:=seconds;
- If SetITimer(ITIMER_REAL,it,oitv)<0 Then
+ If FpSetITimer(ITIMER_REAL,@it,@oitv)<0 Then
    Exit(0);                     // different from *BSD!
 
- retval:= oitv.it_value.tv_usec;
- if retval<>0 Then
+ retval:= oitv.it_value.tv_sec;
+ if oitv.it_value.tv_usec<>0 Then
    inc(retval);
  fpAlarm:=retval;
 End;
@@ -253,37 +241,61 @@ end;
 function fpgetuid : uid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetuid:=do_syscall(syscall_nr_getuid32);
+{$else}
  fpgetuid:=do_syscall(syscall_nr_getuid);
+{$endif}
 end;
 
 function fpgeteuid : uid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgeteuid:=do_syscall(syscall_nr_geteuid32);
+{$else}
  fpgeteuid:=do_syscall(syscall_nr_geteuid);
+{$endif}
 end;
 
 function fpgetgid : gid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetgid:=do_syscall(syscall_nr_getgid32);
+{$else}
  fpgetgid:=do_syscall(syscall_nr_getgid);
+{$endif}
 end;
 
 function fpgetegid : gid_t;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetegid:=do_syscall(syscall_nr_getegid32);
+{$else}
  fpgetegid:=do_syscall(syscall_nr_getegid);
+{$endif}
 end;
 
 function fpsetuid(uid : uid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpsetuid:=do_syscall(syscall_nr_setuid32,uid);
+{$else}
  fpsetuid:=do_syscall(syscall_nr_setuid,uid);
+{$endif}
 end;
 
 function fpsetgid(gid : gid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpsetgid:=do_syscall(syscall_nr_setgid32,gid);
+{$else}
  fpsetgid:=do_syscall(syscall_nr_setgid,gid);
+{$endif}
 end;
 
 // type tgrparr=array[0..0] of gid_t;
@@ -291,7 +303,11 @@ end;
 function fpgetgroups(gidsetsize : cint; var grouplist:tgrparr): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+ fpgetgroups:=do_syscall(syscall_nr_getgroups32,gidsetsize,TSysParam(@grouplist));
+{$else}
  fpgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,TSysParam(@grouplist));
+{$endif}
 end;
 
 function fpgetpgrp : pid_t;
@@ -364,6 +380,8 @@ Function fpchown(path:PAnsiChar;owner:uid_t;group:gid_t):cint;
 begin
 {$if defined(generic_linux_syscalls)}
   fpChOwn:=do_syscall(syscall_nr_fchownat,AT_FDCWD,TSysParam(path),TSysParam(owner),TSysParam(group),0);
+{$elseif defined(FPC_LINUX_ID32_SYSCALLS)}
+  fpChOwn:=do_syscall(syscall_nr_chown32,TSysParam(path),TSysParam(owner),TSysParam(group));
 {$else}
   fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
 {$endif}

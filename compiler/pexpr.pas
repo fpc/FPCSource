@@ -49,6 +49,12 @@ interface
     { reads a single factor }
     function factor(getaddr:boolean;flags:texprflags) : tnode;
 
+    { parse "type of <operand>" and returns the type.
+      The operand is only parsed and type checked, its node tree is discarded,
+      so the operand is never executed.
+      typetokenconsumed=true means the "type" token was already consumed. }
+    function parse_type_inquiry(typetokenconsumed:boolean):tdef;
+
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
@@ -1108,6 +1114,18 @@ implementation
       end;
 
 
+    function load_self_or_inquiry_base(def:tdef):tnode;
+      begin
+        { in a "type of" operand inside a record/object/class declaration
+          there is no self; only the type is needed, so use the type as base }
+        if current_module.in_type_inquiry and
+           not assigned(get_local_or_para_sym('self')) then
+          result:=ctypenode.create(def)
+        else
+          result:=load_self_node;
+      end;
+
+
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
       var
         pd: tprocdef;
@@ -1135,10 +1153,10 @@ implementation
                        else
                          p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
                      else
-                       p1:=load_self_node;
+                       p1:=load_self_or_inquiry_base(tdef(st.defowner));
                    end
                  else
-                   p1:=load_self_node;
+                   p1:=load_self_or_inquiry_base(tdef(st.defowner));
                  { don't try to call the invokable again }
                  if is_invokable(tdef(st.defowner)) then
                    include(p1.flags,nf_load_procvar);
@@ -1725,6 +1743,12 @@ implementation
                               Message(parser_e_only_class_members_via_class_ref);
                           p1:=csubscriptnode.create(sym,p1);
                         end;
+                   end;
+                 symrefsym:
+                   begin
+                     do_member_read(structh,getaddr,tsymrefsym(sym).fieldvs,p1,again,callflags,spezcontext);
+                     structh:=tabstractrecorddef(tsymrefsym(sym).fieldvs.vardef);
+                     do_member_read(structh,getaddr,tsymrefsym(sym).ref,p1,again,callflags,spezcontext);
                    end;
                  propertysym:
                    begin
@@ -2740,7 +2764,10 @@ implementation
                                end
                              else
                                begin
-                                 Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                                 if oo_composites_generic in tabstractrecorddef(p1.resultdef).objectoptions then
+                                   erroroutp1:=true
+                                 else
+                                   Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                  { try to clean up }
                                  consume(_ID);
                                end;
@@ -3191,7 +3218,8 @@ implementation
           staticvarsym,
           localvarsym,
           paravarsym,
-          fieldvarsym :
+          fieldvarsym,
+          symrefsym :
             begin
               { check if we are reading a field of an object/class/   }
               { record. is_member_read() will deal with withsymtables }
@@ -3221,10 +3249,10 @@ implementation
                             if assigned(pd) and pd.no_self_node then
                               result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
                             else
-                              result:=load_self_node;
+                              result:=load_self_or_inquiry_base(hdef);
                           end
                         else
-                          result:=load_self_node;
+                          result:=load_self_or_inquiry_base(hdef);
                       end;
                   { now, if the field itself is part of an objectsymtab }
                   { (it can be even if it was found in a withsymtable,  }
@@ -3379,7 +3407,7 @@ implementation
                           result:=cloadvmtaddrnode.create(result);
                       end
                     else
-                      result:=load_self_node;
+                      result:=load_self_or_inquiry_base(hdef);
                   { not srsymtable.symtabletype since that can be }
                   { withsymtable as well                          }
                   if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -3459,6 +3487,94 @@ implementation
               Message(parser_e_illegal_expression);
             end;
         end; { end case }
+      end;
+
+
+    { finds a variable, field or parameter whose type is not yet parsed,
+      i.e. which still has the placeholder generrordef }
+    function find_incomplete_varsym(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        sym : tsym;
+      begin
+        result:=fen_false;
+        sym:=nil;
+        case n.nodetype of
+          loadn:
+            sym:=tloadnode(n).symtableentry;
+          subscriptn:
+            sym:=tsubscriptnode(n).vs;
+          else
+            ;
+        end;
+        if assigned(sym) and
+           (sym is tabstractvarsym) and
+           (tabstractvarsym(sym).vardef=generrordef) then
+          begin
+            if not assigned(tsym(arg^)) then
+              tsym(arg^):=sym;
+            result:=fen_norecurse_true;
+          end;
+      end;
+
+
+    function parse_type_inquiry(typetokenconsumed:boolean):tdef;
+      var
+        n : tnode;
+        oldlocalswitches : tlocalswitches;
+        old_block_type : tblock_type;
+        old_in_type_inquiry : boolean;
+        ecnt : longint;
+        operandpos : tfileposinfo;
+        incompletesym : tsym;
+      begin
+        result:=generrordef;
+        if not typetokenconsumed then
+          consume(_TYPE);
+        consume(_OF);
+        ecnt:=errorcount;
+        operandpos:=current_tokenpos;
+        old_block_type:=block_type;
+        oldlocalswitches:=current_settings.localswitches;
+        old_in_type_inquiry:=current_module.in_type_inquiry;
+        current_module.in_type_inquiry:=true;
+        { Disable range and overflow checks. }
+        current_settings.localswitches:=current_settings.localswitches-[cs_check_range,cs_check_overflow];
+        { parse the operand like a normal expression, independent of the
+          declaration section the operator is used in }
+        block_type:=bt_body;
+        n:=factor(false,[]);
+        do_typecheckpass(n);
+        current_module.in_type_inquiry:=old_in_type_inquiry;
+        block_type:=old_block_type;
+        current_settings.localswitches:=oldlocalswitches;
+        if not assigned(n) then
+          exit;
+        { a type identifier is not a valid operand }
+        if (n.nodetype=typen) or
+           ((n.nodetype=loadvmtaddrn) and
+            assigned(tloadvmtaddrnode(n).left) and
+            (tloadvmtaddrnode(n).left.nodetype=typen)) then
+          Message(parser_e_no_type_not_allowed_here)
+        else if assigned(n.resultdef) then
+          result:=n.resultdef;
+        { a symbol used inside its own declaration, e.g. "var a: array of type of a;",
+          has not yet a type and silently yields generrordef }
+        if (result=generrordef) and
+           (errorcount=ecnt) then
+          begin
+            incompletesym:=nil;
+            foreachnodestatic(n,@find_incomplete_varsym,@incompletesym);
+            if assigned(incompletesym) then
+              MessagePos1(operandpos,type_e_type_is_not_completly_defined,'type of '+incompletesym.realname)
+            else
+              MessagePos1(operandpos,type_e_type_is_not_completly_defined,'type of');
+          end;
+        { in a generic the operand can be an undefineddef without typesym (e.g. "type of PT^") }
+        if (result.typ=undefineddef) and
+           not assigned(result.typesym) then
+          result:=cundefinedtype;
+        { only the type is needed, discard the node }
+        n.free;
       end;
 
 
@@ -4475,6 +4591,25 @@ implementation
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end;
+               end;
+             _TYPE:
+               begin
+                 { "type of <operand>" }
+                 if not (m_type_inquiry in current_settings.modeswitches) then
+                   begin
+                     Message(parser_e_illegal_expression);
+                     consume(_TYPE);
+                     p1:=cerrornode.create;
+                   end
+                 else
+                   begin
+                     hdef:=parse_type_inquiry(false);
+                     again:=false;
+                     { handle type cast "type of <operand>(<expr>)" and
+                       member access like a normal type }
+                     p1:=handle_factor_typenode(hdef,getaddr,again,hdef.typesym,ef_type_only in flags);
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
              _OBJCPROTOCOL:
                begin

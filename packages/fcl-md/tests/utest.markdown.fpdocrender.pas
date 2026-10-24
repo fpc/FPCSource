@@ -73,7 +73,31 @@ type
     procedure TestUnorderedListOneItem;
   end;
 
+  { TTestFPDocRenderExtensions }
+
+  TTestFPDocRenderExtensions = Class(TTestCase)
+  protected
+    // Render aMarkdown as the description of element a in module unit1
+    function Render(const aMarkdown : String) : String;
+    procedure CheckContains(const aMsg, aExpected, aActual : String);
+  Published
+    procedure TestDefinitionList;
+    procedure TestDefinitionsShareDD;
+    procedure TestNoteIsRemark;
+    procedure TestWarningIsBoldParagraph;
+    procedure TestFootnoteInParentheses;
+    procedure TestCommentWritesNothing;
+    procedure TestTableCaption;
+    procedure TestTableHeaderRow;
+    procedure TestCodeLineBreaks;
+    procedure TestFigure;
+    procedure TestParagraphsAreSiblings;
+  end;
+
 implementation
+
+uses
+  Markdown.Parser, Markdown.Processors;
 
 { TTestFPDocRender }
 
@@ -383,7 +407,139 @@ begin
 end;
 
 
+{ TTestFPDocRenderExtensions }
+
+function TTestFPDocRenderExtensions.Render(const aMarkdown: String): String;
+
+var
+  lSource : TStringList;
+  lDoc : TMarkdownDocument;
+  lRenderer : TMarkdownFPDocRenderer;
+begin
+  lSource:=TStringList.Create;
+  lRenderer:=TMarkdownFPDocRenderer.Create(Nil);
+  try
+    lSource.Text:='# unit1'#10#10'## a'#10#10'### Description'#10#10+aMarkdown;
+    lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
+    try
+      Result:=lRenderer.RenderFPDoc(lDoc);
+    finally
+      lDoc.Free;
+    end;
+  finally
+    lRenderer.Free;
+    lSource.Free;
+  end;
+end;
+
+
+procedure TTestFPDocRenderExtensions.CheckContains(const aMsg, aExpected, aActual: String);
+
+begin
+  AssertTrue(aMsg+': expected "'+aExpected+'" in "'+aActual+'"',Pos(aExpected,aActual)>0);
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestDefinitionList;
+
+var
+  S : String;
+begin
+  S:=Render('Term'#10': Definition');
+  CheckContains('List','<dl>',S);
+  CheckContains('Term','<dt>Term</dt>',S);
+  CheckContains('Definition','<dd>Definition</dd>',S);
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestDefinitionsShareDD;
+
+var
+  S : String;
+begin
+  S:=Render('Term'#10': One'#10': Two');
+  AssertEquals('One dd element',Pos('<dd>',S),S.LastIndexOf('<dd>')+1);
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestNoteIsRemark;
+
+begin
+  CheckContains('Remark','<remark>',Render('> [!NOTE]'#10'> Text'));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestWarningIsBoldParagraph;
+
+begin
+  CheckContains('Bold title','<b>Warning:</b>',Render('> [!WARNING]'#10'> Text'));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestFootnoteInParentheses;
+
+begin
+  CheckContains('Note in parentheses','Text. (The note.)',Render('Text.[^n]'#10#10'[^n]: The note.'));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestCommentWritesNothing;
+
+var
+  S : String;
+begin
+  S:=Render('<!-- hidden -- text -->'#10#10'A <!-- also hidden --> b');
+  AssertEquals('No XML comment',0,Pos('<!--',S));
+  AssertEquals('No comment text',0,Pos('hidden',S));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestTableCaption;
+
+begin
+  CheckContains('Caption','<caption>Values</caption>',Render('| a |'#10'|---|'#10'| 1 |'#10#10'Table: Values'));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestTableHeaderRow;
+
+var
+  S : String;
+begin
+  S:=StringReplace(Render('| a |'#10'|---|'#10'| 1 |'),' ','',[rfReplaceAll]);
+  S:=StringReplace(S,sLineBreak,'',[rfReplaceAll]);
+  CheckContains('Header row','<th><td>a</td></th>',S);
+  CheckContains('Body row','<tr><td>1</td></tr>',S);
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestCodeLineBreaks;
+
+begin
+  CheckContains('Lines separated by a line break','<code>a'#10'b</code>',Render('```'#10'a'#10'b'#10'```'));
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestFigure;
+
+var
+  S : String;
+begin
+  S:=Render('![A figure](pic.png){#fig}');
+  CheckContains('Image file','file="pic.png"',S);
+  CheckContains('Image caption','caption="A figure"',S);
+  CheckContains('Image name','name="fig"',S);
+end;
+
+
+procedure TTestFPDocRenderExtensions.TestParagraphsAreSiblings;
+
+begin
+  CheckContains('Second paragraph after the first','<p>One</p>'+sLineBreak+'          <p>Two</p>',Render('One'#10#10'Two'));
+end;
+
 initialization
   Registertest(TTestFPDocRender);
+  Registertest(TTestFPDocRenderExtensions);
 end.
 

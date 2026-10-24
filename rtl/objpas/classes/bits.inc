@@ -69,17 +69,7 @@ begin
       cell := (xorMask xor FBits[result shr TBITS_SHIFT]) shr (result and TBITS_MASK);
       if cell <> 0 then
       begin
-         result := result + integer(
-{$if sizeof(TBitsBase) = sizeof(byte)}
-            BsfByte
-{$elseif sizeof(TBitsBase) = sizeof(word)}
-            BsfWord
-{$elseif sizeof(TBitsBase) = sizeof(dword)}
-            BsfDWord
-{$elseif sizeof(TBitsBase) = sizeof(qword)}
-            BsfQWord
-{$else} {$error unknown TBitsBase} {$endif}
-               (cell));
+         result := result + integer(Bsf(cell));
          if result >= FBSize then
             result := -1;
          exit;
@@ -101,17 +91,7 @@ begin
         and ((-result - 1) and TBITS_MASK) becomes 0 (number of upper bits to skip). }
       cell := TBitsBase((xorMask xor FBits[result shr TBITS_SHIFT]) shl ((-result - 1) and TBITS_MASK));
       if cell <> 0 then
-         exit(result - TBITS_MASK + integer(
-{$if sizeof(TBitsBase) = sizeof(byte)}
-            BsrByte
-{$elseif sizeof(TBitsBase) = sizeof(word)}
-            BsrWord
-{$elseif sizeof(TBitsBase) = sizeof(dword)}
-            BsrDWord
-{$elseif sizeof(TBitsBase) = sizeof(qword)}
-            BsrQWord
-{$else} {$error unknown TBitsBase} {$endif}
-               (cell)));
+         exit(result - TBITS_MASK + integer(Bsr(cell)));
       result := (result - bitsizeof(TBitsBase)) or TBITS_MASK;
    end;
    result := -1;

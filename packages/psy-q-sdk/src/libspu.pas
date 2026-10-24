@@ -1,3 +1,7 @@
+{$LINKLIB spu, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
 {$MODE OBJFPC}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libspu;

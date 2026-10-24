@@ -4,6 +4,7 @@ program tencodingtest;
 {$codepage cp1251}
 
 uses
+  {$ifdef unix}cwstring,{$endif}
   SysUtils, Classes;
 
 function CheckCodePage(const B: TBytes; AEncoding: TEncoding): Boolean;

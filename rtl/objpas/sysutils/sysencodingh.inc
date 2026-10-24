@@ -13,6 +13,12 @@
     *********************************************************************
 }
 
+{$ifndef windows}
+const
+  // TMBCSEncoding flag: raise EEncodingError when decoding malformed input
+  MB_ERR_INVALID_CHARS = 8;
+{$endif windows}
+
 type
   EEncodingError = class(Exception);
 
@@ -118,9 +124,11 @@ type
   TMBCSEncoding = class(TEncoding)
   strict private
     FCodePage: Integer;
+  strict protected
     FMBToWCharFlags: Integer;
     FWCharToMBFlags: Integer;
-  strict protected
+    // True when MB_ERR_INVALID_CHARS is set and Bytes is not valid in a UTF-8 code page
+    function IsInvalidInput(Bytes: PByte; ByteCount: Integer): Boolean;
     function GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
     function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; override;
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; override;
@@ -152,8 +160,13 @@ type
   { TUTF8Encoding }
 
   TUTF8Encoding = class(TUTF7Encoding)
+  strict protected
+    function GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
+    function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; override;
+    function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; override;
+    function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
   public
-    constructor Create; override;
+    constructor Create; overload; override;
     function Clone: TEncoding; override;
     function GetMaxByteCount(CharCount: Integer): Integer; override;
     function GetMaxCharCount(ByteCount: Integer): Integer; override;

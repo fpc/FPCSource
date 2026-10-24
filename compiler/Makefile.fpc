@@ -387,7 +387,7 @@ $(error The $(PPC_TARGET) architecture is not (yet) supported by the FPC/LLVM co
 endif
 
 # No need to prevent cross-OS compilation
-#ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux openbsd),)
+#ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux openbsd freebsd),)
 #$(error The $(OS_TARGET) target OS is not (yet) supported by the FPC/LLVM code generator)
 #endif
 

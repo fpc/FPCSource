@@ -49,6 +49,11 @@ var
    palmpilot : boolean;       { handling of PalmOS SYS_CALLs }
    packrecords: boolean;      { All records should be packed in the file }
    pointerprefix: boolean;    { put P in front of pointers }
+   Preprocess : boolean;      { run the C preprocessor on the input file first }
+   PreprocessorProgram,       { C preprocessor program, gcc by default }
+   PreprocessorOptions,       { extra options for the C preprocessor }
+   PreprocessorKeep : AnsiString; { files whose text is kept after preprocessing, separated by ; }
+   OneTypeSection : boolean;  { write all types in one type section }
    PTypeList : TStringList;   { list of all pointer types }
    freedynlibproc,
    loaddynlibproc : tstringlist;
@@ -122,10 +127,17 @@ Procedure Usage;
 begin
   writeln ('Usage : ',paramstr(0),' [options]  filename');
   writeln ('        Where [options] is one or more of:');
+  writeln ('        -1                 write all types in one type section, after the constants they use');
   writeln ('        -a                 Do not use ansichar, use char instead;');
   writeln ('        -d                 Use external;');
   writeln ('        -D                 use external libname name ''func_name'';');
   writeln ('        -e                 change enum type to list of constants');
+  writeln ('        -E                 run the C preprocessor (gcc -E -dD) on the file first,');
+  writeln ('                           and keep only the text of the file itself');
+  writeln ('        -Ec program        C preprocessor program to use instead of gcc (implies -E)');
+  writeln ('        -Eo options        extra options for the C preprocessor, e.g. "-I dir -DNAME" (implies -E)');
+  writeln ('        -Ek files          other files whose text is kept, separated by ; (implies -E)');
+  writeln ('        -Ek@listfile       other files whose text is kept, one per line in listfile (implies -E)');
   writeln ('        -c                 Compact outputmode, less spaces and empty lines');
   WriteLn ('        -C                 Use types in ctypes unit');
   writeln ('        -i                 create include files (no unit header)');
@@ -160,7 +172,7 @@ Var
   cp : string[255];   {because of cp[3] indexing}
   I : longint;
 
-  Function GetNextParam (const Opt,Name : String) : string;
+  Function GetNextParam (const Opt,Name : String) : AnsiString;
   begin
    if i=paramcount then
     begin
@@ -195,6 +207,11 @@ begin
   packrecords:=false;
   createdynlib:=false;
   useansichar:=True;
+  Preprocess:=false;
+  OneTypeSection:=false;
+  PreprocessorProgram:='gcc';
+  PreprocessorOptions:='';
+  PreprocessorKeep:='';
   i:=1;
   while i<=paramcount do
    begin
@@ -205,7 +222,22 @@ begin
          'a' : useansichar:=false;
          'c' : CompactMode:=true;
          'C' : UseCTypesUnit := true;
+         '1' : OneTypeSection:=true;
          'e' : EnumToConst :=true;
+         'E' : begin
+                 Preprocess:=true;
+                 if length(cp)>=3 then
+                   case cp[3] of
+                     'c' : PreprocessorProgram:=GetNextParam('Ec','program');
+                     'o' : PreprocessorOptions:=GetNextParam('Eo','options');
+                     'k' : if (length(cp)>4) and (cp[4]='@') then
+                             PreprocessorKeep:=Copy(cp,4,length(cp)-3)
+                           else
+                             PreprocessorKeep:=GetNextParam('Ek','files');
+                   else
+                     Writeln ('Illegal option : ',cp);
+                   end;
+               end;
          'd' : UseLib      :=true;
          'D' : begin
                  UseLib      :=true;
@@ -216,7 +248,7 @@ begin
          'o' : outputfilename:=GetNextParam('o','outputfilename');
          'P' : createdynlib:=true;
          'p' : begin
-                  if (cp[3] = 'r') then
+                  if (length(cp)>=3) and (cp[3] = 'r') then
                      begin
                         PackRecords := true;
                      end

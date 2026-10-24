@@ -124,3 +124,22 @@ begin
   Result:=DoGetTextWidth(String(text));
 end;
 
+function TFPCustomDrawFont.DoGetTextMetrics (out aMetrics: TFPTextMetric) : boolean;
+
+begin
+  aMetrics:=Default(TFPTextMetric);
+  Result:=False;
+end;
+
+function TFPCustomDrawFont.DoGetTextAdvance (text:ansistring) : integer;
+
+begin
+  Result:=DoGetTextWidth(text);
+end;
+
+function TFPCustomDrawFont.DoGetTextAdvance (text: unicodestring) : integer;
+
+begin
+  Result:=DoGetTextAdvance(String(text));
+end;
+

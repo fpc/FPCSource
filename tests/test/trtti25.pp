@@ -2,6 +2,20 @@ program trtti25;
 
 {$mode objfpc}{$H+}
 
+{
+  Because of the TVMTFiledClassTab type
+  defined as:
+  record
+    Word Count;
+    PClass ClassRef[1];
+  end;
+  in which ClassRef is
+  a variable size array of length Count,
+  range checking can not work correctly.
+  Thus, we disable it explicitly.
+}
+{$R-}
+
 uses
   TypInfo;
 

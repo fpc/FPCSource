@@ -157,25 +157,29 @@ begin
 end;
 
 procedure TranslateMxcsr(mxcsr: longword; var code: longint);
+var
+  lUnmasked : longword;
 begin
+  // Only consider unmasked flags (issue #36900)
+  lUnmasked:=mxcsr and not (mxcsr shr 7) and $3F;
   { we can return only one value, further one's are lost }
   { InvalidOp }
-  if (mxcsr and 1)<>0 then
+  if (lUnmasked and 1)<>0 then
     code:=-207
   { Denormal }
-  else if (mxcsr and 2)<>0 then
+  else if (lUnmasked and 2)<>0 then
     code:=-206
   { !!reZeroDivide }
-  else if (mxcsr and 4)<>0 then
+  else if (lUnmasked and 4)<>0 then
     code:=-208
   { reOverflow }
-  else if (mxcsr and 8)<>0 then
+  else if (lUnmasked and 8)<>0 then
     code:=-205
   { Underflow }
-  else if (mxcsr and 16)<>0 then
+  else if (lUnmasked and 16)<>0 then
     code:=-206
   { Precision }
-  else if (mxcsr and 32)<>0 then
+  else if (lUnmasked and 32)<>0 then
     code:=-207
   else { this should not happen }
     code:=-255

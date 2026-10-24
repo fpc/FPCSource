@@ -224,12 +224,15 @@ begin
     lFC.BuildFontCache;
 
     lCI := lFC.Find('LiberationSans');
+    AssertNotNull('Font LiberationSans found', lCI);
     AssertEquals('Failed on 1', 14684, round(lCI.TextWidth('Country Ppml01', 0.0)));
 
     lCI := lFC.Find('DejaVuSans');
+    AssertNotNull('Font DejaVuSans found', lCI);
     AssertEquals('Failed on 2', 16492, round(lCI.TextWidth('Country Ppml01', 0.0)));
 
     lCI := lFC.Find('Ubuntu'); // 7333 is the raw glyph width, but with kerning it is 7339
+    AssertNotNull('Font Ubuntu found', lCI);
     AssertEquals('Failed on 3', 7333, round(lCI.TextWidth('Country Ppml01', 0.0)));
   finally
     lFC.Free;
@@ -248,6 +251,7 @@ begin
     lFC.BuildFontCache;
 
     lCI := lFC.Find('LiberationSans');
+    AssertNotNull('Font LiberationSans found', lCI);
     px := 14684 * 10 * 96 / (72 * 2048);  // 95.599px
     AssertEquals('Failed on 1', px, lCI.TextWidth('Country Ppml01', 10.0));
     px := 14684 * 12 * 96 / (72 * 2048);  // 114.7188px
@@ -256,6 +260,7 @@ begin
     AssertEquals('Failed on 3', px, lCI.TextWidth('Country Ppml01', 24.0));
 
     lCI := lFC.Find('DejaVuSans');
+    AssertNotNull('Font DejaVuSans found', lCI);
     px := 16492 * 10 * 96 / (72 * 2048);  // 107.369px
     AssertEquals('Failed on 4', px, lCI.TextWidth('Country Ppml01', 10.0));
     px := 16492 * 12 * 96 / (72 * 2048);  // 128.8438px
@@ -264,6 +269,7 @@ begin
     AssertEquals('Failed on 6', px, lCI.TextWidth('Country Ppml01', 24.0));
 
     lCI := lFC.Find('Ubuntu');
+    AssertNotNull('Font Ubuntu found', lCI);
     px := 7333 * 10 * 96 / (72 * 1000);  // 97.7733px
     AssertEquals('Failed on 7', px, lCI.TextWidth('Country Ppml01', 10.0));
     px := 7333 * 12 * 96 / (72 * 1000);  // 117.328px

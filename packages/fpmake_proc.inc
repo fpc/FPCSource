@@ -492,6 +492,12 @@ begin
 {$include libgd/fpmake.pp}
 end;
 
+procedure add_libheif(const ADirectory: string);
+begin
+  with Installer do
+{$include libheif/fpmake.pp}
+end;
+
 procedure add_libjack(const ADirectory: string);
 begin
   with Installer do

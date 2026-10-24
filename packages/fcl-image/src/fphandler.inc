@@ -234,6 +234,8 @@ constructor TFPCustomImageReader.Create;
 begin
   inherited create;
   FDefImageClass := TFPMemoryImage;
+  FComposite := True;
+  FFramesInfo := DefaultFramesInfo;
 end;
 
 function TFPCustomImageReader.ImageRead (Str:TStream; Img:TFPCustomImage) : TFPCustomImage;
@@ -247,14 +249,20 @@ begin
     else
       result := Img;
     FImage := result;
-    if FImage.UsePalette then
-      FImage.Palette.Clear;
-    if CheckContents (Str) then
-      begin
-      InternalRead (Str, result)
-      end
-    else
-      raise FPImageException.Create ('Wrong image format');
+    try
+      if FImage.UsePalette then
+        FImage.Palette.Clear;
+      if CheckContents (Str) then
+        begin
+        InternalRead (Str, result)
+        end
+      else
+        raise FPImageException.Create ('Wrong image format');
+    except
+      if not assigned(img) then
+        FreeAndNil(result);
+      raise;
+    end;
   finally
     FStream := nil;
     FImage := nil;
@@ -293,9 +301,134 @@ begin
 end;
 
 
+function DefaultFramesInfo: TFPFramesInfo;
+
+begin
+  Result.Width := 0;
+  Result.Height := 0;
+  Result.FrameCount := -1;
+  Result.LoopCount := 0;
+  Result.Background := colTransparent;
+end;
+
+
+function DefaultFrameInfo: TFPFrameInfo;
+
+begin
+  Result.Kind := fkPage;
+  Result.Left := 0;
+  Result.Top := 0;
+  Result.Delay := 0;
+  Result.Disposal := fdNone;
+  Result.Blend := fbSource;
+  Result.Name := '';
+end;
+
+
+function TFPCustomImageReader.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+
+begin
+  Result := DefaultFramesInfo;
+  Result.FrameCount := 1;
+end;
+
+
+function TFPCustomImageReader.InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean;
+
+begin
+  Result := FFramesRead = 0;
+  if Result then
+    InternalRead(Str, Img);
+end;
+
+
+procedure TFPCustomImageReader.InternalEndFrames(Str: TStream);
+
+begin
+end;
+
+
+function TFPCustomImageReader.BeginFrames(Str: TStream): TFPFramesInfo;
+
+begin
+  if not assigned(Str) then
+    raise FPImageException.Create(ErrorText[StrNoStream]);
+  FFrameStream := nil;
+  FFramesRead := 0;
+  FFramesInfo := DefaultFramesInfo;
+  if not CheckContents(Str) then
+    raise FPImageException.Create('Wrong image format');
+  FStream := Str;
+  try
+    FFramesInfo := InternalBeginFrames(Str);
+  finally
+    FStream := nil;
+  end;
+  FFrameStream := Str;
+  Result := FFramesInfo;
+end;
+
+
+function TFPCustomImageReader.ReadNextFrame(Img: TFPCustomImage; out aInfo: TFPFrameInfo): Boolean;
+
+begin
+  if not assigned(FFrameStream) then
+    raise FPImageException.Create('BeginFrames was not called');
+  if not assigned(Img) then
+    raise FPImageException.Create('No image to read a frame into');
+  aInfo := DefaultFrameInfo;
+  FStream := FFrameStream;
+  FImage := Img;
+  try
+    if Img.UsePalette then
+      Img.Palette.Clear;
+    Result := InternalReadFrame(FFrameStream, Img, aInfo);
+  finally
+    FStream := nil;
+    FImage := nil;
+  end;
+  if Result then
+    begin
+    Inc(FFramesRead);
+    if (FFramesInfo.Width = 0) and (FFramesInfo.Height = 0) then
+      begin
+      FFramesInfo.Width := Img.Width;
+      FFramesInfo.Height := Img.Height;
+      end;
+    end;
+end;
+
+
+function TFPCustomImageReader.ReadNextFrame(out aInfo: TFPFrameInfo): TFPCustomImage;
+
+begin
+  Result := FDefImageClass.Create(0, 0);
+  try
+    if not ReadNextFrame(Result, aInfo) then
+      FreeAndNil(Result);
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+
+procedure TFPCustomImageReader.EndFrames;
+
+begin
+  if not assigned(FFrameStream) then
+    exit;
+  try
+    InternalEndFrames(FFrameStream);
+  finally
+    FFrameStream := nil;
+  end;
+end;
+
+
 { TFPCustomImageWriter }
 
-procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage);
+procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage; aTruncate : Boolean = True);
 begin
   if not assigned(img) then
     raise FPImageException.Create(ErrorText[StrNoImageToWrite]);
@@ -304,12 +437,102 @@ begin
   try
     FStream := str;
     FImage := img;
-    Str.position := 0;
-    Str.Size := 0;
+    if aTruncate then
+      begin
+      Str.position := 0;
+      Str.Size := 0;
+      end;
     InternalWrite(Str, Img);
   finally
     FStream := nil;
     FImage := nil;
+  end;
+end;
+
+
+class function TFPCustomImageWriter.FrameKinds: TFPFrameKinds;
+
+begin
+  Result := [];
+end;
+
+
+procedure TFPCustomImageWriter.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+
+begin
+end;
+
+
+procedure TFPCustomImageWriter.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+
+begin
+  if FFramesWritten > 0 then
+    raise FPImageException.CreateFmt('%s writes one image only', [ClassName]);
+  InternalWrite(Str, Img);
+end;
+
+
+procedure TFPCustomImageWriter.InternalEndFrames(Str: TStream);
+
+begin
+end;
+
+
+procedure TFPCustomImageWriter.BeginFrames(Str: TStream; const aInfo: TFPFramesInfo; aTruncate: Boolean);
+
+begin
+  if not assigned(Str) then
+    raise FPImageException.Create(ErrorText[StrNoStream]);
+  FFrameStream := nil;
+  FFramesWritten := 0;
+  FFramesInfo := aInfo;
+  if aTruncate then
+    begin
+    Str.Position := 0;
+    Str.Size := 0;
+    end;
+  FStream := Str;
+  try
+    InternalBeginFrames(Str, aInfo);
+  finally
+    FStream := nil;
+  end;
+  FFrameStream := Str;
+end;
+
+
+procedure TFPCustomImageWriter.WriteNextFrame(Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+
+begin
+  if not assigned(FFrameStream) then
+    raise FPImageException.Create('BeginFrames was not called');
+  if not assigned(Img) then
+    raise FPImageException.Create(ErrorText[StrNoImageToWrite]);
+  FStream := FFrameStream;
+  FImage := Img;
+  try
+    InternalWriteFrame(FFrameStream, Img, aInfo);
+  finally
+    FStream := nil;
+    FImage := nil;
+  end;
+  Inc(FFramesWritten);
+end;
+
+
+procedure TFPCustomImageWriter.EndFrames;
+
+begin
+  if not assigned(FFrameStream) then
+    raise FPImageException.Create('BeginFrames was not called');
+  FStream := FFrameStream;
+  try
+    if FFramesWritten = 0 then
+      raise FPImageException.Create(ErrorText[StrNoImageToWrite]);
+    InternalEndFrames(FFrameStream);
+  finally
+    FStream := nil;
+    FFrameStream := nil;
   end;
 end;
 

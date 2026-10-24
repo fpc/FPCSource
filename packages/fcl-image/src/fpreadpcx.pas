@@ -63,6 +63,13 @@ type
 
 implementation
 
+// Scales an 8-bit palette channel to 16 bits.
+function Scale8(aValue: byte): word;
+
+begin
+  Result := aValue * 257;
+end;
+
 
 procedure TFPReaderPCX.CreatePalette16(Img: TFPCustomImage);
 var
@@ -75,9 +82,9 @@ begin
   begin
     with c, header do
     begin
-      Red   := ColorMap[I].red shl 8;
-      Green := ColorMap[I].Green shl 8;
-      Blue  := ColorMap[I].Blue shl 8;
+      Red   := Scale8(ColorMap[I].Red);
+      Green := Scale8(ColorMap[I].Green);
+      Blue  := Scale8(ColorMap[I].Blue);
       Alpha := alphaOpaque;
     end;
     Img.Palette.Add(c);
@@ -95,9 +102,9 @@ begin
   begin
     with c do
     begin
-      Red   := I * 255;
-      Green := I * 255;
-      Blue  := I * 255;
+      Red   := Scale8(I);
+      Green := Scale8(I);
+      Blue  := Scale8(I);
       Alpha := alphaOpaque;
     end;
     Img.Palette.Add(c);
@@ -112,30 +119,37 @@ begin
   Img.Palette.Add(colWhite);
 end;
 
+{ The 256-colour palette follows the image data, after a $0C marker byte; when
+  that byte is not there, the palette is read from the last 768 bytes. }
 procedure TFPReaderPCX.ReadPalette(Stream: TStream; Img: TFPCustomImage);
 var
-  RGBEntry: TRGB;
+  Entries: array[0..255] of TRGB;
   I:      integer;
   c:      TFPColor;
-  OldPos: integer;
+  Marker: byte;
+  OldPos: Int64;
 begin
-  Img.UsePalette := True;
-  Img.Palette.Clear;
   OldPos := Stream.Position;
-  Stream.Position := Stream.Size - 768;
+  if not ((Stream.Read(Marker, 1) = 1) and (Marker = $0C)
+          and (Stream.Read(Entries, SizeOf(Entries)) = SizeOf(Entries))) then
+  begin
+    if Stream.Size < SizeOf(Entries) then
+      raise FPImageException.Create('PCX palette missing');
+    Stream.Position := Stream.Size - SizeOf(Entries);
+    Stream.ReadBuffer(Entries, SizeOf(Entries));
+    Stream.Position := OldPos;
+  end;
   for I := 0 to 255 do
   begin
-    Stream.Read(RGBEntry, SizeOf(RGBEntry));
     with c do
     begin
-      Red   := RGBEntry.Red shl 8;
-      Green := RGBEntry.Green shl 8;
-      Blue  := RGBEntry.Blue shl 8;
+      Red   := Scale8(Entries[I].Red);
+      Green := Scale8(Entries[I].Green);
+      Blue  := Scale8(Entries[I].Blue);
       Alpha := alphaOpaque;
     end;
-    Img.Palette.Add(C);
+    Img.Palette.Color[I] := c;
   end;
-  Stream.Position := OldPos;
 end;
 
 procedure TFPReaderPCX.AnalyzeHeader(Img: TFPCustomImage);
@@ -144,7 +158,11 @@ begin
   begin
     if not ((FileID in [$0A, $0C]) and (ColorPlanes in [1, 3, 4]) and
       (Version in [0, 2, 3, 5]) and (PaletteType in [1, 2])) then
-      raise Exception.Create('Unknown/Unsupported PCX image type');
+      raise FPImageException.Create('Unknown/Unsupported PCX image type');
+    if not (((BitsPerPixel = 1) and (ColorPlanes in [1, 4]))
+         or ((BitsPerPixel in [2, 4]) and (ColorPlanes = 1))
+         or ((BitsPerPixel = 8) and (ColorPlanes in [1, 3]))) then
+      raise FPImageException.CreateFmt('Unsupported PCX layout: %d bits, %d planes', [BitsPerPixel, ColorPlanes]);
     BytesPerPixel := BitsPerPixel * ColorPlanes;
     FCompressed   := Encoding = 1;
     Img.Width     := XMax - XMin + 1;
@@ -181,6 +199,8 @@ begin
         begin
           Count := B - $c0;
           Stream.ReadBuffer(B, 1);
+          if Count = 0 then
+            continue;
         end;
       end;
       Dec(Count);
@@ -203,7 +223,7 @@ begin
   Rect.Right  := 0;
   Rect.Bottom := 0;
   continue    := True;
-  Progress(psRunning, 0, False, Rect, '', continue);
+  Progress(psRunning, percent, False, Rect, '', continue);
 end;
 
 procedure TFPReaderPCX.InternalRead(Stream: TStream; Img: TFPCustomImage);
@@ -219,25 +239,38 @@ begin
   Rect.Bottom := 0;
   continue    := True;
   Progress(psStarting, 0, False, Rect, '', continue);
-  Stream.Read(Header, SizeOf(Header));
-  AnalyzeHeader(Img);
-  case BytesPerPixel of
-    1: CreateBWPalette(Img);
-    4: CreatePalette16(Img);
-    8: ReadPalette(stream, Img);
-    else
-      if (Header.PaletteType = 2) then
-        CreateGrayPalette(Img);
+  Stream.ReadBuffer(Header, SizeOf(Header));
+  SwapPCXHeader(Header);
+  FScanLine := nil;
+  try
+    AnalyzeHeader(Img);
+    case BytesPerPixel of
+      1: CreateBWPalette(Img);
+      2, 4: CreatePalette16(Img);
+      8:
+        begin
+        Img.UsePalette := True;
+        Img.Palette.Clear;
+        Img.Palette.Count := 256;
+        end;
+      else
+        Img.UsePalette := False;
+    end;
+    H := Img.Height;
+    TotalWrite := H;
+    for Row := 0 to H - 1 do
+    begin
+      ReadScanLine(Row, Stream);
+      WriteScanLine(Row, Img);
+      UpdateProgress(trunc(100.0 * (Row + 1) / TotalWrite));
+    end;
+    if BytesPerPixel = 8 then
+      ReadPalette(Stream, Img);
+    Progress(psEnding, 100, False, Rect, '', continue);
+  finally
+    FreeMem(FScanLine);
+    FScanLine := nil;
   end;
-  H := Img.Height;
-  TotalWrite := Img.Height * Img.Width;
-  for Row := 0 to H - 1 do
-  begin
-    ReadScanLine(Row, Stream);
-    WriteScanLine(Row, Img);
-  end;
-  Progress(psEnding, 100, False, Rect, '', continue);
-  freemem(FScanLine);
 end;
 
 procedure TFPReaderPCX.WriteScanLine(Row: integer; Img: TFPCustomImage);
@@ -251,20 +284,21 @@ begin
   C.Alpha := AlphaOpaque;
   P  := FScanLine;
   Z2 := Header.BytesPerLine;
-  begin
-    case BytesPerPixel of
-      1:
-      begin
+  case BytesPerPixel of
+    1:
+      for Col := 0 to Img.Width - 1 do
+        if (P[col div 8] and (128 shr (col mod 8))) <> 0 then
+          Img.Pixels[Col, Row] := 1
+        else
+          Img.Pixels[Col, Row] := 0;
+    2:
+      for Col := 0 to Img.Width - 1 do
+        Img.Pixels[Col, Row] := (P[col div 4] shr (6 - 2 * (col mod 4))) and 3;
+    4:
+      if Header.ColorPlanes = 1 then
         for Col := 0 to Img.Width - 1 do
-        begin
-          if (P[col div 8] and (128 shr (col mod 8))) <> 0 then
-            Img.Colors[Col, Row] := Img.Palette[1]
-          else
-            Img.Colors[Col, Row] := Img.Palette[0];
-          UpdateProgress(trunc(100.0 * (Row * Col / TotalWrite)));
-        end;
-      end;
-      4:
+          Img.Pixels[Col, Row] := (P[col div 2] shr (4 * (1 - col mod 2))) and $F
+      else
       begin
         P1 := P;
         Inc(P1, Z2);
@@ -283,34 +317,24 @@ begin
             Inc(color, 1 shl 2);
           if (P3[col div 8] and (128 shr (col mod 8))) <> 0 then
             Inc(color, 1 shl 3);
-          Img.Colors[Col, Row] := Img.Palette[color];
-          UpdateProgress(trunc(100.0 * (Row * Col / TotalWrite)));
+          Img.Pixels[Col, Row] := color;
         end;
       end;
-      8:
+    8:
+      for Col := 0 to Img.Width - 1 do
+        Img.Pixels[Col, Row] := P[Col];
+    24:
+      for Col := 0 to Img.Width - 1 do
       begin
-        for Col := 0 to Img.Width - 1 do
+        with C do
         begin
-          Img.Colors[Col, Row] := Img.Palette[P[Col]];
-          UpdateProgress(trunc(100.0 * (Row * Col / TotalWrite)));
+          Red   := Scale8(P[col]);
+          Green := Scale8(P[col + Z2]);
+          Blue  := Scale8(P[col + Z2 * 2]);
+          Alpha := alphaOpaque;
         end;
+        Img[col, row] := C;
       end;
-      24:
-      begin
-        for Col := 0 to Img.Width - 1 do
-        begin
-          with C do
-          begin
-            Red   := P[col] or (P[col] shl 8);
-            Blue  := P[col + Z2 * 2] or (P[col + Z2 * 2] shl 8);
-            Green := P[col + Z2] or (P[col + Z2] shl 8);
-            Alpha := alphaOpaque;
-          end;
-          Img[col, row] := C;
-          UpdateProgress(trunc(100.0 * (Row * Col / TotalWrite)));
-        end;
-      end;
-    end;
   end;
 end;
 

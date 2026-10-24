@@ -8,6 +8,7 @@ uses
   {$ENDIf}
   punit,
   utcbasenenc,
+  utcascii85,
   utcExprParsOps,
   utcExprParsAggr,
   utcExprBuiltin,
@@ -34,6 +35,10 @@ uses
   utcFPObjectHashTable,
   utcExprParsNodes,
   utcInterlocked,
+  utcCountdownEvent,
+  utcSynchroObject,
+  utcConditionVariable,
+  utcLightweight,
   utcDirwatch
   ;
 
@@ -60,6 +65,7 @@ begin
   utcCSVDocument.RegisterTests;
   utcfptemplate.RegisterTests;
   utcbasenenc.RegisterTests;
+  utcascii85.RegisterTests;
   utclzw.RegisterTests;
   lSuite:=AddSuite('ExpressionParser');
   utcExprParsScanner.RegisterTests(lSuite);
@@ -68,6 +74,10 @@ begin
   utcExprParsAggr.RegisterTests(lSuite);
   utcExprBuiltin.RegisterTests(lSuite);
   utcInterlocked.RegisterTests;
+  utcCountdownEvent.RegisterTests;
+  utcSynchroObject.RegisterTests;
+  utcConditionVariable.RegisterTests;
+  utcLightweight.RegisterTests;
   utcDirwatch.RegisterTests;
   RunAllSysTests;
 end.

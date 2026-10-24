@@ -72,7 +72,14 @@ var
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
   WasmGrowMemoryCallback : TWasmGrowMemoryCallBack;
   WasmOnException : TWasmExceptionCallBack;
-  
+
+{$ifdef FPC_HAS_FEATURE_THREADING}
+threadvar
+{$else FPC_HAS_FEATURE_THREADING}
+var
+{$endif FPC_HAS_FEATURE_THREADING}
+  __fpc_wasi_LastOSError: longint;
+
 function __fpc_get_wasm_suspender: WasmExternRef;
 procedure __fpc_set_wasm_suspender(v: WasmExternRef);
 
@@ -89,6 +96,12 @@ var
 
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
+
+function MaybeUpdateLastOSError(ErrorCode: longint): longint;
+begin
+  if ErrorCode<>__WASI_ERRNO_SUCCESS then
+    __fpc_wasi_LastOSError:=ErrorCode;
+end;
 
 function IntToStr(I : Longint) : ShortString;
 

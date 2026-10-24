@@ -73,7 +73,6 @@ end;
 
 function ForceDirectories(Const Dir: PathStr): Boolean;
 var
-  E: EInOutError;
   ADrv: PathStr;
 
   function DoForceDirectories(Const Dir: PathStr): Boolean;
@@ -114,11 +113,7 @@ begin
      {$IFNDEF FORCEDIR_NO_UNC_SUPPORT} and (not IsUncDrive(ADrv)){$ENDIF} then
     Exit;
   if Dir='' then
-    begin
-      E:=EInOutError.Create(SCannotCreateEmptyDir);
-      E.ErrorCode:=3;
-      Raise E;
-    end;
+    Raise EInOutError.Create(SCannotCreateEmptyDir,3);
   Result:=DoForceDirectories(SetDirSeparators(Dir));
 end;
 

@@ -897,11 +897,12 @@ begin
 end;
 
 
-procedure SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+function SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint): boolean;
 var
   RC: cardinal;
 begin
   RC := DosWaitEventSem (THandle (AEvent), Timeout);
+  SysRTLEventWaitForTimeout := RC = 0;
   if RC <> 0 then
    OSErrorWatch (RC);
 end;

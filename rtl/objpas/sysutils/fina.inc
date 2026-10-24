@@ -520,13 +520,11 @@ var
   I: Integer;
 begin
   Result := '';
-  if Length(Paths) > 0 then
-  begin
-    if Paths[0]<>'' then
-      Result := Paths[0];
-    for I := 1 to Length(Paths) - 1 do
-      if Paths[i]<>'' then
+  for I := 0 to High(Paths) do
+    if Paths[I]<>'' then
+      if Result='' then
+        Result := Paths[I]
+      else
         Result := IncludeTrailingPathDelimiter(Result) + ExcludeLeadingPathDelimiter(Paths[I]);
-  end
 end;
 

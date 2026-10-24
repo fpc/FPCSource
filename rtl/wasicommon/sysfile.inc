@@ -20,6 +20,7 @@ begin
   repeat
     res:=__wasi_fd_close(Handle);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  MaybeUpdateLastOSError(res);
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
   else
@@ -35,7 +36,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(p,fd,pr);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr));
+  res:=MaybeUpdateLastOSError(__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr)));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -44,7 +45,7 @@ procedure do_truncate (handle:thandle;fpos:int64);
 var
   res: __wasi_errno_t;
 begin
-  res:=__wasi_fd_filestat_set_size(handle,fpos);
+  res:=MaybeUpdateLastOSError(__wasi_fd_filestat_set_size(handle,fpos));
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
   else
@@ -63,7 +64,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(p2,fd2,pr2);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2));
+  res:=MaybeUpdateLastOSError(__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2)));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -79,6 +80,7 @@ begin
     our_iov.buf_len := Len;
     res:=__wasi_fd_write(Handle, @our_iov, 1, @our_nwritten);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  MaybeUpdateLastOSError(res);
   if res=__WASI_ERRNO_SUCCESS then
     begin
       Do_Write:=our_nwritten;
@@ -102,6 +104,7 @@ begin
     our_iov.buf_len:=Len;
     res:=__wasi_fd_read(Handle,@our_iov,1,@our_nread);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  MaybeUpdateLastOSError(res);
   if res=__WASI_ERRNO_SUCCESS then
     begin
       Do_Read:=our_nread;
@@ -119,7 +122,7 @@ var
   res: __wasi_errno_t;
   fpos:__wasi_filesize_t;
 begin
-  res:=__wasi_fd_tell(Handle,@fpos);
+  res:=MaybeUpdateLastOSError(__wasi_fd_tell(Handle,@fpos));
   if res=__WASI_ERRNO_SUCCESS then
   begin
     InOutRes:=0;
@@ -137,7 +140,7 @@ var
   res: __wasi_errno_t;
   newoffset: __wasi_filesize_t;
 begin
-  res:=__wasi_fd_seek(Handle,Pos,__WASI_WHENCE_SET,@newoffset);
+  res:=MaybeUpdateLastOSError(__wasi_fd_seek(Handle,Pos,__WASI_WHENCE_SET,@newoffset));
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
   else
@@ -149,7 +152,7 @@ var
   res: __wasi_errno_t;
   newoffset: __wasi_filesize_t;
 begin
-  res:=__wasi_fd_seek(Handle,0,__WASI_WHENCE_END,@newoffset);
+  res:=MaybeUpdateLastOSError(__wasi_fd_seek(Handle,0,__WASI_WHENCE_END,@newoffset));
   if res=__WASI_ERRNO_SUCCESS then
   begin
     InOutRes:=0;
@@ -167,7 +170,7 @@ var
   res: __wasi_errno_t;
   buf: __wasi_filestat_t;
 begin
-  res:=__wasi_fd_filestat_get(Handle, @buf);
+  res:=MaybeUpdateLastOSError(__wasi_fd_filestat_get(Handle, @buf));
   if res=__WASI_ERRNO_SUCCESS then
   begin
     InOutRes:=0;
@@ -293,6 +296,7 @@ Begin
                           fdflags,
                           @ourfd);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  MaybeUpdateLastOSError(res);
   {if (res=__WASI_ERRNO_ROFS) and ((OFlags and O_RDWR)<>0) then
    begin
      Oflags:=Oflags and not(O_RDWR);

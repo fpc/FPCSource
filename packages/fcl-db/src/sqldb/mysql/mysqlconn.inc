@@ -564,7 +564,7 @@ function TConnectionName.GetAsSQLText(Param: TParam) : string;
 begin
   if (not assigned(Param)) or Param.IsNull then
     Result := 'Null'
-  else if Param.DataType in [ftString,ftFixedChar,ftMemo] then
+  else if Param.DataType in [ftString,ftFixedChar,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo] then
     Result := '''' + EscapeString(GetAsString(Param)) + ''''
   else if Param.DataType in [ftBlob,ftBytes,ftVarBytes] then
     Result := '''' + EscapeString(Param.AsString) + ''''

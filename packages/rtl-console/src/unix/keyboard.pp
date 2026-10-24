@@ -454,6 +454,14 @@ begin
 end;
 {$endif}
 
+procedure QuitAsOnSigHup;
+
+begin
+  TCSetAttr(1,TCSANOW,StartTio);
+  fpExit(1);
+end;
+
+
 function ttyRecvChar:AnsiChar;
 
 var Readed,i : longint;
@@ -469,7 +477,9 @@ begin
       {Read}
       repeat
         Readed:=fpRead(StdInputHandle,InBuf[InHead],i);
-      until readed<>-1;
+      until (Readed<>-1) or (fpgeterrno<>ESysEINTR);
+      if Readed<=0 then
+        QuitAsOnSigHup;
       {Increase Counters}
       inc(InHead,Readed);
       {Wrap if End has Reached}
@@ -1045,7 +1055,7 @@ type  key_sequence=packed record
         st:string[10];
       end;
 
-const key_sequences:array[0..435] of key_sequence=(
+const key_sequences:array[0..447] of key_sequence=(
        (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
@@ -1111,6 +1121,18 @@ const key_sequences:array[0..435] of key_sequence=(
        (AnsiChar:0;scan:kbAlt7;shift:[essAlt];st:#27'7'),
        (AnsiChar:0;scan:kbAlt8;shift:[essAlt];st:#27'8'),
        (AnsiChar:0;scan:kbAlt9;shift:[essAlt];st:#27'9'),
+       (AnsiChar:0;scan:kbAltMinus;shift:[essAlt,essShift];st:#27'_'),
+       (AnsiChar:0;scan:kbAltEqual;shift:[essAlt,essShift];st:#27'+'),
+       (AnsiChar:0;scan:kbAlt0;shift:[essAlt,essShift];st:#27')'),
+       (AnsiChar:0;scan:kbAlt1;shift:[essAlt,essShift];st:#27'!'),
+       (AnsiChar:0;scan:kbAlt2;shift:[essAlt,essShift];st:#27'@'),
+       (AnsiChar:0;scan:kbAlt3;shift:[essAlt,essShift];st:#27'#'),
+       (AnsiChar:0;scan:kbAlt4;shift:[essAlt,essShift];st:#27'$'),
+       (AnsiChar:0;scan:kbAlt5;shift:[essAlt,essShift];st:#27'%'),
+       (AnsiChar:0;scan:kbAlt6;shift:[essAlt,essShift];st:#27'^'),
+       (AnsiChar:0;scan:kbAlt7;shift:[essAlt,essShift];st:#27'&'),
+       (AnsiChar:0;scan:kbAlt8;shift:[essAlt,essShift];st:#27'*'),
+       (AnsiChar:0;scan:kbAlt9;shift:[essAlt,essShift];st:#27'('),
 
        (AnsiChar:0;scan:kbF1;shift:[];st:#27'[[A'),                   {linux,konsole,xterm}
        (AnsiChar:0;scan:kbF2;shift:[];st:#27'[[B'),                   {linux,konsole,xterm}
@@ -2281,11 +2303,11 @@ var
           // Standard keys
           $41..$5A : VKToScanCode := cScanValue[vk]; // 'A'..'Z'
           $30..$39 : VKToScanCode := cScanValue[vk]; // '0'..'9'
-          $08: VKToScanCode := kbBack;
-          $09: VKToScanCode := kbTab;
-          $0D: VKToScanCode := kbEnter;
-          $1B: VKToScanCode := kbEsc;
-          $20: VKToScanCode := kbSpaceBar;
+          $08: VKToScanCode := cScanValue[vk]; //kbBack;
+          $09: VKToScanCode := cScanValue[vk]; //kbTab;
+          $0D: VKToScanCode := cScanValue[vk]; //kbEnter;
+          $1B: VKToScanCode := cScanValue[vk]; //kbEsc;
+          $20: VKToScanCode := cScanValue[vk]; //kbSpaceBar;
           // Function keys
           $70..$79: VKToScanCode := vk - $70 + kbF1; // F1-F10
           $7A..$7B: VKToScanCode := vk - $7A + kbF11; // F11-F12
@@ -2893,6 +2915,21 @@ begin
   ReadKey:=PopKey;
 End;
 
+
+function WaitAndReadString:string;
+var st : shortstring;
+  timewait,finalparsec : TimeSpec;
+  ree : longint;
+begin
+  timewait.tv_sec := 0;
+  timewait.tv_nsec := 100000000; {few nano seconds to wait}
+  ree:=fpNanoSleep(@timewait,@finalparsec);
+  st:='';
+  if syskeypressed then st:=RawReadString; {empty key buffer (key release might be pending)}
+  WaitAndReadString:=st;
+end;
+
+
 procedure KittyKeyAvailability;
 var st,zt : shortstring;
     i: integer;
@@ -2902,7 +2939,7 @@ begin
   begin
     write(#27'[?u');   { request response! }
     write(#27'[c');    { request device status (DA1) to get at least some answer. }
-    st:=RawReadString; { read the answer }
+    st:=WaitAndReadString; { read the answer }
     isKittyKeys:=false;
     if length(st)>0 then
     begin
@@ -2928,19 +2965,6 @@ begin
       kitty_keys_no := not isKittyKeys;
     end;
   end;
-end;
-
-procedure waitAndReadAfterArtifacts;
-var st : shortstring;
-  timewait,finalparsec : TimeSpec;
-  ree : longint;
-begin
-  if not kitty_keys_yes then exit;
-  timewait.tv_sec := 0;
-  timewait.tv_nsec := 100000000; {few nano seconds to wait}
-  ree:=fpNanoSleep(@timewait,@finalparsec);
-  st:='';
-  if syskeypressed then st:=RawReadString; {empty key buffer (key release might be pending)}
 end;
 
 { Exported functions }
@@ -3031,7 +3055,7 @@ begin
   if kitty_keys_yes then
   begin
     write(#27'[<u'); {if we have kitty keys, disable them}
-    waitAndReadAfterArtifacts;
+    WaitAndReadString;
     isKittyKeys:=false;
   end;
 {$endif HAIKU}
@@ -3296,7 +3320,7 @@ begin {main}
       // This ensures backward compatibility with older code.
       // We check for Ctrl without Alt to avoid interfering with AltGr.
       if (essCtrl in SState) and not (essAlt in SState) and (UpCase(MyChar) in ['A'..'Z']) then
-        SysGetEnhancedKeyEvent.VirtualScanCode := Ord(UpCase(MyChar)) - Ord('A') + 1
+        SysGetEnhancedKeyEvent.VirtualScanCode := (MyScan shl 8) or Ord(UpCase(MyChar)) - Ord('A') + 1
       else
         // Default behavior for all other key combinations.
         SysGetEnhancedKeyEvent.VirtualScanCode := (MyScan shl 8) or Ord(MyChar);

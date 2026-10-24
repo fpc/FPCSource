@@ -233,6 +233,8 @@ Var
   CheckResolveFileAge   : Boolean;
   CheckHostsFileAge     : Boolean;
   TimeOutS,TimeOutMS    : Longint;
+  // Port of the DNS servers in DNSServers
+  DNSServerPort         : Word = DNSPort;
 
 {$ifdef android}
 Function GetDNSServers : Integer;
@@ -253,7 +255,7 @@ function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
 
 // H.Addr is returned in the net byte order
 Function ResolveHostByName(const HostName : String; Var H : THostEntry) : Boolean;
-// HostAddr is specified in the host byte order
+// HostAddr is specified in the host byte order, H.Addr is returned in the net byte order
 Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
 
 Function ResolveHostByName6(const Hostname : String; Var H : THostEntry6) : Boolean;
@@ -1674,7 +1676,7 @@ begin
   With SA do
     begin
     sin_family:=AF_INET;
-    sin_port:=htons(DNSport);
+    sin_port:=htons(DNSServerPort);
     sin_addr.s_addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
     end;
   fpsendto(sock,@qry,qrylen+12,0,@SA,SizeOf(SA));
@@ -1767,7 +1769,7 @@ begin
   With SA do
   begin
     sin_family:=AF_INET;
-    sin_port:=htons(DNSport);
+    sin_port:=htons(DNSServerPort);
     sin_addr.s_addr:=cardinal(DNSServers[Resolver]); // octets already in net order
   end;
 
@@ -2289,7 +2291,7 @@ begin
   If Result then
     begin
     H.Name:=Names[1];
-    H.Addr:=HostAddr;
+    H.Addr:=HostToNet(HostAddr);
     H.Aliases:='';
     If (L>1) then
       For I:=2 to L do
@@ -2802,7 +2804,7 @@ begin
   If Result then
     begin
     H.Name:=Names[1];
-    H.Addr:=HostAddr;
+    H.Addr:=HostToNet(HostAddr);
     H.Aliases:='';
     If (L>1) then
       For I:=2 to L do

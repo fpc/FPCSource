@@ -25,6 +25,7 @@ unit Rtti;
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 {$modeswitch functionreferences}
+{$modeswitch arrayoperators}
 {$goto on}
 {$Assertions on}
 
@@ -207,10 +208,16 @@ type
     procedure DoCastFromVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
     // Cast entry
     procedure CastFromType(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // Shared implementation of Make (ACopy=True) and MakeWithoutCopy (ACopy=False)
+    class procedure DoMake(ABuffer: pointer; ATypeInfo: PTypeInfo; ACopy: Boolean; out Result: TValue); static;
+    // Address of element AIndex of the array data and the element type
+    function GetArrayElementData(AIndex: SizeInt; out AElType: PTypeInfo): Pointer;
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
     class procedure Make(AValue: NativeInt; ATypeInfo: PTypeInfo; out Result: TValue); static; inline;
+    // Like Make, but takes over the references in ABuffer without incrementing them; the caller must not finalize ABuffer. AIsMoved is accepted for Delphi compatibility and has no effect.
+    class procedure MakeWithoutCopy(ABuffer: pointer; ATypeInfo: PTypeInfo; out Result: TValue; AIsMoved: Boolean = False); static;
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     class procedure MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue); static;
     generic class procedure Make<T>(const AValue: T; out Result: TValue); static; inline;
@@ -235,6 +242,8 @@ type
     function IsClass: boolean; inline;
     function AsClass: TClass;
     function IsObject: boolean; inline;
+    // True when the value has a class type, also when the instance is nil
+    function IsObjectInstance: boolean; inline;
     function AsObject: TObject;
     function IsOrdinal: boolean; inline;
     function AsOrdinal: Int64;
@@ -262,11 +271,17 @@ type
     function AsInterface: IInterface;
     function AsPointer : Pointer;
     function AsVariant : Variant;
+    // Value converted to a type that AsVarRec accepts: floating point types become Extended, other types are unchanged
+    function CastToVarRec: TValue;
+    // TVarRec for an array of const argument; pointers in it refer to the data of this TValue and are valid while it is unchanged
+    function AsVarRec: TVarRec;
     function ToString: String; overload;
     function ToString(aSettings: TFormatSettings): String; overload;
     function GetArrayLength: SizeInt;
     function GetArrayElement(AIndex: SizeInt): TValue;
     procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
+    // Address of element AIndex in the array data, without range check
+    function GetReferenceToRawArrayElement(AIndex: SizeInt): Pointer;
     function IsType(aTypeInfo: PTypeInfo): boolean; inline;
     function IsType(aTypeInfo: PTypeInfo; const EmptyAsAnyType: Boolean) : Boolean;
     function IsInstanceOf(aClass : TClass): boolean; inline;
@@ -386,6 +401,7 @@ type
     FMethods: TRttiMethodArray;
     FFields : TRttiFieldArray;
     FProperties : TRttiPropertyArray;
+    FPropertiesInDeclOrder : TRttiPropertyArray;
     FIndexedProperties : TRttiIndexedPropertyArray;
     function GetAsInstance: TRttiInstanceType;
     function GetAsOrdinal: TRttiOrdinalType;
@@ -402,6 +418,9 @@ type
     function GetTypeKind: TTypeKind; virtual;
     function GetTypeSize: integer; virtual;
     function GetBaseType: TRttiType; virtual;
+    // Name of the unit declaring the type, empty when the RTTI does not contain it
+    function GetDeclaringUnitName: string; virtual;
+    function GetQualifiedName: string; virtual;
   public
     constructor Create(ATypeInfo : PTypeInfo);
     constructor Create(ATypeInfo : PTypeInfo; aUsePublishedOnly : Boolean);
@@ -415,6 +434,7 @@ type
     function GetDeclaredIndexedProperties: TRttiIndexedPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetProperties: TRttiPropertyArray; virtual;
+    function GetPropertiesInDeclOrder: TRttiPropertyArray; virtual;
     function GetIndexedProperty(const AName: string): TRttiIndexedProperty; virtual;
     function GetIndexedProperties: TRttiIndexedPropertyArray; virtual;
     function GetMethods: TRttiMethodArray; virtual; overload;
@@ -434,6 +454,8 @@ type
     property AsRecord: TRttiRecordType read GetAsRecord;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
+    // Unit name and type name separated by a dot; the type name alone when the unit name is unknown
+    property QualifiedName: string read GetQualifiedName;
   end;
 
   { TRttiFloatType }
@@ -468,7 +490,11 @@ type
   TRttiEnumerationType = class(TRttiOrdinalType)
   private
     function GetUnderlyingType: TRttiType;
+  protected
+    function GetDeclaringUnitName: string; override;
   public
+    // Name of the unit declaring the enumeration
+    property DeclaringUnitName: string read GetDeclaringUnitName;
     function GetNames: TStringDynArray;
     generic class function GetName<T{: enum}>(AValue: T): string; reintroduce; static;
     generic class function GetValue<T{: enum}>(const AName: string): T; static;
@@ -529,10 +555,11 @@ type
 
   TRttiDynamicArrayType = class(TRttiType)
   private
-    function GetDeclaringUnitName: String; inline;
     function GetElementSize: SizeUInt; inline;
     function GetElementType: TRttiType; inline;
     function GetOleAutoVarType: TVarType; inline;
+  protected
+    function GetDeclaringUnitName: String; override;
   public
     property DeclaringUnitName: String read GetDeclaringUnitName;
     property ElementSize: SizeUInt read GetElementSize;
@@ -850,7 +877,6 @@ type
     function MethodTable: PIntfMethodTable; virtual; abstract;
     function GetBaseType: TRttiType; override;
     function GetIntfBaseType: TRttiInterfaceType; virtual; abstract;
-    function GetDeclaringUnitName: String; virtual; abstract;
     function GetGUID: TGUID; virtual; abstract;
     function GetGUIDStr: String; virtual;
     function GetIntfFlags: TIntfFlags; virtual; abstract;
@@ -877,7 +903,6 @@ type
     FDeclaredMethods : TRttiMethodArray;
     FDeclaredProperties : TRttiPropertyArray;
     FDeclaredIndexedProperties : TRttiIndexedPropertyArray;
-    function GetDeclaringUnitName: string;
     function GetMetaClassType: TClass;
     procedure ResolveClassicDeclaredProperties;
     procedure ResolveExtendedDeclaredProperties;
@@ -888,6 +913,7 @@ type
     function GetIsInstance: boolean; override;
     function GetTypeSize: integer; override;
     function GetBaseType: TRttiType; override;
+    function GetDeclaringUnitName: string; override;
   public
     function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray; override;
@@ -922,6 +948,7 @@ type
     function GetFields : TRttiFieldArray; override;
     function GetMethods: TRttiMethodArray; override;
     function GetProperties: TRttiPropertyArray; override;
+    function GetPropertiesInDeclOrder: TRttiPropertyArray; override;
     function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray; override;
     function GetDeclaredProperties: TRttiPropertyArray; override;
@@ -1294,16 +1321,19 @@ type
     FTypesList: specialize TArray<TRttiType>;
     FTypeCount: LongInt;
     FLock: TRTLCriticalSection;
+    FUsePublishedOnly: Boolean;
+    procedure Adopt(aObject: TRttiObject);
   public
     function GetTypes: specialize TArray<TRttiType>;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
-    function GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
     function GetByHandle(aHandle: Pointer): TRttiObject;
     procedure AddObject(aObject: TRttiObject);
     function GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
     procedure Clear;
-    constructor Create;
+    constructor Create(aUsePublishedOnly: Boolean);
     destructor Destroy; override;
+    // Visibility of the members of the objects held by this pool
+    property UsePublishedOnly: Boolean read FUsePublishedOnly;
   end;
 
   { TValueDataIntImpl }
@@ -1316,8 +1346,9 @@ type
     FIsCopy: Boolean;
     FUseAddRef: Boolean;
   public
-    constructor CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean);
-    constructor CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean);
+    // AAddRef: the data is managed; AMove: take over the references in the source without incrementing them
+    constructor CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean; AMove: Boolean = False);
+    constructor CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean; AMove: Boolean = False);
     destructor Destroy; override;
     procedure ExtractRawData(ABuffer: pointer);
     procedure ExtractRawDataNoCopy(ABuffer: pointer);
@@ -1540,6 +1571,22 @@ var
   // Boolean = UsePublishedOnly
   GRttiPool : Array [Boolean] of TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+// Returns the pool that holds aObject
+function PoolOf(aObject: TRttiObject): TRttiPool; inline;
+
+begin
+  Result:=GRttiPool[aObject.FUsePublishedOnly];
+end;
+
+
+// Returns a context on the pool that holds aObject
+function ContextOf(aObject: TRttiObject): TRttiContext; inline;
+
+begin
+  Result:=TRttiContext.Create(aObject.FUsePublishedOnly);
+end;
+
 
 {$ifndef use_thunk_class}
 
@@ -2279,7 +2326,7 @@ function TRttiInstanceMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FHandle^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
+    Result := ContextOf(Self).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiInstanceMethod.GetVirtualIndex: SmallInt;
@@ -2295,35 +2342,50 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter;
+  params, paramsAll: TRttiParameterArray;
 
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams[False],FHandle^.ParamCount);
-  SetLength(FParams[True],FHandle^.ParamCount);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := FHandle^.Param[0];
-  while total < FHandle^.ParamCount do
-    begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams[True]) = 0 then
       begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
+      total := 0;
+      visible := 0;
+      SetLength(params,FHandle^.ParamCount);
+      SetLength(paramsAll,FHandle^.ParamCount);
+      context := ContextOf(Self);
+      param := FHandle^.Param[0];
+      while total < FHandle^.ParamCount do
+        begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        paramsAll[total]:=prtti;
+        if not (pfHidden in param^.Flags) then
+          begin
+          params[visible] := prtti;
+          Inc(visible);
+          end;
+        param := param^.Next;
+        Inc(total);
+        end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams[False] := params;
+      FParams[True] := paramsAll;
       end;
-    FParams[True][total]:=prtti;
-    if not (pfHidden in param^.Flags) then
-      begin
-      FParams[False][visible] := prtti;
-      Inc(visible);
-    end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams[False], visible);
+{$endif}
 end;
 
 procedure TRttiInstanceMethod.ResolveAttributes;
@@ -2477,13 +2539,14 @@ begin
 {$endif}
 end;
 
-function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
+procedure TRttiPool.Adopt(aObject: TRttiObject);
 
 begin
-  Result:=GetType(aTypeInfo,GlobalUsePublishedOnly);
+  aObject.FUsePublishedOnly:=FUsePublishedOnly;
 end;
 
-function TRttiPool.GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
+
+function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
 
 var
   obj: TRttiObject;
@@ -2505,30 +2568,31 @@ begin
             SetLength(FTypesList, FTypeCount * 2);
           end;
         case ATypeInfo^.Kind of
-          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo,UsePublishedOnly);
-          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo,UsePublishedOnly);
-          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo,UsePublishedOnly);
-          tkArray: Result := TRttiArrayType.Create(ATypeInfo);
-          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo);
+          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo,FUsePublishedOnly);
+          tkArray: Result := TRttiArrayType.Create(ATypeInfo,FUsePublishedOnly);
+          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo,FUsePublishedOnly);
           tkInt64,
-          tkQWord: Result := TRttiInt64Type.Create(ATypeInfo);
+          tkQWord: Result := TRttiInt64Type.Create(ATypeInfo,FUsePublishedOnly);
           tkInteger,
           tkChar,
-          tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo);
-          tkEnumeration : Result := TRttiEnumerationType.Create(ATypeInfo);
+          tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo,FUsePublishedOnly);
+          tkEnumeration : Result := TRttiEnumerationType.Create(ATypeInfo,FUsePublishedOnly);
           tkSString,
           tkLString,
           tkAString,
           tkUString,
-          tkWString : Result := TRttiStringType.Create(ATypeInfo);
-          tkFloat   : Result := TRttiFloatType.Create(ATypeInfo);
-          tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
-          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo);
-          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo);
-          tkRecord : Result:=TRttiRecordType.Create(aTypeInfo,UsePublishedOnly);
+          tkWString : Result := TRttiStringType.Create(ATypeInfo,FUsePublishedOnly);
+          tkFloat   : Result := TRttiFloatType.Create(ATypeInfo,FUsePublishedOnly);
+          tkPointer : Result := TRttiPointerType.Create(ATypeInfo,FUsePublishedOnly);
+          tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo,FUsePublishedOnly);
+          tkMethod  : Result := TRttiMethodType.Create(ATypeInfo,FUsePublishedOnly);
+          tkRecord : Result:=TRttiRecordType.Create(aTypeInfo,FUsePublishedOnly);
         else
-          Result := TRttiType.Create(ATypeInfo);
+          Result := TRttiType.Create(ATypeInfo,FUsePublishedOnly);
         end;
+        Adopt(Result);
         FTypesList[FTypeCount] := Result;
         FObjectMap.Add(ATypeInfo, Result);
         Inc(FTypeCount);
@@ -2576,7 +2640,10 @@ begin
 {$endif}
     idx := FObjectMap.IndexOf(aObject.Handle);
     if idx < 0 then
-      FObjectMap.Add(aObject.Handle, aObject)
+      begin
+        Adopt(aObject);
+        FObjectMap.Add(aObject.Handle, aObject);
+      end
     else if FObjectMap.Data[idx] <> aObject then
       raise EInvalidOpException.CreateFmt(SErrRttiObjectAlreadyRegistered, [aObject.Handle]);
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2591,7 +2658,11 @@ var
   idx: LongInt;
 begin
   if not Assigned(aHandle) then
-    Exit(aClass.Create(aParent, aHandle));
+    begin
+      Result:=aClass.Create(aParent, aHandle);
+      Adopt(Result);
+      Exit;
+    end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalsection(FLock);
   try
@@ -2602,6 +2673,7 @@ begin
     else
     begin
       Result:=aClass.Create(aParent, aHandle);
+      Adopt(Result);
       FObjectMap.Add(aHandle, Result);
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2611,11 +2683,12 @@ begin
 {$endif}
 end;
 
-constructor TRttiPool.Create;
+constructor TRttiPool.Create(aUsePublishedOnly: Boolean);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
 {$endif}
+  FUsePublishedOnly := aUsePublishedOnly;
   SetLength(FTypesList, 32);
   FObjectMap := TRttiObjectMap.Create;
 end;
@@ -2633,6 +2706,9 @@ begin
   for i := 0 to FObjectMap.Count - 1 do
     FObjectMap.Data[i].Free;
   FObjectMap.Clear;
+  FTypeCount := 0;
+  if Length(FTypesList) > 0 then
+    FillChar(FTypesList[0], Length(FTypesList) * SizeOf(TRttiType), 0);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalsection(FLock);
@@ -2662,7 +2738,7 @@ procedure IntAddRef(APointer, ATypeInfo: Pointer);
 function IntCopy(ASource, ADest, ATypeInfo: Pointer): SizeInt;
   external name 'FPC_COPY';
 
-constructor TValueDataIntImpl.CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean);
+constructor TValueDataIntImpl.CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean; AMove: Boolean);
 begin
   FTypeInfo := ATypeInfo;
   FDataSize:=ALen;
@@ -2677,14 +2753,14 @@ begin
   FIsCopy := True;
   FUseAddRef := AAddRef;
   if AAddRef and (ALen > 0) then begin
-    if Assigned(ACopyFromBuffer) then
-      IntAddRef(FBuffer, FTypeInfo)
-    else
-      IntInitialize(FBuffer, FTypeInfo);
+    if not Assigned(ACopyFromBuffer) then
+      IntInitialize(FBuffer, FTypeInfo)
+    else if not AMove then
+      IntAddRef(FBuffer, FTypeInfo);
   end;
 end;
 
-constructor TValueDataIntImpl.CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean);
+constructor TValueDataIntImpl.CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean; AMove: Boolean);
 begin
   FTypeInfo := ATypeInfo;
   FDataSize := SizeOf(Pointer);
@@ -2694,7 +2770,7 @@ begin
     FBuffer := Nil;
   FIsCopy := False;
   FUseAddRef := AAddRef;
-  if AAddRef and Assigned(AData) then
+  if AAddRef and Assigned(AData) and not AMove then
     IntAddRef(@FBuffer, FTypeInfo);
 end;
 
@@ -2772,6 +2848,13 @@ begin
   result := (Kind = tkClass) or ((Kind = tkUnknown) and not Assigned(FData.FAsObject));
 end;
 
+function TValue.IsObjectInstance: boolean;
+
+begin
+  Result := (Kind = tkClass);
+end;
+
+
 function TValue.IsClass: boolean;
 begin
   result := (Kind = tkClassRef) or ((Kind in [tkClass,tkUnknown]) and not Assigned(FData.FAsObject));
@@ -2842,7 +2925,10 @@ function TValue.GetIsEmpty: boolean;
 begin
   result := (FData.FTypeInfo=nil) or
             ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
-            ((Kind in [tkPointer, tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
+            ((Kind in [tkPointer, tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer)) or
+            ((Kind in [tkProcVar, tkMethod]) and not Assigned(FData.FAsMethod.Code)) or
+            ((Kind in [tkInterface, tkDynArray]) and
+              (not Assigned(FData.FValueData) or not Assigned(PPointer(FData.FValueData.GetReferenceToRawData)^)));
 end;
 
 
@@ -3574,24 +3660,33 @@ procedure TValue.CastQWordToFloat(out aRes: Boolean; out ADest: TValue; aDestTyp
 var
   Tmp : QWord;
   Ti : PTypeInfo;
-
+  DestFloatType: TFloatType;
+  S: Single;
+  D: Double;
+  E: Extended;
+  Co: Comp;
+  Cu: Currency;
 begin
   Tmp:=FData.FAsUInt64;
-  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
-  TValue.Make(@Tmp,Ti,aDest);
+  DestFloatType := GetTypeData(aDestType)^.FloatType;
+  Ti:=FloatTypeToTypeInfo(DestFloatType);
+  case DestFloatType of
+    ftSingle:   begin S  := Tmp; TValue.Make(@S, Ti,aDest); end;
+    ftDouble:   begin D  := Tmp; TValue.Make(@D, Ti,aDest); end;
+    ftExtended: begin E  := Tmp; TValue.Make(@E, Ti,aDest); end;
+    ftComp:     begin Co := Tmp; TValue.Make(@Co,Ti,aDest); end;
+    ftCurr:     begin Cu := Tmp; TValue.Make(@Cu,Ti,aDest); end;
+  else
+    aRes := False;
+    Exit;
+  end;
   aRes:=True;
 end;
 
 procedure TValue.CastInt64ToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
-var
-  Tmp : Int64;
-  Ti : PTypeInfo;
 begin
-  Tmp:=AsInt64;
-  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
-  TValue.Make(@Tmp,Ti,aDest);
-  aRes:=True;
+  CastIntegerToFloat(aRes,aDest,aDestType);
 end;
 
 procedure TValue.CastFloatToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
@@ -4037,30 +4132,46 @@ end;
 
 
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
+
+begin
+  DoMake(ABuffer, ATypeInfo, True, result);
+end;
+
+
+class procedure TValue.MakeWithoutCopy(ABuffer: pointer; ATypeInfo: PTypeInfo; out Result: TValue; AIsMoved: Boolean);
+
+begin
+  DoMake(ABuffer, ATypeInfo, False, Result);
+end;
+
+
+class procedure TValue.DoMake(ABuffer: pointer; ATypeInfo: PTypeInfo; ACopy: Boolean; out Result: TValue);
 type
   PMethod = ^TMethod;
 var
   td: PTypeData;
+  lMove: Boolean;
 begin
   result.Init;
   result.FData.FTypeInfo:=ATypeInfo;
   if not Assigned(ATypeInfo) then
     Exit;
+  lMove := not ACopy;
   { first handle those types that need a TValueData implementation }
   case ATypeInfo^.Kind of
     tkSString  : begin
                    td := GetTypeData(ATypeInfo);
-                   result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, td^.MaxLength + 1, ATypeInfo, True);
+                   result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, td^.MaxLength + 1, ATypeInfo, True, lMove);
                  end;
     tkWString,
     tkUString,
-    tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
-    tkDynArray : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
-    tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, IsManaged(ATypeInfo));
+    tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True, lMove);
+    tkDynArray : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True, lMove);
+    tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, IsManaged(ATypeInfo), lMove);
     tkObject,
-    tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, IsManaged(ATypeInfo));
-    tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, True);
-    tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
+    tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, IsManaged(ATypeInfo), lMove);
+    tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, True, lMove);
+    tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True, lMove);
   else
     // Silence compiler warning
   end;
@@ -4529,7 +4640,7 @@ begin
     aResult:=TValue.Empty;
     if (aTypeInfo=nil) then
       exit;
-    AResult.FData.FTypeInfo:=aTypeInfo;
+    TValue.Make(Nil,aTypeInfo,aResult);
     Exit(True);
     end;
   if not aEmptyAsAnyType and (Self.TypeInfo=nil) then
@@ -4816,6 +4927,150 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
+
+function TValue.CastToVarRec: TValue;
+
+var
+  lExt: Extended;
+
+begin
+  if (Kind = tkFloat) and
+     not (TypeData^.FloatType in [ftCurr, {$ifdef FPC_HAS_TYPE_EXTENDED}ftExtended{$else}ftDouble{$endif}]) then
+    begin
+    lExt := AsExtended;
+    TValue.Make(@lExt, System.TypeInfo(Extended), Result);
+    end
+  else
+    Result := Self;
+end;
+
+
+function TValue.AsVarRec: TVarRec;
+
+begin
+  Result := Default(TVarRec);
+  if not Assigned(FData.FTypeInfo) then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  case Kind of
+    tkInteger:
+      begin
+      Result.VType := vtInteger;
+      Result.VInteger := LongInt(AsOrdinal);
+      end;
+    tkBool:
+      begin
+      Result.VType := vtBoolean;
+      Result.VBoolean := AsBoolean;
+      end;
+    tkChar:
+      begin
+      Result.VType := vtChar;
+      Result.VChar := AnsiChar(FData.FAsUByte);
+      end;
+    tkWChar,
+    tkUChar:
+      begin
+      Result.VType := vtWideChar;
+      Result.VWideChar := WideChar(FData.FAsUWord);
+      end;
+    tkInt64:
+      begin
+      Result.VType := vtInt64;
+      Result.VInt64 := @FData.FAsSInt64;
+      end;
+    tkQWord:
+      begin
+      Result.VType := vtQWord;
+      Result.VQWord := @FData.FAsUInt64;
+      end;
+    tkFloat:
+      case TypeData^.FloatType of
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+        ftExtended:
+          begin
+          Result.VType := vtExtended;
+          Result.VExtended := @FData.FAsExtended;
+          end;
+{$else}
+        ftDouble:
+          begin
+          Result.VType := vtExtended;
+          Result.VExtended := @FData.FAsDouble;
+          end;
+{$endif}
+        ftCurr:
+          begin
+          Result.VType := vtCurrency;
+          Result.VCurrency := @FData.FAsCurr;
+          end;
+      else
+        raise EInvalidCast.Create(SErrInvalidTypecast);
+      end;
+    tkSString:
+      begin
+      Result.VType := vtString;
+      Result.VString := GetReferenceToRawData;
+      end;
+    tkAString:
+      begin
+      Result.VType := vtAnsiString;
+      Result.VAnsiString := PPointer(GetReferenceToRawData)^;
+      end;
+    tkUString:
+      begin
+      Result.VType := vtUnicodeString;
+      Result.VUnicodeString := PPointer(GetReferenceToRawData)^;
+      end;
+    tkWString:
+      begin
+      Result.VType := vtWideString;
+      Result.VWideString := PPointer(GetReferenceToRawData)^;
+      end;
+    tkClass:
+      begin
+      Result.VType := vtObject;
+      Result.VObject := TObject(FData.FAsObject);
+      end;
+    tkClassRef:
+      begin
+      Result.VType := vtClass;
+      Result.VClass := FData.FAsClass;
+      end;
+    tkPointer:
+      begin
+      Result.VType := vtPointer;
+      Result.VPointer := FData.FAsPointer;
+      end;
+    tkProcVar:
+      begin
+      Result.VType := vtPointer;
+      Result.VPointer := Pointer(FData.FAsMethod.Code);
+      end;
+    tkInterface:
+      begin
+      Result.VType := vtInterface;
+      Result.VInterface := PPointer(GetReferenceToRawData)^;
+      end;
+    tkInterfaceRaw:
+      begin
+      Result.VType := vtInterface;
+      Result.VInterface := FData.FAsPointer;
+      end;
+    tkVariant:
+      begin
+      Result.VType := vtVariant;
+      Result.VVariant := PVariant(GetReferenceToRawData);
+      end;
+    tkRecord:
+      if FData.FTypeInfo = System.TypeInfo(TVarRec) then
+        Result := PVarRec(GetReferenceToRawData)^
+      else
+        raise EInvalidCast.Create(SErrInvalidTypecast);
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  end;
+end;
+
 function TValue.AsInt64: Int64;
 begin
   if Kind in [tkInteger, tkInt64, tkQWord] then
@@ -4972,32 +5227,50 @@ begin
   end;
 end;
 
-function TValue.GetArrayElement(AIndex: SizeInt): TValue;
+function TValue.GetArrayElementData(AIndex: SizeInt; out AElType: PTypeInfo): Pointer;
+
 var
-  data: Pointer;
-  eltype: PTypeInfo;
   elsize: SizeInt;
   td: PTypeData;
+
 begin
   if not IsArray then
     raise EInvalidCast.Create(SErrInvalidTypecast);
   if Kind = tkDynArray then begin
-    data := DynArrayIndex(PPointer(FData.FValueData.GetReferenceToRawData)^, [AIndex], FData.FTypeInfo);
-    eltype := TypeData^.elType2;
+    Result := DynArrayIndex(PPointer(FData.FValueData.GetReferenceToRawData)^, [AIndex], FData.FTypeInfo);
+    AElType := TypeData^.elType2;
   end else begin
     td := TypeData;
-    eltype := td^.ArrayData.ElType;
+    AElType := td^.ArrayData.ElType;
     { open array? }
     if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
-      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
+      Result := PPointer(FData.FValueData.GetReferenceToRawData)^;
       elsize := FData.FElSize
     end else begin
-      data := FData.FValueData.GetReferenceToRawData;
+      Result := FData.FValueData.GetReferenceToRawData;
       elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
     end;
-    data := PByte(data) + AIndex * elsize;
+    Result := PByte(Result) + AIndex * elsize;
   end;
-  { MakeWithoutCopy? }
+end;
+
+
+function TValue.GetReferenceToRawArrayElement(AIndex: SizeInt): Pointer;
+
+var
+  lElType: PTypeInfo;
+
+begin
+  Result := GetArrayElementData(AIndex, lElType);
+end;
+
+
+function TValue.GetArrayElement(AIndex: SizeInt): TValue;
+var
+  data: Pointer;
+  eltype: PTypeInfo;
+begin
+  data := GetArrayElementData(AIndex, eltype);
   Make(data, eltype, Result);
 end;
 
@@ -5005,39 +5278,15 @@ procedure TValue.SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
 var
   data: Pointer;
   eltype: PTypeInfo;
-  elsize: SizeInt;
-  td, tdv: PTypeData;
+  elvalue: TValue;
 begin
-  if not IsArray then
+  data := GetArrayElementData(AIndex, eltype);
+  if not AValue.TryCast(eltype, elvalue) then
     raise EInvalidCast.Create(SErrInvalidTypecast);
-  if Kind = tkDynArray then begin
-    data := DynArrayIndex(PPointer(FData.FValueData.GetReferenceToRawData)^, [AIndex], FData.FTypeInfo);
-    eltype := TypeData^.elType2;
-  end else begin
-    td := TypeData;
-    eltype := td^.ArrayData.ElType;
-    { open array? }
-    if (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0) then begin
-      data := PPointer(FData.FValueData.GetReferenceToRawData)^;
-      elsize := FData.FElSize
-    end else begin
-      data := FData.FValueData.GetReferenceToRawData;
-      elsize := td^.ArrayData.Size div td^.ArrayData.ElCount;
-    end;
-    data := PByte(data) + AIndex * elsize;
-  end;
-  { maybe we'll later on allow some typecasts, but for now be restrictive }
-  if eltype^.Kind <> AValue.Kind then
-    raise EInvalidCast.Create(SErrInvalidTypecast);
-  td := GetTypeData(eltype);
-  tdv := AValue.TypeData;
-  if ((eltype^.Kind in [tkInteger, tkBool, tkEnumeration, tkSet]) and (td^.OrdType <> tdv^.OrdType)) or
-      ((eltype^.Kind = tkFloat) and (td^.FloatType <> tdv^.FloatType)) then
-    raise EInvalidCast.Create(SErrInvalidTypecast);
-  if Assigned(AValue.FData.FValueData) and (eltype^.Kind <> tkSString) then
-    IntCopy(AValue.FData.FValueData.GetReferenceToRawData, data, eltype)
+  if Assigned(elvalue.FData.FValueData) and (eltype^.Kind <> tkSString) then
+    IntCopy(elvalue.FData.FValueData.GetReferenceToRawData, data, eltype)
   else
-    Move(AValue.GetReferenceToRawData^, data^, AValue.DataSize);
+    Move(elvalue.GetReferenceToRawData^, data^, elvalue.DataSize);
 end;
 
 function TValue.TryAsOrdinal(out AResult: int64): boolean;
@@ -5258,7 +5507,7 @@ end;
 
 function TRttiPointerType.GetReferredType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.RefType);
+  Result := PoolOf(Self).GetType(FTypeData^.RefType);
 end;
 
 { TRttiArrayType }
@@ -5272,12 +5521,12 @@ function TRttiArrayType.GetDimension(aIndex: SizeInt): TRttiType;
 begin
   if aIndex >= FTypeData^.ArrayData.DimCount then
     raise ERtti.CreateFmt(SErrDimensionOutOfRange, [aIndex, FTypeData^.ArrayData.DimCount]);
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
+  Result := PoolOf(Self).GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
 end;
 
 function TRttiArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.ElType);
+  Result := PoolOf(Self).GetType(FTypeData^.ArrayData.ElType);
 end;
 
 function TRttiArrayType.GetTotalElementCount: SizeInt;
@@ -5299,7 +5548,7 @@ end;
 
 function TRttiDynamicArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ElType2);
+  Result := PoolOf(Self).GetType(FTypeData^.ElType2);
 end;
 
 function TRttiDynamicArrayType.GetOleAutoVarType: TVarType;
@@ -5323,7 +5572,7 @@ function TRttiRefCountedInterfaceType.GetIntfBaseType: TRttiInterfaceType;
 begin
   Result := nil;
   if Assigned(IntfData^.Parent) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
+    Result := ContextOf(Self).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRefCountedInterfaceType.GetDeclaringUnitName: String;
@@ -5365,7 +5614,7 @@ var
 begin
   Result := nil;
   if Assigned(IntfData^.Parent) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
+    Result := ContextOf(Self).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRawInterfaceType.GetDeclaringUnitName: String;
@@ -5414,7 +5663,7 @@ function TRttiVmtMethodParameter.GetParamType: TRttiType;
 begin
   Result := nil;
   if Assigned(FVmtMethodParam^.ParamType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FVmtMethodParam^.ParamType^);
+    Result := ContextOf(Self).GetType(FVmtMethodParam^.ParamType^);
 end;
 
 constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
@@ -5447,7 +5696,7 @@ end;
 
 function TRttiMethodTypeParameter.GetParamType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FType);
+  Result := ContextOf(Self).GetType(FType);
 end;
 
 constructor TRttiMethodTypeParameter.Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
@@ -5524,7 +5773,7 @@ function TRttiIntfMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FIntfMethodEntry^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FIntfMethodEntry^.ResultType^);
+    Result := ContextOf(Self).GetType(FIntfMethodEntry^.ResultType^);
 end;
 
 function TRttiIntfMethod.GetVirtualIndex: SmallInt;
@@ -5594,14 +5843,14 @@ begin
     and publish complete arrays under the same lock that already guards
     TRttiInstanceType.GetDeclaredMethods. }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if Length(FParamsAll) = 0 then begin
       SetLength(params, FIntfMethodEntry^.ParamCount);
       SetLength(paramsAll, FIntfMethodEntry^.ParamCount);
 
-      context := TRttiContext.Create(FUsePublishedOnly);
+      context := ContextOf(Self);
       total := 0;
       visible := 0;
       param := FIntfMethodEntry^.Param[0];
@@ -5631,7 +5880,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -5759,7 +6008,21 @@ end;
 function TRttiEnumerationType.GetUnderlyingType: TRttiType;
 
 begin
-  Result:=GRttiPool[FUsePublishedOnly].GetType(GetTypeData(Handle)^.BaseType);
+  Result:=PoolOf(Self).GetType(GetTypeData(Handle)^.BaseType);
+end;
+
+
+function TRttiEnumerationType.GetDeclaringUnitName: string;
+
+var
+  lName: PShortString;
+
+begin
+  { the unit name follows the last value name and precedes a zero byte }
+  lName:=@FTypeData^.NameList;
+  while PByte(Pointer(lName)+Length(lName^)+1)^<>0 do
+    lName:=PShortString(Pointer(lName)+Length(lName^)+1);
+  Result:=lName^;
 end;
 
 
@@ -6106,7 +6369,7 @@ end;
 
 function TRttiIndexedProperty.GetPropertyType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
+  Result := ContextOf(Self).GetType(FPropInfo^.PropType);
 end;
 
 procedure TRttiIndexedProperty.ResolveIndexParams;
@@ -6116,33 +6379,46 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter;
+  params: TRttiParameterArray;
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams,FPropInfo^.PropParams^.Count);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := @FPropInfo^.PropParams^.Params[0];
-  while total < FPropInfo^.PropParams^.Count do
-  begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
-      begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
-      end;
-    FParams[total]:=prtti;
-    if not (pfHidden in param^.Flags) then
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams) = 0 then
     begin
-      FParams[visible] := prtti;
-      Inc(visible);
+      total := 0;
+      visible := 0;
+      SetLength(params,FPropInfo^.PropParams^.Count);
+      context := ContextOf(Self);
+      param := @FPropInfo^.PropParams^.Params[0];
+      while total < FPropInfo^.PropParams^.Count do
+      begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        if not (pfHidden in param^.Flags) then
+        begin
+          params[visible] := prtti;
+          Inc(visible);
+        end;
+        param := param^.Next;
+        Inc(total);
+      end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams := params;
     end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams, visible);
+{$endif}
 end;
 
 function TRttiIndexedProperty.GetIndexParameters: TRttiParameterArray;
@@ -6457,76 +6733,91 @@ var
   paramtype: PTypeInfo;
   context: TRttiContext;
   obj: TRttiObject;
+  params, paramsAll: TRttiParameterArray;
 begin
   if aWithHidden and (Length(FParamsAll) > 0) then
     Exit(FParamsAll);
   if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
-  ptr := @FTypeData^.ParamList[0];
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+  if Length(FParamsAll) = 0 then begin
+    ptr := @FTypeData^.ParamList[0];
 
-  visible := 0;
-  total := 0;
-
-  if FTypeData^.ParamCount > 0 then begin
-    infos:=[];
-    SetLength(infos, FTypeData^.ParamCount);
-    while total < FTypeData^.ParamCount do begin
-      { align }
-      ptr := AlignTParamFlags(ptr);
-      infos[total].Handle := ptr;
-      infos[total].Flags := PParamFlags(ptr)^;
-      Inc(ptr, SizeOf(TParamFlags));
-      { handle name }
-      infos[total].Name := PShortString(ptr)^;
-      Inc(ptr, ptr^ + SizeOf(Byte));
-      { skip type name }
-      Inc(ptr, ptr^ + SizeOf(Byte));
-
-      if not (pfHidden in infos[total].Flags) then
-        Inc(visible);
-      Inc(total);
-    end;
-  end;
-
-  if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
-    { skip return type name }
-    ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
-    { handle return type }
-    FReturnType := GRttiPool[FUsePublishedOnly].GetType(PPPTypeInfo(ptr)^^);
-    Inc(ptr, SizeOf(PPTypeInfo));
-  end;
-
-  { handle calling convention }
-  FCallConv := PCallConv(ptr)^;
-  Inc(ptr, SizeOf(TCallConv));
-
-  SetLength(FParamsAll, FTypeData^.ParamCount);
-  SetLength(FParams, visible);
-
-  if FTypeData^.ParamCount > 0 then begin
-    context := TRttiContext.Create(FUsePublishedOnly);
-    paramtypes := PPPTypeInfo(AlignTypeData(ptr));
     visible := 0;
-    for i := 0 to FTypeData^.ParamCount - 1 do begin
-      obj := context.GetByHandle(infos[i].Handle);
-      if Assigned(obj) then
-        FParamsAll[i] := obj as TRttiMethodTypeParameter
-      else begin
-        if Assigned(paramtypes[i]) then
-          paramtype := paramtypes[i]^
-        else
-          paramtype := Nil;
-        FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
-        context.AddObject(FParamsAll[i]);
-      end;
+    total := 0;
 
-      if not (pfHidden in infos[i].Flags) then begin
-        FParams[visible] := FParamsAll[i];
-        Inc(visible);
+    if FTypeData^.ParamCount > 0 then begin
+      infos:=[];
+      SetLength(infos, FTypeData^.ParamCount);
+      while total < FTypeData^.ParamCount do begin
+        { align }
+        ptr := AlignTParamFlags(ptr);
+        infos[total].Handle := ptr;
+        infos[total].Flags := PParamFlags(ptr)^;
+        Inc(ptr, SizeOf(TParamFlags));
+        { handle name }
+        infos[total].Name := PShortString(ptr)^;
+        Inc(ptr, ptr^ + SizeOf(Byte));
+        { skip type name }
+        Inc(ptr, ptr^ + SizeOf(Byte));
+
+        if not (pfHidden in infos[total].Flags) then
+          Inc(visible);
+        Inc(total);
       end;
     end;
+
+    if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
+      { skip return type name }
+      ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
+      { handle return type }
+      FReturnType := PoolOf(Self).GetType(PPPTypeInfo(ptr)^^);
+      Inc(ptr, SizeOf(PPTypeInfo));
+    end;
+
+    { handle calling convention }
+    FCallConv := PCallConv(ptr)^;
+    Inc(ptr, SizeOf(TCallConv));
+
+    SetLength(paramsAll, FTypeData^.ParamCount);
+    SetLength(params, visible);
+
+    if FTypeData^.ParamCount > 0 then begin
+      context := ContextOf(Self);
+      paramtypes := PPPTypeInfo(AlignTypeData(ptr));
+      visible := 0;
+      for i := 0 to FTypeData^.ParamCount - 1 do begin
+        obj := context.GetByHandle(infos[i].Handle);
+        if Assigned(obj) then
+          paramsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          if Assigned(paramtypes[i]) then
+            paramtype := paramtypes[i]^
+          else
+            paramtype := Nil;
+          paramsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
+          context.AddObject(paramsAll[i]);
+        end;
+
+        if not (pfHidden in infos[i].Flags) then begin
+          params[visible] := paramsAll[i];
+          Inc(visible);
+        end;
+      end;
+    end;
+
+    FParams := params;
+    FParamsAll := paramsAll;
   end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
+  end;
+{$endif}
 
   if aWithHidden then
     Result := FParamsAll
@@ -6589,6 +6880,7 @@ var
   param: PProcedureParam;
   obj: TRttiObject;
   context: TRttiContext;
+  params, paramsAll: TRttiParameterArray;
 begin
   if aWithHidden and (Length(FParamsAll) > 0) then
     Exit(FParamsAll);
@@ -6598,29 +6890,43 @@ begin
   if FTypeData^.ProcSig.ParamCount = 0 then
     Exit(Nil);
 
-  SetLength(FParamsAll, FTypeData^.ProcSig.ParamCount);
-  SetLength(FParams, FTypeData^.ProcSig.ParamCount);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParamsAll) = 0 then begin
+      SetLength(paramsAll, FTypeData^.ProcSig.ParamCount);
+      SetLength(params, FTypeData^.ProcSig.ParamCount);
 
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
-  visible := 0;
-  for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      FParamsAll[i] := obj as TRttiMethodTypeParameter
-    else begin
-      FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
-      context.AddObject(FParamsAll[i]);
+      context := ContextOf(Self);
+      param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+      visible := 0;
+      for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          paramsAll[i] := obj as TRttiMethodTypeParameter
+        else begin
+          paramsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
+          context.AddObject(paramsAll[i]);
+        end;
+
+        if not (pfHidden in param^.ParamFlags) then begin
+          params[visible] := paramsAll[i];
+          Inc(visible);
+        end;
+
+        param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+      end;
+      SetLength(params, visible);
+
+      FParams := params;
+      FParamsAll := paramsAll;
     end;
-
-    if not (pfHidden in param^.ParamFlags) then begin
-      FParams[visible] := FParamsAll[i];
-      Inc(visible);
-    end;
-
-    param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  SetLength(FParams, visible);
+{$endif}
 
   if aWithHidden then
     Result := FParamsAll
@@ -6637,7 +6943,7 @@ function TRttiProcedureType.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FTypeData^.ProcSig.ResultTypeRef) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ProcSig.ResultTypeRef^);
+    Result := ContextOf(Self).GetType(FTypeData^.ProcSig.ResultTypeRef^);
 end;
 
 function TRttiProcedureType.GetFlags: TFunctionCallFlags;
@@ -6729,7 +7035,7 @@ begin
     TVirtualInterface thunk and RTTI-based (de)serializers call GetMethods on
     every invocation). }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if not Assigned(fDeclaredMethods) then begin
@@ -6741,7 +7047,7 @@ begin
 
       SetLength(methods, methtable^.Count);
 
-      context := TRttiContext.Create(FUsePublishedOnly);
+      context := ContextOf(Self);
       method := methtable^.Method[0];
       count := methtable^.Count;
       while count > 0 do begin
@@ -6762,7 +7068,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -6783,7 +7089,7 @@ end;
 
 function TRttiInstanceType.GetBaseType: TRttiType;
 begin
-  result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ParentInfo);
+  result := ContextOf(Self).GetType(FTypeData^.ParentInfo);
 end;
 
 function TRttiInstanceType.GetIsInstance: boolean;
@@ -6827,7 +7133,7 @@ begin
         Dec(PropCount);
         continue;
       end;
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -6860,8 +7166,7 @@ begin
     TP:=PPropInfo(@Table^.PropList);
     For I:=0 to Len-1 do
       begin
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
-      Prop.FUsePublishedOnly:=FUsePublishedOnly;
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       FDeclaredProperties[I]:=Prop;
       TP:=TP^.Next;
       end;
@@ -6875,7 +7180,7 @@ begin
   if Not FPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if Not FPropertiesResolved then
@@ -6885,7 +7190,7 @@ begin
           ResolveExtendedDeclaredProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -6922,7 +7227,7 @@ begin
       end;
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
+      IProp := TRttiIndexedProperty(PoolOf(Self).GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
@@ -6937,14 +7242,14 @@ begin
   if not FIndexedPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FIndexedPropertiesResolved then
         ResolveDeclaredIndexedProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -6970,7 +7275,7 @@ begin
       FFieldsResolved:=True;
       exit;
     end;
-    Ctx:=TRttiContext.Create(FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6995,7 +7300,7 @@ Var
 
 begin
   tbl:=Nil;
-  Ctx:=TRttiContext.Create(FUsePublishedOnly);
+  Ctx:=ContextOf(Self);
   try
     Len:=GetMethodList(FTypeInfo,Tbl,[],False);
     if not FUsePublishedOnly then
@@ -7032,14 +7337,14 @@ begin
   if not FFieldsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FFieldsResolved then
         ResolveDeclaredFields;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7051,14 +7356,14 @@ begin
   if not FMethodsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FMethodsResolved then
         ResolveDeclaredMethods;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7095,7 +7400,7 @@ begin
       exit;
     end;
     SetLength(FDeclaredFields,Len);
-    Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -7133,7 +7438,7 @@ begin
       exit;
     end;
     SetLength(FDeclaredMethods,aCount);
-    Ctx:=TRttiContext.Create(FUsePublishedOnly);
+    Ctx:=ContextOf(Self);
     Idx:=0;
     For I:=0 to aCount-1 do
     begin
@@ -7181,7 +7486,7 @@ begin
         continue;
       end;
 
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
+      Prop := TRttiProperty(PoolOf(Self).GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -7233,7 +7538,7 @@ begin
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
 
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
+      IProp := TRttiIndexedProperty(PoolOf(Self).GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
@@ -7260,19 +7565,24 @@ begin
   Result:=GetDeclaredProperties;
 end;
 
+function TRttiRecordType.GetPropertiesInDeclOrder: TRttiPropertyArray;
+begin
+  Result:=GetDeclaredProperties;
+end;
+
 function TRttiRecordType.GetDeclaredFields: TRttiFieldArray;
 begin
   If not FFieldsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FFieldsResolved then
         ResolveFields;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7284,14 +7594,14 @@ begin
   If not FMethodsResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FMethodsResolved then
         ResolveMethods;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7303,14 +7613,14 @@ begin
   if not FPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FPropertiesResolved then
         ResolveProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7322,14 +7632,14 @@ begin
   if not FIndexedPropertiesResolved then
   begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    EnterCriticalsection(PoolOf(Self).FLock);
     try
 {$endif}
       if not FIndexedPropertiesResolved then
         ResolveIndexedProperties;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
-      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+      LeaveCriticalsection(PoolOf(Self).FLock);
     end;
 {$endif}
   end;
@@ -7395,7 +7705,7 @@ end;
 
 function TRttiProperty.GetPropertyType: TRttiType;
 begin
-  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
+  Result := ContextOf(Self).GetType(FPropInfo^.PropType);
 end;
 
 function TRttiProperty.GetIsReadable: boolean;
@@ -7998,6 +8308,22 @@ begin
   Result:=FTypeInfo^.Name;
 end;
 
+function TRttiType.GetDeclaringUnitName: string;
+begin
+  Result:='';
+end;
+
+function TRttiType.GetQualifiedName: string;
+var
+  lUnitName: string;
+begin
+  lUnitName:=GetDeclaringUnitName;
+  if lUnitName='' then
+    Result:=Name
+  else
+    Result:=lUnitName+'.'+Name;
+end;
+
 function TRttiType.GetHandle: Pointer;
 begin
   Result := FTypeInfo;
@@ -8092,21 +8418,7 @@ function TRttiType.GetProperties: TRttiPropertyArray;
 var
   parentproperties, selfproperties: TRttiPropertyArray;
   parent: TRttiType;
-  prop: TRttiProperty;
-  NameIndexes : Array of Integer;
-  Idx, IdxCount, aCount, I: Integer;
-
-  Function IndexOfNameIndex(Idx : Integer) : integer;
-  begin
-    Result:=IdxCount-1;
-    While (Result>=0) and (NameIndexes[Result]<>Idx) do
-      Dec(Result);
-  end;
-
 begin
-  NameIndexes:=[];
-  IdxCount:=0;
-
   if Assigned(fProperties) then
     Exit(fProperties);
 
@@ -8119,68 +8431,44 @@ begin
     parentproperties := nil;
 
   if (not Assigned(parent)) or (Length(parentproperties) = 0) then
-  begin
-    fProperties := selfproperties;
-    Exit(fProperties);
-  end
+    fProperties := selfproperties
   else if Length(selfproperties) = 0 then
-  begin
-    fProperties := parentproperties;
-    Exit(fProperties);
-  end;
-
-  aCount := Length(parentproperties) + Length(selfproperties);
-  SetLength(fProperties,aCount);
-  SetLength(NameIndexes,aCount);
-
-  IdxCount := 0;
-
-  For I:=0 to Length(selfproperties)-1 do
-  begin
-    prop := selfproperties[I];
-
-    NameIndexes[IdxCount]:=Prop.FPropInfo^.NameIndex;
-    fProperties[IdxCount]:=Prop;
-    Inc(IdxCount);
-  end;
-
-  For I:=0 to Length(parentproperties)-1 do
-  begin
-    Prop := parentproperties[I];
-    Idx:=IndexOfNameIndex(Prop.FPropInfo^.NameIndex);
-
-    if Idx = -1 then
-    begin
-      NameIndexes[IdxCount]:=Prop.FPropInfo^.NameIndex;
-      fProperties[IdxCount]:=Prop;
-      Inc(IdxCount);
-    end;
-  end;
-
-  SetLength(fProperties, IdxCount);
-
+    fProperties := parentproperties
+  else
+    fProperties := selfproperties + parentproperties;
   Result := fProperties;
+end;
+
+function TRttiType.GetPropertiesInDeclOrder: TRttiPropertyArray;
+var
+  parentproperties, selfproperties: TRttiPropertyArray;
+  parent: TRttiType;
+begin
+  if Assigned(fPropertiesInDeclOrder) then
+    Exit(fPropertiesInDeclOrder);
+
+  selfproperties := GetDeclaredProperties;
+
+  parent := GetBaseType;
+  if Assigned(parent) then
+    parentproperties := parent.GetPropertiesInDeclOrder
+  else
+    parentproperties := nil;
+
+  if (not Assigned(parent)) or (Length(parentproperties) = 0) then
+    fPropertiesInDeclOrder := selfproperties
+  else if Length(selfproperties) = 0 then
+    fPropertiesInDeclOrder := parentproperties
+  else
+    fPropertiesInDeclOrder := parentproperties + selfproperties;
+  Result := fPropertiesInDeclOrder;
 end;
 
 function TRttiType.GetIndexedProperties: TRttiIndexedPropertyArray;
 var
   parentproperties, selfproperties: TRttiIndexedPropertyArray;
   parent: TRttiType;
-  iprop: TRttiIndexedProperty;
-  NameIndexes : Array of Integer;
-  Idx, IdxCount, aCount, I: Integer;
-
-  Function IndexOfNameIndex(Idx : Integer) : integer;
-  begin
-    Result:=IdxCount-1;
-    While (Result>=0) and (NameIndexes[Result]<>Idx) do
-      Dec(Result);
-  end;
-
 begin
-  NameIndexes:=[];
-  IdxCount:=0;
-
   if Assigned(fIndexedProperties) then
     Exit(fIndexedProperties);
 
@@ -8193,46 +8481,11 @@ begin
     parentproperties := nil;
 
   if (not Assigned(parent)) or (Length(parentproperties) = 0) then
-  begin
-    fIndexedProperties := selfproperties;
-    Exit(fIndexedProperties);
-  end
+    fIndexedProperties := selfproperties
   else if Length(selfproperties) = 0 then
-  begin
-    fIndexedProperties := parentproperties;
-    Exit(fIndexedProperties);
-  end;
-
-  aCount := Length(parentproperties) + Length(selfproperties);
-  SetLength(fIndexedProperties,aCount);
-  SetLength(NameIndexes,aCount);
-
-  IdxCount := 0;
-
-  For I:=0 to Length(selfproperties)-1 do
-  begin
-    IProp := selfproperties[I];
-
-    NameIndexes[IdxCount]:=IProp.FPropInfo^.NameIndex;
-    fIndexedProperties[IdxCount]:=IProp;
-    Inc(IdxCount);
-  end;
-
-  For I:=0 to Length(parentproperties)-1 do
-  begin
-    IProp := parentproperties[I];
-    Idx:=IndexOfNameIndex(IProp.FPropInfo^.NameIndex);
-
-    if Idx = -1 then
-    begin
-      NameIndexes[IdxCount]:=IProp.FPropInfo^.NameIndex;
-      fIndexedProperties[IdxCount]:=IProp;
-      Inc(IdxCount);
-    end;
-  end;
-
-  SetLength(fIndexedProperties, IdxCount);
-
+    fIndexedProperties := parentproperties
+  else
+    fIndexedProperties := selfproperties + parentproperties;
   Result := fIndexedProperties;
 end;
 
@@ -8280,7 +8533,7 @@ begin
     Two concurrent initializers assigning the managed fMethods field race on its
     reference count and can leave a reader with a dangling array }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  EnterCriticalsection(PoolOf(Self).FLock);
   try
 {$endif}
     if not Assigned(fMethods) then begin
@@ -8295,7 +8548,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
-    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
 {$endif}
 
@@ -8399,7 +8652,7 @@ end;
 class function TRttiContext.Create: TRttiContext;
 begin
   result.Free;
-  result.FUsePublishedOnly:=DefaultUsePublishedOnly;
+  result.FUsePublishedOnly:=GlobalUsePublishedOnly;
 end;
 
 class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
@@ -8428,7 +8681,7 @@ end;
 class operator TRttiContext.Initialize(var self: TRttiContext);
 begin
   self.FPoolIndex := -1;
-  self.FUsePublishedOnly := DefaultUsePublishedOnly;
+  self.FUsePublishedOnly := GlobalUsePublishedOnly;
 end;
 
 class operator TRttiContext.Finalize(var self: TRttiContext);
@@ -8454,15 +8707,12 @@ end;
 
 procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
-  { Set the flag before publishing the object in the pool}
-  AObject.FUsePublishedOnly := UsePublishedOnly;
   EnsurePool(Self).AddObject(AObject);
 end;
 
 function TRttiContext.GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
 begin
   Result := EnsurePool(Self).GetOrAddObject(aHandle, aClass, aParent);
-  Result.FUsePublishedOnly := UsePublishedOnly;
 end;
 
 procedure TRttiContext.SetUsePublishedOnly(Value: Boolean);
@@ -8474,7 +8724,7 @@ end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
 begin
-  result := EnsurePool(Self).GetType(ATypeInfo,UsePublishedOnly);
+  result := EnsurePool(Self).GetType(ATypeInfo);
 end;
 
 function TRttiContext.GetType(AClass: TClass): TRttiType;
@@ -9027,7 +9277,7 @@ function TRttiRecordMethod.GetReturnType: TRttiType;
 begin
   Result := nil;
   if Assigned(FHandle^.ResultType) then
-    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
+    Result := ContextOf(Self).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiRecordMethod.GetDispatchKind: TDispatchKind;
@@ -9078,36 +9328,51 @@ var
   context: TRttiContext;
   obj: TRttiObject;
   prtti : TRttiVmtMethodParameter ;
+  params, paramsAll: TRttiParameterArray;
 
 begin
-  total := 0;
-  visible := 0;
-  SetLength(FParams[False],FHandle^.ParamCount);
-  SetLength(FParams[True],FHandle^.ParamCount);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(PoolOf(Self).FLock);
+  try
+{$endif}
+    if Length(FParams[True]) = 0 then
+      begin
+      total := 0;
+      visible := 0;
+      SetLength(params,FHandle^.ParamCount);
+      SetLength(paramsAll,FHandle^.ParamCount);
 
-  context := TRttiContext.Create(FUsePublishedOnly);
-  param := FHandle^.Param[0];
-  while total < FHandle^.ParamCount do
-    begin
-    obj := context.GetByHandle(param);
-    if Assigned(obj) then
-      prtti := obj as TRttiVmtMethodParameter
-    else
-      begin
-      prtti := TRttiVmtMethodParameter.Create(param);
-      context.AddObject(prtti);
+      context := ContextOf(Self);
+      param := FHandle^.Param[0];
+      while total < FHandle^.ParamCount do
+        begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          prtti := obj as TRttiVmtMethodParameter
+        else
+          begin
+          prtti := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(prtti);
+          end;
+        paramsAll[total]:=prtti;
+        if not (pfHidden in param^.Flags) then
+          begin
+          params[visible]:=prtti;
+          Inc(visible);
+          end;
+        param := param^.Next;
+        Inc(total);
+        end;
+      if visible <> total then
+        SetLength(params, visible);
+      FParams[False] := params;
+      FParams[True] := paramsAll;
       end;
-    FParams[True][total]:=prtti;
-    if not (pfHidden in param^.Flags) then
-      begin
-      FParams[False][visible]:=prtti;
-      Inc(visible);
-      end;
-    param := param^.Next;
-    Inc(total);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(PoolOf(Self).FLock);
   end;
-  if visible <> total then
-    SetLength(FParams[False], visible);
+{$endif}
 end;
 
 function TRttiRecordMethod.GetParameters(aWithHidden : Boolean): TRttiParameterArray;
@@ -9160,7 +9425,6 @@ begin
   begin
     case aInstance.Kind of
       tkPointer:
-        { temporary implementation, before TValue.MakeWithoutCopy is added }
         inst := aInstance;
       tkRecord:
         inst := aInstance;
@@ -9203,8 +9467,8 @@ initialization
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(PoolLock);
 {$endif}
-  GRttiPool[False] := TRttiPool.Create;
-  GRttiPool[True] := TRttiPool.Create;
+  GRttiPool[False] := TRttiPool.Create(False);
+  GRttiPool[True] := TRttiPool.Create(True);
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;

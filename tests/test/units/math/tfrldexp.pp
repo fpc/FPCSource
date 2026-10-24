@@ -38,8 +38,8 @@ type
 	const
 		ExpFuzz: array[0 .. 4] of integer = (-10, -1, 0, 1, 10);
 	var
-		m, le: float;
-		srcv, m2, le2: FloatType;
+		m: float;
+		srcv, m2, le, le2: FloatType;
 		e, e2, eFuzz: integer;
 	begin
 		writeln(name);
@@ -70,8 +70,8 @@ type
 			writeln;
 			for eFuzz in ExpFuzz do
 			begin
-				le := FloatType(ReferenceLdexp(srcv, eFuzz));
-				writeln('Reference Ldexp(', srcv, ', ', eFuzz:3, ') = ', FloatType(le));
+				le := ReferenceLdexp(srcv, eFuzz);
+				writeln('Reference Ldexp(', srcv, ', ', eFuzz:3, ') = ', le);
 
 				le2 := Math.Ldexp(srcv, eFuzz);
 				writeln('     Math.Ldexp(', srcv, ', ', eFuzz:3, ') = ', le2);

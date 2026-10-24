@@ -211,6 +211,7 @@ Var
   BarRect : TRect;
   BP : TBarParams;
   Data : TBarTypeArray;
+  lMode : TRectangleMode;
 
 begin
   Result:=AllowDraw;
@@ -218,6 +219,9 @@ begin
     exit;
   CheckCanvas;
   Cnv:=FCanvas;
+  lMode:=Cnv.RectangleMode;
+  Cnv.RectangleMode:=rmInclude;
+  try
   Data:=StringToBarTypeArray(Text,FEncoding);
   xOffset := 0;
   Cnv.Brush.FPColor := colWhite;
@@ -240,14 +244,18 @@ begin
     if BP.h=bhTwoFifth then
       H:=H*2 div 5;
     BarRect.Left:=Rect.Left+xOffset;
-    BarRect.Top:=Rect.Top;
-    BarRect.Bottom:=Rect.Top+H;
+    // short bars stand on the baseline
+    BarRect.Top:=Rect.Bottom-H;
+    BarRect.Bottom:=Rect.Bottom;
     BarRect.Right:=BarRect.Left + W-1;
-    if (Not Clipping or (BarRect.Right<=MaxWidth)) then
+    if (Not Clipping or (xOffset+W<=MaxWidth)) then
       Cnv.FillRect(BarRect);
     xOffset:=xOffset + W;
     Inc(I);
     end;
+  finally
+    Cnv.RectangleMode:=lMode;
+  end;
 end;
 
 function TFPDrawBarCode.AllowDraw: Boolean;

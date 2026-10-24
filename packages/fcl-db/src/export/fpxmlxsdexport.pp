@@ -40,12 +40,15 @@ are not needed. Is there any way to remove them from the settings?}
 
 interface
 
+{ On Unix, programs using this unit should use the clocale unit,
+  so the date formats used for the Excel export are initialized correctly. }
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, Data.Db, Data.Export.Db, Xml.Dom, Xml.Writer, System.Hash.Base64, System.TypInfo, System.DateUtils {$IFDEF Unix}, UnixApi.Clocale{$ENDIF Unix};
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db, Xml.Dom, Xml.Writer, System.Hash.Base64, System.TypInfo, System.DateUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, DB, fpDBExport, DOM, XMLWrite, base64, typinfo, dateutils {$IFDEF Unix}, clocale{$ENDIF Unix};
+  Classes, SysUtils, DB, fpDBExport, DOM, XMLWrite, base64, typinfo, dateutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 

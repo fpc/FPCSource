@@ -115,7 +115,7 @@ begin
   GetMem (NewData, sizeof(TFPColor)*FCapacity);
   if old > 0 then
     begin
-    move (FData^[0], NewData^[0], sizeof(TFPColor)*FCount);
+    move (FData^[0], NewData^[0], sizeof(TFPColor)*old);
     FreeMem (FData);
     end;
   FData := NewData;
@@ -205,6 +205,7 @@ begin
       while true do
       begin
         fppal.Color[i]:=Col;
+        inc(i);
         if Col.Blue=0 then break;
         dec(Col.Blue,$3333);
       end;

@@ -113,6 +113,7 @@ const
   rcpprog : string = 'rcp';
   rquote : string = '''';
   UseTimeout : boolean = false;
+  Timeout : longint = DefaultTimeout;
   emulatorname : string = '';
   EmulatorOpts : string = '';
   TargetCanCompileLibraries : boolean = true;
@@ -1483,7 +1484,7 @@ begin
       if UseTimeout then
       begin
         if Config.Timeout=0 then
-          Config.Timeout:=DefaultTimeout;
+          Config.Timeout:=Timeout;
         str(Config.Timeout,s);
         if (RemoteShellBase='bash') then
           execcmd:=execcmd+'ulimit -t '+s+'; '
@@ -1687,6 +1688,7 @@ procedure getargs;
     writeln('  -M<emulator>        run the tests using the given emulator');
     writeln('  -N<emulator opts.>  pass options to the emulator');
     writeln('  -O                  use timeout wrapper for (remote) execution');
+    writeln('  -O<timeout>         use timeout value for execution in seconds');
     writeln('  -P<path>            path to the tests tree on the remote machine');
     writeln('  -R<remote>          run the tests remotely with the given rsh/ssh address');
     writeln('  -S                  use ssh instead of rsh');
@@ -1705,6 +1707,7 @@ procedure getargs;
   var
     ch : char;
     j : longint;
+    err : word;
   begin
    Verbose(V_Debug,'Interpreting  option"'+para+'"');
     ch:=Upcase(para[2]);
@@ -1763,7 +1766,16 @@ procedure getargs;
 
      'N' : EmulatorOpts:=Para;
 
-     'O' : UseTimeout:=true;
+     'O' : begin
+             UseTimeout:=true;
+             if para<>'' then
+               begin
+		 system.val(para,Timeout,err);
+		 if err<>0 then
+                   Timeout:=DefaultTimeout;
+                 timeout_ms:=Timeout*1000;
+               end;
+           end;
 
      'P' : RemotePath:=Para;
 

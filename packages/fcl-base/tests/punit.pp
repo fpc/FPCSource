@@ -352,7 +352,9 @@ Function AssertEquals(AMessage : TTestString; const AExpected, AActual : QWord):
 Function AssertEquals(AMessage : TTestString; const AExpected, AActual : Currency): Boolean;
 Function AssertEquals(AMessage : TTestString; const AExpected, AActual: Double; ADelta : Double = 0): Boolean;
 Function AssertEquals(AMessage : TTestString; const AExpected, AActual: Single; ADelta : Single = 0): Boolean;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 Function AssertEquals(AMessage : TTestString; const AExpected, AActual: Extended; ADelta : Extended = 0): Boolean;
+{$endif FPC_HAS_TYPE_EXTENDED}
 // Assert null
 Function AssertNull(AMessage : TTestString; const AValue : Pointer): Boolean;
 Function AssertNotNull(AMessage : TTestString; const AValue : Pointer): Boolean;
@@ -1627,6 +1629,7 @@ begin
   Result:=AssertTrue(AMessage+'. '+ExpectMessage(SE,SA),Abs(AExpected-AActual)<ADelta);
 end;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function AssertEquals(AMessage: TTestString; const AExpected,
   AActual: Extended; ADelta: Extended): Boolean;
 
@@ -1640,6 +1643,7 @@ begin
     ADelta:=DefaultExtendedDelta;
   Result:=AssertTrue(AMessage+'. '+ExpectMessage(SE,SA),Abs(AExpected-AActual)<ADelta);
 end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function AssertNull(AMessage: TTestString; const AValue: Pointer): Boolean;
 begin

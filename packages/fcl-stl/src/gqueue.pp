@@ -26,7 +26,7 @@ uses gdeque;
 
 type
   generic TQueue<T>=class
-  private
+  protected
   type
     TContainer = specialize TDeque<T>;
   var

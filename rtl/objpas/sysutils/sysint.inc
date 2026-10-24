@@ -26,17 +26,17 @@ const
 begin
   With Result do
     begin
-    CurrencyFormat:=1;
-    NegCurrFormat:=5;
+    CurrencyFormat:=0;
+    NegCurrFormat:=0;
     ThousandSeparator:=',';
     DecimalSeparator:='.';
     CurrencyDecimals:=2;
-    DateSeparator:='-';
+    DateSeparator:='/';
     TimeSeparator:=':';
     ListSeparator:=',';
     CurrencyString:='$';
-    ShortDateFormat:='d/m/y';
-    LongDateFormat:='dd" "mmmm" "yyyy';
+    ShortDateFormat:='mm/dd/yyyy';
+    LongDateFormat:='dddd, dd mmmmm yyyy hh:nn:ss';
     TimeAMString:='AM';
     TimePMString:='PM';
     ShortTimeFormat:='hh:nn';

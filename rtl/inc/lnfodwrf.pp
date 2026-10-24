@@ -40,11 +40,15 @@ type
   CodePointer = Pointer;
 {$ENDIF}
 
+// Returns the routine and source line of the instruction at addr.
 function GetLineInfo(addr:codeptruint;var func,source:shortstring;var line:longint) : boolean;
+// Formats a backtrace line for the return address addr.
 function DwarfBackTraceStr(addr: CodePointer): shortstring;
 procedure CloseDwarf;
 
 var
+  // When True, GetLineInfo treats addr as a return address and reports the instruction before it.
+  GetLineInfoReturnAddress: Boolean = False;
   // Allows more efficient operation by reusing previously loaded debug data
   // when the target module filename is the same. However, if an invalid memory
   // address is supplied then further calls may result in an undefined behaviour.
@@ -615,6 +619,13 @@ end;
 
 procedure TEReader.SetRange(aBase, aSize : Int64);
 begin
+  { an invalid range is read as empty }
+  if (aBase < 0) or (aSize < 0) or (aSize > High(Int64) - aBase) then
+    begin
+      if aBase < 0 then
+        aBase := 0;
+      aSize := 0;
+    end;
   base := aBase;
   limit := base + aSize;
   Seek(0);
@@ -636,7 +647,11 @@ procedure TEReader.Seek(newIndex : Int64);
 var
   gpos : Int64;
 begin
-  gpos := base + newIndex;
+  { a position outside the range is read as end of data }
+  if (newIndex < 0) or (newIndex > limit - base) then
+    gpos := limit
+  else
+    gpos := base + newIndex;
   if (gpos >= bufstart) and (gpos <= bufstart + (bufe - pByte(buf))) then
     bufp := pByte(buf) + (gpos - bufstart) { Reuse the buffer. }
   else
@@ -741,8 +756,8 @@ end;
 { Reads an address from the current input stream }
 function TEReader.ReadAddress(addr_size: smallint) : PtrUInt;
 begin
-{$ifdef CPUI8086}
   ReadAddress := 0;
+{$ifdef CPUI8086}
   if (addr_size = 4) or (addr_size = 2) then
 {$endif}
     ReadNext(ReadAddress, sizeof(ReadAddress));
@@ -752,6 +767,7 @@ end;
 { Reads a segment from the current input stream }
 function TEReader.ReadSegment() : Word;
 begin
+  ReadSegment := 0;
   ReadNext(ReadSegment, sizeof(ReadSegment));
 end;
 {$endif CPUI8086}
@@ -796,6 +812,7 @@ end;
 { Reads an unsigned Half from the current input stream }
 function TEReader.ReadUHalf() : Word;
 begin
+  ReadUHalf := 0;
   ReadNext(ReadUHalf, sizeof(ReadUHalf));
 end;
 
@@ -972,6 +989,9 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+    { line number program versions 2 to 5 are supported }
+    if (header32.version < 2) or (header32.version > 5) then
+      exit;
 
     if header32.version >= 4 then begin
       i := 1;
@@ -1006,6 +1026,8 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+    if (header64.version < 2) or (header64.version > 5) then
+      exit;
 
     if header64.version >= 4 then begin
       i := 1;
@@ -1031,6 +1053,10 @@ begin
   end;
 
   inc(header_length, header64.length);
+
+  { a zero line_range is invalid }
+  if header64.line_range = 0 then
+    exit;
 
   fillchar(numoptable, sizeof(numoptable), #0);
   er.ReadNext(numoptable, header64.opcode_base-1);
@@ -1227,14 +1253,10 @@ begin
         first_row := false;
       end;
 
-      { when we have found the address we need to return the previous
-        line because that contains the call instruction
-        Note that there may not be any call instruction, because this may
-        be the actual instruction that crashed, and it may be on the first
-        line of the function }
+      { the previous row contains addr }
       if (state.segment > segment) or
          ((state.segment = segment) and
-          (state.address >= addr)) then
+          (state.address > addr)) then
         found:=true
       else
         begin
@@ -1255,12 +1277,6 @@ begin
 
   if (found) then
     begin
-      { can happen if the crash happens on the first instruction with line info }
-      if prev_line = 0 then
-        begin
-          prev_line := state.line;
-          prev_file := state.file_id;
-        end;
       line := prev_line;
       source := GetFullFilename(er, file_names, include_directories, prev_file);
     end;
@@ -1288,7 +1304,7 @@ procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
    tag,
    nr,
    attr,
-   form : Int64;
+   form : QWord;
    curAbbrev : ^TAbbrevRec;
    curAttr : ^TAttrRec;
   begin
@@ -1303,18 +1319,17 @@ procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
       if nr=0 then
         break;
 
-      if nr>=abbrevs.nAbbrevs then
+      if nr>8*1024*1024 then { Safeguard. }
         begin
-          abbrevs.nAbbrevs:=nr+1;
-          if nr>high(abbrevs.Abbrevs) then
-          begin
-            if nr>8*1024*1024 then { Safeguard. }
-            begin
-              DEBUG_WRITELN('Implausible abbreviation ID (', nr, ') — GIVING UP.');
-              exit;
-            end;
+          DEBUG_WRITELN('Implausible abbreviation ID (', nr, ') — GIVING UP.');
+          exit;
+        end;
+
+      if nr>=QWord(abbrevs.nAbbrevs) then
+        begin
+          abbrevs.nAbbrevs:=SizeInt(nr)+1;
+          if nr>=QWord(Length(abbrevs.Abbrevs)) then
             SetLength(abbrevs.Abbrevs,SizeUint(nr)+128+SizeUint(nr) div 4);
-          end;
         end;
 
       { read tag }
@@ -1402,6 +1417,10 @@ begin
       er.ReadNext(header64, sizeof(header64));
     end;
 
+  { 2 is the only .debug_aranges version }
+  if header64.version <> 2 then
+    exit;
+
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
   DEBUG_WRITELN('address_size: ', header64.address_size);
   DEBUG_WRITELN('segment_size: ', header64.segment_size);
@@ -1446,10 +1465,12 @@ var
   name : ShortString;
   level : Integer;
 
-procedure SkipAttr(var er: TEReader; form : QWord);
+{ Skips an attribute value, returns false for an unknown form }
+function SkipAttr(var er: TEReader; form : QWord) : Boolean;
   var
     dl,nskip : dword;
   begin
+    SkipAttr := true;
     nskip := 0;
     case form of
       DW_FORM_addr:
@@ -1509,7 +1530,7 @@ procedure SkipAttr(var er: TEReader; form : QWord);
       DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8:
         nskip := 1 shl (form - DW_FORM_ref1);
       DW_FORM_indirect:
-        SkipAttr(er, er.ReadULEB128);
+        SkipAttr := SkipAttr(er, er.ReadULEB128);
       DW_FORM_flag_present: {none};
       DW_FORM_ref_sig8 : nskip := 8;
       DW_FORM_ref_sup4: nskip := 4;
@@ -1530,8 +1551,8 @@ procedure SkipAttr(var er: TEReader; form : QWord);
       DW_FORM_addrx4:   nskip := 4;
       else
         begin
-          writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
-          nskip := 1;
+          DEBUG_WRITELN('Unknown dwarf form: $',hexstr(form,2));
+          exit(false);
         end;
     end;
     er.ReadNext(nil^, nskip);
@@ -1562,6 +1583,9 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+    { compilation unit versions 2 to 5 are supported }
+    if (header32.version < 2) or (header32.version > 5) then
+      exit;
 
     if header32.version >= 5 then begin
       if header32_v5.unit_type <> DW_UT_compile then
@@ -1583,6 +1607,8 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+    if (header64.version < 2) or (header64.version > 5) then
+      exit;
 
     if header64.version >= 5 then begin
       if header64_v5.unit_type <> DW_UT_compile then
@@ -1599,6 +1625,10 @@ begin
 
   DEBUG_WRITELN('debug_abbrev_offset: ',header64.debug_abbrev_offset);
   DEBUG_WRITELN('address_size: ',header64.address_size);
+
+  { an address_size above the size of low_pc is invalid }
+  if header64.address_size > SizeOf(low_pc) then
+    exit;
 
   { not nice, but we have to read the abbrev section after the start of the debug_info section has been read }
   prev_size:=er.limit-er.base;
@@ -1647,7 +1677,8 @@ begin
                   er.ReadString(@name);
                 end;
               else
-                SkipAttr(er, abbrevs.Attrs[i].form);
+                if not SkipAttr(er, abbrevs.Attrs[i].form) then
+                  exit;
             end;
           DEBUG_WRITELN('Got DW_TAG_subprogram with low pc = $',hexStr(low_pc,header64.address_size*2),', high pc = $',hexStr(high_pc,header64.address_size*2),', name = ',name);
           if (addr>=low_pc) and (addr<high_pc) then
@@ -1659,7 +1690,8 @@ begin
       else
         begin
           for i:=PtrInt(curAbbrev^.firstAttr) to PtrInt(curAbbrev^.firstAttr)+PtrInt(curAbbrev^.nAttrs)-1 do
-            SkipAttr(er, abbrevs.Attrs[i].form);
+            if not SkipAttr(er, abbrevs.Attrs[i].form) then
+              exit;
         end;
       abbrev:=er.ReadULEB128;
       { skip entries signaling that no more child entries are following }
@@ -1672,20 +1704,25 @@ begin
 end;
 
 
-function GetLineInfo(addr : codeptruint; var func, source : shortstring; var line : longint) : boolean;
+{ Returns the routine and source line containing the instruction at addr }
+function LookupLineInfo(addr : codeptruint; var func, source : shortstring; var line : longint) : boolean;
 var
-  current_offset,
+  current_offset, next_offset,
   end_offset, debug_info_offset_from_aranges : QWord;
   segment : Word = 0;
 
   found, found_aranges : Boolean;
   er: TEReader;
   abbrevs: TAbbrevs; { To reuse allocations between ParseCompilationUnitForFunctionName calls. }
+{$ifdef has_LineInfoCache}
+  lCacheAddr : CodePointer;
+{$endif has_LineInfoCache}
 
 begin
 {$ifdef has_LineInfoCache}
+  lCacheAddr := CodePointer(addr);
   Lock(LiCacheLock);
-  result := liCache.TryGet(CodePointer(addr), func, source, line);
+  result := liCache.TryGet(lCacheAddr, func, source, line);
   Unlock(LiCacheLock);
   if result then exit((func <> '') or (source <> '') or (line <> 0));
 {$endif has_LineInfoCache}
@@ -1693,7 +1730,7 @@ begin
   func := '';
   source := '';
   line := 0;
-  GetLineInfo:=false;
+  LookupLineInfo:=false;
 
   Lock(DwarfLock);
   if not OpenDwarf(codepointer(addr)) then
@@ -1701,7 +1738,7 @@ begin
     Unlock(DwarfLock);
   {$ifdef has_LineInfoCache}
     Lock(LiCacheLock);
-    liCache.Put(CodePointer(addr), '', '', 0); { Cache the failure, too; in particular, on Win64 some frames above main() point into kernel32 or something. }
+    liCache.Put(lCacheAddr, '', '', 0); { Cache the failure, too; in particular, on Win64 some frames above main() point into kernel32 or something. }
     Unlock(LiCacheLock);
   {$endif has_LineInfoCache}
     exit;
@@ -1725,8 +1762,12 @@ begin
   found := false;
   while (current_offset < end_offset) and (not found) do begin
     er.SetRange(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnit(er, addr, segment, current_offset,
+    next_offset := ParseCompilationUnit(er, addr, segment, current_offset,
       source, line, found);
+    { a unit length that does not advance ends the section }
+    if next_offset <= current_offset then
+      break;
+    current_offset := next_offset;
   end;
 
   current_offset := Dwarf_Debug_Aranges_Section_Offset;
@@ -1735,7 +1776,10 @@ begin
   found_aranges := false;
   while (current_offset < end_offset) and (not found_aranges) do begin
     er.SetRange(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForDebugInfoOffset(er, addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
+    next_offset := ParseCompilationUnitForDebugInfoOffset(er, addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
+    if next_offset <= current_offset then
+      break;
+    current_offset := next_offset;
   end;
 
   { no function name found yet }
@@ -1765,7 +1809,10 @@ begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
     er.SetRange(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, abbrevs, func, found);
+    next_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, abbrevs, func, found);
+    if next_offset <= current_offset then
+      break;
+    current_offset := next_offset;
   end;
 
   if not AllowReuseOfLineInfoData then
@@ -1774,10 +1821,30 @@ begin
 
 {$ifdef has_LineInfoCache}
   Lock(LiCacheLock);
-  liCache.Put(CodePointer(addr), func, source, line);
+  liCache.Put(lCacheAddr, func, source, line);
   Unlock(LiCacheLock);
 {$endif has_LineInfoCache}
-  GetLineInfo:=true;
+  LookupLineInfo:=true;
+end;
+
+
+{ Returns the address of the instruction before the return address addr }
+function CallSiteAddress(addr : codeptruint) : codeptruint;
+
+begin
+  if addr > 0 then
+    CallSiteAddress := addr - 1
+  else
+    CallSiteAddress := addr;
+end;
+
+
+function GetLineInfo(addr : codeptruint; var func, source : shortstring; var line : longint) : boolean;
+
+begin
+  if GetLineInfoReturnAddress then
+    addr := CallSiteAddress(addr);
+  GetLineInfo := LookupLineInfo(addr, func, source, line);
 end;
 
 
@@ -1797,10 +1864,12 @@ begin
   Success:=false;
   Store := BackTraceStrFunc;
   BackTraceStrFunc := @SysBackTraceStr;
-  Success:=GetLineInfo(codeptruint(addr), func, source, line);
+  Success:=LookupLineInfo(CallSiteAddress(codeptruint(addr)), func, source, line);
   { create string }
   DwarfBackTraceStr :='  $' + HexStr(addr);
-  if Success then
+  if not Success then
+    DwarfBackTraceStr := SysBackTraceStr(addr)
+  else
   begin
     if func<>'' then
       DwarfBackTraceStr := DwarfBackTraceStr + '  ' + func;

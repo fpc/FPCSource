@@ -38,6 +38,9 @@ procedure FillEllipseHashDiagCross (Canv:TFPCustomCanvas; const Bounds:TRect; wi
 procedure FillEllipseHashCross (Canv:TFPCustomCanvas; const Bounds:TRect; width:integer; const c:TFPColor);
 procedure FillEllipseImage (Canv:TFPCustomCanvas; const Bounds:TRect; const Image:TFPCustomImage);
 procedure FillEllipseImageRel (Canv:TFPCustomCanvas; const Bounds:TRect; const Image:TFPCustomImage);
+// Fills the ellipse with the hatch aStyle counted from (aOriginX, aOriginY).
+procedure FillEllipseHatch (Canv:TFPCustomCanvas; const Bounds:TRect; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
 
 type
 
@@ -71,6 +74,12 @@ type
   end;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.PixelTools;
+{$ELSE FPC_DOTTEDUNITS}
+uses PixTools;
+{$ENDIF FPC_DOTTEDUNITS}
 
 constructor TEllipseInfo.Create;
 begin
@@ -116,10 +125,10 @@ begin
   result := GetInfoForX (x, r);
   if assigned(r) then
     begin
-    ytopmax := ytopmax;
-    ytopmin := ytopmin;
-    ybotmax := ybotmax;
-    ybotmin := ybotmin;
+    ytopmax := r^.ytopmax;
+    ytopmin := r^.ytopmin;
+    ybotmax := r^.ybotmax;
+    ybotmin := r^.ybotmin;
     end;
 end;
 
@@ -270,28 +279,11 @@ begin
   LinePoints^[0] := (APattern and i) <> 0;
 end;
 
-procedure PutPixelCopy(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
+// Draws color at (x, y) with DrawPenPixel: combined with the pixel there by Pen.Mode, and by
+// DrawingMode when Pen.Mode is pmCopy.
+procedure PutPixelPen(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 begin
-  with Canv do
-    DrawPixel(x,y,color);
-end;
-
-procedure PutPixelXor(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] xor color;
-end;
-
-procedure PutPixelOr(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] or color;
-end;
-
-procedure PutPixelAnd(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
-begin
-  with Canv do
-    Colors[x,y] := Colors[x,y] and color;
+  Canv.DrawPenPixel(x,y,color);
 end;
 
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
@@ -299,13 +291,7 @@ var info : TEllipseInfo;
     r, y : integer;
     MyPutPix : TPutPixelProc;
 begin
-  with canv.pen do
-    case mode of
-      pmMask : MyPutPix := @PutPixelAnd;
-      pmMerge : MyPutPix := @PutPixelOr;
-      pmXor : MyPutPix := @PutPixelXor;
-      else MyPutPix := @PutPixelCopy;
-    end;
+  MyPutPix := @PutPixelPen;
   info := TEllipseInfo.Create;
   with Canv, info do
     try
@@ -330,13 +316,7 @@ var infoOut, infoIn : TEllipseInfo;
     MyPutPix : TPutPixelProc;
     rct: TRect;
 begin
-  with canv.pen do
-    case mode of
-      pmMask : MyPutPix := @PutPixelAnd;
-      pmMerge : MyPutPix := @PutPixelOr;
-      pmXor : MyPutPix := @PutPixelXor;
-      else MyPutPix := @PutPixelCopy;
-    end;
+  MyPutPix := @PutPixelPen;
   infoIn := TEllipseInfo.Create;
   infoOut := TEllipseInfo.Create;
   dec(Width);
@@ -344,7 +324,8 @@ begin
   id:=Nil;
   try
     rct := bounds;
-    rct.Inflate(dw, dw);
+    if Canv.EllipseMode = emCentered then
+      rct.Inflate(dw, dw);
     infoOut.GatherEllipseInfo(rct);
     rct.Inflate(-Width, -Width);
     infoIn.GatherEllipseInfo(rct);
@@ -380,13 +361,7 @@ var info : TEllipseInfo;
     CountDown, CountUp, half : integer;
 begin
   id:=Nil;
-  with canv.pen do
-    case mode of
-      pmMask : MyPutPix := @PutPixelAnd;
-      pmMerge : MyPutPix := @PutPixelOr;
-      pmXor : MyPutPix := @PutPixelXor;
-      else MyPutPix := @PutPixelCopy;
-    end;
+  MyPutPix := @PutPixelPen;
   PatternToPoints (pattern, @LinePoints);
   info := TEllipseInfo.Create;
   with Canv, info do
@@ -436,6 +411,24 @@ begin
     finally
       info.Free;
     end;
+end;
+
+procedure FillEllipseHatch (Canv:TFPCustomCanvas; const Bounds:TRect; aStyle:TFPBrushStyle;
+  aWidth, aOriginX,aOriginY:integer; const c:TFPColor);
+var info : TEllipseInfo;
+    r, y : integer;
+begin
+  info := TEllipseInfo.Create;
+  try
+    info.GatherEllipseInfo(bounds);
+    for r := 0 to info.infolist.count-1 do
+      with PEllipseInfoData (info.infolist[r])^ do
+        for y := ytopmin to ybotmax do
+          if HatchPixel (aStyle, x,y, aWidth, aOriginX,aOriginY) then
+            Canv.DrawPixel(x,y,c);
+  finally
+    info.Free;
+  end;
 end;
 
 procedure FillEllipseColor (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);

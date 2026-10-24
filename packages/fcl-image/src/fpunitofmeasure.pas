@@ -230,9 +230,9 @@ begin
   if (ASourceUnit = ATargetUnit) then exit(ASourceRect);
 
   if (ATargetUnit = uomPixels) then
-    Result:= PhysicalSizeToPixels(ASourceUnit, ASourceRect, AResolutionUnit, AResolution)
+    Result:= PhysicalSizeToPixels(ASourceUnit, ASourceRect, AResolutionUnit, AResolution, AResolution)
   else if (ASourceUnit = uomPixels)
-       then Result:= PixelsToPhysicalSize(ASourceRect, ATargetUnit, AResolutionUnit, AResolution)
+       then Result:= PixelsToPhysicalSize(ASourceRect, ATargetUnit, AResolutionUnit, AResolution, AResolution)
        else begin
               cFact:= (InchFactor[ATargetUnit] / InchFactor[ASourceUnit]);
               Result.Top:= ASourceRect.Top * cFact;

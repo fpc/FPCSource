@@ -26,9 +26,9 @@ unit fpsvg.gdi;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes, fpsvg.types;
+uses WinApi.Windows, System.SysUtils, System.Classes, fpsvg.types;
 {$ELSE FPC_DOTTEDUNITS}
-uses sysutils, classes, fpsvg.types;
+uses windows, sysutils, classes, fpsvg.types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -176,11 +176,6 @@ function SVGGDIFontsAvailable: Boolean;
 
 implementation
 
-{$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows;
-{$ELSE FPC_DOTTEDUNITS}
-uses windows;
-{$ENDIF FPC_DOTTEDUNITS}
 
 const
   { Calls and values the RTL header does not declare. }

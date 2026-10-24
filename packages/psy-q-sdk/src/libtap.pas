@@ -1,3 +1,6 @@
+{$LINKLIB tap, static}
+{$LINKLIB api, static}
+{$LINKLIB c2, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libtap;
 {$ENDIF FPC_DOTTEDUNITS}

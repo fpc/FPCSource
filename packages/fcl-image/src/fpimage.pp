@@ -99,6 +99,42 @@ type
 
   TResolutionUnit = (ruNone, ruPixelsPerInch, ruPixelsPerCentimeter);
 
+  { What a frame of a file with several images is: a frame of an animation, a page,
+    or another size or depth of the same picture (an icon size, a thumbnail). }
+  TFPFrameKind = (fkAnimation, fkPage, fkVariant);
+  TFPFrameKinds = set of TFPFrameKind;
+  { What becomes of the area of an animation frame before the next frame is drawn. }
+  TFPFrameDisposal = (fdNone, fdBackground, fdPrevious);
+  { How an animation frame is drawn on the canvas: replacing it, or blended over it with its alpha. }
+  TFPFrameBlend = (fbSource, fbOver);
+
+  { A file with several images as a whole. }
+  TFPFramesInfo = record
+    Width, Height: Integer;   // canvas of an animation, or the size of the first image; 0 when unknown
+    FrameCount: Integer;      // -1 when unknown before all frames are read
+    LoopCount: Integer;       // times an animation plays, 0 for ever
+    Background: TFPColor;
+  end;
+
+  { One frame of a file with several images. }
+  TFPFrameInfo = record
+    Kind: TFPFrameKind;
+    Left, Top: Integer;       // place of the frame on the canvas; 0 when composited
+    Delay: Cardinal;          // milliseconds
+    Disposal: TFPFrameDisposal;
+    Blend: TFPFrameBlend;
+    Name: String;
+  end;
+
+const
+  // Names of the standard metadata blocks of an image: EXIF data starting with its TIFF header,
+  // an ICC profile, and an XMP packet.
+  MetaExif = 'exif';
+  MetaICC = 'icc';
+  MetaXMP = 'xmp';
+
+type
+
   TFPCustomImage = class(TPersistent)
     private
       FOnProgress : TFPImgProgressEvent;
@@ -109,6 +145,12 @@ type
       FResolutionUnit: TResolutionUnit;
       FResolutionX,
       FResolutionY: Single;
+      FMetadataNames: array of String;
+      FMetadataValues: array of TBytes;
+      function IndexOfMetadata(const aName: String): Integer;
+      function GetMetadata(const aName: String): TBytes;
+      procedure SetMetadata(const aName: String; const aValue: TBytes);
+      function GetMetadataName(aIndex: Integer): String;
       procedure SetHeight (Value : integer);
       procedure SetWidth (Value : integer);
       procedure SetExtra (const key:String; const AValue:string);
@@ -156,7 +198,7 @@ type
       procedure LoadFromStream (Str:TStream);
       procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
       function LoadFromFile (const filename:String): Boolean;
-      procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
+      procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter; aTruncate : Boolean = True);
       procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
       function SaveToFile (const filename:String): Boolean;
       // Size and data
@@ -180,6 +222,16 @@ type
       property  ExtraKey [index:integer] : string read GetExtraKey write SetExtraKey;
       procedure RemoveExtra (const key:string);
       function  ExtraCount : integer;
+      // Binary metadata block by name, such as MetaExif, MetaICC or MetaXMP; empty when absent, and setting it empty removes it.
+      property Metadata[const aName: String]: TBytes read GetMetadata write SetMetadata;
+      // Name of metadata block aIndex.
+      property MetadataName[aIndex: Integer]: String read GetMetadataName;
+      // Removes the metadata block aName.
+      procedure RemoveMetadata(const aName: String);
+      // Removes every metadata block.
+      procedure ClearMetadata;
+      // Returns the number of metadata blocks.
+      function MetadataCount: Integer;
       property OnProgress: TFPImgProgressEvent read FOnProgress write FOnProgress;
   end;
   TFPCustomImageClass = class of TFPCustomImage;
@@ -228,10 +280,20 @@ type
   TFPCustomImageReader = class (TFPCustomImageHandler)
     private
       FDefImageClass:TFPCustomImageClass;
+      FFrameStream: TStream;
+      FFramesRead: Integer;
     protected
+      FComposite: Boolean;
+      FFramesInfo: TFPFramesInfo;
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); virtual; abstract;
       function  InternalCheck (Str:TStream) : boolean; virtual; abstract;
       class function InternalSize  (Str:TStream): TPoint; virtual;
+      // Starts reading the frames of Str, at the position the contents check left; the default reports one frame.
+      function InternalBeginFrames(Str: TStream): TFPFramesInfo; virtual;
+      // Reads the next frame into Img; False when there is none. The default reads the one image.
+      function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; virtual;
+      // Ends reading the frames of Str.
+      procedure InternalEndFrames(Str: TStream); virtual;
     public
       constructor Create; override;
       function ImageRead (Str:TStream; Img:TFPCustomImage) : TFPCustomImage;
@@ -242,14 +304,52 @@ type
       // returns the size of image in stream without loading it completely. -1,-1 means this is not implemented.
       property DefaultImageClass : TFPCustomImageClass read FDefImageClass write FDefImageClass;
       // Image Class to create when no img is given for reading
+
+      // Checks the contents of Str and starts reading its frames; raises FPImageException for another format.
+      function BeginFrames(Str: TStream): TFPFramesInfo;
+      // Reads the next frame into Img; False when all frames are read.
+      function ReadNextFrame(Img: TFPCustomImage; out aInfo: TFPFrameInfo): Boolean;
+      // Reads the next frame into a new image of DefaultImageClass; nil when all frames are read.
+      function ReadNextFrame(out aInfo: TFPFrameInfo): TFPCustomImage;
+      // Ends reading frames.
+      procedure EndFrames;
+      // Whether animation frames are read as the whole canvas they give, or as the area they cover.
+      property Composite: Boolean read FComposite write FComposite;
+      // The file being read as a whole, updated as frames are read.
+      property FramesInfo: TFPFramesInfo read FFramesInfo;
+      // Number of frames read since BeginFrames.
+      property FramesRead: Integer read FFramesRead;
   end;
 
   TFPCustomImageWriter = class (TFPCustomImageHandler)
+    private
+      FFrameStream: TStream;
+      FFramesWritten: Integer;
     protected
+      FFramesInfo: TFPFramesInfo;
       procedure InternalWrite (Str:TStream; Img:TFPCustomImage); virtual; abstract;
+      // Starts writing frames to Str; the default does nothing.
+      procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); virtual;
+      // Writes or keeps Img as the next frame; the default writes a first frame and raises for a second.
+      procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); virtual;
+      // Ends writing frames to Str; writers that keep their frames write them here.
+      procedure InternalEndFrames(Str: TStream); virtual;
     public
-      procedure ImageWrite (Str:TStream; Img:TFPCustomImage);
-      // writes given image to stream
+      // Writes Img to Str; with aTruncate True the stream is emptied first, otherwise Img is written
+      // at the current position.
+      procedure ImageWrite (Str:TStream; Img:TFPCustomImage; aTruncate : Boolean = True);
+      // Returns the kinds of frames of which the format holds several; empty for a format of one image.
+      class function FrameKinds: TFPFrameKinds; virtual;
+      // Starts writing frames to Str, emptied first when aTruncate.
+      procedure BeginFrames(Str: TStream; const aInfo: TFPFramesInfo; aTruncate: Boolean = True);
+      // Writes Img as the next frame.
+      procedure WriteNextFrame(Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+      // Ends writing frames; the file is complete after it.
+      procedure EndFrames;
+      // The file being written as a whole, as given to BeginFrames.
+      property FramesInfo: TFPFramesInfo read FFramesInfo;
+      // Number of frames written since BeginFrames.
+      property FramesWritten: Integer read FFramesWritten;
   end;
 
   TIHData = class
@@ -318,6 +418,11 @@ operator or (const c,d:TFPColor) : TFPColor;
 operator and (const c,d:TFPColor) : TFPColor;
 operator xor (const c,d:TFPColor) : TFPColor;
 function CompareColors(const Color1, Color2: TFPColor): integer;
+
+// Returns the description of a file of one image of unknown size.
+function DefaultFramesInfo: TFPFramesInfo;
+// Returns the description of a page at 0,0 with no delay.
+function DefaultFrameInfo: TFPFrameInfo;
 
 var ImageHandlers : TImageHandlersManager;
 

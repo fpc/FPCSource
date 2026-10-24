@@ -1,3 +1,6 @@
+{$LINKLIB press, static}
+{$LINKLIB etc, static}
+{$LINKLIB c2, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libpress;
 {$ENDIF FPC_DOTTEDUNITS}

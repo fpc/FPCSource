@@ -22,6 +22,9 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-css');
+    P.Dependencies.Add('fcl-pdf');
+    P.Dependencies.Add('fcl-registry',AllWindowsOSes);
+    P.Dependencies.Add('univint',[darwin]);
     if Defaults.OS in AllUnixOSes then
       P.Dependencies.Add('libfontconfig');
     P.OSes := [darwin, win32, win64, linux, solaris] + AllBSDOses; // Darwin was tested!
@@ -38,6 +41,7 @@ begin
     T:=P.Targets.AddUnit('fpsvg.types.pp');
       with T.Dependencies do
         begin
+          AddInclude('fpsvg.colors.inc');
           AddUnit('fpsvg.strings');
         end;
     T:=P.Targets.AddUnit('fpsvg.backend.pp');
@@ -85,6 +89,14 @@ begin
           AddUnit('fpsvg.geom');
           AddUnit('fpsvg.raster');
         end;
+    T:=P.Targets.AddUnit('fpsvg.pdf.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.strings');
+          AddUnit('fpsvg.types');
+          AddUnit('fpsvg.backend');
+          AddUnit('fpsvg.geom');
+        end;
     T:=P.Targets.AddUnit('fpsvg.style.pp');
       with T.Dependencies do
         begin
@@ -110,6 +122,15 @@ begin
           AddUnit('fpsvg.read');
           AddUnit('fpsvg.geom');
         end;
+    T:=P.Targets.AddUnit('fpsvg.svgfont.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.strings');
+          AddUnit('fpsvg.types');
+          AddUnit('fpsvg.dom');
+          AddUnit('fpsvg.read');
+          AddUnit('fpsvg.path');
+        end;
     T:=P.Targets.AddUnit('fpsvg.render.pp');
       with T.Dependencies do
         begin
@@ -121,6 +142,7 @@ begin
           AddUnit('fpsvg.style');
           AddUnit('fpsvg.geom');
           AddUnit('fpsvg.text');
+          AddUnit('fpsvg.svgfont');
           AddUnit('fpsvg.backend');
         end;
     T:=P.Targets.AddUnit('fpsvg.text.pp');
@@ -138,6 +160,48 @@ begin
           AddUnit('fpsvg.strings');
           AddUnit('fpsvg.types');
         end;
+    T:=P.Targets.AddUnit('fpsvg.coretext.pp',[darwin]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+        end;
+    T:=P.Targets.AddUnit('fpsvg.gdi.pp',AllWindowsOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+        end;
+    T:=P.Targets.AddUnit('fpsvg.fonts.macos.pp',[darwin]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+        end;
+    T:=P.Targets.AddUnit('fpsvg.fonts.windows.pp',AllWindowsOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+        end;
+    T:=P.Targets.AddUnit('fpsvg.fonts.unix.pp',AllUnixOSes-[darwin]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+        end;
+    T:=P.Targets.AddUnit('fpsvg.fonts.support.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+          AddUnit('fpsvg.fonts.macos',[darwin]);
+          AddUnit('fpsvg.fonts.windows',AllWindowsOSes);
+          AddUnit('fpsvg.fonts.unix',AllUnixOSes-[darwin]);
+        end;
+    T:=P.Targets.AddUnit('fpsvg.fonts.provider.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpsvg.types');
+          AddUnit('fpsvg.coretext',[darwin]);
+          AddUnit('fpsvg.gdi',AllWindowsOSes);
+          AddUnit('fpsvg.freetype',AllOSes-[darwin]-AllWindowsOSes);
+          AddUnit('fpsvg.fonts.support',AllOSes-[darwin]-AllWindowsOSes);
+        end;
     T:=P.Targets.AddUnit('fpsvg.pp');
       with T.Dependencies do
         begin
@@ -152,6 +216,7 @@ begin
           AddUnit('fpsvg.style');
           AddUnit('fpsvg.geom');
           AddUnit('fpsvg.text');
+          AddUnit('fpsvg.svgfont');
           AddUnit('fpsvg.render');
         end;
 

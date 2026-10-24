@@ -56,6 +56,12 @@ type
     procedure TestCountStartChars;
     procedure TestToUnicodeChars;
     procedure TestTransformTabs;
+    procedure TestParseAttributeSpec;
+    procedure TestParseAttributeSpecInvalid;
+    procedure TestExtractTrailingAttributeSpec;
+    procedure TestParseMarker;
+    procedure TestNormalizeLinkLabel;
+    procedure TestHeadingTextToID;
   end;
 
 implementation
@@ -294,6 +300,116 @@ begin
   AssertEquals('Transform leading space and tab', '    abc', TransformTabs(' '#9'abc'));
   AssertEquals('No change for no tabs', 'abc', TransformTabs('abc'));
   AssertEquals('No change for tab in middle', 'abc'#9'def', TransformTabs('abc'#9'def'));
+end;
+
+procedure TTestMarkdownUtils.TestParseAttributeSpec;
+
+var
+  lID : String;
+  lClasses : TStringArray;
+  lAttrs : TStringList;
+begin
+  lAttrs:=TStringList.Create;
+  try
+    AssertTrue('Valid specification',ParseAttributeSpec('{#id .a .b key=value q="x y" e="a\"b"}',lID,lClasses,lAttrs));
+    AssertEquals('Id','id',lID);
+    AssertEquals('Class count',2,Length(lClasses));
+    AssertEquals('Second class','b',lClasses[1]);
+    AssertEquals('Attribute count',3,lAttrs.Count);
+    AssertEquals('Unquoted value','value',lAttrs.Values['key']);
+    AssertEquals('Quoted value','x y',lAttrs.Values['q']);
+    AssertEquals('Escaped quote','a"b',lAttrs.Values['e']);
+    AssertTrue('Empty specification',ParseAttributeSpec('{ }',lID,lClasses,Nil));
+    AssertEquals('Empty id','',lID);
+    AssertTrue('Percent value',ParseAttributeSpec('{width=80%}',lID,lClasses,Nil));
+  finally
+    lAttrs.Free;
+  end;
+end;
+
+
+procedure TTestMarkdownUtils.TestParseAttributeSpecInvalid;
+
+var
+  lID : String;
+  lClasses : TStringArray;
+  lAttrs : TStringList;
+begin
+  lAttrs:=TStringList.Create;
+  try
+    AssertFalse('No braces',ParseAttributeSpec('#id',lID,lClasses,lAttrs));
+    AssertFalse('Bare word',ParseAttributeSpec('{word}',lID,lClasses,lAttrs));
+    AssertFalse('Empty id',ParseAttributeSpec('{# .a}',lID,lClasses,lAttrs));
+    AssertFalse('Unterminated quote',ParseAttributeSpec('{a="x}',lID,lClasses,lAttrs));
+    AssertFalse('Key without value',ParseAttributeSpec('{key=}',lID,lClasses,lAttrs));
+    AssertFalse('Invalid leaves attributes untouched',ParseAttributeSpec('{a=1 word}',lID,lClasses,lAttrs));
+    AssertEquals('No attributes added',0,lAttrs.Count);
+  finally
+    lAttrs.Free;
+  end;
+end;
+
+
+procedure TTestMarkdownUtils.TestExtractTrailingAttributeSpec;
+
+var
+  S : String;
+begin
+  S:='Title {#id .c}';
+  AssertEquals('Specification','{#id .c}',ExtractTrailingAttributeSpec(S));
+  AssertEquals('Remaining text','Title',S);
+  S:='Title {#id title="a{b"}';
+  AssertEquals('Brace inside quotes','{#id title="a{b"}',ExtractTrailingAttributeSpec(S));
+  AssertEquals('Remaining text after quoted brace','Title',S);
+  S:='Title {not valid}';
+  AssertEquals('Invalid specification','',ExtractTrailingAttributeSpec(S));
+  AssertEquals('Text unchanged','Title {not valid}',S);
+  S:='No braces';
+  AssertEquals('No specification','',ExtractTrailingAttributeSpec(S));
+  S:='Escaped \{#id}';
+  AssertEquals('Escaped brace','',ExtractTrailingAttributeSpec(S));
+end;
+
+
+procedure TTestMarkdownUtils.TestParseMarker;
+
+var
+  lName,lArg,lValue : String;
+begin
+  AssertTrue('Simple marker',ParseMarker(' index: Tokens!Comments ',lName,lArg,lValue));
+  AssertEquals('Name','index',lName);
+  AssertEquals('No argument','',lArg);
+  AssertEquals('Value','Tokens!Comments',lValue);
+  AssertTrue('Marker with argument',ParseMarker('index[msgnr]: 1000',lName,lArg,lValue));
+  AssertEquals('Argument','msgnr',lArg);
+  AssertEquals('Value with argument','1000',lValue);
+  AssertTrue('Name with dash and underscore',ParseMarker('my-key_2: x',lName,lArg,lValue));
+  AssertEquals('Name with dash','my-key_2',lName);
+  AssertFalse('No colon',ParseMarker('just a remark',lName,lArg,lValue));
+  AssertEquals('Name cleared','',lName);
+  AssertFalse('Space before colon',ParseMarker('index : x',lName,lArg,lValue));
+  AssertFalse('Unclosed argument',ParseMarker('index[x: y',lName,lArg,lValue));
+  AssertFalse('Empty text',ParseMarker('',lName,lArg,lValue));
+end;
+
+
+procedure TTestMarkdownUtils.TestNormalizeLinkLabel;
+
+begin
+  AssertEquals('Lowercase and collapse','foo bar',NormalizeLinkLabel('  FOO   Bar '));
+  AssertEquals('Line break collapsed','foo bar',NormalizeLinkLabel('Foo'#10'bar'));
+end;
+
+
+procedure TTestMarkdownUtils.TestHeadingTextToID;
+
+begin
+  AssertEquals('Simple','hello-world',HeadingTextToID('Hello World'));
+  AssertEquals('Punctuation removed','whats-new',HeadingTextToID('What''s new?'));
+  AssertEquals('Dash and underscore kept','a-b_c',HeadingTextToID('a-b_c'));
+  AssertEquals('Digits kept, dot removed','section-12',HeadingTextToID('Section 1.2'));
+  AssertEquals('Unicode letters kept','über-café',HeadingTextToID('Über Café'));
+  AssertEquals('Double space gives double dash','a--b',HeadingTextToID('a  b'));
 end;
 
 initialization

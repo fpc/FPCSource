@@ -165,7 +165,8 @@ begin
       td := GetTypeData(aArgs[i].Info.ParamType);
       case aArgs[i].Info.ParamType^.Kind of
         tkSString,
-        tkMethod:
+        tkMethod,
+        tkVariant:
           val := PtrUInt(aArgs[i].ValueRef);
         tkArray:
           if td^.ArrayData.Size in [1, 2, 4, 8] then
@@ -357,6 +358,43 @@ CallbackCall:
   ret
 CallbackEnd:
 end;
+
+type
+  TRuntimeFunction = record
+    BeginAddress,
+    EndAddress,
+    UnwindData: DWord;
+  end;
+  PRuntimeFunction = ^TRuntimeFunction;
+
+const
+  UNW_FLAG_EHANDLER = 1;
+  UNW_FLAG_UHANDLER = 2;
+  UNW_FLAG_CHAININFO = 4;
+
+function RtlLookupFunctionEntry(aControlPc: QWord; out aImageBase: QWord; aHistoryTable: Pointer): PRuntimeFunction; stdcall; external 'kernel32' name 'RtlLookupFunctionEntry';
+function RtlAddFunctionTable(aFunctionTable: PRuntimeFunction; aEntryCount: DWord; aBaseAddress: QWord): Boolean; stdcall; external 'kernel32' name 'RtlAddFunctionTable';
+function RtlDeleteFunctionTable(aFunctionTable: PRuntimeFunction): Boolean; stdcall; external 'kernel32' name 'RtlDeleteFunctionTable';
+
+// Returns the unwind information of the Callback template and its size, nil if it cannot be copied
+function GetCallbackUnwindInfo(out aSize: PtrUInt): PByte;
+
+var
+  imagebase: QWord;
+  entry: PRuntimeFunction;
+
+begin
+  Result := Nil;
+  aSize := 0;
+  entry := RtlLookupFunctionEntry(PtrUInt(@Callback), imagebase, Nil);
+  if not Assigned(entry) or (imagebase + entry^.BeginAddress <> PtrUInt(@Callback)) then
+    Exit;
+  Result := PByte(imagebase + entry^.UnwindData);
+  { version and flags in byte 0, count of unwind codes in byte 2 }
+  if (Result[0] shr 3) and (UNW_FLAG_EHANDLER or UNW_FLAG_UHANDLER or UNW_FLAG_CHAININFO) <> 0 then
+    Exit(Nil);
+  aSize := 4 + ((Result[2] + 1) and not 1) * SizeOf(Word);
+end;
 {$endif}
 
 type
@@ -379,6 +417,7 @@ type
   private
     fData: Pointer;
     fSize: PtrUInt;
+    fFunctionTable: PRuntimeFunction;
     fFlags: TFunctionCallFlags;
     fContext: Pointer;
     fArgs: specialize TArray<TFunctionCallParameterInfo>;
@@ -485,17 +524,35 @@ procedure TSystemFunctionCallback.CreateCallback;
   end;
 
 var
-  src: Pointer;
-  ofs, size: PtrUInt;
+  src, unwind: Pointer;
+  ofs, size, codesize, unwindsize, unwindofs, tableofs: PtrUInt;
   method: TMethod;
+  table: PRuntimeFunction;
 begin
-  fSize := PtrUInt(CallbackEndPtr) - PtrUInt(@Callback) + 1;
+  codesize := PtrUInt(CallbackEndPtr) - PtrUInt(@Callback) + 1;
+  unwind := GetCallbackUnwindInfo(unwindsize);
+  unwindofs := Align(codesize, 4);
+  tableofs := unwindofs + unwindsize;
+  if Assigned(unwind) then
+    fSize := tableofs + SizeOf(TRuntimeFunction)
+  else
+    fSize := codesize;
   fData := AllocateMemory(fSize);
   if not Assigned(fData) then
     raise Exception.Create(SErrMethodImplCreateFailed);
 
   src := @Callback;
-  Move(src^, fData^, fSize);
+  Move(src^, fData^, codesize);
+
+  { unwind information for the copied code }
+  table := Nil;
+  if Assigned(unwind) then begin
+    Move(unwind^, PByte(fData)[unwindofs], unwindsize);
+    table := PRuntimeFunction(@PByte(fData)[tableofs]);
+    table^.BeginAddress := 0;
+    table^.EndAddress := PtrUInt(CallbackEndPtr) - PtrUInt(@Callback);
+    table^.UnwindData := unwindofs;
+  end;
 
   ofs := PtrUInt(CallbackContextPtr) - PtrUInt(@Callback);
   size := PtrUInt(CallbackAddressPtr) - PtrUInt(CallbackContextPtr);
@@ -511,6 +568,9 @@ begin
 
   if not ProtectMemory(fData, fSize, True) then
     raise Exception.Create(SErrMethodImplCreateFailed);
+
+  if Assigned(table) and RtlAddFunctionTable(table, 1, PtrUInt(fData)) then
+    fFunctionTable := table;
 end;
 
 procedure TSystemFunctionCallback.CreateArgInfos;
@@ -557,7 +617,8 @@ begin
       td := GetTypeData(fArgs[i].ParamType);
       case fArgs[i].ParamType^.Kind of
         tkSString,
-        tkMethod:
+        tkMethod,
+        tkVariant:
           fArgInfos[argidx].Deref := True;
         tkArray:
           if not (td^.ArrayData.Size in [1, 2, 4, 8]) then
@@ -655,6 +716,8 @@ end;
 destructor TSystemFunctionCallback.Destroy;
 begin
 {$ifdef windows}
+  if Assigned(fFunctionTable) then
+    RtlDeleteFunctionTable(fFunctionTable);
   if Assigned(fData) then
     FreeMemory(fData, fSize);
 {$endif}

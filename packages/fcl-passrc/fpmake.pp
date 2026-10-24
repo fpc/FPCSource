@@ -31,6 +31,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('pastree.pp');
     T.ResourceStrings := True;
@@ -49,6 +50,20 @@ begin
           AddUnit('pastree');
           AddUnit('pscanner');
           AddUnit('pparser');
+          AddInclude('pasres_scopes.inc');
+          AddInclude('pasres_lookup.inc');
+          AddInclude('pasres_finish.inc');
+          AddInclude('pasres_statements.inc');
+          AddInclude('pasres_expressions.inc');
+          AddInclude('pasres_add.inc');
+          AddInclude('pasres_operators.inc');
+          AddInclude('pasres_eval.inc');
+          AddInclude('pasres_generics.inc');
+          AddInclude('pasres_builtins.inc');
+          AddInclude('pasres_core.inc');
+          AddInclude('pasres_callcompat.inc');
+          AddInclude('pasres_typecompat.inc');
+          AddInclude('pasres_queries.inc');
         end;
     T:=P.Targets.AddUnit('pasnativeresolve.pp');
       with T.Dependencies do

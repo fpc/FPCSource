@@ -127,6 +127,9 @@ const
 {$IFDEF FPC_FEXPAND_UNC}
 var
     RootNotNeeded: boolean;
+ {$IFDEF FPC_FEXPAND_DRIVES}
+    lUNCRootEnd: longint;
+ {$ENDIF FPC_FEXPAND_DRIVES}
 {$ELSE FPC_FEXPAND_UNC}
 const
     RootNotNeeded = false;
@@ -313,6 +316,24 @@ begin
               (S [2] = DriveSeparator) and (DriveSeparator <> DirectorySeparator) then
                 S [1] := Chr (Ord (S [1]) and not ($20));
 
+{$IF defined(FPC_FEXPAND_UNC) and defined(FPC_FEXPAND_DRIVES)}
+            {Position of the separator after \\server\share in a UNC base path, 0 otherwise}
+            lUNCRootEnd := 0;
+            if (Length (S) > 2) and (S [1] = DirectorySeparator)
+                         and (S [2] = DirectorySeparator) and LFNSupport then
+                begin
+                    lUNCRootEnd := 3;
+                    while (lUNCRootEnd <= Length (S)) and
+                                    (S [lUNCRootEnd] <> DirectorySeparator) do
+                        Inc (lUNCRootEnd);
+                    if lUNCRootEnd < Length (S) then
+                        repeat
+                            Inc (lUNCRootEnd);
+                        until (lUNCRootEnd > Length (S)) or
+                                     (S [lUNCRootEnd] = DirectorySeparator);
+                end;
+{$ENDIF FPC_FEXPAND_UNC and FPC_FEXPAND_DRIVES}
+
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
             PathStart := Pos (DriveSeparator, S);
@@ -337,6 +358,7 @@ begin
                     if (Length (Pa) > 1) and (Pa [2] = DirectorySeparator)
                                                             and LFNSupport then
                         begin
+                            lUNCRootEnd := 0;
                             PathStart := 3;
                             {Find the start of the string of directories}
                             while (PathStart <= Length (Pa)) and
@@ -389,11 +411,21 @@ begin
                             PathStart := Succ (I);
    {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
   {$ELSE FPC_FEXPAND_VOLUMES}
-                            TmpS := S[1] + DriveSeparator;
+   {$IFDEF FPC_FEXPAND_UNC}
+                            if lUNCRootEnd > 0 then
+                              begin
+                                Pa := Copy (S, 1, Pred (lUNCRootEnd)) + Pa;
+                                PathStart := lUNCRootEnd;
+                              end
+                            else
+   {$ENDIF FPC_FEXPAND_UNC}
+                              begin
+                                TmpS := S[1] + DriveSeparator;
   {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
-                            SetCodePage(TmpS, DefaultFileSystemCodePage, false);
+                                SetCodePage(TmpS, DefaultFileSystemCodePage, false);
   {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
-                            Pa := TmpS + Pa;
+                                Pa := TmpS + Pa;
+                              end;
   {$ENDIF FPC_FEXPAND_VOLUMES}
                         end;
                 end
@@ -451,6 +483,11 @@ begin
                             Pa := S + DirectorySeparator + Pa
 {$ENDIF FPC_FEXPAND_SYSUTILS}
                           end;
+{$IF defined(FPC_FEXPAND_UNC) and defined(FPC_FEXPAND_DRIVES)}
+            {'..' does not climb above \\server\share of the base path}
+            if lUNCRootEnd > 0 then
+                PathStart := lUNCRootEnd;
+{$ENDIF FPC_FEXPAND_UNC and FPC_FEXPAND_DRIVES}
         end;
 
     {Get string of directories to only process relative references on this one}

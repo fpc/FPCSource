@@ -214,6 +214,7 @@ type
         procedure TestPlatformIdentifier;
         procedure TestPlatformIdentifier2;
         procedure TestArgumentNameOn;
+        procedure TestRecordComposition;
     end;
 
 
@@ -2749,6 +2750,26 @@ begin
     AssertPasWriteOutput('output', BuildString(['program afile;',
         '', 'function TryOn(const &on: Boolean) : Boolean;', 'begin',
         'end;', '', '', 'begin', 'end.', '']), PasProgram);
+end;
+
+procedure TTestStatementWriterSpecials.TestRecordComposition;
+begin
+    Source.Add('{$modeswitch recordcomposition}');
+    Source.Add('type');
+    Source.Add('  TComposed = record');
+    Source.Add('    A: TChild;');
+    Source.Add('    contains alias A;');
+    Source.Add('    contains B: TChild;');
+    Source.Add('    contains TChild;');
+    Source.Add('  end;');
+    Source.Add('begin');
+    Source.Add('end.');
+    ParseModule;
+    AssertPasWriteOutput('output', BuildString(['program afile;',
+        '', 'type', '  TComposed = record', '    A: TChild;',
+        '    contains alias A;', '    contains B: TChild;',
+        '    contains TChild;', '  end;', '', 'begin', 'end.', '']),
+        PasProgram);
 end;
 
 procedure TTestStatementWriterSpecials.TestGotoInIfThen;

@@ -134,7 +134,7 @@ begin
   TmpPalette := nil;
   try
     l.Add ('/* XPM */');
-    l.Add ('static AnsiChar *graphic[] = {');
+    l.Add ('static char *graphic[] = {');
     Palette := img.palette;
     if not Assigned(Palette) then begin
       TmpPalette := TFPPalette.Create(0);
@@ -147,7 +147,7 @@ begin
     InitConsts;
     for r := 0 to c-1 do
       begin
-      if Palette[r] <> colTransparent then
+      if Palette[r].Alpha <> alphaTransparent then
         l.Add (format('"%s c #%s",',[p[r],ColorToHex(Palette.color[r])]))
       else
         l.Add (format('"%s c None",',[p[r]]));
@@ -166,9 +166,9 @@ begin
       l.Add (s);
       end;
     l.Add ('};');
+    l.SaveToStream (Str);
   finally
     TmpPalette.Free;
-    l.SaveToStream (Str);
     p.Free;
     l.Free;
   end;

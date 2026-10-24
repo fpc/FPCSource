@@ -480,6 +480,9 @@ end;
 
 {$ifndef FPUNONE}
 {$I flt_conv.inc}
+{$ifndef CPU16}
+{$I flt_exact.inc}
+{$endif CPU16}
 {$endif}
 
 {$ifndef FPUNONE}

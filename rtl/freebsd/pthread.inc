@@ -20,6 +20,7 @@
  **********************************************************************}
 
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
+      PTHREAD_INHERIT_SCHED        = 4;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
       SEM_SAFE = 255;
@@ -78,6 +79,7 @@ struct sem {
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external;
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external;
 function  pthread_key_create         (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external;
+function  pthread_key_delete         (k : pthread_key_t):cint; cdecl;external;
 function  pthread_attr_init          (p : ppthread_attr_t):cint; cdecl; external;
 function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external;
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external;
@@ -96,6 +98,15 @@ function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external;
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external;
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
+
+type
+  sched_param = record
+    __sched_priority: cint;
+  end;
+  psched_param = ^sched_param;
+
+function  pthread_setschedparam(__target_thread:pthread_t; __policy:cint; __param:psched_param):cint;cdecl;external;
+function  pthread_getschedparam(__target_thread:pthread_t; __policy:pcint; __param:psched_param):cint;cdecl;external;
 function pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external;
 function pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external;
 function pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external;

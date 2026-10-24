@@ -850,7 +850,7 @@ end;
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean;
 begin
-  IDEUseSyntaxHighlight:=(Editor^.IsFlagSet(efSyntaxHighlight)) and ((Editor^.FileName='') or MatchesMaskList(NameAndExtOf(Editor^.FileName),HighlightExts));
+  IDEUseSyntaxHighlight:=(DefaultCodeEditorFlags and efSyntaxHighlight<>0) and ((Editor^.FileName='') or MatchesMaskList(NameAndExtOf(Editor^.FileName),HighlightExts));
 end;
 
 function IDEUseTabsPattern(Editor: PFileEditor): boolean;

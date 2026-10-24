@@ -134,6 +134,9 @@ type
   tllvmsyssym = class(tcpusyssym)
   end;
 
+  tllvmsymrefsym = class(tcpusymrefsym)
+  end;
+
 
 implementation
 
@@ -178,5 +181,7 @@ begin
   cconstsym:=tllvmconstsym;
   cenumsym:=tllvmenumsym;
   csyssym:=tllvmsyssym;
+  csymrefsym:=tllvmsymrefsym;
+
 end.
 

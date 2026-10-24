@@ -1192,10 +1192,10 @@ implementation
                               exit;
                             end;
                           initwidestring(pw);
-                          setlengthwidestring(pw,len);
+                          setlengthwidestring(pw,len+1);
                           { returns room for terminating 0 }
                           if len>0 then
-                            l:=Utf8ToUnicode(pw.asconstpunicodechar,len,asconstpchar,len)
+                            l:=Utf8ToUnicode(pw.asconstpunicodechar,len+1,asconstpchar,len)
                           else
                             l:=1;
                           if (l<>getlengthwidestring(pw)) then

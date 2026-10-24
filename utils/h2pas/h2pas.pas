@@ -24,18 +24,19 @@ uses
   cwstring,
   {$endif}
   classes, h2poptions, scan, h2pconst, scanbase,
-  h2pbase, h2pparse, h2pout, h2ptypes;
+  h2pbase, h2pparse, h2pout, h2ptypes, h2pCpp;
 
 var
   SS : string;
   headerfile: Text;
   finaloutfile: Text;
+  Lines : TStringList;
+  I : Integer;
 
 begin
   pointerprefix:=false;
 { Initialize }
   InitGlobals;
-  EnableDebug;
   aktspace:='';
   block_type:=bt_no;
 { Read commandline options }
@@ -47,13 +48,18 @@ begin
   OpenOutputFiles;
 { Parse! }
   yyparse;
+  EmitErrorEnd('*)');
+  FlushPendingDefines(true);
 { Write implementation if needed }
+  WriteSectionMarker(outfile,'I');
    if not(includefile) then
     begin
       writeln(outfile);
       writeln(outfile,'implementation');
       writeln(outfile);
     end;
+  if createdynlib then
+    WriteLibraryUses;
    { here we have a problem if a line is longer than 255 chars !! }
    reset(implemfile);
    while not eof(implemfile) do
@@ -70,6 +76,7 @@ begin
      writeln(outfile,'end.');
    { close and erase tempfiles }
   CloseTempFiles;
+  RemovePreprocessedFiles;
   flush(outfile);
 
   {**** generate full file ****}
@@ -105,11 +112,20 @@ begin
     end;
   { Read interface and implementation file }
   reset(outfile);
+  Lines:=TStringList.Create;
   while not eof(outfile) do
     begin
       readln(outfile,SS);
-      writeln(finaloutfile,SS);
+      Lines.Add(SS);
     end;
+  SplitMarkerLines(Lines);
+  CollectMovedRecords(Lines);
+  if OneTypeSection then
+    ArrangeSections(Lines);
+  for I:=0 to Lines.Count-1 do
+    if not WriteMarkedPointers(finaloutfile,Lines[I]) then
+      writeln(finaloutfile,Lines[I]);
+  Lines.Free;
 
   close(HeaderFile);
   close(outfile);

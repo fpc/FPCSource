@@ -14,8 +14,8 @@ Const
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
 
   NoSocketsOSes       = [wasip1,wasip1threads];
-  NoApacheOSes        = [amiga,aros,morphos,wasip1,wasip1threads];
-  NoCGIOSes           = [amiga,aros,morphos,wasip1,wasip1threads];
+  NoApacheOSes        = [amiga,aros,morphos,wasip1,wasip1threads,os2,emx];
+  NoCGIOSes           = [amiga,aros,morphos,wasip1,wasip1threads,os2,emx];
 
   ApacheOSes          = AllOSes - NoApacheOSes;
   SocketsOSes         = AllOSes - NoSocketsOSes;
@@ -33,7 +33,7 @@ begin
     P.ShortName:='fclw';
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasip1,wasip1threads];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasip1,wasip1threads,os2,emx];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -143,6 +143,14 @@ begin
 
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('fphttp');
+          AddUnit('httpdefs');
+        end;
+    T:=P.Targets.AddUnit('dbwebsession.pp');
+    T.ResourceStrings:=true;
+    T.OSes:=SqldbConnectionOSes;
       with T.Dependencies do
         begin
           AddUnit('fphttp');

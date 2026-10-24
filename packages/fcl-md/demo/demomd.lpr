@@ -1,5 +1,8 @@
 program demomd;
 
+{$mode objfpc}
+{$H+}
+
 uses
   classes,
   markdown.utils,

@@ -32,7 +32,7 @@ interface
 
 uses
   fpcunit, testutils, testregistry, tests.generics.utils,
-  Classes, SysUtils, Generics.Collections, Generics.Defaults;
+  Classes, SysUtils, Types, Generics.Collections, Generics.Defaults;
 
 type
   TTestStdCollections = class(TTestCollections)
@@ -63,6 +63,22 @@ type
     procedure Test_TObjectStack_Notification;
 
     procedure Test_TrimExcess;
+
+    // TList<T>.IndexOfItem in both directions.
+    procedure Test_TList_IndexOfItem;
+    // TList<T>.ExtractItem in both directions, with notifications.
+    procedure Test_TList_ExtractItem;
+    // TList<T>.RemoveItem in both directions, with notifications.
+    procedure Test_TList_RemoveItem;
+    // TObjectList<T>.ExtractItem does not free the object, RemoveItem does.
+    procedure Test_TObjectList_ExtractItem;
+  end;
+
+  // Object that counts its destruction.
+  TDestroyCounted = class
+  public
+    // Increments the destroy count.
+    destructor Destroy; override;
   end;
 
   TGenericListBox<T> = class
@@ -72,6 +88,17 @@ type
   end;
 
 implementation
+
+var
+  gDestroyCount: Integer;
+
+destructor TDestroyCounted.Destroy;
+
+begin
+  Inc(gDestroyCount);
+  inherited Destroy;
+end;
+
 
 class procedure TGenericListBox<T>.Test(ATest: TTestCase);
 begin
@@ -913,6 +940,120 @@ begin
     LStack.Free;
     LQueue.Free;
     LList.Free;
+  end;
+end;
+
+
+procedure TTestStdCollections.Test_TList_IndexOfItem;
+
+var
+  lList: TList<string>;
+
+begin
+  lList:=TList<string>.Create;
+  try
+    AssertEquals('Empty list from beginning', -1, lList.IndexOfItem('a',TDirection.FromBeginning));
+    AssertEquals('Empty list from end', -1, lList.IndexOfItem('a',TDirection.FromEnd));
+    lList.AddRange(['a','b','a','c']);
+    AssertEquals('First a', 0, lList.IndexOfItem('a',TDirection.FromBeginning));
+    AssertEquals('Last a', 2, lList.IndexOfItem('a',TDirection.FromEnd));
+    AssertEquals('Single c from beginning', 3, lList.IndexOfItem('c',TDirection.FromBeginning));
+    AssertEquals('Single c from end', 3, lList.IndexOfItem('c',TDirection.FromEnd));
+    AssertEquals('Missing from beginning', -1, lList.IndexOfItem('x',TDirection.FromBeginning));
+    AssertEquals('Missing from end', -1, lList.IndexOfItem('x',TDirection.FromEnd));
+  finally
+    lList.Free;
+  end;
+end;
+
+
+procedure TTestStdCollections.Test_TList_ExtractItem;
+
+var
+  lList: TList<string>;
+
+begin
+  lList:=TList<string>.Create;
+  try
+    lList.AddRange(['a','b','a','c','a']);
+    lList.OnNotify:=NotifyTestStr;
+    NotificationAdd(lList,'a',cnExtracted);
+    AssertEquals('Extract last a', 'a', lList.ExtractItem('a',TDirection.FromEnd));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Count after extracting the last a', 4, lList.Count);
+    AssertEquals('Last element after extracting the last a', 'c', lList.Last);
+    NotificationAdd(lList,'a',cnExtracted);
+    AssertEquals('Extract first a', 'a', lList.ExtractItem('a',TDirection.FromBeginning));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Count after extracting the first a', 3, lList.Count);
+    AssertEquals('First element after extracting the first a', 'b', lList.First);
+    AssertEquals('Remaining a', 1, lList.IndexOf('a'));
+    AssertEquals('Missing from end gives Default(T)', '', lList.ExtractItem('x',TDirection.FromEnd));
+    AssertEquals('Missing from beginning gives Default(T)', '', lList.ExtractItem('x',TDirection.FromBeginning));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Count unchanged after a missing item', 3, lList.Count);
+  finally
+    lList.OnNotify:=nil;
+    lList.Free;
+  end;
+end;
+
+
+procedure TTestStdCollections.Test_TList_RemoveItem;
+
+var
+  lList: TList<string>;
+
+begin
+  lList:=TList<string>.Create;
+  try
+    lList.AddRange(['a','b','a','c']);
+    lList.OnNotify:=NotifyTestStr;
+    NotificationAdd(lList,'a',cnRemoved);
+    AssertEquals('Index of the removed last a', 2, lList.RemoveItem('a',TDirection.FromEnd));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Element 2 after removing the last a', 'c', lList[2]);
+    NotificationAdd(lList,'a',cnRemoved);
+    AssertEquals('Index of the removed first a', 0, lList.RemoveItem('a',TDirection.FromBeginning));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Missing item', -1, lList.RemoveItem('a',TDirection.FromEnd));
+    AssertNotificationsExecutedStr;
+    AssertEquals('Remaining count', 2, lList.Count);
+  finally
+    lList.OnNotify:=nil;
+    lList.Free;
+  end;
+end;
+
+
+procedure TTestStdCollections.Test_TObjectList_ExtractItem;
+
+var
+  lList: TObjectList<TDestroyCounted>;
+  lFirst, lSecond, lExtracted: TDestroyCounted;
+
+begin
+  gDestroyCount:=0;
+  lList:=TObjectList<TDestroyCounted>.Create(True);
+  try
+    lFirst:=TDestroyCounted.Create;
+    lSecond:=TDestroyCounted.Create;
+    lList.AddRange([lFirst,lSecond,lFirst]);
+    lExtracted:=lList.ExtractItem(lFirst,TDirection.FromEnd);
+    AssertSame('Extracted object', lFirst, lExtracted);
+    AssertEquals('Extracting does not free', 0, gDestroyCount);
+    AssertEquals('Count after extracting', 2, lList.Count);
+    AssertSame('First occurrence stays', lFirst, lList[0]);
+    lExtracted:=lList.ExtractItem(lFirst,TDirection.FromBeginning);
+    AssertSame('Extracted first occurrence', lFirst, lExtracted);
+    AssertEquals('Extracting the first occurrence does not free', 0, gDestroyCount);
+    lFirst.Free;
+    gDestroyCount:=0;
+    AssertEquals('Index of removed object', 0, lList.RemoveItem(lSecond,TDirection.FromEnd));
+    AssertEquals('Removing frees', 1, gDestroyCount);
+    AssertEquals('Empty after removing', 0, lList.Count);
+  finally
+    lList.Free;
   end;
 end;
 

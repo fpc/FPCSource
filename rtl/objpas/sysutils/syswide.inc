@@ -82,13 +82,13 @@ function WideSameStr(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE
 
 function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase]);
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase]);
   end;
 
 
 function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase])=0;
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase,coLingIgnoreCase])=0;
   end;
 
 
@@ -204,8 +204,24 @@ begin
   Result:=WideStringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : SizeInt): WideString;
+{$i syssr.inc}
+
+
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=WideStringReplace(S,OldPattern,NewPattern,Flags,C);
+  aCount:=ReplaceCountToInteger(C);
+end;
+{$else}
 function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags; Out aCount : Integer): WideString;
 {$i syssr.inc}
+{$endif}
 
 {$undef INWIDESTRINGREPLACE}
 {$undef SRString}

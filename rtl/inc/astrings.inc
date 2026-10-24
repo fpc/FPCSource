@@ -900,6 +900,38 @@ begin
       Val(SS,fpc_Val_Real_AnsiStr,code);
     end;
 end;
+
+
+{$ifndef CPU16}
+Function fpc_Val_Single_AnsiStr(Const S : RawByteString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_Single_AnsiStr := 0;
+  if length(S) > 255 then
+    code := 256
+  else
+    begin
+      SS := S;
+      fpc_Val_Single_AnsiStr := val_single(SS,code);
+    end;
+end;
+
+
+Function fpc_Val_Double_AnsiStr(Const S : RawByteString; out Code : ValSInt): Double; [public, alias:'FPC_VAL_DOUBLE_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_Double_AnsiStr := 0;
+  if length(S) > 255 then
+    code := 256
+  else
+    begin
+      SS := S;
+      fpc_Val_Double_AnsiStr := val_double(SS,code);
+    end;
+end;
+{$endif CPU16}
 {$endif}
 
 
@@ -930,7 +962,7 @@ begin
   else
     begin
       SS := S;
-      Val(SS,fpc_Val_UInt_AnsiStr,code);
+      fpc_Val_UInt_AnsiStr := int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize,{$endif VER3_2}SS,Code);
     end;
 end;
 
@@ -1311,11 +1343,31 @@ end;
 {$define FPC_HAS_UPCASE_ANSISTR}
 function upcase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
+  lIdx, lLen : SizeInt;
+  lSrc, lDest : PAnsiChar;
+  lChar : AnsiChar;
 begin
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := upcase(s[i]);
+  lSrc:=PAnsiChar(Pointer(s));
+  lLen:=length(s);
+  lIdx:=0;
+  while lIdx<lLen do
+    begin
+      lChar:=upcase(lSrc[lIdx]);
+      if lChar<>lSrc[lIdx] then
+        begin
+          SetLength(result,lLen);
+          SetCodePage(RawByteString(result),StringCodePage(s),false);
+          lDest:=PAnsiChar(Pointer(result));
+          Move(lSrc^,lDest^,lIdx);
+          lDest[lIdx]:=lChar;
+          for lIdx:=lIdx+1 to lLen-1 do
+            lDest[lIdx]:=upcase(lSrc[lIdx]);
+          exit;
+        end;
+      inc(lIdx);
+    end;
+  { nothing to convert: share the source }
+  result:=s;
 end;
 {$endif FPC_HAS_UPCASE_ANSISTR}
 
@@ -1324,11 +1376,31 @@ end;
 {$define FPC_HAS_LOWERCASE_ANSISTR}
 function lowercase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
+  lIdx, lLen : SizeInt;
+  lSrc, lDest : PAnsiChar;
+  lChar : AnsiChar;
 begin
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := lowercase(s[i]);
+  lSrc:=PAnsiChar(Pointer(s));
+  lLen:=length(s);
+  lIdx:=0;
+  while lIdx<lLen do
+    begin
+      lChar:=lowercase(lSrc[lIdx]);
+      if lChar<>lSrc[lIdx] then
+        begin
+          SetLength(result,lLen);
+          SetCodePage(RawByteString(result),StringCodePage(s),false);
+          lDest:=PAnsiChar(Pointer(result));
+          Move(lSrc^,lDest^,lIdx);
+          lDest[lIdx]:=lChar;
+          for lIdx:=lIdx+1 to lLen-1 do
+            lDest[lIdx]:=lowercase(lSrc[lIdx]);
+          exit;
+        end;
+      inc(lIdx);
+    end;
+  { nothing to convert: share the source }
+  result:=s;
 end;
 {$endif FPC_HAS_LOWERCASE_ANSISTR}
 

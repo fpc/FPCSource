@@ -265,6 +265,19 @@ type
     procedure TestGetValue;
   end;
 
+  { TFreePoolThread }
+
+  TFreePoolThread = class(TThreadedTestCase.TNotifyThread)
+  private
+    FPool: TThreadPool;
+    procedure DoEmptyExecute(Sender: TObject);
+  protected
+    procedure Execute; override;
+  public
+    // Creates a thread that queues work in aPool, frees aPool at once and then calls aOnTerminate
+    constructor Create(aPool: TThreadPool; aOnTerminate: TNotifyEvent);
+  end;
+
   { TTestThreading }
 
   TTestThreading = class(TThreadedTestCase)
@@ -292,6 +305,8 @@ type
     procedure TestSetMinWorkerThreads;
     procedure TestExecuteWork;
     procedure TestExecuteLotsOfWork;
+    // Frees a pool whose worker threads have just been created
+    procedure TestFreeWithNewThreads;
   end;
 
   { TTestTask }
@@ -322,8 +337,17 @@ type
     FTask: ITask;
     FRaise : Boolean;
     FWorkExecuted : Boolean;
+    FBlockedPool : TThreadPool;
+    FBlockStarted : TEvent;
+    FBlockRelease : TEvent;
     procedure CreateTask;
+    procedure CreateBlockedTask;
+    procedure ReleaseBlockedPool;
+    procedure DoBlockWork(Sender: TObject);
     procedure OnTask(Sender: TObject);
+    procedure DoQuickWork(Sender: TObject);
+    procedure DoSlowWork(Sender: TObject);
+    procedure DoRaiseWork(Sender: TObject);
     procedure StartTask;
     procedure WaitForTask;
   protected
@@ -346,6 +370,20 @@ type
     procedure TestStartException;
     Procedure TestFuture;
     Procedure TestFutureEvent;
+    // Waits for tasks that are all complete already
+    procedure TestWaitForAllCompleted;
+    // Waits for a complete task and a running task
+    procedure TestWaitForAllMixed;
+    // Waits for a running task with a timeout that expires
+    procedure TestWaitForAllTimeout;
+    // Waits for a complete task that raised an exception
+    procedure TestWaitForAllException;
+    // Waits for the first of a slow and a quick task
+    procedure TestWaitForAny;
+    // Waits for a slow and a complete task
+    procedure TestWaitForAnyCompleted;
+    // Waits for a running task with a timeout that expires
+    procedure TestWaitForAnyTimeout;
   end;
 
   { TTestParallel }
@@ -540,7 +578,7 @@ begin
   Ex:=Flist.Truncate;
   AssertEquals('Length',3,Length(Ex));
   For I:=1 to 3 do
-    AssertSame('Ex'+IntToStr(i),FList.List[i],Ex[i]);
+    AssertSame('Ex'+IntToStr(i),FEx[i],Ex[i-1]);
 end;
 
 procedure TTestTExceptionList.TestGrowCapacity;
@@ -961,6 +999,27 @@ begin
   OnTerminate:=aOnTerminate;
   FreeOnTerminate:=True;
   Inherited Create(False);
+end;
+
+{ TFreePoolThread }
+
+constructor TFreePoolThread.Create(aPool: TThreadPool; aOnTerminate: TNotifyEvent);
+
+begin
+  FPool:=aPool;
+  Inherited Create(aOnTerminate);
+end;
+
+procedure TFreePoolThread.DoEmptyExecute(Sender: TObject);
+
+begin
+end;
+
+procedure TFreePoolThread.Execute;
+
+begin
+  FPool.QueueWorkItem(Self,@DoEmptyExecute);
+  FreeAndNil(FPool);
 end;
 
 { TTestSparseArray }
@@ -1638,6 +1697,20 @@ begin
   AssertEquals('Threads all stopped',FThreadsStarted,FThreadsTerminated);
 end;
 
+procedure TTestThreading.TestFreeWithNewThreads;
+
+var
+  Pool : TThreadPool;
+
+begin
+  Pool:=FThreadPool;
+  FThreadPool:=Nil;
+  FWaitTerminatedCount:=1;
+  TFreePoolThread.Create(Pool,@ThreadTerminated);
+  AssertTrue('Pool freed',WaitForCondition(@WaitForTerminateCount,5000));
+  AssertEquals('Threads all stopped',FThreadsStarted,FThreadsTerminated);
+end;
+
 procedure TTestThreading.SetUp;
 begin
   Inherited;
@@ -1681,9 +1754,45 @@ begin
   FRaise:=False;
 end;
 
+// Creates the task in a pool whose only worker thread is busy until ReleaseBlockedPool
+procedure TTestTask.CreateBlockedTask;
+
+begin
+  FBlockStarted:=TEvent.Create;
+  FBlockRelease:=TEvent.Create;
+  FBlockedPool:=TThreadPool.Create;
+  AssertTrue('Set minimum threads',FBlockedPool.SetMinWorkerThreads(0));
+  AssertTrue('Set maximum threads',FBlockedPool.SetMaxWorkerThreads(1));
+  TTask.Run(Self,@DoBlockWork,FBlockedPool);
+  AssertTrue('Worker thread blocked',FBlockStarted.WaitFor(5000)=wrSignaled);
+  FTask:=TTask.Create(Self,@OnTask,FBlockedPool);
+end;
+
+
+// Lets the worker thread of the blocked pool continue
+procedure TTestTask.ReleaseBlockedPool;
+
+begin
+  if Assigned(FBlockRelease) then
+    FBlockRelease.SetEvent;
+end;
+
+
+procedure TTestTask.DoBlockWork(Sender: TObject);
+
+begin
+  FBlockStarted.SetEvent;
+  FBlockRelease.WaitFor(5000);
+end;
+
+
 procedure TTestTask.TearDown;
 begin
+  ReleaseBlockedPool;
   FTask:=Nil;
+  FreeAndNil(FBlockedPool);
+  FreeAndNil(FBlockStarted);
+  FreeAndNil(FBlockRelease);
   inherited TearDown;
 end;
 
@@ -1750,6 +1859,7 @@ end;
 
 procedure TTestTask.TestCancel;
 begin
+  CreateBlockedTask;
   Task.Start;
   AssertTrue('Status',Task.Status>=TTaskStatus.WaitingToRun);
   Task.Cancel;
@@ -1758,6 +1868,7 @@ end;
 
 procedure TTestTask.TestCheckCanceled;
 begin
+  CreateBlockedTask;
   Task.Start;
   AssertTrue('Status',Task.Status>=TTaskStatus.WaitingToRun);
   Task.Cancel;
@@ -1802,9 +1913,11 @@ end;
 
 procedure TTestTask.TestStartException;
 begin
+  CreateBlockedTask;
   FRaise:=true;
   Task.Start;
   AssertTrue('Status',Task.Status=TTaskStatus.WaitingToRun);
+  ReleaseBlockedPool;
   AssertException('Exception',EAggregateException,@WaitForTask);
   AssertFalse('Work executed',FWorkExecuted);
 end;
@@ -1836,6 +1949,136 @@ procedure TTestTask.TestFutureEvent;
 begin
   AssertEquals('Calc future',43,(TTask.Specialize Future<Integer>(Self,@CalcIntegerEvent)).Value)
 end;
+
+procedure TTestTask.DoQuickWork(Sender: TObject);
+
+begin
+  Sleep(10);
+end;
+
+
+procedure TTestTask.DoSlowWork(Sender: TObject);
+
+begin
+  Sleep(500);
+end;
+
+
+procedure TTestTask.DoRaiseWork(Sender: TObject);
+
+begin
+  Raise ESomeThing.Create('MrDo');
+end;
+
+
+procedure TTestTask.TestWaitForAllCompleted;
+
+var
+  lTasks : array of ITask;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoQuickWork),TTask.Run(Self,@DoQuickWork)];
+  lTasks[0].Wait;
+  lTasks[1].Wait;
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+  AssertTrue('All tasks complete with timeout',TTask.WaitForAll(lTasks,100));
+end;
+
+
+procedure TTestTask.TestWaitForAllMixed;
+
+var
+  lTasks : array of ITask;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoQuickWork),TTask.Run(Self,@DoSlowWork)];
+  lTasks[0].Wait;
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+  AssertTrue('Slow task status',lTasks[1].Status=TTaskStatus.Completed);
+end;
+
+
+procedure TTestTask.TestWaitForAllTimeout;
+
+var
+  lTasks : array of ITask;
+  lStart : QWord;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoQuickWork),TTask.Run(Self,@DoSlowWork)];
+  lStart:=GetTickCount64;
+  AssertFalse('Timeout expires',TTask.WaitForAll(lTasks,50));
+  AssertTrue('Returns before slow task completes',GetTickCount64-lStart<400);
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+end;
+
+
+procedure TTestTask.TestWaitForAllException;
+
+var
+  lTasks : array of ITask;
+  lRaised : Boolean;
+  lTries : Integer;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoRaiseWork)];
+  lTries:=0;
+  While (lTasks[0].Status<>TTaskStatus.Exception) and (lTries<200) do
+    begin
+    Sleep(10);
+    Inc(lTries);
+    end;
+  AssertTrue('Task status',lTasks[0].Status=TTaskStatus.Exception);
+  lRaised:=False;
+  try
+    TTask.WaitForAll(lTasks);
+  except
+    on E : EAggregateException do
+      lRaised:=True;
+  end;
+  AssertTrue('Exception raised',lRaised);
+end;
+
+
+procedure TTestTask.TestWaitForAny;
+
+var
+  lTasks : array of ITask;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoSlowWork),TTask.Run(Self,@DoQuickWork)];
+  AssertEquals('Quick task completes first',1,TTask.WaitForAny(lTasks));
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+end;
+
+
+procedure TTestTask.TestWaitForAnyCompleted;
+
+var
+  lTasks : array of ITask;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoSlowWork),TTask.Run(Self,@DoQuickWork)];
+  lTasks[1].Wait;
+  AssertEquals('Complete task',1,TTask.WaitForAny(lTasks,100));
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+end;
+
+
+procedure TTestTask.TestWaitForAnyTimeout;
+
+var
+  lTasks : array of ITask;
+  lStart : QWord;
+
+begin
+  lTasks:=[TTask.Run(Self,@DoSlowWork)];
+  lStart:=GetTickCount64;
+  AssertEquals('Timeout expires',-1,TTask.WaitForAny(lTasks,50));
+  AssertTrue('Returns before slow task completes',GetTickCount64-lStart<400);
+  AssertTrue('All tasks complete',TTask.WaitForAll(lTasks));
+end;
+
 
 { TTestTask.TTaskThread }
 

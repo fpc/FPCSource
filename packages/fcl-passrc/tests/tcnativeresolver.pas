@@ -133,7 +133,10 @@ type
     procedure TestRangeCheckedMarked;
     procedure TestRangeCheckedOffNotMarked;
     procedure TestOverflowCheckedMarked;
-    procedure TestBaseIgnoresPacking;
+    procedure TestAssertionsMarked;
+    procedure TestAssertionsOffNotMarked;
+    procedure TestOverflowCheckedCallMarked;
+    procedure TestBaseRecordsPacking;
     procedure TestInterfaceOnlyForwardProcGate;
     procedure TestForwardProcUnresolvedFail;
     procedure TestBaseRejectsTypedPtrArithOff;
@@ -144,8 +147,8 @@ type
   { TTestNativePacking
 
     The native memory-layout packing directives, captured per type at its
-    declaration and stored global-free on the element (enum/record scope, set
-    resolve-data). Uses the native engine. }
+    declaration and stored on the element (enum/set: fields of the type,
+    record: its scope). Uses the native engine. }
 
   TTestNativePacking = class(TCustomNativeTestResolver)
   private
@@ -155,6 +158,11 @@ type
   published
     procedure TestMinEnumSizeCaptured;
     procedure TestMinEnumSizeDefault;
+    procedure TestMinEnumSizeDelphiMode;
+    procedure TestMinEnumSizeModeReset;
+    procedure TestMinEnumSizeZDirective;
+    procedure TestEnumHolesFPCRule;
+    procedure TestEnumHolesPositiveStart;
     procedure TestPackRecordsCaptured;
     procedure TestPackSetCaptured;
     procedure TestPackRecordsCrossResolver;
@@ -173,6 +181,7 @@ type
   published
     procedure TestCDeclVarArgsNeedExternal;
     procedure TestNoStackFrameNeedsAssembler;
+    procedure TestCopyOfCharIsShortString;
   end;
 
   TTestNativePointerMath = class(TCustomNativeTestResolver)
@@ -781,15 +790,97 @@ begin
 end;
 
 
-procedure TTestElementStateFlags.TestBaseIgnoresPacking;
+procedure TTestElementStateFlags.TestAssertionsMarked;
+
+var
+  Simple: TPasImplSimple;
+
+begin
+  StartProgram(false);
+  Add('{$C+}');
+  Add('var b: boolean;');
+  Add('begin');
+  Add('  Assert(b);');
+  ParseProgram;
+  Simple:=FirstStatement as TPasImplSimple;
+  AssertEquals('Assert call is a params expression',TParamsExpr,Simple.Expr.ClassType);
+  AssertTrue('Assert call under {$C+} is marked for assertions',
+    pesfAssertions in Simple.Expr.States);
+end;
+
+
+procedure TTestElementStateFlags.TestAssertionsOffNotMarked;
+
+var
+  Simple: TPasImplSimple;
+
+begin
+  StartProgram(false);
+  Add('{$C-}');
+  Add('var b: boolean;');
+  Add('begin');
+  Add('  Assert(b);');
+  ParseProgram;
+  Simple:=FirstStatement as TPasImplSimple;
+  AssertFalse('Assert call under {$C-} is not marked for assertions',
+    pesfAssertions in Simple.Expr.States);
+end;
+
+
+procedure TTestElementStateFlags.TestOverflowCheckedCallMarked;
+
+var
+  Assign: TPasImplAssign;
+
+begin
+  StartProgram(false);
+  Add('{$Q+}');
+  Add('var i: longint;');
+  Add('function Twice(x: longint): longint;');
+  Add('begin');
+  Add('  Result:=x+x;');
+  Add('end;');
+  Add('begin');
+  Add('  i:=Twice(i);');
+  ParseProgram;
+  Assign:=FirstStatement as TPasImplAssign;
+  AssertEquals('right side is a call',TParamsExpr,Assign.Right.ClassType);
+  AssertTrue('a call under {$Q+} is overflow-checked',
+    ResolverEngine.IsOverflowChecked(Assign.Right));
+end;
+
+
+procedure TTestNativeProcChecks.TestCopyOfCharIsShortString;
+
+var
+  Assign: TPasImplAssign;
+  Resolved: TPasResolverResult;
+
+begin
+  StartProgram(false);
+  Add('var c: char; w: widechar; s: string;');
+  Add('begin');
+  Add('  s:=Copy(c,1,1);');
+  Add('  s:=Copy(w,1,1);');
+  ParseProgram;
+  Assign:=TPasImplAssign(PasProgram.InitializationSection.Elements[0]);
+  ResolverEngine.ComputeElement(Assign.Right,Resolved,[]);
+  AssertTrue('Copy of a Char is a ShortString',Resolved.BaseType=btShortString);
+  Assign:=TPasImplAssign(PasProgram.InitializationSection.Elements[1]);
+  ResolverEngine.ComputeElement(Assign.Right,Resolved,[]);
+  AssertTrue('Copy of a WideChar is a UnicodeString',Resolved.BaseType=btUnicodeString);
+end;
+
+
+procedure TTestElementStateFlags.TestBaseRecordsPacking;
 
 var
   i: Integer;
   El: TPasElement;
 
 begin
-  // NEGATIVE GUARD: the base (pas2js) resolver records no packing — the Set*
-  // seams are no-ops, so GetMinEnumSize stays 0 even under {$MINENUMSIZE}.
+  // The {$MINENUMSIZE} value is a field of TPasEnumType, so the base resolver
+  // records it too (pas2js does not use it).
   StartProgram(false);
   Add('{$MINENUMSIZE 4}');
   Add('type');
@@ -804,7 +895,8 @@ begin
       break;
       end;
   AssertNotNull('enum type found',El);
-  AssertEquals('base resolver ignores {$MINENUMSIZE}',0,ResolverEngine.GetMinEnumSize(El));
+  AssertEquals('base resolver records {$MINENUMSIZE}',4,ResolverEngine.GetMinEnumSize(El));
+  AssertEquals('stored on the type',4,TPasEnumType(El).MinSize);
 end;
 
 
@@ -944,8 +1036,100 @@ begin
   Add('begin');
   ParseProgram;
   EnumType:=TPasEnumType(FindDecl(TPasEnumType));
-  AssertEquals('no min-enum-size',0,NativeEngine.GetMinEnumSize(EnumType));
-  AssertEquals('natural enum storage size = 1',1,NativeEngine.GetEnumTypeSize(EnumType));
+  AssertEquals('FPC mode default {$PACKENUM 4}',4,NativeEngine.GetMinEnumSize(EnumType));
+  AssertEquals('enum storage size = 4',4,NativeEngine.GetEnumTypeSize(EnumType));
+  AssertEquals('size stored on the type',4,EnumType.Size);
+end;
+
+
+procedure TTestNativePacking.TestMinEnumSizeDelphiMode;
+
+var
+  EnumType: TPasEnumType;
+  SetType: TPasSetType;
+
+begin
+  // Delphi mode: 1-byte enums and 1-byte set granularity, as fpc sets them.
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('type');
+  Add('  TEnum = (red, green, blue);');
+  Add('  TSet = set of TEnum;');
+  Add('begin');
+  ParseProgram;
+  EnumType:=TPasEnumType(FindDecl(TPasEnumType));
+  AssertEquals('enum storage size = 1',1,NativeEngine.GetEnumTypeSize(EnumType));
+  SetType:=TPasSetType(FindDecl(TPasSetType));
+  AssertEquals('pack-set 1',1,NativeEngine.GetPackSet(SetType));
+end;
+
+
+procedure TTestNativePacking.TestMinEnumSizeModeReset;
+
+var
+  EnumType: TPasEnumType;
+
+begin
+  // A {$mode} directive resets an earlier {$PACKENUM} to the mode's default.
+  StartProgram(false);
+  Add('{$PACKENUM 1}');
+  Add('{$mode objfpc}');
+  Add('type');
+  Add('  TEnum = (red, green, blue);');
+  Add('begin');
+  ParseProgram;
+  EnumType:=TPasEnumType(FindDecl(TPasEnumType));
+  AssertEquals('objfpc resets to 4',4,NativeEngine.GetEnumTypeSize(EnumType));
+end;
+
+
+procedure TTestNativePacking.TestMinEnumSizeZDirective;
+
+var
+  EnumType: TPasEnumType;
+
+begin
+  StartProgram(false);
+  Add('{$Z2}');
+  Add('type');
+  Add('  TEnum = (red, green, blue);');
+  Add('begin');
+  ParseProgram;
+  EnumType:=TPasEnumType(FindDecl(TPasEnumType));
+  AssertEquals('{$Z2} gives 2 bytes',2,NativeEngine.GetEnumTypeSize(EnumType));
+end;
+
+
+procedure TTestNativePacking.TestEnumHolesFPCRule;
+
+var
+  EnumType: TPasEnumType;
+
+begin
+  // fpc: a first value above 0 is a jump; a negative start is not.
+  StartProgram(false);
+  Add('type');
+  Add('  TNeg = (nM = -1, nZ, nP);');
+  Add('begin');
+  ParseProgram;
+  EnumType:=TPasEnumType(FindDecl(TPasEnumType));
+  AssertFalse('negative start has no holes',NativeEngine.EnumHasHoles(EnumType));
+end;
+
+
+procedure TTestNativePacking.TestEnumHolesPositiveStart;
+
+var
+  EnumType: TPasEnumType;
+
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TPos = (pOne = 1, pTwo);');
+  Add('begin');
+  ParseProgram;
+  EnumType:=TPasEnumType(FindDecl(TPasEnumType));
+  AssertTrue('start above 0 has holes',NativeEngine.EnumHasHoles(EnumType));
 end;
 
 

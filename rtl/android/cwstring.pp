@@ -34,7 +34,7 @@ uses dynlibs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  UErrorCode = SizeInt;
+  UErrorCode = longint;
   int32_t = longint;
   uint32_t = longword;
   PUConverter = pointer;
@@ -98,6 +98,7 @@ begin
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
   if Result <> nil then begin
+    err:=0;
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;
@@ -164,9 +165,9 @@ begin
   if conv <> nil then
     len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
   else begin
-    // Use UTF-8 conversion from RTL
+    // Use UTF-8 conversion from RTL, the #0 goes in the terminator of dest
     cp:=CP_UTF8;
-    len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
+    len2:=UnicodeToUtf8(PAnsiChar(dest), len2 + 1, source, len) - 1;
   end;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
@@ -174,7 +175,7 @@ begin
     if conv <> nil then
       len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
     else
-      len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
+      len2:=UnicodeToUtf8(PAnsiChar(dest), len2 + 1, source, len) - 1;
   end;
   if len2 < 0 then
     len2:=0;
@@ -205,15 +206,15 @@ begin
   if conv <> nil then
     len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
   else
-    // Use UTF-8 conversion from RTL
-    len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
+    // Use UTF-8 conversion from RTL, the #0 goes in the terminator of dest
+    len2:=Utf8ToUnicode(PUnicodeChar(dest), len2 + 1, source, len) - 1;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
     if conv <> nil then
       len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
     else
-      len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
+      len2:=Utf8ToUnicode(PUnicodeChar(dest), len2 + 1, source, len) - 1;
   end;
   if len2 < 0 then
     len2:=0;
@@ -295,7 +296,7 @@ begin
     Result:=_CompareStr(s1, s2);
     exit;
   end;
-  if (coIgnoreCase in Options) then begin
+  if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then begin
     err:=0;
     Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
   end

@@ -138,6 +138,8 @@ interface
             is not cleared); the entries are copies and thus must be freed by the
             caller }
           procedure get_managementoperator_offset_list(mop:tmanagementoperator;list:tfplist);
+          { add all subfields from a fieldvar for composition }
+          procedure add_composition_references(fieldvs:tfieldvarsym;visibility:tvisibility);
         protected
           { size in bytes including padding }
           _datasize      : asizeint;
@@ -370,6 +372,8 @@ interface
     function  try_search_system_type(const s: TIDString): ttypesym;
     function  try_search_current_module_type(const s: TIDString): ttypesym;
     function  search_system_proc(const s: TIDString): tprocdef;
+    { true if the system unit declares procedure s }
+    function  system_proc_exists(const s: TIDString): boolean;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
@@ -636,6 +640,7 @@ implementation
                  ibsyssym : sym:=csyssym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
            ibnamespacesym : sym:=cnamespacesym.ppuload(ppufile);
+              ibsymrefsym : sym:=csymrefsym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -1799,6 +1804,63 @@ implementation
           end;
       end;
 
+    procedure tabstractrecordsymtable.add_composition_references(fieldvs:tfieldvarsym;visibility:tvisibility);
+      var
+        ard : tabstractrecorddef;
+        recst : tabstractrecordsymtable;
+        i : longint;
+        sym : tsym;
+        refsym : tsymrefsym;
+        hashedid : thashedidstring;
+        collision_sym : pointer;
+      begin
+        ard:=tabstractrecorddef(fieldvs.vardef);
+        recst:=tabstractrecordsymtable(ard.symtable);
+
+        sym:=tsym(symlist.FindWithHash(fieldvs.name,fieldvs.hash));
+        if not assigned(sym) then
+          internalerror(2024010601);
+
+        for i:=0 to recst.symlist.count-1 do
+          begin
+            sym:=tsym(recst.symlist[i]);
+           { composition should only be used for directly addressible symbols }
+           { so all invisible symbols will be ignored }
+            if (sym.visibility=vis_hidden) or
+               not is_visible_for_object(sym,tabstractrecorddef(defowner)) or
+               (length(sym.RealName)=0) or (sym.RealName[1]='$') then
+              continue;
+            { It seems sensible to only restrict to actual accesses to the referenced object }
+            { i.e. fields, methods, constants and properties }
+            if not (sym.typ in [fieldvarsym,procsym,constsym,propertysym,symrefsym]) then
+              continue;
+            { check for collisions with self defined symbols }
+            hashedid.Id:=upper(sym.Name);
+            collision_sym:=symlist.FindWithHash(hashedid.Id,hashedid.Hash);
+            if assigned(collision_sym) then
+              begin
+                if (fieldvs.visibility=vis_hidden) then
+                  MessagePos1(sym.fileinfo,sym_e_duplicate_id,sym.realname)
+                else { if it's a named field, disambiguation is possible through that field }
+                  if (sym.typ=procsym) or ((sym.typ=propertysym) and
+                      (ppo_hasparameters in tpropertysym(sym).propoptions)) then
+                    { if it's a method, or an parametized property, one may expect
+                      it to be overloaded, but because it uses one sym for overloads
+                      this is in the current architecture not possible }
+                    MessagePos2(sym.fileinfo,sym_w_overload_not_possible,sym.realname,realname^)
+                  else
+                    MessagePos1(sym.fileinfo,sym_w_duplicate_id,sym.realname);
+                continue;
+              end;
+            refsym:=tsymrefsym.create(sym,fieldvs);
+            if visibility<sym.visibility then
+              refsym.visibility:=visibility
+            else
+              refsym.visibility:=sym.visibility;
+            insertsym(refsym,false);
+          end;
+      end;
+
     procedure tabstractrecordsymtable.setdatasize(val: asizeint);
       begin
         _datasize:=val;
@@ -1916,6 +1978,14 @@ implementation
         for i:=0 to unionst.SymList.Count-1 do
           begin
             sym:=TSym(unionst.SymList[i]);
+            if sym.typ=symrefsym then
+              begin
+                { with record composition union branches can now contain
+                  symrefsyms. These don't need to be aligned, so just add
+                  them to record symtable and go on to next }
+                insertsym(sym);
+                Continue;
+              end;
             if not is_normal_fieldvarsym(sym) then
               internalerror(200601272);
             if tfieldvarsym(sym).fieldoffset=0 then
@@ -4428,6 +4498,19 @@ implementation
           message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
+
+
+    function  system_proc_exists(const s: TIDString): boolean;
+      var
+        srsym: tsym;
+      begin
+        check_systemunit_loaded;
+        srsym:=tsym(systemunit.find(s));
+        if not assigned(srsym) and
+           (cs_compilesystem in current_settings.moduleswitches) then
+          srsym:=tsym(systemunit.Find(upper(s)));
+        result:=assigned(srsym) and (srsym.typ=procsym);
+      end;
 
 
     function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;

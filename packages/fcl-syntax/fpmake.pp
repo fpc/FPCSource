@@ -48,6 +48,8 @@ begin
     T.Dependencies.AddUnit('syntax.highlighter');
     T:=P.Targets.AddUnit('syntax.sql.pp');
     T.Dependencies.AddUnit('syntax.highlighter');
+    T:=P.Targets.AddUnit('syntax.go.pp');
+    T.Dependencies.AddUnit('syntax.highlighter');
     T:=P.Targets.AddUnit('syntax.html.pp');
     With T.Dependencies do
       begin

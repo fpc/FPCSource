@@ -2686,8 +2686,11 @@ System.CMem$(PPUEXT) : $(NSINC)/System.CMem.pp $(CMEM_DEPS)
 ifndef PTYPESINCDIR
   PTYPESINCDIR=$(OSDIR)
 endif
+ifndef ERRNOINCDIR
+  ERRNOINCDIR=$(OSDIR)
+endif
 BASEUNIX_DEPS=$(BASEUNIXDIR)/baseunix.pp  $(UNIXINC)/ctypes.inc  \
-	      $(UNIXINC)/bunxh.inc $(UNIXINC)/gensigset.inc $(PTYPESINCDIR)/ptypes.inc $(OSDIR)/errno.inc \
+	      $(UNIXINC)/bunxh.inc $(UNIXINC)/gensigset.inc $(PTYPESINCDIR)/ptypes.inc $(ERRNOINCDIR)/errno.inc \
 	      $(UNIXTYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	      $(BASEUNIX_DEPS_OS) $(BASEUNIX_DEPS_CPU) 
 baseunix$(PPUEXT): $(BASEUNIX_DEPS)
@@ -3008,7 +3011,7 @@ wasmsem$(PPUEXT) : $(WASMSEMDEPS)
 	$(COMPILER) $<
 Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WASMSEMDEPS)
 	$(COMPILER) $<
-WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
+WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(WASICOMMONINC)/wasiinc/wasierrnostr.inc $(SYSTEMUNIT)$(PPUEXT)
 wasiapi$(PPUEXT) : $(WASICOMMONINC)/wasiapi.pp $(WASIAPIDEPS)
 	$(COMPILER) $< -Fiwasiinc
 WASIApi.WASIApi$(PPUEXT) : $(NSOSDIR)/WASIApi.WASIApi.pp $(WASIAPIDEPS)

@@ -1,3 +1,6 @@
+{$LINKLIB c2, static}
+{$LINKLIB api, static}
+{$LINKLIB etc, static}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libetc;
 {$ENDIF FPC_DOTTEDUNITS}

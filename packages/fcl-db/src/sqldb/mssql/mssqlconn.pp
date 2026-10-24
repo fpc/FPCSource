@@ -393,7 +393,7 @@ begin
           Result:='1'
         else
           Result:='0';
-      ftString, ftFixedChar, ftMemo:
+      ftString, ftFixedChar, ftMemo, ftWideString, ftFixedWideChar, ftWideMemo:
         //if IsBinary(Param.AsString) then
         //  Result := '0x' + StrToHex(Param.AsString)
         //else

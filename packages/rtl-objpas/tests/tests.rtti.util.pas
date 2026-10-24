@@ -56,6 +56,8 @@ function GetDoubleValue(aValue: Double): TValue;
 function GetExtendedValue(aValue: Extended): TValue;
 function GetCompValue(aValue: Comp): TValue;
 function GetCurrencyValue(aValue: Currency): TValue;
+// Returns a TValue of type Variant holding aValue
+function GetVariant(const aValue: Variant): TValue;
 {$ifdef fpc}
 function GetArray(const aArg: array of SizeInt): TValue;
 {$endif}
@@ -299,6 +301,11 @@ end;
 function GetShortString(const aValue: ShortString): TValue;
 begin
   Result := TValue.{$ifdef fpc}specialize{$endif}From<ShortString>(aValue);
+end;
+
+function GetVariant(const aValue: Variant): TValue;
+begin
+  Result := TValue.{$ifdef fpc}specialize{$endif}From<Variant>(aValue);
 end;
 
 function GetSingleValue(aValue: Single): TValue;

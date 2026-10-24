@@ -59,6 +59,13 @@ begin
       Dependencies.AddUnit('fpttfsubsetter');
       Dependencies.AddInclude('src/fontmetrics_stdpdf.inc');
       end;
+    T:=P.Targets.AddUnit('src/fppdfcanvas.pp');
+    With T do
+      begin
+      Dependencies.AddUnit('fppdf');
+      Dependencies.AddUnit('fpttf');
+      Dependencies.AddUnit('fpparsettf');
+      end;
     T:=P.Targets.AddUnit('src/fppdfconsts.pp');
     T:=P.Targets.AddUnit('src/fppdfpredict.pp');
     T:=P.Targets.AddUnit('src/fppdfsource.pp');

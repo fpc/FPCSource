@@ -80,7 +80,7 @@ begin
   {$ENDIF}
 
   //writeln('Save width 2 ',QoiHeader.width, '   height  ', QoiHeader.height);
-  Stream.Write(QoiHeader,sizeof(TQoiHeader));
+  Stream.WriteBuffer(QoiHeader,sizeof(TQoiHeader));
 
   {$IFDEF ENDIAN_LITTLE}
   QoiHeader.width:=SwapEndian(QoiHeader.width);
@@ -91,244 +91,121 @@ end;
 
 
 
-procedure TFPWriterQoi.InternalWrite (Stream:TStream; Img:TFPCustomImage);
-var
-  Row,Col,RowSize:sizeuint;
-  h, w, orgSize, mSize : sizeuint;
-  aLine, p: PByte;
+// Returns the difference a-b as a signed byte, wrapped to -128..127.
+function WrapDiff(a, b : byte) : integer;
+begin
+  Result := ((integer(a) - integer(b) + 128) and 255) - 128;
+end;
 
+
+procedure TFPWriterQoi.InternalWrite (Stream:TStream; Img:TFPCustomImage);
+const
+  BufSize = 65536;
+var
+  Buf : array of byte;
+  BufLen : integer;
+  Index : array [0..63] of TQoiPixel;
+  px, prev : TQoiPixel;
+  x, y, i, run, vr, vg, vb, vgr, vgb : integer;
+  iA : dword;
   color : TFPColor;
 
+  procedure Flush;
+  begin
+    if BufLen > 0 then
+      Stream.WriteBuffer(Buf[0], BufLen);
+    BufLen := 0;
+  end;
 
-var iP,  iq, imgSize : qword;
-    //q: PQoiPixel;
-    b, run : byte;
-    g, dr, dg, db, dr_dg, db_dg : byte;// shortint;
-    px, cx : TQoiPixel;
-    arr : array [0..63] of TQoiPixel;
-    iA : dword; {index in pixel array}
-    //endOf : qword;
+  procedure Put(aByte : byte);
+  begin
+    if BufLen = Length(Buf) then
+      Flush;
+    Buf[BufLen] := aByte;
+    inc(BufLen);
+  end;
 
 begin
-    mSize:= img.Width * sizeof(TQoiPixel)+ img.Width;
-    RowSize:= img.Width * sizeof(TQoiPixel)+ img.Width + 8+sizeof(TQoiPixel)*64+64;
-
-    SaveHeader(Stream,Img); { write the headers }
-
-    GetMem(aLine,RowSize);
-
-    p:=aLine;
-
-    dword(px):=0;
-    px.a:=255;
-
-    {initialize previously seen pixel array}
-    FillQWord(arr,sizeof(arr) div sizeof(QWord),0);
-    iA:=QoiPixelIndex(px);
-     //for iA:=0 to 63 do
-     //arr[iA]:=px;
-
-    Row:=0;
-    Col:=0;
-    h:=Img.Height;
-    w:=Img.Width;
-    iq:=0;
-    ip:=0;
-    imgSize:= h*w;
-    if imgSize > 0 then
-    while (imgSize)> iq do
-    begin
-         color:=img.colors[Col,Row];
-         cx.r:=color.Red shr 8;
-         cx.g:=color.Green shr (8);
-         cx.b:=color.Blue shr (8);
-         cx.a:=color.Alpha shr (8);
-
-          iA:=QoiPixelIndex (cx);
-
-          if dword(cx)=dword(px) then { run }
+  SaveHeader(Stream,Img);
+  SetLength(Buf, BufSize);
+  BufLen := 0;
+  FillChar(Index, SizeOf(Index), 0);
+  dword(prev) := 0;
+  prev.a := 255;
+  run := 0;
+  for y := 0 to Img.Height-1 do
+    for x := 0 to Img.Width-1 do
+      begin
+      color := Img.Colors[x,y];
+      px.r := color.Red shr 8;
+      px.g := color.Green shr 8;
+      px.b := color.Blue shr 8;
+      if UseAlpha then
+        px.a := color.Alpha shr 8
+      else
+        px.a := 255;
+      if dword(px) = dword(prev) then
+        begin
+        inc(run);
+        if run = 62 then
           begin
-               run:=0;
-               //inc (q);
-               inc (iq);
-
-               inc(col);
-               if col = w then begin inc(row); col:=0; end;
-
-               if (col < w) and  (row<h) then
-               begin
-
-                 color:=img.colors[Col,Row];
-                 cx.r:=color.Red shr 8;
-                 cx.g:=color.Green shr (8);
-                 cx.b:=color.Blue shr (8);
-                 cx.a:=color.Alpha shr (8);
-
-
-               while (imgSize >= (iq+1))
-                    and (dword(cx)=dword(px)) do
-               begin
-                    inc (run);
-                    inc (iq);
-
-                   inc(col);
-               if col = w then begin
-                    inc(row); col:=0;
-                    if (col >= w) or  (row>=h) then break;
-               end;
-
-
-
-                 color:=img.colors[Col,Row];
-                 cx.r:=color.Red shr 8;
-                 cx.g:=color.Green shr (8);
-                 cx.b:=color.Blue shr (8);
-                 cx.a:=color.Alpha shr (8);
-
-
-
-                    if run = 61 then break;
-               end;
-               end;
-
-               b:=($ff xor 63) or run;
-               p^:=b;
-               inc(p);
-               inc(ip);
-
-          end else
-          if dword(arr[iA]) = dword(cx) then { index }
-          begin
-
-               px:=cx;
-               p^:=byte(iA);
-               inc(p);
-               inc(ip);
-               //inc(q);
-               inc(iq);
-
-               inc(col);
-               if col = w then begin inc(row); col:=0; end;
-
-
-          end else
-          if px.a <> cx.a then { rgba }
-          begin
-               b:=$ff;
-               p^:=b;
-               inc(p);
-               px:=cx;
-               //PQoiPixel(p)^:=cx;
-               //inc(p,4);
-
-               p^:=cx.r;inc(p);
-               p^:=cx.g;inc(p);
-               p^:=cx.b;inc(p);
-               p^:=cx.a;inc(p);
-
-               inc(ip,5);
-               //inc(q);
-               inc (iq);
-
-               inc(col);
-               if col = w then begin inc(row); col:=0; end;
-
-               arr[iA]:=cx;
-
-          end else
-          begin
-               dr := (cx.r - px.r);
-               dg := (cx.g - px.g);
-               db := (cx.b - px.b);
-
-               px:=cx;
-
-               dr_dg := dr-dg+8;
-               db_dg := db-dg+8;
-
-               dr:=dr+2;
-               dg:=dg+2;
-               db:=db+2;
-               g:=dg+30;
-
-               //inc(q);
-               inc (iq);
-               inc(col);
-               if col = w then begin inc(row); col:=0; end;
-
-               arr[iA]:=cx;
-
-               if (dr and ($ff xor 3))+(dg and ($ff xor 3))+(db and ($ff xor 3)) = 0 then  { diff }
-               begin
-                    b:=64 or (dr shl 4) or (dg shl 2)or (db ) ;
-                    p^:=b;
-                    inc(p);
-                    inc(ip);
-
-               end else
-               if ((g) and ($ff xor 63)) + (dr_dg and ($ff xor 15))+ (db_dg and ($ff xor 15))=0 then { luma }
-               begin
-                    b:=128 or g;
-                    p^:=b;
-                    inc(p);
-                    b:=(dr_dg shl 4) or db_dg;
-                    p^:=b;
-                    inc(p);
-                    inc(ip,2);
-
-               end else {rgb}
-               begin
-                    b:=$fe;
-                    p^:=b;
-                    inc(p);
-                    //PQoiPixel(p)^:=cx;
-                    //inc(p,3);
-
-
-                    p^:=cx.r;inc(p);
-                    p^:=cx.g;inc(p);
-                    p^:=cx.b;inc(p);
-
-                    inc(ip,4);
-               end;
-
+          Put($C0 or (run-1));
+          run := 0;
           end;
-          if ip >= mSize then
+        end
+      else
+        begin
+        if run > 0 then
           begin
-               {save data }
-               orgSize:=ip;
-               Stream.Write(aLine[0],orgSize);
-               ip:=0;
-               p:=aLine;
+          Put($C0 or (run-1));
+          run := 0;
           end;
-     end;
-
-
-     {mark end of encoding}
-     {
-     endof:=qword(1) shl 56;
-     pqword(p)^:=endof;
-     inc(p,8);
-     }
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=0; inc(p);
-     p^:=1; inc(p);
-
-     inc(ip,8);
-
-     orgSize:=ip;
-     Stream.Write(aLine[0],orgSize);
-
-
-
-     FreeMem(aLine);
-
-
+        iA := QoiPixelIndex(px);
+        if dword(Index[iA]) = dword(px) then
+          Put(iA)
+        else
+          begin
+          Index[iA] := px;
+          if px.a = prev.a then
+            begin
+            vr := WrapDiff(px.r, prev.r);
+            vg := WrapDiff(px.g, prev.g);
+            vb := WrapDiff(px.b, prev.b);
+            vgr := vr - vg;
+            vgb := vb - vg;
+            if (vr > -3) and (vr < 2) and (vg > -3) and (vg < 2) and (vb > -3) and (vb < 2) then
+              Put($40 or ((vr+2) shl 4) or ((vg+2) shl 2) or (vb+2))
+            else if (vgr > -9) and (vgr < 8) and (vg > -33) and (vg < 32) and (vgb > -9) and (vgb < 8) then
+              begin
+              Put($80 or (vg+32));
+              Put(((vgr+8) shl 4) or (vgb+8));
+              end
+            else
+              begin
+              Put($FE);
+              Put(px.r);
+              Put(px.g);
+              Put(px.b);
+              end;
+            end
+          else
+            begin
+            Put($FF);
+            Put(px.r);
+            Put(px.g);
+            Put(px.b);
+            Put(px.a);
+            end;
+          end;
+        end;
+      prev := px;
+      end;
+  if run > 0 then
+    Put($C0 or (run-1));
+  for i := 1 to 7 do
+    Put(0);
+  Put(1);
+  Flush;
 end;
 
 initialization

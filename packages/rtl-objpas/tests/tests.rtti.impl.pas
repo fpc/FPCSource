@@ -154,6 +154,8 @@ TTestImpl = class(TTestCase)
   { TTestMethodVars }
 
   TTestMethodVars = class(TTestImplBase)
+  private
+    procedure OnRaiseInvokable(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
   Published
     Procedure TestMethodVar1;
     Procedure TestMethodVar2;
@@ -178,6 +180,14 @@ TTestImpl = class(TTestCase)
     procedure TestMethodVar21;
     procedure TestMethodVar21as;
     procedure TestMethodVar21ss;
+    // Variant arguments by value and const
+    procedure TestMethodVarVariant;
+    // Exception raised in the implementation handler reaches the caller
+    procedure TestMethodVarRaise;
+{$ifdef win64}
+    // The generated implementation code has Win64 unwind information
+    procedure TestMethodVarUnwindInfo;
+{$endif}
   end;
 
   { TTestProcVars }
@@ -207,6 +217,8 @@ TTestImpl = class(TTestCase)
     procedure TestProcVar21;
     procedure TestProcVar21as;
     procedure TestProcVar21ss;
+    // Variant arguments by value and const
+    procedure TestProcVarVariant;
   end;
 
 
@@ -1553,6 +1565,88 @@ begin
   *)
 end;
 
+procedure TTestMethodVars.TestMethodVarVariant;
+begin
+  DoMethodImpl(TypeInfo(TTestMethodVariant),[
+    GetIntValue(42), GetVariant('Alpha'), GetVariant(3.5), GetVariant(84)
+  ], [], [], TValue.Empty);
+end;
+
+procedure TTestMethodVars.OnRaiseInvokable(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
+
+begin
+  aResult:=TValue.Empty;
+  raise EArgumentException.Create('Raised in handler');
+end;
+
+
+procedure TTestMethodVars.TestMethodVarRaise;
+
+var
+  context: TRttiContext;
+  method: TRttiMethodType;
+  impl: TMethodImplementation;
+  mrec: TMethod;
+  msg: String;
+
+begin
+  impl:=Nil;
+  context:=TRttiContext.Create;
+  try
+    method:=context.GetType(TypeInfo(TTestMethod1)) as TRttiMethodType;
+    try
+      impl:=method.CreateImplementation(@OnRaiseInvokable);
+    except
+      on e: ENotImplemented do
+        Exit;
+    end;
+    mrec.Data:=Self;
+    mrec.Code:=impl.CodeAddress;
+    msg:='';
+    try
+      TTestMethod1(mrec)();
+    except
+      on e: EArgumentException do
+        msg:=e.Message;
+    end;
+    CheckEquals('Raised in handler', msg, 'Exception from the handler caught by the caller');
+  finally
+    impl.Free;
+    context.Free;
+  end;
+end;
+
+{$ifdef win64}
+function RtlLookupFunctionEntry(aControlPc: QWord; out aImageBase: QWord; aHistoryTable: Pointer): Pointer; stdcall; external 'kernel32' name 'RtlLookupFunctionEntry';
+
+
+procedure TTestMethodVars.TestMethodVarUnwindInfo;
+
+var
+  context: TRttiContext;
+  method: TRttiMethodType;
+  impl: TMethodImplementation;
+  imagebase: QWord;
+  code: CodePointer;
+
+begin
+  impl:=Nil;
+  context:=TRttiContext.Create;
+  try
+    method:=context.GetType(TypeInfo(TTestMethod1)) as TRttiMethodType;
+    impl:=method.CreateImplementation(@OnRaiseInvokable);
+    code:=impl.CodeAddress;
+    CheckTrue(Assigned(RtlLookupFunctionEntry(PtrUInt(code), imagebase, Nil)), 'Unwind information for the implementation code');
+    CheckEquals(PtrUInt(code), PtrUInt(imagebase), 'Unwind information starts at the implementation code');
+  finally
+    impl.Free;
+    context.Free;
+  end;
+  CheckFalse(Assigned(RtlLookupFunctionEntry(PtrUInt(code), imagebase, Nil)), 'Unwind information removed with the implementation');
+end;
+{$endif}
+
+
 { TTestProcVars }
 
 procedure TTestProcVars.TestProcVar1;
@@ -1759,6 +1853,13 @@ begin
     GetShortString('Gamma'), GetShortString('Epsilon')
   ], [0, 1], TValue.Empty);}
 
+end;
+
+procedure TTestProcVars.TestProcVarVariant;
+begin
+  DoProcImpl(TypeInfo(TTestProcVariant),[
+    GetIntValue(42), GetVariant('Alpha'), GetVariant(3.5), GetVariant(84), GetIntValue(21)
+  ], [], [], TValue.Empty);
 end;
 
 {$endif fpc}

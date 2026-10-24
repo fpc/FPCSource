@@ -741,7 +741,7 @@ procedure TPerlRegEx.Compile;
 
 var
   ErrorNr: Integer;
-  ErrorPos: Integer;
+  ErrorPos: SizeInt;
 {$IFDEF NEED_UTF_CONVERSION}
   UTF8Regex: RawByteString;
 {$ENDIF}
@@ -846,6 +846,7 @@ begin
   ClearStoredGroups;
   if not Compiled then
     Compile;
+  FreeMatchData;
   FMatchData:=pcre2_match_data_create_from_pattern(FCode,Nil);
   Result:=DoMatch(0)=mrFound;
   if Result  then

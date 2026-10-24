@@ -42,7 +42,8 @@ unit cpunode;
        ,navrutil,
        { symtable }
        symcpu,
-       aasmdef
+       aasmdef,
+       tgcpu
        ;
 
 

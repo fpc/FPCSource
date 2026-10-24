@@ -496,7 +496,7 @@ implementation
         else
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            cg.maybe_check_for_fpu_compare_exception(current_asmdata.CurrAsmList);
 
             if not(cs_opt_fastmath in current_settings.optimizerswitches) then
               cg.a_label(current_asmdata.CurrAsmList,l1);

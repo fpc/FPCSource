@@ -431,7 +431,7 @@ constructor TMatchCollection.Create(const aRegex: IObjectReference; const aInput
 
 var
   Found: Boolean;
-  Len : Integer;
+  Len,I : Integer;
   RE: TPerlRegEx;
 begin
   RE:=GetRegEx(aRegex);
@@ -446,14 +446,16 @@ begin
     if Len>=Length(FMatches) then
       SetLength(FMatches,Length(FMatches)+MatchGrowDelta);
     FMatches[Len]:=TMatch.Create(aRegex,RE.MatchedText,RE.MatchedOffset,RE.MatchedLength,Found);
-    if Len>0 then
-      FMatches[Len-1].SetNext(@FMatches[Len]);
     Found:=RE.MatchAgain;
     Inc(Len);
     end;
-  FMatches[Len-1].SetNext(Nil);
   if Len<Length(FMatches) then
     SetLength(FMatches,Len);
+  // Link the matches only now: SetLength may move the array.
+  For I:=0 to Len-2 do
+    FMatches[I].SetNext(@FMatches[I+1]);
+  if Len>0 then
+    FMatches[Len-1].SetNext(Nil);
 end;
 
 function TMatchCollection.GetCount: Integer;

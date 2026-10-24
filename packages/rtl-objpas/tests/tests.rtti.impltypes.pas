@@ -58,6 +58,7 @@ type
   TTestMethod19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp of object;
   TTestMethod20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency of object;
   TTestMethod21 = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4) of object;
+  TTestMethodVariant = procedure(aArg1: SizeInt; aArg2: Variant; const aArg3: Variant; aArg4: Variant) of object;
 
   TTestProc1 = procedure;
   TTestProc2 = function(aArg1: SizeInt): SizeInt;
@@ -80,6 +81,7 @@ type
   TTestProc19 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
   TTestProc20 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
   TTestProc21 = procedure(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
+  TTestProcVariant = procedure(aArg1: SizeInt; aArg2: Variant; const aArg3: Variant; aArg4: Variant; aArg5: SizeInt);
 
 const
   SingleArg1: Single = 1.23;

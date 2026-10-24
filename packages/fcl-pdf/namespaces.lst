@@ -8,6 +8,7 @@ src/fpfonttextmapping.pp=namespaced/FpPdf.FontTextMapping.pp
 src/fpttfsubsetter.pp=namespaced/FpPdf.Ttf.Subsetter.pp
 src/fppdfconsts.pp=namespaced/FpPdf.Consts.pp
 src/fppdf.pp=namespaced/FpPdf.Pdf.pp
+src/fppdfcanvas.pp=namespaced/FpPdf.Canvas.pp
 src/fpttfencodings.pp=namespaced/FpPdf.Ttf.Encodings.pp
 src/fpttf.pp=namespaced/FpPdf.Ttf.pp
 src/fpparsettf.pp=namespaced/FpPdf.Ttf.Parser.pp

@@ -21,6 +21,7 @@ interface
 
 {$I wasiinc/wasitypes.inc}
 {$I wasiinc/wasiprocs.inc}
+{$I wasiinc/wasierrnostr.inc}
 
 implementation
 

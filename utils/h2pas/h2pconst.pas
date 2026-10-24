@@ -53,32 +53,40 @@ const _PACKED = 302;
 const ELLIPSIS = 303;
 const _ASSIGN = 304;
 const R_AND = 305;
-const EQUAL = 306;
-const UNEQUAL = 307;
-const GT = 308;
-const LT = 309;
-const GTE = 310;
-const LTE = 311;
-const QUESTIONMARK = 312;
-const _OR = 313;
-const _AND = 314;
-const _PLUS = 315;
-const MINUS = 316;
-const _SHR = 317;
-const _SHL = 318;
-const STAR = 319;
-const _SLASH = 320;
-const _NOT = 321;
-const PSTAR = 322;
-const P_AND = 323;
-const POINT = 324;
-const DEREF = 325;
-const STICK = 326;
-const SIGNED = 327;
-const INT8 = 328;
-const INT16 = 329;
-const INT32 = 330;
-const INT64 = 331;
+const QUESTIONMARK = 306;
+const _LOR = 307;
+const _LAND = 308;
+const _OR = 309;
+const _XOR = 310;
+const _AND = 311;
+const EQUAL = 312;
+const UNEQUAL = 313;
+const GT = 314;
+const LT = 315;
+const GTE = 316;
+const LTE = 317;
+const _SHR = 318;
+const _SHL = 319;
+const _PLUS = 320;
+const MINUS = 321;
+const STAR = 322;
+const _SLASH = 323;
+const _MOD = 324;
+const _NOT = 325;
+const _LNOT = 326;
+const PSTAR = 327;
+const P_AND = 328;
+const POINT = 329;
+const DEREF = 330;
+const STICK = 331;
+const SIGNED = 332;
+const INT8 = 333;
+const INT16 = 334;
+const INT32 = 335;
+const INT64 = 336;
+const _DOUBLE = 337;
+const _RETURN = 338;
+const _STATIC = 339;
 
 const
   SHORT_STR = 'shortint';
@@ -95,6 +103,8 @@ const
   INT64_STR  = 'int64';
   QWORD_STR  = 'qword';
   FLOAT_STR  = 'single';
+  DOUBLE_STR = 'double';
+  EXTENDED_STR = 'extended';
   WCHAR_STR  = 'widechar';
 
   {ctypes strings}
@@ -136,8 +146,107 @@ const
   cdouble_STR     = 'cdouble';
   clongdouble_STR = 'clongdouble';
 
+  csize_t_STR     = 'csize_t';
+
+type
+  // A standard C type name with its ctypes and its Pascal type; '' for a type that is written as void, such as FILE.
+  TCTypeMapping = record
+    CName, CTypesName, PascalName : string;
+  end;
+
 const
-  MAX_CTYPESARRAY = 25;
+  MAX_CTYPEMAPPINGS = 36;
+  CTypeMappings : array [0..MAX_CTYPEMAPPINGS] of TCTypeMapping = (
+    (CName: 'int8_t';    CTypesName: cint8_STR;   PascalName: 'shortint'),
+    (CName: 'uint8_t';   CTypesName: cuint8_STR;  PascalName: 'byte'),
+    (CName: 'int16_t';   CTypesName: cint16_STR;  PascalName: 'smallint'),
+    (CName: 'uint16_t';  CTypesName: cuint16_STR; PascalName: 'word'),
+    (CName: 'int32_t';   CTypesName: cint32_STR;  PascalName: 'longint'),
+    (CName: 'uint32_t';  CTypesName: cuint32_STR; PascalName: 'longword'),
+    (CName: 'int64_t';   CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'uint64_t';  CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'intmax_t';  CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'uintmax_t'; CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'size_t';    CTypesName: csize_t_STR; PascalName: 'SizeUInt'),
+    (CName: 'ssize_t';   CTypesName: 'SizeInt';   PascalName: 'SizeInt'),
+    (CName: 'intptr_t';  CTypesName: 'PtrInt';    PascalName: 'PtrInt'),
+    (CName: 'uintptr_t'; CTypesName: 'PtrUInt';   PascalName: 'PtrUInt'),
+    (CName: 'ptrdiff_t'; CTypesName: 'PtrInt';    PascalName: 'PtrInt'),
+    (CName: '_Bool';     CTypesName: 'Boolean';   PascalName: 'Boolean'),
+    (CName: 'bool';      CTypesName: 'Boolean';   PascalName: 'Boolean'),
+    (CName: 'wchar_t';   CTypesName: 'UCS4Char';  PascalName: 'UCS4Char'),
+    (CName: 'char16_t';  CTypesName: 'WideChar';  PascalName: 'WideChar'),
+    (CName: 'char32_t';  CTypesName: 'UCS4Char';  PascalName: 'UCS4Char'),
+    (CName: 'off_t';     CTypesName: 'coff_t';    PascalName: 'PtrInt'),
+    (CName: 'off64_t';   CTypesName: cint64_STR;  PascalName: 'int64'),
+    (CName: 'va_list';   CTypesName: 'pointer';   PascalName: 'pointer'),
+    (CName: '__gnuc_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
+    (CName: '__builtin_va_list'; CTypesName: 'pointer'; PascalName: 'pointer'),
+    (CName: 'time_t';    CTypesName: clong_STR;   PascalName: 'PtrInt'),
+    (CName: 'clock_t';   CTypesName: clong_STR;   PascalName: 'PtrInt'),
+    (CName: 'suseconds_t'; CTypesName: clong_STR; PascalName: 'PtrInt'),
+    (CName: 'useconds_t'; CTypesName: cuint_STR;  PascalName: 'longword'),
+    (CName: 'dev_t';     CTypesName: cuint64_STR; PascalName: 'qword'),
+    (CName: 'ino_t';     CTypesName: culong_STR;  PascalName: 'PtrUInt'),
+    (CName: 'pid_t';     CTypesName: cint_STR;    PascalName: 'longint'),
+    (CName: 'uid_t';     CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'gid_t';     CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'mode_t';    CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'socklen_t'; CTypesName: cuint_STR;   PascalName: 'longword'),
+    (CName: 'FILE';      CTypesName: '';          PascalName: '')
+  );
+
+type
+  // A standard C constant, of stdint.h or limits.h, with its Pascal value.
+  TCConstMapping = record
+    CName, PascalValue : string;
+  end;
+
+const
+  MAX_CCONSTMAPPINGS = 37;
+  CConstMappings : array [0..MAX_CCONSTMAPPINGS] of TCConstMapping = (
+    (CName: 'INT8_MIN';    PascalValue: 'Low(ShortInt)'),
+    (CName: 'INT8_MAX';    PascalValue: 'High(ShortInt)'),
+    (CName: 'UINT8_MAX';   PascalValue: 'High(Byte)'),
+    (CName: 'INT16_MIN';   PascalValue: 'Low(SmallInt)'),
+    (CName: 'INT16_MAX';   PascalValue: 'High(SmallInt)'),
+    (CName: 'UINT16_MAX';  PascalValue: 'High(Word)'),
+    (CName: 'INT32_MIN';   PascalValue: 'Low(LongInt)'),
+    (CName: 'INT32_MAX';   PascalValue: 'High(LongInt)'),
+    (CName: 'UINT32_MAX';  PascalValue: 'High(LongWord)'),
+    (CName: 'INT64_MIN';   PascalValue: 'Low(Int64)'),
+    (CName: 'INT64_MAX';   PascalValue: 'High(Int64)'),
+    (CName: 'UINT64_MAX';  PascalValue: 'High(QWord)'),
+    (CName: 'INTMAX_MIN';  PascalValue: 'Low(Int64)'),
+    (CName: 'INTMAX_MAX';  PascalValue: 'High(Int64)'),
+    (CName: 'UINTMAX_MAX'; PascalValue: 'High(QWord)'),
+    (CName: 'SIZE_MAX';    PascalValue: 'High(SizeUInt)'),
+    (CName: 'SSIZE_MAX';   PascalValue: 'High(SizeInt)'),
+    (CName: 'INTPTR_MIN';  PascalValue: 'Low(PtrInt)'),
+    (CName: 'INTPTR_MAX';  PascalValue: 'High(PtrInt)'),
+    (CName: 'UINTPTR_MAX'; PascalValue: 'High(PtrUInt)'),
+    (CName: 'PTRDIFF_MIN'; PascalValue: 'Low(PtrInt)'),
+    (CName: 'PTRDIFF_MAX'; PascalValue: 'High(PtrInt)'),
+    (CName: 'CHAR_BIT';    PascalValue: '8'),
+    (CName: 'SCHAR_MIN';   PascalValue: 'Low(ShortInt)'),
+    (CName: 'SCHAR_MAX';   PascalValue: 'High(ShortInt)'),
+    (CName: 'UCHAR_MAX';   PascalValue: 'High(Byte)'),
+    (CName: 'SHRT_MIN';    PascalValue: 'Low(SmallInt)'),
+    (CName: 'SHRT_MAX';    PascalValue: 'High(SmallInt)'),
+    (CName: 'USHRT_MAX';   PascalValue: 'High(Word)'),
+    (CName: 'INT_MIN';     PascalValue: 'Low(LongInt)'),
+    (CName: 'INT_MAX';     PascalValue: 'High(LongInt)'),
+    (CName: 'UINT_MAX';    PascalValue: 'High(LongWord)'),
+    (CName: 'LONG_MIN';    PascalValue: 'Low(PtrInt)'),
+    (CName: 'LONG_MAX';    PascalValue: 'High(PtrInt)'),
+    (CName: 'ULONG_MAX';   PascalValue: 'High(PtrUInt)'),
+    (CName: 'LLONG_MIN';   PascalValue: 'Low(Int64)'),
+    (CName: 'LLONG_MAX';   PascalValue: 'High(Int64)'),
+    (CName: 'ULLONG_MAX';  PascalValue: 'High(QWord)')
+  );
+
+const
+  MAX_CTYPESARRAY = 26;
   CTypesArray : array [0..MAX_CTYPESARRAY] of string =
   (cint8_STR,     cuint8_STR,
     cchar_STR,     cschar_STR,     cuchar_STR,
@@ -150,7 +259,8 @@ const
     clonglong_STR, cslonglong_STR, culonglong_STR,
 
     cbool_STR,
-    clong_STR,      cslong_STR,    culong_STR);
+    clong_STR,      cslong_STR,    culong_STR,
+    csize_t_STR);
 
 
 

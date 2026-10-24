@@ -47,10 +47,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 Uses
-  System.SysUtils, UnixApi.Types, System.InitC;
+  System.SysUtils, System.SysConst, UnixApi.Types, System.InitC;
 {$ELSE FPC_DOTTEDUNITS}
 Uses
-  SysUtils, unixtype, initc;
+  SysUtils, sysconst, unixtype, initc;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
@@ -109,6 +109,26 @@ function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; externa
 
 function nl_langinfo(__item: cint):PAnsiChar;cdecl;external clib name 'nl_langinfo';
 
+{$if defined(linux) or defined(darwin) or defined(freebsd) or defined(netbsd) or defined(openbsd) or defined(dragonfly)}
+  {$define HAS_NEWLOCALE}
+{$endif}
+
+{$ifdef HAS_NEWLOCALE}
+type
+  TLocale_t = pointer;
+
+const
+{$ifdef linux}
+  LC_ALL_MASK = $1FBF;
+{$else}
+  LC_ALL_MASK = $3F;
+{$endif}
+
+function newlocale(category_mask: cint; locale: PAnsiChar; base: TLocale_t): TLocale_t; cdecl; external clib name 'newlocale';
+function uselocale(newloc: TLocale_t): TLocale_t; cdecl; external clib name 'uselocale';
+procedure freelocale(locobj: TLocale_t); cdecl; external clib name 'freelocale';
+{$endif HAS_NEWLOCALE}
+
 procedure GetFormatSettings(out fmts: TFormatSettings);
 
   function GetLocaleStr(item: cint): string;
@@ -119,6 +139,63 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
   function GetLocaleChar(item: cint): AnsiChar;
   begin
     GetLocaleChar := nl_langinfo(item)^;
+  end;
+
+  { Return the separator in aStr: an ASCII character as is, a UTF-8 encoded
+    space or punctuation variant as its ASCII form, a lone byte of a single-byte
+    code page as is, aDef otherwise. }
+  function LocaleSepChar(const aStr: AnsiString; aDef: AnsiChar): AnsiChar;
+  var
+    lLen, lIndex: Integer;
+    lCode: Cardinal;
+  begin
+    Result:=aDef;
+    if aStr='' then
+      exit;
+    if Ord(aStr[1])<$80 then
+      exit(aStr[1]);
+    case Ord(aStr[1]) of
+      $C0..$DF:
+        begin
+        lLen:=2;
+        lCode:=Ord(aStr[1]) and $1F;
+        end;
+      $E0..$EF:
+        begin
+        lLen:=3;
+        lCode:=Ord(aStr[1]) and $0F;
+        end;
+      $F0..$F7:
+        begin
+        lLen:=4;
+        lCode:=Ord(aStr[1]) and $07;
+        end;
+    else
+      lLen:=0;
+      lCode:=0;
+    end;
+    if (lLen=0) or (Length(aStr)<lLen) then
+      begin
+      if Length(aStr)=1 then
+        Result:=aStr[1];
+      exit;
+      end;
+    for lIndex:=2 to lLen do
+      begin
+      if (Ord(aStr[lIndex]) and $C0)<>$80 then
+        exit;
+      lCode:=(lCode shl 6) or (Ord(aStr[lIndex]) and $3F);
+      end;
+    case lCode of
+      $A0, $2009, $202F:
+        Result:=' ';
+      $2019:
+        Result:='''';
+      $066B:
+        Result:='.';
+      $066C:
+        Result:=',';
+    end;
   end;
 
   function SkipModifiers(const s: string; var i: integer): string;
@@ -277,7 +354,6 @@ var
    plocale : plconv;
   {$ENDIF}
 begin
-  setlocale(__LC_ALL,'');
   for i := 1 to 12 do
     begin
     fmts.ShortMonthNames[i]:=GetLocaleStr(ABMON_1+i-1);
@@ -344,7 +420,7 @@ begin
      if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
        fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-     fmts.ThousandSeparator:=plocale^.THOUSANDS_SEP[0];
+     fmts.ThousandSeparator:=LocaleSepChar(plocale^.THOUSANDS_SEP,#0);
   {$else}
    //Currency stuff
   fmts.CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
@@ -364,15 +440,61 @@ begin
   if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
     fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-  fmts.ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
-  Sep := ord(GetLocaleChar(__MON_THOUSANDS_SEP));
+  fmts.ThousandSeparator:=LocaleSepChar(GetLocaleStr(__THOUSANDS_SEP),#0);
   if fmts.ThousandSeparator=#0 then
-    fmts.ThousandSeparator := AnsiChar(Sep);
+    fmts.ThousandSeparator:=LocaleSepChar(GetLocaleStr(__MON_THOUSANDS_SEP),#0);
   {$endif}
-  fmts.DecimalSeparator:=GetLocaleChar(RADIXCHAR);
+  fmts.DecimalSeparator:=LocaleSepChar(GetLocaleStr(RADIXCHAR),fmts.DecimalSeparator);
 end;
 
+{$ifdef HAS_NEWLOCALE}
+// A libc locale for a locale name such as 'pt-BR' or 'pt_BR.UTF-8', or nil if there is none.
+function NewLocaleForName(const aLocale: RTLString): TLocale_t;
+
+var
+  lName: AnsiString;
+
+begin
+  lName:=AnsiString(StringReplace(aLocale,'-','_',[rfReplaceAll]));
+  Result:=nil;
+  if Pos('.',lName)=0 then
+    begin
+    Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName+'.UTF-8'),nil);
+    if Result=nil then
+      Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName+'.utf8'),nil);
+    end;
+  if Result=nil then
+    Result:=newlocale(LC_ALL_MASK,PAnsiChar(lName),nil);
+end;
+
+
+// InitFormatSettingsHook: the format settings of a libc locale, the thread locale is restored afterwards.
+procedure CInitFormatSettings(const aLocale: RTLString; var aSettings: TFormatSettings);
+
+var
+  lLocale, lOldLocale: TLocale_t;
+
+begin
+  lLocale:=NewLocaleForName(aLocale);
+  if lLocale=nil then
+    raise EArgumentException.CreateFmt(SUnknownLocaleName,[aLocale]);
+  aSettings:=TFormatSettings.Invariant;
+  lOldLocale:=uselocale(lLocale);
+  try
+    GetFormatSettings(aSettings);
+  finally
+    uselocale(lOldLocale);
+    freelocale(lLocale);
+  end;
+end;
+{$endif HAS_NEWLOCALE}
+
+
 initialization
+  setlocale(__LC_ALL,'');
   GetFormatSettings(DefaultFormatSettings);
+{$ifdef HAS_NEWLOCALE}
+  InitFormatSettingsHook:=@CInitFormatSettings;
+{$endif HAS_NEWLOCALE}
 
 end.

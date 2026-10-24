@@ -52,9 +52,10 @@
 var
   ThreadsInited: boolean = false;
 const
-  // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
-   (-20,-19,-10,0,9,18,19);
+   (-15,-10,-5,0,5,10,15);
+  { flag in TThread.FWaitState, set when a FreeOnTerminate thread has finished }
+  WaitStateDone = $40000000;
 
 
 procedure DoneThreads;
@@ -129,10 +130,18 @@ begin
   Result := LThread.FReturnValue;
   WRITE_DEBUG('Result is ',Result);
   LFreeOnTerminate := LThread.FreeOnTerminate;
-  LThread.DoTerminate;
+  if not ThreadDoTerminate(LThread) then
+    begin
+      { destroyed by its OnTerminate handler, nobody joins this thread }
+      EndThread(Result);
+      exit;
+    end;
   LThread.FFinished := True;
   if LFreeOnTerminate then
     begin
+      { threads in WaitFor join this thread and free the object }
+      if InterlockedExchangeAdd(LThread.FWaitState,WaitStateDone)<>0 then
+        exit;
       WRITE_DEBUG('Thread ',ptruint(lthread),' should be freed');
       LThread.Free;
       WRITE_DEBUG('Thread freed');
@@ -174,7 +183,9 @@ begin
       RtlEventDestroy(FSuspendEvent);
       exit;
     end;
-  if (FThreadID = GetCurrentThreadID) then
+  if FInOnTerminate then
+    ReleaseTerminateInfo
+  else if (FThreadID = GetCurrentThreadID) then
     begin
       if not(FFreeOnTerminate) and not FFinished then
         raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
@@ -253,6 +264,9 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',ptruint(FHandle));
+  { a FreeOnTerminate thread that finished without waiters has freed itself }
+  if InterlockedIncrement(FWaitState)=WaitStateDone+1 then
+    exit(0);
   If (MainThreadID=GetCurrentThreadID) then
     {
      FFinished is set after DoTerminate, which does a synchronize of OnTerminate,
@@ -265,14 +279,27 @@ begin
   { should actually check for errors in WaitForThreadTerminate, but no }
   { error api is defined for that function                             }
   FThreadReaped:=true;
+  { the last waiter frees a FreeOnTerminate thread that finished during the wait }
+  if (InterlockedDecrement(FWaitState)=WaitStateDone) and FFreeOnTerminate then
+    Free;
   WRITE_DEBUG('thread terminated');
 end;
 
 procedure TThread.CallOnTerminate;
+var
+  lInfo: PTerminateInfo;
 begin
   // no need to check if FOnTerminate <> nil, because
   // thats already done in DoTerminate
-  FOnTerminate(self);
+  lInfo:=FTerminateInfo;
+  FInOnTerminate:=Assigned(lInfo);
+  try
+    FOnTerminate(self);
+  finally
+    { Self is invalid if the handler destroyed it }
+    if not (Assigned(lInfo) and lInfo^.Freed) then
+      FInOnTerminate:=False;
+  end;
 end;
 
 procedure TThread.DoTerminate;
@@ -288,8 +315,9 @@ var
 begin
   P := ThreadGetPriority(FHandle);
   Result := tpNormal;
+  { nearest priority level }
   for I := Low(TThreadPriority) to High(TThreadPriority) do
-    if Priorities[I] = P then
+    if Abs(Priorities[I] - P) < Abs(Priorities[Result] - P) then
       Result := I;
 end;
 

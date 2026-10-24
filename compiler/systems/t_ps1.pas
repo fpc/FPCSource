@@ -64,7 +64,7 @@ end;
 
 procedure TLinkerPS1.SetDefaultInfo;
 begin
-  info.ExeCmd[1]:= 'ld $OPT $MAP $RES';
+  info.ExeCmd[1]:= 'ld $MAP $RES $OPT';
 end;
 
 
@@ -76,6 +76,7 @@ Var
     megastr : ansistring;
     newname : ansistring;
     HPath    : TCmdStrListItem;
+    isgroup : boolean;
 
 begin
 
@@ -88,7 +89,7 @@ begin
     LinkRes.Add('ram (rwx) : ORIGIN = 0x80010000, LENGTH = 2M - 64K');
     LinkRes.Add('}');
     LinkRes.Add('ENTRY(_start)');
-
+    LinkRes.Add('');
 
     HPath:= TCmdStrListItem(LibrarySearchPath.First);
     while assigned(HPath) do begin
@@ -99,11 +100,31 @@ begin
       HPath:= TCmdStrListItem(HPath.Next);
     end;
 
+    LinkRes.Add('');
 
     while not ObjectFiles.Empty do begin
-        LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');
+        s:= ExtractFileName(ObjectFiles.GetFirst);
+        if s <> '' then LinkRes.Add('INPUT(' + s + ')');
+    end;
+
+    
+    isgroup:= not StaticLibFiles.Empty;
+    if isgroup then begin
+      LinkRes.Add('');
+      LinkRes.Add('GROUP(');
     end;
     
+    while not StaticLibFiles.Empty do begin
+      s:= ExtractFileName(StaticLibFiles.GetFirst);
+      if s <> '' then LinkRes.Add('       ' + s);
+    end;
+
+    if isgroup then begin
+      LinkRes.Add(')');
+      LinkRes.Add('');
+    end;
+    
+
     LinkRes.Add('SECTIONS');
     LinkRes.Add('{');
     LinkRes.Add('   . = ORIGIN(ram);');
@@ -337,6 +358,8 @@ begin
     Replace(cmdstr, '$MAP', mapstr);
 
     if cs_link_smart in current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
+
+    cmdstr:= cmdstr + ' --no-warn-mismatch';
 
     success:= DoExec(FindUtil(utilsprefix + BinStr), cmdstr + ' -o ' + current_module.exefilename + '.elf', true, false);
     if not success then begin

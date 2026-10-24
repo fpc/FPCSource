@@ -62,7 +62,7 @@ unit cgcpu;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
-        procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); override;
+        procedure g_check_for_fpu_exception(list : TAsmList; force, clear, preserve_flags: boolean); override;
 
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
@@ -1773,9 +1773,9 @@ unit cgcpu;
        end;
 
 
-    procedure tbasecgarm.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+    procedure tbasecgarm.g_check_for_fpu_exception(list: TAsmList;force,clear,preserve_flags : boolean);
       var
-        r : TRegister;
+        r,rf : TRegister;
         ai: taicpu;
         l: TAsmLabel;
       begin
@@ -1785,6 +1785,11 @@ unit cgcpu;
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
+            if preserve_flags then
+              begin
+                rf:=getintregister(list,OS_INT);
+                list.concat(taicpu.op_reg_reg(A_MOV,rf,r));
+              end;
             list.concat(setoppostfix(taicpu.op_reg_reg_const(A_AND,r,r,$9f),PF_S));
             current_asmdata.getjumplabel(l);
             ai:=taicpu.op_sym(A_B,l);
@@ -1795,6 +1800,8 @@ unit cgcpu;
             cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
+            if preserve_flags then
+              list.concat(taicpu.op_reg_reg(A_MSR,NR_APSR_nzcvq,rf));
             if clear then
               current_procinfo.FPUExceptionCheckNeeded:=false;
           end;

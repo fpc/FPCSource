@@ -1090,15 +1090,17 @@ var
   S : Sw_String;
   K : pointer;
   Value : Sw_integer;
+  WasMouseClick : Boolean;
+  CurFocused : Sw_Integer;
 begin
-  if (Event.What = evMouseDown) and (Event.Double) then
+  WasMouseClick:=false;
+  if (Event.What=evMouseDown) and (Event.Double=false) then
   begin
-    Event.What := evCommand;
-    Event.Command := cmOK;
-    PutEvent(Event);
-    ClearEvent(Event);
-  end
-  else if (Event.What = evKeyDown) and (Event.CharCode='<') then
+    if (State and sfFocused = 0) then
+      WasMouseClick:=true; {Mark mouse click when not in focus}
+    CurFocused:=Focused;
+  end;
+  if (Event.What = evKeyDown) and (Event.CharCode='<') then
   begin
     { select '..' }
       S := '..';
@@ -1107,6 +1109,11 @@ begin
         FocusItem(Value);
   end
   else TSortedListBox.HandleEvent(Event);
+
+  { report first click on already focused item }
+  if WasMouseClick and (CurFocused=Focused)  then
+     if (List^.Count > 0) and (Focused<Range) then
+       Message(Owner, evBroadcast, cmFileFocused, List^.At(Focused));
 end;
 
 procedure TFileList.ReadDirectory(AWildCard: PathStr);
@@ -1531,6 +1538,8 @@ begin
     R.Intersect(P);
     Dec(R.B.Y,1);
     HistoryWindow := InitHistoryWindow(R);
+    if Assigned(Link) then
+      HistoryWindow^.GrowMode := Link^.GrowMode;
     if HistoryWindow <> nil then
     begin
       C := Owner^.ExecView(HistoryWindow);
@@ -1638,7 +1647,6 @@ begin
   R.Assign(4+CStrLen(InputName), 13, 31, 14);
   FileName := New(PFileInputLine, Init(R, 79));
   FileName^.GrowMode := gfGrowHiX or gfGrowLoY or gfGrowHiY;
-  FileName^.Data Sw_PString_DeRef := WildCard;
   Insert(FileName);
 
   R.Assign(2,13,3+CStrLen(InputName),14);
@@ -1702,6 +1710,7 @@ begin
   SelectNext(False);
 
   if AOptions and fdNoLoadDir = 0 then ReadDirectory;
+  FileName^.Data Sw_PString_DeRef := WildCard;
 end;
 
 constructor TFileDialog.Load(var S: TStream);

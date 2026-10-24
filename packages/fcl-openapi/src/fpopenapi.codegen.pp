@@ -74,6 +74,7 @@ type
     FAsyncService: boolean;
     FBaseOutputFileName: string;
     FClientParentClass: String;
+    FConvertUTC: boolean;
     FDelphiCode: boolean;
     FGenerateClient: boolean;
     FGenerateServer: boolean;
@@ -90,15 +91,19 @@ type
     FServiceNamePrefix: String;
     FServiceNameSuffix: String;
     FSkipServerServiceImplementationModule: Boolean;
+    FNoObjectOwnership: Boolean;
+    FTrackChanges: Boolean;
     FUnitExtension: String;
     FUnitSuffix: String;
     FUseEnums: boolean;
+    FUseProperties: Boolean;
     FUUIDMap: TStrings;
     FTypeAliases: TStrings;
     FVerboseHeader: boolean;
     FUnitNames : Array [TUnitKind] of string;
     procedure CleanMaps;
     function GetBaseOutputUnitName: string;
+    function GetUseProperties: Boolean;
     function GetServerProxyModuleName: String;
     function GetServerProxyModuleParentUnit: String;
     function GetUnitName(AIndex: TUnitKind): String;
@@ -110,7 +115,6 @@ type
     procedure DoLog(const aType: TEventType; const aFmt: string; aArgs: array of const);
     function ResolveUnit(aKind: TUnitKind; FullPath : Boolean = False): String;
     procedure Configure(aCodegen: TJSONSchemaCodeGenerator); virtual;
-    function CreateAPIData(aAPI: TOpenAPI): TAPIData; virtual;
 
     procedure GenerateRecordDefs(aData: TAPIData); virtual;
     procedure GenerateSerializerDefs(aData: TAPIData); virtual;
@@ -122,6 +126,8 @@ type
     procedure GetUUIDMap(aData: TAPIData);
     procedure PrepareAPIData(aData: TAPIData); virtual;
   public
+    // Create API data structure from OpenAPI. Caller is responsible for freeing.
+    function CreateAPIData(aAPI: TOpenAPI): TAPIData; virtual;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // Called during create, use to reset.
@@ -152,6 +158,14 @@ type
     property ServiceMap: TStrings read FServiceMap;
     // Generate Dto/Serializer code compilable with Delphi
     property DelphiCode: boolean read FDelphiCode write FDelphiCode;
+    // Convert date-time values between UTC in JSON and local time in Pascal (date-only values are not converted)
+    property ConvertUTC: boolean read FConvertUTC write FConvertUTC;
+    // Dto classes expose their members as properties with private fields. Implied by TrackChanges.
+    property UseProperties: Boolean read GetUseProperties write FUseProperties;
+    // Dto classes record assigned properties; only those are serialized.
+    property TrackChanges: Boolean read FTrackChanges write FTrackChanges;
+    // Dto classes do not free the objects and object arrays in their properties.
+    property NoObjectOwnership: Boolean read FNoObjectOwnership write FNoObjectOwnership;
     // Write command-line options into header
     property VerboseHeader: boolean read FVerboseHeader write FVerboseHeader;
     // User enumerateds (default is to use string)
@@ -250,6 +264,10 @@ Const
   KeyServerProxyUseServiceInterface = 'ServerProxyModuleUseInterface';
   KeyServerProxyFormFile            = 'ServerProxyFormFile';
   KeyServerProxyUnit                = 'ServerProxyUnit' ;
+  KeyConvertUTC                     = 'ConvertUTC';
+  KeyUseProperties                  = 'UseProperties';
+  KeyTrackChanges                   = 'TrackChanges';
+  KeyNoObjectOwnership              = 'NoObjectOwnership';
 
 { TOpenAPICodeGen }
 
@@ -338,6 +356,10 @@ begin
     ServerProxyUseServiceInterface:=ReadBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
     ServerProxyUnit:=ReadString(lSection,KeyServerProxyUnit,ServerProxyUnit);
     ServerProxyFormFile:=ReadBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
+    ConvertUTC:=ReadBool(lSection,KeyConvertUTC,ConvertUTC);
+    UseProperties:=ReadBool(lSection,KeyUseProperties,FUseProperties);
+    TrackChanges:=ReadBool(lSection,KeyTrackChanges,TrackChanges);
+    NoObjectOwnership:=ReadBool(lSection,KeyNoObjectOwnership,NoObjectOwnership);
     end;
 end;
 
@@ -390,6 +412,10 @@ begin
     WriteBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
     WriteBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
     WriteBool(lSection,KeyGenerateServerProxyModule, GenerateServerProxyModule);
+    WriteBool(lSection,KeyConvertUTC,ConvertUTC);
+    WriteBool(lSection,KeyUseProperties,FUseProperties);
+    WriteBool(lSection,KeyTrackChanges,TrackChanges);
+    WriteBool(lSection,KeyNoObjectOwnership,NoObjectOwnership);
     end;
 
 end;
@@ -441,6 +467,13 @@ begin
     Result := BaseOutputUnitName + GetUnitSuffix(aKind);
   if FullPath then
     Result:=ExtractFilePath(BaseOutputFileName)+Result+UnitExtension;
+end;
+
+
+function TOpenAPICodeGen.GetUseProperties: Boolean;
+
+begin
+  Result:=FUseProperties or FTrackChanges;
 end;
 
 
@@ -631,8 +664,16 @@ begin
   acodegen.DelphiCode := Self.DelphiCode;
   acodegen.VerboseHeader := Self.VerboseHeader;
   acodegen.WriteClassType := True;
+  acodegen.UseProperties := Self.UseProperties;
+  acodegen.TrackChanges := Self.TrackChanges;
+  acodegen.NoObjectOwnership := Self.NoObjectOwnership;
   if acodegen is TOpenAPIServiceCodeGen then
-    TOpenAPIServiceCodeGen(aCodegen).AsyncService:=Self.AsyncService
+    TOpenAPIServiceCodeGen(aCodegen).AsyncService:=Self.AsyncService;
+  if acodegen is TSerializerCodeGenerator then
+    begin
+    TSerializerCodeGenerator(aCodegen).ConvertUTC:=Self.ConvertUTC;
+    TSerializerCodeGenerator(aCodegen).SkipReadOnly:=GenerateClient and not GenerateServer;
+    end;
 end;
 
 

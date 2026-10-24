@@ -20,6 +20,10 @@ interface
 
 {$i crth.inc}
 
+var
+  ScreenHeight: Longint = 25;
+  ScreenWidth : Longint = 80;
+
 procedure SetSafeCPSwitching(Switching:Boolean);
 procedure SetUseACP(ACP:Boolean);
 procedure Window32(X1,Y1,X2,Y2: DWord);
@@ -53,6 +57,8 @@ var
                                   will only be set on Initialization and
                                   Finalization *)
     OriginalConsoleOutputCP : Word;
+    FullConsoleWindow : Boolean; (* True until Window is called: the CRT
+                                    window follows the console viewport. *)
 
 
 {****************************************************************************
@@ -206,6 +212,7 @@ Begin
   if (X1 > X2) or (X2 > GetScreenWidth) or
     (Y1 > Y2) or (Y2 > GetScreenHeight) then
     exit;
+  FullConsoleWindow := False;
   WindMinY := Y1;
   WindMaxY := Y2;
   WindMinX := X1;
@@ -713,6 +720,59 @@ end;
 
 var
   CurrX, CurrY : DWord;
+  { DBCS lead byte at the end of the previous CrtWrite buffer }
+  PendingLeadByte : string[1];
+
+// Scrolls the output up one line and adjusts CurrY; in the full console window the top line moves into the scrollback
+procedure ScrollOutputUp;
+
+var
+  lHandle: THandle;
+  lInfo: TConsoleScreenBufferInfo;
+  lRect, lClip: TSmallRect;
+  lDest: TCoord;
+  lFill: TCharInfo;
+begin
+  lHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
+  FillChar(lInfo,SizeOf(lInfo),0);
+  if not FullConsoleWindow or (WindMinX<>1)
+     or not GetConsoleScreenBufferInfo(lHandle,lInfo)
+     or (WindMaxX<>DWord(lInfo.dwSize.X)) then
+    begin
+      RemoveLine(1);
+      Dec(CurrY);
+      Exit;
+    end;
+  if WindMaxY<DWord(lInfo.dwSize.Y) then
+    begin
+      { move the viewport one line down the buffer }
+      lRect:=lInfo.srWindow;
+      lRect.Top:=WindMinY;
+      lRect.Bottom:=WindMaxY;
+      if SetConsoleWindowInfo(lHandle,True,lRect) then
+        begin
+          Inc(WindMinY);
+          Inc(WindMaxY);
+          WindMin:=((WindMinY-1) Shl 8)+(WindMinX-1);
+          WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
+          Exit;
+        end;
+    end;
+  { scroll the buffer from row 0 down to the bottom of the window }
+  lRect.Left:=0;
+  lRect.Top:=1;
+  lRect.Right:=lInfo.dwSize.X-1;
+  lRect.Bottom:=WindMaxY-1;
+  lClip:=lRect;
+  lClip.Top:=0;
+  lDest.X:=0;
+  lDest.Y:=0;
+  lFill.UnicodeChar:=#32;
+  lFill.Attributes:=TextAttr;
+  ScrollConsoleScreenBuffer(lHandle,lRect,lClip,lDest,lFill);
+  Dec(CurrY);
+end;
+
 
 procedure WriteChar(c : AnsiChar);
 var
@@ -751,42 +811,46 @@ begin
     CurrX := WindMinX;
     Inc(CurrY);
   end; { if }
-  While CurrY > WindMaxY do begin
-    RemoveLine(1);
-    Dec(CurrY);
-  end; { while }
+  While CurrY > WindMaxY do
+    ScrollOutputUp;
 end;
 
 
-procedure WriteStr(const s: shortstring);
+// Writes s at the cursor; a DBCS lead and trail byte in aCodePage are written together into 2 cells
+procedure WriteStr(const s: shortstring; aCodePage: UINT);
+
+  procedure NextLine;
+  begin
+    CurrX:=WindMinX;
+    Inc(CurrY);
+    While CurrY>WindMaxY do
+      ScrollOutputUp;
+  end;
+
 var
   WritePos: Coord; { Upper-left cell to write from }
   numWritten : DWord;
-  WinAttr : word;
-  i: integer;
+  WinAttr : array[0..1] of word;
+  i, lLen: integer;
 begin
-  WritePos.X:=currX-2;
-  WritePos.Y:=currY-1;
-
-  WinAttr:=TextAttr;
-  for i:=1 to Length(s) do
+  WinAttr[0]:=TextAttr;
+  WinAttr[1]:=TextAttr;
+  i:=1;
+  while i<=Length(s) do
     begin
-      Inc(WritePos.X);
-      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], 1, writePos, numWritten);
-      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, 1, writePos, numWritten);
-      Inc(CurrX);
+      lLen:=1;
+      if (i<Length(s)) and IsDBCSLeadByteEx(aCodePage,Byte(s[i])) then
+        lLen:=2;
+      if CurrX+lLen-1>WindMaxX then
+        NextLine;
+      WritePos.X:=currX-1;
+      WritePos.Y:=currY-1;
+      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], lLen, writePos, numWritten);
+      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, lLen, writePos, numWritten);
+      Inc(CurrX,lLen);
+      Inc(i,lLen);
       if CurrX>WindMaxX then
-        begin
-          CurrX:=WindMinX;
-          Inc(CurrY);
-          While CurrY>WindMaxY do
-            begin
-              RemoveLine(1);
-              Dec(CurrY);
-            end;
-          WritePos.X:=currX-2;
-          WritePos.Y:=currY-1;
-        end;
+        NextLine;
     end;
 end;
 
@@ -796,6 +860,8 @@ var
   i : longint;
   s : shortstring;
   OldConsoleOutputCP : Word;
+  lCodePage : UINT;
+  lTrail : boolean;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
     begin
@@ -804,28 +870,39 @@ begin
     end;
 
   GetScreenCursor(CurrX, CurrY);
-  s:='';
+  lCodePage:=GetConsoleOutputCP;
+  s:=PendingLeadByte;
+  lTrail:=s<>'';
+  PendingLeadByte:='';
   for i:=0 to f.bufpos-1 do
     if f.buffer[i] in [#7,#8,#10,#13] then // special chars directly.
       begin
         if s<>'' then
           begin
-            WriteStr(s);
+            WriteStr(s,lCodePage);
  	    s:='';
           end;
+        lTrail:=false;
         WriteChar(f.buffer[i]);
       end
     else
       begin
-        if length(s)=255 then
+        { a trail byte stays with its lead byte }
+        if (length(s)>=254) and not lTrail then
           begin
-            WriteStr(s);
+            WriteStr(s,lCodePage);
             s:='';
           end;
         s:=s+f.buffer[i];
+        lTrail:=not lTrail and IsDBCSLeadByteEx(lCodePage,Byte(f.buffer[i]));
       end;
+  if lTrail then
+    begin
+      PendingLeadByte:=s[length(s)];
+      SetLength(s,length(s)-1);
+    end;
   if s<>'' then
-    WriteStr(s);
+    WriteStr(s,lCodePage);
   SetScreenCursor(CurrX, CurrY);
 
   if SafeCPSwitching and UseACP then     //restore codepage on every write if set previously
@@ -1063,6 +1140,9 @@ Initialization
   WindMaxX := (ConsoleInfo.srWindow.Right) + 1;
   WindMaxY := (ConsoleInfo.srWindow.Bottom) + 1;
   WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
+  FullConsoleWindow := True;
+  ScreenWidth := ConsoleInfo.dwSize.X;
+  ScreenHeight := ConsoleInfo.dwSize.Y;
 
   DoingNumChars := false;
   DoingNumCode := 0;

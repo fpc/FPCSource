@@ -260,25 +260,29 @@ unit ncpuinl;
         r : tregister;
         checkpointer_used : boolean;
       begin
-        { do not call Checkpointer for left node }
-        checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
-        if checkpointer_used then
-          node_change_local_switch(left,cs_checkpointer,false);
-        secondpass(left);
-        if checkpointer_used then
-          node_change_local_switch(left,cs_checkpointer,false);
-       case left.location.loc of
-         LOC_CREFERENCE,
-         LOC_REFERENCE:
-           begin
-             r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-             reference_reset_base(ref,r,0,location.reference.temppos,left.location.reference.alignment,location.reference.volatility);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_DPFR,ref.base,ref.offset));
-           end;
-         else
-           { nothing to prefetch };
-       end;
+        { Only generate prefetch instructions if the data cache option is supported }
+        if CPUXTENSA_HAS_DATACACHE in cpu_capabilities[current_settings.cputype] then
+          begin
+            { do not call Checkpointer for left node }
+            checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+            if checkpointer_used then
+              node_change_local_switch(left,cs_checkpointer,false);
+            secondpass(left);
+            if checkpointer_used then
+              node_change_local_switch(left,cs_checkpointer,false);
+            case left.location.loc of
+              LOC_CREFERENCE,
+              LOC_REFERENCE:
+                begin
+                  r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+                  reference_reset_base(ref,r,0,location.reference.temppos,left.location.reference.alignment,location.reference.volatility);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_DPFR,ref.base,ref.offset));
+                end;
+              else
+                { nothing to prefetch };
+            end;
+          end;
       end;
 
 

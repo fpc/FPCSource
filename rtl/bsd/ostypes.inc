@@ -504,6 +504,22 @@ type
 // #define      ru_last         ru_nivcsw
 // #define      ru_first        ru_ixrss
 
+  { setitimer/getitimer; ptypes.inc of some BSDs already declares ITimerVal }
+{$if not declared(ITimerVal)}
+  itimerval = record
+    it_interval : timeval;      { period, 0 for a one-shot timer }
+    it_value    : timeval;      { time until the next expiration, 0 disarms }
+  end;
+{$endif}
+  TItimerVal = ITimerVal;
+  PItimerVal = ^ITimerVal;
+
+const
+  ITIMER_REAL    = 0;           { real time, SIGALRM }
+  ITIMER_VIRTUAL = 1;           { process user time, SIGVTALRM }
+  ITIMER_PROF    = 2;           { process user and system time, SIGPROF }
+{$define FPC_HAS_ITIMER}
+
 
 Const
   S_IFMT  = &170000;

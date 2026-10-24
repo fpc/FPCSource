@@ -383,6 +383,12 @@ begin
                             move(ParamBuffers[i].buffer^,s[1],length(s)+1);
                             AsString:=s;
                             end;
+        ftWideString,
+        ftFixedWideChar   : begin
+                            SetLength(s,ParamBuffers[i].Len);
+                            move(ParamBuffers[i].buffer^,s[1],length(s)+1);
+                            AsUnicodeString:=UnicodeString(s);
+                            end;
         ftDate, ftDateTime: begin
                             OCIDateTimeGetDate(FOciUserSession, FOciError, ParamBuffers[i].buffer, @odt.year, @odt.month, @odt.day);
                             OCIDateTimeGetTime(FOciUserSession, FOciError, ParamBuffers[i].buffer, @odt.hour, @odt.min, @odt.sec, @odt.fsec);
@@ -660,7 +666,7 @@ begin
             begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
           ftDate, ftDateTime :
             begin OFieldType := SQLT_TIMESTAMP; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_TIMESTAMP; end;
-          ftFixedChar, ftString :
+          ftFixedChar, ftString, ftFixedWideChar, ftWideString :
             begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
           ftFMTBcd, ftBCD :
             begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
@@ -712,6 +718,7 @@ procedure TOracleConnection.SetParameters(cursor : TSQLCursor; ATransaction : TS
 var i         : integer;
     year, month, day, hour, min, sec, msec : word;
     s         : string;
+    rs        : RawByteString;
     LobBuffer : TBytes;
     LobLength : ub4;
 
@@ -730,6 +737,12 @@ begin
         ftFixedChar       : begin
                             s := asString+#0;
                             move(s[1],parambuffers[i].buffer^,length(s)+1);
+                            end;
+        ftWideString,
+        ftFixedWideChar   : begin
+                            // Convert to the connection character set, not the system code page
+                            rs := Self.GetAsString(AParams[i])+#0;
+                            move(rs[1],parambuffers[i].buffer^,length(rs)+1);
                             end;
         ftDate, ftDateTime: begin
                             DecodeDate(asDateTime,year,month,day);

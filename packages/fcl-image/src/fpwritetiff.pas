@@ -29,7 +29,6 @@
    fillorder - not needed by baseline tiff reader
    bigtiff 64bit offsets
    endian - currently using system endianess
-   orientation with rotation
 
    2023-07  - Massimo Magnano
             - added Resolution support
@@ -116,9 +115,14 @@ type
     procedure AddEntry(Entry: TTiffWriterEntry);
     procedure TiffError(Msg: string);
     procedure EncodeDeflate(var Buffer: Pointer; var Count: DWord);
+    procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); override;
+    procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     constructor Create; override;
     destructor Destroy; override;
+    // Returns the kinds of frames a TIFF holds several of: pages and thumbnails or masks.
+    class function FrameKinds: TFPFrameKinds; override;
     procedure Clear;
     procedure AddImage(Img: TFPCustomImage);
     procedure SaveToStream(Stream: TStream);
@@ -273,24 +277,13 @@ end;
 
 procedure TFPWriterTiff.SortEntries;
 var
-  i, j: Integer;
-  Entry: TTiffWriterEntry;
+  i: Integer;
   List: TFPList;
 begin
   // Sort Entries by Tag Value Ascending
   for i:= 0 to FEntries.Count-1 do begin
     List := TFPList(FEntries[i]);
-    j := 0;
-    repeat
-        if TTiffWriterEntry(List[j]).Tag > TTiffWriterEntry(List[j+1]).Tag then begin
-          Entry := TTiffWriterEntry(List[j+1]);
-          List[j] := List[j+1];
-          List[j+1] := Entry;
-          j := 0;
-        end
-        else
-            j := j+1;
-    until j >= List.Count-2;
+    List.Sort(@CompareTiffWriteEntries);
   end;
 end;
 
@@ -430,8 +423,7 @@ var
   CurEntries: TFPList;
   Shorts: array[0..3] of Word;
   NewSubFileType: DWord;
-  cx,cy,x,y,sx: DWord;
-  dx,dy: integer;
+  cx,cy,x,y,c,r: integer;
   ChunkBytesPerLine: DWord;
 
   procedure WriteResolutionValues;
@@ -441,10 +433,6 @@ var
        IFD.XResolution.Denominator :=1000;
        IFD.YResolution.Numerator :=Trunc(Img.ResolutionY*1000);
        IFD.YResolution.Denominator :=1000;
-
-       Img.Extra[TiffResolutionUnit]:=IntToStr(IFD.ResolutionUnit);
-       Img.Extra[TiffXResolution]:=TiffRationalToStr(IFD.XResolution);
-       Img.Extra[TiffYResolution]:=TiffRationalToStr(IFD.YResolution);
   end;
 
 begin
@@ -544,8 +532,8 @@ begin
     {$ENDIF}
 
     // required meta entries
-    AddEntryShortOrLong(256,ImgWidth);
-    AddEntryShortOrLong(257,ImgHeight);
+    AddEntryShortOrLong(256,OrientedWidth);
+    AddEntryShortOrLong(257,OrientedHeight);
     AddEntryShort(259,Compression);
     AddEntryShort(262,IFD.PhotoMetricInterpretation);
     AddEntryShort(274,IFD.Orientation);
@@ -604,6 +592,10 @@ begin
       AddEntryString(285,IFD.PageName);
     if IFD.Copyright<>'' then
       AddEntryString(33432,IFD.Copyright);
+    if Length(IFD.XMP)>0 then
+      AddEntry(700,1,Length(IFD.XMP),@IFD.XMP[0],Length(IFD.XMP));
+    if Length(IFD.ICCProfile)>0 then
+      AddEntry(34675,7,Length(IFD.ICCProfile),@IFD.ICCProfile[0],Length(IFD.ICCProfile));
 
     // chunks
     ChunkType:=tctStrip;
@@ -661,44 +653,39 @@ begin
           ChunkBytes:=ChunkBytesPerLine*ChunkHeight;
         end;
         GetMem(Chunk,ChunkBytes);
+        ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;
+        ChunkOffsets.Chunks[ChunkIndex].Bytes:=ChunkBytes;
         FillByte(Chunk^,ChunkBytes,0); // fill unused bytes with 0 to help compression
 
-        // Orientation
-        if IFD.Orientation in [1..4] then begin
-          x:=ChunkLeft; y:=ChunkTop;
-          case IFD.Orientation of
-          1: begin dx:=1; dy:=1; end;// 0,0 is left, top
-          2: begin x:=OrientedWidth-x-1; dx:=-1; dy:=1; end;// 0,0 is right, top
-          3: begin x:=OrientedWidth-x-1; dx:=-1; y:=OrientedHeight-y-1; dy:=-1; end;// 0,0 is right, bottom
-          4: begin dx:=1; y:=OrientedHeight-y-1; dy:=-1; end;// 0,0 is left, bottom
-          end;
-        end else begin
-          // rotated
-          x:=ChunkTop; y:=ChunkLeft;
-          case IFD.Orientation of
-          5: begin dx:=1; dy:=1; end;// 0,0 is top, left (rotated)
-          6: begin dx:=1; y:=OrientedWidth-y-1; dy:=-1; end;// 0,0 is top, right (rotated)
-          7: begin x:=OrientedHeight-x-1; dx:=-1; y:=OrientedWidth-y-1; dy:=-1; end;// 0,0 is bottom, right (rotated)
-          8: begin x:=OrientedHeight-x-1; dx:=-1; dy:=1; end;// 0,0 is bottom, left (rotated)
-          end;
-        end;
         //writeln('TFPWriterTiff.AddImage Chunk=',ChunkIndex,'/',ChunkCount,' ChunkBytes=',ChunkBytes,' ChunkRect=',ChunkLeft,',',ChunkTop,',',ChunkWidth,'x',ChunkHeight,' x=',x,' y=',y,' dx=',dx,' dy=',dy);
         // precompute float range for normalization
         MinVal:=FDefaultMinSampleValue;
         MaxVal:=FDefaultMaxSampleValue;
         Range:=MaxVal-MinVal;
 
-        sx:=x; // save start x
+        // the stored pixel at column c, row r of the chunk comes from the image pixel x, y given by Orientation
         for cy:=0 to ChunkHeight-1 do begin
-          x:=sx;
+          r:=ChunkTop+cy;
           Run:=Chunk+cy*ChunkBytesPerLine;
           for cx:=0 to ChunkWidth-1 do begin
+            c:=ChunkLeft+cx;
+            case IFD.Orientation of
+            2: begin x:=OrientedWidth-c-1; y:=r; end;
+            3: begin x:=OrientedWidth-c-1; y:=OrientedHeight-r-1; end;
+            4: begin x:=c; y:=OrientedHeight-r-1; end;
+            5: begin x:=r; y:=c; end;
+            6: begin x:=OrientedHeight-r-1; y:=c; end;
+            7: begin x:=OrientedHeight-r-1; y:=OrientedWidth-c-1; end;
+            8: begin x:=r; y:=OrientedWidth-c-1; end;
+            else
+              begin x:=c; y:=r; end;
+            end;
             Col:=Img.Colors[x,y];
             case IFD.PhotoMetricInterpretation of
             0,1:
               begin
                 // grayscale
-                Value:=(DWord(Col.red)+Col.green+Col.blue) div 3;
+                Value:=CalculateGray(Col);
                 if IFD.PhotoMetricInterpretation=0 then
                   Value:=$ffff-Value;// 0 is white
                 if GrayBits=8 then begin
@@ -797,11 +784,7 @@ begin
                 end;
               end;
             end;
-            // next x
-            inc(x,dx);
           end;
-          // next y
-          inc(y,dy);
         end;
 
         // compress
@@ -836,8 +819,68 @@ end;
 
 procedure TFPWriterTiff.InternalWrite(Stream: TStream; Img: TFPCustomImage);
 begin
-  AddImage(Img);
-  SaveToStream(Stream);
+  Clear;
+  try
+    AddImage(Img);
+    SaveToStream(Stream);
+  finally
+    Clear;
+  end;
+end;
+
+class function TFPWriterTiff.FrameKinds: TFPFrameKinds;
+begin
+  Result:=[fkPage,fkVariant];
+end;
+
+procedure TFPWriterTiff.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+begin
+  Clear;
+end;
+
+procedure TFPWriterTiff.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+var
+  Added: TStringList;
+  i: Integer;
+
+  procedure AddExtra(const aKey, aValue: String);
+  begin
+    if Img.Extra[aKey]<>'' then exit;
+    Img.Extra[aKey]:=aValue;
+    Added.Add(aKey);
+  end;
+
+begin
+  Added:=TStringList.Create;
+  try
+    if aInfo.Name<>'' then
+      AddExtra(TiffPageName,aInfo.Name);
+    case aInfo.Kind of
+      fkVariant:
+        if Img.Extra[TiffIsMask]='' then
+          AddExtra(TiffIsThumbnail,'1');
+      fkPage, fkAnimation:
+        if (FramesInfo.FrameCount>1) and (Img.Extra[TiffPageCount]='') then
+        begin
+          AddExtra(TiffPageNumber,IntToStr(FramesWritten));
+          AddExtra(TiffPageCount,IntToStr(FramesInfo.FrameCount));
+        end;
+    end;
+    AddImage(Img);
+  finally
+    for i:=0 to Added.Count-1 do
+      Img.RemoveExtra(Added[i]);
+    Added.Free;
+  end;
+end;
+
+procedure TFPWriterTiff.InternalEndFrames(Str: TStream);
+begin
+  try
+    SaveToStream(Str);
+  finally
+    Clear;
+  end;
 end;
 
 procedure TFPWriterTiff.AddEntryString(Tag: word; const s: AnsiString);
@@ -904,7 +947,7 @@ end;
 
 procedure TFPWriterTiff.TiffError(Msg: string);
 begin
-  raise Exception.Create('TFPWriterTiff.TiffError: '+Msg);
+  raise FPImageException.Create('TFPWriterTiff.TiffError: '+Msg);
 end;
 
 procedure TFPWriterTiff.EncodeDeflate(var Buffer: Pointer; var Count: DWord);

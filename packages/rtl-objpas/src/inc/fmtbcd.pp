@@ -1280,120 +1280,62 @@ IMPLEMENTATION
 {$endif}
      end;
 
+{ returns True if all digits of bh are zero }
+  function helper_is_zero ( const bh : tBCD_helper ) : Boolean;
+
+    var
+      i : Integer;
+
+    begin
+      helper_is_zero := True;
+      for i := bh.FDig TO bh.LDig do
+        if bh.Singles[i] <> 0
+          then begin
+            helper_is_zero := False;
+            EXIT;
+           end;
+     end;
+
 { returns -1 if BCD1 < BCD2, 0 if BCD1 = BCD2, 1 if BCD1 > BCD2 }
   function BCDCompare ( const BCD1,
                               BCD2 : tBCD ) : Integer;
 
     var
-      pl1 :   {$ifopt r+} 0..maxfmtbcdfractionsize - 1 {$else} Integer {$endif};
-      pl2 :   {$ifopt r+} 0..maxfmtbcdfractionsize - 1 {$else} Integer {$endif};
-      pr1 :   {$ifopt r+} 0..maxfmtbcdfractionsize {$else} Integer {$endif};
-      pr2 :   {$ifopt r+} 0..maxfmtbcdfractionsize {$else} Integer {$endif};
-      pr :    {$ifopt r+} 0..maxfmtbcdfractionsize {$else} Integer {$endif};
-      idig1 : {$ifopt r+} 0..maxfmtbcdfractionsize {$else} Integer {$endif};
-      idig2 : {$ifopt r+} 0..maxfmtbcdfractionsize {$else} Integer {$endif};
-      i :     {$ifopt r+} __low_Fraction..__high_Fraction + 1 {$else} Integer {$endif};
-      f1 :    {$ifopt r+} $00..$99 {$else} Integer {$endif};
-      f2 :    {$ifopt r+} $00..$99 {$else} Integer {$endif};
-      res :   {$ifopt r+} -1..1 {$else} Integer {$endif};
+      bh1,
+      bh2 : tBCD_helper;
+      i,
+      res : Integer;
       neg1,
       neg2 : Boolean;
 
-      // real/reduced precision if there are on left side insignificant zero digits
-      function BCDPrec(const BCD: tBCD): word;
-      var scale: word;
-      begin
-        Result := BCD.Precision;
-        scale := BCDScale(BCD);
-        i := Low(BCD.Fraction);
-        while (Result>0) and (Result>scale) do begin
-          // high nibble
-          if BCD.Fraction[i] shr 4 <> 0 then Exit;
-          Dec(Result);
-          if Result <= scale then Exit;
-          // low nibble
-          if BCD.Fraction[i] <> 0 then Exit;
-          Dec(Result);
-          Inc(i);
-        end;
-      end;
-
     begin
-{$ifndef bigger_BCD}
-      neg1 := ( BCD1.SignSpecialPlaces AND NegBit ) <> 0;
-      neg2 := ( BCD2.SignSpecialPlaces AND NegBit ) <> 0;
-{$else}
-      neg1 := BCD1.Negativ;
-      neg2 := BCD2.Negativ;
-{$endif}
-      _SELECT
-        _WHEN neg1 AND ( NOT neg2 )
-          _THEN result := -1;
-        _WHEN ( NOT neg1 ) AND neg2
-          _THEN result := +1;
-        _WHENOTHER
-          pr1 := BCDPrec(BCD1);
-          pr2 := BCDPrec(BCD2);
-{$ifndef bigger_BCD}
-          pl1 := BCD1.SignSpecialPlaces AND PlacesMask;
-          pl2 := BCD2.SignSpecialPlaces AND PlacesMask;
-{$else}
-          pl1 := BCD1.Places;
-          pl2 := BCD2.Places;
-{$endif}
-          idig1 := pr1 - pl1;
-          idig2 := pr2 - pl2;
-          if idig1 <> idig2
-            then begin
-              if ( idig1 > idig2 ) = neg1
-                then result := -1
-                else result := +1;
-             end
-            else begin
-              if pr1 < pr2
-                then pr := pr1
-                else pr := pr2;
-
-              res := 0;
-              i := __low_Fraction;
-              while ( res = 0 ) AND ( i < ( __low_Fraction + ( pr DIV 2 ) ) ) do
-                begin
-                  _SELECT
-                    _WHEN BCD1.Fraction[i] < BCD2.Fraction[i]
-                      _THEN res := -1
-                    _WHEN BCD1.Fraction[i] > BCD2.Fraction[i]
-                      _THEN res := +1;
-                    _WHENOTHER
-                   _endSELECT;
-                  Inc ( i );
-                 end;
-
-              if res = 0
-                then begin
-                  if Odd ( pr )
-                    then begin
-                      f1 := BCD1.Fraction[i] AND $f0;
-                      f2 := BCD2.Fraction[i] AND $f0;
-                      _SELECT
-                        _WHEN f1 < f2
-                          _THEN res := -1
-                        _WHEN f1 > f2
-                          _THEN res := +1;
-                      _endSELECT;
-                     end;
-
-                  if res = 0 then
-                    if pr1 > pr2 then
-                      res := +1
-                    else if pr1 < pr2 then
-                      res := -1;
-                 end;
-
-              if neg1
-                then result := 0 - res
-                else result := res;
-             end;
-       _endSELECT
+      unpack_BCD ( BCD1, bh1 );
+      unpack_BCD ( BCD2, bh2 );
+      neg1 := bh1.Neg AND NOT helper_is_zero ( bh1 );
+      neg2 := bh2.Neg AND NOT helper_is_zero ( bh2 );
+      if neg1 <> neg2
+        then begin
+          if neg1
+            then BCDCompare := -1
+            else BCDCompare := +1;
+          EXIT;
+         end;
+      { digits are aligned on the decimal point, missing digits are 0 }
+      res := 0;
+      i := bh1.FDig;
+      if bh2.FDig < i
+        then i := bh2.FDig;
+      while ( res = 0 ) AND ( ( i <= bh1.LDig ) OR ( i <= bh2.LDig ) ) do
+        begin
+          if bh1.Singles[i] < bh2.Singles[i]
+            then res := -1
+            else if bh1.Singles[i] > bh2.Singles[i]
+              then res := +1;
+          Inc ( i );
+         end;
+      if neg1
+        then BCDCompare := -res
+        else BCDCompare := res;
      end;
 
 { Convert string/Double/Integer to BCD struct }
@@ -2444,243 +2386,136 @@ writeln;
                               Divisor : tBCD;
                           var BCDout : tBCD );
 
+    const
+      { the quotient is computed down to this decimal place, pack_BCD rounds it }
+      LastDig = MaxFmtBCDFractionSize;
+      MaxLen = 4 * ( __hi_bh - __lo_bh + 1 );
+
     var
-      bh1 : ARRAY [ Boolean ] of tBCD_helper;
+      bh1,
       bh2,
       bh : tBCD_helper;
-      p :     {$ifopt r+} low ( bh.FDig ) - high ( bh.FDig )..high ( bh.FDig ) - low ( bh.FDig ) {$else} Integer {$endif};
-      v1 :    {$ifopt r+} low ( bh.Singles[0] )..high ( bh.Singles[0] ) {$else} Integer {$endif};
-      v2 :    {$ifopt r+} low ( bh.Singles[0] )..high ( bh.Singles[0] ) {$else} Integer {$endif};
-      lFDig : {$ifopt r+} low ( bh.FDig )..high ( bh.FDig ) {$else} Integer {$endif};
-      d1 :    {$ifopt r+} low ( bh.LDig ) - high ( bh.FDig )..high ( bh.LDig ) - low ( bh.FDig ) {$else} Integer {$endif};
-      d2 :    {$ifopt r+} low ( bh.LDig ) - high ( bh.FDig )..high ( bh.LDig ) - low ( bh.FDig ) {$else} Integer {$endif};
-      d :     {$ifopt r+} low ( bh.LDig ) - high ( bh.FDig )..high ( bh.LDig ) - low ( bh.FDig ) {$else} Integer {$endif};
-      lLdig : {$ifopt r+} low ( lFDig ) + low ( d )..high ( lFDig ) + high ( d ) {$else} Integer {$endif};
-      tm :    {$ifopt r+} low ( lLdig ) - high ( bh2.Singles )..high ( lLdig ) - high ( bh2.Singles ) {$else} Integer {$endif};
-      i2 :    {$ifopt r+} low ( lFDig )..high ( lLdig ) {$else} Integer {$endif};
-      i3 :    {$ifopt r+} low ( lFDig )..high ( lLdig ) {$else} Integer {$endif};
-      ie :    {$ifopt r+} low ( lFDig )..high ( lLdig ) {$else} Integer {$endif};
-      i4 :    {$ifopt r+} low ( lFDig )..high ( lLdig ) {$else} Integer {$endif};
-      nFDig : {$ifopt r+} low ( i2 )..high ( i2 ) {$else} Integer {$endif};
-      nLDig : {$ifopt r+} low ( i2 )..high ( i2 ) {$else} Integer {$endif};
-      dd :    {$ifopt r+} 0..9 {$else} Integer {$endif};
-      Add :   {$ifopt r+} 0..99 {$else} Integer {$endif};
-      ue :    {$ifopt r+} 0..99 {$else} Integer {$endif};
-      v3 :    {$ifopt r+} low ( bh.Singles[0] ) - high ( bh2.singles[9] ) * high ( dd ) - high ( ue )..high ( bh.Singles[0] ) - low ( bh2.singles[9] ) * low ( dd ) - low ( ue ) {$else} Integer {$endif};
-      v4 :    {$ifopt r+} low ( bh.Singles[0] ) + low ( add )..high ( bh.Singles[0] ) + high ( add ) {$else} Integer {$endif};
-      FlipFlop,
-      nz,
-      sf,
-      sh,
-      fdset : Boolean;
-{
-      bh1p : ARRAY [ Boolean ] of ^ tBCD_helper;
-}
+      num,
+      den,
+      rem : array [ 0..MaxLen ] of Byte;
+      f1, l1,
+      f2, l2,
+      k,
+      nlen,
+      dlen,
+      i,
+      j,
+      idx,
+      q,
+      v,
+      borrow : Integer;
+      ge : Boolean;
 
     begin
-{ test:
-      bh1p[false] := @ bh1[false];
-      bh1p[true] := @ bh1[true];
-      v := bh1[false].singles[0];
-      v := bh1[true].singles[0];
-      v := bh1p[false]^.singles[0];
-      v := bh1p[true]^.singles[0];
-      v := bh1[nz].singles[0];
-      v := bh1p[nz]^.singles[0];
-}
       unpack_BCD ( Divisor, bh2 );
-      unpack_BCD ( Dividend, bh1[False] );
-      p := bh1[False].FDig - bh2.FDig;
-      _SELECT
-        _WHEN bh2.Prec = 0
-          _THEN RAISE eBCDException.create ( 'Division by zero' );
-        _WHEN bh1[False].Prec = 0
-          _THEN BCDout := NullBCD;
-        _WHEN p < low ( bh2.Singles )
-          _THEN RAISE eBCDOverflowException.create ( 'in BCDDivide' );
-        _WHENOTHER
-          bh := null_.bh;
-          bh.Neg := bh1[False].Neg XOR bh2.Neg;
-          if p <= high ( bh.Singles )
-            then begin
-              bh1[True] := null_.bh;
-              FlipFlop := False;
-              fdset := p > 0;
-              Add := 0;
-              nz := True;
-              while nz do
-                WITH bh1[FlipFlop] do
+      unpack_BCD ( Dividend, bh1 );
+      if helper_is_zero ( bh2 )
+        then RAISE eBCDException.create ( 'Division by zero' );
+      if helper_is_zero ( bh1 )
+        then begin
+          BCDout := NullBCD;
+          EXIT;
+         end;
+      { significant digits: Dividend = digits[f1..l1] * 10^-l1, Divisor = digits[f2..l2] * 10^-l2 }
+      f1 := bh1.FDig;
+      while bh1.Singles[f1] = 0 do
+        Inc ( f1 );
+      l1 := bh1.LDig;
+      while bh1.Singles[l1] = 0 do
+        Dec ( l1 );
+      f2 := bh2.FDig;
+      while bh2.Singles[f2] = 0 do
+        Inc ( f2 );
+      l2 := bh2.LDig;
+      while bh2.Singles[l2] = 0 do
+        Dec ( l2 );
+      { quotient * 10^LastDig = num / den }
+      k := LastDig - l1 + l2;
+      nlen := 0;
+      for i := f1 TO l1 do
+        begin
+          num[nlen] := bh1.Singles[i];
+          Inc ( nlen );
+         end;
+      for i := 1 TO k do
+        begin
+          num[nlen] := 0;
+          Inc ( nlen );
+         end;
+      dlen := 0;
+      for i := f2 TO l2 do
+        begin
+          den[dlen] := bh2.Singles[i];
+          Inc ( dlen );
+         end;
+      for i := 1 TO -k do
+        begin
+          den[dlen] := 0;
+          Inc ( dlen );
+         end;
+      { long division; rem[0..dlen] holds the remainder, den is aligned on rem[1..dlen] }
+      FillChar ( rem, SizeOf ( rem ), 0 );
+      bh := null_.bh;
+      bh.FDig := LastDig + 1;
+      for j := 0 TO nlen - 1 do
+        begin
+          for i := 0 TO dlen - 1 do
+            rem[i] := rem[i + 1];
+          rem[dlen] := num[j];
+          q := 0;
+          repeat
+            ge := rem[0] <> 0;
+            if NOT ge
+              then begin
+                i := 1;
+                while ( i <= dlen ) AND ( rem[i] = den[i - 1] ) do
+                  Inc ( i );
+                ge := ( i > dlen ) OR ( rem[i] > den[i - 1] );
+               end;
+            if ge
+              then begin
+                borrow := 0;
+                for i := dlen DOWNTO 1 do
                   begin
-{
-WriteLn('#####');
-dumpbh ( bh1[flipflop] );
-dumpbh ( bh2 );
-dumpbh ( bh );
-}
-                    if ( Singles[FDig] + bh2.Singles[bh2.FDig] ) = 0
+                    v := rem[i] - den[i - 1] - borrow;
+                    if v < 0
                       then begin
-                        if ( FDig >= LDig )
-                           OR ( bh2.FDig >= bh2.LDig )
-                          then nz := False
-                          else begin
-                            Inc ( FDig );
-                            Inc ( bh2.FDig );
-                           end;
+                        v := v + 10;
+                        borrow := 1;
                        end
-                      else begin
-                        v1 := Singles[FDig];
-                        v2 := bh2.Singles[bh2.FDig];
-                        sh := v1 < v2;
-                        if ( v1 = v2 )
-                          then begin
-                            nz := False;
-                            i3 := Succ ( FDig );
-                            ie := LDig;
-                            while ( i3 <= ie ) AND ( NOT nz ) AND ( NOT sh ) do
-                              begin
-                                v1 := Singles[i3];
-                                v2 := bh2.Singles[i3 - p];
-                                if v1 <> v2
-                                  then begin
-                                    nz := True;
-                                    if v1 < v2
-                                      then sh := True;
-                                   end;
-                                Inc ( i3 );
-                               end;
-                           end;
-                        if NOT nz
-                          then Add := 1
-                          else begin
-                            if sh
-                              then begin
-                                Inc ( p );
-{
-if p > 3 then halt;
-}
-                                if p > high ( bh.Singles )
-                                  then nz := False
-                                  else Dec ( bh2.FDig );
-                               end
-                              else begin
-                                lFDig := FDig;
-                                d1 := LDig - FDig;
-                                d2 := bh2.LDig - bh2.FDig;
-                                if d1 > d2
-                                  then d := d1
-                                  else d := d2;
-                                lLdig := lFDig + d;
-                                if lLdig > high ( bh2.Singles )
-                                  then begin
-                                    tm := ( lLdig ) - high ( bh2.Singles );
-                                    d := d - tm;
-                                    lLdig := lLdig - tm;
-        {runden?}
-                                   end;
-                                sf := True;
-                                Add := 0;
-                                nFDig := 0;
-                                nLDig := 0;
-                                ue := 0;
-                                dd := Singles[lFDig] DIV ( bh2.Singles[lFDig - p] + 1 );
-                                if dd < 1
-                                  then dd := 1;
-{
-writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
-}
-
-                                for i2 := lLdig DOWNTO lFDig do
-                                  begin
-                                    // Typecase needed on 64-bit because evaluation happens using qword...
-                                    v3 := Longint(Singles[i2]) - Longint(bh2.Singles[i2 - p] * dd) - Longint(ue);
-                                    ue := 0;
-                                    while v3 < 0 do
-                                      begin
-                                        Inc ( ue );;
-                                        v3 := v3 + 10;
-                                       end;
-{
-                                    if v3 <> 0
-                                      then begin
-}
-                                        bh1[NOT FlipFlop].Singles[i2] := v3;
-{
-                                        nFDig := i2;
-                                        if sf
-                                          then begin
-                                            nLDig := i2;
-                                            sf := False;
-                                           end;
-                                       end;
-}
-                                   end;
-                                sf := False;
-                                nFDig := lFDig;
-                                nLDig := lLDig;
-                                Inc ( Add, dd );
-                                if sf
-                                  then nz := False
-                                  else begin
-                                    FillChar ( bh1[FlipFlop], SizeOf ( bh1[FlipFlop] ), #0 );
-                                    FlipFlop := NOT FlipFlop;
-                                    WITH bh1[FlipFlop] do
-                                      begin
-                                        FDig := nFDig;
-                                        LDig := nLDig;
-                                       end;
-                                   end;
-                               end;
-                           end;
-
-                        if Add <> 0
-                          then begin
-
-                            if NOT fdset
-                              then begin
-                                bh.FDig := p;
-                                fdset := True;
-                               end;
-                            if bh.LDig < p
-                              then begin
-                                bh.LDig := p;
-                                if ( bh.LDig - bh.FDig ) > Succ ( MaxFmtBCDFractionSize )
-                                  then nz := False;
-                               end;
-
-                            i4 := p;
-                            while ( Add <> 0 ) AND ( i4 >= bh.FDig ) do
-                              begin
-{
-writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
-}
-                                v4 := bh.Singles[i4] + Add;
-                                Add := v4 DIV 10;
-                                bh.Singles[i4] := v4 MOD 10;
-                                Dec ( i4 );
-                               end;
-                            if Add <> 0
-                              then begin
-                                Dec ( bh.FDig );
-                                bh.Singles[bh.FDig] := Add;
-                                Add := 0;
-                               end;
-                           end;
-                       end;
+                      else borrow := 0;
+                    rem[i] := v;
                    end;
-             end;
-          WITH bh do
-            begin
-              if LDig < 0
-                then LDig := 0;
-              if LDig > 0
-                then Plac := LDig
-                else Plac := 0;
-             end;
-          if NOT pack_BCD ( bh, BCDout )
+                rem[0] := rem[0] - borrow;
+                Inc ( q );
+               end;
+          until NOT ge;
+          if q <> 0
             then begin
-              RAISE eBCDOverflowException.create ( 'in BCDDivide' );
+              idx := LastDig - ( nlen - 1 - j );
+              if idx < __lo_bh
+                then RAISE eBCDOverflowException.create ( 'in BCDDivide' );
+              bh.Singles[idx] := q;
+              if idx < bh.FDig
+                then bh.FDig := idx;
              end;
-       _endSELECT
+         end;
+      if bh.FDig > LastDig
+        then begin
+          BCDout := NullBCD;
+          EXIT;
+         end;
+      bh.LDig := LastDig;
+      bh.Plac := LastDig;
+      bh.Prec := bh.LDig - bh.FDig + 1;
+      bh.Neg := bh1.Neg XOR bh2.Neg;
+      if NOT pack_BCD ( bh, BCDout )
+        then RAISE eBCDOverflowException.create ( 'in BCDDivide' );
      end;
 
   procedure BCDDivide ( const Dividend,
@@ -4158,14 +3993,29 @@ writeln;
 {$if declared ( qword ) }
   operator := ( const i : qword ) z : tBCD; Inline;
 
+    var
+      v128 : Int128Rec;
+
     begin
-      z := IntegerToBCD ( myInttype ( i ) );
+      v128.Lo := i;
+      v128.Hi := 0;
+      z := Int128ToBCD ( v128 );
      end;
 
   operator := ( const BCD : tBCD ) z : qword; Inline;
 
+    var
+      v128 : Int128Rec;
+
     begin
-      z := BCDToInteger ( BCD );
+      { values beyond the QWord range raise, negative values in the Int64 range wrap }
+      if Integer ( BCDPrecision ( BCD ) ) - Integer ( BCDScale ( BCD ) ) > 20
+        then RAISE eBCDOverflowException.create ( 'in BCD to QWord conversion' );
+      v128 := BCDToInt128 ( BCD );
+      if ( v128.Hi <> 0 )
+         AND NOT ( ( v128.Hi = High ( QWord ) ) AND ( v128.Lo > QWord ( High ( myInttype ) ) ) )
+        then RAISE eBCDOverflowException.create ( 'in BCD to QWord conversion' );
+      z := v128.Lo;
      end;
 {$endif}
 
@@ -4450,10 +4300,10 @@ function TFMTBcdFactory.GetInstance(const v : TVarData): tObject;
 
 
 function TFMTBcdFactory.LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean;
-// mantis 38496
 begin
-   if v.vtype in FloatVarTypes then  // floats can accept full result of a mixed float-bcd operation
-     RequiredVarType := v.vtype
+   // a Double left operand receives the result as Double
+   if v.vtype = varDouble then
+     RequiredVarType := varDouble
    else
      RequiredVarType := VarType;
    result:=true;
@@ -4542,8 +4392,12 @@ procedure TFMTBcdFactory.Copy(var Dest: TVarData; const Source: TVarData; const 
   end;
 
 procedure TFMTBcdFactory.Cast(var Dest: TVarData; const Source: TVarData);
+var b: TBCD;
 begin
-  not_implemented;
+  b:=VariantToBCD(Source);
+  VarDataClear(Dest);
+  Dest.VPointer:=TFMTBcdVarData.Create(b);
+  Dest.VType:=VarType;
 end;
 
 procedure TFMTBcdFactory.CastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);

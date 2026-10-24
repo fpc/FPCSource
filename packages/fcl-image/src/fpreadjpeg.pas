@@ -28,14 +28,16 @@ unit FPReadJPEG;
 {$mode objfpc}
 {$H+}
 {$openstrings on}
+{$modeswitch nestedprocvars}
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg, FpImage.Common.Jpeg;
+  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg, FpImage.Common.Jpeg,
+  System.Jpeg.Jdmarker, FpImage.Exif;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FpImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  Classes, SysUtils, Types, FpImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg, JdMarker, fpimgexif;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -92,6 +94,8 @@ type
     procedure ReadExtAPPn(Marker: int; var Header: array of JOCTET; HeaderLen: uint;
       var Remaining: INT32; ReadData: jpeg_ext_appn_readdata); virtual;
 
+    // Reads the EXIF, XMP and ICC metadata of the saved APP1 and APP2 markers into Img.
+    procedure ReadMarkers(Img: TFPCustomImage); virtual;
     procedure ReadHeader(Str: TStream; Img: TFPCustomImage); virtual;
     procedure ReadPixels(Str: TStream; Img: TFPCustomImage); virtual;
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
@@ -137,38 +141,10 @@ type
   end;
 
 
-procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
-                                     StartSize: integer);
-var
-  NewLength: Integer;
-  ReadLen: Integer;
-  Buffer: AnsiString;
-begin
-  if (SrcStream is TMemoryStream) or (SrcStream is TFileStream)
-  or (SrcStream is TStringStream)
-  then begin
-    // read as one block
-    DestStream.CopyFrom(SrcStream,SrcStream.Size-SrcStream.Position);
-  end else begin
-    // read exponential
-    if StartSize<=0 then StartSize:=1024;
-    SetLength(Buffer,StartSize);
-    NewLength:=0;
-    repeat
-      ReadLen:=SrcStream.Read(Buffer[NewLength+1],length(Buffer)-NewLength);
-      inc(NewLength,ReadLen);
-      if NewLength<length(Buffer) then break;
-      SetLength(Buffer,length(Buffer)*2);
-    until false;
-    if NewLength>0 then
-      DestStream.Write(Buffer[1],NewLength);
-  end;
-end;
-
 procedure JPEGError(CurInfo: j_common_ptr);
 begin
   if CurInfo=nil then exit;
-  raise Exception.CreateFmt('JPEG error',[CurInfo^.err^.msg_code]);
+  RaiseJPEGError(CurInfo);
 end;
 
 procedure EmitMessage(CurInfo: j_common_ptr; msg_level: Integer);
@@ -244,10 +220,7 @@ begin
   if (FWidth <= 0) or (FHeight <= 0) or (FWidth > 65535) or (FHeight > 65535) then
     raise FPImageException.Create('Invalid JPEG dimensions');
 
-  if FInfo.saw_EXIF_marker and (FInfo.orientation >= Ord(Low(TExifOrientation))) and (FInfo.orientation <= Ord(High(TExifOrientation))) then
-    FOrientation := TExifOrientation(FInfo.orientation)
-  else
-    FOrientation := Low(TExifOrientation);
+  ReadMarkers(Img);
 
   FGrayscale := FInfo.jpeg_color_space = JCS_GRAYSCALE;
   FProgressiveEncoding := jpeg_has_multiple_scans(@FInfo);
@@ -256,6 +229,81 @@ begin
   Img.ResolutionX :=CompressInfo.X_density;
   Img.ResolutionY :=CompressInfo.Y_density;
 end;
+
+procedure TFPReaderJPEG.ReadMarkers(Img: TFPCustomImage);
+
+var
+  lMarker: jpeg_saved_marker_ptr;
+  lData, lExif, lICC: TBytes;
+  lChunks: array of TBytes;
+  lOrientation, lSeq, i: Integer;
+  lRemaining: INT32;
+  lComplete: Boolean;
+
+  function NoMoreData(const Buffer: Pointer; numtoread: uint): Boolean;
+
+  begin
+    Result := False;
+  end;
+
+  function StartsWith(const aText: AnsiString): Boolean;
+
+  begin
+    Result := (Length(lData) >= Length(aText)) and CompareMem(@lData[0], @aText[1], Length(aText));
+  end;
+
+begin
+  FOrientation := eoUnknown;
+  lChunks := nil;
+  lMarker := FInfo.marker_list;
+  while lMarker <> nil do
+    begin
+    lData := nil;
+    SetLength(lData, lMarker^.data_length);
+    if lMarker^.data_length > 0 then
+      Move(lMarker^.data^[0], lData[0], lMarker^.data_length);
+    if lMarker^.marker = JPEG_APP0 + 1 then
+      begin
+      if StartsWith(JPEGExifHeader) then
+        begin
+        lExif := ExifWithoutHeader(lData);
+        lOrientation := ExifOrientation(lExif);
+        if lOrientation > 0 then
+          FOrientation := TExifOrientation(lOrientation);
+        // the pixels are turned upright as they are read
+        if lOrientation > 1 then
+          ExifSetOrientation(lExif, 1);
+        Img.Metadata[MetaExif] := lExif;
+        end
+      else if Length(lData) > 0 then
+        begin
+        if StartsWith(JPEGXMPHeader) then
+          Img.Metadata[MetaXMP] := Copy(lData, Length(JPEGXMPHeader), Length(lData));
+        lRemaining := 0;
+        ReadExtAPPn(JPEG_APP0 + 1, lData, Length(lData), lRemaining, @NoMoreData);
+        end;
+      end
+    else if (lMarker^.marker = JPEG_APP0 + 2) and (Length(lData) > 14) and StartsWith(JPEGICCHeader) then
+      begin
+      lSeq := lData[12];
+      if Length(lChunks) = 0 then
+        SetLength(lChunks, lData[13]);
+      if (lSeq >= 1) and (lSeq <= Length(lChunks)) then
+        lChunks[lSeq - 1] := Copy(lData, 14, Length(lData) - 14);
+      end;
+    lMarker := lMarker^.next;
+    end;
+  lComplete := Length(lChunks) > 0;
+  lICC := nil;
+  for i := 0 to High(lChunks) do
+    if Length(lChunks[i]) = 0 then
+      lComplete := False
+    else
+      lICC := Concat(lICC, lChunks[i]);
+  if lComplete then
+    Img.Metadata[MetaICC] := lICC;
+end;
+
 
 procedure TFPReaderJPEG.ReadPixels(Str: TStream; Img: TFPCustomImage);
 var
@@ -272,6 +320,7 @@ var
 
   procedure InitReadingPixels;
   var d1,d2:integer;
+      lScale:TJPEGScale;
 
     function DToScale(inp:integer):TJPEGScale;
     begin
@@ -283,16 +332,17 @@ var
 
   begin
     FInfo.scale_num := 1;
+    lScale:=FScale;
 
     if (FMinWidth>0) and (FMinHeight>0) then
       if (FInfo.image_width>FMinWidth) or (FInfo.image_height>FMinHeight) then
         begin
         d1:=Round((FInfo.image_width / FMinWidth)-0.5);
         d2:=Round((FInfo.image_height /  FMinHeight)-0.5);
-        if d1>d2 then fScale:=DToScale(d2) else fScale:=DtoScale(d1);
+        if d1>d2 then lScale:=DToScale(d2) else lScale:=DtoScale(d1);
         end;
 
-    FInfo.scale_denom :=1 shl Byte(FScale); //1
+    FInfo.scale_denom :=1 shl Byte(lScale);
     FInfo.do_block_smoothing := FSmoothing;
 
     if FGrayscale then FInfo.out_color_space := JCS_GRAYSCALE;
@@ -449,7 +499,7 @@ var
     end;
   end;
 
-  function TranslateSize(out ASize: TSize): TSize;
+  procedure TranslateSize(var ASize: TSize);
   var
     iInt: Integer;
   begin
@@ -567,48 +617,34 @@ end;
 
 
 procedure TFPReaderJPEG.InternalRead(Str: TStream; Img: TFPCustomImage);
-var
-  MemStream: TMemoryStream;
-
 begin
   FWidth:=0;
   FHeight:=0;
-  MemStream:=nil;
   FillChar(FInfo,SizeOf(FInfo),0);
+  FError:=jpeg_std_error;
+  FInfo.err := @FError;
+  jpeg_CreateDecompress(@FInfo, JPEG_LIB_VERSION, SizeOf(FInfo));
   try
-    if Str is TMemoryStream then
-      MemStream:=TMemoryStream(Str)
-    else begin
-      MemStream:=TMemoryStream.Create;
-      ReadCompleteStreamToStream(Str,MemStream,1024);
-      MemStream.Position:=0;
-    end;
-    if MemStream.Size > 0 then begin
-      FError:=jpeg_std_error;
-      FInfo.err := @FError;
-      jpeg_CreateDecompress(@FInfo, JPEG_LIB_VERSION, SizeOf(FInfo));
-      try
-        FProgressMgr.pub.progress_monitor := @ProgressCallback;
-        FProgressMgr.instance := Self;
-        FInfo.progress := @FProgressMgr.pub;
+    FProgressMgr.pub.progress_monitor := @ProgressCallback;
+    FProgressMgr.instance := Self;
+    FInfo.progress := @FProgressMgr.pub;
 
-        MemStream.Position:=0;
-        jpeg_stdio_src(@FInfo, @MemStream);
+    jpeg_stdio_src(@FInfo, @Str);
 
-        FInfo.extensions := @FExtensions;
-        FExtensions.read_ext_appn := @ReadExtAPPnCallback;
+    FInfo.extensions := @FExtensions;
+    FExtensions.read_ext_appn := @ReadExtAPPnCallback;
 
-        FInfo.client_data := Self;
+    FInfo.client_data := Self;
+    jpeg_save_markers(@FInfo, JPEG_APP0 + 1, $FFFF);
+    jpeg_save_markers(@FInfo, JPEG_APP0 + 2, $FFFF);
 
-        ReadHeader(MemStream, Img);
-        ReadPixels(MemStream, Img);
-      finally
-        jpeg_Destroy_Decompress(@FInfo);
-      end;
-    end;
+    ReadHeader(Str, Img);
+    ReadPixels(Str, Img);
+    // move the stream back over the bytes the decoder read past the end of the image
+    if FInfo.src^.bytes_in_buffer>0 then
+      Str.Seek(-Int64(FInfo.src^.bytes_in_buffer),soCurrent);
   finally
-    if (MemStream<>nil) and (MemStream<>Str) then
-      MemStream.Free;
+    jpeg_Destroy_Decompress(@FInfo);
   end;
 end;
 

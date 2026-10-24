@@ -129,6 +129,19 @@ function CountStartChars(const aLine : string; aChar : Char) : integer;
 function ToUnicodeChars(const S : String) : TUnicodeCharDynArray;
 // Transform tabulators to spaces in leading whitespace, taking into account the above definition of tabulator.
 Function TransformTabs(const aLine : string) : string;
+// Parse an attribute specification {#id .class key=value key="quoted value"}.
+// Values use backslash escapes. aAttrs receives key=value pairs and may be Nil.
+// Returns False, and leaves aAttrs unchanged, when aText is not a valid specification.
+function ParseAttributeSpec(const aText : String; out aID : String; out aClasses : TStringArray; aAttrs : TStrings) : Boolean;
+// Remove a valid attribute specification from the end of aText and return it. Returns an empty string when there is none.
+function ExtractTrailingAttributeSpec(var aText : String) : String;
+// Parse the text of a marker comment, name[argument]: value or name: value.
+// Returns False when aText is not a marker.
+function ParseMarker(const aText : String; out aName, aArgument, aValue : String) : Boolean;
+// Normalize a link label for lookup: trimmed, inner whitespace collapsed to one space, lowercase.
+function NormalizeLinkLabel(const aLabel : String) : String;
+// Identifier made from heading text: lowercase, letters, digits, marks, spaces, - and _ kept, spaces become -.
+function HeadingTextToID(const aText : String) : String;
 
 implementation
 
@@ -764,6 +777,239 @@ begin
   if prev in ['@','.'] then
     exit;
   Result:=lState=sDomain;
+end;
+
+
+// Read an attribute token or value from aText at aPos, resolving backslash escapes.
+function ReadAttributeToken(const aText : String; var aPos : Integer; aLast : Integer; aStopChars : TSysCharSet; out aToken : String) : Boolean;
+
+var
+  lQuote : Char;
+
+begin
+  aToken:='';
+  Result:=False;
+  if (aPos<=aLast) and (aText[aPos] in ['"','''']) then
+    begin
+    lQuote:=aText[aPos];
+    Inc(aPos);
+    while (aPos<=aLast) and (aText[aPos]<>lQuote) do
+      begin
+      if (aText[aPos]='\') and (aPos<aLast) and MustEscape(aText[aPos+1]) then
+        Inc(aPos);
+      aToken:=aToken+aText[aPos];
+      Inc(aPos);
+      end;
+    if aPos>aLast then
+      Exit;
+    Inc(aPos);
+    Result:=True;
+    end
+  else
+    begin
+    while (aPos<=aLast) and not (aText[aPos] in aStopChars) do
+      begin
+      if (aText[aPos]='\') and (aPos<aLast) and MustEscape(aText[aPos+1]) then
+        Inc(aPos);
+      aToken:=aToken+aText[aPos];
+      Inc(aPos);
+      end;
+    Result:=aToken<>'';
+    end;
+end;
+
+
+function ParseAttributeSpec(const aText : String; out aID : String; out aClasses : TStringArray; aAttrs : TStrings) : Boolean;
+
+const
+  WhiteSpaceChars = [' ',#9,#10,#13];
+  KeyChars = ['a'..'z','A'..'Z','0'..'9','_','-',':','.'];
+
+var
+  S,lToken,lKey : String;
+  lPos,lLast : Integer;
+  lPairs : TStringArray;
+  lKind : Char;
+
+begin
+  aID:='';
+  aClasses:=[];
+  lPairs:=[];
+  Result:=False;
+  S:=Trim(aText);
+  lLast:=Length(S);
+  if (lLast<2) or (S[1]<>'{') or (S[lLast]<>'}') then
+    Exit;
+  Dec(lLast);
+  lPos:=2;
+  while lPos<=lLast do
+    begin
+    if S[lPos] in WhiteSpaceChars then
+      begin
+      Inc(lPos);
+      Continue;
+      end;
+    case S[lPos] of
+      '#','.':
+        begin
+        lKind:=S[lPos];
+        Inc(lPos);
+        if not ReadAttributeToken(S,lPos,lLast,WhiteSpaceChars+['{','}','"','''','='],lToken) then
+          Exit;
+        if lKind='#' then
+          aID:=lToken
+        else
+          aClasses:=Concat(aClasses,[lToken]);
+        end;
+      'a'..'z','A'..'Z','0'..'9','_':
+        begin
+        lKey:='';
+        while (lPos<=lLast) and (S[lPos] in KeyChars) do
+          begin
+          lKey:=lKey+S[lPos];
+          Inc(lPos);
+          end;
+        if (lPos>lLast) or (S[lPos]<>'=') then
+          Exit;
+        Inc(lPos);
+        if not ReadAttributeToken(S,lPos,lLast,WhiteSpaceChars+['{','}','"',''''],lToken) then
+          Exit;
+        lPairs:=Concat(lPairs,[lKey+'='+lToken]);
+        end;
+    else
+      Exit;
+    end;
+    if (lPos<=lLast) and not (S[lPos] in WhiteSpaceChars) then
+      Exit;
+    end;
+  if Assigned(aAttrs) then
+    for lToken in lPairs do
+      aAttrs.Add(lToken);
+  Result:=True;
+end;
+
+
+function ExtractTrailingAttributeSpec(var aText : String) : String;
+
+var
+  S,lID : String;
+  lClasses : TStringArray;
+  P : Integer;
+
+begin
+  Result:='';
+  S:=TrimRight(aText);
+  if (S='') or (S[Length(S)]<>'}') then
+    Exit;
+  P:=Length(S)-1;
+  while P>0 do
+    begin
+    if (S[P]='{') and ((P=1) or (S[P-1]<>'\')) then
+      if ParseAttributeSpec(Copy(S,P,Length(S)-P+1),lID,lClasses,Nil) then
+        begin
+        Result:=Copy(S,P,Length(S)-P+1);
+        aText:=TrimRight(Copy(S,1,P-1));
+        Exit;
+        end;
+    Dec(P);
+    end;
+end;
+
+
+function ParseMarker(const aText : String; out aName, aArgument, aValue : String) : Boolean;
+
+const
+  NameChars = ['a'..'z','A'..'Z','0'..'9','-','_'];
+
+var
+  S : String;
+  lPos,lLen,lEnd : Integer;
+
+begin
+  Result:=False;
+  aName:='';
+  aArgument:='';
+  aValue:='';
+  S:=Trim(aText);
+  lLen:=Length(S);
+  lPos:=1;
+  while (lPos<=lLen) and (S[lPos] in NameChars) do
+    Inc(lPos);
+  if lPos=1 then
+    Exit;
+  aName:=Copy(S,1,lPos-1);
+  if (lPos<=lLen) and (S[lPos]='[') then
+    begin
+    lEnd:=Pos(']',S,lPos);
+    if lEnd=0 then
+      Exit;
+    aArgument:=Trim(Copy(S,lPos+1,lEnd-lPos-1));
+    lPos:=lEnd+1;
+    end;
+  if (lPos>lLen) or (S[lPos]<>':') then
+    begin
+    aName:='';
+    aArgument:='';
+    Exit;
+    end;
+  aValue:=Trim(Copy(S,lPos+1,lLen-lPos));
+  Result:=True;
+end;
+
+
+function NormalizeLinkLabel(const aLabel : String) : String;
+
+var
+  C : Char;
+  lSpace : Boolean;
+
+begin
+  Result:='';
+  lSpace:=False;
+  for C in Trim(aLabel) do
+    if IsWhitespaceChar(C) or (C in [#10,#13]) then
+      lSpace:=True
+    else
+      begin
+      if lSpace then
+        Result:=Result+' ';
+      lSpace:=False;
+      Result:=Result+C;
+      end;
+  Result:=UTF8Encode(UnicodeLowerCase(UTF8Decode(Result)));
+end;
+
+
+function HeadingTextToID(const aText : String) : String;
+
+var
+  U,lResult : UnicodeString;
+  C : UnicodeChar;
+  lKeep : Boolean;
+
+begin
+  U:=UnicodeLowerCase(UTF8Decode(aText));
+  lResult:='';
+  for C in U do
+    begin
+    case C of
+      'a'..'z','0'..'9','-','_' : lKeep:=True;
+      ' ' : lKeep:=True;
+    else
+      if Ord(C)<128 then
+        lKeep:=False
+      else if (Ord(C)>=HIGH_SURROGATE_BEGIN) and (Ord(C)<=LOW_SURROGATE_END) then
+        lKeep:=True
+      else
+        lKeep:=GetProps(Ord(C))^.Category in [UGC_UppercaseLetter..UGC_OtherNumber,UGC_ConnectPunctuation];
+    end;
+    if lKeep then
+      if C=' ' then
+        lResult:=lResult+'-'
+      else
+        lResult:=lResult+C;
+    end;
+  Result:=UTF8Encode(lResult);
 end;
 
 end.

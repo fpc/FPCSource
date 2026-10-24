@@ -83,6 +83,8 @@ Const
       }
       MinSingle    =  1.1754943508e-38;
       MaxSingle    =  3.4028234664e+38;
+      { distance from 1.0 to the next larger Single, 2^-23 }
+      MachEpsSingle = 1.1920928955078125e-7;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
     const
@@ -91,13 +93,38 @@ Const
       }
       MinDouble    =  2.2250738585072014e-308;
       MaxDouble    =  1.7976931348623157e+308;
+      { distance from 1.0 to the next larger Double, 2^-52 }
+      MachEpsDouble = 2.220446049250313080847e-16;
 {$endif FPC_HAS_TYPE_DOUBLE}
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
       MinExtended  =  3.36210314311209350626e-4932;
       MaxExtended  =  1.18973149535723176502e+4932;
+      { distance from 1.0 to the next larger Extended, 2^-63 }
+      MachEpsExtended = 1.084202172485504434007e-19;
+{$ELSE FPC_HAS_TYPE_EXTENDED}
+
+{$IFDEF FPC_HAS_TYPE_DOUBLE}
+    // Delphi defines them too for Win64
+    const
+      MinExtended = MinDouble;
+      MaxExtended = MaxDouble;
+      MachEpsExtended = MachEpsDouble;
+{$ELSE FPC_HAS_TYPE_DOUBLE} 
+
+{$IFDEF FPC_HAS_TYPE_SINGLE}
+    // Delphi defines them too for Win64
+    const
+      MinExtended = MinSingle;
+      MaxExtended = MaxSingle;
+      MachEpsExtended = MachEpsSingle;
+{$ENDIF FPC_HAS_TYPE_SINGLE}     
+
+{$ENDIF FPC_HAS_TYPE_DOUBLE}   
 
 {$endif FPC_HAS_TYPE_EXTENDED}
+
 {$ifdef FPC_HAS_TYPE_COMP}
     const
       MinComp      = -9.223372036854775807e+18;
@@ -116,6 +143,7 @@ Const
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
+         MachEpsFloat = 1.925929944387235853056e-34;
 {$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
          Float = extended;
@@ -123,6 +151,7 @@ Const
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
+         MachEpsFloat = MachEpsExtended;
 {$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
          Float = double;
@@ -130,6 +159,7 @@ Const
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
+         MachEpsFloat = MachEpsDouble;
 {$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
          Float = single;
@@ -137,6 +167,7 @@ Const
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
+         MachEpsFloat = MachEpsSingle;
 {$else}
         {$fatal At least one floating point type must be supported}
 {$endif}
@@ -231,6 +262,10 @@ procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word)
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
 procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
+// Quotient and remainder of a 64-bit unsigned division.
+procedure DivMod(Dividend: QWord; Divisor: QWord; var Result, Remainder: QWord);
+// Quotient truncated towards zero and remainder with the sign of the dividend, of a 64-bit signed division.
+procedure DivMod(Dividend: Int64; Divisor: Int64; var Result, Remainder: Int64);
 
 { Floating point modulo}
 {$ifdef FPC_HAS_TYPE_SINGLE}
@@ -246,6 +281,10 @@ function FMod(const a, b: Extended): Extended;inline;overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 operator mod(const a,b:float) c:float;inline;
+{ a-b*Int(a/b); a result equal to abs(b) is returned as 0. Equal means within
+  Float resolution, or, unless a and b are both integral, within abs(a) times
+  the machine epsilon of Single when a and b are both exactly representable as
+  Single, of Double when both are as Double, of Float otherwise. }
 
 // Sign functions
 Type
@@ -608,7 +647,11 @@ function ExpM1(x : extended) : extended;
 { exponential functions }
 
 function Power(base,exponent : float) : float;
-{ base^exponent }
+{ base^exponent, with the C99 border cases:
+  power(x,0)=1 and power(1,y)=1, also for NaN; otherwise NaN in either argument gives NaN;
+  power(-1,+-Inf)=1; power(x,+Inf) is 0 for abs(x)<1 and +Inf for abs(x)>1;
+  power(x,-Inf) is +Inf for abs(x)<1 and 0 for abs(x)>1;
+  a negative base with an integral exponent beyond the longint range keeps the sign of an odd power }
 function IntPower(base : float;exponent : longint) : float;
 
 operator ** (base,exponent : float) e: float; inline;
@@ -856,6 +899,7 @@ function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
 function CompareValue ( const A, B  : QWord) : TValueRelationship; inline;
 
+function CompareValue(const A, B: Currency): TValueRelationship;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CompareValue ( const A, B : Single; delta : Single = 0.0 ) : TValueRelationship; inline;
 {$endif}
@@ -1503,86 +1547,95 @@ function tanh(x : Extended) : Extended;
 {$ENDIF}
 
 
-{$ifdef FPC_HAS_TYPE_SINGLE}
-function SecH(const X: Single): Single;
+// sech(x) = 2*e^-|x|/(1+e^-2|x|)
+function FloatSecH(X: ValReal): ValReal;
 var
   Ex: ValReal;
 begin
-  //https://en.wikipedia.org/wiki/Hyperbolic_functions#Definitions
-  //SecH = 2 / (e^X + e^-X)
-  Ex:=Exp(X);
+  if IsNan(X) then
+    exit(X);
+  if IsInfinite(X) then
+    exit(0.0);
+  Ex:=Exp(-Abs(X));
 {$push}
 {$checkfpuexceptions on}
 {$safefpuexceptions on}
-  SecH:=2/(Ex+1/Ex);
+  FloatSecH:=2*Ex/(1+Ex*Ex);
 {$pop}
+end;
+
+
+// csch(x) = 2*(t+1)/(t*(t+2)) with t=e^|x|-1 for |x|<=0.5, 2*e^-|x|/(1-e^-2|x|) above; division by zero for x=+-0
+function FloatCscH(X: ValReal): ValReal;
+var
+  a, t: ValReal;
+begin
+  if IsNan(X) then
+    exit(X);
+  if IsInfinite(X) then
+    exit(copysign(0.0,X));
+  a:=Abs(X);
+{$push}
+{$checkfpuexceptions on}
+{$safefpuexceptions on}
+  if a<=0.5 then
+    begin
+      t:=ExpM1(a);
+      t:=2*(t+1)/(t*(t+2));
+    end
+  else
+    begin
+      t:=Exp(-a);
+      t:=2*t/(1-t*t);
+    end;
+{$pop}
+  FloatCscH:=copysign(t,X);
+end;
+
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SecH(const X: Single): Single;
+begin
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function SecH(const X: Double): Double;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  SecH:=2/(Ex+1/Ex);
-{$pop}
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SecH(const X: Extended): Extended;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-  SecH:=2/(Ex+1/Ex);
+  SecH:=FloatSecH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CscH(const X: Single): Single;
-var
-  Ex: ValReal;
 begin
-  //CscH = 2 / (e^X - e^-X)
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  CscH:=2/(Ex-1/Ex);
-{$pop}
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function CscH(const X: Double): Double;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-{$push}
-{$checkfpuexceptions on}
-{$safefpuexceptions on}
-  CscH:=2/(Ex-1/Ex);
-{$pop}
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CscH(const X: Extended): Extended;
-var
-  Ex: ValReal;
 begin
-  Ex:=Exp(X);
-  CscH:=2/(Ex-1/Ex);
+  CscH:=FloatCscH(X);
 end;
 {$ENDIF}
 
@@ -1680,17 +1733,41 @@ function arctanh(x : float) : float;inline;
   end;
 
 function arcosh(x : float) : float;
+  const
+    Ln2 = 0.693147180559945309417232121458176568;
+  var
+    t: float;
   begin
-    { Provides accuracy about 4*eps near 1.0 }
-    arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
+    if IsNan(x) then
+      arcosh:=x
+    { arcosh(x)=ln(2x) above 1/sqrt(eps) }
+    else if x>1/sqrt(MachEpsFloat) then
+      arcosh:=Ln(x)+Ln2
+    else if x<2.0 then
+      begin
+        { arcosh(1+t)=lnxp1(t+sqrt(t*(t+2))) }
+        t:=x-1.0;
+        arcosh:=lnxp1(t+Sqrt(t*(t+2.0)));
+      end
+    else
+      arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
   end;
 
 function arsinh(x : float) : float;
+  const
+    Ln2 = 0.693147180559945309417232121458176568;
   var
     z: float;
   begin
+    if IsNan(x) then
+      exit(x);
     z:=abs(x);
-    z:=Ln(z+Sqrt(1+z*z));
+    if z>1/sqrt(MachEpsFloat) then
+      z:=Ln(z)+Ln2
+    else if z>0.5 then
+      z:=Ln(2*z+1/(z+Sqrt(1+z*z)))
+    else
+      z:=lnxp1(z+z*z/(1+Sqrt(1+z*z)));
     { copysign ensures that arsinh(-Inf)=-Inf and arsinh(-0.0)=-0.0 }
     arsinh:=copysign(z,x);
   end;
@@ -1770,60 +1847,102 @@ begin
 end;
 {$ENDIF}
 
+// arsech(x) = ln(1+sqrt(1-x^2)) - ln(x); +Inf for x=0
+function FloatArcSecH(x : float) : float;
+begin
+  if IsNan(x) then
+    FloatArcSecH:=x
+  else if x=0.0 then
+    FloatArcSecH:=Infinity
+  else
+    FloatArcSecH:=lnxp1(sqrt((1.0-x)*(1.0+x)))-ln(x);
+end;
+
+// arcsch(x) = sign(x)*arsinh(1/abs(x)), without forming 1/x for abs(x)<1; +-Inf for x=+-0
+function FloatArcCscH(x : float) : float;
+var
+  ax, z: float;
+begin
+  if IsNan(x) then
+    exit(x);
+  ax:=abs(x);
+  if ax=0.0 then
+    z:=Infinity
+  else if ax>=1.0 then
+    begin
+      z:=1.0/ax;
+      z:=lnxp1(z+z*z/(1.0+sqrt(1.0+z*z)));
+    end
+  else
+    z:=ln(1.0+sqrt(1.0+ax*ax))-ln(ax);
+  FloatArcCscH:=copysign(z,x);
+end;
+
+// arcoth(x) = sign(x)*0.5*ln(1+2/(abs(x)-1)); +-Inf for x=+-1
+function FloatArcCotH(x : float) : float;
+begin
+  if IsNan(x) then
+    FloatArcCotH:=x
+  else if abs(x)=1.0 then
+    FloatArcCotH:=copysign(Infinity,x)
+  else
+    FloatArcCotH:=copysign(0.5*lnxp1(2.0/(abs(x)-1.0)),x);
+end;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcSecH(X : Single): Single;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);  //replacing division inside ln() by subtracting 2 ln()'s seems to be slower
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcSecH(X : Double): Double;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcSecH(X : Extended): Extended;
 begin
-  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+  ArcSecH:=FloatArcSecH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcCscH(X: Single): Single;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcCscH(X: Double): Double;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcCscH(X: Extended): Extended;
 begin
-  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+  ArcCscH:=FloatArcCscH(X);
 end;
 {$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function ArcCotH(X: Single): Single;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function ArcCotH(X: Double): Double;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function ArcCotH(X: Extended): Extended;
 begin
-  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+  ArcCotH:=FloatArcCotH(X);
 end;
 {$ENDIF}
 
@@ -1832,6 +1951,10 @@ function hypot(x,y : float) : float;
   begin
     x:=abs(x);
     y:=abs(y);
+    if IsInfinite(x) or IsInfinite(y) then
+      exit(Infinity);
+    if IsNan(x) or IsNan(y) then
+      exit(NaN);
     if (x>y) then
       hypot:=x*sqrt(1.0+sqr(y/x))
     else if (x>0.0) then
@@ -1862,6 +1985,8 @@ function lnxp1(x : float) : float;
   var
     y: float;
   begin
+    if IsNan(x) then
+      exit(x);
     if (x>=4.0) then
       lnxp1:=ln(1.0+x)
     else
@@ -1967,12 +2092,29 @@ end;
 
 function power(base,exponent : float) : float;
   begin
-    if Exponent=0.0 then
+    if (exponent=0.0) or (base=1.0) then
       result:=1.0
+    else if IsNan(base) or IsNan(exponent) then
+      result:=NaN
+    else if IsInfinite(exponent) then
+      begin
+        if abs(base)=1.0 then
+          result:=1.0
+        else if (abs(base)<1.0)=(exponent>0.0) then
+          result:=0.0
+        else
+          result:=Infinity;
+      end
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
     else if (frac(exponent)=0.0) and (abs(exponent)<=maxint) then
       result:=intpower(base,trunc(exponent))
+    else if (base<0.0) and (frac(exponent)=0.0) then
+      begin
+        result:=exp(exponent*ln(-base));
+        if frac(exponent*0.5)<>0.0 then
+          result:=-result;
+      end
     else
       result:=exp(exponent * ln (base));
   end;
@@ -2114,12 +2256,15 @@ function Ldexp(X: single; p: integer): single;
     end else
     begin
       TSingleRec(result).Exp := 0;
-      if xp >= -TSingleRec.Bias + 2 - 23 then
+      if xp >= -TSingleRec.Bias + 2 - 24 then
       begin
         // Denormalized.
         M := TSingleRec(result).Frac or uint32(1) shl 23;
         sh := -TSingleRec.Bias + 1 - xp;
-        TSingleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint32(1) shl sh - 1) <> 0);
+        M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint32(1) shl sh - 1) <> 0);
+        // Rounding up to 1 shl 23 gives the smallest normal number.
+        TSingleRec(result).Exp := M shr 23;
+        TSingleRec(result).Frac := M;
       end else
         // Underflow.
         TSingleRec(result).Frac := 0;
@@ -2183,12 +2328,15 @@ function Ldexp(X: double; p: integer): double;
     end else
     begin
       TDoubleRec(result).Exp := 0;
-      if xp >= -TDoubleRec.Bias + 2 - 52 then
+      if xp >= -TDoubleRec.Bias + 2 - 53 then
       begin
         // Denormalized.
         M := TDoubleRec(result).Frac or uint64(1) shl 52;
-        sh := -TSingleRec.Bias + 1 - xp;
-        TDoubleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+        sh := -TDoubleRec.Bias + 1 - xp;
+        M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+        // Rounding up to 1 shl 52 gives the smallest normal number.
+        TDoubleRec(result).Exp := M shr 52;
+        TDoubleRec(result).Frac := M;
       end else
         // Underflow.
         TDoubleRec(result).Frac := 0;
@@ -2250,14 +2398,15 @@ function Ldexp(X: extended; p: integer): extended;
       TExtended80Rec(result).Exp := 2 * TExtended80Rec.Bias + 1;
       TExtended80Rec(result).Frac := uint64(1) shl 63;
     end
-    else if xp >= -TExtended80Rec.Bias + 2 - 63 then
+    else if xp >= -TExtended80Rec.Bias + 2 - 64 then
     begin
       // Denormalized... usually.
       // Mantissa of subnormal 'extended' (Exp = 0) must always start with 0.
       // If the calculated mantissa starts with 1, extended instead becomes normalized with Exp = 1.
       M := TExtended80Rec(result).Frac;
       sh := -TExtended80Rec.Bias + 1 - xp;
-      M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+      // Two-step shift for sh+1=64.
+      M := M shr sh shr 1 + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
       TExtended80Rec(result).Exp := M shr 63;
       TExtended80Rec(result).Frac := M;
     end else
@@ -3684,44 +3833,26 @@ end;
 // There we should define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: Word);
+
+var
+  lQuotient : LongInt;
 begin
-  if Dividend < 0 then
-    begin
-      { Use DivMod with >=0 dividend }
-	  Dividend:=-Dividend;
-      { The documented behavior of Pascal's div/mod operators and DivMod
-        on negative dividends is to return Result closer to zero and
-        a negative Remainder. Which means that we can just negate both
-        Result and Remainder, and all it's Ok. }
-      Result:=-(Dividend Div Divisor);
-      Remainder:=-(Dividend+(Result*Divisor));
-    end
-  else
-    begin
-	  Result:=Dividend Div Divisor;
-      Remainder:=Dividend-(Result*Divisor);
-	end;
+  { Result and Remainder are the low 16 bits of the LongInt quotient and remainder }
+  lQuotient:=Dividend Div Divisor;
+  Result:=lQuotient;
+  Remainder:=Dividend-(lQuotient*Divisor);
 end;
 
 
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
+
+var
+  lQuotient : LongInt;
 begin
-  if Dividend < 0 then
-    begin
-      { Use DivMod with >=0 dividend }
-	  Dividend:=-Dividend;
-      { The documented behavior of Pascal's div/mod operators and DivMod
-        on negative dividends is to return Result closer to zero and
-        a negative Remainder. Which means that we can just negate both
-        Result and Remainder, and all it's Ok. }
-      Result:=-(Dividend Div Divisor);
-      Remainder:=-(Dividend+(Result*Divisor));
-    end
-  else
-    begin
-	  Result:=Dividend Div Divisor;
-      Remainder:=Dividend-(Result*Divisor);
-	end;
+  { Result and Remainder are the low 16 bits of the LongInt quotient and remainder }
+  lQuotient:=Dividend Div Divisor;
+  Result:=lQuotient;
+  Remainder:=Dividend-(lQuotient*Divisor);
 end;
 
 
@@ -3733,25 +3864,29 @@ end;
 
 
 procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
+
 begin
-  if Dividend < 0 then
-    begin
-      { Use DivMod with >=0 dividend }
-      Dividend:=-Dividend;
-      { The documented behavior of Pascal's div/mod operators and DivMod
-        on negative dividends is to return Result closer to zero and
-        a negative Remainder. Which means that we can just negate both
-        Result and Remainder, and all it's Ok. }
-      Result:=-(Dividend Div Divisor);
-      Remainder:=-(Dividend+(Result*Divisor));
-    end
-  else
-    begin
-      Result:=Dividend Div Divisor;
-      Remainder:=Dividend-(Result*Divisor);
-    end;
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
+
+
+procedure DivMod(Dividend: QWord; Divisor: QWord; var Result, Remainder: QWord);
+
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
+end;
+
+
+procedure DivMod(Dividend: Int64; Divisor: Int64; var Result, Remainder: Int64);
+
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
+end;
+
 
 { Floating point modulo}
 {$ifdef FPC_HAS_TYPE_SINGLE}
@@ -3775,10 +3910,36 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{ Return true if the remainder c of a mod b equals abs(b) within Float resolution,
+  or, for operands that are not both integral, within abs(a) times the machine
+  epsilon of the narrowest type that a and b are both exactly representable in }
+function ModIsFullDivisor(const a,b,c: float): boolean;
+var
+  lEps,lAbsB,lAbsC: float;
+begin
+  lAbsB:=abs(b);
+  lAbsC:=abs(c);
+  if SameValue(lAbsC,lAbsB) then
+    exit(true);
+  if (frac(a)=0.0) and (frac(b)=0.0) then
+    exit(false);
+  lEps:=MachEpsFloat;
+{$if defined(FPC_HAS_TYPE_DOUBLE) and (defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128))}
+  if (abs(a)<=MaxDouble) and (lAbsB<=MaxDouble) and (double(a)=a) and (double(b)=b) then
+    lEps:=MachEpsDouble;
+{$endif}
+{$if defined(FPC_HAS_TYPE_SINGLE) and (defined(FPC_HAS_TYPE_DOUBLE) or defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128))}
+  if (abs(a)<=MaxSingle) and (lAbsB<=MaxSingle) and (single(a)=a) and (single(b)=b) then
+    lEps:=MachEpsSingle;
+{$endif}
+  result:=abs(lAbsC-lAbsB)<=abs(a)*lEps;
+end;
+
+
 operator mod(const a,b:float) c:float;inline;
 begin
   c:= a-b * Int(a/b);
-  if SameValue(abs(c),abs(b)) then
+  if ModIsFullDivisor(a,b,c) then
     c:=0.0;
 end;
 
@@ -3832,6 +3993,14 @@ begin
      result:=LessThanValue;
 end;
 
+function CompareValue(const A, B: Currency): TValueRelationship;
+begin
+  if A=B then Result:=EqualsValue
+  else if A<B then Result:=LessThanValue
+  else Result:=GreaterThanValue;
+end;
+
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CompareValue(const A, B: Single; delta: Single = 0.0): TValueRelationship;
 begin
@@ -3872,11 +4041,16 @@ end;
 function RoundTo(const AValue: Double; const Digits: TRoundToRange): Double;
 
 var
-  RV : Double;
+  RV, Q : Double;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^52: from here on every Double is an integer
+  if IsNan(Q) or (Abs(Q)>=4503599627370496.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 
@@ -3884,11 +4058,16 @@ end;
 function RoundTo(const AVAlue: Extended; const Digits: TRoundToRange): Extended;
 
 var
-  RV : Extended;
+  RV, Q : Extended;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^63: outside the Int64 range of Round every Extended is an integer
+  if IsNan(Q) or (Abs(Q)>=9223372036854775808.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 
@@ -3896,11 +4075,16 @@ end;
 function RoundTo(const AValue: Single; const Digits: TRoundToRange): Single;
 
 var
-  RV : Single;
+  RV, Q : Single;
 
 begin
   RV:=IntPower(10,Digits);
-  Result:=Round(AValue/RV)*RV;
+  Q:=AValue/RV;
+  // 2^23: from here on every Single is an integer
+  if IsNan(Q) or (Abs(Q)>=8388608.0) then
+    Result:=AValue
+  else
+    Result:=Round(Q)*RV;
 end;
 {$endif}
 

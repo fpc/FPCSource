@@ -40,6 +40,7 @@ uses
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 {$DEFINE HAS_GETTICKCOUNT64}
 
 { used OS file system APIs use ansistring }
@@ -93,12 +94,22 @@ end;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+function MaybeUpdateLastOSError(ErrorCode: longint): longint;
+begin
+  if ErrorCode<>__WASI_ERRNO_SUCCESS then
+    __fpc_wasi_LastOSError:=ErrorCode;
+end;
+
+function GetLastOSError: Integer;
+begin
+  Result:=__fpc_wasi_LastOSError;
+end;
 
 function GetTickCount64: QWord;
 var
   NanoSecsPast: __wasi_timestamp_t;
 begin
-  if __wasi_clock_time_get(__WASI_CLOCKID_MONOTONIC,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_clock_time_get(__WASI_CLOCKID_MONOTONIC,1000000,@NanoSecsPast))=__WASI_ERRNO_SUCCESS then
     Result:=NanoSecsPast div 1000000
   else
     Result:=0;
@@ -199,6 +210,7 @@ Begin
                           0,
                           @ourfd);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  MaybeUpdateLastOSError(res);
   If res=__WASI_ERRNO_SUCCESS Then
     Result:=ourfd
   else
@@ -244,6 +256,7 @@ Begin
                           0,
                           @ourfd);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  MaybeUpdateLastOSError(res);
   If res=__WASI_ERRNO_SUCCESS Then
     Result:=ourfd
   else
@@ -274,6 +287,7 @@ begin
     our_iov.buf_len:=Count;
     res:=__wasi_fd_read(Handle,@our_iov,1,@our_nread);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  MaybeUpdateLastOSError(res);
   if res=__WASI_ERRNO_SUCCESS then
     Result:=our_nread
   else
@@ -292,6 +306,7 @@ begin
     our_iov.buf_len:=Count;
     res:=__wasi_fd_write(Handle,@our_iov,1,@our_nwritten);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  MaybeUpdateLastOSError(res);
   if res=__WASI_ERRNO_SUCCESS then
     Result:=our_nwritten
   else
@@ -324,7 +339,7 @@ begin
         exit;
       end;
   end;
-  res:=__wasi_fd_seek(Handle,FOffset,whence,@newoffset);
+  res:=MaybeUpdateLastOSError(__wasi_fd_seek(Handle,FOffset,whence,@newoffset));
   if res=__WASI_ERRNO_SUCCESS then
     Result:=newoffset
   else
@@ -339,6 +354,7 @@ begin
   repeat
     res:=__wasi_fd_close(Handle);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  MaybeUpdateLastOSError(res);
 end;
 
 
@@ -346,7 +362,7 @@ Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 var
   res: __wasi_errno_t;
 begin
-  Result:=__wasi_fd_filestat_set_size(handle,Size)=__WASI_ERRNO_SUCCESS;
+  Result:=MaybeUpdateLastOSError(__wasi_fd_filestat_set_size(handle,Size))=__WASI_ERRNO_SUCCESS;
 end;
 
 
@@ -362,7 +378,7 @@ begin
       result:=-1;
       exit;
     end;
-  res:=__wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info);
+  res:=MaybeUpdateLastOSError(__wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info));
   if res=__WASI_ERRNO_SUCCESS then
     result:=Info.mtim div 1000000000
   else
@@ -382,17 +398,17 @@ begin
   result:=false;
   if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     exit;
-  if __wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info))<>__WASI_ERRNO_SUCCESS then
     exit;
   if Info.filetype<>__WASI_FILETYPE_SYMBOLIC_LINK then
     exit;
-  if fpc_wasi_path_readlink_ansistring(fd,PAnsiChar(pr),Length(pr),symlink)<>__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(fpc_wasi_path_readlink_ansistring(fd,PAnsiChar(pr),Length(pr),symlink))<>__WASI_ERRNO_SUCCESS then
     exit;
   SymLinkRec.TargetName:=symlink;
 
-  res:=__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info);
+  res:=MaybeUpdateLastOSError(__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info));
   if res<>__WASI_ERRNO_SUCCESS then
-    raise EDirectoryNotFoundException.Create('Error ' + IntToStr(res){todo: SysErrorMessage SysErrorMessage(GetLastOSError)});
+    raise EDirectoryNotFoundException.Create(SysErrorMessage(res));
   SymLinkRec.Attr := WasiToWinAttr(FileName,fd,PAnsiChar(pr),length(pr),Info);
   SymLinkRec.Size := Info.size;
   result:=true;
@@ -495,7 +511,7 @@ var
   res: __wasi_errno_t;
   Info: __wasi_filestat_t;
 begin
-  res:=__wasi_fd_filestat_get(Handle,@Info);
+  res:=MaybeUpdateLastOSError(__wasi_fd_filestat_get(Handle,@Info));
   if res=__WASI_ERRNO_SUCCESS then
     result:=Info.mtim div 1000000000
   else
@@ -505,8 +521,8 @@ end;
 
 Function FileSetDate (Handle : THandle; Age : Int64) : Longint;
 begin
-  if __wasi_fd_filestat_set_times(Handle,Age*1000000000,Age*1000000000,
-     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_fd_filestat_set_times(Handle,Age*1000000000,Age*1000000000,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM))=__WASI_ERRNO_SUCCESS then
     result:=0
   else
     result:=-1;
@@ -523,8 +539,8 @@ begin
       result:=-1;
       exit;
     end;
-  if __wasi_path_filestat_set_times(fd,0,PAnsiChar(pr),length(pr),Age*1000000000,Age*1000000000,
-     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_path_filestat_set_times(fd,0,PAnsiChar(pr),length(pr),Age*1000000000,Age*1000000000,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM))=__WASI_ERRNO_SUCCESS then
     result:=0
   else
     result:=-1;
@@ -542,7 +558,7 @@ begin
       result:=-1;
       exit;
     end;
-  if __wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info))=__WASI_ERRNO_SUCCESS then
     result:=WasiToWinAttr(FileName,fd,PAnsiChar(pr),length(pr),Info)
   else
     result:=-1;
@@ -566,7 +582,7 @@ begin
       result:=false;
       exit;
     end;
-  result:=__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr))=__WASI_ERRNO_SUCCESS;
+  result:=MaybeUpdateLastOSError(__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr)))=__WASI_ERRNO_SUCCESS;
 end;
 
 
@@ -581,7 +597,7 @@ begin
     exit;
   if ConvertToFdRelativePath(NewName,fd2,pr2)<>0 then
     exit;
-  result:=__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2))=__WASI_ERRNO_SUCCESS;
+  result:=MaybeUpdateLastOSError(__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2)))=__WASI_ERRNO_SUCCESS;
 end;
 
 
@@ -610,7 +626,7 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   NanoSecsPast: __wasi_timestamp_t;
 begin
-  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  if MaybeUpdateLastOSError(__wasi_clock_time_get(__WASI_CLOCKID_REALTIME,1000000,@NanoSecsPast))=__WASI_ERRNO_SUCCESS then
     begin
       EpochToLocal(NanoSecsPast div 1000000000,
         SystemTime.Year,SystemTime.Month,SystemTime.Day,
@@ -669,7 +685,10 @@ end;
 function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
-  Result:=Format(SUnknownErrorCode,[ErrorCode]);
+  if (ErrorCode>=Low(__fpc_wasi_sys_errlist)) and (ErrorCode<=High(__fpc_wasi_sys_errlist)) then
+    Result:=__fpc_wasi_sys_errlist[ErrorCode]
+  else
+    Result:=Format(SUnknownErrorCode,[ErrorCode]);
 end;
 
 {****************************************************************************

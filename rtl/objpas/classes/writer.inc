@@ -100,6 +100,7 @@ begin
     Raise EWriteError.Create(SEmptyStreamIllegalWriter);
   FStream := Stream;
   FBufSize := BufSize;
+  FDelphiCompatible := DelphiCompatibleStreams;
   GetMem(FBuffer, BufSize);
 end;
 
@@ -122,7 +123,7 @@ end;
 procedure TBinaryObjectWriter.WriteSignature;
 
 begin
-  if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+  if (Version=TBinaryObjectReader.TBOVersion.boVersion1) and not DelphiCompatible then
     Write(FilerSignature1, SizeOf(FilerSignature1))
   else
     Write(FilerSignature, SizeOf(FilerSignature));
@@ -143,7 +144,7 @@ begin
       WriteInteger(ChildPos);
   end;
 
-  if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+  if (Version=TBinaryObjectReader.TBOVersion.boVersion1) and not DelphiCompatible then
     WriteString(Component.UnitName+TBinaryObjectReader.UnitnameSeparator+Component.ClassName)
   else
     WriteStr(Component.ClassName);
@@ -196,12 +197,32 @@ begin
   WriteValue(vaSingle);
   WriteDWord(longword(Value));
 end;
+
+procedure TBinaryObjectWriter.WriteDouble(const Value: Double);
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (d: double);
+  end;
+begin
+  r.d:=Value;
+  WriteValue(vaDouble);
+  WriteQWord(r.q);
+end;
 {$endif}
 
 procedure TBinaryObjectWriter.WriteCurrency(const Value: Currency);
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (c: currency);
+  end;
 begin
+  r.c:=Value;
   WriteValue(vaCurrency);
-  WriteQWord(qword(Value));
+  WriteQWord(r.q);
 end;
 
 
@@ -461,6 +482,12 @@ var
   b: byte;
 begin
   b := byte(Value);
+  if DelphiCompatible then
+    case Value of
+      vaUString : b := byte(vaWString);
+      vaQWord : b := byte(vaInt64);
+      vaDouble : b := TBinaryObjectReader.DelphiDoubleValue;
+    end;
   Write(b, 1);
 end;
 
@@ -515,6 +542,17 @@ end;
 function TWriter.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectWriter;
 begin
   Result := TBinaryObjectWriter.Create(Stream, BufSize);
+end;
+
+function TWriter.GetDelphiCompatible: Boolean;
+begin
+  Result := (FDriver is TBinaryObjectWriter) and TBinaryObjectWriter(FDriver).DelphiCompatible;
+end;
+
+procedure TWriter.SetDelphiCompatible(aValue: Boolean);
+begin
+  if FDriver is TBinaryObjectWriter then
+    TBinaryObjectWriter(FDriver).DelphiCompatible := aValue;
 end;
 
 Type
@@ -789,6 +827,11 @@ end;
 procedure TWriter.WriteSingle(const Value: Single);
 begin
   Driver.WriteSingle(Value);
+end;
+
+procedure TWriter.WriteDouble(const Value: Double);
+begin
+  Driver.WriteDouble(Value);
 end;
 {$endif}
 
@@ -1302,4 +1345,11 @@ procedure TAbstractObjectWriter.FlushBuffer;
 begin
   // Do nothing
 end;
+
+{$ifndef FPUNONE}
+procedure TAbstractObjectWriter.WriteDouble(const Value: Double);
+begin
+  WriteFloat(Value);
+end;
+{$endif}
 

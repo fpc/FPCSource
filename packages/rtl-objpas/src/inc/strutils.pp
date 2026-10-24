@@ -300,6 +300,9 @@ Type
                             );
 
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+{$if sizeof(SizeInt)>sizeof(Integer)}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : SizeInt; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+{$endif}
 Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 { We need these for backwards compatibility:
   The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
@@ -329,7 +332,7 @@ uses sysconst; // HexDigits
 type
   // Shared between case-sensitive and case-insensitive versions.
   BoyerMoore = record
-    DeltaJumpTable1: array[AnsiChar] of SizeInt;
+    DeltaJumpTable1: array[Byte] of SizeInt; //Indexed by the low byte of a character
     DeltaJumpTable2: SizeIntArray;
     MatchesCount: SizeInt; //Stores the amount of replaces that will take place
     MatchesAllocatedLimit: SizeInt; //Currently allocated space for matches.
@@ -338,13 +341,16 @@ type
   class var
     LCaseArray: array[AnsiChar] of AnsiChar; //Array of lowercased alphabet
     LCaseArrayPrepared: boolean;
+    LCaseArrayW: Pointer; //Array[WideChar] of lowercased WideChar, nil until prepared
 
     procedure Init(var aMatches: SizeIntArray); inline;
     procedure MakeDeltaJumpTables(aPattern: PAnsiChar; aPatternSize: SizeInt);
+    procedure MakeDeltaJumpTables(aPattern: PWideChar; aPatternSize: SizeInt);
     procedure AddMatch(aPosition: SizeInt);
     class function Max(a, b: SizeInt): SizeInt; static; inline;
     class procedure IncrementEverything(var aMatches: array of SizeInt); static; // Make positions 1-based.
     class procedure PrepareLCaseArray; static;
+    class function PrepareLCaseArrayW: PWideChar; static;
   end;
 
 procedure BoyerMoore.Init(var aMatches: SizeIntArray);
@@ -366,7 +372,41 @@ begin
      (DeltaJumpTable1, Length(DeltaJumpTable1), SizeUint(aPatternSize));
    //Last AnsiChar do not enter in the equation
    for i := 0 to aPatternSize - 1 - 1 do
-     DeltaJumpTable1[aPattern[i]]:=aPatternSize -1 - i;
+     DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize -1 - i;
+
+   SetLength(DeltaJumpTable2, aPatternSize);
+   LastPrefixIndex:=aPatternSize-1;
+   Position:=aPatternSize-1;
+   while Position>=0 do begin
+     if CompareByte(aPattern^, aPattern[Position+1], (aPatternSize-Position-1)*SizeOf(aPattern[0]))=0 then
+       LastPrefixIndex := Position+1;
+     DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
+     Dec(Position);
+   end;
+   Position:=0;
+   while Position<aPatternSize-1 do begin
+     SuffixLength:=0;
+     while (SuffixLength<Position) and (aPattern[Position-SuffixLength] = aPattern[aPatternSize-1-SuffixLength]) do
+       inc(SuffixLength);
+     if aPattern[Position-SuffixLength] <> aPattern[aPatternSize-1-SuffixLength] then
+       DeltaJumpTable2[aPatternSize - 1 - SuffixLength] := aPatternSize - 1 - Position + SuffixLength;
+     Inc(Position);
+   end;
+end;
+
+procedure BoyerMoore.MakeDeltaJumpTables(aPattern: PWideChar; aPatternSize: SizeInt);
+var
+   i, Position, LastPrefixIndex, SuffixLength: SizeInt;
+begin
+{$if sizeof(SizeInt)=sizeof(word)} FillWord
+{$elseif sizeof(SizeInt)=sizeof(dword)} FillDWord
+{$elseif sizeof(SizeInt)=sizeof(qword)} FillQWord
+{$else} {$error unknown SizeInt size}
+{$endif}
+     (DeltaJumpTable1, Length(DeltaJumpTable1), SizeUint(aPatternSize));
+   //Characters with the same low byte share an entry, holding the smallest jump
+   for i := 0 to aPatternSize - 1 - 1 do
+     DeltaJumpTable1[Ord(aPattern[i]) and $FF]:=aPatternSize -1 - i;
 
    SetLength(DeltaJumpTable2, aPatternSize);
    LastPrefixIndex:=aPatternSize-1;
@@ -421,6 +461,49 @@ begin
   LCaseArrayPrepared:=true;
 end;
 
+class function BoyerMoore.PrepareLCaseArrayW: PWideChar;
+var
+  lTable: PWideChar;
+  lAll, lLower: UnicodeString;
+  c: WideChar;
+begin
+  Result:=PWideChar(LCaseArrayW);
+  if Result<>nil then
+    begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    ReadBarrier; // Read LCaseArrayW contents only after LCaseArrayW.
+{$endif FPC_HAS_FEATURE_THREADING}
+    Exit;
+    end;
+  lTable:=GetMem(65536*SizeOf(WideChar));
+  SetLength(lAll,65536);
+  for c in WideChar do
+    lAll[Ord(c)+1]:=c;
+  lLower:=UnicodeLowerCase(lAll);
+  if Length(lLower)=65536 then
+    Move(lLower[1],lTable^,65536*SizeOf(WideChar))
+  else
+    for c in WideChar do
+      begin
+      lLower:=UnicodeLowerCase(UnicodeString(c));
+      if Length(lLower)=1 then
+        lTable[Ord(c)]:=lLower[1]
+      else
+        lTable[Ord(c)]:=c;
+      end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  WriteBarrier; // Write LCaseArrayW only after its contents.
+  Result:=InterlockedCompareExchangePointer(LCaseArrayW,lTable,nil);
+  if Result=nil then
+    Result:=lTable
+  else
+    FreeMem(lTable);
+{$else FPC_HAS_FEATURE_THREADING}
+  LCaseArrayW:=lTable;
+  result:=lTable;
+{$endif not def FPC_HAS_FEATURE_THREADING}
+end;
+
 (*
   FindMatchesBoyerMooreCaseSensitive
 
@@ -467,7 +550,7 @@ begin
       if not aMatchAll then break;
       inc(i,bm.DeltaJumpTable2[0]+1);
     end else
-      i:=i + bm.Max(bm.DeltaJumpTable1[s[i]],bm.DeltaJumpTable2[j]);
+      i:=i + bm.Max(bm.DeltaJumpTable1[Ord(s[i])],bm.DeltaJumpTable2[j]);
   end;
   SetLength(aMatches,bm.MatchesCount);
   Result:=bm.MatchesCount>0;
@@ -518,13 +601,83 @@ begin
       if not aMatchAll then break;
       inc(i,bm.DeltaJumpTable2[0]+1);
     end else
-      i:=i + bm.Max(bm.DeltaJumpTable1[bm.LCaseArray[s[i]]],bm.DeltaJumpTable2[j]);
+      i:=i + bm.Max(bm.DeltaJumpTable1[Ord(bm.LCaseArray[s[i]])],bm.DeltaJumpTable2[j]);
   end;
   SetLength(aMatches,bm.MatchesCount);
   Result:=bm.MatchesCount>0;
 end;
 
-function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : Integer): string;
+// Finds the zero based positions of OldPattern in S, case sensitive, WideChar version
+function FindMatchesBoyerMooreCaseSensitiveW(const S, OldPattern: PWideChar;
+  const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
+  const aMatchAll: Boolean) : Boolean;
+var
+  i,j: SizeInt;
+  bm: BoyerMoore;
+begin
+  aMatches:=nil;
+  if OldPatternSize=0 then
+    Exit(False);
+  bm.Init(aMatches);
+  bm.MakeDeltaJumpTables(OldPattern,OldPatternSize);
+
+  i:=OldPatternSize-1;
+  while i < SSize do begin
+    j:=OldPatternSize-1;
+    while (j>=0) and (S[i] = OldPattern[j]) do begin
+      dec(i);
+      dec(j);
+    end;
+    if (j<0) then begin
+      bm.AddMatch(i+1);
+      if not aMatchAll then break;
+      inc(i,bm.DeltaJumpTable2[0]+1);
+    end else
+      i:=i + bm.Max(bm.DeltaJumpTable1[Ord(s[i]) and $FF],bm.DeltaJumpTable2[j]);
+  end;
+  SetLength(aMatches,bm.MatchesCount);
+  Result:=bm.MatchesCount>0;
+end;
+
+// Finds the zero based positions of OldPattern in S, case insensitive, WideChar version
+function FindMatchesBoyerMooreCaseInSensitiveW(const S, OldPattern: PWideChar; const SSize, OldPatternSize: SizeInt; out
+  aMatches: SizeIntArray; const aMatchAll: Boolean): Boolean;
+var
+  i,j: SizeInt;
+  lLCase: PWideChar;
+  lPattern: UnicodeString;
+  bm: BoyerMoore;
+begin
+  aMatches:=nil;
+  if OldPatternSize=0 then
+    Exit(False);
+  lLCase:=bm.PrepareLCaseArrayW;
+  SetLength(lPattern,OldPatternSize);
+  for i := 0 to OldPatternSize-1 do
+    lPattern[i+1]:=lLCase[Ord(OldPattern[i])];
+
+  bm.Init(aMatches);
+  bm.MakeDeltaJumpTables(PWideChar(lPattern),OldPatternSize);
+
+  i:=OldPatternSize-1;
+  while i < SSize do begin
+    j:=OldPatternSize-1;
+    while (j>=0) and (lLCase[Ord(S[i])] = lPattern[j+1]) do begin
+      dec(i);
+      dec(j);
+    end;
+    if (j<0) then begin
+      bm.AddMatch(i+1);
+      if not aMatchAll then break;
+      inc(i,bm.DeltaJumpTable2[0]+1);
+    end else
+      i:=i + bm.Max(bm.DeltaJumpTable1[Ord(lLCase[Ord(s[i])]) and $FF],bm.DeltaJumpTable2[j]);
+  end;
+  SetLength(aMatches,bm.MatchesCount);
+  Result:=bm.MatchesCount>0;
+end;
+
+function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : SizeInt): string;
 const
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
 var
@@ -661,20 +814,20 @@ begin
     //Copy information up to next match
     AdvanceIndex:=Matches[MatchInternal]-MatchIndex;
     if AdvanceIndex>0 then begin
-      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex);
+      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex*SizeOf(Char));
       inc(MatchTarget,AdvanceIndex);
       inc(MatchIndex,AdvanceIndex);
     end;
     //Copy the new replace information string
     if NewPatternSize>0 then begin
-      move(NewPattern[1],Result[MatchTarget],NewPatternSize);
+      move(NewPattern[1],Result[MatchTarget],NewPatternSize*SizeOf(Char));
       inc(MatchTarget,NewPatternSize);
     end;
     inc(MatchIndex,OldPatternSize);
   end;
   if MatchTarget<=Length(Result) then begin
     //Add remain data at the end of source.
-    move(S[MatchIndex],Result[MatchTarget],Length(Result)-MatchTarget+1);
+    move(S[MatchIndex],Result[MatchTarget],(Length(Result)-MatchTarget+1)*SizeOf(Char));
   end;
 end;
 
@@ -708,7 +861,7 @@ end;
 
 *)
 
-function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : Integer): string;
+function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags; out aCount : SizeInt): string;
 var
   Matches: SizeIntArray;
   OldPatternSize: SizeInt;
@@ -727,13 +880,27 @@ begin
     exit;
   end;
 
+{$if sizeof(Char)=1}
   if rfIgnoreCase in Flags then begin
-    FindMatchesBoyerMooreCaseINSensitive(@s[1],@OldPattern[1],Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+    FindMatchesBoyerMooreCaseINSensitive(PAnsiChar(s),PAnsiChar(OldPattern),Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
   end else begin
-    FindMatchesBoyerMooreCaseSensitive(@s[1],@OldPattern[1],Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+    FindMatchesBoyerMooreCaseSensitive(PAnsiChar(s),PAnsiChar(OldPattern),Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
   end;
+{$else}
+  if rfIgnoreCase in Flags then begin
+    FindMatchesBoyerMooreCaseINSensitiveW(PWideChar(s),PWideChar(OldPattern),Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+  end else begin
+    FindMatchesBoyerMooreCaseSensitiveW(PWideChar(s),PWideChar(OldPattern),Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+  end;
+{$endif}
 
-  MatchesCount:=Length(Matches);
+  //Drop matches that overlap the previous match
+  MatchesCount:=0;
+  for MatchInternal := 0 to High(Matches) do
+    if (MatchesCount=0) or (Matches[MatchInternal]>=Matches[MatchesCount-1]+OldPatternSize) then begin
+      Matches[MatchesCount]:=Matches[MatchInternal];
+      inc(MatchesCount);
+    end;
   aCount:=MatchesCount;
 
   //Create room enough for the result string
@@ -745,20 +912,20 @@ begin
     //Copy information up to next match
     AdvanceIndex:=Matches[MatchInternal]+1-MatchIndex;
     if AdvanceIndex>0 then begin
-      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex);
+      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex*SizeOf(Char));
       inc(MatchTarget,AdvanceIndex);
       inc(MatchIndex,AdvanceIndex);
     end;
     //Copy the new replace information string
     if NewPatternSize>0 then begin
-      move(NewPattern[1],Result[MatchTarget],NewPatternSize);
+      move(NewPattern[1],Result[MatchTarget],NewPatternSize*SizeOf(Char));
       inc(MatchTarget,NewPatternSize);
     end;
     inc(MatchIndex,OldPatternSize);
   end;
   if MatchTarget<=Length(Result) then begin
     //Add remain data at the end of source.
-    move(S[MatchIndex],Result[MatchTarget],Length(Result)-MatchTarget+1);
+    move(S[MatchIndex],Result[MatchTarget],(Length(Result)-MatchTarget+1)*SizeOf(Char));
   end;
 end;
 
@@ -771,8 +938,8 @@ begin
   Result:=StringReplace(S, OldPattern, NewPattern, Flags,C,Algorithm);
 end;
 
-Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
-
+{$if sizeof(SizeInt)>sizeof(Integer)}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : SizeInt; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
 
 begin
   Case Algorithm of
@@ -781,6 +948,42 @@ begin
     sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
 end;
+
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+Var
+  C : SizeInt;
+
+begin
+  Result:=StringReplace(S,OldPattern,NewPattern,Flags,C,Algorithm);
+  if C>High(Integer) then
+    aCount:=High(Integer)
+  else
+    aCount:=C;
+end;
+{$else}
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; out aCount : Integer; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+
+Var
+  C : SizeInt;
+
+begin
+  Case Algorithm of
+    sraDefault    : Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraManySmall  :
+      begin
+      Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,C);
+      aCount:=C;
+      end;
+    sraBoyerMoore :
+      begin
+      Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,C);
+      aCount:=C;
+      end;
+  end;
+end;
+{$endif}
 
 {$IF SIZEOF(CHAR)=1}
 
@@ -800,14 +1003,22 @@ end;
 function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean
   ): Boolean;
 begin
+{$if sizeof(Char)=1}
   Result:=FindMatchesBoyerMooreCaseSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+{$else}
+  Result:=FindMatchesBoyerMooreCaseSensitiveW(PWideChar(S),PWideChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+{$endif}
   BoyerMoore.IncrementEverything(AMatches);
 end;
 
 function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean
   ): Boolean;
 begin
+{$if sizeof(Char)=1}
   Result:=FindMatchesBoyerMooreCaseInSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+{$else}
+  Result:=FindMatchesBoyerMooreCaseInSensitiveW(PWideChar(S),PWideChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+{$endif}
   BoyerMoore.IncrementEverything(AMatches);
 end;
 
@@ -3152,7 +3363,7 @@ end;
 
 function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer;
 begin
-  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+  Result:=HexToBin(HexText, PAnsiChar(@BinBuffer), BinBufSize);
 end;
 
 function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
@@ -3240,7 +3451,7 @@ end;
 
 function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer;
 begin
-  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+  Result:=HexToBin(HexText, PAnsiChar(@BinBuffer), BinBufSize);
 end;
 
 function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
@@ -3571,4 +3782,6 @@ begin
   Result := Diff = 0;
 end;
 
+finalization
+  FreeMem(BoyerMoore.LCaseArrayW);
 end.

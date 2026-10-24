@@ -121,12 +121,12 @@ Var
   Buf : Array[0..4] of Byte;
 
 begin
-  If (FTuple=0) then
+  If (FTuple=0) and (FCount=4) then
     begin
-    // Write 'z'
+    // Write 'z' (only for a full group of 4 zero bytes)
     S:='z';
     Inc(FPos);
-    If (FPos>FWidth) then
+    If (FPos>=FWidth) then
       begin
       S:=S+sLineBreak;
       FPos:=0;
@@ -141,13 +141,14 @@ begin
       end;
     J:=0;
     S:='';
-    For I:=FCount+1 downto 0 do
+    // N input bytes produce N+1 output characters
+    For I:=4 downto 4-FCount do
       begin
       Inc(j);
       S[J]:=AnsiChar(Buf[i]+Ord('!'));
       SetLength(S,J);
       Inc(FPos);
-      If (FPos>FWidth) then
+      If (FPos>=FWidth) then
         begin
         FPos:=0;
         S:=S+sLinebreak;
@@ -157,7 +158,7 @@ begin
     end;
   Source.Write(S[1],Length(S));
   FTuple:=0;
-  FCount:=-1;
+  FCount:=0;
 end;
 
 
@@ -217,12 +218,11 @@ begin
       0 : FTuple:=FTuple or (C shl 24);
       1 : FTuple:=FTuple or (C shl 16);
       2 : FTuple:=FTuple or (C shl 8);
-      3 : begin
-          FTuple:=FTuple or C;
-          encode;
-          end;
+      3 : FTuple:=FTuple or C;
      end;
      Inc(FCount);
+     If FCount=4 then
+       Encode;
      Inc(P);
      Dec(ACount);
      end;

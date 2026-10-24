@@ -342,6 +342,25 @@ const results: array[1..324] of string =
 '4+9194',
 '4+9059');
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  { FloatToDecimal of an Extended with a precision above 17 gives 19 significant digits }
+  extended_results: array[1..6,1..2] of string = (
+    ('257-11','257-1099999999999999966'),
+    ('257+11','257+1099999999999999966'),
+    ('257-54999999999999998','257-5499999999999999832'),
+    ('257+54999999999999998','257+5499999999999999832'),
+    ('1-31415926535897931','1-3141592653589793116'),
+    ('1+31415926535897931','1+3141592653589793116'));
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+const
+  error_count : longint = 0;
+
+procedure add_error(cg : longint);
+  begin
+    inc(error_count);
+  end;
+
 function DecimalToStr(fr: TFloatRec): string;
 var
   s : string;
@@ -352,6 +371,21 @@ begin
           else s := s+ '+';
         s := s + StrPas(@fr.Digits[0]);
         Result := s;
+end;
+
+function expected_result(index, precision : longint) : string;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+var
+  k : longint;
+{$endif FPC_HAS_TYPE_EXTENDED}
+begin
+  expected_result:=results[index];
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  if precision>17 then
+    for k:=low(extended_results) to high(extended_results) do
+      if expected_result=extended_results[k,1] then
+        exit(extended_results[k,2]);
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 var
@@ -369,11 +403,12 @@ BEGIN
         FloatToDecimal(fr, v, precs[cp], decs[cd]);
 //        write(DecimalToStr(fr):25, ';');
 //        writeln(DecimalToStr(fr));
-        if DecimalToStr(fr) <> results[cg] then
+        if DecimalToStr(fr) <> expected_result(cg,precs[cp]) then
           begin
-            writeln(' -- expected ',results[cg]);
-            writeln(cg);
-            halt(1);
+            writeln('Index: ',cg);
+            writeln(' -- expected: "',expected_result(cg,precs[cp]),'"');
+            writeln(' -- got:      "',DecimalToStr(fr),'"');
+            add_error(cg);
           end;
         inc(cg);
         end;
@@ -390,9 +425,19 @@ BEGIN
 //        write(DecimalToStr(fr):25, ';');
 //        writeln(DecimalToStr(fr));
         if DecimalToStr(fr) <> results[cg] then
-          halt(2);
+          begin
+            writeln('Index: ',cg);
+            writeln(' -- expected: "',results[cg],'"');
+            writeln(' -- got:      "',DecimalToStr(fr),'"');
+            add_error(cg);
+          end;
         inc(cg);
         end;
+  if error_count>0 then
+    begin
+      writeln('Test finished with ',error_count,' errors');
+      halt(1);
+    end;
 END.
 
 

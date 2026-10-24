@@ -71,6 +71,7 @@ type
 
     procedure TestArray;
     procedure TestDynArray;
+    procedure TestQualifiedName;
 
     procedure TestProcVar;
     procedure TestMethod;
@@ -1589,6 +1590,38 @@ begin
     Check(el = context.GetType(PTypeInfo(TypeInfo(LongInt))), 'Element type is not a LongInt');
 
     { ToDo: check OLE type }
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestRTTI.TestQualifiedName;
+var
+  context: TRttiContext;
+
+  function QName(aInfo: Pointer): string;
+  begin
+    Result := context.GetType(PTypeInfo(aInfo)).QualifiedName;
+  end;
+
+begin
+  context := TRttiContext.Create;
+  try
+    CheckEquals('tests.rtti.types.TGetClassProperties', QName(TypeInfo(TGetClassProperties)), 'Qualified name of a class');
+    CheckEquals('tests.rtti.types.ITestInterface', QName(TypeInfo(ITestInterface)), 'Qualified name of a COM interface');
+{$ifdef fpc}
+    CheckEquals('tests.rtti.types.ICORBATest', QName(TypeInfo(ICORBATest)), 'Qualified name of a CORBA interface');
+{$endif}
+    CheckEquals('tests.rtti.types.TArrayOfLongintDyn', QName(TypeInfo(TArrayOfLongintDyn)), 'Qualified name of a dynamic array');
+    CheckEquals('tests.rtti.types.TTestEnum', QName(TypeInfo(TTestEnum)), 'Qualified name of an enumeration');
+    CheckEquals('tests.rtti.types', (context.GetType(PTypeInfo(TypeInfo(TTestEnum))) as TRttiEnumerationType).DeclaringUnitName,
+      'Declaring unit name of an enumeration');
+    CheckEquals('classes.tseekorigin', LowerCase(QName(TypeInfo(TSeekOrigin))), 'Qualified name of an enumeration of another unit');
+    CheckEquals('system.ttypekind', LowerCase(QName(TypeInfo(TTypeKind))), 'Qualified name of an alias has the unit of the aliased type');
+    CheckEquals('TManagedRec', QName(TypeInfo(TManagedRec)), 'Qualified name of a record is its name');
+    CheckEquals('TTestSet', QName(TypeInfo(TTestSet)), 'Qualified name of a set is its name');
+    CheckEquals('LongInt', QName(TypeInfo(LongInt)), 'Qualified name of an integer type is its name');
+    CheckEquals('Boolean', QName(TypeInfo(Boolean)), 'Qualified name of Boolean is its name');
   finally
     context.Free;
   end;

@@ -158,6 +158,10 @@ type
    EInOutError = class(Exception)
      public
        ErrorCode : Integer;
+       // Create with a message and set ErrorCode
+       constructor Create(const aMsg: string; aErrorCode: Integer); overload;
+       // Create with a formatted message and set ErrorCode
+       constructor CreateFmt(const aFmt: string; const aArgs: array of const; aErrorCode: Integer); overload;
    end;
 
    EHeapMemoryError = class(Exception)
@@ -289,6 +293,8 @@ generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inli
 generic function Exchange<T>(var target:T; const newvalue:T) :T; inline;
 generic function Extract<T>(var from: T) :T;inline;overload;
 generic procedure Swap<T>(var lhs,rhs: T);inline;overload;
+// Swaps A and B when A>B; returns True if they were swapped
+generic function EnsureOrder<T>(var A,B: T): Boolean;inline;
 
 Var
    OnShowException : Procedure (Msg : ShortString);

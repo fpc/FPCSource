@@ -435,13 +435,62 @@ implementation
       end;
 
 
+    function Utf8MsgFileForLocale(const msgdir:string):string;
+      const
+        utf8_message_files : array[0..9,0..1] of string[3] = (
+          ('da','da'), ('de','du'),  ('en','e'),
+          ('es','ues'),('he','heu'), ('id','id'),
+          ('pt','ptu'),('ru','ru'),  ('tr','tr'),
+          ('zh','zh'));
+      var
+        locale,
+        language,
+        codeset  : string;
+        i        : longint;
+      begin
+        result:='';
+        locale:=GetEnvironmentVariable('LC_ALL');
+        if locale='' then
+          locale:=GetEnvironmentVariable('LC_MESSAGES');
+        if locale='' then
+          locale:=GetEnvironmentVariable('LANG');
+        i:=pos('@',locale);
+        if i>0 then
+          locale:=copy(locale,1,i-1);
+        i:=pos('.',locale);
+        if i=0 then
+          exit;
+        codeset:=upper(copy(locale,i+1,length(locale)-i));
+        if (codeset<>'UTF8') and (codeset<>'UTF-8') then
+          exit;
+        language:=copy(locale,1,i-1);
+        i:=pos('_',language);
+        if i>0 then
+          language:=copy(language,1,i-1);
+        language:=lower(language);
+        for i:=low(utf8_message_files) to high(utf8_message_files) do
+          if utf8_message_files[i,0]=language then
+            begin
+              result:=IncludeTrailingPathDelimiter(msgdir)+
+                      'error'+utf8_message_files[i,1]+'.msg';
+              exit;
+            end;
+      end;
+
+
     procedure MaybeLoadMessageFile;
+      var
+        fn : string;
       begin
         { Load new message file }
         if (msgfilename<>'')  then
          begin
-           LoadMsgFile(msgfilename);
+           fn:=msgfilename;
            msgfilename:='';
+           if DirectoryExists(fn) then
+             fn:=Utf8MsgFileForLocale(fn);
+           if fn<>'' then
+             LoadMsgFile(fn);
          end;
       end;
 

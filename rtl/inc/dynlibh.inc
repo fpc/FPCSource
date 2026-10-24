@@ -38,6 +38,19 @@ type
   TUnloadLibraryHandler = function(Lib: TLibHandle): Boolean;
   TGetLoadErrorStrHandler = function: AnsiString;
 
+  TSymbolAddressInfo = record
+    // Name of the symbol at or before the address, empty when unknown
+    SymbolName: ShortString;
+    // Start address of that symbol, nil when unknown
+    SymbolAddr: CodePointer;
+    // Last 255 characters of the path of the module containing the address
+    ModuleName: ShortString;
+    // Address in the module file as used by addr2line: the RVA on Windows, the address minus the load bias
+    // on ELF and Mach-O; valid when ModuleName is not empty
+    ModuleOffset: CodePtrUInt;
+  end;
+  TGetSymbolByAddrHandler = function(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
+
   TDynLibsManager = record
     LoadLibraryU: TLoadLibraryUHandler;
     LoadLibraryA: TLoadLibraryAHandler;
@@ -45,6 +58,7 @@ type
     GetProcAddressOrdinal: TGetProcAddressOrdinalHandler;
     UnloadLibrary: TUnloadLibraryHandler;
     GetLoadErrorStr: TGetLoadErrorStrHandler;
+    GetSymbolByAddr: TGetSymbolByAddrHandler;
   end;
 
 Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
@@ -56,6 +70,8 @@ Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$
 Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: AnsiString;
+// Finds the symbol at or before Addr and the module containing it; False when unknown or unsupported
+Function GetSymbolByAddress(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
 
 // Kylix/Delphi compatibility
 

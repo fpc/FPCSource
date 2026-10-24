@@ -109,6 +109,10 @@ type
     FLoopCount: Word;
     FTransparent: Boolean;
     FTable: TGIFColorTable;
+    FFrames: array of TFPMemoryImage;
+    FFrameDelays: array of Word;
+    FOmitLoop: Boolean;
+    procedure ClearFrames;
     function NeedsTransparent(const AImages: array of TFPCustomImage): Boolean;
     function AddColorsOf(AImage: TFPCustomImage; ALimit: Integer;
       ASkipTransparent: Boolean): Boolean;
@@ -118,15 +122,20 @@ type
     procedure WriteScreen(AStream: TStream; AWidth, AHeight: Integer;
       AFrames: Integer);
     procedure WriteControl(AStream: TStream; ADelay: Word);
-    procedure WriteFrame(AStream: TStream; AImage: TFPCustomImage;
+    procedure WriteFrameData(AStream: TStream; AImage: TFPCustomImage;
       ADelay: Word; AFrames: Integer);
     procedure WriteFrames(AStream: TStream;
       const AImages: array of TFPCustomImage; const ADelays: array of Word);
   protected
     procedure InternalWrite(Str: TStream; Img: TFPCustomImage); override;
+    procedure InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo); override;
+    procedure InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo); override;
+    procedure InternalEndFrames(Str: TStream); override;
   public
     constructor Create; override;
     destructor Destroy; override;
+    // Returns the kinds of frames a GIF holds several of: those of an animation, written whole at 0,0.
+    class function FrameKinds: TFPFrameKinds; override;
     // Writes several images as the frames of one animation using fixed Delay property.
     procedure ImagesWrite(AStream: TStream; const AImages: array of TFPCustomImage); overload;
     // The same, with a delay of its own for each frame in hundredths of a second. 
@@ -466,6 +475,7 @@ end;
 destructor TFPWriterGIF.Destroy;
 
 begin
+  ClearFrames;
   FTable.Free;
   inherited Destroy;
 end;
@@ -593,7 +603,7 @@ begin
     AStream.WriteByte((lColor shr 8) and $FF);
     AStream.WriteByte(lColor and $FF);
     end;
-  if AFrames < 2 then
+  if (AFrames < 2) or FOmitLoop then
     Exit;
   // The application extension that says how often to play an animation.
   AStream.WriteByte(GIFExtensionIntroducer);
@@ -636,7 +646,7 @@ begin
 end;
 
 
-procedure TFPWriterGIF.WriteFrame(AStream: TStream; AImage: TFPCustomImage;
+procedure TFPWriterGIF.WriteFrameData(AStream: TStream; AImage: TFPCustomImage;
   ADelay: Word; AFrames: Integer);
 
 var
@@ -709,7 +719,7 @@ begin
     lDelay := FDelay;
     if I <= High(ADelays) then
       lDelay := ADelays[I];
-    WriteFrame(AStream, AImages[I], lDelay, Length(AImages));
+    WriteFrameData(AStream, AImages[I], lDelay, Length(AImages));
     end;
   AStream.WriteByte(GIFTrailer);
 end;
@@ -725,6 +735,82 @@ begin
   lImages[0] := Img;
   lDelays[0] := 0;
   WriteFrames(Str, lImages, lDelays);
+end;
+
+
+class function TFPWriterGIF.FrameKinds: TFPFrameKinds;
+
+begin
+  Result := [fkAnimation];
+end;
+
+
+procedure TFPWriterGIF.ClearFrames;
+
+var
+  I: Integer;
+
+begin
+  for I := 0 to High(FFrames) do
+    FFrames[I].Free;
+  FFrames := nil;
+  FFrameDelays := nil;
+end;
+
+
+procedure TFPWriterGIF.InternalBeginFrames(Str: TStream; const aInfo: TFPFramesInfo);
+
+begin
+  ClearFrames;
+end;
+
+
+procedure TFPWriterGIF.InternalWriteFrame(Str: TStream; Img: TFPCustomImage; const aInfo: TFPFrameInfo);
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex := Length(FFrames);
+  SetLength(FFrames, lIndex + 1);
+  SetLength(FFrameDelays, lIndex + 1);
+  FFrames[lIndex] := TFPMemoryImage.Create(0, 0);
+  FFrames[lIndex].Assign(Img);
+  if aInfo.Delay >= 655350 then
+    FFrameDelays[lIndex] := High(Word)
+  else
+    FFrameDelays[lIndex] := (aInfo.Delay + 5) div 10;
+end;
+
+
+procedure TFPWriterGIF.InternalEndFrames(Str: TStream);
+
+var
+  lImages: array of TFPCustomImage;
+  lLoopCount: Word;
+  I: Integer;
+
+begin
+  lImages := nil;
+  SetLength(lImages, Length(FFrames));
+  for I := 0 to High(FFrames) do
+    lImages[I] := FFrames[I];
+  lLoopCount := FLoopCount;
+  try
+    // The loop field of a GIF counts the plays after the first.
+    FOmitLoop := FramesInfo.LoopCount = 1;
+    if FramesInfo.LoopCount <= 0 then
+      FLoopCount := 0
+    else if FramesInfo.LoopCount > High(Word) then
+      FLoopCount := High(Word)
+    else if FramesInfo.LoopCount > 1 then
+      FLoopCount := FramesInfo.LoopCount - 1;
+    WriteFrames(Str, lImages, FFrameDelays);
+  finally
+    FLoopCount := lLoopCount;
+    FOmitLoop := False;
+    ClearFrames;
+  end;
 end;
 
 
@@ -749,5 +835,5 @@ end;
 
 
 initialization
-  ImageHandlers.RegisterImageWriter('GIF Format', 'gif', TFPWriterGIF);
+  ImageHandlers.RegisterImageWriter('GIF Graphics', 'gif', TFPWriterGIF);
 end.

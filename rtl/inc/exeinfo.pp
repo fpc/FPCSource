@@ -60,6 +60,13 @@ function FindExeSection(var e:TExeFile;const secname:shortstring;var secofs,secl
 function CloseExeFile(var e:TExeFile):boolean;
 function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean; overload;
 function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; overload;
+// Reads the GNU build-id note of e as lowercase hexadecimal digits.
+function ReadBuildId(var e:TExeFile;var aBuildId:ansistring):boolean;
+
+var
+  // Directories searched by ReadDebugLink for <dir>/.build-id/xx/rest.debug and <dir><exedir><debuglink>,
+  // separated by ':' on Unix and ';' elsewhere.
+  DebugInfoSearchPath : ansistring = {$ifdef unix}'/usr/lib/debug'{$else}''{$endif};
 
 {$ifdef CPUI8086}
 procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
@@ -134,7 +141,16 @@ end;
           TST[0]:= #0;
           if baseaddr <> nil then
             begin
+{$ifdef wince}
+              { AllocationBase is not a module handle on WinCE }
+              if GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST))=0 then
+                begin
+                  filename:=ParamStr(0);
+                  exit;
+                end;
+{$else wince}
               GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
+{$endif wince}
 {$ifdef FPC_OS_UNICODE}
               filename:= String(PWideChar(@TST));
 {$else}
@@ -1128,6 +1144,8 @@ end;
 
 
 function FindSectionElf(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
+const
+  SHF_COMPRESSED = $800;
 var
   elfsec     : telfsechdr;
   secname    : string;
@@ -1148,9 +1166,13 @@ begin
      secname:=strpas(secnamebuf);
      if asecname=secname then
        begin
-         secofs:=e.ImgOffset+elfsec.sh_offset;
-         seclen:=elfsec.sh_size;
-         FindSectionElf:=true;
+         { compressed sections are reported as absent }
+         if (elfsec.sh_flags and SHF_COMPRESSED)=0 then
+           begin
+             secofs:=e.ImgOffset+elfsec.sh_offset;
+             seclen:=elfsec.sh_size;
+             FindSectionElf:=true;
+           end;
          exit;
        end;
    end;
@@ -1633,7 +1655,7 @@ const
   CheckDbgFile_buf_size = 4096;
 {$endif}
 
-function CheckDbgFile(var e:TExeFile;const fn:shortstring;dbgcrc:cardinal):boolean;
+function CheckDbgFile(var e:TExeFile;const fn:ansistring;dbgcrc:cardinal):boolean;
 var
   c      : cardinal;
   ofm    : word;
@@ -1661,7 +1683,95 @@ begin
   CheckDbgFile:=(dbgcrc=c);
 end;
 
+
+function ReadBuildId(var e:TExeFile;var aBuildId:ansistring):boolean;
+
+const
+  NT_GNU_BUILD_ID = 3;
+  HexDigits : array[0..15] of AnsiChar = '0123456789abcdef';
+var
+  lNote : array[0..255] of byte;
+  lOfs,
+  lLen,
+  lPos,
+  lNameSz,
+  lDescSz,
+  i : longint;
+  lHdr : array[0..2] of cardinal;
+begin
+  ReadBuildId:=false;
+  aBuildId:='';
+  if not FindExeSection(e,'.note.gnu.build-id',lOfs,lLen) then
+    exit;
+  if lLen>sizeof(lNote) then
+    lLen:=sizeof(lNote);
+  seek(e.f,lOfs);
+  blockread(e.f,lNote,lLen);
+  lPos:=0;
+  while lPos+sizeof(lHdr)<=lLen do
+    begin
+      move(lNote[lPos],lHdr,sizeof(lHdr));
+      inc(lPos,sizeof(lHdr));
+      if (lHdr[0]>sizeof(lNote)) or (lHdr[1]>sizeof(lNote)) then
+        exit;
+      lNameSz:=lHdr[0];
+      lDescSz:=lHdr[1];
+      if (lHdr[2]=NT_GNU_BUILD_ID) and (lNameSz=4) and (lDescSz>=2) and (lPos+4+lDescSz<=lLen)
+         and (lNote[lPos]=ord('G')) and (lNote[lPos+1]=ord('N')) and (lNote[lPos+2]=ord('U')) and (lNote[lPos+3]=0) then
+        begin
+          inc(lPos,4);
+          setlength(aBuildId,2*lDescSz);
+          for i:=0 to lDescSz-1 do
+            begin
+              aBuildId[2*i+1]:=HexDigits[lNote[lPos+i] shr 4];
+              aBuildId[2*i+2]:=HexDigits[lNote[lPos+i] and 15];
+            end;
+          ReadBuildId:=true;
+          exit;
+        end;
+      inc(lPos,align(lNameSz,4)+align(lDescSz,4));
+    end;
+end;
+
+
 {$ifndef darwin}
+// True if aFileName is an executable file with the GNU build-id aBuildId.
+function CheckBuildIdFile(const aFileName,aBuildId:ansistring):boolean;
+
+var
+  lDbg : TExeFile;
+  lId  : ansistring;
+begin
+  CheckBuildIdFile:=false;
+  if length(aFileName)>255 then
+    exit;
+  if OpenExeFile(lDbg,aFileName) then
+    CheckBuildIdFile:=ReadBuildId(lDbg,lId) and (lId=aBuildId);
+  CloseExeFile(lDbg);
+end;
+
+
+// Sets aDir to the next non-empty directory of DebugInfoSearchPath from position aPos, without trailing separator.
+function NextDebugInfoDir(var aPos:longint;var aDir:ansistring):boolean;
+
+var
+  lStart : longint;
+begin
+  NextDebugInfoDir:=false;
+  while not NextDebugInfoDir and (aPos<=length(DebugInfoSearchPath)) do
+    begin
+      lStart:=aPos;
+      while (aPos<=length(DebugInfoSearchPath)) and (DebugInfoSearchPath[aPos]<>{$ifdef unix}':'{$else}';'{$endif}) do
+        inc(aPos);
+      aDir:=copy(DebugInfoSearchPath,lStart,aPos-lStart);
+      inc(aPos);
+      while (length(aDir)>0) and (aDir[length(aDir)] in AllowDirectorySeparators) do
+        setlength(aDir,length(aDir)-1);
+      NextDebugInfoDir:=aDir<>'';
+    end;
+end;
+
+
 function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 var
   dbglink : array[0..255] of AnsiChar;
@@ -1669,8 +1779,40 @@ var
   dbglinklen,
   dbglinkofs : longint;
   dbgcrc     : cardinal;
+  lLinkName,
+  lExeDir,
+  lBuildId,
+  lDir       : ansistring;
+  lPos       : longint;
+
+  // Sets dbgfn to aFileName if it is the debug file with the expected CRC.
+  function TryDbgFile(const aFileName:ansistring):boolean;
+
+  begin
+    TryDbgFile:=CheckDbgFile(e,aFileName,dbgcrc);
+    if TryDbgFile then
+      dbgfn:=aFileName;
+  end;
+
+
 begin
   ReadDebugLink:=false;
+  { <dir>/.build-id/xx/rest.debug for each directory in DebugInfoSearchPath }
+  if ReadBuildId(e,lBuildId) then
+    begin
+      lPos:=1;
+      while NextDebugInfoDir(lPos,lDir) do
+        begin
+          lDir:=lDir+DirectorySeparator+'.build-id'+DirectorySeparator+copy(lBuildId,1,2)+DirectorySeparator
+                +copy(lBuildId,3,length(lBuildId)-2)+'.debug';
+          if CheckBuildIdFile(lDir,lBuildId) then
+            begin
+              dbgfn:=lDir;
+              ReadDebugLink:=true;
+              exit;
+            end;
+        end;
+    end;
   if not FindExeSection(e,'.gnu_debuglink',dbglinkofs,dbglinklen) then
     exit;
   if dbglinklen>sizeof(dbglink)-1 then
@@ -1678,32 +1820,36 @@ begin
   fillchar(dbglink,sizeof(dbglink),0);
   seek(e.f,dbglinkofs);
   blockread(e.f,dbglink,dbglinklen);
-  dbgfn:=strpas(dbglink);
-  if length(dbgfn)=0 then
+  lLinkName:=strpas(dbglink);
+  dbgfn:=lLinkName;
+  if length(lLinkName)=0 then
     exit;
-  i:=align(length(dbgfn)+1,4);
+  i:=align(length(lLinkName)+1,4);
   if (i+4)>dbglinklen then
     exit;
   move(dbglink[i],dbgcrc,4);
-  { current dir }
-  if CheckDbgFile(e,dbgfn,dbgcrc) then
+  i:=length(e.filename);
+  while (i>0) and not(e.filename[i] in AllowDirectorySeparators) do
+    dec(i);
+  lExeDir:=copy(e.filename,1,i);
+  { current dir, executable dir and its .debug subdirectory }
+  if TryDbgFile(lLinkName)
+     or ((lExeDir<>'') and TryDbgFile(lExeDir+lLinkName))
+     or TryDbgFile(lExeDir+'.debug'+DirectorySeparator+lLinkName) then
     begin
       ReadDebugLink:=true;
       exit;
     end;
-  { executable dir }
-  i:=length(e.filename);
-  while (i>0) and not(e.filename[i] in AllowDirectorySeparators) do
-    dec(i);
-  if i>0 then
-    begin
-      dbgfn:=copy(e.filename,1,i)+dbgfn;
-      if CheckDbgFile(e,dbgfn,dbgcrc) then
-        begin
-          ReadDebugLink:=true;
-          exit;
-        end;
-    end;
+  { <dir><exedir><name> for each directory in DebugInfoSearchPath, with an absolute exedir }
+  if (lExeDir='') or not (lExeDir[1] in AllowDirectorySeparators) then
+    exit;
+  lPos:=1;
+  while NextDebugInfoDir(lPos,lDir) do
+    if TryDbgFile(lDir+lExeDir+lLinkName) then
+      begin
+        ReadDebugLink:=true;
+        exit;
+      end;
 end;
 {$else}
 function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;

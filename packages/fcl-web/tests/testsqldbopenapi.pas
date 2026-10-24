@@ -88,6 +88,7 @@ var
 
 begin
   Converter.Convert(Schema,OpenAPI);
+  D:=Nil;
   Writer:=TOpenAPIWriter.Create(Nil);
   J:=TJSONDataWriter.Create;
   try
@@ -98,6 +99,7 @@ begin
   finally
     D.Free;
     J.Free;
+    Writer.Free;
   end;
 end;
 

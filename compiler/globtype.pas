@@ -565,7 +565,9 @@ interface
          m_anonymous_functions,  { enable Delphi-style anonymous functions }
          m_multiline_strings,    { multi-line strings denoted with '`' are enabled and valid }
          m_statement_expressions, { if-, case-, try-except-expression }
-         m_reordered_operators  { reordered operators, e.g. "a is not b", "a not in b" }
+         m_reordered_operators,  { reordered operators, e.g. "a is not b", "a not in b" }
+         m_type_inquiry,         { compile time operator "type of <operand>" }
+         m_record_composition    { enables record composition }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -775,7 +777,9 @@ interface
          'ANONYMOUSFUNCTIONS',
          'MULTILINESTRINGS',
          'STATEMENTEXPRESSIONS',
-         'REORDEREDOPERATORS'
+         'REORDEREDOPERATORS',
+         'TYPEINQUIRY',
+         'RECORDCOMPOSITION'
          );
 
 

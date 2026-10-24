@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, System.Types, System.StrUtils, System.IniFiles, FpJson.Parser,
+  System.SysUtils, System.Classes, System.Types, System.StrUtils, System.IniFiles,
   {$ifdef unix}
   UnixApi.Base,
   {$endif}
@@ -50,7 +50,7 @@ uses
   {$ELSE}
     custmicrohttpapp,
   {$ENDIF}
-  types, jsonparser, strutils, inifiles, httproute, httpdefs, fphttpserver, fpmimetypes, fpwebfile, fpwebproxy,
+  types, strutils, inifiles, httproute, httpdefs, fphttpserver, fpmimetypes, fpwebfile, fpwebproxy,
   webutil;
 {$ENDIF}
 Const

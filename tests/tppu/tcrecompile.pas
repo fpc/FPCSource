@@ -69,6 +69,9 @@ type
     procedure TestUr_cycle2; //  ant->bird, bird.impl->ant
     procedure TestUr_pkg1; // pkg2 uses pkg1, pk1 changes
 
+    // resources
+    procedure TestResourceLFM1; // ToDo: prg->ant, ant has {$R *.lfm}, touch lfm
+
     // inline
     procedure TestInline1; // ant->bird->cat, cat inline body changes
     procedure TestChangeInlineBody; // prog+1 unit plus a package of 2 units, change of inline body
@@ -580,6 +583,35 @@ begin
   // the main src bird is always compiled,
   // cat must be recompiled because cat.pas is available and used ant.ppu changed
   CheckCompiled(['ur_pkg1_bird.pas','ur_pkg1_cat.pas']);
+end;
+
+procedure TTestRecompile.TestResourceLFM1;
+// prg->ant, ant has {$R *.lfm}, touch lfm
+var
+  Dir: String;
+begin
+  exit; // ToDo
+
+  Dir:='reslfm1';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'reslfm1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['reslfm1_prg.pas','reslfm1_ant.pas'],['reslfm1_prg.or']);
+
+  Step:='Second compile';
+  Compile;
+  // nothing changed, ant.ppu is kept
+  CheckCompiled(['reslfm1_prg.pas'],['reslfm1_prg.or']);
+
+  Step:='Third compile';
+  TouchFile(Dir+PathDelim+'reslfm1_ant.lfm');
+  Compile;
+  // the lfm changed, so ant must be recompiled
+  CheckCompiled(['reslfm1_prg.pas','reslfm1_ant.pas'],['reslfm1_prg.or']);
 end;
 
 procedure TTestRecompile.TestCycle2_ChangeB;

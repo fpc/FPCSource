@@ -1556,6 +1556,7 @@ type
         ag , wait_dep: boolean;
         finishstate : tfinishstate;
         old_module, wait_m: tmodule;
+        hal: TAsmListType;
       begin
          result:=true;
          { curr is now module }
@@ -1761,6 +1762,15 @@ type
              create_dwarf_frame;
              { assemble }
              create_objectfile(module);
+             { Object generation has consumed these lists, including debug
+               information. External jobs need only the assembler file. Keep
+               the assembler symbols for PPU serialization, but do not retain
+               emitted code while circular dependencies settle their CRCs.
+               Saved inline trees own independent copies of their asm lists. }
+             if ErrorCount=0 then
+               for hal:=low(TAsmListType) to high(TAsmListType) do
+                 if assigned(current_asmdata.asmlists[hal]) then
+                   current_asmdata.asmlists[hal].clear;
            end;
 
         { remove all waits for this unit }

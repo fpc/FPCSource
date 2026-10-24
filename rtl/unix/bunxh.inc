@@ -45,6 +45,12 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpTimes      (var buffer : tms): TClock;
 
     Function  FpAlarm      (seconds : cuint): cuint;
+{$ifdef FPC_HAS_ITIMER}
+    // Sets interval timer which (ITIMER_*) to value, returning the previous setting in ovalue when not nil
+    Function  FpSetITimer  (which : cint; value : PItimerVal; ovalue : PItimerVal): cint;
+    // Returns the current setting of interval timer which (ITIMER_*)
+    Function  FpGetITimer  (which : cint; value : PItimerVal): cint;
+{$endif FPC_HAS_ITIMER}
     Function  FpPause : cInt;
     Function  FpSleep      (seconds : cuint): cuint;
 

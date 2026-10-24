@@ -53,6 +53,7 @@ begin
 
     T:=P.Targets.AddProgram('h2pas.pas');
     T.Dependencies.AddUnit('h2poptions');
+    T.Dependencies.AddUnit('h2pcpp');
     T.Dependencies.AddUnit('h2plexlib');
     T.Dependencies.AddUnit('scan');
     T.Dependencies.AddUnit('h2pyacclib');
@@ -76,12 +77,17 @@ begin
     T.Dependencies.AddUnit('h2pyacclib');
 
 
+    T:=P.Targets.AddUnit('h2pcpp.pp');
+    T.install:=false;
+    T.Dependencies.AddUnit('h2poptions');
+
     T:=P.Targets.AddUnit('scanbase.pp');
     T.install:=false;
     T.Dependencies.AddUnit('h2pconst');
     T.Dependencies.AddUnit('h2poptions');
     T.Dependencies.AddUnit('h2ptypes');
     T.Dependencies.AddUnit('h2plexlib');
+    T.Dependencies.AddUnit('h2pcpp');
 
     T:=P.Targets.AddUnit('h2pbase.pp');
     T.install:=false;

@@ -61,7 +61,7 @@ Type
   { please only enable options below after creating a test program for them that
     passes on Windows and committing it, so it can be used to verify the
     functionality on other platforms }
-  TCompareOption = ({coLingIgnoreCase, coLingIgnoreDiacritic, }coIgnoreCase{,
+  TCompareOption = (coLingIgnoreCase, {coLingIgnoreDiacritic, }coIgnoreCase{,
                     coIgnoreKanaType, coIgnoreNonSpace, coIgnoreSymbols, coIgnoreWidth,
                     coLingCasing, coDigitAsNumbers, coStringSort});
   TCompareOptions = set of TCompareOption;

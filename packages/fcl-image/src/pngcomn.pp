@@ -35,16 +35,20 @@ type
     ctoFFs,  ctpHYs,  ctIDAT,  cttIME,
     ctsCAL,  cttEXt,  ctzTXt,  ctIEND,
     ctsRGB,  ctiCCP,  ctiTXt,  ctsPLT,
+    ctacTL,  ctfcTL,  ctfdAT,  cteXIf,
     ctUnknown
     );
 
   EightLong = array[0..7] of longword;
+  // Bytes of a chunk or a scan line, of any length
+  TPNGByteArray = array[0..MaxInt-1] of byte;
+  PPNGByteArray = ^TPNGByteArray;
   TChunkCode = array[0..3] of AnsiChar;
 
   TChunk = record
     acapacity, alength, CRC : longword;
     ReadType : TChunkCode;
-    data : PByteArray;
+    data : PPNGByteArray;
     aType : TChunkTypes;
   end;
 
@@ -56,6 +60,18 @@ type
   THeaderChunk = record
     Width, height : longword;
     BitDepth, ColorType, Compression, Filter, Interlace : byte;
+  end;
+
+  { acTL: the number of frames of an animated PNG and how often it plays, big-endian. }
+  TAPNGAnimationControl = packed record
+    NumFrames, NumPlays : longword;
+  end;
+
+  { fcTL: the place, delay, disposal and blending of one frame, big-endian. }
+  TAPNGFrameControl = packed record
+    SequenceNumber, Width, Height, XOffset, YOffset : longword;
+    DelayNum, DelayDen : word;
+    DisposeOp, BlendOp : byte;
   end;
 
   TPNGPhysicalDimensions = packed record
@@ -77,8 +93,19 @@ const
     'oFFs',  'pHYs',  'IDAT',  'tIME',
     'sCAL',  'tEXt',  'zTXt',  'IEND',
     'sRGB',  'iCCP',  'iTXt',  'sPLT',
+    'acTL',  'fcTL',  'fdAT',  'eXIf',
     'Unkn'
     );
+
+  // The keyword of the iTXt chunk of an XMP packet, and the profile name the writer gives iCCP.
+  PNGXMPKeyword: AnsiString = 'XML:com.adobe.xmp';
+  PNGICCName: AnsiString = 'ICC profile';
+
+  APNGDisposeNone = 0;
+  APNGDisposeBackground = 1;
+  APNGDisposePrevious = 2;
+  APNGBlendSource = 0;
+  APNGBlendOver = 1;
 
   ChunkAncillary = $10000000;
   ChunkPrivate   = $00100000;

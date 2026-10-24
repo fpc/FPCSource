@@ -66,13 +66,13 @@ unit cpupi;
 
     function tcpuprocinfo.calc_stackframe_size:longint;
       begin
-        if tg.lasttemp=2 then
-          { correct that lasttemp is 2 in case of an empty stack due to the post-decrement pushing and an additional correction
+        if tg.lasttemp<2 then
+          { correct that lasttemp is 1 in case of an empty stack due to the post-decrement pushing and an additional correction
             in tgobj.setfirsttemp.
           }
           result:=maxpushedparasize
         else
-          result:=tg.direction*tg.lasttemp+maxpushedparasize;
+          result:=tg.direction*tg.lasttemp+maxpushedparasize-1;
       end;
 
 

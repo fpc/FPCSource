@@ -54,9 +54,9 @@ begin
     FPImgError (StrNoFile, [filename]);
 end;
 
-procedure TFPCustomImage.SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
+procedure TFPCustomImage.SaveToStream (Str:TStream; Handler:TFPCustomImageWriter; aTruncate : Boolean = True);
 begin
-  Handler.ImageWrite (Str, Self);
+  Handler.ImageWrite (Str, Self, aTruncate);
 end;
 
 procedure TFPCustomImage.SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
@@ -184,6 +184,7 @@ begin
       f := TFileStream.Create (filename, fmOpenRead or fmShareDenyWrite);
       try
         LoadFromStream (f);
+        Result := True;
       finally
         f.Free;
       end;
@@ -373,6 +374,90 @@ begin
     FExtra.Delete (p);
 end;
 
+
+function TFPCustomImage.IndexOfMetadata(const aName: String): Integer;
+
+begin
+  Result := High(FMetadataNames);
+  while (Result >= 0) and not SameText(FMetadataNames[Result], aName) do
+    Dec(Result);
+end;
+
+
+function TFPCustomImage.GetMetadata(const aName: String): TBytes;
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex := IndexOfMetadata(aName);
+  if lIndex >= 0 then
+    Result := Copy(FMetadataValues[lIndex])
+  else
+    Result := nil;
+end;
+
+
+procedure TFPCustomImage.SetMetadata(const aName: String; const aValue: TBytes);
+
+var
+  lIndex: Integer;
+
+begin
+  if Length(aValue) = 0 then
+    begin
+    RemoveMetadata(aName);
+    exit;
+    end;
+  lIndex := IndexOfMetadata(aName);
+  if lIndex < 0 then
+    begin
+    lIndex := Length(FMetadataNames);
+    SetLength(FMetadataNames, lIndex + 1);
+    SetLength(FMetadataValues, lIndex + 1);
+    FMetadataNames[lIndex] := aName;
+    end;
+  FMetadataValues[lIndex] := Copy(aValue);
+end;
+
+
+function TFPCustomImage.GetMetadataName(aIndex: Integer): String;
+
+begin
+  if (aIndex < 0) or (aIndex > High(FMetadataNames)) then
+    FPImgError(StrInvalidIndex, [ErrorText[StrImageExtra], aIndex]);
+  Result := FMetadataNames[aIndex];
+end;
+
+
+procedure TFPCustomImage.RemoveMetadata(const aName: String);
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex := IndexOfMetadata(aName);
+  if lIndex < 0 then
+    exit;
+  Delete(FMetadataNames, lIndex, 1);
+  Delete(FMetadataValues, lIndex, 1);
+end;
+
+
+procedure TFPCustomImage.ClearMetadata;
+
+begin
+  FMetadataNames := nil;
+  FMetadataValues := nil;
+end;
+
+
+function TFPCustomImage.MetadataCount: Integer;
+
+begin
+  Result := Length(FMetadataNames);
+end;
+
 procedure TFPCustomImage.SetPixel (x,y:integer; Value:integer);
 begin
   CheckPaletteIndex (Value);
@@ -478,7 +563,7 @@ procedure TFPCustomImage.CheckPaletteIndex (PalIndex:integer);
 begin
   if UsePalette then
     begin
-    if (PalIndex < -1) or (PalIndex >= FPalette.Count) then
+    if (PalIndex < 0) or (PalIndex >= FPalette.Count) then
       FPImgError (StrInvalidIndex,[ErrorText[StrPalette],PalIndex]);
     end
   else
@@ -518,13 +603,14 @@ begin
     ResolutionY :=Src.ResolutionY;
     // Copy extra info
     FExtra.Assign(Src.Fextra);
+    FMetadataNames := Copy(Src.FMetadataNames);
+    FMetadataValues := Copy(Src.FMetadataValues);
     // Copy palette if needed.
     SetSize(0,0); { avoid side-effects in descendant classes }
     UsePalette:=Src.UsePalette;
     If UsePalette then
       begin
-      Palette.Count:=0;
-      Palette.Merge(Src.Palette);
+      Palette.Copy(Src.Palette);
       end;
     // Copy image.
     SetSize(Src.Width,Src.height);
@@ -596,18 +682,17 @@ end;
 
 procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
 var w, h, r: integer;
-    rr , old  : ptruint;
+    rr , old, es : ptruint;
     NewData : PFPIntegerArray;
 begin
   if (AWidth <> Width) or (AHeight <> Height) then
     begin
     old := Height * Width;
-    rr:=AWidth*AHeight;
-    if Assigned(FPalette)
-    then
-      rr:=SizeOf(integer)*rr
+    if Assigned(FPalette) then
+      es:=SizeOf(integer)
     else
-      rr:=SizeOf(TFPColor)*rr;
+      es:=SizeOf(TFPColor);
+    rr:=es*AWidth*AHeight;
     if rr = 0 then
       NewData := nil
     else
@@ -615,16 +700,12 @@ begin
       GetMem (NewData, rr);
       FillWord (Newdata^[0], rr div sizeof(word), 0);
       end;
-    // MG: missing "and (NewData<>nil)"
     if (old <> 0) and assigned(FData) and (NewData<>nil) then
       begin
-      if rr <> 0 then
-        begin
-        w := Lowest(Width, AWidth);
-        h := Lowest(Height, AHeight);
-        for r := 0 to h-1 do
-          move (FData^[r*Width], NewData^[r*AWidth], w);
-        end;
+      w := Lowest(Width, AWidth);
+      h := Lowest(Height, AHeight);
+      for r := 0 to h-1 do
+        move (PByte(FData)[r*Width*es], PByte(NewData)[r*AWidth*es], w*es);
       end;
     if Assigned(FData) then FreeMem(FData);
     FData := NewData;
@@ -660,10 +741,11 @@ begin
         if Assigned(FData) then
           begin
           OldPixels:=PFPIntegerArray(FData);
-          GetMem(FData,FWidth*FHeight*SizeOf(TFPColor));
+          GetMem(OldColors,FWidth*FHeight*SizeOf(TFPColor));
           for r:=0 to FHeight-1 do
             for c:=0 to FWidth-1 do
-              Colors[c,r]:=FPalette.Color[OldPixels^[r*FWidth+c]];
+              OldColors^[r*FWidth+c]:=FPalette.Color[OldPixels^[r*FWidth+c]];
+          FData:=PFPIntegerArray(OldColors);
           FreeMem(OldPixels);
           end;
         FPalette.Free;

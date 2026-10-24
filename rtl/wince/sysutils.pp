@@ -843,7 +843,7 @@ end;
 
 function WinCECompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  if coIgnoreCase in Options then
+  if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
   else
     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
@@ -858,7 +858,7 @@ end;
 
 function WinCECompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 begin
-   if coIgnoreCase in Options then
+   if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
      Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
    else
      Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);

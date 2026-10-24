@@ -764,6 +764,38 @@ begin
       Val(SS,fpc_Val_Real_WideStr,code);
     end;
 end;
+
+
+{$ifndef CPU16}
+Function fpc_Val_Single_WideStr(Const S : WideString; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_WIDESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_Single_WideStr := 0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+      SS:=ShortString(S);
+      fpc_Val_Single_WideStr:=val_single(SS,code);
+    end;
+end;
+
+
+Function fpc_Val_Double_WideStr(Const S : WideString; out Code : ValSInt): Double; [public, alias:'FPC_VAL_DOUBLE_WIDESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_Double_WideStr := 0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+      SS:=ShortString(S);
+      fpc_Val_Double_WideStr:=val_double(SS,code);
+    end;
+end;
+{$endif CPU16}
 {$endif}
 
 function fpc_val_enum_widestr(str2ordindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;
@@ -805,7 +837,7 @@ begin
   else
     begin
       SS:=ShortString(S);
-      Val(SS,fpc_Val_UInt_WideStr,code);
+      fpc_Val_UInt_WideStr := int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize,{$endif VER3_2}SS,Code);
     end;
 end;
 

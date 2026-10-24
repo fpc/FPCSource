@@ -63,6 +63,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="utcascii85.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="utclzw.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcLZW"/>
@@ -147,6 +151,16 @@
       <Unit>
         <Filename Value="utcinterlocked.pp"/>
         <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utccountdownevent.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcCountdownEvent"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcsynchroobject.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcSynchroObject"/>
       </Unit>
       <Unit>
         <Filename Value="utcdirwatch.pp"/>

@@ -44,6 +44,10 @@ type
     Procedure TestDictionaryWithStringKeys;
     Procedure TestListIndexOf;
     Procedure TestContainsValue;
+    Procedure TestIStringComparerHashList;
+    Procedure TestHashMapIStringComparer;
+    Procedure TestListBinarySearchInsertIndex;
+    Procedure TestListBinarySearchEmpty;
   end;
 
 implementation
@@ -145,6 +149,104 @@ begin
     AssertTrue('Not ContainsValue four', not Dict.ContainsValue('four'));
   finally
     Dict.Free;
+  end;
+end;
+
+procedure TTestBugs.TestIStringComparerHashList;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/40483
+var
+  Cmp: TGOrdinalIStringComparer<String>;
+  H1, H2: array[0..1] of UInt32;
+begin
+  AssertTrue('TDelphiQuadrupleHashFactory is an extended hash factory',
+    TDelphiQuadrupleHashFactory.InheritsFrom(TExtendedHashFactory));
+  Cmp := TGOrdinalIStringComparer<String>.Create;
+  try
+    // Element 0 is the number of requested hashes
+    H1[0] := 1;
+    H1[1] := 0;
+    H2[0] := 1;
+    H2[1] := 0;
+    Cmp.GetHashList('test', @H1[0]);
+    Cmp.GetHashList('TEST', @H2[0]);
+    AssertTrue('GetHashList returns a hash', H1[1] <> 0);
+    AssertEquals('GetHashList ignores case', H1[1], H2[1]);
+  finally
+    Cmp.Free;
+  end;
+end;
+
+procedure TTestBugs.TestHashMapIStringComparer;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/40483
+var
+  Map: THashMap<String, TEmptyRecord>;
+  Raised: Boolean;
+begin
+  Map := THashMap<String, TEmptyRecord>.Create(TIStringComparer.Ordinal);
+  try
+    Map.Add('Cat', EmptyRecord);
+    AssertEquals('Count after Add', 1, Map.Count);
+    AssertTrue('ContainsKey Cat', Map.ContainsKey('Cat'));
+    AssertTrue('ContainsKey cat ignores case', Map.ContainsKey('cat'));
+    AssertTrue('ContainsKey CAT ignores case', Map.ContainsKey('CAT'));
+    AssertFalse('ContainsKey Dog', Map.ContainsKey('Dog'));
+    Raised := False;
+    try
+      Map.Add('CAT', EmptyRecord);
+    except
+      on EListError do
+        Raised := True;
+    end;
+    AssertTrue('Adding CAT after Cat raises EListError', Raised);
+    AssertEquals('Count after duplicate Add', 1, Map.Count);
+  finally
+    Map.Free;
+  end;
+end;
+
+procedure TTestBugs.TestListBinarySearchInsertIndex;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/41165
+var
+  List: TList<Integer>;
+  Idx: SizeInt;
+begin
+  List := TList<Integer>.Create;
+  try
+    List.Add(3);
+    List.Add(5);
+    AssertFalse('BinarySearch 4 not found', List.BinarySearch(4, Idx));
+    AssertEquals('BinarySearch 4 gives the index of 5', 1, Idx);
+    AssertTrue('BinarySearch 5 found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch 5 gives index 1', 1, Idx);
+    AssertTrue('BinarySearch 3 found', List.BinarySearch(3, Idx));
+    AssertEquals('BinarySearch 3 gives index 0', 0, Idx);
+    AssertFalse('BinarySearch 1 not found', List.BinarySearch(1, Idx));
+    AssertEquals('BinarySearch 1 gives index 0', 0, Idx);
+    AssertFalse('BinarySearch 7 not found', List.BinarySearch(7, Idx));
+    AssertEquals('BinarySearch 7 gives Count', 2, Idx);
+    List.Add(9);
+    AssertFalse('BinarySearch 6 in 3,5,9 not found', List.BinarySearch(6, Idx));
+    AssertEquals('BinarySearch 6 in 3,5,9 gives index 2', 2, Idx);
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBugs.TestListBinarySearchEmpty;
+// https://gitlab.com/freepascal.org/fpc/source/-/issues/41165
+var
+  List: TList<Integer>;
+  Idx: SizeInt;
+begin
+  List := TList<Integer>.Create;
+  try
+    AssertFalse('BinarySearch in empty list not found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch in empty list gives index 0', 0, Idx);
+    List.Capacity := 4;
+    AssertFalse('BinarySearch in empty list with capacity not found', List.BinarySearch(5, Idx));
+    AssertEquals('BinarySearch in empty list with capacity gives index 0', 0, Idx);
+  finally
+    List.Free;
   end;
 end;
 

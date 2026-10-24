@@ -340,6 +340,8 @@ ResourceString
   SErrFileNotFound  = 'File "%s" does not exist';
   SErrInvalidCharsInPath = 'Filename "%s" contains invalid characters.' ;
   SErrEmptyPath = 'Error: aPath is empty.'  ;
+  SErrDirNotFound = 'Directory "%s" does not exist';
+  SErrDeleteDir = 'Could not delete directory "%s": %s';
 
   {$IfDef Unix}
   errStatFailed = 'Fstat for %a failed. Err.No.: %d';
@@ -2276,9 +2278,36 @@ begin
 end;
 
 
+// Raises EInOutError for an empty path or invalid characters, EDirectoryNotFoundException for a missing directory
+procedure CheckDeletePath(const aPath: string);
+begin
+  if aPath='' then
+    raise EInOutError.Create(SErrEmptyPath);
+  if not TPath.HasValidPathChars(aPath, False) then
+    raise EInOutError.CreateFmt(SErrInvalidCharsInPath, [aPath]);
+  if not DirectoryExists(aPath) then
+    raise EDirectoryNotFoundException.CreateFmt(SErrDirNotFound, [aPath]);
+end;
+
+
+// Raises EInOutError with the last OS error for a directory that could not be deleted
+procedure RaiseDeleteError(const aPath: string);
+var
+  lCode: Integer;
+  lError: EInOutError;
+begin
+  lCode:=GetLastOSError;
+  lError:=EInOutError.CreateFmt(SErrDeleteDir, [aPath, SysErrorMessage(lCode)]);
+  lError.ErrorCode:=lCode;
+  raise lError;
+end;
+
+
 class procedure TDirectory.Delete(const aPath: string);
 begin
-  RemoveDir(aPath);
+  CheckDeletePath(aPath);
+  if not RemoveDir(aPath) then
+    RaiseDeleteError(aPath);
 end;
 
 
@@ -2286,7 +2315,11 @@ end;
 class procedure TDirectory.Delete(const aPath: string; const Recursive: Boolean);
 begin
   if Recursive then
-    DeleteDirectory(aPath, False)
+    begin
+    CheckDeletePath(aPath);
+    if not DeleteDirectory(aPath, False) then
+      RaiseDeleteError(aPath);
+    end
   else
     TDirectory.Delete(aPath);
 end;

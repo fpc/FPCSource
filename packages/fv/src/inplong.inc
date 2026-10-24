@@ -149,6 +149,14 @@ const
 
 Implementation
 
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                 sNotInRange = 'Value not within range';
+                 sTo = 'to';
+
 {-----------------TInputLong.Init}
 constructor TInputLong.Init(var R : TRect; AMaxLen : Sw_Integer;
         LowerLim, UpperLim : LongInt; Flgs : Word);
@@ -294,7 +302,7 @@ if Labl <> '' then
     end;
   Labl := '"'+Labl+'"';
   end;
-MessageBox(Labl + ^M^J'Value not within range '+SL+' to '+SU, Nil,
+MessageBox(Labl + ^M^J+sNotInRange+' '+SL+' '+sTo+' '+SU, Nil,
                             mfError+mfOKButton);
 end;
 

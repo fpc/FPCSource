@@ -156,8 +156,9 @@ type
   end;
   PDMAChain = ^DMAChain;
 
-  TextureInfo = record
+  TextureInfo = packed record
     u, v : byte;
+    pad : word;
     width, height : word;
     page, clut : word;
   end;

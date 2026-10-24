@@ -83,7 +83,7 @@ interface
       private
         intparareg,
         intparasize : longint;
-        can_use_float : boolean;
+        can_use_float,inside_create_paraloc_info,use_r4_as_funcretloc : boolean;
         function is_abi_record(def: tdef): boolean;
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
@@ -191,11 +191,22 @@ implementation
               retdef:=forcetempdef
             else
               retdef:=p.returndef;
-            if ret_in_param(retdef,p) and
-              is_abi_record(retdef) then
+            if ret_in_param(retdef,p) and inside_create_paraloc_info then
               begin
-                if intparareg=0 then
-                  inc(intparareg);
+                if not use_r4_as_funcretloc then
+                  begin
+                    if intparareg=0 then
+                      begin
+                        inc(intparareg);
+                        if intparasize=0 then
+                          inc(intparasize,sizeof(aint))
+                        else
+                          internalerror(2026092401);
+                      end
+                    else
+                      internalerror(2026092402);
+                  end;
+                use_r4_as_funcretloc:=true;
               end;
             exit;
           end;
@@ -438,15 +449,16 @@ implementation
                   end;
 
                 { ret in param? }
-                if (vo_is_funcret in hp.varoptions) and
-                  is_abi_record(hp.vardef) then
+                if use_r4_as_funcretloc and ((vo_is_funcret in hp.varoptions) or
+                   ((vo_is_self in hp.varoptions) and (p.proctypeoption = potype_constructor))) then
                   begin
                     { This should be the first parameter }
                     //if (intparareg<>1) then
                     //  Comment(V_Warning,'intparareg should be one for funcret in tcpuparamanager.create_paraloc_info_intern');
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=newreg(R_INTREGISTER,parasupregs[0],R_SUBWHOLE);
-                    inc(intparasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));
+                    if (side=calleeside) then
+                      tcpuprocinfo(current_procinfo).register_used[0]:=true;
                   end
                 { "In case of po_delphi_nested_cc, the parent frame pointer
                   is always passed on the stack". On other targets it is
@@ -484,6 +496,8 @@ implementation
                      begin
                        paraloc^.loc:=LOC_REGISTER;
                        paraloc^.register:=newreg(R_INTREGISTER,parasupregs[intparareg],R_SUBWHOLE);
+                       if (side=calleeside) then
+                         tcpuprocinfo(current_procinfo).register_used[intparareg]:=true;
 
                        { big-endian targets require that record data stored in parameter
                          registers is left-aligned }
@@ -554,7 +568,9 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
+	inside_create_paraloc_info:=true;
         can_use_float := not ((p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches));
+	use_r4_as_funcretloc:=false;
         { Create Function result paraloc }
         create_funcretloc_info(p,callerside);
         { calculate the registers for the normal parameters }
@@ -574,6 +590,7 @@ implementation
         create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
         result:=intparasize;
+	inside_create_paraloc_info:=false;
       end;
 
 
@@ -582,12 +599,15 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
+	inside_create_paraloc_info:=true;
         can_use_float := not ((p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches));
+	use_r4_as_funcretloc:=false;
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
         create_paraloc_info_intern(p,side,p.paras);
         { We need to return the size allocated on the stack }
         result:=intparasize;
+	inside_create_paraloc_info:=false;
       end;
 
 

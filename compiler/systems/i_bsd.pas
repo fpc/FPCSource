@@ -118,6 +118,9 @@ unit i_bsd;
 {$ifdef tls_threadvars}
                             tf_section_threadvars,
 {$endif tls_threadvars}
+{$ifdef llvm}
+                            tf_use_psabieh,
+{$endif llvm}
                             tf_needs_symbol_type,tf_needs_symbol_size
                             ,tf_smartlink_sections,tf_has_winlike_resources
                             ,tf_supports_hidden_symbols];
@@ -224,7 +227,7 @@ unit i_bsd;
             res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
-{$if defined(FreeBSD) and (defined(powerpc64le) or (defined(POWERPC64) and defined(FPC_LITTLE_ENDIAN)))}
+{$if defined(FreeBSD) and (defined(powerpc64le) or (defined(CPUPOWERPC64) and defined(FPC_LITTLE_ENDIAN)))}
             { on a FreeBSD little endian powerpc64 platform -> use little endian as default }
 	    endian       : endian_little;
 {$else}
@@ -263,6 +266,9 @@ unit i_bsd;
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,
                             tf_dwarf_only_local_labels,
+{$ifdef llvm}
+                            tf_use_psabieh,
+{$endif llvm}
                             {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';

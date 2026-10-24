@@ -1,4 +1,4 @@
-{ %target=linux,freebsd,openbsd,netbsd,win32,win64,darwin,haiku,morphos }
+{ %target=linux,freebsd,openbsd,netbsd,win32,win64,darwin,haiku,morphos,os2 }
 
 {
     This file is part of the Free Pascal test suite.

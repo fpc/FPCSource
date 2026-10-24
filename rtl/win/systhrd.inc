@@ -41,6 +41,7 @@ function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl
 function  WinCloseHandle  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CloseHandle';
 function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TerminateThread';
 function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WaitForSingleObject';
+function  WinGetExitCodeThread (threadHandle : THandle; var exitCode : dword) : longbool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetExitCodeThread';
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
@@ -464,11 +465,17 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
     end;
 
     function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
+    var
+      lExitCode : dword;
     begin
       // shouldn't this be a msgwait in case the thread creates "Windows"  See comment in waitforsingle?
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
       // does waiting on thread require cowait too ?
-      SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
+      if (WaitForSingleObject(threadHandle, TimeoutMs) = WAIT_OBJECT_0) and
+         WinGetExitCodeThread(threadHandle, lExitCode) then
+        SysWaitForThreadTerminate := lExitCode
+      else
+        SysWaitForThreadTerminate := dword(-1);
     end;
 
 
@@ -714,9 +721,9 @@ begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
 begin
-  WaitForSingleObject(THANDLE(AEvent), timeout);
+  Result:=WaitForSingleObject(THANDLE(AEvent), timeout)=WAIT_OBJECT_0;
 end;
 
 

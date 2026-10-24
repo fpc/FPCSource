@@ -67,7 +67,31 @@ type
     procedure TestUnorderedListOneItem;
   end;
 
+  { TTestLaTeXRenderExtensions }
+
+  TTestLaTeXRenderExtensions = Class(TTestCase)
+  protected
+    function Render(const aMarkdown : String; aOptions : TLaTeXOptions = []) : String;
+    procedure CheckContains(const aMsg, aExpected, aActual : String);
+  Published
+    procedure TestHeadingLabel;
+    procedure TestSetextHeading;
+    procedure TestDeepHeading;
+    procedure TestDescription;
+    procedure TestSecondDefinition;
+    procedure TestAlertEnvironment;
+    procedure TestNoAlertNoEnvironment;
+    procedure TestFootnote;
+    procedure TestTableFloat;
+    procedure TestFigure;
+    procedure TestCommentWritesNothing;
+    procedure TestEmptyLinkWritesTarget;
+  end;
+
 implementation
+
+uses
+  Markdown.Parser, Markdown.Processors;
 
 { TTestLaTeXRender }
 
@@ -347,6 +371,150 @@ begin
 end;
 
 
+{ TTestLaTeXRenderExtensions }
+
+function TTestLaTeXRenderExtensions.Render(const aMarkdown: String; aOptions: TLaTeXOptions): String;
+
+var
+  lSource : TStringList;
+  lDoc : TMarkdownDocument;
+begin
+  lSource:=TStringList.Create;
+  try
+    lSource.Text:=aMarkdown;
+    lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
+    try
+      Result:=TMarkdownLaTeXRenderer.FastRender(lDoc,aOptions);
+    finally
+      lDoc.Free;
+    end;
+  finally
+    lSource.Free;
+  end;
+end;
+
+
+procedure TTestLaTeXRenderExtensions.CheckContains(const aMsg, aExpected, aActual: String);
+
+begin
+  AssertTrue(aMsg+': expected "'+aExpected+'" in "'+aActual+'"',Pos(aExpected,aActual)>0);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestHeadingLabel;
+
+begin
+  CheckContains('Label after section','\section*{Title}\label{t}',Render('# Title {#t}'));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestSetextHeading;
+
+var
+  S : String;
+begin
+  S:=Render('First'#10'====='#10#10'Second'#10'------');
+  CheckContains('Level 1 setext heading','\section*{First}\label{first}',S);
+  CheckContains('Level 2 setext heading','\subsection*{Second}\label{second}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestDeepHeading;
+
+begin
+  CheckContains('Level 6 heading in bold','\textbf{Six}',Render('###### Six'));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestDescription;
+
+var
+  S : String;
+begin
+  S:=Render('Term'#10': Definition');
+  CheckContains('Description start','\begin{description}',S);
+  CheckContains('Item with term','\item[{Term}] Definition',S);
+  CheckContains('Description end','\end{description}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestSecondDefinition;
+
+begin
+  CheckContains('Second definition','\item[] Second',Render('Term'#10': First'#10': Second'));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestAlertEnvironment;
+
+var
+  S : String;
+begin
+  S:=Render('> [!NOTE]'#10'> Text',[loEnvelope]);
+  CheckContains('Environment defined','\newenvironment{mdalert}',S);
+  CheckContains('Environment used','\begin{mdalert}{note}{Note}',S);
+  CheckContains('Environment closed','\end{mdalert}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestNoAlertNoEnvironment;
+
+begin
+  AssertEquals('No environment without alert',0,Pos('mdalert',Render('Text',[loEnvelope])));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestFootnote;
+
+begin
+  CheckContains('Footnote inline','Text.\footnote{The note.}',Render('Text.[^n]'#10#10'[^n]: The note.'));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestTableFloat;
+
+var
+  S : String;
+begin
+  S:=Render('| a |'#10'|---|'#10'| 1 |'#10#10'Table: Values {#tab}');
+  CheckContains('Table float','\begin{table}[htbp]',S);
+  CheckContains('Caption','\caption{Values}',S);
+  CheckContains('Label','\label{tab}',S);
+  CheckContains('Float end','\end{table}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestFigure;
+
+var
+  S : String;
+begin
+  S:=Render('![A figure](pic.png){#fig width=50%}');
+  CheckContains('Figure float','\begin{figure}[htbp]',S);
+  CheckContains('Scaled image','\includegraphics[width=0.5\textwidth]{pic.png}',S);
+  CheckContains('Caption','\caption{A figure}',S);
+  CheckContains('Label','\label{fig}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestCommentWritesNothing;
+
+var
+  S : String;
+begin
+  S:=Render('<!-- hidden -->'#10#10'A <!-- also hidden --> b');
+  AssertEquals('No comment text',0,Pos('hidden',S));
+  AssertEquals('No LaTeX comment',0,Pos('%',S));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestEmptyLinkWritesTarget;
+
+begin
+  CheckContains('Target as text','\href{x.md}{x.md}',Render('[](x.md)'));
+end;
+
 initialization
   Registertest(TTestLaTeXRender);
+  Registertest(TTestLaTeXRenderExtensions);
 end.

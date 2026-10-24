@@ -90,6 +90,15 @@ procedure DumpVariant(const aName: string; const VArgSrc : TVarData);
 procedure DumpVariant(var F : Text; const VArgSrc : TVarData);
 procedure DumpVariant(var F : Text; const aName: string; const VArgSrc : TVarData);
 
+type
+  TVarDispValueProc = procedure(var aDest: TVarData; const aSource: TVarData);
+
+// Reads the default (DISPID_VALUE) property of the IDispatch in aSource into aDest.
+procedure DispatchGetDefaultValue(var aDest: TVarData; const aSource: TVarData);
+
+var
+  // Fetches the default value of a varDispatch source for the VariantTo* routines; nil disables it.
+  VarDispValueProc: TVarDispValueProc = @DispatchGetDefaultValue;
 
 
 {$IFDEF DEBUG_VARUTILS}

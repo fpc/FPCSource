@@ -127,16 +127,9 @@ end;
 
 Procedure AssignStream(var F: Textfile; Stream : TStream);
 
-Var
-  E : EInoutError;
-
 begin
   if (Stream=Nil) then
-    begin
-    E:=EInOutError.Create(SErrNilStream);
-    E.ErrorCode:=6;
-    Raise E;
-    end;
+    Raise EInOutError.Create(SErrNilStream,6);
   with TTextRec(F) do
     begin
 

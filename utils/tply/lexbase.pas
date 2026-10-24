@@ -572,18 +572,18 @@ function newIntSet : IntSetPtr;
 
 (* Constructors for regular expressions: *)
 
-function newExpr(node_type : NodeType; n : Integer) : RegExpr;
-  (* returns new RegExpr node (n: number of bytes to allocate) *)
+function newExpr(node_type : NodeType) : RegExpr;
+  (* returns new RegExpr node *)
   var x : RegExpr;
   begin
-    getmem(x, sizeOf(NodeType)+n);
+    getmem(x, sizeOf(Node));
     x^.node_type := node_type;
     newExpr := x
   end(*newExpr*);
 function markExpr(rule, pos : Integer) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(mark_node, 2*sizeOf(Integer));
+    x := newExpr(mark_node);
     x^.rule := rule;
     x^.pos  := pos;
     markExpr := x
@@ -591,42 +591,42 @@ function markExpr(rule, pos : Integer) : RegExpr;
 function charExpr(c : Char) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(char_node, sizeOf(Char));
+    x := newExpr(char_node);
     x^.c := c;
     charExpr := x
   end(*charExpr*);
 function strExpr(str : StrPtr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(str_node, sizeOf(StrPtr));
+    x := newExpr(str_node);
     x^.str := str;
     strExpr := x
   end(*strExpr*);
 function cclassExpr(cc : CClassPtr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(cclass_node, sizeOf(CClassPtr));
+    x := newExpr(cclass_node);
     x^.cc := cc;
     cclassExpr := x
   end(*cclassExpr*);
 function starExpr(r : RegExpr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(star_node, sizeOf(RegExpr));
+    x := newExpr(star_node);
     x^.r := r;
     starExpr := x
   end(*starExpr*);
 function plusExpr(r : RegExpr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(plus_node, sizeOf(RegExpr));
+    x := newExpr(plus_node);
     x^.r := r;
     plusExpr := x
   end(*plusExpr*);
 function optExpr(r : RegExpr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(opt_node, sizeOf(RegExpr));
+    x := newExpr(opt_node);
     x^.r := r;
     optExpr := x
   end(*optExpr*);
@@ -665,7 +665,7 @@ function mnExpr(r : RegExpr; m, n : Integer) : RegExpr;
 function catExpr(r1, r2 : RegExpr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(cat_node, 2*sizeOf(RegExpr));
+    x := newExpr(cat_node);
     x^.r1 := r1;
     x^.r2 := r2;
     catExpr := x
@@ -673,7 +673,7 @@ function catExpr(r1, r2 : RegExpr) : RegExpr;
 function altExpr(r1, r2 : RegExpr) : RegExpr;
   var x : RegExpr;
   begin
-    x := newExpr(alt_node, 2*sizeOf(RegExpr));
+    x := newExpr(alt_node);
     x^.r1 := r1;
     x^.r2 := r2;
     altExpr := x

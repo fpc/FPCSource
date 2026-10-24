@@ -38,7 +38,7 @@ variables:
 # Alpine Linux builds
 .alpine_linux: &alpine_linux_configuration
   <<: *linux-parallel
-  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-alpine-3.23-minimal
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-alpine-3.23-full
 
 # Debian builds
 .debian_linux: &debian_linux_configuration

@@ -177,14 +177,14 @@ end;
 
 function TFPColorQuantizer.GetImage(Index : integer) : TFPCustomImage;
 begin
-  if Index>=FCount then
+  if (Index<0) or (Index>=FCount) then
     raise FPQuantizerException.Create('Invalid image index: '+IntToStr(Index));
   Result:=FImages[index];
 end;
 
 procedure TFPColorQuantizer.SetImage(Index : integer; const Img : TFPCustomImage);
 begin
-  if Index>=FCount then
+  if (Index<0) or (Index>=FCount) then
     raise FPQuantizerException.Create('Invalid image index: '+IntToStr(Index));
   FImages[Index]:=Img;
 end;
@@ -233,7 +233,7 @@ begin
     if Node=nil then
       raise FPQuantizerException.Create('Out of memory');
     FillByte(Node^,sizeof(TOctreeQNode),0);
-    if level=7 then
+    if level=8 then
     begin
       Node^.isleaf:=true;
       inc(LeafTot); { we just created a new leaf }
@@ -278,7 +278,7 @@ procedure TFPOctreeQuantizer.Reduce;
 var i : integer;
     Node : POctreeQNode;
 begin
-  i:=6; { level 7 nodes don't have childs, start from 6 and go backward }
+  i:=7; { level 8 nodes are leaves, start from 7 and go backward }
   while ((i>0) and (ReductionList[i]=nil)) do
     dec(i);
 
@@ -320,7 +320,7 @@ begin
     if percentacc>=percentinterval then
     begin
       dec(percentacc,percentinterval);
-      inc(percent);
+      if percent<100 then inc(percent);
       Progress(self,psRunning,percent,'',FContinue);
     end;
     { ************************************************ }
@@ -336,7 +336,8 @@ function TFPOctreeQuantizer.BuildPalette : TFPPalette;
 var pal : TFPPalette;
     i : integer;
 begin
-  if Root=nil then exit;
+  if Root=nil then
+    exit(TFPPalette.Create(0));
   pal:=TFPPalette.Create(LeafTot);
   i:=0;
   try
@@ -410,7 +411,7 @@ begin
             if percentacc>=percentinterval then
             begin
               dec(percentacc,percentinterval);
-              inc(percent);
+              if percent<100 then inc(percent);
               Progress(self,psRunning,percent,'',FContinue);
               if not FContinue then exit;
             end;
@@ -425,7 +426,7 @@ begin
       if percentacc>=percentinterval then
       begin
         dec(percentacc,percentinterval);
-        inc(percent);
+        if percent<100 then inc(percent);
         Progress(self,psRunning,percent,'',FContinue);
         if not FContinue then exit;
       end;
@@ -631,9 +632,9 @@ begin
         if percentacc>=percentinterval then
         begin
           percentacc:=percentacc mod percentinterval;
-          inc(percent);
+          if percent<100 then inc(percent);
           Progress(self,psRunning,percent,'',FContinue);
-          if not FContinue then exit;
+          if not FContinue then break;
         end;
         { ************************************************* }
       end
@@ -644,6 +645,8 @@ begin
     pal.Free;
     raise;
   end;
+  if not FContinue then
+    FreeAndNil(pal);
   Result:=pal;
 end;
 
@@ -666,12 +669,14 @@ begin
             Result.Red:=Col.Red and mask_r_normal;
             Result.Green:=Col.Green and mask_g_normal;
             Result.Blue:=Col.Blue and mask_b_normal;
+            Result.Alpha:=Col.Alpha;
           end;
     mcFast:
           begin
             Result.Red:=Col.Red and mask_r_fast;
             Result.Green:=Col.Green and mask_g_fast;
             Result.Blue:=Col.Blue and mask_b_fast;
+            Result.Alpha:=Col.Alpha;
           end
     else Result:=Col;
   end;
@@ -683,6 +688,7 @@ var box : ^TMCBox;
     dim : byte;
     boxpercent : longword;
 begin
+  Result:=nil;
   HashTable:=TFPColorHashTable.Create;
   try
   { *****************************************************************************
@@ -719,7 +725,7 @@ begin
             if percentacc>=percentinterval then
             begin
               percentacc:=percentacc mod percentinterval;
-              inc(percent);
+              if percent<100 then inc(percent);
               Progress(self,psRunning,percent,'',FContinue);
               if not FContinue then exit;
             end;
@@ -730,6 +736,8 @@ begin
     arr:=HashTable.GetArray;
     try
       HashTable.Clear; { free some resources }
+      if length(arr)=0 then
+        exit(TFPPalette.Create(0));
 
       setlength(boxes,FColNum);
       boxes[0].startindex:=0;
@@ -770,7 +778,10 @@ begin
         inc(percentacc,boxpercent);
         if percentacc>=percentinterval then
         begin
-          inc(percent,percentacc div percentinterval);
+          if percent+percentacc div percentinterval<100 then
+            inc(percent,percentacc div percentinterval)
+          else
+            percent:=100;
           percentacc:=percentacc mod percentinterval;
           Progress(self,psRunning,percent,'',FContinue);
           if not FContinue then exit;

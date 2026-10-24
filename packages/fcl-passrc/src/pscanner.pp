@@ -350,7 +350,9 @@ type
     msMultiLineStrings,     { pas2js: Multiline strings }
     msDelphiMultiLineStrings, { Delpi-compatible multiline strings }
     msInlineVars,             { Allow inline var declarations }
-    msStatementExpressions    { allow if-expressions }
+    msStatementExpressions,   { allow if-expressions }
+    msTypeInquiry,            { allow "type of" operator }
+    msRecordComposition       { allow "contains" in records }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -451,7 +453,7 @@ const
      'com', // vsInterfaces
      'Msg', // vsDispatchField
      'MsgStr', // vsDispatchStrField
-     '0', // vsMinEnumSize (0 = natural size)
+     '4', // vsMinEnumSize (FPC mode default; Delphi/TP use 1, MacPas 2)
      '0', // vsPackSet (0 = natural)
      '0' // vsPackRecords (0 = natural alignment)
      );
@@ -1235,7 +1237,9 @@ const
     'MULTILINESTRINGS',
     'DELPHIMULTILINESTRINGS',
     'INLINEVARS',
-    'STATEMENTEXPRESSIONS'
+    'STATEMENTEXPRESSIONS',
+    'TYPEINQUIRY',
+    'RECORDCOMPOSITION'
     );
 
   LetterSwitchNames: array['A'..'Z'] of TPasScannerString=(
@@ -1341,7 +1345,7 @@ const
 
   OBJFPCModeSwitches =  [msObjfpc,msClass,msObjpas,msResult,msStringPchar,msNestedComment,
     msRepeatForward,msCVarSupport,msInitFinal,msOut,msDefaultPara,msHintDirective,
-    msProperty,msDefaultInline,msExcept,msDelphiMultiLineStrings];
+    msProperty,msDefaultInline,msExcept,msDelphiMultiLineStrings,msTypeInquiry];
 
   TPModeSwitches = [msTP7,msTPProcVar,msDuplicateNames];
 
@@ -1356,7 +1360,7 @@ const
 
   ExtPasModeSwitches = [msExtpas,msTPProcVar,msDuplicateNames,msNestedProcVars,
     msNonLocalGoto,msISOLikeUnaryMinus,msISOLikeIO,msISOLikeProgramsPara,
-    msISOLikeMod];
+    msISOLikeMod,msTypeInquiry];
 
 function StrToModeSwitch(aName: TPasScannerString): TModeSwitch;
 function ModeSwitchesToStr(Switches: TModeSwitches): TPasScannerString;
@@ -5017,15 +5021,18 @@ end;
 
 procedure TPascalScanner.HandlePackValue(vs: TValueSwitch; const Param: TPasScannerString);
 // {$MINENUMSIZE/$PACKENUM/$PACKSET/$PACKRECORDS n}: n is 1/2/4/8, or
-// "default"/"normal" (-> 0 = natural).
+// "default"/"normal" (4 for an enum, else 0 = natural).
 var
   S: TPasScannerString;
 begin
   if not (vs in AllowedValueSwitches) then
     Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,[ValueSwitchNames[vs]]);
   S:=Trim(Param);
-  if SameText(S,'DEFAULT') or SameText(S,'NORMAL') then
-    S:='0';
+  if SameText(S,'DEFAULT') or SameText(S,'NORMAL') or SameText(S,'FIXED') then
+    if vs=vsMinEnumSize then
+      S:='4'
+    else
+      S:='0';
   CurrentValueSwitch[vs]:=S;
 end;
 
@@ -5125,6 +5132,22 @@ procedure TPascalScanner.HandleMode(const Param: TPasScannerString);
         UnsetNonToken(tkotherwise)
       else
         SetNonToken(tkotherwise);
+      // Enum and set storage defaults of the mode, as fpc sets them.
+      case LangMode of
+      msDelphi,msDelphiUnicode,msTP7:
+        begin
+        CurrentValueSwitch[vsMinEnumSize]:='1';
+        CurrentValueSwitch[vsPackSet]:='1';
+        end;
+      msMac:
+        begin
+        CurrentValueSwitch[vsMinEnumSize]:='2';
+        CurrentValueSwitch[vsPackSet]:='0';
+        end;
+      else
+        CurrentValueSwitch[vsMinEnumSize]:='4';
+        CurrentValueSwitch[vsPackSet]:='0';
+      end;
       end;
     Handled:=false;
     FileResolver.Mode:=LangMode;
@@ -5453,7 +5476,7 @@ end;
 function TPascalScanner.HandleDirective(const ADirectiveText: TPasScannerString): TToken;
 
 Var
-  Directive,Param : TPasScannerString;
+  Directive,Param,Switches : TPasScannerString;
   P : Integer;
   IsFlowControl,Handled: Boolean;
 
@@ -5468,8 +5491,28 @@ Var
       Handled:=false;
   end;
 
+  // True if S is a comma-separated list of letter switches, such as Q-,R+
+  function IsLetterSwitchList(const S: TPasScannerString): Boolean;
+  var
+    i: Integer;
+  begin
+    Result:=(Length(S)>=5) and ((Length(S)+1) mod 3=0);
+    i:=1;
+    while Result and (i<=Length(S)) do
+      begin
+      Result:=(S[i] in ['a'..'z','A'..'Z']) and (S[i+1] in ['+','-'])
+        and ((i+2>Length(S)) or (S[i+2]=','));
+      Inc(i,3);
+      end;
+  end;
+
 begin
   Result:=tkComment;
+  Switches:='';
+  if Pos(',',ADirectiveText)>0 then
+    for P:=2 to Length(ADirectiveText) do
+      if not (ADirectiveText[P] in [' ',#9,#10,#13]) then
+        Switches:=Switches+ADirectiveText[P];
   // The directive NAME ends at the first whitespace, and a LINE ENDING counts:
   // an {$if} whose expression starts on the next line is legal, and taking only
   // space/tab left the line ending glued to the name so nothing matched below
@@ -5527,7 +5570,17 @@ begin
     if PPIsSkipping then exit;
     IsFlowControl:=False;
     Handled:=false;
-    if (length(Directive)=2)
+    if IsLetterSwitchList(Switches) then
+      begin
+      Handled:=true;
+      P:=1;
+      while P<Length(Switches) do
+        begin
+        Result:=HandleLetterDirective(Switches[P],Switches[P+1]='+');
+        Inc(P,3);
+        end;
+      end
+    else if (length(Directive)=2)
         and (Directive[1] in ['a'..'z','A'..'Z'])
         and (Directive[2] in ['-','+']) then
       begin
@@ -5565,6 +5618,8 @@ begin
         HandleDispatchField(Param,vsDispatchStrField);
       'MINENUMSIZE', 'PACKENUM':
         HandlePackValue(vsMinEnumSize,Param);
+      'Z1', 'Z2', 'Z4':
+        HandlePackValue(vsMinEnumSize,Directive[2]);
       'PACKSET':
         HandlePackValue(vsPackSet,Param);
       'PACKRECORDS':
@@ -7084,8 +7139,12 @@ end;
 function TPascalScanner.IfOpt(Letter: AnsiChar): boolean;
 begin
   Letter:=upcase(Letter);
-  Result:=(Letter in ['A'..'Z']) and (LetterSwitchNames[Letter]<>'')
-    and IsDefined(LetterSwitchNames[Letter]);
+  if not (Letter in ['A'..'Z']) then
+    exit(false);
+  if LetterToBoolSwitch[Letter]<>bsNone then
+    Result:=LetterToBoolSwitch[Letter] in FCurrentBoolSwitches
+  else
+    Result:=(LetterSwitchNames[Letter]<>'') and IsDefined(LetterSwitchNames[Letter]);
 end;
 
 function TPascalScanner.AddMacro(const aName, aValue: TPasScannerString; Quiet: boolean

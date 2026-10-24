@@ -86,8 +86,6 @@ type
         p2 the typecast expr }
       t_size_specifier,
       { p1 expr for size }
-      t_default_value,
-      { p1 expr for value }
       t_statement_list,
       { p1 is the statement
         next is next if it exist }
@@ -129,7 +127,6 @@ const
     't_funcname',
     't_typespec',
     't_size_specifier',
-    't_default_value',
     't_statement_list',
     't_whilenode',
     't_fornode',
@@ -149,6 +146,12 @@ type
      p1,p2,p3 : presobject;
      { name of int/real, then no T prefix is required }
      skiptprefix : boolean;
+     { expression was written between parentheses }
+     grouped : boolean;
+     { pointer declared as an array without size }
+     openarray : boolean;
+     { name of a struct or union tag after the struct or union keyword }
+     structtag : boolean;
      constructor init_no(t : ttyp);
      constructor init_one(t : ttyp;_p1 : presobject);
      constructor init_two(t : ttyp;_p1,_p2 : presobject);
@@ -254,6 +257,9 @@ constructor tresobject.init_preop(const s : string;_p1 : presobject);
      p3:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
@@ -265,6 +271,9 @@ constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
      p3:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_id(const s : string);
@@ -276,6 +285,9 @@ constructor tresobject.init_id(const s : string);
      p3:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_intid(const s : string);
@@ -290,6 +302,9 @@ constructor tresobject.init_intid(const s : string);
      p3:=nil;
      next:=nil;
      skiptprefix:=true;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
@@ -301,6 +316,9 @@ constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
      p:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
@@ -312,6 +330,9 @@ constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
      p:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_one(t : ttyp;_p1 : presobject);
@@ -323,6 +344,9 @@ constructor tresobject.init_one(t : ttyp;_p1 : presobject);
      next:=nil;
      p:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 constructor tresobject.init_no(t : ttyp);
@@ -334,6 +358,9 @@ constructor tresobject.init_no(t : ttyp);
      p3:=nil;
      next:=nil;
      skiptprefix:=false;
+     grouped:=false;
+     openarray:=false;
+     structtag:=false;
   end;
 
 procedure tresobject.setstr(const s : string);
@@ -377,6 +404,9 @@ function tresobject.get_copy : presobject;
   begin
      newres:=new(presobject,init_no(typ));
      newres^.skiptprefix:=skiptprefix;
+     newres^.grouped:=grouped;
+     newres^.openarray:=openarray;
+     newres^.structtag:=structtag;
      if assigned(p) then
        newres^.p:=strnew(p);
      if assigned(p1) then

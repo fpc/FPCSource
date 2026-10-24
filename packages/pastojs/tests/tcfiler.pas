@@ -120,6 +120,7 @@ type
     procedure CheckRestoredArrayValues(const Path: string; Orig, Rest: TArrayValues; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredResString(const Path: string; Orig, Rest: TPasResString; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredAliasType(const Path: string; Orig, Rest: TPasAliasType; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredTypeOfType(const Path: string; Orig, Rest: TPasTypeOfType; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPointerType(const Path: string; Orig, Rest: TPasPointerType; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredSpecializedType(const Path: string; Orig, Rest: TPasSpecializeType; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredInlineSpecializedExpr(const Path: string; Orig, Rest: TInlineSpecializeExpr; Flags: TPCCheckFlags); virtual;
@@ -184,6 +185,7 @@ type
     procedure TestPC_IfExpr;
     procedure TestPC_CaseExpr;
     procedure TestPC_TryExceptExpr;
+    procedure TestPC_TypeOf;
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
@@ -1501,6 +1503,8 @@ begin
       or (C=TPasTypeAliasType)
       or (C=TPasClassOfType) then
     CheckRestoredAliasType(Path,TPasAliasType(Orig),TPasAliasType(Rest),Flags)
+  else if C=TPasTypeOfType then
+    CheckRestoredTypeOfType(Path,TPasTypeOfType(Orig),TPasTypeOfType(Rest),Flags)
   else if C=TPasPointerType then
     CheckRestoredPointerType(Path,TPasPointerType(Orig),TPasPointerType(Rest),Flags)
   else if C=TPasSpecializeType then
@@ -1834,6 +1838,13 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredAliasType(const Path: string;
   Orig, Rest: TPasAliasType; Flags: TPCCheckFlags);
+begin
+  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType,Flags);
+  CheckRestoredElement(Path+'.Expr',Orig.Expr,Rest.Expr,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredTypeOfType(const Path: string;
+  Orig, Rest: TPasTypeOfType; Flags: TPCCheckFlags);
 begin
   CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType,Flags);
   CheckRestoredElement(Path+'.Expr',Orig.Expr,Rest.Expr,Flags);
@@ -2350,6 +2361,44 @@ begin
   'resourcestring',
   '  rs = ''rs'';',
   'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_TypeOf;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode objfpc}',
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  generic TBox<T> = class',
+  '    Value: T;',
+  '    function Get(x: T): T;',
+  '  end;',
+  'var',
+  '  b: byte;',
+  '  a: array of word;',
+  '  c: type of b;',
+  '  d: type of a;',
+  '  e: type of a[0];',
+  'type',
+  '  TInt = type of b;',
+  '  TAlias = type type of b;',
+  '  TBoxW = specialize TBox<type of a[0]>;',
+  'function F(x: type of b): type of a[0];',
+  'implementation',
+  'function TBox.Get(x: T): T;',
+  'var',
+  '  tmp: type of x;',
+  'begin',
+  '  tmp:=(type of Value)(x);',
+  '  Result:=type of Value(tmp);',
+  'end;',
+  'function F(x: type of b): type of a[0];',
+  'begin',
+  '  Result:=type of a[0](x)+High(type of b);',
+  'end;']);
   WriteReadUnit;
 end;
 

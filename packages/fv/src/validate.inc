@@ -331,6 +331,18 @@ USES MsgBox;                                          { GFV standard unit }
 {$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sPXErrMsgPicture = 'Input does not conform to picture:';
+                sPXErrMsgNoName = 'No name';
+                sPXErrMsgFilter = 'Invalid character in input';
+                sPXErrMsgRange = 'Value not in the range %d to %d';
+                sPXErrMsgLookUp = 'Input not in valid-list';
+
+
 {***************************************************************************}
 {                              PRIVATE ROUTINES                             }
 {***************************************************************************}
@@ -582,7 +594,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      VAR Itr, K, L: Byte; Rslt: TPicResult; NewTermCh: Byte;
      BEGIN
        Itr := 0;                                      { Zero iteration }
-       Iteration := prError;                          { Preset error result }
+       Rslt := prError;                               { Preset error result }
        Inc(I);                                        { Skip '*' character }
        While Pic Sw_PString_DeRef[I] in ['0'..'9'] Do Begin           { Entry is a number }
          Itr := Itr * 10 + Byte(Pic Sw_PString_DeRef[I]) - Byte('0'); { Convert to number }
@@ -814,11 +826,12 @@ END;
 {  Error -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TPXPictureValidator.Error;
-CONST PXErrMsg = 'Input does not conform to picture:';
 VAR S: Sw_String;
 BEGIN
-   If Pic <> Sw_PString_Empty Then S := Pic Sw_PString_DeRef Else S := 'No name';{ Transfer filename }
-   MessageBox(PxErrMsg + #13' %s', @S,  mfError OR
+   If Pic <> Sw_PString_Empty Then
+     S := Pic Sw_PString_DeRef
+   Else S := sPxErrMsgNoName;                         { Transfer filename }
+   MessageBox(sPxErrMsgPicture + #13' %s', @S,  mfError OR
      mfOKButton);                                     { Message box }
 END;
 
@@ -873,9 +886,8 @@ END;
 {  Error -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TFilterValidator.Error;
-CONST PXErrMsg = 'Invalid character in input';
 BEGIN
-   MessageBox(PXErrMsg, Nil, mfError OR mfOKButton);  { Show error message }
+   MessageBox(sPXErrMsgFilter, Nil, mfError OR mfOKButton);  { Show error message }
 END;
 
 {--TFilterValidator---------------------------------------------------------}
@@ -949,12 +961,11 @@ END;
 {  Error -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TRangeValidator.Error;
-CONST PXErrMsg = 'Value not in the range';
 VAR Params: Array[0..1] Of PtrInt;
 BEGIN
    Params[0] := Min;                                  { Transfer min value }
    Params[1] := Max;                                  { Transfer max value }
-   MessageBox(PXErrMsg+' %d to %d', @Params,
+   MessageBox(sPXErrMsgRange, @Params,
      mfError OR mfOKButton);                          { Display message }
 END;
 
@@ -1034,9 +1045,8 @@ END;
 {  Error -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TStringLookUpValidator.Error;
-CONST PXErrMsg = 'Input not in valid-list';
 BEGIN
-   MessageBox(PXErrMsg, Nil, mfError OR mfOKButton);  { Display message }
+   MessageBox(sPXErrMsgLookUp, Nil, mfError OR mfOKButton);  { Display message }
 END;
 
 {--TStringLookUpValidator---------------------------------------------------}

@@ -223,9 +223,6 @@ type
   { TFPBaseInterpolation }
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
-  private
-    procedure CreatePixelWeights (OldSize, NewSize: integer;
-      out Entries: Pointer; out EntrySize: integer; out Support: integer);
   protected
     procedure Execute (x,y,w,h : integer); override;
     function Filter (x : double): double; virtual;
@@ -239,7 +236,7 @@ type
     function Filter (x : double) : double; override;
     function MaxSupport : double; override;
   end;
-  TMitchelInterpolation = TFPBaseInterpolation deprecated 'Use TMitchellInterpolation';
+  TMitchelInterpolation = TMitchellInterpolation deprecated 'Use TMitchellInterpolation';
 
   TFPCustomRegion = class
   public
@@ -259,6 +256,40 @@ type
   TFPDrawingMode = (dmOpaque, dmAlphaBlend, dmCustom);
   TFPCanvasCombineColors = function(const color1, color2: TFPColor): TFPColor of object;
   TFPGradientDirection = (gdVertical, gdHorizontal);
+  // rmInclude: Right and Bottom of a rectangle are painted; rmExclude: they are not (as in TRect)
+  TRectangleMode = (rmInclude, rmExclude);
+  // emCentered: a thick ellipse outline is centred on the bounds; emInside: it stays inside them
+  TEllipseMode = (emCentered, emInside);
+  // hoDefault: rectangles and polygons are hatched from their own corner, ellipses and flood fills
+  // from the canvas origin; hoShape: every hatch starts at the top-left of the shape, or at the start
+  // point of a flood fill; hoCanvas: every hatch starts at the canvas origin.
+  THatchOrigin = (hoDefault, hoShape, hoCanvas);
+  // toBaseline: the y of TextOut is on the baseline of the text; toTop: it is at the top of the text cell.
+  TFPTextOrigin = (toBaseline, toTop);
+  // tmInk: TextWidth and TextHeight measure the drawn pixels; tmFont: the advance width and ascent plus descent.
+  TFPTextMeasure = (tmInk, tmFont);
+  // Font metrics in pixels; Descender counts down from the baseline and is positive.
+  TFPTextMetric = record
+    Ascender, Descender, Height: Integer;
+  end;
+  // ffSurface: fill the area of the given colour around the start point; ffBorder: fill up to pixels of the given colour.
+  TFPFloodFillStyle = (ffSurface, ffBorder);
+  // The vertical placement of text in TextRect.
+  TFPTextLayout = (ftlTop, ftlCenter, ftlBottom);
+  // How TextRect lays out text; the fields are those of the LCL TTextStyle.
+  TFPTextStyle = packed record
+    Alignment : TAlignment;
+    Layout : TFPTextLayout;
+    SingleLine : boolean;
+    Clipping : boolean;
+    ExpandTabs : boolean;
+    ShowPrefix : boolean;
+    Wordbreak : boolean;
+    Opaque : boolean;
+    SystemFont : boolean;
+    RightToLeft : boolean;
+    EndEllipsis : boolean;
+  end;
 
   { TFPCustomCanvas }
 
@@ -273,6 +304,28 @@ type
     FInterpolation : TFPCustomInterpolation;
     FDrawingMode : TFPDrawingMode;
     FOnCombineColors : TFPCanvasCombineColors;
+    FRectangleMode : TRectangleMode;
+    FEllipseMode : TEllipseMode;
+    FHashWidth : word;
+    FHatchOrigin : THatchOrigin;
+    FRelativeBrushImage : boolean;
+    FNonZeroWindingRule : boolean;
+    FTextOrigin : TFPTextOrigin;
+    FTextMeasure : TFPTextMeasure;
+    FPenShapeLevel : integer;
+    FPenShapeWidth, FPenShapeHeight : integer;
+    FPenShapeDone : array of byte;
+    FTextStyle : TFPTextStyle;
+    // Fills Pts with the brush and outlines them with the pen.
+    procedure ShapePolygon(const Pts: array of TPoint);
+    // Adds the lines of aLine broken between words to fit aWidth pixels to aLines, each with its start offset in aLine.
+    procedure WrapTextLine(const aLine: string; aWidth: integer; aLines: TStrings);
+    // Returns aLine, or its start followed by '...' when it is wider than aWidth pixels.
+    function EllipsisText(const aLine: string; aWidth: integer): string;
+    // Moves (x, y) from TextOrigin to the origin DoTextOut uses, across the rotation of the font.
+    procedure MoveToTextOrigin(var x, y: integer);
+    // True when TextMeasure asks for font metrics from a canvas that measures ink.
+    function MeasuresByFont: boolean;
     function AllowFont (AFont : TFPCustomFont) : boolean;
     function AllowBrush (ABrush : TFPCustomBrush) : boolean;
     function AllowPen (APen : TFPCustomPen) : boolean;
@@ -289,6 +342,11 @@ type
     FDefaultPen, FPen : TFPCustomPen;
     FPenPos : TPoint;
     FClipRegion : TFPCustomRegion;
+    // Starts a shape in which the pen combines each pixel with Pen.Mode at most once, even where
+    // its strokes overlap, until the matching EndPenShape.
+    procedure BeginPenShape;
+    // Ends a shape started with BeginPenShape.
+    procedure EndPenShape;
     function DoCreateDefaultFont : TFPCustomFont; virtual; abstract;
     function DoCreateDefaultPen : TFPCustomPen; virtual; abstract;
     function DoCreateDefaultBrush : TFPCustomBrush; virtual; abstract;
@@ -305,6 +363,7 @@ type
     procedure SetWidth (AValue : integer); virtual; abstract;
     function  GetWidth : integer; virtual; abstract;
     function  GetClipRect: TRect; virtual;
+    function  GetDeviceClipRect: TRect; virtual;
     procedure SetClipRect(const AValue: TRect); virtual;
     function  GetClipping: boolean; virtual;
     procedure SetClipping(const AValue: boolean); virtual;
@@ -320,6 +379,20 @@ type
     procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual;
     function  DoGetTextHeight (text:unicodestring) : integer; virtual;
     function  DoGetTextWidth (text:unicodestring) : integer; virtual;
+    // Returns where DoTextOut puts the y of the text; toTop unless a descendant draws from the baseline.
+    function GetNativeTextOrigin : TFPTextOrigin; virtual;
+    // Returns what DoGetTextWidth and DoGetTextHeight measure; tmFont unless a descendant measures ink.
+    function GetNativeTextMeasure : TFPTextMeasure; virtual;
+    // Returns the metrics of Font in pixels; False when the canvas has none.
+    function DoGetTextMetrics (out aMetrics: TFPTextMetric) : boolean; virtual;
+    // Returns the advance width of text in pixels.
+    function DoGetTextAdvance (text:ansistring) : integer; virtual;
+    // Fills and outlines the chord of the ellipse in the device pixels Bounds (Right and Bottom included).
+    procedure DoChord (const Bounds: TRect; aStart16, aLength16: integer); virtual;
+    // Fills and outlines the device pixels Bounds (Right and Bottom included) with corners rounded by RX x RY ellipses.
+    procedure DoRoundRect (const Bounds: TRect; RX, RY: integer); virtual;
+    // Flood fills from the device pixel (x, y) with the brush, as FloodFill with a FillStyle does.
+    procedure DoFloodFillStyle (x, y: integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle); virtual;
     procedure DoRectangle (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleFill (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleAndFill (Const Bounds:TRect); virtual;
@@ -334,8 +407,12 @@ type
     procedure DoMoveTo (x,y:integer); virtual;
     procedure DoLineTo (x,y:integer); virtual;
     procedure DoLine (x1,y1,x2,y2:integer); virtual; abstract;
-    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual; abstract;
-    procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual; abstract;
+    // Copies the device pixels SourceRect (Right and Bottom included) of canvas to the device pixel (x, y).
+    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual;
+    // Draws image with its top-left pixel at the device pixel (x, y), combined by DrawingMode.
+    procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual;
+    // Draws source scaled to the w x h device pixels from (x, y) with Interpolation, Mitchell when nil.
+    procedure DoStretchDraw (x,y,w,h:integer; source:TFPCustomImage); virtual;
     procedure DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer); virtual;
     procedure DoPolyBezier(Points: PPoint; NumPts: Integer;
                            Filled: boolean = False;
@@ -346,6 +423,14 @@ type
     function TransformRect(const R: TRect): TRect;
     function TransformPoints(const Points: array of TPoint): TFPCanvasPointArray;
     function HasRotation: Boolean;
+    // Returns in aResult aRect with its corners ordered and, under rmExclude, Right and Bottom moved in
+    // by one pixel so that both are included; returns False when the rectangle covers no pixel.
+    function UserRect(const aRect: TRect; out aResult: TRect): Boolean;
+    // Returns in aResult the device pixels covered by aRect: the UserRect result mapped through the
+    // transformation, Right and Bottom included; returns False when it covers no pixel.
+    function DeviceRect(const aRect: TRect; out aResult: TRect): Boolean;
+    // The clip rectangle in device pixels, Right and Bottom included, whatever RectangleMode is.
+    property DeviceClipRect : TRect read GetDeviceClipRect;
   public
     constructor create;
     destructor destroy; override;
@@ -404,8 +489,56 @@ type
     procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect); virtual;
     procedure Draw (x,y:integer; image:TFPCustomImage); virtual;
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage); virtual;
+    // Draws source scaled to DestRect.
+    procedure StretchDraw (const DestRect: TRect; source: TFPCustomImage);
+    // Copies Source of SrcCanvas scaled onto Dest.
+    procedure CopyRect (const Dest: TRect; SrcCanvas: TFPCustomCanvas; const Source: TRect); virtual;
+    // Draws the line from PenPos to the start of the arc, the arc as Arc does, and moves PenPos to the end of the arc.
+    procedure ArcTo (ALeft, ATop, ARight, ABottom, SX, SY, EX, EY: Integer); virtual;
+    // Draws the line from PenPos to the arc of the circle at (X, Y) over SweepAngle degrees from StartAngle, the arc, and moves PenPos to its end.
+    procedure AngleArc (X, Y: Integer; Radius: Longword; StartAngle, SweepAngle: Single);
+    // Fills and outlines the chord of the ellipse cut by the rays at Angle16Deg and Angle16Deg + Angle16DegLength, in 1/16 degree.
+    procedure Chord (x1, y1, x2, y2, Angle16Deg, Angle16DegLength: Integer); virtual;
+    // Fills and outlines the chord of the ellipse cut by the rays through (SX, SY) and (EX, EY).
+    procedure Chord (x1, y1, x2, y2, SX, SY, EX, EY: Integer); virtual;
+    // Fills and outlines the pie of the ellipse from the ray through (StartX, StartY) counter-clockwise to the ray through (EndX, EndY).
+    procedure Pie (EllipseX1, EllipseY1, EllipseX2, EllipseY2, StartX, StartY, EndX, EndY: Integer); virtual;
+    // Fills and outlines the rectangle with its corners rounded by ellipses of RX x RY pixels.
+    procedure RoundRect (X1, Y1, X2, Y2: Integer; RX, RY: Integer); virtual;
+    // Fills and outlines Rect with its corners rounded by ellipses of RX x RY pixels.
+    procedure RoundRect (const Rect: TRect; RX, RY: Integer);
+    // Draws the outline of ARect with the pen.
+    procedure Frame (const ARect: TRect); virtual;
+    // Draws the outline of the rectangle with the pen.
+    procedure Frame (X1, Y1, X2, Y2: Integer);
+    // Draws a border of one pixel around the inside of ARect with the brush.
+    procedure FrameRect (const ARect: TRect); virtual;
+    // Draws a border of one pixel around the inside of the rectangle with the brush.
+    procedure FrameRect (X1, Y1, X2, Y2: Integer);
+    // Draws FrameWidth rings inside ARect, left and top in TopColor, right and bottom in BottomColor, and shrinks ARect by them.
+    procedure Frame3D (var ARect: TRect; const TopColor, BottomColor: TFPColor; const FrameWidth: integer); virtual;
+    // Draws a dotted outline of ARect with pmXor, which a second call removes.
+    procedure DrawFocusRect (const ARect: TRect); virtual;
+    // Flood fills from (X, Y) with the brush: the area of FillColor with ffSurface, the area up to FillColor with ffBorder.
+    procedure FloodFill (X, Y: Integer; const FillColor: TFPColor; FillStyle: TFPFloodFillStyle); virtual;
+    // Draws NumPts points of Points from StartIndex (all when -1) as a polygon, filled by the non-zero rule when Winding.
+    procedure Polygon (const Points: array of TPoint; Winding: Boolean; StartIndex: Integer = 0; NumPts: Integer = -1);
+    // Draws the NumPts points at Points as a polygon, filled by the non-zero rule when Winding.
+    procedure Polygon (Points: PPoint; NumPts: Integer; Winding: boolean = False); virtual;
+    // Draws NumPts points of Points from StartIndex (all when -1) as connected lines.
+    procedure Polyline (const Points: array of TPoint; StartIndex: Integer; NumPts: Integer = -1);
+    // Draws the NumPts points at Points as connected lines.
+    procedure Polyline (Points: PPoint; NumPts: Integer); virtual;
+    // Writes Text in ARect laid out by TextStyle, from (X, Y) when it is left and top aligned.
+    procedure TextRect (const ARect: TRect; X, Y: integer; const Text: string);
+    // Writes Text in ARect laid out by Style, from (X, Y) when it is left and top aligned.
+    procedure TextRect (ARect: TRect; X, Y: integer; const Text: string; const Style: TFPTextStyle); virtual;
+    // Returns how many characters of the UTF-8 Text fit in MaxWidth pixels.
+    function TextFitInfo (const Text: string; MaxWidth: Integer): Integer; virtual;
     procedure Erase;virtual;
     procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
+    // Draws a pen pixel, combined with the pixel at (x, y) by Pen.Mode.
+    procedure DrawPenPixel(const x, y: integer; const newcolor: TFPColor);
     procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection); virtual;
     // coordinate transformation
     property TransformMatrix: TFPCanvasMatrix read FMatrix write FMatrix;
@@ -429,7 +562,27 @@ type
     property Width : integer read GetWidth write SetWidth;
     property ManageResources: boolean read FManageResources write FManageResources;
     property DrawingMode : TFPDrawingMode read FDrawingMode write FDrawingMode;
+    // Whether the Right and Bottom of rectangles given to the canvas (shapes, fills, ClipRect, CopyRect) are painted.
+    property RectangleMode : TRectangleMode read FRectangleMode write FRectangleMode;
+    // Whether a thick ellipse outline is centred on its bounds or drawn inside them.
+    property EllipseMode : TEllipseMode read FEllipseMode write FEllipseMode;
     property OnCombineColors : TFPCanvasCombineColors read FOnCombineColors write FOnCombineColors;
+    // The distance in pixels between the lines of hatch brushes.
+    property HashWidth : word read FHashWidth write FHashWidth;
+    // Where hatch brushes start counting their lines.
+    property HatchOrigin : THatchOrigin read FHatchOrigin write FHatchOrigin;
+    // Whether bsImage brushes tile from the shape instead of the canvas origin.
+    property RelativeBrushImage : boolean read FRelativeBrushImage write FRelativeBrushImage;
+    // Whether polygons fill by the non-zero winding rule instead of the even-odd rule.
+    property PolygonNonZeroWindingRule : boolean read FNonZeroWindingRule write FNonZeroWindingRule;
+    // Returns the ascender, descender and height of Font in pixels; False when they are not known.
+    function GetTextMetrics (out aMetrics: TFPTextMetric) : boolean;
+    // Where the y of TextOut lies; starts as the convention of the canvas.
+    property TextOrigin : TFPTextOrigin read FTextOrigin write FTextOrigin;
+    // How TextWidth and TextHeight measure; starts as the convention of the canvas, tmInk needs a canvas that measures ink.
+    property TextMeasure : TFPTextMeasure read FTextMeasure write FTextMeasure;
+    // The layout of TextRect without a style; starts as the LCL default.
+    property TextStyle : TFPTextStyle read FTextStyle write FTextStyle;
   end;
 
   TFPCustomDrawFont = class (TFPCustomFont)
@@ -451,6 +604,11 @@ type
     procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual;
     function DoGetTextHeight (text: unicodestring) : integer; virtual;
     function DoGetTextWidth (text: unicodestring) : integer; virtual;
+    // Returns the metrics of the font in pixels; False when they are not known.
+    function DoGetTextMetrics (out aMetrics: TFPTextMetric) : boolean; virtual;
+    // Returns the advance width of text in pixels.
+    function DoGetTextAdvance (text:ansistring) : integer; virtual;
+    function DoGetTextAdvance (text: unicodestring) : integer; virtual;
   end;
 
   TFPEmptyFont = class (TFPCustomFont)
@@ -492,6 +650,9 @@ procedure DecRect (var rect : TRect; delta:integer);
 procedure IncRect (var rect : TRect; delta:integer);
 procedure DecRect (var rect : TRect);
 procedure IncRect (var rect : TRect);
+// Returns the colour that pen mode aMode gives when pen colour aPen is drawn over pixel colour aDest,
+// computed per RGB channel; the result has the alpha of aDest.
+function PenModeColor(aMode: TFPPenMode; const aPen, aDest: TFPColor): TFPColor;
 
 implementation
 
@@ -541,6 +702,39 @@ begin
     bottom := bottom + delta;
     end;
 end;
+
+function PenModeColor(aMode: TFPPenMode; const aPen, aDest: TFPColor): TFPColor;
+
+  function Channel(aP, aD: Word): Word;
+  begin
+    case aMode of
+      pmBlack: Result := 0;
+      pmWhite: Result := $FFFF;
+      pmNop: Result := aD;
+      pmNot: Result := not aD;
+      pmCopy: Result := aP;
+      pmNotCopy: Result := not aP;
+      pmMergePenNot: Result := aP or not aD;
+      pmMaskPenNot: Result := aP and not aD;
+      pmMergeNotPen: Result := not aP or aD;
+      pmMaskNotPen: Result := not aP and aD;
+      pmMerge: Result := aP or aD;
+      pmNotMerge: Result := not (aP or aD);
+      pmMask: Result := aP and aD;
+      pmNotMask: Result := not (aP and aD);
+      pmXor: Result := aP xor aD;
+    else
+      Result := not (aP xor aD);
+    end;
+  end;
+
+begin
+  Result.Red := Channel(aPen.Red, aDest.Red);
+  Result.Green := Channel(aPen.Green, aDest.Green);
+  Result.Blue := Channel(aPen.Blue, aDest.Blue);
+  Result.Alpha := aDest.Alpha;
+end;
+
 
 { TFPRectRegion }
 

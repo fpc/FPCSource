@@ -159,6 +159,7 @@
   {$define cpurefshaveindexreg}
   {$define cpudelayslot}
   {$define SUPPORT_SAFECALL}
+  {$define support_rodata}
   {$define sparcgen}
 
   { the official name of the 32 Bit SPARC port is still "sparc" but
@@ -175,6 +176,7 @@
   {$define cpurefshaveindexreg}
   {$define cpudelayslot}
   {$define SUPPORT_SAFECALL}
+  {$define support_rodata}
   {$define sparcgen}
 {$endif sparc64}
 
@@ -257,6 +259,7 @@
   {$define cpuneedsmulhelper}
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}
+  {$define support_rodata}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
 {$endif m68k}
@@ -327,6 +330,7 @@
   {$define cpudelayslot}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
+  {$define support_rodata}
 {$endif mips}
 
 {$ifdef jvm}

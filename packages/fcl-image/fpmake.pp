@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('libheif', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
 
     P.Author := 'Michael Van Canneyt of the Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -134,6 +135,7 @@ begin
         begin
           AddUnit('fpimage');
           Addunit('jpegcomn');
+          AddUnit('fpimgexif');
         end;
     T:=P.Targets.AddUnit('fpreadpcx.pas');
       with T.Dependencies do
@@ -147,6 +149,8 @@ begin
           AddUnit('fpimage');
           AddUnit('fpimgcmn');
           AddUnit('pngcomn');
+          AddUnit('fpimagelist');
+          AddUnit('fpimgexif');
         end;
     T:=P.Targets.AddUnit('fpreadpnm.pp');
       with T.Dependencies do
@@ -168,6 +172,7 @@ begin
     T:=P.Targets.AddUnit('fpreadxpm.pp');
       with T.Dependencies do
         begin
+          AddInclude('x11colors.inc');
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('fpreadgif.pas');
@@ -181,6 +186,7 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('psdcomn');
+          AddUnit('fpcolorspace');
         end;
     T:=P.Targets.AddUnit('xwdfile.pp');
     T:=P.Targets.AddUnit('fpreadxwd.pas');
@@ -286,6 +292,8 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('fpcanvas');
+          AddUnit('fpimgcanv');
+          AddInclude('pscorefonts.inc');
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
     T:=P.Targets.AddUnit('fpimggauss.pp');
@@ -329,6 +337,109 @@ begin
           AddUnit('fpimage');
           AddUnit('qoicomn');
         end;
+    T:=P.Targets.AddUnit('fpimagelist.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpimgexif.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    // webp
+    T:=P.Targets.AddUnit('webpcomn.pas');
+    T:=P.Targets.AddUnit('fpwebpvp8l.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpwebpvp8.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('fpwebpvp8tables.inc');
+          AddUnit('fpimage');
+          AddUnit('fpwebpvp8l');
+        end;
+    T:=P.Targets.AddUnit('fpreadwebp.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpimagelist');
+          AddUnit('webpcomn');
+          AddUnit('fpwebpvp8l');
+          AddUnit('fpwebpvp8');
+          AddUnit('fpimgexif');
+        end;
+    T:=P.Targets.AddUnit('fpwritewebp.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('webpcomn');
+          AddUnit('fpwebpvp8l');
+        end;
+    // radiance hdr
+    T:=P.Targets.AddUnit('hdrcomn.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadhdr.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('hdrcomn');
+        end;
+    T:=P.Targets.AddUnit('fpwritehdr.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('hdrcomn');
+        end;
+    // dds
+    T:=P.Targets.AddUnit('fpreaddds.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    // heif, through libheif
+    T:=P.Targets.AddUnit('heifcomn.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadheif.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpimgexif');
+          AddUnit('heifcomn');
+        end;
+    T:=P.Targets.AddUnit('fpwriteheif.pas', [darwin,win32,win64,linux,freebsd,netbsd,openbsd]);
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('heifcomn');
+        end;
+    // ico
+    T:=P.Targets.AddUnit('icocomn.pas');
+    T:=P.Targets.AddUnit('fpreadico.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('bmpcomn');
+          AddUnit('fpreadbmp');
+          AddUnit('fpreadpng');
+          AddUnit('icocomn');
+        end;
+    T:=P.Targets.AddUnit('fpwriteico.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('bmpcomn');
+          AddUnit('fpwritepng');
+          AddUnit('icocomn');
+        end;
     T:=P.Targets.AddUnit('fpcolorspace.pas');
       with T.Dependencies do
         begin
@@ -353,6 +464,8 @@ begin
     T:=P.Targets.AddExampleProgram('createbarcode.lpr');
     T:=P.Targets.AddExampleProgram('wrpngf.pas');
     T:=P.Targets.AddExampleProgram('wrqoif.pas');
+    T:=P.Targets.AddExampleProgram('canvasdemo.pp');
+    T:=P.Targets.AddExampleProgram('convertframes.pp');
 
     P.NamespaceMap:='namespaces.lst';
 

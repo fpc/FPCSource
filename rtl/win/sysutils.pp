@@ -188,7 +188,7 @@ function GetFileVersion(const AFileName:UnicodeString):Cardinal;
     if size>sizeof(buf) then
       bufp:=getmem(size);
     if GetFileVersionInfoW(PUnicodeChar(AFileName),0,size,bufp) then
-      if VerQueryValue(bufp,'\',valrec,valsize) then
+      if VerQueryValueW(bufp,'\',valrec,valsize) then
         result:=valrec^.dwFileVersionMS;
     if bufp<>@buf then
       freemem(bufp);
@@ -553,10 +553,12 @@ const
     ERROR_BAD_NETPATH,
     ERROR_BAD_NET_NAME
   ];
+  ERROR_CANT_RESOLVE_FILENAME = 1921;
+  CShareAny = FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE;
 var
-  Attr : DWord;
-  slr : TUnicodeSymLinkRec;
-  res : TSymLinkResult;
+  Attr, Err : DWord;
+  Handle : THandle;
+  Info : TByHandleFileInformation;
 begin
   Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
   if Attr = INVALID_FILE_ATTRIBUTES then
@@ -564,14 +566,16 @@ begin
   else begin
     Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
     if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then begin
-      res := FileGetSymLinkTargetInt(FileOrDirName, slr, False);
-      case res of
-        slrOk:
-          Result := FileOrDirExists(slr.TargetName, CheckDir, False);
-        slrNoSymLink:
-          Result := True;
-        else
-          Result := False;
+      { let Windows resolve the reparse point }
+      Handle := CreateFileW(PUnicodeChar(FileOrDirName), FILE_READ_ATTRIBUTES, CShareAny, Nil,
+                  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
+      if Handle <> INVALID_HANDLE_VALUE then begin
+        if GetFileInformationByHandle(Handle, Info) then
+          Result := (Info.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+        CloseHandle(Handle);
+      end else begin
+        Err := GetLastError;
+        Result := not ((Err in CNotExistsErrors) or (Err = ERROR_CANT_RESOLVE_FILENAME));
       end;
     end;
   end;
@@ -621,7 +625,7 @@ begin
 end;
 
 type
-  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD;
+  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD; stdcall;
 var
   GetFinalPathNameByHandle:TGetFinalPathNameByHandle=nil;
 
@@ -1053,8 +1057,12 @@ begin
       DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
       DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
     end;
-    IsDST:=(DSTStart<=DateTime) and (DateTime<DSTEnd);
-    if isDst then
+    if DSTStart < DSTEnd then
+      IsDST := (DSTStart<=DateTime) and (DateTime<DSTEnd)
+    else
+      // Southern hemisphere countries, when daylight saving observer over the year end
+      IsDST := (DateTime >= DSTStart) or (DateTime < DSTEnd);
+    if IsDST then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else
       Offset := TZInfo.Bias+TZInfo.StandardBias;
@@ -1128,14 +1136,29 @@ begin
 end;
 
 
-function GetLocaleChar(LID, LT: Longint; Def: AnsiChar): AnsiChar;
+{ Return the first character of a locale item: ASCII as is, no-break spaces as
+  a space, other characters if they are a single byte in DefaultSystemCodePage,
+  aDef otherwise. }
+function GetLocaleChar(aLID, aLT: Longint; aDef: AnsiChar): AnsiChar;
 var
-  Buf: array[0..3] of AnsiChar; // sdate allows 4 chars.
+  lBuf: array[0..3] of WideChar; // sdate allows 4 chars.
+  lAnsi: RawByteString;
 begin
-  if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
-    Result := Buf[0]
+  Result := aDef;
+  if GetLocaleInfoW(aLID, aLT, @lBuf[0], Length(lBuf)) <= 0 then
+    exit;
+  case Ord(lBuf[0]) of
+    0:
+      ;
+    1..127:
+      Result := AnsiChar(Ord(lBuf[0]));
+    $A0, $202F:
+      Result := ' ';
   else
-    Result := Def;
+    widestringmanager.Unicode2AnsiMoveProc(@lBuf[0], lAnsi, DefaultSystemCodePage, 1);
+    if (Length(lAnsi) = 1) and (lAnsi[1] <> '?') then
+      Result := lAnsi[1];
+  end;
 end;
 
 function ConvertEraString(Count ,Year,Month,Day : integer) : string;
@@ -1208,7 +1231,7 @@ begin
    if (EraNames[i] = '') then
    begin
      EraNames[i] := Names;
-     Result := True;
+     Result := WINBOOL(1);
      break;
    end;
 end;
@@ -1222,7 +1245,7 @@ begin
    if (EraYearOffsets[i] = -1) then
    begin
      EraYearOffsets[i] := StrToIntDef(YearOffsets, 0);
-     Result := True;
+     Result := WINBOOL(1);
      break;
    end;
 end;
@@ -1335,6 +1358,32 @@ end;
 procedure GetFormatSettings;
 begin
   GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
+end;
+
+
+type
+  TLocaleNameToLCID = function(lpName: LPCWSTR; dwFlags: DWORD): LCID; stdcall;
+
+var
+  LocaleNameToLCID: TLocaleNameToLCID = nil;
+
+const
+  LOCALE_CUSTOM_UNSPECIFIED = $1000;
+
+// InitFormatSettingsHook: the format settings of a locale name such as 'pt-BR'.
+procedure WinInitFormatSettings(const aLocale: string; var aSettings: TFormatSettings);
+
+var
+  lLCID: LCID;
+
+begin
+  lLCID:=0;
+  if Assigned(LocaleNameToLCID) then
+    lLCID:=LocaleNameToLCID(PWideChar(UnicodeString(aLocale)),0);
+  if (lLCID=0) or (lLCID=LOCALE_CUSTOM_UNSPECIFIED) then
+    raise EArgumentException.CreateFmt(SUnknownLocaleName,[aLocale]);
+  aSettings:=TFormatSettings.Invariant;
+  GetLocaleFormatSettings(lLCID,aSettings);
 end;
 
 Procedure InitLeadBytes;
@@ -1455,59 +1504,37 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 
-var
-   oemenvvar, oemstr : RawByteString;
-   i, hplen : longint;
-   hp,p : PAnsiChar;
 begin
-   oemenvvar:=uppercase(envvar);
-   SetCodePage(oemenvvar,CP_OEMCP);
-   Result:='';
-   p:=GetEnvironmentStringsA;
-   hp:=p;
-   while hp^<>#0 do
-     begin
-        oemstr:=hp;
-        { cache length, may change after uppercasing depending on code page }
-        hplen:=length(oemstr);
-        { all environment variables are encoded in the oem code page }
-        SetCodePage(oemstr,CP_OEMCP,false);
-        i:=pos('=',oemstr);
-        if uppercase(copy(oemstr,1,i-1))=oemenvvar then
-          begin
-             Result:=copy(oemstr,i+1,length(oemstr)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+hplen+1;
-     end;
-   FreeEnvironmentStringsA(p);
+  Result:=AnsiString(GetEnvironmentVariable(UnicodeString(EnvVar)));
 end;
 
 Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
 
 var
-   s, upperenv : Unicodestring;
-   i : longint;
-   hp,p : pwidechar;
+  lBuf : array[0..1023] of WideChar;
+  lLen, lNew : DWORD;
+
 begin
-   Result:='';
-   p:=GetEnvironmentStringsW;
-   hp:=p;
-   upperenv:=uppercase(envvar);
-   while hp^<>#0 do
-     begin
-        s:=hp;
-        i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upperenv then
-          begin
-             Result:=copy(s,i+1,length(s)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-     end;
-   FreeEnvironmentStringsW(p);
+  Result:='';
+  if EnvVar='' then
+    exit;
+  lLen:=GetEnvironmentVariableW(PWideChar(EnvVar),@lBuf,Length(lBuf));
+  if lLen<Length(lBuf) then
+    begin
+    SetString(Result,PWideChar(@lBuf),lLen);
+    exit;
+    end;
+  { retry with a heap buffer until the value fits }
+  repeat
+    SetLength(Result,lLen);
+    lNew:=GetEnvironmentVariableW(PWideChar(EnvVar),PWideChar(Result),lLen);
+    if lNew<lLen then
+      begin
+      SetLength(Result,lNew);
+      exit;
+      end;
+    lLen:=lNew;
+  until false;
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -1701,6 +1728,13 @@ begin
     GetTimeZoneInformationForYear:=TGetTimeZoneInformationForYear(GetProcAddress(kernel32dll,'GetTimeZoneInformationForYear'));
   if (kernel32dll<>0) then
     GetFinalPathNameByHandle:=TGetFinalPathNameByHandle(GetProcAddress(kernel32dll,'GetFinalPathNameByHandleA'));
+  // LocaleNameToLCID is supported only on Vista and newer
+  if (kernel32dll<>0) and (Win32MajorVersion>=6) then
+    begin
+    LocaleNameToLCID:=TLocaleNameToLCID(GetProcAddress(kernel32dll,'LocaleNameToLCID'));
+    if Assigned(LocaleNameToLCID) then
+      InitFormatSettingsHook:=@WinInitFormatSettings;
+    end;
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
@@ -1771,28 +1805,48 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
 
 const
   WinAPICompareFlags : array [TCompareOption] of LongWord
-    = ({LINGUISTIC_IGNORECASE,  LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
+    = (LINGUISTIC_IGNORECASE, {LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
        NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
        NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT});
 
-function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+var
+  { LINGUISTIC_IGNORECASE if CompareString supports it, NORM_IGNORECASE otherwise }
+  IgnoreCaseCompareFlag : DWORD = NORM_IGNORECASE;
 
-Var
-  O : LongWord;
-  CO : TCompareOption;
+// Set IgnoreCaseCompareFlag to LINGUISTIC_IGNORECASE if CompareString accepts it
+procedure InitIgnoreCaseCompareFlag;
 
 begin
-  O:=0;
-  for CO in TCompareOption do
-    if CO in Options then
-      O:=O or WinAPICompareFlags[CO];
-  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+  if CompareStringA(LOCALE_USER_DEFAULT,LINGUISTIC_IGNORECASE,'a',1,'A',1)<>0 then
+    IgnoreCaseCompareFlag:=LINGUISTIC_IGNORECASE;
+end;
+
+
+// Convert compare options to CompareString flags, coLingIgnoreCase takes precedence over coIgnoreCase
+function CompareOptionsToFlags(aOptions : TCompareOptions) : DWORD;
+
+var
+  lOption : TCompareOption;
+
+begin
+  Result:=0;
+  for lOption in aOptions do
+    Result:=Result or WinAPICompareFlags[lOption];
+  if coLingIgnoreCase in aOptions then
+    Result:=(Result and not (NORM_IGNORECASE or LINGUISTIC_IGNORECASE)) or IgnoreCaseCompareFlag;
+end;
+
+
+function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+begin
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), CompareOptionsToFlags(Options));
 end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), IgnoreCaseCompareFlag);
   end;
 
 
@@ -1831,7 +1885,7 @@ function Win32AnsiCompareStr(const S1, S2: AnsiString): PtrInt;
 
 function Win32AnsiCompareText(const S1, S2: AnsiString): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,PAnsiChar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,PAnsiChar(s1),length(s1),
       PAnsiChar(s2),length(s2))-2;
   end;
 
@@ -1844,7 +1898,7 @@ function Win32AnsiStrComp(S1, S2: PAnsiChar): PtrInt;
 
 function Win32AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,s1,-1,s2,-1)-2;
   end;
 
 
@@ -1856,7 +1910,7 @@ function Win32AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 
 function Win32AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,IgnoreCaseCompareFlag,s1,maxlen,s2,maxlen)-2;
   end;
 
 
@@ -1875,22 +1929,14 @@ function Win32AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 
 function Win32CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 
-Var
-  O : LongWord;
-  CO : TCompareOption;
-
 begin
-  O:=0;
-  for CO in TCompareOption do
-    if CO in Options then
-      O:=O or WinAPICompareFlags[CO];
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), CompareOptionsToFlags(Options));
 end;
 
 
 function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
   begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), IgnoreCaseCompareFlag);
   end;
 
 
@@ -1908,6 +1954,7 @@ procedure InitWin32Widestrings;
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
+    InitIgnoreCaseCompareFlag;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;

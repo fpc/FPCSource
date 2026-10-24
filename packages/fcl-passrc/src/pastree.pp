@@ -49,6 +49,7 @@ resourcestring
   SPasTreeAliasType = 'alias type';
   SPasTreeTypeAliasType = '"type" alias type';
   SPasTreeClassOfType = '"class of" type';
+  SPasTreeTypeOfType = '"type of" type';
   SPasTreeRangeType = 'range type';
   SPasTreeArrayType = 'array type';
   SPasTreeFileType = 'file type';
@@ -73,6 +74,7 @@ resourcestring
   SPasTreeFunctionType = 'function type';
   SPasTreeUnresolvedTypeRef = 'unresolved type reference';
   SPasTreeVariable = 'variable';
+  SPasTreeContainsAlias = 'contains alias';
   SPasTreeConst = 'constant';
   SPasTreeProperty = 'property';
   SPasTreeOverloadedProcedure = 'overloaded procedure';
@@ -146,7 +148,8 @@ type
   TPasElementStateFlag = (
     pesfRangeChecked,    // parsed while {$R+} (range checking) was active
     pesfOverflowChecked, // parsed while {$Q+} (overflow checking) was active
-    pesfPointerMath      // a pointer type declared while {$POINTERMATH ON} was active
+    pesfPointerMath,     // a pointer type declared while {$POINTERMATH ON} was active
+    pesfAssertions       // a call parsed while {$C+} (assertions) was active
     );
   TPasElementStateFlags = set of TPasElementStateFlag;
 
@@ -219,7 +222,8 @@ type
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopNotIn,eopIs,eopIsNot,eopAs, eopSymmetricaldifference, // Specials
                  eopAddress, eopDeref, eopMemAddress, // Pointers  eopMemAddress=**
-                 eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
+                 eopSubIdent, // SomeRec.A, A is subIdent of SomeRec
+                 eopTypeOf); // type of A, modeswitch TypeInquiry
 
   { TPasExpr }
 
@@ -609,6 +613,22 @@ type
     HasPointerMath : Boolean;
   end;
 
+  { TPasTypeOfType - "type of Expr", modeswitch TypeInquiry
+    The resolver sets DestType to the type of Expr. }
+
+  TPasTypeOfType = class(TPasType)
+  public
+    procedure FreeChildren(Prepare: boolean); override;
+    function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full : Boolean): TPasTreeString; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure ClearTypeReferences(aType: TPasElement); override;
+  public
+    Expr: TPasExpr; // operand
+    DestType: TPasType; // set by resolver
+  end;
+
   { TPasTypeAliasType }
 
   TPasTypeAliasType = class(TPasAliasType)
@@ -761,6 +781,10 @@ type
       const Arg: Pointer); override;
   public
     Values: TFPList;      // List of TPasEnumValue
+    // Minimum storage size in bytes from {$PACKENUM}/{$MINENUMSIZE} at the declaration (0 = none)
+    MinSize: Integer;
+    // Storage size in bytes, set when the declaration is finished (0 = not known yet)
+    Size: Integer;
   end;
 
   { TPasSetType }
@@ -776,6 +800,8 @@ type
   public
     EnumType: TPasType; // alias or enumtype
     IsPacked : Boolean;
+    // Storage granularity in bytes from {$PACKSET} at the declaration (0 = normal)
+    PackSet: Integer;
   end;
 
   TPasRecordType = class;
@@ -1049,7 +1075,9 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic, vmfar, vmThread);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic, vmfar, vmThread,
+    vmContains // record composition "contains [Name:] Type", Name='' for an unnamed composition
+    );
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -1070,6 +1098,19 @@ type
     AbsoluteExpr: TPasExpr;
     Expr: TPasExpr;
     Function Value : TPasTreeString;
+  end;
+
+  { TPasContainsAlias - record composition "contains alias FieldName" }
+
+  TPasContainsAlias = class(TPasElement)
+  public
+    procedure FreeChildren(Prepare: boolean); override;
+    function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full : boolean) : TPasTreeString; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  public
+    Expr: TPasExpr; // the field name
   end;
 
   { TPasExportSymbol }
@@ -1961,7 +2002,8 @@ const
         '<','>','<=','>=',
         'in','not in','is','is not','as','><',
         '@','^','@@',
-        '.');
+        '.',
+        'type of');
 
 
   UnaryOperators = [otImplicit,otExplicit,otAssign,otNegative,otPositive,otEnumerator];
@@ -2000,7 +2042,8 @@ const
                    'section','rtlproc','internproc','weakexternal');
 
   VariableModifierNames : Array[TVariableModifier] of TPasTreeString
-     = ('cvar', 'external', 'public', 'export', 'class', 'static','far','thread');
+     = ('cvar', 'external', 'public', 'export', 'class', 'static','far','thread',
+        'contains');
 
 procedure FreeProcNameParts(var NameParts: TProcedureNameParts);
 procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray; Prepare: boolean);
@@ -3096,6 +3139,33 @@ begin
   ForEachChildCall(aMethodCall,Arg,NameExpr,false);
   ForEachChildCall(aMethodCall,Arg,ExportName,false);
   ForEachChildCall(aMethodCall,Arg,ExportIndex,false);
+end;
+
+{ TPasContainsAlias }
+
+procedure TPasContainsAlias.FreeChildren(Prepare: boolean);
+begin
+  Expr:=TPasExpr(FreeChild(Expr,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+function TPasContainsAlias.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreeContainsAlias;
+end;
+
+function TPasContainsAlias.GetDeclaration(full: boolean): TPasTreeString;
+begin
+  Result:='contains alias ';
+  if Expr<>nil then
+    Result:=Result+Expr.GetDeclaration(full);
+end;
+
+procedure TPasContainsAlias.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
 end;
 
 { TPasUnresolvedUnitRef }
@@ -4865,7 +4935,10 @@ end;
 
 function TPasPointerType.GetDeclaration(full: Boolean): TPasTreeString;
 begin
-  Result:='^'+DestType.SafeName;
+  if DestType is TPasTypeOfType then
+    Result:='^'+DestType.GetDeclaration(false)
+  else
+    Result:='^'+DestType.SafeName;
   If Full then
     begin
     Result:=SafeName+' = '+Result;
@@ -4905,6 +4978,46 @@ begin
 end;
 
 procedure TPasAliasType.ClearTypeReferences(aType: TPasElement);
+begin
+  if DestType=aType then
+    DestType:=nil;
+end;
+
+{ TPasTypeOfType }
+
+procedure TPasTypeOfType.FreeChildren(Prepare: boolean);
+begin
+  DestType:=TPasType(FreeChild(DestType,Prepare));
+  Expr:=TPasExpr(FreeChild(Expr,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+function TPasTypeOfType.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreeTypeOfType;
+end;
+
+function TPasTypeOfType.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:='type of ';
+  if Expr<>nil then
+    Result:=Result+Expr.GetDeclaration(true);
+  If Full and (Name<>'') then
+    begin
+    Result:=SafeName+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+procedure TPasTypeOfType.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,DestType,true);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
+end;
+
+procedure TPasTypeOfType.ClearTypeReferences(aType: TPasElement);
 begin
   if DestType=aType then
     DestType:=nil;
@@ -5277,7 +5390,8 @@ begin
     Member:=TPasElement(Members[i]);
     if (Member.Visibility<>visPublic) then
       Exit(True);
-    if (Member.ClassType<>TPasVariable) then
+    if (Member.ClassType<>TPasVariable)
+        and (Member.ClassType<>TPasContainsAlias) then
       Exit(True);
     end;
 end;
@@ -5389,7 +5503,12 @@ begin
     Result:=Value;
   If Full then
     begin
-    Result:=SafeName+' '+Seps[Assigned(VarType)]+' '+Result;
+    if (vmContains in VarModifiers) and (Name='') then
+      Result:='contains '+Result
+    else if vmContains in VarModifiers then
+      Result:='contains '+SafeName+' '+Seps[Assigned(VarType)]+' '+Result
+    else
+      Result:=SafeName+' '+Seps[Assigned(VarType)]+' '+Result;
     Result:=Result+HintsString;
     end;
 end;

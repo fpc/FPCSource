@@ -226,6 +226,8 @@ unit widestr;
                end
              else
                begin
+                 { room for the terminating 0 written by utf8tounicode }
+                 growwidestring(r,l+1);
                  r.len:=Utf8ToUnicode(punicodechar(r.data),r.maxlen,p,l);
                  { -1, because utf8tounicode includes room for a terminating 0 in
                    its result count }

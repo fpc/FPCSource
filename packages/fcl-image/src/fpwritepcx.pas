@@ -75,14 +75,22 @@ begin
     XMax := Img.Width - 1;
     YMax := Img.Height - 1;
 
-    Img.ResolutionUnit :=ruPixelsPerInch;
-    HRes :=Trunc(Img.ResolutionX);
-    VRes :=Trunc(Img.ResolutionY);
+    case Img.ResolutionUnit of
+      ruPixelsPerCentimeter :
+        begin
+        HRes := Round(Img.ResolutionX * 2.54);
+        VRes := Round(Img.ResolutionY * 2.54);
+        end;
+    else
+      HRes := Round(Img.ResolutionX);
+      VRes := Round(Img.ResolutionY);
+    end;
 
     ColorPlanes := 3;
-    BytesPerLine := Img.Width;
+    BytesPerLine := Img.Width + (Img.Width and 1);
     PaletteType := 1;
   end;
+  SwapPCXHeader(Header);
   Stream.WriteBuffer(Header, SizeOf(Header));
   Result := True;
 end;
@@ -100,7 +108,7 @@ begin
     Inc(P);
     Dec(bytes);
     Count := 1;
-    while (bytes < 0) and (Count < 63) and (P[0] = Value) do
+    while (bytes > 0) and (Count < 63) and (P[0] = Value) do
     begin
       Inc(Count);
       Inc(P);
@@ -121,7 +129,7 @@ end;
 
 procedure TFPWriterPCX.InternalWrite(Stream: TStream; Img: TFPCustomImage);
 var
-  Row, Col, WriteSize: integer;
+  Row, Col, WriteSize, LineSize, Plane: integer;
   Aline, P: PByte;
   C:    TFPColor;
   Totalwrite: longint;
@@ -136,8 +144,10 @@ begin
   TotalWrite  := 0;
   Progress(psStarting, 0, False, Rect, '', continue);
   SaveHeader(Stream, Img);
-  WriteSize := (Img.Width * 3);
+  LineSize := Img.Width + (Img.Width and 1);
+  WriteSize := LineSize * 3;
   GetMem(aLine, WriteSize);
+  FillChar(aLine^, WriteSize, 0);
   TotalWrite := Img.Height * Img.Width;
   try
     for Row := 0 to Img.Height - 1 do
@@ -146,8 +156,8 @@ begin
       for Col := 0 to Img.Width - 1 do
       begin
         C      := Img.Colors[Col, Row];
-        P[Col + Img.Width * 2] := C.Blue shr 8;
-        P[Col + Img.Width] := C.Green shr 8;
+        P[Col + LineSize * 2] := C.Blue shr 8;
+        P[Col + LineSize] := C.Green shr 8;
         P[Col] := C.Red shr 8;
         Progress(psRunning, trunc(100.0 * (Row * Col / TotalWrite)),
           False, Rect, '', continue);
@@ -155,7 +165,8 @@ begin
           exit;
       end;
       if Compressed then
-        writeline(Stream, aLine, WriteSize)
+        for Plane := 0 to 2 do
+          writeline(Stream, aLine + Plane * LineSize, LineSize)
       else
         Stream.Write(aLine[0], WriteSize);
     end;

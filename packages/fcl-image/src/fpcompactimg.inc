@@ -130,7 +130,7 @@ begin
 
   if (not TestGray) and (not TestAlpha) and (not Test16Bit) then exit;
 
-  FuzzyMaskWord:=Word($ffff) shl FuzzyDepth;
+  FuzzyMaskWord:=($ffff shl FuzzyDepth) and $ffff;
   FuzzyOpaque:=alphaOpaque and FuzzyMaskWord;
   FuzzyMaskLoHi:=Word(lo(FuzzyMaskWord))+(Word(lo(FuzzyMaskWord)) shl 8);
   AllLoAre0:=true;
@@ -144,8 +144,8 @@ begin
         if (not TestGray) and (not Test16Bit) then break;
       end;
       if TestGray
-      and ((col.red and FuzzyMaskWord)<>(col.green and FuzzyMaskWord))
-      or ((col.red and FuzzyMaskWord)<>(col.blue and FuzzyMaskWord)) then begin
+      and (((col.red and FuzzyMaskWord)<>(col.green and FuzzyMaskWord))
+        or ((col.red and FuzzyMaskWord)<>(col.blue and FuzzyMaskWord))) then begin
         TestGray:=false;
         Result.Gray:=false;
         if (not TestAlpha) and (not Test16Bit) then break;
@@ -185,6 +185,49 @@ begin
     Img.Free;
 end;
 
+// Returns the gray level of aColor: its red channel when red, green and blue are equal, else CalculateGray.
+function CompactGray(const aColor: TFPColor): word;
+
+begin
+  if (aColor.red=aColor.green) and (aColor.red=aColor.blue) then
+    Result:=aColor.red
+  else
+    Result:=CalculateGray(aColor);
+end;
+
+
+// Resizes compact pixel data of aElemSize bytes per pixel, keeping the overlap and zeroing the rest.
+procedure ResizeCompactData(var aData: Pointer; aOldWidth, aOldHeight, aNewWidth, aNewHeight: integer; aElemSize: ptruint);
+
+var
+  lNew: PByte;
+  lSize: ptruint;
+  lRow, lWidth, lHeight: integer;
+
+begin
+  lSize:=ptruint(aNewWidth)*ptruint(aNewHeight)*aElemSize;
+  if lSize=0 then
+    lNew:=nil
+  else
+    begin
+    GetMem(lNew,lSize);
+    FillChar(lNew^,lSize,0);
+    end;
+  if (aData<>nil) and (lNew<>nil) then
+    begin
+    if aOldWidth<aNewWidth then lWidth:=aOldWidth else lWidth:=aNewWidth;
+    if aOldHeight<aNewHeight then lHeight:=aOldHeight else lHeight:=aNewHeight;
+    for lRow:=0 to lHeight-1 do
+      Move(PByte(aData)[ptruint(lRow)*ptruint(aOldWidth)*aElemSize],
+           lNew[ptruint(lRow)*ptruint(aNewWidth)*aElemSize],
+           ptruint(lWidth)*aElemSize);
+    end;
+  if aData<>nil then
+    FreeMem(aData);
+  aData:=lNew;
+end;
+
+
 function ColorRound (c : double) : word;
 begin
   if c > $FFFF then
@@ -218,7 +261,7 @@ procedure TFPCompactImgGrayAlpha16Bit.SetInternalColor(x, y: integer;
 var
   v: TFPCompactImgGrayAlpha16BitValue;
 begin
-  v.g:=Value.red;
+  v.g:=CompactGray(Value);
   v.a:=Value.alpha;
   FData[x+y*Width]:=v;
 end;
@@ -244,7 +287,7 @@ end;
 procedure TFPCompactImgGrayAlpha16Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPCompactImgGrayAlpha16BitValue)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPCompactImgGrayAlpha16BitValue));
   inherited SetSize(AWidth, AHeight);
 end;
 
@@ -271,7 +314,7 @@ procedure TFPCompactImgGrayAlpha8Bit.SetInternalColor(x, y: integer;
 var
   v: TFPCompactImgGrayAlpha8BitValue;
 begin
-  v.g:=Value.red shr 8;
+  v.g:=CompactGray(Value) shr 8;
   v.a:=Value.alpha shr 8;
   FData[x+y*Width]:=v;
 end;
@@ -297,7 +340,7 @@ end;
 procedure TFPCompactImgGrayAlpha8Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPCompactImgGrayAlpha8BitValue)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPCompactImgGrayAlpha8BitValue));
   inherited SetSize(AWidth, AHeight);
 end;
 
@@ -319,7 +362,7 @@ end;
 procedure TFPCompactImgGray16Bit.SetInternalColor(x, y: integer;
   const Value: TFPColor);
 begin
-  FData[x+y*Width]:=Value.red;
+  FData[x+y*Width]:=CompactGray(Value);
 end;
 
 procedure TFPCompactImgGray16Bit.SetInternalPixel(x, y: integer; Value: integer);
@@ -342,7 +385,7 @@ end;
 procedure TFPCompactImgGray16Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(Word)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(Word));
   inherited SetSize(AWidth,AHeight);
 end;
 
@@ -365,7 +408,7 @@ end;
 procedure TFPCompactImgGray8Bit.SetInternalColor(x, y: integer;
   const Value: TFPColor);
 begin
-  FData[x+y*Width]:=Value.red shr 8;
+  FData[x+y*Width]:=CompactGray(Value) shr 8;
 end;
 
 procedure TFPCompactImgGray8Bit.SetInternalPixel(x, y: integer; Value: integer);
@@ -388,7 +431,7 @@ end;
 procedure TFPCompactImgGray8Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(Byte)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(Byte));
   inherited SetSize(AWidth,AHeight);
 end;
 
@@ -442,7 +485,7 @@ end;
 procedure TFPCompactImgRGBA8Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPCompactImgRGBA8BitValue)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPCompactImgRGBA8BitValue));
   inherited SetSize(AWidth,AHeight);
 end;
 
@@ -495,7 +538,7 @@ end;
 procedure TFPCompactImgRGB8Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPCompactImgRGB8BitValue)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPCompactImgRGB8BitValue));
   inherited SetSize(AWidth,AHeight);
 end;
 
@@ -548,7 +591,7 @@ end;
 procedure TFPCompactImgRGB16Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPCompactImgRGB16BitValue)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPCompactImgRGB16BitValue));
   inherited SetSize(AWidth,AHeight);
 end;
 
@@ -590,7 +633,7 @@ end;
 procedure TFPCompactImgRGBA16Bit.SetSize(AWidth, AHeight: integer);
 begin
   if (AWidth=Width) and (AHeight=Height) then exit;
-  ReAllocMem(FData,SizeOf(TFPColor)*AWidth*AHeight);
+  ResizeCompactData(Pointer(FData),Width,Height,AWidth,AHeight,SizeOf(TFPColor));
   inherited SetSize(AWidth,AHeight);
 end;
 

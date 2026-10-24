@@ -106,35 +106,14 @@ uses
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
-function MakeObjectInstance(Method: TWndMethod): Pointer;
-  begin
-    runerror(211);
-    MakeObjectInstance:=nil;
-  end;
-
-
-procedure FreeObjectInstance(ObjectInstance: Pointer);
-  begin
-    runerror(211);
-  end;
-
-
-function AllocateHWnd(Method: TWndMethod): HWND;
-  begin
-    runerror(211);
-    AllocateHWnd:=0;
-  end;
-
-
-procedure DeallocateHWnd(Wnd: HWND);
-  begin
-    runerror(211);
-  end;
+{$i objinst.inc}
 
 
 initialization
+  InitObjectInstances;
   CommonInit;
 
 finalization
   CommonCleanup;
+  DoneObjectInstances;
 end.

@@ -47,6 +47,7 @@ uses
   tests.rtti.intercept,
 {$endif}
   tests.rtti,
+  tests.rtti.pools,
   tests.rtti.util,
   tests.rtti.value,
   tests.rtti.types,
@@ -61,7 +62,8 @@ uses
 {$IFDEF HAS_MONITOR}
   utcfpmonitor, tests.rtti.attrtypes2,
 {$ENDIF}
-   utcStrUtils
+   utcStrUtils,
+  utcVariants
   ;
 
 

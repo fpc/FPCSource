@@ -135,6 +135,16 @@ unit iso7185;
       End;
 
 
+    { True when the last line of t has no line end and its implied end of line is not yet consumed }
+    Function ImpliedEolnPending(var t: Text): Boolean;
+      Begin
+        if TextRec(t).BufPos>0 then
+          ImpliedEolnPending:=not (TextRec(t).BufPtr^[TextRec(t).BufPos-1] in [#10,#13,#26])
+        else
+          ImpliedEolnPending:=TextRec(t)._private<>0;
+      end;
+
+
     Function Eof(Var t: Text): Boolean;[IOCheck];
       var
         OldCtrlZMarksEof : Boolean;
@@ -147,7 +157,7 @@ unit iso7185;
           begin
             OldCtrlZMarksEof:=CtrlZMarksEOF;
             CtrlZMarksEof:=true;
-            Eof:=System.Eof(t);
+            Eof:=System.Eof(t) and ((InOutRes<>0) or not ImpliedEolnPending(t));
             CtrlZMarksEof:=OldCtrlZMarksEOF;
           end;
       end;

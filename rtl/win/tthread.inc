@@ -18,7 +18,9 @@ end;
 
 procedure TThread.SysDestroy;
 begin
-  if FHandle<>0 then
+  if FInOnTerminate then
+    ReleaseTerminateInfo
+  else if FHandle<>0 then
     begin
       { Don't check Suspended. If the thread has been externally suspended (which is
         deprecated and strongly discouraged), it's better to deadlock here than
@@ -39,8 +41,18 @@ begin
 end;
 
 procedure TThread.CallOnTerminate;
+var
+  lInfo: PTerminateInfo;
 begin
-  FOnTerminate(Self);
+  lInfo:=FTerminateInfo;
+  FInOnTerminate:=Assigned(lInfo);
+  try
+    FOnTerminate(Self);
+  finally
+    { Self is invalid if the handler destroyed it }
+    if not (Assigned(lInfo) and lInfo^.Freed) then
+      FInOnTerminate:=False;
+  end;
 end;
 
 procedure TThread.DoTerminate;
@@ -92,28 +104,53 @@ begin
   if ResumeThread(FHandle) = 1 then FSuspended := False;
 end;
 
+{ Raises EThread with the last OS error }
+procedure RaiseThreadError;
+
+var
+  lError: DWord;
+
+begin
+  lError:=GetLastError;
+  raise EThread.CreateFmt(SThreadError,[SysErrorMessage(lError),lError]);
+end;
+
+
 function TThread.WaitFor: Integer;
 var
   Msg: TMsg;
   WaitHandles : array[0..1] of THandle;
+  lHandle: THandle;
+  lExitCode: DWord;
 begin
-  if GetCurrentThreadID = MainThreadID then
-    begin
-      WaitHandles[0]:=FHandle;
-      WaitHandles[1]:=THandle(SynchronizeTimeoutEvent);
-      while true do
-        begin
-          case MsgWaitForMultipleObjects(2, WaitHandles, False, INFINITE, QS_SENDMESSAGE) of
-            WAIT_OBJECT_0:
-              break;
-            WAIT_OBJECT_0+1:
-              CheckSynchronize;
-            WAIT_OBJECT_0+2:
-              PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE)
+  { wait on a duplicate, FHandle is closed when a FreeOnTerminate thread frees itself }
+  if not DuplicateHandle(GetCurrentProcess, FHandle, GetCurrentProcess, @lHandle, 0, False, DUPLICATE_SAME_ACCESS) then
+    RaiseThreadError;
+  try
+    if GetCurrentThreadID = MainThreadID then
+      begin
+        WaitHandles[0]:=lHandle;
+        WaitHandles[1]:=THandle(SynchronizeTimeoutEvent);
+        while true do
+          begin
+            case MsgWaitForMultipleObjects(2, WaitHandles, False, INFINITE, QS_SENDMESSAGE) of
+              WAIT_OBJECT_0:
+                break;
+              WAIT_OBJECT_0+1:
+                CheckSynchronize;
+              WAIT_OBJECT_0+2:
+                PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE);
+              WAIT_FAILED:
+                RaiseThreadError;
+            end;
           end;
-        end;
-    end
-  else
-    WaitForSingleObject(ulong(FHandle), INFINITE);
-  GetExitCodeThread(FHandle, DWord(Result));
+      end
+    else if WaitForSingleObject(lHandle, INFINITE)=WAIT_FAILED then
+      RaiseThreadError;
+    if not GetExitCodeThread(lHandle, lExitCode) then
+      RaiseThreadError;
+    Result:=Integer(lExitCode);
+  finally
+    CloseHandle(lHandle);
+  end;
 end;

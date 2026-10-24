@@ -148,6 +148,13 @@ begin
 end;
 
 
+{$ifndef FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{$define FPC_HAS_INT_VAL_UINT_SHORTSTR}
+{ fpc_Val_UInt_Shortstr callable from the ansistring, widestring and unicodestring variants }
+Function int_Val_UInt_ShortStr({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2} Const S: ShortString; out Code: ValSInt): ValUInt; [external name 'FPC_VAL_UINT_SHORTSTR'];
+{$endif FPC_HAS_INT_VAL_UINT_SHORTSTR}
+
+
 {$ifndef CPU64}
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
@@ -443,6 +450,18 @@ Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValRe
 begin
     fpc_Val_Real_ShortStr := val_real( s, code );
 end;
+
+{$ifndef CPU16}
+Function fpc_Val_Single_ShortStr(const s : shortstring; out Code : ValSInt): Single; [public, alias:'FPC_VAL_SINGLE_SHORTSTR']; compilerproc;
+begin
+    fpc_Val_Single_ShortStr := val_single( s, code );
+end;
+
+Function fpc_Val_Double_ShortStr(const s : shortstring; out Code : ValSInt): Double; [public, alias:'FPC_VAL_DOUBLE_SHORTSTR']; compilerproc;
+begin
+    fpc_Val_Double_ShortStr := val_double( s, code );
+end;
+{$endif CPU16}
 {$endif FPUNONE}
 
 {$ifndef FPC_STR_ENUM_INTERN}

@@ -64,6 +64,13 @@ var
                              Private Helper Functions
 *****************************************************************************)
 
+function rsrc: pointer;
+
+begin
+  rsrc:=ResHeader^;
+end;
+
+
 function ExtGetResHdr(ModuleHandle : TFPResourceHMODULE):PResHdr;
 var
   p:TLibGetResHdr;

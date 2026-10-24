@@ -520,7 +520,7 @@ parser_e_header_dont_match_any_member=03048_E_fonksiyon başlığı "$1" sınıf
 % ancak işlem adı bu tür bir işlem değildir.
 parser_d_procedure_start=03049_DL_prosedür/fonksiyon $1
 % \var{-vd} anahtarını kullanırken, derleyici size bir prosedür veya
-& fonksiyon uygulamasının ne zaman işlemeye başladığını bildirir.
+% fonksiyon uygulamasının ne zaman işlemeye başladığını bildirir.
 parser_e_error_in_real=03050_E_Geçersiz floating nokta sabiti
 % Derleyici bir floating nokta ifadesi bekliyor ve başka bir şey alıyor.
 parser_e_fail_only_in_constructor=03051_E_FAIL sadece constructors da kullanılabilir

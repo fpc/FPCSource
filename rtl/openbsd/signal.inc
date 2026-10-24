@@ -72,6 +72,63 @@ const
   SI_MAXSZ = 128;
   SI_PAD_SIZE = ((SI_MAXSZ div sizeof(longint)) - 3);
 
+{ si_code values when si_signo = SIGILL }
+  ILL_ILLOPC    = 1;  { illegal opcode }
+  ILL_ILLOPN    = 2;  { illegal operand }
+  ILL_ILLADR    = 3;  { illegal addressing mode }
+  ILL_ILLTRP    = 4;  { illegal trap }
+  ILL_PRVOPC    = 5;  { privileged opcode }
+  ILL_PRVREG    = 6;  { privileged register }
+  ILL_COPROC    = 7;  { co-processor }
+  ILL_BADSTK    = 8;  { bad stack }
+  ILL_BTCFI     = 9;  { IBT missing on indirect call }
+
+{ si_code values when si_signo = SIGFPE }
+  FPE_INTDIV    = 1;  { integer divide by zero }
+  FPE_INTOVF    = 2;  { integer overflow }
+  FPE_FLTDIV    = 3;  { floating point divide by zero }
+  FPE_FLTOVF    = 4;  { floating point overflow }
+  FPE_FLTUND    = 5;  { floating point underflow }
+  FPE_FLTRES    = 6;  { floating point inexact result }
+  FPE_FLTINV    = 7;  { invalid floating point operation }
+  FPE_FLTSUB    = 8;  { subscript out of range }
+
+{ si_code values when si_signo = SIGSEGV }
+  SEGV_MAPERR   = 1;  { address not mapped to object }
+  SEGV_ACCERR   = 2;  { invalid permissions }
+
+{ si_code values when si_signo = SIGBUS }
+  BUS_ADRALN    = 1;  { invalid address alignment }
+  BUS_ADRERR    = 2;  { non-existent physical address }
+  BUS_OBJERR    = 3;  { object specific hardware error }
+
+{ si_code values when si_signo = SIGTRAP }
+  TRAP_BRKPT    = 1;  { breakpoint trap }
+  TRAP_TRACE    = 2;  { trace trap }
+
+{ si_code values when si_signo = SIGCHLD }
+  CLD_EXITED    = 1;  { child has exited }
+  CLD_KILLED    = 2;  { child was killed }
+  CLD_DUMPED    = 3;  { child has coredumped }
+  CLD_TRAPPED   = 4;  { traced child has stopped }
+  CLD_STOPPED   = 5;  { child has stopped on signal }
+  CLD_CONTINUED = 6;  { stopped child has continued }
+
+{ si_code values when si_signo = SIGPOLL }
+  POLL_IN       = 1;  { input available }
+  POLL_OUT      = 2;  { output possible }
+  POLL_MSG      = 3;  { message available }
+  POLL_ERR      = 4;  { i/o error }
+  POLL_PRI      = 5;  { high priority input available }
+  POLL_HUP      = 6;  { device disconnected }
+
+{ si_code values for any signal }
+  SI_NOINFO     = 32767;  { no signal information }
+  SI_USER       = 0;      { user generated signal via kill() }
+  SI_LWP        = -1;     { user generated signal via lwp_kill() }
+  SI_QUEUE      = -2;     { user generated signal via sigqueue() }
+  SI_TIMER      = -3;     { from timer expiration }
+
 {
  * The sequence of the fields/registers in struct sigcontext should match
  * those in mcontext_t.

@@ -97,6 +97,7 @@ const
   iblocalvarsym    = 33;
   ibparavarsym     = 34;
   ibmacrosym       = 35;
+  ibsymrefsym      = 36;
   {definitions}
   iborddef         = 40;
   ibpointerdef     = 41;

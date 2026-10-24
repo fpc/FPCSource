@@ -73,6 +73,13 @@ type
 function Sysinfo(Info: PSysinfo): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
 const
+  { getrandom flags }
+  GRND_NONBLOCK        = $0001; // do not block, return -1 with errno set to EAGAIN
+  GRND_RANDOM          = $0002; // use /dev/random source instead of /dev/urandom
+
+function getrandom(buf: pointer; buflen: size_t; flags: cuint): ssize_t; {$ifdef FPC_USE_LIBC} cdecl; external name 'getrandom'; {$endif}
+
+const
   CSIGNAL              = $000000ff; // signal mask to be sent at exit
   CLONE_VM             = $00000100; // set if VM shared between processes
   CLONE_FS             = $00000200; // set if fs info shared between processes
@@ -232,11 +239,12 @@ const
 type
   TCloneFunc = function(args:pointer):longint;cdecl;
 
-{$ifdef cpui386}
+{$if defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64) or defined(cpuaarch64)}
   {$define clone_implemented}
 {$endif}
 
 {$ifdef clone_implemented}
+// Starts func(args) in a new process or thread with stack top sp; returns its id, or -1 and sets errno.
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 {$endif}
 
@@ -490,6 +498,69 @@ Type
 function clock_getres(clk_id : clockid_t; res : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_getres'; {$ENDIF}
 function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_gettime'; {$ENDIF}
 function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_settime'; {$ENDIF}
+
+{ POSIX per-process timers: timer_create, timer_settime, timer_gettime, timer_getoverrun, timer_delete }
+
+Const
+  // sigevent.sigev_notify values
+  SIGEV_SIGNAL    = 0;
+  SIGEV_NONE      = 1;
+  // Only with FPC_USE_LIBC: the C library calls sigev_notify_function in a new thread
+  SIGEV_THREAD    = 2;
+  SIGEV_THREAD_ID = 4;
+  // timer_settime flag: it_value is an absolute time of the timer's clock
+  TIMER_ABSTIME   = 1;
+  SIGEV_MAX_SIZE  = 64;
+  SIGEV_PAD_SIZE  = (SIGEV_MAX_SIZE-2*SizeOf(cint)-SizeOf(pointer)) div SizeOf(cint);
+
+Type
+{$ifdef FPC_USE_LIBC}
+  timer_t = pointer;
+{$else}
+  timer_t = cint;
+{$endif}
+  ptimer_t = ^timer_t;
+
+  sigval_t = record
+    case integer of
+      0: (sival_int : cint);
+      1: (sival_ptr : pointer);
+  end;
+  TSigVal = sigval_t;
+
+  TSigEvThreadProc = procedure(value : sigval_t); cdecl;
+
+  sigevent = record
+    sigev_value  : sigval_t;
+    sigev_signo  : cint;
+    sigev_notify : cint;
+    case integer of
+      0: (_pad : array[0..SIGEV_PAD_SIZE-1] of cint);
+      1: (sigev_notify_thread_id : cint);
+      2: (sigev_notify_function : TSigEvThreadProc;
+          sigev_notify_attributes : pointer);
+  end;
+  TSigEvent = sigevent;
+  psigevent = ^sigevent;
+
+  itimerspec = record
+    it_interval : timespec;
+    it_value    : timespec;
+  end;
+  TITimerSpec = itimerspec;
+  pitimerspec = ^itimerspec;
+
+// Creates a timer on clock clk_id that notifies as sevp describes (nil: SIGALRM), and stores its id in timerid
+function timer_create(clk_id : clockid_t; sevp : psigevent; timerid : ptimer_t) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'timer_create'; {$ENDIF}
+// Arms (it_value not zero) or disarms the timer; returns the previous setting in old_value when not nil
+function timer_settime(timerid : timer_t; flags : cint; new_value : pitimerspec; old_value : pitimerspec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'timer_settime'; {$ENDIF}
+// Returns the time until the next expiration and the interval of the timer
+function timer_gettime(timerid : timer_t; curr_value : pitimerspec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'timer_gettime'; {$ENDIF}
+// Returns the number of expirations between the generation and the delivery of the last timer signal
+function timer_getoverrun(timerid : timer_t) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'timer_getoverrun'; {$ENDIF}
+// Deletes the timer
+function timer_delete(timerid : timer_t) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'timer_delete'; {$ENDIF}
+
 function setregid(rgid,egid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setregid'; {$ENDIF}
 function setreuid(ruid,euid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setreuid'; {$ENDIF}
 
@@ -676,12 +747,77 @@ begin
   Sysinfo := do_SysCall(SysCall_nr_Sysinfo, TSysParam(info));
 end;
 
+function getrandom(buf: pointer; buflen: size_t; flags: cuint): ssize_t;
+begin
+  getrandom := do_SysCall(syscall_nr_getrandom, TSysParam(buf),
+    TSysParam(buflen), TSysParam(flags));
+end;
+
 {$ifdef clone_implemented}
+{$if defined(cpux86_64) or defined(cpuaarch64)}
+// Clone syscall whose child runs aFunc(aArgs) on the 16-byte aligned aSp and exits with its result; returns the raw syscall result.
+function do_clone(aFunc:TCloneFunc;aSp:pointer;aFlags:longint;aArgs:pointer):longint; assembler; nostackframe;
+{$ifdef cpux86_64}
+asm
+        andq    $0xfffffffffffffff0,%rsi
+        subq    $16,%rsi
+        movq    %rcx,8(%rsi)
+        movq    %rdi,0(%rsi)
+        movl    %edx,%edi
+        xorl    %edx,%edx
+        xorl    %r10d,%r10d
+        xorl    %r8d,%r8d
+        movl    $syscall_nr_clone,%eax
+        syscall
+        testq   %rax,%rax
+        jz      .Lchild
+        ret
+.Lchild:
+        xorl    %ebp,%ebp
+        popq    %rax
+        popq    %rdi
+        call    *%rax
+        movl    %eax,%edi
+        movl    $syscall_nr_exit,%eax
+        syscall
+end;
+{$endif cpux86_64}
+{$ifdef cpuaarch64}
+asm
+        mov     x10,x0
+        mov     x11,x3
+        and     x1,x1,#0xfffffffffffffff0
+        mov     w0,w2
+        mov     x2,xzr
+        mov     x3,xzr
+        mov     x4,xzr
+        mov     x8,syscall_nr_clone
+        svc     #0
+        cbz     x0,.Lchild
+        ret
+.Lchild:
+        mov     x29,xzr
+        mov     x30,xzr
+        mov     x0,x11
+        blr     x10
+        mov     x8,syscall_nr_exit
+        svc     #0
+end;
+{$endif cpuaarch64}
+{$endif cpux86_64 or cpuaarch64}
+
+
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 
 begin
   if (pointer(func)=nil) or (sp=nil) then
-   exit(-1); // give an error result
+    begin
+    fpseterrno(ESysEINVAL);
+    exit(-1);
+    end;
+{$if defined(cpux86_64) or defined(cpuaarch64)}
+  clone:=do_clone(func,sp,flags,args);
+{$endif}
 {$ifdef cpui386}
 {$ASMMODE ATT}
   asm
@@ -717,6 +853,11 @@ begin
         movl    %eax,__RESULT
   end;
 {$endif cpui386}
+  if clone<0 then
+    begin
+    fpseterrno(-clone);
+    clone:=-1;
+    end;
 end;
 {$endif}
 
@@ -960,15 +1101,53 @@ begin
   clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
 
+function timer_create(clk_id : clockid_t; sevp : psigevent; timerid : ptimer_t) : cint;
+
+begin
+  timer_create:=do_SysCall(syscall_nr_timer_create,tsysparam(clk_id),tsysparam(sevp),tsysparam(timerid));
+end;
+
+function timer_settime(timerid : timer_t; flags : cint; new_value : pitimerspec; old_value : pitimerspec) : cint;
+
+begin
+  timer_settime:=do_SysCall(syscall_nr_timer_settime,tsysparam(timerid),tsysparam(flags),tsysparam(new_value),tsysparam(old_value));
+end;
+
+function timer_gettime(timerid : timer_t; curr_value : pitimerspec) : cint;
+
+begin
+  timer_gettime:=do_SysCall(syscall_nr_timer_gettime,tsysparam(timerid),tsysparam(curr_value));
+end;
+
+function timer_getoverrun(timerid : timer_t) : cint;
+
+begin
+  timer_getoverrun:=do_SysCall(syscall_nr_timer_getoverrun,tsysparam(timerid));
+end;
+
+function timer_delete(timerid : timer_t) : cint;
+
+begin
+  timer_delete:=do_SysCall(syscall_nr_timer_delete,tsysparam(timerid));
+end;
+
 function setregid(rgid,egid : uid_t): cint;
 
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+  setregid:=do_syscall(syscall_nr_setregid32,rgid,egid);
+{$else}
   setregid:=do_syscall(syscall_nr_setregid,rgid,egid);
+{$endif}
 end;
 
 function setreuid(ruid,euid : uid_t): cint;
 begin
+{$ifdef FPC_LINUX_ID32_SYSCALLS}
+  setreuid:=do_syscall(syscall_nr_setreuid32,ruid,euid);
+{$else}
   setreuid:=do_syscall(syscall_nr_setreuid,ruid,euid);
+{$endif}
 end;
 
 

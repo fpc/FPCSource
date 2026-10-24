@@ -24,8 +24,8 @@
 //function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;
 //Function FPSigPending(var nset: sigset_t):cint;
 //function FPsigsuspend(const sigmask:sigset_t):cint;
-Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
-Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
+//Function FpSetITimer(which : cint; value : PItimerVal; ovalue : PItimerVal): cint;
+//Function FpGetITimer(which : cint; value : PItimerVal): cint;
 //Function FPalarm(Seconds: cuint):cuint;
 //function sigblock(mask:cuint):cint;
 //function sigpause(sigmask:cint):cint;

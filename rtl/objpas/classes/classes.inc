@@ -219,6 +219,32 @@ begin
 end;
 
 
+{ Runs aThread.DoTerminate, returns False if the OnTerminate handler destroyed aThread }
+function ThreadDoTerminate(aThread: TThread): Boolean;
+
+var
+  lInfo: TThread.TTerminateInfo;
+begin
+  lInfo.Freed:=False;
+  lInfo.SyncEntry:=nil;
+  aThread.FTerminateInfo:=@lInfo;
+  try
+    aThread.DoTerminate;
+  finally
+    Result:=not lInfo.Freed;
+    if Result then
+      aThread.FTerminateInfo:=nil
+    else if Assigned(lInfo.SyncEntry) then
+      begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      RtlEventDestroy(lInfo.SyncEntry^.SyncEvent);
+{$endif}
+      Dispose(lInfo.SyncEntry);
+      end;
+  end;
+end;
+
+
 function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
   var
     FreeThread: Boolean;
@@ -246,10 +272,12 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
     end;
     FreeThread := Thread.FFreeOnTerminate;
     Result := Thread.FReturnValue;
-    Thread.FFinished := True;
-    Thread.DoTerminate;
-    if FreeThread then
-      Thread.Free;
+    if ThreadDoTerminate(Thread) then
+      begin
+      Thread.FFinished := True;
+      if FreeThread then
+        Thread.Free;
+      end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     EndThread(Result);
 {$endif}
@@ -434,6 +462,16 @@ procedure TThread.DoneSynchronizeEvent;
   end;
 
 
+{ Tells the thread function that Self is destroyed by its OnTerminate handler }
+procedure TThread.ReleaseTerminateInfo;
+
+begin
+  FTerminateInfo^.SyncEntry:=FSynchronizeEntry;
+  FSynchronizeEntry:=nil;
+  FTerminateInfo^.Freed:=True;
+end;
+
+
 
 class function TThread.CurrentIsMain : Boolean;
 
@@ -597,12 +635,43 @@ begin
     end;
 end;
 
+{ Returns the number of queued entries that can be executed now }
+Function CountDueThreadQueueEntries : SizeInt;
+var
+  lEntry : TThread.PThreadQueueEntry;
+  lNow : TDateTime;
+
+begin
+  Result:=0;
+  if ThreadQueueHead=Nil then
+    Exit;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  System.EnterCriticalSection(ThreadQueueLock);
+  try
+{$endif}
+    lNow:=Now;
+    lEntry:=ThreadQueueHead;
+    While Assigned(lEntry) do
+      begin
+      if (lEntry^.ExecuteAfter=0) or (lEntry^.ExecuteAfter<=lNow) then
+        Inc(Result);
+      lEntry:=lEntry^.Next;
+      end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    System.LeaveCriticalSection(ThreadQueueLock);
+  end;
+{$endif}
+end;
+
+
 function CheckSynchronize(timeout : longint=0) : boolean;
 
 { assumes being called from GUI thread }
 var
   ExceptObj: TObject;
   tmpentry: TThread.PThreadQueueEntry;
+  lCount: SizeInt;
 
 begin
   result:=false;
@@ -617,9 +686,14 @@ begin
     RtlEventWaitFor(SynchronizeTimeoutEvent,timeout)
   else
     RtlEventResetEvent(SynchronizeTimeoutEvent);
-  tmpentry := PopThreadQueueHead;
-  while Assigned(tmpentry) do
+  { entries queued while the loop runs are left for the next call }
+  lCount := CountDueThreadQueueEntries;
+  while lCount>0 do
     begin
+    tmpentry := PopThreadQueueHead;
+    if not Assigned(tmpentry) then
+      break;
+    Dec(lCount);
     { at least one method is handled, so return true }
     result := true;
     { step 2: execute the method }
@@ -644,9 +718,11 @@ begin
       if Assigned(exceptobj) then
         raise exceptobj;
       end;
-    tmpentry := PopThreadQueueHead;
-    end
-{$endif};
+    end;
+  { wake up the next wait for the entries that are left }
+  if CountDueThreadQueueEntries>0 then
+    RtlEventSetEvent(SynchronizeTimeoutEvent);
+{$endif}
 end;
 
 
@@ -1953,17 +2029,24 @@ var
    OutStr(res);
   end;
 
-  procedure OutString(s: RawByteString);
-  begin
-    OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
-  end;
-
-  procedure OutWString(W: WideString);
+  procedure OutUString(W: UnicodeString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
 
-  procedure OutUString(W: UnicodeString);
+  procedure OutString(s: RawByteString);
+  begin
+    if Encoding=oteLFM then
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,True)
+    else
+      begin
+      { dfm: #NNN denotes a code point of the value in the default system code page }
+      SetCodePage(s,DefaultSystemCodePage,False);
+      OutUString(UnicodeString(s));
+      end;
+  end;
+
+  procedure OutWString(W: WideString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
@@ -2242,8 +2325,8 @@ var
             end;
             OutLn('>');
           end;
+        vaCurrency: OutLn(IntToStr(Int64(ReadQWord)) + 'c');
         {vaSingle: begin OutLn('!!Single!!'); exit end;
-        vaCurrency: begin OutLn('!!Currency!!'); exit end;
         vaDate: begin OutLn('!!Date!!'); exit end;}
         vaUTF8String: begin
             OutUtf8Str(ReadLStr);
@@ -2457,7 +2540,7 @@ var
       WriteSString(s);
     end else begin
       Output.WriteByte(Ord(vaLString));
-      WriteSString(s);
+      WriteLString(s);
     end;
   end;
 
@@ -2521,6 +2604,7 @@ var
   var
 {$ifndef FPUNONE}
     flt: Extended;
+    curr: Int64;
 {$endif}
     s: RawByteString;
     stream: TMemoryStream;
@@ -2534,9 +2618,21 @@ var
 {$ifndef FPUNONE}
       toFloat:
         begin
-          Output.WriteByte(Ord(vaExtended));
-          flt := Parser.TokenFloat;
-          WriteExtended(flt);
+          if Parser.FloatType in ['c','C'] then
+          begin
+            // Currency is written as its scaled 64-bit integer value
+            s := Parser.TokenString;
+            if not TryStrToInt64(Copy(s, 1, Length(s) - 1), curr) then
+              curr := Round(Parser.TokenFloat);
+            Output.WriteByte(Ord(vaCurrency));
+            WriteQWord(qword(curr));
+          end
+          else
+          begin
+            Output.WriteByte(Ord(vaExtended));
+            flt := Parser.TokenFloat;
+            WriteExtended(flt);
+          end;
           parser.NextToken;
         end;
 {$endif}

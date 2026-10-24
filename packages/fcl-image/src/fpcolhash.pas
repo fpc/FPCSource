@@ -322,7 +322,8 @@ procedure TFPColorHashTable.Insert(const Col : TFPColor; const Value : integer);
 var node : PColHashSubNode;
 begin
   node:=SearchAllocate(FPColor2Packed(col));
-  node^.data:=getmem(sizeof(Value));
+  if node^.data=nil then
+    node^.data:=getmem(sizeof(Value));
   integer(node^.data^):=value;
 end;
 
@@ -330,6 +331,8 @@ procedure TFPColorHashTable.Insert(const Col : TFPColor; const Value : pointer);
 var node : PColHashSubNode;
 begin
   node:=SearchAllocate(FPColor2Packed(col));
+  if (node^.data<>nil) and (node^.data<>Value) then
+    FreeMem(node^.data);
   node^.data:=Value;
   AllIntegers:=false;
 end;

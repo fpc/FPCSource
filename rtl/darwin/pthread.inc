@@ -20,6 +20,7 @@
  **********************************************************************}
 
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
+      PTHREAD_INHERIT_SCHED        = 1;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
       SEM_FAILED                   = -1;
@@ -43,6 +44,7 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external 'c';
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external 'c';
 function  pthread_key_create       (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external 'c';
+function  pthread_key_delete       (k : pthread_key_t):cint; cdecl;external 'c';
 function  pthread_attr_init           (p : ppthread_attr_t):cint; cdecl; external 'c';
 function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external 'c';
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external 'c';
@@ -60,6 +62,16 @@ function  pthread_mutex_unlock  (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c';
+
+type
+  sched_param = record
+    __sched_priority: cint;
+    __opaque: array[0..3] of AnsiChar;
+  end;
+  psched_param = ^sched_param;
+
+function  pthread_setschedparam(__target_thread:pthread_t; __policy:cint; __param:psched_param):cint;cdecl;external 'c';
+function  pthread_getschedparam(__target_thread:pthread_t; __policy:pcint; __param:psched_param):cint;cdecl;external 'c';
 function  pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_destroy';
 function  pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external  'c' name 'pthread_cond_init';
 function  pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_signal';
@@ -90,18 +102,20 @@ var
   pthread_setname_np: function(name: PAnsiChar):cint;cdecl;
 
 var
-  PthreadDLL: Pointer;
+  PthreadDLL: TLibHandle;
+  PthreadDLM: TDynLibsManager;
 
 function LoadPthreads: Boolean;
 begin
-  PThreadDLL:=DlOpen('libSystem.dylib',RTLD_LAZY);
-  Result:=PThreadDLL<>Nil;
+  GetDynLibsManager(PthreadDLM);
+  PThreadDLL:=PthreadDLM.LoadLibraryA('libSystem.dylib');
+  Result:=PThreadDLL<>NilHandle;
   if not Result then
     exit;
-  Pointer(pthread_setname_np):=dlsym(PthreadDLL,'pthread_setname_np');
+  Pointer(pthread_setname_np):=PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setname_np');
 end;
 
 function UnLoadPthreads: Boolean;
 begin
-  Result:=dlclose(PThreadDLL)=0;
+  Result:=PthreadDLM.UnloadLibrary(PThreadDLL);
 end;

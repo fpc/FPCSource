@@ -25,6 +25,16 @@
 {$DEFINE NO_MUTEX_SUPPORT}
 {$ENDIF}
 
+{ SYNCOBJS_PORTABLE_CONDVAR makes the condition variables use the RTL event based waiter queue on all platforms }
+{$IFNDEF SYNCOBJS_PORTABLE_CONDVAR}
+{$IF DEFINED(MSWINDOWS) and not DEFINED(WINCE)}
+{$DEFINE NATIVE_CONDVAR_CS}
+{$ENDIF}
+{$IFDEF UNIX}
+{$DEFINE NATIVE_CONDVAR_MUTEX}
+{$ENDIF}
+{$ENDIF}
+
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit SyncObjs;
@@ -86,6 +96,12 @@ type
    TSynchroObject = class(TObject)
       procedure Acquire;virtual;
       procedure Release;virtual;
+      // Waits until the object is signaled or aTimeout milliseconds have passed; returns wrError by default
+      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; virtual;
+      {$IFNDEF VER3_2}
+      // Waits until the object is signaled or aTimeout has passed
+      function WaitFor(const aTimeout: TTimeSpan): TWaitResult; overload;
+      {$ENDIF}
    end;
 
    { TLockGuard }
@@ -102,6 +118,8 @@ type
    public
       procedure Acquire;override;
       procedure Release;override;
+      // Enters the critical section, waiting at most aTimeout milliseconds; the caller releases it on wrSignaled
+      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
       procedure Enter;
       function  TryEnter:boolean;
       procedure Leave;
@@ -126,9 +144,8 @@ type
    public
       constructor Create(UseComWait : Boolean=false);
       destructor Destroy; override;
-      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;overload; virtual;
+      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;overload; override;
       {$IFNDEF VER3_2}
-      function WaitFor(const Timeout : TTimespan) : TWaitResult;overload;
       {$IFDEF MSWINDOWS}
         class function WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
       {$ENDIF MSWINDOWS}
@@ -154,6 +171,38 @@ type
 
    TSimpleEvent = class(TEventObject)
       constructor Create;
+   end;
+
+   { TCountdownEvent }
+
+   TCountdownEvent = class(TSynchroObject)
+   private
+     FEvent: TEvent;
+     FInitialCount: Integer;
+     FCurrentCount: Integer;
+     function GetIsSet: Boolean;
+   public
+     // Creates the event with a count of aCount; the event is set when aCount is 0
+     constructor Create(aCount: Integer);
+     destructor Destroy; override;
+     // Decrements the count by aCount and sets the event at 0; returns True when the count reached 0
+     function Signal(aCount: Integer = 1): Boolean;
+     // Increments the count by aCount; raises when the event is already set
+     procedure AddCount(aCount: Integer = 1);
+     // Increments the count by aCount; returns False when the event is already set
+     function TryAddCount(aCount: Integer = 1): Boolean;
+     // Restores the count to InitialCount
+     procedure Reset; overload;
+     // Sets InitialCount and the count to aCount
+     procedure Reset(aCount: Integer); overload;
+     // Waits until the count reaches 0 or aTimeout milliseconds have passed
+     function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
+     // Remaining number of signals before the event is set
+     property CurrentCount: Integer read FCurrentCount;
+     // Count the event starts from after Create or Reset
+     property InitialCount: Integer read FInitialCount;
+     // True when the count is 0
+     property IsSet: Boolean read GetIsSet;
    end;
 
 {$IFDEF CPU16}
@@ -240,7 +289,117 @@ type
     procedure Release; override;
   end;
   TMutexGuard = specialize TLockGuard<TMutex>;
+
+  { TConditionVariableMutex }
+
+  TConditionVariableMutex = class(TSynchroObject)
+  private
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+    FCondition: pthread_cond_t;
+{$ELSE}
+    FQueue: Pointer;
 {$ENDIF}
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Raises ESyncObjectException: a condition variable is waited on with WaitFor and an external mutex
+    procedure Acquire; override;
+    // Wakes one thread waiting in WaitFor
+    procedure Release; override;
+    // Wakes all threads waiting in WaitFor
+    procedure ReleaseAll;
+    // Releases aExternalMutex, waits until woken or aTimeout milliseconds have passed and acquires aExternalMutex again.
+    // aExternalMutex must be held exactly once by the calling thread. The wait can end without a Release,
+    // so the caller checks its condition again.
+    function WaitFor(aExternalMutex: TMutex; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+  end;
+{$ENDIF}
+
+  { TConditionVariableCS }
+
+  TConditionVariableCS = class(TSynchroObject)
+  private
+{$IFDEF NATIVE_CONDVAR_CS}
+    FCondition: Pointer;
+{$ENDIF}
+    FQueue: Pointer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Raises ESyncObjectException: a condition variable is waited on with WaitFor and an external critical section
+    procedure Acquire; override;
+    // Wakes one thread waiting in WaitFor
+    procedure Release; override;
+    // Wakes all threads waiting in WaitFor
+    procedure ReleaseAll;
+    // Leaves aCriticalSection, waits until woken or aTimeout milliseconds have passed and enters aCriticalSection again.
+    // aCriticalSection must be entered exactly once by the calling thread. The wait can end without a Release,
+    // so the caller checks its condition again.
+    function WaitFor(aCriticalSection: TCriticalSection; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+    // Same as WaitFor with a TCriticalSection, for a TRTLCriticalSection
+    function WaitFor(var aCriticalSection: TRTLCriticalSection; aTimeout: Cardinal = INFINITE): TWaitResult; overload;
+  end;
+
+  { TLightweightEvent }
+
+  TLightweightEvent = class(TSynchroObject)
+  private
+    FState: LongInt;
+    FBlockedCount: LongInt;
+    FSpinCount: Integer;
+    FLock: TRTLCriticalSection;
+    FCondition: TConditionVariableCS;
+    function GetIsSet: Boolean;
+  public
+    // Creates a reset event
+    constructor Create; overload;
+    // Creates an event that is set when aInitialState is True
+    constructor Create(aInitialState: Boolean); overload;
+    // Creates an event that spins aSpinCount times before WaitFor blocks
+    constructor Create(aInitialState: Boolean; aSpinCount: Integer); overload;
+    destructor Destroy; override;
+    // Waits until the event is set
+    procedure Acquire; override;
+    // Clears the event
+    procedure ResetEvent;
+    // Sets the event and wakes all waiting threads
+    procedure SetEvent;
+    // Waits until the event is set or aTimeout milliseconds have passed
+    function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
+    // Number of threads blocked in WaitFor
+    property BlockedCount: LongInt read FBlockedCount;
+    // True when the event is set
+    property IsSet: Boolean read GetIsSet;
+    // Number of spin cycles WaitFor makes before it blocks
+    property SpinCount: Integer read FSpinCount;
+  end;
+
+  { TLightweightSemaphore }
+
+  TLightweightSemaphore = class(TSynchroObject)
+  private
+    FCount: LongInt;
+    FMaxCount: LongInt;
+    FBlockedCount: LongInt;
+    FSpinCount: Integer;
+    FLock: TRTLCriticalSection;
+    FCondition: TConditionVariableCS;
+    function TryTake: Boolean;
+  public
+    // Creates a semaphore with aInitialCount free slots out of at most aMaxCount
+    constructor Create(aInitialCount: Integer; aMaxCount: Integer = MaxInt);
+    destructor Destroy; override;
+    // Waits until a slot is free and takes it
+    procedure Acquire; override;
+    // Returns one slot
+    procedure Release; overload; override;
+    // Returns aReleaseCount slots and returns the count before the release
+    function Release(aReleaseCount: Integer): Integer; reintroduce; overload;
+    // Takes a slot, waiting at most aTimeout milliseconds for one to become free
+    function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; overload; override;
+    // Number of free slots
+    property CurrentCount: LongInt read FCount;
+  end;
 
   // Delphi compatible (hopefully) TSpinwait
   // Uses exponential backoff for first 10 SpinCycles, uses sleep(1) every 20 and sleep(1) every 5 cycles afterwards.
@@ -339,6 +498,15 @@ Resourcestring
   SErrInvalidReleaseCount = '%d is not a valid release count, count must be >0';
   SErrFailedToSignalSemaphore = 'Failed to signal semaphore at count %d';
   SErrMutexNotSupported   = 'Mutexes are not supported on this platform';
+  SErrCountdownNegative   = 'Countdown event count %d must not be negative';
+  SErrCountdownInvalid    = 'Countdown event count change %d must be positive';
+  SErrCountdownSignal     = 'Cannot signal countdown event %d times, current count is %d';
+  SErrCountdownIsSet      = 'Cannot add to a countdown event that is already set';
+  SErrCountdownOverflow   = 'Adding %d to countdown event count %d overflows';
+  SErrCondVarAcquire      = 'Cannot call Acquire on a condition variable, call WaitFor with an external lock';
+  SErrSpinCountNegative   = 'Spin count %d must not be negative';
+  SErrSemaphoreCounts     = 'Initial count %d and maximum count %d are not valid for a semaphore';
+  SErrSemaphoreOverflow   = 'Releasing %d slots exceeds the maximum semaphore count %d';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -360,6 +528,46 @@ end;
 procedure TSynchroObject.Release;
 begin
 end;
+
+function TSynchroObject.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=wrError;
+end;
+
+
+{$IFNDEF VER3_2}
+function TSynchroObject.WaitFor(const aTimeout: TTimeSpan): TWaitResult;
+
+begin
+  Result:=WaitFor(Cardinal(Round(aTimeout.TotalMilliseconds)));
+end;
+{$ENDIF}
+
+
+function TCriticalSection.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lWait: TSpinWait;
+
+begin
+  if aTimeout=INFINITE then
+    begin
+    Acquire;
+    Exit(wrSignaled);
+    end;
+  lStart:=GetTickCount64;
+  lWait.Reset;
+  while not TryEnter do
+    begin
+    if (GetTickCount64-lStart)>=aTimeout then
+      Exit(wrTimeout);
+    lWait.SpinCycle;
+    end;
+  Result:=wrSignaled;
+end;
+
 
 procedure TCriticalSection.Enter;
 begin
@@ -427,13 +635,6 @@ begin
   {$endif}
 {$ENDIF OS2}
 end;
-
-{$IFNDEF VER3_2}
-function THandleObject.WaitFor(const Timeout: TTimespan): TWaitResult;
-begin
-  result:=waitfor(round(timeout.TotalMilliseconds));
-end;
-{$ENDIF}
 
 {$IFNDEF VER3_2}
 {$IFDEF MSWINDOWS}
@@ -544,6 +745,111 @@ constructor TSimpleEvent.Create;
 begin
   inherited Create(nil, True, False, '');
 end;
+
+{ ---------------------------------------------------------------------
+  TCountdownEvent
+  ---------------------------------------------------------------------}
+
+constructor TCountdownEvent.Create(aCount: Integer);
+
+begin
+  inherited Create;
+  if aCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownNegative, [aCount]);
+  FInitialCount:=aCount;
+  FCurrentCount:=aCount;
+  FEvent:=TEvent.Create(nil, True, aCount=0, '');
+end;
+
+
+destructor TCountdownEvent.Destroy;
+
+begin
+  FreeAndNil(FEvent);
+  inherited Destroy;
+end;
+
+
+function TCountdownEvent.GetIsSet: Boolean;
+
+begin
+  Result:=FCurrentCount=0;
+end;
+
+
+function TCountdownEvent.Signal(aCount: Integer): Boolean;
+
+var
+  lCurrent: Integer;
+
+begin
+  if aCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownInvalid, [aCount]);
+  repeat
+    lCurrent:=FCurrentCount;
+    if aCount>lCurrent then
+      raise ESyncObjectException.CreateFmt(SErrCountdownSignal, [aCount, lCurrent]);
+  until InterlockedCompareExchange(FCurrentCount, lCurrent-aCount, lCurrent)=lCurrent;
+  Result:=lCurrent=aCount;
+  if Result then
+    FEvent.SetEvent;
+end;
+
+
+procedure TCountdownEvent.AddCount(aCount: Integer);
+
+begin
+  if not TryAddCount(aCount) then
+    raise ESyncObjectException.Create(SErrCountdownIsSet);
+end;
+
+
+function TCountdownEvent.TryAddCount(aCount: Integer): Boolean;
+
+var
+  lCurrent: Integer;
+
+begin
+  if aCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownInvalid, [aCount]);
+  repeat
+    lCurrent:=FCurrentCount;
+    if lCurrent=0 then
+      Exit(False);
+    if lCurrent>High(Integer)-aCount then
+      raise ESyncObjectException.CreateFmt(SErrCountdownOverflow, [aCount, lCurrent]);
+  until InterlockedCompareExchange(FCurrentCount, lCurrent+aCount, lCurrent)=lCurrent;
+  Result:=True;
+end;
+
+
+procedure TCountdownEvent.Reset;
+
+begin
+  Reset(FInitialCount);
+end;
+
+
+procedure TCountdownEvent.Reset(aCount: Integer);
+
+begin
+  if aCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrCountdownNegative, [aCount]);
+  FInitialCount:=aCount;
+  InterlockedExchange(FCurrentCount, aCount);
+  if aCount=0 then
+    FEvent.SetEvent
+  else
+    FEvent.ResetEvent;
+end;
+
+
+function TCountdownEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=FEvent.WaitFor(aTimeout);
+end;
+
 
 { ---------------------------------------------------------------------
   TInterlocked
@@ -758,6 +1064,11 @@ begin
   tm:=aTimeout mod 1000;
   tfuture.tv_sec:=tnow.tv_sec+td;
   tfuture.tv_nsec:=tnow.tv_usec*1000+(tm*1000*1000);
+  if tfuture.tv_nsec>=1000000000 then
+    begin
+    inc(tfuture.tv_sec);
+    dec(tfuture.tv_nsec,1000000000);
+    end;
 end;
 {$ENDIF UNIX}
 
@@ -1193,6 +1504,644 @@ begin
 end;
 {$ENDIF NO_MUTEX_SUPPORT}
 
+{ ---------------------------------------------------------------------
+  Condition variable waiter queue
+  ---------------------------------------------------------------------}
+
+type
+  PCondVarWaiter = ^TCondVarWaiter;
+  TCondVarWaiter = record
+    Event: PRTLEvent;
+    Next: PCondVarWaiter;
+  end;
+
+  PCondVarQueue = ^TCondVarQueue;
+  TCondVarQueue = record
+    Lock: TRTLCriticalSection;
+    Head, Tail: PCondVarWaiter;
+  end;
+
+
+// Allocates an empty waiter queue
+function CondVarQueueCreate: PCondVarQueue;
+
+begin
+  New(Result);
+  InitCriticalSection(Result^.Lock);
+  Result^.Head:=nil;
+  Result^.Tail:=nil;
+end;
+
+
+// Frees aQueue
+procedure CondVarQueueFree(aQueue: PCondVarQueue);
+
+begin
+  DoneCriticalSection(aQueue^.Lock);
+  Dispose(aQueue);
+end;
+
+
+// Gives aWaiter a new event and appends it to aQueue
+procedure CondVarQueueAdd(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter);
+
+begin
+  aWaiter.Event:=RTLEventCreate;
+  aWaiter.Next:=nil;
+  EnterCriticalSection(aQueue^.Lock);
+  if aQueue^.Tail=nil then
+    aQueue^.Head:=@aWaiter
+  else
+    aQueue^.Tail^.Next:=@aWaiter;
+  aQueue^.Tail:=@aWaiter;
+  LeaveCriticalSection(aQueue^.Lock);
+end;
+
+
+// Removes aWaiter from aQueue, whose lock is held; False when it is no longer queued
+function CondVarQueueRemove(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter): Boolean;
+
+var
+  lPrev, lCur: PCondVarWaiter;
+
+begin
+  lPrev:=nil;
+  lCur:=aQueue^.Head;
+  while (lCur<>nil) and (lCur<>@aWaiter) do
+    begin
+    lPrev:=lCur;
+    lCur:=lCur^.Next;
+    end;
+  Result:=lCur<>nil;
+  if not Result then
+    exit;
+  if lPrev=nil then
+    aQueue^.Head:=lCur^.Next
+  else
+    lPrev^.Next:=lCur^.Next;
+  if aQueue^.Tail=lCur then
+    aQueue^.Tail:=lPrev;
+end;
+
+
+// Waits until aWaiter is woken or aTimeout milliseconds have passed, and frees its event
+function CondVarQueueWait(aQueue: PCondVarQueue; var aWaiter: TCondVarWaiter; aTimeout: Cardinal): TWaitResult;
+
+var
+  lTimeout: LongInt;
+
+begin
+  if aTimeout=INFINITE then
+    begin
+    RTLEventWaitFor(aWaiter.Event);
+    Result:=wrSignaled;
+    end
+  else
+    begin
+    if aTimeout>Cardinal(High(LongInt)) then
+      lTimeout:=High(LongInt)
+    else
+      lTimeout:=aTimeout;
+    if RTLEventWaitFor(aWaiter.Event,lTimeout) then
+      Result:=wrSignaled
+    else
+      Result:=wrTimeout;
+    end;
+  // Waits until a concurrent CondVarQueueWake has finished setting the event
+  EnterCriticalSection(aQueue^.Lock);
+  if (Result=wrTimeout) and not CondVarQueueRemove(aQueue,aWaiter) then
+    Result:=wrSignaled;
+  LeaveCriticalSection(aQueue^.Lock);
+  RTLEventDestroy(aWaiter.Event);
+end;
+
+
+// Wakes the first waiter of aQueue, or all of them when aAll is True
+procedure CondVarQueueWake(aQueue: PCondVarQueue; aAll: Boolean);
+
+var
+  lWaiter: PCondVarWaiter;
+
+begin
+  EnterCriticalSection(aQueue^.Lock);
+  repeat
+    lWaiter:=aQueue^.Head;
+    if lWaiter=nil then
+      break;
+    aQueue^.Head:=lWaiter^.Next;
+    if aQueue^.Head=nil then
+      aQueue^.Tail:=nil;
+    RTLEventSetEvent(lWaiter^.Event);
+  until not aAll;
+  LeaveCriticalSection(aQueue^.Lock);
+end;
+
+
+{$IFDEF NATIVE_CONDVAR_CS}
+type
+  TCondVarProc = procedure(aCondition: Pointer); stdcall;
+  TSleepCondVarCS = function(aCondition, aCriticalSection: Pointer; aMilliseconds: DWord): BOOL; stdcall;
+
+var
+  gInitializeConditionVariable: TCondVarProc;
+  gWakeConditionVariable: TCondVarProc;
+  gWakeAllConditionVariable: TCondVarProc;
+  gSleepConditionVariableCS: TSleepCondVarCS;
+
+
+// Loads the condition variable functions of kernel32, available since Windows Vista
+procedure LoadNativeCondVar;
+
+var
+  lKernel: HMODULE;
+
+begin
+  lKernel:=GetModuleHandle('kernel32.dll');
+  if lKernel=0 then
+    exit;
+  Pointer(gInitializeConditionVariable):=GetProcAddress(lKernel,'InitializeConditionVariable');
+  Pointer(gWakeConditionVariable):=GetProcAddress(lKernel,'WakeConditionVariable');
+  Pointer(gWakeAllConditionVariable):=GetProcAddress(lKernel,'WakeAllConditionVariable');
+  Pointer(gSleepConditionVariableCS):=GetProcAddress(lKernel,'SleepConditionVariableCS');
+  if not (Assigned(gInitializeConditionVariable) and Assigned(gWakeConditionVariable) and
+          Assigned(gWakeAllConditionVariable) and Assigned(gSleepConditionVariableCS)) then
+    gSleepConditionVariableCS:=nil;
+end;
+{$ENDIF NATIVE_CONDVAR_CS}
+
+
+{ ---------------------------------------------------------------------
+  TConditionVariableMutex
+  ---------------------------------------------------------------------}
+
+{$IFNDEF NO_MUTEX_SUPPORT}
+
+constructor TConditionVariableMutex.Create;
+
+begin
+  inherited Create;
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  CheckOSError(pthread_cond_init(@FCondition,nil));
+{$ELSE}
+  FQueue:=CondVarQueueCreate;
+{$ENDIF}
+end;
+
+
+destructor TConditionVariableMutex.Destroy;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_destroy(@FCondition);
+{$ELSE}
+  if Assigned(FQueue) then
+    CondVarQueueFree(FQueue);
+{$ENDIF}
+  inherited Destroy;
+end;
+
+
+procedure TConditionVariableMutex.Acquire;
+
+begin
+  raise ESyncObjectException.Create(SErrCondVarAcquire);
+end;
+
+
+procedure TConditionVariableMutex.Release;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_signal(@FCondition);
+{$ELSE}
+  CondVarQueueWake(FQueue,False);
+{$ENDIF}
+end;
+
+
+procedure TConditionVariableMutex.ReleaseAll;
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  pthread_cond_broadcast(@FCondition);
+{$ELSE}
+  CondVarQueueWake(FQueue,True);
+{$ENDIF}
+end;
+
+
+function TConditionVariableMutex.WaitFor(aExternalMutex: TMutex; aTimeout: Cardinal): TWaitResult;
+
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+var
+  lErr: cint;
+  lNow: TTimeVal;
+  lUntil: TTimeSpec;
+{$ELSE}
+var
+  lWaiter: TCondVarWaiter;
+{$ENDIF}
+
+begin
+{$IFDEF NATIVE_CONDVAR_MUTEX}
+  if aTimeout=INFINITE then
+    lErr:=pthread_cond_wait(@FCondition,@aExternalMutex.FMutex)
+  else
+    begin
+    fpgettimeofday(@lNow,nil);
+    if aTimeout>Cardinal(High(Integer)) then
+      aTimeout:=High(Integer);
+    MSecsFromNow(lNow,aTimeout,lUntil);
+    lErr:=pthread_cond_timedwait(@FCondition,@aExternalMutex.FMutex,@lUntil);
+    end;
+  if lErr=0 then
+    Result:=wrSignaled
+  else if lErr=ESysETIMEDOUT then
+    Result:=wrTimeout
+  else
+    Result:=wrError;
+{$ELSE}
+  CondVarQueueAdd(FQueue,lWaiter);
+  aExternalMutex.Release;
+  Result:=CondVarQueueWait(FQueue,lWaiter,aTimeout);
+  aExternalMutex.Acquire;
+{$ENDIF}
+end;
+
+{$ENDIF NO_MUTEX_SUPPORT}
+
+
+{ ---------------------------------------------------------------------
+  TConditionVariableCS
+  ---------------------------------------------------------------------}
+
+constructor TConditionVariableCS.Create;
+
+begin
+  inherited Create;
+{$IFDEF NATIVE_CONDVAR_CS}
+  if Assigned(gSleepConditionVariableCS) then
+    begin
+    gInitializeConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  FQueue:=CondVarQueueCreate;
+end;
+
+
+destructor TConditionVariableCS.Destroy;
+
+begin
+  if Assigned(FQueue) then
+    CondVarQueueFree(FQueue);
+  inherited Destroy;
+end;
+
+
+procedure TConditionVariableCS.Acquire;
+
+begin
+  raise ESyncObjectException.Create(SErrCondVarAcquire);
+end;
+
+
+procedure TConditionVariableCS.Release;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    gWakeConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueWake(FQueue,False);
+end;
+
+
+procedure TConditionVariableCS.ReleaseAll;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    gWakeAllConditionVariable(@FCondition);
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueWake(FQueue,True);
+end;
+
+
+function TConditionVariableCS.WaitFor(aCriticalSection: TCriticalSection; aTimeout: Cardinal): TWaitResult;
+
+begin
+  Result:=WaitFor(aCriticalSection.CriticalSection,aTimeout);
+end;
+
+
+function TConditionVariableCS.WaitFor(var aCriticalSection: TRTLCriticalSection; aTimeout: Cardinal): TWaitResult;
+
+var
+  lWaiter: TCondVarWaiter;
+
+begin
+{$IFDEF NATIVE_CONDVAR_CS}
+  if not Assigned(FQueue) then
+    begin
+    if gSleepConditionVariableCS(@FCondition,@aCriticalSection,aTimeout) then
+      Result:=wrSignaled
+    else if GetLastError=ERROR_TIMEOUT then
+      Result:=wrTimeout
+    else
+      Result:=wrError;
+    exit;
+    end;
+{$ENDIF}
+  CondVarQueueAdd(FQueue,lWaiter);
+  LeaveCriticalSection(aCriticalSection);
+  Result:=CondVarQueueWait(FQueue,lWaiter,aTimeout);
+  EnterCriticalSection(aCriticalSection);
+end;
+
+
+{ ---------------------------------------------------------------------
+  TLightweightEvent
+  ---------------------------------------------------------------------}
+
+// Returns the spin count of the lightweight objects: 1 on a single CPU, 10 otherwise
+function DefaultLightweightSpinCount: Integer;
+
+begin
+  if TThread.ProcessorCount<=1 then
+    Result:=1
+  else
+    Result:=10;
+end;
+
+
+// Returns the milliseconds left of aTimeout since aStart, 0 when it has passed; INFINITE stays INFINITE
+function RemainingTimeout(aStart: QWord; aTimeout: Cardinal): Cardinal;
+
+var
+  lElapsed: QWord;
+
+begin
+  if aTimeout=INFINITE then
+    Exit(INFINITE);
+  lElapsed:=GetTickCount64-aStart;
+  if lElapsed>=aTimeout then
+    Result:=0
+  else
+    Result:=aTimeout-lElapsed;
+end;
+
+
+constructor TLightweightEvent.Create;
+
+begin
+  Create(False);
+end;
+
+
+constructor TLightweightEvent.Create(aInitialState: Boolean);
+
+begin
+  Create(aInitialState,DefaultLightweightSpinCount);
+end;
+
+
+constructor TLightweightEvent.Create(aInitialState: Boolean; aSpinCount: Integer);
+
+begin
+  inherited Create;
+  if aSpinCount<0 then
+    raise ESyncObjectException.CreateFmt(SErrSpinCountNegative,[aSpinCount]);
+  FSpinCount:=aSpinCount;
+  FState:=Ord(aInitialState);
+  InitCriticalSection(FLock);
+  FCondition:=TConditionVariableCS.Create;
+end;
+
+
+destructor TLightweightEvent.Destroy;
+
+begin
+  if Assigned(FCondition) then
+    begin
+    FCondition.Free;
+    DoneCriticalSection(FLock);
+    end;
+  inherited Destroy;
+end;
+
+
+function TLightweightEvent.GetIsSet: Boolean;
+
+begin
+  Result:=InterlockedCompareExchange(FState,0,0)<>0;
+end;
+
+
+procedure TLightweightEvent.Acquire;
+
+begin
+  WaitFor(INFINITE);
+end;
+
+
+procedure TLightweightEvent.ResetEvent;
+
+begin
+  InterlockedExchange(FState,0);
+end;
+
+
+procedure TLightweightEvent.SetEvent;
+
+begin
+  InterlockedExchange(FState,1);
+  if InterlockedCompareExchange(FBlockedCount,0,0)>0 then
+    begin
+    EnterCriticalSection(FLock);
+    FCondition.ReleaseAll;
+    LeaveCriticalSection(FLock);
+    end;
+end;
+
+
+function TLightweightEvent.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lSpin: TSpinWait;
+  lRemaining: Cardinal;
+  i: Integer;
+
+begin
+  if GetIsSet then
+    Exit(wrSignaled);
+  if aTimeout=0 then
+    Exit(wrTimeout);
+  lStart:=GetTickCount64;
+  lSpin.Reset;
+  for i:=1 to FSpinCount do
+    begin
+    lSpin.SpinCycle;
+    if GetIsSet then
+      Exit(wrSignaled);
+    end;
+  Result:=wrSignaled;
+  EnterCriticalSection(FLock);
+  try
+    InterlockedIncrement(FBlockedCount);
+    while not GetIsSet do
+      begin
+      lRemaining:=RemainingTimeout(lStart,aTimeout);
+      if lRemaining=0 then
+        begin
+        Result:=wrTimeout;
+        Break;
+        end;
+      FCondition.WaitFor(FLock,lRemaining);
+      end;
+    InterlockedDecrement(FBlockedCount);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
+end;
+
+
+{ ---------------------------------------------------------------------
+  TLightweightSemaphore
+  ---------------------------------------------------------------------}
+
+constructor TLightweightSemaphore.Create(aInitialCount: Integer; aMaxCount: Integer);
+
+begin
+  inherited Create;
+  if (aMaxCount<1) or (aInitialCount<0) or (aInitialCount>aMaxCount) then
+    raise ESyncObjectException.CreateFmt(SErrSemaphoreCounts,[aInitialCount,aMaxCount]);
+  FCount:=aInitialCount;
+  FMaxCount:=aMaxCount;
+  FSpinCount:=DefaultLightweightSpinCount;
+  InitCriticalSection(FLock);
+  FCondition:=TConditionVariableCS.Create;
+end;
+
+
+destructor TLightweightSemaphore.Destroy;
+
+begin
+  if Assigned(FCondition) then
+    begin
+    FCondition.Free;
+    DoneCriticalSection(FLock);
+    end;
+  inherited Destroy;
+end;
+
+
+function TLightweightSemaphore.TryTake: Boolean;
+
+var
+  lCount: LongInt;
+
+begin
+  repeat
+    lCount:=InterlockedCompareExchange(FCount,0,0);
+    if lCount<=0 then
+      Exit(False);
+  until InterlockedCompareExchange(FCount,lCount-1,lCount)=lCount;
+  Result:=True;
+end;
+
+
+procedure TLightweightSemaphore.Acquire;
+
+begin
+  WaitFor(INFINITE);
+end;
+
+
+procedure TLightweightSemaphore.Release;
+
+begin
+  Release(1);
+end;
+
+
+function TLightweightSemaphore.Release(aReleaseCount: Integer): Integer;
+
+var
+  lBlocked: LongInt;
+  i: Integer;
+
+begin
+  if aReleaseCount<1 then
+    raise ESyncObjectException.CreateFmt(SErrInvalidReleaseCount,[aReleaseCount]);
+  repeat
+    Result:=InterlockedCompareExchange(FCount,0,0);
+    if Result>FMaxCount-aReleaseCount then
+      raise ESyncObjectException.CreateFmt(SErrSemaphoreOverflow,[aReleaseCount,FMaxCount]);
+  until InterlockedCompareExchange(FCount,Result+aReleaseCount,Result)=Result;
+  lBlocked:=InterlockedCompareExchange(FBlockedCount,0,0);
+  if lBlocked>0 then
+    begin
+    EnterCriticalSection(FLock);
+    if aReleaseCount>=lBlocked then
+      FCondition.ReleaseAll
+    else
+      for i:=1 to aReleaseCount do
+        FCondition.Release;
+    LeaveCriticalSection(FLock);
+    end;
+end;
+
+
+function TLightweightSemaphore.WaitFor(aTimeout: Cardinal): TWaitResult;
+
+var
+  lStart: QWord;
+  lSpin: TSpinWait;
+  lRemaining: Cardinal;
+  i: Integer;
+
+begin
+  if TryTake then
+    Exit(wrSignaled);
+  if aTimeout=0 then
+    Exit(wrTimeout);
+  lStart:=GetTickCount64;
+  lSpin.Reset;
+  for i:=1 to FSpinCount do
+    begin
+    lSpin.SpinCycle;
+    if TryTake then
+      Exit(wrSignaled);
+    end;
+  Result:=wrSignaled;
+  EnterCriticalSection(FLock);
+  try
+    InterlockedIncrement(FBlockedCount);
+    while not TryTake do
+      begin
+      lRemaining:=RemainingTimeout(lStart,aTimeout);
+      if lRemaining=0 then
+        begin
+        Result:=wrTimeout;
+        Break;
+        end;
+      FCondition.WaitFor(FLock,lRemaining);
+      end;
+    InterlockedDecrement(FBlockedCount);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
+end;
+
+
 { TLockGuard }
 
 class operator TLockGuard.Initialize(var hdl: TLockGuard);
@@ -1283,7 +2232,7 @@ end;
 class function TSpinWait.SpinUntil(const aCondition: TSpinFunction; aTimeout: Cardinal): Boolean; overload;
 static;
 begin
-  SpinUntil(aCondition, TTimeSpan.FromMilliseconds(aTimeout));
+  Result:=SpinUntil(aCondition, TTimeSpan.FromMilliseconds(aTimeout));
 end;
 
 
@@ -1304,7 +2253,7 @@ begin
     if aCondition() then
       Exit(True);
     lElapsedTime:=MilliSecondsBetween(Now,lStartTime);
-  until (lElapsedTime >= lWaitTime) or lWait.NextSpinCycleWillYield;
+  until (lElapsedTime >= lWaitTime);
 end;
 
 { ---------------------------------------------------------------------
@@ -1471,4 +2420,8 @@ begin
 end;
 
 
+{$IFDEF NATIVE_CONDVAR_CS}
+initialization
+  LoadNativeCondVar;
+{$ENDIF}
 end.

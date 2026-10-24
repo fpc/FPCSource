@@ -59,6 +59,7 @@ begin
           AddUnit('uxtheme');
           AddInclude('tmschema.inc');
           AddUnit('dwmapi');
+          AddUnit('wmpointer');
           AddUnit('multimon');
           AddUnit('htmlhelp');
           AddUnit('winutils');
@@ -100,6 +101,7 @@ begin
     T:=P.Targets.AddImplicitUnit('uxtheme.pp');
     T:=P.Targets.AddImplicitUnit('multimon.pp');
     T:=P.Targets.AddImplicitUnit('dwmapi.pp');
+    T:=P.Targets.AddImplicitUnit('wmpointer.pp');
     T:=P.Targets.AddImplicitUnit('htmlhelp.pp');
     T:=P.Targets.AddImplicitUnit('winutils.pp');
     T:=P.Targets.AddImplicitUnit('comserv.pp');
@@ -129,6 +131,7 @@ begin
     P.Targets.AddExampleProgram('hhex2.pp');
     P.Targets.AddExampleProgram('hhex3.pp');
     P.Targets.AddExampleProgram('hhex4.pp');
+    P.Targets.AddExampleProgram('twmpointer.pp');
 
     P.NamespaceMap:='namespaces.lst';
 

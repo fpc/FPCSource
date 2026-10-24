@@ -12,76 +12,228 @@ procedure OpenOutputFiles;
 procedure CloseTempFiles;
 
 procedure WriteFileHeader(var headerfile: Text);
+// Writes the uses clause of the implementation section for -P.
+procedure WriteLibraryUses;
 procedure WriteLibraryInitialization;
 
-// This will write each pointer type only once.
-function WritePointerTypeDef(var aFile : text; const PN,TN : AnsiString) : Boolean;
+// Writes PN = ^TN unless PN was written before.
+procedure WritePointerTypeDef(var aFile : text; const PN,TN : AnsiString);
+// Writes the record aName without members, with indentation aIndent.
+procedure WriteUndefinedRecord(var aFile : text; const aIndent, aName : AnsiString);
+// Writes a marker line for type TN, replaced by the pointer types to TN when the unit is assembled.
+procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
+// Declares the type aName for the function pointer element of the array or pointer declarator chain aChain with base type aType,
+// and replaces the element by the type name; does nothing when aChain is no array of or pointer to function pointers.
+procedure HoistProcVarElement(const aName : AnsiString; aChain, aType : presobject);
+// Declares the type aName for the array that a pointer in the declarator chain aChain with base type aType points to,
+// and replaces the array by the type name; does nothing when aChain has no pointer to an array.
+procedure HoistPointedArray(const aName : AnsiString; aChain, aType : presobject);
+// Registers aName as a typedef of a function type: a pointer to it is the Pascal procedural type itself.
+procedure RegisterFunctionType(const aName : AnsiString);
+// Writes the pointer types for the marker line aLine; returns false when aLine is no marker.
+function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
+// Returns true when the type TN was declared before.
+function IsDeclaredType(const TN : AnsiString) : Boolean;
+// Writes a marker line for the struct TN that has no declaration yet, with its typedef alias AN ('' for none).
+// When the unit is assembled, the marker becomes an empty record TN and the alias, unless TN is declared later:
+// the alias then follows that declaration.
+procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
+// Writes a marker line before the record TN, replaced by the pointer types to TN and its later aliases.
+procedure WriteRecordMarker(var aFile : text; const TN : AnsiString);
+// Returns true when the record TN with the definition aType can move to its opaque marker:
+// all the types it refers to were declared before that marker.
+function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
+// Writes the marker lines around the record TN that moves to its opaque marker.
+procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
+procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
+// Moves the markers that follow other text on their line in aLines, as after a comment, to lines of their own
+// before that text.
+procedure SplitMarkerLines(aLines : TStringList);
+// Removes the lines of the moved records from aLines, for WriteMarkedPointers to write them at their opaque marker.
+procedure CollectMovedRecords(aLines : TStringList);
+// Writes a marker line: the declarations that follow are of kind aKind: T type, C constant, D constant that uses types,
+// V variable, F function, I implementation.
+procedure WriteSectionMarker(var aFile : text; aKind : char);
+// Writes the section keyword aKeyword with indentation aIndent, as a marker line that -1 replaces.
+procedure WriteSectionKeyword(var aFile : text; const aIndent, aKeyword : AnsiString);
+// Opens a section of kind aBlock with the keyword aKeyword in outfile, after an empty line unless compactmode,
+// when the current section is of another kind.
+procedure OpenSection(aBlock : tblocktype; const aKeyword : AnsiString);
+// Writes the type aName = aDef with base type aType in a type section, with the directives of a procedural type,
+// and returns its Pascal name.
+function WriteNamedType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
+// Returns true when aNode is a pointer to a function (t_pointerdef of a t_procdef).
+function IsProcPointer(aNode : presobject) : Boolean;
+// Returns aIndent without its last level of indentation.
+function OuterIndent(const aIndent : AnsiString) : AnsiString;
+// Returns the name of the unnamed parameter number aIndex.
+function UnnamedParamName(aIndex : longint) : AnsiString;
+// Returns the name of the declarator aDecl (t_dec), or '' when it has none.
+function DeclaratorName(aDecl : presobject) : AnsiString;
+// Returns true when the constant expression aExpr uses only literals, casts to base types and plain constants.
+function IsPlainConstExpr(aExpr : presobject) : Boolean;
+// Registers aName as a plain constant, which -1 writes before the types.
+procedure RegisterPlainConst(const aName : AnsiString);
+// Arranges the lines of the unit in aLines for -1: the constants, then all types in one section, then the rest.
+procedure ArrangeSections(aLines : TStringList);
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
+// Writes the type p of a cast or macro result, with the pointer type names used for parameters.
+procedure write_cast_type(var outfile:text; p : presobject);
 procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
 procedure write_ifexpr(var outfile:text; p : presobject);
 procedure write_funexpr(var outfile:text; p : presobject);
-procedure write_def_params(var outfile:text; p : presobject);
-procedure write_args(var outfile:text; p : presobject);
+// Writes the argument list p; with aSkipEllipsis the ellipsis argument is left out.
+procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
 procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
 procedure write_expr(var outfile:text; p : presobject);
+// Writes the directives of the procedure type just written: stdcall for aStdCall, else cdecl, and varargs.
+procedure WriteProcVarDirectives(var aFile : text; aStdCall : Boolean);
 
 procedure emitignoreconst;
 procedure emitignore(p : presobject);
-procedure emitignoredefault(p : presobject);
 procedure EmitAbstractIgnored;
 procedure EmitWriteln(S : string);
 procedure EmitPacked(aPack : integer);
 procedure EmitAndOutput(S : string; aLine : integer);
+// Writes the start of the comment for a syntax error in the C text S, unless that comment is open.
 procedure EmitErrorStart(S : string);
+// Ends the open comment of a syntax error with S, which ends with the closing bracket.
+procedure EmitErrorEnd(const S : string);
 
 procedure shift(space_number : byte);
 procedure popshift;
 procedure resetshift;
-function str(i : longint) : string;
-function hexstr(i : cardinal) : string;
-function uppercase(s : string) : string;
+function hexstr(i : qword) : string;
 function PointerName(const s:string):string;
 function IsACType(const s : String) : Boolean;
-function NeedEllipsisOverload : Boolean;
+// Returns true when the argument list aArgs ends in an ellipsis.
+function HasEllipsis(aArgs : presobject) : Boolean;
 function TypeName(const s:string):string;
+// Registers aName as a type name with T prefix when a member of the enum list aMembers has the same name.
+procedure RegisterEnumTypeName(const aName : string; aMembers : presobject);
+// Returns s with an underscore prefix when it is a Pascal reserved word.
+function FixId(const s:string):string;
+// Returns true when aName differs in case only from a registered global Pascal name.
+function IsNameClash(const aName : AnsiString) : Boolean;
+// Returns the registered global Pascal name that equals aName ignoring case, or ''.
+function RegisteredName(const aName : AnsiString) : AnsiString;
+// Registers the global Pascal name aName.
+procedure RegisterName(const aName : AnsiString);
+// Returns the Pascal value of the standard C constant aName, as UINT64_MAX, or ''.
+function MappedConstant(const aName : AnsiString) : AnsiString;
+// Registers aName as the C name of a macro written as function with untyped parameters.
+procedure RegisterMacroFunction(const aName : AnsiString);
+// Returns aName with underscores appended until it is no clash, and registers it; the identifier aCName is written
+// with that name in expressions when it differs from aName.
+function UniqueName(const aCName, aName : AnsiString) : AnsiString;
 
 Var
   No_pop   : boolean;
   implemfile  : text;  (* file for implementation headers extern procs *)
   in_args : boolean = false;
-  old_in_args : boolean = false;
   must_write_packed_field : boolean;
   is_procvar : boolean = false;
+  // Set when the last procedure type written takes variable arguments.
+  is_varargs : boolean = false;
+  // Set when an array of const parameter was written.
+  UsesArrayOfConst : boolean = false;
   is_packed : boolean = false;
   if_nb : longint = 0;
 
 implementation
 
+const
+  PointerMarker = #1;
+  OpaqueMarker = #2;
+  RecordMarker = #3;
+  MovedStartMarker = #4;
+  MovedEndMarker = #5;
+  SectionMarker = #6;
+  KeywordMarker = #7;
+  HeaderPointersMarker = #8;
+
 var
   WrittenPointers : TStringList;
+  DeclaredTypes : TStringList;
+  // Structs written as an opaque marker, those declared later, and the aliases that follow them, as TN=AN.
+  OpaqueTypes : TStringList;
+  DefinedOpaqueTypes : TStringList;
+  PendingAliases : TStringList;
+  // The declared types in the order of declaration, and the number of them at each opaque marker, as TN=count.
+  DeclaredSequence : TStringList;
+  OpaqueSequence : TStringList;
+  // The lines of the moved records, as objects of their names.
+  MovedRecordLines : TStringList;
+  // Constants of literals and other plain constants only.
+  PlainConsts : TStringList;
+  // Targets of pointer types to pointer types, as PPname=Pname.
+  PointerTargets : TStringList;
+  // Names of typedefs of a function type, without T prefix.
+  FunctionTypes : TStringList;
+  // Number of P prefixes written for the pointer type being written.
+  pointer_level : Integer = 0;
+  // Flag field index of each bit field of the record being written, as name=index.
+  BitFieldFlags : TStringList;
+  // Members of the enum types written so far.
+  EnumMembers : TStringList;
+  // The global Pascal names written so far.
+  GlobalNames : TStringList;
+  // The identifiers written with another name, as C name=Pascal name.
+  RenamedIds : TStringList;
+  // The C names of the macros written as functions.
+  MacroFunctions : TStringList;
+  // Enum type names that are the name of one of their members, written with T prefix.
+  EnumClashTypes : TStringList;
+  // Set while the value of an enum member is written.
+  in_enum_value : boolean = false;
  tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
-  _NeedEllipsisOverload : boolean;
   typedef_level : longint = 0;
+
+// Registers the pointer types P<aPointer>, PP<aPointer>, ... up to aLevels levels.
+procedure RegisterPointerChain(const aPointer : AnsiString; aLevels : Integer); forward;
+// Returns true when aType names a typedef of a function type.
+function IsFunctionType(aType : presobject) : Boolean; forward;
+// Returns true when the unit header needs pointer types to types that are not declared in the unit.
+function HasHeaderPointers : Boolean; forward;
+// Writes the pointer types of the unit header with indentation aIndent.
+procedure WriteHeaderPointers(var aFile : text; const aIndent : AnsiString); forward;
 
 procedure EmitAndOutput(S : string; aLine : integer);
 
 begin
   if yydebug then
     begin
-    writeln(S,line_no);
+    writeln(S,aLine);
     writeln(outfile,'(* ',S,' *)');
     end;
 end;
 
+var
+  // Set while the comment of a syntax error is open.
+  ErrorCommentOpen : boolean = false;
+
 procedure EmitErrorStart(S : string);
 
 begin
+  if ErrorCommentOpen then
+    exit;
+  ErrorCommentOpen:=true;
   writeln(outfile,'(* error ');
-  writeln(outfile,s);
+  // the C text, with the comment brackets split
+  writeln(outfile,StringReplace(StringReplace(S,'(*','( *',[rfReplaceAll]),'*)','* )',[rfReplaceAll]));
+end;
+
+procedure EmitErrorEnd(const S : string);
+
+begin
+  if not ErrorCommentOpen then
+    exit;
+  writeln(outfile,S);
+  ErrorCommentOpen:=false;
 end;
 
 procedure EmitWriteln(S : string);
@@ -100,13 +252,6 @@ begin
   if (newpacked<>is_packed) and (not packrecords) then
     writeln(outfile,'{$PACKRECORDS ',aPack,'}');
   is_packed:=newpacked;
-end;
-
-procedure emitignoredefault(p : presobject);
-
-begin
-  if not stripinfo then
-    writeln(outfile,'(* Warning : default value for ',p^.p,' ignored *)');
 end;
 
 procedure EmitAbstractIgnored;
@@ -129,13 +274,6 @@ begin
    writeln(outfile,'(* Const before declarator ignored *)');
 end;
 
-function NeedEllipsisOverload : Boolean;
-
-begin
-  NeedEllipsisOverload:=_NeedEllipsisOverload
-end;
-
-
 
 procedure shift(space_number : byte);
 
@@ -156,8 +294,8 @@ begin
   dec(space_index);
   if space_index<0 then
     begin
-    Writeln('Warning: atempt to decrease index below zero');
-    space_index:=1;
+    Writeln('Warning: attempt to decrease the indentation below zero');
+    space_index:=0;
     end
   else
     delete(aktspace,1,space_array[space_index]);
@@ -165,48 +303,30 @@ end;
 
 procedure resetshift;
 begin
-  space_index:=1;
+  space_index:=0;
+  if compactmode then
+    aktspace:=''
+  else
+    aktspace:='  ';
 end;
 
-function str(i : longint) : string;
-
-var
-  s : string;
-
-begin
-  system.str(i,s);
-  str:=s;
-end;
-
-
-function hexstr(i : cardinal) : string;
+function hexstr(i : qword) : string;
 
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
 
 var
-  str : string;
+  lDigits : string;
 
 begin
-  str:='';
+  lDigits:='';
   while i<>0 do
   begin
-    str:=hextbl[i and $F]+str;
+    lDigits:=hextbl[i and $F]+lDigits;
     i:=i shr 4;
   end;
-  if str='' then str:='0';
-  hexstr:='$'+str;
-end;
-
-function uppercase(s : string) : string;
-
-var
-  i : byte;
-
-begin
-  for i:=1 to length(s) do
-    s[i]:=UpCase(s[i]);
-  uppercase:=s;
+  if lDigits='' then lDigits:='0';
+  hexstr:='$'+lDigits;
 end;
 
 { This converts pascal reserved words to
@@ -215,25 +335,17 @@ the correct syntax.
 function FixId(const s:string):string;
 
 const
-  maxtokens = 17;
+  maxtokens = 68;
   reservedid: array[1..maxtokens] of string[14] = (
-    'CLASS',
-    'DISPOSE',
-    'FUNCTION',
-    'FALSE',
-    'LABEL',
-    'NEW',
-    'OUT',
-    'PROPERTY',
-    'PROCEDURE',
-    'RECORD',
-    'REPEAT',
-    'STRING',
-    'TYPE',
-    'TRUE',
-    'UNTIL',
-    'VAR',
-    'OBJECT'
+    'AND','ARRAY','AS','ASM','BEGIN','CASE','CLASS','CONST',
+    'CONSTRUCTOR','DESTRUCTOR','DISPOSE','DIV','DO','DOWNTO','ELSE','END',
+    'EXCEPT','EXPORTS','FALSE','FILE','FINALIZATION','FINALLY','FOR','FUNCTION',
+    'GOTO','IF','IMPLEMENTATION','IN','INHERITED','INITIALIZATION','INTERFACE','IS',
+    'LABEL','LIBRARY','MOD','NEW','NIL','NOT','OBJECT','OF',
+    'OPERATOR','OR','OUT','PACKED','PROCEDURE','PROGRAM','PROPERTY','RAISE',
+    'RECORD','REPEAT','RESOURCESTRING','SET','SHL','SHR','STRING','THEN',
+    'THREADVAR','TO','TRUE','TRY','TYPE','UNIT','UNTIL','USES',
+    'VAR','WHILE','WITH','XOR'
     );
 
 var
@@ -263,6 +375,103 @@ begin
 end;
 
 
+function IsNameClash(const aName : AnsiString) : Boolean;
+
+var
+  lIndex : Integer;
+
+begin
+  lIndex:=GlobalNames.IndexOf(aName);
+  Result:=(lIndex>=0) and (GlobalNames[lIndex]<>aName);
+end;
+
+
+function RegisteredName(const aName : AnsiString) : AnsiString;
+
+var
+  lIndex : Integer;
+
+begin
+  lIndex:=GlobalNames.IndexOf(aName);
+  if lIndex>=0 then
+    Result:=GlobalNames[lIndex]
+  else
+    Result:='';
+end;
+
+
+procedure RegisterName(const aName : AnsiString);
+
+begin
+  if (aName<>'') and (GlobalNames.IndexOf(aName)<0) then
+    GlobalNames.Add(aName);
+end;
+
+
+procedure RegisterMacroFunction(const aName : AnsiString);
+
+begin
+  if MacroFunctions.IndexOf(aName)<0 then
+    MacroFunctions.Add(aName);
+end;
+
+
+// Returns true when p is a call (t_funexprlist) of the function with the name aName.
+function IsCallOf(p : presobject; const aName : AnsiString) : Boolean;
+
+begin
+  Result:=assigned(p^.p1) and (p^.p1^.typ=t_exprlist) and assigned(p^.p1^.p1) and (p^.p1^.p1^.typ=t_id)
+          and (p^.p1^.p1^.str=aName);
+end;
+
+
+// Returns true when p is a call (t_funexprlist) of a macro written as function.
+function IsMacroFunctionCall(p : presobject) : Boolean;
+
+begin
+  Result:=assigned(p^.p1) and (p^.p1^.typ=t_exprlist) and assigned(p^.p1^.p1) and (p^.p1^.p1^.typ=t_id)
+          and (MacroFunctions.IndexOf(p^.p1^.p1^.str)>=0);
+end;
+
+
+function UniqueName(const aCName, aName : AnsiString) : AnsiString;
+
+begin
+  Result:=aName;
+  while IsNameClash(Result) do
+    Result:=Result+'_';
+  RegisterName(Result);
+  if Result<>aName then
+    RenamedIds.Values[aCName]:=Result;
+end;
+
+
+function MappedConstant(const aName : AnsiString) : AnsiString;
+
+var
+  i : Integer;
+
+begin
+  for i:=Low(CConstMappings) to High(CConstMappings) do
+    if CConstMappings[i].CName=aName then
+      exit(CConstMappings[i].PascalValue);
+  Result:='';
+end;
+
+
+// Returns the Pascal text of the identifier aName in an expression: its new name when it was renamed, the value of
+// a standard C constant.
+function RenamedId(const aName : AnsiString) : AnsiString;
+
+begin
+  Result:=RenamedIds.Values[aName];
+  if Result='' then
+    Result:=MappedConstant(aName);
+  if Result='' then
+    Result:=FixId(aName);
+end;
+
+
 function TypeName(const s:string):string;
 
 var
@@ -272,10 +481,32 @@ begin
   i:=1;
   if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
     i:=2;
-  if PrependTypes then
-    TypeName:='T'+Copy(s,i,255)
+  if PrependTypes or (EnumClashTypes.IndexOf(s)>=0) then
+    TypeName:=FixId('T'+Copy(s,i,255))
   else
-    TypeName:=Copy(s,i,255);
+    TypeName:=FixId(Copy(s,i,255));
+end;
+
+
+procedure RegisterEnumTypeName(const aName : string; aMembers : presobject);
+
+var
+  hp : presobject;
+
+begin
+  if PrependTypes or (aName='') then
+    exit;
+  hp:=aMembers;
+  while assigned(hp) do
+    begin
+    if assigned(hp^.p1) and SameText(hp^.p1^.str,aName) then
+      begin
+      if EnumClashTypes.IndexOf(aName)<0 then
+        EnumClashTypes.Add(aName);
+      exit;
+      end;
+    hp:=hp^.next;
+    end;
 end;
 
 function IsACType(const s : String) : Boolean;
@@ -292,10 +523,18 @@ begin
   IsACType := False;
 end;
 
-function PointerName(const s:string):string;
+// Returns s as it follows the P of a pointer type name: without T prefix, and without leading underscore for -T.
+function PointerBaseName(const s:string):string;
 
-var
-  i : longint;
+begin
+  if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
+    PointerBaseName:=Copy(s,2,255)
+  else
+    PointerBaseName:=s;
+end;
+
+
+function PointerName(const s:string):string;
 
 begin
   if UseCTypesUnit then
@@ -306,45 +545,30 @@ begin
     exit;
     end;
   end;
-  i:=1;
-  if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
-    i:=2;
   if UsePPointers then
   begin
-    PointerName:='P'+Copy(s,i,255);
+    PointerName:='P'+PointerBaseName(s);
     PTypeList.Add(PointerName);
   end
   else
-    PointerName:=Copy(s,i,255);
+    PointerName:=PointerBaseName(s);
   if PointerPrefix then
-    PTypeList.Add('P'+s);
+    PTypeList.Add('P'+PointerBaseName(s));
 end;
 
 
+// Returns true when -v writes the argument p (t_arglist) as var parameter: a pointer, not to a function, void or a char type.
 Function IsVarPara(P : presobject) : Boolean;
 
 var
-  varpara: boolean;
+  lType : presobject;
 
 begin
-  varpara:=usevarparas and
-          assigned(p^.p1^.p1) and
-          (p^.p1^.p1^.typ in [t_addrdef,t_pointerdef]) and
-          assigned(p^.p1^.p1^.p1) and
-          (p^.p1^.p1^.p1^.typ<>t_procdef);
-  (* do not do it for char pointer !!               *)
-  (* para : pchar; and var para : char; are         *)
-  (* completely different in pascal                 *)
-  (* here we exclude all typename containing char   *)
-  (* is this a good method ??                       *)
-  if varpara and
-    (p^.p1^.p1^.typ=t_pointerdef) and
-    (((p^.p1^.p1^.p1^.typ=t_id) and
-      (pos('CHAR',uppercase(p^.p1^.p1^.p1^.str))<>0)) or
-      ((p^.p1^.p1^.p1^.typ=t_void))
-    ) then
-    varpara:=false;
-  IsVarPara:=varpara;
+  lType:=p^.p1^.p1;
+  Result:=usevarparas and assigned(lType) and (lType^.typ in [t_addrdef,t_pointerdef])
+          and assigned(lType^.p1) and (lType^.p1^.typ<>t_procdef);
+  if Result and (lType^.typ=t_pointerdef) then
+    Result:=not (((lType^.p1^.typ=t_id) and (pos('CHAR',UpperCase(lType^.p1^.str))<>0)) or (lType^.p1^.typ=t_void));
 end;
 
 
@@ -352,20 +576,30 @@ procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string
 
 var
     hp1,hp2,hp3 : presobject;
-    is_sized : boolean;
+    lDecl : presobject;
     line : string;
-    flag_index : longint;
+    flag_index : string;
     name : pansichar;
     ps : byte;
+
+  // Writes aHead, the type of the bit field lDecl and aTail to aFile, indented by 2 after aHead when aShift is set.
+  procedure WriteHeader(var aFile : text; const aHead, aTail : AnsiString; aShift : boolean);
+
+  begin
+    write(aFile,aktspace,aHead);
+    if aShift then
+      shift(2);
+    write_p_a_def(aFile,lDecl^.p1,hp2^.p1);
+    writeln(aFile,aTail);
+  end;
 
 begin
   { write out the tempfile created }
   close(tempfile);
   reset(tempfile);
-  is_sized:=false;
-  flag_index:=0;
   writeln(outfile);
-  writeln(outfile,aktspace,'const');
+  WriteSectionMarker(outfile,'C');
+  WriteSectionKeyword(outfile,aktspace,'const');
   shift(2);
   while not eof(tempfile) do
     begin
@@ -379,6 +613,7 @@ begin
   close(tempfile);
   rewrite(tempfile);
   popshift;
+  WriteSectionMarker(outfile,'F');
   (* walk through all members *)
   hp1 := p^.p1;
   while assigned(hp1) do
@@ -389,77 +624,113 @@ begin
     hp3:=hp2^.p2;
     while assigned(hp3) do
       begin
-      if assigned(hp3^.p1^.p3) and
-        (hp3^.p1^.p3^.typ = t_size_specifier) then
+      lDecl:=hp3^.p1;
+      if assigned(lDecl) and assigned(lDecl^.p3) and (lDecl^.p3^.typ = t_size_specifier) then
         begin
-        is_sized:=true;
-        name:=hp3^.p1^.p2^.p;
-        { get function in interface }
-        write(outfile,aktspace,'function ',name);
-        write(outfile,'(var a : ',ph,') : ');
-        shift(2);
-        write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-        writeln(outfile,';');
+        name:=lDecl^.p2^.p;
+        flag_index:=BitFieldFlags.Values[lDecl^.p2^.str];
+        { get function }
+        WriteHeader(outfile,'function '+FixId(name)+'(var __rec : '+ph+') : ',';',true);
         popshift;
-        { get function in implementation }
-        write(implemfile,aktspace,'function ',name);
-        write(implemfile,'(var a : ',ph,') : ');
-        if not compactmode then
-          shift(2);
-        write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
-        writeln(implemfile,';');
+        WriteHeader(implemfile,'function '+FixId(name)+'(var __rec : '+ph+') : ',';',not compactmode);
         writeln(implemfile,aktspace,'begin');
         shift(2);
-        write(implemfile,aktspace,name,':=(a.flag',flag_index);
+        write(implemfile,aktspace,FixId(name),':=(__rec.flag',flag_index);
         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
         popshift;
         writeln(implemfile,aktspace,'end;');
         if not compactmode then
           popshift;
         writeln(implemfile,'');
-        { set function in interface }
-        write(outfile,aktspace,'procedure set_',name);
-        write(outfile,'(var a : ',ph,'; __',name,' : ');
-        shift(2);
-        write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-        writeln(outfile,');');
+        { set function }
+        WriteHeader(outfile,'procedure set_'+name+'(var __rec : '+ph+'; __'+name+' : ',');',true);
         popshift;
-        { set function in implementation }
-        write(implemfile,aktspace,'procedure set_',name);
-        write(implemfile,'(var a : ',ph,'; __',name,' : ');
-        if not compactmode then
-          shift(2);
-        write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
-        writeln(implemfile,');');
+        WriteHeader(implemfile,'procedure set_'+name+'(var __rec : '+ph+'; __'+name+' : ',');',not compactmode);
         writeln(implemfile,aktspace,'begin');
         shift(2);
-        write(implemfile,aktspace,'a.flag',flag_index,':=');
-        write(implemfile,'a.flag',flag_index,' or ');
+        write(implemfile,aktspace,'__rec.flag',flag_index,':=');
+        write(implemfile,'(__rec.flag',flag_index,' and not bm_',ph,'_',name,') or ');
         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
         popshift;
         writeln(implemfile,aktspace,'end;');
         if not compactmode then
           popshift;
         writeln(implemfile,'');
-        end
-      else if is_sized then
-        begin
-        is_sized:=false;
-        inc(flag_index);
         end;
       hp3:=hp3^.next;
       end;
     hp1:=hp1^.next;
     end;
+  BitFieldFlags.Clear;
   must_write_packed_field:=false;
   block_type:=bt_no;
+end;
+
+
+// Returns true when p is a character literal: 'x', '''' or #n.
+function IsCharLiteral(p : presobject) : boolean;
+
+var
+  s : string;
+  i : integer;
+
+begin
+  Result:=false;
+  if not assigned(p) or (p^.typ<>t_id) then
+    exit;
+  s:=p^.str;
+  if (s='''''''') or ((length(s)=3) and (s[1]='''') and (s[3]='''')) then
+    exit(true);
+  if (length(s)<2) or (s[1]<>'#') then
+    exit;
+  for i:=2 to length(s) do
+    if not (s[i] in ['0'..'9']) then
+      exit;
+  Result:=true;
+end;
+
+
+// Returns true when the binary operator aOp takes the integer value of a character literal operand.
+function IsIntegerOperator(const aOp : string) : boolean;
+
+begin
+  Result:=(aOp='+') or (aOp='-') or (aOp='*') or (aOp=' div ') or (aOp=' mod ') or (aOp=' shl ') or (aOp=' shr ')
+          or (aOp=' and ') or (aOp=' or ') or (aOp=' xor ') or (aOp='=') or (aOp='<>') or (aOp='<') or (aOp='<=')
+          or (aOp='>') or (aOp='>=');
+end;
+
+
+// Returns true when p is the identifier of a member of an enum type written before.
+function IsEnumMember(p : presobject) : boolean;
+
+begin
+  Result:=assigned(p) and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0);
+end;
+
+
+// Writes the operand p of a binary operator, a character literal or enum member as its ordinal value when aOrd is set.
+procedure write_operand(var outfile:text; p : presobject; aOrd : boolean);
+
+begin
+  if aOrd and IsCharLiteral(p) then
+    write(outfile,'ord(',p^.p,')')
+  else if aOrd and IsEnumMember(p) then
+    write(outfile,'ord(',RenamedId(p^.p),')')
+  else if p^.typ<>t_id then
+    begin
+    write(outfile,'(');
+    write_expr(outfile,p);
+    write(outfile,')');
+    end
+  else
+    write_expr(outfile,p);
 end;
 
 
 procedure write_expr(var outfile:text; p : presobject);
 
 var
-  DoFlush:Boolean;
+  lOrd : boolean;
 
 begin
   if Not assigned(p) then
@@ -467,11 +738,19 @@ begin
     writeln('Warning: attempt to write empty expression');
     exit;
   end;
-  DoFlush:=True;
   case p^.typ of
     t_id,
     t_ifexpr :
-      write(outfile,FixId(p^.p));
+      if in_enum_value and (p^.typ=t_id) and (EnumMembers.IndexOf(p^.p)>=0) then
+        write(outfile,'ord(',RenamedId(p^.p),')')
+      else if in_enum_value and IsCharLiteral(p) then
+        write(outfile,'ord(',p^.p,')')
+      else if p^.skiptprefix then
+        write(outfile,p^.p)
+      else if p^.typ=t_id then
+        write(outfile,RenamedId(p^.p))
+      else
+        write(outfile,FixId(p^.p));
     t_funexprlist :
       write_funexpr(outfile,p);
     t_exprlist:
@@ -480,37 +759,48 @@ begin
         write_expr(outfile,p^.p1);
       if assigned(p^.next) then
         begin
-          write(', ');
+          write(outfile,', ');
           write_expr(outfile,p^.next);
         end;
-      DoFlush:=False;
       end;
     t_preop:
-      begin
-      write(outfile,p^.p,'(');
-      write_expr(outfile,p^.p1);
-      write(outfile,')');
-      end;
+      if p^.str='^' then
+        begin
+        (* dereference is postfix in Pascal *)
+        if p^.p1^.typ=t_id then
+          write_expr(outfile,p^.p1)
+        else
+          begin
+          write(outfile,'(');
+          write_expr(outfile,p^.p1);
+          write(outfile,')');
+          end;
+        write(outfile,'^');
+        end
+      else
+        begin
+        write(outfile,p^.p,'(');
+        if IsEnumMember(p^.p1) then
+          write(outfile,'ord(',RenamedId(p^.p1^.p),')')
+        else
+          write_expr(outfile,p^.p1);
+        write(outfile,')');
+        end;
     t_typespec :
       begin
-      write_type_specifier(outfile,p^.p1);
+      write_cast_type(outfile,p^.p1);
       write(outfile,'(');
       write_expr(outfile,p^.p2);
       write(outfile,')');
       end;
     t_bop :
       begin
-      if p^.p1^.typ<>t_id then
-        write(outfile,'(');
-      write_expr(outfile,p^.p1);
-      if p^.p1^.typ<>t_id then
-      write(outfile,')');
+      (* C character literals are integers; Pascal compares two characters directly *)
+      lOrd:=IsIntegerOperator(p^.p)
+            and not ((p^.str[1] in ['=','<','>']) and IsCharLiteral(p^.p1) and IsCharLiteral(p^.p2));
+      write_operand(outfile,p^.p1,lOrd);
       write(outfile,p^.p);
-      if p^.p2^.typ<>t_id then
-        write(outfile,'(');
-      write_expr(outfile,p^.p2);
-      if p^.p2^.typ<>t_id then
-        write(outfile,')');
+      write_operand(outfile,p^.p2,lOrd);
       end;
     t_arrayop :
       begin
@@ -529,16 +819,12 @@ begin
     else
       writeln(ord(p^.typ));
       internalerror(2);
-      doFlush:=False;
   end;
-  if DoFlush then
-    Flush(OutFile);
 end;
 
 
 procedure write_ifexpr(var outfile:text; p : presobject);
 begin
-  flush(outfile);
   write(outfile,'if ');
   write_expr(outfile,p^.p1);
   writeln(outfile,' then');
@@ -554,7 +840,6 @@ begin
   write_expr(outfile,p^.p3);
   writeln(outfile,';');
   write(outfile,aktspace);
-  flush(outfile);
 end;
 
 
@@ -592,6 +877,8 @@ begin
       begin
       if assigned(p^.p1) then
         write_all_ifexpr(outfile,p^.p1);
+      if (p^.typ=t_funexprlist) and assigned(p^.p2) then
+        write_all_ifexpr(outfile,p^.p2);
       if assigned(p^.next) then
         write_all_ifexpr(outfile,p^.next);
       end
@@ -599,6 +886,30 @@ begin
       internalerror(6);
   end;
 end;
+
+// Writes the arguments aArgs (t_exprlist) of a call of a macro written as function, character literals as their
+// ordinal value.
+procedure WriteMacroArguments(var outfile:text; aArgs : presobject);
+
+var
+  lArg : presobject;
+
+begin
+  while assigned(aArgs) do
+    begin
+    lArg:=aArgs^.p1;
+    while assigned(lArg) and (lArg^.typ=t_exprlist) and not assigned(lArg^.next) and assigned(lArg^.p1) do
+      lArg:=lArg^.p1;
+    if IsCharLiteral(lArg) then
+      write(outfile,'ord(',lArg^.p,')')
+    else
+      write_expr(outfile,aArgs^.p1);
+    aArgs:=aArgs^.next;
+    if assigned(aArgs) then
+      write(outfile,',');
+    end;
+end;
+
 
 procedure write_funexpr(var outfile:text; p : presobject);
 var
@@ -643,29 +954,39 @@ begin
       shift(2);
       write(outfile,aktspace);
       write_all_ifexpr(outfile,p^.p2);
-      write_expr(outfile,p^.p1);
-      write(outfile,':=');
+      if assigned(p^.p1) then
+        begin
+        write_expr(outfile,p^.p1);
+        write(outfile,':=');
+        end;
       write_funexpr(outfile,p^.p2);
       writeln(outfile,';');
       popshift;
       writeln(outfile,aktspace,'end;');
-      if not compactmode then
-        popshift;
-      flush(outfile);
       end;
     t_funexprlist :
       begin
       if assigned(p^.p3) then
         begin
-        write_type_specifier(outfile,p^.p3);
+        write_cast_type(outfile,p^.p3);
         write(outfile,'(');
         end;
-      if assigned(p^.p1) then
-        write_funexpr(outfile,p^.p1);
-      if assigned(p^.p2) then
+      (* the branch hint __builtin_expect(e,c) is e *)
+      if IsCallOf(p,'__builtin_expect') and assigned(p^.p2) then
         begin
         write(outfile,'(');
-        write_funexpr(outfile,p^.p2);
+        write_expr(outfile,p^.p2^.p1);
+        write(outfile,')');
+        end
+      else if assigned(p^.p1) then
+        write_funexpr(outfile,p^.p1);
+      if assigned(p^.p2) and not IsCallOf(p,'__builtin_expect') then
+        begin
+        write(outfile,'(');
+        if IsMacroFunctionCall(p) then
+          WriteMacroArguments(outfile,p^.p2)
+        else
+          write_funexpr(outfile,p^.p2);
         write(outfile,')');
         end;
       if assigned(p^.p3) then
@@ -676,21 +997,37 @@ begin
   end;
 end;
 
-procedure write_args(var outfile:text; p : presobject);
-
-var
-    len,para : longint;
-    old_in_args : boolean;
-    varpara : boolean;
-    lastp : presobject;
-    hs : string;
+// Returns true when aArg (t_arg) is the ellipsis argument.
+function IsEllipsisArg(aArg : presobject) : Boolean;
 
 begin
-  _NeedEllipsisOverload:=false;
+  Result:=assigned(aArg) and not assigned(aArg^.p1) and not assigned(aArg^.next);
+end;
+
+
+function HasEllipsis(aArgs : presobject) : Boolean;
+
+begin
+  Result:=false;
+  while assigned(aArgs) and not Result do
+    begin
+    Result:=IsEllipsisArg(aArgs^.p1);
+    aArgs:=aArgs^.next;
+    end;
+end;
+
+
+procedure write_args(var outfile:text; p : presobject; aSkipEllipsis : Boolean);
+
+var
+    para : longint;
+    lOldInArgs : boolean;
+    varpara, refpara, arraypara : boolean;
+    lArg, lDecl, lModifier, lElement, lInner, lPointer : presobject;
+
+begin
   para:=1;
-  len:=0;
-  lastp:=nil;
-  old_in_args:=in_args;
+  lOldInArgs:=in_args;
   in_args:=true;
   write(outfile,'(');
   shift(2);
@@ -702,67 +1039,65 @@ begin
     if p^.typ<>t_arglist then
       internalerror(10);
     (* is ellipsis ? *)
-    if not assigned(p^.p1^.p1) and not assigned(p^.p1^.next) then
+    if IsEllipsisArg(p^.p1) then
       begin
-      write(outfile,'args:array of const');
+      if not aSkipEllipsis then
+        begin
+        write(outfile,'args:array of const');
+        UsesArrayOfConst:=true;
+        end;
       (* if variable number of args we must always pop *)
       no_pop:=false;
-      (* Needs 2 declarations, also one without args, because
-        in C you can omit the second parameter. Default parameter
-        doesn't help as that isn't possible with array of const *)
-      _NeedEllipsisOverload:=true;
-      (* Remove this para *)
-      if assigned(lastp) then
-      lastp^.next:=nil;
-      dispose(p,done);
-      (* leave the loop as p is not valid anymore *)
       break;
       end
-    (* we need to correct this in the pp file after *)
     else
       begin
-      (* generate a call by reference parameter ?       *)
+      lArg:=p^.p1;
+      lDecl:=lArg^.p2;
+      lModifier:=nil;
+      if assigned(lDecl) then
+        lModifier:=lDecl^.p1;
       varpara:=IsVarPara(p);
-      if varpara then
-        begin
+      (* C++ reference parameter *)
+      refpara:=assigned(lModifier) and (lModifier^.typ=t_addrdef);
+      arraypara:=assigned(lModifier) and (lModifier^.typ=t_arraydef);
+      if arraypara then
+        varpara:=false;
+      if varpara or refpara then
         write(outfile,'var ');
-        inc(len,4);
-        end;
-
-      (* write new parameter name *)
-      if assigned(p^.p1^.p2^.p2) then
-        begin
-          hs:=FixId(p^.p1^.p2^.p2^.p);
-          write(outfile,hs);
-          inc(len,length(hs));
-        end
+      if assigned(lDecl^.p2) then
+        write(outfile,FixId(lDecl^.p2^.p))
       else
-        begin
-          If removeUnderscore then
-            begin
-              Write (outfile,'para',para);
-              inc(Len,5);
-            end
-          else
-            begin
-              write(outfile,'_para',para);
-              inc(Len,6);
-            end;
-        end;
+        write(outfile,UnnamedParamName(para));
       write(outfile,':');
-      if varpara then
-      begin
-        write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
-      end
+      if refpara then
+        write_p_a_def(outfile,lModifier^.p1,lArg^.p1)
+      else if arraypara then
+        begin
+        (* an array parameter is a pointer to its element *)
+        lElement:=lModifier^.p1;
+        lInner:=lElement;
+        while assigned(lInner) and (lInner^.typ<>t_arraydef) do
+          lInner:=lInner^.p1;
+        if assigned(lInner) then
+          write(outfile,'pointer')
+        else
+          begin
+          lPointer:=NewType1(t_pointerdef,lElement);
+          write_p_a_def(outfile,lPointer,lArg^.p1);
+          lPointer^.p1:=nil;
+          dispose(lPointer,done);
+          end;
+        end
+      else if varpara then
+        write_p_a_def(outfile,lModifier,lArg^.p1^.p1)
       else
-        write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1);
+        write_p_a_def(outfile,lModifier,lArg^.p1);
       end;
-    lastp:=p;
     p:=p^.next;
-    if assigned(p) then
+    if assigned(p) and not (aSkipEllipsis and IsEllipsisArg(p^.p1)) then
       begin
           write(outfile,'; ');
-          { if len>40 then : too complicated to compute }
           if (para mod 5) = 0 then
             begin
               writeln(outfile);
@@ -772,128 +1107,135 @@ begin
     inc(para);
     end;
   write(outfile,')');
-  flush(outfile);
-  in_args:=old_in_args;
+  in_args:=lOldInArgs;
   popshift;
 end;
 
 
 
+procedure WriteProcVarDirectives(var aFile : text; aStdCall : Boolean);
+
+begin
+  if not is_procvar then
+    exit;
+  if aStdCall then
+    write(aFile,';stdcall')
+  else
+    write(aFile,';cdecl');
+  if is_varargs then
+    write(aFile,';varargs');
+  is_procvar:=false;
+  is_varargs:=false;
+end;
+
+
+// Writes the P type of the type name or struct or union tag aType; returns false for other types.
+function WriteNamedPointer(var aFile : text; aType : presobject) : Boolean;
+
+var
+  lName : AnsiString;
+
+begin
+  Result:=true;
+  if aType^.typ=t_id then
+    lName:=PointerName(aType^.p)
+  else if (aType^.typ in [t_uniondef,t_structdef]) and (aType^.p1=nil) and (aType^.p2^.typ=t_id) then
+    lName:=PointerName(aType^.p2^.p)
+  else
+    exit(false);
+  write(aFile,lName);
+  RegisterPointerChain(lName,pointer_level);
+end;
+
+
 Procedure write_pointerdef(var outfile:text; p,simple_type : presobject);
 
 var
-  pointerwritten : Boolean;
+  lTarget : presobject;
+  lIsProcedure, lNested, lOldInArgs : Boolean;
 
 begin
-  (* procedure variable ? *)
-  if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
+  lTarget:=p^.p1;
+  if assigned(lTarget) and (lTarget^.typ=t_procdef) then
     begin
-    is_procvar:=true;
-    (* distinguish between procedure and function *)
-    if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
+    (* procedure variable *)
+    lIsProcedure:=(simple_type^.typ=t_void) and (lTarget^.p1=nil);
+    if lIsProcedure then
       begin
       write(outfile,'procedure ');
       shift(10);
-      (* write arguments *)
-      if assigned(p^.p1^.p2) then
-        write_args(outfile,p^.p1^.p2);
-      flush(outfile);
-      popshift;
       end
     else
       begin
       write(outfile,'function ');
       shift(9);
-      (* write arguments *)
-      if assigned(p^.p1^.p2) then
-        write_args(outfile,p^.p1^.p2);
+      end;
+    if assigned(lTarget^.p2) then
+      write_args(outfile,lTarget^.p2,true);
+    if not lIsProcedure then
+      begin
       write(outfile,':');
-      flush(outfile);
-
-      old_in_args:=in_args;
+      lOldInArgs:=in_args;
       (* write pointers as P.... instead of ^.... *)
       in_args:=true;
-      write_p_a_def(outfile,p^.p1^.p1,simple_type);
-      in_args:=old_in_args;
-      popshift;
-      end
+      write_p_a_def(outfile,lTarget^.p1,simple_type);
+      in_args:=lOldInArgs;
+      end;
+    popshift;
+    is_procvar:=true;
+    is_varargs:=HasEllipsis(lTarget^.p2);
     end
-  else
+  else if (simple_type^.typ=t_void) and (lTarget=nil) then
+    write(outfile,'pointer')
+  else if (lTarget=nil) and IsFunctionType(simple_type) then
+    write_type_specifier(outfile,simple_type)
+  else if not ((lTarget=nil) and UsePPointers and WriteNamedPointer(outfile,simple_type)) then
     begin
-    (* generate "pointer" ? *)
-    if (simple_type^.typ=t_void) and (p^.p1=nil) then
+    lNested:=not in_args and assigned(lTarget) and (lTarget^.typ=t_pointerdef) and not IsProcPointer(lTarget);
+    if in_args then
       begin
-        write(outfile,'pointer');
-        flush(outfile);
+      write(outfile,'P');
+      pointerprefix:=true;
+      Inc(pointer_level);
       end
     else
-      begin
-      pointerwritten:=false;
-      if (p^.p1=nil) and UsePPointers then
-        begin
-        if (simple_type^.typ=t_id) then
-          begin
-          write(outfile,PointerName(simple_type^.p));
-          pointerwritten:=true;
-          end
-        { structure }
-        else if (simple_type^.typ in [t_uniondef,t_structdef]) and
-                (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
-          begin
-          write(outfile,PointerName(simple_type^.p2^.p));
-          pointerwritten:=true;
-          end;
-        end;
-      if not pointerwritten then
-        begin
-        if in_args then
-          begin
-          write(outfile,'P');
-          pointerprefix:=true;
-          end
-        else
-          write(outfile,'^');
-        write_p_a_def(outfile,p^.p1,simple_type);
-        pointerprefix:=false;
-        end;
-      end;
+      write(outfile,'^');
+    (* a pointer to a pointer: ^ followed by the named pointer type *)
+    if lNested then
+      in_args:=true;
+    write_p_a_def(outfile,lTarget,simple_type);
+    if lNested then
+      in_args:=false
+    else if in_args then
+      Dec(pointer_level);
+    pointerprefix:=false;
     end;
 end;
 
 Procedure write_arraydef(var outfile:text; p,simple_type : presobject);
 
 var
-  constant : boolean;
-  i, error : integer;
+  lSize : longint;
+  lError : integer;
 
 begin
-  constant:=false;
-  if assigned(p^.p2) then
+  if not assigned(p^.p2) then
+    (* open array *)
+    write(outfile,'array of ')
+  else
     begin
+    lError:=1;
     if p^.p2^.typ=t_id then
-      begin
-      val(p^.p2^.str,i,error);
-      if error=0 then
-        begin
-          dec(i);
-          constant:=true;
-        end;
-      end;
-    if not constant then
+      val(p^.p2^.str,lSize,lError);
+    if lError=0 then
+      write(outfile,'array[0..',lSize-1,'] of ')
+    else
       begin
       write(outfile,'array[0..(');
       write_expr(outfile,p^.p2);
       write(outfile,')-1] of ');
-     end
-    else
-      write(outfile,'array[0..',i,'] of ');
-    end
-  else
-    begin
-    (* open array *)
-    write(outfile,'array of ');
+      end;
     end;
-  flush(outfile);
   write_p_a_def(outfile,p^.p1,simple_type);
 end;
 
@@ -907,10 +1249,13 @@ begin
     exit;
     end;
   case p^.typ of
-    t_pointerdef :
+    t_pointerdef,
+    t_addrdef :
       Write_pointerdef(outfile,p,simple_type);
     t_arraydef :
       Write_arraydef(outfile,p,simple_type);
+    t_id :
+      write_type_specifier(outfile,p);
   else
     internalerror(1);
   end;
@@ -918,21 +1263,23 @@ end;
 
 procedure write_type_specifier_id(var outfile:text; p : presobject);
 
+var
+  lName : AnsiString;
+
 begin
   if pointerprefix then
-    if UseCtypesUnit then
-    begin
-      if not IsACType(p^.p) then
-      begin
-        PTypeList.Add('P'+p^.str);
-      end;
-    end
+    if UseCTypesUnit and IsACType(p^.p) then
+      RegisterPointerChain('p'+p^.str,pointer_level-1)
     else
       begin
-      PTypeList.Add('P'+p^.str);
+      lName:='P'+PointerBaseName(p^.str);
+      PTypeList.Add(lName);
+      RegisterPointerChain(lName,pointer_level-1);
       end;
   if p^.skiptprefix then
     write(outfile,p^.p)
+  else if pointerprefix then
+    write(outfile,PointerBaseName(p^.str))
   else
     write(outfile,TypeName(p^.p));
 end;
@@ -941,48 +1288,34 @@ end;
 procedure write_type_specifier_pointer(var outfile:text; p : presobject);
 
 var
-  pointerwritten : Boolean;
+  lTarget : presobject;
+  lIsCType : Boolean;
 
 begin
-  pointerwritten:=false;
-  if (p^.p1^.typ=t_void) then
+  lTarget:=p^.p1;
+  if lTarget^.typ=t_void then
+    write(outfile,'pointer')
+  else if IsFunctionType(lTarget) then
+    write_type_specifier(outfile,lTarget)
+  else if not (UsePPointers and WriteNamedPointer(outfile,lTarget)) then
     begin
-    write(outfile,'pointer');
-    pointerwritten:=true;
-    end
-  else if UsePPointers then
-    begin
-    if (p^.p1^.typ=t_id) then
-    begin
-      write(outfile,PointerName(p^.p1^.p));
-      pointerwritten:=true;
-    end
-    { structure }
-    else if (p^.p1^.typ in [t_uniondef,t_structdef]) and
-            (p^.p1^.p1=nil) and (p^.p1^.p2^.typ=t_id) then
-    begin
-      write(outfile,PointerName(p^.p1^.p2^.p));
-      pointerwritten:=true;
-    end;
-    end;
-  if not pointerwritten then
-    begin
+    lIsCType:=UseCTypesUnit and IsACType(lTarget^.p);
     if in_args then
       begin
-      if UseCTypesUnit and IsACType(p^.p1^.p) then
+      if lIsCType then
         write(outfile,'p')
       else
         write(outfile,'P');
       pointerprefix:=true;
+      Inc(pointer_level);
       end
+    else if UseCTypesUnit and not lIsCType then
+      write(outfile,'^')
     else
-      begin
-        if UseCTypesUnit and (IsACType(p^.p1^.p)=False) then
-          write(outfile,'^')
-        else
-          write(outfile,'p');
-      end;
-    write_type_specifier(outfile,p^.p1);
+      write(outfile,'p');
+    write_type_specifier(outfile,lTarget);
+    if in_args then
+      Dec(pointer_level);
     pointerprefix:=false;
     end;
 end;
@@ -993,7 +1326,8 @@ var
   error : integer;
 
 begin
-  write(outfile,aktspace,hp1^.p1^.p,' = ');
+  write(outfile,aktspace,UniqueName(hp1^.p1^.str,FixId(hp1^.p1^.p)),' = ');
+  RegisterPlainConst(hp1^.p1^.str);
   if assigned(hp1^.p2) then
     begin
     write_expr(outfile,hp1^.p2);
@@ -1048,13 +1382,16 @@ begin
     w:=length(aktspace);
     while assigned(hp1) do
       begin
-      write(outfile,hp1^.p1^.p);
+      write(outfile,UniqueName(hp1^.p1^.str,FixId(hp1^.p1^.p)));
       if assigned(hp1^.p2) then
         begin
         write(outfile,' := ');
+        in_enum_value:=true;
         write_expr(outfile,hp1^.p2);
+        in_enum_value:=false;
         w:=w+6;(* strlen(hp1^.p); *)
         end;
+      EnumMembers.Add(hp1^.p1^.p);
       w:=w+length(hp1^.p1^.str);
       hp1:=hp1^.next;
       if assigned(hp1) then
@@ -1065,10 +1402,8 @@ begin
         write(outfile,aktspace);
         w:=length(aktspace);
         end;
-      flush(outfile);
       end;
     write(outfile,')');
-    flush(outfile);
     end
   else
     begin
@@ -1076,28 +1411,121 @@ begin
     hp1:=p^.p1;
     lastexpr:=nil;
     l:=0;
-    Writeln (outfile,copy(aktspace,1,length(aktspace)-2),'Const');
+    WriteSectionMarker(outfile,'C');
+    WriteSectionKeyword(outfile,OuterIndent(aktspace),'Const');
     while assigned(hp1) do
       begin
       write_enum_const(outfile,hp1,lastexpr,l);
       hp1:=hp1^.next;
-      flush(outfile);
       end;
     block_type:=bt_const;
     end;
 end;
 
+// Writes aHead and the keyword of a record: packed record for -pr, record otherwise.
+procedure WriteRecordKeyword(var aFile : text; const aHead : AnsiString);
+
+begin
+  if packrecords then
+    writeln(aFile,aHead,'packed record')
+  else
+    writeln(aFile,aHead,'record');
+end;
+
+
+procedure WriteUndefinedRecord(var aFile : text; const aIndent, aName : AnsiString);
+
+begin
+  WriteRecordKeyword(aFile,aIndent+aName+' = ');
+  writeln(aFile,aIndent,'    {undefined structure}');
+  writeln(aFile,aIndent,'  end;');
+end;
+
+
 procedure write_type_specifier_struct(var outfile:text; p : presobject);
 
 var
   hp1,hp2,hp3 : presobject;
-  i,l : longint;
-  error : integer;
-  current_power,
-  mask : cardinal;
+  lDecl, lSpec : presobject;
+  lIsBitField : boolean;
+  current_power : qword;
   flag_index : longint;
-  current_level : byte;
-    is_sized : boolean;
+  current_level : longint;
+  is_sized : boolean;
+
+  // Ends the current flag field with the type that holds current_level bits.
+  procedure CloseFlag;
+
+  begin
+    if current_level <= 16 then
+      writeln(outfile,'word;')
+    else if current_level <= 32 then
+      writeln(outfile,'dword;')
+    else
+      writeln(outfile,'qword;');
+    is_sized:=false;
+  end;
+
+  // Writes the member aDecl (t_dec) with the base type aType.
+  procedure WriteField(aDecl, aType : presobject);
+
+  begin
+    if is_sized then
+      CloseFlag;
+    write(outfile,aktspace,FixId(aDecl^.p2^.p),' : ');
+    shift(2);
+    is_procvar:=false;
+    (* a flexible array member becomes an array of one element *)
+    if assigned(aDecl^.p1) and (aDecl^.p1^.typ=t_pointerdef) and aDecl^.p1^.openarray then
+      begin
+      write(outfile,'array[0..0] of ');
+      write_p_a_def(outfile,aDecl^.p1^.p1,aType);
+      end
+    else
+      write_p_a_def(outfile,aDecl^.p1,aType);
+    popshift;
+  end;
+
+  // Writes the bit field aDecl (t_dec) with the size aSize (t_size_specifier) into the current flag field.
+  procedure WriteBitField(aDecl, aSize : presobject);
+
+  var
+    i,l : longint;
+    error : integer;
+    mask : qword;
+
+  begin
+    l:=0;
+    error:=1;
+    if aSize^.p1^.typ=t_id then
+      val(aSize^.p1^.str,l,error);
+    (* a field that does not fit starts a new flag: 32 bits, 64 for wider fields *)
+    if is_sized and (error=0) and (current_level+l>32)
+       and ((l<=32) or (current_level+l>64)) then
+      CloseFlag;
+    if not is_sized then
+      begin
+      current_power:=1;
+      current_level:=0;
+      inc(flag_index);
+      write(outfile,aktspace,'flag',flag_index,' : ');
+      end;
+    must_write_packed_field:=true;
+    is_sized:=true;
+    BitFieldFlags.Values[aDecl^.p2^.str]:=IntToStr(flag_index);
+    if error=0 then
+      begin
+      mask:=0;
+      for i:=1 to l do
+        begin
+        inc(mask,current_power);
+        current_power:=current_power*2;
+        end;
+      writeln(tempfile,'bm_&',aDecl^.p2^.p,' = ',hexstr(mask),';');
+      writeln(tempfile,'bp_&',aDecl^.p2^.p,' = ',current_level,';');
+      current_level:=current_level + l;
+      end;
+  end;
 
 begin
   inc(typedef_level);
@@ -1106,17 +1534,13 @@ begin
   current_level:=0;
   if ((in_args) or (typedef_level>1)) and (p^.p1=nil) and (p^.p2^.typ=t_id) then
     begin
-    if pointerprefix then
-      if UseCTypesUnit and (IsACType(p^.p2^.str)=false) then
-        PTypeList.Add('P'+p^.p2^.str);
+    if pointerprefix and UseCTypesUnit and not IsACType(p^.p2^.str) then
+      PTypeList.Add('P'+p^.p2^.str);
     write(outfile,TypeName(p^.p2^.p));
     end
   else
     begin
-      if packrecords then
-        writeln(outfile,'packed record')
-      else
-        writeln(outfile,'record');
+      WriteRecordKeyword(outfile,'');
       shift(2);
       hp1:=p^.p1;
 
@@ -1129,86 +1553,19 @@ begin
         hp3:=hp2^.p2;
         while assigned(hp3) do
           begin
-          if assigned(hp3^.p1) and
-              (not assigned(hp3^.p1^.p3) or
-              (hp3^.p1^.p3^.typ <> t_size_specifier)) then
+          lDecl:=hp3^.p1;
+          if assigned(lDecl) then
             begin
-            if is_sized then
-              begin
-                if current_level <= 16 then
-                  writeln(outfile,'word;')
-                else if current_level <= 32 then
-                  writeln(outfile,'longint;')
-                else
-                  internalerror(11);
-                is_sized:=false;
-              end;
-
-            write(outfile,aktspace,FixId(hp3^.p1^.p2^.p));
-            write(outfile,' : ');
-            shift(2);
-            write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-            popshift;
-            end;
-          { size specifier  or default value ? }
-          if assigned(hp3^.p1) and
-              assigned(hp3^.p1^.p3) then
-            begin
-            { we could use mask to implement this }
-            { because we need to respect the positions }
-            if hp3^.p1^.p3^.typ = t_size_specifier then
-              begin
-              if not is_sized then
-                begin
-                current_power:=1;
-                current_level:=0;
-                inc(flag_index);
-                write(outfile,aktspace,'flag',flag_index,' : ');
-                end;
-              must_write_packed_field:=true;
-              is_sized:=true;
-              { can it be something else than a constant ? }
-              { it can be a macro !! }
-              if hp3^.p1^.p3^.p1^.typ=t_id then
-                begin
-                val(hp3^.p1^.p3^.p1^.str,l,error);
-                if error=0 then
-                  begin
-                  mask:=0;
-                  for i:=1 to l do
-                    begin
-                      inc(mask,current_power);
-                      current_power:=current_power*2;
-                    end;
-                  write(tempfile,'bm_&',hp3^.p1^.p2^.p);
-                  writeln(tempfile,' = ',hexstr(mask),';');
-                  write(tempfile,'bp_&',hp3^.p1^.p2^.p);
-                  writeln(tempfile,' = ',current_level,';');
-                  current_level:=current_level + l;
-                  { go to next flag if 31 }
-                  if current_level = 32 then
-                    begin
-                      write(outfile,'longint');
-                      is_sized:=false;
-                    end;
-                  end;
-                end;
-              end
-            else if hp3^.p1^.p3^.typ = t_default_value then
-              begin
-              write(outfile,'{=');
-              write_expr(outfile,hp3^.p1^.p3^.p1);
-              write(outfile,' ignored}');
-              end;
+            lSpec:=lDecl^.p3;
+            lIsBitField:=assigned(lSpec) and (lSpec^.typ=t_size_specifier);
+            if assigned(lDecl^.p2) and not lIsBitField then
+              WriteField(lDecl,hp2^.p1);
+            if lIsBitField then
+              WriteBitField(lDecl,lSpec);
             end;
           if not is_sized then
             begin
-            if is_procvar then
-              begin
-              if not no_pop then
-                write(outfile,';cdecl');
-              is_procvar:=false;
-              end;
+            WriteProcVarDirectives(outfile,false);
             writeln(outfile,';');
             end;
           hp3:=hp3^.next;
@@ -1216,18 +1573,9 @@ begin
         hp1:=hp1^.next;
         end;
       if is_sized then
-        begin
-        if current_level <= 16 then
-          writeln(outfile,'word;')
-        else if current_level <= 32 then
-          writeln(outfile,'longint;')
-        else
-          internalerror(11);
-        is_sized:=false;
-        end;
+        CloseFlag;
       popshift;
       write(outfile,aktspace,'end');
-      flush(outfile);
     end;
   dec(typedef_level);
 end;
@@ -1246,11 +1594,7 @@ begin
     end
   else
     begin
-    inc(typedef_level);
-    if packrecords then
-      writeln(outfile,'packed record')
-    else
-      writeln(outfile,'record');
+    WriteRecordKeyword(outfile,'');
     shift(2);
     writeln(outfile,aktspace,'case longint of');
     shift(2);
@@ -1266,22 +1610,23 @@ begin
       hp3:=hp2^.p2;
       while assigned(hp3) do
         begin
-        write(outfile,aktspace,l,' : ( ');
-        write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
-        shift(2);
-        write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-        popshift;
-        writeln(outfile,' );');
+        if assigned(hp3^.p1) and assigned(hp3^.p1^.p2) then
+          begin
+          write(outfile,aktspace,l,' : ( ');
+          write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
+          shift(2);
+          write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
+          popshift;
+          writeln(outfile,' );');
+          inc(l);
+          end;
         hp3:=hp3^.next;
-        inc(l);
         end;
       hp1:=hp1^.next;
       end;
     popshift;
     write(outfile,aktspace,'end');
     popshift;
-    flush(outfile);
-    dec(typedef_level);
     end;
   dec(typedef_level);
 end;
@@ -1308,32 +1653,18 @@ begin
   end;
 end;
 
-procedure write_def_params(var outfile:text; p : presobject);
+procedure write_cast_type(var outfile:text; p : presobject);
 
 var
-  hp1 : presobject;
+  lOldInArgs : boolean;
 
 begin
-  case p^.typ of
-  t_enumdef:
-    begin
-    hp1:=p^.p1;
-    while assigned(hp1) do
-      begin
-      write(outfile,FixId(hp1^.p1^.p));
-      hp1:=hp1^.next;
-      if assigned(hp1) then
-        write(outfile,',')
-      else
-        write(outfile);
-      flush(outfile);
-      end;
-    flush(outfile);
-    end;
-  else
-    internalerror(4);
-  end;
+  lOldInArgs:=in_args;
+  in_args:=true;
+  write_type_specifier(outfile,p);
+  in_args:=lOldInArgs;
 end;
+
 
 function MayWritePointerTypeDef(const PN: AnsiString): Boolean;
 
@@ -1341,15 +1672,687 @@ begin
   Result:=WrittenPointers.IndexOf(PN)=-1;
 end;
 
-function WritePointerTypeDef(var aFile : text; const PN, TN: AnsiString): Boolean;
+// Writes PN = ^TN with indentation aIndent unless PN was written before.
+procedure WriteIndentedPointerTypeDef(var aFile : text; const aIndent, PN, TN: AnsiString);
 
 begin
-  Result:=MayWritePointerTypeDef(PN);;
-  if Result then
+  if MayWritePointerTypeDef(PN) then
     begin
     WrittenPointers.Add(PN);
-    Writeln(aFile,aktspace,PN,' = ^',TN,';');
+    Writeln(aFile,aIndent,PN,' = ^',TN,';');
    end;
+end;
+
+
+procedure WritePointerTypeDef(var aFile : text; const PN, TN: AnsiString);
+
+begin
+  WriteIndentedPointerTypeDef(aFile,aktspace,PN,TN);
+end;
+
+
+// Returns the Pascal name of the type the pointer type PN points to.
+function PointerTarget(const PN : AnsiString) : AnsiString;
+
+begin
+  Result:=PointerTargets.Values[PN];
+  if Result='' then
+    Result:=TypeName(Copy(PN,2,Length(PN)-1));
+end;
+
+
+procedure RegisterPointerChain(const aPointer : AnsiString; aLevels : Integer);
+
+var
+  lName, lTarget : AnsiString;
+  lLevel : Integer;
+
+begin
+  lTarget:=aPointer;
+  for lLevel:=1 to aLevels do
+    begin
+    lName:='P'+lTarget;
+    PTypeList.Add(lName);
+    if PointerTargets.IndexOfName(lName)=-1 then
+      PointerTargets.Values[lName]:=lTarget;
+    lTarget:=lName;
+    end;
+end;
+
+
+function IsFunctionType(aType : presobject) : Boolean;
+
+begin
+  Result:=assigned(aType) and (aType^.typ=t_id)
+          and (FunctionTypes.IndexOf(PointerBaseName(aType^.str))<>-1);
+end;
+
+
+procedure RegisterFunctionType(const aName : AnsiString);
+
+begin
+  FunctionTypes.Add(PointerBaseName(aName));
+end;
+
+
+// Writes the pointer types to aTarget, and recursively the pointer types to those.
+procedure WritePointersTo(var aFile : text; const aIndent, aTarget : AnsiString);
+
+var
+  lIndex : Integer;
+  lName : AnsiString;
+
+begin
+  for lIndex:=0 to PTypeList.Count-1 do
+    begin
+    lName:=PTypeList[lIndex];
+    if SameText(PointerTarget(lName),aTarget) then
+      begin
+      WriteIndentedPointerTypeDef(aFile,aIndent,lName,aTarget);
+      WritePointersTo(aFile,aIndent,lName);
+      end;
+    end;
+end;
+
+
+// Writes the pointer types to aTarget that were not written yet as untyped pointers, in a type section of their own,
+// and the pointer types to those.
+procedure WriteUntypedPointersTo(var aFile : text; const aIndent, aTarget : AnsiString);
+
+var
+  lIndex : Integer;
+  lName : AnsiString;
+  lFirst : Boolean;
+
+begin
+  lFirst:=true;
+  for lIndex:=0 to PTypeList.Count-1 do
+    begin
+    lName:=PTypeList[lIndex];
+    if SameText(PointerTarget(lName),aTarget) and MayWritePointerTypeDef(lName) then
+      begin
+      if lFirst then
+        Writeln(aFile,OuterIndent(aIndent),'type');
+      lFirst:=false;
+      WrittenPointers.Add(lName);
+      Writeln(aFile,aIndent,lName,' = pointer;');
+      WritePointersTo(aFile,aIndent,lName);
+      end;
+    end;
+end;
+
+
+procedure HoistProcVarElement(const aName : AnsiString; aChain, aType : presobject);
+
+var
+  lArray, lElement : presobject;
+
+begin
+  lArray:=aChain;
+  if not (assigned(lArray) and (lArray^.typ in [t_arraydef,t_pointerdef])) then
+    exit;
+  repeat
+    lElement:=lArray^.p1;
+    if not assigned(lElement) or not (lElement^.typ in [t_arraydef,t_pointerdef]) then
+      exit;
+    if IsProcPointer(lElement) then
+      break;
+    lArray:=lElement;
+  until false;
+  WriteNamedType(aName,lElement,aType);
+  dispose(lElement,done);
+  lArray^.p1:=NewID(aName);
+end;
+
+
+procedure HoistPointedArray(const aName : AnsiString; aChain, aType : presobject);
+
+var
+  lNode, lArray : presobject;
+  lName : AnsiString;
+
+begin
+  lNode:=aChain;
+  while assigned(lNode) and (lNode^.typ in [t_arraydef,t_pointerdef]) do
+    begin
+    lArray:=lNode^.p1;
+    (* a flexible array member is an open array, not a pointer *)
+    if (lNode^.typ=t_pointerdef) and not lNode^.openarray and assigned(lArray) and (lArray^.typ=t_arraydef) then
+      begin
+      lName:=aName;
+      if IsDeclaredType(TypeName(lName)) then
+        lName:=aName+'_array';
+      HoistPointedArray(lName+'_element',lArray,aType);
+      WriteNamedType(lName,lArray,aType);
+      dispose(lArray,done);
+      lNode^.p1:=NewID(lName);
+      exit;
+      end;
+    lNode:=lArray;
+    end;
+end;
+
+
+procedure WritePointerMarker(var aFile : text; const TN : AnsiString);
+
+begin
+  RegisterName(TN);
+  if block_type<>bt_type then
+    exit;
+  if OpaqueTypes.IndexOf(TN)>=0 then
+    DefinedOpaqueTypes.Add(TN);
+  DeclaredTypes.Add(TN);
+  DeclaredSequence.Add(TN);
+  Writeln(aFile,PointerMarker,aktspace,TN);
+end;
+
+
+// Returns false when a type name in the tree aNode other than TN was declared at or after position aLimit.
+function RefersToEarlierTypes(aNode : presobject; const TN : AnsiString; aLimit : Integer) : Boolean;
+
+var
+  lIndex : Integer;
+
+begin
+  Result:=true;
+  if not assigned(aNode) then
+    exit;
+  if (aNode^.typ=t_id) and not aNode^.skiptprefix and not SameText(TypeName(aNode^.str),TN) then
+    begin
+    lIndex:=DeclaredSequence.IndexOf(TypeName(aNode^.str));
+    if lIndex>=aLimit then
+      exit(false);
+    end;
+  Result:=RefersToEarlierTypes(aNode^.p1,TN,aLimit) and RefersToEarlierTypes(aNode^.p2,TN,aLimit)
+          and RefersToEarlierTypes(aNode^.p3,TN,aLimit) and RefersToEarlierTypes(aNode^.next,TN,aLimit);
+end;
+
+
+function CanMoveRecord(const TN : AnsiString; aType : presobject) : Boolean;
+
+begin
+  Result:=not OneTypeSection and (OpaqueSequence.IndexOfName(TN)>=0) and (DefinedOpaqueTypes.IndexOf(TN)<0)
+          and RefersToEarlierTypes(aType^.p1,TN,StrToInt(OpaqueSequence.Values[TN]));
+end;
+
+
+procedure WriteMovedRecordStart(var aFile : text; const TN : AnsiString);
+
+begin
+  Writeln(aFile,MovedStartMarker,TN);
+end;
+
+
+procedure WriteMovedRecordEnd(var aFile : text; const TN : AnsiString);
+
+begin
+  Writeln(aFile,MovedEndMarker,TN);
+end;
+
+
+// Returns the position of the first marker character in aLine after its first character, or 0.
+function MarkerPos(const aLine : AnsiString) : Integer;
+
+var
+  lPos : Integer;
+
+begin
+  for lPos:=2 to Length(aLine) do
+    if aLine[lPos] in [PointerMarker..HeaderPointersMarker] then
+      exit(lPos);
+  Result:=0;
+end;
+
+
+procedure SplitMarkerLines(aLines : TStringList);
+
+var
+  lIndex, lPos : Integer;
+  lLine : AnsiString;
+
+begin
+  lIndex:=0;
+  while lIndex<aLines.Count do
+    begin
+    lLine:=aLines[lIndex];
+    lPos:=MarkerPos(lLine);
+    if lPos=0 then
+      inc(lIndex)
+    else
+      begin
+      aLines[lIndex]:=Copy(lLine,lPos,MaxInt);
+      if Trim(Copy(lLine,1,lPos-1))<>'' then
+        aLines.Insert(lIndex+1,Copy(lLine,1,lPos-1));
+      end;
+    end;
+end;
+
+
+procedure CollectMovedRecords(aLines : TStringList);
+
+var
+  i : Integer;
+  lLine : AnsiString;
+  lMarker : char;
+  lRecord : TStringList;
+
+begin
+  lRecord:=nil;
+  i:=0;
+  while i<aLines.Count do
+    begin
+    lLine:=aLines[i];
+    lMarker:=#0;
+    if lLine<>'' then
+      lMarker:=lLine[1];
+    if lMarker=MovedStartMarker then
+      begin
+      lRecord:=TStringList.Create;
+      MovedRecordLines.AddObject(Copy(lLine,2,MaxInt),lRecord);
+      end
+    else if lMarker=MovedEndMarker then
+      lRecord:=nil
+    else if assigned(lRecord) then
+      lRecord.Add(lLine)
+    else
+      begin
+      inc(i);
+      continue;
+      end;
+    aLines.Delete(i);
+    end;
+end;
+
+
+procedure WriteSectionMarker(var aFile : text; aKind : char);
+
+begin
+  Writeln(aFile,SectionMarker,aKind);
+end;
+
+
+procedure WriteSectionKeyword(var aFile : text; const aIndent, aKeyword : AnsiString);
+
+begin
+  Writeln(aFile,KeywordMarker,aIndent,aKeyword);
+end;
+
+
+procedure OpenSection(aBlock : tblocktype; const aKeyword : AnsiString);
+
+begin
+  if block_type=aBlock then
+    exit;
+  if not compactmode then
+    writeln(outfile);
+  WriteSectionKeyword(outfile,aktspace,aKeyword);
+  block_type:=aBlock;
+end;
+
+
+function WriteNamedType(const aName : AnsiString; aDef, aType : presobject) : AnsiString;
+
+begin
+  Result:=TypeName(aName);
+  WriteSectionMarker(outfile,'T');
+  OpenSection(bt_type,'type');
+  shift(2);
+  is_procvar:=false;
+  write(outfile,aktspace,Result,' = ');
+  write_p_a_def(outfile,aDef,aType);
+  WriteProcVarDirectives(outfile,false);
+  writeln(outfile,';');
+  is_procvar:=false;
+  WritePointerMarker(outfile,Result);
+  popshift;
+end;
+
+
+function IsProcPointer(aNode : presobject) : Boolean;
+
+begin
+  Result:=assigned(aNode) and (aNode^.typ=t_pointerdef) and assigned(aNode^.p1) and (aNode^.p1^.typ=t_procdef);
+end;
+
+
+function UnnamedParamName(aIndex : longint) : AnsiString;
+
+begin
+  if RemoveUnderscore then
+    Result:='para'+IntToStr(aIndex)
+  else
+    Result:='_para'+IntToStr(aIndex);
+end;
+
+
+function DeclaratorName(aDecl : presobject) : AnsiString;
+
+begin
+  if assigned(aDecl) and assigned(aDecl^.p2) and assigned(aDecl^.p2^.p) then
+    Result:=aDecl^.p2^.str
+  else
+    Result:='';
+end;
+
+
+function IsPlainConstExpr(aExpr : presobject) : Boolean;
+
+var
+  lStr : AnsiString;
+
+begin
+  Result:=true;
+  if not assigned(aExpr) then
+    exit;
+  case aExpr^.typ of
+    t_typespec :
+      (* a cast to a base type *)
+      exit(assigned(aExpr^.p1) and (aExpr^.p1^.typ=t_id) and aExpr^.p1^.skiptprefix and IsPlainConstExpr(aExpr^.p2));
+    t_id :
+      if not aExpr^.skiptprefix then
+        begin
+        lStr:=aExpr^.str;
+        if (lStr='') or not ((lStr[1] in ['0'..'9','''','#','$','&']) or (PlainConsts.IndexOf(lStr)>=0)) then
+          exit(false);
+        end;
+    t_funexprlist :
+      exit(false);
+  end;
+  Result:=IsPlainConstExpr(aExpr^.p1) and IsPlainConstExpr(aExpr^.p2) and IsPlainConstExpr(aExpr^.p3)
+          and IsPlainConstExpr(aExpr^.next);
+end;
+
+
+procedure RegisterPlainConst(const aName : AnsiString);
+
+begin
+  PlainConsts.Add(aName);
+end;
+
+
+// Returns true when the line aTrimmed, without leading spaces, is a whole comment line or starts a comment;
+// aClose is set to the text that closes the comment when it continues on the next lines, '' otherwise.
+function IsCommentLine(const aTrimmed : AnsiString; var aClose : AnsiString) : Boolean;
+
+var
+  lEnd : Integer;
+
+begin
+  aClose:='';
+  Result:=false;
+  if (aTrimmed<>'') and (aTrimmed[1]='{') and (Copy(aTrimmed,1,2)<>'{$') then
+    begin
+    lEnd:=Pos('}',aTrimmed);
+    if lEnd=0 then
+      aClose:='}';
+    Result:=(lEnd=0) or (lEnd=Length(TrimRight(aTrimmed)));
+    end
+  else if Copy(aTrimmed,1,2)='(*' then
+    begin
+    lEnd:=Pos('*)',aTrimmed);
+    if lEnd=0 then
+      aClose:='*)';
+    Result:=(lEnd=0) or (lEnd=Length(TrimRight(aTrimmed))-1);
+    end;
+end;
+
+
+// Returns true when the line aTrimmed, without leading blanks, is a compiler directive other than an include.
+function IsSharedDirective(const aTrimmed : AnsiString) : Boolean;
+
+begin
+  Result:=(Copy(aTrimmed,1,2)='{$') and not SameText(Copy(aTrimmed,1,4),'{$i ')
+          and not SameText(Copy(aTrimmed,1,9),'{$include');
+end;
+
+
+procedure ArrangeSections(aLines : TStringList);
+
+var
+  lConsts, lTypes, lRest, lPending : TStringList;
+  lKind, lRestKind : char;
+  lConstKeyword, lHasTypes, lHasConsts : Boolean;
+  i : Integer;
+  lLine, lTrimmed, lClose, lIndent : AnsiString;
+
+  // Adds the pending comments and aLine to aStream.
+  procedure AddContent(aStream : TStringList; const aLine : AnsiString);
+
+  begin
+    aStream.AddStrings(lPending);
+    lPending.Clear;
+    aStream.Add(aLine);
+  end;
+
+begin
+  lConsts:=TStringList.Create;
+  lTypes:=TStringList.Create;
+  lRest:=TStringList.Create;
+  lPending:=TStringList.Create;
+  if compactmode then
+    lIndent:=''
+  else
+    lIndent:='  ';
+  lKind:='F';
+  lRestKind:=#0;
+  lConstKeyword:=false;
+  lHasTypes:=false;
+  lHasConsts:=false;
+  lClose:='';
+  for i:=0 to aLines.Count-1 do
+    begin
+    lLine:=aLines[i];
+    lTrimmed:=TrimLeft(lLine);
+    if lClose<>'' then
+      begin
+      (* inside a comment of several lines *)
+      lPending.Add(lLine);
+      if Pos(lClose,lLine)>0 then
+        lClose:='';
+      end
+    else if lTrimmed='' then
+      lPending.Add(lLine)
+    else if lLine[1]=SectionMarker then
+      lKind:=lLine[2]
+    else if lLine[1]=KeywordMarker then
+      (* the sections are written again below *)
+    else if IsSharedDirective(lTrimmed) then
+      begin
+      (* conditions and switches apply to every section *)
+      lConsts.Add(lLine);
+      lTypes.Add(lLine);
+      lRest.Add(lLine);
+      lConstKeyword:=false;
+      lRestKind:=#0;
+      end
+    else if IsCommentLine(lTrimmed,lClose) then
+      lPending.Add(lLine)
+    else if lKind='T' then
+      begin
+      lHasTypes:=true;
+      AddContent(lTypes,lLine);
+      end
+    else if lKind='C' then
+      begin
+      if not lConstKeyword then
+        lConsts.Add(lIndent+'const');
+      lConstKeyword:=true;
+      lHasConsts:=true;
+      AddContent(lConsts,lLine);
+      end
+    else
+      begin
+      if lKind<>lRestKind then
+        if lKind='D' then
+          lRest.Add(lIndent+'const')
+        else if lKind='V' then
+          lRest.Add(lIndent+'var');
+      lRestKind:=lKind;
+      AddContent(lRest,lLine);
+      end;
+    end;
+  lRest.AddStrings(lPending);
+  aLines.Clear;
+  if lHasConsts then
+    aLines.AddStrings(lConsts);
+  (* one type keyword: forward pointers are resolved within one type section *)
+  if lHasTypes or HasHeaderPointers then
+    begin
+    aLines.Add(lIndent+'type');
+    aLines.Add(HeaderPointersMarker+lIndent+'  ');
+    aLines.AddStrings(lTypes);
+    end;
+  aLines.AddStrings(lRest);
+  lPending.Free;
+  lRest.Free;
+  lTypes.Free;
+  lConsts.Free;
+end;
+
+
+function IsDeclaredType(const TN : AnsiString) : Boolean;
+
+begin
+  Result:=DeclaredTypes.IndexOf(TN)>=0;
+end;
+
+
+procedure WriteOpaqueMarker(var aFile : text; const TN, AN : AnsiString);
+
+begin
+  OpaqueTypes.Add(TN);
+  OpaqueSequence.Values[TN]:=IntToStr(DeclaredSequence.Count);
+  DeclaredTypes.Add(TN);
+  if AN<>'' then
+    DeclaredTypes.Add(AN);
+  Writeln(aFile,OpaqueMarker,aktspace,TN,' ',AN);
+end;
+
+
+procedure WriteRecordMarker(var aFile : text; const TN : AnsiString);
+
+begin
+  if block_type=bt_type then
+    Writeln(aFile,RecordMarker,aktspace,TN);
+end;
+
+
+// Writes the alias AN = TN with the pointer types to AN.
+procedure WriteAlias(var aFile : text; const aIndent, AN, TN : AnsiString);
+
+begin
+  Writeln(aFile,aIndent,AN,' = ',TN,';');
+  WritePointersTo(aFile,aIndent,AN);
+end;
+
+
+function OuterIndent(const aIndent : AnsiString) : AnsiString;
+
+begin
+  Result:=Copy(aIndent,1,Length(aIndent)-2);
+end;
+
+
+// Writes the opaque marker text aText (TN AN) with indentation aIndent: the record TN moved here, nothing when
+// it is declared later, or an undefined record; and the alias AN.
+procedure WriteOpaqueMarkerLine(var aFile : text; const aIndent, aText : AnsiString);
+
+var
+  lTN, lAN : AnsiString;
+  lSpace, lIndex, lLine : Integer;
+  lLines : TStringList;
+
+begin
+  lSpace:=Pos(' ',aText);
+  lAN:=Trim(Copy(aText,lSpace+1,Length(aText)));
+  lTN:=Copy(aText,1,lSpace-1);
+  lIndex:=MovedRecordLines.IndexOf(lTN);
+  if lIndex>=0 then
+    begin
+    (* the record declared later, moved here *)
+    if not OneTypeSection then
+      Writeln(aFile,OuterIndent(aIndent),'type');
+    if lAN<>'' then
+      WritePointersTo(aFile,aIndent,lAN);
+    lLines:=TStringList(MovedRecordLines.Objects[lIndex]);
+    for lLine:=0 to lLines.Count-1 do
+      if not WriteMarkedPointers(aFile,lLines[lLine]) then
+        Writeln(aFile,lLines[lLine]);
+    end
+  else if DefinedOpaqueTypes.IndexOf(lTN)>=0 then
+    begin
+    (* the record declared later that cannot move here *)
+    if lAN<>'' then
+      PendingAliases.Add(lTN+'='+lAN);
+    if not OneTypeSection then
+      WriteUntypedPointersTo(aFile,aIndent,lTN);
+    exit;
+    end
+  else
+    begin
+    if not OneTypeSection then
+      Writeln(aFile,OuterIndent(aIndent),'type');
+    WriteUndefinedRecord(aFile,aIndent,lTN);
+    WritePointersTo(aFile,aIndent,lTN);
+    end;
+  if lAN<>'' then
+    WriteAlias(aFile,aIndent,lAN,lTN);
+end;
+
+
+function WriteMarkedPointers(var aFile : text; const aLine : AnsiString) : Boolean;
+
+var
+  lIndent, lTN : AnsiString;
+  lPos, lIndex : Integer;
+
+begin
+  Result:=(aLine<>'') and (aLine[1] in [PointerMarker,OpaqueMarker,RecordMarker,SectionMarker,KeywordMarker,
+                                        HeaderPointersMarker]);
+  if not Result then
+    exit;
+  lPos:=2;
+  while (lPos<=Length(aLine)) and (aLine[lPos]=' ') do
+    Inc(lPos);
+  lIndent:=Copy(aLine,2,lPos-2);
+  lTN:=Copy(aLine,lPos,MaxInt);
+  case aLine[1] of
+    KeywordMarker :
+      Writeln(aFile,Copy(aLine,2,MaxInt));
+    HeaderPointersMarker :
+      WriteHeaderPointers(aFile,Copy(aLine,2,MaxInt));
+    RecordMarker :
+      begin
+      (* pointers before the record, for the fields that refer to it *)
+      WritePointersTo(aFile,lIndent,lTN);
+      for lIndex:=0 to PendingAliases.Count-1 do
+        if SameText(PendingAliases.Names[lIndex],lTN) then
+          WritePointersTo(aFile,lIndent,PendingAliases.ValueFromIndex[lIndex]);
+      end;
+    OpaqueMarker :
+      WriteOpaqueMarkerLine(aFile,lIndent,lTN);
+    PointerMarker :
+      begin
+      WritePointersTo(aFile,lIndent,lTN);
+      for lIndex:=0 to PendingAliases.Count-1 do
+        if SameText(PendingAliases.Names[lIndex],lTN) then
+          WriteAlias(aFile,lIndent,PendingAliases.ValueFromIndex[lIndex],lTN);
+      end;
+  end;
+end;
+
+
+// Returns true when the pointer type PN belongs in the pointer list of the unit header.
+function IsHeaderPointer(const PN : AnsiString) : Boolean;
+
+var
+  lBase : AnsiString;
+
+begin
+  lBase:=PointerTarget(PN);
+  while (PTypeList.IndexOf(lBase)<>-1) and not SameText(lBase,PN) do
+    lBase:=PointerTarget(lBase);
+  Result:=MayWritePointerTypeDef(PN) and (DeclaredTypes.IndexOf(lBase)=-1);
 end;
 
 procedure write_statement_block(var outfile:text; p : presobject);
@@ -1384,39 +2387,71 @@ end;
 procedure WritePointerList(var headerfile: Text);
 
 var
-  I : Integer;
-  MustWritePointers : Boolean;
-  originalstr : String;
+  lIndex : Integer;
+  lName : AnsiString;
+  lTypeWritten : Boolean;
 
 begin
-  I:=PTypeList.count-1;
-  MustWritePointers:=False;
-  While (Not MustWritePointers) and (I>=0) do
+  lTypeWritten:=false;
+  for lIndex:=0 to PTypeList.Count-1 do
     begin
-    MustWritePointers:=MayWritePointerTypeDef(PTypelist[i]);
-    Dec(I);
+    lName:=PTypeList[lIndex];
+    if IsHeaderPointer(lName) then
+      begin
+      if not lTypeWritten then
+        Writeln(headerfile,'Type');
+      lTypeWritten:=true;
+      WritePointerTypeDef(headerfile,lName,PointerTarget(lName));
+      end;
     end;
-  if not MustWritePointers then
-    exit;
-  Writeln(headerfile,'Type');
-  for i:=0 to (PTypeList.Count-1) do
-     begin
-       originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
-       if PrependTypes then
-         originalstr:='T'+originalstr;
-       WritePointerTypeDef(HeaderFile,PTypeList[i],OriginalStr);
-     end;
+end;
+
+
+// Returns true when the pointer type PN is written before the other types: a header pointer, or with -1 any pointer
+// not written yet.
+function IsFirstPointer(const PN : AnsiString) : Boolean;
+
+begin
+  Result:=IsHeaderPointer(PN) or (OneTypeSection and MayWritePointerTypeDef(PN));
+end;
+
+
+function HasHeaderPointers : Boolean;
+
+var
+  lIndex : Integer;
+
+begin
+  Result:=false;
+  for lIndex:=0 to PTypeList.Count-1 do
+    if IsFirstPointer(PTypeList[lIndex]) then
+      exit(true);
+end;
+
+
+procedure WriteHeaderPointers(var aFile : text; const aIndent : AnsiString);
+
+var
+  lIndex : Integer;
+  lName : AnsiString;
+
+begin
+  for lIndex:=0 to PTypeList.Count-1 do
+    begin
+    lName:=PTypeList[lIndex];
+    if IsFirstPointer(lName) then
+      WriteIndentedPointerTypeDef(aFile,aIndent,lName,PointerTarget(lName));
+    end;
 end;
 
 procedure WriteFileHeader(var headerfile: Text);
 var
  i: integer;
- originalstr: string;
 begin
 { write unit header }
   if not includefile then
    begin
-     if createdynlib then
+     if createdynlib or UsesArrayOfConst then
        writeln(headerfile,'{$mode objfpc}');
      writeln(headerfile,'unit ',unitname,';');
      writeln(headerfile,'interface');
@@ -1441,7 +2476,7 @@ begin
      writeln(headerfile,'  External_library=''',libfilename,'''; {Setup as you need}');
      writeln(headerfile);
    end;
-  if PTypeList.count <> 0 then
+  if (PTypeList.count <> 0) and not OneTypeSection then
     WritePointerList(headerfile);
   writeln(headerfile);
   if not packrecords then
@@ -1484,15 +2519,21 @@ begin
   erase(tempfile);
 end;
 
+procedure WriteLibraryUses;
+
+begin
+  writeln(outfile,'  uses');
+  writeln(outfile,'    SysUtils, dynlibs;');
+  writeln(outfile);
+end;
+
+
 procedure WriteLibraryInitialization;
 
 var
  I : Integer;
 
 begin
-  writeln(outfile,'  uses');
-  writeln(outfile,'    SysUtils, dynlibs;');
-  writeln(outfile);
   writeln(outfile,'  var');
   writeln(outfile,'    hlib : tlibhandle;');
   writeln(outfile);
@@ -1527,21 +2568,73 @@ begin
   writeln(outfile,'  Free',unitname,';');
 end;
 
+const
+  // The pointer types declared by the system unit.
+  SystemPointers : array[0..27] of AnsiString = (
+    'pansichar', 'pchar', 'pdouble', 'plongint', 'psmallint', 'pshortint', 'pbyte', 'pint64', 'pword',
+    'pqword', 'pextended', 'plongword', 'psizeuint', 'psizeint', 'pptrint', 'pptruint', 'pboolean',
+    'pwidechar', 'pucs4char', 'ppointer', 'ppansichar', 'ppchar', 'ppbyte', 'ppdouble', 'pplongint',
+    'pppansichar', 'pppchar', 'pppointer');
+
+// Registers the pointer types of the system unit as written.
+procedure AddSystemPointers;
+
+var
+  i : integer;
+
+begin
+  for i:=Low(SystemPointers) to High(SystemPointers) do
+    WrittenPointers.Add(SystemPointers[i]);
+end;
+
+
 initialization
   WrittenPointers:=TStringList.Create;
   WrittenPointers.Sorted:=true;
-  // We must never write these, they are defined in the system unit
-  WrittenPointers.Add('pansichar');
-  WrittenPointers.Add('pchar');
-  WrittenPointers.Add('pdouble');
-  WrittenPointers.Add('plongint');
-  WrittenPointers.Add('psmallint');
-  WrittenPointers.Add('pshortint');
-  WrittenPointers.Add('pbyte');
-  WrittenPointers.Add('pint64');
-  WrittenPointers.Add('pword');
-  WrittenPointers.Add('pqword');
+  AddSystemPointers;
+  PointerTargets:=TStringList.Create;
+  BitFieldFlags:=TStringList.Create;
+  EnumMembers:=TStringList.Create;
+  EnumClashTypes:=TStringList.Create;
+  EnumClashTypes.CaseSensitive:=true;
+  GlobalNames:=TStringList.Create;
+  GlobalNames.Sorted:=true;
+  RenamedIds:=TStringList.Create;
+  RenamedIds.CaseSensitive:=true;
+  MacroFunctions:=TStringList.Create;
+  MacroFunctions.CaseSensitive:=true;
+  MacroFunctions.Sorted:=true;
+  OpaqueTypes:=TStringList.Create;
+  DefinedOpaqueTypes:=TStringList.Create;
+  PendingAliases:=TStringList.Create;
+  DeclaredSequence:=TStringList.Create;
+  OpaqueSequence:=TStringList.Create;
+  MovedRecordLines:=TStringList.Create;
+  MovedRecordLines.OwnsObjects:=true;
+  PlainConsts:=TStringList.Create;
+  FunctionTypes:=TStringList.Create;
+  FunctionTypes.Sorted:=true;
+  FunctionTypes.Duplicates:=dupIgnore;
+  DeclaredTypes:=TStringList.Create;
+  DeclaredTypes.Sorted:=true;
+  DeclaredTypes.Duplicates:=dupIgnore;
 
 finalization
+  DeclaredTypes.Free;
+  FunctionTypes.Free;
+  PointerTargets.Free;
+  BitFieldFlags.Free;
+  EnumMembers.Free;
+  EnumClashTypes.Free;
+  GlobalNames.Free;
+  RenamedIds.Free;
+  MacroFunctions.Free;
+  OpaqueTypes.Free;
+  DefinedOpaqueTypes.Free;
+  PendingAliases.Free;
+  DeclaredSequence.Free;
+  OpaqueSequence.Free;
+  MovedRecordLines.Free;
+  PlainConsts.Free;
   WrittenPointers.Free;
 end.

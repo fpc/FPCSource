@@ -276,105 +276,109 @@ Var
 
     pthread_mutexattr_settype : function(__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;
     pthread_setname_np : function(thread: pthread_t; name: PAnsiChar):cint;cdecl;
+    pthread_timedjoin_np : function(__th:pthread_t; __thread_return:ppointer; __abstime:ptimespec):cint;cdecl;
 
 
 Var
-  PthreadDLL : Pointer;
+  PthreadDLL : TLibHandle;
+  PthreadDLM : TDynLibsManager;
 
 Function LoadPthreads : Boolean;
 
 begin
+  GetDynLibsManager(PthreadDLM);
 {$ifndef ANDROID}
-  PThreadDLL:=DlOpen('libpthread.so.0',RTLD_LAZY);
+  PThreadDLL:=PthreadDLM.LoadLibraryA('libpthread.so.0');
 {$else}
-  PThreadDLL := dlopen('libc.so', RTLD_LAZY );
+  PThreadDLL:=PthreadDLM.LoadLibraryA('libc.so');
 {$endif}
-  Result:=PThreadDLL<>Nil;
+  Result:=PThreadDLL<>NilHandle;
   If Not Result then
     exit;
-  Pointer(pthread_create) := dlsym(PthreadDLL,'pthread_create');
-  Pointer(pthread_self) := dlsym(PthreadDLL,'pthread_self');
-  Pointer(pthread_equal) := dlsym(PthreadDLL,'pthread_equal');
-  Pointer(pthread_exit) := dlsym(PthreadDLL,'pthread_exit');
-  Pointer(pthread_join) := dlsym(PthreadDLL,'pthread_join');
-  Pointer(pthread_detach) := dlsym(PthreadDLL,'pthread_detach');
-  Pointer(pthread_attr_init) := dlsym(PthreadDLL,'pthread_attr_init');
-  Pointer(pthread_attr_destroy) := dlsym(PthreadDLL,'pthread_attr_destroy');
-  Pointer(pthread_attr_setdetachstate) := dlsym(PthreadDLL,'pthread_attr_setdetachstate');
-  Pointer(pthread_attr_getdetachstate) := dlsym(PthreadDLL,'pthread_attr_getdetachstate');
-  Pointer(pthread_attr_setschedparam) := dlsym(PthreadDLL,'pthread_attr_setschedparam');
-  Pointer(pthread_attr_getschedparam) := dlsym(PthreadDLL,'pthread_attr_getschedparam');
-  Pointer(pthread_attr_setschedpolicy) := dlsym(PthreadDLL,'pthread_attr_setschedpolicy');
-  Pointer(pthread_attr_getschedpolicy) := dlsym(PthreadDLL,'pthread_attr_getschedpolicy');
+  Pointer(pthread_create) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_create');
+  Pointer(pthread_self) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_self');
+  Pointer(pthread_equal) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_equal');
+  Pointer(pthread_exit) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_exit');
+  Pointer(pthread_join) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_join');
+  Pointer(pthread_detach) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_detach');
+  Pointer(pthread_attr_init) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_init');
+  Pointer(pthread_attr_destroy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_destroy');
+  Pointer(pthread_attr_setdetachstate) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setdetachstate');
+  Pointer(pthread_attr_getdetachstate) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_getdetachstate');
+  Pointer(pthread_attr_setschedparam) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setschedparam');
+  Pointer(pthread_attr_getschedparam) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_getschedparam');
+  Pointer(pthread_attr_setschedpolicy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setschedpolicy');
+  Pointer(pthread_attr_getschedpolicy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_getschedpolicy');
 {$ifndef ANDROID}
-  Pointer(pthread_attr_setinheritsched) := dlsym(PthreadDLL,'pthread_attr_setinheritsched');
-  Pointer(pthread_attr_getinheritsched) := dlsym(PthreadDLL,'pthread_attr_getinheritsched');
+  Pointer(pthread_attr_setinheritsched) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setinheritsched');
+  Pointer(pthread_attr_getinheritsched) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_getinheritsched');
 {$endif}
-  Pointer(pthread_attr_setscope) := dlsym(PthreadDLL,'pthread_attr_setscope');
-  Pointer(pthread_attr_getscope) := dlsym(PthreadDLL,'pthread_attr_getscope');
-  Pointer(pthread_attr_setstacksize) := dlsym(PthreadDLL,'pthread_attr_setstacksize');
-  Pointer(pthread_setschedparam) := dlsym(PthreadDLL,'pthread_setschedparam');
-  Pointer(pthread_getschedparam) := dlsym(PthreadDLL,'pthread_getschedparam');
-  Pointer(pthread_mutex_init) := dlsym(PthreadDLL,'pthread_mutex_init');
-  Pointer(pthread_mutex_destroy) := dlsym(PthreadDLL,'pthread_mutex_destroy');
-  Pointer(pthread_mutex_trylock) := dlsym(PthreadDLL,'pthread_mutex_trylock');
-  Pointer(pthread_mutex_timedlock) := dlsym(PthreadDLL,'pthread_mutex_timedlock');
-  Pointer(pthread_mutex_lock) := dlsym(PthreadDLL,'pthread_mutex_lock');
-  Pointer(pthread_mutex_unlock) := dlsym(PthreadDLL,'pthread_mutex_unlock');
-  Pointer(pthread_mutexattr_init) := dlsym(PthreadDLL,'pthread_mutexattr_init');
-  Pointer(pthread_mutexattr_destroy) := dlsym(PthreadDLL,'pthread_mutexattr_destroy');
+  Pointer(pthread_attr_setscope) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setscope');
+  Pointer(pthread_attr_getscope) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_getscope');
+  Pointer(pthread_attr_setstacksize) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_attr_setstacksize');
+  Pointer(pthread_setschedparam) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setschedparam');
+  Pointer(pthread_getschedparam) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_getschedparam');
+  Pointer(pthread_mutex_init) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_init');
+  Pointer(pthread_mutex_destroy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_destroy');
+  Pointer(pthread_mutex_trylock) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_trylock');
+  Pointer(pthread_mutex_timedlock) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_timedlock');
+  Pointer(pthread_mutex_lock) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_lock');
+  Pointer(pthread_mutex_unlock) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutex_unlock');
+  Pointer(pthread_mutexattr_init) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutexattr_init');
+  Pointer(pthread_mutexattr_destroy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutexattr_destroy');
 {$ifndef ANDROID}
-  Pointer(pthread_mutexattr_setkind_np) := dlsym(PthreadDLL,'pthread_mutexattr_setkind_np');
-  Pointer(pthread_mutexattr_getkind_np) := dlsym(PthreadDLL,'pthread_mutexattr_getkind_np');
+  Pointer(pthread_mutexattr_setkind_np) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutexattr_setkind_np');
+  Pointer(pthread_mutexattr_getkind_np) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutexattr_getkind_np');
 {$endif}
-  Pointer(pthread_cond_init) := dlsym(PthreadDLL,'pthread_cond_init');
-  Pointer(pthread_cond_destroy) := dlsym(PthreadDLL,'pthread_cond_destroy');
-  Pointer(pthread_cond_signal) := dlsym(PthreadDLL,'pthread_cond_signal');
-  Pointer(pthread_cond_broadcast) := dlsym(PthreadDLL,'pthread_cond_broadcast');
-  Pointer(pthread_cond_wait) := dlsym(PthreadDLL,'pthread_cond_wait');
-  Pointer(pthread_cond_timedwait) := dlsym(PthreadDLL,'pthread_cond_timedwait');
+  Pointer(pthread_cond_init) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_init');
+  Pointer(pthread_cond_destroy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_destroy');
+  Pointer(pthread_cond_signal) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_signal');
+  Pointer(pthread_cond_broadcast) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_broadcast');
+  Pointer(pthread_cond_wait) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_wait');
+  Pointer(pthread_cond_timedwait) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cond_timedwait');
 {$ifndef ANDROID}
-  Pointer(pthread_condattr_init) := dlsym(PthreadDLL,'pthread_condattr_init');
-  Pointer(pthread_condattr_destroy) := dlsym(PthreadDLL,'pthread_condattr_destroy');
-  Pointer(pthread_condattr_setclock) := dlsym(PthreadDLL,'pthread_condattr_setclock');
+  Pointer(pthread_condattr_init) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_condattr_init');
+  Pointer(pthread_condattr_destroy) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_condattr_destroy');
+  Pointer(pthread_condattr_setclock) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_condattr_setclock');
 {$endif}
-  Pointer(pthread_key_create) := dlsym(PthreadDLL,'pthread_key_create');
-  Pointer(pthread_key_delete) := dlsym(PthreadDLL,'pthread_key_delete');
-  Pointer(pthread_setspecific) := dlsym(PthreadDLL,'pthread_setspecific');
-  Pointer(pthread_getspecific) := dlsym(PthreadDLL,'pthread_getspecific');
-{  Pointer(pthread_once) := dlsym(PthreadDLL,'pthread_once');}
+  Pointer(pthread_key_create) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_key_create');
+  Pointer(pthread_key_delete) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_key_delete');
+  Pointer(pthread_setspecific) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setspecific');
+  Pointer(pthread_getspecific) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_getspecific');
+{  Pointer(pthread_once) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_once');}
 {$ifndef ANDROID}
-  Pointer(pthread_setcancelstate) := dlsym(PthreadDLL,'pthread_setcancelstate');
-  Pointer(pthread_setcanceltype) := dlsym(PthreadDLL,'pthread_setcanceltype');
-  Pointer(pthread_cancel) := dlsym(PthreadDLL,'pthread_cancel');
-  Pointer(pthread_testcancel) := dlsym(PthreadDLL,'pthread_testcancel');
+  Pointer(pthread_setcancelstate) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setcancelstate');
+  Pointer(pthread_setcanceltype) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setcanceltype');
+  Pointer(pthread_cancel) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_cancel');
+  Pointer(pthread_testcancel) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_testcancel');
 {$endif}
-{  Pointer(_pthread_cleanup_push) := dlsym(PthreadDLL,'_pthread_cleanup_push');}
-{  Pointer(_pthread_cleanup_push_defer) := dlsym(PthreadDLL,'_pthread_cleanup_push_defer');}
-{  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');}
-  Pointer(pthread_kill)  := dlsym(PthreadDLL,'pthread_kill');
+{  Pointer(_pthread_cleanup_push) := PthreadDLM.GetProcAddress(PthreadDLL,'_pthread_cleanup_push');}
+{  Pointer(_pthread_cleanup_push_defer) := PthreadDLM.GetProcAddress(PthreadDLL,'_pthread_cleanup_push_defer');}
+{  Pointer(pthread_sigmask) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_sigmask');}
+  Pointer(pthread_kill)  := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_kill');
 {$ifndef ANDROID}
-  Pointer(pthread_atfork):= dlsym(PthreadDLL,'pthread_atfork');
-  Pointer(pthread_kill_other_threads_np) := dlsym(PthreadDLL,'pthread_kill_other_threads_np');
+  Pointer(pthread_atfork):= PthreadDLM.GetProcAddress(PthreadDLL,'pthread_atfork');
+  Pointer(pthread_kill_other_threads_np) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_kill_other_threads_np');
 {$endif}
-  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');
-  Pointer(sem_init     ) := dlsym(PthreadDLL,'sem_init');
-  Pointer(sem_destroy  ) := dlsym(PthreadDLL,'sem_destroy');
-  Pointer(sem_close    ) := dlsym(PthreadDLL,'sem_close');
-  Pointer(sem_unlink   ) := dlsym(PthreadDLL,'sem_unlink');
-  Pointer(sem_wait     ) := dlsym(PthreadDLL,'sem_wait');
-  Pointer(sem_timedwait) := dlsym(PthreadDLL,'sem_timedwait');
-  Pointer(sem_trywait  ) := dlsym(PthreadDLL,'sem_trywait');
-  Pointer(sem_post     ) := dlsym(PthreadDLL,'sem_post');
-  Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
-  Pointer(pthread_mutexattr_settype) := dlsym(PthreadDLL,'pthread_mutexattr_settype');
-  Pointer(pthread_setname_np) := dlsym(PthreadDLL,'pthread_setname_np');
+  Pointer(pthread_sigmask) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_sigmask');
+  Pointer(sem_init     ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_init');
+  Pointer(sem_destroy  ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_destroy');
+  Pointer(sem_close    ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_close');
+  Pointer(sem_unlink   ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_unlink');
+  Pointer(sem_wait     ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_wait');
+  Pointer(sem_timedwait) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_timedwait');
+  Pointer(sem_trywait  ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_trywait');
+  Pointer(sem_post     ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_post');
+  Pointer(sem_getvalue ) := PthreadDLM.GetProcAddress(PthreadDLL,'sem_getvalue');
+  Pointer(pthread_mutexattr_settype) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_mutexattr_settype');
+  Pointer(pthread_setname_np) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_setname_np');
+  Pointer(pthread_timedjoin_np) := PthreadDLM.GetProcAddress(PthreadDLL,'pthread_timedjoin_np');
 end;
 
 Function UnLoadPthreads : Boolean;
 
 begin
-  Result:=dlclose(PThreadDLL)=0;
+  Result:=PthreadDLM.UnloadLibrary(PThreadDLL);
 end;
 
 {$endif}

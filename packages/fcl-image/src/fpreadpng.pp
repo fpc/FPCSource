@@ -21,10 +21,11 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils,System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream;
+  System.SysUtils,System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream,
+  FpImage.ImageList, FpImage.Exif;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream;
+  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream, FPImageList, fpimgexif;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -49,11 +50,21 @@ Type
       CountBitsUsed : byte;  // number of bit groups (1 pixel) per byte (when bytewidth = 1)
       //CFmt : TColorFormat; // format of the colors to convert from
       StartX,StartY, DeltaX,DeltaY, StartPass,EndPass : integer;  // number and format of passes
-      FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
+      FSwitchLine, FCurrentLine, FPreviousLine : PPNGByteArray;
       FPalette : TFPPalette;
       FGamma : Single;      // from gAMA, 0 when the file declares none
       FSetPixel : TSetPixelProc;
       FConvertColor : TConvertColorProc;
+      FAnimated : boolean;       // an acTL chunk stands before the image data
+      FFramesEnded : boolean;
+      FFramePending : boolean;   // FPending was read as the end of the frame before
+      FPending : TAPNGFrameControl;
+      FFrameIndex : integer;
+      FCompositor : TFPFrameCompositor;
+      FApplyOrientation : boolean;
+      procedure ReadMetadataChunk;
+      function ReadFrameControl : TAPNGFrameControl;
+      procedure DecodeFrame (Img : TFPCustomImage; const AControl : TAPNGFrameControl);
       function GetGrayScale: Boolean;
       function GetHeaderByte(AIndex: Integer): Byte;
       function GetIndexed: Boolean;
@@ -104,6 +115,9 @@ Type
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
       class function InternalSize(Str:TStream): TPoint; override;
+      function InternalBeginFrames(Str: TStream): TFPFramesInfo; override;
+      function InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean; override;
+      procedure InternalEndFrames(Str: TStream); override;
       //property ColorFormat : TColorformat read CFmt;
       property ConvertColor : TConvertColorProc read FConvertColor;
       property CurrentPass : byte read FCurrentPass;
@@ -125,6 +139,8 @@ Type
       Property ColorType : Byte Index 1 Read GetHeaderByte;
       Property Compression : Byte Index 2 Read GetHeaderByte;
       Property Filter : Byte Index 3 Read GetHeaderByte;
+      // Whether a still image is turned upright as the orientation of its EXIF data asks, which is then set to 1.
+      Property ApplyOrientation : Boolean Read FApplyOrientation Write FApplyOrientation;
       // Gamma the gAMA chunk of the file - zero when there is no such chunk.
       // The gamma is not applied, needs to be applied later when displaying.
       Property Gamma : Single Read FGamma;
@@ -149,10 +165,12 @@ begin
   chunk.acapacity := 0;
   chunk.data := nil;
   UseTransparent := False;
+  FApplyOrientation := True;
 end;
 
 destructor TFPReaderPNG.destroy;
 begin
+  FCompositor.Free;
   with chunk do
     if acapacity > 0 then
       freemem (data);
@@ -321,11 +339,18 @@ procedure TFPReaderPNG.ReadResolutionValues;
 begin
   if (chunk.alength<>sizeof(TPNGPhysicalDimensions))
   then raise Exception.Create('ctpHYs Chunk Size not Valid for TPNGPhysicalDimensions');
-  if (PPNGPhysicalDimensions(chunk.data)^.Unit_Specifier = 1)
-  then TheImage.ResolutionUnit :=ruPixelsPerCentimeter
-  else TheImage.ResolutionUnit :=ruNone;
-  TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
-  TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+  if (PPNGPhysicalDimensions(chunk.data)^.Unit_Specifier = 1) then
+    begin
+    TheImage.ResolutionUnit :=ruPixelsPerCentimeter;
+    TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
+    TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+    end
+  else
+    begin
+    TheImage.ResolutionUnit :=ruNone;
+    TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels);
+    TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels);
+    end;
 end;
 
 // gAMA holds the gamma of the file times 100000, in one big-endian
@@ -457,7 +482,7 @@ var diff : byte;
     l := PrevSample(index);
     lp := PrevLinePrevSample(index);
     p := PreviousLine(index);
-    r := l + p - lp;
+    r := integer(l) + integer(p) - integer(lp);
     dl := abs (r - l);
     dlp := abs (r - lp);
     dp := abs (r - p);
@@ -481,6 +506,8 @@ end;
 
 function TFPReaderPNG.DecideSetPixel : TSetPixelProc;
 begin
+  if Pltte and not assigned(ThePalette) then
+    raise PNGImageException.Create('PNG of colour type 3 without PLTE chunk');
   if Pltte then
     if TheImage.UsePalette then
       result := @SetPalettePixel
@@ -888,7 +915,7 @@ procedure TFPReaderPNG.DoDecompress;
             if lf <> 0 then  // Do nothing when there is no filter used
               for rx := 0 to l-1 do
                 FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
-            HandleScanLine (y, FCurrentLine);
+            HandleScanLine (y, PByteArray(FCurrentLine));
             end;
         finally
           freemem (FPreviousLine);
@@ -913,7 +940,99 @@ begin
     cttRNS : HandleAlpha;
     ctgAMA : ReadGamma;
     ctpHYs : ReadResolutionValues;
+    cteXIf, ctiCCP, ctiTXt : ReadMetadataChunk;
     else HandleUnknown;
+  end;
+end;
+
+// Reads eXIf, iCCP and the iTXt of an XMP packet into the metadata of the image.
+procedure TFPReaderPNG.ReadMetadataChunk;
+var
+  Data, Profile : TBytes;
+  Zero, Start, i : Integer;
+  Compressed : TMemoryStream;
+  Inflate : TDecompressionStream;
+  Buffer : array[0..4095] of Byte;
+  Count : Integer;
+
+  // Returns the position of the zero byte ending the text starting at aFrom, or -1.
+  function ZeroFrom(aFrom : Integer) : Integer;
+  begin
+    Result := aFrom;
+    while (Result < Length(Data)) and (Data[Result] <> 0) do
+      Inc(Result);
+    if Result >= Length(Data) then
+      Result := -1;
+  end;
+
+  function Uncompress(aFrom : Integer) : TBytes;
+  begin
+    Result := nil;
+    Compressed := TMemoryStream.Create;
+    try
+      if aFrom < Length(Data) then
+        Compressed.WriteBuffer(Data[aFrom], Length(Data) - aFrom);
+      Compressed.Position := 0;
+      Inflate := TDecompressionStream.Create(Compressed);
+      try
+        repeat
+          Count := Inflate.Read(Buffer, SizeOf(Buffer));
+          if Count > 0 then
+            begin
+            SetLength(Result, Length(Result) + Count);
+            Move(Buffer, Result[Length(Result) - Count], Count);
+            end;
+        until Count <= 0;
+      finally
+        Inflate.Free;
+      end;
+    finally
+      Compressed.Free;
+    end;
+  end;
+
+begin
+  Data := nil;
+  SetLength(Data, chunk.alength);
+  if chunk.alength > 0 then
+    Move(chunk.data^, Data[0], chunk.alength);
+  case chunk.aType of
+    cteXIf :
+      TheImage.Metadata[MetaExif] := ExifWithoutHeader(Data);
+    ctiCCP :
+      begin
+      Zero := ZeroFrom(0);
+      if (Zero > 0) and (Zero + 1 < Length(Data)) and (Data[Zero + 1] = 0) then
+        try
+          Profile := Uncompress(Zero + 2);
+          TheImage.Metadata[MetaICC] := Profile;
+        except
+          on E : EDecompressionError do
+            raise PNGImageException.Create('Invalid iCCP chunk: ' + E.Message);
+        end;
+      end;
+    ctiTXt :
+      begin
+      Zero := ZeroFrom(0);
+      if (Zero = Length(PNGXMPKeyword)) and CompareMem(@Data[0], @PNGXMPKeyword[1], Zero)
+         and (Zero + 2 < Length(Data)) then
+        begin
+        Start := Zero + 3;
+        for i := 1 to 2 do
+          begin
+          Start := ZeroFrom(Start);
+          if Start < 0 then
+            exit;
+          Inc(Start);
+          end;
+        if Data[Zero + 1] = 0 then
+          TheImage.Metadata[MetaXMP] := Copy(Data, Start, Length(Data) - Start)
+        else
+          TheImage.Metadata[MetaXMP] := Uncompress(Start);
+        end;
+      end;
+  else
+    ;
   end;
 end;
 
@@ -950,6 +1069,8 @@ begin
     finally
       Decompress.Free;
     end;
+    if FApplyOrientation then
+      ExifApplyImageOrientation(Img);
   finally
     ZData.Free;
     if not img.UsePalette and assigned(FPalette) then
@@ -959,11 +1080,204 @@ begin
   end;
 end;
 
+// Reads the fcTL chunk just read, checking that the frame lies on the canvas.
+function TFPReaderPNG.ReadFrameControl : TAPNGFrameControl;
+begin
+  if chunk.alength <> SizeOf(Result) then
+    raise PNGImageException.Create('Invalid fcTL chunk length');
+  move (chunk.data^, Result, SizeOf(Result));
+  with Result do
+    begin
+    SequenceNumber := BEtoN(SequenceNumber);
+    Width := BEtoN(Width);
+    Height := BEtoN(Height);
+    XOffset := BEtoN(XOffset);
+    YOffset := BEtoN(YOffset);
+    DelayNum := BEtoN(DelayNum);
+    DelayDen := BEtoN(DelayDen);
+    if (Width = 0) or (Height = 0) or (Int64(XOffset) + Width > Header.Width)
+       or (Int64(YOffset) + Height > Header.Height) then
+      raise PNGImageException.Create('APNG frame outside the canvas');
+    if (DisposeOp > APNGDisposePrevious) or (BlendOp > APNGBlendOver) then
+      raise PNGImageException.Create('Invalid APNG frame operation');
+    end;
+end;
+
+// Decodes the image data collected in ZData as a frame of the size AControl gives.
+procedure TFPReaderPNG.DecodeFrame (Img : TFPCustomImage; const AControl : TAPNGFrameControl);
+var
+  Saved : THeaderChunk;
+begin
+  Saved := FHeader;
+  try
+    FHeader.Width := AControl.Width;
+    FHeader.Height := AControl.Height;
+    Img.SetSize (AControl.Width, AControl.Height);
+    ZData.Position := 0;
+    Decompress := TDecompressionStream.Create (ZData);
+    try
+      DoDecompress;
+    finally
+      FreeAndNil(Decompress);
+    end;
+  finally
+    FHeader := Saved;
+  end;
+end;
+
+function TFPReaderPNG.InternalBeginFrames(Str: TStream): TFPFramesInfo;
+var
+  Start : Int64;
+  Control : TAPNGAnimationControl;
+begin
+  FAnimated := False;
+  FFramesEnded := False;
+  FFramePending := False;
+  FFrameIndex := 0;
+  UseTransparent := False;
+  FreeAndNil(FCompositor);
+  Result := DefaultFramesInfo;
+  Result.Width := Header.Width;
+  Result.Height := Header.Height;
+  Result.FrameCount := 1;
+  Start := Str.Position;
+  try
+    repeat
+      ReadChunk;
+      if (chunk.aType = ctacTL) and (chunk.alength = SizeOf(Control)) then
+        begin
+        move (chunk.data^, Control, SizeOf(Control));
+        FAnimated := True;
+        Result.FrameCount := BEtoN(Control.NumFrames);
+        Result.LoopCount := BEtoN(Control.NumPlays);
+        end;
+    until chunk.aType in [ctIDAT, ctIEND, ctacTL];
+  finally
+    Str.Position := Start;
+  end;
+end;
+
+function TFPReaderPNG.InternalReadFrame(Str: TStream; Img: TFPCustomImage; var aInfo: TFPFrameInfo): Boolean;
+var
+  Frame : TAPNGFrameControl;
+  HaveFrame, Done : boolean;
+  Place : TFPFrameInfo;
+begin
+  Result := False;
+  if FFramesEnded then
+    exit;
+  Img.UsePalette := False;
+  if FFrameIndex = 0 then
+    PredefinedResolutionValues;
+  ZData := TMemoryStream.Create;
+  try
+    HaveFrame := FFramePending;
+    if HaveFrame then
+      Frame := FPending;
+    FFramePending := False;
+    Done := False;
+    while not Done do
+      begin
+      ReadChunk;
+      case chunk.aType of
+        ctfcTL :
+          if HaveFrame then
+            begin
+            FPending := ReadFrameControl;
+            FFramePending := True;
+            Done := True;
+            end
+          else
+            begin
+            Frame := ReadFrameControl;
+            HaveFrame := True;
+            end;
+        ctIDAT :
+          if FAnimated then
+            begin
+            // Image data without a frame control before it is not part of the animation.
+            if HaveFrame then
+              HandleData;
+            end
+          else
+            begin
+            if not HaveFrame then
+              begin
+              FillChar(Frame, SizeOf(Frame), 0);
+              Frame.Width := Header.Width;
+              Frame.Height := Header.Height;
+              HaveFrame := True;
+              end;
+            HandleData;
+            end;
+        ctfdAT :
+          if HaveFrame and (chunk.alength > 4) then
+            ZData.Write (chunk.data^[4], chunk.alength - 4);
+        ctIEND :
+          begin
+          FFramesEnded := True;
+          Done := True;
+          end;
+        ctacTL : ;
+      else
+        HandleChunk;
+      end;
+      end;
+    if not HaveFrame or (ZData.Size = 0) then
+      exit;
+    DecodeFrame (Img, Frame);
+  finally
+    FreeAndNil(ZData);
+  end;
+  if not FAnimated and FApplyOrientation then
+    ExifApplyImageOrientation(Img);
+  if FAnimated then
+    begin
+    aInfo.Kind := fkAnimation;
+    if Frame.DelayDen = 0 then
+      aInfo.Delay := (Frame.DelayNum * 1000 + 50) div 100
+    else
+      aInfo.Delay := (Frame.DelayNum * 1000 + Frame.DelayDen div 2) div Frame.DelayDen;
+    case Frame.DisposeOp of
+      APNGDisposeBackground : aInfo.Disposal := fdBackground;
+      APNGDisposePrevious : aInfo.Disposal := fdPrevious;
+    else
+      aInfo.Disposal := fdNone;
+    end;
+    // The first frame cannot restore what was before it.
+    if (FFrameIndex = 0) and (aInfo.Disposal = fdPrevious) then
+      aInfo.Disposal := fdBackground;
+    if Frame.BlendOp = APNGBlendOver then
+      aInfo.Blend := fbOver;
+    aInfo.Left := Frame.XOffset;
+    aInfo.Top := Frame.YOffset;
+    if FComposite then
+      begin
+      if FCompositor = nil then
+        FCompositor := TFPFrameCompositor.Create(Header.Width, Header.Height, colTransparent);
+      Place := aInfo;
+      FCompositor.Add(Img, Place, Img);
+      aInfo.Left := 0;
+      aInfo.Top := 0;
+      aInfo.Disposal := fdNone;
+      aInfo.Blend := fbSource;
+      end;
+    end;
+  Inc(FFrameIndex);
+  Result := True;
+end;
+
+procedure TFPReaderPNG.InternalEndFrames(Str: TStream);
+begin
+  FreeAndNil(FCompositor);
+  FreeAndNil(FPalette);
+end;
+
 class function TFPReaderPNG.InternalSize(Str: TStream): TPoint;
 var
   SigCheck: array[0..7] of byte;
   r: Integer;
-  Width, Height: Word;
+  Width, Height: LongWord;
   StartPos: Int64;
 begin
   Result.X := 0;
@@ -978,17 +1292,13 @@ begin
       Exit;
   end;
   if not(
-        (Str.Seek(10, soFromCurrent)=StartPos+18)
-    and (Str.Read(Width, 2)=2)
-    and (Str.Seek(2, soFromCurrent)=StartPos+22)
-    and (Str.Read(Height, 2)=2))
+        (Str.Seek(8, soFromCurrent)=StartPos+16)
+    and (Str.Read(Width, 4)=4)
+    and (Str.Read(Height, 4)=4))
   then
     Exit;
-
-  {$IFDEF ENDIAN_LITTLE}
-  Width := Swap(Width);
-  Height := Swap(Height);
-  {$ENDIF}
+  Width := BEtoN(Width);
+  Height := BEtoN(Height);
 
   Result.X := Width;
   Result.Y := Height;
@@ -1012,7 +1322,7 @@ begin
     end;
   // Check IHDR
   ReadChunk;
-  if chunk.alength < 13 then  // IHDR is always 13 bytes (2*longword + 5*byte)
+  if chunk.alength <> 13 then  // IHDR is always 13 bytes (2*longword + 5*byte)
     exit;
   if chunk.aType <> ctIHDR then
     exit;
@@ -1026,6 +1336,13 @@ begin
     {$ENDIF}
     result :=(width > 0) and (height > 0) and (compression = 0)
               and (filter = 0) and (Interlace in [0,1]);
+    case ColorType of
+      0 : result := result and (BitDepth in [1,2,4,8,16]);
+      3 : result := result and (BitDepth in [1,2,4,8]);
+      2,4,6 : result := result and (BitDepth in [8,16]);
+    else
+      result := false;
+    end;
     end;
 end;
 

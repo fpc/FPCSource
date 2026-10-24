@@ -3,6 +3,7 @@ program testweb;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef unix}cwstring,{$endif}
   Classes, SysUtils, httpdefs, custcgi,cgiapp,fphttp,fpcgi,
   webutil, fpweb;
 

@@ -47,6 +47,10 @@
 {$define has_sem_timedwait}
 {$endif}
 
+{$if defined(linux) or defined(freebsd) or defined(darwin)}
+{$define has_schedparam}
+{$endif}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit cthreads;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -82,7 +86,10 @@ Uses
   UnixApi.Types,
   System.InitC
 {$ifdef dynpthreads}
-  ,UnixApi.Dl
+  ,System.DynLibs
+{$endif}
+{$ifdef linux}
+  ,UnixApi.SysCall
 {$endif}
   ;
 {$ELSE FPC_DOTTEDUNITS}
@@ -95,7 +102,10 @@ Uses
   unixtype,
   initc
 {$ifdef dynpthreads}
-  ,dl
+  ,dynlibs
+{$endif}
+{$ifdef linux}
+  ,syscall
 {$endif}
   ;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -300,6 +310,143 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
 
 {*****************************************************************************
+                            Kernel thread ids
+*****************************************************************************}
+
+{$ifdef linux}
+    type
+      PThreadTidEntry = ^TThreadTidEntry;
+      TThreadTidEntry = record
+        Thread: pthread_t;
+        { 0 until the thread has started }
+        Tid: cint;
+        { nice value to apply when the thread starts }
+        PendingNice: cint;
+        HasPendingNice: boolean;
+        Next: PThreadTidEntry;
+      end;
+
+    var
+      ThreadTidList: PThreadTidEntry;
+      ThreadTidLock: pthread_mutex_t;
+
+    // Returns the kernel thread id of the calling thread
+    function CurrentKernelTid: cint;
+
+    begin
+      CurrentKernelTid:=do_syscall(syscall_nr_gettid);
+    end;
+
+
+    // Sets the nice value of the kernel thread aTid
+    function SetTidNice(aTid, aNice: cint): boolean;
+
+    begin
+      SetTidNice:=do_syscall(syscall_nr_setpriority,PRIO_PROCESS,aTid,TSysParam(aNice))=0;
+    end;
+
+
+    // Returns the nice value of the kernel thread aTid in aNice
+    function GetTidNice(aTid: cint; out aNice: cint): boolean;
+
+    var
+      lRes: TSysResult;
+
+    begin
+      lRes:=do_syscall(syscall_nr_getpriority,PRIO_PROCESS,aTid);
+      GetTidNice:=lRes>0;
+      aNice:=20-lRes;
+    end;
+
+
+    // Returns the entry of aThread, or nil; ThreadTidLock must be held
+    function FindTidEntry(aThread: pthread_t): PThreadTidEntry;
+
+    begin
+      FindTidEntry:=ThreadTidList;
+      while assigned(FindTidEntry) and (FindTidEntry^.Thread<>aThread) do
+        FindTidEntry:=FindTidEntry^.Next;
+    end;
+
+
+    // Records the kernel thread id of the calling thread in aEntry and applies a pending nice value
+    procedure StartTidEntry(aEntry: PThreadTidEntry);
+
+    begin
+      pthread_mutex_lock(@ThreadTidLock);
+      aEntry^.Tid:=CurrentKernelTid;
+      if aEntry^.HasPendingNice then
+        SetTidNice(aEntry^.Tid,aEntry^.PendingNice);
+      aEntry^.HasPendingNice:=false;
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
+
+
+    // Removes and frees the entries of aThread
+    procedure RemoveTidEntries(aThread: pthread_t);
+
+    var
+      lPrev, lEntry, lNext: PThreadTidEntry;
+
+    begin
+      if ThreadTidList=nil then
+        exit;
+      pthread_mutex_lock(@ThreadTidLock);
+      lPrev:=nil;
+      lEntry:=ThreadTidList;
+      while assigned(lEntry) do
+        begin
+          lNext:=lEntry^.Next;
+          if lEntry^.Thread=aThread then
+            begin
+              if assigned(lPrev) then
+                lPrev^.Next:=lNext
+              else
+                ThreadTidList:=lNext;
+              dispose(lEntry);
+            end
+          else
+            lPrev:=lEntry;
+          lEntry:=lNext;
+        end;
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
+
+
+    // Frees the entries of threads that are still running at program exit
+    procedure DoneTidEntries;
+
+    var
+      lPrev, lEntry, lNext: PThreadTidEntry;
+
+    begin
+      if ThreadTidList=nil then
+        exit;
+      pthread_mutex_lock(@ThreadTidLock);
+      lPrev:=nil;
+      lEntry:=ThreadTidList;
+      while assigned(lEntry) do
+        begin
+          lNext:=lEntry^.Next;
+          { a thread that has not started yet still uses its entry in StartTidEntry }
+          if lEntry^.Tid<>0 then
+            begin
+              if assigned(lPrev) then
+                lPrev^.Next:=lNext
+              else
+                ThreadTidList:=lNext;
+              dispose(lEntry);
+            end
+          else
+            lPrev:=lEntry;
+          lEntry:=lNext;
+        end;
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
+{$endif linux}
+
+
+{*****************************************************************************
                             Thread starting
 *****************************************************************************}
 
@@ -309,6 +456,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         f : tthreadfunc;
         p : pointer;
         stklen : cardinal;
+{$ifdef linux}
+        tidentry : PThreadTidEntry;
+{$endif linux}
       end;
 
     function ThreadMain(param : pointer) : pointer;cdecl;
@@ -359,6 +509,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
+{$ifdef linux}
+        StartTidEntry(ti.tidentry);
+{$endif linux}
 
         { Initialize thread }
         InitThread(ti.stklen);
@@ -369,6 +522,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         writeln('Jumping to thread function');
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
+{$ifdef linux}
+        RemoveTidEntries(pthread_self());
+{$endif linux}
         DoneThread;
         pthread_exit(ThreadMain);
       end;
@@ -398,12 +554,24 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       end
   end;
 
+
+  // Deletes the key whose destructor finalizes threads not started by the RTL
+  Procedure DoneCTLS;
+
+  begin
+    if TLSInitialized then
+      pthread_key_delete(CleanupKey);
+  end;
+
   function CBeginThread(sa : Pointer;stacksize : PtrUInt;
                        ThreadFunction : tthreadfunc;p : pointer;
                        creationFlags : dword; var ThreadId : TThreadId) : TThreadID;
     var
       ti : pthreadinfo;
       thread_attr : pthread_attr_t;
+{$ifdef linux}
+      lEntry : PThreadTidEntry;
+{$endif linux}
     begin
 {$ifdef DEBUG_MT}
       writeln('Creating new thread');
@@ -424,17 +592,18 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       ti^.f:=ThreadFunction;
       ti^.p:=p;
       ti^.stklen:=stacksize;
+{$ifdef linux}
+      new(ti^.tidentry);
+      FillChar(ti^.tidentry^,SizeOf(TThreadTidEntry),0);
+      lEntry:=ti^.tidentry;
+{$endif linux}
       { call pthread_create }
 {$ifdef DEBUG_MT}
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
       {$if not defined(HAIKU)and not defined(BEOS) and not defined(ANDROID)}
-      {$if defined (solaris) or defined (netbsd) }
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
-      {$else not solaris}
-      pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
-      {$endif not solaris}
       {$ifend}
 
       // will fail under linux -- apparently unimplemented
@@ -444,6 +613,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       // the newly created thread!
       //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
 
+{$ifdef linux}
+      { the new thread waits for the lock before it records its kernel id }
+      pthread_mutex_lock(@ThreadTidLock);
+{$endif linux}
       // set the stack size
       if (pthread_attr_setstacksize(@thread_attr, stacksize)<>0) or
          // and create the thread
@@ -452,7 +625,19 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         begin
           dispose(ti);
           threadid := TThreadID(0);
+{$ifdef linux}
+          dispose(lEntry);
+        end
+      else
+        begin
+          lEntry^.Thread:=pthread_t(threadid);
+          lEntry^.Next:=ThreadTidList;
+          ThreadTidList:=lEntry;
+{$endif linux}
         end;
+{$ifdef linux}
+      pthread_mutex_unlock(@ThreadTidLock);
+{$endif linux}
       CBeginThread:=threadid;
       pthread_attr_destroy(@thread_attr);
 {$ifdef DEBUG_MT}
@@ -463,6 +648,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   procedure CEndThread(ExitCode : DWord);
     begin
+{$ifdef linux}
+      RemoveTidEntries(pthread_self());
+{$endif linux}
       DoneThread;
       pthread_detach(pthread_t(pthread_self()));
       pthread_exit(pointer(ptrint(ExitCode)));
@@ -505,6 +693,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CKillThread (threadHandle : TThreadID) : dword;
     begin
+{$ifdef linux}
+      RemoveTidEntries(pthread_t(threadHandle));
+{$endif linux}
       pthread_detach(pthread_t(threadHandle));
 {$ifndef android}
       CKillThread := pthread_cancel(pthread_t(threadHandle));
@@ -521,22 +712,195 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
   function  CWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
     var
       LResultP: Pointer;
+      LRes: cint;
+{$if defined(linux) and defined(dynpthreads)}
+      LTimeout: ttimespec;
+      LNow: timeval;
+{$endif}
     begin
-      pthread_join(pthread_t(threadHandle), @LResultP);
-      CWaitForThreadTerminate := dword(LResultP);
+      LResultP:=nil;
+{$if defined(linux) and defined(dynpthreads)}
+      if (TimeoutMs>0) and Assigned(pthread_timedjoin_np) then
+        begin
+          fpgettimeofday(@LNow,nil);
+          LTimeout.tv_sec:=LNow.tv_sec+(TimeoutMs div 1000);
+          LTimeout.tv_nsec:=(TimeoutMs mod 1000)*1000000+LNow.tv_usec*1000;
+          if LTimeout.tv_nsec>=1000000000 then
+            begin
+              inc(LTimeout.tv_sec);
+              dec(LTimeout.tv_nsec,1000000000);
+            end;
+          LRes:=pthread_timedjoin_np(pthread_t(threadHandle),@LResultP,@LTimeout);
+        end
+      else
+{$endif}
+        LRes:=pthread_join(pthread_t(threadHandle),@LResultP);
+      if LRes=0 then
+        CWaitForThreadTerminate:=dword(ptruint(LResultP))
+      else
+        CWaitForThreadTerminate:=dword(-1);
     end;
 
-    function  CThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
+
+{$ifdef has_schedparam}
+  function sched_get_priority_min(aPolicy: cint): cint; cdecl; external 'c' name 'sched_get_priority_min';
+  function sched_get_priority_max(aPolicy: cint): cint; cdecl; external 'c' name 'sched_get_priority_max';
+
+  const
+    MinThreadPrio = -15;
+    MaxThreadPrio = 15;
+{$ifdef linux}
+    SCHED_OTHER = 0;
+    SCHED_BATCH = 3;
+    SCHED_IDLE = 5;
+{$endif linux}
+
+
+  // Divides aValue by aDivisor (>0), rounding halves away from zero
+  function RoundDiv(aValue, aDivisor: cint): cint;
+
     begin
-      {$Warning ThreadSetPriority needs to be implemented}
+      if aValue<0 then
+        RoundDiv:=-((aDivisor div 2-aValue) div aDivisor)
+      else
+        RoundDiv:=(aValue+aDivisor div 2) div aDivisor;
+    end;
+
+
+{$ifdef linux}
+  // Converts a thread priority to a nice value
+  function PrioToNice(aPrio: cint): cint;
+
+    begin
+      PrioToNice:=-RoundDiv(aPrio*4,3);
+      if PrioToNice>19 then
+        PrioToNice:=19;
+    end;
+
+
+  // Converts a nice value to a thread priority
+  function NiceToPrio(aNice: cint): cint;
+
+    begin
+      NiceToPrio:=-RoundDiv(aNice*3,4);
+      if NiceToPrio<MinThreadPrio then
+        NiceToPrio:=MinThreadPrio
+      else if NiceToPrio>MaxThreadPrio then
+        NiceToPrio:=MaxThreadPrio;
+    end;
+
+
+  // Sets the priority of aThread with policy aPolicy as SCHED_IDLE or as nice value
+  function SetNicePriority(aThread: pthread_t; aPolicy, aPrio: cint): boolean;
+
+    var
+      lParam: sched_param;
+      lEntry: PThreadTidEntry;
+
+    begin
+      FillChar(lParam,SizeOf(lParam),0);
+      if aPrio=MinThreadPrio then
+        exit((aPolicy=SCHED_IDLE) or (pthread_setschedparam(aThread,SCHED_IDLE,@lParam)=0));
+      if (aPolicy=SCHED_IDLE) and (pthread_setschedparam(aThread,SCHED_OTHER,@lParam)<>0) then
+        exit(false);
+      if aThread=pthread_self() then
+        exit(SetTidNice(CurrentKernelTid,PrioToNice(aPrio)));
+      SetNicePriority:=false;
+      pthread_mutex_lock(@ThreadTidLock);
+      lEntry:=FindTidEntry(aThread);
+      if assigned(lEntry) then
+        if lEntry^.Tid=0 then
+          begin
+            lEntry^.PendingNice:=PrioToNice(aPrio);
+            lEntry^.HasPendingNice:=true;
+            SetNicePriority:=true;
+          end
+        else
+          SetNicePriority:=SetTidNice(lEntry^.Tid,PrioToNice(aPrio));
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
+
+
+  // Returns the priority of aThread derived from its nice value
+  function GetNicePriority(aThread: pthread_t): cint;
+
+    var
+      lEntry: PThreadTidEntry;
+      lNice: cint;
+
+    begin
+      GetNicePriority:=0;
+      if aThread=pthread_self() then
+        begin
+          if GetTidNice(CurrentKernelTid,lNice) then
+            GetNicePriority:=NiceToPrio(lNice);
+          exit;
+        end;
+      pthread_mutex_lock(@ThreadTidLock);
+      lEntry:=FindTidEntry(aThread);
+      if assigned(lEntry) then
+        if lEntry^.HasPendingNice then
+          GetNicePriority:=NiceToPrio(lEntry^.PendingNice)
+        else if (lEntry^.Tid<>0) and GetTidNice(lEntry^.Tid,lNice) then
+          GetNicePriority:=NiceToPrio(lNice);
+      pthread_mutex_unlock(@ThreadTidLock);
+    end;
+{$endif linux}
+{$endif has_schedparam}
+
+
+  function  CThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
+{$ifdef has_schedparam}
+    var
+      lPolicy, lMin, lMax: longint;
+      lParam: sched_param;
+{$endif has_schedparam}
+    begin
       result:=false;
+{$ifdef has_schedparam}
+      if Prio<MinThreadPrio then
+        Prio:=MinThreadPrio
+      else if Prio>MaxThreadPrio then
+        Prio:=MaxThreadPrio;
+      if pthread_getschedparam(pthread_t(threadHandle),@lPolicy,@lParam)<>0 then
+        exit;
+{$ifdef linux}
+      if (lPolicy=SCHED_OTHER) or (lPolicy=SCHED_BATCH) or (lPolicy=SCHED_IDLE) then
+        exit(SetNicePriority(pthread_t(threadHandle),lPolicy,Prio));
+{$endif linux}
+      lMin:=sched_get_priority_min(lPolicy);
+      lMax:=sched_get_priority_max(lPolicy);
+      if (lMin=-1) or (lMax<=lMin) then
+        exit;
+      lParam.__sched_priority:=lMin+RoundDiv((Prio-MinThreadPrio)*(lMax-lMin),MaxThreadPrio-MinThreadPrio);
+      result:=pthread_setschedparam(pthread_t(threadHandle),lPolicy,@lParam)=0;
+{$endif has_schedparam}
     end;
 
 
   function  CThreadGetPriority (threadHandle : TThreadID): Integer;
+{$ifdef has_schedparam}
+    var
+      lPolicy, lMin, lMax: longint;
+      lParam: sched_param;
+{$endif has_schedparam}
     begin
-      {$Warning ThreadGetPriority needs to be implemented}
       result:=0;
+{$ifdef has_schedparam}
+      if pthread_getschedparam(pthread_t(threadHandle),@lPolicy,@lParam)<>0 then
+        exit;
+{$ifdef linux}
+      if lPolicy=SCHED_IDLE then
+        exit(MinThreadPrio);
+      if (lPolicy=SCHED_OTHER) or (lPolicy=SCHED_BATCH) then
+        exit(GetNicePriority(pthread_t(threadHandle)));
+{$endif linux}
+      lMin:=sched_get_priority_min(lPolicy);
+      lMax:=sched_get_priority_max(lPolicy);
+      if (lMin=-1) or (lMax<=lMin) then
+        exit;
+      result:=MinThreadPrio+RoundDiv((lParam.__sched_priority-lMin)*(MaxThreadPrio-MinThreadPrio),lMax-lMin);
+{$endif has_schedparam}
     end;
 
 
@@ -981,7 +1345,7 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolean;
   var
     p : pintrtlevent;
     errres : cint;
@@ -1005,6 +1369,7 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
       begin
         errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
       end;
+    Result:=p^.isset;
     p^.isset:=false;
     pthread_mutex_unlock(@p^.mutex);
   end;
@@ -1039,7 +1404,10 @@ begin
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
-  Result:=UnloadPthreads;
+  // The library may already have been closed by an earlier call.
+  Result:=(PthreadDLL=NilHandle) or UnloadPthreads;
+  if Result then
+    PthreadDLL:=NilHandle;
 {$endif}
 end;
 
@@ -1100,4 +1468,11 @@ initialization
     end;
   SetCThreadManager;
 finalization
+{$ifdef linux}
+  DoneTidEntries;
+{$endif linux}
+  if IsLibrary then
+    DoneCTLS;
+  // Release the dynamically loaded pthread library.
+  CDoneThreads;
 end.

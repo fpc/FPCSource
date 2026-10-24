@@ -493,6 +493,20 @@ type
   tcpu_set_t = cpu_set_t;
   pcpu_set_t = ^tcpu_set_t;
 
+  { setitimer/getitimer }
+  itimerval = record
+    it_interval : timeval;      { period, 0 for a one-shot timer }
+    it_value    : timeval;      { time until the next expiration, 0 disarms }
+  end;
+  TItimerVal = itimerval;
+  PItimerVal = ^itimerval;
+
+const
+  ITIMER_REAL    = 0;           { real time, SIGALRM }
+  ITIMER_VIRTUAL = 1;           { process user time, SIGVTALRM }
+  ITIMER_PROF    = 2;           { process user and system time, SIGPROF }
+{$define FPC_HAS_ITIMER}
+
 {$if defined(cpupowerpc)}
 const
   { FP exception related constants for prctl(); PowerPC specific }

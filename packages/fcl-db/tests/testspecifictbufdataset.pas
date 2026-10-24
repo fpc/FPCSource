@@ -41,12 +41,16 @@ type
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
     function GetAutoIncDataset: TBufDataset;
     procedure IntTestAutoIncFieldStreaming(XML: boolean);
+    // Returns a dataset with FieldDefs and persistent fields for ID and NAME, not yet linked to each other.
+    function GetDefsAndFieldsDataset: TBufDataset;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure CreateDatasetFromFielddefs;
     procedure CreateDatasetFromFields;
+    // Opens a dataset that has both FieldDefs and persistent fields, once with Open and once with CreateDataset.
+    procedure CreateDatasetFromFielddefsAndFields;
     procedure TestOpeningNonExistingDataset;
     procedure TestCreationDatasetWithCalcFields;
     procedure TestAutoIncField;
@@ -204,6 +208,53 @@ begin
   DS.CreateDataset;
   TestDataset(ds);
 end;
+
+function TTestSpecificTBufDataset.GetDefsAndFieldsDataset: TBufDataset;
+
+var
+  lField: TField;
+
+begin
+  Result := TMyBufDataset.Create(nil);
+  Result.FieldDefs.Add('ID', ftInteger);
+  Result.FieldDefs.Add('NAME', ftString, 50);
+  lField := TIntegerField.Create(Result);
+  lField.FieldName := 'ID';
+  lField.DataSet := Result;
+  lField := TStringField.Create(Result);
+  lField.FieldName := 'NAME';
+  lField.Size := 50;
+  lField.DataSet := Result;
+end;
+
+
+procedure TTestSpecificTBufDataset.CreateDatasetFromFielddefsAndFields;
+
+// Test for issue 41931
+
+var
+  lDS: TBufDataset;
+  lUseCreate: Boolean;
+
+begin
+  for lUseCreate := False to True do
+    begin
+    lDS := GetDefsAndFieldsDataset;
+    try
+      if lUseCreate then
+        lDS.CreateDataset
+      else
+        lDS.Open;
+      AssertEquals('ID field number, CreateDataset=' + BoolToStr(lUseCreate, True), 1, lDS.FieldByName('ID').FieldNo);
+      AssertEquals('NAME field number, CreateDataset=' + BoolToStr(lUseCreate, True), 2, lDS.FieldByName('NAME').FieldNo);
+      TestDataset(lDS);
+      lDS.Close;
+    finally
+      lDS.Free;
+    end;
+    end;
+end;
+
 
 procedure TTestSpecificTBufDataset.TestOpeningNonExistingDataset;
 var ds : TBufDataset;

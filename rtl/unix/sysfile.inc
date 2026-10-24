@@ -69,21 +69,32 @@ Begin
 End;
 
 
+// Writes Len bytes, repeating short writes; returns the number of bytes written
 Function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
 
-var j : cint;
+var
+  j, lRes : cint;
 Begin
-  repeat
-    Do_Write:=Fpwrite(Handle,addr,len);
-    j:=geterrno;
-  until (do_write<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
-  If Do_Write<0 Then
+  Do_Write:=0;
+  lRes:=0;
+  while Len>0 do
+    begin
+    repeat
+      lRes:=Fpwrite(Handle,Addr,Len);
+      j:=geterrno;
+    until (lRes<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
+    if lRes<=0 then
+      break;
+    inc(Do_Write,lRes);
+    inc(PByte(Addr),lRes);
+    dec(Len,lRes);
+    end;
+  If (lRes<0) and (Do_Write=0) Then
    Begin
     Errno2InOutRes;
-    Do_Write:=0;
-   End
-  else
-   InOutRes:=0;
+    exit;
+   End;
+  InOutRes:=0;
 End;
 
 

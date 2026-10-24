@@ -1,14 +1,14 @@
 struct CTest
 {
-  unsigned long a;
-  unsigned long b;
-  unsigned long c;
-  unsigned long d;
+  unsigned long long a;
+  unsigned long long b;
+  unsigned long long c;
+  unsigned long long d;
 } __attribute__((aligned(16)));
 
-int TestFunc(unsigned long arg1, unsigned long arg2, unsigned long arg3, unsigned long arg4,
-             unsigned long arg5, unsigned long arg6, unsigned long arg7, struct CTest arg8,
-             unsigned long arg9, struct CTest arg10)
+int TestFunc(unsigned long long arg1, unsigned long long arg2, unsigned long long arg3, unsigned long long arg4,
+             unsigned long long arg5, unsigned long long arg6, unsigned long long arg7, struct CTest arg8,
+             unsigned long long arg9, struct CTest arg10)
 {
   if (arg1 != 1)
     return 1;

@@ -81,6 +81,13 @@ begin
       AddUnit('markdown.inlinetext');
       AddUnit('markdown.htmlentities');
       end;
+    T:=P.Targets.AddUnit('markdown.transforms.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('markdown.elements');
+      AddUnit('markdown.utils');
+      AddUnit('markdown.parser');
+      end;
     T:=P.Targets.AddUnit('markdown.processors.pas');
     with T.Dependencies do
       begin
@@ -90,6 +97,7 @@ begin
       AddUnit('markdown.line');
       AddUnit('markdown.inlinetext');
       AddUnit('markdown.htmlentities');
+      AddUnit('markdown.transforms');
       end;
 
 

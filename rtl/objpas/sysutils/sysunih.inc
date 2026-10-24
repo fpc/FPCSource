@@ -67,11 +67,15 @@ function BytesOf(const Val: WideChar): TBytes; overload;
 function StringOf(const Bytes: TBytes): UnicodeString;
 function WideBytesOf(const Value: UnicodeString): TBytes;
 function WideStringOf(const Value: TBytes): UnicodeString;
-function ByteLength(const S: UnicodeString): Integer;
+function ByteLength(const S: UnicodeString): SizeInt;
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
 function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
+{$if sizeof(SizeInt)>sizeof(Integer)}
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : SizeInt): UnicodeString;
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : SizeInt): UnicodeString;
+{$endif}
 // Needed to avoid "cannot determine overload"
 function StringReplace(const S : UnicodeString; OldPattern, NewPattern: WideChar;  Flags: TReplaceFlags): UnicodeString;
 

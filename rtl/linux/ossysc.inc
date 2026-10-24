@@ -738,22 +738,70 @@ end;
 
 
 {$ifdef USE_PRLIMIT64}
-function FpPRlimit64(pid : pid_t; resource : cInt; nrlim, orlim : PRLimit) : cInt;
+type
+  { struct rlimit64 of the prlimit64 system call }
+  TRLimit64 = record
+    rlim_cur : QWord;
+    rlim_max : QWord;
+  end;
+  PRLimit64 = ^TRLimit64;
+
+const
+  RLIM64_INFINITY = High(QWord);
+
+// Get and set a resource limit of process pid with 64-bit values
+function FpPRlimit64(pid : pid_t; resource : cInt; nrlim, orlim : PRLimit64) : cInt;
 begin
   FpPRlimit64 := do_syscall(syscall_nr_prlimit64, TSysParam(pid),
     TSysParam(resource), TSysParam(nrlim), TSysParam(orlim));
 end;
+
+
+// Convert a prlimit64 value to rlim_t, values out of range become RLIM_INFINITY
+function RLim64ToRLim(aValue : QWord) : rlim_t;
+begin
+  if aValue>High(rlim_t) then
+    RLim64ToRLim:=High(rlim_t)
+  else
+    RLim64ToRLim:=aValue;
+end;
+
+
+// Convert an rlim_t value to prlimit64, RLIM_INFINITY becomes RLIM64_INFINITY
+function RLimToRLim64(aValue : rlim_t) : QWord;
+begin
+  if aValue=High(rlim_t) then
+    RLimToRLim64:=RLIM64_INFINITY
+  else
+    RLimToRLim64:=aValue;
+end;
 {$endif}
 
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; [public, alias : 'FPC_SYSC_GETRLIMIT'];
+{$ifdef USE_PRLIMIT64}
+var
+  lLimit64 : TRLimit64;
+{$endif}
 begin
+{$ifdef USE_PRLIMIT64}
+  if rlim=nil then
+    begin
+      errno:=ESysEFAULT;
+      exit(-1);
+    end;
+  FpGetRLimit := FpPRlimit64(0, resource, nil, @lLimit64);
+  if FpGetRLimit=0 then
+    begin
+      rlim^.rlim_cur:=RLim64ToRLim(lLimit64.rlim_cur);
+      rlim^.rlim_max:=RLim64ToRLim(lLimit64.rlim_max);
+      exit;
+    end;
+  if errno<>ESysENOSYS then
+    exit;
+{$endif}
 {$ifndef NO_SYSCALL_GETRLIMIT}
-  {$ifndef USE_PRLIMIT64}
-    FpGetRLimit := do_syscall(syscall_nr_getrlimit,
-      TSysParam(resource), TSysParam(rlim));
-  {$else}
-    FpGetRLimit := FpPRlimit64(0, RLIMIT_STACK, PRLimit(0), rlim);
-  {$endif}
+  FpGetRLimit := do_syscall(syscall_nr_getrlimit,
+    TSysParam(resource), TSysParam(rlim));
 {$else}
   FpGetRLimit := do_syscall(syscall_nr_ugetrlimit,
     TSysParam(resource), TSysParam(rlim));
@@ -778,12 +826,24 @@ end;
 {$endif}
 
 function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
+{$ifdef USE_PRLIMIT64}
+var
+  lLimit64 : TRLimit64;
+{$endif}
 begin
-{$ifndef USE_PRLIMIT64}
-  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
-{$else}
-  fpsetrlimit:=FpPRlimit64(0, RLIMIT_STACK, rlim, PRLimit(0));
+{$ifdef USE_PRLIMIT64}
+  if rlim=nil then
+    begin
+      errno:=ESysEFAULT;
+      exit(-1);
+    end;
+  lLimit64.rlim_cur:=RLimToRLim64(rlim^.rlim_cur);
+  lLimit64.rlim_max:=RLimToRLim64(rlim^.rlim_max);
+  fpsetrlimit:=FpPRlimit64(0, Resource, @lLimit64, nil);
+  if (fpsetrlimit=0) or (errno<>ESysENOSYS) then
+    exit;
 {$endif USE_PRLIMIT64}
+  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
 end;
 
 function FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint;

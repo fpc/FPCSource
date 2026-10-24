@@ -342,6 +342,11 @@ type
     Procedure TestOperatorIdentifier;
     Procedure TestUTF8BOM;
     Procedure TestBooleanSwitch;
+    Procedure TestLetterSwitchList;
+    Procedure TestLetterSwitchListSpaces;
+    Procedure TestIfOptSwitchSet;
+    Procedure TestIfOptLongForm;
+    Procedure TestIfOptLetterOff;
     Procedure TestLinkLibSimple;
     Procedure TestLinkLibAlias;
     Procedure TestLinkLibDefaultAlias;
@@ -2579,6 +2584,53 @@ begin
   NewSource('{$HINTS OFF }');
   While not (Scanner.FetchToken=tkEOF) do;
   AssertFalse('Hints off',bshints in Scanner.CurrentBoolSwitches);
+end;
+
+procedure TTestScanner.TestLetterSwitchList;
+
+begin
+  Scanner.CurrentBoolSwitches:=[bsRangeChecks,bsOverflowChecks];
+  NewSource('{$q-,r-}');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertFalse('{$q-,r-} turns range checks off',bsRangeChecks in Scanner.CurrentBoolSwitches);
+  AssertFalse('{$q-,r-} turns overflow checks off',bsOverflowChecks in Scanner.CurrentBoolSwitches);
+end;
+
+procedure TTestScanner.TestLetterSwitchListSpaces;
+
+begin
+  Scanner.CurrentBoolSwitches:=[];
+  NewSource('{$R+, Q+}');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertTrue('{$R+, Q+} turns range checks on',bsRangeChecks in Scanner.CurrentBoolSwitches);
+  AssertTrue('{$R+, Q+} turns overflow checks on',bsOverflowChecks in Scanner.CurrentBoolSwitches);
+end;
+
+procedure TTestScanner.TestIfOptSwitchSet;
+
+begin
+  Scanner.CurrentBoolSwitches:=[bsRangeChecks];
+  NewSource('{$IFOPT R+}{$DEFINE RON}{$ENDIF}');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertTrue('{$IFOPT R+} is true when range checks are set on the scanner',FScanner.Defines.IndexOf('RON')<>-1);
+end;
+
+procedure TTestScanner.TestIfOptLongForm;
+
+begin
+  Scanner.CurrentBoolSwitches:=[];
+  NewSource('{$RANGECHECKS ON}{$IFOPT R+}{$DEFINE RON}{$ENDIF}');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertTrue('{$IFOPT R+} is true after {$RANGECHECKS ON}',FScanner.Defines.IndexOf('RON')<>-1);
+end;
+
+procedure TTestScanner.TestIfOptLetterOff;
+
+begin
+  Scanner.CurrentBoolSwitches:=[bsRangeChecks];
+  NewSource('{$R-}{$IFOPT R+}{$DEFINE RON}{$ENDIF}');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertTrue('{$IFOPT R+} is false after {$R-}',FScanner.Defines.IndexOf('RON')=-1);
 end;
 
 procedure TTestScanner.TestLinkLibSimple;

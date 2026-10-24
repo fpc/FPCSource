@@ -151,9 +151,9 @@ uses
         - the behavior of xor/or/and put isn't 100%:
           it is done using the RGB color getting from windows
           instead of the palette index!
-        - palette operations aren't supported
-      To solve these drawbacks, setpalette must be implemented
-      by exchanging the colors in the DCs, further GetPaletteEntry
+        - a palette change recolors existing pixels by their RGB value,
+          so all entries sharing the old RGB value change
+      To solve these drawbacks, GetPaletteEntry
       must be used when doing xor/or/and operations
 }
 
@@ -1173,8 +1173,54 @@ Begin
   currentColor := oldCurrentColor;
 end;
 }
+// Replaces every pixel of color aOld by aNew in the backing bitmap and copies the bitmap to the window
+procedure ReplaceBitmapColor(aOld,aNew : COLORREF);
+
+  var
+     lInfo : BITMAPINFO;
+     lPixels : PDWord;
+     lCount,i : longint;
+     lOld,lNew : DWord;
+
+  begin
+     if not graphrunning or not drawtobitmap or (aOld=aNew) then
+       exit;
+     lCount:=(maxx+1)*(maxy+1);
+     getmem(lPixels,lCount*sizeof(DWord));
+     fillchar(lInfo,sizeof(lInfo),0);
+     with lInfo.bmiHeader do
+       begin
+          biSize:=sizeof(BITMAPINFOHEADER);
+          biWidth:=maxx+1;
+          biHeight:=-(maxy+1);
+          biPlanes:=1;
+          biBitCount:=32;
+          biCompression:=BI_RGB;
+       end;
+     { 32 bit DIB pixels are $00RRGGBB, a COLORREF is $00BBGGRR }
+     lOld:=(aOld and $ff) shl 16 or (aOld and $ff00) or (aOld shr 16) and $ff;
+     lNew:=(aNew and $ff) shl 16 or (aNew and $ff00) or (aNew shr 16) and $ff;
+     EnterCriticalSection(graphdrawing);
+     SelectObject(bitmapdc,oldbitmap);
+     if GetDIBits(bitmapdc,savedscreen,0,maxy+1,lPixels,lInfo,DIB_RGB_COLORS)<>0 then
+       begin
+          for i:=0 to lCount-1 do
+            if (lPixels[i] and $ffffff)=lOld then
+              lPixels[i]:=lNew;
+          SetDIBits(bitmapdc,savedscreen,0,maxy+1,lPixels,lInfo,DIB_RGB_COLORS);
+       end;
+     SelectObject(bitmapdc,savedscreen);
+     if drawtoscreen then
+       BitBlt(windc,0,0,maxx+1,maxy+1,bitmapdc,0,0,SRCCOPY);
+     LeaveCriticalSection(graphdrawing);
+     freemem(lPixels);
+  end;
+
 procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
       bluevalue : smallint);
+
+  var
+     lOld : COLORREF;
 
   begin
      if directcolor or (colornum<0) or (colornum>=maxcolor) then
@@ -1182,6 +1228,7 @@ procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
          _graphresult:=grerror;
          exit;
        end;
+     lOld:=RGB(pal[colorNum].red,pal[colorNum].green,pal[colorNum].blue);
      pal[colorNum].red:=redValue;
      pal[colorNum].green:=greenValue;
      pal[colorNum].blue:=blueValue;
@@ -1190,6 +1237,7 @@ procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
           DeleteObject(pens[colorNum]);
           pens[colorNum]:=0;
        end;
+     ReplaceBitmapColor(lOld,RGB(pal[colorNum].red,pal[colorNum].green,pal[colorNum].blue));
   end;
 
 procedure GetRGBPaletteWin32GUI(colorNum : smallint;

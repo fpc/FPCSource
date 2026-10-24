@@ -63,6 +63,7 @@ type
     Procedure TestPrepareCount;
     Procedure TestPrepareCount2;
     Procedure TestNullTypeParam;
+    Procedure TestWideStringParam;
     procedure TestChangeSQLCloseUnprepare;
     procedure TestChangeSQLCloseUnprepareDisabled;
   end;
@@ -84,6 +85,7 @@ type
     procedure TestExplicitConnect;
     procedure TestGetStatementInfo;
     procedure TestGetNextValue;
+    procedure TestGetAsSQLTextWideString;
     Procedure TestCommitUnprepares;
     Procedure TestRollBackUnprepares;
   end;
@@ -98,6 +100,10 @@ type
   end;
 
 implementation
+
+type
+  { Access to the protected TSQLConnection.GetAsSQLText }
+  TSQLConnectionAccess = class(TSQLConnection);
 
 
 
@@ -868,6 +874,25 @@ begin
     SQLDBConnector.Connection.OnLog:=Nil;
   end;
 end;
+procedure TTestTSQLQuery.TestWideStringParam;
+// Connections that substitute parameters into the SQL text (MySQL, MSSQL)
+// must quote ftWideString values like ftString values.
+const
+  Value = 'O''Brien; x=''1''';
+begin
+  with SQLDBConnector.GetNDataset(10) as TSQLQuery do
+    begin
+    SQL.Text := 'UPDATE FPDEV SET NAME=:NAME WHERE ID=1';
+    ParamByName('NAME').AsUnicodeString := Value;
+    AssertEquals('Param DataType', Ord(ftWideString), Ord(ParamByName('NAME').DataType));
+    ExecSQL;
+    SQL.Text := 'SELECT NAME FROM FPDEV WHERE ID=1';
+    Open;
+    AssertEquals('Value stored unchanged', Value, Fields[0].AsString);
+    Close;
+    end;
+end;
+
 procedure TTestTSQLQuery.TestChangeSQLCloseUnprepare;
 begin
   with SQLDBConnector.GetNDataset(10) as TSQLQuery do
@@ -1105,6 +1130,42 @@ begin
   StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.fn1(1)');
   AssertEquals('TableName', '', StmtInfo.TableName);
   AssertEquals('Updateable', False, StmtInfo.Updateable);
+end;
+
+procedure TTestTSQLConnection.TestGetAsSQLTextWideString;
+// A wide string parameter must be rendered like the same value in a ftString
+// parameter: quoted, with embedded quotes escaped.
+const
+  Value = 'x'' OR ''1''=''1';
+  WideTypes: array[0..2] of TFieldType = (ftWideString, ftFixedWideChar, ftWideMemo);
+var
+  Conn: TSQLConnectionAccess;
+  StrParam, WideParam: TParam;
+  Expected: string;
+  T: TFieldType;
+begin
+  Conn := TSQLConnectionAccess(SQLDBConnector.Connection);
+  StrParam := TParam.Create(nil);
+  WideParam := TParam.Create(nil);
+  try
+    StrParam.AsString := Value;
+    Expected := Conn.GetAsSQLText(StrParam);
+    AssertTrue('ftString value is not pasted verbatim', Expected <> Value);
+    for T in WideTypes do
+      begin
+      WideParam.Clear;
+      WideParam.DataType := T;
+      WideParam.Value := UnicodeString(Value);
+      AssertEquals(Fieldtypenames[T]+' DataType', Ord(T), Ord(WideParam.DataType));
+      AssertEquals(Fieldtypenames[T]+' rendered like ftString', Expected, Conn.GetAsSQLText(WideParam));
+      end;
+    WideParam.Clear;
+    WideParam.AsUnicodeString := Value;
+    AssertEquals('AsUnicodeString rendered like ftString', Expected, Conn.GetAsSQLText(WideParam));
+  finally
+    WideParam.Free;
+    StrParam.Free;
+  end;
 end;
 
 procedure TTestTSQLConnection.TestGetNextValue;

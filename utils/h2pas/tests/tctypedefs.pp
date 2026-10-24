@@ -1,0 +1,779 @@
+{
+  h2pas test suite: typedefs and enumerations.
+  Copyright (c) 2026 by Michael Van Canneyt
+  See the file COPYING.FPC for details about the copyright.
+}
+unit tcTypedefs;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, fpcunit, testregistry, tcH2PasBase;
+
+type
+
+  { TTestTypedefs }
+
+  TTestTypedefs = class(TH2PasTestCase)
+  published
+    procedure TestSimpleTypedef;
+    procedure TestFunctionPointerArrayTypedef;
+    procedure TestFunctionPointerArrayTypedefCompiles;
+    procedure TestNamedTypeTypedef;
+    procedure TestAnonymousStruct;
+    procedure TestTaggedStruct;
+    procedure TestPointerAlias;
+    procedure TestTaggedStructPointerTypedef;
+    procedure TestUntaggedStructPointerTypedef;
+    procedure TestEnumPointerTypedef;
+    procedure TestInlineTypePointerTypedefsCompile;
+    procedure TestFunctionPointerResultTypedef;
+    procedure TestStructTagAlias;
+    procedure TestStructTagAliasPointer;
+    procedure TestStructTagAliasPrefix;
+    procedure TestTypedefOfTheSamePascalType;
+    procedure TestTypedefOfTheSamePascalTypePrefix;
+    procedure TestTypedefOfTheSamePascalTypeCompiles;
+    procedure TestReservedWordTypeNames;
+    procedure TestReservedWordTypeNamesPrefix;
+    procedure TestReservedWordTypeNamesCompile;
+    procedure TestOpaqueStruct;
+    procedure TestOpaqueStructWithAlias;
+    procedure TestOpaqueStructDefinedLater;
+    procedure TestOpaqueAliasDefinedLater;
+    procedure TestOpaqueStructPrefixes;
+    procedure TestOpaqueStructsCompile;
+    procedure TestRecordMovedToPointerTypedef;
+    procedure TestOpaquePointerTypedef;
+    procedure TestRecordMovedToTypedefWithAlias;
+    procedure TestRecordNotMovedAfterLaterFieldType;
+    procedure TestMovedRecordsCompile;
+    procedure TestAnonymousUnion;
+    procedure TestCharPointer;
+    procedure TestArray;
+    procedure TestOpenArray;
+    procedure TestFunctionPointer;
+    procedure TestProcedurePointer;
+    procedure TestVoidArgProcedurePointer;
+    procedure TestVoidArgFunctionPointer;
+    procedure TestVoidPointerArg;
+    procedure TestFunctionPointerArg;
+    procedure TestFunctionType;
+    procedure TestFunctionTypeWithoutParentheses;
+    procedure TestFunctionTypeUse;
+    procedure TestFunctionTypePrefix;
+    procedure TestGenericTypedef;
+    procedure TestTypedefsShareTypeBlock;
+  end;
+
+  { TTestEnums }
+
+  TTestEnums = class(TH2PasTestCase)
+  published
+    procedure TestAnonymousEnum;
+    procedure TestTaggedEnum;
+    procedure TestNamedEnum;
+    procedure TestEnumValues;
+    procedure TestEnumExpressionValue;
+    procedure TestEnumMemberNotPrefixed;
+    procedure TestReservedWordEnumMembers;
+    procedure TestReservedWordEnumConstants;
+    procedure TestReservedWordEnumMembersCompile;
+    procedure TestEnumValueUsesMember;
+    procedure TestEnumValueUsesMemberCompiles;
+    procedure TestEnumConstantUsesMember;
+    procedure TestCharLiteralEnumValues;
+    procedure TestCharLiteralEnumValuesCompile;
+    procedure TestEnumTagNameOfMember;
+    procedure TestEnumTypedefNameOfMember;
+    procedure TestEnumConstantsTypeNameOfMember;
+    procedure TestEnumTypeNameOfMemberPrefix;
+    procedure TestEnumTypeNameOfMemberCompiles;
+  end;
+
+implementation
+
+
+procedure TTestTypedefs.TestSimpleTypedef;
+
+begin
+  Convert(['typedef int myint;']);
+  AssertConverted;
+  AssertInterface('typedef of a base type',['type','myint = longint;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArrayTypedef;
+
+begin
+  Convert(['typedef void (*tbl[4])(int);']);
+  AssertConverted;
+  AssertInterface('array of function pointers gets a named element type',
+    ['tbl_element = procedure (_para1:longint);cdecl;','tbl = array[0..3] of tbl_element;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArrayTypedefCompiles;
+
+begin
+  Convert(['typedef void (*tbl[4])(int);','typedef int (*ops[2][3])(int a);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestNamedTypeTypedef;
+
+begin
+  Convert(['typedef foo bar;']);
+  AssertConverted;
+  AssertInterface('typedef of a type name',['bar = foo;']);
+end;
+
+
+procedure TTestTypedefs.TestAnonymousStruct;
+
+begin
+  Convert(['typedef struct { int x; } anon_t;']);
+  AssertConverted;
+  AssertInterface('anonymous struct takes the typedef name',['anon_t = record','x : longint;','end;']);
+end;
+
+
+procedure TTestTypedefs.TestTaggedStruct;
+
+begin
+  Convert(['typedef struct tag3 { int x; } t3;']);
+  AssertConverted;
+  AssertInterface('tagged struct is declared under its tag, the typedef is an alias',
+    ['tag3 = record','x : longint;','end;','t3 = tag3;']);
+end;
+
+
+procedure TTestTypedefs.TestPointerAlias;
+
+begin
+  Convert(['typedef struct { int x; } anon_t, *panon_t;']);
+  AssertConverted;
+  AssertInterface('second declarator is a pointer alias',['anon_t = record','x : longint;','end;','panon_t = ^anon_t;']);
+end;
+
+
+procedure TTestTypedefs.TestTaggedStructPointerTypedef;
+
+begin
+  Convert(['typedef union u { int i; } *pu;','typedef struct s { int a; } *ps, sarr[2];']);
+  AssertConverted;
+  AssertInterface('tagged union is declared under its tag',
+    ['u = record','case longint of','0 : ( i : longint );','end;','pu = ^u;']);
+  AssertInterface('tagged struct with pointer and array declarators',
+    ['s = record','a : longint;','end;','ps = ^s;','sarr = array[0..1] of s;']);
+end;
+
+
+procedure TTestTypedefs.TestUntaggedStructPointerTypedef;
+
+begin
+  Convert(['typedef struct { int a; } *pt;']);
+  AssertConverted;
+  AssertInterface('untagged struct of a pointer typedef gets a record name',
+    ['pt_record = record','a : longint;','end;','pt = ^pt_record;']);
+end;
+
+
+procedure TTestTypedefs.TestEnumPointerTypedef;
+
+begin
+  Convert(['typedef enum e { A, B } *pe;','typedef enum { C, D } *pf;']);
+  AssertConverted;
+  AssertInterface('tagged enum of a pointer typedef',['e = (A,B);','pe = ^e;']);
+  AssertInterface('untagged enum of a pointer typedef gets an enum name',['pf_enum = (C,D);','pf = ^pf_enum;']);
+end;
+
+
+procedure TTestTypedefs.TestInlineTypePointerTypedefsCompile;
+
+begin
+  Convert(['typedef union u { int i; } *pu;','typedef struct s { int a; } *ps, sarr[2];',
+           'typedef struct { int a; } *pt;','typedef enum e { A, B } *pe;'],['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('pointer typedef under -T -p',['Ppt_record = ^Tpt_record;','Tpt_record = record','a : longint;','end;','Tpt = Ppt_record;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestStructTagAlias;
+
+begin
+  Convert(['typedef struct tag4 t4;']);
+  AssertConverted;
+  AssertInterface('an undeclared tag becomes an empty record, the typedef name its alias',
+    ['type','tag4 = record','{undefined structure}','end;','t4 = tag4;']);
+end;
+
+
+procedure TTestTypedefs.TestStructTagAliasPointer;
+
+begin
+  Convert(['struct tag4 { int a; };','typedef struct tag4 t4;','void f(t4 *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to the alias follows the alias',['t4 = tag4;','Pt4 = ^t4;']);
+  AssertInterface('parameter uses the pointer to the alias',['procedure f(p:Pt4);']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestStructTagAliasPrefix;
+
+begin
+  Convert(['typedef struct _tag4 t4;'],['-T']);
+  AssertConverted;
+  AssertInterface('-T alias of a tag',['Tt4 = Ttag4;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalType;
+
+begin
+  Convert(['typedef unsigned char Byte;','typedef Byte Bytef;','typedef int myint;']);
+  AssertConverted;
+  AssertOutput('typedef of the type itself is ignored',['(* typedef Byte of the same Pascal type ignored *)']);
+  AssertNotOutput('no self-referencing type','Byte = byte;');
+  AssertInterface('typedefs of it use the Pascal type',['Bytef = Byte;','myint = longint;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalTypePrefix;
+
+begin
+  Convert(['typedef unsigned char Byte;'],['-T']);
+  AssertConverted;
+  AssertInterface('-T gives the typedef its own name',['TByte = byte;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefOfTheSamePascalTypeCompiles;
+
+begin
+  Convert(['typedef unsigned char Byte;','typedef Byte Bytef;','void f(Bytef *b, Byte c);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNames;
+
+begin
+  Convert(['typedef struct file file_t;','struct file { int fd; struct file *next; };','typedef int set;',
+           'enum label { L1 };','int f(struct file *p, set s, enum label l, file_t *q);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct named like a reserved word',
+    ['Pfile = ^_file;','_file = record','fd : longint;','next : ^_file;','end;','file_t = _file;']);
+  AssertInterface('a typedef named like a reserved word',['_set = longint;']);
+  AssertInterface('an enum named like a reserved word',['_label = (L1);']);
+  AssertInterface('parameters use the prefixed names',['function f(p:Pfile; s:_set; l:_label; q:Pfile_t):longint;']);
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNamesPrefix;
+
+begin
+  Convert(['typedef int o;','o g(o a);','struct file { int fd; };'],['-d','-t']);
+  AssertConverted;
+  AssertInterface('a T prefix that gives a reserved word',['_To = longint;','function g(a:_To):_To;']);
+  AssertInterface('a T prefix that gives no reserved word',['Tfile = record']);
+end;
+
+
+procedure TTestTypedefs.TestReservedWordTypeNamesCompile;
+
+begin
+  Convert(['typedef struct file file_t;','struct file { int fd; struct file *next; };','typedef int set;',
+           'enum label { L1 };','int f(struct file *p, set s, enum label l, file_t *q);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStruct;
+
+begin
+  Convert(['typedef struct sqlite3 sqlite3;','int f(sqlite3 *db);'],['-d']);
+  AssertConverted;
+  AssertInterface('opaque struct becomes an empty record',
+    ['type','sqlite3 = record','{undefined structure}','end;','Psqlite3 = ^sqlite3;','function f(db:Psqlite3):longint;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructWithAlias;
+
+begin
+  Convert(['typedef struct foo_s foo_t;','int g(foo_t *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('opaque tag and its alias',
+    ['foo_s = record','{undefined structure}','end;','foo_t = foo_s;','Pfoo_t = ^foo_t;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructDefinedLater;
+
+begin
+  Convert(['typedef struct bar bar;','typedef int other;','struct bar { int a; };','int h(bar *p);'],['-d']);
+  AssertConverted;
+  AssertNotOutput('no empty record for a struct declared later','undefined structure');
+  AssertInterface('the struct is declared once',['Pbar = ^bar;','bar = record','a : longint;','end;']);
+  AssertTrue('bar is declared once',CountOf('bar = record')=1);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueAliasDefinedLater;
+
+begin
+  Convert(['typedef struct w_s w_t;','struct w_s { int (*f)(w_t *p); };','int g(w_t *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('the alias follows the record declared later',
+    ['Pw_t = ^w_t;','w_s = record','f : function (p:Pw_t):longint;cdecl;','end;','w_t = w_s;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructPrefixes;
+
+begin
+  Convert(['typedef struct sqlite3 sqlite3;','typedef struct foo_s foo_t;','int f(sqlite3 *db, foo_t *p, sqlite3 **pp);'],
+          ['-d','-T','-p']);
+  AssertConverted;
+  AssertInterface('opaque struct under -T -p',
+    ['Tsqlite3 = record','{undefined structure}','end;','Psqlite3 = ^Tsqlite3;','PPsqlite3 = ^Psqlite3;']);
+  AssertInterface('opaque alias under -T -p',['Tfoo_s = record','{undefined structure}','end;','Tfoo_t = Tfoo_s;','Pfoo_t = ^Tfoo_t;']);
+end;
+
+
+procedure TTestTypedefs.TestOpaqueStructsCompile;
+
+begin
+  Convert(['int a(void);','typedef struct sqlite3 sqlite3;','int f(sqlite3 *db);','typedef struct foo_s foo_t;',
+           'typedef struct bar bar;','struct bar { int a; bar *next; };','typedef struct w_s w_t;',
+           'struct w_s { int (*f)(w_t *p); };','int g(foo_t *p, bar *b, w_t *w);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestRecordMovedToPointerTypedef;
+
+begin
+  Convert(['typedef long z_off64_t;','typedef struct gzFile_s *gzFile;','int gzread(gzFile file, void *buf);',
+           'struct gzFile_s { unsigned have; unsigned char *next; z_off64_t pos; };','int gzgetc_(gzFile file);'],['-d']);
+  AssertConverted;
+  AssertInterface('the record declared later precedes the pointer typedef',
+    ['gzFile_s = record','have : dword;','next : ^byte;','pos : z_off64_t;','end;','type','gzFile = ^gzFile_s;',
+     'function gzread(_file:gzFile; buf:pointer):longint;cdecl;external;']);
+  AssertTrue('the record is declared once',CountOf('gzFile_s = record')=1);
+end;
+
+
+procedure TTestTypedefs.TestOpaquePointerTypedef;
+
+begin
+  Convert(['typedef struct h_s *h_t;','int f(h_t h);'],['-d']);
+  AssertConverted;
+  AssertInterface('a struct without declaration becomes an empty record',
+    ['h_s = record','{undefined structure}','end;','type','h_t = ^h_s;']);
+end;
+
+
+procedure TTestTypedefs.TestRecordMovedToTypedefWithAlias;
+
+begin
+  Convert(['typedef struct cb_s cb_t;','int use(cb_t *c);','struct cb_s { void (*fns[2])(cb_t *c); int n; };'],['-d']);
+  AssertConverted;
+  AssertInterface('the record, its element type and its alias move to the typedef',
+    ['Pcb_t = ^cb_t;','cb_s_fns = procedure (c:Pcb_t);cdecl;','cb_s = record','fns : array[0..1] of cb_s_fns;','n : longint;',
+     'end;','cb_t = cb_s;','function use(c:Pcb_t):longint;cdecl;external;']);
+end;
+
+
+procedure TTestTypedefs.TestRecordNotMovedAfterLaterFieldType;
+
+begin
+  Convert(['typedef struct m_s *m_t;','int f(m_t h);','typedef int later_t;','struct m_s { later_t a; };'],['-d']);
+  AssertConverted;
+  AssertInterface('a record that refers to a later type stays in place',
+    ['later_t = longint;','m_s = record','a : later_t;','end;']);
+  AssertNotOutput('no empty record for a struct declared later','undefined structure');
+end;
+
+
+procedure TTestTypedefs.TestMovedRecordsCompile;
+
+begin
+  Convert(['typedef long z_off64_t;','typedef struct gzFile_s *gzFile;','int gzread(gzFile file, void *buf);',
+           'struct gzFile_s { unsigned have; unsigned char *next; z_off64_t pos; };','typedef struct h_s *h_t;',
+           'typedef struct cb_s cb_t;','int use(cb_t *c, h_t h);','struct cb_s { void (*fns[2])(cb_t *c); int n; };'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestAnonymousUnion;
+
+begin
+  Convert(['typedef union { int a; long b; } uu_t;']);
+  AssertConverted;
+  AssertInterface('anonymous union typedef',
+    ['uu_t = record','case longint of','0 : ( a : longint );','1 : ( b : longint );','end;']);
+end;
+
+
+procedure TTestTypedefs.TestCharPointer;
+
+begin
+  Convert(['typedef char *string_t;']);
+  AssertConverted;
+  AssertInterface('pointer typedef',['string_t = ^ansichar;']);
+end;
+
+
+procedure TTestTypedefs.TestArray;
+
+begin
+  Convert(['typedef int vec3[3];']);
+  AssertConverted;
+  AssertInterface('array typedef',['vec3 = array[0..2] of longint;']);
+end;
+
+
+procedure TTestTypedefs.TestOpenArray;
+
+begin
+  Convert(['typedef XrmHashTable XrmSearchList[];']);
+  AssertConverted;
+  AssertInterface('open array typedef becomes a pointer',['XrmSearchList = ^XrmHashTable;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointer;
+
+begin
+  Convert(['typedef int (*binop)(int a, int b);']);
+  AssertConverted;
+  AssertInterface('function pointer typedef',['binop = function (a:longint; b:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestProcedurePointer;
+
+begin
+  Convert(['typedef void (*cb)();']);
+  AssertConverted;
+  AssertInterface('procedure pointer typedef without arguments',['cb = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidArgProcedurePointer;
+
+begin
+  Convert(['typedef void (*cb)(void);']);
+  AssertConverted;
+  AssertInterface('(void) gives a procedure type without parameters',['cb = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidArgFunctionPointer;
+
+begin
+  Convert(['typedef int (*cb)(void);']);
+  AssertConverted;
+  AssertInterface('(void) gives a function type without parameters',['cb = function :longint;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestVoidPointerArg;
+
+begin
+  Convert(['typedef void (*cb1)(void *);','typedef void (*cb2)(void *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('unnamed void pointer argument is kept',['cb1 = procedure (_para1:pointer);cdecl;']);
+  AssertInterface('named void pointer argument is kept',['cb2 = procedure (p:pointer);cdecl;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerArg;
+
+begin
+  Convert(['typedef void (*cb)(void (*inner)(int x));'],['-d']);
+  AssertConverted;
+  AssertInterface('function pointer argument gets a named type before the typedef',
+    ['cb_inner = procedure (x:longint);cdecl;','cb = procedure (inner:cb_inner);cdecl;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionType;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef void (vfunc_t)(void);']);
+  AssertConverted;
+  AssertInterface('function type becomes a procedural type',['func_t = function (_para1:longint):longint;cdecl;']);
+  AssertInterface('procedure type becomes a procedural type',['vfunc_t = procedure ;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypeWithoutParentheses;
+
+begin
+  Convert(['typedef int func2_t(int a, int b);']);
+  AssertConverted;
+  AssertInterface('function type without parentheses',['func2_t = function (a:longint; b:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypeUse;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef int func2_t(int a, int b);',
+           'void usef(func_t *f, func_t g, func2_t *w);','extern func_t *fp;','struct cb { func_t *handler; };'],['-d']);
+  AssertConverted;
+  AssertInterface('pointer to a function type is the procedural type',['procedure usef(f:func_t; g:func_t; w:func2_t);cdecl;external;']);
+  AssertInterface('variable of a pointer to a function type',['fp : func_t;cvar;external;']);
+  AssertInterface('field of a pointer to a function type',['handler : func_t;']);
+  AssertNotOutput('no pointer type to a function type','Pfunc_t');
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestFunctionTypePrefix;
+
+begin
+  Convert(['typedef int (func_t)(int);','typedef int func2_t(int a, int b);',
+           'void usef(func_t *f, func2_t *w);','struct cb { func_t *handler; };'],['-d','-p','-T']);
+  AssertConverted;
+  AssertInterface('-p -T function type',['Tfunc_t = function (para1:longint):longint;cdecl;']);
+  AssertInterface('-p -T pointer to a function type',['procedure usef(f:Tfunc_t; w:Tfunc2_t);cdecl;external;']);
+  AssertInterface('-p -T field of a pointer to a function type',['handler : Tfunc_t;']);
+  AssertNotOutput('-p -T declares no pointer to a function type','Pfunc2_t');
+  AssertCompiles;
+end;
+
+
+procedure TTestTypedefs.TestGenericTypedef;
+
+begin
+  Convert(['typedef unknowntype;']);
+  AssertConverted;
+  AssertInterface('typedef without a type becomes a pointer',['(* generic typedef *)','unknowntype = pointer;']);
+end;
+
+
+procedure TTestTypedefs.TestTypedefsShareTypeBlock;
+
+begin
+  Convert(['typedef int a_t;','typedef long b_t;']);
+  AssertConverted;
+  AssertEquals('consecutive typedefs share one type block',1,CountOf('type'));
+end;
+
+
+procedure TTestTypedefs.TestFunctionPointerResultTypedef;
+
+begin
+  Convert(['typedef void (*(*fp_t)(int))(void);'],['-d']);
+  AssertConverted;
+  AssertInterface('the function pointer result of a function pointer typedef is a named type',
+    ['fp_t_result = procedure ;cdecl;','fp_t = function (_para1:longint):fp_t_result;cdecl;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestAnonymousEnum;
+
+begin
+  Convert(['typedef enum { red, green, blue } color;']);
+  AssertConverted;
+  AssertInterface('anonymous enum takes the typedef name',['color = (red,green,blue);']);
+end;
+
+
+procedure TTestEnums.TestTaggedEnum;
+
+begin
+  Convert(['typedef enum e5 { A5, B5 } e5_t;']);
+  AssertConverted;
+  AssertInterface('tagged enum is declared under its tag, the typedef is an alias',['e5 = (A5,B5);','e5_t = e5;']);
+end;
+
+
+procedure TTestEnums.TestNamedEnum;
+
+begin
+  Convert(['enum e6 { A6, B6 };']);
+  AssertConverted;
+  AssertInterface('named enum declaration',['type','e6 = (A6,B6);']);
+end;
+
+
+procedure TTestEnums.TestEnumValues;
+
+begin
+  Convert(['enum e6 { A6 = 1, B6, C6 = 10, D6 };']);
+  AssertConverted;
+  AssertInterface('explicit enum values',['e6 = (A6 := 1,B6,C6 := 10,D6);']);
+end;
+
+
+procedure TTestEnums.TestEnumExpressionValue;
+
+begin
+  Convert(['enum e7 { A7 = X, B7 };']);
+  AssertConverted;
+  AssertInterface('enum value given by an identifier',['e7 = (A7 := X,B7);']);
+end;
+
+
+procedure TTestEnums.TestEnumMemberNotPrefixed;
+
+begin
+  Convert(['typedef enum { red, green } color;'],['-T']);
+  AssertConverted;
+  AssertInterface('enum members keep their names under -T',['Tcolor = (red,green);']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumMembers;
+
+begin
+  Convert(['enum e { nil, uses, other };']);
+  AssertConverted;
+  AssertInterface('reserved word enum members get an underscore prefix',['e = (_nil,_uses,other);']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumConstants;
+
+begin
+  Convert(['enum e { nil, uses = nil + 1 };','#define X (uses)'],['-e']);
+  AssertConverted;
+  AssertInterface('reserved word enum constants get an underscore prefix',['_nil = 0;','_uses = _nil+1;']);
+  AssertInterface('references to the constants use the prefix',['X = _uses;']);
+end;
+
+
+procedure TTestEnums.TestReservedWordEnumMembersCompile;
+
+begin
+  Convert(['enum e { nil, uses, other };','struct s { int in; int end; int of; int set; int file; int xor; };',
+           'void f(int begin, int with, int then);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestEnumValueUsesMember;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1, C = A | B };','enum f { X = B + 1, Y };']);
+  AssertConverted;
+  AssertInterface('members in a value are converted with ord',['e = (A := 4,B := ord(A)+1,C := ord(A) or ord(B));']);
+  AssertInterface('members of another enum are converted with ord',['f = (X := ord(B)+1,Y);']);
+end;
+
+
+procedure TTestEnums.TestEnumValueUsesMemberCompiles;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1, C = A | B };','enum f { X = B + 1, Y };','#define M (A)'],['-d']);
+  AssertConverted;
+  AssertInterface('member outside an enum value is not converted',['M = A;']);
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestCharLiteralEnumValues;
+
+begin
+  Convert(['enum e { X = ((''n''<<8) | ''x''), Y = ''a'', Z = ''\n'' + 1 };']);
+  AssertConverted;
+  AssertInterface('character literals in enum values are ordinal values',
+    ['e = (X := (ord(''n'') shl 8) or ord(''x''),Y := ord(''a''),Z := ord(#10)+1);']);
+end;
+
+
+procedure TTestEnums.TestCharLiteralEnumValuesCompile;
+
+begin
+  Convert(['enum e { X = ((''n''<<8) | ''x''), Y = ''z'', Z = ''~'' + 1 };'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestEnums.TestEnumConstantUsesMember;
+
+begin
+  Convert(['enum e { A = 4, B = A + 1 };'],['-e']);
+  AssertConverted;
+  AssertInterface('enum constants use members directly',['A = 4;','B = A+1;']);
+end;
+
+
+procedure TTestEnums.TestEnumTagNameOfMember;
+
+begin
+  Convert(['enum XML_Parsing { XML_INITIALIZED, XML_PARSING };',
+           'typedef struct { enum XML_Parsing parsing; } XML_ParsingStatus;',
+           'void f(enum XML_Parsing p, enum XML_Parsing *pp);'],['-d']);
+  AssertConverted;
+  AssertInterface('an enum tag that is the name of a member has a T prefix',['TXML_Parsing = (XML_INITIALIZED,XML_PARSING);']);
+  AssertInterface('uses of the tag have the T prefix',['parsing : TXML_Parsing;']);
+  AssertInterface('the pointer type keeps its name',['procedure f(p:TXML_Parsing; pp:PXML_Parsing);cdecl;external;']);
+end;
+
+
+procedure TTestEnums.TestEnumTypedefNameOfMember;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','void h(Color c);'],['-d']);
+  AssertConverted;
+  AssertInterface('a typedef name that is the name of a member has a T prefix',['TColor = (COLOR,RED);']);
+  AssertInterface('uses of the typedef have the T prefix',['procedure h(c:TColor);cdecl;external;']);
+end;
+
+
+procedure TTestEnums.TestEnumConstantsTypeNameOfMember;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','void h(Color c);'],['-d','-e']);
+  AssertConverted;
+  AssertInterface('the integer type of enum constants has a T prefix',['TColor =  Longint;']);
+  AssertInterface('the members keep their names',['COLOR = 0;','RED = 1;']);
+end;
+
+
+procedure TTestEnums.TestEnumTypeNameOfMemberPrefix;
+
+begin
+  Convert(['typedef enum { COLOR, RED } Color;','enum mode { MODE };','void h(Color c, enum mode m);'],['-d','-T']);
+  AssertConverted;
+  AssertInterface('a single T prefix with -T',['procedure h(c:TColor; m:Tmode);cdecl;external;']);
+  AssertNotOutput('no double prefix','TTColor');
+end;
+
+
+procedure TTestEnums.TestEnumTypeNameOfMemberCompiles;
+
+begin
+  Convert(['enum XML_Parsing { XML_INITIALIZED, XML_PARSING };',
+           'typedef struct { enum XML_Parsing parsing; } XML_ParsingStatus;',
+           'void f(enum XML_Parsing p, enum XML_Parsing *pp);','typedef enum Mode { MODE, OTHER } Mode;',
+           'typedef enum { COLOR, RED } Color;','void h(Color c, Color *pc, Mode m);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+initialization
+  RegisterTests('H2Pas',[TTestTypedefs,TTestEnums]);
+end.

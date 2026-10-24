@@ -4,8 +4,11 @@ function IntFloatToTextFmt(Buf: FPChar; const Value; ValueType: TFloatValue; For
 Type
   TPosArray = Array[0..3] of Integer;
 
+var
+  ValueAsCur: Currency absolute Value;
+
 const
-  MaxPrecision = 18;  // Extended precision
+  MaxPrecision = 19;  // Number of digits in TFloatRec
 
 var
   // Input in usable format
@@ -28,10 +31,9 @@ var
   DistToDecimal: Integer;    // Place of current digit, relative to decimal point taking in account PadZeroes!
 
   Procedure InitVars;
-
   begin
     if ValueType = fvCurrency then
-      E:=Currency(Value)
+      E:=ValueAsCur
     else
       E:=Extended(Value);
     Section:='';

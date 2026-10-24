@@ -3,7 +3,7 @@
 
 program testcgi;
 
-uses cgiapp,classes,sysutils;
+uses {$ifdef unix}cwstring,{$endif} cgiapp,classes,sysutils;
 
 Type
   TTestCGI = Class(TCGIApplication)

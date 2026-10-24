@@ -447,6 +447,4 @@ begin
   end;
 end;
 
-finalization
-  finalizeresourcetables;
 end.

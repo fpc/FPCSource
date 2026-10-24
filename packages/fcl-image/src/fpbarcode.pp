@@ -1061,10 +1061,10 @@ end;
 function IndexOf128BChar(c: AnsiChar): integer;
 
 begin
-  Result:=1;
-  While (Result<=Encoding128BCount) and (c<>Encoding128B[Result]) do
+  Result:=0;
+  While (Result<Encoding128BCount) and (c<>Encoding128B[Result]) do
     Inc(Result);
-  if Result>Encoding128BCount then
+  if Result>=Encoding128BCount then
     Result:=-1;
 end;
 
@@ -1115,10 +1115,10 @@ Function C(S : AnsiString) : TBarTypeArray;
   function IndexOfChar(c: AnsiChar): integer;
 
   begin
-    Result:=1;
-    While (Result<=Encoding128BCount) and (c<>Encoding128A[Result]) do
+    Result:=0;
+    While (Result<Encoding128ACount) and (c<>Encoding128A[Result]) do
       Inc(Result);
-    if Result>Encoding128BCount then
+    if Result>=Encoding128ACount then
       Result:=-1;
   end;
 

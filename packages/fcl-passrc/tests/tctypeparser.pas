@@ -50,6 +50,9 @@ type
     Procedure DoTestClassOf(Const AHint : string);
   Published
     Procedure TestAliasType;
+    Procedure TestTypeOf;
+    Procedure TestTypeOf_VarArgResult;
+    Procedure TestTypeOf_ModeFPCFail;
     procedure TestAbsoluteAliasType;
     Procedure TestCrossUnitAliasType;
     Procedure TestAliasTypeDeprecated;
@@ -147,6 +150,7 @@ type
     Procedure TestIdentifierRangeTypeDeprecated;
     Procedure TestIdentifierRangeTypePlatform;
     Procedure TestNegativeIdentifierRangeType;
+    Procedure TestIdentifierExprRangeType;
     Procedure TestSimpleSet;
     Procedure TestPackedSet;
     Procedure TestSimpleSetDeprecated;
@@ -200,6 +204,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure StartRecord(Advanced: boolean = false);
+    Procedure StartCompositionRecord(Advanced: boolean = false);
     Procedure EndRecord(AEnd : String = 'end');
     Procedure AddMember(S : String);
     Procedure ParseRecord;
@@ -378,6 +383,19 @@ type
     Procedure TestAdvRecordInitOperator;
     Procedure TestAdvRecordGenericFunction;
     Procedure TestRecordAlign;
+    Procedure TestComposition_Named;
+    Procedure TestComposition_Unnamed;
+    Procedure TestComposition_UnnamedDotted;
+    Procedure TestComposition_UnnamedSpecialize;
+    Procedure TestComposition_NamedAnonymousRecord;
+    Procedure TestComposition_UnnamedAnonymousRecord;
+    Procedure TestComposition_Alias;
+    Procedure TestComposition_AliasWithTypeFail;
+    Procedure TestComposition_Variant;
+    Procedure TestComposition_Advanced;
+    Procedure TestComposition_ContainsFieldFail;
+    Procedure TestComposition_ContainsFieldWithoutModeswitch;
+    Procedure TestComposition_ClassFail;
   end;
 
   { TTestProcedureTypeParser }
@@ -1320,6 +1338,12 @@ begin
   if Advanced then
     S:='{$modeswitch advancedrecords}'+sLineBreak+S;
   FDecl.Add(S);
+end;
+
+procedure TTestRecordTypeParser.StartCompositionRecord(Advanced: boolean);
+begin
+  FDecl.Add('{$modeswitch recordcomposition}');
+  StartRecord(Advanced);
 end;
 
 procedure TTestRecordTypeParser.EndRecord(AEnd: String);
@@ -2832,6 +2856,174 @@ begin
   ParseModule;   // We're just interested in that it parses.
 end;
 
+procedure TTestRecordTypeParser.TestComposition_Named;
+begin
+  StartCompositionRecord;
+  AddMember('contains Child: TChildRec;');
+  AddMember('B: word;');
+  ParseRecord;
+  AssertEquals('Member count',2,TheRecord.Members.Count);
+  AssertEquals('Field1 name','Child',Field1.Name);
+  AssertTrue('Field1 vmContains',vmContains in Field1.VarModifiers);
+  AssertNotNull('Field1 type',Field1.VarType);
+  AssertEquals('Field1 type name','TChildRec',Field1.VarType.Name);
+  AssertEquals('Field2 name','B',Field2.Name);
+  AssertFalse('Field2 not vmContains',vmContains in Field2.VarModifiers);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_Unnamed;
+begin
+  StartCompositionRecord;
+  AddMember('A: word;');
+  AddMember('contains TChildRec deprecated;');
+  AddMember('B: word;');
+  ParseRecord;
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertEquals('Field2 name','',Field2.Name);
+  AssertTrue('Field2 vmContains',vmContains in Field2.VarModifiers);
+  AssertNotNull('Field2 type',Field2.VarType);
+  AssertEquals('Field2 type name','TChildRec',Field2.VarType.Name);
+  AssertTrue('Field2 deprecated',hDeprecated in Field2.Hints);
+  AssertEquals('Field3 name','B',GetField(2,TheRecord).Name);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_UnnamedDotted;
+begin
+  StartCompositionRecord;
+  AddMember('contains unit1.TChildRec;');
+  ParseRecord;
+  AssertEquals('Member count',1,TheRecord.Members.Count);
+  AssertEquals('Field1 name','',Field1.Name);
+  AssertTrue('Field1 vmContains',vmContains in Field1.VarModifiers);
+  AssertNotNull('Field1 type',Field1.VarType);
+  AssertEquals('Field1 type name','unit1.TChildRec',Field1.VarType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_UnnamedSpecialize;
+begin
+  StartCompositionRecord;
+  AddMember('contains specialize TGenRec<word>;');
+  ParseRecord;
+  AssertEquals('Field1 name','',Field1.Name);
+  AssertTrue('Field1 vmContains',vmContains in Field1.VarModifiers);
+  AssertNotNull('Field1 type',Field1.VarType);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_NamedAnonymousRecord;
+begin
+  StartCompositionRecord;
+  AddMember('contains Child: record C: word; end;');
+  ParseRecord;
+  AssertEquals('Member count',1,TheRecord.Members.Count);
+  AssertEquals('Field1 name','Child',Field1.Name);
+  AssertTrue('Field1 vmContains',vmContains in Field1.VarModifiers);
+  AssertEquals('Field1 type',TPasRecordType,Field1.VarType.ClassType);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_UnnamedAnonymousRecord;
+begin
+  StartCompositionRecord;
+  AddMember('contains record C: word; end;');
+  AddMember('B: word;');
+  ParseRecord;
+  AssertEquals('Member count',2,TheRecord.Members.Count);
+  AssertEquals('Field1 name','',Field1.Name);
+  AssertTrue('Field1 vmContains',vmContains in Field1.VarModifiers);
+  AssertEquals('Field1 type',TPasRecordType,Field1.VarType.ClassType);
+  AssertEquals('Field2 name','B',Field2.Name);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_Alias;
+var
+  Alias: TPasContainsAlias;
+begin
+  StartCompositionRecord;
+  AddMember('A: TChildRec;');
+  AddMember('contains alias A;');
+  ParseRecord;
+  AssertEquals('Member count',2,TheRecord.Members.Count);
+  AssertEquals('Member2 class',TPasContainsAlias,Members[1].ClassType);
+  Alias:=TPasContainsAlias(Members[1]);
+  AssertNotNull('Alias expr',Alias.Expr);
+  AssertEquals('Alias expr class',TPrimitiveExpr,Alias.Expr.ClassType);
+  AssertEquals('Alias expr value','A',TPrimitiveExpr(Alias.Expr).Value);
+  AssertEquals('Alias declaration','contains alias A',Alias.GetDeclaration(true));
+end;
+
+procedure TTestRecordTypeParser.TestComposition_AliasWithTypeFail;
+begin
+  StartCompositionRecord;
+  AddMember('A: TChildRec;');
+  AddMember('contains alias A: TChildRec;');
+  ParseRecordFail(SParserExpectedSemiColonEnd,nParserExpectedSemiColonEnd);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_Variant;
+var
+  V: TPasVariant;
+begin
+  StartCompositionRecord;
+  AddMember('A: word;');
+  AddMember('case byte of');
+  AddMember('1: (contains Child: TChildRec);');
+  AddMember('2: (contains TOtherRec)');
+  ParseRecord;
+  V:=Variant1;
+  AssertEquals('Variant1 field name','Child',GetField(0,V).Name);
+  AssertTrue('Variant1 field vmContains',vmContains in GetField(0,V).VarModifiers);
+  V:=Variant2;
+  AssertEquals('Variant2 field name','',GetField(0,V).Name);
+  AssertTrue('Variant2 field vmContains',vmContains in GetField(0,V).VarModifiers);
+  AssertEquals('Variant2 field type','TOtherRec',GetField(0,V).VarType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_Advanced;
+begin
+  StartCompositionRecord(true);
+  AddMember('strict private');
+  AddMember('  A: TChildRec;');
+  AddMember('public');
+  AddMember('  contains alias A;');
+  AddMember('  contains B: TChildRec;');
+  AddMember('  procedure Run;');
+  AddMember('private');
+  AddMember('  contains TOtherRec;');
+  ParseRecord;
+  AssertEquals('Member count',5,TheRecord.Members.Count);
+  AssertEquals('Member2 class',TPasContainsAlias,Members[1].ClassType);
+  AssertTrue('Member2 public',visPublic=Members[1].Visibility);
+  AssertTrue('Member3 public',visPublic=Members[2].Visibility);
+  AssertTrue('Member5 private',visPrivate=Members[4].Visibility);
+  AssertTrue('Member5 vmContains',vmContains in TPasVariable(Members[4]).VarModifiers);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_ContainsFieldFail;
+begin
+  StartCompositionRecord;
+  AddMember('contains: word;');
+  ParseRecordFail(SParserExpectedIdentifier,nParserExpectedIdentifier);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_ContainsFieldWithoutModeswitch;
+begin
+  StartRecord;
+  AddMember('contains: word;');
+  AddMember('alias: word;');
+  ParseRecord;
+  AssertEquals('Field1 name','contains',Field1.Name);
+  AssertFalse('Field1 not vmContains',vmContains in Field1.VarModifiers);
+end;
+
+procedure TTestRecordTypeParser.TestComposition_ClassFail;
+begin
+  Add('{$modeswitch recordcomposition}');
+  Add('Type');
+  Add('  TMyClass = class');
+  Add('    contains Child: TChildRec;');
+  Add('  end;');
+  AssertException(EParserError,@ParseDeclarations);
+end;
+
 { TBaseTestTypeParser }
 
 Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
@@ -3035,6 +3227,77 @@ begin
   ParseType('Class of TSomeClass',TPasClassOfType,AHint);
   AssertNotNull('Have class type',TPasClassOfType(TheType).DestType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasClassOfType(TheType).DestType.ClassType);
+end;
+
+procedure TTestTypeParser.TestTypeOf;
+
+  function CheckTypeOf(const Msg: string; El: TPasElement; const OperandName: string): TPasTypeOfType;
+  begin
+    AssertNotNull(Msg+' not nil',El);
+    AssertEquals(Msg+' class',TPasTypeOfType,El.ClassType);
+    Result:=TPasTypeOfType(El);
+    AssertExpression(Msg+' operand',Result.Expr,pekIdent,OperandName);
+  end;
+
+var
+  T: TPasTypeOfType;
+begin
+  Add('{$modeswitch typeinquiry}');
+  Add('Type');
+  Add('  TInt = type of p;');
+  Add('  TAlias = type type of p;');
+  Add('  TArr = array of type of p;');
+  Add('  PInt = ^type of p;');
+  Add('  TSet = set of type of b;');
+  Add('  TGen = specialize TBird<type of p>;');
+  Add('  TSum = type of (w+dw);');
+  ParseDeclarations;
+  AssertEquals('Type count',7,Declarations.Types.Count);
+  T:=CheckTypeOf('TInt',TPasElement(Declarations.Types[0]),'p');
+  AssertEquals('TInt name','TInt',T.Name);
+  AssertEquals('TInt declaration','TInt = type of p',T.GetDeclaration(true));
+  AssertEquals('TAlias class',TPasTypeAliasType,TPasElement(Declarations.Types[1]).ClassType);
+  CheckTypeOf('TAlias.DestType',TPasTypeAliasType(Declarations.Types[1]).DestType,'p');
+  AssertEquals('TArr class',TPasArrayType,TPasElement(Declarations.Types[2]).ClassType);
+  CheckTypeOf('TArr.ElType',TPasArrayType(Declarations.Types[2]).ElType,'p');
+  AssertEquals('PInt class',TPasPointerType,TPasElement(Declarations.Types[3]).ClassType);
+  CheckTypeOf('PInt.DestType',TPasPointerType(Declarations.Types[3]).DestType,'p');
+  AssertEquals('TSet class',TPasSetType,TPasElement(Declarations.Types[4]).ClassType);
+  CheckTypeOf('TSet.EnumType',TPasSetType(Declarations.Types[4]).EnumType,'b');
+  AssertEquals('TGen class',TPasSpecializeType,TPasElement(Declarations.Types[5]).ClassType);
+  AssertEquals('TGen param count',1,TPasSpecializeType(Declarations.Types[5]).Params.Count);
+  CheckTypeOf('TGen.Params[0]',TPasElement(TPasSpecializeType(Declarations.Types[5]).Params[0]),'p');
+  AssertEquals('TSum class',TPasTypeOfType,TPasElement(Declarations.Types[6]).ClassType);
+  AssertExpression('TSum operand',TPasTypeOfType(Declarations.Types[6]).Expr,eopAdd);
+end;
+
+procedure TTestTypeParser.TestTypeOf_VarArgResult;
+var
+  V: TPasVariable;
+  F: TPasFunction;
+begin
+  Add('{$modeswitch typeinquiry}');
+  Add('var');
+  Add('  v: type of r.w;');
+  Add('function Fly(a: type of b; const c: array of type of b): type of p;');
+  ParseDeclarations;
+  AssertEquals('One variable',1,Declarations.Variables.Count);
+  V:=TPasVariable(Declarations.Variables[0]);
+  AssertEquals('v.VarType class',TPasTypeOfType,V.VarType.ClassType);
+  AssertExpression('v operand',TPasTypeOfType(V.VarType).Expr,eopSubIdent);
+  AssertEquals('One function',1,Declarations.Functions.Count);
+  F:=TPasFunction(Declarations.Functions[0]);
+  AssertEquals('a.ArgType class',TPasTypeOfType,TPasArgument(F.ProcType.Args[0]).ArgType.ClassType);
+  AssertEquals('c.ArgType class',TPasArrayType,TPasArgument(F.ProcType.Args[1]).ArgType.ClassType);
+  AssertEquals('Result class',TPasTypeOfType,F.FuncType.ResultEl.ResultType.ClassType);
+end;
+
+procedure TTestTypeParser.TestTypeOf_ModeFPCFail;
+begin
+  Add('{$mode fpc}');
+  Add('var');
+  Add('  v: type of p;');
+  AssertException(EParserError,@ParseDeclarations);
 end;
 
 procedure TTestTypeParser.TestAliasType;
@@ -3613,6 +3876,11 @@ end;
 procedure TTestTypeParser.TestNegativeIdentifierRangeType;
 begin
   DoTestRangeType('-tkLast','tkLast','');
+end;
+
+procedure TTestTypeParser.TestIdentifierExprRangeType;
+begin
+  DoTestRangeType('tkFirst+1','tkLast*2','');
 end;
 
 procedure TTestTypeParser.TestSimpleSet;
