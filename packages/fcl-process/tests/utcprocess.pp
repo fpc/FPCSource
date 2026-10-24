@@ -25,6 +25,7 @@ type
     function GetTestFile(const aName: string): String;
     function ReadProcessOutput(aProc: TProcess; ReadStdErr : Boolean = False): string;
     procedure WaitForFile(const aFileName: String);
+    procedure WaitForProcess(aProc: TProcess);
   protected
     procedure CheckHelper(const aHelper : string);
     procedure SetUp; override;
@@ -118,6 +119,16 @@ begin
   Sleep(20);
 end;
 
+Procedure TTestProcess.WaitForProcess(aProc : TProcess);
+
+begin
+  { Wait for the process to finish, so all its output has been written
+
+    might need additional ifdefs for certain targets 
+  }
+  AssertTrue('Process did not terminate in time: '+aProc.Executable,aProc.WaitOnExit(10000));
+end;
+
 procedure TTestProcess.TestHookUp;
 
   procedure AssertNoFile(const FN :string);
@@ -142,6 +153,7 @@ begin
   AssertNull('no input stream',Proc.Input);
   AssertNull('no output stream',Proc.Output);
   AssertNull('no error stream',Proc.Stderr);
+  WaitForProcess(Proc);
   WaitForFile(fntouch);
   AssertFileContent(fntouch,fntouch);
 end;
@@ -155,6 +167,7 @@ begin
   Proc.Executable:=GetHelper(dotouch);
   Proc.Parameters.Add(FN);
   Proc.Execute;
+  WaitForProcess(Proc);
   WaitForFile(FN);
   AssertFileContent(FN,FN);
 end;
@@ -257,7 +270,6 @@ var
   I : Integer;
 
 begin
-  sleep(100);
   // Writeln('Testing file >>',aFileName,'<<');
   L:=TStringList.Create;
   try
@@ -392,6 +404,7 @@ begin
   Proc.Executable:=GetHelper(genout);
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.Execute;
+  WaitForProcess(Proc);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -401,6 +414,7 @@ begin
   Proc.Parameters.Add('-3');
   Proc.ErrorDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.Execute;
+  WaitForProcess(Proc);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -411,6 +425,7 @@ begin
   Proc.Parameters.Add('-3');
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.Execute;
+  WaitForProcess(Proc);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -424,7 +439,7 @@ begin
   Proc.InputDescriptor.IOType:=iotNull;
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.Execute;
-  Sleep(100);
+  WaitForProcess(Proc);
   B:=Sysutils.GetFileContents(GetTestFile(fntestoutput));
   AssertEquals('Empty file',0,Length(B));
 end;
@@ -439,6 +454,7 @@ begin
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.OutputDescriptor.FileWriteMode:=fwmAppend;
   Proc.Execute;
+  WaitForProcess(Proc);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),6);
 
 end;
@@ -452,6 +468,7 @@ begin
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.OutputDescriptor.FileWriteMode:=fwmTruncate;
   Proc.Execute;
+  WaitForProcess(Proc);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -471,7 +488,7 @@ begin
   Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.OutputDescriptor.FileWriteMode:=fwmAtStart;
   Proc.Execute;
-  sleep(100);
+  WaitForProcess(Proc);
   // Writeln('Testing file >>',aFileName,'<<');
   L:=TStringList.Create;
   try
@@ -524,6 +541,8 @@ begin
   AssertTrue('Proc2 input is pipe',Proc2.InputDescriptor.IOType=iotPipe);
   Proc2.Execute;
   Proc.execute;
+  WaitForProcess(Proc);
+  WaitForProcess(Proc2);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -545,6 +564,8 @@ begin
   AssertTrue('Proc2 input is pipe',Proc2.InputDescriptor.IOType=iotPipe);
   Proc2.Execute;
   Proc.execute;
+  WaitForProcess(Proc);
+  WaitForProcess(Proc2);
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
@@ -597,6 +618,8 @@ end;
 procedure TTestProcess.TearDown;
 begin
   FreeAndNil(FProc);
+  FreeAndNil(FProc2);
+  FreeAndNil(FProc3);
 end;
 
 initialization
