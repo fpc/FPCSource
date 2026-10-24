@@ -1210,6 +1210,7 @@ type
     FObjectType: string;
     FUnNamed: boolean;
   protected
+    class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsVariant: Variant; override;
     function GetFieldCount: Integer;
     function GetFields: TFields; virtual;

@@ -4127,6 +4127,12 @@ end;
 
 { TObjectField }
 
+class procedure TObjectField.CheckTypeSize(AValue: Longint);
+begin
+  // an object field's size is not a scalar field's -- an array field's is the
+  // number of its elements -- so it is not checked, as in Delphi
+end;
+
 function TObjectField.GetFieldCount: Integer;
 begin
   // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.GetFieldCount
