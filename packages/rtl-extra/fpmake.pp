@@ -21,7 +21,7 @@ Const
 
   PrinterOSes   = [go32v2,msdos,os2,win32,win64,atari]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
-  UComplexOSes  = [atari,embedded,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,wince,win32,win64,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  UComplexOSes  = [atari,embedded,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,wince,win32,win64,freertos]+UnixLikes+AllAmigaLikeOSes;
   MatrixOSes    = [atari,embedded,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
   ObjectsOSes   = [atari,embedded,emx,gba,go32v2,macosclassic,msdos,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win16,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
