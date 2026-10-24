@@ -548,7 +548,7 @@ implementation
          range_to_basetype:=s64bit
         else if (l>=low(qword)) and (h<=high(qword)) then
          range_to_basetype:=u64bit
-        else if (l>=MinInt128) and (h<=MaxInt128) then
+        else if (l>=Tconstexprint(MinInt128)) and (h<=Tconstexprint(MaxInt128)) then
          range_to_basetype:=s128bit
         else
          range_to_basetype:=u128bit;
