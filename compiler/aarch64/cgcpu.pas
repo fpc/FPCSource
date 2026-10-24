@@ -139,6 +139,18 @@ implementation
     procinfo,cpupi,psub;
 
 
+    { can the symbol be accessed PC-relative (adrp + page offset) instead of
+      through the GOT? }
+    function is_direct_access_symbol(sym: tasmsymbol): boolean;
+      begin
+        { hidden (AB_PRIVATE_EXTERN) symbols cannot be preempted, so they
+          can be accessed directly as well, even in PIC code }
+        result:=((sym.typ in [AT_FUNCTION,AT_LABEL,AT_DATA]) and
+                 (sym.bind in [AB_LOCAL,AB_GLOBAL,AB_PRIVATE_EXTERN])) or
+                (target_info.system=system_aarch64_win64);
+      end;
+
+
     procedure tcgaarch64.make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister; allowpageoffset: boolean);
       var
         href: treference;
@@ -186,11 +198,7 @@ implementation
               preferred_newbasereg:=getaddressregister(list);
             { load the (GOT) page }
             reference_reset_symbol(href,ref.symbol,0,8,[]);
-            if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_DATA]) and
-                (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
-               ((ref.symbol.typ=AT_DATA) and
-                (ref.symbol.bind=AB_LOCAL)) or
-               (target_info.system=system_aarch64_win64) then
+            if is_direct_access_symbol(ref.symbol) then
               href.refaddr:=addr_page
             else
               href.refaddr:=addr_gotpage;
@@ -198,13 +206,9 @@ implementation
             { load the GOT entry (= address of the variable) }
             reference_reset_base(href,preferred_newbasereg,0,ctempposinvalid,sizeof(pint),[]);
             href.symbol:=ref.symbol;
-            { code symbols defined in the current compilation unit do not
+            { symbols defined in the current compilation unit do not
               have to be accessed via the GOT }
-            if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_DATA]) and
-                (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
-               ((ref.symbol.typ=AT_DATA) and
-                (ref.symbol.bind=AB_LOCAL)) or
-               (target_info.system=system_aarch64_win64) then
+            if is_direct_access_symbol(ref.symbol) then
               begin
                 { can we put the page offset into the reference? The linker
                   requires that the page offset of a scaled load/store is a
