@@ -880,11 +880,17 @@ implementation
             case right.location.loc of
               LOC_CONSTANT :
                 begin
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+                  if (left.location.size in [OS_128,OS_S128]) or (right.location.size in [OS_128,OS_S128]) then
+                    cg128.a_load128_const_loc(current_asmdata.CurrAsmList,hlcgint_lo(right.location.value128),hlcgint_hi(right.location.value128),left.location)
+                  else
+{$else cpu64bitalu}
                   if (left.location.size in [OS_64,OS_S64]) or (right.location.size in [OS_64,OS_S64]) then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                     hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
