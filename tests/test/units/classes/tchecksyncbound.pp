@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { CheckSynchronize only runs the entries queued when it is called, issue #34049 }
 program tchecksyncbound;
 
