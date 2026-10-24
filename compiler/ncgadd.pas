@@ -59,6 +59,7 @@ interface
 {$endif SUPPORT_MMX}
 {$endif x86}
           procedure second_opvector;virtual;abstract;
+          procedure second_add128bit;virtual;
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
@@ -478,6 +479,147 @@ interface
           second_cmp64bit
         else
           second_add64bit;
+      end;
+
+
+    procedure tcgaddnode.second_add128bit;
+      var
+        op         : TOpCG;
+        checkoverflow : boolean;
+        ovloc : tlocation;
+      begin
+        ovloc.loc:=LOC_VOID;
+
+        pass_left_right;
+        force_reg_left_right(false,true);
+        set_result_location_reg;
+
+        { assume no overflow checking is required }
+        checkoverflow := false;
+        case nodetype of
+          addn :
+             begin
+                op:=OP_ADD;
+                checkoverflow:=true;
+             end;
+          subn :
+             begin
+                op:=OP_SUB;
+                checkoverflow:=true;
+             end;
+          xorn:
+            op:=OP_XOR;
+          orn:
+            op:=OP_OR;
+          andn:
+            op:=OP_AND;
+          muln:
+            begin
+              { should be handled in pass_1 (JM) }
+              internalerror(200109051);
+            end;
+          else
+            internalerror(2002072705);
+        end;
+
+        checkoverflow:=
+          checkoverflow and
+          needoverflowcheck;
+
+{$ifdef cpuhighleveltarget}
+        // TODO: implement this after adding support for 128-bit operations in the high level code generator
+        internalerror(2026102402);
+//        case nodetype of
+//          xorn,orn,andn,addn:
+//            begin
+//              if (right.location.loc = LOC_CONSTANT) then
+//                hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.value,
+//                  left.location.register,location.register)
+//              else
+//                hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.register,
+//                  left.location.register,location.register);
+//            end;
+//          subn:
+//            begin
+//              if (nf_swapped in flags) then
+//                swapleftright;
+//
+//              if left.location.loc <> LOC_CONSTANT then
+//                begin
+//                  if right.location.loc <> LOC_CONSTANT then
+//                    // reg64 - reg64
+//                    hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+//                      right.location.register,left.location.register,location.register,
+//                      checkoverflow,ovloc)
+//                  else
+//                    // reg64 - const64
+//                    hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+//                      right.location.value,left.location.register,location.register,
+//                      checkoverflow,ovloc);
+//                end
+//              else
+//                begin
+//                  // const64 - reg64
+//                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+//                  hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+//                    right.location.register,left.location.register,location.register,
+//                    checkoverflow,ovloc);
+//                end;
+//            end;
+//          else
+//            internalerror(2002072803);
+//        end;
+{$else cpuhighleveltarget}
+        case nodetype of
+          xorn,orn,andn,addn:
+            begin
+              if (right.location.loc = LOC_CONSTANT) then
+                cg128.a_op128_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.value128,
+                  left.location.register128,location.register128,
+                  checkoverflow,ovloc)
+              else
+                cg128.a_op128_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.register128,
+                  left.location.register128,location.register128,
+                  checkoverflow,ovloc);
+            end;
+          subn:
+            begin
+              if (nf_swapped in flags) then
+                swapleftright;
+
+              if left.location.loc <> LOC_CONSTANT then
+                begin
+                  if right.location.loc <> LOC_CONSTANT then
+                    // reg128 - reg128
+                    cg128.a_op128_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                      right.location.register128,left.location.register128,
+                      location.register128,
+                      checkoverflow,ovloc)
+                  else
+                    // reg128 - const128
+                    cg128.a_op128_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                      right.location.value128,left.location.register128,
+                      location.register128,
+                      checkoverflow,ovloc)
+                end
+              else
+                begin
+                  // const128 - reg128
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  cg128.a_op128_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                    right.location.register128,left.location.register128,
+                    location.register128,
+                    checkoverflow,ovloc);
+                end;
+            end;
+          else
+            internalerror(2002072804);
+        end;
+{$endif cpuhighleveltarget}
+
+        { emit overflow check if enabled }
+        if checkoverflow then
+           hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
       end;
 
 
