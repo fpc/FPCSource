@@ -64,6 +64,7 @@ interface
           procedure second_cmpfloat;virtual;abstract;
           procedure second_cmpboolean;virtual;
           procedure second_cmpsmallset;virtual;abstract;
+          procedure second_cmp128bit;virtual;abstract;
           procedure second_cmp64bit;virtual;abstract;
           procedure second_cmpordinal;virtual;abstract;
 
