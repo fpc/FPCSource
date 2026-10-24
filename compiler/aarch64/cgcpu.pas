@@ -2728,7 +2728,10 @@ implementation
               begin
                 rnzcv:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg(A_MRS,rnzcv,NR_NZCV));
-              end;
+              end
+            else
+              { avoid warning }
+              rnzcv:=NR_WZR;
             list.concat(taicpu.op_reg_reg(A_MRS,r,NR_FPSR));
             list.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,r,$1f));
             current_asmdata.getjumplabel(l1);
