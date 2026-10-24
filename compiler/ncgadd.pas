@@ -574,7 +574,7 @@ interface
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                cg128.a_op128_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.value128,
+                cg128.a_op128_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,hlcgint_lo(right.location.value128),hlcgint_hi(right.location.value128),
                   left.location.register128,location.register128,
                   checkoverflow,ovloc)
               else
@@ -598,7 +598,7 @@ interface
                   else
                     // reg128 - const128
                     cg128.a_op128_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
-                      right.location.value128,left.location.register128,
+                      hlcgint_lo(right.location.value128),hlcgint_hi(right.location.value128),left.location.register128,
                       location.register128,
                       checkoverflow,ovloc)
                 end
