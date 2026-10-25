@@ -942,7 +942,11 @@ interface
                  is_boolean(right.resultdef) then
                 second_opboolean
 {$ifndef cpuhighleveltarget}
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+              { 128bit operations }
+              else if is_128bit(left.resultdef) then
+                second_op128bit
+{$else cpu64bitalu}
               { 64bit operations }
               else if is_64bit(left.resultdef) then
                 second_op64bit
