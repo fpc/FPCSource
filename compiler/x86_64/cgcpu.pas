@@ -26,7 +26,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgutils,cgobj,cgx86,
+       cgbase,cgutils,cgobj,cg128f64,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,
        symdef,
@@ -54,7 +54,7 @@ unit cgcpu;
         function saved_xmm_reg_size: longint;
       end;
 
-      tcg128fx86_64 = class(tcg128)
+      tcg128fx86_64 = class(tcg128f64)
         procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);override;
         procedure a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);override;
       end;
