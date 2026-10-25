@@ -54,6 +54,9 @@ unit cgcpu;
         function saved_xmm_reg_size: longint;
       end;
 
+      tcg128fx86_64 = class(tcg128)
+      end;
+
     procedure create_codegen;
 
   implementation
@@ -556,7 +559,7 @@ unit cgcpu;
     procedure create_codegen;
       begin
         cg:=tcgx86_64.create;
-        cg128:=tcg128.create;
+        cg128:=tcg128fx86_64.create;
       end;
 
 end.
