@@ -26,7 +26,7 @@ unit njvmcon;
 interface
 
     uses
-       globtype,aasmbase,
+       cdynset,globtype,aasmbase,
        symtype,
        node,ncal,ncon,ncgcon;
 
@@ -85,7 +85,7 @@ interface
 implementation
 
     uses
-      cdynset,globals,cutils,widestr,verbose,constexp,fmodule,
+      globals,cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symcpu,symtable,symconst,
       aasmdata,aasmcpu,defutil,
       nutils,ncnv,nld,nmem,pjvm,pass_1,
