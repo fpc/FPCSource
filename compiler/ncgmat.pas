@@ -46,9 +46,13 @@ interface
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         procedure second_128bit;virtual;
+{$else cpu64bitalu}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
          procedure second_integer;virtual;
          procedure second_float;virtual;
          procedure second_float_emulated;virtual;
@@ -202,7 +206,36 @@ implementation
       end;
 
 
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+    procedure tcgunaryminusnode.second_128bit;
+      var
+        tr: tregister;
+        hl: tasmlabel;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register128.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+        location.register128.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+        cg128.a_op128_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S128,
+          left.location,joinreg128(location.register128.reglo,location.register128.reghi));
+        { there's only overflow in case left was low(int128) -> -left = left }
+        if (cs_check_overflow in current_settings.localswitches) then
+          begin
+            tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_64,
+              int64($8000000000000000),location.register128.reghi,tr);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_64,
+              location.register128.reglo,tr);
+            current_asmdata.getjumplabel(hl);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_64,OC_NE,0,tr,hl);
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+            cg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
+      end;
+{$else cpu64bitalu}
     procedure tcgunaryminusnode.second_64bit;
       var
         tr: tregister;
@@ -230,7 +263,8 @@ implementation
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
 
 
     procedure tcgunaryminusnode.second_float_emulated;
@@ -323,11 +357,17 @@ implementation
 
     procedure tcgunaryminusnode.pass_generate_code;
       begin
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         if is_128bit(left.resultdef) then
+           second_128bit
+         else
+{$else cpu64bitalu}
          if is_64bit(left.resultdef) then
            second_64bit
          else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
