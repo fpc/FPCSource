@@ -152,13 +152,22 @@ interface
     procedure tcgaddnode.set_result_location_reg;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+        if location.size in [OS_128,OS_S128] then
+          begin
+            location.register128.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+            location.register128.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+          end
+        else
+{$else cpu64bitalu}
         if location.size in [OS_64,OS_S64] then
           begin
             location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
+{$endif}
 {$endif}
           location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
       end;
