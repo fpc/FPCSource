@@ -33,14 +33,16 @@ interface
          function use_generic_mul64bit: boolean; override;
          procedure second_addordinal; override;
          procedure second_mul;
+         procedure second_cmp128bit;override;
        end;
 
   implementation
 
     uses
       globtype,globals,verbose,
-      aasmbase,aasmdata,
+      aasmbase,aasmdata,aasmcpu,
       defutil,
+      symconst,symdef,
       cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
       tgobj;
 
@@ -152,6 +154,203 @@ interface
         emit_reg_reg(A_MOV,opsize,rega,location.register);
         location_freetemp(current_asmdata.CurrAsmList,left.location);
         location_freetemp(current_asmdata.CurrAsmList,right.location);
+      end;
+
+{*****************************************************************************
+                                cmp128bit
+*****************************************************************************}
+
+    procedure tx8664addnode.second_cmp128bit;
+      var
+        truelabel,
+        falselabel,
+        hlab       : tasmlabel;
+        href       : treference;
+        unsigned   : boolean;
+
+      procedure firstjmp128bitcmp;
+
+        var
+           oldnodetype : tnodetype;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn:
+                begin
+                   if (hlab<>location.truelabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
+                   { cheat a little bit for the negative test }
+                   toggleflag(nf_swapped);
+                   if (hlab<>location.falselabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
+                   toggleflag(nf_swapped);
+                end;
+              lten,gten:
+                begin
+                   oldnodetype:=nodetype;
+                   if nodetype=lten then
+                     nodetype:=ltn
+                   else
+                     nodetype:=gtn;
+                   if (hlab<>location.truelabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
+                   { cheat for the negative test }
+                   if nodetype=ltn then
+                     nodetype:=gtn
+                   else
+                     nodetype:=ltn;
+                   if (hlab<>location.falselabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
+                   nodetype:=oldnodetype;
+                end;
+              equaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+              unequaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019050905);
+           end;
+        end;
+
+      procedure secondjmp128bitcmp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn,lten,gten:
+                begin
+                   { the comparison of the low dword have to be   }
+                   {  always unsigned!                            }
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+                end;
+              equaln:
+                begin
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+                end;
+              unequaln:
+                begin
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+                end;
+              else
+                internalerror(2019050904);
+           end;
+        end;
+
+      begin
+        truelabel:=nil;
+        falselabel:=nil;
+        pass_left_right;
+
+        unsigned:=((left.resultdef.typ=orddef) and
+                   (torddef(left.resultdef).ordtype=u128bit)) or
+                  ((right.resultdef.typ=orddef) and
+                   (torddef(right.resultdef).ordtype=u128bit));
+
+        { we have LOC_JUMP as result }
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
+
+        { Relational compares against constants having low dword=0 can omit the
+          second compare based on the fact that any unsigned value is >=0 }
+        hlab:=nil;
+        if (right.location.loc=LOC_CONSTANT) and
+           (hlcgint_lo(right.location.value128)=0) then
+          begin
+            case getresflags(true) of
+              F_AE: hlab:=location.truelabel ;
+              F_B:  hlab:=location.falselabel;
+              else
+                ;
+            end;
+          end;
+
+        if (right.location.loc=LOC_CONSTANT) and
+           (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+          begin
+            tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+            href:=left.location.reference;
+            inc(href.offset,8);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            emit_const_ref(A_CMP,S_Q,aint(hlcgint_hi(right.location.value128)),href);
+            firstjmp128bitcmp;
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            if assigned(hlab) then
+              cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
+            else
+              begin
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                emit_const_ref(A_CMP,S_Q,aint(hlcgint_lo(right.location.value128)),left.location.reference);
+                secondjmp128bitcmp;
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              end;
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
+            exit;
+          end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+         begin
+           if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+           else
+            begin
+              location_swap(left.location,right.location);
+              toggleflag(nf_swapped);
+            end;
+         end;
+
+        { at this point, left.location.loc should be LOC_[C]REGISTER }
+        case right.location.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              emit_reg_reg(A_CMP,S_Q,right.location.register128.reghi,left.location.register128.reghi);
+              firstjmp128bitcmp;
+              emit_reg_reg(A_CMP,S_Q,right.location.register128.reglo,left.location.register128.reglo);
+              secondjmp128bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            end;
+          LOC_CREFERENCE,
+          LOC_REFERENCE :
+            begin
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+              href:=right.location.reference;
+              inc(href.offset,8);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              emit_ref_reg(A_CMP,S_Q,href,left.location.register128.reghi);
+              firstjmp128bitcmp;
+              emit_ref_reg(A_CMP,S_Q,right.location.reference,left.location.register128.reglo);
+              secondjmp128bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              location_freetemp(current_asmdata.CurrAsmList,right.location);
+            end;
+          LOC_CONSTANT :
+            begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_Q,aint(hlcgint_hi(right.location.value128)),left.location.register128.reghi));
+              firstjmp128bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              if assigned(hlab) then
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
+              else
+                begin
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_Q,aint(hlcgint_lo(right.location.value128)),left.location.register128.reglo));
+                  secondjmp128bitcmp;
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                end;
+            end;
+        else
+          internalerror(2002032803);
+        end;
+
       end;
 
 
