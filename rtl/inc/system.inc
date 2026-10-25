@@ -1383,14 +1383,21 @@ end;
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
 // Returns aValue as hexadecimal digits without leading zeroes
 function BackTraceHexStr(aValue: CodePtrUInt): ShortString; {$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  lDigits : CodePtrUInt;
 begin
   // The number of hexadecimal digits in X is 1 + BSR(X or 1) div 4.
   // The generic formula is 1 + floor(log(X, radix)); “or 1” handles the case X = 0.
-  BackTraceHexStr:=HexStr(aValue, 1+
-    {$if not defined(VER3_2)} Bsr
-    {$elseif sizeof(aValue) >= sizeof(qword)} BsrQWord
-    {$else} BsrDWord
-    {$endif} (aValue or 1) div 4);
+  {$if not defined(VER3_2)} 
+  // Bsr() overload is only available as of 3.3.1
+  lDigits:=Bsr(aValue or 1);
+  {$elseif sizeof(aValue) >= sizeof(qword)} 
+  lDigits:=BsrQWord(aValue or 1);
+  {$else} 
+  lDigits:=BsrDWord(aValue or 1);
+  {$endif} 
+  lDigits:=1 + lDigits div 4;
+  BackTraceHexStr:=HexStr(aValue,lDigits);
 end;
 
 
