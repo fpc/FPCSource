@@ -497,8 +497,9 @@ unit cgobj;
         procedure a_load128_const_ref(list : TAsmList;valuelo,valuehi : int64;const ref : treference);virtual;
         procedure a_load128_const_loc(list : TAsmList;valuelo,valuehi : int64;const l : tlocation);virtual;
 
+        procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);virtual;abstract;
         procedure a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);virtual;abstract;
-        procedure a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);virtual;abstract;
+        procedure a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);virtual;
         procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
 
@@ -3533,6 +3534,31 @@ implementation
           else
             internalerror(2026102401);
         end;
+      end;
+
+
+    procedure tcg128.a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);
+      var
+        tmpreg128 : tregister128;
+      begin
+        { when src1=dst then we need to first create a temp to prevent
+          overwriting src1 with src2 }
+        if (regsrc1.reghi=regdst.reghi) or
+           (regsrc1.reglo=regdst.reghi) or
+           (regsrc1.reghi=regdst.reglo) or
+           (regsrc1.reglo=regdst.reglo) then
+          begin
+            tmpreg128.reglo:=cg.getintregister(list,OS_64);
+            tmpreg128.reghi:=cg.getintregister(list,OS_64);
+            a_load128_reg_reg(list,regsrc2,tmpreg128);
+            a_op128_reg_reg(list,op,size,regsrc1,tmpreg128);
+            a_load128_reg_reg(list,tmpreg128,regdst);
+          end
+        else
+          begin
+            a_load128_reg_reg(list,regsrc2,regdst);
+            a_op128_reg_reg(list,op,size,regsrc1,regdst);
+          end;
       end;
 
 
