@@ -1344,7 +1344,9 @@ implementation
           end
         else if is_oversizedord(left.resultdef) then
           begin
-            if is_64bit(left.resultdef) then
+            if is_128bit(left.resultdef) then
+              inserttypeconv(left,s128inttype)
+            else if is_64bit(left.resultdef) then
               inserttypeconv(left,s64inttype)
             else if is_32bit(left.resultdef) then
               inserttypeconv(left,s32inttype)
