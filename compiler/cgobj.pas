@@ -491,6 +491,7 @@ unit cgobj;
         procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
         procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
         procedure a_load128_ref_reg(list : TAsmList;const ref : treference;reg : tregister128);virtual;
+        procedure a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);virtual;abstract;
         procedure a_load128_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;
         procedure a_load128_reg_loc(list : TAsmList;reg : tregister128;const l : tlocation);virtual;
         procedure a_load128_const_reg(list : TAsmList;valuelo,valuehi : int64;reg : tregister128);virtual;
