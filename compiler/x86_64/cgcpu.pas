@@ -57,6 +57,8 @@ unit cgcpu;
       tcg128fx86_64 = class(tcg128f64)
         procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);override;
         procedure a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);override;
+      private
+        procedure get_128bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
 
     procedure create_codegen;
@@ -558,9 +560,132 @@ unit cgcpu;
       end;
 
 
-    procedure tcg128fx86_64.a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);
+
+
+{ ************* 128bit operations ************ }
+
+    procedure tcg128fx86_64.get_128bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       begin
-        internalerror(2026102501);
+        case op of
+          OP_ADD :
+            begin
+              op1:=A_ADD;
+              op2:=A_ADC;
+            end;
+          OP_SUB :
+            begin
+              op1:=A_SUB;
+              op2:=A_SBB;
+            end;
+          OP_XOR :
+            begin
+              op1:=A_XOR;
+              op2:=A_XOR;
+            end;
+          OP_OR :
+            begin
+              op1:=A_OR;
+              op2:=A_OR;
+            end;
+          OP_AND :
+            begin
+              op1:=A_AND;
+              op2:=A_AND;
+            end;
+          else
+            internalerror(2002032408);
+        end;
+      end;
+
+
+    procedure tcg128fx86_64.a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);
+      var
+        op1,op2 : TAsmOp;
+        l1, l2: TAsmLabel;
+      begin
+        case op of
+          OP_NEG :
+            begin
+              if (regsrc.reglo<>regdst.reglo) then
+                a_load128_reg_reg(list,regsrc,regdst);
+              list.concat(taicpu.op_reg(A_NOT,S_Q,regdst.reghi));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_reg(A_NEG,S_Q,regdst.reglo));
+              list.concat(taicpu.op_const_reg(A_SBB,S_Q,-1,regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              exit;
+            end;
+          OP_NOT :
+            begin
+              if (regsrc.reglo<>regdst.reglo) then
+                a_load128_reg_reg(list,regsrc,regdst);
+              list.concat(taicpu.op_reg(A_NOT,S_Q,regdst.reghi));
+              list.concat(taicpu.op_reg(A_NOT,S_Q,regdst.reglo));
+              exit;
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              { load right operators in a register }
+              cg.getcpuregister(list,NR_RCX);
+              cg.a_load_reg_reg(list,OS_64,OS_64,regsrc.reglo,NR_ECX);
+
+              { the damned shift instructions work only til a count of 64 }
+              { so we've to do some tricks here                           }
+              current_asmdata.getjumplabel(l1);
+              current_asmdata.getjumplabel(l2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.Concat(taicpu.op_const_reg(A_TEST,S_B,64,NR_CL));
+              cg.a_jmp_flags(list,F_E,l1);
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              case op of
+                OP_SHL:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_Q,NR_CL,regdst.reglo));
+                    cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reglo,regdst.reghi);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_Q,regdst.reglo,regdst.reglo));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHLD,S_Q,NR_CL,regdst.reglo,regdst.reghi));
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_Q,NR_CL,regdst.reglo));
+                  end;
+                OP_SHR:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_Q,NR_CL,regdst.reghi));
+                    cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_Q,regdst.reghi,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_Q,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_Q,NR_CL,regdst.reghi));
+                  end;
+                OP_SAR:
+                  begin
+                    cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_Q,NR_CL,regdst.reglo));
+                    list.Concat(taicpu.op_const_reg(A_SAR,S_Q,63,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_Q,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_Q,NR_CL,regdst.reghi));
+                  end;
+                else
+                  internalerror(2017041802);
+              end;
+              cg.a_label(list,l2);
+
+              cg.ungetcpuregister(list,NR_RCX);
+              exit;
+            end;
+          else
+            ;
+        end;
+        get_128bit_ops(op,op1,op2);
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        list.concat(taicpu.op_reg_reg(op1,S_Q,regsrc.reglo,regdst.reglo));
+        list.concat(taicpu.op_reg_reg(op2,S_Q,regsrc.reghi,regdst.reghi));
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
