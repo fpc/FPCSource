@@ -226,17 +226,37 @@ implementation
         procedure genitem(t : pcaselabel);
           var
              range, gap, extra: aint;
+             lowchecked : boolean;
           begin
              if assigned(t^.less) then
                genitem(t^.less);
-             { need we to test the first value }
-             if first and (t^._low>get_min_value(left.resultdef)) then
+             { need we to test the first value? The subtraction sets the flags
+               like a comparison, so subtract first and use its flags }
+             lowchecked:=first and (t^._low>get_min_value(left.resultdef));
+             if lowchecked then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                 { possible for signed types, a subtraction of 0 would not be generated }
+                 if t^._low=0 then
+                   emit_reg_reg(A_TEST,TCGSize2OpSize[opcgsize],hregister,hregister)
+                 { we need to use A_SUB, if cond_lt uses the carry flags
+                   because A_DEC does not set the correct flags }
+                 else if (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (t^._low=1) then
+                   emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],1,hregister)
+                 else
+                   cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
+                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                 last:=t^._low;
                end;
              if t^._low=t^._high then
                begin
-                  if t^._low-last=0 then
+                  if lowchecked then
+                    begin
+                      { the flags of the subtraction are still valid }
+                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
+                      cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                    end
+                  else if t^._low-last=0 then
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
@@ -255,11 +275,12 @@ implementation
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
                   { ELSE-label                                }
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                  if not(lowchecked) then
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   if first then
                     begin
                        { have we to adjust the first value ? }
-                       if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
+                       if not(lowchecked) and (get_min_value(left.resultdef)<>0) then
                          cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
                     end
                   else
