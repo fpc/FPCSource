@@ -61,14 +61,23 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+          { override the following if you want to implement }
+          { parts explicitely in the code generator (CEC)
+            Should return nil, if everything will be handled
+            in the code generator
+          }
+          function first_shlshr128bitint: tnode; virtual;
+{$else cpu64bitalu}
           { override the following if you want to implement }
           { parts explicitely in the code generator (CEC)
             Should return nil, if everything will be handled
             in the code generator
           }
           function first_shlshr64bitint: tnode; virtual;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
        end;
        tshlshrnodeclass = class of tshlshrnode;
 
@@ -1009,7 +1018,34 @@ implementation
       end;
 
 
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+    function tshlshrnode.first_shlshr128bitint: tnode;
+      var
+        procname: string[31];
+      begin
+        result := nil;
+        { Normally already done below, but called again,
+          just in case it is called directly }
+        firstpass(left);
+        { otherwise create a call to a helper }
+        if is_signed(left.resultdef) then
+          procname:='int128'
+        else
+          procname:='uint128';
+        if nodetype = shln then
+          procname := 'fpc_shl_'+procname
+        else
+          procname := 'fpc_shr_'+procname;
+        { this order of parameters works at least for the arm,
+          however it should work for any calling conventions (FK) }
+        result := ccallnode.createintern(procname,ccallparanode.create(right,
+          ccallparanode.create(left,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+{$else cpu64bitalu}
     function tshlshrnode.first_shlshr64bitint: tnode;
       var
         procname: string[31];
@@ -1035,7 +1071,8 @@ implementation
         right := nil;
         firstpass(result);
       end;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
 
 
     function tshlshrnode.pass_1 : tnode;
@@ -1047,11 +1084,17 @@ implementation
            exit;
 
          expectloc:=LOC_REGISTER;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         { 128 bit ints have their own shift handling }
+         if is_128bit(left.resultdef) then
+           result := first_shlshr128bitint;
+{$else cpu64bitalu}
          { 64 bit ints have their own shift handling }
          if is_64bit(left.resultdef) then
            result := first_shlshr64bitint;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
       end;
 
 
