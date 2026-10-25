@@ -1977,6 +1977,10 @@ procedure sysvarneg(var v: Variant);
 const
   BoolMap: array [Boolean] of SmallInt = (0, -1);
 begin
+  { a nil reference is refused before anything is read through it }
+  if ((TVarData(v).vType and not varTypeMask) = varByRef) and
+     not Assigned(TVarData(v).vPointer) then
+    VarBadTypeError;
   with TVarData(v) do case vType of
     varEmpty: begin
       vSmallInt := 0;
@@ -2189,6 +2193,10 @@ end;
 
 procedure sysvarnot(var v: Variant);
 begin
+  { a nil reference is refused before anything is read through it }
+  if ((TVarData(v).vType and not varTypeMask) = varByRef) and
+     not Assigned(TVarData(v).vPointer) then
+    VarBadTypeError;
   with TVarData(v) do case vType of
     varEmpty:    v := -1;
     varNull:;
