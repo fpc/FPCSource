@@ -119,9 +119,13 @@ interface
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         procedure second_128bit;virtual;
+{$else cpu64bitalu}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
          procedure second_integer;virtual;
       public
          procedure pass_generate_code;override;
@@ -631,7 +635,20 @@ implementation
                                TCGNOTNODE
 *****************************************************************************}
 
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+    procedure tcgnotnode.second_128bit;
+      begin
+        secondpass(left);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register128.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+        location.register128.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+        { perform the NOT operation }
+        cg128.a_op128_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register128,location.register128);
+      end;
+{$else cpu64bitalu}
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
@@ -643,7 +660,8 @@ implementation
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
 
 
     procedure tcgnotnode.second_integer;
@@ -682,10 +700,15 @@ implementation
         else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
           second_mmx
 {$endif SUPPORT_MMX}
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+        else if is_128bit(left.resultdef) then
+          second_128bit
+{$else cpu64bitalu}
         else if is_64bit(left.resultdef) then
           second_64bit
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
         else
           second_integer;
       end;
