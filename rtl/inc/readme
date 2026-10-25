@@ -35,6 +35,7 @@ genstrs.inc     Shortstring to pchar conversion
 heap.inc        Runtime heap manager 
 heaph.inc       Declarations of Heap functions
 innr.inc        Internal function declarations
+int128.inc      Support for 128-bit integer arithmetic
 int64.inc       Support for 64-bit integer arithmetic
 intres.inc      Resource support for non-PECOFF 
 isotmp.inc      Temporary file support for mode ISO

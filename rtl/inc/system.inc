@@ -568,6 +568,10 @@ type
 {$I int64p.inc}
 {$I int64.inc}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$I int128.inc}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {$i astrings.inc}

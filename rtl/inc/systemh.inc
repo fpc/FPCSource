@@ -207,6 +207,8 @@ Type
   {$endif}
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT128}
+
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 {$endif CPUX86_64}

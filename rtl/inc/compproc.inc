@@ -655,6 +655,16 @@ procedure fpc_shr_assign_qword(var value : qword; shift : ALUUInt); compilerproc
 procedure fpc_shl_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
 procedure fpc_shr_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+{$if defined(FPC_HAS_TYPES_INT128_AND_UINT128) and defined(FPC_INCLUDE_SOFTWARE_SHIFT_INT128)}
+function fpc_shl_uint128(value : uint128; shift : ALUUInt) : uint128; compilerproc;
+function fpc_shr_uint128(value : uint128; shift : ALUUInt) : uint128; compilerproc;
+function fpc_shl_int128(value : int128; shift : ALUUInt) : int128; compilerproc;
+function fpc_shr_int128(value : int128; shift : ALUUInt) : int128; compilerproc;
+procedure fpc_shl_assign_uint128(var value : uint128; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_uint128(var value : uint128; shift : ALUUInt); compilerproc;
+procedure fpc_shl_assign_int128(var value : int128; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_int128(var value : int128; shift : ALUUInt); compilerproc;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128 and FPC_INCLUDE_SOFTWARE_SHIFT_INT128}
 {$ifndef FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
 procedure fpc_sar_assign_int64(var AValue : Int64;const Shift : Byte);compilerproc;
 procedure fpc_sar_assign_qword(var AValue : qword;const Shift : Byte);compilerproc;
