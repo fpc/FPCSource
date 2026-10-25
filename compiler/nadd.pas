@@ -78,6 +78,13 @@ interface
           function first_addpointer: tnode; virtual;
           function first_cmppointer: tnode; virtual;
 
+          { override and return false if you can handle 64x64->128 }
+          { bit multiplies directly in your code generator. If    }
+          { this function is overridden to return false, you can  }
+          { get multiplies with left/right both s64bit or u64bit, }
+          { and resultdef of the muln s128bit or u128bit          }
+          function use_generic_mul64to128: boolean; virtual;
+
           { override and return false if you can handle 32x32->64 }
           { bit multiplies directly in your code generator. If    }
           { this function is overridden to return false, you can  }
@@ -4399,6 +4406,12 @@ const
           else
             Internalerror(2018030301);
           end;
+      end;
+
+
+    function taddnode.use_generic_mul64to128: boolean;
+      begin
+        result := true;
       end;
 
 
