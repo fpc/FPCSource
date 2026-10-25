@@ -500,6 +500,7 @@ unit cgobj;
 
         procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);virtual;abstract;
         procedure a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);virtual;abstract;
+        procedure a_op128_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg128 : tregister128);virtual;abstract;
         procedure a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);virtual;
         procedure a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);virtual;
         procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;

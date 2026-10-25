@@ -40,6 +40,8 @@ unit cg128f64;
       }
       tcg128f64 = class(tcg128)
         procedure a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);override;
+
+        procedure a_op128_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg128 : tregister128);override;
       end;
 
 
@@ -68,5 +70,21 @@ unit cg128f64;
             internalerror(2026102503);
         end;
       end;
+
+
+    procedure tcg128f64.a_op128_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg128 : tregister128);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op128_ref_reg(list,op,size,l.reference,reg128);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op128_reg_reg(list,op,size,l.register128,reg128);
+          LOC_CONSTANT :
+            a_op128_const_reg(list,op,size,hlcgint_lo(l.value128),hlcgint_hi(l.value128),reg128);
+          else
+            internalerror(2026102501);
+        end;
+      end;
+
 
 end.
