@@ -55,6 +55,8 @@ unit cgcpu;
       end;
 
       tcg128fx86_64 = class(tcg128)
+        procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);override;
+        procedure a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);override;
       end;
 
     procedure create_codegen;
@@ -553,6 +555,18 @@ unit cgcpu;
           use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption)
         else
           use_ms_abi:=target_info.system=system_x86_64_win64;
+      end;
+
+
+    procedure tcg128fx86_64.a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);
+      begin
+        internalerror(2026102501);
+      end;
+
+
+    procedure tcg128fx86_64.a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);
+      begin
+        internalerror(2026102502);
       end;
 
 
