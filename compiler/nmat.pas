@@ -860,6 +860,8 @@ implementation
                     rvalue:=tordconstnode(right).value and byte($1f);
                   8:
                     rvalue:=tordconstnode(right).value and byte($3f);
+                  16:
+                    rvalue:=tordconstnode(right).value and byte($7f);
                   else
                     internalerror(2013122302);
                 end;
