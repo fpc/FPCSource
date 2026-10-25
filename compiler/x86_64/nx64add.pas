@@ -240,6 +240,20 @@ interface
            end;
         end;
 
+      procedure gen_cmp64_const_ref(c : aint;ref : treference);
+        var
+          tmpreg: TRegister;
+        begin
+          if (c<low(longint)) or (c>high(longint)) then
+            begin
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_64,c,tmpreg);
+              emit_reg_ref(A_CMP,S_Q,tmpreg,ref);
+            end
+          else
+            emit_const_ref(A_CMP,S_Q,c,ref);
+        end;
+
       begin
         truelabel:=nil;
         falselabel:=nil;
@@ -276,7 +290,7 @@ interface
             href:=left.location.reference;
             inc(href.offset,8);
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-            emit_const_ref(A_CMP,S_Q,aint(hlcgint_hi(right.location.value128)),href);
+            gen_cmp64_const_ref(aint(hlcgint_hi(right.location.value128)),href);
             firstjmp128bitcmp;
             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if assigned(hlab) then
@@ -284,7 +298,7 @@ interface
             else
               begin
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                emit_const_ref(A_CMP,S_Q,aint(hlcgint_lo(right.location.value128)),left.location.reference);
+                gen_cmp64_const_ref(aint(hlcgint_lo(right.location.value128)),left.location.reference);
                 secondjmp128bitcmp;
                 cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               end;
