@@ -520,6 +520,8 @@ begin
        for X:=0 to HTMLConsole^.MaxX-1 do
          begin
            Pos:=(Delta.Y*MaxViewWidth)+X+Y*MaxViewWidth;
+           if Pos>=BufSize then
+             break;
            NewAttr:=(Buffer^[Pos] shr 8);
            if NewAttr <> Attr then
              begin

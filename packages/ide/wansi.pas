@@ -185,6 +185,7 @@ type
      TANSIView = object(TScroller)
        Console : PANSIViewConsole;
        Buffer  : PAnsiBuffer;
+       BufSize : LongWord;
        LockCount : word;
        constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:PScrollBar);
        function    LoadFile(const FileName: string): boolean;
@@ -219,6 +220,7 @@ type
      TANSIBackground = object(TBackground)
        Console : PANSIBackgroundConsole;
        Buffer  : TAnsiBuffer;
+       BufSize : LongWord;
        LockCount : word;
        constructor Init(var Bounds: TRect);
        function    LoadFile(const FileName: string): boolean;
@@ -699,7 +701,8 @@ begin
   for X:=0 to MaxViewWidth-1 do for Y:=0 to Size.Y-1 do
       begin
         Pos:=(Owner^.Delta.Y+Y)*MaxViewWidth+X;
-        Owner^.Buffer^[Pos]:=32+256*word(TextAttr);
+        if Pos<Owner^.BufSize then
+          Owner^.Buffer^[Pos]:=32+256*word(TextAttr);
       end;
 end;
 
@@ -713,7 +716,8 @@ begin
     for X:=CurPos.X to MaxViewWidth-1 do
         begin
           Pos:=(Owner^.Delta.Y*MaxViewWidth)+X+Y*MaxViewWidth;
-          Owner^.Buffer^[Pos]:=32+256*word(TextAttr);
+          if Pos<Owner^.BufSize then
+            Owner^.Buffer^[Pos]:=32+256*word(TextAttr);
         end;
   end;
 end;
@@ -725,7 +729,8 @@ begin
        #8 : begin
               CursorBack(1);
               Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
-              Owner^.Buffer^[Pos]:=ord(' ')+256*word(TextAttr);
+              if Pos<Owner^.BufSize then
+                Owner^.Buffer^[Pos]:=ord(' ')+256*word(TextAttr);
             end;
        #0..#7,#9,
        #11..#12,
@@ -733,7 +738,8 @@ begin
        #32..#255
             : begin
                 Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
-                Owner^.Buffer^[Pos]:=ord(C)+256*word(TextAttr);
+                if Pos<Owner^.BufSize then
+                  Owner^.Buffer^[Pos]:=ord(C)+256*word(TextAttr);
                 GotoXY(WhereX+1,WhereY);
               end;
        #10  :
@@ -748,7 +754,8 @@ procedure TANSIViewConsole.WriteCharRaw(C: AnsiChar);
 var Pos: longint;
 begin
   Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
-  Owner^.Buffer^[Pos]:=ord(C)+256*word(TextAttr);
+  if Pos<Owner^.BufSize then
+    Owner^.Buffer^[Pos]:=ord(C)+256*word(TextAttr);
   GotoXY(WhereX+1,WhereY);
 end;
 
@@ -774,8 +781,8 @@ begin
   if Owner<>nil then
   while Y>MaxVideoLine do
   begin
-    Move(Owner^.Buffer^[MaxViewWidth],Owner^.Buffer,SizeOf(Owner^.Buffer^)-(MaxViewWidth*2));
-    W:=(MaxViewWidth*MaxVideoLine)-1-(MaxViewWidth);
+    Move(Owner^.Buffer^[MaxViewWidth],Owner^.Buffer,Owner^.BufSize*2-(MaxViewWidth*2));
+    W:=Owner^.BufSize-1-(MaxViewWidth);
     FillChar(Owner^.Buffer^[W],MaxViewWidth*2,0);
     Dec(Y);
   end;
@@ -789,6 +796,7 @@ begin
   LockCount:=0; Options:=Options or ofTopSelect;
   GrowMode:=gfGrowHiX or gfGrowHiY;
   New(Buffer);
+  BufSize:=sizeof(Buffer^) div sizeof(Word);
   SetLimit({MaxViewWidth}80,MaxVideoLine);
   New(Console, Init(@Self));
   Console^.Size.X:=80; Console^.Size.Y:=25;
@@ -831,7 +839,8 @@ begin
   for I:=0 to Size.Y-1 do
   begin
     Pos:=Delta.X+(Delta.Y+I)*MaxViewWidth;
-    WriteLine(0,I,Size.X,1,Buffer^[Pos]);
+    if Pos+MaxViewWidth<=BufSize then
+      WriteLine(0,I,Size.X,1,Buffer^[Pos]);
   end;
   if Console=nil then Exit;
   X:=Console^.WhereX-Delta.X; Y:=Console^.WhereY-Delta.Y;
@@ -917,7 +926,8 @@ begin
     for Y:=0 to Size.Y-1 do
       begin
         Pos:=X+Y*MaxViewWidth;
-        Owner^.Buffer[Pos]:=32+256*word(TextAttr);
+        if Pos < Owner^.BufSize then
+          Owner^.Buffer[Pos]:=32+256*word(TextAttr);
       end;
 end;
 
@@ -931,7 +941,8 @@ begin
     for X:=CurPos.X to MaxViewWidth-1 do
         begin
           Pos:=X+Y*MaxViewWidth;
-          Owner^.Buffer[Pos]:=32+256*word(TextAttr);
+          if Pos < Owner^.BufSize then
+            Owner^.Buffer[Pos]:=32+256*word(TextAttr);
         end;
   end;
 end;
@@ -943,7 +954,8 @@ begin
        #8 : begin
               CursorBack(1);
               Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
-              Owner^.Buffer[Pos]:=ord(' ')+256*word(TextAttr);
+              if Pos < Owner^.BufSize then
+                Owner^.Buffer[Pos]:=ord(' ')+256*word(TextAttr);
             end;
        #0..#7,#9,
        #11..#12,
@@ -951,7 +963,8 @@ begin
        #32..#255
             : begin
                 Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
-                Owner^.Buffer[Pos]:=ord(C)+256*word(TextAttr);
+                if Pos < Owner^.BufSize then
+                  Owner^.Buffer[Pos]:=ord(C)+256*word(TextAttr);
                 GotoXY(WhereX+1,WhereY);
               end;
        #10  :
@@ -984,8 +997,8 @@ begin
   if Owner<>nil then
   while Y>MaxVideoLine do
   begin
-    Move(Owner^.Buffer[MaxViewWidth],Owner^.Buffer,SizeOf(Owner^.Buffer)-(MaxViewWidth*2));
-    W:=(MaxViewWidth*MaxVideoLine)-1-(MaxViewWidth);
+    Move(Owner^.Buffer[MaxViewWidth],Owner^.Buffer,Owner^.BufSize*2-(MaxViewWidth*2));
+    W:=Owner^.BufSize-1-(MaxViewWidth);
     FillChar(Owner^.Buffer[W],MaxViewWidth*2,0);
     Dec(Y);
   end;
@@ -998,6 +1011,7 @@ begin
   LockCount:=0;
   GrowMode:=gfGrowHiX or gfGrowHiY;
   New(Console, Init(@Self));
+  BufSize:=sizeof(Buffer) div sizeof(Word);
   Console^.Size.X:=Max(Bounds.B.X+1,80); { 80 is for LoadFile to not wrap lines around too soon}
   Console^.Size.Y:=Bounds.B.Y+1;
   Console^.ClrScr;
@@ -1037,6 +1051,8 @@ begin
   for I:=0 to Size.Y-1 do
   begin
     Pos:=I*MaxViewWidth;
+    if Pos+MaxViewWidth >= BufSize then
+      break;
     WriteLine(0,I,Size.X,1,Buffer[Pos]);
   end;
   if Console=nil then Exit;
