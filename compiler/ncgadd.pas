@@ -45,6 +45,7 @@ interface
           procedure second_opfloat;
           procedure second_opboolean;
           procedure second_opsmallset;
+          procedure second_op128bit;
           procedure second_op64bit;
           procedure second_opordinal;
 
@@ -472,6 +473,15 @@ interface
 {*****************************************************************************
                                 64-bit
 *****************************************************************************}
+
+    procedure tcgaddnode.second_op128bit;
+      begin
+        if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
+          second_cmp128bit
+        else
+          second_add128bit;
+      end;
+
 
     procedure tcgaddnode.second_op64bit;
       begin
