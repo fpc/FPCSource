@@ -131,6 +131,9 @@ type
     sin6_flowinfo : cuint32;
     sin6_addr     : in6_addr;
     sin6_scope_id : cuint32;
+    {$ifdef sunos}
+    __sin6_src_id : cuint32;
+    {$endif}
   end;
 
   TInetSockAddr6 = sockaddr_in6;
