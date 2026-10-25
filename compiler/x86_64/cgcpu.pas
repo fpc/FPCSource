@@ -690,8 +690,116 @@ unit cgcpu;
 
 
     procedure tcg128fx86_64.a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);
+      var
+        op1,op2 : TAsmOp;
+        value: integer;
       begin
-        internalerror(2026102502);
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg(list,op,OS_64,tcgint(valuelo),regdst.reglo);
+              cg.a_op_const_reg(list,op,OS_64,tcgint(valuehi),regdst.reghi);
+            end;
+          OP_ADD, OP_SUB:
+            begin
+              // can't use a_op_const_ref because this may use dec/inc
+              get_128bit_ops(op,op1,op2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_const_reg(op1,S_Q,aint(valuelo),regdst.reglo));
+              list.concat(taicpu.op_const_reg(op2,S_Q,aint(valuehi),regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=valuelo and 127;
+              if value<>0 then
+                begin
+                  {if (value=1) and (op=OP_SHL) and
+                     (current_settings.optimizecputype<=cpu_486) and
+                     not (cs_opt_size in current_settings.optimizerswitches) then
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(taicpu.op_reg_reg(A_ADD,S_Q,regdst.reglo,regdst.reglo));
+                      list.concat(taicpu.op_reg_reg(A_ADC,S_Q,regdst.reghi,regdst.reghi));
+                      cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    end
+                  else} if (value=1) and (cs_opt_size in current_settings.optimizerswitches) then
+                    case op of
+                      OP_SHR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SHR,S_Q,value,regdst.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_Q,value,regdst.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SHL,S_Q,value,regdst.reglo));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_Q,value,regdst.reghi));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SAR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SAR,S_Q,value,regdst.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_Q,value,regdst.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      else
+                        internalerror(2019050902);
+                    end
+                  else if value>63 then
+                    case op of
+                      OP_SAR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reghi,regdst.reglo);
+                          list.concat(taicpu.op_const_reg(A_SAR,S_Q,63,regdst.reghi));
+                          if (value and 63)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SAR,S_Q,value and 63,regdst.reglo));
+                        end;
+                      OP_SHR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reghi,regdst.reglo);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_Q,regdst.reghi,regdst.reghi));
+                          if (value and 63)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHR,S_Q,value and 63,regdst.reglo));
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_load_reg_reg(list,OS_64,OS_64,regdst.reglo,regdst.reghi);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_Q,regdst.reglo,regdst.reglo));
+                          if (value and 63)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHL,S_Q,value and 63,regdst.reghi));
+                        end;
+                      else
+                        internalerror(2017041201);
+                    end
+                  else
+                    case op of
+                      OP_SAR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_Q,value,regdst.reghi,regdst.reglo));
+                          list.concat(taicpu.op_const_reg(A_SAR,S_Q,value,regdst.reghi));
+                        end;
+                      OP_SHR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_Q,value,regdst.reghi,regdst.reglo));
+                          list.concat(taicpu.op_const_reg(A_SHR,S_Q,value,regdst.reghi));
+                        end;
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHLD,S_Q,value,regdst.reglo,regdst.reghi));
+                          list.concat(taicpu.op_const_reg(A_SHL,S_Q,value,regdst.reglo));
+                        end;
+                      else
+                        internalerror(2017041202);
+                    end;
+                end;
+            end;
+          else
+            internalerror(200204021);
+        end;
       end;
 
 
