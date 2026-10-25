@@ -498,7 +498,8 @@ unit cgobj;
         procedure a_load128_const_loc(list : TAsmList;valuelo,valuehi : int64;const l : tlocation);virtual;
 
         procedure a_op128_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister128);virtual;abstract;
-        procedure a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);virtual;abstract;
+        procedure a_op128_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regdst : tregister128);virtual;abstract;
+        procedure a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);virtual;
         procedure a_op128_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128);virtual;
         procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
@@ -3534,6 +3535,13 @@ implementation
           else
             internalerror(2026102401);
         end;
+      end;
+
+
+    procedure tcg128.a_op128_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128);
+      begin
+        a_load128_reg_reg(list,regsrc,regdst);
+        a_op128_const_reg(list,op,size,valuelo,valuehi,regdst);
       end;
 
 
