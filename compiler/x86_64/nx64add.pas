@@ -254,6 +254,20 @@ interface
             emit_const_ref(A_CMP,S_Q,c,ref);
         end;
 
+      procedure gen_cmp64_const_reg(c : aint;reg : tregister);
+        var
+          tmpreg: TRegister;
+        begin
+          if (c<low(longint)) or (c>high(longint)) then
+            begin
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_64,c,tmpreg);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_Q,tmpreg,reg));
+            end
+          else
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_Q,c,reg));
+        end;
+
       begin
         truelabel:=nil;
         falselabel:=nil;
@@ -348,7 +362,7 @@ interface
           LOC_CONSTANT :
             begin
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_Q,aint(hlcgint_hi(right.location.value128)),left.location.register128.reghi));
+              gen_cmp64_const_reg(aint(hlcgint_hi(right.location.value128)),left.location.register128.reghi);
               firstjmp128bitcmp;
               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if assigned(hlab) then
@@ -356,7 +370,7 @@ interface
               else
                 begin
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_Q,aint(hlcgint_lo(right.location.value128)),left.location.register128.reglo));
+                  gen_cmp64_const_reg(aint(hlcgint_lo(right.location.value128)),left.location.register128.reglo);
                   secondjmp128bitcmp;
                   cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end;
