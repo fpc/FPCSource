@@ -31,16 +31,42 @@ unit cg128f64;
   interface
 
     uses
-      cgobj;
+      aasmdata,
+      cgbase,cgobj,cgutils;
 
     type
       {# Defines all the methods required on 64-bit processors
          to handle 128-bit integers.
       }
       tcg128f64 = class(tcg128)
+        procedure a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);override;
       end;
 
 
   implementation
+
+    uses
+      globtype,
+      verbose;
+
+{****************************************************************************
+                                  TCG128F64
+****************************************************************************}
+
+    procedure tcg128f64.a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load128_ref_reg(list,l.reference,reg);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load128_reg_reg(list,l.register128,reg);
+          LOC_CONSTANT :
+            a_load128_const_reg(list,hlcgint_lo(l.value128),hlcgint_hi(l.value128),reg);
+          //LOC_SUBSETREF, LOC_CSUBSETREF:
+          //  a_load128_subsetref_reg(list,l.sref,reg);
+          else
+            internalerror(2026102503);
+        end;
+      end;
 
 end.
