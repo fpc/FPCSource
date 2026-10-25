@@ -969,7 +969,8 @@ implementation
              { calculations for ordinals < 32 bit have to be done in
                32 bit for backwards compatibility. That way 'shl 33' is
                the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
-             if (not is_64bit(left.resultdef)) and
+             if (not is_128bit(left.resultdef)) and
+                (not is_64bit(left.resultdef)) and
                 (torddef(left.resultdef).ordtype<>u32bit) then
                begin
                  { keep signedness of original type }
