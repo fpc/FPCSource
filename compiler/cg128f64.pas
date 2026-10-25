@@ -41,6 +41,7 @@ unit cg128f64;
       tcg128f64 = class(tcg128)
         procedure a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);override;
 
+        procedure a_op128_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister128);override;
         procedure a_op128_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg128 : tregister128);override;
       end;
 
@@ -69,6 +70,17 @@ unit cg128f64;
           else
             internalerror(2026102503);
         end;
+      end;
+
+
+    procedure tcg128f64.a_op128_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister128);
+      var
+        tempreg: tregister128;
+      begin
+        tempreg.reghi:=cg.getintregister(list,OS_64);
+        tempreg.reglo:=cg.getintregister(list,OS_64);
+        a_load128_ref_reg(list,ref,tempreg);
+        a_op128_reg_reg(list,op,size,tempreg,reg);
       end;
 
 
