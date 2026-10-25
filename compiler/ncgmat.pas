@@ -109,9 +109,13 @@ interface
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         procedure second_128bit;virtual;
+{$else cpu64bitalu}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
          procedure second_integer;virtual;
          procedure pass_generate_code;override;
       end;
@@ -527,13 +531,21 @@ implementation
 *****************************************************************************}
 
 
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+    procedure tcgshlshrnode.second_128bit;
+      begin
+         { already hanled in 1st pass }
+         internalerror(2026102502);
+      end;
+{$else cpu64bitalu}
     procedure tcgshlshrnode.second_64bit;
       begin
          { already hanled in 1st pass }
          internalerror(2002081501);
       end;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
 
 
     procedure tcgshlshrnode.second_integer;
@@ -662,11 +674,17 @@ implementation
              second_mmx
          else
 {$endif SUPPORT_MMX}
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+         if is_128bit(left.resultdef) then
+           second_128bit
+         else
+{$else cpu64bitalu}
          if is_64bit(left.resultdef) then
            second_64bit
          else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
            second_integer;
       end;
 
