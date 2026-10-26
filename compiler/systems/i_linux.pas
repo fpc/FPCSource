@@ -252,7 +252,7 @@ unit i_linux;
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_powerpc;
-            unit_env     : '';
+            unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
@@ -321,7 +321,7 @@ unit i_linux;
                             tf_requires_proper_alignment,tf_safecall_exceptions,tf_smartlink_sections,tf_has_winlike_resources,
                             tf_supports_hidden_symbols];
             cpu          : cpu_powerpc64;
-            unit_env     : '';
+            unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
