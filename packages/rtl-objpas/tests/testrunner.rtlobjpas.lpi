@@ -111,7 +111,7 @@
       <Unit>
         <Filename Value="tests.rtti.inherited.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tests.rtti.inherited"/>
+        <UnitName Value="tests.rtti.&amp;inherited"/>
       </Unit>
       <Unit>
         <Filename Value="tests.rtti.declorder.pas"/>
