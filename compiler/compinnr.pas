@@ -134,6 +134,8 @@ type
      in_const_swap_qword = 108,
      in_prefetch_var     = 109,
      in_const_eh_return_data_regno = 110,
+     in_lo_uint128       = 111,
+     in_hi_uint128       = 112,
 
 { FPU functions }
      in_trunc_real       = 120,

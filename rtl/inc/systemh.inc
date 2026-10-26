@@ -948,12 +948,20 @@ Function  Lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
 Function  Lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
 Function  Lo(i : Int64) : DWord;   [INTERNPROC: fpc_in_lo_qword];
 Function  Lo(q : QWord) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function  Lo(q : Int128) : Int128;   [INTERNPROC: fpc_in_lo_uint128];
+Function  Lo(q : UInt128) : UInt128; [INTERNPROC: fpc_in_lo_uint128];
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 Function  Hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
 Function  Hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
 Function  Hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
 Function  Hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
 Function  Hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 Function  Hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function  Hi(q : Int128) : Int128;   [INTERNPROC: fpc_in_hi_uint128];
+Function  Hi(q : UInt128) : UInt128; [INTERNPROC: fpc_in_hi_uint128];
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 Function Swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
 Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];

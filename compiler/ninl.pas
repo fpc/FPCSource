@@ -2536,10 +2536,12 @@ implementation
         else
           begin
             case inlinenumber of
-              in_lo_long,
-              in_hi_long,
+              in_lo_uint128,
+              in_hi_uint128,
               in_lo_qword,
               in_hi_qword,
+              in_lo_long,
+              in_hi_long,
               in_lo_word,
               in_hi_word :
                 begin
@@ -2558,6 +2560,10 @@ implementation
                           result:=cordconstnode.create(tordconstnode(left).value and $ffffffff,u32inttype,true);
                         in_hi_qword :
                           result:=cordconstnode.create(tordconstnode(left).value shr 32,u32inttype,true);
+                        in_lo_uint128 :
+                          result:=cordconstnode.create(tordconstnode(left).value and $ffffffffffffffff,u64inttype,true);
+                        in_hi_uint128 :
+                          result:=cordconstnode.create(tordconstnode(left).value shr 64,u64inttype,true);
                         else
                           internalerror(2019050514);
                       end;
@@ -3426,15 +3432,17 @@ implementation
         if not(inf_inlineconst in inlinenodeflags) then
           begin
             case inlinenumber of
-              in_lo_long,
-              in_hi_long,
+              in_lo_uint128,
+              in_hi_uint128,
               in_lo_qword,
               in_hi_qword,
+              in_lo_long,
+              in_hi_long,
               in_lo_word,
               in_hi_word :
                 begin
                   { give warning for incompatibility with tp and delphi }
-                  if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword]) and
+                  if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword,in_lo_uint128,in_hi_uint128]) and
                      ((m_tp7 in current_settings.modeswitches) or
                       (m_delphi in current_settings.modeswitches)) then
                     CGMessage(type_w_maybe_wrong_hi_lo);
@@ -3451,6 +3459,9 @@ implementation
                     in_lo_qword,
                     in_hi_qword :
                       resultdef:=u32inttype;
+                    in_lo_uint128,
+                    in_hi_uint128 :
+                      resultdef:=u64inttype;
                     else
                       ;
                   end;
@@ -4404,6 +4415,8 @@ implementation
          if inf_inlineconst in inlinenodeflags then
           internalerror(200104044);
          case inlinenumber of
+          in_lo_uint128,
+          in_hi_uint128,
           in_lo_qword,
           in_hi_qword,
           in_lo_long,
@@ -4413,6 +4426,8 @@ implementation
             begin
               shiftconst := 0;
               case inlinenumber of
+                in_hi_uint128:
+                  shiftconst := 64;
                 in_hi_qword:
                   shiftconst := 32;
                 in_hi_long:

@@ -118,6 +118,8 @@ const
    fpc_in_const_swap_qword = 108;
    fpc_in_prefetch_var     = 109;
    fpc_in_const_eh_return_data_regno = 110;
+   fpc_in_lo_uint128       = 111;
+   fpc_in_hi_uint128       = 112;
 
 { FPU functions }
    fpc_in_trunc_real       = 120;

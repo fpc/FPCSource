@@ -905,6 +905,8 @@ implementation
                   { that inline nodes which are transformed into }
                   { calls already have been transformed          }
                   case tinlinenode(p).inlinenumber of
+                    in_lo_uint128,
+                    in_hi_uint128,
                     in_lo_qword,
                     in_hi_qword,
                     in_lo_long,
