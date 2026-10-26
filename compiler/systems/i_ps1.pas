@@ -37,7 +37,7 @@ unit i_ps1;
             shortname    : 'ps1';
             flags        : [tf_no_pic_supported, tf_smartlink_sections, tf_files_case_sensitive, tf_requires_proper_alignment, tf_emit_stklen];
             cpu          : cpu_mipsel;
-            unit_env     : '';
+            unit_env     : 'PS1UNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';

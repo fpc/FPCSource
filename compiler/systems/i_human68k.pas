@@ -38,7 +38,7 @@ unit i_human68k;
             flags        : [tf_use_8_3,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_under_development];
             cpu          : cpu_m68k;
-            unit_env     : '';
+            unit_env     : 'HUMAN68KUNITS';
             extradefines : '';
             exeext       : '.x';
             defext       : '';

@@ -42,7 +42,7 @@ unit i_zxspectrum;
 {$endif Z80_SMARTLINK_SECTIONS}
                             tf_needs_symbol_size,tf_files_case_sensitive];
             cpu          : cpu_z80;
-            unit_env     : '';
+            unit_env     : 'SPECTRUMUNITS';
             extradefines : '';
             exeext       : '.tzx';
             defext       : '.def';

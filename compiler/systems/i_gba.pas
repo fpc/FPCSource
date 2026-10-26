@@ -37,7 +37,7 @@ unit i_gba;
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
-            unit_env     : '';
+            unit_env     : 'GBAUNITS';
             extradefines : '';
             exeext       : '.gba';
             defext       : '.def';

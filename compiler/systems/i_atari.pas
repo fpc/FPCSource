@@ -36,7 +36,7 @@ unit i_atari;
             shortname    : 'atari';
             flags        : [tf_use_8_3,tf_requires_proper_alignment,tf_has_winlike_resources,tf_smartlink_sections];
             cpu          : cpu_m68k;
-            unit_env     : '';
+            unit_env     : 'ATARIUNITS';
             extradefines : '';
             exeext       : '.ttp';
             defext       : '';

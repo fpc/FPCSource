@@ -38,7 +38,7 @@ unit i_wii;
                             tf_use_function_relative_addresses,tf_needs_symbol_type,
                             tf_smartlink_library];
             cpu          : cpu_powerpc;
-            unit_env     : '';
+            unit_env     : 'WIIUNITS';
             extradefines : '';
             exeext       : '.dol';
             defext       : '.def';

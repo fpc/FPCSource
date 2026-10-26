@@ -181,7 +181,7 @@ unit i_win;
                             tf_has_winlike_resources,
                             tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
-            unit_env     : '';
+            unit_env     : 'WINCEUNITS';
             extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
@@ -250,7 +250,7 @@ unit i_win;
                             tf_has_winlike_resources,
                             tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
-            unit_env     : '';
+            unit_env     : 'WINCEUNITS';
             extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';

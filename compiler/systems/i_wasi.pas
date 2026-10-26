@@ -40,7 +40,7 @@ unit i_wasi;
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_wasm32;
-            unit_env     : '';
+            unit_env     : 'WASIUNITS';
             extradefines : 'WASI';
             exeext       : '.wasm';
             defext       : '.def';
@@ -113,7 +113,7 @@ unit i_wasi;
                             tf_section_threadvars,
                             tf_wasm_threads];
             cpu          : cpu_wasm32;
-            unit_env     : '';
+            unit_env     : 'WASIUNITS';
             extradefines : 'WASI;WASIP1';
             exeext       : '.wasm';
             defext       : '.def';
@@ -185,7 +185,7 @@ unit i_wasi;
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_wasm32;
-            unit_env     : '';
+            unit_env     : 'WASIUNITS';
             extradefines : 'WASI';
             exeext       : '.wasm';
             defext       : '.def';

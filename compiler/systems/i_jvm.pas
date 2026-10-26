@@ -54,7 +54,7 @@ unit i_jvm;
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_jvm;
-            unit_env     : '';
+            unit_env     : 'JAVAUNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';
@@ -123,7 +123,7 @@ unit i_jvm;
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_jvm;
-            unit_env     : '';
+            unit_env     : 'ANDROIDUNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';

@@ -43,7 +43,7 @@ unit i_freertos;
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_xtensa;
-            unit_env     : '';
+            unit_env     : 'FREERTOSUNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';
@@ -110,7 +110,7 @@ unit i_freertos;
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_arm;
-            unit_env     : '';
+            unit_env     : 'FREERTOSUNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';
@@ -178,7 +178,7 @@ unit i_freertos;
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_riscv32;
-            unit_env     : '';
+            unit_env     : 'FREERTOSUNITS';
             extradefines : '';
             exeext       : '';
             defext       : '.def';
