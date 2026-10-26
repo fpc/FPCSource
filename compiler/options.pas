@@ -5197,11 +5197,11 @@ begin
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then
    Unitsearchpath.AddPath(inputfilepath,true);
-  if not disable_configfile then
+  if (target_info.unit_env <> '') and not disable_configfile then
     begin
       env:=GetEnvironmentVariable(target_info.unit_env);
       if env<>'' then
-        UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
+        UnitSearchPath.AddPath(env,false);
     end;
 
 {$ifdef Unix}
