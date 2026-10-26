@@ -1390,15 +1390,17 @@ class procedure TArrayHelper<T>.DoFreeValues(aValues: PT; aCount: SizeInt);
 
 var
   I: SizeInt;
+  lItems: PPointer;
   lObject: TObject;
 
 begin
   if GetTypeKind(T)<>tkClass then
     Exit;
+  lItems:=PPointer(aValues);
   for I:=0 to aCount-1 do
     begin
-    lObject:=TObject(PPointer(@aValues[I])^);
-    PPointer(@aValues[I])^:=nil;
+    lObject:=TObject(lItems[I]);
+    lItems[I]:=nil;
     lObject.Free;
     end;
 end;

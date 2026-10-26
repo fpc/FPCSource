@@ -64,6 +64,8 @@ type
 
   TIndexOfKind =(ikIndexOfIndex, ikIndexOfRange, ikLastIndexOfIndex, ikLastIndexOfRange);
 
+  TTestEnumArray = array[TIndexOfKind] of string;
+
   { TTestArrayHelper }
 
   TTestArrayHelper = class(TTestCase)
@@ -594,6 +596,7 @@ var
   lInts: TArray<Integer>;
   lRecs: TArray<TTestTrackedRecord>;
   lEmpty: TArray<TTestTracked>;
+  lEnumArrs: TArray<TTestEnumArray>;
 
 begin
   gDestroyCount:=0;
@@ -612,6 +615,10 @@ begin
   TArrayHelper<TTestTracked>.FreeValues(lEmpty);
   TArrayHelper<TTestTracked>.FreeValues([]);
   AssertEquals('Empty arrays free nothing', 0, gDestroyCount);
+  SetLength(lEnumArrs,1);
+  lEnumArrs[0][ikIndexOfRange]:='x';
+  TArrayHelper<TTestEnumArray>.FreeValues(lEnumArrs);
+  AssertEquals('Enum-indexed array element unchanged', 'x', lEnumArrs[0][ikIndexOfRange]);
 end;
 
 begin
