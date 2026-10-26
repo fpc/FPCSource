@@ -95,7 +95,7 @@ begin
 end;
 
 {$IFDEF FPC_DOUBLE_HILO_SWAPPED}
-procedure SwapDoubleHiLo(var avalue: double); {$ifdef CLASSESINLINE}inline{$endif CLASSESINLINE}
+procedure SwapDoubleHiLo(var avalue: double); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
 var dwo1 : dword;
 type tdoublerec = array[0..1] of dword;
 begin
