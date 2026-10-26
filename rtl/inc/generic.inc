@@ -3183,6 +3183,46 @@ function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endi
 {$endif}
 {$endif}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_UINT128}
+{$ifndef FPC_SYSTEM_HAS_BSF_UINT128}
+function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: QWord;
+  begin
+    result:=0;
+    tmp:=lo(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=hi(AValue);
+        result:=64;
+      end;
+    result:=result or BsfQword(tmp);
+  end;
+{$endif}
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_UINT128}
+{$ifndef FPC_SYSTEM_HAS_BSR_UINT128}
+function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: QWord;
+  begin
+    result:=64;
+    tmp:=hi(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=lo(AValue);
+        result:=0;
+      end;
+    result:=result or BsrQword(tmp);
+  end;
+{$endif}
+{$endif}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
 function Bsf(Const AValue: Byte): Byte;
   begin

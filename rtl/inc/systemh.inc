@@ -1266,6 +1266,19 @@ function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$ifdef FPC_HAS_INTERNAL_BSF_UINT128}
+function BsfUInt128(Const AValue : UInt128): cardinal;[internproc:fpc_in_bsf_x];
+{$else}
+function BsfUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_UINT128}
+{$ifdef FPC_HAS_INTERNAL_BSR_UINT128}
+function BsrUInt128(Const AValue : UInt128): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function BsrUInt128(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSR_UINT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 // Bsf: index of the lowest set bit of AValue, 255 if AValue is 0. Bsr: index of the highest set bit, 255 if AValue is 0.
 {$ifdef FPC_HAS_INTERNAL_BSF_BYTE}
 function Bsf(Const AValue: Byte): Byte;[internproc:fpc_in_bsf_x];
