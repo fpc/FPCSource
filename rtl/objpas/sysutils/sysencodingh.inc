@@ -13,7 +13,7 @@
     *********************************************************************
 }
 
-{$ifndef windows}
+{$if (not defined(windows)) or defined(win16) }
 const
   // TMBCSEncoding flag: raise EEncodingError when decoding malformed input
   MB_ERR_INVALID_CHARS = 8;
