@@ -2895,7 +2895,7 @@ begin
   lArgs[2]:=lCurr.AsVarRec;
   lArgs[3]:=lExtV.AsVarRec;
   AssertEquals('Format with AsVarRec arguments', 'fmt/7/1.50/2.25',
-    Format('%s/%d/%.2f/%.2f', lArgs, DefaultFormatSettings));
+    Format('%s/%d/%.2f/%.2f', lArgs, TFormatSettings.Invariant));
 end;
 
 
