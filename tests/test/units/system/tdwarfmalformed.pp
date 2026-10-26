@@ -51,7 +51,8 @@ end;
 procedure CorruptDebugSections(aData: PByte; aSize: SizeInt; aFlip: Boolean);
 
 var
-  lShOff, lNameOfs, lStrOfs, lOfs, lLen, j: QWord;
+  lShOff, lNameOfs, lStrOfs, lOfs, lLen: QWord;
+  j : SizeUint;
   lShEntSize, lShNum, lShStrNdx: Word;
   lHdr: PByte;
   i: Integer;
