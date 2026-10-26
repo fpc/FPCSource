@@ -682,7 +682,7 @@ unit i_bsd;
             shortname    : 'NetBSD';
             flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources,tf_supports_hidden_symbols];
             cpu          : cpu_powerpc;
-            unit_env     : '';
+            unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
             exeext       : '';
             defext       : '.def';
@@ -819,7 +819,7 @@ unit i_bsd;
             flags        : [tf_under_development,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources,
                             tf_supports_hidden_symbols];
             cpu          : cpu_arm;
-            unit_env     : '';
+            unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
             exeext       : '';
             defext       : '.def';
