@@ -37,7 +37,7 @@ unit i_aix;
             flags        : [tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
-            unit_env     : '';
+            unit_env     : 'AIXUNITS';
             extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
@@ -104,7 +104,7 @@ unit i_aix;
             flags        : [tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_powerpc64;
-            unit_env     : '';
+            unit_env     : 'AIXUNITS';
             extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
