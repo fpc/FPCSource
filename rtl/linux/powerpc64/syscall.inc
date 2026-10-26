@@ -20,10 +20,12 @@
 {$ENDIF SYS_LINUX}
 
 
+{$ifndef FPC_COMPILING_SYSCALL_UNIT}
 { This variable is needed in syscall.inc assembler code }
 var
   fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
 {$define THREADVAR_RELOCATED_ALREADY_DEFINED}
+{$endif ndef FPC_COMPILING_SYSCALL_UNIT}
 
 {*****************************************************************************
                      --- Main:The System Call Self ---
