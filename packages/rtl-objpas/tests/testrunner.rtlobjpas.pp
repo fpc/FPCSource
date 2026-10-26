@@ -54,6 +54,8 @@ uses
   tests.rtti.attrtypes,
   tests.rtti.impltypes,
   tests.rtti.invoketypes,
+  tests.rtti.&inherited,
+  tests.rtti.declorder,
   utmathvectorbase,
   utcmatrix,
   utcpoint,

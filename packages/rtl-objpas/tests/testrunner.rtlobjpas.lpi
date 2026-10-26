@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="13"/>
     <General>
       <Flags>
         <SaveOnlyProjectUnits Value="True"/>
@@ -106,6 +106,15 @@
       </Unit>
       <Unit>
         <Filename Value="tests.rtti.types.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.inherited.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tests.rtti.inherited"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.declorder.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

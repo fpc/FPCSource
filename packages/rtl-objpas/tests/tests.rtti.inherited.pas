@@ -1,6 +1,6 @@
-program trtti28;
+unit tests.rtti.&inherited;
 
-{ TRttiType.GetPropertiesInDeclOrder must list all properties in declared order }
+{ TRttiType.GetProperties must list all properties - also inherited }
 
 {$IFDEF DCC}
   {$APPTYPE CONSOLE}
@@ -8,6 +8,8 @@ program trtti28;
   {$mode objfpc}{$H+}
   {$modeswitch arrayoperators}
 {$ENDIF}
+
+interface
 
 uses
   Classes, SysUtils, TypInfo, Rtti;
@@ -22,21 +24,23 @@ type
   TRttiPropertyArray = TArray<TRttiProperty>;
   {$ENDIF}
 
-  { TMyObject1 }
+  { TRttiInheritedObject1 }
 
-  TMyObject1 = class(TPersistent)
+  TRttiInheritedObject1 = class(TPersistent)
   private
     FInt: integer;
+  public
+    class function DefaultsToString: string;
   published
     property PublicInt: integer read FInt default 1;
-    property PublicInt2: integer read FInt default 2;
   end;
 
-  TMyObject2 = class(TMyObject1)
+  TRttiInheritedObject2 = class(TRttiInheritedObject1)
   published
-    property PublicInt2 default 3;
-    property PublicInt default 4;
+    property PublicInt default 2;
   end;
+
+implementation
 
 procedure GetProps(const aClass: TClass; out Props: TProps);
 var
@@ -51,8 +55,8 @@ begin
   fContext := TRttiContext.Create;
   fType := fContext.GetType(aClass);
 
-  xProps := fType.GetPropertiesInDeclOrder;
-  for I := 0 to High(xProps) do
+  xProps := fType.GetProperties;
+  for I := High(xProps) downto 0 do
   begin
     xProp := xProps[I];
     if (xProp.Visibility=mvPublished) and (xProp.PropertyType.IsOrdinal) then
@@ -65,20 +69,17 @@ begin
 end;
 
 
-function DefaultsToString(const aClass: TClass): string;
+{ TRttiInheritedObject1 }
+
+class function TRttiInheritedObject1.DefaultsToString: string;
 var
   Props: TProps;
   P: TProp;
 begin
   Result := '';
-  GetProps(aClass, Props);
+  GetProps(Self.ClassType, Props);
   for P in Props do
     Result := Result + IntToStr(P.Default);
 end;
 
-begin
-  if DefaultsToString(TMyObject1)<>'12' then
-    Halt(1);
-  if DefaultsToString(TMyObject2)<>'1234' then
-    Halt(2);
 end.

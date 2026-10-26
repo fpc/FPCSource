@@ -78,6 +78,8 @@ type
 
     procedure TestRawThunk;
 
+    procedure TestInherited;
+    procedure TestDeclOrder;
   private
 {$ifndef fpc}
     procedure Ignore(const aMsg: String);
@@ -145,7 +147,9 @@ uses
   {tests.rtti.exttypes, }
   tests.rtti.attrtypes2,
   tests.rtti.attrtypes,
-  tests.rtti.types;
+  tests.rtti.types,
+  tests.rtti.&inherited,
+  tests.rtti.declorder;
 
 
 
@@ -210,6 +214,11 @@ begin
   end;
 end;
 
+procedure TTestRTTI.TestInherited;
+begin
+  CheckEquals('1', TRttiInheritedObject1.DefaultsToString);
+  CheckEquals('12', TRttiInheritedObject2.DefaultsToString);
+end;
 
 procedure TTestRTTI.TestGetIsReadable;
 var
@@ -1566,6 +1575,12 @@ begin
   finally
     context.Free;
   end;
+end;
+
+procedure TTestRTTI.TestDeclOrder;
+begin
+  CheckEquals('12', TRttiDeclOrderObject1.DefaultsToString);
+  CheckEquals('1234', TRttiDeclOrderObject2.DefaultsToString);
 end;
 
 procedure TTestRTTI.TestDynArray;
