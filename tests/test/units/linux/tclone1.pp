@@ -1,4 +1,5 @@
 { %target=linux }
+{ %cpu=i386,x86_64,aarch64 }
 { Linux.clone: argument passing, exit status, shared and separate memory, error results }
 program tclone1;
 
