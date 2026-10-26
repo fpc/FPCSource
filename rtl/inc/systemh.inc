@@ -969,6 +969,10 @@ Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[inter
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
 Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function Swap (X : UInt128) : UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_uint128];
+Function Swap (X : Int128) : Int128;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_uint128];
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 Function Align (Addr : PtrUInt; Alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Align (Addr : Pointer; Alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}

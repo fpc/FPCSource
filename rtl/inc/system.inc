@@ -478,6 +478,18 @@ Begin
   Swap:=(X shl 32) + (X shr 32);
 End;
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function Swap (X : UInt128) : UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+Begin
+  Swap:=(X shl 64) + (X shr 64);
+End;
+
+Function Swap (X : Int128) : Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+Begin
+  Swap:=(X shl 64) + (X shr 64);
+End;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifdef SUPPORT_DOUBLE}
 operator := (b:real48) d:double;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin

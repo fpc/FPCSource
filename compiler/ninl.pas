@@ -2505,6 +2505,8 @@ implementation
                    hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resultdef,true);
                  in_const_swap_qword :
                    hp:=cordconstnode.create((vl and $ffffffff) shl 32+(vl shr 32),left.resultdef,true);
+                 in_const_swap_uint128 :
+                   hp:=cordconstnode.create((vl and $ffffffffffffffff) shl 64+(vl shr 64),left.resultdef,true);
                  in_const_ptr:
                    begin
                      {Don't construct pointers from negative values.}
