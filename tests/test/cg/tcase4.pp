@@ -129,6 +129,130 @@ function int64_first_ref(i : int64) : longint;
   end;
 
 
+function signed_singles(l : longint) : longint;
+  begin
+    case l of
+      1: result:=1;
+      2: result:=2;
+      7: result:=3;
+      else
+        result:=0;
+    end;
+  end;
+
+
+function signed_singles_ref(l : longint) : longint;
+  begin
+    if l=1 then
+      result:=1
+    else if l=2 then
+      result:=2
+    else if l=7 then
+      result:=3
+    else
+      result:=0;
+  end;
+
+
+function unsigned_singles(c : cardinal) : longint;
+  begin
+    case c of
+      3: result:=1;
+      4: result:=2;
+      $fffffff0: result:=3;
+      else
+        result:=0;
+    end;
+  end;
+
+
+function unsigned_singles_ref(c : cardinal) : longint;
+  begin
+    if c=3 then
+      result:=1
+    else if c=4 then
+      result:=2
+    else if c=$fffffff0 then
+      result:=3
+    else
+      result:=0;
+  end;
+
+
+function byte_mixed(b : byte) : longint;
+  begin
+    case b of
+      0: result:=1;
+      1..5: result:=2;
+      7: result:=3;
+      8..9: result:=4;
+      11: result:=5;
+      12: result:=6;
+      13..20: result:=7;
+      else
+        result:=0;
+    end;
+  end;
+
+
+function byte_mixed_ref(b : byte) : longint;
+  begin
+    if b=0 then
+      result:=1
+    else if (b>=1) and (b<=5) then
+      result:=2
+    else if b=7 then
+      result:=3
+    else if (b>=8) and (b<=9) then
+      result:=4
+    else if b=11 then
+      result:=5
+    else if b=12 then
+      result:=6
+    else if (b>=13) and (b<=20) then
+      result:=7
+    else
+      result:=0;
+  end;
+
+
+function signed_mixed(l : longint) : longint;
+  begin
+    case l of
+      0: result:=1;
+      1..5: result:=2;
+      7: result:=3;
+      8..9: result:=4;
+      11: result:=5;
+      12: result:=6;
+      13..20: result:=7;
+      else
+        result:=0;
+    end;
+  end;
+
+
+function signed_mixed_ref(l : longint) : longint;
+  begin
+    if l=0 then
+      result:=1
+    else if (l>=1) and (l<=5) then
+      result:=2
+    else if l=7 then
+      result:=3
+    else if (l>=8) and (l<=9) then
+      result:=4
+    else if l=11 then
+      result:=5
+    else if l=12 then
+      result:=6
+    else if (l>=13) and (l<=20) then
+      result:=7
+    else
+      result:=0;
+  end;
+
+
 var
   i : longint;
   j : int64;
@@ -141,7 +265,25 @@ begin
         halt(2);
       if byte_firstrange(byte(i))<>byte_firstrange_ref(byte(i)) then
         halt(3);
+      if signed_singles(i)<>signed_singles_ref(i) then
+        halt(12);
+      if unsigned_singles(cardinal(i))<>unsigned_singles_ref(cardinal(i)) then
+        halt(13);
+      if unsigned_singles($fffffff0+cardinal(i))<>unsigned_singles_ref($fffffff0+cardinal(i)) then
+        halt(14);
+      if byte_mixed(byte(i))<>byte_mixed_ref(byte(i)) then
+        halt(17);
+      if signed_mixed(i)<>signed_mixed_ref(i) then
+        halt(18);
     end;
+  if signed_mixed(low(longint))<>0 then
+    halt(19);
+  if signed_mixed(high(longint))<>0 then
+    halt(20);
+  if signed_singles(low(longint)+1)<>0 then
+    halt(15);
+  if signed_singles(high(longint))<>0 then
+    halt(16);
   if signed_first0(low(longint))<>0 then
     halt(4);
   if signed_first0(high(longint))<>0 then

@@ -218,104 +218,91 @@ implementation
     procedure tx86casenode.genlinearlist(hp : pcaselabel);
       var
         first : boolean;
-        lastrange : boolean;
+        { hregister contains the case value minus last }
         last : TConstExprInt;
+        { the case value is known to be greater or equal lowknown }
+        lowknown : TConstExprInt;
         cond_lt,cond_le : tresflags;
         opcgsize: tcgsize;
+        needfirstlowcheck : boolean;
+
+        function hasranges(t : pcaselabel) : boolean;
+          begin
+            result:=(t^._low<>t^._high) or
+              (assigned(t^.less) and hasranges(t^.less)) or
+              (assigned(t^.greater) and hasranges(t^.greater));
+          end;
+
+        { subtracts value from hregister, if setflags is true, the flags are
+          set like a comparison of hregister with value; carry indicates if the
+          carry flag is evaluated afterwards }
+        procedure emitsub(value : aint; setflags,carry : boolean);
+          begin
+            { a_op_const_reg generates no subtraction of 0 }
+            if value=0 then
+              begin
+                if setflags then
+                  emit_reg_reg(A_TEST,TCGSize2OpSize[opcgsize],hregister,hregister);
+              end
+            { a_op_const_reg might generate A_DEC which does not set the carry flag }
+            else if carry and (value=1) then
+              emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],1,hregister)
+            else
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,value,hregister);
+          end;
+
 
         procedure genitem(t : pcaselabel);
           var
-             range, gap, extra: aint;
-             lowchecked : boolean;
+             delta, range : aint;
+             lowcheck : boolean;
           begin
              if assigned(t^.less) then
                genitem(t^.less);
-             { need we to test the first value? The subtraction sets the flags
-               like a comparison, so subtract first and use its flags }
-             lowchecked:=first and (t^._low>get_min_value(left.resultdef));
-             if lowchecked then
-               begin
-                 cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                 { possible for signed types, a subtraction of 0 would not be generated }
-                 if t^._low=0 then
-                   emit_reg_reg(A_TEST,TCGSize2OpSize[opcgsize],hregister,hregister)
-                 { we need to use A_SUB, if cond_lt uses the carry flags
-                   because A_DEC does not set the correct flags }
-                 else if (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (t^._low=1) then
-                   emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],1,hregister)
-                 else
-                   cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
-                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
-                 last:=t^._low;
-               end;
+             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+             { subtracting delta turns hregister into the case value minus t^._low }
+             delta:=aint(t^._low.svalue-last.svalue);
+             { the lower bound needs to be checked only for ranges, single values are
+               tested for equality which is also correct if the subtractions wrapped around;
+               for signed types, the check of the first label prevents in addition overflows
+               of the following subtractions }
+             lowcheck:=(t^._low>lowknown) and ((t^._low<>t^._high) or needfirstlowcheck);
+             needfirstlowcheck:=false;
              if t^._low=t^._high then
                begin
-                  if lowchecked then
-                    begin
-                      { the flags of the subtraction are still valid }
-                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
-                      cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                    end
-                  else if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
-                  else
-                    begin
-                      cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
-                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
-                      cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                    end;
-                  last:=t^._low;
-                  lastrange:=false;
+                 emitsub(delta,true,lowcheck and not(with_sign));
+                 if lowcheck then
+                   begin
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                     lowknown:=t^._low;
+                   end;
+                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
+                 if t^._low=lowknown then
+                   lowknown:=t^._low+1;
+                 last:=t^._low;
                end
              else
                begin
-                  range := aint(t^._high.svalue - t^._low.svalue);
-                  extra := 0;
-                  { it begins with the smallest label, if the value }
-                  { is even smaller then jump immediately to the    }
-                  { ELSE-label                                }
-                  if not(lowchecked) then
-                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                  if first then
-                    begin
-                       { have we to adjust the first value ? }
-                       if not(lowchecked) and (get_min_value(left.resultdef)<>0) then
-                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
-                    end
-                  else
-                    begin
-                      gap := aint(t^._low.svalue - last.svalue);
-                      { if there is no unused label between the last and the }
-                      { present label then the lower limit can be checked    }
-                      { immediately. else check the range in between:       }
-
-                      { we need to use A_SUB, if cond_lt uses the carry flags
-                        because A_DEC does not set the correct flags, therefor
-                        using a_op_const_reg(OP_SUB) is not possible }
-                      if (gap = 1) and (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) then
-                        extra := 1
-                      else
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, gap, hregister);
-                      { no jump necessary here if the new range starts at
-                        at the value following the previous one           }
-                      if (gap <> 1) or
-                         (not lastrange) then
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
-                    end;
-                  { we need to use A_SUB, if cond_le uses the carry flags
-                    because A_DEC does not set the correct flags, therefor
-                    using a_op_const_reg(OP_SUB) is not possible }
-                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (range = 1) then
-                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize], range + extra, hregister)
-                  else
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range + extra, hregister);
-
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
-                  cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                  last:=t^._high;
-                  lastrange:=true;
+                 range:=aint(t^._high.svalue-t^._low.svalue);
+                 { the subtraction of delta can be merged into the range check, if the case
+                   value is known to be at least t^._low or if delta is 1: then, the preceding
+                   label is a single value and the case value is not equal to it, so the flags
+                   of its subtraction can be used for the lower bound check; for unsigned types,
+                   the carry flag might be set by an earlier subtraction if A_DEC was used,
+                   this is no problem as the lower bound check is only an early exit then:
+                   the range check is exact for unsigned types anyways }
+                 if not(lowcheck) or (not(first) and (delta=1)) then
+                   inc(range,delta)
+                 else
+                   emitsub(delta,true,not(with_sign));
+                 if lowcheck then
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                 emitsub(range,true,not(with_sign));
+                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+                 lowknown:=t^._high+1;
+                 last:=t^._high;
                end;
+             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
              first:=false;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -345,8 +332,9 @@ implementation
                 if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
                   begin
                     last:=0;
-                    lastrange:=false;
+                    lowknown:=get_min_value(left.resultdef);
                     first:=true;
+                    needfirstlowcheck:=hasranges(hp);
                     genitem(hp);
                   end
                 else
