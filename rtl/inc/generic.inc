@@ -3279,6 +3279,24 @@ function Bsr(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
   end;
 {$endif}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_HAS_INTERNAL_BSF_UINT128}
+function Bsf(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsfUInt128(AValue);
+  end;
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSR_UINT128}
+function Bsr(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  begin
+    result:=BsrUInt128(AValue);
+  end;
+{$endif}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 const
   PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
 

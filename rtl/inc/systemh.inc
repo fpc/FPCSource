@@ -1324,6 +1324,19 @@ function Bsr(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 function Bsr(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$ifdef FPC_HAS_INTERNAL_BSF_UINT128}
+function Bsf(Const AValue : UInt128): cardinal;[internproc:fpc_in_bsf_x];
+{$else}
+function Bsf(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_UINT128}
+{$ifdef FPC_HAS_INTERNAL_BSR_UINT128}
+function Bsr(Const AValue : UInt128): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function Bsr(Const AValue : UInt128): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSR_UINT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];
 function PopCnt(Const AValue: Word): Word;[internproc:fpc_in_popcnt_x];
 function PopCnt(Const AValue : DWord): DWord;[internproc:fpc_in_popcnt_x];
