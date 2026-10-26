@@ -1034,6 +1034,10 @@ Function Odd(l:Longint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINL
 Function Odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function Odd(l:Int128):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:UInt128):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}

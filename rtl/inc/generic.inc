@@ -2179,6 +2179,28 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_ODD_QWORD}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_SYSTEM_HAS_ODD_INT128}
+
+function odd(l:int128):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(longint(l) and 1);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ODD_INT128}
+
+{$ifndef FPC_SYSTEM_HAS_ODD_UINT128}
+
+function odd(l:uint128):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(longint(l) and 1);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ODD_UINT128}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$if defined(CPUINT8)}
 {$ifndef FPC_SYSTEM_HAS_SQR_SHORTINT}
 function sqr(l:shortint):shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
