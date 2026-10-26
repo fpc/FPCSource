@@ -1388,7 +1388,7 @@ var
 begin
   // The number of hexadecimal digits in X is 1 + BSR(X or 1) div 4.
   // The generic formula is 1 + floor(log(X, radix)); “or 1” handles the case X = 0.
-  {$if not defined(VER3_2)} 
+  {$if not defined(VER3_2) and not defined(WIN16)}
   // Bsr() overload is only available as of 3.3.1
   lDigits:=Bsr(aValue or 1);
   {$elseif sizeof(aValue) >= sizeof(qword)} 
