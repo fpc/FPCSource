@@ -1369,36 +1369,34 @@ unit aoptx86;
         );
 
         { Now check to see if the memory itself is written to }
-        if not Result then
-          begin
-            while assigned(p1) and assigned(p2) and GetNextInstruction(p1,p1) and (p1<>p2) do
-              if p1.typ = ait_instruction then
+        while not(Result) and assigned(p1) and assigned(p2) and GetNextInstruction(p1,p1) and (p1<>p2) do
+          if p1.typ = ait_instruction then
+            begin
+              CurrentP1Size := topsize2memsize[taicpu(p1).opsize] shr 3; { Convert to bytes }
+              with insprop[taicpu(p1).opcode] do
                 begin
-                  CurrentP1Size := topsize2memsize[taicpu(p1).opsize] shr 3; { Convert to bytes }
-                  with insprop[taicpu(p1).opcode] do
-                    for X := 0 to taicpu(p1).ops - 1 do
-                      if (taicpu(p1).oper[X]^.typ = top_ref) and
-                        RefsAlmostEqual(Ref, taicpu(p1).oper[X]^.ref^) and
-                        { Catch any potential overlaps }
-                        (
-                          (RefSize = 0) or
-                          ((taicpu(p1).oper[X]^.ref^.offset - Ref.offset) < RefSize)
-                        ) and
-                        (
-                          (CurrentP1Size = 0) or
-                          ((Ref.offset - taicpu(p1).oper[X]^.ref^.offset) < CurrentP1Size)
-                        ) and
-                        { Reference is used, but does the instruction write to it? }
-                        (
-                          (Ch_All in Ch) or
-                          InsChangeWritesOp(Ch, X)
-                        ) then
-                        begin
-                          Result := True;
-                          Break;
-                        end;
+                  { calls and string instructions might write to any memory location }
+                  if ([Ch_All,Ch_WMemEDI]*Ch)<>[] then
+                    begin
+                      Result := True;
+                      Break;
+                    end;
+                  for X := 0 to taicpu(p1).ops - 1 do
+                    if (taicpu(p1).oper[X]^.typ = top_ref) and
+                      { Reference is used, but does the instruction write to it? }
+                      InsChangeWritesOp(Ch, X) and
+                      { catch any potential overlaps }
+                      (
+                        (RefSize = 0) or
+                        (CurrentP1Size = 0) or
+                        RefsMightOverlap(Ref, taicpu(p1).oper[X]^.ref^, RefSize, CurrentP1Size)
+                      ) then
+                      begin
+                        Result := True;
+                        Break;
+                      end;
                 end;
-          end;
+            end;
       end;
 
 {$ifdef DEBUG_AOPTCPU}
