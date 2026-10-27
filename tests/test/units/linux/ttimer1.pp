@@ -26,9 +26,11 @@ var
   Linux cfarm95 6.6.36-cfarm #1 SMP PREEMPT Sun Oct  6 18:27:25 UTC 2024 riscv64 GNU/Linux
   strace gives this:
   timer_create(0xfffffc18 /* CLOCK_??? */, NULL, [4]) = 0
+  The same also happens for gcc185
+  Linux cfarm185 4.18.0-553.120.1.el8_10.aarch64 #1 SMP Mon Apr 20 22:23:16 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
 }
 
-{$ifdef CPURISCV64}
+{$if defined(CPURISCV64) or defined(CPUAARCH64)}
   {$define OS_ACCEPTS_ALL_CLOCK_TYPE}
 {$endif}
 
