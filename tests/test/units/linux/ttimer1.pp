@@ -19,6 +19,18 @@ var
   gSigOverrun: LongInt = -1;
   gOverrunTimer: timer_t;
 
+{
+  Some Linux distributions
+  accept any value for clock type
+  gcc95 riscv64-linux
+  Linux cfarm95 6.6.36-cfarm #1 SMP PREEMPT Sun Oct  6 18:27:25 UTC 2024 riscv64 GNU/Linux
+  strace gives this:
+  timer_create(0xfffffc18 /* CLOCK_??? */, NULL, [4]) = 0
+}
+
+{$ifdef CPURISCV64}
+  {$define OS_ACCEPTS_ALL_CLOCK_TYPE}
+{$endif}
 
 procedure CheckTrue(const aName: string; aValue: Boolean);
 
@@ -31,6 +43,26 @@ begin
     Inc(gErrors);
     end;
 end;
+
+{$ifdef OS_ACCEPTS_ALL_CLOCK_TYPE}
+procedure CheckErrorTrue(const aName: string; aValue: Boolean);
+
+begin
+  if aValue then
+    Writeln(aName,' OK')
+  else
+    begin
+    Writeln(aName,' known OS ERROR');
+    // Known OS limitation
+    // Inc(gErrors);
+    end;
+end;
+{$else}
+procedure CheckErrorTrue(const aName: string; aValue: Boolean);
+begin
+  CheckTrue(aName,aValue);
+end;
+{$endif}
 
 
 // Returns aValue as decimal text
@@ -256,8 +288,8 @@ var
   lCur: itimerspec;
 
 begin
-  CheckTrue('timer_create with an invalid clock fails',timer_create(-1000,nil,@lTimer)=-1);
-  CheckTrue('timer_create with an invalid clock sets EINVAL',fpgeterrno=ESysEINVAL);
+  CheckErrorTrue('timer_create with an invalid clock fails',timer_create(-1000,nil,@lTimer)=-1);
+  CheckErrorTrue('timer_create with an invalid clock sets EINVAL',fpgeterrno=ESysEINVAL);
   CheckTrue('timer_create with the default notification',timer_create(CLOCK_REALTIME,nil,@lTimer)=0);
   CheckTrue('timer_delete of the default timer',timer_delete(lTimer)=0);
   CheckTrue('timer_gettime of a deleted timer fails',timer_gettime(lTimer,@lCur)=-1);
