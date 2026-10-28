@@ -12171,8 +12171,10 @@ unit aoptx86;
 
                     DebugMsg(SPeepholeOptimization + 'Simplified register usage so ' + debug_regname(ThisReg) + ' = ' + debug_regname(taicpu(p).oper[1]^.reg), p);
 
-                    TransferUsedRegs(TmpUsedRegs);
-                    AllocRegBetween(ThisReg, p, hp1, TmpUsedRegs);
+                    { use UsedRegs and not a copy of it: the allocation of ThisReg is moved
+                      before p which UsedRegs has already passed, so UsedRegs must be updated
+                      as well, else ThisReg is not considered as being in use after p }
+                    AllocRegBetween(ThisReg, p, hp1, UsedRegs);
 
                     DebugMsg(SPeepholeOptimization + 'Movzx2Nop 3', hp1);
                     if p = hp1 then
