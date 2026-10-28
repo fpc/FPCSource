@@ -580,10 +580,12 @@ implementation
           A_Jcc,
           A_RET,
           A_RETF,
-          A_IRET,
           A_IRETD,
           A_IRETW,
-          A_IRETQ :
+{$ifdef x86_64}
+          A_IRETQ,
+{$endif x86_64}
+          A_IRET :
             is_calljmp:=true;
           else
             is_calljmp:=false;
