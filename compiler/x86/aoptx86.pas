@@ -8607,6 +8607,54 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1FSTP(var p: tai): boolean;
       { returns true if a "continue" should be done after this optimization }
+
+      { checks if the temp at ref, written by p, is released within a few instructions
+        after StartPai and not accessed in between }
+      function TempReleasedSoon(const ref: treference; hp: tai): boolean;
+        const
+          { maximum size of a memory operand, used if the opsize does not tell it }
+          MaxOperSize = 64;
+        var
+          i, count, opersize: longint;
+        begin
+          Result:=false;
+          count:=0;
+          while assigned(hp) do
+            begin
+              case hp.typ of
+                ait_tempalloc:
+                  if not(tai_tempalloc(hp).allocation) and
+                    (tai_tempalloc(hp).temppos=ref.offset) then
+                    begin
+                      { the released temp must cover everything written by p }
+                      Result:=tai_tempalloc(hp).tempsize>=topsize2memsize[taicpu(p).opsize] shr 3;
+                      exit;
+                    end;
+                ait_instruction:
+                  begin
+                    inc(count);
+                    if (count>4) or
+                      is_calljmp(taicpu(hp).opcode) then
+                      exit;
+                    { only accept memory accesses which are known to be disjoint from the temp }
+                    opersize:=topsize2memsize[taicpu(hp).opsize] shr 3;
+                    if opersize=0 then
+                      opersize:=MaxOperSize;
+                    for i:=0 to taicpu(hp).ops-1 do
+                      if (taicpu(hp).oper[i]^.typ=top_ref) and
+                        RefsMightOverlap(taicpu(hp).oper[i]^.ref^,ref,opersize,topsize2memsize[taicpu(p).opsize] shr 3) then
+                        exit;
+                  end;
+                ait_label,
+                ait_marker:
+                  exit;
+                else
+                  ;
+              end;
+              hp:=tai(hp.next);
+            end;
+        end;
+
       var
         hp1, hp2, hp3: tai;
       begin
@@ -8653,6 +8701,23 @@ unit aoptx86;
                 { first case: exit code }
                 if hp2.typ = ait_instruction then
                   RemoveLastDeallocForFuncRes(p);
+                Result := true;
+              end
+            { fstp <temp>
+              fld  <temp>
+              <instructions not accessing temp>
+              <dealloc> <temp>
+            }
+            else if ((taicpu(p).opsize=S_FX) or (cs_opt_fastmath in current_settings.optimizerswitches)) and
+              (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+              (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+              not(assigned(taicpu(p).oper[0]^.ref^.symbol)) and
+              TempReleasedSoon(taicpu(p).oper[0]^.ref^,tai(hp1.next)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'FstpFld2<Nop> (temp released later)',p);
+                hp2:=tai(hp1.next);
+                RemoveInstruction(hp1);
+                RemoveCurrentP(p, hp2);
                 Result := true;
               end
             else
