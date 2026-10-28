@@ -1560,108 +1560,101 @@ unit rgobj;
       freeze_moves(n);
     end;
 
-{ The spilling approach selected by SPILLING_NEW does not work well for AVR as it exploits apparently the problem of the current
-  reg. allocator with AVR. The current reg. allocator is not aware of the fact that r1-r15 and r16-r31 are not equal on AVR }
-{$if defined(AVR)}
-{$define SPILLING_OLD}
-{$else defined(AVR)}
-{ $define SPILLING_NEW}
-{$endif defined(AVR)}
-{$ifndef SPILLING_NEW}
-{$define SPILLING_OLD}
-{$endif SPILLING_NEW}
+{ The spill candidate selection based on the weights (SPILLING_NEW) is used by default. Defining SPILLING_OLD
+  selects only the candidates based on the number of interferences. }
+{$ifndef SPILLING_OLD}
+{$define SPILLING_NEW}
+{$endif SPILLING_OLD}
     procedure trgobj.select_spill;
     var
       n : tsuperregister;
       adj : psuperregisterworklist;
       maxlength,minlength,p,i :word;
       minweight: longint;
-      {$ifdef SPILLING_NEW}
-      dist: Double;
-      {$endif}
     begin
-{$ifdef SPILLING_NEW}
-      { This new approach for selecting the next spill candidate takes care of the weight of a register:
-        It spills the register with the lowest weight but only if it is expected that it results in convergence of
-        register allocation. Convergence is expected if a register is spilled where the average of the active interferences
-        - active interference means that the register is used in an instruction - is lower than
-        the degree.
-
-        Example (modify means read and the write):
-
-        modify reg1
-
-        loop:
-          modify reg2
-          modify reg3
-          modify reg4
-          modify reg5
-          modify reg6
-          modify reg7
-
-        modify reg1
-
-        In this example, all register have the same degree. However, spilling reg1 is most beneficial as it is used least. Furthermore,
-        spilling reg1 is a step toward solving the coloring problem as the registers used during spilling will have a lower degree
-        as no register are in use at the location where reg1 is spilled.
-      }
-      minweight:=high(longint);
-      p:=0;
-      with spillworklist do
-        begin
-          { Safe: This procedure is only called if length<>0 }
-          for i:=0 to length-1 do
-            begin
-              adj:=reginfo[buf^[i]].adjlist;
-              dist:=adj^.length-reginfo[buf^[i]].total_interferences/reginfo[buf^[i]].count_uses;
-              if assigned(adj) and
-                (reginfo[buf^[i]].weight<minweight) and
-                (dist>=1) and
-                (reginfo[buf^[i]].weight>0) then
-                begin
-                  p:=i;
-                  minweight:=reginfo[buf^[i]].weight;
-                end;
-            end;
-          n:=buf^[p];
-          deleteidx(p);
-        end;
-{$endif SPILLING_NEW}
-{$ifdef SPILLING_OLD}
-      { We must look for the element with the most interferences in the
-        spillworklist. This is required because those registers are creating
-        the most conflicts and keeping them in a register will not reduce the
-        complexity and even can cause the help registers for the spilling code
-        to get too much conflicts with the result that the spilling code
-        will never converge (PFV)
-
-        We need a special processing for nodes with the ri_spill_helper flag set.
-        These nodes contain a value of a previously spilled node.
-        We need to avoid another spilling of ri_spill_helper nodes, since it will
-        likely lead to an endless loop and the register allocation will fail.
-      }
-      maxlength:=0;
-      minweight:=high(longint);
       p:=high(p);
       with spillworklist do
         begin
           {Safe: This procedure is only called if length<>0}
-          { Search for a candidate to be spilled, ignoring nodes with the ri_spill_helper flag set. }
+{$ifdef SPILLING_NEW}
+          { This approach for selecting the next spill candidate takes care of the weight of a register:
+            It spills the register with the lowest weight but only if it is expected that it results in convergence of
+            register allocation. Convergence is expected if a register is spilled where the average of the active interferences
+            - active interference means that the register is used in an instruction - is lower than
+            the degree.
+
+            Example (modify means read and the write):
+
+            modify reg1
+
+            loop:
+              modify reg2
+              modify reg3
+              modify reg4
+              modify reg5
+              modify reg6
+              modify reg7
+
+            modify reg1
+
+            In this example, all register have the same degree. However, spilling reg1 is most beneficial as it is used least. Furthermore,
+            spilling reg1 is a step toward solving the coloring problem as the registers used during spilling will have a lower degree
+            as no register are in use at the location where reg1 is spilled.
+
+            Nodes with the ri_spill_helper flag set are never selected, see below. The number of interferences at the uses
+            is only known for registers which existed when the interference graph was generated, so count_uses=0 for
+            registers created later. If no register fulfills the conditions, the candidate is selected based on the number
+            of interferences below. }
+          minweight:=high(minweight);
           for i:=0 to length-1 do
             if not(ri_spill_helper in reginfo[buf[i]].flags) then
               begin
                 adj:=reginfo[buf[i]].adjlist;
                 if assigned(adj) and
-                   (
-                    (adj^.length>maxlength) or
-                    ((adj^.length=maxlength) and (reginfo[buf[i]].weight<minweight))
-                   ) then
+                   (reginfo[buf[i]].count_uses>0) and
+                   (reginfo[buf[i]].weight>0) and
+                   (reginfo[buf[i]].weight<minweight) and
+                   { degree-total_interferences/count_uses>=1 }
+                   ((int64(adj^.length)-1)*reginfo[buf[i]].count_uses>=reginfo[buf[i]].total_interferences) then
                   begin
                     p:=i;
-                    maxlength:=adj^.length;
                     minweight:=reginfo[buf[i]].weight;
                   end;
               end;
+{$endif SPILLING_NEW}
+          { We must look for the element with the most interferences in the
+            spillworklist. This is required because those registers are creating
+            the most conflicts and keeping them in a register will not reduce the
+            complexity and even can cause the help registers for the spilling code
+            to get too much conflicts with the result that the spilling code
+            will never converge (PFV)
+
+            We need a special processing for nodes with the ri_spill_helper flag set.
+            These nodes contain a value of a previously spilled node.
+            We need to avoid another spilling of ri_spill_helper nodes, since it will
+            likely lead to an endless loop and the register allocation will fail.
+          }
+          if p=high(p) then
+            begin
+              maxlength:=0;
+              minweight:=high(longint);
+              { Search for a candidate to be spilled, ignoring nodes with the ri_spill_helper flag set. }
+              for i:=0 to length-1 do
+                if not(ri_spill_helper in reginfo[buf[i]].flags) then
+                  begin
+                    adj:=reginfo[buf[i]].adjlist;
+                    if assigned(adj) and
+                       (
+                        (adj^.length>maxlength) or
+                        ((adj^.length=maxlength) and (reginfo[buf[i]].weight<minweight))
+                       ) then
+                      begin
+                        p:=i;
+                        maxlength:=adj^.length;
+                        minweight:=reginfo[buf[i]].weight;
+                      end;
+                  end;
+            end;
 
           if p=high(p) then
             begin
@@ -1693,10 +1686,10 @@ unit rgobj;
           n:=buf[p];
           deleteidx(p);
         end;
-{$endif SPILLING_OLD}
       simplifyworklist.add(n);
       freeze_moves(n);
     end;
+
 
     procedure trgobj.assign_colours;
 
