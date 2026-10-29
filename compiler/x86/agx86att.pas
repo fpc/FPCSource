@@ -327,7 +327,7 @@ interface
                 end;
             end;
           top_const :
-            owner.writer.AsmWrite(tostr(o.val));
+            owner.writer.AsmWrite('$'+tostr(o.val));
           else
             internalerror(2020100811);
         end;
