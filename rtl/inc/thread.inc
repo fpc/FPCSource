@@ -135,7 +135,7 @@ type
   TSuspendedStart = record
     Next : PSuspendedStart;
     Handle : TThreadHandle;
-    Func : TThreadFunc;
+    Func : TThreadFunc; { Reset to nil to signal it shouldn’t run. }
     Param : Pointer;
     StartEvent : PRTLEvent;
   end;
@@ -161,32 +161,40 @@ begin
 end;
 
 
-{ Remove the pending start of aHandle from SuspendedStartList, nil if there is none. }
-function ExtractSuspendedStart(aHandle : TThreadHandle) : PSuspendedStart;
+{ Searches and unregisters the suspended start of aHandle (returns true if found).
+  Sets its StartEvent, and if “cancel”, signals it to skip the user body (used by Kill/CloseThread). }
+function PulseSuspendedStart(aHandle : TThreadHandle; cancel : boolean) : boolean;
 
 var
-  lPrev : PSuspendedStart;
+  lPrev,lThis : PSuspendedStart;
 
 begin
-  Result:=nil;
+  Result:=false;
   if SuspendedStartList=nil then
     exit;
   LockSuspendedStarts;
   lPrev:=nil;
-  Result:=SuspendedStartList;
-  while assigned(Result) and (Result^.Handle<>aHandle) do
+  lThis:=SuspendedStartList;
+  while assigned(lThis) and (lThis^.Handle<>aHandle) do
     begin
-    lPrev:=Result;
-    Result:=Result^.Next;
+    lPrev:=lThis;
+    lThis:=lThis^.Next;
     end;
-  if assigned(Result) then
+  if assigned(lThis) then
     begin
     if assigned(lPrev) then
-      lPrev^.Next:=Result^.Next
+      lPrev^.Next:=lThis^.Next
     else
-      SuspendedStartList:=Result^.Next;
+      SuspendedStartList:=lThis^.Next;
     end;
   UnlockSuspendedStarts;
+  if assigned(lThis) then
+    begin
+    Result:=true;
+    if cancel then
+      lThis^.Func:=nil;
+    RTLEventSetEvent(lThis^.StartEvent);
+    end;
 end;
 
 
@@ -203,7 +211,9 @@ begin
   lFunc:=PSuspendedStart(aStart)^.Func;
   lParam:=PSuspendedStart(aStart)^.Param;
   Dispose(PSuspendedStart(aStart));
-  Result:=lFunc(lParam);
+  Result:=0;
+  if assigned(lFunc) then
+    Result:=lFunc(lParam);
 end;
 
 
@@ -278,16 +288,9 @@ end;
 
 function ResumeThread  (threadHandle : TThreadHandle) : dword;
 
-var
-  lStart : PSuspendedStart;
-
 begin
-  lStart:=ExtractSuspendedStart(threadHandle);
-  if assigned(lStart) then
-    begin
-    RTLEventSetEvent(lStart^.StartEvent);
-    Result:=1;
-    end
+  if PulseSuspendedStart(threadHandle,false) then
+    Result:=1
   else
     Result:=CurrentTM.ResumeThread(ThreadHandle);
 end;
@@ -295,7 +298,7 @@ end;
 function CloseThread  (threadHandle : TThreadHandle):dword;
 
 begin
-  ExtractSuspendedStart(threadHandle);
+  PulseSuspendedStart(threadHandle,true);
   result:=CurrentTM.CloseThread(ThreadHandle);
 end;
 
@@ -308,7 +311,7 @@ end;
 function  KillThread (threadHandle : TThreadHandle) : dword;
 
 begin
-  ExtractSuspendedStart(threadHandle);
+  PulseSuspendedStart(threadHandle,true);
   Result:=CurrentTM.KillThread(ThreadHandle);
 end;
 
