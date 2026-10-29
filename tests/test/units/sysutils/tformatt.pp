@@ -84,6 +84,10 @@ begin
   Check(30,UnicodeFormat('[%5t]',['ab']),'[ ab]');
   Check(31,UnicodeFormat('[%.3t]',['abc']),'[a]');
   Check(32,UnicodeFormat('[%5s]',['ab']),'[   ab]');
+  StringDisplayWidthFunc:=nil;
+  Check(40,UnicodeFormat('[%3t]',[lFace]),'[  '+lFace+']');
+  Check(41,UnicodeFormat('[%.1t]',[lFace+'x']),'['+lFace+']');
+  CheckBytes(42,Format('[%.1t]',[lUtf8]),'[é]');
   StringDisplayWidthFunc:=gOldFunc;
   writeln('ok');
 end.

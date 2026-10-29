@@ -376,7 +376,10 @@ begin
                   begin
                   // Width and precision in display columns
                   UText:=UnicodeString(hs);
-                  FitLen:=StringDisplayWidthFunc(UText,Prec,TextWidth);
+                  if Assigned(StringDisplayWidthFunc) then
+                    FitLen:=StringDisplayWidthFunc(UText,Prec,TextWidth)
+                  else
+                    FitLen:=CodePointDisplayWidth(UText,Prec,TextWidth);
                   if FitLen<Length(UText) then
                     begin
 {$ifdef INFORMAT}

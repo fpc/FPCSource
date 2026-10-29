@@ -162,7 +162,7 @@ type
 function CodePointDisplayWidth(const aText: UnicodeString; aMaxWidth: SizeInt; out aWidth: SizeInt): SizeInt;
 
 var
-  // Measures width and precision of the %t conversion of Format.
+  // Measures width and precision of the %t conversion of Format; nil uses CodePointDisplayWidth.
   StringDisplayWidthFunc : TStringDisplayWidthFunc = @CodePointDisplayWidth;
 
 Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiString;
