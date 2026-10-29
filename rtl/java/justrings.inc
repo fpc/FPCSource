@@ -610,20 +610,72 @@ function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
 
 var
   temp: widestring;
-  Len: SizeInt;
 begin
-  widestringmanager.Ansi2WideMoveProc(LocaleStr,CodePage,temp,LocaleStrLen);
-  Len:=Length(temp);
-  // Only move when we have room.
-  if (UnicodeStrLen>0) then
+  Result:=0;
+  if (LocaleStr=nil) or (LocaleStrLen=0) or (UnicodeStrLen<0) or
+     ((UnicodeStrLen>0) and (UnicodeStr=nil)) then
+    exit;
+  if LocaleStrLen<0 then
     begin
-    if UnicodeStrLen<=Len then
-      Len:=UnicodeStrLen-1;
-    JLString(temp).getChars(0,Len,TJCharArray(UnicodeStr),0);
-    UniCodeStr[Len]:=#0;
+    LocaleStrLen:=0;
+    while LocaleStr[LocaleStrLen]<>#0 do
+      inc(LocaleStrLen);
+    inc(LocaleStrLen);
     end;
-  // Return length
-  result:=len;
+  widestringmanager.Ansi2WideMoveProc(LocaleStr,TranslatePlaceholderCP(CodePage),temp,LocaleStrLen);
+  Result:=Length(temp);
+  if UnicodeStrLen=0 then
+    exit;
+  if Result>UnicodeStrLen then
+    exit(0);
+  JLString(temp).getChars(0,Result,TJCharArray(UnicodeStr),0);
+end;
+
+
+{$define FPC_HAS_LOCALECHARSFROMUNICODE}
+function LocaleCharsFromUnicode(CodePage, Flags: Cardinal; UnicodeStr: PWideChar;
+  UnicodeStrLen: SizeInt; LocaleStr: PAnsiChar; LocaleStrLen: SizeInt;
+  DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt; overload;
+
+var
+  temp: RawByteString;
+  back: UnicodeString;
+  i: SizeInt;
+begin
+  Result:=0;
+  if (UnicodeStr=nil) or (UnicodeStrLen=0) or (LocaleStrLen<0) or
+     ((LocaleStrLen>0) and (LocaleStr=nil)) then
+    exit;
+  if UnicodeStrLen<0 then
+    begin
+    UnicodeStrLen:=0;
+    while UnicodeStr[UnicodeStrLen]<>#0 do
+      inc(UnicodeStrLen);
+    inc(UnicodeStrLen);
+    end;
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(UnicodeStr),temp,TranslatePlaceholderCP(CodePage),UnicodeStrLen);
+  Result:=Length(temp);
+  if assigned(UsedDefaultChar) then
+    begin
+    back:=temp;
+    UsedDefaultChar^:=Length(back)<>UnicodeStrLen;
+    i:=0;
+    while not UsedDefaultChar^ and (i<UnicodeStrLen) do
+      begin
+      UsedDefaultChar^:=back[i+1]<>UnicodeStr[i];
+      inc(i);
+      end;
+    end;
+  if LocaleStrLen=0 then
+    exit;
+  if Result>LocaleStrLen then
+    exit(0);
+  i:=0;
+  while i<Result do
+    begin
+    LocaleStr[i]:=temp[i+1];
+    inc(i);
+    end;
 end;
 
 

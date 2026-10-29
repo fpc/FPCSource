@@ -686,6 +686,28 @@ procedure Win32Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:U
   end;
 
 
+{ Ansi2UnicodeBufProc of the widestring manager, using MultiByteToWideChar. }
+function Win32Ansi2UnicodeBuf(Source: PAnsiChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+  Dest: PUnicodeChar; DestLen: SizeInt): SizeInt;
+
+  begin
+    if (SourceLen>High(longint)) or (DestLen>High(longint)) then
+      exit(-1);
+    Result:=MultiByteToWideChar(CodePage,Flags,Source,SourceLen,Dest,DestLen);
+  end;
+
+
+{ Unicode2AnsiBufProc of the widestring manager, using WideCharToMultiByte. }
+function Win32Unicode2AnsiBuf(Source: PUnicodeChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+  Dest: PAnsiChar; DestLen: SizeInt; DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt;
+
+  begin
+    if (SourceLen>High(longint)) or (DestLen>High(longint)) then
+      exit(-1);
+    Result:=WideCharToMultiByte(CodePage,Flags,Source,SourceLen,Dest,DestLen,DefaultChar,UsedDefaultChar);
+  end;
+
+
 function Win32UnicodeUpper(const s : UnicodeString) : UnicodeString;
   begin
     result:=s;
@@ -806,6 +828,8 @@ procedure InitWin32Widestrings;
     widestringmanager.Ansi2UnicodeMoveProc:=@Win32Ansi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
+    widestringmanager.Ansi2UnicodeBufProc:=@Win32Ansi2UnicodeBuf;
+    widestringmanager.Unicode2AnsiBufProc:=@Win32Unicode2AnsiBuf;
     { Codepage }
     widestringmanager.GetStandardCodePageProc:=@Win32GetStandardCodePage;
 

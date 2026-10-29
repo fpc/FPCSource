@@ -632,6 +632,8 @@ implementation
           CompareUnicodeStringProc:=@CompareWideString;
           { CodePage }
           GetStandardCodePageProc:=@GetStandardCodePage;
+          Ansi2UnicodeBufProc:=nil;
+          Unicode2AnsiBufProc:=nil;
         end;
       SetUnicodeStringManager(CFWideStringManager);
     end;

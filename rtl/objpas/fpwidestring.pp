@@ -863,6 +863,8 @@ begin
       UpperUnicodeStringProc:=@UpperUnicodeString;
       LowerUnicodeStringProc:=@LowerUnicodeString;
       CompareUnicodeStringProc:=@CompareUnicodeString;
+      Ansi2UnicodeBufProc:=nil;
+      Unicode2AnsiBufProc:=nil;
     end;
   SetUnicodeStringManager(locWideStringManager);
 

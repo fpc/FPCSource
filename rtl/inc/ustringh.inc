@@ -46,12 +46,29 @@ procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : Uni
 procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : AnsiString);
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 
+{ Convert LocaleStrLen bytes (-1: #0-terminated, terminator included) to UTF-16.
+  Returns the number of characters written, or required when UnicodeStrLen is 0;
+  0 on failure or when UnicodeStr is too small. }
 function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
   LocaleStrLen: SizeInt; UnicodeStr: PWideChar; UnicodeStrLen: SizeInt): SizeInt; overload;
 
+// Convert to UTF-16 from the code page of a locale name; see the CodePage overload.
 function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
   LocaleStr: PAnsiChar; LocaleStrLen: SizeInt; UnicodeStr: PWideChar;
   UnicodeStrLen: SizeInt): SizeInt; overload;
+
+{ Convert UnicodeStrLen UTF-16 characters (-1: #0-terminated, terminator included) to CodePage.
+  Returns the number of bytes written, or required when LocaleStrLen is 0;
+  0 on failure or when LocaleStr is too small. UsedDefaultChar, if assigned, tells
+  whether a character could not be mapped; DefaultChar replaces it where supported. }
+function LocaleCharsFromUnicode(CodePage, Flags: Cardinal; UnicodeStr: PWideChar;
+  UnicodeStrLen: SizeInt; LocaleStr: PAnsiChar; LocaleStrLen: SizeInt;
+  DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt; overload;
+
+// Convert UTF-16 to the code page of a locale name; see the CodePage overload.
+function LocaleCharsFromUnicode(const LocaleName: AnsiString; Flags: Cardinal;
+  UnicodeStr: PWideChar; UnicodeStrLen: SizeInt; LocaleStr: PAnsiChar;
+  LocaleStrLen: SizeInt; DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt; overload;
 
 
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
@@ -129,6 +146,14 @@ Type
 
     { codepage retrieve function }
     GetStandardCodePageProc: function(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+
+    { conversion into a caller buffer: returns the number of characters written,
+      or required when DestLen is 0; 0 on failure or when Dest is too small;
+      -1 when the code page is not supported, so the caller uses the Move procs }
+    Ansi2UnicodeBufProc : function(Source: PAnsiChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+                                   Dest: PUnicodeChar; DestLen: SizeInt): SizeInt;
+    Unicode2AnsiBufProc : function(Source: PUnicodeChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+                                   Dest: PAnsiChar; DestLen: SizeInt; DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 

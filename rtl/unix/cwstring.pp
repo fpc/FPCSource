@@ -254,6 +254,8 @@ Const
 threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
+  { UTF-16 to DefaultSystemCodePage without transliteration, opened on first use }
+  iconv_wide2ansi_exact : iconv_t;
   { since we cache the iconv_t converters, we have to do the same
     for the DefaultSystemCodePage variable since if it changes, we
     have to re-initialize the converters too. We can't do that via
@@ -306,6 +308,9 @@ begin
     iconv_close(iconv_wide2ansi);
   if (iconv_ansi2wide <> iconv_t(-1)) then
     iconv_close(iconv_ansi2wide);
+  if (iconv_wide2ansi_exact <> nil) and (iconv_wide2ansi_exact <> iconv_t(-1)) then
+    iconv_close(iconv_wide2ansi_exact);
+  iconv_wide2ansi_exact:=nil;
 end;
 
 
@@ -631,6 +636,236 @@ procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestrin
     setlength(dest,length(dest)-outleft div 2);
     if free_iconv then
       iconv_close(use_iconv);
+  end;
+
+
+{ Opens a converter from UTF-16 to cp without transliteration, iconv_t(-1) if there is none. }
+function open_exact_iconv_from_unicode(cp: TSystemCodePage): iconv_t;
+  var
+    lIndex: longint;
+  begin
+    Result:=iconv_t(-1);
+    lIndex:=GetCodepageData(cp);
+    if lIndex=-1 then
+      begin
+        if cp=CP_UTF8 then
+          Result:=iconv_open('UTF-8',unicode_encoding2);
+        exit;
+      end;
+    repeat
+      Result:=iconv_open(PAnsiChar(UnixCpMap[lIndex].name),unicode_encoding2);
+      inc(lIndex);
+    until (Result<>iconv_t(-1)) or
+          (lIndex>high(UnixCpMap)) or
+          (UnixCpMap[lIndex].cp<>cp);
+  end;
+
+
+{ Returns the converter between cp and UTF-16 used by the buffer procs, iconv_t(-1) if there is none.
+  aFree is set when the caller has to close it. }
+function buffer_iconv(cp: TSystemCodePage; aToUnicode: boolean; out aFree: boolean): iconv_t;
+  begin
+    aFree:=false;
+    if cp=DefaultSystemCodePage then
+      begin
+        if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+          begin
+            FiniThread;
+            InitThread;
+          end;
+        if aToUnicode then
+          begin
+            Result:=iconv_ansi2wide;
+            if Result=nil then
+              Result:=iconv_t(-1);
+          end
+        else
+          begin
+            if iconv_wide2ansi_exact=nil then
+              iconv_wide2ansi_exact:=open_exact_iconv_from_unicode(cp);
+            Result:=iconv_wide2ansi_exact;
+          end;
+        exit;
+      end;
+    aFree:=true;
+    if aToUnicode then
+      Result:=open_iconv_for_cps(cp,unicode_encoding2,true)
+    else
+      Result:=open_exact_iconv_from_unicode(cp);
+  end;
+
+
+{ Ansi2UnicodeBufProc of the widestring manager. }
+function Ansi2UnicodeBuf(Source: PAnsiChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+  Dest: PUnicodeChar; DestLen: SizeInt): SizeInt;
+  var
+    lIconv: iconv_t;
+    lFree, lOk: boolean;
+    lScratch: array[0..255] of UnicodeChar;
+    lStart, lSrc, lOut, lNil: PAnsiChar;
+    lSrcLeft, lOutLeft, l0: size_t;
+    lCounted: SizeInt;
+    lErr: cint;
+
+  { Empties the scratch buffer when counting; false when writing to Dest. }
+  function MakeRoom: boolean;
+    begin
+      Result:=DestLen=0;
+      if Result then
+        begin
+          inc(lCounted,lOut-lStart);
+          lOut:=lStart;
+          lOutLeft:=SizeOf(lScratch);
+        end;
+    end;
+
+  begin
+    lIconv:=buffer_iconv(CodePage,true,lFree);
+    if lIconv=iconv_t(-1) then
+      exit(-1);
+    lNil:=nil;
+    l0:=0;
+    iconv(lIconv,@lNil,@l0,@lNil,@l0);
+    lCounted:=0;
+    if DestLen=0 then
+      begin
+        lStart:=PAnsiChar(@lScratch[0]);
+        lOutLeft:=SizeOf(lScratch);
+      end
+    else
+      begin
+        lStart:=PAnsiChar(Dest);
+        lOutLeft:=DestLen*SizeOf(UnicodeChar);
+      end;
+    lOut:=lStart;
+    lSrc:=Source;
+    lSrcLeft:=SourceLen;
+    lOk:=true;
+    while lOk and (iconv(lIconv,@lSrc,@lSrcLeft,@lOut,@lOutLeft)=size_t(-1)) do
+      begin
+        lErr:=fpgetCerrno;
+        case lErr of
+          ESysE2BIG:
+            lOk:=MakeRoom;
+          ESysEINVAL,
+          ESysEILSEQ:
+            begin
+              if (lOutLeft<SizeOf(UnicodeChar)) and not MakeRoom then
+                lOk:=false
+              else
+                begin
+                  PUnicodeChar(lOut)^:='?';
+                  inc(lOut,SizeOf(UnicodeChar));
+                  dec(lOutLeft,SizeOf(UnicodeChar));
+                  inc(lSrc);
+                  dec(lSrcLeft);
+                  iconv(lIconv,@lNil,@l0,@lNil,@l0);
+                  if lErr=ESysEINVAL then
+                    break;
+                end;
+            end;
+          else
+            lOk:=false;
+        end;
+      end;
+    if lOk then
+      Result:=(lCounted+(lOut-lStart)) div SizeOf(UnicodeChar)
+    else
+      Result:=0;
+    if lFree then
+      iconv_close(lIconv);
+  end;
+
+
+{ Unicode2AnsiBufProc of the widestring manager. }
+function Unicode2AnsiBuf(Source: PUnicodeChar; SourceLen: SizeInt; CodePage: TSystemCodePage; Flags: Cardinal;
+  Dest: PAnsiChar; DestLen: SizeInt; DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt;
+  var
+    lIconv: iconv_t;
+    lFree, lOk, lUsed: boolean;
+    lScratch: array[0..1023] of AnsiChar;
+    lStart, lSrc, lOut, lNil: PAnsiChar;
+    lSrcLeft, lOutLeft, l0: size_t;
+    lCounted: SizeInt;
+    lErr: cint;
+
+  { Empties the scratch buffer when counting; false when writing to Dest. }
+  function MakeRoom: boolean;
+    begin
+      Result:=DestLen=0;
+      if Result then
+        begin
+          inc(lCounted,lOut-lStart);
+          lOut:=lStart;
+          lOutLeft:=SizeOf(lScratch);
+        end;
+    end;
+
+  begin
+    lIconv:=buffer_iconv(CodePage,false,lFree);
+    if lIconv=iconv_t(-1) then
+      exit(-1);
+    lNil:=nil;
+    l0:=0;
+    iconv(lIconv,@lNil,@l0,@lNil,@l0);
+    lCounted:=0;
+    if DestLen=0 then
+      begin
+        lStart:=@lScratch[0];
+        lOutLeft:=SizeOf(lScratch);
+      end
+    else
+      begin
+        lStart:=Dest;
+        lOutLeft:=DestLen;
+      end;
+    lOut:=lStart;
+    lSrc:=PAnsiChar(Source);
+    lSrcLeft:=SourceLen*SizeOf(UnicodeChar);
+    lOk:=true;
+    lUsed:=false;
+    while lOk and (iconv(lIconv,@lSrc,@lSrcLeft,@lOut,@lOutLeft)=size_t(-1)) do
+      begin
+        lErr:=fpgetCerrno;
+        case lErr of
+          ESysE2BIG:
+            lOk:=MakeRoom;
+          ESysEINVAL,
+          ESysEILSEQ:
+            begin
+              if (lOutLeft<1) and not MakeRoom then
+                lOk:=false
+              else
+                begin
+                  if assigned(DefaultChar) then
+                    lOut^:=DefaultChar^
+                  else
+                    lOut^:='?';
+                  inc(lOut);
+                  dec(lOutLeft);
+                  lUsed:=true;
+                  inc(lSrc,SizeOf(UnicodeChar));
+                  dec(lSrcLeft,SizeOf(UnicodeChar));
+                  iconv(lIconv,@lNil,@l0,@lNil,@l0);
+                  if lErr=ESysEINVAL then
+                    break;
+                end;
+            end;
+          else
+            lOk:=false;
+        end;
+      end;
+    { write the shift sequence that returns a stateful encoding to its initial state }
+    while lOk and (iconv(lIconv,nil,nil,@lOut,@lOutLeft)=size_t(-1)) do
+      lOk:=(fpgetCerrno=ESysE2BIG) and MakeRoom;
+    if lOk then
+      Result:=lCounted+(lOut-lStart)
+    else
+      Result:=0;
+    if assigned(UsedDefaultChar) then
+      UsedDefaultChar^:=lUsed;
+    if lFree then
+      iconv_close(lIconv);
   end;
 
 
@@ -1230,6 +1465,8 @@ begin
       CompareUnicodeStringProc:=@CompareWideString;
       { CodePage }
       GetStandardCodePageProc:=@GetStandardCodePage;
+      Ansi2UnicodeBufProc:=@Ansi2UnicodeBuf;
+      Unicode2AnsiBufProc:=@Unicode2AnsiBuf;
     end;
   SetUnicodeStringManager(CWideStringManager);
 end;

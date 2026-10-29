@@ -990,23 +990,84 @@ function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
   LocaleStrLen: SizeInt; UnicodeStr: PWideChar; UnicodeStrLen: SizeInt): SizeInt; overload;
 
 var
-  temp: widestring;
-  Len: SizeInt;
+  temp: UnicodeString;
 begin
-  widestringmanager.Ansi2WideMoveProc(LocaleStr,CodePage,temp,LocaleStrLen);
-  Len:=Length(temp);
-  // Only move when we have room.
-  if (UnicodeStrLen>0) then
+  Result:=0;
+  if (LocaleStr=nil) or (LocaleStrLen=0) or (UnicodeStrLen<0) or
+     ((UnicodeStrLen>0) and (UnicodeStr=nil)) then
+    exit;
+  if LocaleStrLen<0 then
+    LocaleStrLen:=IndexByte(LocaleStr^,-1,0)+1;
+  CodePage:=TranslatePlaceholderCP(CodePage);
+  if assigned(widestringmanager.Ansi2UnicodeBufProc) then
     begin
-    if UnicodeStrLen<=Len then
-      Len:=UnicodeStrLen-1;
-    move(temp[1],UnicodeStr^,Len*SizeOf(WideChar));
-    UnicodeStr[Len]:=#0;
+    Result:=widestringmanager.Ansi2UnicodeBufProc(LocaleStr,LocaleStrLen,CodePage,Flags,UnicodeStr,UnicodeStrLen);
+    if Result>=0 then
+      exit;
     end;
-  // Return length
-  result:=len;
+  widestringmanager.Ansi2UnicodeMoveProc(LocaleStr,CodePage,temp,LocaleStrLen);
+  Result:=Length(temp);
+  if UnicodeStrLen=0 then
+    exit;
+  if Result>UnicodeStrLen then
+    exit(0);
+  Move(PUnicodeChar(temp)^,UnicodeStr^,Result*SizeOf(UnicodeChar));
 end;
 {$endif ndef FPC_HAS_UNICODEFROMLOCALECHARS}
+
+{$ifndef FPC_HAS_LOCALECHARSFROMUNICODE}
+{$define FPC_HAS_LOCALECHARSFROMUNICODE}
+function LocaleCharsFromUnicode(CodePage, Flags: Cardinal; UnicodeStr: PWideChar;
+  UnicodeStrLen: SizeInt; LocaleStr: PAnsiChar; LocaleStrLen: SizeInt;
+  DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt; overload;
+
+var
+  temp: RawByteString;
+  back: UnicodeString;
+begin
+  Result:=0;
+  if (UnicodeStr=nil) or (UnicodeStrLen=0) or (LocaleStrLen<0) or
+     ((LocaleStrLen>0) and (LocaleStr=nil)) then
+    exit;
+  if UnicodeStrLen<0 then
+    UnicodeStrLen:=IndexWord(UnicodeStr^,-1,0)+1;
+  CodePage:=TranslatePlaceholderCP(CodePage);
+  if assigned(widestringmanager.Unicode2AnsiBufProc) then
+    begin
+    Result:=widestringmanager.Unicode2AnsiBufProc(UnicodeStr,UnicodeStrLen,CodePage,Flags,LocaleStr,LocaleStrLen,DefaultChar,UsedDefaultChar);
+    if Result>=0 then
+      exit;
+    end;
+  widestringmanager.Unicode2AnsiMoveProc(UnicodeStr,temp,CodePage,UnicodeStrLen);
+  Result:=Length(temp);
+  if assigned(UsedDefaultChar) then
+    begin
+    { a character that did not survive the round trip was replaced }
+    widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(temp),CodePage,back,Result);
+    UsedDefaultChar^:=(Length(back)<>UnicodeStrLen) or
+                      (CompareWord(PUnicodeChar(back)^,UnicodeStr^,UnicodeStrLen)<>0);
+    end;
+  if LocaleStrLen=0 then
+    exit;
+  if Result>LocaleStrLen then
+    exit(0);
+  Move(PAnsiChar(temp)^,LocaleStr^,Result);
+end;
+{$endif ndef FPC_HAS_LOCALECHARSFROMUNICODE}
+
+function LocaleCharsFromUnicode(const LocaleName: AnsiString; Flags: Cardinal;
+  UnicodeStr: PWideChar; UnicodeStrLen: SizeInt; LocaleStr: PAnsiChar;
+  LocaleStrLen: SizeInt; DefaultChar: PAnsiChar; UsedDefaultChar: PLongBool): SizeInt; overload;
+
+var
+  CP : TSystemCodePage;
+
+begin
+  if not LocaleNameToCodePage(LocaleName,CP) then
+    Result:=0
+  else
+    Result:=LocaleCharsFromUnicode(CP,Flags,UnicodeStr,UnicodeStrLen,LocaleStr,LocaleStrLen,DefaultChar,UsedDefaultChar);
+end;
 
 function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
   LocaleStr: PAnsiChar; LocaleStrLen: SizeInt; UnicodeStr: PWideChar;
