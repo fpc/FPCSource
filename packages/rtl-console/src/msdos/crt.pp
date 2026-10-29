@@ -463,7 +463,7 @@ LInitDel1:
         pop     ax
         mov     ax,es
   end ['AX','BX','DX', 'DI'];
-  DelayCnt := -DelayCnt div $55;
+  DelayCnt := -DelayCnt div 55;
 end;
 
 
@@ -497,15 +497,15 @@ procedure sound(hz : word);
 label
   Lsound_next;
 begin
-  if hz=0 then
+  if hz<=$12 then
    begin
      nosound;
      exit;
    end;
   asm
         mov     cx, hz
-        { dx:ax = 1193046 }
-        mov     ax, $3456
+        { dx:ax = 1193182 }
+        mov     ax, $34de
         mov     dx, $12
         div     cx
         mov     cx, ax

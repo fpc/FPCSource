@@ -425,7 +425,7 @@ begin
    end;
   asm
         movzwl  hz,%ecx
-        movl    $1193046,%eax
+        movl    $1193182,%eax
         cltd
         divl    %ecx
         movl    %eax,%ecx
