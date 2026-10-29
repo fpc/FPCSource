@@ -838,6 +838,7 @@ unit optcse;
                        constentries[i].valuenode.resultdef.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
+                     addstatement(deletes,ctempdeletenode.create(constentries[i].temp));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
@@ -863,6 +864,7 @@ unit optcse;
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
                        caddrnode.create_internal(constentries[i].valuenode)));
+                     addstatement(deletes,ctempdeletenode.create(constentries[i].temp));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);
