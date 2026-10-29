@@ -347,6 +347,46 @@ function SameValue(const A, B: Double; Epsilon: Double): Boolean; overload;
 {$endif}
 function SameValue(const A, B: Single; Epsilon: Single): Boolean; overload;
 
+{ NextAfter returns the floating-point value next to X in the direction of Y.
+  It returns Y when X=Y, a NaN when X or Y is a NaN, and the smallest denormal
+  with the sign of the direction when X is zero. }
+function NextAfter(const X, Y: Single): Single; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function NextAfter(const X, Y: Double): Double; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function NextAfter(const X, Y: Extended): Extended; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+// Smallest floating-point value greater than X; NextUp(Infinity) is Infinity.
+function NextUp(const X: Single): Single; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function NextUp(const X: Double): Double; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function NextUp(const X: Extended): Extended; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+// Largest floating-point value less than X; NextDown(NegInfinity) is NegInfinity.
+function NextDown(const X: Single): Single; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function NextDown(const X: Double): Double; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function NextDown(const X: Extended): Extended; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+{ ULP returns the distance from |X| to the next value away from zero, or to the
+  previous value when |X| is the largest finite value. ULP(0) is the smallest
+  denormal, ULP of an infinity is Infinity and ULP of a NaN is that NaN. }
+function ULP(const X: Single): Single; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ULP(const X: Double): Double; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ULP(const X: Extended): Extended; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
 type
   TRoundToRange = -37..37;
 
@@ -3828,6 +3868,245 @@ begin
   else
     Result:=((B-A)<=Epsilon);
 end;
+
+
+function NextAfter(const X, Y: Single): Single;
+
+var
+  lRec: TSingleRec;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsNan(Y) or (X=Y) then
+    Exit(Y);
+  lRec.Value:=X;
+  if (lRec.Data and $7FFFFFFF)=0 then
+    begin
+    lRec.Data:=1;
+    if Y<X then
+      lRec.Data:=lRec.Data or $80000000;
+    end
+  else if (X<Y)=(X>0) then
+    Inc(lRec.Data)
+  else
+    Dec(lRec.Data);
+  Result:=lRec.Value;
+end;
+
+
+function NextUp(const X: Single): Single;
+
+begin
+  Result:=NextAfter(X,Single(Infinity));
+end;
+
+
+function NextDown(const X: Single): Single;
+
+begin
+  Result:=NextAfter(X,Single(NegInfinity));
+end;
+
+
+function ULP(const X: Single): Single;
+
+var
+  lAbs, lNext: Single;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsInfinite(X) then
+    Exit(Single(Infinity));
+  lAbs:=Abs(X);
+  lNext:=NextUp(lAbs);
+  if IsInfinite(lNext) then
+    Result:=lAbs-NextDown(lAbs)
+  else
+    Result:=lNext-lAbs;
+end;
+
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+{ Bits of D as a QWord with the sign in bit 63. }
+function DoubleToBits(const D: Double): QWord; inline;
+
+var
+  lRec: TDoubleRec;
+
+begin
+  lRec.Value:=D;
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
+  Result:=(lRec.Data shl 32) or (lRec.Data shr 32);
+{$else FPC_DOUBLE_HILO_SWAPPED}
+  Result:=lRec.Data;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
+end;
+
+
+{ Double whose bits are B, with the sign in bit 63. }
+function BitsToDouble(const B: QWord): Double; inline;
+
+var
+  lRec: TDoubleRec;
+
+begin
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
+  lRec.Data:=(B shl 32) or (B shr 32);
+{$else FPC_DOUBLE_HILO_SWAPPED}
+  lRec.Data:=B;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
+  Result:=lRec.Value;
+end;
+
+
+function NextAfter(const X, Y: Double): Double;
+
+var
+  lBits: QWord;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsNan(Y) or (X=Y) then
+    Exit(Y);
+  lBits:=DoubleToBits(X);
+  if (lBits and QWord($7FFFFFFFFFFFFFFF))=0 then
+    begin
+    lBits:=1;
+    if Y<X then
+      lBits:=lBits or QWord($8000000000000000);
+    end
+  else if (X<Y)=(X>0) then
+    Inc(lBits)
+  else
+    Dec(lBits);
+  Result:=BitsToDouble(lBits);
+end;
+
+
+function NextUp(const X: Double): Double;
+
+begin
+  Result:=NextAfter(X,Double(Infinity));
+end;
+
+
+function NextDown(const X: Double): Double;
+
+begin
+  Result:=NextAfter(X,Double(NegInfinity));
+end;
+
+
+function ULP(const X: Double): Double;
+
+var
+  lAbs, lNext: Double;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsInfinite(X) then
+    Exit(Double(Infinity));
+  lAbs:=Abs(X);
+  lNext:=NextUp(lAbs);
+  if IsInfinite(lNext) then
+    Result:=lAbs-NextDown(lAbs)
+  else
+    Result:=lNext-lAbs;
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function NextAfter(const X, Y: Extended): Extended;
+
+var
+  lRec: TExtended80Rec;
+  lExp: Word;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsNan(Y) or (X=Y) then
+    Exit(Y);
+  lRec.Value:=X;
+  lExp:=lRec._Exp and $7FFF;
+  if (lExp=0) and (lRec.Frac=0) then
+    begin
+    lRec.Frac:=1;
+    if Y<X then
+      lRec._Exp:=$8000
+    else
+      lRec._Exp:=0;
+    end
+  else if (X<Y)=(X>0) then
+    begin
+    // Away from zero; the integer bit of the mantissa is explicit
+    if lRec.Frac=QWord($FFFFFFFFFFFFFFFF) then
+      begin
+      lRec.Frac:=QWord($8000000000000000);
+      Inc(lRec._Exp);
+      end
+    else
+      begin
+      Inc(lRec.Frac);
+      if (lExp=0) and (lRec.Frac=QWord($8000000000000000)) then
+        Inc(lRec._Exp);
+      end;
+    end
+  else
+    begin
+    // Towards zero
+    if (lRec.Frac=QWord($8000000000000000)) and (lExp>0) then
+      begin
+      Dec(lRec._Exp);
+      if lExp>1 then
+        lRec.Frac:=QWord($FFFFFFFFFFFFFFFF)
+      else
+        lRec.Frac:=QWord($7FFFFFFFFFFFFFFF);
+      end
+    else
+      Dec(lRec.Frac);
+    end;
+  Result:=lRec.Value;
+end;
+
+
+function NextUp(const X: Extended): Extended;
+
+begin
+  Result:=NextAfter(X,Extended(Infinity));
+end;
+
+
+function NextDown(const X: Extended): Extended;
+
+begin
+  Result:=NextAfter(X,Extended(NegInfinity));
+end;
+
+
+function ULP(const X: Extended): Extended;
+
+var
+  lAbs, lNext: Extended;
+
+begin
+  if IsNan(X) then
+    Exit(X);
+  if IsInfinite(X) then
+    Exit(Extended(Infinity));
+  lAbs:=Abs(X);
+  lNext:=NextUp(lAbs);
+  if IsInfinite(lNext) then
+    Result:=lAbs-NextDown(lAbs)
+  else
+    Result:=lNext-lAbs;
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 // Some CPUs probably allow a faster way of doing this in a single operation...
 // There we should define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
