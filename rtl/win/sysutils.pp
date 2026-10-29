@@ -1974,6 +1974,7 @@ procedure InitWin32Widestrings;
 function WinExceptionObject(code: Longint; const rec: TExceptionRecord): Exception;
 var
   entry: PExceptMapEntry;
+  info: TExceptObject;
 begin
   entry := FindExceptMapEntry(code);
   if assigned(entry) then
@@ -1983,6 +1984,10 @@ begin
 
   if result is EExternal then
     EExternal(result).FExceptionRecord:=rec;
+  FillChar(info,SizeOf(info),0);
+  info.FObject:=result;
+  info.Addr:=rec.ExceptionAddress;
+  result.RaisingException(@info);
 end;
 
 function WinExceptionClass(code: longint): ExceptClass;

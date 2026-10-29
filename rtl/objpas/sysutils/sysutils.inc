@@ -264,9 +264,92 @@ end;
        fhelpcontext:=AHelpContext;
     end;
 
+    destructor Exception.Destroy;
+
+    begin
+      FreeAndNil(FInnerException);
+      SetStackInfo(nil);
+      inherited Destroy;
+    end;
+
+
     Function Exception.ToString : RTLString;
     begin
       Result:=ClassName+': '+Message;
+      if Assigned(FInnerException) then
+        Result:=Result+sLineBreak+FInnerException.ToString;
+    end;
+
+
+    procedure Exception.SetInnerException;
+
+    var
+      lCurrent : PExceptObject;
+
+    begin
+      if not FAcquireInnerException then
+        exit;
+      FAcquireInnerException:=False;
+      lCurrent:=RaiseList;
+      if Assigned(lCurrent) and (lCurrent^.FObject<>Self) and (lCurrent^.FObject is Exception) then
+        FInnerException:=Exception(AcquireExceptionObject);
+    end;
+
+
+    procedure Exception.SetStackInfo(aStackInfo: Pointer);
+
+    begin
+      if FStackInfo=aStackInfo then
+        exit;
+      if Assigned(FStackInfo) and Assigned(CleanUpStackInfoProc) then
+        CleanUpStackInfoProc(FStackInfo);
+      FStackInfo:=aStackInfo;
+    end;
+
+
+    function Exception.GetStackTrace: string;
+
+    begin
+      if Assigned(GetStackInfoStringProc) then
+        Result:=GetStackInfoStringProc(FStackInfo)
+      else
+        Result:='';
+    end;
+
+
+    procedure Exception.RaisingException(aInfo: PExceptObject);
+
+    begin
+      SetInnerException;
+      if Assigned(GetExceptionStackInfoProc) then
+        SetStackInfo(GetExceptionStackInfoProc(aInfo));
+    end;
+
+
+    { Raise aException at aAddr, aFrame with the exception being handled as inner exception. }
+    procedure RaiseOuter(aException: Exception; aAddr: CodePointer; aFrame: Pointer);
+
+    begin
+      if Assigned(aException) then
+        begin
+        aException.FAcquireInnerException:=True;
+        aException.SetInnerException;
+        end;
+      raise aException at aAddr, aFrame;
+    end;
+
+
+    class procedure Exception.RaiseOuterException(aException: Exception);
+
+    begin
+      RaiseOuter(aException,get_caller_addr(get_frame),get_caller_frame(get_frame));
+    end;
+
+
+    class procedure Exception.ThrowOuterException(aException: Exception);
+
+    begin
+      RaiseOuter(aException,get_caller_addr(get_frame),get_caller_frame(get_frame));
     end;
 
 Var OutOfMemory : EOutOfMemory;
@@ -279,17 +362,20 @@ Var OutOfMemory : EOutOfMemory;
     end;
 
 
+    procedure EHeapMemoryError.RaisingException(aInfo: PExceptObject);
+
+    begin
+      SetInnerException;
+    end;
+
+
     function Exception.GetBaseException : Exception;
-      var
-        _ExceptObjectStack : PExceptObject;
-      begin
-        _ExceptObjectStack:=RaiseList;
-        While Assigned(_ExceptObjectStack) do
-          begin
-            result:=Exception(_ExceptObjectStack^.FObject);
-            _ExceptObjectStack:=_ExceptObjectStack^.Next;
-          end;
-      end;
+
+    begin
+      Result:=Self;
+      while Assigned(Result.FInnerException) do
+        Result:=Result.FInnerException;
+    end;
 
 
     Constructor EVariantError.CreateCode (Code : longint);
@@ -576,6 +662,30 @@ begin
   raise ERangeError.Create(ListIndexErrorMsg(aIndex,aMaxIndex,aListObj));
 end;
 
+var
+  OldRaiseProc : TExceptProc;
+
+{ Call RaisingException of an Exception being raised, then the previous RaiseProc. }
+Procedure DoRaisingException(aObject: TObject; aAddr: CodePointer; aFrameCount: Longint; aFrames: PCodePointer);
+
+var
+  lInfo : TExceptObject;
+
+begin
+  if aObject is Exception then
+    begin
+    FillChar(lInfo,SizeOf(lInfo),0);
+    lInfo.FObject:=aObject;
+    lInfo.Addr:=aAddr;
+    lInfo.Framecount:=aFrameCount;
+    lInfo.Frames:=aFrames;
+    Exception(aObject).RaisingException(@lInfo);
+    end;
+  if Assigned(OldRaiseProc) then
+    OldRaiseProc(aObject,aAddr,aFrameCount,aFrames);
+end;
+
+
 Procedure InitExceptions;
 {
   Must install uncaught exception handler (ExceptProc)
@@ -585,6 +695,8 @@ Procedure InitExceptions;
 begin
   ExceptionClass := Exception;
   ExceptProc:=@CatchUnhandledException;
+  OldRaiseProc:=RaiseProc;
+  RaiseProc:=@DoRaisingException;
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
@@ -596,6 +708,8 @@ end;
 
 Procedure DoneExceptions;
 begin
+  if RaiseProc=@DoRaisingException then
+    RaiseProc:=OldRaiseProc;
   FreeAndNil(OutOfMemory); { These will automatically work as they first set pointer to nil, then free the object. See EHeapMemoryError.FreeInstance. }
   FreeAndNil(InValidPointer);
 end;

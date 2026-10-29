@@ -108,6 +108,18 @@ type
     private
       fmessage : string;
       fhelpcontext : longint;
+      FInnerException : Exception;
+      FStackInfo : Pointer;
+      FAcquireInnerException : Boolean;
+    protected
+      // Make the exception being handled the inner exception, when raised with RaiseOuterException.
+      procedure SetInnerException;
+      // Replace the stack information, cleaning up the previous one.
+      procedure SetStackInfo(aStackInfo: Pointer);
+      // Return the stack information as text, using GetStackInfoStringProc.
+      function GetStackTrace: string;
+      // Called by the RTL when the exception is raised; aInfo is valid only during the call.
+      procedure RaisingException(aInfo: PExceptObject); virtual;
     public
       constructor Create(const msg : string);
       constructor CreateFmt(const msg : string; const args : array of const);
@@ -119,12 +131,35 @@ type
       constructor CreateResHelp(ResString: PResStringRec; AHelpContext: Longint);
       constructor CreateResFmtHelp(ResString: PResStringRec; const Args: array of const;
         AHelpContext: Longint);
+      // Free the inner exception and the stack information.
+      destructor Destroy; override;
       Function ToString : RTLString; override;
 
+      // Return the innermost exception of the InnerException chain.
       function GetBaseException : Exception;virtual;
+      // Raise aException with the exception being handled as its inner exception. Call only in an except block.
+      class procedure RaiseOuterException(aException: Exception); static;
+      // Same as RaiseOuterException.
+      class procedure ThrowOuterException(aException: Exception); static;
 
+      // Innermost exception of the InnerException chain.
+      property BaseException : Exception read GetBaseException;
       property HelpContext : longint read fhelpcontext write fhelpcontext;
+      // Exception that was being handled when this one was raised with RaiseOuterException; owned by this exception.
+      property InnerException : Exception read FInnerException;
       property Message : string read fmessage write fmessage;
+      // Stack information as text, empty if GetStackInfoStringProc is not set.
+      property StackTrace : string read GetStackTrace;
+      // Stack information returned by GetExceptionStackInfoProc when the exception was raised.
+      property StackInfo : Pointer read FStackInfo;
+    public
+      class var
+        // Return stack information for an exception being raised, or nil.
+        GetExceptionStackInfoProc : function(aInfo: PExceptObject): Pointer;
+        // Return stack information as text.
+        GetStackInfoStringProc : function(aStackInfo: Pointer): string;
+        // Free stack information.
+        CleanUpStackInfoProc : procedure(aStackInfo: Pointer);
    end;
 
    ExceptClass = class of Exception;
@@ -165,6 +200,10 @@ type
    end;
 
    EHeapMemoryError = class(Exception)
+   protected
+     // Set the inner exception only; no stack information is collected.
+     procedure RaisingException(aInfo: PExceptObject); override;
+   public
      procedure FreeInstance;override;
    end;
 

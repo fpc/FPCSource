@@ -404,6 +404,8 @@ begin
   args[0]:=PtrUint(AnAddr);
   args[1]:=PtrUint(Obj);
   args[2]:=GetBacktrace(ctx,AFrame,PPointer(args[3]));
+  if Assigned(RaiseProc) then
+    RaiseProc(Obj,AnAddr,Longint(args[2]),PCodePointer(args[3]));
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
 end;
 
