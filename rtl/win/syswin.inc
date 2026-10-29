@@ -583,6 +583,14 @@ begin
 end;
 
 
+{ Give a standard text file DefaultSystemCodePage when its handle is not a console. }
+procedure SetRedirectedStdIOCodePage(var f: Text);
+begin
+  if GetFileType(TextRec(f).Handle)<>FILE_TYPE_CHAR then
+    TextRec(f).CodePage:=DefaultSystemCodePage;
+end;
+
+
 procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
@@ -611,6 +619,11 @@ begin
      OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
      OpenStdIO(StdOut,fmOutput,StdOutputHandle);
      OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+     SetRedirectedStdIOCodePage(Input);
+     SetRedirectedStdIOCodePage(Output);
+     SetRedirectedStdIOCodePage(ErrOutput);
+     SetRedirectedStdIOCodePage(StdOut);
+     SetRedirectedStdIOCodePage(StdErr);
    end;
 end;
 
