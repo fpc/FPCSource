@@ -3974,7 +3974,10 @@ implementation
                       left:=nil;
                       exit;
                     end;
-                  if (convtype=tc_int_2_int) and (left.nodetype=typeconvn) and (ttypeconvnode(left).convtype=tc_bool_2_int) then
+                  { a conversion to currency scales the value, so it cannot be
+                    folded into the boolean to integer conversion below it }
+                  if (convtype=tc_int_2_int) and (left.nodetype=typeconvn) and (ttypeconvnode(left).convtype=tc_bool_2_int) and
+                     not is_currency(resultdef) then
                     begin
                       ttypeconvnode(left).totypedef:=resultdef;
                       ttypeconvnode(left).resultdef:=resultdef;
