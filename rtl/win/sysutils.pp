@@ -41,6 +41,7 @@ uses
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_OSUSERDIR}
+{$DEFINE HAS_TEMPDIR}
 {$DEFINE HAS_CREATEGUID}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
@@ -1763,6 +1764,56 @@ Function GetUserDir : String;
 
 begin
   Result:=GetWindowsSpecialDir(CSIDL_PROFILE);
+end;
+
+
+{ Temporary directory from GetTempPathW, or from TEMP or TMP when that fails. }
+function GetTempDirUnicode: UnicodeString;
+
+var
+  lLen: DWord;
+
+begin
+  SetLength(Result,MAX_PATH+1);
+  lLen:=GetTempPathW(Length(Result),PWideChar(Result));
+  if lLen>DWord(Length(Result)) then
+    begin
+    SetLength(Result,lLen);
+    lLen:=GetTempPathW(Length(Result),PWideChar(Result));
+    end;
+  if (lLen=0) or (lLen>DWord(Length(Result))) then
+    Result:=''
+  else
+    SetLength(Result,lLen);
+  if Result='' then
+    Result:=GetEnvironmentVariable(UnicodeString('TEMP'));
+  if Result='' then
+    Result:=GetEnvironmentVariable(UnicodeString('TMP'));
+end;
+
+
+Function GetTempDir(Global : Boolean) : String;
+
+{$ifndef UNICODERTL}
+var
+  lDir: UnicodeString;
+{$endif UNICODERTL}
+
+begin
+  If Assigned(OnGetTempDir) then
+    Result:=OnGetTempDir(Global)
+  else
+    begin
+{$ifdef UNICODERTL}
+    Result:=GetTempDirUnicode;
+{$else UNICODERTL}
+    lDir:=GetTempDirUnicode;
+    Result:='';
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(lDir),RawByteString(Result),DefaultRTLFileSystemCodePage,Length(lDir));
+{$endif UNICODERTL}
+    end;
+  if (Result<>'') then
+    Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
 Procedure InitSysConfigDir;
