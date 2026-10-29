@@ -499,7 +499,7 @@ Var
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread(sa: '+IntToStr(PtrUint(Sa))+',ss: '+IntToStr(PtrUint(StackSize))+',TF: '+IntToStr(PtrUint(ThreadFunction))+',Arg: '+IntToStr(PtrUint(P))+',fl: '+IntToStr(PtrUint(CreationFlags))+',ID: '+IntToStr(PtrUint(ThreadID))+')');{$ENDIF}
-  IsMultiThread:=true;
+  InitMultiThreading;
   New(T);
   fpc_wasm32_i32_atomic_store8(@T^.ThreadHasFinished,0);
   T^.StackBlock:=nil;

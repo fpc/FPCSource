@@ -121,6 +121,17 @@ type
 
 
 
+var
+  TLSInitialized : longint = 0;
+
+{ Set up the threadvar block, once. }
+procedure SysInitTLS;
+  begin
+    if InterLockedExchange(TLSInitialized,1)=0 then
+      InitThreadVars(@SysRelocateThreadvar);
+  end;
+
+
 function ThreadMain(param : pointer) : dword; cdecl;
 
   var
@@ -153,13 +164,7 @@ function SysBeginThread(sa : Pointer;stacksize : SizeUInt;
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'Creating new thread'#13#10);
 {$endif DEBUG_MT}
-     if not IsMultiThread then
-     begin
-       InitThreadVars(@SysRelocateThreadvar);
-      { lazy initialize thread support }
-       LazyInitThreading;
-       IsMultithread:=true;
-     end;
+     InitMultiThreading;
      { the only way to pass data to the newly created thread }
      { in a MT safe way, is to use the heap                  }
      new(ti);
@@ -500,6 +505,7 @@ begin
     RTLEventResetEvent     :=@intRTLEventResetEvent;
     RTLEventWaitFor        :=@intRTLEventWaitFor;
     RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
+    InitMultiThreading     :=@SysInitTLS;
     end;
   SetThreadManager(NWThreadManager);
   NWSysSetThreadFunctions (@SysCloseAllRemainingSemaphores,

@@ -119,6 +119,7 @@ const
     RTLEventResetEvent     : TRTLEventHandler(@NoThreadError);
     RTLEventWaitFor        : TRTLEventHandler(@NoThreadError);
     RTLEventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
+    InitMultiThreading     : @NoThreadError;
   );
 
 

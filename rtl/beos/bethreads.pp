@@ -161,6 +161,22 @@ Uses
       end;
 
 
+    var
+      TLSInitialized : longint = 0;
+
+    { Set up the TLS key and the threadvar block, once. }
+    procedure BeInitTLS;
+      begin
+{$ifdef HASTHREADVAR}
+        if InterLockedExchange(TLSInitialized,1)=0 then
+          begin
+            pthread_key_create(@TLSKey,nil);
+            InitThreadVars(@CRelocateThreadvar);
+          end;
+{$endif HASTHREADVAR}
+      end;
+
+
     function BeBeginThread(sa : Pointer;stacksize : dword;
                          ThreadFunction : tthreadfunc;p : pointer;
                          creationFlags : dword; var ThreadId : THandle) : DWord;
@@ -171,18 +187,7 @@ Uses
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
 {$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-{$ifdef HASTHREADVAR}
-          { We're still running in single thread mode, setup the TLS }
-           pthread_key_create(@TLSKey,nil);
-           InitThreadVars(@CRelocateThreadvar);
-{$endif HASTHREADVAR}
-          { lazy initialize thread support }
-           LazyInitThreading;
-           IsMultiThread:=true;
-         end;
+        InitMultiThreading;
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
         new(ti);
@@ -533,6 +538,7 @@ begin
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
+    InitMultiThreading     :=@BeInitTLS;
     end;
   SetThreadManager(BeThreadManager);
   InitHeapMutexes;

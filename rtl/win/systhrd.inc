@@ -391,14 +391,7 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
 {$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        SysInitTLS;
-        if not IsMultiThread then
-          begin
-           { lazy initialize thread support }
-            LazyInitThreading;
-            IsMultiThread:=true;
-          end;
+        InitMultiThreading;
 
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
@@ -771,6 +764,7 @@ begin
     RTLEventResetEvent     :=@intRTLEventResetEvent;
     RTLEventWaitFor        :=@intRTLEventWaitFor;
     RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
+    InitMultiThreading     :=@SysInitTLS;
     end;
   SetThreadManager(WinThreadManager);
   ThreadID := GetCurrentThreadID;

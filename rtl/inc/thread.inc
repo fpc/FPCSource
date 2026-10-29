@@ -237,6 +237,19 @@ end;
         EndThread(0);
       end;
 
+function InitMultiThreading : Boolean;
+
+begin
+  Result:=IsMultiThread;
+  if assigned(CurrentTM.InitMultiThreading) then
+    CurrentTM.InitMultiThreading;
+  if not IsMultiThread then
+    begin
+    LazyInitThreading;
+    IsMultiThread:=true;
+    end;
+end;
+
 function BeginThread(sa : Pointer;stacksize : SizeUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
 
 begin
@@ -736,6 +749,7 @@ const
          RTLEventResetEvent     : TRTLEventHandler(@NoThreadError);
          RTLEventWaitFor        : TRTLEventHandler(@NoThreadError);
          RTLEventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
+         InitMultiThreading     : @NoThreadError;
 {$else EMBEDDED}
          BeginThread            : @NoBeginThread;
          EndThread              : @NoEndThread;
@@ -772,6 +786,7 @@ const
          RTLEventResetEvent     : @NoRTLEvent;
          RTLEventWaitFor        : @NoRTLEvent;
          RTLEventWaitforTimeout : @NoRTLEventWaitForTimeout;
+         InitMultiThreading     : @NoThreadError;
 {$endif EMBEDDED}
       );
 

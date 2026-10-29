@@ -413,12 +413,16 @@ begin
 end;
 
 
+var
+  AThreadingInitialized: longint = 0;
+
+{ Set up the main thread info and the threadvar block, once. }
 procedure InitAThreading;
 var
   threadInfo: PThreadInfo;
   p: PProcess;
 begin
-  if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
+  if (InterLockedExchange(AThreadingInitialized,1) = 0) then
     begin
       { We're still running in single thread mode, setup the TLS }
 {$ifdef DEBUG_MT}
@@ -545,9 +549,7 @@ begin
 {$ifdef DEBUG_MT}
   SysDebugLn('FPC AThreads: Creating new thread...');
 {$endif DEBUG_MT}
-  { Initialize multithreading if not done }
-  if not IsMultiThread then
-    InitAThreading;
+  InitMultiThreading;
   { the only way to pass data to the newly created thread
     in a MT safe way, is to use the heap }
   new(threadInfo);
@@ -1267,7 +1269,7 @@ begin
   result:=true;
 
   // We assume that if you set the thread manager, the application is multithreading.
-  InitAThreading;
+  InitMultiThreading;
 
   ThreadID := TThreadID(GetCurrentThreadInfo);
 end;
@@ -1316,6 +1318,7 @@ begin
     rtlEventResetEvent     :=@intrtlEventResetEvent;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
+    InitMultiThreading     :=@InitAThreading;
   end;
   SetThreadManager(AThreadManager);
 end;

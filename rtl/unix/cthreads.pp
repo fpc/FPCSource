@@ -576,15 +576,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$ifdef DEBUG_MT}
       writeln('Creating new thread');
 {$endif DEBUG_MT}
-      { Initialize multithreading if not done }
-      if not TLSInitialized then
-        InitCTLS;
-      if not IsMultiThread then
-        begin
-          { We're still running in single thread mode, lazy initialize thread support }
-           LazyInitThreading;
-           IsMultiThread:=true;
-        end;
+      InitMultiThreading;
 
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
@@ -1454,6 +1446,7 @@ begin
     rtlEventResetEvent     :=@intrtlEventResetEvent;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
+    InitMultiThreading     :=@InitCTLS;
   end;
   SetThreadManager(CThreadManager);
 end;

@@ -66,6 +66,7 @@ type
   TSemaphoreDestroyHandler  = procedure (const sem: Pointer);
   TSemaphorePostHandler     = procedure (const sem: Pointer);
   TSemaphoreWaitHandler     = procedure (const sem: Pointer);
+  TInitMultiThreadingHandler = procedure;
 
   // TThreadManager interface.
   TThreadManager = Record
@@ -106,6 +107,8 @@ type
     RTLEventResetEvent     : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
+    // Sets up thread-local storage for multithreaded mode; nil if not needed.
+    InitMultiThreading     : TInitMultiThreadingHandler;
   end;
 
 {*****************************************************************************
@@ -144,6 +147,9 @@ function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
 // Start a thread, optionally suspended until ResumeThread is called on the returned handle.
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
                      Suspended : Boolean; const stacksize: SizeUInt = DefaultStackSize) : TThreadID;
+
+// Switch the RTL to multithreaded mode; returns whether it already was. Call from a thread started by the RTL.
+function InitMultiThreading : Boolean;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;

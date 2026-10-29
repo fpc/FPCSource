@@ -119,6 +119,20 @@
       end;
 
 
+    var
+      TLSInitialized : longint = 0;
+
+    { Set up the TLS key and the threadvar block, once. }
+    procedure SysInitTLS;
+      begin
+        if InterLockedExchange(TLSInitialized,1)=0 then
+          begin
+            pthread_key_create(@TLSKey,nil);
+            InitThreadVars(@SysRelocateThreadvar);
+          end;
+      end;
+
+
     function SysBeginThread(sa : Pointer;stacksize : SizeUInt;
                          ThreadFunction : tthreadfunc;p : pointer;
                          creationFlags : dword; var ThreadId : THandle) : DWord;
@@ -127,16 +141,7 @@
         thread_attr : pthread_attr_t;
       begin
         WRITE_DEBUG('SysBeginThread: Creating new thread'#13#10);
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-          { We're still running in single thread mode, setup the TLS }
-           pthread_key_create(@TLSKey,nil);
-           InitThreadVars(@SysRelocateThreadvar);
-          { lazy initialize thread support }
-           LazyInitThreading;
-           IsMultiThread:=true;
-         end;
+        InitMultiThreading;
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
         getmem(ti,sizeof(pthreadinfo));
@@ -390,6 +395,7 @@ begin
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
+    InitMultiThreading     :=@SysInitTLS;
     end;
   SetThreadManager(NWThreadManager);
   ThVarAllocResourceTag := AllocateResourceTag(getnlmhandle,'Threadvar Memory',AllocSignature);

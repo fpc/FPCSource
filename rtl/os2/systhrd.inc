@@ -313,7 +313,6 @@ begin
         RunError (8);
        end;
      end;
-    IsMultiThread := true;
    end;
 end;
 
@@ -322,7 +321,7 @@ procedure SysFiniMultithreading;
 var
  RC: cardinal;
 begin
-  if IsMultiThread then
+  if DataIndex <> nil then
    begin
     if TLSAPISupported then
      RC := DosFreeThreadLocalMemory (DataIndex)
@@ -442,8 +441,7 @@ begin
   $ifdef DEBUG_MT
   WriteLn ('Creating new thread');
  $endif DEBUG_MT}
-{ Initialize multithreading if not done }
-  SysInitMultithreading;
+  InitMultiThreading;
 { the only way to pass data to the newly created thread
   in a MT safe way, is to use the heap }
   New (TI);
@@ -976,6 +974,7 @@ begin
     RTLEventResetEvent     :=@SysRTLEventResetEvent;
     RTLEventWaitFor        :=@SysRTLEventWaitFor;
     RTLEventWaitForTimeout :=@SysRTLEventWaitForTimeout;
+    InitMultiThreading     :=@SysInitMultithreading;
     end;
   SetThreadManager (OS2ThreadManager);
 end;
