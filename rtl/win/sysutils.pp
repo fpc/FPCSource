@@ -1856,24 +1856,44 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
 
 const
   WinAPICompareFlags : array [TCompareOption] of LongWord
-    = (LINGUISTIC_IGNORECASE, {LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
+    = (LINGUISTIC_IGNORECASE, LINGUISTIC_IGNOREDIACRITIC, NORM_IGNORECASE,
        NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
-       NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT});
+       NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT);
 
 var
   { LINGUISTIC_IGNORECASE if CompareString supports it, NORM_IGNORECASE otherwise }
   IgnoreCaseCompareFlag : DWORD = NORM_IGNORECASE;
+  { LINGUISTIC_IGNOREDIACRITIC if CompareString supports it, NORM_IGNORENONSPACE otherwise }
+  IgnoreDiacriticCompareFlag : DWORD = NORM_IGNORENONSPACE;
+  { Flags of WinAPICompareFlags that CompareString rejects on this Windows version }
+  UnsupportedCompareFlags : DWORD = 0;
 
-// Set IgnoreCaseCompareFlag to LINGUISTIC_IGNORECASE if CompareString accepts it
-procedure InitIgnoreCaseCompareFlag;
+// True if CompareStringW accepts aFlag
+function CompareFlagSupported(aFlag : DWORD) : Boolean;
 
 begin
-  if CompareStringA(LOCALE_USER_DEFAULT,LINGUISTIC_IGNORECASE,'a',1,'A',1)<>0 then
-    IgnoreCaseCompareFlag:=LINGUISTIC_IGNORECASE;
+  Result:=CompareStringW(LOCALE_USER_DEFAULT,aFlag,'a',1,'A',1)<>0;
 end;
 
 
-// Convert compare options to CompareString flags, coLingIgnoreCase takes precedence over coIgnoreCase
+// Determine which compare flags of newer Windows versions are available
+procedure InitCompareFlags;
+
+begin
+  { IgnoreCaseCompareFlag is also passed to CompareStringA }
+  if CompareStringA(LOCALE_USER_DEFAULT,LINGUISTIC_IGNORECASE,'a',1,'A',1)<>0 then
+    IgnoreCaseCompareFlag:=LINGUISTIC_IGNORECASE;
+  if CompareFlagSupported(LINGUISTIC_IGNOREDIACRITIC) then
+    IgnoreDiacriticCompareFlag:=LINGUISTIC_IGNOREDIACRITIC;
+  if not CompareFlagSupported(NORM_LINGUISTIC_CASING) then
+    UnsupportedCompareFlags:=UnsupportedCompareFlags or NORM_LINGUISTIC_CASING;
+  if not CompareFlagSupported(SORT_DIGITSASNUMBERS) then
+    UnsupportedCompareFlags:=UnsupportedCompareFlags or SORT_DIGITSASNUMBERS;
+end;
+
+
+{ Convert compare options to CompareString flags. coLingIgnoreCase and coLingIgnoreDiacritic
+  fall back to NORM_IGNORECASE and NORM_IGNORENONSPACE; other unsupported flags are dropped. }
 function CompareOptionsToFlags(aOptions : TCompareOptions) : DWORD;
 
 var
@@ -1885,6 +1905,9 @@ begin
     Result:=Result or WinAPICompareFlags[lOption];
   if coLingIgnoreCase in aOptions then
     Result:=(Result and not (NORM_IGNORECASE or LINGUISTIC_IGNORECASE)) or IgnoreCaseCompareFlag;
+  if coLingIgnoreDiacritic in aOptions then
+    Result:=(Result and not LINGUISTIC_IGNOREDIACRITIC) or IgnoreDiacriticCompareFlag;
+  Result:=Result and not UnsupportedCompareFlags;
 end;
 
 
@@ -2005,7 +2028,7 @@ procedure InitWin32Widestrings;
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
-    InitIgnoreCaseCompareFlag;
+    InitCompareFlags;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;

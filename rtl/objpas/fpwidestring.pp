@@ -31,7 +31,8 @@ uses
 {$ifdef Unix}
   UnixApi.CP,
 {$endif}
-  System.CharSet;
+  System.CharSet,
+  System.CompareOpts;
 {$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef MSWINDOWS}
@@ -40,7 +41,8 @@ uses
 {$ifdef Unix}
   unixcp,
 {$endif}
-  charset;
+  charset,
+  compareopts;
 {$ENDIF FPC_DOTTEDUNITS}
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
@@ -430,84 +432,131 @@ begin
   Result := CompareUnicodeStringUCA(p1,p2,l1,l2);
 end;
 
-type
-  TChangedPropsRecord = record
-    ComparisonStrength : Byte;
-  end;
-
 const
   SECONDARY_STRENGTH_LEVEL = 2;
 
-function CompareUnicodeString(const s1, s2 : UnicodeString;Options : TCompareOptions) : PtrInt;
+{ Apply coIgnoreWidth, coIgnoreKanaType, coIgnoreNonSpace, coLingIgnoreDiacritic and
+  coIgnoreSymbols of aOptions to aText; the other options are left to the caller. }
+function ApplyCompareOptions(const aText : UnicodeString; aOptions : TCompareOptions) : UnicodeString;
 
-  function DoCompare() : PtrInt;
-  var
-    changedProps : TChangedPropsRecord;
-  begin
-    changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
-    try
-      if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then
-        current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
-      Result:=CompareUnicodeString(
-                PUnicodeChar(Pointer(s1)),
-                PUnicodeChar(Pointer(s2)),
-                Length(s1),Length(s2)
-              );
-    finally
-      current_Collation.Data.ComparisonStrength := changedProps.ComparisonStrength;
+var
+  lText : UnicodeString;
+  i, lLen, lCount : SizeInt;
+  lChar : UnicodeChar;
+  lCategory : Byte;
+  lIgnoreNonSpace : Boolean;
+
+begin
+  if aOptions*[coIgnoreWidth,coIgnoreKanaType,coIgnoreNonSpace,coLingIgnoreDiacritic,coIgnoreSymbols]=[] then
+    Exit(aText);
+  lIgnoreNonSpace:=aOptions*[coIgnoreNonSpace,coLingIgnoreDiacritic]<>[];
+  if lIgnoreNonSpace then
+    lText:=NormalizeNFD(aText)
+  else
+    lText:=aText;
+  SetLength(Result,Length(lText));
+  lLen:=0;
+  i:=1;
+  while i<=Length(lText) do
+    begin
+    lChar:=lText[i];
+    if (Word(lChar)>=$D800) and (Word(lChar)<=$DBFF) and (i<Length(lText))
+       and (Word(lText[i+1])>=$DC00) and (Word(lText[i+1])<=$DFFF) then
+      begin
+      lCategory:=GetProps(lChar,lText[i+1])^.Category;
+      lCount:=2;
+      end
+    else
+      begin
+      if coIgnoreWidth in aOptions then
+        lChar:=NormalWidthChar(lChar);
+      if coIgnoreKanaType in aOptions then
+        lChar:=HiraganaChar(lChar);
+      if lIgnoreNonSpace then
+        lChar:=StrokelessChar(lChar);
+      lCategory:=GetProps(Word(lChar))^.Category;
+      lCount:=1;
+      end;
+    if (lIgnoreNonSpace and (lCategory=UGC_NonSpacingMark))
+       or ((coIgnoreSymbols in aOptions)
+           and ((lCategory in [UGC_ConnectPunctuation..UGC_OtherSymbol,UGC_SpaceSeparator..UGC_ParagraphSeparator])
+                or ((lCount=1) and (Word(lChar)>=9) and (Word(lChar)<=13)))) then
+      begin
+      Inc(i,lCount);
+      Continue;
+      end;
+    Inc(lLen);
+    Result[lLen]:=lChar;
+    if lCount=2 then
+      begin
+      Inc(lLen);
+      Result[lLen]:=lText[i+1];
+      end;
+    Inc(i,lCount);
     end;
+  SetLength(Result,lLen);
+end;
+
+
+// Compare s1 and s2 with the active collation
+function CollateUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+
+begin
+  Result:=CompareUnicodeString(PUnicodeChar(Pointer(s1)),PUnicodeChar(Pointer(s2)),Length(s1),Length(s2));
+end;
+
+
+{ Compare s1 and s2 with the active collation adapted to aOptions. coIgnoreCase and
+  coLingIgnoreCase lower the comparison strength, coStringSort makes punctuation and
+  symbols significant; coLingCasing is ignored. }
+function CompareWithOptions(const s1, s2 : UnicodeString; aOptions : TCompareOptions) : PtrInt;
+
+var
+  lStrength : Byte;
+  lWeight : TUCA_VariableKind;
+  us1, us2 : UnicodeString;
+
+begin
+  us1:=ApplyCompareOptions(s1,aOptions);
+  us2:=ApplyCompareOptions(s2,aOptions);
+  lStrength:=current_Collation.Data.ComparisonStrength;
+  lWeight:=current_Collation.Data.VariableWeight;
+  try
+    if aOptions*[coIgnoreCase,coLingIgnoreCase]<>[] then
+      current_Collation.Data.ComparisonStrength:=SECONDARY_STRENGTH_LEVEL;
+    if coStringSort in aOptions then
+      current_Collation.Data.VariableWeight:=TUCA_VariableKind.ucaNonIgnorable;
+    if coDigitAsNumbers in aOptions then
+      Result:=CompareDigitsAsNumbers(us1,us2,@CollateUnicodeString)
+    else
+      Result:=CollateUnicodeString(us1,us2);
+  finally
+    current_Collation.Data.ComparisonStrength:=lStrength;
+    current_Collation.Data.VariableWeight:=lWeight;
   end;
+end;
+
+
+function CompareUnicodeString(const s1, s2 : UnicodeString;Options : TCompareOptions) : PtrInt;
 
 begin
   if (current_Collation.DataPtr=nil) then
     exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
-  if (Options=[]) then begin
-    exit(
-      CompareUnicodeString(
-           PUnicodeChar(Pointer(s1)),
-           PUnicodeChar(Pointer(s2)),
-           Length(s1),Length(s2)
-      )
-    );
-  end;
-
-  Result:=DoCompare();
+  if (Options=[]) then
+    Result:=CollateUnicodeString(s1,s2)
+  else
+    Result:=CompareWithOptions(s1,s2,Options);
 end;
 
 function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 
-  function DoCompare() : PtrInt;
-  var
-    changedProps : TChangedPropsRecord;
-  begin
-    changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
-    try
-      if (Options*[coIgnoreCase,coLingIgnoreCase]<>[]) then
-        current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
-      Result:=CompareUnicodeString(
-                PUnicodeChar(Pointer(s1)),
-                PUnicodeChar(Pointer(s2)),
-                Length(s1),Length(s2)
-              );
-    finally
-      current_Collation.Data.ComparisonStrength := changedProps.ComparisonStrength;
-    end;
-  end;
-
 begin
   if (current_Collation.DataPtr=nil) then
     exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
-  if (Options=[]) then begin
-    exit(
-      CompareUnicodeString(
-           PUnicodeChar(Pointer(s1)),
-           PUnicodeChar(Pointer(s2)),
-           Length(s1),Length(s2)
-      )
-    );
-  end;
-
-  Result:=DoCompare();
+  if (Options=[]) then
+    Result:=CompareUnicodeString(PUnicodeChar(Pointer(s1)),PUnicodeChar(Pointer(s2)),Length(s1),Length(s2))
+  else
+    Result:=CompareWithOptions(s1,s2,Options);
 end;
 
 function CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;

@@ -528,6 +528,8 @@ begin
           AddUnit('unix');
           AddUnit('ctypes');
           AddUnit('dynlibs');
+          AddUnit('compareopts');
+          AddInclude('cwnonspc.inc');
         end;
 
     // Misc units
@@ -582,10 +584,12 @@ begin
 
     T:=P.Targets.AddUnit('unicodedata.pas');
     T:=P.Targets.AddUnit('unix/unixcp.pp', AllUnixOSes);
+    T:=P.Targets.AddUnit('compareopts.pp');
     T:=P.Targets.AddUnit('fpwidestring.pp');
       with T.Dependencies do
         begin
           AddUnit('unicodedata');
+          AddUnit('compareopts');
           AddUnit('windows',AllWindowsOSes);
           AddUnit('unixcp',AllUnixOSes);
           AddUnit('charset');

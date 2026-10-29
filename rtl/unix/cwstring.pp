@@ -80,7 +80,8 @@ Uses
   UnixApi.Types,
   System.InitC,
   System.DynLibs,
-  UnixApi.CP;
+  UnixApi.CP,
+  System.CompareOpts;
 {$ELSE FPC_DOTTEDUNITS}
 Uses
   BaseUnix,
@@ -89,7 +90,8 @@ Uses
   unixtype,
   initc,
   dynlibs,
-  unixcp;
+  unixcp,
+  compareopts;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
@@ -116,6 +118,8 @@ function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
+function iswpunct(__wc:wint_t):cint;cdecl;external clib name 'iswpunct';
+function iswspace(__wc:wint_t):cint;cdecl;external clib name 'iswspace';
 function strcoll (__s1:PAnsiChar; __s2:PAnsiChar):cint;cdecl;external clib name 'strcoll';
 {$ifdef netbsd}
   { NetBSD has a new setlocale function defined in /usr/include/locale.h
@@ -1111,26 +1115,103 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
   end;
 
 
-function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+{$i cwnonspc.inc}
+
+// True if aChar is in a range of NonSpaceMarks
+function IsNonSpaceMark(aChar : Word) : Boolean;
+
+var
+  lLow, lHigh, lMid : Integer;
+
+begin
+  lLow:=Low(NonSpaceMarks);
+  lHigh:=High(NonSpaceMarks);
+  while lLow<=lHigh do
+    begin
+    lMid:=(lLow+lHigh) div 2;
+    if aChar<NonSpaceMarks[lMid,0] then
+      lHigh:=lMid-1
+    else if aChar>NonSpaceMarks[lMid,1] then
+      lLow:=lMid+1
+    else
+      Exit(True);
+    end;
+  Result:=False;
+end;
+
+
+// Base letter of aChar according to NonSpaceBase, aChar itself if it has none
+function NonSpaceBaseOf(aChar : Word) : Word;
+
+var
+  lLow, lHigh, lMid : Integer;
+
+begin
+  Result:=aChar;
+  if aChar<NonSpaceBase[Low(NonSpaceBase),0] then
+    Exit;
+  lLow:=Low(NonSpaceBase);
+  lHigh:=High(NonSpaceBase);
+  while lLow<=lHigh do
+    begin
+    lMid:=(lLow+lHigh) div 2;
+    if aChar<NonSpaceBase[lMid,0] then
+      lHigh:=lMid-1
+    else if aChar>NonSpaceBase[lMid,0] then
+      lLow:=lMid+1
+    else
+      Exit(NonSpaceBase[lMid,1]);
+    end;
+end;
+
+
+{ Apply coIgnoreWidth, coIgnoreKanaType, coIgnoreNonSpace, coLingIgnoreDiacritic and
+  coIgnoreSymbols of aOptions to aText; the other options are left to the caller. }
+function ApplyCompareOptions(const aText : WideString; aOptions : TCompareOptions) : WideString;
+
+var
+  i, lLen : SizeInt;
+  lChar : Word;
+  lIgnoreNonSpace : Boolean;
+
+begin
+  if aOptions*[coIgnoreWidth,coIgnoreKanaType,coIgnoreNonSpace,coLingIgnoreDiacritic,coIgnoreSymbols]=[] then
+    Exit(aText);
+  lIgnoreNonSpace:=aOptions*[coIgnoreNonSpace,coLingIgnoreDiacritic]<>[];
+  SetLength(Result,Length(aText));
+  lLen:=0;
+  for i:=1 to Length(aText) do
+    begin
+    lChar:=Word(aText[i]);
+    if coIgnoreWidth in aOptions then
+      lChar:=Word(NormalWidthChar(WideChar(lChar)));
+    if coIgnoreKanaType in aOptions then
+      lChar:=Word(HiraganaChar(WideChar(lChar)));
+    if lIgnoreNonSpace then
+      begin
+      if IsNonSpaceMark(lChar) then
+        Continue;
+      lChar:=NonSpaceBaseOf(Word(StrokelessChar(WideChar(lChar))));
+      end;
+    if (coIgnoreSymbols in aOptions) and ((iswpunct(wint_t(lChar))<>0) or (iswspace(wint_t(lChar))<>0)) then
+      Continue;
+    Inc(lLen);
+    Result[lLen]:=WideChar(lChar);
+    end;
+  SetLength(Result,lLen);
+end;
+
+
+// Compare s1 and s2 with wcscoll
+function CollateWideString(const s1, s2 : WideString) : PtrInt;
 {$if not(defined (aix) and defined(cpupowerpc32))}
   var
     hs1,hs2 : UCS4String;
-    us1,us2 : WideString;
 
   begin
     { wcscoll interprets null chars as end-of-string -> filter out }
-    if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
-      begin
-      us1:=UpperWideString(s1);
-      us2:=UpperWideString(s2);
-      end
-    else
-      begin
-      us1:=s1;
-      us2:=s2;
-      end;
-    hs1:=WideStringToUCS4StringNoNulls(us1);
-    hs2:=WideStringToUCS4StringNoNulls(us2);
+    hs1:=WideStringToUCS4StringNoNulls(s1);
+    hs2:=WideStringToUCS4StringNoNulls(s2);
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 {$else}
@@ -1140,16 +1221,8 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
     us1,us2 : WideString;
     hs1, hs2: array of widechar;
   begin
-    if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
-      begin
-      us1:=UpperWideString(s1);
-      us2:=UpperWideString(s2);
-      end
-    else
-      begin
-      us1:=s1;
-      us2:=s2;
-      end;
+    us1:=s1;
+    us2:=s2;
     len:=length(us1);
     setlength(hs1,len+1);
     for i:=1 to len do
@@ -1170,6 +1243,28 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 {$endif}
+
+
+{ coLingCasing and coStringSort are ignored: towupper already follows the locale
+  and wcscoll has no string sort. }
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+var
+  us1,us2 : WideString;
+
+begin
+  us1:=ApplyCompareOptions(s1,Options);
+  us2:=ApplyCompareOptions(s2,Options);
+  if Options*[coIgnoreCase,coLingIgnoreCase]<>[] then
+    begin
+    us1:=UpperWideString(us1);
+    us2:=UpperWideString(us2);
+    end;
+  if coDigitAsNumbers in Options then
+    Result:=CompareDigitsAsNumbers(us1,us2,@CollateWideString)
+  else
+    Result:=CollateWideString(us1,us2);
+end;
 
 
 

@@ -75,12 +75,12 @@ procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp 
 procedure DefaultAnsi2UnicodeMove(source:pansichar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
 Type
-  { please only enable options below after creating a test program for them that
-    passes on Windows and committing it, so it can be used to verify the
-    functionality on other platforms }
-  TCompareOption = (coLingIgnoreCase, {coLingIgnoreDiacritic, }coIgnoreCase{,
+  { Options for the CompareUnicodeString and CompareWideString procs of a widestring
+    manager; tests/test/units/sysutils/tcmpopts.pp defines the expected behaviour.
+    A manager that cannot support an option ignores it. }
+  TCompareOption = (coLingIgnoreCase, coLingIgnoreDiacritic, coIgnoreCase,
                     coIgnoreKanaType, coIgnoreNonSpace, coIgnoreSymbols, coIgnoreWidth,
-                    coLingCasing, coDigitAsNumbers, coStringSort});
+                    coLingCasing, coDigitAsNumbers, coStringSort);
   TCompareOptions = set of TCompareOption;
   TStandardCodePageEnum = (
     scpAnsi,                 // system Ansi code page (GetACP on windows)
