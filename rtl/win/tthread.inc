@@ -9,7 +9,7 @@ begin
     See Mantis #16884 }
   FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), CREATE_SUSPENDED OR STACK_SIZE_PARAM_IS_A_RESERVATION,
                          FThreadID);
-  if FHandle = TThreadID(0) then
+  if FHandle = TThreadHandle(0) then
     raise EThread.CreateFmt(SThreadCreateError, [SysErrorMessage(getlasterror)]);
 
   FFatalException := nil;

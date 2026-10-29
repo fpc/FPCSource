@@ -1661,7 +1661,7 @@ procedure InitWin32GUI16colors;
      {Use system BeginThread instead of CreteThread
      function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : TThreadID) : TThreadID;}
+  var ThreadId : TThreadID) : TThreadHandle;}
 {$ifdef USE_SYSTEM_BEGIN_THREAD}
      MessageThreadHandle:=System.BeginThread(nil,0,@MessageHandleThread,
        nil,0,MessageThreadID);

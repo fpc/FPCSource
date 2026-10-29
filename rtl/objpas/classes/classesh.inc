@@ -2415,7 +2415,7 @@ type
   private
     class var FProcessorCount: LongWord;
   private
-    FHandle: TThreadID;
+    FHandle: TThreadHandle;
     FTerminated: Boolean;
     FFreeOnTerminate: Boolean;
     FFinished: Boolean;
@@ -2548,7 +2548,7 @@ type
     class property ProcessorCount: LongWord read FProcessorCount;
     class property IsSingleProcessor: Boolean read GetIsSingleProcessor;
     property FreeOnTerminate: Boolean read FFreeOnTerminate write FFreeOnTerminate;
-    property Handle: TThreadID read FHandle;
+    property Handle: TThreadHandle read FHandle;
     property ExternalThread: Boolean read FExternalThread;
     property Priority: TThreadPriority read GetPriority write SetPriority;
     property Suspended: Boolean read GetSuspended write SetSuspended;

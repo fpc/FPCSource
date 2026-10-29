@@ -23,13 +23,14 @@ end;
 
 
 var
-  lHandle, lId: TThreadID;
+  lHandle: TThreadHandle;
+  lId: TThreadID;
   lRes: DWord;
 
 begin
   gRan:=0;
   lHandle:=BeginThread(@MarkRun,Pointer(42),lId,True);
-  if lHandle=TThreadID(0) then
+  if lHandle=TThreadHandle(0) then
     halt(1);
   Sleep(200);
   if InterlockedExchangeAdd(gRan,0)<>0 then
@@ -63,7 +64,7 @@ begin
 
   gRan:=0;
   lHandle:=BeginThread(@MarkRun,Pointer(7),lId,False);
-  if lHandle=TThreadID(0) then
+  if lHandle=TThreadHandle(0) then
     halt(7);
   lRes:=WaitForThreadTerminate(lHandle,5000);
   CloseThread(lHandle);
@@ -74,7 +75,7 @@ begin
     end;
 
   lHandle:=BeginThread(@MarkRun,Pointer(9),lId,True,64*1024);
-  if lHandle=TThreadID(0) then
+  if lHandle=TThreadHandle(0) then
     halt(9);
   ResumeThread(lHandle);
   lRes:=WaitForThreadTerminate(lHandle,5000);

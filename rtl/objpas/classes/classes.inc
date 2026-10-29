@@ -311,7 +311,7 @@ begin
   if not FExternalThread then begin
     SysDestroy;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-    if FHandle <> TThreadID(0) then
+    if FHandle <> TThreadHandle(0) then
       CloseThread(FHandle);
 {$endif}
   end;

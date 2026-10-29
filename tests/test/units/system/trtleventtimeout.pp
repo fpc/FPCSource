@@ -37,7 +37,7 @@ end;
 
 
 var
-  lId: TThreadID;
+  lHandle: TThreadHandle;
 
 begin
   gFailed:=False;
@@ -49,15 +49,15 @@ begin
   RTLEventSetEvent(gEvent);
   RTLEventResetEvent(gEvent);
   Check(4,not RTLEventWaitFor(gEvent,20),'wait on reset event times out');
-  lId:=BeginThread(@SetLater,nil);
-  if lId=TThreadID(0) then
+  lHandle:=BeginThread(@SetLater,nil);
+  if lHandle=TThreadHandle(0) then
     begin
     writeln('cannot start thread');
     halt(1);
     end;
   Check(5,RTLEventWaitFor(gEvent,5000),'wait is signalled by another thread');
-  WaitForThreadTerminate(lId,5000);
-  CloseThread(lId);
+  WaitForThreadTerminate(lHandle,5000);
+  CloseThread(lHandle);
   RTLEventDestroy(gEvent);
   if gFailed then
     halt(1);

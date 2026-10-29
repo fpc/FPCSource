@@ -701,6 +701,12 @@ Type
 { platform-dependent types }
 {$i sysosh.inc}
 
+{$ifndef HAS_TTHREADHANDLE}
+type
+  { Handle of a thread as returned by BeginThread }
+  TThreadHandle = TThreadID;
+{$endif HAS_TTHREADHANDLE}
+
 { platform-dependent defines }
 {$i rtldefs.inc}
 

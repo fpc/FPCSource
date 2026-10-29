@@ -166,7 +166,7 @@ begin
   FSuspendedInternal := not CreateSuspended;
   WRITE_DEBUG('creating thread, self = ',ptruint(self));
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
-  if FHandle = TThreadID(0) then
+  if FHandle = TThreadHandle(0) then
     raise EThread.create('Failed to create new thread');
   WRITE_DEBUG('TThread.Create done, fhandle = ', ptruint(fhandle));
 end;
@@ -177,7 +177,7 @@ begin
   if not assigned(FSuspendEvent) then
     { exception in constructor }
     exit;
-  if (FHandle = TThreadID(0)) then
+  if (FHandle = TThreadHandle(0)) then
   { another exception in constructor }
     begin
       RtlEventDestroy(FSuspendEvent);

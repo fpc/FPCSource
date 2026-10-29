@@ -68,10 +68,10 @@ end;
 
 function FakeBeginThread(sa : Pointer;stacksize : PtrUInt;
                      ThreadFunction : tthreadfunc;p : pointer;
-                     creationFlags : dword; var ThreadId : TThreadId) : TThreadID;
+                     creationFlags : dword; var ThreadId : TThreadId) : TThreadHandle;
 begin
   Inc(ThreadCount);
-  Result:=TThreadID(ThreadCount);
+  Result:=TThreadHandle(ThreadCount);
   ThreadFunction(P);
 end;
 
@@ -81,13 +81,13 @@ procedure FakeEndThread(ExitCode : DWord);
 begin
 end;
 
-function  FakeSuspendThread (threadHandle : TThreadID) : dword;
+function  FakeSuspendThread (threadHandle : TThreadHandle) : dword;
 begin
   result:=dword(-1);
 end;
 
 
-function  FakeResumeThread  (threadHandle : TThreadID) : dword;
+function  FakeResumeThread  (threadHandle : TThreadHandle) : dword;
 begin
   result:=dword(-1);
 end;
@@ -98,28 +98,28 @@ begin
 end;
 
 
-function  FakeKillThread (threadHandle : TThreadID) : dword;
+function  FakeKillThread (threadHandle : TThreadHandle) : dword;
 begin
   Result:= dword(-1);
 end;
 
-function FakeCloseThread (threadHandle : TThreadID) : dword;
+function FakeCloseThread (threadHandle : TThreadHandle) : dword;
 begin
   result:=0;
 end;
 
-function  FakeWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
+function  FakeWaitForThreadTerminate (threadHandle : TThreadHandle; TimeoutMs : longint) : dword;  {0=no timeout}
 begin
   Result:=0
 end;
 
-function  FakeThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
+function  FakeThreadSetPriority (threadHandle : TThreadHandle; Prio: longint): boolean; {-15..+15, 0=normal}
 begin
   result:=false;
 end;
 
 
-function  FakeThreadGetPriority (threadHandle : TThreadID): Integer;
+function  FakeThreadGetPriority (threadHandle : TThreadHandle): Integer;
 begin
   result:=0;
 end;

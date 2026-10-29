@@ -31,26 +31,26 @@ end;
 
 
 var
-  lId: TThreadID;
+  lHandle: TThreadHandle;
   lRes: DWord;
 
 begin
-  lId:=BeginThread(@ReturnCode,nil);
-  if lId=TThreadID(0) then
+  lHandle:=BeginThread(@ReturnCode,nil);
+  if lHandle=TThreadHandle(0) then
     halt(1);
-  lRes:=WaitForThreadTerminate(lId,0);
-  CloseThread(lId);
+  lRes:=WaitForThreadTerminate(lHandle,0);
+  CloseThread(lHandle);
   if lRes<>42 then
     begin
     writeln('exit code ',lRes,', expected 42');
     halt(2);
     end;
   gRelease:=RTLEventCreate;
-  lId:=BeginThread(@WaitAndReturn,nil);
-  if lId=TThreadID(0) then
+  lHandle:=BeginThread(@WaitAndReturn,nil);
+  if lHandle=TThreadHandle(0) then
     halt(3);
 {$if defined(windows) or (defined(linux) and not defined(android))}
-  lRes:=WaitForThreadTerminate(lId,50);
+  lRes:=WaitForThreadTerminate(lHandle,50);
   if lRes<>DWord(-1) then
     begin
     writeln('timeout result ',lRes,', expected ',DWord(-1));
@@ -58,8 +58,8 @@ begin
     end;
 {$endif}
   RTLEventSetEvent(gRelease);
-  lRes:=WaitForThreadTerminate(lId,5000);
-  CloseThread(lId);
+  lRes:=WaitForThreadTerminate(lHandle,5000);
+  CloseThread(lHandle);
   RTLEventDestroy(gRelease);
   if lRes<>7 then
     begin

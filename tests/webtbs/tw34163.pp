@@ -47,7 +47,7 @@ end;
 
 var
   lOld, lNew: TUnicodeStringManager;
-  lThread: TThreadID;
+  lThread: TThreadHandle;
 {$ifdef windows}
   lHandle: THandle;
   lWinID: DWORD;

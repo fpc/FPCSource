@@ -12,7 +12,7 @@ function ThreadTest(p : pointer) : PtrInt;
   end;
 
 var
-  t1,t2,t3 : TThreadID;
+  t1,t2,t3 : TThreadHandle;
 
 begin
   t1:=BeginThread(@ThreadTest);

@@ -76,15 +76,15 @@ end;
 
 
 var
-  lId: TThreadID;
+  lHandle: TThreadHandle;
   lPrio: longint;
   lThread: TSampleThread;
 
 begin
   gSample:=RTLEventCreate;
   gSampled:=RTLEventCreate;
-  lId:=BeginThread(@SampleLoop,nil);
-  Check(1,lId<>TThreadID(0),'BeginThread');
+  lHandle:=BeginThread(@SampleLoop,nil);
+  Check(1,lHandle<>TThreadHandle(0),'BeginThread');
   Sample;
   if (gNice<>0) or (gPolicy<>SCHED_OTHER) then
     begin
@@ -92,29 +92,29 @@ begin
     halt(0);
     end;
 
-  Check(10,ThreadSetPriority(lId,-5),'ThreadSetPriority(-5)');
-  lPrio:=ThreadGetPriority(lId);
+  Check(10,ThreadSetPriority(lHandle,-5),'ThreadSetPriority(-5)');
+  lPrio:=ThreadGetPriority(lHandle);
   Check(11,lPrio=-5,Format('ThreadGetPriority after -5 is %d',[lPrio]));
   Sample;
   Check(12,(gNice=7) and (gPolicy=SCHED_OTHER),Format('nice %d, policy %d after -5, expected 7, %d',[gNice,gPolicy,SCHED_OTHER]));
 
   if fpgeteuid<>0 then
     begin
-    Check(20,not ThreadSetPriority(lId,5),'unprivileged ThreadSetPriority(5) fails');
-    lPrio:=ThreadGetPriority(lId);
+    Check(20,not ThreadSetPriority(lHandle,5),'unprivileged ThreadSetPriority(5) fails');
+    lPrio:=ThreadGetPriority(lHandle);
     Check(21,lPrio=-5,Format('ThreadGetPriority after failed raise is %d',[lPrio]));
     end;
 
-  Check(30,ThreadSetPriority(lId,-15),'ThreadSetPriority(-15)');
-  lPrio:=ThreadGetPriority(lId);
+  Check(30,ThreadSetPriority(lHandle,-15),'ThreadSetPriority(-15)');
+  lPrio:=ThreadGetPriority(lHandle);
   Check(31,lPrio=-15,Format('ThreadGetPriority after -15 is %d',[lPrio]));
   Sample;
   Check(32,gPolicy=SCHED_IDLE,Format('policy %d after -15, expected %d',[gPolicy,SCHED_IDLE]));
 
   gStop:=True;
   RTLEventSetEvent(gSample);
-  WaitForThreadTerminate(lId,0);
-  CloseThread(lId);
+  WaitForThreadTerminate(lHandle,0);
+  CloseThread(lHandle);
 
   lThread:=TSampleThread.Create(True);
   lThread.Priority:=tpLower;

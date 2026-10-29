@@ -31,7 +31,7 @@ end;
 
 var
   lWasMultiThread: Boolean;
-  lId: TThreadID;
+  lHandle: TThreadHandle;
 
 begin
   gLazyCount:=0;
@@ -57,15 +57,15 @@ begin
     writeln('second InitMultiThreading returned false');
     halt(4);
     end;
-  lId:=BeginThread(@ReturnParam,Pointer(3));
-  if lId=TThreadID(0) then
+  lHandle:=BeginThread(@ReturnParam,Pointer(3));
+  if lHandle=TThreadHandle(0) then
     halt(5);
-  if WaitForThreadTerminate(lId,5000)<>3 then
+  if WaitForThreadTerminate(lHandle,5000)<>3 then
     begin
     writeln('thread started after InitMultiThreading returned a wrong exit code');
     halt(6);
     end;
-  CloseThread(lId);
+  CloseThread(lHandle);
   if gLazyCount<>1 then
     begin
     writeln('lazy init procedure ran again: ',gLazyCount,' times');

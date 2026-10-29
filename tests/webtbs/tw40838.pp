@@ -13,7 +13,7 @@ uses
 
 var
 	oldmm, newmm: TMemoryManager;
-	th: TThreadID;
+	th: TThreadHandle;
         initcalled, donecalled: Boolean;
 begin
 	GetMemoryManager(oldmm);

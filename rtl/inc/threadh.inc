@@ -36,14 +36,14 @@ type
   trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
-  TBeginThreadHandler = Function (sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadHandle;
   TEndThreadHandler = Procedure (ExitCode : DWord);
   // Used for Suspend/Resume/Kill
-  TThreadHandler = Function (threadHandle : TThreadID) : dword;
+  TThreadHandler = Function (threadHandle : TThreadHandle) : dword;
   TThreadSwitchHandler = Procedure;
-  TWaitForThreadTerminateHandler = Function (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
-  TThreadSetPriorityHandler = Function (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
-  TThreadGetPriorityHandler = Function (threadHandle : TThreadID): longint;
+  TWaitForThreadTerminateHandler = Function (threadHandle : TThreadHandle; TimeoutMs : longint) : dword;  {0=no timeout}
+  TThreadSetPriorityHandler = Function (threadHandle : TThreadHandle; Prio: longint): boolean;            {-15..+15, 0=normal}
+  TThreadGetPriorityHandler = Function (threadHandle : TThreadHandle): longint;
   TGetCurrentThreadIdHandler = Function : TThreadID;
   TThreadSetThreadDebugNameHandlerA = procedure(threadHandle: TThreadID; const ThreadName: AnsiString);
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
@@ -135,18 +135,18 @@ procedure DoneThread;
 
 function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : TThreadID) : TThreadID;
+  var ThreadId : TThreadID) : TThreadHandle;
 
 { add some simplified forms which make lifer easier and porting}
 { to other OSes too ...                                        }
-function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadID;
+function BeginThread(ThreadFunction : tthreadfunc) : TThreadHandle;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadHandle;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadHandle;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
-                     var ThreadId : TThreadID; const stacksize: SizeUInt) : TThreadID;
+                     var ThreadId : TThreadID; const stacksize: SizeUInt) : TThreadHandle;
 // Start a thread, optionally suspended until ResumeThread is called on the returned handle.
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
-                     Suspended : Boolean; const stacksize: SizeUInt = DefaultStackSize) : TThreadID;
+                     Suspended : Boolean; const stacksize: SizeUInt = DefaultStackSize) : TThreadHandle;
 
 // Switch the RTL to multithreaded mode; returns whether it already was. Call from a thread started by the RTL.
 function InitMultiThreading : Boolean;
@@ -156,17 +156,17 @@ procedure EndThread;
 
 {some thread support functions}
 procedure FlushThread;
-function  SuspendThread (threadHandle : TThreadID) : dword;
-function  ResumeThread  (threadHandle : TThreadID) : dword;
-function  CloseThread   (threadHandle : TThreadID) : dword;
+function  SuspendThread (threadHandle : TThreadHandle) : dword;
+function  ResumeThread  (threadHandle : TThreadHandle) : dword;
+function  CloseThread   (threadHandle : TThreadHandle) : dword;
 procedure ThreadSwitch;                                                                {give time to other threads}
-function  KillThread (threadHandle : TThreadID) : dword;
+function  KillThread (threadHandle : TThreadHandle) : dword;
 { Returns the exit code of the thread, or dword(-1) on timeout or error.
   TimeoutMs: 0 or -1 waits without timeout. }
-function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
+function  WaitForThreadTerminate (threadHandle : TThreadHandle; TimeoutMs : longint) : dword;
 { Prio: -15 (idle) .. +15 (time critical), 0=normal. Returns false if the OS refuses. }
-function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;
-function  ThreadGetPriority (threadHandle : TThreadID): longint;
+function  ThreadSetPriority (threadHandle : TThreadHandle; Prio: longint): boolean;
+function  ThreadGetPriority (threadHandle : TThreadHandle): longint;
 function  GetCurrentThreadId : TThreadID;
 procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: AnsiString);
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}

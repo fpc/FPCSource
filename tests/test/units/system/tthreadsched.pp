@@ -33,17 +33,17 @@ end;
 
 var
   lParam: TSchedParam;
-  lId: TThreadID;
+  lHandle: TThreadHandle;
 
 begin
   lParam.sched_priority:=0;
   if sched_setscheduler(0,SCHED_IDLE,@lParam)<>0 then
     halt(1);
-  lId:=BeginThread(@GetPolicy,nil);
-  if lId=TThreadID(0) then
+  lHandle:=BeginThread(@GetPolicy,nil);
+  if lHandle=TThreadHandle(0) then
     halt(2);
-  WaitForThreadTerminate(lId,0);
-  CloseThread(lId);
+  WaitForThreadTerminate(lHandle,0);
+  CloseThread(lHandle);
   if gPolicy<>SCHED_IDLE then
     begin
     writeln('thread policy ',gPolicy);

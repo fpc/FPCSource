@@ -131,7 +131,7 @@ begin
   FSuspendedInternal := not CreateSuspended;
   FFatalException := nil;
   FHandle:=BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
-  if FHandle = TThreadID(0) then
+  if FHandle = TThreadHandle(0) then
     begin
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysCreate: Failed to create thread');{$ENDIF}
     raise EThread.create('Failed to create new thread');
@@ -149,7 +149,7 @@ begin
     exit;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: have suspendevent');{$ENDIF}
   { exception in constructor }
-  if (FHandle = TThreadID(0)) then
+  if (FHandle = TThreadHandle(0)) then
     begin
     RtlEventDestroy(FSuspendEvent);
     exit;

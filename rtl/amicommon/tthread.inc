@@ -29,7 +29,7 @@ begin
     See Mantis #16884 }
   FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), CREATE_SUSPENDED,
                          FThreadID);
-  if FHandle = TThreadID(0) then
+  if FHandle = TThreadHandle(0) then
     raise EThread.CreateFmt(SThreadCreateError, ['Cannot create thread.']);
 
   FFatalException := nil;
