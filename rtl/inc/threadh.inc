@@ -141,6 +141,9 @@ function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
                      var ThreadId : TThreadID; const stacksize: SizeUInt) : TThreadID;
+// Start a thread, optionally suspended until ResumeThread is called on the returned handle.
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
+                     Suspended : Boolean; const stacksize: SizeUInt = DefaultStackSize) : TThreadID;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;

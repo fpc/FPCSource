@@ -130,6 +130,108 @@ Var
         BeginThread:=BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId);
       end;
 
+type
+  PSuspendedStart = ^TSuspendedStart;
+  TSuspendedStart = record
+    Next : PSuspendedStart;
+    Handle : TThreadID;
+    Func : TThreadFunc;
+    Param : Pointer;
+    StartEvent : PRTLEvent;
+  end;
+
+const
+  SuspendedStartList : PSuspendedStart = nil;
+  SuspendedStartLock : longint = 0;
+
+{ Acquire the spinlock protecting SuspendedStartList. }
+procedure LockSuspendedStarts;
+
+begin
+  while InterlockedExchange(SuspendedStartLock,1)<>0 do
+    ThreadSwitch;
+end;
+
+
+{ Release the spinlock protecting SuspendedStartList. }
+procedure UnlockSuspendedStarts;
+
+begin
+  InterlockedExchange(SuspendedStartLock,0);
+end;
+
+
+{ Remove the pending start of aHandle from SuspendedStartList, nil if there is none. }
+function ExtractSuspendedStart(aHandle : TThreadID) : PSuspendedStart;
+
+var
+  lPrev : PSuspendedStart;
+
+begin
+  Result:=nil;
+  if SuspendedStartList=nil then
+    exit;
+  LockSuspendedStarts;
+  lPrev:=nil;
+  Result:=SuspendedStartList;
+  while assigned(Result) and (Result^.Handle<>aHandle) do
+    begin
+    lPrev:=Result;
+    Result:=Result^.Next;
+    end;
+  if assigned(Result) then
+    begin
+    if assigned(lPrev) then
+      lPrev^.Next:=Result^.Next
+    else
+      SuspendedStartList:=Result^.Next;
+    end;
+  UnlockSuspendedStarts;
+end;
+
+
+{ Thread function of a suspended thread: waits for its start event, then runs the user function. }
+function SuspendedStartMain(aStart : pointer) : ptrint;
+
+var
+  lFunc : TThreadFunc;
+  lParam : Pointer;
+
+begin
+  RTLEventWaitFor(PSuspendedStart(aStart)^.StartEvent);
+  RTLEventDestroy(PSuspendedStart(aStart)^.StartEvent);
+  lFunc:=PSuspendedStart(aStart)^.Func;
+  lParam:=PSuspendedStart(aStart)^.Param;
+  Dispose(PSuspendedStart(aStart));
+  Result:=lFunc(lParam);
+end;
+
+
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
+                     Suspended : Boolean; const stacksize: SizeUInt) : TThreadID;
+      var
+        lStart : PSuspendedStart;
+      begin
+        if not Suspended then
+          exit(BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId));
+        New(lStart);
+        lStart^.Func:=ThreadFunction;
+        lStart^.Param:=p;
+        lStart^.StartEvent:=RTLEventCreate;
+        Result:=BeginThread(nil,stacksize,@SuspendedStartMain,lStart,0,ThreadId);
+        if Result=TThreadID(0) then
+          begin
+          RTLEventDestroy(lStart^.StartEvent);
+          Dispose(lStart);
+          exit;
+          end;
+        lStart^.Handle:=Result;
+        LockSuspendedStarts;
+        lStart^.Next:=SuspendedStartList;
+        SuspendedStartList:=lStart;
+        UnlockSuspendedStarts;
+      end;
+
     procedure EndThread;
       begin
         EndThread(0);
@@ -163,13 +265,24 @@ end;
 
 function ResumeThread  (threadHandle : TThreadID) : dword;
 
+var
+  lStart : PSuspendedStart;
+
 begin
-  Result:=CurrentTM.ResumeThread(ThreadHandle);
+  lStart:=ExtractSuspendedStart(threadHandle);
+  if assigned(lStart) then
+    begin
+    RTLEventSetEvent(lStart^.StartEvent);
+    Result:=1;
+    end
+  else
+    Result:=CurrentTM.ResumeThread(ThreadHandle);
 end;
 
 function CloseThread  (threadHandle : TThreadID):dword;
 
 begin
+  ExtractSuspendedStart(threadHandle);
   result:=CurrentTM.CloseThread(ThreadHandle);
 end;
 
@@ -182,6 +295,7 @@ end;
 function  KillThread (threadHandle : TThreadID) : dword;
 
 begin
+  ExtractSuspendedStart(threadHandle);
   Result:=CurrentTM.KillThread(ThreadHandle);
 end;
 
