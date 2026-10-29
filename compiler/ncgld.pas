@@ -931,6 +931,17 @@ implementation
                               fpu if one can be handled by the fpu }
                             if not use_vectorfpu(left.resultdef) or
                                not use_vectorfpu(right.resultdef) then
+{$ifdef i386}
+                              { a double is copied as a comp, with fild and fistp: loading it
+                                as a double turns a signalling NaN into a quiet one, or raises
+                                an exception when invalid operations are unmasked, as they are
+                                by default, while any 64 bits load and store exactly as an
+                                integer }
+                              if is_double(left.resultdef) and is_double(right.resultdef) then
+                                cg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,OS_C64,OS_C64,
+                                  right.location.reference,left.location.reference)
+                              else
+{$endif i386}
                               hlcg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
                                 right.resultdef,left.resultdef,
                                 right.location.reference,left.location.reference)
