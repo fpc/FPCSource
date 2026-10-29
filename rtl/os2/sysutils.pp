@@ -365,7 +365,7 @@ end;
 function FileGetDate (Handle: THandle): Int64;
 var
   FStat: TFileStatus3;
-  Time: Longint;
+  Time: cardinal;
   RC: cardinal;
 begin
   RC := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
