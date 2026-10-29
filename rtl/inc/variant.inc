@@ -492,6 +492,15 @@ begin
 end;
 
 
+operator :=(const source : variant) dest : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  temp : AnsiString;
+begin
+  VariantManager.vartolstr(temp,source);
+  dest:=temp;
+end;
+
+
 {$ifdef dummy}
 operator :=(const source : variant) dest : UCS4String;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
