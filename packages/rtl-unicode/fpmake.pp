@@ -144,6 +144,13 @@ begin
         AddInclude('eastasianwidth_code.inc');
       end;
 
+    T:=P.Targets.AddUnit('unicodedisplaywidth.pp',GraphemeBreakPropertyOSes*EastAsianWidthOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('graphemebreakproperty');
+        AddUnit('eastasianwidth');
+      end;
+
     P.NamespaceMap:='namespaces.lst';
 
   end

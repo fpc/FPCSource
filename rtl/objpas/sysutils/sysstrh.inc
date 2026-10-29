@@ -152,6 +152,19 @@ function StrToQWordDef(const S: string; Default: QWord): QWord;
 function StrToUInt64Def(const S: string; Default: UInt64): UInt64; inline;
 function LoadStr(Ident: integer): string;{$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
+
+type
+  { Returns the number of UTF-16 code units at the start of aText that fit in aMaxWidth
+    display columns (all of aText when aMaxWidth<0), and the columns they use in aWidth. }
+  TStringDisplayWidthFunc = function(const aText: UnicodeString; aMaxWidth: SizeInt; out aWidth: SizeInt): SizeInt;
+
+// TStringDisplayWidthFunc counting one column per code point.
+function CodePointDisplayWidth(const aText: UnicodeString; aMaxWidth: SizeInt; out aWidth: SizeInt): SizeInt;
+
+var
+  // Measures width and precision of the %t conversion of Format.
+  StringDisplayWidthFunc : TStringDisplayWidthFunc = @CodePointDisplayWidth;
+
 Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiString;
 Function Format (Const Fmt : Ansistring; const Args: array of const; const FormatSettings: TFormatSettings): Ansistring;
 Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;

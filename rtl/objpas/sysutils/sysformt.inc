@@ -44,6 +44,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Left : Boolean;
     Fchar : TFormatChar;
     vq : qword;
+    TextWidth,FitLen : SizeInt;
+    UText : UnicodeString;
+{$ifdef INFORMAT}
+    TextCP : TSystemCodePage;
+{$endif INFORMAT}
 
   {
     ReadFormat reads the format string. It returns the type character in
@@ -259,6 +264,7 @@ begin
     If ChPos<Len then
       begin
       FChar:=ReadFormat;
+      TextWidth:=-1;
 {$ifdef fmtdebug}
       DumpFormat(FCHar);
 {$endif}
@@ -339,7 +345,7 @@ begin
         'E','F','G','N','M':
               RunError(207);
 {$endif}
-        'S' : begin
+        'S','T' : begin
                 if CheckArg(vtString,false) then
                   hs:=TFormatString(Args[doarg].VString^)
                 else
@@ -366,9 +372,28 @@ begin
                 else
                   if CheckArg(vtVariant,true) then
                     hs:=Args[doarg].VVariant^;
-                Index:=Length(hs);
-                If (Prec<>-1) and (Index>Prec) then
-                  SetLength(hs,Prec);
+                if FChar='T' then
+                  begin
+                  // Width and precision in display columns
+                  UText:=UnicodeString(hs);
+                  FitLen:=StringDisplayWidthFunc(UText,Prec,TextWidth);
+                  if FitLen<Length(UText) then
+                    begin
+{$ifdef INFORMAT}
+                    TextCP:=StringCodePage(hs);
+                    hs:='';
+                    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(UText),RawByteString(hs),TextCP,FitLen);
+{$else INFORMAT}
+                    hs:=Copy(UText,1,FitLen);
+{$endif INFORMAT}
+                    end;
+                  end
+                else
+                  begin
+                  Index:=Length(hs);
+                  If (Prec<>-1) and (Index>Prec) then
+                    SetLength(hs,Prec);
+                  end;
                 ToAdd:=hs;
               end;
         'O' :
@@ -436,13 +461,15 @@ begin
         '%': ToAdd:='%';
       end;
       // Padding ?
-      If (Width=-1) or (Length(ToAdd)>=Width) then
+      if TextWidth<0 then
+        TextWidth:=Length(ToAdd);
+      If (Width=-1) or (TextWidth>=Width) then
         // No width specified or the string to add has required width or greater
         Result:=Result+ToAdd
       else
         begin
         // String to add is less than requested width. Calc padding string
-        hs:=TFormatString(space(Width-Length(ToAdd)));
+        hs:=TFormatString(space(Width-TextWidth));
         if Left then
           // Add left aligned
           Result:=Result+ToAdd+hs

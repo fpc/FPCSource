@@ -1151,6 +1151,27 @@ begin
  end;
 end;
 
+function CodePointDisplayWidth(const aText: UnicodeString; aMaxWidth: SizeInt; out aWidth: SizeInt): SizeInt;
+
+var
+  lLen : SizeInt;
+
+begin
+  Result:=0;
+  aWidth:=0;
+  lLen:=Length(aText);
+  while (Result<lLen) and ((aMaxWidth<0) or (aWidth<aMaxWidth)) do
+    begin
+    if (aText[Result+1]>=#$D800) and (aText[Result+1]<=#$DBFF) and (Result+1<lLen)
+       and (aText[Result+2]>=#$DC00) and (aText[Result+2]<=#$DFFF) then
+      Inc(Result,2)
+    else
+      Inc(Result);
+    Inc(aWidth);
+    end;
+end;
+
+
 { we've no templates, but with includes we can simulate this :) }
 
 {$macro on}

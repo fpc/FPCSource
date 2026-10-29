@@ -22,4 +22,5 @@ src/inc/cp936.pas=namespaced/System.Unicode.Cp936.pas
 src/inc/cp895.pas=namespaced/System.Unicode.Cp895.pas
 src/inc/graphemebreakproperty.pp=namespaced/System.Unicode.Graphemebreakproperty.pp
 src/inc/eastasianwidth.pp=namespaced/System.Unicode.Eastasianwidth.pp
+src/inc/unicodedisplaywidth.pp=namespaced/System.Unicode.DisplayWidth.pp
 src/inc/cp950.pas=namespaced/System.Unicode.Cp950.pas
