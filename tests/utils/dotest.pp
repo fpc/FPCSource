@@ -188,9 +188,10 @@ begin
 end;
 
 
-function IsInList(const entry,list:string):boolean;
+function IsInList(const entry,list:string;accept_substring:boolean=false):boolean;
 var
   i,istart : longint;
+  elem : string;
 begin
   IsInList:=false;
   i:=0;
@@ -201,11 +202,12 @@ begin
      while (i<length(list)) and
            (list[i+1]<>',') do
       inc(i);
-     if Upcase(entry)=Upcase(TrimSpace(Copy(list,istart,i-istart+1))) then
-      begin
-        IsInList:=true;
-        exit;
-      end;
+     elem:=Upcase(TrimSpace(Copy(list,istart,i-istart+1)));
+     if Upcase(entry)=elem then
+      exit(true)
+     else if accept_substring then
+      if Pos(elem,UpCase(entry))>0 then
+        exit(true);
      { skip , }
      inc(i);
    end;
@@ -2079,7 +2081,7 @@ begin
      if Config.SkipEmu<>'' then
       begin
         Verbose(V_Debug,'Skip emulator: '+emulatorname);
-        if IsInList(emulatorname,Config.SkipEmu) then
+        if IsInList(emulatorname,Config.SkipEmu,true) then
          begin
            { avoid a second attempt by writing to elg file }
            AddLog(EXELogFile,skipping_other_cpu+PPFileInfo[current]);
