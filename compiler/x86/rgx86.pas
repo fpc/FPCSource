@@ -303,6 +303,11 @@ implementation
                             { Some instructions don't allow memory references
                               for destination }
                             case opcode of
+                              A_BSF,
+                              A_BSR,
+                              A_LZCNT,
+                              A_TZCNT,
+                              A_POPCNT,
                               A_CMOVcc,
                               A_MOVZX,
                               A_MOVSX,
