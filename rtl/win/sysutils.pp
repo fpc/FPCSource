@@ -293,10 +293,28 @@ begin
   Result:= FlushFileBuffers(Handle);
 end;
 
+{ CreateFile share flags for the fmShare* bits of aMode; fmShareDenyNone uses
+  System.fmShareDenyNoneFlags, unknown values share nothing. }
+function ShareModeFlags(aMode : Integer) : DWord;
+
+var
+  lShare : Integer;
+
+begin
+  lShare:=(aMode and $F0) shr 4;
+  if lShare=(fmShareDenyNone shr 4) then
+    Result:=fmShareDenyNoneFlags
+  else if lShare<=High(ShareModes) then
+    Result:=DWord(ShareModes[lShare])
+  else
+    Result:=0;
+end;
+
+
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin
   result := CreateFileW(PWideChar(FileName), dword(AccessMode[Mode and 3]),
-                       dword(ShareModes[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
+                       ShareModeFlags(Mode), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
@@ -314,7 +332,7 @@ end;
 Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
 begin
   Result := CreateFileW(PwideChar(FileName), GENERIC_READ or GENERIC_WRITE,
-                       dword(ShareModes[(ShareMode and $F0) shr 4]), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+                       ShareModeFlags(ShareMode), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
