@@ -923,11 +923,12 @@ implementation
                    exit;
                  end
                else
-                 { in case of a generic or specialized interface we need to use the
-                   name of the def instead of the symbol, so that always the correct
-                   name is used }
-                 if [df_generic,df_specialization]*ttypesym(srsym).typedef.defoptions<>[] then
-                   sp:=tobjectdef(ttypesym(srsym).typedef).objname^;
+                 { key the mapping by the name of the implemented interface's def,
+                   which is what TVMTBuilder.intf_get_procdefs looks it up by, not
+                   by the symbol: the interface can be named through a type alias
+                   (IInterface is one of IUnknown), and a generic or specialized
+                   one by a name other than its def's }
+                 sp:=ImplIntf.IntfDef.symtable.name^;
                { must be a directly implemented interface }
                if Assigned(ImplIntf.ImplementsGetter) then
                  Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
