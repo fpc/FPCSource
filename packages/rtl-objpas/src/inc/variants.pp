@@ -2486,6 +2486,17 @@ begin
   SysVarFromLStr(Variant(aDest), VariantToAnsiString(aSource));
 end;
 
+procedure DoVarCastUStr(var aDest : TVarData; const aSource : TVarData);
+var
+  Value: UnicodeString;
+begin
+  Value := VariantToUnicodeString(aSource);
+  DoVarClearIfComplex(aDest);
+  aDest.vType := varUString;
+  aDest.vustring := nil;
+  UnicodeString(aDest.vustring) := Value;
+end;
+
 procedure DoVarCastDispatch(var aDest : TVarData; const aSource : TVarData);
 var
   Disp: IDispatch;
@@ -2561,11 +2572,7 @@ begin
         varDate:     SysVarFromTDateTime(Variant(aDest), VariantToDate(aSource));
 {$endif}
         varOleStr:   DoVarCastWStr(aDest, aSource);
-        varUString:  begin
-          DoVarClearIfComplex(aDest);
-          aDest.vType := aVarType;
-          UnicodeString(aDest.vustring) := VariantToUnicodeString(aSource);
-        end;
+        varUString:  DoVarCastUStr(aDest, aSource);
         varBoolean:  SysVarFromBool(Variant(aDest), VariantToBoolean(aSource));
         varShortInt: SysVarFromInt(Variant(aDest), VariantToShortInt(aSource), -1);
         varByte:     SysVarFromInt(Variant(aDest), VariantToByte(aSource), 1);
