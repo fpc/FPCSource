@@ -651,11 +651,14 @@ var
   SaveState: TDataSetState;
 begin                          // Returns true if accepted in the filter
   SaveState := SetTempState(dsFilter);
-  FFilterBuffer := RecBuf;
-  Result := TRUE;
-  if Result and Assigned(OnFilterRecord) then
-    OnFilterRecord(Self, Result);
-  RestoreState(SaveState);
+  try
+    FFilterBuffer := RecBuf;
+    Result := TRUE;
+    if Result and Assigned(OnFilterRecord) then
+      OnFilterRecord(Self, Result);
+  finally
+    RestoreState(SaveState);
+  end;
 end;
 
 function TFixedFormatDataSet.GetCanModify: boolean;

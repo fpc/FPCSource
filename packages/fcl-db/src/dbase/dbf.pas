@@ -997,8 +997,11 @@ begin
       begin
         FFilterBuffer := Buffer;
         SaveState := SetTempState(dsFilter);
-        DoFilterRecord(acceptable);
-        RestoreState(SaveState);
+        try
+          DoFilterRecord(acceptable);
+        finally
+          RestoreState(SaveState);
+        end;
       end;
     end;
 

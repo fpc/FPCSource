@@ -1248,9 +1248,9 @@ var
 
 begin
   Result := false;
+  lstKeyFields := TList.Create;
   SaveState := SetTempState(dsFilter);
   FFilterBuffer := TempBuffer;
-  lstKeyFields := TList.Create;
   try
     GetFieldList(lstKeyFields, KeyFields);
     if VarArrayDimCount(KeyValues) = 0 then

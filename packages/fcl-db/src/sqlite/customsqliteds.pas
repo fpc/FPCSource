@@ -845,10 +845,13 @@ begin
       begin
         FFilterBuffer := Buffer;
         SaveState := SetTempState(dsFilter);
-        DoFilterRecord(Acceptable);
-        if (GetMode = gmCurrent) and not Acceptable then
-          Result := grError;
-        RestoreState(SaveState);
+        try
+          DoFilterRecord(Acceptable);
+          if (GetMode = gmCurrent) and not Acceptable then
+            Result := grError;
+        finally
+          RestoreState(SaveState);
+        end;
       end;
     end
       else if (Result = grError) and DoCheck then

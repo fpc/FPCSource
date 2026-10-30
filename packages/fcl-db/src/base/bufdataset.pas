@@ -2144,13 +2144,16 @@ begin
         begin
         FFilterBuffer := Buffer;
         SavedState := SetTempState(dsFilter);
-        DoFilterRecord(Acceptable);
-        if (GetMode = gmCurrent) and not Acceptable then
-          begin
-          Acceptable := True;
-          Result := grError;
-          end;
-        RestoreState(SavedState);
+        try
+          DoFilterRecord(Acceptable);
+          if (GetMode = gmCurrent) and not Acceptable then
+            begin
+            Acceptable := True;
+            Result := grError;
+            end;
+        finally
+          RestoreState(SavedState);
+        end;
         end;
       end
     else if (Result = grError) and DoCheck then
@@ -3050,12 +3053,15 @@ begin
         inc(r);
         end;
   finally
-    if (FailedCount=0) and Not (AsyncDetected or ManualMergeChangeLog) then
-      MergeChangeLog;
-    InternalGotoBookmark(@StoreCurrRec);
-    Resync([]);
-    RestoreState(aOldState);
-    EnableControls;
+    try
+      if (FailedCount=0) and Not (AsyncDetected or ManualMergeChangeLog) then
+        MergeChangeLog;
+      InternalGotoBookmark(@StoreCurrRec);
+      Resync([]);
+    finally
+      RestoreState(aOldState);
+      EnableControls;
+    end;
   end;
 end;
 
@@ -3771,84 +3777,85 @@ begin
   DefIdx:=DefaultBufferIndex;
   aReader.InitLoadRecords;
   SavedState:=SetTempState(dsFilter);
-
-  while aReader.GetCurrentRecord do
-    begin
-    ARowState := aReader.GetRecordRowState(AUpdOrder);
-    if rsvOriginal in ARowState then
+  try
+    while aReader.GetCurrentRecord do
       begin
-      if length(FUpdateBuffer) < (AUpdOrder+1) then
-        SetLength(FUpdateBuffer,AUpdOrder+1);
-
-      FCurrentUpdateBuffer:=AUpdOrder;
-
-      FFilterBuffer:=IntAllocRecordBuffer;
-      fillchar(FFilterBuffer^,FNullmaskSize,0);
-      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
-      aReader.RestoreRecord;
-
-      aReader.GotoNextRecord;
-      if not aReader.GetCurrentRecord then
-        DatabaseError(SStreamNotRecognised,Self);
       ARowState := aReader.GetRecordRowState(AUpdOrder);
-      if rsvUpdated in ARowState then
-        FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukModify
-      else
-        DatabaseError(SStreamNotRecognised,Self);
-
-      FFilterBuffer:=DefIdx.SpareBuffer;
-      DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
-      fillchar(FFilterBuffer^,FNullmaskSize,0);
-
-      aReader.RestoreRecord;
-      DefIdx.AddRecord;
-      inc(FBRecordCount);
-      end
-    else if rsvDeleted in ARowState then
-      begin
-      if length(FUpdateBuffer) < (AUpdOrder+1) then
-        SetLength(FUpdateBuffer,AUpdOrder+1);
-
-      FCurrentUpdateBuffer:=AUpdOrder;
-
-      FFilterBuffer:=IntAllocRecordBuffer;
-      fillchar(FFilterBuffer^,FNullmaskSize,0);
-
-      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
-      aReader.RestoreRecord;
-
-      FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukDelete;
-      DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
-      DefIdx.AddRecord;
-      DefIdx.RemoveRecordFromIndex(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
-      DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
-
-      for i := FCurrentUpdateBuffer+1 to high(FUpdateBuffer) do
-        if DefIdx.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData, @FUpdateBuffer[i].NextBookmarkData) then
-          DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[i].NextBookmarkData);
-      end
-    else
-      begin
-      FFilterBuffer:=DefIdx.SpareBuffer;
-      fillchar(FFilterBuffer^,FNullmaskSize,0);
-      aReader.RestoreRecord;
-      if rsvInserted in ARowState then
+      if rsvOriginal in ARowState then
         begin
         if length(FUpdateBuffer) < (AUpdOrder+1) then
           SetLength(FUpdateBuffer,AUpdOrder+1);
+
         FCurrentUpdateBuffer:=AUpdOrder;
-        FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukInsert;
+
+        FFilterBuffer:=IntAllocRecordBuffer;
+        fillchar(FFilterBuffer^,FNullmaskSize,0);
+        FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
+        aReader.RestoreRecord;
+
+        aReader.GotoNextRecord;
+        if not aReader.GetCurrentRecord then
+          DatabaseError(SStreamNotRecognised,Self);
+        ARowState := aReader.GetRecordRowState(AUpdOrder);
+        if rsvUpdated in ARowState then
+          FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukModify
+        else
+          DatabaseError(SStreamNotRecognised,Self);
+
+        FFilterBuffer:=DefIdx.SpareBuffer;
         DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
+        fillchar(FFilterBuffer^,FNullmaskSize,0);
+
+        aReader.RestoreRecord;
+        DefIdx.AddRecord;
+        inc(FBRecordCount);
+        end
+      else if rsvDeleted in ARowState then
+        begin
+        if length(FUpdateBuffer) < (AUpdOrder+1) then
+          SetLength(FUpdateBuffer,AUpdOrder+1);
+
+        FCurrentUpdateBuffer:=AUpdOrder;
+
+        FFilterBuffer:=IntAllocRecordBuffer;
+        fillchar(FFilterBuffer^,FNullmaskSize,0);
+
+        FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
+        aReader.RestoreRecord;
+
+        FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukDelete;
+        DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
+        DefIdx.AddRecord;
+        DefIdx.RemoveRecordFromIndex(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
+        DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
+
+        for i := FCurrentUpdateBuffer+1 to high(FUpdateBuffer) do
+          if DefIdx.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData, @FUpdateBuffer[i].NextBookmarkData) then
+            DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[i].NextBookmarkData);
+        end
+      else
+        begin
+        FFilterBuffer:=DefIdx.SpareBuffer;
+        fillchar(FFilterBuffer^,FNullmaskSize,0);
+        aReader.RestoreRecord;
+        if rsvInserted in ARowState then
+          begin
+          if length(FUpdateBuffer) < (AUpdOrder+1) then
+            SetLength(FUpdateBuffer,AUpdOrder+1);
+          FCurrentUpdateBuffer:=AUpdOrder;
+          FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukInsert;
+          DefIdx.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
+          end;
+
+        DefIdx.AddRecord;
+        inc(FBRecordCount);
         end;
 
-      DefIdx.AddRecord;
-      inc(FBRecordCount);
+      aReader.GotoNextRecord;
       end;
-
-    aReader.GotoNextRecord;
-    end;
-
-  RestoreState(SavedState);
+  finally
+    RestoreState(SavedState);
+  end;
   DefIdx.SetToFirstRecord;
   FAllPacketsFetched:=True;
 
@@ -3986,6 +3993,7 @@ var SearchFields    : TList;
     ABookmark       : TBufBookmark;
     SavedState      : TDataSetState;
     FilterRecord    : TRecordBuffer;
+    SavedFilterBuffer : TRecordBuffer;
     FilterAcceptable: boolean;
 
 begin
@@ -4004,44 +4012,48 @@ begin
     SearchFields.Free;
   end;
 
-  // Set the filter buffer
-  SavedState:=SetTempState(dsFilter);
+  // Set the filter buffer; a filter event calling Locate gets its own back
   FilterRecord:=IntAllocRecordBuffer;
-  FFilterBuffer:=FilterRecord + BufferOffset;
-  SetFieldValues(KeyFields,KeyValues);
+  SavedFilterBuffer:=FFilterBuffer;
+  SavedState:=SetTempState(dsFilter);
+  try
+    FFilterBuffer:=FilterRecord + BufferOffset;
+    SetFieldValues(KeyFields,KeyValues);
 
-  // Iterate through the records until a match is found
-  ABookmark.BookmarkData:=nil;
-  while true do
-    begin
-    // try get next record
-    if CurrentIndexBuf.GetRecord(@ABookmark, gmNext) <> grOK then
-      // for grEOF ABookmark points to SpareRecord, which is used for storing next record(s)
-      if getnextpacket = 0 then
-        break;
-    if IndexCompareRecords(FilterRecord, ABookmark.BookmarkData, DBCompareStruct) = 0 then
+    // Iterate through the records until a match is found
+    ABookmark.BookmarkData:=nil;
+    while true do
       begin
-      if Filtered then
+      // try get next record
+      if CurrentIndexBuf.GetRecord(@ABookmark, gmNext) <> grOK then
+        // for grEOF ABookmark points to SpareRecord, which is used for storing next record(s)
+        if getnextpacket = 0 then
+          break;
+      if IndexCompareRecords(FilterRecord, ABookmark.BookmarkData, DBCompareStruct) = 0 then
         begin
-        FFilterBuffer:=pointer(ABookmark.BookmarkData) + BufferOffset;
-        // The dataset state is still dsFilter at this point, so we don't have to set it.
-        DoFilterRecord(FilterAcceptable);
-        if FilterAcceptable then
+        if Filtered then
+          begin
+          FFilterBuffer:=pointer(ABookmark.BookmarkData) + BufferOffset;
+          // The dataset state is still dsFilter at this point, so we don't have to set it.
+          DoFilterRecord(FilterAcceptable);
+          if FilterAcceptable then
+            begin
+            Result := True;
+            break;
+            end;
+          end
+        else
           begin
           Result := True;
           break;
           end;
-        end
-      else
-        begin
-        Result := True;
-        break;
         end;
       end;
-    end;
-
-  RestoreState(SavedState);
-  FreeRecordBuffer(FilterRecord);
+  finally
+    FFilterBuffer:=SavedFilterBuffer;
+    RestoreState(SavedState);
+    FreeRecordBuffer(FilterRecord);
+  end;
 
   // If a match is found, jump to the found record
   if Result then
