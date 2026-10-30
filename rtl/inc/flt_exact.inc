@@ -238,7 +238,12 @@ var
     lNum, lQuo: qword;
 
 begin
+{$ifdef CPUJVM}
+    for i:=0 to aDec.Count-1 do
+      aDec.Digits[C_FLT_DEC_SLACK+i]:=aDec.Digits[i];
+{$else}
     Move(aDec.Digits[0], aDec.Digits[C_FLT_DEC_SLACK], aDec.Count);
+{$endif}
     lRead := aDec.Count + C_FLT_DEC_SLACK;
     lWrite := lRead;
     lNum := 0;
@@ -267,7 +272,12 @@ begin
                 aDec.Truncated := true;
         lCount := C_FLT_DEC_MAX_DIGITS;
     end;
+{$ifdef CPUJVM}
+    for i:=0 to lCount-1 do
+      aDec.Digits[i]:=aDec.Digits[lWrite+i];
+{$else}
     Move(aDec.Digits[lWrite], aDec.Digits[0], lCount);
+{$endif}
     aDec.Count := lCount;
     inc(aDec.Point, lDelta);
     flt_decimal_trim(aDec);
@@ -445,7 +455,11 @@ end;
 
 // Converts aSrc to the nearest double; aCode as for Val
 function val_double(const aSrc: shortstring; out aCode: ValSInt): double;
-
+{$ifdef CPUJVM}
+var
+    lSplitD : double;
+    lBits : qword;
+{$else}
 type
     TSplitDouble = packed record
         case byte of
@@ -457,13 +471,18 @@ type
 var
     lBits: qword;
     lSplit: TSplitDouble;
-
+{$endif}
 begin
     if not flt_str_to_bits(aSrc, 52, 11, lBits) then
     begin
         Result := val_real(aSrc, aCode);
         exit;
     end;
+{$ifdef CPUJVM}
+    lSplitD:=double(lBits);
+    aCode := 0;
+    Result:=lSplitD;
+{$else}
 {$ifdef FPC_DOUBLE_HILO_SWAPPED}
     lSplit.l[0] := hi(lBits);
     lSplit.l[1] := lo(lBits);
@@ -472,12 +491,19 @@ begin
 {$endif}
     aCode := 0;
     Result := lSplit.d;
+{$endif}
 end;
 
 
 // Converts aSrc to the nearest single; aCode as for Val
 function val_single(const aSrc: shortstring; out aCode: ValSInt): single;
 
+{$ifdef CPUJVM}
+var
+    lSplitD : dword;
+    lSplitS : single;
+    lBits : qword;
+{$else}
 type
     TSplitSingle = packed record
         case byte of
@@ -488,16 +514,23 @@ type
 var
     lBits: qword;
     lSplit: TSplitSingle;
-
+{$endif}
 begin
     if not flt_str_to_bits(aSrc, 23, 8, lBits) then
     begin
         Result := val_real(aSrc, aCode);
         exit;
     end;
+{$ifdef CPUJVM}
+    lSplitD:=lo(lBits);
+    aCode := 0;
+    lSplitS:=single(lSplitD);
+    Result:=lSplitS;
+{$else}
     lSplit.d := lo(lBits);
     aCode := 0;
     Result := lSplit.s;
+{$endif}
 end;
 
 {$pop}
