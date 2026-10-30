@@ -9,6 +9,7 @@ unit ZDeflate;
 {$IFNDEF NOGOTO}
 {$goto on}
 {$ENDIF}
+{$modeswitch exceptions}
 
 { Orginal: deflate.h -- internal compression state
            deflate.c -- compress data using the deflation algorithm
@@ -572,13 +573,17 @@ begin
     exit;
   end;
 
+  { a call whose allocation fails leaves the stream without a state }
+  strm.state := nil;
   getmem(s,sizeof(deflate_state));
-  fillchar(s^,sizeof(deflate_state),0);
   if (s = nil) then
   begin
     deflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
+  fillchar(s^,sizeof(deflate_state),0);
+  { a status deflateEnd accepts, so that it frees a partly made state }
+  s^.status := INIT_STATE;
   strm.state := pInternal_state(s);
   s^.strm := @strm;
 
@@ -592,14 +597,17 @@ begin
   s^.hash_mask := s^.hash_size - 1;
   s^.hash_shift :=  ((s^.hash_bits+MIN_MATCH-1) div MIN_MATCH);
 
-  getmem(s^.window,s^.w_size*2*sizeof(byte));
-  fillchar(s^.window^,s^.w_size*2*sizeof(byte),0);
-  getmem(s^.prev,s^.w_size*sizeof(pos));
-  getmem(s^.head,s^.hash_size*sizeof(pos));
-
   s^.lit_bufsize := 1 shl (memLevel + 6); { 16K elements by default }
 
-  getmem(overlay,s^.lit_bufsize*(sizeof(word)+2));
+  try
+    getmem(s^.window,s^.w_size*2*sizeof(byte));
+    getmem(s^.prev,s^.w_size*sizeof(pos));
+    getmem(s^.head,s^.hash_size*sizeof(pos));
+    getmem(overlay,s^.lit_bufsize*(sizeof(word)+2));
+  except
+    deflateEnd (strm);
+    raise;
+  end;
   s^.pending_buf := Pbytearray(overlay);
   s^.pending_buf_size := longint(s^.lit_bufsize) * (sizeof(word)+longint(2));
 
@@ -612,6 +620,7 @@ begin
     deflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
+  fillchar(s^.window^,s^.w_size*2*sizeof(byte),0);
   s^.d_buf := Pwordarray( @overlay^[s^.lit_bufsize div sizeof(word)] );
   s^.l_buf := Pbytearray( @s^.pending_buf^[(1+sizeof(word))*s^.lit_bufsize] );
 
@@ -1101,8 +1110,16 @@ begin
     deflateCopy := Z_STREAM_ERROR;
     exit;
   end;
+  { a stream is already a copy of itself }
+  if dest=source then
+  begin
+    deflateCopy := Z_OK;
+    exit;
+  end;
   ss := deflate_state_ptr(source^.state);
   dest^ := source^;
+  { until it has its own, dest must not share the source's state }
+  dest^.state := nil;
 
   getmem(ds,sizeof(deflate_state));
   if ds=nil then
@@ -1113,11 +1130,21 @@ begin
   dest^.state := pInternal_state(ds);
   ds^ := ss^;
   ds^.strm := dest;
+  { nor its buffers: deflateEnd frees whichever of these are set }
+  ds^.window := nil;
+  ds^.prev := nil;
+  ds^.head := nil;
+  ds^.pending_buf := nil;
 
-  getmem(ds^.window,ds^.w_size*2*sizeof(byte));
-  getmem(ds^.prev,ds^.w_size*sizeof(pos));
-  getmem(ds^.head,ds^.hash_size*sizeof(pos));
-  getmem(overlay,ds^.lit_bufsize*(sizeof(word)+2));
+  try
+    getmem(ds^.window,ds^.w_size*2*sizeof(byte));
+    getmem(ds^.prev,ds^.w_size*sizeof(pos));
+    getmem(ds^.head,ds^.hash_size*sizeof(pos));
+    getmem(overlay,ds^.lit_bufsize*(sizeof(word)+2));
+  except
+    deflateEnd (dest^);
+    raise;
+  end;
   ds^.pending_buf := Pbytearray ( overlay );
 
   if (ds^.window=nil) or (ds^.prev=nil) or (ds^.head=nil)

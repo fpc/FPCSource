@@ -1,6 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit infblock;
 {$ENDIF FPC_DOTTEDUNITS}
+{$modeswitch exceptions}
 
 { infblock.h and
   infblock.c -- interpret and process block types to last block
@@ -150,7 +151,12 @@ begin
     inflate_blocks_new := s;
     exit;
   end;
-  getmem(s^.hufts,sizeof(inflate_huft)*MANY);
+  try
+    getmem(s^.hufts,sizeof(inflate_huft)*MANY);
+  except
+    dispose(s);
+    raise;
+  end;
 
   if (s^.hufts = nil) then
   begin
@@ -159,7 +165,13 @@ begin
     exit;
   end;
 
-  getmem(s^.window,w);
+  try
+    getmem(s^.window,w);
+  except
+    freemem(s^.hufts);
+    dispose(s);
+    raise;
+  end;
   if (s^.window = nil) then
   begin
     freemem(s^.hufts);

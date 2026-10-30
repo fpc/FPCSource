@@ -1,6 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit  ZInflate;
 {$ENDIF FPC_DOTTEDUNITS}
+{$modeswitch exceptions}
 
 {  inflate.c -- zlib interface to inflate modules
    Copyright (C) 1995-1998 Mark Adler
@@ -266,6 +267,8 @@ begin
   { SetLength(strm.msg, 255); }
   z.msg := '';
 
+  { a call whose allocation fails leaves the stream without a state }
+  z.state := nil;
   new(z.state);
   if z.state=nil then
   begin
@@ -293,10 +296,15 @@ begin
   z.state^.wbits := cardinal(w);
 
   { create inflate_blocks state }
-  if z.state^.nowrap then
-    z.state^.blocks := inflate_blocks_new(z, nil, cardinal(1) shl w)
-  else
-    z.state^.blocks := inflate_blocks_new(z, @adler32, cardinal(1) shl w);
+  try
+    if z.state^.nowrap then
+      z.state^.blocks := inflate_blocks_new(z, nil, cardinal(1) shl w)
+    else
+      z.state^.blocks := inflate_blocks_new(z, @adler32, cardinal(1) shl w);
+  except
+    inflateEnd(z);
+    raise;
+  end;
   if z.state^.blocks=nil then
   begin
     inflateEnd(z);
