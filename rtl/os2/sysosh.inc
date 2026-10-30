@@ -16,6 +16,12 @@
  **********************************************************************}
 
 {Platform specific information}
+{$define HAS_CREATE_SUSPENDED}
+const
+  { BeginThread creationFlags, passed to DosCreateThread }
+  CREATE_SUSPENDED = 1;
+  STACK_SIZE_PARAM_IS_A_RESERVATION = 0;
+
 type
   THandle = Longint;
   TThreadID = cardinal;

@@ -217,29 +217,40 @@ begin
 end;
 
 
+{ Start a thread that waits in SuspendedStartMain until ResumeThread is called on the returned handle. }
+function BeginSuspendedThread(sa : Pointer;stacksize : SizeUInt; ThreadFunction : tthreadfunc;p : pointer;
+  creationFlags : dword; var ThreadId : TThreadID) : TThreadHandle;
+
+var
+  lStart : PSuspendedStart;
+
+begin
+  New(lStart);
+  lStart^.Func:=ThreadFunction;
+  lStart^.Param:=p;
+  lStart^.StartEvent:=RTLEventCreate;
+  Result:=CurrentTM.BeginThread(sa,stacksize,@SuspendedStartMain,lStart,creationFlags,ThreadId);
+  if Result=TThreadHandle(0) then
+    begin
+    RTLEventDestroy(lStart^.StartEvent);
+    Dispose(lStart);
+    exit;
+    end;
+  lStart^.Handle:=Result;
+  LockSuspendedStarts;
+  lStart^.Next:=SuspendedStartList;
+  SuspendedStartList:=lStart;
+  UnlockSuspendedStarts;
+end;
+
+
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
                      Suspended : Boolean; const stacksize: SizeUInt) : TThreadHandle;
-      var
-        lStart : PSuspendedStart;
       begin
-        if not Suspended then
-          exit(BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId));
-        New(lStart);
-        lStart^.Func:=ThreadFunction;
-        lStart^.Param:=p;
-        lStart^.StartEvent:=RTLEventCreate;
-        Result:=BeginThread(nil,stacksize,@SuspendedStartMain,lStart,0,ThreadId);
-        if Result=TThreadHandle(0) then
-          begin
-          RTLEventDestroy(lStart^.StartEvent);
-          Dispose(lStart);
-          exit;
-          end;
-        lStart^.Handle:=Result;
-        LockSuspendedStarts;
-        lStart^.Next:=SuspendedStartList;
-        SuspendedStartList:=lStart;
-        UnlockSuspendedStarts;
+        if Suspended then
+          Result:=BeginSuspendedThread(nil,stacksize,ThreadFunction,p,0,ThreadId)
+        else
+          Result:=BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId);
       end;
 
     procedure EndThread;
@@ -263,7 +274,12 @@ end;
 function BeginThread(sa : Pointer;stacksize : SizeUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadHandle;
 
 begin
-  Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
+{$ifndef HAS_CREATE_SUSPENDED}
+  if (creationFlags and CREATE_SUSPENDED)<>0 then
+    Result:=BeginSuspendedThread(sa,stacksize,threadfunction,P,creationFlags and not CREATE_SUSPENDED,ThreadID)
+  else
+{$endif HAS_CREATE_SUSPENDED}
+    Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
 end;
 
 procedure FlushThread;

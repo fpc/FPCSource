@@ -707,6 +707,14 @@ type
   TThreadHandle = TThreadID;
 {$endif HAS_TTHREADHANDLE}
 
+{$ifndef HAS_CREATE_SUSPENDED}
+const
+  { BeginThread creationFlags: start the thread suspended until ResumeThread }
+  CREATE_SUSPENDED = 4;
+  { BeginThread creationFlags: stacksize is the reserved instead of the committed size }
+  STACK_SIZE_PARAM_IS_A_RESERVATION = $10000;
+{$endif HAS_CREATE_SUSPENDED}
+
 { platform-dependent defines }
 {$i rtldefs.inc}
 

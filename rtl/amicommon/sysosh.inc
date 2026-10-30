@@ -34,6 +34,7 @@ type
   end;
 
 { BeginThread flags we support in AThreads }
+{$define HAS_CREATE_SUSPENDED}
 const
   CREATE_SUSPENDED = 1;
   STACK_SIZE_PARAM_IS_A_RESERVATION = 2;

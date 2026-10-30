@@ -73,6 +73,15 @@ const
   ApiSuffix = 'A';
 {$endif WINCE}
 
+{$define HAS_CREATE_SUSPENDED}
+  { BeginThread creationFlags, passed to CreateThread }
+  CREATE_SUSPENDED = 4;
+{$ifdef WINCE}
+  STACK_SIZE_PARAM_IS_A_RESERVATION = 0;
+{$else WINCE}
+  STACK_SIZE_PARAM_IS_A_RESERVATION = $10000;
+{$endif WINCE}
+
 function OleStrToString(source: PWideChar) : UnicodeString;inline;
 procedure OleStrToStrVar(source : PWideChar;var dest : UnicodeString);inline;
 procedure OleStrToStrVar(source : PWideChar;var dest : AnsiString);inline;
