@@ -341,6 +341,7 @@ begin
       with T.Dependencies do
         begin
           AddUnit('system');
+          AddInclude('signals.inc');
         end;
     T:=P.Targets.AddUnit('messages.pp',AllWindowsOSes);
       T.IncludePath.Add('win/wininc');

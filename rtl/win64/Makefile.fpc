@@ -36,7 +36,7 @@ buildunit= buildrtl
 target=win64
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC)
+includedir=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC) $(WINDIR)
 sourcedir=$(INC) $(PROCINC) $(COMMON) $(WINDIR) ../$(ARCH)
 
 

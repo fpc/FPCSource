@@ -970,10 +970,10 @@ endif
 override INSTALL_BUILDUNIT=buildrtl
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),x86_64-win64)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC) $(WINDIR)
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-win64)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH) ../$(ARCH) $(WININC) $(WINDIR)
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) $(WINDIR) ../$(ARCH)
