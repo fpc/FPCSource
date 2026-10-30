@@ -1315,7 +1315,7 @@ begin
         varWord     : Result := PWord(vPointer)^;
         varLongWord : Result := PLongWord(vPointer)^;
         varInt64    : Result := PInt64(vPointer)^;
-        varQword    : Result := PQWord(vPointer)^;
+        varQword    : Result := int64(PQWord(vPointer)^);
         varOleStr   : Result := WStrToInt64(PPointer(vPointer)^);
         varString   : Result := LStrToInt64(PPointer(vPointer)^);
         varUString  : Result := UStrToInt64(PPointer(vPointer)^);

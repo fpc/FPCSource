@@ -386,7 +386,7 @@ operator :=(const source : variant) dest : smallint;{$ifdef SYSTEMINLINE}inline;
 
 operator :=(const source : variant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    dest:=variantmanager.vartoint(source);
+    dest:=dword(variantmanager.vartoint64(source));
   end;
 
 
@@ -762,7 +762,7 @@ operator :=(const source : olevariant) dest : smallint;{$ifdef SYSTEMINLINE}inli
 
 operator :=(const source : olevariant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    dest:=variantmanager.vartoint(variant(tvardata(source)));
+    dest:=dword(variantmanager.vartoint64(variant(tvardata(source))));
   end;
 
 
