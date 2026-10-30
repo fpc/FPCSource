@@ -953,7 +953,7 @@ begin
   Result := ctkHASH;
   TokenStart := TokenStr;
   Inc(TokenStr);
-  while (TokenStr[0]<>'#') and (TokenStr[0] in AlNumIden) do
+  while (TokenStr[0]<>'#') and (TokenStr[0] in AlNumIden+['_',#128..#255]) do
     inc(TokenStr);
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);

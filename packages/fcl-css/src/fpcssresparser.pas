@@ -706,6 +706,28 @@ type
     function IsIntegerValue(v: Integer): boolean;
   end;
 
+  { TCSSResTokenWriter - appends tokens in the form as defined by TCSSResTokenKind,
+    the counterpart of TCSSResTokenParser }
+
+  TCSSResTokenWriter = record
+  private
+    procedure Grow(Count: integer);
+    procedure AddMem(Src: Pointer; Count: integer);
+  public
+    Data: TBytes;
+    Len: integer; // used bytes in Data, Data may be bigger
+    procedure Init;
+    procedure AddKind(aKind: TCSSResTokenKind); // a token without payload, e.g. rtkWhitespace, rtkComma, rtkRParenthesis, others are ignored
+    procedure AddSymbol(c: Char); // one of : ; . * /
+    procedure AddFloat(const aFloat: double; anUnit: TCSSUnit);
+    procedure AddKeyword(KW: TCSSNumericalID);
+    procedure AddFunction(FuncID: TCSSNumericalID); // includes the opening parenthesis, close with AddKind(rtkRParenthesis)
+    procedure AddIdentifier(const anIdentifier: TCSSString); // ignores an empty identifier
+    procedure AddHexColor(const aHexDigits: TCSSString); // without the '#', ignores lengths other than 3, 4, 6 and 8
+    procedure AddTokens(const aTokens: TBytes); // append an already tokenized value
+    function GetTokens: TBytes; // Data trimmed to Len
+  end;
+
   { TCSSBaseResolver }
 
   TCSSBaseResolver = class(TComponent)
@@ -741,7 +763,7 @@ type
     Symbol: TCSSToken;
     Empty: boolean; // no tokens read so far or only whitespace
     procedure ResetCurComp; // clear the current token component
-    function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
+    function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start, false for invalid or a lone base keyword
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Tokens: TBytes): boolean; virtual; // true if parsing can start, reuses already tokenized value
     procedure InitParseAttr(const Value: TCSSString); virtual;
@@ -2524,6 +2546,136 @@ begin
   Result:=SameValue(aFloat,v);
 end;
 
+{ TCSSResTokenWriter }
+
+procedure TCSSResTokenWriter.Grow(Count: integer);
+var
+  l, Needed: integer;
+begin
+  Needed:=Len+Count;
+  l:=length(Data);
+  if Needed<=l then
+    exit;
+  if l=0 then
+    l:=Needed; // exact for a single token, e.g. TokenizeFloat
+  while l<Needed do
+    l:=l*2;
+  SetLength(Data,l);
+end;
+
+procedure TCSSResTokenWriter.AddMem(Src: Pointer; Count: integer);
+begin
+  if Count<=0 then
+    exit;
+  Grow(Count);
+  Move(Src^,Data[Len],Count);
+  inc(Len,Count);
+end;
+
+procedure TCSSResTokenWriter.Init;
+begin
+  Data:=nil;
+  Len:=0;
+end;
+
+procedure TCSSResTokenWriter.AddKind(aKind: TCSSResTokenKind);
+begin
+  case aKind of
+  rtkWhitespace,
+  rtkComma,
+  rtkLParenthesis,
+  rtkRParenthesis,
+  rtkLBracket,
+  rtkRBracket,
+  rtkPlus,
+  rtkMinus:
+    begin
+      Grow(1);
+      Data[Len]:=ord(aKind);
+      inc(Len);
+    end;
+  end;
+end;
+
+procedure TCSSResTokenWriter.AddSymbol(c: Char);
+begin
+  Grow(2);
+  Data[Len]:=ord(rtkSymbol);
+  Data[Len+1]:=ord(c);
+  inc(Len,2);
+end;
+
+procedure TCSSResTokenWriter.AddFloat(const aFloat: double; anUnit: TCSSUnit);
+begin
+  Grow(2+SizeOf(double));
+  Data[Len]:=ord(rtkFloat);
+  Data[Len+1]:=ord(anUnit);
+  PDouble(@Data[Len+2])^:=aFloat;
+  inc(Len,2+SizeOf(double));
+end;
+
+procedure TCSSResTokenWriter.AddKeyword(KW: TCSSNumericalID);
+begin
+  Grow(3);
+  Data[Len]:=ord(rtkKeyword);
+  PWord(@Data[Len+1])^:=word(KW);
+  inc(Len,3);
+end;
+
+procedure TCSSResTokenWriter.AddFunction(FuncID: TCSSNumericalID);
+begin
+  Grow(3);
+  Data[Len]:=ord(rtkFunction);
+  PWord(@Data[Len+1])^:=word(FuncID);
+  inc(Len,3);
+end;
+
+procedure TCSSResTokenWriter.AddIdentifier(const anIdentifier: TCSSString);
+var
+  l: DWord;
+begin
+  l:=length(anIdentifier);
+  if l=0 then
+    exit;
+  Grow(1+4+integer(l)*SizeOf(TCSSChar));
+  Data[Len]:=ord(rtkIdentifier);
+  PDWord(@Data[Len+1])^:=l;
+  inc(Len,5);
+  AddMem(@anIdentifier[1],integer(l)*SizeOf(TCSSChar));
+end;
+
+procedure TCSSResTokenWriter.AddHexColor(const aHexDigits: TCSSString);
+// Only the four lengths Tokenize creates are valid: #rgb, #rgba, #rrggbb and #rrggbbaa.
+var
+  l: integer;
+begin
+  l:=length(aHexDigits);
+  case l of
+  3,4,6,8: ;
+  else
+    exit;
+  end;
+  Grow(2+l*SizeOf(TCSSChar));
+  Data[Len]:=ord(rtkHexColor);
+  Data[Len+1]:=byte(l);
+  inc(Len,2);
+  AddMem(@aHexDigits[1],l*SizeOf(TCSSChar));
+end;
+
+procedure TCSSResTokenWriter.AddTokens(const aTokens: TBytes);
+begin
+  if length(aTokens)=0 then
+    exit;
+  AddMem(@aTokens[0],length(aTokens));
+end;
+
+function TCSSResTokenWriter.GetTokens: TBytes;
+begin
+  Result:=Data;
+  if length(Result)>Len then
+    SetLength(Result,Len);
+end;
+
 { TCSSBaseResolver }
 
 function TCSSBaseResolver.GetCurValue: TCSSString;
@@ -2645,10 +2797,9 @@ begin
   begin
     // a base keyword like "inherit" must be the only component
     if PeekNextTokenKind<>rtkNone then
-    begin
       CurAttrData.Invalid:=true;
-      exit;
-    end;
+    // a lone base keyword is valid for every attribute, there is nothing to check
+    exit;
   end;
 
   Result:=true;
@@ -3591,53 +3742,42 @@ begin
 end;
 
 function TCSSBaseResolver.TokenizeKeyword(KW: TCSSNumericalID): TBytes;
+var
+  W: TCSSResTokenWriter;
 begin
-  Result:=nil;
-  SetLength(Result,3);
-  Result[0]:=ord(rtkKeyword);
-  PWord(@Result[1])^:=KW;
+  W.Init;
+  W.AddKeyword(KW);
+  Result:=W.GetTokens;
 end;
 
 function TCSSBaseResolver.TokenizeIdentifier(const anIdentifier: TCSSString): TBytes;
 var
-  l: DWord;
+  W: TCSSResTokenWriter;
 begin
-  l:=length(anIdentifier);
-  Result:=nil;
-  if l=0 then exit;
-  SetLength(Result,1+4+l*SizeOf(TCSSChar));
-  Result[0]:=ord(rtkIdentifier);
-  PDWord(@Result[1])^:=l;
-  Move(anIdentifier[1],Result[5],l*SizeOf(TCSSChar));
+  W.Init;
+  W.AddIdentifier(anIdentifier);
+  Result:=W.GetTokens;
 end;
 
 function TCSSBaseResolver.TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
+var
+  W: TCSSResTokenWriter;
 begin
-  Result:=nil;
-  SetLength(Result,10);
-  Result[0]:=ord(rtkFloat);
-  Result[1]:=ord(anUnit);
-  PDouble(@Result[2])^:=aFloat; // kind + unit + double, see ReadNext
+  W.Init;
+  W.AddFloat(aFloat,anUnit);
+  Result:=W.GetTokens;
 end;
 
 function TCSSBaseResolver.TokenizeHexColor(const aHexDigits: TCSSString): TBytes;
 // aHexDigits are the hex characters without the leading '#'.
-// Only the four lengths Tokenize creates are valid: #rgb, #rgba, #rrggbb and #rrggbbaa.
-// Any other length gives nil, so a caller cannot build a value that Tokenize would refuse.
+// Any other length than 3, 4, 6 or 8 gives nil, so a caller cannot build a value
+// that Tokenize would refuse.
 var
-  l: integer;
+  W: TCSSResTokenWriter;
 begin
-  Result:=nil;
-  l:=length(aHexDigits);
-  case l of
-  3,4,6,8: ;
-  else
-    exit;
-  end;
-  SetLength(Result,2+l*SizeOf(TCSSChar));
-  Result[0]:=ord(rtkHexColor);
-  Result[1]:=byte(l);
-  Move(aHexDigits[1],Result[2],l*SizeOf(TCSSChar)); // kind + count + count hex chars, see ReadNext
+  W.Init;
+  W.AddHexColor(aHexDigits);
+  Result:=W.GetTokens;
 end;
 
 function TCSSBaseResolver.ResolveIdentifierTokens(var Tokens: TBytes): boolean;
