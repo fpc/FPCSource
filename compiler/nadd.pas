@@ -3137,13 +3137,16 @@ const
           begin
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
-                { Is there a unicodestring? }
+                { Is there a unicodestring? A string constant counts only while
+                  it has no string type of its own, as a typecast gives it }
                 if is_unicodestring(rd) or is_unicodestring(ld) or
                    ((m_default_unicodestring in current_settings.modeswitches) and
                     (cs_refcountedstrings in current_settings.localswitches) and
                     (
-                     is_pwidechar(rd) or is_widechararray(rd) or is_open_widechararray(rd) or (lt = stringconstn) or
-                     is_pwidechar(ld) or is_widechararray(ld) or is_open_widechararray(ld) or (rt = stringconstn)
+                     is_pwidechar(rd) or is_widechararray(rd) or is_open_widechararray(rd) or
+                     ((lt = stringconstn) and (tstringconstnode(left).cst_type = cst_conststring)) or
+                     is_pwidechar(ld) or is_widechararray(ld) or is_open_widechararray(ld) or
+                     ((rt = stringconstn) and (tstringconstnode(right).cst_type = cst_conststring))
                     )
                    ) then
                   strtype:=st_unicodestring
