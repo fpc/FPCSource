@@ -1897,7 +1897,7 @@ begin
 {$endif}
     ctBoolean:
       case OpCode of
-        opAdd..opMultiply, opPower:
+        opAdd..opDivide, opPower:
           DoVarOpFloat(TVarData(Left),TVarData(Right),OpCode);
         opIntDivide..opShiftRight:
           DoVarOpLongInt(TVarData(Left),TVarData(Right),OpCode);
