@@ -1,6 +1,6 @@
 { %fail }
 { %CPU=i386 }
-{ %target=windows,linux }
+{ %target=win32,linux }
 { Target must have distinct stdcall and cdecl calling conventions, otherwise this test will (wrongly) succeed }
 
 {$mode objfpc}{$H+}
