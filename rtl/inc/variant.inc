@@ -774,13 +774,13 @@ operator :=(const source : olevariant) dest : longint;{$ifdef SYSTEMINLINE}inlin
 
 operator :=(const source : olevariant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    dest:=variantmanager.vartoint64(variant(tvardata(source)));
+    dest:=variantmanager.vartoword64(variant(tvardata(source)));
   end;
 
 
 operator :=(const source : olevariant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    dest:=variantmanager.vartoword64(variant(tvardata(source)));
+    dest:=variantmanager.vartoint64(variant(tvardata(source)));
   end;
 
 
