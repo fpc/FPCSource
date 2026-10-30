@@ -1817,6 +1817,32 @@ begin
     VarInvalidOp(vl.vType, vr.vType, OpCode);
 end;
 
+{ An Empty operand of /, div or mod counts as 0, as in Delphi, so dividing by
+  it is a division by zero; Empty divided by Empty raises at once }
+procedure DoVarOpEmptyDivide(var vl : TVarData; const vr : TVarData; const OpCode : TVarOp);
+var
+  zero : TVarData;
+begin
+  if VarTypeDeRef(vr) = varEmpty then
+    begin
+      if VarTypeDeRef(vl) = varEmpty then
+        if OpCode = opDivide then
+          raise EZeroDivide.Create(SZeroDivide)
+        else
+          raise EDivByZero.Create(SDivByZero);
+      zero.vType := varInteger;
+      zero.vInteger := 0;
+      SysVarOp(Variant(vl), Variant(zero), OpCode);
+    end
+  else
+    begin
+      DoVarClear(vl);
+      vl.vType := varInteger;
+      vl.vInteger := 0;
+      SysVarOp(Variant(vl), Variant(vr), OpCode);
+    end;
+end;
+
 procedure SysVarOp(var Left : Variant; const Right : Variant; OpCode : TVarOp);
 var
   lct: TCommonType;
@@ -1846,10 +1872,8 @@ begin
   case FindOpCommonType[lct, rct] of
     ctEmpty:
       case OpCode of
-        opDivide:
-          Error(reZeroDivide);
-        opIntDivide, opModulus:
-          Error(reDivByZero);
+        opDivide, opIntDivide, opModulus:
+          DoVarOpEmptyDivide(TVarData(Left),TVarData(Right),OpCode);
       else
         DoVarClear(TVarData(Left));
       end;
