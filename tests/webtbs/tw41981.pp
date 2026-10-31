@@ -629,57 +629,57 @@ var
   Err: ValSInt;
 begin
   {$R+}
-  writeln('TestValUnSignedTooLarge: RangeCheck=ON');
+  writeln('TestValUnsignedNegative: RangeCheck=ON');
   try
     Val('-1',U8,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U8);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U16,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U16);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U32,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U32);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U64,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U64);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
 
   {$R-}
-  writeln('TestValUnSignedTooLarge: RangeCheck=OFF');
+  writeln('TestValUnsignedNegative: RangeCheck=OFF');
   try
     Val('-1',U8,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U8);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U16,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U16);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U32,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U32);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
   try
     Val('-1',U64,Err);
     if Err<>0 then writeln('OK: -1: Err=',Err) else FailWithValue('-1',U64);
   except
-    on E: ERangeError do RangeError('256');
+    on E: ERangeError do RangeError('-1');
   end;
 end;
 
