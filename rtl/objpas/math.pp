@@ -338,14 +338,18 @@ function SameValue(const A, B: Extended): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function SameValue(const A, B: Double): Boolean;inline; overload;
 {$endif}
+{$ifdef FPC_HAS_TYPE_SINGLE}
 function SameValue(const A, B: Single): Boolean;inline; overload;
+{$endif}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean; overload;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function SameValue(const A, B: Double; Epsilon: Double): Boolean; overload;
 {$endif}
+{$ifdef FPC_HAS_TYPE_SINGLE}
 function SameValue(const A, B: Single; Epsilon: Single): Boolean; overload;
+{$endif}
 
 { NextAfter returns the floating-point value next to X in the direction of Y.
   It returns Y when X=Y, a NaN when X or Y is a NaN, and the smallest denormal
@@ -3937,6 +3941,7 @@ begin
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
 function SameValue(const A, B: Single): Boolean;inline;
 
 begin
@@ -3953,6 +3958,7 @@ begin
   else
     Result:=((B-A)<=Epsilon);
 end;
+{$endif FPC_HAS_TYPE_SINGLE}
 
 
 function NextAfter(const X, Y: Single): Single;
