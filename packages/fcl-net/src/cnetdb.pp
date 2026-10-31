@@ -116,6 +116,35 @@ const
     EAI_PROTOCOL   = 13;
     EAI_MAX        = 14;
 
+  {$ELSEIF DEFINED(DARWIN)}
+
+    AI_PASSIVE      = $00000001; (* get address to use bind() *)
+    AI_CANONNAME    = $00000002; (* fill ai_canonname *)
+    AI_NUMERICHOST  = $00000004; (* prevent host name resolution *)
+    AI_ALL          = $00000100; (* IPv6 and IPv4-mapped (with AI_V4MAPPED) *)
+    AI_V4MAPPED_CFG = $00000200; (* accept IPv4-mapped if kernel supports *)
+    AI_ADDRCONFIG   = $00000400; (* only if any address is assigned *)
+    AI_V4MAPPED     = $00000800; (* accept IPv4-mapped IPv6 address *)
+    AI_NUMERICSERV  = $00001000; (* prevent service name resolution *)
+    AI_UNUSABLE     = $10000000; (* return addresses even if unusable *)
+    AI_DEFAULT      = (AI_V4MAPPED_CFG OR AI_ADDRCONFIG);
+
+    EAI_ADDRFAMILY = 1;  (* address family for hostname not supported *)
+    EAI_AGAIN      = 2;  (* temporary failure in name resolution *)
+    EAI_BADFLAGS   = 3;  (* invalid value for ai_flags *)
+    EAI_FAIL       = 4;  (* non-recoverable failure in name resolution *)
+    EAI_FAMILY     = 5;  (* ai_family not supported *)
+    EAI_MEMORY     = 6;  (* memory allocation failure *)
+    EAI_NODATA     = 7;  (* no address associated with hostname *)
+    EAI_NONAME     = 8;  (* hostname nor servname provided, or not known *)
+    EAI_SERVICE    = 9;  (* servname not supported for ai_socktype *)
+    EAI_SOCKTYPE   = 10; (* ai_socktype not supported *)
+    EAI_SYSTEM     = 11; (* system error returned in errno *)
+    EAI_BADHINTS   = 12; (* invalid value for hints *)
+    EAI_PROTOCOL   = 13; (* resolved protocol is unknown *)
+    EAI_OVERFLOW   = 14; (* argument buffer overflow *)
+    EAI_MAX        = 15;
+
   {$ELSE}
 
     (* Possible values for `ai_flags' field in `addrinfo' structure.  *)
@@ -170,6 +199,16 @@ const
     NI_NUMERICSERV  = $00000008;
     NI_DGRAM        = $00000010;
     NI_NUMERICSCOPE = $00000020;
+
+  {$ELSEIF DEFINED(DARWIN)}
+
+    NI_NOFQDN       = $00000001;
+    NI_NUMERICHOST  = $00000002;
+    NI_NAMEREQD     = $00000004;
+    NI_NUMERICSERV  = $00000008;
+    NI_DGRAM        = $00000010;
+    NI_WITHSCOPEID  = $00000020;
+    NI_NUMERICSCOPE = $00000100;
 
   {$ELSE}
 
@@ -237,10 +276,10 @@ type
   PProtoEnt = ^TProtoEnt;
   PPProtoEnt = ^PProtoEnt;
 
-{$if defined(LINUX) or defined(OPENBSD) or defined(DARWIN)}
+{$if defined(LINUX) or defined(OPENBSD)}
 {$define FIRST_ADDR_THEN_CANONNAME}
 {$endif}
-{$if defined(FREEBSD) or defined(NETBSD) or defined(DRAGONFLY) or defined(SOLARIS) or defined(ANDROID)}
+{$if defined(FREEBSD) or defined(NETBSD) or defined(DRAGONFLY) or defined(SOLARIS) or defined(ANDROID) or defined(DARWIN)}
 {$define FIRST_CANONNAME_THEN_ADDR}
 {$endif}
 {$if not defined(FIRST_CANONNAME_THEN_ADDR) and not defined(FIRST_ADDR_THEN_CANONNAME)}
