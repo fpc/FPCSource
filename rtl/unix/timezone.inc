@@ -298,9 +298,11 @@ begin
       inc(i);
      if (i=num_types) then
       i:=0;
-     { unknown transition boundaries }
      trans_start:=low(trans_start);
-     trans_end:=high(trans_end);
+     if num_transitions>0 then
+       trans_end:=transitions[0]
+     else
+       trans_end:=high(trans_end);
    end
   else
   if footer_valid and (timerHiUTC>=transitions[num_transitions-1]) then
@@ -394,6 +396,23 @@ begin
    end;
 end;
 
+{ Stores the period trans_start..trans_end of info as the current time zone info
+  when it contains the current time. }
+procedure RenewTZInfo(info:pttinfo;const trans_start,trans_end:int64);
+var
+  curtime: int64;
+  NewTZInfo: TTZInfo;
+  NewTZInfoEx: TTZInfoEx;
+begin
+  curtime:=fptime;
+  if (trans_start<=curtime) and (curtime<trans_end) then
+    begin
+    DoGetLocalTimezone(info,trans_start,trans_end,NewTZInfo);
+    DoGetLocalTimezoneEx(curtime,info,NewTZInfoEx);
+    SetTZInfo(NewTZInfo,NewTZInfoEx);
+    end;
+end;
+
 function GetLocalTimezone(timer:int64;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
 var
   info: pttinfo;
@@ -412,7 +431,11 @@ begin
   info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
   GetLocalTimezone:=assigned(info);
   if GetLocalTimezone then
+    begin
+    if timerUTC>=ATZInfo.validuntil then
+      RenewTZInfo(info,trans_start,trans_end);
     DoGetLocalTimezone(info,trans_start,trans_end,ATZInfo);
+    end;
   UnlockTZInfo;
 end;
 
@@ -439,6 +462,8 @@ begin
   GetLocalTimezone:=assigned(info);
   if GetLocalTimezone then
     begin
+    if timerUTC>=ATZInfo.validuntil then
+      RenewTZInfo(info,trans_start,trans_end);
     DoGetLocalTimezone(info,trans_start,trans_end,ATZInfo);
     DoGetLocalTimezoneEx(timer,info,ATZInfoEx);
     end;
