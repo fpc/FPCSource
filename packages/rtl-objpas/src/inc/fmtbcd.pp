@@ -1543,17 +1543,24 @@ IMPLEMENTATION
 {$ifndef FPUNONE}
   procedure DoubleToBCD ( const aValue : myRealtype;
                             var BCD : tBCD );
-
     var
       s : string [ 30 ];
+{$if defined(real8) or not defined(FPC_HAS_TYPE_EXTENDED)}
       f : TFormatSettings;
-
     begin
-      Str ( aValue : 25, s );
+      f := DefaultFormatSettings;
       f.DecimalSeparator := '.';
       f.ThousandSeparator := #0;
+      { use 15 significant digits for double
+        Str ( aValue : 25 ) prints 17 digits, which exposes the binary
+        representation error, e.g. 0.1 would become 0.10000000000000001 }
+      s := FloatToStrF ( aValue, ffExponent, 15, 0, f );
+{$else}
+    begin
+      Str ( aValue : 25, s );
+{$endif}
       BCD := StrToBCD ( s, f );
-     end;
+    end;
 
   function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
 
