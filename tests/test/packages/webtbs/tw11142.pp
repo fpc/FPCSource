@@ -2,6 +2,11 @@
 uses
   SysUtils,Contnrs;
 
+const
+  { keys chosen so that they do not collide with the MurmurHash3 based HashString
+    ('D' and 'F' share the same bucket) }
+  Keys : array[0..5] of AnsiChar = ('A','B','C','D','E','G');
+
 var
   colls : Integer;
 
@@ -22,17 +27,17 @@ begin
    dat[i]^:=i;
   end;
 
- // add A..F with pointer
+ // add keys with pointer
  for i:=0 to 5 do
-    Writeln('HL.Add: '+chr(i+65)+' = Index: '
-                    +IntToStr(HL.Add(chr(i+65),dat[i])));
+    Writeln('HL.Add: '+Keys[i]+' = Index: '
+                    +IntToStr(HL.Add(Keys[i],dat[i])));
 
  // get collisions
  for i:=0 to 5 do
    begin
     Writeln('--------------');
     Writeln('Collision for Index: '+IntToStr(i));
-    n:=HL.FindIndexOf(chr(i+65));
+    n:=HL.FindIndexOf(Keys[i]);
     while n>=0 do
      begin
       Writeln('Index: '+IntToStr(n)+
