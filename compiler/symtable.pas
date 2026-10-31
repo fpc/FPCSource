@@ -832,6 +832,9 @@ implementation
         until not changed and
           (defidmax=current_module.deflist.count) and
           (symidmax=current_module.symlist.count);
+        { Re-resolving a local symtable visits only registered entries. }
+        deref_built:=true;
+        derefimpl_built:=true;
       end;
 
 
@@ -870,6 +873,10 @@ implementation
                (sym.typ<>typesym) then
               sym.deref;
           end;
+        { PPU-loaded tables already contain dereference data, without going
+          through buildderef. Keep them eligible for re-resolving when a used
+          unit is recompiled and its old definitions are freed. }
+        deref_built:=true;
       end;
 
 
@@ -886,6 +893,9 @@ implementation
                def.is_registered then
               def.derefimpl;
           end;
+        { The implementation references become usable only after its used
+          units have been loaded and this first dereference has completed. }
+        derefimpl_built:=true;
       end;
 
 
