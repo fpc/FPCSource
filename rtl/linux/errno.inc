@@ -19,10 +19,10 @@
 
 }
 const
-{$ifdef CPUSPARC}
+{$ifdef CPUSPARCGEN}
 {$define FPC_HAS_ESYS}
 {$i errno-sparc.inc}
-{$endif CPUSPARC}
+{$endif CPUSPARCGEN}
 
 {$ifdef CPUMIPS}
 {$define FPC_HAS_ESYS}
