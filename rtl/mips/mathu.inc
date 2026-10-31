@@ -141,7 +141,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean =true);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     SetNativeFPUControlWord(GetNativeFPUControlWord and not (fpu_flags_mask or fpu_cause_mask));
   end;

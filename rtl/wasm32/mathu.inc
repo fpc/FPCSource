@@ -42,6 +42,6 @@ begin
   SetExceptionMask:=[exDenormalized,exOverflow,exPrecision];
 end;
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
 begin
 end;

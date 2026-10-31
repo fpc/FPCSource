@@ -251,11 +251,53 @@ begin
 end;
 
 
-procedure ClearExceptions(RaisePending: Boolean);assembler;
+{$define FPC_MATH_HAS_EXCEPTION_FLAGS}
+
+// x87 status word
+function Get8087SW: word; assembler; nostackframe;
 asm
-  cmpb $0,RaisePending
-  je .Lclear
-  fwait
-.Lclear:
-  fnclex
+  fnstsw %ax
+end;
+
+
+{ Set the exception flags of the x87 status word to the low 6 bits of aFlags,
+  without making them pending: the error summary and busy bits are cleared. }
+procedure Set8087Flags(aFlags: dword);
+var
+  lEnv: array[0..6] of dword;
+begin
+  asm
+    fnstenv lEnv
+  end;
+  lEnv[1]:=(lEnv[1] and not dword($80BF)) or (aFlags and $3F);
+  asm
+    fldenv lEnv
+  end;
+end;
+
+
+procedure ClearAllExceptions(RaisePending: Boolean);
+begin
+  if RaisePending then
+    asm
+      fwait
+    end;
+  asm
+    fnclex
+  end;
+  SetMXCSR(GetMXCSR and not dword($3F));
+end;
+
+
+function GetExceptions: TArithmeticExceptions;
+begin
+  Result:=TArithmeticExceptions(dword((Get8087SW or GetMXCSR) and $3F));
+end;
+
+
+function SetExceptions(const Exceptions: TArithmeticExceptions): TArithmeticExceptions;
+begin
+  Result:=GetExceptions;
+  Set8087Flags(dword(Exceptions));
+  SetMXCSR((GetMXCSR and not dword($3F)) or (dword(Exceptions) and $3F));
 end;

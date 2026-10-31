@@ -134,7 +134,7 @@ begin
   Result:=ConvertExceptionMask(c);
 end;
 
-procedure ClearExceptions(RaisePending: Boolean =true);
+procedure ClearAllExceptions(RaisePending: Boolean);
 begin
 end;
 
@@ -292,11 +292,48 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean =true);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     { RaisePending has no effect on ARM, it always raises them at the correct location }
     VFP_SetCW(VFP_GetCW and (not _VFP_EXCEPTIONS_PENDING_MASK));
     softfloat_exception_flags:=[];
+  end;
+
+
+{$define FPC_MATH_HAS_EXCEPTION_FLAGS}
+
+const
+  { FPSCR cumulative exception bits }
+  _VFP_EXCEPTION_BITS: array[TFPUException] of dword = (1 shl 0, 1 shl 7, 1 shl 1, 1 shl 2, 1 shl 3, 1 shl 4);
+
+
+function GetExceptions: TArithmeticExceptions;
+  var
+    cw: dword;
+    f: TFPUException;
+  begin
+    cw:=VFP_GetCW;
+    Result:=softfloat_exception_flags;
+    for f in TFPUException do
+      if (cw and _VFP_EXCEPTION_BITS[f])<>0 then
+        include(Result,f);
+  end;
+
+
+function SetExceptions(const Exceptions: TArithmeticExceptions): TArithmeticExceptions;
+  var
+    cw: dword;
+    f: TFPUException;
+  begin
+    Result:=GetExceptions;
+    cw:=VFP_GetCW;
+    for f in TFPUException do
+      if f in Exceptions then
+        cw:=cw or _VFP_EXCEPTION_BITS[f]
+      else
+        cw:=cw and not _VFP_EXCEPTION_BITS[f];
+    VFP_SetCW(cw);
+    softfloat_exception_flags:=Exceptions;
   end;
 
 {$else FPUARM_HAS_VFP_EXTENSION}
@@ -486,7 +523,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean =true);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     softfloat_exception_flags:=[];
   end;

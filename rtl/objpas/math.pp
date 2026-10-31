@@ -964,6 +964,19 @@ type
   TFPUPrecisionMode = system.TFPUPrecisionMode;
   TFPUException = system.TFPUException;
   TFPUExceptionMask = system.TFPUExceptionMask;
+  // Floating-point exception, Delphi name of TFPUException.
+  TArithmeticException = TFPUException;
+  // Set of floating-point exception flags.
+  TArithmeticExceptions = TFPUExceptionMask;
+  // Set of masked floating-point exceptions.
+  TArithmeticExceptionMask = TFPUExceptionMask;
+
+const
+  exAllArithmeticExceptions = [exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision];
+  // Default flags of ClearExceptions and RaiseExceptions: all pending exceptions.
+  DefaultExceptionFlags = [];
+  // Value of DefaultExceptionFlags in Delphi versions before 12.
+  LegacyExceptionFlags = [exInvalidOp, exZeroDivide, exOverflow];
 
 function GetRoundMode: TFPURoundingMode;
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
@@ -971,7 +984,16 @@ function GetPrecisionMode: TFPUPrecisionMode;
 function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
 function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-procedure ClearExceptions(RaisePending: Boolean =true);
+{ Clear pending floating-point exception flags. With ExceptionFlags=[] all flags are cleared,
+  otherwise only the given ones. RaisePending first raises the pending exceptions that are
+  not masked. }
+procedure ClearExceptions(RaisePending: Boolean = true; ExceptionFlags: TArithmeticExceptions = DefaultExceptionFlags);
+// Return the cumulative floating-point exception flags.
+function GetExceptions: TArithmeticExceptions;
+// Set the cumulative floating-point exception flags and return the previous ones.
+function SetExceptions(const Exceptions: TArithmeticExceptions): TArithmeticExceptions;
+// Raise the pending unmasked exceptions among ExceptionFlags (all when []) and clear those flags.
+procedure RaiseExceptions(const ExceptionFlags: TArithmeticExceptions = DefaultExceptionFlags);
 
 
 implementation
@@ -980,6 +1002,69 @@ function copysign(x,y: float): float; forward;    { returns abs(x)*sign(y) }
 
 { include cpu specific stuff }
 {$i mathu.inc}
+
+{$ifndef FPC_MATH_HAS_EXCEPTION_FLAGS}
+function GetExceptions: TArithmeticExceptions;
+begin
+  Result:=softfloat_exception_flags;
+end;
+
+
+function SetExceptions(const Exceptions: TArithmeticExceptions): TArithmeticExceptions;
+begin
+  Result:=softfloat_exception_flags;
+  softfloat_exception_flags:=Exceptions;
+end;
+{$endif FPC_MATH_HAS_EXCEPTION_FLAGS}
+
+
+{ Runtime error, passed to ErrorProc first, for an exception of aFlags that is not
+  masked; the error codes are those of float_raise. }
+procedure RaiseUnmaskedExceptions(aFlags: TArithmeticExceptions);
+var
+  lCode: Longint;
+begin
+  aFlags:=aFlags-GetExceptionMask;
+  if exInvalidOp in aFlags then
+    lCode:=207
+  else if exZeroDivide in aFlags then
+    lCode:=208
+  else if exOverflow in aFlags then
+    lCode:=205
+  else if exUnderflow in aFlags then
+    lCode:=206
+  else if exPrecision in aFlags then
+    lCode:=207
+  else if exDenormalized in aFlags then
+    lCode:=216
+  else
+    exit;
+  if Assigned(ErrorProc) then
+    ErrorProc(lCode,get_caller_addr(get_frame),get_caller_frame(get_frame));
+  RunError(lCode);
+end;
+
+
+procedure ClearExceptions(RaisePending: Boolean; ExceptionFlags: TArithmeticExceptions);
+var
+  lPending: TArithmeticExceptions;
+begin
+  if ExceptionFlags=[] then
+    ClearAllExceptions(RaisePending)
+  else
+    begin
+    lPending:=GetExceptions*ExceptionFlags;
+    SetExceptions(GetExceptions-ExceptionFlags);
+    if RaisePending then
+      RaiseUnmaskedExceptions(lPending);
+    end;
+end;
+
+
+procedure RaiseExceptions(const ExceptionFlags: TArithmeticExceptions);
+begin
+  ClearExceptions(True,ExceptionFlags);
+end;
 
 ResourceString
   SMathError = 'Math Error : %s';

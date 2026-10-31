@@ -193,7 +193,7 @@ begin
   Result := TFPUExceptionMask(Byte(CtlWord and $3F));
 end;
 
-procedure ClearExceptions(RaisePending: Boolean);assembler;
+procedure ClearAllExceptions(RaisePending: Boolean);assembler;
 asm
   cmp byte RaisePending, 0
   je @Lclear

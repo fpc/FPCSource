@@ -91,7 +91,7 @@ procedure RaisePendingExceptions;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
   var
     cw: TNativeFPUControlWord;
   begin
@@ -142,7 +142,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean =true);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     softfloat_exception_flags:=[];
   end;

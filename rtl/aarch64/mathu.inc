@@ -129,7 +129,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
   var
     fpsr: qword;
     f: TFPUException;
@@ -155,4 +155,41 @@ procedure ClearExceptions(RaisePending: Boolean);
       end;
     softfloat_exception_flags:=[];
     setfpsr(fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
+  end;
+
+
+{$define FPC_MATH_HAS_EXCEPTION_FLAGS}
+
+const
+  { FPSR cumulative exception bits }
+  FPSRExceptionBits: array[TFPUException] of qword = (1 shl 0, 1 shl 7, 1 shl 1, 1 shl 2, 1 shl 3, 1 shl 4);
+
+
+function GetExceptions: TArithmeticExceptions;
+  var
+    fpsr: qword;
+    f: TFPUException;
+  begin
+    fpsr:=getfpsr;
+    Result:=softfloat_exception_flags;
+    for f in TFPUException do
+      if (fpsr and FPSRExceptionBits[f])<>0 then
+        include(Result,f);
+  end;
+
+
+function SetExceptions(const Exceptions: TArithmeticExceptions): TArithmeticExceptions;
+  var
+    fpsr: qword;
+    f: TFPUException;
+  begin
+    Result:=GetExceptions;
+    fpsr:=getfpsr;
+    for f in TFPUException do
+      if f in Exceptions then
+        fpsr:=fpsr or FPSRExceptionBits[f]
+      else
+        fpsr:=fpsr and not FPSRExceptionBits[f];
+    setfpsr(fpsr);
+    softfloat_exception_flags:=Exceptions;
   end;

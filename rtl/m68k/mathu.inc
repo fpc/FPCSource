@@ -153,7 +153,7 @@ begin
   result:=pmDouble;
 end;
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
 begin
   SetFPCR(GetFPCR and not FPU68K_EXCEPT_MASK);
   SetFPSR(0);
@@ -193,7 +193,7 @@ begin
   result:=pmDouble;
 end;
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
 begin
   softfloat_exception_flags:=[];
 end;

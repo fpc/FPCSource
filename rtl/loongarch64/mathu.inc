@@ -124,7 +124,7 @@ procedure RaisePendingExceptions;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     if raisepending then
       RaisePendingExceptions;

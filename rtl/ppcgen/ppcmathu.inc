@@ -173,7 +173,7 @@ begin
 end;
 
 
-procedure ClearExceptions(RaisePending: Boolean = true);
+procedure ClearAllExceptions(RaisePending: Boolean);
 begin
 {$ifdef aix}
   { clear pending exceptions }

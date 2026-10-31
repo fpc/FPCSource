@@ -50,7 +50,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean = true);
+procedure ClearAllExceptions(RaisePending: Boolean);
   begin
     softfloat_exception_flags:=[];
   end;
