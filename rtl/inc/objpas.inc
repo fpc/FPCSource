@@ -420,27 +420,30 @@ const
   );
 
 class function TGUID.FromString(const S: ShortString; out GUID: TGUID): Boolean;
-  function ParseHexDigit(c: char; var aRes : Boolean): Byte;
+  function ParseHexDigit(c: AnsiChar; var aRes : Boolean): Byte;
   begin
     case c of
       '0'..'9': Result := Byte(c) - Byte('0');
       'a'..'f': Result := Byte(c) - Byte('a') + 10;
       'A'..'F': Result := Byte(c) - Byte('A') + 10;
     else
+      begin
+      Result := 0;
       aRes := False;
+      end;
     end;
   end;
 
 var
   iByte: SizeInt;
-  sp: PChar;
+  sp: PAnsiChar;
 
 begin
   Result := (Length(S)=38) and (S[1]='{') and (S[10]='-') and (S[15]='-') and (S[20]='-') and (S[25]='-') and (S[38]='}');
   if not Result then exit;
   for iByte := 0 to High(cAsStringByteScatter) do
   begin
-    sp := PChar(Pointer(@S[1])) + cAsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
+    sp := PAnsiChar(Pointer(@S[1])) + cAsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
     PByte(@Guid)[iByte] := ParseHexDigit(sp[0], Result) shl 4 + ParseHexDigit(sp[1],Result);
 
   end;
