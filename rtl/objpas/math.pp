@@ -962,7 +962,15 @@ function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelat
 function CompareValue ( const A, B : Extended; delta : Extended = 0.0 ) : TValueRelationship; inline;
 {$endif}
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RandomFrom(const AValues: array of Single): Single; overload;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function RandomFrom(const AValues: array of Double): Double; overload;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RandomFrom(const AValues: array of Extended): Extended; overload;
+{$endif}
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 function RandomFrom(const AValues: array of Int64): Int64; overload;
 {$if FPC_FULLVERSION >=30101}
@@ -4504,10 +4512,26 @@ begin
 end;
 {$endif}
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RandomFrom(const AValues: array of Single): Single; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function RandomFrom(const AValues: array of Double): Double; overload;
 begin
   result:=AValues[random(High(AValues)+1)];
 end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RandomFrom(const AValues: array of Extended): Extended; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+{$endif}
 
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 begin
