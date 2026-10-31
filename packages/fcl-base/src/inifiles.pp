@@ -94,7 +94,8 @@ type
     procedure Changed; override;
   public
     destructor Destroy; override;
-    function IndexOf(const S: String): Integer; override;
+    function IndexOf(const S: String): Integer; overload; override;
+    function IndexOf(const S: String; aStart: Integer): Integer; overload; override;
     function IndexOfName(const Name: String): Integer; override;
   end;
 
@@ -427,6 +428,27 @@ begin
     Result := Integer(FValueHash[I])-1
   else
     Result := -1;
+end;
+
+function THashedStringList.IndexOf(const S: String; aStart: Integer): Integer;
+var
+  I: Integer;
+begin
+  if aStart < 0 then
+  begin
+    aStart := Count + aStart;
+    if aStart < 0 then
+      aStart := 0;
+  end;
+  I := IndexOf(S);
+  if I < 0 then
+    Exit(-1);
+  if I < aStart then
+    Exit(inherited IndexOf(S, aStart));
+  // The hash returns one of the matches; look for an earlier one from aStart
+  Result := aStart;
+  while (Result < I) and (DoCompareText(Strings[Result], S) <> 0) do
+    Inc(Result);
 end;
 
 function THashedStringList.IndexOfName(const Name: String): Integer;

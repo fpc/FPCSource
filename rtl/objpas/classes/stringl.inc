@@ -2148,6 +2148,33 @@ begin
 end;
 
 
+function TStringList.IndexOf(const S: string; aStart: Integer): Integer;
+
+begin
+  if not Sorted then
+    Exit(inherited IndexOf(S,aStart));
+  if aStart<0 then
+    begin
+    aStart:=Count+aStart;
+    if aStart<0 then
+      aStart:=0;
+    end;
+  if not Find(S,Result) then
+    Exit(-1);
+  // Equal strings are adjacent in a sorted list
+  if Result<aStart then
+    begin
+    if (aStart>=Count) or (DoCompareText(S,Flist^[aStart].FString)<>0) then
+      Result:=-1
+    else
+      Result:=aStart;
+    end
+  else
+    while (Result>aStart) and (DoCompareText(S,Flist^[Result-1].FString)=0) do
+      Dec(Result);
+end;
+
+
 
 procedure TStringList.Insert(Index: Integer; const S: string);
 
@@ -2413,6 +2440,31 @@ end;
 function TStringList.IndexOf(const S: string): Integer;
 begin
   Result := FMap.IndexOf(S);
+end;
+
+function TStringList.IndexOf(const S: string; aStart: Integer): Integer;
+begin
+  if not Sorted then
+    Exit(inherited IndexOf(S, aStart));
+  if aStart < 0 then
+  begin
+    aStart := Count + aStart;
+    if aStart < 0 then
+      aStart := 0;
+  end;
+  if not Find(S, Result) then
+    Exit(-1);
+  // Equal strings are adjacent in a sorted list
+  if Result < aStart then
+  begin
+    if (aStart >= Count) or (DoCompareText(S, Strings[aStart]) <> 0) then
+      Result := -1
+    else
+      Result := aStart;
+  end
+  else
+    while (Result > aStart) and (DoCompareText(S, Strings[Result - 1]) = 0) do
+      Dec(Result);
 end;
 
 procedure TStringList.Insert(Index: Integer; const S: string);
