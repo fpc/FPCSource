@@ -151,6 +151,17 @@ implementation
       end;
 
 
+    { can normal loads/stores access unaligned memory? This is the case for
+      normal memory if SCTLR_ELx.A is cleared, which all supported operating
+      systems do for user space. Embedded code might run with the MMU off, then
+      all memory is device memory and unaligned accesses fault. Exclusive and
+      acquire/release accesses must always be aligned. }
+    function unaligned_access_supported: boolean;
+      begin
+        result:=target_info.system<>system_aarch64_embedded;
+      end;
+
+
     procedure tcgaarch64.make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister; allowpageoffset: boolean);
       var
         href: treference;
@@ -427,7 +438,8 @@ implementation
                   { unsupported offset -> fold into base register (these
                     instructions support all addressmodes) }
                   if (ref.offset<-(1 shl (6+tcgsizep2size[size]))) or
-                     (ref.offset>(1 shl (6+tcgsizep2size[size]))-1) then
+                     (ref.offset>(1 shl (6+tcgsizep2size[size]))-1) or
+                     ((ref.offset mod (1 shl tcgsizep2size[size]))<>0) then
                     begin
                       case ref.addressmode of
                         AM_POSTINDEXED:
@@ -875,7 +887,7 @@ implementation
               reg:=makeregsize(reg,OS_64);
             fromsize:=tosize;
           end;
-        if not(target_info.system=system_aarch64_darwin) and (ref.alignment<>0) and
+        if not(unaligned_access_supported) and (ref.alignment<>0) and
            (ref.alignment<tcgsize2size[tosize]) then
           begin
             a_load_reg_ref_unaligned(list,fromsize,tosize,reg,ref);
@@ -924,7 +936,7 @@ implementation
         }
         if fromsize in [OS_8,OS_16,OS_32] then
           reg:=makeregsize(reg,OS_32);
-        if not(target_info.system=system_aarch64_darwin) and (ref.alignment<>0) and
+        if not(unaligned_access_supported) and (ref.alignment<>0) and
            (ref.alignment<tcgsize2size[fromsize]) then
           begin
             a_load_ref_reg_unaligned(list,fromsize,tosize,ref,reg);
@@ -2536,8 +2548,12 @@ implementation
           exit;
         sourcebasereplaced:=false;
         destbasereplaced:=false;
-        { maximum common alignment }
-        totalalign:=max(1,newalignment(source.alignment,dest.alignment));
+        { maximum common alignment; if unaligned accesses are supported, the
+          alignment does not matter }
+        if unaligned_access_supported then
+          totalalign:=8
+        else
+          totalalign:=max(1,newalignment(source.alignment,dest.alignment));
         { use a simple load/store? }
         if (len in [1,2,4,8]) and
            ((totalalign>=(len div 2)) or

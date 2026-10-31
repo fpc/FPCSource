@@ -859,9 +859,15 @@ implementation
                   { only supported for 32/64 bit }
                   if not(oppostfix in [PF_W,PF_SW,PF_None]) then
                     exit;
-                  { offset must be a multiple of the access size }
+                  { offset must be a multiple of the access size; if it is
+                    not, it can be folded into the base register, but not in
+                    case of pre-/post-indexing }
                   if (ref.offset mod accesssize)<>0 then
-                    exit;
+                    begin
+                      if ref.addressmode=AM_OFFSET then
+                        result:=sr_complex;
+                      exit;
+                    end;
                   { offset must fit in a signed 7 bit offset }
                   if (ref.offset>=-(1 shl (6+tcgsizep2size[size]))) and
                      (ref.offset<=(1 shl (6+tcgsizep2size[size]))-1) then
