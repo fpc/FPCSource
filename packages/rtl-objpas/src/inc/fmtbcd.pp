@@ -1545,18 +1545,17 @@ IMPLEMENTATION
                             var BCD : tBCD );
     var
       s : string [ 30 ];
-{$if defined(real8) or not defined(FPC_HAS_TYPE_EXTENDED)}
       f : TFormatSettings;
     begin
       f := DefaultFormatSettings;
       f.DecimalSeparator := '.';
       f.ThousandSeparator := #0;
+{$if defined(real8) or not defined(FPC_HAS_TYPE_EXTENDED)}
       { use 15 significant digits for double
         Str ( aValue : 25 ) prints 17 digits, which exposes the binary
         representation error, e.g. 0.1 would become 0.10000000000000001 }
       s := FloatToStrF ( aValue, ffExponent, 15, 0, f );
 {$else}
-    begin
       Str ( aValue : 25, s );
 {$endif}
       BCD := StrToBCD ( s, f );
