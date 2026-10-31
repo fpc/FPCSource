@@ -33,7 +33,9 @@ Uses baseunix,UnixType;
      defined(FreeBSD) or
      defined(Darwin) or
      defined(Haiku) or
-     defined(OpenBSD)
+     defined(OpenBSD) or
+     defined(NetBSD) or
+     defined(DragonFly)
 }
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
