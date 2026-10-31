@@ -65,6 +65,12 @@ begin
   internal_socketerror:=fpgeterrno;
 end;
 
+function  fpaccept4 (s:cint; addrx : psockaddr; addrlen : psocklen; flags:cint):cint;
+begin
+  fpAccept4:=do_syscall(syscall_nr_accept4,S,TSysParam(addrx),TSysParam(addrlen),flags);
+  internal_socketerror:=fpgeterrno;
+end;
+
 function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
   fpConnect:=do_syscall(syscall_nr_connect,S,TSysParam(name),namelen);

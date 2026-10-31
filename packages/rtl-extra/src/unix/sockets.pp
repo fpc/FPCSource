@@ -38,6 +38,10 @@ Uses baseunix,UnixType;
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
+{$if defined(linux) or defined(freebsd) or defined(dragonfly) or defined(openbsd) or defined(solaris)}
+{$DEFINE SOCK_HAS_ACCEPT4}
+{$endif}
+
 Type
  TSockLen = {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.TSocklen;
 

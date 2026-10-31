@@ -34,6 +34,7 @@ const
  syscall_nr_getgroups                   =  79;
  syscall_nr_sysarch                     = 165;
  syscall_nr_accept                      =  30;
+ syscall_nr_accept4                     = 541;
  syscall_nr_access                      =  33;
  syscall_nr_bind                        = 104;
  syscall_nr_chdir                       =  12;

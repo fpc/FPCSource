@@ -139,6 +139,10 @@ const
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN = 4096;
 
+{ Flags for the socket type in fpsocket and for fpaccept4 }
+  SOCK_CLOEXEC  = O_CLOEXEC;
+  SOCK_NONBLOCK = O_NONBLOCK;
+
 { For setsockoptions(2) }
 {$if defined(cpumips)}
 {$i sockopt-mips.inc}

@@ -26,6 +26,9 @@ const
   {$endif}
 
 function cfpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external libname name 'accept';
+{$ifdef SOCK_HAS_ACCEPT4}
+function cfpaccept4     (s:cint; addrx : psockaddr; addrlen : psocklen; flags:cint):cint; cdecl; external libname name 'accept4';
+{$endif}
 function cfpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external libname name 'bind';
 function cfpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external libname name 'connect';
 function cfpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external libname name 'getpeername';
@@ -55,6 +58,15 @@ begin
  fpaccept:=cfpaccept(s,addrx,addrlen);
  internal_socketerror:=fpgeterrno;
 end;
+
+{$ifdef SOCK_HAS_ACCEPT4}
+function fpaccept4     (s:cint; addrx : psockaddr; addrlen : psocklen; flags:cint):cint;
+
+begin
+ fpaccept4:=cfpaccept4(s,addrx,addrlen,flags);
+ internal_socketerror:=fpgeterrno;
+end;
+{$endif}
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin

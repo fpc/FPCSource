@@ -46,6 +46,7 @@ Const
   Socket_Sys_GETSOCKOPT  = 15;
   Socket_Sys_SENDMSG     = 16;
   Socket_Sys_RECVMSG     = 17;
+  Socket_Sys_ACCEPT4     = 18;
 
 
 Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:TSysParam):cint; inline;
@@ -106,6 +107,11 @@ end;
 function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=SocketCall(Socket_Sys_accept,S,TSysParam(addrx),TSysParam(addrlen));
+end;
+
+function  fpaccept4 (s:cint; addrx : psockaddr; addrlen : psocklen; flags:cint):cint;
+begin
+  fpAccept4:=SocketCall(Socket_Sys_accept4,S,TSysParam(addrx),TSysParam(addrlen),flags,0,0);
 end;
 
 function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint;
@@ -190,6 +196,12 @@ end;
 function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
+  internal_socketerror:=fpgeterrno;
+end;
+
+function  fpaccept4 (s:cint; addrx : psockaddr; addrlen : psocklen; flags:cint):cint;
+begin
+  fpAccept4:=do_syscall(syscall_nr_accept4,S,TSysParam(addrx),TSysParam(addrlen),flags);
   internal_socketerror:=fpgeterrno;
 end;
 

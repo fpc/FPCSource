@@ -117,6 +117,10 @@ Const
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN     = 128;
 
+{ Flags for the socket type in fpsocket and for fpaccept4 }
+  SOCK_CLOEXEC  = $8000;
+  SOCK_NONBLOCK = $4000;
+
         SOL_SOCKET 	 = $FFFF;
         SO_DEBUG         = $0001;        { turn on debugging info recording }
         SO_ACCEPTCONN    = $0002;        { socket has had listen() }

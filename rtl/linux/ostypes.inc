@@ -305,6 +305,7 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
     O_DIRECT  =    $100000;
+    O_CLOEXEC =    $400000;
 {$else : not (cpusparc or cpusparc64)}
 {$ifdef cpumips}
     O_CREAT   =       $100;
@@ -331,6 +332,7 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
 {$endif not cpumips}
+    O_CLOEXEC =     $80000;
 {$endif not (cpusparc or cpusparc64)}
 
     AT_FDCWD = -100;

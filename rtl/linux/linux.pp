@@ -37,7 +37,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  O_CLOEXEC = $80000;
+  O_CLOEXEC = {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.O_CLOEXEC;
 
 type
   { used by newer Linux headers }
