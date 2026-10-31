@@ -363,11 +363,13 @@ Const
   MSG_CTRUNC    = $0020;              { Control data lost before delivery }
   MSG_WAITALL   = $0040;              { Wait for a full request }
   MSG_DONTWAIT  = $0080;              { Non-blocking I/O }
-  MSG_EOF       = $0100;
-  MSG_NBIO      = $4000;
-  MSG_COMPAT    = $8000;
-  MSG_SOCALLBCK = $10000;
-  MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
+  MSG_BCAST     = $0100;              { Received as link-level broadcast }
+  MSG_MCAST     = $0200;              { Received as link-level multicast }
+  MSG_NOSIGNAL  = $0400;              { Do not generate SIGPIPE }
+  MSG_CMSG_CLOEXEC = $0800;           { Close-on-exec for received descriptors }
+  MSG_NBIO      = $1000;              { Non-blocking I/O }
+  MSG_WAITFORONE = $2000;             { recvmmsg: wait for one message }
+  MSG_NOTIFICATION = $4000;           { SCTP notification }
 
      TCP_NODELAY = 1;
   { set maximum segment size  }
