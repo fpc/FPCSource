@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      $(INITCUNIT) profile dxetype dxeload emu387 \
 #      $(CPUUNIT) $(MMXUNIT) $(INTRINSICSUNIT) \
 #      vesamode \
-# rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
+# rsts=$(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 implicitunits= $(CP_UNITS)
 
 [require]

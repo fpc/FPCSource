@@ -1078,21 +1078,6 @@ begin
   ClearExceptions(True,ExceptionFlags);
 end;
 
-ResourceString
-  SMathError = 'Math Error : %s';
-  SInvalidArgument = 'Invalid argument';
-
-Procedure DoMathError(Const S : String);
-begin
-  Raise EMathError.CreateFmt(SMathError,[S]);
-end;
-
-Procedure InvalidArgument;
-
-begin
-  Raise EInvalidArgument.Create(SInvalidArgument);
-end;
-
 
 function Sign(const AValue: Integer): TValueSign;inline;
 

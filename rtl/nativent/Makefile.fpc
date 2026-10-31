@@ -25,7 +25,7 @@ implicitunits=ndk ndkutils ddk \
 
 # shared=$(DLLS)
 
-rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
+rsts=$(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y

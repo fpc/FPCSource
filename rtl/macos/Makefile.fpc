@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(STRINGSUNIT)  $(MACPASUNIT) $(OBJPASUNIT) $(
 #      exec  \
 #      printer \
 #      $(LINEINFOUNIT) $(LNFODWRFUNIT)
-rsts=$(MATHUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
+rsts=$(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 # implicitunits=exeinfo
 implicitunits=$(CP_UNITS)
 

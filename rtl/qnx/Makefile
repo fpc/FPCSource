@@ -930,7 +930,7 @@ ifeq ($(CPU_OS_TARGET),i386-qnx)
 override TARGET_LOADERS+=cprt0 crti crtn
 endif
 ifeq ($(CPU_OS_TARGET),i386-qnx)
-override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT)
+override TARGET_RSTS+=$(TYPINFOUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-qnx)

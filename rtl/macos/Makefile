@@ -938,10 +938,10 @@ ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override TARGET_IMPLICITUNITS+=$(CP_UNITS)
 endif
 ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
-override TARGET_RSTS+=$(MATHUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
+override TARGET_RSTS+=$(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
-override TARGET_RSTS+=$(MATHUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
+override TARGET_RSTS+=$(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),m68k-macosclassic)

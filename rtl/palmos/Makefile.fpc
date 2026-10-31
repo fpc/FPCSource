@@ -26,7 +26,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #    winsysut
 implicitunits=$(CP_UNITS)
 
-# rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
+# rsts=$(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y

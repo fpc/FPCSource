@@ -935,7 +935,7 @@ ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override TARGET_LOADERS+=nwplibc nwl_main nwl_dlle
 endif
 ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) system
+override TARGET_RSTS+=$(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) system
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-netwlibc)
