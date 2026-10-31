@@ -1367,9 +1367,9 @@ Function  BinStr(Val:Longint;cnt:byte):shortstring;
 Function  HexStr(Val:int64;cnt:byte):shortstring;
 Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  BinStr(Val:int64;cnt:byte):shortstring;
-Function  HexStr(Val:qword;cnt:byte):shortstring;
-Function  OctStr(Val:qword;cnt:byte):shortstring;
-Function  BinStr(Val:qword;cnt:byte):shortstring;
+Function  HexStr(Val:qword;cnt:byte):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  OctStr(Val:qword;cnt:byte):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  BinStr(Val:qword;cnt:byte):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ifdef CPUI8086}
 Function  HexStr(Val:NearPointer):shortstring;
 function  HexStr(Val:NearCsPointer):shortstring;
@@ -1381,7 +1381,7 @@ function  HexStr(Val:NearGsPointer):shortstring;
 Function  HexStr(Val:FarPointer):shortstring;
 Function  HexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$else CPUI8086}
-Function  HexStr(Val:Pointer):shortstring;
+Function  HexStr(Val:Pointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUI8086}
 
 { AnsiChar functions }

@@ -276,6 +276,8 @@ function hexstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrDWord(uint32(val) or 1) div 4;
   hexstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -288,6 +290,8 @@ function octstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrDWord(uint32(val) or 1) div 3;
   octstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -301,6 +305,8 @@ function binstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrDWord(uint32(val) or 1);
   binstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -314,6 +320,8 @@ function hexstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrQWord(uint64(val) or 1) div 4;
   hexstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -327,6 +335,8 @@ function octstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrQWord(uint64(val) or 1) div 3;
   octstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -340,6 +350,8 @@ function binstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
+  if cnt=0 then
+    cnt:=1+BsrQWord(uint64(val) or 1);
   binstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
@@ -378,17 +390,8 @@ end;
 {$ifndef FPC_HAS_HEXSTR_POINTER_SHORTSTR}
 {$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
 function hexstr(val : pointer) : shortstring;
-var
-  i : ObjpasInt;
-  v : ptruint;
 begin
-  v:=ptruint(val);
-  hexstr[0]:=chr(sizeof(pointer)*2);
-  for i:=sizeof(pointer)*2 downto 1 do
-   begin
-     hexstr[i]:=hextbl[v and $f];
-     v:=v shr 4;
-   end;
+  result:=HexStr(PtrInt(PtrUint(val)),sizeof(pointer)*2);
 end;
 {$endif FPC_HAS_HEXSTR_POINTER_SHORTSTR}
 
