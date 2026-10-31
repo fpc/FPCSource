@@ -196,9 +196,6 @@ begin
    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: freeing fatal exception if it exists');{$ENDIF}
    FFatalException.Free;
    FFatalException := nil;
-   // Free resources associated with thread.
-   // This must be done after EndThread is called, but that is called in ThreadFunc
-   CloseThread(FHandle);
 end;
 
 
