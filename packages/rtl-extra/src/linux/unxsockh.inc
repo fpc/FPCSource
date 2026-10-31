@@ -140,6 +140,11 @@ const
   SOMAXCONN = 4096;
 
 { For setsockoptions(2) }
+{$if defined(cpumips)}
+{$i sockopt-mips.inc}
+{$elseif defined(cpusparcgen)}
+{$i sockopt-sparc.inc}
+{$else}
          SOL_SOCKET  =   1;
          SO_DEBUG    =   1;
          SO_REUSEADDR=   2;
@@ -179,6 +184,7 @@ const
          SO_TIMESTAMP    = 29;
          SCM_TIMESTAMP   = SO_TIMESTAMP;
          SO_ACCEPTCONN   = 30;
+{$endif}
 
 // Following from kernel 2.6.14-1.1637_FC4
 

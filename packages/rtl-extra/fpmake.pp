@@ -140,6 +140,8 @@ begin
        addinclude('sockets.inc');
        addinclude('sockovl.inc');
        addinclude('unxsockh.inc',UnixLikes);
+       addinclude('sockopt-mips.inc',[linux,android]);
+       addinclude('sockopt-sparc.inc',[linux]);
        addinclude('stdsock.inc',socklibc);
        addinclude('unixsock.inc',socksyscall);
      end;

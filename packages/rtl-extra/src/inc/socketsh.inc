@@ -29,14 +29,14 @@ const
   SOCK_RDM        = 5;               { reliably-delivered message }
   SOCK_SEQPACKET  = 6;               { sequenced packet stream }
 {$else}
-  {$if defined(cpumips) and defined(linux)}
+  {$if defined(cpumips) and (defined(linux) or defined(android))}
   { mips-linux has these two swapped for some reason }
   SOCK_STREAM     = 2;
   SOCK_DGRAM      = 1;
-  {$else cpumips and linux}
+  {$else}
   SOCK_STREAM     = 1;               { stream (connection) socket   }
   SOCK_DGRAM      = 2;               { datagram (conn.less) socket  }
-  {$endif cpumips and linux}
+  {$endif}
   SOCK_RAW        = 3;               { raw socket                   }
   SOCK_RDM        = 4;               { reliably-delivered message   }
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
