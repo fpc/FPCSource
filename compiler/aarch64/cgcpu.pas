@@ -1031,7 +1031,12 @@ implementation
                       a_load_ref_reg(list,OS_8,OS_32,href,tmpreg2);
                       list.concat(taicpu.op_reg_reg_const_const(A_BFI,tmpreg,tmpreg2,i*8,8));
                     end;
-                  a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
+                  { tmpreg contains the value zero extended, but an OS_S16 value must be
+                    sign extended to 32 bit and a_load_reg_reg(OS_S16,OS_S16) does not do so }
+                  if (fromsize=OS_S16) and (tosize=OS_S16) then
+                    a_load_reg_reg(list,OS_S16,OS_S32,tmpreg,register)
+                  else
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
                 end;
             end;
           else
