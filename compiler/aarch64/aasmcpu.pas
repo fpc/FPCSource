@@ -1081,6 +1081,7 @@ implementation
 {$ifdef EXTDEBUG}
            { play save to avoid hard to find bugs, better fail at compile time }
            A_ADD,
+           A_ADR,
            A_ADRP,
            A_AND,
            A_ASR,
@@ -1091,6 +1092,7 @@ implementation
            A_CSEL,
            A_CSET,
            A_CSETM,
+           A_CSINV,
            A_FABS,
            A_EON,
            A_EOR,
@@ -1109,12 +1111,15 @@ implementation
            A_FRINTZ,
            A_FSQRT,
            A_FSUB,
+           A_INS,
+           A_ORN,
            A_ORR,
            A_LSL,
            A_LSLV,
            A_LSR,
            A_LSRV,
            A_MOV,
+           A_MOVI,
            A_MOVN,
            A_MOVZ,
            A_MSUB,
@@ -1148,7 +1153,8 @@ implementation
            A_UMULH,
            A_UXTB,
            A_UXTH,
-           A_MRS:
+           A_MRS,
+           A_MSR:
              if opnr=0 then
                result:=operand_write
              else
