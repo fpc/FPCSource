@@ -6600,8 +6600,10 @@ unit aoptx86;
             if (taicpu(p).opsize >= S_L) and
               GetNextInstructionUsingReg(p,hp1, ActiveReg) and
               MatchInstruction(hp1,A_LEA,[]) and
-              (SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.base) or
-               SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.index)) and
+              { The reference must use the register itself, not another size of it: the
+                address is then computed at the ADD's width, so its wrap-around is kept }
+              ((ActiveReg = taicpu(hp1).oper[0]^.ref^.base) or
+               (ActiveReg = taicpu(hp1).oper[0]^.ref^.index)) and
               (
                 { Cover the case where the register in the reference is also the destination register }
                 Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ActiveReg) or
@@ -7717,8 +7719,10 @@ unit aoptx86;
             if (taicpu(p).opsize >= S_L) and
               GetNextInstructionUsingReg(p,hp1, ActiveReg) and
               MatchInstruction(hp1,A_LEA,[]) and
-              (SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.base) or
-               SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.index)) and
+              { The reference must use the register itself, not another size of it: the
+                address is then computed at the SUB's width, so its wrap-around is kept }
+              ((ActiveReg = taicpu(hp1).oper[0]^.ref^.base) or
+               (ActiveReg = taicpu(hp1).oper[0]^.ref^.index)) and
               (
                 { Cover the case where the register in the reference is also the destination register }
                 Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ActiveReg) or
