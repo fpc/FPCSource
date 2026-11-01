@@ -479,6 +479,14 @@ var
 
 procedure LoadGlut(const dll: String);
 procedure UnloadGlut;
+// Load the first library in aNames that is a usable GLUT library, without raising; return whether one was loaded.
+function TryLoadGlut(const aNames: array of String): Boolean;
+
+var
+  // True when a GLUT library is loaded.
+  GlutLoaded: Boolean;
+  // File name of the loaded GLUT library, empty when none is loaded.
+  GlutLibName: String;
 
 implementation
 
@@ -507,6 +515,9 @@ begin
 
   if (hDLL <> 0) then
     FreeLibrary(hDLL);
+  hDLL := 0;
+  GlutLoaded := False;
+  GlutLibName := '';
 
   @glutInit := nil;
   @glutInitDisplayMode := nil;
@@ -778,6 +789,32 @@ begin
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
   LoadFreeGlut(hDLL);
+  GlutLoaded := True;
+  GlutLibName := dll;
+end;
+{$ENDIF MORPHOS}
+
+
+function TryLoadGlut(const aNames: array of String): Boolean;
+
+{$IFDEF MORPHOS}
+begin
+  Result := True;
+end;
+{$ELSE MORPHOS}
+var
+  lIndex: Integer;
+
+begin
+  Result := False;
+  for lIndex := Low(aNames) to High(aNames) do
+    try
+      LoadGlut(aNames[lIndex]);
+      Exit(True);
+    except
+      on Exception do
+        UnloadGlut;
+    end;
 end;
 {$ENDIF MORPHOS}
 
@@ -785,17 +822,17 @@ end;
 initialization
 
   {$if defined(Windows)}
-  LoadGlut('glut32.dll');
+  TryLoadGlut(['glut32.dll']);
   {$elseif defined(OS2)}
-  LoadGlut('glut.dll');
+  TryLoadGlut(['glut.dll']);
   {$elseif defined(darwin)}
-  LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
+  TryLoadGlut(['/System/Library/Frameworks/GLUT.framework/GLUT']);
   {$elseif defined(haiku) or defined(OpenBSD)}
-  LoadGlut('libglut.so');
+  TryLoadGlut(['libglut.so']);
   {$elseif defined(MORPHOS)}
-  {nothing}
+  GlutLoaded := True;
   {$else}
-  LoadGlut('libglut.so.3');
+  TryLoadGlut(['libglut.so.3', 'libglut.so.3.12', 'libglut.so.12', 'libglut.so']);
   {$endif}
 
 finalization
