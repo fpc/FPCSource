@@ -13,7 +13,7 @@ type
   WKWebViewPtr = ^WKWebView;
 {$endif}
 
-{$if defined(TARGET_OS_IPHONE)defined(interface)defined(WKWebView)defined(UIView)}
+{$if defined(TARGET_OS_IPHONE)}
 
 {$else}
 {$ifdef CLASSES}
