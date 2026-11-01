@@ -208,8 +208,8 @@ begin
   lentab := lzi^.lentab;
   lenp := lentab;
 
-  FillChar(prevtab[0], sizeof(prevtab) * lzi^.chars_in_buf, 0);
-  FillChar(lentab[0], sizeof(prevtab) * lzi^.chars_in_buf, 0);
+  FillChar(prevtab[0], sizeof(prevtab^) * lzi^.chars_in_buf, 0);
+  FillChar(lentab[0], sizeof(lentab^) * lzi^.chars_in_buf, 0);
 
   bbp := lzi^.block_buf;
   bbe := bbp + lzi^.chars_in_buf;
@@ -284,7 +284,7 @@ begin
       if (bytes_to_move > lzi^.chars_in_buf) then
 	bytes_to_move := lzi^.chars_in_buf;
 
-      move(PByte(lzi^.block_buf)[lzi^.chars_in_buf - bytes_to_move], lzi^.block_buf, bytes_to_move);
+      move(PByte(lzi^.block_buf)[lzi^.chars_in_buf - bytes_to_move], lzi^.block_buf[0], bytes_to_move);
 
       lzi^.block_loc := bytes_to_move - residual;
       lzi^.chars_in_buf := bytes_to_move;
