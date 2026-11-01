@@ -286,27 +286,23 @@ type
    created, as well as other event-related states.
 
    Any bits not specified are reserved for future use. }
-(*
-Uncomment when IOKit is translated
-
 const { Masks for the bits in event flags }
 { Device-independent modifier key bits. }
-	kCGEventFlagMaskAlphaShift = NX_ALPHASHIFTMASK;
-	kCGEventFlagMaskShift = NX_SHIFTMASK;
-	kCGEventFlagMaskControl = NX_CONTROLMASK;
-	kCGEventFlagMaskAlternate = NX_ALTERNATEMASK;
-	kCGEventFlagMaskCommand = NX_COMMANDMASK;
+	kCGEventFlagMaskAlphaShift = $00010000 { NX_ALPHASHIFTMASK };
+	kCGEventFlagMaskShift = $00020000 { NX_SHIFTMASK };
+	kCGEventFlagMaskControl = $00040000 { NX_CONTROLMASK };
+	kCGEventFlagMaskAlternate = $00080000 { NX_ALTERNATEMASK };
+	kCGEventFlagMaskCommand = $00100000 { NX_COMMANDMASK };
 
   { Special key identifiers. }
-	kCGEventFlagMaskHelp = NX_HELPMASK;
-	kCGEventFlagMaskSecondaryFn = NX_SECONDARYFNMASK;
+	kCGEventFlagMaskHelp = $00400000 { NX_HELPMASK };
+	kCGEventFlagMaskSecondaryFn = $00800000 { NX_SECONDARYFNMASK };
 
   { Identifies key events from numeric keypad area on extended keyboards. }
-	kCGEventFlagMaskNumericPad = NX_NUMERICPADMASK;
+	kCGEventFlagMaskNumericPad = $00200000 { NX_NUMERICPADMASK };
 
   { Indicates if mouse/pen movement events are not being coalesced }
-	kCGEventFlagMaskNonCoalesced = NX_NONCOALSESCEDMASK;
-*)
+	kCGEventFlagMaskNonCoalesced = $00000100 { NX_NONCOALSESCEDMASK };
 type
 	CGEventFlags = UInt64;      { Flags for events }
 
@@ -315,33 +311,29 @@ type
 { Event types }
 type
 	_CGEventType = SInt32;
-(*
-Uncomment when IOKit is translated
-
 const
-	kCGEventNull = NX_NULLEVENT;			{ Placeholder; the Null Event }
+	kCGEventNull = 0 { NX_NULLEVENT };			{ Placeholder; the Null Event }
     { mouse events }
-	kCGEventLeftMouseDown = NX_LMOUSEDOWN;		{ left mouse-down event }
-	kCGEventLeftMouseUp = NX_LMOUSEUP;			{ left mouse-up event }
-	kCGEventRightMouseDown = NX_RMOUSEDOWN;		{ right mouse-down event }
-	kCGEventRightMouseUp = NX_RMOUSEUP;			{ right mouse-up event }
-	kCGEventMouseMoved = NX_MOUSEMOVED;			{ mouse-moved event }
-	kCGEventLeftMouseDragged = NX_LMOUSEDRAGGED;	{ left mouse-dragged event }
-	kCGEventRightMouseDragged = NX_RMOUSEDRAGGED;	{ right mouse-dragged event }
+	kCGEventLeftMouseDown = 1 { NX_LMOUSEDOWN };		{ left mouse-down event }
+	kCGEventLeftMouseUp = 2 { NX_LMOUSEUP };			{ left mouse-up event }
+	kCGEventRightMouseDown = 3 { NX_RMOUSEDOWN };		{ right mouse-down event }
+	kCGEventRightMouseUp = 4 { NX_RMOUSEUP };			{ right mouse-up event }
+	kCGEventMouseMoved = 5 { NX_MOUSEMOVED };			{ mouse-moved event }
+	kCGEventLeftMouseDragged = 6 { NX_LMOUSEDRAGGED };	{ left mouse-dragged event }
+	kCGEventRightMouseDragged = 7 { NX_RMOUSEDRAGGED };	{ right mouse-dragged event }
 
     { keyboard events }
-	kCGEventKeyDown = NX_KEYDOWN;			{ key-down event }
-	kCGEventKeyUp = NX_KEYUP;				{ key-up event }
-	kCGEventFlagsChanged = NX_FLAGSCHANGED;		{ flags-changed (modifier keys and status) event }
+	kCGEventKeyDown = 10 { NX_KEYDOWN };			{ key-down event }
+	kCGEventKeyUp = 11 { NX_KEYUP };				{ key-up event }
+	kCGEventFlagsChanged = 12 { NX_FLAGSCHANGED };		{ flags-changed (modifier keys and status) event }
 
     { Specialized control devices }
-	kCGEventScrollWheel = NX_SCROLLWHEELMOVED;		{ Scroll wheel input device }
-	kCGEventTabletPointer = NX_TABLETPOINTER;		{ specialized tablet pointer event, in addition to tablet mouse event }
-	kCGEventTabletProximity = NX_TABLETPROXIMITY;	{ specialized tablet proximity event, in addition to tablet mouse event }
-	kCGEventOtherMouseDown = NX_OMOUSEDOWN;		{ Mouse button 2-31 down }
-	kCGEventOtherMouseUp = NX_OMOUSEUP;			{ Mouse button 2-31 up }
-	kCGEventOtherMouseDragged = NX_OMOUSEDRAGGED;	{ Drag with mouse button 2-31 down }
-*)
+	kCGEventScrollWheel = 22 { NX_SCROLLWHEELMOVED };		{ Scroll wheel input device }
+	kCGEventTabletPointer = 23 { NX_TABLETPOINTER };		{ specialized tablet pointer event, in addition to tablet mouse event }
+	kCGEventTabletProximity = 24 { NX_TABLETPROXIMITY };	{ specialized tablet proximity event, in addition to tablet mouse event }
+	kCGEventOtherMouseDown = 25 { NX_OMOUSEDOWN };		{ Mouse button 2-31 down }
+	kCGEventOtherMouseUp = 26 { NX_OMOUSEUP };			{ Mouse button 2-31 up }
+	kCGEventOtherMouseDragged = 27 { NX_OMOUSEDRAGGED };	{ Drag with mouse button 2-31 down }
 
     {
      * Out of band types, delivered for unusual conditions
