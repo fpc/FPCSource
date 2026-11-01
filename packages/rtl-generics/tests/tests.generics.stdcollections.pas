@@ -72,6 +72,8 @@ type
     procedure Test_TList_RemoveItem;
     // TObjectList<T>.ExtractItem does not free the object, RemoveItem does.
     procedure Test_TObjectList_ExtractItem;
+    // TList<T>.GetPtrEnumerator is public and yields pointers into the list.
+    procedure Test_TList_GetPtrEnumerator;
   end;
 
   // Object that counts its destruction.
@@ -1052,6 +1054,49 @@ begin
     AssertEquals('Index of removed object', 0, lList.RemoveItem(lSecond,TDirection.FromEnd));
     AssertEquals('Removing frees', 1, gDestroyCount);
     AssertEquals('Empty after removing', 0, lList.Count);
+  finally
+    lList.Free;
+  end;
+end;
+
+
+procedure TTestStdCollections.Test_TList_GetPtrEnumerator;
+
+type
+  TIndexRec = record
+    Index: Integer;
+  end;
+  TIndexRecList = TList<TIndexRec>;
+
+var
+  lList: TIndexRecList;
+  lRec: TIndexRec;
+  lEnum: TEnumerator<TIndexRecList.PT>;
+  lVisited, i: Integer;
+
+begin
+  lList:=TIndexRecList.Create;
+  try
+    for i:=1 to 3 do
+      begin
+      lRec.Index:=i;
+      lList.Add(lRec);
+      end;
+    lVisited:=0;
+    lEnum:=lList.GetPtrEnumerator;
+    try
+      while lEnum.MoveNext do
+        begin
+        AssertTrue('Pointer to list item '+IntToStr(lVisited), lEnum.Current=@lList.List[lVisited]);
+        Inc(lEnum.Current^.Index,10);
+        Inc(lVisited);
+        end;
+    finally
+      lEnum.Free;
+    end;
+    AssertEquals('Items visited', 3, lVisited);
+    for i:=0 to lList.Count-1 do
+      AssertEquals('Item '+IntToStr(i)+' modified through pointer', i+11, lList[i].Index);
   finally
     lList.Free;
   end;

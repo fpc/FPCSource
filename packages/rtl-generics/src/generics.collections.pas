@@ -270,7 +270,8 @@ type
     public
       constructor Create(AList: TCustomListWithPointers<T>);
     end;
-  protected
+  public
+    // Return an enumerator that yields a pointer to each item in the list.
     function GetPtrEnumerator: TEnumerator<PT>; override;
   end;
 
