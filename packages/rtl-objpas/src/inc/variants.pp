@@ -738,6 +738,22 @@ end;
 {$endif}
 
 
+{ VarUtils cannot raise EVariantOverflowError, so it reports a value out of
+  Currency's range with this error code }
+function VarDataToCurrency(const aSource : TVarData) : Currency;
+begin
+  try
+    Result := VariantToCurrency(aSource);
+  except
+    on E: EVariantError do
+      if E.ErrCode = VAR_OVERFLOW then
+        VarOverflowError(aSource.vType, varCurrency)
+      else
+        raise;
+  end;
+end;
+
+
 function sysvartocurr (const v : Variant) : Currency;
 var Handler: TCustomVariantType;
     dest: TVarData;
@@ -752,13 +768,13 @@ begin
       VariantInit(dest);
       try
         Handler.CastTo(dest, TVarData(v), varCurrency);
-        Result := VariantToCurrency(dest);
+        Result := VarDataToCurrency(dest);
       finally
         DoVarClear(dest);
       end;
     end
   else
-    Result := VariantToCurrency(TVarData(V));
+    Result := VarDataToCurrency(TVarData(V));
 end;
 
 function CustomVarToLStr(const v: TVarData; out s: AnsiString): Boolean;
@@ -1433,7 +1449,7 @@ begin
         Result := DoVarCmpWStr(vl, vr, OpCode);
 {$ifndef FPUNONE}
     ctDate:     Result := DoVarCmpFloat(VariantToDate(vl), VariantToDate(vr), OpCode);
-    ctCurrency: Result := DoVarCmpCurr(VariantToCurrency(vl), VariantToCurrency(vr));
+    ctCurrency: Result := DoVarCmpCurr(VarDataToCurrency(vl), VarDataToCurrency(vr));
 {$endif}
     ctString:
       if (vl.vType = varString) and (vr.vType = varString) then
@@ -1719,29 +1735,29 @@ var
 begin
   case OpCode of
     opAdd:
-      c := VariantToCurrency(vl) + VariantToCurrency(vr);
+      c := VarDataToCurrency(vl) + VarDataToCurrency(vr);
     opSubtract:
-      c := VariantToCurrency(vl) - VariantToCurrency(vr);
+      c := VarDataToCurrency(vl) - VarDataToCurrency(vr);
     opMultiply:
       if lct = ctCurrency then
         if rct = ctCurrency then {both Currency}
-          c := VariantToCurrency(vl) * VariantToCurrency(vr)
+          c := VarDataToCurrency(vl) * VarDataToCurrency(vr)
         else {Left Currency}
-          c := VariantToCurrency(vl) * VariantToDouble(vr)
+          c := VarDataToCurrency(vl) * VariantToDouble(vr)
       else
         if rct = ctCurrency then {rigth Currency}
-          c := VariantToDouble(vl) * VariantToCurrency(vr)
+          c := VariantToDouble(vl) * VarDataToCurrency(vr)
         else {non Currency, error}
           VarInvalidOp(vl.vType, vr.vType, OpCode);
     opDivide:
       if lct = ctCurrency then
         if rct = ctCurrency then {both Currency}
-          c := VariantToCurrency(vl) / VariantToCurrency(vr)
+          c := VarDataToCurrency(vl) / VarDataToCurrency(vr)
         else {Left Currency}
-          c := VariantToCurrency(vl) / VariantToDouble(vr)
+          c := VarDataToCurrency(vl) / VariantToDouble(vr)
       else
         if rct = ctCurrency then begin {rigth Currency}
-          d := VariantToCurrency(vl) / VariantToCurrency(vr);
+          d := VarDataToCurrency(vl) / VarDataToCurrency(vr);
           DoVarClearIfComplex(vl);
           vl.vType := varDouble;
           vl.vDouble := d;
@@ -1751,12 +1767,12 @@ begin
     opPower:
       if lct = ctCurrency then
         if rct = ctCurrency then {both Currency}
-          c := VariantToCurrency(vl) ** VariantToCurrency(vr)
+          c := VarDataToCurrency(vl) ** VarDataToCurrency(vr)
         else {Left Currency}
-          c := VariantToCurrency(vl) ** VariantToDouble(vr)
+          c := VarDataToCurrency(vl) ** VariantToDouble(vr)
       else
         if rct = ctCurrency then {rigth Currency}
-          c := VariantToDouble(vl) ** VariantToCurrency(vr)
+          c := VariantToDouble(vl) ** VarDataToCurrency(vr)
         else {non Currency, error}
           VarInvalidOp(vl.vType, vr.vType, OpCode);
   else
@@ -2568,7 +2584,7 @@ begin
 {$ifndef FPUNONE}
         varSingle:   SysVarFromSingle(Variant(aDest), VariantToSingle(aSource));
         varDouble:   SysVarFromDouble(Variant(aDest), VariantToDouble(aSource));
-        varCurrency: SysVarFromCurr(Variant(aDest), VariantToCurrency(aSource));
+        varCurrency: SysVarFromCurr(Variant(aDest), VarDataToCurrency(aSource));
         varDate:     SysVarFromTDateTime(Variant(aDest), VariantToDate(aSource));
 {$endif}
         varOleStr:   DoVarCastWStr(aDest, aSource);

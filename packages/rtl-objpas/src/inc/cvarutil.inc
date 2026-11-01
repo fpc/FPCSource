@@ -809,6 +809,55 @@ begin
     VariantTypeMismatch(varUString, varCurrency);
 end;
 
+{ A value out of Currency's range is refused with this code: Variants turns it
+  into EVariantOverflowError, which is declared there. }
+Procedure VariantCurrencyOverflow;
+begin
+  Raise EVariantError.CreateCode(VAR_OVERFLOW);
+end;
+
+Function Int64ToCurrency(Value: Int64): Currency;
+begin
+  if (Value > 922337203685477) or (Value < -922337203685477) then
+    VariantCurrencyOverflow;
+  Result := Value;
+end;
+
+Function QWordToCurrency(Value: QWord): Currency;
+begin
+  if Value > 922337203685477 then
+    VariantCurrencyOverflow;
+  Result := Int64(Value);
+end;
+
+{$ifndef FPUNONE}
+Function FloatToCurrency(Value: Double): Currency;
+const
+  { the first double whose value does not fit; MaxCurrency cannot say so: a
+    comparison with it can convert the double to a currency first, and without
+    an extended type it holds no fraction }
+  FirstOutOfRange: Double = 922337203685477.625;
+  ScaledLimit: Double = 9223372036854775808.0;
+var
+  { the product as the conversion below forms it: the x87 at its default
+    precision keeps it unrounded, elsewhere it is a double }
+  Scaled: Extended;
+begin
+  { a NaN fails every comparison, so it is refused by its bits, as an infinity
+    is }
+  if TDoubleRec(Value).Exp = 2047 then
+    VariantCurrencyOverflow;
+  if (Value >= FirstOutOfRange) or (Value <= -FirstOutOfRange) then
+    VariantCurrencyOverflow;
+  { under a directed rounding mode the scaling can round to 2^63, which no
+    currency holds; -2^63 is the lowest one }
+  Scaled := Value * 10000.0;
+  if (Scaled >= ScaledLimit) or (Scaled < -ScaledLimit) then
+    VariantCurrencyOverflow;
+  Result := Value;
+end;
+{$endif}
+
 Function VariantToCurrency(const VargSrc : TVarData) : Currency;
 var
   lValue: TVarData;
@@ -832,21 +881,9 @@ begin
         varShortInt : Result := vShortInt;
         varInteger  : Result := vInteger;
 {$ifndef FPUNONE}
-        varSingle   : begin
-          if (vSingle > MaxCurrency) or (vSingle < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := vSingle;
-        end;
-        varDouble   : begin
-          if (vDouble > MaxCurrency) or (vDouble < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := vDouble;
-        end;
-        varDate     : begin
-          if (vDate > MaxCurrency) or (vDate < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := vDate;
-        end;
+        varSingle   : Result := FloatToCurrency(vSingle);
+        varDouble   : Result := FloatToCurrency(vDouble);
+        varDate     : Result := FloatToCurrency(vDate);
 {$endif}
         varCurrency : Result := vCurrency;
         varBoolean  : Result := SmallInt(vBoolean);
@@ -854,8 +891,8 @@ begin
         varByte     : Result := vByte;
         varWord     : Result := vWord;
         varLongWord : Result := vLongWord;
-        varInt64    : Result := vInt64;
-        varQword    : Result := currency(vQWord);
+        varInt64    : Result := Int64ToCurrency(vInt64);
+        varQword    : Result := QWordToCurrency(vQWord);
         varOleStr   : Result := WStrToCurrency(vOleStr);
         varString   : Result := LStrToCurrency(vString);
         varUString  : Result := UStrToCurrency(vString);
@@ -867,21 +904,9 @@ begin
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
 {$ifndef FPUNONE}
-        varSingle   : begin
-          if (PSingle(vPointer)^ > MaxCurrency) or (PSingle(vPointer)^ < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := PSingle(vPointer)^;
-        end;
-        varDouble   : begin
-          if (PDouble(vPointer)^ > MaxCurrency) or (PDouble(vPointer)^ < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := PDouble(vPointer)^;
-        end;
-        varDate     : begin
-          if (PDate(vPointer)^ > MaxCurrency) or (PDate(vPointer)^ < MinCurrency) then
-            VariantTypeMismatch(vType, varCurrency);
-          Result := PDate(vPointer)^;
-        end;
+        varSingle   : Result := FloatToCurrency(PSingle(vPointer)^);
+        varDouble   : Result := FloatToCurrency(PDouble(vPointer)^);
+        varDate     : Result := FloatToCurrency(PDate(vPointer)^);
 {$endif}
         varCurrency : Result := PCurrency(vPointer)^;
         varBoolean  : Result := SmallInt(PWordBool(vPointer)^);
@@ -889,8 +914,8 @@ begin
         varByte     : Result := PByte(vPointer)^;
         varWord     : Result := PWord(vPointer)^;
         varLongWord : Result := PLongWord(vPointer)^;
-        varInt64    : Result := PInt64(vPointer)^;
-        varQword    : Result := currency(PQWord(vPointer)^);
+        varInt64    : Result := Int64ToCurrency(PInt64(vPointer)^);
+        varQword    : Result := QWordToCurrency(PQWord(vPointer)^);
         varOleStr   : Result := WStrToCurrency(PPointer(vPointer)^);
         varString   : Result := LStrToCurrency(PPointer(vPointer)^);
         varUString  : Result := UStrToCurrency(PPointer(vPointer)^);
