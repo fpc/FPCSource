@@ -1016,34 +1016,18 @@ IMPLEMENTATION
      end;
 {$endif}
 
-{$if sizeof ( integer ) = 2 }
-  {$ifdef BCDgr4 }
+{ the BCD of low ( myInttype ), whose magnitude no myInttype holds }
+{$ifdef integ64}
+  {$ifdef BCDgr18 }
                                   var
                                     myMinIntBCD : tBCD;
   {$endif}
 {$else}
-  {$if sizeof ( integer ) = 4 }
-    {$ifdef BCDgr9 }
+  {$ifdef BCDgr9 }
                                   var
                                     myMinIntBCD : tBCD;
-    {$endif}
-  {$else}
-    {$if sizeof ( integer ) = 8 }
-      {$ifdef BCDgr18 }
-                                  var
-                                    myMinIntBCD : tBCD;
-      {$endif}
-    {$else}
-      {$fatal You have an interesting integer type! Sorry, not supported}
-    {$endif}
   {$endif}
 {$endif}
-
-  procedure not_implemented;
-
-    begin
-      RAISE eBCDNotImplementedException.create ( 'not implemented' );
-     end;
 
   procedure unpack_BCD ( const BCD : tBCD;
                            var bh : tBCD_helper );
@@ -4255,7 +4239,7 @@ begin
           if vType=VarFmtBCD then
             Result := TFMTBcdVarData(vPointer).BCD
           else
-            not_implemented;
+            VarCastError(vType, VarFmtBCD);
       end;
       varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
@@ -4272,12 +4256,13 @@ begin
         varLongWord : Result := PLongWord(vPointer)^;
         varInt64    : Result := PInt64(vPointer)^;
         varQword    : Result := PQWord(vPointer)^;
+        varOleStr   : Result := PWideString(vPointer)^;
       else { other vtype }
-        not_implemented;
+        VarCastError(vType, VarFmtBCD);
       end else { pointer is nil }
-        not_implemented;
+        VarCastError(vType, VarFmtBCD);
     else { array or something like that }
-        not_implemented;
+        VarCastError(vType, VarFmtBCD);
     end;
 end;
 
@@ -4406,57 +4391,103 @@ begin
   Dest.VType:=VarType;
 end;
 
+{ The whole number a BCD holds, as a sign and a magnitude. False for a value with
+  a fraction, and for one that needs more than 64 bits. }
+function BCDToWhole(const BCD: tBCD; out aMagnitude: QWord; out aNeg: Boolean): Boolean;
+var
+  bh: tBCD_helper;
+  i: Integer;
+  digit: Byte;
+begin
+  Result:=False;
+  aMagnitude:=0;
+  unpack_BCD(BCD, bh);
+  aNeg:=bh.Neg;
+  for i:=1 to bh.LDig do
+    if bh.Singles[i]<>0 then
+      Exit;
+  for i:=bh.FDig to 0 do
+  begin
+    digit:=bh.Singles[i];
+    if aMagnitude>(High(QWord)-digit) div 10 then
+      Exit;
+    aMagnitude:=aMagnitude*10+digit;
+  end;
+  Result:=True;
+end;
+
 procedure TFMTBcdFactory.CastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
-var v: TVarData;
+var
+  v: TVarData;
+  lBCD: tBCD;
+  lMagnitude: QWord;
+  lNeg: Boolean;
 begin
   if Source.vType=VarType then
-    if aVarType = varString then
-      VarDataFromStr(Dest, BCDToStr(TFMTBcdVarData(Source.vPointer).BCD))
-    else
-    begin
-      VarDataInit(v);
-      v.vType:=varDouble;
-      v.vDouble:=BCDToDouble(TFMTBcdVarData(Source.vPointer).BCD);
-      VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
-      { finalizing v is not necessary here (Double is a simple type) }
-    end
+  begin
+    lBCD:=TFMTBcdVarData(Source.vPointer).BCD;
+    case aVarType of
+      varString:
+        VarDataFromStr(Dest, BCDToStr(lBCD));
+      varOleStr, varUString:
+      begin
+        VarDataInit(v);
+        VarDataFromStr(v, BCDToStr(lBCD));
+        try
+          VarDataCastTo(Dest, v, aVarType);
+        finally
+          VarDataClear(v);
+        end;
+      end;
+      varInt64, varQWord, varLongWord:
+      begin
+        { a fraction, or a value no int64 holds, cannot be cast; a QWord also takes
+          the rest of its own range. What fits an int64 and not the target overflows }
+        if not BCDToWhole(lBCD, lMagnitude, lNeg) or
+           (lNeg and (lMagnitude>QWord(High(Int64))+1)) or
+           ((aVarType<>varQWord) and not lNeg and (lMagnitude>QWord(High(Int64)))) then
+          VarCastError(VarType, aVarType);
+        if (aVarType<>varInt64) and
+           ((lNeg and (lMagnitude<>0)) or ((aVarType=varLongWord) and (lMagnitude>High(LongWord)))) then
+          VarOverflowError(VarType, aVarType);
+        VarDataClear(Dest);
+        Dest.vType:=aVarType;
+        if aVarType=varLongWord then
+          Dest.vLongWord:=lMagnitude
+        else
+        begin
+{$PUSH}{$Q-}{$R-}
+          if lNeg then
+            lMagnitude:=(not lMagnitude)+1;
+{$POP}
+          Dest.vQWord:=lMagnitude;
+        end;
+      end;
+      else
+      begin
+        VarDataInit(v);
+        v.vType:=varDouble;
+        v.vDouble:=BCDToDouble(lBCD);
+        VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
+        { finalizing v is not necessary here (Double is a simple type) }
+      end;
+    end;
+  end
   else
     inherited;
 end;
 
 {$if declared ( myMinIntBCD ) }
-(*
-  {$if sizeof ( integer ) = 2 }
-    {$ifdef BCDgr4 }
 
   const
-    myMinIntBCDValue : packed array [ 1..3 ] of AnsiChar = #$32#$76#$80;
-
-    {$endif}
+  {$ifdef integ64}
+    myMinIntBCDPrecision = 19;
+    myMinIntBCDValue : packed array [ 1..10 ] of AnsiChar = #$92#$23#$37#$20#$36#$85#$47#$75#$80#$80;
   {$else}
-    {$if sizeof ( integer ) = 4 }
-*)
-      {$ifdef BCDgr9 }
-
-  const
-    myMinIntBCDValue : packed array [ 1..10 ] of AnsiChar = #$21#$47#$48#$36#$48;
-
-      {$endif}
-(*
-    {$else}
-      {$if sizeof ( integer ) = 8 }
-        {$ifdef BCDgr18 }
-
-  const
-    myMinIntBCDValue : packed array [ 1..19 ] of AnsiChar = #$92#$23#$37#$20#$36#$85#$47#$75#$80#$80;
-
-        {$endif}
-      {$else}
-        {$fatal You have an interesting integer type! Sorry, not supported}
-      {$endif}
-    {$endif}
+    myMinIntBCDPrecision = 10;
+    myMinIntBCDValue : packed array [ 1..5 ] of AnsiChar = #$21#$47#$48#$36#$48;
   {$endif}
-*)
+
 {$endif}
 
 initialization
@@ -4474,35 +4505,9 @@ initialization
 {$else}
   myMinIntBCD.Negativ := True;
 {$endif}
-
-  {$if sizeof ( integer ) = 2 }
-    {$ifdef BCDgr4 }
-
-  myMinIntBCD.Precision := 5;
+  myMinIntBCD.Precision := myMinIntBCDPrecision;
   Move ( myMinIntBCDValue, myMinIntBCD.Fraction, SizeOf ( myMinIntBCDValue ) );
 
-    {$endif}
-  {$else}
-    {$if sizeof ( integer ) = 4 }
-      {$ifdef BCDgr9 }
-
-  myMinIntBCD.Precision := 10;
-  Move ( myMinIntBCDValue, myMinIntBCD.Fraction, SizeOf ( myMinIntBCDValue ) );
-
-      {$endif}
-    {$else}
-      {$if sizeof ( integer ) = 8 }
-        {$ifdef BCDgr18 }
-
-  myMinIntBCD.Precision := 19;
-  Move ( myMinIntBCDValue, myMinIntBCD.Fraction, SizeOf ( myMinIntBCDValue ) );
-
-        {$endif}
-      {$else}
-        {$fatal You have an interesting integer type! Sorry, not supported}
-      {$endif}
-    {$endif}
-  {$endif}
 {$endif}
 
   FMTBcdFactory:=TFMTBcdFactory.create;
