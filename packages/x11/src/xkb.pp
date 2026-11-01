@@ -1063,7 +1063,7 @@ function XkbCMKeyGroupsWidth (m : PXkbClientMapPtr; k : Word)           : Byte;
 function XkbCMKeyTypeIndex   (m : PXkbClientMapPtr; k : Word; g : Byte) : Byte;
 function XkbCMKeyType        (m : PXkbClientMapPtr; k : Word; g : Byte) : PXkbKeyTypePtr;
 function XkbCMKeyNumSyms     (m : PXkbClientMapPtr; k : Word)           : Word;
-function XkbCMKeySymsOffset  (m : PXkbClientMapPtr; k : Word)           : Byte;
+function XkbCMKeySymsOffset  (m : PXkbClientMapPtr; k : Word)           : Word;
 function XkbCMKeySymsPtr     (m : PXkbClientMapPtr; k : Word)           : PKeySym;
 
         {
@@ -2560,10 +2560,10 @@ end;
 function XkbCMKeyNumSyms (m : PXkbClientMapPtr; k : Word) : Word;
 begin
 {#define XkbCMKeyNumSyms(m,k) (XkbCMKeyGroupsWidth(m,k)*XkbCMKeyNumGroups(m,k))}
-        Result := XkbCMKeyGroupsWidth (m,k) or XkbCMKeyNumGroups(m,k);
+        Result := XkbCMKeyGroupsWidth (m,k) * XkbCMKeyNumGroups(m,k);
 end;
 
-function XkbCMKeySymsOffset (m : PXkbClientMapPtr; k : Word) : Byte;
+function XkbCMKeySymsOffset (m : PXkbClientMapPtr; k : Word) : Word;
 begin
 {#define XkbCMKeySymsOffset(m,k) ((m)->key_sym_map[k].offset)}
         Result := m^.key_sym_map [k].offset;
