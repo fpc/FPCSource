@@ -4350,11 +4350,12 @@ implementation
 
     function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
       begin
-        { search record/object symtable first for a suitable operator }
+        { search record/object symtable first for a suitable operator; only for
+          this search, so the module's helpers and generics stay as they are }
         if from_def.typ in [recorddef,objectdef] then
-          symtablestack.push(tabstractrecorddef(from_def).symtable);
+          symtablestack.pushplain(tabstractrecorddef(from_def).symtable);
         if to_def.typ in [recorddef,objectdef] then
-          symtablestack.push(tabstractrecorddef(to_def).symtable);
+          symtablestack.pushplain(tabstractrecorddef(to_def).symtable);
 
         { if type conversion is explicit then search first for explicit
           operator overload and if not found then use implicit operator }
@@ -4377,9 +4378,9 @@ implementation
 
         { restore symtable stack }
         if to_def.typ in [recorddef,objectdef] then
-          symtablestack.pop(tabstractrecorddef(to_def).symtable);
+          symtablestack.popplain(tabstractrecorddef(to_def).symtable);
         if from_def.typ in [recorddef,objectdef] then
-          symtablestack.pop(tabstractrecorddef(from_def).symtable);
+          symtablestack.popplain(tabstractrecorddef(from_def).symtable);
       end;
 
 

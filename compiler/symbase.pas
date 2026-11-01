@@ -141,6 +141,10 @@ interface
          procedure push(st:TSymtable); virtual;
          procedure pushafter(st,afterst:TSymtable); virtual;
          procedure pop(st:TSymtable); virtual;
+         { a push and a pop that change the stack and nothing else: what a
+           descendant's push and pop do besides stays undone }
+         procedure pushplain(st:TSymtable);
+         procedure popplain(st:TSymtable);
          { Remove st from anywhere in the stack without raising an error if
            it is not present.  Used by the CTask PPU-cycle fix to excise a
            symtable that is about to be freed (via tmodule.reset) from a
@@ -459,6 +463,11 @@ implementation
       end;
 
     procedure TSymtablestack.push(st:TSymtable);
+      begin
+        pushplain(st);
+      end;
+
+    procedure TSymtablestack.pushplain(st:TSymtable);
       var
         hp : psymtablestackitem;
       begin
@@ -485,6 +494,11 @@ implementation
       end;
 
     procedure TSymtablestack.pop(st:TSymtable);
+      begin
+        popplain(st);
+      end;
+
+    procedure TSymtablestack.popplain(st:TSymtable);
       var
         hp : psymtablestackitem;
       begin
