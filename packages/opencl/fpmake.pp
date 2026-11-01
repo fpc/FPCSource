@@ -25,7 +25,7 @@ begin
     P.Description := 'A OpenCL header';
     P.NeedLibC:= true;
     P.OSes:=[linux,win64,win32,darwin];
-    P.CPUs:=[i386,x86_64];
+    P.CPUs:=[i386,x86_64,arm,aarch64];
 
     P.Dependencies.Add('opengl');
 

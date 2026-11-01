@@ -673,7 +673,7 @@ function clCreateContextFromType(
   user_data       : Pointer;
   errcode_ret     : pcl_int
   ): cl_context; extdecl;
-  external name 'clCreateContextFromType';
+  external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateContextFromType';
 
 function clRetainContext(context: cl_context): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clRetainContext';
@@ -897,7 +897,7 @@ function clCreateKernelsInProgram(
   num_kernels   : cl_uint;
   kernels       : Pcl_kernel;
   num_ret       : pcl_uint
-  ): cl_int; extdecl; external name 'clCreateKernelsInProgram';
+  ): cl_int; extdecl; external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateKernelsInProgram';
 
 function clRetainKernel(kernel: cl_kernel): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clRetainKernel';
