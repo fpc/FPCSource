@@ -50,6 +50,12 @@ uses
 {$LINKLIB c} // should be uses initc ?
 
 {$DEFINE USE_FPC_BYTEBOOL}
+{$DEFINE NCURSES_EXT_COLORS}
+
+{ Look up the public ncurses variables as data or as _nc_* accessor at run time. }
+{$IF defined(linux) or (defined(BSD) and not defined(darwin))}
+{$DEFINE NCURSES_RUNTIME_VARS}
+{$ENDIF}
 
 const
    libncurses = 'ncursesw';
@@ -85,11 +91,26 @@ const
 
 type
    pchtype = ^chtype;
-   chtype  = culong;
+   chtype  = cuint;
    pmmask_t = ^mmask_t;
+{$IFDEF darwin}
    mmask_t  = culong;
+{$ELSE darwin}
+   mmask_t  = cuint;
+{$ENDIF darwin}
 
 { colors  }
+{$IFDEF NCURSES_RUNTIME_VARS}
+// Return the number of colors the terminal supports.
+function Get_COLORS: cint;
+// Return the number of color pairs the terminal supports.
+function Get_COLOR_PAIRS: cint;
+
+// Number of colors the terminal supports.
+property COLORS: cint read Get_COLORS;
+// Number of color pairs the terminal supports.
+property COLOR_PAIRS: cint read Get_COLOR_PAIRS;
+{$ELSE NCURSES_RUNTIME_VARS}
 var
 {$IFNDEF darwin}
    COLORS : cint cvar; external;
@@ -98,6 +119,7 @@ var
    COLORS : cint external libncurses name 'COLORS';
    COLOR_PAIRS : cint external libncurses name 'COLOR_PAIRS';
 {$ENDIF darwin}
+{$ENDIF NCURSES_RUNTIME_VARS}
 
 const
    COLOR_BLACK = 0;
@@ -118,12 +140,20 @@ type
    tacs_map = array [AnsiChar] of chtype;
    pacs_map = ^tacs_map;
 
+{$IFDEF NCURSES_RUNTIME_VARS}
+// Return the line drawing character for the VT100 character aChar.
+function Get_acs_map(aChar: AnsiChar): chtype;
+
+// Line drawing characters, indexed by VT100 character.
+property acs_map[aChar: AnsiChar]: chtype read Get_acs_map;
+{$ELSE NCURSES_RUNTIME_VARS}
 var
 {$IFNDEF darwin}
    acs_map : tacs_map cvar; external;
 {$ELSE darwin}
    acs_map : tacs_map external libncurses name 'acs_map';
 {$ENDIF darwin}
+{$ENDIF NCURSES_RUNTIME_VARS}
 
 //function NCURSES_ACS(c : Longint) : Longint;
 (* VT100 symbols begin here  *)
@@ -277,6 +307,41 @@ type
    TSCREEN = TWINDOW;
    PSCREEN = ^TSCREEN;
 
+{$IFDEF NCURSES_RUNTIME_VARS}
+// Return the default window.
+function Get_stdscr: PWINDOW;
+// Return the current screen image.
+function Get_curscr: PWINDOW;
+// Return the virtual screen image for the next update.
+function Get_newscr: PWINDOW;
+// Return the number of lines on the screen.
+function Get_LINES: Longint;
+// Return the number of columns on the screen.
+function Get_COLS: Longint;
+// Return the number of columns between tab stops.
+function Get_TABSIZE: Longint;
+// Set the number of columns between tab stops.
+procedure Set_TABSIZE(aValue: Longint);
+// Return the ESC expire time in milliseconds.
+function Get_ESCDELAY: Longint;
+// Set the ESC expire time in milliseconds.
+procedure Set_ESCDELAY(aValue: Longint);
+
+// Default window.
+property stdscr: PWINDOW read Get_stdscr;
+// Current screen image.
+property curscr: PWINDOW read Get_curscr;
+// Virtual screen image for the next update.
+property newscr: PWINDOW read Get_newscr;
+// Number of lines on the screen.
+property LINES: Longint read Get_LINES;
+// Number of columns on the screen.
+property COLS: Longint read Get_COLS;
+// Number of columns between tab stops.
+property TABSIZE: Longint read Get_TABSIZE write Set_TABSIZE;
+// ESC expire time in milliseconds.
+property ESCDELAY: Longint read Get_ESCDELAY write Set_ESCDELAY;
+{$ELSE NCURSES_RUNTIME_VARS}
       var
 {$IFNDEF darwin}
        stdscr  : PWINDOW cvar; external;
@@ -295,6 +360,7 @@ type
        TABSIZE : Longint external libncurses name 'TABSIZE';
        ESCDELAY: Longint external libncurses name 'ESCDELAY';
 {$ENDIF darwin}
+{$ENDIF NCURSES_RUNTIME_VARS}
 
 (*
  * These functions are extensions - not in XSI Curses.
@@ -482,12 +548,20 @@ function tigetnum(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 function tigetstr(_para1:PAnsiChar):PAnsiChar;cdecl;external libncurses;
 function putp(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 
+{$IFDEF NCURSES_RUNTIME_VARS}
+// Return the long name of the terminal type.
+function Get_ttytype: PAnsiChar;
+
+// Long name of the terminal type.
+property ttytype: PAnsiChar read Get_ttytype;
+{$ELSE NCURSES_RUNTIME_VARS}
 var
 {$IFNDEF darwin}
    ttytype : array of PAnsiChar cvar; external;  { needed for backward compatibility  }
 {$ELSE darwin}
    ttytype : array of PAnsiChar external libncurses  name 'ttytype';
 {$ENDIF darwin}
+{$ENDIF NCURSES_RUNTIME_VARS}
 
 (*
  * Function prototypes for wide-character operations.
@@ -1104,6 +1178,230 @@ function printw(_para1:PAnsiChar; args:array of const):Longint; cdecl;external l
 
 implementation
 
+{$IFDEF NCURSES_RUNTIME_VARS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Dl;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  dl;
+{$ENDIF FPC_DOTTEDUNITS}
+
+type
+  TNcIntAccessor = function: cint; cdecl;
+  TNcPtrAccessor = function: Pointer; cdecl;
+  TNcIntSetter = function(aValue: cint): cint; cdecl;
+
+  { Exported address of a public ncurses variable, or else its accessor function }
+  TNcPublicVar = record
+    Data: Pointer;
+    Accessor: CodePointer;
+  end;
+
+var
+  gNcCOLORS, gNcCOLOR_PAIRS, gNcLINES, gNcCOLS, gNcTABSIZE, gNcESCDELAY: TNcPublicVar;
+  gNcStdscr, gNcCurscr, gNcNewscr, gNcAcsMap, gNcTtytype: TNcPublicVar;
+  gNcSetTabsize, gNcSetEscdelay: TNcIntSetter;
+
+// Look up aName as exported variable, and if absent the accessor aAccessor.
+procedure NcResolve(out aVar: TNcPublicVar; aName, aAccessor: PAnsiChar);
+
+begin
+  aVar.Data:=dlsym(RTLD_DEFAULT,aName);
+  if aVar.Data=nil then
+    aVar.Accessor:=dlsym(RTLD_DEFAULT,aAccessor)
+  else
+    aVar.Accessor:=nil;
+end;
+
+
+// Return the value of the integer variable aVar, 0 when the library has neither form.
+function NcGetInt(const aVar: TNcPublicVar): cint;
+
+begin
+  if aVar.Data<>nil then
+    Result:=pcint(aVar.Data)^
+  else if aVar.Accessor<>nil then
+    Result:=TNcIntAccessor(aVar.Accessor)()
+  else
+    Result:=0;
+end;
+
+
+// Return the value of the pointer variable aVar, nil when the library has neither form.
+function NcGetPtr(const aVar: TNcPublicVar): Pointer;
+
+begin
+  if aVar.Data<>nil then
+    Result:=PPointer(aVar.Data)^
+  else if aVar.Accessor<>nil then
+    Result:=TNcPtrAccessor(aVar.Accessor)()
+  else
+    Result:=nil;
+end;
+
+
+// Return the address of the first element of the array variable aVar.
+function NcGetArray(const aVar: TNcPublicVar): Pointer;
+
+begin
+  if aVar.Data<>nil then
+    Result:=aVar.Data
+  else if aVar.Accessor<>nil then
+    Result:=TNcPtrAccessor(aVar.Accessor)()
+  else
+    Result:=nil;
+end;
+
+
+// Store aValue in the integer variable aVar, or pass it to aSetter.
+procedure NcSetInt(const aVar: TNcPublicVar; aSetter: TNcIntSetter; aValue: cint);
+
+begin
+  if aVar.Data<>nil then
+    pcint(aVar.Data)^:=aValue
+  else if Assigned(aSetter) then
+    aSetter(aValue);
+end;
+
+
+function Get_COLORS: cint;
+
+begin
+  Result:=NcGetInt(gNcCOLORS);
+end;
+
+
+function Get_COLOR_PAIRS: cint;
+
+begin
+  Result:=NcGetInt(gNcCOLOR_PAIRS);
+end;
+
+
+function Get_acs_map(aChar: AnsiChar): chtype;
+
+var
+  lMap: pacs_map;
+
+begin
+  lMap:=pacs_map(NcGetArray(gNcAcsMap));
+  if lMap=nil then
+    Result:=0
+  else
+    Result:=lMap^[aChar];
+end;
+
+
+function Get_stdscr: PWINDOW;
+
+begin
+  Result:=PWINDOW(NcGetPtr(gNcStdscr));
+end;
+
+
+function Get_curscr: PWINDOW;
+
+begin
+  Result:=PWINDOW(NcGetPtr(gNcCurscr));
+end;
+
+
+function Get_newscr: PWINDOW;
+
+begin
+  Result:=PWINDOW(NcGetPtr(gNcNewscr));
+end;
+
+
+function Get_LINES: Longint;
+
+begin
+  Result:=NcGetInt(gNcLINES);
+end;
+
+
+function Get_COLS: Longint;
+
+begin
+  Result:=NcGetInt(gNcCOLS);
+end;
+
+
+function Get_TABSIZE: Longint;
+
+begin
+  Result:=NcGetInt(gNcTABSIZE);
+end;
+
+
+procedure Set_TABSIZE(aValue: Longint);
+
+begin
+  NcSetInt(gNcTABSIZE,gNcSetTabsize,aValue);
+end;
+
+
+function Get_ESCDELAY: Longint;
+
+begin
+  Result:=NcGetInt(gNcESCDELAY);
+end;
+
+
+procedure Set_ESCDELAY(aValue: Longint);
+
+begin
+  NcSetInt(gNcESCDELAY,gNcSetEscdelay,aValue);
+end;
+
+
+function Get_ttytype: PAnsiChar;
+
+begin
+  Result:=PAnsiChar(NcGetArray(gNcTtytype));
+end;
+
+
+// Locate the public ncurses variables in the loaded libraries.
+procedure NcResolveAll;
+
+begin
+  NcResolve(gNcCOLORS,'COLORS','_nc_COLORS');
+  NcResolve(gNcCOLOR_PAIRS,'COLOR_PAIRS','_nc_COLOR_PAIRS');
+  NcResolve(gNcLINES,'LINES','_nc_LINES');
+  NcResolve(gNcCOLS,'COLS','_nc_COLS');
+  NcResolve(gNcTABSIZE,'TABSIZE','_nc_TABSIZE');
+  NcResolve(gNcESCDELAY,'ESCDELAY','_nc_ESCDELAY');
+  NcResolve(gNcStdscr,'stdscr','_nc_stdscr');
+  NcResolve(gNcCurscr,'curscr','_nc_curscr');
+  NcResolve(gNcNewscr,'newscr','_nc_newscr');
+  NcResolve(gNcAcsMap,'acs_map','_nc_acs_map');
+  NcResolve(gNcTtytype,'ttytype','_nc_ttytype');
+  gNcSetTabsize:=TNcIntSetter(dlsym(RTLD_DEFAULT,'set_tabsize'));
+  gNcSetEscdelay:=TNcIntSetter(dlsym(RTLD_DEFAULT,'set_escdelay'));
+end;
+
+
+{$ENDIF NCURSES_RUNTIME_VARS}
+{ Library accessors for the fields of the opaque WINDOW record }
+function nc_getattrs(win: PWINDOW): cint; cdecl; external libncurses name 'getattrs';
+function nc_getcurx(win: PWINDOW): cint; cdecl; external libncurses name 'getcurx';
+function nc_getcury(win: PWINDOW): cint; cdecl; external libncurses name 'getcury';
+function nc_getbegx(win: PWINDOW): cint; cdecl; external libncurses name 'getbegx';
+function nc_getbegy(win: PWINDOW): cint; cdecl; external libncurses name 'getbegy';
+function nc_getmaxx(win: PWINDOW): cint; cdecl; external libncurses name 'getmaxx';
+function nc_getmaxy(win: PWINDOW): cint; cdecl; external libncurses name 'getmaxy';
+function nc_getparx(win: PWINDOW): cint; cdecl; external libncurses name 'getparx';
+function nc_getpary(win: PWINDOW): cint; cdecl; external libncurses name 'getpary';
+function nc_getbkgd(win: PWINDOW): chtype; cdecl; external libncurses name 'getbkgd';
+function nc_is_leaveok(win: PWINDOW): Bool; cdecl; external libncurses name 'is_leaveok';
+function nc_wattr_set(win: PWINDOW; attrs: attr_t; pair: Smallint; opts: Pointer): cint; cdecl; external libncurses name 'wattr_set';
+function nc_wattr_get(win: PWINDOW; attrs: Pattr_t; pair: PSmallint; opts: Pointer): cint; cdecl; external libncurses name 'wattr_get';
+function nc_wattrset(win: PWINDOW; attrs: cint): cint; cdecl; external libncurses name 'wattrset';
+function nc_wmove(win: PWINDOW; y, x: cint): cint; cdecl; external libncurses name 'wmove';
+function nc_redrawwin(win: PWINDOW): cint; cdecl; external libncurses name 'redrawwin';
+
 function ACS_ULCORNER : chtype;
 begin
   ACS_ULCORNER:=acs_map['l'];
@@ -1328,225 +1626,123 @@ end;
 
 procedure getyx(win: PWINDOW; var y,x: Smallint);
 begin
-   if win<>nil then
-   begin
-      y := win^._cury; x := win^._curx
-   end
-   else
-   begin
-      y := ERR; x := ERR
-   end
+  y := nc_getcury(win); x := nc_getcurx(win)
 end;
 
 procedure getbegyx(win: PWINDOW; var y,x: Smallint);
 begin
-   if win<>nil then
-   begin
-      y := win^._begy; x := win^._begx
-   end
-   else
-   begin
-      y := ERR; x := ERR
-   end
+  y := nc_getbegy(win); x := nc_getbegx(win)
 end;
 
 procedure getmaxyx(win: PWINDOW; var y,x: Smallint);
 begin
-   if win<>nil then
-   begin
-     y := win^._maxy+1; x := win^._maxx+1
-   end
-   else
-   begin
-     y := ERR; x := ERR
-   end
+  y := nc_getmaxy(win); x := nc_getmaxx(win)
 end;
 
 procedure getparyx(win: PWINDOW; var y,x: Smallint);
 begin
-  if win<>nil then
-   begin
-     y := win^._pary; x :=win^._parx
-   end
-   else
-   begin
-     y := ERR; x := ERR
-   end
+  y := nc_getpary(win); x := nc_getparx(win)
 end;
 
 procedure getsyx(var y,x: Smallint);
 begin
-{$IFNDEF USE_FPC_BYTEBOOL}
-   if newscr^._leaveok = NC_FPC_TRUE then
-{$ELSE USE_FPC_BYTEBOOL}
-   if newscr^._leaveok then
-{$ENDIF USE_FPC_BYTEBOOL}
+   if nc_is_leaveok(newscr) then
    begin
      y := -1; x := -1
    end
    else
    begin
-     y := newscr^._cury; x := newscr^._curx
+     y := nc_getcury(newscr); x := nc_getcurx(newscr)
    end
 end;
 
 procedure getyx(win: PWINDOW; var y,x: Longint);
 begin
-   if win<>nil then
-   begin
-      y := win^._cury; x := win^._curx
-   end
-   else
-   begin
-      y := ERR; x := ERR
-   end
+  y := nc_getcury(win); x := nc_getcurx(win)
 end;
 
 procedure getbegyx(win: PWINDOW; var y,x: Longint);
 begin
-   if win<>nil then
-   begin
-      y := win^._begy; x := win^._begx
-   end
-   else
-   begin
-      y := ERR; x := ERR
-   end
+  y := nc_getbegy(win); x := nc_getbegx(win)
 end;
 
 procedure getmaxyx(win: PWINDOW; var y,x: Longint);
 begin
-   if win<>nil then
-   begin
-     y := win^._maxy+1; x := win^._maxx+1
-   end
-   else
-   begin
-     y := ERR; x := ERR
-   end
+  y := nc_getmaxy(win); x := nc_getmaxx(win)
 end;
 
 procedure getparyx(win: PWINDOW; var y,x: Longint);
 begin
-  if win<>nil then
-   begin
-     y := win^._pary; x :=win^._parx
-   end
-   else
-   begin
-     y := ERR; x := ERR
-   end
+  y := nc_getpary(win); x := nc_getparx(win)
 end;
 
 procedure getsyx(var y,x: Longint);
 begin
-{$IFNDEF USE_FPC_BYTEBOOL}
-   if newscr^._leaveok = NC_FPC_TRUE then
-{$ELSE USE_FPC_BYTEBOOL}
-   if newscr^._leaveok then
-{$ENDIF USE_FPC_BYTEBOOL}
+   if nc_is_leaveok(newscr) then
    begin
      y := -1; x := -1
    end
    else
    begin
-     y := newscr^._cury; x := newscr^._curx
+     y := nc_getcury(newscr); x := nc_getcurx(newscr)
    end
 end;
 
 procedure setsyx(y,x: Smallint);
 begin
-(*
-C macros:
-#define setsyx(y,x) do { if((y)==-1 && (x)==-1) newscr->_leaveok=TRUE; \
-       else {newscr->_leaveok=FALSE;wmove(newscr,(y),(x));} \
-        } while(0)
-*)
-   if (x>=0) and (y >=0) AND (x<=newscr^._maxx) AND (y<=newscr^._maxy) then
+(* #define setsyx(y,x) do { if((y)==-1 && (x)==-1) leaveok(newscr,TRUE); else {leaveok(newscr,FALSE);wmove(newscr,(y),(x));} } while(0) *)
+   if (y = -1) and (x = -1) then
+     leaveok(newscr, NC_FPC_TRUE)
+   else
    begin
-      newscr^._curx := x;
-      newscr^._cury := y;
-      newscr^._flags := newscr^._flags AND not _WRAPPED;
-      newscr^._flags := newscr^._flags OR _HASMOVED;
-      newscr^._leaveok := NC_FPC_FALSE;
+     leaveok(newscr, NC_FPC_FALSE);
+     nc_wmove(newscr, y, x)
    end
-   else if (x OR y = -1) then
-      newscr^._leaveok := NC_FPC_TRUE
-
-  //stdscr^._cury := y; //fpc ncurses original
-  //stdscr^._curx := x;
 end;
 
 function getattrs(win: PWINDOW): attr_t;
 begin
-  if win<>nil then
-    getattrs:=win^._attrs
-  else
-    getattrs:=A_NORMAL;
+  getattrs:=attr_t(nc_getattrs(win));
 end;
 
 function getcurx(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getcurx:=win^._curx
-  else
-    getcurx:=ERR;
+  getcurx:=nc_getcurx(win);
 end;
 
 function getcury(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getcury:=win^._cury
-  else
-    getcury:=ERR;
+  getcury:=nc_getcury(win);
 end;
 
 function getbegx(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getbegx:=win^._begx
-  else
-    getbegx:=ERR;
+  getbegx:=nc_getbegx(win);
 end;
 
 function getbegy(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getbegy:=win^._begy
-  else
-    getbegy:=ERR;
+  getbegy:=nc_getbegy(win);
 end;
 
 function getmaxx(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getmaxx:=(win^._maxx) + 1
-  else
-    getmaxx:=ERR;
+  getmaxx:=nc_getmaxx(win);
 end;
 
 function getmaxy(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getmaxy:=(win^._maxy) + 1
-  else
-    getmaxy:=ERR;
+  getmaxy:=nc_getmaxy(win);
 end;
 
 function getparx(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getparx:=win^._parx
-  else
-    getparx:=ERR;
+  getparx:=nc_getparx(win);
 end;
 
 function getpary(win: PWINDOW): Smallint;
 begin
-  if win<>nil then
-    getpary:=win^._pary
-  else
-    getpary:=ERR;
+  getpary:=nc_getpary(win);
 end;
 
 function wstandout(win: PWINDOW): Longint;
@@ -1561,26 +1757,12 @@ end;
 
 function wattr_set(win: PWINDOW; attrs: attr_t; pair: Smallint; opts: Pointer): Longint;
 begin
-{ The parameter opts is reserved for future use, applications must supply a null pointer. }
-{
- C macros
-#define wattr_set(win,a,p,opts)   ((win)->_attrs = (((a) & ~A_COLOR) | COLOR_PAIR(p)), OK)
-}
-  win^._attrs := (attrs AND not A_COLOR) OR COLOR_PAIR(pair);
-  wattr_set := OK
+  wattr_set := nc_wattr_set(win, attrs, pair, opts)
 end;
 
 function wattr_get(win:PWINDOW; attrs:Pattr_t; pair:PSmallint; opts:Pointer):longint;
 begin
-{
- C macros
-#define wattr_get(win,a,p,opts)   ((void)((a) != 0 && (*(a) = (win)->_attrs)), \
-           (void)((p) != 0 && (*(p) = PAIR_NUMBER((win)->_attrs))), \
-           OK)
-}
-    attrs^ := win^._attrs;
-    pair^ := PAIR_NUMBER(win^._attrs);
-    wattr_get := OK
+  wattr_get := nc_wattr_get(win, attrs, pair, opts)
 end;
 
 function wattron(win:PWINDOW; attrs: attr_t): Longint;
@@ -1595,8 +1777,7 @@ end;
 
 function wattrset(win: PWINDOW; attrs: attr_t): longint;
 begin
-  win^._attrs := attrs;
-  wattrset := OK
+  wattrset := nc_wattrset(win, cint(attrs))
 end;
 
 function scroll(win: PWINDOW): longint;
@@ -1657,7 +1838,7 @@ end;
 
 function redrawwin(win: PWINDOW): longint;
 begin
-  redrawwin:=wredrawln(win,0,(win^._maxy)+1);
+  redrawwin:=nc_redrawwin(win);
 end;
 
 function waddstr(win: PWINDOW;st: PAnsiChar): longint;
@@ -1710,9 +1891,7 @@ end;
 
 function attrset(attrs: attr_t): longint;
 begin
-  //attrset:=wattrset(stdscr,attrs);
-  stdscr^._attrs := attrs;
-  attrset := OK
+  attrset := nc_wattrset(stdscr, cint(attrs))
 end;
 
 function bkgd(ch: chtype): longint;
@@ -1822,16 +2001,7 @@ end;
 
 function move(y,x: Smallint): longint;
 begin
-  if (x OR y >=0)AND(x<=stdscr^._maxx)AND(y<=stdscr^._maxy) then
-  begin
-    stdscr^._curx := x;
-    stdscr^._cury := y;
-    stdscr^._flags := stdscr^._flags AND not _WRAPPED;
-    stdscr^._flags := stdscr^._flags OR _HASMOVED;
-    move := OK
-  end
-  else
-    move := ERR
+  move := nc_wmove(stdscr, y, x)
 end;
 
 function refresh: longint;
@@ -2225,7 +2395,7 @@ end;
 
 function getbkgd(win: PWINDOW): chtype;
 begin
-  getbkgd := win^._bkgd;
+  getbkgd := nc_getbkgd(win);
 end;
 
 function slk_attr_off(attrs: attr_t; opts: Pointer) : longint;
@@ -2858,17 +3028,7 @@ end;
 
 function wmove(win: PWINDOW; y,x: Smallint): Longint;
 begin
-  //if (win!=nil)AND(x>=0)AND(x<=win^._maxx)AND(y>=0)AND(y<=win^._maxy) then
-  if (x>=0) and ( y>=0)AND(x<=win^._maxx)AND(y<=win^._maxy) then
-  begin
-    win^._curx := x;
-    win^._cury := y;
-    win^._flags := win^._flags AND not _WRAPPED;
-    win^._flags := win^._flags OR _HASMOVED;
-    wmove := OK
-  end
-  else
-    wmove := ERR
+  wmove := nc_wmove(win, y, x)
 end;
 
 
@@ -2917,4 +3077,8 @@ begin
 end;
 
 
+{$IFDEF NCURSES_RUNTIME_VARS}
+initialization
+  NcResolveAll;
+{$ENDIF NCURSES_RUNTIME_VARS}
 end.
