@@ -126,7 +126,7 @@ begin
   lMedia:=Res.Content.MediaTypes['application/json'];
   AssertNotNull('Have media',lMedia);
   AssertTrue('Have schema',lMedia.HasKeyWord(mtkSchema));
-  AssertEquals('Have component ref','#components/schema/'+aComponent,lMedia.Schema.Ref);
+  AssertEquals('Have component ref','#/components/schemas/'+aComponent,lMedia.Schema.Ref);
 end;
 
 procedure TTestSQLDBRestOpenAPI.AssertPostOperation(aComponent: String);
@@ -151,7 +151,7 @@ begin
   lMedia:=Res.Content.MediaTypes['application/json'];
   AssertNotNull('Have media',lMedia);
   AssertTrue('Have schema',lMedia.HasKeyWord(mtkSchema));
-  AssertEquals('Have component ref','#components/schema/'+aComponent,lMedia.Schema.Ref);
+  AssertEquals('Have component ref','#/components/schemas/'+aComponent,lMedia.Schema.Ref);
 end;
 
 procedure TTestSQLDBRestOpenAPI.AssertListOperation(aComponent : String);
@@ -177,7 +177,7 @@ begin
   lMedia:=Res.Content.MediaTypes['application/json'];
   AssertNotNull('Have media',lMedia);
   AssertTrue('Have schema',lMedia.HasKeyWord(mtkSchema));
-  AssertEquals('Have component ref','#components/schema/'+aComponent+'List',lMedia.Schema.Ref);
+  AssertEquals('Have component ref','#/components/schemas/'+aComponent+'List',lMedia.Schema.Ref);
 end;
 
 Procedure TTestSQLDBRestOpenAPI.AssertSimpleComponent(aComponent : string; aExtraProperty : TSchemaSimpleType = sstNone);
@@ -220,7 +220,7 @@ begin
   AssertTrue(aComponent+' has 1 item',S.items.Count=1);
   el:=S.Items[0];
   AssertNotNull(aComponent+' item is valid',el);
-  AssertEquals(aComponent+' reference to component','#components/schemas/'+aComponent,el.ref);
+  AssertEquals(aComponent+' reference to component','#/components/schemas/'+aComponent,el.ref);
 
 end;
 
