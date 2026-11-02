@@ -92,17 +92,21 @@ begin
 
   if aSuite <> nil then
   begin
+    stream := nil;
     FDoc:= TXMLDocument.Create;
+    try
+      n := FDoc.CreateElement('TestSuites');
+      FDoc.AppendChild(n);
 
-    n := FDoc.CreateElement('TestSuites');
-    FDoc.AppendChild(n);
+      TestSuiteAsXML(n, FDoc, aSuite);
 
-    TestSuiteAsXML(n, FDoc, aSuite);
-
-    stream := TStringStream.Create('');
-    WriteXMLFile(FDoc, stream);
-    Result:=stream.DataString;
-    stream.Free;
+      stream := TStringStream.Create('');
+      WriteXMLFile(FDoc, stream);
+      Result:=stream.DataString;
+    finally
+      stream.Free;
+      FDoc.Free;
+    end;
   end;
 end;
 
