@@ -1671,6 +1671,9 @@ implementation
 
     procedure TDebugInfoDwarf.appenddef_record(list:TAsmList;def:trecorddef);
       begin
+        if assigned(def.objrealname) then
+          appenddef_record_named(list,def,def.objrealname^)
+        else
         if assigned(def.objname) then
           appenddef_record_named(list,def,def.objname^)
         else
@@ -4015,7 +4018,10 @@ implementation
         case def.objecttype of
           odt_cppclass,
           odt_object:
-            append_object_struct(def,false,def.objname);
+            if assigned(def.objrealname) then
+              append_object_struct(def,false,def.objrealname)
+            else
+              append_object_struct(def,false,def.objname);
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
@@ -4027,7 +4033,10 @@ implementation
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
-              append_object_struct(def,true,def.objname);
+              if assigned(def.objrealname) then
+                append_object_struct(def,true,def.objrealname)
+              else
+                append_object_struct(def,true,def.objname);
             end;
           odt_objcclass:
             { Objective-C class: same as regular class, except for
@@ -4458,7 +4467,10 @@ implementation
           odt_cppclass,
           odt_object:
             begin
-              append_object_struct(def,false,def.objname);
+              if assigned(def.objrealname) then
+                append_object_struct(def,false,def.objrealname)
+              else
+                append_object_struct(def,false,def.objname);
               exit;
             end;
           odt_interfacecom,
