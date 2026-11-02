@@ -5466,7 +5466,7 @@ function TCustomDefaults.GetDocInstallDir: String;
 begin
   If (FDocInstallDir<>'') then
     Result:=FDocInstallDir
-  else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
+  else if UnixPaths and ((Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly)) then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'
@@ -5479,7 +5479,7 @@ function TCustomDefaults.GetExamplesInstallDir: String;
 begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
-  else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
+  else if UnixPaths and ((Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly)) then
     Result:=Prefix+'share'+PathDelim+'examples'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'+PathDelim+'examples'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'+PathDelim+'examples'
@@ -9820,10 +9820,14 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
 var
   I : Integer;
   P : TPackage;
+  lOldUnixPaths : Boolean;
 
 begin
   NotifyEventCollection.CallEvents(neaBeforeInstall, Self);
 
+  { An archive has the directory layout of the target OS, not of the build OS }
+  lOldUnixPaths:=Defaults.UnixPaths;
+  Defaults.UnixPaths:=Defaults.OS in AllUnixOSes;
   if Defaults.UnixPaths then
     Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/')
   else
@@ -9843,6 +9847,7 @@ begin
       end;
   finally
     FinishArchive(P);
+    Defaults.UnixPaths:=lOldUnixPaths;
   end;
 
   NotifyEventCollection.CallEvents(neaAfterInstall, Self);
