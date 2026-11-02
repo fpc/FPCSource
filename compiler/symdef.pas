@@ -1357,7 +1357,7 @@ interface
        x86_m256itype             : tdef;
 
 
-    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
+    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr;const st_realname:TSymStr=''):TSymStr;
     function make_dllmangledname(const dllname,importname:TSymStr;
                                  import_nr : word; pco : tproccalloption):TSymStr;
 
@@ -1671,13 +1671,16 @@ implementation
         fields := nil;
       end;
 
-    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
+    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr;const st_realname:TSymStr):TSymStr;
       var
         s,
-        prefix : TSymStr;
+        prefix,
+        owner_name : TSymStr;
+        done_realname: boolean;
         hash : qword;
       begin
         prefix:='';
+        done_realname := st_realname = '';
         if not assigned(st) then
          internalerror(200204212);
         repeat
@@ -1704,20 +1707,26 @@ implementation
              else
                prefix:=s;
              st:=st.defowner.owner;
+             done_realname:=true;
            end;
           { object/classes symtable, nested type definitions in classes require the while loop }
           while st.symtabletype in [ObjectSymtable,recordsymtable] do
            begin
              if not (st.defowner.typ in [objectdef,recorddef]) then
               internalerror(200204174);
-             if length(prefix)>(maxidlen-length(tabstractrecorddef(st.defowner).objname^)-3) then
+             if not done_realname then
+               owner_name:=st_realname
+             else
+               owner_name:=tabstractrecorddef(st.defowner).objname^;
+             if length(prefix)>(maxidlen-length(owner_name)-3) then
                begin
                  hash:=InitFnv64;
                  hash:=UpdateFnv64(hash,prefix[1],length(prefix));
                  prefix:='$H'+Base64Mangle(hash);
                end;
-             prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
+             prefix:=owner_name+'_$_'+prefix;
              st:=st.defowner.owner;
+             done_realname:=true;
            end;
           { local classes & interfaces are possible (because of closures)
             or parasymtable for this case:
@@ -1746,11 +1755,15 @@ implementation
           result:=result+typeprefix+'_$';
         { Add P$ for program, which can have the same name as
           a unit }
+        if not done_realname then
+          owner_name:=st_realname
+        else
+          owner_name:=st.name^;
         if (TSymtable(main_module.localsymtable)=st) and
            (not main_module.is_unit) then
-          result:=result+'P$'+st.name^
+          result:=result+'P$'+owner_name
         else
-          result:=result+st.name^;
+          result:=result+owner_name;
         if prefix<>'' then
           result:=result+'$_$'+prefix;
         if suffix<>'' then
