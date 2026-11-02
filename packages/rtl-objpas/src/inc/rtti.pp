@@ -5162,7 +5162,7 @@ begin
         ftCurr : Result:=CurrToStr(AsCurrency,aSettings);
       end;
     end;
-    tkInteger : result := IntToStr(AsInteger);
+    tkInteger : result := IntToStr(AsOrdinal);
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);

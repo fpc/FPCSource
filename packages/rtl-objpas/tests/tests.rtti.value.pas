@@ -82,6 +82,8 @@ Type
     procedure TestMakeWithoutCopyRecord;
     // MakeWithoutCopy of unmanaged types and of a nil buffer
     procedure TestMakeWithoutCopyUnmanaged;
+    // Each integer type prints at its own range
+    procedure TestToStringInteger;
   end;
 
   { TTestValueArray }
@@ -1798,6 +1800,26 @@ begin
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalTObject, EInvalidCast);
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalSet, EInvalidCast);
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalString, EInvalidCast);
+end;
+
+procedure TTestValueSimple.TestToStringInteger;
+var
+  lValue: TValue;
+begin
+  lValue:=Cardinal(4294967295);
+  AssertEquals('Cardinal, the top of its range','4294967295',lValue.ToString);
+  lValue:=Cardinal(2147483648);
+  AssertEquals('Cardinal, above the range of LongInt','2147483648',lValue.ToString);
+  lValue:=LongInt(-2147483648);
+  AssertEquals('LongInt, the bottom of its range','-2147483648',lValue.ToString);
+  lValue:=Word(65535);
+  AssertEquals('Word','65535',lValue.ToString);
+  lValue:=SmallInt(-32768);
+  AssertEquals('SmallInt','-32768',lValue.ToString);
+  lValue:=Byte(255);
+  AssertEquals('Byte','255',lValue.ToString);
+  lValue:=ShortInt(-128);
+  AssertEquals('ShortInt','-128',lValue.ToString);
 end;
 
 procedure TTestValueSimple.TestTryCastUnicodeString;
