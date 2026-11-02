@@ -248,7 +248,7 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      else
        eletype:=nil;
 
-     fpc_array_to_dynarray_copy(psrc,ti,lowidx,count,realpsrc^.high+1,elesize,eletype);
+     result:=fpc_array_to_dynarray_copy(psrc,ti,lowidx,count,realpsrc^.high+1,elesize,eletype);
   end;
 {$endif VER3_2}
 
