@@ -323,6 +323,7 @@ Const
   FpmkExt = '.fpm';
 
   FPMakePPFile = 'fpmake.pp';
+  PackageFpcFile = 'Package.fpc';
   ManifestFile = 'manifest.xml';
   DocProjectFileExt = '-docs.xml';
   PkgListFileBase = 'pkg-';
@@ -1395,6 +1396,8 @@ Type
     Function GetCompiler : String;
     Function InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
+    // Write an fpcmake Package.fpc for APackage and the current target, and install it in Dest.
+    Procedure InstallPackageFpcFile(APackage : TPackage; Const Dest : String);
     function GetUnitConfigFilesInstallDir(ABaseDir: string): String;
 
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
@@ -3496,7 +3499,7 @@ begin
           // latter to detect packages compiled using old style Makefile's, like
           // the rtl). These directories which are not packages may exist in
           // Lazarus-source-repositories.
-          if not ABuildEngine.SysFileExists(ConcatPaths([PackageBaseDir, 'Package.fpc'])) then
+          if not ABuildEngine.SysFileExists(ConcatPaths([PackageBaseDir, PackageFpcFile])) then
             begin
               if IsPackageSourceLocation then
                 begin
@@ -9140,6 +9143,47 @@ begin
   end;
 end;
 
+
+procedure TBuildEngine.InstallPackageFpcFile(APackage: TPackage; const Dest: String);
+
+var
+  lContent, lList: TStringList;
+  lFileName, lRequires: String;
+  lIndex: Integer;
+  lDependency: TDependency;
+
+begin
+  lRequires:='rtl';
+  for lIndex:=0 to APackage.Dependencies.Count-1 do
+    begin
+      lDependency:=APackage.Dependencies[lIndex];
+      if (lDependency.DependencyType=depPackage)
+         and (Defaults.CPU in lDependency.CPUs) and (Defaults.OS in lDependency.OSes)
+         and not SameText(lDependency.Value,'rtl') then
+        lRequires:=lRequires+' '+lDependency.Value;
+    end;
+  lFileName:=IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CompileTarget))+PackageFpcFile;
+  lContent:=TStringList.Create;
+  try
+    lContent.Add('[package]');
+    lContent.Add('name='+APackage.Name);
+    lContent.Add('version='+APackage.Version);
+    lContent.Add('[require]');
+    lContent.Add('packages_'+OSToString(Defaults.OS)+'_'+CPUToString(Defaults.CPU)+'='+lRequires);
+    lContent.SaveToFile(AddPathPrefix(APackage,lFileName));
+  finally
+    lContent.Free;
+  end;
+  lList:=TStringList.Create;
+  try
+    lList.Add(lFileName);
+    CmdCopyFiles(lList,Dest,APackage);
+  finally
+    lList.Free;
+  end;
+end;
+
+
 function TBuildEngine.InstallPackageSourceFiles(APAckage: TPackage;
   stt: TSourceTypes; ttt: TTargetTypes; const Dest: String;
   const InstallMode: TInstallMode): Boolean;
@@ -9216,7 +9260,10 @@ begin
       B:=true;
     D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+ExcludeLeadingPathDelimiter(APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS, Defaults.SubTarget));
     if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D, imInstall) then
+      begin
       B:=true;
+      InstallPackageFpcFile(APackage,IncludeTrailingPathDelimiter(D));
+      end;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
     //  B:=true;
@@ -9282,6 +9329,7 @@ begin
   InstallPackageFiles(APackage,[],D,imUnInstall);
   D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS, Defaults.SubTarget);
   InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D, imUnInstall);
+  SysDeleteFile(IncludeTrailingPathDelimiter(D)+PackageFpcFile);
   SysDeleteDirectory(D);
 
   // Unit (dependency) configuration
