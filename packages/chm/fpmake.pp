@@ -79,6 +79,7 @@ begin
           AddUnit('chmspecialfiles');
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
+          AddUnit('htmlutil');
           AddInclude('chmobjinstconst.inc');
         end;
     T:=P.Targets.AddUnit('lzxcompressthread.pas');

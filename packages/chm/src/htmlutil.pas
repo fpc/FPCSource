@@ -64,6 +64,10 @@ function GetNameValPair_JAMES(tag, attribname_ci: string): string;
 { rarely needed NAME= case sensitivity }
 function GetNameValPair_cs(tag, attribname: string): string;
 
+{ replaces the character references standing for ASCII characters, such as
+  &lt; or &#39;, by the character }
+function DecodeCharRefs(const s: string): string;
+
 
 implementation
 
@@ -329,6 +333,70 @@ begin
       Result:= CopyBuffer(S, P - S)
     else
       Result:= '';
+  end;
+end;
+
+{ Only the references to ASCII characters are replaced, as they are the same
+  bytes whatever the encoding of the text. The others are left as they are. }
+function DecodeCharRefs(const s: string): string;
+var
+  i, j, k, code: integer;
+  ref: string;
+begin
+  if Pos('&', s) = 0 then
+  begin
+    result:= s;
+    exit;
+  end;
+  result:= '';
+  i:= 1;
+  while i <= Length(s) do
+  begin
+    if s[i] = '&' then
+    begin
+      j:= i + 1;
+      while (j <= Length(s)) and (j - i <= 10) and not (s[j] in [';', '&', ' ']) do
+        inc(j);
+      if (j <= Length(s)) and (s[j] = ';') then
+      begin
+        ref:= Copy(s, i + 1, j - i - 1);
+        code:= -1;
+        if ref = 'lt' then code:= Ord('<')
+        else if ref = 'gt' then code:= Ord('>')
+        else if ref = 'amp' then code:= Ord('&')
+        else if ref = 'quot' then code:= Ord('"')
+        else if ref = 'apos' then code:= Ord('''')
+        else if (Length(ref) > 1) and (ref[1] = '#') then
+        begin
+          // digits only: StrToInt would also take "&#0x41;" or "&#$41;"
+          code:= 0;
+          if ref[2] in ['x', 'X'] then
+          begin
+            if Length(ref) = 2 then
+              code:= -1;
+            for k:= 3 to Length(ref) do
+              if (code >= 0) and (ref[k] in ['0'..'9', 'a'..'f', 'A'..'F']) then
+                code:= code * 16 + Pos(UpCase(ref[k]), '0123456789ABCDEF') - 1
+              else
+                code:= -1;
+          end
+          else
+            for k:= 2 to Length(ref) do
+              if (code >= 0) and (ref[k] in ['0'..'9']) then
+                code:= code * 10 + Ord(ref[k]) - Ord('0')
+              else
+                code:= -1;
+        end;
+        if (code > 0) and (code < 128) then
+        begin
+          result:= result + Chr(code);
+          i:= j + 1;
+          continue;
+        end;
+      end;
+    end;
+    result:= result + s[i];
+    inc(i);
   end;
 end;
 

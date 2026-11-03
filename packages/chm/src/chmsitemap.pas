@@ -260,7 +260,9 @@ const sitemapkws : array[TChmSiteMapItemAttrName] of string = (
 
 function indexitemcompare(Item1, Item2: Pointer): Integer;
 begin
-    Result := naturalComparetext(LowerCase(TChmSiteMapItem(item1).name), Lowercase(TChmSiteMapItem(item2).name));
+    // in the order of the binary index, which stores the names decoded
+    Result := naturalComparetext(LowerCase(DecodeCharRefs(TChmSiteMapItem(item1).name)),
+                                 LowerCase(DecodeCharRefs(TChmSiteMapItem(item2).name)));
 end;
 { TChmSiteMapSubItem }
 

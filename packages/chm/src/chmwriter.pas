@@ -245,9 +245,9 @@ Function CompareStrings(Node1, Node2: Pointer): integer; // also used in filewri
 
 implementation
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.DateUtils, System.SysUtils, Chm.Lzx.Compress, Chm.FiftiMain;
+uses System.DateUtils, System.SysUtils, Chm.Lzx.Compress, Chm.FiftiMain, Chm.HtmlUtil;
 {$ELSE FPC_DOTTEDUNITS}
-uses dateutils, sysutils, paslzxcomp, chmFiftiMain;
+uses dateutils, sysutils, paslzxcomp, chmFiftiMain, HTMLUtil;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -1813,7 +1813,8 @@ var
     TopicEntry: TTopicEntry;
 
 begin
-    ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
+    // the titles come from HTML, where a '<' for instance is written &lt;
+    ATitle := DecodeCharRefs(ATitle);
     anurl:=StringReplace(anurl, '\', '/', [rfReplaceAll]);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
@@ -1850,12 +1851,6 @@ function TChmWriter.AddTopicindex(ATitle, AnUrl: AnsiString; code: integer
   ): integer;
 
 begin
-   ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
-
-  // adhoc substitutions. Replace with real code if exact behaviour is known.
-{  Atitle:=StringReplace(atitle, '&x27;', '''', [rfReplaceAll]);
-  if length(atitle)>0 then
-    atitle[1]:=uppercase(atitle[1])[1];}
   {$ifdef binindex}
   writeln('Enter ',ATitle,' ',AnUrl);
   {$endif}
@@ -1987,7 +1982,7 @@ begin
       begin
         // Write #TOPICS entry
         TopicEntry.TocOffset      := NtoLE(DWord(4096 + EntryInfoStream.Position));
-        TopicEntry.StringsOffset  := NtoLE(AddString(MenuItem.Text));
+        TopicEntry.StringsOffset  := NtoLE(AddString(DecodeCharRefs(MenuItem.Text)));
         TopicEntry.URLTableOffset := NtoLE(AddURL(MenuItem.Local, NextTopicIndex));
         TopicEntry.InContents     := NtoLE(Word( 2 ));
         TopicEntry.Unknown        := 0;
@@ -2007,7 +2002,7 @@ begin
       end
       else
       begin
-        EntryInfo.TopicsIndexOrStringsOffset := NtoLE(AddString(MenuItem.Text));
+        EntryInfo.TopicsIndexOrStringsOffset := NtoLE(AddString(DecodeCharRefs(MenuItem.Text)));
       end;
 
         // write TOCEntryInfo
@@ -2259,7 +2254,7 @@ begin
      write('!seealso');
      {$endif}
      WriteDword(p,1);
-     WritestrNT(p,item.seealso)
+     WritestrNT(p,DecodeCharRefs(item.seealso))
    end
   else
     begin
@@ -2374,7 +2369,6 @@ procedure CombineWithChildren(ParentItem:TChmSiteMapItem;Str:UnicodeString;comma
 var i    : Integer;
     llItem : TChmSiteMapItem;
 begin
-   str:=StringReplace(str, '&x27;', '', [rfReplaceAll]);
    {$ifdef binindex}
      writeln('i:',level,' ',str);
    {$endif}
@@ -2394,7 +2388,7 @@ begin
 {        if level=0 Then
           CombineWithChildren(Item,str+', '+item.text,0,level+1)
         else}
-          CombineWithChildren(llItem,Str+', '+llitem.text,length(str)+2,level+1);
+          CombineWithChildren(llItem,Str+', '+DecodeCharRefs(llitem.text),length(str)+2,level+1);
       end;
 end;
 
@@ -2458,7 +2452,7 @@ begin
   for i:=0 to ASiteMap.Items.Count-1 do
     begin
       item := TChmSiteMapItem(ASiteMap.Items.Item[i]);
-      key  :=Item.Text;
+      key  :=DecodeCharRefs(Item.Text);
        {$ifdef binindex}
         writeln('item: ',i,' ',key);
        {$endif}
