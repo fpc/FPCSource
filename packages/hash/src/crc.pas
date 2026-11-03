@@ -101,6 +101,178 @@ function CkSumFinal(aCrc: Cardinal; aTotalLen: QWord): Cardinal;
 // Returns the 256-entry table for polynomial $04C11DB7, most significant bit first
 function get_cksum_table: Pcardinal;
 
+
+
+(******************************************************************************
+ * CRC16
+ ******************************************************************************)
+
+type
+  TCrc16Table = array[Byte] of Word;
+
+{$PUSH}{$J-}
+const
+{ Polynomial $8005, reflected (CRC-16/ARC, CRC-16/MODBUS) }
+  crc16_table_a001 : TCrc16Table = (
+    $0000, $c0c1, $c181, $0140, $c301, $03c0, $0280, $c241,
+    $c601, $06c0, $0780, $c741, $0500, $c5c1, $c481, $0440,
+    $cc01, $0cc0, $0d80, $cd41, $0f00, $cfc1, $ce81, $0e40,
+    $0a00, $cac1, $cb81, $0b40, $c901, $09c0, $0880, $c841,
+    $d801, $18c0, $1980, $d941, $1b00, $dbc1, $da81, $1a40,
+    $1e00, $dec1, $df81, $1f40, $dd01, $1dc0, $1c80, $dc41,
+    $1400, $d4c1, $d581, $1540, $d701, $17c0, $1680, $d641,
+    $d201, $12c0, $1380, $d341, $1100, $d1c1, $d081, $1040,
+    $f001, $30c0, $3180, $f141, $3300, $f3c1, $f281, $3240,
+    $3600, $f6c1, $f781, $3740, $f501, $35c0, $3480, $f441,
+    $3c00, $fcc1, $fd81, $3d40, $ff01, $3fc0, $3e80, $fe41,
+    $fa01, $3ac0, $3b80, $fb41, $3900, $f9c1, $f881, $3840,
+    $2800, $e8c1, $e981, $2940, $eb01, $2bc0, $2a80, $ea41,
+    $ee01, $2ec0, $2f80, $ef41, $2d00, $edc1, $ec81, $2c40,
+    $e401, $24c0, $2580, $e541, $2700, $e7c1, $e681, $2640,
+    $2200, $e2c1, $e381, $2340, $e101, $21c0, $2080, $e041,
+    $a001, $60c0, $6180, $a141, $6300, $a3c1, $a281, $6240,
+    $6600, $a6c1, $a781, $6740, $a501, $65c0, $6480, $a441,
+    $6c00, $acc1, $ad81, $6d40, $af01, $6fc0, $6e80, $ae41,
+    $aa01, $6ac0, $6b80, $ab41, $6900, $a9c1, $a881, $6840,
+    $7800, $b8c1, $b981, $7940, $bb01, $7bc0, $7a80, $ba41,
+    $be01, $7ec0, $7f80, $bf41, $7d00, $bdc1, $bc81, $7c40,
+    $b401, $74c0, $7580, $b541, $7700, $b7c1, $b681, $7640,
+    $7200, $b2c1, $b381, $7340, $b101, $71c0, $7080, $b041,
+    $5000, $90c1, $9181, $5140, $9301, $53c0, $5280, $9241,
+    $9601, $56c0, $5780, $9741, $5500, $95c1, $9481, $5440,
+    $9c01, $5cc0, $5d80, $9d41, $5f00, $9fc1, $9e81, $5e40,
+    $5a00, $9ac1, $9b81, $5b40, $9901, $59c0, $5880, $9841,
+    $8801, $48c0, $4980, $8941, $4b00, $8bc1, $8a81, $4a40,
+    $4e00, $8ec1, $8f81, $4f40, $8d01, $4dc0, $4c80, $8c41,
+    $4400, $84c1, $8581, $4540, $8701, $47c0, $4680, $8641,
+    $8201, $42c0, $4380, $8341, $4100, $81c1, $8081, $4040);
+
+{ Polynomial $1021, most significant bit first (CRC-16/XMODEM, CCITT-FALSE, AUG-CCITT) }
+  crc16_table_1021 : TCrc16Table = (
+    $0000, $1021, $2042, $3063, $4084, $50a5, $60c6, $70e7,
+    $8108, $9129, $a14a, $b16b, $c18c, $d1ad, $e1ce, $f1ef,
+    $1231, $0210, $3273, $2252, $52b5, $4294, $72f7, $62d6,
+    $9339, $8318, $b37b, $a35a, $d3bd, $c39c, $f3ff, $e3de,
+    $2462, $3443, $0420, $1401, $64e6, $74c7, $44a4, $5485,
+    $a56a, $b54b, $8528, $9509, $e5ee, $f5cf, $c5ac, $d58d,
+    $3653, $2672, $1611, $0630, $76d7, $66f6, $5695, $46b4,
+    $b75b, $a77a, $9719, $8738, $f7df, $e7fe, $d79d, $c7bc,
+    $48c4, $58e5, $6886, $78a7, $0840, $1861, $2802, $3823,
+    $c9cc, $d9ed, $e98e, $f9af, $8948, $9969, $a90a, $b92b,
+    $5af5, $4ad4, $7ab7, $6a96, $1a71, $0a50, $3a33, $2a12,
+    $dbfd, $cbdc, $fbbf, $eb9e, $9b79, $8b58, $bb3b, $ab1a,
+    $6ca6, $7c87, $4ce4, $5cc5, $2c22, $3c03, $0c60, $1c41,
+    $edae, $fd8f, $cdec, $ddcd, $ad2a, $bd0b, $8d68, $9d49,
+    $7e97, $6eb6, $5ed5, $4ef4, $3e13, $2e32, $1e51, $0e70,
+    $ff9f, $efbe, $dfdd, $cffc, $bf1b, $af3a, $9f59, $8f78,
+    $9188, $81a9, $b1ca, $a1eb, $d10c, $c12d, $f14e, $e16f,
+    $1080, $00a1, $30c2, $20e3, $5004, $4025, $7046, $6067,
+    $83b9, $9398, $a3fb, $b3da, $c33d, $d31c, $e37f, $f35e,
+    $02b1, $1290, $22f3, $32d2, $4235, $5214, $6277, $7256,
+    $b5ea, $a5cb, $95a8, $8589, $f56e, $e54f, $d52c, $c50d,
+    $34e2, $24c3, $14a0, $0481, $7466, $6447, $5424, $4405,
+    $a7db, $b7fa, $8799, $97b8, $e75f, $f77e, $c71d, $d73c,
+    $26d3, $36f2, $0691, $16b0, $6657, $7676, $4615, $5634,
+    $d94c, $c96d, $f90e, $e92f, $99c8, $89e9, $b98a, $a9ab,
+    $5844, $4865, $7806, $6827, $18c0, $08e1, $3882, $28a3,
+    $cb7d, $db5c, $eb3f, $fb1e, $8bf9, $9bd8, $abbb, $bb9a,
+    $4a75, $5a54, $6a37, $7a16, $0af1, $1ad0, $2ab3, $3a92,
+    $fd2e, $ed0f, $dd6c, $cd4d, $bdaa, $ad8b, $9de8, $8dc9,
+    $7c26, $6c07, $5c64, $4c45, $3ca2, $2c83, $1ce0, $0cc1,
+    $ef1f, $ff3e, $cf5d, $df7c, $af9b, $bfba, $8fd9, $9ff8,
+    $6e17, $7e36, $4e55, $5e74, $2e93, $3eb2, $0ed1, $1ef0);
+
+{ Polynomial $1021, reflected (CRC-16/KERMIT) }
+  crc16_table_8408 : TCrc16Table = (
+    $0000, $1189, $2312, $329b, $4624, $57ad, $6536, $74bf,
+    $8c48, $9dc1, $af5a, $bed3, $ca6c, $dbe5, $e97e, $f8f7,
+    $1081, $0108, $3393, $221a, $56a5, $472c, $75b7, $643e,
+    $9cc9, $8d40, $bfdb, $ae52, $daed, $cb64, $f9ff, $e876,
+    $2102, $308b, $0210, $1399, $6726, $76af, $4434, $55bd,
+    $ad4a, $bcc3, $8e58, $9fd1, $eb6e, $fae7, $c87c, $d9f5,
+    $3183, $200a, $1291, $0318, $77a7, $662e, $54b5, $453c,
+    $bdcb, $ac42, $9ed9, $8f50, $fbef, $ea66, $d8fd, $c974,
+    $4204, $538d, $6116, $709f, $0420, $15a9, $2732, $36bb,
+    $ce4c, $dfc5, $ed5e, $fcd7, $8868, $99e1, $ab7a, $baf3,
+    $5285, $430c, $7197, $601e, $14a1, $0528, $37b3, $263a,
+    $decd, $cf44, $fddf, $ec56, $98e9, $8960, $bbfb, $aa72,
+    $6306, $728f, $4014, $519d, $2522, $34ab, $0630, $17b9,
+    $ef4e, $fec7, $cc5c, $ddd5, $a96a, $b8e3, $8a78, $9bf1,
+    $7387, $620e, $5095, $411c, $35a3, $242a, $16b1, $0738,
+    $ffcf, $ee46, $dcdd, $cd54, $b9eb, $a862, $9af9, $8b70,
+    $8408, $9581, $a71a, $b693, $c22c, $d3a5, $e13e, $f0b7,
+    $0840, $19c9, $2b52, $3adb, $4e64, $5fed, $6d76, $7cff,
+    $9489, $8500, $b79b, $a612, $d2ad, $c324, $f1bf, $e036,
+    $18c1, $0948, $3bd3, $2a5a, $5ee5, $4f6c, $7df7, $6c7e,
+    $a50a, $b483, $8618, $9791, $e32e, $f2a7, $c03c, $d1b5,
+    $2942, $38cb, $0a50, $1bd9, $6f66, $7eef, $4c74, $5dfd,
+    $b58b, $a402, $9699, $8710, $f3af, $e226, $d0bd, $c134,
+    $39c3, $284a, $1ad1, $0b58, $7fe7, $6e6e, $5cf5, $4d7c,
+    $c60c, $d785, $e51e, $f497, $8028, $91a1, $a33a, $b2b3,
+    $4a44, $5bcd, $6956, $78df, $0c60, $1de9, $2f72, $3efb,
+    $d68d, $c704, $f59f, $e416, $90a9, $8120, $b3bb, $a232,
+    $5ac5, $4b4c, $79d7, $685e, $1ce1, $0d68, $3ff3, $2e7a,
+    $e70e, $f687, $c41c, $d595, $a12a, $b0a3, $8238, $93b1,
+    $6b46, $7acf, $4854, $59dd, $2d62, $3ceb, $0e70, $1ff9,
+    $f78f, $e606, $d49d, $c514, $b1ab, $a022, $92b9, $8330,
+    $7bc7, $6a4e, $58d5, $495c, $3de3, $2c6a, $1ef1, $0f78);
+
+{ Polynomial $3D65, reflected (CRC-16/DNP) }
+  crc16_table_a6bc : TCrc16Table = (
+    $0000, $365e, $6cbc, $5ae2, $d978, $ef26, $b5c4, $839a,
+    $ff89, $c9d7, $9335, $a56b, $26f1, $10af, $4a4d, $7c13,
+    $b26b, $8435, $ded7, $e889, $6b13, $5d4d, $07af, $31f1,
+    $4de2, $7bbc, $215e, $1700, $949a, $a2c4, $f826, $ce78,
+    $29af, $1ff1, $4513, $734d, $f0d7, $c689, $9c6b, $aa35,
+    $d626, $e078, $ba9a, $8cc4, $0f5e, $3900, $63e2, $55bc,
+    $9bc4, $ad9a, $f778, $c126, $42bc, $74e2, $2e00, $185e,
+    $644d, $5213, $08f1, $3eaf, $bd35, $8b6b, $d189, $e7d7,
+    $535e, $6500, $3fe2, $09bc, $8a26, $bc78, $e69a, $d0c4,
+    $acd7, $9a89, $c06b, $f635, $75af, $43f1, $1913, $2f4d,
+    $e135, $d76b, $8d89, $bbd7, $384d, $0e13, $54f1, $62af,
+    $1ebc, $28e2, $7200, $445e, $c7c4, $f19a, $ab78, $9d26,
+    $7af1, $4caf, $164d, $2013, $a389, $95d7, $cf35, $f96b,
+    $8578, $b326, $e9c4, $df9a, $5c00, $6a5e, $30bc, $06e2,
+    $c89a, $fec4, $a426, $9278, $11e2, $27bc, $7d5e, $4b00,
+    $3713, $014d, $5baf, $6df1, $ee6b, $d835, $82d7, $b489,
+    $a6bc, $90e2, $ca00, $fc5e, $7fc4, $499a, $1378, $2526,
+    $5935, $6f6b, $3589, $03d7, $804d, $b613, $ecf1, $daaf,
+    $14d7, $2289, $786b, $4e35, $cdaf, $fbf1, $a113, $974d,
+    $eb5e, $dd00, $87e2, $b1bc, $3226, $0478, $5e9a, $68c4,
+    $8f13, $b94d, $e3af, $d5f1, $566b, $6035, $3ad7, $0c89,
+    $709a, $46c4, $1c26, $2a78, $a9e2, $9fbc, $c55e, $f300,
+    $3d78, $0b26, $51c4, $679a, $e400, $d25e, $88bc, $bee2,
+    $c2f1, $f4af, $ae4d, $9813, $1b89, $2dd7, $7735, $416b,
+    $f5e2, $c3bc, $995e, $af00, $2c9a, $1ac4, $4026, $7678,
+    $0a6b, $3c35, $66d7, $5089, $d313, $e54d, $bfaf, $89f1,
+    $4789, $71d7, $2b35, $1d6b, $9ef1, $a8af, $f24d, $c413,
+    $b800, $8e5e, $d4bc, $e2e2, $6178, $5726, $0dc4, $3b9a,
+    $dc4d, $ea13, $b0f1, $86af, $0535, $336b, $6989, $5fd7,
+    $23c4, $159a, $4f78, $7926, $fabc, $cce2, $9600, $a05e,
+    $6e26, $5878, $029a, $34c4, $b75e, $8100, $dbe2, $edbc,
+    $91af, $a7f1, $fd13, $cb4d, $48d7, $7e89, $246b, $1235);
+{$POP}
+
+// Updates aCrc with aLen bytes at aBuf, least significant bit first, using aTable
+function crc16_reflected(aCrc: Word; aBuf: PByte; aLen: Cardinal; const aTable: TCrc16Table): Word;
+// Updates aCrc with aLen bytes at aBuf, most significant bit first, using aTable
+function crc16_normal(aCrc: Word; aBuf: PByte; aLen: Cardinal; const aTable: TCrc16Table): Word;
+
+// Returns the CRC-16/ARC of aLen bytes at aBuf: polynomial $8005 reflected, initial value 0
+function crc16_arc(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/MODBUS of aLen bytes at aBuf: polynomial $8005 reflected, initial value $FFFF
+function crc16_modbus(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/XMODEM of aLen bytes at aBuf: polynomial $1021, initial value 0
+function crc16_xmodem(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/KERMIT of aLen bytes at aBuf: polynomial $1021 reflected, initial value 0
+function crc16_kermit(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/CCITT-FALSE of aLen bytes at aBuf: polynomial $1021, initial value $FFFF
+function crc16_ccitt_false(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/AUG-CCITT of aLen bytes at aBuf: polynomial $1021, initial value $1D0F
+function crc16_aug_ccitt(aBuf: PByte; aLen: Cardinal): Word;
+// Returns the CRC-16/DNP of aLen bytes at aBuf: polynomial $3D65 reflected, initial value 0, final xor $FFFF
+function crc16_dnp(aBuf: PByte; aLen: Cardinal): Word;
+
 implementation
 
 
@@ -981,6 +1153,85 @@ begin
     aTotalLen := aTotalLen shr 8;
   end;
   result := not aCrc;
+end;
+
+
+(******************************************************************************
+ * CRC16
+ ******************************************************************************)
+
+function crc16_reflected(aCrc: Word; aBuf: PByte; aLen: Cardinal; const aTable: TCrc16Table): Word;
+
+begin
+  while (aLen > 0) do
+  begin
+    aCrc := (aCrc shr 8) xor aTable[(aCrc xor aBuf^) and $ff];
+    inc(aBuf);
+    dec(aLen);
+  end;
+  result := aCrc;
+end;
+
+
+function crc16_normal(aCrc: Word; aBuf: PByte; aLen: Cardinal; const aTable: TCrc16Table): Word;
+
+begin
+  while (aLen > 0) do
+  begin
+    aCrc := Word(aCrc shl 8) xor aTable[((aCrc shr 8) xor aBuf^) and $ff];
+    inc(aBuf);
+    dec(aLen);
+  end;
+  result := aCrc;
+end;
+
+
+function crc16_arc(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_reflected(0, aBuf, aLen, crc16_table_a001);
+end;
+
+
+function crc16_modbus(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_reflected($FFFF, aBuf, aLen, crc16_table_a001);
+end;
+
+
+function crc16_xmodem(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_normal(0, aBuf, aLen, crc16_table_1021);
+end;
+
+
+function crc16_kermit(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_reflected(0, aBuf, aLen, crc16_table_8408);
+end;
+
+
+function crc16_ccitt_false(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_normal($FFFF, aBuf, aLen, crc16_table_1021);
+end;
+
+
+function crc16_aug_ccitt(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_normal($1D0F, aBuf, aLen, crc16_table_1021);
+end;
+
+
+function crc16_dnp(aBuf: PByte; aLen: Cardinal): Word;
+
+begin
+  result := crc16_reflected(0, aBuf, aLen, crc16_table_a6bc) xor $FFFF;
 end;
 
 
