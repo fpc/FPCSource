@@ -274,6 +274,18 @@ begin
 end;
 
 
+// The strings in #STRINGS are titles and such, which can differ only in case:
+// "GetFileName" and "GetFilename" must not share one.
+Function CompareStringsCaseSensitive(Node1, Node2: Pointer): integer;
+var n1,n2 : TStringIndex;
+begin
+  n1:=TStringIndex(Node1); n2:=TStringIndex(Node2);
+  Result := CompareStr(n1.TheString, n2.TheString);
+  if Result < 0 then Result := -1
+  else if Result > 0 then Result := 1;
+end;
+
+
 Function CompareUrlStrs(Node1, Node2: Pointer): integer;
 var n1,n2 : TUrlStrIndex;
 begin
@@ -1655,7 +1667,7 @@ begin
   FFiftiMainStream := TMemoryStream.Create;
   FIndexedFiles := TIndexedWordList.Create;
   FAVLTopicdedupe  :=TAVLTree.Create(@CompareStrings);  // dedupe filenames in topics.
-  FAvlStrings   := TAVLTree.Create(@CompareStrings);    // dedupe strings
+  FAvlStrings   := TAVLTree.Create(@CompareStringsCaseSensitive);    // dedupe strings
   FAvlURLStr    := TAVLTree.Create(@CompareUrlStrs);    // dedupe urltbl + binindex must resolve URL to topicid
   SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
   SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
@@ -1704,7 +1716,7 @@ begin
   if FStringsStream.Size = 0 then FStringsStream.WriteByte(0);
 
   SpareString.TheString:=AString;
-  n:=fAvlStrings.FindKey(SpareString,@CompareStrings);
+  n:=fAvlStrings.FindKey(SpareString,@CompareStringsCaseSensitive);
   if assigned(n) then
     exit(TStringIndex(n.data).strid);
 
