@@ -126,6 +126,12 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.HtmlUtil;
+{$ELSE FPC_DOTTEDUNITS}
+uses HTMLUtil;
+{$ENDIF FPC_DOTTEDUNITS}
+
 Const GrowSpeed = 10;
 
 function Max(ANumber, BNumber: DWord): DWord;
@@ -273,7 +279,8 @@ var
     WordIndex: TIndexedWord;
     WordName: AnsiString;
     FPos: Integer;
-    i, j: Integer;
+    i, j, k: Integer;
+    Decoded: AnsiString;
   // Used both when a word ends and at the end of the text, so that the last
   // word of a text loses its apostrophes and thousands separators too:
   // otherwise a "1," ending a table cell is indexed as "1," and not found.
@@ -303,8 +310,13 @@ begin
 
   // A character entity separates words but is not one itself: otherwise the
   // digits of a numeric one are indexed as a word of their own, which shifts
-  // the position of every word following it in the document.
+  // the position of every word following it in the document. One standing
+  // for an ASCII character is that character though, so that the &#39; of
+  // "doesn&#39;t" keeps the word together as an apostrophe written as such.
+  // The text is rewritten in place, at k, as a reference is never shorter
+  // than what replaces it.
   i := 1;
+  k := 0;
   while i <= Length(Words) do
     begin
       if Words[i] = '&' then
@@ -315,16 +327,21 @@ begin
             Inc(j);
           if (j <= Length(Words)) and (Words[j] = ';') then
             begin
-              while i <= j do
-                begin
-                  Words[i] := ' ';
-                  Inc(i);
-                end;
+              Decoded := LowerCase(DecodeCharRefs(Copy(Words, i, j - i + 1)));
+              Inc(k);
+              if Length(Decoded) = 1 then
+                Words[k] := Decoded[1]
+              else
+                Words[k] := ' ';
+              i := j + 1;
               Continue;
             end;
         end;
+      Inc(k);
+      Words[k] := Words[i];
       Inc(i);
     end;
+  SetLength(Words, k);
 
   WordStart := PAnsiChar(Words);
   WordPtr := WordStart;
