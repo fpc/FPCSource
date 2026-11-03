@@ -106,6 +106,8 @@ Type
     function Write(buf: SslPtr; num: cInt):cInt;
     Function PeerCertificate : PX509;
     function Ctrl(cmd: cInt; larg: clong; parg: Pointer): cInt;
+    // Sets the SNI host name sent to the server
+    function SetTlsextHostName(const aHostName: AnsiString): cInt;
     function Pending:cInt;
     Function GetError(AResult :cint) : cint;
     function GetCurrentCipher :SslPtr;
@@ -618,30 +620,22 @@ end;
 
 function TSSLContext.SetOptions(AOptions: cLong): cLong;
 begin
-  result := SslCtxCtrl(FCTX, SSL_CTRL_OPTIONS, AOptions, nil);
+  result := SslCtxSetOptions(FCTX, AOptions);
 end;
-
-Const
-  // OpenSSL SSL_CTX control id used by SetMinProtoVersion. Defined here (not in
-  // openssl.pas) to avoid re-opening that done unit (Story 4.5). Standard/stable
-  // across OpenSSL 1.1.x/3.x. (TLS1_2_VERSION = $0303 lives at the call site in
-  // opensslsockets.pp, the unit that passes it.)
-  SSL_CTRL_SET_MIN_PROTO_VERSION = 123;    // openssl/ssl.h
 
 function TSSLContext.SetMinProtoVersion(aVersion: cInt): cLong;
 begin
-  // Mirrors SetOptions: SSL_CTX_set_min_proto_version() is a macro over SSL_CTX_ctrl.
-  Result := SslCtxCtrl(FCTX, SSL_CTRL_SET_MIN_PROTO_VERSION, aVersion, nil);
+  Result := SslCtxSetMinProtoVersion(FCTX, aVersion);
 end;
 
 procedure TSSLContext.SetTlsextServernameCallback(cb: PCallbackCb);
 begin
-  SslCtxCallbackCtrl(FCTX, SSL_CTRL_SET_TLSEXT_SERVERNAME_CB, cb);
+  SslCtxSetTlsextServernameCallback(FCTX, cb);
 end;
 
 procedure TSSLContext.SetTlsextServernameArg(ATlsextcbp: SslPtr);
 begin
-  SslCtxCtrl(FCTX, SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG, 0, ATlsextcbp);
+  SslCtxSetTlsextServernameArg(FCTX, ATlsextcbp);
 end;
 
 procedure TSSLContext.ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
@@ -687,6 +681,13 @@ function TSSL.Ctrl(cmd: cInt; larg: clong; parg: Pointer): cInt;
 begin
   Result:=sslCtrl(fSSL,cmd,larg,parg);
 end;
+
+function TSSL.SetTlsextHostName(const aHostName: AnsiString): cInt;
+
+begin
+  Result:=SslSetTlsextHostName(fSSL,PAnsiChar(aHostName));
+end;
+
 
 function TSSL.SetFd(fd: cInt): cInt;
 begin

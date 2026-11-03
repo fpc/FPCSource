@@ -765,6 +765,7 @@ const
   SSL_CTRL_CHANNEL_ID                         = 117;
   SSL_CTRL_GET_CHANNEL_ID                     = 118;
   SSL_CTRL_SET_CHANNEL_ID                     = 119;
+  SSL_CTRL_SET_MIN_PROTO_VERSION              = 123;
 
 
   DTLS_CTRL_GET_TIMEOUT            = 73;
@@ -1125,6 +1126,16 @@ var
 
   function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
   function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
+  // Sets the SNI host name sent by ssl; uses SSL_set_tlsext_host_name when the library exports it (BoringSSL)
+  function SslSetTlsextHostName(ssl: PSSL; name: PAnsiChar): cLong;
+  // Sets the server name callback of ctx; uses SSL_CTX_set_tlsext_servername_callback when exported
+  function SslCtxSetTlsextServernameCallback(ctx: PSSL_CTX; cb: PCallbackCb): cLong;
+  // Sets the argument of the server name callback of ctx; uses SSL_CTX_set_tlsext_servername_arg when exported
+  function SslCtxSetTlsextServernameArg(ctx: PSSL_CTX; arg: Pointer): cLong;
+  // Adds options to ctx; uses SSL_CTX_set_options when the library has no SSL_CTX_ctrl
+  function SslCtxSetOptions(ctx: PSSL_CTX; options: cLong): cLong;
+  // Sets the minimum protocol version of ctx; uses SSL_CTX_set_min_proto_version when the library has no SSL_CTX_ctrl
+  function SslCtxSetMinProtoVersion(ctx: PSSL_CTX; version: cLong): cLong;
 
   function SSLCTXSetMode(ctx: PSSL_CTX; mode: cLong): cLong;
   function SSLSetMode(s: PSSL; mode: cLong): cLong;
@@ -1671,6 +1682,15 @@ type
   TSslSetFd = function(s: PSSL; fd: cInt):cInt; cdecl;
   TSslCtrl = function(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
   TSslCTXCtrl = function(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
+  TSslSetTlsextHostName = function(ssl: PSSL; name: PAnsiChar): cInt; cdecl;
+  TSslCtxSetTlsextServernameCallback = function(ctx: PSSL_CTX; cb: PCallbackCb): cInt; cdecl;
+  TSslCtxSetTlsextServernameArg = function(ctx: PSSL_CTX; arg: Pointer): cInt; cdecl;
+  TSslCtxSetOptions = function(ctx: PSSL_CTX; options: cuint32): cuint32; cdecl;
+  TSslCtxSetMinProtoVersion = function(ctx: PSSL_CTX; version: cuint16): cInt; cdecl;
+  TSslCtxSetMode = function(ctx: PSSL_CTX; mode: cuint32): cuint32; cdecl;
+  TSslSetModeFunc = function(ssl: PSSL; mode: cuint32): cuint32; cdecl;
+  TSslCtxGetMode = function(ctx: PSSL_CTX): cuint32; cdecl;
+  TSslGetModeFunc = function(ssl: PSSL): cuint32; cdecl;
   TSslMethodV2 = function:PSSL_METHOD; cdecl;
   TSslMethodV3 = function:PSSL_METHOD; cdecl;
   TSslMethodTLSV1 = function:PSSL_METHOD; cdecl;
@@ -1953,6 +1973,15 @@ var
   _SslSetFd: TSslSetFd = nil;
   _SslCtrl: TSslCtrl = nil;
   _SslCTXCtrl: TSslCTXCtrl = nil;
+  _SslSetTlsextHostName: TSslSetTlsextHostName = nil;
+  _SslCtxSetTlsextServernameCallback: TSslCtxSetTlsextServernameCallback = nil;
+  _SslCtxSetTlsextServernameArg: TSslCtxSetTlsextServernameArg = nil;
+  _SslCtxSetOptions: TSslCtxSetOptions = nil;
+  _SslCtxSetMinProtoVersion: TSslCtxSetMinProtoVersion = nil;
+  _SslCtxSetMode: TSslCtxSetMode = nil;
+  _SslSetMode: TSslSetModeFunc = nil;
+  _SslCtxGetMode: TSslCtxGetMode = nil;
+  _SslGetMode: TSslGetModeFunc = nil;
   _SslMethodV2: TSslMethodV2 = nil;
   _SslMethodV3: TSslMethodV3 = nil;
   _SslMethodTLSV1: TSslMethodTLSV1 = nil;
@@ -2434,24 +2463,92 @@ begin
     Result := 0;
 end;
 
+function SslSetTlsextHostName(ssl: PSSL; name: PAnsiChar): cLong;
+
+begin
+  if InitSSLInterface and Assigned(_SslSetTlsextHostName) then
+    Result := _SslSetTlsextHostName(ssl, name)
+  else
+    Result := SslCtrl(ssl, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, name);
+end;
+
+
+function SslCtxSetTlsextServernameCallback(ctx: PSSL_CTX; cb: PCallbackCb): cLong;
+
+begin
+  Result := 0;
+  if not InitSSLInterface then
+    Exit;
+  if Assigned(_SslCtxSetTlsextServernameCallback) then
+    Result := _SslCtxSetTlsextServernameCallback(ctx, cb)
+  else if Assigned(_SslCtxCallbackCtrl) then
+    begin
+    _SslCtxCallbackCtrl(ctx, SSL_CTRL_SET_TLSEXT_SERVERNAME_CB, cb);
+    Result := 1;
+    end;
+end;
+
+
+function SslCtxSetTlsextServernameArg(ctx: PSSL_CTX; arg: Pointer): cLong;
+
+begin
+  if InitSSLInterface and Assigned(_SslCtxSetTlsextServernameArg) then
+    Result := _SslCtxSetTlsextServernameArg(ctx, arg)
+  else
+    Result := SslCTXCtrl(ctx, SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG, 0, arg);
+end;
+
+
+function SslCtxSetOptions(ctx: PSSL_CTX; options: cLong): cLong;
+
+begin
+  if InitSSLInterface and not Assigned(_SslCTXCtrl) and Assigned(_SslCtxSetOptions) then
+    Result := _SslCtxSetOptions(ctx, cuint32(options))
+  else
+    Result := SslCTXCtrl(ctx, SSL_CTRL_OPTIONS, options, nil);
+end;
+
+
+function SslCtxSetMinProtoVersion(ctx: PSSL_CTX; version: cLong): cLong;
+
+begin
+  if InitSSLInterface and not Assigned(_SslCTXCtrl) and Assigned(_SslCtxSetMinProtoVersion) then
+    Result := _SslCtxSetMinProtoVersion(ctx, cuint16(version))
+  else
+    Result := SslCTXCtrl(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, version, nil);
+end;
+
+
 function SSLCTXSetMode(ctx: PSSL_CTX; mode: cLong): cLong;
 begin
-  Result := SslCTXCtrl(ctx, SSL_CTRL_MODE, mode, nil);
+  if InitSSLInterface and not Assigned(_SslCTXCtrl) and Assigned(_SslCtxSetMode) then
+    Result := _SslCtxSetMode(ctx, cuint32(mode))
+  else
+    Result := SslCTXCtrl(ctx, SSL_CTRL_MODE, mode, nil);
 end;
 
 function SSLSetMode(s: PSSL; mode: cLong): cLong;
 begin
-  Result := SSLctrl(s, SSL_CTRL_MODE, mode, nil);
+  if InitSSLInterface and not Assigned(_SslCtrl) and Assigned(_SslSetMode) then
+    Result := _SslSetMode(s, cuint32(mode))
+  else
+    Result := SSLctrl(s, SSL_CTRL_MODE, mode, nil);
 end;
 
 function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
 begin
-  Result := SSLCTXctrl(ctx, SSL_CTRL_MODE, 0, nil);
+  if InitSSLInterface and not Assigned(_SslCTXCtrl) and Assigned(_SslCtxGetMode) then
+    Result := _SslCtxGetMode(ctx)
+  else
+    Result := SSLCTXctrl(ctx, SSL_CTRL_MODE, 0, nil);
 end;
 
 function SSLGetMode(s: PSSL): cLong;
 begin
-  Result := SSLctrl(s, SSL_CTRL_MODE, 0, nil);
+  if InitSSLInterface and not Assigned(_SslCtrl) and Assigned(_SslGetMode) then
+    Result := _SslGetMode(s)
+  else
+    Result := SSLctrl(s, SSL_CTRL_MODE, 0, nil);
 end;
 
 function SslMethodV2:PSSL_METHOD;
@@ -5349,6 +5446,15 @@ begin
   _SslSetFd := GetProcAddr(SSLLibHandle, 'SSL_set_fd');
   _SslCtrl := GetProcAddr(SSLLibHandle, 'SSL_ctrl');
   _SslCTXCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_ctrl');
+  _SslSetTlsextHostName := GetProcAddr(SSLLibHandle, 'SSL_set_tlsext_host_name');
+  _SslCtxSetTlsextServernameCallback := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_tlsext_servername_callback');
+  _SslCtxSetTlsextServernameArg := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_tlsext_servername_arg');
+  _SslCtxSetOptions := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_options');
+  _SslCtxSetMinProtoVersion := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_min_proto_version');
+  _SslCtxSetMode := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_mode');
+  _SslSetMode := GetProcAddr(SSLLibHandle, 'SSL_set_mode');
+  _SslCtxGetMode := GetProcAddr(SSLLibHandle, 'SSL_CTX_get_mode');
+  _SslGetMode := GetProcAddr(SSLLibHandle, 'SSL_get_mode');
   _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method');
   _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method');
   _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method');
@@ -5740,6 +5846,15 @@ begin
   _SslSetFd := nil;
   _SslCtrl := nil;
   _SslCTXCtrl := nil;
+  _SslSetTlsextHostName := nil;
+  _SslCtxSetTlsextServernameCallback := nil;
+  _SslCtxSetTlsextServernameArg := nil;
+  _SslCtxSetOptions := nil;
+  _SslCtxSetMinProtoVersion := nil;
+  _SslCtxSetMode := nil;
+  _SslSetMode := nil;
+  _SslCtxGetMode := nil;
+  _SslGetMode := nil;
   _SslMethodV2 := nil;
   _SslMethodV3 := nil;
   _SslMethodTLSV1 := nil;

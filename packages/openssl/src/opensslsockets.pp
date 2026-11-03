@@ -234,7 +234,7 @@ begin
      if SendHostAsSNI  and (Socket is TInetSocket) then
        begin
        SNIHostName:=NormalizeHostNameForSNI(AnsiString((Socket as TInetSocket).NetworkAddress.Address));
-       FSSL.Ctrl(SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,PAnsiChar(SNIHostName));
+       FSSL.SetTlsextHostName(SNIHostName);
        end;
      if VerifyPeerCert and (Socket is TInetSocket) then
        FSSL.Set1Host(NormalizeHostNameForSNI(AnsiString((Socket as TInetSocket).Host)));
