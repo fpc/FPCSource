@@ -383,6 +383,9 @@ begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
   writer.cores:=fcores;
+  // The binary TOC adds its own topics.
+  if assigned(FToc) and not MakeBinaryTOC then
+    Writer.ScanSitemap(FToc);
   {$ifdef chmindex}
     Writeln('binindex filename ',IndexFileName);
   {$endif}

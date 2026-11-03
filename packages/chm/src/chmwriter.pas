@@ -209,7 +209,6 @@ Type
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
     function AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
     function AddTopicindex(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
-    procedure ScanSitemap(asitemap:TCHMSiteMap);
     function NextTopicIndex: Integer;
     procedure Setwindows (AWindowList:TObjectList);
     procedure SetMergefiles(src:TStringList);
@@ -218,6 +217,7 @@ Type
     destructor Destroy; override;
     procedure AppendTOC(AStream: TStream);
     procedure AppendBinaryTOCFromSiteMap(ASiteMap: TChmSiteMap);
+    procedure ScanSitemap(asitemap:TCHMSiteMap);
     procedure AppendBinaryIndexFromSiteMap(ASiteMap: TChmSiteMap;chw:boolean);
     procedure AppendBinaryTOCStream(AStream: TStream);
     procedure AppendBinaryIndexStream(IndexStream,DataStream,MapStream,Propertystream: TStream;chw:boolean);
@@ -1627,8 +1627,6 @@ begin
   WriteITBITS;
   // This creates and writes the #SYSTEM file to section0
   WriteSystem;
-  if Assigned(FTocSM)  then
-   Scansitemap(FTocSM);
 end;
 
 procedure TChmWriter.WriteFinalCompressedFiles;
@@ -1819,10 +1817,22 @@ begin
  end;
 end;
 
+// The key under which the topic of an URL is remembered. The URLs of the
+// files and those of the TOC and index entries are not written the same way:
+// "/dir/page.html" for the first, "dir\page.html" or "Dir/Page.html" for the
+// others.
+function TopicUrlKey(const AnUrl: AnsiString): AnsiString;
+begin
+  Result:=LowerCase(StringReplace(AnUrl, '\', '/', [rfReplaceAll]));
+  if (Length(Result) > 0) and (Result[1] = '/') then
+    Delete(Result,1,1);
+end;
+
 function TChmWriter.AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
 
 var
     TopicEntry: TTopicEntry;
+    UrlKey: AnsiString;
 
 begin
     // the titles come from HTML, where a '<' for instance is written &lt;
@@ -1833,6 +1843,10 @@ begin
     else
       TopicEntry.StringsOffset := $FFFFFFFF;
     result:=NextTopicIndex;
+    // so that the TOC and index entries of a page share the topic of the page
+    UrlKey := TopicUrlKey(AnUrl);
+    if not FDictTopicsUrlInd.ContainsKey(UrlKey) then
+      FDictTopicsUrlInd.Add(UrlKey, Result);
     TopicEntry.URLTableOffset := AddURL(AnUrl, Result);
     if code=-1 then
       begin
@@ -1866,7 +1880,7 @@ begin
   {$ifdef binindex}
   writeln('Enter ',ATitle,' ',AnUrl);
   {$endif}
-  if FDictTopicsUrlInd.trygetvalue(anurl,result) then
+  if FDictTopicsUrlInd.trygetvalue(TopicUrlKey(anurl),result) then
    begin
      {$ifdef binindex}
        writeln('found:',result);
@@ -1875,26 +1889,25 @@ begin
    else
     begin
       result:=addtopic(atitle,anurl);
-      FDictTopicsUrlInd.add(anurl,result);
     end;
 end;
 
+// Adds a topic for each entry of the TOC whose URL has none yet, in the order
+// of the TOC, as the Microsoft compiler does: these are mostly the entries
+// pointing to an anchor. It has to be done before the binary index adds the
+// topics of its own entries.
 procedure TChmWriter.ScanSitemap(asitemap:TCHMSiteMap);
 procedure scanitems(it:TChmSiteMapItems);
 
 var i : integer;
     x : TChmSiteMapItem;
-    s : string;
-    strrec : TStringIndex;
 
 begin
   for i:=0 to it.count -1 do
     begin
       x:=it.item[i];
-//      if sanitizeurl(fbasepath,x.local,S) then   // sanitize, remove stuff etc.
-//        begin
-//          writeln(x.text,' : ',x.local,' ',x.url,' ' ,x.merge);
-
+      if x.local<>'' then
+        AddTopicIndex(x.text,x.local);
       if assigned(x.children) and (x.children.count>0) then
         scanitems(x.children);
     end;
