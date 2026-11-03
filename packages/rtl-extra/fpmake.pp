@@ -146,6 +146,11 @@ begin
        addinclude('unixsock.inc',socksyscall);
      end;
     T:=P.Targets.AddUnit('unixsockets.pp',[linux]);
+    with T.Dependencies do
+     begin
+       addinclude('unixsocketsh.inc');
+       addinclude('unixsockets.inc');
+     end;
 
     T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
     with T.Dependencies do

@@ -8,8 +8,19 @@ begin
 end;
 
 function CMSG_NXTHDR(mhdr: Pmsghdr; cmsg: Pcmsghdr): Pcmsghdr;
+
+var
+  lRemaining, lNeeded: PtrUInt;
+
 begin
-   Result:=__cmsg_nxthdr(mhdr, cmsg);
+  Result:=nil;
+  if cmsg^.cmsg_len<SizeOf(cmsghdr) then
+    Exit;
+  lRemaining:=PtrUInt(mhdr^.msg_control)+mhdr^.msg_controllen-PtrUInt(cmsg);
+  lNeeded:=SizeOf(cmsghdr)+CMSG_ALIGN(cmsg^.cmsg_len)-cmsg^.cmsg_len;
+  if (lRemaining<lNeeded) or (lRemaining-lNeeded<cmsg^.cmsg_len) then
+    Exit;
+  Result:=Pcmsghdr(PByte(cmsg)+CMSG_ALIGN(cmsg^.cmsg_len));
 end;
 
 function CMSG_ALIGN(len: size_t): size_t;
@@ -27,7 +38,7 @@ begin
   Result:=CMSG_ALIGN(SizeOf(cmsghdr))+len;
 end;
 
-function CMSG_DATA(cmsg: Pointer): PByte;
+function CMSG_DATA(cmsg: Pcmsghdr): PByte;
 begin
   Result:=PByte(Ptruint(cmsg) + SizeOf(cmsghdr));
 end;

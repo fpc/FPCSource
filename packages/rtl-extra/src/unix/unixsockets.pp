@@ -16,11 +16,11 @@ uses
   cTypes, BaseUnix;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$unixsocketsh.inc}
+{$i unixsocketsh.inc}
 
 implementation
 
-{$unixsockets.inc}
+{$i unixsockets.inc}
 
 end.
 

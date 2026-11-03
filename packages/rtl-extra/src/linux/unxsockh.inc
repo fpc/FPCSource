@@ -347,6 +347,17 @@ const
         IPV6_PKTOPTIONS       = 6;
         IPV6_CHECKSUM         = 7;
         IPV6_HOPLIMIT         = 52;
+        IPV6_RECVPKTINFO      = 49;
+        IPV6_RECVHOPLIMIT     = 51;
+        IPV6_RECVHOPOPTS      = 53;
+        IPV6_RTHDRDSTOPTS     = 55;
+        IPV6_RECVRTHDR        = 56;
+        IPV6_RECVDSTOPTS      = 58;
+        IPV6_RECVPATHMTU      = 60;
+        IPV6_PATHMTU          = 61;
+        IPV6_DONTFRAG         = 62;
+        IPV6_RECVTCLASS       = 66;
+        IPV6_TCLASS           = 67;
 
         SCM_SRCRT             = IPV6_RXSRCRT;
 
