@@ -13,9 +13,6 @@ type
   WKWebViewPtr = ^WKWebView;
 {$endif}
 
-{$if defined(TARGET_OS_IPHONE)}
-
-{$else}
 {$ifdef CLASSES}
 
 type
@@ -73,5 +70,4 @@ type
   end;
 {$endif}
 
-{$endif}
 {$endif}
