@@ -7727,6 +7727,7 @@ type
          2: (hi:HARDWAREINPUT);
      end;
     INPUT = tagINPUT;
+    TINPUT = tagINPUT;
     PINPUT = ^tagINPUT;
     LPINPUT = ^tagINPUT;
 

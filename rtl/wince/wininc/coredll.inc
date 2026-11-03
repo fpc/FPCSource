@@ -2542,6 +2542,7 @@ function MoveFileW(lpExistingFileName:LPCWSTR; lpNewFileName:LPCWSTR):WINBOOL; e
 function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint;bRepaint:WINBOOL):WINBOOL; external KernelDLL name 'MoveWindow';
 function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD;
 function MsgWaitForMultipleObjectsEx(nCount:DWORD; pHandles:LPHANDLE ; dwMilliseconds:DWORD; dwWakeMask:DWORD; dwFlags:DWORD):DWORD; external KernelDLL name 'MsgWaitForMultipleObjectsEx';  //+winuser
+function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external KernelDLL name 'MulDiv';
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR;cchWideChar:longint):longint; external KernelDLL name 'MultiByteToWideChar';
 function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external KernelDLL name 'OffsetRect';
 function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint; external KernelDLL name 'OffsetRgn';

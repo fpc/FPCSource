@@ -117,6 +117,7 @@ function SUBLANGID(LangId: WORD): WORD;
 
 const
   NLS_VALID_LOCALE_MASK = $000fffff;                              //winnt
+  WHEEL_DELTA = 120;                                              //winuser
 
 function MAKELCID(LangId, SortId: WORD): DWORD;                   //winnt
 function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;  //winnt
