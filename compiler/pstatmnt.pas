@@ -130,7 +130,7 @@ implementation
           end;
 
         { combining string/char types }
-        if is_anychar(olddef) and is_string(branchdef) then
+        if (is_anychar(olddef) or is_chararray(olddef)) and is_string(branchdef) then
           result:=branchdef
         else if is_widestring(branchdef) or is_widestring(olddef) or
                 ((is_ansistring(olddef) or is_chararray(olddef)) and is_widechar(branchdef)) then
