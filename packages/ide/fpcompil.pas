@@ -709,6 +709,7 @@ function CompilerStatus: boolean;
      event : tevent;
 
 begin
+{$ifdef UNIX}
   GetSystemEvent(Event);         { Load system event }
   If (Event.What <> evNothing) Then
   begin
@@ -720,6 +721,7 @@ begin
     RedirEnableAll;
 {$endif}
   end;
+{$endif}
 
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
