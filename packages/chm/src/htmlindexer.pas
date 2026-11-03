@@ -274,6 +274,28 @@ var
     WordName: AnsiString;
     FPos: Integer;
     i, j: Integer;
+  // Used both when a word ends and at the end of the text, so that the last
+  // word of a text loses its apostrophes and thousands separators too:
+  // otherwise a "1," ending a table cell is indexed as "1," and not found.
+  procedure AddCurrentWord;
+  begin
+    WordName := Copy(WordStart, 0, (WordPtr-WordStart));
+    FPos := Pos('''', WordName);
+    while FPos > 0 do
+    begin
+      Delete(WordName, FPos, 1);
+      FPos := Pos('''', WordName);
+    end;
+    FPos := Pos(',', WordName);
+    while FPos > 0 do
+    begin
+      Delete(WordName, FPos, 1);
+      FPos := Pos(',', WordName);
+    end;
+    WordIndex := addgetword(wordname,istitle);
+    WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
+    Inc(FWordCount);
+  end;
 begin
   if IsTitle then
     FDocTitle := Words;
@@ -311,25 +333,9 @@ begin
   repeat
     if InWord and IsEndOfWord then
     begin
-      WordName := Copy(WordStart, 0, (WordPtr-WordStart));
-      FPos := Pos('''', WordName);
-      while FPos > 0 do
-      begin
-        Delete(WordName, FPos, 1);
-        FPos := Pos('''', WordName);
-      end;
-      FPos := Pos(',', WordName);
-      while FPos > 0 do
-      begin
-        Delete(WordName, FPos, 1);
-        FPos := Pos(',', WordName);
-      end;
-      WordIndex := addgetword(wordname,istitle);
+      AddCurrentWord;
       InWord := False;
       IsNumberWord := False;
-      WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
-      Inc(FWordCount);
-
     end
     else if not InWord and not IsEndOfWord then
     begin
@@ -341,18 +347,7 @@ begin
   until WordPtr^ = #0;
 
   if InWord then
-  begin
-    WordName := Copy(WordStart, 0, (WordPtr-WordStart));
-    try
-    WordIndex := addgetword(wordname,istitle); // Self.Words[WordName, IsTitle];
-    except on e:exception do writeln('Error: ', wordname); end;
-    WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
-    InWord := False;
-    //if IsNumberWord then WriteLn('Following is NUMBER WORD: "', (WordStart[0]),'"'); ;
-    IsNumberWord := False;
-    //WriteLn(FWordCount, ' "', WordName,'"');
-    Inc(FWordCount);
-  end;
+    AddCurrentWord;
 end;
 
 function defaultindexedword : TIndexedWord;
