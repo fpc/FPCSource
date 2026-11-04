@@ -4259,16 +4259,16 @@ begin
                        StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(ppointer(arg_ptr)^)^);
                        StringMap[NextString].PasStr:=PAnsiString(ppointer(arg_ptr)^);
                        StringMap[NextString].PasWStr:=nil;
-                       arg_data^.vType := arg_data^.vType or varByRef;
-                       arg_data^.volestr:=StringMap[NextString].ComStr;
+                       arg_data^.vType := varOleStr or varByRef;
+                       arg_data^.vPointer:=@StringMap[NextString].ComStr;
                        inc(NextString);
                       end;
           varUStrArg:  begin
                        StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(ppointer(arg_ptr)^)^);
                        StringMap[NextString].PasStr:=nil;
                        StringMap[NextString].PasWStr:=PUnicodeString(ppointer(arg_ptr)^);
-                       arg_data^.vType := arg_data^.vType or varByRef;
-                       arg_data^.volestr:=StringMap[NextString].ComStr;
+                       arg_data^.vType := varOleStr or varByRef;
+                       arg_data^.vPointer:=@StringMap[NextString].ComStr;
                        inc(NextString);
                       end;
           else
@@ -4324,6 +4324,7 @@ begin
                          StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(arg_ptr)^);
                          StringMap[NextString].PasStr:=nil;
                          StringMap[NextString].PasWStr:=Nil;
+                         arg_data^.vType := varOleStr;
                          arg_data^.volestr:=StringMap[NextString].ComStr;
                          inc(NextString);
                         end;
@@ -4331,6 +4332,7 @@ begin
                          StringMap[NextString].ComStr:=StringToOleStr(PunicodeString(arg_ptr)^);
                          StringMap[NextString].PasStr:=nil;
                          StringMap[NextString].PasWStr:=Nil;
+                         arg_data^.vType := varOleStr;
                          arg_data^.volestr:=StringMap[NextString].ComStr;
                          inc(NextString);
                         end;

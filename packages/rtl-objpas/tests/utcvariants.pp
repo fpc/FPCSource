@@ -1,6 +1,7 @@
 {
-    Tests for conversion of custom variants to simple types and
-    mixed operations between custom and simple variants.
+    Tests for conversion of custom variants to simple types,
+    mixed operations between custom and simple variants and
+    string arguments of late-bound calls on invokeable variants.
 }
 
 unit utcVariants;
@@ -64,13 +65,51 @@ type
     procedure TestImplicitResultToInteger;
   end;
 
+  { Invokeable variant type: Probe records its argument, Append adds '!' to a by-reference string }
+  TTestInvokeType = class(TInvokeableVariantType)
+  public
+    // Reset the variant
+    procedure Clear(var V: TVarData); override;
+    // Copy the variant
+    procedure Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean); override;
+    // Handle the Probe and Append procedures
+    function DoProcedure(const V: TVarData; const Name: AnsiString; const Arguments: TVarDataArray): Boolean; override;
+  end;
+
+  { TTestInvokeableVariants }
+
+  TTestInvokeableVariants = class(TTestCase)
+  private
+    FVar: Variant;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestAnsiStringArgument;
+    procedure TestUnicodeStringArgument;
+    procedure TestVarAnsiStringArgument;
+    procedure TestVarUnicodeStringArgument;
+  end;
+
 // Create a test custom variant holding aValue
 function TestVar(aValue: Double): Variant;
 
 implementation
 
+const
+{$IFDEF MSWINDOWS}
+  ExpectedAnsiType = varOleStr;
+  ExpectedUnicodeType = varOleStr;
+{$ELSE}
+  ExpectedAnsiType = varString;
+  ExpectedUnicodeType = varUString;
+{$ENDIF}
+
 var
   TestVariantType: TTestVariantType;
+  TestInvokeType: TTestInvokeType;
+  ProbeType: TVarType;
+  ProbeValue: UnicodeString;
 
 // Create a test custom variant holding aValue
 function TestVar(aValue: Double): Variant;
@@ -358,9 +397,168 @@ begin
 end;
 
 
+// Return the string value of late-bound call argument aArg
+function ArgString(const aArg: TVarData): UnicodeString;
+
+var
+  lByRef: Boolean;
+
+begin
+  lByRef := (aArg.vType and varByRef) <> 0;
+  case aArg.vType and varTypeMask of
+    varOleStr:
+      if lByRef then
+        Result := PWideChar(PPointer(aArg.vPointer)^)
+      else
+        Result := aArg.vOleStr;
+    varUString:
+      if lByRef then
+        Result := PUnicodeString(aArg.vPointer)^
+      else
+        Result := UnicodeString(aArg.vUString);
+    varString:
+      if lByRef then
+        Result := UnicodeString(PAnsiString(aArg.vPointer)^)
+      else
+        Result := UnicodeString(AnsiString(aArg.vString));
+  else
+    Result := '';
+  end;
+end;
+
+
+// Append '!' to the by-reference string argument aArg
+function AppendToArg(const aArg: TVarData): Boolean;
+
+begin
+  Result := (aArg.vType and varByRef) <> 0;
+  if not Result then
+    exit;
+  case aArg.vType and varTypeMask of
+    varOleStr:
+      PWideString(aArg.vPointer)^ := PWideString(aArg.vPointer)^ + '!';
+    varUString:
+      PUnicodeString(aArg.vPointer)^ := PUnicodeString(aArg.vPointer)^ + '!';
+    varString:
+      PAnsiString(aArg.vPointer)^ := PAnsiString(aArg.vPointer)^ + '!';
+  else
+    Result := False;
+  end;
+end;
+
+
+{ TTestInvokeType }
+
+procedure TTestInvokeType.Clear(var V: TVarData);
+
+begin
+  V.vType := varEmpty;
+end;
+
+
+procedure TTestInvokeType.Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean);
+
+begin
+  Dest.vType := VarType;
+end;
+
+
+function TTestInvokeType.DoProcedure(const V: TVarData; const Name: AnsiString; const Arguments: TVarDataArray): Boolean;
+
+begin
+  Result := Length(Arguments) = 1;
+  if not Result then
+    exit;
+  ProbeType := Arguments[0].vType;
+  ProbeValue := ArgString(Arguments[0]);
+  if SameText(Name, 'Probe') then
+    Result := True
+  else if SameText(Name, 'Append') then
+    Result := AppendToArg(Arguments[0])
+  else
+    Result := False;
+end;
+
+
+{ TTestInvokeableVariants }
+
+procedure TTestInvokeableVariants.SetUp;
+
+begin
+  VarClear(FVar);
+  TVarData(FVar).vType := TestInvokeType.VarType;
+  ProbeType := varEmpty;
+  ProbeValue := '';
+end;
+
+
+procedure TTestInvokeableVariants.TearDown;
+
+begin
+  VarClear(FVar);
+end;
+
+
+procedure TTestInvokeableVariants.TestAnsiStringArgument;
+
+var
+  lStr: AnsiString;
+
+begin
+  lStr := 'abc';
+  FVar.Probe(lStr + 'def');
+  AssertEquals('AnsiString argument type', ExpectedAnsiType, ProbeType);
+  AssertEquals('AnsiString argument value', 'abcdef', ProbeValue);
+end;
+
+
+procedure TTestInvokeableVariants.TestUnicodeStringArgument;
+
+var
+  lStr: UnicodeString;
+
+begin
+  lStr := 'caf' + WideChar($E9);
+  FVar.Probe(lStr + 's');
+  AssertEquals('UnicodeString argument type', ExpectedUnicodeType, ProbeType);
+  AssertEquals('UnicodeString argument value', 'caf' + WideChar($E9) + 's', ProbeValue);
+end;
+
+
+procedure TTestInvokeableVariants.TestVarAnsiStringArgument;
+
+var
+  lStr: AnsiString;
+
+begin
+  lStr := 'abc';
+  FVar.Append(lStr);
+  AssertEquals('var AnsiString argument type', ExpectedAnsiType or varByRef, ProbeType);
+  AssertEquals('var AnsiString argument value', 'abc', ProbeValue);
+  AssertEquals('var AnsiString argument written back', 'abc!', lStr);
+end;
+
+
+procedure TTestInvokeableVariants.TestVarUnicodeStringArgument;
+
+var
+  lStr: UnicodeString;
+
+begin
+  lStr := 'caf' + WideChar($E9);
+  FVar.Append(lStr);
+  AssertEquals('var UnicodeString argument type', ExpectedUnicodeType or varByRef, ProbeType);
+  AssertEquals('var UnicodeString argument value', 'caf' + WideChar($E9), ProbeValue);
+  AssertEquals('var UnicodeString argument written back', 'caf' + WideChar($E9) + '!', lStr);
+end;
+
+
 initialization
   TestVariantType := TTestVariantType.Create;
+  TestInvokeType := TTestInvokeType.Create;
   RegisterTest(TTestCustomVariants);
+  RegisterTest(TTestInvokeableVariants);
 finalization
+  FreeAndNil(TestInvokeType);
   FreeAndNil(TestVariantType);
 end.
