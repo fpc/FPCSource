@@ -110,7 +110,16 @@ interface
         if (left.location.loc=LOC_FPUREGISTER) and
            (node_resources_fpu(right)>=maxfpuregs) then
           begin
-            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            { an intermediate currency value need not be a whole number of
+              units of its scale (an operand divided by 10000, a quotient), and
+              a currency temp would round it, so keep it as extended }
+            if is_currency(left.resultdef) and (left.resultdef.typ=floatdef) then
+              begin
+                left.location.size:=OS_F80;
+                hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,s80floattype);
+              end
+            else
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             pushedfpu:=true;
           end;
 {$endif x86 and not llvm}
