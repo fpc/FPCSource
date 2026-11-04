@@ -1132,7 +1132,7 @@ var
   function SslCtxSetTlsextServernameCallback(ctx: PSSL_CTX; cb: PCallbackCb): cLong;
   // Sets the argument of the server name callback of ctx; uses SSL_CTX_set_tlsext_servername_arg when exported
   function SslCtxSetTlsextServernameArg(ctx: PSSL_CTX; arg: Pointer): cLong;
-  // Adds options to ctx; uses SSL_CTX_set_options when the library has no SSL_CTX_ctrl
+  // Adds options to ctx and returns the resulting options; uses SSL_CTX_set_options when the library exports it
   function SslCtxSetOptions(ctx: PSSL_CTX; options: cLong): cLong;
   // Sets the minimum protocol version of ctx; uses SSL_CTX_set_min_proto_version when the library has no SSL_CTX_ctrl
   function SslCtxSetMinProtoVersion(ctx: PSSL_CTX; version: cLong): cLong;
@@ -1685,7 +1685,10 @@ type
   TSslSetTlsextHostName = function(ssl: PSSL; name: PAnsiChar): cInt; cdecl;
   TSslCtxSetTlsextServernameCallback = function(ctx: PSSL_CTX; cb: PCallbackCb): cInt; cdecl;
   TSslCtxSetTlsextServernameArg = function(ctx: PSSL_CTX; arg: Pointer): cInt; cdecl;
-  TSslCtxSetOptions = function(ctx: PSSL_CTX; options: cuint32): cuint32; cdecl;
+  TSslCtxSetOptions32 = function(ctx: PSSL_CTX; options: cuint32): cuint32; cdecl;
+  TSslCtxSetOptionsLong = function(ctx: PSSL_CTX; options: culong): culong; cdecl;
+  TSslCtxSetOptions64 = function(ctx: PSSL_CTX; options: cuint64): cuint64; cdecl;
+  TOpenSSLVersionNum = function: culong; cdecl;
   TSslCtxSetMinProtoVersion = function(ctx: PSSL_CTX; version: cuint16): cInt; cdecl;
   TSslCtxSetMode = function(ctx: PSSL_CTX; mode: cuint32): cuint32; cdecl;
   TSslSetModeFunc = function(ssl: PSSL; mode: cuint32): cuint32; cdecl;
@@ -1976,7 +1979,8 @@ var
   _SslSetTlsextHostName: TSslSetTlsextHostName = nil;
   _SslCtxSetTlsextServernameCallback: TSslCtxSetTlsextServernameCallback = nil;
   _SslCtxSetTlsextServernameArg: TSslCtxSetTlsextServernameArg = nil;
-  _SslCtxSetOptions: TSslCtxSetOptions = nil;
+  _SslCtxSetOptions: Pointer = nil;
+  _OpenSSLVersionNum: TOpenSSLVersionNum = nil;
   _SslCtxSetMinProtoVersion: TSslCtxSetMinProtoVersion = nil;
   _SslCtxSetMode: TSslCtxSetMode = nil;
   _SslSetMode: TSslSetModeFunc = nil;
@@ -2502,10 +2506,20 @@ end;
 function SslCtxSetOptions(ctx: PSSL_CTX; options: cLong): cLong;
 
 begin
-  if InitSSLInterface and not Assigned(_SslCTXCtrl) and Assigned(_SslCtxSetOptions) then
-    Result := _SslCtxSetOptions(ctx, cuint32(options))
+  if not InitSSLInterface then
+    Exit(0);
+  if not Assigned(_SslCtxSetOptions) then
+    // OpenSSL 1.0 and LibreSSL: SSL_CTX_set_options is a macro over SSL_CTX_ctrl
+    Result := SslCTXCtrl(ctx, SSL_CTRL_OPTIONS, options, nil)
+  else if not Assigned(_SslCTXCtrl) then
+    // BoringSSL: uint32_t options
+    Result := cLong(TSslCtxSetOptions32(_SslCtxSetOptions)(ctx, cuint32(options)))
+  else if Assigned(_OpenSSLVersionNum) and (_OpenSSLVersionNum() >= $30000000) then
+    // OpenSSL 3: uint64_t options
+    Result := cLong(TSslCtxSetOptions64(_SslCtxSetOptions)(ctx, cuint64(options)))
   else
-    Result := SslCTXCtrl(ctx, SSL_CTRL_OPTIONS, options, nil);
+    // OpenSSL 1.1: unsigned long options
+    Result := cLong(TSslCtxSetOptionsLong(_SslCtxSetOptions)(ctx, culong(options)));
 end;
 
 
@@ -5545,6 +5559,7 @@ begin
   _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup');
   _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
   _OpenSSLVersion := GetProcAddr(SSLUtilHandle, 'OpenSSL_version');
+  _OpenSSLVersionNum := GetProcAddr(SSLUtilHandle, 'OpenSSL_version_num');
   _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
   if @_SSLeayversion=Nil then
     _SSLeayversion := _OpenSSLVersion;
@@ -6011,6 +6026,7 @@ Procedure ClearUtilEntryPoints;
 
 begin
   _OpenSSLVersion := Nil;
+  _OpenSSLVersionNum := Nil;
   _SSLeayversion := nil;
   _ERR_load_crypto_strings := nil;
   _OPENSSL_init_crypto:=Nil;
