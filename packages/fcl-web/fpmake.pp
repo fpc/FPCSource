@@ -397,6 +397,9 @@ begin
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpjwaes256.pp');
     T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwaopenssles256.pp',AllUnixOSes+AllWindowsOSes);
+      T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpjwarsa.pp');
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fphttpwebclient.pp');

@@ -72,10 +72,51 @@ type
     procedure TestVerifyPS512Pem;
   end;
 
+  { TTestJWTOpenSSLES256 }
+
+  TTestJWTOpenSSLES256 = class(TTestCase)
+  private
+    FJWT: TJWT;
+    FVerifyResult : TJWT;
+    procedure RequireOpenSSL;
+    function RawKey(const aPem: String): TJWTKey;
+    function OpenSSLSign(const aPem: String; aP1363: Boolean): String;
+    function OpenSSLVerify(const aJWT, aPem: String): Boolean;
+    function NativeSign(const aPem: String): String;
+    function NativeVerify(const aJWT, aPem: String): Boolean;
+    function SignatureBytes(const aJWT: String): TBytes;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestOpenSSLSignNativeVerify;
+    procedure TestNativeSignOpenSSLVerify;
+    procedure TestDefaultIsP1363;
+    procedure TestDERSignature;
+    procedure TestWrongKey;
+    procedure TestVerifyKnownToken;
+    procedure TestP1363DerRoundTrip;
+    procedure TestRegister;
+  end;
+
 implementation
 
 uses
-  basenenc, fpsha256, fpjwasha256, fpsha512, fpjwasha512, fpjwasha384, fpjwaes256, fpecc, fppem;
+  basenenc, fpsha256, fpjwasha256, fpsha512, fpjwasha512, fpjwasha384, fpjwaes256, fpecc, fppem,
+  openssl, fpjwaopenssles256;
+
+const
+  // EC keys from issue #41057
+  ESPrivateKeyPem = '-----BEGIN EC PRIVATE KEY-----'+#10+
+                    'MHcCAQEEIKblFoxFuMZaNd+FCESsHb9dnj7CAfT8CsvyEvEa5NsNoAoGCCqGSM49'+#10+
+                    'AwEHoUQDQgAEqV9IS3m+RB9gGZhRBMcOkr43vzACDlKUe9daKujqjrnKVUATy+MK'+#10+
+                    'hoESHQOzxK6Up+qrpkuVdOTmVdEK14Nvqw=='+#10+
+                    '-----END EC PRIVATE KEY-----';
+  ESWrongPrivateKeyPem = '-----BEGIN EC PRIVATE KEY-----'+#10+
+                         'MHcCAQEEIGh3uGJZQB1UoefN71rXB34tgmDHv+8NUw4hXp0dZug5oAoGCCqGSM49'+#10+
+                         'AwEHoUQDQgAEOmYtqfklj4OAVyQG+vYT+f/QNnFBJfzQnKgHOtd09Vc/UTp+c7yk'+#10+
+                         'SKjtbwaJF/4Yxa9Nseo78dRT96TkW5MTgg=='+#10+
+                         '-----END EC PRIVATE KEY-----';
 
 { TMyJWT }
 
@@ -700,7 +741,290 @@ begin
   AssertEquals('Have correct admin',False,(TMyJWT(FVerifyResult).Claims as TMyClaims).Admin);
 end;
 
+{ TTestJWTOpenSSLES256 }
+
+procedure TTestJWTOpenSSLES256.RequireOpenSSL;
+
+begin
+  if not InitSSLInterface then
+    Ignore('OpenSSL library not available');
+end;
+
+
+function TTestJWTOpenSSLES256.RawKey(const aPem: String): TJWTKey;
+
+var
+  lStream : TStringStream;
+  lPrivateKey : TEccPrivateKey;
+  lPublicKey : TEccPublicKey;
+  lX, lY : AnsiString;
+
+begin
+  lStream:=TStringStream.Create(aPem);
+  try
+    AssertTrue('PEM key loaded',PemLoadECDSA(lStream,lPrivateKey,lPublicKey,lX,lY));
+  finally
+    lStream.Free;
+  end;
+  Result:=TJWTKey.Create(@lPrivateKey,SizeOf(TEccPrivateKey));
+end;
+
+
+function TTestJWTOpenSSLES256.OpenSSLSign(const aPem: String; aP1363: Boolean): String;
+
+var
+  lSigner : TJWTOpenSSLSignerES256;
+
+begin
+  lSigner:=TJWTOpenSSLSignerES256.Create;
+  try
+    lSigner.OutputP1363:=aP1363;
+    Result:=lSigner.AppendSignature(FJWT,TJWTKey.Create(aPem));
+  finally
+    lSigner.Free;
+  end;
+end;
+
+
+function TTestJWTOpenSSLES256.OpenSSLVerify(const aJWT, aPem: String): Boolean;
+
+var
+  lSigner : TJWTOpenSSLSignerES256;
+
+begin
+  lSigner:=TJWTOpenSSLSignerES256.Create;
+  try
+    Result:=lSigner.Verify(aJWT,TJWTKey.Create(aPem));
+  finally
+    lSigner.Free;
+  end;
+end;
+
+
+function TTestJWTOpenSSLES256.NativeSign(const aPem: String): String;
+
+var
+  lSigner : TJWTSignerES256;
+
+begin
+  lSigner:=TJWTSignerES256.Create;
+  try
+    Result:=lSigner.AppendSignature(FJWT,RawKey(aPem));
+  finally
+    lSigner.Free;
+  end;
+end;
+
+
+function TTestJWTOpenSSLES256.NativeVerify(const aJWT, aPem: String): Boolean;
+
+var
+  lSigner : TJWTSignerES256;
+
+begin
+  lSigner:=TJWTSignerES256.Create;
+  try
+    Result:=lSigner.Verify(aJWT,RawKey(aPem));
+  finally
+    lSigner.Free;
+  end;
+end;
+
+
+function TTestJWTOpenSSLES256.SignatureBytes(const aJWT: String): TBytes;
+
+var
+  lJOSE, lClaims, lSign : String;
+
+begin
+  AssertTrue('JWT has three parts',TJWTSigner.GetParts(aJWT,lJOSE,lClaims,lSign));
+  Result:=Base64URL.Decode(lSign);
+end;
+
+
+procedure TTestJWTOpenSSLES256.SetUp;
+
+begin
+  Inherited;
+  FJWT:=TJWT.Create;
+  FJWT.JOSE.alg:='ES256';
+  FJWT.JOSE.typ:='JWT';
+  FJWT.Claims.iss:='fpc';
+  FJWT.Claims.sub:='subject';
+  FJWT.Claims.iat:=1516239022;
+end;
+
+
+procedure TTestJWTOpenSSLES256.TearDown;
+
+begin
+  FreeAndNil(FVerifyResult);
+  FreeAndNil(FJWT);
+  Inherited;
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestOpenSSLSignNativeVerify;
+
+var
+  lJWT : String;
+  I : Integer;
+
+begin
+  RequireOpenSSL;
+  for I:=1 to 64 do
+    begin
+    FJWT.Claims.iat:=1516239022+I;
+    lJWT:=OpenSSLSign(ESPrivateKeyPem,True);
+    AssertTrue('Native signer accepts OpenSSL signature '+IntToStr(I),NativeVerify(lJWT,ESPrivateKeyPem));
+    AssertTrue('OpenSSL signer accepts its own signature '+IntToStr(I),OpenSSLVerify(lJWT,ESPrivateKeyPem));
+    end;
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestNativeSignOpenSSLVerify;
+
+var
+  lJWT : String;
+  I : Integer;
+
+begin
+  RequireOpenSSL;
+  for I:=1 to 64 do
+    begin
+    FJWT.Claims.iat:=1516239022+I;
+    lJWT:=NativeSign(ESPrivateKeyPem);
+    AssertTrue('OpenSSL signer accepts native signature '+IntToStr(I),OpenSSLVerify(lJWT,ESPrivateKeyPem));
+    AssertTrue('Native signer accepts its own signature '+IntToStr(I),NativeVerify(lJWT,ESPrivateKeyPem));
+    end;
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestDefaultIsP1363;
+
+var
+  lSigner : TJWTOpenSSLSignerES256;
+  lJWT : String;
+
+begin
+  RequireOpenSSL;
+  AssertTrue('P1363 is the default',TJWTOpenSSLSignerES256.DefaultOutputP1363);
+  lSigner:=TJWTOpenSSLSignerES256.Create;
+  try
+    AssertTrue('New signer outputs P1363',lSigner.OutputP1363);
+    lJWT:=lSigner.AppendSignature(FJWT,TJWTKey.Create(ESPrivateKeyPem));
+  finally
+    lSigner.Free;
+  end;
+  AssertEquals('P1363 signature length',64,Length(SignatureBytes(lJWT)));
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestDERSignature;
+
+var
+  lJWT : String;
+  lSig : TBytes;
+
+begin
+  RequireOpenSSL;
+  lJWT:=OpenSSLSign(ESPrivateKeyPem,False);
+  lSig:=SignatureBytes(lJWT);
+  AssertEquals('DER signature starts with SEQUENCE',$30,lSig[0]);
+  AssertEquals('DER sequence length',Length(lSig)-2,lSig[1]);
+  AssertTrue('OpenSSL signer accepts DER signature',OpenSSLVerify(lJWT,ESPrivateKeyPem));
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestWrongKey;
+
+var
+  lJWT : String;
+
+begin
+  RequireOpenSSL;
+  lJWT:=OpenSSLSign(ESPrivateKeyPem,True);
+  AssertFalse('P1363 signature rejected with wrong key',OpenSSLVerify(lJWT,ESWrongPrivateKeyPem));
+  AssertFalse('Native signer rejects with wrong key',NativeVerify(lJWT,ESWrongPrivateKeyPem));
+  lJWT:=OpenSSLSign(ESPrivateKeyPem,False);
+  AssertFalse('DER signature rejected with wrong key',OpenSSLVerify(lJWT,ESWrongPrivateKeyPem));
+  lJWT:=NativeSign(ESPrivateKeyPem);
+  AssertFalse('Native signature rejected with wrong key',OpenSSLVerify(lJWT,ESWrongPrivateKeyPem));
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestVerifyKnownToken;
+
+const
+  aInput =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.' +
+    'eyJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjI0OTAyMiwiaXNzIjoiRGVscGhpIEpPU0UgYW5kIEpXVCBMaWJyYXJ5In0.'+
+    '4QDMKAvHwb6pA5fN0oQjlzuKmPIlNpmIQ8vPH7zy4fjZdtcPVJMtfiVhztwQldQL9A5yzBKI8q2puVygm-2Adw';
+  APrivateKeyPem =
+    '-----BEGIN EC PRIVATE KEY-----'+ #10+
+    'MHcCAQEEIFzS3/5bCnrlpa4902/zkYzURF6E2D8pazgnJu4smhpQoAoGCCqGSM49'+ #10+
+    'AwEHoUQDQgAEqTjyg2z65i+zbyUZW8BQ+K87DNsICRaEH7Fy7Rm3MseXy9ItSCQU'+ #10+
+    'VeJbtO6kYUA00mx7bKoC1sx5sbtFExnYPQ=='+ #10+
+    '-----END EC PRIVATE KEY-----';
+
+begin
+  RequireOpenSSL;
+  AssertTrue('Known ES256 token verified',OpenSSLVerify(aInput,APrivateKeyPem));
+  AssertFalse('Known ES256 token rejected with wrong key',OpenSSLVerify(aInput,ESPrivateKeyPem));
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestP1363DerRoundTrip;
+
+var
+  lSig, lDer, lBack : TBytes;
+  I : Integer;
+
+begin
+  lSig:=Nil;
+  SetLength(lSig,64);
+  for I:=0 to 63 do
+    lSig[I]:=I+1;
+  lSig[0]:=0;
+  lSig[1]:=0;
+  lSig[2]:=$7F;
+  lSig[32]:=$FF;
+  lDer:=P1363ToDer(lSig);
+  AssertEquals('SEQUENCE tag',$30,lDer[0]);
+  AssertEquals('SEQUENCE length',Length(lDer)-2,lDer[1]);
+  AssertEquals('r tag',2,lDer[2]);
+  AssertEquals('r without leading zero bytes',30,lDer[3]);
+  AssertEquals('r first byte',$7F,lDer[4]);
+  AssertEquals('s tag',2,lDer[34]);
+  AssertEquals('s with sign byte',33,lDer[35]);
+  AssertEquals('s sign byte',0,lDer[36]);
+  AssertEquals('s first byte',$FF,lDer[37]);
+  lBack:=DerToP1363(lDer);
+  AssertEquals('Round trip length',64,Length(lBack));
+  AssertTrue('Round trip value',CompareMem(@lSig[0],@lBack[0],64));
+end;
+
+
+procedure TTestJWTOpenSSLES256.TestRegister;
+
+begin
+  RequireOpenSSL;
+  TJWTOpenSSLSignerES256.Register;
+  try
+    FJWT.Sign(TJWTKey.Create(ESPrivateKeyPem));
+    FVerifyResult:=TJWT.ValidateJWT(FJWT.AsEncodedString,TJWTKey.Create(ESPrivateKeyPem));
+    AssertNotNull('Registered OpenSSL signer verifies its token',FVerifyResult);
+  finally
+    TJWTSignerES256.Register;
+  end;
+  FreeAndNil(FVerifyResult);
+  FVerifyResult:=TJWT.ValidateJWT(FJWT.AsEncodedString,RawKey(ESPrivateKeyPem));
+  AssertNotNull('Native signer registered again for ES256',FVerifyResult);
+end;
+
+
 initialization
   RegisterTest(TTestJWT);
+  RegisterTest(TTestJWTOpenSSLES256);
 end.
 

@@ -106,6 +106,7 @@ src/jwt/fpjwarsa.pp=namespaced/Jwt.Jwa.Rsa.pp
 src/jwt/fpjwasha512.pp=namespaced/Jwt.Jwa.Sha512.pp
 src/jwt/fpjwasha384.pp=namespaced/Jwt.Jwa.Sha384.pp
 src/jwt/fpjwaes256.pp=namespaced/Jwt.Jwa.Es256.pp
+src/jwt/fpjwaopenssles256.pp=namespaced/Jwt.Jwa.OpenSSLEs256.pp
 src/jwt/fpjwasha256.pp=namespaced/Jwt.Jwa.Sha256.pp
 src/jwt/fpjwt.pp=namespaced/Jwt.Types.pp
 src/jwt/fpoauth2.pp=namespaced/Jwt.Oauth2.pp
