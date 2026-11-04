@@ -91,6 +91,15 @@ Function GetLastButtonRelease (button : Longint; var x,y:Longint): Longint;
  screen; there's no XOR'ing}
   Procedure SetMouseAscii(Ascii:Byte);
 
+Type
+  // Graphics mode cursor: the screen is ANDed with ScreenMask, then XORed with CursorMask; one Word per row
+  TMouseGraphCursorMask = packed record
+    ScreenMask, CursorMask: array[0..15] of Word;
+  end;
+
+// Set the mouse cursor shape in graphics mode, with hot spot aHotX, aHotY relative to the upper left corner.
+  Procedure SetMouseGraphCursor(aHotX, aHotY: Longint; const aMask: TMouseGraphCursorMask);
+
 {set mouse speed in mickey's/pixel; default: horizontal: 8; vertical: 16}
   Procedure SetMouseSpeed(Horizontal ,Vertical:Longint);
 
@@ -105,6 +114,14 @@ Var
   MouseFound: Boolean;
 
 Implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
+Uses
+  Go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$asmmode ATT}
 
@@ -328,6 +345,25 @@ Begin
         popl    %ebp
   End;
 End;
+
+Procedure SetMouseGraphCursor(aHotX, aHotY: Longint; const aMask: TMouseGraphCursorMask);
+
+var
+  lRegs: TRealRegs;
+
+Begin
+  If (Not MouseFound) Then Exit;
+  // INT 33h function 09h reads the mask from ES:DX in conventional memory
+  dosmemput(tb_segment, tb_offset, PByte(@aMask)^, SizeOf(aMask));
+  FillChar(lRegs, SizeOf(lRegs), 0);
+  lRegs.AX := 9;
+  lRegs.BX := Word(aHotX);
+  lRegs.CX := Word(aHotY);
+  lRegs.ES := tb_segment;
+  lRegs.DX := tb_offset;
+  realintr($33, lRegs);
+End;
+
 
 Procedure SetMouseHideWindow(x1,y1,x2,y2:Longint);
 Begin

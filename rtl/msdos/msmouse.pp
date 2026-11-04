@@ -89,6 +89,15 @@ Function GetLastButtonRelease (button : LongInt; var x,y:LongInt): LongInt;
  screen; there's no XOR'ing}
   Procedure SetMouseAscii(Ascii:Byte);
 
+Type
+  // Graphics mode cursor: the screen is ANDed with ScreenMask, then XORed with CursorMask; one Word per row
+  TMouseGraphCursorMask = packed record
+    ScreenMask, CursorMask: array[0..15] of Word;
+  end;
+
+// Set the mouse cursor shape in graphics mode, with hot spot aHotX, aHotY relative to the upper left corner.
+  Procedure SetMouseGraphCursor(aHotX, aHotY: LongInt; const aMask: TMouseGraphCursorMask);
+
 {set mouse speed in mickey's/pixel; default: horizontal: 8; vertical: 16}
   Procedure SetMouseSpeed(Horizontal ,Vertical:LongInt);
 
@@ -368,6 +377,32 @@ Begin
         pop     bp
   End;
 End;
+
+Procedure SetMouseGraphCursor(aHotX, aHotY: LongInt; const aMask: TMouseGraphCursorMask);
+
+var
+  lHotX, lHotY, lSeg, lOfs: Word;
+
+Begin
+  If (Not MouseFound) Then Exit;
+  lHotX := Word(aHotX);
+  lHotY := Word(aHotY);
+  lSeg := Seg(aMask);
+  lOfs := Ofs(aMask);
+  asm
+        push    es
+        mov     ax, 9
+        mov     bx, lHotX
+        mov     cx, lHotY
+        mov     dx, lOfs
+        mov     es, lSeg
+        push    bp
+        int     $33
+        pop     bp
+        pop     es
+  end;
+End;
+
 
 Procedure SetMouseHideWindow(x1,y1,x2,y2:LongInt);
 Begin
