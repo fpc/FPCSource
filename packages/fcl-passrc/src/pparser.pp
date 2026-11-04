@@ -1129,14 +1129,23 @@ end;
 function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
 var
   V: TPasVariable;
+  T: TPasType;
+  i: Integer;
 begin
   Result:=false;
   if El=nil then exit;
   if (El.ClassType=TPasConst) or (El.ClassType=TPasVariable) then
     begin
     V:=TPasVariable(El);
-    if V.VarType=nil then exit;
-    Result:=V.VarType.ClassType=TPasArrayType;
+    T:=V.VarType;
+    // follow alias chains, at most 32 deep
+    i:=0;
+    while (T is TPasAliasType) and (i<32) do
+      begin
+      T:=TPasAliasType(T).DestType;
+      Inc(i);
+      end;
+    Result:=(T<>nil) and (T.ClassType=TPasArrayType);
     end;
 end;
 
@@ -3615,37 +3624,51 @@ function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     Result:=a;
   end;
 
+  // At "(": return true if "identifier :" follows, leaving CurToken at "(".
+  function IsRecordValuesStart: boolean;
+
+  begin
+    NextToken;
+    Result:=CurToken=tkIdentifier;
+    if Result then
+      begin
+      NextToken;
+      Result:=CurToken=tkColon;
+      UngetToken;
+      end;
+    UngetToken;
+  end;
+
 var
   x , v: TPasExpr;
   n : String;
   r : TRecordValues;
+  NeedArray: boolean;
 begin
   if CurToken = tkSquaredBraceOpen then
     begin
-    if Engine.NeedArrayValues(AParent) then
+    NeedArray:=Engine.NeedArrayValues(AParent);
+    // Peek at first element to decide parsing strategy
+    NextToken;
+    if NeedArray and (CurToken = tkSquaredBraceClose) then
       begin
-      // Peek at first element to decide parsing strategy
+      // Empty array: []
+      Result:=CreateArrayValues(AParent);
       NextToken;
-      if CurToken = tkSquaredBraceClose then
-        begin
-        // Empty array: []
-        Result:=CreateArrayValues(AParent);
-        NextToken;
-        Exit;
-        end;
-      if CurToken = tkBraceOpen then
-        begin
-        // First element starts with ( - record elements [(field:value), ...]
-        UngetToken;
-        ReadArrayValues(nil);
-        if CurToken <> tkSquaredBraceClose then
-          ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
-        NextToken;
-        Exit;
-        end;
-      // Not record elements, fall through to expression parser
-      UngetToken;
+      Exit;
       end;
+    if (CurToken = tkBraceOpen) and (NeedArray or IsRecordValuesStart) then
+      begin
+      // First element starts with ( - record elements [(field:value), ...]
+      UngetToken;
+      ReadArrayValues(nil);
+      if CurToken <> tkSquaredBraceClose then
+        ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
+      NextToken;
+      Exit;
+      end;
+    // Not record elements, fall through to expression parser
+    UngetToken;
     // Parse [...] as expression (set/array literal)
     Result:=DoParseExpression(AParent);
     Exit;

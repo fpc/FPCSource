@@ -86,6 +86,10 @@ Type
     Procedure TestDynArrayConst;
     Procedure TestDynArrayConstWithRecords;
     Procedure TestDynArrayConstEmpty;
+    Procedure TestDynArrayConstNamedType;
+    Procedure TestDynArrayConstNamedTypeSet;
+    Procedure TestDynArrayConstAliasEmpty;
+    Procedure TestDynArrayConstParenthesizedInt;
     Procedure TestConstErrorRecovery;
   end;
 
@@ -692,6 +696,70 @@ begin
   AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
   R := TheExpr as TArrayValues;
   AssertEquals('0 elements', 0, Length(R.Values));
+end;
+
+procedure TTestConstParser.TestDynArrayConstNamedType;
+var
+  R: TArrayValues;
+  Rec: TRecordValues;
+begin
+  Typed := 'TVarsWithTemplates';
+  ParseConst('[(Name:''a''; Template:''b''), (Name:''c''; Template:''d'')]');
+  AssertEquals('Unresolved type reference', TPasUnresolvedTypeRef, TheConst.VarType.ClassType);
+  AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
+  R := TheExpr as TArrayValues;
+  AssertEquals('2 elements', 2, Length(R.Values));
+  AssertEquals('Element 1 is record', TRecordValues, R.Values[0].ClassType);
+  Rec := R.Values[0] as TRecordValues;
+  AssertEquals('Rec1 field count', 2, Length(Rec.Fields));
+  AssertEquals('Rec1 field 1 name', 'Name', Rec.Fields[0].Name);
+  AssertExpression('Rec1 field 1 value', Rec.Fields[0].ValueExp, pekString, '''a''');
+  AssertEquals('Rec1 field 2 name', 'Template', Rec.Fields[1].Name);
+  AssertExpression('Rec1 field 2 value', Rec.Fields[1].ValueExp, pekString, '''b''');
+  AssertEquals('Element 2 is record', TRecordValues, R.Values[1].ClassType);
+  Rec := R.Values[1] as TRecordValues;
+  AssertEquals('Rec2 field 1 name', 'Name', Rec.Fields[0].Name);
+  AssertExpression('Rec2 field 1 value', Rec.Fields[0].ValueExp, pekString, '''c''');
+end;
+
+procedure TTestConstParser.TestDynArrayConstNamedTypeSet;
+var
+  R: TParamsExpr;
+begin
+  Typed := 'TSomeSet';
+  ParseConst('[(a), b]');
+  AssertEquals('Set literal', TParamsExpr, TheExpr.ClassType);
+  R := TheExpr as TParamsExpr;
+  AssertEquals('Expression kind', pekSet, TheExpr.Kind);
+  AssertEquals('2 elements', 2, Length(R.Params));
+end;
+
+procedure TTestConstParser.TestDynArrayConstAliasEmpty;
+var
+  R: TArrayValues;
+begin
+  Add('Type');
+  Add('  TPoints = array of TPoint;');
+  Add('  TMyPoints = TPoints;');
+  Typed := 'TMyPoints';
+  ParseConst('()');
+  AssertEquals('Alias type', TPasAliasType, TheConst.VarType.ClassType);
+  AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
+  R := TheExpr as TArrayValues;
+  AssertEquals('0 elements', 0, Length(R.Values));
+end;
+
+procedure TTestConstParser.TestDynArrayConstParenthesizedInt;
+var
+  R: TArrayValues;
+begin
+  Typed := 'array of Integer';
+  ParseConst('[(1+2), 3]');
+  AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
+  R := TheExpr as TArrayValues;
+  AssertEquals('2 elements', 2, Length(R.Values));
+  AssertEquals('Element 1 is binary expression', TBinaryExpr, R.Values[0].ClassType);
+  AssertExpression('Element 2 value', R.Values[1], pekNumber, '3');
 end;
 
 procedure TTestConstParser.TestConstErrorRecovery;
