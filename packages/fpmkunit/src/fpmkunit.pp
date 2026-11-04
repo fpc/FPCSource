@@ -1378,6 +1378,8 @@ Type
 {$endif HAS_TAR_SUPPORT}
     procedure AddFileToArchive(const APackage: TPackage; Const ASourceFileName, ADestFileName : String);
     procedure FinishArchive(Sender: TObject);
+    // Compile Packages when one of the packages to install is not compiled yet.
+    procedure CompileBeforeInstall(Packages: TPackages);
   Protected
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; const Args : Array of const);
@@ -1921,6 +1923,7 @@ ResourceString
   SErrAlreadyInitialized = 'Installer can only be initialized once';
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
+  SErrPackageNotCompiled = 'Package %s is not compiled, cannot install it';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
   SErrEventNotSupported = 'Unsupported event type';
@@ -9237,6 +9240,8 @@ Var
 begin
   If (Apackage.State<>tsCompiled) then
     MaybeCompile(APackage);
+  if APackage.State=tsNeutral then
+    Error(SErrPackageNotCompiled,[APackage.Name]);
   Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
   if AnArchiveFiles then
     FinishArchive(APackage);
@@ -9845,11 +9850,31 @@ begin
 end;
 
 
+procedure TBuildEngine.CompileBeforeInstall(Packages: TPackages);
+
+Var
+  I : Integer;
+  P : TPackage;
+
+begin
+  For I:=0 to Packages.Count-1 do
+    begin
+      P:=Packages.PackageItems[i];
+      If PackageOK(P) and not (P.State in [tsCompiled,tsNoCompile]) then
+        begin
+          Compile(Packages);
+          Exit;
+        end;
+    end;
+end;
+
+
 procedure TBuildEngine.Install(Packages: TPackages);
 Var
   I : Integer;
   P : TPackage;
 begin
+  CompileBeforeInstall(Packages);
   NotifyEventCollection.CallEvents(neaBeforeInstall, Self);
   For I:=0 to Packages.Count-1 do
     begin
@@ -9873,6 +9898,7 @@ var
   lOldUnixPaths : Boolean;
 
 begin
+  CompileBeforeInstall(Packages);
   NotifyEventCollection.CallEvents(neaBeforeInstall, Self);
 
   { An archive has the directory layout of the target OS, not of the build OS }
