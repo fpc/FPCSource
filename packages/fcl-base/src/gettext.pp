@@ -76,6 +76,10 @@ type
 
 
   procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
+{$ifdef windows}
+  // Returns the ISO 639 language and ISO 3166 country codes of Windows locale aLocale, e.g. 'sv_SE' and 'sv'.
+  procedure GetLanguageIDs(aLocale: LongWord; var aLang, aFallbackLang: AnsiString);
+{$endif}
   procedure TranslateResourceStrings(AFile: TMOFile);
   procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; AFile: TMOFile);
   procedure TranslateResourceStrings(const AFilename: AnsiString);
@@ -306,33 +310,47 @@ end;
 
 
 {$ifdef windows}
-procedure GetLanguageIDs(var Lang, FallbackLang:AnsiString );
+// Returns locale information aType of locale aLocale, or an empty string.
+function GetLocaleString(aLocale: LCID; aType: LCTYPE): AnsiString;
+
 var
-  Buffer: array[1..4] of {$ifdef Wince}WideChar{$else}AnsiChar{$endif};
-  Country: AnsiString;
-  UserLCID: LCID;
+  lBuffer: array[0..8] of {$ifdef wince}WideChar{$else}AnsiChar{$endif};
+  lLen: Integer;
+{$ifdef wince}
+  lValue: UnicodeString;
+{$endif}
+
 begin
-  //defaults
-  Lang := '';
-  FallbackLang:='';
-  UserLCID := GetUserDefaultLCID;
-  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer[1], 4)<>0 then begin
-    FallbackLang := lowercase(copy(Buffer,1,2));
+  Result:='';
+  lLen:=GetLocaleInfo(aLocale,aType,@lBuffer[0],Length(lBuffer));
+  if lLen<=1 then
+    exit;
+{$ifdef wince}
+  SetString(lValue,PWideChar(@lBuffer[0]),lLen-1);
+  Result:=AnsiString(lValue);
+{$else}
+  SetString(Result,PAnsiChar(@lBuffer[0]),lLen-1);
+{$endif}
+end;
 
-    // Chinese abbreviation should be zh instead of ch
-    if (Copy(Buffer,1,3)='CHS') or (Copy(Buffer,1,3)='CHT') then FallbackLang:='zh';
-  end;
-  if GetLocaleInfo(UserLCID, LOCALE_SABBREVCTRYNAME, @Buffer[1], 4)<>0 then begin
-    Country := copy(Buffer,1,2);
 
-    // some 2 letter codes are not the first two letters of the 3 letter code
-    // there are probably more, but first let us see if there are translations
-    if (Buffer='PRT') then Country:='PT';
+procedure GetLanguageIDs(aLocale: LongWord; var aLang, aFallbackLang: AnsiString);
 
-    if (Copy(Buffer,1,3)='CHN') then Country:='CN';
+var
+  lCountry: AnsiString;
 
-    Lang := FallbackLang+'_'+Country;
-  end;
+begin
+  aLang:='';
+  aFallbackLang:=GetLocaleString(aLocale,LOCALE_SISO639LANGNAME);
+  lCountry:=GetLocaleString(aLocale,LOCALE_SISO3166CTRYNAME);
+  if (aFallbackLang<>'') and (lCountry<>'') then
+    aLang:=aFallbackLang+'_'+lCountry;
+end;
+
+
+procedure GetLanguageIDs(var Lang, FallbackLang:AnsiString );
+begin
+  GetLanguageIDs(GetUserDefaultLCID,Lang,FallbackLang);
 end;
 
 {$else}
