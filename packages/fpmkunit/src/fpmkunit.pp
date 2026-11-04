@@ -3105,7 +3105,8 @@ begin
     Proc.Free;
   end;
   SetLength(Result,Count);
-  Move(Buf,Result[1],Count);
+  if Count>0 then
+    Move(Buf,Result[1],Count);
 end;
 
 // Convenience function
@@ -6966,7 +6967,8 @@ begin
       finally
         ConsoleOutput.Seek(0, soBeginning);
         SetLength(Result,ConsoleOutput.Size);
-        ConsoleOutput.Read(Result[1],ConsoleOutput.Size);
+        if ConsoleOutput.Size>0 then
+          ConsoleOutput.Read(Result[1],ConsoleOutput.Size);
         ConsoleOutput.Free;
       end;
     end;
