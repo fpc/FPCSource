@@ -128,6 +128,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         condvar: pthread_cond_t;
         mutex: pthread_mutex_t;
         isset: boolean;
+{$if defined(Linux) and not defined(Android)}
+        clockid: clockid_t;  { clock of condvar }
+{$ifend}
        end;
 
       TTryWaitResult = (tw_error, tw_semwasunlocked, tw_semwaslocked);
@@ -1272,12 +1275,33 @@ end;
 function intRTLEventCreate: PRTLEvent;
 
 var p:pintrtlevent;
+{$if defined(Linux) and not defined(Android)}
+    attr: pthread_condattr_t;
+    res: cint;
+{$ifend}
 
 begin
   new(p);
   if not assigned(p) then
     fpc_threaderror;
+{$if defined(Linux) and not defined(Android)}
+  { use CLOCK_MONOTONIC for the time out of intRTLEventWaitForTimeout, so it
+    is neither affected by changes of the system time nor by the year 2038
+    problem of a 32 bit time_t }
+  p^.clockid:=CLOCK_REALTIME;
+  if pthread_condattr_init(@attr)=0 then
+    begin
+      if pthread_condattr_setclock(@attr,CLOCK_MONOTONIC)=0 then
+        p^.clockid:=CLOCK_MONOTONIC;
+      res:=pthread_cond_init(@p^.condvar,@attr);
+      pthread_condattr_destroy(@attr);
+    end
+  else
+    res:=pthread_cond_init(@p^.condvar,nil);
+  if res<>0 then
+{$else}
   if pthread_cond_init(@p^.condvar, nil)<>0 then
+{$ifend}
     begin
       dispose(p);
       fpc_threaderror;
@@ -1342,13 +1366,28 @@ function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolea
     p : pintrtlevent;
     errres : cint;
     timespec : ttimespec;
+{$if not(defined(Linux) and not defined(Android))}
     tnow : timeval;
+{$ifend}
 
   begin
     p:=pintrtlevent(aevent);
+{$if defined(Linux) and not defined(Android)}
+    { the clock of the condition variable, see intRTLEventCreate }
+    if clock_gettime(p^.clockid,@timespec)<>0 then
+      begin
+        { should not happen: time out immediately }
+        timespec.tv_sec:=0;
+        timespec.tv_nsec:=0;
+        timeout:=0;
+      end;
+    timespec.tv_sec:=timespec.tv_sec+(timeout div 1000);
+    timespec.tv_nsec:=timespec.tv_nsec+(timeout mod 1000)*1000000;
+{$else}
     fpgettimeofday(@tnow,nil);
     timespec.tv_sec:=tnow.tv_sec+(timeout div 1000);
     timespec.tv_nsec:=(timeout mod 1000)*1000000 + tnow.tv_usec*1000;
+{$ifend}
     if timespec.tv_nsec >= 1000000000 then
     begin
       inc(timespec.tv_sec);
@@ -1356,8 +1395,10 @@ function intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint) : Boolea
     end;
     errres:=0;
     pthread_mutex_lock(@p^.mutex);
+    { 0 is returned for a wake up, ETIMEDOUT for the time out; stop on other
+      errors too (e.g. EINVAL for an invalid time), else this would loop forever }
     while (not p^.isset) and
-          (errres <> ESysETIMEDOUT) do
+          (errres = 0) do
       begin
         errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
       end;
