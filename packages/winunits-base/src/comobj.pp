@@ -1394,11 +1394,11 @@ HKCR
             DISPATCH_PROPERTYPUT:
               begin
                 if ((Arguments[0].VType and varTypeMask) in [varDispatch]) or
-                    { if we have a variant that's passed as a reference we pass it
-                      to the property as a reference as well }
+                    { a variant passed by reference that holds an object is put by reference }
                     (
                       ((Arguments[0].VType and varTypeMask) in [varVariant]) and
-                      ((CallDesc^.argtypes[0] and $80) <> 0)
+                      ((CallDesc^.argtypes[0] and $80) <> 0) and
+                      ((PVarData(Arguments[0].VPointer)^.VType and varTypeMask) in [varDispatch,varUnknown])
                     ) then
                   InvokeKind:=DISPATCH_PROPERTYPUTREF or DISPATCH_PROPERTYPUT;
                 { first name is actually the name of the property to set }

@@ -160,6 +160,11 @@ var
   lRow, lX, lY, lBad: Integer;
 
 begin
+  if not MouseFound then
+  begin
+    Writeln('No mouse driver installed, test skipped.');
+    Halt(0);
+  end;
   for lRow := 0 to 15 do
   begin
     gMask.ScreenMask[lRow] := Word($FFFF shr lRow);
@@ -186,6 +191,8 @@ begin
   Check(CountNonBack = 0, 'hiding the cursor restores the background');
 
   SetVideoMode($03);
+  for lRow := 0 to gLogCount - 1 do
+    Writeln(gLog[lRow]);
   if gErrors = 0 then
     Writeln('All checks passed.')
   else
