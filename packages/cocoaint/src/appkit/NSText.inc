@@ -26,8 +26,13 @@ type
 
 const
   NSLeftTextAlignment = 0;
+{$if defined(cpuaarch64)}
+  NSCenterTextAlignment = 1;
+  NSRightTextAlignment = 2;
+{$else}
   NSRightTextAlignment = 1;
   NSCenterTextAlignment = 2;
+{$endif}
   NSJustifiedTextAlignment = 3;
   NSNaturalTextAlignment = 4;
 

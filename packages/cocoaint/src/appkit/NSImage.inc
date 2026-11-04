@@ -34,8 +34,13 @@ type
   NSImageResizingModePtr = ^NSImageResizingMode;
 
 const
+{$if defined(cpuaarch64)}
+  NSImageResizingModeTile = 0;
+  NSImageResizingModeStretch = 1;
+{$else}
   NSImageResizingModeStretch = 0;
   NSImageResizingModeTile = 1;
+{$endif}
 {$endif}
 
 {$ifdef CLASSES}
