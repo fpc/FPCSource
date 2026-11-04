@@ -51,14 +51,25 @@ const
   GDK_HAVE_WCTYPE_H=1;
 {$else}
   {$ifdef darwin}
+    {$ifdef UseCustomLibs}
+    gdklib = '';
+    {$else}
+    // GTK2_QUARTZ selects the quartz backend instead of X11
+    {$ifdef GTK2_QUARTZ}
+    gdklib = 'gdk-quartz-2.0';
+    {$linklib gtk-quartz-2.0}
+    {$linklib gdk-quartz-2.0}
+    {$else}
     gdklib = 'gdk-x11-2.0';
     {$linklib gtk-x11-2.0}
     {$linklib gdk-x11-2.0}
+    {$endif}
     {$linklib pango-1.0.0}
     {$linklib glib-2.0.0}
     {$linklib gobject-2.0.0}
     {$linklib gdk_pixbuf-2.0.0}
     {$linklib atk-1.0.0}
+    {$endif}
   {$else}
     {$ifdef UseCustomLibs}
     gdklib = '';

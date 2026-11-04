@@ -92,9 +92,19 @@ const
     gtklib = 'libgtk-x11-2.0.so';
   {$ELSE}
     {$ifdef darwin}
+      {$ifdef UseCustomLibs}
+      gtklib = '';
+      {$else}
+      // GTK2_QUARTZ selects the quartz backend instead of X11
+      {$ifdef GTK2_QUARTZ}
+      gtklib = 'gtk-quartz-2.0';
+      {$linklib gtk-quartz-2.0}
+      {$linklib gdk-quartz-2.0}
+      {$else}
       gtklib = 'gtk-x11-2.0';
       {$linklib gtk-x11-2.0}
       {$linklib gdk-x11-2.0}
+      {$endif}
       {$linklib pango-1.0.0}
       {$linklib glib-2.0.0}
       {$linklib gobject-2.0.0}
@@ -102,6 +112,7 @@ const
       {$linklib atk-1.0.0}
       {$linklib gthread-2.0}
       {$linklib pangocairo-1.0}
+      {$endif}
     {$else}
       {$ifdef UseCustomLibs}
       gtklib = '';

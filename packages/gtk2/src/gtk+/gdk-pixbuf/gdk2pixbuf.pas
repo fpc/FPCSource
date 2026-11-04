@@ -52,14 +52,24 @@ const
   {$ENDIF}
 {$else}
   {$ifdef darwin}
+    {$ifdef UseCustomLibs}
+    gdkpixbuflib = '';
+    {$else}
     gdkpixbuflib = 'gdk_pixbuf-2.0.0';
+    // GTK2_QUARTZ selects the quartz backend instead of X11
+    {$ifdef GTK2_QUARTZ}
+    {$linklib gtk-quartz-2.0}
+    {$linklib gdk-quartz-2.0}
+    {$else}
     {$linklib gtk-x11-2.0}
     {$linklib gdk-x11-2.0}
+    {$endif}
     {$linklib pango-1.0.0}
     {$linklib glib-2.0.0}
     {$linklib gobject-2.0.0}
     {$linklib gdk_pixbuf-2.0.0}
     {$linklib atk-1.0.0}
+    {$endif}
   {$else}
     {$ifdef UseCustomLibs}
     gdkpixbuflib = '';
