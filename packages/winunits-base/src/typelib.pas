@@ -644,7 +644,9 @@ begin
         // parameters
         for k:=0 to FD^.cParams-1 do
           begin
-          if (FD^.lprgelemdescParam[k].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0 then  //return type
+          // retval becomes the function result only for safecall and dispinterface methods
+          if ((FD^.lprgelemdescParam[k].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0) and
+             (bIsDispatch or (sConv='safecall')) then
             continue;
           sl:=TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
           bParamByRef:=(FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                         // by ref

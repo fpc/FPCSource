@@ -3241,7 +3241,7 @@ TYPE
      Function  SetDocString(pStrDoc: pOleStr):HResult;StdCall;
      Function  SetHelpContext(dwHelpContext: DWORD):HResult;StdCall;
      Function  SetVersion(wMajorVerNum: WORD; wMinorVerNum: WORD):HResult;StdCall;
-     Function  AddRefTypeInfo(CONST pTInfo: ITypeInfo; CONST phRefType: HREFTYPE):HResult;StdCall;
+     Function  AddRefTypeInfo(CONST pTInfo: ITypeInfo; OUT phRefType: HREFTYPE):HResult;StdCall;
      Function  AddFuncDesc(index: UINT; CONST pFuncDesc: FUNCDESC):HResult;StdCall;
      Function  AddImplType(index: UINT; hRefType: HREFTYPE):HResult;StdCall;
      Function  SetImplTypeFlags(index: UINT; implTypeFlags: WINT):HResult;StdCall;
