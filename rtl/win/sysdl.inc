@@ -63,16 +63,6 @@ begin
 end;
 
 type
-  TSysMemoryBasicInformation = record
-    BaseAddress: Pointer;
-    AllocationBase: Pointer;
-    AllocationProtect: DWord;
-    RegionSize: PtrUInt;
-    State: DWord;
-    Protect: DWord;
-    MemType: DWord;
-  end;
-
   TSysImageExportDirectory = packed record
     Characteristics: DWord;
     TimeDateStamp: DWord;
@@ -88,18 +78,13 @@ type
   end;
   PSysImageExportDirectory = ^TSysImageExportDirectory;
 
-const
-  SYS_MEM_COMMIT = $1000;
-  SYS_MEM_IMAGE = $1000000;
-
-function SysVirtualQuery(lpAddress: Pointer; var lpBuffer: TSysMemoryBasicInformation; dwLength: PtrUInt): PtrUInt; stdcall; external KernelDLL name 'VirtualQuery';
 function SysGetModuleFileNameA(hModule: THandle; lpFilename: PAnsiChar; nSize: DWord): DWord; stdcall; external KernelDLL name 'GetModuleFileNameA';
 
 // Finds the module containing Addr and the exported function at or before it
 Function SysGetSymbolByAddr(Addr: CodePointer; out Info: TSymbolAddressInfo): Boolean;
 
 var
-  lMemInfo: TSysMemoryBasicInformation;
+  lMemInfo: MEMORY_BASIC_INFORMATION;
   lBase: PByte;
   lNt: PByte;
   lDirOffset: PtrUInt;
@@ -117,8 +102,8 @@ begin
   Info.ModuleName:='';
   Info.ModuleOffset:=0;
   Result:=False;
-  if (SysVirtualQuery(Addr,lMemInfo,SizeOf(lMemInfo))=0) or (lMemInfo.State<>SYS_MEM_COMMIT) or
-     (lMemInfo.MemType<>SYS_MEM_IMAGE) or (lMemInfo.AllocationBase=nil) then
+  if (VirtualQuery(Addr,lMemInfo,SizeOf(lMemInfo))=0) or (lMemInfo.State<>MEM_COMMIT) or
+     (lMemInfo.&Type<>MEM_IMAGE) or (lMemInfo.AllocationBase=nil) then
     exit;
   lBase:=lMemInfo.AllocationBase;
   if PWord(lBase)^<>$5A4D then

@@ -305,7 +305,16 @@ const
   MEM_RESERVE = $00002000;
   MEM_COMMIT  = $00001000;
   MEM_RELEASE = $00008000;
+  MEM_IMAGE   = $01000000;
   PAGE_READWRITE = $4;
+
+type
+  MEMORY_BASIC_INFORMATION = record
+    BaseAddress, AllocationBase: pointer;
+    AllocationProtect: dword;
+    RegionSize: SizeUint;
+    State, Protect, &Type: dword;
+  end;
 
   function GetProcessHeap : THandle;
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
@@ -320,6 +329,8 @@ const
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'VirtualAlloc';
   function VirtualFree(lpAddress: pointer; dwSize: SizeUint; dwFreeType: DWORD): LongBool;
     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'VirtualFree';
+  function VirtualQuery(lpAddress: pointer; out lpBuffer: MEMORY_BASIC_INFORMATION; dwLength: SizeUint): SizeUint;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'VirtualQuery';
 
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;

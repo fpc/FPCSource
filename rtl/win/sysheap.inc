@@ -73,19 +73,71 @@ begin
     result := HeapAlloc(GetProcessHeap, 0, size);
 end;
 
+procedure FreeSegmented(p: pointer; oldSize, newSize: SizeUint);
+var
+  mi: MEMORY_BASIC_INFORMATION;
+begin
+  repeat
+    if VirtualQuery(p + oldSize - 1, mi, sizeof(mi)) <> sizeof(mi) then
+      RunError(204);
+    if mi.AllocationBase < p + newSize then
+      break;
+    if not VirtualFree(mi.AllocationBase, 0, MEM_RELEASE) then
+      RunError(204);
+    oldSize := mi.AllocationBase - p;
+  until oldSize <= newSize; { “<” shouldn’t happen... }
+end;
+
 {$define HAS_SYSOSFREE}
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  if size >= SysOSAllocZeroesIfAtLeast then
-    VirtualFree(p, 0, MEM_RELEASE)
+  if size < SysOSAllocZeroesIfAtLeast then
+    HeapFree(GetProcessHeap, 0, p)
   else
-    HeapFree(GetProcessHeap, 0, p);
+    { SysOSRealloc can make the allocation segmented.
+      Ideally, this case requires explicit support from the memory manager to avoid FreeSegmented in favor of a single VirtualFree. }
+    FreeSegmented(p, size, 0);
 end;
 
 {$define FPC_SYSTEM_HAS_SYSOSREALLOC}
 function SysOSRealloc(p: pointer; oldsize, newsize: ptruint): pointer;
+var
+  mi: MEMORY_BASIC_INFORMATION;
+  allocatedEnd: pointer;
+  allocatedSize, moreToAllocate: SizeUint;
 begin
-  result := nil;
   if (oldsize < SysOSAllocZeroesIfAtLeast) and (newsize < SysOSAllocZeroesIfAtLeast) then
-    result := HeapReAlloc(GetProcessHeap, 0, p, newsize);
+    exit(HeapReAlloc(GetProcessHeap, 0, p, newsize));
+  result := nil;
+  if (oldsize < SysOSAllocZeroesIfAtLeast) or (newsize < SysOSAllocZeroesIfAtLeast) then
+    exit; { We distinguish between VirtualAlloc and HeapAlloc allocations using only their sizes. }
+  if newsize > oldsize then
+  begin
+    { Grow by trying to allocate adjacently. }
+    if VirtualQuery(p + oldsize - 1, mi, sizeof(mi)) <> sizeof(mi) then
+      RunError(204);
+    allocatedEnd := mi.BaseAddress + mi.RegionSize;
+    allocatedSize := allocatedEnd - p;
+    if allocatedSize >= newsize then
+      { Already accomodates the new size. }
+      exit(p);
+    moreToAllocate := newsize - allocatedSize;
+    if PtrUint(allocatedEnd) and 65535 = 0 then { Allocation granularity is 64K even for 4K pages, so this check can be shared between 64K and 4K branches. }
+    begin
+    {$ifndef wince}
+      if CodePointer(VirtualAlloc2) > CodePointer(1) then
+      begin
+        if Assigned(VirtualAlloc2(GetCurrentProcess, allocatedEnd, (moreToAllocate + 65535) and SizeUint(-65536), MEM_RESERVE or MEM_COMMIT or MEM_64K_PAGES, PAGE_READWRITE, nil, 0)) then
+          exit(p);
+      end else
+    {$endif}
+        if Assigned(VirtualAlloc(allocatedEnd, moreToAllocate, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE)) then
+          exit(p);
+    end;
+  end else
+  begin
+    if newsize < oldsize then { Support shrinking the allocation (FastMM does not bother). }
+      FreeSegmented(p, oldsize, newsize);
+    result := p;
+  end;
 end;
