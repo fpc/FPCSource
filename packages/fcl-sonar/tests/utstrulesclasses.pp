@@ -86,6 +86,11 @@ type
     procedure InterfaceUniqueGuidDuplicateFlagsBoth;
     procedure ConstructorInheritedPositions;
     procedure DestructorInheritedPositions;
+    procedure ConstructorInheritedSilentOnGenericRecord;
+    procedure ConstructorInheritedSilentOnRecord;
+    procedure ConstructorInheritedSilentOnObjectWithoutAncestor;
+    procedure DestructorInheritedSilentOnObjectWithoutAncestor;
+    procedure InheritedFlagsClassNextToRecord;
     procedure TopLevelClassInheritsTObjectPositions;
     procedure MethodHidesVirtualWithoutOverridePositions;
     procedure MethodHidesVirtualWithoutOverrideDegradesWithoutResolver;
@@ -562,6 +567,164 @@ const
     '  // a class destructor never chains to inherited; must not be flagged',
     'end;',
     '',
+    'end.');
+
+  cInheritedGenericRecordDelphi: array[0..22] of string = (
+    'unit GenRec;',
+    '',
+    '{$mode delphi}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TSomeRecord<T> = record',
+    '  private',
+    '    FValue: T;',
+    '  public',
+    '    constructor Create(const aValue: T);',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'constructor TSomeRecord<T>.Create(const aValue: T);',
+    'begin',
+    '  FValue := aValue;',
+    'end;',
+    '',
+    'end.',
+    '');
+
+  cInheritedGenericRecordObjFpc: array[0..22] of string = (
+    'unit GenRecObjFpc;',
+    '',
+    '{$mode objfpc}{$modeswitch advancedrecords}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  generic TSomeRecord<T> = record',
+    '  private',
+    '    FValue: T;',
+    '  public',
+    '    constructor Create(const aValue: T);',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'constructor TSomeRecord.Create(const aValue: T);',
+    'begin',
+    '  FValue := aValue;',
+    'end;',
+    '',
+    'end.',
+    '');
+
+  cInheritedPlainRecord: array[0..29] of string = (
+    'unit PlainRec;',
+    '',
+    '{$mode objfpc}{$modeswitch advancedrecords}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TPoint2 = record',
+    '    X, Y: Integer;',
+    '    constructor Create(aX, aY: Integer);',
+    '  end;',
+    '',
+    '  TOuter = class(TObject)',
+    '  public type',
+    '    TInner = record',
+    '      constructor Create(aX: Integer);',
+    '    end;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'constructor TPoint2.Create(aX, aY: Integer);',
+    'begin',
+    '  X := aX; Y := aY;',
+    'end;',
+    '',
+    'constructor TOuter.TInner.Create(aX: Integer);',
+    'begin',
+    'end;',
+    'end.');
+
+  cInheritedObjects: array[0..38] of string = (
+    'unit Objs;',
+    '',
+    '{$mode objfpc}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TBaseObj = object',
+    '    constructor Init;',
+    '    destructor Done; virtual;',
+    '  end;',
+    '',
+    '  TChildObj = object(TBaseObj)',
+    '    constructor Init;',
+    '    destructor Done; virtual;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'constructor TBaseObj.Init;',
+    'begin',
+    'end;',
+    '',
+    'destructor TBaseObj.Done;',
+    'begin',
+    'end;',
+    '',
+    'constructor TChildObj.Init;',
+    'begin',
+    '  // no inherited call',
+    'end;',
+    '',
+    'destructor TChildObj.Done;',
+    'begin',
+    '  // no inherited call',
+    'end;',
+    '',
+    'end.',
+    '');
+
+  cInheritedRecordAndClass: array[0..32] of string = (
+    'unit RecAndClass;',
+    '',
+    '{$mode objfpc}{$modeswitch advancedrecords}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TPoint2 = record',
+    '    X: Integer;',
+    '    constructor Create(aX: Integer);',
+    '  end;',
+    '',
+    '  TWidget = class(TObject)',
+    '  public',
+    '    constructor Create;',
+    '    destructor Destroy; override;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'constructor TPoint2.Create(aX: Integer);',
+    'begin',
+    '  X := aX;',
+    'end;',
+    '',
+    'constructor TWidget.Create;',
+    'begin',
+    'end;',
+    '',
+    'destructor TWidget.Destroy;',
+    'begin',
+    'end;',
     'end.');
 
   cTopLevelClassInheritsTObjectNoncompliant: array[0..12] of string = (
@@ -4158,6 +4321,50 @@ begin
   CheckClassRuleSrc(NewDestructorInherited, NewDestructorInherited,
     cDestructorInheritedId, 15, 'TWidget.Destroy',
     cDestructorInheritedNoncompliant, cDestructorInheritedCompliant);
+end;
+
+
+procedure TRulesClassesTest.ConstructorInheritedSilentOnGenericRecord;
+
+begin
+  AssertEquals('generic record constructor, mode delphi', 0,
+    RuleCount(NewConstructorInherited, False, cInheritedGenericRecordDelphi));
+  AssertEquals('generic record constructor, mode objfpc', 0,
+    RuleCount(NewConstructorInherited, False, cInheritedGenericRecordObjFpc));
+end;
+
+
+procedure TRulesClassesTest.ConstructorInheritedSilentOnRecord;
+
+begin
+  AssertEquals('record and nested record constructors', 0,
+    RuleCount(NewConstructorInherited, False, cInheritedPlainRecord));
+end;
+
+
+procedure TRulesClassesTest.ConstructorInheritedSilentOnObjectWithoutAncestor;
+
+begin
+  AssertEquals('only the constructor of the object with ancestor', 1,
+    RuleCount(NewConstructorInherited, False, cInheritedObjects));
+end;
+
+
+procedure TRulesClassesTest.DestructorInheritedSilentOnObjectWithoutAncestor;
+
+begin
+  AssertEquals('only the destructor of the object with ancestor', 1,
+    RuleCount(NewDestructorInherited, False, cInheritedObjects));
+end;
+
+
+procedure TRulesClassesTest.InheritedFlagsClassNextToRecord;
+
+begin
+  AssertEquals('class constructor flagged, record constructor not', 1,
+    RuleCount(NewConstructorInherited, False, cInheritedRecordAndClass));
+  AssertEquals('class destructor flagged', 1,
+    RuleCount(NewDestructorInherited, False, cInheritedRecordAndClass));
 end;
 
 

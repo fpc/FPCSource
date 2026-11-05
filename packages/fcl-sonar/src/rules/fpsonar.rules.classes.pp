@@ -21,9 +21,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, Pascal.Tree,
+  System.Classes, System.SysUtils, Pascal.Tree,
 {$ELSE}
-  SysUtils, PasTree,
+  Classes, SysUtils, PasTree,
 {$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Resolver,
@@ -661,6 +661,83 @@ begin
 end;
 
 
+// The type named aName among aDecls, or nil.
+function FindTypeInList(aDecls: TFPList; const aName: string): TPasType;
+var
+  i: integer;
+begin
+  Result := nil;
+  if aDecls = nil then
+    Exit;
+  for i := 0 to aDecls.Count - 1 do
+    if (TObject(aDecls[i]) is TPasType)
+      and SameText(TPasType(aDecls[i]).Name, aName) then
+      Exit(TPasType(aDecls[i]));
+end;
+
+
+// aName with every generic parameter list (<...>) removed.
+function StripGenericParams(const aName: string): string;
+var
+  i, lDepth: integer;
+begin
+  Result := '';
+  lDepth := 0;
+  for i := 1 to Length(aName) do
+    case aName[i] of
+      '<': Inc(lDepth);
+      '>': if lDepth > 0 then Dec(lDepth);
+    else
+      if lDepth = 0 then
+        Result := Result + aName[i];
+    end;
+end;
+
+
+// The class/record/object type that declares the method aDecl of aModule, or nil.
+function RoutineOwnerType(aModule: TPasModule; aDecl: TPasProcedure): TPasType;
+var
+  lParts: TStringArray;
+  lDecls: TFPList;
+  p: integer;
+begin
+  Result := nil;
+  if aDecl.Parent is TPasMembersType then
+    Exit(TPasType(aDecl.Parent));
+  if aModule = nil then
+    Exit;
+  lParts := StripGenericParams(aDecl.Name).Split('.');
+  if Length(lParts) < 2 then
+    Exit;
+  if aModule.InterfaceSection <> nil then
+    Result := FindTypeInList(aModule.InterfaceSection.Declarations, lParts[0]);
+  if (Result = nil) and (aModule.ImplementationSection <> nil) then
+    Result := FindTypeInList(aModule.ImplementationSection.Declarations,
+      lParts[0]);
+  for p := 1 to High(lParts) - 1 do
+  begin
+    if not (Result is TPasMembersType) then
+      Exit(nil);
+    lDecls := TPasMembersType(Result).Members;
+    Result := FindTypeInList(lDecls, lParts[p]);
+  end;
+end;
+
+
+// True when the method aDecl belongs to a type without ancestor to call inherited on:
+// an (advanced) record or an object without ancestor.
+function OwnerHasNoInherited(aModule: TPasModule; aDecl: TPasProcedure): boolean;
+var
+  lOwner: TPasType;
+begin
+  lOwner := RoutineOwnerType(aModule, aDecl);
+  Result := (lOwner is TPasRecordType)
+    or ((lOwner is TPasClassType)
+      and (TPasClassType(lOwner).ObjKind = okObject)
+      and (TPasClassType(lOwner).AncestorType = nil));
+end;
+
+
 { TRuleConstructorInherited }
 
 procedure TRuleConstructorInherited.Apply(const aContext: TRuleContext;
@@ -674,7 +751,8 @@ begin
     // A class constructor chains is excluded;
     if (lRoutines[r].Decl is TPasConstructor)
       and not (lRoutines[r].Decl is TPasClassConstructor)
-      and not StmtHasInherited(lRoutines[r].Block) then
+      and not StmtHasInherited(lRoutines[r].Block)
+      and not OwnerHasNoInherited(aContext.Module, lRoutines[r].Decl) then
       EmitClass(FMetadata, aContext, aCollector,
         lRoutines[r].Decl.SourceLinenumber, lRoutines[r].Decl.Name);
 end;
@@ -693,7 +771,8 @@ begin
     // A class destructor is excluded.
     if (lRoutines[r].Decl is TPasDestructor)
       and not (lRoutines[r].Decl is TPasClassDestructor)
-      and not StmtHasInherited(lRoutines[r].Block) then
+      and not StmtHasInherited(lRoutines[r].Block)
+      and not OwnerHasNoInherited(aContext.Module, lRoutines[r].Decl) then
       EmitClass(FMetadata, aContext, aCollector,
         lRoutines[r].Decl.SourceLinenumber, lRoutines[r].Decl.Name);
 end;
