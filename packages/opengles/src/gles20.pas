@@ -43,6 +43,10 @@ unit gles20;
 {$ifdef windows}
   {$define EGL}
 {$endif}
+{$ifdef android}
+  { EGL on native windows (ANativeWindow), no X }
+  {$define EGL}
+{$endif}
 
 interface
 
