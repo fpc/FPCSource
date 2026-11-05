@@ -77,6 +77,12 @@ type
     DW_TAG_skeleton_unit := $4a,
     DW_TAG_immutable_type := $4b,
 
+    { DWARF 6 }
+    DW_TAG_property := $4c,
+    DW_TAG_property_getter := $4d,
+    DW_TAG_property_setter := $4e,
+    DW_TAG_property_stored := $4f,
+
 
     { SGI/MIPS Extensions.   }
     DW_TAG_MIPS_loop := $4081,
@@ -212,6 +218,9 @@ type
     DW_AT_deleted := $8a,
     DW_AT_defaulted := $8b,
     DW_AT_loclists_base := $8c,
+
+    { DWARF 6 values }
+    DW_AT_property_forward := $95,{ reference }
 
 
     { SGI/MIPS extensions.   }
@@ -539,6 +548,9 @@ type
     DW_OP_xderef_type := $a7,
     DW_OP_convert := $a8,
     DW_OP_reinterpret := $a9,
+
+    { DWARF 6 extensions.   }
+    DW_OP_bit_offset := $AD,
 
     { GNU extensions.   }
     DW_OP_GNU_push_tls_address := $e0,
