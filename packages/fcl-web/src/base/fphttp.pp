@@ -160,6 +160,8 @@ Type
   Public
     destructor destroy; override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+    // True if the module has a session, without creating one
+    Function SessionExists : Boolean;
     Property CreateSession : Boolean Read FCreateSession Write FCreateSession;
     Property Session : TCustomSession Read GetSession Write SetSession;
     Property OnNewSession : TNotifyEvent Read FOnNewSession Write FOnNewSession;
@@ -861,6 +863,11 @@ procedure TSessionHTTPModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 begin
   FSessionRequest:=ARequest;
+end;
+
+function TSessionHTTPModule.SessionExists: Boolean;
+begin
+  Result:=Assigned(FSession);
 end;
 
 Initialization

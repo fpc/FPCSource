@@ -524,7 +524,7 @@ begin
     InitSession(AResponse);
     if not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
       begin
-      if IsWriteRequest(aRequest.Method) and (Session.Variables[cCSRFVariable]<>'') then
+      if SessionExists and IsWriteRequest(aRequest.Method) and (Session.Variables[cCSRFVariable]<>'') then
         begin
         if not HasToken(aRequest,Session.Variables[cCSRFVariable]) then
           begin
