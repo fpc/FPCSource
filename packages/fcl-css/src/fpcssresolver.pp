@@ -766,7 +766,6 @@ type
   end;
 
 function SameCSSSiblingMatches(const A, B: TCSSSiblingMatchList): boolean;
-function ComparePointer(Data1, Data2: Pointer): integer;
 function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): integer;
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;

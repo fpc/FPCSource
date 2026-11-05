@@ -46,7 +46,7 @@ begin
           AddUnit('fpcsstree');
           AddUnit('fpcssscanner');
         end;
-    T:=P.Targets.AddUnit('fpcssresolver.pas');
+    T:=P.Targets.AddUnit('fpcssresolver.pp');
       with T.Dependencies do
         AddUnit('fpcssparser');
     T:=P.Targets.AddUnit('fpcssutils.pp');
@@ -56,7 +56,7 @@ begin
           AddUnit('fpcssscanner');
           AddUnit('fpcssparser');
         end;
-    T:=P.Targets.AddUnit('fpcssresparser.pas');
+    T:=P.Targets.AddUnit('fpcssresparser.pp');
       with T.Dependencies do
         begin
           AddUnit('fpcsstree');

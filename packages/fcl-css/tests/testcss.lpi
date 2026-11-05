@@ -32,7 +32,7 @@
         <UnitName Value="tcCSSResolver"/>
       </Unit>
       <Unit>
-        <Filename Value="tccssskipinvalid.pas"/>
+        <Filename Value="tccssskipinvalid.pp"/>
         <UnitName Value="tcCSSSkipInvalid"/>
       </Unit>
     </Units>
