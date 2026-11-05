@@ -94,7 +94,7 @@ begin
       C := FindCookie('cookie10');
       AssertNotNull(C);
       AssertEquals(C.Value, '1507337');
-      AssertFalse(C.Secure);
+      AssertTrue('secure=false is secure: the attribute value is ignored', C.Secure);
 
       C := FindCookie('cookie11');
       AssertNotNull(C);
