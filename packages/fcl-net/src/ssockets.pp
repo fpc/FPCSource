@@ -1455,6 +1455,8 @@ Var S : TFPSocket;
 
 begin
   FSocket.FD:=-1;
+  { The destructor frees the handler when the constructor raises. }
+  FHandler:=AHandler;
   case aHost.AddressType of
   atIN4:
     S.SocketType:=stIPv4;
@@ -1564,6 +1566,8 @@ Var S : TFPSocket;
 
 begin
   FSocket.FD:=-1;
+  { The destructor frees the handler when the constructor raises. }
+  FHandler:=AHandler;
   FFileName:=AFileName;
   S.Protocol:=spStream;
   s.SocketType:=stUnixSocket;

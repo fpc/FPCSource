@@ -10,6 +10,17 @@ uses
 
 type
 
+  { TTrackedSocketHandler }
+
+  TTrackedSocketHandler = class(TSocketHandler)
+  private
+    FFreed: PBoolean;
+  public
+    // Create a handler that sets aFreed^ to True when it is destroyed
+    constructor Create(aFreed: PBoolean); reintroduce;
+    destructor Destroy; override;
+  end;
+
   { TTestInetServerCreate }
 
   TTestInetServerCreate = class(TTestCase)
@@ -20,6 +31,7 @@ type
     procedure TestCreateEmptyHost;
     procedure TestCreateFailureKeepsStdIn;
     procedure TestCreatePassesHandler;
+    procedure TestCreateFailureFreesHandler;
   end;
 
 implementation
@@ -58,6 +70,25 @@ begin
   if not StdInOpen then
     fpOpen('/dev/null', O_RDONLY);
 {$ENDIF}
+end;
+
+
+{ TTrackedSocketHandler }
+
+constructor TTrackedSocketHandler.Create(aFreed: PBoolean);
+
+begin
+  inherited Create;
+  FFreed:=aFreed;
+  FFreed^:=False;
+end;
+
+
+destructor TTrackedSocketHandler.Destroy;
+
+begin
+  FFreed^:=True;
+  inherited Destroy;
 end;
 
 
@@ -118,6 +149,25 @@ begin
   finally
     lServer.Free;
   end;
+end;
+
+
+procedure TTestInetServerCreate.TestCreateFailureFreesHandler;
+
+var
+  lFreed: Boolean;
+  lClass: string;
+
+begin
+  lClass:='';
+  try
+    TInetServer.Create('foo', 0, TTrackedSocketHandler.Create(@lFreed)).Free;
+  except
+    on E: Exception do
+      lClass:=E.ClassName;
+  end;
+  AssertEquals('Create(''foo'') with a handler raises only EUnsupportedAddress', 'EUnsupportedAddress', lClass);
+  AssertTrue('a failed Create frees the handler it was given', lFreed);
 end;
 
 
