@@ -643,8 +643,19 @@ end;
 
 procedure TFPReportExportPDF.RenderShapeRoundedRect(const APage: TPDFPage; const lpt1: TPDFCoord;
   const ARadius: TFPReportUnits; const ALayout: TFPReportLayout);
+var
+  lRadius: TFPReportUnits;
 begin
-
+  { Radius is limited to half of the shortest side. }
+  if ALayout.Width < ALayout.Height then
+    lRadius := ALayout.Width / 2
+  else
+    lRadius := ALayout.Height / 2;
+  if ARadius < lRadius then
+    lRadius := ARadius;
+  if lRadius < 0 then
+    lRadius := 0;
+  APage.DrawRoundedRect(lPt1.X, lPt1.Y, ALayout.Width, ALayout.Height, lRadius, 1, False, True);
 end;
 
 constructor TFPReportExportPDF.Create(AOwner: TComponent);

@@ -12,7 +12,7 @@ unit regtests;
 interface
 
 uses
-  tcbasereport, tcreportstreamer, tchtmlparser
+  tcbasereport, tcreportstreamer, tchtmlparser, tcshapeexport
 {$IFDEF USEDEMOS}
   , tcreportgenerator
 {$ENDIF}

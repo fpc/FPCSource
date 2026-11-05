@@ -41,6 +41,7 @@ Type
     procedure RenderShapeLine(lpt1: TFPReportPoint; const AOrientation: TFPReportOrientation; const ALayout: TFPReportLayout);
     procedure RenderShapeRect(const lpt1: TFPReportPoint; const ALayout: TFPReportLayout);
     procedure RenderShapeTriangle(Alpt: TFPReportPoint; const AOrientation: TFPReportOrientation; const ALayout: TFPReportLayout);
+    procedure RenderShapeRoundedRect(const lpt1: TFPReportPoint; const ARadius: TFPReportUnits; const ALayout: TFPReportLayout);
   public
     constructor Create(aCanvas : TFPCustomCanvas; ADPI : Integer);
     procedure RenderImage(aRect: TFPReportRect; var AImage: TFPCustomImage); overload;
@@ -153,6 +154,7 @@ begin
     stLine: RenderShapeLine(lpt1,TFPReportShape(AShape).Orientation, AShape.RTLayout);
     stSquare: RenderShapeRect(lpt1,AShape.RTLayout);
     stTriangle: RenderShapeTriangle(lpt1,TFPReportShape(AShape).Orientation, AShape.RTLayout);
+    stRoundedRect: RenderShapeRoundedRect(lpt1,TFPReportShape(AShape).CornerRadius, AShape.RTLayout);
   end;
 end;
 
@@ -276,6 +278,18 @@ begin
   { PDF origin coordinate is Bottom-Left, and Report Layout is Top-Left }
   P.Top := lPt1.Top + ldy;
   Canvas.rectangle(CoordToRect(P,lw,Lw));
+end;
+
+procedure TFPReportCanvasHelper.RenderShapeRoundedRect(const lpt1: TFPReportPoint;
+  const ARadius: TFPReportUnits; const ALayout: TFPReportLayout);
+
+var
+  lDiameter: Integer;
+
+begin
+  lDiameter:=2*mmToPixels(Max(0,Min(ARadius,Min(ALayout.Width,ALayout.Height)/2)));
+  Canvas.Brush.Style:=bsClear;
+  Canvas.RoundRect(CoordToRect(lpt1,ALayout.Width,ALayout.Height),lDiameter,lDiameter);
 end;
 
 procedure TFPReportCanvasHelper.RenderShapeTriangle(Alpt: TFPReportPoint;
