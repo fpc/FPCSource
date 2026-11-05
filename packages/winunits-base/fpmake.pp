@@ -74,6 +74,7 @@ begin
           AddUnit('libkinect10');
           AddUnit('urlmon');
           AddUnit('httpapi');
+          AddUnit('bcrypt');
           AddUnit('winmanutf8lfn');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
@@ -115,6 +116,7 @@ begin
     T:=P.Targets.AddImplicitUnit('libkinect10.pp');
     T:=P.Targets.AddImplicitUnit('httpapi.pp');
     T.Dependencies.AddInclude('tmschema.inc');
+    T:=P.Targets.AddImplicitUnit('bcrypt.pp');
     T:=P.Targets.AddImplicitUnit('winmanutf8lfn');
 
     P.Sources.AddSrcFiles('src/w32default.*', P.Directory);
@@ -132,6 +134,9 @@ begin
     P.Targets.AddExampleProgram('hhex3.pp');
     P.Targets.AddExampleProgram('hhex4.pp');
     P.Targets.AddExampleProgram('twmpointer.pp');
+    P.Targets.AddExampleProgram('tbcrypt.pp');
+    P.Targets.AddExampleProgram('bcryptrandom.pp');
+    P.Targets.AddExampleProgram('bcryptuuid7.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
