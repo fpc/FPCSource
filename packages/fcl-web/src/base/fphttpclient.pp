@@ -33,7 +33,8 @@ Const
   ReadBufLen = 4096;
   DefaultMaxHeaderLineLength = 8*ReadBufLen;
   DefaultMaxHeaderCount = 256;
-  DefaultMaxResponseSize = MaxInt;
+  // 0: no limit
+  DefaultMaxResponseSize = 0;
   // Default for MaxRedirects Request redirection is aborted after this number of redirects.
   DefMaxRedirects = 16;
 
@@ -117,7 +118,8 @@ Type
     FContentLength : Int64;
     FMaxHeaderCount: SizeInt;
     FMaxHeaderLineLength: SizeInt;
-    FMaxResponseSize: SizeInt;
+    FMaxResponseSize: Int64;
+    FResponseLimit: Int64;
     FOnEventStream: THTTPEventStreamHandler;
     FRequestCookies: TCookies;
     FRequestDataWritten : Int64;
@@ -231,6 +233,8 @@ Type
     function CheckResponseCode(ACode: Integer;  const AllowedResponseCodes: array of Integer): Boolean; virtual;
     // Read response from server, and write any document to Stream.
     Function ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer; HeadersOnly: Boolean = False): Boolean; virtual;
+    // The maximum content size that can be written to aStream: MaxResponseSize, capped for memory streams; 0 for no limit.
+    Function GetResponseLimit(aStream: TStream): Int64; virtual;
     // Read server response line and headers. Returns status code.
     Function ReadResponseHeaders : integer; virtual;
     // Allow header in request ? (currently checks only if non-empty and contains : token)
@@ -467,8 +471,8 @@ Type
     Property MaxHeaderLineLength : SizeInt Read FMaxHeaderLineLength Write FMaxHeaderLineLength default DefaultMaxHeaderLineLength;
     // Max header count.
     Property MaxHeaderCount : SizeInt Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
-    // Maximum response content Size
-    Property MaxResponseSize : SizeInt Read FMaxResponseSize Write FMaxResponseSize default DefaultMaxResponseSize;
+    // Maximum response content size in bytes, 0 for no limit.
+    Property MaxResponseSize : Int64 Read FMaxResponseSize Write FMaxResponseSize default DefaultMaxResponseSize;
   end;
 
 
@@ -508,6 +512,9 @@ Type
     Property AfterSocketHandlerCreate;
     Property OnVerifySSLCertificate;
     Property OnEventStream;
+    Property MaxHeaderLineLength;
+    Property MaxHeaderCount;
+    Property MaxResponseSize;
   end;
 
   EHTTPClient = Class(EHTTP)
@@ -1252,7 +1259,7 @@ function TFPCustomHTTPClient.CheckContentLength: Int64;
 Const CL ='content-length:';
 
 begin
-  Result:=StrToIntDef(CheckHeader(CL),-1);
+  Result:=StrToInt64Def(CheckHeader(CL),-1);
   FContentLength:=Result;
 end;
 
@@ -1380,8 +1387,8 @@ function TFPCustomHTTPClient.ReadResponse(Stream: TStream; const AllowedResponse
     if (Result>0) then
       begin
       FDataRead:=FDataRead+Result;
-      if (MaxResponseSize>0) and (FDataRead>MaxResponseSize) then
-        raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [MaxResponseSize]);
+      if (FResponseLimit>0) and (FDataRead>FResponseLimit) then
+        raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [FResponseLimit]);
       DoDataRead;
       Stream.Write(FBuffer[1],Result);
       end;
@@ -1446,8 +1453,10 @@ function TFPCustomHTTPClient.ReadResponse(Stream: TStream; const AllowedResponse
     c: AnsiChar;
     ChunkSize: SizeUInt;
     l: Integer;
+    lContentSize: Int64;
   begin
     BufPos:=1;
+    lContentSize:=0;
     repeat
       // read ChunkSize
       ChunkSize:=0;
@@ -1470,6 +1479,10 @@ function TFPCustomHTTPClient.ReadResponse(Stream: TStream; const AllowedResponse
       while (c<>#10) and not Terminated do
         if ReadData(@c,1)<1 then exit;
       if ChunkSize=0 then exit;
+      // Content bytes only: chunk headers and line ends do not count.
+      if (FResponseLimit>0) and (QWord(ChunkSize)>QWord(FResponseLimit-lContentSize)) then
+        raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [FResponseLimit]);
+      Inc(lContentSize,ChunkSize);
       // read data
       repeat
         if Terminated then
@@ -1510,6 +1523,7 @@ Var
 begin
   FDataRead:=0;
   FContentLength:=0;
+  FResponseLimit:=GetResponseLimit(Stream);
   SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
   If Assigned(FOnHeaders) and not Terminated then
@@ -1527,14 +1541,19 @@ begin
     ReadChunkedResponse
   else
     begin
+    L:=CheckContentLength;
+    // Refuse a declared content length above the limit before reading any content.
+    if (FResponseLimit>0) and (L>FResponseLimit) then
+      raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [FResponseLimit]);
     // Write remains of buffer to output.
     LB:=Length(FBuffer);
     FDataRead:=LB;
+    if (FResponseLimit>0) and (FDataRead>FResponseLimit) then
+      raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [FResponseLimit]);
     If (LB>0) then
       Stream.WriteBuffer(FBuffer[1],LB);
     // Now read the rest, if any.
     SetLength(FBuffer,ReadBuflen);
-    L:=CheckContentLength;
     If (L>LB) then
       begin
       // We cannot use copyfrom, it uses ReadBuffer, and this is dangerous with sockets
@@ -1556,6 +1575,25 @@ begin
       end;
     end;
 end;
+
+function TFPCustomHTTPClient.GetResponseLimit(aStream: TStream): Int64;
+
+var
+  lRoom: Int64;
+
+begin
+  Result:=MaxResponseSize;
+  // A memory stream cannot grow past High(PtrInt).
+  if aStream is TCustomMemoryStream then
+    begin
+    lRoom:=High(PtrInt)-aStream.Position;
+    if lRoom<1 then
+      lRoom:=1;
+    if (Result<=0) or (Result>lRoom) then
+      Result:=lRoom;
+    end;
+end;
+
 
 procedure TFPCustomHTTPClient.ExtractHostPort(AURI: TURI; out AHost: String; out APort: Word);
 Begin
