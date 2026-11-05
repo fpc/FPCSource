@@ -2625,13 +2625,13 @@ end;
 procedure TTestUserReportData2.TestGetValue;
 begin
   FData.First;
-  AssertEquals('Failed on 1', 'Item 1', FData.FieldValues['element']);
+  AssertEquals('Failed on 1', 'Item 1', String(FData.FieldValues['element']));
   FData.Next;
-  AssertEquals('Failed on 2', 'Item 2', FData.FieldValues['element']);
+  AssertEquals('Failed on 2', 'Item 2', String(FData.FieldValues['element']));
   FData.Next;
-  AssertEquals('Failed on 3', 'Item 3', FData.FieldValues['element']);
+  AssertEquals('Failed on 3', 'Item 3', String(FData.FieldValues['element']));
   FData.Next;
-  AssertEquals('Failed on 4', 'Item 4', FData.FieldValues['element']);
+  AssertEquals('Failed on 4', 'Item 4', String(FData.FieldValues['element']));
   FData.Next;
 end;
 

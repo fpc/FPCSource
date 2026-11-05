@@ -1586,7 +1586,7 @@ begin
 
   E := TJSONObject(FRD.FindChild('VisibleOnPage'));
   AssertNotNull('Failed on 10', E);
-  AssertEquals('Failed on 11', 'vpAll', E.Value);
+  AssertEquals('Failed on 11', 'vpAll', E.AsString);
 end;
 
 procedure TTestReportPageHeader.TestWrite2;
@@ -1600,7 +1600,7 @@ begin
 
   E := TJSONObject(FRD.FindChild('VisibleOnPage'));
   AssertNotNull('Failed on 2', E);
-  AssertEquals('Failed on 3', 'vpNotOnFirst', E.Value);
+  AssertEquals('Failed on 3', 'vpNotOnFirst', E.AsString);
 end;
 
 procedure TTestReportPageHeader.TestRead;
