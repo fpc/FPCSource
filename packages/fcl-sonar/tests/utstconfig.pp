@@ -28,6 +28,7 @@ type
   { TFpSonarConfig load/override/gate tests. }
   TConfigTest = class(TTestCase)
   private
+    // Path of aName in the executable's directory or the current directory; fails the test when absent.
     function ConfigPath(const aName: string): string;
     function DefaultJsonPath: string;
     function MakeSynthIssue(const aRuleId: string;
@@ -74,29 +75,18 @@ implementation
 
 function TConfigTest.ConfigPath(const aName: string): string;
 
-const
-  cThisFile = {$I %FILE%};
-
 var
-  lCandidates: array[0..2] of string;
-  lDir: string;
+  lCandidates: array[0..1] of string;
   i: Integer;
 
 begin
-  lDir := ExtractFilePath(ExpandFileName(cThisFile));
-  // tests/core/../../config/<aName>
-  lCandidates[0] := lDir + '..' + DirectorySeparator + '..' +
-    DirectorySeparator + 'config' + DirectorySeparator + aName;
-  lCandidates[1] := ExpandFileName('config' + DirectorySeparator + aName);
-  lCandidates[2] := ExtractFilePath(ParamStr(0)) + aName;
-
-  Result := lCandidates[0];
+  lCandidates[0] := ExtractFilePath(ExpandFileName(ParamStr(0))) + aName;
+  lCandidates[1] := ExpandFileName(aName);
   for i := Low(lCandidates) to High(lCandidates) do
     if FileExists(lCandidates[i]) then
-      begin
-        Result := lCandidates[i];
-        Exit;
-      end;
+      Exit(lCandidates[i]);
+  Fail(aName + ' not found, searched: ' + lCandidates[0] + ', ' + lCandidates[1]);
+  Result := '';
 end;
 
 
@@ -341,7 +331,7 @@ var
 
 begin
   AssertTrue('fpsonar.default.json loads clean',
-    lCfg.LoadFromFile('fpsonar.default.json', lErr));
+    lCfg.LoadFromFile(DefaultJsonPath, lErr));
 
   lDefault := TFpSonarConfig.Default;
   for lSev := Low(TFpSonarSeverity) to High(TFpSonarSeverity) do
