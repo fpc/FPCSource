@@ -1103,7 +1103,8 @@ end;
 
 function TIODescriptor.ResolveStream: THandleStream;
 begin
-  if (FStream=Nil) and (FHandleValid) and (FTheirHandleIOType=iotPipe) then
+  if (FStream=Nil) and (FHandleValid) and (FTheirHandleIOType=iotPipe)
+     and (FOurHandle<>THandle(INVALID_HANDLE_VALUE)) then
     begin
     // Writeln(ProcessHandleType,' creating stream for stream ',IOType,': ',OurHandle);
     Case FHandleType of
@@ -1125,6 +1126,8 @@ var
 begin
   if Not FHandleValid then
      exit;
+  { The stream owns our handle and closes it when freed. }
+  FreeAndNil(FStream);
   H:=OurHandle;
   // Writeln(StdErr, GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
   FOurHandle:=THandle(INVALID_HANDLE_VALUE) ;

@@ -5,6 +5,7 @@ unit utcprocess;
 interface
 
 uses
+  {$IFDEF WINDOWS}Windows,{$ENDIF}
   Classes, SysUtils, fpcunit, testutils, testregistry, pipes, process;
 
 type
@@ -57,11 +58,17 @@ type
     Procedure TestPipeOutToFile;
     Procedure TestPipeInOutToFile;
     Procedure TestPipeRestart;
+    Procedure TestCloseInputEOF;
+    Procedure TestCloseInputStream;
+    Procedure TestCloseOutputStream;
+    Procedure TestCloseStderrStream;
   end;
 
 implementation
 
-uses dateutils;
+uses
+  {$IFDEF UNIX}BaseUnix,{$ENDIF}
+  dateutils;
 
 const
   dotouch = 'tdotouch';
@@ -301,21 +308,41 @@ end;
 
 function TTestProcess.ReadProcessOutput(aProc: TProcess; ReadStdErr: Boolean): string;
 
+const
+  ReadTimeoutMS = 5000;
+  IdleTimeoutMS = 200;
+
 var
   aRead,aLen: Integer;
   S : String;
   St : TInputPipeStream;
+  lStart : QWord;
+  lIdle : Integer;
+
 begin
   aRead:=0;
   aLen:=0;
   S:='';
-  Sleep(100);
   if ReadStdErr then
     st:=aProc.StdErr
   else
     st:=aProc.Output;
   AssertNotNull('Have stream to read output from',St);
-  AssertTrue('Read input',aProc.ReadInputStream(St,aRead,aLen,S,100));
+  { Read until the process has stopped or is idle after its first output, or the timeout expires. }
+  lStart:=GetTickCount64;
+  lIdle:=0;
+  repeat
+    if aProc.ReadInputStream(St,aRead,aLen,S,100) then
+      lIdle:=0
+    else
+      begin
+      if (aRead>0) and ((not aProc.Running) or (lIdle>=IdleTimeoutMS)) then
+        Break;
+      Sleep(10);
+      Inc(lIdle,10);
+      end;
+  until GetTickCount64-lStart>ReadTimeoutMS;
+  AssertTrue('Read input',aRead>0);
   SetLength(S,aRead);
 //  Writeln('>>>',S,'<<<');
   Result:=S;
@@ -573,6 +600,104 @@ procedure TTestProcess.TestPipeRestart;
 begin
 
 end;
+
+// Return True if aHandle is an open file handle
+function HandleIsOpen(aHandle: THandle): Boolean;
+
+{$IFDEF UNIX}
+var
+  lStat: Stat;
+{$ENDIF}
+
+begin
+{$IF DEFINED(UNIX)}
+  Result:=fpFStat(aHandle,lStat)=0;
+{$ELSEIF DEFINED(WINDOWS)}
+  SetLastError(0);
+  Result:=(GetFileType(aHandle)<>FILE_TYPE_UNKNOWN) or (GetLastError=NO_ERROR);
+{$ELSE}
+  Result:=False;
+{$ENDIF}
+end;
+
+
+procedure TTestProcess.TestCloseInputEOF;
+
+var
+  lIn, lOut: String;
+
+begin
+  Proc.Executable:=GetHelper(docat);
+  Proc.Options:=[poUsePipes];
+  Proc.Execute;
+  lIn:='this is some text'+sLineBreak+'And some more text'+sLineBreak;
+  Proc.Input.Write(lIn[1],Length(lIn));
+  Proc.CloseInput;
+  WaitForProcess(Proc);
+  lOut:=ReadProcessOutput(Proc);
+  AssertEquals('Out equals in',lIn,lOut);
+end;
+
+
+procedure TTestProcess.TestCloseInputStream;
+
+var
+  lHandle: THandle;
+
+begin
+  Proc.Executable:=GetHelper(docat);
+  Proc.Options:=[poUsePipes];
+  Proc.Execute;
+  AssertNotNull('Input stream before CloseInput',Proc.Input);
+  lHandle:=Proc.Input.Handle;
+  AssertTrue('Input handle is open before CloseInput',HandleIsOpen(lHandle));
+  Proc.CloseInput;
+  AssertFalse('Input handle is closed by CloseInput',HandleIsOpen(lHandle));
+  AssertNull('No input stream after CloseInput',Proc.Input);
+  Proc.CloseInput;
+  WaitForProcess(Proc);
+end;
+
+
+procedure TTestProcess.TestCloseOutputStream;
+
+var
+  lHandle: THandle;
+
+begin
+  Proc.Executable:=GetHelper(docat);
+  Proc.Options:=[poUsePipes];
+  Proc.Execute;
+  AssertNotNull('Output stream before CloseOutput',Proc.Output);
+  lHandle:=Proc.Output.Handle;
+  AssertTrue('Output handle is open before CloseOutput',HandleIsOpen(lHandle));
+  Proc.CloseOutput;
+  AssertFalse('Output handle is closed by CloseOutput',HandleIsOpen(lHandle));
+  AssertNull('No output stream after CloseOutput',Proc.Output);
+  Proc.CloseInput;
+  WaitForProcess(Proc);
+end;
+
+
+procedure TTestProcess.TestCloseStderrStream;
+
+var
+  lHandle: THandle;
+
+begin
+  Proc.Executable:=GetHelper(docat);
+  Proc.Options:=[poUsePipes];
+  Proc.Execute;
+  AssertNotNull('Stderr stream before CloseStderr',Proc.Stderr);
+  lHandle:=Proc.Stderr.Handle;
+  AssertTrue('Stderr handle is open before CloseStderr',HandleIsOpen(lHandle));
+  Proc.CloseStderr;
+  AssertFalse('Stderr handle is closed by CloseStderr',HandleIsOpen(lHandle));
+  AssertNull('No stderr stream after CloseStderr',Proc.Stderr);
+  Proc.CloseInput;
+  WaitForProcess(Proc);
+end;
+
 
 function TTestProcess.GetTestFile(const aName: string) : String;
 
