@@ -88,6 +88,10 @@ CANON="${FPSONAR_SELFLINT_CANON:-/tmp/fpsonar-selflint}"
 while [ "$CANON" != "/" ] && [ "${CANON%/}" != "$CANON" ]; do CANON="${CANON%/}"; done
 STAGE_MARKER=".fpsonar-selflint-stage"
 
+# Disabled-by-default inverses of an enabled rule: the config may list these
+# with "enabled": false, and their findings stay out of the baseline.
+INVERSE_RULES=(NoSuperfluousSemicolons)
+
 SCOPE_ROOTS=(packages/fcl-sonar/src/base
              packages/fcl-sonar/src/rules
              packages/fcl-sonar/src/output
@@ -112,6 +116,8 @@ cleanup() {
              find.err sibling-dirs.txt cli-dirs.txt stray.txt pkg-stray.txt \
              cfg-facts.txt cfg-rules.txt cfg-rules-all.txt cfg-enabled.txt \
              registry-rules.txt not-enabled.txt unknown-ids.txt dup-keys.txt \
+             cfg-disabled.txt inverse-rules.txt cfg-inverse-off.txt cfg-accepted.txt \
+             stale-inverse.txt \
              cfg-extra-keys.txt baseline-rules.txt firing-rules.txt silent-rules.txt \
              baseline-rule-counts.txt shrunk-rules.txt; do
       [ -f "$EV/$f" ] && echo "  $EV/$f" >&2
@@ -478,6 +484,11 @@ sort -u "$EV/cfg-rules-all.txt" > "$EV/cfg-rules.txt"
 # `\(.*\)`, not `\([^ ]*\)`: an id holding a space would silently drop out of the
 # enabled set and be reported as a violation of a rule that is in fact enabled.
 sed -n 's/^E \(.*\) true$/\1/p' "$EV/cfg-facts.txt" | sort -u > "$EV/cfg-enabled.txt"
+# An inverse rule listed as disabled counts as configured; any other disabled rule does not.
+sed -n 's/^E \(.*\) false$/\1/p' "$EV/cfg-facts.txt" | sort -u > "$EV/cfg-disabled.txt"
+printf '%s\n' "${INVERSE_RULES[@]}" | sort -u > "$EV/inverse-rules.txt"
+comm -12 "$EV/cfg-disabled.txt" "$EV/inverse-rules.txt" > "$EV/cfg-inverse-off.txt"
+sort -u "$EV/cfg-enabled.txt" "$EV/cfg-inverse-off.txt" > "$EV/cfg-accepted.txt"
 mapfile -t cfg_res < <(sed -n 's/^U //p' "$EV/cfg-facts.txt")
 mapfile -t cfg_supp < <(sed -n 's/^P //p' "$EV/cfg-facts.txt")
 
@@ -551,7 +562,7 @@ if [ "$REGISTRY_RULES" -eq 0 ]; then
   exit 2
 fi
 
-comm -23 "$EV/registry-rules.txt" "$EV/cfg-enabled.txt" > "$EV/not-enabled.txt" || {
+comm -23 "$EV/registry-rules.txt" "$EV/cfg-accepted.txt" > "$EV/not-enabled.txt" || {
   echo "SELF-LINT GUARD: comparing the registry against $CONFIG failed (comm)." >&2
   exit 2
 }
@@ -562,8 +573,22 @@ if [ "${#not_enabled[@]}" -gt 0 ]; then
   echo "  Add to the \"rules\" object (the loader silently ignores an unknown id," >&2
   echo "  so the id must match the registry exactly, case included):" >&2
   printf '        "%s": { "enabled": true },\n' "${not_enabled[@]}" >&2
+  echo "  A rule in INVERSE_RULES may be listed with \"enabled\": false instead." >&2
   viol=1
 fi
+# An INVERSE_RULES entry the registry does not know exempts nothing.
+comm -23 "$EV/inverse-rules.txt" "$EV/registry-rules.txt" > "$EV/stale-inverse.txt" || {
+  echo "SELF-LINT GUARD: comparing INVERSE_RULES against the registry failed (comm)." >&2
+  exit 2
+}
+mapfile -t stale_inverse < "$EV/stale-inverse.txt"
+if [ "${#stale_inverse[@]}" -gt 0 ]; then
+  echo "SELF-LINT VIOLATION: ${#stale_inverse[@]} INVERSE_RULES id(s) are not in the registry:" >&2
+  printf '        %s\n' "${stale_inverse[@]}" >&2
+  echo "  Delete the entry from INVERSE_RULES in $0, or fix its spelling/case." >&2
+  viol=1
+fi
+INVERSE_OFF="$(wc -l < "$EV/cfg-inverse-off.txt")"
 # The other half of the same hazard: an id the registry does not know is silently
 # ignored by the loader, so a typo or a rename leaves the rule at its default.
 comm -13 "$EV/registry-rules.txt" "$EV/cfg-rules.txt" > "$EV/unknown-ids.txt" || {
@@ -581,7 +606,7 @@ fi
 
 if [ "$blind" = "1" ]; then exit 2; fi
 if [ "$viol" = "1" ]; then exit 1; fi
-echo "self-lint gate: $REGISTRY_RULES registered rule(s), all enabled, resolution prefer"
+echo "self-lint gate: $REGISTRY_RULES registered rule(s), all enabled but $INVERSE_OFF inverse rule(s), resolution prefer"
 
 #--- Run ----------------------------------------------------------------------
 cd "$CANON" || { echo "SELF-LINT GUARD: cannot cd into $CANON" >&2; exit 2; }

@@ -187,11 +187,15 @@ const
   cSyntheticProbeHasNoBanner = 'A synthetic language-surface probe rather '
     + 'than a distributed FCL source: no fixture of the corpus carries a '
     + 'licence banner, so what the rule reports is a property of the corpus.';
+  cHouseStyleSemicolons = 'The corpus ends every statement with a semicolon, '
+    + 'the style NoOmittedSemicolons enforces; NoSuperfluousSemicolons is its '
+    + 'disabled-by-default inverse and reports each semicolon directly before '
+    + 'an end, until, finally or except of a statement block.';
 
   // Every (rule, fixture) pair the corpus is allowed to produce findings for.
   // A pair absent from this table must produce none; a row whose count no
   // longer matches, and a row for a pair that has gone silent, both fail.
-  cExpectations: array[0..54] of TSweepExpectation = (
+  cExpectations: array[0..73] of TSweepExpectation = (
     (RuleId: 'DeclareParametersIndividually'; Fixture: 'surfacegenerics.pas';
      Count: 2; Kind: sekIntrinsic;
      Justification: 'The generic routine is witnessed by the declared marker '
@@ -451,6 +455,63 @@ const
        + 'UTF8String, none of which resolves WideString, which is why the count '
        + 'is exactly 1 and not 6.';
      Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacegenerics.pas';
+     Count: 9; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceoperators.pas';
+     Count: 7; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacerecords.pas';
+     Count: 4; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacestorage.pas';
+     Count: 3; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceclosuresdelphi.pas';
+     Count: 5; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceclosuresnested.pas';
+     Count: 4; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceattributes.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceparameters.pas';
+     Count: 5; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacepreprocessor.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacepreprocessoralt.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceinterfaces.pas';
+     Count: 4; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceexceptions.pas';
+     Count: 9; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceflowlabel.pas';
+     Count: 3; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceflowwith.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacestrings.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacemodifiers.pas';
+     Count: 10; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacemodule.pas';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfacelibrary.lpr';
+     Count: 2; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
+    (RuleId: 'NoSuperfluousSemicolons'; Fixture: 'surfaceprogram.lpr';
+     Count: 3; Kind: sekIntrinsic;
+     Justification: cHouseStyleSemicolons; Ledger: ''),
     (RuleId: 'UnknownConditionalSymbol';
      Fixture: 'surfacepreprocessoralt.pas';
      Count: 2; Kind: sekIntrinsic;

@@ -398,6 +398,7 @@ resourcestring
   SNoEmptyParenthesesOnRoutines = 'Remove the empty parentheses';
   SNoStraySemicolons = 'Remove this stray semicolon';
   SNoOmittedSemicolons = 'Add the missing semicolon before this block terminator';
+  SNoSuperfluousSemicolons = 'Remove this semicolon before the block terminator';
   SNoExtraneousCommas = 'Remove this extraneous comma';
   SNoDisabledCompilerHints = 'Do not disable compiler hints';
   SNoDisabledCompilerWarnings = 'Do not disable compiler warnings';

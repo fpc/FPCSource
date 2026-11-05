@@ -94,6 +94,13 @@ type
       const aCollector: TFpSonarIssueCollector); override;
   end;
 
+  { reports an optional ';' directly before a statement-block terminator. }
+  TRuleNoSuperfluousSemicolons = class(TRuleBase)
+  public
+    procedure Apply(const aContext: TRuleContext;
+      const aCollector: TFpSonarIssueCollector); override;
+  end;
+
   { reports a redundant/trailing comma inside a bracketed list. }
   TRuleNoExtraneousCommas = class(TRuleBase)
   public
@@ -216,6 +223,7 @@ const
   cKeyNoEmptyParens = 'rule.NoEmptyParenthesesOnRoutines.message';
   cKeyNoStraySemicolons = 'rule.NoStraySemicolons.message';
   cKeyNoOmittedSemicolons = 'rule.NoOmittedSemicolons.message';
+  cKeyNoSuperfluousSemicolons = 'rule.NoSuperfluousSemicolons.message';
   cKeyNoExtraneousCommas = 'rule.NoExtraneousCommas.message';
   cKeyNoDisabledHints = 'rule.NoDisabledCompilerHints.message';
   cKeyNoDisabledWarnings = 'rule.NoDisabledCompilerWarnings.message';
@@ -291,6 +299,8 @@ type
     StraySemis: TIntArray;
     // the terminator keyword tokens (range)
     OmittedSemis: TIntArray;
+    // the optional ';' tokens before a block terminator (point)
+    SuperfluousSemis: TIntArray;
     // the extraneous ',' tokens (point)
     ExtraCommas: TIntArray;
     // the indented unit-level keyword (range)
@@ -467,6 +477,15 @@ var
     Result.OmittedSemis[High(Result.OmittedSemis)] := aIdx;
   end;
 
+  // Records an optional ';' before a block terminator, suppressed once broken.
+  procedure AddSuperfluous(aIdx: integer);
+  begin
+    if lBroken then
+      Exit;
+    SetLength(Result.SuperfluousSemis, Length(Result.SuperfluousSemis) + 1);
+    Result.SuperfluousSemis[High(Result.SuperfluousSemis)] := aIdx;
+  end;
+
   // Records an extraneous ',' token, suppressed once broken.
   procedure AddExtraComma(aIdx: integer);
   begin
@@ -529,6 +548,7 @@ begin
   SetLength(Result.EmptyParens, 0);
   SetLength(Result.StraySemis, 0);
   SetLength(Result.OmittedSemis, 0);
+  SetLength(Result.SuperfluousSemis, 0);
   SetLength(Result.ExtraCommas, 0);
   SetLength(Result.IndentKeywords, 0);
   SetLength(Result.VisibilitySpecs, 0);
@@ -819,9 +839,13 @@ begin
           and ((lStack[High(lStack)].Opener = 'begin')
           or (lStack[High(lStack)].Opener = 'try')
           or (lStack[High(lStack)].Opener = 'initialization')
-          or (lStack[High(lStack)].Opener = 'finalization'))
-          and IsStmtEnd(i - 1) then
-          AddOmitted(lSig[i]);
+          or (lStack[High(lStack)].Opener = 'finalization')) then
+        begin
+          if IsStmtEnd(i - 1) then
+            AddOmitted(lSig[i])
+          else if RawText(i - 1) = ';' then
+            AddSuperfluous(lSig[i - 1]);
+        end;
         if Length(lStack) > 1 then
         begin
           lPopKind := lStack[High(lStack)].Kind;
@@ -853,9 +877,13 @@ begin
         if (Length(lStack) > 1)
           and (lStack[High(lStack)].Kind = fkStmt) then
         begin
-          if (lStack[High(lStack)].Opener = 'repeat')
-            and IsStmtEnd(i - 1) then
-            AddOmitted(lSig[i]);
+          if lStack[High(lStack)].Opener = 'repeat' then
+          begin
+            if IsStmtEnd(i - 1) then
+              AddOmitted(lSig[i])
+            else if RawText(i - 1) = ';' then
+              AddSuperfluous(lSig[i - 1]);
+          end;
           SetLength(lStack, Length(lStack) - 1);
         end;
       end
@@ -863,9 +891,13 @@ begin
       begin
         // The statement before a try-block's finally/except boundary lacks its optional ';'.
         if (lStack[High(lStack)].Kind = fkStmt)
-          and (lStack[High(lStack)].Opener = 'try')
-          and IsStmtEnd(i - 1) then
-          AddOmitted(lSig[i]);
+          and (lStack[High(lStack)].Opener = 'try') then
+        begin
+          if IsStmtEnd(i - 1) then
+            AddOmitted(lSig[i])
+          else if RawText(i - 1) = ';' then
+            AddSuperfluous(lSig[i - 1]);
+        end;
       end
       else if (lw = 'begin') or (lw = 'asm') or (lw = 'try')
         or (lw = 'repeat') or (lw = 'initialization')
@@ -1297,6 +1329,16 @@ begin
 end;
 
 
+{ TRuleNoSuperfluousSemicolons }
+
+procedure TRuleNoSuperfluousSemicolons.Apply(const aContext: TRuleContext;
+  const aCollector: TFpSonarIssueCollector);
+begin
+  EmitIndices(FMetadata, aContext, aCollector,
+    AnalyzeStructure(aContext).SuperfluousSemis, True);
+end;
+
+
 { TRuleNoExtraneousCommas }
 
 procedure TRuleNoExtraneousCommas.Apply(const aContext: TRuleContext;
@@ -1551,6 +1593,13 @@ initialization
     True, cKeyNoOmittedSemicolons).WithDescription(
     'Flags a missing semicolon before a block terminator.')));
   RegisterMessage(cKeyNoOmittedSemicolons, SNoOmittedSemicolons);
+
+  // Disabled by default: the inverse of NoOmittedSemicolons.
+  RegisterRule(TRuleNoSuperfluousSemicolons.Create(TRuleMetadata.Make(
+    'NoSuperfluousSemicolons', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
+    False, cKeyNoSuperfluousSemicolons).WithDescription(
+    'Flags an optional semicolon directly before a block terminator.')));
+  RegisterMessage(cKeyNoSuperfluousSemicolons, SNoSuperfluousSemicolons);
 
   RegisterRule(TRuleNoExtraneousCommas.Create(TRuleMetadata.Make(
     'NoExtraneousCommas', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,

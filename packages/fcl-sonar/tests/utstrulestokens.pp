@@ -50,6 +50,7 @@ type
     function NewNoEmptyParens: TRuleBase;
     function NewNoStraySemicolons: TRuleBase;
     function NewNoOmittedSemicolons: TRuleBase;
+    function NewNoSuperfluousSemicolons: TRuleBase;
     function NewNoExtraneousCommas: TRuleBase;
     function NewNoDisabledHints: TRuleBase;
     function NewNoDisabledWarnings: TRuleBase;
@@ -73,6 +74,9 @@ type
     procedure NoEmptyParenthesesOnRoutinesPositions;
     procedure NoStraySemicolonsPositions;
     procedure NoOmittedSemicolonsPositions;
+    procedure NoSuperfluousSemicolonsPositions;
+    procedure NoSuperfluousSemicolonsCompliant;
+    procedure NoSuperfluousSemicolonsDisabledByDefault;
     procedure NoExtraneousCommasPositions;
     procedure NoDisabledCompilerHintsPositions;
     procedure NoDisabledCompilerWarningsPositions;
@@ -104,6 +108,7 @@ const
   cNoEmptyParensId = 'NoEmptyParenthesesOnRoutines';
   cNoStraySemicolonsId = 'NoStraySemicolons';
   cNoOmittedSemicolonsId = 'NoOmittedSemicolons';
+  cNoSuperfluousSemicolonsId = 'NoSuperfluousSemicolons';
   cNoExtraneousCommasId = 'NoExtraneousCommas';
   cNoDisabledHintsId = 'NoDisabledCompilerHints';
   cNoDisabledWarningsId = 'NoDisabledCompilerWarnings';
@@ -728,6 +733,102 @@ const
     '',
     'end.');
 
+  cNoSuperfluousSemicolonsNoncompliant: array[0..42] of string = (
+    'unit Noncompliant;',
+    '',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'implementation',
+    '',
+    'procedure P;',
+    'var',
+    '  X: Integer;',
+    'begin',
+    '  X := 1;',
+    '  begin',
+    '    X := 2;',
+    '  end;',
+    'end;',
+    '',
+    'procedure Q;',
+    'var',
+    '  X: Integer;',
+    'begin',
+    '  X := 3;',
+    '  repeat',
+    '    Dec(X);',
+    '  until X = 0;',
+    '  try',
+    '    X := 4;',
+    '  finally',
+    '    X := 5',
+    '  end',
+    'end;',
+    '',
+    'procedure R;',
+    'begin',
+    '  try',
+    '    R;',
+    '  except',
+    '    R',
+    '  end',
+    'end;',
+    '',
+    'end.');
+
+  cNoSuperfluousSemicolonsCompliant: array[0..48] of string = (
+    'unit Compliant;',
+    '',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TRec = record',
+    '    X: Integer;',
+    '  end;',
+    '',
+    '  TFoo = class',
+    '    Y: Integer;',
+    '    procedure M;',
+    '  end;',
+    '',
+    '  TVar = record',
+    '    case Integer of',
+    '      0: (A: Integer);',
+    '      1: (B: Byte);',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TFoo.M;',
+    'begin',
+    'end;',
+    '',
+    'procedure P;',
+    'var',
+    '  X: Integer;',
+    'begin',
+    '  X := 1;',
+    '  case X of',
+    '    1: X := 2;',
+    '    2: X := 3;',
+    '  else',
+    '    X := 4;',
+    '  end;',
+    '  repeat',
+    '    Dec(X)',
+    '  until X = 0;',
+    '  try',
+    '    X := 5',
+    '  finally',
+    '    X := 6',
+    '  end',
+    'end;',
+    'end.');
+
   cNoStraySemicolonsNoncompliant: array[0..16] of string = (
     'unit Noncompliant;',
     '',
@@ -1117,6 +1218,15 @@ function TRulesTokensTest.NewNoOmittedSemicolons: TRuleBase;
 begin
   Result := TRuleNoOmittedSemicolons.Create(TRuleMetadata.Make(cNoOmittedSemicolonsId,
     rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh, True, ''));
+end;
+
+
+function TRulesTokensTest.NewNoSuperfluousSemicolons: TRuleBase;
+
+begin
+  Result := TRuleNoSuperfluousSemicolons.Create(TRuleMetadata.Make(
+    cNoSuperfluousSemicolonsId, rtTok, rfTokenStream, sevMinor, itCodeSmell,
+    cfHigh, True, ''));
 end;
 
 
@@ -1554,6 +1664,77 @@ begin
   finally
     lc.Free;
   end;
+end;
+
+
+procedure TRulesTokensTest.NoSuperfluousSemicolonsPositions;
+
+const
+  cExpected: array[0..4, 0..1] of Integer = (
+    (15, 11), (16, 6), (25, 11), (28, 11), (37, 6));
+  cWhat: array[0..4] of string = (
+    'x := 2; end', 'end; end', '; until', '; finally', '; except');
+
+var
+  lc: TFpSonarIssueCollector;
+  i: Integer;
+
+begin
+  lc := TFpSonarIssueCollector.Create;
+  try
+    RunRuleSrc(NewNoSuperfluousSemicolons, 'noncompliant.pas',
+      cNoSuperfluousSemicolonsNoncompliant, lc);
+    AssertEquals('one issue per optional semicolon', Length(cExpected),
+      CountById(lc, cNoSuperfluousSemicolonsId));
+    for i := 0 to High(cExpected) do
+    begin
+      AssertEquals(cWhat[i] + ': start line', cExpected[i, 0], lc.Issues[i].StartLine);
+      AssertEquals(cWhat[i] + ': start col', cExpected[i, 1], lc.Issues[i].StartCol);
+      AssertEquals(cWhat[i] + ': point end line', cExpected[i, 0], lc.Issues[i].EndLine);
+      AssertEquals(cWhat[i] + ': point end col', cExpected[i, 1], lc.Issues[i].EndCol);
+      AssertEquals(cWhat[i] + ': key is the dotted rule key',
+        'rule.NoSuperfluousSemicolons.message', lc.Issues[i].MessageKey);
+    end;
+  finally
+    lc.Free;
+  end;
+end;
+
+
+procedure TRulesTokensTest.NoSuperfluousSemicolonsCompliant;
+
+var
+  lc: TFpSonarIssueCollector;
+
+begin
+  lc := TFpSonarIssueCollector.Create;
+  try
+    RunRuleSrc(NewNoSuperfluousSemicolons, 'compliant.pas',
+      cNoSuperfluousSemicolonsCompliant, lc);
+    AssertEquals('record, class, variant record and case semicolons => zero', 0,
+      CountById(lc, cNoSuperfluousSemicolonsId));
+  finally
+    lc.Free;
+  end;
+  lc := TFpSonarIssueCollector.Create;
+  try
+    RunRuleSrc(NewNoSuperfluousSemicolons, 'omitted.pas',
+      cNoOmittedSemicolonsNoncompliant, lc);
+    AssertEquals('an omitted semicolon is not superfluous', 0,
+      CountById(lc, cNoSuperfluousSemicolonsId));
+  finally
+    lc.Free;
+  end;
+end;
+
+
+procedure TRulesTokensTest.NoSuperfluousSemicolonsDisabledByDefault;
+
+begin
+  AssertTrue('NoSuperfluousSemicolons registered',
+    RuleRegistry.FindById(cNoSuperfluousSemicolonsId) <> nil);
+  AssertFalse('NoSuperfluousSemicolons is disabled by default',
+    RuleRegistry.FindById(cNoSuperfluousSemicolonsId).Metadata.DefaultEnabled);
 end;
 
 
