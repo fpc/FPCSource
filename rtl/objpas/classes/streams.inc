@@ -1502,12 +1502,16 @@ begin
     NewCapacity:=0
   else
     begin
-      GC:=FCapacity + (FCapacity div 4);
+      if FCapacity>High(PtrInt)-(FCapacity div 4) then
+        GC:=High(PtrInt)
+      else
+        GC:=FCapacity + (FCapacity div 4);
       // if growing, grow at least a quarter
       if (NewCapacity>FCapacity) and (NewCapacity < GC) then
         NewCapacity := GC;
-      // round off to block size.
-      NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
+      // round off to block size, unless that passes High(PtrInt).
+      if NewCapacity<=High(PtrInt)-(TMSGrow-1) then
+        NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
     end;
   // Only now check !
   If NewCapacity=FCapacity then
@@ -1577,6 +1581,9 @@ Var NewPos : PtrInt;
 begin
   If (Count=0) or (FPosition<0) then
     exit(0);
+  // FPosition+Count must not pass High(PtrInt).
+  If Count>High(PtrInt)-FPosition then
+    Raise EStreamError.Create(SMemoryStreamError);
   NewPos:=FPosition+Count;
   If NewPos>Fsize then
     begin
@@ -1602,15 +1609,24 @@ begin
 end;
 
 function TBytesStream.Realloc(var NewCapacity: PtrInt): Pointer;
+
+Var
+  GC : PtrInt;
+
 begin
   // adapt TMemoryStream code to use with dynamic array
   if NewCapacity<0 Then
     NewCapacity:=0
   else
     begin
-      if (NewCapacity>Capacity) and (NewCapacity < (5*Capacity) div 4) then
-        NewCapacity := (5*Capacity) div 4;
-      NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
+      if Capacity>High(PtrInt)-(Capacity div 4) then
+        GC:=High(PtrInt)
+      else
+        GC:=Capacity + (Capacity div 4);
+      if (NewCapacity>Capacity) and (NewCapacity < GC) then
+        NewCapacity := GC;
+      if NewCapacity<=High(PtrInt)-(TMSGrow-1) then
+        NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
     end;
   if NewCapacity=Capacity then
     Result:=Pointer(FBytes)
