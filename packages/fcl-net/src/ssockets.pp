@@ -1005,8 +1005,12 @@ end;
 destructor TSocketServer.Destroy;
 
 begin
-  RemoveSelfFromConnections;
-  FreeAndNil(FConnections);
+  { FConnections is nil when a descendant constructor raised before inherited Create. }
+  if Assigned(FConnections) then
+    begin
+    RemoveSelfFromConnections;
+    FreeAndNil(FConnections);
+    end;
   Close;
   FreeAndNil(FHandler);
   Inherited;
@@ -1441,7 +1445,7 @@ end;
 
 constructor TInetServer.Create(const aHost: string; const APort: Word; AHandler: TSocketHandler);
 begin
-  Create(AHost, aPort,nil,False);
+  Create(AHost, aPort,AHandler,False);
 end;
 
 constructor TInetServer.Create(const aHost: TNetworkAddress; const APort: Word;
@@ -1450,6 +1454,7 @@ constructor TInetServer.Create(const aHost: TNetworkAddress; const APort: Word;
 Var S : TFPSocket;
 
 begin
+  FSocket.FD:=-1;
   case aHost.AddressType of
   atIN4:
     S.SocketType:=stIPv4;
@@ -1558,6 +1563,7 @@ Constructor TUnixServer.Create(const AFileName : String; AHandler : TSocketHandl
 Var S : TFPSocket;
 
 begin
+  FSocket.FD:=-1;
   FFileName:=AFileName;
   S.Protocol:=spStream;
   s.SocketType:=stUnixSocket;
