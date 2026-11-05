@@ -353,6 +353,7 @@ unit aoptx86;
         function TryCMOVConst(p, start, stop: tai; var Count: LongInt): Boolean;
         function InitialiseBlock(BlockStart, OneBeforeBlock: tai; out BlockStop: tai; out EndJump: tai): Boolean;
         function AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
+        function SecondBlockReadsReg(Reg: TRegister): Boolean;
       public
         RegisterTracking: TAllUsedRegs;
         constructor Init(Optimizer: TX86AsmOptimizer; var p_initialjump, p_initialmov: tai; var AFirstLabel: TAsmLabel);
@@ -13639,6 +13640,19 @@ unit aoptx86;
               { No complementary CMOV found }
               Exit;
 
+            { pCMOV is going to become a MOV ahead of everything since the
+              comparison, where it executes whichever way the condition goes,
+              so none of that can still need the old value of TargetReg, nor
+              can a CMOV change what pCMOV reads }
+            hp2 := pCond;
+            while GetNextInstruction(hp2, hp2) and (hp2 <> pCMOV) do
+              if RegInOp(TargetReg, taicpu(hp2).oper[0]^) or
+                (
+                  (taicpu(hp2).opcode = A_CMOVcc) and
+                  RegInOp(taicpu(hp2).oper[1]^.reg, taicpu(pCMOV).oper[0]^)
+                ) then
+                Exit;
+
             if not Assigned(pFirstMov) or (taicpu(pCMOV).oper[0]^.typ = top_ref) then
               begin
                 { Don't need to do anything special or search for a matching MOV }
@@ -14499,6 +14513,26 @@ unit aoptx86;
         TAOptObj.ReleaseUsedRegs(RegisterTracking);
       end;
 
+    { Returns True if a source operand in the second block of MOVs reads Reg }
+    function TCMOVTracking.SecondBlockReadsReg(Reg: TRegister): Boolean;
+      var
+        hp1: tai;
+      begin
+        Result := False;
+        hp1 := fSecondMovBlock;
+        while (hp1 <> fSecondMovBlockStop) do
+          begin
+            if (hp1.typ = ait_instruction) and
+              fOptimizer.RegInOp(Reg, taicpu(hp1).oper[0]^) then
+              begin
+                Result := True;
+                Exit;
+              end;
+
+            fOptimizer.GetNextInstruction(hp1, hp1);
+          end;
+      end;
+
     procedure TCMOVTracking.Process(out new_p: tai);
       var
         Count, Writes: LongInt;
@@ -14653,9 +14687,12 @@ unit aoptx86;
                 InternalError(2018062905);
 
               { Search through the RegWrites list to see if there are any
-                opposing CMOV pairs that write to the same register }
+                opposing CMOV pairs that write to the same register.  A MOV
+                executes whichever way the condition goes, so it can only be
+                kept if the second block doesn't need the register's old value }
               for Count := 0 to Writes - 1 do
-                if (RegWrites[Count] = taicpu(hp1).oper[1]^.reg) then
+                if (RegWrites[Count] = taicpu(hp1).oper[1]^.reg) and
+                  not SecondBlockReadsReg(RegWrites[Count]) then
                   begin
                     { We have a match.  Keep this as a MOV }
 
@@ -14711,13 +14748,6 @@ unit aoptx86;
 
               taicpu(hp1).opcode := A_CMOVcc;
               taicpu(hp1).condition := inverted_condition;
-
-              if (fState = tsDoubleBranchDifferent) then
-                begin
-                  { Store these writes to search for duplicates later on }
-                  RegWrites[Writes] := taicpu(hp1).oper[1]^.reg;
-                  Inc(Writes);
-                end;
             end;
 
           fOptimizer.GetNextInstruction(hp1, hp1);
