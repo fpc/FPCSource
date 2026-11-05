@@ -1029,8 +1029,11 @@ var
 begin
 {$if defined(unix)}
   fpShutdown(FSocket.FD,SHUT_RDWR);
+  {$ifdef BSD}
+  Close;
+  {$endif}
 {$elseif defined(windows) or defined(hasamiga)}
-  CloseSocket(FSocket);
+  Close;
 {$else}
   CloseSocket(FSocket);
 {$endif}

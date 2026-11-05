@@ -1349,7 +1349,8 @@ procedure TFPCustomHttpServer.StopServerSocket;
 begin
   if CanLog(hlmCloseSocket) then
     DoLog(hlmCloseSocket,SStopSocket,[Port]);
-  FServer.StopAccepting(False);
+  if Assigned(FServer) then
+    FServer.StopAccepting(AcceptIdleTimeout=0);
 end;
 
 procedure TFPCustomHttpServer.SetActive(const AValue: Boolean);
