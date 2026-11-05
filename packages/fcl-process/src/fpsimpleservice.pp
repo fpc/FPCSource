@@ -32,7 +32,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, Fcl.CustApp, Winapi.Windows, Fcl.EventLog, WinApi.Jedi.Winsvc;
+  System.Classes, System.SysUtils, Fcl.CustApp, WinApi.Windows, Fcl.EventLog, WinApi.Jedi.Winsvc;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, custapp, windows, eventlog, jwawinsvc;

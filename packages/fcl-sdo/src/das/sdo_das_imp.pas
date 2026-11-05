@@ -22,7 +22,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.SysUtils, System.Classes, System.Contnrs, Data.Db,
-  Sdo.Base, Sdo.Das, Sdo.Consts, Sdo.Types, Sdo.Das.DataAcces.intf;
+  Sdo.Base, Sdo.Das, Sdo.Consts, Sdo.Types, Sdo.Das.DataAcces.Intf;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs, DB,

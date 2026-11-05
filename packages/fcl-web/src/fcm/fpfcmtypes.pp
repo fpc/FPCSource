@@ -449,7 +449,7 @@ implementation
 
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.DateUtils, FCM.Strings;
+uses System.DateUtils, Fcm.Strings;
 {$ELSE}
 uses dateutils, fpfcmstrings;
 {$ENDIF}

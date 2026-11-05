@@ -453,7 +453,7 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   {$IFDEF WINDOWS}
-  Winapi.Windows, System.SysUtils, System.Classes,
+  WinApi.Windows, System.SysUtils, System.Classes,
   {$ENDIF}
   System.DynLibs;
 {$ELSE FPC_DOTTEDUNITS}

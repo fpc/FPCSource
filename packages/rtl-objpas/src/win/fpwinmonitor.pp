@@ -22,7 +22,7 @@ implementation
 
 uses
 {$ifdef FPC_DOTTEDUNITS}
-  Winapi.Windows, System.SysUtils
+  WinApi.Windows, System.SysUtils
 {$else}
   Windows, SysUtils
 {$endif};

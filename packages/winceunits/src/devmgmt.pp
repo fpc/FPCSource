@@ -42,7 +42,7 @@ unit devmgmt;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Aygshell;
+uses WinApi.Windows, WinceApi.Aygshell;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, aygshell;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -14,7 +14,9 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit  winmanutf8lfn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$R 'w32default.res'}

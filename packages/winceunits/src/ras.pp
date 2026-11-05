@@ -33,7 +33,7 @@ unit RAS;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Tapi;
+uses WinApi.Windows, WinceApi.Tapi;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, Tapi;
 {$ENDIF FPC_DOTTEDUNITS}

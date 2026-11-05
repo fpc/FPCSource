@@ -107,7 +107,7 @@ USES FreeVision.Fvconsts,  System.Objects,
   {$ifdef FV_UNICODE}
   FreeVision.Ufvcommon,FreeVision.Udrivers,FreeVision.Uviews,FreeVision.Uapp,     { Standard GFV units }
   {$else}
-  FreeVision.fvcommon, FreeVision.Drivers, FreeVision.Views, FreeVision.App,      { Standard GFV units }
+  FreeVision.Fvcommon, FreeVision.Drivers, FreeVision.Views, FreeVision.App,      { Standard GFV units }
   {$endif}
   FreeVision.Time;
 {$ELSE FPC_DOTTEDUNITS}

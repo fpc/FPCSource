@@ -22,7 +22,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, WebIDL.Defs, WebIDL.ToPascal, System.Contnrs;
+  System.Classes, System.SysUtils, WebIdl.Defs, WebIdl.ToPascal, System.Contnrs;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, webidldefs, webidltopas, Contnrs;

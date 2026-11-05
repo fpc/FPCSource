@@ -94,7 +94,7 @@ function RTTIJSONRPCRegistry : TRTTIJSONRPCRegistry;
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses FpWeb.JSONRPC.Strings, FpJson.Value;
+uses FpWeb.JsonRpc.Strings, FpJson.Value;
 {$ELSE FPC_DOTTEDUNITS}
 uses fprpcstrings, fpjsonvalue;
 {$ENDIF FPC_DOTTEDUNITS}

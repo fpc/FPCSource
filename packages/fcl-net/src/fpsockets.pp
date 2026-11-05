@@ -41,7 +41,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
+  {$IfDef WINDOWS}WinApi.Winsock2, {$ENDIF}
   {$ifdef unix} UnixApi.Base, UnixApi.TermIO, {$EndIf}
   System.CTypes,
   System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;

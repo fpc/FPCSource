@@ -600,7 +600,7 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
 {$ifdef FV_UNICODE}
-  FreeVision.Uapp, {FreeVision.Memory,} FreeVision.UhistList, FreeVision.Umsgbox{, System.Resources.Resource};
+  FreeVision.Uapp, {FreeVision.Memory,} FreeVision.Uhistlist, FreeVision.Umsgbox{, System.Resources.Resource};
 {$else}
   FreeVision.App, {FreeVision.Memory,} FreeVision.HistList, FreeVision.MsgBox{, System.Resources.Resource};
 {$endif}

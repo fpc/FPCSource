@@ -8,7 +8,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.CTypes, Api.Jack, Api.Jack.JsList;
+  System.CTypes, Api.Jack, Api.Jack.JSList;
 {$ELSE FPC_DOTTEDUNITS}
   ctypes, jack, jackjslist;
 {$ENDIF FPC_DOTTEDUNITS}

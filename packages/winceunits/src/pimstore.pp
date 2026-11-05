@@ -27,7 +27,7 @@ unit pimstore;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinApi.Activex, WinceAPI.Windbase;
+uses WinApi.Windows, WinApi.Activex, WinceApi.Windbase;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, ActiveX, windbase;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -21,7 +21,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.CodePages.UnicodeData, System.SysUtils, System.Classes, System.Contnrs,
+  System.CodePages.unicodedata, System.SysUtils, System.Classes, System.Contnrs,
 {$ELSE}
   UnicodeData, SysUtils, Classes, Contnrs,
 {$ENDIF}

@@ -23,7 +23,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, FpImage, Fcl.Expressions, FpImage.QRCode, FpImage.QRCodeGen, FpReport.Report, FPReport.Streamer;
+  System.Classes, FpImage, Fcl.Expressions, FpImage.QRCode, FpImage.QRCodeGen, FpReport.Report, FpReport.Streamer;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, fpimage, fpexprpars, fpimgqrcode, fpqrcodegen, fpreport, fpreportstreamer;

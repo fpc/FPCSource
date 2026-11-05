@@ -181,7 +181,7 @@ uses
   {$endif}
   {$if (defined(LINUX) or defined(SOLARIS) or defined(BSD)) and not defined(DARWIN)}
   , Api.Libfontconfig
-  , UnixApi.types
+  , UnixApi.Types
   {$endif}
   ;
 {$ELSE FPC_DOTTEDUNITS}

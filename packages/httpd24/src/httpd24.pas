@@ -89,7 +89,7 @@ uses
 {$ELSE}
   UnixApi.Types,
 {$ENDIF}
-  System.CTypes, Api.HttpD24.Apr;
+  System.CTypes, Api.Httpd24.Apr;
 {$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}

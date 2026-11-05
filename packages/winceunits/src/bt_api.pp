@@ -42,7 +42,7 @@ unit bt_api;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinApi.Winsock2, WinceAPI.Winioctl, WinceAPI.Ws2bth;
+uses WinApi.Windows, WinApi.Winsock2, WinceApi.Winioctl, WinceApi.Ws2bth;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, WinSock2, WinIOCtl, ws2bth;
 {$ENDIF FPC_DOTTEDUNITS}

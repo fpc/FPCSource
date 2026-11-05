@@ -21,7 +21,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FPCUnit.Reports.LaTeX, FpWeb.Handler;
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpcUnit.Reports.LaTeX, FpWeb.Handler;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fphttp, fpcunit, custweb;

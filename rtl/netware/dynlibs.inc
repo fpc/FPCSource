@@ -16,7 +16,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 Uses nwserv;
 {$ELSE}
-Uses NetwareApi.nwserv;
+Uses NetWareApi.nwserv;
 {$ENDIF}
 
 Function SysLoadLibraryA(const Name : RawByteString) : TlibHandle;

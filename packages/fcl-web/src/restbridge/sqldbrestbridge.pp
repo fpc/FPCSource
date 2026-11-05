@@ -435,7 +435,7 @@ Const
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.TypInfo, Fcl.UriParser, FPJSON.Rtti, System.DateUtils, Data.BufDataset, FpWeb.RestBridge.Json, FpWeb.RestBridge.Consts;
+uses System.TypInfo, Fcl.UriParser, FpJson.Rtti, System.DateUtils, Data.BufDataset, FpWeb.RestBridge.Json, FpWeb.RestBridge.Consts;
 {$ELSE FPC_DOTTEDUNITS}
 uses typinfo, uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
 {$ENDIF FPC_DOTTEDUNITS}

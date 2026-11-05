@@ -27,7 +27,7 @@ uses
   FpPkg.Messages,
   FpPkg.Globals,
   FpPkg.Options,
-  FpPkg.Packages.structure;
+  FpPkg.Packages.Structure;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,

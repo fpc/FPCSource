@@ -9,7 +9,7 @@ unit schannelsslsockets;
 {$mode objfpc}{$H+}
 interface
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Classes, System.SysUtils, WinApi.Windows, WinApi.WinSock2,
+uses System.Classes, System.SysUtils, WinApi.Windows, WinApi.Winsock2,
   System.Net.Ssockets, System.Net.Sslsockets, System.Net.Sslbase, WinApi.SchannelSSPI;
 {$ELSE}
 uses Classes, SysUtils, Windows, WinSock2, ssockets, sslsockets, sslbase, schannelsspi;

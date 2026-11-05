@@ -26,7 +26,7 @@ interface
 {$MODE OBJFPC}
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, System.Types, WinceAPI.Sipapi;
+uses WinApi.Windows, System.Types, WinceApi.Sipapi;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, Types, SIPAPI;
 {$ENDIF FPC_DOTTEDUNITS}

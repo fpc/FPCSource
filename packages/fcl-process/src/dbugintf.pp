@@ -93,7 +93,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 Uses
-  System.SysUtils, System.Classes, System.Process, System.Simpleipc;
+  System.SysUtils, System.Classes, System.Process, System.SimpleIpc;
 {$ELSE FPC_DOTTEDUNITS}
 Uses
   SysUtils, classes, process, simpleipc;

@@ -11,7 +11,7 @@ UNIT RAPI;
 INTERFACE
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Rapitypes;
+uses WinApi.Windows, WinceApi.Rapitypes;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, RAPITypes;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -26,7 +26,7 @@ unit chmwriter;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Generics.Collections,System.Classes, Chm.Base, Chm.Types, Chm.SpecialFiles, Chm.HtmlIndexer, Chm.Sitemap, System.Contnrs, Fcl.Streams.Extra, Fcl.AVLTree, Chm.Lzx.Compressthread;
+uses System.Generics.Collections,System.Classes, Chm.Base, Chm.Types, Chm.SpecialFiles, Chm.HtmlIndexer, Chm.Sitemap, System.Contnrs, Fcl.Streams.Extra, Fcl.AVLTree, Chm.Lzx.CompressThread;
 {$ELSE FPC_DOTTEDUNITS}
 uses Generics.Collections,Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
 {$ENDIF FPC_DOTTEDUNITS}

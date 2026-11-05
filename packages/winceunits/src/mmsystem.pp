@@ -41,7 +41,7 @@ unit mmsystem;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Mmreg;
+uses WinApi.Windows, WinceApi.Mmreg;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, mmreg;
 {$ENDIF FPC_DOTTEDUNITS}

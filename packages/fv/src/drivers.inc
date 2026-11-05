@@ -90,7 +90,7 @@ USES
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
      {$IFDEF PPC_FPC}                                 { FPC UNITS }
-       OS2Api.doscalls, OS2Api.Os2Def,                { Standard units }
+       OS2Api.doscalls, OS2Api.os2def,                { Standard units }
      {$ENDIF}
    {$ENDIF}
 
@@ -112,7 +112,7 @@ USES
    System.Console.Video,
    FreeVision.Sysmsg,
 {$ifdef FV_UNICODE}
-   FreeVision.UfvCommon,
+   FreeVision.Ufvcommon,
    System.Unicode.Graphemebreakproperty,
    FreeVision.Ufvclip,
 {$else FV_UNICODE}

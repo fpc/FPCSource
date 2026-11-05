@@ -68,7 +68,7 @@ implementation
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   {$IFDEF WINDOWS}
-  Winapi.Windows,
+  WinApi.Windows,
   {$ELSE}
   {$IFDEF LINUX}
   UnixApi.Types,

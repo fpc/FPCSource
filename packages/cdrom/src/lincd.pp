@@ -730,7 +730,7 @@ Function DetectCd : AnsiString;
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.CDROM.Major,System.SysUtils;
+uses System.CdRom.Major,System.SysUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses major,sysutils;
 {$ENDIF FPC_DOTTEDUNITS}

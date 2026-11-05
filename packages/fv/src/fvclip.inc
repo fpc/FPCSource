@@ -93,7 +93,7 @@ implementation
 
 {$ifdef os2}
   uses
-    OS2Api.DosCalls, OS2Api.OS2Def;
+    OS2Api.doscalls, OS2Api.os2def;
 {$endif os2}
 
 {$ELSE  not FPC_DOTTEDUNITS}

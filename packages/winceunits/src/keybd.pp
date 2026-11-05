@@ -27,7 +27,7 @@ unit keybd;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Winioctl;
+uses WinApi.Windows, WinceApi.Winioctl;
 {$ELSE FPC_DOTTEDUNITS}
 uses windows, WinIOCtl;
 {$ENDIF FPC_DOTTEDUNITS}

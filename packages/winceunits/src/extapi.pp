@@ -38,7 +38,7 @@ unit extapi;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows, WinceAPI.Tapi;
+uses WinApi.Windows, WinceApi.Tapi;
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows, TAPI;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -738,7 +738,7 @@ procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderCla
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Variants, Data.Consts, Data.FMtBcd, System.StrUtils;
+uses System.Variants, Data.Consts, Data.FMTBcd, System.StrUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses variants, dbconst, FmtBCD, strutils;
 {$ENDIF FPC_DOTTEDUNITS}

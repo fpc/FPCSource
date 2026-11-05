@@ -20,7 +20,7 @@
 
   interface
 {$IFDEF FPC_DOTTEDUNITS}
-  uses System.Stl.Vector, System.Stl.Util, System.Stl.Arrayutils;
+  uses System.Stl.Vector, System.Stl.Util, System.Stl.ArrayUtils;
 {$ELSE FPC_DOTTEDUNITS}
   uses gvector, gutil, garrayutils;
 {$ENDIF FPC_DOTTEDUNITS}

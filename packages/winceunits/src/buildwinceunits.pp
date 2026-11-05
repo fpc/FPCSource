@@ -24,12 +24,12 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  WinceAPI.Aygshell, WinApi.Commctrl, WinApi.Commdlg, WinceAPI.Iphlpapi, WinceAPI.Notify, WinceAPI.Oleauto, MacOsApi.Power, WinApi.Shellapi, WinceAPI.Simmgr, WinceAPI.Tapi,
-  WinceAPI.Gpsapi, WinceAPI.Todaycmn, WinceAPI.Windbase, WinceAPI.Cesync, WinceAPI.Gx, WinceAPI.Winioctl, WinceAPI.Msgqueue, WinceAPI.Pm, WinceAPI.Service, WinceAPI.Htmlctrl,
-  WinceAPI.Sipapi, WinceAPI.Cpl, WinceAPI.Bt_api, WinceAPI.Bt_sdp, WinceAPI.Bthapi, WinceAPI.Bthutil, WinceAPI.Pimstore, WinceAPI.Ril, SinclairApi.Sms, WinceAPI.Ws2bth,
-  WinceAPI.Keybd, WinceAPI.Nled, WinceAPI.Phone, WinceAPI.Connmgr, WinceAPI.Devload, WinceAPI.Devmgmt, WinceAPI.Mmreg, WinApi.Mmsystem, WinceAPI.Msacm,
-  WinApi.Wininet, WinceAPI.Ras, WinceAPI.Raserror, WinceAPI.Sip, WinceAPI.Projects, WinceAPI.Wap, WinceAPI.Tsp, WinceAPI.Extapi, WinceAPI.Imm, WinceAPI.Rapitypes,
-  WinceAPI.Storemgr, WinceAPI.Pnp, WinceAPI.Tlhelp32;
+  WinceApi.Aygshell, WinApi.Commctrl, WinApi.Commdlg, WinceApi.Iphlpapi, WinceApi.Notify, WinceApi.Oleauto, MacOsApi.Power, WinApi.Shellapi, WinceApi.Simmgr, WinceApi.Tapi,
+  WinceApi.Gpsapi, WinceApi.Todaycmn, WinceApi.Windbase, WinceApi.Cesync, WinceApi.Gx, WinceApi.Winioctl, WinceApi.Msgqueue, WinceApi.Pm, WinceApi.Service, WinceApi.Htmlctrl,
+  WinceApi.Sipapi, WinceApi.Cpl, WinceApi.Bt_api, WinceApi.Bt_sdp, WinceApi.Bthapi, WinceApi.Bthutil, WinceApi.Pimstore, WinceApi.Ril, SinclairApi.Sms, WinceApi.Ws2bth,
+  WinceApi.Keybd, WinceApi.Nled, WinceApi.Phone, WinceApi.Connmgr, WinceApi.Devload, WinceApi.Devmgmt, WinceApi.Mmreg, WinApi.Mmsystem, WinceApi.Msacm,
+  WinApi.Wininet, WinceApi.Ras, WinceApi.Raserror, WinceApi.Sip, WinceApi.Projects, WinceApi.Wap, WinceApi.Tsp, WinceApi.Extapi, WinceAPI.Imm, WinceApi.Rapitypes,
+  WinceApi.Storemgr, WinceApi.Pnp, WinceApi.Tlhelp32;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   aygshell, commctrl, commdlg, iphlpapi, notify, oleauto, power, shellapi, simmgr, tapi,

@@ -117,7 +117,7 @@ begin
     T:=P.Targets.AddImplicitUnit('httpapi.pp');
     T.Dependencies.AddInclude('tmschema.inc');
     T:=P.Targets.AddImplicitUnit('bcrypt.pp');
-    T:=P.Targets.AddImplicitUnit('winmanutf8lfn');
+    T:=P.Targets.AddImplicitUnit('winmanutf8lfn.pp');
 
     P.Sources.AddSrcFiles('src/w32default.*', P.Directory);
     P.InstallFiles.Add('src/w32default.res',AllWindowsOSes,'$(unitinstalldir)');
@@ -132,7 +132,6 @@ begin
     P.Targets.AddExampleProgram('hhex.pp');
     P.Targets.AddExampleProgram('hhex2.pp');
     P.Targets.AddExampleProgram('hhex3.pp');
-    P.Targets.AddExampleProgram('hhex4.pp');
     P.Targets.AddExampleProgram('twmpointer.pp');
     P.Targets.AddExampleProgram('tbcrypt.pp');
     P.Targets.AddExampleProgram('bcryptrandom.pp');

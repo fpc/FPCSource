@@ -8,7 +8,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FPCUnit.Reports.LaTeX, FPCUnit.Registry, FPJSON.Fpjson, Jssrcmap;
+  System.Classes, System.SysUtils, FpcUnit.Reports.LaTeX, FpcUnit.Registry, FpJson.Fpjson, Jssrcmap;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, testregistry, fpjson, JSSrcMap;

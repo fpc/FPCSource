@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.Sysutils, System.Contnrs, System.JSON, System.Messaging, System.Generics.Collections;
+  System.Classes, System.SysUtils, System.Contnrs, System.JSON, System.Messaging, System.Generics.Collections;
 {$ELSE}
   classes, sysutils, contnrs, system.json, system.messaging, generics.collections;
 {$ENDIF}

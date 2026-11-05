@@ -22,7 +22,7 @@ unit cesync;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses WinApi.Windows {$ifdef UNDER_CE}, WinceAPI.Windbase {$endif};
+uses WinApi.Windows {$ifdef UNDER_CE}, WinceApi.Windbase {$endif};
 {$ELSE FPC_DOTTEDUNITS}
 uses Windows {$ifdef UNDER_CE}, windbase {$endif};
 {$ENDIF FPC_DOTTEDUNITS}

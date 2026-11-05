@@ -23,7 +23,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpReport.Report, FpJson.Data, FpReport.Streamer, FPReport.Data;
+  System.Classes, System.SysUtils, FpReport.Report, FpJson.Data, FpReport.Streamer, FpReport.Data;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpreport, fpjson, fpreportstreamer, fpreportdata;
