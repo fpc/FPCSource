@@ -62,6 +62,10 @@ interface
        tloopnode = class(tbinarynode)
           t1,t2 : tnode;
           loopflags : tloopflags;
+          { this is a dummy node used by the dfa to store life information for the end of
+            an iteration of a for or repeat loop: the end of the body and continue statements
+            have it as successor }
+          loopiteration : tnode;
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function dogetcopy : tnode;override;
@@ -109,12 +113,9 @@ interface
           { if count isn't divisible by unrolls then
             the for loop must jump to this label to get the correct
             number of executions }
-          entrylabel,
-          { this is a dummy node used by the dfa to store life information for the loop iteration }
-          loopiteration : tnode;
+          entrylabel : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
-          destructor destroy;override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function makewhileloop : tnode;
@@ -1103,6 +1104,8 @@ implementation
          t1 := nil;
          t2.free;
          t2 := nil;
+         loopiteration.free;
+         loopiteration := nil;
          inherited destroy;
       end;
 
@@ -1900,13 +1903,6 @@ implementation
          if back then
            include(loopflags,lnf_backward);
          include(loopflags,lnf_testatbegin);
-      end;
-
-    destructor tfornode.destroy;
-      begin
-         loopiteration.free;
-         loopiteration := nil;
-         inherited destroy;
       end;
 
     function tfornode.simplify(forinline : boolean) : tnode;

@@ -274,11 +274,13 @@ unit optutils;
               end;
             forn:
               begin
-                BreakContinueStack.Push(succ,p);
                 result:=p;
-                { the successor of the last node of the for body is the dummy loop iteration node
-                  it allows the dfa to inject needed life information into the loop }
+                { the successor of the last node of the for body and of continue statements is the
+                  dummy loop iteration node, it allows the dfa to inject needed life information into
+                  the loop }
+                tfornode(p).loopiteration.free;
                 tfornode(p).loopiteration:=cnothingnode.create;
+                BreakContinueStack.Push(succ,tfornode(p).loopiteration);
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
@@ -296,10 +298,26 @@ unit optutils;
               end;
             whilerepeatn:
               begin
-                BreakContinueStack.Push(succ,p);
                 result:=p;
-                { the successor of the last node of the while/repeat body is the while node itself }
-                DoSet(twhilerepeatnode(p).right,p);
+                twhilerepeatnode(p).loopiteration.free;
+                twhilerepeatnode(p).loopiteration:=nil;
+                if lnf_testatbegin in twhilerepeatnode(p).loopflags then
+                  begin
+                    { the condition of a while loop is evaluated at the while node, so the
+                      successor of the last node of the body and of continue statements is the
+                      while node itself }
+                    BreakContinueStack.Push(succ,p);
+                    DoSet(twhilerepeatnode(p).right,p);
+                  end
+                else
+                  begin
+                    { the condition of a repeat loop is evaluated after the body, this is represented
+                      by the dummy loop iteration node: it is the successor of the last node of the body
+                      and of continue statements, the repeat node itself represents the start of the body }
+                    twhilerepeatnode(p).loopiteration:=cnothingnode.create;
+                    BreakContinueStack.Push(succ,twhilerepeatnode(p).loopiteration);
+                    DoSet(twhilerepeatnode(p).right,twhilerepeatnode(p).loopiteration);
+                  end;
 
                 p.successor:=succ;
 

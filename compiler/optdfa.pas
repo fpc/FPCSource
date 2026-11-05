@@ -149,6 +149,9 @@ unit optdfa;
     function ResetProcessing(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         exclude(n.transientflags,tnf_processing);
+        { the dummy loop iteration nodes are not part of the tree }
+        if (n.nodetype in [whilerepeatn,forn]) and assigned(tloopnode(n).loopiteration) then
+          exclude(tloopnode(n).loopiteration.transientflags,tnf_processing);
         { dfa works only on normalized trees, so do not recurse into expressions, because
           ResetProcessing eats a significant amount of time of CheckAndWarn
 
@@ -217,16 +220,43 @@ unit optdfa;
               end
             else
               begin
-                l:=n.optinfo^.use;
+                l:=DynSetCopy(n.optinfo^.use);
                 DynSetIncludeSet(l,n.optinfo^.life);
               end;
             updatelifeinfo(n,l);
           end;
 
+        { calculates the life info at the condition of the while/repeat node n: after the condition,
+          the body is executed (again) or the loop is left }
+        procedure calcloopconditionlife(n : twhilerepeatnode);
+          var
+            l : TDFASet;
+            condnode : tnode;
+          begin
+            if lnf_testatbegin in n.loopflags then
+              condnode:=n
+            else
+              condnode:=n.loopiteration;
+            { leaving the loop, an endless loop can be left only by break or exit }
+            if assigned(n.successor) then
+              l:=DynSetDiffF(n.successor.optinfo^.life,n.optinfo^.def)
+            else if assigned(resultnode) then
+              l:=DynSetDiffF(resultnode.optinfo^.life,n.optinfo^.def)
+            else
+              l:=nil;
+            { executing the body (again), an empty body means evaluating the condition again which
+              is covered by keeping the old life info below }
+            if assigned(n.right) then
+              DynSetIncludeSet(l,DynSetDiffF(n.right.optinfo^.life,n.optinfo^.def));
+            DynSetIncludeSet(l,n.optinfo^.use);
+            { never remove life info }
+            DynSetIncludeSet(l,condnode.optinfo^.life);
+            updatelifeinfo(condnode,l);
+          end;
+
         var
           dfainfo : tdfainfo;
           l : TDFASet;
-          save: TDFASet;
           lv, hv: TConstExprInt;
           i : longint;
           counteruse_after_loop : boolean;
@@ -262,45 +292,37 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,twhilerepeatnode(node).left,@AddDefUse,@dfainfo);
                   end;
 
-                { NB: this node should typically have empty def set }
-                if assigned(node.successor) then
-                  DynSetDiff(l,node.successor.optinfo^.life,node.optinfo^.def)
-                else if assigned(resultnode) then
-                  DynSetDiff(l,resultnode.optinfo^.life,node.optinfo^.def)
-                else
-                  l:=nil;
-
-                { for repeat..until, node use set in included at the end of loop }
-                if not (lnf_testatbegin in twhilerepeatnode(node).loopflags) then
-                  DynSetIncludeSet(l,node.optinfo^.use);
-
-                DynSetIncludeSet(l,node.optinfo^.life);
-
-                save:=node.optinfo^.life;
-                { to process body correctly, we need life info in place (because
-                  whilerepeatnode is successor of its body). }
-                node.optinfo^.life:=l;
-
-                { now process the body }
-                CreateInfo(twhilerepeatnode(node).right);
-
-                { restore, to prevent infinite recursion via changed flag }
-                node.optinfo^.life:=save;
-
-                { for while loops, node use set is included at the beginning of loop }
-                l:=twhilerepeatnode(node).right.optinfo^.life;
-                if lnf_testatbegin in twhilerepeatnode(node).loopflags then
+                if assigned(twhilerepeatnode(node).right) then
+                  twhilerepeatnode(node).right.allocoptinfo;
+                if not(lnf_testatbegin in twhilerepeatnode(node).loopflags) then
                   begin
-                    DynSetIncludeSet(l,node.optinfo^.use);
-                    { ... loop body could be skipped, so include life info of the successor node }
-                    if assigned(node.successor) then
-                      DynSetIncludeSet(l,node.successor.optinfo^.life);
+                    { created by SetNodeSucessors }
+                    if not(assigned(twhilerepeatnode(node).loopiteration)) then
+                      internalerror(2026110501);
+                    twhilerepeatnode(node).loopiteration.allocoptinfo;
                   end;
 
-                UpdateLifeInfo(node,l);
+                { the condition of a while loop is evaluated at the while node, the one of a repeat loop
+                  at the loop iteration node which is the successor of the end of the body and of continue
+                  statements. Calculate its life info before processing the body, so the body
+                  gets the life info of the condition and the successor already in this pass }
+                calcloopconditionlife(twhilerepeatnode(node));
 
-                { ... and a second iteration for fast convergence }
                 CreateInfo(twhilerepeatnode(node).right);
+
+                { update the life info of the condition with the one of the body }
+                calcloopconditionlife(twhilerepeatnode(node));
+
+                { a repeat loop starts with the body }
+                if not(lnf_testatbegin in twhilerepeatnode(node).loopflags) then
+                  begin
+                    if assigned(twhilerepeatnode(node).right) then
+                      l:=DynSetCopy(twhilerepeatnode(node).right.optinfo^.life)
+                    else
+                      l:=DynSetCopy(twhilerepeatnode(node).loopiteration.optinfo^.life);
+                    DynSetIncludeSet(l,node.optinfo^.life);
+                    UpdateLifeInfo(node,l);
+                  end;
               end;
 
             forn:
@@ -421,7 +443,7 @@ unit optdfa;
               begin
                 CreateInfo(tblocknode(node).statements);
                 { ensure that we don't remove life info }
-                l:=node.optinfo^.life;
+                l:=DynSetCopy(node.optinfo^.life);
                 if assigned(node.successor) then
                   DynSetIncludeSet(l,node.successor.optinfo^.life);
                 UpdateLifeInfo(node,l);
@@ -444,7 +466,7 @@ unit optdfa;
                 CreateInfo(tifnode(node).t1);
 
                 { ensure that we don't remove life info }
-                l:=node.optinfo^.life;
+                l:=DynSetCopy(node.optinfo^.life);
 
                 { get life info from then branch }
                 if assigned(tifnode(node).right) then
@@ -487,7 +509,7 @@ unit optdfa;
                 CreateInfo(tcasenode(node).elseblock);
 
                 { ensure that we don't remove life info }
-                l:=node.optinfo^.life;
+                l:=DynSetCopy(node.optinfo^.life);
 
                 { get life info from case branches }
                 for i:=0 to tcasenode(node).blocks.count-1 do
@@ -521,7 +543,7 @@ unit optdfa;
                   use the faked resultnode }
                 if assigned(node.successor) then
                   begin
-                    l:=node.optinfo^.life;
+                    l:=DynSetCopy(node.optinfo^.life);
                     DynSetIncludeSet(l,node.successor.optinfo^.life);
                     UpdateLifeInfo(node,l);
                   end
