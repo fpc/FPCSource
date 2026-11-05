@@ -8,7 +8,7 @@ uses
 {$ifdef unix}
   cwstring,
 {$endif}
-  consoletestrunner, utestsha256, utestonetimepass, utestsha512, utestpem, fpECC, fphashutils, fpsha256;
+  consoletestrunner, utestsha256, utestonetimepass, utestrandombytes, utestsha512, utestpem, fpECC, fphashutils, fpsha256;
 
 var
   Application: TTestRunner;

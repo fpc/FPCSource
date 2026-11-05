@@ -62,11 +62,34 @@ Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
 Type
   TGetRandomBytes = function(aBytes : PByte; aCount: Integer): Boolean;
 
+// Fill aCount bytes at aBytes from the operating system's cryptographic random source.
+// Uses BCryptGenRandom on Windows, getrandom on Linux, arc4random_buf on Darwin and
+// /dev/urandom on other Unix systems. Returns False if no such source is available.
+Function OSGetRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
+
+// True if OSGetRandomBytes is supported on this target.
+Function OSRandomBytesAvailable : Boolean;
+
 var
+  // Random byte source used by this package (RSA, ECC, one-time passwords).
+  // Defaults to OSGetRandomBytes; on targets without a system source it uses the RTL Random, which is not cryptographically secure.
   GetRandomBytes : TGetRandomBytes;
 
 
 implementation
+
+{$IF DEFINED(MSWINDOWS) or DEFINED(LINUX)}
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  {$IFDEF MSWINDOWS}WinApi.BCrypt{$ELSE}LinuxApi, UnixApi.Base{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
+  {$IFDEF MSWINDOWS}bcrypt{$ELSE}linux, baseunix{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF}
+
+{$IFDEF DARWIN}
+procedure arc4random_buf(aBuf: Pointer; aCount: SizeUInt); cdecl; external 'c' name 'arc4random_buf';
+{$ENDIF}
 
 Const
   HexDigits: Array[0..15] of AnsiChar = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
@@ -455,7 +478,22 @@ var
   I, Remainder, Rounds: Integer;
   Lecuyer: TLecuyer;
   R: UInt32;
+  B: Byte;
 begin
+  // Use the random source directly when it works; the Lecuyer generator is the fallback.
+  if (Count>0) and (Pointer(GetRandomBytes)<>Nil) and GetRandomBytes(Buffer,Count) then
+    begin
+    Result:=True;
+    if not ZeroBytesAllowed then
+      for I:=0 to Count-1 do
+        while Buffer[I]=0 do
+          begin
+          if not GetRandomBytes(@B,1) then
+            Exit(False);
+          Buffer[I]:=B;
+          end;
+    Exit;
+    end;
   Result := True;
   Lecuyer.ZeroBytesAllowed:=ZeroBytesAllowed;
   Lecuyer.Seed;
@@ -503,7 +541,92 @@ begin
   Result:=True;
 end;
 
+{$IF DEFINED(UNIX) and not DEFINED(DARWIN)}
+// Fill aCount bytes at aBytes from /dev/urandom.
+function DevURandomBytes(aBytes : PByte; aCount: Integer): Boolean;
+
+var
+  lHandle: THandle;
+  lRead: Integer;
+
 begin
-  GetRandomBytes:=@IntGetRandomNumber;
+  Result:=False;
+  lHandle:=FileOpen('/dev/urandom',fmOpenRead or fmShareDenyNone);
+  if lHandle=THandle(-1) then
+    Exit;
+  try
+    while aCount>0 do
+      begin
+      lRead:=FileRead(lHandle,aBytes^,aCount);
+      if lRead<=0 then
+        Exit;
+      Inc(aBytes,lRead);
+      Dec(aCount,lRead);
+      end;
+    Result:=True;
+  finally
+    FileClose(lHandle);
+  end;
+end;
+{$ENDIF}
+
+
+function OSGetRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
+
+{$IFDEF LINUX}
+var
+  lRead: ssize_t;
+{$ENDIF}
+
+begin
+  if aCount<=0 then
+    Exit(aCount=0);
+{$IF DEFINED(MSWINDOWS)}
+  Result:=BCryptGenRandom(Nil,aBytes,aCount,BCRYPT_USE_SYSTEM_PREFERRED_RNG)=0;
+{$ELSEIF DEFINED(DARWIN)}
+  arc4random_buf(aBytes,aCount);
+  Result:=True;
+{$ELSEIF DEFINED(LINUX)}
+  Result:=True;
+  while aCount>0 do
+    begin
+    lRead:=getrandom(aBytes,aCount,0);
+    if lRead<0 then
+      begin
+      if fpgeterrno=ESysEINTR then
+        Continue;
+      // Kernels before 3.17 have no getrandom.
+      Exit(DevURandomBytes(aBytes,aCount));
+      end;
+    Inc(aBytes,lRead);
+    Dec(aCount,lRead);
+    end;
+{$ELSEIF DEFINED(UNIX)}
+  Result:=DevURandomBytes(aBytes,aCount);
+{$ELSE}
+  Result:=False;
+{$ENDIF}
+end;
+
+
+function OSRandomBytesAvailable: Boolean;
+
+begin
+{$IF DEFINED(MSWINDOWS) or DEFINED(UNIX)}
+  Result:=True;
+{$ELSE}
+  Result:=False;
+{$ENDIF}
+end;
+
+
+initialization
+  if OSRandomBytesAvailable then
+    GetRandomBytes:=@OSGetRandomBytes
+  else
+    begin
+    Randomize;
+    GetRandomBytes:=@IntGetRandomNumber;
+    end;
 end.
 

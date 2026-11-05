@@ -228,8 +228,9 @@ asm
         sha1nexte xmm0,xmm9
         paddd xmm2,xmm8
         {$else}
-        sha1nexte xmm0,[E0_SAVE]
-        //paddd xmm2,[ABCD_SAVE]
+        { Unaligned loads of the save slots. }
+        movdqu xmm4,[E0_SAVE]
+        sha1nexte xmm0,xmm4
         movdqu xmm4,[ABCD_SAVE]
         paddd xmm2,xmm4
         {$endif}

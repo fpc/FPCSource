@@ -31,23 +31,36 @@ uses
 const
   TOTP_Mod = 1000000;
   TOTP_KeyRegeneration = 30; // Time step for TOTP generation. Google Authenticator uses 30 seconds.
+  // Default shared secret length in bytes (160 bits, RFC 6238 for HMAC-SHA1).
+  TOTP_SecretLength = 20;
+  // Minimum shared secret length in bytes (128 bits, RFC 4226 R6).
+  TOTP_MinSecretLength = 16;
 
 Type
+  // Fills all bytes of aBytes with cryptographically secure random data.
   TRandomBytes = Procedure (aBytes : TByteDynArray);
+  EOTPError = Class(Exception);
 
 function HOTPCalculateToken(const aSecret: AnsiString; const Counter: LongInt): LongInt;
 function TOTPCalculateToken(const aSecret: AnsiString): LongInt;
 function TOTPGenerateToken(const aSecret: AnsiString): LongInt;
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
-Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : AnsiString;
+// Return a new Base32 encoded shared secret of aLength random bytes (at least TOTP_MinSecretLength).
+// aRandom supplies the bytes; when it is Nil, fphashutils.GetRandomBytes is used.
+// Raises EOTPError when aLength is too small or no random bytes can be obtained.
+Function TOTPSharedSecret(aRandom : TRandomBytes = Nil; aLength : Integer = TOTP_SecretLength) : AnsiString;
 
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Hash.Sha1, System.Hash.Hmac;
+uses System.Hash.Sha1, System.Hash.Hmac, System.Hash.Utils;
 {$ELSE FPC_DOTTEDUNITS}
-uses sha1, hmac;
+uses sha1, hmac, fphashutils;
 {$ENDIF FPC_DOTTEDUNITS}
+
+resourcestring
+  SErrSecretTooShort = 'Shared secret length %d is below the minimum of %d bytes';
+  SErrNoRandomBytes = 'Cannot obtain random bytes for the shared secret';
 
 // @Result[8]
 Function Int64ToRawString(const Value: Int64) : AnsiString;
@@ -103,20 +116,20 @@ begin
   Result := HOTPCalculateToken(aSecret, -1);
 end;
 
-Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : AnsiString;
+Function TOTPSharedSecret(aRandom : TRandomBytes = Nil; aLength : Integer = TOTP_SecretLength) : AnsiString;
 
 var
   RandomKey: TByteDynArray;
-  I : Integer;
 
 begin
+  if aLength<TOTP_MinSecretLength then
+    Raise EOTPError.CreateFmt(SErrSecretTooShort,[aLength,TOTP_MinSecretLength]);
   RandomKey:=[];
-  SetLength(RandomKey,10);
+  SetLength(RandomKey,aLength);
   if aRandom <> Nil then
     aRandom(RandomKey)
-  else
-    For I:=0 to 9 do
-      RandomKey[I]:=Random(256);
+  else if (Pointer(GetRandomBytes)=Nil) or not GetRandomBytes(PByte(RandomKey),aLength) then
+    Raise EOTPError.Create(SErrNoRandomBytes);
   Result:=Base32.Encode(RandomKey);
 end;
 

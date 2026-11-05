@@ -50,6 +50,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="utestrandombytes.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="utestpem.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>

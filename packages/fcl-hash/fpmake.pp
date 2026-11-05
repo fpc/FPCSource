@@ -32,6 +32,7 @@ begin
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('hash');
+    P.Dependencies.Add('winunits-base',[win32,win64]);
 
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/fpecc.pp');
@@ -54,6 +55,7 @@ begin
     T:=P.Targets.AddUnit('src/fptlsbigint.pas');
     T:=P.Targets.AddUnit('src/fprsa.pas');
     T:=P.Targets.AddUnit('src/onetimepass.pp');
+    T.Dependencies.AddUnit('fphashutils');
 
     T:=P.Targets.AddExampleunit('examples/demosha256.pp');
     T:=P.Targets.AddExampleunit('examples/sha256performancetest.pas');
