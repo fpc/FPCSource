@@ -133,6 +133,8 @@ Type
     function MakeValidId(id:AnsiString;out valid:AnsiString): boolean; virtual;
     function MakeValidIdAgainstDeclared(id:AnsiString;var valid:AnsiString): boolean;
     function RemoveTag(typename: AnsiString): AnsiString;
+    // Pascal literal for the [defaultvalue()] of a by-value parameter; False if there is none or it cannot be expressed.
+    function ParamDefaultValue(TI: ITypeInfo; const aParam: ELEMDESC; out aValue: AnsiString): Boolean; virtual;
     // The actual routines that do the work.
     procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer); virtual;
     procedure CreateForwards(const TL: ITypeLib; TICount: Integer); virtual;
@@ -339,6 +341,133 @@ begin
 end;
 
 
+function TTypeLibImporter.ParamDefaultValue(TI: ITypeInfo; const aParam: ELEMDESC; out aValue: AnsiString): Boolean;
+
+type
+  TDefaultKind = (dkNone,dkInteger,dkFloat,dkBoolean,dkString,dkNil);
+
+var
+  lKind: TDefaultKind;
+  lDefault: PVarData;
+  lFS: TFormatSettings;
+
+  // Kind of default allowed for a parameter of type referenced by aRefType.
+  function UserDefinedKind(aRefType: HREFTYPE): TDefaultKind;
+
+  var
+    lRef: ITypeInfo;
+    lAttr: LPTYPEATTR;
+
+  begin
+    Result:=dkNone;
+    if Failed(TI.GetRefTypeInfo(aRefType,lRef)) or Failed(lRef.GetTypeAttr(lAttr)) then
+      exit;
+    case lAttr^.typekind of
+      TKIND_ENUM: Result:=dkInteger;
+      TKIND_DISPATCH,TKIND_INTERFACE,TKIND_COCLASS: Result:=dkNil;
+    end;
+    lRef.ReleaseTypeAttr(lAttr);
+  end;
+
+
+  // Pascal string literal for aValue.
+  function StringLiteral(const aValue: WideString): AnsiString;
+
+  var
+    lIndex: Integer;
+    lQuoted: Boolean;
+
+  begin
+    Result:='';
+    lQuoted:=False;
+    for lIndex:=1 to Length(aValue) do
+      if (Ord(aValue[lIndex])>=32) and (Ord(aValue[lIndex])<127) then
+        begin
+        if not lQuoted then
+          Result:=Result+'''';
+        lQuoted:=True;
+        if aValue[lIndex]='''' then
+          Result:=Result+'''';
+        Result:=Result+AnsiChar(aValue[lIndex]);
+        end
+      else
+        begin
+        if lQuoted then
+          Result:=Result+'''';
+        lQuoted:=False;
+        Result:=Result+'#'+IntToStr(Ord(aValue[lIndex]));
+        end;
+    if lQuoted then
+      Result:=Result+'''';
+    if Result='' then
+      Result:='''''';
+  end;
+
+
+begin
+  Result:=False;
+  aValue:='';
+  if ((aParam.paramdesc.wParamFlags and PARAMFLAG_FHASDEFAULT)=0) or
+     (aParam.paramdesc.pparamdescex=nil) then
+    exit;
+  case aParam.tdesc.vt of
+    VT_I1,VT_I2,VT_I4,VT_I8,VT_INT,VT_UI1,VT_UI2,VT_UI4,VT_UI8,VT_UINT: lKind:=dkInteger;
+    VT_R4,VT_R8,VT_CY: lKind:=dkFloat;
+    VT_BOOL: lKind:=dkBoolean;
+    VT_BSTR: lKind:=dkString;
+    VT_UNKNOWN,VT_DISPATCH: lKind:=dkNil;
+    VT_USERDEFINED: lKind:=UserDefinedKind(aParam.tdesc.hreftype);
+    VT_PTR:
+      if aParam.tdesc.lptdesc^.vt=VT_USERDEFINED then
+        begin
+        lKind:=UserDefinedKind(aParam.tdesc.lptdesc^.hreftype);
+        if lKind<>dkNil then
+          lKind:=dkNone;
+        end
+      else
+        lKind:=dkNone;
+  else
+    lKind:=dkNone;
+  end;
+  if lKind=dkNone then
+    exit;
+  lFS:=DefaultFormatSettings;
+  lFS.DecimalSeparator:='.';
+  lDefault:=PVarData(@aParam.paramdesc.pparamdescex^.varDefaultValue);
+  case lDefault^.vtype of
+    VT_I1: aValue:=IntToStr(lDefault^.vshortint);
+    VT_I2: aValue:=IntToStr(lDefault^.vsmallint);
+    VT_I4,VT_INT: aValue:=IntToStr(lDefault^.vinteger);
+    VT_I8: aValue:=IntToStr(lDefault^.vint64);
+    VT_UI1: aValue:=IntToStr(lDefault^.vbyte);
+    VT_UI2: aValue:=IntToStr(lDefault^.vword);
+    VT_UI4,VT_UINT: aValue:=IntToStr(lDefault^.vlongword);
+    VT_UI8: aValue:=IntToStr(lDefault^.vqword);
+    VT_R4: if lKind=dkFloat then aValue:=FloatToStr(lDefault^.vsingle,lFS);
+    VT_R8: if lKind=dkFloat then aValue:=FloatToStr(lDefault^.vdouble,lFS);
+    VT_CY: if lKind=dkFloat then aValue:=CurrToStr(lDefault^.vcurrency,lFS);
+    VT_BOOL:
+      if lKind=dkBoolean then
+        if lDefault^.vboolean then
+          aValue:='True'
+        else
+          aValue:='False';
+    VT_BSTR: if lKind=dkString then aValue:=StringLiteral(WideString(PWideChar(lDefault^.volestr)));
+    VT_EMPTY,VT_NULL: if lKind=dkNil then aValue:='nil';
+    VT_UNKNOWN,VT_DISPATCH: if (lKind=dkNil) and (lDefault^.vunknown=nil) then aValue:='nil';
+  end;
+  // an integer default is valid for integer and float parameters; for a boolean it is 0 or not 0
+  if (aValue<>'') and (lDefault^.vtype in [VT_I1,VT_I2,VT_I4,VT_I8,VT_INT,VT_UI1,VT_UI2,VT_UI4,VT_UI8,VT_UINT]) then
+    case lKind of
+      dkInteger,dkFloat: ;
+      dkBoolean: if aValue='0' then aValue:='False' else aValue:='True';
+    else
+      aValue:='';
+    end;
+  Result:=aValue<>'';
+end;
+
+
 function TTypeLibImporter.TypeToString(TI:ITypeInfo; TD:TYPEDESC):AnsiString;
 
 var
@@ -474,7 +603,7 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sResType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3,lIdxName: AnsiString;
+  sPropParam,sPropParam2,sPropParam3,lIdxName,lDefault,lGetParam,lParam: AnsiString;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:AnsiString;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -484,7 +613,7 @@ var
   bPropHasParam,bIsFunction,bParamByRef,bFoldHResult:boolean;
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
-  Propertycnt,iType,lIdxCount:integer;
+  Propertycnt,iType,lIdxCount,lFirstDefault:integer;
   Modifier: AnsiString;
 
   function findProperty(ireqdispid:integer):integer;
@@ -517,6 +646,26 @@ var
       sPutSuffix:='';
       end;
   end;
+
+  // Index of the first of the trailing parameters below aCount that all have a default; aCount if none.
+  function FirstDefaultParam(aCount: Integer; aSkipRetval: Boolean): Integer;
+
+  var
+    lIndex: Integer;
+    lValue: AnsiString;
+
+  begin
+    Result:=aCount;
+    for lIndex:=aCount-1 downto 0 do
+      begin
+      if aSkipRetval and ((FD^.lprgelemdescParam[lIndex].paramdesc.wParamFlags and PARAMFLAG_FRETVAL)<>0) then
+        continue;
+      if not ParamDefaultValue(TI,FD^.lprgelemdescParam[lIndex],lValue) then
+        break;
+      Result:=lIndex;
+      end;
+  end;
+
 
   function GetName(i:integer):AnsiString;  //bug in Office10\MSacc.OLB _WizHook.Key
   begin
@@ -642,6 +791,10 @@ begin
                    '          On%s(Self,',[FD^.memid,sMethodName,sMethodName]);
           end;
         // parameters
+        if bIsDispatch then
+          lFirstDefault:=FD^.cParams
+        else
+          lFirstDefault:=FirstDefaultParam(FD^.cParams,sConv='safecall');
         for k:=0 to FD^.cParams-1 do
           begin
           // retval becomes the function result only for safecall and dispinterface methods
@@ -673,7 +826,10 @@ begin
           if not MakeValidId(GetName(k+1),sVarName) then
             AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s''',[GetName(k+1),iname,sMethodName,sVarName],True);
           sPar:=sPar+format('%s:%s;',[sVarName,sl]);
-          sFunc:=sFunc+sPar;
+          if (k>=lFirstDefault) and ParamDefaultValue(TI,FD^.lprgelemdescParam[k],lDefault) then
+            sFunc:=sFunc+Copy(sPar,1,Length(sPar)-1)+' = '+lDefault+';'
+          else
+            sFunc:=sFunc+sPar;
           if bCreateEvents then
             begin
             sEventSignatures:=sEventSignatures+sPar;
@@ -785,14 +941,27 @@ begin
         if (FD^.memid=0) and  bPropHasParam then sl:=' default;' else sl:='';
         sPropParam:='';
         sPropParam2:='';
+        // getter index list, with the defaults of trailing index parameters
+        lGetParam:='';
+        if bIsDispatch or (FD^.invkind<>INVOKE_PROPERTYGET) then
+          lFirstDefault:=lIdxCount
+        else
+          lFirstDefault:=FirstDefaultParam(lIdxCount,False);
         if bPropHasParam then
           for k:=0 to lIdxCount-1 do
             begin
             if not MakeValidId(GetName(k+1),lIdxName) then
               AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[GetName(k+1),iname,sMethodName,lIdxName]);
             if k>0 then
+              begin
               sPropParam:=sPropParam+'; ';
-            sPropParam:=sPropParam+lIdxName+':'+TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
+              lGetParam:=lGetParam+'; ';
+              end;
+            lParam:=lIdxName+':'+TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
+            sPropParam:=sPropParam+lParam;
+            lGetParam:=lGetParam+lParam;
+            if (k>=lFirstDefault) and ParamDefaultValue(TI,FD^.lprgelemdescParam[k],lDefault) then
+              lGetParam:=lGetParam+' = '+lDefault;
             end;
         if bIsDispatch then
           begin
@@ -831,7 +1000,7 @@ begin
             Modifier:='var';
           if bPropHasParam then
             begin
-            sPropParam2:='('+sPropParam+')';
+            sPropParam2:='('+lGetParam+')';
             sPropParam3:=sPropParam+'; '+Modifier+' par'+sMethodName;
             sPropParam:='['+sPropParam+']';
             end;

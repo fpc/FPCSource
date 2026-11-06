@@ -1,5 +1,6 @@
-{ Builds a type library with properties that have two index parameters,
-  imports it with TTypeLibImporter and checks the generated declarations.
+{ Builds a type library with properties that have two index parameters and
+  parameters with default values, imports it with TTypeLibImporter and checks
+  the generated declarations.
   An optional first argument is the file name to save the generated unit to.
   Exit code 0 means all checks passed. }
 program ttypelibidxprop;
@@ -17,6 +18,8 @@ const
 var
   Failures: Integer = 0;
   BSTRDesc: TYPEDESC;
+  Defaults: array[0..2] of PARAMDESCEX;
+  DefaultValues: array[0..2] of OleVariant;
 
 // Set aElem to a parameter of type aVT with flags aFlags; VT_PTR points to a BSTR.
 procedure SetParam(var aElem: ELEMDESC; aVT: TVarType; aFlags: USHORT);
@@ -27,6 +30,19 @@ begin
     aElem.tdesc.lptdesc:=@BSTRDesc;
   aElem.tdesc.vt:=aVT;
   aElem.paramdesc.wParamFlags:=aFlags;
+end;
+
+
+// Give aElem default value aValue, stored in slot aSlot.
+procedure SetDefault(var aElem: ELEMDESC; aSlot: Integer; const aValue: OleVariant);
+
+begin
+  DefaultValues[aSlot]:=aValue;
+  FillChar(Defaults[aSlot],SizeOf(PARAMDESCEX),0);
+  Defaults[aSlot].cBytes:=SizeOf(PARAMDESCEX);
+  Defaults[aSlot].varDefaultValue:=TVariantArg(DefaultValues[aSlot]);
+  aElem.paramdesc.pparamdescex:=@Defaults[aSlot];
+  aElem.paramdesc.wParamFlags:=aElem.paramdesc.wParamFlags or PARAMFLAG_FOPT or PARAMFLAG_FHASDEFAULT;
 end;
 
 
@@ -70,6 +86,7 @@ var
   lRef: HREFTYPE;
   lIdx: array[0..2] of ELEMDESC;
   lOne: array[0..0] of ELEMDESC;
+  lFour: array[0..3] of ELEMDESC;
 
 begin
   FillChar(BSTRDesc,SizeOf(BSTRDesc),0);
@@ -96,6 +113,27 @@ begin
   AddFunc(lInfo,2,1,INVOKE_PROPERTYGET,FUNC_PUREVIRTUAL,VT_HRESULT,lOne,['Caption','Value']);
   SetParam(lOne[0],VT_BSTR,PARAMFLAG_FIN);
   AddFunc(lInfo,3,1,INVOKE_PROPERTYPUT,FUNC_PUREVIRTUAL,VT_HRESULT,lOne,['Caption']);
+  SetParam(lFour[0],VT_BSTR,PARAMFLAG_FIN);
+  SetParam(lFour[1],VT_I4,PARAMFLAG_FIN);
+  SetDefault(lFour[1],0,7);
+  SetParam(lFour[2],VT_BSTR,PARAMFLAG_FIN);
+  SetDefault(lFour[2],1,WideString('a''b'));
+  SetParam(lFour[3],VT_PTR,PARAMFLAG_FOUT or PARAMFLAG_FRETVAL);
+  AddFunc(lInfo,4,2,INVOKE_FUNC,FUNC_PUREVIRTUAL,VT_HRESULT,lFour,['Format','Src','Count','Sep','Value']);
+  SetParam(lIdx[0],VT_I4,PARAMFLAG_FIN);
+  SetDefault(lIdx[0],0,1);
+  SetParam(lIdx[1],VT_I4,PARAMFLAG_FIN);
+  AddFunc(lInfo,5,3,INVOKE_FUNC,FUNC_PUREVIRTUAL,VT_HRESULT,lIdx[0..1],['Mix','First','Second']);
+  SetParam(lIdx[0],VT_VARIANT,PARAMFLAG_FIN or PARAMFLAG_FOPT);
+  AddFunc(lInfo,6,4,INVOKE_FUNC,FUNC_PUREVIRTUAL,VT_HRESULT,lIdx[0..0],['Opt','V']);
+  SetParam(lIdx[0],VT_BOOL,PARAMFLAG_FIN);
+  SetDefault(lIdx[0],2,True);
+  AddFunc(lInfo,7,5,INVOKE_FUNC,FUNC_PUREVIRTUAL,VT_HRESULT,lIdx[0..0],['Flags','B']);
+  SetParam(lIdx[0],VT_I4,PARAMFLAG_FIN);
+  SetParam(lIdx[1],VT_I4,PARAMFLAG_FIN);
+  SetDefault(lIdx[1],0,2);
+  SetParam(lIdx[2],VT_PTR,PARAMFLAG_FOUT or PARAMFLAG_FRETVAL);
+  AddFunc(lInfo,8,6,INVOKE_PROPERTYGET,FUNC_PUREVIRTUAL,VT_HRESULT,lIdx,['Scaled','Row','Factor','Value']);
   OleCheck(lInfo.LayOut);
 
   OleCheck(lLib.CreateTypeInfo('IIdxDisp',TKIND_DISPATCH,lInfo));
@@ -156,6 +194,13 @@ begin
   CheckContains('Dual property','  property Item[Row:Integer; Col:Integer]: WideString read Get_Item write Set_Item; default;',lSource);
   CheckContains('Dual non-indexed setter','  procedure Set_Caption(const ',lSource);
   CheckContains('Dual non-indexed property','  property Caption: WideString read Get_Caption write Set_Caption;',lSource);
+  CheckContains('Integer and string defaults','  function Format(Src:WideString;Count:Integer = 7;Sep:WideString = ''a''''b''): WideString;safecall;',lSource);
+  CheckContains('No default before a required parameter','  procedure Mix(First:Integer;Second:Integer);safecall;',lSource);
+  CheckContains('No default for an optional Variant','  procedure Opt(V:OleVariant);safecall;',lSource);
+  CheckContains('Boolean default','  procedure Flags(B:WordBool = True);safecall;',lSource);
+  CheckContains('Getter index default','  function Get_Scaled(Row:Integer; Factor:Integer = 2) : WideString; Safecall;',lSource);
+  CheckContains('Property without default','  property Scaled[Row:Integer; Factor:Integer]: WideString read Get_Scaled;',lSource);
+  CheckContains('No defaults in a dispinterface','  function Format(Src:WideString;Count:Integer;Sep:WideString): WideString;dispid 2;',lSource);
   CheckContains('Dispinterface property','  property Cell[Row:Integer; Col:Integer]: WideString dispid 0; default;',lSource);
   CoUninitialize;
   if Failures=0 then
