@@ -706,7 +706,7 @@ begin
     Exit(TPasType(aDecl.Parent));
   if aModule = nil then
     Exit;
-  lParts := StripGenericParams(aDecl.Name).Split('.');
+  lParts := StripGenericParams(aDecl.Name).Split(['.']);
   if Length(lParts) < 2 then
     Exit;
   if aModule.InterfaceSection <> nil then
