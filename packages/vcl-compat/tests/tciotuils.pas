@@ -109,6 +109,10 @@ type
 
 implementation
 
+{$IFDEF WINDOWS}
+uses
+  WinDirs;
+{$ENDIF}
 
 procedure TTestTPath.TestIsValidPathChar;
 
@@ -310,7 +314,7 @@ begin
   TestIt(False,'/a/b/c.txt');
   TestIt(False,'a/b/c.txt');
   TestIt(True,'//a/b/c.txt');
-  TestIt(True,'//?/a/b/c.txt');
+  TestIt(False,'//?/a/b/c.txt');
   TestIt(True,'//?/UNC/a/b/c.txt');
 
 
@@ -332,10 +336,10 @@ procedure TTestTPath.TestIsUNCRooted;
   end;
 
 begin
-  TestIt(False,'//a/b/c.txt');
+  TestIt(True,'//a/b/c.txt');
   TestIt(False,'/a/b/c.txt');
-  TestIt(False,'//a/');
-  TestIt(True,'//?/a/b/c.txt');
+  TestIt(True,'//a/');
+  TestIt(False,'//?/a/b/c.txt');
   TestIt(True,'//?/UNC/a/b/c.txt');
 end;
 
@@ -566,7 +570,11 @@ procedure TTestTPath.TestGetFullPath;
   end;
 
 begin
+  {$IFDEF WINDOWS}
+  TestIt(ExtractFileDrive(GetCurrentDir)+'/a/b.txt','/a/b.txt');
+  {$ELSE}
   TestIt('/a/b.txt','/a/b.txt');
+  {$ENDIF}
   TestIt(CWD+'b.txt','b.txt');
   TestIt(CWD+'a/b.txt','a/b.txt');
 
@@ -663,7 +671,7 @@ begin
   TestIt('/','/a/b/c.txt');
   {$IFDEF WINDOWS}
   TestIt('a:/','a:/b/c.txt');
-  TestIt('//a/','//a/b/c.txt');
+  TestIt('//a/b','//a/b/c.txt');
   {$ENDIF}
 end;
 
@@ -770,7 +778,7 @@ begin
   AssertEquals(UnixSpecialDir('Documents'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_PERSONAL),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_PERSONAL,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -788,7 +796,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_DOCUMENTS),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_DOCUMENTS,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -825,7 +833,7 @@ begin
   AssertEquals(GetUserDir+'.cache',FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_LOCAL_APPDATA),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_LOCAL_APPDATA,False),FN);
 {$ELSE}
   AssertEquals(GetTempDir,FN);
 {$ENDIF}
@@ -843,7 +851,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_APPDATA),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_APPDATA,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -861,7 +869,7 @@ begin
   AssertEquals(UnixSpecialDir('Pictures'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYPICTURES),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYPICTURES,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -879,7 +887,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_PICTURES),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_PICTURES,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -897,7 +905,7 @@ begin
   AssertEquals(UnixSpecialDir('Pictures'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYPICTURES),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYPICTURES,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -914,7 +922,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_PICTURES),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_PICTURES,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -933,7 +941,7 @@ begin
   AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYMUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -951,7 +959,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_MUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -968,7 +976,7 @@ begin
   AssertEquals(UnixSpecialDir('Videos'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYVIDEO),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYVIDEO,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -987,7 +995,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_VIDEO),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_VIDEO,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1005,7 +1013,7 @@ begin
   AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYMUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1022,7 +1030,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_MUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1040,7 +1048,7 @@ begin
   AssertEquals(UnixSpecialDir('Download'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(FOLDERID_Downloads,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1058,7 +1066,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_APPDATA),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_APPDATA,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1075,7 +1083,7 @@ begin
   AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_MYMUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1092,7 +1100,7 @@ begin
   AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_COMMON_MUSIC,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1109,7 +1117,7 @@ begin
   AssertEquals(UnixSpecialDir('Templates'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
-  AssertEquals(GetSpecialDir(CSIDL_PERSONAL),FN);
+  AssertEquals(GetWindowsSpecialDir(CSIDL_PERSONAL,False),FN);
 {$ELSE}
   AssertEquals(GetUserDir,FN);
 {$ENDIF}
@@ -1119,8 +1127,8 @@ end;
 
 procedure TTestTPath.TestGetSetAttributes;
 
-Const
 {$IFDEF UNIX}
+Const
   FAS = [TFileAttribute.faOwnerRead, TFileAttribute.faOwnerWrite, TFileAttribute.faOwnerExecute,
          TFileAttribute.faGroupRead, TFileAttribute.faGroupWrite, TFileAttribute.faGroupExecute,
          TFileAttribute.faOthersRead, TFileAttribute.faOthersWrite, TFileAttribute.faOthersExecute,
@@ -1187,8 +1195,8 @@ begin
   TestIt(False,'abc.def');
   TestIt(False,'ad/abc.def');
   TestIt(False,'../abc.def');
-  TestIt(False,'/abc.def');
-  TestIt(False,'/a/abc.def');
+  TestIt(True,'/abc.def');
+  TestIt(True,'/a/abc.def');
 {$IFDEF WINDOWS}
   TestIt(True,'a:/abc.def');
   TestIt(True,'//share/o/abc.def');

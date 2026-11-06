@@ -622,17 +622,25 @@ begin
 {$IFDEF MSWINDOWS}
   if aPath.ToUpper.StartsWith(PathDelim + PathDelim + '?' + PathDelim + 'UNC' + PathDelim) then
     Result:=TPathPrefixType.pptExtendedUNC
-  else if aPath.StartsWith(PathDelim + PathDelim + '?' + PathDelim) then
+  else if aPath.StartsWith(PathDelim + PathDelim + '?' + PathDelim)
+          or aPath.StartsWith(PathDelim + PathDelim + '.' + PathDelim) then
     Result:=TPathPrefixType.pptExtended
 {$ENDIF}
 end;
 
 class function TPath.IsDriveRooted(const aPath: string): Boolean;
+
+{$IfDef MSWINDOWS}
+var
+  lStart: SizeInt;
+{$EndIf}
+
 begin
   {$IfDef MSWINDOWS}
-    Result:=(Length(aPath) > 1) and
-              (aPath[1] in ['a'..'z', 'A'..'Z']) and
-              (aPath[2] = ':');
+    lStart:=SkipExtendedPrefix(aPath);
+    Result:=(Length(aPath) > lStart) and
+              (aPath[lStart] in ['a'..'z', 'A'..'Z']) and
+              (aPath[lStart+1] = ':');
   {$Else}
     Result:=False;
   {$EndIf}
@@ -640,12 +648,7 @@ end;
 
 class function TPath.IsExtendedPrefixed(const aPath: string): Boolean;
 begin
-{$IfDef MSWINDOWS}
-  Result:=aPath.StartsWith(PathSeparator + PathSeparator + '?' + PathDelim);
-{$Else}
-  Result:=False;
-{$EndIf}
-
+  Result:=GetExtendedPrefix(aPath)<>TPathPrefixType.pptNoPrefix;
 end;
 
 class function TPath.IsRelativePath(const aPath: string): Boolean;
@@ -668,11 +671,11 @@ class function TPath.IsUNCRooted(const aPath: string): Boolean;
 begin
   {$IfDef MSWINDOWS}
   Result:=False;
-  if (Length(aPath)>=3) and (Copy(aPath,1,2)='//') then
-    If (aPath[3]='?') then
+  if (Length(aPath)>=3) and (aPath[1]=PathDelim) and (aPath[2]=PathDelim) then
+    If IsExtendedPrefixed(aPath) then
       Result:=GetExtendedPrefix(aPath) = TPathPrefixType.pptExtendedUNC
     else
-      Result:=IsValidPathChar(aPath[3]);
+      Result:=(aPath[3]<>PathDelim) and IsValidPathChar(aPath[3]);
   {$Else}
     Result:=False;
   {$EndIf}
@@ -1084,45 +1087,42 @@ class function TPath.IntGetPathRoot(const aPath: string): string;
 
 var
   lPath: string;
-  NeedSeparator: Boolean;
-  aPos, ResLen, len: Integer;
-  PPT: TPathPrefixType;
+  lStart, lServerEnd, lShareEnd, lResLen, lLen: SizeInt;
+  lPrefix: TPathPrefixType;
 
 begin
   lPath:=SetDirSeparators(aPath);
-  len:=Length(lPath);
-  NeedSeparator:=False;
-  aPos:=SkipExtendedPrefix(lPath, PPT);
-  ResLen:=0;
-  if IsDriveRooted(lPath) then  // Drive letter
+  lLen:=Length(lPath);
+  lStart:=SkipExtendedPrefix(lPath, lPrefix);
+  if IsDriveRooted(lPath) then
     begin
-    ResLen:=aPos+1;
-    NeedSeparator:=(Len > 2) and (lPath[aPos]=PathDelim);
-    if NeedSeparator and (PPT in [TPathPrefixType.pptExtended, TPathPrefixType.pptExtendedUNC]) then
-      NeedSeparator:=False;
+    // Prefix and drive, and the separator after the drive if there is one.
+    lResLen:=lStart+1;
+    if (lResLen<lLen) and (lPath[lResLen+1]=PathDelim) then
+      Inc(lResLen);
     end
-  else if IsUNCRooted(aPath) then // UNC aPath
+  else if IsUNCRooted(aPath) then
     begin
-      aPos:=Pos(PathDelim,lPath,3);
-      if aPos > 0 then
-        begin
-        ResLen:=apos;
-        aPos:=Pos(PathDelim,aPath,aPos+1);
-        if aPos>0 then
-          ResLen:=aPos-1
-        end
-      else
-        ResLen:=Len;
+    // Prefix, server and share; a separator after the server only when the share is empty.
+    if lPrefix=TPathPrefixType.pptNoPrefix then
+      lStart:=3;
+    lResLen:=lLen;
+    lServerEnd:=Pos(PathDelim,lPath,lStart);
+    if lServerEnd>0 then
+      begin
+      lShareEnd:=Pos(PathDelim,lPath,lServerEnd+1);
+      if lShareEnd>0 then
+        lResLen:=lShareEnd-1;
+      end;
     end
-  else if aPos<=Len then
+  else
     begin
-    ResLen:= Ord(lPath[aPos]=PathDelim);
-    if aPos<Len then
-      ResLen:=ResLen+Ord(lPath[aPos+1]=PathDelim);
+    // At most two leading separators.
+    lResLen:=0;
+    while (lResLen<2) and (lResLen<lLen) and (lPath[lResLen+1]=PathDelim) do
+      Inc(lResLen);
     end;
-  Result:=Copy(lPath,1,ResLen);
-  if NeedSeparator then
-    Result:=Result+PathDelim;
+  Result:=Copy(lPath,1,lResLen);
 end;
 {$ELSEIF DEFINED(HASAMIGA)}
 class function TPath.IntGetPathRoot(const aPath: string): string;
@@ -1448,7 +1448,7 @@ class function TPath.GetDownloadsPath: string;
 begin
   Result:='';
   {$IfDef MSWINDOWS}
-    Result:=GetWindowsSpecialDir(CSIDL_LOCAL_APPDATA, False);
+    Result:=GetWindowsSpecialDir(FOLDERID_Downloads, False);
   {$ELSE}
     {$IFDEF UNIX}
       Result:=GetSpecialDir(TSpecialDir.sdDownloads);
@@ -1541,6 +1541,9 @@ end;
 class function TPath.IsPathRooted(const aPath: string): Boolean;
 begin
   Result:=aPath.StartsWith(PathDelim) or TPath.IsDriveRooted(aPath);
+  {$IfDef MSWINDOWS}
+  Result:=Result or aPath.StartsWith('/');
+  {$EndIf}
 end;
 
 { TFile }
