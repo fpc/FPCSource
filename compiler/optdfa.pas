@@ -780,6 +780,18 @@ unit optdfa;
                     SymbolCandidateForWarningOrHint(tabstractnormalvarsym(tloadnode(hpt).symtableentry)) and
                     PSearchNodeInfo(arg)^.nodetosearch.isequal(hpt) then
                     begin
+                      { a var parameter which is only written, e.g. the destination of an assignment passed
+                        as hidden function result parameter, is not a use of the variable, but the other
+                        parameters might use it }
+                      if (tcallparanode(n).parasym.varspez=vs_var) and
+                        (nf_write in hpt.flags) and not(nf_modify in hpt.flags) then
+                        begin
+                          if foreachnodestatic(pm_postprocess,tcallparanode(n).right,@optdfa.SearchNode,arg) then
+                            result:=fen_norecurse_true
+                          else
+                            result:=fen_norecurse_false;
+                          exit;
+                        end;
                       { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
                       if tcallparanode(n).parasym.varspez=vs_var then
                         UninitializedVariableMessage(hpt.fileinfo,false,
