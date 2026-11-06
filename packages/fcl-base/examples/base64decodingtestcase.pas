@@ -213,7 +213,7 @@ begin
   AssertEquals('Correct size calculated by Size getter', Size, expectedSize);
 end;
 
-procedure TBase64DecodingStreamTestCase.TestDecode(mode: TBase64DecodingMode; s, expected: );
+procedure TBase64DecodingStreamTestCase.TestDecode(mode: TBase64DecodingMode; s, expected: AnsiString);
 var
   Buf: array[0..63] of AnsiChar;
   si: Integer;
