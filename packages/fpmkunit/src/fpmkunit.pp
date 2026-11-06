@@ -1045,6 +1045,8 @@ Type
     Function  GetPackageUnitInstallDir(ACPU:TCPU; AOS : TOS; const aSubTarget : String):String;
     Procedure SetPackageUnitInstallDir(AValue: string);
     Function  GetBinOutputDir(const aTarget : TCompileTarget) : String;
+    // Output directory of example units and programs: the examples subdirectory of the units output directory.
+    Function  GetExamplesOutputDir(const aTarget : TCompileTarget) : String;
     Procedure GetCleanFiles(List : TStrings; const aTarget : TCompileTarget); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes; const aTarget : TCompileTarget); virtual;
     procedure GetInstallSourceFiles(List: TStrings; SourceTypes : TSourceTypes; TargetTypes : TTargetTypes); virtual;
@@ -1171,6 +1173,7 @@ Type
     FFPUnitSourcePath: String;
     FIgnoreInvalidOptions: Boolean;
     FInstallExamples: Boolean;
+    FBuildExamples: Boolean;
     FMkDir: String;
     FMove: String;
     FNamespaces: Boolean;
@@ -1324,6 +1327,8 @@ Type
     Property BuildMode: TBuildMode read FBuildMode write FBuildMode;
     Property SingleFPDocFile : Boolean Read FSingleFPDocFile Write FSingleFPDocFile;
     Property Namespaces : Boolean Read FNamespaces Write FNameSpaces;
+    // Compile example units and programs, into the examples directory of the units output directory.
+    Property BuildExamples: Boolean read FBuildExamples write FBuildExamples;
     // Installation options
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
     Property SkipCrossPrograms: boolean read FSkipCrossPrograms write FSkipCrossPrograms;
@@ -2072,6 +2077,7 @@ ResourceString
   SHelpDebug          = 'Add debug information when working.';
   SHelpInteractive    = 'Allow to interact with child processes';
   SHelpInstExamples   = 'Install the example-sources.';
+  SHelpBuildExamples  = 'Compile the example units and programs.';
   SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpSkipAllProgs   = 'Skip all programs even if native-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
@@ -2123,6 +2129,7 @@ Const
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
   KeyInstallExamples    = 'InstallExamples';
+  KeyBuildExamples      = 'BuildExamples';
   KeySkipCrossPrograms  = 'SkipCrossPrograms';
   KeySkipAllPrograms    = 'SkipAllPrograms';
   // Keys for unit config
@@ -4477,6 +4484,12 @@ begin
   Result:='bin'+PathDelim+MakeTargetString(aTarget);
 end;
 
+
+function TPackage.GetExamplesOutputDir(const aTarget : TCompileTarget): String;
+begin
+  Result:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(aTarget))+'examples';
+end;
+
 function TPackage.GetBinOutputDir(ACPU: TCPU; AOS: TOS; const aSubTarget: String
   ): String;
 
@@ -4505,8 +4518,9 @@ end;
 
 procedure TPackage.GetCleanFiles(List: TStrings; const aTarget: TCompileTarget);
 Var
-  OB,OU : String;
+  OB,OU,OE : String;
   I : Integer;
+  T : TTarget;
 begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(aTarget));
   if Not DirectoryExists(OB) then
@@ -4514,11 +4528,20 @@ begin
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(aTarget));
   if not DirectoryExists(OU) then
     OU:='';
+  OE:=IncludeTrailingPathDelimiter(GetExamplesOutputDir(aTarget));
+  if not DirectoryExists(OE) then
+    OE:='';
   List.Add(GetUnitConfigOutputFilename(aTarget));
   List.Add(ManifestFile);
   AddConditionalStrings(Self, List,CleanFiles,aTarget);
   For I:=0 to FTargets.Count-1 do
-    FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, aTarget);
+    begin
+    T:=FTargets.TargetItems[I];
+    if T.TargetType in [ttExampleUnit,ttExampleProgram] then
+      T.GetCleanFiles(List, OE, OE, aTarget)
+    else
+      T.GetCleanFiles(List, OU, OB, aTarget);
+    end;
 end;
 
 
@@ -5934,6 +5957,8 @@ begin
         Values[KeyUseEnv]:='Y';
       if FInstallExamples then
           Values[KeyInstallExamples]:='Y';
+      if FBuildExamples then
+        Values[KeyBuildExamples]:='Y';
       if FSkipCrossPrograms then
         Values[KeySkipCrossPrograms]:='Y';
       if FSkipAllPrograms then
@@ -5996,6 +6021,7 @@ begin
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
+      FBuildExamples:=(Upcase(Values[KeyBuildExamples])='Y');
       FSkipCrossPrograms:=(Upcase(Values[KeySkipCrossPrograms])='Y');
       FSkipAllPrograms:=(Upcase(Values[KeySkipAllPrograms])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
@@ -6468,6 +6494,8 @@ begin
       DefaultsFileName:=OptionArg(I)
     else if CheckOption(I,'ie','installexamples') then
       Defaults.InstallExamples:=true
+    else if CheckOption(I,'be','buildexamples') then
+      Defaults.BuildExamples:=true
     else if CheckOption(I,'sap','skipallprograms') then
       Defaults.SkipAllPrograms:=true
     else if CheckOption(I,'scp','skipcrossprograms') then
@@ -6556,6 +6584,7 @@ begin
   LogOption('e', 'useenv', sHelpUseEnvironment);
 {$endif}
   LogOption('ie','installexamples',SHelpInstExamples);
+  LogOption('be','buildexamples',SHelpBuildExamples);
   LogOption('bu','buildunit',SHelpUseBuildUnit);
   LogOption('sap','skipallprograms',SHelpSkipAllProgs);
   LogOption('scp','skipcrossprograms',SHelpSkipCrossProgs);
@@ -8107,9 +8136,18 @@ begin
   else If Defaults.Mode<>cmFPC then
     Args.Add('-M'+ModeToString(Defaults.Mode));
   // Output file paths
-  If ATarget.TargetType in ProgramTargets then
-    Args.Add('-FE'+AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CompileTarget)));
-  Args.Add('-FU'+AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CompileTarget)));
+  If ATarget.TargetType in [ttExampleUnit,ttExampleProgram] then
+    begin
+    Args.Add('-FE'+AddPathPrefix(APackage,APackage.GetExamplesOutputDir(Defaults.CompileTarget)));
+    Args.Add('-FU'+AddPathPrefix(APackage,APackage.GetExamplesOutputDir(Defaults.CompileTarget)));
+    Args.Add('-Fu'+AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CompileTarget)));
+    end
+  else
+    begin
+    If ATarget.TargetType in ProgramTargets then
+      Args.Add('-FE'+AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CompileTarget)));
+    Args.Add('-FU'+AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CompileTarget)));
+    end;
   // Object Path
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
@@ -8288,6 +8326,22 @@ begin
           break;
         end;
     end;
+
+  //and an examples directory when examples are compiled
+  if Defaults.BuildExamples then
+    For i := 0 to Pred(APackage.Targets.Count) do
+      begin
+        if APackage.Targets.TargetItems[i].TargetType in [ttExampleUnit,ttExampleProgram] then
+          begin
+            D:=AddPathPrefix(APackage,APackage.GetExamplesOutputDir(Defaults.CompileTarget));
+            If not SysDirectoryExists(D) then
+              begin
+                Log(vlInfo,SInfoCreatingOutputDir,[D]);
+                CmdCreateDir(D);
+              end;
+            break;
+          end;
+      end;
 end;
 
 
@@ -8369,16 +8423,16 @@ Var
 begin
   Result:=False;
 
+  // Examples are only compiled on request
+  if (ATarget.TargetType in [ttExampleUnit, ttExampleProgram]) and not Defaults.BuildExamples then
+    Exit;
+
   // Forced recompile?
   if FForceCompile then
     begin
     Result:=true;
     CompileReason:=SDbgForcedCompile;
     end;
-
-  // For now examples are not compiled at all
-  if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
-    Exit;
 
   // Files which should not be compiled on this target can not trigger a compile.
   if not TargetOK(ATarget, Defaults.CompileTarget) then
@@ -8387,7 +8441,9 @@ begin
   // Check output file
   if not result then
     begin
-      if ATarget.TargetType in ProgramTargets then
+      if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
+        OD:=APackage.GetExamplesOutputDir(Defaults.CompileTarget)
+      else if ATarget.TargetType in ProgramTargets then
         OD:=APackage.GetBinOutputDir(Defaults.CompileTarget)
       else
         OD:=APackage.GetUnitsOutputDir(Defaults.CompileTarget);
@@ -8480,7 +8536,7 @@ begin
     ExecuteCommands(ATarget.Commands,caBeforeCompile);
     If Assigned(ATarget.BeforeCompile) then
       ATarget.BeforeCompile(ATarget);
-    if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) then
+    if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttSharedLibrary,ttExampleUnit,ttExampleProgram]) then
       begin
         begin
         FN:=ExtractFileName(ATarget.TargetSourceFileName);
@@ -8986,6 +9042,14 @@ begin
             ProcessCompileTarget;
           end;
       end;
+
+    if Defaults.BuildExamples then
+      For I:=0 to APackage.Targets.Count-1 do
+        begin
+          T:=APackage.Targets.TargetItems[i];
+          if T.TargetType in [ttExampleUnit,ttExampleProgram] then
+            ProcessCompileTarget;
+        end;
 
     if RegenerateUnitconfigFile then
       begin
@@ -9582,6 +9646,8 @@ begin
         DirectoryList.Clear;
         if DirectoryExists(APackage.GetBinOutputDir(aTarget)) then
           DirectoryList.Add(APackage.GetBinOutputDir(aTarget));
+        if DirectoryExists(APackage.GetExamplesOutputDir(aTarget)) then
+          DirectoryList.Add(APackage.GetExamplesOutputDir(aTarget));
         if DirectoryExists(APackage.GetUnitsOutputDir(aTarget)) then
           DirectoryList.Add(APackage.GetUnitsOutputDir(aTarget));
         CmdRemoveDirs(DirectoryList);
