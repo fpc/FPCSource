@@ -236,10 +236,10 @@ type
     function GetAddr : socketsunit.psockaddr;
     function GetAddrSize : cint;
     procedure GetAddrAndSize(out aAddr: socketsunit.pSockAddr;out aSize: cint);
-  case SocketType : TFPSocketType of
-    stIPv4: (In4Addr: sockaddr_in);
-    stIPv6: (In6Addr: sockaddr_in6);
-    stUnixSocket: (UnixAddr: sockaddr_un);
+  case Integer of
+    0: (In4Addr: sockaddr_in);
+    1: (In6Addr: sockaddr_in6);
+    2: (UnixAddr: sockaddr_un);
   end;
 
 function SocketInvalid(ASocket: TSocket): Boolean; inline;
@@ -289,18 +289,17 @@ end;
 function CreateAddr(AAddress:TNetworkAddress;APort:Word;DualStack:Boolean)
   :TAddressUnion;
 begin
+  Result := Default(TAddressUnion);
   if (AAddress.AddressType = atIN4) and DualStack then
     AAddress := IN4MappedIN6Address(AAddress.Address);
   if AAddress.AddressType = atIN4 then
   begin
-    Result.SocketType:=stIPv4;
     Result.In4Addr.sin_family := AF_INET;
     Result.In4Addr.sin_port := HToNS(APort);
     Result.In4Addr.sin_addr.s_addr := LongWord(StrToNetAddr(AAddress.Address));
   end
   else if AAddress.AddressType = atIN6 then
   begin
-    Result.SocketType:=stIPv6;
     Result.In6Addr.sin6_family := AF_INET6;
     Result.In6Addr.sin6_port := HToNS(APort);
     Result.In6Addr.sin6_addr := StrToHostAddr6(AAddress.Address);
@@ -309,11 +308,9 @@ begin
   end
   else if AAddress.AddressType = atUnixSock then
   begin
-    Result.SocketType:=stUnixSocket;
     if Length(AAddress.Address) > SizeOf(Result.UnixAddr.sun_path)-1 then
       raise EUnsupportedAddress.Create('Unix address should be at most 108 characters');
     Result.UnixAddr.sun_family := AF_UNIX;
-    FillChar(Result.UnixAddr, SizeOf(Result.UnixAddr), #00);
     Move(AAddress.Address[1], Result.UnixAddr.sun_path, Length(AAddress.Address));
   end
   else
@@ -337,7 +334,7 @@ begin
       AAddress := ExtractIPv4Address(AAddress);
     APort := NToHs(Addr.In6Addr.sin6_port);
   end
-  else if Addr.In6Addr.sin6_family = AF_INET6 then
+  else if Addr.UnixAddr.sun_family = AF_UNIX then
   begin
     AAddress.AddressType := atUnixSock;
     SetLength(AAddress.Address, SizeOf(Addr.UnixAddr.sun_path));
@@ -346,7 +343,10 @@ begin
       if Addr.UnixAddr.sun_path[i+low(Addr.UnixAddr.sun_path)] = #00 then
         break
       else
+        begin
         AAddress.Address[i+1] := Addr.UnixAddr.sun_path[i+low(Addr.UnixAddr.sun_path)];
+        Inc(i);
+        end;
     SetLength(AAddress.Address, i);
     APort := 0;
   end
@@ -572,6 +572,7 @@ var
   addr: TAddressUnion;
   addrLen: TSocklen;
 begin
+  addrLen := SizeOf(TAddressUnion);
   Result.Socket.FD := fpaccept(ASocket.FD, socketsunit.psockaddr(@addr), @addrLen);
   if SocketInvalid(Result.Socket.FD) then
     raise ESocketCodeError.Create(socketerror, 'accept');
@@ -702,9 +703,12 @@ function SendTo(const ASocket: TFPSocket; const ReceiverAddr: TNetworkAddress;
   ): SizeInt;
 var
   addr: TAddressUnion;
+  addrPtr: socketsunit.psockaddr;
+  addrLen: cint;
 begin
   addr := CreateAddr(ReceiverAddr, ReceiverPort, ASocket.SocketType = stIPDualStack);
-  Result := fpsendto(ASocket.FD, ABuffer, ASize, AFlags, socketsunit.psockaddr(@addr), SizeOf(addr));
+  addr.GetAddrAndSize(addrPtr, addrLen);
+  Result := fpsendto(ASocket.FD, ABuffer, ASize, AFlags, addrPtr, addrLen);
   if Result < 0 then
     if WouldBlock(socketerror) then
       Result := 0
@@ -1265,29 +1269,21 @@ end;
 
 function TAddressUnion.GetAddr: socketsunit.psockaddr;
 begin
-  case SocketType of
-    stIPv4,
-    stIPDualStack:
-      Result:=psockaddr(@self.In4Addr);
-    stIPv6 :
-      Result:=psockaddr(@self.In6Addr);
-    stUnixSocket :
-      result:=psockaddr(@self.UnixAddr);
-  end;
-
+  Result:=socketsunit.psockaddr(@self);
 end;
 
 function TAddressUnion.GetAddrSize: cint;
 
 begin
-  case SocketType of
-  stIPv4,
-  stIPDualStack:
-    Result:=sizeof(sockaddr_in);
-  stIPv6 :
-    Result:=sizeof(sockaddr_in6);
-  stUnixSocket :
-    Result:=sizeof(sockaddr_un);
+  case In4Addr.sin_family of
+    AF_INET:
+      Result:=SizeOf(sockaddr_in);
+    AF_INET6:
+      Result:=SizeOf(sockaddr_in6);
+    AF_UNIX:
+      Result:=SizeOf(sockaddr_un);
+  else
+    Result:=SizeOf(TAddressUnion);
   end;
 end;
 

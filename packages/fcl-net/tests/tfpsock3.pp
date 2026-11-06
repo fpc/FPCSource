@@ -34,7 +34,17 @@ const
   HelloStr = 'Hello Server';
   ReplyStr = 'Hello Client!';
 
-var ClientError, ServerError: String;
+var
+  ClientError, ServerError: String;
+  // Set by the server when the client may connect.
+  ServerReady: PRTLEvent;
+
+// Listen on ASocket and let the client connect.
+procedure ServerListen(const ASocket: TFPSocket; Backlog: Integer);
+begin
+  Listen(ASocket, Backlog);
+  RTLEventSetEvent(ServerReady);
+end;
 
 procedure IPv4TestServer;
 var
@@ -47,7 +57,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         Received := ReceiveStr(Conn.Socket);
@@ -99,7 +109,7 @@ begin
     sock := TCPSocket(stIPv6);
     try
       Bind(sock, '::0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         Received := ReceiveStr(Conn.Socket);
@@ -150,7 +160,7 @@ begin
     sock := TCPSocket(stIPDualStack);
     try
       Bind(sock, '::0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         Received := ReceiveStr(Conn.Socket);
@@ -180,7 +190,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       CloseSocket(Conn.Socket);
     finally
@@ -257,7 +267,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         Received := specialize ReceiveArray<Integer>(Conn.Socket);
@@ -329,7 +339,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         Received := specialize Receive<TChunkString>(Conn.Socket);
@@ -387,7 +397,7 @@ begin
     try
       SetNonBlocking(sock, True);
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       while not AcceptNonBlocking(sock).Unpack(Conn) do
         Sleep(100);
       try
@@ -470,6 +480,7 @@ begin
       Listen(sock, 1);
     finally
       CloseSocket(sock);
+      RTLEventSetEvent(ServerReady);
     end;
   except on E: Exception do
     ServerError := 'Exception: ' + E.Message;
@@ -513,7 +524,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         SetNonBlocking(Conn.Socket, True);
@@ -567,7 +578,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         SetNonBlocking(Conn.Socket, True);
@@ -627,7 +638,7 @@ begin
     sock := TCPSocket(stIPv4);
     try
       Bind(sock, '0.0.0.0', 1337);
-      Listen(sock, 0);
+      ServerListen(sock, 0);
       Conn := AcceptConnection(sock);
       try
         try
@@ -696,13 +707,15 @@ var
   Timeout, SrvThread, CliThread: TThread;
 begin
   Write('Testing ', TestName, '...');
+  RTLEventResetEvent(ServerReady);
+  Timeout:=TTimeoutThread.Create(false);
   SrvThread:=TThread.CreateAnonymousThread(ASrv);
   SrvThread.FreeOnTerminate := False;
   SrvThread.Start;
+  RTLEventWaitFor(ServerReady, 5000);
   CliThread:=TThread.CreateAnonymousThread(ACli);
   CliThread.FreeOnTerminate := False;
   CliThread.Start;
-  Timeout:=TTimeoutThread.Create(false);
   SrvThread.WaitFor;
   if not ServerError.IsEmpty then
   begin
@@ -724,6 +737,7 @@ begin
 end;
 
 begin
+  ServerReady := RTLEventCreate;
   RunTest('IPv4Test', @IPv4TestServer, @IPv4TestClient);
   RunTest('IPv6Test', @IPv6TestServer, @IPv6TestClient);
   RunTest('DualStackTest', @DualStackTestServer, @IPv4TestClient);
@@ -738,4 +752,5 @@ begin
   RunTest('FragmentationTest', @TestFragmentationServer, @TestFragmentationClient);
   RunTest('FragmentedArrayTest', @TestFragmentedArrayServer, @TestFragmentedArrayClient);
   RunTest('FragmentedCloseTest', @TestFragmentedCloseServer, @TestFragmentedCloseClient);
+  RTLEventDestroy(ServerReady);
 end.
