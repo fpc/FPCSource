@@ -1649,18 +1649,18 @@ end;
 procedure TThreadPool.WorkQueued;
 
 var
-  DoEventSignal : Boolean;
+  lIdle : Integer;
 
 begin
   // Notify waiting threads.
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','enter');{$ENDIF USE_THREADLOG}
   AtomicIncrement(FRequestCount);
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','Queueing work (Requests: %d)',[FRequestCount]);{$ENDIF USE_THREADLOG}
-  DoEventSignal:=FIdleThreads>=FRequestCount;
-  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','DoEventSignal %s (%d>%d)',[BToS(DoEventSignal),FIdleThreads,FRequestCount]);{$ENDIF USE_THREADLOG}
-  if DoEventSignal then
-    FQueueEvent.SetEvent
-  else
+  lIdle:=FIdleThreads;
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','Idle: %d, Requests: %d',[lIdle,FRequestCount]);{$ENDIF USE_THREADLOG}
+  if lIdle>0 then
+    FQueueEvent.SetEvent;
+  if lIdle<FRequestCount then
     GrowPool;
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','leave');{$ENDIF USE_THREADLOG}
 end;
@@ -2013,7 +2013,7 @@ end;
 function TThreadPool.GetWorkItemForThread(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
 
 Var
-  CheckThreadQueues : Boolean;
+  CheckThreadQueues, lBecameIdle : Boolean;
 
 begin
   Result:=True;
@@ -2021,6 +2021,14 @@ begin
     begin
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutting down, no work -> quit');{$ENDIF USE_THREADLOG}
     Exit(False);
+    end;
+  // The idle mark precedes the queue checks.
+  lBecameIdle:=not aThread.Idle;
+  if lBecameIdle then
+    begin
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','marking thread %d as idle',[PtrInt(aThread.ThreadID)]);{$ENDIF USE_THREADLOG}
+    AtomicIncrement(FIdleThreads);
+    aThread.Idle:=True;
     end;
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','locking queue');{$ENDIF USE_THREADLOG}
   LockQueue;
@@ -2040,12 +2048,11 @@ begin
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','unlocking queue');{$ENDIF USE_THREADLOG}
     UnLockQueue;
   end;
-  // No local work, check global
-  if not aThread.Idle then
+  // Work queued on other threads before this thread was marked idle.
+  if lBecameIdle and GetWorkItemFromQueues(aThread.WorkQueue,Itm) then
     begin
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','marking thread %d as idle',[PtrInt(aThread.ThreadID)]);{$ENDIF USE_THREADLOG}
-    AtomicIncrement(FIdleThreads);
-    aThread.Idle:=True;
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Work in other queues before waiting -> no quit');{$ENDIF USE_THREADLOG}
+    Exit(True);
     end;
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Waiting for queue event (%d ms.)',[aThread.CheckWaitTime]);{$ENDIF USE_THREADLOG}
   CheckThreadQueues:=(FQueueEvent.WaitFor(aThread.CheckWaitTime)<>wrTimeout);

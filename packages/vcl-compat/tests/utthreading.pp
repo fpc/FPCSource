@@ -397,6 +397,7 @@ type
     procedure CheckLocal;
     procedure DoEvent(aSender: TObject; aIndex: Integer);
     procedure DoEvent64(aSender: TObject; aIndex: Int64);
+    procedure DoCountThreadEvent(aSender: TObject; aIndex: Integer);
   Protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -406,6 +407,8 @@ type
     {$IFDEF CPU64}
     Procedure TestForEvent64;
     {$ENDIF}
+    // Runs the first loop of several new pools and checks that each uses more than one thread
+    Procedure TestForNewPoolUsesThreads;
   end;
 
 
@@ -2174,6 +2177,50 @@ begin
   AssertTrue('Correct result',L.Completed);
   CheckLocal;
 end;
+
+threadvar
+  ThreadCountRound: Integer;
+
+var
+  CountRound: Integer;
+  ThreadsUsed: Integer;
+
+procedure TTestParallel.DoCountThreadEvent(aSender: TObject; aIndex: Integer);
+
+begin
+  if ThreadCountRound<>CountRound then
+    begin
+    ThreadCountRound:=CountRound;
+    AtomicIncrement(ThreadsUsed);
+    end;
+  Sleep(10);
+end;
+
+
+procedure TTestParallel.TestForNewPoolUsesThreads;
+
+var
+  lPool: TThreadPool;
+  lRound: Integer;
+  L: TParallel.TLoopResult;
+
+begin
+  for lRound:=1 to 5 do
+    begin
+    CountRound:=lRound;
+    ThreadsUsed:=0;
+    lPool:=TThreadPool.Create;
+    try
+      L:=TParallel.&For(Self,1,40,@DoCountThreadEvent,lPool);
+    finally
+      lPool.Free;
+    end;
+    AssertTrue('Loop completed in round '+IntToStr(lRound),L.Completed);
+    AssertTrue('More than one thread ran the first loop of a new pool in round '+IntToStr(lRound)
+               +', threads used: '+IntToStr(ThreadsUsed),ThreadsUsed>1);
+    end;
+end;
+
 
 {$IFDEF CPU64}
 procedure TTestParallel.TestForEvent64;
