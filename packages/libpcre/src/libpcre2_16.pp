@@ -313,8 +313,10 @@ var
   pcre2_maketables_free : procedure(_para1:PTpcre2_general_context_16; _para2:PTuint8_t);cdecl;
 
 function libpcre28loaded : Boolean;
-procedure Loadlibpcre28; overload;
-procedure Loadlibpcre28(const lib : string); overload;
+// Load the default pcre2 library; when it cannot be loaded, raise an exception if aRaiseError is True.
+procedure Loadlibpcre28(aRaiseError: Boolean = True); overload;
+// Load pcre2 library lib; when it cannot be loaded, raise an exception if aRaiseError is True.
+procedure Loadlibpcre28(const lib : string; aRaiseError: Boolean = True); overload;
 procedure Freelibpcre28;
 
 implementation
@@ -421,13 +423,13 @@ begin
 end;
 
 
-procedure Loadlibpcre28;
+procedure Loadlibpcre28(aRaiseError: Boolean = True);
 begin
-  Loadlibpcre28(pcrelibname);
+  Loadlibpcre28(pcrelibname,aRaiseError);
 end;
 
 
-procedure Loadlibpcre28(const lib : string);
+procedure Loadlibpcre28(const lib : string; aRaiseError: Boolean = True);
 
   Function GetAddr(const aName : string) : Pointer;
 
@@ -442,7 +444,11 @@ begin
   Freelibpcre28;
   hlib:=LoadLibrary(lib);
   if (hlib=NilHandle) then
-    raise Exception.Create(format('Could not load library: %s',[lib]));
+    begin
+    if aRaiseError then
+      raise Exception.Create(format('Could not load library: %s',[lib]));
+    Exit;
+    end;
   pointer(pcre2_config):=GetAddr('pcre2_config_16');
   pointer(pcre2_general_context_copy):=GetAddr('pcre2_general_context_copy_16');
   pointer(pcre2_general_context_create):=GetAddr('pcre2_general_context_create_16');
@@ -523,7 +529,7 @@ end;
 
 
 initialization
-  Loadlibpcre28;
+  Loadlibpcre28(False);
 finalization
   Freelibpcre28;
 
