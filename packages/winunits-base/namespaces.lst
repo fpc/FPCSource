@@ -30,6 +30,7 @@ src/imagehlp.pp=namespaced/WinApi.Imagehlp.pp
 src/typelib.pas=namespaced/WinApi.Typelib.pas
 src/dwmapi.pp=namespaced/WinApi.Dwmapi.pp
 src/bcrypt.pp=namespaced/WinApi.BCrypt.pp
+src/mapi.pp=namespaced/WinApi.Mapi.pp
 src/wmpointer.pp=namespaced/WinApi.WmPointer.pp
 src/winmanutf8lfn.pp=namespaced/WinApi.WinManUtf8Lfn.pp
 src/commctrl.pp=namespaced/WinApi.Commctrl.pp

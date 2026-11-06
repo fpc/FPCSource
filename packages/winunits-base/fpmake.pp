@@ -75,6 +75,7 @@ begin
           AddUnit('urlmon');
           AddUnit('httpapi');
           AddUnit('bcrypt');
+          AddUnit('mapi');
           AddUnit('winmanutf8lfn');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
@@ -117,6 +118,7 @@ begin
     T:=P.Targets.AddImplicitUnit('httpapi.pp');
     T.Dependencies.AddInclude('tmschema.inc');
     T:=P.Targets.AddImplicitUnit('bcrypt.pp');
+    T:=P.Targets.AddImplicitUnit('mapi.pp');
     T:=P.Targets.AddImplicitUnit('winmanutf8lfn.pp');
 
     P.Sources.AddSrcFiles('src/w32default.*', P.Directory);
