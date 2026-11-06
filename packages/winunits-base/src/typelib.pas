@@ -474,7 +474,7 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sResType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3,tmp: AnsiString;
+  sPropParam,sPropParam2,sPropParam3,lIdxName: AnsiString;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:AnsiString;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -484,7 +484,7 @@ var
   bPropHasParam,bIsFunction,bParamByRef,bFoldHResult:boolean;
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
-  Propertycnt,iType:integer;
+  Propertycnt,iType,lIdxCount:integer;
   Modifier: AnsiString;
 
   function findProperty(ireqdispid:integer):integer;
@@ -756,7 +756,14 @@ begin
         begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
-        bPropHasParam:=(((FD^.invkind=INVOKE_PROPERTYGET) and (FD^.cParams>0)) or (FD^.cParams>1))
+        // index parameters: all but the value of a setter or the [out,retval] of a getter
+        lIdxCount:=FD^.cParams;
+        if FD^.invkind<>INVOKE_PROPERTYGET then
+          Dec(lIdxCount)
+        else if (lIdxCount>0) and
+          ((FD^.lprgelemdescParam[lIdxCount-1].paramdesc.wParamFlags and (PARAMFLAG_FRETVAL or PARAMFLAG_FOUT))<>0) then
+          Dec(lIdxCount);
+        bPropHasParam:=(lIdxCount>0)
             and ((FD^.lprgelemdescParam[0].paramdesc.wParamFlags and PARAMFLAG_FIN) = PARAMFLAG_FIN) ;
 
         sResType:=TypeToString(TI,FD^.elemdescFunc.tdesc);
@@ -779,11 +786,14 @@ begin
         sPropParam:='';
         sPropParam2:='';
         if bPropHasParam then
-          begin
-          if not MakeValidId(GetName(1),sPropParam) then
-            AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[GetName(1),iname,sMethodName,sPropParam]);
-          sPropParam:=sPropParam+':'+TypeToString(TI,FD^.lprgelemdescParam[0].tdesc);
-          end;
+          for k:=0 to lIdxCount-1 do
+            begin
+            if not MakeValidId(GetName(k+1),lIdxName) then
+              AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[GetName(k+1),iname,sMethodName,lIdxName]);
+            if k>0 then
+              sPropParam:=sPropParam+'; ';
+            sPropParam:=sPropParam+lIdxName+':'+TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
+            end;
         if bIsDispatch then
           begin
           if (TD.vt<>VT_VOID) and (not bIsAutomatable or (sType='POleVariant')) then
@@ -812,12 +822,17 @@ begin
           begin
           //getters/setters for interface, insert in interface as they come,
           //store in aPropertyDefs to create properties at the end
-          bParamByRef:=(FD^.lprgelemdescParam[0].tdesc.vt=VT_PTR) and                         // by ref
-          not((FD^.lprgelemdescParam[0].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
+          // the value parameter of a setter is the last one
+          bParamByRef:=(FD^.cParams>0) and (FD^.lprgelemdescParam[FD^.cParams-1].tdesc.vt=VT_PTR) and
+            not((FD^.lprgelemdescParam[FD^.cParams-1].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
+          if not bParamByRef then
+            Modifier:='const'
+          else
+            Modifier:='var';
           if bPropHasParam then
             begin
             sPropParam2:='('+sPropParam+')';
-            sPropParam3:=sPropParam+'; const par'+sMethodName;
+            sPropParam3:=sPropParam+'; '+Modifier+' par'+sMethodName;
             sPropParam:='['+sPropParam+']';
             end;
           if FD^.invkind=INVOKE_PROPERTYGET then
@@ -864,15 +879,10 @@ begin
                   sDefault:=sl;
                 end;
               end;
-            tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
-            if not bParamByRef then
-              Modifier:='const'
-            else
-              Modifier:='var';
             if bPropHasParam then
-              s:=s+format(tmp,[sMethodName,Modifier,sPropParam3,sType,sConv])
+              s:=s+format('   procedure Set_%s(%s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
             else
-              s:=s+format(tmp,[sMethodName,Modifier,sVarName,sType,sConv]);
+              s:=s+format('   procedure Set_%s(%s %s:%s); %s;'#13#10,[sMethodName,Modifier,sVarName,sType,sConv]);
             end;
           end;
         end;
