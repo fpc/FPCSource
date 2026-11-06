@@ -72,6 +72,11 @@ type
   TStringArray = array of string;
   TTestPointArray = array of TTestPoint;
 
+  TTestWithArray = record
+    Name: string;
+    Items: TIntegerArray;
+  end;
+
   { TTestJsonContractResolver }
 
   TTestJsonContractResolver = class(TTestCase)
@@ -171,6 +176,8 @@ type
     procedure TestDeserializeRecordArray;
     procedure TestRoundTripIntegerArray;
     procedure TestRoundTripRecordArray;
+    procedure TestSerializeEmptyArrayField;
+    procedure TestRoundTripEmptyArrayField;
   end;
 
   { TTestJsonSerializerSettings }
@@ -936,6 +943,28 @@ begin
   AssertEquals('Should have 2 elements', 2, Length(A2));
   AssertEquals(5, A2[0].X); AssertEquals(6, A2[0].Y);
   AssertEquals(7, A2[1].X); AssertEquals(8, A2[1].Y);
+end;
+
+procedure TTestJsonSerializerArrays.TestSerializeEmptyArrayField;
+var
+  R: TTestWithArray;
+  S: string;
+begin
+  R.Name := 'a';
+  R.Items := nil;
+  S := FSerializer.Serialize<TTestWithArray>(R);
+  AssertEquals('Should serialize empty array field', '{"Name":"a","Items":[]}', S);
+end;
+
+procedure TTestJsonSerializerArrays.TestRoundTripEmptyArrayField;
+var
+  R1, R2: TTestWithArray;
+begin
+  R1.Name := 'a';
+  R1.Items := nil;
+  R2 := FSerializer.Deserialize<TTestWithArray>(FSerializer.Serialize<TTestWithArray>(R1));
+  AssertEquals('Name after round trip', 'a', R2.Name);
+  AssertEquals('Empty array field after round trip', 0, Length(R2.Items));
 end;
 
 { TTestJsonSerializerSettings }

@@ -2026,7 +2026,8 @@ var
   Contract: TJsonContract;
   Conv: TJsonConverter;
 begin
-  if aValue.IsEmpty then
+  // An empty dynamic array is a nil pointer; it is written as [], not null.
+  if aValue.IsEmpty and (aValue.Kind<>tkDynArray) then
   begin
     aWriter.WriteNull;
     Exit;
