@@ -161,13 +161,14 @@ begin
 
     // Examples
     P.ExamplePath.Add('examples');
+    P.Sources.AddExample('examples/fpdoc.dtd','.');
       T:=P.Targets.AddExampleProgram('asiotest.pp');
       T:=P.Targets.AddExampleProgram('b64dec.pp');
       T:=P.Targets.AddExampleProgram('b64enc.pp');
       T:=P.Targets.AddExampleProgram('b64.pp');
       T:=P.Targets.AddExampleProgram('b64test2.pp');
       T:=P.Targets.AddExampleProgram('b64test.pp');
-      T:=P.Targets.AddExampleProgram('base64decodingtestcase.pas');
+      T:=P.Targets.AddExampleUnit('base64decodingtestcase.pas');
       T:=P.Targets.AddExampleProgram('cachetest.pp');
       T:=P.Targets.AddExampleProgram('cfgtest.pp');
       T:=P.Targets.AddExampleProgram('debugtest.pp');
@@ -175,7 +176,6 @@ begin
       T:=P.Targets.AddExampleProgram('dparser.pp');
       T:=P.Targets.AddExampleProgram('dsockcli.pp');
       T:=P.Targets.AddExampleProgram('dsocksvr.pp');
-      T:=P.Targets.AddExampleProgram('fpdoc.dtd');
       T:=P.Targets.AddExampleProgram('fstream.pp');
       T:=P.Targets.AddExampleProgram('htdump.pp');
       T:=P.Targets.AddExampleProgram('isockcli.pp');
@@ -195,7 +195,6 @@ begin
       T:=P.Targets.AddExampleProgram('testapp.pp');
       T:=P.Targets.AddExampleProgram('testbf.pp');
       T:=P.Targets.AddExampleProgram('testbs.pp');
-      T:=P.Targets.AddExampleProgram('testcgi.pp');
       T:=P.Targets.AddExampleProgram('testcont.pp');
       T:=P.Targets.AddExampleProgram('testez.pp');
       T:=P.Targets.AddExampleProgram('testhres.pp');
@@ -212,7 +211,6 @@ begin
       T:=P.Targets.AddExampleProgram('testtimer.pp');
       T:=P.Targets.AddExampleProgram('testunzip.pp');
       T:=P.Targets.AddExampleProgram('testur.pp');
-      T:=P.Targets.AddExampleProgram('testweb.pp');
       T:=P.Targets.AddExampleProgram('testz2.pp');
       T:=P.Targets.AddExampleProgram('testzip.pp');
       T:=P.Targets.AddExampleProgram('testz.pp');
@@ -230,7 +228,6 @@ begin
       // overview.rtf
       // simple.xml
       // parser.dat
-      // testcgi.html
 
 
     P.NamespaceMap:='namespaces.lst';
