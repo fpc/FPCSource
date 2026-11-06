@@ -201,6 +201,43 @@ begin
 end;
 
 
+{ Destroy an exception object released while another exception is raised. An
+  exception out of its destructor, and out of that one's, goes no further.
+  While a destructor runs, an emptied entry is on top of the stack, so
+  RaiseList shows no exception there. }
+procedure FreeReleasedException(obj : TObject);
+var
+  o : TObject;
+  lEmpty, lPrev : PExceptObject;
+begin
+  while assigned(obj) do
+    begin
+      o:=obj;
+      obj:=nil;
+      New(lEmpty);
+      FillChar(lEmpty^,SizeOf(TExceptObject),0);
+      lEmpty^.Next:=ExceptObjectStack;
+      ExceptObjectStack:=lEmpty;
+      try
+        o.Free;
+      except
+        obj:=TObject(AcquireExceptionObject);
+      end;
+      if ExceptObjectStack=lEmpty then
+        ExceptObjectStack:=lEmpty^.Next
+      else
+        begin
+          lPrev:=ExceptObjectStack;
+          while assigned(lPrev) and (lPrev^.Next<>lEmpty) do
+            lPrev:=lPrev^.Next;
+          if assigned(lPrev) then
+            lPrev^.Next:=lEmpty^.Next;
+        end;
+      dispose(lEmpty);
+    end;
+end;
+
+
 { Mark the top entry of the exception object stack as unwinding to aTarget, and
   remove the entries below it whose unwinding stops when the top one reaches
   aTarget, freeing their frames and the exception objects that were not
@@ -230,7 +267,7 @@ begin
           if assigned(lEntry^.frames) then
             freemem(lEntry^.frames);
           dispose(lEntry);
-          lObj.Free;
+          FreeReleasedException(lObj);
         end;
       lEntry:=lPrev^.Next;
     end;

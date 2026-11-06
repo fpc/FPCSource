@@ -185,19 +185,35 @@ end;
   dispatched: an exception out of its destructor, and out of that one's, goes
   no further -- raised there, it would be caught by the except block the
   dispatched exception is about to enter, and that one's entry would be left
-  on the stack }
+  on the stack. While a destructor runs, an emptied entry is on top of the
+  stack, so RaiseList shows no exception there. }
 procedure FreeReleasedException(obj: TObject);
 var
   o: TObject;
+  lEmpty: TExceptObject;
+  lPrev: PExceptObject;
 begin
   while assigned(obj) do
   begin
     o:=obj;
     obj:=nil;
+    FillChar(lEmpty,SizeOf(lEmpty),0);
+    lEmpty.Next:=ExceptObjectStack;
+    ExceptObjectStack:=@lEmpty;
     try
       o.Free;
     except
       obj:=TObject(AcquireExceptionObject);
+    end;
+    if ExceptObjectStack=@lEmpty then
+      ExceptObjectStack:=lEmpty.Next
+    else
+    begin
+      lPrev:=ExceptObjectStack;
+      while assigned(lPrev) and (lPrev^.Next<>@lEmpty) do
+        lPrev:=lPrev^.Next;
+      if assigned(lPrev) then
+        lPrev^.Next:=lEmpty.Next;
     end;
   end;
 end;
