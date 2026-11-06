@@ -2012,8 +2012,37 @@ end;
 
 function TThreadPool.GetWorkItemForThread(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
 
+  // Take an item from the global queue.
+  function TakeGlobalWork: Boolean;
+
+  begin
+    Result:=False;
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','locking queue');{$ENDIF USE_THREADLOG}
+    LockQueue;
+    try
+      if (FWorkQueue.Count > 0) then
+        begin
+        // FWorkQueue access is guarded by LockQueue.
+        Itm:=FWorkQueue.Dequeue;
+        Result:=Assigned(Itm);
+        end;
+    finally
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','unlocking queue');{$ENDIF USE_THREADLOG}
+      UnLockQueue;
+    end;
+  end;
+
+  // Take an item from the global queue or another thread's queue, and wake another idle thread if more work is queued.
+  function TakeAnyWork: Boolean;
+
+  begin
+    Result:=TakeGlobalWork or GetWorkItemFromQueues(aThread.WorkQueue,Itm);
+    if Result and (FRequestCount>1) and (FIdleThreads>1) then
+      FQueueEvent.SetEvent;
+  end;
+
 Var
-  CheckThreadQueues, lBecameIdle : Boolean;
+  CheckThreadQueues : Boolean;
 
 begin
   Result:=True;
@@ -2023,35 +2052,29 @@ begin
     Exit(False);
     end;
   // The idle mark precedes the queue checks.
-  lBecameIdle:=not aThread.Idle;
-  if lBecameIdle then
+  if not aThread.Idle then
     begin
     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','marking thread %d as idle',[PtrInt(aThread.ThreadID)]);{$ENDIF USE_THREADLOG}
     AtomicIncrement(FIdleThreads);
     aThread.Idle:=True;
     end;
-  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','locking queue');{$ENDIF USE_THREADLOG}
-  LockQueue;
-  try
-    if (FWorkQueue.Count > 0) then
-      begin
-      // FWorkQueue access is guarded by LockQueue.
-      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Have global work');{$ENDIF USE_THREADLOG}
-      Itm:=FWorkQueue.Dequeue;
-      if assigned(Itm) then
-        begin
-        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Global work, -> no quit');{$ENDIF USE_THREADLOG}
-        Exit(True); // We got work, do not stop thread
-        end;
-      end;
-  finally
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','unlocking queue');{$ENDIF USE_THREADLOG}
-    UnLockQueue;
-  end;
-  // Work queued on other threads before this thread was marked idle.
-  if lBecameIdle and GetWorkItemFromQueues(aThread.WorkQueue,Itm) then
+  if TakeGlobalWork then
     begin
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Work in other queues before waiting -> no quit');{$ENDIF USE_THREADLOG}
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Global work, -> no quit');{$ENDIF USE_THREADLOG}
+    Exit(True); // We got work, do not stop thread
+    end;
+  // The reset precedes the shutdown and queue checks.
+  FQueueEvent.ResetEvent;
+  if FShutdown then
+    begin
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');{$ENDIF USE_THREADLOG}
+    // Set the event again for the other threads.
+    FQueueEvent.SetEvent;
+    Exit(False); // Stop thread
+    end;
+  if TakeAnyWork then
+    begin
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Work before waiting -> no quit');{$ENDIF USE_THREADLOG}
     Exit(True);
     end;
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Waiting for queue event (%d ms.)',[aThread.CheckWaitTime]);{$ENDIF USE_THREADLOG}
@@ -2064,13 +2087,13 @@ begin
     end;
   if CheckThreadQueues then
     begin
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checking other queues');{$ENDIF USE_THREADLOG}
-    if GetWorkItemFromQueues(aThread.WorkQueue,Itm) then
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checking queues');{$ENDIF USE_THREADLOG}
+    if TakeAnyWork then
       begin
-      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checked other queues, got work -> no quit');{$ENDIF USE_THREADLOG}
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checked queues, got work -> no quit');{$ENDIF USE_THREADLOG}
       Exit(True); // We got work, do not stop thread
       end;
-    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','No work in other queues');{$ENDIF USE_THREADLOG}
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','No work in queues');{$ENDIF USE_THREADLOG}
     end;
   if FShutdown then
     begin

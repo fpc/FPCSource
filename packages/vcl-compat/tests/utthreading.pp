@@ -292,6 +292,7 @@ type
     procedure WaitForWorkDoneCount(out Done : Boolean);
     procedure DoBurnCyclesExecute(Sender: TObject);
     procedure DoSimpleExecute(Sender: TObject);
+    procedure DoEmptyExecute(Sender: TObject);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -307,6 +308,8 @@ type
     procedure TestExecuteLotsOfWork;
     // Frees a pool whose worker threads have just been created
     procedure TestFreeWithNewThreads;
+    // Queues one item in a new pool and frees it at once, several times
+    procedure TestFreeAfterQueueRepeated;
   end;
 
   { TTestTask }
@@ -1713,6 +1716,31 @@ begin
   AssertTrue('Pool freed',WaitForCondition(@WaitForTerminateCount,5000));
   AssertEquals('Threads all stopped',FThreadsStarted,FThreadsTerminated);
 end;
+
+procedure TTestThreading.DoEmptyExecute(Sender: TObject);
+
+begin
+end;
+
+
+procedure TTestThreading.TestFreeAfterQueueRepeated;
+
+var
+  lPool: TThreadPool;
+  lStart: TDateTime;
+  lRound: Integer;
+
+begin
+  for lRound:=1 to 5 do
+    begin
+    lPool:=TThreadPool.Create;
+    lStart:=Now;
+    lPool.QueueWorkItem(Self,@DoEmptyExecute);
+    lPool.Free;
+    AssertTrue('Pool freed within 5 seconds in round '+IntToStr(lRound),MilliSecondsBetween(Now,lStart)<5000);
+    end;
+end;
+
 
 procedure TTestThreading.SetUp;
 begin
