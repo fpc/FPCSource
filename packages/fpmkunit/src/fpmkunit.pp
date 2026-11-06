@@ -1924,6 +1924,7 @@ ResourceString
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
   SErrPackageNotCompiled = 'Package %s is not compiled, cannot install it';
+  SErrPackagesNotReady  = 'Cannot compile packages with unresolved dependencies: %s';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
   SErrEventNotSupported = 'Unsupported event type';
@@ -9682,10 +9683,57 @@ Var
   ErrorMessage: string;
   NotifyThreadWaiting : PRTLEvent;
   Threads : array of TCompileWorkerThread;
+  lPending : Integer;
 {$endif NO_THREADING}
   P : TPackage;
 
 {$ifndef NO_THREADING}
+  // True if a worker thread has not yet reported back
+  function AnyThreadBusy: Boolean;
+
+  var
+    lThr: Integer;
+
+  begin
+    Result:=False;
+    for lThr:=0 to Length(Threads)-1 do
+      if Assigned(Threads[lThr]) and not Threads[lThr].Done then
+        Exit(True);
+  end;
+
+
+  // The number of packages that are neither compiled nor skipped
+  function PendingCount: Integer;
+
+  var
+    lIdx: Integer;
+
+  begin
+    Result:=0;
+    for lIdx:=0 to Packages.Count-1 do
+      if Packages.PackageItems[lIdx].State=tsNeutral then
+        Inc(Result);
+  end;
+
+
+  // Comma-separated names of the packages that are neither compiled nor skipped
+  function PendingNames: String;
+
+  var
+    lIdx: Integer;
+
+  begin
+    Result:='';
+    for lIdx:=0 to Packages.Count-1 do
+      if Packages.PackageItems[lIdx].State=tsNeutral then
+        begin
+        if Result<>'' then
+          Result:=Result+', ';
+        Result:=Result+Packages.PackageItems[lIdx].Name;
+        end;
+  end;
+
+
   procedure ProcessThreadResult(ATHread: TCompileWorkerThread);
   var
     StartI: integer;
@@ -9800,10 +9848,23 @@ begin
           // When a thread notifies this thread that it is ready, loop on all
           // threads to check their state and if possible assign a new package
           // to them to compile.
+          // With all threads idle, scan again as long as a scan skips packages.
+          lPending:=-1;
           while not Finished do
             begin
-              RTLeventWaitFor(NotifyThreadWaiting);
-              RTLeventResetEvent(NotifyThreadWaiting);
+              if AnyThreadBusy then
+                begin
+                RTLeventWaitFor(NotifyThreadWaiting);
+                RTLeventResetEvent(NotifyThreadWaiting);
+                end
+              else if PendingCount=lPending then
+                begin
+                ErrorMessage:=Format(SErrPackagesNotReady,[PendingNames]);
+                ErrorState:=true;
+                Finished:=true;
+                Break;
+                end;
+              lPending:=PendingCount;
               for Thr:=0 to Defaults.ThreadsAmount-1 do
                 if assigned(Threads[Thr]) and not Finished then
                   ProcessThreadResult(Threads[Thr]);
