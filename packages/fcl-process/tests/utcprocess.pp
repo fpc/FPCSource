@@ -42,6 +42,10 @@ type
     Procedure TestWaitFor;
     Procedure TestOptionWaitOnExit;
     Procedure TestTerminate;
+    Procedure TestExitCodeOptionWaitOnExit;
+    Procedure TestExitCodeWaitOnExit;
+    Procedure TestExitCodeWaitOnExitTimeout;
+    Procedure TestExitCodeRunningLoop;
     Procedure TestPipes;
     Procedure TestWritePipes;
     Procedure TestStdErr;
@@ -186,7 +190,7 @@ begin
   Proc.Parameters.Add('23');
   Proc.Execute;
   Proc.WaitOnExit;
-  AssertEquals('Exit code',23,Proc.ExitStatus);
+  AssertEquals('Exit code',23,Proc.ExitCode);
 end;
 
 procedure TTestProcess.TestWaitFor;
@@ -249,6 +253,56 @@ begin
   // Check exit status provided to terminate.
   AssertTrue('Exit status',(23=Proc.ExitCode));
 {$ENDIF}
+end;
+
+procedure TTestProcess.TestExitCodeOptionWaitOnExit;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('42');
+  Proc.Options:=Proc.Options+[poWaitOnExit];
+  Proc.Execute;
+  AssertEquals('Exit code after poWaitOnExit',42,Proc.ExitCode);
+end;
+
+procedure TTestProcess.TestExitCodeWaitOnExit;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('42');
+  Proc.Execute;
+  AssertTrue('WaitOnExit result',Proc.WaitOnExit);
+  AssertEquals('Exit code after WaitOnExit',42,Proc.ExitCode);
+end;
+
+procedure TTestProcess.TestExitCodeWaitOnExitTimeout;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('42');
+  Proc.Execute;
+  WaitForProcess(Proc);
+  AssertEquals('Exit code after WaitOnExit(Timeout)',42,Proc.ExitCode);
+end;
+
+procedure TTestProcess.TestExitCodeRunningLoop;
+
+var
+  lCount : Integer;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('42');
+  Proc.Execute;
+  lCount:=0;
+  while Proc.Running and (lCount<1000) do
+    begin
+    Sleep(10);
+    Inc(lCount);
+    end;
+  AssertFalse('Process did not terminate in time',Proc.Running);
+  AssertTrue('WaitOnExit result after Running loop',Proc.WaitOnExit);
+  AssertEquals('Exit code after Running loop',42,Proc.ExitCode);
 end;
 
 procedure TTestProcess.AssertGenOutLines(const S : String; aCount : integer);

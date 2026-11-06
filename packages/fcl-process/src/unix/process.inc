@@ -488,11 +488,19 @@ begin
 end;
 
 Function TProcess.WaitOnExit : Boolean;
+var
+  res: cint;
 begin
   if FRunning then
-    fexitcode:=Cardinal(waitprocess(handle));
-  Result:=(longint(fexitcode)>=0);
-  FRunning:=False;
+    begin
+    repeat
+      res:=fpWaitPid(Handle,pcint(@FExitCode),0);
+    until (res<>-1) or (fpgeterrno<>ESysEINTR);
+    if res<>Handle then
+      FExitCode:=cardinal(-1);
+    FRunning:=False;
+    end;
+  Result:=wifexited(FExitCode);
 end;
 
 { maybe some unixes might need a simpler solution }
