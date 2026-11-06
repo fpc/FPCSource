@@ -208,32 +208,31 @@ end;
 procedure FreeReleasedException(obj : TObject);
 var
   o : TObject;
-  lEmpty, lPrev : PExceptObject;
+  lEmpty : TExceptObject;
+  lPrev : PExceptObject;
 begin
   while assigned(obj) do
     begin
       o:=obj;
       obj:=nil;
-      New(lEmpty);
-      FillChar(lEmpty^,SizeOf(TExceptObject),0);
-      lEmpty^.Next:=ExceptObjectStack;
-      ExceptObjectStack:=lEmpty;
+      FillChar(lEmpty,SizeOf(lEmpty),0);
+      lEmpty.Next:=ExceptObjectStack;
+      ExceptObjectStack:=@lEmpty;
       try
         o.Free;
       except
         obj:=TObject(AcquireExceptionObject);
       end;
-      if ExceptObjectStack=lEmpty then
-        ExceptObjectStack:=lEmpty^.Next
+      if ExceptObjectStack=@lEmpty then
+        ExceptObjectStack:=lEmpty.Next
       else
         begin
           lPrev:=ExceptObjectStack;
-          while assigned(lPrev) and (lPrev^.Next<>lEmpty) do
+          while assigned(lPrev) and (lPrev^.Next<>@lEmpty) do
             lPrev:=lPrev^.Next;
           if assigned(lPrev) then
-            lPrev^.Next:=lEmpty^.Next;
+            lPrev^.Next:=lEmpty.Next;
         end;
-      dispose(lEmpty);
     end;
 end;
 
