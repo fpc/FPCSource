@@ -31,6 +31,8 @@ function UnicodeSameText(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTIL
 
 Function UnicodeFormat (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString;
 Function UnicodeFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString;
+Function Format (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString;
+Function Format (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString;
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const);
