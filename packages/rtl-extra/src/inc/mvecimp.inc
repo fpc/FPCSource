@@ -1,7 +1,7 @@
 {*****************************************************************************
                            Methods of the vector object
 *****************************************************************************}
-constructor objectname.init_zero;
+initkind objectname.init_zero;
 
 begin
     data[0]:=0;
@@ -14,7 +14,7 @@ begin
 {$endif}
 end;
 
-constructor objectname.init_one;
+initkind objectname.init_one;
 
 begin
     data[0]:=1;
@@ -27,7 +27,7 @@ begin
 {$endif}
 end;
 
-constructor objectname.init(a,b
+initkind objectname.init(a,b
                            {$if vecsize>=3},c{$endif}
                            {$if vecsize>=4},d{$endif}:datatype);
 

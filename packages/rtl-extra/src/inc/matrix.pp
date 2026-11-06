@@ -33,6 +33,7 @@ interface
 
 {*****************************************************************************}
 {$mode fpc}
+{$modeswitch advancedrecords}
 
 {$ifndef FPUNONE}
 {$MACRO on}
@@ -61,92 +62,92 @@ type    Tvector2_single_data=array[0..1] of single;
         Tmatrix4_double_data=array[0..3,0..3] of double;
         Tmatrix4_extended_data=array[0..3,0..3] of extended;
 
-        Tvector2_single=object
+        Tvector2_single=record
             data:Tvector2_single_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b:single);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b:single);
             function length:single;
             function squared_length:single;
         end;
 
-        Tvector2_double=object
+        Tvector2_double=record
             data:Tvector2_double_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b:double);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b:double);
             function length:double;
             function squared_length:double;
         end;
 
-        Tvector2_extended=object
+        Tvector2_extended=record
             data:Tvector2_extended_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b:extended);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b:extended);
             function length:extended;
             function squared_length:extended;
         end;
 
-        Tvector3_single=object
+        Tvector3_single=record
             data:Tvector3_single_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c:single);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c:single);
             function length:single;
             function squared_length:single;
         end;
 
-        Tvector3_double=object
+        Tvector3_double=record
             data:Tvector3_double_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c:double);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c:double);
             function length:double;
             function squared_length:double;
         end;
 
-        Tvector3_extended=object
+        Tvector3_extended=record
             data:Tvector3_extended_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c:extended);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c:extended);
             function length:extended;
             function squared_length:extended;
         end;
 
-        Tvector4_single=object
+        Tvector4_single=record
             data:Tvector4_single_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c,d:single);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c,d:single);
             function length:single;
             function squared_length:single;
         end;
 
-        Tvector4_double=object
+        Tvector4_double=record
             data:Tvector4_double_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c,d:double);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c,d:double);
             function length:double;
             function squared_length:double;
         end;
 
-        Tvector4_extended=object
+        Tvector4_extended=record
             data:Tvector4_extended_data;
-            constructor init_zero;
-            constructor init_one;
-            constructor init(a,b,c,d:extended);
+            procedure init_zero;
+            procedure init_one;
+            procedure init(a,b,c,d:extended);
             function length:extended;
             function squared_length:extended;
         end;
 
-        Tmatrix2_single=object
+        Tmatrix2_single=record
             data:Tmatrix2_single_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ba,bb:single);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ba,bb:single);
             function get_column(c:byte):Tvector2_single;
             function get_row(r:byte):Tvector2_single;
             procedure set_column(c:byte;const v:Tvector2_single);
@@ -156,11 +157,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix2_single;
         end;
 
-        Tmatrix2_double=object
+        Tmatrix2_double=record
             data:Tmatrix2_double_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ba,bb:double);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ba,bb:double);
             function get_column(c:byte):Tvector2_double;
             function get_row(r:byte):Tvector2_double;
             procedure set_column(c:byte;const v:Tvector2_double);
@@ -170,11 +171,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix2_double;
         end;
 
-        Tmatrix2_extended=object
+        Tmatrix2_extended=record
             data:Tmatrix2_extended_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ba,bb:extended);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ba,bb:extended);
             function get_column(c:byte):Tvector2_extended;
             function get_row(r:byte):Tvector2_extended;
             procedure set_column(c:byte;const v:Tvector2_extended);
@@ -184,11 +185,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix2_extended;
         end;
 
-        Tmatrix3_single=object
+        Tmatrix3_single=record
             data:Tmatrix3_single_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ba,bb,bc,ca,cb,cc:single);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ba,bb,bc,ca,cb,cc:single);
             function get_column(c:byte):Tvector3_single;
             function get_row(r:byte):Tvector3_single;
             procedure set_column(c:byte;const v:Tvector3_single);
@@ -198,11 +199,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix3_single;
         end;
 
-        Tmatrix3_double=object
+        Tmatrix3_double=record
             data:Tmatrix3_double_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ba,bb,bc,ca,cb,cc:double);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ba,bb,bc,ca,cb,cc:double);
             function get_column(c:byte):Tvector3_double;
             function get_row(r:byte):Tvector3_double;
             procedure set_column(c:byte;const v:Tvector3_double);
@@ -212,11 +213,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix3_double;
         end;
 
-        Tmatrix3_extended=object
+        Tmatrix3_extended=record
             data:Tmatrix3_extended_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ba,bb,bc,ca,cb,cc:extended);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ba,bb,bc,ca,cb,cc:extended);
             function get_column(c:byte):Tvector3_extended;
             function get_row(r:byte):Tvector3_extended;
             procedure set_column(c:byte;const v:Tvector3_extended);
@@ -226,11 +227,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix3_extended;
         end;
 
-        Tmatrix4_single=object
+        Tmatrix4_single=record
             data:Tmatrix4_single_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:single);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:single);
             function get_column(c:byte):Tvector4_single;
             function get_row(r:byte):Tvector4_single;
             procedure set_column(c:byte;const v:Tvector4_single);
@@ -240,11 +241,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix4_single;
         end;
 
-        Tmatrix4_double=object
+        Tmatrix4_double=record
             data:Tmatrix4_double_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:double);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:double);
             function get_column(c:byte):Tvector4_double;
             function get_row(r:byte):Tvector4_double;
             procedure set_column(c:byte;const v:Tvector4_double);
@@ -254,11 +255,11 @@ type    Tvector2_single_data=array[0..1] of single;
             function transpose:Tmatrix4_double;
         end;
 
-        Tmatrix4_extended=object
+        Tmatrix4_extended=record
             data:Tmatrix4_extended_data;
-            constructor init_zero;
-            constructor init_identity;
-            constructor init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:extended);
+            procedure init_zero;
+            procedure init_identity;
+            procedure init(aa,ab,ac,ad,ba,bb,bc,bd,ca,cb,cc,cd,da,db,dc,dd:extended);
             function get_column(c:byte):Tvector4_extended;
             function get_row(r:byte):Tvector4_extended;
             procedure set_column(c:byte;const v:Tvector4_extended);
@@ -627,6 +628,8 @@ operator / (const m:Tmatrix4_extended;const x:extended) result:Tmatrix4_extended
 implementation
 
 {*****************************************************************************}
+
+{$DEFINE initkind:=procedure}
 
 {******************************************************************************
                                 Tvector2_single

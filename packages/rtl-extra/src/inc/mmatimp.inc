@@ -1,13 +1,13 @@
 {*****************************************************************************
                            Methods of the matrix object
 *****************************************************************************}
-constructor objectname.init_zero;
+initkind objectname.init_zero;
 
 begin
   fillchar(data,sizeof(data),0);
 end;
 
-constructor objectname.init_identity;
+initkind objectname.init_identity;
 
 begin
   fillchar(data,sizeof(data),0);
@@ -21,7 +21,7 @@ begin
 {$endif}
 end;
 
-constructor objectname.init(aa
+initkind objectname.init(aa
                            ,ab
            {$if matsize>=3},ac{$endif}
            {$if matsize>=4},ad{$endif}

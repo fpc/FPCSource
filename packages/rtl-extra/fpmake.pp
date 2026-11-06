@@ -111,6 +111,12 @@ begin
             AddInclude('mvecimp.inc');
             AddInclude('mmatimp.inc');
           end;
+        T:=P.Targets.AddUnit('matrixo.pp',MatrixOSes);
+        with T.Dependencies do
+          begin
+            AddInclude('mvecimp.inc');
+            AddInclude('mmatimp.inc');
+          end;
       end;
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);

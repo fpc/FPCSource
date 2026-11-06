@@ -14,6 +14,7 @@ src/inc/ucomplex.pp=namespaced/System.Ucomplex.pp
 src/inc/objects.pp=namespaced/System.Objects.pp
 src/inc/sortalgs.pp=namespaced/System.Sortalgs.pp
 src/inc/matrix.pp=namespaced/System.Matrix.pp
+src/inc/matrixo.pp=namespaced/System.Matrixo.pp
 src/inc/real48utils.pp=namespaced/System.Real48utils.pp
 src/win/winsock2.pp=namespaced/WinApi.Winsock2.pp
 {s*:src/win/}=namespaced/
