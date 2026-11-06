@@ -401,6 +401,18 @@ begin
 end;
 
 {$ifndef FPC_USE_LIBC}
+// Return the single-byte representation of S, the inverse of AnsiToString.
+Function StringToAnsi(const S : String) : RawByteString; inline;
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Encode(S);
+{$ELSE}
+  Result:=S;
+{$ENDIF}
+end;
+
+
 type
   TTCPSocketResult = (srTimeout,srPartial,srSocketClose,srOK);
 
@@ -844,24 +856,26 @@ Function BuildPayLoad(Var Q : TQueryData; Name : String; RR : Word; QClass : Wor
 Var
   P : PByte;
   l,S : Integer;
+  lName : RawByteString;
 
 begin
   Result:=-1;
-  If (Length(Name) = 0) or (length(Name)>506) then
+  lName:=StringToAnsi(Name);
+  If (Length(lName) = 0) or (length(lName)>506) then
     Exit;
 
   Result:=0;
   P:=@Q.Payload[0];
   Repeat
-    L:=Pos('.',Name);
+    L:=Pos('.',lName);
     If (L=0) then
-      S:=Length(Name)
+      S:=Length(lName)
     else
       S:=L-1;
     // empty label is invalid, unless it's a dot at the end.
     if (S = 0) then
     begin
-      if (Length(Name) > 0) then
+      if (Length(lName) > 0) then
       begin
         Result := -1;
         exit;
@@ -870,10 +884,10 @@ begin
         break; // empty label at end, break out for final 0 length byte.
     end;
     P[Result]:=S;
-    Move(Name[1],P[Result+1],S);
+    Move(lName[1],P[Result+1],S);
     Inc(Result,S+1);
     If (L>0) then
-      Delete(Name,1,L);
+      Delete(lName,1,L);
   Until (L=0);
   P[Result]:=0;
   rr := htons(rr);
@@ -941,9 +955,10 @@ Const
 Var
   I,O : Integer;
   P : Word;
+  lName : AnsiString;
 
 begin
-  SetLength(Result,512);
+  SetLength(lName,512);
   I:=Start;
   O:=1;
   // Copy labels and pointers. At least 1 label or pointer is present.
@@ -957,16 +972,17 @@ begin
       begin
       If O<>1 then
         begin
-        Result[O]:='.';
+        lName[O]:='.';
         Inc(O);
         end;
       P:=Payload[i];
-      Move(Payload[i+1],Result[o],P);
+      Move(Payload[i+1],lName[o],P);
       Inc(I,P+1);
       Inc(O,P);
       end;
    Until (Payload[I]=0);
-   setlength(result,o-1);
+   setlength(lName,o-1);
+   Result:=AnsiToString(lName);
 end;
 
 
@@ -1837,8 +1853,9 @@ var
   l,i,n,lc: integer;
   ptr: Word;
   ptrseen: Boolean = False;
+  lName: AnsiString;
 begin
-  result := '';
+  lName := '';
   l := 0;
   i := 0;
   n := start;
@@ -1870,9 +1887,9 @@ begin
     // check we point inside the buffer
     if (n+l+1) > Length(pl) then l := 0;
     if l <> 0 then begin
-      setlength(result,length(result)+l);
-      move(pl[n+1],result[i+1],l);
-      result := result + '.';
+      setlength(lName,length(lName)+l);
+      move(pl[n+1],lName[i+1],l);
+      lName := lName + '.';
       inc(n,l); inc(n);
       inc(i,l); inc(i);
       if n > start then start := n;
@@ -1884,8 +1901,9 @@ begin
   // of labels followed by a pointer. If there's a pointer there's no 0 to
   // skip over when calculating the final index.
   if not ptrseen then Inc(start); // jump past the 0.
-  if (Length(result) > 0) and (result[length(result)] = '.') then
-    setlength(result,length(result)-1);
+  if (Length(lName) > 0) and (lName[length(lName)] = '.') then
+    setlength(lName,length(lName)-1);
+  result := AnsiToString(lName);
 end;
 
 function stringfromlabel(pl: TPayLoadTCP; var start: Integer): string;
@@ -1893,8 +1911,9 @@ var
   l,i,n,lc: integer;
   ptr: Word;
   ptrseen: Boolean = False;
+  lName: AnsiString;
 begin
-  result := '';
+  lName := '';
   l := 0;
   i := 0;
   n := start;
@@ -1926,9 +1945,9 @@ begin
     // check we point inside the buffer
     if (n+l+1) > Length(pl) then l := 0;
     if l <> 0 then begin
-      setlength(result,length(result)+l);
-      move(pl[n+1],result[i+1],l);
-      result := result + '.';
+      setlength(lName,length(lName)+l);
+      move(pl[n+1],lName[i+1],l);
+      lName := lName + '.';
       inc(n,l); inc(n);
       inc(i,l); inc(i);
       if n > start then start := n;
@@ -1940,8 +1959,9 @@ begin
   // of labels followed by a pointer. If there's a pointer there's no 0 to
   // skip over when calculating the final index.
   if not ptrseen then Inc(start); // jump past the 0.
-  if (Length(result) > 0) and (result[length(result)] = '.') then
-    setlength(result,length(result)-1);
+  if (Length(lName) > 0) and (lName[length(lName)] = '.') then
+    setlength(lName,length(lName)-1);
+  result := AnsiToString(lName);
 end;
 
 Function ResolveNameAt(Resolver : Integer; const HostName : String; Var Addresses : Array of THostAddr; Recurse: Integer) : Integer;

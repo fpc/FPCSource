@@ -198,6 +198,8 @@ type
     procedure TestBuildPayloadSimpleEndDot;
     procedure TestBuildPayloadSimpleStartDot;
     procedure TestBuildPayloadSimpleMultipleDot;
+    procedure TestBuildPayloadLabelBytes;
+    procedure TestStringFromLabelBytes;
 
     { * straightforward tests for the api with valid data. Have to test each
       * known RR type with both TCP and UDP buffer functions, and with and
@@ -1288,6 +1290,52 @@ var
 begin
   R := BuildPayLoad(Q, FAKEDOMAIN+'.....'+FAKETLD, DNSQRY_A, 1);
   AssertEquals('Payload byte count wrong:',-1, R);
+end;
+
+procedure TNetDbTest.TestBuildPayloadLabelBytes;
+var
+  Q: TQueryData;
+  R, I, lOffset: Integer;
+begin
+  R := BuildPayLoad(Q, FAKEFQDN, DNSQRY_A, 1);
+  AssertEquals('Payload byte count wrong:',
+    Length(FAKEDOMAIN)+Length(FAKETLD)+7, R);
+  AssertEquals('Length of first label', Length(FAKEDOMAIN), Q.Payload[0]);
+  for I := 1 to Length(FAKEDOMAIN) do
+    AssertEquals('Byte '+IntToStr(I)+' of first label',
+      Ord(FAKEDOMAIN[I]), Q.Payload[I]);
+  lOffset := Length(FAKEDOMAIN)+1;
+  AssertEquals('Length of second label', Length(FAKETLD), Q.Payload[lOffset]);
+  for I := 1 to Length(FAKETLD) do
+    AssertEquals('Byte '+IntToStr(I)+' of second label',
+      Ord(FAKETLD[I]), Q.Payload[lOffset+I]);
+  AssertEquals('Terminating zero label', 0,
+    Q.Payload[lOffset+Length(FAKETLD)+1]);
+end;
+
+procedure TNetDbTest.TestStringFromLabelBytes;
+var
+  PL: TPayLoad;
+  PLTCP: TPayLoadTCP;
+  I, lStart: Integer;
+begin
+  FillChar(PL, SizeOf(PL), 0);
+  PL[0] := Length(FAKEDOMAIN);
+  for I := 1 to Length(FAKEDOMAIN) do
+    PL[I] := Ord(FAKEDOMAIN[I]);
+  PL[Length(FAKEDOMAIN)+1] := Length(FAKETLD);
+  for I := 1 to Length(FAKETLD) do
+    PL[Length(FAKEDOMAIN)+1+I] := Ord(FAKETLD[I]);
+  lStart := 0;
+  AssertEquals('Name read from UDP payload', FAKEFQDN,
+    stringfromlabel(PL, lStart));
+  AssertEquals('Index after UDP name', Length(FAKEFQDN)+2, lStart);
+  FillChar(PLTCP, SizeOf(PLTCP), 0);
+  Move(PL, PLTCP, SizeOf(PL));
+  lStart := 0;
+  AssertEquals('Name read from TCP payload', FAKEFQDN,
+    stringfromlabel(PLTCP, lStart));
+  AssertEquals('Index after TCP name', Length(FAKEFQDN)+2, lStart);
 end;
 
 procedure TNetDbTest.TestDnsQueryUDP_A;
