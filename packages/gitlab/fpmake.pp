@@ -41,6 +41,15 @@ begin
     P.SourcePath.Add('src');
     T:=P.Targets.addUnit('gitlabclient.pas');
 
+    // Examples
+    P.ExamplePath.Add('examples/closetodo');
+    P.ExamplePath.Add('examples/issuestats');
+    P.Sources.AddExample('examples/closetodo/sample.cfg','.');
+    T:=P.Targets.AddExampleProgram('closetodo.pp');
+    T.Dependencies.AddUnit('gitlabclient');
+    T:=P.Targets.AddExampleProgram('issuestats.pp');
+    T.Dependencies.AddUnit('gitlabclient');
+
     P.NamespaceMap:='namespaces.lst';
     end;
 end;
