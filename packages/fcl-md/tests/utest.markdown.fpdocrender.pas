@@ -16,13 +16,18 @@
 unit UTest.Markdown.FPDocRender;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry,
+{$ENDIF}
   MarkDown.Elements,
-  MarkDown.FPDocRender;
+  Markdown.Utils, MarkDown.FPDocRender;
 
 type
 
@@ -43,14 +48,14 @@ type
     Procedure SetUp; override;
     Procedure TearDown; override;
     Procedure StartDoc;
-    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: string; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
-    function CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateHeadingBlock(const aTextNode: string; aLevel : integer): TMarkdownBlock;
-    function CreateListBlock(aOrdered : boolean; const aListItemText : string): TMarkDownListBlock;
-    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
-    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
-    procedure TestRender(const aFPDoc : string; aEnvelope : boolean = False);
+    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: TMarkdownString; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
+    function CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel : integer): TMarkdownBlock;
+    function CreateListBlock(aOrdered : boolean; const aListItemText : TMarkdownString): TMarkDownListBlock;
+    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
+    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
+    procedure TestRender(const aFPDoc : TMarkdownString; aEnvelope : boolean = False);
     Property Renderer : TMarkDownFPDocRenderer Read FFPDocRenderer;
     Property Document : TMarkDownDocument Read FDocument;
   Published
@@ -78,10 +83,11 @@ type
   TTestFPDocRenderExtensions = Class(TTestCase)
   protected
     // Render aMarkdown as the description of element a in module unit1
-    function Render(const aMarkdown : String) : String;
-    procedure CheckContains(const aMsg, aExpected, aActual : String);
+    function Render(const aMarkdown : TMarkdownString) : TMarkdownString;
+    procedure CheckContains(const aMsg, aExpected, aActual : TMarkdownString);
   Published
     procedure TestDefinitionList;
+    procedure TestNonAsciiText;
     procedure TestDefinitionsShareDD;
     procedure TestNoteIsRemark;
     procedure TestWarningIsBoldParagraph;
@@ -127,7 +133,7 @@ begin
 end;
 
 
-function TTestFPDocRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: string; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
+function TTestFPDocRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
 
 begin
   Result:=TMarkDownTextBlock.Create(aParent,1,aText);
@@ -135,7 +141,7 @@ begin
     AppendTextNode(Result,aTextNode,aNodeStyle);
 end;
 
-function TTestFPDocRender.CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
+function TTestFPDocRender.CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownParagraphBlock.Create(FParent,1);
@@ -143,7 +149,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestFPDocRender.CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
+function TTestFPDocRender.CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownQuoteBlock.Create(FParent,1);
@@ -151,7 +157,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestFPDocRender.CreateHeadingBlock(const aTextNode: string; aLevel: integer): TMarkdownBlock;
+function TTestFPDocRender.CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel: integer): TMarkdownBlock;
 
 begin
   Result:=TMarkDownHeadingBlock.Create(FParent,1,aLevel);
@@ -159,7 +165,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestFPDocRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
+function TTestFPDocRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
 
 var
   lPar : TMarkDownParagraphBlock;
@@ -170,7 +176,7 @@ begin
 end;
 
 
-function TTestFPDocRender.CreateListBlock(aOrdered: boolean; const aListItemText: string): TMarkDownListBlock;
+function TTestFPDocRender.CreateListBlock(aOrdered: boolean; const aListItemText: TMarkdownString): TMarkDownListBlock;
 
 begin
   Result:=TMarkDownListBlock.Create(FParent,1);
@@ -179,7 +185,7 @@ begin
     CreateListItemBlock(Result,aListItemText);
 end;
 
-function TTestFPDocRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle: TNodeStyles): TMarkDownTextNode;
+function TTestFPDocRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextNode;
 
 var
   p : TPosition;
@@ -198,7 +204,7 @@ begin
   Result:=T;
 end;
 
-procedure TTestFPDocRender.TestRender(const aFPDoc: string; aEnvelope: boolean);
+procedure TTestFPDocRender.TestRender(const aFPDoc: TMarkdownString; aEnvelope: boolean);
 
 const
   prefix = '<?xml version="1.0" encoding="utf-8"?>'+sLineBreak
@@ -223,7 +229,7 @@ const
 
 var
   L : TStrings;
-  lFPDoc: string;
+  lFPDoc: TMarkdownString;
 
 begin
   L:=TstringList.Create;
@@ -409,7 +415,7 @@ end;
 
 { TTestFPDocRenderExtensions }
 
-function TTestFPDocRenderExtensions.Render(const aMarkdown: String): String;
+function TTestFPDocRenderExtensions.Render(const aMarkdown: TMarkdownString): TMarkdownString;
 
 var
   lSource : TStringList;
@@ -433,17 +439,24 @@ begin
 end;
 
 
-procedure TTestFPDocRenderExtensions.CheckContains(const aMsg, aExpected, aActual: String);
+procedure TTestFPDocRenderExtensions.CheckContains(const aMsg, aExpected, aActual: TMarkdownString);
 
 begin
   AssertTrue(aMsg+': expected "'+aExpected+'" in "'+aActual+'"',Pos(aExpected,aActual)>0);
 end;
 
 
+procedure TTestFPDocRenderExtensions.TestNonAsciiText;
+
+begin
+  CheckContains('UTF-8 text is kept',UnicodeToMarkdown('Grüße 日本語'),Render(UnicodeToMarkdown('Grüße 日本語')));
+end;
+
+
 procedure TTestFPDocRenderExtensions.TestDefinitionList;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('Term'#10': Definition');
   CheckContains('List','<dl>',S);
@@ -455,7 +468,7 @@ end;
 procedure TTestFPDocRenderExtensions.TestDefinitionsShareDD;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('Term'#10': One'#10': Two');
   AssertEquals('One dd element',Pos('<dd>',S),S.LastIndexOf('<dd>')+1);
@@ -486,7 +499,7 @@ end;
 procedure TTestFPDocRenderExtensions.TestCommentWritesNothing;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('<!-- hidden -- text -->'#10#10'A <!-- also hidden --> b');
   AssertEquals('No XML comment',0,Pos('<!--',S));
@@ -504,7 +517,7 @@ end;
 procedure TTestFPDocRenderExtensions.TestTableHeaderRow;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=StringReplace(Render('| a |'#10'|---|'#10'| 1 |'),' ','',[rfReplaceAll]);
   S:=StringReplace(S,sLineBreak,'',[rfReplaceAll]);
@@ -523,7 +536,7 @@ end;
 procedure TTestFPDocRenderExtensions.TestFigure;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('![A figure](pic.png){#fig}');
   CheckContains('Image file','file="pic.png"',S);

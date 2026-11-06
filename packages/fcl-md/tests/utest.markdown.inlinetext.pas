@@ -17,12 +17,17 @@ unit UTest.Markdown.InlineText;
 
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, System.Contnrs,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry, contnrs,
-  Markdown.Elements, Markdown.Scanner, Markdown.InlineText;
+{$ENDIF}
+  Markdown.Utils, Markdown.Elements, Markdown.Scanner, Markdown.InlineText;
 
 type
 
@@ -36,18 +41,20 @@ type
     FEntities: TFPStringHashTable;
 
     procedure DumpNodes;
-    procedure SetupProcessor(const AText: AnsiString; awsMode: TWhitespaceMode = wsTrim);
+    procedure SetupProcessor(const AText: TMarkdownString; awsMode: TWhitespaceMode = wsTrim);
     function NodeAsText(AIndex: Integer): TMarkDownTextNode;
     function NodeAsNamed(AIndex: Integer; AExpectedKind: TTextNodeKind): TMarkDownTextNode;
-    class procedure AssertEquals(const aMsg: string; aExpected,aActual : TTextNodeKind); overload;
-    class procedure AssertEquals(const aMsg: string; aExpected,aActual : TNodeStyle); overload;
-    class procedure AssertEquals(const aMsg: string; aExpected,aActual : TNodeStyles); overload;
-    class procedure CheckStyleList(const aMsg: string; const aExpected : Array of TNodeStyle; aNode : TMarkdownTextNode);
+    class procedure AssertEquals(const aMsg: TMarkdownString; aExpected,aActual : TTextNodeKind); overload;
+    class procedure AssertEquals(const aMsg: TMarkdownString; aExpected,aActual : TNodeStyle); overload;
+    class procedure AssertEquals(const aMsg: TMarkdownString; aExpected,aActual : TNodeStyles); overload;
+    class procedure CheckStyleList(const aMsg: TMarkdownString; const aExpected : Array of TNodeStyle; aNode : TMarkdownTextNode);
 
   protected
     procedure TearDown; override;
   published
     procedure TestSimpleText;
+    procedure TestNonAsciiEmphasis;
+    procedure TestNonAsciiIntrawordEmphasis;
     procedure TestBackslashEscapes;
     procedure TestBareAmpersand;
     procedure TestNumericCharacterReference;
@@ -91,7 +98,7 @@ type
 
 implementation
 
-uses typinfo;
+uses {$IFDEF FPC_DOTTEDUNITS}System.TypInfo{$ELSE}typinfo{$ENDIF};
 
 { TTestInlineTextProcessor }
 
@@ -103,7 +110,7 @@ begin
   FEntities.Free;
 end;
 
-procedure TTestInlineTextProcessor.SetupProcessor(const AText: AnsiString; awsMode: TWhitespaceMode = wsTrim);
+procedure TTestInlineTextProcessor.SetupProcessor(const AText: TMarkdownString; awsMode: TWhitespaceMode = wsTrim);
 begin
   FScanner := TMarkDownTextScanner.Create(AText, 1);
   FNodes := TMarkDownTextNodeList.Create(True);
@@ -123,23 +130,23 @@ begin
   Result := FNodes[AIndex];
 end;
 
-class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: string; aExpected, aActual: TTextNodeKind);
+class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: TMarkdownString; aExpected, aActual: TTextNodeKind);
 begin
   AssertEquals(aMsg,GetEnumName(TypeInfo(TTextNodeKind),Ord(aExpected)),GetEnumName(TypeInfo(TTextNodeKind),Ord(aActual)));
 end;
 
-class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: string; aExpected, aActual: TNodeStyle);
+class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: TMarkdownString; aExpected, aActual: TNodeStyle);
 begin
   AssertEquals(aMsg,GetEnumName(TypeInfo(TNodeStyle),Ord(aExpected)),GetEnumName(TypeInfo(TNodeStyle),Ord(aActual)));
 end;
 
-class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: string; aExpected, aActual: TNodeStyles);
+class procedure TTestInlineTextProcessor.AssertEquals(const aMsg: TMarkdownString; aExpected, aActual: TNodeStyles);
 begin
   AssertEquals(aMsg,SetToString(PTypeInfo(TypeInfo(TNodeStyles)),Integer(aExpected),False),
                     SetToString(PTypeInfo(TypeInfo(TNodeStyles)),Integer(aActual),False));
 end;
 
-class procedure TTestInlineTextProcessor.CheckStyleList(const aMsg: string; const aExpected: array of TNodeStyle; aNode: TMarkdownTextNode);
+class procedure TTestInlineTextProcessor.CheckStyleList(const aMsg: TMarkdownString; const aExpected: array of TNodeStyle; aNode: TMarkdownTextNode);
 var
   I : Integer;
 begin
@@ -154,6 +161,35 @@ begin
   FProcessor.Process(True);
   AssertEquals('Should have one text node', 1, FNodes.Count);
   AssertEquals('Text content mismatch', 'This is a simple text.', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestNonAsciiEmphasis;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(UnicodeToMarkdown('*café* 😀'));
+  FProcessor.Process(True);
+  AssertEquals('Should have 2 nodes', 2, FNodes.Count);
+  Node:=NodeAsText(0);
+  AssertEquals('Emphasis content', UnicodeToMarkdown('café'), Node.NodeText);
+  AssertEquals('Style', [nsEmph], Node.Styles);
+  Node:=NodeAsText(1);
+  AssertEquals('Text after emphasis', UnicodeToMarkdown(' 😀'), Node.NodeText);
+  AssertEquals('Style', [], Node.Styles);
+end;
+
+procedure TTestInlineTextProcessor.TestNonAsciiIntrawordEmphasis;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(UnicodeToMarkdown('é*ü*é'));
+  FProcessor.Process(True);
+  AssertEquals('Should have 3 nodes', 3, FNodes.Count);
+  AssertEquals('Text before emphasis', UnicodeToMarkdown('é'), NodeAsText(0).NodeText);
+  Node:=NodeAsText(1);
+  AssertEquals('Emphasis content', UnicodeToMarkdown('ü'), Node.NodeText);
+  AssertEquals('Style', [nsEmph], Node.Styles);
+  AssertEquals('Text after emphasis', UnicodeToMarkdown('é'), NodeAsText(2).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.TestBackslashEscapes;

@@ -15,13 +15,18 @@
 unit UTest.Markdown.LaTeXRender;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry,
+{$ENDIF}
   MarkDown.Elements,
-  MarkDown.LatexRender;
+  Markdown.Utils, MarkDown.LatexRender;
 
 type
 
@@ -34,14 +39,14 @@ type
   Public
     Procedure SetUp; override;
     Procedure TearDown; override;
-    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: string; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
-    function CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateHeadingBlock(const aTextNode: string; aLevel : integer): TMarkdownBlock;
-    function CreateListBlock(aOrdered : boolean; const aListItemText : string): TMarkDownListBlock;
-    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
-    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
-    procedure TestRender(const aLaTeX : string);
+    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: TMarkdownString; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
+    function CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel : integer): TMarkdownBlock;
+    function CreateListBlock(aOrdered : boolean; const aListItemText : TMarkdownString): TMarkDownListBlock;
+    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
+    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
+    procedure TestRender(const aLaTeX : TMarkdownString);
     Property Renderer : TMarkDownLaTeXRenderer Read FLaTeXRenderer;
     Property Document : TMarkDownDocument Read FDocument;
   Published
@@ -71,10 +76,11 @@ type
 
   TTestLaTeXRenderExtensions = Class(TTestCase)
   protected
-    function Render(const aMarkdown : String; aOptions : TLaTeXOptions = []) : String;
-    procedure CheckContains(const aMsg, aExpected, aActual : String);
+    function Render(const aMarkdown : TMarkdownString; aOptions : TLaTeXOptions = []) : TMarkdownString;
+    procedure CheckContains(const aMsg, aExpected, aActual : TMarkdownString);
   Published
     procedure TestHeadingLabel;
+    procedure TestNonAsciiText;
     procedure TestSetextHeading;
     procedure TestDeepHeading;
     procedure TestDescription;
@@ -111,7 +117,7 @@ begin
 end;
 
 
-function TTestLaTeXRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: string; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
+function TTestLaTeXRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
 
 begin
   Result:=TMarkDownTextBlock.Create(aParent,1,aText);
@@ -119,7 +125,7 @@ begin
     AppendTextNode(Result,aTextNode,aNodeStyle);
 end;
 
-function TTestLaTeXRender.CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
+function TTestLaTeXRender.CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownParagraphBlock.Create(FDocument,1);
@@ -127,7 +133,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestLaTeXRender.CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
+function TTestLaTeXRender.CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownQuoteBlock.Create(FDocument,1);
@@ -135,7 +141,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestLaTeXRender.CreateHeadingBlock(const aTextNode: string; aLevel: integer): TMarkdownBlock;
+function TTestLaTeXRender.CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel: integer): TMarkdownBlock;
 
 begin
   Result:=TMarkDownHeadingBlock.Create(FDocument,1,aLevel);
@@ -143,7 +149,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestLaTeXRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
+function TTestLaTeXRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
 
 var
   lPar : TMarkDownParagraphBlock;
@@ -154,7 +160,7 @@ begin
 end;
 
 
-function TTestLaTeXRender.CreateListBlock(aOrdered: boolean; const aListItemText: string): TMarkDownListBlock;
+function TTestLaTeXRender.CreateListBlock(aOrdered: boolean; const aListItemText: TMarkdownString): TMarkDownListBlock;
 
 begin
   Result:=TMarkDownListBlock.Create(FDocument,1);
@@ -163,7 +169,7 @@ begin
     CreateListItemBlock(Result,aListItemText);
 end;
 
-function TTestLaTeXRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle: TNodeStyles): TMarkDownTextNode;
+function TTestLaTeXRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextNode;
 
 var
   p : TPosition;
@@ -182,7 +188,7 @@ begin
   Result:=T;
 end;
 
-procedure TTestLaTeXRender.TestRender(const aLaTeX: string);
+procedure TTestLaTeXRender.TestRender(const aLaTeX: TMarkdownString);
 
 var
   L : TStrings;
@@ -373,7 +379,7 @@ end;
 
 { TTestLaTeXRenderExtensions }
 
-function TTestLaTeXRenderExtensions.Render(const aMarkdown: String; aOptions: TLaTeXOptions): String;
+function TTestLaTeXRenderExtensions.Render(const aMarkdown: TMarkdownString; aOptions: TLaTeXOptions): TMarkdownString;
 
 var
   lSource : TStringList;
@@ -381,7 +387,7 @@ var
 begin
   lSource:=TStringList.Create;
   try
-    lSource.Text:=aMarkdown;
+    lSource.Text:=MarkdownToString(aMarkdown);
     lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
     try
       Result:=TMarkdownLaTeXRenderer.FastRender(lDoc,aOptions);
@@ -394,10 +400,17 @@ begin
 end;
 
 
-procedure TTestLaTeXRenderExtensions.CheckContains(const aMsg, aExpected, aActual: String);
+procedure TTestLaTeXRenderExtensions.CheckContains(const aMsg, aExpected, aActual: TMarkdownString);
 
 begin
   AssertTrue(aMsg+': expected "'+aExpected+'" in "'+aActual+'"',Pos(aExpected,aActual)>0);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestNonAsciiText;
+
+begin
+  CheckContains('UTF-8 text is kept',UnicodeToMarkdown('Grüße 日本語'),Render(UnicodeToMarkdown('Grüße 日本語')));
 end;
 
 
@@ -411,7 +424,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestSetextHeading;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('First'#10'====='#10#10'Second'#10'------');
   CheckContains('Level 1 setext heading','\section*{First}\label{first}',S);
@@ -429,7 +442,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestDescription;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('Term'#10': Definition');
   CheckContains('Description start','\begin{description}',S);
@@ -448,7 +461,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestAlertEnvironment;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('> [!NOTE]'#10'> Text',[loEnvelope]);
   CheckContains('Environment defined','\newenvironment{mdalert}',S);
@@ -474,7 +487,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestTableFloat;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('| a |'#10'|---|'#10'| 1 |'#10#10'Table: Values {#tab}');
   CheckContains('Table float','\begin{table}[htbp]',S);
@@ -487,7 +500,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestFigure;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('![A figure](pic.png){#fig width=50%}');
   CheckContains('Figure float','\begin{figure}[htbp]',S);
@@ -500,7 +513,7 @@ end;
 procedure TTestLaTeXRenderExtensions.TestCommentWritesNothing;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('<!-- hidden -->'#10#10'A <!-- also hidden --> b');
   AssertEquals('No comment text',0,Pos('hidden',S));

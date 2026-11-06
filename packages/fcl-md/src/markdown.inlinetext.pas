@@ -43,12 +43,12 @@ Type
   TMarkdownDelimiter = class
   private
     FModes: TMarkdownDelimiterModes;
-    FDelimiter: String;
+    FDelimiter: TMarkdownString;
     FActive: boolean;
     FNode: TMarkdownTextNode;
     FSourcePos: Integer;
   public
-    constructor Create(aNode: TMarkdownTextNode; const aDelimiter: String; aModes: TMarkdownDelimiterModes);
+    constructor Create(aNode: TMarkdownTextNode; const aDelimiter: TMarkdownString; aModes: TMarkdownDelimiterModes);
     // Scanner position just after the delimiter
     property SourcePos : Integer read FSourcePos write FSourcePos;
     procedure RemoveLast(aCount : integer);
@@ -57,7 +57,7 @@ Type
     function Closes : Boolean;
     function OpensCloses : Boolean;
     property Node : TMarkdownTextNode read FNode;
-    property Delimiter : String read FDelimiter write FDelimiter;
+    property Delimiter : TMarkdownString read FDelimiter write FDelimiter;
     property Active : Boolean read FActive write FActive;
     property Modes : TMarkdownDelimiterModes read FModes write FModes;
     function IsEmph : Boolean;
@@ -79,17 +79,17 @@ Type
     FStack : TMarkdownDelimiterList;
   protected
     // Reading
-    function ReadInlineBracketedLink(aBuilder: TStringBuilder): Boolean;
-    function ReadInlineNormalLink(aBuilder: TStringBuilder): Boolean;
-    function ReadLinkTitle(aBuilder: TStringBuilder): Boolean;
+    function ReadInlineBracketedLink(aBuilder: TMarkdownStringBuilder): Boolean;
+    function ReadInlineNormalLink(aBuilder: TMarkdownStringBuilder): Boolean;
+    function ReadLinkTitle(aBuilder: TMarkdownStringBuilder): Boolean;
     // Read (destination "title") at the scanner position
-    function ReadInlineDestination(aBuilder: TStringBuilder; out aURL, aTitle: String): Boolean;
+    function ReadInlineDestination(aBuilder: TMarkdownStringBuilder; out aURL, aTitle: TMarkdownString): Boolean;
     // Read the [label] or [] after a link text, or use aLinkText as shortcut label, and look it up
-    function ReadReferenceLink(const aLinkText: String; out aURL, aTitle: String): Boolean;
+    function ReadReferenceLink(const aLinkText: TMarkdownString; out aURL, aTitle: TMarkdownString): Boolean;
     // Turn the delimiter node into a link or image
-    procedure ApplyLink(aDelim: TMarkdownDelimiter; const aURL, aTitle: String);
+    procedure ApplyLink(aDelim: TMarkdownDelimiter; const aURL, aTitle: TMarkdownString);
     function PeekEmailAddress(out len: integer): boolean; virtual;
-    procedure AddTextTillNext(const aTerminal: String); virtual;
+    procedure AddTextTillNext(const aTerminal: TMarkdownString); virtual;
     // Remove the delimiter from the stack, restoring the unused part of its run as literal text
     procedure DiscardDelimiter(aIndex: Integer); virtual;
     // Handle various constructs
@@ -98,7 +98,7 @@ Type
     procedure HandleBackTick; virtual;
     procedure HandleDelimiter(aAllowMulti: boolean); virtual;
     procedure HandleEntity; virtual;
-    function  HandleEntityInner: String; virtual;
+    function  HandleEntityInner: TMarkdownString; virtual;
     procedure HandleTilde; virtual;
     procedure HandleTextEscape; virtual;
     procedure HandleTextCore; virtual;
@@ -110,11 +110,11 @@ Type
     procedure HandleCloseDelimiter(); virtual;
     procedure HandleGFMExtensions; virtual;
     procedure HandleGFMLinkEmail(aLength: integer); virtual;
-    procedure HandleGFMLinkURL(aStartChars : integer; const aProtocol : string = ''); virtual;
+    procedure HandleGFMLinkURL(aStartChars : integer; const aProtocol : TMarkdownString = ''); virtual;
   public
     constructor Create(aLexer : TMarkdownTextScanner; aNodes: TMarkdownTextNodeList; aEntities : TFPStringHashTable; awsMode : TWhitespaceMode);
     destructor Destroy; override;
-    function process(aCloseLast : boolean = false): TMarkdownTextNodeList;
+    function Process(aCloseLast : boolean = false): TMarkdownTextNodeList;
     procedure DumpNodes;
     property Scanner : TMarkdownTextScanner read FScanner;
     property Nodes : TMarkdownTextNodeList Read FNodes;
@@ -142,7 +142,7 @@ const
 
 { TMarkdownDelimiter }
 
-constructor TMarkdownDelimiter.Create(aNode: TMarkdownTextNode; const aDelimiter : String; aModes: TMarkdownDelimiterModes);
+constructor TMarkdownDelimiter.Create(aNode: TMarkdownTextNode; const aDelimiter : TMarkdownString; aModes: TMarkdownDelimiterModes);
 begin
   inherited create;
   FNode:=aNode;
@@ -219,7 +219,7 @@ end;
 procedure TInlineTextProcessor.HandleTextEscape;
 
 var
-  C : Char;
+  C : TMarkdownChar;
 
 begin
   Scanner.Bookmark;
@@ -240,11 +240,11 @@ end;
 procedure TInlineTextProcessor.HandleAutoLink;
 
 var
-  lText : String;
+  lText : TMarkdownString;
   lNode : TMarkdownTextNode;
   lAdd : boolean;
   lNodeKind : TTextNodeKind;
-  lURL : String;
+  lURL : TMarkdownString;
 
 begin
   Scanner.BookMark;
@@ -294,10 +294,10 @@ begin
     end
 end;
 
-function TInlineTextProcessor.HandleEntityInner: String;
+function TInlineTextProcessor.HandleEntityInner: TMarkdownString;
 
 var
-  lEntity : String;
+  lEntity : TMarkdownString;
   I,lLen : integer;
 
 begin
@@ -316,7 +316,7 @@ begin
     exit;
   // Unicode char.
   System.Delete(lEntity,1,1);
-  if TryStrToInt(lEntity,I) then
+  if TryMarkdownToInt(lEntity,I) then
     begin
     Scanner.NextChars(lLen+1);
     Result:=CodePointToUTF8(I);
@@ -325,7 +325,7 @@ end;
 
 procedure TInlineTextProcessor.HandleBackTick;
 var
-  lBackTick : String;
+  lBackTick : TMarkdownString;
   lLen : integer;
 
 begin
@@ -342,7 +342,7 @@ end;
 
 procedure TInlineTextProcessor.HandleTilde;
 var
-  lTilde : String;
+  lTilde : TMarkdownString;
   lLen : Integer;
   ldelete : boolean;
   lNode : TMarkdownTextNode;
@@ -361,10 +361,10 @@ begin
   AddTextTillNext(lTilde);
 end;
 
-procedure TInlineTextProcessor.AddTextTillNext(const aTerminal : String);
+procedure TInlineTextProcessor.AddTextTillNext(const aTerminal : TMarkdownString);
 var
   lWhitespace,lFirstWhitespace : boolean;
-  C : char;
+  C : TMarkdownChar;
   lLen : integer;
 begin
   lLen:=Length(aTerminal);
@@ -394,7 +394,7 @@ end;
 
 procedure TInlineTextProcessor.HandleDelimiter(aAllowMulti : boolean);
 
-  function IsWhiteSpace(aChar : Char) : boolean;
+  function IsWhitespace(aChar : TMarkdownChar) : boolean;
   // Handle end of line in addition to normal whitespace
   const
     EOL = [#0,#10];
@@ -402,7 +402,7 @@ procedure TInlineTextProcessor.HandleDelimiter(aAllowMulti : boolean);
     Result:=CharInSet(aChar,EOL) or Markdown.Utils.IsWhiteSpace(aChar);
   end;
 
-  function isPunctuation(aChar : Char) : boolean;
+  function isPunctuation(aChar : TMarkdownChar) : boolean;
   // Handle special chars in addition to Unicode punctuation
   const
     SpecialPunctuation = ['!','"','#','$','%','&','''','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\',']','^','_','`','{','|','}','~'];
@@ -410,7 +410,7 @@ procedure TInlineTextProcessor.HandleDelimiter(aAllowMulti : boolean);
     Result:=CharInSet(aChar,SpecialPunctuation) or isUnicodePunctuation(aChar);
   end;
 
-  function isLeftFlanking(aPrevious,aNext : char) : boolean;
+  function isLeftFlanking(aPrevious,aNext : TMarkdownChar) : boolean;
 
   begin
    // (1) not followed by Unicode whitespace.
@@ -425,7 +425,7 @@ procedure TInlineTextProcessor.HandleDelimiter(aAllowMulti : boolean);
              or isPunctuation(aPrevious); // 2b
   end;
 
-  function isRightFlanking(aPrevious,aNext : char) : boolean;
+  function isRightFlanking(aPrevious,aNext : TMarkdownChar) : boolean;
 
   begin
     // (1) not preceded by Unicode whitespace.
@@ -440,8 +440,8 @@ procedure TInlineTextProcessor.HandleDelimiter(aAllowMulti : boolean);
   end;
 
 var
-  cPrevious,cNext : Char;
-  lDelim : String;
+  cPrevious,cNext : TMarkdownChar;
+  lDelim : TMarkdownString;
   lLeft,lRight : boolean;
   lPos : TPosition;
   lModes : TMarkdownDelimiterModes;
@@ -475,7 +475,7 @@ begin
   FStack[FStack.Count-1].SourcePos:=Scanner.CursorPos;
 end;
 
-function TInlineTextProcessor.ReadInlineBracketedLink(aBuilder : TStringBuilder) : Boolean;
+function TInlineTextProcessor.ReadInlineBracketedLink(aBuilder : TMarkdownStringBuilder) : Boolean;
 
 begin
   Result:=False;
@@ -506,15 +506,15 @@ begin
   Result:=Not Scanner.EOF;
 end;
 
-function TInlineTextProcessor.ReadInlineNormalLink(aBuilder : TStringBuilder) : Boolean;
+function TInlineTextProcessor.ReadInlineNormalLink(aBuilder : TMarkdownStringBuilder) : Boolean;
 
 var
   lLevel : Integer;
-  C : Char;
+  C : TMarkdownChar;
 
   function EndOfLink : boolean;
   var
-    lNext : Char;
+    lNext : TMarkdownChar;
   begin
     lNext:=Scanner.Peek;
     Result:=((lLevel=0) and (lNext=')')) or isWhitespace(lNext);
@@ -548,10 +548,10 @@ begin
   Result:=Not Scanner.EOF;
 end;
 
-function TInlineTextProcessor.ReadLinkTitle(aBuilder : TStringBuilder) : Boolean;
+function TInlineTextProcessor.ReadLinkTitle(aBuilder : TMarkdownStringBuilder) : Boolean;
 
 Var
-  C,EOT : char;
+  C,EOT : TMarkdownChar;
 
 begin
   Result:=False;
@@ -608,14 +608,14 @@ function TInlineTextProcessor.HandleInlineLink(aDelim : TMarkdownDelimiter): boo
 }
 
 var
-  lURL : String;
-  lTitle : String;
-  lLinkText : String;
-  lBuilder : TStringBuilder;
+  lURL : TMarkdownString;
+  lTitle : TMarkdownString;
+  lLinkText : TMarkdownString;
+  lBuilder : TMarkdownStringBuilder;
 
 begin
   Result:=false;
-  lBuilder:=TStringBuilder.Create;
+  lBuilder:=TMarkdownStringBuilder.Create;
   Scanner.BookMark;
   try
     lLinkText:=Scanner.TextRange(aDelim.SourcePos,Scanner.CursorPos);
@@ -638,7 +638,7 @@ begin
 end;
 
 
-function TInlineTextProcessor.ReadInlineDestination(aBuilder: TStringBuilder; out aURL, aTitle: String): Boolean;
+function TInlineTextProcessor.ReadInlineDestination(aBuilder: TMarkdownStringBuilder; out aURL, aTitle: TMarkdownString): Boolean;
 
 begin
   Result:=False;
@@ -654,14 +654,14 @@ begin
     end
   else if not ReadInlineNormalLink(aBuilder) then
     Exit;
-  aURL:=URLEscape(aBuilder.ToString);
+  aURL:=URLEscape(BuilderToMarkdown(aBuilder));
   if Scanner.Peek <> ')' then
     begin
     aBuilder.clear;
     if not ReadLinkTitle(aBuilder) then
       Exit;
     Scanner.NextChar;
-    aTitle:=aBuilder.toString;
+    aTitle:=BuilderToMarkdown(aBuilder);
     end;
   Scanner.skipWhiteSpace;
   if Scanner.Peek <> ')' then
@@ -671,11 +671,11 @@ begin
 end;
 
 
-function TInlineTextProcessor.ReadReferenceLink(const aLinkText: String; out aURL, aTitle: String): Boolean;
+function TInlineTextProcessor.ReadReferenceLink(const aLinkText: TMarkdownString; out aURL, aTitle: TMarkdownString): Boolean;
 
 var
   lRef : TMarkdownLinkReference;
-  lLabel : String;
+  lLabel : TMarkdownString;
 
 begin
   Result:=False;
@@ -706,7 +706,7 @@ begin
 end;
 
 
-procedure TInlineTextProcessor.ApplyLink(aDelim: TMarkdownDelimiter; const aURL, aTitle: String);
+procedure TInlineTextProcessor.ApplyLink(aDelim: TMarkdownDelimiter; const aURL, aTitle: TMarkdownString);
 
 var
   lDelim : TMarkdownDelimiter;
@@ -743,7 +743,7 @@ function TInlineTextProcessor.HandleComment: Boolean;
 
 var
   lEnd : Integer;
-  lText,lName,lArgument,lValue : String;
+  lText,lName,lArgument,lValue : TMarkdownString;
   lNode : TMarkdownTextNode;
 
 begin
@@ -766,8 +766,8 @@ end;
 function TInlineTextProcessor.HandleFootnoteRef: Boolean;
 
 var
-  lText : String;
-  C : Char;
+  lText : TMarkdownString;
+  C : TMarkdownChar;
   lNode : TMarkdownTextNode;
 
 begin
@@ -987,8 +987,8 @@ const
 
 var
   lLen : integer;
-  cLast : Char;
-  S : String;
+  cLast : TMarkdownChar;
+  S : TMarkdownString;
 
 begin
   Result:=False;
@@ -1007,11 +1007,11 @@ begin
 end;
 
 
-function TInlineTextProcessor.process(aCloseLast: boolean): TMarkdownTextNodeList;
+function TInlineTextProcessor.Process(aCloseLast: boolean): TMarkdownTextNodeList;
 
 var
-  c : Char;
-  lWhiteSpace : string;
+  c : TMarkdownChar;
+  lWhiteSpace : TMarkdownString;
   lHadNonWhitespace : boolean;
 
 begin
@@ -1062,7 +1062,7 @@ end;
 procedure TInlineTextProcessor.HandleGFMLinkEmail(aLength : integer);
 
 var
-  lEmail : String;
+  lEmail : TMarkdownString;
   lNode : TMarkdownTextNode;
 
 begin
@@ -1071,7 +1071,7 @@ begin
   lNode.attrs.Add('href','mailto:'+urlEscape(lEmail));
 end;
 
-procedure TInlineTextProcessor.HandleGFMLinkURL(aStartChars : integer; const aProtocol : String='');
+procedure TInlineTextProcessor.HandleGFMLinkURL(aStartChars : integer; const aProtocol : TMarkdownString='');
 
 Const
   URLChars = ['a'..'z','A'..'Z','0'..'9','_','-','.'];
@@ -1080,7 +1080,7 @@ Const
 var
   lRewind : boolean;
   lRemove : Integer;
-  lLink,lUrl,lText : string;
+  lLink,lUrl,lText : TMarkdownString;
   lNode : TMarkdownTextNode;
 
 begin

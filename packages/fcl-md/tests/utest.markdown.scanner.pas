@@ -15,12 +15,17 @@
 unit UTest.Markdown.Scanner;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry,
-  MarkDown.Elements, MarkDown.Scanner;
+{$ENDIF}
+  Markdown.Utils, MarkDown.Elements, MarkDown.Scanner;
 
 type
   TMyMarkDownTextScanner = Class(TMarkDownTextScanner)
@@ -35,7 +40,7 @@ type
   private
     FScanner: TMyMarkDownTextScanner;
   protected
-    procedure InitScanner(const aText : string; aLineNo : Integer);
+    procedure InitScanner(const aText : TMarkdownString; aLineNo : Integer);
     procedure SetUp; override;
     procedure TearDown; override;
     property Scanner : TMyMarkDownTextScanner Read FScanner;
@@ -47,6 +52,7 @@ type
     procedure TestPeekPrevious;
     procedure TestPeekEndRun;
     procedure TestNextChar;
+    procedure TestNonAsciiBytes;
     procedure TestLocation;
     procedure TestBookmark;
     procedure TestPeekLen;
@@ -65,7 +71,7 @@ implementation
 
 { TTestMarkDownTextScanner }
 
-procedure TTestMarkDownTextScanner.InitScanner(const aText: string; aLineNo: Integer);
+procedure TTestMarkDownTextScanner.InitScanner(const aText: TMarkdownString; aLineNo: Integer);
 begin
   FreeAndNil(FScanner);
   FScanner:=TMyMarkDownTextScanner.Create(aText, aLineNo);
@@ -152,6 +158,15 @@ begin
   AssertEquals('Peek should now be "b"', 'b', FScanner.Peek);
   FScanner.NextChars(4); // To EOF
   AssertEquals('NextChar at EOF should return #0', #0, FScanner.NextChar);
+end;
+
+procedure TTestMarkDownTextScanner.TestNonAsciiBytes;
+begin
+  InitScanner(UnicodeToMarkdown('é*x'),1);
+  AssertEquals('PeekUntil stops at the star',UnicodeToMarkdown('é'),Scanner.PeekUntil(['*']));
+  AssertEquals('First byte of é',TMarkdownChar(#$C3),Scanner.NextChar);
+  AssertEquals('Second byte of é',TMarkdownChar(#$A9),Scanner.NextChar);
+  AssertEquals('Star after é',TMarkdownChar('*'),Scanner.NextChar);
 end;
 
 procedure TTestMarkDownTextScanner.TestLocation;

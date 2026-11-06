@@ -26,19 +26,20 @@ uses
   Classes, SysUtils, Contnrs, FPAnsi,
 {$ENDIF}
   Markdown.Elements,
-  Markdown.Render;
+  Markdown.Render,
+  Markdown.Utils;
 
 type
   // Style flags collected for a text run.
   TRunStyle = record
     Bold, Italic, Underline, Strike, Inverse, Faint : Boolean;
     Fg : Integer;     // 256-color code, or -1 for the terminal default
-    Href : string;    // when set (and Hyperlinks is on) emitted as an OSC 8 link
+    Href : TMarkdownString;    // when set (and Hyperlinks is on) emitted as an OSC 8 link
   end;
 
   TLinePrefix = record
     Vis : Integer;    // visible width of the prefix
-    Styled : string;  // styled text emitted at the start of every line
+    Styled : TMarkdownString;  // styled text emitted at the start of every line
   end;
 
   { TMarkDownANSIRenderer }
@@ -51,44 +52,44 @@ type
     FUseColor : Boolean;
     FHyperlinks : Boolean;
     // line layout state
-    FLine : string;
+    FLine : TMarkdownString;
     FCol : Integer;
     FLineStartCol : Integer; 
     FStarted : Boolean;   
     FPendingSpace : Boolean;
     // line-start prefixes (indents, quote bars, ...)
     FPrefix : array of TLinePrefix;
-    FMarker : string;
+    FMarker : TMarkdownString;
     FMarkerVis : Integer;
     // inherited inline style (set by heading/quote block renderers)
     FBaseStyle : TRunStyle;
     FInListItem : Boolean; 
     procedure StartLine;
-    procedure PlaceStyled(const aVisible, aStyled : string);
+    procedure PlaceStyled(const aVisible, aStyled : TMarkdownString);
   public
     constructor Create(aOwner : TComponent); override;
     destructor Destroy; override;
     // Rendering
     procedure RenderDocument(aDocument : TMarkdownDocument); override; overload;
     procedure RenderDocument(aDocument : TMarkdownDocument; aDest : TStrings); overload;
-    function RenderToString(aDocument : TMarkdownDocument) : string;
+    function RenderToString(aDocument : TMarkdownDocument) : TMarkdownString;
     // Helpers used by the block/text renderers
-    function VisibleWidth(const aText : string) : Integer;
-    function StyleText(const aText : string; const aStyle : TRunStyle) : string;
+    function VisibleWidth(const aText : TMarkdownString) : Integer;
+    function StyleText(const aText : TMarkdownString; const aStyle : TRunStyle) : TMarkdownString;
     function DefaultStyle : TRunStyle;
     // Writer primitives
     procedure NewLine;
     procedure FlushLine;
     procedure BlankLine;
-    procedure AddRun(const aText : string; const aStyle : TRunStyle; aWordWrap : Boolean);
-    procedure AddRaw(const aVisible, aStyled : string);
-    procedure PushPrefix(aVis : Integer; const aStyled : string);
+    procedure AddRun(const aText : TMarkdownString; const aStyle : TRunStyle; aWordWrap : Boolean);
+    procedure AddRaw(const aVisible, aStyled : TMarkdownString);
+    procedure PushPrefix(aVis : Integer; const aStyled : TMarkdownString);
     procedure PopPrefix;
-    procedure SetMarker(const aStyled : string; aVis : Integer);
+    procedure SetMarker(const aStyled : TMarkdownString; aVis : Integer);
     function PrefixWidth : Integer;
     procedure RenderInline(aNode : TMarkdownTextNode);
     // Write aText as-is; it counts as visible text.
-    procedure WriteRaw(const aText : String); override;
+    procedure WriteRaw(const aText : TMarkdownString); override;
     // Render the referenced footnotes of aDocument as a numbered list.
     procedure RenderFootnotes(aDocument : TMarkdownDocument); virtual;
     // Theme/state accessed by block renderers
@@ -249,7 +250,7 @@ type
     class function BlockClass : TMarkdownBlockClass; override;
   end;
 
-function Spaces(aCount : Integer) : string;
+function Spaces(aCount : Integer) : TMarkdownString;
 begin
   if aCount<=0 then
     Result:=''
@@ -284,7 +285,7 @@ begin
 end;
 
 
-function TMarkDownANSIRenderer.VisibleWidth(const aText : string) : Integer;
+function TMarkDownANSIRenderer.VisibleWidth(const aText : TMarkdownString) : Integer;
 var
   i : Integer;
 begin
@@ -297,20 +298,24 @@ begin
 end;
 
 
-function TMarkDownANSIRenderer.StyleText(const aText : string; const aStyle : TRunStyle) : string;
+function TMarkDownANSIRenderer.StyleText(const aText : TMarkdownString; const aStyle : TRunStyle) : TMarkdownString;
+const
+  // Styled in place of the text, which is then put in its position.
+  cPlaceholder = #1;
 var
   a : TAnsi;
-  lVis : string;
+  lVis : TMarkdownString;
+  lPos : Integer;
 begin
   lVis:=aText;
   if (aStyle.Href<>'') and FHyperlinks then
-    lVis:=TAnsi.Hyperlink(aStyle.Href,aText);
+    lVis:=StringToMarkdown(TAnsi.Hyperlink(MarkdownToString(aStyle.Href),MarkdownToString(aText)));
   if not FUseColor then
     Exit(lVis);
   if not (aStyle.Bold or aStyle.Italic or aStyle.Underline or aStyle.Strike
           or aStyle.Inverse or aStyle.Faint) and (aStyle.Fg<0) then
     Exit(lVis);
-  a:=lVis;
+  a:=cPlaceholder;
   if aStyle.Bold then a:=a.Bold;
   if aStyle.Faint then a:=a.Faint;
   if aStyle.Italic then a:=a.Italic;
@@ -318,7 +323,9 @@ begin
   if aStyle.Inverse then a:=a.Inverse;
   if aStyle.Strike then a:=a.Strikethrough;
   if aStyle.Fg>=0 then a:=a.Fg(aStyle.Fg);
-  Result:=a.ToString;
+  Result:=StringToMarkdown(a.ToString);
+  lPos:=Pos(cPlaceholder,Result);
+  Result:=Copy(Result,1,lPos-1)+lVis+Copy(Result,lPos+1,Length(Result)-lPos);
 end;
 
 
@@ -359,7 +366,7 @@ procedure TMarkDownANSIRenderer.NewLine;
 begin
   if not FStarted then
     StartLine;
-  FOutput.Add(FLine);
+  FOutput.Add(MarkdownToString(FLine));
   FLine:='';
   FCol:=0;
   FStarted:=False;
@@ -382,7 +389,7 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.PlaceStyled(const aVisible, aStyled : string);
+procedure TMarkDownANSIRenderer.PlaceStyled(const aVisible, aStyled : TMarkdownString);
 var
   w : Integer;
 begin
@@ -407,11 +414,11 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.AddRun(const aText : string; const aStyle : TRunStyle; aWordWrap : Boolean);
+procedure TMarkDownANSIRenderer.AddRun(const aText : TMarkdownString; const aStyle : TRunStyle; aWordWrap : Boolean);
 var
   i : Integer;
-  c : Char;
-  lWord : string;
+  c : TMarkdownChar;
+  lWord : TMarkdownString;
 begin
   if aText='' then
     exit;
@@ -441,7 +448,7 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.AddRaw(const aVisible, aStyled : string);
+procedure TMarkDownANSIRenderer.AddRaw(const aVisible, aStyled : TMarkdownString);
 begin
   if not FStarted then
     StartLine;
@@ -450,7 +457,7 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.PushPrefix(aVis : Integer; const aStyled : string);
+procedure TMarkDownANSIRenderer.PushPrefix(aVis : Integer; const aStyled : TMarkdownString);
 begin
   SetLength(FPrefix,Length(FPrefix)+1);
   FPrefix[High(FPrefix)].Vis:=aVis;
@@ -465,7 +472,7 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.SetMarker(const aStyled : string; aVis : Integer);
+procedure TMarkDownANSIRenderer.SetMarker(const aStyled : TMarkdownString; aVis : Integer);
 begin
   FMarker:=aStyled;
   FMarkerVis:=aVis;
@@ -475,7 +482,7 @@ end;
 procedure TMarkDownANSIRenderer.RenderInline(aNode : TMarkdownTextNode);
 var
   lStyle,lSaveBase : TRunStyle;
-  lText,lHref : string;
+  lText,lHref : TMarkdownString;
   lChild : TMarkdownTextNode;
 begin
   if not assigned(aNode) then
@@ -563,7 +570,7 @@ begin
 end;
 
 
-procedure TMarkDownANSIRenderer.WriteRaw(const aText : String);
+procedure TMarkDownANSIRenderer.WriteRaw(const aText : TMarkdownString);
 
 begin
   if Assigned(FOutput) then
@@ -575,7 +582,7 @@ procedure TMarkDownANSIRenderer.RenderFootnotes(aDocument : TMarkdownDocument);
 
 var
   lBlock : TMarkdownBlock;
-  lMarker : string;
+  lMarker : TMarkdownString;
   lWasInItem : Boolean;
 begin
   if aDocument.Footnotes.Count=0 then
@@ -585,7 +592,7 @@ begin
   FInListItem:=True;
   for lBlock in aDocument.Footnotes do
     begin
-    lMarker:='['+IntToStr(TMarkdownFootnoteBlock(lBlock).Number)+'] ';
+    lMarker:='['+IntToMarkdown(TMarkdownFootnoteBlock(lBlock).Number)+'] ';
     PushPrefix(VisibleWidth(lMarker),Spaces(VisibleWidth(lMarker)));
     SetMarker(lMarker,VisibleWidth(lMarker));
     RenderChildren(TMarkdownFootnoteBlock(lBlock));
@@ -603,14 +610,14 @@ begin
 end;
 
 
-function TMarkDownANSIRenderer.RenderToString(aDocument : TMarkdownDocument) : string;
+function TMarkDownANSIRenderer.RenderToString(aDocument : TMarkdownDocument) : TMarkdownString;
 var
   L : TStringList;
 begin
   L:=TStringList.Create;
   try
     RenderDocument(aDocument,L);
-    Result:=L.Text;
+    Result:=StringToMarkdown(L.Text);
   finally
     L.Free;
   end;
@@ -629,7 +636,7 @@ procedure TANSIBlockRenderer.RenderHeading(aBlock : TMarkdownContainerBlock);
 
 var
   lSaved, lStyle : TRunStyle;
-  lNumber : string;
+  lNumber : TMarkdownString;
 begin
   ANSI.BlankLine;
   lSaved:=ANSI.BaseStyle;
@@ -761,14 +768,14 @@ end;
 procedure TANSIListItemRenderer.DoRender(aBlock : TMarkdownBlock);
 var
   lList : TANSIListRenderer;
-  lMarker : string;
+  lMarker : TMarkdownString;
   lMarkerVis : Integer;
   lStyle : TRunStyle;
   lWasInItem : Boolean;
 begin
   lList:=TANSIListRenderer(GetFirstParentWithClass(TANSIListRenderer));
   if Assigned(lList) and (lList.ItemNumber>0) then
-    lMarker:=IntToStr(lList.ItemNumber)+'. '
+    lMarker:=IntToMarkdown(lList.ItemNumber)+'. '
   else
     lMarker:='* ';
   lMarkerVis:=ANSI.VisibleWidth(lMarker);
@@ -797,7 +804,7 @@ procedure TANSICodeRenderer.DoRender(aBlock : TMarkdownBlock);
 var
   i,j : Integer;
   lChild : TMarkdownBlock;
-  lLine : string;
+  lLine : TMarkdownString;
   lStyle : TRunStyle;
 begin
   ANSI.BlankLine;
@@ -831,7 +838,7 @@ procedure TANSIThematicBreakRenderer.DoRender(aBlock : TMarkdownBlock);
 var
   lStyle : TRunStyle;
   lWidth : Integer;
-  lRule : string;
+  lRule : TMarkdownString;
 begin
   if aBlock=nil then ;
   ANSI.BlankLine;
@@ -860,12 +867,12 @@ var
   lTable : TMarkdownTableBlock;
   lCols, lRows, r, c : Integer;
   lColW : array of Integer;
-  lCellText : array of array of string;
+  lCellText : array of array of TMarkdownString;
   lRow, lCell : TMarkdownBlock;
-  lText, lLine, lSep, lLabel : string;
+  lText, lLine, lSep, lLabel : TMarkdownString;
   lStyle : TRunStyle;
 
-  function CellText(aCell : TMarkdownBlock) : string;
+  function CellText(aCell : TMarkdownBlock) : TMarkdownString;
   begin
     Result:='';
     if (aCell is TMarkdownTextBlock) and Assigned(TMarkdownTextBlock(aCell).Nodes) then
@@ -1101,7 +1108,7 @@ procedure TANSIFigureRenderer.DoRender(aBlock : TMarkdownBlock);
 
 var
   lNode : TMarkdownFigureBlock absolute aBlock;
-  lText, lLabel : string;
+  lText, lLabel : TMarkdownString;
   lStyle : TRunStyle;
 begin
   lText:='';

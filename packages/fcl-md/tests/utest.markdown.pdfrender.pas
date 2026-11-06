@@ -15,12 +15,17 @@
 unit UTest.Markdown.PDFRender;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, FpPdf.Pdf,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry, fppdf,
-  Markdown.Elements, Markdown.Render, Markdown.Parser, Markdown.PDFRender;
+{$ENDIF}
+  Markdown.Utils, Markdown.Elements, Markdown.Render, Markdown.Parser, Markdown.PDFRender;
 
 type
 
@@ -31,8 +36,8 @@ type
   private
     FRuns : TStringList;
   protected
-    procedure FlushTextRun(const aText: utf8string; const aFontSize: LongInt;
-      const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
+    procedure FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+      const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
       const aDryRun: boolean); override;
   public
     constructor Create(aOwner : TComponent); override;
@@ -48,16 +53,17 @@ type
     FRenderer : TTextCollectingPDFRenderer;
     FPDF : TPDFDocument;
     FMarkers : TStringList;
-    procedure DoMarker(aRenderer : TMarkdownRenderer; const aName, aArgument, aValue : String);
+    procedure DoMarker(aRenderer : TMarkdownRenderer; const aName, aArgument, aValue : TMarkdownString);
   protected
-    procedure Render(const aMarkdown : String);
-    function AllText : String;
-    procedure CheckText(const aMsg, aExpected : String);
+    procedure Render(const aMarkdown : TMarkdownString);
+    function AllText : TMarkdownString;
+    procedure CheckText(const aMsg, aExpected : TMarkdownString);
   public
     procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestPlainDocument;
+    procedure TestNonAsciiText;
     procedure TestSetextHeading;
     procedure TestDefinitionList;
     procedure TestAlert;
@@ -93,12 +99,12 @@ begin
 end;
 
 
-procedure TTextCollectingPDFRenderer.FlushTextRun(const aText: utf8string; const aFontSize: LongInt;
-  const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext: TFontContext; const aDryRun: boolean);
+procedure TTextCollectingPDFRenderer.FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+  const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext: TFontContext; const aDryRun: boolean);
 
 begin
   if not aDryRun then
-    FRuns.AddObject(aText,TObject(PtrInt(aFontSize)));
+    FRuns.AddObject(MarkdownToString(aText),TObject(PtrInt(aFontSize)));
   inherited FlushTextRun(aText, aFontSize, aFontStyle, aLinkHref, aContext, aDryRun);
 end;
 
@@ -124,14 +130,14 @@ begin
 end;
 
 
-procedure TTestPDFRender.DoMarker(aRenderer: TMarkdownRenderer; const aName, aArgument, aValue: String);
+procedure TTestPDFRender.DoMarker(aRenderer: TMarkdownRenderer; const aName, aArgument, aValue: TMarkdownString);
 
 begin
   FMarkers.Add(aName+'='+aValue);
 end;
 
 
-procedure TTestPDFRender.Render(const aMarkdown: String);
+procedure TTestPDFRender.Render(const aMarkdown: TMarkdownString);
 
 var
   lSource : TStringList;
@@ -139,7 +145,7 @@ var
 begin
   lSource:=TStringList.Create;
   try
-    lSource.Text:=aMarkdown;
+    lSource.Text:=MarkdownToString(aMarkdown);
     lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
     try
       FRenderer.RenderDocument(lDoc,FPDF);
@@ -152,17 +158,25 @@ begin
 end;
 
 
-function TTestPDFRender.AllText: String;
+function TTestPDFRender.AllText: TMarkdownString;
 
 begin
-  Result:=String.Join('|',FRenderer.Runs.ToStringArray);
+  Result:=StringToMarkdown(String.Join('|',FRenderer.Runs.ToStringArray));
 end;
 
 
-procedure TTestPDFRender.CheckText(const aMsg, aExpected: String);
+procedure TTestPDFRender.CheckText(const aMsg, aExpected: TMarkdownString);
 
 begin
   AssertTrue(aMsg+': expected "'+aExpected+'" in "'+AllText+'"',Pos(aExpected,AllText)>0);
+end;
+
+
+procedure TTestPDFRender.TestNonAsciiText;
+
+begin
+  Render(UnicodeToMarkdown('Grüße'));
+  CheckText('UTF-8 run',UnicodeToMarkdown('Grüße'));
 end;
 
 

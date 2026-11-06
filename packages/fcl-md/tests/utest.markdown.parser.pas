@@ -15,12 +15,17 @@
 unit UTest.Markdown.Parser;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, System.Contnrs,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry, Contnrs,
-  Markdown.Elements, Markdown.Parser, Markdown.InlineText, Markdown.Scanner;
+{$ENDIF}
+  Markdown.Utils, Markdown.Elements, Markdown.Parser, Markdown.InlineText, Markdown.Scanner;
 
 type
   { TBlockTestCase }
@@ -30,10 +35,10 @@ type
     FDoc: TMarkDownDocument;
     FParser: TMarkDownParser;
     FStrings: TStringList;
-    procedure CheckTextnodeText(const aMsg: string; aBlock: TMarkDownBlock; const aText: string);
+    procedure CheckTextnodeText(const aMsg: TMarkdownString; aBlock: TMarkDownBlock; const aText: TMarkdownString);
   protected
-    procedure SetupParser(const AText: String);
-    procedure CheckBlockText(const aMsg: string; aBlock: TMarkDownBlock; const aText : string; aInParagraph: Boolean);
+    procedure SetupParser(const AText: TMarkdownString);
+    procedure CheckBlockText(const aMsg: TMarkdownString; aBlock: TMarkDownBlock; const aText : TMarkdownString; aInParagraph: Boolean);
     function GetBlock(AIndex: Integer): TMarkDownBlock;
     property Doc: TMarkDownDocument read FDoc;
   public
@@ -103,7 +108,7 @@ type
   { TTestLists }
   TTestLists = class(TBlockTestCase)
   private
-    function TestList(const Msg, Source: String; aListCount, aListItemCount: Integer): TMarkDownListBlock;
+    function TestList(const Msg, Source: TMarkdownString; aListCount, aListItemCount: Integer): TMarkDownListBlock;
   published
     procedure TestUnorderedList;
     procedure TestOrderedList;
@@ -170,9 +175,9 @@ type
     FMessages : TStringList;
     procedure DoMessage(Sender : TObject; aLevel : TMarkdownMessageLevel; aLine : Integer; const aMessage : String);
   protected
-    procedure SetupExt(const aText : String; aOptions : TMarkdownOptions = MarkdownDocExtensions);
+    procedure SetupExt(const aText : TMarkdownString; aOptions : TMarkdownOptions = MarkdownDocExtensions);
     function TextBlockOf(aBlock : TMarkdownBlock) : TMarkdownTextBlock;
-    function PlainOf(aBlock : TMarkdownBlock) : String;
+    function PlainOf(aBlock : TMarkdownBlock) : TMarkdownString;
     // Parser messages as level:line:text
     property Messages : TStringList read FMessages;
   public
@@ -323,7 +328,7 @@ begin
   inherited TearDown;
 end;
 
-procedure TBlockTestCase.SetupParser(const AText: String);
+procedure TBlockTestCase.SetupParser(const AText: TMarkdownString);
 
 begin
   FStrings.Text := AText;
@@ -332,7 +337,7 @@ begin
   AssertNotNull('Document should be parsed', FDoc);
 end;
 
-procedure TBlockTestCase.CheckBlockText(Const aMsg : string; aBlock: TMarkDownBlock; const aText : String; aInParagraph: Boolean);
+procedure TBlockTestCase.CheckBlockText(Const aMsg : TMarkdownString; aBlock: TMarkDownBlock; const aText : TMarkdownString; aInParagraph: Boolean);
 var
   lBlock : TMarkDownBlock;
 begin
@@ -348,7 +353,7 @@ begin
   CheckTextnodeText(aMsg,lBlock,aText);
 end;
 
-procedure TBlockTestCase.CheckTextnodeText(const aMsg : string; aBlock : TMarkDownBlock; const aText : string);
+procedure TBlockTestCase.CheckTextnodeText(const aMsg : TMarkdownString; aBlock : TMarkDownBlock; const aText : TMarkdownString);
 
 var
   lText : TMarkDownTextBlock absolute aBlock;
@@ -758,7 +763,7 @@ begin
   AssertNotNull('Inner block should be a list', InnerList);
 end;
 
-function TTestLists.TestList(const Msg,Source : String; aListCount,aListItemCount:  Integer) : TMarkDownListBlock;
+function TTestLists.TestList(const Msg,Source : TMarkdownString; aListCount,aListItemCount:  Integer) : TMarkDownListBlock;
 
 begin
   SetupParser(Source);
@@ -1306,7 +1311,7 @@ begin
 end;
 
 
-procedure TExtensionTestCase.SetupExt(const aText: String; aOptions: TMarkdownOptions);
+procedure TExtensionTestCase.SetupExt(const aText: TMarkdownString; aOptions: TMarkdownOptions);
 
 begin
   FParser.Options:=aOptions;
@@ -1328,7 +1333,7 @@ begin
 end;
 
 
-function TExtensionTestCase.PlainOf(aBlock: TMarkdownBlock): String;
+function TExtensionTestCase.PlainOf(aBlock: TMarkdownBlock): TMarkdownString;
 
 begin
   Result:=TextBlockOf(aBlock).Nodes.PlainText;
@@ -1593,8 +1598,8 @@ end;
 procedure TTestHeadingIDs.TestAutoIDUnicode;
 
 begin
-  SetupExt('# Café über_alles 2');
-  AssertEquals('Unicode letters kept','café-über_alles-2',GetBlock(0).ID);
+  SetupExt(UnicodeToMarkdown('# Café über_alles 2'));
+  AssertEquals('Unicode letters kept',UnicodeToMarkdown('café-über_alles-2'),GetBlock(0).ID);
 end;
 
 
@@ -2144,7 +2149,7 @@ procedure TTestTransformRegistry.TestDefaultTransforms;
 
 var
   lAll : TMarkdownTransformClassArray;
-  lNames : Array of String;
+  lNames : Array of TMarkdownString;
   I : Integer;
 begin
   lNames:=['alerts','captions','footnotes','headingids','markers'];

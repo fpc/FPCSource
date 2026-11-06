@@ -36,41 +36,41 @@ type
 
   TMarkdownLaTeXRenderer = class(TMarkdownRenderer)
   private
-    FBuilder: TStringBuilder;
+    FBuilder: TMarkdownStringBuilder;
     FDocument: TMarkdownDocument;
     FHead: TStrings;
-    FLaTeX: String;
+    FLaTeX: TMarkdownString;
     FOptions: TLaTeXOptions;
-    FTitle: String;
-    FAuthor: String;
+    FTitle: TMarkdownString;
+    FAuthor: TMarkdownString;
     procedure SetHead(const aValue: TStrings);
   Protected
-    Procedure Append(const aContent : String);
-    Procedure AppendNL(const aContent : String = '');
-    Property Builder : TStringBuilder Read FBuilder;
-    function EscapeLaTeX(const S: String): String;
+    Procedure Append(const aContent : TMarkdownString);
+    Procedure AppendNL(const aContent : TMarkdownString = '');
+    Property Builder : TMarkdownStringBuilder Read FBuilder;
+    function EscapeLaTeX(const S: TMarkdownString): TMarkdownString;
   public
     constructor Create(aOwner : TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
     Procedure RenderDocument(aDocument : TMarkdownDocument); override;overload;
     Procedure RenderDocument(aDocument : TMarkdownDocument; aDest : TStrings); overload;
     procedure RenderChildren(aBlock : TMarkdownContainerBlock; aAppendNewLine : Boolean); overload;
-    function RenderLaTeX(aDocument : TMarkdownDocument) : string;
-    Procedure RenderToFile(aDocument : TMarkdownDocument; const aFileName : string);
-    class procedure FastRenderToFile(aDocument : TMarkdownDocument; const aFileName : string; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '');
-    class function FastRender(aDocument : TMarkdownDocument; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '') : string;
+    function RenderLaTeX(aDocument : TMarkdownDocument) : TMarkdownString;
+    Procedure RenderToFile(aDocument : TMarkdownDocument; const aFileName : String);
+    class procedure FastRenderToFile(aDocument : TMarkdownDocument; const aFileName : String; aOptions : TLaTeXOptions = []; const aTitle : TMarkdownString = ''; const aAuthor : TMarkdownString = '');
+    class function FastRender(aDocument : TMarkdownDocument; aOptions : TLaTeXOptions = []; const aTitle : TMarkdownString = ''; const aAuthor : TMarkdownString = '') : TMarkdownString;
     // Write aText to the output as-is.
-    procedure WriteRaw(const aText : String); override;
+    procedure WriteRaw(const aText : TMarkdownString); override;
     // Remove line breaks at the end of the output.
     procedure TrimTrailingNewLines;
     // \label{id} for a block with an id, empty otherwise.
-    function LabelFor(aBlock : TMarkdownBlock) : String;
+    function LabelFor(aBlock : TMarkdownBlock) : TMarkdownString;
     // The document being rendered
     property Document : TMarkdownDocument read FDocument;
   published
     Property Options : TLaTeXOptions Read FOptions Write FOptions;
-    property Title : String Read FTitle Write FTitle;
-    property Author : String Read FAuthor Write FAuthor;
+    property Title : TMarkdownString Read FTitle Write FTitle;
+    property Author : TMarkdownString Read FAuthor Write FAuthor;
     property Head : TStrings Read FHead Write SetHead;
   end;
 
@@ -80,10 +80,10 @@ type
   Private
     function GetLaTeXRenderer: TMarkdownLaTeXRenderer;
   protected
-    procedure Append(const S : String); inline;
-    procedure AppendNl(const S : String = ''); inline;
+    procedure Append(const S : TMarkdownString); inline;
+    procedure AppendNl(const S : TMarkdownString = ''); inline;
     function HasOption(aOption : TLaTeXOption) : Boolean;
-    function Escape(const S: String): String;
+    function Escape(const S: TMarkdownString): TMarkdownString;
     // Write aBlock as a sectioning command of level aLevel
     procedure RenderHeading(aBlock : TMarkdownContainerBlock; aLevel : Integer);
   public
@@ -98,13 +98,13 @@ type
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
     function GetLaTeXRenderer: TMarkdownLaTeXRenderer;
-    function GetNodeTag(aElement: TMarkdownTextNode; Closing: Boolean): string;
+    function GetNodeTag(aElement: TMarkdownTextNode; Closing: Boolean): TMarkdownString;
   protected
     procedure PushStyle(aStyle : TNodeStyle);
     procedure PopStyle;
-    procedure Append(const S : String); inline;
+    procedure Append(const S : TMarkdownString); inline;
     procedure DoRender(aElement: TMarkdownTextNode); override;
-    function Escape(const S: String): String;
+    function Escape(const S: TMarkdownString): TMarkdownString;
     procedure EmitStyleDiff(const aStyles : TNodeStyleArray);
     // Render a link node, after OnResolveLink
     procedure RenderLink(aElement: TMarkdownTextNode); virtual;
@@ -130,7 +130,7 @@ type
 
   TLaTeXMarkdownQuoteBlockRenderer = class(TLaTeXMarkdownBlockRenderer)
   protected
-    procedure dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -296,11 +296,11 @@ type
   { TStringBuilderHelper }
 
   TStringBuilderHelper = class helper for TAnsiStringBuilder
-    function Append(const aAnsiString : Ansistring) : TAnsiStringBuilder;
+    function Append(const aAnsiString : TMarkdownString) : TAnsiStringBuilder;
   end;
 
 
-function TStringBuilderHelper.Append(const aAnsiString: Ansistring): TAnsiStringBuilder;
+function TStringBuilderHelper.Append(const aAnsiString: TMarkdownString): TAnsiStringBuilder;
 begin
   Result:=Inherited Append(aAnsiString,0,System.Length(aAnsistring))
 end;
@@ -315,12 +315,12 @@ begin
     Result:=Nil;
 end;
 
-procedure TLaTeXMarkdownBlockRenderer.Append(const S: String);
+procedure TLaTeXMarkdownBlockRenderer.Append(const S: TMarkdownString);
 begin
   LaTeXRenderer.Append(S);
 end;
 
-procedure TLaTeXMarkdownBlockRenderer.AppendNl(const S: String);
+procedure TLaTeXMarkdownBlockRenderer.AppendNl(const S: TMarkdownString);
 begin
   LaTeXRenderer.AppendNL(S);
 end;
@@ -332,7 +332,7 @@ begin
     Result:=aOption in TMarkdownLaTeXRenderer(Renderer).Options;
 end;
 
-function TLaTeXMarkdownBlockRenderer.Escape(const S: String): String;
+function TLaTeXMarkdownBlockRenderer.Escape(const S: TMarkdownString): TMarkdownString;
 begin
   Result:=LaTeXRenderer.EscapeLaTeX(S);
 end;
@@ -341,7 +341,7 @@ end;
 procedure TLaTeXMarkdownBlockRenderer.RenderHeading(aBlock: TMarkdownContainerBlock; aLevel: Integer);
 
 var
-  lSection,lNumber: String;
+  lSection,lNumber: TMarkdownString;
   lNumbered: Boolean;
 begin
   lNumbered:=HasOption(loNumberedSections);
@@ -380,12 +380,12 @@ begin
   FHead:=aValue;
 end;
 
-procedure TMarkdownLaTeXRenderer.Append(const aContent: String);
+procedure TMarkdownLaTeXRenderer.Append(const aContent: TMarkdownString);
 begin
   FBuilder.Append(aContent);
 end;
 
-procedure TMarkdownLaTeXRenderer.AppendNL(const aContent: String);
+procedure TMarkdownLaTeXRenderer.AppendNL(const aContent: TMarkdownString);
 begin
   if aContent<>'' then
     FBuilder.Append(aContent);
@@ -398,7 +398,7 @@ begin
   FHead:=TStringList.Create;
 end;
 
-destructor TMarkdownLaTeXRenderer.destroy;
+destructor TMarkdownLaTeXRenderer.Destroy;
 begin
   FreeAndNil(FHead);
   inherited destroy;
@@ -406,11 +406,11 @@ end;
 
 procedure TMarkdownLaTeXRenderer.RenderDocument(aDocument: TMarkdownDocument);
 begin
-  FBuilder:=TStringBuilder.Create;
+  FBuilder:=TMarkdownStringBuilder.Create;
   FDocument:=aDocument;
   try
     RenderBlock(aDocument);
-    FLaTeX:=FBuilder.ToString;
+    FLaTeX:=BuilderToMarkdown(FBuilder);
   finally
     FDocument:=Nil;
     FreeAndNil(FBuilder);
@@ -418,7 +418,7 @@ begin
 end;
 
 
-procedure TMarkdownLaTeXRenderer.WriteRaw(const aText: String);
+procedure TMarkdownLaTeXRenderer.WriteRaw(const aText: TMarkdownString);
 
 begin
   if Assigned(FBuilder) then
@@ -434,7 +434,7 @@ begin
 end;
 
 
-function TMarkdownLaTeXRenderer.LabelFor(aBlock: TMarkdownBlock): String;
+function TMarkdownLaTeXRenderer.LabelFor(aBlock: TMarkdownBlock): TMarkdownString;
 
 begin
   if aBlock.ID<>'' then
@@ -446,7 +446,7 @@ end;
 
 procedure TMarkdownLaTeXRenderer.RenderDocument(aDocument: TMarkdownDocument; aDest: TStrings);
 begin
-  aDest.Text:=RenderLaTeX(aDocument);
+  aDest.Text:=MarkdownToString(RenderLaTeX(aDocument));
 end;
 
 procedure TMarkdownLaTeXRenderer.RenderChildren(aBlock: TMarkdownContainerBlock; aAppendNewLine: Boolean);
@@ -462,30 +462,30 @@ begin
     end;
 end;
 
-function TMarkdownLaTeXRenderer.RenderLaTeX(aDocument: TMarkdownDocument): string;
+function TMarkdownLaTeXRenderer.RenderLaTeX(aDocument: TMarkdownDocument): TMarkdownString;
 begin
   RenderDocument(aDocument);
   Result:=FLaTeX;
   FLaTeX:='';
 end;
 
-procedure TMarkdownLaTeXRenderer.RenderToFile(aDocument: TMarkdownDocument; const aFileName: string);
+procedure TMarkdownLaTeXRenderer.RenderToFile(aDocument: TMarkdownDocument; const aFileName: String);
 var
-  lTeX : String;
+  lTeX : TMarkdownString;
   lFile : THandle;
 begin
   lTeX:=RenderLaTex(aDocument);
   lFile:=FileCreate(aFileName);
   try
     if lTex<>'' then
-      FileWrite(lFile,lTex[1],Length(lTex)*SizeOf(Char));
+      FileWrite(lFile,lTex[1],Length(lTex));
   finally
     FileClose(lFile);
   end;
 end;
 
-class procedure TMarkdownLaTeXRenderer.FastRenderToFile(aDocument: TMarkdownDocument; const aFileName: string; aOptions: TLaTeXOptions;
-  const aTitle: String; const aAuthor: string);
+class procedure TMarkdownLaTeXRenderer.FastRenderToFile(aDocument: TMarkdownDocument; const aFileName: String; aOptions: TLaTeXOptions;
+  const aTitle: TMarkdownString; const aAuthor: TMarkdownString);
 var
   lRender : TMarkdownLaTexRenderer;
 begin
@@ -500,8 +500,8 @@ begin
   end;
 end;
 
-class function TMarkdownLaTeXRenderer.FastRender(aDocument: TMarkdownDocument; aOptions: TLaTeXOptions; const aTitle: String;
-  const aAuthor: string): string;
+class function TMarkdownLaTeXRenderer.FastRender(aDocument: TMarkdownDocument; aOptions: TLaTeXOptions; const aTitle: TMarkdownString;
+  const aAuthor: TMarkdownString): TMarkdownString;
 var
   lRender : TMarkdownLaTexRenderer;
 begin
@@ -516,10 +516,10 @@ begin
   end;
 end;
 
-function TMarkdownLaTeXRenderer.EscapeLaTeX(const S: String): String;
+function TMarkdownLaTeXRenderer.EscapeLaTeX(const S: TMarkdownString): TMarkdownString;
 var
   i: Integer;
-  c: Char;
+  c: TMarkdownChar;
 begin
   Result := '';
   for i := 1 to Length(S) do
@@ -546,12 +546,12 @@ end;
 
 { TLaTeXMarkdownTextRenderer }
 
-procedure TLaTeXMarkdownTextRenderer.Append(const S: String);
+procedure TLaTeXMarkdownTextRenderer.Append(const S: TMarkdownString);
 begin
   LaTeXRenderer.Append(S);
 end;
 
-function TLaTeXMarkdownTextRenderer.Escape(const S: String): String;
+function TLaTeXMarkdownTextRenderer.Escape(const S: TMarkdownString): TMarkdownString;
 begin
   Result:=LaTeXRenderer.EscapeLaTeX(S);
 end;
@@ -564,9 +564,9 @@ begin
     Result:=Nil;
 end;
 
-function TLaTeXMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode; Closing: Boolean): string;
+function TLaTeXMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode; Closing: Boolean): TMarkdownString;
 var
-  lUrl: String;
+  lUrl: TMarkdownString;
 begin
   Result := '';
   case aElement.Kind of
@@ -641,7 +641,7 @@ end;
 procedure TLaTeXMarkdownTextRenderer.RenderLink(aElement: TMarkdownTextNode);
 
 var
-  lHref,lText : String;
+  lHref,lText : TMarkdownString;
   lChild : TMarkdownTextNode;
 
 begin
@@ -795,7 +795,7 @@ end;
 
 { TLaTeXMarkdownQuoteBlockRenderer }
 
-procedure TLaTeXMarkdownQuoteBlockRenderer.dorender(aElement: TMarkdownBlock);
+procedure TLaTeXMarkdownQuoteBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownQuoteBlock absolute aElement;
 begin
@@ -905,7 +905,7 @@ procedure TLaTeXMarkdownTableBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTableBlock absolute aElement;
   i : integer;
-  lCols: String;
+  lCols: TMarkdownString;
   c: TCellAlign;
   lFloat : Boolean;
 begin
@@ -1046,7 +1046,7 @@ begin
       AppendNL('\author{' + LaTeXRenderer.EscapeLaTeX(LaTeXRenderer.Author) + '}');
 
     for H in LaTeXRenderer.Head do
-      AppendNL(H);
+      AppendNL(StringToMarkdown(H));
 
     AppendNL('\begin{document}');
 
@@ -1193,16 +1193,16 @@ procedure TLaTeXMarkdownFigureBlockRenderer.DoRender(aElement: TMarkdownBlock);
 
 var
   lNode : TMarkdownFigureBlock absolute aElement;
-  lWidth,lOptions : String;
+  lWidth,lOptions : TMarkdownString;
   lPercent : Double;
 
 begin
   lOptions:='';
   if lNode.HasAttrs then
     begin
-    lWidth:=lNode.Attrs.Values['width'];
-    if lWidth.EndsWith('%') and TryStrToFloat(Copy(lWidth,1,Length(lWidth)-1),lPercent,DefaultFormatSettings) then
-      lOptions:='[width='+FloatToStr(lPercent/100,DefaultFormatSettings)+'\textwidth]'
+    lWidth:=StringToMarkdown(lNode.Attrs.Values['width']);
+    if lWidth.EndsWith('%') and TryStrToFloat(MarkdownToString(Copy(lWidth,1,Length(lWidth)-1)),lPercent,DefaultFormatSettings) then
+      lOptions:='[width='+StringToMarkdown(FloatToStr(lPercent/100,DefaultFormatSettings))+'\textwidth]'
     else if lWidth<>'' then
       lOptions:='[width='+lWidth+']';
     end;

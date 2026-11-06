@@ -18,7 +18,6 @@
 unit markdown.pdfrender;
 {$mode objfpc}
 {$h+}
-{$codepage UTF8}
 {$modeswitch advancedrecords}
 
 interface
@@ -26,9 +25,9 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils, System.Classes, System.Contnrs, System.Types,MarkDown.Elements, 
-  MarkDown.Render, fpimage, FpPdf.Pdf, FpPdf.Ttf;
+  MarkDown.Render, Markdown.Utils, fpimage, FpPdf.Pdf, FpPdf.Ttf;
 {$ELSE}
-  SysUtils, Classes, Contnrs, Types, MarkDown.Elements, MarkDown.Render,
+  SysUtils, Classes, Contnrs, Types, MarkDown.Elements, MarkDown.Render, Markdown.Utils,
   fpimage, fppdf, fpttf;
 {$ENDIF}
 
@@ -69,10 +68,10 @@ type
     FY: TPDFFLoat;
     FWidth: TPDFFloat;
     FHeight: TPDFFloat;
-    FText: utf8string;
+    FText: TMarkdownString;
     FFontSize: LongInt;
     FFontStyle: TFontStyles;
-    FURL: utf8string;
+    FURL: TMarkdownString;
     FPageIndex: Integer;  // New field to track which page this item belongs to
     FImageIndex: Integer; // index into TPDFDocument.Images for likImage items
   protected
@@ -88,10 +87,10 @@ type
     property DeltaY: TPDFFloat read FDeltaY write FDeltaY;
     property Width: TPDFFloat read FWidth write FWidth;
     property Height: TPDFFloat read FHeight write FHeight;
-    property Text: utF8string read FText write FText;
+    property Text: TMarkdownString read FText write FText;
     property FontSize: LongInt read FFontSize write FFontSize;
     property FontStyle: TFontStyles read FFontStyle write FFontStyle;
-    property URL : utF8string read FURL write FURL;
+    property URL : TMarkdownString read FURL write FURL;
     property Context: TFontContext Read FContext Write FContext;
     property PageIndex: Integer read FPageIndex write FPageIndex;  // New property
     property ImageIndex: Integer read FImageIndex write FImageIndex;
@@ -116,16 +115,16 @@ type
     FY: TPDFFLoat;
     FWidth: TPDFFLoat;
     FHeight: TPDFFLoat;
-    FHREF: utf8string;
+    FHREF: TMarkdownString;
     FPageIndex: Integer;  // New field to track which page this link belongs to
   public
-    constructor create (aX,aY,aWidth,aHeight : TPDFFLoat; aHREF : UTF8String; aPageIndex: Integer = 0);
+    constructor Create (aX,aY,aWidth,aHeight : TPDFFLoat; aHREF : TMarkdownString; aPageIndex: Integer = 0);
     function HasPoint(aX,aY : Longint) : Boolean;
     property X: TPDFFLoat read FX;
     property Y: TPDFFLoat read FY;
     property Width: TPDFFLoat read FWidth;
     property Height: TPDFFLoat read FHeight;
-    property HREF: utf8string read FHREF;
+    property HREF: TMarkdownString read FHREF;
     property PageIndex: Integer read FPageIndex write FPageIndex;  // New property
   end;
 
@@ -135,7 +134,7 @@ type
   private
     function GetItem(const aIndex: LongInt): TLinkHitRect;
   public
-    function Add(const aX, aY, aWidth, aHeight: TPDFFLoat; const aHref: utf8string; const aPageIndex: Integer = 0): TLinkHitRect; reintroduce;
+    function Add(const aX, aY, aWidth, aHeight: TPDFFLoat; const aHref: TMarkdownString; const aPageIndex: Integer = 0): TLinkHitRect; reintroduce;
     property Items[const Index: LongInt]: TLinkHitRect read GetItem; default;
   end;
 
@@ -162,7 +161,7 @@ type
     procedure Free;
   end;
 
-  TMarkdownImageEvent = procedure(Sender : TObject; const aURL : string; var aImage : TFPCustomImage) of object;
+  TMarkdownImageEvent = procedure(Sender : TObject; const aURL : TMarkdownString; var aImage : TFPCustomImage) of object;
 
   { TPDFDestination }
 
@@ -189,13 +188,13 @@ type
     FBlockQuoteIndent: Integer;
     FBottomMargin: TPDFFloat;
     FBulletLevel: Integer;
-    FBullets: Array[1..BulletCount] of string;
+    FBullets: Array[1..BulletCount] of TMarkdownString;
     FLeftMargin: TPDFFloat;
     FPDFDocument: TPDFDocument;
     FDocument: TMarkDownDocument;
     FHyperLinkColor: TARGBColor;
     FImageMargin: integer;
-    FImageBaseDir: string;
+    FImageBaseDir: String;
     FFallbackFont: TFPFontCacheItem; // cached font used for glyphs the main font lacks
     FOnGetImage: TMarkdownImageEvent;
     FLists : TLayoutLists;
@@ -204,8 +203,8 @@ type
     FLayout : TLayoutData;
     FParagraphSpacing: LongInt;
     FExtraIndent: LongInt;
-    FFontName: utf8string;
-    FMonoFontName: utf8string;
+    FFontName: String;
+    FMonoFontName: String;
     FBaseFontSize: LongInt;
     FRightMargin: TPDFFloat;
     FTargetDPI: LongInt;
@@ -234,7 +233,7 @@ type
     procedure Clear;
     procedure BeginLayout;
     procedure EndLayout;
-    function GetBulletChar(AIndex: Integer): string;
+    function GetBulletChar(AIndex: Integer): TMarkdownString;
     procedure NewLine;
     procedure ParagraphBreak;
     procedure MaybeStartParagraph;
@@ -254,13 +253,13 @@ type
     function DIP(const aValue: LongInt): LongInt;
     // Resolve the font for a run, falling back to a font that covers the text's
     // glyphs when the configured font does not (e.g. CJK characters).
-    function ResolveFontForText(const aText: utf8string; const aFontName: string;
+    function ResolveFontForText(const aText: TMarkdownString; const aFontName: String;
       const aFontStyle: TFontStyles): TFPFontCacheItem;
-    procedure ApplyFont(aPage: TPDFPage; const aText: utf8string; const aFontSize: LongInt;
+    procedure ApplyFont(aPage: TPDFPage; const aText: TMarkdownString; const aFontSize: LongInt;
       const aFontStyle: TFontStyles; const aContext : TFontContext);
-    procedure MeasureText(const aText: utf8string; const aFontSize: LongInt;
+    procedure MeasureText(const aText: TMarkdownString; const aFontSize: LongInt;
       const aFontStyle: TFontStyles; const aContext : TFontContext; out aWidth, aHeight: LongInt);
-    function MeasureTextWidth(const aText: utf8string; const aFontSize: LongInt;
+    function MeasureTextWidth(const aText: TMarkdownString; const aFontSize: LongInt;
       const aFontStyle: TFontStyles; const aContext : TFontContext): LongInt;
     function MeasureTextHeight(const aFontSize: LongInt; const aFontStyle: TFontStyles;
       const aContext : TFontContext): LongInt;
@@ -268,16 +267,16 @@ type
     function GetTextBGColor(aContext: TFontContext): TARGBColor; virtual;
 
     // Text layout
-    procedure FlushTextRun(const aText: utf8string; const aFontSize: LongInt;
-      const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
+    procedure FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+      const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
       const aDryRun: boolean); virtual;
-    procedure LayoutTextWrapped(const aText: utf8string; const aFontSize: LongInt;
-      const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
+    procedure LayoutTextWrapped(const aText: TMarkdownString; const aFontSize: LongInt;
+      const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
       const aPreserveWhitespace, aDryRun: boolean); virtual;
     // Lay out an image. aWidth is a percentage of the text width or a size in points; empty keeps the natural size.
     // aKeepOnPage moves an image that starts a line to the next page when it does not fit.
-    function LayoutImage(aImageURL: UTF8String; const aWidth : String = ''; aKeepOnPage : Boolean = False): Boolean; virtual;
-    procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
+    function LayoutImage(aImageURL: TMarkdownString; const aWidth : TMarkdownString = ''; aKeepOnPage : Boolean = False): Boolean; virtual;
+    procedure RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : TMarkdownString = '');
     // Lay out a footnote reference as a raised number
     procedure RenderFootnoteRef(aTextNode: TMarkDownTextNode; aFontSize: LongInt; aFontStyle: TFontStyles; const aContext : TFontContext); virtual;
     // Lay out the referenced footnotes at the end of the document
@@ -294,12 +293,12 @@ type
     function GetNodeFontStyle(aTextNode: TMarkDownTextNode): TFontStyles;
     // indent
     Procedure Indent(aSize : integer);
-    procedure SetBulletChar(AIndex: Integer; AValue: string);
+    procedure SetBulletChar(AIndex: Integer; AValue: TMarkdownString);
     Procedure Undent(aSize : integer);
     procedure IncBulletLevel;
     Procedure DecBulletLevel;
-    function GetBullet : String;
-    function GetBulletAt(aLevel : integer) : string;
+    function GetBullet : TMarkdownString;
+    function GetBulletAt(aLevel : integer) : TMarkdownString;
     function CreateLayoutItem(aKind : TLayoutItemKind; aX,aY : TPDFFloat) : TLayoutItem; inline;
     Property BulletLevel : Integer Read FBulletLevel;
     Property CalculatedBlockQuoteIndent : Integer Read FCalculatedBlockQuoteIndent;
@@ -312,9 +311,9 @@ type
     // retains ownership) and rendered into aPDFDocument.
     procedure RenderDocument(aDocument: TMarkDownDocument; aPDFDocument: TPDFDocument);
 
-    function HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: utf8string): boolean;
+    function HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: TMarkdownString): boolean;
     // Record the current page and position as the destination of aID
-    procedure AddDestination(const aID : String);
+    procedure AddDestination(const aID : TMarkdownString);
 
     // Properties
     Property Document : TMarkdownDocument Read FDocument;
@@ -323,8 +322,8 @@ type
     // Colour of the bar at the left of an alert
     property AlertBarColor: TARGBColor read FAlertBarColor write FAlertBarColor;
     property TargetDPI: LongInt read FTargetDPI write FTargetDPI;
-    property FontName: utf8string read FFontName write FFontName;
-    property MonoFontName: utf8string read FMonoFontName write FMonoFontName;
+    property FontName: String read FFontName write FFontName;
+    property MonoFontName: String read FMonoFontName write FMonoFontName;
 
     property FontHyperLinkColor: TARGBColor read FHyperLinkColor write FHyperLinkColor;
     property BGCodeColor: TARGBColor read FBGCodeColor write FBGCodeColor;
@@ -336,15 +335,15 @@ type
     property FonTARGBColor: TARGBColor read FFonTARGBColor write FFonTARGBColor;
     property FontQuoteColor: TARGBColor read FFontQuoteColor write FFontQuoteColor;
     property BaseFontSize: LongInt read FBaseFontSize write FBaseFontSize;
-    property BulletChar1 : string Index 1 Read GetBulletChar Write SetBulletChar;
-    property BulletChar2 : string Index 2 read GetBulletChar Write SetBulletChar;
-    property BulletChar3 : string Index 3 read GetBulletChar Write SetBulletChar;
+    property BulletChar1 : TMarkdownString Index 1 Read GetBulletChar Write SetBulletChar;
+    property BulletChar2 : TMarkdownString Index 2 read GetBulletChar Write SetBulletChar;
+    property BulletChar3 : TMarkdownString Index 3 read GetBulletChar Write SetBulletChar;
     Property BlockQuoteIndent : Integer Read FBlockQuoteIndent Write FBlockQuoteIndent;
     Property ParagraphSpacing : Integer Read FParagraphSpacing Write FParagraphSpacing;
     Property ExtraIndent : Integer Read FExtraIndent Write FExtraIndent;
     Property ImageMargin : integer read FImageMargin Write FImageMargin;
     // Base directory used to resolve relative image URLs
-    Property ImageBaseDir : string read FImageBaseDir Write FImageBaseDir;
+    Property ImageBaseDir : String read FImageBaseDir Write FImageBaseDir;
     Property OnGetImage : TMarkdownImageEvent Read FOnGetImage Write FOnGetImage;
 
     // PDF-specific properties
@@ -370,9 +369,9 @@ type
     function LayoutData : TLayoutData;
     function CreateLayoutItem(aKind : TLayoutItemKind; aX,aY : TPDFFloat) : TLayoutItem; inline;
     function MeasureTextHeight(const aFontSize: LongInt; const aFontStyle: TFontStyles; const aContext : TFontContext): LongInt;
-    function MeasureTextWidth(const aText: utf8string; const aFontSize: LongInt; const aFontStyle: TFontStyles;
+    function MeasureTextWidth(const aText: TMarkdownString; const aFontSize: LongInt; const aFontStyle: TFontStyles;
       aFontContext: TFontContext): LongInt;
-    procedure LayoutText(const aText: utf8string; const aFontSize: LongInt; const aFontStyle: TFontStyles; const aLinkHref: utf8string;
+    procedure LayoutText(const aText: TMarkdownString; const aFontSize: LongInt; const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString;
       const aContext: TFontContext); inline;
     procedure SetCurrentY(aValue: TPDFFloat);
     function GetCurrentY : TPDFFloat;
@@ -433,7 +432,7 @@ type
     procedure DoRender(aBlock: TMarkDownBlock); override;
     property ItemNumber : Integer Read FItemNumber;
   public
-    procedure reset; override;
+    procedure Reset; override;
     class function BlockClass: TMarkDownBlockClass; override;
   end;
 
@@ -604,7 +603,8 @@ uses
   {$ENDIF}
 
 const
-  ExtendHeight = UTF8String('Áy');
+  // Á and y: a capital accent and a descender.
+  ExtendHeight : TMarkdownString = #$C3#$81'y';
   cPDFPointsPerInch = 72; // PDF user space is 72 points per inch by definition
   cLineSpacingFactor = 1.2; // baseline-to-baseline distance as a multiple of the font size
 
@@ -614,9 +614,9 @@ begin
   Result:=aBlue or (aGreen shl 8) or (aRed shl 16);
 end;
 
-function GetFontCacheItem(const aFontName: string; const aFontStyle: TFontStyles): TFPFontCacheItem;
+function GetFontCacheItem(const aFontName: String; const aFontStyle: TFontStyles): TFPFontCacheItem;
 
-  function TryFind(const aName: string; var aResult: TFPFontCacheItem; aBold, aItalic: Boolean): Boolean;
+  function TryFind(const aName: String; var aResult: TFPFontCacheItem; aBold, aItalic: Boolean): Boolean;
   begin
     if aResult=nil then
       aResult := gTTFontCache.Find(aName, aBold, aItalic);
@@ -625,7 +625,7 @@ function GetFontCacheItem(const aFontName: string; const aFontStyle: TFontStyles
 
 var
   IsBold, IsItalic, WantMono: Boolean;
-  lFamilyMatch: string;
+  lFamilyMatch: String;
   i: Integer;
   lItem: TFPFontCacheItem;
 begin
@@ -693,7 +693,7 @@ end;
 
 
 // True if aFont has a glyph for every non-ASCII codepoint in aText
-function FontCoversText(aFont: TFPFontCacheItem; const aText: utf8string): Boolean;
+function FontCoversText(aFont: TFPFontCacheItem; const aText: TMarkdownString): Boolean;
 var
   lUni: UnicodeString;
   i: Integer;
@@ -701,7 +701,7 @@ begin
   Result := True;
   if aFont=nil then
     Exit(False);
-  lUni := UTF8Decode(aText);
+  lUni := MarkdownToUnicode(aText);
   for i := 1 to Length(lUni) do
     if Ord(lUni[i]) > 127 then
       if aFont.FontData.GetGlyphIndex(Ord(lUni[i]))=0 then
@@ -712,7 +712,7 @@ end;
 // Split aText into consecutive pieces that are each either fully covered or fully
 // not covered by aBaseFont, so each piece can be drawn with a single font (the base
 // font, or a fallback for glyphs the base lacks, e.g. CJK).
-function SplitByCoverage(const aText: utf8string; aBaseFont: TFPFontCacheItem): TStringDynArray;
+function SplitByCoverage(const aText: TMarkdownString; aBaseFont: TFPFontCacheItem): TMarkdownStringArray;
 var
   lUni: UnicodeString;
   i, lStart: Integer;
@@ -728,8 +728,8 @@ var
 
 begin
   Result := nil;
-  lUni := UTF8Decode(aText);
-  if lUni='' then
+  lUni := MarkdownToUnicode(aText);
+  if Length(lUni)=0 then
     exit;
   lStart := 1;
   lCur := CoveredAt(1);
@@ -739,13 +739,13 @@ begin
     if lCovered<>lCur then
       begin
       SetLength(Result, Length(Result)+1);
-      Result[High(Result)] := UTF8Encode(Copy(lUni, lStart, i-lStart));
+      Result[High(Result)] := UnicodeToMarkdown(Copy(lUni, lStart, i-lStart));
       lStart := i;
       lCur := lCovered;
       end;
     end;
   SetLength(Result, Length(Result)+1);
-  Result[High(Result)] := UTF8Encode(Copy(lUni, lStart, Length(lUni)-lStart+1));
+  Result[High(Result)] := UnicodeToMarkdown(Copy(lUni, lStart, Length(lUni)-lStart+1));
 end;
 
 { TPDFMarkDownBlockRenderer }
@@ -785,12 +785,12 @@ begin
   Result := PDFRenderer.MeasureTextHeight(aFontSize, aFontStyle, aContext);
 end;
 
-function TPDFMarkDownBlockRenderer.MeasureTextWidth(const aText: utf8string; const aFontSize: LongInt; const aFontStyle: TFontStyles; aFontContext: TFontContext): LongInt;
+function TPDFMarkDownBlockRenderer.MeasureTextWidth(const aText: TMarkdownString; const aFontSize: LongInt; const aFontStyle: TFontStyles; aFontContext: TFontContext): LongInt;
 begin
   Result := PDFRenderer.MeasureTextWidth(aText, aFontSize, aFontStyle, aFontContext);
 end;
 
-procedure TPDFMarkDownBlockRenderer.LayoutText(const aText: utf8string; const aFontSize: LongInt; const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext: TFontContext);
+procedure TPDFMarkDownBlockRenderer.LayoutText(const aText: TMarkdownString; const aFontSize: LongInt; const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext: TFontContext);
 begin
   PDFRenderer.LayoutTextWrapped(aText, aFontSize, aFontStyle, aLinkHref, aContext, False, False);
 end;
@@ -860,7 +860,7 @@ const
   // Per-level point increment over the base size (matches the canvas renderer)
   HeadingSizes : array[1..5] of Integer = (10,8,6,4,2);
 var
-  lNumber : String;
+  lNumber : TMarkdownString;
 begin
   // The computed size is read back by the text block renderer through the parent
   // renderer chain (see TPDFMarkDownTextBlockRenderer.DoRender).
@@ -909,7 +909,7 @@ end;
 
 { TPDFMarkDownListBlockRenderer }
 
-procedure TPDFMarkDownListBlockRenderer.reset;
+procedure TPDFMarkDownListBlockRenderer.Reset;
 begin
   inherited reset;
   FItemNumber := 0;
@@ -957,7 +957,7 @@ end;
 procedure TPDFMarkDownListItemBlockRenderer.DoRender(aBlock: TMarkDownBlock);
 var
   lListRenderer: TPDFMarkDownListBlockRenderer;
-  lPrefix: string;
+  lPrefix: TMarkdownString;
   lIndent: Integer;
 begin
   if not assigned(aBlock) then
@@ -966,7 +966,7 @@ begin
   // A numbered prefix for ordered lists (ItemNumber>0), a bullet otherwise
   lListRenderer := TPDFMarkDownListBlockRenderer(GetFirstParentWithClass(TPDFMarkDownListBlockRenderer));
   if Assigned(lListRenderer) and (lListRenderer.ItemNumber>0) then
-    lPrefix := IntToStr(lListRenderer.ItemNumber) + '.'
+    lPrefix := IntToMarkdown(lListRenderer.ItemNumber) + '.'
   else
     lPrefix := PDFRenderer.GetBullet;
 
@@ -1127,7 +1127,7 @@ begin
     begin
     for i:=0 to lText.Nodes.Count-1 do
       if lText.Nodes[i].Kind<>nkComment then
-        aTexts.Add(lText.Nodes[i].NodeText);
+        aTexts.Add(MarkdownToString(lText.Nodes[i].NodeText));
     end
   else if aCell is TMarkDownContainerBlock then
     for i:=0 to lCont.ChildCount-1 do
@@ -1207,9 +1207,10 @@ procedure TPDFMarkDownTableBlockRenderer.MeasureTableColumns(const aTableModel: 
   function MaxWordWidth(aTexts: TStrings; aFontSize: Integer): LongInt;
   var
     ScanIndex : LongInt;
-    WordBuffer : UTF8String;
+    WordBuffer : TMarkdownString;
     BestWidth, Current : LongInt;
-    Text : string;
+    lItem : String;
+    Text : TMarkdownString;
 
     procedure UpdateBest;
     begin
@@ -1224,8 +1225,9 @@ procedure TPDFMarkDownTableBlockRenderer.MeasureTableColumns(const aTableModel: 
   begin
     BestWidth:=0;
     WordBuffer:='';
-    for Text in aTexts do
+    for lItem in aTexts do
       begin
+      Text:=StringToMarkdown(lItem);
       ScanIndex:=1;
       while ScanIndex<=Length(Text) do
         begin
@@ -1242,7 +1244,7 @@ procedure TPDFMarkDownTableBlockRenderer.MeasureTableColumns(const aTableModel: 
 
   function NoWrapWidth(aTexts: TStrings; aFontSize: Integer): LongInt;
   begin
-    Result:=MeasureTextWidth(aTexts.DelimitedText, aFontSize, [], [fcQuote]);
+    Result:=MeasureTextWidth(StringToMarkdown(aTexts.DelimitedText), aFontSize, [], [fcQuote]);
   end;
 
 var
@@ -1359,7 +1361,7 @@ procedure TPDFMarkDownTableBlockRenderer.DoRender(aBlock: TMarkDownBlock);
 var
   lTable : TMarkDownTableBlock absolute aBlock;
   i : Integer;
-  lLabel : String;
+  lLabel : TMarkdownString;
 begin
   if not assigned(aBlock) then
     exit;
@@ -1532,7 +1534,7 @@ end;
 
 { TLinkHitRect }
 
-constructor TLinkHitRect.create(aX, aY, aWidth, aHeight: TPDFFLoat; aHREF: UTF8String; aPageIndex: Integer);
+constructor TLinkHitRect.Create(aX, aY, aWidth, aHeight: TPDFFLoat; aHREF: TMarkdownString; aPageIndex: Integer);
 begin
   FX:=aX;
   FY:=aY;
@@ -1550,7 +1552,7 @@ end;
 
 {=== TLinkHitRectList ======================================================}
 
-function TLinkHitRectList.Add(const aX, aY, aWidth, aHeight: TPDFFLoat; const aHref: utf8string; const aPageIndex: Integer
+function TLinkHitRectList.Add(const aX, aY, aWidth, aHeight: TPDFFLoat; const aHref: TMarkdownString; const aPageIndex: Integer
   ): TLinkHitRect;
 begin
   Result:=TLinkHitRect.Create(ax,ay,aWidth,aHeight,aHREF,aPageIndex);
@@ -1569,9 +1571,10 @@ begin
   inherited Create(aOwner);
   FImageCache:=TFPObjectHashTable.Create(True);
   FPageList:=TList.Create;
-  FBullets[1]:='•';
-  FBullets[2]:='◦';
-  FBullets[3]:='▪';
+  // U+2022 bullet, U+25E6 white bullet, U+25AA black small square
+  FBullets[1]:=#$E2#$80#$A2;
+  FBullets[2]:=#$E2#$97#$A6;
+  FBullets[3]:=#$E2#$96#$AA;
   FBulletLevel:=0;
   FImageMargin:=2;
   FLists.Items:=TLayoutItemList.Create;
@@ -1712,7 +1715,7 @@ begin
   // Reserved for future batching hooks
 end;
 
-function TMarkDownPDFRenderer.GetBulletChar(AIndex: Integer): string;
+function TMarkDownPDFRenderer.GetBulletChar(AIndex: Integer): TMarkdownString;
 begin
   result:=FBullets[aIndex];
 end;
@@ -1791,7 +1794,7 @@ end;
 
 { Font and measurement methods - adapted for PDF }
 
-function TMarkDownPDFRenderer.ResolveFontForText(const aText: utf8string; const aFontName: string;
+function TMarkDownPDFRenderer.ResolveFontForText(const aText: TMarkdownString; const aFontName: String;
   const aFontStyle: TFontStyles): TFPFontCacheItem;
 var
   i: Integer;
@@ -1818,13 +1821,13 @@ begin
 end;
 
 
-procedure TMarkDownPDFRenderer.ApplyFont(aPage: TPDFPage; const aText: utf8string; const aFontSize: LongInt;
+procedure TMarkDownPDFRenderer.ApplyFont(aPage: TPDFPage; const aText: TMarkdownString; const aFontSize: LongInt;
   const aFontStyle: TFontStyles; const aContext : TFontContext);
 var
-  lFontName: string;
+  lFontName: String;
   FontItem: TFPFontCacheItem;
   FontIndex: Integer;
-  FallbackFontName: string;
+  FallbackFontName: String;
 begin
   if fcMono in aContext then
     lFontName := fMonoFontName
@@ -1865,14 +1868,14 @@ begin
   end;
 end;
 
-procedure TMarkDownPDFRenderer.MeasureText(const aText: utf8string; const aFontSize: LongInt;
+procedure TMarkDownPDFRenderer.MeasureText(const aText: TMarkdownString; const aFontSize: LongInt;
   const aFontStyle: TFontStyles; const aContext : TFontContext; out aWidth, aHeight: LongInt);
 var
-  lFontName: string;
+  lFontName: String;
   BaseFont, SegFont: TFPFontCacheItem;
   CharWidth: LongInt;
-  lSeg: utf8string;
-  lSegs: TStringDynArray;
+  lSeg: TMarkdownString;
+  lSegs: TMarkdownStringArray;
 begin
   if length(aText)>0 then
   begin
@@ -1918,7 +1921,7 @@ begin
   end;
 end;
 
-function TMarkDownPDFRenderer.MeasureTextWidth(const aText: utf8string; const aFontSize: LongInt;
+function TMarkDownPDFRenderer.MeasureTextWidth(const aText: TMarkdownString; const aFontSize: LongInt;
   const aFontStyle: TFontStyles; const aContext : TFontContext): LongInt;
 var
   Width, Height: LongInt;
@@ -1958,16 +1961,16 @@ end;
 
 { Text rendering methods }
 
-procedure TMarkDownPDFRenderer.FlushTextRun(const aText: utf8string; const aFontSize: LongInt;
-  const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
+procedure TMarkDownPDFRenderer.FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+  const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
   const aDryRun: boolean);
 var
   Item: TLayoutItem;
   lX,lY : TPDFFLoat;
   lNewWidth, lHeight, lWidth, BaselineShift: TPDFFLoat;
-  lFontName: string;
+  lFontName: String;
   BaseFont: TFPFontCacheItem;
-  lSeg: utf8string;
+  lSeg: TMarkdownString;
 begin
   if length(aText)=0 then
     exit;
@@ -2021,7 +2024,7 @@ end;
 
 procedure TMarkDownPDFRenderer.ApplyFrontmatterInfo(aBlock: TMarkdownFrontmatterBlock);
 
-  function Unquote(const aValue: String): String;
+  function Unquote(const aValue: TMarkdownString): TMarkdownString;
   begin
     Result:=aValue;
     if (Length(Result)>1) and (Result[1]=Result[Length(Result)])
@@ -2031,7 +2034,7 @@ procedure TMarkDownPDFRenderer.ApplyFrontmatterInfo(aBlock: TMarkdownFrontmatter
 
 var
   lInfos: TPDFInfos;
-  lLine, lKey, lValue: String;
+  lLine, lKey, lValue: TMarkdownString;
   I, P: Integer;
 
 begin
@@ -2040,7 +2043,7 @@ begin
   lInfos:=FPDFDocument.Infos;
   for I:=0 to aBlock.Content.Count-1 do
     begin
-    lLine:=aBlock.Content[I];
+    lLine:=StringToMarkdown(aBlock.Content[I]);
     // An indented line belongs to a nested structure, so only take top-level keys
     if (lLine='') or CharInSet(lLine[1],[' ',#9,'#']) then
       continue;
@@ -2055,13 +2058,13 @@ begin
     case lKey of
       'title':
         if lInfos.Title='' then
-          lInfos.Title:=lValue;
+          lInfos.Title:=MarkdownToString(lValue);
       'author':
         if lInfos.Author='' then
-          lInfos.Author:=lValue;
+          lInfos.Author:=MarkdownToString(lValue);
       'keywords':
         if lInfos.Keywords='' then
-          lInfos.Keywords:=lValue;
+          lInfos.Keywords:=MarkdownToString(lValue);
     end;
     end;
 end;
@@ -2127,11 +2130,11 @@ begin
 
      // Convert TARGBColor to PDF color if needed
      TargetPage.SetColor(aItem.Color, False);
-     TargetPage.WriteText(aItem.X, aItem.Y, aItem.Text);
+     TargetPage.WriteText(aItem.X, aItem.Y, MarkdownToUTF8(aItem.Text));
 
      // Add clickable link if URL is present
      if aItem.URL <> '' then
-       TargetPage.AddExternalLink(aItem.X, aItem.Y, aItem.Width, aItem.Height, aItem.URL, False);
+       TargetPage.AddExternalLink(aItem.X, aItem.Y, aItem.Width, aItem.Height, MarkdownToString(aItem.URL), False);
      end;
    TLayoutItemKind.likRect:
      begin
@@ -2159,7 +2162,7 @@ begin
 end;
 
 
-function TMarkDownPDFRenderer.HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: utf8string): boolean;
+function TMarkDownPDFRenderer.HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: TMarkdownString): boolean;
 var
   I: LongInt;
   Itm: TLinkHitRect;
@@ -2180,11 +2183,11 @@ begin
     end;
 end;
 
-procedure TMarkDownPDFRenderer.AddDestination(const aID: String);
+procedure TMarkDownPDFRenderer.AddDestination(const aID: TMarkdownString);
 
 begin
-  if (aID<>'') and (FDestinations.IndexOf(aID)<0) then
-    FDestinations.AddObject(aID,TPDFDestination.Create(FLayout.CurrentPageIndex,FLayout.LineY));
+  if (aID<>'') and (FDestinations.IndexOf(MarkdownToString(aID))<0) then
+    FDestinations.AddObject(MarkdownToString(aID),TPDFDestination.Create(FLayout.CurrentPageIndex,FLayout.LineY));
 end;
 
 
@@ -2192,7 +2195,7 @@ procedure TMarkDownPDFRenderer.RenderFootnoteRef(aTextNode: TMarkDownTextNode; a
   aFontStyle: TFontStyles; const aContext: TFontContext);
 
 var
-  lText : String;
+  lText : TMarkdownString;
   lSaved : TPDFFloat;
 begin
   lText:=aTextNode.Attrs['number'];
@@ -2209,7 +2212,7 @@ procedure TMarkDownPDFRenderer.RenderFootnotes;
 
 var
   lBlock : TMarkdownBlock;
-  lPrefix : String;
+  lPrefix : TMarkdownString;
   lIndent : Integer;
   Itm : TLayoutItem;
 begin
@@ -2222,7 +2225,7 @@ begin
   FLayout.LineY:=FLayout.LineY+DIP(4);
   for lBlock in FDocument.Footnotes do
     begin
-    lPrefix:=IntToStr(TMarkdownFootnoteBlock(lBlock).Number)+'.';
+    lPrefix:=IntToMarkdown(TMarkdownFootnoteBlock(lBlock).Number)+'.';
     LayoutTextWrapped(lPrefix+' ', FBaseFontSize, [], '', [], False, False);
     lIndent:=MeasureTextWidth(lPrefix+'_', FBaseFontSize, [], []);
     Indent(lIndent);
@@ -2262,7 +2265,7 @@ begin
     FLayout.CurrentIndent:=FLayout.CurrentIndent+aSize;
 end;
 
-procedure TMarkDownPDFRenderer.SetBulletChar(AIndex: Integer; AValue: string);
+procedure TMarkDownPDFRenderer.SetBulletChar(AIndex: Integer; AValue: TMarkdownString);
 begin
   FBullets[aIndex]:=aValue;
 end;
@@ -2296,12 +2299,12 @@ begin
     FBulletLevel:=0;
 end;
 
-function TMarkDownPDFRenderer.GetBullet: String;
+function TMarkDownPDFRenderer.GetBullet: TMarkdownString;
 begin
   Result:=GetBulletAt(BulletLevel)
 end;
 
-function TMarkDownPDFRenderer.GetBulletAt(aLevel: integer): string;
+function TMarkDownPDFRenderer.GetBulletAt(aLevel: integer): TMarkdownString;
 begin
   // FBullets is 1-based; keep aLevel in range so a stray 0/level can never read
   // out of bounds.
@@ -2312,14 +2315,14 @@ begin
   Result:=FBullets[aLevel];
 end;
 
-procedure TMarkDownPDFRenderer.LayoutTextWrapped(const aText: utf8string; const aFontSize: LongInt;
-  const aFontStyle: TFontStyles; const aLinkHref: utf8string; const aContext : TFontContext;
+procedure TMarkDownPDFRenderer.LayoutTextWrapped(const aText: TMarkdownString; const aFontSize: LongInt;
+  const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
   const aPreserveWhitespace, aDryRun: boolean);
 Const
   WhiteSpace = [#32, #9, #13, #10];
 
 var
-  LineBuffer: AnsiString;
+  LineBuffer: TMarkdownString;
   NeedSpace: boolean;
 
   procedure FlushCurrentLine;
@@ -2331,7 +2334,7 @@ var
       end;
   end;
 
-  function NextUTF8CharLenAt(const aString: utf8string; const aPosition: integer): integer;
+  function NextUTF8CharLenAt(const aString: TMarkdownString; const aPosition: integer): integer;
   var
     ByteValue: byte;
   begin
@@ -2349,10 +2352,10 @@ var
   end;
 
   // Break a word that is wider than the whole line, character by character
-  procedure BreakLongWord(const aWord: utf8string);
+  procedure BreakLongWord(const aWord: TMarkdownString);
   var
     CharPos, WordLen, CharLen: LongInt;
-    CharBuffer, CurrentChar: utf8string;
+    CharBuffer, CurrentChar: TMarkdownString;
     CharWidth: LongInt;
   begin
     WordLen:=length(aWord);
@@ -2385,9 +2388,9 @@ var
   end;
 
   // Add a word to the current line, wrapping to the next line when it does not fit
-  procedure AddWordToLine(const aWord: utf8string);
+  procedure AddWordToLine(const aWord: TMarkdownString);
   var
-    lLine: utf8string;
+    lLine: TMarkdownString;
     lWidth: LongInt;
   begin
     if length(aWord)=0 then
@@ -2427,7 +2430,7 @@ var
 var
   Index, lLength: LongInt;
   lChar: ansichar;
-  WordBuffer, lText: utf8string;
+  WordBuffer, lText: TMarkdownString;
   TextHeight: LongInt;
   FirstIndex, LastIndex: LongInt;
 
@@ -2493,10 +2496,11 @@ begin
   FLayout.NeedSpaceBeforeNextText:=(lLength>0) and (lText[lLength] in WhiteSpace);
 end;
 
-function TMarkDownPDFRenderer.LayoutImage(aImageURL: UTF8String; const aWidth: String; aKeepOnPage: Boolean): Boolean;
+function TMarkDownPDFRenderer.LayoutImage(aImageURL: TMarkdownString; const aWidth: TMarkdownString; aKeepOnPage: Boolean): Boolean;
 
 var
-  lPath, lSpec: string;
+  lPath: String;
+  lSpec: TMarkdownString;
   lIdx, pxW, pxH: Integer;
   dispW, dispH, maxW, scale, lWanted: TPDFFloat;
   Item: TLayoutItem;
@@ -2505,9 +2509,9 @@ begin
   if not Assigned(FPDFDocument) then
     exit;
   // Resolve a relative URL against the configured base directory
-  lPath := aImageURL;
+  lPath := MarkdownToString(aImageURL);
   if not FileExists(lPath) and (FImageBaseDir<>'') then
-    lPath := IncludeTrailingPathDelimiter(FImageBaseDir) + aImageURL;
+    lPath := IncludeTrailingPathDelimiter(FImageBaseDir) + MarkdownToString(aImageURL);
   if not FileExists(lPath) then
     exit;
   try
@@ -2535,19 +2539,19 @@ begin
   lWanted := 0;
   if lSpec.EndsWith('%') then
     begin
-    if TryStrToFloat(Copy(lSpec,1,Length(lSpec)-1),lWanted,DefaultFormatSettings) then
+    if TryStrToFloat(MarkdownToString(Copy(lSpec,1,Length(lSpec)-1)),lWanted,DefaultFormatSettings) then
       lWanted := maxW*lWanted/100;
     end
   else if lSpec.EndsWith('px') then
     begin
-    if TryStrToFloat(Copy(lSpec,1,Length(lSpec)-2),lWanted,DefaultFormatSettings) then
+    if TryStrToFloat(MarkdownToString(Copy(lSpec,1,Length(lSpec)-2)),lWanted,DefaultFormatSettings) then
       lWanted := lWanted*scale;
     end
   else if lSpec<>'' then
     begin
     if lSpec.EndsWith('pt') then
       SetLength(lSpec,Length(lSpec)-2);
-    if not TryStrToFloat(lSpec,lWanted,DefaultFormatSettings) then
+    if not TryStrToFloat(MarkdownToString(lSpec),lWanted,DefaultFormatSettings) then
       lWanted := 0;
     end;
   if lWanted>0 then
@@ -2576,11 +2580,11 @@ begin
 end;
 
 procedure TMarkDownPDFRenderer.RenderTextNode(aTextNode: TMarkDownTextNode; aFontSize: LongInt;
-  aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : String = '');
+  aFontStyle: TFontStyles; const aContext : TFontContext; const aHref : TMarkdownString = '');
 var
   fontStyle: TFontStyles;
-  lText,linkHref: utf8string;
-  lPlain,lResolveHref : String;
+  lText,linkHref: TMarkdownString;
+  lPlain,lResolveHref : TMarkdownString;
   lContext : TFontContext;
   lChild : TMarkDownTextNode;
 begin
@@ -2805,7 +2809,7 @@ procedure TPDFMarkDownFigureBlockRenderer.DoRender(aBlock: TMarkDownBlock);
 
 var
   lNode : TMarkdownFigureBlock absolute aBlock;
-  lLabel, lWidth, lAlt : String;
+  lLabel, lWidth, lAlt : TMarkdownString;
   i : Integer;
 begin
   MaybeStartParagraph;
@@ -2814,7 +2818,7 @@ begin
     begin
     lWidth:='';
     if lNode.HasAttrs then
-      lWidth:=lNode.Attrs.Values['width'];
+      lWidth:=StringToMarkdown(lNode.Attrs.Values['width']);
     if not PDFRenderer.LayoutImage(lNode.Image.Attrs['src'],lWidth,True) then
       begin
       lAlt:=lNode.Image.Attrs['alt'];

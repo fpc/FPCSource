@@ -15,15 +15,20 @@
 unit UTest.Markdown.HTMLRender;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry,
+{$ENDIF}
   MarkDown.Elements,
   Markdown.Render,
   Markdown.Parser,
-  MarkDown.HtmlRender;
+  Markdown.Utils, MarkDown.HtmlRender;
 
 type
 
@@ -36,14 +41,14 @@ type
   Public
     Procedure SetUp; override;
     Procedure TearDown; override;
-    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: string; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
-    function CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
-    function CreateHeadingBlock(const aTextNode: string; aLevel : integer): TMarkdownBlock;
-    function CreateListBlock(aOrdered : boolean; const aListItemText : string): TMarkDownListBlock;
-    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
-    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
-    procedure TestRender(const aHTML : string);
+    function CreateTextBlock(aParent: TMarkdownBlock; const aText,aTextNode: TMarkdownString; aNodeStyle : TNodeStyles=[]): TMarkDownTextBlock;
+    function CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
+    function CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel : integer): TMarkdownBlock;
+    function CreateListBlock(aOrdered : boolean; const aListItemText : TMarkdownString): TMarkDownListBlock;
+    function CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
+    function AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle : TNodeStyles) : TMarkDownTextNode;
+    procedure TestRender(const aHTML : TMarkdownString);
     Property Renderer : TMarkDownHTMLRenderer Read FHTMLRenderer;
     Property Document : TMarkDownDocument Read FDocument;
   Published
@@ -89,18 +94,23 @@ type
   TTestHTMLRenderExtensions = Class(TTestCase)
   private
     FRenderer : TMarkDownHTMLRenderer;
-    procedure DoMarker(aRenderer : TMarkdownRenderer; const aName, aArgument, aValue : String);
-    procedure DoResolveLink(aRenderer : TMarkdownRenderer; var aHref, aText : String; out aHandled : Boolean);
-    procedure DoHeadingNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aNumber : String);
-    procedure DoCaptionNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aLabel : String);
+    procedure DoMarker(aRenderer : TMarkdownRenderer; const aName, aArgument, aValue : TMarkdownString);
+    procedure DoResolveLink(aRenderer : TMarkdownRenderer; var aHref, aText : TMarkdownString; out aHandled : Boolean);
+    procedure DoHeadingNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aNumber : TMarkdownString);
+    procedure DoCaptionNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aLabel : TMarkdownString);
   protected
-    function Render(const aMarkdown : String; aOptions : TMarkdownOptions = MarkdownDocExtensions) : String;
-    procedure CheckRender(const aMarkdown, aHTML : String);
+    function Render(const aMarkdown : TMarkdownString; aOptions : TMarkdownOptions = MarkdownDocExtensions) : TMarkdownString;
+    procedure CheckRender(const aMarkdown, aHTML : TMarkdownString);
   Public
     Procedure SetUp; override;
     Procedure TearDown; override;
   Published
     procedure TestHeadingAttributes;
+    procedure TestNonAsciiText;
+    procedure TestNonAsciiEntity;
+    procedure TestNonAsciiLink;
+    procedure TestNonAsciiLinkReference;
+    procedure TestNonAsciiToStrings;
     procedure TestSetextHeadingID;
     procedure TestCodeAttributes;
     procedure TestCommentWritesNothing;
@@ -142,7 +152,7 @@ begin
 end;
 
 
-function TTestHTMLRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: string; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
+function TTestHTMLRender.CreateTextBlock(aParent: TMarkdownBlock; const aText, aTextNode: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextBlock;
 
 begin
   Result:=TMarkDownTextBlock.Create(aParent,1,aText);
@@ -150,7 +160,7 @@ begin
     AppendTextNode(Result,aTextNode,aNodeStyle);
 end;
 
-function TTestHTMLRender.CreateParagraphBlock(const aTextNode: string): TMarkdownBlock;
+function TTestHTMLRender.CreateParagraphBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownParagraphBlock.Create(FDocument,1);
@@ -158,7 +168,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestHTMLRender.CreateQuotedBlock(const aTextNode: string): TMarkdownBlock;
+function TTestHTMLRender.CreateQuotedBlock(const aTextNode: TMarkdownString): TMarkdownBlock;
 
 begin
   Result:=TMarkDownQuoteBlock.Create(FDocument,1);
@@ -166,7 +176,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestHTMLRender.CreateHeadingBlock(const aTextNode: string; aLevel: integer): TMarkdownBlock;
+function TTestHTMLRender.CreateHeadingBlock(const aTextNode: TMarkdownString; aLevel: integer): TMarkdownBlock;
 
 begin
   Result:=TMarkDownHeadingBlock.Create(FDocument,1,aLevel);
@@ -174,7 +184,7 @@ begin
     CreateTextBlock(Result,aTextNode,aTextNode);
 end;
 
-function TTestHTMLRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: string): TMarkDownListItemBlock;
+function TTestHTMLRender.CreateListItemBlock(aParent: TMarkDownContainerBlock; const aText: TMarkdownString): TMarkDownListItemBlock;
 
 var
   lPar : TMarkDownParagraphBlock;
@@ -185,7 +195,7 @@ begin
 end;
 
 
-function TTestHTMLRender.CreateListBlock(aOrdered: boolean; const aListItemText: string): TMarkDownListBlock;
+function TTestHTMLRender.CreateListBlock(aOrdered: boolean; const aListItemText: TMarkdownString): TMarkDownListBlock;
 
 begin
   Result:=TMarkDownListBlock.Create(FDocument,1);
@@ -194,7 +204,7 @@ begin
     CreateListItemBlock(Result,aListItemText);
 end;
 
-function TTestHTMLRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: string; aNodeStyle: TNodeStyles): TMarkDownTextNode;
+function TTestHTMLRender.AppendTextNode(aBlock: TMarkDownTextBlock; const aText: TMarkdownString; aNodeStyle: TNodeStyles): TMarkDownTextNode;
 
 var
   p : TPosition;
@@ -213,7 +223,7 @@ begin
   Result:=T;
 end;
 
-procedure TTestHTMLRender.TestRender(const aHTML: string);
+procedure TTestHTMLRender.TestRender(const aHTML: TMarkdownString);
 
 var
   L : TStrings;
@@ -552,14 +562,14 @@ begin
 end;
 
 
-procedure TTestHTMLRenderExtensions.DoMarker(aRenderer: TMarkdownRenderer; const aName, aArgument, aValue: String);
+procedure TTestHTMLRenderExtensions.DoMarker(aRenderer: TMarkdownRenderer; const aName, aArgument, aValue: TMarkdownString);
 
 begin
   aRenderer.WriteRaw('<a id="'+aName+'-'+aArgument+'-'+aValue+'"></a>');
 end;
 
 
-procedure TTestHTMLRenderExtensions.DoResolveLink(aRenderer: TMarkdownRenderer; var aHref, aText: String; out aHandled: Boolean);
+procedure TTestHTMLRenderExtensions.DoResolveLink(aRenderer: TMarkdownRenderer; var aHref, aText: TMarkdownString; out aHandled: Boolean);
 
 begin
   aHandled:=False;
@@ -570,14 +580,14 @@ begin
 end;
 
 
-procedure TTestHTMLRenderExtensions.DoHeadingNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aNumber: String);
+procedure TTestHTMLRenderExtensions.DoHeadingNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aNumber: TMarkdownString);
 
 begin
   aNumber:='1.'+IntToStr(aBlock.Line);
 end;
 
 
-procedure TTestHTMLRenderExtensions.DoCaptionNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aLabel: String);
+procedure TTestHTMLRenderExtensions.DoCaptionNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aLabel: TMarkdownString);
 
 begin
   if aBlock is TMarkdownTableBlock then
@@ -587,7 +597,7 @@ begin
 end;
 
 
-function TTestHTMLRenderExtensions.Render(const aMarkdown: String; aOptions: TMarkdownOptions): String;
+function TTestHTMLRenderExtensions.Render(const aMarkdown: TMarkdownString; aOptions: TMarkdownOptions): TMarkdownString;
 
 var
   lSource : TStringList;
@@ -595,7 +605,7 @@ var
 begin
   lSource:=TStringList.Create;
   try
-    lSource.Text:=aMarkdown;
+    lSource.Text:=MarkdownToString(aMarkdown);
     lDoc:=TMarkdownParser.FastParse(lSource,aOptions);
     try
       Result:=FRenderer.RenderHTML(lDoc);
@@ -608,10 +618,63 @@ begin
 end;
 
 
-procedure TTestHTMLRenderExtensions.CheckRender(const aMarkdown, aHTML: String);
+procedure TTestHTMLRenderExtensions.CheckRender(const aMarkdown, aHTML: TMarkdownString);
 
 begin
   AssertEquals('Correct html',aHTML,Render(aMarkdown));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNonAsciiText;
+
+begin
+  CheckRender(UnicodeToMarkdown('Ünïcödé *日本語* 😀'),UnicodeToMarkdown('<p>Ünïcödé <i>日本語</i> 😀</p>'+sLineBreak));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNonAsciiEntity;
+
+begin
+  CheckRender('caf&eacute; &#x1F600;',UnicodeToMarkdown('<p>café 😀</p>'+sLineBreak));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNonAsciiLink;
+
+begin
+  CheckRender(UnicodeToMarkdown('[Grüße](/grüße)'),UnicodeToMarkdown('<p><a href="/gr%C3%BC%C3%9Fe">Grüße</a></p>'+sLineBreak));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNonAsciiLinkReference;
+
+begin
+  CheckRender(UnicodeToMarkdown('[über]: /u'#10#10'[ÜBER]'),UnicodeToMarkdown('<p><a href="/u">ÜBER</a></p>'+sLineBreak));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNonAsciiToStrings;
+
+var
+  lSource,lDest : TStringList;
+  lDoc : TMarkdownDocument;
+
+begin
+  lDest:=Nil;
+  lDoc:=Nil;
+  lSource:=TStringList.Create;
+  try
+    lDest:=TStringList.Create;
+    lSource.Text:=MarkdownToString(UnicodeToMarkdown('Grüße 日本語'));
+    lDoc:=TMarkdownParser.FastParse(lSource,[]);
+    FRenderer.RenderDocument(lDoc,lDest);
+    AssertEquals('One line',1,lDest.Count);
+    AssertEquals('Native string of the HTML',MarkdownToString(UnicodeToMarkdown('<p>Grüße 日本語</p>')),lDest[0]);
+  finally
+    lDoc.Free;
+    lDest.Free;
+    lSource.Free;
+  end;
 end;
 
 
@@ -704,7 +767,7 @@ end;
 procedure TTestHTMLRenderExtensions.TestTableCaption;
 
 var
-  lHTML : String;
+  lHTML : TMarkdownString;
 begin
   FRenderer.OnCaptionNumber:=@DoCaptionNumber;
   lHTML:=Render('| a |'#10'|---|'#10'| 1 |'#10#10'Table: Values {#tab}');
@@ -716,7 +779,7 @@ end;
 procedure TTestHTMLRenderExtensions.TestTableHeaderCells;
 
 var
-  lHTML : String;
+  lHTML : TMarkdownString;
 begin
   lHTML:=Render('| a |'#10'|---|'#10'| 1 |');
   AssertTrue('Header cell is th: '+lHTML,Pos('<th>a</th>',lHTML)>0);

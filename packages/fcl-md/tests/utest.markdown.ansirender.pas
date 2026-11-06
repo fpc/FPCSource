@@ -15,12 +15,17 @@
 unit UTest.Markdown.ANSIRender;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry,
-  Markdown.Elements, Markdown.Render, Markdown.Parser, Markdown.ANSIRender;
+{$ENDIF}
+  Markdown.Utils, Markdown.Elements, Markdown.Render, Markdown.Parser, Markdown.ANSIRender;
 
 type
 
@@ -29,15 +34,17 @@ type
   TTestANSIRender = class(TTestCase)
   private
     FRenderer : TMarkDownANSIRenderer;
-    procedure DoHeadingNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aNumber : String);
+    procedure DoHeadingNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aNumber : TMarkdownString);
   protected
-    function Render(const aMarkdown : String) : String;
-    procedure CheckContains(const aMsg, aExpected, aActual : String);
+    function Render(const aMarkdown : TMarkdownString) : TMarkdownString;
+    procedure CheckContains(const aMsg, aExpected, aActual : TMarkdownString);
   public
     procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestPlainDocument;
+    procedure TestNonAsciiText;
+    procedure TestNonAsciiStyledText;
     procedure TestDefinitionList;
     procedure TestAlert;
     procedure TestFootnotes;
@@ -72,14 +79,14 @@ begin
 end;
 
 
-procedure TTestANSIRender.DoHeadingNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aNumber: String);
+procedure TTestANSIRender.DoHeadingNumber(aRenderer: TMarkdownRenderer; aBlock: TMarkdownBlock; out aNumber: TMarkdownString);
 
 begin
   aNumber:='2.3';
 end;
 
 
-function TTestANSIRender.Render(const aMarkdown: String): String;
+function TTestANSIRender.Render(const aMarkdown: TMarkdownString): TMarkdownString;
 
 var
   lSource : TStringList;
@@ -87,7 +94,7 @@ var
 begin
   lSource:=TStringList.Create;
   try
-    lSource.Text:=aMarkdown;
+    lSource.Text:=MarkdownToString(aMarkdown);
     lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
     try
       Result:=FRenderer.RenderToString(lDoc);
@@ -100,7 +107,7 @@ begin
 end;
 
 
-procedure TTestANSIRender.CheckContains(const aMsg, aExpected, aActual: String);
+procedure TTestANSIRender.CheckContains(const aMsg, aExpected, aActual: TMarkdownString);
 
 begin
   AssertTrue(aMsg+': expected "'+aExpected+'" in "'+aActual+'"',Pos(aExpected,aActual)>0);
@@ -111,6 +118,26 @@ procedure TTestANSIRender.TestPlainDocument;
 
 begin
   CheckContains('Paragraph text','Some text.',Render('# Title'#10#10'Some text.'));
+end;
+
+
+procedure TTestANSIRender.TestNonAsciiText;
+
+begin
+  CheckContains('UTF-8 text is kept',UnicodeToMarkdown('Grüße 日本語'),Render(UnicodeToMarkdown('Grüße 日本語')));
+end;
+
+
+procedure TTestANSIRender.TestNonAsciiStyledText;
+
+var
+  lOutput : TMarkdownString;
+
+begin
+  FRenderer.UseColor:=True;
+  lOutput:=Render(UnicodeToMarkdown('**Grüße**'));
+  CheckContains('Bold UTF-8 text is kept',UnicodeToMarkdown('Grüße'),lOutput);
+  CheckContains('Bold escape sequence',#27'[',lOutput);
 end;
 
 
@@ -132,7 +159,7 @@ end;
 procedure TTestANSIRender.TestFootnotes;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:=Render('Text.[^n]'#10#10'[^n]: The note.');
   CheckContains('Reference','Text.[1]',S);

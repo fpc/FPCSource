@@ -58,11 +58,11 @@ Type
   TMarkdownTextNode = class(TMarkdownElement)
   private
     FKind: TTextNodeKind;
-    FName : Ansistring;
+    FName : TMarkdownString;
     FAttrs: THashTable;
     FChildren: TMarkdownTextNodeList;
-    FContent : AnsiString;
-    FBuild : RawByteString;
+    FContent : TMarkdownString;
+    FBuild : TMarkdownString;
     FLength : integer;
     FPos : TPosition;
     FActive : Boolean;
@@ -72,9 +72,9 @@ Type
     function GetChildren: TMarkdownTextNodeList;
     function GetHasAttrs: Boolean;
     function GetHasChildren: Boolean;
-    function getText : AnsiString;
-    function GetNodetext : ansistring;
-    procedure SetName(const Value: AnsiString);
+    function GetText : TMarkdownString;
+    function GetNodeText : TMarkdownString;
+    procedure SetName(const Value: TMarkdownString);
     procedure SetActive(const aValue: boolean);
     procedure SetStyles(const aValue: TNodeStyles);
   public
@@ -83,17 +83,17 @@ Type
     procedure AddStyle(aStyle : TNodeStyle);
     procedure IncCol(aCount : integer);
     property Kind : TTextNodeKind Read FKind Write FKind;
-    property Name : AnsiString read FName write SetName;
+    property Name : TMarkdownString read FName write SetName;
     property Attrs : THashTable read GetAttrs;
     property HasAttrs : Boolean Read GetHasAttrs;
-    property NodeText : ansistring read GetNodetext;
-    procedure AddText(ch : char); overload;
-    procedure AddText(const s : AnsiString); overload;
+    property NodeText : TMarkdownString read GetNodetext;
+    procedure AddText(ch : TMarkdownChar); overload;
+    procedure AddText(const s : TMarkdownString); overload;
     procedure RemoveChars(count : integer);
     // Insert aText before the current content of the node
-    procedure PrependText(const aText : AnsiString);
+    procedure PrependText(const aText : TMarkdownString);
     // Replace the content of the node with aText
-    procedure SetNodeText(const aText : AnsiString);
+    procedure SetNodeText(const aText : TMarkdownString);
     function IsEmpty : boolean;
     property Pos : TPosition Read FPos;
     property Active : Boolean Read FActive Write SetActive;
@@ -113,17 +113,17 @@ Type
     procedure ClearActive; inline;
   public
     // When the last block is active, add to that block. Otherwise, create a new text node
-    function AddText(aPos: TPosition; const aContent: AnsiString): TMarkdownTextNode;
-    function AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: AnsiString; aDoClose: Boolean=True): TMarkdownTextNode; // always make a new node, and make it inactive
+    function AddText(aPos: TPosition; const aContent: TMarkdownString): TMarkdownTextNode;
+    function AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: TMarkdownString; aDoClose: Boolean=True): TMarkdownTextNode; // always make a new node, and make it inactive
     procedure RemoveAfter(node : TMarkdownTextNode);
     function LastNode : TMarkdownTextNode;
     procedure ApplyStyleBetween(aStart,aStop : TMarkdownTextNode; aStyle : TNodeStyle);
     // The concatenated text of aNode and all nodes following it
-    function TextFrom(aNode : TMarkdownTextNode) : AnsiString;
+    function TextFrom(aNode : TMarkdownTextNode) : TMarkdownString;
     // Move all nodes following aNode into the child list of aNode
     procedure MoveToChildren(aNode : TMarkdownTextNode);
     // The text of all nodes and their children, without comments and footnote references. Images give their alt text.
-    function PlainText : AnsiString;
+    function PlainText : TMarkdownString;
   end;
 
   { TMarkdownBlock }
@@ -133,8 +133,8 @@ Type
     FClosed: boolean;
     FLine : integer;
     FParent : TMarkdownBlock;
-    FID : String;
-    FClasses : TStringArray;
+    FID : TMarkdownString;
+    FClasses : TMarkdownStringArray;
     FAttrs : TStrings;
     function GetAttrs: TStrings;
     function GetHasAttrs: Boolean;
@@ -147,16 +147,16 @@ Type
   public
     constructor Create(aParent : TMarkdownBlock; aLine : Integer);  virtual; reintroduce;
     destructor Destroy; override;
-    procedure Dump(const aIndent : string = '');
-    Function GetFirstText : String;
+    procedure Dump(const aIndent : TMarkdownString = '');
+    Function GetFirstText : TMarkdownString;
     // The plain text of all text blocks inside this block, lines separated by a space.
-    function PlainText : String;
+    function PlainText : TMarkdownString;
     // Apply an attribute specification {#id .class key=value}. Returns False and changes nothing when aSpec is invalid.
-    function ApplyAttributes(const aSpec : String) : Boolean;
+    function ApplyAttributes(const aSpec : TMarkdownString) : Boolean;
     // Explicit or automatic id of the block.
-    property ID : String read FID write FID;
+    property ID : TMarkdownString read FID write FID;
     // Classes given in an attribute specification.
-    property Classes : TStringArray read FClasses write FClasses;
+    property Classes : TMarkdownStringArray read FClasses write FClasses;
     // key=value attributes given in an attribute specification, created on demand.
     property Attrs : TStrings read GetAttrs;
     // Does the block have an id, classes or key=value attributes ?
@@ -176,7 +176,7 @@ Type
   { TMarkdownBlockList }
 
   TMarkdownBlockList = class(specialize TGFPObjectList<TMarkdownBlock>)
-    function lastblock : TMarkdownBlock;
+    function LastBlock : TMarkdownBlock;
   end;
 
   { TMarkdownContainerBlock }
@@ -226,34 +226,34 @@ Type
 
   TMarkdownLinkReference = class(TObject)
   private
-    FTitle: String;
-    FURL: String;
+    FTitle: TMarkdownString;
+    FURL: TMarkdownString;
   public
-    constructor Create(const aURL, aTitle : String);
+    constructor Create(const aURL, aTitle : TMarkdownString);
     // Link destination
-    property URL : String read FURL;
+    property URL : TMarkdownString read FURL;
     // Link title, empty when the definition has none
-    property Title : String read FTitle;
+    property Title : TMarkdownString read FTitle;
   end;
 
   { TMarkdownMarker }
 
   TMarkdownMarker = class(TObject)
   private
-    FArgument: String;
+    FArgument: TMarkdownString;
     FBlock: TMarkdownBlock;
-    FName: String;
+    FName: TMarkdownString;
     FNode: TMarkdownTextNode;
     FNodeIndex: Integer;
-    FValue: String;
+    FValue: TMarkdownString;
   public
-    constructor Create(const aName, aArgument, aValue : String; aBlock : TMarkdownBlock; aNode : TMarkdownTextNode; aNodeIndex : Integer);
+    constructor Create(const aName, aArgument, aValue : TMarkdownString; aBlock : TMarkdownBlock; aNode : TMarkdownTextNode; aNodeIndex : Integer);
     // Marker name: index in <!-- index: x -->
-    property Name : String read FName;
+    property Name : TMarkdownString read FName;
     // Marker argument: msgnr in <!-- index[msgnr]: x -->
-    property Argument : String read FArgument;
+    property Argument : TMarkdownString read FArgument;
     // Marker value: x in <!-- index: x -->
-    property Value : String read FValue;
+    property Value : TMarkdownString read FValue;
     // The comment block, or the text block that contains Node.
     property Block : TMarkdownBlock read FBlock;
     // The comment node for an inline marker, Nil for a comment block.
@@ -278,17 +278,17 @@ Type
     constructor Create(aParent : TMarkdownBlock; aLine : Integer); override;
     destructor Destroy; override;
     // Register aTarget (a block or a text node) under aID. Returns False when aID is already in use.
-    function AddAnchor(const aID : String; aTarget : TMarkdownElement) : Boolean;
+    function AddAnchor(const aID : TMarkdownString; aTarget : TMarkdownElement) : Boolean;
     // The block or text node with id aID, Nil if there is none.
-    function FindAnchor(const aID : String) : TMarkdownElement;
+    function FindAnchor(const aID : TMarkdownString) : TMarkdownElement;
     // Register a footnote definition. Returns False when its label is already in use.
     function AddFootnoteDef(aBlock : TMarkdownFootnoteBlock) : Boolean;
     // The footnote definition with label aLabel, Nil if there is none.
-    function FindFootnoteDef(const aLabel : String) : TMarkdownFootnoteBlock;
+    function FindFootnoteDef(const aLabel : TMarkdownString) : TMarkdownFootnoteBlock;
     // Register a link reference definition. Returns False when its label is already in use.
-    function AddLinkRef(const aLabel, aURL, aTitle : String) : Boolean;
+    function AddLinkRef(const aLabel, aURL, aTitle : TMarkdownString) : Boolean;
     // The link reference definition with label aLabel, Nil if there is none.
-    function FindLinkRef(const aLabel : String) : TMarkdownLinkReference;
+    function FindLinkRef(const aLabel : TMarkdownString) : TMarkdownLinkReference;
     // The front matter block, if the document has one.
     property Frontmatter : TMarkdownFrontmatterBlock read FFrontmatter write FFrontmatter;
     // Id to block or text node.
@@ -324,7 +324,7 @@ Type
   private
     FOrdered: boolean;
     FStart: integer;
-    FMarker: AnsiString;
+    FMarker: TMarkdownString;
     FLoose: boolean;
     FLastIndent: integer;
     FBaseIndent: integer;
@@ -338,14 +338,14 @@ Type
     // Column at which the content of the last item starts: marker indent, marker and the spaces after it.
     property ContentIndent : integer read FContentIndent write FContentIndent;
     property Start : integer read FStart write FStart;
-    property Marker : AnsiString read FMarker write FMarker;
+    property Marker : TMarkdownString read FMarker write FMarker;
     property Loose : boolean read FLoose write FLoose;
     property HasSeenEmptyLine : boolean read FHasSeenEmptyLine Write FHasSeenEmptyLine; // parser state
   end;
 
   TMarkdownListItemBlock = class (TMarkdownParagraphBlock)
   public
-    function isPlainPara : boolean; override;
+    function IsPlainPara : boolean; override;
     function ContentIndentation : Integer; override;
   end;
 
@@ -360,12 +360,12 @@ Type
   TMarkdownCodeBlock = class (TMarkdownContainerBlock)
   private
     FFenced: boolean;
-    FLang: AnsiString;
+    FLang: TMarkdownString;
     FIndent : Integer;
   public
     function WhiteSpaceMode : TWhitespaceMode; override;
     property Fenced : boolean read FFenced write FFenced;
-    property Lang : AnsiString read FLang write FLang;
+    property Lang : TMarkdownString read FLang write FLang;
     Property Indent : Integer Read FIndent Write FIndent;
   end;
 
@@ -398,14 +398,14 @@ Type
 
   TMarkdownTextBlock = class (TMarkdownLeafBlock)
   private
-    FText: AnsiString;
+    FText: TMarkdownString;
     FNodes : TMarkdownTextNodeList;
   protected
     procedure SetClosed(const aValue: boolean);override;
   public
-    constructor Create(aParent : TMarkdownBlock; aLine : integer; const aText : AnsiString); reintroduce;
+    constructor Create(aParent : TMarkdownBlock; aLine : integer; const aText : TMarkdownString); reintroduce;
     destructor Destroy; override;
-    property Text : AnsiString read FText write FText;
+    property Text : TMarkdownString read FText write FText;
     property Nodes : TMarkdownTextNodeList Read FNodes Write FNodes;
   end;
 
@@ -413,22 +413,22 @@ Type
 
   TMarkdownCommentBlock = class (TMarkdownLeafBlock)
   private
-    FMarkerArgument: String;
-    FMarkerName: String;
-    FMarkerValue: String;
-    FText: String;
-    procedure SetText(const aValue: String);
+    FMarkerArgument: TMarkdownString;
+    FMarkerName: TMarkdownString;
+    FMarkerValue: TMarkdownString;
+    FText: TMarkdownString;
+    procedure SetText(const aValue: TMarkdownString);
   public
     // Is the comment a name: value marker ?
     function IsMarker : Boolean;
     // Text between <!-- and -->. Setting it determines the marker properties.
-    property Text : String read FText write SetText;
+    property Text : TMarkdownString read FText write SetText;
     // Marker name: index in <!-- index: x -->, empty when the comment is no marker.
-    property MarkerName : String read FMarkerName;
+    property MarkerName : TMarkdownString read FMarkerName;
     // Marker argument: msgnr in <!-- index[msgnr]: x -->
-    property MarkerArgument : String read FMarkerArgument;
+    property MarkerArgument : TMarkdownString read FMarkerArgument;
     // Marker value: x in <!-- index: x -->
-    property MarkerValue : String read FMarkerValue;
+    property MarkerValue : TMarkdownString read FMarkerValue;
   end;
 
   { TMarkdownDefinitionListBlock }
@@ -477,12 +477,12 @@ Type
   TMarkdownFootnoteBlock = class (TMarkdownContainerBlock)
   private
     FContentIndent: Integer;
-    FFootnoteLabel: String;
+    FFootnoteLabel: TMarkdownString;
     FNumber: Integer;
   public
     function ContentIndentation : Integer; override;
     // Label as written in the definition.
-    property FootnoteLabel : String read FFootnoteLabel write FFootnoteLabel;
+    property FootnoteLabel : TMarkdownString read FFootnoteLabel write FFootnoteLabel;
     // Number in order of first reference, 0 when the footnote is not referenced.
     property Number : Integer read FNumber write FNumber;
     // Column at which continuation lines start.
@@ -506,7 +506,7 @@ Type
   end;
 
 const
-  AlertTypeNames : Array[TAlertType] of string = ('note','tip','important','warning','caution');
+  AlertTypeNames : Array[TAlertType] of TMarkdownString = ('note','tip','important','warning','caution');
 
 implementation
 
@@ -516,7 +516,7 @@ const
 
 { TMarkdownTextNode }
 
-procedure TMarkdownTextNode.addText(const s: AnsiString);
+procedure TMarkdownTextNode.AddText(const s: TMarkdownString);
 
 var
   len,AddLen,NewLen : Integer;
@@ -539,7 +539,7 @@ begin
   FKind:=aKind;
 end;
 
-procedure TMarkdownTextNode.addText(ch: char);
+procedure TMarkdownTextNode.AddText(ch: TMarkdownChar);
 var
   len : Integer;
 begin
@@ -599,13 +599,13 @@ begin
   Result:=Assigned(FChildren) and (FChildren.Count>0);
 end;
 
-function TMarkdownTextNode.getText: AnsiString;
+function TMarkdownTextNode.GetText: TMarkdownString;
 begin
   Active:=False;
   Result:=FContent;
 end;
 
-function TMarkdownTextNode.GetNodetext: ansistring;
+function TMarkdownTextNode.GetNodeText: TMarkdownString;
 begin
   Result:=Copy(FContent,1,Length(FContent));
 end;
@@ -625,7 +625,7 @@ begin
 end;
 
 
-procedure TMarkdownTextNode.PrependText(const aText : AnsiString);
+procedure TMarkdownTextNode.PrependText(const aText : TMarkdownString);
 
 begin
   if aText='' then
@@ -635,7 +635,7 @@ begin
 end;
 
 
-procedure TMarkdownTextNode.SetNodeText(const aText : AnsiString);
+procedure TMarkdownTextNode.SetNodeText(const aText : TMarkdownString);
 
 begin
   Active:=False;
@@ -667,7 +667,7 @@ begin
 end;
 
 
-procedure TMarkdownTextNode.SetName(const Value: AnsiString);
+procedure TMarkdownTextNode.SetName(const Value: TMarkdownString);
 begin
   FName:=Value;
   Active:=False;
@@ -695,7 +695,7 @@ begin
     end;
 end;
 
-function TMarkdownTextNodeList.AddText(aPos: TPosition; const aContent: AnsiString): TMarkdownTextNode;
+function TMarkdownTextNodeList.AddText(aPos: TPosition; const aContent: TMarkdownString): TMarkdownTextNode;
 var
   lNode : TMarkdownTextNode;
 begin
@@ -712,7 +712,7 @@ begin
   Result.addText(aContent);
 end;
 
-function TMarkdownTextNodeList.AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: AnsiString; aDoClose: Boolean
+function TMarkdownTextNodeList.AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: TMarkdownString; aDoClose: Boolean
   ): TMarkdownTextNode;
 begin
   ClearActive;
@@ -734,7 +734,7 @@ begin
 end;
 
 
-function TMarkdownTextNodeList.TextFrom(aNode: TMarkdownTextNode): AnsiString;
+function TMarkdownTextNodeList.TextFrom(aNode: TMarkdownTextNode): TMarkdownString;
 
 var
   I : Integer;
@@ -773,11 +773,11 @@ begin
 end;
 
 
-function TMarkdownTextNodeList.PlainText: AnsiString;
+function TMarkdownTextNodeList.PlainText: TMarkdownString;
 
 var
   lNode : TMarkdownTextNode;
-  lAlt : String;
+  lAlt : TMarkdownString;
 
 begin
   Result:='';
@@ -861,11 +861,11 @@ begin
 end;
 
 
-function TMarkdownBlock.PlainText: String;
+function TMarkdownBlock.PlainText: TMarkdownString;
 
 var
   I : Integer;
-  S : String;
+  S : TMarkdownString;
 
 begin
   if Self is TMarkdownTextBlock then
@@ -887,11 +887,11 @@ begin
 end;
 
 
-function TMarkdownBlock.ApplyAttributes(const aSpec: String): Boolean;
+function TMarkdownBlock.ApplyAttributes(const aSpec: TMarkdownString): Boolean;
 
 var
-  lID : String;
-  lClasses : TStringArray;
+  lID : TMarkdownString;
+  lClasses : TMarkdownStringArray;
   lAttrs : TStringList;
 
 begin
@@ -917,7 +917,7 @@ begin
 end;
 
 
-procedure TMarkdownBlock.dump(const aIndent: string = '');
+procedure TMarkdownBlock.dump(const aIndent: TMarkdownString = '');
 var
   I : Integer;
 begin
@@ -936,7 +936,7 @@ begin
   Result:=wsTrim;
 end;
 
-function TMarkdownBlock.GetFirstText: String;
+function TMarkdownBlock.GetFirstText: TMarkdownString;
 var
   lText : TMarkdownTextBlock;
 begin
@@ -953,7 +953,7 @@ end;
 
 { TMarkdownBlockList }
 
-function TMarkdownBlockList.lastblock: TMarkdownBlock;
+function TMarkdownBlockList.LastBlock: TMarkdownBlock;
 begin
   Result:=nil;
   if Count>0 then
@@ -1078,7 +1078,7 @@ end;
 
 { TMarkdownQuoteBlock }
 
-function TMarkdownQuoteBlock.isPlainPara: boolean;
+function TMarkdownQuoteBlock.IsPlainPara: boolean;
 begin
   Result:=false;
 end;
@@ -1095,7 +1095,7 @@ end;
 
 { TMarkdownListItemBlock }
 
-function TMarkdownListItemBlock.isPlainPara: boolean;
+function TMarkdownListItemBlock.IsPlainPara: boolean;
 begin
   Result:=false;
 end;
@@ -1134,7 +1134,7 @@ begin
     FNodes.ClearActive;
 end;
 
-constructor TMarkdownTextBlock.Create(aParent: TMarkdownBlock; aLine: integer; const aText: AnsiString);
+constructor TMarkdownTextBlock.Create(aParent: TMarkdownBlock; aLine: integer; const aText: TMarkdownString);
 begin
   inherited Create(aParent,aLine);
   FText:=aText;
@@ -1167,7 +1167,7 @@ end;
 
 { TMarkdownLinkReference }
 
-constructor TMarkdownLinkReference.Create(const aURL, aTitle: String);
+constructor TMarkdownLinkReference.Create(const aURL, aTitle: TMarkdownString);
 
 begin
   FURL:=aURL;
@@ -1176,7 +1176,7 @@ end;
 
 { TMarkdownMarker }
 
-constructor TMarkdownMarker.Create(const aName, aArgument, aValue: String; aBlock: TMarkdownBlock; aNode: TMarkdownTextNode;
+constructor TMarkdownMarker.Create(const aName, aArgument, aValue: TMarkdownString; aBlock: TMarkdownBlock; aNode: TMarkdownTextNode;
   aNodeIndex: Integer);
 
 begin
@@ -1214,7 +1214,7 @@ begin
 end;
 
 
-function TMarkdownDocument.AddAnchor(const aID: String; aTarget: TMarkdownElement): Boolean;
+function TMarkdownDocument.AddAnchor(const aID: TMarkdownString; aTarget: TMarkdownElement): Boolean;
 
 begin
   Result:=(aID<>'') and (FAnchors.Items[aID]=Nil);
@@ -1223,7 +1223,7 @@ begin
 end;
 
 
-function TMarkdownDocument.FindAnchor(const aID: String): TMarkdownElement;
+function TMarkdownDocument.FindAnchor(const aID: TMarkdownString): TMarkdownElement;
 
 begin
   Result:=TMarkdownElement(FAnchors.Items[aID]);
@@ -1233,7 +1233,7 @@ end;
 function TMarkdownDocument.AddFootnoteDef(aBlock: TMarkdownFootnoteBlock): Boolean;
 
 var
-  lKey : String;
+  lKey : TMarkdownString;
 
 begin
   lKey:=NormalizeLinkLabel(aBlock.FootnoteLabel);
@@ -1243,17 +1243,17 @@ begin
 end;
 
 
-function TMarkdownDocument.FindFootnoteDef(const aLabel: String): TMarkdownFootnoteBlock;
+function TMarkdownDocument.FindFootnoteDef(const aLabel: TMarkdownString): TMarkdownFootnoteBlock;
 
 begin
   Result:=TMarkdownFootnoteBlock(FFootnoteDefs.Items[NormalizeLinkLabel(aLabel)]);
 end;
 
 
-function TMarkdownDocument.AddLinkRef(const aLabel, aURL, aTitle: String): Boolean;
+function TMarkdownDocument.AddLinkRef(const aLabel, aURL, aTitle: TMarkdownString): Boolean;
 
 var
-  lKey : String;
+  lKey : TMarkdownString;
 
 begin
   lKey:=NormalizeLinkLabel(aLabel);
@@ -1263,7 +1263,7 @@ begin
 end;
 
 
-function TMarkdownDocument.FindLinkRef(const aLabel: String): TMarkdownLinkReference;
+function TMarkdownDocument.FindLinkRef(const aLabel: TMarkdownString): TMarkdownLinkReference;
 
 begin
   Result:=TMarkdownLinkReference(FLinkRefs.Items[NormalizeLinkLabel(aLabel)]);
@@ -1271,7 +1271,7 @@ end;
 
 { TMarkdownCommentBlock }
 
-procedure TMarkdownCommentBlock.SetText(const aValue: String);
+procedure TMarkdownCommentBlock.SetText(const aValue: TMarkdownString);
 
 begin
   FText:=aValue;

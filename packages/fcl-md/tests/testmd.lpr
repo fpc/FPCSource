@@ -3,10 +3,18 @@ program testmd;
 {$mode objfpc}{$H+}
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  {$IFDEF UNIX}
+  UnixApi.CWString,
+  {$ENDIF}
+  System.Classes, FpcUnit.Runners.Console,
+{$ELSE}
   {$IFDEF UNIX}
   cwstring,
   {$ENDIF}
-  Classes, consoletestrunner, utest.markdown.utils, markdown.elements, Markdown.HTMLEntities,
+  Classes, consoletestrunner,
+{$ENDIF}
+  utest.markdown.utils, markdown.elements, Markdown.HTMLEntities,
   markdown.htmlrender, markdown.inlinetext, markdown.line, markdown.parser, markdown.render, markdown.scanner,
   markdown.utils, utest.markdown.scanner, utest.markdown.inlinetext, utest.markdown.htmlrender, utest.markdown.parser,
   utest.markdown.fpdocrender,markdown.latexrender,utest.markdown.latexrender,markdown.processors,

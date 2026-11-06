@@ -121,7 +121,7 @@ end;
 function TAlertTransform.GetAlertType(aQuote: TMarkdownBlock; out aType: TAlertType): Boolean;
 
 var
-  lText : String;
+  lText : TMarkdownString;
   P : Integer;
   lType : TAlertType;
 
@@ -149,7 +149,7 @@ function TAlertTransform.ConvertQuote(aParent: TMarkdownContainerBlock; aQuote: 
 var
   lPar : TMarkdownBlock;
   lText : TMarkdownTextBlock;
-  lRest : String;
+  lRest : TMarkdownString;
   P : Integer;
 
 begin
@@ -215,7 +215,7 @@ procedure TCaptionTransform.CaptionTable(aParent: TMarkdownContainerBlock; aTabl
 var
   lIdx,lCapIdx,lTableEnd : Integer;
   lPar : TMarkdownBlock;
-  lText,lSpec : String;
+  lText,lSpec : TMarkdownString;
 
   function LastLine(aBlock : TMarkdownBlock) : Integer;
   begin
@@ -260,7 +260,7 @@ function TCaptionTransform.MakeFigure(aParent: TMarkdownContainerBlock; aPar: TM
 var
   lTextBlock : TMarkdownTextBlock;
   lImage,lNode : TMarkdownTextNode;
-  lTrail,lSpec,lAlt,lRaw : String;
+  lTrail,lSpec,lAlt,lRaw : TMarkdownString;
   I,lImgIdx,lDepth : Integer;
   lFigure : TMarkdownFigureBlock;
 
@@ -382,7 +382,7 @@ procedure TFootnoteTransform.ResolveNodes(aNodes: TMarkdownTextNodeList);
 
 var
   lNode : TMarkdownTextNode;
-  lLabel : String;
+  lLabel : TMarkdownString;
   lDef : TMarkdownFootnoteBlock;
   lIdx : Integer;
 
@@ -397,7 +397,7 @@ begin
       lDef:=FDocument.FindFootnoteDef(lLabel);
       if lDef=Nil then
         begin
-        Parser.DoMessageFmt(mlError,lNode.Pos.line,SErrUndefinedFootnote,[lLabel]);
+        Parser.DoMessageFmt(mlError,lNode.Pos.line,SErrUndefinedFootnote,[MarkdownToString(lLabel)]);
         lNode.Kind:=nkText;
         lNode.SetNodeText('[^'+lLabel+']');
         lNode.Attrs.Clear;
@@ -410,12 +410,12 @@ begin
           lDef.Number:=FCount;
           FDocument.Footnotes.Add(lDef);
           end;
-        lIdx:=FRefCounts.IndexOf(lDef.FootnoteLabel);
+        lIdx:=FRefCounts.IndexOf(MarkdownToString(lDef.FootnoteLabel));
         if lIdx<0 then
-          lIdx:=FRefCounts.AddObject(lDef.FootnoteLabel,TObject(PtrInt(0)));
+          lIdx:=FRefCounts.AddObject(MarkdownToString(lDef.FootnoteLabel),TObject(PtrInt(0)));
         FRefCounts.Objects[lIdx]:=TObject(PtrInt(FRefCounts.Objects[lIdx])+1);
-        lNode.Attrs.Add('number',IntToStr(lDef.Number));
-        lNode.Attrs.Add('refindex',IntToStr(PtrInt(FRefCounts.Objects[lIdx])));
+        lNode.Attrs.Add('number',IntToMarkdown(lDef.Number));
+        lNode.Attrs.Add('refindex',IntToMarkdown(PtrInt(FRefCounts.Objects[lIdx])));
         end;
       end;
     if lNode.HasChildren then
@@ -448,7 +448,7 @@ var
 
 begin
   if (aBlock is TMarkdownFootnoteBlock) and (TMarkdownFootnoteBlock(aBlock).Number=0) then
-    Parser.DoMessageFmt(mlWarning,aBlock.Line,SWarnUnusedFootnote,[TMarkdownFootnoteBlock(aBlock).FootnoteLabel]);
+    Parser.DoMessageFmt(mlWarning,aBlock.Line,SWarnUnusedFootnote,[MarkdownToString(TMarkdownFootnoteBlock(aBlock).FootnoteLabel)]);
   for I:=0 to aBlock.ChildCount-1 do
     CheckUnused(aBlock.Children[I]);
 end;
@@ -476,7 +476,7 @@ end;
 procedure THeadingIDTransform.AssignID(aBlock: TMarkdownBlock);
 
 var
-  lBase,lID : String;
+  lBase,lID : TMarkdownString;
   lCount : Integer;
 
 begin
@@ -488,13 +488,13 @@ begin
   while FDocument.FindAnchor(lID)<>Nil do
     begin
     Inc(lCount);
-    lID:=lBase+'-'+IntToStr(lCount);
+    lID:=lBase+'-'+IntToMarkdown(lCount);
     end;
-  if (lCount>0) and (FAutoIDs.IndexOf(lBase)<0) then
-    Parser.DoMessageFmt(mlWarning,aBlock.Line,SWarnAutoIDClash,[lBase,lID]);
+  if (lCount>0) and (FAutoIDs.IndexOf(MarkdownToString(lBase))<0) then
+    Parser.DoMessageFmt(mlWarning,aBlock.Line,SWarnAutoIDClash,[MarkdownToString(lBase),MarkdownToString(lID)]);
   aBlock.ID:=lID;
   FDocument.AddAnchor(lID,aBlock);
-  FAutoIDs.Add(lID);
+  FAutoIDs.Add(MarkdownToString(lID));
 end;
 
 

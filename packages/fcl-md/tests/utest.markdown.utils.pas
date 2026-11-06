@@ -21,7 +21,11 @@ unit UTest.Markdown.Utils;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, System.Contnrs,
+{$ELSE}
   Classes, SysUtils, fpcunit, testregistry, contnrs,
+{$ENDIF}
   markdown.utils;
 
 type
@@ -48,6 +52,12 @@ type
     procedure TestRemoveWS;
     procedure TestStripWhitespace;
     procedure TestHtmlEscape;
+    procedure TestHtmlEscapeNonAscii;
+    procedure TestUrlEscapeNonBMP;
+    procedure TestUnicodeConversion;
+    procedure TestStringConversion;
+    procedure TestNormalizeLinkLabelNonAscii;
+    procedure TestIntConversion;
     procedure TestUrlEscape;
     procedure TestParseEntityString;
     procedure TestCodePointToUTF8;
@@ -305,8 +315,8 @@ end;
 procedure TTestMarkdownUtils.TestParseAttributeSpec;
 
 var
-  lID : String;
-  lClasses : TStringArray;
+  lID : TMarkdownString;
+  lClasses : TMarkdownStringArray;
   lAttrs : TStringList;
 begin
   lAttrs:=TStringList.Create;
@@ -331,8 +341,8 @@ end;
 procedure TTestMarkdownUtils.TestParseAttributeSpecInvalid;
 
 var
-  lID : String;
-  lClasses : TStringArray;
+  lID : TMarkdownString;
+  lClasses : TMarkdownStringArray;
   lAttrs : TStringList;
 begin
   lAttrs:=TStringList.Create;
@@ -353,7 +363,7 @@ end;
 procedure TTestMarkdownUtils.TestExtractTrailingAttributeSpec;
 
 var
-  S : String;
+  S : TMarkdownString;
 begin
   S:='Title {#id .c}';
   AssertEquals('Specification','{#id .c}',ExtractTrailingAttributeSpec(S));
@@ -374,7 +384,7 @@ end;
 procedure TTestMarkdownUtils.TestParseMarker;
 
 var
-  lName,lArg,lValue : String;
+  lName,lArg,lValue : TMarkdownString;
 begin
   AssertTrue('Simple marker',ParseMarker(' index: Tokens!Comments ',lName,lArg,lValue));
   AssertEquals('Name','index',lName);
@@ -411,6 +421,68 @@ begin
   AssertEquals('Unicode letters kept','über-café',HeadingTextToID('Über Café'));
   AssertEquals('Double space gives double dash','a--b',HeadingTextToID('a  b'));
 end;
+
+procedure TTestMarkdownUtils.TestHtmlEscapeNonAscii;
+
+begin
+  AssertEquals('UTF-8 bytes are kept',UnicodeToMarkdown('&lt;é 日本 😀&gt;'),HtmlEscape(UnicodeToMarkdown('<é 日本 😀>')));
+end;
+
+
+procedure TTestMarkdownUtils.TestUrlEscapeNonBMP;
+
+begin
+  AssertEquals('All 4 bytes of U+1F600 are encoded','%F0%9F%98%80',UrlEscape(UnicodeToMarkdown('😀')));
+  AssertEquals('Unicode character overload','%C3%A9',UrlEscape(UnicodeChar($E9)));
+end;
+
+
+procedure TTestMarkdownUtils.TestUnicodeConversion;
+
+var
+  lExpected : TMarkdownString;
+
+begin
+  lExpected:=#$C3#$A9#$F0#$9F#$98#$80;
+  AssertEquals('UTF-8 bytes of é and U+1F600',lExpected,UnicodeToMarkdown('é😀'));
+  AssertEquals('Decoded back',UnicodeString('é😀'),MarkdownToUnicode(lExpected));
+  AssertEquals('Empty string','',UnicodeToMarkdown(''));
+end;
+
+
+procedure TTestMarkdownUtils.TestStringConversion;
+
+var
+  lMarkdown : TMarkdownString;
+
+begin
+  lMarkdown:=UnicodeToMarkdown('Grüße 日本語 😀');
+  AssertEquals('Round trip through the native string',lMarkdown,StringToMarkdown(MarkdownToString(lMarkdown)));
+  AssertEquals('UTF8String has the same bytes',lMarkdown,TMarkdownString(MarkdownToUTF8(lMarkdown)));
+end;
+
+
+procedure TTestMarkdownUtils.TestNormalizeLinkLabelNonAscii;
+
+begin
+  AssertEquals('Non-ASCII label is lowercased',UnicodeToMarkdown('über straße'),NormalizeLinkLabel(UnicodeToMarkdown('  ÜBER   Straße ')));
+end;
+
+
+procedure TTestMarkdownUtils.TestIntConversion;
+
+var
+  lValue : Integer;
+
+begin
+  AssertEquals('Negative number','-42',IntToMarkdown(-42));
+  AssertTrue('Valid number',TryMarkdownToInt('123',lValue));
+  AssertEquals('Converted value',123,lValue);
+  AssertFalse('Empty string is no number',TryMarkdownToInt('',lValue));
+  AssertFalse('Trailing text is no number',TryMarkdownToInt('12a',lValue));
+  AssertEquals('Default for invalid number',7,MarkdownToIntDef('x',7));
+end;
+
 
 initialization
   RegisterTest(TTestMarkdownUtils);
