@@ -1529,8 +1529,9 @@ Var
 begin
   // Is basically the same except that the handle will be overwritten
   Result:=FSocket;
-  naddr.SocketType:=Result.SocketType;
-  naddr.GetAddrAndSize(AddrPtr,addrSize);
+  naddr:=Default(TAddressUnion);
+  addrPtr:=naddr.GetAddr;
+  addrSize:=SizeOf(TAddressUnion);
   Result.FD:=-1;
 {$IFDEF UNIX}
   R:=ESysEINTR;
@@ -1807,10 +1808,10 @@ begin
           not possible (note to self: rework resolve) }
         If Not NameLookup(FEndPoint.First.Address) then
           raise ESocketError.Create(seHostNotFound, [FEndPoint.First.Address]);
+        addr:=Default(TAddressUnion);
         addr.In4Addr.sin_family := AF_INET;
         addr.In4Addr.sin_port := ShortHostToNet(FEndPoint.Second);
         addr.In4Addr.sin_addr.s_addr := HostToNet(HostAddress.s_addr);
-        addr.SocketType:=stIPv4;
       finally
         free;
       end
