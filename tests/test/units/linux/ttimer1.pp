@@ -28,9 +28,11 @@ var
   timer_create(0xfffffc18 /* CLOCK_??? */, NULL, [4]) = 0
   The same also happens for gcc185
   Linux cfarm185 4.18.0-553.120.1.el8_10.aarch64 #1 SMP Mon Apr 20 22:23:16 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+  gcc13 also has the same issue,
+  => set the macro globally unless REQUIRE_FAIL_ON_INVALID_CLOCK_TYPE is defined
 }
 
-{$if defined(CPURISCV64) or defined(CPUAARCH64)}
+{$ifndef REQUIRE_FAIL_ON_INVALID_CLOCK_TYPE }
   {$define OS_ACCEPTS_ALL_CLOCK_TYPE}
 {$endif}
 
