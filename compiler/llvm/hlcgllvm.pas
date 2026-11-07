@@ -245,7 +245,7 @@ implementation
             { but hoist the ait_symbol_end for the proc definition
               into the LLVM asmlist }
             ai:=tai(newcodelist.first);
-
+            endsymai:=nil;
             gen_proc_symbol_internal(code);
             while assigned(ai) do
               begin
