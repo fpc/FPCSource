@@ -69,7 +69,9 @@ Type
   TInlineTextProcessor = class
   Private
     FComments: Boolean;
+    FDirectives: Boolean;
     FFootnotes: Boolean;
+    FWikiLinks: Boolean;
     FLinkReferences: TMarkdownDocument;
     FGFMExtensions : Boolean;
     FScanner : TMarkdownTextScanner;
@@ -107,6 +109,12 @@ Type
     function HandleComment: Boolean; virtual;
     // [^label] at the scanner position. Returns False when it is not a footnote reference.
     function HandleFootnoteRef: Boolean; virtual;
+    // :name[label]{attributes} at the scanner position. Returns False when it is not an inline directive.
+    function HandleDirective: Boolean; virtual;
+    // [[target#fragment|label]] at the scanner position. Returns False when it is not a wiki link.
+    function HandleWikiLink: Boolean; virtual;
+    // Process aText, which starts at aPos, into the children of aNode.
+    procedure ProcessNested(aNode: TMarkdownTextNode; const aText: TMarkdownString; aPos: TPosition); virtual;
     procedure HandleCloseDelimiter(); virtual;
     procedure HandleGFMExtensions; virtual;
     procedure HandleGFMLinkEmail(aLength: integer); virtual;
@@ -124,6 +132,10 @@ Type
     Property Comments : Boolean Read FComments Write FComments;
     // Recognize [^label] footnote references
     Property Footnotes : Boolean Read FFootnotes Write FFootnotes;
+    // Recognize :name[label]{attributes} inline directives
+    Property Directives : Boolean Read FDirectives Write FDirectives;
+    // Recognize [[target#fragment|label]] wiki links
+    Property WikiLinks : Boolean Read FWikiLinks Write FWikiLinks;
     // Document with the link reference definitions. Nil disables reference links.
     Property LinkReferences : TMarkdownDocument Read FLinkReferences Write FLinkReferences;
   end;
@@ -786,6 +798,129 @@ begin
 end;
 
 
+function TInlineTextProcessor.HandleDirective: Boolean;
+
+var
+  lPos,lCursor : Integer;
+  lName,lLabel,lAttrs,lID : TMarkdownString;
+  lHasLabel : Boolean;
+  lClasses : TMarkdownStringArray;
+  lPairs : TStringList;
+  lNode : TMarkdownTextNode;
+  lLocation : TPosition;
+  I : Integer;
+
+begin
+  Result:=False;
+  lCursor:=Scanner.CursorPos;
+  // A colon after a colon does not start a directive, unless that colon is escaped.
+  if (Scanner.PeekPrevious=':') and not ((lCursor>2) and (Scanner.Text[lCursor-2]='\')) then
+    Exit;
+  lPos:=lCursor+1;
+  if not ParseDirective(Scanner.Text,lPos,lName,lLabel,lAttrs,lHasLabel) then
+    Exit;
+  lLocation:=Scanner.Location;
+  lNode:=Nodes.AddTextNode(lLocation,nkDirective,'');
+  lNode.Name:=lName;
+  if lAttrs<>'' then
+    begin
+    lPairs:=TStringList.Create;
+    try
+      ParseAttributeSpec(lAttrs,lID,lClasses,lPairs,True);
+      if lID<>'' then
+        lNode.Attrs['id']:=lID;
+      if Length(lClasses)>0 then
+        lNode.Attrs['class']:=TMarkdownString.Join(' ',lClasses);
+      for I:=0 to lPairs.Count-1 do
+        lNode.Attrs[StringToMarkdown(lPairs.Names[I])]:=StringToMarkdown(lPairs.ValueFromIndex[I]);
+    finally
+      lPairs.Free;
+    end;
+    end;
+  if lHasLabel then
+    ProcessNested(lNode,lLabel,lLocation)
+  else if lAttrs='' then
+    lNode.SetNodeText(':'+lName);
+  Scanner.NextChars(lPos-lCursor);
+  Result:=True;
+end;
+
+
+function TInlineTextProcessor.HandleWikiLink: Boolean;
+
+var
+  lEnd,P : Integer;
+  lText,lTarget,lFragment,lLabel : TMarkdownString;
+  lNode : TMarkdownTextNode;
+  lLocation : TPosition;
+
+begin
+  Result:=False;
+  lEnd:=Scanner.FindText(']]',2);
+  if lEnd=0 then
+    Exit;
+  lText:=Scanner.TextRange(Scanner.CursorPos+2,lEnd);
+  if (Pos(#10,lText)>0) or (Pos('[',lText)>0) or (Pos(']',lText)>0) then
+    Exit;
+  lLabel:='';
+  P:=Pos('|',lText);
+  if P>0 then
+    begin
+    lLabel:=Trim(Copy(lText,P+1,Length(lText)-P));
+    SetLength(lText,P-1);
+    end;
+  lText:=Trim(lText);
+  lTarget:=lText;
+  lFragment:='';
+  P:=Pos('#',lTarget);
+  if P>0 then
+    begin
+    lFragment:=Trim(Copy(lTarget,P+1,Length(lTarget)-P));
+    lTarget:=TrimRight(Copy(lTarget,1,P-1));
+    end;
+  if (lTarget='') and (lFragment='') then
+    Exit;
+  lLocation:=Scanner.Location;
+  lNode:=Nodes.AddTextNode(lLocation,nkWikiLink,'');
+  lNode.Attrs['target']:=lTarget;
+  if lFragment<>'' then
+    lNode.Attrs['fragment']:=lFragment;
+  if lLabel<>'' then
+    ProcessNested(lNode,lLabel,lLocation)
+  else
+    lNode.SetNodeText(lText);
+  Scanner.NextChars(lEnd+2-Scanner.CursorPos);
+  Result:=True;
+end;
+
+
+procedure TInlineTextProcessor.ProcessNested(aNode: TMarkdownTextNode; const aText: TMarkdownString; aPos: TPosition);
+
+var
+  lScanner : TMarkdownTextScanner;
+  lProcessor : TInlineTextProcessor;
+
+begin
+  lScanner:=TMarkdownTextScanner.Create(aText,aPos.line);
+  try
+    lProcessor:=TInlineTextProcessorClass(ClassType).Create(lScanner,aNode.Children,FEntities,FWhiteSpaceMode);
+    try
+      lProcessor.GFMExtensions:=GFMExtensions;
+      lProcessor.Comments:=Comments;
+      lProcessor.Footnotes:=Footnotes;
+      lProcessor.Directives:=Directives;
+      lProcessor.WikiLinks:=WikiLinks;
+      lProcessor.LinkReferences:=LinkReferences;
+      lProcessor.Process(True);
+    finally
+      lProcessor.Free;
+    end;
+  finally
+    lScanner.Free;
+  end;
+end;
+
+
 procedure TInlineTextProcessor.HandleEmphasis(aTerminator : TMarkdownDelimiter);
 
 const
@@ -942,13 +1077,16 @@ begin
             HandleDelimiter(true)
           else
             Nodes.addText(Scanner.Location,Scanner.NextEquals());
-    '[' : if not (Footnotes and (Scanner.PeekNext='^') and HandleFootnoteRef) then
+    '[' : if not (WikiLinks and (Scanner.PeekNext='[') and HandleWikiLink)
+             and not (Footnotes and (Scanner.PeekNext='^') and HandleFootnoteRef) then
             HandleDelimiter(false);
     '!' : if Scanner.PeekNext='[' then
             HandleDelimiter(false)
           else
             Nodes.addText(Scanner.location,Scanner.NextChar);
     ']' : HandleCloseDelimiter();
+    ':' : if not (Directives and HandleDirective) then
+            Nodes.addText(Scanner.location,Scanner.NextChar);
   else
     if GFMExtensions then
       HandleGFMExtensions

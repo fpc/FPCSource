@@ -2638,6 +2638,14 @@ begin
           lText:='img';
         LayoutTextWrapped('['+lText+']', aFontSize, fontStyle, '', lContext+[fcQuote], False, False);
         end;
+    nkDirective, nkWikiLink:
+      begin
+      if lText<>'' then
+        LayoutTextWrapped(lText, aFontSize, fontStyle, linkHref, lContext, False, False);
+      if aTextNode.HasChildren then
+        for lChild in aTextNode.Children do
+          RenderTextNode(lChild, aFontSize, fontStyle, lContext, linkHref);
+      end;
   end;
 end;
 

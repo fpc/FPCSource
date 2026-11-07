@@ -92,6 +92,7 @@ type
     procedure TestFigure;
     procedure TestCommentWritesNothing;
     procedure TestEmptyLinkWritesTarget;
+    procedure TestDirectivesWriteContent;
   end;
 
 implementation
@@ -525,6 +526,30 @@ procedure TTestLaTeXRenderExtensions.TestEmptyLinkWritesTarget;
 
 begin
   CheckContains('Target as text','\href{x.md}{x.md}',Render('[](x.md)'));
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestDirectivesWriteContent;
+
+var
+  lSource : TStringList;
+  lDoc : TMarkdownDocument;
+  S : TMarkdownString;
+begin
+  lSource:=TStringList.Create;
+  try
+    lSource.Text:=':::note[Heads up]'#10'Inside :kbd[Ctrl] and [[Page|the page]]'#10':::';
+    lDoc:=TMarkdownParser.FastParse(lSource,[mdoDirectives,mdoWikiLinks]);
+    try
+      S:=TMarkdownLaTeXRenderer.FastRender(lDoc,[]);
+    finally
+      lDoc.Free;
+    end;
+  finally
+    lSource.Free;
+  end;
+  CheckContains('Container label','Heads up',S);
+  CheckContains('Inline labels','Inside Ctrl and the page',S);
 end;
 
 initialization

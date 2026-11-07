@@ -94,6 +94,25 @@ type
     procedure TestReferenceLink;
     procedure TestReferenceImage;
     procedure TestReferenceLinkWithoutDocument;
+    procedure TestInlineDirective;
+    procedure TestInlineDirectiveIDAndClasses;
+    procedure TestInlineDirectiveNameOnly;
+    procedure TestInlineDirectiveAfterColonIsText;
+    procedure TestInlineDirectiveDigitIsText;
+    procedure TestInlineDirectiveEscapedIsText;
+    procedure TestInlineDirectiveInvalidAttributes;
+    procedure TestInlineDirectiveUnclosedLabel;
+    procedure TestInlineDirectiveNestedLabel;
+    procedure TestInlineDirectiveInEmphasis;
+    procedure TestInlineDirectiveOptionOff;
+    procedure TestWikiLink;
+    procedure TestWikiLinkFragmentAndLabel;
+    procedure TestWikiLinkFragmentOnly;
+    procedure TestWikiLinkLabelMarkup;
+    procedure TestWikiLinkEmptyIsText;
+    procedure TestWikiLinkUnclosedIsText;
+    procedure TestWikiLinkLineBreakIsText;
+    procedure TestWikiLinkOptionOff;
   end;
 
 implementation
@@ -706,6 +725,279 @@ begin
   SetupProcessor('[foo]');
   FProcessor.Process(True);
   AssertEquals('Literal text', '[foo]', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirective;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('An :abbr[HTML]{title="Hyper Text"} tag');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  AssertEquals('Three nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkDirective);
+  AssertEquals('Name', 'abbr', Node.Name);
+  AssertEquals('Label', 'HTML', Node.Children.PlainText);
+  AssertEquals('Attribute', 'Hyper Text', Node.Attrs['title']);
+  AssertEquals('No text of its own', '', Node.NodeText);
+  AssertEquals('Text after', ' tag', NodeAsText(2).NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveIDAndClasses;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(':x[a]{#i .c1 .c2 flag}');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkDirective);
+  AssertEquals('ID', 'i', Node.Attrs['id']);
+  AssertEquals('Classes', 'c1 c2', Node.Attrs['class']);
+  AssertTrue('Bare key', Node.Attrs.Contains('flag'));
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveNameOnly;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('a :br b');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  AssertEquals('Three nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkDirective);
+  AssertEquals('Name', 'br', Node.Name);
+  AssertEquals('Source as text', ':br', Node.NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveAfterColonIsText;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('a ::x');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No directive after a colon', FNodes[I].Kind=nkDirective);
+  AssertEquals('Literal text', 'a ::x', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveDigitIsText;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('at 10:30 or a:-b');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No directive without a letter', FNodes[I].Kind=nkDirective);
+  AssertEquals('Literal text', 'at 10:30 or a:-b', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveEscapedIsText;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('a \:x[b]');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No directive after escape', FNodes[I].Kind=nkDirective);
+  AssertEquals('Literal text', 'a :x[b]', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveInvalidAttributes;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(':x[a]{=b}');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkDirective);
+  AssertEquals('Label', 'a', Node.Children.PlainText);
+  AssertFalse('No attributes', Node.HasAttrs);
+  AssertEquals('Attributes left as text', 'a{=b}', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveUnclosedLabel;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(':x[a');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkDirective);
+  AssertEquals('Name only', ':x', Node.NodeText);
+  AssertEquals('Bracket left as text', ':x[a', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveNestedLabel;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor(':x[see [link](u) here] after');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkDirective);
+  AssertEquals('Label text', 'see link here', Node.Children.PlainText);
+  AssertEquals('Link in label', 'nkURI', GetEnumName(TypeInfo(TTextNodeKind), Ord(Node.Children[1].Kind)));
+  AssertEquals('Text after', ' after', NodeAsText(1).NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveInEmphasis;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('*a :x[b] c*');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(1, nkDirective);
+  AssertTrue('Directive emphasized', nsEmph in Node.Styles);
+  AssertTrue('Label emphasized', nsEmph in Node.Children[0].Styles);
+end;
+
+
+procedure TTestInlineTextProcessor.TestInlineDirectiveOptionOff;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('a :x[b]');
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No directive without option', FNodes[I].Kind=nkDirective);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLink;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('[[Main Page]]');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  AssertEquals('One node', 1, FNodes.Count);
+  Node := NodeAsNamed(0, nkWikiLink);
+  AssertEquals('Target', 'Main Page', Node.Attrs['target']);
+  AssertFalse('No fragment', Node.Attrs.Contains('fragment'));
+  AssertEquals('Target as text', 'Main Page', Node.NodeText);
+  AssertFalse('No label', Node.HasChildren);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkFragmentAndLabel;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('See [[ Page # Sec | The label ]].');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  AssertEquals('Three nodes', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkWikiLink);
+  AssertEquals('Target', 'Page', Node.Attrs['target']);
+  AssertEquals('Fragment', 'Sec', Node.Attrs['fragment']);
+  AssertEquals('Label', 'The label', Node.Children.PlainText);
+  AssertEquals('No text of its own', '', Node.NodeText);
+  AssertEquals('Text after', '.', NodeAsText(2).NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkFragmentOnly;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('[[#Sec]]');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkWikiLink);
+  AssertEquals('Empty target', '', Node.Attrs['target']);
+  AssertEquals('Fragment', 'Sec', Node.Attrs['fragment']);
+  AssertEquals('Source as text', '#Sec', Node.NodeText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkLabelMarkup;
+
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('[[Page|a **b**]]');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  Node := NodeAsNamed(0, nkWikiLink);
+  AssertEquals('Two label nodes', 2, Node.Children.Count);
+  AssertTrue('Strong in label', nsStrong in Node.Children[1].Styles);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkEmptyIsText;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('[[ ]] and [[|x]]');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No wiki link without target', FNodes[I].Kind=nkWikiLink);
+  AssertEquals('Literal text', '[[ ]] and [[|x]]', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkUnclosedIsText;
+
+begin
+  SetupProcessor('[[Page');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  AssertEquals('Literal text', '[[Page', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkLineBreakIsText;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('[[Pa'#10'ge]]');
+  FProcessor.WikiLinks:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No wiki link over a line end', FNodes[I].Kind=nkWikiLink);
+end;
+
+
+procedure TTestInlineTextProcessor.TestWikiLinkOptionOff;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('[[Page]]');
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('No wiki link without option', FNodes[I].Kind=nkWikiLink);
 end;
 
 initialization

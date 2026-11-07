@@ -547,6 +547,21 @@ begin
       end;
     nkLineBreak:
       NewLine;
+    nkDirective,nkWikiLink:
+      begin
+      if aNode.Kind=nkWikiLink then
+        lStyle.Fg:=clLink;
+      if aNode.NodeText<>'' then
+        AddRun(aNode.NodeText,lStyle,True);
+      if aNode.HasChildren then
+        begin
+        lSaveBase:=FBaseStyle;
+        FBaseStyle:=lStyle;
+        for lChild in aNode.Children do
+          RenderInline(lChild);
+        FBaseStyle:=lSaveBase;
+        end;
+      end;
   end;
 end;
 

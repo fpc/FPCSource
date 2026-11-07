@@ -492,7 +492,9 @@ begin
   else if aBlock is TMarkdownTableBlock then
     ResolveNodes(TMarkdownTableBlock(aBlock).Caption)
   else if aBlock is TMarkdownFigureBlock then
-    ResolveNodes(TMarkdownFigureBlock(aBlock).Caption);
+    ResolveNodes(TMarkdownFigureBlock(aBlock).Caption)
+  else if aBlock is TMarkdownDirectiveBlock then
+    ResolveNodes(TMarkdownDirectiveBlock(aBlock).LabelNodes);
   for I:=0 to aBlock.ChildCount-1 do
     Walk(aBlock.Children[I]);
 end;
@@ -627,7 +629,9 @@ begin
   else if aBlock is TMarkdownTableBlock then
     AddNodes(aBlock,TMarkdownTableBlock(aBlock).Caption)
   else if aBlock is TMarkdownFigureBlock then
-    AddNodes(aBlock,TMarkdownFigureBlock(aBlock).Caption);
+    AddNodes(aBlock,TMarkdownFigureBlock(aBlock).Caption)
+  else if aBlock is TMarkdownDirectiveBlock then
+    AddNodes(aBlock,TMarkdownDirectiveBlock(aBlock).LabelNodes);
   for I:=0 to aBlock.ChildCount-1 do
     Walk(aBlock.Children[I]);
 end;

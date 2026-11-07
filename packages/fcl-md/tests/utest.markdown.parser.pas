@@ -355,6 +355,45 @@ type
     procedure TestTaskListsOptionOff;
   end;
 
+  { TTestDirectives }
+
+  TTestDirectives = class(TExtensionTestCase)
+  private
+    function Directive(aBlock : TMarkdownBlock) : TMarkdownDirectiveBlock;
+  published
+    procedure TestContainer;
+    procedure TestContainerLabelAndAttributes;
+    procedure TestContainerBareAttribute;
+    procedure TestContainerUnclosed;
+    procedure TestContainerLongerClosingFence;
+    procedure TestNestedContainers;
+    procedure TestSameFenceClosesOuter;
+    procedure TestContainerWithList;
+    procedure TestContainerWithQuote;
+    procedure TestContainerInQuote;
+    procedure TestContainerInList;
+    procedure TestContainerWithUnclosedCode;
+    procedure TestContainerIndentedCode;
+    procedure TestContainerInterruptsParagraph;
+    procedure TestClosingFenceAloneIsText;
+    procedure TestLeaf;
+    procedure TestLeafWithTrailingTextIsText;
+    procedure TestNameMustStartWithLetter;
+    procedure TestInvalidAttributesIsText;
+    procedure TestContainerID;
+    procedure TestLabelFootnote;
+    procedure TestDirectivesOptionOff;
+  end;
+
+  { TTestWikiLinks }
+
+  TTestWikiLinks = class(TExtensionTestCase)
+  published
+    procedure TestWikiLinkInParagraph;
+    procedure TestWikiLinkPlainText;
+    procedure TestWikiLinksOptionOff;
+  end;
+
   TTestTransformRegistry = class(TTestCase)
   published
     procedure TestDefaultTransforms;
@@ -2591,6 +2630,328 @@ begin
   AssertEquals('Text kept','[ ] todo',PlainOf(Item(GetBlock(0),0)));
 end;
 
+{ TTestDirectives }
+
+function TTestDirectives.Directive(aBlock: TMarkdownBlock): TMarkdownDirectiveBlock;
+
+begin
+  AssertTrue('Directive block',aBlock is TMarkdownDirectiveBlock);
+  Result:=TMarkdownDirectiveBlock(aBlock);
+end;
+
+
+procedure TTestDirectives.TestContainer;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::note'#10'Some *text*'#10':::'#10'After',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('Container directive',TMarkdownContainerDirectiveBlock,GetBlock(0).ClassType);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('Name','note',lDir.DirectiveName);
+  AssertFalse('No label',lDir.HasLabel);
+  AssertNull('No label nodes',lDir.LabelNodes);
+  AssertEquals('Fence length',3,TMarkdownContainerDirectiveBlock(lDir).FenceLength);
+  AssertEquals('One child',1,lDir.ChildCount);
+  AssertEquals('Content','Some text',PlainOf(lDir.Children[0]));
+  AssertEquals('Paragraph after','After',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestContainerLabelAndAttributes;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::warning[Be *careful*]{#w1 .big level=2}'#10'x'#10':::',[mdoDirectives]);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('Name','warning',lDir.DirectiveName);
+  AssertTrue('Has label',lDir.HasLabel);
+  AssertEquals('Label source','Be *careful*',lDir.LabelText);
+  AssertEquals('Label inline content','Be careful',lDir.LabelNodes.PlainText);
+  AssertEquals('ID','w1',lDir.ID);
+  AssertEquals('One class',1,Length(lDir.Classes));
+  AssertEquals('Class','big',lDir.Classes[0]);
+  AssertEquals('Key value','2',lDir.Attrs.Values['level']);
+end;
+
+
+procedure TTestDirectives.TestContainerBareAttribute;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::details{open}'#10'x'#10':::',[mdoDirectives]);
+  lDir:=Directive(GetBlock(0));
+  AssertTrue('Bare key present',lDir.Attrs.IndexOfName('open')>=0);
+  AssertEquals('Bare key value','',lDir.Attrs.Values['open']);
+end;
+
+
+procedure TTestDirectives.TestContainerUnclosed;
+
+begin
+  SetupExt(':::note'#10'a'#10#10'b',[mdoDirectives]);
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Both paragraphs inside',2,Directive(GetBlock(0)).ChildCount);
+end;
+
+
+procedure TTestDirectives.TestContainerLongerClosingFence;
+
+begin
+  SetupExt(':::note'#10'a'#10'::::'#10'b',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('One child',1,Directive(GetBlock(0)).ChildCount);
+  AssertEquals('Paragraph after','b',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestNestedContainers;
+
+var
+  lOuter,lInner : TMarkdownDirectiveBlock;
+begin
+  SetupExt('::::outer'#10':::inner'#10'a'#10':::'#10'b'#10'::::'#10'c',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  lOuter:=Directive(GetBlock(0));
+  AssertEquals('Outer name','outer',lOuter.DirectiveName);
+  AssertEquals('Outer has inner and paragraph',2,lOuter.ChildCount);
+  lInner:=Directive(lOuter.Children[0]);
+  AssertEquals('Inner name','inner',lInner.DirectiveName);
+  AssertEquals('Inner content','a',PlainOf(lInner.Children[0]));
+  AssertEquals('Outer content','b',PlainOf(lOuter.Children[1]));
+  AssertEquals('Paragraph after','c',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestSameFenceClosesOuter;
+
+var
+  lOuter : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::outer'#10':::inner'#10'a'#10':::'#10'b',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  lOuter:=Directive(GetBlock(0));
+  AssertEquals('Outer has only inner',1,lOuter.ChildCount);
+  AssertEquals('Inner name','inner',Directive(lOuter.Children[0]).DirectiveName);
+  AssertEquals('Paragraph after','b',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestContainerWithList;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::note'#10'- a'#10'- b'#10':::'#10'after',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('One child',1,lDir.ChildCount);
+  AssertEquals('List inside',TMarkdownListBlock,lDir.Children[0].ClassType);
+  AssertEquals('Two items',2,lDir.Children[0].ChildCount);
+  AssertEquals('Last item text','b',PlainOf(lDir.Children[0].Children[1]));
+  AssertEquals('Paragraph after','after',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestContainerWithQuote;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::note'#10'> q'#10':::'#10'after',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('Quote inside',TMarkdownQuoteBlock,lDir.Children[0].ClassType);
+  AssertEquals('Quote text','q',PlainOf(lDir.Children[0]));
+  AssertEquals('Paragraph after','after',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestContainerInQuote;
+
+var
+  lQuote : TMarkdownBlock;
+begin
+  SetupExt('> :::note'#10'> x'#10'> :::'#10'> y',[mdoDirectives]);
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  lQuote:=GetBlock(0);
+  AssertEquals('Quote',TMarkdownQuoteBlock,lQuote.ClassType);
+  AssertEquals('Directive and paragraph',2,lQuote.ChildCount);
+  AssertEquals('Directive content','x',PlainOf(Directive(lQuote.Children[0]).Children[0]));
+  AssertEquals('Paragraph in quote','y',PlainOf(lQuote.Children[1]));
+end;
+
+
+procedure TTestDirectives.TestContainerInList;
+
+var
+  lItem : TMarkdownBlock;
+begin
+  SetupExt('- item'#10#10'  :::note'#10'  x'#10'  :::'#10#10'- two',[mdoDirectives]);
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Two items',2,GetBlock(0).ChildCount);
+  lItem:=GetBlock(0).Children[0];
+  AssertEquals('Paragraph and directive',2,lItem.ChildCount);
+  AssertEquals('Directive content','x',PlainOf(Directive(lItem.Children[1]).Children[0]));
+  AssertEquals('Second item','two',PlainOf(GetBlock(0).Children[1]));
+end;
+
+
+procedure TTestDirectives.TestContainerWithUnclosedCode;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt(':::note'#10'```'#10'code'#10':::'#10'after',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('Code block inside',TMarkdownCodeBlock,lDir.Children[0].ClassType);
+  AssertEquals('One code line',1,lDir.Children[0].ChildCount);
+  AssertEquals('Paragraph after','after',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestContainerIndentedCode;
+
+begin
+  SetupExt(':::note'#10'    code'#10':::',[mdoDirectives]);
+  AssertEquals('Indented code inside',TMarkdownCodeBlock,Directive(GetBlock(0)).Children[0].ClassType);
+end;
+
+
+procedure TTestDirectives.TestContainerInterruptsParagraph;
+
+begin
+  SetupExt('para'#10':::note'#10'x'#10':::',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('Paragraph text','para',PlainOf(GetBlock(0)));
+  Directive(GetBlock(1));
+end;
+
+
+procedure TTestDirectives.TestClosingFenceAloneIsText;
+
+begin
+  SetupExt(':::',[mdoDirectives]);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+  AssertEquals('Text kept',':::',PlainOf(GetBlock(0)));
+end;
+
+
+procedure TTestDirectives.TestLeaf;
+
+var
+  lDir : TMarkdownDirectiveBlock;
+begin
+  SetupExt('::youtube[My *video*]{vid=abc}'#10'next',[mdoDirectives]);
+  AssertEquals('Two blocks',2,Doc.Blocks.Count);
+  AssertEquals('Leaf directive',TMarkdownLeafDirectiveBlock,GetBlock(0).ClassType);
+  lDir:=Directive(GetBlock(0));
+  AssertEquals('Name','youtube',lDir.DirectiveName);
+  AssertEquals('Label','My video',lDir.LabelNodes.PlainText);
+  AssertEquals('Attribute','abc',lDir.Attrs.Values['vid']);
+  AssertEquals('No children',0,lDir.ChildCount);
+  AssertEquals('Paragraph after','next',PlainOf(GetBlock(1)));
+end;
+
+
+procedure TTestDirectives.TestLeafWithTrailingTextIsText;
+
+begin
+  SetupExt('::name[x] more',[mdoDirectives]);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestDirectives.TestNameMustStartWithLetter;
+
+begin
+  SetupExt(':::1abc'#10'x'#10':::',[mdoDirectives]);
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestDirectives.TestInvalidAttributesIsText;
+
+begin
+  SetupExt('::name{=bad}',[mdoDirectives]);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestDirectives.TestContainerID;
+
+begin
+  SetupExt(':::note{#n1}'#10':::',[mdoDirectives]);
+  AssertTrue('Anchor registered',Doc.FindAnchor('n1')=GetBlock(0));
+end;
+
+
+procedure TTestDirectives.TestLabelFootnote;
+
+var
+  lNode,lRef : TMarkdownTextNode;
+begin
+  SetupExt('::note[See[^1]]'#10#10'[^1]: The note.',MarkdownDocExtensions+[mdoDirectives]);
+  lRef:=Nil;
+  for lNode in Directive(GetBlock(0)).LabelNodes do
+    if lNode.Kind=nkFootnoteRef then
+      lRef:=lNode;
+  AssertNotNull('Footnote reference in label',lRef);
+  AssertEquals('Footnote numbered','1',lRef.Attrs['number']);
+end;
+
+
+procedure TTestDirectives.TestDirectivesOptionOff;
+
+begin
+  SetupExt(':::note'#10'x'#10':::',[]);
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+{ TTestWikiLinks }
+
+procedure TTestWikiLinks.TestWikiLinkInParagraph;
+
+var
+  lText : TMarkdownTextBlock;
+  lNode : TMarkdownTextNode;
+begin
+  SetupExt('See [[Main Page|the *main* page]] now',[mdoWikiLinks]);
+  lText:=TextBlockOf(GetBlock(0));
+  AssertEquals('Three nodes',3,lText.Nodes.Count);
+  lNode:=lText.Nodes[1];
+  AssertTrue('Wiki link node',lNode.Kind=nkWikiLink);
+  AssertEquals('Target','Main Page',lNode.Attrs['target']);
+  AssertEquals('Label','the main page',lNode.Children.PlainText);
+  AssertEquals('Text after',' now',lText.Nodes[2].NodeText);
+end;
+
+
+procedure TTestWikiLinks.TestWikiLinkPlainText;
+
+begin
+  SetupExt('Go to [[FPC#Download]]',[mdoWikiLinks]);
+  AssertEquals('Plain text','Go to FPC#Download',PlainOf(GetBlock(0)));
+end;
+
+
+procedure TTestWikiLinks.TestWikiLinksOptionOff;
+
+var
+  lNode : TMarkdownTextNode;
+begin
+  SetupExt('[[x]]',[]);
+  for lNode in TextBlockOf(GetBlock(0)).Nodes do
+    AssertFalse('No wiki link without option',lNode.Kind=nkWikiLink);
+  AssertEquals('Text kept','[[x]]',PlainOf(GetBlock(0)));
+end;
+
 { TTestTransformRegistry }
 
 procedure TTestTransformRegistry.TestDefaultTransforms;
@@ -2616,7 +2977,7 @@ initialization
                           TTestTables, TTestFrontmatter, TTestInlineProcessorHook]);
   RegisterTests('Extensions',[TTestComments, TTestAttributes, TTestHeadingIDs, TTestDefinitionLists,
                               TTestAlerts, TTestAdmonitions, TTestFootnotes, TTestCaptions, TTestLinkReferences,
-                              TTestTaskLists,
+                              TTestTaskLists, TTestDirectives, TTestWikiLinks,
                               TTestTransformRegistry]);
 end.
 

@@ -57,7 +57,9 @@ type
     mdoCaptions,         // Table: captions and implicit figures
     mdoLinkReferences,   // link reference definitions and reference links
     mdoAdmonitions,      // !!! type "title" admonitions with an indented body
-    mdoTaskLists         // - [ ] and - [x] task list items
+    mdoTaskLists,        // - [ ] and - [x] task list items
+    mdoDirectives,       // :::container, ::leaf and :inline generic directives
+    mdoWikiLinks         // [[target#fragment|label]] wiki links
   );
   TMarkdownOptions = set of TMarkdownOption;
 
@@ -727,13 +729,18 @@ function TMarkdownParser.IsBlock(aParent: TMarkdownBlock; aBlocks: TMarkdownBloc
   end;
 
 var
-  lSkip : integer;
-  lLine,lMarker : TMarkdownString;
+  lSkip,lColons : integer;
+  lLine,lMarker,lName,lLabel,lAttrs : TMarkdownString;
+  lHasLabel : Boolean;
 
 begin
   // Known blocks
   Result:=True;
   if StartsWithWhitespace(aLine, ['*','-','+','#','`','~','>'],lSkip,aWhiteSpaceLen) then
+    Exit;
+  if (mdoDirectives in Options) and StartsWithWhitespace(aLine,'::',lSkip,aWhiteSpaceLen)
+     and ParseDirectiveFence(Copy(aLine,lSkip+1,Length(aLine)-lSkip),lColons,lName,lLabel,lAttrs,lHasLabel)
+     and ((lName<>'') or (lColons>=3)) then
     Exit;
   // Thematic break
   if StartsWithWhitespace(aLine, '___',lSkip) then
@@ -869,6 +876,8 @@ begin
     Processor.GFMExtensions:=mdoGithubFlavoured in Options;
     Processor.Comments:=mdoComments in Options;
     Processor.Footnotes:=mdoFootnotes in Options;
+    Processor.Directives:=mdoDirectives in Options;
+    Processor.WikiLinks:=mdoWikiLinks in Options;
     if mdoLinkReferences in Options then
       Processor.LinkReferences:=FDocument;
     Processor.process(true);
@@ -885,12 +894,15 @@ var
   I : Integer;
   lTextBlock : TMarkdownTextBlock absolute aBlock;
   lAlert : TMarkdownAlertBlock absolute aBlock;
+  lDirective : TMarkdownDirectiveBlock absolute aBlock;
 
 begin
   if aBlock is TMarkdownTextBlock then
     lTextBlock.Nodes:=processText(lTextBlock.Text,wsMode,aBlock.Line)
   else if (aBlock is TMarkdownAlertBlock) and (lAlert.TitleText<>'') then
-    lAlert.Title:=processText(lAlert.TitleText,wsTrim,aBlock.Line);
+    lAlert.Title:=processText(lAlert.TitleText,wsTrim,aBlock.Line)
+  else if (aBlock is TMarkdownDirectiveBlock) and lDirective.HasLabel then
+    lDirective.LabelNodes:=ProcessText(lDirective.LabelText,wsTrim,aBlock.Line);
   for I:=0 to aBlock.ChildCount-1 do
     processInlines(aBlock.Children[i],aBlock.WhiteSpaceMode);
 end;

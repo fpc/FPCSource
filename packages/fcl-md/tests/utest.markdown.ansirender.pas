@@ -36,7 +36,7 @@ type
     FRenderer : TMarkDownANSIRenderer;
     procedure DoHeadingNumber(aRenderer : TMarkdownRenderer; aBlock : TMarkdownBlock; out aNumber : TMarkdownString);
   protected
-    function Render(const aMarkdown : TMarkdownString) : TMarkdownString;
+    function Render(const aMarkdown : TMarkdownString; aOptions : TMarkdownOptions = MarkdownDocExtensions) : TMarkdownString;
     procedure CheckContains(const aMsg, aExpected, aActual : TMarkdownString);
   public
     procedure SetUp; override;
@@ -54,6 +54,8 @@ type
     procedure TestHeadingNumber;
     procedure TestSetextHeading;
     procedure TestEmptyLinkWritesTarget;
+    procedure TestDirectivesWriteContent;
+    procedure TestWikiLinkWritesLabel;
   end;
 
 implementation
@@ -86,7 +88,7 @@ begin
 end;
 
 
-function TTestANSIRender.Render(const aMarkdown: TMarkdownString): TMarkdownString;
+function TTestANSIRender.Render(const aMarkdown: TMarkdownString; aOptions: TMarkdownOptions): TMarkdownString;
 
 var
   lSource : TStringList;
@@ -95,7 +97,7 @@ begin
   lSource:=TStringList.Create;
   try
     lSource.Text:=MarkdownToString(aMarkdown);
-    lDoc:=TMarkdownParser.FastParse(lSource,MarkdownDocExtensions);
+    lDoc:=TMarkdownParser.FastParse(lSource,aOptions);
     try
       Result:=FRenderer.RenderToString(lDoc);
     finally
@@ -208,6 +210,25 @@ procedure TTestANSIRender.TestEmptyLinkWritesTarget;
 
 begin
   CheckContains('Target as text','See other.md.',Render('See [](other.md).'));
+end;
+
+
+procedure TTestANSIRender.TestDirectivesWriteContent;
+
+var
+  lText : TMarkdownString;
+begin
+  lText:=Render(':::note[Heads up]'#10'Inside :kbd[Ctrl] key'#10':::'#10'::video[Clip]',[mdoDirectives]);
+  CheckContains('Container label','Heads up',lText);
+  CheckContains('Container content and inline label','Inside Ctrl key',lText);
+  CheckContains('Leaf label','Clip',lText);
+end;
+
+
+procedure TTestANSIRender.TestWikiLinkWritesLabel;
+
+begin
+  CheckContains('Wiki link text','See Main Page and the label.',Render('See [[Main Page]] and [[X|the label]].',[mdoWikiLinks]));
 end;
 
 initialization

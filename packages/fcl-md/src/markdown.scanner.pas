@@ -88,6 +88,8 @@ type
     function FindText(const aText : TMarkdownString; aOffset : Integer = 0) : Integer;
     // Cursor position in the text
     property CursorPos : Integer read FCursor;
+    // The scanned text
+    property Text : TMarkdownString read FText;
     // Are we at the end of the text ?
     property EOF : boolean read GetEOF;
     // Character at the current cursor position. Do not modify cursor position

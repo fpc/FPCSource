@@ -44,7 +44,9 @@ Type
   // nkRaw holds content already in the target format, emitted without escaping.
   // nkComment holds the text of an HTML comment, with marker, argument and value in Attrs for a marker.
   // nkFootnoteRef is a footnote reference, with label and number in Attrs.
-  TTextNodeKind = (nkNamed,nkLineBreak,nkText,nkCode,nkURI,nkEmail,nkImg,nkRaw,nkComment,nkFootnoteRef);
+  // nkDirective is an inline directive: name in Name, label in Children, id, class and key=value attributes in Attrs.
+  // nkWikiLink is a [[target#fragment|label]] link: target and fragment in Attrs, label in Children.
+  TTextNodeKind = (nkNamed,nkLineBreak,nkText,nkCode,nkURI,nkEmail,nkImg,nkRaw,nkComment,nkFootnoteRef,nkDirective,nkWikiLink);
   TTextNodeKinds = set of TTextNodeKind;
 
   TNodeStyle = (nsStrong,nsEmph,nsDelete);
@@ -152,7 +154,8 @@ Type
     // The plain text of all text blocks inside this block, lines separated by a space.
     function PlainText : TMarkdownString;
     // Apply an attribute specification {#id .class key=value}. Returns False and changes nothing when aSpec is invalid.
-    function ApplyAttributes(const aSpec : TMarkdownString) : Boolean;
+    // With aBareKeys, a key without a value is allowed.
+    function ApplyAttributes(const aSpec : TMarkdownString; aBareKeys : Boolean = False) : Boolean;
     // Explicit or automatic id of the block.
     property ID : TMarkdownString read FID write FID;
     // Classes given in an attribute specification.
@@ -522,6 +525,48 @@ Type
     // Inline content of the caption, owned by the figure.
     property Caption : TMarkdownTextNodeList read FCaption write SetCaption;
   end;
+
+  { TMarkdownDirectiveBlock }
+
+  // A container or leaf directive. The attributes are in ID, Classes and Attrs.
+  TMarkdownDirectiveBlock = class abstract (TMarkdownContainerBlock)
+  private
+    FContentIndent: Integer;
+    FDirectiveName: TMarkdownString;
+    FHasLabel: Boolean;
+    FLabel: TMarkdownString;
+    FLabelNodes: TMarkdownTextNodeList;
+    procedure SetLabelNodes(const aValue: TMarkdownTextNodeList);
+  public
+    destructor Destroy; override;
+    function ContentIndentation : Integer; override;
+    // Name of the directive: note in :::note
+    property DirectiveName : TMarkdownString read FDirectiveName write FDirectiveName;
+    // Source text of the label, between [ and ].
+    property LabelText : TMarkdownString read FLabel write FLabel;
+    // Was a label given, even an empty one ?
+    property HasLabel : Boolean read FHasLabel write FHasLabel;
+    // Inline content of the label, Nil when there is no label. The block owns the list.
+    property LabelNodes : TMarkdownTextNodeList read FLabelNodes write SetLabelNodes;
+    // Column of the opening fence.
+    property ContentIndent : Integer read FContentIndent write FContentIndent;
+  end;
+
+  { TMarkdownContainerDirectiveBlock }
+
+  // :::name[label]{attributes} ... ::: with the enclosed blocks as children.
+  TMarkdownContainerDirectiveBlock = class (TMarkdownDirectiveBlock)
+  private
+    FFenceLength: Integer;
+  public
+    // Number of colons in the opening fence.
+    property FenceLength : Integer read FFenceLength write FFenceLength;
+  end;
+
+  { TMarkdownLeafDirectiveBlock }
+
+  // ::name[label]{attributes} on a line of its own.
+  TMarkdownLeafDirectiveBlock = class (TMarkdownDirectiveBlock);
 
 const
   AlertTypeNames : Array[TAlertType] of TMarkdownString = ('note','tip','important','warning','caution','success');
@@ -905,7 +950,7 @@ begin
 end;
 
 
-function TMarkdownBlock.ApplyAttributes(const aSpec: TMarkdownString): Boolean;
+function TMarkdownBlock.ApplyAttributes(const aSpec: TMarkdownString; aBareKeys : Boolean): Boolean;
 
 var
   lID : TMarkdownString;
@@ -915,7 +960,7 @@ var
 begin
   lAttrs:=TStringList.Create;
   try
-    Result:=ParseAttributeSpec(aSpec,lID,lClasses,lAttrs);
+    Result:=ParseAttributeSpec(aSpec,lID,lClasses,lAttrs,aBareKeys);
     if not Result then
       Exit;
     if lID<>'' then
@@ -1389,6 +1434,32 @@ begin
     Exit;
   FreeAndNil(FCaption);
   FCaption:=aValue;
+end;
+
+{ TMarkdownDirectiveBlock }
+
+destructor TMarkdownDirectiveBlock.Destroy;
+
+begin
+  FreeAndNil(FLabelNodes);
+  inherited Destroy;
+end;
+
+
+function TMarkdownDirectiveBlock.ContentIndentation: Integer;
+
+begin
+  Result:=FContentIndent;
+end;
+
+
+procedure TMarkdownDirectiveBlock.SetLabelNodes(const aValue: TMarkdownTextNodeList);
+
+begin
+  if FLabelNodes=aValue then
+    Exit;
+  FreeAndNil(FLabelNodes);
+  FLabelNodes:=aValue;
 end;
 
 end.
