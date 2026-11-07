@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, WinApi.Comobj, WinApi.Activex;
+  System.Classes, System.SysUtils, WinApi.Comobj, WinApi.Activex, WinApi.Windows;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, comobj, ActiveX;
+  Classes, SysUtils, comobj, ActiveX, Windows;
 {$ENDIF FPC_DOTTEDUNITS}
 
 { $define DEBUG_COM}
@@ -42,6 +42,10 @@ uses
 const
   CLASS_E_CLASSNOTAVAILABLE = -1;
   SELFREG_E_CLASS = -2;
+
+resourcestring
+  SPerUserTypeLibNotSupported = 'Per-user type library registration requires Windows Vista or later';
+  SRegistrationFailed = 'COM server registration failed';
 
 type
   TStartMode = (smStandalone, smAutomation,smRegserver,smUnregserver);
@@ -64,6 +68,7 @@ type
     FIsInteractive: Boolean;
     FStartMode: TStartMode;
     FOnLastRelease: TLastReleaseEvent;
+    FPerUserRegistration: Boolean;
 
     class function AutomationDone: Boolean;
     class procedure AutomationStart;
@@ -92,6 +97,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    // HKEY_CURRENT_USER and 'Software\Classes\' when PerUserRegistration is set, else the inherited root
+    procedure GetRegRoot(out aRootKey: HKEY; out aKeyPrefix: string); override;
     function CanUnloadNow: Boolean;
     procedure RegisterServer;
     procedure UnRegisterServer;
@@ -100,6 +107,8 @@ type
     property StartMode: TStartMode read FStartMode;
     property ServerObjects:integer read fCountObject;
     property OnLastRelease: TLastReleaseEvent read FOnLastRelease write FOnLastRelease;
+    // Register and unregister under HKEY_CURRENT_USER\Software\Classes, which needs no administrator rights
+    property PerUserRegistration: Boolean read FPerUserRegistration write FPerUserRegistration;
   end;
 
 var
@@ -127,15 +136,12 @@ function DllRegisterServer: HResult; stdcall;
 //SELFREG_E_CLASS - The server was unable to remove the entries of all the object classes.
 function DllUnregisterServer: HResult; stdcall;
 
-implementation
+//Called by regsvr32 /i:<pszCmdLine>; pszCmdLine "user" selects per-user registration.
+//S_OK - The registry entries were created (bInstall) or deleted successfully.
+//SELFREG_E_CLASS - The server was unable to complete the (un)registration.
+function DllInstall(bInstall: LongBool; pszCmdLine: PWideChar): HResult; stdcall;
 
-{$IFDEF FPC_DOTTEDUNITS}
-uses
-  WinApi.Windows;
-{$ELSE FPC_DOTTEDUNITS}
-uses
-  Windows;
-{$ENDIF FPC_DOTTEDUNITS}
+implementation
 
 function DllCanUnloadNow: HResult; stdcall;
 begin
@@ -215,6 +221,26 @@ begin
   end;
 end;
 
+function DllInstall(bInstall: LongBool; pszCmdLine: PWideChar): HResult; stdcall;
+
+var
+  lOldPerUser: Boolean;
+
+begin
+  lOldPerUser:=ComServer.PerUserRegistration;
+  try
+    ComServer.PerUserRegistration:=(pszCmdLine<>nil) and UnicodeSameText(UnicodeString(pszCmdLine),'user');
+    if bInstall then
+      ComServer.RegisterServer
+    else
+      ComServer.UnregisterServer;
+    Result:=S_OK;
+  except
+    Result:=SELFREG_E_CLASS;
+  end;
+  ComServer.PerUserRegistration:=lOldPerUser;
+end;
+
 function GetModuleFileName: String;
 const
   MAX_PATH_SIZE = 2048;
@@ -232,23 +258,45 @@ begin
   Result := Copy(Result, 1,LastDelimiter('.', Result)-1);
 end;
 
-procedure RegisterTypeLib(TypeLib: ITypeLib; const ModuleName: string);
+type
+  TRegisterTypeLibForUser = function(const ptrlib: ITypeLib; szfullpath, szhelpdir: lpolestr): HResult; stdcall;
+  TUnRegisterTypeLibForUser = function(const libid: TGUID; wVerMajor, wVerMinor: ushort; _lcid: lcid; sysk: TSysKind): HResult; stdcall;
+
+// Address of aName in oleaut32, raising EOleError when it does not exist
+function GetPerUserTypeLibProc(const aName: AnsiString): Pointer;
+
+begin
+  Result:=nil;
+  if haut<>0 then
+    Result:=GetProcAddress(haut,PAnsiChar(aName));
+  if Result=nil then
+    raise EOleError.Create(SPerUserTypeLibNotSupported);
+end;
+
+
+procedure RegisterTypeLib(TypeLib: ITypeLib; const ModuleName: string; aPerUser: Boolean);
 var
   FullPath: WideString;
 begin
   FullPath := ModuleName;
   //according to MSDN helpdir can be null
-  OleCheck({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.RegisterTypeLib(TypeLib, @FullPath[1], nil));
+  if aPerUser then
+    OleCheck(TRegisterTypeLibForUser(GetPerUserTypeLibProc('RegisterTypeLibForUser'))(TypeLib, @FullPath[1], nil))
+  else
+    OleCheck({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.RegisterTypeLib(TypeLib, @FullPath[1], nil));
 end;
 
-procedure UnRegisterTypeLib(TypeLib: ITypeLib);
+procedure UnRegisterTypeLib(TypeLib: ITypeLib; aPerUser: Boolean);
 var
   ptla: PTLibAttr;
 begin
   //http://www.experts-exchange.com/Programming/Misc/Q_20634807.html
   OleCheck(TypeLib.GetLibAttr(ptla));
   try
-    {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind);
+    if aPerUser then
+      TUnRegisterTypeLibForUser(GetPerUserTypeLibProc('UnRegisterTypeLibForUser'))(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind)
+    else
+      {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind);
   finally
     TypeLib.ReleaseTLibAttr(ptla);
   end;
@@ -355,17 +403,34 @@ begin
 end;
 
 
+// Report a failed (un)registration on stderr or in a message box
+procedure ReportRegistrationError(const aMsg: String; aInteractive: Boolean);
+
+begin
+  if IsConsole then
+    Writeln(StdErr,aMsg)
+  else if aInteractive then
+    MessageBoxA(0,PAnsiChar(AnsiString(aMsg)),PAnsiChar(AnsiString(SRegistrationFailed)),MB_OK or MB_ICONERROR or MB_TASKMODAL);
+end;
+
+
 procedure TComServer.Start;
 begin
   case fStartMode of
-  smRegServer:
+  smRegServer, smUnregServer:
     begin
-      Self.RegisterServer;
-      Halt;
-    end;
-  smUnregServer:
-    begin
-      Self.UnRegisterServer;
+      try
+        if fStartMode=smRegServer then
+          Self.RegisterServer
+        else
+          Self.UnRegisterServer;
+      except
+        on E: Exception do
+        begin
+          ReportRegistrationError(SRegistrationFailed+': '+E.Message, FIsInteractive);
+          Halt(1);
+        end;
+      end;
       Halt;
     end;
   end;
@@ -398,7 +463,28 @@ begin
   else if FindCmdlIneSwitch('regserver',sw_set,true) then
     fStartMode := smRegServer
   else if FindCmdLineSwitch('unregserver',sw_set,true) then
+    fStartMode := smUnregServer
+  else if FindCmdLineSwitch('regserverperuser',sw_set,true) then
+  begin
+    fStartMode := smRegServer;
+    FPerUserRegistration := True;
+  end
+  else if FindCmdLineSwitch('unregserverperuser',sw_set,true) then
+  begin
     fStartMode := smUnregServer;
+    FPerUserRegistration := True;
+  end;
+end;
+
+procedure TComServer.GetRegRoot(out aRootKey: HKEY; out aKeyPrefix: string);
+begin
+  if FPerUserRegistration then
+  begin
+    aRootKey := HKEY_CURRENT_USER;
+    aKeyPrefix := 'Software\Classes\';
+  end
+  else
+    inherited GetRegRoot(aRootKey, aKeyPrefix);
 end;
 
 constructor TComServer.Create;
@@ -498,7 +584,7 @@ end;
 procedure TComServer.RegisterServer;
 begin
   if fTypeLib <> nil then
-    RegisterTypeLib(fTypeLib, fServerFileName);
+    RegisterTypeLib(fTypeLib, fServerFileName, FPerUserRegistration);
 
   ComClassManager.ForEachFactory(self, @RegisterServerFactory);
 end;
@@ -506,7 +592,7 @@ end;
 procedure TComServer.UnRegisterServer;
 begin
   if fTypeLib <> nil then
-    UnRegisterTypeLib(fTypeLib);
+    UnRegisterTypeLib(fTypeLib, FPerUserRegistration);
 
   ComClassManager.ForEachFactory(self, @UnregisterServerFactory);
 end;

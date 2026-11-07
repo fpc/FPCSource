@@ -77,6 +77,8 @@ unit ComObj;
         function GetTypeLib: ITypeLib; virtual; abstract;
         procedure SetHelpFileName(const Value: string); virtual; abstract;
       public
+        // Registry root key and key prefix for COM registration; HKEY_CLASSES_ROOT and '' by default
+        procedure GetRegRoot(out aRootKey: HKEY; out aKeyPrefix: string); virtual;
         property HelpFileName: string read GetHelpFileName write SetHelpFileName;
         property ServerFileName: string read GetServerFileName;
         property ServerKey: string read GetServerKey;
@@ -478,6 +480,14 @@ implementation
        Result:=nil;
      end;
 {$endif wince}
+
+    procedure TComServerObject.GetRegRoot(out aRootKey: HKEY; out aKeyPrefix: string);
+
+      begin
+        aRootKey:=HKEY_CLASSES_ROOT;
+        aKeyPrefix:='';
+      end;
+
 
     procedure CreateRegKey(const Key, ValueName, Value: string; RootKey: HKEY = HKEY_CLASSES_ROOT);
 {$ifndef DUMMY_REG}
@@ -1113,6 +1123,18 @@ HKCR
       var
         classidguid: String;
         srv_type: string;
+        lRoot: HKEY;
+        lPrefix: string;
+
+        procedure CreateKey(const aKey, aValueName, aValue: string);
+        begin
+          CreateRegKey(lPrefix+aKey,aValueName,aValue,lRoot);
+        end;
+
+        procedure DeleteKey(const aKey: string);
+        begin
+          DeleteRegKey(lPrefix+aKey,lRoot);
+        end;
 
         function ThreadModelToString(model: TThreadingModel): String;
         begin
@@ -1132,53 +1154,54 @@ HKCR
         WriteLn('UpdateRegistry begin');
 {$endif}
         if Instancing = ciInternal then Exit;
+        FComServer.GetRegRoot(lRoot,lPrefix);
 
         if System.ModuleIsLib then srv_type:='InprocServer32' else srv_type:='LocalServer32';
 
         if Register then
         begin
           classidguid := GUIDToString(ClassID);
-          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, '', FComServer.ServerFileName);
+          CreateKey('CLSID\' + classidguid + '\'+srv_type, '', FComServer.ServerFileName);
           //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
-          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, 'ThreadingModel', ThreadModelToString(ThreadingModel));
-          CreateRegKey('CLSID\' + classidguid, '', Description);
+          CreateKey('CLSID\' + classidguid + '\'+srv_type, 'ThreadingModel', ThreadModelToString(ThreadingModel));
+          CreateKey('CLSID\' + classidguid, '', Description);
           if ClassName <> '' then
           begin
             if ClassVersion <> '' then
             begin
-              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
-              CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID);
+              CreateKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
+              CreateKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID);
             end
             else
-              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
+              CreateKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
 
-            CreateRegKey(ProgID, '', Description);
-            CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
+            CreateKey(ProgID, '', Description);
+            CreateKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
             if ClassVersion <> '' then
             begin
-              CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
-              CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
-              CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
+              CreateKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
+              CreateKey(ProgID + '.' + ClassVersion, '', Description);
+              CreateKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
             end;
           end;
         end else
         begin
           classidguid := GUIDToString(ClassID);
-          DeleteRegKey('CLSID\' + classidguid + '\'+srv_type);
-          DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
+          DeleteKey('CLSID\' + classidguid + '\'+srv_type);
+          DeleteKey('CLSID\' + classidguid + '\VersionIndependentProgID');
           if ClassName <> '' then
           begin
-            DeleteRegKey('CLSID\' + classidguid + '\ProgID');
-            DeleteRegKey(ProgID + '\CLSID');
+            DeleteKey('CLSID\' + classidguid + '\ProgID');
+            DeleteKey(ProgID + '\CLSID');
             if ClassVersion <> '' then
             begin
-              DeleteRegKey(ProgID + '\CurVer');
-              DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
-              DeleteRegKey(ProgID + '.' + ClassVersion);
+              DeleteKey(ProgID + '\CurVer');
+              DeleteKey(ProgID + '.' + ClassVersion + '\CLSID');
+              DeleteKey(ProgID + '.' + ClassVersion);
             end;
-            DeleteRegKey(ProgID);
+            DeleteKey(ProgID);
           end;
-          DeleteRegKey('CLSID\' + classidguid);
+          DeleteKey('CLSID\' + classidguid);
         end;
 {$ifdef DEBUG_COM}
          if printcom then
@@ -1704,11 +1727,14 @@ HKCR
 
 
     procedure TTypedComObjectFactory.UpdateRegistry(Register: Boolean);
-         var
+      var
         ptla: PTLibAttr;
+        lRoot: HKEY;
+        lPrefix: string;
       begin
         if Instancing = ciInternal then
           Exit;
+        FComServer.GetRegRoot(lRoot,lPrefix);
 
         if Register then
         begin
@@ -1722,13 +1748,13 @@ HKCR
 
           OleCheck(FComServer.TypeLib.GetLibAttr(ptla));
           try
-            CreateRegKey('CLSID\' + GUIDToString(ClassID) + '\TypeLib', '', GUIDToString(ptla^.GUID));
+            CreateRegKey(lPrefix + 'CLSID\' + GUIDToString(ClassID) + '\TypeLib', '', GUIDToString(ptla^.GUID), lRoot);
           finally
             FComServer.TypeLib.ReleaseTLibAttr(ptla);
           end;
         end else
         begin
-          DeleteRegKey('CLSID\' + GUIDToString(ClassID) + '\TypeLib');
+          DeleteRegKey(lPrefix + 'CLSID\' + GUIDToString(ClassID) + '\TypeLib', lRoot);
           inherited UpdateRegistry(Register);
         end;
       end;
