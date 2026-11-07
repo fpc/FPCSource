@@ -1,7 +1,7 @@
 {
-  Demo package for fpmkunit: a unit and a program, plus an example unit and an example program.
-  "./fpmake build" compiles the unit and the program into units/ and bin/.
-  "./fpmake build -be" also compiles the examples, into the examples directory of units/.
+  Demo package for fpmkunit: a unit, a program, examples and fpdoc documentation.
+  "./fpmake build" compiles unit and program into units/ and bin/, "-be" adds the examples.
+  "./fpmake doc" writes the HTML documentation of demogreet to docs/fpmkdemo/.
 }
 program fpmake;
 
@@ -25,6 +25,9 @@ begin
     T:=P.Targets.AddUnit('demogreet.pp');
     T:=P.Targets.AddProgram('greet.pp');
     T.Dependencies.AddUnit('demogreet');
+
+    P.FPDocFormat:=[ffHtml];
+    T:=P.Targets.AddFPDoc('src/demogreet.pp','xml/demogreet.xml');
 
     T:=P.Targets.AddExampleUnit('exampleframe.pp');
     T:=P.Targets.AddExampleProgram('framedgreet.pp');

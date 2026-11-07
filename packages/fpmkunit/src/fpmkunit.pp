@@ -202,7 +202,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo,rmDocProject);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo,rmDocProject,rmDoc);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -533,7 +533,8 @@ Type
                         neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
                         neaBeforeUnInstall, neaAfterUnInstall,
                         neaBeforeCreateBuildEngine, neaAfterCreateBuildengine,
-                        neaBeforeDocProject, neaAfterDocProject);
+                        neaBeforeDocProject, neaAfterDocProject,
+                        neaBeforeDoc, neaAfterDoc);
 
   TNotifyEventActionSet = set of TNotifyEventAction;
 
@@ -1481,6 +1482,12 @@ Type
     Procedure PkgList(PkgList: TStrings; APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
     procedure Clean(APackage: TPackage; const aTarget: TCompileTarget);
+    // Remove the files and directories written by Documentation for APackage
+    procedure CleanDocumentation(APackage: TPackage);
+    // Name of the file or directory fpdoc writes for APackage in format AFormat
+    Function GetFPDocOutputName(APackage : TPackage; AFormat : TFPDocFormat) : String;
+    // Run fpdoc for the fpdoc targets of APackage, once per format in APackage.FPDocFormat
+    Procedure Documentation(APackage : TPackage);
     Procedure CompileDependencies(APackage : TPackage);
     function CheckDependencies(APackage : TPackage; ErrorOnFailure: boolean): TCheckDependencyResult;
     Function  CheckExternalPackage(Const APackageName, ForPackageName : String; ErrorOnFailure: boolean):TPackage;
@@ -1494,6 +1501,8 @@ Type
     procedure Manifest(Packages: TPackages; Package: TPackage);
     procedure PkgList(Packages: TPackages);
     procedure FPDocProject(Packages: TPackages; SingleDocFile : Boolean);
+    // Run fpdoc for all packages
+    Procedure Documentation(Packages : TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
     Procedure Log(Level : TVerboseLevel; Msg : String);
@@ -1545,6 +1554,7 @@ Type
     Procedure Manifest; virtual;
     Procedure PkgList; virtual;
     Procedure FPDocProject; virtual;
+    Procedure Documentation; virtual;
     Procedure Info; virtual;
     procedure AddAutoPackageVariantsToPackage(APackage: TPackage); virtual;
   Public
@@ -1979,6 +1989,7 @@ ResourceString
   SInfoCleanPackagecomplete = 'Clean of package %s completed';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoPackageDocProject  = 'Creating fpdoc project file for package %s';
+  SInfoDocumentingPackage = 'Creating documentation for package %s';
   SInfoPkgListPackage    = 'Adding package %s to the package list';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoDeletedFile        = 'Deleted file "%s"';
@@ -2055,6 +2066,7 @@ ResourceString
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
   SHelpPkgList        = 'Create list of all packages suitable for FPC installer.';
   SHelpFPDocProject   = 'Create fpdoc project file(s) for all packages';
+  SHelpDoc            = 'Create documentation with fpdoc for all packages';
   SHelpZipInstall     = 'Install all units in the package(s) into an archive.';
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
@@ -2766,6 +2778,7 @@ begin
 end;
 
 
+// Link each package and unit dependency in L to its item in P, ignoring fpdoc targets
 Procedure ResolveDependencies(L : TDependencies; P : TNamedCollection);
 Var
   I,J : Integer;
@@ -2777,7 +2790,10 @@ begin
         C:=L[i];
         if C.DependencyType in [depPackage,depUnit] then
           begin
-            J:=P.IndexOfName(C.Value);
+            J:=P.Count-1;
+            While (J>=0) and ((CompareText(TNamedItem(P.Items[J]).Name,C.Value)<>0) or
+                  ((P.Items[J] is TTarget) and (TTarget(P.Items[J]).TargetType=ttFPDoc))) do
+              Dec(J);
             If J<>-1 then
               C.Target:=P.Items[J];
           end;
@@ -6098,7 +6114,8 @@ begin
                                                            neaBeforeInstall, neaAfterInstall, neaBeforeArchive, neaAfterArchive,
                                                            neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
                                                            neaBeforeUnInstall, neaAfterUnInstall,
-                                                           neaBeforeCreateBuildEngine, neaAfterCreateBuildengine]);
+                                                           neaBeforeCreateBuildEngine, neaAfterCreateBuildengine,
+                                                           neaBeforeDocProject, neaAfterDocProject, neaBeforeDoc, neaAfterDoc]);
   CreatePackages;
 end;
 
@@ -6416,6 +6433,8 @@ begin
       FRunMode:=rmInfo
     else if CheckCommand(I,'dp','fpdocproject') then
       FRunMode:=rmDocProject
+    else if CheckCommand(I,'D','doc') then
+      FRunMode:=rmDoc
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','cpu') then
@@ -6506,9 +6525,9 @@ begin
       Defaults.IgnoreInvalidOptions:=true
     else if CheckOption(I,'df','doc-folder') then
       Defaults.FPDocOutputDir:=OptionArg(I)
-    else if CheckCommand(I,'do','doc-options') then
+    else if CheckOption(I,'do','doc-options') then
       Defaults.FPDocOptions:=OptionArg(I)
-    else if CheckCommand(I,'sd','single-docfile') then
+    else if CheckOption(I,'sd','single-docfile') then
       Defaults.SingleFPDocFile:=True
     else if CheckCommand(I,'ns','namespaces') then
       Defaults.Namespaces:=True
@@ -6573,6 +6592,7 @@ begin
   LogCmd('zipinstall',SHelpZipInstall);
   LogCmd('pkglist',SHelpPkgList);
   LogCmd('fpdocproject',SHelpFPDocProject);
+  LogCmd('doc',SHelpDoc);
   Log(vlInfo,SHelpCmdOptions);
   LogOption('h','help',SHelpHelp);
   LogOption('lc','list-commands',SHelpList);
@@ -6723,6 +6743,15 @@ begin
   NotifyEventCollection.CallEvents(neaAfterDocProject, self);
 end;
 
+
+procedure TCustomInstaller.Documentation;
+
+begin
+  NotifyEventCollection.CallEvents(neaBeforeDoc, self);
+  BuildEngine.Documentation(Packages);
+  NotifyEventCollection.CallEvents(neaAfterDoc, self);
+end;
+
 procedure TCustomInstaller.AddAutoPackageVariantsToPackage(APackage: TPackage);
 var
   i: Integer;
@@ -6781,6 +6810,7 @@ begin
       rmUnInstall : UnInstall;
       rmInfo      : Info;
       rmDocProject : FPDocProject;
+      rmDoc : Documentation;
     end;
   except
     On E : Exception do
@@ -6841,7 +6871,7 @@ begin
   FNotifyEventCollection := TNotifyEventCollection.create([neaAfterCompile, neaBeforeCompile, neaAfterInstall, neaBeforeInstall,
                                                            neaAfterClean, neaBeforeClean, neaAfterArchive, neaBeforeArchive,
                                                            neaAfterManifest, neaBeforeManifest, neaAfterPkgList, neaBeforePkgList,
-                                                           neaBeforeUnInstall, neaAfterUnInstall]);
+                                                           neaBeforeUnInstall, neaAfterUnInstall, neaBeforeDoc, neaAfterDoc]);
 {$ifndef NO_THREADING}
   InitCriticalSection(FGeneralCriticalSection);
 {$endif NO_THREADING}
@@ -8830,13 +8860,7 @@ procedure TBuildEngine.Compile(APackage: TPackage);
 Var
   T : TTarget;
   I : Integer;
-  Cmd: string;
-  cmdOpts: string;
-  sFPDocFormat: string;
-  IFPDocFormat: TFPDocFormat;
-  d: integer;
   aPath,UC: string;
-  dep: TDependency;
   RegenerateUnitconfigFile: boolean;
   BUName: string;
 
@@ -8949,8 +8973,6 @@ Var
   end;
 
 begin
-  cmdOpts := '';
-
   log(vlWarning,SWarnStartCompilingPackage,[APackage.Name, Defaults.Target]);
 
   case Defaults.BuildMode of
@@ -9007,23 +9029,10 @@ begin
             ProcessCompileTarget;
           end;
         ttSharedLibrary,
-        ttProgram:
-          begin // do nothing, are compiled later
-          end;
+        ttProgram,
         ttFPDoc:
-          begin
-            for d := 0 to T.Dependencies.Count - 1 do
-            begin
-              dep := TDependency(T.Dependencies[d]);
-
-              //add unit dependencies
-              if dep.DependencyType = depUnit then
-                cmdOpts := cmdOpts + ' --input=' + AddPathPrefix(APackage,dep.Value);
-            end;
-
-            //check if a documentation target is given
-            cmdOpts := cmdOpts + ' --input=' + AddPathPrefix(APackage,T.Directory + T.Name + T.Extension) + ' --descr='+ T.XML;
-          end
+          begin // do nothing, programs are compiled later
+          end;
         else
           log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
         end;
@@ -9057,34 +9066,6 @@ begin
         Log(vlInfo, Format(SDbgGenerating, [UC]));
         APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
       end;
-
-    //compile documentation, because options were found
-    if cmdOpts <> '' then
-    begin
-      //append package name
-      cmdOpts := cmdOpts + ' --package=' + APackage.Name;
-
-      for IFPDocFormat:=Low(TFPDocFormat) to High(TFPDocFormat) do
-      begin
-        if IFPDocFormat in APackage.FPDocFormat then
-        begin
-          //prepend output format
-          case IFPDocFormat of
-            ffHtml:      sFPDocFormat := '--format=html --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
-            ffHtm:       sFPDocFormat := '--format=htm --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
-            ffXHtml:     sFPDocFormat := '--format=xhtml --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
-            ffLaTex:     sFPDocFormat := '--format=latex --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir) + APackage.Name + '.tex';
-            ffXMLStruct: sFPDocFormat := '--format=xml-struct --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
-            ffChm:       sFPDocFormat := '--format=chm --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir) + APackage.Name + '.chm';
-          end;
-
-          //execute fpdoc
-          Cmd:=ExeSearch('fpdoc',{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentvariable('PATH'));
-          if Cmd = '' then Cmd := 'fpdoc';
-          ExecuteProcess(Cmd, sFPDocFormat + cmdOpts);
-        end;
-      end;
-    end;
 
     DoAfterCompile(APackage);
   Finally
@@ -9614,6 +9595,7 @@ begin
       end
     else
       Clean(APackage, Defaults.CompileTarget);
+    CleanDocumentation(APackage);
     DoAfterClean(Apackage);
   Finally
     log(vlInfo, SInfoCleanPackagecomplete, [APackage.Name]);
@@ -9711,6 +9693,145 @@ begin
       end;
   Finally
     List.Free;
+  end;
+end;
+
+
+procedure TBuildEngine.CleanDocumentation(APackage: TPackage);
+
+var
+  lFiles,lDirs : TStringList;
+  lFormat : TFPDocFormat;
+  lName : String;
+  I : Integer;
+  lHasDoc : Boolean;
+
+begin
+  lHasDoc:=False;
+  for I:=0 to APackage.Targets.Count-1 do
+    if APackage.Targets.TargetItems[I].TargetType=ttFPDoc then
+      lHasDoc:=True;
+  if not lHasDoc then
+    Exit;
+  lDirs:=nil;
+  lFiles:=TStringList.Create;
+  try
+    lDirs:=TStringList.Create;
+    for lFormat in APackage.FPDocFormat do
+      begin
+      lName:=GetFPDocOutputName(APackage,lFormat);
+      if SysDirectoryExists(lName) then
+        lDirs.Add(lName)
+      else if SysFileExists(lName) then
+        lFiles.Add(lName);
+      end;
+    CmdDeleteFiles(lFiles);
+    CmdRemoveTrees(lDirs);
+    lDirs.Clear;
+    if IsDirectoryEmpty(ExcludeTrailingPathDelimiter(Defaults.FPDocOutputDir)) then
+      begin
+      lDirs.Add(ExcludeTrailingPathDelimiter(Defaults.FPDocOutputDir));
+      CmdRemoveDirs(lDirs);
+      end;
+  finally
+    lDirs.Free;
+    lFiles.Free;
+  end;
+end;
+
+
+function TBuildEngine.GetFPDocOutputName(APackage: TPackage; AFormat: TFPDocFormat): String;
+
+begin
+  Result:=Defaults.FPDocOutputDir+APackage.Name;
+  case AFormat of
+    ffHtml      : ;
+    ffHtm       : Result:=Result+'-htm';
+    ffXHtml     : Result:=Result+'-xhtml';
+    ffLaTex     : Result:=Result+'.tex';
+    ffXMLStruct : Result:=Result+'-xml';
+    ffChm       : Result:=Result+'.chm';
+  end;
+end;
+
+
+procedure TBuildEngine.Documentation(APackage: TPackage);
+
+const
+  FormatNames : array[TFPDocFormat] of String = ('html','htm','xhtml','latex','xml-struct','chm');
+
+var
+  lArgs,lRunArgs,lOpts : TStringList;
+  lTarget : TTarget;
+  lDep : TDependency;
+  lFormat : TFPDocFormat;
+  lCmd,lName,lValue : String;
+  I,J : Integer;
+
+begin
+  lOpts:=nil;
+  lRunArgs:=nil;
+  lArgs:=TStringList.Create;
+  try
+    for I:=0 to APackage.Targets.Count-1 do
+      begin
+      lTarget:=APackage.Targets.TargetItems[I];
+      if lTarget.TargetType<>ttFPDoc then
+        continue;
+      for J:=0 to lTarget.Dependencies.Count-1 do
+        begin
+        lDep:=lTarget.Dependencies[J];
+        if lDep.DependencyType=depUnit then
+          lArgs.Add('--input='+lDep.Value);
+        end;
+      lArgs.Add('--input='+lTarget.Directory+lTarget.Name+lTarget.Extension);
+      if lTarget.XML<>'' then
+        lArgs.Add('--descr='+lTarget.XML);
+      end;
+    if (lArgs.Count=0) or (APackage.FPDocFormat=[]) then
+      Exit;
+    Log(vlInfo,SInfoDocumentingPackage,[APackage.Name]);
+    lArgs.Add('--package='+APackage.Name);
+    if Defaults.FPDocOptions<>'' then
+      begin
+      lOpts:=TStringList.Create;
+      lOpts.LoadFromFile(Defaults.FPDocOptions);
+      for I:=0 to lOpts.Count-1 do
+        begin
+        lOpts.GetNameValue(I,lName,lValue);
+        if (lName='') or SameText(lValue,'false') then
+          continue;
+        if (lValue='') or SameText(lValue,'true') then
+          lArgs.Add('--'+lName)
+        else
+          lArgs.Add('--'+lName+'='+lValue);
+        end;
+      end;
+    lCmd:=ExeSearch('fpdoc',{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentvariable('PATH'));
+    if lCmd='' then
+      lCmd:='fpdoc';
+    lRunArgs:=TStringList.Create;
+    if APackage.Directory<>'' then
+      EnterDir(APackage.Directory);
+    try
+      if not ListMode then
+        ForceDirectories(Defaults.FPDocOutputDir);
+      for lFormat in APackage.FPDocFormat do
+        begin
+        lRunArgs.Clear;
+        lRunArgs.Add('--format='+FormatNames[lFormat]);
+        lRunArgs.Add('--output='+GetFPDocOutputName(APackage,lFormat));
+        lRunArgs.AddStrings(lArgs);
+        ExecuteCommand(lCmd,lRunArgs);
+        end;
+    finally
+      if APackage.Directory<>'' then
+        EnterDir('');
+    end;
+  finally
+    lRunArgs.Free;
+    lOpts.Free;
+    lArgs.Free;
   end;
 end;
 
@@ -10250,6 +10371,24 @@ begin
     Lopts.Free;
   end;
 end;
+
+procedure TBuildEngine.Documentation(Packages: TPackages);
+
+var
+  I : Integer;
+  P : TPackage;
+
+begin
+  NotifyEventCollection.CallEvents(neaBeforeDoc, Self);
+  for I:=0 to Packages.Count-1 do
+    begin
+    P:=Packages.PackageItems[I];
+    if PackageOK(P) then
+      Documentation(P);
+    end;
+  NotifyEventCollection.CallEvents(neaAfterDoc, Self);
+end;
+
 
 procedure TBuildEngine.Clean(Packages: TPackages; AllTargets: boolean);
 Var

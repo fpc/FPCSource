@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpdoc-descriptions>
+<package name="fpmkdemo">
+<module name="DemoGreet">
+<short>Greeting text for the fpmkunit demo package.</short>
+<descr>
+<p>DemoGreet builds the text printed by the <var>greet</var> program.</p>
+</descr>
+<element name="Greeting">
+<short>Return a greeting for a name.</short>
+<descr>
+<p><var>Greeting</var> returns <var>Hello, aName!</var>, or <var>Hello, World!</var> when <var>aName</var> is empty.</p>
+</descr>
+</element>
+<element name="Greeting.Result">
+<short>The greeting text.</short>
+</element>
+<element name="Greeting.aName">
+<short>Name to greet, may be empty.</short>
+</element>
+</module>
+</package>
+</fpdoc-descriptions>
