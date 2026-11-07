@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.4-rc1';
+    P.Version:='3.2.4';
 
     P.Author := 'Andrew Haines';
     P.License := 'LGPL with modification, ';
@@ -31,7 +31,7 @@ begin
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');
-    D.Version:='3.2.4-rc1';
+    D.Version:='3.2.4';
     D:=P.Dependencies.Add('rtl-generics');
     D:=P.Dependencies.Add('rtl-objpas');
 

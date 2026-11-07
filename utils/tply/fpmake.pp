@@ -37,7 +37,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.4-rc1';
+    P.Version:='3.2.4';
 
     P.Dependencies.Add('tplylib');
 

@@ -367,7 +367,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=zlib
-override PACKAGE_VERSION=3.2.4-rc2
+override PACKAGE_VERSION=3.2.4
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)

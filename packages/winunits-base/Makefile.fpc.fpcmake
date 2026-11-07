@@ -4,7 +4,7 @@
 
 [package]
 name=winunits-base
-version=3.2.4-rc2
+version=3.2.4
 
 [require]
 packages=fcl-registry fcl-base
