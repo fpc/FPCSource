@@ -157,6 +157,7 @@ type
     procedure TestWikiLinkDefault;
     procedure TestWikiLinkResolver;
     procedure TestWikiLinkWithoutHref;
+    procedure TestRawHTMLEscaped;
   end;
 
 implementation
@@ -1073,6 +1074,21 @@ begin
   AssertEquals('Correct html','<p><span>Page</span></p>'+sLineBreak,Render('[[Page]]',[mdoWikiLinks]));
 end;
 
+
+procedure TTestHTMLRenderExtensions.TestRawHTMLEscaped;
+
+var
+  lHTML : TMarkdownString;
+begin
+  lHTML:=Render('<div onclick="x">'#10#10'<b>bold</b> <script>alert(1)</script> &lt;i&gt;',
+                MarkdownDocExtensions+[mdoDirectives,mdoWikiLinks,mdoTaskLists]);
+  AssertEquals('No div tag',0,Pos('<div',lHTML));
+  AssertEquals('No b tag',0,Pos('<b>',lHTML));
+  AssertEquals('No script tag',0,Pos('<script',lHTML));
+  AssertEquals('No i tag',0,Pos('<i>',lHTML));
+  AssertTrue('Block tag as text',Pos('&lt;div onclick=&quot;x&quot;&gt;',lHTML)>0);
+  AssertTrue('Inline tag as text',Pos('&lt;script&gt;alert(1)&lt;/script&gt;',lHTML)>0);
+end;
 
 { TNoteDirectiveRenderer }
 
