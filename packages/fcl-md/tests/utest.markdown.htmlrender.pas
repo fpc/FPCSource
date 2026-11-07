@@ -130,6 +130,9 @@ type
     procedure TestResolveLink;
     procedure TestHeadingNumber;
     procedure TestRendererFallback;
+    procedure TestTaskListTight;
+    procedure TestTaskListLoose;
+    procedure TestTaskListOrdered;
   end;
 
 implementation
@@ -873,6 +876,46 @@ begin
   finally
     lDoc.Free;
   end;
+end;
+
+procedure TTestHTMLRenderExtensions.TestTaskListTight;
+
+begin
+  AssertEquals('Correct html',
+               '<ul class="contains-task-list">'+sLineBreak+
+               '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="" /> todo</li>'+sLineBreak+
+               '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="" checked="" /> done</li>'+sLineBreak+
+               '<li>plain</li>'+sLineBreak+
+               '</ul>'+sLineBreak,
+               Render('- [ ] todo'#10'- [x] done'#10'- plain',[mdoTaskLists]));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestTaskListLoose;
+
+begin
+  AssertEquals('Correct html',
+               '<ul class="contains-task-list">'+sLineBreak+
+               '<li class="task-list-item">'+sLineBreak+
+               '<p><input type="checkbox" class="task-list-item-checkbox" disabled="" /> todo</p>'+sLineBreak+
+               '<p>more</p>'+sLineBreak+
+               '</li>'+sLineBreak+
+               '<li class="task-list-item">'+sLineBreak+
+               '<p><input type="checkbox" class="task-list-item-checkbox" disabled="" checked="" /> done</p>'+sLineBreak+
+               '</li>'+sLineBreak+
+               '</ul>'+sLineBreak,
+               Render('- [ ] todo'#10#10'  more'#10'- [x] done',[mdoTaskLists]));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestTaskListOrdered;
+
+begin
+  AssertEquals('Correct html',
+               '<ol start="3" class="contains-task-list">'+sLineBreak+
+               '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="" checked="" /> done</li>'+sLineBreak+
+               '</ol>'+sLineBreak,
+               Render('3. [x] done',[mdoTaskLists]));
 end;
 
 initialization

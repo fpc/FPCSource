@@ -343,10 +343,16 @@ Type
     property HasSeenEmptyLine : boolean read FHasSeenEmptyLine Write FHasSeenEmptyLine; // parser state
   end;
 
+  TTaskItemState = (tisNone, tisUnchecked, tisChecked);
+
   TMarkdownListItemBlock = class (TMarkdownParagraphBlock)
+  private
+    FTaskState: TTaskItemState;
   public
     function IsPlainPara : boolean; override;
     function ContentIndentation : Integer; override;
+    // Task list checkbox state, tisNone when the item is no task.
+    property TaskState : TTaskItemState read FTaskState write FTaskState;
   end;
 
   TMarkdownHeadingBlock = class (TMarkdownContainerBlock)

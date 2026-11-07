@@ -338,6 +338,23 @@ type
 
   { TTestTransformRegistry }
 
+  { TTestTaskLists }
+
+  TTestTaskLists = class(TExtensionTestCase)
+  private
+    function Item(aList : TMarkdownBlock; aIndex : Integer) : TMarkdownListItemBlock;
+  published
+    procedure TestUncheckedAndChecked;
+    procedure TestUpperCaseX;
+    procedure TestOrderedList;
+    procedure TestNoSpaceAfterMarkerIsText;
+    procedure TestMarkerOnlyIsText;
+    procedure TestOtherCharIsText;
+    procedure TestNestedTaskList;
+    procedure TestMarkdownAfterMarker;
+    procedure TestTaskListsOptionOff;
+  end;
+
   TTestTransformRegistry = class(TTestCase)
   published
     procedure TestDefaultTransforms;
@@ -2476,6 +2493,104 @@ begin
   AssertNull('No definition',Doc.FindLinkRef('foo'));
 end;
 
+{ TTestTaskLists }
+
+function TTestTaskLists.Item(aList: TMarkdownBlock; aIndex: Integer): TMarkdownListItemBlock;
+
+begin
+  AssertEquals('List block',TMarkdownListBlock,aList.ClassType);
+  AssertTrue('Item exists',aIndex<aList.ChildCount);
+  Result:=aList.Children[aIndex] as TMarkdownListItemBlock;
+end;
+
+
+procedure TTestTaskLists.TestUncheckedAndChecked;
+
+begin
+  SetupExt('- [ ] todo'#10'- [x] done',[mdoTaskLists]);
+  AssertEquals('Unchecked item',Ord(tisUnchecked),Ord(Item(GetBlock(0),0).TaskState));
+  AssertEquals('Marker removed from unchecked item','todo',PlainOf(Item(GetBlock(0),0)));
+  AssertEquals('Checked item',Ord(tisChecked),Ord(Item(GetBlock(0),1).TaskState));
+  AssertEquals('Marker removed from checked item','done',PlainOf(Item(GetBlock(0),1)));
+end;
+
+
+procedure TTestTaskLists.TestUpperCaseX;
+
+begin
+  SetupExt('- [X] done',[mdoTaskLists]);
+  AssertEquals('Checked item',Ord(tisChecked),Ord(Item(GetBlock(0),0).TaskState));
+end;
+
+
+procedure TTestTaskLists.TestOrderedList;
+
+begin
+  SetupExt('1. [x] one'#10'2. [ ] two',[mdoTaskLists]);
+  AssertEquals('Checked item',Ord(tisChecked),Ord(Item(GetBlock(0),0).TaskState));
+  AssertEquals('Unchecked item',Ord(tisUnchecked),Ord(Item(GetBlock(0),1).TaskState));
+end;
+
+
+procedure TTestTaskLists.TestNoSpaceAfterMarkerIsText;
+
+begin
+  SetupExt('- [x]done',[mdoTaskLists]);
+  AssertEquals('No task',Ord(tisNone),Ord(Item(GetBlock(0),0).TaskState));
+  AssertEquals('Text kept','[x]done',PlainOf(Item(GetBlock(0),0)));
+end;
+
+
+procedure TTestTaskLists.TestMarkerOnlyIsText;
+
+begin
+  SetupExt('- [ ]',[mdoTaskLists]);
+  AssertEquals('No task',Ord(tisNone),Ord(Item(GetBlock(0),0).TaskState));
+end;
+
+
+procedure TTestTaskLists.TestOtherCharIsText;
+
+begin
+  SetupExt('- [-] maybe',[mdoTaskLists]);
+  AssertEquals('No task',Ord(tisNone),Ord(Item(GetBlock(0),0).TaskState));
+  AssertEquals('Text kept','[-] maybe',PlainOf(Item(GetBlock(0),0)));
+end;
+
+
+procedure TTestTaskLists.TestNestedTaskList;
+
+var
+  lOuter : TMarkdownListItemBlock;
+begin
+  SetupExt('- [ ] outer'#10'  - [x] inner',[mdoTaskLists]);
+  lOuter:=Item(GetBlock(0),0);
+  AssertEquals('Outer unchecked',Ord(tisUnchecked),Ord(lOuter.TaskState));
+  AssertEquals('Outer has paragraph and list',2,lOuter.ChildCount);
+  AssertEquals('Inner checked',Ord(tisChecked),Ord(Item(lOuter.Children[1],0).TaskState));
+end;
+
+
+procedure TTestTaskLists.TestMarkdownAfterMarker;
+
+var
+  lText : TMarkdownTextBlock;
+begin
+  SetupExt('- [ ] **bold** text',[mdoTaskLists]);
+  lText:=TextBlockOf(Item(GetBlock(0),0));
+  AssertEquals('Plain text','bold text',lText.Nodes.PlainText);
+  AssertTrue('First node strong',nsStrong in lText.Nodes[0].Styles);
+end;
+
+
+procedure TTestTaskLists.TestTaskListsOptionOff;
+
+begin
+  SetupExt('- [ ] todo',[mdoGithubFlavoured]);
+  AssertEquals('No task',Ord(tisNone),Ord(Item(GetBlock(0),0).TaskState));
+  AssertEquals('Text kept','[ ] todo',PlainOf(Item(GetBlock(0),0)));
+end;
+
 { TTestTransformRegistry }
 
 procedure TTestTransformRegistry.TestDefaultTransforms;
@@ -2485,7 +2600,7 @@ var
   lNames : Array of TMarkdownString;
   I : Integer;
 begin
-  lNames:=['alerts','captions','footnotes','headingids','markers'];
+  lNames:=['tasklists','alerts','captions','footnotes','headingids','markers'];
   lAll:=TMarkdownTransformFactory.Instance.All;
   AssertTrue('At least the default transforms',Length(lAll)>=Length(lNames));
   for I:=0 to Length(lNames)-1 do
@@ -2501,6 +2616,7 @@ initialization
                           TTestTables, TTestFrontmatter, TTestInlineProcessorHook]);
   RegisterTests('Extensions',[TTestComments, TTestAttributes, TTestHeadingIDs, TTestDefinitionLists,
                               TTestAlerts, TTestAdmonitions, TTestFootnotes, TTestCaptions, TTestLinkReferences,
+                              TTestTaskLists,
                               TTestTransformRegistry]);
 end.
 

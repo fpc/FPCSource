@@ -56,7 +56,8 @@ type
     mdoFootnotes,        // footnote references and definitions
     mdoCaptions,         // Table: captions and implicit figures
     mdoLinkReferences,   // link reference definitions and reference links
-    mdoAdmonitions       // !!! type "title" admonitions with an indented body
+    mdoAdmonitions,      // !!! type "title" admonitions with an indented body
+    mdoTaskLists         // - [ ] and - [x] task list items
   );
   TMarkdownOptions = set of TMarkdownOption;
 

@@ -806,14 +806,20 @@ procedure THTMLMarkdownListBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownListBlock absolute aElement;
+  lBlock : TMarkdownBlock;
+  lClass : TMarkdownString;
 
 begin
+  lClass:='';
+  for lBlock in lNode.Blocks do
+    if (lBlock is TMarkdownListItemBlock) and (TMarkdownListItemBlock(lBlock).TaskState<>tisNone) then
+      lClass:=' class="contains-task-list"';
   if not lNode.Ordered then
-    AppendNl('<ul>')
+    AppendNl('<ul'+lClass+'>')
   else if lNode.Start=1 then
-    AppendNL('<ol>')
+    AppendNL('<ol'+lClass+'>')
   else
-    AppendNl('<ol start="'+IntToMarkdown(lNode.Start)+'">');
+    AppendNl('<ol start="'+IntToMarkdown(lNode.Start)+'"'+lClass+'>');
   Renderer.RenderChildren(lNode);
   if lNode.Ordered then
     AppendNl('</ol>')
@@ -842,18 +848,44 @@ var
   end;
 
 
+const
+  Checked : Array[Boolean] of TMarkdownString = ('',' checked=""');
+
+var
+  lCheckbox : TMarkdownString;
+
 begin
-  Append('<li>');
+  lCheckbox:='';
+  if lItemBlock.TaskState=tisNone then
+    Append('<li>')
+  else
+    begin
+    Append('<li class="task-list-item">');
+    lCheckbox:='<input type="checkbox" class="task-list-item-checkbox" disabled=""'+Checked[lItemBlock.TaskState=tisChecked]+' /> ';
+    end;
   lCount:=0;
   For lBlock in lItemBlock.Blocks do
     if IsPlainBlock(lBlock) then
-      HTMLRenderer.RenderChildren(lPar,True)
+      begin
+      Append(lCheckbox);
+      lCheckbox:='';
+      HTMLRenderer.RenderChildren(lPar,True);
+      end
     else
       begin
       if lCount=0 then
         AppendNl;
       Inc(lCount);
-      Renderer.RenderBlock(lBlock);
+      if lCheckbox<>'' then
+        begin
+        // The checkbox of a loose task item goes inside its first paragraph.
+        Append('<p>'+lCheckbox);
+        lCheckbox:='';
+        HTMLRenderer.RenderChildren(lPar,True);
+        AppendNl('</p>');
+        end
+      else
+        Renderer.RenderBlock(lBlock);
       end;
   AppendNl('</li>');
 end;
