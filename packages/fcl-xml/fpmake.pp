@@ -138,11 +138,18 @@ begin
         begin
           AddUnit('dom');
         end;
-    T:=P.Targets.AddUnit('xpath.pp');
+    T:=P.Targets.AddUnit('xpathscanner.pp');
       with T.Dependencies do
         begin
           AddInclude('xpathkw.inc');
+          AddUnit('xmlutils');
+        end;
+    T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('xpath.pp');
+      with T.Dependencies do
+        begin
           AddUnit('dom');
+          AddUnit('xpathscanner');
         end;
     T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('sax_xml.pp');

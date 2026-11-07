@@ -24,9 +24,9 @@ unit XPath;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes, Xml.Dom;
+uses System.SysUtils, System.Classes, Xml.Dom, Xml.XPathScanner;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils, Classes, DOM;
+uses SysUtils, Classes, DOM, XPathScanner;
 {$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
@@ -38,12 +38,6 @@ resourcestring
 
   { Variable errors }
   SVarNoConversion = 'Conversion from %s to %s not possible';
-
-  { Scanner errors }
-  SScannerUnclosedString = 'String literal was not closed';
-  SScannerInvalidChar = 'Invalid character';
-  SScannerMalformedQName = 'Expected "*" or local part after colon';
-  SScannerExpectedVarName = 'Expected variable name after "$"';
 
   { Parser errors }
   SParserExpectedLeftBracket = 'Expected "("';
@@ -63,61 +57,102 @@ resourcestring
 
 type
 
+{ XPath lexical scanner types, declared in unit XPathScanner }
+
+{$IFDEF FPC_DOTTEDUNITS}
+  TXPathToken = Xml.XPathScanner.TXPathToken;
+  TXPathKeyword = Xml.XPathScanner.TXPathKeyword;
+{$ELSE FPC_DOTTEDUNITS}
+  TXPathToken = XPathScanner.TXPathToken;
+  TXPathKeyword = XPathScanner.TXPathKeyword;
+{$ENDIF FPC_DOTTEDUNITS}
+
+const
+  tkInvalid = TXPathToken.tkInvalid;
+  tkEndOfStream = TXPathToken.tkEndOfStream;
+  tkIdentifier = TXPathToken.tkIdentifier;
+  tkNSNameTest = TXPathToken.tkNSNameTest;
+  tkString = TXPathToken.tkString;
+  tkNumber = TXPathToken.tkNumber;
+  tkVariable = TXPathToken.tkVariable;
+  tkLeftBracket = TXPathToken.tkLeftBracket;
+  tkRightBracket = TXPathToken.tkRightBracket;
+  tkAsterisk = TXPathToken.tkAsterisk;
+  tkPlus = TXPathToken.tkPlus;
+  tkComma = TXPathToken.tkComma;
+  tkMinus = TXPathToken.tkMinus;
+  tkDot = TXPathToken.tkDot;
+  tkDotDot = TXPathToken.tkDotDot;
+  tkSlash = TXPathToken.tkSlash;
+  tkSlashSlash = TXPathToken.tkSlashSlash;
+  tkColonColon = TXPathToken.tkColonColon;
+  tkLess = TXPathToken.tkLess;
+  tkLessEqual = TXPathToken.tkLessEqual;
+  tkEqual = TXPathToken.tkEqual;
+  tkNotEqual = TXPathToken.tkNotEqual;
+  tkGreater = TXPathToken.tkGreater;
+  tkGreaterEqual = TXPathToken.tkGreaterEqual;
+  tkAt = TXPathToken.tkAt;
+  tkLeftSquareBracket = TXPathToken.tkLeftSquareBracket;
+  tkRightSquareBracket = TXPathToken.tkRightSquareBracket;
+  tkPipe = TXPathToken.tkPipe;
+
+  xkNone = TXPathKeyword.xkNone;
+  xkAncestor = TXPathKeyword.xkAncestor;
+  xkAncestorOrSelf = TXPathKeyword.xkAncestorOrSelf;
+  xkAttribute = TXPathKeyword.xkAttribute;
+  xkChild = TXPathKeyword.xkChild;
+  xkDescendant = TXPathKeyword.xkDescendant;
+  xkDescendantOrSelf = TXPathKeyword.xkDescendantOrSelf;
+  xkFollowing = TXPathKeyword.xkFollowing;
+  xkFollowingSibling = TXPathKeyword.xkFollowingSibling;
+  xkNamespace = TXPathKeyword.xkNamespace;
+  xkParent = TXPathKeyword.xkParent;
+  xkPreceding = TXPathKeyword.xkPreceding;
+  xkPrecedingSibling = TXPathKeyword.xkPrecedingSibling;
+  xkSelf = TXPathKeyword.xkSelf;
+  xkComment = TXPathKeyword.xkComment;
+  xkText = TXPathKeyword.xkText;
+  xkProcessingInstruction = TXPathKeyword.xkProcessingInstruction;
+  xkNode = TXPathKeyword.xkNode;
+  xkAnd = TXPathKeyword.xkAnd;
+  xkOr = TXPathKeyword.xkOr;
+  xkDiv = TXPathKeyword.xkDiv;
+  xkMod = TXPathKeyword.xkMod;
+  xkLast = TXPathKeyword.xkLast;
+  xkPosition = TXPathKeyword.xkPosition;
+  xkCount = TXPathKeyword.xkCount;
+  xkId = TXPathKeyword.xkId;
+  xkLocalName = TXPathKeyword.xkLocalName;
+  xkNamespaceUri = TXPathKeyword.xkNamespaceUri;
+  xkName = TXPathKeyword.xkName;
+  xkString = TXPathKeyword.xkString;
+  xkConcat = TXPathKeyword.xkConcat;
+  xkStartsWith = TXPathKeyword.xkStartsWith;
+  xkContains = TXPathKeyword.xkContains;
+  xkSubstringBefore = TXPathKeyword.xkSubstringBefore;
+  xkSubstringAfter = TXPathKeyword.xkSubstringAfter;
+  xkSubstring = TXPathKeyword.xkSubstring;
+  xkStringLength = TXPathKeyword.xkStringLength;
+  xkNormalizeSpace = TXPathKeyword.xkNormalizeSpace;
+  xkTranslate = TXPathKeyword.xkTranslate;
+  xkBoolean = TXPathKeyword.xkBoolean;
+  xkNot = TXPathKeyword.xkNot;
+  xkTrue = TXPathKeyword.xkTrue;
+  xkFalse = TXPathKeyword.xkFalse;
+  xkLang = TXPathKeyword.xkLang;
+  xkNumber = TXPathKeyword.xkNumber;
+  xkSum = TXPathKeyword.xkSum;
+  xkFloor = TXPathKeyword.xkFloor;
+  xkCeiling = TXPathKeyword.xkCeiling;
+  xkRound = TXPathKeyword.xkRound;
+
+type
+
   TXPathContext = class;
   TXPathEnvironment = class;
   TXPathVariable = class;
 
-
-{ XPath lexical scanner }
-
-  TXPathToken = (               // [28] - [38]
-    tkInvalid,
-    tkEndOfStream,
-    tkIdentifier,
-    tkNSNameTest,               // NCName:*
-    tkString,
-    tkNumber,
-    tkVariable,                 // $QName
-    tkLeftBracket,              // "("
-    tkRightBracket,             // ")"
-    tkAsterisk,                 // "*"
-    tkPlus,                     // "+"
-    tkComma,                    // ","
-    tkMinus,                    // "-"
-    tkDot,                      // "."
-    tkDotDot,                   // ".."
-    tkSlash,                    // "/"
-    tkSlashSlash,               // "//"
-    tkColonColon,               // "::"
-    tkLess,                     // "<"
-    tkLessEqual,                // "<="
-    tkEqual,                    // "="
-    tkNotEqual,                 // "!="
-    tkGreater,                  // ">"
-    tkGreaterEqual,             // ">="
-    tkAt,                       // "@"
-    tkLeftSquareBracket,        // "["
-    tkRightSquareBracket,       // "]"
-    tkPipe                      // "|"
-  );
-
-  TXPathKeyword = (
-    // axis names
-    xkNone, xkAncestor,  xkAncestorOrSelf,  xkAttribute,  xkChild,
-    xkDescendant, xkDescendantOrSelf, xkFollowing, xkFollowingSibling,
-    xkNamespace, xkParent, xkPreceding, xkPrecedingSibling, xkSelf,
-    // node tests
-    xkComment, xkText, xkProcessingInstruction, xkNode,
-    // operators
-    xkAnd, xkOr, xkDiv, xkMod,
-    // standard functions
-    xkLast, xkPosition, xkCount, xkId, xkLocalName, xkNamespaceUri,
-    xkName, xkString, xkConcat, xkStartsWith, xkContains,
-    xkSubstringBefore, xkSubstringAfter, xkSubstring,
-    xkStringLength, xkNormalizeSpace, xkTranslate, xkBoolean,
-    xkNot, xkTrue, xkFalse, xkLang, xkNumber, xkSum, xkFloor,
-    xkCeiling, xkRound
-  );
 
 { XPath expression parse tree }
 
@@ -281,7 +316,17 @@ type
 
 { Exceptions }
 
-  EXPathEvaluationError = class(Exception);
+{$IFDEF FPC_DOTTEDUNITS}
+  EXPathError = Xml.XPathScanner.EXPathError;
+  EXPathLexerError = Xml.XPathScanner.EXPathLexerError;
+  EXPathParserError = Xml.XPathScanner.EXPathParserError;
+  EXPathEvaluationError = Xml.XPathScanner.EXPathEvaluationError;
+{$ELSE FPC_DOTTEDUNITS}
+  EXPathError = XPathScanner.EXPathError;
+  EXPathLexerError = XPathScanner.EXPathLexerError;
+  EXPathParserError = XPathScanner.EXPathParserError;
+  EXPathEvaluationError = XPathScanner.EXPathEvaluationError;
+{$ENDIF FPC_DOTTEDUNITS}
 
   procedure EvaluationError(const Msg: String);
   procedure EvaluationError(const Msg: String; const Args: array of const);
@@ -362,19 +407,12 @@ type
     function LookupNamespaceURI(const aPrefix: DOMString): DOMString; virtual;
   end;
 
-{ XPath lexical scanner }
+{ XPath parser }
 
-  TXPathScanner = class
+  TXPathScanner = class(TXPathLexer)
   private
-    FExpressionString, FCurData: DOMPChar;
-    FCurToken: TXPathToken;
-    FCurTokenString: DOMString;
-    FTokenStart: DOMPChar;
-    FTokenLength: Integer;
-    FPrefixLength: Integer;
-    FTokenId: TXPathKeyword;
     FResolver: TXPathNSResolver;
-    procedure Error(const Msg: String);
+    procedure ParseError(const aMsg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
     function ParseStep: TStep;          // [4]
     function ParseNodeTest(axis: TAxis): TStep; // [7]
@@ -390,15 +428,6 @@ type
     function ParseAdditiveExpr: TXPathExprNode;    // [25]
     function ParseMultiplicativeExpr: TXPathExprNode;  // [26]
     function ParseUnaryExpr: TXPathExprNode;   // [27]
-    function GetToken: TXPathToken;
-    function ScanQName: Boolean;
-  public
-    constructor Create(const AExpressionString: DOMString);
-    function NextToken: TXPathToken;
-    function PeekToken: TXPathToken;
-    function SkipToken(tok: TXPathToken): Boolean;
-    property CurToken: TXPathToken read FCurToken;
-    property CurTokenString: DOMString read FCurTokenString;
   end;
 
 
@@ -515,8 +544,6 @@ uses System.Math, Xml.Utils;
 {$ELSE FPC_DOTTEDUNITS}
 uses Math, xmlutils;
 {$ENDIF FPC_DOTTEDUNITS}
-
-{$i xpathkw.inc}
 
 const
   AxisNameKeywords = [xkAncestor..xkSelf];
@@ -1385,7 +1412,7 @@ end;
 
 procedure TXPathVariable.Error(const Msg: String; const Args: array of const);
 begin
-  raise Exception.CreateFmt(Msg, Args) at get_caller_addr(get_frame), get_caller_frame(get_frame);
+  raise EXPathEvaluationError.CreateFmt(Msg, Args) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
@@ -1585,226 +1612,12 @@ begin
 end;
 
 
-{ XPath lexical scanner }
+procedure TXPathScanner.ParseError(const aMsg: String);
 
-constructor TXPathScanner.Create(const AExpressionString: DOMString);
 begin
-  inherited Create;
-  FExpressionString := DOMPChar(AExpressionString);
-  FCurData := FExpressionString;
-  NextToken;
+  raise EXPathParserError.Create(aMsg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
-function TXPathScanner.PeekToken: TXPathToken;
-var
-  save: DOMPChar;
-begin
-  save := FCurData;
-  Result := GetToken;
-  FCurData := save;
-end;
-
-function TXPathScanner.NextToken: TXPathToken;
-begin
-  Result := GetToken;
-  FCurToken := Result;
-  if Result in [tkIdentifier, tkNSNameTest, tkNumber, tkString, tkVariable] then
-    SetString(FCurTokenString, FTokenStart, FTokenLength);
-  if Result = tkIdentifier then
-    FTokenId := LookupXPathKeyword(FTokenStart, FTokenLength)
-  else
-    FTokenId := xkNone;
-end;
-
-function TXPathScanner.SkipToken(tok: TXPathToken): Boolean; { inline? }
-begin
-  Result := (FCurToken = tok);
-  if Result then
-    NextToken;
-end;
-
-// TODO: no surrogate pairs/XML 1.1 support yet
-function TXPathScanner.ScanQName: Boolean;
-var
-  p: DOMPChar;
-begin
-  FPrefixLength := 0;
-  p := FCurData;
-  repeat
-    if (Byte(p^) in NamingBitmap[NamePages[hi(Word(p^))]]) then
-      Inc(p)
-    else
-    begin
-      // either the first AnsiChar of name is bad (it may be a colon),
-      // or a colon is not followed by a valid NameStartChar
-      Result := False;
-      Break;
-    end;
-
-    while Byte(p^) in NamingBitmap[NamePages[$100+hi(Word(p^))]] do
-      Inc(p);
-
-    Result := True;
-    if (p^ <> ':') or (p[1] = ':') or (FPrefixLength > 0) then
-      Break;
-    // first colon, and not followed by another one -> remember its position
-    FPrefixLength := p-FTokenStart;
-    Inc(p);
-  until False;
-  FCurData := p;
-  FTokenLength := p-FTokenStart;
-end;
-
-function TXPathScanner.GetToken: TXPathToken;
-
-  procedure GetNumber(HasDot: Boolean);
-  begin
-    FTokenLength := 1;
-    while ((FCurData[1] >= '0') and (FCurData[1] <= '9')) or ((FCurData[1] = '.') and not HasDot) do
-    begin
-      Inc(FCurData);
-      Inc(FTokenLength);
-      if FCurData[0] = '.' then
-        HasDot := True;
-    end;
-    Result := tkNumber;
-  end;
-
-var
-  Delim: WideChar;
-begin
-  // Skip whitespace
-  while (FCurData[0] < #255) and (AnsiChar(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
-    Inc(FCurData);
-
-  FTokenStart := FCurData;
-  FTokenLength := 0;
-  Result := tkInvalid;
-
-  case FCurData[0] of
-    #0:
-      Result := tkEndOfStream;
-    '!':
-      if FCurData[1] = '=' then
-      begin
-        Inc(FCurData);
-        Result := tkNotEqual;
-      end;
-    '"', '''':
-      begin
-        Delim := FCurData^;
-        Inc(FCurData);
-        FTokenStart := FCurData;
-        while FCurData[0] <> Delim do
-        begin
-          if FCurData[0] = #0 then
-            Error(SScannerUnclosedString);
-          Inc(FCurData);
-        end;
-        FTokenLength := FCurData-FTokenStart;
-        Result := tkString;
-      end;
-    '$':
-      begin
-        Inc(FCurData);
-        Inc(FTokenStart);
-        if ScanQName then
-          Result := tkVariable
-        else
-          Error(SScannerExpectedVarName);
-        Exit;
-      end;
-    '(':
-      Result := tkLeftBracket;
-    ')':
-      Result := tkRightBracket;
-    '*':
-      Result := tkAsterisk;
-    '+':
-      Result := tkPlus;
-    ',':
-      Result := tkComma;
-    '-':
-      Result := tkMinus;
-    '.':
-      if FCurData[1] = '.' then
-      begin
-        Inc(FCurData);
-        Result := tkDotDot;
-      end else if (FCurData[1] >= '0') and (FCurData[1] <= '9') then
-        GetNumber(True)
-      else
-        Result := tkDot;
-    '/':
-      if FCurData[1] = '/' then
-      begin
-        Inc(FCurData);
-        Result := tkSlashSlash;
-      end else
-        Result := tkSlash;
-    '0'..'9':
-      GetNumber(False);
-    ':':
-      if FCurData[1] = ':' then
-      begin
-        Inc(FCurData);
-        Result := tkColonColon;
-      end;
-    '<':
-      if FCurData[1] = '=' then
-      begin
-        Inc(FCurData);
-        Result := tkLessEqual;
-      end else
-        Result := tkLess;
-    '=':
-      Result := tkEqual;
-    '>':
-      if FCurData[1] = '=' then
-      begin
-        Inc(FCurData);
-        Result := tkGreaterEqual;
-      end else
-        Result := tkGreater;
-    '@':
-      Result := tkAt;
-    '[':
-      Result := tkLeftSquareBracket;
-    ']':
-      Result := tkRightSquareBracket;
-    '|':
-      Result := tkPipe;
-  else
-    if ScanQName then
-    begin
-      Result := tkIdentifier;
-      Exit;
-    end
-    else if FPrefixLength > 0 then
-    begin
-      if FCurData^ = '*'  then
-      begin
-        Inc(FCurData);
-        Dec(FTokenLength);        // exclude ':'
-        Result := tkNSNameTest;
-        Exit;
-      end
-      else
-        Error(SScannerMalformedQName);
-    end;
-  end;
-
-  if Result = tkInvalid then
-    Error(SScannerInvalidChar);
-  // We have processed at least one character now; eat it:
-  if Result > tkEndOfStream then
-    Inc(FCurData);
-end;
-
-procedure TXPathScanner.Error(const Msg: String);
-begin
-  raise Exception.Create(Msg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
-end;
 
 procedure TXPathScanner.ParsePredicates(var Dest: TXPathNodeArray);
 var
@@ -1821,7 +1634,7 @@ begin
     if I > High(Buffer) then
       AddNodes(Dest, Buffer, I);  // will reset I to zero
     if not SkipToken(tkRightSquareBracket) then
-      Error(SParserExpectedRightSquareBracket);
+      ParseError(SParserExpectedRightSquareBracket);
   end;
   AddNodes(Dest, Buffer, I);
 end;
@@ -1852,7 +1665,7 @@ begin
       if FTokenId in AxisNameKeywords then
         Axis := AxisNameMap[FTokenId]
       else
-        Error(SParserBadAxisName);
+        ParseError(SParserBadAxisName);
       NextToken;  // skip identifier and the '::'
       NextToken;
     end
@@ -1910,11 +1723,11 @@ begin
           NextToken;
         end;
         if CurToken <> tkRightBracket then
-          Error(SParserExpectedRightBracket);
+          ParseError(SParserExpectedRightBracket);
         NextToken;
       end
       else
-        Error(SParserBadNodeType);
+        ParseError(SParserBadNodeType);
     end
     else  // [37] NameTest, third case
     begin
@@ -1933,7 +1746,7 @@ begin
     end;
   end
   else
-    Error(SParserInvalidNodeTest);
+    ParseError(SParserInvalidNodeTest);
 
   Result := TStep.Create(Axis, nodeType);
   Result.NodeTestString := nodeName;
@@ -1950,7 +1763,7 @@ begin
         NextToken;
         Result := ParseOrExpr;
         if CurToken <> tkRightBracket then
-          Error(SParserExpectedRightBracket);
+          ParseError(SParserExpectedRightBracket);
       end;
     tkString:         // [29] Literal
       Result := TXPathConstantNode.Create(
@@ -1961,7 +1774,7 @@ begin
     tkIdentifier:     // [16] Function call
       Result := ParseFunctionCall;
   else
-    Error(SParserInvalidPrimExpr);
+    ParseError(SParserInvalidPrimExpr);
     Result := nil; // satisfy compiler
   end;
   NextToken;
@@ -1977,7 +1790,7 @@ begin
   Name := CurTokenString;
   I := 0;
   if NextToken <> tkLeftBracket then
-    Error(SParserExpectedLeftBracket);
+    ParseError(SParserExpectedLeftBracket);
   NextToken;
   // Parse argument list
   if CurToken <> tkRightBracket then
@@ -1988,7 +1801,7 @@ begin
       AddNodes(Args, Buffer, I);
   until not SkipToken(tkComma);
   if CurToken <> tkRightBracket then
-    Error(SParserExpectedRightBracket);
+    ParseError(SParserExpectedRightBracket);
 
   AddNodes(Args, Buffer, I);
   Result := TXPathFunctionNode.Create(Name, Args);
@@ -2855,7 +2668,7 @@ begin
   AScanner.FResolver := AResolver;
   FRootNode := AScanner.ParseOrExpr;
   if CompleteExpression and (AScanner.CurToken <> tkEndOfStream) then
-    EvaluationError(SParserGarbageAfterExpression);
+    raise EXPathParserError.Create(SParserGarbageAfterExpression);
 end;
 
 function TXPathExpression.Evaluate(AContextNode: TDOMNode): TXPathVariable;

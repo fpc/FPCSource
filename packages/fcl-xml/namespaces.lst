@@ -19,6 +19,7 @@ src/dom_html.pp=namespaced/Html.Dom.pp
 src/htmlwriter.pp=namespaced/Html.Writer.pp
 src/dom.pp=namespaced/Xml.Dom.pp
 src/xpath.pp=namespaced/Xml.XPath.pp
+src/xpathscanner.pp=namespaced/Xml.XPathScanner.pp
 src/xmlread.pp=namespaced/Xml.Read.pp
 src/xmlcfg.pp=namespaced/Xml.Config.pp
 src/xmlwrite.pp=namespaced/Xml.Writer.pp

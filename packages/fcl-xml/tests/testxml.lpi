@@ -34,7 +34,7 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <Units Count="3">
+    <Units Count="5">
       <Unit0>
         <Filename Value="testxml.pp"/>
         <IsPartOfProject Value="True"/>
@@ -47,6 +47,14 @@
         <Filename Value="readerunit.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="tcxpathscanner.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="tcxpath.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
