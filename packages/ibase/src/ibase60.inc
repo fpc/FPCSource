@@ -2546,6 +2546,7 @@ var
   RefCount : integer;
   LoadedLibrary : AnsiString;
   LibHandle : TLibHandle;
+  LibraryLock : TRTLCriticalSection;
 
 Function IBaseLibraryHandle : TLibHandle;
 
@@ -2750,67 +2751,82 @@ end;
 function InitialiseIBase60 : integer;
 
 begin
-  Result := 0;
-  if (RefCount<>0) then
-    // pretend to load whatever is already loaded, so we do not get a library name conflict.
-    Inc(RefCount)
-  else If UseEmbeddedFirebird then
-    begin
-    If (TryInitialiseIBase60(fbembedlib)=0) and (TryInitialiseIBase60(libem)=0) then
-      Raise EInOutError.CreateFmt(SErrEmbeddedFailed,[fbembedlib]);
-    end
-  else
-    begin
-    If (TryInitialiseIBase60(fbembedlib)=0) and
-       (TryInitialiseIBase60(libem)=0) and
-       (TryInitialiseIBase60(fbclib)=0) and
-       {$IFDEF UNIX}
-       (TryInitialiseIBase60(fbclib2)=0) and
-       {$ENDIF}
-       (TryInitialiseIBase60(libfc)=0) and
-       (TryInitialiseIBase60(gdslib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,fbclib2,libfc,gdslib,fbembedlib]);
-    end;
-  Result := RefCount;
+  EnterCriticalSection(LibraryLock);
+  try
+    Result := 0;
+    if (RefCount<>0) then
+      // pretend to load whatever is already loaded, so we do not get a library name conflict.
+      Inc(RefCount)
+    else If UseEmbeddedFirebird then
+      begin
+      If (TryInitialiseIBase60(fbembedlib)=0) and (TryInitialiseIBase60(libem)=0) then
+        Raise EInOutError.CreateFmt(SErrEmbeddedFailed,[fbembedlib]);
+      end
+    else
+      begin
+      If (TryInitialiseIBase60(fbembedlib)=0) and
+         (TryInitialiseIBase60(libem)=0) and
+         (TryInitialiseIBase60(fbclib)=0) and
+         {$IFDEF UNIX}
+         (TryInitialiseIBase60(fbclib2)=0) and
+         {$ENDIF}
+         (TryInitialiseIBase60(libfc)=0) and
+         (TryInitialiseIBase60(gdslib)=0) then
+          Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,fbclib2,libfc,gdslib,fbembedlib]);
+      end;
+    Result := RefCount;
+  finally
+    LeaveCriticalSection(LibraryLock);
+  end;
 end;
 
 function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
-  Result := TryInitialiseIBase60(LibraryName);
-  If Result = 0 then
-    Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>IBaseLoadedLibrary) then
-    begin
-    Dec(RefCount);
-    Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[IBaseLoadedLibrary]);
-    end;
+  EnterCriticalSection(LibraryLock);
+  try
+    Result := TryInitialiseIBase60(LibraryName);
+    If Result = 0 then
+      Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
+    else If (LibraryName<>IBaseLoadedLibrary) then
+      begin
+      Dec(RefCount);
+      Result := RefCount;
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[IBaseLoadedLibrary]);
+      end;
+  finally
+    LeaveCriticalSection(LibraryLock);
+  end;
 end;
 
 
 Procedure ReleaseIBase60;
 
 begin
-  if RefCount>1 then
-    Dec(RefCount)
-  else
-    begin
-    // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
-    // Only call fb_shutdown for embedded Firebird; calling it for a
-    // client connection shuts down the networking subsystem, causing
-    // subsequent reconnect attempts to fail with "connection shutdown".
-    if UseEmbeddedFirebird and (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+  EnterCriticalSection(LibraryLock);
+  try
+    if RefCount>1 then
+      Dec(RefCount)
+    else
       begin
-      //todo: log error; still try to unload library below as the timeout may have been insufficient
+      // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
+      // Only call fb_shutdown for embedded Firebird; calling it for a
+      // client connection shuts down the networking subsystem, causing
+      // subsequent reconnect attempts to fail with "connection shutdown".
+      if UseEmbeddedFirebird and (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+        begin
+        //todo: log error; still try to unload library below as the timeout may have been insufficient
+        end;
+      if UnloadLibrary(LibHandle) then
+        begin
+        Dec(RefCount);
+        LibHandle := NilHandle;
+        LoadedLibrary:='';
+        end;
       end;
-    if UnloadLibrary(LibHandle) then
-      begin
-      Dec(RefCount);
-      LibHandle := NilHandle;
-      LoadedLibrary:='';
-      end;
-    end;
+  finally
+    LeaveCriticalSection(LibraryLock);
+  end;
 end;
 
 {$ENDIF}
@@ -2820,4 +2836,10 @@ begin
   Result := SizeOf(XSQLDA) + (n - 1) * SizeOf(XSQLVAR);
 end;
 
+{$IFDEF LinkDynamically}
+initialization
+  InitCriticalSection(LibraryLock);
 
+finalization
+  DoneCriticalSection(LibraryLock);
+{$ENDIF}
