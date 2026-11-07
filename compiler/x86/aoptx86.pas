@@ -3050,7 +3050,12 @@ unit aoptx86;
             p_SourceReg := taicpu(p).oper[0]^.reg;
             p_TargetReg := taicpu(p).oper[1]^.reg;
             TransferUsedRegs(TmpUsedRegs);
-            if not RegUsedAfterInstruction(p_SourceReg, p, TmpUsedRegs) and
+            { Never fold away a write to the stack or frame pointer: after an
+              assembler block the optimiser does not see their allocation, so
+              RegUsedAfterInstruction can report them as unused }
+            if (p_SourceReg <> NR_STACK_POINTER_REG) and
+              (p_SourceReg <> current_procinfo.framepointer) and
+              not RegUsedAfterInstruction(p_SourceReg, p, TmpUsedRegs) and
               GetLastInstruction(p, hp2) and
               (hp2.typ = ait_instruction) and
               { Have to make sure it's an instruction that only reads from
