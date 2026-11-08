@@ -65,7 +65,8 @@ uses
   utcfpmonitor, tests.rtti.attrtypes2,
 {$ENDIF}
    utcStrUtils,
-  utcVariants
+  utcVariants,
+  utcfpmasks
   ;
 
 

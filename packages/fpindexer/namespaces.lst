@@ -1,7 +1,6 @@
 src/dbindexer.pp=namespaced/FpIndexer.Db.Types.pp
 {s*:src/}=namespaced/
 {i+:src/}
-src/fpmasks.pp=namespaced/FpIndexer.Masks.pp
 src/ireadertxt.pp=namespaced/FpIndexer.Reader.Txt.pp
 src/ireaderpas.pp=namespaced/FpIndexer.Reader.Pascal.pp
 src/sqldbindexdb.pp=namespaced/FpIndexer.Db.SqlDb.pp

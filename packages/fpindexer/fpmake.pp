@@ -21,6 +21,7 @@ begin
       P.Directory:=ADirectory;
       P.Version:='3.3.1';
       P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,dragonfly];
+      P.Dependencies.Add('rtl-objpas');
       P.Dependencies.Add('fcl-base');
       P.Dependencies.Add('fcl-db');
       P.Dependencies.Add('chm'); // for fastreaderhtml
@@ -34,10 +35,7 @@ begin
 
       P.SourcePath.Add('src');
 
-      T:=P.Targets.AddUnit('fpmasks.pp');
-
       T:=P.Targets.AddUnit('fpindexer.pp');
-      T.Dependencies.AddUnit('fpmasks');
       T.ResourceStrings:=true;
 
       T:=P.Targets.AddUnit('memindexdb.pp');

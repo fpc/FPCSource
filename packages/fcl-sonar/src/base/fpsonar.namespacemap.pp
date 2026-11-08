@@ -765,7 +765,7 @@ const
     (Plain: 'fpjwasha512'; Dotted: 'Jwt.Jwa.Sha512'),
     (Plain: 'fpjwt'; Dotted: 'Jwt.Types'),
     (Plain: 'fplazreport'; Dotted: 'FpReport.Lazarus'),
-    (Plain: 'fpmasks'; Dotted: 'FpIndexer.Masks'),
+    (Plain: 'fpmasks'; Dotted: 'System.Masks.FP'),
     (Plain: 'fpmimetypes'; Dotted: 'FpWeb.MimeTypes'),
     (Plain: 'fpmonitor'; Dotted: 'System.MonitorSupport'),
     (Plain: 'fpmustache'; Dotted: 'Mustache.Base'),

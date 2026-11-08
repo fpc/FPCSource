@@ -475,13 +475,13 @@ uses
   {$ifdef LangDetect}
      fpTextCat, Math,
   {$endif}
-  FpIndexer.Masks;     //please note that this is an LCL unit, should be moved to FCL afaic
+  System.Masks.FP;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef LangDetect}
      fpTextCat, Math,
   {$endif}
-  fpmasks;     //please note that this is an LCL unit, should be moved to FCL afaic
+  fpmasks;
 {$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
