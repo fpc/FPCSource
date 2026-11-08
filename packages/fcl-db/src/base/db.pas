@@ -1732,12 +1732,12 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADataSource : TDataSource);
     Procedure UpdateFieldDefs;
-    procedure SetBlockReadSize(AValue: Integer); virtual;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure SetSparseArrays(AValue: Boolean);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
     function GetDefaultBufferCount: Cardinal; virtual;
+    procedure SetBlockReadSize(AValue: Integer); virtual;
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
