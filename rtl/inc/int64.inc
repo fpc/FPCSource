@@ -601,6 +601,11 @@ function fpc_mul_currency(x,y : currency) : currency; [public,alias: 'FPC_MUL_CU
       arithmetic with overflow checking disabled -- silently keep only
       the low 64 bits instead of raising an error }
     result_q:=(q[1] shl 32) or q[0];
+    { round to the nearest, a tie to even, as the x87 store does in the
+      default rounding mode where Currency is a float type, and as Delphi
+      does }
+    if (rem>5000) or ((rem=5000) and odd(result_q)) then
+      inc(result_q);
 
     if neg then
       Result_i:=-int64(result_q)
@@ -685,6 +690,15 @@ begin
   { for operands whose mathematical product legitimately fits back into
     a 64-bit Currency value, q[3] and q[2] are always 0 }
   result_q:=(q[1] shl 32) or q[0];
+  { round to the nearest, a tie to even, as the x87 store does in the
+    default rounding mode where Currency is a float type, and as Delphi
+    does; a carry out of the 64 bits is an overflow }
+  if (rem>5000) or ((rem=5000) and odd(result_q)) then
+    begin
+      inc(result_q);
+      if result_q=0 then
+        HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+    end;
   if (q[2]<>0) or (q[3]<>0) or
     (
       { bit 63 can be only set if we have $80000000 00000000 }
