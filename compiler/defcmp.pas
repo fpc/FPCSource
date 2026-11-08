@@ -474,6 +474,31 @@ implementation
                  exit;
                end;
            end;
+         { a type declared inside two specializations that are equal by the rule
+           above is the same type in both: inside a generic, TBase<T>.TTable is
+           specialized again wherever it is named. The specializations must be
+           equal both ways: that rule accepts a narrower subrange argument in
+           one direction, and the nested types' layouts can differ then }
+         if (def_from.typ=def_to.typ) and
+            assigned(def_from.typesym) and
+            assigned(def_to.typesym) and
+            (def_from.typesym.name=def_to.typesym.name) and
+            assigned(def_from.owner) and
+            assigned(def_to.owner) and
+            (def_from.owner.symtabletype in [objectsymtable,recordsymtable]) and
+            (def_to.owner.symtabletype in [objectsymtable,recordsymtable]) and
+            assigned(def_from.owner.defowner) and
+            assigned(def_to.owner.defowner) and
+            (def_from.owner.defowner<>def_to.owner.defowner) and
+            (df_specialization in tstoreddef(def_from.owner.defowner).defoptions) and
+            (df_specialization in tstoreddef(def_to.owner.defowner).defoptions) and
+            equal_defs(tdef(def_from.owner.defowner),tdef(def_to.owner.defowner)) and
+            equal_defs(tdef(def_to.owner.defowner),tdef(def_from.owner.defowner)) then
+           begin
+             doconv:=tc_equal;
+             compare_defs_ext:=te_equal;
+             exit;
+           end;
          { handling of partial specializations }
          if (
                (df_generic in def_to.defoptions) and
