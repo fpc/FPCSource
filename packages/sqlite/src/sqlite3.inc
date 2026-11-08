@@ -1414,8 +1414,10 @@ end;
 
 var
   RefCount: Integer;
+  LibraryLock: TRTLCriticalSection;
 
-function TryInitializeSqlite(const LibraryName: UnicodeString): Integer;
+// Load the library on the first call and count the reference; -1 if it cannot be loaded. Caller holds LibraryLock.
+function DoTryInitializeSqlite(const LibraryName: UnicodeString): Integer;
 
 Var
   N  : UnicodeString;
@@ -1424,17 +1426,26 @@ begin
   N:=LibraryName;
   if (N='') then
     N:=SQLiteDefaultLibrary;
-  result:=InterlockedIncrement(RefCount);
-  if result  = 1 then
+  if RefCount=0 then
   begin
     SQLiteLibraryHandle := LoadLibrary(N);
     if (SQLiteLibraryHandle = NilHandle) then
-    begin
-      RefCount := 0;
       Exit(-1);
-    end;
     SQLiteLoadedLibrary := N;
     LoadAddresses(SQLiteLibraryHandle);
+  end;
+  Inc(RefCount);
+  Result:=RefCount;
+end;
+
+function TryInitializeSqlite(const LibraryName: UnicodeString): Integer;
+
+begin
+  EnterCriticalSection(LibraryLock);
+  try
+    Result:=DoTryInitializeSqlite(LibraryName);
+  finally
+    LeaveCriticalSection(LibraryLock);
   end;
 end;
 
@@ -1450,15 +1461,20 @@ end;
 
 function  InitializeSQLite(const LibraryName: UnicodeString) :integer;
 begin
-  if (LibraryName<>'') and (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
-    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
+  EnterCriticalSection(LibraryLock);
+  try
+    if (LibraryName<>'') and (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
+      raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
 
-  result:= TryInitializeSQLite(LibraryName);
-  if result=-1 then
-    if LibraryName='' then
-      raise EInOutError.CreateFmt(SErrLoadFailed,[SQLiteDefaultLibrary])
-    else
-      raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
+    result:= DoTryInitializeSQLite(LibraryName);
+    if result=-1 then
+      if LibraryName='' then
+        raise EInOutError.CreateFmt(SErrLoadFailed,[SQLiteDefaultLibrary])
+      else
+        raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
+  finally
+    LeaveCriticalSection(LibraryLock);
+  end;
 end;
 
 function  InitialiseSQLite(const LibraryName: UnicodeString):integer;
@@ -1468,14 +1484,27 @@ end;
 
 procedure ReleaseSQLite;
 begin
-  if InterlockedDecrement(RefCount) <= 0 then
-  begin
-    if SQLiteLibraryHandle <> NilHandle then
-      UnloadLibrary(SQLiteLibraryHandle);
-    SQLiteLibraryHandle := NilHandle;
-    SQLiteLoadedLibrary := '';
-    RefCount := 0;
+  EnterCriticalSection(LibraryLock);
+  try
+    if RefCount > 1 then
+      Dec(RefCount)
+    else
+    begin
+      if SQLiteLibraryHandle <> NilHandle then
+        UnloadLibrary(SQLiteLibraryHandle);
+      SQLiteLibraryHandle := NilHandle;
+      SQLiteLoadedLibrary := '';
+      RefCount := 0;
+    end;
+  finally
+    LeaveCriticalSection(LibraryLock);
   end;
 end;
+
+initialization
+  InitCriticalSection(LibraryLock);
+
+finalization
+  DoneCriticalSection(LibraryLock);
 
 {$ENDIF}
