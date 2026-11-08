@@ -4378,33 +4378,6 @@ type
   function OleRegEnumVerbs(const clsid:TCLSID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
 {$endif wince}
 
-{$ifdef _MAC}
-  { WlmOLE helper APIs  }
-
-  function WlmOleCheckoutMacInterface(pUnk:IUnknown; out ppv):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckoutMacInterface';
-
-  function WlmOleCheckinMacInterface(pUnk:IUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckinMacInterface';
-
-  function WlmOleWrapMacInterface(pUnk:IUnknown; const riid:TIID; out ppv):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleWrapMacInterface';
-
-  function WlmOleUnwrapMacInterface(pv:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleUnwrapMacInterface';
-
-  function WlmOleCheckoutWinInterface(pUnk:LPVOID; ppv:PIUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckoutWinInterface';
-
-  function WlmOleCheckinWinInterface(pUnk:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckinWinInterface';
-
-  function WlmOleWrapWinInterface(pUnk:LPVOID; const riid:TIID; ppv:PIUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleWrapWinInterface';
-
-  function WlmOleUnwrapWinInterface(pv:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleUnwrapWinInterface';
-
-  procedure WlmOleVersion;stdcall;external 'ole32.dll' name 'WlmOleVersion';
-
-  procedure WlmOleSetInPlaceWindow(hwnd:HWND);stdcall;external 'ole32.dll' name 'WlmOleSetInPlaceWindow';
-
-  { typedef HRESULT (STDAPICALLTYPE* OLEWRAPPROC) (TIID riid, LPVOID* ppvWin, LPVOID* ppvMac); }
-  function WlmOleRegisterUserWrap(procNew:OLEWRAPPROC; pprocOld:POLEWRAPPROC):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleRegisterUserWrap';
-
-{$endif}
   { OLE 1.0 conversion APIS  }
   {**** OLE 1.0 OLESTREAM declarations ************************************ }
 
@@ -4519,7 +4492,6 @@ type
              out _para6:IMarshal):HRESULT;stdcall; external  'ole32.dll' name 'CoGetStandardMarshal';
   function CoGetStdMarshalEx(_para1:IUnknown; _para2:DWORD; out _para3:IUnknown):HRESULT;stdcall; external  'ole32.dll' name 'CoGetStdMarshalEx';
   function CoIsHandlerConnected(_para1:IUnknown):BOOL;stdcall; external  'ole32.dll' name 'CoIsHandlerConnected';
-  function CoHasStrongExternalConnections(_para1:IUnknown):BOOL;stdcall; external  'ole32.dll' name 'CoHasStrongExternalConnections';
   function CoMarshalInterThreadInterfaceInStream(const _para1:TIID; _para2:IUnknown; out _para3:IStream):HRESULT;stdcall; external  'ole32.dll' name 'CoMarshalInterThreadInterfaceInStream';
   function CoGetInterfaceAndReleaseStream(_para1:IStream;const _para2:TIID; out _para3):HRESULT;stdcall; external  'ole32.dll' name 'CoGetInterfaceAndReleaseStream';
   function CoCreateFreeThreadedMarshaler(_para1:IUnknown; out _para2:IUnknown):HRESULT;stdcall; external  'ole32.dll' name 'CoCreateFreeThreadedMarshaler';
@@ -4542,7 +4514,6 @@ type
 
 {$ifndef wince}
   function DllGetClassObject(const _para1:TCLSID; const _para2:TIID; out _para3):HRESULT;stdcall; external  'ole32.dll' name 'DllGetClassObject';
-  function DllCanUnloadNow:HRESULT;stdcall; external  'ole32.dll' name 'DllCanUnloadNow';
 {$endif wince}
   function CoTaskMemAlloc(_para1:SIZE_T):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemAlloc';
   function CoTaskMemRealloc(_para1:PVOID; _para2:SIZE_T):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemRealloc';
@@ -4723,11 +4694,13 @@ function VarI4FromUI4(ulIn:ULONG; var plOut:LONG):HResult;stdcall;external oleau
 
 function VarI4FromUI8(ui64In:ULONG64; plOut:PLONG):HResult;stdcall;external oleaut32dll name 'VarI4FromUI8';
 function VarI4FromDec(var pdecIn:TDecimal; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromDec';
-function VarI4FromInt(intIn:cint; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromInt';
+// Store intIn in plOut; not exported by oleaut32
+function VarI4FromInt(intIn:cint; var plOut:LONG):HResult;stdcall;
 
 function VarI8FromUI1(bIn:BYTE; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI1';
 function VarI8FromI2(sIn:SHORT; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromI2';
-function VarI8FromI4(lIn:LONG; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromI4';
+// Store lIn in pi64Out^; not exported by oleaut32
+function VarI8FromI4(lIn:LONG; pi64Out:PLONG64):HResult;stdcall;
 function VarI8FromR4(fltIn:Single; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromR4';
 function VarI8FromR8(dblIn:DOUBLE; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromR8';
 function VarI8FromCy(cyIn:CY; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromCy';
@@ -4741,7 +4714,8 @@ function VarI8FromUI2(uiIn:USHORT; pi64Out:PLONG64):HResult;stdcall;external ole
 function VarI8FromUI4(ulIn:ULONG; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI4';
 function VarI8FromUI8(ui64In:ULONG64; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI8';
 function VarI8FromDec(var pdecIn:TDecimal; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromDec';
-function VarI8FromInt(intIn:cint; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromInt';
+// Store intIn in pi64Out^; not exported by oleaut32
+function VarI8FromInt(intIn:cint; pi64Out:PLONG64):HResult;stdcall;
 
 {******************* }
 function VarR4FromUI1(bIn:BYTE; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromUI1';
@@ -4897,7 +4871,8 @@ function VarUI4FromDec(var pdecIn:TDecimal; var pulOut:ULONG):HResult;stdcall;ex
 {**************************************** }
 function VarUI8FromUI1(bIn:BYTE; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI1';
 function VarUI8FromI2(sIn:SHORT; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI2';
-function VarUI8FromI4(lIn:LONG; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI4';
+// Convert lIn with VarUI8FromI8; not exported by oleaut32
+function VarUI8FromI4(lIn:LONG; pi64Out:PULONG64):HResult;stdcall;
 function VarUI8FromI8(ui64In:LONG64; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI8';
 function VarUI8FromR4(fltIn:Single; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromR4';
 function VarUI8FromR8(dblIn:DOUBLE; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromR8';
@@ -4910,7 +4885,8 @@ function VarUI8FromI1(cIn:AnsiChar; pi64Out:PULONG64):HResult;stdcall;external o
 function VarUI8FromUI2(uiIn:USHORT; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI2';
 function VarUI8FromUI4(ulIn:ULONG; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI4';
 function VarUI8FromDec(var pdecIn:TDecimal; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromDec';
-function VarUI8FromInt(intIn:cint; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromInt';
+// Convert intIn with VarUI8FromI8; not exported by oleaut32
+function VarUI8FromInt(intIn:cint; pi64Out:PULONG64):HResult;stdcall;
 
 { SafeArray API }
 
@@ -4958,6 +4934,44 @@ function SafeArrayPtrOfIndex(psa: PSafeArray; rgIndices: PLongint; out pvData: P
   external oleaut32dll name 'SafeArrayPtrOfIndex';
 
 implementation
+
+function VarI4FromInt(intIn:cint; var plOut:LONG):HResult;stdcall;
+
+begin
+  plOut:=intIn;
+  Result:=S_OK;
+end;
+
+
+function VarI8FromI4(lIn:LONG; pi64Out:PLONG64):HResult;stdcall;
+
+begin
+  pi64Out^:=lIn;
+  Result:=S_OK;
+end;
+
+
+function VarI8FromInt(intIn:cint; pi64Out:PLONG64):HResult;stdcall;
+
+begin
+  pi64Out^:=intIn;
+  Result:=S_OK;
+end;
+
+
+function VarUI8FromI4(lIn:LONG; pi64Out:PULONG64):HResult;stdcall;
+
+begin
+  Result:=VarUI8FromI8(lIn,pi64Out);
+end;
+
+
+function VarUI8FromInt(intIn:cint; pi64Out:PULONG64):HResult;stdcall;
+
+begin
+  Result:=VarUI8FromI8(intIn,pi64Out);
+end;
+
 
 function Succeeded(Res: HResult) : Boolean;inline;
   begin
