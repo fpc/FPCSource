@@ -140,6 +140,13 @@ type
     procedure TestItemFencedCode;
     procedure TestListThenThematicBreak;
     procedure TestSpacedThematicBreakEndsList;
+    procedure TestNumberWithoutSpaceIsText;
+    procedure TestParenWithoutSpaceIsText;
+    procedure TestDateIsText;
+    procedure TestNumberWithoutSpaceInBulletItem;
+    procedure TestOrderedListTabAfterMarker;
+    procedure TestUnorderedListTabAfterMarker;
+    procedure TestUnorderedListTabInNextItem;
   end;
 
   { TTestThematicBreaks }
@@ -1138,6 +1145,102 @@ begin
   SetupParser('- a'#10'- - -');
   AssertEquals('List and thematic break', 2, Doc.Blocks.Count);
   AssertTrue('Second block is a thematic break', GetBlock(1) is TMarkDownThematicBreakBlock);
+end;
+
+
+procedure TTestLists.TestNumberWithoutSpaceIsText;
+
+begin
+  SetupParser('3.14 is pi');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  AssertTrue('A paragraph, not a list', GetBlock(0) is TMarkDownParagraphBlock);
+  CheckBlockText('Paragraph', GetBlock(0), '3.14 is pi', False);
+end;
+
+
+procedure TTestLists.TestParenWithoutSpaceIsText;
+
+begin
+  SetupParser('1)second');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  AssertTrue('A paragraph, not a list', GetBlock(0) is TMarkDownParagraphBlock);
+  CheckBlockText('Paragraph', GetBlock(0), '1)second', False);
+end;
+
+
+procedure TTestLists.TestDateIsText;
+
+begin
+  SetupParser('2011.06.28 Snapshots');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  AssertTrue('A paragraph, not a list', GetBlock(0) is TMarkDownParagraphBlock);
+  CheckBlockText('Paragraph', GetBlock(0), '2011.06.28 Snapshots', False);
+end;
+
+
+procedure TTestLists.TestNumberWithoutSpaceInBulletItem;
+
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+
+begin
+  SetupParser('- 2011.06.28 Snapshots');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  List := GetBlock(0) as TMarkDownListBlock;
+  AssertFalse('List should be unordered', List.Ordered);
+  AssertEquals('List should have 1 item', 1, List.Blocks.Count);
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('Item should have 1 block', 1, Item.Blocks.Count);
+  AssertTrue('No list inside the item', Item.Blocks[0] is TMarkDownParagraphBlock);
+  CheckBlockText('Item', Item, '2011.06.28 Snapshots', True);
+end;
+
+
+procedure TTestLists.TestOrderedListTabAfterMarker;
+
+var
+  List: TMarkDownListBlock;
+
+begin
+  SetupParser('1.'#9'one'#10'2.'#9'two');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  List := GetBlock(0) as TMarkDownListBlock;
+  AssertTrue('List should be ordered', List.Ordered);
+  AssertEquals('List should have 2 items', 2, List.Blocks.Count);
+  CheckBlockText('First item', List.Blocks[0], 'one', True);
+  CheckBlockText('Second item', List.Blocks[1], 'two', True);
+end;
+
+
+procedure TTestLists.TestUnorderedListTabAfterMarker;
+
+var
+  List: TMarkDownListBlock;
+
+begin
+  SetupParser('-'#9'one');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  AssertTrue('A list, not a paragraph', GetBlock(0) is TMarkDownListBlock);
+  List := GetBlock(0) as TMarkDownListBlock;
+  AssertFalse('List should be unordered', List.Ordered);
+  AssertEquals('List should have 1 item', 1, List.Blocks.Count);
+  CheckBlockText('Item', List.Blocks[0], 'one', True);
+end;
+
+
+procedure TTestLists.TestUnorderedListTabInNextItem;
+
+var
+  List: TMarkDownListBlock;
+
+begin
+  SetupParser('- one'#10'-'#9'two');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  List := GetBlock(0) as TMarkDownListBlock;
+  AssertEquals('List should have 2 items', 2, List.Blocks.Count);
+  CheckBlockText('First item', List.Blocks[0], 'one', True);
+  CheckBlockText('Second item', List.Blocks[1], 'two', True);
 end;
 
 

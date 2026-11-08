@@ -711,7 +711,7 @@ begin
     Exit;
   if not CharInSet(lMarker[1],['+','-','*']) then
     Exit;
-  if (lMarker[2]<>' ') then
+  if (Length(lMarker)<2) or not CharInSet(lMarker[2],[' ',#9]) then
     exit;
   aMarker:=lMarker[1];
   aIndent:=lIndent;
@@ -824,6 +824,8 @@ begin
   if not CharInSet(LMarker[1], ['.', ')']) then
     Exit;
   Delete(lLine,1,lValueLen+1);
+  if not CharInSet(lLine[1],[' ',#9]) then
+    Exit;
   if isWhitespace(lLine) then
     Exit;
   aValue:=MarkdownToIntDef(lValue,1);
@@ -863,7 +865,7 @@ begin
     lLine:=CopySkipped(lLine,['0'..'9']);
     Result:=(lLine<>'') and (aList.marker=lLine[1]);
     if Result then
-      Result:=(Length(lLine)>1) and (lLine[2]=' ');
+      Result:=(Length(lLine)>1) and CharInSet(lLine[2],[' ',#9]);
     end
   else
     Result:=False;
