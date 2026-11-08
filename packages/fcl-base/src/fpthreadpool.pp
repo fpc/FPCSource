@@ -161,6 +161,8 @@ Type
          procedure Terminate;
          {$ENDIF}
          Procedure FreeTask;
+         // True once Terminate was called
+         Function IsTerminated : Boolean;
          Property Task : TThreadPoolTask Read FTask Write SetTask;
        end;
 
@@ -211,7 +213,7 @@ Type
          FThreadTaskWaitInterval: Integer;
          FList : TThreadList;
          procedure TaskDone(Sender: TObject);
-         Procedure ThreadTerminated(Sender : TObject);
+         Procedure ReapFinishedThreads;
        public
          Constructor CreateList(aPool : TFPCustomSimpleThreadPool); override;
          Destructor Destroy; override;
@@ -429,6 +431,13 @@ end;
 
 destructor TFPCustomSimpleThreadPool.TTaskThread.Destroy;
 begin
+  if not Finished then
+    begin
+    Terminate;
+    WaitFor;
+    end;
+  // A task assigned after the thread stopped was never run
+  FreeTask;
   FreeAndNil(FTaskEvent);
   inherited Destroy;
 end;
@@ -457,20 +466,36 @@ begin
         end;
       end;
     end;
-  // Terminated before the assigned task was started: discard it
-  if Assigned(Task) then
-    begin
-    FreeTask;
-    if Assigned(FTaskDoneEvent) then
-      FTaskDoneEvent(Self);
-    end;
 end;
 
 { TFPCustomSimpleThreadPool.TThreadPoolList }
 
-procedure TFPCustomSimpleThreadPool.TThreadPoolList.ThreadTerminated(Sender: TObject);
+// Remove finished threads from the list and free them
+procedure TFPCustomSimpleThreadPool.TThreadPoolList.ReapFinishedThreads;
+
+var
+  lFinished: array of TThread = ();
+  lList: TList;
+  lThread: TThread;
+  I: Integer;
+
 begin
-  FList.Remove(Sender);
+  lList:=FList.LockList;
+  try
+    for I:=lList.Count-1 downto 0 do
+      if TThread(lList[I]).Finished then
+        begin
+        Insert(TThread(lList[I]),lFinished,Length(lFinished));
+        lList.Delete(I);
+        end;
+  finally
+    FList.UnlockList;
+  end;
+  for lThread in lFinished do
+    begin
+    lThread.WaitFor;
+    lThread.Free;
+    end;
 end;
 
 procedure TFPCustomSimpleThreadPool.TThreadPoolList.TaskDone(Sender: TObject);
@@ -523,10 +548,11 @@ Var
 
 begin
   Result:=Nil;
+  ReapFinishedThreads;
   L:=FList.LockList;
   try
     For I:=0 to L.Count-1 do
-      If TAbstractTaskThread(L[i]).Task=Nil then
+      If (TAbstractTaskThread(L[i]).Task=Nil) and not TAbstractTaskThread(L[i]).IsTerminated then
         Result:=TAbstractTaskThread(L[i]);
   finally
     FList.UnlockList;
@@ -535,7 +561,7 @@ end;
 
 function TFPCustomSimpleThreadPool.TThreadPoolList.AddThread: TAbstractTaskThread;
 begin
-  Result:=TTaskThread.Create(FThreadTaskWaitInterval,@TaskDone,@ThreadTerminated);
+  Result:=TTaskThread.Create(FThreadTaskWaitInterval,@TaskDone,Nil);
   FList.Add(Result);
 end;
 
@@ -558,11 +584,16 @@ function TFPCustomSimpleThreadPool.TThreadPoolList.GetThreadCount: Word;
 
 Var
   L : TList;
+  I : Integer;
 
 begin
+  Result:=0;
+  ReapFinishedThreads;
   L:=FList.LockList;
   try
-    Result:=L.Count;
+    For I:=0 to L.Count-1 do
+      if not TAbstractTaskThread(L[i]).IsTerminated then
+        Inc(Result);
   finally
     FList.UnlockList;
   end;
@@ -579,7 +610,7 @@ begin
   L:=FList.LockList;
   try
     For I:=0 to L.Count-1 do
-      if Assigned(TAbstractTaskThread(L[i]).Task) then
+      if Assigned(TAbstractTaskThread(L[i]).Task) and not TAbstractTaskThread(L[i]).Finished then
         Inc(Result);
   finally
     FList.UnlockList;
@@ -597,7 +628,7 @@ begin
   L:=FList.LockList;
   try
     For I:=0 to L.Count-1 do
-      if Not Assigned(TAbstractTaskThread(L[i]).Task) then
+      if Not Assigned(TAbstractTaskThread(L[i]).Task) and not TAbstractTaskThread(L[i]).IsTerminated then
         Inc(Result);
   finally
     FList.UnlockList;
@@ -630,6 +661,13 @@ end;
 procedure TFPCustomSimpleThreadPool.TAbstractTaskThread.FreeTask;
 begin
   FreeAndNil(FTask);
+end;
+
+
+function TFPCustomSimpleThreadPool.TAbstractTaskThread.IsTerminated: Boolean;
+
+begin
+  Result:=Terminated;
 end;
 
 procedure TFPCustomSimpleThreadPool.TAbstractTaskThread.TerminatedSet;

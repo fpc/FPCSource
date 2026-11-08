@@ -37,6 +37,9 @@ type
   TStampTask = class(TThreadPoolTask)
   protected
     procedure DoExecute; override;
+  public
+    // Count the destroyed task in gTasksFreed
+    destructor Destroy; override;
   end;
 
   { TWatchdog }
@@ -58,6 +61,7 @@ type
 var
   gPool: TProbePool;
   gRanAt: QWord;
+  gTasksFreed: Integer;
 
 
 function TProbePool.TProbeList.AddThread: TAbstractTaskThread;
@@ -99,6 +103,14 @@ procedure TStampTask.DoExecute;
 
 begin
   gRanAt:=GetTickCount64;
+end;
+
+
+destructor TStampTask.Destroy;
+
+begin
+  InterLockedIncrement(gTasksFreed);
+  inherited Destroy;
 end;
 
 
@@ -309,6 +321,51 @@ begin
 end;
 
 
+function TestTerminateRunningTasksWithSynchronize: TTestString;
+
+var
+  lPool: TFPSimpleThreadPool;
+  lWatchdog: TWatchdog;
+  lStart: QWord;
+  I: Integer;
+
+begin
+  Result:='';
+  gTasksFreed:=0;
+  lPool:=TFPSimpleThreadPool.Create;
+  try
+    lPool.MinThreads:=4;
+    lPool.MaxThreads:=4;
+    for I:=1 to 3 do
+      begin
+      lPool.AddTask(TStampTask.Create);
+      lWatchdog:=TWatchdog.Create('TerminateRunningTasks did not return within 10 seconds');
+      lPool.TerminateRunningTasks;
+      lWatchdog.Stop;
+      lWatchdog.Free;
+      lStart:=GetTickCount64;
+      while (lPool.ThreadCount>0) and (GetTickCount64-lStart<5000) do
+        CheckSynchronize(10);
+      AssertEquals(Format('No live threads after TerminateRunningTasks (round %d)',[I]), 0, lPool.ThreadCount);
+      AssertEquals(Format('The task is freed, run or not (round %d)',[I]), I, gTasksFreed);
+      end;
+    gRanAt:=0;
+    lPool.AddTask(TStampTask.Create);
+    lStart:=GetTickCount64;
+    while (gRanAt=0) and (GetTickCount64-lStart<5000) do
+      CheckSynchronize(10);
+    AssertTrue('The pool runs tasks again after TerminateRunningTasks', gRanAt<>0);
+    AssertEquals('New threads replace the terminated ones', 4, lPool.ThreadCount);
+  finally
+    lWatchdog:=TWatchdog.Create('Freeing the thread pool did not return within 10 seconds');
+    lPool.Free;
+    lWatchdog.Stop;
+    lWatchdog.Free;
+  end;
+  AssertEquals('Every task is freed', 4, gTasksFreed);
+end;
+
+
 procedure RegisterTests;
 
 var
@@ -322,6 +379,7 @@ begin
   AddTest('RejectInvalidInterval', @TestRejectInvalidInterval, lSuite);
   AddTest('IdleThreadWakesForTask', @TestIdleThreadWakesForTask, lSuite);
   AddTest('FreeRightAfterAddTask', @TestFreeRightAfterAddTask, lSuite);
+  AddTest('TerminateRunningTasksWithSynchronize', @TestTerminateRunningTasksWithSynchronize, lSuite);
 end;
 
 end.
