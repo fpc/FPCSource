@@ -166,6 +166,11 @@
         <Filename Value="utcdirwatch.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="utcthreadpool.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcThreadPool"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

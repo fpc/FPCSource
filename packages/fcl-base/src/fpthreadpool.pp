@@ -33,6 +33,7 @@ Const
   DefaultAddTimeOut      = 0;
   DefaultQueueTasks      = True;
   DefaultTerminateWait   = 50;
+  DefaultThreadTaskWaitInterval = 1000;
 
 Type
   EThreadPool = Class(Exception);
@@ -238,7 +239,10 @@ Type
     FWaitQueue : TThreadList;
     FAutoCheckQueueThread : TAutoCheckQueueThread;
     FThreadDoneEvent : TEventObject;
+    FThreadTaskWaitInterval : Integer;
     class function GetInstance: TFPCustomSimpleThreadPool; static;
+    procedure ApplyThreadTaskWaitInterval;
+    procedure SetThreadTaskWaitInterval(AValue: Integer);
     procedure SetAutoCheckQueuedInterval(AValue: Integer);
     class procedure SetDefaultInstanceClass(AValue: TFPCustomSimpleThreadPoolClass); static;
     procedure SetMaxThreads(AValue: Word);
@@ -280,6 +284,8 @@ Type
     Property ThreadCount : Word Read GetThreadCount;
     // Set to a value>0  to start a thread that runs the CheckQueuedTasks every AutoCheckQueuedInterval ms.
     Property AutoCheckQueuedInterval : Integer Read FAutoCheckQueuedInterval Write SetAutoCheckQueuedInterval;
+    // Maximum time in ms an idle thread waits before checking for work again; at least 1. Applies to threads created afterwards.
+    Property ThreadTaskWaitInterval : Integer Read FThreadTaskWaitInterval Write SetThreadTaskWaitInterval;
   Public
     constructor Create; virtual;
     destructor destroy; override;
@@ -310,6 +316,7 @@ Type
     Property IdleThreadCount;
     Property ThreadCount;
     Property AutoCheckQueuedInterval;
+    Property ThreadTaskWaitInterval;
   end;
 
 Implementation
@@ -317,6 +324,7 @@ Implementation
 Resourcestring
   SErrMinLargerThanMax = 'MinThreads (%d) must be less than MaxThreads (%d)';
   SErrMaxLessThanMin = 'MaxThreads (%d) must be greater than MinThreads (%d)';
+  SErrInvalidWaitInterval = 'ThreadTaskWaitInterval (%d) must be at least 1';
   SErrInstanceAlreadyCreated = 'Thread pool instance already created';
   SErrTaskAlreadySet = 'Cannot set task: task already set';
 
@@ -449,6 +457,13 @@ begin
         end;
       end;
     end;
+  // Terminated before the assigned task was started: discard it
+  if Assigned(Task) then
+    begin
+    FreeTask;
+    if Assigned(FTaskDoneEvent) then
+      FTaskDoneEvent(Self);
+    end;
 end;
 
 { TFPCustomSimpleThreadPool.TThreadPoolList }
@@ -469,6 +484,7 @@ constructor TFPCustomSimpleThreadPool.TThreadPoolList.CreateList(aPool : TFPCust
 begin
   Inherited;
   FList:=TThreadList.Create;
+  FThreadTaskWaitInterval:=DefaultThreadTaskWaitInterval;
 end;
 
 destructor TFPCustomSimpleThreadPool.TThreadPoolList.Destroy;
@@ -744,6 +760,25 @@ begin
     FMaxThreads:=AValue;
 end;
 
+// Pass ThreadTaskWaitInterval to the thread list when it is a TThreadPoolList
+procedure TFPCustomSimpleThreadPool.ApplyThreadTaskWaitInterval;
+
+begin
+  if FTaskList is TThreadPoolList then
+    TThreadPoolList(FTaskList).ThreadTaskWaitInterval:=FThreadTaskWaitInterval;
+end;
+
+
+procedure TFPCustomSimpleThreadPool.SetThreadTaskWaitInterval(AValue: Integer);
+
+begin
+  if AValue<1 then
+    Raise EThreadPool.CreateFmt(SErrInvalidWaitInterval,[AValue]);
+  FThreadTaskWaitInterval:=AValue;
+  ApplyThreadTaskWaitInterval;
+end;
+
+
 procedure TFPCustomSimpleThreadPool.SetMinThreads(AValue: Word);
 begin
   if FMinThreads=AValue then Exit;
@@ -883,7 +918,9 @@ begin
   FWaitQueueLock:=TCriticalSection.Create;
   FTaskQueueLock:=TCriticalSection.Create;
   FWaitQueue:=TThreadList.Create;
+  FThreadTaskWaitInterval:=DefaultThreadTaskWaitInterval;
   FTaskList:=CreateThreadList;
+  ApplyThreadTaskWaitInterval;
   MaxThreads:=TThread.ProcessorCount;
   MinThreads:=TThread.ProcessorCount-1;
   FQueueTasks:=DefaultQueueTasks;
