@@ -46,6 +46,8 @@ Type
   { THashTable }
 
   THashTable = class(TFPStringHashTable)
+    // Create a table sized for the few attributes of one element; it grows when needed.
+    constructor Create;
     function Contains(const aKey : TMarkdownString) : boolean;
     function TryGet(const aKey : TMarkdownString; out aValue : TMarkdownString) : boolean;
   end;
@@ -772,6 +774,13 @@ end;
 
 
 { THashTable }
+
+constructor THashTable.Create;
+
+begin
+  inherited CreateWith(17,@RSHash);
+end;
+
 
 function THashTable.Contains(const aKey: TMarkdownString): boolean;
 

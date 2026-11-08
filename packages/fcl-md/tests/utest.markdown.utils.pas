@@ -72,6 +72,7 @@ type
     procedure TestParseMarker;
     procedure TestNormalizeLinkLabel;
     procedure TestHeadingTextToID;
+    procedure TestHashTableSmall;
   end;
 
 implementation
@@ -481,6 +482,26 @@ begin
   AssertFalse('Empty string is no number',TryMarkdownToInt('',lValue));
   AssertFalse('Trailing text is no number',TryMarkdownToInt('12a',lValue));
   AssertEquals('Default for invalid number',7,MarkdownToIntDef('x',7));
+end;
+
+
+procedure TTestMarkdownUtils.TestHashTableSmall;
+
+var
+  lTable : THashTable;
+  I : Integer;
+
+begin
+  lTable:=THashTable.Create;
+  try
+    AssertTrue('New table is small',lTable.HashTableSize<=64);
+    for I:=1 to 200 do
+      lTable.Add('key'+IntToStr(I),IntToStr(I));
+    AssertEquals('All keys found after growing','150',lTable['key150']);
+    AssertTrue('Contains a key',lTable.Contains('key1'));
+  finally
+    lTable.Free;
+  end;
 end;
 
 
