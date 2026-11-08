@@ -93,6 +93,15 @@ unit aoptx86;
         function GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
 
+        { Returns true if the flags set by the comparison or test cmpinstr are read
+          by a single conditional instruction right after it, with an equality or
+          unsigned condition, and are unused after that; UsedRegs must stand at p,
+          an instruction before cmpinstr. Only then can a comparison of a
+          zero-extended register be made on the register it was extended from:
+          the zero and carry flags come out the same, but the sign and overflow
+          flags do not when the top bit of the smaller register is set. }
+        function FlagsReadOnlyUnsigned(p, cmpinstr: tai): Boolean;
+
         { returns true if any of the registers in ref are modified by any
           instruction between p1 and p2, or if those instructions write to the
           reference }
@@ -1350,6 +1359,24 @@ unit aoptx86;
                   Result := true;
                   exit
                 end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.FlagsReadOnlyUnsigned(p, cmpinstr: tai): Boolean;
+      var
+        hp_cond: tai;
+      begin
+        Result :=
+          GetNextInstruction(cmpinstr, hp_cond) and
+          MatchInstruction(hp_cond, [A_Jcc, A_SETcc, A_CMOVcc], []) and
+          (taicpu(hp_cond).condition in [C_E, C_Z, C_NE, C_NZ,
+            C_A, C_AE, C_B, C_BE, C_C, C_NA, C_NAE, C_NB, C_NBE, C_NC]);
+        if Result then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp_cond);
+            Result := not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp_cond, TmpUsedRegs);
           end;
       end;
 
@@ -12188,7 +12215,7 @@ unit aoptx86;
         InstrList: array of taicpu;
         InstrMax, Index: Integer;
         UpperLimit, SignedUpperLimit, SignedUpperLimitBottom,
-        LowerLimit, SignedLowerLimit, SignedLowerLimitBottom,
+        LowerLimit, SignedLowerLimit,
         TryShiftDownLimit, TryShiftDownSignedLimit, TryShiftDownSignedLimitLower,
         WorkingValue: TCgInt;
 
@@ -12197,16 +12224,13 @@ unit aoptx86;
         { Data flow analysis }
         TestValMin, TestValMax, TestValSignedMax: TCgInt;
         BitwiseOnly, OrXorUsed,
-        ShiftDownOverflow, UpperSignedOverflow, UpperUnsignedOverflow, LowerSignedOverflow, LowerUnsignedOverflow: Boolean;
+        ShiftDownOverflow, UpperSignedOverflow, UpperUnsignedOverflow, LowerUnsignedOverflow: Boolean;
 
         function CheckOverflowConditions: Boolean;
           begin
             Result := True;
             if (TestValSignedMax > SignedUpperLimit) then
               UpperSignedOverflow := True;
-
-            if (TestValSignedMax > SignedLowerLimit) or (TestValSignedMax < SignedLowerLimitBottom) then
-              LowerSignedOverflow := True;
 
             if (TestValMin > LowerLimit) or (TestValMax > LowerLimit) then
               LowerUnsignedOverflow := True;
@@ -12721,7 +12745,6 @@ unit aoptx86;
 
               LowerLimit := $FF;
               SignedLowerLimit := $7F;
-              SignedLowerLimitBottom := -128;
               MinSize := S_B;
               if taicpu(p).opsize = S_BW then
                 begin
@@ -12744,7 +12767,6 @@ unit aoptx86;
               { Keep at a 32-bit limit for WQ as well since one can't really optimise otherwise }
               LowerLimit := $FFFF;
               SignedLowerLimit := $7FFF;
-              SignedLowerLimitBottom := -32768;
               UpperLimit := $FFFFFFFF;
               SignedUpperLimit := $7FFFFFFF;
               SignedUpperLimitBottom := -2147483648;
@@ -12758,7 +12780,6 @@ unit aoptx86;
                 is breached, then optimisation is impossible }
               LowerLimit := $FFFFFFFF;
               SignedLowerLimit := $7FFFFFFF;
-              SignedLowerLimitBottom := -2147483648;
               UpperLimit := $FFFFFFFF;
               SignedUpperLimit := $7FFFFFFF;
               SignedUpperLimitBottom := -2147483648;
@@ -12780,7 +12801,6 @@ unit aoptx86;
         BitwiseOnly := True;
         OrXorUsed := False;
         UpperSignedOverflow := False;
-        LowerSignedOverflow := False;
         UpperUnsignedOverflow := False;
         LowerUnsignedOverflow := False;
 
@@ -12842,17 +12862,11 @@ unit aoptx86;
                       (taicpu(hp1).oper[0]^.reg <> ThisReg)
                     ) or
                     (taicpu(hp1).oper[0]^.typ <> top_const) or
-                    { Make sure the comparison value is not smaller than the
-                      smallest allowed signed value for the minimum size (e.g.
-                      -128 for 8-bit) }
-                    not (
-                      ((taicpu(hp1).oper[0]^.val and LowerLimit) = taicpu(hp1).oper[0]^.val) or
-                      { Is it in the negative range? }
-                      (
-                        (taicpu(hp1).oper[0]^.val < 0) and
-                        (taicpu(hp1).oper[0]^.val >= SignedLowerLimitBottom)
-                      )
-                    ) then
+                    { Make sure the comparison value fits the minimum size as
+                      an unsigned value: the register is zero-extended, so a
+                      negative value never compares equal to it }
+                    ((taicpu(hp1).oper[0]^.val and LowerLimit) <> taicpu(hp1).oper[0]^.val) or
+                    not FlagsReadOnlyUnsigned(p, hp1) then
                     Break;
 
                   { Check to see if the active register is used afterwards }
@@ -12868,9 +12882,11 @@ unit aoptx86;
                           { Exceeded lower bound but not upper bound }
                           Exit;
                         end
-                      else if not LowerSignedOverflow or not LowerUnsignedOverflow then
+                      else if not LowerUnsignedOverflow then
                         begin
-                          { Size didn't exceed lower bound }
+                          { Size didn't exceed lower bound. Only the unsigned
+                            range will do: the flags are only read with an
+                            equality or unsigned condition }
                           TargetSize := MinSize;
                         end
                       else
@@ -18589,15 +18605,17 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptMovzx(var p : tai) : Boolean;
 
+      { The zero-extended register is never negative, so it can only equal or be
+        ordered against a constant that is not negative either }
       function ConstInRange(const Val: TCGInt; const OpSize: TOpSize): Boolean;
         begin
           case OpSize of
             S_B, S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
-              Result := (Val <= $FF) and (Val >= -128);
+              Result := (Val <= $FF) and (Val >= 0);
             S_W, S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
-              Result := (Val <= $FFFF) and (Val >= -32768);
+              Result := (Val <= $FFFF) and (Val >= 0);
             S_L{$ifdef x86_64}, S_LQ{$endif x86_64}:
-              Result := (Val <= $FFFFFFFF) and (Val >= -2147483648);
+              Result := (Val <= $FFFFFFFF) and (Val >= 0);
             else
               Result := True;
           end;
@@ -18640,7 +18658,11 @@ unit aoptx86;
                 )
               ) and
               (reg2opsize(taicpu(hp1).oper[1]^.reg) <= reg2opsize(taicpu(p).oper[1]^.reg)) and
-              SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[1]^.reg) then
+              { A comparison already smaller than the register extended from
+                would be widened }
+              (reg2opsize(taicpu(hp1).oper[1]^.reg) >= reg2opsize(taicpu(p).oper[0]^.reg)) and
+              SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[1]^.reg) and
+              FlagsReadOnlyUnsigned(p, hp1) then
               begin
                 PreMessage := debug_op2str(taicpu(hp1).opcode) + debug_opsize2str(taicpu(hp1).opsize) + ' ' + debug_operstr(taicpu(hp1).oper[0]^) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' -> ' + debug_op2str(taicpu(hp1).opcode);
 
