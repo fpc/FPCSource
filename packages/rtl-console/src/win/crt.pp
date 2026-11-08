@@ -718,10 +718,13 @@ end;
                           Read and Write routines
 *****************************************************************************}
 
+const
+  CrtUTF8 = 65001;
+
 var
   CurrX, CurrY : DWord;
-  { DBCS lead byte at the end of the previous CrtWrite buffer }
-  PendingLeadByte : string[1];
+  { Bytes of an incomplete UTF-8 or DBCS character at the end of the previous CrtWrite buffer }
+  PendingBytes : string[3];
 
 // Scrolls the output up one line and adjusts CurrY; in the full console window the top line moves into the scrollback
 procedure ScrollOutputUp;
@@ -816,42 +819,139 @@ begin
 end;
 
 
-// Writes s at the cursor; a DBCS lead and trail byte in aCodePage are written together into 2 cells
-procedure WriteStr(const s: shortstring; aCodePage: UINT);
+// True if code point aCode takes 2 console cells (East Asian wide and fullwidth characters)
+function IsWideChar(aCode: Cardinal): Boolean;
 
-  procedure NextLine;
-  begin
-    CurrX:=WindMinX;
-    Inc(CurrY);
-    While CurrY>WindMaxY do
-      ScrollOutputUp;
+begin
+  case aCode of
+    $1100..$115F, $2E80..$303E, $3041..$33FF, $3400..$4DBF, $4E00..$9FFF,
+    $A000..$A4CF, $AC00..$D7A3, $F900..$FAFF, $FE30..$FE4F, $FF00..$FF60,
+    $FFE0..$FFE6, $1F300..$1F64F, $1F900..$1F9FF, $20000..$3FFFD:
+      IsWideChar:=True;
+  else
+    IsWideChar:=False;
   end;
+end;
+
+
+// Moves the cursor to the start of the next line, scrolling when needed
+procedure NextLine;
+
+begin
+  CurrX:=WindMinX;
+  Inc(CurrY);
+  While CurrY>WindMaxY do
+    ScrollOutputUp;
+end;
+
+
+// Writes aCount UTF-16 code units at the cursor, taking aCells cells, and gives them TextAttr
+procedure WriteCells(aChars: PWideChar; aCount, aCells: DWord);
 
 var
-  WritePos: Coord; { Upper-left cell to write from }
-  numWritten : DWord;
-  WinAttr : array[0..1] of word;
-  i, lLen: integer;
+  lPos: Coord;
+  lWritten: DWord;
+  lHandle: THandle;
+
 begin
-  WinAttr[0]:=TextAttr;
-  WinAttr[1]:=TextAttr;
-  i:=1;
-  while i<=Length(s) do
+  lHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
+  lPos.X:=CurrX-1;
+  lPos.Y:=CurrY-1;
+  WriteConsoleOutputCharacterW(lHandle,aChars,aCount,lPos,lWritten);
+  FillConsoleOutputAttribute(lHandle,TextAttr,aCells,lPos,lWritten);
+  Inc(CurrX,aCells);
+  if CurrX>WindMaxX then
+    NextLine;
+end;
+
+
+// Writes the UTF-16 text aChars[0..aCount-1] at the cursor; a wide character takes 2 cells and is not split over 2 lines
+procedure WriteWide(aChars: PWideChar; aCount: Integer);
+
+var
+  i, lStart, lUnits: Integer;
+  lCode: Cardinal;
+
+begin
+  i:=0;
+  while i<aCount do
     begin
-      lLen:=1;
-      if (i<Length(s)) and IsDBCSLeadByteEx(aCodePage,Byte(s[i])) then
-        lLen:=2;
-      if CurrX+lLen-1>WindMaxX then
-        NextLine;
-      WritePos.X:=currX-1;
-      WritePos.Y:=currY-1;
-      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], lLen, writePos, numWritten);
-      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, lLen, writePos, numWritten);
-      Inc(CurrX,lLen);
-      Inc(i,lLen);
-      if CurrX>WindMaxX then
-        NextLine;
+    lStart:=i;
+    while (i<aCount) and (CurrX+DWord(i-lStart)<=WindMaxX)
+          and not ((aChars[i]>=#$D800) and (aChars[i]<=#$DFFF)) and not IsWideChar(Ord(aChars[i])) do
+      Inc(i);
+    if i>lStart then
+      WriteCells(@aChars[lStart],i-lStart,i-lStart)
+    else
+      begin
+      lUnits:=1;
+      lCode:=Ord(aChars[i]);
+      if (aChars[i]>=#$D800) and (aChars[i]<=#$DBFF) and (i+1<aCount)
+         and (aChars[i+1]>=#$DC00) and (aChars[i+1]<=#$DFFF) then
+        begin
+        lUnits:=2;
+        lCode:=$10000+((lCode-$D800) shl 10)+(Ord(aChars[i+1])-$DC00);
+        end;
+      if IsWideChar(lCode) then
+        begin
+        if CurrX+1>WindMaxX then
+          NextLine;
+        WriteCells(@aChars[i],lUnits,2);
+        end
+      else
+        WriteCells(@aChars[i],lUnits,1);
+      Inc(i,lUnits);
+      end;
     end;
+end;
+
+
+// Writes s, encoded in aCodePage, at the cursor
+procedure WriteStr(const s: shortstring; aCodePage: UINT);
+
+var
+  lChars: array[0..255] of WideChar;
+  lCount, i: Integer;
+
+begin
+  if s='' then
+    Exit;
+  lCount:=MultiByteToWideChar(aCodePage,0,@s[1],Length(s),@lChars[0],Length(lChars));
+  if lCount=0 then
+    begin
+    lCount:=Length(s);
+    for i:=1 to lCount do
+      lChars[i-1]:=WideChar(Byte(s[i]));
+    end;
+  WriteWide(@lChars[0],lCount);
+end;
+
+
+// Number of bytes at the end of s that belong to an incomplete UTF-8 sequence
+function IncompleteUTF8Tail(const s: shortstring): Integer;
+
+var
+  i, lNeed: Integer;
+  b: Byte;
+
+begin
+  IncompleteUTF8Tail:=0;
+  i:=Length(s);
+  while (i>0) and (Length(s)-i<3) and ((Byte(s[i]) and $C0)=$80) do
+    Dec(i);
+  if i=0 then
+    Exit;
+  b:=Byte(s[i]);
+  if (b and $E0)=$C0 then
+    lNeed:=2
+  else if (b and $F0)=$E0 then
+    lNeed:=3
+  else if (b and $F8)=$F0 then
+    lNeed:=4
+  else
+    lNeed:=1;
+  if Length(s)-i+1<lNeed then
+    IncompleteUTF8Tail:=Length(s)-i+1;
 end;
 
 
@@ -861,7 +961,9 @@ var
   s : shortstring;
   OldConsoleOutputCP : Word;
   lCodePage : UINT;
-  lTrail : boolean;
+  lTrail, lUTF8 : boolean;
+  b : Byte;
+  lTail : Integer;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
     begin
@@ -870,36 +972,49 @@ begin
     end;
 
   GetScreenCursor(CurrX, CurrY);
-  lCodePage:=GetConsoleOutputCP;
-  s:=PendingLeadByte;
-  lTrail:=s<>'';
-  PendingLeadByte:='';
+  { the bytes are in the console code page, or in UTF-8 when the text file says so }
+  if f.CodePage=CrtUTF8 then
+    lCodePage:=CrtUTF8
+  else
+    lCodePage:=GetConsoleOutputCP;
+  lUTF8:=lCodePage=CrtUTF8;
+  s:=PendingBytes;
+  lTrail:=(s<>'') and not lUTF8;
+  PendingBytes:='';
   for i:=0 to f.bufpos-1 do
     if f.buffer[i] in [#7,#8,#10,#13] then // special chars directly.
       begin
         if s<>'' then
           begin
             WriteStr(s,lCodePage);
- 	    s:='';
+            s:='';
           end;
         lTrail:=false;
         WriteChar(f.buffer[i]);
       end
     else
       begin
-        { a trail byte stays with its lead byte }
-        if (length(s)>=254) and not lTrail then
+        b:=Byte(f.buffer[i]);
+        { flush only at a character boundary }
+        if (length(s)>=250) and not lTrail and not (lUTF8 and ((b and $C0)=$80)) then
           begin
             WriteStr(s,lCodePage);
             s:='';
           end;
         s:=s+f.buffer[i];
-        lTrail:=not lTrail and IsDBCSLeadByteEx(lCodePage,Byte(f.buffer[i]));
+        if not lUTF8 then
+          lTrail:=not lTrail and IsDBCSLeadByteEx(lCodePage,b);
       end;
-  if lTrail then
+  if lUTF8 then
+    lTail:=IncompleteUTF8Tail(s)
+  else if lTrail then
+    lTail:=1
+  else
+    lTail:=0;
+  if lTail>0 then
     begin
-      PendingLeadByte:=s[length(s)];
-      SetLength(s,length(s)-1);
+      PendingBytes:=Copy(s,length(s)-lTail+1,lTail);
+      SetLength(s,length(s)-lTail);
     end;
   if s<>'' then
     WriteStr(s,lCodePage);
