@@ -125,6 +125,9 @@ Type
     FLoadActive : Boolean;
     FHostName: String;
     FUseSSL: Boolean;
+    FVerifySSLCertificate: Boolean;
+    FCertCAFileName: String;
+    FTrustedCertsDir: String;
     FResource: string;
     FConnectTimeout: Integer;
     FOptions: TWSOptions;
@@ -242,6 +245,12 @@ Type
     Property Resource : string Read FResource Write SetResource;
     // User SSL when connecting
     Property UseSSL : Boolean Read FUseSSL Write SetUseSSL;
+    // Verify the server certificate and host name when UseSSL is set; takes effect on the next Connect
+    Property VerifySSLCertificate : Boolean Read FVerifySSLCertificate Write FVerifySSLCertificate;
+    // File with trusted CA certificates (e.g. PEM) used by VerifySSLCertificate
+    Property CertCAFileName : String Read FCertCAFileName Write FCertCAFileName;
+    // Directory with trusted CA certificates used by VerifySSLCertificate
+    Property TrustedCertsDir : String Read FTrustedCertsDir Write FTrustedCertsDir;
     // Events
     // Called when handshake is about to be sent
     Property OnSendHandShake : TWSClientHandshakeEvent Read FOnSendHandShake Write FOnSendHandshake;
@@ -269,6 +278,9 @@ Type
     Property MaxMessagePayloadSize;
     Property Resource;
     Property UseSSL;
+    Property VerifySSLCertificate;
+    Property CertCAFileName;
+    Property TrustedCertsDir;
     Property OnSendHandShake;
     Property OnHandshakeResponse;
     property OnMessageReceived;
@@ -1642,7 +1654,9 @@ begin
     if UseSSL then
       begin
       SSLHandler := TSSLSocketHandler.GetDefaultHandler;
-      SSLHandler.VerifyPeerCert := False;
+      SSLHandler.VerifyPeerCert := FVerifySSLCertificate;
+      SSLHandler.CertificateData.CertCA.FileName := FCertCAFileName;
+      SSLHandler.CertificateData.TrustedCertsDir := FTrustedCertsDir;
       end;
     NewSocket:=TInetSocket.Create(HostName,Port,ConnectTimeout,SSLHandler);
     NewTransport:=TWSClientTransport.Create(NewSocket);
