@@ -1633,6 +1633,10 @@ type
     procedure SetCapacity(NewCapacity: PtrInt);
   protected
     function Realloc(var NewCapacity: PtrInt): Pointer; virtual;
+{$ifdef CPU64}
+    { protected, so that a call from outside sees only the public form, as before }
+    procedure SetSize(NewSize: LongInt); override;
+{$endif CPU64}
     property Capacity: PtrInt read FCapacity write SetCapacity;
   public
     destructor Destroy; override;

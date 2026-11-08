@@ -1574,6 +1574,15 @@ begin
     FPosition:=FSize;
 end;
 
+{$ifdef CPU64}
+procedure TMemoryStream.SetSize(NewSize: LongInt);
+
+begin
+  // TStream's Longint form does nothing; a call with a Longint argument must resize too
+  SetSize(Int64(NewSize));
+end;
+{$endif CPU64}
+
 function TMemoryStream.Write(const Buffer; Count: LongInt): LongInt;
 
 Var NewPos : PtrInt;
