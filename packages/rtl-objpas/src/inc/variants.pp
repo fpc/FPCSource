@@ -90,8 +90,8 @@ function VarIsNumeric(const V: Variant): Boolean; inline;
 function VarIsStr(const V: Variant): Boolean;
 function VarIsBool(const V: Variant): Boolean; inline;
 
-function VarToStr(const V: Variant): AnsiString;
-function VarToStrDef(const V: Variant; const ADefault: AnsiString): AnsiString;
+function VarToStr(const V: Variant): RTLString;
+function VarToStrDef(const V: Variant; const ADefault: RTLString): RTLString;
 function VarToWideStr(const V: Variant): WideString;
 function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
 function VarToUnicodeStr(const V: Variant): UnicodeString;
@@ -3280,14 +3280,14 @@ begin
 end;
 
 
-function VarToStr(const V: Variant): AnsiString;
+function VarToStr(const V: Variant): RTLString;
 
 begin
   Result:=VarToStrDef(V,'');
 end;
 
 
-function VarToStrDef(const V: Variant; const ADefault: AnsiString): AnsiString;
+function VarToStrDef(const V: Variant; const ADefault: RTLString): RTLString;
 
 begin
   If TVarData(V).vType<>varNull then
