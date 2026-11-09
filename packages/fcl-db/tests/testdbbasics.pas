@@ -159,6 +159,9 @@ type
     procedure TestOnFilter;
     procedure TestIntFilter; //Integer range filter
     procedure TestNegativeIntFilter; //Negative integer filter; bug 25168
+{$ifdef fpc}
+    procedure TestLargeIntFilter;
+{$endif fpc}
     procedure TestStringFilter; //String filter expressions
 
     procedure TestNullAtOpen;
@@ -1466,6 +1469,59 @@ begin
     Close;
     end;
 end;
+
+{$ifdef fpc}
+procedure TTestCursorDBBasics.TestLargeIntFilter;
+
+const
+  cValues: array[0..3] of Int64 = (0, High(Int64), 3556856671915480078, -32767);
+
+var
+  lDataset: TBufDataset;
+  i: Integer;
+
+begin
+  lDataset:=TBufDataset.Create(nil);
+  try
+    lDataset.FieldDefs.Add('prjid',ftLargeint);
+    lDataset.CreateDataset;
+    lDataset.Open;
+    for i:=Low(cValues) to High(cValues) do
+      lDataset.AppendRecord([cValues[i]]);
+    lDataset.Filter:='prjid=-32767 or prjid=3556856671915480078';
+    lDataset.Filtered:=True;
+    lDataset.First;
+    CheckEquals(3556856671915480078,lDataset.FieldByName('prjid').AsLargeInt,'First record of the Int64 literal filter');
+    lDataset.Next;
+    CheckEquals(-32767,lDataset.FieldByName('prjid').AsLargeInt,'Second record of the Int64 literal filter');
+    lDataset.Next;
+    CheckTrue(lDataset.EOF,'Int64 literal filter gives two records');
+
+    lDataset.Filter:='prjid=9223372036854775807';
+    lDataset.First;
+    CheckEquals(High(Int64),lDataset.FieldByName('prjid').AsLargeInt,'Filter on High(Int64)');
+    lDataset.Next;
+    CheckTrue(lDataset.EOF,'Filter on High(Int64) gives one record');
+
+    lDataset.Filter:='prjid>2147483647';
+    lDataset.First;
+    CheckEquals(High(Int64),lDataset.FieldByName('prjid').AsLargeInt,'First record above High(Integer)');
+    lDataset.Next;
+    CheckEquals(3556856671915480078,lDataset.FieldByName('prjid').AsLargeInt,'Second record above High(Integer)');
+    lDataset.Next;
+    CheckTrue(lDataset.EOF,'Filter above High(Integer) gives two records');
+
+    lDataset.Filter:='prjid<0';
+    lDataset.First;
+    CheckEquals(-32767,lDataset.FieldByName('prjid').AsLargeInt,'Integer literal filter on a largeint field');
+    lDataset.Next;
+    CheckTrue(lDataset.EOF,'Integer literal filter on a largeint field gives one record');
+    lDataset.Close;
+  finally
+    lDataset.Free;
+  end;
+end;
+{$endif fpc}
 
 procedure TTestCursorDBBasics.TestStringFilter;
 // Tests string expression filters

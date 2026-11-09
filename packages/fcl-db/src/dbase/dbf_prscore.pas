@@ -791,6 +791,29 @@ begin
     raise EParserException.Create('Operator/function missing');
 end;
 
+// Constant for the decimal literal W: Integer if it fits, else Int64, else floating point
+function CreateIntegerConstant(const W: AnsiString): TExprWord;
+
+{$ifdef SUPPORT_INT64}
+var
+  Value: Int64;
+{$endif}
+begin
+{$ifdef SUPPORT_INT64}
+  if TryStrToInt64(W, Value) then
+  begin
+    if (Value >= Low(Integer)) and (Value <= High(Integer)) then
+      Result := TIntegerConstant.Create(Integer(Value))
+    else
+      Result := TLargeIntConstant.Create(Value);
+  end else
+    Result := TFloatConstant.Create(W, W);
+{$else}
+  Result := TIntegerConstant.Create(StrToInt(W));
+{$endif}
+end;
+
+
 procedure TCustomExpressionParser.ParseString(const AnExpression: AnsiString; DestCollection: TExprCollection);
 const
   NullWord='NULL';
@@ -963,7 +986,7 @@ begin
       begin
         // convert hexadecimal to decimal
         W[1] := '$';
-        W := IntToStr(StrToInt(W));
+        W := IntToStr({$ifdef SUPPORT_INT64}StrToInt64{$else}StrToInt{$endif}(W));
       end;
       if (W[1] = '''') or (W[1] = '"') then
       begin
@@ -982,7 +1005,7 @@ begin
 {$ENDIF}
           TempWord := TFloatConstant.Create(W, W)
         end else begin
-          TempWord := TIntegerConstant.Create(StrToInt(W));
+          TempWord := CreateIntegerConstant(W);
         end;
       end;
       DestCollection.Add(TempWord);
