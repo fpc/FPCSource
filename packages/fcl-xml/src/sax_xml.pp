@@ -81,6 +81,7 @@ type
     FElementStack: TList;
     FNodeBuffer: TList;
     IsFragmentMode, FragmentRootSet: Boolean;
+    FRootClosed: Boolean;
     FragmentRoot: TDOMNode;
 
     procedure ReaderCharacters(Sender: TObject; const ch: PSAXChar;
@@ -296,15 +297,26 @@ begin
                 Inc(BufferPos);
               end;
             '!':
+              if (FRawTokenText = '') and (FCurStringValueDelimiter = #0) then
               begin
                 Inc(BufferPos);
                 EnterNewScannerContext(scCData);
+              end
+              else
+              begin
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
               end;
             '>':
+              if FCurStringValueDelimiter = #0 then
               begin
                 Inc(BufferPos);
-                if FCurStringValueDelimiter = #0 then
-                  EnterNewScannerContext(scUnknown);
+                EnterNewScannerContext(scUnknown);
+              end
+              else
+              begin
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
               end;
             else
             begin
@@ -402,10 +414,12 @@ begin
   FTokenText := FRawTokenText;  // this is where conversion takes place
   case ScannerContext of
     scWhitespace:
-      DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
+      if TokenText <> '' then
+        DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
     scText,
     scCData:
-      DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
+      if TokenText <> '' then
+        DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scComment:
       DoComment(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
@@ -471,6 +485,7 @@ begin
   inherited Create;
   FReader := AReader;
   FReader.OnCharacters := @ReaderCharacters;
+  FReader.OnComment := @ReaderComment;
   FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
   FReader.OnSkippedEntity := @ReaderSkippedEntity;
   FReader.OnStartElement := @ReaderStartElement;
@@ -517,6 +532,12 @@ procedure TXMLToDOMConverter.ReaderComment(Sender: TObject;
 var
   NodeInfo: TXMLNodeInfo;
 begin
+  // a comment outside the document element is a child of the document
+  if not IsFragmentMode and (not Assigned(FDocument.DocumentElement) or FRootClosed) then
+  begin
+    FDocument.AppendChild(FDocument.CreateCommentBuf(ch, Count));
+    Exit;
+  end;
   NodeInfo := TXMLNodeInfo.Create;
   NodeInfo.NodeType := ntComment;
   NodeInfo.DOMNode := FDocument.CreateCommentBuf(ch, Count);
@@ -607,6 +628,8 @@ begin
         NodeInfo2.Free;
         FNodeBuffer.Delete(i);
       end;
+      if NodeInfo.DOMNode = FDocument.DocumentElement then
+        FRootClosed := True;
       break;
     end;
     Dec(i);
