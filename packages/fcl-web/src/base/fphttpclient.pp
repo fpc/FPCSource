@@ -953,10 +953,13 @@ begin
     if (PH<>'') then
       S:=S+PH+CRLF;
     end;
-  S:=S+'Host: '+URI.Host;
-  If (URI.Port<>0) then
-    S:=S+':'+IntToStr(URI.Port);
-  S:=S+CRLF;
+  if IndexOfHeader('Host')=-1 then
+    begin
+    S:=S+'Host: '+URI.Host;
+    If (URI.Port<>0) then
+      S:=S+':'+IntToStr(URI.Port);
+    S:=S+CRLF;
+    end;
   AddContentLength:=Assigned(RequestBody) and (IndexOfHeader('Content-Length')=-1);
   If AddContentLength then
     AddHeader('Content-Length',IntToStr(RequestBody.Size));
@@ -969,21 +972,22 @@ begin
     end;
   If AddContentLength then
     FRequestHeaders.Delete(FRequestHeaders.IndexOfName('Content-Length'));
+  L:='';
   if Assigned(FCookies) then
-    begin
-    L:='';
     For I:=0 to FCookies.Count-1 do
       begin
       If (I>0) then
         L:=L+'; ';
       L:=L+FCookies[i];
       end;
-    For I:=0 to FRequestCookies.Count-1 do
-      begin
-      if L<>'' then
-        L:=L+'; ';
-      L:=FRequestCookies[I].Name+'='+FRequestCookies[I].Value;
-      end;
+  For I:=0 to FRequestCookies.Count-1 do
+    begin
+    if L<>'' then
+      L:=L+'; ';
+    L:=L+FRequestCookies[I].Name+'='+FRequestCookies[I].Value;
+    end;
+  if L<>'' then
+    begin
     L:='Cookie: '+L;
     if AllowHeader(L) then
       S:=S+L+CRLF;

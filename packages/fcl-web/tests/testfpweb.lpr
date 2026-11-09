@@ -5,7 +5,7 @@ program testfpweb;
 uses
   {$IFDEF UNIX}cthreads,{$ENDIF} Classes, consoletestrunner, tchttproute, tcjwt,  tccookies, tchttpprotocol, jsonparser,
   fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256, fpjwarsa, testsqldbopenapi, sqldbrestopenapi,
-  tchttpserverstop, tcfpwebcsrf, tchttpclientlimits;
+  tchttpserverstop, tcfpwebcsrf, tchttpclientlimits, tchttpclientheaders;
 
 type
 
