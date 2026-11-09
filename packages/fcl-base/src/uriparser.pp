@@ -442,17 +442,16 @@ begin
       Result := True;
     end;
   if PathDelim <> '/' then
-  begin
-    I := Pos('/', Filename);
-    while I > 0 do
-    begin
-      Filename[I] := PathDelim;
-      I := Pos('/', Filename);
-    end;
-  end;
+    for I := 1 to Length(Filename) do
+      if Filename[I] = '/' then
+        Filename[I] := PathDelim;
 end;
 
 function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
+const
+  PrefixFile = 'file:';
+  PrefixFileRooted = PrefixFile + '//';
+  PrefixFileDrive = PrefixFileRooted + '/';
 var
   I: Integer;
   IsAbsFilename: Boolean;
@@ -461,26 +460,19 @@ begin
   IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
     ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
 
-  Result := 'file:';
-  if IsAbsFilename then
-  begin
-    if Filename[1] <> PathDelim then
-      Result := Result + '///'
-    else
-      Result := Result + '//';
-  end;
+  if not IsAbsFilename then
+    Result := PrefixFile
+  else if Filename[1] = PathDelim then
+    Result := PrefixFileRooted
+  else
+    Result := PrefixFileDrive;
 
   FilenamePart := Filename;
   { unreachable code warning is ok here }
   if PathDelim <> '/' then
-  begin
-    I := Pos(PathDelim, FilenamePart);
-    while I <> 0 do
-    begin
-      FilenamePart[I] := '/';
-      I := Pos(PathDelim, FilenamePart);
-    end;
-  end;
+    for I := 1 to Length(FilenamePart) do
+      if FilenamePart[I] = PathDelim then
+        FilenamePart[I] := '/';
   if Encode then
     FilenamePart := Escape(FilenamePart, ValidPathChars);
 

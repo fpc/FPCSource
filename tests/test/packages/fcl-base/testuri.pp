@@ -115,6 +115,41 @@ const
     (a: 'g#s/../x'; b: 'http://a/b/c/g#s/../x')
   );
 
+// Halts with an error message when aGot differs from aExpected
+procedure CheckEqual(const aWhat, aExpected, aGot: string);
+begin
+  if aGot <> aExpected then
+  begin
+    writeln(aWhat, ' mismatch, expected: ''', aExpected, '''; got: ''', aGot, '''');
+    Halt(1);
+  end;
+end;
+
+// FilenameToURI and URIToFilename on paths with several separators
+procedure TestFilenames;
+const
+  D = DirectorySeparator;
+var
+  lName: string;
+begin
+  write('Filename <-> URI conversions...');
+  CheckEqual('Rooted path', 'file:///a/b/c/d/e.txt', FilenameToURI(D+'a'+D+'b'+D+'c'+D+'d'+D+'e.txt'));
+  CheckEqual('Relative path', 'file:a/b/c.txt', FilenameToURI('a'+D+'b'+D+'c.txt'));
+  CheckEqual('Drive letter path', 'file:///C:/x/y/z.txt', FilenameToURI('C:'+D+'x'+D+'y'+D+'z.txt'));
+  CheckEqual('Encoded space', 'file:///a/my%20file.txt', FilenameToURI(D+'a'+D+'my file.txt'));
+  CheckEqual('Space without encoding', 'file:///a/my file.txt', FilenameToURI(D+'a'+D+'my file.txt', False));
+  if not URIToFilename('file:///a/b/c/d/e.txt', lName) then
+    CheckEqual('URIToFilename result for rooted path', 'True', 'False');
+  CheckEqual('Rooted URI', D+'a'+D+'b'+D+'c'+D+'d'+D+'e.txt', lName);
+  if not URIToFilename('file:///C:/x/y/z.txt', lName) then
+    CheckEqual('URIToFilename result for drive letter path', 'True', 'False');
+  CheckEqual('Drive letter URI', 'C:'+D+'x'+D+'y'+D+'z.txt', lName);
+  if not URIToFilename(FilenameToURI(D+'p'+D+'q r'+D+'s.txt'), lName) then
+    CheckEqual('URIToFilename result for round trip', 'True', 'False');
+  CheckEqual('Round trip', D+'p'+D+'q r'+D+'s.txt', lName);
+  writeln(' OK');
+end;
+
 procedure Test(const Caption: string; const t: array of urirec);
 var
   rslt: string;
@@ -144,6 +179,7 @@ end;
 
 begin
   TestParse;
+  TestFilenames;
   Writeln;
   Writeln('Now testing relative URI resolving:');
   Test('Normal tests', tests);
