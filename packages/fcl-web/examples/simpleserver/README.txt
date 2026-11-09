@@ -42,3 +42,42 @@ running simpleserver -h will provide the following help:
 
 -H --hostname=NAME
   set hostname for self-signed SSL certificate
+
+-C --certificate=FILE
+
+  PEM file with the SSL certificate. Implies --ssl.
+  Without this option, --ssl generates a self-signed certificate.
+
+-k --key=FILE
+
+  PEM file with the private key of the certificate.
+
+-K --key-password=PWD
+
+  Password of the private key file, if it is encrypted.
+
+-R --ca=FILE
+
+  PEM file with the CA certificate chain.
+
+The same settings can be put in the [Server] section of the configuration
+file (simpleserver.ini):
+
+  [Server]
+  Certificate=/path/to/cert.pem
+  PrivateKey=/path/to/key.pem
+  KeyPassword=secret
+  CACertificate=/path/to/ca.pem
+
+A certificate and key for testing can be created with openssl:
+
+  openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+    -keyout key.pem -out cert.pem -subj "/CN=localhost"
+
+and used with:
+
+  simpleserver --certificate=cert.pem --key=key.pem
+
+after which the server is reachable on https://localhost:3000/
+(the browser will warn that the certificate is not trusted).
+

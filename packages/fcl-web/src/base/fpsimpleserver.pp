@@ -192,6 +192,10 @@ Const
   KeyHostName = 'hostname';
   keyMimetypes = 'mimetypes';
   KeySSL = 'SSL';
+  KeyCertificate = 'Certificate';
+  KeyPrivateKey = 'PrivateKey';
+  KeyKeyPassword = 'KeyPassword';
+  KeyCACertificate = 'CACertificate';
   KeyQuiet = 'quiet';
   KeyQuit = 'quit';
   KeyEcho = 'echo';
@@ -580,6 +584,16 @@ begin
   UseSSL:=HasOption('s','ssl');
   if HasOption('H','hostname') then
     HostName:=GetOptionValue('H','hostname');
+  if HasOption('C','certificate') then
+    CertificateData.Certificate.FileName:=GetOptionValue('C','certificate');
+  if HasOption('k','key') then
+    CertificateData.PrivateKey.FileName:=GetOptionValue('k','key');
+  if HasOption('K','key-password') then
+    CertificateData.KeyPassword:=GetOptionValue('K','key-password');
+  if HasOption('R','ca') then
+    CertificateData.CertCA.FileName:=GetOptionValue('R','ca');
+  if CertificateData.Certificate.FileName<>'' then
+    UseSSL:=True;
   S:=GetOptionValue('l','upload');
   if S<>'' then
     begin
@@ -625,6 +639,7 @@ begin
   Writeln('-A --api=path,secret  Activate location API on path, using secret as accepted bearer token.');
   Writeln('-a --max-age=age      Set max-age expiry header on returned file requests.');
   Writeln('-c --config=file      Ini configuration file (default: simpleserver.ini).');
+  Writeln('-C --certificate=FILE PEM file with the SSL certificate (implies --ssl).');
 {$ifdef unix}
   Writeln('-b --background       fork to background.');
 {$endif}
@@ -635,6 +650,8 @@ begin
   Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate.');
   Writeln('-i --indexpage=name   Directory index page to use (default: index.html).');
   Writeln('-I --interface=IP     Listen on this interface address only.');
+  Writeln('-k --key=FILE         PEM file with the private key of the SSL certificate.');
+  Writeln('-K --key-password=PWD Password of the private key file.');
   Writeln('-l --upload=URL       Allow file uploads on given (relative) URL.');
   Writeln('-L --upload-dir=DIR   Directory where to place uploaded files.');
   Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types.');
@@ -643,12 +660,13 @@ begin
   Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000).');
   Writeln('-q --quiet            Do not write diagnostic messages.');
   Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop.');
+  Writeln('-R --ca=FILE          PEM file with the CA certificate chain.');
   Writeln('-r --upload-response=JSON Upload response template. @File can also be used to read the template from file.');
   Writeln('                          Template vars:');
   Writeln('                              %filename% - upload file name location.');
   Writeln('                              %GUID% - upload file name location.');
   Writeln('                              %GUID% - upload file name location.');
-  Writeln('-s --ssl              Use SSL.');
+  Writeln('-s --ssl              Use SSL. Without --certificate, a self-signed certificate is generated.');
   Writeln('-t --thread-mode=MODE Connection handling model. MODE is one of:');
   Writeln('                        none   - Serial, single thread (default). Blocks while');
   Writeln('                                 reading each connection.');
@@ -685,6 +703,12 @@ begin
     IndexPageName:=ReadString(SConfig,KeyIndexPage,IndexPageName);
     HostName:=ReadString(SConfig,KeyHostName,HostName);
     UseSSL:=ReadBool(SConfig,KeySSL,UseSSL);
+    CertificateData.Certificate.FileName:=ReadString(SConfig,KeyCertificate,CertificateData.Certificate.FileName);
+    CertificateData.PrivateKey.FileName:=ReadString(SConfig,KeyPrivateKey,CertificateData.PrivateKey.FileName);
+    CertificateData.KeyPassword:=ReadString(SConfig,KeyKeyPassword,CertificateData.KeyPassword);
+    CertificateData.CertCA.FileName:=ReadString(SConfig,KeyCACertificate,CertificateData.CertCA.FileName);
+    if CertificateData.Certificate.FileName<>'' then
+      UseSSL:=True;
     FBackground:=ReadBool(SConfig,Keybackground,FBackGround);
     FPassword:=ReadString(SConfig,KeyQuit,FPassword);
     FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
@@ -762,10 +786,10 @@ procedure TFPSimpleServerApplication.GetValidOptions(out aShort: String; out aLo
 
 Const
   LongOpts : TStringDynArray =
-     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture::','version','interface:','upload-dir:','upload:','upload-response:','thread-mode:');
+     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture::','version','interface:','upload-dir:','upload:','upload-response:','thread-mode:','certificate:','key:','key-password:','ca:');
 
 begin
-  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VI:l:L:r:t:';
+  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VI:l:L:r:t:C:k:K:R:';
   aLong:=LongOpts;
 end;
 
