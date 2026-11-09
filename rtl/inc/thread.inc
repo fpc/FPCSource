@@ -520,9 +520,15 @@ type
   TLazyInitThreadingProcInfo = Record
     Next     : PLazyInitThreadingProcInfo;
     Proc     : TProcedure;
+    Pooled   : Boolean;
+    InUse    : Boolean;
   End;
 const
   LazyInitThreadingProcList: PLazyInitThreadingProcInfo = nil;
+  LazyInitThreadingPoolSize = 8;
+var
+  { records used by RegisterLazyInitThreadingProc before it allocates on the heap }
+  LazyInitThreadingPool: array[0..LazyInitThreadingPoolSize-1] of TLazyInitThreadingProcInfo;
 
 procedure FinalizeLazyInitThreading;
 var
@@ -531,7 +537,10 @@ begin
   while assigned(LazyInitThreadingProcList) do
     begin
     p:=LazyInitThreadingProcList^.Next;
-    Dispose(LazyInitThreadingProcList);
+    if LazyInitThreadingProcList^.Pooled then
+      LazyInitThreadingProcList^.InUse:=False
+    else
+      Dispose(LazyInitThreadingProcList);
     LazyInitThreadingProcList:=p;
     end;
 end;
@@ -539,6 +548,7 @@ end;
 procedure RegisterLazyInitThreadingProc(const proc: TProcedure);
 var
   p: PLazyInitThreadingProcInfo;
+  i: Longint;
 begin
   if IsMultiThread then
     begin
@@ -549,7 +559,21 @@ begin
     begin
     if not assigned(LazyInitThreadingProcList) then
       AddExitProc(@FinalizeLazyInitThreading);
-    new(p);
+    p:=nil;
+    for i:=Low(LazyInitThreadingPool) to High(LazyInitThreadingPool) do
+      if not LazyInitThreadingPool[i].InUse then
+        begin
+        p:=@LazyInitThreadingPool[i];
+        break;
+        end;
+    if assigned(p) then
+      p^.Pooled:=True
+    else
+      begin
+      new(p);
+      p^.Pooled:=False;
+      end;
+    p^.InUse:=True;
     p^.Next:=LazyInitThreadingProcList;
     p^.Proc:=proc;
     LazyInitThreadingProcList:=p;

@@ -221,6 +221,11 @@ Var
   OldMemoryManager : TMemoryManager;
 
 Initialization
+  if IsConsole and (GetFPCHeapStatus.CurrHeapUsed>0) then
+    begin
+    Writeln(StdErr,'Warning: memory was allocated before cmem was initialized.');
+    Writeln(StdErr,'Make cmem the first unit in the uses clause of the program.');
+    end;
   GetMemoryManager (OldMemoryManager);
   SetMemoryManager (CmemoryManager);
 
