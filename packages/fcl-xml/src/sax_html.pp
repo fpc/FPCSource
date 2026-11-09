@@ -66,6 +66,7 @@ type
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
     FNesting: Integer;
+    FSkipLeadingLF: Boolean;
     procedure AutoClose(const aName: SAXString);
     procedure NamePush(const aName: SAXString);
     procedure NamePop;
@@ -504,6 +505,15 @@ begin
   until false;
 end;
 
+// Remove one line break (CR LF, LF or CR) from the start of s
+procedure StripLeadingLineBreak(var s: SAXString);
+begin
+  if (Length(s) > 1) and (s[1] = #13) and (s[2] = #10) then
+    Delete(s, 1, 2)
+  else if (s <> '') and (s[1] in [#10, #13]) then
+    Delete(s, 1, 1);
+end;
+
 procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
@@ -511,16 +521,26 @@ var
   Ent: SAXChar;
   i: Integer;
   elTag: THTMLElementTag;
+  SkipLeadingLF: Boolean;
 begin
   FTokenText := FRawTokenText;
+  { the first token after <pre> or <textarea> loses a leading line break }
+  SkipLeadingLF := FSkipLeadingLF;
+  if ScannerContext <> scUnknown then
+    FSkipLeadingLF := False;
+  if SkipLeadingLF and (ScannerContext in [scWhitespace, scText]) then
+    StripLeadingLineBreak(FTokenText);
   case ScannerContext of
     scWhitespace:
-      if (FNesting > 0) and (efPCDataContent in HTMLElementProps[FStack[FNesting-1]].Flags) then
+      if TokenText = '' then
+        { only the stripped line break }
+      else if (FNesting > 0) and (efPCDataContent in HTMLElementProps[FStack[FNesting-1]].Flags) then
         DoCharacters(PSAXChar(TokenText), 0, Length(TokenText))
       else
         DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
     scText:
-      DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
+      if TokenText <> '' then
+        DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
@@ -577,7 +597,9 @@ begin
             // do not push empty elements, don't wait for AutoClose
             DoEndElement('', TagName, '');
             NamePop;
-          end;
+          end
+          else if FStack[FNesting-1] in [etPre, etTextArea] then
+            FSkipLeadingLF := True;
         end;
         if Assigned(Attr) then
           Attr.Free;
