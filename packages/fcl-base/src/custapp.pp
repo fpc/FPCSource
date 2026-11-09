@@ -510,43 +510,53 @@ function TCustomApplication.FindOptionIndex(const S: String;
   var Longopt: Boolean; StartAt : Integer = -1): Integer;
 
 Var
-  SO,O : String;
+  SShort,SLong,O : String;
   I,P : Integer;
-  CaseSens : Boolean;
+  IsLong : Boolean;
 
 begin
   Result:=-1;
+  Longopt:=False;
+  if CaseSensitiveShortOptions then
+    SShort:=S
+  else
+    SShort:=UpperCase(S);
+  if CaseSensitiveLongOptions then
+    SLong:=S
+  else
+    SLong:=UpperCase(S);
   I:=StartAt;
   if (I=-1) then
     I:=ParamCount;
-  While (Result=-1) and (I>0) do
+  While (I>0) do
     begin
     O:=Params[i];
     // - must be seen as an option value
     If (Length(O)>1) and (O[1]=FOptionChar) then
       begin
       Delete(O,1,1);
-      LongOpt:=(O[1]=FOptionChar);
-      If LongOpt then
+      IsLong:=(O[1]=FOptionChar);
+      If IsLong then
         begin
-        CaseSens:=CaseSensitiveLongOptions;
         Delete(O,1,1);
         P:=Pos('=',O);
         If (P<>0) then
           SetLength(O,P-1);
+        If Not CaseSensitiveLongOptions then
+          O:=UpperCase(O);
+        If O=SLong then
+          begin
+          Longopt:=True;
+          Exit(I);
+          end;
         end
       else
-        CaseSens:=CaseSensitiveShortOptions;
-      If Not CaseSens then
-        O:=UpperCase(O);
-      if SO='' then begin  // Update SO when we know the opt is Long / Short
-        If Not CaseSens then
-          SO:=UpperCase(S)
-        else
-          SO:=S;
-      end;
-      If O=SO then
-        Result:=i;
+        begin
+        If Not CaseSensitiveShortOptions then
+          O:=UpperCase(O);
+        If O=SShort then
+          Exit(I);
+        end;
       end;
     Dec(i);
     end;

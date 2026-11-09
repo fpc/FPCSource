@@ -41,7 +41,8 @@ uses
   utcLightweight,
   utcDirwatch,
   utcThreadPool,
-  utcEventLog
+  utcEventLog,
+  utcCustApp
   ;
 
 var
@@ -83,6 +84,7 @@ begin
   utcDirwatch.RegisterTests;
   utcThreadPool.RegisterTests;
   utcEventLog.RegisterTests;
+  utcCustApp.RegisterTests;
   RunAllSysTests;
 end.
 

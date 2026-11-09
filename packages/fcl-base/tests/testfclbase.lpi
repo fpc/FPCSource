@@ -176,6 +176,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcEventLog"/>
       </Unit>
+      <Unit>
+        <Filename Value="utccustapp.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcCustApp"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
