@@ -1195,7 +1195,9 @@ begin
   FCodePage := CP_ACP;
   FFixedChar := False;
   FTransliterate := False;
-  FSize := 20;
+  { a descendant may have set its size before calling this, as TGuidField does }
+  if FSize = 0 then
+    FSize := 20;
 end;
 
 procedure TStringField.SetFieldType(AValue: TFieldType);
