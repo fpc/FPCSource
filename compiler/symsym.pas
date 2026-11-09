@@ -493,6 +493,8 @@ interface
        tmacro = class(tstoredsym)
           {Normally true, but false when a previously defined macro is undef-ed}
           defined : boolean;
+          {True while the macro is defined because a mode switch defined it, not the user}
+          defined_by_modeswitch : boolean;
           {True if this is a mac style compiler variable, in which case no macro
            substitutions shall be done.}
           is_compiler_var : boolean;

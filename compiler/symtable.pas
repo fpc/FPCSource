@@ -5009,6 +5009,7 @@ implementation
            end;
          Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
+         mac.defined_by_modeswitch:=false;
       end;
 
 

@@ -408,6 +408,58 @@ implementation
       end;
 
 
+    { defines a macro that follows a mode switch, and remembers that the
+      mode switch did: one the user has defined already stays the user's }
+    procedure def_modeswitch_macro(const name: string);
+      var
+        mac: tmacro;
+      begin
+        mac:=tmacro(search_macro(upper(name)));
+        if assigned(mac) and mac.defined then
+          exit;
+        def_system_macro(name);
+        mac:=tmacro(search_macro(upper(name)));
+        if assigned(mac) then
+          mac.defined_by_modeswitch:=true;
+      end;
+
+
+    { undefines a macro that a mode switch defined, and only such a one: a
+      macro the user defined (-dUNICODE, $define UNICODE) is not the mode's
+      to take away. For a directive, in the current module only, as $undef
+      does, so that a macro defined on the command line stays defined for
+      the modules compiled after this one }
+    procedure undef_modeswitch_macro(const name: string; changeinit: boolean);
+      var
+        mac: tmacro;
+      begin
+        mac:=tmacro(search_macro(upper(name)));
+        if not assigned(mac) or
+           not mac.defined or
+           not mac.defined_by_modeswitch then
+          exit;
+        if changeinit or not assigned(current_module) then
+          begin
+            undef_system_macro(name);
+            mac.defined_by_modeswitch:=false;
+            exit;
+          end;
+        if mac.owner<>current_module.localmacrosymtable then
+          begin
+            mac:=tmacro.create(upper(name));
+            current_module.localmacrosymtable.insertsym(mac);
+          end
+        else
+          begin
+            mac.is_compiler_var:=false;
+            mac.free_buftext;
+            mac.defined_by_modeswitch:=false;
+          end;
+        mac.defined:=false;
+        Message1(parser_c_macro_undefined,mac.name);
+      end;
+
+
     Procedure HandleModeSwitches(switch: tmodeswitch; changeInit: boolean);
       var
         syscodepage: tstringencoding;
@@ -438,8 +490,13 @@ implementation
                   include(init_settings.localswitches,cs_refcountedstrings);
                 if m_default_unicodestring in current_settings.modeswitches then
                   begin
-                    def_system_macro('FPC_UNICODESTRINGS');
-                    def_system_macro('UNICODE');
+                    def_modeswitch_macro('FPC_UNICODESTRINGS');
+                    def_modeswitch_macro('UNICODE');
+                  end
+                else
+                  begin
+                    undef_modeswitch_macro('FPC_UNICODESTRINGS',changeinit);
+                    undef_modeswitch_macro('UNICODE',changeinit);
                   end;
               end
             else
@@ -447,8 +504,8 @@ implementation
                 exclude(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
-                undef_system_macro('FPC_UNICODESTRINGS');
-                undef_system_macro('UNICODE');
+                undef_modeswitch_macro('FPC_UNICODESTRINGS',changeinit);
+                undef_modeswitch_macro('UNICODE',changeinit);
               end;
           end;
 
@@ -2610,6 +2667,7 @@ type
         else
           begin
             mac.defined:=true;
+            mac.defined_by_modeswitch:=false;
             mac.is_compiler_var:=false;
           { delete old definition }
             mac.free_buftext;
