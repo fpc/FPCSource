@@ -155,7 +155,9 @@ end;
 procedure TTestXMLEncoding.TestUSASCIIHighByteAfterFirstBuffer;
 
 begin
-  FData:=Declaration('us-ascii')+'<a>'+StringOfChar('x',20000)+#$80+'</a>';
+  FData:=Declaration('us-ascii')+'<a>'+StringOfChar('x',20000)+'?</a>';
+  UniqueString(FData);
+  FData[Length(FData)-4]:=AnsiChar($80);
   AssertException('Byte $80 after more than one read buffer',EXMLReadError,@ParseData);
 end;
 

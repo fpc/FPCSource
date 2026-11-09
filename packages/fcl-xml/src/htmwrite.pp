@@ -321,12 +321,13 @@ var
   s: string;
   ElFlags: THTMLElementFlags;
   j: THTMLElementTag;
-  meta: Boolean;
+  meta, LeadingLFDropped: Boolean;
 begin
   if not FInsideTextNode then
     wrtIndent;
 
   meta := False;
+  LeadingLFDropped := False;
   s := LowerCase(node.NodeName);
   ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
@@ -335,6 +336,7 @@ begin
       ElFlags := HTMLElementProps[j].Flags;
       if j = etMeta then
         meta := True;
+      LeadingLFDropped := j in [etPre, etTextArea];
       FInsideScript := (j=etScript) or (j=etStyle);
       break;
     end;
@@ -361,6 +363,11 @@ begin
     end;
   wrtChr('>');
   Child := node.FirstChild;
+  { pre or textarea text starting with a line break gets one extra line break before it }
+  if LeadingLFDropped and Assigned(Child) and (Child.NodeType = TEXT_NODE)
+     and (TDOMCharacterData(Child).Data <> '')
+     and ((TDOMCharacterData(Child).Data[1] = #10) or (TDOMCharacterData(Child).Data[1] = #13)) then
+    wrtStr(#10);
   if Child <> nil then
   begin
     SavedInsideTextNode := FInsideTextNode;
