@@ -345,6 +345,7 @@ var
   CallBackHandler: TCallBackHandler;
   DestFile: ansistring;
   i: qword;
+  j: integer;
   OriginalContent: ansistring = 'A'; //Uncompressed content for zip file entry
   ContentStreams: TFPList;
   ContentStream: TStringStream;
@@ -368,14 +369,9 @@ begin
       inc(i);
     end;
     Zipper.ZipAllFiles;
-    {
-    i:=0;
-    while i<Entries do
-    begin
-      ContentStreams.Delete(i);
-    end;
-    }
   finally
+    for j:=0 to ContentStreams.Count-1 do
+      TObject(ContentStreams[j]).Free;
     ContentStreams.Free;
     Zipper.Free;
   end;
@@ -434,6 +430,7 @@ var
   CallBackHandler: TCallBackHandler;
   DestFile: ansistring;
   i: qword;
+  j: integer;
   ContentStreams: TFPList;
   ContentStream: TNullStream;
   UnZipper: TUnZipper;
@@ -459,14 +456,9 @@ begin
     end;
     Writeln;
     Zipper.ZipAllFiles;
-    {
-    i:=0;
-    while i<Entries do
-    begin
-      ContentStreams.Delete(i);
-    end;
-    }
   finally
+    for j:=0 to ContentStreams.Count-1 do
+      TObject(ContentStreams[j]).Free;
     ContentStreams.Free;
     Zipper.Free;
   end;
@@ -673,6 +665,76 @@ begin
 end;
 
 
+function TestDiskFileSeparator: boolean;
+// Zips a file in a subdirectory added by disk file name only; the archive name must use /
+var
+  lTempDir, lOldDir, lDiskName, lZipFile: ansistring;
+  lFile: TStringList;
+  lEntry: TZipFileEntry;
+  lZipper: TZipper;
+  lUnZipper: TUnZipper;
+begin
+  result:=true;
+  lDiskName:='subdir'+DirectorySeparator+'a.txt';
+  lZipper:=TZipper.Create;
+  try
+    lEntry:=lZipper.Entries.Add as TZipFileEntry;
+    lEntry.DiskFileName:=lDiskName;
+    if lEntry.ArchiveFileName<>'subdir/a.txt' then
+    begin
+      result:=false;
+      writeln('Failed: archive name of an entry with only a disk name is *'+lEntry.ArchiveFileName+
+        '*, expected *subdir/a.txt*');
+      exit;
+    end;
+  finally
+    lZipper.Free;
+  end;
+
+  lTempDir:=IncludeTrailingPathDelimiter(GetTempDir(false))+'tczipper'+IntToStr(GetProcessID);
+  ForceDirectories(lTempDir+DirectorySeparator+'subdir');
+  lZipFile:=lTempDir+DirectorySeparator+'test.zip';
+  lOldDir:=GetCurrentDir;
+  lFile:=TStringList.Create;
+  try
+    lFile.Add('a');
+    lFile.SaveToFile(lTempDir+DirectorySeparator+lDiskName);
+    SetCurrentDir(lTempDir);
+    lZipper:=TZipper.Create;
+    try
+      lZipper.FileName:=lZipFile;
+      lZipper.Entries.AddFileEntry(lDiskName);
+      lZipper.ZipAllFiles;
+    finally
+      lZipper.Free;
+    end;
+    SetCurrentDir(lOldDir);
+    lUnZipper:=TUnZipper.Create;
+    try
+      lUnZipper.FileName:=lZipFile;
+      lUnZipper.Examine;
+      if (lUnZipper.Entries.Count<>1) or (lUnZipper.Entries[0].ArchiveFileName<>'subdir/a.txt') then
+      begin
+        result:=false;
+        if lUnZipper.Entries.Count>0 then
+          writeln('Failed: archive name in zip is *'+lUnZipper.Entries[0].ArchiveFileName+'*, expected *subdir/a.txt*')
+        else
+          writeln('Failed: zip has no entries');
+      end;
+    finally
+      lUnZipper.Free;
+    end;
+  finally
+    SetCurrentDir(lOldDir);
+    lFile.Free;
+    DeleteFile(lZipFile);
+    DeleteFile(lTempDir+DirectorySeparator+lDiskName);
+    RemoveDir(lTempDir+DirectorySeparator+'subdir');
+    RemoveDir(lTempDir);
+  end;
+end;
+
+
 function TestLargeZip64: boolean;
 // Tests single zip file with large uncompressed content
 // which forces it to zip64 format
@@ -816,6 +878,19 @@ begin
     writeln('TestWindowsPath finished');
     writeln('');
 
+    writeln('TestDiskFileSeparator started');
+    try
+      if not(TestDiskFileSeparator) then code:=code+512;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+512;
+      end;
+    end;
+    writeln('TestDiskFileSeparator finished');
+    writeln('');
+
     writeln('TestEmptyZipEntries(10) started');
     // Run testemptyzipentries with a small number to test the test itself... as
     // well as zip structure generated with empty files.
@@ -886,5 +961,5 @@ begin
     writeln('Basic zip/unzip tests passed: code '+inttostr(code))
   else
     writeln('Basic zip/unzip tests failed: code '+inttostr(code));
-  Halt(code);
+  ExitCode:=code;
 end.

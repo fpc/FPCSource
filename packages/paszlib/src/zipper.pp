@@ -3289,7 +3289,12 @@ function TZipFileEntry.GetArchiveFileName: AnsiString;
 begin
   Result:=FArchiveFileName;
   If (Result='') then
+    begin
     Result:=FDiskFileName;
+    // Zip standard: filenames inside the zip archive have / path separator
+    if DirectorySeparator<>'/' then
+      Result:=StringReplace(Result, DirectorySeparator, '/', [rfReplaceAll]);
+    end;
 end;
 
 function TZipFileEntry.GetUTF8ArchiveFileName: UTF8String;
