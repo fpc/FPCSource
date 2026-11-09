@@ -666,6 +666,19 @@ procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : 
       end;
   end;
 
+{ the flags MultiByteToWideChar takes for cp: it refuses MB_PRECOMPOSED for
+  these code pages }
+function Win32MultiByteFlags(cp : TSystemCodePage) : DWORD;
+  begin
+    case cp of
+    // Under https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar
+      CP_UTF8, CP_UTF7, 50220, 50221, 50222, 50225, 50227, 50229, 52936, 54936, 55000..55004, 57002..57011, 42:
+        result:=0;
+      else
+        result:=MB_PRECOMPOSED;
+      end;
+  end;
+
 procedure Win32Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
   var
     destlen: SizeInt;
@@ -673,13 +686,7 @@ procedure Win32Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:U
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    case cp of
-    // Under https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar
-      CP_UTF8, CP_UTF7, 50220, 50221, 50222, 50225, 50227, 50229, 57002..57011, 42:
-                           dwFlags:=0
-      else
-        dwFlags:=MB_PRECOMPOSED;
-      end;
+    dwFlags:=Win32MultiByteFlags(cp);
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     { destlen=0 means that Windows cannot convert, so call the default
       handler. This is similar to what unix does and is a good fallback
@@ -749,10 +756,7 @@ procedure Win32Ansi2WideMove(source:PAnsiChar;cp : TSystemCodePage;var dest:wide
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    if cp=CP_UTF8 then
-      dwFlags:=0
-    else
-      dwFlags:=MB_PRECOMPOSED;
+    dwFlags:=Win32MultiByteFlags(cp);
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
