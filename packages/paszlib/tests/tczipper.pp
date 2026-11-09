@@ -735,6 +735,119 @@ begin
 end;
 
 
+// Write a zip aZipFile with entry 'dir\b.txt', made on host aOS
+procedure WriteBackslashZip(const aZipFile: ansistring; aOS: byte);
+var
+  lZipper: TZipper;
+  lContent: TStringStream;
+  lData: TBytes;
+  lFile: TFileStream;
+  i: integer;
+begin
+  lContent:=TStringStream.Create('b');
+  lZipper:=TZipper.Create;
+  try
+    lZipper.FileName:=aZipFile;
+    lZipper.Entries.AddFileEntry(lContent,'dirXb.txt');
+    lZipper.ZipAllFiles;
+  finally
+    lZipper.Free;
+    lContent.Free;
+  end;
+  lFile:=TFileStream.Create(aZipFile,fmOpenRead);
+  try
+    SetLength(lData,lFile.Size);
+    lFile.ReadBuffer(lData[0],Length(lData));
+  finally
+    lFile.Free;
+  end;
+  for i:=0 to Length(lData)-9 do
+    if (lData[i]=Ord('d')) and (lData[i+1]=Ord('i')) and (lData[i+2]=Ord('r')) and (lData[i+3]=Ord('X'))
+      and (lData[i+4]=Ord('b')) then
+      lData[i+3]:=Ord('\');
+  for i:=0 to Length(lData)-6 do
+    if (lData[i]=$50) and (lData[i+1]=$4B) and (lData[i+2]=1) and (lData[i+3]=2) then
+      lData[i+5]:=aOS;
+  lFile:=TFileStream.Create(aZipFile,fmCreate);
+  try
+    lFile.WriteBuffer(lData[0],Length(lData));
+  finally
+    lFile.Free;
+  end;
+end;
+
+
+// Archive name of the single entry in aZipFile, examined with ConvertBackslashes set to aConvert
+function ExaminedName(const aZipFile: ansistring; aConvert: boolean): ansistring;
+var
+  lUnZipper: TUnZipper;
+begin
+  lUnZipper:=TUnZipper.Create;
+  try
+    lUnZipper.FileName:=aZipFile;
+    lUnZipper.ConvertBackslashes:=aConvert;
+    lUnZipper.Examine;
+    Result:=lUnZipper.Entries[0].ArchiveFileName;
+  finally
+    lUnZipper.Free;
+  end;
+end;
+
+
+function TestConvertBackslashes: boolean;
+// Reads entries with \ in their name, created on a FAT and on a Unix host
+var
+  lTempDir, lZipFile, lName, lDefault: ansistring;
+  lUnZipper: TUnZipper;
+
+  procedure Check(const aWhat, aActual, aExpected: ansistring);
+  begin
+    if aActual<>aExpected then
+    begin
+      result:=false;
+      writeln('Failed: '+aWhat+': *'+aActual+'*, expected *'+aExpected+'*');
+    end;
+  end;
+
+begin
+  result:=true;
+  if DirectorySeparator='/' then
+    lDefault:='dir\b.txt'
+  else
+    lDefault:='dir/b.txt';
+  lTempDir:=IncludeTrailingPathDelimiter(GetTempDir(false))+'tcbackslash'+IntToStr(GetProcessID);
+  ForceDirectories(lTempDir);
+  lZipFile:=lTempDir+DirectorySeparator+'backslash.zip';
+  try
+    WriteBackslashZip(lZipFile,OS_FAT);
+    Check('FAT entry without ConvertBackslashes',ExaminedName(lZipFile,false),lDefault);
+    Check('FAT entry with ConvertBackslashes',ExaminedName(lZipFile,true),'dir/b.txt');
+    lUnZipper:=TUnZipper.Create;
+    try
+      lUnZipper.FileName:=lZipFile;
+      lUnZipper.OutputPath:=lTempDir;
+      lUnZipper.ConvertBackslashes:=true;
+      lUnZipper.UnZipAllFiles;
+    finally
+      lUnZipper.Free;
+    end;
+    lName:=lTempDir+DirectorySeparator+'dir'+DirectorySeparator+'b.txt';
+    if not FileExists(lName) then
+    begin
+      result:=false;
+      writeln('Failed: FAT entry with ConvertBackslashes not extracted to '+lName);
+    end;
+    DeleteFile(lName);
+    RemoveDir(lTempDir+DirectorySeparator+'dir');
+    WriteBackslashZip(lZipFile,OS_UNIX);
+    Check('Unix entry with ConvertBackslashes',ExaminedName(lZipFile,true),lDefault);
+  finally
+    DeleteFile(lZipFile);
+    RemoveDir(lTempDir);
+  end;
+end;
+
+
 function TestLargeZip64: boolean;
 // Tests single zip file with large uncompressed content
 // which forces it to zip64 format
@@ -889,6 +1002,19 @@ begin
       end;
     end;
     writeln('TestDiskFileSeparator finished');
+    writeln('');
+
+    writeln('TestConvertBackslashes started');
+    try
+      if not(TestConvertBackslashes) then code:=code+1024;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+1024;
+      end;
+    end;
+    writeln('TestConvertBackslashes finished');
     writeln('');
 
     writeln('TestEmptyZipEntries(10) started');
