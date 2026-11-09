@@ -764,9 +764,9 @@ begin
     for i := Low(FArgs) to High(FArgs) do
       Args.Add(FArgs[i].Evaluate(AContext, AEnvironment));
     Result := Fn(AContext, Args);
-    for i := Low(FArgs) to High(FArgs) do
-      TXPathVariable(Args[i]).Release;
   finally
+    for i := 0 to Args.Count-1 do
+      TXPathVariable(Args[i]).Release;
     Args.Free;
   end;
 end;
@@ -1072,9 +1072,11 @@ begin
     finally
       Op2Result.Release;
     end;
-  finally
-    Result := Op1Result;
+  except
+    Op1Result.Release;
+    raise;
   end;
+  Result := Op1Result;
 end;
 
 
@@ -1100,8 +1102,13 @@ var
   NodeSet: TNodeSet;
 begin
   Result := FLeft.Evaluate(AContext, AEnvironment);
-  NodeSet := Result.AsNodeSet;
-  ApplyPredicates(NodeSet, AEnvironment);
+  try
+    NodeSet := Result.AsNodeSet;
+    ApplyPredicates(NodeSet, AEnvironment);
+  except
+    Result.Release;
+    raise;
+  end;
 end;
 
 
@@ -1622,21 +1629,27 @@ end;
 procedure TXPathScanner.ParsePredicates(var Dest: TXPathNodeArray);
 var
   Buffer: array[0..15] of TXPathExprNode;
-  I: Integer;
+  I, J: Integer;
 begin
   I := 0;
   // accumulate nodes in local buffer, then add all at once
   // this reduces amount of ReallocMem's
-  while SkipToken(tkLeftSquareBracket) do
-  begin
-    Buffer[I] := ParseOrExpr;
-    Inc(I);
-    if I > High(Buffer) then
-      AddNodes(Dest, Buffer, I);  // will reset I to zero
-    if not SkipToken(tkRightSquareBracket) then
-      ParseError(SParserExpectedRightSquareBracket);
+  try
+    while SkipToken(tkLeftSquareBracket) do
+    begin
+      Buffer[I] := ParseOrExpr;
+      Inc(I);
+      if I > High(Buffer) then
+        AddNodes(Dest, Buffer, I);  // will reset I to zero
+      if not SkipToken(tkRightSquareBracket) then
+        ParseError(SParserExpectedRightSquareBracket);
+    end;
+    AddNodes(Dest, Buffer, I);
+  except
+    for J := 0 to I-1 do
+      Buffer[J].Free;
+    raise;
   end;
-  AddNodes(Dest, Buffer, I);
 end;
 
 function TXPathScanner.ParseStep: TStep;  // [4]
@@ -1673,7 +1686,12 @@ begin
       Axis := axisChild;
 
     Result := ParseNodeTest(Axis);
-    ParsePredicates(Result.FPredicates);
+    try
+      ParsePredicates(Result.FPredicates);
+    except
+      Result.Free;
+      raise;
+    end;
   end;
 end;
 
@@ -1755,29 +1773,34 @@ end;
 
 function TXPathScanner.ParsePrimaryExpr: TXPathExprNode;  // [15]
 begin
-  case CurToken of
-    tkVariable:         // [36] Variable reference
-        Result := TXPathVariableNode.Create(CurTokenString);
-    tkLeftBracket:
-      begin
-        NextToken;
-        Result := ParseOrExpr;
-        if CurToken <> tkRightBracket then
-          ParseError(SParserExpectedRightBracket);
-      end;
-    tkString:         // [29] Literal
-      Result := TXPathConstantNode.Create(
-        TXPathStringVariable.Create(CurTokenString));
-    tkNumber:         // [30] Number
-      Result := TXPathConstantNode.Create(
-        TXPathNumberVariable.Create(StrToNumber(CurTokenString)));
-    tkIdentifier:     // [16] Function call
-      Result := ParseFunctionCall;
-  else
-    ParseError(SParserInvalidPrimExpr);
-    Result := nil; // satisfy compiler
+  Result := nil;
+  try
+    case CurToken of
+      tkVariable:         // [36] Variable reference
+          Result := TXPathVariableNode.Create(CurTokenString);
+      tkLeftBracket:
+        begin
+          NextToken;
+          Result := ParseOrExpr;
+          if CurToken <> tkRightBracket then
+            ParseError(SParserExpectedRightBracket);
+        end;
+      tkString:         // [29] Literal
+        Result := TXPathConstantNode.Create(
+          TXPathStringVariable.Create(CurTokenString));
+      tkNumber:         // [30] Number
+        Result := TXPathConstantNode.Create(
+          TXPathNumberVariable.Create(StrToNumber(CurTokenString)));
+      tkIdentifier:     // [16] Function call
+        Result := ParseFunctionCall;
+    else
+      ParseError(SParserInvalidPrimExpr);
+    end;
+    NextToken;
+  except
+    Result.Free;
+    raise;
   end;
-  NextToken;
 end;
 
 function TXPathScanner.ParseFunctionCall: TXPathExprNode;
@@ -1785,33 +1808,46 @@ var
   Name: DOMString;
   Args: TXPathNodeArray;
   Buffer: array[0..15] of TXPathExprNode;
-  I: Integer;
+  I, J: Integer;
 begin
   Name := CurTokenString;
+  Args := nil;
   I := 0;
-  if NextToken <> tkLeftBracket then
-    ParseError(SParserExpectedLeftBracket);
-  NextToken;
-  // Parse argument list
-  if CurToken <> tkRightBracket then
-  repeat
-    Buffer[I] := ParseOrExpr;
-    Inc(I);
-    if I > High(Buffer) then
-      AddNodes(Args, Buffer, I);
-  until not SkipToken(tkComma);
-  if CurToken <> tkRightBracket then
-    ParseError(SParserExpectedRightBracket);
-
-  AddNodes(Args, Buffer, I);
+  try
+    if NextToken <> tkLeftBracket then
+      ParseError(SParserExpectedLeftBracket);
+    NextToken;
+    // Parse argument list
+    if CurToken <> tkRightBracket then
+    repeat
+      Buffer[I] := ParseOrExpr;
+      Inc(I);
+      if I > High(Buffer) then
+        AddNodes(Args, Buffer, I);
+    until not SkipToken(tkComma);
+    if CurToken <> tkRightBracket then
+      ParseError(SParserExpectedRightBracket);
+    AddNodes(Args, Buffer, I);
+  except
+    for J := 0 to I-1 do
+      Buffer[J].Free;
+    for J := 0 to High(Args) do
+      Args[J].Free;
+    raise;
+  end;
   Result := TXPathFunctionNode.Create(Name, Args);
 end;
 
 function TXPathScanner.ParseUnionExpr: TXPathExprNode;  // [18]
 begin
   Result := ParsePathExpr;
-  while SkipToken(tkPipe) do
-    Result := TXPathUnionNode.Create(Result, ParsePathExpr);
+  try
+    while SkipToken(tkPipe) do
+      Result := TXPathUnionNode.Create(Result, ParsePathExpr);
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function AddStep(Left: TXPathExprNode; Right: TStep): TXPathExprNode;
@@ -1825,42 +1861,47 @@ var
   tok: TXPathToken;
 begin
   Result := nil;
-  // Try to detect whether a LocationPath [1] or a FilterExpr [20] follows
-  if ((CurToken = tkIdentifier) and (PeekToken = tkLeftBracket) and
-    not (FTokenId in NodeTestKeywords)) or
-    (CurToken in [tkVariable, tkLeftBracket, tkString, tkNumber]) then
-  begin
-    // second, third or fourth case of [19]
-    Result := ParseFilterExpr;
-    if SkipToken(tkSlash) then { do nothing }
-    else if SkipToken(tkSlashSlash) then
-      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
-    else
-      Exit;
-  end
-  else if CurToken in [tkSlash, tkSlashSlash] then
-  begin
-    tok := CurToken;
-    NextToken;
-    Result := TStep.Create(axisRoot, ntAnyNode);
-    if tok = tkSlashSlash then
-      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
-    else if not (CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest]) then
-      Exit;  // allow '/' alone
-  end;
-
-  // Continue with parsing of [3] RelativeLocationPath
-  repeat
-    Result := AddStep(Result, ParseStep);
-    if CurToken = tkSlashSlash then
+  try
+    // Try to detect whether a LocationPath [1] or a FilterExpr [20] follows
+    if ((CurToken = tkIdentifier) and (PeekToken = tkLeftBracket) and
+      not (FTokenId in NodeTestKeywords)) or
+      (CurToken in [tkVariable, tkLeftBracket, tkString, tkNumber]) then
     begin
-      NextToken;
-      // Found abbreviated step ("//" for "descendant-or-self::node()")
-      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode));
+      // second, third or fourth case of [19]
+      Result := ParseFilterExpr;
+      if SkipToken(tkSlash) then { do nothing }
+      else if SkipToken(tkSlashSlash) then
+        Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
+      else
+        Exit;
     end
-    else if not SkipToken(tkSlash) then
-      break;
-  until False;
+    else if CurToken in [tkSlash, tkSlashSlash] then
+    begin
+      tok := CurToken;
+      NextToken;
+      Result := TStep.Create(axisRoot, ntAnyNode);
+      if tok = tkSlashSlash then
+        Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
+      else if not (CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest]) then
+        Exit;  // allow '/' alone
+    end;
+
+    // Continue with parsing of [3] RelativeLocationPath
+    repeat
+      Result := AddStep(Result, ParseStep);
+      if CurToken = tkSlashSlash then
+      begin
+        NextToken;
+        // Found abbreviated step ("//" for "descendant-or-self::node()")
+        Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode));
+      end
+      else if not SkipToken(tkSlash) then
+        break;
+    until False;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function TXPathScanner.ParseFilterExpr: TXPathExprNode;  // [20]
@@ -1870,27 +1911,42 @@ begin
   if CurToken = tkLeftSquareBracket then
   begin
     Result := TXPathFilterNode.Create(Result);
-    ParsePredicates(TXPathFilterNode(Result).FPredicates);
+    try
+      ParsePredicates(TXPathFilterNode(Result).FPredicates);
+    except
+      Result.Free;
+      raise;
+    end;
   end;
 end;
 
 function TXPathScanner.ParseOrExpr: TXPathExprNode;  // [21]
 begin
   Result := ParseAndExpr;
-  while FTokenId = xkOr do
-  begin
-    NextToken;
-    Result := TXPathBooleanOpNode.Create(opOr, Result, ParseAndExpr);
+  try
+    while FTokenId = xkOr do
+    begin
+      NextToken;
+      Result := TXPathBooleanOpNode.Create(opOr, Result, ParseAndExpr);
+    end;
+  except
+    Result.Free;
+    raise;
   end;
 end;
 
 function TXPathScanner.ParseAndExpr: TXPathExprNode;  // [22]
 begin
   Result := ParseEqualityExpr;
-  while FTokenId = xkAnd do
-  begin
-    NextToken;
-    Result := TXPathBooleanOpNode.Create(opAnd, Result, ParseEqualityExpr);
+  try
+    while FTokenId = xkAnd do
+    begin
+      NextToken;
+      Result := TXPathBooleanOpNode.Create(opAnd, Result, ParseEqualityExpr);
+    end;
+  except
+    Result.Free;
+    raise;
   end;
 end;
 
@@ -1899,16 +1955,21 @@ var
   op: TXPathCompareOp;
 begin
   Result := ParseRelationalExpr;
-  repeat
-    case CurToken of
-      tkEqual:    op := opEqual;
-      tkNotEqual: op := opNotEqual;
-    else
-      Break;
-    end;
-    NextToken;
-    Result := TXPathCompareNode.Create(op, Result, ParseRelationalExpr);
-  until False;
+  try
+    repeat
+      case CurToken of
+        tkEqual:    op := opEqual;
+        tkNotEqual: op := opNotEqual;
+      else
+        Break;
+      end;
+      NextToken;
+      Result := TXPathCompareNode.Create(op, Result, ParseRelationalExpr);
+    until False;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function TXPathScanner.ParseRelationalExpr: TXPathExprNode;  // [24]
@@ -1916,18 +1977,23 @@ var
   op: TXPathCompareOp;
 begin
   Result := ParseAdditiveExpr;
-  repeat
-    case CurToken of
-      tkLess:      op := opLess;
-      tkLessEqual: op := opLessEqual;
-      tkGreater:   op := opGreater;
-      tkGreaterEqual: op := opGreaterEqual;
-    else
-      Break;
-    end;
-    NextToken;
-    Result := TXPathCompareNode.Create(op, Result, ParseAdditiveExpr);
-  until False;
+  try
+    repeat
+      case CurToken of
+        tkLess:      op := opLess;
+        tkLessEqual: op := opLessEqual;
+        tkGreater:   op := opGreater;
+        tkGreaterEqual: op := opGreaterEqual;
+      else
+        Break;
+      end;
+      NextToken;
+      Result := TXPathCompareNode.Create(op, Result, ParseAdditiveExpr);
+    until False;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function TXPathScanner.ParseAdditiveExpr: TXPathExprNode;  // [25]
@@ -1935,16 +2001,21 @@ var
   op: TXPathMathOp;
 begin
   Result := ParseMultiplicativeExpr;
-  repeat
-    case CurToken of
-      tkPlus: op := opAdd;
-      tkMinus: op := opSubtract;
-    else
-      Break;
-    end;
-    NextToken;
-    Result := TXPathMathOpNode.Create(op, Result, ParseMultiplicativeExpr);
-  until False;
+  try
+    repeat
+      case CurToken of
+        tkPlus: op := opAdd;
+        tkMinus: op := opSubtract;
+      else
+        Break;
+      end;
+      NextToken;
+      Result := TXPathMathOpNode.Create(op, Result, ParseMultiplicativeExpr);
+    until False;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function TXPathScanner.ParseMultiplicativeExpr: TXPathExprNode;  // [26]
@@ -1952,23 +2023,28 @@ var
   op: TXPathMathOp;
 begin
   Result := ParseUnaryExpr;
-  repeat
-    case CurToken of
-      tkAsterisk:
-        op := opMultiply;
-      tkIdentifier:
-        if FTokenId = xkDiv then
-          op := opDivide
-        else if FTokenId = xkMod then
-          op := opMod
-        else
-          break;
-    else
-      break;
-    end;
-    NextToken;
-    Result := TXPathMathOpNode.Create(op, Result, ParseUnaryExpr);
-  until False;
+  try
+    repeat
+      case CurToken of
+        tkAsterisk:
+          op := opMultiply;
+        tkIdentifier:
+          if FTokenId = xkDiv then
+            op := opDivide
+          else if FTokenId = xkMod then
+            op := opMod
+          else
+            break;
+      else
+        break;
+      end;
+      NextToken;
+      Result := TXPathMathOpNode.Create(op, Result, ParseUnaryExpr);
+    until False;
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 function TXPathScanner.ParseUnaryExpr: TXPathExprNode;  // [27]

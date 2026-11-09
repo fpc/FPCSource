@@ -89,6 +89,9 @@ type
     procedure TestBadAxisName;
     procedure TestInvalidNodeTest;
     procedure TestScannerErrorThroughParser;
+    procedure TestUnionConversionError;
+    procedure TestFilterConversionError;
+    procedure TestNestedParseError;
   end;
 
 implementation
@@ -843,6 +846,28 @@ procedure TTestXPathEvaluate.TestInvalidNodeTest;
 begin
   AssertError('1 + )',EXPathParserError,SParserInvalidNodeTest);
   AssertError('book/[1]',EXPathParserError,SParserInvalidNodeTest);
+end;
+
+
+procedure TTestXPathEvaluate.TestUnionConversionError;
+
+begin
+  AssertError('1 | book',EXPathEvaluationError,Format(SVarNoConversion,[SNumber,SNodeSet]));
+end;
+
+
+procedure TTestXPathEvaluate.TestFilterConversionError;
+
+begin
+  AssertError('1[1]',EXPathEvaluationError,Format(SVarNoConversion,[SNumber,SNodeSet]));
+end;
+
+
+procedure TTestXPathEvaluate.TestNestedParseError;
+
+begin
+  AssertError('count(book[@id="b1" and (1 + )])',EXPathParserError,SParserInvalidNodeTest);
+  AssertError('concat("a", book[1]/title, (2 * 3)',EXPathParserError,SParserExpectedRightBracket);
 end;
 
 
