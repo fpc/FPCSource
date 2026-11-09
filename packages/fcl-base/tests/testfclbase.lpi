@@ -171,6 +171,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcThreadPool"/>
       </Unit>
+      <Unit>
+        <Filename Value="utceventlog.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcEventLog"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

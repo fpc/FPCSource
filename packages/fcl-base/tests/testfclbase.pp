@@ -40,7 +40,8 @@ uses
   utcConditionVariable,
   utcLightweight,
   utcDirwatch,
-  utcThreadPool
+  utcThreadPool,
+  utcEventLog
   ;
 
 var
@@ -81,6 +82,7 @@ begin
   utcLightweight.RegisterTests;
   utcDirwatch.RegisterTests;
   utcThreadPool.RegisterTests;
+  utcEventLog.RegisterTests;
   RunAllSysTests;
 end.
 

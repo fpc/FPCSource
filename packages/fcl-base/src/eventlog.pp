@@ -88,6 +88,8 @@ Type
   Public
     Constructor Create(aOwner: TComponent); override;
     Destructor Destroy; override;
+    // Name of event type aType; for etCustom it includes aCustomLogType
+    Class Function EventTypeName(aType : TEventType; aCustomLogType : Word = 0) : String;
     Function EventTypeToString(E : TEventType) : String;
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
     Function UnRegisterMessageFile : Boolean; virtual;
@@ -390,16 +392,22 @@ begin
     Identification:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
 end;
 
-Function TEventLog.EventTypeToString(E : TEventType) : String;
+Class Function TEventLog.EventTypeName(aType : TEventType; aCustomLogType : Word) : String;
 
 begin
-  Case E of
+  Case aType of
     etInfo    : Result:=SLogInfo;
     etWarning : Result:=SLogWarning;
     etError   : Result:=SLogError;
     etDebug   : Result:=SLogDebug;
-    etCustom  : Result:=SafeFormat(SLogCustom,[CustomLogType]);
+    etCustom  : Result:=SafeFormat(SLogCustom,[aCustomLogType]);
   end;
+end;
+
+Function TEventLog.EventTypeToString(E : TEventType) : String;
+
+begin
+  Result:=EventTypeName(E,CustomLogType);
 end;
 
 Procedure TEventLog.DoGetCustomEventID(Var Code : DWord);
