@@ -154,9 +154,9 @@ Var
   {$define HAS_PARAMSTRA}
   {$undef FPC_HAS_FEATURE_COMMANDARGS} // Skip the implementation of ParamStr()
 {$endif MSWINDOWS}
-     { ParamStr should return also an ansistring }
-     Function ParamStr(Param : Integer) : Ansistring;
-       {$ifdef HAS_PARAMSTRA} external name '_FPC_ParamStrA'; {$endif}
+     { ParamStr should return also an ansistring, in a Unicode RTL a unicodestring }
+     Function ParamStr(Param : Integer) : RTLString;
+       {$ifdef HAS_PARAMSTRA} external name {$ifdef UNICODERTL}'_FPC_ParamStrU'{$else}'_FPC_ParamStrA'{$endif}; {$endif}
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {****************************************************************************
@@ -311,7 +311,7 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-Function ParamStr(Param : Integer) : ansistring;
+Function ParamStr(Param : Integer) : RTLString;
   begin
   {
     Paramstr(0) should return the name of the binary.
