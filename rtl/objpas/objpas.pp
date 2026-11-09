@@ -38,7 +38,7 @@ interface
 
        { Ansistring are the default }
 {$IF SIZEOF(Char)=2}
-       PString = PWideString;
+       PString = PUnicodeString;
 {$ELSE}
        PString = PAnsiString;
 {$ENDIF}
