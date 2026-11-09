@@ -7262,8 +7262,10 @@ begin
       ParentOutline:=CreateOutlineEntry(OutlineRoot,j+1,-1,S.Title);
       PrevSect:=CreateSectionOutline(J,OutlineRoot,ParentOutLine,NextSect,PrevSect);
       NextSect:=ParentOutline;
-      Result:=CreatePagesEntry(TreeRoot);
       end;
+    // a Pages node per section under the root
+    if (Sections.Count>1) or (poOutline in options) then
+      Result:=CreatePagesEntry(TreeRoot);
     for k:=0 to S.PageCount-1 do
       begin
       with S do

@@ -242,6 +242,21 @@ type
   end;
 
 
+  TTestPDFSections = class(TBasePDFTest)
+  private
+    procedure AddSections(aCount: Integer; aOutline: Boolean);
+    function Output: String;
+    function ObjectText(const aOutput: String; aNumber: Integer): String;
+    function ReferenceAfter(const aText, aKey: String): Integer;
+    function Kids(const aObject: String): TStringArray;
+    procedure CheckSectionTree(aOutline: Boolean);
+  published
+    procedure TestTwoSectionsNoOutline;
+    procedure TestTwoSectionsOutline;
+    procedure TestOneSectionNoOutline;
+  end;
+
+
   TTestCompressionDecompression = class(TTestCase)
   private
     function  GetTestString: string;
@@ -1829,6 +1844,133 @@ begin
 end;
 
 
+{ TTestPDFSections }
+
+procedure TTestPDFSections.AddSections(aCount: Integer; aOutline: Boolean);
+
+var
+  i: Integer;
+
+begin
+  if aOutline then
+    FPDF.Options:=FPDF.Options+[poOutline]
+  else
+    FPDF.Options:=FPDF.Options-[poOutline];
+  FPDF.StartDocument;
+  for i:=1 to aCount do
+    FPDF.Sections.AddSection.AddPage(FPDF.Pages.AddPage);
+end;
+
+
+function TTestPDFSections.Output: String;
+
+begin
+  FPDF.SaveToStream(FStream);
+  Result:=FStream.DataString;
+end;
+
+
+function TTestPDFSections.ObjectText(const aOutput: String; aNumber: Integer): String;
+
+var
+  lStart, lEnd: Integer;
+
+begin
+  lStart:=Pos(#10+IntToStr(aNumber)+' 0 obj',aOutput);
+  AssertTrue('Object '+IntToStr(aNumber)+' is written',lStart>0);
+  lEnd:=Pos('endobj',aOutput,lStart);
+  AssertTrue('Object '+IntToStr(aNumber)+' has endobj',lEnd>lStart);
+  Result:=Copy(aOutput,lStart,lEnd-lStart);
+end;
+
+
+function TTestPDFSections.ReferenceAfter(const aText, aKey: String): Integer;
+
+var
+  lPos, lEnd: Integer;
+
+begin
+  lPos:=Pos(aKey+' ',aText);
+  AssertTrue('Key '+aKey+' is present',lPos>0);
+  Inc(lPos,Length(aKey)+1);
+  lEnd:=lPos;
+  while (lEnd<=Length(aText)) and (aText[lEnd] in ['0'..'9']) do
+    Inc(lEnd);
+  Result:=StrToInt(Copy(aText,lPos,lEnd-lPos));
+end;
+
+
+function TTestPDFSections.Kids(const aObject: String): TStringArray;
+
+var
+  lStart, lEnd: Integer;
+
+begin
+  lStart:=Pos('/Kids [',aObject);
+  AssertTrue('Object has /Kids',lStart>0);
+  Inc(lStart,Length('/Kids ['));
+  lEnd:=Pos(']',aObject,lStart);
+  Result:=Trim(Copy(aObject,lStart,lEnd-lStart)).Split([' R'],TStringSplitOptions.ExcludeEmpty);
+end;
+
+
+procedure TTestPDFSections.CheckSectionTree(aOutline: Boolean);
+
+var
+  lOutput, lRoot, lKid: String;
+  lKids: TStringArray;
+  i: Integer;
+
+begin
+  AddSections(2,aOutline);
+  lOutput:=Output;
+  lRoot:=ObjectText(lOutput,ReferenceAfter(ObjectText(lOutput,1),'/Pages'));
+  AssertTrue('Root is a /Pages object',Pos('/Type /Pages',lRoot)>0);
+  AssertTrue('Root /Count is 2',Pos('/Count 2',lRoot)>0);
+  lKids:=Kids(lRoot);
+  AssertEquals('Root has a kid per section',2,Length(lKids));
+  for i:=0 to Length(lKids)-1 do
+    begin
+    lKid:=ObjectText(lOutput,StrToInt(Trim(lKids[i]).Split([' '])[0]));
+    AssertTrue('Section kid '+IntToStr(i)+' is a /Pages object',Pos('/Type /Pages',lKid)>0);
+    AssertTrue('Section kid '+IntToStr(i)+' /Count is 1',Pos('/Count 1',lKid)>0);
+    end;
+end;
+
+
+procedure TTestPDFSections.TestTwoSectionsNoOutline;
+
+begin
+  CheckSectionTree(False);
+end;
+
+
+procedure TTestPDFSections.TestTwoSectionsOutline;
+
+begin
+  CheckSectionTree(True);
+end;
+
+
+procedure TTestPDFSections.TestOneSectionNoOutline;
+
+var
+  lOutput, lRoot, lKid: String;
+  lKids: TStringArray;
+
+begin
+  AddSections(1,False);
+  lOutput:=Output;
+  lRoot:=ObjectText(lOutput,ReferenceAfter(ObjectText(lOutput,1),'/Pages'));
+  AssertTrue('Root /Count is 1',Pos('/Count 1',lRoot)>0);
+  lKids:=Kids(lRoot);
+  AssertEquals('Root has one kid',1,Length(lKids));
+  lKid:=ObjectText(lOutput,StrToInt(Trim(lKids[0]).Split([' '])[0]));
+  AssertTrue('The kid of a single section is a /Page object',Pos('/Type /Page',lKid)>0);
+  AssertTrue('The kid of a single section is not a /Pages object',Pos('/Type /Pages',lKid)=0);
+end;
+
+
 { TTestCompressionDecompression }
 
 function TTestCompressionDecompression.GetTestString: string;
@@ -2011,6 +2153,7 @@ initialization
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFDictionary{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFXRef{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFPage{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFSections{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestCompressionDecompression{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFImageItem{$ifdef fptest}.Suite{$endif});
 
