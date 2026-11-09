@@ -305,6 +305,7 @@ ResourceString
   SRegCreateFailed  = 'Failed to create key: "%s"';
   SRegSetDataFailed = 'Failed to set data for value "%s"';
   SRegGetDataFailed = 'Failed to get data for value "%s"';
+  SRegCreateDirFailed = 'Failed to create registry directory: "%s"';
 
 var
   GlobalXMLFile : Boolean = False;

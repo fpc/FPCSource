@@ -24,12 +24,50 @@ type
     procedure TestStringList;
     Procedure TestInt64;
     Procedure TestDeleteSubkey;
+{$ifndef windows}
+    procedure TestCreateDirFailed;
+{$endif}
   end;
 
 implementation
 
 uses
   registry;
+
+{$ifndef windows}
+const
+  BlockedAppName = 'fpc-regtest-blocked';
+
+var
+  CreateDirFailedRaised: Boolean;
+  CreateDirFailedMessage: String;
+
+
+// Application name whose config directory is blocked by a regular file
+function GetBlockedAppName: String;
+
+begin
+  Result:=BlockedAppName;
+end;
+
+
+// Create a TRegistry and record whether it raised ERegistryException
+procedure TryCreateRegistry;
+
+begin
+  CreateDirFailedRaised:=False;
+  CreateDirFailedMessage:='';
+  try
+    TRegistry.Create.Free;
+  except
+    on E: ERegistryException do
+      begin
+      CreateDirFailedRaised:=True;
+      CreateDirFailedMessage:=E.Message;
+      end;
+  end;
+end;
+{$endif}
 
 { TTestBasics }
 
@@ -272,6 +310,37 @@ begin
     CleanUp(ExceptObject <> nil);
   end;
 end;
+
+{$ifndef windows}
+procedure TTestBasics.TestCreateDirFailed;
+
+var
+  lOldAppName: TGetAppNameEvent;
+  lDir, lBlocker: String;
+  lHandle: THandle;
+
+begin
+  lOldAppName:=OnGetApplicationName;
+  OnGetApplicationName:=@GetBlockedAppName;
+  try
+    lDir:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
+    lBlocker:=ExcludeTrailingPathDelimiter(lDir);
+    AssertTrue('Config base directory exists',ForceDirectories(ExtractFilePath(lBlocker)));
+    lHandle:=FileCreate(lBlocker);
+    AssertTrue('Blocking file '+lBlocker+' created',lHandle<>THandle(-1));
+    FileClose(lHandle);
+    try
+      TryCreateRegistry;
+      AssertTrue('TRegistry.Create raises ERegistryException when its directory cannot be created',CreateDirFailedRaised);
+      AssertEquals('Exception message names the directory',Format(SRegCreateDirFailed,[lDir]),CreateDirFailedMessage);
+    finally
+      DeleteFile(lBlocker);
+    end;
+  finally
+    OnGetApplicationName:=lOldAppName;
+  end;
+end;
+{$endif}
 
 
 initialization

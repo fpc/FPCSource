@@ -181,7 +181,8 @@ begin
   {$ifdef XMLRegfile_in_CurDir}
   s:='.' + PathDelim;
   {$endif}
-  ForceDirectories(s);
+  if not ForceDirectories(s) then
+    Raise ERegistryException.CreateFmt(SRegCreateDirFailed, [s]);
   FSysData:=TXMLRegistryInstance.GetXMLRegistry(s+XFileName);
   TXmlRegistry(FSysData).AutoFlush:=False;
 end;
