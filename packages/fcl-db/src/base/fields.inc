@@ -1417,8 +1417,10 @@ begin
       SetCodePage(AValue, FCodePage, FCodePage<>CP_NONE);
     if DS <= dsMaxStringSize then
       begin
+      // Translate has no size for its destination, so it gets no more of the
+      // value than fits the buffer
       if FTransliterate then
-        DataSet.Translate(@AValue[1],Buf,True)
+        DataSet.Translate(PAnsiChar(Copy(AValue,1,DS-1)),Buf,True)
       else
         // The data is copied into the buffer, since some TDataset descendents copy
         // the whole buffer-length in SetData. (See bug 8477)
@@ -1431,7 +1433,7 @@ begin
       begin
       SetLength(DynBuf, DataSize);
       if FTransliterate then
-        DataSet.Translate(@AValue[1],@DynBuf[0],True)
+        DataSet.Translate(PAnsiChar(Copy(AValue,1,DS-1)),@DynBuf[0],True)
       else
         StrPLCopy(PAnsiChar(DynBuf), AValue, DS-1);
       SetData(@DynBuf[0]);
