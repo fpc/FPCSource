@@ -103,6 +103,8 @@ Type
 
   TDOMWriter = class(TXMLWriter)
   Protected
+    function InNonEmptyDefaultNamespace: Boolean;
+    function NeedsNamespaceFixup(Element: TDOMElement): Boolean;
     procedure NamespaceFixup(Element: TDOMElement);
     procedure VisitDocument(Node: TDOMNode);
     procedure VisitDocument_Canonical(Node: TDOMNode);
@@ -691,7 +693,7 @@ var
 begin
   WriteStartElement(TDOMElement(node).TagName);
 
-  if nfLevel2 in node.Flags then
+  if NeedsNamespaceFixup(TDOMElement(node)) then
     NamespaceFixup(TDOMElement(node))
   else if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
@@ -883,6 +885,27 @@ begin
                TDOMDocumentType(Node).InternalSubset);
 end;
 
+// True if the default namespace in scope is bound to a non-empty URI
+function TDOMWriter.InNonEmptyDefaultNamespace: Boolean;
+var
+  B: TBinding;
+begin
+  B := FNSHelper.DefaultNSBinding;
+  Result := Assigned(B) and Assigned(B.uri) and (B.uri^.Key <> '');
+end;
+
+// True if Element is a level 2 node, is inside a non-empty default namespace or has a level 2 attribute
+function TDOMWriter.NeedsNamespaceFixup(Element: TDOMElement): Boolean;
+var
+  i: Integer;
+begin
+  Result := (nfLevel2 in Element.Flags) or InNonEmptyDefaultNamespace;
+  if not Result and Element.HasAttributes then
+    for i := 0 to Element.Attributes.Length-1 do
+      if nfLevel2 in Element.Attributes[i].Flags then
+        Exit(True);
+end;
+
 procedure TDOMWriter.NamespaceFixup(Element: TDOMElement);
 var
   B: TBinding;
@@ -891,7 +914,9 @@ var
   s: DOMString;
   action: TAttributeAction;
   p: PAttrFixup;
+  DeclaresDefault: Boolean;
 begin
+  DeclaresDefault := False;
   FScratch.Count := 0;
   FNSDefs.Count := 0;
   if Element.hasAttributes then
@@ -903,7 +928,10 @@ begin
       if TDOMNode_NS(node).NSI.NSIndex = 2 then
       begin
         if TDOMNode_NS(node).NSI.PrefixLen = 0 then
-          s := ''
+        begin
+          s := '';
+          DeclaresDefault := True;
+        end
         else
           s := node.localName;
         FNSHelper.DefineBinding(s, node.nodeValue, B);
@@ -929,7 +957,12 @@ begin
     end;
   end;
 
-  FNSHelper.DefineBinding(Element.Prefix, Element.namespaceURI, B);
+  B := nil;
+  if nfLevel2 in Element.Flags then
+    FNSHelper.DefineBinding(Element.Prefix, Element.namespaceURI, B)
+  { a level 1 element has no namespace: undeclare an inherited default namespace }
+  else if not DeclaresDefault and InNonEmptyDefaultNamespace then
+    FNSHelper.DefineBinding('', '', B);
   if Assigned(B) then
     FNSDefs.Add(B);
 
