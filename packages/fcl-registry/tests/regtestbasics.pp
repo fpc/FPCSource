@@ -207,21 +207,25 @@ Var
   I : Integer;
 
 begin
-  With TRegistry.Create do
-    try
-      RootKey:=HKEY_CURRENT_USER;
-      OpenKey('Software/Test',True);
-      SL:=TstringList.Create;
-      For I:=0 to 10 do
-        SL.Add(IntToStr(I));
-      WriteStringList('me',SL);
-      SL.Clear;
-      ReadStringList('me',SL);
-      For I:=0 to 10 do
-        AssertEquals('String '+IntToStr(i),IntToStr(I),SL[I]);
-    finally
-      Free;
-    end;
+  SL:=TStringList.Create;
+  try
+    With TRegistry.Create do
+      try
+        RootKey:=HKEY_CURRENT_USER;
+        OpenKey('Software/Test',True);
+        For I:=0 to 10 do
+          SL.Add(IntToStr(I));
+        WriteStringList('me',SL);
+        SL.Clear;
+        ReadStringList('me',SL);
+        For I:=0 to 10 do
+          AssertEquals('String '+IntToStr(i),IntToStr(I),SL[I]);
+      finally
+        Free;
+      end;
+  finally
+    SL.Free;
+  end;
 end;
 
 
