@@ -260,6 +260,8 @@ function Decode_UCS2(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; Ou
 function Decode_UCS2_Swapped(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 function Decode_UTF8(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 function Decode_8859_1(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+// Decode US-ASCII bytes; returns -1 at the first byte >= $80
+function Decode_US_ASCII(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 
 {$i names.inc}
 
@@ -1065,6 +1067,29 @@ begin
   Dec(InCnt, cnt);
   Dec(OutCnt, cnt);
   Result := cnt;
+end;
+
+function Decode_US_ASCII(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  I, cnt: Cardinal;
+begin
+  cnt := OutCnt;
+  if cnt > InCnt then
+    cnt := InCnt;
+  Result := cnt;
+  I := 0;
+  while I < cnt do
+  begin
+    if ord(InBuf[I]) >= $80 then
+    begin
+      Result := -1;
+      Break;
+    end;
+    OutBuf[I] := WideChar(ord(InBuf[I]));
+    Inc(I);
+  end;
+  Dec(InCnt, I);
+  Dec(OutCnt, I);
 end;
 
 function Decode_UTF8(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;

@@ -436,6 +436,21 @@ begin
             SameText(AEncoding, 'ISO8859-1');
 end;
 
+// True if AEncoding is a name or alias of US-ASCII in the IANA character set registry
+function Is_US_ASCII(const AEncoding: string): Boolean;
+begin
+  Result := SameText(AEncoding, 'US-ASCII') or
+            SameText(AEncoding, 'ASCII') or
+            SameText(AEncoding, 'ANSI_X3.4-1968') or
+            SameText(AEncoding, 'ANSI_X3.4-1986') or
+            SameText(AEncoding, 'iso-ir-6') or
+            SameText(AEncoding, 'ISO646-US') or
+            SameText(AEncoding, 'us') or
+            SameText(AEncoding, 'IBM367') or
+            SameText(AEncoding, 'cp367') or
+            SameText(AEncoding, 'csASCII');
+end;
+
 
 { TXMLCharSource }
 
@@ -701,6 +716,8 @@ begin
   FillChar(NewDecoder, sizeof(TDecoder), 0);
   if Is_8859_1(AEncoding) then
     FDecoder.Decode := @Decode_8859_1
+  else if Is_US_ASCII(AEncoding) then
+    FDecoder.Decode := @Decode_US_ASCII
   else if FindDecoder(AEncoding, NewDecoder) then
     FDecoder := NewDecoder
   else
