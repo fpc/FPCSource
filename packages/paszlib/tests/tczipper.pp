@@ -848,6 +848,110 @@ begin
 end;
 
 
+type
+  { TTerminateHandler }
+
+  TTerminateHandler = class(TObject)
+  public
+    UnZipper: TUnZipper;
+    CurrentFile: ansistring;
+    // Record the name of the entry being extracted
+    procedure DoStartFile(Sender: TObject; const AFileName: ansistring);
+    // Terminate the unzipper while big.bin is extracted
+    procedure DoProgress(Sender: TObject; const Pct: double);
+  end;
+
+procedure TTerminateHandler.DoStartFile(Sender: TObject; const AFileName: ansistring);
+begin
+  CurrentFile:=ExtractFileName(AFileName);
+end;
+
+procedure TTerminateHandler.DoProgress(Sender: TObject; const Pct: double);
+begin
+  if CurrentFile='big.bin' then
+    UnZipper.Terminate;
+end;
+
+
+function TestTerminate: boolean;
+// Terminates extraction in the middle of a large entry
+var
+  lTempDir, lZipFile: ansistring;
+  lZipper: TZipper;
+  lUnZipper: TUnZipper;
+  lSmall, lLast, lBig: TStringStream;
+  lData: ansistring;
+  lHandler: TTerminateHandler;
+  i: integer;
+  lSeed: cardinal;
+
+  procedure Check(aCondition: boolean; const aMessage: ansistring);
+  begin
+    if not aCondition then
+    begin
+      result:=false;
+      writeln('Failed: '+aMessage);
+    end;
+  end;
+
+begin
+  result:=true;
+  lTempDir:=IncludeTrailingPathDelimiter(GetTempDir(false))+'tcterminate'+IntToStr(GetProcessID);
+  ForceDirectories(lTempDir);
+  lZipFile:=lTempDir+DirectorySeparator+'terminate.zip';
+  SetLength(lData,2*1024*1024);
+  lSeed:=12345;
+  for i:=1 to Length(lData) do
+  begin
+    lSeed:=lSeed*1103515245+12345;
+    lData[i]:=AnsiChar(lSeed shr 24);
+  end;
+  lSmall:=TStringStream.Create('first');
+  lBig:=TStringStream.Create(lData);
+  lLast:=TStringStream.Create('last');
+  lZipper:=TZipper.Create;
+  try
+    lZipper.FileName:=lZipFile;
+    lZipper.Entries.AddFileEntry(lSmall,'a.txt');
+    lZipper.Entries.AddFileEntry(lBig,'big.bin');
+    lZipper.Entries.AddFileEntry(lLast,'c.txt');
+    lZipper.ZipAllFiles;
+  finally
+    lZipper.Free;
+    lSmall.Free;
+    lBig.Free;
+    lLast.Free;
+  end;
+  lHandler:=TTerminateHandler.Create;
+  lUnZipper:=TUnZipper.Create;
+  try
+    lHandler.UnZipper:=lUnZipper;
+    lUnZipper.FileName:=lZipFile;
+    lUnZipper.OutputPath:=lTempDir;
+    lUnZipper.OnStartFile:=@lHandler.DoStartFile;
+    lUnZipper.OnProgress:=@lHandler.DoProgress;
+    try
+      lUnZipper.UnZipAllFiles;
+    except
+      on E: Exception do
+        Check(false,'UnZipAllFiles raised '+E.ClassName+': '+E.Message);
+    end;
+    Check(lUnZipper.Terminated,'Terminated is True after Terminate');
+    Check(FileExists(lTempDir+DirectorySeparator+'a.txt'),'entry before the terminated one is extracted');
+    Check(not FileExists(lTempDir+DirectorySeparator+'big.bin'),'partially extracted big.bin is removed');
+    Check(not FileExists(lTempDir+DirectorySeparator+'c.txt'),'entry after the terminated one is not extracted');
+  finally
+    lUnZipper.Free;
+    lHandler.Free;
+    DeleteFile(lTempDir+DirectorySeparator+'a.txt');
+    DeleteFile(lTempDir+DirectorySeparator+'big.bin');
+    DeleteFile(lTempDir+DirectorySeparator+'c.txt');
+    DeleteFile(lZipFile);
+    RemoveDir(lTempDir);
+  end;
+end;
+
+
 function TestLargeZip64: boolean;
 // Tests single zip file with large uncompressed content
 // which forces it to zip64 format
@@ -1015,6 +1119,19 @@ begin
       end;
     end;
     writeln('TestConvertBackslashes finished');
+    writeln('');
+
+    writeln('TestTerminate started');
+    try
+      if not(TestTerminate) then code:=code+2048;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+2048;
+      end;
+    end;
+    writeln('TestTerminate finished');
     writeln('');
 
     writeln('TestEmptyZipEntries(10) started');

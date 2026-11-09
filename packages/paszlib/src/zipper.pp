@@ -2726,6 +2726,7 @@ Var
   IsLink: Boolean;
   IsCustomStream: Boolean;
   IsOpenedHere: Boolean;
+  Complete: Boolean;
   U : UnicodeString;
 
   Procedure SetAttributes;
@@ -2757,9 +2758,11 @@ Var
       end;
   end;
 
-  procedure DoUnzip(const Dest: TStream);
+  // Unzip the entry to Dest; False when extraction was terminated before the end of the entry
+  function DoUnzip(const Dest: TStream): Boolean;
 
   begin
+    Result:=True;
     if ZMethod=0 then
       begin
       if (LocalHdr.Compressed_Size<>0) then
@@ -2783,7 +2786,8 @@ Var
           OnPercent:=Self.OnPercent;
           DeCompress;
           Self.FTotPos := FTotPos;
-          if Item.CRC32 <> Crc32Val then
+          Result:=not Terminated;
+          if Result and (Item.CRC32 <> Crc32Val) then
             raise EZipError.CreateFmt(SErrInvalidCRC,[Item.ArchiveFileName]);
         Finally
           FCurrentDecompressor:=Nil;
@@ -2858,13 +2862,15 @@ Begin
     end
   else
     begin
+    Complete:=True;
     if IsLink then
       begin
       {$IFDEF UNIX}
         LinkTargetStream := TStringStream.Create('');
         try
-          DoUnzip(LinkTargetStream);
-          fpSymlink(PAnsiChar(LinkTargetStream.DataString), PAnsiChar(OutputFileName));
+          Complete:=DoUnzip(LinkTargetStream);
+          if Complete then
+            fpSymlink(PAnsiChar(LinkTargetStream.DataString), PAnsiChar(OutputFileName));
         finally
           LinkTargetStream.Free;
         end;
@@ -2876,14 +2882,19 @@ Begin
       end
     else
       begin
+      Complete:=False;
       try
         OpenOutput(OutputFileName, FOutStream, Item);
-        DoUnzip(FOutStream);
+        Complete:=DoUnzip(FOutStream);
       Finally
         CloseOutput(Item, FOutStream);
       end;
+      // remove the partially written file of a terminated extraction
+      if not Complete then
+        DeleteFile(OutputFileName);
       end;
-    SetAttributes;
+    if Complete then
+      SetAttributes;
     end;
 
   if IsOpenedHere then
