@@ -339,6 +339,14 @@ begin
 end;
 {$endif}
 
+// Raise ERegistryException for value aName having an unexpected data type
+procedure RaiseInvalidRegType(const aName: UnicodeString);
+
+begin
+  raise ERegistryException.CreateFmt(SInvalidRegType, [aName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
+end;
+
+
 constructor TRegistry.Create;
 
 begin
@@ -527,7 +535,7 @@ Var
 begin
   GetData(Name, @Result, SizeOf(Integer), RegDataType);
   If RegDataType<>rdInteger Then
-    Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+    RaiseInvalidRegType(Name);
 end;
 
 function TRegistry.ReadInteger(const Name: AnsiString): Integer;
@@ -543,7 +551,7 @@ Var
 begin
   GetData(Name, @Result, SizeOf(Int64), RegDataType);
   If RegDataType<>rdInt64 Then
-    Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+    RaiseInvalidRegType(Name);
 end;
 
 function TRegistry.ReadInt64(const Name: AnsiString): Int64;
@@ -622,7 +630,7 @@ begin
   if info.datasize>0 then
   begin
     if Not (Info.RegData in [rdString,rdExpandString]) then
-      Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+      RaiseInvalidRegType(Name);
     if Odd(Info.DataSize) then
       SetLength(u,round((Info.DataSize+1)/SizeOf(UnicodeChar)))
     else
@@ -752,7 +760,7 @@ begin
   if info.datasize>0 then
     begin
      If Not (Info.RegData in [rdMultiString]) then
-       Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+       RaiseInvalidRegType(Name);
      SetLength(Data,Info.DataSize);
      ReadDataSize := GetData(Name,PWideChar(Data),Info.DataSize,Info.RegData) div SizeOf(WideChar);
      //writeln('TRegistry.ReadStringArray: ReadDataSize=',ReadDataSize);
