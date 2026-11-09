@@ -3610,7 +3610,13 @@ function VarArrayDimCount(const A: Variant) : LongInt;
       hv:=TVarData(hv.vPointer^);
 
     if (hv.vType and varArray)<>0 then
-      Result:=hv.vArray^.DimCount
+      begin
+        { get Pointer to the array }
+        if (hv.vType and varByRef)<>0 then
+          Result:=pvararray(hv.vPointer^)^.DimCount
+        else
+          Result:=hv.vArray^.DimCount;
+      end
     else
       Result:=0;
   end;
