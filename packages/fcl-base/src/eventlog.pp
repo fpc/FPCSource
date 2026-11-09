@@ -56,6 +56,7 @@ Type
     FOnGetCustomEventID : TLogCodeEvent;
     FOnGetCustomEvent : TLogCodeEvent;
     FOnLogMessage: TLogMessageEvent;
+    FOnFormattedLogMessage: TLogMessageEvent;
     FPaused : Boolean;
     FEventFilter : TEventTypes;
     procedure SetActive(const Value: Boolean);
@@ -68,10 +69,9 @@ Type
     procedure ActivateIOLog;
     procedure ActivateSystemLog;
     function DefaultFileName: String;
-    function FormatLogMessage(EventType : TEventType; const Msg: String): String;
     procedure WriteFileLog(EventType : TEventType; const Msg: String);
+    procedure WriteFileLine(const aLine: String);
     procedure WriteSystemLog(EventType: TEventType; const Msg: String);
-    procedure WriteIOLog(EventType: TEventType; const Msg: String; var OutFile: TextFile);
     procedure DeActivateFileLog;
     procedure DeActivateSystemLog;
     procedure CheckIdentification;
@@ -79,7 +79,10 @@ Type
     Procedure DoGetCustomEventCategory(Var Code : Word);
     Procedure DoGetCustomEvent(Var Code : DWord);
     Procedure DoLogMessage(EventType : TEventType; const Msg: String);
+    Procedure DoFormattedLogMessage(EventType : TEventType; const aLine: String);
   Protected
+    // Line written to a file or console for message Msg of type EventType
+    function FormatLogMessage(EventType : TEventType; const Msg: String): String; virtual;
     Procedure CheckInactive;
     Procedure EnsureActive;
     function MapTypeToEvent(EventType: TEventType): DWord;
@@ -123,6 +126,8 @@ Type
     Property OnGetCustomEventID : TLogCodeEvent Read FOnGetCustomEventID Write FOnGetCustomEventID;
     Property OnGetCustomEvent : TLogCodeEvent Read FOnGetCustomEvent Write FOnGetCustomEvent;
     Property OnLogMessage : TLogMessageEvent read FOnLogMessage write FOnLogMessage;
+    // Called for every logged message with the line as written to a file or console
+    Property OnFormattedLogMessage : TLogMessageEvent read FOnFormattedLogMessage write FOnFormattedLogMessage;
     Property Paused : Boolean Read FPaused Write FPaused;
   End;
 
@@ -225,19 +230,27 @@ begin
 end;
 
 procedure TEventLog.Log(EventType: TEventType; const Msg: String);
+
+var
+  Line : String;
+
 begin
   If Paused then
     exit;
   if not (EventType in EventFilter) then
     exit;
   EnsureActive;
+  Line:='';
+  if (FLogType in [ltFile,ltStdOut,ltStdErr]) or Assigned(FOnFormattedLogMessage) then
+    Line:=FormatLogMessage(EventType,Msg);
   Case FlogType of
-    ltFile   : WriteFileLog(EventType,Msg);
+    ltFile   : WriteFileLine(Line);
     ltSystem : WriteSystemLog(EventType,Msg);
-    ltStdOut : WriteIOLog(EventType,Msg,StdOut);
-    ltStdErr : WriteIOLog(EventType,Msg,StdErr);
+    ltStdOut : Writeln(StdOut,Line);
+    ltStdErr : Writeln(StdErr,Line);
   end;
   DoLogMessage(EventType, Msg);
+  DoFormattedLogMessage(EventType, Line);
 end;
 
 function TEventLog.FormatLogMessage(EventType : TEventType; const Msg: String): String;
@@ -254,11 +267,17 @@ end;
 
 procedure TEventLog.WriteFileLog(EventType : TEventType; const Msg : String);
 
+begin
+  WriteFileLine(FormatLogMessage(EventType, Msg));
+end;
+
+procedure TEventLog.WriteFileLine(const aLine: String);
+
 Var
   S : String;
 
 begin
-  S:=FormatLogMessage(EventType, Msg)+LineEnding;
+  S:=aLine+LineEnding;
   try
     FStream.WriteBuffer(S[1],Length(S));
     S:='';
@@ -268,11 +287,6 @@ begin
   end;
   If (S<>'') and RaiseExceptionOnError then
     Raise ELogError.CreateFmt(SErrLogFailedMsg,[S]);
-end;
-
-procedure TEventLog.WriteIOLog(EventType: TEventType; const Msg: String; var OutFile: TextFile);
-begin
-  Writeln(OutFile,FormatLogMessage(EventType,Msg));
 end;
 
 procedure TEventLog.Log(const Fmt: String; Args: array of const);
@@ -436,6 +450,13 @@ Procedure TEventLog.DoLogMessage(EventType : TEventType; const Msg: String);
 begin
   If Assigned(FOnLogMessage) then
     FOnLogMessage(Self,EventType,Msg);
+end;
+
+Procedure TEventLog.DoFormattedLogMessage(EventType : TEventType; const aLine: String);
+
+begin
+  If Assigned(FOnFormattedLogMessage) then
+    FOnFormattedLogMessage(Self,EventType,aLine);
 end;
 
 
