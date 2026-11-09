@@ -1036,7 +1036,8 @@ begin
       ftVarBytes : Field.AsVariant:=Value;
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
       ftFixedWideChar,
-      ftWideString: Field.AsWideString:=AsWideString;
+      ftWideString,
+      ftWideMemo : Field.AsWideString:=AsWideString;
       ftExtended : Field.AsExtended:=Value;
       ftSingle   : Field.AsSingle:=AsSingle;
     else
@@ -1082,7 +1083,8 @@ begin
       ftVarBytes : Value:=Field.AsVariant;
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
       ftFixedWideChar,
-      ftWideString: AsWideString:=Field.AsWideString;
+      ftWideString,
+      ftWideMemo : AsWideString:=Field.AsWideString;
       ftExtended : Value:=Field.AsExtended;
       ftSingle   : AsSingle:=Field.AsSingle;
     else
