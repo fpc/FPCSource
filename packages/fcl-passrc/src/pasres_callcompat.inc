@@ -28,7 +28,7 @@ class function TPasResolver.GetWarnIdentifierNumbers(Identifier: string; out
     {$ENDIF}
   end;
 
-  procedure SetNumbers(Numbers: array of integer);
+  procedure SetNumbers(const Numbers: array of integer);
   var
     i: Integer;
   begin

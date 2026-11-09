@@ -99,13 +99,13 @@ type
 
   procedure Infer(ArgParent: TPasElement; ArgType, ParamLoType, ParamHiType: TPasType;
     NeedVar, IsSubType, IsDelphi: boolean;
-    InferenceParams: TInferredTypes; TemplTypes: TFPList;
+    const InferenceParams: TInferredTypes; TemplTypes: TFPList;
     ErrorPos: TPasElement); forward;
 
   procedure InferFromSpecialize(FormalSpec: TPasSpecializeType;
     ParamLoType, ParamHiType: TPasType;
     NeedVar, IsDelphi: boolean;
-    InferenceParams: TInferredTypes; TemplTypes: TFPList;
+    const InferenceParams: TInferredTypes; TemplTypes: TFPList;
     ErrorPos: TPasElement);
   // Infer template types from a formal param that is "specialize TGeneric<T,...>"
   // by matching against the actual param type
@@ -272,7 +272,7 @@ type
   procedure InferFromSpecializeWithArrayLit(FormalSpec: TPasSpecializeType;
     ElemLoType, ElemHiType: TPasType;
     NeedVar, IsDelphi: boolean;
-    InferenceParams: TInferredTypes; TemplTypes: TFPList;
+    const InferenceParams: TInferredTypes; TemplTypes: TFPList;
     ErrorPos: TPasElement);
   // Array constructor [expr,...] passed to "specialize TMyArray<T>"
   // ElemLoType/ElemHiType are the element types of the array literal
@@ -314,7 +314,7 @@ type
 
   procedure Infer(ArgParent: TPasElement; ArgType, ParamLoType, ParamHiType: TPasType;
     NeedVar, IsSubType, IsDelphi: boolean;
-    InferenceParams: TInferredTypes; TemplTypes: TFPList;
+    const InferenceParams: TInferredTypes; TemplTypes: TFPList;
     ErrorPos: TPasElement);
   var
     C: TClass;
@@ -493,7 +493,7 @@ type
 
   procedure InferParam(i: integer; NeedVar: boolean; ParamsExprs: TPasExprArray;
     ProcArgs: TFPList;
-    InferenceParams: TInferredTypes; TemplTypes: TFPList; IsDelphi: boolean);
+    const InferenceParams: TInferredTypes; TemplTypes: TFPList; IsDelphi: boolean);
   var
     Arg: TPasArgument;
     ArgType: TPasType;
