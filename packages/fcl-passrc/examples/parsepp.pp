@@ -28,6 +28,7 @@ function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 begin
   Writeln(AName,' : ',AClass.ClassName,' at ',ASourceFilename,':',ASourceLinenumber);
   Result := AClass.Create(AName, AParent);
+  AddOwnedElement(Result);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
@@ -86,7 +87,6 @@ begin
     end;
 
   finally
-    FreeAndNil(M);
     FreeAndNil(E)
   end;
 end.

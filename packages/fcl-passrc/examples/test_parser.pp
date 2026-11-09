@@ -164,6 +164,7 @@ function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
+  AddOwnedElement(Result);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
@@ -545,8 +546,7 @@ begin
    else if lsmt is TPasImplForLoop then
     begin
      lifl:=TPasImplForLoop(lsmt);
-     //TODO variable
-     write(s1,'for ',lifl.Variable.Name,':= ',lifl.StartExpr.GetDeclaration(True),' ');
+     write(s1,'for ',lifl.VariableName.GetDeclaration(True),':= ',lifl.StartExpr.GetDeclaration(True),' ');
      if lifl.Down then write('down');
      writeln('to ',lifl.EndExpr.GetDeclaration(True),' do');
      GetTPasImplBlock(TPasImplBlock(lifl),lindent+1,0,false,false);
@@ -1970,7 +1970,6 @@ begin
        writeln('end');
        writeln('.');
       end;
-    FreeAndNil(M);
   finally
     FreeAndNil(E);
   end;

@@ -39,6 +39,7 @@ function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 begin
 //  Writeln(AName,' : ',AClass.ClassName,' at ',ASourceFilename,':',ASourceLinenumber);
   Result := AClass.Create(AName, AParent);
+  AddOwnedElement(Result);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
@@ -126,7 +127,6 @@ begin
     if M is TPasProgram then
       PrintUses(P.ProgramSection,ShowFilename);
   finally
-    FreeAndNil(M);
     FreeAndNil(E)
   end;
 end.

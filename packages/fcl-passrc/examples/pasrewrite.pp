@@ -29,6 +29,7 @@ type
     FLineNumberWidth,
     FIndentSize : Integer;
     FOptions : TPasWriterOptions;
+    FEngine : TSimpleEngine;
     FForwardClasses,
     FExtraUnits,
     cmdl,
@@ -56,6 +57,7 @@ function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
+  AddOwnedElement(Result);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
@@ -242,7 +244,9 @@ begin
     FileResolver := nil;
     Scanner := nil;
     Parser := nil;
-    SE:=TSimpleEngine.Create;
+    FreeAndNil(FEngine);
+    FEngine:=TSimpleEngine.Create;
+    SE:=FEngine;
     try
       FileResolver := TFileResolver.Create;
       FileResolver.UseStreams:=True;
@@ -322,7 +326,6 @@ begin
       Parser.Free;
       Scanner.Free;
       FileResolver.Free;
-      SE.Free;
     end;
   except
     on E : EParserError do
@@ -454,7 +457,7 @@ begin
   try
     WriteModule(M);
   finally
-    M.Free;
+    FreeAndNil(FEngine);
   end;
 end;
 
@@ -468,6 +471,7 @@ end;
 destructor TPasRewriteApplication.Destroy;
 begin
   FreeAndNil(FDefines);
+  FreeAndNil(FEngine);
   inherited Destroy;
 end;
 

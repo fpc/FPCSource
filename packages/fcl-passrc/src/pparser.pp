@@ -225,10 +225,11 @@ type
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; const ASourceFilename: String;
       ASourceLinenumber: Integer): TPasElement;overload;
+    // Create an element of class AClass, owned by this container
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;overload;
-      virtual; abstract;
+      virtual;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement; overload;
@@ -1042,6 +1043,17 @@ function TPasTreeContainer.CreateElement(AClass: TPTreeElement;
 begin
   Result := CreateElement(AClass, AName, AParent, visDefault, ASourceFilename,
     ASourceLinenumber);
+end;
+
+function TPasTreeContainer.CreateElement(AClass: TPTreeElement;
+  const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
+begin
+  Result := AClass.Create(AName, AParent);
+  AddOwnedElement(Result);
+  Result.Visibility := AVisibility;
+  Result.SourceFilename := ASourceFilename;
+  Result.SourceLinenumber := ASourceLinenumber;
 end;
 
 function TPasTreeContainer.CreateElement(AClass: TPTreeElement;
