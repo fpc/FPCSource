@@ -3570,9 +3570,16 @@ begin
 end;
 
 procedure TFMTBCDField.SetAsCurrency(AValue: Currency);
-var bcd: TBCD;
+var
+  bcd: TBCD;
+  decimals: Integer;
 begin
-  if CurrToBCD(AValue, bcd, 32, Size) then
+  { CurrToBCD fails when it has to drop a place, and a currency has four: a
+    field of fewer takes all four, as SetAsBCD takes any other value }
+  decimals:=Size;
+  if decimals<4 then
+    decimals:=4;
+  if CurrToBCD(AValue, bcd, 32, decimals) then
     SetAsBCD(bcd);
 end;
 
