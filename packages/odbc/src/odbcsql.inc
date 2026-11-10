@@ -861,6 +861,7 @@ const
   SQL_API_SQLTABLES           = 54;
   SQL_API_SQLTRANSACT         = 23;
   SQL_API_SQLCANCELHANDLE     = 1022;
+  SQL_API_SQLPRIMARYKEYS      = 65;
 
 {
 /* Information requested by SQLGetInfo() */

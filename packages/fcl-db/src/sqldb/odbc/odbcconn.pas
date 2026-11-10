@@ -76,7 +76,14 @@ type
       FDBCHandle:SQLHDBC; // ODBC Connection Handle
       FFileDSN: string;
       FDBMSInfo: TDBMSInfo;
+      FTransactionSupport: Boolean; // False when the driver reports SQL_TC_NONE for SQL_TXN_CAPABLE
+      FPrimaryKeysSupport: Boolean; // False when the driver does not implement SQLPrimaryKeys
+      FStatisticsSupport: Boolean;  // False when the driver does not implement SQLStatistics
 
+    function DriverSupports(aFunctionID: SQLUSMALLINT): Boolean;
+    procedure AddPrimaryKeyIndexDefs(aStmtHandle: SQLHSTMT; aIndexDefs: TIndexDefs; const aTableName: string;
+      out aKeyName: string);
+    procedure AddStatisticsIndexDefs(aStmtHandle: SQLHSTMT; aIndexDefs: TIndexDefs; const aTableName, aKeyName: string);
     procedure SetParameters(ODBCCursor:TODBCCursor; AParams:TParams);
     procedure FreeParamBuffers(ODBCCursor:TODBCCursor);
   protected
@@ -682,6 +689,20 @@ begin
   Result:=pointer(PtrInt(FDBCHandle));
 end;
 
+// True unless SQLGetFunctions reports that the driver does not implement the ODBC function aFunctionID
+function TODBCConnection.DriverSupports(aFunctionID: SQLUSMALLINT): Boolean;
+
+var
+  Supported: SQLUSMALLINT;
+
+begin
+  Result := True;
+  Supported := SQL_TRUE;
+  if SQLGetFunctions(FDBCHandle, aFunctionID, @Supported) = SQL_SUCCESS then
+    Result := Supported <> SQL_FALSE;
+end;
+
+
 procedure TODBCConnection.DoInternalConnect;
 const
   BufferLength = 1024; // should be at least 1024 according to the ODBC specification
@@ -690,6 +711,7 @@ var
   WideConnectionString:widestring;
   ActualLength:SQLSMALLINT;
   DBMS_NAME: array[0..20] of AnsiChar;
+  TxnCapable: SQLUSMALLINT;
 begin
   // Do not call the inherited method as it checks for a non-empty DatabaseName, and we don't even use DatabaseName!
   // inherited DoInternalConnect;
@@ -753,6 +775,14 @@ begin
         Exclude(FConnOptions, sqLastInsertID);
         end;
     end;
+
+  // transactions are assumed to be supported unless the driver reports otherwise
+  FTransactionSupport := True;
+  TxnCapable := SQL_TC_NONE;
+  if SQLGetInfo(FDBCHandle, SQL_TXN_CAPABLE, @TxnCapable, SizeOf(TxnCapable), @ActualLength) = SQL_SUCCESS then
+    FTransactionSupport := TxnCapable <> SQL_TC_NONE;
+  FPrimaryKeysSupport := DriverSupports(SQL_API_SQLPRIMARYKEYS);
+  FStatisticsSupport := DriverSupports(SQL_API_SQLSTATISTICS);
 
   // set connection attributes (none yet)
 end;
@@ -855,6 +885,9 @@ end;
 function TODBCConnection.StartDBTransaction(trans: TSQLHandle; AParams:string): boolean;
 var AutoCommit: SQLINTEGER;
 begin
+  // a driver without transactions keeps the TSQLTransaction active without setting autocommit
+  if not FTransactionSupport then
+    Exit(True);
   // set some connection attributes
   if StrToBoolDef(Params.Values['AUTOCOMMIT'], False) then
     AutoCommit := SQL_AUTOCOMMIT_ON
@@ -871,6 +904,9 @@ end;
 
 function TODBCConnection.Commit(trans: TSQLHandle): boolean;
 begin
+  Result := True;
+  if not FTransactionSupport then
+    Exit;
   CheckResult(
     SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_COMMIT),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not commit!'
@@ -880,6 +916,9 @@ end;
 
 function TODBCConnection.Rollback(trans: TSQLHandle): boolean;
 begin
+  Result := True;
+  if not FTransactionSupport then
+    Exit;
   CheckResult(
     SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_ROLLBACK),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not rollback!'
@@ -1442,23 +1481,175 @@ begin
     );
 end;
 
+// Add the primary key of aTableName to aIndexDefs using SQLPrimaryKeys; aKeyName is the name of the key, '' if none
+procedure TODBCConnection.AddPrimaryKeyIndexDefs(aStmtHandle: SQLHSTMT; aIndexDefs: TIndexDefs; const aTableName: string;
+  out aKeyName: string);
+
+const
+  DEFAULT_NAME_LEN = 255;
+
+var
+  lRes: SQLRETURN;
+  lIndexDef: TIndexDef;
+  // variables for binding
+  lOrdinalPos: SQLSMALLINT; lOrdinalPosIndOrLen: SQLLEN;
+  lColName   : string;      lColNameIndOrLen   : SQLLEN;
+  lPKName    : string;      lPKNameIndOrLen    : SQLLEN;
+
+begin
+  aKeyName:='';
+  lIndexDef:=nil;
+  // alloc result column buffers
+  SetLength(lColName, DEFAULT_NAME_LEN);
+  SetLength(lPKName,  DEFAULT_NAME_LEN);
+
+  // Fetch primary key info using SQLPrimaryKeys
+  CheckResult(
+    SQLPrimaryKeys(
+      aStmtHandle,
+      nil, 0, // any catalog
+      nil, 0, // any schema
+      PAnsiChar(aTableName), Length(aTableName)
+    ),
+    SQL_HANDLE_STMT, aStmtHandle, 'Could not retrieve primary key metadata for table %s using SQLPrimaryKeys.', [aTableName]
+  );
+
+  try
+    // bind result columns; the column numbers are documented in the reference for SQLPrimaryKeys
+    CheckResult(SQLBindCol(aStmtHandle, 4, SQL_C_CHAR  , @lColName[1], Length(lColName)+1, @lColNameIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
+    CheckResult(SQLBindCol(aStmtHandle, 5, SQL_C_SSHORT, @lOrdinalPos, 0, @lOrdinalPosIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind primary key metadata column KEY_SEQ.');
+    CheckResult(SQLBindCol(aStmtHandle, 6, SQL_C_CHAR  , @lPKName[1], Length(lPKName)+1, @lPKNameIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind primary key metadata column PK_NAME.');
+
+    // fetch result
+    repeat
+      // go to next row; loads data in bound columns
+      lRes:=SQLFetch(aStmtHandle);
+      // if no more row, break
+      if lRes=SQL_NO_DATA then
+        Break;
+      // handle data
+      if ODBCSuccess(lRes) then begin
+        if lOrdinalPos=1 then begin
+          // create new IndexDef if OrdinalPos=1
+          lIndexDef:=aIndexDefs.AddIndexDef;
+          lIndexDef.Name:=PAnsiChar(@lPKName[1]);
+          lIndexDef.Fields:=PAnsiChar(@lColName[1]);
+          lIndexDef.Options:=lIndexDef.Options+[ixUnique]+[ixPrimary]; // Primary key is always unique
+          aKeyName:=lIndexDef.Name;
+        end else begin
+          assert(Assigned(lIndexDef));
+          lIndexDef.Fields:=lIndexDef.Fields+';'+PAnsiChar(@lColName[1]); // NB ; is the separator to be used for IndexDef.Fields
+        end;
+      end else begin
+        CheckResult(lRes, SQL_HANDLE_STMT, aStmtHandle, 'Could not fetch primary key metadata row.');
+      end;
+    until false;
+  finally
+    // unbind columns & close cursor
+    CheckResult(SQLFreeStmt(aStmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, aStmtHandle, 'Could not unbind columns.');
+    CheckResult(SQLFreeStmt(aStmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, aStmtHandle, 'Could not close cursor.');
+  end;
+end;
+
+
+// Add the indexes of aTableName to aIndexDefs using SQLStatistics; the index named aKeyName is the primary key
+procedure TODBCConnection.AddStatisticsIndexDefs(aStmtHandle: SQLHSTMT; aIndexDefs: TIndexDefs; const aTableName,
+  aKeyName: string);
+
+const
+  DEFAULT_NAME_LEN = 255;
+
+var
+  lRes: SQLRETURN;
+  lIndexDef: TIndexDef;
+  // variables for binding
+  lNonUnique : SQLSMALLINT; lNonUniqueIndOrLen : SQLLEN;
+  lIndexName : string;      lIndexNameIndOrLen : SQLLEN;
+  lType      : SQLSMALLINT; lTypeIndOrLen      : SQLLEN;
+  lOrdinalPos: SQLSMALLINT; lOrdinalPosIndOrLen: SQLLEN;
+  lColName   : string;      lColNameIndOrLen   : SQLLEN;
+  lAscOrDesc : AnsiChar;    lAscOrDescIndOrLen : SQLLEN;
+
+begin
+  // alloc result column buffers
+  SetLength(lColName,  DEFAULT_NAME_LEN);
+  SetLength(lIndexName,DEFAULT_NAME_LEN);
+
+  // use SQLStatistics to get index information
+  CheckResult(
+    SQLStatistics(
+      aStmtHandle,
+      nil, 0, // catalog unknown; request for all catalogs
+      nil, 0, // schema unknown; request for all schemas
+      PAnsiChar(aTableName), Length(aTableName), // request information for TableName
+      SQL_INDEX_ALL,
+      SQL_QUICK
+    ),
+    SQL_HANDLE_STMT, aStmtHandle, 'Could not retrieve index metadata for table %s using SQLStatistics.', [aTableName]
+  );
+
+  try
+    // bind result columns; the column numbers are documented in the reference for SQLStatistics
+    CheckResult(SQLBindCol(aStmtHandle,  4, SQL_C_SSHORT, @lNonUnique , 0, @lNonUniqueIndOrLen ), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column NON_UNIQUE.');
+    CheckResult(SQLBindCol(aStmtHandle,  6, SQL_C_CHAR  , @lIndexName[1], Length(lIndexName)+1, @lIndexNameIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column INDEX_NAME.');
+    CheckResult(SQLBindCol(aStmtHandle,  7, SQL_C_SSHORT, @lType      , 0, @lTypeIndOrLen      ), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column TYPE.');
+    CheckResult(SQLBindCol(aStmtHandle,  8, SQL_C_SSHORT, @lOrdinalPos, 0, @lOrdinalPosIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column ORDINAL_POSITION.');
+    CheckResult(SQLBindCol(aStmtHandle,  9, SQL_C_CHAR  , @lColName[1], Length(lColName)+1, @lColNameIndOrLen), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column COLUMN_NAME.');
+    CheckResult(SQLBindCol(aStmtHandle, 10, SQL_C_CHAR  , @lAscOrDesc , 1, @lAscOrDescIndOrLen ), SQL_HANDLE_STMT, aStmtHandle, 'Could not bind index metadata column ASC_OR_DESC.');
+
+    // clear index defs
+    lIndexDef:=nil;
+
+    // fetch result
+    repeat
+      // go to next row; loads data in bound columns
+      lRes:=SQLFetch(aStmtHandle);
+      // if no more row, break
+      if lRes=SQL_NO_DATA then
+        Break;
+      // handle data
+      if ODBCSuccess(lRes) then begin
+        // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
+        if lType<>SQL_TABLE_STAT then begin
+          if PAnsiChar(@lIndexName[1])=aKeyName then begin
+            // The indexdef is already made as the primary key
+            // Only if the index is descending is not known yet.
+            if (lAscOrDescIndOrLen<>SQL_NULL_DATA) and (lAscOrDesc='D') then begin
+              lIndexDef:=aIndexDefs.Find(aKeyName);
+              lIndexDef.Options:=lIndexDef.Options+[ixDescending];
+            end;
+          end else if (lOrdinalPos=1) or not Assigned(lIndexDef) then begin
+            // create new IndexDef if OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
+            lIndexDef:=aIndexDefs.AddIndexDef;
+            lIndexDef.Name:=PAnsiChar(@lIndexName[1]); // treat ansistring as zero terminated string
+            lIndexDef.Fields:=PAnsiChar(@lColName[1]);
+            if lNonUnique=SQL_FALSE then
+              lIndexDef.Options:=lIndexDef.Options+[ixUnique];
+            if (lAscOrDescIndOrLen<>SQL_NULL_DATA) and (lAscOrDesc='D') then
+              lIndexDef.Options:=lIndexDef.Options+[ixDescending];
+            // TODO: figure out how we can tell whether COLUMN_NAME is an expression or not
+            //       if it is an expression, we should include ixExpression in Options and set Expression to ColName
+          end else // NB we re-use the last IndexDef
+            lIndexDef.Fields:=lIndexDef.Fields+';'+PAnsiChar(@lColName[1]); // NB ; is the separator to be used for IndexDef.Fields
+        end;
+      end else begin
+        CheckResult(lRes, SQL_HANDLE_STMT, aStmtHandle, 'Could not fetch index metadata row.');
+      end;
+    until false;
+  finally
+    // unbind columns & close cursor
+    CheckResult(SQLFreeStmt(aStmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, aStmtHandle, 'Could not unbind columns.');
+    CheckResult(SQLFreeStmt(aStmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, aStmtHandle, 'Could not close cursor.');
+  end;
+end;
+
+
 procedure TODBCConnection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
   Len: integer;
   StmtHandle:SQLHSTMT;
   Res:SQLRETURN;
-  IndexDef: TIndexDef;
   KeyName: String;
-  // variables for binding
-  NonUnique :SQLSMALLINT; NonUniqueIndOrLen :SQLLEN;
-  IndexName :string;      IndexNameIndOrLen :SQLLEN;
-  _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLLEN;
-  OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLLEN;
-  ColName   :string;      ColNameIndOrLen   :SQLLEN;
-  AscOrDesc :AnsiChar;        AscOrDescIndOrLen :SQLLEN;
-  PKName    :string;      PKNameIndOrLen    :SQLLEN;
-const
-  DEFAULT_NAME_LEN = 255;
 begin
   Len := length(TableName);
   if Len > 2 then
@@ -1483,129 +1674,12 @@ begin
     //  SQL_HANDLE_STMT, StmtHandle, 'Could not set SQL_ATTR_METADATA_ID statement attribute to SQL_TRUE.'
     //);
 
-    // alloc result column buffers
-    SetLength(ColName,  DEFAULT_NAME_LEN);
-    SetLength(PKName,   DEFAULT_NAME_LEN);
-    SetLength(IndexName,DEFAULT_NAME_LEN);
-
-    // Fetch primary key info using SQLPrimaryKeys
-    CheckResult(
-      SQLPrimaryKeys(
-        StmtHandle,
-        nil, 0, // any catalog
-        nil, 0, // any schema
-        PAnsiChar(TableName), Length(TableName)
-      ),
-      SQL_HANDLE_STMT, StmtHandle, 'Could not retrieve primary key metadata for table %s using SQLPrimaryKeys.', [TableName]
-    );
-
-    // init key name & fields; we will set the IndexDefs.Option ixPrimary below when there is a match by IndexName=KeyName
+    // the IndexDefs option ixPrimary is set for the index whose name matches KeyName
     KeyName:='';
-    try
-      // bind result columns; the column numbers are documented in the reference for SQLStatistics
-      CheckResult(SQLBindCol(StmtHandle,  4, SQL_C_CHAR  , @ColName[1], Length(ColName)+1, @ColNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
-      CheckResult(SQLBindCol(StmtHandle,  5, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column KEY_SEQ.');
-      CheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @PKName [1], Length(PKName )+1, @PKNameIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column PK_NAME.');
-
-      // fetch result
-      repeat
-        // go to next row; loads data in bound columns
-        Res:=SQLFetch(StmtHandle);
-        // if no more row, break
-        if Res=SQL_NO_DATA then
-          Break;
-        // handle data
-        if ODBCSuccess(Res) then begin
-          if OrdinalPos=1 then begin
-            // create new IndexDef if OrdinalPos=1
-            IndexDef:=IndexDefs.AddIndexDef;
-            IndexDef.Name:=PAnsiChar(@PKName[1]);
-            IndexDef.Fields:=PAnsiChar(@ColName[1]);
-            IndexDef.Options:=IndexDef.Options+[ixUnique]+[ixPrimary]; // Primary key is always unique
-            KeyName:=IndexDef.Name;
-          end else begin
-            assert(Assigned(IndexDef));
-            IndexDef.Fields:=IndexDef.Fields+';'+PAnsiChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
-          end;
-        end else begin
-          CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
-        end;
-      until false;
-    finally
-      // unbind columns & close cursor
-      CheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
-      CheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
-    end;
-
-    //WriteLn('KeyName: ',KeyName,'; KeyFields: ',KeyFields);
-
-    // use SQLStatistics to get index information
-    CheckResult(
-      SQLStatistics(
-        StmtHandle,
-        nil, 0, // catalog unknown; request for all catalogs
-        nil, 0, // schema unknown; request for all schemas
-        PAnsiChar(TableName), Length(TableName), // request information for TableName
-        SQL_INDEX_ALL,
-        SQL_QUICK
-      ),
-      SQL_HANDLE_STMT, StmtHandle, 'Could not retrieve index metadata for table %s using SQLStatistics.', [TableName]
-    );
-
-    try
-      // bind result columns; the column numbers are documented in the reference for SQLStatistics
-      CheckResult(SQLBindCol(StmtHandle,  4, SQL_C_SSHORT, @NonUnique , 0, @NonUniqueIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column NON_UNIQUE.');
-      CheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @IndexName[1], Length(IndexName)+1, @IndexNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column INDEX_NAME.');
-      CheckResult(SQLBindCol(StmtHandle,  7, SQL_C_SSHORT, @_Type     , 0, @_TypeIndOrLen     ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column TYPE.');
-      CheckResult(SQLBindCol(StmtHandle,  8, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ORDINAL_POSITION.');
-      CheckResult(SQLBindCol(StmtHandle,  9, SQL_C_CHAR  , @ColName  [1], Length(ColName  )+1, @ColNameIndOrLen  ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column COLUMN_NAME.');
-      CheckResult(SQLBindCol(StmtHandle, 10, SQL_C_CHAR  , @AscOrDesc , 1, @AscOrDescIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ASC_OR_DESC.');
-
-      // clear index defs
-      IndexDef:=nil;
-
-      // fetch result
-      repeat
-        // go to next row; loads data in bound columns
-        Res:=SQLFetch(StmtHandle);
-        // if no more row, break
-        if Res=SQL_NO_DATA then
-          Break;
-        // handle data
-        if ODBCSuccess(Res) then begin
-          // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
-          if _Type<>SQL_TABLE_STAT then begin
-            if PAnsiChar(@IndexName[1])=KeyName then begin
-              // The indexdef is already made as the primary key
-              // Only if the index is descending is not known yet.
-              if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then begin
-                IndexDef:=IndexDefs.Find(KeyName);
-                IndexDef.Options:=IndexDef.Options+[ixDescending];
-              end;
-            end else if (OrdinalPos=1) or not Assigned(IndexDef) then begin
-              // create new IndexDef if OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
-              IndexDef:=IndexDefs.AddIndexDef;
-              IndexDef.Name:=PAnsiChar(@IndexName[1]); // treat ansistring as zero terminated string
-              IndexDef.Fields:=PAnsiChar(@ColName[1]);
-              if NonUnique=SQL_FALSE then
-                IndexDef.Options:=IndexDef.Options+[ixUnique];
-              if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then
-                IndexDef.Options:=IndexDef.Options+[ixDescending];
-              // TODO: figure out how we can tell whether COLUMN_NAME is an expression or not
-              //       if it is an expression, we should include ixExpression in Options and set Expression to ColName
-            end else // NB we re-use the last IndexDef
-              IndexDef.Fields:=IndexDef.Fields+';'+PAnsiChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
-          end;
-        end else begin
-          CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch index metadata row.');
-        end;
-      until false;
-    finally
-      // unbind columns & close cursor
-      CheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
-      CheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
-    end;
-
+    if FPrimaryKeysSupport then
+      AddPrimaryKeyIndexDefs(StmtHandle, IndexDefs, TableName, KeyName);
+    if FStatisticsSupport then
+      AddStatisticsIndexDefs(StmtHandle, IndexDefs, TableName, KeyName);
   finally
     if StmtHandle<>SQL_NULL_HANDLE then begin
       // Free the statement handle
