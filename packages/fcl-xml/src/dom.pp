@@ -505,6 +505,8 @@ type
     function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString; UseNS: Boolean): TDOMNodeList;
     procedure NodeListDestroyed(aList: TDOMNodeList);
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
+    // Enlarge the pool table to aSize bytes, the new slots are nil
+    procedure GrowPools(aSize: Integer);
     procedure SetXMLVersion(const aValue: DOMString); virtual;
     procedure SetXMLStandalone(aValue: Boolean); virtual;
     // Name under which an element attribute aName is stored and looked up; aName itself
@@ -518,7 +520,9 @@ type
     property Impl: TDOMImplementation read FImplementation;
     property DocumentElement: TDOMElement read GetDocumentElement;
 
-    function CreateElement(const tagName: DOMString): TDOMElement; virtual;
+    function CreateElement(const tagName: DOMString): TDOMElement; virtual; overload;
+    // Create an element of class AClass named tagName
+    function CreateElement(const tagName: DOMString; AClass: TDOMElementClass): TDOMElement; overload;
     function CreateElementBuf(Buf: DOMPChar; Length: Integer): TDOMElement;
     function CreateDocumentFragment: TDOMDocumentFragment;
     function CreateTextNode(const data: DOMString): TDOMText;
@@ -649,6 +653,8 @@ type
     function InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
     procedure RestoreDefaultAttr(AttrDef: TAttributeDef);
     function GetSchemaTypeInfo: TDOMTypeInfo;
+    // Copy the fields of a descendant class from aSource into this element after cloning
+    procedure CopyFrom(aSource: TDOMElement); virtual;
   public
     destructor Destroy; override;
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
@@ -2441,12 +2447,8 @@ begin
   if nfDestroying in FFlags then
     raise EDOMError.Create(INVALID_ACCESS_ERR, 'Attempt to allocate node memory while destroying');
   size := (AClass.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1);
-  if size > FMaxPoolSize then
-  begin
-    Result := TDOMNode(AClass.NewInstance);
-    Exit;
-  end;
-
+  if size >= FMaxPoolSize then
+    GrowPools(size + sizeof(Pointer));
   pp := FPools^[size div sizeof(TNodePool)];
   if pp = nil then
   begin
@@ -2455,6 +2457,15 @@ begin
   end;
   Result := pp.AllocNode(AClass);
 end;
+
+procedure TDOMDocument.GrowPools(aSize: Integer);
+
+begin
+  ReAllocMem(FPools, aSize);
+  FillChar((PAnsiChar(FPools) + FMaxPoolSize)^, aSize - FMaxPoolSize, 0);
+  FMaxPoolSize := aSize;
+end;
+
 
 // This shouldn't be called if document has no IDs,
 // or when it is being destroyed
@@ -2541,9 +2552,15 @@ end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
+  Result := CreateElement(tagName, TDOMElement);
+end;
+
+function TDOMDocument.CreateElement(const tagName: DOMString; AClass: TDOMElementClass): TDOMElement;
+
+begin
   if not IsXmlName(tagName) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateElement');
-  TDOMNode(Result) := Alloc(TDOMElement);
+  TDOMNode(Result) := Alloc(AClass);
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(tagName), Length(tagName));
   Result.AttachDefaultAttrs;
@@ -3076,9 +3093,9 @@ begin
   begin
     // Importing has to go the hard way...
     if nfLevel2 in FFlags then
-      Result := ACloneOwner.CreateElementNS(NamespaceURI, NodeName)
+      Result := ACloneOwner.CreateElementNS(NamespaceURI, NodeName, TDOMElementClass(ClassType))
     else
-      Result := ACloneOwner.CreateElement(NodeName);
+      Result := ACloneOwner.CreateElement(NodeName, TDOMElementClass(ClassType));
     if Assigned(FAttributes) then
     begin
       for i := 0 to FAttributes.Length - 1 do
@@ -3092,7 +3109,7 @@ begin
   end
   else   // Cloning may cheat a little bit.
   begin
-    Result := FOwnerDocument.Alloc(TDOMElement);
+    Result := FOwnerDocument.Alloc(TDOMNodeClass(ClassType));
     TDOMElement(Result).Create(FOwnerDocument);
     TDOMElement(Result).FNSI := FNSI;
     if nfLevel2 in FFlags then
@@ -3110,9 +3127,17 @@ begin
       end;
     end;
   end;
+  TDOMElement(Result).CopyFrom(Self);
   if deep then
     CloneChildren(Result, ACloneOwner);
 end;
+
+procedure TDOMElement.CopyFrom(aSource: TDOMElement);
+
+begin
+end;
+
+
 
 procedure TDOMElement.AttachDefaultAttrs;
 var
