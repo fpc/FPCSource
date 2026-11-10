@@ -92,6 +92,13 @@ const
   DOCUMENT_FRAGMENT_NODE = 11;
   NOTATION_NODE = 12;
 
+// DOM level 3 TypeInfo derivation methods:
+
+  DERIVATION_RESTRICTION = $00000001;
+  DERIVATION_EXTENSION   = $00000002;
+  DERIVATION_UNION       = $00000004;
+  DERIVATION_LIST        = $00000008;
+
 type
   TDOMDocument = class;
   TDOMNodeList = class;
@@ -448,6 +455,25 @@ type
 
 
 // -------------------------------------------------------
+//   TypeInfo (DOM level 3)
+// -------------------------------------------------------
+
+  TDOMTypeInfo = class
+  private
+    FTypeName: DOMString;
+    FTypeNamespace: DOMString;
+  public
+    // Create a type with namespace aTypeNamespace and name aTypeName
+    constructor Create(const aTypeNamespace, aTypeName: DOMString);
+    // Check whether this type derives from the type aTypeNameArg in aTypeNamespaceArg using the DERIVATION_* methods in aDerivationMethod
+    function IsDerivedFrom(const aTypeNamespaceArg, aTypeNameArg: DOMString; aDerivationMethod: LongWord): Boolean; virtual;
+    // Name of the type; empty if the node has no declared type
+    property TypeName: DOMString read FTypeName;
+    // Namespace of the type; empty if the node has no declared type
+    property TypeNamespace: DOMString read FTypeNamespace;
+  end;
+
+// -------------------------------------------------------
 //   Document
 // -------------------------------------------------------
   // TODO: to be replaced by more suitable container
@@ -528,6 +554,9 @@ type
     procedure RebuildIDsOfElement(aRoot: TDOMElement);
     // Rebuild the ID table from the attributes named id (any case); used for HTML documents
     procedure RebuildIDList;
+    // Type of the element or attribute aNode: the DTD attribute type, or an empty type.
+    // The result is owned by the document implementation and is not freed by the caller.
+    function GetSchemaTypeInfo(aNode: TDOMNode): TDOMTypeInfo; virtual;
     function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
     property IDs: THashTable read FIDList write FIDList;
@@ -587,7 +616,10 @@ type
     function GetSpecified: Boolean;
     function GetIsID: Boolean;
     function GetOwnerElement: TDOMElement;
+    function GetSchemaTypeInfo: TDOMTypeInfo;
     procedure SetNodeValue(const AValue: DOMString); override;
+    // DTD declaration of the attribute for its owner element; nil if undeclared or detached
+    function GetDTDDeclaration: TAttributeDef;
   public
     destructor Destroy; override;
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
@@ -596,8 +628,10 @@ type
     property Value: DOMString read GetNodeValue write SetNodeValue;
     property OwnerElement: TDOMElement read GetOwnerElement;
     property IsID: Boolean read GetIsID;
+    // DOM level 3 type of the attribute, as returned by the owner document
+    property SchemaTypeInfo: TDOMTypeInfo read GetSchemaTypeInfo;
     // extensions
-    // TODO: this is to be replaced with DOM 3 TypeInfo
+    // Attribute type from the DTD; dtCdata for undeclared attributes
     property DataType: TAttrDataType read FDataType write FDataType;
   end;
 
@@ -614,6 +648,7 @@ type
     procedure AttachDefaultAttrs;
     function InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
     procedure RestoreDefaultAttr(AttrDef: TAttributeDef);
+    function GetSchemaTypeInfo: TDOMTypeInfo;
   public
     destructor Destroy; override;
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
@@ -637,6 +672,8 @@ type
     function hasAttribute(const name: DOMString): Boolean;
     function hasAttributeNS(const nsURI, aLocalName: DOMString): Boolean;
     function HasAttributes: Boolean; override;
+    // DOM level 3 type of the element, as returned by the owner document
+    property SchemaTypeInfo: TDOMTypeInfo read GetSchemaTypeInfo;
     // extension
     property AttribStrings[const Name: DOMString]: DOMString
       read GetAttribute write SetAttribute; default;
@@ -846,6 +883,65 @@ type
     function setNamedItemNS(arg: TDOMNode): TDOMNode; override;
     function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode; override;
   end;
+
+const
+  DTDTypeNamespace = 'http://www.w3.org/TR/REC-xml';
+  DTDTypeNames: array[TAttrDataType] of DOMString = (
+    'CDATA', 'ID', 'IDREF', 'IDREFS', 'ENTITY', 'ENTITIES', 'NMTOKEN', 'NMTOKENS', 'NOTATION');
+
+var
+  DTDTypeInfos: array[TAttrDataType] of TDOMTypeInfo;
+  DTDEnumerationTypeInfo: TDOMTypeInfo;
+  EmptyTypeInfo: TDOMTypeInfo;
+
+// Create the shared type instances returned for DTD attribute types
+procedure CreateTypeInfos;
+
+var
+  lType: TAttrDataType;
+
+begin
+  for lType := Low(TAttrDataType) to High(TAttrDataType) do
+    DTDTypeInfos[lType] := TDOMTypeInfo.Create(DTDTypeNamespace, DTDTypeNames[lType]);
+  DTDEnumerationTypeInfo := TDOMTypeInfo.Create(DTDTypeNamespace, 'ENUMERATION');
+  EmptyTypeInfo := TDOMTypeInfo.Create('', '');
+end;
+
+
+// Free the shared type instances
+procedure FreeTypeInfos;
+
+var
+  lType: TAttrDataType;
+
+begin
+  for lType := Low(TAttrDataType) to High(TAttrDataType) do
+    FreeAndNil(DTDTypeInfos[lType]);
+  FreeAndNil(DTDEnumerationTypeInfo);
+  FreeAndNil(EmptyTypeInfo);
+end;
+
+
+// -------------------------------------------------------
+//   TypeInfo
+// -------------------------------------------------------
+
+constructor TDOMTypeInfo.Create(const aTypeNamespace, aTypeName: DOMString);
+
+begin
+  inherited Create;
+  FTypeNamespace := aTypeNamespace;
+  FTypeName := aTypeName;
+end;
+
+
+function TDOMTypeInfo.IsDerivedFrom(const aTypeNamespaceArg, aTypeNameArg: DOMString;
+  aDerivationMethod: LongWord): Boolean;
+
+begin
+  Result := False;
+end;
+
 
 // -------------------------------------------------------
 //   DOM Exception
@@ -2717,6 +2813,28 @@ begin
   raise EDOMNotSupported.Create('DOMDocument.SetXMLStandalone');
 end;
 
+function TDOMDocument.GetSchemaTypeInfo(aNode: TDOMNode): TDOMTypeInfo;
+
+var
+  lDecl: TAttributeDef;
+
+begin
+  Result := EmptyTypeInfo;
+  if not (aNode is TDOMAttr) then
+    Exit;
+  lDecl := TDOMAttr(aNode).GetDTDDeclaration;
+  if Assigned(lDecl) then
+  begin
+    if lDecl.IsEnumeration then
+      Result := DTDEnumerationTypeInfo
+    else
+      Result := DTDTypeInfos[lDecl.DataType];
+  end
+  else if aNode.NodeName = 'xml:id' then
+    Result := DTDTypeInfos[dtId];
+end;
+
+
 constructor TXMLDocument.Create;
 begin
   inherited Create;
@@ -2905,6 +3023,30 @@ function TDOMAttr.GetOwnerElement: TDOMElement;
 begin
   Result := TDOMElement(FParentNode);
 end;
+
+function TDOMAttr.GetSchemaTypeInfo: TDOMTypeInfo;
+
+begin
+  Result := FOwnerDocument.GetSchemaTypeInfo(Self);
+end;
+
+
+function TDOMAttr.GetDTDDeclaration: TAttributeDef;
+
+var
+  lElDecl: TElementDecl;
+
+begin
+  Result := nil;
+  if not Assigned(FParentNode) or not Assigned(FNSI.QName) then
+    Exit;
+  if not Assigned(TDOMElement(FParentNode).FNSI.QName) then
+    Exit;
+  lElDecl := TElementDecl(TDOMElement(FParentNode).FNSI.QName^.Data);
+  if Assigned(lElDecl) then
+    Result := lElDecl.GetAttrDef(FNSI.QName);
+end;
+
 
 // -------------------------------------------------------
 //   Element
@@ -3102,6 +3244,13 @@ begin
   // There should be no matching attribute at this point, so non-namespace method is ok
   SetAttributeNode(Attr);
 end;
+
+function TDOMElement.GetSchemaTypeInfo: TDOMTypeInfo;
+
+begin
+  Result := FOwnerDocument.GetSchemaTypeInfo(Self);
+end;
+
 
 procedure TDOMElement.Normalize;
 var
@@ -3660,4 +3809,8 @@ begin
   FFirstFree := ANode;
 end;
 
+initialization
+  CreateTypeInfos;
+finalization
+  FreeTypeInfos;
 end.

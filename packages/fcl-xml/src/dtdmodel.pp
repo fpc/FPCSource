@@ -87,6 +87,8 @@ type
     function AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
     function HasEnumToken(const aValue: XMLString): Boolean;
     function ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
+    // True if the attribute is declared as an enumeration of name tokens
+    function IsEnumeration: Boolean;
     property Data: PNodeData read FData;
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
@@ -454,6 +456,13 @@ begin
   end;
   Result := False;
 end;
+
+function TAttributeDef.IsEnumeration: Boolean;
+
+begin
+  Result := (FDataType = dtNmToken) and (Length(FEnumeration) > 0);
+end;
+
 
 function TAttributeDef.ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
 begin

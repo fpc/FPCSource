@@ -34,7 +34,7 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="testxml.pp"/>
         <IsPartOfProject Value="True"/>
@@ -75,6 +75,10 @@
         <Filename Value="tcxmlids.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="tcxmltypeinfo.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
