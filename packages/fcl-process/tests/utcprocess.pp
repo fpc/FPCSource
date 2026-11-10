@@ -46,6 +46,10 @@ type
     Procedure TestExitCodeWaitOnExit;
     Procedure TestExitCodeWaitOnExitTimeout;
     Procedure TestExitCodeRunningLoop;
+{$IFDEF WINDOWS}
+    Procedure TestExitCodeStillActive;
+    Procedure TestExitCodeStillActiveWaitOnExit;
+{$ENDIF}
     Procedure TestPipes;
     Procedure TestWritePipes;
     Procedure TestStdErr;
@@ -304,6 +308,38 @@ begin
   AssertTrue('WaitOnExit result after Running loop',Proc.WaitOnExit);
   AssertEquals('Exit code after Running loop',42,Proc.ExitCode);
 end;
+
+{$IFDEF WINDOWS}
+procedure TTestProcess.TestExitCodeStillActive;
+
+var
+  lCount : Integer;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('259');
+  Proc.Execute;
+  lCount:=0;
+  while Proc.Running and (lCount<1000) do
+    begin
+    Sleep(10);
+    Inc(lCount);
+    end;
+  AssertFalse('Process exiting with code 259 (STILL_ACTIVE) is no longer running',Proc.Running);
+  AssertEquals('Exit code 259 after Running loop',259,Proc.ExitCode);
+end;
+
+procedure TTestProcess.TestExitCodeStillActiveWaitOnExit;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('259');
+  Proc.Execute;
+  AssertTrue('WaitOnExit result for exit code 259',Proc.WaitOnExit(10000));
+  AssertFalse('Running is False after WaitOnExit for exit code 259',Proc.Running);
+  AssertEquals('Exit code 259 after WaitOnExit',259,Proc.ExitCode);
+end;
+{$ENDIF}
 
 procedure TTestProcess.AssertGenOutLines(const S : String; aCount : integer);
 

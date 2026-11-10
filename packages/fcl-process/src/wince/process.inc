@@ -43,8 +43,12 @@ end;
 Function TProcess.PeekExitStatus : Boolean;
 
 begin
-  GetExitCodeProcess(ProcessHandle,FExitCode);
-  Result:=(FExitCode<>Still_Active);
+  // a signalled handle means the process has terminated, whatever its exit code
+  Result:=WaitForSingleObject(FProcessHandle,0)=WAIT_OBJECT_0;
+  if Result then
+    GetExitCodeProcess(FProcessHandle,FExitCode)
+  else
+    FExitCode:=Still_Active;
 end;
 
 Function GetStartupFlags (P : TProcess): Cardinal;
@@ -332,8 +336,13 @@ Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
   Result:=False;
-  If ExitStatus=Still_active then
+  If Running then
+    begin
     Result:=TerminateProcess(Handle,AexitCode);
+    // wait until the process has ended
+    if Result then
+      WaitForSingleObject(Handle,5000);
+    end;
 end;
 
 Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
