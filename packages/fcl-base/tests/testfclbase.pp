@@ -42,7 +42,8 @@ uses
   utcDirwatch,
   utcThreadPool,
   utcEventLog,
-  utcCustApp
+  utcCustApp,
+  utcFPTimer
   ;
 
 var
@@ -85,6 +86,7 @@ begin
   utcThreadPool.RegisterTests;
   utcEventLog.RegisterTests;
   utcCustApp.RegisterTests;
+  utcFPTimer.RegisterTests;
   RunAllSysTests;
 end.
 

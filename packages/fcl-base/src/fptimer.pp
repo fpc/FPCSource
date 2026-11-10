@@ -252,9 +252,6 @@ end;
     Default implementation. Threaded timer, one thread per timer.
   ---------------------------------------------------------------------}
 
-const
-  cMilliSecs: Extended = 60.0 * 60.0 * 24.0 * 1000.0;
-
 Type
 
   { TFPTimerThread }
@@ -262,7 +259,7 @@ Type
   TFPTimerThread = class(TThread)
   private
     FTimerDriver: TFPTimerDriver;
-    FStartTime : TDateTime;
+    FStartTick : QWord;
     {$ifdef Has_EventWait}
     FWaitEvent: PEventState;
     {$else}
@@ -270,7 +267,8 @@ Type
     {$endif}
     fInterval: Cardinal;
     Function Timer : TFPCustomTimer;
-    Function GetWakeTime(var AInterval,Counter : Int64; Out WakeInterval : Integer; Out WakeTime : TDateTime) : Boolean;
+    procedure FireTimer(const aInterval : Int64; var aCounter : Int64);
+    Function GetWakeTime(var AInterval,Counter : Int64; Out WakeInterval : Integer; Out WakeTick : QWord) : Boolean;
   public
     procedure Execute; override;
     constructor CreateTimerThread(ATimerDriver: TFPTimerDriver);
@@ -339,50 +337,65 @@ begin
     Result:=Nil;
 end;
 
-Function TFPTimerThread.GetWakeTime(var AInterval,Counter : Int64; Out WakeInterval : Longint; Out WakeTime : TDateTime) : Boolean;
+procedure TFPTimerThread.FireTimer(const aInterval : Int64; var aCounter : Int64);
 
+var
+  lNext: Int64;
+
+begin
+  try
+    if not Timer.UseTimerThread then
+      // If terminate is called while here, then the Synchronize will be
+      // queued while the stoptimer is being processed.
+      // StopTimer cannot wait until thread completion as this would deadlock
+      Synchronize(@Timer.Timer)  // Call user event
+    else
+      Timer.Timer;
+  except
+    // Trap errors to prevent this thread from terminating
+  end;
+  // Next tick is the first interval boundary after the current time: missed ticks are skipped
+  lNext:=Int64(GetTickCount64-FStartTick) div aInterval + 1;
+  if lNext>aCounter then
+    aCounter:=lNext
+  else
+    Inc(aCounter);
+end;
+
+
+Function TFPTimerThread.GetWakeTime(var AInterval,Counter : Int64; Out WakeInterval : Longint; Out WakeTick : QWord) : Boolean;
 
 Var
-  Diff: Extended;
+  Diff: Int64;
 
 begin
   Result:=False;
-    { Use Counter*fInterval to avoid numerical errors resulting from adding
-      small values (AInterval/cMilliSecs) to a large real number (TDateTime),
-      even when using Extended precision }
-  WakeTime := FStartTime + (Counter*AInterval / cMilliSecs);
-  Diff := (WakeTime - Now);
+  WakeTick:=FStartTick+QWord(Counter*AInterval);
+  Diff:=Int64(WakeTick)-Int64(GetTickCount64);
   if Diff > 0 then
     begin
-    WakeInterval := Trunc(Diff * cMilliSecs);
-    if WakeInterval < 10 then
-      WakeInterval := 10;    // Provide a minimum wait time
+    if Diff > MaxInt then
+      WakeInterval := MaxInt
+    else
+      WakeInterval := Diff;
     end
   else
     begin
     WakeInterval:=MaxInt;
     // Time has already expired, execute Timer and restart wait loop
-    try
-      if not Timer.UseTimerThread then
-        Synchronize(@Timer.Timer)  // Call user event
-      else
-        Timer.Timer;
-    except
-      // Trap errors to prevent this thread from terminating
-    end;
-    Inc(Counter);
+    FireTimer(AInterval,Counter);
     Result:=True;
     end;
 end;
 
+
 {$ifdef Has_EventWait}
 procedure TFPTimerThread.Execute;
 var
-  WakeTime: TDateTime;
+  WakeTick: QWord;
   WakeInterval: Integer;
   Counter: int64; { use Int64 to avoid overflow with Counter*fInterval (~49 days)}
   AInterval: int64;
-  Diff: Extended;
 
 Const
   wrSignaled = 0;
@@ -394,33 +407,15 @@ begin
   WakeInterval := MaxInt;
   Counter := 1;
   AInterval := fInterval;
-  FStartTime := Now;
+  FStartTick := GetTickCount64;
   while not Terminated do
     begin
-    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTime) then
+    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTick) then
       Continue;
     if not Terminated then
       case BasicEventWaitFor(WakeInterval,fWaitEvent) of
       wrTimeout:
-        begin
-        if Terminated then
-          Break
-        else
-          begin
-          try
-            if not Timer.UseTimerThread then
-              // If terminate is called while here, then the Synchronize will be
-              // queued while the stoptimer is being processed.
-              // StopTimer cannot wait until thread completion as this would deadlock
-              Synchronize(@Timer.Timer)  // Call user event
-            else
-              Timer.Timer;
-          except
-            // Trap errors to prevent this thread from terminating
-          end;
-          Inc(Counter);                // Next interval
-          end;
-        end;
+        ; // GetWakeTime fires the tick once it is due
       wrSignaled:
         begin
         if Terminated then
@@ -429,7 +424,7 @@ begin
           begin                      // Interval has changed
           Counter := 1;              // Restart timer without creating new thread
           AInterval := fInterval;
-          FStartTime := Now;
+          FStartTick := GetTickCount64;
           end;
         end;
       else
@@ -444,11 +439,11 @@ end;
 procedure TFPTimerThread.Execute;
 
 var
-  WakeTime: TDateTime;
+  WakeTick: QWord;
   WakeInterval: Integer;
   Counter: int64; { use Int64 to avoid overflow with Counter*fInterval (~49 days)}
   AInterval: int64;
-  Diff: Extended;
+  Diff: Int64;
   S: Cardinal;
   RecheckTimeCounter: integer;
 
@@ -460,10 +455,10 @@ begin
   WakeInterval := MaxInt;
   Counter := 1;
   AInterval := fInterval;
-  FStartTime := Now;
+  FStartTick := GetTickCount64;
   while not Terminated do
     begin
-    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTime) then
+    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTick) then
       Continue;
     if not Terminated then
       begin
@@ -480,7 +475,7 @@ begin
             fSignaled := False;
             Counter := 1;            // Restart timer
             AInterval := fInterval;
-            FStartTime := Now;
+            FStartTick := GetTickCount64;
             end;
           break;                     // Need to break out of sleep loop
           end;
@@ -489,25 +484,16 @@ begin
         dec(RecheckTimeCounter);     // Do we need to recheck current time
         if (RecheckTimeCounter < 0) and (WakeInterval > 0) then
           begin
-          Diff := (WakeTime - Now);
-          WakeInterval := Trunc(Diff * cMilliSecs);
+          Diff := Int64(WakeTick)-Int64(GetTickCount64);
+          if Diff > MaxInt then
+            WakeInterval := MaxInt
+          else
+            WakeInterval := Diff;
           RecheckTimeCounter := cRecheckTimeCount;
           s := cSleepTime;
           end;
       until (WakeInterval<=0) or Terminated;
-      if WakeInterval <= 0 then
-        try
-          inc(Counter);
-          if not Timer.UseTimerThread then
-            // If terminate is called while here, then the Synchronize will be
-            // queued while the stoptimer is being processed.
-            // StopTimer cannot wait until thread completion as this would deadlock
-            Synchronize(@Timer.Timer)  // Call user event
-          else
-            Timer.Timer;
-        except
-          // Trap errors to prevent this thread from terminating
-        end;
+      // GetWakeTime fires the tick once it is due
       end
     end;
 end;

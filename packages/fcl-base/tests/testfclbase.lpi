@@ -181,6 +181,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcCustApp"/>
       </Unit>
+      <Unit>
+        <Filename Value="utcfptimer.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcFPTimer"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
