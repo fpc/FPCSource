@@ -650,6 +650,9 @@ type
     function GetImages: THTMLCollection;
     function GetLinks: THTMLCollection;
     function GetReferrer: DOMString;
+  protected
+    // aName with the letters A..Z in lowercase
+    function NormalizeAttrName(const aName: DOMString): DOMString; override;
   public
     property Title: DOMString read GetTitle write SetTitle;
     property Referrer: DOMString read GetReferrer;
@@ -672,7 +675,10 @@ type
     function HashForName(const aName: DOMString): PHashItem;
 
     // Helper functions (not in DOM standard):
+    // Create an element for tagName, stored in lowercase
     function CreateElement(const tagName: DOMString; UseSpecificClass : Boolean = True): THTMLElement;
+    // Create an attribute named name, stored in lowercase
+    function CreateAttribute(const name: DOMString): TDOMAttr;
     function CreateSubElement: THTMLElement;
     function CreateSupElement: THTMLElement;
     function CreateSpanElement: THTMLElement;
@@ -758,6 +764,20 @@ type
 
 
 implementation
+
+// s with the letters A..Z in lowercase
+function HTMLLowerCase(const s: DOMString): DOMString;
+
+var
+  i: Integer;
+
+begin
+  Result:=s;
+  for i:=1 to Length(Result) do
+    if (Result[i]>='A') and (Result[i]<='Z') then
+      Result[i]:=WideChar(Ord(Result[i])+32);
+end;
+
 
 { THTMLCollection }
 
@@ -1349,7 +1369,17 @@ begin
     'IFRAME'             : elClass:= THTMLIFrameElement;
     end;
   Result := THTMLElement(elClass.Create(Self));
-  Result.FNSI.QName:=HashForName(tagName);
+  Result.FNSI.QName:=HashForName(HTMLLowerCase(tagName));
+end;
+
+function THTMLDocument.NormalizeAttrName(const aName: DOMString): DOMString;
+begin
+  Result := HTMLLowerCase(aName);
+end;
+
+function THTMLDocument.CreateAttribute(const name: DOMString): TDOMAttr;
+begin
+  Result := inherited CreateAttribute(HTMLLowerCase(name));
 end;
 
 function THTMLDocument.HashForName(const aName: DOMString): PHashItem;

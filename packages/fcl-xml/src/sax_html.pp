@@ -691,7 +691,10 @@ begin
   {$ifdef SAX_HTML_DEBUG}
   WriteLn('Start: ', LocalName, '. Node buffer before: ', FNodeBuffer.Count, ' elements');
   {$endif}
-  Element := FDocument.CreateElement(LocalName);
+  if FDocument is THTMLDocument then
+    Element := THTMLDocument(FDocument).CreateElement(LocalName)
+  else
+    Element := FDocument.CreateElement(LocalName);
   if Assigned(Attr) then
   begin
     {$ifdef SAX_HTML_DEBUG}

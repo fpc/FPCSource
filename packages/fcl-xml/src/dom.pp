@@ -481,6 +481,8 @@ type
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
     procedure SetXMLVersion(const aValue: DOMString); virtual;
     procedure SetXMLStandalone(aValue: Boolean); virtual;
+    // Name under which an element attribute aName is stored and looked up; aName itself
+    function NormalizeAttrName(const aName: DOMString): DOMString; virtual;
     function ValidateQName(const nsUri, qName: DOMString; out nsidx: PHashItem): Integer;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
@@ -1786,14 +1788,19 @@ end;
 function TDOMNamedNodeMap.Find(const name: DOMString; out Index: LongWord): Boolean;
 var
   L, H, I, C: Integer;
+  Key: DOMString;
 begin
   Result := False;
+  if FOwner is TDOMElement then
+    Key := FOwner.FOwnerDocument.NormalizeAttrName(name)
+  else
+    Key := name;
   L := 0;
   H := FList.Count - 1;
   while L <= H do
   begin
     I := (L + H) shr 1;
-    C := TDOMNode(FList.List^[I]).CompareName(name);
+    C := TDOMNode(FList.List^[I]).CompareName(Key);
     if C > 0 then L := I + 1 else
     begin
       H := I - 1;
@@ -2502,6 +2509,11 @@ begin
   Result:=nil;
 end;
 
+function TDOMDocument.NormalizeAttrName(const aName: DOMString): DOMString;
+begin
+  Result := aName;
+end;
+
 function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
 begin
   if not IsXmlName(name) then
@@ -3142,7 +3154,7 @@ begin
     Attr := FAttributes[I] as TDOMAttr
   else
   begin
-    Attr := FOwnerDocument.CreateAttribute(name);
+    Attr := FOwnerDocument.CreateAttribute(FOwnerDocument.NormalizeAttrName(name));
     Attr.FParentNode := Self;
     FAttributes.FList.Insert(I, Attr);
   end;

@@ -21,7 +21,7 @@ uses
   {$ifdef unix}
   cwstring,
   {$endif}
-  Classes, readertest, tcxpathscanner, tcxpath, tcxmlencoding, tchtmlwhitespace, tcsaxxml, consoletestrunner;
+  Classes, readertest, tcxpathscanner, tcxpath, tcxmlencoding, tchtmlwhitespace, tcsaxxml, tchtmlcase, consoletestrunner;
 
 type
   { TLazTestRunner }
