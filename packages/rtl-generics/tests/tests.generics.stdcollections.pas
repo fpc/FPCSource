@@ -37,7 +37,11 @@ uses
 type
   TTestStdCollections = class(TTestCollections)
   private
+    FRemoved: Integer;
+    FRaiseAt: Integer;
     procedure Test_TList_Notification(AList: TList<string>); overload;
+    procedure CountRemovedInteger(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+    procedure CountRemovedString(ASender: TObject; const AItem: string; AAction: TCollectionNotification);
   published
     // Tests from Castle Game Engine
     procedure Test_List;
@@ -74,6 +78,15 @@ type
     procedure Test_TObjectList_ExtractItem;
     // TList<T>.GetPtrEnumerator is public and yields pointers into the list.
     procedure Test_TList_GetPtrEnumerator;
+    // Removing items asks the memory manager for nothing, unless a notification
+    // is due for a range too large for the stack.
+    procedure Test_TList_RemoveWithoutMemory;
+    // A range's items are released when a notification raises.
+    procedure Test_TList_DeleteRange_RaisingNotification;
+    // Removed items are notified whole and in ascending order.
+    procedure Test_TList_DeleteRange_WholeItemsInOrder;
+    // An item whose release runs code finds the list as it will be.
+    procedure Test_TList_ReleaseSeesFinalList;
   end;
 
   // Object that counts its destruction.
@@ -1099,6 +1112,405 @@ begin
       AssertEquals('Item '+IntToStr(i)+' modified through pointer', i+11, lList[i].Index);
   finally
     lList.Free;
+  end;
+end;
+
+
+var
+  // The memory manager below counts requests for memory while this is set.
+  gCountRequests: Boolean;
+  gRequests: Integer;
+  gPlainManager: TMemoryManager;
+
+function CountingGetMem(Size: PtrUInt): Pointer;
+
+begin
+  if gCountRequests then
+    Inc(gRequests);
+  Result:=gPlainManager.GetMem(Size);
+end;
+
+function CountingAllocMem(Size: PtrUInt): Pointer;
+
+begin
+  if gCountRequests then
+    Inc(gRequests);
+  Result:=gPlainManager.AllocMem(Size);
+end;
+
+function CountingReAllocMem(var P: Pointer; Size: PtrUInt): Pointer;
+
+begin
+  if gCountRequests and (Size>0) then
+    Inc(gRequests);
+  Result:=gPlainManager.ReAllocMem(P,Size);
+end;
+
+procedure TTestStdCollections.CountRemovedInteger(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+
+begin
+  if AAction=cnRemoved then
+    Inc(FRemoved);
+end;
+
+procedure TTestStdCollections.CountRemovedString(ASender: TObject; const AItem: string; AAction: TCollectionNotification);
+
+begin
+  if AAction<>cnRemoved then
+    Exit;
+  Inc(FRemoved);
+  if FRemoved=FRaiseAt then
+    raise EAbort.Create('notification');
+end;
+
+procedure TTestStdCollections.Test_TList_RemoveWithoutMemory;
+
+var
+  lCounting: TMemoryManager;
+  lInts: TList<Integer>;
+  lStrings: TList<string>;
+  lObjects: TObjectList<TDestroyCounted>;
+  lText: string;
+  lOwn: SizeInt;
+  i, lFit: Integer;
+
+  procedure Start;
+  begin
+    gRequests:=0;
+    gCountRequests:=True;
+  end;
+
+  function Requests: Integer;
+  begin
+    gCountRequests:=False;
+    Result:=gRequests;
+  end;
+
+begin
+  lInts:=nil;
+  lStrings:=nil;
+  lObjects:=nil;
+  GetMemoryManager(gPlainManager);
+  lCounting:=gPlainManager;
+  lCounting.GetMem:=@CountingGetMem;
+  lCounting.AllocMem:=@CountingAllocMem;
+  lCounting.ReAllocMem:=@CountingReAllocMem;
+  SetMemoryManager(lCounting);
+  try
+    // No notification: nothing is asked for, whatever the size.
+    lInts:=TList<Integer>.Create;
+    for i:=0 to 99999 do
+      lInts.Add(i);
+    Start;
+    lInts.DeleteRange(10,90000);
+    AssertEquals('DeleteRange, integers', 0, Requests);
+    AssertEquals('Count after DeleteRange', 10000, lInts.Count);
+    AssertEquals('First item after the range', 90010, lInts[10]);
+    AssertEquals('Last item', 99999, lInts[9999]);
+    Start;
+    lInts.Count:=5;
+    AssertEquals('Count := 5', 0, Requests);
+    Start;
+    lInts.Clear;
+    AssertEquals('Clear, integers', 0, Requests);
+    for i:=0 to 99999 do
+      lInts.Add(i);
+    Start;
+    FreeAndNil(lInts);
+    AssertEquals('Free, integers', 0, Requests);
+
+    // Managed items are released where they are.
+    lText:=IntToStr(Random(1000)+1000);
+    // The references the string has before a list holds it: not 1 on every
+    // target (x86_64-linux keeps the function result in a temporary).
+    lOwn:=StringRefCount(lText);
+    lStrings:=TList<string>.Create;
+    for i:=1 to 5 do
+      lStrings.Add(lText);
+    lStrings[0]:='first';
+    lStrings[4]:='last';
+    AssertEquals('References before', lOwn+3, StringRefCount(lText));
+    Start;
+    lStrings.DeleteRange(1,2);
+    AssertEquals('DeleteRange, strings', 0, Requests);
+    AssertEquals('References after DeleteRange', lOwn+1, StringRefCount(lText));
+    AssertEquals('Count after DeleteRange', 3, lStrings.Count);
+    AssertEquals('Item 0', 'first', lStrings[0]);
+    AssertEquals('Item 1', lText, lStrings[1]);
+    AssertEquals('Item 2', 'last', lStrings[2]);
+    Start;
+    lStrings.Clear;
+    AssertEquals('Clear, strings', 0, Requests);
+    AssertEquals('References after Clear', lOwn, StringRefCount(lText));
+    for i:=1 to 5 do
+      lStrings.Add(lText);
+    Start;
+    FreeAndNil(lStrings);
+    AssertEquals('Free, strings', 0, Requests);
+    AssertEquals('References after Free', lOwn, StringRefCount(lText));
+    // Many strings, each owned by the list alone.
+    lStrings:=TList<string>.Create;
+    for i:=1 to 50000 do
+      lStrings.Add(IntToStr(i));
+    Start;
+    lStrings.DeleteRange(100,40000);
+    AssertEquals('DeleteRange, 40000 strings', 0, Requests);
+    AssertEquals('First string after the range', '40101', lStrings[100]);
+    Start;
+    FreeAndNil(lStrings);
+    AssertEquals('Free, 10000 strings', 0, Requests);
+
+    // A notification for a few items needs no memory either: up to 64 pointers
+    // of items wait on the stack, one more takes a block.
+    lInts:=TList<Integer>.Create;
+    lInts.OnNotify:=CountRemovedInteger;
+    for i:=0 to 4 do
+      lInts.Add(i);
+    FRemoved:=0;
+    Start;
+    FreeAndNil(lInts);
+    AssertEquals('Free with OnNotify, 5 items', 0, Requests);
+    AssertEquals('Removed notifications', 5, FRemoved);
+    lFit:=(64*SizeOf(Pointer)) div SizeOf(Integer);
+    lInts:=TList<Integer>.Create;
+    for i:=0 to 3*lFit do
+      lInts.Add(i);
+    lInts.OnNotify:=CountRemovedInteger;
+    FRemoved:=0;
+    Start;
+    lInts.DeleteRange(1,lFit);
+    AssertEquals('DeleteRange with OnNotify, as many as fit', 0, Requests);
+    AssertEquals('Removed notifications', lFit, FRemoved);
+    AssertEquals('First item after the range', lFit+1, lInts[1]);
+    Start;
+    lInts.DeleteRange(1,lFit+1);
+    AssertEquals('DeleteRange with OnNotify, one more than fit', 1, Requests);
+    AssertEquals('Removed notifications', 2*lFit+1, FRemoved);
+    AssertEquals('First item after the range', 2*lFit+2, lInts[1]);
+    lInts.OnNotify:=nil;
+    FreeAndNil(lInts);
+    lObjects:=TObjectList<TDestroyCounted>.Create(True);
+    for i:=0 to 4 do
+      lObjects.Add(TDestroyCounted.Create);
+    gDestroyCount:=0;
+    Start;
+    lObjects.Clear;
+    AssertEquals('Clear of an owning list, 5 objects', 0, Requests);
+    AssertEquals('Objects destroyed', 5, gDestroyCount);
+    FreeAndNil(lObjects);
+
+    // A large range with a notification takes one block for the items.
+    lInts:=TList<Integer>.Create;
+    lInts.OnNotify:=CountRemovedInteger;
+    for i:=0 to 99999 do
+      lInts.Add(i);
+    FRemoved:=0;
+    Start;
+    lInts.DeleteRange(10,90000);
+    AssertEquals('DeleteRange with OnNotify, 90000 items', 1, Requests);
+    AssertEquals('Removed notifications', 90000, FRemoved);
+    AssertEquals('Count after DeleteRange', 10000, lInts.Count);
+    AssertEquals('First item after the range', 90010, lInts[10]);
+    lInts.OnNotify:=nil;
+    FreeAndNil(lInts);
+  finally
+    gCountRequests:=False;
+    SetMemoryManager(gPlainManager);
+    if Assigned(lInts) then
+      lInts.OnNotify:=nil;
+    lInts.Free;
+    lStrings.Free;
+    lObjects.Free;
+  end;
+end;
+
+procedure TTestStdCollections.Test_TList_DeleteRange_RaisingNotification;
+
+var
+  lStrings: TList<string>;
+  lText: string;
+  lOwn: SizeInt;
+  lRaised: Boolean;
+  i: Integer;
+
+begin
+  lText:=IntToStr(Random(1000)+1000);
+  // The references the string has before the list holds it (see
+  // Test_TList_RemoveWithoutMemory).
+  lOwn:=StringRefCount(lText);
+  lStrings:=TList<string>.Create;
+  try
+    for i:=1 to 6 do
+      lStrings.Add(lText);
+    lStrings.OnNotify:=CountRemovedString;
+    FRemoved:=0;
+    FRaiseAt:=2;
+    lRaised:=False;
+    try
+      lStrings.DeleteRange(1,4);
+    except
+      on EAbort do
+        lRaised:=True;
+    end;
+    FRaiseAt:=0;
+    AssertTrue('The notification raised', lRaised);
+    AssertEquals('Notifications before the exception', 2, FRemoved);
+    AssertEquals('The range left the list', 2, lStrings.Count);
+    AssertEquals('Every removed item was released', lOwn+2, StringRefCount(lText));
+    // The same with more items than wait on the stack.
+    lStrings.OnNotify:=nil;
+    for i:=1 to 3000 do
+      lStrings.Add(lText);
+    lStrings.OnNotify:=CountRemovedString;
+    FRemoved:=0;
+    FRaiseAt:=2;
+    lRaised:=False;
+    try
+      lStrings.DeleteRange(1,2500);
+    except
+      on EAbort do
+        lRaised:=True;
+    end;
+    FRaiseAt:=0;
+    AssertTrue('The notification raised, large range', lRaised);
+    AssertEquals('The large range left the list', 502, lStrings.Count);
+    AssertEquals('Every removed item was released, large range', lOwn+502, StringRefCount(lText));
+  finally
+    lStrings.OnNotify:=nil;
+    lStrings.Free;
+  end;
+  AssertEquals('References at the end', lOwn, StringRefCount(lText));
+end;
+
+
+type
+  TTwoStrings = array[0..1] of string;
+
+  // Checks each removed item as a whole and the order of removal.
+  TTwoStringsList = class(TList<TTwoStrings>)
+  public
+    Seen: Integer;
+    InOrder: Boolean;
+  protected
+    procedure Notify(const AValue: TTwoStrings; ACollectionNotification: TCollectionNotification); override;
+  end;
+
+procedure TTwoStringsList.Notify(const AValue: TTwoStrings; ACollectionNotification: TCollectionNotification);
+
+begin
+  inherited Notify(AValue,ACollectionNotification);
+  if ACollectionNotification<>cnRemoved then
+    Exit;
+  if (AValue[0]<>IntToStr(Seen)) or (AValue[1]<>'second of '+IntToStr(Seen)) then
+    InOrder:=False;
+  Inc(Seen);
+end;
+
+procedure TTestStdCollections.Test_TList_DeleteRange_WholeItemsInOrder;
+
+var
+  lList: TTwoStringsList;
+  lItem: TTwoStrings;
+  i: Integer;
+
+begin
+  lList:=TTwoStringsList.Create;
+  try
+    // A few items, then more than wait on the stack.
+    for i:=0 to 2999 do
+      begin
+      lItem[0]:=IntToStr(i);
+      lItem[1]:='second of '+IntToStr(i);
+      lList.Add(lItem);
+      end;
+    lList.InOrder:=True;
+    lList.Seen:=0;
+    lList.DeleteRange(0,3);
+    AssertEquals('Small range: notifications', 3, lList.Seen);
+    AssertTrue('Small range: whole items, in ascending order', lList.InOrder);
+    lList.DeleteRange(0,2000);
+    AssertEquals('Large range: notifications', 2003, lList.Seen);
+    AssertTrue('Large range: whole items, in ascending order', lList.InOrder);
+    AssertEquals('Items left', 997, lList.Count);
+    AssertEquals('First item left', '2003', lList[0][0]);
+    lList.Clear;
+    AssertEquals('Clear: notifications', 3000, lList.Seen);
+    AssertTrue('Clear: whole items, in ascending order', lList.InOrder);
+  finally
+    lList.Free;
+  end;
+end;
+
+
+type
+  // Looks at the list it is in when it is destroyed.
+  TListWatcher = class(TInterfacedObject)
+  public
+    destructor Destroy; override;
+  end;
+
+var
+  gWatchedList: TList<IInterface>;
+  gWatcherCounts: Integer;
+  gWatchersLeft: Integer;
+  gWatcherInList: Boolean;
+
+destructor TListWatcher.Destroy;
+
+var
+  i: Integer;
+
+begin
+  Dec(gWatchersLeft);
+  if Assigned(gWatchedList) then
+    begin
+    Inc(gWatcherCounts,gWatchedList.Count);
+    for i:=0 to gWatchedList.Count-1 do
+      if (gWatchedList[i] as TObject)=Self then
+        gWatcherInList:=True;
+    end;
+  inherited Destroy;
+end;
+
+procedure TTestStdCollections.Test_TList_ReleaseSeesFinalList;
+
+  procedure Fill(ACount: Integer);
+  var
+    i: Integer;
+  begin
+    for i:=1 to ACount do
+      gWatchedList.Add(TListWatcher.Create);
+    gWatchersLeft:=ACount;
+    gWatcherCounts:=0;
+    gWatcherInList:=False;
+  end;
+
+begin
+  gWatchedList:=TList<IInterface>.Create;
+  try
+    // A few items, and more than a small buffer holds.
+    Fill(5);
+    gWatchedList.Clear;
+    AssertEquals('Clear of 5: all destroyed', 0, gWatchersLeft);
+    AssertEquals('Clear of 5: each saw an empty list', 0, gWatcherCounts);
+    Fill(1000);
+    gWatchedList.DeleteRange(100,800);
+    AssertEquals('DeleteRange of 800: 200 left', 200, gWatchersLeft);
+    AssertEquals('DeleteRange of 800: each saw 200 items', 800*200, gWatcherCounts);
+    AssertFalse('DeleteRange of 800: none found itself in the list', gWatcherInList);
+    gWatcherCounts:=0;
+    gWatchedList.Count:=50;
+    AssertEquals('Count := 50: 50 left', 50, gWatchersLeft);
+    AssertEquals('Count := 50: each saw 50 items', 150*50, gWatcherCounts);
+    AssertFalse('Count := 50: none found itself in the list', gWatcherInList);
+    // Free: the variable still names the list while its items go.
+    gWatcherCounts:=0;
+    gWatchedList.Free;
+    gWatchedList:=nil;
+    AssertEquals('Free: all destroyed', 0, gWatchersLeft);
+    AssertEquals('Free: each saw an empty list', 0, gWatcherCounts);
+  finally
+    FreeAndNil(gWatchedList);
   end;
 end;
 

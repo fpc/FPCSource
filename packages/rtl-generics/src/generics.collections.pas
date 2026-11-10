@@ -2236,10 +2236,34 @@ begin
 end;
 
 procedure TList<T>.DeleteRange(AIndex, ACount: SizeInt);
+type
+  TOwnNotify = TCustomList<T>;
+const
+  { the removed items wait on the stack for their notifications while they
+    fit this many bytes, at an address aligned for any item }
+  CStackBytes = 64 * SizeOf(Pointer);
+  CStackAlign = 32;
 var
-  LDeleted: array of T;
+  LBuffer: array[0..CStackBytes + CStackAlign - 1] of Byte;
+  LHeap: Pointer;
+  LDeleted: PT;
+  LNotify: procedure(const AValue: T; ACollectionNotification: TCollectionNotification) of object;
   i: SizeInt;
   LMoveDelta: SizeInt;
+
+  { Finalize takes a 32 bit count }
+  procedure FinalizeItems(AFirst: PT; ANumber: SizeInt);
+  begin
+    while ANumber > High(LongInt) do
+    begin
+      Finalize(AFirst^, High(LongInt));
+      Inc(AFirst, High(LongInt));
+      Dec(ANumber, High(LongInt));
+    end;
+    if ANumber > 0 then
+      Finalize(AFirst^, LongInt(ANumber));
+  end;
+
 begin
   if ACount = 0 then
     Exit;
@@ -2247,24 +2271,55 @@ begin
   if (ACount < 0) or (AIndex < 0) or (AIndex + ACount > Count) then
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
 
-  LDeleted := nil;
-  SetLength(LDeleted, ACount);
-  System.Move(FItems[AIndex], LDeleted[0], ACount * SizeOf(T));
-
-  LMoveDelta := Count - (AIndex + ACount);
-
-  if LMoveDelta = 0 then
-    FillChar(FItems[AIndex], ACount * SizeOf(T), #0)
+  LHeap := nil;
+  LNotify := Notify;
+  if not Assigned(FOnNotify) and
+     (TMethod(LNotify).Code = CodePointer(@TOwnNotify.Notify)) and
+     (not IsManagedType(T) or
+      (GetTypeKind(T) in [tkAString, tkLString, tkWString, tkUString])) then
+  begin
+    { nobody is told of a removal (no event is assigned and Notify is the
+      list's own) and releasing an item calls nothing but the memory
+      manager: the items are released where they are, with no copy }
+    LDeleted := nil;
+    FinalizeItems(@FItems[AIndex], ACount);
+  end
   else
   begin
-    System.Move(FItems[AIndex + ACount], FItems[AIndex], LMoveDelta * SizeOf(T));
-    FillChar(FItems[Count - ACount], ACount * SizeOf(T), #0);
+    { the items leave the list before a notification, or the release of an
+      item, can run code, which therefore finds the list as it will be }
+    if ACount * SizeOf(T) <= CStackBytes then
+      LDeleted := Align(@LBuffer[0], CStackAlign)
+    else
+    begin
+      GetMem(LHeap, ACount * SizeOf(T));
+      if LHeap = nil then
+        OutOfMemoryError;
+      LDeleted := LHeap;
+    end;
+    System.Move(FItems[AIndex], LDeleted^, ACount * SizeOf(T));
   end;
+
+  LMoveDelta := Count - (AIndex + ACount);
+  if LMoveDelta > 0 then
+    System.Move(FItems[AIndex + ACount], FItems[AIndex], LMoveDelta * SizeOf(T));
+  FillChar(FItems[Count - ACount], ACount * SizeOf(T), #0);
 
   Dec(FLength, ACount);
 
-  for i := 0 to High(LDeleted) do
-    Notify(LDeleted[i], cnRemoved);
+  if Assigned(LDeleted) then
+    try
+      { not LDeleted[i]: where T is a static array that would be its element }
+      for i := 0 to ACount - 1 do
+        Notify((LDeleted + i)^, cnRemoved);
+    finally
+      try
+        FinalizeItems(LDeleted, ACount);
+      finally
+        if Assigned(LHeap) then
+          FreeMem(LHeap);
+      end;
+    end;
 end;
 
 function TList<T>.ExtractIndex(const AIndex: SizeInt): T;
