@@ -1449,6 +1449,7 @@ type
     function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
   public
     constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
+    destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue; override;
   end;
@@ -5845,28 +5846,61 @@ begin
   FIndex := AIndex;
 end;
 
-function TRttiIntfMethod.GetAttributes: TCustomAttributeArray;
-{var
-  i: SizeInt;
-  at: PAttributeTable;}
+destructor TRttiIntfMethod.Destroy;
+var
+  lIdx: Integer;
 begin
-  FAttributes:=Nil;
-  FAttributesResolved:=True;
-{ // needs extended RTTI branch
+  for lIdx := 0 to High(FAttributes) do
+    FAttributes[lIdx].Free;
+  inherited Destroy;
+end;
+
+function TRttiIntfMethod.GetAttributes: TCustomAttributeArray;
+{$ifndef VER3_2}
+var
+  lTable: PAttributeTable;
+  lList: TCustomAttributeArray;
+  lIdx, lBuilt: Integer;
+{$endif}
+begin
   if not FAttributesResolved then
     begin
-      at := FIntfMethodEntry^.Attributes
-      if Assigned(at) then
-        begin
-          SetLength(FAttributes, at^.AttributeCount);
-          for i := 0 to High(FAttributes) do
-            FAttributes[i] := TCustomAttribute({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(at, i));
-        end;
-      FAttributesResolved:=true;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      EnterCriticalsection(PoolOf(Self).FLock);
+      try
+{$endif}
+        if not FAttributesResolved then
+          begin
+{$ifndef VER3_2}
+            lList := nil;
+            lTable := FIntfMethodEntry^.AttributeTable;
+            if Assigned(lTable) and (lTable^.AttributeCount > 0) then
+              begin
+                SetLength(lList, lTable^.AttributeCount);
+                lBuilt := 0;
+                try
+                  for lIdx := 0 to High(lList) do
+                    begin
+                      lList[lIdx] := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(lTable, lIdx);
+                      Inc(lBuilt);
+                    end;
+                except
+                  for lIdx := 0 to lBuilt - 1 do
+                    lList[lIdx].Free;
+                  raise;
+                end;
+              end;
+            FAttributes := lList;
+{$endif}
+            FAttributesResolved := True;
+          end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      finally
+        LeaveCriticalsection(PoolOf(Self).FLock);
+      end;
+{$endif}
     end;
-}
-  result := FAttributes;
-
+  Result := FAttributes;
 end;
 
 function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;

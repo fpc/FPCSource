@@ -174,6 +174,45 @@ Type
     Property Something : String Read FSomething Write FSomeThing;
   end;
 
+  { TMyCountedAttribute }
+
+  TMyCountedAttribute = class(TCustomAttribute)
+  public
+    class var Built: Integer;
+    class var Alive: Integer;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  EMyAttributeRefused = class(Exception);
+
+  { TMyRefusingAttribute }
+
+  TMyRefusingAttribute = class(TCustomAttribute)
+  public
+    constructor Create;
+  end;
+
+  { IMyAnnotatedInterface }
+
+  { $POP does not bring back the interface style ICORBATest's $INTERFACES changed }
+  {$ifdef fpc}
+  {$INTERFACES COM}
+  {$endif}
+  {$M+}
+  IMyAnnotatedInterface = interface
+    ['{71EC2918-A370-4B6D-A73E-6C84C0BBC891}']
+    [TMyAttribute('first')]
+    procedure First([TMyAttribute('value')] aValue: LongInt; [TMyCountedAttribute] const aText: AnsiString);
+    [TMyAttribute('second'), TMyCountedAttribute]
+    function Second: LongInt;
+    procedure Third(aPlain: LongInt);
+    [TMyCountedAttribute, TMyRefusingAttribute]
+    procedure Fourth;
+    procedure Fifth([TMyCountedAttribute, TMyRefusingAttribute] aValue: LongInt);
+  end;
+  {$M-}
+
   {$RTTI EXPLICIT
      PROPERTIES([vcPrivate,vcProtected,vcPublic,vcPublished])
      FIELDS([vcPrivate,vcProtected,vcPublic,vcPublished])
@@ -334,6 +373,27 @@ end;
 constructor TMyAttribute.create(const avalue: string);
 begin
   FValue:=aValue;
+end;
+
+{ TMyCountedAttribute }
+
+constructor TMyCountedAttribute.Create;
+begin
+  Inc(Built);
+  Inc(Alive);
+end;
+
+destructor TMyCountedAttribute.Destroy;
+begin
+  Dec(Alive);
+  inherited Destroy;
+end;
+
+{ TMyRefusingAttribute }
+
+constructor TMyRefusingAttribute.Create;
+begin
+  raise EMyAttributeRefused.Create('refused');
 end;
 
 { TMethodClassRTTI }

@@ -338,6 +338,12 @@ implementation
                         tcb.emit_procdef_const(def);
                         maybe_add_comment(tcb,#9'Attribute table');
                         write_attribute_data(tcb,def.rtti_attribute_list);
+                      end
+                    else
+                      begin
+                        { an interface's method }
+                        maybe_add_comment(tcb,#9'Attribute table');
+                        write_attribute_data(tcb,def.rtti_attribute_list);
                       end;
 
                     for k:=0 to def.paras.count-1 do

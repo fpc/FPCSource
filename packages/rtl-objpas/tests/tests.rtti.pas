@@ -70,6 +70,7 @@ type
     procedure TestInterface;
 {$ifdef fpc}
     procedure TestInterfaceRaw;
+    procedure TestInterfaceMethodAttributes;
 {$endif}
 
     procedure TestArray;
@@ -1586,6 +1587,121 @@ begin
 
     ti := TRttiInterfaceType(t);
     Check(not Assigned(ti.BaseType), 'Base type is assigned');
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestRTTI.TestInterfaceMethodAttributes;
+
+  procedure CheckSame(const aFirst, aSecond: TCustomAttributeArray; const aWhat: String);
+  var
+    i: Integer;
+  begin
+    CheckEquals(Length(aFirst), Length(aSecond), 'Attribute count of ' + aWhat + ' differs on a second call');
+    for i := 0 to High(aFirst) do
+      Check(aFirst[i] = aSecond[i], 'A second call gives another attribute object for ' + aWhat);
+  end;
+
+var
+  context: TRttiContext;
+  t: TRttiType;
+  method: TRttiMethod;
+  params: specialize TArray<TRttiParameter>;
+  attrs: TCustomAttributeArray;
+  built, alive, i: Integer;
+  refused: Boolean;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(TypeInfo(IMyAnnotatedInterface));
+    Check(t is TRttiInterfaceType, 'Type is not an interface type');
+
+    method := t.GetMethod('First');
+    Check(Assigned(method), 'Method First not found');
+    attrs := method.GetAttributes;
+    CheckEquals(1, Length(attrs), 'Attribute count of First does not match');
+    Check(attrs[0] is TMyAttribute, 'Attribute of First is not a TMyAttribute');
+    CheckEquals('first', TMyAttribute(attrs[0]).value, 'Attribute value of First does not match');
+    CheckSame(attrs, method.GetAttributes, 'First');
+
+    params := method.GetParameters;
+    CheckEquals(2, Length(params), 'Parameter count of First does not match');
+    attrs := params[0].GetAttributes;
+    CheckEquals(1, Length(attrs), 'Attribute count of First''s aValue does not match');
+    Check(attrs[0] is TMyAttribute, 'Attribute of First''s aValue is not a TMyAttribute');
+    CheckEquals('value', TMyAttribute(attrs[0]).value, 'Attribute value of First''s aValue does not match');
+    CheckSame(attrs, params[0].GetAttributes, 'First''s aValue');
+    attrs := params[1].GetAttributes;
+    CheckEquals(1, Length(attrs), 'Attribute count of First''s aText does not match');
+    Check(attrs[0] is TMyCountedAttribute, 'Attribute of First''s aText is not a TMyCountedAttribute');
+    { a second call builds nothing and frees nothing }
+    built := TMyCountedAttribute.Built;
+    alive := TMyCountedAttribute.Alive;
+    CheckSame(attrs, params[1].GetAttributes, 'First''s aText');
+    CheckEquals(built, TMyCountedAttribute.Built, 'A second call built the attribute of First''s aText again');
+    CheckEquals(alive, TMyCountedAttribute.Alive, 'A second call freed the attribute of First''s aText');
+
+    method := t.GetMethod('Second');
+    Check(Assigned(method), 'Method Second not found');
+    attrs := method.GetAttributes;
+    CheckEquals(2, Length(attrs), 'Attribute count of Second does not match');
+    Check(attrs[0] is TMyAttribute, 'First attribute of Second is not a TMyAttribute');
+    CheckEquals('second', TMyAttribute(attrs[0]).value, 'Attribute value of Second does not match');
+    Check(attrs[1] is TMyCountedAttribute, 'Second attribute of Second is not a TMyCountedAttribute');
+    built := TMyCountedAttribute.Built;
+    alive := TMyCountedAttribute.Alive;
+    CheckSame(attrs, method.GetAttributes, 'Second');
+    CheckEquals(built, TMyCountedAttribute.Built, 'A second call built the attributes of Second again');
+    CheckEquals(alive, TMyCountedAttribute.Alive, 'A second call freed an attribute of Second');
+
+    method := t.GetMethod('Third');
+    Check(Assigned(method), 'Method Third not found');
+    CheckEquals(0, Length(method.GetAttributes), 'Attribute count of Third does not match');
+    params := method.GetParameters;
+    CheckEquals(1, Length(params), 'Parameter count of Third does not match');
+    CheckEquals(0, Length(params[0].GetAttributes), 'Attribute count of Third''s aPlain does not match');
+
+    { an attribute whose constructor raises: the call raises, the attributes built before it are
+      freed, and nothing is kept, so a second call raises as well }
+    method := t.GetMethod('Fourth');
+    Check(Assigned(method), 'Method Fourth not found');
+    for i := 1 to 2 do
+      begin
+        built := TMyCountedAttribute.Built;
+        alive := TMyCountedAttribute.Alive;
+        refused := False;
+        try
+          method.GetAttributes;
+        except
+          on E: EMyAttributeRefused do
+            refused := True;
+        end;
+        Check(refused, 'Fourth''s attributes did not raise, call ' + IntToStr(i));
+        CheckEquals(built + 1, TMyCountedAttribute.Built, 'Fourth''s first attribute was not built, call ' + IntToStr(i));
+        CheckEquals(alive, TMyCountedAttribute.Alive, 'Fourth''s first attribute was not freed, call ' + IntToStr(i));
+      end;
+
+    { the same for a parameter }
+    method := t.GetMethod('Fifth');
+    Check(Assigned(method), 'Method Fifth not found');
+    params := method.GetParameters;
+    CheckEquals(1, Length(params), 'Parameter count of Fifth does not match');
+    for i := 1 to 2 do
+      begin
+        built := TMyCountedAttribute.Built;
+        alive := TMyCountedAttribute.Alive;
+        refused := False;
+        try
+          params[0].GetAttributes;
+        except
+          on E: EMyAttributeRefused do
+            refused := True;
+        end;
+        Check(refused, 'The attributes of Fifth''s aValue did not raise, call ' + IntToStr(i));
+        CheckEquals(built + 1, TMyCountedAttribute.Built, 'The first attribute of Fifth''s aValue was not built, call ' + IntToStr(i));
+        CheckEquals(alive, TMyCountedAttribute.Alive, 'The first attribute of Fifth''s aValue was not freed, call ' + IntToStr(i));
+      end;
   finally
     context.Free;
   end;
