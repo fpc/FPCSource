@@ -919,6 +919,12 @@ type
     function GetDeclaredMethods: TRttiMethodArray; override;
     function GetDeclaredProperties: TRttiPropertyArray; override;
     function GetDeclaredIndexedProperties: TRttiIndexedPropertyArray; override;
+{$ifndef VER3_2}
+    { the interfaces the class lists itself, in the order of its interface
+      table; and those with the ones of its ancestors, its own first }
+    function GetDeclaredImplementedInterfaces: specialize TArray<TRttiInterfaceType>;
+    function GetImplementedInterfaces: specialize TArray<TRttiInterfaceType>;
+{$endif VER3_2}
     property MetaClassType: TClass read GetMetaClassType;
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
@@ -7369,6 +7375,60 @@ begin
   end;
   Result:=FDeclaredMethods;
 end;
+
+{$ifndef VER3_2}
+function TRttiInstanceType.GetDeclaredImplementedInterfaces: specialize TArray<TRttiInterfaceType>;
+var
+  lTable: PInterfaceTable;
+  lEntry: PInterfaceEntry;
+  lInfo: PTypeInfo;
+  lType: TRttiType;
+  lIdx, lCount: SizeInt;
+begin
+  Result := nil;
+  lTable := MetaClassType.GetInterfaceTable;
+  if not Assigned(lTable) then
+    Exit;
+  SetLength(Result, lTable^.EntryCount);
+  lCount := 0;
+  lEntry := @lTable^.Entries[0];
+  for lIdx := 1 to SizeInt(lTable^.EntryCount) do
+    begin
+      lInfo := lEntry^.ITypeInfo;
+      if Assigned(lInfo) then
+        begin
+          lType := PoolOf(Self).GetType(lInfo);
+          if lType is TRttiInterfaceType then
+            begin
+              Result[lCount] := TRttiInterfaceType(lType);
+              Inc(lCount);
+            end;
+        end;
+      Inc(lEntry);
+    end;
+  SetLength(Result, lCount);
+end;
+
+function TRttiInstanceType.GetImplementedInterfaces: specialize TArray<TRttiInterfaceType>;
+var
+  lType: TRttiType;
+  lOwn: specialize TArray<TRttiInterfaceType>;
+  lIdx, lCount: SizeInt;
+begin
+  Result := nil;
+  lCount := 0;
+  lType := Self;
+  while lType is TRttiInstanceType do
+    begin
+      lOwn := TRttiInstanceType(lType).GetDeclaredImplementedInterfaces;
+      SetLength(Result, lCount + Length(lOwn));
+      for lIdx := 0 to High(lOwn) do
+        Result[lCount + lIdx] := lOwn[lIdx];
+      Inc(lCount, Length(lOwn));
+      lType := lType.BaseType;
+    end;
+end;
+{$endif VER3_2}
 
 { TRttiRecordType }
 

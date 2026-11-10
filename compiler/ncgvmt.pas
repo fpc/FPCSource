@@ -784,6 +784,7 @@ implementation
         siid,
         siidstr: tsymstr;
         nonuniqueintf: tobjectdef;
+        typeinfofield: tfieldvarsym;
       begin
         nonuniqueintf:=AImplIntf.IntfDef;
         while nonuniqueintf.is_unique_objpasdef do
@@ -841,6 +842,15 @@ implementation
         { IType }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
+        { the interface's type information, for a run-time library that has
+          the field }
+        typeinfofield:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPEINFOREF') as tfieldvarsym;
+        if assigned(typeinfofield) then
+          begin
+            tcb.next_field:=typeinfofield;
+            RTTIWriter.write_rtti(nonuniqueintf,fullrtti);
+            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(nonuniqueintf,fullrtti,true)),typeinfofield.vardef);
+          end;
         tcb.maybe_end_aggregate(interfaceentrydef);
 
         if findunitsymtable(nonuniqueintf.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then

@@ -63,6 +63,9 @@ type
     procedure TestIsWritable;
 
     procedure TestGetAttribute;
+{$ifdef fpc}
+    procedure TestImplementedInterfaces;
+{$endif}
 
     procedure TestInterface;
 {$ifdef fpc}
@@ -287,6 +290,89 @@ begin
     C.Free;
   end;
 end;
+
+{$ifdef fpc}
+type
+  IImplOne = interface
+    ['{F010E3E5-BDD6-4F55-8541-1A3B8CE7BF05}']
+    procedure One;
+  end;
+
+  { no GUID: only its type identifies it }
+  IImplBare = interface
+    procedure Bare;
+  end;
+
+  IImplSecond = interface
+    procedure Second;
+  end;
+
+  TImplBase = class(TInterfacedObject, IImplOne, IImplSecond)
+    procedure One;
+    procedure Second;
+  end;
+
+  TImplChild = class(TImplBase, IImplBare)
+    procedure Bare;
+  end;
+
+  { lists no interface itself }
+  TImplGrandChild = class(TImplChild)
+  end;
+
+procedure TImplBase.One;
+begin
+end;
+
+procedure TImplBase.Second;
+begin
+end;
+
+procedure TImplChild.Bare;
+begin
+end;
+
+procedure TTestRTTI.TestImplementedInterfaces;
+var
+  c: TRttiContext;
+  t: TRttiInstanceType;
+  intfs: specialize TArray<TRttiInterfaceType>;
+begin
+  c := TRttiContext.Create;
+  try
+    t := c.GetType(TImplChild) as TRttiInstanceType;
+    intfs := t.GetDeclaredImplementedInterfaces;
+    CheckEquals(1, Length(intfs), 'Count of the interfaces TImplChild lists itself');
+    Check(intfs[0].Handle = TypeInfo(IImplBare), 'TImplChild''s own interface is not IImplBare');
+
+    { the class's own first, then each ancestor's, each in the order of its table: the order of declaration }
+    intfs := t.GetImplementedInterfaces;
+    CheckEquals(4, Length(intfs), 'Count of the interfaces of TImplChild with its ancestors''');
+    Check(intfs[0].Handle = TypeInfo(IImplBare), 'First interface is not IImplBare');
+    Check(intfs[1].Handle = TypeInfo(IImplOne), 'Second interface is not IImplOne');
+    Check(intfs[2].Handle = TypeInfo(IImplSecond), 'Third interface is not IImplSecond');
+    Check(intfs[3].Handle = TypeInfo(IUnknown), 'Fourth interface is not IUnknown');
+
+    t := c.GetType(TImplBase) as TRttiInstanceType;
+    intfs := t.GetDeclaredImplementedInterfaces;
+    CheckEquals(2, Length(intfs), 'Count of the interfaces TImplBase lists itself');
+    Check(intfs[0].Handle = TypeInfo(IImplOne), 'TImplBase''s first own interface is not IImplOne');
+    Check(intfs[1].Handle = TypeInfo(IImplSecond), 'TImplBase''s second own interface is not IImplSecond');
+
+    t := c.GetType(TImplGrandChild) as TRttiInstanceType;
+    CheckEquals(0, Length(t.GetDeclaredImplementedInterfaces), 'TImplGrandChild lists an interface itself');
+    intfs := t.GetImplementedInterfaces;
+    CheckEquals(4, Length(intfs), 'Count of the interfaces of TImplGrandChild with its ancestors''');
+    Check(intfs[0].Handle = TypeInfo(IImplBare), 'TImplGrandChild''s first interface is not IImplBare');
+
+    t := c.GetType(TObject) as TRttiInstanceType;
+    CheckEquals(0, Length(t.GetDeclaredImplementedInterfaces), 'TObject lists an interface');
+    CheckEquals(0, Length(t.GetImplementedInterfaces), 'TObject has an interface');
+  finally
+    c.Free;
+  end;
+end;
+{$endif}
 
 
 procedure TTestRTTI.TestPropGetValueBoolean;
