@@ -524,7 +524,9 @@ type
     // Extensions to DOM interface:
     constructor Create; virtual;
     destructor Destroy; override;
+    // Add the elements below aRoot with an attribute named id (any case) to the ID table; used for HTML documents
     procedure RebuildIDsOfElement(aRoot: TDOMElement);
+    // Rebuild the ID table from the attributes named id (any case); used for HTML documents
     procedure RebuildIDList;
     function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
