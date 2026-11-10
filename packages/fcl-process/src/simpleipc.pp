@@ -171,6 +171,7 @@ type
     FThread: TThread;
     FSynchronizeEvents: Boolean;
     procedure DoOnMessage;
+    procedure DispatchQueuedMessages;
     procedure DoOnMessageQueued;
     procedure DoOnMessageError(Msg: TIPCServerMsg);
     procedure DoOnThreadError;
@@ -223,7 +224,7 @@ type
     property  ThreadError: String read FThreadError;
   Published
     Property Global : Boolean Read FGlobal write SetGlobal default false;
-    // Called during ReadMessage
+    // Called during ReadMessage; called at once for messages received through the Windows message loop
     Property OnMessage : TNotifyEvent Read FOnMessage Write FOnMessage;
     // Called when a message is pushed on the queue.
     Property OnMessageQueued : TNotifyEvent Read FOnMessageQueued Write FOnMessageQueued;
@@ -449,6 +450,9 @@ end;
 function TIPCServerMsgQueue.PrepareToPush: Boolean;
 begin
   Result := True;
+  // MaxCount <= 0 means an unlimited queue
+  if FMaxCount <= 0 then
+    Exit;
   case FMaxAction of
     ipcmoaDiscardOld:
       begin
@@ -472,7 +476,9 @@ procedure TIPCServerMsgQueue.Push(AItem: TIPCServerMsg);
 begin
   // PrepareToPush may throw an exception, e.g. if message queue is full.
   if PrepareToPush then
-    FList.Insert(0, AItem);
+    FList.Insert(0, AItem)
+  else
+    AItem.Free;
 end;
 
 function TIPCServerMsgQueue.Pop: TIPCServerMsg;
@@ -840,7 +846,10 @@ begin
 end;
 
 function TSimpleIPCServer.ProcessMessage(Timeout: Integer): Boolean;
+var
+  lWasBusy: Boolean;
 begin
+  lWasBusy := FBusy;
   FBusy := True;
   try
     // Check for new messages (may push several messages to the queue)
@@ -849,7 +858,7 @@ begin
     if Result then
       FIPCComm.ReadMessage;
   finally
-    FBusy := False;
+    FBusy := lWasBusy;
   end;
 end;
 
@@ -942,7 +951,29 @@ begin
     // Handler must free the Msg, because it is not owned by anybody.
     DoOnMessageError(Msg)
   else
+    begin
     DoOnMessageQueued;
+    // A message pushed outside ProcessMessage (Windows message loop) is dispatched to OnMessage at once
+    if not Threaded and not FBusy and Assigned(FOnMessage) then
+      DispatchQueuedMessages;
+    end;
+end;
+
+
+procedure TSimpleIPCServer.DispatchQueuedMessages;
+
+var
+  lWasBusy: Boolean;
+
+begin
+  lWasBusy := FBusy;
+  FBusy := True;
+  try
+    while ReadMessage do
+      ;
+  finally
+    FBusy := lWasBusy;
+  end;
 end;
 
 function TSimpleIPCServer.GetMsgType: TMessageType;

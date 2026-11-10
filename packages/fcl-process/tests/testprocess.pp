@@ -3,7 +3,7 @@ program testprocess;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, utcprocess;
+  Classes, consoletestrunner, utcprocess, utcsimpleipc;
 
 type
 
