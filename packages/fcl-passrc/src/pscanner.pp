@@ -478,10 +478,19 @@ type
   Private
     FName: TPasTreeString;
     FValue: TPasTreeString;
+    FFileName: String;
+    FRow: Integer;
+    FColumn: Integer;
   Public
     Constructor Create(Const AName,AValue : TPasTreeString);
     Property Name  : TPasTreeString Read FName;
     Property Value : TPasTreeString Read FValue Write FValue;
+    // File containing the definition; empty if the macro was not defined in a source file
+    Property FileName : String Read FFileName Write FFileName;
+    // Row of the first character of the value in FileName
+    Property Row : Integer Read FRow Write FRow;
+    // Column of the first character of the value in FileName
+    Property Column : Integer Read FColumn Write FColumn;
   end;
 
   { TLineReader }
@@ -829,6 +838,8 @@ type
     FCurLine: TPasScannerString;
     FMaxIncludeStackDepth: integer;
     FModuleRow: Integer;
+    FCommentRow: Integer;
+    FCommentColumn: Integer;
     FMacros: TStrings; // Objects are TMacroDef
     FDefines: TStrings;
     FMultilineStringsEOLStyle: TEOLStyle;
@@ -925,6 +936,8 @@ type
     procedure HandleELSE(const AParam: TPasScannerString);
     procedure HandleENDIF(const AParam: TPasScannerString);
     procedure HandleDefine(Param: TPasScannerString); virtual;
+    // Record the position of the value of the current {$define aName:=value} directive in macro aName
+    procedure SetMacroDefinitionPos(const aName: TPasScannerString);
     procedure HandleDispatchField(Param: TPasScannerString; vs: TValueSwitch); virtual;
     procedure HandlePackValue(vs: TValueSwitch; const Param: TPasScannerString); virtual;
     procedure HandleError(Param: TPasScannerString); virtual;
@@ -4881,9 +4894,19 @@ begin
   OldCol:=CurColumn;
   PushStackItem;
   M:=FMacros.Objects[AIndex] as TMacroDef;
-  ML:=TMacroReader.Create(FCurFileName,M.Value);
-  ML.CurRow:=OldRow;
-  ML.CurCol:=OldCol-length(M.Name);
+  if M.FileName<>'' then
+    begin
+    ML:=TMacroReader.Create(M.FileName,M.Value);
+    ML.CurRow:=M.Row;
+    ML.CurCol:=M.Column;
+    FCurFilename:=M.FileName;
+    end
+  else
+    begin
+    ML:=TMacroReader.Create(FCurFileName,M.Value);
+    ML.CurRow:=OldRow;
+    ML.CurCol:=OldCol-length(M.Name);
+    end;
   FCurSourceFile:=ML;
   Result:=DoFetchToken;
 //  Writeln(Result,Curtoken);
@@ -4996,8 +5019,44 @@ begin
     MName:=UpperCase(Trim(Copy(MValue,1,Index-1)));
     Delete(MValue,1,Index+1);
     AddMacro(MName,Trim(MValue));
+    SetMacroDefinitionPos(MName);
     end;
 end;
+
+procedure TPascalScanner.SetMacroDefinitionPos(const aName: TPasScannerString);
+
+var
+  lIndex, lPos, lRow, lCol, i: Integer;
+  lText: TPasScannerString;
+  lMacro: TMacroDef;
+
+begin
+  lIndex:=FMacros.IndexOf(aName);
+  if (lIndex<0) or (FCommentRow<=0) then
+    exit;
+  lText:=CurTokenString;
+  lPos:=Pos(':=',lText);
+  if lPos=0 then
+    exit;
+  Inc(lPos,2);
+  while (lPos<=Length(lText)) and (lText[lPos] in [' ',#9,#10,#13]) do
+    Inc(lPos);
+  lRow:=FCommentRow;
+  lCol:=FCommentColumn;
+  for i:=1 to lPos-1 do
+    if lText[i]=#10 then
+      begin
+      Inc(lRow);
+      lCol:=1;
+      end
+    else
+      Inc(lCol);
+  lMacro:=TMacroDef(FMacros.Objects[lIndex]);
+  lMacro.FileName:=FCurFilename;
+  lMacro.Row:=lRow;
+  lMacro.Column:=lCol;
+end;
+
 
 procedure TPascalScanner.HandleDispatchField(Param: TPasScannerString; vs: TValueSwitch);
 var
@@ -5888,6 +5947,8 @@ begin
   // Old-style multi-line comment
   Inc(FTokenPos);
   TokenStart := FTokenPos;
+  FCommentRow := FCurRow;
+  FCommentColumn := CurColumn;
   FCurTokenString := '';
   {$ifdef UsePChar}
   OldLength := 0;
@@ -5981,6 +6042,8 @@ var
 begin
   Inc(FTokenPos);
   TokenStart := FTokenPos;
+  FCommentRow := FCurRow;
+  FCommentColumn := CurColumn;
   FCurTokenString := '';
   {$ifdef UsePChar}
   LE:=LineEnding;
@@ -7025,7 +7088,8 @@ begin
       FCurLine := '';
       FTokenPos := {$ifdef UsePChar}nil{$else}-1{$endif};
       inc(FCurRow); // set CurRow to last line+1
-      inc(FModuleRow);
+      if not (FCurSourceFile is TMacroReader) then
+        inc(FModuleRow);
       FCurColumnOffset:=1;
       end;
     Result := false;
@@ -7044,7 +7108,8 @@ begin
       inc(FTokenPos, 3);
     {$endif}
     Inc(FCurRow);
-    inc(FModuleRow);
+    if not (FCurSourceFile is TMacroReader) then
+      inc(FModuleRow);
     FCurColumnOffset:=1;
     if (FCurSourceFile is TMacroReader) and (FCurRow=1) then
     begin
@@ -7159,6 +7224,7 @@ begin
     begin
     if TMacroDef(FMacros.Objects[Index]).Value=aValue then exit(false);
     TMacroDef(FMacros.Objects[Index]).Value:=aValue;
+    TMacroDef(FMacros.Objects[Index]).FileName:='';
     end;
   Result:=true;
   if (not Quiet) and LogEvent(sleConditionals) then

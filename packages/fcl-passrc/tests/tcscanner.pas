@@ -94,6 +94,10 @@ type
     Procedure DoTestToken(t : TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True);
     Procedure TestToken(t : TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True);
     Procedure TestTokens(t : array of TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
+    // Fetch tokens until the token text equals aText (case insensitive); fails at end of file
+    Procedure FetchUntilToken(Const aText : String);
+    // Check the file name, row and column of the start of the current token
+    Procedure AssertTokenPos(Const Msg, aFileName : String; aRow, aColumn : Integer);
     Property LastIDentifier : String Read FLI Write FLi;
     Property Scanner : TPascalScanner Read FScanner;
     // Path for source filename.
@@ -318,6 +322,15 @@ type
     procedure TestMacro3;
     procedure TestMacro4;
     procedure TestMacroHandling;
+    procedure TestMacroFirstLinePos;
+    procedure TestMacroMultiLinePos;
+    procedure TestMacroValueOnNextLinePos;
+    procedure TestMacroOldStyleCommentPos;
+    procedure TestMacroPosAfterExpansion;
+    procedure TestMacroModuleRow;
+    procedure TestMacroRedefinedPos;
+    procedure TestMacroWithoutSourcePos;
+    procedure TestMacroInIncludeFilePos;
     procedure TestIFDefined;
     procedure TestIFUnDefined;
     procedure TestIFAnd;
@@ -632,6 +645,33 @@ begin
   DoTestToken(t,UpperCase(ASource));
   DoTestToken(t,LowerCase(ASource),CheckEOF);
 end;
+
+procedure TTestScanner.FetchUntilToken(const aText: String);
+
+var
+  lToken: TToken;
+
+begin
+  repeat
+    lToken:=FScanner.FetchToken;
+    if lToken=tkEOF then
+      Fail('Token '''+aText+''' not found before end of file');
+  until SameText(FScanner.CurTokenString,aText);
+end;
+
+
+procedure TTestScanner.AssertTokenPos(const Msg, aFileName: String; aRow, aColumn: Integer);
+
+var
+  lPos: TPasSourcePos;
+
+begin
+  lPos:=FScanner.CurTokenPos;
+  AssertEquals(Msg+': file name',aFileName,ExtractFileName(lPos.FileName));
+  AssertEquals(Msg+': row',aRow,lPos.Row);
+  AssertEquals(Msg+': column',aColumn,lPos.Column);
+end;
+
 
 procedure TTestScanner.TestTokens(t: array of TToken; const ASource: RawByteString;
   const CheckEOF: Boolean; const DoClear: Boolean);
@@ -2335,6 +2375,158 @@ begin
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkIdentifier],'{$MACRO on}{$DEFINE MM:=begin end}'#13#10'MM');
   AssertEQuals('Correct identifier', 'somethingweird',LastIdentifier);
+end;
+
+procedure TTestScanner.TestMacroFirstLinePos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM:=first second}'#10+
+            'x'#10+
+            '  MM');
+  FetchUntilToken('first');
+  AssertTokenPos('First token of the macro','afile.pp',2,14);
+  FetchUntilToken('second');
+  AssertTokenPos('Second token of the macro','afile.pp',2,20);
+end;
+
+
+procedure TTestScanner.TestMacroMultiLinePos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM:=one'#10+
+            '  two'#10+
+            '    three}'#10+
+            'x'#10+
+            'y'#10+
+            'MM');
+  FetchUntilToken('one');
+  AssertTokenPos('Token on the first line of the macro','afile.pp',2,14);
+  FetchUntilToken('two');
+  AssertTokenPos('Token on the second line of the macro','afile.pp',3,3);
+  FetchUntilToken('three');
+  AssertTokenPos('Token on the third line of the macro','afile.pp',4,5);
+end;
+
+
+procedure TTestScanner.TestMacroValueOnNextLinePos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM :='#10+
+            '   one two}'#10+
+            'MM');
+  FetchUntilToken('one');
+  AssertTokenPos('Value starting on the line after :=','afile.pp',3,4);
+  FetchUntilToken('two');
+  AssertTokenPos('Second token of that value','afile.pp',3,8);
+end;
+
+
+procedure TTestScanner.TestMacroOldStyleCommentPos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '  (*$DEFINE MM:=one'#10+
+            ' two*)'#10+
+            'MM');
+  FetchUntilToken('one');
+  AssertTokenPos('Macro defined in a (* directive','afile.pp',2,17);
+  FetchUntilToken('two');
+  AssertTokenPos('Second line of that macro','afile.pp',3,2);
+end;
+
+
+procedure TTestScanner.TestMacroPosAfterExpansion;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM:=one'#10+
+            'two}'#10+
+            'x'#10+
+            'MM after'#10+
+            'next');
+  FetchUntilToken('after');
+  AssertTokenPos('Token after the invocation','afile.pp',5,4);
+  FetchUntilToken('next');
+  AssertTokenPos('Token on the line after the invocation','afile.pp',6,1);
+end;
+
+
+procedure TTestScanner.TestMacroModuleRow;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM:=one'#10+
+            'two'#10+
+            'three}'#10+
+            'MM'#10+
+            'last');
+  FetchUntilToken('last');
+  AssertEquals('Macro lines do not count as module rows',6,FScanner.ModuleRow);
+  AssertTokenPos('Token after the macro','afile.pp',6,1);
+end;
+
+
+procedure TTestScanner.TestMacroRedefinedPos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  NewSource('{$MACRO on}'#10+
+            '{$DEFINE MM:=one}'#10+
+            '  {$DEFINE MM:=two}'#10+
+            'MM');
+  FetchUntilToken('two');
+  AssertTokenPos('Position of the last definition','afile.pp',3,16);
+end;
+
+
+procedure TTestScanner.TestMacroWithoutSourcePos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.AddMacro('MM','one two');
+  NewSource('{$MACRO on}'#10+
+            'x'#10+
+            '  MM');
+  FetchUntilToken('one');
+  AssertTokenPos('Macro without definition position is reported at the invocation','afile.pp',3,3);
+end;
+
+
+procedure TTestScanner.TestMacroInIncludeFilePos;
+
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  FResolver.Clear;
+  FResolver.AddStream('macros.inc',TStringStream.Create('x'#10'{$DEFINE MM:=one'#10' two}'));
+  NewSource('{$MACRO on}'#10+
+            '{$I macros.inc}'#10+
+            'y'#10+
+            'MM'#10+
+            'last',False);
+  FetchUntilToken('one');
+  AssertTokenPos('Macro defined in an include file','macros.inc',2,14);
+  FetchUntilToken('two');
+  AssertTokenPos('Second line of that macro','macros.inc',3,2);
+  FetchUntilToken('last');
+  AssertTokenPos('Token after the macro','afile.pp',5,1);
 end;
 
 procedure TTestScanner.TestIFDefined;

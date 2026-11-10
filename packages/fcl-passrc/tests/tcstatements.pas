@@ -30,6 +30,8 @@ Type
     function TestStatement(ASource : Array of string) : TPasImplElement;
     Procedure ExpectParserError(Const Msg : string);
     Procedure ExpectParserError(Const Msg : string; ASource : Array of string);
+    // Parse ASource and check that it raises EParserError at aRow, aColumn
+    Procedure ExpectParserErrorAt(Const Msg : string; ASource : Array of string; aRow, aColumn : Integer);
     Function AssertStatement(Msg : String; AClass : TClass;AIndex : Integer = 0) : TPasImplBlock;
     Property Statement: TPasImplBlock Read FStatement;
   Published
@@ -136,6 +138,9 @@ Type
     procedure TestAssignToAddress;
     procedure TestFinalizationNoSemicolon;
     procedure TestMacroComment;
+    procedure TestMacroErrorMultiLinePos;
+    procedure TestMacroErrorFirstLinePos;
+    procedure TestErrorAfterMacroPos;
     Procedure TestPlatformIdentifier;
     Procedure TestPlatformIdentifier2;
     Procedure TestArgumentNameOn;
@@ -217,6 +222,29 @@ procedure TTestStatementParser.ExpectParserError(const Msg: string;
 begin
   AddStatements(ASource);
   ExpectParserError(Msg);
+end;
+
+procedure TTestStatementParser.ExpectParserErrorAt(const Msg: string; ASource: array of string;
+  aRow, aColumn: Integer);
+
+var
+  lRaised: Boolean;
+
+begin
+  AddStatements(ASource);
+  lRaised:=False;
+  try
+    ParseModule;
+  except
+    on E: EParserError do
+      begin
+      lRaised:=True;
+      AssertEquals(Msg+': file name',MainFilename,ExtractFileName(E.Filename));
+      AssertEquals(Msg+': row of '+E.Message,aRow,E.Row);
+      AssertEquals(Msg+': column of '+E.Message,aColumn,E.Column);
+      end;
+  end;
+  AssertTrue(Msg+': EParserError raised',lRaised);
 end;
 
 function TTestStatementParser.AssertStatement(Msg: String; AClass: TClass;
@@ -2057,6 +2085,44 @@ begin
   'CallTest2;'
   ]);
   ParseModule;
+end;
+
+procedure TTestStatementParser.TestMacroErrorMultiLinePos;
+
+begin
+  // Line 1 is the program header, line 2 is begin; statements are indented by 2
+  ExpectParserErrorAt('Error on the third line of a macro',
+    ['{$MACRO ON}',
+     '{$DEFINE broken :=',
+     '  a:=1;',
+     '  b:=2;',
+     '  c:= ;}',
+     'x:=0;',
+     'broken'],7,9);
+end;
+
+
+procedure TTestStatementParser.TestMacroErrorFirstLinePos;
+
+begin
+  ExpectParserErrorAt('Error on the first line of a macro',
+    ['{$MACRO ON}',
+     '{$DEFINE broken := c:= ;}',
+     'x:=0;',
+     'broken'],4,26);
+end;
+
+
+procedure TTestStatementParser.TestErrorAfterMacroPos;
+
+begin
+  ExpectParserErrorAt('Error after a multi-line macro',
+    ['{$MACRO ON}',
+     '{$DEFINE ok :=',
+     '  a:=1;',
+     '  b:=2;}',
+     'ok',
+     'c:= ;'],8,7);
 end;
 
 procedure TTestStatementParser.TestPlatformIdentifier;
