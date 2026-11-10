@@ -75,6 +75,8 @@ Type
     function UseCertificateChainFile(const Afile: PAnsiChar):cInt;
     function UseCertificate(x: SslPtr):cInt;
     function LoadVerifyLocations(const CAfile: String; const CApath: String):cInt;
+    // OpenSSL's own trust store: the system's CA certificates on most Unix systems
+    function SetDefaultVerifyPaths:cInt;
     function LoadPFX(Const S,APassword : AnsiString) : cint; deprecated 'use TBytes overload';
     function LoadPFX(Const Buf : TBytes;APassword : AnsiString) : cint;
     function LoadPFX(Data : TSSLData; Const APAssword : Ansistring) : cint;
@@ -545,6 +547,11 @@ end;
 function TSSLContext.LoadVerifyLocations(const CAfile: String; const CApath: String): cInt;
 begin
   Result:=SslCtxLoadVerifyLocations(FCTX,CAfile,CApath);
+end;
+
+function TSSLContext.SetDefaultVerifyPaths: cInt;
+begin
+  Result:=SslCtxSetDefaultVerifyPaths(FCTX);
 end;
 
 function TSSLContext.LoadPFX(Const S, APassword: AnsiString): cint;

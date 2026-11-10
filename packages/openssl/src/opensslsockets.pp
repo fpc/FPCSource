@@ -333,7 +333,10 @@ begin
   if Result and not CertificateData.PrivateKey.Empty then
     Result:=CheckSSL(FCTX.UsePrivateKey(CertificateData.PrivateKey));
   if Result and ((CertificateData.CertCA.FileName<>'') or (CertificateData.TrustedCertsDir<>'')) then
-    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,CertificateData.TrustedCertsDir));
+    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,CertificateData.TrustedCertsDir))
+  else if Result and VerifyPeerCert then
+    // no CA file or folder set: verify against OpenSSL's default trust store
+    Result:=CheckSSL(FCTX.SetDefaultVerifyPaths);
   if Result and not CertificateData.PFX.Empty then
     Result:=CheckSSL(FCTX.LoadPFX(CertificateData.PFX,CertificateData.KeyPassword));
 end;
