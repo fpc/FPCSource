@@ -148,6 +148,8 @@ const
 {$i sockopt-mips.inc}
 {$elseif defined(cpusparcgen)}
 {$i sockopt-sparc.inc}
+{$elseif defined(cpupowerpc)}
+{$i sockopt-powerpc.inc}
 {$else}
          SOL_SOCKET  =   1;
          SO_DEBUG    =   1;
