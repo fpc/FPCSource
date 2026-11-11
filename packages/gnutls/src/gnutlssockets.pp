@@ -276,11 +276,12 @@ begin
     Vkeyidsize := 0;
     Vret := gnutls_x509_crt_get_key_id(Vcrt, GNUTLS_KEYID_USE_SHA1, nil, @Vkeyidsize);
     Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or (Vkeyidsize < 1), Vret);
-    SetLength(Vkeyid, Pred(Vkeyidsize));
+    SetLength(Vkeyid, Vkeyidsize);
     Check(gnutls_x509_crt_get_key_id(Vcrt, GNUTLS_KEYID_USE_SHA1, Pointer(Vkeyid), @Vkeyidsize));
     Check(gnutls_x509_crt_set_subject_key_id(Vcrt, Pointer(Vkeyid), Vkeyidsize));
     Check(gnutls_x509_crt_sign2(Vcrt, Vcrt, Vkey, GNUTLS_DIG_SHA256, 0));
-    SetLength(Result, DefCertSize);
+    Vca_pem_size := DefCertSize;
+    SetLength(Result, Vca_pem_size);
     Check(gnutls_x509_crt_export(Vcrt, FMyFormat, Pointer(Result), @Vca_pem_size));
     SetLength(Result, Pred(Vca_pem_size));
   except
@@ -335,18 +336,18 @@ begin
     Vkeyidsize := 0;
     Vret := gnutls_x509_crt_get_subject_key_id(Vca_crt, nil, @Vkeyidsize, nil);
     Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or  (Vkeyidsize < 1), Vret);
-    SetLength(Vkeyid, Pred(Vkeyidsize));
+    SetLength(Vkeyid, Vkeyidsize);
     Check(gnutls_x509_crt_get_subject_key_id(Vca_crt, Pointer(Vkeyid), @Vkeyidsize, nil));
     Check(gnutls_x509_crt_set_subject_key_id(Vsrv_crt, Pointer(Vkeyid), Vkeyidsize));
     Vkeyidsize := 0;
-    gnutls_x509_crt_get_key_id(Vsrv_crt, GNUTLS_KEYID_USE_SHA1, nil, @Vkeyidsize);
+    Vret := gnutls_x509_crt_get_key_id(Vsrv_crt, GNUTLS_KEYID_USE_SHA1, nil, @Vkeyidsize);
     Check((Vret <> GNUTLS_E_SHORT_MEMORY_BUFFER) or (Vkeyidsize < 1), Vret);
-    SetLength(Vkeyid, Pred(Vkeyidsize));
+    SetLength(Vkeyid, Vkeyidsize);
     Check(gnutls_x509_crt_get_key_id(Vsrv_crt, GNUTLS_KEYID_USE_SHA1, Pointer(Vkeyid), @Vkeyidsize));
     Check(gnutls_x509_crt_set_authority_key_id(Vsrv_crt,  Pointer(Vkeyid), Vkeyidsize));
     Check(gnutls_x509_crt_sign2(Vsrv_crt, Vca_crt, Vca_key,  GNUTLS_DIG_SHA256, 0));
     Vsrv_pem_size := DefCertSize;
-    SetLength(Result, Pred(Vsrv_pem_size));
+    SetLength(Result, Vsrv_pem_size);
     Check(gnutls_x509_crt_export(Vsrv_crt, FMyFormat,Pointer(Result), @Vsrv_pem_size));
     SetLength(Result, Vsrv_pem_size);
   except
@@ -854,7 +855,10 @@ end;
 
 function TGNUTLSSocketHandler.BytesAvailable: Integer;
 begin
-  Result:=gnutls_record_check_pending(FSession);
+  if Assigned(FSession) then
+    Result:=gnutls_record_check_pending(FSession)
+  else
+    Result:=0;
 end;
 
 Function TGNUTLSSocketHandler.GNUTLSLastError: integer;

@@ -75,6 +75,8 @@ Type
     // Negotiated ALPN protocol after a completed handshake; '' when nothing negotiated.
     // Provider-neutral default — non-OpenSSL handlers degrade gracefully
     Function GetSelectedALPNProtocol : string; virtual;
+    // Reports sosCanRead without waiting when decrypted data is buffered (BytesAvailable>0); other states come from the socket
+    function Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates; override;
     Property CertGenerator : TX509Certificate Read FCertGenerator;
     Property SSLActive: Boolean read FSSLActive;
     Property LastSSLErrorString : String Read GetLastSSLErrorString;
@@ -248,6 +250,19 @@ end;
 function TSSLSocketHandler.GetSelectedALPNProtocol: string;
 begin
   Result:='';
+end;
+
+function TSSLSocketHandler.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
+
+begin
+  if (sosCanRead in aCheck) and (BytesAvailable>0) then
+    begin
+    Result:=[sosCanRead];
+    if aCheck-[sosCanRead]<>[] then
+      Result:=Result+inherited Select(aCheck-[sosCanRead],0);
+    end
+  else
+    Result:=inherited Select(aCheck,TimeOut);
 end;
 
 

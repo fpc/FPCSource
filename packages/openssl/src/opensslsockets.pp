@@ -521,7 +521,10 @@ end;
 
 function TOpenSSLSocketHandler.BytesAvailable: Integer;
 begin
-  Result:= FSSL.Pending;
+  if Assigned(FSSL) then
+    Result:=FSSL.Pending
+  else
+    Result:=0;
 end;
 
 Function TOpenSSLSocketHandler.SSLLastError: integer;
