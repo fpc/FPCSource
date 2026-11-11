@@ -598,6 +598,8 @@ begin
         FMemoFile.MemoRecordSize := 0;
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
+        if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          FMemoStream := FMemoFile.Stream;
         // set header blob flag corresponding to field list
         if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
@@ -637,6 +639,8 @@ begin
           FMdxFile.OnLocaleError := FOnLocaleError;
           FMdxFile.CodePage := UseCodePage;
           FMdxFile.Open;
+          if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+            FIndexStream := FMdxFile.Stream;
           // is index ready for use?
           if not FMdxFile.ForceClose then
           begin
@@ -992,6 +996,8 @@ begin
     FMemoFile.MemoRecordSize := MemoSize;
     FMemoFile.DbfVersion := FDbfVersion;
     FMemoFile.Open;
+    if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      FMemoStream := FMemoFile.Stream;
   end;
 end;
 

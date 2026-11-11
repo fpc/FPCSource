@@ -49,6 +49,8 @@ type
     procedure TestAutoIncValues;
     // Tests that a memory table's user streams outlive the TDbf and can be opened again
     procedure TestUserStreamsNotFreed;
+    // Tests that a memory table without user streams keeps its records and memos after Close and Open
+    procedure TestMemoryTableWithoutUserStreams;
     // Tests findfirst moves to first record
     procedure TestFindFirst;
     // Tests findlast moves to last record
@@ -423,6 +425,38 @@ begin
     lData.Free;
     lIndex.Free;
     lMemo.Free;
+  end;
+end;
+
+procedure TTestSpecificTDBF.TestMemoryTableWithoutUserStreams;
+
+const
+  cRecords = 3;
+
+var
+  ds: TDbf;
+  i: Integer;
+
+begin
+  ds := TDbf.Create(nil);
+  try
+    ds.TableName := 'nouserstreams';
+    ds.TableLevel := 4;
+    ds.Storage := stoMemory;
+    ds.FieldDefs.Add('ID', ftInteger);
+    ds.FieldDefs.Add('NOTE', ftMemo);
+    ds.CreateTable;
+    ds.Open;
+    for i := 1 to cRecords do
+      ds.AppendRecord([i, 'Note'+IntToStr(i)]);
+    ds.Close;
+    ds.Open;
+    CheckEquals(cRecords, ds.RecordCount, 'Records after Close and Open');
+    ds.Last;
+    CheckEquals('Note'+IntToStr(cRecords), ds.FieldByName('NOTE').AsString, 'Memo after Close and Open');
+    ds.Close;
+  finally
+    ds.Free;
   end;
 end;
 

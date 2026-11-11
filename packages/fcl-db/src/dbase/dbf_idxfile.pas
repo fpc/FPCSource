@@ -2036,6 +2036,7 @@ begin
       end;
     end else begin
       FreeAndNil(FRoot);
+      FreeAndNil(FParsers[0]);
     end;
 
     // free mem
