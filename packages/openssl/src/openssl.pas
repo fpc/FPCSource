@@ -1123,6 +1123,8 @@ var
   function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
   procedure SslCtxFree(arg0: PSSL_CTX);
   function SslSetFd(s: PSSL; fd: cInt):cInt;
+  // Sets the read and write BIO of s; s takes ownership of both
+  procedure SslSetBio(s: PSSL; rbio, wbio: PBIO);
 
   function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
   function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
@@ -1430,6 +1432,8 @@ var
   function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
+  // Creates a socket BIO for sock; nil when BIO_new_socket or SSL_set_bio is not exported
+  function BioNewSocket(sock: cInt; close_flag: cInt): PBIO;
   procedure BioFreeAll(b: PBIO);
   function BioSMem: PBIO_METHOD;
   function BioCtrlPending(b: PBIO): cInt;
@@ -1681,6 +1685,7 @@ type
   TSslCtxNew = function(meth: PSSL_METHOD):PSSL_CTX; cdecl;
   TSslCtxFree = procedure(arg0: PSSL_CTX); cdecl;
   TSslSetFd = function(s: PSSL; fd: cInt):cInt; cdecl;
+  TSslSetBio = procedure(s: PSSL; rbio, wbio: PBIO); cdecl;
   TSslCtrl = function(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
   TSslCTXCtrl = function(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
   TSslSetTlsextHostName = function(ssl: PSSL; name: PAnsiChar): cInt; cdecl;
@@ -1780,6 +1785,7 @@ type
   TErrRemoveState = procedure(pid: cInt); cdecl;
   TRandScreen = procedure; cdecl;
   TBioNew = function(b: PBIO_METHOD): PBIO; cdecl;
+  TBioNewSocket = function(sock: cInt; close_flag: cInt): PBIO; cdecl;
   TBioFreeAll = procedure(b: PBIO); cdecl;
   TBioSMem = function: PBIO_METHOD; cdecl;
   TBioCtrlPending = function(b: PBIO): cInt; cdecl;
@@ -1976,6 +1982,7 @@ var
   _SslCtxNew: TSslCtxNew = nil;
   _SslCtxFree: TSslCtxFree = nil;
   _SslSetFd: TSslSetFd = nil;
+  _SslSetBio: TSslSetBio = nil;
   _SslCtrl: TSslCtrl = nil;
   _SslCTXCtrl: TSslCTXCtrl = nil;
   _SslSetTlsextHostName: TSslSetTlsextHostName = nil;
@@ -2071,6 +2078,7 @@ var
   _ErrRemoveState: TErrRemoveState = nil;
   _RandScreen: TRandScreen = nil;
   _BioNew: TBioNew = nil;
+  _BioNewSocket: TBioNewSocket = nil;
   _BioFreeAll: TBioFreeAll = nil;
   _BioSMem: TBioSMem = nil;
   _BioCtrlPending: TBioCtrlPending = nil;
@@ -2451,6 +2459,12 @@ begin
     Result := _SslSetFd(s, fd)
   else
     Result := 0;
+end;
+
+procedure SslSetBio(s: PSSL; rbio, wbio: PBIO);
+begin
+  if InitSSLInterface and Assigned(_SslSetBio) then
+    _SslSetBio(s, rbio, wbio);
 end;
 
 function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
@@ -3110,6 +3124,14 @@ function BioNew(b: PBIO_METHOD): PBIO;
 begin
   if InitSSLInterface and Assigned(_BioNew) then
     Result := _BioNew(b)
+  else
+    Result := nil;
+end;
+
+function BioNewSocket(sock: cInt; close_flag: cInt): PBIO;
+begin
+  if InitSSLInterface and Assigned(_BioNewSocket) and Assigned(_SslSetBio) then
+    Result := _BioNewSocket(sock, close_flag)
   else
     Result := nil;
 end;
@@ -5469,6 +5491,7 @@ begin
   _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new');
   _SslCtxFree := GetProcAddr(SSLLibHandle, 'SSL_CTX_free');
   _SslSetFd := GetProcAddr(SSLLibHandle, 'SSL_set_fd');
+  _SslSetBio := GetProcAddr(SSLLibHandle, 'SSL_set_bio');
   _SslCtrl := GetProcAddr(SSLLibHandle, 'SSL_ctrl');
   _SslCTXCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_ctrl');
   _SslSetTlsextHostName := GetProcAddr(SSLLibHandle, 'SSL_set_tlsext_host_name');
@@ -5582,6 +5605,7 @@ begin
   _ErrRemoveState := GetProcAddr(SSLUtilHandle, 'ERR_remove_state');
   _RandScreen := GetProcAddr(SSLUtilHandle, 'RAND_screen');
   _BioNew := GetProcAddr(SSLUtilHandle, 'BIO_new');
+  _BioNewSocket := GetProcAddr(SSLUtilHandle, 'BIO_new_socket');
   _BioFreeAll := GetProcAddr(SSLUtilHandle, 'BIO_free_all');
   _BioSMem := GetProcAddr(SSLUtilHandle, 'BIO_s_mem');
   _BioCtrlPending := GetProcAddr(SSLUtilHandle, 'BIO_ctrl_pending');
@@ -5871,6 +5895,7 @@ begin
   _SslCtxNew := nil;
   _SslCtxFree := nil;
   _SslSetFd := nil;
+  _SslSetBio := nil;
   _SslCtrl := nil;
   _SslCTXCtrl := nil;
   _SslSetTlsextHostName := nil;
@@ -6077,6 +6102,7 @@ begin
   _ErrRemoveState := nil;
   _RandScreen := nil;
   _BioNew := nil;
+  _BioNewSocket := nil;
   _BioFreeAll := nil;
   _BioSMem := nil;
   _BioCtrlPending := nil;

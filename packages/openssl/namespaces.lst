@@ -1,4 +1,5 @@
 src/opensslsockets.pp=namespaced/System.Net.Opensslsockets.pp
+src/opensslduplexsockets.pp=namespaced/System.Net.Opensslduplexsockets.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/openssl.pas=namespaced/Api.Openssl.pas

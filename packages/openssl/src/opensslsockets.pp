@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2011 by the Free Pascal development team
+
+    SSL socket handler class.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit opensslsockets;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -24,13 +38,25 @@ Type
     FCTX : TSSLContext;
     FSSLLastErrorString: string;
     FSSLLastError : Integer;
-    FLock : TRTLCriticalSection;
     FNonBlocking : Boolean;
-    procedure SetNonBlockingIO(aValue: Boolean);
-    function WaitForSocket(aCheck: TSocketStates; aDeadline: QWord): Boolean;
-    function DeadlineFromTimeout: QWord;
-    procedure SetIOError(aError: Integer);
+    FLock : TRTLCriticalSection;
   Protected
+    // Enters the lock that serializes all calls on SSL
+    procedure LockSSL;
+    // Leaves the lock entered by LockSSL
+    procedure UnlockSSL;
+    // Switches the socket between blocking and non-blocking mode
+    procedure SetNonBlockingIO(aValue: Boolean);
+    // Waits until one of aCheck holds; False when aDeadline (GetTickCount64, 0 = none) passes
+    function WaitForSocket(aCheck: TSocketStates; aDeadline: QWord): Boolean;
+    // Deadline for the current I/O call from Socket.IOTimeout; 0 when there is none
+    function DeadlineFromTimeout: QWord;
+    // Sets the error fields from an SSL_get_error result
+    procedure SetIOError(aError: Integer);
+    // Called after a successful handshake in Connect and Accept
+    procedure HandshakeDone; virtual;
+    // True while the socket is in non-blocking mode
+    property NonBlocking: Boolean read FNonBlocking;
     procedure SetSSLLastErrorString(AValue: string);
     Function FetchErrorInfo: Boolean;
     function CheckSSL(SSLResult: Integer): Boolean;
@@ -259,7 +285,7 @@ begin
        Result:= DoVerifyCert;
      if Result then
        begin
-       SetNonBlockingIO(True);
+       HandshakeDone;
        SetSSLActive(True);
        end;
      end;
@@ -398,6 +424,27 @@ begin
 end;
 
 
+procedure TOpenSSLSocketHandler.LockSSL;
+
+begin
+  EnterCriticalSection(FLock);
+end;
+
+
+procedure TOpenSSLSocketHandler.UnlockSSL;
+
+begin
+  LeaveCriticalSection(FLock);
+end;
+
+
+procedure TOpenSSLSocketHandler.HandshakeDone;
+
+begin
+  SetNonBlockingIO(True);
+end;
+
+
 function TOpenSSLSocketHandler.DeadlineFromTimeout: QWord;
 
 begin
@@ -531,7 +578,7 @@ begin
     Exit;                   // DoneContext already called SetSSLActive(False)
     end;
   if Result then
-    SetNonBlockingIO(True);
+    HandshakeDone;
   SetSSLActive(Result);
 end;
 

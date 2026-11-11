@@ -33,6 +33,13 @@ begin
     T:=P.Targets.AddUnit('opensslsockets.pp');
       T.ResourceStrings:=true;
       T.Dependencies.AddUnit('openssl');
+    T:=P.Targets.AddUnit('opensslduplexsockets.pp');
+      with T.Dependencies do
+        begin
+        AddUnit('openssl');
+        AddUnit('fpopenssl');
+        AddUnit('opensslsockets');
+        end;
     T:=P.Targets.AddUnit('smartsslsockets.pp');
       T.Dependencies.AddUnit('opensslsockets');
 
