@@ -1022,28 +1022,35 @@ end;
 
 procedure TSocketServer.Close;
 
+var
+  lSocket: TFPSocket;
+
 begin
-  If not SocketInvalid(FSocket.FD) Then
-    CloseSocket(FSocket);
+  // Self can be freed by the accepting thread as soon as the socket is closed
+  lSocket:=FSocket;
   FSocket.FD:=-1;
+  If not SocketInvalid(lSocket.FD) Then
+    CloseSocket(lSocket);
 end;
 
 procedure TSocketServer.Abort;
-{$if defined(unix) or defined(windows) or defined(hasamiga)}
-{$else}
+{$if not (defined(unix) and not defined(BSD))}
 var
-  ASocket: longint;
+  lSocket: TFPSocket;
 {$endif}
 begin
-{$if defined(unix)}
+{$if defined(unix) and not defined(BSD)}
   fpShutdown(FSocket.FD,SHUT_RDWR);
-  {$ifdef BSD}
-  Close;
-  {$endif}
-{$elseif defined(windows) or defined(hasamiga)}
-  Close;
 {$else}
-  CloseSocket(FSocket);
+  // Self can be freed by the accepting thread as soon as the socket is shut down or closed
+  lSocket:=FSocket;
+  FSocket.FD:=-1;
+  if SocketInvalid(lSocket.FD) then
+    Exit;
+  {$ifdef BSD}
+  fpShutdown(lSocket.FD,SHUT_RDWR);
+  {$endif}
+  CloseSocket(lSocket);
 {$endif}
 end;
 

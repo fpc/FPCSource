@@ -1346,11 +1346,16 @@ begin
 end;
 
 procedure TFPCustomHttpServer.StopServerSocket;
+
+var
+  lServer: TInetServer;
+
 begin
   if CanLog(hlmCloseSocket) then
     DoLog(hlmCloseSocket,SStopSocket,[Port]);
-  if Assigned(FServer) then
-    FServer.StopAccepting(AcceptIdleTimeout=0);
+  lServer:=FServer;
+  if Assigned(lServer) then
+    lServer.StopAccepting(AcceptIdleTimeout=0);
 end;
 
 procedure TFPCustomHttpServer.SetActive(const AValue: Boolean);
