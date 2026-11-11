@@ -349,6 +349,7 @@ Const
 	IPV6_MULTICAST_IF	= 24; { u_int; setget IP6 multicast if  }
 	IPV6_MULTICAST_HOPS	= 25; { int; setget IP6 multicast hops }
 	IPV6_MULTICAST_LOOP	= 26; { u_int; setget IP6 multicast loopback }
+	IPV6_V6ONLY		= 30; { int; make AF_INET6 sockets v6 only }
 
 (* Values not yet defined under Haiku (see netinet/in.h)
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }

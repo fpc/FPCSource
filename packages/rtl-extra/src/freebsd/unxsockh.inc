@@ -343,6 +343,7 @@ Const
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
+	IPV6_V6ONLY		= 27; { bool; make AF_INET6 sockets v6 only }
 
 	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }

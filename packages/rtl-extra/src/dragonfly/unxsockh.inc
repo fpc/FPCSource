@@ -340,6 +340,7 @@ Const
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
+	IPV6_V6ONLY		= 27; { bool; only bind INET6 at wildcard bind }
 
 	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }

@@ -261,24 +261,25 @@ uses
 
 { Helper }
 
+{$IFDEF WINDOWS}
 const
-  {$IFDEF WINDOWS}
   IPPROTO_IPV6 = 41;
   IPV6_V6ONLY = 27;
-  {$ENDIF}
-  {$IFDEF UNIX}
+{$ENDIF}
+{$IF DEFINED(UNIX) and not DECLARED(IPV6_V6ONLY)}
+const
+  IPV6_V6ONLY = -1;
+{$ENDIF}
+{$IFDEF HASAMIGA}
+const
   IPPROTO_IPV6 = 41;
   IPV6_V6ONLY = 26;
-  {$ENDIF}
-  {$IFDEF HASAMIGA}
-  IPPROTO_IPV6 = 41;
-  IPV6_V6ONLY = 26;
-  {$ENDIF}
-
-  {$IFNDEF FULL_IP_STACK}
+{$ENDIF}
+{$IFNDEF FULL_IP_STACK}
+const
   IPPROTO_IPV6 = -1;
   IPV6_V6ONLY = -1;
-  {$ENDIF}
+{$ENDIF}
 
 function WouldBlock(SockErr: Integer): Boolean; inline;
 begin
