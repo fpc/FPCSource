@@ -25,6 +25,8 @@ const
      AF_UNSPEC = 0;
   { local to host (pipes, portals)  }
      AF_UNIX = 1;
+     AF_LOCAL = AF_UNIX;
+     AF_FILE = AF_UNIX;
   { internetwork: UDP, TCP, etc.  }
      AF_INET = 2;
   { arpanet imp addresses  }
@@ -81,12 +83,20 @@ const
      AF_NCA = 28;
   { Security Policy DB socket  }
      AF_POLICY = 29;
-     AF_MAX = 29;
+  { Sun private; do not use  }
+     AF_INET_OFFLOAD = 30;
+  { TRILL interface  }
+     AF_TRILL = 31;
+  { PF_PACKET Linux socket interface  }
+     AF_PACKET = 32;
+     AF_MAX = 32;
   {
    * Protocol families, same as address families for now.
     }
      PF_UNSPEC = AF_UNSPEC;
      PF_UNIX = AF_UNIX;
+     PF_LOCAL = PF_UNIX;
+     PF_FILE = PF_UNIX;
      PF_INET = AF_INET;
      PF_IMPLINK = AF_IMPLINK;
      PF_PUP = AF_PUP;
@@ -115,6 +125,9 @@ const
      PF_KEY = AF_KEY;
      PF_NCA = AF_NCA;
      PF_POLICY = AF_POLICY;
+     PF_INET_OFFLOAD = AF_INET_OFFLOAD;
+     PF_TRILL = AF_TRILL;
+     PF_PACKET = AF_PACKET;
      PF_MAX = AF_MAX;
 
 { Maximum queue length specifiable by listen.  }
@@ -123,6 +136,8 @@ const
 { Flags for the socket type in fpsocket and for fpaccept4 }
   SOCK_CLOEXEC  = $80000;
   SOCK_NONBLOCK = $100000;
+  SOCK_NDELAY   = $200000;
+  SOCK_CLOFORK  = $400000;
 
    SOL_SOCKET = $FFFF;
 
@@ -136,6 +151,10 @@ const
    SO_LINGER       = $0080;          { linger on close if data present }
    SO_OOBINLINE    = $0100;          { leave received OOB data in line }
    SO_DGRAM_ERRIND = $0200;          { Application wants delayed error }
+   SO_RECVUCRED    = $0400;          { Application wants ucred of sender }
+
+   SO_ATTACH_FILTER = $40000001;
+   SO_DETACH_FILTER = $40000002;
 
    SO_DONTLINGER   = not SO_LINGER;    { ~SO_LINGER }
 
@@ -149,9 +168,22 @@ const
    SO_ERROR       = $1007;          { get error status and clear }
    SO_TYPE        = $1008;          { get socket type }
    SO_PROTOTYPE   = $1009;          { get/set protocol type }
+   SO_PROTOCOL    = SO_PROTOTYPE;   { POSIX name }
+   SO_ANON_MLP    = $100a;          { create MLP on anonymous bind }
+   SO_MAC_EXEMPT  = $100b;          { allow dominated unlabeled peers }
+   SO_DOMAIN      = $100c;          { get socket domain }
+   SO_RCVPSH      = $100d;          { receive interval to push data }
 
    { "Socket"-level control message types: }
    SCM_RIGHTS     = $1010;          { access rights (array of int) }
+   SO_SECATTR     = $1011;          { socket's security attributes }
+   SCM_UCRED      = $1012;          { sender's ucred }
+   SO_TIMESTAMP   = $1013;          { socket-level timestamp option }
+   SCM_TIMESTAMP  = SO_TIMESTAMP;   { socket control message timestamp }
+   SO_ALLZONES    = $1014;          { bind in all zones }
+   SO_EXCLBIND    = $1015;          { exclusive binding }
+   SO_MAC_IMPLICIT = $1016;         { hide mac labels on wire }
+   SO_VRRP        = $1017;          { VRRP control socket }
 
    SO_STATE       = $2000;          { Internal: get so_state }
 
@@ -171,6 +203,9 @@ const
   MSG_NOSIGNAL     = $0200;           { Solaris 11.4 : Don't generate SIGPIPE }
   MSG_WAITFORONE   = $0400;           { Solaris 11.4 : recvmmsg() control flag }
   MSG_NOTIFICATION = $0100;           { Notification, not data }
+  MSG_DUPCTRL      = $0800;           { Save control message for use with left over data }
+  MSG_CMSG_CLOEXEC = $1000;           { FD_CLOEXEC w/ SCM_RIGHTS }
+  MSG_CMSG_CLOFORK = $2000;           { FD_CLOFORK w/ SCM_RIGHTS }
   MSG_XPG4_2       = $8000;	      { Private: XPG4.2 flag }
   MSG_MAXIOVLEN    =    16;
 
@@ -188,6 +223,21 @@ const
      TCP_KEEPALIVE_THRESHOLD = $16;
      TCP_KEEPALIVE_ABORT_THRESHOLD = $17;
      TCP_CORK = $18;
+     TCP_RTO_INITIAL = $19;
+     TCP_RTO_MIN = $1A;
+     TCP_RTO_MAX = $1B;
+     TCP_LINGER2 = $1C;
+  { for internal use only  }
+     TCP_ANONPRIVBIND = $20;
+  { for internal use only  }
+     TCP_EXCLBIND = $21;
+     TCP_KEEPIDLE = $22;
+     TCP_KEEPCNT = $23;
+     TCP_KEEPINTVL = $24;
+     TCP_CONGESTION = $25;
+  { enable/disable quick acks  }
+     TCP_QUICKACK = $26;
+     TCP_MD5SIG = $27;
 
 //from /usr/include/netinet/in.h
 
@@ -243,6 +293,12 @@ const
   { Stream Control  }
     IPPROTO_SCTP = 132;
   { Transmission Protocol  }
+  { Mobility EH  }
+    IPPROTO_MH = 135;
+  { Host Identity Protocol  }
+    IPPROTO_HIP = 139;
+  { Shim6 Protocol  }
+    IPPROTO_SHIM6 = 140;
   { raw IP packet  }
     IPPROTO_RAW = 255;
     IPPROTO_MAX = 256;
@@ -271,6 +327,8 @@ const
     IP_RECVSLLA = $a;
   { uint8_t; get TTL for inbound packet  }
     IP_RECVTTL = $b;
+  { uint8_t; get TOS for inbound packet  }
+    IP_RECVTOS = $c;
   { set/get IP multicast interface   }
     IP_MULTICAST_IF = $10;
   { set/get IP multicast timetolive  }
@@ -299,6 +357,23 @@ const
     IP_PKTINFO = $1a;
   { recv dest/matched addr and index  }
     IP_RECVPKTINFO = $1a;
+  { don't fragment packets  }
+    IP_DONTFRAG = $1b;
+  { minimum acceptable TTL  }
+    IP_MINTTL = $1c;
+  { Used to set IPSEC options  }
+    IP_SEC_OPT = $22;
+  { bind socket to an ifindex  }
+    IP_BOUND_IF = $41;
+  { use unspecified source address  }
+    IP_UNSPEC_SRC = $42;
+  { use specific TTL for broadcast  }
+    IP_BROADCAST_TTL = $43;
+  { accept all unicast DHCP traffic  }
+    IP_DHCPINIT_IF = $45;
+    IP_REUSEADDR = $104;
+    IP_DONTROUTE = $105;
+    IP_BROADCAST = $106;
     {
      * IPv6 options
       }
@@ -409,3 +484,9 @@ const
       MCAST_JOIN_SOURCE_GROUP = $2d;
     { leave source/group pair  }
       MCAST_LEAVE_SOURCE_GROUP = $2e;
+    { minimum acceptable hop limit  }
+      IPV6_MINHOPCOUNT = $2f;
+    { bind to an ifindex  }
+      IPV6_BOUND_IF = $41;
+    { source of packets set to unspecified (all zeros)  }
+      IPV6_UNSPEC_SRC = $42;
