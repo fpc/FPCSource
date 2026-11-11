@@ -495,7 +495,7 @@ begin
       // Restore the ALPN list to its pre-activation value.
       FWebServer.CertificateData.ALPNProtocols := FSavedALPN;
     end;
-    // Graceful GOAWAY + socket-fd close per live connection.
+    // Graceful GOAWAY + socket shutdown per live connection.
     CloseConnections;
     // Deterministically JOIN every worker
     JoinThreads;
@@ -684,11 +684,9 @@ end;
 
 procedure TCustomHTTP2Handler.CloseTransport(aSocket: TStream);
 begin
-  // Close the fd so a worker blocked in ReadBuffer returns (or raises EStreamError),
-  // letting its run loop observe Closing/transport-end and exit.
-  // Closing the TSocketStream does NOT free the object - ConnectionDone frees it later
+  // Wakes a worker blocked in ReadBuffer without closing or freeing anything; ConnectionDone frees the stream on the worker thread
   if aSocket is TSocketStream then
-    TSocketStream(aSocket).Close;
+    TSocketStream(aSocket).WakeBlockedRead;
 end;
 
 procedure TCustomHTTP2Handler.LingeringClose(aSocket: TStream);
@@ -731,7 +729,7 @@ var
 begin
   // Walk the worker registry (it pairs connection↔socket) under its lock. For each
   // live worker: emit a graceful GOAWAY (BeginShutdown, idempotent) while the worker
-  // is still blocked in its read, THEN close the fd to unblock it. 
+  // is still blocked in its read, THEN shut the socket down to unblock it.
   L := FThreads.LockList;
   try
     for I := 0 to L.Count - 1 do
