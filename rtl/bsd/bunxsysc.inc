@@ -193,7 +193,7 @@ end;
 
 function GetDomainName(Name:PAnsiChar; NameLen:Cint):cint; [public,alias:'FPC_SYSC_GETDOMAINNAME'];
 
-Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,{$ifdef OpenBSD}KERN_DOMAINNAME{$ELSE}KERN_NISDOMAINNAME{$endif});
+Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,{$if defined(OpenBSD) or defined(NetBSD)}KERN_DOMAINNAME{$ELSE}KERN_NISDOMAINNAME{$endif});
 
 VAR
         tsize : size_t;

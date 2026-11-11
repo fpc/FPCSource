@@ -1,371 +1,336 @@
 {
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Marco van de Voort
-
-    The OS dependant sysctl constants.
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-
-
-CONST
-
-{
- * Definitions for sysctl call.  The sysctl call uses a hierarchical name
- * for objects that can be examined or modified.  The name is expressed as
- * a sequence of integers.  Like a file path name, the meaning of each
- * component depends on its place in the hierarchy.  The top-level and kern
- * identifiers are defined here, and other identifiers are defined in the
- * respective subsystem header files.
+    NetBSD sysctl constants, from sys/sysctl.h, uvm/uvm_param.h, sys/gmon.h,
+    sys/socket.h, netinet/in.h, netinet/icmp_var.h, netinet/icmp6.h and netinet/udp_var.h.
+    See the file COPYING.FPC, included in this distribution, for details about the copyright.
 }
 
-        CTL_MAXNAME     = 12;   {  largest number of components supported }
-
-{
- * Each subsystem defined by sysctl defines a list of variables
- * for that subsystem. Each name is either a node with further
- * levels defined below it, or it is a leaf of some particular
- * type given below. Each sysctl level defines a set of name/type
- * pairs to be used by sysctl(1) in manipulating the subsystem.
-}
+Const
+        CTL_MAXNAME     = 12;   { largest number of components supported }
 
 Type
     ctlname = record
-                ctl_name : PAnsiChar;       {  subsystem name }
-                ctl_type : cint         {  type of name }
-               End;
+                ctl_name : PAnsiChar;   { subsystem name }
+                ctl_type : cint         { type of name }
+              End;
 
 Const
-        CTLTYPE         = $f;   {  Mask for the type }
-        CTLTYPE_NODE    = 1;    {  name is a node }
-        CTLTYPE_INT     = 2;    {  name describes an integer }
-        CTLTYPE_STRING  = 3;    {  name describes a string }
-        CTLTYPE_QUAD    = 4;    {  name describes a 64-bit number }
-        CTLTYPE_OPAQUE  = 5;    {  name describes a structure }
-        CTLTYPE_STRUCT  = CTLTYPE_OPAQUE;       {  name describes a structure }
-        CTLTYPE_UINT    = 6;    {  name describes an unsigned integer }
-        CTLTYPE_LONG    = 7;    {  name describes a long }
-        CTLTYPE_ULONG   = 8;    {  name describes an unsigned long }
+        CTLTYPE_NODE    = 1;    { name is a node }
+        CTLTYPE_INT     = 2;    { name describes an integer }
+        CTLTYPE_STRING  = 3;    { name describes a string }
+        CTLTYPE_QUAD    = 4;    { name describes a 64-bit number }
+        CTLTYPE_STRUCT  = 5;    { name describes a structure }
+        CTLTYPE_BOOL    = 6;    { name describes a bool }
+{$ifdef cpu64}
+        CTLTYPE_LONG    = CTLTYPE_QUAD;
+{$else}
+        CTLTYPE_LONG    = CTLTYPE_INT;
+{$endif}
 
-        CTLFLAG_RD      = $80000000;    {  Allow reads of variable }
-        CTLFLAG_WR      = $40000000;    {  Allow writes to the variable }
-        CTLFLAG_RW      = (CTLFLAG_RD OR CTLFLAG_WR);
-        CTLFLAG_NOLOCK  = $20000000;    {  XXX Don't Lock }
-        CTLFLAG_ANYBODY = $10000000;    {  All users can set this var }
-        CTLFLAG_SECURE  = $8000000;     {  Permit set only if securelevel<=0 }
-        CTLFLAG_PRISON  = $4000000;     {  Prisoned roots can fiddle }
-        CTLFLAG_DYN     = $2000000;     {  Dynamic oid - can be freed }
+{ Flags that apply to each node }
+        CTLFLAG_READONLY  = $00000000;
+        CTLFLAG_READWRITE = $00000070;
+        CTLFLAG_ANYWRITE  = $00000080;
+        CTLFLAG_PRIVATE   = $00000100;
+        CTLFLAG_PERMANENT = $00000200;
+        CTLFLAG_OWNDATA   = $00000400;
+        CTLFLAG_IMMEDIATE = $00000800;
+        CTLFLAG_HEX       = $00001000;
+        CTLFLAG_ROOT      = $00002000;
+        CTLFLAG_ANYNUMBER = $00004000;
+        CTLFLAG_HIDDEN    = $00008000;
+        CTLFLAG_ALIAS     = $00010000;
+        CTLFLAG_MMAP      = $00020000;
+        CTLFLAG_OWNDESC   = $00040000;
+        CTLFLAG_UNSIGNED  = $00080000;
 
-{
- * USE THIS instead of a hardwired number from the categories below
- * to get dynamically assigned sysctl entries using the linker-set
- * technology. This is the way nearly all new sysctl variables should
- * be implemented.
- * e.g. SYSCTL_INT(_parent, OID_AUTO, name, CTLFLAG_RW, &variable, 0, "");
- }
-        OID_AUTO        = (-1);
+{ sysctl API version }
+        SYSCTL_VERS_MASK  = $ff000000;
+        SYSCTL_VERS_0     = $00000000;
+        SYSCTL_VERS_1     = $01000000;
+        SYSCTL_VERSION    = SYSCTL_VERS_1;
 
-{
- * Top-level identifiers
- }
-        CTL_UNSPEC      = 0;
-        CTL_KERN        = 1;            {  "high kernel": proc, limits }
-        CTL_VM          = 2;            {  virtual memory }
-        CTL_VFS         = 3;            {  file system, mount type is next }
-        CTL_NET         = 4;            {  network, see socket.h }
-        CTL_DEBUG       = 5;            {  debugging parameters }
-        CTL_HW          = 6;            {  generic cpu/io }
-        CTL_MACHDEP     = 7;            {  machine dependent }
-        CTL_USER        = 8;            {  user-level }
-        CTL_P1003_1B    = 9;            {  POSIX 1003.1B }
-        CTL_MAXID       = 10;           {  number of valid top-level ids }
+{ Meta-identifiers }
+        CTL_EOL         = -1;   { end of createv/destroyv list }
+        CTL_QUERY       = -2;   { enumerates children of a node }
+        CTL_CREATE      = -3;   { node create request }
+        CTL_CREATESYM   = -4;   { node create request with symbol }
+        CTL_DESTROY     = -5;   { node destroy request }
+        CTL_MMAP        = -6;   { mmap request }
+        CTL_DESCRIBE    = -7;   { get node descriptions }
 
+{ Top-level identifiers }
+        CTL_UNSPEC      = 0;    { unused }
+        CTL_KERN        = 1;    { "high kernel": proc, limits }
+        CTL_VM          = 2;    { virtual memory }
+        CTL_VFS         = 3;    { file system, mount type is next }
+        CTL_NET         = 4;    { network, see socket.h }
+        CTL_DEBUG       = 5;    { debugging parameters }
+        CTL_HW          = 6;    { generic CPU/io }
+        CTL_MACHDEP     = 7;    { machine dependent }
+        CTL_USER        = 8;    { user-level }
+        CTL_DDB         = 9;    { in-kernel debugger }
+        CTL_PROC        = 10;   { per-proc attr }
+        CTL_VENDOR      = 11;   { vendor-specific data }
+        CTL_EMUL        = 12;   { emulation-specific data }
+        CTL_SECURITY    = 13;   { security }
 
-{
- * CTL_KERN identifiers
- }
-        KERN_OSTYPE             =  1;   {  string: system version }
-        KERN_OSRELEASE          =  2;   {  string: system release }
-        KERN_OSREV              =  3;   {  int: system revision }
-        KERN_VERSION            =  4;   {  string: compile time info }
-        KERN_MAXVNODES          =  5;   {  int: max vnodes }
-        KERN_MAXPROC            =  6;   {  int: max processes }
-        KERN_MAXFILES           =  7;   {  int: max open files }
-        KERN_ARGMAX             =  8;   {  int: max arguments to exec }
-        KERN_SECURELVL          =  9;   {  int: system security level }
-        KERN_HOSTNAME           = 10;   {  string: hostname }
-        KERN_HOSTID             = 11;   {  int: host identifier }
-        KERN_CLOCKRATE          = 12;   {  struct: struct clockrate }
-        KERN_VNODE              = 13;   {  struct: vnode structures }
-        KERN_PROC               = 14;   {  struct: process entries }
-        KERN_FILE               = 15;   {  struct: file entries }
-        KERN_PROF               = 16;   {  node: kernel profiling info }
-        KERN_POSIX1             = 17;   {  int: POSIX.1 version }
-        KERN_NGROUPS            = 18;   {  int: # of supplemental group ids }
-        KERN_JOB_CONTROL        = 19;   {  int: is job control available }
-        KERN_SAVED_IDS          = 20;   {  int: saved set-user/group-ID }
-        KERN_BOOTTIME           = 21;   {  struct: time kernel was booted }
-        KERN_NISDOMAINNAME      = 22;   {  string: YP domain name }
-        KERN_UPDATEINTERVAL     = 23;   {  int: update process sleep time }
-        KERN_OSRELDATE          = 24;   {  int: OS release date }
-        KERN_NTP_PLL            = 25;   {  node: NTP PLL control }
-        KERN_BOOTFILE           = 26;   {  string: name of booted kernel }
-        KERN_MAXFILESPERPROC    = 27;   {  int: max open files per proc }
-        KERN_MAXPROCPERUID      = 28;   {  int: max processes per uid }
-        KERN_DUMPDEV            = 29;   {  dev_t: device to dump on }
-        KERN_IPC                = 30;   {  node: anything related to IPC }
-        KERN_DUMMY              = 31;   {  unused }
-        KERN_PS_STRINGS         = 32;   {  int: address of PS_STRINGS }
-        KERN_USRSTACK           = 33;   {  int: address of USRSTACK }
-        KERN_LOGSIGEXIT         = 34;   {  int: do we log sigexit procs? }
-        KERN_MAXID              = 35;      {  number of valid kern ids }
+{ CTL_KERN identifiers }
+        KERN_OSTYPE             =  1;   { string: system version }
+        KERN_OSRELEASE          =  2;   { string: system release }
+        KERN_OSREV              =  3;   { int: system revision }
+        KERN_VERSION            =  4;   { string: compile time info }
+        KERN_MAXVNODES          =  5;   { int: max vnodes }
+        KERN_MAXPROC            =  6;   { int: max processes }
+        KERN_MAXFILES           =  7;   { int: max open files }
+        KERN_ARGMAX             =  8;   { int: max arguments to exec }
+        KERN_SECURELVL          =  9;   { int: system security level }
+        KERN_HOSTNAME           = 10;   { string: hostname }
+        KERN_HOSTID             = 11;   { int: host identifier }
+        KERN_CLOCKRATE          = 12;   { struct: struct clockinfo }
+        KERN_VNODE              = 13;   { struct: vnode structures }
+        KERN_PROC               = 14;   { struct: process entries }
+        KERN_FILE               = 15;   { struct: file entries }
+        KERN_PROF               = 16;   { node: kernel profiling info }
+        KERN_POSIX1             = 17;   { int: POSIX.1 version }
+        KERN_NGROUPS            = 18;   { int: # of supplemental group ids }
+        KERN_JOB_CONTROL        = 19;   { int: is job control available }
+        KERN_SAVED_IDS          = 20;   { int: saved set-user/group-ID }
+        KERN_OBOOTTIME          = 21;   { struct: time kernel was booted }
+        KERN_DOMAINNAME         = 22;   { string: (YP) domainname }
+        KERN_MAXPARTITIONS      = 23;   { int: number of partitions/disk }
+        KERN_RAWPARTITION       = 24;   { int: raw partition number }
+        KERN_NTPTIME            = 25;   { struct: extended-precision time }
+        KERN_TIMEX              = 26;   { struct: ntp timekeeping state }
+        KERN_AUTONICETIME       = 27;   { int: proc time before autonice }
+        KERN_AUTONICEVAL        = 28;   { int: auto nice value }
+        KERN_RTC_OFFSET         = 29;   { int: offset of rtc from gmt }
+        KERN_ROOT_DEVICE        = 30;   { string: root device }
+        KERN_MSGBUFSIZE         = 31;   { int: max # of chars in msg buffer }
+        KERN_FSYNC              = 32;   { int: file synchronization support }
+        KERN_OLDSYSVMSG         = 33;   { old: SysV message queue support }
+        KERN_OLDSYSVSEM         = 34;   { old: SysV semaphore support }
+        KERN_OLDSYSVSHM         = 35;   { old: SysV shared memory support }
+        KERN_OLDSHORTCORENAME   = 36;   { old, unimplemented }
+        KERN_SYNCHRONIZED_IO    = 37;   { int: POSIX synchronized I/O }
+        KERN_IOV_MAX            = 38;   { int: max iovec's for readv(2) etc. }
+        KERN_MBUF               = 39;   { node: mbuf parameters }
+        KERN_MAPPED_FILES       = 40;   { int: POSIX memory mapped files }
+        KERN_MEMLOCK            = 41;   { int: POSIX memory locking }
+        KERN_MEMLOCK_RANGE      = 42;   { int: POSIX memory range locking }
+        KERN_MEMORY_PROTECTION  = 43;   { int: POSIX memory protections }
+        KERN_LOGIN_NAME_MAX     = 44;   { int: max length login name + NUL }
+        KERN_DEFCORENAME        = 45;   { old: sort core name format }
+        KERN_LOGSIGEXIT         = 46;   { int: log signaled processes }
+        KERN_PROC2              = 47;   { struct: process entries }
+        KERN_PROC_ARGS          = 48;   { struct: process argv/env }
+        KERN_FSCALE             = 49;   { int: fixpt FSCALE }
+        KERN_CCPU               = 50;   { old: fixpt ccpu }
+        KERN_CP_TIME            = 51;   { struct: CPU time counters }
+        KERN_OLDSYSVIPC_INFO    = 52;   { old: number of valid kern ids }
+        KERN_MSGBUF             = 53;   { kernel message buffer }
+        KERN_CONSDEV            = 54;   { dev_t: console terminal device }
+        KERN_MAXPTYS            = 55;   { int: maximum number of ptys }
+        KERN_PIPE               = 56;   { node: pipe limits }
+        KERN_MAXPHYS            = 57;   { int: kernel value of MAXPHYS }
+        KERN_SBMAX              = 58;   { int: max socket buffer size }
+        KERN_TKSTAT             = 59;   { tty in/out counters }
+        KERN_MONOTONIC_CLOCK    = 60;   { int: POSIX monotonic clock }
+        KERN_URND               = 61;   { int: random integer from urandom }
+        KERN_LABELSECTOR        = 62;   { int: disklabel sector }
+        KERN_LABELOFFSET        = 63;   { int: offset of label within sector }
+        KERN_LWP                = 64;   { struct: lwp entries }
+        KERN_FORKFSLEEP         = 65;   { int: sleep length on failed fork }
+        KERN_POSIX_THREADS      = 66;   { int: POSIX Threads option }
+        KERN_POSIX_SEMAPHORES   = 67;   { int: POSIX Semaphores option }
+        KERN_POSIX_BARRIERS     = 68;   { int: POSIX Barriers option }
+        KERN_POSIX_TIMERS       = 69;   { int: POSIX Timers option }
+        KERN_POSIX_SPIN_LOCKS   = 70;   { int: POSIX Spin Locks option }
+        KERN_POSIX_READER_WRITER_LOCKS = 71; { int: POSIX R/W Locks option }
+        KERN_DUMP_ON_PANIC      = 72;   { int: dump on panic }
+        KERN_SOMAXKVA           = 73;   { int: max socket kernel virtual mem }
+        KERN_ROOT_PARTITION     = 74;   { int: root partition }
+        KERN_DRIVERS            = 75;   { struct: driver names and majors #s }
+        KERN_BUF                = 76;   { struct: buffers }
+        KERN_FILE2              = 77;   { struct: file entries }
+        KERN_VERIEXEC           = 78;   { node: verified exec }
+        KERN_CP_ID              = 79;   { struct: cpu id numbers }
+        KERN_HARDCLOCK_TICKS    = 80;   { int: number of hardclock ticks }
+        KERN_ARND               = 81;   { void *buf, size_t siz random }
+        KERN_SYSVIPC            = 82;   { node: SysV IPC parameters }
+        KERN_BOOTTIME           = 83;   { struct: time kernel was booted }
+        KERN_EVCNT              = 84;   { struct: evcnts }
+        KERN_SOFIXEDBUF         = 85;   { bool: fixed socket buffer sizes }
+        KERN_ENTROPY            = 86;   { node: entropy(9) subsystem }
 
+{ KERN_PROC subtypes }
+        KERN_PROC_ALL           = 0;    { everything }
+        KERN_PROC_PID           = 1;    { by process id }
+        KERN_PROC_PGRP          = 2;    { by process group id }
+        KERN_PROC_SESSION       = 3;    { by session of pid }
+        KERN_PROC_TTY           = 4;    { by controlling tty }
+        KERN_PROC_UID           = 5;    { by effective uid }
+        KERN_PROC_RUID          = 6;    { by real uid }
+        KERN_PROC_GID           = 7;    { by effective gid }
+        KERN_PROC_RGID          = 8;    { by real gid }
 
+{ KERN_PROC_ARGS subtypes }
+        KERN_PROC_ARGV          = 1;    { argv }
+        KERN_PROC_NARGV         = 2;    { number of strings in above }
+        KERN_PROC_ENV           = 3;    { environ }
+        KERN_PROC_NENV          = 4;    { number of strings in above }
+        KERN_PROC_PATHNAME      = 5;    { path to executable }
+        KERN_PROC_CWD           = 6;    { current working dir }
 
-{
- * KERN_PROC subtypes
- }
-        KERN_PROC_ALL           = 0;    {  everything }
-        KERN_PROC_PID           = 1;    {  by process id }
-        KERN_PROC_PGRP          = 2;    {  by process group id }
-        KERN_PROC_SESSION       = 3;    {  by session of pid }
-        KERN_PROC_TTY           = 4;    {  by controlling tty }
-        KERN_PROC_UID           = 5;    {  by effective uid }
-        KERN_PROC_RUID          = 6;    {  by real uid }
-        KERN_PROC_ARGS          = 7;    {  get/set arguments/proctitle }
+{ KERN_SYSVIPC subtypes }
+        KERN_SYSVIPC_INFO       = 1;    { struct: number of valid kern ids }
+        KERN_SYSVIPC_MSG        = 2;    { int: SysV message queue support }
+        KERN_SYSVIPC_SEM        = 3;    { int: SysV semaphore support }
+        KERN_SYSVIPC_SHM        = 4;    { int: SysV shared memory support }
+        KERN_SYSVIPC_SHMMAX     = 5;    { int: max shared memory segment size (bytes) }
+        KERN_SYSVIPC_SHMMNI     = 6;    { int: max number of shared memory identifiers }
+        KERN_SYSVIPC_SHMSEG     = 7;    { int: max shared memory segments per process }
+        KERN_SYSVIPC_SHMMAXPGS  = 8;    { int: max amount of shared memory (pages) }
+        KERN_SYSVIPC_SHMUSEPHYS = 9;    { int: physical memory usage }
 
-{
- * KERN_IPC identifiers
- }
-        KIPC_MAXSOCKBUF         = 1;    {  int: max size of a socket buffer }
-        KIPC_SOCKBUF_WASTE      = 2;    {  int: wastage factor in sockbuf }
-        KIPC_SOMAXCONN          = 3;    {  int: max length of connection q }
-        KIPC_MAX_LINKHDR        = 4;    {  int: max length of link header }
-        KIPC_MAX_PROTOHDR       = 5;    {  int: max length of network header }
-        KIPC_MAX_HDR            = 6;    {  int: max total length of headers }
-        KIPC_MAX_DATALEN        = 7;    {  int: max length of data? }
-        KIPC_MBSTAT             = 8;    {  struct: mbuf usage statistics }
-        KIPC_NMBCLUSTERS        = 9;    {  int: maximum mbuf clusters }
+{ KERN_SYSVIPC_INFO subtypes }
+        KERN_SYSVIPC_MSG_INFO   = 4;    { msginfo and msgid_ds }
+        KERN_SYSVIPC_SEM_INFO   = 5;    { seminfo and semid_ds }
+        KERN_SYSVIPC_SHM_INFO   = 6;    { shminfo and shmid_ds }
 
-{
- * CTL_HW identifiers
- }
-        HW_MACHINE      =  1;           {  string: machine class }
-        HW_MODEL        =  2;           {  string: specific machine model }
-        HW_NCPU         =  3;           {  int: number of cpus }
-        HW_BYTEORDER    =  4;           {  int: machine byte order }
-        HW_PHYSMEM      =  5;           {  int: total memory }
-        HW_USERMEM      =  6;           {  int: non-kernel memory }
-        HW_PAGESIZE     =  7;           {  int: software page size }
-        HW_DISKNAMES    =  8;           {  strings: disk drive names }
-        HW_DISKSTATS    =  9;           {  struct: diskstats[] }
-        HW_FLOATINGPT   = 10;           {  int: has HW floating point? }
-        HW_MACHINE_ARCH = 11;           {  string: machine architecture }
-        HW_MAXID        = 12;           {  number of valid hw ids }
+{ KERN_TKSTAT subtypes }
+        KERN_TKSTAT_NIN         = 1;    { total input character }
+        KERN_TKSTAT_NOUT        = 2;    { total output character }
+        KERN_TKSTAT_CANCC       = 3;    { canonical input character }
+        KERN_TKSTAT_RAWCC       = 4;    { raw input character }
 
+        KERN_BUF_ALL            = 0;    { all buffers }
+        KERN_BUFSLOP            = 20;
 
-{
- * CTL_USER definitions
- }
-        USER_CS_PATH            =  1;   {  string: _CS_PATH }
-        USER_BC_BASE_MAX        =  2;   {  int: BC_BASE_MAX }
-        USER_BC_DIM_MAX         =  3;   {  int: BC_DIM_MAX }
-        USER_BC_SCALE_MAX       =  4;   {  int: BC_SCALE_MAX }
-        USER_BC_STRING_MAX      =  5;   {  int: BC_STRING_MAX }
-        USER_COLL_WEIGHTS_MAX   =  6;   {  int: COLL_WEIGHTS_MAX }
-        USER_EXPR_NEST_MAX      =  7;   {  int: EXPR_NEST_MAX }
-        USER_LINE_MAX           =  8;   {  int: LINE_MAX }
-        USER_RE_DUP_MAX         =  9;   {  int: RE_DUP_MAX }
-        USER_POSIX2_VERSION     = 10;   {  int: POSIX2_VERSION }
-        USER_POSIX2_C_BIND      = 11;   {  int: POSIX2_C_BIND }
-        USER_POSIX2_C_DEV       = 12;   {  int: POSIX2_C_DEV }
-        USER_POSIX2_CHAR_TERM   = 13;   {  int: POSIX2_CHAR_TERM }
-        USER_POSIX2_FORT_DEV    = 14;   {  int: POSIX2_FORT_DEV }
-        USER_POSIX2_FORT_RUN    = 15;   {  int: POSIX2_FORT_RUN }
-        USER_POSIX2_LOCALEDEF   = 16;   {  int: POSIX2_LOCALEDEF }
-        USER_POSIX2_SW_DEV      = 17;   {  int: POSIX2_SW_DEV }
-        USER_POSIX2_UPE         = 18;   {  int: POSIX2_UPE }
-        USER_STREAM_MAX         = 19;   {  int: POSIX2_STREAM_MAX }
-        USER_TZNAME_MAX         = 20;   {  int: POSIX2_TZNAME_MAX }
-        USER_MAXID              = 21;   {  number of valid user ids }
+        KERN_FILE_BYFILE        = 1;
+        KERN_FILE_BYPID         = 2;
+        KERN_FILESLOP           = 10;
 
+        KERN_EVCNT_COUNT_ANY     = 0;
+        KERN_EVCNT_COUNT_NONZERO = 1;
 
-        CTL_P1003_1B_ASYNCHRONOUS_IO            = 1 ;   {  boolean }
-        CTL_P1003_1B_MAPPED_FILES               = 2 ;   {  boolean }
-        CTL_P1003_1B_MEMLOCK                    = 3 ;   {  boolean }
-        CTL_P1003_1B_MEMLOCK_RANGE              = 4 ;   {  boolean }
-        CTL_P1003_1B_MEMORY_PROTECTION          = 5 ;   {  boolean }
-        CTL_P1003_1B_MESSAGE_PASSING            = 6 ;   {  boolean }
-        CTL_P1003_1B_PRIORITIZED_IO             = 7 ;   {  boolean }
-        CTL_P1003_1B_PRIORITY_SCHEDULING        = 8 ;   {  boolean }
-        CTL_P1003_1B_REALTIME_SIGNALS           = 9 ;   {  boolean }
-        CTL_P1003_1B_SEMAPHORES                 = 10;   {  boolean }
-        CTL_P1003_1B_FSYNC                      = 11;   {  boolean }
-        CTL_P1003_1B_SHARED_MEMORY_OBJECTS      = 12;   {  boolean }
-        CTL_P1003_1B_SYNCHRONIZED_IO            = 13;   {  boolean }
-        CTL_P1003_1B_TIMERS                     = 14;   {  boolean }
-        CTL_P1003_1B_AIO_LISTIO_MAX             = 15;   {  int }
-        CTL_P1003_1B_AIO_MAX                    = 16;   {  int }
-        CTL_P1003_1B_AIO_PRIO_DELTA_MAX         = 17;   {  int }
-        CTL_P1003_1B_DELAYTIMER_MAX             = 18;   {  int }
-        CTL_P1003_1B_MQ_OPEN_MAX                = 19;   {  int }
-        CTL_P1003_1B_PAGESIZE                   = 20;   {  int }
-        CTL_P1003_1B_RTSIG_MAX                  = 21;   {  int }
-        CTL_P1003_1B_SEM_NSEMS_MAX              = 22;   {  int }
-        CTL_P1003_1B_SEM_VALUE_MAX              = 23;   {  int }
-        CTL_P1003_1B_SIGQUEUE_MAX               = 24;   {  int }
-        CTL_P1003_1B_TIMER_MAX                  = 25;   {  int }
+        KERN_ENTROPY_EPOCH      = 1;    { int: PRNG reseed epoch }
 
-        CTL_P1003_1B_MAXID              = 26;
+{ CTL_HW identifiers }
+        HW_MACHINE      =  1;   { string: machine class }
+        HW_MODEL        =  2;   { string: specific machine model }
+        HW_NCPU         =  3;   { int: number of cpus }
+        HW_BYTEORDER    =  4;   { int: machine byte order }
+        HW_PHYSMEM      =  5;   { int: total memory (bytes) }
+        HW_USERMEM      =  6;   { int: non-kernel memory (bytes) }
+        HW_PAGESIZE     =  7;   { int: software page size }
+        HW_DISKNAMES    =  8;   { string: disk drive names }
+        HW_IOSTATS      =  9;   { struct: iostats[] }
+        HW_MACHINE_ARCH = 10;   { string: machine architecture }
+        HW_ALIGNBYTES   = 11;   { int: ALIGNBYTES for the kernel }
+        HW_CNMAGIC      = 12;   { string: console magic sequence(s) }
+        HW_PHYSMEM64    = 13;   { quad: total memory (bytes) }
+        HW_USERMEM64    = 14;   { quad: non-kernel memory (bytes) }
+        HW_IOSTATNAMES  = 15;   { string: iostat names }
+        HW_NCPUONLINE   = 16;   { number CPUs online }
 
-{       LongestStringInCtlNames = 21;}
+{ CTL_USER definitions }
+        USER_CS_PATH            =  1;   { string: _CS_PATH }
+        USER_BC_BASE_MAX        =  2;   { int: BC_BASE_MAX }
+        USER_BC_DIM_MAX         =  3;   { int: BC_DIM_MAX }
+        USER_BC_SCALE_MAX       =  4;   { int: BC_SCALE_MAX }
+        USER_BC_STRING_MAX      =  5;   { int: BC_STRING_MAX }
+        USER_COLL_WEIGHTS_MAX   =  6;   { int: COLL_WEIGHTS_MAX }
+        USER_EXPR_NEST_MAX      =  7;   { int: EXPR_NEST_MAX }
+        USER_LINE_MAX           =  8;   { int: LINE_MAX }
+        USER_RE_DUP_MAX         =  9;   { int: RE_DUP_MAX }
+        USER_POSIX2_VERSION     = 10;   { int: POSIX2_VERSION }
+        USER_POSIX2_C_BIND      = 11;   { int: POSIX2_C_BIND }
+        USER_POSIX2_C_DEV       = 12;   { int: POSIX2_C_DEV }
+        USER_POSIX2_CHAR_TERM   = 13;   { int: POSIX2_CHAR_TERM }
+        USER_POSIX2_FORT_DEV    = 14;   { int: POSIX2_FORT_DEV }
+        USER_POSIX2_FORT_RUN    = 15;   { int: POSIX2_FORT_RUN }
+        USER_POSIX2_LOCALEDEF   = 16;   { int: POSIX2_LOCALEDEF }
+        USER_POSIX2_SW_DEV      = 17;   { int: POSIX2_SW_DEV }
+        USER_POSIX2_UPE         = 18;   { int: POSIX2_UPE }
+        USER_STREAM_MAX         = 19;   { int: POSIX2_STREAM_MAX }
+        USER_TZNAME_MAX         = 20;   { int: _POSIX_TZNAME_MAX }
+        USER_ATEXIT_MAX         = 21;   { int: ATEXIT_MAX }
+        USER_OSTYPE             = 22;   { str: "NetBSD" }
+        USER_OSREVISION         = 23;   { int: __NetBSD_Version__ }
+        USER_OSRELEASE          = 24;   { str: release string }
+        USER_BUILDTIME          = 25;   { str: YYYY-MM-DD hh:mm:ss UTC }
 
+{ CTL_DEBUG definitions }
+        CTL_DEBUG_NAME          = 0;    { string: variable name }
+        CTL_DEBUG_VALUE         = 1;    { int: variable value }
 
-Const
+{ CTL_PROC subtypes }
+        PROC_PID_CORENAME       = 1;
+        PROC_PID_LIMIT          = 2;
+        PROC_PID_STOPFORK       = 3;
+        PROC_PID_STOPEXEC       = 4;
+        PROC_PID_STOPEXIT       = 5;
+        PROC_PID_PAXFLAGS       = 6;
 
-        CTL_NAMES : Array[0..9] OF CtlNameRec =  (
-        ( Name: '';  CtlType: 0 ),
-        ( Name: 'kern';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'vm';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'vfs';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'net';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'debug';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'hw';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'machdep';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'user';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'p1003_1b';  CtlType : CTLTYPE_NODE ));
+{ PROC_PID_LIMIT subtypes: RLIMIT_* + 1 }
+        PROC_PID_LIMIT_CPU      = 1;
+        PROC_PID_LIMIT_FSIZE    = 2;
+        PROC_PID_LIMIT_DATA     = 3;
+        PROC_PID_LIMIT_STACK    = 4;
+        PROC_PID_LIMIT_CORE     = 5;
+        PROC_PID_LIMIT_RSS      = 6;
+        PROC_PID_LIMIT_MEMLOCK  = 7;
+        PROC_PID_LIMIT_NPROC    = 8;
+        PROC_PID_LIMIT_NOFILE   = 9;
+        PROC_PID_LIMIT_SBSIZE   = 10;
+        PROC_PID_LIMIT_AS       = 11;
+        PROC_PID_LIMIT_NTHR     = 12;
 
-        CTL_KERN_NAME : Array[0..34] OF CtlNameRec = (
-        ( Name: ''; CtlType: 0 ),
-        ( Name: 'ostype';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'osrelease';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'osrevision';  CtlType : CTLTYPE_INT ),
-        ( Name: 'version';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'maxvnodes';  CtlType : CTLTYPE_INT ),
-        ( Name: 'maxproc';  CtlType : CTLTYPE_INT ),
-        ( Name: 'maxfiles';  CtlType : CTLTYPE_INT ),
-        ( Name: 'argmax';  CtlType : CTLTYPE_INT ),
-        ( Name: 'securelevel';  CtlType : CTLTYPE_INT ),
-        ( Name: 'hostname';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'hostid';  CtlType : CTLTYPE_UINT ),
-        ( Name: 'clockrate';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'vnode';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'proc';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'file';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'profiling';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'posix1version';  CtlType : CTLTYPE_INT ),
-        ( Name: 'ngroups';  CtlType : CTLTYPE_INT ),
-        ( Name: 'job_control';  CtlType : CTLTYPE_INT ),
-        ( Name: 'saved_ids';  CtlType : CTLTYPE_INT ),
-        ( Name: 'boottime';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'nisdomainname';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'update';  CtlType : CTLTYPE_INT ),
-        ( Name: 'osreldate';  CtlType : CTLTYPE_INT ),
-        ( Name: 'ntp_pll';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'bootfile';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'maxfilesperproc';  CtlType : CTLTYPE_INT ),
-        ( Name: 'maxprocperuid';  CtlType : CTLTYPE_INT ),
-        ( Name: 'dumpdev';  CtlType : CTLTYPE_STRUCT ), {  we lie; don't print as int }
-        ( Name: 'ipc';  CtlType : CTLTYPE_NODE ),
-        ( Name: 'dummy';  CtlType : CTLTYPE_INT ),
-        ( Name: 'ps_strings';  CtlType : CTLTYPE_INT ),
-        ( Name: 'usrstack';  CtlType : CTLTYPE_INT ),
-        ( Name: 'logsigexit';  CtlType : CTLTYPE_INT ));
+        PROC_PID_LIMIT_TYPE_SOFT = 1;
+        PROC_PID_LIMIT_TYPE_HARD = 2;
 
-{
- * CTL_VFS identifiers
-}
-        CTL_VFS_NAMES : array[0..0] of CTLNameRec = (
-        ( Name: 'vfsconf';  CtlType : CTLTYPE_STRUCT ));
+        CTL_PROC_PAXFLAGS_ASLR     = $01;
+        CTL_PROC_PAXFLAGS_MPROTECT = $02;
+        CTL_PROC_PAXFLAGS_GUARD    = $04;
 
+{ CTL_VM identifiers }
+        VM_METER                = 1;    { struct vmmeter }
+        VM_LOADAVG              = 2;    { struct loadavg }
+        VM_UVMEXP               = 3;    { struct uvmexp }
+        VM_NKMEMPAGES           = 4;    { kmem_map pages }
+        VM_UVMEXP2              = 5;    { struct uvmexp_sysctl }
+        VM_ANONMIN              = 6;
+        VM_EXECMIN              = 7;
+        VM_FILEMIN              = 8;
+        VM_MAXSLP               = 9;
+        VM_USPACE               = 10;
+        VM_ANONMAX              = 11;
+        VM_EXECMAX              = 12;
+        VM_FILEMAX              = 13;
+        VM_MINADDRESS           = 14;
+        VM_MAXADDRESS           = 15;
+        VM_PROC                 = 16;   { process information }
+        VM_GUARD_SIZE           = 17;   { guard size for main thread }
+        VM_THREAD_GUARD_SIZE    = 18;   { default guard size for new threads }
 
-        CTL_HW_NAMES : array[0..10] of CTLNameRec = (
-        ( Name: ''; CtlType: 0 ),
-        ( Name: 'machine';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'model';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'ncpu';  CtlType : CTLTYPE_INT ),
-        ( Name: 'byteorder';  CtlType : CTLTYPE_INT ),
-        ( Name: 'physmem';  CtlType : CTLTYPE_UINT ),
-        ( Name: 'usermem';  CtlType : CTLTYPE_UINT ),
-        ( Name: 'pagesize';  CtlType : CTLTYPE_INT ),
-        ( Name: 'disknames';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'diskstats';  CtlType : CTLTYPE_STRUCT ),
-        ( Name: 'floatingpoint';  CtlType : CTLTYPE_INT ));
+        VM_PROC_MAP             = 1;    { struct kinfo_vmentry }
 
+{ Profiling states and KERN_PROF identifiers }
+        GMON_PROF_ON    = 0;
+        GMON_PROF_BUSY  = 1;
+        GMON_PROF_ERROR = 2;
+        GMON_PROF_OFF   = 3;
 
-        CTL_USER_NAMES  : array[0..20] of CTLNameRec = (
-        ( Name :''; CtlType: 0 ),
-        ( Name: 'cs_path';  CtlType : CTLTYPE_STRING ),
-        ( Name: 'bc_base_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'bc_dim_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'bc_scale_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'bc_string_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'coll_weights_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'expr_nest_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'line_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 're_dup_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_version';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_c_bind';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_c_dev';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_char_term';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_fort_dev';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_fort_run';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_localedef';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_sw_dev';  CtlType : CTLTYPE_INT ),
-        ( Name: 'posix2_upe';  CtlType : CTLTYPE_INT ),
-        ( Name: 'stream_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'tzname_max';  CtlType : CTLTYPE_INT ));
+        GPROF_STATE     = 0;    { int: profiling enabling variable }
+        GPROF_COUNT     = 1;    { struct: profile tick count buffer }
+        GPROF_FROMS     = 2;    { struct: from location hash bucket }
+        GPROF_TOS       = 3;    { struct: destination/count structure }
+        GPROF_GMONPARAM = 4;    { struct: profiling parameters }
+        GPROF_PERCPU    = 5;    { per cpu node }
 
-        CTL_P1003_1B_NAMES  : array[0..25] of CTLNameRec = (
-        ( Name: ''; CtlType: 0 ),
-        ( Name: 'asynchronous_io';  CtlType : CTLTYPE_INT ),
-        ( Name: 'mapped_files';  CtlType : CTLTYPE_INT ),
-        ( Name: 'memlock';  CtlType : CTLTYPE_INT ),
-        ( Name: 'memlock_range';  CtlType : CTLTYPE_INT ),
-        ( Name: 'memory_protection';  CtlType : CTLTYPE_INT ),
-        ( Name: 'message_passing';  CtlType : CTLTYPE_INT ),
-        ( Name: 'prioritized_io';  CtlType : CTLTYPE_INT ),
-        ( Name: 'priority_scheduling';  CtlType : CTLTYPE_INT ),
-        ( Name: 'realtime_signals';  CtlType : CTLTYPE_INT ),
-        ( Name: 'semaphores';  CtlType : CTLTYPE_INT ),
-        ( Name: 'fsync';  CtlType : CTLTYPE_INT ),
-        ( Name: 'shared_memory_objects';  CtlType : CTLTYPE_INT ),
-        ( Name: 'synchronized_io';  CtlType : CTLTYPE_INT ),
-        ( Name: 'timers';  CtlType : CTLTYPE_INT ),
-        ( Name: 'aio_listio_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'aio_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'aio_prio_delta_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'delaytimer_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'mq_open_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'pagesize';  CtlType : CTLTYPE_INT ),
-        ( Name: 'rtsig_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'nsems_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'sem_value_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'sigqueue_max';  CtlType : CTLTYPE_INT ),
-        ( Name: 'timer_max';  CtlType : CTLTYPE_INT ));
-
-
-const
-{
- * Types
-}
-        SOCK_STREAM     = 1;            { stream socket }
-        SOCK_DGRAM      = 2;            { datagram socket }
-        SOCK_RAW        = 3;            { raw-protocol interface }
-        SOCK_RDM        = 4;            { reliably-delivered message }
-        SOCK_SEQPACKET  = 5;            { sequenced packet stream }
-
-{
- * Address families.
-}
+{ CTL_NET second level: address families }
         AF_UNSPEC       = 0;            { unspecified }
-        AF_LOCAL        = 1;            { local to host (Name:pipes;CtlType: portals) }
+        AF_LOCAL        = 1;            { local to host }
         AF_UNIX         = AF_LOCAL;     { backward compatibility }
         AF_INET         = 2;            { internetwork: UDP, TCP, etc. }
         AF_IMPLINK      = 3;            { arpanet imp addresses }
@@ -385,7 +350,7 @@ const
         AF_APPLETALK    = 16;           { Apple Talk }
         AF_OROUTE       = 17;           { Internal Routing Protocol, old message format }
         AF_LINK         = 18;           { Link layer interface }
-        pseudo_AF_XTP   = 19;           { eXpress Transfer Protocol (Name:no AF) }
+        pseudo_AF_XTP   = 19;           { eXpress Transfer Protocol (no AF) }
         AF_COIP         = 20;           { connection-oriented IP, aka ST II }
         AF_CNT          = 21;           { Computer Network Technology }
         pseudo_AF_RTIP  = 22;           { Help Identify RTIP packets }
@@ -404,484 +369,118 @@ const
         AF_ROUTE        = 34;           { Internal Routing Protocol }
         AF_CAN          = 35;
         AF_ETHER        = 36;
-
         AF_MAX          = 37;
 
-{
- * Protocol families, same as address families for now.
-}
+{ PF_ROUTE identifiers }
+        NET_RT_DUMP      = 1;   { dump; may limit to a.f. }
+        NET_RT_FLAGS     = 2;   { by flags, e.g. RESOLVING }
+        NET_RT_OOOIFLIST = 3;   { old NET_RT_IFLIST (pre 1.5) }
+        NET_RT_OOIFLIST  = 4;   { old NET_RT_IFLIST (pre-64bit time) }
+        NET_RT_OIFLIST   = 5;   { old NET_RT_IFLIST (pre 8.0) }
+        NET_RT_IFLIST    = 6;   { survey interface list }
 
-{
- * Definitions for network related sysctl, CTL_NET.
- *
- * Second level is protocol family.
- * Third level is protocol number.
- *
- * Further levels are defined by the individual families below.
-}
-        NET_MAXID       = AF_MAX;
-
-        CTL_NET_NAMES  : Array[0..36] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'unix';CtlType: CTLTYPE_NODE ),
-        (Name: 'inet';CtlType: CTLTYPE_NODE ),
-        (Name: 'implink';CtlType: CTLTYPE_NODE ),
-        (Name: 'pup';CtlType: CTLTYPE_NODE ),
-        (Name: 'chaos';CtlType: CTLTYPE_NODE ),
-        (Name: 'xerox_ns';CtlType: CTLTYPE_NODE ),
-        (Name: 'iso';CtlType: CTLTYPE_NODE ),
-        (Name: 'emca';CtlType: CTLTYPE_NODE ),
-        (Name: 'datakit';CtlType: CTLTYPE_NODE ),
-        (Name: 'ccitt';CtlType: CTLTYPE_NODE ),
-        (Name: 'ibm_sna';CtlType: CTLTYPE_NODE ),
-        (Name: 'decnet';CtlType: CTLTYPE_NODE ),
-        (Name: 'dec_dli';CtlType: CTLTYPE_NODE ),
-        (Name: 'lat';CtlType: CTLTYPE_NODE ),
-        (Name: 'hylink';CtlType: CTLTYPE_NODE ),
-        (Name: 'appletalk';CtlType: CTLTYPE_NODE ),
-        (Name: 'oroute';CtlType: CTLTYPE_NODE ),
-        (Name: 'link_layer';CtlType: CTLTYPE_NODE ),
-        (Name: 'xtp';CtlType: CTLTYPE_NODE ),
-        (Name: 'coip';CtlType: CTLTYPE_NODE ),
-        (Name: 'cnt';CtlType: CTLTYPE_NODE ),
-        (Name: 'rtip';CtlType: CTLTYPE_NODE ),
-        (Name: 'ipx';CtlType: CTLTYPE_NODE ),
-        (Name: 'inet6';CtlType: CTLTYPE_NODE ),
-        (Name: 'pip';CtlType: CTLTYPE_NODE ),
-        (Name: 'isdn';CtlType: CTLTYPE_NODE ),
-        (Name: 'natm';CtlType: CTLTYPE_NODE ),
-        (Name: 'arp';CtlType: CTLTYPE_NODE ),
-        (Name: 'key';CtlType: CTLTYPE_NODE ),
-        (Name: 'hdrcomplete';CtlType: CTLTYPE_NODE ),
-        (Name: 'bluetooth';CtlType: CTLTYPE_NODE ),
-        (Name: 'ieee80211';CtlType: CTLTYPE_NODE ),
-        (Name: 'mpls';CtlType: CTLTYPE_NODE ),
-        (Name: 'route';CtlType: CTLTYPE_NODE ),
-        (Name: 'can';CtlType: CTLTYPE_NODE ),
-        (Name: 'ether';CtlType: CTLTYPE_NODE ));
-
-{
- * PF_ROUTE - Routing table
- *
- * Three additional levels are defined:
- *      Fourth: address family, 0 is wildcard
- *      Fifth: type of info, defined below
- *      Sixth: flag(Name:s) to mask with for NET_RT_FLAGS
-}
-        NET_RT_DUMP     = 1;            { dump; may limit to a.f. }
-        NET_RT_FLAGS    = 2;            { by flags, e.g. RESOLVING }
-        NET_RT_IFLIST   = 3;            { survey interface list }
-        NET_RT_MAXID    = 4;
-
-        CTL_NET_RT_NAMES  : Array[0..3] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'dump';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'flags';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'iflist';CtlType: CTLTYPE_STRUCT ));
-
-{
- * Possible states of profiling.
-}
-        GMON_PROF_ON    = 0;
-        GMON_PROF_BUSY  = 1;
-        GMON_PROF_ERROR = 2;
-        GMON_PROF_OFF   = 3;
-        GMON_PROF_HIRES = 4;
-
-{
- * Sysctl definitions for extracting profiling information from the kernel.
-}
-        GPROF_STATE     = 0;    { int: profiling enabling variable }
-        GPROF_COUNT     = 1;    { struct: profile tick count buffer }
-        GPROF_FROMS     = 2;    { struct: from location hash bucket }
-        GPROF_TOS       = 3;    { struct: destination/count structure }
-        GPROF_GMONPARAM = 4;    { struct: profiling parameters (Name:see above) }
-
-{
- * CTL_VM identifiers
-}
-        VM_METER                = 1;    { struct vmmeter }
-        VM_LOADAVG              = 2;    { struct loadavg }
-        VM_V_FREE_MIN           = 3;    { cnt.v_free_min }
-        VM_V_FREE_TARGET        = 4;    { cnt.v_free_target }
-        VM_V_FREE_RESERVED      = 5;    { cnt.v_free_reserved }
-        VM_V_INACTIVE_TARGET    = 6;    { cnt.v_inactive_target }
-        VM_V_CACHE_MIN          = 7;    { cnt.v_cache_max }
-        VM_V_CACHE_MAX          = 8;    { cnt.v_cache_min }
-        VM_V_PAGEOUT_FREE_MIN   = 9;    { cnt.v_pageout_free_min }
-        VM_PAGEOUT_ALGORITHM    = 10;   { pageout algorithm }
-        VM_SWAPPING_ENABLED     = 11;   { swapping enabled }
-        VM_MAXID                = 12;   { number of valid vm ids }
-
-        CTL_VM_NAMES  : Array[0..11] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'vmmeter';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'loadavg';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'v_free_min';CtlType: CTLTYPE_INT ),
-        (Name: 'v_free_target';CtlType: CTLTYPE_INT ),
-        (Name: 'v_free_reserved';CtlType: CTLTYPE_INT ),
-        (Name: 'v_inactive_target';CtlType: CTLTYPE_INT ),
-        (Name: 'v_cache_min';CtlType: CTLTYPE_INT ),
-        (Name: 'v_cache_max';CtlType: CTLTYPE_INT ),
-        (Name: 'v_pageout_free_min';CtlType: CTLTYPE_INT),
-        (Name: 'pageout_algorithm';CtlType: CTLTYPE_INT),
-        (Name: 'swapping_enabled';CtlType: CTLTYPE_INT));
-
-{
- * Protocols (Name:RFC 1700)
-}
-        IPPROTO_IP              = 0;            { dummy for IP }
-        IPPROTO_HOPOPTS         = 0;            { IP6 hop-by-hop options }
-        IPPROTO_ICMP            = 1;            { control message protocol }
-        IPPROTO_IGMP            = 2;            { group mgmt protocol }
-        IPPROTO_GGP             = 3;            { gateway^2 (Name:deprecated) }
-        IPPROTO_IPV4            = 4;            { IPv4 encapsulation }
-        IPPROTO_IPIP            = IPPROTO_IPV4; { for compatibility }
-        IPPROTO_TCP             = 6;            { tcp }
-        IPPROTO_ST              = 7;            { Stream protocol II }
-        IPPROTO_EGP             = 8;            { exterior gateway protocol }
-        IPPROTO_PIGP            = 9;            { private interior gateway }
-        IPPROTO_RCCMON          = 10;           { BBN RCC Monitoring }
-        IPPROTO_NVPII           = 11;           { network voice protocol}
-        IPPROTO_PUP             = 12;           { pup }
-        IPPROTO_ARGUS           = 13;           { Argus }
-        IPPROTO_EMCON           = 14;           { EMCON }
-        IPPROTO_XNET            = 15;           { Cross Net Debugger }
-        IPPROTO_CHAOS           = 16;           { Chaos}
-        IPPROTO_UDP             = 17;           { user datagram protocol }
-        IPPROTO_MUX             = 18;           { Multiplexing }
-        IPPROTO_MEAS            = 19;           { DCN Measurement Subsystems }
-        IPPROTO_HMP             = 20;           { Host Monitoring }
-        IPPROTO_PRM             = 21;           { Packet Radio Measurement }
-        IPPROTO_IDP             = 22;           { xns idp }
-        IPPROTO_TRUNK1          = 23;           { Trunk-1 }
-        IPPROTO_TRUNK2          = 24;           { Trunk-2 }
-        IPPROTO_LEAF1           = 25;           { Leaf-1 }
-        IPPROTO_LEAF2           = 26;           { Leaf-2 }
-        IPPROTO_RDP             = 27;           { Reliable Data }
-        IPPROTO_IRTP            = 28;           { Reliable Transaction }
-        IPPROTO_TP              = 29;           { tp-4 w/ class negotiation }
-        IPPROTO_BLT             = 30;           { Bulk Data Transfer }
-        IPPROTO_NSP             = 31;           { Network Services }
-        IPPROTO_INP             = 32;           { Merit Internodal }
-        IPPROTO_SEP             = 33;           { Sequential Exchange }
-        IPPROTO_3PC             = 34;           { Third Party Connect }
-        IPPROTO_IDPR            = 35;           { InterDomain Policy Routing }
-        IPPROTO_XTP             = 36;           { XTP }
-        IPPROTO_DDP             = 37;           { Datagram Delivery }
-        IPPROTO_CMTP            = 38;           { Control Message Transport }
-        IPPROTO_TPXX            = 39;           { TP++ Transport }
-        IPPROTO_IL              = 40;           { IL transport protocol }
-        IPPROTO_IPV6            = 41;           { IP6 header }
-        IPPROTO_SDRP            = 42;           { Source Demand Routing }
-        IPPROTO_ROUTING         = 43;           { IP6 routing header }
-        IPPROTO_FRAGMENT        = 44;           { IP6 fragmentation header }
-        IPPROTO_IDRP            = 45;           { InterDomain Routing}
-        IPPROTO_RSVP            = 46;           { resource reservation }
-        IPPROTO_GRE             = 47;           { General Routing Encap. }
-        IPPROTO_MHRP            = 48;           { Mobile Host Routing }
-        IPPROTO_BHA             = 49;           { BHA }
-        IPPROTO_ESP             = 50;           { IP6 Encap Sec. Payload }
-        IPPROTO_AH              = 51;           { IP6 Auth Header }
-        IPPROTO_INLSP           = 52;           { Integ. Net Layer Security }
-        IPPROTO_SWIPE           = 53;           { IP with encryption }
-        IPPROTO_NHRP            = 54;           { Next Hop Resolution }
-{ 55-57: Unassigned }
-        IPPROTO_ICMPV6          = 58;           { ICMP6 }
-        IPPROTO_NONE            = 59;           { IP6 no next header }
-        IPPROTO_DSTOPTS         = 60;           { IP6 destination option }
-        IPPROTO_AHIP            = 61;           { any host internal protocol }
-        IPPROTO_CFTP            = 62;           { CFTP }
-        IPPROTO_HELLO           = 63;           { 'hello' routing protocol }
-        IPPROTO_SATEXPAK        = 64;           { SATNET/Backroom EXPAK }
-        IPPROTO_KRYPTOLAN       = 65;           { Kryptolan }
-        IPPROTO_RVD             = 66;           { Remote Virtual Disk }
-        IPPROTO_IPPC            = 67;           { Pluribus Packet Core }
-        IPPROTO_ADFS            = 68;           { Any distributed FS }
-        IPPROTO_SATMON          = 69;           { Satnet Monitoring }
-        IPPROTO_VISA            = 70;           { VISA Protocol }
-        IPPROTO_IPCV            = 71;           { Packet Core Utility }
-        IPPROTO_CPNX            = 72;           { Comp. Prot. Net. Executive }
-        IPPROTO_CPHB            = 73;           { Comp. Prot. HeartBeat }
-        IPPROTO_WSN             = 74;           { Wang Span Network }
-        IPPROTO_PVP             = 75;           { Packet Video Protocol }
-        IPPROTO_BRSATMON        = 76;           { BackRoom SATNET Monitoring }
-        IPPROTO_ND              = 77;           { Sun net disk proto (Name:temp.) }
-        IPPROTO_WBMON           = 78;           { WIDEBAND Monitoring }
-        IPPROTO_WBEXPAK         = 79;           { WIDEBAND EXPAK }
-        IPPROTO_EON             = 80;           { ISO cnlp }
-        IPPROTO_VMTP            = 81;           { VMTP }
-        IPPROTO_SVMTP           = 82;           { Secure VMTP }
-        IPPROTO_VINES           = 83;           { Banyon VINES }
-        IPPROTO_TTP             = 84;           { TTP }
-        IPPROTO_IGP             = 85;           { NSFNET-IGP }
-        IPPROTO_DGP             = 86;           { dissimilar gateway prot. }
-        IPPROTO_TCF             = 87;           { TCF }
-        IPPROTO_IGRP            = 88;           { Cisco/GXS IGRP }
-        IPPROTO_OSPFIGP         = 89;           { OSPFIGP }
-        IPPROTO_SRPC            = 90;           { Strite RPC protocol }
-        IPPROTO_LARP            = 91;           { Locus Address Resolution }
-        IPPROTO_MTP             = 92;           { Multicast Transport }
-        IPPROTO_AX25            = 93;           { AX.25 Frames }
-        IPPROTO_IPEIP           = 94;           { IP encapsulated in IP }
-        IPPROTO_MICP            = 95;           { Mobile Int.ing control }
-        IPPROTO_SCCSP           = 96;           { Semaphore Comm. security }
-        IPPROTO_ETHERIP         = 97;           { Ethernet IP encapsulation }
-        IPPROTO_ENCAP           = 98;           { encapsulation header }
-        IPPROTO_APES            = 99;           { any private encr. scheme }
-        IPPROTO_GMTP            = 100;          { GMTP}
-        IPPROTO_IPCOMP          = 108;          { payload compression (Name:IPComp) }
-{ 101-254: Partly Unassigned }
-        IPPROTO_PIM             = 103;          { Protocol Independent Mcast }
-        IPPROTO_PGM             = 113;          { PGM }
-{ 255: Reserved }
-{ BSD Private, local use, namespace incursion }
-        IPPROTO_DIVERT          = 254;          { divert pseudo-protocol }
-        IPPROTO_RAW             = 255;          { raw IP packet }
+{ PF_INET third level: protocols }
+        IPPROTO_IP              = 0;    { dummy for IP }
+        IPPROTO_HOPOPTS         = 0;    { IP6 hop-by-hop options }
+        IPPROTO_ICMP            = 1;    { control message protocol }
+        IPPROTO_IGMP            = 2;    { group mgmt protocol }
+        IPPROTO_GGP             = 3;    { gateway^2 (deprecated) }
+        IPPROTO_IPV4            = 4;    { IP header }
+        IPPROTO_IPIP            = 4;    { IP inside IP }
+        IPPROTO_TCP             = 6;    { tcp }
+        IPPROTO_EGP             = 8;    { exterior gateway protocol }
+        IPPROTO_PUP             = 12;   { pup }
+        IPPROTO_UDP             = 17;   { user datagram protocol }
+        IPPROTO_IDP             = 22;   { xns idp }
+        IPPROTO_TP              = 29;   { tp-4 w/ class negotiation }
+        IPPROTO_DCCP            = 33;   { DCCP }
+        IPPROTO_IPV6            = 41;   { IP6 header }
+        IPPROTO_ROUTING         = 43;   { IP6 routing header }
+        IPPROTO_FRAGMENT        = 44;   { IP6 fragmentation header }
+        IPPROTO_RSVP            = 46;   { resource reservation }
+        IPPROTO_GRE             = 47;   { GRE encaps RFC 1701 }
+        IPPROTO_ESP             = 50;   { encap. security payload }
+        IPPROTO_AH              = 51;   { authentication header }
+        IPPROTO_MOBILE          = 55;   { IP Mobility RFC 2004 }
+        IPPROTO_IPV6_ICMP       = 58;   { IPv6 ICMP }
+        IPPROTO_ICMPV6          = 58;   { ICMP6 }
+        IPPROTO_NONE            = 59;   { IP6 no next header }
+        IPPROTO_DSTOPTS         = 60;   { IP6 destination option }
+        IPPROTO_EON             = 80;   { ISO cnlp }
+        IPPROTO_ETHERIP         = 97;   { Ethernet-in-IP }
+        IPPROTO_ENCAP           = 98;   { encapsulation header }
+        IPPROTO_PIM             = 103;  { Protocol indep. multicast }
+        IPPROTO_IPCOMP          = 108;  { IP Payload Comp. Protocol }
+        IPPROTO_VRRP            = 112;  { VRRP RFC 2338 }
+        IPPROTO_CARP            = 112;  { Common Address Resolution Protocol }
+        IPPROTO_L2TP            = 115;  { L2TPv3 }
+        IPPROTO_SCTP            = 132;  { SCTP }
+        IPPROTO_PFSYNC          = 240;  { PFSYNC }
+        IPPROTO_RAW             = 255;  { raw IP packet }
         IPPROTO_MAX             = 256;
+        IPPROTO_DONE            = 257;  { last return value of *_input() }
 
-{ last return value of *_input(Name:);CtlType: meaning 'all job for this pkt is done'.  }
-        IPPROTO_DONE            = 257;
-
-
-{
- * Options for use with [gs]etsockopt at the IP level.
- * First word of comment is data type; bool is stored in int.
-}
-        IP_OPTIONS              = 1;    { buf/ip_opts; set/get IP options }
-        IP_HDRINCL              = 2;    { int; header is included with data }
-        IP_TOS                  = 3;    { int; IP type of service and precede. }
-        IP_TTL                  = 4;    { int; IP time to live }
-        IP_RECVOPTS             = 5;    { bool; receive all IP opts w/dgram }
-        IP_RECVRETOPTS          = 6;    { bool; receive IP opts for response }
-        IP_RECVDSTADDR          = 7;    { bool; receive IP dst addr w/dgram }
-        IP_RETOPTS              = 8;    { ip_opts; set/get IP options }
-        IP_MULTICAST_IF         = 9;    { u_char; set/get IP multicast i/f  }
-        IP_MULTICAST_TTL        = 10;   { u_char; set/get IP multicast ttl }
-        IP_MULTICAST_LOOP       = 11;   { u_char; set/get IP multicast loopback }
-        IP_ADD_MEMBERSHIP       = 12;   { ip_mreq; add an IP group membership }
-        IP_DROP_MEMBERSHIP      = 13;   { ip_mreq; drop an IP group membership }
-        IP_MULTICAST_VIF        = 14;   { set/get IP mcast virt. iface }
-        IP_RSVP_ON              = 15;   { enable RSVP in kernel }
-        IP_RSVP_OFF             = 16;   { disable RSVP in kernel }
-        IP_RSVP_VIF_ON          = 17;   { set RSVP per-vif socket }
-        IP_PORTALGO             = 18;   { int; port selection algo (rfc6056) }
-        IP_PORTRANGE            = 19;   { int; range to choose for unspecified port }
-        IP_RECVIF               = 20;   { bool; receive reception if w/dgram }
-        IP_ERRORMTU             = 21;   { int; get MTU of last xmit = EMSGSIZE }
-        IP_IPSEC_POLICY         = 22;   { struct; get/set security policy }
-        IP_RECVTTL              = 23;   { bool; receive IP TTL w/dgram }
-        IP_MINTTL               = 24;   { minimum TTL for packet or drop }
-        IP_PKTINFO              = 25;   { struct; set default src if/addr }
-        IP_RECVPKTINFO          = 26;   { int; receive dst if/addr w/dgram }
-        IP_BINDANY              = 27;   { bool: allow bind to any address }
-
-        IP_FW_ADD               = 50;   { add a firewall rule to chain }
-        IP_FW_DEL               = 51;   { delete a firewall rule from chain }
-        IP_FW_FLUSH             = 52;   { flush firewall rule chain }
-        IP_FW_ZERO              = 53;   { clear single/all firewall counter(Name:s) }
-        IP_FW_GET               = 54;   { get entire firewall rule chain }
-        IP_FW_RESETLOG          = 55;   { reset logging counters }
-
-        IP_DUMMYNET_CONFIGURE   = 60;   { add/configure a dummynet pipe }
-        IP_DUMMYNET_DEL         = 61;   { delete a dummynet pipe from chain }
-        IP_DUMMYNET_FLUSH       = 62;   { flush dummynet }
-        IP_DUMMYNET_GET         = 64;   { get entire dummynet pipes }
-
-{
- * Defaults and limits for options
-}
-        IP_DEFAULT_MULTICAST_TTL  = 1;  { normally limit m'casts to 1 hop  }
-        IP_DEFAULT_MULTICAST_LOOP = 1;  { normally hear sends if a member  }
-        IP_MAX_MEMBERSHIPS        = 20; { per socket }
-
-{
- * Argument for IP_PORTRANGE:
- * - which range to search when port is unspecified at bind(Name:) or connect()
-}
-        IP_PORTRANGE_DEFAULT    = 0;    { default range }
-        IP_PORTRANGE_HIGH       = 1;    { 'high' - request firewall bypass }
-        IP_PORTRANGE_LOW        = 2;    { 'low' - vouchsafe security }
-
-{
- * Definitions for inet sysctl operations.
- *
- * Third level is protocol number.
- * Fourth level is desired variable within that protocol.
-}
-        IPPROTO_MAXID = (IPPROTO_AH + 1);       { don't list to IPPROTO_MAX }
-
-        CTL_IPPROTO_NAMES  : Array[0..51] OF CtlNameRec =  (
-        (Name: 'ip';CtlType: CTLTYPE_NODE ),
-        (Name: 'icmp';CtlType: CTLTYPE_NODE ),
-        (Name: 'igmp';CtlType: CTLTYPE_NODE ),
-        (Name: 'ggp';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'tcp';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'egp';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'pup';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'udp';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'idp';CtlType: CTLTYPE_NODE ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'ipsec';CtlType: CTLTYPE_NODE ));
-
-{
- * Names for IP sysctl objects
-}
+{ IPPROTO_IP identifiers }
         IPCTL_FORWARDING        = 1;    { act as router }
         IPCTL_SENDREDIRECTS     = 2;    { may send redirects when forwarding }
         IPCTL_DEFTTL            = 3;    { default TTL }
-{$ifdef notyettunable}
-        IPCTL_DEFMTU            = 4;    { default MTU }
-{$endif}
-        IPCTL_RTEXPIRE          = 5;    { cloned route expiration time }
-        IPCTL_RTMINEXPIRE       = 6;    { min value for expiration time }
-        IPCTL_RTMAXCACHE        = 7;    { trigger level for dynamic expire }
-        IPCTL_SOURCEROUTE       = 8;    { may perform source routes }
-        IPCTL_DIRECTEDBROADCAST = 9;    { may re-broadcast received packets }
-        IPCTL_INTRQMAXLEN       = 10;   { max length of netisr queue }
-        IPCTL_INTRQDROPS        = 11;   { number of netisr q drops }
-        IPCTL_STATS             = 12;   { ipstat structure }
-        IPCTL_ACCEPTSOURCEROUTE = 13;   { may accept source routed packets }
-        IPCTL_FASTFORWARDING    = 14;   { use fast IP forwarding code }
-        IPCTL_KEEPFAITH         = 15;   { FAITH IPv4->IPv6 translator ctl }
-        IPCTL_GIF_TTL           = 16;   { default TTL for gif encap packet }
-        IPCTL_MAXID             = 17;
+        IPCTL_FORWSRCRT         = 5;    { forward source-routed packets }
+        IPCTL_DIRECTEDBCAST     = 6;    { default broadcast behavior }
+        IPCTL_ALLOWSRCRT        = 7;    { allow/drop all source-routed pkts }
+        IPCTL_SUBNETSARELOCAL   = 8;    { treat subnets as local addresses }
+        IPCTL_MTUDISC           = 9;    { allow path MTU discovery }
+        IPCTL_ANONPORTMIN       = 10;   { minimum ephemeral port }
+        IPCTL_ANONPORTMAX       = 11;   { maximum ephemeral port }
+        IPCTL_MTUDISCTIMEOUT    = 12;   { allow path MTU discovery }
+        IPCTL_MAXFLOWS          = 13;   { maximum ip flows allowed }
+        IPCTL_HOSTZEROBROADCAST = 14;   { is host zero a broadcast addr? }
+        IPCTL_GIF_TTL           = 15;   { default TTL for gif encap packet }
+        IPCTL_LOWPORTMIN        = 16;   { minimum reserved port }
+        IPCTL_LOWPORTMAX        = 17;   { maximum reserved port }
+        IPCTL_MAXFRAGPACKETS    = 18;   { max packets reassembly queue }
+        IPCTL_GRE_TTL           = 19;   { default TTL for gre encap packet }
+        IPCTL_CHECKINTERFACE    = 20;   { drop pkts in from 'wrong' iface }
+        IPCTL_IFQ               = 21;   { IP packet input queue }
+        IPCTL_RANDOMID          = 22;   { use random IP ids (if configured) }
+        IPCTL_LOOPBACKCKSUM     = 23;   { do IP checksum on loopback }
+        IPCTL_STATS             = 24;   { IP statistics }
+        IPCTL_DAD_COUNT         = 25;   { DAD packets to send }
 
-        IPCTL_NAMES  : Array[0..14] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'forwarding';CtlType: CTLTYPE_INT ),
-        (Name: 'redirect';CtlType: CTLTYPE_INT ),
-        (Name: 'ttl';CtlType: CTLTYPE_INT ),
-        (Name: 'mtu';CtlType: CTLTYPE_INT ),
-        (Name: 'rtexpire';CtlType: CTLTYPE_INT ),
-        (Name: 'rtminexpire';CtlType: CTLTYPE_INT ),
-        (Name: 'rtmaxcache';CtlType: CTLTYPE_INT ),
-        (Name: 'sourceroute';CtlType: CTLTYPE_INT ),
-        (Name: 'directed-broadcast';CtlType: CTLTYPE_INT ),
-        (Name: 'intr-queue-maxlen';CtlType: CTLTYPE_INT ),
-        (Name: 'intr-queue-drops';CtlType: CTLTYPE_INT ),
-        (Name: 'stats';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'accept_sourceroute';CtlType: CTLTYPE_INT ),
-        (Name: 'fastforwarding';CtlType: CTLTYPE_INT ));
-
-{
- * Names for ICMP sysctl objects
-}
+{ IPPROTO_ICMP identifiers }
         ICMPCTL_MASKREPL        = 1;    { allow replies to netmask requests }
-        ICMPCTL_STATS           = 2;    { statistics (Name:read-only) }
-        ICMPCTL_ICMPLIM         = 3;
-        ICMPCTL_MAXID           = 4;
+        ICMPCTL_ERRRATELIMIT    = 2;    { error rate limit }
+        ICMPCTL_RETURNDATABYTES = 3;    { # of bytes to include in errors }
+        ICMPCTL_ERRPPSLIMIT     = 4;    { ICMP error pps limitation }
+        ICMPCTL_REDIRACCEPT     = 5;    { Accept redirects from routers }
+        ICMPCTL_REDIRTIMEOUT    = 6;    { Remove routes added via redirects }
+        ICMPCTL_STATS           = 7;    { ICMP statistics }
+        ICMPCTL_BMCASTECHO      = 8;    { allow broad/mult-cast echo }
+        ICMPCTL_DYNAMIC_RT_MSG  = 9;    { send routing message for RTM_DYNAMIC }
 
-        ICMPCTL_NAMES  : Array[0..3] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'maskrepl';CtlType: CTLTYPE_INT ),
-        (Name: 'stats';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'icmplim';CtlType: CTLTYPE_INT ));
+{ IPPROTO_ICMPV6 identifiers }
+        ICMPV6CTL_STATS           = 1;
+        ICMPV6CTL_REDIRACCEPT     = 2;  { accept/process redirects }
+        ICMPV6CTL_REDIRTIMEOUT    = 3;  { redirect cache time }
+        ICMPV6CTL_ERRRATELIMIT    = 5;  { ICMPv6 error rate limitation }
+        ICMPV6CTL_ND6_PRUNE       = 6;
+        ICMPV6CTL_ND6_DELAY       = 8;
+        ICMPV6CTL_ND6_UMAXTRIES   = 9;
+        ICMPV6CTL_ND6_MMAXTRIES   = 10;
+        ICMPV6CTL_ND6_USELOOPBACK = 11;
+        ICMPV6CTL_NODEINFO        = 13;
+        ICMPV6CTL_ERRPPSLIMIT     = 14; { ICMPv6 error pps limitation }
+        ICMPV6CTL_ND6_MAXNUDHINT  = 15;
+        ICMPV6CTL_MTUDISC_HIWAT   = 16;
+        ICMPV6CTL_MTUDISC_LOWAT   = 17;
+        ICMPV6CTL_ND6_DEBUG       = 18;
+        ICMPV6CTL_ND6_MAXQLEN     = 24;
+        ICMPV6CTL_REFLECT_PMTU    = 25;
+        ICMPV6CTL_DYNAMIC_RT_MSG  = 26;
+        ICMPV6CTL_ND6_GCTIMER     = 27;
 
-{
- * Names for ICMP sysctl objects
-}
-        ICMPV6CTL_STATS         = 1;
-        ICMPV6CTL_REDIRACCEPT   = 2;    { accept/process redirects }
-        ICMPV6CTL_REDIRTIMEOUT  = 3;    { redirect cache time }
-{$ifdef obsolete}       {obsoleted}
-        ICMPV6CTL_ERRRATELIMIT  = 5;    { ICMPv6 error rate limitation }
-{$endif}
-        ICMPV6CTL_ND6_PRUNE     = 6;
-        ICMPV6CTL_ND6_DELAY     = 8;
-        ICMPV6CTL_ND6_UMAXTRIES = 9;
-        ICMPV6CTL_ND6_MMAXTRIES         = 10;
-        ICMPV6CTL_ND6_USELOOPBACK       = 11;
-//define ICMPV6CTL_ND6_PROXYALL = 12;   obsoleted, do not reuse here
-        ICMPV6CTL_NODEINFO      = 13;
-        ICMPV6CTL_ERRPPSLIMIT   = 14;   { ICMPv6 error pps limitation }
-        ICMPV6CTL_ND6_MAXNUDHINT= 15;
-        ICMPV6CTL_MTUDISC_HIWAT = 16;
-        ICMPV6CTL_MTUDISC_LOWAT = 17;
-        ICMPV6CTL_ND6_DEBUG     = 18;
-        ICMPV6CTL_ND6_DRLIST    = 19;
-        ICMPV6CTL_ND6_PRLIST    = 20;
-        ICMPV6CTL_MAXID         = 21;
-
-        ICMPV6CTL_NAMES  : Array[0..20] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'rediraccept';CtlType: CTLTYPE_INT ),
-        (Name: 'redirtimeout';CtlType: CTLTYPE_INT ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'nd6_prune';CtlType: CTLTYPE_INT ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'nd6_delay';CtlType: CTLTYPE_INT ),
-        (Name: 'nd6_umaxtries';CtlType: CTLTYPE_INT ),
-        (Name: 'nd6_mmaxtries';CtlType: CTLTYPE_INT ),
-        (Name: 'nd6_useloopback';CtlType: CTLTYPE_INT ),
-        (Name: '';CtlType: 0 ),
-        (Name: 'nodeinfo';CtlType: CTLTYPE_INT ),
-        (Name: 'errppslimit';CtlType: CTLTYPE_INT ),
-        (Name: 'nd6_maxnudhint';CtlType: CTLTYPE_INT ),
-        (Name: 'mtudisc_hiwat';CtlType: CTLTYPE_INT ),
-        (Name: 'mtudisc_lowat';CtlType: CTLTYPE_INT ),
-        (Name: 'nd6_debug';CtlType: CTLTYPE_INT ),
-        (Name: '';CtlType: 0 ),
-        (Name: '';CtlType: 0 ));
-
-
-{
- * Names for UDP sysctl objects
-}
+{ IPPROTO_UDP identifiers }
         UDPCTL_CHECKSUM         = 1;    { checksum UDP packets }
-        UDPCTL_STATS            = 2;    { statistics (Name:read-only) }
-        UDPCTL_MAXDGRAM         = 3;    { max datagram size }
-        UDPCTL_RECVSPACE        = 4;    { default receive buffer space }
-        UDPCTL_PCBLIST          = 5;    { list of PCBs for UDP sockets }
-        UDPCTL_MAXID            = 6;
-
-        UDPCTL_NAMES  : Array[0..5] OF CtlNameRec =  (
-        (Name: '';CtlType: 0 ),
-        (Name: 'checksum';CtlType: CTLTYPE_INT ),
-        (Name: 'stats';CtlType: CTLTYPE_STRUCT ),
-        (Name: 'maxdgram';CtlType: CTLTYPE_INT ),
-        (Name: 'recvspace';CtlType: CTLTYPE_INT ),
-        (Name: 'pcblist';CtlType: CTLTYPE_STRUCT ));
+        UDPCTL_SENDSPACE        = 2;    { default send buffer }
+        UDPCTL_RECVSPACE        = 3;    { default recv buffer }
+        UDPCTL_LOOPBACKCKSUM    = 4;    { do UDP checksum on loopback }
+        UDPCTL_STATS            = 5;    { UDP statistics }
