@@ -189,6 +189,10 @@ type
     FUserIndexStream: TStream;
     FUserStream: TStream;  // user stream to open
     FUserMemoStream: TStream; // user-provided/expected stream backing memo file storage
+    // Streams created by CreateTable for memory storage; freed by the destructor
+    FOwnedStream: TStream;
+    FOwnedIndexStream: TStream;
+    FOwnedMemoStream: TStream;
     FTableName: string;    // table path and file name
     FRelativePath: string;
     FAbsolutePath: string;
@@ -759,9 +763,9 @@ var
   I: Integer;
 begin
   inherited Destroy;
-  FreeAndNil(FUserStream);
-  FreeAndNil(FUserIndexStream);
-  FreeAndNil(FUserMemoStream);
+  FreeAndNil(FOwnedStream);
+  FreeAndNil(FOwnedIndexStream);
+  FreeAndNil(FOwnedMemoStream);
   if FIndexDefs <> nil then
   begin
     for I := FIndexDefs.Count - 1 downto 0 do
@@ -1252,6 +1256,7 @@ begin
     FDbfFile.Mode := FileOpenMode;
   end;
   FDbfFile.AutoCreate := false;
+  FDbfFile.UseAutoInc := FUseAutoInc;
   FDbfFile.DateTimeHandling := FDateTimeHandling;
   FDbfFile.OnLocaleError := FOnLocaleError;
   FDbfFile.OnIndexMissing := FOnIndexMissing;
@@ -1657,6 +1662,22 @@ begin
       // if creating memory table, use user-designated stream
       if FStorage = stoMemory then
       begin
+        // A stream that differs from the user's was created by FDbfFile
+        if (FDbfFile.Stream <> FUserStream) and (FDbfFile.Stream <> FOwnedStream) then
+        begin
+          FreeAndNil(FOwnedStream);
+          FOwnedStream := FDbfFile.Stream;
+        end;
+        if (FDbfFile.IndexStream <> FUserIndexStream) and (FDbfFile.IndexStream <> FOwnedIndexStream) then
+        begin
+          FreeAndNil(FOwnedIndexStream);
+          FOwnedIndexStream := FDbfFile.IndexStream;
+        end;
+        if (FDbfFile.MemoStream <> FUserMemoStream) and (FDbfFile.MemoStream <> FOwnedMemoStream) then
+        begin
+          FreeAndNil(FOwnedMemoStream);
+          FOwnedMemoStream := FDbfFile.MemoStream;
+        end;
         FUserStream := FDbfFile.Stream;
         FUserIndexStream := FDBfFile.IndexStream;
         FUserMemoStream := FDbfFile.MemoStream;
@@ -2804,7 +2825,8 @@ begin
   if FUseAutoInc = ThisUseAutoInc then Exit;
 
   FUseAutoInc := ThisUseAutoInc;
-  DbfFile.UseAutoInc := FUseAutoInc;
+  if Assigned(FDbfFile) then
+    FDbfFile.UseAutoInc := FUseAutoInc;
 end;
 
 function TDbf.GetDbfFieldDefs: TDbfFieldDefs;

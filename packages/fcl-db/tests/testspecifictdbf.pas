@@ -45,6 +45,10 @@ type
     procedure TestCreationDatasetWithCalcFields;
     // Tests autoincrement field (only in tablelevels that support it)
     procedure TestAutoIncField;
+    // Tests that appended records get increasing autoinc values in tablelevels 7 and 30
+    procedure TestAutoIncValues;
+    // Tests that a memory table's user streams outlive the TDbf and can be opened again
+    procedure TestUserStreamsNotFreed;
     // Tests findfirst moves to first record
     procedure TestFindFirst;
     // Tests findlast moves to last record
@@ -316,6 +320,110 @@ begin
   WriteReadbackTest(ds,True);
   DS.Close;
   ds.Free;
+end;
+
+procedure TTestSpecificTDBF.TestAutoIncValues;
+
+const
+  cRecords = 3;
+
+  procedure CheckLevel(aLevel: Integer);
+  var
+    ds: TDbf;
+    i, lFirst: Integer;
+  begin
+    ds := TDbf.Create(nil);
+    try
+      ds.FilePath := GetTempDir;
+      ds.TableName := Format('ai%d_%d.dbf', [aLevel, Random(100000)]);
+      ds.TableLevel := aLevel;
+      ds.FieldDefs.Add('ID', ftAutoInc);
+      ds.FieldDefs.Add('NAME', ftString, 20);
+      ds.CreateTable;
+      ds.Open;
+      for i := 1 to cRecords do
+        begin
+        ds.Append;
+        ds.FieldByName('NAME').AsString := 'Name'+IntToStr(i);
+        ds.Post;
+        end;
+      ds.First;
+      lFirst := 0;
+      for i := 1 to cRecords do
+        begin
+        CheckFalse(ds.FieldByName('ID').IsNull, Format('Tablelevel %d: ID of record %d is not null', [aLevel, i]));
+        if i = 1 then
+          lFirst := ds.FieldByName('ID').AsInteger
+        else
+          CheckEquals(lFirst+i-1, ds.FieldByName('ID').AsInteger, Format('Tablelevel %d: ID of record %d is one more than the previous', [aLevel, i]));
+        ds.Next;
+        end;
+      ds.Close;
+    finally
+      DeleteFile(ds.AbsolutePath+ds.TableName);
+      ds.Free;
+    end;
+  end;
+
+begin
+  CheckLevel(7);
+  CheckLevel(TDBF_TABLELEVEL_VISUALFOXPRO);
+end;
+
+procedure TTestSpecificTDBF.TestUserStreamsNotFreed;
+
+const
+  cRecords = 3;
+
+var
+  lData, lIndex, lMemo: TMemoryStream;
+  ds: TDbf;
+  i: Integer;
+
+  function NewDbf: TDbf;
+  begin
+    Result := TDbf.Create(nil);
+    Result.TableName := 'userstreams';
+    Result.TableLevel := 4;
+    Result.Storage := stoMemory;
+    Result.UserStream := lData;
+    Result.UserIndexStream := lIndex;
+    Result.UserMemoStream := lMemo;
+  end;
+
+begin
+  lData := TMemoryStream.Create;
+  lIndex := TMemoryStream.Create;
+  lMemo := TMemoryStream.Create;
+  try
+    ds := NewDbf;
+    try
+      ds.FieldDefs.Add('ID', ftInteger);
+      ds.FieldDefs.Add('NOTE', ftMemo);
+      ds.CreateTable;
+      ds.Open;
+      for i := 1 to cRecords do
+        ds.AppendRecord([i, 'Note'+IntToStr(i)]);
+      ds.Close;
+    finally
+      ds.Free;
+    end;
+    CheckTrue(lData.Size > 0, 'Data stream has the table after the TDbf is freed');
+    ds := NewDbf;
+    try
+      ds.Open;
+      CheckEquals(cRecords, ds.RecordCount, 'Records read back from the user streams');
+      ds.Last;
+      CheckEquals('Note'+IntToStr(cRecords), ds.FieldByName('NOTE').AsString, 'Memo read back from the user memo stream');
+      ds.Close;
+    finally
+      ds.Free;
+    end;
+  finally
+    lData.Free;
+    lIndex.Free;
+    lMemo.Free;
+  end;
 end;
 
 procedure TTestSpecificTDBF.TestFindFirst;
