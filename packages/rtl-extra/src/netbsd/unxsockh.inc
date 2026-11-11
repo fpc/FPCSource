@@ -13,8 +13,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{$warning taken from FreeBSD, please check and fix }
-
 Const
   {
    * Address families.
@@ -57,8 +55,8 @@ Const
      AF_HYLINK = 15;
   { Apple Talk  }
      AF_APPLETALK = 16;
-  { Internal Routing Protocol  }
-     AF_ROUTE = 17;
+  { Internal Routing Protocol, old message format  }
+     AF_OROUTE = 17;
   { Link layer interface  }
      AF_LINK = 18;
   { eXpress Transfer Protocol (no AF)  }
@@ -87,8 +85,17 @@ Const
      pseudo_AF_KEY = 29;
   { Used by BPF to not rewrite hdrs in interface output routine  }
      pseudo_AF_HDRCMPLT = 30;
+  { Bluetooth: HCI, SCO, L2CAP, RFCOMM  }
      AF_BLUETOOTH = 31;
-     AF_MAX = 32;
+  { IEEE80211  }
+     AF_IEEE80211 = 32;
+  { MultiProtocol Label Switching  }
+     AF_MPLS = 33;
+  { Internal Routing Protocol  }
+     AF_ROUTE = 34;
+     AF_CAN = 35;
+     AF_ETHER = 36;
+     AF_MAX = 37;
 
   {
    * Protocol families, same as address families for now.
@@ -113,7 +120,7 @@ Const
      PF_LAT = AF_LAT;
      PF_HYLINK = AF_HYLINK;
      PF_APPLETALK = AF_APPLETALK;
-     PF_ROUTE = AF_ROUTE;
+     PF_OROUTE = AF_OROUTE;
      PF_LINK = AF_LINK;
   { really just proto family, no AF  }
      PF_XTP = pseudo_AF_XTP;
@@ -130,6 +137,10 @@ Const
      PF_ARP = AF_ARP;
      PF_KEY = pseudo_AF_KEY;
      PF_BLUETOOTH = AF_BLUETOOTH;
+     PF_MPLS = AF_MPLS;
+     PF_ROUTE = AF_ROUTE;
+     PF_CAN = AF_CAN;
+     PF_ETHER = AF_ETHER;
      PF_MAX = AF_MAX;
 
 
@@ -142,6 +153,8 @@ Const
 { Flags for the socket type in fpsocket and for fpaccept4 }
   SOCK_CLOEXEC  = $10000000;
   SOCK_NONBLOCK = $20000000;
+  SOCK_NOSIGPIPE = $40000000;
+  SOCK_CLOFORK  = cint($80000000);
 
         SOL_SOCKET 	 = $FFFF;
         SO_DEBUG         = $0001;        { turn on debugging info recording }
@@ -154,7 +167,10 @@ Const
         SO_LINGER        = $0080;        { linger on close if data present }
         SO_OOBINLINE     = $0100;        { leave received OOB data in line }
         SO_REUSEPORT     = $0200;        { allow local address & port reuse }
-        SO_TIMESTAMP     = $0400;        { timestamp received dgram traffic }
+        SO_TIMESTAMP     = $0400;        { SO_OTIMESTAMP: timestamp with timeval of clong tv_sec }
+        SO_NOSIGPIPE     = $0800;        { no SIGPIPE from EPIPE }
+        SO_ACCEPTFILTER  = $1000;        { there is an accept filter }
+        SO_RERROR        = $4000;        { Keep track of receive errors }
 
 {
  * Additional options, not kept in so_options.
@@ -163,10 +179,12 @@ Const
         SO_RCVBUF        =$1002;        { receive buffer size }
         SO_SNDLOWAT      =$1003;        { send low-water mark }
         SO_RCVLOWAT      =$1004;        { receive low-water mark }
-        SO_SNDTIMEO      =$1005;        { send timeout }
-        SO_RCVTIMEO      =$1006;        { receive timeout }
+        SO_SNDTIMEO      =$1005;        { SO_OSNDTIMEO: send timeout, timeval of clong tv_sec }
+        SO_RCVTIMEO      =$1006;        { SO_ORCVTIMEO: receive timeout, timeval of clong tv_sec }
         SO_ERROR         =$1007;        { get error status and clear }
         SO_TYPE          =$1008;        { get socket type }
+        SO_OVERFLOWED    =$1009;        { datagrams: return packets dropped }
+        SO_NOHEADER      =$100a;        { user supplies no header to kernel }
 
 
         SHUT_RD         =0;             { shut down the reading side }
@@ -210,6 +228,7 @@ Const
 	IPPROTO_NSP		= 31; 		{ Network Services }
 	IPPROTO_INP		= 32; 		{ Merit Internodal }
 	IPPROTO_SEP		= 33; 		{ Sequential Exchange }
+	IPPROTO_DCCP		= 33; 		{ DCCP }
 	IPPROTO_3PC		= 34; 		{ Third Party Connect }
 	IPPROTO_IDPR		= 35; 		{ InterDomain Policy Routing }
 	IPPROTO_XTP		= 36; 		{ XTP }
@@ -235,6 +254,7 @@ Const
 	IPPROTO_TLSP		= 56; 		{ Transport Layer Security }
 	IPPROTO_SKIP		= 57; 		{ SKIP }
 	IPPROTO_ICMPV6		= 58; 		{ ICMP6 }
+	IPPROTO_IPV6_ICMP	= 58; 		{ IPv6 ICMP }
 	IPPROTO_NONE		= 59; 		{ IP6 no next header }
 	IPPROTO_DSTOPTS		= 60; 		{ IP6 destination option }
 	IPPROTO_AHIP		= 61; 		{ any host internal protocol }
@@ -281,7 +301,10 @@ Const
 { 101-254: Partly Unassigned }
 	IPPROTO_PIM		= 103;		{ Protocol Independent Mcast }
 	IPPROTO_CARP		= 112;		{ CARP }
+	IPPROTO_VRRP		= 112;		{ VRRP RFC 2338 }
 	IPPROTO_PGM		= 113;		{ PGM }
+	IPPROTO_L2TP		= 115;		{ L2TPv3 }
+	IPPROTO_SCTP		= 132;		{ SCTP }
 	IPPROTO_PFSYNC		= 240;		{ PFSYNC }
 
 { last return value of *_input(), meaning "all job for this pkt is done".  }
@@ -311,15 +334,16 @@ Const
 	IP_RSVP_ON		= 15;   { enable RSVP in kernel }
 	IP_RSVP_OFF		= 16;   { disable RSVP in kernel }
 	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
-	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
+	IP_PORTALGO		= 18;   { int; port selection algo (rfc6056) }
 	IP_PORTRANGE		= 19;   { int; range to choose for unspecified port }
 	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
-
-{ for IPSEC }
-	IP_IPSEC_POLICY		= 21;   { int; set/get security policy }
-	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
-
-	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
+	IP_ERRORMTU		= 21;   { int; get MTU of last xmit = EMSGSIZE }
+	IP_IPSEC_POLICY		= 22;   { struct; get/set security policy }
+	IP_RECVTTL		= 23;   { bool; receive IP TTL w/dgram }
+	IP_MINTTL		= 24;   { minimum TTL for packet or drop }
+	IP_PKTINFO		= 25;   { struct; set default src if/addr }
+	IP_RECVPKTINFO		= 26;   { int; receive dst if/addr w/dgram }
+	IP_BINDANY		= 27;   { bool: allow bind to any address }
 
 	IP_FW_TABLE_ADD		= 40;   { add entry }
 	IP_FW_TABLE_DEL		= 41;   { delete entry }
@@ -339,8 +363,6 @@ Const
 	IP_DUMMYNET_FLUSH	= 62;   { flush dummynet }
 	IP_DUMMYNET_GET		= 64;   { get entire dummynet pipes }
 
-	IP_RECVTTL		= 65;   { bool; receive IP TTL w/dgram }
-
 	IPV6_SOCKOPT_RESERVED1	= 3 ; { reserved for future use }
 	IPV6_UNICAST_HOPS	= 4 ; { int; IP6 hops }
 	IPV6_MULTICAST_IF	= 9 ; { u_int; setget IP6 multicast if  }
@@ -349,6 +371,20 @@ Const
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
+	IPV6_PORTALGO		= 17; { int; port selection algo (rfc6056) }
+	IPV6_CHECKSUM		= 26; { int; checksum offset for raw socket }
+	IPV6_V6ONLY		= 27; { bool; make AF_INET6 sockets v6 only }
+	IPV6_IPSEC_POLICY	= 28; { struct; get/set security policy }
+	IPV6_FAITH		= 29; { bool; accept FAITH'ed connections }
+	IPV6_RTHDRDSTOPTS	= 35; { ip6_dest; send dst option before rthdr }
+	IPV6_RECVPKTINFO	= 36; { bool; recv if, dst addr }
+	IPV6_RECVHOPLIMIT	= 37; { bool; recv hop limit }
+	IPV6_RECVRTHDR		= 38; { bool; recv routing header }
+	IPV6_RECVHOPOPTS	= 39; { bool; recv hop-by-hop option }
+	IPV6_RECVDSTOPTS	= 40; { bool; recv dst option after rthdr }
+	IPV6_USE_MIN_MTU	= 42; { bool; send packets at the minimum MTU }
+	IPV6_RECVPATHMTU	= 43; { bool; notify an according MTU }
+	IPV6_PATHMTU		= 44; { mtuinfo; get the current path MTU }
 
 	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
@@ -357,6 +393,11 @@ Const
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option before rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
+	IPV6_RECVTCLASS		= 57; { bool; recv traffic class values }
+	IPV6_TCLASS		= 61; { int; send traffic class value }
+	IPV6_DONTFRAG		= 62; { bool; disable IPv6 fragmentation }
+	IPV6_PREFER_TEMPADDR	= 63; { int; prefer temporary address as source }
+	IPV6_BINDANY		= 64; { bool: allow bind to any address }
 
   { Flags for send, recv etc. }
   MSG_OOB       = $0001;              { Process out-of-band data}
@@ -374,6 +415,7 @@ Const
   MSG_NBIO      = $1000;              { Non-blocking I/O }
   MSG_WAITFORONE = $2000;             { recvmmsg: wait for one message }
   MSG_NOTIFICATION = $4000;           { SCTP notification }
+  MSG_CMSG_CLOFORK = $8000;           { Close-on-fork for received descriptors }
 
      TCP_NODELAY = 1;
   { set maximum segment size  }
@@ -386,6 +428,8 @@ Const
      TCP_KEEPINIT = 7;
   { reserved for FreeBSD compat  }
      TCP_NOOPT = 8;
+  { retrieve tcp_info structure  }
+     TCP_INFO = 9;
   { use MD5 digests (RFC2385)  }
      TCP_MD5SIG = $10;
   { selected congestion control  }

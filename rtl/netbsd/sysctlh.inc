@@ -383,27 +383,29 @@ const
         AF_LAT          = 14;           { LAT }
         AF_HYLINK       = 15;           { NSC Hyperchannel }
         AF_APPLETALK    = 16;           { Apple Talk }
-        AF_ROUTE        = 17;           { Internal Routing Protocol }
+        AF_OROUTE       = 17;           { Internal Routing Protocol, old message format }
         AF_LINK         = 18;           { Link layer interface }
         pseudo_AF_XTP   = 19;           { eXpress Transfer Protocol (Name:no AF) }
         AF_COIP         = 20;           { connection-oriented IP, aka ST II }
         AF_CNT          = 21;           { Computer Network Technology }
         pseudo_AF_RTIP  = 22;           { Help Identify RTIP packets }
         AF_IPX          = 23;           { Novell Internet Protocol }
-        AF_SIP          = 24;           { Simple Internet Protocol }
+        AF_INET6        = 24;           { IP version 6 }
         pseudo_AF_PIP   = 25;           { Help Identify PIP packets }
         AF_ISDN         = 26;           { Integrated Services Digital Network}
         AF_E164         = AF_ISDN;      { CCITT E.164 recommendation }
-        pseudo_AF_KEY   = 27;           { Internal key-management function }
-        AF_INET6        = 28;           { IPv6 }
-        AF_NATM         = 29;           { native ATM access }
-        AF_ATM          = 30;           { ATM }
-        pseudo_AF_HDRCMPLT = 31;                { Used by BPF to not rewrite headers
-                                         * in interface output routine
-                                         }
-        AF_NETGRAPH     = 32;           { Netgraph sockets }
+        AF_NATM         = 27;           { native ATM access }
+        AF_ARP          = 28;           { (rev.) addr. res. prot. (RFC 826) }
+        pseudo_AF_KEY   = 29;           { Internal key management protocol }
+        pseudo_AF_HDRCMPLT = 30;        { Used by BPF to not rewrite hdrs in interface output routine }
+        AF_BLUETOOTH    = 31;           { Bluetooth: HCI, SCO, L2CAP, RFCOMM }
+        AF_IEEE80211    = 32;           { IEEE80211 }
+        AF_MPLS         = 33;           { MultiProtocol Label Switching }
+        AF_ROUTE        = 34;           { Internal Routing Protocol }
+        AF_CAN          = 35;
+        AF_ETHER        = 36;
 
-        AF_MAX          = 33;
+        AF_MAX          = 37;
 
 {
  * Protocol families, same as address families for now.
@@ -419,7 +421,7 @@ const
 }
         NET_MAXID       = AF_MAX;
 
-        CTL_NET_NAMES  : Array[0..32] OF CtlNameRec =  (
+        CTL_NET_NAMES  : Array[0..36] OF CtlNameRec =  (
         (Name: '';CtlType: 0 ),
         (Name: 'unix';CtlType: CTLTYPE_NODE ),
         (Name: 'inet';CtlType: CTLTYPE_NODE ),
@@ -437,22 +439,26 @@ const
         (Name: 'lat';CtlType: CTLTYPE_NODE ),
         (Name: 'hylink';CtlType: CTLTYPE_NODE ),
         (Name: 'appletalk';CtlType: CTLTYPE_NODE ),
-        (Name: 'route';CtlType: CTLTYPE_NODE ),
+        (Name: 'oroute';CtlType: CTLTYPE_NODE ),
         (Name: 'link_layer';CtlType: CTLTYPE_NODE ),
         (Name: 'xtp';CtlType: CTLTYPE_NODE ),
         (Name: 'coip';CtlType: CTLTYPE_NODE ),
         (Name: 'cnt';CtlType: CTLTYPE_NODE ),
         (Name: 'rtip';CtlType: CTLTYPE_NODE ),
         (Name: 'ipx';CtlType: CTLTYPE_NODE ),
-        (Name: 'sip';CtlType: CTLTYPE_NODE ),
+        (Name: 'inet6';CtlType: CTLTYPE_NODE ),
         (Name: 'pip';CtlType: CTLTYPE_NODE ),
         (Name: 'isdn';CtlType: CTLTYPE_NODE ),
-        (Name: 'key';CtlType: CTLTYPE_NODE ),
-        (Name: 'inet6';CtlType: CTLTYPE_NODE ),
         (Name: 'natm';CtlType: CTLTYPE_NODE ),
-        (Name: 'atm';CtlType: CTLTYPE_NODE ),
+        (Name: 'arp';CtlType: CTLTYPE_NODE ),
+        (Name: 'key';CtlType: CTLTYPE_NODE ),
         (Name: 'hdrcomplete';CtlType: CTLTYPE_NODE ),
-        (Name: 'netgraph';CtlType: CTLTYPE_NODE ));
+        (Name: 'bluetooth';CtlType: CTLTYPE_NODE ),
+        (Name: 'ieee80211';CtlType: CTLTYPE_NODE ),
+        (Name: 'mpls';CtlType: CTLTYPE_NODE ),
+        (Name: 'route';CtlType: CTLTYPE_NODE ),
+        (Name: 'can';CtlType: CTLTYPE_NODE ),
+        (Name: 'ether';CtlType: CTLTYPE_NODE ));
 
 {
  * PF_ROUTE - Routing table
@@ -659,12 +665,16 @@ const
         IP_RSVP_ON              = 15;   { enable RSVP in kernel }
         IP_RSVP_OFF             = 16;   { disable RSVP in kernel }
         IP_RSVP_VIF_ON          = 17;   { set RSVP per-vif socket }
-        IP_RSVP_VIF_OFF         = 18;   { unset RSVP per-vif socket }
+        IP_PORTALGO             = 18;   { int; port selection algo (rfc6056) }
         IP_PORTRANGE            = 19;   { int; range to choose for unspecified port }
         IP_RECVIF               = 20;   { bool; receive reception if w/dgram }
-{ for IPSEC }
-        IP_IPSEC_POLICY         = 21;   { int; set/get security policy }
-        IP_FAITH                = 22;   { bool; accept FAITH'ed connections }
+        IP_ERRORMTU             = 21;   { int; get MTU of last xmit = EMSGSIZE }
+        IP_IPSEC_POLICY         = 22;   { struct; get/set security policy }
+        IP_RECVTTL              = 23;   { bool; receive IP TTL w/dgram }
+        IP_MINTTL               = 24;   { minimum TTL for packet or drop }
+        IP_PKTINFO              = 25;   { struct; set default src if/addr }
+        IP_RECVPKTINFO          = 26;   { int; receive dst if/addr w/dgram }
+        IP_BINDANY              = 27;   { bool: allow bind to any address }
 
         IP_FW_ADD               = 50;   { add a firewall rule to chain }
         IP_FW_DEL               = 51;   { delete a firewall rule from chain }
