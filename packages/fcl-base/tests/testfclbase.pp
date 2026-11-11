@@ -43,7 +43,8 @@ uses
   utcThreadPool,
   utcEventLog,
   utcCustApp,
-  utcFPTimer
+  utcFPTimer,
+  utcGetText
   ;
 
 var
@@ -87,6 +88,7 @@ begin
   utcEventLog.RegisterTests;
   utcCustApp.RegisterTests;
   utcFPTimer.RegisterTests;
+  utcGetText.RegisterTests;
   RunAllSysTests;
 end.
 

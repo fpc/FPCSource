@@ -23,9 +23,9 @@ unit GetText;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes;
+uses System.SysUtils, System.Classes, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils, Classes;
+uses SysUtils, Classes, Types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -75,6 +75,15 @@ type
   EMOFileError = class(Exception);
 
 
+  // Returns locale aLocale without codeset and modifier, e.g. 'es_ES' for 'es_ES.UTF-8'; empty for C and POSIX.
+  function NormalizeLanguageID(const aLocale: AnsiString): AnsiString;
+  // Returns the language part of language ID aID, e.g. 'ast' for 'ast_ES'.
+  function LanguageIDLanguage(const aID: AnsiString): AnsiString;
+  // Returns the language IDs for the values of LANGUAGE, LC_ALL, LC_MESSAGES and LANG, most preferred first.
+  function GetLanguageIDList(const aLanguage, aLCAll, aLCMessages, aLang: AnsiString): TStringDynArray;
+  // Returns the language IDs of the current user, most preferred first.
+  function GetLanguageIDList: TStringDynArray;
+  // Returns the most preferred language ID of the current user and its language part.
   procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
 {$ifdef windows}
   // Returns the ISO 639 language and ISO 3166 country codes of Windows locale aLocale, e.g. 'sv_SE' and 'sv'.
@@ -84,6 +93,10 @@ type
   procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; AFile: TMOFile);
   procedure TranslateResourceStrings(const AFilename: AnsiString);
   procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
+  // Applies the existing files Format(AFilename,[ID]) for aLanguageIDs, the first (most preferred) ID last.
+  procedure TranslateResourceStrings(const AFilename: AnsiString; const aLanguageIDs: TStringDynArray);
+  // Applies the existing files Format(AFilename,[ID]) for aLanguageIDs to unit AUnitName, the first ID last.
+  procedure TranslateUnitResourceStrings(const AUnitName, AFilename: AnsiString; const aLanguageIDs: TStringDynArray);
 
 Type
   TTranslationErrorHandler = Procedure (const aFileName, aUnitName : String; aError : Exception; Out ReRaise : Boolean);
@@ -293,7 +306,7 @@ begin
   if not contextempty then
     Result:=TMOFile(arg).Translate(Name+#4+Value);
   if contextempty or (Result='') then
-    Result:=TMOFile(arg).Translate(Value,Hash);
+    Result:=TMOFile(arg).Translate(Value,LongWord(Hash));
 end;
 
 
@@ -306,6 +319,87 @@ end;
 procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; AFile: TMOFile);
 begin
   SetUnitResourceStrings(AUnitName,@Translate,AFile);
+end;
+
+
+function NormalizeLanguageID(const aLocale: AnsiString): AnsiString;
+
+var
+  lPos: Integer;
+
+begin
+  Result:=Trim(aLocale);
+  lPos:=Pos('.',Result);
+  if lPos>0 then
+    SetLength(Result,lPos-1);
+  lPos:=Pos('@',Result);
+  if lPos>0 then
+    SetLength(Result,lPos-1);
+  if (Result='C') or (Result='POSIX') then
+    Result:='';
+end;
+
+
+function LanguageIDLanguage(const aID: AnsiString): AnsiString;
+
+var
+  lPos: Integer;
+
+begin
+  Result:=aID;
+  lPos:=Pos('_',Result);
+  if lPos>0 then
+    SetLength(Result,lPos-1);
+end;
+
+
+// Appends aID to aList unless it is empty or already present.
+procedure AddLanguageID(var aList: TStringDynArray; const aID: AnsiString);
+
+var
+  i: Integer;
+
+begin
+  if aID='' then
+    exit;
+  for i:=0 to Length(aList)-1 do
+    if aList[i]=aID then
+      exit;
+  i:=Length(aList);
+  SetLength(aList,i+1);
+  aList[i]:=aID;
+end;
+
+
+function GetLanguageIDList(const aLanguage, aLCAll, aLCMessages, aLang: AnsiString): TStringDynArray;
+
+var
+  lLocale, lEntries, lID: AnsiString;
+  lPos: Integer;
+
+begin
+  Result:=nil;
+  lLocale:=aLCAll;
+  if lLocale='' then
+    lLocale:=aLCMessages;
+  if lLocale='' then
+    lLocale:=aLang;
+  if NormalizeLanguageID(lLocale)='' then
+    exit;
+  if aLanguage<>'' then
+    lEntries:=aLanguage
+  else
+    lEntries:=lLocale;
+  while lEntries<>'' do
+    begin
+    lPos:=Pos(':',lEntries);
+    if lPos=0 then
+      lPos:=Length(lEntries)+1;
+    lID:=NormalizeLanguageID(Copy(lEntries,1,lPos-1));
+    Delete(lEntries,1,lPos);
+    AddLanguageID(Result,lID);
+    AddLanguageID(Result,LanguageIDLanguage(lID));
+    end;
 end;
 
 
@@ -353,23 +447,42 @@ begin
   GetLanguageIDs(GetUserDefaultLCID,Lang,FallbackLang);
 end;
 
+
+function GetLanguageIDList: TStringDynArray;
+
+var
+  lLang, lFallbackLang: AnsiString;
+
+begin
+  Result:=nil;
+  GetLanguageIDs(lLang,lFallbackLang);
+  AddLanguageID(Result,lLang);
+  AddLanguageID(Result,lFallbackLang);
+end;
+
 {$else}
 
-procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
+function GetLanguageIDList: TStringDynArray;
+
 begin
+  Result:=GetLanguageIDList(GetEnvironmentVariable('LANGUAGE'),GetEnvironmentVariable('LC_ALL'),
+                            GetEnvironmentVariable('LC_MESSAGES'),GetEnvironmentVariable('LANG'));
+end;
+
+
+procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
+
+var
+  lList: TStringDynArray;
+
+begin
+  Lang:='';
   FallbackLang:='';
-  lang := GetEnvironmentVariable('LC_ALL');
-  if Length(lang) = 0 then
-  begin
-    lang := GetEnvironmentVariable('LC_MESSAGES');
-    if Length(lang) = 0 then
-    begin
-      lang := GetEnvironmentVariable('LANG');
-      if Length(lang) = 0 then
-        exit;   // no language defined via environment variables
-    end;
-  end;
-  FallbackLang := Copy(lang, 1, 2);
+  lList:=GetLanguageIDList;
+  if Length(lList)=0 then
+    exit;
+  Lang:=lList[0];
+  FallbackLang:=LanguageIDLanguage(Lang);
 end;
 {$endif}
 
@@ -381,88 +494,65 @@ begin
     OnTranslationError(aFileName,aUnitName,E,Result);
 end;
 
-procedure TranslateResourceStrings(const AFilename: AnsiString);
-
+// Applies the existing files Format(aFilename,[ID]) for aLanguageIDs, last ID first; all units if aUnitName is empty.
+procedure TranslateFromFiles(const aUnitName, aFilename: AnsiString; const aLanguageIDs: TStringDynArray);
 
 var
   mo: TMOFile;
-  lang, FallbackLang: AnsiString;
   fn: AnsiString;
-begin
-  GetLanguageIDs(Lang, FallbackLang);
-  fn:=Format(AFilename, [FallbackLang]);
+  i: Integer;
 
-  if fileexists(fn) then
+begin
+  for i:=Length(aLanguageIDs)-1 downto 0 do
     begin
+    fn:=Format(aFilename,[aLanguageIDs[i]]);
+    if not FileExists(fn) then
+      continue;
+    try
+      mo:=TMOFile.Create(fn);
       try
-        mo := TMOFile.Create(fn);
-        try
-          TranslateResourceStrings(mo);
-        finally
-          mo.Free;
-        end;
-      except
-        on e: Exception do
-          if DoReRaise(FN,'',E) then
-            Raise ;
+        if aUnitName='' then
+          TranslateResourceStrings(mo)
+        else
+          TranslateUnitResourceStrings(aUnitName,mo);
+      finally
+        mo.Free;
       end;
+    except
+      on e: Exception do
+        if DoReRaise(fn,aUnitName,E) then
+          Raise;
     end;
-  lang := Copy(lang, 1, 5);
-  fn:=Format(AFilename, [lang]);
-  if fileexists(fn) then
-    begin
-      try
-        mo := TMOFile.Create(Format(AFilename, [lang]));
-        try
-          TranslateResourceStrings(mo);
-        finally
-          mo.Free;
-        end;
-      except
-        on e: Exception do
-          if DoReRaise(FN,'',E) then
-            Raise ;
-      end;
     end;
 end;
 
 
-procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
-var
-  mo: TMOFile;
-  FN : String;
-  lang, FallbackLang: AnsiString;
+procedure TranslateResourceStrings(const AFilename: AnsiString; const aLanguageIDs: TStringDynArray);
+
 begin
-  GetLanguageIDs(Lang, FallbackLang);
-  try
-    FN := Format(AFilename, [FallbackLang]);
-    mo := TMOFile.Create(FN);
-    try
-      TranslateUnitResourceStrings(AUnitName,mo);
-    finally
-      mo.Free;
-    end;
-  except
-    on e: Exception do
-      if DoReRaise(FN,aUnitName,E) then
-        Raise ;
-  end;
+  TranslateFromFiles('',AFilename,aLanguageIDs);
+end;
 
-  lang := Copy(lang, 1, 5);
-  try
-    FN := Format(AFilename, [FallbackLang]);
-    mo := TMOFile.Create(FN);
-    try
-      TranslateUnitResourceStrings(AUnitName,mo);
-    finally
-      mo.Free;
-    end;
-  except
-    on e: Exception do
-      if DoReRaise(FN,aUnitName,E) then
-        Raise ;
 
-  end;
+procedure TranslateUnitResourceStrings(const AUnitName, AFilename: AnsiString; const aLanguageIDs: TStringDynArray);
+
+begin
+  if AUnitName<>'' then
+    TranslateFromFiles(AUnitName,AFilename,aLanguageIDs);
+end;
+
+
+procedure TranslateResourceStrings(const AFilename: AnsiString);
+
+begin
+  TranslateFromFiles('',AFilename,GetLanguageIDList);
+end;
+
+
+procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
+
+begin
+  TranslateUnitResourceStrings(AUnitName,AFilename,GetLanguageIDList);
 end;
 
 end.

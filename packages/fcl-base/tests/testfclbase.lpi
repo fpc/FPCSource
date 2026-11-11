@@ -186,6 +186,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="utcFPTimer"/>
       </Unit>
+      <Unit>
+        <Filename Value="utcgettext.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcGetText"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
