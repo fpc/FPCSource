@@ -130,7 +130,18 @@ implementation
           end;
 
         { combining string/char types }
-        if (is_anychar(olddef) or is_chararray(olddef)) and is_string(branchdef) then
+        { char and empty string: a char cannot be converted to an empty char array }
+        if (is_anychar(olddef) and is_chararray(branchdef) and
+              (tarraydef(branchdef).elecount=0)) or
+            (is_anychar(branchdef) and is_chararray(olddef) and
+              (tarraydef(olddef).elecount=0)) then
+          begin
+            if is_widechar(olddef) or is_widechar(branchdef) then
+              result:=cwidestringtype
+            else
+              result:=cshortstringtype;
+          end
+        else if (is_anychar(olddef) or is_chararray(olddef)) and is_string(branchdef) then
           result:=branchdef
         else if is_widestring(branchdef) or is_widestring(olddef) or
                 ((is_ansistring(olddef) or is_chararray(olddef)) and is_widechar(branchdef)) then
@@ -145,6 +156,18 @@ implementation
             result:=olddef;
             if tarraydef(olddef).elecount<tarraydef(branchdef).elecount then
               result:=branchdef;
+            { only a string constant node can be converted to another char array,
+              e.g. not a nested statement expression -> use a string }
+            if (branchdef<>olddef) and
+                (((result=olddef) and not is_conststringnode(branchtree)) or
+                 ((result=branchdef) and not is_conststringnode(oldtree))) then
+              begin
+                if (tarraydef(olddef).elecount<=255) and
+                    (tarraydef(branchdef).elecount<=255) then
+                  result:=cshortstringtype
+                else
+                  result:=cansistringtype;
+              end;
           end
         { shortstrings: use longest }
         else if is_shortstring(olddef) and is_shortstring(branchdef) then
