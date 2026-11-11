@@ -1388,7 +1388,8 @@ begin
   lLen:=Length(S);
   Result:=(Trim(S) = '')
           or ((lLen>0) and (S[1] in ['#','~']))
-          or S.StartsWith('   ');
+          or S.StartsWith('   ')
+          or ((mdoDirectives in Parser.Options) and (CountStartChars(TrimLeft(S),':')>=3));
 end;
 
 function TTableProcessor.Strict: boolean;
