@@ -60,7 +60,13 @@ Const
   AF_ARP           = 35;
   AF_BLUETOOTH     = 36;	{ Bluetooth sockets }
   AF_IEEE80211     = 37;	{ IEEE 802.11 protocol }
-  AF_MAX           = 38;
+  AF_NETLINK       = 38;	{ Netlink protocol }
+  AF_INET_SDP      = 40;	{ OFED Socket Direct Protocol ipv4 }
+  AF_INET6_SDP     = 42;	{ OFED Socket Direct Protocol ipv6 }
+  AF_HYPERV        = 43;	{ HyperV sockets }
+  AF_DIVERT        = 44;	{ divert(4) }
+  AF_IPFWLOG       = 46;
+  AF_MAX           = 47;
 
   {
    * Protocol families, same as address families for now.
@@ -108,6 +114,13 @@ Const
      PF_SCLUSTER = AF_SCLUSTER;
      PF_ARP = AF_ARP;
      PF_BLUETOOTH = AF_BLUETOOTH;
+     PF_IEEE80211 = AF_IEEE80211;
+     PF_NETLINK = AF_NETLINK;
+     PF_INET_SDP = AF_INET_SDP;
+     PF_INET6_SDP = AF_INET6_SDP;
+     PF_HYPERV = AF_HYPERV;
+     PF_DIVERT = AF_DIVERT;
+     PF_IPFWLOG = AF_IPFWLOG;
      PF_MAX = AF_MAX;
 
 
@@ -120,6 +133,7 @@ Const
 { Flags for the socket type in fpsocket and for fpaccept4 }
   SOCK_CLOEXEC  = $10000000;
   SOCK_NONBLOCK = $20000000;
+  SOCK_CLOFORK  = $40000000;
 
         SOL_SOCKET 	 = $FFFF;
         SO_DEBUG         = $0001;        { turn on debugging info recording }
@@ -188,6 +202,7 @@ Const
 	IPPROTO_NSP		= 31; 		{ Network Services }
 	IPPROTO_INP		= 32; 		{ Merit Internodal }
 	IPPROTO_SEP		= 33; 		{ Sequential Exchange }
+	IPPROTO_DCCP		= 33; 		{ Datagram Congestion Control Protocol }
 	IPPROTO_3PC		= 34; 		{ Third Party Connect }
 	IPPROTO_IDPR		= 35; 		{ InterDomain Policy Routing }
 	IPPROTO_XTP		= 36; 		{ XTP }
@@ -260,6 +275,7 @@ Const
 	IPPROTO_PIM		= 103;		{ Protocol Independent Mcast }
 	IPPROTO_CARP		= 112;		{ CARP }
 	IPPROTO_PGM		= 113;		{ PGM }
+	IPPROTO_SCTP		= 132;		{ SCTP }
 	IPPROTO_PFSYNC		= 240;		{ PFSYNC }
 
 { last return value of *_input(), meaning "all job for this pkt is done".  }
