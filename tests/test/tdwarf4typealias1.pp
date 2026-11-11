@@ -1,4 +1,4 @@
-{ %opt=-gw4 }
+{ %opt=-gw4 -godwarfproperty }
 { %target=linux,win32,win64 }
 
 program tdwarf4typealias1;

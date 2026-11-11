@@ -202,6 +202,9 @@ function CheckMethodParam(ANode: TDwarfTag; AName: String; AnExpTypeName: string
 function CheckInheritance(ANode: TDwarfTag; AnExpTypeName: string; ATestTypeFlags: TTestTypeFlags;
   ATypeTag: string = ''): TDwarfTag;
 
+function CheckProperty(AStructNode: TDwarfTag; APropName, AnExpTypeName, AnExpReadField, AnExpReadStruct: String; AFlags:TCheckPropertyFlags = []): TDwarfTag;
+procedure CheckPropertySetter(APropNode: TDwarfTag; AnExpWriteField, AnExpWriteStruct: String);
+
 procedure CheckLinkageName(ANode: TDwarfTag; AnExpStructName, AnExpMethodName: string);
 
 var
@@ -554,7 +557,7 @@ end;
 procedure DoError(AText: string);
 begin
   writeln(StdErr, AText+' <<<< '+ErrInfo);
-  //halt(1);
+  halt(1);
 end;
 
 function GetNodeByName(ATag, AName: String; AParentNode: TDwarfTag): TDwarfTag;
@@ -793,6 +796,113 @@ begin
   s := Format('_ZN%d%s%d%sEv', [Length(AnExpStructName), AnExpStructName, Length(AnExpMethodName), AnExpMethodName]);
   if UpperCase(t) <> UpperCase(s) then
     DoError('Wrong linkage name: got:'+ t);
+
+  ErrInfo := ri;
+end;
+
+function CheckProperty(AStructNode: TDwarfTag; APropName, AnExpTypeName, AnExpReadField,
+  AnExpReadStruct: String; AFlags: TCheckPropertyFlags): TDwarfTag;
+var
+  ri, ri2, Offs, FndName: String;
+  dummy: TDwarfTagArray;
+  GetterNode, TmpNode, InherNode: TDwarfTag;
+  i: integer;
+begin
+  ri := ErrInfo;
+  ErrInfo := ErrInfo + ' / Check Prop '+APropName;
+  ri2 := ErrInfo;
+
+  Result := GetNodeByName('DW_TAG_Property', APropName, AStructNode);
+
+  if AnExpTypeName <> '' then begin
+    ErrInfo := ErrInfo + ' / Type ';
+    Offs := GetTypeOffsFromNode(Result);
+    CheckType(Offs, UpperCase(AnExpTypeName), [ttAnyType], dummy, False);
+  end;
+
+  if AnExpReadField = '' then // TODO: check absence of reader tag
+    exit;
+
+  ErrInfo := ri2 + ' / READER ';
+  GetterNode := GetDirectChildNode(Result, 'DW_TAG_Property_getter');
+  Offs := GetAttribFromNode(GetterNode, 'DW_AT_property_forward');
+
+  TmpNode := GetNodeAtOffs(Offs, FndName);
+  if UpperCase(FndName) <> UpperCase(AnExpReadField) then
+    DoError('wrong read field name. exp '+ AnExpReadField+ ' got '+FndName);
+
+  TmpNode := TmpNode.Parent;
+  if not TmpNode.IsTagNameIn('DW_TAG_structure_type;DW_TAG_class_type') then
+    DoError('wrong read field struct TAG name. exp  got '+TmpNode.TagName);
+  if AnExpReadStruct <> '' then begin
+    FndName := GetAttribFromNode(TmpNode, 'DW_AT_name');
+    if UpperCase(FndName) <> UpperCase(AnExpReadStruct) then
+      DoError('wrong read field struct name. exp '+ AnExpReadStruct+ ' got '+FndName);
+  end
+  else
+    if TmpNode.FindAttribute('DW_AT_name') <> nil then
+      DoError('Did expect un-named struct, but got name ');
+
+  if cpFieldOwned in AFlags then begin
+    if TmpNode <> AStructNode then
+      DoError('Field is not in same structure as property. exp(self) '+AStructNode.Offset +' got(fld) '+TmpNode.Offset);
+  end;
+
+  if cpFieldInherited in AFlags then begin
+    InherNode := GetDirectChildNode(AStructNode, 'DW_TAG_inheritance');
+    InherNode := GetNodeAtOffs(GetTypeOffsFromNode(InherNode));
+    i := 0;
+    while (TmpNode <> InherNode) and (i < 99) do begin
+      if InherNode.TagName = 'DW_TAG_typedef' then begin
+        InherNode := GetNodeAtOffs(GetTypeOffsFromNode(InherNode));
+        if TmpNode = InherNode then
+          break;
+      end;
+
+      InherNode := GetDirectChildNode(InherNode, 'DW_TAG_inheritance');
+      InherNode := GetNodeAtOffs(GetTypeOffsFromNode(InherNode));
+      inc(i);
+    end;
+
+    if TmpNode <> InherNode then
+      DoError('Field does not inherit from structure of property. exp(self) '+AStructNode.Offset+' got(fld) '+TmpNode.Offset);
+  end;
+
+  if cpHasFormalParam in AFlags then begin
+    GetDirectChildNode(GetterNode, 'DW_TAG_formal_parameter');
+  end;
+
+  ErrInfo := ri;
+end;
+
+procedure CheckPropertySetter(APropNode: TDwarfTag; AnExpWriteField, AnExpWriteStruct: String);
+var
+  ri, ri2, Offs, FndName: String;
+  dummy: TDwarfTagArray;
+  SetterNode, TmpNode: TDwarfTag;
+begin
+  ri := ErrInfo;
+  ErrInfo := ErrInfo + ' / Check Prop-setter '+AnExpWriteField;
+  ri2 := ErrInfo;
+
+  SetterNode := GetDirectChildNode(APropNode, 'DW_TAG_Property_setter');
+  Offs := GetAttribFromNode(SetterNode, 'DW_AT_property_forward');
+
+  TmpNode := GetNodeAtOffs(Offs, FndName);
+  if UpperCase(FndName) <> UpperCase(AnExpWriteField) then
+    DoError('wrong read field name. exp '+ AnExpWriteField+ ' got '+FndName);
+
+  TmpNode := TmpNode.Parent;
+  if not TmpNode.IsTagNameIn('DW_TAG_structure_type;DW_TAG_class_type') then
+    DoError('wrong read field struct TAG name. exp  got '+TmpNode.TagName);
+  if AnExpWriteStruct <> '' then begin
+    FndName := GetAttribFromNode(TmpNode, 'DW_AT_name');
+    if UpperCase(FndName) <> UpperCase(AnExpWriteStruct) then
+      DoError('wrong read field struct name. exp '+ AnExpWriteStruct+ ' got '+FndName);
+  end
+  else
+    if TmpNode.FindAttribute('DW_AT_name') <> nil then
+      DoError('Did expect un-named struct, but got name ');
 
   ErrInfo := ri;
 end;

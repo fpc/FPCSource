@@ -1,4 +1,4 @@
-{ %opt=-gw -godwarfcpp }
+{ %opt=-gw -godwarfcpp -godwarfproperty }
 { %target=linux,win32,win64 }
 
 program tdwarf2cpptypealias1;

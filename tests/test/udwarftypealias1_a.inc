@@ -67,6 +67,20 @@ type
   ua_TTestRec1X = type ua_TTestRec1;
   ua_TTestRec1XX = type ua_TTestRec1;
 
+  ua_TTestRec2 = record
+    ua_FldR2_A: integer;
+    ua_FldR2_B: ua_TTestRec1;
+    ua_FldR2_BX: ua_TTestRec1X;
+    ua_FldR2_C: record c: ua_TTestRec1; i: integer; end; // "i" has an un-named containing-structure
+    ua_FldR2_CX: record c: ua_TTestRec1X; i: integer; end;
+  end;
+  ua_TTestRec2X = type ua_TTestRec2;
+
+  ua_TTestRec2_array = array [0..3] of ua_TTestRec2;
+  ua_TTestRec2_arrayX = type ua_TTestRec2_array;
+  ua_TTestRec2X_array = array [0..3] of ua_TTestRec2X;
+  ua_TTestRec2X_arrayX = type ua_TTestRec2X_array;
+
 var
   UA_iA1: ua_TTestInt1;
   UA_iA2: ua_TTestInt1X;
@@ -75,6 +89,8 @@ var
   UA_Rec1XX: ua_TTestRec1XX;
   UA_PRec1: ua_PTestRec1;
   UA_PRec1X: ua_PTestRec1X;
+  UA_Rec2: ua_TTestRec2;
+  UA_Rec2X: ua_TTestRec2X;
 
 type
   (* object *)
@@ -157,6 +173,22 @@ type
   //ua_TTestXObjV3X = type ua_TTestXObjV3;
   ua_TTestXObjV3X = ua_TTestXObjV3; // issue #42046
 
+  // property access to field in base of object
+  ua_TTestBaseObject = object
+    FldBase1: integer;
+  end;
+  ua_TTestBaseObjectX = type ua_TTestBaseObject;
+
+  ua_TTestChildObject = object(ua_TTestBaseObject)
+    FldChild1: Integer;
+  end;
+  ua_TTestChildObjectX = type ua_TTestChildObject;
+
+  ua_TTestXChildObject = object(ua_TTestBaseObjectX)
+    FldChild1: Integer;
+  end;
+  ua_TTestXChildObjectX = type ua_TTestXChildObject;
+
 var
   UA_Obj1:   ua_TTestObj1;
   UA_Obj1X:  ua_TTestObj1X;
@@ -186,12 +218,39 @@ type
     end;
     ua_TTestClass1Nest2RecX = type ua_TTestClass1Nest2Rec;
   public
-    ua_FldC_A: integer;
-    ua_FldC_B: integer;
-    ua_FldC_C: ua_TTestClass1Nest1;
-    ua_FldC_CX: ua_TTestClass1Nest1X;
-    ua_FldC_D: ua_TTestClass1Nest2Rec;
-    ua_FldC_DX: ua_TTestClass1Nest2RecX;
+    ua_FldC_A:   integer;
+    ua_FldC_B:   integer;
+    ua_FldC_C:   ua_TTestClass1Nest1;
+    ua_FldC_CX:  ua_TTestClass1Nest1X;
+    ua_FldC_D:   ua_TTestClass1Nest2Rec;
+    ua_FldC_DX:  ua_TTestClass1Nest2RecX;
+    ua_FldC_E:   ua_TTestRec2;
+    ua_FldC_EX:  ua_TTestRec2X;
+    ua_FldC_G:   ua_TTestRec2_array;
+    ua_FldC_GX:  ua_TTestRec2X_array;
+    ua_FldC_XG:  ua_TTestRec2_arrayX;
+    ua_FldC_XGX: ua_TTestRec2X_arrayX;
+    ua_FldC_YG:   array [0..3] of ua_TTestRec2;
+    ua_FldC_YGX:  array [0..3] of ua_TTestRec2X;
+    ua_FldC_H:   ua_TTestChildObject;
+    ua_FldC_HX:  ua_TTestChildObjectX;
+    ua_FldC_XH:   ua_TTestXChildObject;
+    ua_FldC_XHX:  ua_TTestXChildObjectX;
+
+    function  ua_Func1: ua_TTestInt1;      virtual; abstract;
+    function  ua_Func1X: ua_TTestInt1X;    virtual; abstract;
+    procedure ua_Proc1(a: ua_TTestInt1);   virtual; abstract;
+    procedure ua_Proc1X(a: ua_TTestInt1X); virtual; abstract;
+
+    function  ua_Func2(AnIdx:integer): ua_TTestInt1;      virtual; abstract;
+    function  ua_Func2X(AnIdx:integer): ua_TTestInt1X;    virtual; abstract;
+    procedure ua_Proc2(AnIdx:integer; AVal: ua_TTestInt1);   virtual; abstract;
+    procedure ua_Proc2X(AnIdx:integer; AVal: ua_TTestInt1X); virtual; abstract;
+    function  ua_Func3(AnIdx1, AnIdx2:integer): ua_TTestInt1;      virtual; abstract;
+    function  ua_Func3X(AnIdx1, AnIdx2:integer): ua_TTestInt1X;    virtual; abstract;
+    procedure ua_Proc3(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1);   virtual; abstract;
+    procedure ua_Proc3X(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1X); virtual; abstract;
+
     function ua_PO1: ua_TTestRec1;
     function ua_PO1X: ua_TTestRec1X;
     function ua_PO2: ua_TTestRec1; virtual;
@@ -202,8 +261,8 @@ type
 
   ua_TTestClass2 = Class(ua_TTestClass1)
   public
-    ua_FldC_E: ua_TTestClass1;
-    ua_FldC_EX: ua_TTestClass1X;
+    ua_FldC2_A: ua_TTestClass1;
+    ua_FldC2_AX: ua_TTestClass1X;
   end;
   ua_TTestClass2X = type ua_TTestClass2;
 
@@ -230,17 +289,74 @@ var
   UA_ClassXOF4: ua_TTestClassXOF;
 
 type
+
+  generic ua_GTestObject1<A> = record
+    Fld_GA: A;
+  end;
+  generic ua_GTestObject2<A> = object
+    Fld_GB: specialize ua_GTestObject1<A>;
+  end;
+
+  ua_TTestObj4= object // layout is subset of TTestClass1
+  public
+    ua_FldC_A: integer;
+    ua_FldC_B: integer;
+    ua_FldC_C: ua_TTestClass1.ua_TTestClass1Nest1;
+    // Issue #42082
+    //ua_FldC_CX: ua_TTestClass1.ua_TTestClass1Nest1X;
+    ua_FldC_CX: ua_TTestClass1.ua_TTestClass1Nest1;
+    ua_FldC_D: ua_TTestClass1.ua_TTestClass1Nest2Rec;
+    ua_FldC_DX: ua_TTestClass1.ua_TTestClass1Nest2RecX;
+    ua_FldC_E: ua_TTestRec2;
+    ua_FldC_EX: ua_TTestRec2X;
+    ua_FldC_G:   ua_TTestRec2_array;
+    ua_FldC_GX:  ua_TTestRec2X_array;
+    ua_FldC_XG:  ua_TTestRec2_arrayX;
+    ua_FldC_XGX: ua_TTestRec2X_arrayX;
+    ua_FldC_YG:   array [0..3] of ua_TTestRec2;
+    ua_FldC_YGX:  array [0..3] of ua_TTestRec2X;
+    ua_FldC_H:   ua_TTestChildObject;
+    ua_FldC_HX:  ua_TTestChildObjectX;
+    ua_FldC_XH:   ua_TTestXChildObject;
+    ua_FldC_XHX:  ua_TTestXChildObjectX;
+
+    function  ua_Func1: ua_TTestInt1;
+    function  ua_Func1X: ua_TTestInt1X;
+    procedure ua_Proc1(a: ua_TTestInt1);
+    procedure ua_Proc1X(a: ua_TTestInt1X);
+
+    function  ua_Func2(AnIdx:integer): ua_TTestInt1;
+    function  ua_Func2X(AnIdx:integer): ua_TTestInt1X;
+    procedure ua_Proc2(AnIdx:integer; AVal: ua_TTestInt1);
+    procedure ua_Proc2X(AnIdx:integer; AVal: ua_TTestInt1X);
+    function  ua_Func3(AnIdx1, AnIdx2:integer): ua_TTestInt1;
+    function  ua_Func3X(AnIdx1, AnIdx2:integer): ua_TTestInt1X;
+    procedure ua_Proc3(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1);
+    procedure ua_Proc3X(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1X);
+  end;
+//  ua_TTestObj4X = type ua_TTestObj4;
+
+
+type
   {$Interfaces CORBA}
 
   ua_TIntfCorba1 = interface ['{B3E5B020-FCF3-40A4-AF2C-79A7D299105E}']
     function ua_PI1: integer;
     function ua_PI2: integer;
+
+    function  ua_Func1: ua_TTestInt1;
+    function  ua_Func1X: ua_TTestInt1X;
+    procedure ua_Proc1(a: ua_TTestInt1);
+    procedure ua_Proc1X(a: ua_TTestInt1X);
   end;
   ua_TIntfCorba1X = type ua_TIntfCorba1;
 
   ua_TIntfCorba2 = interface(ua_TIntfCorba1) ['{A8CF3B4C-4767-4761-B27D-C7963619A068}']
     function ua_PI3: ua_TIntfCorba1;
     function ua_PI3X: ua_TIntfCorba1X;
+
+    property P_uaI_1: ua_TTestInt1   read ua_Func1  write ua_Proc1;
+    property P_uaI_1X: ua_TTestInt1X read ua_Func1X write ua_Proc1X;
   end;
   ua_TIntfCorba2X = type ua_TIntfCorba2;
 
@@ -249,12 +365,20 @@ type
   ua_TIntfCom1 = interface ['{71BC853A-66B3-44B9-8CF9-7B1533A6E2E2}']
     function ua_PJ1: integer;
     function ua_PJ2: integer;
+
+    function  ua_Func1: ua_TTestInt1;
+    function  ua_Func1X: ua_TTestInt1X;
+    procedure ua_Proc1(a: ua_TTestInt1);
+    procedure ua_Proc1X(a: ua_TTestInt1X);
   end;
   ua_TIntfCom1X = type ua_TIntfCom1;
 
   ua_TIntfCom2 = interface(ua_TIntfCom1) ['{29C9CD3A-8846-4694-BAB0-4299C30E1EC6}']
     function ua_PJ3: ua_TIntfCorba1;
     function ua_PJ3X: ua_TIntfCorba1X;
+
+    property P_uaI_1: ua_TTestInt1   read ua_Func1  write ua_Proc1;
+    property P_uaI_1X: ua_TTestInt1X read ua_Func1X write ua_Proc1X;
   end;
   ua_TIntfCom2X = type ua_TIntfCom2;
 
@@ -268,6 +392,10 @@ var
   UA_IntfCom2:  ua_TIntfCom2;
   UA_IntfCom2X: ua_TIntfCom2X;
 
+function ua_Func1: integer;
+procedure ua_Proc1(a: integer);
+
+property ua_P_Global: integer read ua_Func1 write ua_Proc1;
 
 implementation
 
@@ -305,6 +433,21 @@ function ua_TTestClass1.ua_PO2X: ua_TTestRec1X;   begin Result := default(type o
 function ua_TTestXClass3.ua_PO2: ua_TTestRec1;    begin Result := default(type of result); end;
 function ua_TTestXClass3.ua_PO2X: ua_TTestRec1X;  begin Result := default(type of result); end;
 
+function  ua_TTestObj4.ua_Func1: ua_TTestInt1;  begin Result := default(type of result); end;
+function  ua_TTestObj4.ua_Func1X: ua_TTestInt1X;  begin Result := default(type of result); end;
+procedure ua_TTestObj4.ua_Proc1(a: ua_TTestInt1);  begin {} end;
+procedure ua_TTestObj4.ua_Proc1X(a: ua_TTestInt1X);  begin {} end;
+function  ua_TTestObj4.ua_Func2(AnIdx:integer): ua_TTestInt1; begin Result := default(type of result); end;
+function  ua_TTestObj4.ua_Func2X(AnIdx:integer): ua_TTestInt1X; begin Result := default(type of result); end;
+procedure ua_TTestObj4.ua_Proc2(AnIdx:integer; AVal: ua_TTestInt1); begin {} end;
+procedure ua_TTestObj4.ua_Proc2X(AnIdx:integer; AVal: ua_TTestInt1X); begin {} end;
+function  ua_TTestObj4.ua_Func3(AnIdx1, AnIdx2:integer): ua_TTestInt1; begin Result := default(type of result); end;
+function  ua_TTestObj4.ua_Func3X(AnIdx1, AnIdx2:integer): ua_TTestInt1X; begin Result := default(type of result); end;
+procedure ua_TTestObj4.ua_Proc3(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1); begin {} end;
+procedure ua_TTestObj4.ua_Proc3X(AnIdx1, AnIdx2:integer; AVal: ua_TTestInt1X); begin {} end;
+
+function ua_Func1: integer;  begin Result := default(type of result); end;
+procedure ua_Proc1(a: integer);  begin {} end;
 
 initialization
   // use all types, so they get linked in
@@ -316,6 +459,8 @@ initialization
   UA_Rec1XX.ua_FldR_A := 1;
   UA_PRec1 := nil;
   UA_PRec1X := nil;
+  UA_Rec2.ua_FldR2_A := 1;
+  UA_Rec2X.ua_FldR2_A := 1;
 
   UA_Obj1.ua_FldO_A := 1;
   UA_Obj1X.ua_FldO_A := 1;

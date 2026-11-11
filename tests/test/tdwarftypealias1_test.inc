@@ -302,8 +302,8 @@ begin
     t := CheckMethod(t1[i], 'ua_PO2X', 'ua_TTestRec1X', [ttWantAlias]);
   end;
   for i := 2 to 3 do begin
-    CheckMember(t1[i], 'ua_FldC_E' ,  'ua_TTestClass1', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
-    CheckMember(t1[i], 'ua_FldC_EX' , 'ua_TTestClass1X', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
+    CheckMember(t1[i], 'ua_FldC2_A' ,  'ua_TTestClass1', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
+    CheckMember(t1[i], 'ua_FldC2_AX' , 'ua_TTestClass1X', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
   end;
   for i := 4 to 5 do begin
     CheckMember(t1[i], 'ua_FldC_F' ,  'ua_TTestClass2', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
@@ -351,9 +351,124 @@ begin
   CheckInheritance(t1[2], 'ua_TIntfCom1', [ttWantAlias, ttAllowRefBYPointer], ExpTag);
   CheckInheritance(t1[4], 'ua_TIntfCom1', [ttWantAlias, ttAllowRefBYPointer], ExpTag);
 
+  ErrInfo := '';
 end;
 
+procedure CheckProp;
+var
+  owner, owner2: AnsiString;
+  t: TDwarfTag;
+  t1: array of TDwarfTag;
+  i: Integer;
+  f: TCheckPropertyFlags;
+begin
+  SetLength(t1, 4);
+  t1[0] := CheckVar('Rec1', 'TTestRec1', [ttWantAlias]);
+  t1[1] := CheckVar('Rec1X', 'TTestRec1X', [ttWantAlias]);
+  t1[2] := CheckVar('Rec1Y', 'TTestRec1Y', [ttWantAlias]);
+  t1[3] := CheckVar('Rec1XX', 'TTestRec1XX', [ttWantAlias]);
 
+  for i := 0 to 3 do begin
+    case i of
+      0: owner := 'TTestRec1';
+      1: owner := 'TTestRec1X';
+      2: owner := 'TTestRec1Y';
+      3: owner := 'TTestRec1XX';
+    end;
+    ErrInfo := 'Property '+owner;
+
+    CheckProperty(t1[i], 'P_ua_FldB',  'LongInt', 'ua_FldR_B', 'ua_TTestRec1' );
+    CheckProperty(t1[i], 'P_uaX_FldB', 'LongInt', 'ua_FldR_B', 'ua_TTestRec1X' );
+
+    CheckProperty(t1[i], 'P_P1', 'LongInt', 'P1', owner);
+  end;
+
+
+  SetLength(t1, 12);
+  t1[0] := CheckVar('Rec3',  'TTestRec3',  [ttWantAlias]);
+  t1[1] := CheckVar('Rec3X', 'TTestRec3X', [ttWantAlias]);
+  t1[2] := CheckVar('Obj3',  'TTestObj3',  [ttWantAlias], 'DW_TAG_class_type');
+  t1[3] := CheckVar('Obj3X', 'TTestObj3X', [ttWantAlias], 'DW_TAG_class_type');
+  t1[4] := CheckVar('Obj5',  'TTestObj5',  [ttWantAlias], 'DW_TAG_class_type');
+  t1[5] := CheckVar('Obj5X', 'TTestObj5X', [ttWantAlias], 'DW_TAG_class_type');
+  t1[6] := CheckVar('ObjX5',  'TTestObjX5',  [ttWantAlias], 'DW_TAG_class_type');
+  t1[7] := CheckVar('ObjX5X', 'TTestObjX5X', [ttWantAlias], 'DW_TAG_class_type');
+  t1[8] := CheckVar('Obj6',  'TTestObj6',  [ttWantAlias], 'DW_TAG_class_type');
+  t1[9] := CheckVar('Obj6X', 'TTestObj6X', [ttWantAlias], 'DW_TAG_class_type');
+  t1[10] := CheckVar('Class1',  'TTestClass1', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
+  t1[11] := CheckVar('Class3',  'TTestClass3', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
+  //t1[0] := CheckVar('Class1X', 'TTestClass1X', [ttWantAlias, ttAllowRefBYPointer], 'DW_TAG_class_type');
+
+  for i := 0 to 11 do begin
+    case i of
+      0:  begin owner := 'TTestRec3';   owner2 := owner;            f:=[cpFieldOwned]; end;
+      1:  begin owner := 'TTestRec3X';  owner2 := owner;            f:=[cpFieldOwned]; end;
+      2:  begin owner := 'TTestObj3';   owner2 := owner;            f:=[cpFieldOwned]; end;
+      3:  begin owner := 'TTestObj3X';  owner2 := owner;            f:=[cpFieldOwned]; end;
+      4:  begin owner := 'TTestObj5';   owner2 := 'TTestObj4';      f:=[cpFieldInherited]; end;
+      5:  begin owner := 'TTestObj5X';  owner2 := 'TTestObj4';      f:=[cpFieldInherited]; end;
+      6:  begin owner := 'TTestObjX5';  owner2 := 'TTestObj4X';     f:=[cpFieldInherited]; end;
+      7:  begin owner := 'TTestObjX5X'; owner2 := 'TTestObj4X';     f:=[cpFieldInherited]; end;
+      8:  begin owner := 'TTestObj6';   owner2 := 'ua_TTestObj4';   f:=[cpFieldInherited]; end;
+      9:  begin owner := 'TTestObj6X';  owner2 := 'ua_TTestObj4';   f:=[cpFieldInherited]; end;
+      10: begin owner := 'TTestClass1'; owner2 := 'ua_TTestClass1'; f:=[cpFieldInherited]; end;
+      11: begin owner := 'TTestClass3'; owner2 := owner;            f:=[cpFieldOwned]; end;
+    end;
+    ErrInfo := 'Property '+owner;
+
+    CheckProperty(t1[i], 'P_ua_FldD_A',    'LongInt', 'ua_FldC_A', owner2, f);
+
+    CheckProperty(t1[i], 'P_ua_FldD_E_A',  'LongInt', 'ua_FldR2_A', 'ua_TTestRec2' );
+
+    CheckProperty(t1[i], 'P_ua_FldD_E_BA',   'LongInt', 'ua_FldR_A', 'ua_TTestRec1');
+    CheckProperty(t1[i], 'P_ua_FldD_E_BXA',  'LongInt', 'ua_FldR_A', 'ua_TTestRec1X');
+    CheckProperty(t1[i], 'P_ua_FldD_E_CA',   'LongInt', 'ua_FldR_A', 'ua_TTestRec1');
+    CheckProperty(t1[i], 'P_ua_FldD_E_CXA',  'LongInt', 'ua_FldR_A', 'ua_TTestRec1X');
+    CheckProperty(t1[i], 'P_ua_FldD_E_Ci',   'LongInt', 'i', '');
+
+    CheckProperty(t1[i], 'P_ua_FldD_EX_BA',  'LongInt', 'ua_FldR_A', 'ua_TTestRec1');
+    CheckProperty(t1[i], 'P_ua_FldD_EX_BXA', 'LongInt', 'ua_FldR_A', 'ua_TTestRec1X');
+    CheckProperty(t1[i], 'P_ua_FldD_EX_CA',  'LongInt', 'ua_FldR_A', 'ua_TTestRec1');
+    CheckProperty(t1[i], 'P_ua_FldD_EX_CXA', 'LongInt', 'ua_FldR_A', 'ua_TTestRec1X');
+    CheckProperty(t1[i], 'P_ua_FldD_EX_Ci',  'LongInt', 'i', '');
+
+    CheckProperty(t1[i], 'P_ua_FldD_G_A',    'longint', 'ua_FldR2_A', 'ua_TTestRec2');
+    CheckProperty(t1[i], 'P_ua_FldD_GX_A',   'longint', 'ua_FldR2_A', 'ua_TTestRec2X');
+    CheckProperty(t1[i], 'P_ua_FldD_XG_A',   'longint', 'ua_FldR2_A', 'ua_TTestRec2');
+    CheckProperty(t1[i], 'P_ua_FldD_XGX_A',  'longint', 'ua_FldR2_A', 'ua_TTestRec2X');
+    CheckProperty(t1[i], 'P_ua_FldD_GY_A',   'longint', 'ua_FldR2_A', 'ua_TTestRec2');
+    CheckProperty(t1[i], 'P_ua_FldD_GYX_A',  'longint', 'ua_FldR2_A', 'ua_TTestRec2X');
+
+    CheckProperty(t1[i], 'P_ua_Func1',   'ua_TTestInt1',  'ua_Func1',  owner2, f);
+    t :=
+    CheckProperty(t1[i], 'P_ua_Func1_rw','ua_TTestInt1',  'ua_Func1',  owner2, f);
+      CheckPropertySetter(t, 'ua_Proc1',  owner2);
+    t :=
+    CheckProperty(t1[i], 'P_ua_Func1_w', 'ua_TTestInt1',  '',  '');
+      CheckPropertySetter(t, 'ua_Proc1',  owner2);
+    CheckProperty(t1[i], 'P_ua_Func1X',  'ua_TTestInt1X', 'ua_Func1X', owner2, f);
+    t :=
+    CheckProperty(t1[i], 'P_ua_Func1X_rw','ua_TTestInt1X',  'ua_Func1X',  owner2, f);
+      CheckPropertySetter(t, 'ua_Proc1X',  owner2);
+
+    CheckProperty(t1[i], 'P_ua_Func2',   'ua_TTestInt1',  'ua_Func2',  owner2, f);
+    CheckProperty(t1[i], 'P_ua_Func2_rw','ua_TTestInt1',  'ua_Func2',  owner2, f);
+    CheckProperty(t1[i], 'P_ua_Func2X',  'ua_TTestInt1X', 'ua_Func2X', owner2, f);
+
+    CheckProperty(t1[i], 'P_ua_Func2i',   'ua_TTestInt1',  'ua_Func2',  owner2, f+[cpHasFormalParam]);
+    CheckProperty(t1[i], 'P_ua_Func2iX',  'ua_TTestInt1X', 'ua_Func2X', owner2, f+[cpHasFormalParam]);
+
+    CheckProperty(t1[i], 'P_ua_Func3',   'ua_TTestInt1',  'ua_Func3',  owner2, f);
+    CheckProperty(t1[i], 'P_ua_Func3X',  'ua_TTestInt1X', 'ua_Func3X', owner2, f);
+
+    CheckProperty(t1[i], 'P_ua_Func3i',   'ua_TTestInt1',  'ua_Func3',  owner2, f+[cpHasFormalParam]);
+    CheckProperty(t1[i], 'P_ua_Func3iX',  'ua_TTestInt1X', 'ua_Func3X', owner2, f+[cpHasFormalParam]);
+
+  end;
+
+  ErrInfo := '';
+end;
+var t: TDwarfTag;a:TDwarfAttribute;
 begin
   (* Use when running outside of "make test" *)
   for i1 := 1 to argc-1 do if argv[i1] = '-cpp' then HAS_DWARF_CPP := true;
@@ -367,7 +482,14 @@ begin
 
   DumpDwarfInfo( @ResProc, '', UNIT_NAME);
   DumpDwarfInfo( @ResProc, '', PROG_NAME);
-  //writeln(ResTxt);
+
+  //for t in RootTag.Descendants do begin
+  //  writeln(StringOfChar(' ', t.Depth), '>>', t.TagName, '<< "',t.OffsetAddr, '" "',t.Offset,'"');
+  //  for a in t.Attrs do
+  //    writeln(StringOfChar(' ', t.Depth+2), '| >>', a.Name, '<< (', a.Form, ') >>',a.Value, '<<');
+  //end;
+
   Check;
+  CheckProp;
   writeln('OK');
 end.
