@@ -27,7 +27,7 @@ uses
 {$ELSE}
   Classes, SysUtils, fpcunit, testregistry, contnrs,
 {$ENDIF}
-  Markdown.Utils, Markdown.Elements, Markdown.Scanner, Markdown.InlineText;
+  Markdown.Utils, Markdown.Elements, Markdown.Scanner, Markdown.InlineText, Markdown.Emoji;
 
 type
 
@@ -48,8 +48,10 @@ type
     class procedure AssertEquals(const aMsg: TMarkdownString; aExpected,aActual : TNodeStyle); overload;
     class procedure AssertEquals(const aMsg: TMarkdownString; aExpected,aActual : TNodeStyles); overload;
     class procedure CheckStyleList(const aMsg: TMarkdownString; const aExpected : Array of TNodeStyle; aNode : TMarkdownTextNode);
+    function DoEmojiLookup(const aName : TMarkdownString; out aReplacement : TMarkdownString) : Boolean;
 
   protected
+    procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestSimpleText;
@@ -113,6 +115,17 @@ type
     procedure TestWikiLinkUnclosedIsText;
     procedure TestWikiLinkLineBreakIsText;
     procedure TestWikiLinkOptionOff;
+    procedure TestEmoji;
+    procedure TestEmojiCaseInsensitive;
+    procedure TestEmojiMarkup;
+    procedure TestEmojiUnknownIsText;
+    procedure TestEmojiTimeIsText;
+    procedure TestEmojiInCodeSpan;
+    procedure TestEmojiLookup;
+    procedure TestEmojiBeforeDirective;
+    procedure TestEmojiInDirectiveLabel;
+    procedure TestEmojiDefaults;
+    procedure TestEmojiWithoutResolver;
   end;
 
 implementation
@@ -121,12 +134,30 @@ uses {$IFDEF FPC_DOTTEDUNITS}System.TypInfo{$ELSE}typinfo{$ENDIF};
 
 { TTestInlineTextProcessor }
 
+procedure TTestInlineTextProcessor.SetUp;
+begin
+  TEmojiRegistry.Register('testemoji','[E]');
+  TEmojiRegistry.RegisterMarkup('testicon','<i class="icon"></i>');
+end;
+
 procedure TTestInlineTextProcessor.TearDown;
 begin
+  TEmojiRegistry.UnRegister('testemoji');
+  TEmojiRegistry.UnRegister('testicon');
+  TEmojiRegistry.OnLookup:=Nil;
   FProcessor.Free;
   FScanner.Free;
   FNodes.Free;
   FEntities.Free;
+end;
+
+function TTestInlineTextProcessor.DoEmojiLookup(const aName: TMarkdownString; out aReplacement: TMarkdownString): Boolean;
+begin
+  Result:=(aName='looked_up');
+  if Result then
+    aReplacement:='[L]'
+  else
+    aReplacement:='';
 end;
 
 procedure TTestInlineTextProcessor.SetupProcessor(const AText: TMarkdownString; awsMode: TWhitespaceMode = wsTrim);
@@ -998,6 +1029,133 @@ begin
   FProcessor.Process(True);
   for I:=0 to FNodes.Count-1 do
     AssertFalse('No wiki link without option', FNodes[I].Kind=nkWikiLink);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmoji;
+
+begin
+  SetupProcessor('a :testemoji: b');
+  FProcessor.Process(True);
+  AssertEquals('Shortcode replaced', 'a [E] b', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiCaseInsensitive;
+
+begin
+  SetupProcessor(':TestEmoji:');
+  FProcessor.Process(True);
+  AssertEquals('Name looked up in lowercase', '[E]', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiMarkup;
+
+var
+  I : Integer;
+  lFound : Boolean;
+begin
+  SetupProcessor('a :testicon: b');
+  FProcessor.Process(True);
+  lFound:=False;
+  for I:=0 to FNodes.Count-1 do
+    if FNodes[I].Kind=nkRaw then
+      begin
+      lFound:=True;
+      AssertEquals('Markup', '<i class="icon"></i>', FNodes[I].NodeText);
+      end;
+  AssertTrue('Markup becomes a raw node', lFound);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiUnknownIsText;
+
+begin
+  SetupProcessor('a :no_such_name: b');
+  FProcessor.Process(True);
+  AssertEquals('Unknown shortcode stays as written', 'a :no_such_name: b', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiTimeIsText;
+
+begin
+  SetupProcessor('Note: at 10:30, see http://x.org');
+  FProcessor.Process(True);
+  AssertEquals('Colons that are no shortcode stay', 'Note: at 10:30, see http://x.org', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiInCodeSpan;
+
+begin
+  SetupProcessor('`:testemoji:`');
+  FProcessor.Process(True);
+  AssertEquals('Code span keeps the shortcode', ':testemoji:', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiLookup;
+
+begin
+  TEmojiRegistry.OnLookup:=@DoEmojiLookup;
+  SetupProcessor(':looked_up: :not_looked_up:');
+  FProcessor.Process(True);
+  AssertEquals('OnLookup resolves unregistered names', '[L] :not_looked_up:', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiBeforeDirective;
+
+var
+  I : Integer;
+begin
+  SetupProcessor('a :testemoji: b');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  for I:=0 to FNodes.Count-1 do
+    AssertFalse('Shortcode is no directive', FNodes[I].Kind=nkDirective);
+  AssertEquals('Shortcode replaced', 'a [E] b', FNodes.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiInDirectiveLabel;
+
+begin
+  SetupProcessor(':span[x :testemoji:]{.c}');
+  FProcessor.Directives:=True;
+  FProcessor.Process(True);
+  AssertEquals('Label replaced', 'x [E]', NodeAsNamed(0, nkDirective).Children.PlainText);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiDefaults;
+
+var
+  lText : TMarkdownString;
+begin
+  TEmojiRegistry.RegisterDefaults;
+  AssertTrue('smile registered', TEmojiRegistry.Find('smile',lText));
+  AssertEquals('smile is U+1F604', #$F0#$9F#$98#$84, lText);
+  AssertTrue('All defaults registered', TEmojiRegistry.Count>=147);
+end;
+
+
+procedure TTestInlineTextProcessor.TestEmojiWithoutResolver;
+
+var
+  lResolver : TEmojiResolver;
+begin
+  lResolver:=TInlineTextProcessor.EmojiResolver;
+  TInlineTextProcessor.EmojiResolver:=Nil;
+  try
+    SetupProcessor('a :testemoji: b');
+    FProcessor.Process(True);
+    AssertEquals('No replacement without resolver', 'a :testemoji: b', FNodes.PlainText);
+  finally
+    TInlineTextProcessor.EmojiResolver:=lResolver;
+  end;
 end;
 
 initialization

@@ -162,12 +162,13 @@ type
     procedure TestWikiLinkResolver;
     procedure TestWikiLinkWithoutHref;
     procedure TestRawHTMLEscaped;
+    procedure TestEmojiShortcodes;
   end;
 
 implementation
 
 uses
-  Markdown.Processors;
+  Markdown.Processors, Markdown.Emoji;
 
 { TTestHTMLRender }
 
@@ -882,6 +883,21 @@ procedure TTestHTMLRenderExtensions.TestHeadingNumber;
 begin
   FRenderer.OnHeadingNumber:=@DoHeadingNumber;
   CheckRender('# Title','<h1 id="title">1.1 Title</h1>'+sLineBreak);
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestEmojiShortcodes;
+
+begin
+  TEmojiRegistry.Register('htmltestemoji','<E>');
+  TEmojiRegistry.RegisterMarkup('htmltesticon','<i class="icon"></i>');
+  try
+    AssertEquals('Text escaped, markup as is','<p>&lt;E&gt; <i class="icon"></i> :unknown:</p>'+sLineBreak,
+                 Render(':htmltestemoji: :htmltesticon: :unknown:'));
+  finally
+    TEmojiRegistry.UnRegister('htmltestemoji');
+    TEmojiRegistry.UnRegister('htmltesticon');
+  end;
 end;
 
 

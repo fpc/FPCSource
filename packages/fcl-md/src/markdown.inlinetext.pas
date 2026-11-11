@@ -35,6 +35,9 @@ uses
   Markdown.Utils;
 
 Type
+  // Replacement for the emoji shortcode aName. aMarkup is True when aReplacement is markup, emitted without escaping.
+  TEmojiResolver = function(const aName : TMarkdownString; out aReplacement : TMarkdownString; out aMarkup : Boolean) : Boolean;
+
   TMarkdownDelimiterMode = (dmOpen,dmClose);
   TMarkdownDelimiterModes = Set of TMarkdownDelimiterMode;
 
@@ -111,6 +114,8 @@ Type
     function HandleFootnoteRef: Boolean; virtual;
     // :name[label]{attributes} at the scanner position. Returns False when it is not an inline directive.
     function HandleDirective: Boolean; virtual;
+    // :name: at the scanner position. Returns False when EmojiResolver has no replacement for name.
+    function HandleEmoji: Boolean; virtual;
     // [[target#fragment|label]] at the scanner position. Returns False when it is not a wiki link.
     function HandleWikiLink: Boolean; virtual;
     // Process aText, which starts at aPos, into the children of aNode.
@@ -122,6 +127,11 @@ Type
     // True when an active [ or ![ delimiter is open, so the text may be link text
     function HasOpenBracket : Boolean;
   public
+    class var
+      // Resolves :name: emoji shortcodes. Nil until an add-on such as Markdown.Emoji installs one; shortcodes stay text while it is Nil.
+      EmojiResolver : TEmojiResolver;
+      // Characters allowed in an emoji shortcode name.
+      EmojiNameChars : TSysCharSet;
     constructor Create(aLexer : TMarkdownTextScanner; aNodes: TMarkdownTextNodeList; aEntities : TFPStringHashTable; awsMode : TWhitespaceMode);
     destructor Destroy; override;
     function Process(aCloseLast : boolean = false): TMarkdownTextNodeList;
@@ -854,6 +864,35 @@ begin
 end;
 
 
+function TInlineTextProcessor.HandleEmoji: Boolean;
+
+var
+  lName,lReplacement : TMarkdownString;
+  lPosition : TPosition;
+  lMarkup : Boolean;
+
+begin
+  Result:=False;
+  if not Assigned(EmojiResolver) then
+    Exit;
+  lPosition:=Scanner.Location;
+  Scanner.BookMark;
+  Scanner.NextChar;
+  lName:=Scanner.PeekWhile(EmojiNameChars);
+  if (lName<>'') and Scanner.Has(lName+':')
+     and EmojiResolver(lName,lReplacement,lMarkup) and (lReplacement<>'') then
+    begin
+    Scanner.NextChars(Length(lName)+1);
+    if lMarkup then
+      Nodes.AddTextNode(lPosition,nkRaw,lReplacement)
+    else
+      Nodes.AddText(lPosition,lReplacement);
+    Exit(True);
+    end;
+  Scanner.GotoBookMark;
+end;
+
+
 function TInlineTextProcessor.HandleWikiLink: Boolean;
 
 var
@@ -1093,7 +1132,8 @@ begin
           else
             Nodes.addText(Scanner.location,Scanner.NextChar);
     ']' : HandleCloseDelimiter();
-    ':' : if not (Directives and HandleDirective) then
+    ':' : if not HandleEmoji
+             and not (Directives and HandleDirective) then
             Nodes.addText(Scanner.location,Scanner.NextChar);
   else
     if GFMExtensions then
@@ -1287,5 +1327,7 @@ begin
   end;
 end;
 
+initialization
+  TInlineTextProcessor.EmojiNameChars:=['a'..'z','A'..'Z','0'..'9','_','+','-'];
 end.
 

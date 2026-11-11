@@ -71,6 +71,14 @@ begin
       AddUnit('markdown.elements');
      end;
 
+    T:=P.Targets.AddUnit('markdown.emoji.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('markdown.utils');
+      AddUnit('markdown.inlinetext');
+      AddInclude('markdown.emoji.inc');
+      end;
+
     T:=P.Targets.AddUnit('markdown.parser.pas');
     with T.Dependencies do
       begin
