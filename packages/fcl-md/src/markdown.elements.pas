@@ -460,7 +460,7 @@ Type
     property ContentIndent : Integer read FContentIndent write FContentIndent;
   end;
 
-  TAlertType = (atNote, atTip, atImportant, atWarning, atCaution);
+  TAlertType = (atNote, atTip, atImportant, atWarning, atCaution, atSuccess);
 
   { TMarkdownAlertBlock }
 
@@ -518,7 +518,7 @@ Type
   end;
 
 const
-  AlertTypeNames : Array[TAlertType] of TMarkdownString = ('note','tip','important','warning','caution');
+  AlertTypeNames : Array[TAlertType] of TMarkdownString = ('note','tip','important','warning','caution','success');
 
 implementation
 

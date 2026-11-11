@@ -256,6 +256,7 @@ type
   published
     procedure TestNote;
     procedure TestCaseInsensitive;
+    procedure TestSuccess;
     procedure TestMarkerOnlyLine;
     procedure TestExtraTextStaysQuote;
     procedure TestUnknownTypeStaysQuote;
@@ -1904,6 +1905,16 @@ begin
 end;
 
 
+procedure TTestAlerts.TestSuccess;
+
+begin
+  SetupExt('> [!SUCCESS]'#10'> It worked');
+  AssertEquals('Alert block',TMarkdownAlertBlock,GetBlock(0).ClassType);
+  AssertEquals('Alert type',Ord(atSuccess),Ord(TMarkdownAlertBlock(GetBlock(0)).AlertType));
+  AssertEquals('Marker line removed','It worked',PlainOf(GetBlock(0)));
+end;
+
+
 procedure TTestAlerts.TestMarkerOnlyLine;
 
 var
@@ -2040,8 +2051,8 @@ end;
 procedure TTestAdmonitions.TestKeywordTypes;
 
 const
-  Keywords : Array[0..5] of TMarkdownString = ('info','hint','question','attention','danger','Caution');
-  Types : Array[0..5] of TAlertType = (atNote,atTip,atImportant,atWarning,atCaution,atCaution);
+  Keywords : Array[0..7] of TMarkdownString = ('info','hint','question','attention','danger','Caution','success','done');
+  Types : Array[0..7] of TAlertType = (atNote,atTip,atImportant,atWarning,atCaution,atCaution,atSuccess,atSuccess);
 
 var
   I : Integer;

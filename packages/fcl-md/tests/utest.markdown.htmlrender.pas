@@ -119,6 +119,7 @@ type
     procedure TestDefinitionListLoose;
     procedure TestAlert;
     procedure TestAlertTitle;
+    procedure TestSuccessAlert;
     procedure TestAdmonition;
     procedure TestAdmonitionDefaultTitle;
     procedure TestFootnotes;
@@ -751,6 +752,15 @@ procedure TTestHTMLRenderExtensions.TestAlertTitle;
 begin
   FRenderer.AlertTitles[atNote]:='Remark';
   AssertTrue('Note title changed',Pos('<p class="alert-title">Remark</p>',Render('> [!NOTE]'#10'> x'))>0);
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestSuccessAlert;
+
+begin
+  CheckRender('> [!SUCCESS]'#10'> It worked',
+              '<div class="alert alert-success">'+sLineBreak+'<p class="alert-title">Success</p>'+sLineBreak+
+              '<p>It worked</p>'+sLineBreak+'</div>'+sLineBreak);
 end;
 
 

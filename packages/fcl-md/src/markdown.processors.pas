@@ -1935,8 +1935,10 @@ function AdmonitionAlertType(const aKeyword : TMarkdownString) : TAlertType;
 
 begin
   case LowerCase(aKeyword) of
-    'tip','hint','success','check','done','example' :
+    'tip','hint','example' :
       Result:=atTip;
+    'success','check','done' :
+      Result:=atSuccess;
     'important','question','help','faq' :
       Result:=atImportant;
     'warning','attention' :

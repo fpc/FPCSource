@@ -56,6 +56,7 @@ resourcestring
   SAlertImportant = 'Important';
   SAlertWarning = 'Warning';
   SAlertCaution = 'Caution';
+  SAlertSuccess = 'Success';
 
 type
   { TMarkdownRenderer }
@@ -343,6 +344,7 @@ begin
   FAlertTitles[atImportant]:=StringToMarkdown(SAlertImportant);
   FAlertTitles[atWarning]:=StringToMarkdown(SAlertWarning);
   FAlertTitles[atCaution]:=StringToMarkdown(SAlertCaution);
+  FAlertTitles[atSuccess]:=StringToMarkdown(SAlertSuccess);
 end;
 
 
