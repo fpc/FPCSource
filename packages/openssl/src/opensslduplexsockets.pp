@@ -14,7 +14,7 @@
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit opensslduplexsockets;
-n{$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
