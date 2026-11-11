@@ -24,7 +24,7 @@ Const
   AF_IMPLINK       = 3;		{ arpanet imp addresses }
   AF_PUP           = 4;		{ pup protocols: e.g. BSP }
   AF_CHAOS         = 5;		{ mit CHAOS protocols }
-  AF_NETBIOS       = 6;		{ SMB protocols }
+  AF_NS            = 6;		{ XEROX NS protocols }
   AF_ISO           = 7;		{ ISO protocols }
   AF_OSI           = AF_ISO;
   AF_ECMA          = 8;		{ European computer manufacturers }
@@ -43,24 +43,24 @@ Const
   AF_CNT           = 21;	{ Computer Network Technology }
   pseudo_AF_RTIP   = 22;	{ Help Identify RTIP packets }
   AF_IPX           = 23;	{ Novell Internet Protocol }
-  AF_SIP           = 24;	{ Simple Internet Protocol }
+  AF_INET6         = 24;	{ IPv6 }
   pseudo_AF_PIP    = 25;	{ Help Identify PIP packets }
   AF_ISDN          = 26;	{ Integrated Services Digital Network}
   AF_E164          = AF_ISDN;	{ CCITT E.164 recommendation }
-  pseudo_AF_KEY    = 27;	{ Internal key-management function }
-  AF_INET6         = 28;	{ IPv6 }
-  AF_NATM          = 29;	{ native ATM access }
-  AF_ATM           = 30;	{ ATM }
+  AF_NATM          = 27;	{ native ATM access }
+  AF_ENCAP         = 28;
+  AF_SIP           = 29;	{ Simple Internet Protocol }
+  AF_KEY           = 30;
+  pseudo_AF_KEY    = AF_KEY;
   pseudo_AF_HDRCMPLT = 31;	{ Used by BPF to not rewrite headers
 					 * in interface output routine
                                          }
-  AF_NETGRAPH      = 32;	{ Netgraph sockets }
-  AF_SLOW          = 33;	{ 802.3ad slow protocol }
-  AF_SCLUSTER      = 34;	{ Sitara cluster protocol }
-  AF_ARP           = 35;
-  AF_BLUETOOTH     = 36;	{ Bluetooth sockets }
-  AF_IEEE80211     = 37;	{ IEEE 802.11 protocol }
-  AF_MAX           = 38;
+  AF_BLUETOOTH     = 32;	{ Bluetooth }
+  AF_MPLS          = 33;	{ MPLS }
+  pseudo_AF_PFLOW  = 34;	{ pflow }
+  pseudo_AF_PIPEX  = 35;	{ PIPEX }
+  AF_FRAME         = 36;	{ frame (Ethernet) sockets }
+  AF_MAX           = 37;
 
   {
    * Protocol families, same as address families for now.
@@ -75,7 +75,7 @@ Const
      PF_IMPLINK = AF_IMPLINK;
      PF_PUP = AF_PUP;
      PF_CHAOS = AF_CHAOS;
-     PF_NETBIOS = AF_NETBIOS;
+     PF_NS = AF_NS;
      PF_ISO = AF_ISO;
      PF_OSI = AF_ISO;
      PF_ECMA = AF_ECMA;
@@ -99,15 +99,16 @@ Const
      PF_RTIP = pseudo_AF_RTIP;
      PF_PIP = pseudo_AF_PIP;
      PF_ISDN = AF_ISDN;
-     PF_KEY = pseudo_AF_KEY;
      PF_INET6 = AF_INET6;
      PF_NATM = AF_NATM;
-     PF_ATM = AF_ATM;
-     PF_NETGRAPH = AF_NETGRAPH;
-     PF_SLOW = AF_SLOW;
-     PF_SCLUSTER = AF_SCLUSTER;
-     PF_ARP = AF_ARP;
+     PF_ENCAP = AF_ENCAP;
+     PF_KEY = AF_KEY;
+     PF_BPF = pseudo_AF_HDRCMPLT;
      PF_BLUETOOTH = AF_BLUETOOTH;
+     PF_MPLS = AF_MPLS;
+     PF_PFLOW = pseudo_AF_PFLOW;
+     PF_PIPEX = pseudo_AF_PIPEX;
+     PF_FRAME = AF_FRAME;
      PF_MAX = AF_MAX;
 
 
@@ -120,6 +121,8 @@ Const
 { Flags for the socket type in fpsocket and for fpaccept4 }
   SOCK_CLOEXEC  = $8000;
   SOCK_NONBLOCK = $4000;
+  SOCK_DNS      = $1000;
+  SOCK_CLOFORK  = $0800;
 
         SOL_SOCKET 	 = $FFFF;
         SO_DEBUG         = $0001;        { turn on debugging info recording }
@@ -132,7 +135,9 @@ Const
         SO_LINGER        = $0080;        { linger on close if data present }
         SO_OOBINLINE     = $0100;        { leave received OOB data in line }
         SO_REUSEPORT     = $0200;        { allow local address & port reuse }
-        SO_TIMESTAMP     = $0400;        { timestamp received dgram traffic }
+        SO_TIMESTAMP     = $0800;        { timestamp received dgram traffic }
+        SO_BINDANY       = $1000;        { allow bind to any address }
+        SO_ZEROIZE       = $2000;        { zero out all mbufs sent over socket }
 
 {
  * Additional options, not kept in so_options.
@@ -145,6 +150,11 @@ Const
         SO_RCVTIMEO      =$1006;        { receive timeout }
         SO_ERROR         =$1007;        { get error status and clear }
         SO_TYPE          =$1008;        { get socket type }
+        SO_RTABLE        =$1021;        { routing table to be used }
+        SO_PEERCRED      =$1022;        { get connect-time credentials }
+        SO_SPLICE        =$1023;        { splice data to other socket }
+        SO_DOMAIN        =$1024;        { get socket domain }
+        SO_PROTOCOL      =$1025;        { get socket protocol }
 
 
         SHUT_RD         =0;             { shut down the reading side }
@@ -260,12 +270,16 @@ Const
 	IPPROTO_PIM		= 103;		{ Protocol Independent Mcast }
 	IPPROTO_CARP		= 112;		{ CARP }
 	IPPROTO_PGM		= 113;		{ PGM }
+	IPPROTO_SCTP		= 132;		{ SCTP }
+	IPPROTO_UDPLITE		= 136;		{ UDP-Lite, RFC 3828 }
+	IPPROTO_MPLS		= 137;		{ unicast MPLS packet }
 	IPPROTO_PFSYNC		= 240;		{ PFSYNC }
 
 { last return value of *_input(), meaning "all job for this pkt is done".  }
 	IPPROTO_RAW             = 255;
 	IPPROTO_MAX		= 256;
 	IPPROTO_DONE		= 257;
+	IPPROTO_DIVERT		= 258;		{ Divert sockets }
 
 {
  * Options for use with [gs]etsockopt at the IP level.
@@ -291,13 +305,26 @@ Const
 	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
 	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
 	IP_PORTRANGE		= 19;   { int; range to choose for unspecified port }
-	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
+	IP_AUTH_LEVEL		= 20;   { int; authentication used }
+	IP_ESP_TRANS_LEVEL	= 21;   { int; transport encryption }
+	IP_ESP_NETWORK_LEVEL	= 22;   { int; full-packet encryption }
+	IP_IPSEC_LOCAL_ID	= 23;   { buf; IPsec local ID }
+	IP_IPSEC_REMOTE_ID	= 24;   { buf; IPsec remote ID }
+	IP_IPSEC_LOCAL_CRED	= 25;   { buf; was: IPsec local credentials }
+	IP_IPSEC_REMOTE_CRED	= 26;   { buf; was: IPsec remote credentials }
+	IP_IPSEC_LOCAL_AUTH	= 27;   { buf; was: IPsec local auth material }
+	IP_IPSEC_REMOTE_AUTH	= 28;   { buf; was: IPsec remote auth material }
+	IP_IPCOMP_LEVEL		= 29;   { int; compression used }
+	IP_RECVIF		= 30;   { bool; receive reception if w/dgram }
+	IP_RECVTTL		= 31;   { bool; receive IP TTL w/dgram }
+	IP_MINTTL		= 32;   { minimum TTL for packet or drop }
+	IP_RECVDSTPORT		= 33;   { bool; receive IP dst port w/dgram }
+	IP_PIPEX		= 34;   { bool; using PIPEX }
+	IP_RECVRTABLE		= 35;   { bool; receive rdomain w/dgram }
+	IP_IPSECFLOWINFO	= 36;   { bool; IPsec flow info for dgram }
+	IP_IPDEFTTL		= 37;   { int; IP TTL system default }
 
-{ for IPSEC }
-	IP_IPSEC_POLICY		= 21;   { int; set/get security policy }
-	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
-
-	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
+	IP_RTABLE		= $1021; { int; routing table, see SO_RTABLE }
 
 	IP_FW_TABLE_ADD		= 40;   { add entry }
 	IP_FW_TABLE_DEL		= 41;   { delete entry }
@@ -317,8 +344,6 @@ Const
 	IP_DUMMYNET_FLUSH	= 62;   { flush dummynet }
 	IP_DUMMYNET_GET		= 64;   { get entire dummynet pipes }
 
-	IP_RECVTTL		= 65;   { bool; receive IP TTL w/dgram }
-
 	IPV6_SOCKOPT_RESERVED1	= 3 ; { reserved for future use }
 	IPV6_UNICAST_HOPS	= 4 ; { int; IP6 hops }
 	IPV6_MULTICAST_IF	= 9 ; { u_int; setget IP6 multicast if  }
@@ -327,6 +352,17 @@ Const
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
+	IPV6_CHECKSUM		= 26; { int; checksum offset for raw socket }
+	IPV6_V6ONLY		= 27; { bool; make AF_INET6 sockets v6 only }
+	IPV6_RTHDRDSTOPTS	= 35; { ip6_dest; send dst option before rthdr }
+	IPV6_RECVPKTINFO	= 36; { bool; recv if, dst addr }
+	IPV6_RECVHOPLIMIT	= 37; { bool; recv hop limit }
+	IPV6_RECVRTHDR		= 38; { bool; recv routing header }
+	IPV6_RECVHOPOPTS	= 39; { bool; recv hop-by-hop option }
+	IPV6_RECVDSTOPTS	= 40; { bool; recv dst option after rthdr }
+	IPV6_USE_MIN_MTU	= 42; { bool; send packets at the minimum MTU }
+	IPV6_RECVPATHMTU	= 43; { bool; notify an according MTU }
+	IPV6_PATHMTU		= 44; { mtuinfo; get the current path MTU }
 
 	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
@@ -335,6 +371,18 @@ Const
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option before rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
+	IPV6_AUTH_LEVEL		= 53; { int; authentication used }
+	IPV6_ESP_TRANS_LEVEL	= 54; { int; transport encryption }
+	IPV6_ESP_NETWORK_LEVEL	= 55; { int; full-packet encryption }
+	IPV6_RECVTCLASS		= 57; { bool; recv traffic class values }
+	IPV6_AUTOFLOWLABEL	= 59; { bool; attach flowlabel automagically }
+	IPV6_IPCOMP_LEVEL	= 60; { int; compression }
+	IPV6_TCLASS		= 61; { int; send traffic class value }
+	IPV6_DONTFRAG		= 62; { bool; disable IPv6 fragmentation }
+	IPV6_PIPEX		= 63; { bool; using PIPEX }
+	IPV6_RECVDSTPORT	= 64; { bool; receive IP dst port w/dgram }
+	IPV6_MINHOPCOUNT	= 65; { int; minimum recv hop limit }
+	IPV6_RTABLE		= $1021; { int; routing table, see SO_RTABLE }
 
   { Flags for send, recv etc. }
   MSG_OOB       = $0001;              { Process out-of-band data}
@@ -350,6 +398,7 @@ Const
   MSG_NOSIGNAL  = $0400;              { Do not generate SIGPIPE }
   MSG_CMSG_CLOEXEC = $0800;           { Close-on-exec for received descriptors }
   MSG_WAITFORONE = $1000;             { recvmmsg: wait for one message }
+  MSG_CMSG_CLOFORK = $2000;           { Close-on-fork for received descriptors }
 
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
@@ -357,13 +406,13 @@ Const
      TCP_NODELAY = $01;
   { set maximum segment size  }
      TCP_MAXSEG = $02;
-  { don't push last block of write  }
-     TCP_NOPUSH = $04;
-  { don't use TCP options  }
-     TCP_NOOPT = $08;
-  { use MD5 digests (RFC2385)  }
-     TCP_MD5SIG = $10;
+  { enable TCP MD5 signature option  }
+     TCP_MD5SIG = $04;
+  { enable SACKs (if disabled by def.)  }
+     TCP_SACK_ENABLE = $08;
   { retrieve tcp_info structure  }
-     TCP_INFO = $20;
+     TCP_INFO = $09;
+  { don't push last block of write  }
+     TCP_NOPUSH = $10;
 
 

@@ -461,7 +461,12 @@ CONST
         AF_KEY          = 30;
         pseudo_AF_HDRCMPLT = 31;                { Used by BPF to not rewrite headers
                                            in interface output routine }
-        AF_MAX          = 32;
+        AF_BLUETOOTH    = 32;           { Bluetooth }
+        AF_MPLS         = 33;           { MPLS }
+        pseudo_AF_PFLOW = 34;           { pflow }
+        pseudo_AF_PIPEX = 35;           { PIPEX }
+        AF_FRAME        = 36;           { frame (Ethernet) sockets }
+        AF_MAX          = 37;
 
 {
  * Protocol families, same as address families for now.
@@ -498,6 +503,12 @@ CONST
         PF_ENCAP        = AF_ENCAP       ;
         PF_SIP          = AF_SIP         ;
         PF_KEY          = AF_KEY         ;
+        PF_BPF          = pseudo_AF_HDRCMPLT;
+        PF_BLUETOOTH    = AF_BLUETOOTH   ;
+        PF_MPLS         = AF_MPLS        ;
+        PF_PFLOW        = pseudo_AF_PFLOW;
+        PF_PIPEX        = pseudo_AF_PIPEX;
+        PF_FRAME        = AF_FRAME       ;
         PF_MAX          = AF_MAX         ;
 
 {
