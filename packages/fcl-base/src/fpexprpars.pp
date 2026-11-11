@@ -58,6 +58,12 @@ Type
 
   { TFPExpressionScanner }
 
+  TOperatorAlias = record
+    Alias : AnsiString;
+    TokenType : TTokenType;
+  end;
+  TOperatorAliasArray = Array of TOperatorAlias;
+
   TFPExpressionScanner = Class(TObject)
     FSource : AnsiString;
     LSource,
@@ -66,23 +72,48 @@ Type
     FToken : AnsiString;
     FTokenType : TTokenType;
   private
+    FStringQuoteChar : AnsiChar;
+    FIdentifierQuoteChar : AnsiChar;
+    FOperatorAliases : TOperatorAliasArray;
     function GetCurrentChar: AnsiChar;
+    function GetOperatorAlias(aIndex : Integer): TOperatorAlias;
+    function GetOperatorAliasCount: Integer;
     procedure ScanError(const Msg: AnsiString);
+    procedure CheckQuoteChar(aValue, aOther : AnsiChar);
+    procedure SetIdentifierQuoteChar(aValue: AnsiChar);
+    procedure SetStringQuoteChar(aValue: AnsiChar);
   protected
     procedure SetSource(const AValue: AnsiString ); virtual;
     function DoIdentifier: TTokenType;
     function DoNumber(AKind: TNumberKind): TTokenType;
-    function DoDelimiter: TTokenType;
+    function DoDelimiter: TTokenType; virtual;
     function DoString: TTokenType;
+    function DoOperatorAlias(aIndex : Integer): TTokenType;
+    // Index of the longest operator alias at the current position, -1 if none
+    function MatchOperatorAlias : Integer;
     Function NextPos : AnsiChar; // inline;
     procedure SkipWhiteSpace; // inline;
-    function IsWordDelim(C : AnsiChar) : Boolean; // inline;
-    function IsDelim(C : AnsiChar) : Boolean; // inline;
+    function IsWordDelim(C : AnsiChar) : Boolean; virtual;
+    function IsDelim(C : AnsiChar) : Boolean; virtual;
     function IsDigit(C : AnsiChar; AKind: TNumberKind) : Boolean; // inline;
     function IsAlpha(C : AnsiChar) : Boolean; // inline;
   public
-    Constructor Create;
-    Function GetToken : TTokenType;
+    // Create a scanner with the default quote characters and no operator aliases
+    Constructor Create; virtual;
+    // Scan the next token from the source
+    Function GetToken : TTokenType; virtual;
+    // Map aAlias (a sequence of bytes, e.g. UTF-8) to an operator or keyword token
+    Procedure AddOperatorAlias(const aAlias : AnsiString; aTokenType : TTokenType);
+    // Remove all operator aliases
+    Procedure ClearOperatorAliases;
+    // Registered operator aliases
+    Property OperatorAliases[aIndex : Integer] : TOperatorAlias Read GetOperatorAlias;
+    // Number of registered operator aliases
+    Property OperatorAliasCount : Integer Read GetOperatorAliasCount;
+    // Character that delimits string literals, a doubled one inside the literal stands for itself
+    Property StringQuoteChar : AnsiChar Read FStringQuoteChar Write SetStringQuoteChar;
+    // Character that delimits quoted (parts of) identifiers
+    Property IdentifierQuoteChar : AnsiChar Read FIdentifierQuoteChar Write SetIdentifierQuoteChar;
     Property Token : AnsiString Read FToken;
     Property TokenType : TTokenType Read FTokenType;
     Property Source : AnsiString Read FSource Write SetSource;
@@ -767,7 +798,8 @@ Type
     Function TokenType : TTokenType;
     Function CurrentToken :  AnsiString;
     Procedure CreateHashList;
-    Property Scanner : TFPExpressionScanner Read FScanner;
+    // Create the scanner used to tokenize the expression
+    function CreateScanner : TFPExpressionScanner; virtual;
     Property ExprNode : TFPExprNode Read FExprNode;
     Property Dirty : Boolean Read FDirty;
     Property ExtractingIdentifiers : Boolean Read GetExtractingIdentifiers;
@@ -791,6 +823,8 @@ Type
     Property AsString : AnsiString  Read GetAsString;
     Property AsBoolean : Boolean Read GetAsBoolean;
     Property AsDateTime : TDateTime Read GetAsDateTime;
+    // Scanner that tokenizes the expression; configure it before setting Expression
+    Property Scanner : TFPExpressionScanner Read FScanner;
   Published
     // The Expression to parse
     property Expression : Ansistring read FExpression write SetExpression;
@@ -870,13 +904,17 @@ const
   Delimiters    = Operators+[',','(',')'];
   Symbols       = ['%']+Delimiters;
   WordDelimiters = WhiteSpace + Symbols;
+  InvalidQuoteChars = WordDelimiters + Digits + ['A'..'Z','a'..'z','_',cNull,
+                      cHexIdentifier,cOctalIdentifier,cBinaryIdentifier];
+  AliasTokenTypes = [Low(TTokenType)..High(TTokenType)]-[ttNumber,ttString,ttIdentifier,ttEOF];
+  InvalidAliasStart = WhiteSpace + ['0'..'9','A'..'Z','a'..'z','_',cNull];
 
 var
   FileFormatSettings: TFormatSettings;
 
 Resourcestring
   SErrCannotRecursivelyExtractIdentifiers = 'Cannot recursively extract identifiers';
-  SBadQuotes        = 'Unterminated ';
+  SBadQuotes        = 'Unterminated string: %s';
   SUnknownDelimiter = 'Unknown delimiter character: "%s"';
   SErrUnknownCharacter = 'Unknown character at pos %d: "%s"';
   SErrUnexpectedEndOfExpression = 'Unexpected end of expression';
@@ -893,6 +931,9 @@ Resourcestring
   SErrInvalidNumberChar = 'Unexpected character in number : %s';
   SErrInvalidNumber = 'Invalid numerical value : %s';
   SErrUnterminatedIdentifier = 'Unterminated quoted identifier: %s';
+  SErrInvalidQuoteChar = 'Invalid quote character: "%s"';
+  SErrSameQuoteChars = 'String and identifier quote characters must differ: "%s"';
+  SErrInvalidOperatorAlias = 'Invalid operator alias "%s" for token %s';
   SErrNoOperand = 'No operand for unary operation %s';
   SErrNoleftOperand = 'No left operand for binary operation %s';
   SErrNoRightOperand = 'No right operand for binary operation %s';
@@ -1236,7 +1277,121 @@ end;
 
 constructor TFPExpressionScanner.Create;
 begin
+  FStringQuoteChar:=cSingleQuote;
+  FIdentifierQuoteChar:='"';
   Source:='';
+end;
+
+
+procedure TFPExpressionScanner.CheckQuoteChar(aValue, aOther: AnsiChar);
+
+begin
+  if aValue in InvalidQuoteChars then
+    ScanError(Format(SErrInvalidQuoteChar,[aValue]));
+  if aValue=aOther then
+    ScanError(Format(SErrSameQuoteChars,[aValue]));
+end;
+
+
+procedure TFPExpressionScanner.SetStringQuoteChar(aValue: AnsiChar);
+
+begin
+  if aValue=FStringQuoteChar then
+    Exit;
+  CheckQuoteChar(aValue,FIdentifierQuoteChar);
+  FStringQuoteChar:=aValue;
+end;
+
+
+procedure TFPExpressionScanner.SetIdentifierQuoteChar(aValue: AnsiChar);
+
+begin
+  if aValue=FIdentifierQuoteChar then
+    Exit;
+  CheckQuoteChar(aValue,FStringQuoteChar);
+  FIdentifierQuoteChar:=aValue;
+end;
+
+
+function TFPExpressionScanner.GetOperatorAlias(aIndex: Integer): TOperatorAlias;
+
+begin
+  Result:=FOperatorAliases[aIndex];
+end;
+
+
+function TFPExpressionScanner.GetOperatorAliasCount: Integer;
+
+begin
+  Result:=Length(FOperatorAliases);
+end;
+
+
+procedure TFPExpressionScanner.AddOperatorAlias(const aAlias: AnsiString; aTokenType: TTokenType);
+
+var
+  lName : AnsiString;
+  I : Integer;
+
+begin
+  if (aAlias='') or not (aTokenType in AliasTokenTypes) or (aAlias[1] in InvalidAliasStart) then
+    begin
+    lName:=GetEnumName(TypeInfo(TTokenType),Ord(aTokenType));
+    ScanError(Format(SErrInvalidOperatorAlias,[aAlias,lName]));
+    end;
+  for I:=0 to Length(FOperatorAliases)-1 do
+    if FOperatorAliases[I].Alias=aAlias then
+      begin
+      FOperatorAliases[I].TokenType:=aTokenType;
+      Exit;
+      end;
+  I:=Length(FOperatorAliases);
+  SetLength(FOperatorAliases,I+1);
+  FOperatorAliases[I].Alias:=aAlias;
+  FOperatorAliases[I].TokenType:=aTokenType;
+end;
+
+
+procedure TFPExpressionScanner.ClearOperatorAliases;
+
+begin
+  FOperatorAliases:=nil;
+end;
+
+
+function TFPExpressionScanner.MatchOperatorAlias: Integer;
+
+var
+  I,lLen,lBest : Integer;
+
+begin
+  Result:=-1;
+  if (Length(FOperatorAliases)=0) or (FPos<1) or (FPos>LSource) then
+    Exit;
+  lBest:=0;
+  for I:=0 to Length(FOperatorAliases)-1 do
+    begin
+    lLen:=Length(FOperatorAliases[I].Alias);
+    if (lLen>lBest) and (FPos+lLen-1<=LSource)
+       and (CompareByte(FChar^,FOperatorAliases[I].Alias[1],lLen)=0) then
+      begin
+      Result:=I;
+      lBest:=lLen;
+      end;
+    end;
+end;
+
+
+function TFPExpressionScanner.DoOperatorAlias(aIndex: Integer): TTokenType;
+
+var
+  I : Integer;
+
+begin
+  FToken:=FOperatorAliases[aIndex].Alias;
+  for I:=1 to Length(FToken) do
+    NextPos;
+  Result:=FOperatorAliases[aIndex].TokenType;
 end;
 
 
@@ -1343,8 +1498,8 @@ Function TFPExpressionScanner.DoString : TTokenType;
 
   begin
     Result:=(C=cNull) or
-            ((C=cSingleQuote) and
-              Not ((FPos<LSource) and (FSource[FPos+1]=cSingleQuote)));
+            ((C=FStringQuoteChar) and
+              Not ((FPos<LSource) and (FSource[FPos+1]=FStringQuoteChar)));
   end;
 
 
@@ -1357,12 +1512,12 @@ begin
   while not TerminatingChar(C) do
     begin
     FToken:=FToken+C;
-    If C=cSingleQuote then
+    If C=FStringQuoteChar then
       NextPos;
     C:=NextPos;
     end;
   if (C=cNull) then
-    ScanError(SBadQuotes);
+    ScanError(Format(SBadQuotes,[FStringQuoteChar+FToken]));
   Result := ttString;
   FTokenType:=Result;
   NextPos;
@@ -1420,6 +1575,8 @@ begin
   prevC := #0;
   while (C <> cNull) do
   begin
+    if MatchOperatorAlias>=0 then
+      break;
     if IsWordDelim(C) then
       case AKind of
         nkDecimal:
@@ -1448,19 +1605,19 @@ Var
   S :  AnsiString;
 begin
   C:=CurrentChar;
-  while (not IsWordDelim(C)) and (C<>cNull) do
+  while (not IsWordDelim(C)) and (C<>cNull) and (MatchOperatorAlias<0) do
     begin
-    if (C<>'"') then
+    if (C<>FIdentifierQuoteChar) then
       FToken:=FToken+C
     else
       begin
       C:=NextPos;
-      While Not (C in [cNull,'"']) do
+      While Not (C in [cNull,FIdentifierQuoteChar]) do
         begin
         FToken:=FToken+C;
         C:=NextPos;
         end;
-      if (C<>'"') then
+      if (C<>FIdentifierQuoteChar) then
         ScanError(Format(SErrUnterminatedIdentifier,[FToken]));
       end;
     C:=NextPos;
@@ -1492,16 +1649,20 @@ Function TFPExpressionScanner.GetToken : TTokenType;
 
 Var
   C : AnsiChar;
+  lAlias : Integer;
 
 begin
   FToken := '';
   SkipWhiteSpace;
   C:=FChar^;
+  lAlias:=MatchOperatorAlias;
   if c=cNull then
     Result:=ttEOF
+  else if lAlias>=0 then
+    Result:=DoOperatorAlias(lAlias)
   else if IsDelim(C) then
     Result:=DoDelimiter
-  else if (C=cSingleQuote) then
+  else if (C=FStringQuoteChar) then
     Result:=DoString
   else if (C=cHexIdentifier) then
     Result := DoNumber(nkHex)
@@ -1511,7 +1672,7 @@ begin
     Result := DoNumber(nkBinary)
   else if IsDigit(C, nkDecimal) then
     Result:=DoNumber(nkDecimal)
-  else if IsAlpha(C) or (C='"') then
+  else if IsAlpha(C) or (C=FIdentifierQuoteChar) then
     Result:=DoIdentifier
   else
     ScanError(Format(SErrUnknownCharacter,[FPos,C]))  ;
@@ -1580,7 +1741,7 @@ begin
   inherited Create(AOwner);
   FIdentifiers:=TFPExprIdentifierDefs.Create(TFPExprIdentifierDef);
   FIdentifiers.FParser:=Self;
-  FScanner:=TFPExpressionScanner.Create;
+  FScanner:=CreateScanner;
   FHashList:=TFPHashObjectList.Create(False);
 end;
 
@@ -1592,6 +1753,13 @@ begin
   FreeAndNil(FScanner);
   inherited Destroy;
 end;
+
+function TFPExpressionParser.CreateScanner: TFPExpressionScanner;
+
+begin
+  Result:=TFPExpressionScanner.Create;
+end;
+
 
 function TFPExpressionParser.GetToken: TTokenType;
 
