@@ -27,6 +27,10 @@ type
     procedure TestCopyFromDataset; //is copied dataset identical to original?
     procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
     Procedure TestLocateUTF8;
+    // Saves a dataset without records and loads it from a stream and from a file (bug 41848)
+    procedure TestSaveLoadEmpty;
+    // Deletes the only record, appends another and checks the saved data
+    procedure TestDeleteOnlyRecord;
   end;
 
 implementation
@@ -164,6 +168,87 @@ begin
     AssertTrue('ANSI 1 ok',Locate('second','morenative',[]));
   finally
     Free;
+  end;
+end;
+
+
+procedure TTestSpecificTMemDataset.TestSaveLoadEmpty;
+
+var
+  lSource, lTarget: TMemDataset;
+  lStream: TMemoryStream;
+  lFileName: String;
+
+begin
+  lFileName:=GetTempDir+'memds41848.dat';
+  lStream:=TMemoryStream.Create;
+  lSource:=TMemDataset.Create(nil);
+  lTarget:=TMemDataset.Create(nil);
+  try
+    lSource.FieldDefs.Add('ID', ftInteger);
+    lSource.FieldDefs.Add('NAME', ftString, 20);
+    lSource.CreateTable;
+    lSource.Open;
+    lSource.SaveToStream(lStream);
+    lSource.SaveToFile(lFileName);
+    lStream.Position:=0;
+    lTarget.LoadFromStream(lStream);
+    lTarget.Open;
+    CheckEquals(2, lTarget.FieldDefs.Count, 'Field definitions loaded from the stream');
+    CheckEquals(0, lTarget.RecordCount, 'Records loaded from the stream');
+    lTarget.Close;
+    lTarget.Clear;
+    lTarget.FileName:=lFileName;
+    lTarget.Open;
+    CheckEquals(2, lTarget.FieldDefs.Count, 'Field definitions loaded from the file');
+    CheckEquals(0, lTarget.RecordCount, 'Records loaded from the file');
+    lTarget.Close;
+  finally
+    lTarget.Free;
+    lSource.Free;
+    lStream.Free;
+    DeleteFile(lFileName);
+  end;
+end;
+
+procedure TTestSpecificTMemDataset.TestDeleteOnlyRecord;
+
+var
+  lSource, lTarget: TMemDataset;
+  lStream: TMemoryStream;
+
+begin
+  lStream:=TMemoryStream.Create;
+  lSource:=TMemDataset.Create(nil);
+  lTarget:=TMemDataset.Create(nil);
+  try
+    lSource.FieldDefs.Add('ID', ftInteger);
+    lSource.CreateTable;
+    lSource.Open;
+    lSource.AppendRecord([1]);
+    lSource.First;
+    lSource.Delete;
+    CheckEquals(0, lSource.RecordCount, 'Records after deleting the only record');
+    lSource.SaveToStream(lStream);
+    lStream.Position:=0;
+    lTarget.LoadFromStream(lStream);
+    lTarget.Open;
+    CheckEquals(0, lTarget.RecordCount, 'Records loaded after deleting the only record');
+    lTarget.Close;
+    lStream.Clear;
+    lSource.AppendRecord([2]);
+    lSource.SaveToStream(lStream);
+    lStream.Position:=0;
+    lTarget.LoadFromStream(lStream);
+    lTarget.Open;
+    CheckEquals(1, lTarget.RecordCount, 'Records loaded after delete and append');
+    lTarget.First;
+    CheckEquals(2, lTarget.FieldByName('ID').AsInteger, 'Value of the appended record');
+    lTarget.Close;
+  finally
+    lTarget.Free;
+    lSource.Free;
+    lStream.Free;
   end;
 end;
 

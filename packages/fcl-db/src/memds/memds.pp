@@ -598,7 +598,9 @@ begin
     else
       begin                                  //Delete first Rec
       FStream.Position:=MDSGetRecordOffset(FCurrRecNo+1);
-      TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
+      // CopyFrom with a count of 0 copies the whole stream
+      if FRecCount>1 then
+        TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
       end;
     FStream.LoadFromStream(TS);
     Dec(FRecCount);
@@ -701,7 +703,9 @@ begin
   Size:=ReadInteger(F);
   FBlobs.Clear;
   FStream.Clear;
-  FStream.CopyFrom(F,Size);
+  // CopyFrom with a count of 0 copies the whole stream
+  if Size>0 then
+    FStream.CopyFrom(F,Size);
   FRecCount:=Size div FRecSize;
   FCurrRecNo:=-1;
 end;
@@ -802,7 +806,8 @@ begin
     WriteMarker(F,smData);
     WriteInteger(F,FStream.Size);
     FStream.Position:=0;
-    F.CopyFrom(FStream,FStream.Size);
+    if FStream.Size>0 then
+      F.CopyFrom(FStream,FStream.Size);
     FFileModified:=False;
     end
   else
