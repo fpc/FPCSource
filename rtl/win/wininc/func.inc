@@ -266,8 +266,8 @@ function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; e
 function FileTimeToDosDateTime(lpFileTime:LPFILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
-// GetTickCount64 requires Windows Vista/Windows Server 2008 or higher
-function GetTickCount64:ULONGLONG; external 'kernel32' name 'GetTickCount64';
+// Calls kernel32 GetTickCount64 (Vista/Server 2008 and later) when present, GetTickCount otherwise
+function GetTickCount64:ULONGLONG;
 function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
 function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
 function CreatePipe(hReadPipe:PHANDLE; hWritePipe:PHANDLE; lpPipeAttributes:LPSECURITY_ATTRIBUTES; nSize:DWORD):WINBOOL; external 'kernel32' name 'CreatePipe';
@@ -2562,6 +2562,31 @@ procedure YieldProcessor;
 begin
 end;
 {$endif}
+
+
+type
+  TGetTickCount64Func = function:ULONGLONG; stdcall;
+
+var
+  GetTickCount64Func: TGetTickCount64Func = nil;
+
+function GetTickCount64:ULONGLONG;
+
+var
+  lFunc: TGetTickCount64Func;
+
+begin
+  lFunc:=GetTickCount64Func;
+  if not Assigned(lFunc) then
+    begin
+    lFunc:=TGetTickCount64Func(GetProcAddress(GetModuleHandleA('kernel32.dll'),'GetTickCount64'));
+    GetTickCount64Func:=lFunc;
+    end;
+  if Assigned(lFunc) then
+    GetTickCount64:=lFunc()
+  else
+    GetTickCount64:=GetTickCount;
+end;
 
 
 {$endif read_implementation}

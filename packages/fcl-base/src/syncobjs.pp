@@ -557,11 +557,11 @@ begin
     Acquire;
     Exit(wrSignaled);
     end;
-  lStart:=GetTickCount64;
+  lStart:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
   lWait.Reset;
   while not TryEnter do
     begin
-    if (GetTickCount64-lStart)>=aTimeout then
+    if ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64-lStart)>=aTimeout then
       Exit(wrTimeout);
     lWait.SpinCycle;
     end;
@@ -1890,7 +1890,7 @@ var
 begin
   if aTimeout=INFINITE then
     Exit(INFINITE);
-  lElapsed:=GetTickCount64-aStart;
+  lElapsed:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64-aStart;
   if lElapsed>=aTimeout then
     Result:=0
   else
@@ -1984,7 +1984,7 @@ begin
     Exit(wrSignaled);
   if aTimeout=0 then
     Exit(wrTimeout);
-  lStart:=GetTickCount64;
+  lStart:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
   lSpin.Reset;
   for i:=1 to FSpinCount do
     begin
@@ -2113,7 +2113,7 @@ begin
     Exit(wrSignaled);
   if aTimeout=0 then
     Exit(wrTimeout);
-  lStart:=GetTickCount64;
+  lStart:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
   lSpin.Reset;
   for i:=1 to FSpinCount do
     begin
@@ -2385,10 +2385,10 @@ begin
     System.Exit(True);
 
   LTotalMs:=Round(Timeout.TotalMilliseconds);
-  LStart:=GetTickCount64;
+  LStart:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
   LSpinner.Reset;
 
-  while (GetTickCount64-LStart)<LTotalMs do
+  while ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64-LStart)<LTotalMs do
     begin
     LSpinner.SpinCycle;
     if TryEnter then 
