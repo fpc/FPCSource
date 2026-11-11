@@ -150,6 +150,8 @@ type
     destructor Destroy; override;
     Class Function Select(Var aRead,aWrite,aExceptions : TSocketStreamArray; aTimeOut: Integer): Boolean; virtual;
     Procedure Close;
+    // Releases a read blocked on another thread: shuts the socket down and, on Windows, cancels the pending receive. Nothing is closed or freed.
+    Procedure WakeBlockedRead;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     function Select(aCheck : TSocketStates; TimeOut : Integer): TSocketStates;
     Function CanRead(TimeOut : Integer): Boolean; virtual;
@@ -830,6 +832,32 @@ begin
     CloseSocket(FSocket);
   FSocket.FD:=-1;
   FClosed:=True;
+end;
+
+{$IFDEF Windows}
+type
+  TCancelIoExFunc = function(aHandle: THandle; aOverlapped: Pointer): BOOL; stdcall;
+{$ENDIF}
+
+procedure TSocketStream.WakeBlockedRead;
+
+var
+  lFD: TSocket;
+{$IFDEF Windows}
+  lCancelIoEx: TCancelIoExFunc;
+{$ENDIF}
+
+begin
+  lFD:=FSocket.FD;
+  if SocketInvalid(lFD) then
+    Exit;
+  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpShutdown(lFD,{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.SHUT_RDWR);
+{$IFDEF Windows}
+  // Releases a receive already blocked on another thread
+  lCancelIoEx:=TCancelIoExFunc(GetProcAddress(GetModuleHandle('kernel32.dll'),'CancelIoEx'));
+  if Assigned(lCancelIoEx) then
+    lCancelIoEx(THandle(lFD),Nil);
+{$ENDIF}
 end;
 
 procedure TSocketStream.GetSockOptions;
