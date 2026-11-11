@@ -819,12 +819,16 @@ end;
 
 procedure TSocketStream.Close;
 begin
+  if FClosed then
+    Exit;
   DoOnClose;
   if FSocketInitialized then
     FHandler.Close; // Ignore the result
   FSocketInitialized:=False;
   FreeAndNil(FHandler);
-  CloseSocket(FSocket);
+  if not SocketInvalid(FSocket.FD) then
+    CloseSocket(FSocket);
+  FSocket.FD:=-1;
   FClosed:=True;
 end;
 
@@ -1848,7 +1852,10 @@ begin
     begin
     IsError:=Not FHandler.Connect;
     if IsError then
+      begin
       CloseSocket(FSocket);
+      FSocket.FD:=-1;
+      end;
     end;
   If IsError then
     if TimeoutResult=ctrTimeout then
