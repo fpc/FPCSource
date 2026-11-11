@@ -24,6 +24,12 @@ Type
     FCTX : TSSLContext;
     FSSLLastErrorString: string;
     FSSLLastError : Integer;
+    FLock : TRTLCriticalSection;
+    FNonBlocking : Boolean;
+    procedure SetNonBlockingIO(aValue: Boolean);
+    function WaitForSocket(aCheck: TSocketStates; aDeadline: QWord): Boolean;
+    function DeadlineFromTimeout: QWord;
+    procedure SetIOError(aError: Integer);
   Protected
     procedure SetSSLLastErrorString(AValue: string);
     Function FetchErrorInfo: Boolean;
@@ -82,6 +88,14 @@ Function H2CipherAdequate(const aVersion, aCipherName: string): Boolean;
 Function H2TLSFloorMet(const aVersion, aCipherName: string): Boolean;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Net.FPSockets;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  fpsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TSocketHandler }
 Resourcestring
@@ -244,7 +258,10 @@ begin
      if Result then
        Result:= DoVerifyCert;
      if Result then
+       begin
+       SetNonBlockingIO(True);
        SetSSLActive(True);
+       end;
      end;
     end;
 end;
@@ -354,6 +371,7 @@ end;
 constructor TOpenSSLSocketHandler.create;
 begin
   inherited create;
+  InitCriticalSection(FLock);
   MaybeInitSSLInterface;
 end;
 
@@ -362,6 +380,74 @@ begin
   FreeAndNil(FCTX);
   FreeAndNil(FSSL);
   inherited destroy;
+  DoneCriticalSection(FLock);
+end;
+
+procedure TOpenSSLSocketHandler.SetNonBlockingIO(aValue: Boolean);
+
+var
+  lSocket: TFPSocket;
+
+begin
+  if (FNonBlocking=aValue) or not Assigned(Socket) then
+    Exit;
+  lSocket:=Default(TFPSocket);
+  lSocket.FD:=Socket.Handle;
+  SetNonBlocking(lSocket,aValue);
+  FNonBlocking:=aValue;
+end;
+
+
+function TOpenSSLSocketHandler.DeadlineFromTimeout: QWord;
+
+begin
+  if Socket.IOTimeout>0 then
+    Result:=GetTickCount64+QWord(Socket.IOTimeout)
+  else
+    Result:=0;
+end;
+
+
+procedure TOpenSSLSocketHandler.SetIOError(aError: Integer);
+
+begin
+  FLastError:=0;
+  FSSLLastError:=0;
+  FSSLLastErrorString:='';
+  if (aError=0) or (aError=SSL_ERROR_ZERO_RETURN) then
+    Exit;
+  if aError=SSL_ERROR_SYSCALL then
+    FLastError:=socketerror;
+  FetchErrorInfo;
+  FSSLLastError:=aError;
+end;
+
+function TOpenSSLSocketHandler.WaitForSocket(aCheck: TSocketStates; aDeadline: QWord): Boolean;
+
+const
+  cSliceMs = 1000;
+
+var
+  lNow: QWord;
+  lWait: Integer;
+
+begin
+  repeat
+    lWait:=cSliceMs;
+    if aDeadline<>0 then
+      begin
+      lNow:=GetTickCount64;
+      if lNow>=aDeadline then
+        Exit(False);
+      if aDeadline-lNow<cSliceMs then
+        lWait:=aDeadline-lNow;
+      end;
+    if inherited Select(aCheck,lWait)<>[] then
+      Exit(True);
+    // A select error is left to the next SSL call to report
+    if FLastError<>0 then
+      Exit(True);
+  until False;
 end;
 
 function TOpenSSLSocketHandler.InitContext(NeedCertificate:Boolean): Boolean;
@@ -444,6 +530,8 @@ begin
     Result:=False;
     Exit;                   // DoneContext already called SetSSLActive(False)
     end;
+  if Result then
+    SetNonBlockingIO(True);
   SetSSLActive(Result);
 end;
 
@@ -454,77 +542,113 @@ var
   r : integer;
 
 begin
-  Result:=assigned(FSsl);
-  if Result then
-    If Not BiDirectional then
-      Result:=CheckSSL(FSSL.Shutdown)
-    else
-      begin
-      r:=FSSL.Shutdown;
-      if r<>0 then
-        Result:=CheckSSL(r)
+  EnterCriticalSection(FLock);
+  try
+    // Shutdown runs on a blocking socket
+    SetNonBlockingIO(False);
+    Result:=assigned(FSsl);
+    if Result then
+      If Not BiDirectional then
+        Result:=CheckSSL(FSSL.Shutdown)
       else
         begin
-        Result:=fpShutdown(Socket.Handle,1)=0;
-        if Result then
-          Result:=CheckSSL(FSsl.Shutdown);
-        end
-      end;
-  If Result then
-    Result:=DoneContext;
+        r:=FSSL.Shutdown;
+        if r<>0 then
+          Result:=CheckSSL(r)
+        else
+          begin
+          Result:=fpShutdown(Socket.Handle,1)=0;
+          if Result then
+            Result:=CheckSSL(FSsl.Shutdown);
+          end
+        end;
+    If Result then
+      Result:=DoneContext;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
 end;
 
 function TOpenSSLSocketHandler.Send(Const Buffer; Count: Integer): Integer;
+
 var
   e: integer;
+
 begin
-  FLastError:=0;
-  FSSLLastError := 0;
-  FSSLLastErrorString:='';
   repeat
-    Result:=FSsl.Write(@Buffer,Count);
-    e:=FSsl.GetError(Result);
-  until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
-  if (E=SSL_ERROR_ZERO_RETURN) then
-    Result:=0
-  else if (e<>0) then
-    begin
-    FSSLLastError:=e;
-    if e=SSL_ERROR_SYSCALL then
-      FLastError:=socketerror;
+    EnterCriticalSection(FLock);
+    try
+      if not Assigned(FSSL) then
+        Exit(-1);
+      Result:=FSsl.Write(@Buffer,Count);
+      e:=FSsl.GetError(Result);
+      if not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]) then
+        begin
+        SetIOError(e);
+        if (e=SSL_ERROR_ZERO_RETURN) then
+          Result:=0;
+        end;
+    finally
+      LeaveCriticalSection(FLock);
     end;
+    if (e=SSL_ERROR_WANT_READ) then
+      WaitForSocket([sosCanRead],0)
+    else if (e=SSL_ERROR_WANT_WRITE) then
+      WaitForSocket([sosCanWrite],0);
+  until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
 end;
 
 function TOpenSSLSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
 
 var
   e: integer;
+  lDeadline: QWord;
+  lCheck: TSocketStates;
+
 begin
-  FLastError:=0;
-  FSSLLastError:=0;
-  FSSLLastErrorString:= '';
+  lDeadline:=DeadlineFromTimeout;
   repeat
-    Result:=FSSL.Read(@Buffer ,Count);
-    e:=FSSL.GetError(Result);
-    if (e=SSL_ERROR_WANT_READ) and (Socket.IOTimeout>0) then
-      e:=SSL_ERROR_ZERO_RETURN;
-  until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
-  if (E=SSL_ERROR_ZERO_RETURN) then
-    Result:=0
-  else if (e<>0) then
-    begin
-    FSSLLastError:=e;
-    if e=SSL_ERROR_SYSCALL then
-      FLastError:=socketerror;
+    EnterCriticalSection(FLock);
+    try
+      if not Assigned(FSSL) then
+        Exit(0);
+      Result:=FSSL.Read(@Buffer,Count);
+      e:=FSSL.GetError(Result);
+      // A blocking socket with a receive timeout reports the timeout as WANT_READ
+      if (e=SSL_ERROR_WANT_READ) and not FNonBlocking and (Socket.IOTimeout>0) then
+        e:=SSL_ERROR_ZERO_RETURN;
+      if not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]) then
+        begin
+        SetIOError(e);
+        if (e=SSL_ERROR_ZERO_RETURN) then
+          Result:=0;
+        end;
+    finally
+      LeaveCriticalSection(FLock);
     end;
+    if e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE] then
+      begin
+      if e=SSL_ERROR_WANT_READ then
+        lCheck:=[sosCanRead]
+      else
+        lCheck:=[sosCanWrite];
+      if not WaitForSocket(lCheck,lDeadline) then
+        Exit(0);
+      end;
+  until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
 end;
 
 function TOpenSSLSocketHandler.BytesAvailable: Integer;
 begin
-  if Assigned(FSSL) then
-    Result:=FSSL.Pending
-  else
-    Result:=0;
+  EnterCriticalSection(FLock);
+  try
+    if Assigned(FSSL) then
+      Result:=FSSL.Pending
+    else
+      Result:=0;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
 end;
 
 Function TOpenSSLSocketHandler.SSLLastError: integer;

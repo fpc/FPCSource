@@ -104,8 +104,8 @@ type
   EWSReadError = class(EWSTransportError);
   EWSWriteError = class(EWSTransportError);
 
-  { RFC protocol errors carry the close status which should be returned to
-    the peer before the connection is discarded. }
+  { RFC protocol error with the close status to return to the peer before
+    the connection is discarded. }
   EWSProtocolError = class(EWebSocket)
   private
     FCloseCode: Word;
@@ -232,6 +232,8 @@ type
     function ReadSocket(var aBuffer; aCount : LongInt) : LongInt;
     Procedure ReadSocketBuffer(var aBuffer; aCount : LongInt);
     function WriteSocket(const aBuffer; aCount : LongInt) : LongInt;
+    // Error text for a failed read or write: the handler's description when aErrorCode is 0 (TLS errors), else the system message
+    function HandlerErrorText(aErrorCode : LongInt) : String;
   Public
     Constructor Create (aSocket : TSocketStream);
     Destructor Destroy; override;
@@ -890,23 +892,36 @@ end;
 function TWSSocketHelper.ReadSocket(var aBuffer; aCount: LongInt): LongInt;
 var
   ErrorCode: LongInt;
+  ErrorText: String;
   ReadResult: LongInt;
 begin
   ErrorCode:=0;
+  ErrorText:='';
   BeginRead;
   try
     ReadResult:=FSocket.Read(aBuffer,aCount);
     if ReadResult<0 then
+      begin
       { Capture this before EndRead performs any synchronization operation. }
       ErrorCode:=WSLastSocketError;
+      ErrorText:=HandlerErrorText(ErrorCode);
+      end;
   finally
     EndRead;
   end;
   if ReadResult<0 then
     raise EWSReadError.Create(
-      Format(SErrReadReturnedError,
-        [ErrorCode,SysErrorMessage(ErrorCode)]),ErrorCode);
+      Format(SErrReadReturnedError,[ErrorCode,ErrorText]),ErrorCode);
   Result:=ReadResult;
+end;
+
+function TWSSocketHelper.HandlerErrorText(aErrorCode: LongInt): String;
+begin
+  Result:='';
+  if (aErrorCode=0) and Assigned(FSocket.Handler) then
+    Result:=FSocket.Handler.GetLastErrorDescription;
+  if Result='' then
+    Result:=SysErrorMessage(aErrorCode);
 end;
 
 procedure TWSSocketHelper.ReadSocketBuffer(var aBuffer; aCount: LongInt);
@@ -945,7 +960,7 @@ begin
     ErrorCode:=WSLastSocketError;
     raise EWSWriteError.Create(
       Format(SErrWriteReturnedError,
-        [ErrorCode,SysErrorMessage(ErrorCode)]),ErrorCode);
+        [ErrorCode,HandlerErrorText(ErrorCode)]),ErrorCode);
     end;
 end;
 
