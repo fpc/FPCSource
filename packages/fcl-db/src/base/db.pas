@@ -193,6 +193,9 @@ type
     procedure SetPrecision(const AValue: Longint);
     procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
+  protected
+    // Set the code page of the character data
+    procedure SetCodePage(const aValue: TSystemCodePage);
   public
     constructor Create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;

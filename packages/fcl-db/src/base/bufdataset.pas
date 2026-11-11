@@ -35,6 +35,21 @@ type
   TResolverErrorEvent = procedure(Sender: TObject; DataSet: TCustomBufDataset; E: EUpdateError;
     UpdateKind: TUpdateKind; var Response: TResolverResponse) of object;
 
+  { TBufFieldDef }
+
+  TBufFieldDef = class(TFieldDef)
+  published
+    // Code page of ftString, ftFixedChar and ftMemo data
+    property Codepage write SetCodePage default CP_ACP;
+  end;
+
+  { TBufFieldDefs }
+
+  TBufFieldDefs = class(TFieldDefs)
+  protected
+    class function FieldDefClass : TFieldDefClass; override;
+  end;
+
   { TBlobBuffer }
 
   PBlobBuffer = ^TBlobBuffer;
@@ -376,6 +391,8 @@ type
     class function RowStateToByte(const ARowState : TRowState) : byte;
     class function ByteToRowState(const AByte : Byte) : TRowState;
     procedure RestoreBlobField(AField: TField; ASource: pointer; ASize: integer);
+    // Set the code page of a field definition read from the stream
+    class procedure SetFieldDefCodePage(aFieldDef: TFieldDef; aCodePage: TSystemCodePage);
     property DataSet: TCustomBufDataset read FDataSet;
     property Stream: TStream read FStream;
   public
@@ -415,7 +432,8 @@ type
        Version: 1 byte
      Columns section:
        Number of Fields: 2 bytes
-       For each FieldDef: Name, DisplayName, Size: 2 bytes, DataType: 2 bytes, ReadOnlyAttr: 1 byte
+       For each FieldDef: Name, DisplayName, Size: 2 bytes, DataType: 2 bytes, ReadOnlyAttr: 1 byte,
+                          CodePage: 2 bytes (version 3.1)
      Parameter section:
        AutoInc Value: 4 bytes
      Rows section:
@@ -425,6 +443,7 @@ type
                    null bitmap: 1 byte per each 8 fields (if field is null corresponding bit is 1)
        Row data: variable length data are prefixed with 4 byte length indicator
                  null fields are not stored (see: null bitmap)
+                 ftString and ftFixedChar data are UTF-8 encoded (version 3.1)
   }
 
   TFpcBinaryDatapacketHandler = class(TDataPacketHandler)
@@ -439,6 +458,9 @@ type
     var
       FNullBitmapSize: integer;
       FNullBitmap: TBytes;
+    function HasCodePages: Boolean;
+    function ReadUTF8String: UTF8String;
+    procedure WriteUTF8String(const aValue: UTF8String);
   protected
     var
       FVersion: byte;
@@ -604,6 +626,7 @@ type
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure DoBeforeClose; override;
+    class function FieldDefsClass : TFieldDefsClass; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
@@ -755,6 +778,9 @@ Type
     ReaderClass : TDatapacketReaderClass;
     Format      : TDataPacketFormat;
   end;
+
+  // Access to the protected code page setter of any field definition
+  TFieldDefCodePageAccess = class(TFieldDef);
 
 var
   RegisteredDatapacketReaders : Array of TDatapacketReaderRegistration;
@@ -1388,6 +1414,22 @@ begin
   if CalcFieldsSize > 0 then
     FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
 end;
+
+{ TBufFieldDefs }
+
+class function TBufFieldDefs.FieldDefClass: TFieldDefClass;
+
+begin
+  Result:=TBufFieldDef;
+end;
+
+
+class function TCustomBufDataset.FieldDefsClass: TFieldDefsClass;
+
+begin
+  Result:=TBufFieldDefs;
+end;
+
 
 procedure TCustomBufDataset.InternalInitFieldDefs;
 begin
@@ -4385,6 +4427,13 @@ begin
   AField.SetData(@ABufBlobField);
 end;
 
+class procedure TDataPacketReader.SetFieldDefCodePage(aFieldDef: TFieldDef; aCodePage: TSystemCodePage);
+
+begin
+  TFieldDefCodePageAccess(aFieldDef).SetCodePage(aCodePage);
+end;
+
+
 constructor TDataPacketReader.Create(ADataSet: TCustomBufDataset; AStream: TStream);
 begin
   FDataSet := ADataSet;
@@ -4431,6 +4480,8 @@ begin
 
     if Stream.ReadByte = 1 then
       Attributes := Attributes + [faReadonly];
+    if FVersion >= 31 then
+      SetFieldDefCodePage(DataSet.FieldDefs[i], Stream.ReadWord);
     end;
   Stream.ReadBuffer(i,sizeof(i));
   AnAutoIncValue := i;
@@ -4443,6 +4494,8 @@ procedure TFpcBinaryDatapacketHandler.StoreFieldDefs(AnAutoIncValue: integer);
 var i : integer;
     s : AnsiString;
 begin
+  if (FVersion = 30) and HasCodePages then
+    FVersion := 31;
   S:=FpcBinaryIdent2;
   Stream.Write(S[1], length(S));
   Stream.WriteByte(FVersion);
@@ -4459,6 +4512,8 @@ begin
       Stream.WriteByte(1)
     else
       Stream.WriteByte(0);
+    if FVersion >= 31 then
+      Stream.WriteWord(Codepage);
     end;
   i := AnAutoIncValue;
   Stream.WriteBuffer(i,sizeof(i));
@@ -4466,6 +4521,44 @@ begin
   FNullBitmapSize := (DataSet.FieldDefs.Count + 7) div 8;
   SetLength(FNullBitmap, FNullBitmapSize);
 end;
+
+function TFpcBinaryDatapacketHandler.HasCodePages: Boolean;
+
+var
+  i: integer;
+
+begin
+  Result := False;
+  for i := 0 to DataSet.FieldDefs.Count - 1 do
+    with DataSet.FieldDefs[i] do
+      if (DataType in [ftString, ftFixedChar, ftMemo]) and (Codepage <> CP_ACP) then
+        Exit(True);
+end;
+
+
+function TFpcBinaryDatapacketHandler.ReadUTF8String: UTF8String;
+
+var
+  lValue: RawByteString;
+
+begin
+  lValue := Stream.ReadAnsiString;
+  SetCodePage(lValue, CP_UTF8, False);
+  Result := lValue;
+end;
+
+
+procedure TFpcBinaryDatapacketHandler.WriteUTF8String(const aValue: UTF8String);
+
+var
+  lValue: RawByteString;
+
+begin
+  lValue := aValue;
+  SetCodePage(lValue, CP_ACP, False);
+  Stream.WriteAnsiString(lValue);
+end;
+
 
 procedure TFpcBinaryDatapacketHandler.InitLoadRecords;
 begin
@@ -4505,7 +4598,7 @@ begin
     case FVersion of
       10:
         Stream.ReadBuffer(GetCurrentBuffer^, FRecordSize);  // Ugly because private members of ADataset are used...
-      20, 30:
+      20, 30, 31:
         begin
         // Restore field's Null bitmap
         Stream.ReadBuffer(FNullBitmap[0], FNullBitmapSize);
@@ -4518,7 +4611,12 @@ begin
           if GetFieldIsNull(PByte(FNullBitmap), i) then
             AField.SetData(nil)
           else if AField.DataType in AnsiStringFieldTypes then
-            AField.AsAnsiString := Stream.ReadAnsiString
+            begin
+            if FVersion >= 31 then
+              AField.AsUTF8String := ReadUTF8String
+            else
+              AField.AsAnsiString := Stream.ReadAnsiString;
+            end
           else if AField.DataType in UnicodeStringFieldTypes then
             begin
             if FVersion=20 then
@@ -4565,7 +4663,7 @@ begin
     case FVersion of
       10:
         Stream.WriteBuffer(GetCurrentBuffer^, FRecordSize); // Old 1.0 version
-      20,30:
+      20,30,31:
         begin
         // store fields Null bitmap
         FillByte(FNullBitmap[0], FNullBitmapSize, 0);
@@ -4582,7 +4680,12 @@ begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
           if not assigned(AField) or AField.IsNull then continue;
           if AField.DataType in AnsiStringFieldTypes then
-            Stream.WriteAnsiString(AField.AsAnsiString)
+            begin
+            if FVersion >= 31 then
+              WriteUTF8String(AField.AsUTF8String)
+            else
+              Stream.WriteAnsiString(AField.AsAnsiString);
+            end
           else if AField.DataType in UnicodeStringFieldTypes then
             Stream.WriteUnicodeString(AField.AsUnicodeString)
           else

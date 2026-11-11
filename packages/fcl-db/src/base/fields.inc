@@ -194,6 +194,14 @@ begin
   Changed(False);
 end;
 
+procedure TFieldDef.SetCodePage(const aValue: TSystemCodePage);
+
+begin
+  FCodePage := aValue;
+  Changed(False);
+end;
+
+
 function TFieldDef.GetFieldClass: TFieldClass;
 
 begin

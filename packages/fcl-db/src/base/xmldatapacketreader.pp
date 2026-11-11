@@ -195,6 +195,9 @@ begin
         AFieldDef.DataType:=iFieldType;
         break;
         end;
+      S:=StrToIntDef(GetNodeAttribute(AFieldNode,'codepage'),CP_ACP);
+      if S<>CP_ACP then
+        SetFieldDefCodePage(AFieldDef,S);
       end;
     end;
 
@@ -241,6 +244,8 @@ begin
     else
       AFieldNode.SetAttribute('fieldtype',AStringFT);
     if faReadonly in Attributes then AFieldNode.SetAttribute('readonly','true');
+    if (DataType in [ftString, ftFixedChar, ftMemo]) and (Codepage<>CP_ACP) then
+      AFieldNode.SetAttribute('codepage',IntToStr(Codepage));
 
     FieldsNode.AppendChild(AFieldNode);
     end;
@@ -382,7 +387,9 @@ begin
           begin
           ws := s;
           RestoreBlobField(AField, @ws[1], length(ws)*sizeof(WideChar));
-          end
+          end;
+        ftString, ftFixedChar:
+          AField.AsUTF8String := UTF8Encode(AFieldNode.NodeValue);
         else;
           AField.AsString := s;  // set it to the filterbuffer
       end;
@@ -407,6 +414,8 @@ begin
     if not AField.IsNull then
       if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
         ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(AField.AsString))
+      else if AFieldDef.DataType in [ftString, ftFixedChar] then
+        ARecordNode.SetAttribute(AFieldDef.Name, UTF8Decode(AField.AsUTF8String))
       else
         ARecordNode.SetAttribute(AFieldDef.Name, AField.AsString);
     end;

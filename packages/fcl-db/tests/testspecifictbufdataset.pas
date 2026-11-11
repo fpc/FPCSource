@@ -43,6 +43,9 @@ type
     procedure IntTestAutoIncFieldStreaming(XML: boolean);
     // Returns a dataset with FieldDefs and persistent fields for ID and NAME, not yet linked to each other.
     function GetDefsAndFieldsDataset: TBufDataset;
+    // Returns an open dataset with a UTF-8 ftString(5) field NAME holding one Cyrillic word.
+    function GetCodePageDataset: TBufDataset;
+    procedure IntTestCodePageStreaming(aFormat: TDataPacketFormat);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -66,6 +69,12 @@ type
     procedure TestNoRefreshForInMemory; // Test that refresh with in-memory data raises an error.
     procedure TestRefreshWithIndexOK; // Test that refresh works when indexes are defined
     procedure TestCancelUpdatesOnRefresh; // Test that refresh works when changes are present and cancelupdatesonrefresh is true.
+    procedure TestCodePageFieldDefClass;
+    procedure TestCodePageValue;
+    procedure TestCodePageStreamingBIN;
+    procedure TestCodePageStreamingXML;
+    procedure TestCodePageStreamVersion;
+    procedure TestCodePageComponentStreaming;
   end;
 
 implementation
@@ -576,6 +585,184 @@ begin
     Dataset.Free;
   end;
 end;
+
+const
+  SCyrillicWord : UnicodeString = #$0421#$043B#$043E#$0432#$043E;
+
+function TTestSpecificTBufDataset.GetCodePageDataset: TBufDataset;
+
+begin
+  Result := TBufDataset.Create(nil);
+  try
+    Result.FieldDefs.Add('NAME', ftString, 5);
+    TBufFieldDef(Result.FieldDefs[0]).Codepage := CP_UTF8;
+    Result.CreateDataset;
+    Result.Append;
+    Result.FieldByName('NAME').AsUTF8String := UTF8Encode(SCyrillicWord);
+    Result.Post;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.IntTestCodePageStreaming(aFormat: TDataPacketFormat);
+
+var
+  lDS: TBufDataset;
+  lStream: TMemoryStream;
+
+begin
+  lStream := TMemoryStream.Create;
+  try
+    lDS := GetCodePageDataset;
+    try
+      lDS.SaveToStream(lStream, aFormat);
+    finally
+      lDS.Free;
+    end;
+    lStream.Position := 0;
+    lDS := TBufDataset.Create(nil);
+    try
+      lDS.LoadFromStream(lStream, aFormat);
+      AssertEquals('Code page of the loaded field def', Integer(CP_UTF8), Integer(lDS.FieldDefs[0].Codepage));
+      AssertEquals('Size of the loaded field def', 5, lDS.FieldDefs[0].Size);
+      AssertEquals('Loaded value', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
+    finally
+      lDS.Free;
+    end;
+  finally
+    lStream.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageFieldDefClass;
+
+var
+  lDS: TBufDataset;
+
+begin
+  lDS := TBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('NAME', ftString, 5);
+    AssertTrue('FieldDefs is a TBufFieldDefs', lDS.FieldDefs is TBufFieldDefs);
+    AssertTrue('Added field def is a TBufFieldDef', lDS.FieldDefs[0] is TBufFieldDef);
+    AssertTrue('AddFieldDef returns a TBufFieldDef', lDS.FieldDefs.AddFieldDef is TBufFieldDef);
+    AssertEquals('Default code page', Integer(CP_ACP), Integer(lDS.FieldDefs[0].Codepage));
+    TBufFieldDef(lDS.FieldDefs[0]).Codepage := CP_UTF8;
+    AssertEquals('Code page after setting it', Integer(CP_UTF8), Integer(lDS.FieldDefs[0].Codepage));
+    AssertEquals('Bytes per character of a UTF-8 def', 4, lDS.FieldDefs[0].CharSize);
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageValue;
+
+var
+  lDS: TBufDataset;
+
+begin
+  lDS := GetCodePageDataset;
+  try
+    AssertEquals('Code page of the field', Integer(CP_UTF8), Integer(TStringField(lDS.FieldByName('NAME')).CodePage));
+    AssertEquals('Data size of a UTF-8 ftString(5) field', 21, lDS.FieldByName('NAME').DataSize);
+    AssertEquals('Value after posting', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
+    lDS.First;
+    AssertEquals('Value read from the record buffer', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageStreamingBIN;
+
+begin
+  IntTestCodePageStreaming(dfBinary);
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageStreamingXML;
+
+begin
+  IntTestCodePageStreaming(dfXML);
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageStreamVersion;
+
+var
+  lDS: TBufDataset;
+  lStream: TMemoryStream;
+
+begin
+  lStream := TMemoryStream.Create;
+  try
+    lDS := TBufDataset.Create(nil);
+    try
+      lDS.FieldDefs.Add('NAME', ftString, 5);
+      lDS.CreateDataset;
+      lDS.SaveToStream(lStream, dfBinary);
+    finally
+      lDS.Free;
+    end;
+    AssertEquals('Format version without code pages', 30, PByte(lStream.Memory)[13]);
+    lStream.Clear;
+    lDS := GetCodePageDataset;
+    try
+      lDS.SaveToStream(lStream, dfBinary);
+    finally
+      lDS.Free;
+    end;
+    AssertEquals('Format version with code pages', 31, PByte(lStream.Memory)[13]);
+  finally
+    lStream.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageComponentStreaming;
+
+var
+  lDS, lCopy: TBufDataset;
+  lStream: TMemoryStream;
+  lBytes: AnsiString;
+
+begin
+  lCopy := nil;
+  lStream := TMemoryStream.Create;
+  lDS := TBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('PLAIN', ftString, 5);
+    lStream.WriteComponent(lDS);
+    SetString(lBytes, PAnsiChar(lStream.Memory), lStream.Size);
+    AssertEquals('Default code page is not written', 0, Pos('Codepage', lBytes));
+    lStream.Clear;
+    lDS.FieldDefs.Add('NAME', ftString, 5);
+    TBufFieldDef(lDS.FieldDefs[1]).Codepage := CP_UTF8;
+    lStream.WriteComponent(lDS);
+    lStream.Position := 0;
+    lCopy := TBufDataset.Create(nil);
+    lStream.ReadComponent(lCopy);
+    AssertEquals('Number of streamed field defs', 2, lCopy.FieldDefs.Count);
+    AssertEquals('Code page of a default def', Integer(CP_ACP), Integer(lCopy.FieldDefs[0].Codepage));
+    AssertEquals('Code page of a UTF-8 def', Integer(CP_UTF8), Integer(lCopy.FieldDefs[1].Codepage));
+    lCopy.CreateDataset;
+    lCopy.Append;
+    lCopy.FieldByName('NAME').AsUTF8String := UTF8Encode(SCyrillicWord);
+    lCopy.Post;
+    AssertEquals('Value in the streamed dataset', SCyrillicWord, UTF8Decode(lCopy.FieldByName('NAME').AsUTF8String));
+  finally
+    lCopy.Free;
+    lDS.Free;
+    lStream.Free;
+  end;
+end;
+
 
 initialization
 {$ifdef fpc}
