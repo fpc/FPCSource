@@ -196,6 +196,28 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 
+// Byte length of the first aChars UTF-8 characters in aData, at most aMaxBytes
+function UTF8PrefixLength(aData: PByte; aMaxBytes, aChars: Integer): Integer;
+
+var
+  lCount: Integer;
+
+begin
+  Result:=0;
+  lCount:=0;
+  while Result<aMaxBytes do
+    begin
+    if (aData[Result] and $C0)<>$80 then
+      begin
+      if lCount=aChars then
+        Exit;
+      Inc(lCount);
+      end;
+    Inc(Result);
+    end;
+end;
+
+
 procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS);
 
 begin
@@ -1347,7 +1369,13 @@ begin
         else
           begin
           CurrBuff := SQLData;
-          VarCharLen := FieldDef.Size;
+          // A UTF8 CHAR(n) value is padded to 4*n bytes; it holds the first n characters
+          if FieldDef.CodePage = CP_UTF8 then
+            VarCharLen := UTF8PrefixLength(PByte(SQLData), SQLLen, FieldDef.Size)
+          else
+            VarCharLen := FieldDef.Size;
+          if VarCharLen > SQLLen then
+            VarCharLen := SQLLen;
           end;
 
       Result := True;
