@@ -406,7 +406,8 @@ begin
       if not Result then
         exit;
       end;
-    gnutls_session_set_verify_cert(Fsession,PAnsiChar(FCurrentHostName),0);
+    if VerifyPeerCert then
+      gnutls_session_set_verify_cert(Fsession,PAnsiChar(FCurrentHostName),0);
     end;
   if Not Result then
     exit;
@@ -419,7 +420,10 @@ end;
 
 function TGNUTLSSocketHandler.Close: Boolean;
 begin
-  Result:=CheckOK(gnutls_bye(FSession,GNUTLS_SHUT_WR));
+  if Assigned(FSession) then
+    Result:=CheckOK(gnutls_bye(FSession,GNUTLS_SHUT_WR))
+  else
+    Result:=True;
 end;
 
 Function TGNUTLSSocketHandler.FetchErrorInfo : Boolean;
@@ -481,7 +485,7 @@ Var
   A : AnsiString;
 
 begin
-  Flags:=InitFlags[AsServer];
+  Flags:=InitFlags[AsServer] or GNUTLS_NO_SIGNAL;
   Result:=CheckOK(gnutls_init(@FSession,Flags));
   if not Result then
     exit;
