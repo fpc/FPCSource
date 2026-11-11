@@ -870,7 +870,7 @@ begin
   if not CharInSet(LMarker[1], ['.', ')']) then
     Exit;
   Delete(lLine,1,lValueLen+1);
-  if not CharInSet(lLine[1],[' ',#9]) then
+  if (lLine='') or not CharInSet(lLine[1],[' ',#9]) then
     Exit;
   if isWhitespace(lLine) then
     Exit;

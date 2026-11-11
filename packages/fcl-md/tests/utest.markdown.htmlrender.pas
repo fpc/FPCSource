@@ -151,6 +151,7 @@ type
     procedure TestDirectiveEndsTable;
     procedure TestLinkTextIsURL;
     procedure TestAutolinkTrailingPunctuation;
+    procedure TestNumberWithDotOnly;
     procedure TestDirectiveLeaf;
     procedure TestDirectiveInline;
     procedure TestDirectiveInlineNameOnlyIsText;
@@ -1008,6 +1009,13 @@ procedure TTestHTMLRenderExtensions.TestAutolinkTrailingPunctuation;
 begin
   AssertEquals('Correct html','<p>Visit <a href="https://x.org">https://x.org</a>.</p>'+sLineBreak,
                Render('Visit https://x.org.'));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestNumberWithDotOnly;
+
+begin
+  AssertEquals('Correct html','<p>1.</p>'+sLineBreak,Render('1.'));
 end;
 
 
