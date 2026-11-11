@@ -102,6 +102,8 @@ type
     procedure TestFillRectExcludesRightAndBottom;
     procedure TestFillRectSortsItsCorners;
     procedure TestAnEmptyFillRectDrawsNothing;
+    procedure TestFillRectOnAFiveByFiveImage;
+    procedure TestAdjacentRectanglesDoNotOverlap;
     procedure TestRectangleOutlineExcludesRightAndBottom;
     procedure TestRectangleWithABrushFillsTheInside;
     procedure TestARectanglePartlyLeftOfTheCanvas;
@@ -128,6 +130,8 @@ type
     procedure TestFillRectIncludesRightAndBottom;
     procedure TestRectangleOutlineIncludesRightAndBottom;
     procedure TestAZeroWidthRectIsOneColumnWhenIncluded;
+    procedure TestFillRectOnAFiveByFiveImageWhenIncluded;
+    procedure TestAdjacentRectanglesWhenIncluded;
     procedure TestEllipseBoundsWhenIncluded;
     procedure TestEllipseCIsCentredWhenIncluded;
     procedure TestTheClipRectIncludesRightAndBottom;
@@ -1015,6 +1019,36 @@ begin
 end;
 
 
+procedure TTestCanvasRectangles.TestFillRectOnAFiveByFiveImage;
+
+begin
+  NewCanvas(5, 5, colWhite);
+  FCanvas.FillRect(0, 0, 0, 0);
+  AssertEquals('FillRect(0,0,0,0) paints nothing', 0, CountPainted);
+  FCanvas.FillRect(1, 1, 4, 4);
+  AssertPaintedRect('FillRect(1,1,4,4) paints 3x3 pixels', 1, 1, 4, 4);
+  AssertEquals('Number of pixels of FillRect(1,1,4,4)', 9, CountPainted);
+end;
+
+
+procedure TTestCanvasRectangles.TestAdjacentRectanglesDoNotOverlap;
+
+var
+  lY: Integer;
+
+begin
+  FCanvas.FillRect(5, 5, 10, 10);
+  FCanvas.Brush.FPColor := colBlue;
+  FCanvas.FillRect(10, 5, 15, 10);
+  for lY := 5 to 9 do
+    begin
+    AssertColorsEqual(Format('Last column of the first rectangle at y=%d', [lY]), colRed, FImage[9, lY]);
+    AssertColorsEqual(Format('First column of the second rectangle at y=%d', [lY]), colBlue, FImage[10, lY]);
+    end;
+  AssertPaintedRect('Together the rectangles cover 10x5 pixels without a gap', 5, 5, 15, 10);
+end;
+
+
 procedure TTestCanvasRectangles.TestRectangleOutlineExcludesRightAndBottom;
 
 var
@@ -1335,6 +1369,36 @@ begin
   UseInclude;
   FCanvas.FillRect(Rect(5, 5, 5, 9));
   AssertPaintedRect('A rectangle with Left = Right is one column', 5, 5, 6, 10);
+end;
+
+
+procedure TTestCanvasRectangleMode.TestFillRectOnAFiveByFiveImageWhenIncluded;
+
+begin
+  NewCanvas(5, 5, colWhite);
+  UseInclude;
+  FCanvas.FillRect(1, 1, 4, 4);
+  AssertPaintedRect('FillRect(1,1,4,4) paints 4x4 pixels', 1, 1, 5, 5);
+  AssertEquals('Number of pixels of FillRect(1,1,4,4)', 16, CountPainted);
+end;
+
+
+procedure TTestCanvasRectangleMode.TestAdjacentRectanglesWhenIncluded;
+
+var
+  lY: Integer;
+
+begin
+  UseInclude;
+  FCanvas.FillRect(5, 5, 9, 9);
+  FCanvas.Brush.FPColor := colBlue;
+  FCanvas.FillRect(10, 5, 14, 9);
+  for lY := 5 to 9 do
+    begin
+    AssertColorsEqual(Format('Last column of the first rectangle at y=%d', [lY]), colRed, FImage[9, lY]);
+    AssertColorsEqual(Format('First column of the second rectangle at y=%d', [lY]), colBlue, FImage[10, lY]);
+    end;
+  AssertPaintedRect('Together the rectangles cover 10x5 pixels without a gap', 5, 5, 15, 10);
 end;
 
 

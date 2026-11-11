@@ -49,6 +49,7 @@ Type
     procedure RenderImage(const lpt1: TFPReportPoint; const AImage: TFPReportCustomImage);overload;
     procedure RenderCheckbox(const lPt: TFPReportPoint; const ACheckbox: TFPReportCustomCheckbox);
     function CoordToPoint(const APos: TFPReportPoint; const AHOffset: TFPReportUnits = 0; const AVOffset: TFPReportUnits = 0): TPoint;
+    // Pixel rectangle of AWidth x AHeight at APos, in the RectangleMode of Canvas
     function CoordToRect(const APos: TFPReportPoint; const AWidth: TFPReportUnits = 0; const AHeight: TFPReportUnits = 0): TRect;
     function mmToPixels(const AValue: TFPReportUnits): Integer;
     class function ColorToRGBTriple(const AColor: UInt32): TFPColor;
@@ -89,8 +90,14 @@ function TFPReportCanvasHelper.CoordToRect(const APos: TFPReportPoint;
 begin
   Result.Left:=mmToPixels(APos.Left);
   Result.Top:=mmToPixels(APos.Top);
-  Result.Right:=mmToPixels(APos.Left+AWidth)-1;
-  Result.Bottom:=mmToPixels(APos.Top+AHeight)-1;
+  Result.Right:=mmToPixels(APos.Left+AWidth);
+  Result.Bottom:=mmToPixels(APos.Top+AHeight);
+  // Right and Bottom are the last painted pixel unless the canvas excludes them
+  if not (Assigned(FCanvas) and (FCanvas.RectangleMode=rmExclude)) then
+    begin
+    Dec(Result.Right);
+    Dec(Result.Bottom);
+    end;
 end;
 
 function TFPReportCanvasHelper.CoordToPoint(const APos: TFPReportPoint;
