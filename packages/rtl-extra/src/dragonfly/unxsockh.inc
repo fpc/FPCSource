@@ -55,12 +55,11 @@ Const
 					 * in interface output routine
                                          }
   AF_NETGRAPH      = 32;	{ Netgraph sockets }
-  AF_SLOW          = 33;	{ 802.3ad slow protocol }
-  AF_SCLUSTER      = 34;	{ Sitara cluster protocol }
-  AF_ARP           = 35;
-  AF_BLUETOOTH     = 36;	{ Bluetooth sockets }
-  AF_IEEE80211     = 37;	{ IEEE 802.11 protocol }
-  AF_MAX           = 38;
+  AF_BLUETOOTH     = 33;	{ Bluetooth }
+  AF_MPLS          = 34;	{ Multi-Protocol Label Switching }
+  AF_IEEE80211     = 35;	{ IEEE 802.11 protocol }
+  AF_ARP           = 36;	{ (rev.) addr. res. prot. (RFC 826) }
+  AF_MAX           = 37;
 
   {
    * Protocol families, same as address families for now.
@@ -104,10 +103,8 @@ Const
      PF_NATM = AF_NATM;
      PF_ATM = AF_ATM;
      PF_NETGRAPH = AF_NETGRAPH;
-     PF_SLOW = AF_SLOW;
-     PF_SCLUSTER = AF_SCLUSTER;
-     PF_ARP = AF_ARP;
      PF_BLUETOOTH = AF_BLUETOOTH;
+     PF_ARP = AF_ARP;
      PF_MAX = AF_MAX;
 
 
@@ -120,6 +117,7 @@ Const
 { Flags for the socket type in fpsocket and for fpaccept4 }
   SOCK_CLOEXEC  = $10000000;
   SOCK_NONBLOCK = $20000000;
+  SOCK_CLOFORK  = $40000000;
 
         SOL_SOCKET 	 = $FFFF;
         SO_DEBUG         = $0001;        { turn on debugging info recording }
@@ -133,6 +131,10 @@ Const
         SO_OOBINLINE     = $0100;        { leave received OOB data in line }
         SO_REUSEPORT     = $0200;        { allow local address & port reuse }
         SO_TIMESTAMP     = $0400;        { timestamp received dgram traffic }
+        SO_NOSIGPIPE     = $0800;        { no SIGPIPE from EPIPE }
+        SO_ACCEPTFILTER  = $1000;        { there is an accept filter }
+        SO_RERROR        = $2000;        { Keep track of receive errors }
+        SO_PASSCRED      = $4000;        { receive credentials }
 
 {
  * Additional options, not kept in so_options.
@@ -145,6 +147,9 @@ Const
         SO_RCVTIMEO      =$1006;        { receive timeout }
         SO_ERROR         =$1007;        { get error status and clear }
         SO_TYPE          =$1008;        { get socket type }
+        SO_SNDSPACE      =$100a;        { get appr. send buffer free space }
+        SO_USER_COOKIE   =$1015;        { user cookie }
+        SO_CPUHINT       =$1030;        { get socket's owner cpuid hint }
 
 
         SHUT_RD         =0;             { shut down the reading side }
@@ -261,6 +266,7 @@ Const
 	IPPROTO_CARP		= 112;		{ CARP }
 	IPPROTO_PGM		= 113;		{ PGM }
 	IPPROTO_PFSYNC		= 240;		{ PFSYNC }
+	IPPROTO_DIVERT		= 254;		{ divert pseudo-protocol }
 
 { last return value of *_input(), meaning "all job for this pkt is done".  }
 	IPPROTO_RAW             = 255;
@@ -299,11 +305,16 @@ Const
 
 	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
 
-	IP_FW_TABLE_ADD		= 40;   { add entry }
-	IP_FW_TABLE_DEL		= 41;   { delete entry }
-	IP_FW_TABLE_FLUSH	= 42;   { flush table }
-	IP_FW_TABLE_GETSIZE	= 43;   { get table size }
-	IP_FW_TABLE_LIST	= 44;   { list table contents }
+	IP_FW_TBL_CREATE	= 40;   { create ipfw table }
+	IP_FW_TBL_DESTROY	= 41;   { destroy ipfw table }
+	IP_FW_TBL_ADD		= 42;   { add network/host to ipfw table }
+	IP_FW_TBL_DEL		= 43;   { delete network/host from ipfw table }
+	IP_FW_TBL_FLUSH		= 44;   { flush ipfw table }
+	IP_FW_TBL_GET		= 45;   { list/show ipfw table }
+	IP_FW_TBL_ZERO		= 46;   { clear ipfw table counters }
+	IP_FW_TBL_EXPIRE	= 47;   { expire addresses in ipfw table }
+
+	IP_FW_X			= 49;   { ipfw3 firewall }
 
 	IP_FW_ADD		= 50;   { add a firewall rule to chain }
 	IP_FW_DEL		= 51;   { delete a firewall rule from chain }
@@ -318,6 +329,8 @@ Const
 	IP_DUMMYNET_GET		= 64;   { get entire dummynet pipes }
 
 	IP_RECVTTL		= 65;   { bool; receive IP TTL w/dgram }
+	IP_MINTTL		= 66;   { minimum TTL for packet or drop }
+	IP_RECVTOS		= 68;   { bool; receive IP TOS w/dgram }
 
 	IPV6_SOCKOPT_RESERVED1	= 3 ; { reserved for future use }
 	IPV6_UNICAST_HOPS	= 4 ; { int; IP6 hops }
@@ -349,6 +362,7 @@ Const
   MSG_NOSIGNAL  = $0400;              { Do not generate SIGPIPE }
   MSG_SYNC      = $0800;              { No asynchronous send }
   MSG_CMSG_CLOEXEC = $1000;           { Close-on-exec for received descriptors }
+  MSG_CMSG_CLOFORK = $2000;           { Close-on-fork for received descriptors }
   MSG_FBLOCKING = $10000;             { Force a blocking operation }
   MSG_FNONBLOCKING = $20000;          { Force a non-blocking operation }
 
@@ -363,8 +377,16 @@ Const
   { don't use TCP options  }
      TCP_NOOPT = $08;
   { use MD5 digests (RFC2385)  }
-     TCP_MD5SIG = $10;
-  { retrieve tcp_info structure  }
-     TCP_INFO = $20;
+     TCP_SIGNATURE_ENABLE = $10;
+     TCP_MD5SIG = TCP_SIGNATURE_ENABLE;
+  { set max time to establish connection  }
+     TCP_KEEPINIT = $20;
+     TCP_FASTKEEP = $80;
+  { set time before keepalive probes begin  }
+     TCP_KEEPIDLE = $100;
+  { set time between keepalive probes  }
+     TCP_KEEPINTVL = $200;
+  { set max number of keepalive probes  }
+     TCP_KEEPCNT = $400;
 
 

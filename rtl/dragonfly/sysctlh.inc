@@ -418,8 +418,9 @@ const
         AF_BLUETOOTH    = 33;           { Bluetooth }
         AF_MPLS         = 34;           { Multi-Protocol Label Switching }
         AF_IEEE80211    = 35;           { IEEE 802.11 protocol }
+        AF_ARP          = 36;           { (rev.) addr. res. prot. (RFC 826) }
 
-        AF_MAX          = 36;
+        AF_MAX          = 37;
 
 {
  * Protocol families, same as address families for now.
