@@ -102,36 +102,12 @@ end;
   unavailable: writes the number of refused stores first }
 function ReportingTerminateProcess(h: THandle; code: dword): longbool; stdcall;
 var
-  buf: array[0..31] of AnsiChar;
-  digits: array[0..15] of AnsiChar;
-  n, i, len: longint;
+  msg: string;
   written: dword;
-const
-  prefix: array[0..7] of AnsiChar = 'refused=';
 begin
-  len:=0;
-  for i:=0 to 7 do
-    begin
-      buf[len]:=prefix[i];
-      inc(len);
-    end;
-  n:=Refused;
-  i:=0;
-  repeat
-    digits[i]:=AnsiChar(ord('0')+n mod 10);
-    n:=n div 10;
-    inc(i);
-  until n=0;
-  while i>0 do
-    begin
-      dec(i);
-      buf[len]:=digits[i];
-      inc(len);
-    end;
-  buf[len]:=#13;
-  buf[len+1]:=#10;
-  inc(len,2);
-  WriteFile(GetStdHandle(dword(-11)),@buf,len,written,nil);
+  str(Refused,msg);
+  msg:='refused='+msg+LineEnding;
+  WriteFile(GetStdHandle(dword(-11)),@msg[1],length(msg),written,nil);
   { a run time library that ignores the result reaches 226 only by running out
     of room for the blocks it leaked }
   if (code=226) and (Refused<>1) then

@@ -129,7 +129,7 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
       const
         msg : array[0..18] of AnsiChar = 'Runtime error 226'#13#10;
       var
-        h : THandle;
+        stdh : THandle;
         written : longint;
 {$endif WINCE}
       begin
@@ -140,16 +140,10 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
         if IsLibrary and not assigned(fpc_threadvar_relocate_proc) then
           RunError(226);
         if WriteErrorsToStdErr then
-          h:=StdErrorHandle
+          stdh:=STD_ERROR_HANDLE
         else
-          h:=StdOutputHandle;
-        { still 0 when the main thread's block fails, before SysInitStdIO }
-        if h=0 then
-          if WriteErrorsToStdErr then
-            h:=THandle(GetStdHandle(cardinal(STD_ERROR_HANDLE)))
-          else
-            h:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
-        WriteFile(h,@msg,sizeof(msg),written,nil);
+          stdh:=STD_OUTPUT_HANDLE;
+        WriteFile(GetStdHandle(stdh),@msg,sizeof(msg),written,nil);
         TerminateProcess(GetCurrentProcess,226);
 {$else WINCE}
         RunError(226);
