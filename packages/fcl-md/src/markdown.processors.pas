@@ -258,6 +258,19 @@ type
     function ProcessLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
+  { TAdmonitionProcessor }
+
+  // !!! type "title" admonitions, parsed as alert blocks whose content is indented 4 columns.
+  TAdmonitionProcessor = class(TIndentedContainerProcessor)
+  protected
+    // Is aLine an admonition marker line ? aType receives the alert type, aTitle the title text.
+    class function IsAdmonitionLine(aLine : TMarkdownLine; aMaxIndent : Integer; out aType : TAlertType; out aTitle : TMarkdownString) : Boolean;
+    function IsContainerStart(aLine : TMarkdownLine) : Boolean; override;
+  public
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function ProcessLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
+  end;
+
   { TLinkReferenceProcessor }
 
   TLinkReferenceProcessor = class(TMarkdownBlockProcessor)
@@ -1914,6 +1927,111 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+  TAdmonitionProcessor
+  ---------------------------------------------------------------------}
+
+// Alert type for an admonition keyword; unknown keywords are notes.
+function AdmonitionAlertType(const aKeyword : TMarkdownString) : TAlertType;
+
+begin
+  case LowerCase(aKeyword) of
+    'tip','hint','success','check','done','example' :
+      Result:=atTip;
+    'important','question','help','faq' :
+      Result:=atImportant;
+    'warning','attention' :
+      Result:=atWarning;
+    'caution','danger','error','bug','failure','fail','missing' :
+      Result:=atCaution;
+  else
+    Result:=atNote;
+  end;
+end;
+
+
+class function TAdmonitionProcessor.IsAdmonitionLine(aLine: TMarkdownLine; aMaxIndent: Integer; out aType: TAlertType;
+  out aTitle: TMarkdownString): Boolean;
+
+var
+  S : TMarkdownString;
+  lWhite,I,lLen : Integer;
+
+begin
+  Result:=False;
+  aType:=atNote;
+  aTitle:='';
+  lWhite:=aLine.LeadingWhitespace;
+  if lWhite>=aMaxIndent then
+    Exit;
+  S:=aLine.Remainder;
+  Delete(S,1,lWhite);
+  if not S.StartsWith('!!!') then
+    Exit;
+  Delete(S,1,3);
+  lLen:=Length(S);
+  I:=1;
+  while (I<=lLen) and IsWhitespaceChar(S[I]) do
+    Inc(I);
+  if I=1 then
+    Exit;
+  Delete(S,1,I-1);
+  lLen:=Length(S);
+  I:=1;
+  while (I<=lLen) and (S[I] in ['A'..'Z','a'..'z','0'..'9','-','_']) do
+    Inc(I);
+  if (I=1) or ((I<=lLen) and not IsWhitespaceChar(S[I])) then
+    Exit;
+  aType:=AdmonitionAlertType(Copy(S,1,I-1));
+  aTitle:=Trim(Copy(S,I,lLen-I+1));
+  if (Length(aTitle)>=2) and (aTitle[1]='"') and (aTitle[Length(aTitle)]='"') then
+    aTitle:=Copy(aTitle,2,Length(aTitle)-2);
+  Result:=True;
+end;
+
+
+function TAdmonitionProcessor.IsContainerStart(aLine: TMarkdownLine): Boolean;
+
+var
+  lType : TAlertType;
+  lTitle : TMarkdownString;
+
+begin
+  Result:=IsAdmonitionLine(aLine,4,lType,lTitle);
+end;
+
+
+function TAdmonitionProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
+
+var
+  lType : TAlertType;
+  lTitle : TMarkdownString;
+
+begin
+  Result:=(mdoAdmonitions in Parser.Options) and IsAdmonitionLine(aLine,MaxBlockIndent(aParent),lType,lTitle);
+end;
+
+
+function TAdmonitionProcessor.ProcessLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine;
+  aContext: TMarkdownBlockProcessingContext): Boolean;
+
+var
+  lBlock : TMarkdownAlertBlock;
+  lType : TAlertType;
+  lTitle : TMarkdownString;
+
+begin
+  IsAdmonitionLine(aLine,MaxBlockIndent(aParent),lType,lTitle);
+  lBlock:=TMarkdownAlertBlock.Create(aParent,aLine.LineNo);
+  lBlock.AlertType:=lType;
+  lBlock.TitleText:=lTitle;
+  lBlock.ContentIndent:=aLine.LeadingWhitespace+4;
+  aLine.Advance(Length(aLine.Remainder));
+  ParseContainer(lBlock);
+  lBlock.Closed:=True;
+  Result:=True;
+end;
+
+{ ---------------------------------------------------------------------
   TLinkReferenceProcessor
   ---------------------------------------------------------------------}
 
@@ -2060,6 +2178,7 @@ begin
   TFootnoteDefinitionProcessor.Register('footnote');
   TLinkReferenceProcessor.Register('linkreference');
   TDefinitionListProcessor.Register('definitionlist');
+  TAdmonitionProcessor.Register('admonition');
   TParagraphProcessor.Register('paragraph');
 end;
 

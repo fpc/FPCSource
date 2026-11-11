@@ -467,9 +467,21 @@ Type
   TMarkdownAlertBlock = class (TMarkdownQuoteBlock)
   private
     FAlertType: TAlertType;
+    FContentIndent: Integer;
+    FTitle: TMarkdownTextNodeList;
+    FTitleText: TMarkdownString;
+    procedure SetTitle(const aValue: TMarkdownTextNodeList);
   public
-    // Kind of alert, from the [!TYPE] marker
+    destructor Destroy; override;
+    function ContentIndentation : Integer; override;
+    // Kind of alert, from the [!TYPE] marker or the !!! type keyword
     property AlertType : TAlertType read FAlertType write FAlertType;
+    // Column at which the content of an !!! admonition starts, 0 for a > [!TYPE] alert.
+    property ContentIndent : Integer read FContentIndent write FContentIndent;
+    // Title as written after the !!! type keyword, empty for the default title.
+    property TitleText : TMarkdownString read FTitleText write FTitleText;
+    // Inline content of the title, Nil for the default title. The alert owns the list.
+    property Title : TMarkdownTextNodeList read FTitle write SetTitle;
   end;
 
   { TMarkdownFootnoteBlock }
@@ -1319,6 +1331,32 @@ function TMarkdownFootnoteBlock.ContentIndentation: Integer;
 
 begin
   Result:=FContentIndent;
+end;
+
+{ TMarkdownAlertBlock }
+
+destructor TMarkdownAlertBlock.Destroy;
+
+begin
+  FreeAndNil(FTitle);
+  inherited Destroy;
+end;
+
+
+function TMarkdownAlertBlock.ContentIndentation: Integer;
+
+begin
+  Result:=FContentIndent;
+end;
+
+
+procedure TMarkdownAlertBlock.SetTitle(const aValue: TMarkdownTextNodeList);
+
+begin
+  if FTitle=aValue then
+    Exit;
+  FreeAndNil(FTitle);
+  FTitle:=aValue;
 end;
 
 { TMarkdownFigureBlock }

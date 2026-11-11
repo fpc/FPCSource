@@ -264,6 +264,32 @@ type
     procedure TestAlertsOptionOff;
   end;
 
+  { TTestAdmonitions }
+
+  TTestAdmonitions = class(TExtensionTestCase)
+  protected
+    procedure SetupAdmon(const aText : TMarkdownString);
+    function Alert(aIndex : Integer) : TMarkdownAlertBlock;
+  published
+    procedure TestTitleAndBody;
+    procedure TestDefaultTitle;
+    procedure TestEmptyTitle;
+    procedure TestUnquotedTitle;
+    procedure TestInlineTitle;
+    procedure TestKeywordTypes;
+    procedure TestUnknownKeywordIsNote;
+    procedure TestNestedBlocks;
+    procedure TestBlankLinesInBody;
+    procedure TestBodyEndsAtUnindentedLine;
+    procedure TestNoBodyFollowedByParagraph;
+    procedure TestNoBodyBlankLineThenParagraph;
+    procedure TestLazyContinuation;
+    procedure TestInListItem;
+    procedure TestNoSpaceIsParagraph;
+    procedure TestIndentedMarkerIsCode;
+    procedure TestAdmonitionsOptionOff;
+  end;
+
   { TTestFootnotes }
 
   TTestFootnotes = class(TExtensionTestCase)
@@ -1939,6 +1965,199 @@ begin
   AssertEquals('Ordinary quote',TMarkdownQuoteBlock,GetBlock(0).ClassType);
 end;
 
+{ TTestAdmonitions }
+
+procedure TTestAdmonitions.SetupAdmon(const aText: TMarkdownString);
+
+begin
+  SetupExt(aText,MarkdownDocExtensions+[mdoAdmonitions]);
+end;
+
+
+function TTestAdmonitions.Alert(aIndex: Integer): TMarkdownAlertBlock;
+
+begin
+  AssertEquals('Alert block',TMarkdownAlertBlock,GetBlock(aIndex).ClassType);
+  Result:=TMarkdownAlertBlock(GetBlock(aIndex));
+end;
+
+
+procedure TTestAdmonitions.TestTitleAndBody;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupAdmon('!!! note "Heads up"'#10'    Body text.');
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  lAlert:=Alert(0);
+  AssertEquals('Alert type',Ord(atNote),Ord(lAlert.AlertType));
+  AssertEquals('Title text','Heads up',lAlert.TitleText);
+  AssertNotNull('Title parsed',lAlert.Title);
+  AssertEquals('Title','Heads up',lAlert.Title.PlainText);
+  AssertEquals('Content indent',4,lAlert.ContentIndent);
+  AssertEquals('Body','Body text.',PlainOf(lAlert));
+end;
+
+
+procedure TTestAdmonitions.TestDefaultTitle;
+
+begin
+  SetupAdmon('!!! warning'#10'    Body');
+  AssertEquals('Alert type',Ord(atWarning),Ord(Alert(0).AlertType));
+  AssertNull('No title',Alert(0).Title);
+end;
+
+
+procedure TTestAdmonitions.TestEmptyTitle;
+
+begin
+  SetupAdmon('!!! tip ""'#10'    Body');
+  AssertEquals('Title text','',Alert(0).TitleText);
+  AssertNull('No title',Alert(0).Title);
+end;
+
+
+procedure TTestAdmonitions.TestUnquotedTitle;
+
+begin
+  SetupAdmon('!!! note Read this'#10'    Body');
+  AssertEquals('Title text','Read this',Alert(0).TitleText);
+end;
+
+
+procedure TTestAdmonitions.TestInlineTitle;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupAdmon('!!! note "A *bold* move"'#10'    Body');
+  lAlert:=Alert(0);
+  AssertEquals('Title plain text','A bold move',lAlert.Title.PlainText);
+  AssertTrue('Title has emphasis',lAlert.Title.Count>1);
+end;
+
+
+procedure TTestAdmonitions.TestKeywordTypes;
+
+const
+  Keywords : Array[0..5] of TMarkdownString = ('info','hint','question','attention','danger','Caution');
+  Types : Array[0..5] of TAlertType = (atNote,atTip,atImportant,atWarning,atCaution,atCaution);
+
+var
+  I : Integer;
+begin
+  for I:=0 to High(Keywords) do
+    begin
+    SetupAdmon('!!! '+Keywords[I]+#10'    Body');
+    AssertEquals('Type of '+Keywords[I],Ord(Types[I]),Ord(Alert(0).AlertType));
+    end;
+end;
+
+
+procedure TTestAdmonitions.TestUnknownKeywordIsNote;
+
+begin
+  SetupAdmon('!!! custom-kind'#10'    Body');
+  AssertEquals('Alert type',Ord(atNote),Ord(Alert(0).AlertType));
+end;
+
+
+procedure TTestAdmonitions.TestNestedBlocks;
+
+var
+  lAlert : TMarkdownAlertBlock;
+begin
+  SetupAdmon('!!! warning'#10'    Intro'#10#10'    - one'#10'    - two'#10#10'    ```pascal'#10'    writeln;'#10'    ```');
+  lAlert:=Alert(0);
+  AssertEquals('Paragraph, list, code',3,lAlert.ChildCount);
+  AssertEquals('List',TMarkdownListBlock,lAlert.Children[1].ClassType);
+  AssertEquals('Code block',TMarkdownCodeBlock,lAlert.Children[2].ClassType);
+  AssertEquals('Code line','writeln;',TMarkdownTextBlock(lAlert.Children[2].Children[0]).Text);
+end;
+
+
+procedure TTestAdmonitions.TestBlankLinesInBody;
+
+begin
+  SetupAdmon('!!! note'#10#10'    First'#10#10'    Second');
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Two paragraphs',2,Alert(0).ChildCount);
+end;
+
+
+procedure TTestAdmonitions.TestBodyEndsAtUnindentedLine;
+
+begin
+  SetupAdmon('!!! note'#10'    Body'#10#10'Outside');
+  AssertEquals('Alert and paragraph',2,Doc.Blocks.Count);
+  AssertEquals('Body','Body',PlainOf(Alert(0)));
+  AssertEquals('Paragraph after',TMarkdownParagraphBlock,GetBlock(1).ClassType);
+end;
+
+
+procedure TTestAdmonitions.TestNoBodyFollowedByParagraph;
+
+begin
+  SetupAdmon('!!! note "Heads up"'#10'Outside');
+  AssertEquals('Alert and paragraph',2,Doc.Blocks.Count);
+  AssertEquals('Empty alert',0,Alert(0).ChildCount);
+end;
+
+
+procedure TTestAdmonitions.TestNoBodyBlankLineThenParagraph;
+
+begin
+  SetupAdmon('!!! note "Heads up"'#10#10'Outside'#10#10'More');
+  AssertEquals('Alert and two paragraphs',3,Doc.Blocks.Count);
+  AssertEquals('Empty alert',0,Alert(0).ChildCount);
+end;
+
+
+procedure TTestAdmonitions.TestLazyContinuation;
+
+begin
+  SetupAdmon('!!! note'#10'    Body'#10'lazy');
+  AssertEquals('One block',1,Doc.Blocks.Count);
+  AssertEquals('Lazy line joins paragraph','Body'#10'lazy',PlainOf(Alert(0)));
+end;
+
+
+procedure TTestAdmonitions.TestInListItem;
+
+var
+  lItem : TMarkdownBlock;
+begin
+  SetupAdmon('- item'#10#10'  !!! tip'#10'      Body');
+  lItem:=GetBlock(0).Children[0];
+  AssertEquals('Paragraph and alert',2,lItem.ChildCount);
+  AssertEquals('Alert in item',TMarkdownAlertBlock,lItem.Children[1].ClassType);
+  AssertEquals('Body','Body',PlainOf(lItem.Children[1]));
+end;
+
+
+procedure TTestAdmonitions.TestNoSpaceIsParagraph;
+
+begin
+  SetupAdmon('!!!note'#10'    Body');
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestAdmonitions.TestIndentedMarkerIsCode;
+
+begin
+  SetupAdmon('    !!! note');
+  AssertEquals('Code block',TMarkdownCodeBlock,GetBlock(0).ClassType);
+end;
+
+
+procedure TTestAdmonitions.TestAdmonitionsOptionOff;
+
+begin
+  SetupExt('!!! note'#10'    Body');
+  AssertEquals('Paragraph',TMarkdownParagraphBlock,GetBlock(0).ClassType);
+end;
+
 { TTestFootnotes }
 
 procedure TTestFootnotes.TestDefinition;
@@ -2270,7 +2489,7 @@ initialization
                           TTestBlockQuotes, TTestLists, TTestThematicBreaks,
                           TTestTables, TTestFrontmatter, TTestInlineProcessorHook]);
   RegisterTests('Extensions',[TTestComments, TTestAttributes, TTestHeadingIDs, TTestDefinitionLists,
-                              TTestAlerts, TTestFootnotes, TTestCaptions, TTestLinkReferences,
+                              TTestAlerts, TTestAdmonitions, TTestFootnotes, TTestCaptions, TTestLinkReferences,
                               TTestTransformRegistry]);
 end.
 

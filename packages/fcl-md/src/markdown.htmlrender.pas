@@ -1145,7 +1145,12 @@ var
 
 begin
   AppendNl('<div class="alert alert-'+AlertTypeNames[lNode.AlertType]+'">');
-  AppendNl('<p class="alert-title">'+HtmlEscape(Renderer.AlertTitles[lNode.AlertType])+'</p>');
+  Append('<p class="alert-title">');
+  if Assigned(lNode.Title) then
+    Renderer.RenderTextNodes(lNode.Title)
+  else
+    Append(HtmlEscape(Renderer.AlertTitles[lNode.AlertType]));
+  AppendNl('</p>');
   Renderer.RenderChildren(lNode);
   AppendNl('</div>');
 end;

@@ -119,6 +119,8 @@ type
     procedure TestDefinitionListLoose;
     procedure TestAlert;
     procedure TestAlertTitle;
+    procedure TestAdmonition;
+    procedure TestAdmonitionDefaultTitle;
     procedure TestFootnotes;
     procedure TestTableCaption;
     procedure TestTableHeaderCells;
@@ -749,6 +751,26 @@ procedure TTestHTMLRenderExtensions.TestAlertTitle;
 begin
   FRenderer.AlertTitles[atNote]:='Remark';
   AssertTrue('Note title changed',Pos('<p class="alert-title">Remark</p>',Render('> [!NOTE]'#10'> x'))>0);
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestAdmonition;
+
+begin
+  AssertEquals('Admonition with inline title',
+               '<div class="alert alert-caution">'+sLineBreak+'<p class="alert-title">Do <i>not</i> &amp; stop</p>'+sLineBreak+
+               '<p>Careful</p>'+sLineBreak+'</div>'+sLineBreak,
+               Render('!!! danger "Do *not* & stop"'#10'    Careful',MarkdownDocExtensions+[mdoAdmonitions]));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestAdmonitionDefaultTitle;
+
+begin
+  AssertEquals('Admonition with default title',
+               '<div class="alert alert-tip">'+sLineBreak+'<p class="alert-title">Tip</p>'+sLineBreak+
+               '<p>Body</p>'+sLineBreak+'</div>'+sLineBreak,
+               Render('!!! hint'#10'    Body',MarkdownDocExtensions+[mdoAdmonitions]));
 end;
 
 

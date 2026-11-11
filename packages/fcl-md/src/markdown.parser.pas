@@ -55,7 +55,8 @@ type
     mdoAlerts,           // > [!NOTE] alerts
     mdoFootnotes,        // footnote references and definitions
     mdoCaptions,         // Table: captions and implicit figures
-    mdoLinkReferences    // link reference definitions and reference links
+    mdoLinkReferences,   // link reference definitions and reference links
+    mdoAdmonitions       // !!! type "title" admonitions with an indented body
   );
   TMarkdownOptions = set of TMarkdownOption;
 
@@ -882,10 +883,13 @@ procedure TMarkdownParser.ProcessInlines(aBlock: TMarkdownBlock; wsMode: TWhites
 var
   I : Integer;
   lTextBlock : TMarkdownTextBlock absolute aBlock;
+  lAlert : TMarkdownAlertBlock absolute aBlock;
 
 begin
   if aBlock is TMarkdownTextBlock then
-    lTextBlock.Nodes:=processText(lTextBlock.Text,wsMode,aBlock.Line);
+    lTextBlock.Nodes:=processText(lTextBlock.Text,wsMode,aBlock.Line)
+  else if (aBlock is TMarkdownAlertBlock) and (lAlert.TitleText<>'') then
+    lAlert.Title:=processText(lAlert.TitleText,wsTrim,aBlock.Line);
   for I:=0 to aBlock.ChildCount-1 do
     processInlines(aBlock.Children[i],aBlock.WhiteSpaceMode);
 end;

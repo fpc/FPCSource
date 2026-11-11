@@ -1069,7 +1069,10 @@ begin
   lStyle:=ANSI.DefaultStyle;
   lStyle.Bold:=True;
   lStyle.Fg:=clQuote;
-  ANSI.AddRun(Renderer.AlertTitles[lNode.AlertType],lStyle,True);
+  if Assigned(lNode.Title) then
+    ANSI.AddRun(lNode.Title.PlainText,lStyle,True)
+  else
+    ANSI.AddRun(Renderer.AlertTitles[lNode.AlertType],lStyle,True);
   ANSI.FlushLine;
   ANSI.PushPrefix(2,Spaces(2));
   Renderer.RenderChildren(lNode);
