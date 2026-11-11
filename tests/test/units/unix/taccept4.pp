@@ -1,4 +1,4 @@
-{ %target=linux,freebsd,openbsd,dragonfly,solaris }
+{ %target=linux,freebsd,openbsd,dragonfly,netbsd,solaris }
 { fpaccept4 and the SOCK_CLOEXEC and SOCK_NONBLOCK flags, issue #41990 }
 program taccept4;
 

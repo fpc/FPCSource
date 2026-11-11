@@ -528,6 +528,8 @@ const
     syscall_nr___fstat50 = syscall_nr_base + 440;
   { syscall: "__lstat50" ret: "int" args: "const char *" "struct stat *" }
     syscall_nr___lstat50 = syscall_nr_base + 441;
+  { syscall: "paccept" ret: "int" args: "int" "struct sockaddr *" "socklen_t *" "const sigset_t *" "int" }
+    syscall_nr_paccept = syscall_nr_base + 456;
   { 472	STD  RUMP ( int|sys||futimens(int fd, const struct timespec *tptr); ) }
   { Added in rev 1.252 dated 2011/08/17 }
     syscall_nr_futimens = syscall_nr_base + 472;
