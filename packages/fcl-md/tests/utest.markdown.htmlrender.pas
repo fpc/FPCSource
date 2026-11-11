@@ -148,6 +148,9 @@ type
     procedure TestTaskListOrdered;
     procedure TestDirectiveContainer;
     procedure TestDirectiveNested;
+    procedure TestDirectiveEndsTable;
+    procedure TestLinkTextIsURL;
+    procedure TestAutolinkTrailingPunctuation;
     procedure TestDirectiveLeaf;
     procedure TestDirectiveInline;
     procedure TestDirectiveInlineNameOnlyIsText;
@@ -974,6 +977,37 @@ begin
                '<p>Text</p>'+sLineBreak+
                '</div>'+sLineBreak,
                Render(':::note[The *title*]{#n .c1 .c2 level=2}'#10'Text'#10':::',[mdoDirectives]));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestDirectiveEndsTable;
+
+var
+  lHTML : TMarkdownString;
+
+begin
+  lHTML:=Render(':::note'#10'| a |'#10'| --- |'#10'| b |'#10':::'#10'after',MarkdownDocExtensions+[mdoDirectives]);
+  AssertTrue('table inside the directive: '+lHTML,Pos('<div data-directive="note">'+sLineBreak+'<table>',lHTML)>0);
+  AssertTrue('fence is not a table row: '+lHTML,Pos(':::',lHTML)=0);
+  AssertTrue('text after the directive: '+lHTML,Pos('</div>'+sLineBreak+'<p>after</p>',lHTML)>0);
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestLinkTextIsURL;
+
+begin
+  AssertEquals('Correct html','<p><a href="https://x.org">https://x.org</a></p>'+sLineBreak,
+               Render('[https://x.org](https://x.org)'));
+  AssertEquals('Correct html','<p>See <a href="http://www.x.org">www.x.org</a>.</p>'+sLineBreak,
+               Render('See [www.x.org](http://www.x.org).'));
+end;
+
+
+procedure TTestHTMLRenderExtensions.TestAutolinkTrailingPunctuation;
+
+begin
+  AssertEquals('Correct html','<p>Visit <a href="https://x.org">https://x.org</a>.</p>'+sLineBreak,
+               Render('Visit https://x.org.'));
 end;
 
 

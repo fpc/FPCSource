@@ -119,6 +119,8 @@ Type
     procedure HandleGFMExtensions; virtual;
     procedure HandleGFMLinkEmail(aLength: integer); virtual;
     procedure HandleGFMLinkURL(aStartChars : integer; const aProtocol : TMarkdownString = ''); virtual;
+    // True when an active [ or ![ delimiter is open, so the text may be link text
+    function HasOpenBracket : Boolean;
   public
     constructor Create(aLexer : TMarkdownTextScanner; aNodes: TMarkdownTextNodeList; aEntities : TFPStringHashTable; awsMode : TWhitespaceMode);
     destructor Destroy; override;
@@ -722,6 +724,7 @@ procedure TInlineTextProcessor.ApplyLink(aDelim: TMarkdownDelimiter; const aURL,
 
 var
   lDelim : TMarkdownDelimiter;
+  lChild : TMarkdownTextNode;
 
 begin
   HandleEmphasis(aDelim);
@@ -739,6 +742,11 @@ begin
     aDelim.Node.attrs.Add('href',aURL);
     aDelim.Node.active:=false;
     Nodes.MoveToChildren(aDelim.Node);
+    // Autolinks in the link text become plain text: links do not nest.
+    if aDelim.Node.HasChildren then
+      for lChild in aDelim.Node.Children do
+        if lChild.Kind in [nkURI,nkEmail] then
+          lChild.Kind:=nkText;
     for lDelim in FStack do
       if lDelim = aDelim then
         break
@@ -1209,6 +1217,19 @@ begin
   lNode.attrs.Add('href','mailto:'+urlEscape(lEmail));
 end;
 
+function TInlineTextProcessor.HasOpenBracket : Boolean;
+
+var
+  lDelim : TMarkdownDelimiter;
+
+begin
+  Result:=False;
+  for lDelim in FStack do
+    if lDelim.Active and ((lDelim.Delimiter='[') or (lDelim.Delimiter='![')) then
+      Exit(True);
+end;
+
+
 procedure TInlineTextProcessor.HandleGFMLinkURL(aStartChars : integer; const aProtocol : TMarkdownString='');
 
 Const
@@ -1216,7 +1237,7 @@ Const
   URLDelims = [' ',#10,'<'];
 
 var
-  lRewind : boolean;
+  lRewind,lInBracket : boolean;
   lRemove : Integer;
   lLink,lUrl,lText : TMarkdownString;
   lNode : TMarkdownTextNode;
@@ -1224,6 +1245,7 @@ var
 begin
   Scanner.BookMark;
   lRewind:=True;
+  lInBracket:=HasOpenBracket;
   try
     lLink:=Scanner.NextChars(aStartChars);
     while CharInSet(Scanner.Peek,UrlChars) do
@@ -1231,7 +1253,7 @@ begin
     if not lLink.Contains('.') then
       Exit;
     lRewind:=False;
-    while not (Scanner.EOF or CharInSet(Scanner.Peek,URLDelims)) do
+    while not (Scanner.EOF or CharInSet(Scanner.Peek,URLDelims) or (lInBracket and (Scanner.Peek=']'))) do
       lLink:=lLink+Scanner.NextChar;
     case lLink[lLink.Length] of
       '?','!','.',',',':','*','_','~':
@@ -1253,7 +1275,7 @@ begin
       lUrl:=Copy(lLink,1,Length(lLink)-lRemove);
       lNode:=Nodes.addTextNode(Scanner.location,nkURI,aProtocol+lUrl);
       lNode.attrs.Add('href',aProtocol+urlEscape(lUrl));
-      lText:=Copy(lLink,Length(lLink)-lRemove,lRemove);
+      lText:=Copy(lLink,Length(lLink)-lRemove+1,lRemove);
       Nodes.addTextNode(Scanner.location,nkText,lText);
       end;
   finally
