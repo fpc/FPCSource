@@ -6,12 +6,28 @@
 
 Const
         CTL_MAXNAME     = 12;   { largest number of components supported }
+        SYSCTL_NAMELEN  = 32;   { longest name allowed for a node }
 
 Type
     ctlname = record
                 ctl_name : PAnsiChar;   { subsystem name }
                 ctl_type : cint         { type of name }
               End;
+
+    { Node description returned by CTL_QUERY; pointer and size fields are padded to 64 bits }
+    sysctlnode = record
+                sysctl_flags  : cuint32;        { flags and type }
+                sysctl_num    : cint32;         { mib number }
+                sysctl_name   : array[0..SYSCTL_NAMELEN-1] of AnsiChar; { node name }
+                sysctl_ver    : cuint32;        { node's version vs. rest of tree }
+                __rsvd        : cuint32;
+                sysctl_un     : array[0..1] of cuint64; { child array, data pointer or immediate value }
+                _sysctl_size  : cuint64;        { size of instrumented data }
+                _sysctl_func  : cuint64;        { access helper function }
+                _sysctl_parent: cuint64;        { parent of this node }
+                _sysctl_desc  : cuint64;        { description of node }
+              End;
+    psysctlnode = ^sysctlnode;
 
 Const
         CTLTYPE_NODE    = 1;    { name is a node }

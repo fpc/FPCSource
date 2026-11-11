@@ -126,6 +126,118 @@ Begin
          Exit(0);
 End;
 
+{$ifdef NetBSD}
+const
+  ESysENOENT = 2;
+  ESysENOMEM = 12;
+  QueryRetries = 4;
+
+type
+  TSysctlMib = array[0..CTL_MAXNAME-1] of cint;
+
+function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+
+// Resolves a dotted sysctl name to its MIB by querying the children of each level with CTL_QUERY.
+function NameToMib(aName: PAnsiChar; var aMib: TSysctlMib; var aMibLen: cuint): cint;
+
+var
+  lQueryMib : array[0..CTL_MAXNAME] of cint;
+  lQuery    : sysctlnode;
+  lNodes    : array of sysctlnode;
+  lSize     : size_t;
+  lStart, lEnd, lLen, lCount, lTry, i : longint;
+  lFound    : boolean;
+
+begin
+  aMibLen:=0;
+  lStart:=0;
+  repeat
+    lEnd:=lStart;
+    while not (aName[lEnd] in [#0,'.']) do
+      Inc(lEnd);
+    lLen:=lEnd-lStart;
+    if (lLen=0) or (lLen>=SYSCTL_NAMELEN) or (aMibLen>=CTL_MAXNAME) then
+      begin
+      fpseterrno(ESysENOENT);
+      exit(-1);
+      end;
+    for i:=0 to longint(aMibLen)-1 do
+      lQueryMib[i]:=aMib[i];
+    lQueryMib[aMibLen]:=CTL_QUERY;
+    FillChar(lQuery,SizeOf(lQuery),0);
+    lQuery.sysctl_flags:=SYSCTL_VERSION;
+    lTry:=0;
+    repeat
+      lSize:=0;
+      if FPsysctl(@lQueryMib,aMibLen+1,nil,@lSize,@lQuery,SizeOf(lQuery))=-1 then
+        exit(-1);
+      SetLength(lNodes,lSize div SizeOf(sysctlnode)+1);
+      lSize:=Length(lNodes)*SizeOf(sysctlnode);
+      if FPsysctl(@lQueryMib,aMibLen+1,@lNodes[0],@lSize,@lQuery,SizeOf(lQuery))<>-1 then
+        break;
+      if (fpgeterrno<>ESysENOMEM) or (lTry>=QueryRetries) then
+        exit(-1);
+      Inc(lTry);
+    until false;
+    lCount:=lSize div SizeOf(sysctlnode);
+    lFound:=false;
+    i:=0;
+    while (i<lCount) and not lFound do
+      begin
+      lFound:=(lNodes[i].sysctl_name[lLen]=#0) and (CompareByte(lNodes[i].sysctl_name[0],aName[lStart],lLen)=0);
+      if not lFound then
+        Inc(i);
+      end;
+    if not lFound then
+      begin
+      fpseterrno(ESysENOENT);
+      exit(-1);
+      end;
+    aMib[aMibLen]:=lNodes[i].sysctl_num;
+    Inc(aMibLen);
+    lStart:=lEnd+1;
+  until aName[lEnd]=#0;
+  NameToMib:=0;
+end;
+
+
+function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+
+var
+  lMib    : TSysctlMib;
+  lMibLen : cuint;
+
+begin
+  if NameToMib(Name,lMib,lMibLen)=-1 then
+    exit(-1);
+  FPsysctlbyname:=FPsysctl(@lMib,lMibLen,oldp,oldlenp,newp,newlen);
+end;
+
+
+function FPsysctlnametomib (Name: PAnsiChar; mibp:pcint;sizep:psize_t):cint;
+
+var
+  lMib    : TSysctlMib;
+  lMibLen : cuint;
+  i       : longint;
+
+begin
+  if NameToMib(Name,lMib,lMibLen)=-1 then
+    exit(-1);
+  if lMibLen>sizep^ then
+    begin
+    fpseterrno(ESysENOMEM);
+    exit(-1);
+    end;
+  for i:=0 to longint(lMibLen)-1 do
+    mibp[i]:=lMib[i];
+  sizep^:=lMibLen;
+  FPsysctlnametomib:=0;
+end;
+
+
+{$else NetBSD}
 function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 Var
         name2oid_oid    : array[0..1] of cint;
@@ -161,6 +273,7 @@ Begin
                 Exit (error);
         FPsysctlnametomib:=0;
 End;
+{$endif NetBSD}
 {$endif}
 
 end.
