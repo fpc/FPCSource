@@ -2720,6 +2720,7 @@ function TCustomBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean
 
 var
   CurrBuff : TRecordBuffer;
+  lActiveBM, lCursorBM : TBufBookmark;
 
 begin
   Result := False;
@@ -2730,9 +2731,20 @@ begin
     else if GetActiveRecordUpdateBuffer then
       CurrBuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer
     else
+      begin
       // There is no UpdateBuffer for ActiveRecord, so there are no explicit old values available
       // then we can assume, that old values = current values
       CurrBuff := CurrentIndexBuf.CurrentBuffer;
+      if FSavedState in [dsBrowse, dsEdit] then
+        begin
+        FillChar(lCursorBM, SizeOf(lCursorBM), 0);
+        GetBookmarkData(ActiveBuffer, @lActiveBM);
+        CurrentIndexBuf.StoreCurrentRecIntoBookmark(@lCursorBM);
+        // ActiveRecord points to a record other than the cursor record
+        if Assigned(lCursorBM.BookmarkData) and (lActiveBM.BookmarkData <> lCursorBM.BookmarkData) then
+          CurrBuff := ActiveBuffer;
+        end;
+      end;
   end
   else
     CurrBuff := GetCurrentBuffer;

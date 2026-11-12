@@ -184,6 +184,8 @@ type
     // fields
     procedure TestFieldOldValueObsolete;
     procedure TestFieldOldValue;
+    // OldValue of the record selected with ActiveRecord (bug 34694)
+    procedure TestFieldOldValueActiveRecord;
     procedure TestChangeBlobFieldBeforePost; //bug 15376
   end;
 
@@ -1102,6 +1104,58 @@ begin
       MergeChangeLog;
       CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
     end;
+end;
+
+procedure TTestCursorDBBasics.TestFieldOldValueActiveRecord;
+
+var
+  lDataset: TDataSet;
+  lDataLink: TDataLink;
+  lDataSource: TDataSource;
+  lSavedRecord, i: Integer;
+
+begin
+  lDataset:=DBConnector.GetNDataset(10);
+  if not (lDataset is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  lDataLink:=TDataLink.Create;
+  lDataSource:=TDataSource.Create(nil);
+  try
+    lDataSource.DataSet:=lDataset;
+    lDataLink.DataSource:=lDataSource;
+    lDataLink.BufferCount:=5;
+    lDataset.Open;
+    lDataset.MoveBy(2);
+    CheckEquals(5, lDataLink.RecordCount, 'Records in the data link buffers');
+    lSavedRecord:=lDataLink.ActiveRecord;
+    for i:=0 to lDataLink.RecordCount-1 do
+      begin
+      lDataLink.ActiveRecord:=i;
+      CheckEquals(i+1, lDataset.FieldByName('ID').AsInteger, 'Value of buffer '+IntToStr(i));
+      CheckEquals(i+1, Integer(lDataset.FieldByName('ID').OldValue), 'OldValue of unmodified buffer '+IntToStr(i));
+      end;
+    lDataLink.ActiveRecord:=lSavedRecord;
+    CheckEquals(3, lDataset.FieldByName('ID').AsInteger, 'Value of the current record');
+    lDataset.Edit;
+    lDataset.FieldByName('ID').AsInteger:=-3;
+    for i:=0 to lDataLink.RecordCount-1 do
+      begin
+      lDataLink.ActiveRecord:=i;
+      CheckEquals(i+1, Integer(lDataset.FieldByName('ID').OldValue), 'OldValue of buffer '+IntToStr(i)+' while editing');
+      end;
+    lDataLink.ActiveRecord:=lSavedRecord;
+    lDataset.Post;
+    for i:=0 to lDataLink.RecordCount-1 do
+      begin
+      lDataLink.ActiveRecord:=i;
+      CheckEquals(i+1, Integer(lDataset.FieldByName('ID').OldValue), 'OldValue of buffer '+IntToStr(i)+' after Post');
+      end;
+    lDataLink.ActiveRecord:=lSavedRecord;
+    CheckEquals(-3, lDataset.FieldByName('ID').AsInteger, 'Value of the posted record');
+  finally
+    lDataLink.Free;
+    lDataSource.Free;
+  end;
 end;
 
 procedure TTestCursorDBBasics.TestChangeBlobFieldBeforePost;
