@@ -3347,6 +3347,9 @@ implementation
         c,i: integer;
       begin
         Result := False;
+        if not (ds_dwarf_properties in current_settings.debugswitches) then
+          exit;
+
         if not((ownerdef is trecorddef) or
            ((ownerdef is tobjectdef) and
             (tobjectdef(ownerdef).objecttype in [odt_class, odt_object {, odt_interfacecom, odt_interfacecorba}]))
