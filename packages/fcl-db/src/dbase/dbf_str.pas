@@ -24,6 +24,7 @@ initialization
   STRING_INVALID_DBF_FILE             := 'Invalid DBF file.';
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'Invalid DBF file. Invalid field definition.';
   STRING_FIELD_TOO_LONG               := 'Value is too long: %d characters (it can''t be more than %d).';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Value %s does not fit in numeric field "%s" (size %d, %d decimals).';
   STRING_INVALID_FIELD_COUNT          := 'Invalid field count: %d (must be between 1 and 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Invalid field type ''%s'' for field ''%s''.';
   STRING_INVALID_VCL_FIELD_TYPE       := 'Cannot create field "%s", VCL field type %x not supported by DBF.';

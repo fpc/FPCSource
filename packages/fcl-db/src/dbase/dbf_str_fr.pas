@@ -22,6 +22,7 @@ initialization
   STRING_INVALID_DBF_FILE             := 'Fichier DBF invalide.';
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'Fichier DBF invalide. Definition de champ invalide.'; //todo: verify field part
   STRING_FIELD_TOO_LONG               := 'Valeur trop longue: %d caractères (ne peut dépasser %d).';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Value %s does not fit in numeric field "%s" (size %d, %d decimals).';
   STRING_INVALID_FIELD_COUNT          := 'Nombre de champs non valide: %d (doit être entre 1 et 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Type de champ ''%s'' invalide pour le champ %s.';
   STRING_INVALID_VCL_FIELD_TYPE       := 'Impossible de créer le champ "%s", champ type %x VCL non supporté par DBF';

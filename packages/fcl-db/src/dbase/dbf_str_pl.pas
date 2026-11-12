@@ -23,6 +23,7 @@ initialization
   STRING_INVALID_DBF_FILE             := 'Nieprawid³owy plik DBF.';
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'Nieprawid³owy plik DBF. B³êdna definicja pola.';
   STRING_FIELD_TOO_LONG               := 'Wartoœæ jest za d³uga: %d znaków (maksymalnie %d).';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Value %s does not fit in numeric field "%s" (size %d, %d decimals).';
   STRING_INVALID_FIELD_COUNT          := 'Nieprawid³owa liczba pól: %d (dozwolone 1 do 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Nieprawid³owy typ pola ''%s'' dla pola ''%s''.';
   STRING_INVALID_VCL_FIELD_TYPE       := 'Nie mo¿na utworzyæ pola "%s", typ pola VCL %x nie jest obs³ugiwany przez DBF.';

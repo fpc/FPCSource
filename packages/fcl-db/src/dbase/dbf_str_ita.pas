@@ -23,6 +23,7 @@ initialization
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'File DBF non valido. Definizione de campo non valido'; //todo: check field part
 
   STRING_FIELD_TOO_LONG               := 'Valore troppo elevato: %d caratteri (esso non può essere più di %d).';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Value %s does not fit in numeric field "%s" (size %d, %d decimals).';
   STRING_INVALID_FIELD_COUNT          := 'Campo non valido (count): %d (deve essere tra 1 e 4095).';
 
   STRING_INDEX_BASED_ON_UNKNOWN_FIELD := 'Indice basato su un campo sconosciuto "%s"';

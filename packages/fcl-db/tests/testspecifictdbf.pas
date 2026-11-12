@@ -72,6 +72,8 @@ type
     procedure TestLargeString;
     // Tests codepage in created dbf equals requested codepage
     procedure TestCodePage;
+    // Tests large values in a numeric float field of size 20 with 5 decimals
+    procedure TestLargeFloat;
   end;
 
 
@@ -705,6 +707,72 @@ begin
   CheckEquals(CorrespondingCodePage,DS.CodePage,'DBF codepage should match requested codeapage.');
   DS.Close;
   ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestLargeFloat;
+var
+  ds : TDBF;
+
+  procedure CheckWrite(const aValue: Double; const aName: string);
+  begin
+    DS.Edit;
+    DS.FieldByName('VAL').AsFloat := aValue;
+    DS.Post;
+    CheckEquals(aValue,DS.FieldByName('VAL').AsFloat,0,aName+' read back after Post');
+    DS.Close;
+    DS.Open;
+    CheckEquals(aValue,DS.FieldByName('VAL').AsFloat,0,aName+' read back after reopen');
+  end;
+
+  procedure CheckTooLarge(const aValue: Double; const aPrevious: Double; const aName: string);
+  var
+    lRaised: Boolean;
+  begin
+    DS.Edit;
+    lRaised := False;
+    try
+      DS.FieldByName('VAL').AsFloat := aValue;
+    except
+      on E: EDbfError do
+        lRaised := True;
+    end;
+    CheckTrue(lRaised,aName+' raises EDbfError');
+    CheckEquals(aPrevious,DS.FieldByName('VAL').AsFloat,0,aName+' leaves the field value unchanged');
+    DS.Cancel;
+    CheckEquals(aPrevious,DS.FieldByName('VAL').AsFloat,0,aName+' leaves the record unchanged after Cancel');
+  end;
+
+begin
+  ds := TDBFAutoClean.Create(nil);
+  try
+    DS.FieldDefs.Add('ID',ftInteger);
+    DS.FieldDefs.Add('VAL',ftFloat);
+    DS.FieldDefs[1].Size := 20;
+    DS.FieldDefs[1].Precision := 5;
+    DS.CreateTable;
+    DS.Open;
+    if DS.DbfFieldDefs.Items[1].NativeFieldType<>'N' then
+      Ignore('VAL is not a numeric (N) field in this tablelevel.');
+    CheckEquals(20,DS.DbfFieldDefs.Items[1].Size,'VAL field size');
+    CheckEquals(5,DS.DbfFieldDefs.Items[1].Precision,'VAL field precision');
+    DS.Append;
+    DS.FieldByName('ID').AsInteger := 1;
+    DS.FieldByName('VAL').AsFloat := 0;
+    DS.Post;
+    CheckWrite(1E13,'1E13');
+    CheckWrite(99999999999999.5,'99999999999999.5');
+    CheckWrite(-1234567890123.25,'-1234567890123.25');
+    CheckWrite(1E15,'1E15 with decimals dropped');
+    CheckWrite(-1E18,'-1E18 with decimals dropped');
+    CheckWrite(1E19,'1E19 without decimals');
+    CheckTooLarge(1E20,1E19,'1E20');
+    CheckTooLarge(1E23,1E19,'1E23');
+    CheckTooLarge(1E30,1E19,'1E30');
+    CheckTooLarge(-1E19,1E19,'-1E19');
+    DS.Close;
+  finally
+    ds.free;
+  end;
 end;
 
 

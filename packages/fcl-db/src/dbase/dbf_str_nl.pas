@@ -23,6 +23,7 @@ initialization
   STRING_INVALID_DBF_FILE             := 'Ongeldig DBF bestand.';
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'Ongeldig DBF bestand. Ongeldige velddefinitie.';
   STRING_FIELD_TOO_LONG               := 'Waarde is te lang: %d karakters (maximum is %d).';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Waarde %s past niet in numeriek veld "%s" (grootte %d, %d decimalen).';
   STRING_INVALID_FIELD_COUNT          := 'Ongeldig aantal velden: %d (moet tussen 1 en 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Veldtype ''%s'' is ongeldig voor veld ''%s''.';
   STRING_INVALID_VCL_FIELD_TYPE       := 'Veld "%s": VCL veldtype %x wordt niet ondersteund door DBF.';

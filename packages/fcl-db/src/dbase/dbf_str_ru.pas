@@ -29,6 +29,7 @@ initialization
   STRING_INVALID_DBF_FILE             := 'Файл DBF поврежден или его структура не DBF.';
   STRING_INVALID_DBF_FILE_FIELDERROR  := 'Файл DBF поврежден или его структура не DBF.'; //todo: add field error info
   STRING_FIELD_TOO_LONG               := 'Длина значения - %d символов, это больше максимума - %d.';
+  STRING_NUMERIC_VALUE_TOO_LARGE      := 'Value %s does not fit in numeric field "%s" (size %d, %d decimals).';
   STRING_INVALID_FIELD_COUNT          := 'Количество полей в таблице (%d) невозможно. Допустимо от 1 до 4095.';
   STRING_INVALID_FIELD_TYPE           := 'Тип значения "%s", затребованный полем "%s" невозможен.';
   STRING_INVALID_VCL_FIELD_TYPE       := 'Невозможно создать поле "%s", Тип данных VCL[%x] не может быть записан в DBF.';

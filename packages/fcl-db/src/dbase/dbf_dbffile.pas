@@ -341,30 +341,35 @@ begin
   (Src + Size)^ := endChar;
 end;
 
-procedure FloatToDbfStr(const Val: Extended; const Size, Precision: Integer; const Dest: PAnsiChar);
+// Write aValue right-aligned in aSize characters with aPrecision decimals to aDest.
+// Decimals that do not fit are dropped. Returns False and leaves aDest unchanged
+// when the integer part does not fit or aValue is not a finite number.
+function FloatToDbfStr(const aValue: Extended; const aSize, aPrecision: Integer; const aDest: PAnsiChar): Boolean;
+
 var
-  Buffer: array [0..24] of AnsiChar;
-  resLen: Integer;
-  iPos: PAnsiChar;
+  lStr: AnsiString;
+  lIntLen, lLen, I: Integer;
+
 begin
-  // convert to temporary buffer
-  resLen := FloatToText(@Buffer[0], Val, {$ifndef FPC_VERSION}fvExtended,{$endif} ffFixed, Size, Precision);
-  // prevent overflow in destination buffer
-  if resLen > Size then
-    resLen := Size;
-  // null-terminate buffer
-  Buffer[resLen] := #0;
-  // we only have to convert if decimal separator different
-  if DecimalSeparator <> sDBF_DEC_SEP then
-  begin
-    iPos := StrScan(@Buffer[0], DecimalSeparator);
-    if iPos <> nil then
-      iPos^ := sDBF_DEC_SEP;
-  end;
-  // fill destination with spaces
-  FillChar(Dest^, Size, ' ');
-  // now copy right-aligned to destination
-  Move(Buffer[0], Dest[Size-resLen], resLen);
+  Result := False;
+  Str(aValue:0:aPrecision, lStr);
+  for I := 1 to Length(lStr) do
+    if not (lStr[I] in ['0'..'9', '-', sDBF_DEC_SEP]) then
+      Exit;
+  lIntLen := Pos(sDBF_DEC_SEP, lStr) - 1;
+  if lIntLen < 0 then
+    lIntLen := Length(lStr);
+  if lIntLen > aSize then
+    Exit;
+  lLen := Length(lStr);
+  if lLen > aSize then
+    lLen := aSize;
+  // no trailing decimal separator
+  if lLen = lIntLen + 1 then
+    lLen := lIntLen;
+  FillChar(aDest^, aSize, ' ');
+  Move(lStr[1], aDest[aSize-lLen], lLen);
+  Result := True;
 end;
 
 function GetIntFromStrLength(Src: Pointer; Size: Integer; Default: Integer): Integer;
@@ -2456,7 +2461,9 @@ begin
           GetStrFromInt64_Width(PLargeInt(Src)^, FieldSize, PAnsiChar(Dst), #32);
 {$endif}
         ftFloat, ftCurrency:
-          FloatToDbfStr(PDouble(Src)^, FieldSize, FieldPrec, PAnsiChar(Dst));
+          if not FloatToDbfStr(PDouble(Src)^, FieldSize, FieldPrec, PAnsiChar(Dst)) then
+            raise EDbfError.CreateFmt(STRING_NUMERIC_VALUE_TOO_LARGE,
+              [FloatToStr(PDouble(Src)^), TempFieldDef.FieldName, FieldSize, FieldPrec]);
         ftInteger:
           GetStrFromInt_Width(PInteger(Src)^, FieldSize, PAnsiChar(Dst),
             IsBlobFieldToPadChar[TempFieldDef.IsBlob]);
