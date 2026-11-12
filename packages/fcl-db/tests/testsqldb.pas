@@ -66,6 +66,8 @@ type
     Procedure TestWideStringParam;
     procedure TestChangeSQLCloseUnprepare;
     procedure TestChangeSQLCloseUnprepareDisabled;
+    procedure TestExecuteServerPrepared;
+    procedure TestTextResultFormat;
   end;
 
   { TTestTSQLConnection }
@@ -926,6 +928,53 @@ begin
     SQL.Text := 'UPDATE FPDEV SET NAME=''Test'' WHERE ID>100';
     ExecSQL;
     end;
+end;
+
+procedure TTestTSQLQuery.TestExecuteServerPrepared;
+
+begin
+  if SQLServerType<>ssPostgreSQL then
+    Ignore(STestNotApplicable);
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='prepare fpdevstmt as select 1::int4 as i, 2.5::float8 as f, date ''2021-05-15'' as d, ''abc''::varchar(10) as s';
+  FMyQ.ExecSQL;
+  try
+    FMyQ.SQL.Text:='execute fpdevstmt';
+    FMyQ.Open;
+    AssertEquals('Record count',1,FMyQ.RecordCount);
+    AssertEquals('int4 field',1,FMyQ.FieldByName('i').AsInteger);
+    AssertEquals('float8 field',2.5,FMyQ.FieldByName('f').AsFloat,0);
+    AssertEquals('date field',EncodeDate(2021,5,15),FMyQ.FieldByName('d').AsDateTime);
+    AssertEquals('varchar field','abc',FMyQ.FieldByName('s').AsString);
+    FMyQ.Close;
+  finally
+    FMyQ.SQL.Text:='deallocate fpdevstmt';
+    FMyQ.ExecSQL;
+  end;
+end;
+
+procedure TTestTSQLQuery.TestTextResultFormat;
+
+var
+  lRaised : Boolean;
+
+begin
+  if SQLServerType<>ssPostgreSQL then
+    Ignore(STestNotApplicable);
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='values (''abc''::varchar(10))';
+  FMyQ.Open;
+  AssertEquals('Text format varchar field','abc',FMyQ.Fields[0].AsString);
+  FMyQ.Close;
+  FMyQ.SQL.Text:='values (1::int4)';
+  lRaised:=False;
+  try
+    FMyQ.Open;
+  except
+    on E : EDatabaseError do
+      lRaised:=True;
+  end;
+  AssertTrue('Text format int4 field raises EDatabaseError',lRaised);
 end;
 
 

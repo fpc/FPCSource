@@ -81,6 +81,8 @@ type
     Function CheckConnectionStatus(doRaise : Boolean = True) : Boolean;
     Function DescribePrepared(StmtName : String): PPGresult;
     Function Exec(aSQL : String; aClearResult : Boolean; aError : String = '') : PPGresult;
+    // Execute a single SQL statement and return the result rows in binary format
+    Function ExecBinary(aSQL : String; aError : String = '') : PPGresult;
     function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPAnsichar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
     procedure CheckResultError(var res: PPGresult; Actions : TCheckResultActions; const ErrMsg: string);
     Property Connection : TPQConnection Read FCOnnection;
@@ -244,6 +246,7 @@ ResourceString
   SErrExecuteFailed = 'Execution of query failed';
   SErrPrepareFailed = 'Preparation of query failed.';
   SErrUnPrepareFailed = 'Unpreparation of query failed.';
+  SErrTextResultFormat = 'Field "%s" is returned in text format, which is not supported for its data type';
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
@@ -895,6 +898,23 @@ begin
   CheckResultError(Result,acts,aError);
 end;
 
+function TPGHandle.ExecBinary(aSQL: String; aError: String): PPGresult;
+
+Var
+  S : UTF8String;
+
+begin
+  if FNativeConn=Nil then
+    DatabaseError(IntToStr(FHandleID)+': No native PQ connection available');
+  CheckConnectionStatus();
+  S:=aSQL;
+  {$IFDEF PQDEBUG}
+  Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  exec binary: ',S);
+  {$ENDIF}
+  Result:=PQexecParams(FNativeConn,PAnsiChar(S),0,nil,nil,nil,nil,1);
+  CheckResultError(Result,[],aError);
+end;
+
 function TPGHandle.ExecPrepared(stmtName: AnsiString; nParams: longint;
   paramValues: PPAnsichar; paramLengths: Plongint; paramFormats: Plongint;
   aClearResult: Boolean): PPGresult;
@@ -1401,9 +1421,25 @@ begin
       end
     else
       s := PQCurs.Statement;
-    PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrExecuteFailed);
+    if PQCurs.FStatementType=stExecProcedure then
+      PQCurs.Res:=PQCurs.Handle.ExecBinary(S,SErrExecuteFailed)
+    else
+      PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrExecuteFailed);
     end;
   PQCurs.FSelectable := assigned(PQCurs.res) and (PQresultStatus(PQCurs.res)=PGRES_TUPLES_OK);
+end;
+
+
+// True when values of type aOID have the same bytes in text and in binary format
+function SameTextAndBinaryFormat(aOID : Oid) : Boolean;
+
+begin
+  case aOID of
+    Oid_varchar, Oid_bpchar, Oid_name, Oid_text, Oid_JSON, Oid_char:
+      Result:=True;
+  else
+    Result:=False;
+  end;
 end;
 
 
@@ -1431,6 +1467,8 @@ begin
       begin
       FN:=PQfname(Res, i);
       fieldtype := TranslateFldType(Res, i, asize, aoid );
+      if (PQfformat(Res,i)=0) and (fieldtype<>ftUnknown) and not SameTextAndBinaryFormat(PQftype(Res,i)) then
+        DatabaseErrorFmt(SErrTextResultFormat,[FN],Self);
       FD := AddFieldDef(FieldDefs, i+1, FN, fieldtype, asize, -1, False, False, False) as TSQLDBFieldDef;
       With FD do
         begin
