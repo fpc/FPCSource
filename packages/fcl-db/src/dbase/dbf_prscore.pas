@@ -1768,46 +1768,50 @@ end;
 
 {$endif}
 
+// Converts a null-terminated string in the default system code page to a UnicodeString
+function ArgToUnicode(aArg: PAnsiChar): UnicodeString;
+
+begin
+  Result := UnicodeString(AnsiString(aArg));
+end;
+
+
+// Compares two null-terminated strings in the default system code page case-insensitively
+function StrICompUnicode(aArg0, aArg1: PAnsiChar): Integer;
+
+begin
+  Result := UnicodeCompareText(ArgToUnicode(aArg0), ArgToUnicode(aArg1));
+end;
+
+
 procedure FuncStrI_EQ(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) = 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) = 0);
 end;
 
 procedure FuncStrIP_EQ(Param: PExpressionRec);
 var
-  arg0len, arg1len: integer;
+  lValue, lPattern: UnicodeString;
+  lValueLen, lPatternLen: integer;
   match: boolean;
-  str0, str1: AnsiString;
 begin
   with Param^ do
   begin
-    arg1len := StrLen(Args[1]);
-    if Args[1][0] = '*' then
-    begin
-      if Args[1][arg1len-1] = '*' then
-      begin
-        str0 := AnsiStrUpper(Args[0]);
-        str1 := AnsiStrUpper(Args[1]+1);
-        setlength(str1, arg1len-2);
-        match := AnsiPos(str1, str0) <> 0;
-      end else begin
-        arg0len := StrLen(Args[0]);
-        // at least length without asterisk
-        match := arg0len >= arg1len - 1;
-        if match then
-          match := AnsiStrLIComp(Args[0]+(arg0len-arg1len+1), Args[1]+1, arg1len-1) = 0;
-      end;
-    end else
-    if Args[1][arg1len-1] = '*' then
-    begin
-      arg0len := StrLen(Args[0]);
-      match := arg0len >= arg1len - 1;
-      if match then
-        match := AnsiStrLIComp(Args[0], Args[1], arg1len-1) = 0;
-    end else begin
-      match := AnsiStrIComp(Args[0], Args[1]) = 0;
-    end;
+    lValue := ArgToUnicode(Args[0]);
+    lPattern := ArgToUnicode(Args[1]);
+    lValueLen := Length(lValue);
+    lPatternLen := Length(lPattern);
+    if (lPatternLen > 1) and (lPattern[1] = '*') and (lPattern[lPatternLen] = '*') then
+      match := Pos(UnicodeUpperCase(Copy(lPattern, 2, lPatternLen-2)), UnicodeUpperCase(lValue)) <> 0
+    else if (lPatternLen > 0) and (lPattern[1] = '*') then
+      match := (lValueLen >= lPatternLen-1) and
+        (UnicodeCompareText(Copy(lValue, lValueLen-lPatternLen+2, lPatternLen-1), Copy(lPattern, 2, lPatternLen-1)) = 0)
+    else if (lPatternLen > 0) and (lPattern[lPatternLen] = '*') then
+      match := (lValueLen >= lPatternLen-1) and
+        (UnicodeCompareText(Copy(lValue, 1, lPatternLen-1), Copy(lPattern, 1, lPatternLen-1)) = 0)
+    else
+      match := UnicodeCompareText(lValue, lPattern) = 0;
     Res.MemoryPos^^ := AnsiChar(match);
   end;
 end;
@@ -1815,31 +1819,31 @@ end;
 procedure FuncStrI_NEQ(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) <> 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) <> 0);
 end;
 
 procedure FuncStrI_LT(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) < 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) < 0);
 end;
 
 procedure FuncStrI_GT(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) > 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) > 0);
 end;
 
 procedure FuncStrI_LTE(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) <= 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) <= 0);
 end;
 
 procedure FuncStrI_GTE(Param: PExpressionRec);
 begin
   with Param^ do
-    Res.MemoryPos^^ := AnsiChar(AnsiStrIComp(Args[0], Args[1]) >= 0);
+    Res.MemoryPos^^ := AnsiChar(StrICompUnicode(Args[0], Args[1]) >= 0);
 end;
 
 procedure FuncStrP_EQ(Param: PExpressionRec);

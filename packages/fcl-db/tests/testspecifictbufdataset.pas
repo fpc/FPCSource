@@ -79,6 +79,8 @@ type
     procedure TestIndexDefsAddWhileOpen;
     // IndexDefs.Add on an open dataset beyond MaxIndexesCount
     procedure TestIndexDefsAddWhileOpenMaxIndexes;
+    // Case-insensitive filters on non-ASCII strings, also with DefaultSystemCodePage CP_UTF8 (bug 36512)
+    procedure TestFilterCaseInsensitiveNonASCII;
   end;
 
 implementation
@@ -856,6 +858,86 @@ begin
     lDS.Close;
   finally
     lDS.Free;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestFilterCaseInsensitiveNonASCII;
+
+var
+  lSavedCodePage: TSystemCodePage;
+
+  // Converts UTF-16 text to a string in the default system code page
+  function Native(const aText: UnicodeString): string;
+
+  begin
+    Result:=string(aText);
+  end;
+
+  procedure CheckFilters(const aCodePageName: string);
+
+  const
+    cLowerN = UnicodeString(#$00F1);
+    cUpperN = UnicodeString(#$00D1);
+
+  var
+    lDS: TBufDataset;
+
+    procedure CheckCount(const aFilter: UnicodeString; aExpected: Integer);
+
+    var
+      lCount: Integer;
+
+    begin
+      lDS.Filtered:=False;
+      lDS.Filter:=Native(aFilter);
+      lDS.Filtered:=True;
+      lCount:=0;
+      lDS.First;
+      while not lDS.Eof do
+        begin
+        Inc(lCount);
+        lDS.Next;
+        end;
+      AssertEquals(aCodePageName+': records for filter '+UTF8Encode(aFilter), aExpected, lCount);
+    end;
+
+  begin
+    lDS:=TBufDataset.Create(nil);
+    try
+      lDS.FieldDefs.Add('N', ftString, 20);
+      lDS.CreateDataset;
+      lDS.AppendRecord([Native(cLowerN)]);
+      lDS.AppendRecord([Native(cUpperN)]);
+      lDS.AppendRecord([Native('a')]);
+      lDS.AppendRecord([Native('a'+cLowerN+'b')]);
+      lDS.AppendRecord([Native('A'+cUpperN+'B')]);
+      lDS.First;
+      AssertEquals(aCodePageName+': stored value', UTF8Encode(cLowerN), UTF8Encode(UnicodeString(lDS.FieldByName('N').AsString)));
+      lDS.FilterOptions:=[foCaseInsensitive];
+      CheckCount('N='''+cLowerN+'''', 2);
+      CheckCount('N='''+cUpperN+'''', 2);
+      CheckCount('N<>'''+cLowerN+'''', 3);
+      CheckCount('N='''+cLowerN+'*''', 2);
+      CheckCount('N=''*'+cUpperN+'''', 2);
+      CheckCount('N=''*'+cLowerN+'*''', 4);
+      CheckCount('N=''*'+cUpperN+'b''', 2);
+      CheckCount('N=''a'+cUpperN+'*''', 2);
+      lDS.FilterOptions:=[];
+      CheckCount('N='''+cLowerN+'''', 1);
+      lDS.Close;
+    finally
+      lDS.Free;
+    end;
+  end;
+
+begin
+  lSavedCodePage:=DefaultSystemCodePage;
+  try
+    CheckFilters('System code page '+IntToStr(lSavedCodePage));
+    DefaultSystemCodePage:=CP_UTF8;
+    CheckFilters('CP_UTF8');
+  finally
+    DefaultSystemCodePage:=lSavedCodePage;
   end;
 end;
 
