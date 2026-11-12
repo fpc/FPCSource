@@ -537,6 +537,7 @@ procedure TTestFieldTypes.TestFixedCharUTF8;
 
 var
   lB, lBB: UTF8String;
+  lSavedCodePage: TSystemCodePage;
 
   function ValueOf(aField: TField): UTF8String;
   begin
@@ -560,15 +561,22 @@ begin
     Ignore('This test needs a connection with character set UTF8');
   lB:=UTF8Encode(UnicodeString(WideChar($0411)));
   lBB:=lB+lB;
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    SQL.Text:='select '''+lB+''' C1, '''+lBB+''' C2, cast('''+lBB+''' as varchar(2)) V2 from rdb$database';
-    Open;
-    CheckValue('CHAR(1) with a 2-byte UTF-8 character',lB,Fields[0]);
-    CheckValue('CHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[1]);
-    CheckValue('VARCHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[2]);
-    Close;
-    end;
+  // UTF-8 SQL text, independent of the system code page
+  lSavedCodePage:=DefaultSystemCodePage;
+  DefaultSystemCodePage:=CP_UTF8;
+  try
+    with TSQLDBConnector(DBConnector).Query do
+      begin
+      SQL.Text:='select '''+lB+''' C1, '''+lBB+''' C2, cast('''+lBB+''' as varchar(2)) V2 from rdb$database';
+      Open;
+      CheckValue('CHAR(1) with a 2-byte UTF-8 character',lB,Fields[0]);
+      CheckValue('CHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[1]);
+      CheckValue('VARCHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[2]);
+      Close;
+      end;
+  finally
+    DefaultSystemCodePage:=lSavedCodePage;
+  end;
 end;
 
 procedure TTestFieldTypes.TestNumericScale8Param;
