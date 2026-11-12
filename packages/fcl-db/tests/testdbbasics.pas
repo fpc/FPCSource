@@ -59,6 +59,8 @@ type
     procedure TestCanModifySpecialFields;
     // FullName of plain fields and of fields with parent fields (bug 8200)
     procedure TestFieldFullName;
+    // Tests TField.AutoGenerateValue default, setter and streaming
+    procedure TestFieldAutoGenerateValue;
 
     // dataset
     procedure TestDoubleClose;
@@ -3288,6 +3290,55 @@ begin
     lLeaf.Free;
     lChild.Free;
     lParent.Free;
+  end;
+end;
+
+procedure TTestDBBasics.TestFieldAutoGenerateValue;
+
+  function StreamedText(aField: TField): string;
+  var
+    lBinary, lText: TMemoryStream;
+  begin
+    lBinary:=TMemoryStream.Create;
+    lText:=TMemoryStream.Create;
+    try
+      lBinary.WriteComponent(aField);
+      lBinary.Position:=0;
+      ObjectBinaryToText(lBinary,lText);
+      SetLength(Result,lText.Size);
+      if lText.Size>0 then
+        Move(lText.Memory^,Result[1],lText.Size);
+    finally
+      lText.Free;
+      lBinary.Free;
+    end;
+  end;
+
+var
+  lField, lRead: TIntegerField;
+  lStream: TMemoryStream;
+
+begin
+  lField:=TIntegerField.Create(nil);
+  lRead:=TIntegerField.Create(nil);
+  lStream:=TMemoryStream.Create;
+  try
+    lField.FieldName:='ID';
+    CheckTrue(lField.AutoGenerateValue=arNone, 'Default AutoGenerateValue is arNone');
+    CheckEquals(0, Pos('AutoGenerateValue', StreamedText(lField)), 'arNone is not streamed');
+    lField.AutoGenerateValue:=arAutoInc;
+    CheckTrue(lField.AutoGenerateValue=arAutoInc, 'AutoGenerateValue after setting arAutoInc');
+    CheckTrue(Pos('AutoGenerateValue = arAutoInc', StreamedText(lField))>0, 'arAutoInc is streamed');
+    lField.AutoGenerateValue:=arDefault;
+    lStream.WriteComponent(lField);
+    lStream.Position:=0;
+    lStream.ReadComponent(lRead);
+    CheckTrue(lRead.AutoGenerateValue=arDefault, 'arDefault read back from stream');
+    CheckEquals('ID', lRead.FieldName, 'FieldName read back from stream');
+  finally
+    lStream.Free;
+    lRead.Free;
+    lField.Free;
   end;
 end;
 

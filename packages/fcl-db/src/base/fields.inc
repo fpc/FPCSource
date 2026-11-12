@@ -1225,6 +1225,17 @@ begin
     end;
 end;
 
+procedure TField.SetAutoGenerateValue(const AValue: TAutoRefreshFlag);
+
+begin
+  if FAutoGenerateValue<>AValue then
+    begin
+    FAutoGenerateValue:=AValue;
+    PropertyChanged(False);
+    end;
+end;
+
+
 
 { ---------------------------------------------------------------------
     TStringField

@@ -905,6 +905,14 @@ Const
   // Flags to check which fields must be refreshed.
   RefreshFlags : Array [ukModify..ukInsert] of TProviderFlag = (pfRefreshOnUpdate,pfRefreshOnInsert);
 
+// True when aField is refreshed after an update of kind aUpdateKind
+function NeedFieldRefresh(aField: TField; aUpdateKind: TUpdateKind): Boolean;
+
+begin
+  Result:=(RefreshFlags[aUpdateKind] in aField.ProviderFlags)
+          or ((aUpdateKind=ukInsert) and (aField.AutoGenerateValue<>arNone));
+end;
+
 
 function TimeIntervalToString(Time: TDateTime): string;
 var
@@ -2266,7 +2274,7 @@ begin
       sql_fields := sql_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
       sql_values := sql_values + ':"' + F.FieldName + '",';
       end;
-    if ReturningClause and (pfRefreshOnInsert in F.ProviderFlags) then
+    if ReturningClause and NeedFieldRefresh(F,ukInsert) then
       returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_fields) = 0 then
@@ -2305,7 +2313,7 @@ begin
     AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
     if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
       sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
-    if ReturningClause and (pfRefreshOnUpdate in F.ProviderFlags) then
+    if ReturningClause and NeedFieldRefresh(F,ukModify) then
       returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
@@ -2343,7 +2351,6 @@ function TSQLConnection.ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind: 
 
 Var
   F : TField;
-  PF : TProviderFlag;
   Where : String;
 
 begin
@@ -2351,10 +2358,9 @@ begin
   if (Result='') then
     begin
     Where:='';
-    PF:=RefreshFlags[UpdateKind];
     For F in Query.Fields do
       begin
-      if PF in F.ProviderFlags then
+      if NeedFieldRefresh(F,UpdateKind) then
         begin
         if (Result<>'') then
           Result:=Result+', ';
@@ -3079,7 +3085,6 @@ function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 
 Var
-  PF : TProviderFlag;
   I : Integer;
   DoReturning : Boolean;
 
@@ -3088,11 +3093,10 @@ begin
   DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
   if Not (Result or DoReturning) then
     begin
-    PF:=RefreshFlags[UpdateKind];
     I:=0;
     While (Not Result) and (I<Fields.Count) do
       begin
-      Result:=PF in Fields[i].ProviderFlags;
+      Result:=NeedFieldRefresh(Fields[i],UpdateKind);
       Inc(I);
       end;
     end;
@@ -3152,15 +3156,13 @@ procedure TCustomSQLQuery.ApplyReturningResult(Q: TCustomSQLQuery; UpdateKind : 
 
 Var
   S : TDataSetState;
-  refreshFlag  : TProviderFlag;
   F : TField;
 
 begin
-  RefreshFlag:=RefreshFlags[UpdateKind];
   S:=SetTempState(dsRefreshFields);
   try
     For F in Fields do
-      if RefreshFlag in F.ProviderFlags then
+      if NeedFieldRefresh(F,UpdateKind) then
         F.Assign(Q.FieldByName(F.FieldName));
   finally
     RestoreState(S);
