@@ -1259,7 +1259,7 @@ begin
           begin
             if VSQLVar^.sqlscale = 0 then
               li := AParam.AsLargeInt
-            else if AParam.DataType = ftFMTBcd then
+            else if (AParam.DataType = ftFMTBcd) or (-VSQLVar^.sqlscale > MaxBCDScale) then
               li := AParam.AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
             else
               li := Round(AParam.AsCurrency * IntPower10(-VSQLVar^.sqlscale));

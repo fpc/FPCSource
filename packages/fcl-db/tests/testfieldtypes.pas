@@ -44,6 +44,7 @@ type
     procedure TestString;
     procedure TestUnlVarChar;
     procedure TestFixedCharUTF8; // bug 39536
+    procedure TestNumericScale8Param; // bug 39409
     procedure TestBlob;
     procedure TestChangeBlob;
     procedure TestBlobGetText;
@@ -568,6 +569,54 @@ begin
     CheckValue('VARCHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[2]);
     Close;
     end;
+end;
+
+procedure TTestFieldTypes.TestNumericScale8Param;
+
+  procedure CheckStored(aID: Integer; const aExpected, aMsg: string);
+  begin
+    with TSQLDBConnector(DBConnector).Query do
+      begin
+      SQL.Text:='select cast(N as varchar(30)) from FPDEV2 where ID='+IntToStr(aID);
+      Open;
+      AssertEquals(aMsg,aExpected,Trim(Fields[0].AsString));
+      Close;
+      end;
+  end;
+
+begin
+  if not (SQLServerType in [ssFirebird, ssInterbase]) then
+    Ignore(STestNotApplicable);
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, N NUMERIC(18,8))');
+  TSQLDBConnector(DBConnector).CommitDDL;
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Text:='insert into FPDEV2 (ID,N) values (:ID,:N)';
+    Params.ParamByName('ID').AsInteger:=1;
+    Params.ParamByName('N').AsFloat:=1.12345678;
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=2;
+    Params.ParamByName('N').AsCurrency:=1234.5678;
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=3;
+    Params.ParamByName('N').AsFloat:=92233720.1234567;
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=4;
+    Params.ParamByName('N').AsFloat:=-0.00000001;
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=5;
+    Params.ParamByName('N').AsFMTBCD:=StrToBCD('1234567890.12345678',DBConnector.FormatSettings);
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=6;
+    Params.ParamByName('N').AsLargeInt:=1234567890;
+    ExecSQL;
+    end;
+  CheckStored(1,'1.12345678','AsFloat 1.12345678');
+  CheckStored(2,'1234.56780000','AsCurrency 1234.5678');
+  CheckStored(3,'92233720.12345670','AsFloat 92233720.1234567');
+  CheckStored(4,'-0.00000001','AsFloat -0.00000001');
+  CheckStored(5,'1234567890.12345678','AsFMTBCD 1234567890.12345678');
+  CheckStored(6,'1234567890.00000000','AsLargeInt 1234567890');
 end;
 
 procedure TTestFieldTypes.TestUnlVarChar;
