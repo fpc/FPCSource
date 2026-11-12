@@ -2469,17 +2469,20 @@ begin
       if p>0 then
       begin
         system.Delete(s, p, LenDesc);
-        DescFields := DescFields + Limiter + s;
+        DescFields := DescFields + Limiter + Trim(s);
       end;
-      SortFields := SortFields + Limiter + s;
+      SortFields := SortFields + Limiter + Trim(s);
     end;
   if (Length(SortFields)>0) and (SortFields[1]=Limiter) then
     system.Delete(SortFields,1,1);
   if (Length(DescFields)>0) and (DescFields[1]=Limiter) then
     system.Delete(DescFields,1,1);
   F.Fields:=SortFields;
-  F.Options:=[];
   F.DescFields:=DescFields;
+  if DescFields<>'' then
+    F.Options:=[ixDescending]
+  else
+    F.Options:=[];
   FCurrentIndexDef:=F;
   F.SetIndexProperties;
   if Active then

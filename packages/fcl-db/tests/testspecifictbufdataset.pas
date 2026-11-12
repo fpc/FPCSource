@@ -81,6 +81,8 @@ type
     procedure TestIndexDefsAddWhileOpenMaxIndexes;
     // Case-insensitive filters on non-ASCII strings, also with DefaultSystemCodePage CP_UTF8 (bug 36512)
     procedure TestFilterCaseInsensitiveNonASCII;
+    // IndexFieldNames with DESC fields, assigned repeatedly and alternated (bug 38884)
+    procedure TestIndexFieldNamesDescRepeated;
   end;
 
 implementation
@@ -938,6 +940,75 @@ begin
     CheckFilters('CP_UTF8');
   finally
     DefaultSystemCodePage:=lSavedCodePage;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestIndexFieldNamesDescRepeated;
+
+const
+  cTitleLastNameDesc = 'Mr Zed,Mr Smith,Mr Brown,Ms Young,Ms Adams';
+  cTitleLastName = 'Mr Brown,Mr Smith,Mr Zed,Ms Adams,Ms Young';
+
+var
+  lDS: TBufDataset;
+
+  // Returns the records as a comma-separated list of 'Title LastName'
+  function Order: string;
+
+  begin
+    Result:='';
+    lDS.First;
+    while not lDS.Eof do
+      begin
+      if Result<>'' then
+        Result:=Result+',';
+      Result:=Result+lDS.FieldByName('TITLE').AsString+' '+lDS.FieldByName('LASTNAME').AsString;
+      lDS.Next;
+      end;
+  end;
+
+  // Returns the titles as a comma-separated list
+  function TitleOrder: string;
+
+  begin
+    Result:='';
+    lDS.First;
+    while not lDS.Eof do
+      begin
+      if Result<>'' then
+        Result:=Result+',';
+      Result:=Result+lDS.FieldByName('TITLE').AsString;
+      lDS.Next;
+      end;
+  end;
+
+begin
+  lDS:=TBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('TITLE', ftString, 10);
+    lDS.FieldDefs.Add('LASTNAME', ftString, 20);
+    lDS.CreateDataset;
+    lDS.AppendRecord(['Mr', 'Smith']);
+    lDS.AppendRecord(['Ms', 'Adams']);
+    lDS.AppendRecord(['Mr', 'Brown']);
+    lDS.AppendRecord(['Ms', 'Young']);
+    lDS.AppendRecord(['Mr', 'Zed']);
+    lDS.IndexFieldNames:='TITLE; LASTNAME DESC';
+    AssertEquals('First assignment of TITLE; LASTNAME DESC', cTitleLastNameDesc, Order);
+    lDS.IndexFieldNames:='TITLE; LASTNAME DESC';
+    AssertEquals('Second assignment of TITLE; LASTNAME DESC', cTitleLastNameDesc, Order);
+    lDS.IndexFieldNames:='TITLE DESC';
+    AssertEquals('TITLE DESC', 'Ms,Ms,Mr,Mr,Mr', TitleOrder);
+    lDS.IndexFieldNames:='TITLE; LASTNAME';
+    AssertEquals('TITLE; LASTNAME after TITLE DESC', cTitleLastName, Order);
+    lDS.IndexFieldNames:='TITLE; LASTNAME DESC';
+    AssertEquals('TITLE; LASTNAME DESC after TITLE; LASTNAME', cTitleLastNameDesc, Order);
+    lDS.IndexFieldNames:='TITLE;LASTNAME DESC';
+    AssertEquals('TITLE;LASTNAME DESC without space', cTitleLastNameDesc, Order);
+    lDS.IndexFieldNames:='TITLE; LASTNAME';
+    AssertEquals('TITLE; LASTNAME after TITLE;LASTNAME DESC', cTitleLastName, Order);
+  finally
+    lDS.Free;
   end;
 end;
 
