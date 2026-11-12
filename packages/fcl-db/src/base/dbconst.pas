@@ -113,6 +113,8 @@ Resourcestring
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
+  SErrCircularParentField   = 'Field "%s" cannot be its own parent field.';
+  SErrParentFieldDataset    = 'Parent field "%s" belongs to a different dataset.';
   SCommitting               = 'Committing transaction';
   SRollingBack              = 'Rolling back transaction';
   SCommitRetaining          = 'Commit and retaining transaction';

@@ -57,6 +57,8 @@ type
 
     procedure TestCalculatedField;
     procedure TestCanModifySpecialFields;
+    // FullName of plain fields and of fields with parent fields (bug 8200)
+    procedure TestFieldFullName;
 
     // dataset
     procedure TestDoubleClose;
@@ -3187,6 +3189,54 @@ begin
     close;
     end;
 end;
+
+procedure TTestDBBasics.TestFieldFullName;
+
+var
+  lParent, lChild: TObjectField;
+  lLeaf: TIntegerField;
+  lRaised: Boolean;
+
+begin
+  with DBConnector.GetNDataset(1) do
+    begin
+    Open;
+    CheckEquals(Fields[0].FieldName, Fields[0].FullName, 'FullName of a dataset field');
+    Close;
+    end;
+  lParent:=TObjectField.Create(nil);
+  lChild:=TObjectField.Create(nil);
+  lLeaf:=TIntegerField.Create(nil);
+  try
+    lParent.FieldName:='ADDRESS';
+    lChild.FieldName:='STREET';
+    lLeaf.FieldName:='NUMBER';
+    CheckEquals('NUMBER', lLeaf.FullName, 'FullName without parent field');
+    lChild.ParentField:=lParent;
+    lLeaf.ParentField:=lChild;
+    CheckSame(lChild, lLeaf.ParentField, 'ParentField after assignment');
+    CheckEquals('ADDRESS.STREET.NUMBER', lLeaf.FullName, 'FullName with two parent fields');
+    lRaised:=False;
+    try
+      lParent.ParentField:=lChild;
+    except
+      on EDatabaseError do
+        lRaised:=True;
+    end;
+    CheckTrue(lRaised, 'Circular parent field raises EDatabaseError');
+    CheckNull(lParent.ParentField, 'ParentField after circular assignment');
+    FreeAndNil(lParent);
+    CheckNull(lChild.ParentField, 'ParentField after freeing the parent field');
+    CheckEquals('STREET.NUMBER', lLeaf.FullName, 'FullName after freeing the top parent field');
+    lLeaf.ParentField:=nil;
+    CheckEquals('NUMBER', lLeaf.FullName, 'FullName after clearing ParentField');
+  finally
+    lLeaf.Free;
+    lChild.Free;
+    lParent.Free;
+  end;
+end;
+
 
 procedure TTestDBBasics.TestFieldDefsUpdate;
 begin

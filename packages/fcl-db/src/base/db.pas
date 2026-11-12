@@ -380,6 +380,7 @@ type
     function GetDataSize: Integer; virtual;
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;
+    function GetFullName: string;
     function GetCurValue: Variant; virtual;
     function GetNewValue: Variant; virtual;
     function GetIsNull: Boolean; virtual;
@@ -461,6 +462,8 @@ type
     property EditMask: TEditMask read FEditMask write FEditMask;
     property EditMaskPtr: TEditMask read FEditMask;
     property FieldNo: Longint read FFieldNo;
+    // Field name prefixed with the full names of the parent fields, separated by dots
+    property FullName: string read GetFullName;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
     property NewValue: Variant read GetNewValue write SetNewValue;

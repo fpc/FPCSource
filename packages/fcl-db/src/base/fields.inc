@@ -757,6 +757,15 @@ begin
     Result:=FFieldName;
 end;
 
+function TField.GetFullName: string;
+
+begin
+  if Assigned(FParentField) then
+    Result:=FParentField.FullName+'.'+FFieldName
+  else
+    Result:=FFieldName;
+end;
+
 function TField.IsDisplayLabelStored: Boolean;
 
 begin
@@ -886,6 +895,8 @@ begin
   Inherited Notification(AComponent,Operation);
   if (Operation = opRemove) and (AComponent = FLookupDataSet) then
     FLookupDataSet := nil;
+  if (Operation = opRemove) and (AComponent = FParentField) then
+    FParentField := nil;
 end;
 
 procedure TField.PropertyChanged(LayoutAffected: Boolean);
@@ -1167,8 +1178,33 @@ begin
 end;
 
 procedure TField.SetParentField(AField: TObjectField);
+
+var
+  lAncestor: TField;
+
 begin
   // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TField.ParentField
+  if AField=FParentField then
+    Exit;
+  if Assigned(FDataSet) then
+    FDataSet.CheckInactive;
+  if Assigned(AField) then
+    begin
+    lAncestor:=AField;
+    while Assigned(lAncestor) do
+      begin
+      if lAncestor=Self then
+        DatabaseErrorFmt(SErrCircularParentField,[FFieldName],Self);
+      lAncestor:=lAncestor.ParentField;
+      end;
+    if Assigned(FDataSet) and Assigned(AField.DataSet) and (AField.DataSet<>FDataSet) then
+      DatabaseErrorFmt(SErrParentFieldDataset,[AField.FieldName],Self);
+    end;
+  if Assigned(FParentField) then
+    FParentField.RemoveFreeNotification(Self);
+  FParentField:=AField;
+  if Assigned(FParentField) then
+    FParentField.FreeNotification(Self);
 end;
 
 procedure TField.SetReadOnly(const AValue: Boolean);
