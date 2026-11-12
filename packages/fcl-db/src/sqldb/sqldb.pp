@@ -34,6 +34,9 @@ type
   TDBEventType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventType;
   TDBEventTypes = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventTypes;
   TQuoteChars = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TQuoteChars;
+  TDDLAction = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDDLAction;
+  TDDLObject = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDDLObject;
+  TSQLStatementInfo = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TSQLStatementInfo;
 
 const
   StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
@@ -84,17 +87,31 @@ const
   detRollBack    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detRollBack;
   detParamValue  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detParamValue;
   detActualSQL   = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detActualSQL;
+
+  daNone         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daNone;
+  daCreate       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daCreate;
+  daAlter        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daAlter;
+  daDrop         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daDrop;
+  daRecreate     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daRecreate;
+  daOther        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.daOther;
+
+  doNone         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doNone;
+  doTable        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doTable;
+  doView         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doView;
+  doIndex        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doIndex;
+  doSequence     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doSequence;
+  doProcedure    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doProcedure;
+  doFunction     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doFunction;
+  doTrigger      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doTrigger;
+  doSchema       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doSchema;
+  doDatabase     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doDatabase;
+  doDomain       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doDomain;
+  doUser         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doUser;
+  doRole         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doRole;
+  doOther        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.doOther;
   DefaultMacroChar     = '%';
 Type
   TRowsCount = LargeInt;
-
-  TSQLStatementInfo = Record
-    StatementType : TStatementType;
-    TableName : String;
-    Updateable : Boolean;
-    WhereStartPos ,
-    WhereStopPos : integer;
-  end;
 
   TSQLConnection = class;
   TSQLTransaction = class;
@@ -1446,7 +1463,12 @@ begin
   for T:=stSelect to stRollback do
     if (LS=StatementTokens[T]) then
       Exit(T);
-  Result:=stUnknown;
+  case LS of
+    'alter', 'drop', 'recreate', 'truncate', 'grant', 'revoke', 'comment', 'rename':
+      Result:=stDDL;
+  else
+    Result:=stUnknown;
+  end;
 end;
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
@@ -1780,10 +1802,52 @@ begin
       end;
 end;
 
+// Returns the DDL action for the first word of a DDL statement
+function WordToDDLAction(const aWord: string): TDDLAction;
+
+begin
+  case UpperCase(aWord) of
+    'CREATE': Result:=daCreate;
+    'ALTER': Result:=daAlter;
+    'DROP': Result:=daDrop;
+    'RECREATE': Result:=daRecreate;
+  else
+    Result:=daOther;
+  end;
+end;
+
+
+// Returns the DDL object kind for an object keyword, doNone for a modifier keyword
+function WordToDDLObject(const aWord: string): TDDLObject;
+
+begin
+  case UpperCase(aWord) of
+    'OR', 'REPLACE', 'ALTER', 'UNIQUE', 'ASC', 'ASCENDING', 'DESC', 'DESCENDING',
+    'GLOBAL', 'LOCAL', 'TEMPORARY', 'TEMP', 'MATERIALIZED', 'CLUSTERED',
+    'NONCLUSTERED', 'UNLOGGED', 'IF', 'NOT', 'EXISTS':
+      Result:=doNone;
+    'TABLE': Result:=doTable;
+    'VIEW': Result:=doView;
+    'INDEX': Result:=doIndex;
+    'SEQUENCE', 'GENERATOR': Result:=doSequence;
+    'PROCEDURE': Result:=doProcedure;
+    'FUNCTION': Result:=doFunction;
+    'TRIGGER': Result:=doTrigger;
+    'SCHEMA': Result:=doSchema;
+    'DATABASE': Result:=doDatabase;
+    'DOMAIN': Result:=doDomain;
+    'USER': Result:=doUser;
+    'ROLE': Result:=doRole;
+  else
+    Result:=doOther;
+  end;
+end;
+
+
 function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
 
 type
-  TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
+  TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppDDLObject,ppDDLName,ppBogus);
   TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
   TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
 
@@ -1799,6 +1863,7 @@ var
   BracketCount            : Integer;
   Separator               : TPhraseSeparator;
   Keyword, K              : TKeyword;
+  DDLWord                 : TDDLObject;
 
 begin
   PSQL:=PChar(ASQL);
@@ -1811,6 +1876,10 @@ begin
   Result.Updateable := False;
   Result.WhereStartPos := 0;
   Result.WhereStopPos := 0;
+  Result.DDLAction := daNone;
+  Result.DDLObject := doNone;
+  Result.DDLObjectName := '';
+  Result.DDLKeywords := '';
 
   repeat
     inc(CurrentP);
@@ -1869,11 +1938,51 @@ begin
         case ParsePart of
           ppStart  : begin
                      Result.StatementType := StrToStatementType(s);
-                     case Keyword of
-                       kwWITH  : ParsePart := ppWith;
-                       kwSELECT: ParsePart := ppSelect;
-                       else      break;
+                     if Result.StatementType = stDDL then
+                       begin
+                       Result.DDLAction := WordToDDLAction(s);
+                       Result.DDLKeywords := UpperCase(s);
+                       if Result.DDLAction = daOther then
+                         break;
+                       ParsePart := ppDDLObject;
+                       end
+                     else
+                       case Keyword of
+                         kwWITH  : ParsePart := ppWith;
+                         kwSELECT: ParsePart := ppSelect;
+                         else      break;
+                       end;
                      end;
+          ppDDLObject:
+                     if s <> '' then
+                       begin
+                       if s[1] in ['"','`','['] then
+                         DDLWord := doOther
+                       else
+                         DDLWord := WordToDDLObject(s);
+                       if (Result.DDLObject = doNone) and not (s[1] in ['"','`','[']) then
+                         begin
+                         // modifier or object keyword
+                         Result.DDLKeywords := Result.DDLKeywords + ' ' + UpperCase(s);
+                         Result.DDLObject := DDLWord;
+                         end
+                       else if DDLWord = doNone then
+                         Result.DDLKeywords := Result.DDLKeywords + ' ' + UpperCase(s)
+                       else
+                         begin
+                         if Result.DDLObject = doNone then
+                           Result.DDLObject := doOther;
+                         Result.DDLObjectName := s;
+                         if not (CurrentP^ in ['.','"']) then
+                           break;
+                         ParsePart := ppDDLName;
+                         end;
+                       end;
+          ppDDLName: begin
+                     // compound delimited name like: "schema name"."object name"
+                     Result.DDLObjectName := Result.DDLObjectName + s;
+                     if not (CurrentP^ in ['.','"']) then
+                       break;
                      end;
           ppWith   : begin
                      // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]

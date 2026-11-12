@@ -84,6 +84,8 @@ type
     procedure TestUseExplicitTransaction;
     procedure TestExplicitConnect;
     procedure TestGetStatementInfo;
+    // DDL action, object kind, object name and keywords of DDL statements (issue 37144)
+    procedure TestGetStatementInfoDDL;
     procedure TestGetNextValue;
     procedure TestGetAsSQLTextWideString;
     Procedure TestCommitUnprepares;
@@ -1130,6 +1132,48 @@ begin
   StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.fn1(1)');
   AssertEquals('TableName', '', StmtInfo.TableName);
   AssertEquals('Updateable', False, StmtInfo.Updateable);
+end;
+
+procedure TTestTSQLConnection.TestGetStatementInfoDDL;
+
+  procedure CheckDDL(const aSQL: string; aType: TStatementType; aAction: TDDLAction;
+    aObject: TDDLObject; const aName, aKeywords: string);
+
+  var
+    lInfo: TSQLStatementInfo;
+
+  begin
+    lInfo := SQLDBConnector.Connection.GetStatementInfo(aSQL);
+    AssertEquals(aSQL+': StatementType', Ord(aType), Ord(lInfo.StatementType));
+    AssertEquals(aSQL+': DDLAction', Ord(aAction), Ord(lInfo.DDLAction));
+    AssertEquals(aSQL+': DDLObject', Ord(aObject), Ord(lInfo.DDLObject));
+    AssertEquals(aSQL+': DDLObjectName', aName, lInfo.DDLObjectName);
+    AssertEquals(aSQL+': DDLKeywords', aKeywords, lInfo.DDLKeywords);
+  end;
+
+begin
+  CheckDDL('CREATE TABLE tab1 (id INT)', stDDL, daCreate, doTable, 'tab1', 'CREATE TABLE');
+  CheckDDL('create table tab1(id int)', stDDL, daCreate, doTable, 'tab1', 'CREATE TABLE');
+  CheckDDL('ALTER TABLE tab1 ADD col2 INT', stDDL, daAlter, doTable, 'tab1', 'ALTER TABLE');
+  CheckDDL('DROP VIEW v1', stDDL, daDrop, doView, 'v1', 'DROP VIEW');
+  CheckDDL('DROP TABLE IF EXISTS tab1', stDDL, daDrop, doTable, 'tab1', 'DROP TABLE IF EXISTS');
+  CheckDDL('CREATE UNIQUE INDEX idx1 ON tab1 (id)', stDDL, daCreate, doIndex, 'idx1', 'CREATE UNIQUE INDEX');
+  CheckDDL('CREATE OR ALTER PROCEDURE p1 AS BEGIN END', stDDL, daCreate, doProcedure, 'p1', 'CREATE OR ALTER PROCEDURE');
+  CheckDDL('CREATE OR REPLACE VIEW v1 AS SELECT 1', stDDL, daCreate, doView, 'v1', 'CREATE OR REPLACE VIEW');
+  CheckDDL('CREATE GLOBAL TEMPORARY TABLE tmp1 (id INT)', stDDL, daCreate, doTable, 'tmp1', 'CREATE GLOBAL TEMPORARY TABLE');
+  CheckDDL('RECREATE TABLE tab1 (id INT)', stDDL, daRecreate, doTable, 'tab1', 'RECREATE TABLE');
+  CheckDDL('CREATE GENERATOR gen1', stDDL, daCreate, doSequence, 'gen1', 'CREATE GENERATOR');
+  CheckDDL('CREATE SHADOW 1 ''/tmp/shadow.fdb''', stDDL, daCreate, doOther, '1', 'CREATE SHADOW');
+  CheckDDL('CREATE TABLE dbo.tab1 (id INT)', stDDL, daCreate, doTable, 'dbo.tab1', 'CREATE TABLE');
+  CheckDDL('CREATE TABLE "my schema"."my table" (id INT)', stDDL, daCreate, doTable, '"my schema"."my table"', 'CREATE TABLE');
+  CheckDDL('DROP TABLE "tab1"', stDDL, daDrop, doTable, '"tab1"', 'DROP TABLE');
+  CheckDDL('/* comment */ DROP /* comment */ TABLE tab1', stDDL, daDrop, doTable, 'tab1', 'DROP TABLE');
+  CheckDDL('TRUNCATE TABLE tab1', stDDL, daOther, doNone, '', 'TRUNCATE');
+  CheckDDL('GRANT SELECT ON tab1 TO PUBLIC', stDDL, daOther, doNone, '', 'GRANT');
+  CheckDDL('REVOKE SELECT ON tab1 FROM PUBLIC', stDDL, daOther, doNone, '', 'REVOKE');
+  CheckDDL('COMMENT ON TABLE tab1 IS ''x''', stDDL, daOther, doNone, '', 'COMMENT');
+  CheckDDL('SELECT * FROM tab1', stSelect, daNone, doNone, '', '');
+  CheckDDL('INSERT INTO tab1 VALUES (1)', stInsert, daNone, doNone, '', '');
 end;
 
 procedure TTestTSQLConnection.TestGetAsSQLTextWideString;

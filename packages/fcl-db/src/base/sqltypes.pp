@@ -37,6 +37,29 @@ type
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
+  // Action of a DDL statement
+  TDDLAction = (daNone, daCreate, daAlter, daDrop, daRecreate, daOther);
+  // Kind of object a DDL statement acts on
+  TDDLObject = (doNone, doTable, doView, doIndex, doSequence, doProcedure,
+                doFunction, doTrigger, doSchema, doDatabase, doDomain,
+                doUser, doRole, doOther);
+
+  TSQLStatementInfo = Record
+    StatementType : TStatementType;
+    TableName : String;
+    Updateable : Boolean;
+    WhereStartPos ,
+    WhereStopPos : integer;
+    // Action of a DDL statement, daNone for other statements
+    DDLAction : TDDLAction;
+    // Object kind of a create, alter, drop or recreate statement
+    DDLObject : TDDLObject;
+    // Name of the object, as written in the statement
+    DDLObjectName : String;
+    // Upper-case keywords before the object name, e.g. 'CREATE UNIQUE INDEX'
+    DDLKeywords : String;
+  end;
+
   TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
   TDBEventTypes = set of TDBEventType;
 
