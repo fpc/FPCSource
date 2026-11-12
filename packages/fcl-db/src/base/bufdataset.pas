@@ -597,6 +597,8 @@ type
     procedure BuildIndexes;
     procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
     procedure InternalCreateIndex(F: TBufDataSetIndex); virtual;
+    // Create and build the buffer of an index definition added to IndexDefs while the dataset is open
+    procedure CreateIndexWhileActive(F: TBufDataSetIndex);
     // Position record for update. Note that no check on state is done.
     procedure PrepareForUpdate(aUpdate: TRecUpdateBuffer);
     // Apply update for current record. Called in sequence by ApplyUpdates. The active buffer is positioned on the record to be updated.
@@ -1003,7 +1005,7 @@ end;
 
 function TCustomBufDataset.TBufDatasetIndex.IsActiveIndex(aCurrent: TBufDatasetIndex): Boolean;
 begin
-  Result:=(FIndexType<>itCustom) or (Self=aCurrent);
+  Result:=Assigned(FBufferIndex) and ((FIndexType<>itCustom) or (Self=aCurrent));
 end;
 
 
@@ -1577,13 +1579,14 @@ begin
         end;
 
   for r := 0 to FIndexes.Count-1 do
-    with FIndexes.BufIndexes[r] do
-      if IsInitialized then
-        begin
-        pc:=SpareRecord;
-        ReleaseSpareRecord;
-        FreeRecordBuffer(pc);
-        end;
+    if Assigned(FIndexes.BufIndexes[r]) then
+      with FIndexes.BufIndexes[r] do
+        if IsInitialized then
+          begin
+          pc:=SpareRecord;
+          ReleaseSpareRecord;
+          FreeRecordBuffer(pc);
+          end;
 
   if Length(FUpdateBuffer) > 0 then
     begin
@@ -2397,6 +2400,19 @@ begin
       FMaxIndexesCount:=FIndexes.Count+2; // Custom+Default order
 end;
 
+procedure TCustomBufDataset.CreateIndexWhileActive(F: TBufDataSetIndex);
+
+begin
+  CheckBiDirectional;
+  if (F.Fields='') then
+    DatabaseErrorFmt(SNoIndexFieldNameGiven,[F.Name],Self);
+  if (F.Index>=FMaxIndexesCount) then
+    DatabaseError(SMaxIndexes,Self);
+  InternalCreateIndex(F);
+  FPacketRecords:=-1;
+end;
+
+
 class function TCustomBufDataset.DefaultReadFileFormat: TDataPacketFormat;
 begin
   Result:=dfAny;
@@ -2489,6 +2505,8 @@ begin
   F:=FIndexes.FindIndex(N);
   if (F=Nil) and (AValue<>'') and not (csLoading in ComponentState) then
     DatabaseErrorFmt(SIndexNotFound,[AValue],Self);
+  if Assigned(F) and Active and not Assigned(F.BufferIndex) then
+    CreateIndexWhileActive(F);
   FIndexName:=AValue;
   if Assigned(F) then
     begin

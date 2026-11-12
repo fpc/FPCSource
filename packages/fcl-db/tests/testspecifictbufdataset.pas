@@ -75,6 +75,10 @@ type
     procedure TestCodePageStreamingXML;
     procedure TestCodePageStreamVersion;
     procedure TestCodePageComponentStreaming;
+    // IndexDefs.Add on an open dataset, then select the index, append and close (bug 37915)
+    procedure TestIndexDefsAddWhileOpen;
+    // IndexDefs.Add on an open dataset beyond MaxIndexesCount
+    procedure TestIndexDefsAddWhileOpenMaxIndexes;
   end;
 
 implementation
@@ -760,6 +764,98 @@ begin
     lCopy.Free;
     lDS.Free;
     lStream.Free;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestIndexDefsAddWhileOpen;
+
+var
+  lDS: TBufDataset;
+
+  procedure CheckOrder(const aMsg: string; const aIDs: array of Integer);
+
+  var
+    i: Integer;
+
+  begin
+    lDS.First;
+    for i:=0 to High(aIDs) do
+      begin
+      AssertFalse(aMsg+': Eof before record '+IntToStr(i), lDS.Eof);
+      AssertEquals(aMsg+': ID of record '+IntToStr(i), aIDs[i], lDS.FieldByName('ID').AsInteger);
+      lDS.Next;
+      end;
+    AssertTrue(aMsg+': Eof after the last record', lDS.Eof);
+  end;
+
+begin
+  lDS:=TBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('ID', ftInteger);
+    lDS.FieldDefs.Add('NAME', ftString, 20);
+    lDS.CreateDataset;
+    lDS.AppendRecord([3, 'c']);
+    lDS.AppendRecord([1, 'a']);
+    lDS.IndexDefs.Add('BYID', 'ID', []);
+    lDS.AppendRecord([2, 'b']);
+    CheckOrder('Default order before selecting the index', [3, 1, 2]);
+    lDS.IndexName:='BYID';
+    AssertEquals('IndexName', 'BYID', lDS.IndexName);
+    CheckOrder('Order of the index added while open', [1, 2, 3]);
+    lDS.AppendRecord([0, 'z']);
+    CheckOrder('Order after appending to the index', [0, 1, 2, 3]);
+    lDS.IndexName:='';
+    CheckOrder('Default order after deselecting the index', [3, 1, 2, 0]);
+    lDS.Close;
+    AssertEquals('Index definitions after Close', 1, lDS.IndexDefs.Count);
+    lDS.CreateDataset;
+    lDS.AppendRecord([5, 'e']);
+    lDS.AppendRecord([4, 'd']);
+    lDS.IndexName:='BYID';
+    CheckOrder('Order of the index after reopening', [4, 5]);
+    lDS.IndexDefs.Add('BYNAME', 'NAME', []);
+    lDS.Close;
+    AssertEquals('Index definitions after closing with an unused index', 2, lDS.IndexDefs.Count);
+  finally
+    lDS.Free;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestIndexDefsAddWhileOpenMaxIndexes;
+
+var
+  lDS: TBufDataset;
+  lRaised: Boolean;
+  i, lLast: Integer;
+
+begin
+  lDS:=TBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('ID', ftInteger);
+    lDS.CreateDataset;
+    lDS.AppendRecord([2]);
+    lDS.AppendRecord([1]);
+    lLast:=lDS.MaxIndexesCount;
+    for i:=lDS.IndexDefs.Count to lLast do
+      lDS.IndexDefs.Add('IDX'+IntToStr(i), 'ID', []);
+    lDS.IndexName:='IDX'+IntToStr(lLast-1);
+    AssertEquals('Index within MaxIndexesCount selected', 'IDX'+IntToStr(lLast-1), lDS.IndexName);
+    lRaised:=False;
+    try
+      lDS.IndexName:='IDX'+IntToStr(lLast);
+    except
+      on EDatabaseError do
+        lRaised:=True;
+    end;
+    AssertTrue('Selecting an index beyond MaxIndexesCount raises EDatabaseError', lRaised);
+    AssertEquals('IndexName after the failed selection', 'IDX'+IntToStr(lLast-1), lDS.IndexName);
+    lDS.AppendRecord([3]);
+    AssertEquals('Record count', 3, lDS.RecordCount);
+    lDS.First;
+    AssertEquals('First ID in the selected index', 1, lDS.FieldByName('ID').AsInteger);
+    lDS.Close;
+  finally
+    lDS.Free;
   end;
 end;
 
