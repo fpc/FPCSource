@@ -1524,19 +1524,50 @@ implementation
       end;
 
 
+    type
+      pfplist = ^tfplist;
+
+    function check_contains_stack_tainting_call(var n: tnode; arg: pointer): foreachnoderesult; forward;
+
+
+    { searches the init code of a temp once in a search: seen^ lists the temps whose
+      init code has been entered. That code refers to its own temp, and after
+      inlining two temps' init code can refer to each other. }
+    function tempinit_contains_stack_tainting_call(tempinfo: ptempinfo; seen: pfplist): boolean;
+      begin
+        result:=false;
+        if not assigned(tempinfo^.tempinitcode) then
+          exit;
+        if not assigned(seen^) then
+          seen^:=tfplist.create
+        else if seen^.indexof(tempinfo)>=0 then
+          exit;
+        seen^.add(tempinfo);
+        result:=foreachnodestatic(pm_postprocess,tempinfo^.tempinitcode,@check_contains_stack_tainting_call,seen);
+      end;
+
+
     function check_contains_stack_tainting_call(var n: tnode; arg: pointer): foreachnoderesult;
       begin
+        result:=fen_false;
         if (n.nodetype=calln) and
            tcallnode(n).procdefinition.stack_tainting_parameter(callerside) then
           result:=fen_norecurse_true
-        else
-          result:=fen_false;
+        { the init code of a temp runs where the temp is first referenced, which can be
+          here, and foreachnode does not enter it from a temprefnode }
+        else if (n.nodetype=temprefn) and
+           tempinit_contains_stack_tainting_call(ttemprefnode(n).tempinfo,pfplist(arg)) then
+          result:=fen_norecurse_true;
       end;
 
 
     function tcallparanode.contains_stack_tainting_call: boolean;
+      var
+        seen: tfplist;
       begin
-        result:=foreachnodestatic(pm_postprocess,left,@check_contains_stack_tainting_call,nil);
+        seen:=nil;
+        result:=foreachnodestatic(pm_postprocess,left,@check_contains_stack_tainting_call,@seen);
+        seen.free;
       end;
 
 
