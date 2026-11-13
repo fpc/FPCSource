@@ -231,6 +231,9 @@ begin
     end else if (ColumnStr = 'WORD') then
     begin
       AType := ftWord;
+    end else if (ColumnStr = 'BLOB') then
+    begin
+      AType := ftBlob;
     end else if (ColumnStr = '') then
     begin
       case sqlite3_column_type(vm, i) of
@@ -238,6 +241,8 @@ begin
           AType := ftInteger;
         SQLITE_FLOAT:
           AType := ftFloat;
+        SQLITE_BLOB:
+          AType := ftBlob;
       else
         begin
           AType := ftString;
@@ -256,6 +261,8 @@ begin
         FGetSqlStr[i] := @Char2SQLStr;
       ftMemo:
         FGetSqlStr[i] := @Memo2SQLStr;
+      ftBlob:
+        FGetSqlStr[i] := @Blob2SQLStr;
     else
       FGetSqlStr[i] := @Num2SQLStr;
     end;

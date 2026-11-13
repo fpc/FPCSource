@@ -307,6 +307,8 @@ type
   function Num2SQLStr(APChar: PAnsiChar): String;
   function Char2SQLStr(APChar: PAnsiChar): String;
   function Memo2SQLStr(APChar: PAnsiChar): String;
+  // Returns the buffer contents as an SQL blob literal X'..', or NULL for a nil buffer.
+  function Blob2SQLStr(APChar: PAnsiChar): String;
   function StrBufNew(p : PAnsiChar): PAnsiChar;
   function StrBufNew(p : PAnsiChar; BufLen: Cardinal): PAnsiChar;
 
@@ -333,7 +335,7 @@ var
   BufLen : Cardinal;
 begin
   Result := nil;
-  if (p = nil) or (p^ = #0) then
+  if (p = nil) or ((p^ = #0) and (StrBufSize(p) <= 1)) then
     Exit;
   BufLen := StrBufSize(p);
   Result := StrAlloc(BufLen);
@@ -344,7 +346,7 @@ end;
 function StrBufNew(p: PAnsiChar; BufLen: Cardinal): PAnsiChar;
 begin
   Result := nil;
-  if (p = nil) or (p^ = #0) then
+  if (p = nil) or ((p^ = #0) and (BufLen <= 1)) then
     Exit;
   Result := StrAlloc(BufLen);
   if Result <> nil then
@@ -400,6 +402,23 @@ begin
   Result := '''' + Result + '''';
   if Pos(#0, Result) > 0 then
     Result := AnsiReplaceStr(Result, #0, '''||x''00''||''');
+end;
+
+function Blob2SQLStr(APChar: PAnsiChar): String;
+var
+  lLen: Cardinal;
+  lHex: AnsiString;
+begin
+  if APChar = nil then
+  begin
+    Result := NullString;
+    Exit;
+  end;
+  lLen := StrBufSize(APChar) - 1;
+  SetLength(lHex, lLen * 2);
+  if lLen > 0 then
+    BinToHex(APChar, PAnsiChar(lHex), lLen);
+  Result := 'X''' + String(lHex) + '''';
 end;
 
 // TDSStream
@@ -1031,7 +1050,13 @@ end;
 procedure TCustomSqliteDataset.InternalInitRecord(Buffer: TRecordBuffer);
 var
   TempStr: String;
+  i: Integer;
 begin
+  for i := 0 to FRowCount - 1 do
+  begin
+    StrDispose(FBeginItem^.Row[i]);
+    FBeginItem^.Row[i] := nil;
+  end;
   if FAutoIncFieldNo <> - 1 then
   begin
     Str(FNextAutoInc, TempStr);
@@ -1850,6 +1875,8 @@ begin
           SQLTemp := SQLTemp + ' AUTOINC_INT';
         ftMemo:
           SQLTemp := SQLTemp + ' TEXT';
+        ftBlob:
+          SQLTemp := SQLTemp + ' BLOB';
       else
         DatabaseError('Field type "' + FieldTypeNames[FieldDefs[i].DataType] +
           '" not supported', Self);

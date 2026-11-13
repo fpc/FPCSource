@@ -5,7 +5,7 @@ unit TestSpecificTSqlite3Dataset;
 interface
 
 uses
-  Classes, SysUtils, ToolsUnit, Sqlite3DS;
+  Classes, SysUtils, DB, ToolsUnit, Sqlite3DS;
 
 type
 
@@ -14,9 +14,12 @@ type
   TTestSpecificTSqlite3Dataset = class(TDBBasicsTestCase)
   private
     function CreateMemoryDataset: TSqlite3Dataset;
+    procedure CheckBlobBytes(const aMsg: String; aField: TField; const aExpected: AnsiString);
   protected
   published
     procedure TestApplyUpdates;
+    // Binary data in a BLOB column survives insert, edit and reopen
+    procedure TestBinaryBlob;
   end;
 
 implementation
@@ -35,6 +38,84 @@ begin
   Result.PrimaryKey := 'Id';
   Result.ExecSQL('Create Table Test (Id INTEGER PRIMARY KEY, Name VARCHAR);');
 end;
+
+procedure TTestSpecificTSqlite3Dataset.CheckBlobBytes(const aMsg: String; aField: TField; const aExpected: AnsiString);
+
+var
+  lStream: TBytesStream;
+
+begin
+  lStream := TBytesStream.Create;
+  try
+    TBlobField(aField).SaveToStream(lStream);
+    CheckEquals(Length(aExpected), lStream.Size, aMsg + ': blob size');
+    CheckTrue(CompareMem(lStream.Memory, PAnsiChar(aExpected), Length(aExpected)), aMsg + ': blob bytes');
+  finally
+    lStream.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTSqlite3Dataset.TestBinaryBlob;
+
+var
+  lDataset: TSqlite3Dataset;
+  lData: AnsiString;
+  lStream: TMemoryStream;
+  i: Integer;
+
+begin
+  SetLength(lData, 257);
+  lData[1] := #0;
+  for i := 0 to 255 do
+    lData[i + 2] := AnsiChar(i);
+  lDataset := TSqlite3Dataset.Create(nil);
+  try
+    lDataset.FileName := ':memory:';
+    lDataset.TableName := 'BlobTest';
+    lDataset.PrimaryKey := 'Id';
+    lDataset.FieldDefs.Add('Id', ftInteger);
+    lDataset.FieldDefs.Add('Name', ftString, 10);
+    lDataset.FieldDefs.Add('Data', ftBlob);
+    CheckTrue(lDataset.CreateTable, 'CreateTable with a ftBlob field');
+    lDataset.Open;
+    CheckEquals(FieldTypeNames[ftBlob], FieldTypeNames[lDataset.FieldByName('Data').DataType], 'BLOB column is a ftBlob field');
+    lStream := TMemoryStream.Create;
+    try
+      lStream.WriteBuffer(lData[1], Length(lData));
+      lStream.Position := 0;
+      lDataset.Append;
+      lDataset.FieldByName('Id').AsInteger := 1;
+      lDataset.FieldByName('Name').AsString := 'One';
+      TBlobField(lDataset.FieldByName('Data')).LoadFromStream(lStream);
+      lDataset.Post;
+    finally
+      lStream.Free;
+    end;
+    lDataset.AppendRecord([2, 'Two']);
+    lDataset.First;
+    CheckBlobBytes('After post', lDataset.FieldByName('Data'), lData);
+    lDataset.ApplyUpdates;
+    lDataset.Close;
+    lDataset.Open;
+    CheckEquals(2, lDataset.RecordCount, 'Record count after apply updates');
+    CheckBlobBytes('After reopen', lDataset.FieldByName('Data'), lData);
+    lDataset.Edit;
+    lDataset.FieldByName('Name').AsString := 'Uno';
+    lDataset.Post;
+    CheckBlobBytes('After editing another field', lDataset.FieldByName('Data'), lData);
+    lDataset.ApplyUpdates;
+    lDataset.Close;
+    lDataset.Open;
+    CheckEquals('Uno', lDataset.FieldByName('Name').AsString, 'Edited field after reopen');
+    CheckBlobBytes('After edit and reopen', lDataset.FieldByName('Data'), lData);
+    lDataset.Next;
+    CheckTrue(lDataset.FieldByName('Data').IsNull, 'Unassigned blob is NULL after reopen');
+  finally
+    lDataset.Free;
+  end;
+end;
+
 
 procedure TTestSpecificTSqlite3Dataset.TestApplyUpdates;
 var

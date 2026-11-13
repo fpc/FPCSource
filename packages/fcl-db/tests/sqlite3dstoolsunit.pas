@@ -97,6 +97,7 @@ begin
        FieldDefs.Add('FDATETIME', ftDateTime);
        FieldDefs.Add('FLARGEINT', ftLargeint);
        FieldDefs.Add('FMEMO', ftMemo);
+       FieldDefs.Add('FBLOB', ftBlob);
        if not CreateTable then
          raise Exception.Create('Error in CreateTable: ' + FieldDataset.ReturnString);
        Open;
@@ -117,6 +118,7 @@ begin
          FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
          FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
          FieldByName('FMEMO').AsString := testStringValues[i];
+         FieldByName('FBLOB').AsString := testValues[ftBlob, i];
          Post;
        end;
        ApplyUpdates;
