@@ -2239,9 +2239,6 @@ implementation
       begin
         FIgnoredCandidateProcs.free;
         FIgnoredCandidateProcs := nil;
-        { free any symbols for anonymous parameter types that we're used for
-          specialization when no specialization was picked }
-        TFPList.FreeAndNilObjects(FParaAnonSyms);
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
@@ -2264,6 +2261,10 @@ implementation
            dispose(hp);
            hp:=hpnext;
          end;
+        { free any symbols for anonymous parameter types that were used for
+          specialization when no specialization was picked; the discarded
+          specializations above still name them as their generic parameters }
+        free_unnamed_symbols(FParaAnonSyms);
       end;
 
 

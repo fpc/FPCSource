@@ -60,6 +60,7 @@ uses
     procedure generate_specialization_procs;
     procedure generate_specializations_for_forwarddef(def:tdef);
     procedure maybe_add_pending_specialization(def:tdef;unnamed_syms:tfplist);
+    procedure free_unnamed_symbols(var unnamed_syms:tfplist);
     function determine_generic_def(const name:tidstring):tstoreddef;
 
     function is_or_belongs_to_current_genericdef(def:tdef):boolean;
@@ -721,6 +722,27 @@ uses
       end;
 
 
+    procedure free_unnamed_symbols(var unnamed_syms:tfplist);
+      var
+        i : integer;
+        sym : tsym;
+      begin
+        if not assigned(unnamed_syms) then
+          exit;
+        { creating such a symbol made it its definition's type symbol, which the
+          definition must not keep once the symbol is freed }
+        for i:=0 to unnamed_syms.count-1 do
+          begin
+            sym:=tsym(unnamed_syms[i]);
+            if (sym.typ=typesym) and
+               assigned(ttypesym(sym).typedef) and
+               (ttypesym(sym).typedef.typesym=sym) then
+              ttypesym(sym).typedef.typesym:=nil;
+          end;
+        TFPList.FreeAndNilObjects(unnamed_syms);
+      end;
+
+
     function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
 
       { hash key for generic parameter lookups }
@@ -1361,7 +1383,7 @@ uses
                 else
                   begin
                     { the specialization was not chosen so clean up any unnamed syms }
-                    TFPList.FreeAndNilObjects(pd_unnamed_syms);
+                    free_unnamed_symbols(pd_unnamed_syms);
                   end;
               end;
           end;
