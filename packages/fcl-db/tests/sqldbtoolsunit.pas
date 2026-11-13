@@ -411,12 +411,6 @@ begin
     for i := 18 to testValuesCount-1 do
       testValues[ftDateTime,i] := testValues[ftDateTime,0];
 
-  // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
-  // Here we assume, that locale on client side is same as locale on server
-  if SQLServerType in [ssPostgreSQL] then
-    for i := 0 to testValuesCount-1 do
-      testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
-
   // SQLite does not support fixed length Char datatype
   if SQLServerType in [ssSQLite] then
     for i := 0 to testValuesCount-1 do
