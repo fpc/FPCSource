@@ -2186,6 +2186,16 @@ begin
     FStatements.Remove(S);
 end;
 
+// True if aStatement is the statement of an open query.
+function IsOpenQueryStatement(aStatement: TCustomSQLStatement): Boolean;
+
+begin
+  Result:=(aStatement.Owner is TCustomSQLQuery)
+          and (TCustomSQLQuery(aStatement.Owner).FStatement=aStatement)
+          and TCustomSQLQuery(aStatement.Owner).Active;
+end;
+
+
 procedure TSQLConnection.UnPrepareStatements(aTransaction: TSQLTransaction);
 Var
   I : integer;
@@ -2200,7 +2210,7 @@ begin
     For I:=0 to L.Count-1 do
       begin
       S:=TCustomSQLStatement(L[i]);
-      if (S.Transaction=aTransaction) then
+      if (S.Transaction=aTransaction) and not IsOpenQueryStatement(S) then
         S.Unprepare;
       end;
     L.Clear;
@@ -2660,7 +2670,10 @@ begin
       // No database, we must unprepare...
       Q.UnPrepare // Unprepare checks if there is still a cursor.
     else if UnPrepOptions[InCommit] in C.ConnOptions then
-      Q.UnPrepare;
+      if Q.Active then
+        C.UnPrepareStatement(Q.Cursor)
+      else
+        Q.UnPrepare;
 end;
 
 procedure TSQLTransaction.Commit;

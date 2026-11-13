@@ -44,6 +44,7 @@ type
     procedure TestUpdateServerIndexDefs;
     Procedure TestKeepOpenOnCommit;
     Procedure TestKeepOpenOnCommitPacketRecords;
+    Procedure TestKeepOpenOnCommitNewQuery;
     Procedure TestCheckSettingsOnlyWhenInactive;
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
@@ -262,6 +263,48 @@ begin
     FMyQ.Options:=[sqoKeepOpenOnCommit];
     AssertException('Cannot set PacketRecords when sqoKeepOpenOnCommit is active',EDatabaseError,@TrySetPacketRecords);
     end;
+end;
+
+procedure TTestTSQLQuery.TestKeepOpenOnCommitNewQuery;
+
+var
+  lQuery: TSQLQuery;
+  I: Integer;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    for I:=1 to 20 do
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
+    Transaction.Commit;
+    end;
+  lQuery:=TSQLQuery.Create(Nil);
+  try
+    lQuery.DataBase:=SQLDBConnector.Connection;
+    lQuery.Transaction:=SQLDBConnector.Transaction;
+    lQuery.SQL.Text:='select * from FPDEV2';
+    lQuery.Options:=[sqoKeepOpenOnCommit];
+    lQuery.Open;
+    AssertEquals('Got all records',20,lQuery.RecordCount);
+    lQuery.SQLTransaction.Commit;
+    AssertTrue('Still open after transaction',lQuery.Active);
+    AssertTrue('Can modify after transaction',lQuery.CanModify);
+    lQuery.Locate('id',20,[]);
+    lQuery.Edit;
+    lQuery.FieldByName('a').AsString:='abc';
+    lQuery.Post;
+    lQuery.ApplyUpdates;
+    lQuery.SQLTransaction.Commit;
+    lQuery.Close;
+    lQuery.SQL.Text:='select a from FPDEV2 where id=20';
+    lQuery.Open;
+    AssertEquals('Modified value in database','abc',lQuery.Fields[0].AsString);
+    lQuery.Close;
+  finally
+    lQuery.Free;
+  end;
 end;
 
 procedure TTestTSQLQuery.TrySetQueryOptions;
