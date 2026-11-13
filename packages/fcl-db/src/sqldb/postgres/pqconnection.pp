@@ -128,6 +128,8 @@ type
     StmtName     : RawByteString;
     Fhandle       : TPGHandle;
     res          : PPGresult;
+    // True when res is the description of the prepared statement
+    FDescribed   : Boolean;
     CurTuple     : integer;
     FieldBinding : TFieldBindings;
     Function GetFieldBinding(F : TFieldDef): PFieldBinding;
@@ -875,6 +877,7 @@ Var
 begin
   S:=StmtName;
   Result:=PQdescribePrepared(FNativeConn,pansichar(S));
+  CheckResultError(Result,[],SErrPrepareFailed);
 end;
 
 function TPGHandle.Exec(aSQL: String; aClearResult: Boolean; aError: String): PPGresult;
@@ -1266,16 +1269,12 @@ begin
     if LogEvent(detActualSQL) then
       Log(detActualSQL,S);
     PQCurs.Res:=Nil;
-    PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrPrepareFailed);
-    // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
-    // override the statement type derived by parsing the query.
-    if (PQCurs.FStatementType in [stInsert,stUpdate,stDelete]) and (pos('RETURNING', upcase(s)) > 0) then
-      begin
-      PQclear(PQCurs.res);
-      PQCurs.res:=PQCurs.Handle.DescribePrepared(PQCurs.StmtName);
-      if (PQresultStatus(PQCurs.res) = PGRES_COMMAND_OK) and (PQnfields(PQCurs.res) > 0) then
-        PQCurs.FStatementType := stSelect;
-      end;
+    PQCurs.Res:=PQCurs.Handle.Exec(S,True,SErrPrepareFailed);
+    PQCurs.Res:=PQCurs.Handle.DescribePrepared(PQCurs.StmtName);
+    PQCurs.FDescribed:=True;
+    // INSERT, UPDATE, DELETE with RETURNING clause return rows
+    if (PQCurs.FStatementType in [stInsert,stUpdate,stDelete]) and (PQnfields(PQCurs.res) > 0) then
+      PQCurs.FStatementType := stSelect;
     PQCurs.FPrepared := True;
     end
   else
@@ -1330,6 +1329,7 @@ begin
   PQCurs.CurTuple:=-1;
   PQclear(PQCurs.res);
   PQCurs.Res:=Nil;
+  PQCurs.FDescribed:=False;
   if PQCurs.FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
     begin
     if LogEvent(detParamValue) then
@@ -1467,7 +1467,7 @@ begin
       begin
       FN:=PQfname(Res, i);
       fieldtype := TranslateFldType(Res, i, asize, aoid );
-      if (PQfformat(Res,i)=0) and (fieldtype<>ftUnknown) and not SameTextAndBinaryFormat(PQftype(Res,i)) then
+      if not FDescribed and (PQfformat(Res,i)=0) and (fieldtype<>ftUnknown) and not SameTextAndBinaryFormat(PQftype(Res,i)) then
         DatabaseErrorFmt(SErrTextResultFormat,[FN],Self);
       FD := AddFieldDef(FieldDefs, i+1, FN, fieldtype, asize, -1, False, False, False) as TSQLDBFieldDef;
       With FD do
