@@ -2533,6 +2533,8 @@ Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
 
 procedure DisposeMem(var Buffer; Size: Integer);
 function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
+// Number of bytes of the first aCount code points of the UTF-8 text aText of aLen bytes
+function UTF8CodePointsByteLength(aText: PAnsiChar; aLen, aCount: SizeInt): SizeInt;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boolean;
 

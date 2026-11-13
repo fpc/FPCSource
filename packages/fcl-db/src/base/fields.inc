@@ -1454,6 +1454,25 @@ begin
   SetAsString(IntToStr(AValue));
 end;
 
+// Number of bytes of the first aCount code points of the UTF-8 text aText of aLen bytes
+function UTF8CodePointsByteLength(aText: PAnsiChar; aLen, aCount: SizeInt): SizeInt;
+
+var
+  lCPLen: SizeInt;
+
+begin
+  Result:=0;
+  while (aCount>0) and (Result<aLen) do
+    begin
+    lCPLen:=Utf8CodePointLen(aText+Result,aLen-Result,False);
+    if lCPLen<=0 then
+      lCPLen:=1;
+    Inc(Result,lCPLen);
+    Dec(aCount);
+    end;
+end;
+
+
 procedure TStringField.SetValue(AValue: RawByteString);
 var Buf      : TStringFieldBuffer;
     DynBuf   : array of AnsiChar;
@@ -1470,6 +1489,8 @@ begin
     begin
     if StringCodePage(AValue) <> FCodePage then
       SetCodePage(AValue, FCodePage, FCodePage<>CP_NONE);
+    if (FCodePage=CP_UTF8) and (Length(AValue)>Size) then
+      SetLength(AValue,UTF8CodePointsByteLength(PAnsiChar(AValue),Length(AValue),Size));
     if DS <= dsMaxStringSize then
       begin
       // Translate has no size for its destination, so it gets no more of the

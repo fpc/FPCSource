@@ -764,8 +764,8 @@ begin
     ftFixedChar,
     ftString: begin
               int1:= sqlite3_column_bytes(st,fnum);
-              if int1>FieldDef.Size*FieldDef.CharSize then
-                int1:=FieldDef.Size*FieldDef.CharSize;
+              if int1>FieldDef.Size then
+                int1:=UTF8CodePointsByteLength(PAnsiChar(sqlite3_column_text(st,fnum)),int1,FieldDef.Size);
               if int1 > 0 then
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
               PAnsiChar(buffer + int1)^ := #0;

@@ -71,6 +71,7 @@ type
     procedure TestCancelUpdatesOnRefresh; // Test that refresh works when changes are present and cancelupdatesonrefresh is true.
     procedure TestCodePageFieldDefClass;
     procedure TestCodePageValue;
+    procedure TestCodePageTruncate;
     procedure TestCodePageStreamingBIN;
     procedure TestCodePageStreamingXML;
     procedure TestCodePageStreamVersion;
@@ -681,6 +682,36 @@ begin
     AssertEquals('Value after posting', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
     lDS.First;
     AssertEquals('Value read from the record buffer', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestCodePageTruncate;
+
+const
+  cSmiley : UnicodeString = #$D83D#$DE00;
+
+var
+  lDS: TBufDataset;
+
+begin
+  lDS := GetCodePageDataset;
+  try
+    lDS.Edit;
+    lDS.FieldByName('NAME').AsUTF8String := UTF8Encode(SCyrillicWord + 'ab');
+    lDS.Post;
+    AssertEquals('Two-byte characters cut after Size characters', SCyrillicWord, UTF8Decode(lDS.FieldByName('NAME').AsUTF8String));
+    lDS.Edit;
+    lDS.FieldByName('NAME').AsUTF8String := UTF8Encode('a' + cSmiley + cSmiley + cSmiley + cSmiley + cSmiley);
+    lDS.Post;
+    AssertEquals('Four-byte characters cut after Size characters', UTF8Encode('a' + cSmiley + cSmiley + cSmiley + cSmiley),
+      lDS.FieldByName('NAME').AsUTF8String);
+    lDS.Edit;
+    lDS.FieldByName('NAME').AsUTF8String := 'abcdefgh';
+    lDS.Post;
+    AssertEquals('ASCII characters cut after Size characters', 'abcde', lDS.FieldByName('NAME').AsUTF8String);
   finally
     lDS.Free;
   end;
