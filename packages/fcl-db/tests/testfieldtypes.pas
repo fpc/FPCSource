@@ -29,6 +29,7 @@ type
     procedure TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
       ParamValuesCount : integer; const ParamValues: array of string; Cross : boolean = False); overload;
     procedure TestSetBlobAsParam(asWhat : integer);
+    procedure IgnoreIfFirebirdStringLimit(aMaxChars, aRecordChars: integer);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -1174,6 +1175,36 @@ begin
 end;
 
 
+// Ignores the test on Firebird/Interbase if a VARCHAR of aMaxChars or a record of aRecordChars characters
+// exceeds the server limits in the default character set of the database.
+procedure TTestFieldTypes.IgnoreIfFirebirdStringLimit(aMaxChars, aRecordChars: integer);
+
+const
+  cMaxVarCharBytes = 32765;
+  cMaxRecordBytes = 65535;
+
+var
+  lBytesPerChar: integer;
+
+begin
+  if not (SQLServerType in [ssFirebird, ssInterbase]) then
+    exit;
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Text:='select cs.rdb$bytes_per_character from rdb$database d '+
+              'left join rdb$character_sets cs on cs.rdb$character_set_name=d.rdb$character_set_name';
+    Open;
+    lBytesPerChar:=Fields[0].AsInteger;
+    Close;
+    end;
+  if lBytesPerChar<1 then
+    lBytesPerChar:=1;
+  if (aMaxChars*lBytesPerChar>cMaxVarCharBytes) or (aRecordChars*lBytesPerChar>cMaxRecordBytes) then
+    Ignore(Format('With %d bytes per character, VARCHAR(%d) or a record of %d characters exceeds the Firebird limits of %d bytes per VARCHAR and %d bytes per record',
+                  [lBytesPerChar,aMaxChars,aRecordChars,cMaxVarCharBytes,cMaxRecordBytes]));
+end;
+
+
 procedure TTestFieldTypes.TestStringLargerThen8192;
 // See also: TestInsertLargeStrFields
 var
@@ -1181,7 +1212,7 @@ var
   i             : integer;
 
 begin
-  // Firebird has limit 32765 bytes, so this is 8191 characters when using UNICODE character set
+  IgnoreIfFirebirdStringLimit(9000,9000);
   CreateTableWithFieldType(ftString,'VARCHAR(9000)');
   TestFieldDeclaration(ftString,9000*DBConnector.CharSize+1);
 
@@ -1204,6 +1235,7 @@ var
   FieldValues: array [1..4] of string;
   i,l1,l2: integer;
 begin
+  IgnoreIfFirebirdStringLimit(16000,8192+16000);
   FieldValues[1] := 'test1';                  // string length < 8192 (dsMaxStringSize)
   FieldValues[2] := StringOfChar('a', 8192);  // string length = 8192 (dsMaxStringSize)
   FieldValues[3] := StringOfChar('b', 16000); // string length > 8192 (dsMaxStringSize)
@@ -1246,6 +1278,7 @@ end;
 procedure TTestFieldTypes.TestLargeRecordSize;
 // probably tests situation, where total record size > 64K (TDataSet.RecordSize returns word value)
 begin
+  IgnoreIfFirebirdStringLimit(8192,6*8192);
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
   // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
