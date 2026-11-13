@@ -1326,6 +1326,8 @@ begin
   // Tests rev.8703: "Fixed MySQL ftLargeInt support"; count() returns BIGINT values
   with TSQLDBConnector(DBConnector) do
     begin
+    TryDropIfExist('TTTXY');
+    TryDropIfExist('TTTOBJ');
     try
       Connection.ExecuteDirect('create table TTTOBJ ( ' +
                                 '  ID INT NOT NULL,   ' +
@@ -1349,6 +1351,7 @@ begin
       query.open;
       query.close;
     finally
+      Query.UnPrepare;
       Connection.ExecuteDirect('drop table TTTXY');
       Connection.ExecuteDirect('drop table TTTOBJ');
       Transaction.CommitRetaining;
