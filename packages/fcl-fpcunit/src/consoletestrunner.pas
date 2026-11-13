@@ -239,7 +239,10 @@ begin
   else
     Inc(FFailed);
   If Not Quiet then
-    writechar('F');
+    If AFailure.IsIgnoredTest then
+      writechar('I')
+    else  
+      writechar('F');
 end;
 
 procedure TProgressWriter.AddError(ATest: TTest; AError: TTestFailure);
