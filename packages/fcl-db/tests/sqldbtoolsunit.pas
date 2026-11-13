@@ -40,6 +40,7 @@ type
     FQuery         : TSQLQuery;
     FUniDirectional: boolean;
     procedure CreateFConnection;
+    procedure CheckFirebirdCharSet;
     Function CreateQuery : TSQLQuery;
   protected
     procedure ClearDatasets; override;
@@ -85,6 +86,10 @@ type
     s: string;
     t: TSQLServerType;
   end;
+
+var
+  // Set when the Firebird character set check has run.
+  FirebirdCharSetChecked: Boolean = False;
 
 const
   FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
@@ -359,6 +364,9 @@ begin
       end;
   end;
 
+  if SQLServerType in [ssFirebird, ssInterbase] then
+    CheckFirebirdCharSet;
+
   if SQLConnType in [mysql40,mysql41] then
     begin
     // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
@@ -414,6 +422,34 @@ begin
     for i := 0 to testValuesCount-1 do
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
 end;
+
+// Writes a warning to StdErr, once per run, if no connection character set is used for a database with a default character set.
+procedure TSQLDBConnector.CheckFirebirdCharSet;
+
+var
+  lQuery: TSQLQuery;
+  lDBCharSet: string;
+
+begin
+  if FirebirdCharSetChecked then
+    exit;
+  FirebirdCharSetChecked := True;
+  lQuery := CreateQuery;
+  try
+    lQuery.SQL.Text := 'select rdb$character_set_name from rdb$database';
+    lQuery.Open;
+    lDBCharSet := UpperCase(Trim(lQuery.Fields[0].AsString));
+    lQuery.Close;
+  finally
+    lQuery.Free;
+  end;
+  FTransaction.Commit;
+  if ((Trim(dbcharset) = '') or SameText(Trim(dbcharset), 'NONE'))
+     and (lDBCharSet <> '') and (lDBCharSet <> 'NONE') then
+    Writeln(StdErr, Format('Warning: no connection character set for database %s with default character set %s. Set charset=%s in database.ini.',
+                           [dbname, lDBCharSet, lDBCharSet]));
+end;
+
 
 Function TSQLDBConnector.CreateQuery: TSQLQuery;
 
