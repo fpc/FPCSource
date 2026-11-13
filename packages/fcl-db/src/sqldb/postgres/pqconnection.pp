@@ -464,7 +464,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences] - [sqCommitEndsPrepared];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FHandlePool:=TThreadlist.Create;

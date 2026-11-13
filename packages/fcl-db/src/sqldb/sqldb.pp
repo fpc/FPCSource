@@ -1121,6 +1121,7 @@ begin
   FRowsAffected:=-1;
   If (FParams.Count>0) and Assigned(DataSource) then
     CopyParamsFromMaster(False);
+  Transaction.MaybeStartTransaction;
   If LogEvent(detExecute) then
     Log(detExecute,FServerSQL);
   Database.Execute(FCursor,Transaction, FParams);

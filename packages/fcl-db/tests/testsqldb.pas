@@ -45,6 +45,10 @@ type
     Procedure TestKeepOpenOnCommit;
     Procedure TestKeepOpenOnCommitPacketRecords;
     Procedure TestKeepOpenOnCommitNewQuery;
+    // A prepared query opened again after a commit uses the new parameter value
+    Procedure TestPreparedOpenAfterCommit;
+    // A prepared statement executed again after a commit is part of the new transaction
+    Procedure TestPreparedExecAfterCommit;
     Procedure TestCheckSettingsOnlyWhenInactive;
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
@@ -306,6 +310,63 @@ begin
     lQuery.Free;
   end;
 end;
+
+procedure TTestTSQLQuery.TestPreparedOpenAfterCommit;
+
+var
+  I: Integer;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    for I:=1 to 3 do
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
+    Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select a from FPDEV2 where id=:id';
+  FMyQ.Prepare;
+  FMyQ.Params[0].AsInteger:=1;
+  FMyQ.Open;
+  AssertEquals('Value before commit','000001',FMyQ.Fields[0].AsString);
+  FMyQ.Close;
+  FMyQ.SQLTransaction.Commit;
+  FMyQ.Params[0].AsInteger:=2;
+  FMyQ.Open;
+  AssertEquals('Value after commit','000002',FMyQ.Fields[0].AsString);
+  FMyQ.Close;
+end;
+
+
+procedure TTestTSQLQuery.TestPreparedExecAfterCommit;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='insert into FPDEV2 (id,a) values (:id,''x'')';
+  FMyQ.Prepare;
+  FMyQ.Params[0].AsInteger:=1;
+  FMyQ.ExecSQL;
+  FMyQ.SQLTransaction.Commit;
+  FMyQ.Params[0].AsInteger:=2;
+  FMyQ.ExecSQL;
+  FMyQ.SQLTransaction.Rollback;
+  FMyQ.SQL.Text:='select count(*) from FPDEV2 where id=1';
+  FMyQ.Open;
+  AssertEquals('Row inserted before the commit is kept',1,FMyQ.Fields[0].AsInteger);
+  FMyQ.Close;
+  FMyQ.SQL.Text:='select count(*) from FPDEV2 where id=2';
+  FMyQ.Open;
+  AssertEquals('Row inserted after the commit is removed by the rollback',0,FMyQ.Fields[0].AsInteger);
+  FMyQ.Close;
+end;
+
 
 procedure TTestTSQLQuery.TrySetQueryOptions;
 begin
