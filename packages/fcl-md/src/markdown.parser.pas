@@ -88,9 +88,6 @@ type
     function NextLine : TMarkdownLine;
     function Done : Boolean;
     procedure RedoLine(aResetLine: Boolean);
-    // Take off the prefix that this processor's block puts in front of its content lines.
-    // Returns False when the line does not jave it, and so leaves the block.
-    function StripLinePrefix(aLine : TMarkdownLine) : Boolean; virtual;
     // Same, for the enclosing block, when a line is consumed outside the parse loop.
     // Returns True when the line no longer belongs to that block.
     function ParentEndsLine(aLine : TMarkdownLine) : Boolean;
@@ -108,6 +105,9 @@ type
     constructor Create(aParser : TMarkdownParser); virtual;
     // Register for given block type
     class procedure Register(const aBlockType : String);
+    // Take off the prefix that this processor's block puts in front of its content lines.
+    // Returns False when the line does not have it, and so leaves the block.
+    function StripLinePrefix(aLine : TMarkdownLine) : Boolean; virtual;
     // This is called to see whether aLine closes the current block.
     function LineEndsBlock(aBlock : TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; virtual;
     // Return true if a line this processor would handle should terminate an
