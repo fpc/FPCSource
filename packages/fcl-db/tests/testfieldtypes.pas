@@ -45,6 +45,7 @@ type
     procedure TestUnlVarChar;
     procedure TestFixedCharUTF8; // bug 39536
     procedure TestNumericScale8Param; // bug 39409
+    procedure TestLargeBCDParam;
     procedure TestBlob;
     procedure TestChangeBlob;
     procedure TestBlobGetText;
@@ -84,6 +85,7 @@ type
     procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
     procedure TestCrossStringDateParam;
+    procedure TestStringDateTimeParamReuse;
     procedure TestSmallIntParamQuery;
     procedure TestIntParamQuery;
     procedure TestLargeIntParamQuery;
@@ -625,6 +627,56 @@ begin
   CheckStored(4,'-0.00000001','AsFloat -0.00000001');
   CheckStored(5,'1234567890.12345678','AsFMTBCD 1234567890.12345678');
   CheckStored(6,'1234567890.00000000','AsLargeInt 1234567890');
+end;
+
+procedure TTestFieldTypes.TestLargeBCDParam;
+
+const
+  cCount = 5;
+  cValues: array[1..cCount] of string =
+    ('123456789012345.6789', '-922337203685477.5808', '1.2399', '-1.2301', '0.125');
+  cStored4: array[1..cCount] of string =
+    ('123456789012345.6789', '-922337203685477.5808', '1.2399', '-1.2301', '0.1250');
+  cStored2: array[1..cCount] of string =
+    ('123456789012345.68', '-922337203685477.58', '1.24', '-1.23', '0.12');
+
+var
+  i: Integer;
+  lFS: TFormatSettings;
+
+  function AsCurrStr(const aValue: string): string;
+  begin
+    Result:=CurrToStr(StrToCurr(aValue,lFS),lFS);
+  end;
+
+begin
+  if not (SQLServerType in [ssFirebird, ssInterbase]) then
+    Ignore(STestNotApplicable);
+  lFS:=DBConnector.FormatSettings;
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, N4 NUMERIC(18,4), N2 NUMERIC(18,2))');
+  TSQLDBConnector(DBConnector).CommitDDL;
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Text:='insert into FPDEV2 (ID,N4,N2) values (:ID,:N4,:N2)';
+    for i:=1 to cCount do
+      begin
+      Params.ParamByName('ID').AsInteger:=i;
+      Params.ParamByName('N4').AsCurrency:=StrToCurr(cValues[i],lFS);
+      Params.ParamByName('N2').AsCurrency:=StrToCurr(cValues[i],lFS);
+      ExecSQL;
+      end;
+    SQL.Text:='select ID, N4, N2, cast(N4 as varchar(30)), cast(N2 as varchar(30)) from FPDEV2 order by ID';
+    Open;
+    for i:=1 to cCount do
+      begin
+      AssertEquals('Stored NUMERIC(18,4) value of '+cValues[i],cStored4[i],Trim(Fields[3].AsString));
+      AssertEquals('Stored NUMERIC(18,2) value of '+cValues[i],cStored2[i],Trim(Fields[4].AsString));
+      AssertEquals('NUMERIC(18,4) field AsCurrency of '+cValues[i],AsCurrStr(cStored4[i]),CurrToStr(Fields[1].AsCurrency,lFS));
+      AssertEquals('NUMERIC(18,2) field AsCurrency of '+cValues[i],AsCurrStr(cStored2[i]),CurrToStr(Fields[2].AsCurrency,lFS));
+      Next;
+      end;
+    Close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestUnlVarChar;
@@ -1707,6 +1759,45 @@ end;
 procedure TTestFieldTypes.TestCrossStringDateParam;
 begin
   TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,[],True);
+end;
+
+procedure TTestFieldTypes.TestStringDateTimeParamReuse;
+
+var
+  lStamp: TDateTime;
+
+begin
+  if not (SQLServerType in [ssFirebird, ssInterbase]) then
+    Ignore(STestNotApplicable);
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, D DATE, T TIME, TS TIMESTAMP)');
+  TSQLDBConnector(DBConnector).CommitDDL;
+  lStamp:=EncodeDate(2001,2,3)+EncodeTime(4,5,6,789);
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Text:='insert into FPDEV2 (ID,D,T,TS) values (:ID,:D,:T,:TS)';
+    Prepare;
+    Params.ParamByName('ID').AsInteger:=1;
+    Params.ParamByName('D').AsString:='2000-01-02';
+    Params.ParamByName('T').AsString:='13:14:15';
+    Params.ParamByName('TS').AsString:='2000-01-02 13:14:15';
+    ExecSQL;
+    Params.ParamByName('ID').AsInteger:=2;
+    Params.ParamByName('D').AsDate:=EncodeDate(2001,2,3);
+    Params.ParamByName('T').AsTime:=EncodeTime(4,5,6,0);
+    Params.ParamByName('TS').AsDateTime:=lStamp;
+    ExecSQL;
+    UnPrepare;
+    SQL.Text:='select D, T, TS from FPDEV2 order by ID';
+    Open;
+    AssertEquals('DATE from string','2000-01-02',FormatDateTime('yyyy-mm-dd',Fields[0].AsDateTime));
+    AssertEquals('TIME from string','13:14:15',FormatDateTime('hh:nn:ss',Fields[1].AsDateTime));
+    AssertEquals('TIMESTAMP from string','2000-01-02 13:14:15',FormatDateTime('yyyy-mm-dd hh:nn:ss',Fields[2].AsDateTime));
+    Next;
+    AssertEquals('DATE after string','2001-02-03',FormatDateTime('yyyy-mm-dd',Fields[0].AsDateTime));
+    AssertEquals('TIME after string','04:05:06',FormatDateTime('hh:nn:ss',Fields[1].AsDateTime));
+    AssertEquals('TIMESTAMP with milliseconds after string','2001-02-03 04:05:06.789',FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Fields[2].AsDateTime));
+    Close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestTimeParamQuery;

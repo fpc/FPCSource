@@ -64,6 +64,12 @@ type
     property GDSErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of GDSErrorCode'; // Nov 2014
   end;
 
+  // Type and length of an input variable as described by the server.
+  TIBInVarType = record
+    SQLType : Short;
+    SQLLen  : Short;
+  end;
+
   { TIBCursor }
 
   TIBCursor = Class(TSQLCursor)
@@ -73,6 +79,7 @@ type
     StatementHandle      : pointer;
     SQLDA                : PXSQLDA;
     in_SQLDA             : PXSQLDA;
+    FInVarTypes          : array of TIBInVarType;
     ParamBinding         : array of integer;
     FieldBinding         : array of integer;
     CursorName : AnsiString;
@@ -899,6 +906,7 @@ begin
         CheckError('PrepareStatement', Status);
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
+      SetLength(FInVarTypes, in_SQLDA^.SQLD);
       {$push}
       {$R-}
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
@@ -913,6 +921,8 @@ begin
         // the database server will generate the appropriate error.
         sqltype := sqltype or 1;
         new(sqlind);
+        FInVarTypes[x].SQLType := sqltype;
+        FInVarTypes[x].SQLLen := sqllen;
         end;
       {$pop}
       end
@@ -1161,6 +1171,52 @@ begin
     Result := 1 / Result;
 end;
 
+
+// 10 to the power aExponent, for aExponent in 0..18.
+function Int64Power10(aExponent: integer): Int64;
+
+var
+  i: integer;
+
+begin
+  Result:=1;
+  for i:=1 to aExponent do
+    Result:=Result*10;
+end;
+
+
+// Currency value as an integer with -aScale decimals (aScale in -4..-1), rounded half to even.
+function CurrencyToScaledInt(aValue: Currency; aScale: integer): Int64;
+
+var
+  lDivisor, lRest: Int64;
+
+begin
+  lDivisor:=Int64Power10(4+aScale);
+  Result:=PInt64(@aValue)^ div lDivisor;
+  lRest:=Abs(PInt64(@aValue)^ mod lDivisor);
+  if (2*lRest>lDivisor) or ((2*lRest=lDivisor) and Odd(Result)) then
+    if aValue<0 then
+      Dec(Result)
+    else
+      Inc(Result);
+end;
+
+
+// Currency value of an integer with -aScale decimals (aScale in -4..-1); False if it is outside the Currency range.
+function ScaledIntToCurrency(aValue: Int64; aScale: integer; out aCurrency: Currency): Boolean;
+
+var
+  lFactor: Int64;
+
+begin
+  lFactor:=Int64Power10(4+aScale);
+  Result:=(aValue<=High(Int64) div lFactor) and (aValue>=Low(Int64) div lFactor);
+  if Result then
+    PInt64(@aCurrency)^:=aValue*lFactor;
+end;
+
+
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
 var
@@ -1216,12 +1272,40 @@ var
     {$pop}
   end;
 
+  // Writes aText into the SQL_VARYING or SQL_TEXT parameter VSQLVar.
+  procedure SetTextParam(aText: rawbytestring);
+  var
+    lLen  : word;
+    lBuff : PAnsiChar;
+  begin
+    {$push}
+    {$R-}
+    lLen := length(aText); // a word is enough, since the max-length of a string in interbase is 32k
+    if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
+      begin
+      VSQLVar^.SQLLen := lLen;
+      ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen+2);
+      lBuff := VSQLVar^.SQLData;
+      move(lLen,lBuff^,sizeof(lLen));
+      inc(lBuff,sizeof(lLen));
+      end
+    else
+      begin
+      // The buffer-length is always VSQLVar^.sqllen, nothing more, nothing less
+      // so fill the complete buffer with valid data. Adding #0 will lead
+      // to problems, because the #0 will be seen as a part of the (binary) string
+      lBuff := VSQLVar^.SQLData;
+      lLen := VSQLVar^.sqllen;
+      aText := PadRight(aText,lLen);
+      end;
+    Move(aText[1], lBuff^, lLen);
+    {$pop}
+  end;
+
 var
   SQLVarNr : integer;
   si       : smallint;
   li       : LargeInt;
-  CurrBuff : PAnsiChar;
-  w        : word;
   i128     : Int128Rec;
 
 begin
@@ -1231,6 +1315,13 @@ begin
     begin
     AParam := AParams[ParamBinding[SQLVarNr]];
     VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
+    if (SQLVarNr < Length(FInVarTypes)) and (VSQLVar^.SQLType <> FInVarTypes[SQLVarNr].SQLType) then
+      begin
+      // Restore a date/time variable that a previous string parameter changed to SQL_VARYING
+      VSQLVar^.SQLType := FInVarTypes[SQLVarNr].SQLType;
+      VSQLVar^.SQLLen := FInVarTypes[SQLVarNr].SQLLen;
+      ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen);
+      end;
     if AParam.IsNull then
       VSQLVar^.SQLInd^ := -1
     else
@@ -1262,7 +1353,7 @@ begin
             else if (AParam.DataType = ftFMTBcd) or (-VSQLVar^.sqlscale > MaxBCDScale) then
               li := AParam.AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
             else
-              li := Round(AParam.AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+              li := CurrencyToScaledInt(AParam.AsCurrency, VSQLVar^.sqlscale);
             Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_DOUBLE, SQL_FLOAT:
@@ -1282,28 +1373,17 @@ begin
             else
               s := GetAsString(AParam);
           end;
-          w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
-          if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
-            begin
-            VSQLVar^.SQLLen := w;
-            ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen+2);
-            CurrBuff := VSQLVar^.SQLData;
-            move(w,CurrBuff^,sizeof(w));
-            inc(CurrBuff,sizeof(w));
-            end
-          else
-            begin
-            // The buffer-length is always VSQLVar^.sqllen, nothing more, nothing less
-            // so fill the complete buffer with valid data. Adding #0 will lead
-            // to problems, because the #0 will be seen as a part of the (binary) string
-            CurrBuff := VSQLVar^.SQLData;
-            w := VSQLVar^.sqllen;
-            s := PadRight(s,w);
-            end;
-          Move(s[1], CurrBuff^, w);
+          SetTextParam(s);
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
-          SetDateTime(VSQLVar^.SQLData, AParam.AsDateTime, VSQLVar^.SQLType);
+          if AParam.DataType in [ftString, ftFixedChar, ftWideString, ftFixedWideChar] then
+            begin
+            // Passed as text, converted by the server
+            VSQLVar^.SQLType := SQL_VARYING or (VSQLVar^.SQLType and 1);
+            SetTextParam(GetAsString(AParam));
+            end
+          else
+            SetDateTime(VSQLVar^.SQLData, AParam.AsDateTime, VSQLVar^.SQLType);
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParam.AsBoolean);
         SQL_INT128:
@@ -1387,7 +1467,7 @@ begin
               4 : c := PLongint(CurrBuff)^  / IntPower10(-VSQLVar^.SQLScale);
               8 : if Dialect < 3 then
                     c := PDouble(CurrBuff)^
-                  else
+                  else if not ScaledIntToCurrency(PLargeint(CurrBuff)^, VSQLVar^.SQLScale, c) then
                     c := PLargeint(CurrBuff)^ / IntPower10(-VSQLVar^.SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
