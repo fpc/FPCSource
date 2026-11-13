@@ -462,7 +462,7 @@ Const
    (n:'CURRENCY'; t: ftCurrency),
    (n:'MONEY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
-   (n:'AnsiChar'; t: ftFixedChar),
+   (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftMemo),
