@@ -48,7 +48,7 @@ const
 
   FPC_INFINITY_DOUBLE: QWord = $7ff0000000000000;     { IEEE 754 bit representation of +oo for binary64 }
   FPC_MAXLOG_DOUBLE: Double  =  709.78271289338399684324569237317; { log(2**1024)  }
-  FPC_MINLOG_DOUBLE: Double  = -709.08956571282405153382846025171; { log(2**-1023) }
+  FPC_MINLOG_DOUBLE: QWord   = $C0874910D52D3051;     { -745.1332191019411, the least argument whose exp rounds to non-zero (to nearest); exp returns 0 for anything less }
 
 {****************************************************************************
                             FPU Control word
@@ -454,7 +454,7 @@ const
 {$pop}
     FPC_HALF_DOUBLE: Double = 0.5;
     FPC_ONE_DOUBLE: Double = 1.0;
-    { ln 2 = FPC_LN2_HI + FPC_LN2_LO; k * FPC_LN2_HI is exact for abs(k) <= 1024 }
+    { ln 2 = FPC_LN2_HI + FPC_LN2_LO; k * FPC_LN2_HI is exact for abs(k) < 2048 }
     FPC_LN2_HI: QWord = $3FE62E42FEE00000;
     FPC_LN2_LO: QWord = $3DEA39EF35793C76;
 
@@ -491,7 +491,7 @@ const
         movsd     FPC_ONE_DOUBLE(%rip), %xmm5
         xorpd     %xmm3, %xmm3
         comisd    FPC_MINLOG_DOUBLE(%rip), %xmm0
-        ja        .LNoUnderflow
+        jae       .LNoUnderflow
         xorpd     %xmm0, %xmm0 { Set result to zero }
     .LNaN:
         ret
@@ -526,7 +526,7 @@ const
         subsd     %xmm1, %xmm5
         movapd    %xmm5, %xmm0 { x }
 
-        { %rcx: bits of the extra factor 2.0 for k=1024 or 0.5 for k=-1023, 0 otherwise }
+        { %rcx: bits of the extra factor, 2.0 for k=1024 and 2^-64 for k<-1022, 0 otherwise }
         xorl      %ecx,  %ecx
         cmpl      $1023, %eax
         jg        .LBigK
@@ -572,8 +572,10 @@ const
         shlq      $52,   %rcx
         jmp       .LKReady
     .LSmallK:
-        incl      %eax { 2^-1023 = 2^-1022 * 0.5 }
-        movl      $0x3FE, %ecx
+        { 2^k = 2^(k+64) * 2^-64: e^x * 2^(k+64) is normal, so exact, and only
+          the multiplication with 2^-64 rounds the scaled result }
+        addl      $64,   %eax
+        movl      $0x3BF, %ecx
         shlq      $52,   %rcx
         jmp       .LKReady
       end;

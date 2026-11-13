@@ -14,7 +14,7 @@ type
 
 const
   { bit patterns of x and of the correctly rounded exp(x) }
-  Cases: array[1..84] of TExpCase = (
+  Cases: array[1..94] of TExpCase = (
     (x: QWord($BF50624DD2F1A9FC); ref: QWord($3FEFF7CFE56F1A9E)), { exp(-0.001) }
     (x: QWord($BFD0000000000000); ref: QWord($3FE8EBEF9EAC820B)), { exp(-0.25) }
     (x: QWord($BFE0000000000000); ref: QWord($3FE368B2FC6F960A)), { exp(-0.5) }
@@ -29,6 +29,16 @@ const
     (x: QWord($C085E00000000000); ref: QWord($00D14F2B0FB9307F)), { exp(-700.0) }
     (x: QWord($C086240000000000); ref: QWord($000E6CF6D08897AC)), { exp(-708.5) }
     (x: QWord($C086280000000000); ref: QWord($0008BFE55DE02338)), { exp(-709.0) }
+    (x: QWord($C0862C0000000000); ref: QWord($00054E90C99FB878)), { exp(-709.5) }
+    (x: QWord($C086300000000000); ref: QWord($00033802FD28B3C3)), { exp(-710.0) }
+    (x: QWord($C086440000000000); ref: QWord($000043A39552BD71)), { exp(-712.5) }
+    (x: QWord($C086580000000000); ref: QWord($0000058D59816822)), { exp(-715.0) }
+    (x: QWord($C086800000000000); ref: QWord($0000000993B4DC95)), { exp(-720.0) }
+    (x: QWord($C086A80000000000); ref: QWord($000000001084FBE1)), { exp(-725.0) }
+    (x: QWord($C086D00000000000); ref: QWord($00000000001C7EA3)), { exp(-730.0) }
+    (x: QWord($C086F80000000000); ref: QWord($0000000000003127)), { exp(-735.0) }
+    (x: QWord($C087200000000000); ref: QWord($0000000000000055)), { exp(-740.0) }
+    (x: QWord($C087340000000000); ref: QWord($0000000000000007)), { exp(-742.5) }
     (x: QWord($3F50624DD2F1A9FC); ref: QWord($3FF0041919B7EE34)), { exp(0.001) }
     (x: QWord($3FE0000000000000); ref: QWord($3FFA61298E1E069C)), { exp(0.5) }
     (x: QWord($3FF0000000000000); ref: QWord($4005BF0A8B145769)), { exp(1.0) }
@@ -105,6 +115,14 @@ const
 
   ModeNames: array[TFPURoundingMode] of string = ('nearest','down','up','truncate');
 
+  { near the smallest subnormal the ulp tolerance cannot tell a result from 0: exact bits, rounding to nearest }
+  ExactCases: array[1..4] of TExpCase = (
+    (x: QWord($C087480000000000); ref: QWord($0000000000000001)), { exp(-745.0) }
+    (x: QWord($C0874910D52D3051); ref: QWord($0000000000000001)), { exp(-745.1332191019411), the last x rounding up to it }
+    (x: QWord($C0874910D52D3052); ref: QWord($0000000000000000)), { exp(-745.1332191019412) }
+    (x: QWord($C087500000000000); ref: QWord($0000000000000000))  { exp(-746.0) }
+  );
+
 
 // Returns the double with bit pattern aBits
 function BitsToDouble(aBits: QWord): Double;
@@ -165,5 +183,11 @@ begin
     if lWorst>MaxUlp then
       halt(1+Ord(lMode));
     end;
+  for lCase:=Low(ExactCases) to High(ExactCases) do
+    if DoubleToBits(Exp(BitsToDouble(ExactCases[lCase].x)))<>ExactCases[lCase].ref then
+      begin
+      writeln('exp(',BitsToDouble(ExactCases[lCase].x),') is not the expected ',ExactCases[lCase].ref);
+      halt(5);
+      end;
   writeln('ok');
 end.
