@@ -36,6 +36,8 @@ password=masterkey
 hostname=localhost
 
 ; connection character set
+; use the default character set of the database, e.g. UTF8 for a database
+; created with DEFAULT CHARACTER SET UTF8
 charset=
 
 ; SQL command log file (for sqldb databases)
