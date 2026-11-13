@@ -1664,7 +1664,7 @@ begin
       cp := TStringField(F).CodePage
     else
       cp := CP_ACP;
-    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo,cp);
+    FieldDefs.Add(F.FieldName,F.DataType,F.Size,-1,F.Required,False,F.FieldNo,cp);
     end;
   CreateDataset;
   L1:=Nil;
