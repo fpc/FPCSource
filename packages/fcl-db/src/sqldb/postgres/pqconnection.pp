@@ -130,6 +130,8 @@ type
     res          : PPGresult;
     // True when res is the description of the prepared statement
     FDescribed   : Boolean;
+    // Parameter types resolved by the server for the prepared statement
+    FParamTypes  : array of Oid;
     CurTuple     : integer;
     FieldBinding : TFieldBindings;
     Function GetFieldBinding(F : TFieldDef): PFieldBinding;
@@ -249,6 +251,10 @@ ResourceString
   SErrPrepareFailed = 'Preparation of query failed.';
   SErrUnPrepareFailed = 'Unpreparation of query failed.';
   SErrTextResultFormat = 'Field "%s" is returned in text format, which is not supported for its data type';
+
+const
+  // Parameter types prepared as unknown, with the type resolved by the server
+  StringParamTypes = [ftString, ftFixedChar, ftWideString, ftMemo, ftFmtMemo, ftWideMemo];
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
@@ -1155,7 +1161,7 @@ procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
-      'text',      // ftString
+      'unknown',   // ftString
       'smallint',  // ftSmallint
       'int',       // ftInteger
       'int',       // ftWord
@@ -1170,15 +1176,15 @@ const TypeStrings : array[TFieldType] of string =
       'bytea',     // ftVarBytes
       'Unknown',   // ftAutoInc
       'bytea',     // ftBlob
-      'text',      // ftMemo
+      'unknown',   // ftMemo
       'bytea',     // ftGraphic
-      'text',      // ftFmtMemo
+      'unknown',   // ftFmtMemo
       'Unknown',   // ftParadoxOle
       'Unknown',   // ftDBaseOle
       'Unknown',   // ftTypedBinary
       'Unknown',   // ftCursor
-      'char',      // ftFixedChar
-      'text',      // ftWideString
+      'unknown',   // ftFixedChar
+      'unknown',   // ftWideString
       'bigint',    // ftLargeint
       'Unknown',   // ftADT
       'Unknown',   // ftArray
@@ -1193,7 +1199,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftTimeStamp
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
-      'Unknown'   // ftWideMemo
+      'unknown'    // ftWideMemo
       {$IFNDEF VER3_2}
              ,
       'Unknown',   // ftOraTimeStamp
@@ -1272,6 +1278,9 @@ begin
     PQCurs.Res:=PQCurs.Handle.Exec(S,True,SErrPrepareFailed);
     PQCurs.Res:=PQCurs.Handle.DescribePrepared(PQCurs.StmtName);
     PQCurs.FDescribed:=True;
+    SetLength(PQCurs.FParamTypes,PQnparams(PQCurs.Res));
+    for i:=0 to Length(PQCurs.FParamTypes)-1 do
+      PQCurs.FParamTypes[i]:=PQparamtype(PQCurs.Res,i);
     // INSERT, UPDATE, DELETE with RETURNING clause return rows
     if (PQCurs.FStatementType in [stInsert,stUpdate,stDelete]) and (PQnfields(PQCurs.res) > 0) then
       PQCurs.FStatementType := stSelect;
@@ -1298,6 +1307,20 @@ begin
   if Assigned(C.Handle) then
     C.Handle.UnPrepareStatement(C,ForcedClose);
 end;
+
+
+// True when values of type aOID have the same bytes in text and in binary format
+function SameTextAndBinaryFormat(aOID : Oid) : Boolean;
+
+begin
+  case aOID of
+    Oid_varchar, Oid_bpchar, Oid_name, Oid_text, Oid_JSON, Oid_char:
+      Result:=True;
+  else
+    Result:=False;
+  end;
+end;
+
 
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
@@ -1389,7 +1412,10 @@ begin
             StrMove(PAnsiChar(ar[i]), PAnsiChar(s), L+1);
             lengths[i]:=L;
             end;
-          if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency,ftVarBytes]) then
+          if (AParams[i].DataType in [ftBlob,ftGraphic,ftCurrency,ftVarBytes]) then
+            Formats[i]:=1
+          else if (AParams[i].DataType in StringParamTypes) and (i<Length(PQCurs.FParamTypes))
+                  and ((PQCurs.FParamTypes[i]=Oid_Bytea) or SameTextAndBinaryFormat(PQCurs.FParamTypes[i])) then
             Formats[i]:=1
           else
             Formats[i]:=0;
@@ -1427,19 +1453,6 @@ begin
       PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrExecuteFailed);
     end;
   PQCurs.FSelectable := assigned(PQCurs.res) and (PQresultStatus(PQCurs.res)=PGRES_TUPLES_OK);
-end;
-
-
-// True when values of type aOID have the same bytes in text and in binary format
-function SameTextAndBinaryFormat(aOID : Oid) : Boolean;
-
-begin
-  case aOID of
-    Oid_varchar, Oid_bpchar, Oid_name, Oid_text, Oid_JSON, Oid_char:
-      Result:=True;
-  else
-    Result:=False;
-  end;
 end;
 
 

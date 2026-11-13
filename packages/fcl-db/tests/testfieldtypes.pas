@@ -1803,7 +1803,7 @@ var
   lStamp: TDateTime;
 
 begin
-  if not (SQLServerType in [ssFirebird, ssInterbase]) then
+  if not (SQLServerType in [ssFirebird, ssInterbase, ssPostgreSQL]) then
     Ignore(STestNotApplicable);
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, D DATE, T TIME, TS TIMESTAMP)');
   TSQLDBConnector(DBConnector).CommitDDL;
