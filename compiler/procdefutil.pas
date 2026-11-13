@@ -732,12 +732,18 @@ implementation
       if n.nodetype<>loadn then
         exit;
       sym:=tsym(tloadnode(n).symtableentry);
+      if not (sym.typ in [localvarsym,paravarsym]) then
+        exit;
       if not (sym.owner.symtabletype in [parasymtable,localsymtable]) then
         exit;
-      if sym.owner.symtablelevel>normal_function_level then begin
-        pd.add_captured_sym(sym,tloadnode(n).resultdef,n.fileinfo);
-        result:=fen_true;
-      end;
+      { Self is captured by the caller }
+      if vo_is_self in tabstractnormalvarsym(sym).varoptions then
+        exit;
+      if can_be_captured(sym,nil) then
+        pd.add_captured_sym(sym,tloadnode(n).resultdef,n.fileinfo)
+      else
+        MessagePos1(n.fileinfo,sym_e_symbol_no_capture,sym.realname);
+      result:=fen_true;
     end;
 
 
@@ -883,9 +889,12 @@ implementation
       implintf : TImplementedInterface;
       i : longint;
       stmt : tstatementnode;
-      n1 : tnode;
+      n1,
+      mpnode,
+      scannode : tnode;
       fieldsym : tfieldvarsym;
       selfinfo : tselfinfo;
+      suffix : tsymstr;
     begin
       if not (n.resultdef.typ in [procdef,procvardef]) then
         internalerror(2022022101);
@@ -894,6 +903,7 @@ implementation
       capturen:=nil;
       pinested:=nil;
       oldpd:=nil;
+      mpnode:=nil;
 
       { determine a unique name for the variable, field for function of the
         node we're trying to load }
@@ -902,7 +912,34 @@ implementation
       if not foreachnodestatic(pm_preprocess,n,@find_outermost_loaded_sym,@sym) then
         internalerror(2022022102);
 
-      result:=funcref_intf_for_proc(tabstractprocdef(n.resultdef),fileinfo_to_suffix(sym.fileinfo));
+      { a procedure variable's value, and a method together with what it is
+        called for, belong to the conversion itself: two conversions of one
+        method in a routine can be for different instances, and two expansions
+        of a macro have the same position, hence the routine and the number of
+        conversions its capturer already holds; a nested routine is moved into
+        the capturer once, whatever converts it }
+      if not ((sym.typ=procsym) and (sym.owner.symtabletype=localsymtable)) and
+          (
+            (n.resultdef.typ=procvardef) or
+            (
+              (n.nodetype=loadn) and
+              assigned(tloadnode(n).left)
+            )
+          ) then
+        begin
+          suffix:=fileinfo_to_suffix(n.fileinfo)+'_'+fileinfo_to_suffix(owner.procdef.fileinfo);
+          if not (df_generic in owner.procdef.defoptions) then
+            begin
+              capturer:=get_or_create_capturer(owner.procdef);
+              if not assigned(capturer) then
+                internalerror(2026111101);
+              suffix:=suffix+'_'+tostr(tobjectdef(tabstractvarsym(capturer).vardef).ImplementedInterfaces.count);
+            end;
+        end
+      else
+        suffix:=fileinfo_to_suffix(sym.fileinfo);
+
+      result:=funcref_intf_for_proc(tabstractprocdef(n.resultdef),suffix);
 
       if (sym.typ=procsym) and (sym.owner.symtabletype=localsymtable) then
         begin
@@ -973,7 +1010,7 @@ implementation
         end;
       implintf:=capturedef.register_implemented_interface(result,true);
 
-      invokename:=method_name_funcref_invoke_decl+'__FPCINTERNAL__'+fileinfo_to_suffix(sym.fileinfo);
+      invokename:=method_name_funcref_invoke_decl+'__FPCINTERNAL__'+suffix;
 
       ps:=cprocsym.create(invokename);
       pd:=tprocdef(tabstractprocdef(n.resultdef).getcopyas(procdef,pc_normal_no_hidden,'',false));
@@ -1073,7 +1110,7 @@ implementation
         begin
           { store the procvar in a field so that it won't be changed if the
             procvar itself is changed }
-          fieldsym:=cfieldvarsym.create('$'+fileinfo_to_suffix(n.fileinfo),vs_value,n.resultdef,[]);
+          fieldsym:=cfieldvarsym.create('$'+suffix,vs_value,n.resultdef,[]);
           fieldsym.fileinfo:=n.fileinfo;
           capturedef.symtable.insertsym(fieldsym);
           tabstractrecordsymtable(capturedef.symtable).addfield(fieldsym,vis_public);
@@ -1093,6 +1130,9 @@ implementation
           if tloadnode(n).symtableentry.typ<>procsym then
             internalerror(2022032402);
           n1:=ccallnode.create(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil);
+          { what the method is called for is now part of the new method's
+            code; it is searched below for what that code has to capture }
+          mpnode:=tloadnode(n).left;
           tloadnode(n).left:=nil;
         end;
       if assigned(pd.returndef) and not is_void(pd.returndef) then
@@ -1128,11 +1168,17 @@ implementation
           { the original nested function now needs to capture only the capturer }
           pinested.procdef.add_captured_sym(capturer,capturedef,n.fileinfo);
         end
-      { does this need to capture Self? }
-      else if not foreachnodestatic(pm_postprocess,n,@find_self_sym,@selfinfo) then
+      else
         begin
-          { is this a method of the current class? }
-          if (n.resultdef.typ=procdef) and
+          if assigned(mpnode) then
+            scannode:=mpnode
+          else
+            scannode:=n;
+          { does this need to capture Self? }
+          if not foreachnodestatic(pm_postprocess,scannode,@find_self_sym,@selfinfo) and
+              not assigned(mpnode) and
+              { is this a method of the current class? }
+              (n.resultdef.typ=procdef) and
               assigned(tprocdef(n.resultdef).struct) and
               not (po_staticmethod in tprocdef(n.resultdef).procoptions) and
               assigned(current_procinfo.procdef.struct) and
@@ -1141,10 +1187,11 @@ implementation
               selfinfo.selfsym:=tsym(current_procinfo.procdef.parast.find('self'));
               if not assigned(selfinfo.selfsym) then
                 internalerror(2022110601);
-            end
-          else
-            { does this need some other local variable or parameter? }
-            foreachnodestatic(pm_postprocess,n,@collect_syms_to_capture,@pd)
+            end;
+          { does what the method is called for need a local variable or a
+            parameter of the routine the conversion is in? }
+          if assigned(mpnode) then
+            foreachnodestatic(pm_postprocess,mpnode,@collect_syms_to_capture,pd);
         end;
 
       if assigned(selfinfo.selfsym) and not assigned(fieldsym) then
