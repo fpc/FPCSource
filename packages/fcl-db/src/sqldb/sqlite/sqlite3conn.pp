@@ -735,7 +735,12 @@ begin
     ftWord     : pword(buffer)^     := sqlite3_column_int(st,fnum);
     ftBoolean  : pwordbool(buffer)^ := sqlite3_column_int(st,fnum)<>0;
     ftLargeInt : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
-    ftBCD      : PCurrency(buffer)^:= FloattoCurr(sqlite3_column_double(st,fnum));
+    ftBCD      : begin
+                 // the text of a REAL is the shortest decimal form of the double
+                 str1:=sqlite3_column_text(st,fnum);
+                 if not TryStrToCurr(str1,PCurrency(buffer)^,FSQLFormatSettings) then
+                   PCurrency(buffer)^:=FloattoCurr(sqlite3_column_double(st,fnum));
+                 end;
     ftFloat,
     ftCurrency : pdouble(buffer)^:= sqlite3_column_double(st,fnum);
     ftDateTime,
