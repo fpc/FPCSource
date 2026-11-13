@@ -487,7 +487,7 @@ begin
     if (aLength<=lLen) and (S[aLength]=' ') then
       inc(aLength);
     end;
-  Result:=S[aLength]=aMatch;
+  Result:=(aLength<=lLen) and (S[aLength]=aMatch);
   if Result then
     Dec(aLength);
 end;
@@ -507,7 +507,7 @@ begin
     if (aLength<=lLen) and (S[aLength]=' ') then
       inc(aLength);
     end;
-  Result:=S[aLength] in aMatch;
+  Result:=(aLength<=lLen) and (S[aLength] in aMatch);
   if Result then
     Dec(aLength);
 end;

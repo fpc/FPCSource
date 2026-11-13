@@ -173,6 +173,12 @@ begin
 
   AssertTrue('String: three spaces', StartsWithWhitespace('   item', 'item', Len));
   AssertEquals('String: Length for three spaces', 3, Len);
+
+  AssertFalse('Char: only spaces, shorter than the indent', StartsWithWhitespace('  ', '>', Len));
+  AssertFalse('Char: only spaces, indent 6', StartsWithWhitespace('   ', '-', Len, 6));
+  AssertFalse('Set: only spaces, shorter than the indent', StartsWithWhitespace('  ', ['0'..'9'], Len));
+  AssertFalse('Set: only spaces, indent 6', StartsWithWhitespace('   ', ['0'..'9'], Len, 6));
+  AssertFalse('String: only spaces, shorter than the indent', StartsWithWhitespace('  ', 'item', Len));
   // Todo: take into account tabs
   // AssertTrue('String: one tab', StartsWithWhitespace(#9'item', 'item', Len));
   // AssertEquals('String: Length for one tab', 1, Len);
