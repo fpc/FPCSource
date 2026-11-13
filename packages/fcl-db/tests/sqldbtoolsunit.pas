@@ -361,6 +361,9 @@ begin
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
+      // SQLite strings are always UTF-8
+      if Trim(dbcharset) = '' then
+        dbcharset := 'utf-8';
       end;
   end;
 
