@@ -1,4 +1,5 @@
 src/inc/fpansi.pp=namespaced/System.Console.Ansi.pp
+src/inc/fpsixel.pp=namespaced/System.Console.Sixel.pp
 src/emx/crt.pp=namespaced/System.Console.Crt.pp
 {s*:src/emx/}=namespaced/
 {i+:src/emx/}

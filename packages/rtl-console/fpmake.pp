@@ -25,6 +25,7 @@ Const
   UtilsOSes    = KVMAll+WASMOSes+[atari,human68k,sinclairql];
 
   rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes+UtilsOSes;
+  SixelOSes    = rtl_consoleOSes-[msdos,win16];
 
 Var
   P : TPackage;
@@ -73,7 +74,9 @@ begin
     T:=P.Targets.AddUnit('winevent.pp',WinEventOSes);
 
     T:=P.Targets.AddUnit('fpansi.pp');
-    
+
+    T:=P.Targets.AddUnit('fpsixel.pp',SixelOSes);
+
     T:=P.Targets.AddUnit('keyboard.pp',KbdOSes);
     with T.Dependencies do
       begin
