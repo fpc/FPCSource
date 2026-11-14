@@ -9,6 +9,7 @@ const
   kA = Currency(1.2345);
   kTie = Currency(0.0003);
   kWhole = Currency(2);
+  kHalf = Currency(0.5);
 
 var
   gExit: Integer = 0;
@@ -56,6 +57,11 @@ begin
   { products of constants }
   Check(kA * kWhole, 24690, 'the constant product 1.2345 * 2');
   Check(kTie * kWhole, 6, 'the constant product 0.0003 * 2');
+  { both factors have a fractional component: such a product used to hang the compiler, as did
+    gA * gB below once -O3 propagated the constants assigned to gA and gB into it }
+  Check(kA * kA, 15240, 'the constant product 1.2345 * 1.2345');
+  Check(kTie * kHalf, 2, 'the constant product 0.0003 * 0.5, a tie, to even 2');
+  Check(-kA * kA, -15240, 'the constant product -1.2345 * 1.2345');
   { a product stored in a Double (issue #39779): 0.4 where Currency is an Int64, 0.399966 from the x87;
     both are 0.4 as a Currency again }
   gA := 0.3738;

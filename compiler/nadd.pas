@@ -3638,7 +3638,12 @@ const
               muln :
                 if (nf_is_currency in flags) then
                   begin
-                    if (nf_is_currency in left.flags) and (nf_is_currency in right.flags) then
+                    { the product of two real constants is folded by simplify, which removes the extra
+                      scalar itself: dividing one of them by the scalar here would be folded into a
+                      scaled constant again and the re-evaluation would never end }
+                    if (left.nodetype=realconstn) and (right.nodetype=realconstn) then
+                      { nothing to do }
+                    else if (nf_is_currency in left.flags) and (nf_is_currency in right.flags) then
                       begin
                         if s64currencytype.typ=floatdef then
                           begin
@@ -3730,6 +3735,12 @@ const
                         else if (nf_is_currency in left.flags) xor (nf_is_currency in right.flags) then
                           begin
                             { If one is scaled and one isn't, then the result is scaled }
+                            Include(flags,nf_is_currency);
+                          end
+                        else if (nf_is_currency in left.flags) and (nf_is_currency in right.flags) and
+                          (left.nodetype=realconstn) and (right.nodetype=realconstn) then
+                          begin
+                            { simplify folds the product and removes one of the scalars, see above }
                             Include(flags,nf_is_currency);
                           end
                         else if (nf_is_currency in left.flags) and (nf_is_currency in right.flags) then
