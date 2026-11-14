@@ -1094,6 +1094,7 @@ implementation
 
     function TObjSection.ToString: ansistring;
       begin
+        Result:='';
         System.WriteStr(Result,'(Name:',Name,';index',index,';SecSymIdx:',SecSymIdx,
           ';SecAlign:',SecAlign,';Size:',Size,';DataPos:',DataPos,';MemPos:',
           MemPos,';DataAlignBytes:',DataAlignBytes,';Used:',Used,')');
