@@ -719,6 +719,16 @@ begin
 end;
 {$endif FPC_HAS_ANSISTR_SETLENGTH}
 
+{$ifndef FPC_HAS_ANSISTR_CHECK_CODEPAGE}
+{$define FPC_HAS_ANSISTR_CHECK_CODEPAGE}
+{ Releases S if its code page is not cp. }
+Procedure fpc_AnsiStr_Check_CodePage (Var S : RawByteString; cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_CHECK_CODEPAGE'];  compilerproc;
+begin
+  if (Pointer(S)<>nil) and (PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage<>TranslatePlaceholderCP(cp)) then
+    fpc_ansistr_decr_ref(Pointer(S));
+end;
+{$endif FPC_HAS_ANSISTR_CHECK_CODEPAGE}
+
 
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt;  compilerproc;

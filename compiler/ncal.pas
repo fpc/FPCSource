@@ -3557,6 +3557,12 @@ implementation
         { remove possible typecasts }
         realassignmenttarget:=actualtargetnode(@aktassignmentnode.left)^;
 
+        { a destination of another code page is not passed as the result }
+        if cnodeutils.funcret_has_codepage(procdefinition) and
+           (not is_ansistring(realassignmenttarget.resultdef) or
+            (tstringdef(realassignmenttarget.resultdef).encoding<>tstringdef(procdefinition.returndef).encoding)) then
+          exit;
+
         { when the result is returned by value (instead of by writing it to the
           address passed in a hidden parameter), aktassignmentnode.left will
           only be changed once the function has returned and we don't have to
@@ -5621,6 +5627,9 @@ implementation
                    complexpara then
                   wrapcomplexinlinepara(para);
               end;
+            if (vo_is_funcret in para.parasym.varoptions) and
+               cnodeutils.funcret_needs_codepage_check(tprocdef(procdefinition),tprocdef(procdefinition).inlininginfo^.code) then
+              addstatement(inlineinitstatement,cnodeutils.funcret_codepage_check_node(procdefinition,para.left.getcopy));
             para := tcallparanode(para.right);
           end;
         { local variables }

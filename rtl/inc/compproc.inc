@@ -338,6 +338,7 @@ Procedure fpc_AnsiStr_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 Procedure fpc_AnsiStr_ZeroBased_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt;cp : TSystemCodePage); compilerproc;
+Procedure fpc_AnsiStr_Check_CodePage (Var S : RawByteString; cp : TSystemCodePage); compilerproc; {$if FPC_FULLVERSION>30202}inline;{$ifend}
 Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc:fpc_in_copy_x;
 Procedure fpc_ansistr_insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt); compilerproc:fpc_in_insert_x_y_z; rtlproc;
 Procedure fpc_ansistr_delete (var S : RawByteString; Index,Size: SizeInt); compilerproc:fpc_in_delete_x_y_z; rtlproc;

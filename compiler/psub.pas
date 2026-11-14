@@ -1890,6 +1890,8 @@ implementation
         oldswitches : tlocalswitches;
         templist : TAsmList;
         headertai : tai;
+        checkblock : tblocknode;
+        checkstatement : tstatementnode;
 
       procedure delete_marker(anode: tasmnode);
         var
@@ -2012,6 +2014,15 @@ implementation
         { Print out nodes as they appear after the first pass }
         XMLPrintProc(True);
 {$endif DEBUG_NODE_XML}
+
+        if cnodeutils.funcret_needs_codepage_check(procdef,code) then
+          begin
+            checkblock:=internalstatements(checkstatement);
+            addstatement(checkstatement,cnodeutils.funcret_codepage_check_node(procdef,
+              cloadnode.create(procdef.funcretsym,procdef.funcretsym.owner)));
+            addstatement(checkstatement,code);
+            code:=checkblock;
+          end;
 
         { firstpass everything }
         flowcontrol:=[];

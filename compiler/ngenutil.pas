@@ -60,6 +60,13 @@ interface
       class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
      public
       class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
+      { returns whether the result of pd is a code-paged ansistring passed in a hidden parameter }
+      class function funcret_has_codepage(pd: tabstractprocdef): boolean;
+      { returns whether the result of pd, with the body body before the first pass, has to be released
+        when it holds a string of another code page: body uses the result other than by assigning it }
+      class function funcret_needs_codepage_check(pd: tprocdef; body: tnode): boolean;
+      { returns the release of the result resnode of pd if it holds a string of another code page }
+      class function funcret_codepage_check_node(pd: tabstractprocdef; resnode: tnode): tnode;
       class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
       { returns true if the unit requires an initialisation section (e.g.,
         to force class constructors for the JVM target to initialise global
@@ -163,7 +170,7 @@ implementation
 
     uses
       verbose,version,globals,cutils,constexp,compinnr,
-      systems,procinfo,pparautl,
+      systems,procinfo,pparautl,paramgr,
       aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
@@ -501,6 +508,100 @@ implementation
         end;
       structlist.free;
       structlist := nil;
+    end;
+
+
+  type
+    tfuncretuse = record
+      ressym: tsym;
+      used: boolean;
+    end;
+    pfuncretuse = ^tfuncretuse;
+
+
+  function funcret_use_scan(var n: tnode; arg: pointer): foreachnoderesult; forward;
+
+
+  { Sets used in arg^ when n uses the function result other than as the destination of an assignment
+    or as the result of a call to a routine that releases a result of another code page. }
+  function funcret_used_not_assigned(var n: tnode; arg: pointer): foreachnoderesult;
+    begin
+      result:=fen_false;
+      case n.nodetype of
+        asmn:
+          begin
+            pfuncretuse(arg)^.used:=true;
+            result:=fen_norecurse_true;
+          end;
+        loadn:
+          if (tloadnode(n).symtableentry=pfuncretuse(arg)^.ressym) and
+             not(nf_is_funcret in n.flags) then
+            begin
+              pfuncretuse(arg)^.used:=true;
+              result:=fen_norecurse_true;
+            end;
+        calln:
+          if assigned(tcallnode(n).funcretnode) and
+             (tcallnode(n).funcretnode.nodetype=loadn) and
+             (tloadnode(tcallnode(n).funcretnode).symtableentry=pfuncretuse(arg)^.ressym) and
+             is_ansistring(tcallnode(n).procdefinition.returndef) and
+             not tnodeutils.funcret_has_codepage(tcallnode(n).procdefinition) and
+             not(po_compilerproc in tcallnode(n).procdefinition.procoptions) then
+            begin
+              pfuncretuse(arg)^.used:=true;
+              result:=fen_norecurse_true;
+            end;
+        assignn:
+          if (actualtargetnode(@tassignmentnode(n).left)^.nodetype=loadn) and
+             (tloadnode(actualtargetnode(@tassignmentnode(n).left)^).symtableentry=pfuncretuse(arg)^.ressym) then
+            begin
+              foreachnodestatic(tassignmentnode(n).right,@funcret_use_scan,arg);
+              result:=fen_norecurse_false;
+            end;
+        else
+          ;
+      end;
+    end;
+
+
+  { Calls funcret_used_not_assigned. }
+  function funcret_use_scan(var n: tnode; arg: pointer): foreachnoderesult;
+    begin
+      result:=funcret_used_not_assigned(n,arg);
+    end;
+
+
+  class function tnodeutils.funcret_has_codepage(pd: tabstractprocdef): boolean;
+    begin
+      result:=paramanager.ret_in_param(pd.returndef,pd) and
+              is_ansistring(pd.returndef) and
+              not is_rawbytestring(pd.returndef) and
+              not(po_compilerproc in pd.procoptions);
+    end;
+
+
+  class function tnodeutils.funcret_needs_codepage_check(pd: tprocdef; body: tnode): boolean;
+    var
+      use: tfuncretuse;
+    begin
+      result:=false;
+      if not funcret_has_codepage(pd) or
+         not assigned(pd.funcretsym) then
+        exit;
+      use.ressym:=pd.funcretsym;
+      use.used:=not assigned(body) or
+                tabstractnormalvarsym(pd.funcretsym).inparentfpstruct;
+      if not use.used then
+        foreachnodestatic(body,@funcret_use_scan,@use);
+      result:=use.used;
+    end;
+
+
+  class function tnodeutils.funcret_codepage_check_node(pd: tabstractprocdef; resnode: tnode): tnode;
+    begin
+      result:=ccallnode.createintern('fpc_ansistr_check_codepage',
+        ccallparanode.create(cordconstnode.create(getparaencoding(pd.returndef),u16inttype,true),
+        ccallparanode.create(resnode,nil)));
     end;
 
 
