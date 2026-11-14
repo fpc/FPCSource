@@ -12,6 +12,7 @@ uses
 
 const
   cNamed = AnsiString('kk');
+  cLineEnd = #13#10;
 
 var
   gFailed: Integer = 0;
@@ -139,6 +140,16 @@ begin
   Check(23, gLastOverload = 'ansi');
   Over(lAnsi + ('p' + 'q'));
   Check(24, gLastOverload = 'ansi');
+
+  { the same line end: one literal or a named constant is untyped, folded or separate characters are not }
+  Over(#13#10 + lAnsi);
+  Check(34, gLastOverload = 'unicode');
+  Over(cLineEnd + lAnsi);
+  Check(35, gLastOverload = 'unicode');
+  Over(#13 + #10 + lAnsi);
+  Check(36, gLastOverload = 'ansi');
+  Over(lAnsi + #13 + #10);
+  Check(37, gLastOverload = 'ansi');
 
   { the other side of an ansistring or a pansichar }
   Check(27, BytesOf(PAnsiChar(lAnsi + RawByteString('qq')), 4) = 'xyqq');
