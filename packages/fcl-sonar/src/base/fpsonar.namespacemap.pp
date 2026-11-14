@@ -30,7 +30,7 @@ type
   TNamespacePairArray = array of TNamespacePair;
 
 const
-  cNamespaceMap: array[0..2330] of TNamespacePair = (
+  cNamespaceMap: array[0..2337] of TNamespacePair = (
     (Plain: 'a52'; Dotted: 'Api.A52'),
     (Plain: 'abactions'; Dotted: 'MacOsApi.ABActions'),
     (Plain: 'abaddressbook'; Dotted: 'MacOsApi.ABAddressBook'),
@@ -584,6 +584,7 @@ const
     (Plain: 'eastasianwidth'; Dotted: 'System.Unicode.Eastasianwidth'),
     (Plain: 'easyasl'; Dotted: 'Amiga.Utils.Easyasl'),
     (Plain: 'editors'; Dotted: 'FreeVision.Editors'),
+    (Plain: 'egl'; Dotted: 'Api.OpenGL.Egl'),
     (Plain: 'eig'; Dotted: 'NumLib.Eig'),
     (Plain: 'eigh1'; Dotted: 'NumLib.Eigh1'),
     (Plain: 'eigh2'; Dotted: 'NumLib.Eigh2'),
@@ -843,6 +844,7 @@ const
     (Plain: 'fpsimpleserver'; Dotted: 'FpWeb.HostApp.Simple'),
     (Plain: 'fpsimpleservice'; Dotted: 'System.Simple.Service'),
     (Plain: 'fpsimplexmlexport'; Dotted: 'Data.Export.SimpleXml'),
+    (Plain: 'fpsixel'; Dotted: 'System.Console.Sixel'),
     (Plain: 'fpsock'; Dotted: 'System.Net.Fpsock'),
     (Plain: 'fpsockets'; Dotted: 'System.Net.FPSockets'),
     (Plain: 'fpsqlexport'; Dotted: 'Data.Export.Sql'),
@@ -949,6 +951,7 @@ const
     (Plain: 'gitlabclient'; Dotted: 'Api.Gitlab.Client'),
     (Plain: 'gl'; Dotted: 'Api.OpenGL.Gl'),
     (Plain: 'gl2d'; Dotted: 'NdsApi.Gl2d'),
+    (Plain: 'glcorearb'; Dotted: 'Api.OpenGL.GlCoreArb'),
     (Plain: 'gles11'; Dotted: 'Api.OpenGL.Gles11'),
     (Plain: 'gles20'; Dotted: 'Api.OpenGL.Gles20'),
     (Plain: 'glext'; Dotted: 'Api.OpenGL.Glext'),
@@ -1555,10 +1558,12 @@ const
     (Plain: 'mad'; Dotted: 'Api.Mad'),
     (Plain: 'magick_wand'; Dotted: 'Api.Magick_wand'),
     (Plain: 'major'; Dotted: 'System.CdRom.Major'),
+    (Plain: 'mapi'; Dotted: 'WinApi.Mapi'),
     (Plain: 'mapkit'; Dotted: 'Api.Cocoa.MapKit'),
     (Plain: 'maskutils'; Dotted: 'System.Maskutils'),
     (Plain: 'math64'; Dotted: 'MacOsApi.Math64'),
     (Plain: 'matrix'; Dotted: 'System.Matrix'),
+    (Plain: 'matrixo'; Dotted: 'System.Matrixo'),
     (Plain: 'matroska'; Dotted: 'Api.Matroska'),
     (Plain: 'maxmod'; Dotted: 'GBAApi.Maxmod'),
     (Plain: 'maxmod7'; Dotted: 'NdsApi.Maxmod7'),
@@ -1706,6 +1711,7 @@ const
     (Plain: 'opendirectory'; Dotted: 'Api.Cocoa.OpenDirectory'),
     (Plain: 'openssl'; Dotted: 'Api.Openssl'),
     (Plain: 'openssl3'; Dotted: 'MorphApi.OpenSSL3'),
+    (Plain: 'opensslduplexsockets'; Dotted: 'System.Net.Opensslduplexsockets'),
     (Plain: 'opensslsockets'; Dotted: 'System.Net.Opensslsockets'),
     (Plain: 'opentransport'; Dotted: 'MacOsApi.OpenTransport'),
     (Plain: 'opentransportprotocol'; Dotted: 'MacOsApi.OpenTransportProtocol'),
@@ -2335,6 +2341,7 @@ const
     (Plain: 'xmlxsd'; Dotted: 'Api.XML.Xsd'),
     (Plain: 'xmlxsdparser'; Dotted: 'Api.XML.Xsdparser'),
     (Plain: 'xpath'; Dotted: 'Xml.XPath'),
+    (Plain: 'xpathscanner'; Dotted: 'Xml.XPathScanner'),
     (Plain: 'xqc'; Dotted: 'Api.Xqc'),
     (Plain: 'xrandr'; Dotted: 'Api.X11.Xrandr'),
     (Plain: 'xrender'; Dotted: 'Api.X11.Xrender'),
