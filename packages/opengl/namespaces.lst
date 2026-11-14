@@ -4,5 +4,6 @@ src/glx.pp=namespaced/Api.OpenGL.Glx.pp
 src/freeglut.pp=namespaced/Api.OpenGL.Freeglut.pp
 src/glut.pp=namespaced/Api.OpenGL.Glut.pp
 src/glext.pp=namespaced/Api.OpenGL.Glext.pp
+src/glcorearb.pp=namespaced/Api.OpenGL.GlCoreArb.pp
 src/glu.pp=namespaced/Api.OpenGL.Glu.pp
 src/gl.pp=namespaced/Api.OpenGL.Gl.pp

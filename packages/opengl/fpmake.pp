@@ -30,6 +30,7 @@ begin
 
     T:=P.Targets.AddImplicitUnit('freeglut.pp',AllOSes-[morphos]);
     T:=P.Targets.AddUnit('glext.pp',AllOSes-[morphos]);
+    T:=P.Targets.AddUnit('glcorearb.pp',AllOSes-[morphos]);
     T:=P.Targets.AddUnit('gl.pp');
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
