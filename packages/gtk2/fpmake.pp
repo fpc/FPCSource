@@ -390,6 +390,7 @@ begin
           AddInclude('gvaluecollector.inc');
           AddInclude('gvaluetypes.inc');
           AddInclude('gparam.inc');
+          AddInclude('gparamspecs.inc');
           AddInclude('gclosure.inc');
           AddInclude('gsignal.inc');
           AddInclude('gtypeplugin.inc');

@@ -44,6 +44,7 @@
 {$include gasyncqueue.inc}
 
 {$include gunicode.inc}
+{$include gparamspecs.inc}
 {$include gstring.inc}
 {$include giochannel.inc}
 
