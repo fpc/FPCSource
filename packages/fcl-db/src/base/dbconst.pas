@@ -28,6 +28,7 @@ Resourcestring
   SDatasetReadOnly         = 'Dataset is read-only.';
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';
+  SErrFieldDefClass        = 'A field definition of class %s cannot be added to %s, use FieldDefs.Add or FieldDefs.AddFieldDef';
   SErrAssTransaction       = 'Cannot assign transaction while old transaction active!';
   SErrColumnNotFound       = 'Column "%s" not found.';
   SErrDatabasenAssigned    = 'Database not assigned!';

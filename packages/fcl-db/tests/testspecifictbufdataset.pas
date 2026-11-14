@@ -70,6 +70,7 @@ type
     procedure TestRefreshWithIndexOK; // Test that refresh works when indexes are defined
     procedure TestCancelUpdatesOnRefresh; // Test that refresh works when changes are present and cancelupdatesonrefresh is true.
     procedure TestCodePageFieldDefClass;
+    procedure TestFieldDefWrongClass;
     procedure TestCodePageValue;
     procedure TestCodePageTruncate;
     procedure TestCodePageStreamingBIN;
@@ -663,6 +664,41 @@ begin
     TBufFieldDef(lDS.FieldDefs[0]).Codepage := CP_UTF8;
     AssertEquals('Code page after setting it', Integer(CP_UTF8), Integer(lDS.FieldDefs[0].Codepage));
     AssertEquals('Bytes per character of a UTF-8 def', 4, lDS.FieldDefs[0].CharSize);
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestFieldDefWrongClass;
+
+var
+  lDS: TBufDataset;
+  lDefs: TFieldDefs;
+
+begin
+  lDS := TBufDataset.Create(nil);
+  try
+    try
+      TFieldDef.Create(lDS.FieldDefs, 'NAME', ftString, 10, False, 1);
+      Fail('TFieldDef.Create with name raises for TBufFieldDefs');
+    except
+      on E: EDatabaseError do ;
+    end;
+    try
+      TFieldDef.Create(lDS.FieldDefs);
+      Fail('TFieldDef.Create raises for TBufFieldDefs');
+    except
+      on E: EDatabaseError do ;
+    end;
+    AssertEquals('No field defs added to TBufFieldDefs', 0, lDS.FieldDefs.Count);
+    lDefs := TFieldDefs.Create(lDS);
+    try
+      TFieldDef.Create(lDefs, 'NAME', ftString, 10, False, 1);
+      AssertEquals('TFieldDef.Create adds to TFieldDefs', 1, lDefs.Count);
+    finally
+      lDefs.Free;
+    end;
   finally
     lDS.Free;
   end;

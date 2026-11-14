@@ -32,6 +32,8 @@ constructor TFieldDef.Create(ACollection: TCollection);
 
 begin
   Inherited Create(ACollection);
+  if Assigned(ACollection) and (Collection<>ACollection) then
+    DatabaseErrorFmt(SErrFieldDefClass,[ClassName,ACollection.ClassName]);
   FFieldNo:=Index+1;
 end;
 
@@ -44,6 +46,8 @@ begin
   Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
 {$endif}
   Inherited Create(AOwner);
+  if Assigned(AOwner) and (Collection<>AOwner) then
+    DatabaseErrorFmt(SErrFieldDefClass,[ClassName,AOwner.ClassName]);
   Name:=Aname;
   FDatatype:=ADatatype;
   FSize:=ASize;
