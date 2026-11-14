@@ -2580,8 +2580,12 @@ end;
   Inverse of formatdatetime, destined for the dateutils unit of FPC.
 
   Limitations/implementation details:
-  - An inverse of FormatDateTime is not 100% an inverse, simply because one can put e.g. time tokens twice in the format string,
-       and scandatetime wouldn't know which time to pick.
+  - A token that occurs more than once in the pattern takes the value of its last occurrence.
+  - ddd and dddd match a day name, which is not used for the result.
+  - Missing date parts: no year, month or day in the pattern gives a time only; otherwise a missing year is the
+       current year and a missing month or day is 1.
+  - am/pm, a/p and ampm apply to the hour wherever they occur in the pattern.
+  - c is the short date, optional whitespace and an optional long time.
   - Strings like hn can't be reversed safely. E.g. 1:2 (2 minutes after 1) delivers 12 which is parsed as 12:00 and then
        misses chars for the "n" part.
   - trailing characters are ignored.
@@ -2596,10 +2600,6 @@ end;
 }
 
 const whitespace  = [' ',#13,#10];
-      hrfactor    = 1/(24);
-      minfactor   = 1/(24*60);
-      secfactor   = 1/(24*60*60);
-      mssecfactor = 1/(24*60*60*1000);
 
 const AMPMformatting : array[0..2] of string =('am/pm','a/p','ampm');
 
@@ -2612,11 +2612,14 @@ end;
 function scandatetime(const pattern: string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime;
 
 const
-  EPS = 1E-15;
+  cNoAMPM = 0;
+  cAM = 1;
+  cPM = 2;
 
 var len ,ind  : integer;
     yy,mm,dd  : integer;
-    timeval   : TDateTime;
+    hh,nn,ss,zz : integer;
+    ampm      : integer;
     activequote: Char;
 
 procedure intscandate(ptrn:PChar;plen:integer;poffs:integer);
@@ -2733,17 +2736,17 @@ begin
                 i:=scanpatlen;
                 if i>2 then
                   raiseexception(format(Shhmmerror,[poffs+pind+1]));
-                timeval:=timeval+scanfixedint(2)* minfactor;
+                nn:=scanfixedint(2);
               end
             else
             case lch of
-               'H':  timeval:=timeval+scanfixedint(2)* hrfactor;
+               'H':  hh:=scanfixedint(2);
                'D':  begin
                        i:=scanpatlen;
                        case i of
                           1,2 : dd:=scanfixedint(2);
-                          3   : dd:=scanmatch(fmt.shortDayNames,@s[ind],i);
-                          4   : dd:=scanmatch(fmt.longDayNames,@s[ind],i);
+                          3   : scanmatch(fmt.shortDayNames,@s[ind],i);
+                          4   : scanmatch(fmt.longDayNames,@s[ind],i);
                           5   :
                             begin
                               matchpattern(fmt.shortdateformat);
@@ -2756,9 +2759,9 @@ begin
                             end;
                          end;
                      end;
-               'N':  timeval:=timeval+scanfixedint(2)* minfactor;
-               'S':  timeval:=timeval+scanfixedint(2)* secfactor;
-               'Z':  timeval:=timeval+scanfixedint(3)* mssecfactor;
+               'N':  nn:=scanfixedint(2);
+               'S':  ss:=scanfixedint(2);
+               'Z':  zz:=scanfixedint(3);
                'Y':  begin
                        i:=scanpatlen;
                        case i of
@@ -2800,14 +2803,10 @@ begin
                         i:=findimatch(AMPMformatting,@ptrn[pind]);
                         case i of
                             0: begin
-                                 if timeval >= 13*hrfactor - EPS then
-                                   raiseexception(SAMPMError);
                                  i:=findimatch(['AM','PM'],@s[ind]);
                                  case i of
-                                   0: if timeval >= 12*hrfactor then
-                                        timeval := timeval - 12*hrfactor;
-                                   1: if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
-                                        timeval:=timeval+12*hrfactor;
+                                   0: ampm:=cAM;
+                                   1: ampm:=cPM;
                                  else
                                    arraymatcherror
                                    end;
@@ -2815,13 +2814,11 @@ begin
                                  inc(ind,2);
                                end;
                             1: begin
-                                 if timeval >= 13*hrfactor - EPS then
-                                   raiseexception(SAMPMError);
+                                  if ind>len then
+                                    arraymatcherror;
                                   case upcase(s[ind]) of
-                                   'A' : if timeval >= 12*hrfactor then
-                                           timeval := timeval - 12*hrfactor;
-                                   'P' : if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
-                                           timeval := timeval + 12*hrfactor;
+                                   'A' : ampm:=cAM;
+                                   'P' : ampm:=cPM;
                                  else
                                    arraymatcherror
                                    end;
@@ -2829,18 +2826,14 @@ begin
                                  inc(ind);
                                end;
                              2: begin
-                                  if timeval >= 13*hrfactor - EPS then
-                                    raiseexception(SAMPMError);
                                   i:=findimatch([fmt.timeamstring,fmt.timepmstring],@s[ind]);
                                   case i of
                                    0: begin
-                                        if timeval >= 12*hrfactor then
-                                          timeval := timeval - 12*hrfactor;
+                                        ampm:=cAM;
                                         inc(ind,length(fmt.timeamstring));
                                       end;
                                    1: begin
-                                        if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
-                                          timeval:=timeval + 12*hrfactor;
+                                        ampm:=cPM;
                                         inc(ind,length(fmt.timepmstring));
                                       end;
                                  else
@@ -2862,8 +2855,12 @@ begin
                            inc(pind);
                          end;
                'C' : begin
-                       intscandate(@fmt.shortdateformat[1],length(fmt.ShortDateFormat),pind+poffs);
-                       intscandate(@fmt.longtimeformat[1],length(fmt.longtimeformat),pind+poffs);
+                       matchpattern(fmt.shortdateformat);
+                       while (ind<=len) and (s[ind] in whitespace) do
+                         inc(ind);
+                       // optional time part
+                       if ind<=len then
+                         matchpattern(fmt.longtimeformat);
                        inc(pind);
                      end;
                '?' : begin
@@ -2899,14 +2896,32 @@ var plen:integer;
 
 begin
   activequote:=#0;
-  yy:=0; mm:=0; dd:=0;
-  timeval:=0.0;
+  yy:=-1; mm:=-1; dd:=-1;
+  hh:=0; nn:=0; ss:=0; zz:=0;
+  ampm:=cNoAMPM;
   len:=length(s); ind:=startpos;
   plen:=length(pattern);
   intscandate(@pattern[1],plen,0);
-  result:=timeval;
-  if (yy>0) and (mm>0) and (dd>0) then
-     result:=result+encodedate(yy,mm,dd);
+  if ampm<>cNoAMPM then
+    begin
+    if hh>=13 then
+      raiseexception(SAMPMError);
+    if (ampm=cAM) and (hh=12) then
+      hh:=0
+    else if (ampm=cPM) and (hh>=1) and (hh<=11) then
+      hh:=hh+12;
+    end;
+  result:=(((hh*60+nn)*60+ss)*1000+zz)/MSecsPerDay;
+  if (yy<>-1) or (mm<>-1) or (dd<>-1) then
+    begin
+    if yy=-1 then
+      yy:=YearOf(Date);
+    if mm=-1 then
+      mm:=1;
+    if dd=-1 then
+      dd:=1;
+    result:=result+encodedate(yy,mm,dd);
+    end;
 end;
 
 

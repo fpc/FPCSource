@@ -66,7 +66,8 @@ uses
 {$ENDIF}
    utcStrUtils,
   utcVariants,
-  utcfpmasks
+  utcfpmasks,
+  utcDateUtils
   ;
 
 
