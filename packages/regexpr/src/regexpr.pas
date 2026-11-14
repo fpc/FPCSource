@@ -107,10 +107,18 @@ interface
 // Define 'InlineFuncs' options, to use inline keyword (do not edit this definitions).
 {$IFDEF D8} {$DEFINE InlineFuncs} {$ENDIF}
 {$IFDEF FPC} {$DEFINE InlineFuncs} {$ENDIF}
+
+{$IF DEFINED(D2009) OR DEFINED(FPC)}
+{$PointerMath on}
+{$DEFINE HASPOINTERARRAYACCESS}
+{$ELSE}
+{$UNDEF HASPOINTERARRAYACCESS}
+{$IFEND}
+
 {$IFDEF RegExpWithStackOverflowCheck} // Define the stack checking algorithm for the current platform/CPU
   {$IF defined(Linux) or defined(Windows)}{$IF defined(CPU386) or defined(CPUX86_64)}
     {$DEFINE RegExpWithStackOverflowCheck_DecStack_Frame} // Stack-pointer decrements // use getframe over Sptr()
-  {$ENDIF}{$ENDIF}
+  {$IFEND}{$IFEND}
 {$ENDIF}
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -219,7 +227,7 @@ const
 
 const
   // Increment/keep-capacity for the size of arrays holding 'Group' related data
-  // e.g., GrpBounds, GrpIndexes, GrpOpCodes and GrpNames
+  // e.g., GrpBounds, GrpOpCodes and GrpNames
   RegexGroupCountIncrement = 50;
 
   // Max possible amount of groups.
@@ -273,7 +281,6 @@ type
   );
 
   TRegExprFindFixedLengthFlag = (
-    flfForceToStopAt,
     flfReturnAtNextNil,
     flfSkipLookAround
   );
@@ -294,7 +301,18 @@ type
   {$ENDIF}
 
 
+  PPRegExprChar = ^PRegExprChar;
+  TRegExprBoundsPtr = record
+    TmpStart: PPRegExprChar; // pointer start of not yet finished group start in InputString
+                                     // OP_CLOSE not yet reached
+                                     // does not need to be cleared
+    GrpStart: PPRegExprChar; // pointer to group start in InputString
+    GrpEnd: PPRegExprChar; // pointer to group end in InputString
+  end;
   TRegExprBounds = record
+    TmpStart: array of PRegExprChar; // pointer start of not yet finished group start in InputString
+                                     // OP_CLOSE not yet reached
+                                     // does not need to be cleared
     GrpStart: array of PRegExprChar; // pointer to group start in InputString
     GrpEnd: array of PRegExprChar; // pointer to group end in InputString
   end;
@@ -336,7 +354,7 @@ type
     FMatchesCleared: Boolean;
     fRaiseForRuntimeError: Boolean;
     GrpBounds: TRegExprBoundsArray;
-    GrpIndexes: array of Integer; // map global group index to _capturing_ group index
+    CurrentGrpBounds: TRegExprBoundsPtr;
     GrpNames: TRegExprGroupNameList; // names of groups, if non-empty
     GrpBacktrackingAsAtom: array of Boolean; // close of group[i] has set IsBacktrackingGroupAsAtom
     IsBacktrackingGroupAsAtom: Boolean;  // Backtracking an entire atomic group that had matched.
@@ -386,10 +404,12 @@ type
     fRegexStart: PRegExprChar; // pointer to first char of regex
     fRegexEnd: PRegExprChar; // pointer after last char of regex
     regRecursion: Integer; // current level of recursion (?R) (?1); always 0 if no recursion is used
+    hasRecursion: Boolean;
 
     // work variables for compiler's routines
     regParse: PRegExprChar; // pointer to currently handling char of regex
     regNumBrackets: Integer; // count of () brackets
+    regNumAtomicBrackets: Integer; // count of (?>) brackets
     regDummy: array [0..8 div SizeOf(REChar)] of REChar; // dummy pointer, used to detect 1st/2nd pass of Compile
                       // if p=@regDummy, it is pass-1: opcode memory is not yet allocated
     programm: PRegExprChar; // pointer to opcode, =nil in pass-1
@@ -480,10 +500,10 @@ type
     function DumpCheckerIndex(N: Byte): RegExprString;
     function DumpCategoryChars(ch, ch2: REChar; Positive: Boolean): RegExprString;
 
-    procedure ClearMatches;
-    procedure ClearInternalExecData;
+    procedure ClearMatches; {$IFDEF InlineFuncs}inline;{$ENDIF}
+    procedure ClearInternalExecData; {$IFDEF InlineFuncs}inline;{$ENDIF}
     procedure InitInternalGroupData;
-    function FindInCharClass(ABuffer: PRegExprChar; AChar: REChar; AIgnoreCase: Boolean): Boolean;
+    function FindInCharClass(ABuffer: PRegExprChar; AChar: REChar): Boolean;
     procedure GetCharSetFromCharClass(ABuffer: PRegExprChar; AIgnoreCase: Boolean; var ARes: TRegExprCharset);
     procedure GetCharSetFromSpaceChars(var ARes: TRegExprCharset); {$IFDEF InlineFuncs}inline;{$ENDIF}
     procedure GetCharSetFromWordChars(var ARes: TRegExprCharSet); {$IFDEF InlineFuncs}inline;{$ENDIF}
@@ -557,8 +577,8 @@ type
     procedure RemoveOperator(opnd: PRegExprChar; sz: Integer);
 
     // regular expression, i.e. main body or parenthesized thing
-    function ParseReg(InBrackets: Boolean; var FlagParse: Integer): PRegExprChar;
-    function DoParseReg(InBrackets, IndexBrackets: Boolean; var FlagParse: Integer; BeginGroupOp, EndGroupOP: TReOp): PRegExprChar;
+    function ParseReg(var FlagParse: Integer): PRegExprChar;
+    function DoParseReg(InBrackets: Boolean; BracketCounter: PInteger; var FlagParse: Integer; BeginGroupOp, EndGroupOP: TReOp): PRegExprChar;
 
     // one alternative of an | operator
     function ParseBranch(var FlagParse: Integer): PRegExprChar;
@@ -602,10 +622,10 @@ type
     function MatchAtOnePos(APos: PRegExprChar): Boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
 
     // Exec for stored InputString
-    function ExecPrim(AOffset: Integer; ASlowChecks, ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
-    function ExecPrimProtected(AOffset: Integer; ASlowChecks, ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean;
+    function ExecPrim(AOffset: Integer; ASlowChecks, ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean;
+    function ExecPrimProtected(AOffset: Integer; ASlowChecks, ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
 
-    function GetSubExprCount: Integer;
+    function GetSubExprMatchCount: Integer;
     function GetMatchPos(Idx: Integer): PtrInt;
     function GetMatchLen(Idx: Integer): PtrInt;
     function GetMatch(Idx: Integer): RegExprString;
@@ -646,28 +666,27 @@ type
     function Exec(AOffset: Integer): Boolean; overload; {$IFDEF InlineFuncs}inline;{$ENDIF}
     {$ENDIF}
 
-    // find next match:
-    // ExecNext;
-    // works the same as
-    // if MatchLen [0] = 0 then ExecPos (MatchPos [0] + 1)
-    // else ExecPos (MatchPos [0] + MatchLen [0]);
-    // but it's more simpler !
+    // ExecNext: find next match; works the same as
+    // if MatchLen[0]=0
+    //   then ExecPos(MatchPos[0]+1)
+    //   else ExecPos(MatchPos[0]+MatchLen[0]);
+    // but it's simpler.
     // Raises exception if used without preceeding SUCCESSFUL call to
-    // Exec* (Exec, ExecPos, ExecNext). So You always must use something like
-    // if Exec (InputString) then repeat { proceed results} until not ExecNext;
+    // Exec* (Exec, ExecPos, ExecNext). So you always must use something like
+    //   if Exec(InputString) then repeat { proceess results } until not ExecNext;
     function ExecNext(ABackward: Boolean {$IFDEF DefParam} = False{$ENDIF}): Boolean;
 
-    // find match for InputString starting from AOffset position
-    // (AOffset=1 - first char of InputString)
-    function ExecPos(AOffset: Integer {$IFDEF DefParam} = 1{$ENDIF}): Boolean;
+    // find match for InputString, starting the scanning from AOffset (1-based).
+    function ExecPos(AOffset: Integer {$IFDEF DefParam} = 0{$ENDIF}): Boolean;
     {$IFDEF OverMeth}overload;{$endif} {$IFDEF InlineFuncs}inline;{$ENDIF}
 
     {$IFDEF OverMeth}
-    // find match for InputString at AOffset.
-    // if ATryOnce=True then only match exactly at AOffset (like anchor \G)
-    // if ATryMatchOnlyStartingBefore then only when the match can start before
-    // that position: Result := MatchPos[0] < ATryMatchOnlyStartingBefore;
+    // find match for InputString, starting the scanning at AOffset (1-based).
+    // if ATryOnce=True then test only the match exactly at AOffset (like anchor \G).
+    // ATryOnce=True does not support backward search (ABackward=True).
     function ExecPos(AOffset: Integer; ATryOnce, ABackward: Boolean): Boolean; overload; {$IFDEF InlineFuncs}inline;{$ENDIF}
+    // if ATryMatchOnlyStartingBefore>0 then find only the match starting before AOffset:
+    //   Result := MatchPos[0] < ATryMatchOnlyStartingBefore;
     function ExecPos(AOffset, ATryMatchOnlyStartingBefore: Integer): Boolean; overload; {$IFDEF InlineFuncs}inline;{$ENDIF}
     {$ENDIF}
 
@@ -787,7 +806,7 @@ type
     // Exec ('23'): SubExprMatchCount=2, Match[0]='23', [1]='', [2]='3'
     // Exec ('2'): SubExprMatchCount=0, Match[0]='2'
     // Exec ('7') - return False: SubExprMatchCount=-1
-    property SubExprMatchCount: Integer read GetSubExprCount;
+    property SubExprMatchCount: Integer read GetSubExprMatchCount;
 
     // pos of entrance subexpr. #Idx into tested in last Exec*
     // string. First subexpr. has Idx=1, last - MatchCount,
@@ -940,7 +959,7 @@ uses
 const
   // TRegExpr.VersionMajor/Minor return values of these constants:
   REVersionMajor = 1;
-  REVersionMinor = 182;
+  REVersionMinor = 195;
 
   OpKind_End = REChar(1);
   OpKind_MetaClass = REChar(2);
@@ -1003,12 +1022,8 @@ const
 // Alexey T.: handling of that define FPC_REQUIRES_PROPER_ALIGNMENT was present even 15 years ago,
 // but with it, we have failing of some RegEx tests, on ARM64 CPU.
 // If I undefine FPC_REQUIRES_PROPER_ALIGNMENT, all tests run OK on ARM64 again.
-{$ifndef sparc}
-  {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-    {$undef FPC_REQUIRES_PROPER_ALIGNMENT}
-    {$define USE_UNALIGNED}
-  {$endif}
-{$endif}
+{$undef FPC_REQUIRES_PROPER_ALIGNMENT}
+
 const
   REOpSz = SizeOf(TREOp) div SizeOf(REChar);
   // size of OP_ command in REChars
@@ -1131,9 +1146,9 @@ begin
 end;
 
 function StrLScan(P: PRegExprChar; C: REChar; len: PtrInt): PRegExprChar;
-Var
-   count: PtrInt;
-Begin
+var
+  count: PtrInt;
+begin
   count := 0;
   { Find first matching character of Ch in Str }
   while (count < len) do
@@ -1141,7 +1156,7 @@ Begin
     if C = P[count] then
      begin
        StrLScan := @(P[count]);
-       exit;
+       Exit;
      end;
     Inc(count);
   end;
@@ -1149,7 +1164,7 @@ Begin
   StrLScan := nil;
 end;
 
-function StrLComp(str1,str2 : PRegExprChar; len : PtrInt) : PtrInt;
+function StrLComp(str1, str2: PRegExprChar; len: PtrInt): PtrInt;
 var
   counter: PtrInt;
   c1, c2: REChar;
@@ -1157,34 +1172,34 @@ begin
   if len = 0 then
   begin
     StrLComp := 0;
-    exit;
+    Exit;
   end;
-  counter:=0;
+  counter := 0;
   repeat
-    c1:=str1[counter];
-    c2:=str2[counter];
-    inc(counter);
+    c1 := str1[counter];
+    c2 := str2[counter];
+    Inc(counter);
   until (c1<>c2) or (counter>=len) or (c1=#0) or (c2=#0);
-  StrLComp:=ord(c1)-ord(c2);
+  StrLComp := ord(c1)-ord(c2);
 end;
 
-function StrLPos(str1,str2 : PRegExprChar; len1, len2: PtrInt) : PRegExprChar;
+function StrLPos(str1, str2: PRegExprChar; len1, len2: PtrInt): PRegExprChar;
 var
-  p : PRegExprChar;
+  p: PRegExprChar;
 begin
   StrLPos := nil;
   if (str1 = nil) or (str2 = nil) then
-    exit;
+    Exit;
   len1 := len1 - len2 + 1;
   p := StrLScan(str1,str2^, len1);
   while p <> nil do
   begin
     if StrLComp(p, str2, len2)=0 then
     begin
-       StrLPos := p;
-       exit;
+      StrLPos := p;
+      Exit;
     end;
-    inc(p);
+    Inc(p);
     p := StrLScan(p, str2^, len1 - (p-str1));
   end;
 end;
@@ -1729,7 +1744,6 @@ const
   OP_LOOKBEHIND = TREOp(58);
   OP_LOOKBEHIND_NEG = TREOp(59);
   OP_LOOKBEHIND_END = TREOp(60);
-  OP_LOOKAROUND_OPTIONAL = TREOp(61);
 
   OP_SUBCALL = TREOp(65); // Call of subroutine; OP_SUBCALL+i is for group i
   OP_LOOP_POSS = TREOp(66); // Same as OP_LOOP but in non-greedy mode
@@ -2041,14 +2055,13 @@ begin
     SetLength(Names, RegexGroupCountIncrement);
 end;
 
-procedure TRegExprGroupNameList.Add(const AName: RegExprString; AnIndex: Integer
-  );
+procedure TRegExprGroupNameList.Add(const AName: RegExprString; AnIndex: Integer);
 begin
   if NameCount >= Length(Names) then
     SetLength(Names, Length(Names) + 1 + RegexGroupCountIncrement);
   Names[NameCount].Name := AName;
   Names[NameCount].Index := AnIndex;
-  inc(NameCount);
+  Inc(NameCount);
 end;
 
 {$IFDEF OverMeth}
@@ -2066,6 +2079,7 @@ begin
     FreeMem(programm);
     programm := nil;
   end;
+  inherited;
 end;
 
 procedure TRegExpr.SetExpression(const AStr: RegExprString);
@@ -2080,24 +2094,22 @@ begin
   end;
 end;
 
-function TRegExpr.GetSubExprCount: Integer;
+function TRegExpr.GetSubExprMatchCount: Integer;
 begin
-  Result := -1;
-  if Length(GrpIndexes) = 0 then
-    Exit;
   // if nothing found, we must return -1 per TRegExpr docs
-  if (GrpBounds[0].GrpStart[0] <> nil) then
-    Result := GrpCount;
+  Result := -1;
+  if Length(GrpBounds[0].GrpStart) = 0 then
+    Exit;
+  Result := GrpCount;
+  while (Result >= 0) and (GrpBounds[0].GrpStart[ Result ] = nil) do
+    Dec(Result);
 end;
 
 function TRegExpr.GetMatchPos(Idx: Integer): PtrInt;
 begin
   Result := -1;
-  if Length(GrpIndexes) = 0 then
+  if (Idx < 0) or (Idx >= Length(GrpBounds[0].GrpStart)) then
     Exit;
-  if (Idx < 0) or (Idx >= Length(GrpIndexes)) then
-    Exit;
-  Idx := GrpIndexes[Idx];
   if (Idx >= 0) and (GrpBounds[0].GrpStart[Idx] <> nil) then
     Result := GrpBounds[0].GrpStart[Idx] - fInputStart + 1;
 end;
@@ -2105,11 +2117,8 @@ end;
 function TRegExpr.GetMatchLen(Idx: Integer): PtrInt;
 begin
   Result := -1;
-  if Length(GrpIndexes) = 0 then
+  if (Idx < 0) or (Idx >= Length(GrpBounds[0].GrpStart)) then
     Exit;
-  if (Idx < 0) or (Idx >= Length(GrpIndexes)) then
-    Exit;
-  Idx := GrpIndexes[Idx];
   if (Idx >= 0) and (GrpBounds[0].GrpStart[Idx] <> nil) then
     Result := GrpBounds[0].GrpEnd[Idx] - GrpBounds[0].GrpStart[Idx];
 end;
@@ -2117,11 +2126,8 @@ end;
 function TRegExpr.GetMatch(Idx: Integer): RegExprString;
 begin
   Result := '';
-  if Length(GrpIndexes) = 0 then
+  if (Idx < 0) or (Idx >= Length(GrpBounds[0].GrpStart)) then
     Exit;
-  if (Idx < 0) or (Idx >= Length(GrpIndexes)) then
-    Exit;
-  Idx := GrpIndexes[Idx];
   if (Idx >= 0) and (GrpBounds[0].GrpStart[Idx] <> nil) and
      (GrpBounds[0].GrpEnd[Idx] > GrpBounds[0].GrpStart[Idx])
   then
@@ -2138,8 +2144,6 @@ var
   Idx: Integer;
 begin
   Result := '';
-  if Length(GrpIndexes) = 0 then
-    Exit;
   Idx := GrpNames.MatchIndexFromName(AName);
   if Idx >= 0 then
     Result := GetMatch(Idx)
@@ -2378,7 +2382,7 @@ function MatchOneCharCategory(opnd, scan: PRegExprChar): Boolean; {$IFDEF Inline
 // opnd: points to opcode operands after OP_*CATEGORY
 // scan: points into InputString
 begin
-  Result := CheckCharCategory(unaligned(scan^), unaligned(opnd^), unaligned((opnd + 1)^));
+  Result := CheckCharCategory(scan^, opnd^, (opnd + 1)^);
 end;
 
 {$ELSE}
@@ -2564,8 +2568,8 @@ procedure TRegExpr.OpTail(p: PRegExprChar; val: PRegExprChar);
 begin
   // "Operandless" and "op != OP_BRANCH" are synonymous in practice.
   if (p = nil) or (p = @regDummy) or
-     (unaligned(PREOp(p)^) <> OP_BRANCH) and (unaligned(PREOp(p)^) <> OP_GBRANCH) and
-     (unaligned(PREOp(p)^) <> OP_GBRANCH_EX) and (unaligned(PREOp(p)^) <> OP_GBRANCH_EX_CI)
+     (PREOp(p)^ <> OP_BRANCH) and (PREOp(p)^ <> OP_GBRANCH) and
+     (PREOp(p)^ <> OP_GBRANCH_EX) and (PREOp(p)^ <> OP_GBRANCH_EX_CI)
   then
     Exit;
   Tail(p + REOpSz + RENextOffSz + REBranchArgSz, val);
@@ -2578,7 +2582,7 @@ begin
   Result := regCode;
   if Result <> @regDummy then
   begin
-    unaligned(PREOp(regCode)^) := op;
+    PREOp(regCode)^ := op;
     Inc(regCode, REOpSz);
     unaligned(PRENextOff(AlignToPtr(regCode))^) := 0; // Next "pointer" := nil
     Inc(regCode, RENextOffSz);
@@ -2698,8 +2702,8 @@ begin
 
     if nameLen = 2 then
     begin
-      ch1 := unaligned(namePtr^);
-      ch2 := unaligned((namePtr+1)^);
+      ch1 := namePtr^;
+      ch2 := (namePtr+1)^;
       if not IsCategoryChars(ch1, ch2) then
         Error(reeBadUnicodeCategory);
       Exit;
@@ -2755,11 +2759,11 @@ begin
     dst^ := src^;
   end;
   place := opnd; // Op node, where operand used to be.
-  unaligned(PREOp(place)^) := op;
+  PREOp(place)^ := op;
   Inc(place, REOpSz);
   for i := 1 + REOpSz to sz do
   begin
-    unaligned(place^) := #0;
+    place^ := #0;
     Inc(place);
   end;
   for i := 0 to regNumBrackets - 1 do
@@ -2823,7 +2827,6 @@ const
   FLAG_SPECSTART = 4; // Starts with * or +
   FLAG_LOOP = 8; // Has eithe *, + or {,n} with n>=2
   FLAG_GREEDY = 16; // Has any greedy code
-  FLAG_LOOKAROUND = 32; // "Piece" (ParsePiece) is look-around
   FLAG_NOT_QUANTIFIABLE = 64; // "Piece" (ParsePiece) is look-around
 
   {$IFDEF UnicodeRE}
@@ -2838,16 +2841,16 @@ const
   RusRangeHiHigh = #$DF; // 'Я' in cp1251
   {$ENDIF}
 
-function TRegExpr.FindInCharClass(ABuffer: PRegExprChar; AChar: REChar; AIgnoreCase: Boolean): Boolean;
+function TRegExpr.FindInCharClass(ABuffer: PRegExprChar; AChar: REChar): Boolean;
 // Buffer contains char pairs: (Kind, Data), where Kind is one of OpKind_ values,
 // and Data depends on Kind
 var
   OpKind: REChar;
+  {$IFDEF FastUnicodeData}
   ch, ch2: REChar;
-  N, i: Integer;
+  {$ENDIF}
+  N: integer;
 begin
-  if AIgnoreCase then
-    AChar := _UpperCase(AChar);
   repeat
     OpKind := ABuffer^;
     case OpKind of
@@ -2860,20 +2863,10 @@ begin
       OpKind_Range:
         begin
           Inc(ABuffer);
-          ch := ABuffer^;
-          if (AChar >= ch) then
+          if (AChar >= ABuffer^) then
           begin
             Inc(ABuffer);
-            ch2 := ABuffer^;
-            {
-            // if AIgnoreCase, ch, ch2 are upcased in opcode
-            if AIgnoreCase then
-            begin
-              ch := _UpperCase(ch);
-              ch2 := _UpperCase(ch2);
-            end;
-            }
-            if (AChar <= ch2) then
+            if (AChar <= ABuffer^) then
             begin
               Result := True;
               Exit;
@@ -2902,19 +2895,13 @@ begin
           N := unaligned(PLongInt(ABuffer)^);
           Inc(ABuffer, RENumberSz);
           repeat
-            ch := ABuffer^;
-            {
-            // already upcased in opcode
-            if AIgnoreCase then
-              ch := _UpperCase(ch);
-            }
-            if ch = AChar then
+            if ABuffer^ = AChar then
             begin
               Result := True;
               Exit;
             end;
             Inc(ABuffer);
-            dec(n);
+            Dec(n);
           until n = 0;
         end;
 
@@ -3188,6 +3175,7 @@ begin
   GrpNames.Clear;
   fLastError := reeOk;
   fLastErrorOpcode := TREOp(0);
+  hasRecursion := False;
 
   try
     if programm <> nil then
@@ -3210,13 +3198,15 @@ begin
     fCompModifiers := fModifiers;
     regParse := ARegExp;
     regNumBrackets := 1;
+    regNumAtomicBrackets := 0;
     regCodeSize := 0;
     regCode := @regDummy;
     regCodeWork := nil;
 
     EmitC(OP_MAGIC);
-    if ParseReg(False, FlagTemp) = nil then begin
+    if ParseReg(FlagTemp) = nil then begin
       regNumBrackets := 0; // Not calling InitInternalGroupData => array sizes not adjusted for FillChar
+      regNumAtomicBrackets := 0;
       Exit;
     end;
 
@@ -3229,13 +3219,14 @@ begin
     fCompModifiers := fModifiers;
     regParse := ARegExp;
     regNumBrackets := 1;
+    regNumAtomicBrackets := 0;
     GrpCount := ParsedGrpCount;
     ParsedGrpCount := 0;
     regCode := programm;
     regCodeWork := programm + REOpSz;
 
     EmitC(OP_MAGIC);
-    if ParseReg(False, FlagTemp) = nil then
+    if ParseReg(FlagTemp) = nil then
       Exit;
 
     // Dig out information for optimizations.
@@ -3254,13 +3245,13 @@ begin
 
     scan := regCodeWork; // First OP_BRANCH.
     // Starting-point info.
-    if unaligned(PREOp(scan)^) = OP_BOL then
+    if PREOp(scan)^ = OP_BOL then
       regAnchored := raBOL
     else
-    if unaligned(PREOp(scan)^) = OP_EOL then
+    if PREOp(scan)^ = OP_EOL then
       regAnchored := raEOL
     else
-    if unaligned(PREOp(scan)^) = OP_CONTINUE_POS then
+    if PREOp(scan)^ = OP_CONTINUE_POS then
       regAnchored := raContinue
     else
     // ".*", ".*?", ".*+" at the very start of the pattern, only need to be
@@ -3268,20 +3259,20 @@ begin
     // If a pattern matches, then the ".*" will always go forward to where the
     // rest of the pattern starts matching
     // OP_ANY is "ModifierS=True"
-    if (unaligned(PREOp(scan)^) = OP_STAR) or (unaligned(PREOp(scan)^) = OP_STAR_NG) or (unaligned(PREOp(scan)^) = OP_STAR_POSS) then begin
+    if (PREOp(scan)^ = OP_STAR) or (PREOp(scan)^ = OP_STAR_NG) or (PREOp(scan)^ = OP_STAR_POSS) then begin
       scanTemp := AlignToInt(scan + REOpSz + RENextOffSz);
-      if unaligned(PREOp(scanTemp)^) = OP_ANY then
+      if PREOp(scanTemp)^ = OP_ANY then
         regAnchored := raOnlyOnce;
     end
     else
     // "{0,} is the same as ".*". So the same optimization applies
-    if (unaligned(PREOp(scan)^) = OP_BRACES) or (unaligned(PREOp(scan)^) = OP_BRACES_NG) or (unaligned(PREOp(scan)^) = OP_BRACES_POSS) then begin
+    if (PREOp(scan)^ = OP_BRACES) or (PREOp(scan)^ = OP_BRACES_NG) or (PREOp(scan)^ = OP_BRACES_POSS) then begin
       scanTemp := AlignToInt(scan + REOpSz + RENextOffSz);
       if (unaligned(PREBracesArg(scanTemp)^) = 0)  // BracesMinCount
       and (unaligned(PREBracesArg(scanTemp + REBracesArgSz)^) = MaxBracesArg)  // BracesMaxCount
       then begin
         scanTemp := AlignToPtr(scanTemp + REBracesArgSz + REBracesArgSz);
-        if unaligned(PREOp(scanTemp)^) = OP_ANY then
+        if PREOp(scanTemp)^ = OP_ANY then
           regAnchored := raOnlyOnce;
       end;
     end;
@@ -3298,7 +3289,7 @@ begin
       Len := 0;
       while scan <> nil do
       begin
-        if unaligned(PREOp(scan)^) = OP_EXACTLY then
+        if PREOp(scan)^ = OP_EXACTLY then
         begin
           longestTemp := scan + REOpSz + RENextOffSz + RENumberSz;
           LenTemp := unaligned(PLongInt(scan + REOpSz + RENextOffSz)^);
@@ -3328,12 +3319,12 @@ begin
 end; { of function TRegExpr.CompileRegExpr
   -------------------------------------------------------------- }
 
-function TRegExpr.ParseReg(InBrackets: Boolean; var FlagParse: Integer): PRegExprChar;
+function TRegExpr.ParseReg(var FlagParse: Integer): PRegExprChar;
 begin
-  Result := DoParseReg(InBrackets, True, FlagParse, OP_OPEN, OP_CLOSE);
+  Result := DoParseReg(False, nil, FlagParse, OP_NONE, OP_COMMENT); // can't use OP_NONE // The "ender" op will not be omitted anyway
 end;
 
-function TRegExpr.DoParseReg(InBrackets, IndexBrackets: Boolean;
+function TRegExpr.DoParseReg(InBrackets: Boolean; BracketCounter: PInteger;
   var FlagParse: Integer; BeginGroupOp, EndGroupOP: TReOp): PRegExprChar;
 // regular expression, i.e. main body or parenthesized thing
 // Caller must absorb opening parenthesis.
@@ -3357,17 +3348,17 @@ begin
   ret := nil;
   if InBrackets then
   begin
-    if IndexBrackets then begin
-      if regNumBrackets >= RegexMaxMaxGroups then
+    if BracketCounter <> nil then begin
+      if BracketCounter^ >= RegexMaxMaxGroups then
       begin
         Error(reeCompParseRegTooManyBrackets);
         Exit;
       end;
-      NBrackets := regNumBrackets;
-      Inc(regNumBrackets);
+      NBrackets := BracketCounter^;
+      Inc(BracketCounter^);
       if BeginGroupOp <> OP_NONE then
         ret := EmitNodeWithGroupIndex(BeginGroupOp, NBrackets);
-      if fSecondPass then
+      if fSecondPass and (BracketCounter = @regNumBrackets) then
         GrpOpCodes[NBrackets] := ret;
     end
     else
@@ -3420,7 +3411,7 @@ begin
 
   // Make a closing node, and hook it on the end.
   if InBrackets and (EndGroupOP <> OP_NONE) then begin
-    if IndexBrackets then
+    if BracketCounter <> nil then
       ender := EmitNodeWithGroupIndex(EndGroupOP, NBrackets)
     else
       ender := EmitNode(EndGroupOP);
@@ -3522,7 +3513,7 @@ var
   ch: REChar;
 begin
   if not fSecondPass then
-    exit;
+    Exit;
 
   opnd := piece + REOpSz + RENextOffSz + REBranchArgSz;
   while opnd <> nil do begin
@@ -3547,14 +3538,11 @@ begin
           opnd := opnd + REOpSz + RENextOffSz;
         break;
       end;
-    OP_LOOKAROUND_OPTIONAL:
-      opnd := (opnd + 1 + RENextOffSz);
     OP_LOOKAHEAD:  // could contain OP_OPEN....
       begin
-        if ( (unaligned((opnd + 1 + RENextOffSz)^) = OP_EXACTLY) or
-            (unaligned((opnd + 1 + RENextOffSz)^) = OP_EXACTLY_CI)
-           ) and
-           (unaligned((regNext(opnd) + 1 + RENextOffSz)^) <> OP_LOOKAROUND_OPTIONAL)
+        if ( ((opnd + 1 + RENextOffSz)^ = OP_EXACTLY) or
+            ((opnd + 1 + RENextOffSz)^ = OP_EXACTLY_CI)
+           )
         then begin
           opnd := (opnd + 1 + RENextOffSz);
           break;
@@ -3572,14 +3560,14 @@ begin
     case opnd^ of
     OP_EXACTLY: begin
         piece^ := OP_GBRANCH_EX;
-        ch := unaligned((opnd + REOpSz + RENextOffSz + RENumberSz)^);
-        unaligned((piece + REOpSz + RENextOffSz)^) := ch;
+        ch := (opnd + REOpSz + RENextOffSz + RENumberSz)^;
+        (piece + REOpSz + RENextOffSz)^ := ch;
       end;
     OP_EXACTLY_CI: begin
-        unaligned(piece^) := OP_GBRANCH_EX_CI;
-        ch := unaligned((opnd + REOpSz + RENextOffSz + RENumberSz)^);
-        unaligned((piece + REOpSz + RENextOffSz)^) := _UpperCase(ch);
-        unaligned((piece + REOpSz + RENextOffSz + 1)^) := _LowerCase(ch);
+        piece^ := OP_GBRANCH_EX_CI;
+        ch := (opnd + REOpSz + RENextOffSz + RENumberSz)^;
+        (piece + REOpSz + RENextOffSz)^ := _UpperCase(ch);
+        (piece + REOpSz + RENextOffSz + 1)^ := _LowerCase(ch);
       end;
   end;
 end;
@@ -3685,12 +3673,12 @@ var
       Inc(regParse);
     if FAllowBraceWithoutMin and (regParse^ = ',') and (p = regParse) then
     begin
-      if not ((unaligned((regParse+1)^) >= '0') and (unaligned((regParse+1)^) <= '9')) then
+      if not (((regParse+1)^ >= '0') and ((regParse+1)^ <= '9')) then
         Exit;
       BMin := 0
     end
     else
-    if (unaligned(regParse^) <> '}') and (unaligned(regParse^) <> ',') or (p = regParse) then
+    if (regParse^ <> '}') and (regParse^ <> ',') or (p = regParse) then
     begin
       if not FAllowLiteralBraceWithoutRange then
         Error(reeIncorrectBraces);
@@ -3698,13 +3686,13 @@ var
     end
     else
       BMin := ParseNumber(p, regParse - 1);
-    if unaligned(regParse^) = ',' then
+    if regParse^ = ',' then
     begin
       Inc(regParse);
       p := regParse;
-      while IsDigitChar(unaligned(regParse^)) do
+      while IsDigitChar(regParse^) do
         Inc(regParse);
-      if unaligned(regParse^) <> '}' then
+      if regParse^ <> '}' then
       begin
         if not FAllowLiteralBraceWithoutRange then
           Error(reeIncorrectBraces);
@@ -3737,7 +3725,7 @@ var
   begin
     Result := False;
     if not FAllowLiteralBraceWithoutRange then
-      exit;
+      Exit;
     savedRegParse := regParse;
     Inc(regParse);
     Result := not DoParseBraceMinMax(dummyBracesMin, dummyBracesMax);
@@ -3759,37 +3747,7 @@ begin
   op := regParse^;
   if not ((op = '*') or (op = '+') or (op = '?') or (op = '{')) then
   begin
-    FlagParse := FlagTemp and not FLAG_LOOKAROUND;
-    Exit;
-  end;
-
-  if (FlagTemp and FLAG_LOOKAROUND) <> 0 then begin
-    FlagTemp:= FlagTemp and not FLAG_LOOKAROUND;
-    FlagParse := FlagParse or FlagTemp and (FLAG_LOOP or FLAG_GREEDY);
-    BracesMin := 0;
-    if op = '{' then begin
-      savedRegParse := regParse;
-      Inc(regParse);
-      if not ParseBraceMinMax(BracesMin, BracesMax) then
-      begin
-        regParse := savedRegParse;
-        Exit;
-      end;
-    end;
-    if op = '+' then
-      BracesMin := 1;
-    if BracesMin = 0 then
-      EmitNode(OP_LOOKAROUND_OPTIONAL);
-
-    nextch := unaligned((regParse + 1)^);
-    if (nextch = '+') or  (nextch = '?') then
-      Inc(regParse);
-    Inc(regParse);
-    op := unaligned(regParse^);
-    if (op = '*') or (op = '+') or (op = '?') or
-       ( (op = '{') and not CheckBraceIsLiteral)
-    then
-      Error(reeNestedQuantif);
+    FlagParse := FlagTemp;
     Exit;
   end;
 
@@ -3798,10 +3756,10 @@ begin
       begin
         if (FlagTemp and FLAG_NOT_QUANTIFIABLE) <> 0 then begin
           Error(reeNotQuantifiable);
-          exit;
+          Exit;
         end;
         FlagParse := FLAG_WORST or FLAG_SPECSTART or FLAG_LOOP;
-        nextch := unaligned((regParse + 1)^);
+        nextch := (regParse + 1)^;
         PossessiveCh := nextch = '+';
         if PossessiveCh then
         begin
@@ -3853,10 +3811,10 @@ begin
       begin
         if (FlagTemp and FLAG_NOT_QUANTIFIABLE) <> 0 then begin
           Error(reeNotQuantifiable);
-          exit;
+          Exit;
         end;
         FlagParse := FLAG_WORST or FLAG_SPECSTART or (FlagTemp and FLAG_HASWIDTH) or FLAG_LOOP;
-        nextch := unaligned((regParse + 1)^);
+        nextch := (regParse + 1)^;
         PossessiveCh := nextch = '+';
         if PossessiveCh then
         begin
@@ -3906,7 +3864,7 @@ begin
     '?':
       begin
         FlagParse := FLAG_WORST;
-        nextch := unaligned((regParse + 1)^);
+        nextch := (regParse + 1)^;
         PossessiveCh := nextch = '+';
         if PossessiveCh then
         begin
@@ -3952,14 +3910,14 @@ begin
         end;
         if (FlagTemp and FLAG_NOT_QUANTIFIABLE) <> 0 then begin
           Error(reeNotQuantifiable);
-          exit;
+          Exit;
         end;
         if BracesMin > 0 then
           FlagParse := FLAG_WORST or (FlagTemp and FLAG_HASWIDTH);
         if BracesMax > 0 then
           FlagParse := FlagParse or FLAG_SPECSTART;
 
-        nextch := unaligned((regParse + 1)^);
+        nextch := (regParse + 1)^;
         PossessiveCh := nextch = '+';
         if PossessiveCh then
         begin
@@ -4121,9 +4079,9 @@ var
     while (AParsePos^ >= '0') and (AParsePos^ <= '9') do
     begin
       if ANumber > (High(ANumber)-10) div 10 then
-        exit;
+        Exit;
       ANumber := ANumber * 10 + (Ord(AParsePos^) - Ord('0'));
-      inc(AParsePos);
+      Inc(AParsePos);
     end;
     Result := True;
   end;
@@ -4147,7 +4105,7 @@ var
     else
       EmitC(Ch);
     if not cs then
-      unaligned(PREOp(ret)^) := OP_EXACTLY;
+      PREOp(ret)^ := OP_EXACTLY;
     FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
   end;
 
@@ -4172,7 +4130,7 @@ var
         Pointer(AddrOfLen) := regCode;
         EmitInt(0);
       end;
-      Inc(AddrOfLen^);
+      Inc(unaligned(AddrOfLen^));
       EmitC(Ch);
     end;
   end;
@@ -4244,7 +4202,7 @@ begin
   GrpIndex := -1;
 
   Inc(regParse);
-  case unaligned((regParse - 1)^) of
+  case (regParse - 1)^ of
     '^':
      begin
       FlagParse := FlagParse or FLAG_NOT_QUANTIFIABLE;
@@ -4270,13 +4228,12 @@ begin
       if fCompModifiers.S then
       begin
         ret := EmitNode(OP_ANY);
-        FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
       end
       else
       begin // not /s, so emit [^:LineSeparators:]
         ret := EmitNode(OP_ANY_ML);
-        FlagParse := FlagParse or FLAG_HASWIDTH; // not so simple ;)
       end;
+      FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
      end;
 
     '[':
@@ -4300,16 +4257,16 @@ begin
         if regParse^ = ']' then
         begin
           // first ']' inside [] treated as simple char, no need to check '['
-          EmitRangeChar(regParse^, unaligned((regParse + 1)^) = '-');
+          EmitRangeChar(regParse^, (regParse + 1)^ = '-');
           Inc(regParse);
         end;
 
-        while (regParse < fRegexEnd) and (unaligned(regParse^) <> ']') do
+        while (regParse < fRegexEnd) and (regParse^ <> ']') do
         begin
           // last '-' inside [] treated as simple dash
-          if (unaligned(regParse^) = '-') and
+          if (regParse^ = '-') and
             ((regParse + 1) < fRegexEnd) and
-            (unaligned((regParse + 1)^) = ']') then
+            ((regParse + 1)^ = ']') then
           begin
             EmitRangeChar('-', False);
             Inc(regParse);
@@ -4320,10 +4277,10 @@ begin
           if (regParse^ = '-') and ((regParse + 1) < fRegexEnd) and CanBeRange then
           begin
             Inc(regParse);
-            RangeEnd := unaligned(regParse^);
+            RangeEnd := regParse^;
             if RangeEnd = EscChar then
             begin
-              if _IsMetaChar(unaligned((regParse + 1)^)) then
+              if _IsMetaChar((regParse + 1)^) then
               begin
                 Error(reeMetaCharAfterMinusInRange);
                 Exit;
@@ -4406,8 +4363,8 @@ begin
                 // False if '-' is last char in []
                 DashForRange :=
                   (regParse + 2 < fRegexEnd) and
-                  (unaligned((regParse + 1)^) = '-') and
-                  (unaligned((regParse + 2)^) <> ']');
+                  ((regParse + 1)^ = '-') and
+                  ((regParse + 2)^ <> ']');
                 EmitRangeChar(TempChar, DashForRange);
               end;
             end
@@ -4416,8 +4373,8 @@ begin
               // False if '-' is last char in []
               DashForRange :=
                 (regParse + 2 < fRegexEnd) and
-                (unaligned((regParse + 1)^) = '-') and
-                (unaligned((regParse + 2)^) <> ']');
+                ((regParse + 1)^ = '-') and
+                ((regParse + 2)^ <> ']');
               EmitRangeChar(regParse^, DashForRange);
             end;
             Inc(regParse);
@@ -4427,12 +4384,12 @@ begin
         CanBeRange := False;
         EmitC(OpKind_End);
         if fCompModifiers.I and not HasCaseSenseChars then begin
-          if unaligned(PREOp(ret)^) = OP_ANYBUT_CI then
-            unaligned(PREOp(ret)^) := OP_ANYBUT;
-          if unaligned(PREOp(ret)^) = OP_ANYOF_CI then
-            unaligned(PREOp(ret)^) := OP_ANYOF;
+          if PREOp(ret)^ = OP_ANYBUT_CI then
+            PREOp(ret)^ := OP_ANYBUT;
+          if PREOp(ret)^ = OP_ANYOF_CI then
+            PREOp(ret)^ := OP_ANYOF;
         end;
-        if unaligned(regParse^) <> ']' then
+        if regParse^ <> ']' then
         begin
           Error(reeUnmatchedSqBrackets);
           Exit;
@@ -4449,7 +4406,7 @@ begin
         // A: detect kind of expression in brackets
         if regParse^ = '?' then
         begin
-          NextCh := unaligned((regParse + 1)^);
+          NextCh := (regParse + 1)^;
           case NextCh of
             ':':
               begin
@@ -4467,7 +4424,7 @@ begin
               begin
                 if (regParse + 4 >= fRegexEnd) then
                   Error(reeNamedGroupBad);
-                case unaligned((regParse + 2)^) of
+                case (regParse + 2)^ of
                   '<':
                     begin
                       // named group: (?P<name>regex)
@@ -4501,7 +4458,7 @@ begin
             '<':
               begin
                 // lookbehind: (?<=foo)bar
-                case unaligned((regParse + 2)^) of
+                case (regParse + 2)^ of
                   '=':
                     begin
                       if (regParse + 4 >= fRegexEnd) then
@@ -4554,7 +4511,6 @@ begin
             'a'..'z', '-':
               begin
                 // modifiers string like (?mxr)
-                FlagParse := FlagParse or FLAG_NOT_QUANTIFIABLE;
                 GrpKind := gkModifierString;
                 Inc(regParse);
               end;
@@ -4613,7 +4569,7 @@ begin
         case GrpKind of
           gkNonCapturingGroup:
             begin
-              ret := DoParseReg(True, False, FlagTemp, OP_NONE, OP_NONE);
+              ret := DoParseReg(True, nil, FlagTemp, OP_NONE, OP_NONE);
               if ret = nil then
               begin
                 Result := nil;
@@ -4629,11 +4585,7 @@ begin
               // must take first pass (we need GrpNames filled)
               if (GrpKind = gkNormalGroup) then begin
                 Inc(ParsedGrpCount);
-                if fSecondPass then begin
-                  GrpIndexes[ParsedGrpCount] := regNumBrackets;
-                end
-                else
-                if (GrpName <> '') then
+                if (not fSecondPass) and (GrpName <> '') then
                 begin
                   // first pass
                   if GrpNames.MatchIndexFromName(GrpName) >= 0 then
@@ -4643,9 +4595,9 @@ begin
               end;
 
               if GrpKind = gkAtomicGroup then
-                ret := DoParseReg(True, True, FlagTemp, OP_OPEN_ATOMIC, OP_CLOSE_ATOMIC)
+                ret := DoParseReg(True, @regNumAtomicBrackets, FlagTemp, OP_OPEN_ATOMIC, OP_CLOSE_ATOMIC)
               else
-                ret := ParseReg(True, FlagTemp);
+                ret := DoParseReg(True, @regNumBrackets, FlagTemp, OP_OPEN, OP_CLOSE);
               if ret = nil then
               begin
                 Result := nil;
@@ -4662,12 +4614,12 @@ begin
                 gkLookaheadNeg: ret := EmitNode(OP_LOOKAHEAD_NEG);
               end;
 
-              Result := DoParseReg(True, False, FlagTemp, OP_NONE, OP_LOOKAHEAD_END);
+              Result := DoParseReg(True, nil, FlagTemp, OP_NONE, OP_LOOKAHEAD_END);
               if Result = nil then
                 Exit;
 
               Tail(ret, regLast(Result));
-              FlagParse := FlagParse and not FLAG_HASWIDTH or FLAG_LOOKAROUND;
+              FlagParse := FlagParse and not FLAG_HASWIDTH;
             end;
 
           gkLookbehind,
@@ -4684,30 +4636,30 @@ begin
                 Inc(regCodeSize, ReOpLookBehindOptionsSz);
 
               RegGrpCountBefore := ParsedGrpCount;
-              Result := DoParseReg(True, False, FlagTemp, OP_NONE, OP_LOOKBEHIND_END);
+              Result := DoParseReg(True, nil, FlagTemp, OP_NONE, OP_LOOKBEHIND_END);
               if Result = nil then
                 Exit;
 
               Tail(ret, regLast(Result));
 
-              ret2 := Result;
               if (regCode <> @regDummy) then begin
                 ALen := 0;
-                if IsPartFixedLength(ret2, op, ALen, AMaxLen, OP_LOOKBEHIND_END, nil, [flfSkipLookAround]) then
-                  PReOpLookBehindOptions(regLookBehindOption)^.IsGreedy := OPT_LOOKBEHIND_FIXED
+                ret2 := Result;
+                if IsPartFixedLength(ret2, op, ALen, AMaxLen, OP_LOOKBEHIND_END, regCode, [flfSkipLookAround]) then
+                  unaligned(PReOpLookBehindOptions(regLookBehindOption)^).IsGreedy := OPT_LOOKBEHIND_FIXED
                 else
                 if (ParsedGrpCount > RegGrpCountBefore) and (not FAllowUnsafeLookBehind) then
                   Error(reeLookaroundNotSafe)
                 else
                 if (FlagTemp and (FLAG_GREEDY)) = (FLAG_GREEDY) then
-                  PReOpLookBehindOptions(regLookBehindOption)^.IsGreedy := OPT_LOOKBEHIND_GREEDY
+                  unaligned(PReOpLookBehindOptions(regLookBehindOption)^).IsGreedy := OPT_LOOKBEHIND_GREEDY
                 else
-                  PReOpLookBehindOptions(regLookBehindOption)^.IsGreedy := OPT_LOOKBEHIND_NON_GREEDY;
-                PReOpLookBehindOptions(regLookBehindOption)^.MatchLenMin := ALen;
-                PReOpLookBehindOptions(regLookBehindOption)^.MatchLenMax := AMaxLen;
+                  unaligned(PReOpLookBehindOptions(regLookBehindOption)^).IsGreedy := OPT_LOOKBEHIND_NON_GREEDY;
+                unaligned(PReOpLookBehindOptions(regLookBehindOption)^).MatchLenMin := ALen;
+                unaligned(PReOpLookBehindOptions(regLookBehindOption)^).MatchLenMax := AMaxLen;
               end;
 
-              FlagParse := FlagParse and not FLAG_HASWIDTH or FLAG_LOOKAROUND;
+              FlagParse := FlagParse and not FLAG_HASWIDTH;
             end;
 
           gkNamedGroupReference:
@@ -4716,7 +4668,6 @@ begin
               if fSecondPass and (Len < 0) then
                 Error(reeNamedGroupBadRef);
               ret := EmitGroupRef(Len, fCompModifiers.I);
-              FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
 
           gkModifierString:
@@ -4728,7 +4679,7 @@ begin
               if (regParse^ = ':') and ParseModifiers(SavedPtr, regParse - SavedPtr, fCompModifiers) then
               begin
                 Inc(regParse); // skip ')'
-                ret := ParseReg(True, FlagTemp);
+                ret := DoParseReg(True, nil, FlagTemp, OP_NONE, OP_COMMENT); // can't use OP_NONE // The "ender" op will not be omitted anyway
                 fCompModifiers := SavedModifiers;
                 if ret = nil then
                 begin
@@ -4740,8 +4691,9 @@ begin
               else
               if (regParse^ = ')') and ParseModifiers(SavedPtr, regParse - SavedPtr, fCompModifiers) then
               begin
-              Inc(regParse); // skip ')'
-              ret := EmitNode(OP_COMMENT); // comment
+                Inc(regParse); // skip ')'
+                ret := EmitNode(OP_COMMENT); // comment
+                FlagParse := FlagParse or FLAG_NOT_QUANTIFIABLE;
               end
               else
               begin
@@ -4768,6 +4720,7 @@ begin
               // set FLAG_HASWIDTH to allow compiling of such regex: b(?:m|(?R))*e
               FlagParse := FlagParse or FLAG_HASWIDTH;
               ret := EmitNode(OP_RECUR);
+              hasRecursion := True;
             end;
 
           gkSubCall:
@@ -4775,6 +4728,7 @@ begin
               // set FLAG_HASWIDTH like for (?R)
               FlagParse := FlagParse or FLAG_HASWIDTH;
               ret := EmitNodeWithGroupIndex(OP_SUBCALL, GrpIndex);
+              hasRecursion := True;
             end;
         end; // case GrpKind of
       end;
@@ -4884,15 +4838,14 @@ begin
               if fSecondPass and (Ord(regParse^) - Ord('0') > GrpCount) then
                 Error(reeBadReference);
               ret := EmitGroupRef(Ord(regParse^) - Ord('0'), fCompModifiers.I);
-              FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           'g':
             begin
-              case unaligned((regParse + 1)^) of
+              case (regParse + 1)^ of
                 '<', '''':
                   begin
                     // subroutine call to named group
-                    case unaligned((regParse + 1)^) of
+                    case (regParse + 1)^ of
                       '<':  FindGroupName(regParse + 2, fRegexEnd, '>', GrpName);
                       '''': FindGroupName(regParse + 2, fRegexEnd, '''', GrpName);
                     end;
@@ -4902,6 +4855,7 @@ begin
                       Error(reeNamedGroupBadRef);
                     ret := EmitNodeWithGroupIndex(OP_SUBCALL, GrpIndex);
                     FlagParse := FlagParse or FLAG_HASWIDTH;
+                    hasRecursion := True;
                   end;
                 '{':
                   begin
@@ -4912,22 +4866,20 @@ begin
                     if fSecondPass and  (GrpIndex < 1) then
                       Error(reeNamedGroupBadRef);
                     ret := EmitGroupRef(GrpIndex, fCompModifiers.I);
-                    FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
                   end;
                 '0'..'9':
                   begin
-                    inc(regParse);
+                    Inc(regParse);
                     if not ParseNumber(regParse, GrpIndex) then begin
                       Error(reeBadReference);
                       Exit;
                     end;
-                    dec(regParse);
+                    Dec(regParse);
                     if GrpIndex = 0 then
                       Error(reeBadReference);
                     if fSecondPass and (GrpIndex > GrpCount) then
                       Error(reeBadReference);
                     ret := EmitGroupRef(GrpIndex, fCompModifiers.I);
-                    FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
                   end;
               else
                 Error(reeBadReference);
@@ -4936,7 +4888,7 @@ begin
           'k':
             begin
               // back-reference to named group
-              case unaligned((regParse + 1)^) of
+              case (regParse + 1)^ of
                 '<':
                   FindGroupName(regParse + 2, fRegexEnd, '>', GrpName);
                 '''':
@@ -4951,7 +4903,6 @@ begin
               if fSecondPass and (GrpIndex < 1) then
                 Error(reeNamedGroupBadRef);
               ret := EmitGroupRef(GrpIndex, fCompModifiers.I);
-              FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           'K':
             begin
@@ -5018,7 +4969,7 @@ begin
           else
             Len := FindSkippedMetaLen(regParse + 1, fRegexEnd) + 1;
             // bad {n,m} - compile as EXACTLY
-        EnderChar := unaligned((regParse + Len)^);
+        EnderChar := (regParse + Len)^;
         if (Len > 1) and ((EnderChar = '*') or (EnderChar = '+') or (EnderChar = '?') or (EnderChar = '{')) then
           Dec(Len); // back off clear of ?+*{ operand.
         FlagParse := FlagParse or FLAG_HASWIDTH;
@@ -5034,9 +4985,9 @@ begin
           if not fCompModifiers.X or not IsIgnoredChar(regParse^) then
           begin
             if fCompModifiers.I then
-              EmitC(_UpperCase(unaligned(regParse^)))
+              EmitC(_UpperCase(regParse^))
             else
-              EmitC(unaligned(regParse^));
+              EmitC(regParse^);
             if regCode <> @regDummy then
               Inc(unaligned(regExactlyLen^));
           end;
@@ -5095,8 +5046,6 @@ var
   opnd: PRegExprChar;
   TheMax: PtrInt; // PtrInt, gets diff of 2 pointers
   InvChar: REChar;
-  CurStart, CurEnd: PRegExprChar;
-  ArrayIndex: Integer;
   {$IFDEF UnicodeEx}
   i: Integer;
   {$ENDIF}
@@ -5104,10 +5053,10 @@ begin
   Result := 0;
   scan := regInput; // points into InputString
   opnd := p + REOpSz + RENextOffSz; // points to operand of opcode (after OP_nnn code)
-  TheMax := fInputEnd - scan;
+  TheMax := fInputCurrentEnd - scan;
   if TheMax > AMax then
     TheMax := AMax;
-  case unaligned(PREOp(p)^) of
+  case PREOp(p)^ of
     OP_ANY:
       begin
         // note - OP_ANY_ML cannot be proceeded in FindRepeated because can skip
@@ -5119,6 +5068,13 @@ begin
         Result := TheMax;
         Inc(scan, Result);
         {$ENDIF}
+      end;
+
+    OP_ANY_ML:
+      while (Result < TheMax) and not IsCustomLineSeparator(scan^) do
+      begin
+        Inc(Result);
+        Inc(scan);
       end;
 
     OP_EXACTLY:
@@ -5147,70 +5103,19 @@ begin
         }
         Inc(opnd, RENumberSz);
         while (Result < TheMax) and (opnd^ = scan^) do
-        begin // prevent unneeded InvertCase
+        begin // prevent unneeded _UpperCase
           Inc(Result);
           Inc(scan);
         end;
         if Result < TheMax then
         begin
           InvChar := _LowerCase(opnd^); // store in register
-          while (Result < TheMax) and ((opnd^ = scan^) or (InvChar = scan^)) do
+          while (Result < TheMax) and ((opnd^ = scan^) or (InvChar = scan^) or (opnd^ = _UpperCase(scan^)) ) do
           begin
             Inc(Result);
             Inc(scan);
           end;
         end;
-      end;
-
-    OP_BSUBEXP:
-      begin
-        ArrayIndex := GrpIndexes[unaligned(PReGroupIndex(opnd)^)];
-        if ArrayIndex < 0 then
-          Exit;
-        CurStart := GrpBounds[regRecursion].GrpStart[ArrayIndex];
-        if CurStart = nil then
-          Exit;
-        CurEnd := GrpBounds[regRecursion].GrpEnd[ArrayIndex];
-        if CurEnd = nil then
-          Exit;
-        repeat
-          opnd := CurStart;
-          while opnd < CurEnd do
-          begin
-            if (scan >= fInputEnd) or (scan^ <> opnd^) then
-              Exit;
-            Inc(scan);
-            Inc(opnd);
-          end;
-          Inc(Result);
-          regInput := scan;
-        until Result >= AMax;
-      end;
-
-    OP_BSUBEXP_CI:
-      begin
-        ArrayIndex := GrpIndexes[unaligned(PReGroupIndex(opnd)^)];
-        if ArrayIndex < 0 then
-          Exit;
-        CurStart := GrpBounds[regRecursion].GrpStart[ArrayIndex];
-        if CurStart = nil then
-          Exit;
-        CurEnd := GrpBounds[regRecursion].GrpEnd[ArrayIndex];
-        if CurEnd = nil then
-          Exit;
-        repeat
-          opnd := CurStart;
-          while opnd < CurEnd do
-          begin
-            if (scan >= fInputEnd) or
-              ((scan^ <> opnd^) and (scan^ <> InvertCase(opnd^))) then
-              Exit;
-            Inc(scan);
-            Inc(opnd);
-          end;
-          Inc(Result);
-          regInput := scan;
-        until Result >= AMax;
       end;
 
     OP_ANYDIGIT:
@@ -5342,14 +5247,14 @@ begin
       {$IFDEF UNICODEEX}
       begin
         i := 0;
-        while (i < TheMax) and FindInCharClass(opnd, scan^, False) do
+        while (i < TheMax) and FindInCharClass(opnd, scan^) do
         begin
           Inc(i);
           IncUnicode2(scan, Result);
         end;
       end;
       {$ELSE}
-      while (Result < TheMax) and FindInCharClass(opnd, scan^, False) do
+      while (Result < TheMax) and FindInCharClass(opnd, scan^) do
       begin
         Inc(Result);
         Inc(scan);
@@ -5360,14 +5265,14 @@ begin
       {$IFDEF UNICODEEX}
       begin
         i := 0;
-        while (i < TheMax) and not FindInCharClass(opnd, scan^, False) do
+        while (i < TheMax) and not FindInCharClass(opnd, scan^) do
         begin
           Inc(i);
           IncUnicode2(scan, Result);
         end;
       end;
       {$ELSE}
-      while (Result < TheMax) and not FindInCharClass(opnd, scan^, False) do
+      while (Result < TheMax) and not FindInCharClass(opnd, scan^) do
       begin
         Inc(Result);
         Inc(scan);
@@ -5378,14 +5283,14 @@ begin
       {$IFDEF UNICODEEX}
       begin
         i := 0;
-        while (i < TheMax) and FindInCharClass(opnd, scan^, True) do
+        while (i < TheMax) and FindInCharClass(opnd, _UpperCase(scan^)) do
         begin
           Inc(i);
           IncUnicode2(scan, Result);
         end;
       end;
       {$ELSE}
-      while (Result < TheMax) and FindInCharClass(opnd, scan^, True) do
+      while (Result < TheMax) and FindInCharClass(opnd, _UpperCase(scan^)) do
       begin
         Inc(Result);
         Inc(scan);
@@ -5396,14 +5301,14 @@ begin
       {$IFDEF UNICODEEX}
       begin
         i := 0;
-        while (i < TheMax) and not FindInCharClass(opnd, scan^, True) do
+        while (i < TheMax) and not FindInCharClass(opnd, _UpperCase(scan^)) do
         begin
           Inc(i);
           IncUnicode2(scan, Result);
         end;
       end;
       {$ELSE}
-      while (Result < TheMax) and not FindInCharClass(opnd, scan^, True) do
+      while (Result < TheMax) and not FindInCharClass(opnd, _UpperCase(scan^)) do
       begin
         Inc(Result);
         Inc(scan);
@@ -5482,22 +5387,24 @@ begin
 end;
 
 function TRegExpr.regNextQuick(p: PRegExprChar): PRegExprChar; {$IFDEF FPC}inline;{$ENDIF}
+{$IFDEF WITH_REGEX_ASSERT}
 var
   offset: TRENextOff;
+{$ENDIF}
 begin
   // The inlined version is never called in the first pass.
   Assert(fSecondPass); // fSecondPass will also be true in MatchPrim.
-  offset := unaligned(PRENextOff(AlignToPtr(p + REOpSz))^);
   {$IFDEF WITH_REGEX_ASSERT}
+  offset := unaligned(PRENextOff(AlignToPtr(p + REOpSz))^);
   if offset = 0 then
     Result := nil
   else
   begin
-  {$ENDIF}
     Result := p + offset;
-  {$IFDEF WITH_REGEX_ASSERT}
     assert((Result >= programm) and (Result < programm + regCodeSize * SizeOf(REChar)));
   end;
+  {$ELSE}
+    Result := p + unaligned(PRENextOff(AlignToPtr(p + REOpSz))^);
   {$ENDIF}
 end;
 
@@ -5529,7 +5436,6 @@ type
       );
       {$ENDIF}
       OP_LOOKAHEAD, OP_LOOKBEHIND: (
-        IsNegativeLook: Boolean;
         IsGreedy: REChar;
         LookAroundInfo: TRegExprLookAroundInfo;
         InpStart: PRegExprChar; // only OP_LOOKBEHIND
@@ -5540,7 +5446,24 @@ type
       OP_SUBCALL: (
         savedCurrentSubCalled: Integer;
       );
+      OP_STAR: (
+        nextch: REChar;
+      );
   end;
+
+{$IFNDEF HASPOINTERARRAYACCESS}
+function PRegExprCharArrayAccess(const anArray: PPRegExprChar; const anIdx: Integer): PRegExprChar;
+begin
+  result := PPRegExprChar(Integer(anArray) + (anIdx * SizeOf(PRegExprChar)))^;
+end;
+
+procedure AssignPRegExprCharArray(const anArray: PPRegExprChar; const anIdx: Integer; const aValue: PRegExprChar);
+var ArrayMember: PPRegExprChar;
+begin
+  ArrayMember := PPRegExprChar(Integer(anArray) + (anIdx * SizeOf(PRegExprChar)));
+  ArrayMember^ := aValue;
+end;
+{$ENDIF}
 
 function TRegExpr.MatchPrim(prog: PRegExprChar): Boolean;
 // recursively matching routine
@@ -5552,26 +5475,21 @@ function TRegExpr.MatchPrim(prog: PRegExprChar): Boolean;
 // by recursion.
 
 var
-  scan: PRegExprChar; // current node
+  scan: PRegExprChar;
   next: PRegExprChar; // next node
-  Len: PtrInt;
-  opnd, opGrpEnd: PRegExprChar;
+  opnd, save: PRegExprChar;
   no: Integer;
-  save: PRegExprChar;
-  nextch: REChar;
-  BracesMin, BracesMax: Integer;
-  // we use integer instead of TREBracesArg to better support */+
-  bound1, bound2: Boolean;
+  LoopCnt: Integer;
   Local: TRegExprMatchPrimLocals;
 begin
   Result := False;
+
   {$IFDEF RegExpWithStackOverflowCheck_DecStack_Frame}
   if get_frame < StackLimit then begin
-    error(reeLoopStackExceeded);
-    exit;
+    Error(reeLoopStackExceeded);
+    Exit;
   end;
   {$ENDIF}
-
 
   {
   // Alexey: not sure it's ok for long searches in big texts, so disabled
@@ -5586,20 +5504,22 @@ begin
     Assert(scan <> nil);
     next := regNextQuick(scan);
 
-    case unaligned(scan^) of
+    case scan^ of
       OP_BOUND:
         begin
-          bound1 := (regInput = fInputStart) or not IsWordChar((regInput - 1)^);
-          bound2 := (regInput >= fInputEnd) or not IsWordChar(regInput^);
-          if bound1 = bound2 then
+          if ( (regInput = fInputStart) or not IsWordChar((regInput - 1)^) )
+             =
+             ( (regInput >= fInputEnd)  or not IsWordChar(regInput^) )
+          then
             Exit;
         end;
 
       OP_NOTBOUND:
         begin
-          bound1 := (regInput = fInputStart) or not IsWordChar((regInput - 1)^);
-          bound2 := (regInput >= fInputEnd) or not IsWordChar(regInput^);
-          if bound1 <> bound2 then
+          if ( (regInput = fInputStart) or not IsWordChar((regInput - 1)^) )
+             <>
+             ( (regInput >= fInputEnd)  or not IsWordChar(regInput^) )
+          then
             Exit;
         end;
 
@@ -5622,7 +5542,7 @@ begin
           Result := MatchPrim(next);
           if not Result then
             GrpBounds[0].GrpStart[0] := save;
-          exit;
+          Exit;
         end;
 
       OP_EOL:
@@ -5688,7 +5608,6 @@ begin
       OP_ANY_ML:
         begin
           if (regInput >= fInputCurrentEnd) or
-            IsPairedBreak(regInput) or
             IsCustomLineSeparator(regInput^)
           then
             Exit;
@@ -5792,38 +5711,37 @@ begin
       OP_EXACTLY_CI:
         begin
           opnd := scan + REOpSz + RENextOffSz; // OPERAND
-          Len := unaligned(PLongInt(opnd)^);
-          if (regInput + Len > fInputCurrentEnd) then
+          no := unaligned(PLongInt(opnd)^);
+          if (regInput + no > fInputCurrentEnd) then
             Exit;
           Inc(opnd, RENumberSz);
-          // Inline the first character, for speed.
-          if (unaligned(opnd^) <> unaligned(regInput^)) and (_LowerCase(unaligned(opnd^)) <> unaligned(regInput^)) then
+          // Prefer _UpperCase usage here, because _LowerCase fails with 'Greek lowercase final sigma'
+          if (opnd^ <> regInput^) and (opnd^ <> _UpperCase(regInput^)) then
             Exit;
-          no := Len;
           save := regInput;
+          Inc(regInput, no);
           while no > 1 do
           begin
             Inc(save);
             Inc(opnd);
-            if (unaligned(opnd^) <> unaligned(save^)) and (_LowerCase(unaligned(opnd^)) <> unaligned(save^)) then
+            if (opnd^ <> save^) and (opnd^ <> _UpperCase(save^)) then
               Exit;
             Dec(no);
           end;
-          Inc(regInput, Len);
         end;
 
       OP_EXACTLY:
         begin
           opnd := scan + REOpSz + RENextOffSz; // OPERAND
-          Len := unaligned(PLongInt(opnd)^);
-          if (regInput + Len > fInputCurrentEnd) then
+          no := unaligned(PLongInt(opnd)^);
+          if (regInput + no > fInputCurrentEnd) then
             Exit;
           Inc(opnd, RENumberSz);
           // Inline the first character, for speed.
           if opnd^ <> regInput^ then
             Exit;
-          no := Len;
           save := regInput;
+          Inc(regInput, no);
           while no > 1 do
           begin
             Inc(save);
@@ -5832,28 +5750,39 @@ begin
               Exit;
             Dec(no);
           end;
-          Inc(regInput, Len);
         end;
 
       OP_BSUBEXP:
         begin
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
-          no := GrpIndexes[no];
           if no < 0 then
             Exit;
-          opnd := GrpBounds[regRecursion].GrpStart[no];
+          {$IFDEF HASPOINTERARRAYACCESS}
+          opnd := CurrentGrpBounds.GrpStart[no];
+          {$ELSE}
+          opnd := PRegExprCharArrayAccess(CurrentGrpBounds.GrpStart, no);
+          {$ENDIF}
           if opnd = nil then
             Exit;
-          opGrpEnd := GrpBounds[regRecursion].GrpEnd[no];
-          if opGrpEnd = nil then
+          {$IFDEF HASPOINTERARRAYACCESS}
+          save := CurrentGrpBounds.GrpEnd[no];
+          {$ELSE}
+          save := PRegExprCharArrayAccess(CurrentGrpBounds.GrpEnd, no);
+          {$ENDIF}
+          if save = nil then
             Exit;
+          no := save - opnd;
           save := regInput;
-          while opnd < opGrpEnd do
+          if save + no - 1 >= fInputCurrentEnd then
+            Exit;
+
+          while no > 0 do
           begin
-            if (save >= fInputCurrentEnd) or (save^ <> opnd^) then
+            if (save^ <> opnd^) then
               Exit;
             Inc(save);
             Inc(opnd);
+            Dec(no);
           end;
           regInput := save;
         end;
@@ -5861,23 +5790,34 @@ begin
       OP_BSUBEXP_CI:
         begin
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
-          no := GrpIndexes[no];
           if no < 0 then
             Exit;
-          opnd := GrpBounds[regRecursion].GrpStart[no];
+          {$IFDEF HASPOINTERARRAYACCESS}
+          opnd := CurrentGrpBounds.GrpStart[no];
+          {$ELSE}
+          opnd := PRegExprCharArrayAccess(CurrentGrpBounds.GrpStart, no);
+          {$ENDIF}
           if opnd = nil then
             Exit;
-          opGrpEnd := GrpBounds[regRecursion].GrpEnd[no];
-          if opGrpEnd = nil then
+          {$IFDEF HASPOINTERARRAYACCESS}
+          save := CurrentGrpBounds.GrpEnd[no];
+          {$ELSE}
+          save := PRegExprCharArrayAccess(CurrentGrpBounds.GrpEnd, no);
+          {$ENDIF}
+          if save = nil then
             Exit;
+          no := save - opnd;
           save := regInput;
-          while opnd < opGrpEnd do
+          if save + no - 1 >= fInputCurrentEnd then
+            Exit;
+
+          while no > 0 do
           begin
-            if (save >= fInputCurrentEnd) or
-              ((save^ <> opnd^) and (save^ <> InvertCase(opnd^))) then
+            if ((save^ <> opnd^) and (save^ <> InvertCase(opnd^))) then
               Exit;
             Inc(save);
             Inc(opnd);
+            Dec(no);
           end;
           regInput := save;
         end;
@@ -5885,7 +5825,7 @@ begin
       OP_ANYOF:
         begin
           if (regInput >= fInputCurrentEnd) or
-            not FindInCharClass(scan + REOpSz + RENextOffSz, regInput^, False) then
+            not FindInCharClass(scan + REOpSz + RENextOffSz, regInput^) then
             Exit;
           {$IFDEF UNICODEEX}
           IncUnicode(regInput);
@@ -5897,7 +5837,7 @@ begin
       OP_ANYBUT:
         begin
           if (regInput >= fInputCurrentEnd) or
-            FindInCharClass(scan + REOpSz + RENextOffSz, regInput^, False) then
+            FindInCharClass(scan + REOpSz + RENextOffSz, regInput^) then
             Exit;
           {$IFDEF UNICODEEX}
           IncUnicode(regInput);
@@ -5909,7 +5849,7 @@ begin
       OP_ANYOF_CI:
         begin
           if (regInput >= fInputCurrentEnd) or
-            not FindInCharClass(scan + REOpSz + RENextOffSz, regInput^, True) then
+            not FindInCharClass(scan + REOpSz + RENextOffSz, _UpperCase(regInput^)) then
             Exit;
           {$IFDEF UNICODEEX}
           IncUnicode(regInput);
@@ -5921,7 +5861,7 @@ begin
       OP_ANYBUT_CI:
         begin
           if (regInput >= fInputCurrentEnd) or
-            FindInCharClass(scan + REOpSz + RENextOffSz, regInput^, True) then
+            FindInCharClass(scan + REOpSz + RENextOffSz, _UpperCase(regInput^)) then
             Exit;
           {$IFDEF UNICODEEX}
           IncUnicode(regInput);
@@ -5937,30 +5877,49 @@ begin
       OP_BACK:
         ;
 
-      OP_OPEN, OP_OPEN_ATOMIC:
+      OP_OPEN:
         begin
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
-          save := GrpBounds[regRecursion].GrpStart[no];
-          opnd := GrpBounds[regRecursion].GrpEnd[no]; // save2
-          GrpBounds[regRecursion].GrpStart[no] := regInput;
+          {$IFDEF HASPOINTERARRAYACCESS}
+          save := CurrentGrpBounds.TmpStart[no];
+          CurrentGrpBounds.TmpStart[no] := regInput;
+          {$ELSE}
+          save := PRegExprCharArrayAccess(CurrentGrpBounds.TmpStart, no);
+          AssignPRegExprCharArray(CurrentGrpBounds.TmpStart, no, regInput);
+          {$ENDIF}
+          Result := MatchPrim(next);
+          {$IFDEF HASPOINTERARRAYACCESS}
+          CurrentGrpBounds.TmpStart[no] := save;
+          {$ELSE}
+          AssignPRegExprCharArray(CurrentGrpBounds.TmpStart, no, save);
+          {$ENDIF}
+          Exit;
+        end;
+
+      OP_OPEN_ATOMIC:
+        begin
+          no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
           Result := MatchPrim(next);
           if GrpBacktrackingAsAtom[no] then
             IsBacktrackingGroupAsAtom := False;
           GrpBacktrackingAsAtom[no] := False;
-          if not Result then begin
-            GrpBounds[regRecursion].GrpStart[no] := save;
-            GrpBounds[regRecursion].GrpEnd[no] := opnd;
-          end;
           Exit;
         end;
 
       OP_CLOSE:
         begin
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
-          // handle atomic group, mark it as "done"
-          // (we are here because some OP_BRANCH is matched)
-          GrpBounds[regRecursion].GrpEnd[no] := regInput;
-
+          {$IFDEF HASPOINTERARRAYACCESS}
+          save := CurrentGrpBounds.GrpStart[no];
+          opnd := CurrentGrpBounds.GrpEnd[no]; // save2
+          CurrentGrpBounds.GrpStart[no] := CurrentGrpBounds.TmpStart[no];
+          CurrentGrpBounds.GrpEnd[no] := regInput;
+          {$ELSE}
+          save := PRegExprCharArrayAccess(CurrentGrpBounds.GrpStart, no);
+          opnd := PRegExprCharArrayAccess(CurrentGrpBounds.GrpEnd, no); // save2
+          AssignPRegExprCharArray(CurrentGrpBounds.GrpStart, no, PRegExprCharArrayAccess(CurrentGrpBounds.TmpStart, no));
+          AssignPRegExprCharArray(CurrentGrpBounds.GrpEnd, no, regInput);
+          {$ENDIF}
           // if we are in OP_SUBCALL* call, it called OP_OPEN*, so we must return
           // in OP_CLOSE, without going to next opcode
           if CurrentSubCalled = no then
@@ -5968,6 +5927,19 @@ begin
             Result := True;
             Exit;
           end;
+
+          Result := MatchPrim(next);
+          if not Result then begin
+            {$IFDEF HASPOINTERARRAYACCESS}
+            CurrentGrpBounds.GrpStart[no] := save;
+            CurrentGrpBounds.GrpEnd[no] := opnd;
+            {$ELSE}
+            AssignPRegExprCharArray(CurrentGrpBounds.GrpStart, no, save);
+            AssignPRegExprCharArray(CurrentGrpBounds.GrpEnd, no, opnd);
+            {$ENDIF}
+          end;
+
+          Exit;
         end;
 
       OP_CLOSE_ATOMIC:
@@ -5975,8 +5947,6 @@ begin
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
           // handle atomic group, mark it as "done"
           // (we are here because some OP_BRANCH is matched)
-          GrpBounds[regRecursion].GrpEnd[no] := regInput;
-
           Result := MatchPrim(next);
           if not Result then begin
             if not IsBacktrackingGroupAsAtom then begin
@@ -5989,10 +5959,8 @@ begin
 
       OP_LOOKAHEAD, OP_LOOKAHEAD_NEG:
         begin
-          Local.IsNegativeLook := (scan^ = OP_LOOKAHEAD_NEG);
-
           Local.LookAroundInfo.InputPos := regInput;
-          Local.LookAroundInfo.IsNegative := Local.IsNegativeLook;
+          Local.LookAroundInfo.IsNegative := (scan^ = OP_LOOKAHEAD_NEG);
           Local.LookAroundInfo.HasMatchedToEnd := False;
           Local.LookAroundInfo.IsBackTracking := False;
           Local.LookAroundInfo.OuterInfo := LookAroundInfoList;
@@ -6008,27 +5976,10 @@ begin
           LookAroundInfoList := Local.LookAroundInfo.OuterInfo;
           fInputCurrentEnd := Local.LookAroundInfo.savedInputCurrentEnd;
 
-          opnd := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz; // Successor of OP_LOOKAHEAD_END;
-          if Local.IsNegativeLook then begin
-            Result := (unaligned(opnd^) = OP_LOOKAROUND_OPTIONAL);
-            if not Result then
-              Result := (not Local.LookAroundInfo.HasMatchedToEnd);
+          if Local.LookAroundInfo.IsNegative then begin
+            Result := (not Local.LookAroundInfo.HasMatchedToEnd);
             if Result then begin
               next := regNextQuick(next);                             // Next-Pointer of OP_LOOKAHEAD_END
-              if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-                next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
-              regInput := Local.LookAroundInfo.InputPos;
-              Result := False;
-              scan := next;
-              continue;
-            end;
-          end
-          else
-          if (unaligned(opnd^) = OP_LOOKAROUND_OPTIONAL) then begin
-            if not Local.LookAroundInfo.HasMatchedToEnd then begin
-              next := regNextQuick(next);                             // Next-Pointer of OP_LOOKAHEAD_END
-              if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-                next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
               regInput := Local.LookAroundInfo.InputPos;
               Result := False;
               scan := next;
@@ -6036,32 +5987,29 @@ begin
             end;
           end;
 
-          if not Result then
-            regInput := Local.LookAroundInfo.InputPos;
-
           Exit;
         end;
 
       OP_LOOKBEHIND, OP_LOOKBEHIND_NEG:
         begin
-          Local.IsNegativeLook := (scan^ = OP_LOOKBEHIND_NEG);
-          scan := PRegExprChar(AlignToPtr(scan + 1)) + RENextOffSz;
-          Local.IsGreedy := unaligned(PReOpLookBehindOptions(scan)^).IsGreedy;
-
           Local.LookAroundInfo.InputPos := regInput;
-          Local.LookAroundInfo.IsNegative := Local.IsNegativeLook;
+          Local.LookAroundInfo.IsNegative := (scan^ = OP_LOOKBEHIND_NEG);
           Local.LookAroundInfo.HasMatchedToEnd := False;
           Local.LookAroundInfo.IsBackTracking := False;
           Local.LookAroundInfo.OuterInfo := LookAroundInfoList;
           Local.LookAroundInfo.savedInputCurrentEnd := fInputCurrentEnd;
           LookAroundInfoList := @Local.LookAroundInfo;
+
+          scan := PRegExprChar(AlignToPtr(scan + 1)) + RENextOffSz;
+          Local.IsGreedy := unaligned(PReOpLookBehindOptions(scan)^).IsGreedy;
+
           fInputCurrentEnd := regInput;
 
           Result := regInput - fInputStart >= unaligned(PReOpLookBehindOptions(scan)^).MatchLenMin;
           if Result then begin
             if Local.IsGreedy = OPT_LOOKBEHIND_FIXED then begin
               regInput := regInput - unaligned(PReOpLookBehindOptions(scan)^).MatchLenMin;
-              inc(scan, ReOpLookBehindOptionsSz);
+              Inc(scan, ReOpLookBehindOptionsSz);
               Result := MatchPrim(scan)
             end
             else
@@ -6071,10 +6019,10 @@ begin
                 save := regInput - unaligned(PReOpLookBehindOptions(scan)^).MatchLenMax
               else
                 save := fInputStart;
-              inc(scan, ReOpLookBehindOptionsSz);
+              Inc(scan, ReOpLookBehindOptionsSz);
               repeat
                 regInput := Local.InpStart;
-                dec(Local.InpStart);
+                Dec(Local.InpStart);
                 Result := MatchPrim(scan);
               until Local.LookAroundInfo.HasMatchedToEnd or (Local.InpStart < save);
             end
@@ -6084,10 +6032,10 @@ begin
               else
                 Local.InpStart := fInputStart;
               save := Local.LookAroundInfo.InputPos - unaligned(PReOpLookBehindOptions(scan)^).MatchLenMin;
-              inc(scan, ReOpLookBehindOptionsSz);
+              Inc(scan, ReOpLookBehindOptionsSz);
               repeat
                 regInput := Local.InpStart;
-                inc(Local.InpStart);
+                Inc(Local.InpStart);
                 Result := MatchPrim(scan);
               until Local.LookAroundInfo.HasMatchedToEnd or (Local.InpStart > save);
             end;
@@ -6098,27 +6046,10 @@ begin
           LookAroundInfoList := Local.LookAroundInfo.OuterInfo;
           fInputCurrentEnd := Local.LookAroundInfo.savedInputCurrentEnd;
 
-          opnd := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz; // Successor of OP_LOOKAHEAD_END;
-          if Local.IsNegativeLook then begin
-            Result := (unaligned(opnd^) = OP_LOOKAROUND_OPTIONAL);
-            if not Result then
-              Result := not Local.LookAroundInfo.HasMatchedToEnd;
+          if Local.LookAroundInfo.IsNegative then begin
+            Result := not Local.LookAroundInfo.HasMatchedToEnd;
             if Result then begin
               next := regNextQuick(next);                             // Next-Pointer of OP_LOOKAHEAD_END
-              if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-                next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
-              regInput := Local.LookAroundInfo.InputPos;
-              Result := False;
-              scan := next;
-              continue;
-            end;
-          end
-          else
-          if (unaligned(opnd^) = OP_LOOKAROUND_OPTIONAL) then begin
-            if not Local.LookAroundInfo.HasMatchedToEnd then begin
-              next := regNextQuick(next);                             // Next-Pointer of OP_LOOKAHEAD_END
-              if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-                next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
               regInput := Local.LookAroundInfo.InputPos;
               Result := False;
               scan := next;
@@ -6126,8 +6057,6 @@ begin
             end;
           end;
 
-          if not Result then
-            regInput := Local.LookAroundInfo.InputPos;
           Exit;
         end;
 
@@ -6143,8 +6072,6 @@ begin
             regInput := Local.LookAroundInfoPtr^.InputPos;
             LookAroundInfoList := Local.LookAroundInfoPtr^.OuterInfo;
 
-            if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-              next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
             Result := MatchPrim(next);
             LookAroundInfoList := Local.LookAroundInfoPtr;
           end;
@@ -6172,8 +6099,6 @@ begin
             fInputCurrentEnd := Local.LookAroundInfoPtr^.savedInputCurrentEnd;
             LookAroundInfoList := Local.LookAroundInfoPtr^.OuterInfo;
 
-            if (unaligned(next^) = OP_LOOKAROUND_OPTIONAL) then
-              next := PRegExprChar(AlignToPtr(next + 1)) + RENextOffSz;
             Result := MatchPrim(next);
             LookAroundInfoList := Local.LookAroundInfoPtr;
           end;
@@ -6199,7 +6124,7 @@ begin
             scan := next;
             Assert(scan <> nil);
             next := regNextQuick(scan);
-            if  (unaligned(next^) <> OP_BRANCH) then
+            if  (next^ <> OP_BRANCH) then
               break;
           until  False;
           next := scan + REOpSz + RENextOffSz + REBranchArgSz; // Avoid recursion
@@ -6207,18 +6132,18 @@ begin
 
       OP_GBRANCH, OP_GBRANCH_EX, OP_GBRANCH_EX_CI:
         begin
-          Assert((unaligned(next^) = OP_BRANCH) or (unaligned(next^) = OP_GBRANCH) or (unaligned(next^) = OP_GBRANCH_EX) or (unaligned(next^) = OP_GBRANCH_EX_CI));
+          Assert((next^ = OP_BRANCH) or (next^ = OP_GBRANCH) or (next^ = OP_GBRANCH_EX) or (next^ = OP_GBRANCH_EX_CI));
           repeat
             save := regInput;
-            case unaligned(scan^) of
+            case scan^ of
               OP_GBRANCH, OP_BRANCH:
                 Result := MatchPrim(scan + REOpSz + RENextOffSz + REBranchArgSz);
               OP_GBRANCH_EX:
-                if (unaligned(regInput^) = unaligned((scan + REOpSz + RENextOffSz)^)) then
+                if (regInput^ = (scan + REOpSz + RENextOffSz)^) then
                   Result := MatchPrim(scan + REOpSz + RENextOffSz + REBranchArgSz);
               OP_GBRANCH_EX_CI:
-                if (unaligned(regInput^) = unaligned((scan + REOpSz + RENextOffSz)^)) or
-                   (unaligned(regInput^) = unaligned((scan + REOpSz + RENextOffSz + 1)^))
+                if (regInput^ = (scan + REOpSz + RENextOffSz)^) or
+                   (regInput^ = (scan + REOpSz + RENextOffSz + 1)^)
                 then
                   Result := MatchPrim(scan + REOpSz + RENextOffSz + REBranchArgSz);
             end;
@@ -6231,18 +6156,18 @@ begin
             scan := next;
             Assert(scan <> nil);
             next := regNextQuick(scan);
-            if  (unaligned(next^) <> OP_BRANCH) and (unaligned(next^) <> OP_GBRANCH) and (unaligned(next^) <> OP_GBRANCH_EX) and (unaligned(next^) <> OP_GBRANCH_EX_CI) then
+            if  (next^ <> OP_BRANCH) and (next^ <> OP_GBRANCH) and (next^ <> OP_GBRANCH_EX) and (next^ <> OP_GBRANCH_EX_CI) then
               break;
           until  False;
-          case unaligned(scan^) of
+          case scan^ of
             OP_GBRANCH_EX:
-              if (unaligned(regInput^) <> unaligned((scan + REOpSz + RENextOffSz)^)) then
-                exit;
+              if (regInput^ <> (scan + REOpSz + RENextOffSz)^) then
+                Exit;
             OP_GBRANCH_EX_CI:
-              if (unaligned(regInput^) <> unaligned((scan + REOpSz + RENextOffSz)^)) and
-                 (unaligned(regInput^) <> unaligned((scan + REOpSz + RENextOffSz + 1)^))
+              if (regInput^ <> (scan + REOpSz + RENextOffSz)^) and
+                 (regInput^ <> (scan + REOpSz + RENextOffSz + 1)^)
               then
-                exit;
+                Exit;
           end;
           next := scan + REOpSz + RENextOffSz + REBranchArgSz; // Avoid recursion
         end;
@@ -6265,158 +6190,153 @@ begin
           Exit;
         end;
 
-      OP_LOOP, OP_LOOP_NG, OP_LOOP_POSS:
+      OP_LOOP, OP_LOOP_POSS:
         begin
           if CurrentLoopInfoListPtr = nil then begin
             Error(reeLoopWithoutEntry);
             Exit;
           end;
-          opnd := scan + unaligned(PRENextOff(AlignToPtr(scan + REOpSz + RENextOffSz + 2 * REBracesArgSz))^);
-          BracesMin := unaligned(PREBracesArg(AlignToInt(scan + REOpSz + RENextOffSz))^);
-          BracesMax := unaligned(PREBracesArg(AlignToPtr(scan + REOpSz + RENextOffSz + REBracesArgSz))^);
-          save := regInput;
+          opnd := AlignToPtr(scan + REOpSz + RENextOffSz);
           Local.LoopInfoListPtr := CurrentLoopInfoListPtr;
-          if Local.LoopInfoListPtr^.Count >= BracesMin then
-          begin // Min already matched - we can work
-            Result := (BracesMax = MaxBracesArg) and // * or +
+          if Local.LoopInfoListPtr^.Count >= unaligned(PREBracesArg(opnd)^) then  // Min-Count
+          begin // Min alredy matched - we can work
+            LoopCnt := unaligned(PREBracesArg(opnd + REBracesArgSz)^);  // Max-Count
+            Result := (LoopCnt = MaxBracesArg) and // * or +
                       (Local.LoopInfoListPtr^.CurrentRegInput = regInput);
             if Result then begin
               CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
               Result := MatchPrim(next);
               CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
-              if not Result then
-                regInput := save;
-              exit;
-            end;
-
-            Local.LoopInfoListPtr^.CurrentRegInput := regInput;
-            if not (unaligned(scan^) = OP_LOOP_NG) then
-            begin
-              // greedy way - first try to max deep of greed ;)
-              if Local.LoopInfoListPtr^.Count < BracesMax then
-              begin
-                Inc(Local.LoopInfoListPtr^.Count);
-                Result := MatchPrim(opnd);
-                if Result then
-                  Exit;
-                if IsBacktrackingGroupAsAtom then
-                  Exit;
-                Dec(Local.LoopInfoListPtr^.Count);
-                regInput := save;
-              end;
-              CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
-              Result := MatchPrim(next);
-              CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
-
-              if IsBacktrackingGroupAsAtom then
-                Exit;
-              if (unaligned(scan^) = OP_LOOP_POSS) and (not Result) then begin
+              if (not Result) and (scan^ = OP_LOOP_POSS) then begin
                 Local.LoopInfoListPtr^.BackTrackingAsAtom := True;
                 IsBacktrackingGroupAsAtom := True;
-                exit;
               end;
-              if not Result then
-                regInput := save;
               Exit;
-            end
-            else
+            end;
+
+            // greedy way - first try to max deep of greed ;)
+            if Local.LoopInfoListPtr^.Count < LoopCnt then
             begin
-              // non-greedy - try just now
-              CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
-              Result := MatchPrim(next);
-              CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
-              if Result then
+              save := regInput;
+              Local.LoopInfoListPtr^.CurrentRegInput := save;
+              Inc(Local.LoopInfoListPtr^.Count);
+              Result := MatchPrim(scan + unaligned(PRENextOff(opnd + 2 * REBracesArgSz)^));
+              if Result or IsBacktrackingGroupAsAtom then
                 Exit;
-              if IsBacktrackingGroupAsAtom then
-                Exit;
-              regInput := save; // failed - move next and try again
-              if Local.LoopInfoListPtr^.Count < BracesMax then
-              begin
-                Inc(Local.LoopInfoListPtr^.Count);
-                Result := MatchPrim(opnd);
-                if Result then
-                  Exit;
-                if IsBacktrackingGroupAsAtom then
-                  Exit;
-                Dec(Local.LoopInfoListPtr^.Count);
-                regInput := save;
-              end;
+              Dec(Local.LoopInfoListPtr^.Count);
+              regInput := save;
+            end;
+            CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
+            Result := MatchPrim(next);
+            CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
+
+            if Result or IsBacktrackingGroupAsAtom then
               Exit;
-            end
+            if (scan^ = OP_LOOP_POSS) then begin
+              Local.LoopInfoListPtr^.BackTrackingAsAtom := True;
+              IsBacktrackingGroupAsAtom := True;
+            end;
+            Exit;
           end
           else
           begin // first match a min_cnt times
             Inc(Local.LoopInfoListPtr^.Count);
             Local.LoopInfoListPtr^.CurrentRegInput := regInput;
-            Result := MatchPrim(opnd);
-            if Result then
-              Exit;
-            if IsBacktrackingGroupAsAtom then
+            Result := MatchPrim(scan + unaligned(PRENextOff(opnd + 2 * REBracesArgSz)^));
+            if Result or IsBacktrackingGroupAsAtom then
               Exit;
             Dec(Local.LoopInfoListPtr^.Count);
-            regInput := save;
+            Exit;
+          end;
+        end;
+
+      OP_LOOP_NG:
+        begin
+          if CurrentLoopInfoListPtr = nil then begin
+            Error(reeLoopWithoutEntry);
+            Exit;
+          end;
+          opnd := AlignToPtr(scan + REOpSz + RENextOffSz);
+          Local.LoopInfoListPtr := CurrentLoopInfoListPtr;
+          if Local.LoopInfoListPtr^.Count >= unaligned(PREBracesArg(opnd)^) then // Min-Count
+          begin // Min alredy matched - we can work
+            LoopCnt := unaligned(PREBracesArg(opnd + REBracesArgSz)^);  // Max-Count
+            Result := (LoopCnt = MaxBracesArg) and // * or +
+                      (Local.LoopInfoListPtr^.CurrentRegInput = regInput);
+            if Result then begin
+              CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
+              Result := MatchPrim(next);
+              CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
+              Exit;
+            end;
+
+            save := regInput;
+            Local.LoopInfoListPtr^.CurrentRegInput := save;
+            // non-greedy - try just now
+            CurrentLoopInfoListPtr := Local.LoopInfoListPtr^.OuterLoop;
+            Result := MatchPrim(next);
+            CurrentLoopInfoListPtr := Local.LoopInfoListPtr;
+            if Result or IsBacktrackingGroupAsAtom then
+              Exit;
+            if Local.LoopInfoListPtr^.Count < LoopCnt then
+            begin
+              regInput := save; // failed - move next and try again
+              Inc(Local.LoopInfoListPtr^.Count);
+              Result := MatchPrim(scan + unaligned(PRENextOff(opnd + 2 * REBracesArgSz)^));
+              if Result or IsBacktrackingGroupAsAtom then
+                Exit;
+              Dec(Local.LoopInfoListPtr^.Count);
+            end;
+            Exit;
+          end
+          else
+          begin // first match a min_cnt times
+            Inc(Local.LoopInfoListPtr^.Count);
+            Local.LoopInfoListPtr^.CurrentRegInput := regInput;
+            Result := MatchPrim(scan + unaligned(PRENextOff(opnd + 2 * REBracesArgSz)^));
+            if Result or IsBacktrackingGroupAsAtom then
+              Exit;
+            Dec(Local.LoopInfoListPtr^.Count);
             Exit;
           end;
         end;
       {$ENDIF}
 
-      OP_STAR, OP_PLUS, OP_BRACES, OP_STAR_NG, OP_PLUS_NG, OP_BRACES_NG:
+      OP_STAR, OP_PLUS, OP_BRACES:
         begin
-          // Lookahead to avoid useless match attempts when we know
-          // what character comes next.
-          nextch := #0;
-          if next^ = OP_EXACTLY then
-            nextch := unaligned((next + REOpSz + RENextOffSz + RENumberSz)^);
-          BracesMax := MaxInt; // infinite loop for * and +
-          if (unaligned(scan^) = OP_STAR) or (unaligned(scan^) = OP_STAR_NG) then
-            BracesMin := 0 // star
-          else if (unaligned(scan^) = OP_PLUS) or (unaligned(scan^) = OP_PLUS_NG) then
-            BracesMin := 1 // plus
-          else
-          begin // braces
-            BracesMin := unaligned(PREBracesArg(AlignToPtr(scan + REOpSz + RENextOffSz))^);
-            BracesMax := unaligned(PREBracesArg(AlignToPtr(scan + REOpSz + RENextOffSz + REBracesArgSz))^);
-          end;
-          save := regInput;
           opnd := scan + REOpSz + RENextOffSz;
-          if (unaligned(scan^) = OP_BRACES) or (unaligned(scan^) = OP_BRACES_NG) then
-            Inc(opnd, 2 * REBracesArgSz);
-
-          if (unaligned(scan^) = OP_PLUS_NG) or (unaligned(scan^) = OP_STAR_NG) or (unaligned(scan^) = OP_BRACES_NG) then
-          begin
-            // non-greedy mode
-            BracesMax := FindRepeated(opnd, BracesMax);
-            // don't repeat more than BracesMax
-            // Now we know real Max limit to move forward (for recursion 'back up')
-            // In some cases it can be faster to check only Min positions first,
-            // but after that we have to check every position separately instead
-            // of fast scanning in loop.
-            no := BracesMin;
-            while no <= BracesMax do
-            begin
-              regInput := save + no;
-              // If it could work, try it.
-              if (nextch = #0) or (unaligned(regInput^) = nextch) then
+          save := regInput;
+          case scan^ of
+            OP_STAR:
               begin
-                if MatchPrim(next) then
-                begin
-                  Result := True;
+                no := FindRepeated(opnd, MaxInt);
+                LoopCnt := 0 // star
+              end;
+            OP_PLUS:
+              begin
+                no := FindRepeated(opnd, MaxInt);
+                if no < 1 then
                   Exit;
-                end;
-                if IsBacktrackingGroupAsAtom then
+                LoopCnt := 1 // star
+              end;
+            else
+              begin // braces
+                opnd := AlignToPtr(opnd);
+                no := FindRepeated(opnd + 2 * REBracesArgSz, unaligned(PREBracesArg(opnd + REBracesArgSz)^));
+                LoopCnt := unaligned(PREBracesArg(opnd)^);
+                if no < LoopCnt then
                   Exit;
               end;
-              Inc(no); // Couldn't or didn't - move forward.
-            end; { of while }
-            Exit;
-          end
-          else
-          begin // greedy mode
-            no := FindRepeated(opnd, BracesMax); // don't repeat more than max_cnt
-            while no >= BracesMin do
+          end;
+
+          if next^ = OP_EXACTLY then begin
+            // Lookahead to avoid useless match attempts when we know
+            // what character comes next.
+            Local.nextch := (next + REOpSz + RENextOffSz + RENumberSz)^;
+            while no >= LoopCnt do
             begin
               // If it could work, try it.
-              if (nextch = #0) or (unaligned(regInput^) = nextch) then
+              if (Local.nextch = #0) or (regInput^ = Local.nextch) then
               begin
                 if MatchPrim(next) then
                 begin
@@ -6429,43 +6349,118 @@ begin
               Dec(no); // Couldn't or didn't - back up.
               regInput := save + no;
             end; { of while }
-            Exit;
+          end
+          else begin
+            while no >= LoopCnt do
+            begin
+              if MatchPrim(next) then
+              begin
+                Result := True;
+                Exit;
+              end;
+              if IsBacktrackingGroupAsAtom then
+                Exit;
+              Dec(no); // Couldn't or didn't - back up.
+              regInput := save + no;
+            end; { of while }
           end;
+          Exit;
+        end;
+
+      OP_STAR_NG, OP_PLUS_NG, OP_BRACES_NG:
+        begin
+          opnd := scan + REOpSz + RENextOffSz;
+          save := regInput;
+          case scan^ of
+            OP_STAR_NG:
+              begin
+                no := FindRepeated(opnd, MaxInt);
+                LoopCnt := 0 // star
+              end;
+            OP_PLUS_NG:
+              begin
+                no := FindRepeated(opnd, MaxInt);
+                if no < 1 then
+                  Exit;
+                LoopCnt := 1 // star
+              end;
+            else
+              begin // braces
+                opnd := AlignToPtr(opnd);
+                no := FindRepeated(opnd + 2 * REBracesArgSz, unaligned(PREBracesArg(opnd + REBracesArgSz)^));
+                LoopCnt := unaligned(PREBracesArg(opnd)^);
+                if no < LoopCnt then
+                  Exit;
+              end;
+          end;
+
+
+          // non-greedy mode
+          // don't repeat more than "no" times
+          // Now we know real Max limit to move forward (for recursion 'back up')
+          // In some cases it can be faster to check only Min positions first,
+          // but after that we have to check every position separtely instead
+          // of fast scannig in loop.
+          if next^ = OP_EXACTLY then begin
+            // Lookahead to avoid useless match attempts when we know
+            // what character comes next.
+            Local.nextch := (next + REOpSz + RENextOffSz + RENumberSz)^;
+            while LoopCnt <= no do
+            begin
+              regInput := save + LoopCnt;
+              // If it could work, try it.
+              if (Local.nextch = #0) or (regInput^ = Local.nextch) then
+              begin
+                if MatchPrim(next) then
+                begin
+                  Result := True;
+                  Exit;
+                end;
+                if IsBacktrackingGroupAsAtom then
+                  Exit;
+              end;
+              Inc(LoopCnt); // Couldn't or didn't - move forward.
+            end; { of while }
+          end
+          else begin
+            while LoopCnt <= no do
+            begin
+              regInput := save + LoopCnt;
+              if MatchPrim(next) then
+              begin
+                Result := True;
+                Exit;
+              end;
+              if IsBacktrackingGroupAsAtom then
+                Exit;
+              Inc(LoopCnt); // Couldn't or didn't - move forward.
+            end; { of while }
+          end;
+          Exit;
         end;
 
       OP_STAR_POSS, OP_PLUS_POSS, OP_BRACES_POSS:
         begin
-          // Lookahead to avoid useless match attempts when we know
-          // what character comes next.
-          nextch := #0;
-          if unaligned(next^) = OP_EXACTLY then
-            nextch := unaligned((next + REOpSz + RENextOffSz + RENumberSz)^);
           opnd := scan + REOpSz + RENextOffSz;
-          case unaligned(scan^) of
+          case scan^ of
             OP_STAR_POSS:
               begin
-                BracesMin := 0;
-                BracesMax := MaxInt;
+                FindRepeated(opnd, MaxInt);
               end;
             OP_PLUS_POSS:
               begin
-                BracesMin := 1;
-                BracesMax := MaxInt;
+                if FindRepeated(opnd, MaxInt) < 1 then
+                  Exit;
               end;
             else
               begin // braces
-                BracesMin := unaligned(PREBracesArg(AlignToPtr(scan + REOpSz + RENextOffSz))^);
-                BracesMax := unaligned(PREBracesArg(AlignToPtr(scan + REOpSz + RENextOffSz + REBracesArgSz))^);
-                Inc(opnd, 2 * REBracesArgSz);
+                opnd := AlignToPtr(opnd);
+                if FindRepeated(opnd + 2 * REBracesArgSz, unaligned(PREBracesArg(opnd + REBracesArgSz)^))
+                   < unaligned(PREBracesArg(opnd)^)
+                then
+                  Exit;
               end;
           end;
-          no := FindRepeated(opnd, BracesMax);
-          if no >= BracesMin then
-            if (nextch = #0) or (unaligned(regInput^) = nextch) then begin
-              scan := next;
-              continue;
-            end;
-          Exit;
         end;
 
       OP_EEND:
@@ -6504,20 +6499,34 @@ begin
           if regRecursion < RegexMaxRecursion then
           begin
             Inc(regRecursion);
-            FillChar(GrpBounds[regRecursion].GrpStart[0], SizeOf(GrpBounds[regRecursion].GrpStart[0])*regNumBrackets, 0);
-            bound1 := MatchPrim(regCodeWork);
+            if regNumBrackets > 0 then begin
+              CurrentGrpBounds.TmpStart := @GrpBounds[regRecursion].TmpStart[0];
+              CurrentGrpBounds.GrpStart := @GrpBounds[regRecursion].GrpStart[0];
+              CurrentGrpBounds.GrpEnd   := @GrpBounds[regRecursion].GrpEnd[0];
+              {$IFDEF HASPOINTERARRAYACCESS}
+              FillChar(CurrentGrpBounds.GrpStart[0], SizeOf(CurrentGrpBounds.GrpStart[0])*regNumBrackets, 0);
+              {$ELSE}
+              FillChar(CurrentGrpBounds.GrpStart^, SizeOf(CurrentGrpBounds.GrpStart^)*regNumBrackets, 0);
+              {$ENDIF}
+            end;
+            Result := MatchPrim(regCodeWork);
             Dec(regRecursion);
+            if regNumBrackets > 0 then begin
+              CurrentGrpBounds.TmpStart := @GrpBounds[regRecursion].TmpStart[0];
+              CurrentGrpBounds.GrpStart := @GrpBounds[regRecursion].GrpStart[0];
+              CurrentGrpBounds.GrpEnd   := @GrpBounds[regRecursion].GrpEnd[0];
+            end;
+            if not Result then Exit;
+            Result := False;
           end
           else
-            bound1 := False;
-          if not bound1 then Exit;
+            Exit;
         end;
 
       OP_SUBCALL:
         begin
           // call subroutine
           no := unaligned(PReGroupIndex((scan + REOpSz + RENextOffSz))^);
-          no := GrpIndexes[no];
           if no < 0 then Exit;
           save := GrpOpCodes[no];
           if save = nil then Exit;
@@ -6526,25 +6535,44 @@ begin
             Local.savedCurrentSubCalled := CurrentSubCalled;
             CurrentSubCalled := no;
             Inc(regRecursion);
-            FillChar(GrpBounds[regRecursion].GrpStart[0], SizeOf(GrpBounds[regRecursion].GrpStart[0])*regNumBrackets, 0);
-            bound1 := MatchPrim(save);
+            if regNumBrackets > 0 then begin
+              CurrentGrpBounds.TmpStart := @GrpBounds[regRecursion].TmpStart[0];
+              CurrentGrpBounds.GrpStart := @GrpBounds[regRecursion].GrpStart[0];
+              CurrentGrpBounds.GrpEnd   := @GrpBounds[regRecursion].GrpEnd[0];
+              {$IFDEF HASPOINTERARRAYACCESS}
+              FillChar(CurrentGrpBounds.GrpStart[0], SizeOf(CurrentGrpBounds.GrpStart[0])*regNumBrackets, 0);
+              {$ELSE}
+              FillChar(CurrentGrpBounds.GrpStart^, SizeOf(CurrentGrpBounds.GrpStart^)*regNumBrackets, 0);
+              {$ENDIF}
+            end;
+            Result := MatchPrim(save);
             Dec(regRecursion);
+            if regNumBrackets > 0 then begin
+              CurrentGrpBounds.TmpStart := @GrpBounds[regRecursion].TmpStart[0];
+              CurrentGrpBounds.GrpStart := @GrpBounds[regRecursion].GrpStart[0];
+              CurrentGrpBounds.GrpEnd   := @GrpBounds[regRecursion].GrpEnd[0];
+            end;
             CurrentSubCalled := Local.savedCurrentSubCalled;
+            if not Result then Exit;
+            Result := False;
           end
           else
-            bound1 := False;
-          if not bound1 then Exit;
+            Exit;
         end;
 
-    OP_ANYLINEBREAK:
-      begin
-        if (regInput >= fInputCurrentEnd) or not IsAnyLineBreak(unaligned(regInput^)) then
-          Exit;
-        nextch := unaligned(regInput^);
-        Inc(regInput);
-        if (nextch = #13) and (regInput < fInputCurrentEnd) and (unaligned(regInput^) = #10) then
-          Inc(regInput);
-      end;
+      OP_ANYLINEBREAK:
+        begin
+          if (regInput >= fInputCurrentEnd) or not IsAnyLineBreak(regInput^) then
+            Exit;
+          if regInput^ = #13 then begin
+            Inc(regInput);
+            if (regInput < fInputCurrentEnd) and (regInput^ = #10) then
+              Inc(regInput);
+          end
+          else
+            Inc(regInput);
+        end;
+
     {$IFDEF WITH_REGEX_ASSERT}
     else
       Error(reeMatchPrimMemoryCorruption);
@@ -6569,35 +6597,81 @@ function TRegExpr.Exec: Boolean;
 var
   SlowChecks: Boolean;
 begin
-  SlowChecks := fInputEnd - fInputStart < fSlowChecksSizeMax;
+  SlowChecks := (fInputEnd - fInputStart < fSlowChecksSizeMax) and (regMustString <> '');
   Result := ExecPrim(1, SlowChecks, False, 0);
 end; { of function TRegExpr.Exec
   -------------------------------------------------------------- }
 
 function TRegExpr.Exec(AOffset: Integer): Boolean;
 begin
+  // Check that the start position is not negative
+  if AOffset < 0 then
+  begin
+    ClearMatches;
+    Error(reeOffsetMustBePositive);
+    Result := False;
+    Exit;
+  end;
   Result := ExecPrim(AOffset, False, False, 0);
 end; { of function TRegExpr.Exec
   -------------------------------------------------------------- }
 {$ENDIF}
 
-function TRegExpr.ExecPos(AOffset: Integer {$IFDEF DefParam} = 1{$ENDIF}): Boolean;
+function TRegExpr.ExecPos(AOffset: Integer {$IFDEF DefParam} = 0{$ENDIF}): Boolean;
 begin
+  // Check that the start position is not negative
+  if AOffset < 0 then
+  begin
+    ClearMatches;
+    Error(reeOffsetMustBePositive);
+    Result := False;
+    Exit;
+  end;
   Result := ExecPrim(AOffset, False, False, 0);
 end; { of function TRegExpr.ExecPos
   -------------------------------------------------------------- }
 
 {$IFDEF OverMeth}
 function TRegExpr.ExecPos(AOffset: Integer; ATryOnce, ABackward: Boolean): Boolean;
+var
+  NStartingBefore: Integer;
 begin
+  // Check that the start position is not negative
+  if AOffset < 0 then
+  begin
+    ClearMatches;
+    Error(reeOffsetMustBePositive);
+    Result := False;
+    Exit;
+  end;
+
   if ATryOnce then
-    Result := ExecPrim(AOffset, False, ABackward, AOffset + 1)
+  begin
+    NStartingBefore := AOffset;
+    if not ABackward then
+      Inc(NStartingBefore);
+  end
   else
-    Result := ExecPrim(AOffset, False, ABackward, 0);
+    NStartingBefore := 0; // ie ignore that parameter in ExecPrim
+
+  Result := ExecPrim(AOffset, False, ABackward, NStartingBefore);
 end;
 
 function TRegExpr.ExecPos(AOffset, ATryMatchOnlyStartingBefore: Integer): Boolean;
 begin
+  // Check that the start position is not negative
+  if AOffset < 0 then
+  begin
+    ClearMatches;
+    Error(reeOffsetMustBePositive);
+    Result := False;
+    Exit;
+  end;
+  if (ATryMatchOnlyStartingBefore > 0) and (AOffset >= ATryMatchOnlyStartingBefore) then begin
+    ClearMatches;
+    Result := False;
+    Exit;
+  end;
   Result := ExecPrim(AOffset, False, False, ATryMatchOnlyStartingBefore);
 end;
 {$ENDIF}
@@ -6620,7 +6694,7 @@ end;
 procedure TRegExpr.ClearMatches;
 begin
   if FMatchesCleared then
-    exit;
+    Exit;
   FMatchesCleared := True;
   if Length(GrpBounds[0].GrpStart) > 0 then
     FillChar(GrpBounds[0].GrpStart[0], SizeOf(GrpBounds[0].GrpStart[0])*regNumBrackets, 0);
@@ -6629,7 +6703,8 @@ end;
 procedure TRegExpr.ClearInternalExecData;
 begin
   fLastError := reeOk;
-  FillChar(GrpBacktrackingAsAtom[0], SizeOf(GrpBacktrackingAsAtom[0])*regNumBrackets, 0);
+  if Length(GrpBacktrackingAsAtom) > 0 then
+    FillChar(GrpBacktrackingAsAtom[0], SizeOf(GrpBacktrackingAsAtom[0])*regNumAtomicBrackets, 0);
   IsBacktrackingGroupAsAtom := False;
   {$IFDEF ComplexBraces}
   // no loops started
@@ -6638,6 +6713,11 @@ begin
   LookAroundInfoList := nil;
   CurrentSubCalled := -1;
   regRecursion := 0;
+  if regNumBrackets > 0 then begin
+    CurrentGrpBounds.TmpStart := @GrpBounds[0].TmpStart[0];
+    CurrentGrpBounds.GrpStart := @GrpBounds[0].GrpStart[0];
+    CurrentGrpBounds.GrpEnd   := @GrpBounds[0].GrpEnd[0];
+  end;
 end;
 
 procedure TRegExpr.InitInternalGroupData;
@@ -6645,53 +6725,42 @@ var
   BndLen, i: Integer;
 begin
   BndLen := GroupDataArraySize(regNumBrackets, Length(GrpBounds[0].GrpStart));
-  for i := low(GrpBounds) to high(GrpBounds) do begin
-    SetLength(GrpBounds[i].GrpStart, BndLen);
-    SetLength(GrpBounds[i].GrpEnd, BndLen);
+  if hasRecursion then begin
+    for i := low(GrpBounds) to high(GrpBounds) do begin
+      SetLength(GrpBounds[i].TmpStart, BndLen);
+      SetLength(GrpBounds[i].GrpStart, BndLen);
+      SetLength(GrpBounds[i].GrpEnd, BndLen);
+    end;
+  end
+  else begin
+    SetLength(GrpBounds[0].TmpStart, BndLen);
+    SetLength(GrpBounds[0].GrpStart, BndLen);
+    SetLength(GrpBounds[0].GrpEnd, BndLen);
+    {$IF NOT DEFINED(D8) AND NOT DEFINED(FPC)}
+    for i := low(GrpBounds) + 1 to high(GrpBounds) do begin
+      SetLength(GrpBounds[i].TmpStart, 0);
+      SetLength(GrpBounds[i].GrpStart, 0);
+      SetLength(GrpBounds[i].GrpEnd, 0);
+    end;
+    {$ELSE}
+    for i := low(GrpBounds) + 1 to high(GrpBounds) do begin
+      GrpBounds[i].TmpStart := nil;
+      GrpBounds[i].GrpStart := nil;
+      GrpBounds[i].GrpEnd := nil;
+    end;
+    {$IFEND}
   end;
 
-  SetLength(GrpIndexes, GroupDataArraySize(regNumBrackets, Length(GrpIndexes)));
-  for i := 1 to regNumBrackets - 1 do
-    GrpIndexes[i] := -1;
-  GrpIndexes[0] := 0;
-
   SetLength(GrpOpCodes, GroupDataArraySize(regNumBrackets, Length(GrpOpCodes)));
-  SetLength(GrpBacktrackingAsAtom, GroupDataArraySize(regNumBrackets, Length(GrpBacktrackingAsAtom)));
+  SetLength(GrpBacktrackingAsAtom, GroupDataArraySize(regNumAtomicBrackets, Length(GrpBacktrackingAsAtom)));
 
   GrpOpCodes[0] := nil;
 end;
 
 function TRegExpr.ExecPrim(AOffset: Integer; ASlowChecks, ABackward: Boolean;
   ATryMatchOnlyStartingBefore: Integer): Boolean;
-begin
-  if fRaiseForRuntimeError then begin
-    Result := ExecPrimProtected(AOffset, ASlowChecks, ABackward, ATryMatchOnlyStartingBefore);
-  end
-  else begin
-    try
-      Result := ExecPrimProtected(AOffset, ASlowChecks, ABackward, ATryMatchOnlyStartingBefore);
-    except
-      on E: EStackOverflow do begin
-        Result := False;
-        fLastError := reeLoopStackExceeded;
-        Error(reeLoopStackExceeded);
-      end;
-      on E: ERegExpr do begin
-        Result := False;
-        raise;
-      end;
-      else begin
-        fLastError := reeUnknown;
-        Error(reeUnknown);
-      end;
-    end;
-  end;
-end;
-
-function TRegExpr.ExecPrimProtected(AOffset: Integer; ASlowChecks,
-  ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean;
 var
-  Ptr, SearchEnd: PRegExprChar;
+  Len: PtrInt;
 begin
   Result := False;
 
@@ -6703,41 +6772,40 @@ begin
   // Don't check IsProgrammOk here! it causes big slowdown in test_benchmark!
   if programm = nil then
   begin
-    Compile;
+    if fRaiseForRuntimeError then begin
+      Compile;
+    end
+    else begin
+      try
+          Compile;
+      except
+        on E: ERegExpr do begin
+          Result := False;
+        end;
+        else begin
+          Result := False;
+          fLastError := reeUnknown;
+        end;
+      end;
+    end;
     if programm = nil then
       Exit;
   end;
 
-  if fInputEnd = fInputStart then
-  begin
-    // Empty string can match e.g. '^$'
-    if regMustLen > 0 then
+  Len := fInputEnd - fInputStart;
+  if FMinMatchLen > Len then
       Exit;
-  end;
-
-  // Check that the start position is not negative
-  if AOffset < 1 then
-  begin
-    Error(reeOffsetMustBePositive);
-    Exit;
-  end;
-  if (ATryMatchOnlyStartingBefore > 0) and (AOffset >= ATryMatchOnlyStartingBefore) then
-    Exit;
 
   // Check that the start position is not longer than the line
-  if (AOffset - 1) > (fInputEnd - fInputStart) then
-    Exit;
-
-  ClearInternalExecData;
-
-  Ptr := fInputStart + AOffset - 1;
-  fInputContinue := Ptr;
+  if AOffset > Len - FMinMatchLen + 1 then
+    if not ABackward then
+      Exit;
 
   // If there is a "must appear" string, look for it.
   if ASlowChecks then
     if regMustString <> '' then
-      if StrLPos(fInputStart, PRegExprChar(regMustString), fInputEnd - fInputStart, length(regMustString)) = nil then
-        exit;
+      if StrLPos(fInputStart, PRegExprChar(regMustString), Len, Length(regMustString)) = nil then
+        Exit;
 
   {$IFDEF RegExpWithStackOverflowCheck_DecStack_Frame}
   StackLimit := StackBottom;
@@ -6745,6 +6813,39 @@ begin
     StackLimit := StackLimit + 36000; // Add for any calls within the current MatchPrim // FPC has "STACK_MARGIN = 16384;", but we need to call Error, ..., raise
   {$ENDIF}
 
+  ClearInternalExecData;
+
+  if fRaiseForRuntimeError then begin
+    Result := ExecPrimProtected(AOffset, ASlowChecks, ABackward, ATryMatchOnlyStartingBefore);
+  end
+  else begin
+    try
+      Result := ExecPrimProtected(AOffset, ASlowChecks, ABackward, ATryMatchOnlyStartingBefore);
+    except
+      on E: EStackOverflow do begin
+        Result := False;
+        fLastError := reeLoopStackExceeded;
+      end;
+      on E: ERegExpr do begin
+        Result := False;
+      end;
+      else begin
+        Result := False;
+        fLastError := reeUnknown;
+      end;
+    end;
+  end;
+end;
+
+function TRegExpr.ExecPrimProtected(AOffset: Integer; ASlowChecks,
+  ABackward: Boolean; ATryMatchOnlyStartingBefore: Integer): Boolean;
+var
+  Ptr, PtrPrev, SearchEnd: PRegExprChar;
+  TempMatchPos, TempMatchLen: Integer;
+begin
+  Result := False;
+  Ptr := fInputStart + AOffset - 1;
+  fInputContinue := Ptr;
   FMatchesCleared := False;
   // ATryOnce or anchored match (it needs to be tried only once).
   if (ATryMatchOnlyStartingBefore = AOffset + 1) or (regAnchored in [raBOL, raOnlyOnce, raContinue]) then
@@ -6767,7 +6868,7 @@ begin
 
   // Messy cases: unanchored match.
   if ABackward then begin
-    Inc(Ptr, 2);
+    Inc(Ptr);
     repeat
       Dec(Ptr);
       if Ptr < fInputStart then
@@ -6781,10 +6882,32 @@ begin
           Continue;
       {$ENDIF}
 
-      Result := MatchAtOnePos(Ptr);
-      // Exit on a match or after testing the end-of-string
-      if Result then
+      if MatchAtOnePos(Ptr) then begin
+        TempMatchPos := MatchPos[0];
+        TempMatchLen := MatchLen[0];
+        // don't accept match which equals to prev match
+        if (TempMatchPos - 1 = AOffset) {and (Ptr > fInputStart)} then
+          Continue;
+        // don't accept match which overlaps prev match
+        if (TempMatchPos + TempMatchLen - 1 > AOffset) then
+          Continue;
+
+        // if we have surrounding match at prev pos e.g. for regex '\w+', take it
+        PtrPrev := Ptr;
+        repeat
+          if (PtrPrev <= fInputStart) then Break;
+          Dec(PtrPrev);
+          if MatchAtOnePos(PtrPrev) and (MatchPos[0] + MatchLen[0] >= TempMatchPos + TempMatchLen) then
+            Ptr := PtrPrev
+          else begin
+            MatchAtOnePos(Ptr); // to restore MatchPos[], MatchLen[]
+            Break;
+          end;
+        until False;
+
+        Result := True;
         Exit;
+      end;
     until False;
   end
   else begin
@@ -6795,7 +6918,7 @@ begin
     repeat
       Inc(Ptr);
       if Ptr > SearchEnd then
-        Exit;
+        Break;
 
       {$IFDEF UseFirstCharSet}
       {$IFDEF UnicodeRE}
@@ -6810,6 +6933,11 @@ begin
       if Result then
         Exit;
     until False;
+
+    {$IFDEF UseFirstCharSet}
+    if FirstCharArray[0] and (fInputEnd^ <> #0) then
+      Result := MatchAtOnePos(fInputEnd);
+    {$ENDIF}
   end;
 end; { of function TRegExpr.ExecPrim
   -------------------------------------------------------------- }
@@ -6828,10 +6956,19 @@ begin
     Exit;
   end;
 
-  Offset := PtrEnd - fInputStart + 1;
+  if ABackward then
+    Offset := PtrEnd - fInputStart - 1
+  else
+    Offset := PtrEnd - fInputStart + 1;
+
   // prevent infinite looping if empty string matches r.e.
   if PtrBegin = PtrEnd then
-    Inc(Offset);
+  begin
+    if ABackward then
+      Dec(Offset)
+    else
+      Inc(Offset);
+  end;
 
   Result := ExecPrim(Offset, False, ABackward, 0);
 end; { of function TRegExpr.ExecNext
@@ -6933,9 +7070,7 @@ var
   begin
     Idx := ParseVarName(p);
     NumberFound := Idx >= 0;
-    if NumberFound and (Idx <= High(GrpIndexes)) then
-      Idx := GrpIndexes[Idx]
-    else
+    if NumberFound and (Idx > GrpCount) then
       Idx := -1;
   end;
 
@@ -7208,7 +7343,7 @@ begin
   while scan <> nil do
   begin
     Next := regNextQuick(scan);
-    Oper := unaligned(PREOp(scan)^);
+    Oper := PREOp(scan)^;
     case Oper of
       OP_BSUBEXP,
       OP_BSUBEXP_CI:
@@ -7245,10 +7380,16 @@ begin
       OP_NOTBOUND:
         ;
 
-      OP_ANY,
-      OP_ANY_ML:
-        begin // we can better define ANYML
+      OP_ANY:
+        begin
           FirstCharSet := RegExprAllSet;
+          Exit;
+        end;
+
+      OP_ANY_ML:
+        begin
+          // There are still some Unicode breaks that will wrongly be in FirstCharSet
+          FirstCharSet := RegExprAllSet - [10..13];
           Exit;
         end;
 
@@ -7318,7 +7459,7 @@ begin
 
       OP_EXACTLY_CI:
         begin
-          ch := unaligned((scan + REOpSz + RENextOffSz + RENumberSz)^);
+          ch := (scan + REOpSz + RENextOffSz + RENumberSz)^;
           {$IFDEF UnicodeRE}
           if Ord(ch) <= $FF then
           {$ENDIF}
@@ -7331,7 +7472,7 @@ begin
 
       OP_EXACTLY:
         begin
-          ch := unaligned((scan + REOpSz + RENextOffSz + RENumberSz)^);
+          ch := (scan + REOpSz + RENextOffSz + RENumberSz)^;
           {$IFDEF UnicodeRE}
           if Ord(ch) <= $FF then
           {$ENDIF}
@@ -7393,22 +7534,24 @@ begin
         begin
           opnd := PRegExprChar(AlignToPtr(Next + 1)) + RENextOffSz;
           Next := regNextQuick(Next);
-          FillFirstCharSet(Next);
-          if opnd^ = OP_LOOKAROUND_OPTIONAL then
-            Exit;
+
+          TempSet := FirstCharSet;
+          FirstCharSet := [];
+          FillFirstCharSet(Next); // after the lookahead
 
           Next := PRegExprChar(AlignToPtr(scan + 1)) + RENextOffSz;
           TmpFirstCharSet := FirstCharSet;
           FirstCharSet := [];
-          FillFirstCharSet(Next);
+          FillFirstCharSet(Next); // inside the lookahead
 
           if TmpFirstCharSet = [] then
-            exit;
-          if FirstCharSet = [] then
-            FirstCharSet := TmpFirstCharSet
+            FirstCharSet := TempSet + FirstCharSet
           else
-            FirstCharSet := FirstCharSet * TmpFirstCharSet;
-          exit;
+          if FirstCharSet = [] then
+            FirstCharSet := TempSet + TmpFirstCharSet
+          else
+            FirstCharSet := TempSet + (FirstCharSet * TmpFirstCharSet);
+          Exit;
         end;
 
       OP_LOOKAHEAD_NEG,
@@ -7422,11 +7565,6 @@ begin
           Exit;
         end;
 
-      OP_LOOKAROUND_OPTIONAL:
-        begin
-          Next := PRegExprChar(AlignToPtr(scan + 1)) + RENextOffSz;
-        end;
-
       OP_BRANCH, OP_GBRANCH, OP_GBRANCH_EX, OP_GBRANCH_EX_CI:
         begin
           repeat
@@ -7436,8 +7574,8 @@ begin
             FirstCharSet := FirstCharSet + TmpFirstCharSet;
             scan := regNextQuick(scan);
           until (scan = nil) or
-            ( (unaligned(PREOp(scan)^) <> OP_BRANCH) and (unaligned(PREOp(Next)^) <> OP_GBRANCH) and
-              (unaligned(PREOp(scan)^) <> OP_GBRANCH_EX) and (unaligned(PREOp(scan)^) <> OP_GBRANCH_EX_CI) );
+            ( (PREOp(scan)^ <> OP_BRANCH) and (PREOp(Next)^ <> OP_GBRANCH) and
+              (PREOp(scan)^ <> OP_GBRANCH_EX) and (PREOp(scan)^ <> OP_GBRANCH_EX_CI) );
           Exit;
         end;
 
@@ -7515,6 +7653,7 @@ begin
           Include(FirstCharSet, Byte($0B));
           Include(FirstCharSet, Byte($0C));
           Include(FirstCharSet, Byte($85));
+          Exit;
         end;
 
       else
@@ -7755,8 +7894,6 @@ begin
       Result := 'LOOKAHEAD_END';
     OP_LOOKBEHIND_END:
       Result := 'LOOKBEHIND_END';
-    OP_LOOKAROUND_OPTIONAL:
-      Result := 'OP_LOOKAROUND_OPTIONAL';
     OP_STAR:
       Result := 'STAR';
     OP_PLUS:
@@ -7875,9 +8012,9 @@ begin
        ) and
        (CurIndent > 0)
     then
-      dec(CurIndent, Indent);
+      Dec(CurIndent, Indent);
     if s = BranchEnd then begin
-      dec(CurIndent, Indent);
+      Dec(CurIndent, Indent);
       BranchEnd := nil;
       if Length(BranchEndStack) > 0 then begin
         BranchEnd := BranchEndStack[Length(BranchEndStack)-1];
@@ -7890,9 +8027,9 @@ begin
     if (op = OP_OPEN) or (op = OP_OPEN_ATOMIC) or (op = OP_LOOPENTRY) or
        (op = OP_LOOKAHEAD) or (op = OP_LOOKAHEAD_NEG) or (op = OP_LOOKBEHIND) or (op = OP_LOOKBEHIND_NEG)
     then
-      inc(CurIndent, Indent);
+      Inc(CurIndent, Indent);
     if (op = OP_BRANCH) or (op = OP_GBRANCH) or (op = OP_GBRANCH_EX) or (op = OP_GBRANCH_EX_CI) then begin
-      inc(CurIndent, Indent);
+      Inc(CurIndent, Indent);
       if BranchEnd <> nil then begin
         SetLength(BranchEndStack, Length(BranchEndStack)+1);
         BranchEndStack[Length(BranchEndStack)-1] := BranchEnd;
@@ -7989,17 +8126,17 @@ begin
     end;
     if (op = OP_BSUBEXP) or (op = OP_BSUBEXP_CI) then
     begin
-      Result := Result + ' \' + IntToStr(PReGroupIndex(s)^);
+      Result := Result + ' \' + IntToStr(unaligned(PReGroupIndex(s)^));
       Inc(s, ReGroupIndexSz);
     end;
     if (op = OP_SUBCALL) then
     begin
-      Result := Result + ' (?' + IntToStr(PReGroupIndex(s)^) + ') @'  + IntToStr(GrpOpCodes[unaligned(PReGroupIndex(s)^)]-programm);
+      Result := Result + ' (?' + IntToStr(unaligned(PReGroupIndex(s)^)) + ') @'  + IntToStr(GrpOpCodes[unaligned(PReGroupIndex(s)^)]-programm);
       Inc(s, ReGroupIndexSz);
     end;
     if (op = OP_OPEN) or (op = OP_OPEN_ATOMIC) or (op = OP_CLOSE) or (op = OP_CLOSE_ATOMIC) then
     begin
-      Result := Result + ' [' + IntToStr(PReGroupIndex(s)^) + ']';
+      Result := Result + ' [' + IntToStr(unaligned(PReGroupIndex(s)^)) + ']';
       Inc(s, ReGroupIndexSz);
     end;
     if (op = OP_BRACES) or (op = OP_BRACES_NG) or (op = OP_BRACES_POSS) then
@@ -8022,9 +8159,9 @@ begin
     {$ENDIF}
     if (op = OP_ANYCATEGORY) or (op = OP_NOTCATEGORY) then
     begin
-      ch := unaligned(s^);
+      ch := s^;
       Inc(s);
-      ch2 := unaligned(s^);
+      ch2 := s^;
       Inc(s);
       if ch2<>#0 then
         Result := Result + '{' + ch + ch2 + '}'
@@ -8053,9 +8190,9 @@ begin
     else
     if (op = OP_GBRANCH_EX) or (op = OP_GBRANCH_EX_CI) then
     begin
-      Result := Result + ' ' + unaligned(s^);
+      Result := Result + ' ' + s^;
       if (op = OP_GBRANCH_EX_CI) then
-        Result := Result + unaligned((s+1)^);
+        Result := Result + (s+1)^;
       Inc(s, REBranchArgSz);
     end;
     Result := Result + #$d#$a;
@@ -8132,6 +8269,12 @@ function TRegExpr.IsPartFixedLength(var prog: PRegExprChar; var op: TREOp;
       AVal := AVal + AInc;
   end;
 
+  function MaxStopOrNext(next: PRegExprChar): PRegExprChar;
+  begin
+    Result := next;
+    if (Result = nil) or ( (StopMaxProg <> nil) and (Result > StopMaxProg) ) then
+      Result := StopMaxProg;
+  end;
 
 var
   s, next: PRegExprChar;
@@ -8169,7 +8312,7 @@ begin
     Inc(s, REOpSz + RENextOffSz);
 
     case op of
-      OP_EEND:
+      OP_EEND, OP_BACK:
         begin
           AMaxLen := FndMaxLen;
           op := FirstVarLenOp;
@@ -8181,26 +8324,22 @@ begin
       OP_BRANCH, OP_GBRANCH, OP_GBRANCH_EX, OP_GBRANCH_EX_CI:
         begin
           s := s + REBranchArgSz;
-          if not IsPartFixedLength(s, op, ABranchLen, ABranchMaxLen, OP_EEND, next, []) then
+          if not IsPartFixedLength(s, op, ABranchLen, ABranchMaxLen, OP_EEND, MaxStopOrNext(next), Flags * [flfReturnAtNextNil, flfSkipLookAround]) then
           begin
             if not NotFixedLen then
               FirstVarLenOp := op;
             NotFixedLen := True;
-            if (ABranchMaxLen = high(ABranchMaxLen)) and not(flfForceToStopAt in Flags) then
-              exit;
           end;
           s := next;
           repeat
             next := regNext(s);
             s := s + REBranchArgSz;
             Inc(s, REOpSz + RENextOffSz);
-            if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_EEND, next, []) then
+            if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_EEND, MaxStopOrNext(next), Flags * [flfReturnAtNextNil, flfSkipLookAround]) then
             begin
               if not NotFixedLen then
                 FirstVarLenOp := op;
               NotFixedLen := True;
-              if (ABranchMaxLen = high(ABranchMaxLen)) and not(flfForceToStopAt in Flags) then
-                exit;
             end;
             s := next;
             if (ASubLen <> ABranchLen) then
@@ -8218,13 +8357,11 @@ begin
       OP_OPEN:
         begin
           Inc(s, ReGroupIndexSz);
-          if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_CLOSE, nil, [flfForceToStopAt]) then
+          if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_CLOSE, StopMaxProg, Flags * [flfReturnAtNextNil, flfSkipLookAround]) then
           begin
             if not NotFixedLen then
               FirstVarLenOp := op;
             NotFixedLen := True;
-            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
-              exit;
           end;
           assert(s^=OP_CLOSE);
           AMinLen := AMinLen + ASubLen;
@@ -8236,13 +8373,11 @@ begin
       OP_OPEN_ATOMIC:
         begin
           Inc(s, ReGroupIndexSz);
-          if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_CLOSE_ATOMIC, nil, [flfForceToStopAt]) then
+          if not IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_CLOSE_ATOMIC, StopMaxProg, Flags * [flfReturnAtNextNil, flfSkipLookAround]) then
           begin
             if not NotFixedLen then
               FirstVarLenOp := op;
             NotFixedLen := True;
-            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
-              exit;
           end;
           assert(s^=OP_CLOSE_ATOMIC);
           AMinLen := AMinLen + ASubLen;
@@ -8259,7 +8394,7 @@ begin
 
       OP_LOOKAHEAD, OP_LOOKAHEAD_NEG:
         begin
-          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_LOOKAHEAD_END, next, [flfSkipLookAround, flfForceToStopAt]);
+          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_LOOKAHEAD_END, MaxStopOrNext(next), [flfSkipLookAround] + Flags * [flfReturnAtNextNil]);
           s := next;
           Inc(s, REOpSz + RENextOffSz); // skip the OP_LOOKAHEAD_END
           if not (flfSkipLookAround in Flags) then
@@ -8272,14 +8407,11 @@ begin
       OP_LOOKBEHIND, OP_LOOKBEHIND_NEG:
         begin
           Inc(s, ReOpLookBehindOptionsSz);
-          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_LOOKBEHIND_END, next, [flfSkipLookAround, flfForceToStopAt]);
+          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_LOOKBEHIND_END, MaxStopOrNext(next), [flfSkipLookAround] + Flags * [flfReturnAtNextNil]);
           s := next;
           Inc(s, REOpSz + RENextOffSz); // skip the OP_LOOKBEHIND_END
           if not (flfSkipLookAround in Flags) then
-            //if flfForceToStopAt in Flags then
               NotFixedLen := True
-            //else
-            //  Exit;
         end;
 
       OP_LOOKAHEAD_END, OP_LOOKBEHIND_END:
@@ -8287,9 +8419,6 @@ begin
         begin
           continue;
         end;
-
-      OP_LOOKAROUND_OPTIONAL:
-        continue;
 
       OP_NOTHING,
       OP_COMMENT,
@@ -8349,7 +8478,7 @@ begin
               OpKind_Char:
                 begin
                   Inc(s);
-                  Inc(s, RENumberSz + PLongInt(s)^);
+                  Inc(s, RENumberSz + unaligned(PLongInt(s)^));
                 end;
               OpKind_CategoryYes,
               OpKind_CategoryNo:
@@ -8389,13 +8518,11 @@ begin
           N := unaligned(PREBracesArg(AlignToInt(s))^);
           N2 := unaligned(PREBracesArg(AlignToInt(s + REBracesArgSz))^);
           Inc(s, REBracesArgSz * 2);
-          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_EEND, next, [flfSkipLookAround, flfReturnAtNextNil, flfForceToStopAt]);
+          r := IsPartFixedLength(s, op, ASubLen, ASubMaxLen, OP_EEND, MaxStopOrNext(next), [flfSkipLookAround, flfReturnAtNextNil]);
           if not r then
           begin
             if not NotFixedLen then
               FirstVarLenOp := op;
-            if (ASubMaxLen = high(ASubMaxLen)) and not(flfForceToStopAt in Flags) then
-              exit;
           end;
 
           Inc(AMinLen, MultiplyLen(ASubLen, N));
@@ -8412,15 +8539,20 @@ begin
           FndMaxLen := high(FndMaxLen);
         end;
 
-    else
-      begin
-        s := next;
-        FndMaxLen := high(FndMaxLen);
-        if flfForceToStopAt in Flags then
+      OP_PLUS, OP_PLUS_NG, OP_PLUS_POSS:
+        begin
+          s := next;
+          Inc(AMinLen, 1);
+          FndMaxLen := high(FndMaxLen);
           NotFixedLen := True
-        else
-          Exit;
-      end;
+        end;
+
+      else // OP_STAR...
+        begin
+          s := next;
+          FndMaxLen := high(FndMaxLen);
+            NotFixedLen := True
+        end;
     end;
   until False;
 end;
@@ -8489,6 +8621,14 @@ end; { of procedure TRegExpr.Error
 {$IFDEF Compat} // APIs needed only for users of old FPC 3.0
 function TRegExpr.ExecPos(AOffset: Integer; ATryOnce: Boolean): Boolean; overload;
 begin
+  // Check that the start position is not negative
+  if AOffset < 0 then
+  begin
+    ClearMatches;
+    Error(reeOffsetMustBePositive);
+    Result := False;
+    Exit;
+  end;
   if ATryOnce then
     Result := ExecPrim(AOffset, False, False, AOffset + 1)
   else
