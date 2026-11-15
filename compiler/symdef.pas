@@ -1121,14 +1121,26 @@ interface
        end;
 
 
+       { the helpers one push of a record or object symtable added to
+         current_module.extendeddefs }
+       tpushedhelpers = class
+         st : tsymtable;
+         keys : array of TSymStr;
+         defs : array of tdef;
+       end;
+
+
        tdefawaresymtablestack = class(TSymtablestack)
        private
-         procedure add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
+         fpushedhelpers : TFPObjectList;
+         procedure add_helpers_and_generics(st:tsymtable;addgenerics:boolean;added:tpushedhelpers);
          procedure remove_helpers_and_generics(st:tsymtable);inline;
          procedure remove_helpers(st:tsymtable);
+         procedure remove_pushed_helpers(st:tsymtable);
          procedure remove_generics(st:tsymtable);
-         procedure pushcommon(st:tsymtable);inline;
+         procedure pushcommon(st:tsymtable);
        public
+         destructor destroy; override;
          procedure push(st: TSymtable); override;
          procedure pushafter(st,afterst:TSymtable); override;
          procedure pop(st: TSymtable); override;
@@ -1822,13 +1834,13 @@ implementation
            the pushed/popped symtables)
 ****************************************************************************}
 
-    procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
+    procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean;added:tpushedhelpers);
       var
         s: TSymStr;
         list: TFPObjectList;
         def: tdef;
         sym : tsym;
-        i: integer;
+        i, n: integer;
       begin
         { search the symtable from first to last; the helper to use will be the
           last one in the list }
@@ -1852,6 +1864,14 @@ implementation
                     current_module.extendeddefs.Add(s,list);
                   end;
                 list.Add(def);
+                if assigned(added) then
+                  begin
+                    n:=length(added.keys);
+                    setlength(added.keys,n+1);
+                    setlength(added.defs,n+1);
+                    added.keys[n]:=s;
+                    added.defs[n]:=def;
+                  end;
               end
             else
               begin
@@ -1862,7 +1882,7 @@ implementation
                     (def.typ in [recorddef,objectdef]) and
                     (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) and
                     not is_owned_by(def,tdef(st.defowner)) then
-                  add_helpers_and_generics(tabstractrecorddef(def).symtable,false);
+                  add_helpers_and_generics(tabstractrecorddef(def).symtable,false,added);
               end;
           end;
       end;
@@ -1912,6 +1932,40 @@ implementation
       end;
 
 
+    { Remove the last occurrence of each helper the latest push of st added. }
+    procedure tdefawaresymtablestack.remove_pushed_helpers(st:tsymtable);
+      var
+        i, j, k: integer;
+        pushed: tpushedhelpers;
+        list: TFPObjectList;
+      begin
+        if not assigned(fpushedhelpers) then
+          exit;
+        for i:=fpushedhelpers.count-1 downto 0 do
+          begin
+            pushed:=tpushedhelpers(fpushedhelpers[i]);
+            if pushed.st<>st then
+              continue;
+            for k:=high(pushed.keys) downto 0 do
+              begin
+                list:=TFPObjectList(current_module.extendeddefs.Find(pushed.keys[k]));
+                if not assigned(list) then
+                  continue;
+                for j:=list.count-1 downto 0 do
+                  if list[j]=pushed.defs[k] then
+                    begin
+                      list.delete(j);
+                      break;
+                    end;
+                if list.count=0 then
+                  current_module.extendeddefs.delete(current_module.extendeddefs.FindIndexOf(pushed.keys[k]));
+              end;
+            fpushedhelpers.delete(i);
+            exit;
+          end;
+      end;
+
+
     procedure tdefawaresymtablestack.remove_generics(st:tsymtable);
       var
         i,j : longint;
@@ -1936,15 +1990,34 @@ implementation
 
 
     procedure tdefawaresymtablestack.pushcommon(st:tsymtable);
+      var
+        pushed: tpushedhelpers;
       begin
+        pushed:=nil;
+        if st.symtabletype in [objectsymtable,recordsymtable] then
+          begin
+            if not assigned(fpushedhelpers) then
+              fpushedhelpers:=TFPObjectList.create(true);
+            pushed:=tpushedhelpers.create;
+            pushed.st:=st;
+            fpushedhelpers.add(pushed);
+          end;
         if (sto_has_generic in st.tableoptions) or
             (
               (st.symtabletype in [globalsymtable,staticsymtable]) and
               (sto_has_helper in st.tableoptions)
             ) then
           { nested helpers will be added as well }
-          add_helpers_and_generics(st,true);
+          add_helpers_and_generics(st,true,pushed);
       end;
+
+
+    destructor tdefawaresymtablestack.destroy;
+      begin
+        fpushedhelpers.free;
+        inherited destroy;
+      end;
+
 
     procedure tdefawaresymtablestack.push(st: TSymtable);
       begin
@@ -1961,7 +2034,14 @@ implementation
     procedure tdefawaresymtablestack.pop(st: TSymtable);
       begin
         inherited pop(st);
-        if (sto_has_generic in st.tableoptions) or
+        if st.symtabletype in [objectsymtable,recordsymtable] then
+          begin
+            { a helper declared in st stays registered for the module }
+            remove_pushed_helpers(st);
+            if sto_has_generic in st.tableoptions then
+              remove_generics(st);
+          end
+        else if (sto_has_generic in st.tableoptions) or
             (
               (st.symtabletype in [globalsymtable,staticsymtable]) and
               (sto_has_helper in st.tableoptions)
