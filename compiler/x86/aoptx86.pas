@@ -95,7 +95,7 @@ unit aoptx86;
 
         { Returns true if the flags set by the comparison or test cmpinstr are read
           by a single conditional instruction right after it, with an equality or
-          unsigned condition, and are unused after that; UsedRegs must stand at p,
+          unsigned condition, and are unused or overwritten after that; UsedRegs must stand at p,
           an instruction before cmpinstr. Only then can a comparison of a
           zero-extended register be made on the register it was extended from:
           the zero and carry flags come out the same, but the sign and overflow
@@ -1365,7 +1365,8 @@ unit aoptx86;
 
     function TX86AsmOptimizer.FlagsReadOnlyUnsigned(p, cmpinstr: tai): Boolean;
       var
-        hp_cond: tai;
+        hp_cond, hp_next: tai;
+        lCount: Integer;
       begin
         Result :=
           GetNextInstruction(cmpinstr, hp_cond) and
@@ -1377,6 +1378,27 @@ unit aoptx86;
             TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp_cond);
             Result := not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp_cond, TmpUsedRegs);
+            hp_next := hp_cond;
+            lCount := 0;
+            { the flags are also unused if a few straight-line instructions later all of them are written before any is read }
+            while not Result and (lCount < 4) and
+              GetNextInstruction(hp_next, hp_next) and
+              (hp_next.typ = ait_instruction) and
+              not is_calljmp(taicpu(hp_next).opcode) and
+              not RegReadByInstruction(NR_DEFAULTFLAGS, hp_next) and
+              not (
+                { a shift by a count that is not a constant, or is 0, leaves the flags alone }
+                MatchInstruction(hp_next, [A_SHL, A_SAL, A_SHR, A_SAR, A_SHLD, A_SHRD], []) and
+                (taicpu(hp_next).ops > 1) and
+                (
+                  (taicpu(hp_next).oper[0]^.typ <> top_const) or
+                  ((taicpu(hp_next).oper[0]^.val and 31) = 0)
+                )
+              ) do
+              begin
+                Result := RegLoadedWithNewValue(NR_DEFAULTFLAGS, hp_next);
+                Inc(lCount);
+              end;
           end;
       end;
 
@@ -12222,8 +12244,8 @@ unit aoptx86;
         PreMessage: string;
 
         { Data flow analysis }
-        TestValMin, TestValMax, TestValSignedMax: TCgInt;
-        BitwiseOnly, OrXorUsed,
+        TestValMin, TestValMax, TestValSignedMax, LowestMin: TCgInt;
+        BitwiseOnly, OrXorUsed, LinearOnly, LowerLimitExceeded,
         ShiftDownOverflow, UpperSignedOverflow, UpperUnsignedOverflow, LowerUnsignedOverflow: Boolean;
 
         function CheckOverflowConditions: Boolean;
@@ -12233,7 +12255,13 @@ unit aoptx86;
               UpperSignedOverflow := True;
 
             if (TestValMin > LowerLimit) or (TestValMax > LowerLimit) then
-              LowerUnsignedOverflow := True;
+              begin
+                LowerUnsignedOverflow := True;
+                LowerLimitExceeded := True;
+              end;
+
+            if TestValMin < LowestMin then
+              LowestMin := TestValMin;
 
             if (TestValMin > UpperLimit) or (TestValMax > UpperLimit) or (TestValSignedMax > UpperLimit) or
               (TestValMin < SignedUpperLimitBottom) or (TestValMax < SignedUpperLimitBottom) or (TestValSignedMax < SignedUpperLimitBottom) then
@@ -12800,6 +12828,9 @@ unit aoptx86;
         RegChanged := False;
         BitwiseOnly := True;
         OrXorUsed := False;
+        LinearOnly := True;
+        LowerLimitExceeded := False;
+        LowestMin := 0;
         UpperSignedOverflow := False;
         UpperUnsignedOverflow := False;
         LowerUnsignedOverflow := False;
@@ -12865,7 +12896,16 @@ unit aoptx86;
                     { Make sure the comparison value fits the minimum size as
                       an unsigned value: the register is zero-extended, so a
                       negative value never compares equal to it }
-                    ((taicpu(hp1).oper[0]^.val and LowerLimit) <> taicpu(hp1).oper[0]^.val) or
+                    (
+                      ((taicpu(hp1).oper[0]^.val and LowerLimit) <> taicpu(hp1).oper[0]^.val) and
+                      { a negative TEST mask only adds bits that are zero }
+                      not (
+                        (taicpu(hp1).opcode = A_TEST) and
+                        (taicpu(hp1).oper[0]^.val < 0) and
+                        (taicpu(hp1).oper[0]^.val >= -(SignedLowerLimit + 1)) and
+                        not LowerUnsignedOverflow
+                      )
+                    ) or
                     not FlagsReadOnlyUnsigned(p, hp1) then
                     Break;
 
@@ -12887,6 +12927,14 @@ unit aoptx86;
                           { Size didn't exceed lower bound. Only the unsigned
                             range will do: the flags are only read with an
                             equality or unsigned condition }
+                          TargetSize := MinSize;
+                        end
+                      else if LinearOnly and not LowerLimitExceeded and
+                        (LowestMin >= -(SignedLowerLimit + 1)) and
+                        ((taicpu(hp1).oper[0]^.val and LowerLimit) = taicpu(hp1).oper[0]^.val) and
+                        (LowestMin + LowerLimit >= taicpu(hp1).oper[0]^.val) then
+                        begin
+                          { negative only through additions, and wrapped into MinSize still above the compared value }
                           TargetSize := MinSize;
                         end
                       else
@@ -12987,6 +13035,9 @@ unit aoptx86;
                       )
                     ) then
                     Break;
+
+                  if (taicpu(hp1).opcode <> A_ADD) and (taicpu(hp1).opcode <> A_SUB) then
+                    LinearOnly := False;
 
                   { Only process OR and XOR if there are only bitwise operations,
                     since otherwise they can too easily fool the data flow
