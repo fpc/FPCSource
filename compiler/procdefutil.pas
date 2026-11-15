@@ -300,7 +300,9 @@ implementation
         internalerror(2022010710);
 
       name:='funcrefintf_'+suffix;
-      if pd.owner.symtabletype=globalsymtable then
+      { the interface of a procdef from another module goes into the current module }
+      if (pd.owner.symtabletype=globalsymtable) or
+         (pd.owner.moduleid<>current_module.moduleid) then
         symowner:=current_module.localsymtable
       else
         symowner:=pd.owner;
