@@ -58,7 +58,10 @@ interface
       tparse_proc_flag=(
         ppf_classmethod,
         ppf_generic,
-        ppf_anonymous
+        ppf_anonymous,
+        { a member's declaration in its structure: only it keeps the attributes
+          of its parameters, whatever else parses a header can be discarded }
+        ppf_member_declaration
       );
       tparse_proc_flags=set of tparse_proc_flag;
 
@@ -67,7 +70,8 @@ interface
     function  proc_get_importname(pd:tprocdef):string;
     procedure proc_set_mangledname(pd:tprocdef);
 
-    procedure parse_parameter_dec(pd:tabstractprocdef);
+    { attributes on the parameters are parsed always, and kept with keep_attributes }
+    procedure parse_parameter_dec(pd:tabstractprocdef;keep_attributes:boolean=false);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_proctype_directives(pd_or_invkdef:tdef);
     procedure parse_object_proc_directives(pd:tprocdef);
@@ -197,7 +201,7 @@ implementation
       end;
 
 
-    procedure parse_parameter_dec(pd:tabstractprocdef);
+    procedure parse_parameter_dec(pd:tabstractprocdef;keep_attributes:boolean);
       {
         handle_procvar needs the same changes
       }
@@ -223,34 +227,21 @@ implementation
         need_array,
         is_univ,
         refattr: boolean;
+        para_attrs : trtti_attribute_list;
         stoptions : TSingleTypeOptions;
 
-        { Consumes a parameter attribute list; True when it contains the system unit's RefAttribute (Delphi's [Ref]) }
-        function try_consume_ref_attribute:boolean;
+        { Parses the attribute lists before or after const, var or out; the system unit's RefAttribute among them sets refattr }
+        procedure parse_para_attributes;
           var
-            attr : tnode;
-            refsym : ttypesym;
-            old_block_type : tblock_type;
+            saved_block_type : tblock_type;
           begin
-            result:=false;
-            if not (m_prefixed_attributes in current_settings.modeswitches) or
-               (current_scanner.token<>_LECKKLAMMER) then
+            if not (m_prefixed_attributes in current_settings.modeswitches) then
               exit;
-            consume(_LECKKLAMMER);
-            refsym:=try_search_system_type('REFATTRIBUTE');
-            repeat
-              old_block_type:=block_type;
-              block_type:=bt_type;
-              attr:=factor(false,[ef_type_only,ef_check_attr_suffix]);
-              block_type:=old_block_type;
-              if (attr.nodetype=typen) and assigned(refsym) and (ttypenode(attr).typedef=refsym.typedef) then
-                result:=true
-              else if attr.nodetype<>errorn then
-                { no other attribute is supported on a parameter }
-                Message(parser_e_illegal_parameter_list);
-              attr.free;
-            until not try_to_consume(_COMMA);
-            consume(_RECKKLAMMER);
+            saved_block_type:=block_type;
+            block_type:=bt_type;
+            while current_scanner.token=_LECKKLAMMER do
+              parse_rttiattributes(para_attrs,@refattr);
+            block_type:=saved_block_type;
           end;
 
         procedure handle_default_para_value;
@@ -315,9 +306,11 @@ implementation
         paranr:=0;
         block_type:=bt_var;
         is_univ:=false;
+        para_attrs:=nil;
         repeat
           parseprocvar:=pv_none;
-          refattr:=try_consume_ref_attribute;
+          refattr:=false;
+          parse_para_attributes;
           if try_to_consume(_VAR) then
             varspez:=vs_var
           else
@@ -353,8 +346,8 @@ implementation
               end
           else
               varspez:=vs_value;
-          if (parseprocvar=pv_none) and try_consume_ref_attribute then
-            refattr:=true;
+          if parseprocvar=pv_none then
+            parse_para_attributes;
           { a const or value parameter with [Ref] is passed as constref; a value
             parameter so passed cannot be assigned to, where Delphi's assignment
             would change the caller's variable }
@@ -369,11 +362,18 @@ implementation
             vs:=cparavarsym.create(current_scanner.orgpattern,paranr*10,varspez,generrordef,[]);
             currparast.insertsym(vs);
             if assigned(vs.owner) then
-             sc.add(vs)
+             begin
+               sc.add(vs);
+               { the attributes belong to the first name after them }
+               if keep_attributes then
+                 trtti_attribute_list.bind(para_attrs,vs.rtti_attribute_list);
+             end
             else
              vs.free; // no nil needed
             consume(_ID);
           until not try_to_consume(_COMMA);
+          para_attrs.free;
+          para_attrs:=nil;
           locationstr:='';
           { macpas anonymous procvar }
           if parseprocvar<>pv_none then
@@ -559,6 +559,7 @@ implementation
 {$endif wasm}
             end;
         until not try_to_consume(_SEMICOLON);
+        para_attrs.free;
 
         if explicit_paraloc then
           include(pd.procoptions,po_explicitparaloc);
@@ -1393,7 +1394,7 @@ implementation
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.push(pd.parast);
-            parse_parameter_dec(pd);
+            parse_parameter_dec(pd,ppf_member_declaration in flags);
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.pop(pd.parast);
             current_genericdef:=old_current_genericdef;
@@ -1784,9 +1785,9 @@ implementation
             begin
               consume(_CONSTRUCTOR);
               if ppf_classmethod in flags then
-                recover:=not parse_proc_head(astruct,potype_class_constructor,[],nil,nil,pd)
+                recover:=not parse_proc_head(astruct,potype_class_constructor,flags*[ppf_member_declaration],nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_constructor,[],nil,nil,pd);
+                recover:=not parse_proc_head(astruct,potype_constructor,flags*[ppf_member_declaration],nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,flags,astruct);
             end;
@@ -1795,9 +1796,9 @@ implementation
             begin
               consume(_DESTRUCTOR);
               if ppf_classmethod in flags then
-                recover:=not parse_proc_head(astruct,potype_class_destructor,[],nil,nil,pd)
+                recover:=not parse_proc_head(astruct,potype_class_destructor,flags*[ppf_member_declaration],nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_destructor,[],nil,nil,pd);
+                recover:=not parse_proc_head(astruct,potype_destructor,flags*[ppf_member_declaration],nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,flags,astruct);
             end;
@@ -1811,7 +1812,7 @@ implementation
               old_block_type:=block_type;
               block_type:=bt_body;
               consume(_OPERATOR);
-              parse_proc_head(astruct,potype_operator,[],nil,nil,pd);
+              parse_proc_head(astruct,potype_operator,flags*[ppf_member_declaration],nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
                 parse_proc_dec_finish(pd,flags,astruct)
@@ -1854,7 +1855,7 @@ implementation
       begin
         oldparse_only:=parse_only;
         parse_only:=true;
-        flags:=[];
+        flags:=[ppf_member_declaration];
         if is_classdef then
           include(flags,ppf_classmethod);
         if hadgeneric then

@@ -46,7 +46,9 @@ interface
     procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
-    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
+    { ref_found, when given, is set if the list holds the system unit's RefAttribute (Delphi's Ref),
+      which is not added to rtti_attrs_def }
+    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list;ref_found:pboolean=nil);
     function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
 
 implementation
@@ -439,7 +441,7 @@ implementation
          internalerror(2012111101);
       end;
 
-    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
+    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list;ref_found:pboolean);
 
       function read_attr_paras:tnode;
         var
@@ -466,9 +468,14 @@ implementation
         od : tobjectdef;
         constrsym : tsymentry;
         typesym : ttypesym;
+        refsym : ttypesym;
         parasok : boolean;
       begin
         consume(_LECKKLAMMER);
+        if assigned(ref_found) then
+          refsym:=try_search_system_type('REFATTRIBUTE')
+        else
+          refsym:=nil;
 
         repeat
           { Parse attribute type }
@@ -483,6 +490,15 @@ implementation
                 begin
                   incompatibletypes(od,class_tcustomattribute);
                   read_attr_paras.free; // no nil needed
+                  continue;
+                end;
+
+              { the system unit's RefAttribute (Delphi's Ref) passes the parameter by reference, it is not an RTTI attribute }
+              if assigned(refsym) and (od=refsym.typedef) then
+                begin
+                  ref_found^:=true;
+                  read_attr_paras.free;
+                  p.free;
                   continue;
                 end;
 

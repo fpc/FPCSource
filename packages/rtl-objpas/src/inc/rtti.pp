@@ -1392,6 +1392,8 @@ type
   TRttiVmtMethodParameter = class(TRttiParameter)
   private
     FVmtMethodParam: PVmtMethodParam;
+    FAttributesResolved: Boolean;
+    FAttributes: TCustomAttributeArray;
   protected
     function GetHandle: Pointer; override;
     function GetName: String; override;
@@ -1399,6 +1401,7 @@ type
     function GetParamType: TRttiType; override;
   public
     constructor Create(AVmtMethodParam: PVmtMethodParam);
+    destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
   end;
 
@@ -5679,8 +5682,56 @@ begin
 end;
 
 function TRttiVmtMethodParameter.GetAttributes: TCustomAttributeArray;
+var
+  lTable: PAttributeTable;
+  lList: TCustomAttributeArray;
+  lIdx, lBuilt: Integer;
 begin
-  Result:=Nil;
+  if not FAttributesResolved then
+    begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      EnterCriticalsection(PoolOf(Self).FLock);
+      try
+{$endif}
+        if not FAttributesResolved then
+          begin
+            lList := nil;
+            lTable := FVmtMethodParam^.AttributeTable;
+            if Assigned(lTable) and (lTable^.AttributeCount > 0) then
+              begin
+                SetLength(lList, lTable^.AttributeCount);
+                lBuilt := 0;
+                try
+                  for lIdx := 0 to High(lList) do
+                    begin
+                      lList[lIdx] := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(lTable, lIdx);
+                      Inc(lBuilt);
+                    end;
+                except
+                  for lIdx := 0 to lBuilt - 1 do
+                    lList[lIdx].Free;
+                  raise;
+                end;
+              end;
+            FAttributes := lList;
+            FAttributesResolved := True;
+          end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      finally
+        LeaveCriticalsection(PoolOf(Self).FLock);
+      end;
+{$endif}
+    end;
+  Result := FAttributes;
+end;
+
+destructor TRttiVmtMethodParameter.Destroy;
+var
+  lIdx: Integer;
+begin
+  for lIdx := 0 to High(FAttributes) do
+    FAttributes[lIdx].Free;
+  inherited Destroy;
 end;
 
 { TRttiMethodTypeParameter }

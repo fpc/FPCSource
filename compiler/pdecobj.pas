@@ -130,7 +130,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
+        parse_proc_head(current_structdef,potype_constructor,[ppf_member_declaration],nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -920,7 +920,7 @@ implementation
 
               oldparse_only:=parse_only;
               parse_only:=true;
-              flags:=[];
+              flags:=[ppf_member_declaration];
               if is_classdef then
                 include(flags,ppf_classmethod);
               if hadgeneric then

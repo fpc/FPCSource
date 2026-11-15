@@ -389,6 +389,9 @@ unit TypInfo;
         Flags: TParamFlags;
         NamePtr: PShortString;
         ParaLocs: PParameterLocations;
+        {$ifndef VER3_2}
+        AttributeTable: PAttributeTable;
+        {$endif}
         property Name: ShortString read GetName;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodParam read GetNext;
@@ -4533,7 +4536,11 @@ end;
 
 function TVmtMethodParam.GetTail: Pointer;
 begin
+  {$ifdef VER3_2}
   Result := PByte(@ParaLocs) + SizeOf(ParaLocs);
+  {$else}
+  Result := PByte(@AttributeTable) + SizeOf(AttributeTable);
+  {$endif}
 end;
 
 function TVmtMethodParam.GetNext: PVmtMethodParam;

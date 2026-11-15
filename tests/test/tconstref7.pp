@@ -1,10 +1,10 @@
 { %FAIL }
-{ [Ref] is the only attribute a parameter takes }
+{ a parameter's attribute has to be a known attribute class }
 program tconstref7;
 
 {$mode delphi}
 
-procedure P(const [Weak] a: TObject);
+procedure P(const [NoSuchAttribute] a: TObject);
 begin
 end;
 

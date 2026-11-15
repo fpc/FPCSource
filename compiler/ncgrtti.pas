@@ -569,6 +569,9 @@ implementation
         maybe_add_comment(tcb,#9'locs');
         write_paralocs(tcb,@para.paraloc[callerside]);
 
+        maybe_add_comment(tcb,#9'attribute table');
+        write_attribute_data(tcb,para.rtti_attribute_list);
+
         tcb.end_anonymous_record;
         maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
       end;
