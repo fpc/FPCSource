@@ -79,6 +79,13 @@ begin
   Result[1]:=a6+a7+a8+a9;
 end;
 
+{ nine parameters, with a result of another type than the elements of TBytes }
+function ManySum(a1, a2, a3, a4, a5, a6, a7, a8, a9: PtrInt): LongInt;
+begin
+  Inc(calls);
+  Result:=a1+a2+a3+a4+a5+a6+a7+a8+a9;
+end;
+
 procedure CopySame;
 var
   b: TBytes;
@@ -138,6 +145,9 @@ begin
   b:=Seq(0, 3);
   Insert([Many(1, 1, 1, 1, 1, 1, 1, 1, 1)[0], 7], b, 3);
   Check('array constructor holding such a call', Show(b), '0 1 2 5 7 ');
+  b:=Seq(0, 3);
+  Insert([ManySum(1, 1, 1, 1, 1, 1, 1, 1, 1), 7], b, 3);
+  Check('array constructor of another element type holding such a call', Show(b), '0 1 2 9 7 ');
   b:=Seq(0, 3);
   Insert(Many(9, 8, 7, 6, 5, 4, 3, 2, 1)[1], b, 0);
   Check('one element from such a call', Show(b), '10 0 1 2 ');
