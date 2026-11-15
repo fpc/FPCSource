@@ -4722,6 +4722,50 @@ implementation
           def:=generrordef;
       end;
 
+    function specialized_member_as_operand(n:tspecializenode):tnode;
+    { returns the left operand of a "<" comparison for the specialize node n of
+      a member: the member of the structure it was qualified with }
+      var
+        structdef : tabstractrecorddef;
+        callflags : tcallnodeflags;
+        again : boolean;
+      begin
+        { a member that exists only as a generic }
+        if (sp_generic_dummy in n.sym.symoptions) and
+           (((n.sym.typ=procsym) and (tprocsym(n.sym).procdeflist.count=0)) or
+            ((n.sym.typ=typesym) and (ttypesym(n.sym).typedef.typ=undefineddef))) then
+          begin
+            identifier_not_found(n.sym.realname);
+            result:=cerrornode.create;
+            exit;
+          end;
+        result:=n.left;
+        n.left:=nil;
+        typecheckpass(result);
+        structdef:=tabstractrecorddef(n.inheriteddef);
+        if not assigned(structdef) then
+          case result.resultdef.typ of
+            objectdef,
+            recorddef:
+              structdef:=tabstractrecorddef(result.resultdef);
+            classrefdef:
+              structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
+            errordef:
+              exit;
+            else
+              internalerror(2026110901);
+          end;
+        if assigned(n.inheriteddef) then
+          begin
+            callflags:=[cnf_inherited];
+            include(current_procinfo.flags,pi_has_inherited);
+          end
+        else
+          callflags:=[];
+        again:=false;
+        do_member_read(structdef,n.getaddr,n.sym,result,again,callflags,nil);
+      end;
+
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
@@ -5089,7 +5133,14 @@ implementation
 
                        { potential generic types that are followed by a "<": }
 
-                       if p1.nodetype=specializen then
+                       if (p1.nodetype=specializen) and assigned(tspecializenode(p1).left) then
+                         begin
+                           { a member: not a symbol of the same name elsewhere }
+                           ptmp:=specialized_member_as_operand(tspecializenode(p1));
+                           p1.free;
+                           p1:=ptmp;
+                         end
+                       else if p1.nodetype=specializen then
                          begin
                            genlist:=tfpobjectlist(current_module.genericdummysyms.find(tspecializenode(p1).sym.name));
                            if assigned(genlist) and (genlist.count>0) then
