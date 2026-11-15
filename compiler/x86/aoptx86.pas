@@ -17719,6 +17719,7 @@ unit aoptx86;
       begin
         Result := false;
 
+{$ifdef x86_64}
         if MatchOpType(taicpu(p), top_const, top_reg) and
           (taicpu(p).opsize = S_Q) and
           (
@@ -17728,6 +17729,7 @@ unit aoptx86;
           Result := DoMovImm64Opt(p);
         if Result then
           exit;
+{$endif x86_64}
 
         if (taicpu(p).oper[1]^.typ = top_reg) and (taicpu(p).oper[0]^.typ = top_const) then
           begin
