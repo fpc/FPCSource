@@ -1,5 +1,3 @@
-{ %FAIL }
-
 program tcustomattr9;
 
 {$mode objfpc}{$H+}
@@ -10,7 +8,7 @@ uses
 
 type
   { tmyt }
-  // TCustomAttribute's constructor is private!
+  // an attribute class without a constructor of its own uses TObject.Create
   tmyt = class(TCustomAttribute);
 
 type

@@ -596,16 +596,8 @@
                                   Attribute support
      *****************************************************************************}
   Type
-  {$PUSH}
-  { disable the warning that the constructor should be public }
-  {$WARN 3018 OFF}
   TCustomAttribute = class(TObject)
-  private
-    { if the user wants to use a parameterless constructor they need to
-      explicitely declare it in their type }
-    constructor Create;
   end;
-  {$POP}
 
   TUnimplementedAttribute = class(TCustomAttribute)
   public
