@@ -24,6 +24,8 @@ constructor TDataSet.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
+  FFlatFieldDefList:=TFieldDefList.Create(Self);
+  FFlatFieldList:=TFieldList.Create(Self);
   FFieldDefs:=FieldDefsClass.Create(Self);
   FFieldList:=FieldsClass.Create(Self);
   FDataSources:=TFPList.Create;
@@ -50,6 +52,10 @@ var
 
 begin
   Active:=False;
+  FFlatFieldDefList.Locked:=True;
+  FFlatFieldList.Locked:=True;
+  FreeAndNil(FFlatFieldDefList);
+  FreeAndNil(FFlatFieldList);
   FFieldDefs.Free;
   FFieldList.Free;
   While MyDatasourceCount>0 do
@@ -2332,19 +2338,19 @@ end;
 function TDataSet.GetFieldValues(const FieldName: string): Variant;
 
 var i: Integer;
-    FieldList: TList;
+    lFields: TList;
 begin
-  FieldList := TList.Create;
+  lFields := TList.Create;
   try
-    GetFieldList(FieldList, FieldName);
-    if FieldList.Count>1 then begin
-      Result := VarArrayCreate([0, FieldList.Count - 1], varVariant);
-      for i := 0 to FieldList.Count - 1 do
-        Result[i] := TField(FieldList[i]).Value;
+    GetFieldList(lFields, FieldName);
+    if lFields.Count>1 then begin
+      Result := VarArrayCreate([0, lFields.Count - 1], varVariant);
+      for i := 0 to lFields.Count - 1 do
+        Result[i] := TField(lFields[i]).Value;
     end else
       Result := FieldByName(FieldName).Value;
   finally
-    FieldList.Free;
+    lFields.Free;
   end;
 end;
 
@@ -2352,22 +2358,22 @@ procedure TDataSet.SetFieldValues(const FieldName: string; Value: Variant);
 
 var
   i, l, h : Integer;
-  FieldList: TList;
+  lFields: TList;
 begin
   if VarIsArray(Value) then begin
-    FieldList := TList.Create;
+    lFields := TList.Create;
     try
-      GetFieldList(FieldList, FieldName);
+      GetFieldList(lFields, FieldName);
       l := VarArrayLowBound(Value, 1);
       h := VarArrayHighBound(Value, 1);
-      if (FieldList.Count = 1) and (l < h) then
+      if (lFields.Count = 1) and (l < h) then
         // Allow for a field type that can deal with an array
         FieldByName(FieldName).Value := Value
       else
-        for i := 0 to FieldList.Count - 1 do
-          TField(FieldList[i]).Value := Value[l+i];
+        for i := 0 to lFields.Count - 1 do
+          TField(lFields[i]).Value := Value[l+i];
     finally
-      FieldList.Free;
+      lFields.Free;
     end;
   end else
     FieldByName(FieldName).Value := Value;

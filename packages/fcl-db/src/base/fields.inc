@@ -349,6 +349,24 @@ begin
 end;
 }
 
+procedure TFieldDefs.Update(aItem: TCollectionItem);
+
+begin
+  inherited Update(aItem);
+  if Assigned(Dataset) and Assigned(Dataset.FFlatFieldDefList) then
+    Dataset.FFlatFieldDefList.ListChanging(Self);
+end;
+
+
+procedure TFieldDefs.Notify(aItem: TCollectionItem; aAction: TCollectionNotification);
+
+begin
+  inherited Notify(aItem, aAction);
+  if Assigned(Dataset) and Assigned(Dataset.FFlatFieldDefList) then
+    Dataset.FFlatFieldDefList.ListChanging(Self);
+end;
+
+
 procedure TFieldDefs.Update;
 
 begin
@@ -1213,6 +1231,18 @@ begin
   FParentField:=AField;
   if Assigned(FParentField) then
     FParentField.FreeNotification(Self);
+  if Assigned(FDataSet) and Assigned(FDataSet.FFlatFieldList) then
+    FDataSet.FFlatFieldList.ListChanging(Self);
+end;
+
+procedure TField.SetFieldName(const aValue: string);
+
+begin
+  if FFieldName=aValue then
+    Exit;
+  FFieldName:=aValue;
+  if Assigned(FDataSet) and Assigned(FDataSet.FFlatFieldList) then
+    FDataSet.FFlatFieldList.ListChanging(Self);
 end;
 
 procedure TField.SetReadOnly(const AValue: Boolean);
@@ -4340,6 +4370,8 @@ procedure TFields.Changed;
 
 begin
   // Removed FDataSet.Active check, needed for Persistent fields (see bug ID 30954)
+  if (FDataSet <> nil) and Assigned(FDataSet.FFlatFieldList) then
+    FDataSet.FFlatFieldList.ListChanging(Self);
   if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) then
     FDataSet.DataEvent(deFieldListChange, 0);
   If Assigned(FOnChange) then
@@ -4502,4 +4534,201 @@ begin
   Value.FFields := nil;
   Changed;
 end;
+
+{ ---------------------------------------------------------------------
+    TFlatList
+  ---------------------------------------------------------------------}
+
+constructor TFlatList.Create(aDataSet: TDataSet);
+
+begin
+  inherited Create;
+  FDataSet:=aDataSet;
+end;
+
+
+procedure TFlatList.ListChanging(aSender: TObject);
+
+begin
+  FUpdated:=False;
+end;
+
+
+procedure TFlatList.CheckUpdated;
+
+begin
+  if not (FLocked or Updated) then
+    Update;
+end;
+
+
+procedure TFlatList.Update;
+
+begin
+  if FLocked then
+    Exit;
+  FLocked:=True;
+  try
+    BeginUpdate;
+    try
+      Clear;
+      UpdateList;
+    finally
+      EndUpdate;
+    end;
+    FUpdated:=True;
+  finally
+    FLocked:=False;
+  end;
+end;
+
+
+function TFlatList.FindItem(const aName: string; aMustExist: Boolean): TObject;
+
+var
+  lIndex: Integer;
+
+begin
+  lIndex:=IndexOf(aName);
+  if lIndex>=0 then
+    Result:=GetObject(lIndex)
+  else
+    begin
+    Result:=nil;
+    if aMustExist then
+      DatabaseErrorFmt(SFieldNotFound,[aName],FDataSet);
+    end;
+end;
+
+
+function TFlatList.Get(Index: Integer): string;
+
+begin
+  CheckUpdated;
+  Result:=inherited Get(Index);
+end;
+
+
+function TFlatList.GetCount: Integer;
+
+begin
+  CheckUpdated;
+  Result:=inherited GetCount;
+end;
+
+
+function TFlatList.GetObject(Index: Integer): TObject;
+
+begin
+  CheckUpdated;
+  Result:=inherited GetObject(Index);
+end;
+
+
+function TFlatList.GetUpdated: Boolean;
+
+begin
+  Result:=FUpdated;
+end;
+
+
+{ ---------------------------------------------------------------------
+    TFieldDefList
+  ---------------------------------------------------------------------}
+
+function TFieldDefList.GetFieldDef(aIndex: Integer): TFieldDef;
+
+begin
+  Result:=TFieldDef(GetObject(aIndex));
+end;
+
+
+procedure TFieldDefList.AddFieldDefs(const aParentName: string; aFieldDefs: TFieldDefs);
+
+var
+  i: Integer;
+  lDef: TFieldDef;
+
+begin
+  for i:=0 to aFieldDefs.Count-1 do
+    begin
+    lDef:=aFieldDefs[i];
+    AddObject(aParentName+lDef.Name,lDef);
+    if lDef.HasChildDefs then
+      AddFieldDefs(aParentName+lDef.Name+'.',lDef.ChildDefs);
+    end;
+end;
+
+
+procedure TFieldDefList.UpdateList;
+
+begin
+  if Assigned(DataSet) then
+    AddFieldDefs('',DataSet.FieldDefs);
+end;
+
+
+function TFieldDefList.FieldByName(const aName: string): TFieldDef;
+
+begin
+  Result:=TFieldDef(FindItem(aName,True));
+end;
+
+
+function TFieldDefList.Find(const aName: string): TFieldDef;
+
+begin
+  Result:=TFieldDef(FindItem(aName,False));
+end;
+
+
+{ ---------------------------------------------------------------------
+    TFieldList
+  ---------------------------------------------------------------------}
+
+function TFieldList.GetField(aIndex: Integer): TField;
+
+begin
+  Result:=TField(GetObject(aIndex));
+end;
+
+
+procedure TFieldList.AddFields(aFields: TFields);
+
+var
+  i: Integer;
+  lField: TField;
+
+begin
+  for i:=0 to aFields.Count-1 do
+    begin
+    lField:=aFields[i];
+    AddObject(lField.FullName,lField);
+    if (lField is TObjectField) and Assigned(TObjectField(lField).Fields) then
+      AddFields(TObjectField(lField).Fields);
+    end;
+end;
+
+
+procedure TFieldList.UpdateList;
+
+begin
+  if Assigned(DataSet) then
+    AddFields(DataSet.Fields);
+end;
+
+
+function TFieldList.FieldByName(const aName: string): TField;
+
+begin
+  Result:=TField(FindItem(aName,True));
+end;
+
+
+function TFieldList.Find(const aName: string): TField;
+
+begin
+  Result:=TField(FindItem(aName,False));
+end;
+
 

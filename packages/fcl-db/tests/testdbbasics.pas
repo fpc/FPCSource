@@ -59,6 +59,10 @@ type
     procedure TestCanModifySpecialFields;
     // FullName of plain fields and of fields with parent fields (bug 8200)
     procedure TestFieldFullName;
+    // FieldDefList and FieldList of an open dataset (bug 8208)
+    procedure TestFlatLists;
+    // FieldList follows added fields, renamed fields and parent fields (bug 8208)
+    procedure TestFieldListChanges;
     // Tests TField.AutoGenerateValue default, setter and streaming
     procedure TestFieldAutoGenerateValue;
 
@@ -3353,6 +3357,87 @@ begin
   finally
     lLeaf.Free;
     lChild.Free;
+    lParent.Free;
+  end;
+end;
+
+procedure TTestDBBasics.TestFlatLists;
+
+var
+  i: Integer;
+  lRaised: Boolean;
+
+begin
+  with DBConnector.GetNDataset(1) do
+    begin
+    Open;
+    CheckEquals(FieldDefs.Count, FieldDefList.Count, 'FieldDefList.Count');
+    for i:=0 to FieldDefs.Count-1 do
+      begin
+      CheckSame(FieldDefs[i], FieldDefList[i], 'FieldDefList entry '+IntToStr(i));
+      CheckEquals(FieldDefs[i].Name, FieldDefList.Strings[i], 'FieldDefList name '+IntToStr(i));
+      end;
+    CheckSame(FieldDefs.Find('ID'), FieldDefList.FieldByName('id'), 'FieldDefList.FieldByName ignores case');
+    CheckNull(FieldDefList.Find('NOSUCHFIELD'), 'FieldDefList.Find of a missing name');
+    CheckEquals(Fields.Count, FieldList.Count, 'FieldList.Count');
+    for i:=0 to Fields.Count-1 do
+      CheckSame(Fields[i], FieldList[i], 'FieldList entry '+IntToStr(i));
+    CheckSame(FieldByName('ID'), FieldList.FieldByName('ID'), 'FieldList.FieldByName');
+    CheckNull(FieldList.Find('NOSUCHFIELD'), 'FieldList.Find of a missing name');
+    lRaised:=False;
+    try
+      FieldList.FieldByName('NOSUCHFIELD');
+    except
+      on EDatabaseError do
+        lRaised:=True;
+    end;
+    CheckTrue(lRaised, 'FieldList.FieldByName of a missing name raises EDatabaseError');
+    Close;
+    i:=FieldDefList.Count;
+    FieldDefs.Add('EXTRA', ftInteger);
+    CheckEquals(i+1, FieldDefList.Count, 'FieldDefList.Count after adding a field definition');
+    CheckSame(FieldDefs.Find('EXTRA'), FieldDefList.Find('EXTRA'), 'Added field definition');
+    FieldDefs.Find('EXTRA').Name:='EXTRA2';
+    CheckSame(FieldDefs.Find('EXTRA2'), FieldDefList.Find('EXTRA2'), 'Renamed field definition');
+    FieldDefs.Find('EXTRA2').Free;
+    CheckEquals(i, FieldDefList.Count, 'FieldDefList.Count after freeing a field definition');
+    CheckNull(FieldDefList.Find('EXTRA2'), 'Freed field definition');
+    end;
+end;
+
+procedure TTestDBBasics.TestFieldListChanges;
+
+var
+  lDS: TDataSet;
+  lParent: TObjectField;
+  lLeaf: TIntegerField;
+  lCount: Integer;
+
+begin
+  lDS:=DBConnector.GetNDataset(1);
+  lParent:=nil;
+  lLeaf:=nil;
+  try
+    lCount:=lDS.FieldList.Count;
+    lParent:=TObjectField.Create(nil);
+    lParent.FieldName:='ADDRESS';
+    lParent.DataSet:=lDS;
+    lLeaf:=TIntegerField.Create(nil);
+    lLeaf.FieldName:='NUMBER';
+    lLeaf.DataSet:=lDS;
+    CheckEquals(lCount+2, lDS.FieldList.Count, 'FieldList.Count after adding two fields');
+    CheckSame(lLeaf, lDS.FieldList.FieldByName('NUMBER'), 'Added field');
+    lLeaf.FieldName:='HOUSENUMBER';
+    CheckNull(lDS.FieldList.Find('NUMBER'), 'Old name after renaming');
+    CheckSame(lLeaf, lDS.FieldList.Find('HOUSENUMBER'), 'New name after renaming');
+    lLeaf.ParentField:=lParent;
+    CheckSame(lLeaf, lDS.FieldList.Find('ADDRESS.HOUSENUMBER'), 'Full name after setting ParentField');
+    CheckNull(lDS.FieldList.Find('HOUSENUMBER'), 'Name without parent after setting ParentField');
+    FreeAndNil(lLeaf);
+    CheckEquals(lCount+1, lDS.FieldList.Count, 'FieldList.Count after freeing a field');
+    CheckNull(lDS.FieldList.Find('ADDRESS.HOUSENUMBER'), 'Freed field');
+  finally
+    lLeaf.Free;
     lParent.Free;
   end;
 end;

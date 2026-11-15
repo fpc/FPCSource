@@ -235,6 +235,8 @@ type
     procedure SetItem(Index: Longint; const AValue: TFieldDef);
   Protected
     Class Function FieldDefClass : TFieldDefClass; virtual;
+    procedure Update(aItem: TCollectionItem); overload; override;
+    procedure Notify(aItem: TCollectionItem; aAction: TCollectionNotification); override;
   public
     constructor Create(AOwner: TPersistent);
 //    destructor Destroy; override;
@@ -386,6 +388,7 @@ type
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;
     function GetFullName: string;
+    procedure SetFieldName(const aValue: string);
     function GetCurValue: Variant; virtual;
     function GetNewValue: Variant; virtual;
     function GetIsNull: Boolean; virtual;
@@ -490,7 +493,7 @@ type
     property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayLabelStored;
     property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth stored IsDisplayWidthStored;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
-    property FieldName: string read FFieldName write FFieldName;
+    property FieldName: string read FFieldName write SetFieldName;
     property HasConstraints: Boolean read FHasConstraints;
     property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
@@ -1386,6 +1389,72 @@ type
     end;
   TFieldsClass = Class of TFields;
 
+{ TFlatList }
+
+  TFlatList = class(TStringList)
+  private
+    FDataSet: TDataSet;
+    FLocked: Boolean;
+    FUpdated: Boolean;
+  protected
+    // Marks the list as out of date.
+    procedure ListChanging(aSender: TObject);
+    // Rebuilds the list when it is out of date.
+    procedure CheckUpdated;
+    // Object stored under aName; nil or an EDatabaseError when it is not found.
+    function FindItem(const aName: string; aMustExist: Boolean): TObject;
+    function Get(Index: Integer): string; override;
+    function GetCount: Integer; override;
+    function GetObject(Index: Integer): TObject; override;
+    function GetUpdated: Boolean; virtual;
+    procedure UpdateList; virtual; abstract;
+    // True when the list matches the dataset
+    property Updated: Boolean read GetUpdated write FUpdated;
+    // True while the list is being rebuilt
+    property Locked: Boolean read FLocked write FLocked;
+  public
+    // Creates an empty list for aDataSet, rebuilt on first use.
+    constructor Create(aDataSet: TDataSet); reintroduce;
+    // Rebuilds the list.
+    procedure Update;
+    // Dataset whose fields or field definitions are listed
+    property DataSet: TDataSet read FDataSet;
+  end;
+
+{ TFieldDefList }
+
+  TFieldDefList = class(TFlatList)
+  private
+    function GetFieldDef(aIndex: Integer): TFieldDef;
+    procedure AddFieldDefs(const aParentName: string; aFieldDefs: TFieldDefs);
+  protected
+    procedure UpdateList; override;
+  public
+    // Field definition with full name aName; raises EDatabaseError when it is not found.
+    function FieldByName(const aName: string): TFieldDef;
+    // Field definition with full name aName, or nil.
+    function Find(const aName: string): TFieldDef; reintroduce;
+    // Field definitions of the dataset and their child definitions, in order
+    property FieldDefs[aIndex: Integer]: TFieldDef read GetFieldDef; default;
+  end;
+
+{ TFieldList }
+
+  TFieldList = class(TFlatList)
+  private
+    function GetField(aIndex: Integer): TField;
+    procedure AddFields(aFields: TFields);
+  protected
+    procedure UpdateList; override;
+  public
+    // Field with full name aName; raises EDatabaseError when it is not found.
+    function FieldByName(const aName: string): TField;
+    // Field with full name aName, or nil.
+    function Find(const aName: string): TField; reintroduce;
+    // Fields of the dataset and the fields of their object fields, in order
+    property Fields[aIndex: Integer]: TField read GetField; default;
+  end;
+
 { TParam }
 
   TBlobData = TBytes;
@@ -1712,6 +1781,8 @@ type
     FEnableControlsEvent : TDataEvent;
     FFieldList : TFields;
     FFieldDefs: TFieldDefs;
+    FFlatFieldList : TFieldList;
+    FFlatFieldDefList : TFieldDefList;
     FFilterOptions: TFilterOptions;
     FFilterText: string;
     FFiltered: Boolean;
@@ -1966,6 +2037,10 @@ type
     property EOF: Boolean read FEOF;
     property FieldCount: Longint read GetFieldCount;
     property FieldDefs: TFieldDefs read FFieldDefs write SetFieldDefs;
+    // Field definitions and their child definitions, addressed by full name
+    property FieldDefList: TFieldDefList read FFlatFieldDefList;
+    // Fields and the fields of object fields, addressed by full name
+    property FieldList: TFieldList read FFlatFieldList;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified;
