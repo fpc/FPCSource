@@ -729,6 +729,7 @@ const
         rvd,lvd : bestreal;
         ws1,ws2 : tcompilerwidestring;
         concatstrings : boolean;
+        operandsconverted : boolean;
         c1,c2   : array[0..1] of char;
         s1,s2,stmp   : pchar;
         l1,l2   : longint;
@@ -1447,6 +1448,7 @@ const
 
         { concatenating strings ? }
         concatstrings:=false;
+        operandsconverted:=false;
 
         if (lt=ordconstn) and (rt=ordconstn) and
            is_char(ld) and is_char(rd) then
@@ -1483,6 +1485,17 @@ const
           end
         else if (lt=stringconstn) and (rt=stringconstn) then
           begin
+             { each operand is converted from its own code page to the
+               result's before the bytes are joined }
+             if (nodetype=addn) and
+                is_ansistring(resultdef) and
+                (tstringdef(resultdef).encoding<>globals.CP_NONE) and
+                (is_ansistring(ld) or is_ansistring(rd)) then
+               begin
+                 tstringconstnode(left).changestringtype(resultdef);
+                 tstringconstnode(right).changestringtype(resultdef);
+                 operandsconverted:=true;
+               end;
              s1:=tstringconstnode(left).asconstpchar;
              l1:=tstringconstnode(left).len;
              s2:=tstringconstnode(right).asconstpchar;
@@ -1495,10 +1508,15 @@ const
                 addn :
                   begin
                     stmp:=concatansistrings(s1,s2,l1,l2);
-                    t:=cstringconstnode.createpchar(stmp,l1+l2,nil);
+                    if operandsconverted then
+                      t:=cstringconstnode.createpchar(stmp,l1+l2,resultdef)
+                    else
+                      t:=cstringconstnode.createpchar(stmp,l1+l2,nil);
                     Freemem(stmp);
                     typecheckpass(t);
-                    if not is_ansistring(resultdef) or
+                    if operandsconverted then
+                      { in the result's code page already }
+                    else if not is_ansistring(resultdef) or
                        (tstringdef(resultdef).encoding<>globals.CP_NONE) then
                       tstringconstnode(t).changestringtype(resultdef)
                     else

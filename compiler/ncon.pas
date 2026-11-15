@@ -1123,8 +1123,16 @@ implementation
         if (tstringdef(def).stringtype in [st_widestring,st_unicodestring]) and
            not(cst_type in [cst_widestring,cst_unicodestring]) then
           begin
+            cp1:=current_settings.sourcecodepage;
+            { an ansistring constant is in its own code page }
+            if cst_type=cst_ansistring then
+              begin
+                cp2:=tstringdef(resultdef).encoding;
+                if (cp2<>0) and (cp2<>globals.CP_NONE) then
+                  cp1:=cp2;
+              end;
             initwidestring(valuews);
-            ascii2unicode(asconstpchar,len,current_settings.sourcecodepage,valuews);
+            ascii2unicode(asconstpchar,len,cp1,valuews);
           end
         else
           { convert unicode 2 ascii }
