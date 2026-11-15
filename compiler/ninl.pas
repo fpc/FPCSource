@@ -5340,6 +5340,10 @@ implementation
         ppn     : tcallparanode;
         paradef : tdef;
         counter : integer;
+        newblock : tblocknode;
+        newstatement : tstatementnode;
+        arraytemp,
+        restemp : ttempcreatenode;
       begin
         { determine copy function to use based on the first argument,
           also count the number of arguments in this loop }
@@ -5352,6 +5356,9 @@ implementation
             ppn:=tcallparanode(ppn.right);
           end;
         paradef:=ppn.left.resultdef;
+        newblock:=nil;
+        newstatement:=nil;
+        arraytemp:=nil;
 
         { fill up third parameter }
         if counter=2 then
@@ -5380,6 +5387,19 @@ implementation
                 crttinode.create(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal))
             else
               eletypeppn:=cordconstnode.create(0,voidpointertype,false);
+            { the array is used twice below, for its length and for its
+              data: one that may have a side effect, a function call for
+              instance, is evaluated once, into a temp }
+            if is_dynamic_array(paradef) and
+               might_have_sideeffects(ppn.left) then
+              begin
+                newblock:=internalstatements(newstatement);
+                arraytemp:=ctempcreatenode.create(paradef,paradef.size,tt_persistent,true);
+                addstatement(newstatement,arraytemp);
+                addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(arraytemp),ppn.left));
+                ppn.left:=ctemprefnode.create(arraytemp);
+                typecheckpass(ppn.left);
+              end;
             maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy);
             case counter of
               1:
@@ -5425,6 +5445,16 @@ implementation
                    ccallparanode.create(rttippn,
                    ccallparanode.create(arrayppn,nil)))))));
             result:=ccallnode.createinternres('fpc_array_to_dynarray_copy',npara,resultdef);
+            if assigned(arraytemp) then
+              begin
+                restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                addstatement(newstatement,restemp);
+                addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(restemp),result));
+                addstatement(newstatement,ctempdeletenode.create(arraytemp));
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(restemp));
+                addstatement(newstatement,ctemprefnode.create(restemp));
+                result:=newblock;
+              end;
 
             ppn.left:=nil;
             paras.free;
