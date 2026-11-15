@@ -179,6 +179,9 @@ unit aoptx86;
 
         function DoArithCombineOpt(var p : tai) : Boolean;
         function DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
+{$ifdef x86_64}
+        function DoMovImm64Opt(var p : tai) : Boolean;
+{$endif x86_64}
         function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
         function HandleSHRMerge(var p: tai; const PostPeephole: Boolean): Boolean;
 
@@ -7375,6 +7378,280 @@ unit aoptx86;
             Result := True;
           end;
       end;
+
+
+{$ifdef x86_64}
+    {
+      Search for:
+        movq  $imm64,%reg1
+        ...
+        op    %reg1,%reg2/ref  (op = and, or, xor, test or cmp)
+
+      where the constant does not fit into a sign-extended 32-bit immediate and
+      %reg1 is not used afterwards. Depending on the constant and on the use of
+      the flags, the constant load is removed and the operation is replaced:
+
+        and $not(2^k)          -> btr $k              (flags not used)
+        or/xor $2^k            -> bts/btc $k          (flags not used)
+        and $(2^k-1)           -> shl $(64-k); shr $(64-k)
+                                  (andl %reg32,%reg32 for k = 32)
+        and $not(2^k-1)        -> shr $k; shl $k
+        test/and $2^k; jcc     -> bt $k; jc/jnc       (only ZF used)
+        test/and $2^63; jcc    -> test %reg2,%reg2; js/jns
+        cmp $2^63,%reg2; je    -> neg %reg2; jo       (%reg2 not used afterwards)
+
+      If %reg2 is not used afterwards, a masking AND is handled like TEST and
+      a single shift is enough.
+
+      The flags may only be used by Jcc/SETcc/CMOVcc instructions shortly
+      after op.
+    }
+    function TX86AsmOptimizer.DoMovImm64Opt(var p : tai) : Boolean;
+
+      function IsLowMask(x: QWord; out bits: longint): Boolean;
+        begin
+          bits := PopCnt(x);
+          Result := (x <> 0) and (x <> High(QWord)) and ((x and (x + 1)) = 0);
+        end;
+
+      const
+        { Maximum number of instructions searched for the users of the flags
+          set by hp1 }
+        MaxFlagSearch = 8;
+      var
+        hp1, hp2, hp_new, hp_last: tai;
+        v: QWord;
+        ConstReg, DstReg: TRegister;
+        k, Count: longint;
+        FlagsUsed, DstDead, ZFOnly, ZFSFOnly: Boolean;
+        Conds: set of TAsmCond;
+        NewOpcode: TAsmOp;
+
+      { changes the conditions of the instructions using the flags: E/Z is
+        replaced by IfZero, NE/NZ by IfNotZero }
+      procedure ChangeConditions(IfZero, IfNotZero: TAsmCond);
+        var
+          hp: tai;
+        begin
+          hp := hp1;
+          repeat
+            GetNextInstruction(hp, hp);
+            if MatchInstruction(hp, [A_Jcc, A_SETcc, A_CMOVcc], []) then
+              begin
+                if taicpu(hp).condition in [C_E, C_Z] then
+                  taicpu(hp).condition := IfZero
+                else
+                  taicpu(hp).condition := IfNotZero;
+              end;
+          until hp = hp_last;
+        end;
+
+      begin
+        Result := False;
+
+        ConstReg := taicpu(p).oper[1]^.reg;
+        if not GetNextInstructionUsingReg(p, hp1, ConstReg) or
+          not MatchInstruction(hp1, [A_AND, A_OR, A_XOR, A_TEST, A_CMP], [S_Q]) or
+          not MatchOperand(taicpu(hp1).oper[0]^, ConstReg) or
+          not (taicpu(hp1).oper[1]^.typ in [top_reg, top_ref]) or
+          RegInOp(ConstReg, taicpu(hp1).oper[1]^) then
+          Exit;
+
+        TransferUsedRegs(TmpUsedRegs);
+        UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+        if RegUsedAfterInstruction(ConstReg, hp1, TmpUsedRegs) then
+          Exit;
+
+        { AND sets the same flags as a following TEST of its result }
+        if (taicpu(hp1).opcode = A_AND) and
+          (taicpu(hp1).oper[1]^.typ = top_reg) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2, A_TEST, [S_Q]) and
+          MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[1]^.reg) and
+          MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[1]^.reg) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Removed TEST after AND (AndTest2And)', hp2);
+            RemoveInstruction(hp2);
+          end;
+
+        { hp1 writes the flags, so check if they are allocated after it }
+        TransferUsedRegs(TmpUsedRegs);
+        UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+        UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+        FlagsUsed := RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs);
+
+        { the flags may be used only by Jcc/SETcc/CMOVcc shortly after hp1,
+          other instructions in between must not touch the flags }
+        hp_last := hp1;
+        Conds := [];
+        if FlagsUsed then
+          begin
+            Count := 0;
+            repeat
+              Inc(Count);
+              if (Count > MaxFlagSearch) or
+                not GetNextInstruction(hp_last, hp_last) or
+                (hp_last.typ <> ait_instruction) then
+                Exit;
+              if MatchInstruction(hp_last, [A_Jcc, A_SETcc, A_CMOVcc], []) then
+                Include(Conds, taicpu(hp_last).condition)
+              else if is_calljmp(taicpu(hp_last).opcode) or
+                RegInInstruction(NR_DEFAULTFLAGS, hp_last) then
+                Exit;
+              TransferUsedRegs(TmpUsedRegs);
+              UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp_last);
+            until not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp_last, TmpUsedRegs);
+          end;
+        ZFOnly := FlagsUsed and (Conds <= [C_E, C_Z, C_NE, C_NZ]);
+        ZFSFOnly := FlagsUsed and (Conds <= [C_E, C_Z, C_NE, C_NZ, C_S, C_NS]);
+
+        DstReg := NR_NO;
+        DstDead := False;
+        if taicpu(hp1).oper[1]^.typ = top_reg then
+          begin
+            DstReg := taicpu(hp1).oper[1]^.reg;
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+            DstDead := not RegUsedAfterInstruction(DstReg, hp1, TmpUsedRegs);
+          end;
+
+        v := QWord(taicpu(p).oper[0]^.val);
+        NewOpcode := A_NONE;
+
+        case taicpu(hp1).opcode of
+          A_AND:
+            begin
+              if not FlagsUsed and (PopCnt(not v) = 1) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'Changed AND (not $' + debug_hexstr(tcgint(not v)) + ') to BTR $' + debug_tostr(BsrQWord(not v)) + ' (MovAnd2Btr)', hp1);
+                  taicpu(hp1).opcode := A_BTR;
+                  taicpu(hp1).loadconst(0, BsrQWord(not v));
+                  RemoveCurrentP(p);
+                  Result := True;
+                  Exit;
+                end;
+
+              if DstReg = NR_NO then
+                Exit;
+
+              if IsLowMask(v, k) then
+                begin
+                  if DstDead and ZFOnly then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Changed AND $' + debug_hexstr(v) + ' to SHL $' + debug_tostr(64 - k) + ' as only the flags are used (MovAnd2Shl)', hp1);
+                      taicpu(hp1).opcode := A_SHL;
+                      taicpu(hp1).loadconst(0, 64 - k);
+                    end
+                  else if (k = 32) and (not FlagsUsed or ZFOnly) then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Changed AND $ffffffff to a 32-bit AND to zero-extend (MovAnd2And)', hp1);
+                      taicpu(hp1).opsize := S_L;
+                      setsubreg(DstReg, R_SUBD);
+                      taicpu(hp1).loadreg(0, DstReg);
+                      taicpu(hp1).loadreg(1, DstReg);
+                    end
+                  else if not FlagsUsed or ZFSFOnly then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Changed AND $' + debug_hexstr(v) + ' to SHL $' + debug_tostr(64 - k) + '; SHR $' + debug_tostr(64 - k) + ' (MovAnd2ShlShr)', hp1);
+                      taicpu(hp1).opcode := A_SHL;
+                      taicpu(hp1).loadconst(0, 64 - k);
+                      hp_new := taicpu.op_const_reg(A_SHR, S_Q, 64 - k, DstReg);
+                      taicpu(hp_new).fileinfo := taicpu(hp1).fileinfo;
+                      AsmL.InsertAfter(hp_new, hp1);
+                    end
+                  else
+                    Exit;
+                  RemoveCurrentP(p);
+                  Result := True;
+                  Exit;
+                end;
+
+              if IsLowMask(not v, k) then
+                begin
+                  if DstDead and ZFOnly then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Changed AND $' + debug_hexstr(v) + ' to SHR $' + debug_tostr(k) + ' as only the flags are used (MovAnd2Shr)', hp1);
+                      taicpu(hp1).opcode := A_SHR;
+                      taicpu(hp1).loadconst(0, k);
+                    end
+                  else if not FlagsUsed or ZFSFOnly then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Changed AND $' + debug_hexstr(v) + ' to SHR $' + debug_tostr(k) + '; SHL $' + debug_tostr(k) + ' (MovAnd2ShrShl)', hp1);
+                      taicpu(hp1).opcode := A_SHR;
+                      taicpu(hp1).loadconst(0, k);
+                      hp_new := taicpu.op_const_reg(A_SHL, S_Q, k, DstReg);
+                      taicpu(hp_new).fileinfo := taicpu(hp1).fileinfo;
+                      AsmL.InsertAfter(hp_new, hp1);
+                    end
+                  else
+                    Exit;
+                  RemoveCurrentP(p);
+                  Result := True;
+                  Exit;
+                end;
+
+              { a masking AND whose result is not needed is a TEST }
+              if DstDead then
+                NewOpcode := A_TEST;
+            end;
+          A_TEST:
+            NewOpcode := A_TEST;
+          A_OR, A_XOR:
+            if not FlagsUsed and (PopCnt(v) = 1) then
+              begin
+                if taicpu(hp1).opcode = A_OR then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'Changed OR $' + debug_hexstr(v) + ' to BTS $' + debug_tostr(BsrQWord(v)) + ' (MovOr2Bts)', hp1);
+                    taicpu(hp1).opcode := A_BTS;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'Changed XOR $' + debug_hexstr(v) + ' to BTC $' + debug_tostr(BsrQWord(v)) + ' (MovXor2Btc)', hp1);
+                    taicpu(hp1).opcode := A_BTC;
+                  end;
+                taicpu(hp1).loadconst(0, BsrQWord(v));
+                RemoveCurrentP(p);
+                Result := True;
+                Exit;
+              end;
+          A_CMP:
+            if (v = QWord($8000000000000000)) and DstDead and ZFOnly then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Changed CMP $8000000000000000 to NEG as the register is not used afterwards (MovCmp2Neg)', hp1);
+                taicpu(hp1).opcode := A_NEG;
+                taicpu(hp1).loadoper(0, taicpu(hp1).oper[1]^);
+                taicpu(hp1).clearop(1);
+                taicpu(hp1).ops := 1;
+                ChangeConditions(C_O, C_NO);
+                RemoveCurrentP(p);
+                Result := True;
+                Exit;
+              end;
+          else
+            ;
+        end;
+
+        if (NewOpcode = A_TEST) and ZFOnly and (PopCnt(v) = 1) then
+          begin
+            if (v = QWord($8000000000000000)) and (DstReg <> NR_NO) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Changed TEST $8000000000000000 to a sign test (MovTest2Test)', hp1);
+                taicpu(hp1).opcode := A_TEST;
+                taicpu(hp1).loadreg(0, DstReg);
+                ChangeConditions(C_NS, C_S);
+              end
+            else
+              begin
+                DebugMsg(SPeepholeOptimization + 'Changed TEST $' + debug_hexstr(v) + ' to BT $' + debug_tostr(BsrQWord(v)) + ' (MovTest2Bt)', hp1);
+                taicpu(hp1).opcode := A_BT;
+                taicpu(hp1).loadconst(0, BsrQWord(v));
+                ChangeConditions(C_NC, C_C);
+              end;
+            RemoveCurrentP(p);
+            Result := True;
+          end;
+      end;
+{$endif x86_64}
 
 
     function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
@@ -17424,7 +17701,18 @@ unit aoptx86;
         Value, RegName: string;
         hp1: tai;
       begin
-        Result:=false;
+        Result := false;
+
+        if MatchOpType(taicpu(p), top_const, top_reg) and
+          (taicpu(p).opsize = S_Q) and
+          (
+            (taicpu(p).oper[0]^.val < -2147483648) or
+            (taicpu(p).oper[0]^.val > 2147483647)
+          ) then
+          Result := DoMovImm64Opt(p);
+        if Result then
+          exit;
+
         if (taicpu(p).oper[1]^.typ = top_reg) and (taicpu(p).oper[0]^.typ = top_const) then
           begin
 
