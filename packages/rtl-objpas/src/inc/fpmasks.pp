@@ -142,7 +142,7 @@ var
 
 begin
   GetUnicodeStringManager(lManager);
-  Result:=Pointer(lManager.LowerUnicodeStringProc)<>Pointer(lManager.UpperUnicodeStringProc);
+  Result:=CodePointer(lManager.LowerUnicodeStringProc)<>CodePointer(lManager.UpperUnicodeStringProc);
 end;
 
 
