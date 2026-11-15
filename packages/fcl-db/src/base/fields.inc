@@ -142,6 +142,8 @@ begin
     Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
     Result.FReadOnly:=(faReadOnly in Attributes);
+    if FInternalCalcField then
+      Result.FFieldKind:=fkInternalCalc;
 {$ifdef dsdebug}
     Writeln ('TFieldDef.CreateField : Result Fieldno : ',Result.FieldNo,'; Self : ',FieldNo);
     Writeln ('TFieldDef.CreateField : Trying to set dataset');
@@ -1031,6 +1033,8 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 begin
   If Not Assigned(FDataset) then
     DatabaseErrorFmt(SNoDataset,[DisplayName]);
+  if (FFieldKind=fkInternalCalc) and (FDataSet.State=dsCalcFields) then
+    DatabaseErrorFmt(SNotEditing,[FDataSet.Name],FDataSet);
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 

@@ -46,6 +46,13 @@ type
     // Returns an open dataset with a UTF-8 ftString(5) field NAME holding one Cyrillic word.
     function GetCodePageDataset: TBufDataset;
     procedure IntTestCodePageStreaming(aFormat: TDataPacketFormat);
+  private
+    FInternalCalcCount : Integer;
+    FWriteInternalCalcInCalc : Boolean;
+    FInternalCalcWriteRaised : Boolean;
+    procedure DoInternalCalcFields(DataSet: TDataSet);
+    // Fills an in-memory dataset with fields ID, NAME, internal calc DOUBLEID and calculated CALCFLD, and checks the values.
+    procedure IntTestInternalCalcField(aWithFieldDefs: Boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -85,6 +92,10 @@ type
     procedure TestFilterCaseInsensitiveNonASCII;
     // IndexFieldNames with DESC fields, assigned repeatedly and alternated (bug 38884)
     procedure TestIndexFieldNamesDescRepeated;
+    // Persistent fkInternalCalc field, field definitions created from the fields (bug 7157)
+    procedure TestInternalCalcField;
+    // Persistent fkInternalCalc field next to FieldDefs that do not define it (bug 7157)
+    procedure TestInternalCalcFieldWithFieldDefs;
   end;
 
 implementation
@@ -1077,6 +1088,126 @@ begin
   finally
     lDS.Free;
   end;
+end;
+
+
+procedure TTestSpecificTBufDataset.DoInternalCalcFields(DataSet: TDataSet);
+
+begin
+  if DataSet.State = dsInternalCalc then
+    begin
+    Inc(FInternalCalcCount);
+    DataSet.FieldByName('DOUBLEID').AsInteger := DataSet.FieldByName('ID').AsInteger * 2;
+    DataSet.FieldByName('CALCFLD').AsInteger := -1;
+    end
+  else
+    begin
+    DataSet.FieldByName('CALCFLD').AsInteger := DataSet.FieldByName('DOUBLEID').AsInteger + 1;
+    if FWriteInternalCalcInCalc then
+      try
+        DataSet.FieldByName('DOUBLEID').AsInteger := 0;
+      except
+        on EDatabaseError do
+          FInternalCalcWriteRaised := True;
+      end;
+    end;
+end;
+
+
+procedure TTestSpecificTBufDataset.IntTestInternalCalcField(aWithFieldDefs: Boolean);
+
+var
+  lDS : TBufDataset;
+  lFld : TField;
+  i, lCount : Integer;
+
+begin
+  FInternalCalcCount := 0;
+  FWriteInternalCalcInCalc := False;
+  FInternalCalcWriteRaised := False;
+  lDS := TMyBufDataset.Create(nil);
+  try
+    if aWithFieldDefs then
+      begin
+      lDS.FieldDefs.Add('ID', ftInteger);
+      lDS.FieldDefs.Add('NAME', ftString, 20);
+      end;
+    lFld := TIntegerField.Create(lDS);
+    lFld.FieldName := 'ID';
+    lFld.DataSet := lDS;
+    lFld := TStringField.Create(lDS);
+    lFld.FieldName := 'NAME';
+    lFld.Size := 20;
+    lFld.DataSet := lDS;
+    lFld := TIntegerField.Create(lDS);
+    lFld.FieldName := 'DOUBLEID';
+    lFld.FieldKind := fkInternalCalc;
+    lFld.DataSet := lDS;
+    lFld := TIntegerField.Create(lDS);
+    lFld.FieldName := 'CALCFLD';
+    lFld.FieldKind := fkCalculated;
+    lFld.DataSet := lDS;
+    lDS.OnCalcFields := DoInternalCalcFields;
+    lDS.CreateDataset;
+    CheckTrue(lDS.FieldDefs.Find('DOUBLEID').InternalCalcField, 'Field definition DOUBLEID is an internal calc field');
+    CheckEquals(-1, lDS.FieldDefs.IndexOf('CALCFLD'), 'No field definition for CALCFLD');
+    for i := 1 to 5 do
+      begin
+      lDS.Append;
+      lDS.FieldByName('ID').AsInteger := i;
+      lDS.FieldByName('NAME').AsString := 'Name' + IntToStr(i);
+      lDS.Post;
+      end;
+    CheckTrue(FInternalCalcCount > 0, 'OnCalcFields called in dsInternalCalc');
+    lDS.First;
+    lCount := FInternalCalcCount;
+    for i := 1 to 5 do
+      begin
+      CheckEquals(i*2, lDS.FieldByName('DOUBLEID').AsInteger, 'Stored internal calc value of record ' + IntToStr(i));
+      CheckEquals(i*2+1, lDS.FieldByName('CALCFLD').AsInteger, 'Calculated field from internal calc value of record ' + IntToStr(i));
+      lDS.Next;
+      end;
+    lDS.First;
+    lDS.Last;
+    lDS.First;
+    CheckEquals(lCount, FInternalCalcCount, 'Scrolling does not recalculate internal calc fields');
+    lDS.Edit;
+    lDS.FieldByName('ID').AsInteger := 10;
+    CheckEquals(20, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value after field change in dsEdit');
+    CheckEquals(21, lDS.FieldByName('CALCFLD').AsInteger, 'Calculated field after field change in dsEdit');
+    lDS.Post;
+    lDS.Next;
+    lDS.First;
+    CheckEquals(20, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value after post and scroll');
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 7;
+    lDS.Cancel;
+    lDS.Insert;
+    lDS.Post;
+    CheckEquals(0, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value of a record posted without values');
+    CheckFalse(lDS.FieldByName('DOUBLEID').IsNull, 'Internal calc value set on post');
+    FWriteInternalCalcInCalc := True;
+    lDS.Resync([]);
+    CheckTrue(FInternalCalcWriteRaised, 'Writing an internal calc field in dsCalcFields raises');
+    FWriteInternalCalcInCalc := False;
+    lDS.Close;
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestInternalCalcField;
+
+begin
+  IntTestInternalCalcField(False);
+end;
+
+
+procedure TTestSpecificTBufDataset.TestInternalCalcFieldWithFieldDefs;
+
+begin
+  IntTestInternalCalcField(True);
 end;
 
 

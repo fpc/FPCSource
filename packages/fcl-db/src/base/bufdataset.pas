@@ -663,6 +663,8 @@ type
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
     procedure SetReadOnly(AValue: Boolean); virtual;
     function IsReadFromPacket : Boolean;
+    // Flags or adds a field definition for each fkInternalCalc field; True when a definition was added.
+    function AddInternalCalcFieldDefs : Boolean;
     function getnextpacket : integer;
     function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; virtual;
     // abstracts, must be overridden by descendents
@@ -1479,7 +1481,7 @@ begin
       // So we check for unbound fields and bind them if needed.
       // Do not call bindfields unconditionally, because descendants may have called it.
       I:=0;
-      DoBind:=False;
+      DoBind:=AddInternalCalcFieldDefs;
       While (Not DoBind) and (I<Fields.Count) do
         begin
         DoBind:=Fields[i].FieldNo=0;
@@ -2689,6 +2691,7 @@ var NullMask        : pbyte;
     x               : longint;
     CreateBlobField : boolean;
     BufBlob         : PBufBlobField;
+    lRecord         : TRecordBuffer;
 
 begin
   if not Fetch then
@@ -2701,13 +2704,16 @@ begin
     Exit;
     end;
 
+  lRecord := Buffer;
   NullMask := pointer(buffer);
   fillchar(Nullmask^,FNullmaskSize,0);
   inc(buffer,FNullmaskSize);
 
   for x := 0 to FieldDefs.Count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
+    if FieldDefs[x].InternalCalcField then
+      SetFieldIsNull(NullMask,x)
+    else if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
       SetFieldIsNull(NullMask,x)
     else if CreateBlobField then
       begin
@@ -2717,6 +2723,8 @@ begin
       end;
     inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
+  if InternalCalcFields then
+    RefreshInternalCalcFields(lRecord);
   Result := grOK;
 end;
 
@@ -2724,7 +2732,8 @@ function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   case State of
     dsFilter:        Result := FFilterBuffer;
-    dsCalcFields:    Result := CalcBuffer;
+    dsCalcFields,
+      dsInternalCalc: Result := CalcBuffer;
     dsRefreshFields: Result := CurrentIndexBuf.CurrentBuffer
     else             Result := ActiveBuffer;
   end;
@@ -2786,7 +2795,7 @@ begin
       end;
     Result := True;
     end
-  else
+  else if State <> dsInternalCalc then
     begin
     Inc(CurrBuff, GetRecordSize + Field.Offset);
     Result := Boolean(CurrBuff^);
@@ -2815,7 +2824,7 @@ begin
   CurrBuff := GetCurrentBuffer;
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
-    if Field.ReadOnly and not (State in [dsSetKey, dsFilter, dsRefreshFields]) then
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter, dsRefreshFields, dsInternalCalc]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
     if State in [dsEdit, dsInsert, dsNewValue] then
       Field.Validate(Buffer);
@@ -2833,6 +2842,8 @@ begin
     else
       SetFieldIsNull(NullMask,Field.FieldNo-1);
     end
+  else if State = dsInternalCalc then
+    Exit
   else
     begin
     Inc(CurrBuff, GetRecordSize + Field.Offset);
@@ -2841,7 +2852,7 @@ begin
     if assigned(Buffer) then
       Move(Buffer^, CurrBuff^, Field.DataSize);
     end;
-  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+  if not (State in [dsCalcFields, dsInternalCalc, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, PtrInt(Field));
 end;
 
@@ -3270,6 +3281,8 @@ begin
       end;
     end;
 
+  if InternalCalcFields then
+    RefreshInternalCalcFields(ActiveBuffer);
   Move(ActiveBuffer^, CurrentIndexBuf.CurrentBuffer^, FRecordSize);
 
   // new data are now in current record so reorder current record if needed
@@ -3835,7 +3848,10 @@ begin
   if DefaultFields then
     CreateFields
   else
+    begin
+    AddInternalCalcFieldDefs;
     BindFields(true);
+    end;
 end;
 
 procedure TCustomBufDataset.IntLoadRecordsFromPacket(aReader : TDataPacketHandler);
@@ -4032,6 +4048,46 @@ function TCustomBufDataset.IsReadFromPacket: Boolean;
 begin
   Result := (FPacketHandler<>nil) or (FFileName<>'') or FReadFromFile;
 end;
+
+function TCustomBufDataset.AddInternalCalcFieldDefs: Boolean;
+
+var
+  i, lIndex, lPrecision: Integer;
+  lField: TField;
+  lCodePage: TSystemCodePage;
+
+begin
+  Result := False;
+  FieldDefs.BeginUpdate;
+  try
+    for i := 0 to Fields.Count-1 do
+      begin
+      lField := Fields[i];
+      if lField.FieldKind <> fkInternalCalc then
+        Continue;
+      lIndex := FieldDefs.IndexOf(lField.FieldName);
+      if lIndex >= 0 then
+        FieldDefs[lIndex].InternalCalcField := True
+      else
+        begin
+        lCodePage := CP_ACP;
+        lPrecision := -1;
+        if lField is TStringField then
+          lCodePage := TStringField(lField).CodePage
+        else if lField is TBCDField then
+          lPrecision := TBCDField(lField).Precision
+        else if lField is TFMTBCDField then
+          lPrecision := TFMTBCDField(lField).Precision;
+        FieldDefs.Add(lField.FieldName, lField.DataType, lField.Size, lPrecision, False, False,
+          FieldDefs.Count+1, lCodePage).InternalCalcField := True;
+        Result := True;
+        end;
+      end;
+  finally
+    FieldDefs.EndUpdate;
+  end;
+end;
+
 
 procedure TCustomBufDataset.ParseFilter(const AFilter: string);
 begin

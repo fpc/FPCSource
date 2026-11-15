@@ -88,6 +88,7 @@ begin
     and for bound fields it is set to FieldDef.FieldNo }
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
+  FInternalCalcFields := False;
   for i := 0 to Fields.Count - 1 do
     begin
     Field := Fields[i];
@@ -145,7 +146,9 @@ var
   OldState: TDatasetState;
 begin
   FCalcBuffer := Buffer;
-  if FState <> dsInternalCalc then
+  if FState = dsInternalCalc then
+    DoOnCalcFields
+  else
   begin
     OldState := FState;
     FState := dsCalcFields;
@@ -241,8 +244,8 @@ procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
     if State <> dsSetKey then begin
       if aField.FieldKind = fkData then begin
         if FInternalCalcFields then
-          RefreshInternalCalcFields(ActiveBuffer)
-        else if FAutoCalcFields and (FCalcFieldsSize <> 0) then
+          RefreshInternalCalcFields(ActiveBuffer);
+        if FAutoCalcFields and (FCalcFieldsSize <> 0) then
           CalculateFields(ActiveBuffer);
       end;
 
@@ -918,6 +921,7 @@ begin
           FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
           with FFieldDef do
             begin
+            InternalCalcField := Fields[i].FieldKind = fkInternalCalc;
             if Required then Attributes := Attributes + [faRequired];
             if ReadOnly then Attributes := Attributes + [faReadOnly];
             if DataType = ftBCD then Precision := (Fields[i] as TBCDField).Precision
@@ -986,8 +990,16 @@ end;
 
 procedure TDataSet.RefreshInternalCalcFields(Buffer: TRecordBuffer);
 
+var
+  lOldState: TDataSetState;
+
 begin
-  //!! To be implemented
+  lOldState := SetTempState(dsInternalCalc);
+  try
+    CalculateFields(Buffer);
+  finally
+    RestoreState(lOldState);
+  end;
 end;
 
 function TDataSet.SetTempState(const Value: TDataSetState): TDataSetState;
@@ -1094,7 +1106,6 @@ begin
       begin
       DoBeforeOpen;
       FEnableControlsEvent:=deLayoutChange;
-      FInternalCalcFields:=False;
       try
         FDefaultFields:=FieldCount=0;
         OpenCursor(False);

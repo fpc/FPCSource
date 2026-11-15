@@ -85,9 +85,13 @@ type
 {$ifdef fpc}
   TTestBufDatasetDBBasics = class(TDBBasicsTestCase)
   private
+    FInternalCalcCount : Integer;
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
+    procedure DoInternalCalcFields(DataSet: TDataSet);
   published
+    // Persistent fkInternalCalc field on a server query: computed on fetch, stored, not sent to the server.
+    procedure TestInternalCalcField;
     procedure TestFileNameProperty;
     procedure TestClientDatasetAsMemDataset;
     procedure TestSaveAsXML;
@@ -1909,6 +1913,66 @@ begin
     ReadOnly:=true;
     CheckFalse(CanModify);
     end;
+end;
+
+procedure TTestBufDatasetDBBasics.DoInternalCalcFields(DataSet: TDataSet);
+
+begin
+  if DataSet.State = dsInternalCalc then
+    begin
+    Inc(FInternalCalcCount);
+    DataSet.FieldByName('DOUBLEID').AsInteger := DataSet.FieldByName('ID').AsInteger * 2;
+    end;
+end;
+
+
+procedure TTestBufDatasetDBBasics.TestInternalCalcField;
+
+var
+  lDS : TCustomBufDataset;
+  lFld : TField;
+  i, lCount : Integer;
+
+begin
+  lDS := DBConnector.GetNDataset(True,5) as TCustomBufDataset;
+  lDS.FieldDefs.Update;
+  lFld := TIntegerField.Create(lDS);
+  lFld.FieldName := lDS.FieldDefs.Find('ID').Name;
+  lFld.DataSet := lDS;
+  lFld := TStringField.Create(lDS);
+  lFld.FieldName := lDS.FieldDefs.Find('NAME').Name;
+  lFld.DataSet := lDS;
+  lFld := TIntegerField.Create(lDS);
+  lFld.FieldName := 'DOUBLEID';
+  lFld.FieldKind := fkInternalCalc;
+  lFld.DataSet := lDS;
+  if lDS is TSQLQuery then
+    TSQLQuery(lDS).UpdateMode := upWhereAll;
+  FInternalCalcCount := 0;
+  lDS.OnCalcFields := DoInternalCalcFields;
+  lDS.Open;
+  CheckTrue(lDS.FieldDefs.Find('DOUBLEID').InternalCalcField, 'Field definition DOUBLEID is an internal calc field');
+  for i := 1 to 5 do
+    begin
+    CheckEquals(i*2, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value of fetched record '+IntToStr(i));
+    lDS.Next;
+    end;
+  CheckTrue(lDS.EOF, 'EOF after 5 records');
+  lCount := FInternalCalcCount;
+  lDS.First;
+  lDS.Last;
+  lDS.First;
+  CheckEquals(lCount, FInternalCalcCount, 'Scrolling does not recalculate internal calc fields');
+  lDS.Edit;
+  lDS.FieldByName('NAME').AsString := 'Changed';
+  lDS.Post;
+  CheckEquals(2, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value after post');
+  lDS.ApplyUpdates;
+  lDS.Close;
+  lDS.Open;
+  CheckEquals('Changed', lDS.FieldByName('NAME').AsString, 'Applied update of NAME');
+  CheckEquals(2, lDS.FieldByName('DOUBLEID').AsInteger, 'Internal calc value after reopen');
+  lDS.Close;
 end;
 
 procedure TTestBufDatasetDBBasics.TestMergeChangeLog;
