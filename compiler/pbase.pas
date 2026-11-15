@@ -302,6 +302,8 @@ implementation
         ns:ansistring;
         nssym:tsym;
         nsitem : TCmdStrListItem;
+        attrsym : tsym;
+        attrsymtable : TSymtable;
 
         procedure consume_namespace;
           begin
@@ -407,8 +409,12 @@ implementation
                     begin
                       if cuf_check_attr_suffix in flags then
                         begin
-                          if searchsym_in_module(tunitsym(srsym).module,current_scanner.pattern+custom_attribute_suffix,srsym,srsymtable) then
-                            exit(true);
+                          if searchsym_in_module(tunitsym(srsym).module,current_scanner.pattern+custom_attribute_suffix,attrsym,attrsymtable) then
+                            begin
+                              srsym:=attrsym;
+                              srsymtable:=attrsymtable;
+                              exit(true);
+                            end;
                         end;
                       { system.char? (char=widechar comes from the implicit
                         uachar/uuchar unit -> override) }

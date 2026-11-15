@@ -221,8 +221,37 @@ implementation
         paranr : integer;
         explicit_paraloc,
         need_array,
-        is_univ: boolean;
+        is_univ,
+        refattr: boolean;
         stoptions : TSingleTypeOptions;
+
+        { Consumes a parameter attribute list; True when it contains the system unit's RefAttribute (Delphi's [Ref]) }
+        function try_consume_ref_attribute:boolean;
+          var
+            attr : tnode;
+            refsym : ttypesym;
+            old_block_type : tblock_type;
+          begin
+            result:=false;
+            if not (m_prefixed_attributes in current_settings.modeswitches) or
+               (current_scanner.token<>_LECKKLAMMER) then
+              exit;
+            consume(_LECKKLAMMER);
+            refsym:=try_search_system_type('REFATTRIBUTE');
+            repeat
+              old_block_type:=block_type;
+              block_type:=bt_type;
+              attr:=factor(false,[ef_type_only,ef_check_attr_suffix]);
+              block_type:=old_block_type;
+              if (attr.nodetype=typen) and assigned(refsym) and (ttypenode(attr).typedef=refsym.typedef) then
+                result:=true
+              else if attr.nodetype<>errorn then
+                { no other attribute is supported on a parameter }
+                Message(parser_e_illegal_parameter_list);
+              attr.free;
+            until not try_to_consume(_COMMA);
+            consume(_RECKKLAMMER);
+          end;
 
         procedure handle_default_para_value;
           var
@@ -288,6 +317,7 @@ implementation
         is_univ:=false;
         repeat
           parseprocvar:=pv_none;
+          refattr:=try_consume_ref_attribute;
           if try_to_consume(_VAR) then
             varspez:=vs_var
           else
@@ -323,6 +353,13 @@ implementation
               end
           else
               varspez:=vs_value;
+          if (parseprocvar=pv_none) and try_consume_ref_attribute then
+            refattr:=true;
+          { a const or value parameter with [Ref] is passed as constref; a value
+            parameter so passed cannot be assigned to, where Delphi's assignment
+            would change the caller's variable }
+          if refattr and (varspez in [vs_value,vs_const]) then
+            varspez:=vs_constref;
           defaultvalue:=nil;
           hdef:=nil;
           { read identifiers and insert with error type }
