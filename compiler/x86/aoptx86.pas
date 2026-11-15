@@ -191,6 +191,7 @@ unit aoptx86;
 {$ifdef x86_64}
         function DoMovImm64Opt(var p : tai) : Boolean;
 {$endif x86_64}
+        function DoMovLoadForwarding(var p : tai) : Boolean;
         function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
         function HandleSHRMerge(var p: tai; const PostPeephole: Boolean): Boolean;
 
@@ -3379,6 +3380,13 @@ unit aoptx86;
             RemoveCurrentP(p);
             Result := True;
             exit;
+          end;
+
+        { Remove or simplify a later load of the same reference }
+        if DoMovLoadForwarding(p) then
+          begin
+            Result := True;
+            Exit;
           end;
 
         { Prevent compiler warnings }
@@ -7701,6 +7709,162 @@ unit aoptx86;
           end;
       end;
 {$endif x86_64}
+
+
+    {
+      Search for:
+        mov   ref,%reg1   or   mov   %reg1,ref
+        ...
+        mov   ref,%reg2   (or movzx/movsx with the same memory size)
+
+      And change the second load to:
+        mov   %reg1,%reg2 (or movzx/movsx %reg1,%reg2)
+
+      If %reg1 and %reg2 are the same register, the second load is removed.
+
+      The instructions in between may contain conditional jumps (only the
+      fall-through path matters), but no labels, calls or other jumps. They
+      must not modify %reg1, the registers of the reference or the stack
+      pointer, and they may only write to memory that provably does not
+      overlap with the reference.
+    }
+    function TX86AsmOptimizer.DoMovLoadForwarding(var p : tai) : Boolean;
+      const
+        { Maximum number of instructions searched }
+        MaxSearchDepth = 16;
+      var
+        hp1: tai;
+        p_Reg, hp1_Reg: TRegister;
+        p_Ref: preference;
+        p_Size, hp1_Size: asizeint;
+        Count, X: Integer;
+        Match: Boolean;
+        hp1_Ch: TInsChanges;
+      begin
+        Result := False;
+        if not (cs_opt_level3 in current_settings.optimizerswitches) or
+          not (taicpu(p).opsize in [S_B, S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
+          Exit;
+
+        if MatchOpType(taicpu(p), top_ref, top_reg) then
+          begin
+            p_Ref := taicpu(p).oper[0]^.ref;
+            p_Reg := taicpu(p).oper[1]^.reg;
+            { The load must not change the reference }
+            if RegInRef(p_Reg, p_Ref^) then
+              Exit;
+          end
+        else if MatchOpType(taicpu(p), top_reg, top_ref) then
+          begin
+            p_Reg := taicpu(p).oper[0]^.reg;
+            p_Ref := taicpu(p).oper[1]^.ref;
+          end
+        else
+          Exit;
+
+        { %ah etc. cannot be used together with registers needing a REX
+          prefix }
+        if (getregtype(p_Reg) <> R_INTREGISTER) or
+          (getsubreg(p_Reg) = R_SUBH) or
+          (p_Ref^.volatility <> []) then
+          Exit;
+
+        p_Size := topsize2memsize[taicpu(p).opsize] shr 3;
+
+        hp1 := p;
+        for Count := 1 to MaxSearchDepth do
+          begin
+            if not GetNextInstruction(hp1, hp1) or
+              (hp1.typ <> ait_instruction) then
+              Exit;
+
+            if MatchOpType(taicpu(hp1), top_ref, top_reg) and
+              RefsEqual(p_Ref^, taicpu(hp1).oper[0]^.ref^) then
+              begin
+                Match := False;
+                case taicpu(hp1).opcode of
+                  A_MOV:
+                    Match := (taicpu(hp1).opsize = taicpu(p).opsize);
+                  A_MOVZX, A_MOVSX:
+                    case taicpu(hp1).opsize of
+                      S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                        Match := (taicpu(p).opsize = S_B);
+                      S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                        Match := (taicpu(p).opsize = S_W);
+                      else
+                        ;
+                    end;
+{$ifdef x86_64}
+                  A_MOVSXD:
+                    Match := (taicpu(hp1).opsize = S_LQ) and (taicpu(p).opsize = S_L);
+{$endif x86_64}
+                  else
+                    ;
+                end;
+
+                if Match then
+                  begin
+                    hp1_Reg := taicpu(hp1).oper[1]^.reg;
+                    { UsedRegs must be updated as well since p is the current
+                      instruction of the main loop }
+                    AllocRegBetween(p_Reg, p, hp1, UsedRegs);
+                    if (taicpu(hp1).opcode = A_MOV) and (hp1_Reg = p_Reg) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Removed load of ' + debug_regname(p_Reg) + ' since it already contains the value (MovMov2Nop, load forwarding)', hp1);
+                        RemoveInstruction(hp1);
+                      end
+                    else
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Load replaced with ' + debug_regname(p_Reg) + ' since it already contains the value (MovMov2MovMov, load forwarding)', hp1);
+                        taicpu(hp1).loadreg(0, p_Reg);
+                      end;
+                    Result := True;
+                    Exit;
+                  end;
+              end;
+
+            hp1_Ch := insprop[taicpu(hp1).opcode].Ch;
+            { The flags of MOVSD describe the string instruction, the SSE
+              instruction has two operands }
+            if (taicpu(hp1).opcode = A_MOVSD) and (taicpu(hp1).ops = 2) then
+              hp1_Ch := [Ch_Rop1, Ch_Wop2];
+
+            if (is_calljmp(taicpu(hp1).opcode) and (taicpu(hp1).opcode <> A_Jcc)) or
+              ([Ch_All, Ch_WMemEDI] * hp1_Ch <> []) or
+              RegModifiedByInstruction(p_Reg, hp1) or
+              RegModifiedByInstruction(NR_STACK_POINTER_REG, hp1) or
+              (
+                (p_Ref^.base <> NR_NO) and
+{$ifdef x86_64}
+                (p_Ref^.base <> NR_RIP) and
+{$endif x86_64}
+                RegModifiedByInstruction(p_Ref^.base, hp1)
+              ) or
+              (
+                (p_Ref^.index <> NR_NO) and
+                RegModifiedByInstruction(p_Ref^.index, hp1)
+              ) or
+              (
+                (p_Ref^.segment <> NR_NO) and
+                RegModifiedByInstruction(p_Ref^.segment, hp1)
+              ) then
+              Exit;
+
+            { Memory operands which are not known to be only read must not
+              overlap with the reference (the operand of a conditional jump
+              is its destination) }
+            if taicpu(hp1).opcode <> A_Jcc then
+              for X := 0 to taicpu(hp1).ops - 1 do
+                if (taicpu(hp1).oper[X]^.typ = top_ref) and
+                  not InsChangeOnlyReadsOp(hp1_Ch, X) then
+                  begin
+                    hp1_Size := topsize2memsize[taicpu(hp1).opsize] shr 3;
+                    if (hp1_Size = 0) or
+                      RefsMightOverlap(p_Ref^, taicpu(hp1).oper[X]^.ref^, p_Size, hp1_Size) then
+                      Exit;
+                  end;
+          end;
+      end;
 
 
     function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
