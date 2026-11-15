@@ -709,20 +709,6 @@ function CompilerStatus: boolean;
      event : tevent;
 
 begin
-{$ifdef UNIX}
-  GetSystemEvent(Event);         { Load system event }
-  If (Event.What <> evNothing) Then
-  begin
-{$ifdef redircompiler}
-    RedirDisableAll;
-{$endif}
-    Application^.HandleEvent(Event); {Might be resize, handle it right away}
-{$ifdef redircompiler}
-    RedirEnableAll;
-{$endif}
-  end;
-{$endif}
-
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
     begin
@@ -741,7 +727,7 @@ begin
        CompilerStatus:=true;
        exit;
     end;
-{ only display line info every 100 lines, of course all other messages
+{ only display line info every 0.1 seconds, of course all other messages
   will be displayed directly }
   if (getrealtime-lasttime>=CompilerStatusUpdateDelay) or (status.compiledlines=1) then
    begin
@@ -749,6 +735,11 @@ begin
      { update info messages }
 {$ifdef redircompiler}
           RedirDisableAll;
+{$endif}
+{$if defined(UNIX)}
+     GetSystemEvent(Event);         { Load system event }
+     If (Event.What <> evNothing) Then
+       Application^.HandleEvent(Event); {Might be resize, handle it right away}
 {$endif}
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
