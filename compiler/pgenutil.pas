@@ -54,6 +54,12 @@ uses
     procedure add_generic_dummysym(sym:tsym;const name:tidstring);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
+    { whether the current token closes a list of type arguments: ">", or ">>"
+      read as one shift operator in code, whose first ">" closes it }
+    function is_type_args_close:boolean;
+    { consumes the ">" that closes a list of type arguments; of ">>", only the
+      first, leaving ">" as the current token for the enclosing list }
+    procedure consume_type_args_close;
     function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
     function finalize_specialization(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
 
@@ -595,7 +601,7 @@ uses
           end
         else
           specializename:='$';
-        while not (current_scanner.token in [_GT,_RSHARPBRACKET]) do
+        while not is_type_args_close do
           begin
             { "first" is set to false at the end of the loop! }
             if not first then
@@ -1619,8 +1625,7 @@ uses
             result:=tstoreddef(tprocsym(context.sym).procdefList[0]);
           end;
 
-        if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET);
+        consume_type_args_close;
       end;
 
     function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
@@ -2847,6 +2852,30 @@ uses
           result:=tgenericdummyentry(list.last).resolvedsym
         else
           result:=nil;
+      end;
+
+
+    function is_type_args_close:boolean;
+      begin
+        { the shift operator ">>" is scanned as one token, but the keyword
+          "shr" is an identifier as well }
+        result:=(current_scanner.token in [_GT,_RSHARPBRACKET]) or
+                ((current_scanner.token=_OP_SHR) and (current_scanner.idtoken=_NOID));
+      end;
+
+
+    procedure consume_type_args_close;
+      begin
+        if (current_scanner.token=_OP_SHR) and (current_scanner.idtoken=_NOID) then
+          begin
+            current_scanner.token:=_GT;
+            { a recording of the tokens, a generic's body, gets this first ">"
+              here, and the second when the parser moves past it }
+            if assigned(current_scanner.recordtokenbuf) then
+              current_scanner.recordtoken;
+          end
+        else if not try_to_consume(_GT) then
+          consume(_RSHARPBRACKET);
       end;
 
 

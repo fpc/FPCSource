@@ -90,6 +90,7 @@ implementation
        ;
 
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
+    procedure parse_unambiguous_inline_specialization(var p1:tnode;flags:texprflags);forward;
 
     var
        { true, if the inherited call is anonymous }
@@ -4690,6 +4691,8 @@ implementation
            updatefpos:=true;
          end;
 
+        parse_unambiguous_inline_specialization(p1,flags);
+
         { get the resultdef for the node if nothing stops us }
         if (not assigned(p1.resultdef)) and dopostfix then
           begin
@@ -4769,281 +4772,360 @@ implementation
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
+
+    function istypenode(n:tnode):boolean;inline;
+    { Checks whether the given node is a type node or a VMT node containing a
+      typenode. This is used in the code for inline specializations in the
+      _LT branch below }
+      begin
+        result:=assigned(n) and
+                  (
+                    (n.nodetype=typen) or
+                    (
+                      (n.nodetype=loadvmtaddrn) and
+                      (tloadvmtaddrnode(n).left.nodetype=typen)
+                    )
+                  );
+      end;
+
+    function gettypedef(n:tnode):tdef;inline;
+    { This returns the typedef that belongs to the given typenode or
+      loadvmtaddrnode. n must not be Nil! }
+      begin
+        if n.nodetype=typen then
+          result:=ttypenode(n).typedef
+        else
+          result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
+      end;
+
+    function gettypedef(sym:tsym):tdef;inline;
+      begin
+        result:=nil;
+        case sym.typ of
+          typesym:
+            result:=ttypesym(sym).typedef;
+          procsym:
+            if not (sp_generic_dummy in sym.symoptions) or (tprocsym(sym).procdeflist.count>0) then
+              result:=tdef(tprocsym(sym).procdeflist[0]);
+          else
+            internalerror(2015092701);
+        end;
+      end;
+
+    function getgenericsym(n:tnode;out srsym:tsym):boolean;
+      var
+        srsymtable : tsymtable;
+      begin
+        srsym:=nil;
+        case n.nodetype of
+          typen:
+            srsym:=ttypenode(n).typedef.typesym;
+          loadvmtaddrn:
+            srsym:=ttypenode(tloadvmtaddrnode(n).left).typedef.typesym;
+          loadn:
+            if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
+              srsym:=nil;
+          calln:
+            srsym:=tcallnode(n).symtableprocentry;
+          specializen:
+            srsym:=tspecializenode(n).sym;
+          { TODO : handle const nodes }
+          else
+            ;
+        end;
+        result:=assigned(srsym);
+      end;
+
+    function generate_inline_specialization(gendef:tdef;n:tnode;filepos:tfileposinfo;parseddef:tdef;gensym:tsym;p2:tnode):tnode;
+      var
+        again,
+        getaddr,
+        unitspecific : boolean;
+        pload : tnode;
+        spezcontext : tspecializationcontext;
+        orggensym : tsym;
+        structdef,
+        inheriteddef : tabstractrecorddef;
+        callflags : tcallnodeflags;
+      begin
+        if not assigned(gensym) then
+          internalerror(2025103101);
+
+        if n.nodetype=specializen then
+          begin
+            getaddr:=tspecializenode(n).getaddr;
+            pload:=tspecializenode(n).left;
+            inheriteddef:=tabstractrecorddef(tspecializenode(n).inheriteddef);
+            unitspecific:=tspecializenode(n).unit_specific;
+            tspecializenode(n).left:=nil;
+          end
+        else
+          begin
+            getaddr:=false;
+            pload:=nil;
+            inheriteddef:=nil;
+            unitspecific:=false;
+          end;
+
+        if assigned(parseddef) and assigned(gensym) and assigned(p2) then
+          gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
+        else
+          gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
+        orggensym:=gensym;
+        case gendef.typ of
+          errordef:
+            begin
+              spezcontext.free;
+              spezcontext:=nil;
+              gensym:=generrorsym;
+            end;
+          objectdef,
+          recorddef,
+          procvardef,
+          arraydef:
+            begin
+              gendef:=generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
+              spezcontext.free;
+              spezcontext:=nil;
+              if gendef.typ=errordef then
+                gensym:=generrorsym
+              else
+                gensym:=gendef.typesym;
+            end;
+          procdef:
+            begin
+              if not (block_type in [bt_body,bt_except]) then
+                begin
+                  message(parser_e_illegal_expression);
+                  gensym:=generrorsym;
+                end
+              else
+                begin
+                  gensym:=tprocdef(gendef).procsym;
+                end;
+            end;
+          else
+            internalerror(2015092702);
+        end;
+        { the generic parameters are parsed and the specialization is done,
+          NameOf uses the generic name }
+        nameof_record_sym(orggensym);
+
+        { in case of a class or a record the specialized generic
+          is always a classrefdef }
+        again:=false;
+
+        if assigned(pload) then
+          begin
+            result:=pload;
+            typecheckpass(result);
+            structdef:=inheriteddef;
+            if not assigned(structdef) then
+              case result.resultdef.typ of
+                objectdef,
+                recorddef:
+                  begin
+                    structdef:=tabstractrecorddef(result.resultdef);
+                  end;
+                classrefdef:
+                  begin
+                    structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
+                  end;
+                else
+                  internalerror(2015092703);
+              end;
+            if not (structdef.typ in [recorddef,objectdef]) then
+              internalerror(2018092101);
+            if assigned(inheriteddef) then
+              begin
+                callflags:=[cnf_inherited];
+                include(current_procinfo.flags,pi_has_inherited);
+              end
+            else
+              callflags:=[];
+            do_member_read(structdef,getaddr,gensym,result,again,callflags,spezcontext);
+            spezcontext:=nil;
+          end
+        else
+          begin
+            if gensym.typ=procsym then
+              begin
+                result:=nil;
+                { check if it's a method/class method }
+                if is_member_read(gensym,gensym.owner,result,parseddef) then
+                  begin
+                    { if we are accessing a owner procsym from the nested }
+                    { class we need to call it as a class member }
+                    if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                        assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                      result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                    { not srsymtable.symtabletype since that can be }
+                    { withsymtable as well                          }
+                    if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                      begin
+                        do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
+                        spezcontext:=nil;
+                      end
+                    else
+                      { no procsyms in records (yet) }
+                      internalerror(2015092704);
+                  end
+                else
+                  begin
+                    { regular procedure/function call }
+                    do_proc_call(gensym,gensym.owner,nil,
+                                 (getaddr and not(current_scanner.token in [_CARET,_POINT,_LECKKLAMMER])),
+                                 again,result,[],spezcontext);
+                    spezcontext:=nil;
+                  end;
+                end
+              else
+                { handle potential typecasts, etc }
+                result:=handle_factor_typenode(gendef,nameof_active,again,nil,false);
+          end;
+
+        { parse postfix operators, NameOf does not need an instance }
+        if postfixoperators(result,again,nameof_active) then
+          if assigned(result) then
+            result.fileinfo:=filepos
+          else
+            result:=cerrornode.create;
+
+        spezcontext.free;
+        spezcontext := nil;
+      end;
+
+    function maybe_handle_specialization(var p1,p2:tnode;filepos:tfileposinfo):boolean;
+      var
+        gensym : tsym;
+        parseddef,
+        gendef : tdef;
+        ptmp : tnode;
+      begin
+        result:=false;
+        { we need to decide whether we have an inline specialization
+          (type nodes to the left and right of "<", mode Delphi and
+          ">" or "," following) or a normal "<" comparison }
+        { TODO : p1 could be a non type if e.g. a variable with the
+                 same name is defined in the same unit where the
+                 generic is defined (though "same unit" is not
+                 necessarily needed) }
+        if getgenericsym(p1,gensym) and
+           { Attention: when nested specializations are supported
+                        p2 could be a loadn if a "<" follows }
+           istypenode(p2) and
+            (m_delphi in current_settings.modeswitches) and
+            { TODO : add _LT, _LSHARPBRACKET for nested specializations }
+            (is_type_args_close or (current_scanner.token=_COMMA)) then
+          begin
+            { this is an inline specialization }
+
+            { retrieve the defs of two nodes }
+            if p1.nodetype=specializen then
+              gendef:=gettypedef(tspecializenode(p1).sym)
+            else
+              gendef:=nil;
+            parseddef:=gettypedef(p2);
+
+            { check the hints for parseddef }
+            check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg,p1.fileinfo);
+
+            ptmp:=generate_inline_specialization(gendef,p1,filepos,parseddef,gensym,p2);
+
+            { we don't need these nodes anymore }
+            p1.free;
+            p2.free;
+            p2 := nil;
+
+            p1:=ptmp;
+
+            result:=true;
+          end;
+      end;
+
+    function inline_specialization_is_unambiguous(n:tspecializenode):boolean;
+    { a "<" following the generic n can only start its type arguments if no
+      non-generic symbol of the same name could be the left operand of a
+      comparison; a type cannot be one, except an object type: a class type's
+      name is a value, a class reference }
+      var
+        srsym : tsym;
+
+      { true if a visible symbol of the same name other than a generic-only
+        dummy exists, e.g. a routine of an earlier unit }
+      function other_sym_visible:boolean;
+        var
+          stackitem : psymtablestackitem;
+          othersym : tsym;
+        begin
+          result:=false;
+          stackitem:=symtablestack.stack;
+          while assigned(stackitem) do
+            begin
+              othersym:=tsym(stackitem^.symtable.find(n.sym.name));
+              if assigned(othersym) and
+                 (othersym<>n.sym) and
+                 not ((sp_generic_dummy in othersym.symoptions) and
+                      (((othersym.typ=procsym) and (tprocsym(othersym).procdeflist.count=0)) or
+                       ((othersym.typ=typesym) and (ttypesym(othersym).typedef.typ=undefineddef)))) then
+                exit(true);
+              stackitem:=stackitem^.next;
+            end;
+        end;
+
+      begin
+        case n.sym.typ of
+          procsym:
+            result:=(tprocsym(n.sym).procdeflist.count=0) and
+                    (assigned(n.left) or not other_sym_visible);
+          typesym:
+            begin
+              srsym:=resolve_generic_dummysym(n.sym.name);
+              result:=not assigned(srsym) or
+                      ((srsym.typ=typesym) and (ttypesym(srsym).typedef.typ<>objectdef));
+            end;
+          else
+            result:=false;
+        end;
+      end;
+
+    procedure parse_unambiguous_inline_specialization(var p1:tnode;flags:texprflags);
+    { specializes the generic in p1 if it is followed by a "<" that cannot be a
+      comparison, so that the specialization with its postfix operators is one
+      operand whatever operator precedes or follows it; a "<" that can be a
+      comparison is decided in sub_expr }
+      var
+        p2 : tnode;
+        filepos : tfileposinfo;
+      begin
+        if (p1.nodetype<>specializen) or
+            not (m_delphi in current_settings.modeswitches) or
+            (current_scanner.token<>_LT) or
+            (ef_type_only in flags) or
+            not inline_specialization_is_unambiguous(tspecializenode(p1)) then
+          exit;
+        filepos:=current_tokenpos;
+        consume(_LT);
+        { a type argument is a factor; an expression would take the ">>" that
+          closes two lists as a shift }
+        p2:=factor(false,[]);
+        if not maybe_handle_specialization(p1,p2,filepos) then
+          begin
+            { no type arguments, and the generic cannot be compared }
+            if assigned(resolve_generic_dummysym(tspecializenode(p1).sym.name)) then
+              Message(parser_e_illegal_expression)
+            else
+              identifier_not_found(tspecializenode(p1).sym.realname);
+            p1.free;
+            p2.free;
+            p1:=cerrornode.create;
+          end;
+      end;
+
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
-
-      function istypenode(n:tnode):boolean;inline;
-      { Checks whether the given node is a type node or a VMT node containing a
-        typenode. This is used in the code for inline specializations in the
-        _LT branch below }
-        begin
-          result:=assigned(n) and
-                    (
-                      (n.nodetype=typen) or
-                      (
-                        (n.nodetype=loadvmtaddrn) and
-                        (tloadvmtaddrnode(n).left.nodetype=typen)
-                      )
-                    );
-        end;
-
-      function gettypedef(n:tnode):tdef;inline;
-      { This returns the typedef that belongs to the given typenode or
-        loadvmtaddrnode. n must not be Nil! }
-        begin
-          if n.nodetype=typen then
-            result:=ttypenode(n).typedef
-          else
-            result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
-        end;
-
-      function gettypedef(sym:tsym):tdef;inline;
-        begin
-          result:=nil;
-          case sym.typ of
-            typesym:
-              result:=ttypesym(sym).typedef;
-            procsym:
-              if not (sp_generic_dummy in sym.symoptions) or (tprocsym(sym).procdeflist.count>0) then
-                result:=tdef(tprocsym(sym).procdeflist[0]);
-            else
-              internalerror(2015092701);
-          end;
-        end;
-
-      function getgenericsym(n:tnode;out srsym:tsym):boolean;
-        var
-          srsymtable : tsymtable;
-        begin
-          srsym:=nil;
-          case n.nodetype of
-            typen:
-              srsym:=ttypenode(n).typedef.typesym;
-            loadvmtaddrn:
-              srsym:=ttypenode(tloadvmtaddrnode(n).left).typedef.typesym;
-            loadn:
-              if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
-                srsym:=nil;
-            calln:
-              srsym:=tcallnode(n).symtableprocentry;
-            specializen:
-              srsym:=tspecializenode(n).sym;
-            { TODO : handle const nodes }
-            else
-              ;
-          end;
-          result:=assigned(srsym);
-        end;
-
-      function generate_inline_specialization(gendef:tdef;n:tnode;filepos:tfileposinfo;parseddef:tdef;gensym:tsym;p2:tnode):tnode;
-        var
-          again,
-          getaddr,
-          unitspecific : boolean;
-          pload : tnode;
-          spezcontext : tspecializationcontext;
-          orggensym : tsym;
-          structdef,
-          inheriteddef : tabstractrecorddef;
-          callflags : tcallnodeflags;
-        begin
-          if not assigned(gensym) then
-            internalerror(2025103101);
-
-          if n.nodetype=specializen then
-            begin
-              getaddr:=tspecializenode(n).getaddr;
-              pload:=tspecializenode(n).left;
-              inheriteddef:=tabstractrecorddef(tspecializenode(n).inheriteddef);
-              unitspecific:=tspecializenode(n).unit_specific;
-              tspecializenode(n).left:=nil;
-            end
-          else
-            begin
-              getaddr:=false;
-              pload:=nil;
-              inheriteddef:=nil;
-              unitspecific:=false;
-            end;
-
-          if assigned(parseddef) and assigned(gensym) and assigned(p2) then
-            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
-          else
-            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
-          orggensym:=gensym;
-          case gendef.typ of
-            errordef:
-              begin
-                spezcontext.free;
-                spezcontext:=nil;
-                gensym:=generrorsym;
-              end;
-            objectdef,
-            recorddef,
-            procvardef,
-            arraydef:
-              begin
-                gendef:=generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
-                spezcontext.free;
-                spezcontext:=nil;
-                if gendef.typ=errordef then
-                  gensym:=generrorsym
-                else
-                  gensym:=gendef.typesym;
-              end;
-            procdef:
-              begin
-                if not (block_type in [bt_body,bt_except]) then
-                  begin
-                    message(parser_e_illegal_expression);
-                    gensym:=generrorsym;
-                  end
-                else
-                  begin
-                    gensym:=tprocdef(gendef).procsym;
-                  end;
-              end;
-            else
-              internalerror(2015092702);
-          end;
-          { the generic parameters are parsed and the specialization is done,
-            NameOf uses the generic name }
-          nameof_record_sym(orggensym);
-
-          { in case of a class or a record the specialized generic
-            is always a classrefdef }
-          again:=false;
-
-          if assigned(pload) then
-            begin
-              result:=pload;
-              typecheckpass(result);
-              structdef:=inheriteddef;
-              if not assigned(structdef) then
-                case result.resultdef.typ of
-                  objectdef,
-                  recorddef:
-                    begin
-                      structdef:=tabstractrecorddef(result.resultdef);
-                    end;
-                  classrefdef:
-                    begin
-                      structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
-                    end;
-                  else
-                    internalerror(2015092703);
-                end;
-              if not (structdef.typ in [recorddef,objectdef]) then
-                internalerror(2018092101);
-              if assigned(inheriteddef) then
-                begin
-                  callflags:=[cnf_inherited];
-                  include(current_procinfo.flags,pi_has_inherited);
-                end
-              else
-                callflags:=[];
-              do_member_read(structdef,getaddr,gensym,result,again,callflags,spezcontext);
-              spezcontext:=nil;
-            end
-          else
-            begin
-              if gensym.typ=procsym then
-                begin
-                  result:=nil;
-                  { check if it's a method/class method }
-                  if is_member_read(gensym,gensym.owner,result,parseddef) then
-                    begin
-                      { if we are accessing a owner procsym from the nested }
-                      { class we need to call it as a class member }
-                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                          assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
-                        result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
-                      { not srsymtable.symtabletype since that can be }
-                      { withsymtable as well                          }
-                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                        begin
-                          do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
-                          spezcontext:=nil;
-                        end
-                      else
-                        { no procsyms in records (yet) }
-                        internalerror(2015092704);
-                    end
-                  else
-                    begin
-                      { regular procedure/function call }
-                      do_proc_call(gensym,gensym.owner,nil,
-                                   (getaddr and not(current_scanner.token in [_CARET,_POINT,_LECKKLAMMER])),
-                                   again,result,[],spezcontext);
-                      spezcontext:=nil;
-                    end;
-                  end
-                else
-                  { handle potential typecasts, etc }
-                  result:=handle_factor_typenode(gendef,nameof_active,again,nil,false);
-            end;
-
-          { parse postfix operators, NameOf does not need an instance }
-          if postfixoperators(result,again,nameof_active) then
-            if assigned(result) then
-              result.fileinfo:=filepos
-            else
-              result:=cerrornode.create;
-
-          spezcontext.free;
-          spezcontext := nil;
-        end;
-
-      function maybe_handle_specialization(var p1,p2:tnode;filepos:tfileposinfo):boolean;
-        var
-          gensym : tsym;
-          parseddef,
-          gendef : tdef;
-          ptmp : tnode;
-        begin
-          result:=false;
-          { we need to decide whether we have an inline specialization
-            (type nodes to the left and right of "<", mode Delphi and
-            ">" or "," following) or a normal "<" comparison }
-          { TODO : p1 could be a non type if e.g. a variable with the
-                   same name is defined in the same unit where the
-                   generic is defined (though "same unit" is not
-                   necessarily needed) }
-          if getgenericsym(p1,gensym) and
-             { Attention: when nested specializations are supported
-                          p2 could be a loadn if a "<" follows }
-             istypenode(p2) and
-              (m_delphi in current_settings.modeswitches) and
-              { TODO : add _LT, _LSHARPBRACKET for nested specializations }
-              (current_scanner.token in [_GT,_RSHARPBRACKET,_COMMA]) then
-            begin
-              { this is an inline specialization }
-
-              { retrieve the defs of two nodes }
-              if p1.nodetype=specializen then
-                gendef:=gettypedef(tspecializenode(p1).sym)
-              else
-                gendef:=nil;
-              parseddef:=gettypedef(p2);
-
-              { check the hints for parseddef }
-              check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg,p1.fileinfo);
-
-              ptmp:=generate_inline_specialization(gendef,p1,filepos,parseddef,gensym,p2);
-
-              { we don't need these nodes anymore }
-              p1.free;
-              p2.free;
-              p2 := nil;
-
-              p1:=ptmp;
-
-              result:=true;
-            end;
-        end;
-
       label
         SubExprStart;
       var
