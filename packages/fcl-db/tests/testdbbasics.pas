@@ -93,7 +93,10 @@ type
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
     procedure DoInternalCalcFields(DataSet: TDataSet);
+    procedure DoOddIDFilter(DataSet: TDataSet; var Accept: Boolean);
   published
+    // RecNo and setting RecNo on a filtered query while records are still being fetched
+    procedure TestRecNoFilteredPartialFetch;
     // Persistent fkInternalCalc field on a server query: computed on fetch, stored, not sent to the server.
     procedure TestInternalCalcField;
     procedure TestFileNameProperty;
@@ -169,6 +172,10 @@ type
     procedure TestLookup;
 
     procedure TestOnFilter;
+    // RecordCount with Filter, OnFilterRecord, after append, delete and filter changes (bug 12238)
+    procedure TestRecordCountFiltered;
+    // RecNo and setting RecNo on a filtered dataset, after append, delete and index changes
+    procedure TestRecNoFiltered;
     procedure TestIntFilter; //Integer range filter
     procedure TestNegativeIntFilter; //Negative integer filter; bug 25168
 {$ifdef fpc}
@@ -1466,6 +1473,142 @@ begin
     end;
 end;
 
+procedure TTestCursorDBBasics.TestRecordCountFiltered;
+
+var
+  lDS : TDataSet;
+  lCount : Integer;
+
+begin
+  lDS := DBConnector.GetNDataset(True,10);
+  if not (lDS is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  with lDS do
+    begin
+    Open;
+    CheckEquals(10, RecordCount, 'RecordCount without filter');
+    Filter := 'ID>5';
+    Filtered := True;
+    CheckEquals(5, RecordCount, 'RecordCount with Filter ID>5');
+    lCount := 0;
+    First;
+    while not EOF do
+      begin
+      Inc(lCount);
+      Next;
+      end;
+    CheckEquals(5, lCount, 'Records visited with Filter ID>5');
+    Filter := '';
+    OnFilterRecord := TestOnFilterProc;
+    CheckEquals(5, RecordCount, 'RecordCount with OnFilterRecord accepting odd IDs');
+    Append;
+    FieldByName('ID').AsInteger := 11;
+    FieldByName('NAME').AsString := 'TestName11';
+    Post;
+    CheckEquals(6, RecordCount, 'RecordCount after appending an accepted record');
+    Append;
+    FieldByName('ID').AsInteger := 12;
+    FieldByName('NAME').AsString := 'TestName12';
+    Post;
+    CheckEquals(6, RecordCount, 'RecordCount after appending a rejected record');
+    First;
+    CheckEquals(1, FieldByName('ID').AsInteger, 'First accepted record');
+    Delete;
+    CheckEquals(5, RecordCount, 'RecordCount after deleting an accepted record');
+    Filter := 'ID>5';
+    CheckEquals(3, RecordCount, 'RecordCount with Filter ID>5 and OnFilterRecord');
+    Filtered := False;
+    CheckEquals(11, RecordCount, 'RecordCount after Filtered:=False');
+    Filtered := True;
+    OnFilterRecord := nil;
+    CheckEquals(7, RecordCount, 'RecordCount with Filter ID>5 after removing OnFilterRecord');
+    Close;
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestRecNoFiltered;
+
+var
+  lDS : TDataSet;
+  i : Integer;
+
+  // True when setting RecNo to aRecNo raises EDatabaseError
+  function SetRecNoRaises(aRecNo: Integer): Boolean;
+  begin
+    Result := False;
+    try
+      lDS.RecNo := aRecNo;
+    except
+      on EDatabaseError do
+        Result := True;
+    end;
+  end;
+
+begin
+  lDS := DBConnector.GetNDataset(True,10);
+  if not (lDS is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  with lDS do
+    begin
+    OnFilterRecord := TestOnFilterProc;
+    Filtered := True;
+    Open;
+    for i := 1 to 5 do
+      begin
+      CheckEquals(i, RecNo, 'RecNo scrolling forward');
+      CheckEquals(2*i-1, FieldByName('ID').AsInteger, 'ID scrolling forward');
+      Next;
+      end;
+    CheckTrue(EOF, 'EOF after 5 accepted records');
+    Last;
+    for i := 5 downto 1 do
+      begin
+      CheckEquals(i, RecNo, 'RecNo scrolling backward');
+      Prior;
+      end;
+    RecNo := 3;
+    CheckEquals(5, FieldByName('ID').AsInteger, 'ID after RecNo:=3');
+    CheckEquals(3, RecNo, 'RecNo after RecNo:=3');
+    CheckTrue(SetRecNoRaises(0), 'RecNo:=0 raises');
+    CheckTrue(SetRecNoRaises(RecordCount+1), 'RecNo:=RecordCount+1 raises');
+    Append;
+    FieldByName('ID').AsInteger := 11;
+    FieldByName('NAME').AsString := 'TestName11';
+    Post;
+    CheckEquals(6, RecNo, 'RecNo of an appended accepted record');
+    Append;
+    FieldByName('ID').AsInteger := 12;
+    FieldByName('NAME').AsString := 'TestName12';
+    Post;
+    CheckEquals(6, RecordCount, 'RecordCount after appending a rejected record');
+    Last;
+    CheckEquals(6, RecNo, 'RecNo of the last accepted record');
+    First;
+    Delete;
+    CheckEquals(3, FieldByName('ID').AsInteger, 'ID after deleting the first record');
+    CheckEquals(1, RecNo, 'RecNo after deleting the first record');
+    CheckEquals(5, RecordCount, 'RecordCount after deleting the first record');
+    TCustomBufDataset(lDS).IndexFieldNames := 'ID DESC';
+    First;
+    CheckEquals(11, FieldByName('ID').AsInteger, 'First ID with descending index');
+    CheckEquals(1, RecNo, 'RecNo of the first record with descending index');
+    RecNo := 2;
+    CheckEquals(9, FieldByName('ID').AsInteger, 'ID after RecNo:=2 with descending index');
+    Last;
+    CheckEquals(5, RecNo, 'RecNo of the last record with descending index');
+    TCustomBufDataset(lDS).IndexFieldNames := '';
+    First;
+    CheckEquals(3, FieldByName('ID').AsInteger, 'First ID with the default index');
+    Filtered := False;
+    First;
+    CheckEquals(2, FieldByName('ID').AsInteger, 'First ID without filter');
+    RecNo := 3;
+    CheckEquals(4, FieldByName('ID').AsInteger, 'ID after RecNo:=3 without filter');
+    CheckEquals(3, RecNo, 'RecNo without filter');
+    Close;
+    end;
+end;
+
 procedure TTestCursorDBBasics.TestIntFilter;
 // Tests an integer range filter expression
 var
@@ -1927,6 +2070,58 @@ begin
     Inc(FInternalCalcCount);
     DataSet.FieldByName('DOUBLEID').AsInteger := DataSet.FieldByName('ID').AsInteger * 2;
     end;
+end;
+
+
+procedure TTestBufDatasetDBBasics.DoOddIDFilter(DataSet: TDataSet; var Accept: Boolean);
+
+begin
+  Accept := Odd(DataSet.FieldByName('ID').AsInteger);
+end;
+
+
+procedure TTestBufDatasetDBBasics.TestRecNoFilteredPartialFetch;
+
+var
+  lDS : TCustomBufDataset;
+  i : Integer;
+
+begin
+  lDS := DBConnector.GetNDataset(35) as TCustomBufDataset;
+  lDS.PacketRecords := 2;
+  lDS.OnFilterRecord := DoOddIDFilter;
+  lDS.Filtered := True;
+  lDS.Open;
+  for i := 1 to 18 do
+    begin
+    CheckEquals(i, lDS.RecNo, 'RecNo while fetching');
+    CheckEquals(2*i-1, lDS.FieldByName('ID').AsInteger, 'ID while fetching');
+    lDS.Next;
+    end;
+  CheckTrue(lDS.EOF, 'EOF after 18 accepted records');
+  lDS.Close;
+  lDS.Open;
+  lDS.Next;
+  lDS.Next;
+  CheckEquals(3, lDS.RecNo, 'RecNo after two Next calls');
+  lDS.RecNo := 15;
+  CheckEquals(29, lDS.FieldByName('ID').AsInteger, 'ID after RecNo:=15 beyond the fetched records');
+  CheckEquals(15, lDS.RecNo, 'RecNo after RecNo:=15');
+  lDS.Prior;
+  CheckEquals(14, lDS.RecNo, 'RecNo after Prior');
+  lDS.Next;
+  lDS.Next;
+  lDS.Next;
+  lDS.Next;
+  CheckEquals(18, lDS.RecNo, 'RecNo of the last accepted record');
+  CheckEquals(18, lDS.RecordCount, 'RecordCount after fetching');
+  lDS.Close;
+  lDS.Open;
+  CheckEquals(1, lDS.RecNo, 'RecNo after reopening');
+  CheckEquals(18, lDS.RecordCount, 'RecordCount after reopening');
+  lDS.Last;
+  CheckEquals(18, lDS.RecNo, 'RecNo of the last record after RecordCount');
+  lDS.Close;
 end;
 
 

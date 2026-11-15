@@ -104,6 +104,13 @@ type
     BookmarkFlag : TBookmarkFlag;
   end;
 
+  // Record of the filtered record list with its 1-based position in that list
+  TBufRecPosition = record
+    Rec   : PBufRecLinkItem;
+    RecNo : integer;
+  end;
+  TBufRecPositions = array of TBufRecPosition;
+
   TRecUpdateBuffer = record
     Processing         : Boolean;
     UpdateKind         : TUpdateKind;
@@ -540,6 +547,15 @@ type
     FCurrentIndexDef : TBufDatasetIndex;
     FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
+    FFilteredRecs   : array of PBufRecLinkItem;
+    FFilteredCount  : integer;
+    FFilteredValid  : boolean;
+    FFilteredStale  : boolean;
+    FFilteredScanning : boolean;
+    FFilteredIndex  : TBufIndex;
+    FFilteredLastRec : PBufRecLinkItem;
+    FFilteredPositions : TBufRecPositions;
+    FFilteredPositionCount : integer;
     FReadOnly       : Boolean;
     FSavedState     : TDatasetState;
     FPacketRecords  : integer;
@@ -578,6 +594,16 @@ type
     function GetActiveRecordUpdateBuffer : boolean;
     procedure CancelRecordUpdateBuffer(AUpdateBufferIndex: integer; var ABookmark: TBufBookmark);
     procedure ParseFilter(const AFilter: string);
+    // True when Filter or OnFilterRecord restricts the records and the filtered record list applies.
+    function FilterRestricts: Boolean;
+    // Marks the filtered record list as out of date.
+    procedure InvalidateFilteredRecs;
+    // Brings the filtered record list up to date with the fetched records of the current index.
+    procedure UpdateFilteredRecs;
+    // Adds the accepted records after aFromRec (nil: from the first record) to the filtered record list.
+    procedure ScanFilteredRecs(aFromRec: PBufRecLinkItem);
+    // 1-based position of aRec in the filtered record list, 0 when it is not in the list.
+    function FilteredRecNo(aRec: PBufRecLinkItem): Integer;
     // Packet handling
     procedure IntLoadFieldDefsFromPacket(aReader : TDataPacketHandler); virtual;
     procedure IntLoadRecordsFromPacket(aReader : TDataPacketHandler);  virtual;
@@ -651,6 +677,8 @@ type
     procedure SetOnUpdateError(const AValue: TResolverErrorEvent);
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
+    procedure SetFilterOptions(Value: TFilterOptions); override;
+    procedure SetOnFilterRecord(const Value: TFilterRecordEvent); override;
     procedure InternalRefresh; override;
     procedure DataEvent(Event: TDataEvent; Info: PtrInt); override;
     // virtual or methods, which can be used by descendants
@@ -1057,6 +1085,7 @@ begin
   SetLength(FUpdateBlobBuffers,0);
   FParser := nil;
   FPacketRecords := 10;
+  InvalidateFilteredRecs;
 end;
 
 procedure TCustomBufDataset.SetPacketRecords(aValue : integer);
@@ -1199,6 +1228,8 @@ var PCurRecLinkItem : PBufRecLinkItem;
   end;
 
 begin
+  if AIndex=FFilteredIndex then
+    InvalidateFilteredRecs;
   // Build the DBCompareStructure
   // One AS is enough, and makes debugging easier.
   DblLinkIndex:=(AIndex as TDoubleLinkedBufIndex);
@@ -1522,6 +1553,7 @@ begin
     CalcRecordSize;
 
     FBRecordCount := 0;
+    InvalidateFilteredRecs;
 
     for IndexNr:=0 to FIndexes.Count-1 do
       if Assigned(BufIndexdefs[IndexNr]) then
@@ -1567,6 +1599,12 @@ begin
   FOpen:=False;
   FReadFromFile:=False;
   FBRecordCount:=0;
+  InvalidateFilteredRecs;
+  FFilteredIndex:=nil;
+  FFilteredLastRec:=nil;
+  FFilteredCount:=0;
+  SetLength(FFilteredRecs,0);
+  SetLength(FFilteredPositions,0);
   if (FIndexes.Count>0) then
     with DefaultBufferIndex do
       if IsInitialized then
@@ -2596,6 +2634,8 @@ begin
 
   T.EndUpdate;
   FBRecordCount := FBRecordCount + i;
+  if i > 0 then
+    FFilteredStale := True;
   result := i;
 end;
 
@@ -2852,6 +2892,8 @@ begin
     if assigned(Buffer) then
       Move(Buffer^, CurrBuff^, Field.DataSize);
     end;
+  if State = dsRefreshFields then
+    InvalidateFilteredRecs;
   if not (State in [dsCalcFields, dsInternalCalc, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, PtrInt(Field));
 end;
@@ -2889,6 +2931,7 @@ begin
   FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := RemRecBookmrk;
   FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukDelete;
   dec(FBRecordCount);
+  InvalidateFilteredRecs;
 end;
 
 
@@ -2904,6 +2947,7 @@ var
   NBookmark    : TBufBookmark;
   i            : integer;
 begin
+  InvalidateFilteredRecs;
   with FUpdateBuffer[AUpdateBufferIndex] do
     if Assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
       begin
@@ -3103,6 +3147,7 @@ begin
   Res:=Default(TApplyRecUpdateResult);
   Res.Response:=rrApply;
   CheckBrowseMode;
+  InvalidateFilteredRecs;
   CurrentIndexBuf.StoreCurrentRecIntoBookmark(@StoreCurrRec);
   aSyncDetected:=False;
   aOldState:=SetTempState(dsBlockRead);
@@ -3216,6 +3261,7 @@ begin
    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
     FUpdateBlobBuffers[i]^.FieldNo := -1;
 
+  InvalidateFilteredRecs;
   if State = dsInsert then
     begin
     if assigned(FAutoIncField) then
@@ -3398,21 +3444,41 @@ var ABookmark : TBufBookmark;
 
 begin
   CheckBrowseMode;
-  if Value > RecordCount then
-    repeat until (getnextpacket < FPacketRecords) or (Value <= RecordCount) or (FPacketRecords = -1);
-
-  if (Value > RecordCount) or (Value < 1) then
+  if FilterRestricts then
     begin
-    DatabaseError(SNoSuchRecord, Self);
-    exit;
-    end;
+    UpdateFilteredRecs;
+    while (Value > FFilteredCount) and (getnextpacket > 0) do
+      UpdateFilteredRecs;
+    if (Value > FFilteredCount) or (Value < 1) then
+      begin
+      DatabaseError(SNoSuchRecord, Self);
+      exit;
+      end;
+    ABookmark := Default(TBufBookmark);
+    ABookmark.BookmarkData := FFilteredRecs[Value-1];
+    CurrentIndexBuf.GotoBookmark(@ABookmark);
+    end
+  else
+    begin
+    if Value > FBRecordCount then
+      repeat until (getnextpacket < FPacketRecords) or (Value <= FBRecordCount) or (FPacketRecords = -1);
 
-  CurrentIndexBuf.RecNo:=Value;
+    if (Value > FBRecordCount) or (Value < 1) then
+      begin
+      DatabaseError(SNoSuchRecord, Self);
+      exit;
+      end;
+
+    CurrentIndexBuf.RecNo:=Value;
+    end;
   CurrentIndexBuf.StoreCurrentRecIntoBookmark(@ABookmark);
   GotoBookmark(@ABookmark);
 end;
 
 function TCustomBufDataset.GetRecNo: Longint;
+
+var
+  lBookmark : TBufBookmark;
 
 begin
   if IsUniDirectional then
@@ -3422,7 +3488,14 @@ begin
   else
     begin
     UpdateCursorPos;
-    Result := CurrentIndexBuf.RecNo;
+    if FilterRestricts then
+      begin
+      UpdateFilteredRecs;
+      CurrentIndexBuf.StoreCurrentRecIntoBookmark(@lBookmark);
+      Result := FilteredRecNo(lBookmark.BookmarkData);
+      end
+    else
+      Result := CurrentIndexBuf.RecNo;
     end;
 end;
 
@@ -3434,11 +3507,193 @@ end;
 
 function TCustomBufDataset.GetRecordCount: Longint;
 begin
-  if Active then
-    Result := FBRecordCount
+  if not Active then
+    Result:=0
+  else if FilterRestricts then
+    begin
+    FetchAll;
+    UpdateFilteredRecs;
+    Result:=FFilteredCount;
+    end
   else
-    Result:=0;
+    Result := FBRecordCount;
 end;
+
+function TCustomBufDataset.FilterRestricts: Boolean;
+
+begin
+  Result:=Filtered and ((Filter<>'') or Assigned(OnFilterRecord))
+          and not IsUniDirectional and not FFilteredScanning;
+end;
+
+
+procedure TCustomBufDataset.InvalidateFilteredRecs;
+
+begin
+  FFilteredValid:=False;
+  FFilteredPositionCount:=-1;
+end;
+
+
+procedure TCustomBufDataset.UpdateFilteredRecs;
+
+begin
+  if FFilteredValid and (FFilteredIndex<>CurrentIndexBuf) then
+    InvalidateFilteredRecs;
+  if FFilteredValid and FFilteredStale and (FFilteredIndex<>DefaultBufferIndex) then
+    InvalidateFilteredRecs;
+  if not FFilteredValid then
+    begin
+    FFilteredCount:=0;
+    FFilteredPositionCount:=-1;
+    FFilteredLastRec:=nil;
+    FFilteredIndex:=CurrentIndexBuf;
+    FFilteredStale:=False;
+    ScanFilteredRecs(nil);
+    end
+  else if FFilteredStale then
+    begin
+    FFilteredStale:=False;
+    ScanFilteredRecs(FFilteredLastRec);
+    end;
+end;
+
+
+procedure TCustomBufDataset.ScanFilteredRecs(aFromRec: PBufRecLinkItem);
+
+var
+  lSaved, lWalk: TBufBookmark;
+  lBuffer, lSavedFilterBuffer: TRecordBuffer;
+  lSavedState: TDataSetState;
+  lAcceptable: Boolean;
+  lResult: TGetResult;
+
+begin
+  lBuffer:=AllocRecordBuffer;
+  lSavedFilterBuffer:=FFilterBuffer;
+  CurrentIndexBuf.StoreCurrentRecIntoBookmark(@lSaved);
+  FFilteredScanning:=True;
+  try
+    try
+      if aFromRec=nil then
+        lResult:=CurrentIndexBuf.ScrollFirst
+      else
+        begin
+        lWalk:=Default(TBufBookmark);
+        lWalk.BookmarkData:=aFromRec;
+        CurrentIndexBuf.GotoBookmark(@lWalk);
+        lResult:=CurrentIndexBuf.ScrollForward;
+        end;
+      while lResult=grOK do
+        begin
+        CurrentRecordToBuffer(lBuffer);
+        CurrentIndexBuf.StoreCurrentRecIntoBookmark(@lWalk);
+        FFilterBuffer:=lBuffer;
+        lSavedState:=SetTempState(dsFilter);
+        try
+          DoFilterRecord(lAcceptable);
+        finally
+          RestoreState(lSavedState);
+        end;
+        if lAcceptable then
+          begin
+          if FFilteredCount=Length(FFilteredRecs) then
+            SetLength(FFilteredRecs,2*FFilteredCount+16);
+          FFilteredRecs[FFilteredCount]:=lWalk.BookmarkData;
+          Inc(FFilteredCount);
+          end;
+        FFilteredLastRec:=lWalk.BookmarkData;
+        CurrentIndexBuf.GotoBookmark(@lWalk);
+        lResult:=CurrentIndexBuf.ScrollForward;
+        end;
+      FFilteredValid:=True;
+    except
+      InvalidateFilteredRecs;
+      raise;
+    end;
+  finally
+    FFilteredScanning:=False;
+    CurrentIndexBuf.GotoBookmark(@lSaved);
+    FFilterBuffer:=lSavedFilterBuffer;
+    FreeRecordBuffer(lBuffer);
+  end;
+end;
+
+
+// Sorts aPositions[aLow..aHigh] on the record address.
+procedure SortRecPositions(var aPositions: TBufRecPositions; aLow, aHigh: Integer);
+
+var
+  i, j: Integer;
+  lPivot: PtrUInt;
+  lSwap: TBufRecPosition;
+
+begin
+  while aLow<aHigh do
+    begin
+    lPivot:=PtrUInt(aPositions[(aLow+aHigh) div 2].Rec);
+    i:=aLow;
+    j:=aHigh;
+    repeat
+      while PtrUInt(aPositions[i].Rec)<lPivot do
+        Inc(i);
+      while PtrUInt(aPositions[j].Rec)>lPivot do
+        Dec(j);
+      if i<=j then
+        begin
+        lSwap:=aPositions[i];
+        aPositions[i]:=aPositions[j];
+        aPositions[j]:=lSwap;
+        Inc(i);
+        Dec(j);
+        end;
+    until i>j;
+    if (j-aLow)<(aHigh-i) then
+      begin
+      SortRecPositions(aPositions,aLow,j);
+      aLow:=i;
+      end
+    else
+      begin
+      SortRecPositions(aPositions,i,aHigh);
+      aHigh:=j;
+      end;
+    end;
+end;
+
+
+function TCustomBufDataset.FilteredRecNo(aRec: PBufRecLinkItem): Integer;
+
+var
+  i, lLow, lHigh, lMid: Integer;
+
+begin
+  if FFilteredPositionCount<>FFilteredCount then
+    begin
+    SetLength(FFilteredPositions,FFilteredCount);
+    for i:=0 to FFilteredCount-1 do
+      begin
+      FFilteredPositions[i].Rec:=FFilteredRecs[i];
+      FFilteredPositions[i].RecNo:=i+1;
+      end;
+    SortRecPositions(FFilteredPositions,0,FFilteredCount-1);
+    FFilteredPositionCount:=FFilteredCount;
+    end;
+  Result:=0;
+  lLow:=0;
+  lHigh:=FFilteredPositionCount-1;
+  while lLow<=lHigh do
+    begin
+    lMid:=(lLow+lHigh) div 2;
+    if PtrUInt(FFilteredPositions[lMid].Rec)<PtrUInt(aRec) then
+      lLow:=lMid+1
+    else if PtrUInt(FFilteredPositions[lMid].Rec)>PtrUInt(aRec) then
+      lHigh:=lMid-1
+    else
+      Exit(FFilteredPositions[lMid].RecNo);
+    end;
+end;
+
 
 function TCustomBufDataset.UpdateStatus: TUpdateStatus;
 
@@ -3976,6 +4231,7 @@ begin
 
   // call dataset method
   inherited;
+  InvalidateFilteredRecs;
 
   // refilter dataset if filtered
   if IsCursorOpen and Filtered then Resync([]);
@@ -3988,11 +4244,28 @@ begin
 
   // pass on to ancestor
   inherited;
+  InvalidateFilteredRecs;
 
   // only refresh if active
   if IsCursorOpen then
     Resync([]);
 end;
+
+procedure TCustomBufDataset.SetFilterOptions(Value: TFilterOptions);
+
+begin
+  inherited SetFilterOptions(Value);
+  InvalidateFilteredRecs;
+end;
+
+
+procedure TCustomBufDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
+
+begin
+  inherited SetOnFilterRecord(Value);
+  InvalidateFilteredRecs;
+end;
+
 
 procedure TCustomBufDataset.InternalRefresh;
 
