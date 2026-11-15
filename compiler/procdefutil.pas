@@ -337,6 +337,7 @@ implementation
       include(invokedef.procoptions,po_virtualmethod);
       exclude(invokedef.procoptions,po_staticmethod);
       exclude(invokedef.procoptions,po_classmethod);
+      exclude(invokedef.procoptions,po_overridingmethod);
       invokedef.forwarddef:=false;
 
       symtablestack:=oldsymtablestack;
