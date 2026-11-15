@@ -3513,8 +3513,10 @@ procedure TTestDBBasics.TestFieldFullName;
 
 var
   lParent, lChild: TObjectField;
+  lArray: TArrayField;
   lLeaf: TIntegerField;
   lRaised: Boolean;
+  lOwner: TComponent;
 
 begin
   with DBConnector.GetNDataset(1) do
@@ -3534,6 +3536,8 @@ begin
     lChild.ParentField:=lParent;
     lLeaf.ParentField:=lChild;
     CheckSame(lChild, lLeaf.ParentField, 'ParentField after assignment');
+    CheckEquals(1, lParent.FieldCount, 'Child fields of the parent field');
+    CheckSame(lChild, lParent.Fields[0], 'Child field in the Fields of the parent field');
     CheckEquals('ADDRESS.STREET.NUMBER', lLeaf.FullName, 'FullName with two parent fields');
     lRaised:=False;
     try
@@ -3544,15 +3548,36 @@ begin
     end;
     CheckTrue(lRaised, 'Circular parent field raises EDatabaseError');
     CheckNull(lParent.ParentField, 'ParentField after circular assignment');
+    lChild.ParentField:=nil;
+    CheckEquals(0, lParent.FieldCount, 'Child fields of the parent field after clearing ParentField');
+    CheckEquals('STREET.NUMBER', lLeaf.FullName, 'FullName after removing the top parent field');
     FreeAndNil(lParent);
-    CheckNull(lChild.ParentField, 'ParentField after freeing the parent field');
-    CheckEquals('STREET.NUMBER', lLeaf.FullName, 'FullName after freeing the top parent field');
     lLeaf.ParentField:=nil;
     CheckEquals('NUMBER', lLeaf.FullName, 'FullName after clearing ParentField');
   finally
     lLeaf.Free;
     lChild.Free;
     lParent.Free;
+  end;
+  lOwner:=TComponent.Create(nil);
+  try
+    lParent:=TADTField.Create(nil);
+    lParent.FieldName:='REC';
+    lArray:=TArrayField.Create(lOwner);
+    lArray.FieldName:='ARR';
+    lArray.ParentField:=lParent;
+    lLeaf:=TIntegerField.Create(lOwner);
+    lLeaf.FieldName:='ARR[0]';
+    lLeaf.ParentField:=lArray;
+    CheckEquals('REC.ARR[0]', lLeaf.FullName, 'FullName of an array element in an object field');
+    lArray.ParentField:=nil;
+    CheckEquals('ARR[0]', lLeaf.FullName, 'FullName of an array element');
+    lArray.ParentField:=lParent;
+    CheckEquals(2, lOwner.ComponentCount, 'Components before freeing the parent field');
+    lParent.Free;
+    CheckEquals(0, lOwner.ComponentCount, 'Freeing a parent field frees its child fields');
+  finally
+    lOwner.Free;
   end;
 end;
 

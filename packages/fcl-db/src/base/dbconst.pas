@@ -123,6 +123,12 @@ Resourcestring
   SErrNoFieldsDefined       = 'Can not create a dataset when there are no fielddefinitions or fields defined';
   SErrApplyUpdBeforeRefresh = 'Must apply updates before refreshing data';
   SErrNoDataset             = 'Missing (compatible) underlying dataset, can not open';
+  SErrNoChildFieldDefs      = 'Field definition "%s" has no child field definitions';
+  SErrUnsupportedChildFieldType = 'Field type %s is not supported as element or member of "%s"';
+  SErrObjectFieldsNotSaved  = 'Datasets with array or object field "%s" can not be saved';
+  SErrArrayElementCount     = 'Array value of "%s" has %d elements, the field holds %d';
+  SErrArrayDimensions       = 'Array value of "%s" has %d dimensions, only one is supported';
+  SErrFieldDefListMismatch  = 'Field definition list does not match the field definitions';
   SErrDisconnectedPacketRecords = 'For disconnected TSQLQuery instances, packetrecords must be -1';
   SErrImplicitNoRollBack      = 'Implicit use of transactions does not allow rollback.';
   SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';

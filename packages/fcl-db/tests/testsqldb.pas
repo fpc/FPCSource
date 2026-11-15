@@ -75,6 +75,12 @@ type
     procedure TestAutoGenerateValueRefreshSelect;
     procedure TestExecuteServerPrepared;
     procedure TestTextResultFormat;
+    // PostgreSQL array columns as array fields: element definitions, values, nulls, updates (bug 26737)
+    procedure TestArrayFieldPostgreSQL;
+    // PostgreSQL arrays of boolean, date, timestamp, numeric and text elements, read and written back
+    procedure TestArrayFieldPostgreSQLTypes;
+    // Firebird array columns as array fields: element definitions, a two-dimensional array, writing and reading
+    procedure TestArrayFieldFirebird;
   end;
 
   { TTestTSQLConnection }
@@ -111,6 +117,9 @@ type
   end;
 
 implementation
+
+uses
+  pqconnection, variants;
 
 type
   { Access to the protected TSQLConnection.GetAsSQLText }
@@ -1135,6 +1144,262 @@ begin
       lRaised:=True;
   end;
   AssertTrue('Text format int4 field raises EDatabaseError',lRaised);
+end;
+
+
+procedure TTestTSQLQuery.TestArrayFieldPostgreSQL;
+
+var
+  lInts, lNames, lVals : TArrayField;
+  lRaised : Boolean;
+
+begin
+  if SQLServerType<>ssPostgreSQL then
+    Ignore(STestNotApplicable);
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, ints integer[], names varchar(10)[], vals float8[], '+
+                  'constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    ExecuteDirect('insert into FPDEV2 values (1, ''{1,2,3}'', ''{"a","b,c",NULL}'', ''{1.5}'')');
+    ExecuteDirect('insert into FPDEV2 values (2, ''{}'', NULL, NULL)');
+    Transaction.Commit;
+    end;
+  (SQLDBConnector.Connection as TPQConnection).ArraySize:=4;
+  try
+    FMyQ:=SQLDBConnector.Query;
+    FMyQ.SQL.Text:='select * from FPDEV2 order by id';
+    FMyQ.Open;
+    AssertTrue('Field class of an integer[] column',FMyQ.FieldByName('ints') is TArrayField);
+    lInts:=TArrayField(FMyQ.FieldByName('ints'));
+    lNames:=FMyQ.FieldByName('names') as TArrayField;
+    lVals:=FMyQ.FieldByName('vals') as TArrayField;
+    AssertEquals('Elements of an array field',4,lInts.FieldCount);
+    AssertTrue('Element type of integer[]',FMyQ.FieldDefs.Find('ints').ChildDefs[0].DataType=ftInteger);
+    AssertTrue('Element type of varchar(10)[]',FMyQ.FieldDefs.Find('names').ChildDefs[0].DataType=ftString);
+    AssertEquals('Element size of varchar(10)[]',10,FMyQ.FieldDefs.Find('names').ChildDefs[0].Size);
+    AssertTrue('Element type of float8[]',FMyQ.FieldDefs.Find('vals').ChildDefs[0].DataType=ftFloat);
+
+    AssertEquals('ints[0] of record 1',1,lInts.Fields[0].AsInteger);
+    AssertEquals('ints[2] of record 1',3,lInts.Fields[2].AsInteger);
+    AssertTrue('ints[3] of record 1 is null',lInts.Fields[3].IsNull);
+    AssertEquals('names[1] of record 1','b,c',lNames.Fields[1].AsString);
+    AssertTrue('names[2] of record 1 is null',lNames.Fields[2].IsNull);
+    AssertEquals('vals[0] of record 1',1.5,lVals.Fields[0].AsFloat,0);
+    FMyQ.Next;
+    AssertTrue('Empty array of record 2 is null',lInts.IsNull);
+    AssertTrue('Null array of record 2 is null',lNames.IsNull);
+
+    FMyQ.First;
+    FMyQ.Edit;
+    lInts.Value:=VarArrayOf([7,Null,9]);
+    lNames.Fields[1].AsString:='x"y\z';
+    FMyQ.Post;
+    FMyQ.Append;
+    FMyQ.FieldByName('id').AsInteger:=3;
+    lInts.FieldValues[1]:=42;
+    lVals.FieldValues[0]:=2.25;
+    FMyQ.Post;
+    FMyQ.ApplyUpdates;
+    SQLDBConnector.Transaction.Commit;
+
+    FMyQ.SQL.Text:='select * from FPDEV2 order by id';
+    FMyQ.Open;
+    lInts:=FMyQ.FieldByName('ints') as TArrayField;
+    lNames:=FMyQ.FieldByName('names') as TArrayField;
+    lVals:=FMyQ.FieldByName('vals') as TArrayField;
+    AssertEquals('ints[0] after update',7,lInts.Fields[0].AsInteger);
+    AssertTrue('ints[1] after update is null',lInts.Fields[1].IsNull);
+    AssertEquals('ints[2] after update',9,lInts.Fields[2].AsInteger);
+    AssertEquals('names[1] after update','x"y\z',lNames.Fields[1].AsString);
+    AssertEquals('names[0] after update','a',lNames.Fields[0].AsString);
+    FMyQ.Last;
+    AssertEquals('ints[1] of the inserted record',42,lInts.Fields[1].AsInteger);
+    AssertTrue('ints[0] of the inserted record is null',lInts.Fields[0].IsNull);
+    AssertEquals('vals[0] of the inserted record',2.25,lVals.Fields[0].AsFloat,0);
+    FMyQ.Close;
+
+    FMyQ.SQL.Text:='select ints[2] as second, array_length(ints,1) as len from FPDEV2 where id=3';
+    FMyQ.Open;
+    AssertEquals('Second element in the database',42,FMyQ.FieldByName('second').AsInteger);
+    AssertEquals('Array length in the database',2,FMyQ.FieldByName('len').AsInteger);
+    FMyQ.Close;
+
+    SQLDBConnector.ExecuteDirect('insert into FPDEV2 (id, ints) values (4, ''{1,2,3,4,5}'')');
+    FMyQ.SQL.Text:='select * from FPDEV2 where id=4';
+    lRaised:=False;
+    try
+      FMyQ.Open;
+      FMyQ.First;
+    except
+      on EDatabaseError do
+        lRaised:=True;
+    end;
+    AssertTrue('An array with more elements than ArraySize raises EDatabaseError',lRaised);
+  finally
+    (SQLDBConnector.Connection as TPQConnection).ArraySize:=10;
+  end;
+end;
+
+
+procedure TTestTSQLQuery.TestArrayFieldFirebird;
+
+var
+  lInts, lNames, lVals, lDates, lAmounts, lGrid : TArrayField;
+  i : Integer;
+
+  procedure GetFields;
+  begin
+    lInts:=FMyQ.FieldByName('ints') as TArrayField;
+    lNames:=FMyQ.FieldByName('names') as TArrayField;
+    lVals:=FMyQ.FieldByName('vals') as TArrayField;
+    lDates:=FMyQ.FieldByName('dates') as TArrayField;
+    lAmounts:=FMyQ.FieldByName('amounts') as TArrayField;
+    lGrid:=FMyQ.FieldByName('grid') as TArrayField;
+  end;
+
+begin
+  if SQLServerType<>ssFirebird then
+    Ignore(STestNotApplicable);
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, ints integer[3], names varchar(10)[3], '+
+                  'vals double precision[2], dates date[2], amounts numeric(10,2)[2], grid integer[2,3], '+
+                  'constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.Open;
+  GetFields;
+  AssertEquals('Elements of integer[3]',3,lInts.FieldCount);
+  AssertEquals('Elements of integer[2,3]',6,lGrid.FieldCount);
+  AssertTrue('Element type of integer[3]',FMyQ.FieldDefs.Find('ints').ChildDefs[0].DataType=ftInteger);
+  AssertTrue('Element type of varchar(10)[3]',FMyQ.FieldDefs.Find('names').ChildDefs[0].DataType=ftString);
+  AssertEquals('Element size of varchar(10)[3]',10,FMyQ.FieldDefs.Find('names').ChildDefs[0].Size);
+  AssertTrue('Element type of double precision[2]',FMyQ.FieldDefs.Find('vals').ChildDefs[0].DataType=ftFloat);
+  AssertTrue('Element type of date[2]',FMyQ.FieldDefs.Find('dates').ChildDefs[0].DataType=ftDate);
+  AssertTrue('Element type of numeric(10,2)[2]',FMyQ.FieldDefs.Find('amounts').ChildDefs[0].DataType=ftBCD);
+  AssertTrue('Null array',lInts.IsNull);
+
+  FMyQ.Edit;
+  lInts.Value:=VarArrayOf([1,2,3]);
+  lNames.Value:=VarArrayOf(['a','bc','def']);
+  lVals.FieldValues[1]:=2.5;
+  lDates.FieldValues[0]:=EncodeDate(2026,11,15);
+  lAmounts.FieldValues[1]:=12.34;
+  for i:=0 to 5 do
+    lGrid.FieldValues[i]:=10+i;
+  FMyQ.Post;
+  FMyQ.ApplyUpdates;
+  SQLDBConnector.Transaction.Commit;
+
+  FMyQ.SQL.Text:='select ints[2] as i2, names[3] as n3, grid[2,3] as g23, grid[1,2] as g12, amounts[2] as a2 from FPDEV2';
+  FMyQ.Open;
+  AssertEquals('ints[2] in the database',2,FMyQ.FieldByName('i2').AsInteger);
+  AssertEquals('names[3] in the database','def',FMyQ.FieldByName('n3').AsString);
+  AssertEquals('grid[2,3] in the database',15,FMyQ.FieldByName('g23').AsInteger);
+  AssertEquals('grid[1,2] in the database',11,FMyQ.FieldByName('g12').AsInteger);
+  AssertEquals('amounts[2] in the database',12.34,FMyQ.FieldByName('a2').AsFloat,1e-9);
+  FMyQ.Close;
+
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.Open;
+  GetFields;
+  AssertEquals('ints[0]',1,lInts.Fields[0].AsInteger);
+  AssertEquals('ints[2]',3,lInts.Fields[2].AsInteger);
+  AssertEquals('names[1]','bc',lNames.Fields[1].AsString);
+  AssertEquals('names[2]','def',lNames.Fields[2].AsString);
+  AssertEquals('vals[1]',2.5,lVals.Fields[1].AsFloat,0);
+  AssertEquals('vals[0], not written, holds 0',0,lVals.Fields[0].AsFloat,0);
+  AssertEquals('dates[0]',EncodeDate(2026,11,15),lDates.Fields[0].AsDateTime,0);
+  AssertEquals('amounts[1]',12.34,lAmounts.Fields[1].AsFloat,1e-9);
+  AssertEquals('grid element 5',15,lGrid.Fields[5].AsInteger);
+  AssertEquals('grid element 1',11,lGrid.Fields[1].AsInteger);
+
+  FMyQ.Edit;
+  lInts.Fields[1].AsInteger:=20;
+  FMyQ.Post;
+  FMyQ.ApplyUpdates;
+  SQLDBConnector.Transaction.Commit;
+  FMyQ.Open;
+  GetFields;
+  AssertEquals('ints[1] after update',20,lInts.Fields[1].AsInteger);
+  AssertEquals('ints[2] after update',3,lInts.Fields[2].AsInteger);
+  AssertEquals('names[2] after update of another array','def',lNames.Fields[2].AsString);
+  FMyQ.Close;
+end;
+
+
+procedure TTestTSQLQuery.TestArrayFieldPostgreSQLTypes;
+
+var
+  lFlags, lDates, lStamps, lAmounts, lTexts : TArrayField;
+  cText : UTF8String;
+
+  procedure GetFields;
+  begin
+    lFlags:=FMyQ.FieldByName('flags') as TArrayField;
+    lDates:=FMyQ.FieldByName('dates') as TArrayField;
+    lStamps:=FMyQ.FieldByName('stamps') as TArrayField;
+    lAmounts:=FMyQ.FieldByName('amounts') as TArrayField;
+    lTexts:=FMyQ.FieldByName('texts') as TArrayField;
+  end;
+
+begin
+  if SQLServerType<>ssPostgreSQL then
+    Ignore(STestNotApplicable);
+  cText:=UTF8Encode(UnicodeString('caf')+WideChar($E9)+UnicodeString(' "{1}"'));
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, flags boolean[], dates date[], stamps timestamp[], '+
+                  'amounts numeric(10,2)[], texts text[], note varchar(20), constraint PK_FPDEV2 primary key(id))');
+    Transaction.Commit;
+    ExecuteDirect('insert into FPDEV2 values (1, ''{t,f}'', ''{2026-11-15,1999-12-31}'', '+
+                  '''{"2026-11-15 13:14:15.5"}'', ''{12.34,-5.6}'', ''{"one","two words"}'')');
+    Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.Open;
+  GetFields;
+  AssertTrue('Element type of boolean[]',FMyQ.FieldDefs.Find('flags').ChildDefs[0].DataType=ftBoolean);
+  AssertTrue('Element type of date[]',FMyQ.FieldDefs.Find('dates').ChildDefs[0].DataType=ftDate);
+  AssertTrue('Element type of text[]',FMyQ.FieldDefs.Find('texts').ChildDefs[0].DataType=ftString);
+  AssertTrue('flags[0]',lFlags.Fields[0].AsBoolean);
+  AssertFalse('flags[1]',lFlags.Fields[1].AsBoolean);
+  AssertEquals('dates[0]',EncodeDate(2026,11,15),lDates.Fields[0].AsDateTime,0);
+  AssertEquals('dates[1]',EncodeDate(1999,12,31),lDates.Fields[1].AsDateTime,0);
+  AssertEquals('stamps[0]',EncodeDate(2026,11,15)+EncodeTime(13,14,15,500),lStamps.Fields[0].AsDateTime,1e-9);
+  AssertEquals('amounts[0]',12.34,lAmounts.Fields[0].AsFloat,1e-9);
+  AssertEquals('amounts[1]',-5.6,lAmounts.Fields[1].AsFloat,1e-9);
+  AssertEquals('texts[1]','two words',lTexts.Fields[1].AsString);
+
+  FMyQ.Edit;
+  lFlags.Value:=VarArrayOf([False,True,True]);
+  lDates.Fields[0].AsDateTime:=EncodeDate(2000,2,29);
+  lStamps.Fields[0].AsDateTime:=EncodeDate(2001,1,2)+EncodeTime(3,4,5,0);
+  lAmounts.Fields[1].AsFloat:=7.25;
+  lTexts.Fields[0].AsUTF8String:=cText;
+  FMyQ.FieldByName('note').AsUTF8String:=cText;
+  FMyQ.Post;
+  FMyQ.ApplyUpdates;
+  SQLDBConnector.Transaction.Commit;
+
+  FMyQ.Open;
+  GetFields;
+  AssertFalse('flags[0] after update',lFlags.Fields[0].AsBoolean);
+  AssertTrue('flags[2] after update',lFlags.Fields[2].AsBoolean);
+  AssertEquals('dates[0] after update',EncodeDate(2000,2,29),lDates.Fields[0].AsDateTime,0);
+  AssertEquals('dates[1] after update',EncodeDate(1999,12,31),lDates.Fields[1].AsDateTime,0);
+  AssertEquals('stamps[0] after update',EncodeDate(2001,1,2)+EncodeTime(3,4,5,0),lStamps.Fields[0].AsDateTime,1e-9);
+  AssertEquals('amounts[1] after update',7.25,lAmounts.Fields[1].AsFloat,1e-9);
+  AssertEquals('note after update',cText,FMyQ.FieldByName('note').AsUTF8String);
+  AssertEquals('texts[0] after update',cText,lTexts.Fields[0].AsUTF8String);
+  AssertEquals('texts[1] after update','two words',lTexts.Fields[1].AsString);
+  FMyQ.Close;
 end;
 
 

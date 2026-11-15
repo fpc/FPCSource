@@ -698,6 +698,8 @@ type
     property MaxIndexesCount;
    // TDataset stuff
     property FieldDefs;
+    // True: object fields have child fields; False: array elements and object members are top-level fields
+    property ObjectView default True;
     Property Active;
     Property AutoCalcFields;
     Property Filter;
@@ -2246,7 +2248,7 @@ end;
 procedure TSQLConnection.AddFieldToUpdateWherePart(var sql_where : string;UpdateMode : TUpdateMode; F : TField);
 
 begin
-  if F.FieldKind = fkInternalCalc then
+  if (F.FieldKind = fkInternalCalc) or (F.FieldDefListIndex >= 0) then
     Exit;
   if (pfInKey in F.ProviderFlags)
      or ((UpdateMode = upWhereAll) and (pfInWhere in F.ProviderFlags))
@@ -2282,7 +2284,8 @@ begin
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
-    if (not F.IsNull) and (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) and (F.FieldKind <> fkInternalCalc) then
+    if (not F.IsNull) and (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) and (F.FieldKind <> fkInternalCalc)
+       and (F.FieldDefListIndex < 0) then
       begin
       sql_fields := sql_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
       sql_values := sql_values + ':"' + F.FieldName + '",';
@@ -2324,7 +2327,8 @@ begin
     begin
     F:=Query.Fields[x];
     AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
-    if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) and (F.FieldKind <> fkInternalCalc) then
+    if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) and (F.FieldKind <> fkInternalCalc)
+       and (F.FieldDefListIndex < 0) then
       sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
     if ReturningClause and NeedFieldRefresh(F,ukModify) then
       returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';

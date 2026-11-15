@@ -85,21 +85,29 @@ end;
 
 procedure TDataSet.BindFields(Binding: Boolean);
 
-var i, FieldIndex: Integer;
-    FieldDef: TFieldDef;
-    Field: TField;
-
 begin
   { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
-    and for bound fields it is set to FieldDef.FieldNo }
+    and for bound fields it is set to FieldDef.FieldNo of the top-level definition }
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   FInternalCalcFields := False;
-  for i := 0 to Fields.Count - 1 do
+  BindFieldList(Fields, Binding);
+end;
+
+
+procedure TDataSet.BindFieldList(aFields: TFields; aBinding: Boolean);
+
+var i, FieldIndex, lListIndex: Integer;
+    FieldDef, lRoot: TFieldDef;
+    Field: TField;
+
+begin
+  for i := 0 to aFields.Count - 1 do
     begin
-    Field := Fields[i];
+    Field := aFields[i];
     Field.FFieldDef := Nil;
-    if not Binding then
+    Field.FFieldDefListIndex := -1;
+    if not aBinding then
       Field.FFieldNo := 0
     else if Field.FieldKind in [fkCalculated, fkLookup] then
       begin
@@ -109,31 +117,47 @@ begin
       end
     else
       begin
-      FieldIndex := FieldDefs.IndexOf(Field.FieldName);
-      if FieldIndex = -1 then
-        DatabaseErrorFmt(SFieldNotFound,[Field.FieldName],Self)
+      if Assigned(Field.ParentField) then
+        FieldIndex := -1
       else
+        FieldIndex := FieldDefs.IndexOf(Field.FieldName);
+      if FieldIndex >= 0 then
         begin
         FieldDef := FieldDefs[FieldIndex];
-        Field.FFieldDef := FieldDef;
         Field.FFieldNo := FieldDef.FieldNo;
-        if FieldDef.InternalCalcField then
-          FInternalCalcFields := True;
-        if Field.IsBlob then
-          begin
-          Field.FSize := FieldDef.Size;
-          Field.FOffset := FBlobFieldCount;
-          Inc(FBlobFieldCount);
-          end;
-        // synchronize CodePage between TFieldDef and TField
-        // character data in record buffer and field buffer should have same CodePage
-        if Field is TStringField then
-          TStringField(Field).FCodePage := FieldDef.FCodePage
-        else if Field is TMemoField then
-          TMemoField(Field).FCodePage := FieldDef.FCodePage;
+        end
+      else
+        begin
+        lListIndex := FieldDefList.IndexOf(Field.FullName);
+        if lListIndex = -1 then
+          DatabaseErrorFmt(SFieldNotFound,[Field.FullName],Self);
+        FieldDef := FieldDefList[lListIndex];
+        lRoot := FieldDef;
+        while Assigned(lRoot.ParentDef) do
+          lRoot := lRoot.ParentDef;
+        Field.FFieldNo := lRoot.FieldNo;
+        if lRoot <> FieldDef then
+          Field.FFieldDefListIndex := lListIndex;
         end;
+      Field.FFieldDef := FieldDef;
+      if FieldDef.InternalCalcField then
+        FInternalCalcFields := True;
+      if Field.IsBlob and (Field.FFieldDefListIndex < 0) then
+        begin
+        Field.FSize := FieldDef.Size;
+        Field.FOffset := FBlobFieldCount;
+        Inc(FBlobFieldCount);
+        end;
+      // synchronize CodePage between TFieldDef and TField
+      // character data in record buffer and field buffer should have same CodePage
+      if Field is TStringField then
+        TStringField(Field).FCodePage := FieldDef.FCodePage
+      else if Field is TMemoField then
+        TMemoField(Field).FCodePage := FieldDef.FCodePage;
       end;
-    Field.Bind(Binding);
+    Field.Bind(aBinding);
+    if Field is TObjectField then
+      BindFieldList(TObjectField(Field).Fields, aBinding);
     end;
 end;
 
@@ -221,6 +245,7 @@ end;
 procedure TDataSet.CreateFields;
 
 Var I : longint;
+    lFlat : Boolean;
 
 begin
 {$ifdef DSDebug}
@@ -229,15 +254,27 @@ begin
   For I:=0 to FieldDefs.Count-1 do
     Writeln('Def ',I,' : ',Fielddefs.items[i].Name,'(',Fielddefs.items[i].FieldNo,')');
 {$endif}
-  For I:=0 to FieldDefs.Count-1 do
-    With FieldDefs.Items[I] do
-      If DataType<>ftUnknown then
-        begin
-        {$ifdef DSDebug}
-        Writeln('About to create field ',FieldDefs.Items[i].Name);
-        {$endif}
-        CreateField(self);
-        end;
+  lFlat:=False;
+  if not ObjectView then
+    For I:=0 to FieldDefs.Count-1 do
+      lFlat:=lFlat or FieldDefs[I].HasChildDefs;
+  if lFlat then
+    begin
+    For I:=0 to FieldDefList.Count-1 do
+      With FieldDefList[I] do
+        If (DataType<>ftUnknown) and not (DataType in ObjectFieldTypes) then
+          CreateField(self,nil,FieldDefList.Strings[I]);
+    end
+  else
+    For I:=0 to FieldDefs.Count-1 do
+      With FieldDefs.Items[I] do
+        If DataType<>ftUnknown then
+          begin
+          {$ifdef DSDebug}
+          Writeln('About to create field ',FieldDefs.Items[i].Name);
+          {$endif}
+          CreateField(self);
+          end;
 end;
 
 procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
@@ -896,6 +933,14 @@ begin
   FSparseArrays := AValue;
 end;
 
+procedure TDataSet.SetObjectView(AValue: Boolean);
+
+begin
+  CheckInactive;
+  FObjectView := AValue;
+end;
+
+
 procedure TDataSet.DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
 var i : integer;
     ValuesSize : integer;
@@ -913,6 +958,41 @@ begin
 
 end;
 
+// Adds to aDefs a field definition for aField named aName, with child definitions for its child fields.
+function AddFieldDefFromField(aDefs: TFieldDefs; aField: TField; const aName: string): TFieldDef;
+
+var
+  i, lSize: Integer;
+  lObject: TObjectField;
+
+begin
+  lSize:=aField.Size;
+  if aField is TArrayField then
+    lSize:=TArrayField(aField).FieldCount;
+  Result:=aDefs.FieldDefClass.Create(aDefs,aName,aField.DataType,lSize,aField.Required,aDefs.Count+1);
+  with Result do
+    begin
+    InternalCalcField := aField.FieldKind = fkInternalCalc;
+    if aField.Required then Attributes := Attributes + [faRequired];
+    if aField.ReadOnly then Attributes := Attributes + [faReadOnly];
+    if DataType = ftBCD then Precision := (aField as TBCDField).Precision
+    else if DataType = ftFMTBcd then Precision := (aField as TFMTBCDField).Precision;
+    end;
+  if aField is TObjectField then
+    begin
+    lObject:=TObjectField(aField);
+    if lObject.DataType=ftArray then
+      begin
+      if lObject.FieldCount>0 then
+        AddFieldDefFromField(Result.ChildDefs,lObject.Fields[0],'');
+      end
+    else
+      for i:=0 to lObject.FieldCount-1 do
+        AddFieldDefFromField(Result.ChildDefs,lObject.Fields[i],lObject.Fields[i].FieldName);
+    end;
+end;
+
+
 procedure TDataSet.InitFieldDefsFromFields;
 var i : integer;
 
@@ -923,17 +1003,7 @@ begin
     try
       for i := 0 to Fields.Count-1 do with Fields[i] do
         if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
-          begin
-          FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
-          with FFieldDef do
-            begin
-            InternalCalcField := Fields[i].FieldKind = fkInternalCalc;
-            if Required then Attributes := Attributes + [faRequired];
-            if ReadOnly then Attributes := Attributes + [faReadOnly];
-            if DataType = ftBCD then Precision := (Fields[i] as TBCDField).Precision
-            else if DataType = ftFMTBcd then Precision := (Fields[i] as TFMTBCDField).Precision;
-            end;
-          end;
+          FFieldDef:=AddFieldDefFromField(FieldDefs,Fields[i],FieldName);
     finally
       FieldDefs.EndUpdate;
       end;
@@ -1803,6 +1873,8 @@ function TDataSet.FindField(const FieldName: string): TField;
 
 begin
   Result:=FFieldList.FindField(FieldName);
+  if (Result=nil) and ObjectView then
+    Result:=FieldList.Find(FieldName);
 end;
 
 function TDataSet.FindFirst: Boolean;

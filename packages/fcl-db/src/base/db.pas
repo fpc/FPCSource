@@ -329,6 +329,7 @@ type
     FOnValidate: TFieldNotifyEvent;
     FOrigin : String;
     FParentField: TObjectField;
+    FFieldDefListIndex : Longint;
     FProviderFlags : TProviderFlags;
     FReadOnly : Boolean;
     FRequired : Boolean;
@@ -476,6 +477,8 @@ type
     property IsNull: Boolean read GetIsNull;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
+    // Position of the array element or object member definition in DataSet.FieldDefList the field is bound to, -1 for other fields
+    property FieldDefListIndex: Longint read FFieldDefListIndex;
     property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars read FValidChars write FValidChars;
@@ -1231,13 +1234,19 @@ type
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsVariant: Variant; override;
+    function GetIsNull: Boolean; override;
     function GetFieldCount: Integer;
     function GetFields: TFields; virtual;
     function GetFieldValue(AIndex: Integer): Variant; virtual;
     procedure SetFieldValue(AIndex: Integer; const AValue: Variant); virtual;
+    procedure SetDataset(AValue : TDataset); override;
     procedure SetParentField(AField: TObjectField); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    // Clears the values of all child fields
+    procedure Clear; override;
     property FieldCount: Integer read GetFieldCount;
     property Fields: TFields read GetFields;
     property FieldValues[AIndex: Integer]: Variant read GetFieldValue  write SetFieldValue; default;
@@ -1250,6 +1259,13 @@ type
 
   TArrayField = class(TObjectField)
   private
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+{ TADTField }
+
+  TADTField = class(TObjectField)
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -1798,6 +1814,7 @@ type
     FRecordCount: Longint;
     FIsUniDirectional: Boolean;
     FSparseArrays: Boolean;
+    FObjectView: Boolean;
     FState : TDataSetState;
     FInternalOpenComplete: Boolean;
     Procedure DoInsertAppend(DoAppend : Boolean);
@@ -1818,6 +1835,8 @@ type
     Procedure UpdateFieldDefs;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure SetSparseArrays(AValue: Boolean);
+    procedure SetObjectView(AValue: Boolean);
+    procedure BindFieldList(aFields: TFields; aBinding: Boolean);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
     function GetDefaultBufferCount: Cardinal; virtual;
@@ -2049,6 +2068,8 @@ type
     property RecNo: Longint read GetRecNo write SetRecNo;
     property RecordSize: Word read GetRecordSize;
     property SparseArrays: Boolean read FSparseArrays write SetSparseArrays;
+    // True: object fields have child fields; False: array elements and object members are top-level fields
+    property ObjectView: Boolean read FObjectView write SetObjectView;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
     property FieldValues[FieldName : string] : Variant read GetFieldValues write SetFieldValues; default;
@@ -2558,7 +2579,7 @@ const
       { ftFixedChar} TStringField,
       { ftWideString} TWideStringField,
       { ftLargeint} TLargeIntField,
-      { ftADT} Nil,
+      { ftADT} TADTField,
       { ftArray} TArrayField,
       { ftReference} Nil,
       { ftDataSet} Nil,

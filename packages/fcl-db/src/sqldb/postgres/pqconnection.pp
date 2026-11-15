@@ -96,7 +96,7 @@ type
   // TField and TFieldDef only support a limited amount of fields.
   // TFieldBinding and TExtendedFieldType can be used to map PQ types
   // on standard fields and retain mapping info.
-  TExtendedFieldType = (eftNone,eftEnum,eftCitext);
+  TExtendedFieldType = (eftNone,eftEnum,eftCitext,eftArray);
 
   TFieldBinding = record
     FieldDef : TSQLDBFieldDef; // FieldDef this is associated with
@@ -104,6 +104,7 @@ type
     TypeOID : oid; // Filled with type OID if it is not standard.
     TypeName : String; // Filled with type name by GetExtendedFieldInfo
     ExtendedFieldType: TExtendedFieldType; //
+    ElementOID : oid; // Element type of an array type, filled by GetExtendedFieldInfo
   end;
   PFieldBinding = ^TFieldBinding;
   TFieldBindings = Array of TFieldBinding;
@@ -166,11 +167,20 @@ type
     FCursorCount         : dword;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
+    FArraySize           : Integer;
     function PGexec(aConnection: PPGconn; query: String): PPGresult;
   protected
     // Protected so they can be used by descendents.
    function GetConnectionString(const aDBName : String) : string;
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer; Out ATypeOID : oid) : TFieldType;
+    // Field type and size for type aOID with type modifier aMod and fixed size aFSize (-1 for variable length).
+    function TranslateOIDType(aOID : oid; aMod, aFSize : integer; out Size : integer) : TFieldType;
+    // Stores the binary value aData of length aLength and type aTypeOID in aBuffer as a value of aDef.
+    function LoadBinaryValue(aDef : TFieldDef; aTypeOID : oid; aData : PAnsiChar; aLength : integer; aBuffer : pointer; out CreateBlob : boolean) : boolean;
+    // Stores the elements of the binary array value aData in aBuffer, the record value of array definition aDef.
+    procedure LoadArrayValue(aDef : TFieldDef; aData : PAnsiChar; aBuffer : pointer);
+    // PostgreSQL text form of the variant array aValue, without its trailing null elements.
+    function ArrayParamText(const aValue : Variant) : RawByteString;
     procedure ExecuteDirectPG(const Query : String);
     Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
 
@@ -220,6 +230,8 @@ type
     property Params;
     property OnLogin;
     Property VerboseErrors : Boolean Read FVerboseErrors Write FVerboseErrors default true;
+    // Number of elements of the array field of an array column
+    Property ArraySize : Integer Read FArraySize Write FArraySize default 10;
   end;
 
   { TPQConnectionDef }
@@ -237,9 +249,9 @@ type
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Math, System.StrUtils, Data.FMTBcd;
+uses System.Math, System.StrUtils, System.Variants, Data.FMTBcd;
 {$ELSE FPC_DOTTEDUNITS}
-uses math, strutils, FmtBCD;
+uses math, strutils, variants, FmtBCD;
 {$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
@@ -475,6 +487,7 @@ begin
   FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
+  FArraySize:=10;
   FHandlePool:=TThreadlist.Create;
 end;
 
@@ -542,6 +555,7 @@ Var
   I,J : Integer;
   Res : PPGResult;
   toid : oid;
+  te : Int64;
 
 begin
   s:='';
@@ -554,7 +568,7 @@ begin
       end;
   if (S='') then
     exit;
-  S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
+  S:='select oid,typname,typtype,typcategory,typelem from pg_type where oid in ('+S+') order by oid';
   Res:=Cursor.Handle.Exec(S,False,'Error getting typeinfo');
   try
     For I:=0 to PQntuples(Res)-1 do
@@ -563,15 +577,25 @@ begin
       tn:=pqgetvalue(Res,i,1);
       tt:=pqgetvalue(Res,i,2);
       tc:=pqgetvalue(Res,i,3);
+      te:=StrToInt64Def(pqgetvalue(Res,i,4),0);
       J:=length(Bindings)-1;
       while (J>= 0) do
         begin
         if (Bindings[j].TypeOID=toid) then
-          Case tt of
-           'e':
-            Bindings[j].ExtendedFieldType:=eftEnum;
-           'citext':
-            Bindings[j].ExtendedFieldType:=eftCitext;
+          begin
+          Bindings[j].TypeName:=tn;
+          if (tc='A') and (te<>0) then
+            begin
+            Bindings[j].ExtendedFieldType:=eftArray;
+            Bindings[j].ElementOID:=te;
+            end
+          else
+            Case tt of
+             'e':
+              Bindings[j].ExtendedFieldType:=eftEnum;
+             'citext':
+              Bindings[j].ExtendedFieldType:=eftCitext;
+            end;
           end;
         Dec(J);
         end;
@@ -1056,16 +1080,27 @@ end;
 function TPQConnection.TranslateFldType(res: PPGresult; Tuple: integer; out
   Size: integer; out ATypeOID: oid): TFieldType;
 
+var
+  aoid : oid;
+
+begin
+  ATypeOID:=0;
+  AOID:=PQftype(res,Tuple);
+  Result:=TranslateOIDType(AOID,PQfmod(res,Tuple),PQfsize(res,Tuple),Size);
+  if (Result=ftUnknown) and (AOID<>Oid_Unknown) then
+    ATypeOID:=AOID;
+end;
+
+
+function TPQConnection.TranslateOIDType(aOID: oid; aMod, aFSize: integer; out Size: integer): TFieldType;
+
 const
   VARHDRSZ=sizeof(longint);
 var
   li : longint;
-  aoid : oid;
 
 begin
   Size := 0;
-  ATypeOID:=0;
-  AOID:=PQftype(res,Tuple);
   case AOID of
     Oid_varchar,Oid_bpchar,
     Oid_name               : begin
@@ -1073,10 +1108,10 @@ begin
                                Result:=ftFixedChar
                              else
                                Result := ftString;
-                             size := PQfsize(Res, Tuple);
+                             size := aFSize;
                              if (size = -1) then
                                begin
-                               li := PQfmod(res,Tuple);
+                               li := aMod;
                                if li = -1 then
                                  size := dsMaxStringSize
                                else
@@ -1103,7 +1138,7 @@ begin
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
-                             li := PQfmod(res,Tuple);
+                             li := aMod;
                              if li = -1 then
                                size := 4 // No information about the size available, use the maximum value
                              else
@@ -1132,10 +1167,8 @@ begin
                              Result := ftString;
                              Size := 39;
                              end;
-    Oid_Unknown            : Result := ftUnknown;
   else
     Result:=ftUnknown;
-    ATypeOID:=AOID;
   end;
 end;
 
@@ -1247,6 +1280,8 @@ begin
         else
           PQ:=Nil;
         TS:=TypeStrings[P.DataType];
+        if P.DataType=ftArray then
+          TS:='unknown';
         if (TS<>'Unknown') then
           begin
           If Assigned(PQ)
@@ -1388,6 +1423,8 @@ begin
               end;
             ftFmtBCD:
               s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
+            ftArray:
+              s := ArrayParamText(AParams[i].Value);
             ftBlob, ftGraphic, ftVarBytes:
               begin
               Handled:=true;
@@ -1456,6 +1493,82 @@ begin
 end;
 
 
+function TPQConnection.ArrayParamText(const aValue: Variant): RawByteString;
+
+var
+  i, j, lLast : integer;
+  lElement : Variant;
+  s : RawByteString;
+  lCodePage : TSystemCodePage;
+  lParam : TParam;
+
+  procedure Append(const aPart: RawByteString);
+  var
+    lLen: integer;
+  begin
+    lLen := Length(Result);
+    SetLength(Result, lLen+Length(aPart));
+    if Length(aPart) > 0 then
+      Move(aPart[1], Result[lLen+1], Length(aPart));
+  end;
+
+begin
+  if (CodePage = CP_ACP) or (CodePage = CP_NONE) then
+    lCodePage := DefaultSystemCodePage
+  else
+    lCodePage := CodePage;
+  Result := '';
+  SetCodePage(Result, lCodePage, False);
+  lParam := TParam.Create(nil);
+  try
+    Append('{');
+    lLast := VarArrayHighBound(aValue, 1);
+    while (lLast >= VarArrayLowBound(aValue, 1)) and (VarIsNull(aValue[lLast]) or VarIsEmpty(aValue[lLast])) do
+      Dec(lLast);
+    for i := VarArrayLowBound(aValue, 1) to lLast do
+      begin
+      if i > VarArrayLowBound(aValue, 1) then
+        Append(',');
+      lElement := aValue[i];
+      if VarIsNull(lElement) or VarIsEmpty(lElement) then
+        Append('NULL')
+      else
+        begin
+        if VarIsFmtBCD(lElement) then
+          s := BCDToStr(VarToBCD(lElement), FSQLFormatSettings)
+        else
+          case VarType(lElement) and varTypeMask of
+            varDate:
+              s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', VarToDateTime(lElement));
+            varBoolean:
+              if lElement then s := 't' else s := 'f';
+            varSingle, varDouble, varCurrency:
+              s := FloatToStr(Double(lElement), FSQLFormatSettings);
+            varString, varUString, varOleStr:
+              begin
+              lParam.Value := lElement;
+              s := GetAsString(lParam);
+              end;
+          else
+            s := VarToStr(lElement);
+          end;
+        Append('"');
+        for j := 1 to Length(s) do
+          begin
+          if s[j] in ['\', '"'] then
+            Append('\');
+          Append(s[j]);
+          end;
+        Append('"');
+        end;
+      end;
+    Append('}');
+  finally
+    lParam.Free;
+  end;
+end;
+
+
 procedure TPQConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs);
 var
   i         : integer;
@@ -1468,6 +1581,8 @@ var
   FD : TSQLDBFieldDef;
   FB : PFieldBinding;
   FN: String;
+  ElemType : TFieldType;
+  ElemSize : integer;
 
 begin
   B:=False;
@@ -1514,6 +1629,26 @@ begin
           eftCitext:
             begin
             FD.DataType:=ftMemo;
+            end;
+          eftArray:
+            begin
+            ElemType:=TranslateOIDType(FB^.ElementOID,PQfmod(Q.Res,FB^.Index),-1,ElemSize);
+            if FB^.ElementOID=Oid_text then
+              begin
+              ElemType:=ftString;
+              ElemSize:=dsMaxStringSize;
+              end;
+            if ElemType in [ftUnknown,ftBlob,ftMemo] then
+              begin
+              if ErrorOnUnknownType then
+                DatabaseError('Unhandled field type :'+FB^.TypeName,Self);
+              end
+            else
+              begin
+              FD.DataType:=ftArray;
+              FD.Size:=FArraySize;
+              AddFieldDef(FD.ChildDefs,1,FD.Name,ElemType,ElemSize,-1,False,False,False);
+              end;
             end
         else
           if ErrorOnUnknownType then
@@ -1574,6 +1709,66 @@ end;
 
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
+var
+  x : integer;
+
+begin
+  Createblob := False;
+  with cursor as TPQCursor do
+    begin
+    x := GetFieldBinding(FieldDef)^.Index;
+    if pqgetisnull(res,CurTuple,x)=1 then
+      result := false
+    else if FieldDef.DataType = ftArray then
+      begin
+      LoadArrayValue(FieldDef, pqgetvalue(res,CurTuple,x), buffer);
+      result := true;
+      end
+    else
+      result := LoadBinaryValue(FieldDef, PQftype(res,x), pqgetvalue(res,CurTuple,x), pqgetlength(res,CurTuple,x), buffer, CreateBlob);
+    end;
+end;
+
+
+procedure TPQConnection.LoadArrayValue(aDef: TFieldDef; aData: PAnsiChar; aBuffer: pointer);
+
+var
+  lDims, lCount, lLength, i : longint;
+  lElementOID : oid;
+  lElement : TFieldDef;
+  lDataSet : TCustomBufDataset;
+  lCreateBlob : boolean;
+
+begin
+  lDataSet := (aDef.Collection as TFieldDefs).Dataset as TCustomBufDataset;
+  lElement := aDef.ChildDefs[0];
+  lDims := BEtoN(plongint(aData)^);
+  lElementOID := oid(BEtoN(plongint(aData+8)^));
+  inc(aData, 12);
+  if lDims = 0 then
+    exit;
+  if lDims > 1 then
+    DatabaseErrorFmt(SErrArrayDimensions, [aDef.Name, lDims], Self);
+  lCount := BEtoN(plongint(aData)^);
+  inc(aData, 8);
+  if lCount > aDef.Size then
+    DatabaseErrorFmt(SErrArrayElementCount, [aDef.Name, lCount, aDef.Size], Self);
+  for i := 0 to lCount-1 do
+    begin
+    lLength := BEtoN(plongint(aData)^);
+    inc(aData, 4);
+    if lLength >= 0 then
+      begin
+      if LoadBinaryValue(lElement, lElementOID, aData, lLength, lDataSet.ArrayElementBuffer(aDef, aBuffer, i), lCreateBlob) then
+        lDataSet.SetArrayElementNull(aDef, aBuffer, i, False);
+      inc(aData, lLength);
+      end;
+    end;
+end;
+
+
+function TPQConnection.LoadBinaryValue(aDef : TFieldDef; aTypeOID : oid; aData : PAnsiChar; aLength : integer; aBuffer : pointer; out CreateBlob : boolean) : boolean;
+
 const NBASE=10000;
       DAYS_PER_MONTH=30;
 
@@ -1600,7 +1795,7 @@ type TNumericRecord = record
      end;
 
 var
-  x,i           : integer;
+  i             : integer;
   s             : string;
   li            : Longint;
   CurrBuff      : PAnsiChar;
@@ -1611,37 +1806,25 @@ var
   bcd           : TBCD;
   macaddr       : ^TMacAddrRec;
   inet          : ^TInetRec;
+  FieldDef      : TFieldDef;
+  Buffer        : pointer;
 
 begin
   Createblob := False;
-  with cursor as TPQCursor do
-    begin
-    x := GetFieldBinding(FieldDef)^.Index;
-
-    // Joost, 5 jan 2006: I disabled the following, since it's useful for
-    // debugging, but it also slows things down. In principle things can only go
-    // wrong when FieldDefs is changed while the dataset is opened. A user just
-    // shouldn't do that. ;) (The same is done in IBConnection)
-    //if PQfname(Res, x) <> FieldDef.Name then
-    //  DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
-
-    if pqgetisnull(res,CurTuple,x)=1 then
-      result := false
-    else
-      begin
-      CurrBuff := pqgetvalue(res,CurTuple,x);
-
-      result := true;
+  FieldDef := aDef;
+  Buffer := aBuffer;
+  CurrBuff := aData;
+  result := true;
 
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt :
-          case PQfsize(res, x) of  // postgres returns big-endian numbers
+          case aLength of  // postgres returns big-endian numbers
             sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^); // INT8
             sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^); // INT4
             sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^); // INT2
           end; {case}
         ftFloat :
-          case PQfsize(res, x) of  // postgres returns big-endian numbers
+          case aLength of  // postgres returns big-endian numbers
             sizeof(int64) :  // FLOAT8
               pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
             sizeof(integer) :  // FLOAT4
@@ -1652,7 +1835,7 @@ begin
           end; {case}
         ftString, ftFixedChar :
           begin
-          case PQftype(res, x) of
+          case aTypeOID of
             Oid_MacAddr:
             begin
               macaddr := Pointer(CurrBuff);
@@ -1673,7 +1856,7 @@ begin
             end
             else
             begin
-              li := pqgetlength(res,curtuple,x);
+              li := aLength;
               if li > FieldDef.Size*FieldDef.CharSize then li := FieldDef.Size*FieldDef.CharSize;
               Move(CurrBuff^, Buffer^, li);
             end;
@@ -1694,7 +1877,7 @@ begin
             dbl^ := BEtoN(pint64(CurrBuff)^) / 1000000
           else
             pint64(dbl)^ := BEtoN(pint64(CurrBuff)^);
-          case PQftype(res, x) of
+          case aTypeOID of
             Oid_Timestamp, Oid_TimestampTZ:
               dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
             Oid_Interval:
@@ -1759,8 +1942,6 @@ begin
         else
           result := false;
       end;
-      end;
-    end;
 end;
 
 {$IFNDEF VER3_2}

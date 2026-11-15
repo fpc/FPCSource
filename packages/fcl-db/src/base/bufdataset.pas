@@ -571,6 +571,7 @@ type
     FIndexes        : TBufDataSetIndexDefs;
     FParser         : TBufDatasetParser;
     FFieldBufPositions : array of longint;
+    FChildPositions : array of longint;
     FAllPacketsFetched : boolean;
     FOnUpdateError  : TResolverErrorEvent;
 
@@ -583,6 +584,10 @@ type
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
+    // Size of the composite value of an array or object definition: a null byte and the value of each element or member.
+    function GetObjectFieldSize(FieldDef : TFieldDef) : longint;
+    // Fills FChildPositions for the definitions in aDefs (in FieldDefList order) whose values start at aBase.
+    procedure CalcChildPositions(aDefs: TFieldDefs; aBase: Longint; aTop: Boolean; var aIndex: Integer);
     procedure CalcRecordSize;
     function  IntAllocRecordBuffer: TRecordBuffer;
     function  GetCurrentBuffer: TRecordBuffer;
@@ -722,6 +727,12 @@ type
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
     procedure ClearIndexes;
+    // Address of the value of element aIndex of array definition aDef in aBuffer, the record value of aDef.
+    function ArrayElementBuffer(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer): Pointer;
+    // Marks element aIndex of array definition aDef in the record value aBuffer as null or not null.
+    procedure SetArrayElementNull(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer; aIsNull: Boolean);
+    // True when element aIndex of array definition aDef in the record value aBuffer is null.
+    function GetArrayElementNull(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer): Boolean;
 
     procedure SetDatasetPacket(AReader : TDataPacketHandler);
     procedure GetDatasetPacket(AWriter : TDataPacketHandler);
@@ -757,6 +768,8 @@ type
     property MaxIndexesCount;
     // TDataset stuff
     property FieldDefs;
+    // True: object fields have child fields; False: array elements and object members are top-level fields
+    property ObjectView default True;
     Property Active;
     Property AutoCalcFields;
     Property Filter;
@@ -1086,6 +1099,7 @@ begin
   FParser := nil;
   FPacketRecords := 10;
   InvalidateFilteredRecs;
+  ObjectView := True;
 end;
 
 procedure TCustomBufDataset.SetPacketRecords(aValue : integer);
@@ -1392,6 +1406,28 @@ begin
   For I:=0 to FIndexes.Count-1 do
     BufIndexDefs[i].Clearindex;
 end;
+
+
+function TCustomBufDataset.ArrayElementBuffer(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer): Pointer;
+
+begin
+  Result:=aBuffer+aIndex*(1+GetFieldSize(aDef.ChildDefs[0]))+1;
+end;
+
+
+procedure TCustomBufDataset.SetArrayElementNull(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer; aIsNull: Boolean);
+
+begin
+  PByte(ArrayElementBuffer(aDef,aBuffer,aIndex)-1)^:=Ord(not aIsNull);
+end;
+
+
+function TCustomBufDataset.GetArrayElementNull(aDef: TFieldDef; aBuffer: Pointer; aIndex: Integer): Boolean;
+
+begin
+  Result:=PByte(ArrayElementBuffer(aDef,aBuffer,aIndex)-1)^=0;
+end;
+
 
 procedure TCustomBufDataset.RemoveRecordFromIndexes(const ABookmark: TBufBookmark);
 
@@ -2283,6 +2319,8 @@ begin
   for i:=0 to high(ACompareStruct) do
     begin
     AField := TField(AFields[i]);
+    if (AField.FieldDefListIndex >= 0) or (AField is TObjectField) then
+      DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FullName, Fieldtypenames[AField.DataType]]);
 
     case AField.DataType of
       ftString, ftFixedChar, ftGuid:
@@ -2680,12 +2718,42 @@ begin
       ftWideMemo : result := sizeof(TBufBlobField);
     ftExtended   : Result := sizeof(Extended);
     ftSingle     : Result := sizeof(Single);
+    ftADT,
+      ftArray    : Result := GetObjectFieldSize(FieldDef);
   else
     DatabaseErrorFmt(SUnsupportedFieldType,[FieldTypeNames[FieldDef.DataType]]);
   end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   result:=Align(result,4);
 {$ENDIF}
+end;
+
+function TCustomBufDataset.GetObjectFieldSize(FieldDef: TFieldDef): longint;
+
+const
+  NoChildTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary,
+                  ftOraBlob, ftOraClob, ftWideMemo, ftVariant, ftDataSet, ftReference];
+
+var
+  i: Integer;
+  lChild: TFieldDef;
+
+begin
+  if not FieldDef.HasChildDefs then
+    DatabaseErrorFmt(SErrNoChildFieldDefs,[FieldDef.Name],Self);
+  Result:=0;
+  for i:=0 to FieldDef.ChildDefs.Count-1 do
+    begin
+    lChild:=FieldDef.ChildDefs[i];
+    if lChild.DataType in NoChildTypes then
+      DatabaseErrorFmt(SErrUnsupportedChildFieldType,[FieldTypeNames[lChild.DataType],FieldDef.Name],Self);
+    if FieldDef.DataType=ftArray then
+      begin
+      Result:=FieldDef.Size*(1+GetFieldSize(lChild));
+      Exit;
+      end;
+    Inc(Result,1+GetFieldSize(lChild));
+    end;
 end;
 
 function TCustomBufDataset.GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false): boolean;
@@ -2751,6 +2819,8 @@ begin
 
   for x := 0 to FieldDefs.Count-1 do
     begin
+    if FieldDefs[x].HasChildDefs then
+      FillChar(buffer^,GetFieldSize(FieldDefs[x]),0);
     if FieldDefs[x].InternalCalcField then
       SetFieldIsNull(NullMask,x)
     else if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
@@ -2821,7 +2891,16 @@ begin
 
   if not assigned(CurrBuff) then Exit; //Null value
 
-  If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
+  if (Field.FieldDefListIndex >= 0) and (Field.FieldNo > 0) then
+    begin
+    inc(CurrBuff,FChildPositions[Field.FieldDefListIndex]);
+    if PByte(CurrBuff)^ = 0 then
+      Exit;
+    if assigned(Buffer) then
+      Move((CurrBuff+1)^, Buffer^, Field.DataSize);
+    Result := True;
+    end
+  else If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
     if GetFieldIsNull(pbyte(CurrBuff),Field.FieldNo-1) then
       Exit;
@@ -2870,17 +2949,32 @@ begin
       Field.Validate(Buffer);
     NullMask := CurrBuff;
 
-    inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
-    if assigned(buffer) then
+    if Field.FieldDefListIndex >= 0 then
       begin
-      if Field.IsBlob then // we need GetFieldSize for BLOB but Field.DataSize for others - #36747
-        Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[Field.FieldNo-1]))
+      inc(CurrBuff,FChildPositions[Field.FieldDefListIndex]);
+      if assigned(buffer) then
+        begin
+        Move(Buffer^, (CurrBuff+1)^, Field.DataSize);
+        PByte(CurrBuff)^ := 1;
+        unSetFieldIsNull(NullMask,Field.FieldNo-1);
+        end
       else
-        Move(Buffer^, CurrBuff^, Field.DataSize);
-      unSetFieldIsNull(NullMask,Field.FieldNo-1);
+        PByte(CurrBuff)^ := 0;
       end
     else
-      SetFieldIsNull(NullMask,Field.FieldNo-1);
+      begin
+      inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
+      if assigned(buffer) then
+        begin
+        if Field.IsBlob then // we need GetFieldSize for BLOB but Field.DataSize for others - #36747
+          Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[Field.FieldNo-1]))
+        else
+          Move(Buffer^, CurrBuff^, Field.DataSize);
+        unSetFieldIsNull(NullMask,Field.FieldNo-1);
+        end
+      else
+        SetFieldIsNull(NullMask,Field.FieldNo-1);
+      end;
     end
   else if State = dsInternalCalc then
     Exit
@@ -3340,6 +3434,8 @@ end;
 procedure TCustomBufDataset.CalcRecordSize;
 
 var x : longint;
+    lIndex : Integer;
+    lHasChildDefs : Boolean;
 
 begin
   FNullmaskSize := (FieldDefs.Count+7) div 8;
@@ -3352,6 +3448,60 @@ begin
     begin
     FFieldBufPositions[x] := FRecordSize;
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
+    end;
+  SetLength(FChildPositions,0);
+  lHasChildDefs:=False;
+  for x := 0 to FieldDefs.count-1 do
+    lHasChildDefs:=lHasChildDefs or FieldDefs[x].HasChildDefs;
+  if lHasChildDefs then
+    begin
+    SetLength(FChildPositions,FieldDefList.Count);
+    lIndex:=0;
+    CalcChildPositions(FieldDefs,0,True,lIndex);
+    if lIndex<>FieldDefList.Count then
+      DatabaseError(SErrFieldDefListMismatch,Self);
+    end;
+end;
+
+procedure TCustomBufDataset.CalcChildPositions(aDefs: TFieldDefs; aBase: Longint; aTop: Boolean; var aIndex: Integer);
+
+var
+  i, j, lPos, lValue, lSlot: Longint;
+  lDef, lElement: TFieldDef;
+
+begin
+  lPos:=aBase;
+  for i:=0 to aDefs.Count-1 do
+    begin
+    lDef:=aDefs[i];
+    if aTop then
+      begin
+      FChildPositions[aIndex]:=-1;
+      lValue:=FFieldBufPositions[i];
+      end
+    else
+      begin
+      FChildPositions[aIndex]:=lPos;
+      lValue:=lPos+1;
+      end;
+    Inc(aIndex);
+    if lDef.HasChildDefs then
+      if lDef.DataType=ftArray then
+        begin
+        lElement:=lDef.ChildDefs[0];
+        lSlot:=1+GetFieldSize(lElement);
+        for j:=0 to lDef.Size-1 do
+          begin
+          FChildPositions[aIndex]:=lValue+j*lSlot;
+          Inc(aIndex);
+          if (lElement.DataType=ftADT) and lElement.HasChildDefs then
+            CalcChildPositions(lElement.ChildDefs,lValue+j*lSlot+1,False,aIndex);
+          end;
+        end
+      else
+        CalcChildPositions(lDef.ChildDefs,lValue,False,aIndex);
+    if not aTop then
+      Inc(lPos,1+GetFieldSize(lDef));
     end;
 end;
 
@@ -3930,9 +4080,13 @@ var ScrollResult   : TGetResult;
     ABookMark      : PBufBookmark;
     ATBookmark     : TBufBookmark;
     RowState       : TRowState;
+    i              : Integer;
 
 begin
   //  CheckActive;
+  for i:=0 to FieldDefs.Count-1 do
+    if FieldDefs[i].HasChildDefs then
+      DatabaseErrorFmt(SErrObjectFieldsNotSaved,[FieldDefs[i].Name],Self);
   ABookMark:=@ATBookmark;
   aWriter.StoreFieldDefs(FAutoIncValue);
   SavedState:=SetTempState(dsFilter);

@@ -82,6 +82,7 @@ type
     FInVarTypes          : array of TIBInVarType;
     ParamBinding         : array of integer;
     FieldBinding         : array of integer;
+    ArrayDescs           : array of TISC_ARRAY_DESC;
     CursorName : AnsiString;
   end;
 
@@ -124,6 +125,16 @@ type
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
+    // SQL type, length and slice size of the elements described by aDesc; False for an unsupported element type.
+    function ArrayElementType(const aDesc : TISC_ARRAY_DESC; out aSQLType, aSQLLen, aElementSize : integer) : boolean;
+    // Makes slices of the varchar elements described by aDesc null-terminated strings.
+    procedure SetSliceArrayDesc(var aDesc : TISC_ARRAY_DESC);
+    // Number of elements of all dimensions described by aDesc.
+    function ArrayElementCount(const aDesc : TISC_ARRAY_DESC) : integer;
+    // Stores the value of VSQLVar in buffer as a value of FieldDef; False when it is null.
+    function LoadSQLVarValue(VSQLVar : PXSQLVAR; FieldDef : TFieldDef; buffer : pointer) : boolean;
+    // Reads the array of output column aIndex of cursor into buffer, the record value of array definition FieldDef.
+    procedure LoadArrayValue(cursor : TIBCursor; aIndex : integer; FieldDef : TFieldDef; buffer : pointer);
 
     procedure CheckError(const ProcName : string; Status : PISC_STATUS;IgnoreErrors : Array of Longint); overload;
     procedure CheckError(const ProcName : string; Status : PISC_STATUS); overload;
@@ -196,10 +207,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.StrUtils, Data.FMTBcd;
+  System.StrUtils, System.Variants, Data.FMTBcd;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  StrUtils, FmtBCD;
+  StrUtils, Variants, FmtBCD;
 {$ENDIF FPC_DOTTEDUNITS}
 
 
@@ -1091,6 +1102,7 @@ var
   TransLen,
   TransPrec : word;
   TransType : TFieldType;
+  lDef      : TFieldDef;
 
   function GetBlobCharset(TableName,ColumnName: Pointer): smallint;
   var TransactionHandle: pointer;
@@ -1103,12 +1115,44 @@ var
     Result := BlobDesc.blob_desc_charset;
   end;
 
+  // Sets the element count of array definition aDef and adds its element definition, or makes it ftUnknown.
+  procedure SetArrayElementDef(aDef: TFieldDef; aIndex: integer);
+  var
+    lTransactionHandle: pointer;
+    lRelation, lColumn: AnsiString;
+    lSQLType, lSQLLen, lElementSize: integer;
+    lType: TFieldType;
+    lLen, lPrec: word;
+    lFound: boolean;
+  begin
+    lTransactionHandle := TIBCursor(cursor).TransactionHandle;
+    SetString(lRelation, PAnsiChar(@PSQLVar^.relname), PSQLVar^.relname_length);
+    SetString(lColumn, PAnsiChar(@PSQLVar^.sqlname), PSQLVar^.sqlname_length);
+    with TIBCursor(cursor) do
+      begin
+      lFound := (lRelation <> '') and (lColumn <> '')
+         and (isc_array_lookup_bounds(@FStatus[0], @FDatabaseHandle, @lTransactionHandle,
+                PAnsiChar(lRelation), PAnsiChar(lColumn), @ArrayDescs[aIndex]) = 0);
+      if lFound then
+        SetSliceArrayDesc(ArrayDescs[aIndex]);
+      if lFound and ArrayElementType(ArrayDescs[aIndex], lSQLType, lSQLLen, lElementSize) then
+        begin
+        TranslateFldType(lSQLType, 0, lSQLLen, ShortInt(ArrayDescs[aIndex].array_desc_scale), lType, lLen, lPrec);
+        aDef.Size := ArrayElementCount(ArrayDescs[aIndex]);
+        AddFieldDef(aDef.ChildDefs, 1, aDef.Name, lType, lLen, lPrec, True, False, False);
+        end
+      else
+        aDef.DataType := ftUnknown;
+      end;
+  end;
+
 begin
   {$push}
   {$R-}
   with cursor as TIBCursor do
     begin
     setlength(FieldBinding,SQLDA^.SQLD);
+    setlength(ArrayDescs,SQLDA^.SQLD);
     for i := 0 to SQLDA^.SQLD - 1 do
       begin
       PSQLVar := @SQLDA^.SQLVar[i];
@@ -1119,9 +1163,11 @@ begin
       if (((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) and not UseConnectionCharSetIfNone)
          or
          ((TransType = ftMemo) and (PSQLVar^.relname_length>0) and (PSQLVar^.sqlname_length>0) and (GetBlobCharset(@PSQLVar^.relname,@PSQLVar^.sqlname) in [CS_NONE,CS_BINARY])) then
-        FieldDefs.Add(PSQLVar^.AliasName, TransType, TransLen, TransPrec, (PSQLVar^.sqltype and 1)=0, False, i+1, CP_NONE)
+        lDef := FieldDefs.Add(PSQLVar^.AliasName, TransType, TransLen, TransPrec, (PSQLVar^.sqltype and 1)=0, False, i+1, CP_NONE)
       else
-        AddFieldDef(FieldDefs, i+1, PSQLVar^.AliasName, TransType, TransLen, TransPrec, True, (PSQLVar^.sqltype and 1)=0, False);
+        lDef := AddFieldDef(FieldDefs, i+1, PSQLVar^.AliasName, TransType, TransLen, TransPrec, True, (PSQLVar^.sqltype and 1)=0, False);
+      if TransType = ftArray then
+        SetArrayElementDef(lDef, i);
 
       FieldBinding[i] := i;
       end;
@@ -1308,26 +1354,91 @@ var
   li       : LargeInt;
   i128     : Int128Rec;
 
-begin
-  {$push}
-  {$R-}
-  with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
-    begin
-    AParam := AParams[ParamBinding[SQLVarNr]];
-    VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
-    if (SQLVarNr < Length(FInVarTypes)) and (VSQLVar^.SQLType <> FInVarTypes[SQLVarNr].SQLType) then
-      begin
-      // Restore a date/time variable that a previous string parameter changed to SQL_VARYING
-      VSQLVar^.SQLType := FInVarTypes[SQLVarNr].SQLType;
-      VSQLVar^.SQLLen := FInVarTypes[SQLVarNr].SQLLen;
-      ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen);
-      end;
-    if AParam.IsNull then
-      VSQLVar^.SQLInd^ := -1
-    else
-      begin
-      VSQLVar^.SQLInd^ := 0;
+  // Stores the value of AParam in VSQLVar.
+  procedure SetValue; forward;
 
+  // Writes the variant array of AParam into a new array and stores its id in VSQLVar.
+  procedure SetArrayParam;
+  var
+    lTransactionHandle : pointer;
+    lDesc              : TISC_ARRAY_DESC;
+    lRelation, lColumn : AnsiString;
+    lSlice             : array of byte;
+    lSliceLen          : ISC_LONG;
+    lSQLType, lSQLLen, lElementSize, lCount, lLow, j : integer;
+    lArrayId           : ISC_QUAD;
+    lVar               : TXSQLVAR;
+    lParam             : TParam;
+    lSaveVar           : PXSQLVAR;
+    lSaveParam         : TParam;
+    lText              : rawbytestring;
+    lTextLen           : word;
+    lValue             : Variant;
+  begin
+    lTransactionHandle := aTransation.Handle;
+    SetString(lRelation, PAnsiChar(@VSQLVar^.relname), VSQLVar^.relname_length);
+    SetString(lColumn, PAnsiChar(@VSQLVar^.sqlname), VSQLVar^.sqlname_length);
+    if isc_array_lookup_bounds(@FStatus[0], @FDatabaseHandle, @lTransactionHandle,
+         PAnsiChar(lRelation), PAnsiChar(lColumn), @lDesc) <> 0 then
+      CheckError('TIBConnection.SetParameters array', FStatus);
+    SetSliceArrayDesc(lDesc);
+    if not ArrayElementType(lDesc, lSQLType, lSQLLen, lElementSize) then
+      DatabaseErrorFmt(SUnsupportedParameter, [FieldTypeNames[AParam.DataType]], Self);
+    lCount := ArrayElementCount(lDesc);
+    lSliceLen := lCount * lElementSize;
+    SetLength(lSlice, lSliceLen);
+    FillChar(lSlice[0], lSliceLen, 0);
+    lValue := AParam.Value;
+    lLow := VarArrayLowBound(lValue, 1);
+    if VarArrayHighBound(lValue, 1) - lLow + 1 < lCount then
+      lCount := VarArrayHighBound(lValue, 1) - lLow + 1;
+    FillChar(lVar, SizeOf(lVar), 0);
+    lVar.SQLType := lSQLType;
+    lVar.SQLScale := ShortInt(lDesc.array_desc_scale);
+    lParam := TParam.Create(nil);
+    lSaveVar := VSQLVar;
+    lSaveParam := AParam;
+    try
+      for j := 0 to lCount-1 do
+        if not (VarIsNull(lValue[lLow+j]) or VarIsEmpty(lValue[lLow+j])) then
+          begin
+          lParam.Clear;
+          lParam.DataType := ftUnknown;
+          lParam.Value := lValue[lLow+j];
+          lVar.SQLData := @lSlice[j*lElementSize];
+          lVar.SQLLen := lSQLLen;
+          if lSQLType = SQL_VARYING then
+            begin
+            lText := GetAsString(lParam);
+            if Length(lText) > lSQLLen then
+              SetLength(lText, lSQLLen);
+            lTextLen := Length(lText);
+            if lTextLen > 0 then
+              Move(lText[1], lVar.SQLData^, lTextLen);
+            end
+          else
+            begin
+            VSQLVar := @lVar;
+            AParam := lParam;
+            SetValue;
+            VSQLVar := lSaveVar;
+            AParam := lSaveParam;
+            end;
+          end;
+    finally
+      VSQLVar := lSaveVar;
+      AParam := lSaveParam;
+      lParam.Free;
+    end;
+    lArrayId := Default(ISC_QUAD);
+    if isc_array_put_slice(@FStatus[0], @FDatabaseHandle, @lTransactionHandle, @lArrayId, @lDesc,
+         @lSlice[0], @lSliceLen) <> 0 then
+      CheckError('TIBConnection.SetParameters array', FStatus);
+    Move(lArrayId, VSQLVar^.SQLData^, SizeOf(lArrayId));
+  end;
+
+  procedure SetValue;
+  begin
       case (VSQLVar^.sqltype and not 1) of
         SQL_SHORT, SQL_BOOLEAN_INTERBASE :
           begin
@@ -1393,10 +1504,34 @@ begin
           end;
         SQL_DEC16:
           PQWord(VSQLVar^.SQLData)^ := BCDToDPDec64(AParam.AsFMTBCD);
+        SQL_ARRAY:
+          SetArrayParam;
       else
         if (VSQLVar^.sqltype <> SQL_NULL) then
           DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
       end {case}
+  end;
+
+begin
+  {$push}
+  {$R-}
+  with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
+    begin
+    AParam := AParams[ParamBinding[SQLVarNr]];
+    VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
+    if (SQLVarNr < Length(FInVarTypes)) and (VSQLVar^.SQLType <> FInVarTypes[SQLVarNr].SQLType) then
+      begin
+      // Restore a date/time variable that a previous string parameter changed to SQL_VARYING
+      VSQLVar^.SQLType := FInVarTypes[SQLVarNr].SQLType;
+      VSQLVar^.SQLLen := FInVarTypes[SQLVarNr].SQLLen;
+      ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen);
+      end;
+    if AParam.IsNull then
+      VSQLVar^.SQLInd^ := -1
+    else
+      begin
+      VSQLVar^.SQLInd^ := 0;
+      SetValue;
       end;
     end;
   {$pop}
@@ -1404,10 +1539,134 @@ end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 
+var
+  VSQLVar : PXSQLVAR;
+  lIndex  : integer;
+
+begin
+  CreateBlob := False;
+  with cursor as TIBCursor do
+    begin
+    {$push}
+    {$R-}
+    lIndex := FieldBinding[FieldDef.FieldNo-1];
+    VSQLVar := @SQLDA^.SQLVar[lIndex];
+    {$pop}
+    if FieldDef.DataType <> ftArray then
+      Result := LoadSQLVarValue(VSQLVar, FieldDef, buffer)
+    else if assigned(VSQLVar^.SQLInd) and (VSQLVar^.SQLInd^ = -1) then
+      Result := False
+    else
+      begin
+      LoadArrayValue(TIBCursor(cursor), lIndex, FieldDef, buffer);
+      Result := True;
+      end;
+    end;
+end;
+
+
+function TIBConnection.ArrayElementType(const aDesc: TISC_ARRAY_DESC; out aSQLType, aSQLLen, aElementSize: integer): boolean;
+
+const
+  blr_bool = 23;
+
+begin
+  Result := True;
+  aSQLLen := aDesc.array_desc_length;
+  aElementSize := aDesc.array_desc_length;
+  case aDesc.array_desc_dtype of
+    blr_short : aSQLType := SQL_SHORT;
+    blr_long : aSQLType := SQL_LONG;
+    blr_int64 : aSQLType := SQL_INT64;
+    blr_float : aSQLType := SQL_FLOAT;
+    blr_double, blr_d_float : aSQLType := SQL_DOUBLE;
+    blr_text, blr_text2 : aSQLType := SQL_TEXT;
+    blr_cstring :
+      begin
+      aSQLType := SQL_VARYING;
+      aSQLLen := aDesc.array_desc_length-1;
+      end;
+    blr_sql_date : aSQLType := SQL_TYPE_DATE;
+    blr_sql_time : aSQLType := SQL_TYPE_TIME;
+    blr_timestamp : aSQLType := SQL_TIMESTAMP;
+    blr_bool : aSQLType := SQL_BOOLEAN_FIREBIRD;
+  else
+    Result := False;
+  end;
+end;
+
+
+procedure TIBConnection.SetSliceArrayDesc(var aDesc: TISC_ARRAY_DESC);
+
+begin
+  if aDesc.array_desc_dtype in [blr_varying, blr_varying2] then
+    begin
+    aDesc.array_desc_dtype := blr_cstring;
+    Inc(aDesc.array_desc_length);
+    end;
+end;
+
+
+function TIBConnection.ArrayElementCount(const aDesc: TISC_ARRAY_DESC): integer;
+
+var
+  i : integer;
+
+begin
+  Result := 1;
+  for i := 0 to aDesc.array_desc_dimensions-1 do
+    Result := Result * (aDesc.array_desc_bounds[i].array_bound_upper - aDesc.array_desc_bounds[i].array_bound_lower + 1);
+end;
+
+
+procedure TIBConnection.LoadArrayValue(cursor: TIBCursor; aIndex: integer; FieldDef: TFieldDef; buffer: pointer);
+
+var
+  lDesc : TISC_ARRAY_DESC;
+  lTransactionHandle : pointer;
+  lSlice : array of byte;
+  lSliceLen : ISC_LONG;
+  lSQLType, lSQLLen, lElementSize, i : integer;
+  lVar : TXSQLVAR;
+  lElement : TFieldDef;
+  lDataSet : TCustomBufDataset;
+
+begin
+  {$push}
+  {$R-}
+  lDesc := cursor.ArrayDescs[aIndex];
+  ArrayElementType(lDesc, lSQLType, lSQLLen, lElementSize);
+  lSliceLen := FieldDef.Size * lElementSize;
+  SetLength(lSlice, lSliceLen);
+  FillChar(lSlice[0], lSliceLen, 0);
+  lTransactionHandle := cursor.TransactionHandle;
+  if isc_array_get_slice(@FStatus[0], @FDatabaseHandle, @lTransactionHandle, PISC_QUAD(cursor.SQLDA^.SQLVar[aIndex].SQLData),
+       @lDesc, @lSlice[0], @lSliceLen) <> 0 then
+    CheckError('TIBConnection.LoadField array', FStatus);
+  lElement := FieldDef.ChildDefs[0];
+  lDataSet := (FieldDef.Collection as TFieldDefs).Dataset as TCustomBufDataset;
+  FillChar(lVar, SizeOf(lVar), 0);
+  if lSQLType = SQL_VARYING then
+    lVar.SQLType := SQL_TEXT
+  else
+    lVar.SQLType := lSQLType;
+  lVar.SQLLen := lSQLLen;
+  lVar.SQLScale := ShortInt(lDesc.array_desc_scale);
+  for i := 0 to FieldDef.Size-1 do
+    begin
+    lVar.SQLData := @lSlice[i*lElementSize];
+    if LoadSQLVarValue(@lVar, lElement, lDataSet.ArrayElementBuffer(FieldDef, buffer, i)) then
+      lDataSet.SetArrayElementNull(FieldDef, buffer, i, False);
+    end;
+  {$pop}
+end;
+
+
+function TIBConnection.LoadSQLVarValue(VSQLVar : PXSQLVAR; FieldDef : TFieldDef; buffer : pointer) : boolean;
+
 type
   PInt128Rec = ^Int128Rec;
 var
-  VSQLVar    : PXSQLVAR;
   VarcharLen : word;
   CurrBuff   : PAnsiChar;
   c          : currency;
@@ -1421,20 +1680,8 @@ var
   end;
 
 begin
-  CreateBlob := False;
-  with cursor as TIBCursor do
-    begin
     {$push}
     {$R-}
-    VSQLVar := @SQLDA^.SQLVar[ FieldBinding[FieldDef.FieldNo-1] ];
-
-    // Joost, 5 jan 2006: I disabled the following, since it's useful for
-    // debugging, but it also slows things down. In principle things can only go
-    // wrong when FieldDefs is changed while the dataset is opened. A user just
-    // shouldn't do that. ;) (The same is done in PQConnection)
-
-    // if VSQLVar^.AliasName <> FieldDef.Name then
-    // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
     if assigned(VSQLVar^.SQLInd) and (VSQLVar^.SQLInd^ = -1) then
       Result := False
     else
@@ -1541,7 +1788,6 @@ begin
       end;  { case }
       end; { if/else }
       {$pop}
-    end; { with cursor }
 end;
 
 {$DEFINE SUPPORT_MSECS}

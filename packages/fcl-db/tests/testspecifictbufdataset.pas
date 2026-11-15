@@ -53,6 +53,8 @@ type
     procedure DoInternalCalcFields(DataSet: TDataSet);
     // Fills an in-memory dataset with fields ID, NAME, internal calc DOUBLEID and calculated CALCFLD, and checks the values.
     procedure IntTestInternalCalcField(aWithFieldDefs: Boolean);
+    // Returns a closed dataset with field definitions ID (integer) and ARR (array of 3 integers).
+    function GetArrayDataset: TBufDataset;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -96,6 +98,16 @@ type
     procedure TestInternalCalcField;
     // Persistent fkInternalCalc field next to FieldDefs that do not define it (bug 7157)
     procedure TestInternalCalcFieldWithFieldDefs;
+    // ftArray field definition with 3 integer elements: child fields, names, values after post (bug 26737)
+    procedure TestArrayField;
+    // The same array definition with ObjectView False: the elements are top-level fields
+    procedure TestArrayFieldFlat;
+    // ftADT field definition with members, and an array of ftADT elements
+    procedure TestADTField;
+    // Persistent TArrayField with child fields: field definitions created from the fields
+    procedure TestArrayFieldFromFields;
+    // Indexes on elements, saving, and blob elements are refused
+    procedure TestArrayFieldRestrictions;
   end;
 
 implementation
@@ -1208,6 +1220,317 @@ procedure TTestSpecificTBufDataset.TestInternalCalcFieldWithFieldDefs;
 
 begin
   IntTestInternalCalcField(True);
+end;
+
+
+function TTestSpecificTBufDataset.GetArrayDataset: TBufDataset;
+
+var
+  lDef: TFieldDef;
+
+begin
+  Result := TMyBufDataset.Create(nil);
+  Result.FieldDefs.Add('ID', ftInteger);
+  lDef := Result.FieldDefs.AddFieldDef;
+  lDef.Name := 'ARR';
+  lDef.DataType := ftArray;
+  lDef.Size := 3;
+  lDef.AddChild.DataType := ftInteger;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestArrayField;
+
+var
+  lDS: TBufDataset;
+  lArr: TArrayField;
+  lValue: Variant;
+
+begin
+  lDS := GetArrayDataset;
+  try
+    CheckTrue(lDS.ObjectView, 'ObjectView of a TBufDataset');
+    CheckSame(lDS.FieldDefs[1], lDS.FieldDefs[1].ChildDefs[0].ParentDef, 'ParentDef of the element definition');
+    lDS.CreateDataset;
+    CheckEquals(2, lDS.Fields.Count, 'Top-level fields');
+    CheckEquals(5, lDS.FieldDefList.Count, 'FieldDefList entries');
+    CheckEquals('ARR[2]', lDS.FieldDefList.Strings[4], 'FieldDefList name of the last element');
+    CheckSame(lDS.FieldDefs[1].ChildDefs[0], lDS.FieldDefList[4], 'FieldDefList definition of the last element');
+    CheckTrue(lDS.Fields[1] is TArrayField, 'Field class of the array field');
+    lArr := TArrayField(lDS.Fields[1]);
+    CheckEquals(3, lArr.FieldCount, 'Elements of the array field');
+    CheckEquals('ARR[1]', lArr.Fields[1].FieldName, 'Name of an element');
+    CheckEquals('ARR[1]', lArr.Fields[1].FullName, 'FullName of an element');
+    CheckSame(lArr.Fields[1], lDS.FieldByName('ARR[1]'), 'FieldByName of an element');
+    CheckSame(lArr, lArr.Fields[1].ParentField, 'ParentField of an element');
+
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 1;
+    lArr.FieldValues[0] := 10;
+    lArr.FieldValues[1] := 20;
+    lArr.FieldValues[2] := 30;
+    lDS.Post;
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 2;
+    lArr.Value := VarArrayOf([5, Null, 7]);
+    lDS.Post;
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 3;
+    lDS.Post;
+
+    lDS.First;
+    CheckEquals(10, lArr.Fields[0].AsInteger, 'Element 0 of record 1');
+    CheckEquals(20, lArr.FieldValues[1], 'Element 1 of record 1');
+    CheckEquals(30, lDS.FieldByName('ARR[2]').AsInteger, 'Element 2 of record 1');
+    lValue := lArr.AsVariant;
+    CheckTrue(VarIsArray(lValue), 'AsVariant of an array field is a variant array');
+    CheckEquals(20, lValue[1], 'Element 1 of AsVariant');
+    lDS.Next;
+    CheckEquals(5, lArr.Fields[0].AsInteger, 'Element 0 of record 2');
+    CheckTrue(lArr.Fields[1].IsNull, 'Null element of record 2');
+    CheckEquals(7, lArr.Fields[2].AsInteger, 'Element 2 of record 2');
+    CheckFalse(lArr.IsNull, 'Array field with values is not null');
+    lDS.Next;
+    CheckTrue(lArr.IsNull, 'Array field without values is null');
+    CheckTrue(VarIsNull(lArr.Value), 'Value of a null array field');
+
+    lDS.First;
+    lDS.Edit;
+    lArr.Fields[1].AsInteger := 99;
+    lDS.Cancel;
+    CheckEquals(20, lArr.Fields[1].AsInteger, 'Element after cancel');
+    lDS.Edit;
+    lArr.Value := VarArrayOf([1, 2]);
+    lDS.Post;
+    lDS.Last;
+    lDS.First;
+    CheckEquals(1, lArr.Fields[0].AsInteger, 'Element 0 after assigning two values');
+    CheckEquals(2, lArr.Fields[1].AsInteger, 'Element 1 after assigning two values');
+    CheckTrue(lArr.Fields[2].IsNull, 'Element 2 after assigning two values');
+    lDS.Edit;
+    lArr.Clear;
+    lDS.Post;
+    CheckTrue(lArr.IsNull, 'Array field after Clear');
+    CheckEquals(1, lDS.FieldByName('ID').AsInteger, 'Other field after clearing the array field');
+    lDS.Close;
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestArrayFieldFlat;
+
+var
+  lDS: TBufDataset;
+
+begin
+  lDS := GetArrayDataset;
+  try
+    lDS.ObjectView := False;
+    lDS.CreateDataset;
+    CheckEquals(4, lDS.Fields.Count, 'Top-level fields');
+    CheckEquals('ARR[0]', lDS.Fields[1].FieldName, 'First element field');
+    CheckTrue(lDS.Fields[1] is TLongintField, 'Field class of an element field');
+    CheckNull(lDS.Fields[1].ParentField, 'ParentField of an element field');
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 1;
+    lDS.FieldByName('ARR[0]').AsInteger := 10;
+    lDS.FieldByName('ARR[2]').AsInteger := 30;
+    lDS.Post;
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 2;
+    lDS.FieldByName('ARR[1]').AsInteger := 21;
+    lDS.Post;
+    lDS.First;
+    CheckEquals(10, lDS.FieldByName('ARR[0]').AsInteger, 'Element 0 of record 1');
+    CheckTrue(lDS.FieldByName('ARR[1]').IsNull, 'Element 1 of record 1');
+    CheckEquals(30, lDS.FieldByName('ARR[2]').AsInteger, 'Element 2 of record 1');
+    lDS.Next;
+    CheckTrue(lDS.FieldByName('ARR[0]').IsNull, 'Element 0 of record 2');
+    CheckEquals(21, lDS.FieldByName('ARR[1]').AsInteger, 'Element 1 of record 2');
+    lDS.Close;
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestADTField;
+
+var
+  lDS: TBufDataset;
+  lDef, lPoint: TFieldDef;
+  lAddr: TADTField;
+  lPoints: TArrayField;
+
+begin
+  lDS := TMyBufDataset.Create(nil);
+  try
+    lDS.FieldDefs.Add('ID', ftInteger);
+    lDef := lDS.FieldDefs.AddFieldDef;
+    lDef.Name := 'ADDR';
+    lDef.DataType := ftADT;
+    with lDef.AddChild do
+      begin
+      Name := 'STREET';
+      DataType := ftString;
+      Size := 20;
+      end;
+    with lDef.AddChild do
+      begin
+      Name := 'NUMBER';
+      DataType := ftInteger;
+      end;
+    lDef := lDS.FieldDefs.AddFieldDef;
+    lDef.Name := 'PTS';
+    lDef.DataType := ftArray;
+    lDef.Size := 2;
+    lPoint := lDef.AddChild;
+    lPoint.DataType := ftADT;
+    lPoint.AddChild.Name := 'X';
+    lPoint.ChildDefs[0].DataType := ftInteger;
+    lPoint.AddChild.Name := 'Y';
+    lPoint.ChildDefs[1].DataType := ftInteger;
+    lDS.CreateDataset;
+
+    CheckTrue(lDS.FieldByName('ADDR') is TADTField, 'Field class of the ADT field');
+    lAddr := TADTField(lDS.FieldByName('ADDR'));
+    CheckEquals(2, lAddr.FieldCount, 'Members of the ADT field');
+    CheckEquals('ADDR.NUMBER', lAddr.Fields[1].FullName, 'FullName of a member');
+    lPoints := lDS.FieldByName('PTS') as TArrayField;
+    CheckTrue(lPoints.Fields[1] is TADTField, 'Field class of an ADT element');
+    CheckEquals('PTS[1].Y', TADTField(lPoints.Fields[1]).Fields[1].FullName, 'FullName of a member of an element');
+
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 1;
+    lDS.FieldByName('ADDR.STREET').AsString := 'Main street';
+    lDS.FieldByName('ADDR.NUMBER').AsInteger := 12;
+    lDS.FieldByName('PTS[0].X').AsInteger := 1;
+    lDS.FieldByName('PTS[0].Y').AsInteger := 2;
+    lDS.FieldByName('PTS[1].X').AsInteger := 3;
+    lDS.FieldByName('PTS[1].Y').AsInteger := 4;
+    lDS.Post;
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 2;
+    lDS.FieldByName('ADDR.NUMBER').AsInteger := 7;
+    lDS.Post;
+    lDS.First;
+    CheckEquals('Main street', lDS.FieldByName('ADDR.STREET').AsString, 'Member STREET of record 1');
+    CheckEquals(12, lDS.FieldByName('ADDR.NUMBER').AsInteger, 'Member NUMBER of record 1');
+    CheckEquals(1, lDS.FieldByName('PTS[0].X').AsInteger, 'PTS[0].X of record 1');
+    CheckEquals(2, lDS.FieldByName('PTS[0].Y').AsInteger, 'PTS[0].Y of record 1');
+    CheckEquals(3, lDS.FieldByName('PTS[1].X').AsInteger, 'PTS[1].X of record 1');
+    CheckEquals(4, lDS.FieldByName('PTS[1].Y').AsInteger, 'PTS[1].Y of record 1');
+    lDS.Next;
+    CheckTrue(lDS.FieldByName('ADDR.STREET').IsNull, 'Member STREET of record 2');
+    CheckEquals(7, lDS.FieldByName('ADDR.NUMBER').AsInteger, 'Member NUMBER of record 2');
+    CheckTrue(lPoints.IsNull, 'Array of ADT elements without values');
+    lDS.Close;
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestArrayFieldFromFields;
+
+var
+  lDS: TBufDataset;
+  lArr: TArrayField;
+  lFld: TField;
+  i: Integer;
+
+begin
+  lDS := TMyBufDataset.Create(nil);
+  try
+    lFld := TIntegerField.Create(lDS);
+    lFld.FieldName := 'ID';
+    lFld.DataSet := lDS;
+    lArr := TArrayField.Create(lDS);
+    lArr.FieldName := 'ARR';
+    lArr.DataSet := lDS;
+    for i := 0 to 2 do
+      begin
+      lFld := TStringField.Create(lDS);
+      lFld.FieldName := Format('ARR[%d]', [i]);
+      lFld.Size := 10;
+      lFld.ParentField := lArr;
+      end;
+    CheckEquals(2, lDS.Fields.Count, 'Top-level persistent fields');
+    lDS.CreateDataset;
+    CheckTrue(lDS.FieldDefs[1].DataType = ftArray, 'Data type of the created definition');
+    CheckEquals(3, lDS.FieldDefs[1].Size, 'Size of the created array definition');
+    CheckTrue(lDS.FieldDefs[1].ChildDefs[0].DataType = ftString, 'Data type of the created element definition');
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 1;
+    lArr.Value := VarArrayOf(['a', 'b', 'c']);
+    lDS.Post;
+    lDS.Append;
+    lDS.FieldByName('ID').AsInteger := 2;
+    lArr.FieldValues[2] := 'z';
+    lDS.Post;
+    lDS.First;
+    CheckEquals('b', lArr.Fields[1].AsString, 'Element 1 of record 1');
+    lDS.Next;
+    CheckEquals('z', lArr.Fields[2].AsString, 'Element 2 of record 2');
+    CheckTrue(lArr.Fields[0].IsNull, 'Element 0 of record 2');
+    lDS.Close;
+  finally
+    lDS.Free;
+  end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestArrayFieldRestrictions;
+
+var
+  lDS: TBufDataset;
+  lRaised: Boolean;
+  lStream: TMemoryStream;
+
+begin
+  lDS := GetArrayDataset;
+  lStream := TMemoryStream.Create;
+  try
+    lDS.CreateDataset;
+    lDS.AppendRecord([1]);
+    lRaised := False;
+    try
+      lDS.IndexFieldNames := 'ARR[0]';
+    except
+      on EDatabaseError do
+        lRaised := True;
+    end;
+    CheckTrue(lRaised, 'An index on an array element raises EDatabaseError');
+    lDS.IndexFieldNames := '';
+    lRaised := False;
+    try
+      lDS.SaveToStream(lStream, dfBinary);
+    except
+      on EDatabaseError do
+        lRaised := True;
+    end;
+    CheckTrue(lRaised, 'Saving a dataset with an array field raises EDatabaseError');
+    lDS.Close;
+  finally
+    lStream.Free;
+    lDS.Free;
+  end;
+  lDS := GetArrayDataset;
+  try
+    lDS.FieldDefs[1].ChildDefs[0].DataType := ftBlob;
+    lRaised := False;
+    try
+      lDS.CreateDataset;
+    except
+      on EDatabaseError do
+        lRaised := True;
+    end;
+    CheckTrue(lRaised, 'An array of blobs raises EDatabaseError');
+  finally
+    lDS.Free;
+  end;
 end;
 
 

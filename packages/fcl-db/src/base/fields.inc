@@ -67,45 +67,54 @@ end;
 destructor TFieldDef.Destroy;
 
 begin
+  FreeAndNil(FChildDefs);
   Inherited Destroy;
 end;
 
 function TFieldDef.AddChild: TFieldDef;
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TFieldDef.AddChild
-  // Adds a new TFieldDef object to the ChildDefs array.
+  Result:=ChildDefs.AddFieldDef;
 end;
 
 function TFieldDef.GetChildDefs: TFieldDefs;
 begin
-  Result:=nil;
+  if FChildDefs=nil then
+    if Assigned(Collection) then
+      FChildDefs:=TFieldDefsClass(Collection.ClassType).Create(Self)
+    else
+      FChildDefs:=TFieldDefs.Create(Self);
+  Result:=FChildDefs;
 end;
 
 procedure TFieldDef.SetChildDefs(AValue: TFieldDefs);
 begin
-
+  ChildDefs.Assign(AValue);
 end;
 
 function TFieldDef.HasChildDefs: Boolean;
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TFieldDef.HasChildDefs
-  Result:=False;
+  Result:=Assigned(FChildDefs) and (FChildDefs.Count>0);
 end;
 
 function TFieldDef.GetParentDef: TFieldDef;
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TFieldDef.ParentDef
-  Result:=nil;
+  if Collection is TFieldDefs then
+    Result:=TFieldDefs(Collection).ParentDef
+  else
+    Result:=nil;
 end;
 
 procedure TFieldDef.Assign(APersistent: TPersistent);
-var fd: TFieldDef;
+var
+  fd: TFieldDef;
+  i: Integer;
 begin
   fd := nil;
   if APersistent is TFieldDef then
     fd := APersistent as TFieldDef;
   if Assigned(fd) then begin
-    Collection.BeginUpdate;
+    if Assigned(Collection) then
+      Collection.BeginUpdate;
     try
       Name := fd.Name;
       DataType := fd.DataType;
@@ -113,8 +122,14 @@ begin
       Precision := fd.Precision;
       FRequired := fd.Required;
       FCodePage := fd.FCodePage;
+      if HasChildDefs then
+        ChildDefs.Clear;
+      if fd.HasChildDefs then
+        for i:=0 to fd.ChildDefs.Count-1 do
+          AddChild.Assign(fd.ChildDefs[i]);
     finally
-      Collection.EndUpdate;
+      if Assigned(Collection) then
+        Collection.EndUpdate;
     end;
   end
   else
@@ -124,6 +139,7 @@ end;
 function TFieldDef.CreateField(AOwner: TComponent; ParentField: TObjectField = nil; const FieldName: string = ''; CreateChildren: Boolean = True): TField;
 
 var TheField : TFieldClass;
+    lCount, i : Integer;
 
 begin
 {$ifdef dsdebug}
@@ -137,9 +153,15 @@ begin
     Result.FFieldDef:=Self;
     Result.Size:=FSize;
     Result.Required:=FRequired;
-    Result.FFieldName:=FName;
-    Result.FDisplayLabel:=DisplayName;
-    Result.FFieldNo:=Self.FieldNo;
+    if FieldName<>'' then
+      Result.FFieldName:=FieldName
+    else
+      Result.FFieldName:=FName;
+    Result.FDisplayLabel:=Result.FFieldName;
+    if Assigned(ParentDef) then
+      Result.FFieldNo:=0
+    else
+      Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
     Result.FReadOnly:=(faReadOnly in Attributes);
     if FInternalCalcField then
@@ -148,7 +170,23 @@ begin
     Writeln ('TFieldDef.CreateField : Result Fieldno : ',Result.FieldNo,'; Self : ',FieldNo);
     Writeln ('TFieldDef.CreateField : Trying to set dataset');
 {$endif dsdebug}
-    Result.Dataset:=TFieldDefs(Collection).Dataset;
+    if Assigned(ParentField) then
+      Result.ParentField:=ParentField
+    else
+      Result.Dataset:=TFieldDefs(Collection).Dataset;
+    if CreateChildren and HasChildDefs and (Result is TObjectField) then
+      if DataType=ftArray then
+        begin
+        if Assigned(Result.Dataset) and Result.Dataset.SparseArrays then
+          lCount:=1
+        else
+          lCount:=FSize;
+        for i:=0 to lCount-1 do
+          ChildDefs[0].CreateField(nil,TObjectField(Result),Format('%s[%d]',[Result.FieldName,i]));
+        end
+      else
+        for i:=0 to ChildDefs.Count-1 do
+          ChildDefs[i].CreateField(nil,TObjectField(Result));
     if (Result is TStringField) then
       TStringField(Result).FCodePage := FCodePage
     else if (Result is TMemoField) then
@@ -299,7 +337,16 @@ end;
 constructor TFieldDefs.Create(AOwner: TPersistent);
 var ADataSet: TDataSet;
 begin
-  ADataSet := AOwner as TDataSet;
+  if AOwner is TFieldDef then
+    begin
+    FParentDef := TFieldDef(AOwner);
+    if FParentDef.Collection is TFieldDefs then
+      ADataSet := TFieldDefs(FParentDef.Collection).Dataset
+    else
+      ADataSet := nil;
+    end
+  else
+    ADataSet := AOwner as TDataSet;
   Inherited Create(ADataset, AOwner, FieldDefClass);
 end;
 
@@ -418,6 +465,7 @@ begin
   Inherited Create(AOwner);
   FVisible:=True;
   FValidChars:=[#0..#255];
+  FFieldDefListIndex:=-1;
 
   FProviderFlags := [pfInUpdate,pfInWhere];
 end;
@@ -426,11 +474,9 @@ destructor TField.Destroy;
 
 begin
   IF Assigned(FDataSet) then
-    begin
     FDataSet.Active:=False;
-    if Assigned(FFields) then
-      FFields.Remove(Self);
-    end;
+  if Assigned(FFields) then
+    FFields.Remove(Self);
   FLookupList.Free;
   Inherited Destroy;
 end;
@@ -783,11 +829,18 @@ end;
 
 function TField.GetFullName: string;
 
+var
+  lParent: TObjectField;
+
 begin
-  if Assigned(FParentField) then
-    Result:=FParentField.FullName+'.'+FFieldName
-  else
-    Result:=FFieldName;
+  Result:=FFieldName;
+  lParent:=FParentField;
+  while Assigned(lParent) do
+    begin
+    if (lParent.DataType<>ftArray) and not lParent.UnNamed then
+      Result:=lParent.FFieldName+'.'+Result;
+    lParent:=lParent.ParentField;
+    end;
 end;
 
 function TField.IsDisplayLabelStored: Boolean;
@@ -1066,12 +1119,20 @@ begin
   If Assigned(FDataset) Then
     begin
     FDataset.CheckInactive;
-    FDataset.FFieldList.Remove(Self);
+    if not Assigned(FParentField) then
+      FDataset.FFieldList.Remove(Self);
     end;
   If Assigned(AValue) then
     begin
     AValue.CheckInactive;
-    AValue.FFieldList.Add(Self);
+    if Assigned(FParentField) and (FParentField.DataSet<>AValue) then
+      begin
+      FParentField.FFieldFields.Remove(Self);
+      FParentField.RemoveFreeNotification(Self);
+      FParentField:=nil;
+      end;
+    if not Assigned(FParentField) then
+      AValue.FFieldList.Add(Self);
     end;
   FDataset:=AValue;
 end;
@@ -1225,12 +1286,26 @@ begin
       end;
     if Assigned(FDataSet) and Assigned(AField.DataSet) and (AField.DataSet<>FDataSet) then
       DatabaseErrorFmt(SErrParentFieldDataset,[AField.FieldName],Self);
+    if Assigned(AField.DataSet) then
+      AField.DataSet.CheckInactive;
+    AField.Fields.CheckFieldName(FFieldName);
     end;
   if Assigned(FParentField) then
+    begin
+    FParentField.FFieldFields.Remove(Self);
     FParentField.RemoveFreeNotification(Self);
+    end
+  else if Assigned(FDataSet) and Assigned(AField) then
+    FDataSet.FFieldList.Remove(Self);
   FParentField:=AField;
   if Assigned(FParentField) then
+    begin
+    FParentField.FFieldFields.Add(Self);
     FParentField.FreeNotification(Self);
+    FDataSet:=FParentField.DataSet;
+    end
+  else if Assigned(FDataSet) then
+    FDataSet.FFieldList.Add(Self);
   if Assigned(FDataSet) and Assigned(FDataSet.FFlatFieldList) then
     FDataSet.FFlatFieldList.ListChanging(Self);
 end;
@@ -4268,44 +4343,134 @@ begin
   // number of its elements -- so it is not checked, as in Delphi
 end;
 
-function TObjectField.GetFieldCount: Integer;
+constructor TObjectField.Create(AOwner: TComponent);
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.GetFieldCount
-  Result:=0;
+  FFieldFields:=TFields.Create(nil);
+  inherited Create(AOwner);
 end;
+
+
+destructor TObjectField.Destroy;
+
+begin
+  inherited Destroy;
+  FreeAndNil(FFieldFields);
+end;
+
+
+function TObjectField.GetFieldCount: Integer;
+
+begin
+  Result:=FFieldFields.Count;
+end;
+
 
 function TObjectField.GetFields: TFields;
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.GetFields
-  Result := FFieldFields;
+  Result:=FFieldFields;
 end;
+
 
 function TObjectField.GetFieldValue(AIndex: Integer): Variant;
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.GetFieldValue
-  Result:=NULL;
+  Result:=FFieldFields[AIndex].Value;
 end;
+
 
 procedure TObjectField.SetFieldValue(AIndex: Integer; const AValue: Variant);
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.SetFieldValue
+  FFieldFields[AIndex].Value:=AValue;
 end;
 
-procedure TObjectField.SetParentField(AField: TObjectField);
+
+procedure TObjectField.SetDataset(AValue: TDataset);
+
+var
+  i: Integer;
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.SetParentField
+  inherited SetDataset(AValue);
+  FFieldFields.FDataset:=AValue;
+  for i:=0 to FFieldFields.Count-1 do
+    FFieldFields[i].SetDataset(AValue);
+end;
+
+
+procedure TObjectField.SetParentField(AField: TObjectField);
+
+begin
   inherited SetParentField(AField);
 end;
 
-function TObjectField.GetAsVariant: Variant;
+
+function TObjectField.GetIsNull: Boolean;
+
+var
+  i: Integer;
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.GetAsVariant
-  Result:=NULL;
+  Result:=True;
+  i:=0;
+  while Result and (i<FFieldFields.Count) do
+    begin
+    Result:=FFieldFields[i].IsNull;
+    Inc(i);
+    end;
 end;
 
-procedure TObjectField.SetVarValue(const AValue: Variant);
+
+function TObjectField.GetAsVariant: Variant;
+
+var
+  i: Integer;
+
 begin
-  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TObjectField.SetVarValue
+  if IsNull then
+    Result:=Null
+  else
+    begin
+    Result:=VarArrayCreate([0,FFieldFields.Count-1],varVariant);
+    for i:=0 to FFieldFields.Count-1 do
+      Result[i]:=FFieldFields[i].Value;
+    end;
+end;
+
+
+procedure TObjectField.SetVarValue(const AValue: Variant);
+
+var
+  i, lLow, lCount: Integer;
+
+begin
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Clear
+  else if not VarIsArray(AValue) then
+    raise AccessError('Variant')
+  else
+    begin
+    lLow:=VarArrayLowBound(AValue,1);
+    lCount:=VarArrayHighBound(AValue,1)-lLow+1;
+    for i:=0 to FFieldFields.Count-1 do
+      if i<lCount then
+        FFieldFields[i].Value:=AValue[lLow+i]
+      else
+        FFieldFields[i].Clear;
+    end;
+end;
+
+
+procedure TObjectField.Clear;
+
+var
+  i: Integer;
+
+begin
+  for i:=0 to FFieldFields.Count-1 do
+    FFieldFields[i].Clear;
 end;
 
 { TArrayField }
@@ -4315,6 +4480,15 @@ begin
   inherited Create(AOwner);
   SetDataType(ftArray);
   Size := 10;
+end;
+
+{ TADTField }
+
+constructor TADTField.Create(AOwner: TComponent);
+
+begin
+  inherited Create(AOwner);
+  SetDataType(ftADT);
 end;
 
 { TFieldsEnumerator }
@@ -4462,6 +4636,7 @@ begin
     begin
     AField := TField(FFieldList.Last);
     AField.FDataSet := Nil;
+    AField.FFields := Nil;
     AField.Free;
     FFieldList.Delete(FFieldList.Count - 1);
     end;
@@ -4646,16 +4821,32 @@ end;
 procedure TFieldDefList.AddFieldDefs(const aParentName: string; aFieldDefs: TFieldDefs);
 
 var
-  i: Integer;
-  lDef: TFieldDef;
+  i, j: Integer;
+  lDef, lElement: TFieldDef;
+  lName, lItemName: string;
 
 begin
   for i:=0 to aFieldDefs.Count-1 do
     begin
     lDef:=aFieldDefs[i];
-    AddObject(aParentName+lDef.Name,lDef);
+    lName:=aParentName+lDef.Name;
+    AddObject(lName,lDef);
     if lDef.HasChildDefs then
-      AddFieldDefs(aParentName+lDef.Name+'.',lDef.ChildDefs);
+      if lDef.DataType=ftArray then
+        begin
+        lElement:=lDef.ChildDefs[0];
+        for j:=0 to lDef.Size-1 do
+          begin
+          lItemName:=Format('%s[%d]',[lName,j]);
+          AddObject(lItemName,lElement);
+          if (lElement.DataType=ftADT) and lElement.HasChildDefs then
+            AddFieldDefs(lItemName+'.',lElement.ChildDefs);
+          end;
+        end
+      else if faUnNamed in lDef.Attributes then
+        AddFieldDefs(aParentName,lDef.ChildDefs)
+      else
+        AddFieldDefs(lName+'.',lDef.ChildDefs);
     end;
 end;
 
