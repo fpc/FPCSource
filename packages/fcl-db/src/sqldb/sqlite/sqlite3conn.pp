@@ -133,6 +133,11 @@ Type
     // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
+    // Registers the SQL function FunctionName (UTF-8) with ArgCount arguments (-1: any number) for this connection.
+    // Func is called for every evaluation and uses the routines of the sqlite3dyn unit; Arg is returned by
+    // sqlite3_user_data. Flags: SQLITE_UTF8, optionally or-ed with SQLITE_DETERMINISTIC. A nil Func removes the
+    // function. See https://www.sqlite.org/c3ref/create_function.html
+    procedure CreateFunction(const FunctionName: string; ArgCount: integer; Func: xFunc; Arg: Pointer=nil; Flags: integer=SQLITE_UTF8);
     procedure LoadExtension(const LibraryFile: string);
   Published
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
@@ -1226,6 +1231,13 @@ begin
   end;
   CheckConnected;
   CheckError(sqlite3_create_collation(fhandle, PAnsiChar(CollationName), eTextRep, Arg, Compare));
+end;
+
+procedure TSQLite3Connection.CreateFunction(const FunctionName: string; ArgCount: integer; Func: xFunc;
+  Arg: Pointer; Flags: integer);
+begin
+  CheckConnected;
+  CheckError(sqlite3_create_function(fhandle, PAnsiChar(FunctionName), ArgCount, Flags, Arg, Func, nil, nil));
 end;
 
 procedure TSQLite3Connection.LoadExtension(const LibraryFile: string);

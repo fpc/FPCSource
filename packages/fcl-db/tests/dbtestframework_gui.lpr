@@ -36,6 +36,7 @@ uses
   TestDatasources,
   TestBufDatasetStreams,
   TestSQLDB,
+  TestSpecificTSQLite3Connection,
   TestSpecificTBufDataset,
   TestNestedDataSet,
   TestSpecificTDBF,

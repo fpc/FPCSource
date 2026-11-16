@@ -37,7 +37,7 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <Units Count="18">
+    <Units Count="19">
       <Unit0>
         <Filename Value="dbtestframework.pas"/>
         <IsPartOfProject Value="True"/>
@@ -121,6 +121,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestNestedDataSet"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="testspecifictsqlite3connection.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestSpecificTSQLite3Connection"/>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
