@@ -4373,13 +4373,13 @@ const
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
                   para:=ccallparanode.create(
-                          ctypeconvnode.create_internal(right,voidcodepointertype),
+                          ctypeconvnode.create_internal(right,voidpointertype),
                         ccallparanode.create(
-                          ctypeconvnode.create_internal(left,voidcodepointertype),
+                          ctypeconvnode.create_internal(left,voidpointertype),
                         ccallparanode.create(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
                         ccallparanode.create(
-                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype),nil)
+                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype),nil)
                         )));
                   result:=ccallnode.createintern(
                             'fpc_dynarray_concat',
@@ -4404,13 +4404,13 @@ const
                       ccallparanode.create(genintconstnode(0),
                         ccallparanode.create(ctemprefnode.create(tempnode),nil))));
                   para:=ccallparanode.create(
-                          ctypeconvnode.create_internal(right,voidcodepointertype),
+                          ctypeconvnode.create_internal(right,voidpointertype),
                         ccallparanode.create(
-                          ctypeconvnode.create_internal(left,voidcodepointertype),
+                          ctypeconvnode.create_internal(left,voidpointertype),
                         ccallparanode.create(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
                         ccallparanode.create(
-                          ctypeconvnode.create_internal(ctemprefnode.create(tempnode),voidcodepointertype),nil)
+                          ctypeconvnode.create_internal(ctemprefnode.create(tempnode),voidpointertype),nil)
                         )));
                   addstatement(
                     newstatement,
