@@ -145,10 +145,10 @@ Const
  * Additional options, not kept in so_options.
  }
         SO_SNDBUF        = $40000001;    { send buffer size }
-        SO_SNDLOWAT      = $40000003;    { send low-water mark }
-        SO_SNDTIMEO      = $40000005;    { send timeout }
-        SO_RCVBUF        = $40000002;    { receive buffer size }
-        SO_RCVLOWAT      = $40000004;    { receive low-water mark }
+        SO_SNDLOWAT      = $40000002;    { send low-water mark }
+        SO_SNDTIMEO      = $40000003;    { send timeout }
+        SO_RCVBUF        = $40000004;    { receive buffer size }
+        SO_RCVLOWAT      = $40000005;    { receive low-water mark }
         SO_RCVTIMEO      = $40000006;    { receive timeout }
         SO_ERROR         = $40000007;    { get error status and clear }
         SO_TYPE          = $40000008;    { get socket type }
@@ -343,25 +343,26 @@ Const
 	IP_RECVTTL		= 65;   { bool; receive IP TTL w/dgram }
 
 	IPV6_SOCKOPT_RESERVED1	= 3 ; { reserved for future use }
-	IPV6_UNICAST_HOPS	= 4 ; { int; IP6 hops }
 *)
 
 	IPV6_MULTICAST_IF	= 24; { u_int; setget IP6 multicast if  }
 	IPV6_MULTICAST_HOPS	= 25; { int; setget IP6 multicast hops }
 	IPV6_MULTICAST_LOOP	= 26; { u_int; setget IP6 multicast loopback }
+	IPV6_UNICAST_HOPS	= 27; { int; IP6 hops }
+	IPV6_JOIN_GROUP		= 28; { ip6_mreq; join a group membership }
+	IPV6_LEAVE_GROUP	= 29; { ip6_mreq; leave a group membership }
 	IPV6_V6ONLY		= 30; { int; make AF_INET6 sockets v6 only }
+	IPV6_PKTINFO		= 31; { in6_pktinfo; send if, src addr }
+	IPV6_RECVPKTINFO	= 32; { bool; receive in6_pktinfo }
+	IPV6_HOPLIMIT		= 33; { int; send hop limit }
+	IPV6_RECVHOPLIMIT	= 34; { bool; receive hop limit }
+	IPV6_HOPOPTS		= 35; { ip6_hbh; send hop-by-hop option }
+	IPV6_DSTOPTS		= 36; { ip6_dest; send dst option before rthdr }
+	IPV6_RTHDR		= 37; { ip6_rthdr; send routing header }
 
 (* Values not yet defined under Haiku (see netinet/in.h)
-	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
-	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
-
-	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
- 	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
- 	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
- 	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option before rthdr }
- 	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
 *)
 
@@ -377,12 +378,14 @@ Const
   MSG_BCAST     = $0100;              { this message rec'd as broadcast }
   MSG_MCAST     = $0200;              { this message rec'd as multicast }
   MSG_EOF       = $0400;              { data completes connection }
+  MSG_NOSIGNAL  = $0800;              { Do not generate SIGPIPE }
+  MSG_CMSG_CLOEXEC = $1000;           { close-on-exec for file descriptors received with SCM_RIGHTS }
+  MSG_CMSG_CLOFORK = $2000;           { close-on-fork for file descriptors received with SCM_RIGHTS }
 
 (* Values not yet defined under Haiku (see sys/socket.h)
   MSG_NBIO      = $4000;
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
-  MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
 *)
 
   { SOL_SOCKET control message types }

@@ -1969,7 +1969,7 @@ end;
 
 procedure TFPHTTPConnection.SetupSocket;
 begin
-{$if defined(FreeBSD) or defined(Linux)}
+{$if defined(FreeBSD) or defined(Linux) or defined(Haiku)}
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
 {$endif}

@@ -227,7 +227,7 @@ uses
 
 {$undef nosignal}
 
-{$if defined(FreeBSD) or defined(Linux)}
+{$if defined(FreeBSD) or defined(Linux) or defined(Haiku)}
   {$define nosignal}
 {$ifend}
 

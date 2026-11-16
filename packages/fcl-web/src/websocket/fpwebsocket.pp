@@ -840,7 +840,7 @@ begin
   FReadState:=WSReadIdle;
   FReadsCancelled:=0;
   InitCriticalSection(FWriteLock);
-{$if defined(FreeBSD) or defined(Linux)}
+{$if defined(FreeBSD) or defined(Linux) or defined(Haiku)}
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
 {$endif}
