@@ -1,0 +1,31 @@
+object OPFDataModule: TOPFDataModule
+  OldCreateOrder = False
+  Height = 300
+  HorizontalOffset = 618
+  VerticalOffset = 227
+  Width = 400
+  object OPManager1: TOPManager
+    Connections = <    
+      item
+        Name = 'Main'
+        Port = 0
+        IsDefault = True
+      end>
+    Registry = OPRegistry1
+    SQLBuilder = OPSQLBuilder1
+    Left = 80
+    Top = 48
+  end
+  object OPRegistry1: TOPRegistry
+    Left = 200
+    Top = 48
+  end
+  object OPSQLBuilder1: TOPSQLBuilder
+    Registry = OPRegistry1
+    Options = []
+    QuoteChar = '"'
+    SQLDialect = dVanilla
+    Left = 320
+    Top = 48
+  end
+end

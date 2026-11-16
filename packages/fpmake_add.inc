@@ -30,6 +30,7 @@
   add_fcl_mustache(ADirectory+IncludeTrailingPathDelimiter('fcl-mustache'));
   add_fcl_net(ADirectory+IncludeTrailingPathDelimiter('fcl-net'));
   add_fcl_openapi(ADirectory+IncludeTrailingPathDelimiter('fcl-openapi'));
+  add_fcl_opf(ADirectory+IncludeTrailingPathDelimiter('fcl-opf'));
   add_fcl_passrc(ADirectory+IncludeTrailingPathDelimiter('fcl-passrc'));
   add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));
   add_fcl_process(ADirectory+IncludeTrailingPathDelimiter('fcl-process'));

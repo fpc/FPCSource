@@ -1,0 +1,46 @@
+; databases.ini — Integration test database configuration
+;
+; Copy this file to databases.ini and uncomment/edit the sections
+; for the database backends you want to test.
+;
+; Resolution order per parameter:
+;   1. This INI file (if present and key is non-empty)
+;   2. Environment variable (see comments per section)
+;   3. Empty string (backend skipped if Database is empty)
+;
+; A backend whose Database key is empty (or absent) will be skipped.
+
+[Logging]
+; Enable SQLDB logging to file (1=on, 0=off)
+;Enabled=1
+; Log file path (default: sqldb.log next to test executable)
+;FileName=sqldb.log
+
+[SQLite]
+; Directory for temporary test database files.
+; If empty, the system temp directory is used.
+; Env var: OPF_SQLITE_DB
+;Database=/tmp
+
+[PostgreSQL]
+; Env vars: OPF_PG_HOST, OPF_PG_PORT, OPF_PG_DB, OPF_PG_USER, OPF_PG_PASS
+;Host=localhost
+;Port=5432
+;Database=opftest
+;User=fpc
+;Password=
+
+[Firebird]
+; Env vars: OPF_FB_HOST, OPF_FB_DB, OPF_FB_USER, OPF_FB_PASS
+;Host=localhost
+;Database=/path/to/test.fdb
+;User=SYSDBA
+;Password=masterkey
+
+[MySQL]
+; Env vars: OPF_MYSQL_HOST, OPF_MYSQL_PORT, OPF_MYSQL_DB, OPF_MYSQL_USER, OPF_MYSQL_PASS
+;Host=localhost
+;Port=3306
+;Database=opf_test
+;User=opf_test
+;Password=

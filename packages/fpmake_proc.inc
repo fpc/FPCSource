@@ -178,6 +178,12 @@ begin
 {$include fcl-openapi/fpmake.pp}
 end;
 
+procedure add_fcl_opf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-opf/fpmake.pp}
+end;
+
 procedure add_fcl_passrc(const ADirectory: string);
 begin
   with Installer do

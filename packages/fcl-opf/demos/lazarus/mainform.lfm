@@ -1,0 +1,30 @@
+object MainForm: TMainForm
+  Left = 300
+  Height = 480
+  Top = 200
+  Width = 640
+  Caption = 'fcl-opf Design-Time Demo'
+  Position = poScreenCenter
+  LCLVersion = '4.0.0.0'
+  object MemoOutput: TMemo
+    Left = 8
+    Height = 400
+    Top = 8
+    Width = 624
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Font.Name = 'Monospace'
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+  end
+  object BtnRunDemo: TButton
+    Left = 264
+    Height = 32
+    Top = 416
+    Width = 112
+    Anchors = [akBottom]
+    Caption = 'Run Demo'
+    OnClick = BtnRunDemoClick
+    TabOrder = 1
+  end
+end

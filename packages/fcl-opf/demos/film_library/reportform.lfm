@@ -1,0 +1,56 @@
+object ReportForm: TReportForm
+  Left = 350
+  Height = 450
+  Top = 150
+  Width = 650
+  BorderStyle = bsDialog
+  Caption = 'Report'
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '4.0.0.0'
+  object ReportGrid: TStringGrid
+    Left = 0
+    Height = 402
+    Top = 0
+    Width = 650
+    Align = alClient
+    ColCount = 3
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect, goRowHighlight]
+    RowCount = 1
+    TabOrder = 0
+    Columns = <
+      item
+        Title.Caption = 'Name'
+        Width = 180
+      end
+      item
+        Title.Caption = 'Film Count'
+        Width = 80
+      end
+      item
+        Title.Caption = 'Film Titles'
+        Width = 360
+      end>
+  end
+  object ButtonPanel: TPanel
+    Left = 0
+    Height = 48
+    Top = 402
+    Width = 650
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 650
+    TabOrder = 1
+    object BtnClose: TButton
+      Left = 275
+      Height = 32
+      Top = 8
+      Width = 100
+      Caption = 'Close'
+      ModalResult = 2
+      TabOrder = 0
+    end
+  end
+end

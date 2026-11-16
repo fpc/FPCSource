@@ -1,0 +1,205 @@
+object MainForm: TMainForm
+  Left = 300
+  Height = 560
+  Top = 150
+  Width = 800
+  Caption = 'Film Library — fcl-opf Demo'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '4.0.0.0'
+  object SearchPanel: TPanel
+    Left = 0
+    Height = 40
+    Top = 0
+    Width = 800
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 40
+    ClientWidth = 800
+    TabOrder = 0
+    object LblSearch: TLabel
+      Left = 8
+      Height = 15
+      Top = 12
+      Width = 40
+      Caption = 'Search:'
+    end
+    object EditSearch: TEdit
+      Left = 56
+      Height = 23
+      Top = 8
+      Width = 250
+      TabOrder = 0
+    end
+    object BtnSearch: TButton
+      Left = 314
+      Height = 28
+      Top = 6
+      Width = 80
+      Caption = 'Search'
+      OnClick = BtnSearchClick
+      TabOrder = 1
+    end
+    object BtnShowAll: TButton
+      Left = 402
+      Height = 28
+      Top = 6
+      Width = 80
+      Caption = 'Show All'
+      OnClick = BtnShowAllClick
+      TabOrder = 2
+    end
+  end
+  object FilmGrid: TStringGrid
+    Left = 0
+    Height = 372
+    Top = 40
+    Width = 800
+    Align = alClient
+    ColCount = 6
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect, goRowHighlight]
+    RowCount = 1
+    TabOrder = 1
+    Columns = <
+      item
+        Title.Caption = 'ID'
+        Width = 50
+      end
+      item
+        Title.Caption = 'Title'
+        Width = 250
+      end
+      item
+        Title.Caption = 'Year'
+        Width = 60
+      end
+      item
+        Title.Caption = 'IMDB ID'
+        Width = 120
+      end
+      item
+        Title.Caption = 'Rating'
+        Width = 60
+      end
+      item
+        Title.Caption = 'Media Format'
+        Width = 120
+      end>
+  end
+  object ButtonPanel: TPanel
+    Left = 0
+    Height = 48
+    Top = 412
+    Width = 800
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 800
+    TabOrder = 2
+    object BtnAdd: TButton
+      Left = 8
+      Height = 28
+      Top = 10
+      Width = 75
+      Caption = 'Add'
+      OnClick = BtnAddClick
+      TabOrder = 0
+    end
+    object BtnEdit: TButton
+      Left = 91
+      Height = 28
+      Top = 10
+      Width = 75
+      Caption = 'Edit'
+      OnClick = BtnEditClick
+      TabOrder = 1
+    end
+    object BtnDelete: TButton
+      Left = 174
+      Height = 28
+      Top = 10
+      Width = 75
+      Caption = 'Delete'
+      OnClick = BtnDeleteClick
+      TabOrder = 2
+    end
+    object BtnBulkImport: TButton
+      Left = 257
+      Height = 28
+      Top = 10
+      Width = 90
+      Caption = 'Bulk Import'
+      OnClick = BtnBulkImportClick
+      TabOrder = 3
+    end
+    object BtnManageDirectors: TButton
+      Left = 360
+      Height = 28
+      Top = 10
+      Width = 90
+      Caption = 'Directors'
+      OnClick = BtnManageDirectorsClick
+      TabOrder = 4
+    end
+    object BtnManageActors: TButton
+      Left = 458
+      Height = 28
+      Top = 10
+      Width = 75
+      Caption = 'Actors'
+      OnClick = BtnManageActorsClick
+      TabOrder = 5
+    end
+    object BtnManageGenres: TButton
+      Left = 541
+      Height = 28
+      Top = 10
+      Width = 75
+      Caption = 'Genres'
+      OnClick = BtnManageGenresClick
+      TabOrder = 6
+    end
+    object BtnFilmsPerDirector: TButton
+      Left = 624
+      Height = 28
+      Top = 10
+      Width = 80
+      Caption = 'Films/Dir'
+      OnClick = BtnFilmsPerDirectorClick
+      TabOrder = 7
+    end
+    object BtnFilmsPerActor: TButton
+      Left = 712
+      Height = 28
+      Top = 10
+      Width = 80
+      Caption = 'Films/Act'
+      OnClick = BtnFilmsPerActorClick
+      TabOrder = 8
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 537
+    Width = 800
+    Panels = <
+      item
+        Width = 120
+      end
+      item
+        Width = 120
+      end
+      item
+        Width = 120
+      end
+      item
+        Width = 120
+      end
+      item
+        Width = 120
+      end>
+  end
+end
