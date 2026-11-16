@@ -45,6 +45,7 @@ type
     procedure TestString;
     procedure TestUnlVarChar;
     procedure TestFixedCharUTF8; // bug 39536
+    procedure TestNationalCharUTF8; // bug 16529
     procedure TestNumericScale8Param; // bug 39409
     procedure TestLargeBCDParam;
     procedure TestBlob;
@@ -576,6 +577,53 @@ begin
       CheckValue('CHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[1]);
       CheckValue('VARCHAR(2) with two 2-byte UTF-8 characters',lBB,Fields[2]);
       Close;
+      end;
+  finally
+    DefaultSystemCodePage:=lSavedCodePage;
+  end;
+end;
+
+procedure TTestFieldTypes.TestNationalCharUTF8;
+
+var
+  lKanji, lCyr, lN10, lN5, lN4, lV10: UTF8String;
+  lSavedCodePage: TSystemCodePage;
+
+  procedure CheckField(const aMsg: String; aField: TField; aSize: Integer; const aExpected: UTF8String);
+  var
+    lValue: UTF8String;
+  begin
+    AssertEquals(aMsg+': field size in characters',aSize,aField.Size);
+    lValue:=aField.AsUTF8String;
+    AssertTrue(Format('%s: full value, got "%s"',[aMsg,lValue]),lValue=aExpected);
+  end;
+
+begin
+  if SQLServerType<>ssOracle then
+    Ignore(STestNotApplicable);
+  if not SameText(TSQLDBConnector(DBConnector).Connection.CharSet,'UTF8') then
+    Ignore('This test needs a connection with character set UTF8');
+  lKanji:=UTF8Encode(UnicodeString(WideChar($6F22))+UnicodeString(WideChar($5B57)));
+  lCyr:=UTF8Encode(UnicodeString(WideChar($0411))+UnicodeString(WideChar($0416)));
+  lN10:=lKanji+lKanji+lKanji+lKanji+lKanji;
+  lN4:=lKanji+lKanji;
+  lN5:=lN4+UTF8Encode(UnicodeString(WideChar($6F22)));
+  lV10:=lCyr+lCyr+lCyr+lCyr+lCyr;
+  lSavedCodePage:=DefaultSystemCodePage;
+  DefaultSystemCodePage:=CP_UTF8;
+  try
+    with TSQLDBConnector(DBConnector) do
+      begin
+      Connection.ExecuteDirect('create table FPDEV2 (ID INT NOT NULL, N1 NVARCHAR2(10), N2 NCHAR(5), V1 VARCHAR2(10 CHAR), primary key (ID))');
+      CommitDDL;
+      Connection.ExecuteDirect('insert into FPDEV2 values (1, N'''+lN10+''', N'''+lN5+''', '''+lV10+''')');
+      Query.SQL.Text:='select N1, N2, V1, N'''+lN4+''' L1 from FPDEV2';
+      Query.Open;
+      CheckField('NVARCHAR2(10) with 10 three-byte UTF-8 characters',Query.Fields[0],10,lN10);
+      CheckField('NCHAR(5) with 5 three-byte UTF-8 characters',Query.Fields[1],5,lN5);
+      CheckField('VARCHAR2(10 CHAR) with 10 two-byte UTF-8 characters',Query.Fields[2],10,lV10);
+      CheckField('National character literal with 4 three-byte UTF-8 characters',Query.Fields[3],4,lN4);
+      Query.Close;
       end;
   finally
     DefaultSystemCodePage:=lSavedCodePage;

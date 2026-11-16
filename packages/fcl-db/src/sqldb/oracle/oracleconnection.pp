@@ -80,6 +80,7 @@ type
     FOciServer      : POCIServer;
     FOciUserSession : POCISession;
     FUserMem        : pointer;
+    FMaxBytesPerChar: sb4;
     procedure HandleError;
     procedure GetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
     procedure SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
@@ -430,6 +431,10 @@ begin
     // Create error handle
     if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
       DatabaseError(SErrHandleAllocFailed,self);
+    // Maximum number of bytes per character in the client character set
+    if (OCINlsNumericInfoGet(FOciEnvironment,FOciError,@FMaxBytesPerChar,OCI_NLS_CHARSET_MAXBYTESZ) <> OCI_SUCCESS)
+       or (FMaxBytesPerChar < 1) then
+      FMaxBytesPerChar := 4;
     // Create server handle
     if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
       DatabaseError(SErrHandleAllocFailed,self);
@@ -906,6 +911,8 @@ var Param      : POCIParam;
     OFieldType   : ub2;
     OFieldName   : PAnsiChar;
     OFieldSize   : ub4;
+    OCharSize    : ub2;
+    lCPCharSize  : Integer;
     OFNameLength : ub4;
     NumCols      : ub4;
     FOciDefine   : POCIDefine;
@@ -916,6 +923,10 @@ var Param      : POCIParam;
 
 begin
   Param := nil;
+  if CodePage = CP_UTF8 then
+    lCPCharSize := 4
+  else
+    lCPCharSize := 1;
   with cursor as TOracleCursor do
     begin
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@numcols,nil,OCI_ATTR_PARAM_COUNT,FOciError) = OCI_ERROR then
@@ -1001,7 +1012,7 @@ begin
                                 end;
         SQLT_LNG              : begin
                                 FieldType := ftString;
-                                FieldSize := MaxSmallint; // OFieldSize is zero for LONG data type
+                                FieldSize := MaxSmallint div lCPCharSize; // OFieldSize is zero for LONG data type
                                 OFieldSize:= MaxSmallint+1;
                                 OFieldType:=SQLT_STR;
                                 end;
@@ -1009,8 +1020,17 @@ begin
         OCI_TYPECODE_VARCHAR,
         OCI_TYPECODE_VARCHAR2 : begin
                                 FieldType := ftString;
-                                FieldSize := OFieldSize;
-                                inc(OFieldSize);
+                                OCharSize := 0;
+                                if OCIAttrGet(Param,OCI_DTYPE_PARAM,@OCharSize,nil,OCI_ATTR_CHAR_SIZE,FOciError) = OCI_ERROR then
+                                  HandleError;
+                                if OCharSize = 0 then
+                                  OCharSize := OFieldSize;
+                                // Size in characters if the field code page holds every client character, else in bytes
+                                if lCPCharSize >= FMaxBytesPerChar then
+                                  FieldSize := OCharSize
+                                else
+                                  FieldSize := OCharSize * FMaxBytesPerChar;
+                                OFieldSize := OCharSize * FMaxBytesPerChar + 1;
                                 OFieldType:=SQLT_STR;
                                 end;
         OCI_TYPECODE_DATE     : FieldType := ftDate;
@@ -1066,7 +1086,10 @@ begin
       setlength(Fieldname,OFNameLength);
       move(OFieldName^,Fieldname[1],OFNameLength);
 
-      FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
+      if FieldType in [ftString, ftMemo] then
+        AddFieldDef(FieldDefs, counter, FieldName, FieldType, FieldSize, -1, False, False, False)
+      else
+        FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
       end;
   end;
 end;
@@ -1105,7 +1128,7 @@ begin
     Result := True;
     case FieldDef.DataType of
       ftString :
-        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,FieldDef.Size);
+        StrLCopy(PAnsiChar(buffer),PAnsiChar(fieldbuffers[FieldDef.FieldNo-1].buffer),FieldDef.Size*FieldDef.CharSize);
       ftBCD :
         begin
         b := fieldbuffers[FieldDef.FieldNo-1].buffer;
