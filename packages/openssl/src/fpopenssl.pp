@@ -480,18 +480,34 @@ Function TSSLContext.UsePrivateKey(Data: TSSLData): cint;
 Var
   FN : String;
   l : integer;
+  lKey : PEVP_PKEY;
+  lData : PByte;
 
 begin
   Result:=-1;
   L:=Length(Data.Value);
   If (l<>0) then
-    Result:=UsePrivateKeyASN1(EVP_PKEY_RSA,Data.Value,L)
+    begin
+    lData:=PByte(Data.Value);
+    lKey:=d2i_AutoPrivateKey(Nil,@lData,L);
+    if lKey=Nil then
+      Exit(0);
+    try
+      Result:=UsePrivateKey(lKey);
+    finally
+      EvpPkeyFree(lKey);
+    end;
+    end
   else if (Data.FileName<>'') then
     begin
     FN:=Data.FileName;
     Result:=UsePrivateKeyFile(FN,SSL_FILETYPE_PEM);
     if (Result<>1) then
+      begin
       Result:=UsePrivateKeyFile(FN,SSL_FILETYPE_ASN1);
+      if Result=1 then
+        ErrClearError;
+      end;
     end;
 end;
 

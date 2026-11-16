@@ -299,20 +299,30 @@ end;
 
 Function TOpenSSLSocketHandler.FetchErrorInfo : Boolean;
 
+const
+  MaxQueuedErrors = 16;
+
 var
   S : AnsiString;
+  lError, lCount : Integer;
 
 begin
   FSSLLastErrorString:='';
   FSSLLastError:=ErrGetError;
-  ErrClearError;
   Result:=(FSSLLastError<>0);
-  if Result then
+  lError:=FSSLLastError;
+  lCount:=0;
+  while (lError<>0) and (lCount<MaxQueuedErrors) do
     begin
     S:=StringOfChar(#0,256);
-    ErrErrorString(FSSLLastError,S,256);
-    FSSLLastErrorString:=s;
+    ErrErrorString(lError,S,256);
+    if FSSLLastErrorString<>'' then
+      FSSLLastErrorString:=FSSLLastErrorString+'; ';
+    FSSLLastErrorString:=FSSLLastErrorString+S;
+    Inc(lCount);
+    lError:=ErrGetError;
     end;
+  ErrClearError;
 end;
 
 function TOpenSSLSocketHandler.CheckSSL(SSLResult : Integer) : Boolean;
