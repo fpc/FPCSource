@@ -42,6 +42,7 @@ type
     procedure TestComplexCssRule;
     procedure TestCssMediaQuery;
     procedure TestCssUnits;
+    procedure TestStrayClosingBracket;
   end;
 
 implementation
@@ -378,6 +379,23 @@ begin
   AssertEquals('Should have 1 token', 1, Length(tokens));
   AssertEquals('Token should be fr value', '1.2fr', tokens[0].Text);
   AssertEquals('Token should be number', Ord(shNumbers), Ord(tokens[0].Kind));
+end;
+
+procedure TTestCssHighlighter.TestStrayClosingBracket;
+var
+  lTokens: TSyntaxTokenArray;
+  lText: string;
+  lToken: TSyntaxToken;
+begin
+  lTokens := DoCssHighlighting(']');
+  AssertEquals('Lone ] gives one token', 1, Length(lTokens));
+  AssertEquals('Lone ] token text', ']', lTokens[0].Text);
+
+  lTokens := DoCssHighlighting('a ] { color: red; }');
+  lText := '';
+  for lToken in lTokens do
+    lText := lText + lToken.Text;
+  AssertEquals('Tokens reproduce the input with a stray ]', 'a ] { color: red; }', lText);
 end;
 
 initialization

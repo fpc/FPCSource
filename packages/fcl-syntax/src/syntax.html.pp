@@ -165,7 +165,7 @@ end;
 procedure THtmlSyntaxHighlighter.ProcessTagOpen(var endPos: Integer);
 
 var
-  startPos, nameStart, nameEnd: Integer;
+  startPos, nameStart, nameEnd, attrStart: Integer;
   tagName, attrName: string;
   quoteChar: Char;
 
@@ -196,6 +196,7 @@ begin
   // Process attributes
   while (FPos <= FSourceLen) and (FSource[FPos] <> '>') do
     begin
+    attrStart := FPos;
     // Skip whitespace
     while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
       begin
@@ -272,6 +273,12 @@ begin
           AddToken(Copy(FSource, startPos, FPos - startPos), shStrings);
       end;
       end;
+    // A character that starts no attribute, such as < or ", is a token of its own
+    if FPos = attrStart then
+      begin
+      AddToken(FSource[FPos], shDefault);
+      Inc(FPos);
+      end;
     end;
 
   // Process closing >
@@ -344,9 +351,9 @@ var
 begin
   startPos := FPos;
 
-  while (FPos + 2 <= FSourceLen) do
+  while (FPos <= FSourceLen) do
     begin
-    if (FSource[FPos] = '-') and (FSource[FPos + 1] = '-') and (FSource[FPos + 2] = '>') then
+    if (FPos + 2 <= FSourceLen) and (FSource[FPos] = '-') and (FSource[FPos + 1] = '-') and (FSource[FPos + 2] = '>') then
       begin
       Inc(FPos, 3);
       FState := hsText;
@@ -385,9 +392,9 @@ var
 begin
   startPos := FPos;
 
-  while (FPos + 2 <= FSourceLen) do
+  while (FPos <= FSourceLen) do
     begin
-    if (FSource[FPos] = ']') and (FSource[FPos + 1] = ']') and (FSource[FPos + 2] = '>') then
+    if (FPos + 2 <= FSourceLen) and (FSource[FPos] = ']') and (FSource[FPos + 1] = ']') and (FSource[FPos + 2] = '>') then
       begin
       Inc(FPos, 3);
       FState := hsText;

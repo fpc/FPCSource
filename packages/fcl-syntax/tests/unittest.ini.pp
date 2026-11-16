@@ -29,6 +29,7 @@ type
     procedure TearDown; override;
   private
     function DoIniHighlighting(const source: string): TSyntaxTokenArray;
+    function JoinTokens(const aTokens: TSyntaxTokenArray): string;
   published
     procedure TestIniSections;
     procedure TestIniKeys;
@@ -41,6 +42,7 @@ type
     procedure TestSemicolonComment;
     procedure TestHashComment;
     procedure TestKeyWithSpaces;
+    procedure TestQuoteAtLineStart;
   end;
 
 implementation
@@ -368,6 +370,30 @@ begin
     end;
   end;
   AssertTrue('Should handle keys with spaces', foundKey);
+end;
+
+function TTestIniHighlighter.JoinTokens(const aTokens: TSyntaxTokenArray): string;
+var
+  lToken: TSyntaxToken;
+begin
+  Result := '';
+  for lToken in aTokens do
+    Result := Result + lToken.Text;
+end;
+
+procedure TTestIniHighlighter.TestQuoteAtLineStart;
+var
+  lTokens: TSyntaxTokenArray;
+begin
+  lTokens := DoIniHighlighting('key'#10'"value"');
+  AssertEquals('Tokens reproduce the input after a newline', 'key'#10'"value"', JoinTokens(lTokens));
+  AssertEquals('Quoted text after a newline', '"value"', lTokens[High(lTokens)].Text);
+  AssertEquals('Quoted text after a newline is a string', Ord(shStrings), Ord(lTokens[High(lTokens)].Kind));
+
+  lTokens := DoIniHighlighting('"value" x');
+  AssertEquals('Tokens reproduce the input with a leading quote', '"value" x', JoinTokens(lTokens));
+  AssertEquals('Quoted text at the start', '"value"', lTokens[0].Text);
+  AssertEquals('Quoted text at the start is a string', Ord(shStrings), Ord(lTokens[0].Kind));
 end;
 
 initialization

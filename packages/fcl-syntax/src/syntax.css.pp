@@ -191,6 +191,9 @@ begin
       Inc(FPos);
     end;
 
+  // A character that starts no selector, such as a stray ], is a token of its own
+  if FPos = startPos then
+    Inc(FPos);
   endPos := FPos - 1;
   AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
 end;

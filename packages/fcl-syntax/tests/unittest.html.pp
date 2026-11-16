@@ -30,6 +30,7 @@ type
     procedure TearDown; override;
   private
     function DoHtmlHighlighting(const source: string): TSyntaxTokenArray;
+    function JoinTokens(const aTokens: TSyntaxTokenArray): string;
   published
     procedure TestHtmlBasicTags;
     procedure TestHtmlAttributes;
@@ -43,6 +44,9 @@ type
     procedure TestComplexHtmlDocument;
     procedure TestHtmlCDATA;
     procedure TestCategorySystem;
+    procedure TestStrayCharInTag;
+    procedure TestUnterminatedComment;
+    procedure TestUnterminatedCDATA;
   end;
 
 implementation
@@ -356,6 +360,49 @@ begin
       jsCategoryFound := True;
 
   AssertTrue('Should have category tokens for JavaScript', jsCategoryFound);
+end;
+
+function TTestHtmlHighlighter.JoinTokens(const aTokens: TSyntaxTokenArray): string;
+var
+  lToken: TSyntaxToken;
+begin
+  Result := '';
+  for lToken in aTokens do
+    Result := Result + lToken.Text;
+end;
+
+procedure TTestHtmlHighlighter.TestStrayCharInTag;
+var
+  lTokens: TSyntaxTokenArray;
+begin
+  lTokens := DoHtmlHighlighting('<a <b>');
+  AssertEquals('Tokens reproduce a tag with a stray <', '<a <b>', JoinTokens(lTokens));
+  AssertEquals('Stray < token count', 6, Length(lTokens));
+  AssertEquals('Stray < text', '<', lTokens[3].Text);
+  AssertEquals('Stray < is default text', Ord(shDefault), Ord(lTokens[3].Kind));
+
+  lTokens := DoHtmlHighlighting('<p "x" #y>text');
+  AssertEquals('Tokens reproduce a tag with a stray quote and #', '<p "x" #y>text', JoinTokens(lTokens));
+end;
+
+procedure TTestHtmlHighlighter.TestUnterminatedComment;
+var
+  lTokens: TSyntaxTokenArray;
+begin
+  lTokens := DoHtmlHighlighting('<!-- ab');
+  AssertEquals('Tokens reproduce an unterminated comment', '<!-- ab', JoinTokens(lTokens));
+  AssertEquals('Unterminated comment text', ' ab', lTokens[High(lTokens)].Text);
+  AssertEquals('Unterminated comment is a comment', Ord(shComment), Ord(lTokens[High(lTokens)].Kind));
+end;
+
+procedure TTestHtmlHighlighter.TestUnterminatedCDATA;
+var
+  lTokens: TSyntaxTokenArray;
+begin
+  lTokens := DoHtmlHighlighting('<![CDATA[ ab');
+  AssertEquals('Tokens reproduce an unterminated CDATA section', '<![CDATA[ ab', JoinTokens(lTokens));
+  AssertEquals('Unterminated CDATA text', ' ab', lTokens[High(lTokens)].Text);
+  AssertEquals('Unterminated CDATA is a raw string', Ord(shRawString), Ord(lTokens[High(lTokens)].Kind));
 end;
 
 initialization

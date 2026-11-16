@@ -233,9 +233,7 @@ begin
       end;
     '"', '''':
       begin
-      FPos := FPos - 1; // Back up one to include quote in ProcessValue
       ProcessValue(endPos);
-      Inc(FPos); // Move past the value
       atLineStart := False;
       end;
     #10, #13:
