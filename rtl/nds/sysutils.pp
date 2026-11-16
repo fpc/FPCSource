@@ -112,6 +112,9 @@ end;
 
 function FileCreate(const FileName: RawByteString; ShareMode : Integer; Rights: integer): LongInt;
 begin
+  // No exclusive create in the OS calls: refuse an existing file, not atomic
+  if ((ShareMode and fmExclusive)<>0) and FileExists(FileName) then
+    Exit(-1);
   result := FileCreate(FileName, Rights);
 end;
 

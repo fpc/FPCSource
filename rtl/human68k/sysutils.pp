@@ -118,6 +118,9 @@ end;
 
 function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): THandle;
 begin
+  // No exclusive create in the OS calls: refuse an existing file, not atomic
+  if ((ShareMode and fmExclusive)<>0) and FileExists(FileName) then
+    Exit(feInvalidHandle);
   { FIX ME: we map this to FileCreate(), and ignore rights and sharemode! }
   FileCreate:=FileCreate(FileName);
 end;

@@ -193,6 +193,8 @@ Const
   fmOpenRead       = $0000;
   fmOpenWrite      = $0001;
   fmOpenReadWrite  = $0002;
+  // With FileCreate: create the file only if it does not exist yet, as one atomic operation; fails otherwise
+  fmExclusive      = $0004;
   { Share modes}
   fmShareCompat    = $0000;
   fmShareExclusive = $0010;

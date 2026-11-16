@@ -218,7 +218,8 @@ Begin
 end;
 
 
-Function FileCreate (Const FileName : RawByteString) : THandle;
+// Creates FileName with the open flags aOFlags
+Function WasiFileCreate (Const FileName : RawByteString; aOFlags : __wasi_oflags_t) : THandle;
 Const
   fs_rights_base: __wasi_rights_t =
     __WASI_RIGHTS_FD_READ or
@@ -250,7 +251,7 @@ Begin
                           0,
                           PAnsiChar(pr),
                           length(pr),
-                          __WASI_OFLAGS_CREAT or __WASI_OFLAGS_TRUNC,
+                          aOFlags,
                           fs_rights_base,
                           fs_rights_base,
                           0,
@@ -264,9 +265,18 @@ Begin
 end;
 
 
+Function FileCreate (Const FileName : RawByteString) : THandle;
+begin
+  Result:=WasiFileCreate(FileName,__WASI_OFLAGS_CREAT or __WASI_OFLAGS_TRUNC);
+end;
+
+
 Function FileCreate (Const FileName : RawByteString; ShareMode:integer; Rights : integer) : THandle;
 begin
-  FileCreate:=FileCreate(FileName);
+  if (ShareMode and fmExclusive)<>0 then
+    FileCreate:=WasiFileCreate(FileName,__WASI_OFLAGS_CREAT or __WASI_OFLAGS_EXCL)
+  else
+    FileCreate:=FileCreate(FileName);
 end;
 
 

@@ -130,13 +130,20 @@ var
   objattr: OBJECT_ATTRIBUTES;
   iostatus: IO_STATUS_BLOCK;
   res: NTSTATUS;
+  disposition: ULONG;
 begin
+  if (ShareMode and fmExclusive)<>0 then
+    disposition:=FILE_CREATE
+  else
+    disposition:=FILE_OVERWRITE_IF;
   UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
-  NtCreateFile(@Result, GENERIC_READ or GENERIC_WRITE or NT_SYNCHRONIZE,
+  res:=NtCreateFile(@Result, GENERIC_READ or GENERIC_WRITE or NT_SYNCHRONIZE,
     @objattr, @iostatus, Nil, FILE_ATTRIBUTE_NORMAL,
-    ShareModeFlags[(ShareMode and $F0) shr 4], FILE_OVERWRITE_IF,
+    ShareModeFlags[(ShareMode and $F0) shr 4], disposition,
     FILE_NON_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT, Nil, 0);
+  if not NT_SUCCESS(res) then
+    Result:=feInvalidHandle;
   FreeNtStr(ntstr);
 end;
 

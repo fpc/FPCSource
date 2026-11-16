@@ -533,7 +533,18 @@ Function FileCreate (Const FileName : RawByteString; ShareMode : Longint; Rights
 
 Var
   fd: Longint;
+  SystemFileName: RawByteString;
 begin
+  if (ShareMode and fmExclusive)<>0 then
+    begin
+    SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+    repeat
+      Result:=fpOpen(pointer(SystemFileName),O_RdWr or O_Creat or O_Excl,Rights);
+    until (Result<>-1) or (fpgeterrno<>ESysEINTR);
+    if (Result>=0) and ((ShareMode and fmShareNoLocking)=0) then
+      Result:=DoFileLocking(Result,ShareMode);
+    Exit;
+    end;
   { if the file already exists and we can't open it using the requested
     ShareMode (e.g. exclusive sharing), exit immediately so that we don't
     first empty the file and then check whether we can lock this new file

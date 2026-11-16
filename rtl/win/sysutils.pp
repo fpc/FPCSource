@@ -330,9 +330,15 @@ begin
 end;
 
 Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
+var
+  Disposition : DWORD;
 begin
+  if (ShareMode and fmExclusive)<>0 then
+    Disposition:=CREATE_NEW
+  else
+    Disposition:=CREATE_ALWAYS;
   Result := CreateFileW(PwideChar(FileName), GENERIC_READ or GENERIC_WRITE,
-                       ShareModeFlags(ShareMode), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+                       ShareModeFlags(ShareMode), nil, Disposition, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;

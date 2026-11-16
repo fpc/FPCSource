@@ -1369,7 +1369,7 @@ begin
     FHAndle:=FileOpen(AFileName,Mode);
 
   If (THandle(FHandle)=feInvalidHandle) then
-    If Mode=fmcreate then
+    If (Mode and fmCreate) > 0 then
     begin
       {$if declared(GetLastOSError)}
       raise EFCreateError.createfmt(SFCreateErrorEx,[AFileName, SysErrorMessage(GetLastOSError)])

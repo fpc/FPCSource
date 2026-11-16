@@ -125,14 +125,19 @@ function FileCreate (const FileName: RawByteString; ShareMode: integer;
 var
   SystemFileName: RawByteString;
   Handle: THandle;
-  RC, Action: cardinal;
+  RC, Action, OpenFlags: cardinal;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  (* $10: create if new, fail if it exists; $12: create if new, replace if it exists *)
+  if (ShareMode and fmExclusive) <> 0 then
+   OpenFlags := $10
+  else
+   OpenFlags := $12;
   ShareMode := ShareMode and 112;
   (* Sharing to DenyAll as default in case of values not allowed by OS/2. *)
   if (ShareMode = 0) or (ShareMode > 64) then
    ShareMode := doDenyRW;
-  RC := Sys_DosOpenL (PAnsiChar (SystemFileName), Handle, Action, 0, 0, $12,
+  RC := Sys_DosOpenL (PAnsiChar (SystemFileName), Handle, Action, 0, 0, OpenFlags,
                                     faCreate or ofReadWrite or ShareMode, nil);
   if RC = 0 then
    FileCreate := Handle

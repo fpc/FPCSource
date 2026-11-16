@@ -551,6 +551,9 @@ function FileCreate (const FileName: RawByteString; ShareMode: integer; Rights: 
 var
   SystemFileName: RawByteString;
 begin
+  // No exclusive create in the OS calls: refuse an existing file, not atomic
+  if ((ShareMode and fmExclusive)<>0) and FileExists(FileName) then
+    Exit(-1);
   SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
   FileCreate := FileCreate(pointer(SystemFileName),ShareMode,Rights);
 end;

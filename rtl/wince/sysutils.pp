@@ -200,7 +200,11 @@ end;
 
 Function FileCreate (Const FileName : UnicodeString; ShareMode:longint; Rights:longint) : THandle;
 begin
-  FileCreate:=FileCreate(FileName);
+  if (ShareMode and fmExclusive)<>0 then
+    Result := CreateFile(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
+                         0, nil, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0)
+  else
+    FileCreate:=FileCreate(FileName);
 end;
 
 

@@ -142,6 +142,9 @@ end;
 Function FileCreate (Const FileName : RawByteString; ShareMode: Longint; Rights:longint) : THandle;
 
 begin
+  // No exclusive create in the OS calls: refuse an existing file, not atomic
+  if ((ShareMode and fmExclusive)<>0) and FileExists(FileName) then
+    Exit(feInvalidHandle);
   FileCreate:=FileCreate (FileName);
 end;
 
