@@ -51,11 +51,14 @@ Const
    AF_SYSTEM = 32;
    AF_NETBIOS = 33;
    AF_PPP = 34;
-   AF_ATM = 30;
    pseudo_AF_HDRCMPLT = 35;
    AF_RESERVED_36 = 36;
-   AF_NETGRAPH = 32;
-   AF_MAX = 37;
+   AF_IEEE80211 = 37;
+   AF_UTUN = 38;
+   AF_VSOCK = 40;
+   AF_MAX = 41;
+   AF_ATM = 30 deprecated 'Not defined on Darwin';
+   AF_NETGRAPH = 32 deprecated 'Not defined on Darwin';
 
 
   {
@@ -103,12 +106,15 @@ Const
      PF_NETBIOS = AF_NETBIOS;
      PF_PPP = AF_PPP;
      PF_RESERVED_36 = AF_RESERVED_36;
-     PF_ATM = AF_ATM;
-     PF_NETGRAPH = AF_NETGRAPH;
+     PF_IEEE80211 = AF_IEEE80211;
+     PF_UTUN = AF_UTUN;
+     PF_VSOCK = AF_VSOCK;
      PF_MAX = AF_MAX;
+     PF_ATM = 30 deprecated 'Not defined on Darwin';
+     PF_NETGRAPH = 32 deprecated 'Not defined on Darwin';
 
 
-  SOCK_PACKET     = 10;
+  SOCK_PACKET     = 10 deprecated 'Not defined on Darwin';
 
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN     = 128;
@@ -125,7 +131,7 @@ Const
         SO_OOBINLINE     =$0100;        { leave received OOB data in line }
         SO_REUSEPORT     =$0200;        { allow local address & port reuse }
         SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
-        SO_ACCEPTFILTER  =$1000;        { there is an accept filter }
+        SO_ACCEPTFILTER  =$1000 deprecated 'Not defined on Darwin';
         SO_DONTTRUNC     =$2000;        { APPLE: Retain unread data (ATOMIC proto) }
         SO_WANTMORE      =$4000;        { APPLE: Want OOB in MSG_FLAG on receive }
 
@@ -321,8 +327,9 @@ Const
   MSG_SEND       = $1000;              { Send the packet in so_temp }
   MSG_HAVEMORE   = $2000;              { Data ready to be read }
   MSG_RCVMORE    = $4000;              { Data remains in current pkt }
-  MSG_COMPAT     = $8000;              { used in sendit() }
+  MSG_COMPAT     = $8000 deprecated 'Not defined on Darwin';
   MSG_NEEDSA     = $10000;             { Fail receive if socket address cannot be allocated }
+  MSG_NOSIGNAL   = $80000;             { Do not generate SIGPIPE on EOF }
 
      TCP_NODELAY = $01;
   { set maximum segment size  }
