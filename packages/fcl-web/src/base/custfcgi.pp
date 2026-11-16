@@ -461,6 +461,20 @@ begin
     FLog(EventType,Msg);
 end;
 
+// True when aErrorCode of a socket write means that the client closed or reset the connection
+function IsConnectionClosedError(aErrorCode : Integer) : Boolean;
+
+begin
+{$if defined(unix)}
+  Result:=(aErrorCode=ESysEPIPE) or (aErrorCode=ESysECONNRESET) or (aErrorCode=ESysECONNABORTED);
+{$elseif defined(windows)}
+  Result:=(aErrorCode=WSAECONNRESET) or (aErrorCode=WSAECONNABORTED) or (aErrorCode=WSAESHUTDOWN);
+{$else}
+  Result:=False;
+{$endif}
+end;
+
+
 { TCGIResponse }
 
 procedure TFCGIResponse.Write_FCGIRecord(ARecord : PFCGI_Header);
@@ -489,6 +503,9 @@ begin
         ERROR_BROKEN_PIPE, ERROR_NO_DATA : Exit; //No error here. Server cancel pipe
       end;
 {$endif}
+      // The client went away: no error, the request ends and the connection is closed
+      if IsConnectionClosedError(ErrorCode) then
+        Exit;
 
       TFCgiHandler.DoError(SErrWritingSocket,[ErrorCode]);
       end;
@@ -831,7 +848,7 @@ begin
   IAddress.sin_family:=AF_INET;
   IAddress.sin_port:=htons(Port);
   if FAddress<>'' then
-    Iaddress.sin_addr := StrToHostAddr(FAddress)
+    Iaddress.sin_addr := StrToNetAddr(FAddress)
   else
     IAddress.sin_addr.s_addr:=0;
     {$IFDEF Unix}
@@ -957,7 +974,7 @@ begin
       Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
       if (Result<0) then
         ExtendedErrorCode:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.socketerror;
-    until (Result>=0) {$ifdef unix} or (ExtendedErrorCode<>ESysEINTR);{$endif}
+    until (Result>=0) or (ExtendedErrorCode<>{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.EsockEINTR);
     end;
 end;
 
