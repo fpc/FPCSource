@@ -706,7 +706,7 @@ function TFPWebFileLocationAPIModule.IsLocationAllowed(const aPath : String) : b
   var
     lParent : string;
   begin
-    lParent:=IncludeTrailingPathDelimiter(aParent);
+    lParent:=IncludeTrailingPathDelimiter(ExpandFileName(aParent));
     {$IFDEF UNIX}
     Result:=StartsStr(lParent,aChild);
     {$ELSE}
@@ -719,7 +719,8 @@ var
 
 begin
   Result:=(Length(AllowedBaseDirs)=0) and (Length(ExcludedBaseDirs)=0);
-  lPath:=IncludeTrailingPathDelimiter(aPath);
+  // Resolves '.' and '..' and makes a relative path absolute
+  lPath:=IncludeTrailingPathDelimiter(ExpandFileName(aPath));
   if Result then
     exit;
   for S in ExcludedBaseDirs do
@@ -807,7 +808,7 @@ end;
 function TFPWebFileLocationAPIModule.IsRequestAuthenticated(aRequest: TRequest): Boolean;
 
 begin
-  IsRequestAuthenticated(aRequest,True); // Old behaviour
+  Result:=IsRequestAuthenticated(aRequest,True); // Old behaviour
 end;
 
 function TFPWebFileLocationAPIModule.IsRequestAuthenticated(aRequest: TRequest; aIsRead: Boolean): Boolean;
@@ -815,9 +816,9 @@ Var
   aAuth : String;
 
 begin
-  Result:=(APIPassword='') and aIsRead;
-  if Result then
-    exit;
+  // Without password only reads are allowed
+  if APIPassword='' then
+    Exit(aIsRead);
   aAuth:=aRequest.Authorization;
   if (aAuth<>'') and SameText(ExtractWord(1,aAuth,[' ']),'Bearer') then
     aAuth:=ExtractWord(2,aAuth,[' '])
