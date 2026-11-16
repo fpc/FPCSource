@@ -6,6 +6,9 @@ program tmovimm64;
 
 {$mode objfpc}
 
+{$R-}
+{$Q-}
+
 var
   g: qword;
 
