@@ -122,7 +122,7 @@ Const
 
 
 { Maximum queue length specifiable by listen.  }
-  SOMAXCONN     = 32;
+  SOMAXCONN     = 4096;
 
         SOL_SOCKET 	     = -1;
 
