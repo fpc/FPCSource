@@ -3337,6 +3337,7 @@ implementation
       begin
         p:=tmacro.create(realname);
         p.defined:=defined;
+        p.defined_by_modeswitch:=defined_by_modeswitch;
         p.is_used:=is_used;
         p.is_compiler_var:=is_compiler_var;
         p.is_c_macro:=is_c_macro;
