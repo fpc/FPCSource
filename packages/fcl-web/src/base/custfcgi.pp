@@ -142,6 +142,8 @@ Type
     procedure CloseConnection;
     function Read_FCGIRecord : PFCGI_Header;
     function DataAvailable : Boolean;
+    // Waits until aHandle can be read or accepted from; False when the handler is terminated first
+    function WaitUntilReadable(aHandle : THandle) : Boolean;
   protected
     function CreateRequest : TFCGIRequest; virtual;
     function CreateResponse(ARequest: TFCGIRequest) : TFCGIResponse; virtual;
@@ -920,6 +922,37 @@ begin
 end;
 {$endif}
 
+function TFCgiHandler.WaitUntilReadable(aHandle: THandle): Boolean;
+
+const
+  CheckInterval = 200; // milliseconds between two checks of Terminated
+
+var
+  FDS: TFDSet;
+  TimeV: TTimeVal;
+  R : Integer;
+
+begin
+  repeat
+    if Terminated then
+      Exit(False);
+    FDS := Default(TFDSet);
+    TimeV.tv_usec := (CheckInterval mod 1000) * 1000;
+    TimeV.tv_sec := CheckInterval div 1000;
+{$ifdef unix}
+    fpFD_Zero(FDS);
+    fpFD_Set(aHandle, FDS);
+    R:=fpSelect(aHandle + 1, @FDS, nil, nil, @TimeV);
+{$else}
+    FD_Zero(FDS);
+    FD_Set(aHandle, FDS);
+    R:=Select(0, @FDS, nil, nil, @TimeV);
+{$endif}
+  // On an error other than EINTR the caller's read or accept reports it
+  until (R>0) or ((R<0) and (SocketError<>EsockEINTR));
+  Result:=not Terminated;
+end;
+
 function TFCgiHandler.CreateRequest: TFCGIRequest;
 
 Var
@@ -1030,14 +1063,24 @@ Var
 begin
 {$ifndef windows}
   repeat
+    if not WaitUntilReadable(Socket) then
+      Exit(-1);
     Result:=fpaccept(Socket,nil,nil);
-  until ((result<>-1) or (SocketError<>ESysEINTR)) and not Terminated;
+  until (result<>-1) or (SocketError<>ESysEINTR) or Terminated;
 {$else}
 {$ifndef windowspipe}
+  if not WaitUntilReadable(Socket) then
+    Exit(-1);
   Result:=fpaccept(Socket,Nil,nil);
 {$else windowspipe}
+  Result:=-1;
   if Not fIsWinPipe then
+    begin
+    // On the stdin pipe of IIS the select fails and the accept fails, then the pipe is used
+    if not WaitUntilReadable(Socket) then
+      Exit(-1);
     Result:=fpaccept(Socket,Nil,Nil);
+    end;
   If FIsWinPipe or ((Result<0) and ((socketerror=10038) or (socketerror = 10022))) then
     begin
     Result:=-1;
@@ -1074,6 +1117,8 @@ begin
     else
       Socket:=StdInputHandle;
   Repeat
+    if Terminated then
+      Exit;
     if FHandle=THandle(-1) then
       FHandle:=AcceptConnection;
     if FHandle=THandle(-1) then
@@ -1082,14 +1127,27 @@ begin
         begin
         Terminate;
         DoError(SNoInputHandle,[socketerror]);
-        end
+        end;
+      Exit;
       end;
     repeat
       If (poUseSelect in ProtocolOptions) then
         begin
-        While Not DataAvailable do
+        While Not DataAvailable and not Terminated do
           If (OnIdle<>Nil) then
             OnIdle(Self);
+        end
+      else
+        begin
+{$ifdef windowspipe}
+        if not FIsWinPipe then
+{$endif}
+          WaitUntilReadable(FHandle);
+        end;
+      if Terminated then
+        begin
+        CloseConnection;
+        Exit;
         end;
       AFCGI_Record:=Read_FCGIRecord;
       // If connection closed gracefully, we have nil.

@@ -1,4 +1,4 @@
-{ Tests TFCgiHandler writing to a connection that the client has reset. }
+{ Tests TFCgiHandler writing to a connection that the client has reset, and terminating TFCgiHandler.Run. }
 unit tcfcgiwrite;
 
 {$mode objfpc}{$H+}
@@ -33,9 +33,11 @@ type
     procedure HandleBig(aRequest: TRequest; aResponse: TResponse);
     procedure HandleSmall(aRequest: TRequest; aResponse: TResponse);
     function Connect: TSocket;
-    procedure SendRequest(aSocket: TSocket; const aPath: String);
+    procedure SendRequest(aSocket: TSocket; const aPath: String; aKeepConnection: Boolean = False);
     function ReadResponse(aSocket: TSocket): String;
     function WaitForThread(aThread: TThread; aSeconds: Integer): Boolean;
+    // Terminates the handler and checks that aThread, running the handler, ends
+    procedure CheckTerminates(aThread: TThread);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -43,6 +45,9 @@ type
     procedure TestWriteToResetSocket;
     procedure TestClientResetDuringResponse;
     procedure TestServesAfterReset;
+    procedure TestTerminateBeforeConnection;
+    procedure TestTerminateAfterRequest;
+    procedure TestTerminateOnKeptConnection;
   end;
 
 implementation
@@ -69,6 +74,19 @@ type
     procedure Execute; override;
   public
     constructor Create(aHandler: TTestFCgiHandler; aCount: Integer);
+    property Error: String read FError;
+  end;
+
+  { TRunThread }
+
+  TRunThread = class(TThread)
+  private
+    FHandler: TTestFCgiHandler;
+    FError: String;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(aHandler: TTestFCgiHandler);
     property Error: String read FError;
   end;
 
@@ -231,6 +249,28 @@ begin
 end;
 
 
+{ TRunThread }
+
+constructor TRunThread.Create(aHandler: TTestFCgiHandler);
+
+begin
+  FHandler:=aHandler;
+  inherited Create(False);
+end;
+
+
+procedure TRunThread.Execute;
+
+begin
+  try
+    FHandler.Run;
+  except
+    on E: Exception do
+      FError:=E.ClassName+': '+E.Message;
+  end;
+end;
+
+
 { TWriteThread }
 
 constructor TWriteThread.Create(aHandler: TTestFCgiHandler; aSocket: TSocket);
@@ -316,7 +356,7 @@ begin
 end;
 
 
-procedure TTestFCgiWrite.SendRequest(aSocket: TSocket; const aPath: String);
+procedure TTestFCgiWrite.SendRequest(aSocket: TSocket; const aPath: String; aKeepConnection: Boolean);
 
 var
   lData, lParams: RawByteString;
@@ -324,7 +364,7 @@ var
 begin
   lParams:=FCGIParam('REQUEST_METHOD','GET')+FCGIParam('SCRIPT_NAME','')+FCGIParam('PATH_INFO',aPath)
     +FCGIParam('REQUEST_URI',aPath)+FCGIParam('QUERY_STRING','')+FCGIParam('SERVER_PROTOCOL','HTTP/1.1');
-  lData:=FCGIRecord(1,AnsiChar(0)+AnsiChar(1)+StringOfChar(AnsiChar(0),6))
+  lData:=FCGIRecord(1,AnsiChar(0)+AnsiChar(1)+AnsiChar(Ord(aKeepConnection))+StringOfChar(AnsiChar(0),5))
     +FCGIRecord(4,lParams)+FCGIRecord(4,'')+FCGIRecord(5,'');
   AssertEquals('Request sent',Length(lData),fpSend(aSocket,@lData[1],Length(lData),0));
 end;
@@ -363,6 +403,20 @@ begin
   while not aThread.Finished and (GetTickCount64<lEnd) do
     Sleep(20);
   Result:=aThread.Finished;
+end;
+
+
+procedure TTestFCgiWrite.CheckTerminates(aThread: TThread);
+
+begin
+  FHandler.Terminate;
+  if not WaitForThread(aThread,3) then
+    begin
+    // The thread still uses the handler: leak both
+    FHandler:=nil;
+    Fail('TFCgiHandler.Run does not end after Terminate');
+    end;
+  AssertEquals('Run ends without exception','',TRunThread(aThread).Error);
 end;
 
 
@@ -481,6 +535,61 @@ begin
   finally
     lThread.Free;
   end;
+end;
+
+
+procedure TTestFCgiWrite.TestTerminateBeforeConnection;
+
+var
+  lThread: TRunThread;
+
+begin
+  lThread:=TRunThread.Create(FHandler);
+  Sleep(300);
+  CheckTerminates(lThread);
+  lThread.Free;
+end;
+
+
+procedure TTestFCgiWrite.TestTerminateAfterRequest;
+
+var
+  lThread: TRunThread;
+  lClient: TSocket;
+
+begin
+  lThread:=TRunThread.Create(FHandler);
+  lClient:=Connect;
+  try
+    SendRequest(lClient,'/small');
+    AssertTrue('Request answered',Pos('small ok',ReadResponse(lClient))>0);
+  finally
+    CloseSocket(lClient);
+  end;
+  CheckTerminates(lThread);
+  lThread.Free;
+end;
+
+
+procedure TTestFCgiWrite.TestTerminateOnKeptConnection;
+
+var
+  lThread: TRunThread;
+  lClient: TSocket;
+  lByte: Byte;
+
+begin
+  lThread:=TRunThread.Create(FHandler);
+  lClient:=Connect;
+  try
+    SendRequest(lClient,'/small',True);
+    AssertTrue('Request answered',Pos('small ok',ReadResponse(lClient))>0);
+    CheckTerminates(lThread);
+    AssertTrue('The kept connection is closed',fpRecv(lClient,@lByte,1,0)<=0);
+  finally
+    CloseSocket(lClient);
+  end;
+  lThread.Free;
 end;
 
 
