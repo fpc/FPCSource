@@ -286,24 +286,24 @@ end;
 procedure TFPSimpleServerApplication.HandleUpload(ARequest: TRequest; AResponse: TResponse);
 
 var
-  I : integer;
   lContent,lTmpFileName,lFileName : String;
   lFile : TFileStream;
 
 begin
-  Writeln('TFPSimpleServerApplication.HandleUpload enter');
   if aRequest.Files.Count>1 then
     begin
     aResponse.Code:=400;
     aResponse.CodeText:='BAD PARAM';
     aResponse.Content:='Only one file allowed';
     aResponse.ContentType:='text/plain';
+    aResponse.SendResponse;
+    exit;
     end;
   lFileName:=GetTempFileName(TRequest.DefaultRequestUploadDir,'upl');
   if aRequest.Files.Count=0 then
     begin
     lContent:=aRequest.Content;
-    lFile:=TFileStream.Create(lFileName,fmCreate);
+    lFile:=TFileStream.Create(lFileName,fmCreate or fmExclusive);
     try
       if lContent<>'' then
         lFile.WriteBuffer(lContent[1],Length(lContent)*SizeOf(Char));
@@ -314,20 +314,20 @@ begin
     end
   else
     begin
-    lTmpFileName:=aRequest.Files[i].LocalFileName;
+    lTmpFileName:=aRequest.Files[0].LocalFileName;
     if lTmpFileName<>'' then
       begin
       if not RenameFile(lTmpFileName,lFileName) then
         Log(etError,'Failed to rename uploaded file %s to %s',[lTmpFileName,lFileName])
       else
-        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[I].FileName,lFileName]);
+        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[0].FileName,lFileName]);
       end
     else
       begin
-      lFile:=TFileStream.Create(lFileName,fmCreate);
+      lFile:=TFileStream.Create(lFileName,fmCreate or fmExclusive);
       try
-        lFile.CopyFrom(aRequest.Files[i].Stream,0);
-        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[I].FileName,lFileName]);
+        lFile.CopyFrom(aRequest.Files[0].Stream,0);
+        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[0].FileName,lFileName]);
       finally
         lFile.Free;
       end;

@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -107,6 +107,10 @@
         <Filename Value="tchttpserverbody.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="tcmultipart.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
