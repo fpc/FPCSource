@@ -129,6 +129,14 @@ Resourcestring
   SErrArrayElementCount     = 'Array value of "%s" has %d elements, the field holds %d';
   SErrArrayDimensions       = 'Array value of "%s" has %d dimensions, only one is supported';
   SErrFieldDefListMismatch  = 'Field definition list does not match the field definitions';
+  SCircularDataLink         = 'Circular datalinks are not allowed';
+  SNestedDataSetClass       = 'Nested dataset must inherit from %s';
+  SErrNoNestedDataSet       = 'Dataset field "%s" has no nested dataset';
+  SErrNestedParentInactive  = 'The parent dataset of a nested dataset is not open';
+  SErrNestedNoFileName      = 'A nested dataset is not loaded from a file or stream';
+  SErrNestedApplyUpdates    = 'Updates of a nested dataset are applied with its parent dataset';
+  SErrNestedCopy            = 'Field "%s" is a dataset field; CopyFromDataset does not copy dataset fields';
+  SErrNestedDataNotSaved    = 'This format can not save dataset field "%s"';
   SErrDisconnectedPacketRecords = 'For disconnected TSQLQuery instances, packetrecords must be -1';
   SErrImplicitNoRollBack      = 'Implicit use of transactions does not allow rollback.';
   SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';

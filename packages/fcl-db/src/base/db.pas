@@ -85,6 +85,7 @@ type
   TDataLink = Class;
   TDBTransaction = Class;
   TObjectField = class;
+  TDataSetField = class;
 
 { Exception classes }
 
@@ -1270,6 +1271,34 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
+{ TDataSetField }
+
+  TDataSetField = class(TObjectField)
+  private
+    FNestedDataSet: TDataSet;
+    FIncludeObjectField: Boolean;
+    function GetNestedDataSet: TDataSet;
+    procedure SetIncludeObjectField(AValue: Boolean);
+  protected
+    procedure AssignNestedDataSet(AValue: TDataSet);
+    function GetAsString: string; override;
+    function GetAsVariant: Variant; override;
+    function GetCanModify: Boolean; override;
+    function GetFields: TFields; override;
+    function GetIsNull: Boolean; override;
+    procedure SetVarValue(const AValue: Variant); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    // Deletes all records of the nested dataset
+    procedure Clear; override;
+    // The dataset with the records stored in this field; created when first used
+    property NestedDataSet: TDataSet read GetNestedDataSet;
+  published
+    // Whether the nested dataset includes the object field itself
+    property IncludeObjectField: Boolean read FIncludeObjectField write SetIncludeObjectField default False;
+  end;
+
 { TIndexDef }
 
   TIndexDefs = class;
@@ -1817,7 +1846,14 @@ type
     FObjectView: Boolean;
     FState : TDataSetState;
     FInternalOpenComplete: Boolean;
+    FDataSetField: TDataSetField;
+    FNestedDataSets: TFPList;
+    FNestedDataSetClass: TDataSetClass;
+    FParentUpdateCount: Integer;
     Procedure DoInsertAppend(DoAppend : Boolean);
+    function GetNestedDataSets: TFPList;
+    procedure OpenNestedDataSets;
+    procedure CloseNestedDataSets;
     Procedure DoInternalOpen;
     Function  GetBuffer (Index : longint) : TRecordBuffer;
     function GetDatasourceCount: Integer;
@@ -1850,6 +1886,15 @@ type
     procedure CheckActive; virtual;
     procedure CheckInactive; virtual;
     procedure CheckBiDirectional;
+    // Puts the dataset that owns DataSetField in edit mode
+    procedure CheckParentState; virtual;
+    // Creates the dataset for the records of a dataset field of this dataset
+    function CreateNestedDataSet(aDataSetField: TDataSetField): TDataSet; virtual;
+    procedure SetDataSetField(const AValue: TDataSetField); virtual;
+    // Starts a change of the parent record; the parent does not notify this dataset until EndParentUpdate
+    procedure BeginParentUpdate;
+    // Ends a change started with BeginParentUpdate
+    procedure EndParentUpdate;
     procedure Loaded; override;
     procedure ClearBuffers; virtual;
     procedure ClearCalcFields(Buffer: TRecordBuffer); virtual;
@@ -2060,6 +2105,12 @@ type
     property FieldDefList: TFieldDefList read FFlatFieldDefList;
     // Fields and the fields of object fields, addressed by full name
     property FieldList: TFieldList read FFlatFieldList;
+    // The field of the parent dataset whose records this dataset shows
+    property DataSetField: TDataSetField read FDataSetField write SetDataSetField;
+    // The datasets that show the records of a dataset field of this dataset
+    property NestedDataSets: TFPList read GetNestedDataSets;
+    // The class of the datasets created for the dataset fields of this dataset
+    property NestedDataSetClass: TDataSetClass read FNestedDataSetClass write FNestedDataSetClass;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified;
@@ -2582,7 +2633,7 @@ const
       { ftADT} TADTField,
       { ftArray} TArrayField,
       { ftReference} Nil,
-      { ftDataSet} Nil,
+      { ftDataSet} TDataSetField,
       { ftOraBlob} TBlobField,
       { ftOraClob} TMemoField,
       { ftVariant} TVariantField,

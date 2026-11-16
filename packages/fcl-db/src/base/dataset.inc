@@ -41,6 +41,7 @@ begin
   FBOF := True;
   FIsUniDirectional := False;
   FAutoCalcFields := True;
+  FNestedDataSetClass := TDataSetClass(ClassType);
 end;
 
 
@@ -51,6 +52,8 @@ var
   i: Integer;
 
 begin
+  if Assigned(FDataSetField) then
+    DataSetField:=nil;
   Active:=False;
   FFlatFieldDefList.Locked:=True;
   FFlatFieldList.Locked:=True;
@@ -66,6 +69,104 @@ begin
   FConstraints.Free;
   FreeMem(FBuffers);
   Inherited Destroy;
+  FreeAndNil(FNestedDataSets);
+end;
+
+
+function TDataSet.GetNestedDataSets: TFPList;
+
+begin
+  if FNestedDataSets=nil then
+    FNestedDataSets:=TFPList.Create;
+  Result:=FNestedDataSets;
+end;
+
+
+procedure TDataSet.SetDataSetField(const AValue: TDataSetField);
+
+begin
+  if AValue=FDataSetField then
+    Exit;
+  if Assigned(AValue) and ((AValue.DataSet=Self) or
+     (Assigned(AValue.DataSet.GetDataSource) and (AValue.DataSet.GetDataSource.DataSet=Self))) then
+    DatabaseError(SCircularDataLink,Self);
+  if Assigned(AValue) and Assigned(AValue.DataSet) and not InheritsFrom(AValue.DataSet.FNestedDataSetClass) then
+    DatabaseErrorFmt(SNestedDataSetClass,[AValue.DataSet.FNestedDataSetClass.ClassName],Self);
+  if Active then
+    Close;
+  if Assigned(FDataSetField) then
+    FDataSetField.AssignNestedDataSet(nil);
+  FDataSetField:=AValue;
+  if Assigned(AValue) then
+    begin
+    AValue.AssignNestedDataSet(Self);
+    if Assigned(AValue.DataSet) and AValue.DataSet.Active then
+      Open;
+    end;
+end;
+
+
+function TDataSet.CreateNestedDataSet(aDataSetField: TDataSetField): TDataSet;
+
+begin
+  Result:=NestedDataSetClass.Create(aDataSetField);
+  try
+    Result.ObjectView:=True;
+    Result.DataSetField:=aDataSetField;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+
+procedure TDataSet.CheckParentState;
+
+begin
+  if Assigned(FDataSetField) and Assigned(FDataSetField.DataSet) then
+    FDataSetField.DataSet.Edit;
+end;
+
+
+procedure TDataSet.BeginParentUpdate;
+
+begin
+  Inc(FParentUpdateCount);
+end;
+
+
+procedure TDataSet.EndParentUpdate;
+
+begin
+  if FParentUpdateCount>0 then
+    Dec(FParentUpdateCount);
+end;
+
+
+// Opens the nested datasets that are not open yet
+procedure TDataSet.OpenNestedDataSets;
+
+var
+  i: Integer;
+
+begin
+  if Assigned(FNestedDataSets) then
+    for i:=0 to FNestedDataSets.Count-1 do
+      if not TDataSet(FNestedDataSets[i]).Active then
+        TDataSet(FNestedDataSets[i]).Open;
+end;
+
+
+// Closes the open nested datasets
+procedure TDataSet.CloseNestedDataSets;
+
+var
+  i: Integer;
+
+begin
+  if Assigned(FNestedDataSets) then
+    for i:=0 to FNestedDataSets.Count-1 do
+      TDataSet(FNestedDataSets[i]).Close;
 end;
 
 // This procedure must be called when the first record is made/read
@@ -156,7 +257,7 @@ begin
         TMemoField(Field).FCodePage := FieldDef.FCodePage;
       end;
     Field.Bind(aBinding);
-    if Field is TObjectField then
+    if (Field is TObjectField) and not (Field is TDataSetField) then
       BindFieldList(TObjectField(Field).Fields, aBinding);
     end;
 end;
@@ -257,12 +358,12 @@ begin
   lFlat:=False;
   if not ObjectView then
     For I:=0 to FieldDefs.Count-1 do
-      lFlat:=lFlat or FieldDefs[I].HasChildDefs;
+      lFlat:=lFlat or (FieldDefs[I].HasChildDefs and (FieldDefs[I].DataType<>ftDataSet));
   if lFlat then
     begin
     For I:=0 to FieldDefList.Count-1 do
       With FieldDefList[I] do
-        If (DataType<>ftUnknown) and not (DataType in ObjectFieldTypes) then
+        If (DataType<>ftUnknown) and ((DataType=ftDataSet) or not (DataType in ObjectFieldTypes)) then
           CreateField(self,nil,FieldDefList.Strings[I]);
     end
   else
@@ -297,9 +398,25 @@ procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
   end;
 
   procedure HandleScrollOrChange;
+  var
+    i: Integer;
   begin
     if State <> dsInsert then
       UpdateCursorPos;
+    if Assigned(FNestedDataSets) then
+      for i := 0 to FNestedDataSets.Count - 1 do
+        if TDataSet(FNestedDataSets[i]).Active and (TDataSet(FNestedDataSets[i]).FParentUpdateCount = 0) then
+          TDataSet(FNestedDataSets[i]).DataEvent(deParentScroll, 0);
+  end;
+
+  procedure CheckNestedBrowseMode;
+  var
+    i: Integer;
+  begin
+    if Assigned(FNestedDataSets) then
+      for i := 0 to FNestedDataSets.Count - 1 do
+        if TDataSet(FNestedDataSets[i]).Active and (TDataSet(FNestedDataSets[i]).FParentUpdateCount = 0) then
+          TDataSet(FNestedDataSets[i]).CheckBrowseMode;
   end;
 
 var
@@ -307,6 +424,7 @@ var
 begin
   case Event of
     deFieldChange   : HandleFieldChange(TField(Info));
+    deCheckBrowseMode : CheckNestedBrowseMode;
     deDataSetChange,
     deDataSetScroll : HandleScrollOrChange;
     deLayoutChange  : FEnableControlsEvent:=deLayoutChange;
@@ -1188,12 +1306,15 @@ begin
       finally
         if FState <> dsOpening then OpenCursorComplete;
         end;
+      if FState <> dsInactive then
+        OpenNestedDataSets;
       end;
     FModified:=False;
     end
   else if not value and (Fstate <> dsinactive) then
     begin
     DoBeforeClose;
+    CloseNestedDataSets;
     SetState(dsInactive);
     CloseCursor;
     DoAfterClose;
@@ -1781,6 +1902,7 @@ begin
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
   DoBeforeInsert;
+  CheckParentState;
   DoBeforeScroll;
   If Not DoAppend then
     begin
@@ -1836,6 +1958,7 @@ begin
     Exit;
     end;
   DoBeforeEdit;
+  CheckParentState;
   If Not TryDoing(@InternalEdit,OnEditError) then exit;
   GetCalcFields(ActiveBuffer);
   SetState(dsEdit);
@@ -2021,16 +2144,25 @@ end;
 
 function TDataSet.IsLinkedTo(ADataSource: TDataSource): Boolean;
 
+var
+  lDataSource: TDataSource;
+  lDataSet: TDataSet;
+
 begin
-//!! Not tested, I never used nested DS
-  if (ADataSource = nil) or (ADataSource.Dataset = nil) then begin
-    Result := False
-  end else if ADataSource.Dataset = Self then begin
-    Result := True;
-  end else begin
-    Result := ADataSource.Dataset.IsLinkedTo(ADataSource.Dataset.DataSource);
-  end;
-//!! DataSetField not implemented
+  Result := True;
+  lDataSource := ADataSource;
+  while Assigned(lDataSource) do
+    begin
+    lDataSet := lDataSource.DataSet;
+    if lDataSet = nil then
+      Break;
+    if lDataSet = Self then
+      Exit;
+    if Assigned(lDataSet.DataSetField) and (lDataSet.DataSetField.DataSet = Self) then
+      Exit;
+    lDataSource := lDataSet.DataSource;
+    end;
+  Result := False;
 end;
 
 function TDataSet.IsSequenced: Boolean;

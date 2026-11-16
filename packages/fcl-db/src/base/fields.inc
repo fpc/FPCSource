@@ -121,6 +121,7 @@ begin
       Size := fd.Size;
       Precision := fd.Precision;
       FRequired := fd.Required;
+      FAttributes := fd.FAttributes;
       FCodePage := fd.FCodePage;
       if HasChildDefs then
         ChildDefs.Clear;
@@ -174,7 +175,7 @@ begin
       Result.ParentField:=ParentField
     else
       Result.Dataset:=TFieldDefs(Collection).Dataset;
-    if CreateChildren and HasChildDefs and (Result is TObjectField) then
+    if CreateChildren and HasChildDefs and (Result is TObjectField) and (DataType<>ftDataSet) then
       if DataType=ftArray then
         begin
         if Assigned(Result.Dataset) and Result.Dataset.SparseArrays then
@@ -372,10 +373,14 @@ procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
 var I : longint;
 
 begin
-  Clear;
-  For i:=0 to FieldDefs.Count-1 do
-    With FieldDefs[i] do
-      Add(Name,DataType,Size,Required);
+  BeginUpdate;
+  try
+    Clear;
+    For i:=0 to FieldDefs.Count-1 do
+      AddFieldDef.Assign(FieldDefs[i]);
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TFieldDefs.Find(const AName: string): TFieldDef;
@@ -4362,7 +4367,7 @@ end;
 function TObjectField.GetFieldCount: Integer;
 
 begin
-  Result:=FFieldFields.Count;
+  Result:=Fields.Count;
 end;
 
 
@@ -4376,14 +4381,14 @@ end;
 function TObjectField.GetFieldValue(AIndex: Integer): Variant;
 
 begin
-  Result:=FFieldFields[AIndex].Value;
+  Result:=Fields[AIndex].Value;
 end;
 
 
 procedure TObjectField.SetFieldValue(AIndex: Integer; const AValue: Variant);
 
 begin
-  FFieldFields[AIndex].Value:=AValue;
+  Fields[AIndex].Value:=AValue;
 end;
 
 
@@ -4489,6 +4494,126 @@ constructor TADTField.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   SetDataType(ftADT);
+end;
+
+{ TDataSetField }
+
+constructor TDataSetField.Create(AOwner: TComponent);
+
+begin
+  inherited Create(AOwner);
+  SetDataType(ftDataSet);
+end;
+
+
+destructor TDataSetField.Destroy;
+
+begin
+  AssignNestedDataSet(nil);
+  inherited Destroy;
+end;
+
+
+function TDataSetField.GetNestedDataSet: TDataSet;
+
+begin
+  if (FNestedDataSet=nil) and Assigned(DataSet) and not (csReading in DataSet.ComponentState) then
+    DataSet.CreateNestedDataSet(Self);
+  Result:=FNestedDataSet;
+end;
+
+
+procedure TDataSetField.SetIncludeObjectField(AValue: Boolean);
+
+begin
+  if Assigned(FNestedDataSet) then
+    FNestedDataSet.CheckInactive;
+  FIncludeObjectField:=AValue;
+end;
+
+
+procedure TDataSetField.AssignNestedDataSet(AValue: TDataSet);
+
+begin
+  if Assigned(FNestedDataSet) then
+    begin
+    FNestedDataSet.Close;
+    FNestedDataSet.FDataSetField:=nil;
+    if Assigned(DataSet) then
+      DataSet.NestedDataSets.Remove(FNestedDataSet);
+    end;
+  if Assigned(AValue) and Assigned(DataSet) then
+    DataSet.NestedDataSets.Add(AValue);
+  FNestedDataSet:=AValue;
+end;
+
+
+function TDataSetField.GetAsString: string;
+
+begin
+  Result:='(DataSet)';
+end;
+
+
+function TDataSetField.GetAsVariant: Variant;
+
+var
+  i: Integer;
+  lFields: TFields;
+
+begin
+  if IsNull or not Assigned(FNestedDataSet) or FNestedDataSet.IsEmpty then
+    Result:=Null
+  else
+    begin
+    lFields:=FNestedDataSet.Fields;
+    Result:=VarArrayCreate([0,lFields.Count-1],varVariant);
+    for i:=0 to lFields.Count-1 do
+      Result[i]:=lFields[i].Value;
+    end;
+end;
+
+
+function TDataSetField.GetCanModify: Boolean;
+
+begin
+  Result:=inherited GetCanModify and Assigned(NestedDataSet) and FNestedDataSet.Active;
+end;
+
+
+function TDataSetField.GetFields: TFields;
+
+begin
+  if Assigned(NestedDataSet) then
+    Result:=FNestedDataSet.Fields
+  else
+    Result:=inherited GetFields;
+end;
+
+
+function TDataSetField.GetIsNull: Boolean;
+
+begin
+  Result:=not GetData(nil);
+end;
+
+
+procedure TDataSetField.SetVarValue(const AValue: Variant);
+
+begin
+  raise AccessError('Variant');
+end;
+
+
+procedure TDataSetField.Clear;
+
+begin
+  if not Assigned(FNestedDataSet) then
+    DatabaseErrorFmt(SErrNoNestedDataSet,[DisplayName]);
+  FNestedDataSet.CheckActive;
+  FNestedDataSet.First;
+  while not FNestedDataSet.IsEmpty do
+    FNestedDataSet.Delete;
 end;
 
 { TFieldsEnumerator }
@@ -4831,7 +4956,7 @@ begin
     lDef:=aFieldDefs[i];
     lName:=aParentName+lDef.Name;
     AddObject(lName,lDef);
-    if lDef.HasChildDefs then
+    if lDef.HasChildDefs and (lDef.DataType<>ftDataSet) then
       if lDef.DataType=ftArray then
         begin
         lElement:=lDef.ChildDefs[0];
@@ -4895,7 +5020,7 @@ begin
     begin
     lField:=aFields[i];
     AddObject(lField.FullName,lField);
-    if (lField is TObjectField) and Assigned(TObjectField(lField).Fields) then
+    if (lField is TObjectField) and not (lField is TDataSetField) and Assigned(TObjectField(lField).Fields) then
       AddFields(TObjectField(lField).Fields);
     end;
 end;

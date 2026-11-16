@@ -37,6 +37,7 @@ uses
   TestBufDatasetStreams,
   TestSQLDB,
   TestSpecificTBufDataset,
+  TestNestedDataSet,
   TestSpecificTDBF,
   TestSpecificTMemDataset,
   tcsdfdata,

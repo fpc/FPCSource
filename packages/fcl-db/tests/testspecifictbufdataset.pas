@@ -1504,14 +1504,8 @@ begin
     end;
     CheckTrue(lRaised, 'An index on an array element raises EDatabaseError');
     lDS.IndexFieldNames := '';
-    lRaised := False;
-    try
-      lDS.SaveToStream(lStream, dfBinary);
-    except
-      on EDatabaseError do
-        lRaised := True;
-    end;
-    CheckTrue(lRaised, 'Saving a dataset with an array field raises EDatabaseError');
+    lDS.SaveToStream(lStream, dfXML);
+    CheckTrue(lStream.Size > 0, 'A dataset with an array field is saved as XML');
     lDS.Close;
   finally
     lStream.Free;

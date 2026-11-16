@@ -37,7 +37,7 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="dbtestframework.pas"/>
         <IsPartOfProject Value="True"/>
@@ -116,6 +116,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestSQLDB"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="testnesteddataset.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestNestedDataSet"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
