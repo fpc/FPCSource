@@ -34,6 +34,8 @@ uses ctypes,
   {$DEFINE extdecl:=cdecl}
   const
     ocilib = 'libociei.'+sharedsuffix;
+    // Loaded by InitialiseOCI() when ocilib cannot be loaded
+    ocilibfallback = 'libclntsh.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
@@ -3407,10 +3409,19 @@ var
 Function InitialiseOCI(): integer;
 
 begin
-  if (OCILoadedLibrary='') then
-    Result:=InitialiseOCI(OCILib)
- else
-    Result:=InitialiseOCI(OCILoadedLibrary);
+  if (OCILoadedLibrary<>'') then
+    Result:=InitialiseOCI(OCILoadedLibrary)
+  else
+{$IFDEF Unix}
+    try
+      Result:=InitialiseOCI(OCILib);
+    except
+      on EInOutError do
+        Result:=InitialiseOCI(OCILibFallback);
+    end;
+{$ELSE}
+    Result:=InitialiseOCI(OCILib);
+{$ENDIF}
 end;
 
 function InitialiseOCI(const LibraryName: AnsiString): integer;

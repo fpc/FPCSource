@@ -58,6 +58,7 @@ type
 
   TOraFieldBuf = record
     DescType : ub4;      // descriptor type
+    DataType : ub2;      // SQLT_* type of the define or bind
     Buffer   : pointer;
     Ind      : sb2;      // indicator
     Len      : ub4;
@@ -67,6 +68,8 @@ type
   TOracleCursor = Class(TSQLCursor)
     protected
       FOciStmt     : POCIStmt;
+      FOciSvcCtx   : POCISvcCtx;
+      FExecuted    : Boolean;
       FieldBuffers : array of TOraFieldBuf;
       ParamBuffers : array of TOraFieldBuf;
     end;
@@ -84,6 +87,8 @@ type
     procedure HandleError;
     procedure GetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
     procedure SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
+    // Allocates the buffer of parameter aIndex, at least aMinSize bytes, and binds it to the statement
+    procedure BindParameter(aCursor: TOracleCursor; aIndex: Integer; aParam: TParam; aMinSize: sb4);
   protected
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -114,6 +119,7 @@ type
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
 
   public
     constructor Create(AOwner : TComponent); override;
@@ -259,90 +265,84 @@ begin
     end;
 end;
 
-function Nvu2FmtBCD(b:pbyte):tBCD;
+// Converts an Oracle NUMBER (SQLT_VNU) to decimal text with '.' and without leading or trailing zeros
+function Nvu2Str(b:pbyte):string;
+
 var
-  i,j       : integer;
-  bb,size   : byte;
-  exp       : shortint;
-  nibbles   : array [0..maxfmtbcdfractionsize-1] of byte;
-  scale     : integer;
+  lSize, lExp, lPoint, lDigit, i: integer;
+  lNegative: boolean;
+  lDigits, lInt, lFrac: string;
+
 begin
-  size := b[0];
-  if (size=1) and (b[1]=$80) then // special representation for 0
-    result:=IntegerToBCD(0)
-  else
+  lSize := b[0];
+  if (lSize=1) and (b[1]=$80) then
+    Exit('0');
+  lNegative := (b[1] and $80)=0;
+  if lNegative then
     begin
-    result.SignSpecialPlaces:=0; //sign positive, non blank, scale 0
-    result.Precision:=1;         //BCDNegate works only if Precision <>0
-    if (b[1] and $80)=$80 then // then the number is positive
-      begin
-      exp := (b[1] and $7f)-65;
-      for i := 0 to size-2 do
-        begin
-        bb := b[i+2]-1;
-        nibbles[i*2]:=bb div 10;
-        nibbles[i*2+1]:=(bb mod 10);
-        end;
-      end
+    lExp := (not(b[1]) and $7f)-65;
+    if b[lSize]=102 then
+      Dec(lSize);
+    end
+  else
+    lExp := (b[1] and $7f)-65;
+  lDigits := '';
+  for i := 2 to lSize do
+    begin
+    if lNegative then
+      lDigit := 101-b[i]
     else
-      begin
-      BCDNegate(result);
-      exp := (not(b[1]) and $7f)-65;
-      if b[size]=102 then  // last byte doesn't count if = 102
-        size:=size-1;
-      for i := 0 to size-2 do
-        begin
-        bb := 101-b[i+2];
-        nibbles[i*2]:=bb div 10;
-        nibbles[i*2+1]:=(bb mod 10);
-        end;
-      end;
-    nibbles[(size-1)*2]:=0;
-    result.Precision:=(size-1)*2;
-    scale:=result.Precision-(exp*2+2);
-    if scale>=0 then
-      begin
-      if (scale>result.Precision) then  // need to add leading 0s
-        begin
-        for i:=0 to (scale-result.Precision+1) div 2 do
-          result.Fraction[i]:=0;
-        i:=scale-result.Precision;
-        result.Precision:=scale;
-        end
-      else
-        i:=0;
-      j:=i;
-      if (i=0) and (nibbles[0]=0) then // get rid of leading zero received from oci
-        begin
-        result.Precision:=result.Precision-1;
-        j:=-1;
-        end;
-      while i<=result.Precision do // copy nibbles
-        begin
-        if i mod 2 =0 then
-          result.Fraction[i div 2]:=nibbles[i-j] shl 4
-        else
-          result.Fraction[i div 2]:=result.Fraction[i div 2] or nibbles[i-j];
-        i:=i+1;
-        end;
-      result.SignSpecialPlaces:=result.SignSpecialPlaces or scale;
-      end
-    else
-      begin // add trailing zeroes, increase precision to take them into account
-      i:=0;
-      while i<=result.Precision do // copy nibbles
-        begin
-        if i mod 2 =0 then
-          result.Fraction[i div 2]:=nibbles[i] shl 4
-        else
-          result.Fraction[i div 2]:=result.Fraction[i div 2] or nibbles[i];
-        i:=i+1;
-        end;
-      result.Precision:=result.Precision-scale;
-      for i := size -1 to High(result.Fraction) do
-        result.Fraction[i] := 0;
-      end;
+      lDigit := b[i]-1;
+    lDigits := lDigits+Chr(Ord('0')+lDigit div 10)+Chr(Ord('0')+lDigit mod 10);
     end;
+  // the first base-100 digit has weight 100^lExp
+  lPoint := (lExp+1)*2;
+  if lPoint <= 0 then
+    begin
+    lDigits := StringOfChar('0',-lPoint)+lDigits;
+    lPoint := 0;
+    end
+  else if lPoint > Length(lDigits) then
+    lDigits := lDigits+StringOfChar('0',lPoint-Length(lDigits));
+  lInt := Copy(lDigits,1,lPoint);
+  lFrac := Copy(lDigits,lPoint+1,Length(lDigits));
+  while (Length(lInt)>1) and (lInt[1]='0') do
+    Delete(lInt,1,1);
+  if lInt='' then
+    lInt := '0';
+  while (lFrac<>'') and (lFrac[Length(lFrac)]='0') do
+    SetLength(lFrac,Length(lFrac)-1);
+  if lFrac<>'' then
+    lInt := lInt+'.'+lFrac;
+  if lNegative then
+    lInt := '-'+lInt;
+  Result := lInt;
+end;
+
+
+// Converts an Oracle NUMBER (SQLT_VNU) to a BCD without leading or trailing zeros
+function Nvu2FmtBCD(b:pbyte):tBCD;
+
+var
+  lFormat: TFormatSettings;
+
+begin
+  lFormat := DefaultFormatSettings;
+  lFormat.DecimalSeparator := '.';
+  Result := StrToBCD(Nvu2Str(b),lFormat);
+end;
+
+
+// Converts an Oracle NUMBER (SQLT_VNU) to the nearest double
+function Nvu2Double(b:pbyte):double;
+
+var
+  lCode: integer;
+
+begin
+  Val(Nvu2Str(b),Result,lCode);
+  if lCode<>0 then
+    Result := 0;
 end;
 
 
@@ -410,7 +410,15 @@ var
   TempServiceContext : POCISvcCtx;
   IsConnected : boolean;
   CharSetId: ub2;
+{$if defined(cpui386) or defined(cpux86_64)}
+  lFPUControlWord : word;
+{$endif}
 begin
+{$if defined(cpui386) or defined(cpux86_64)}
+  // the Oracle client sets the x87 FPU to double precision
+  lFPUControlWord := Get8087CW;
+  try
+{$endif}
 {$IfDef LinkDynamically}
   InitialiseOCI;
 {$EndIf}
@@ -498,6 +506,11 @@ begin
       FOciServer := nil;
     end;
   end;
+{$if defined(cpui386) or defined(cpux86_64)}
+  finally
+    Set8087CW(lFPUControlWord);
+  end;
+{$endif}
 end;
 
 procedure TOracleConnection.DoInternalDisconnect;
@@ -618,18 +631,93 @@ begin
   Result := locRes;
 end;
 
+// Determines the OCI type, buffer size and descriptor type used to bind a parameter of type aDataType
+function ParamOciType(aDataType: TFieldType; out aType: ub2; out aSize: sb4; out aDescType: ub4): Boolean;
+
+begin
+  Result := True;
+  aDescType := 0;
+  case aDataType of
+    ftSmallInt, ftInteger :
+      begin aType := SQLT_INT; aSize := sizeof(integer); end;
+    ftLargeInt :
+      begin aType := SQLT_INT; aSize := sizeof(int64); end;
+    ftFloat :
+      begin aType := SQLT_FLT; aSize := sizeof(double); end;
+    ftDate, ftTime, ftDateTime :
+      begin aType := SQLT_TIMESTAMP; aSize := sizeof(pointer); aDescType := OCI_DTYPE_TIMESTAMP; end;
+    ftUnknown, ftFixedChar, ftString, ftFixedWideChar, ftWideString :
+      begin aType := SQLT_STR; aSize := 4000; end;
+    ftFMTBcd, ftBCD :
+      begin aType := SQLT_VNU; aSize := 22; end;
+    ftBlob :
+      begin aType := SQLT_BLOB; aSize := sizeof(pointer); aDescType := OCI_DTYPE_LOB; end;
+    ftMemo :
+      begin aType := SQLT_LVC; aSize := 65535; end;
+  else
+    Result := False;
+  end;
+end;
+
+
+procedure TOracleConnection.BindParameter(aCursor: TOracleCursor; aIndex: Integer; aParam: TParam; aMinSize: sb4);
+
+var
+  lType: ub2;
+  lSize: sb4;
+  lDescType: ub4;
+  lBuffer: pointer;
+  lBind: POCIBind;
+
+begin
+  if not ParamOciType(aParam.DataType,lType,lSize,lDescType) then
+    DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[aParam.DataType]],self);
+  if lSize < aMinSize then
+    lSize := aMinSize;
+  with aCursor.ParamBuffers[aIndex] do
+    begin
+    if Buffer <> nil then
+      if DescType <> 0 then
+        OciDescriptorFree(Buffer,DescType)
+      else
+        FreeMem(Buffer);
+    Buffer := nil;
+    DescType := lDescType;
+    DataType := lType;
+    Len := lSize;
+    Size := lSize;
+    if lDescType <> 0 then
+      begin
+      lBuffer := @Buffer;
+      OCIDescriptorAlloc(FOciEnvironment,lBuffer,lDescType,0,nil);
+      end
+    else
+      begin
+      lBuffer := GetMem(lSize);
+      Buffer := lBuffer;
+      end;
+    end;
+  lBind := nil;
+  if aParam.ParamType=ptInput then
+    begin
+    if OCIBindByName(aCursor.FOciStmt,lBind,FOciError,PAnsiChar(aParam.Name),length(aParam.Name),lBuffer,lSize,lType,@aCursor.ParamBuffers[aIndex].ind,nil,nil,0,nil,OCI_DEFAULT)= OCI_ERROR then
+      HandleError;
+    end
+  else if aParam.ParamType=ptOutput then
+    begin
+    if OCIBindByName(aCursor.FOciStmt,lBind,FOciError,PAnsiChar(aParam.Name),length(aParam.Name),nil,lSize,lType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC)= OCI_ERROR then
+      HandleError;
+    if OCIBindDynamic(lBind,FOciError,nil,@cbf_no_data,@aCursor.ParamBuffers[aIndex],@cbf_get_data) <> OCI_SUCCESS then
+      HandleError;
+    end;
+end;
+
+
 procedure TOracleConnection.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 
 var i        : integer;
-    FOcibind : POCIDefine;
-
-    OFieldType   : ub2;
-    OFieldSize   : sb4;
-    ODescType    : ub4;
-    OBuffer      : pointer;
-
-    stmttype     : ub2;
+    stmttype : ub2;
 
 begin
   with cursor as TOracleCursor do
@@ -638,6 +726,8 @@ begin
       Log(detActualSQL,Buf);
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
+    FOciSvcCtx := TOracleTrans(ATransaction.Handle).FOciSvcCtx;
+    FExecuted := False;
     // Get statement type
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@stmttype,nil,OCI_ATTR_STMT_TYPE,FOciError) = OCI_ERROR then
       HandleError;
@@ -660,59 +750,7 @@ begin
       begin
       setlength(ParamBuffers,AParams.Count);
       for i := 0 to AParams.Count-1 do
-        begin
-        ODescType := 0;
-        case AParams[i].DataType of
-          ftSmallInt, ftInteger :
-            begin OFieldType := SQLT_INT; OFieldSize := sizeof(integer); end;
-          ftLargeInt :
-            begin OFieldType := SQLT_INT; OFieldSize := sizeof(int64); end;
-          ftFloat :
-            begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
-          ftDate, ftDateTime :
-            begin OFieldType := SQLT_TIMESTAMP; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_TIMESTAMP; end;
-          ftFixedChar, ftString, ftFixedWideChar, ftWideString :
-            begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
-          ftFMTBcd, ftBCD :
-            begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
-          ftBlob :
-            //begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
-            begin OFieldType := SQLT_BLOB; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_LOB; end;
-          ftMemo :
-            begin OFieldType := SQLT_LVC; OFieldSize := 65535; end;
-        else
-          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
-        end;
-
-        ParamBuffers[i].DescType := ODescType;
-        ParamBuffers[i].Len      := OFieldSize;
-        ParamBuffers[i].Size     := OFieldSize;
-        if ODescType <> 0 then
-          begin
-          OBuffer := @ParamBuffers[i].buffer;
-          OCIDescriptorAlloc(FOciEnvironment, OBuffer, ODescType, 0, nil);
-          end
-        else
-          begin
-          OBuffer := getmem(OFieldSize);
-          ParamBuffers[i].buffer := OBuffer;
-          end;
-
-        FOciBind := nil;
-
-        if AParams[i].ParamType=ptInput then
-          begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,PAnsiChar(AParams[i].Name),length(AParams[i].Name),OBuffer,OFieldSize,OFieldType,@ParamBuffers[i].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
-            HandleError;
-          end
-        else if AParams[i].ParamType=ptOutput then
-          begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,PAnsiChar(AParams[i].Name),length(AParams[i].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
-            HandleError;
-          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[i], @cbf_get_data) <> OCI_SUCCESS then
-            HandleError;
-          end;
-        end;
+        BindParameter(TOracleCursor(cursor),i,AParams[i],0);
       end;
     FPrepared := True;
     end;
@@ -722,10 +760,13 @@ procedure TOracleConnection.SetParameters(cursor : TSQLCursor; ATransaction : TS
 
 var i         : integer;
     year, month, day, hour, min, sec, msec : word;
-    s         : string;
-    rs        : RawByteString;
+    s         : RawByteString;
     LobBuffer : TBytes;
     LobLength : ub4;
+    lType     : ub2;
+    lSize     : sb4;
+    lDescType : ub4;
+    lNeeded   : sb4;
 
 begin
   with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do with AParams[i] do
@@ -734,22 +775,38 @@ begin
       if IsNull then ParamBuffers[i].ind := -1 else ParamBuffers[i].ind := 0;
 
       case DataType of
+        ftString,
+        ftFixedChar     : s := AsString;
+        // Convert to the connection character set, not the system code page
+        ftWideString,
+        ftFixedWideChar : s := Self.GetAsString(AParams[i]);
+      else
+        s := '';
+      end;
+      lNeeded := Length(s)+1;
+      if not ParamOciType(DataType,lType,lSize,lDescType) then
+        DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[DataType]],self);
+      if (ParamBuffers[i].DataType<>lType) or (ParamBuffers[i].DescType<>lDescType)
+         or ((lType=SQLT_STR) and (ParamBuffers[i].Size<lNeeded))
+         or ((lType<>SQLT_STR) and (ParamBuffers[i].Size<>lSize)) then
+        BindParameter(TOracleCursor(cursor),i,AParams[i],lNeeded);
+
+      case DataType of
+        ftUnknown         : ;
         ftSmallInt,
         ftInteger         : PInteger(ParamBuffers[i].buffer)^ := AsInteger;
         ftLargeInt        : PInt64(ParamBuffers[i].buffer)^ := AsLargeInt;
         ftFloat           : PDouble(ParamBuffers[i].buffer)^ := AsFloat;
         ftString,
-        ftFixedChar       : begin
-                            s := asString+#0;
-                            move(s[1],parambuffers[i].buffer^,length(s)+1);
-                            end;
+        ftFixedChar,
         ftWideString,
         ftFixedWideChar   : begin
-                            // Convert to the connection character set, not the system code page
-                            rs := Self.GetAsString(AParams[i])+#0;
-                            move(rs[1],parambuffers[i].buffer^,length(rs)+1);
+                            if s<>'' then
+                              move(s[1],parambuffers[i].buffer^,length(s));
+                            PAnsiChar(parambuffers[i].buffer)[length(s)] := #0;
                             end;
-        ftDate, ftDateTime: begin
+        ftDate, ftTime,
+        ftDateTime        : begin
                             DecodeDate(asDateTime,year,month,day);
                             DecodeTime(asDateTime,hour,min,sec,msec);
                             if OCIDateTimeConstruct(FOciUserSession, FOciError, ParamBuffers[i].buffer, year, month, day, hour, min, sec, msec*1000000, nil, 0) = OCI_ERROR then
@@ -783,8 +840,6 @@ begin
                             PInteger(ParamBuffers[i].Buffer)^ := LobLength;
                             Move(LobBuffer[0], (ParamBuffers[i].Buffer+sizeof(integer))^, LobLength);
                             end;
-        else
-          DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);
       end;
 
       end;
@@ -793,8 +848,13 @@ end;
 
 procedure TOracleConnection.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  if OCIStmtRelease(TOracleCursor(cursor).FOciStmt,FOciError,nil,0,OCI_DEFAULT)<> OCI_SUCCESS then
-    HandleError();
+  with TOracleCursor(cursor) do
+    if FOciStmt<>nil then
+      begin
+      if OCIStmtRelease(FOciStmt,FOciError,nil,0,OCI_DEFAULT)<> OCI_SUCCESS then
+        HandleError();
+      FOciStmt:=nil;
+      end;
   cursor.FPrepared:=False;
 end;
 
@@ -880,6 +940,7 @@ begin
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
+    (cursor as TOracleCursor).FExecuted := True;
     end
   else
     begin
@@ -929,6 +990,10 @@ begin
     lCPCharSize := 1;
   with cursor as TOracleCursor do
     begin
+    // describe a statement that has not been executed yet
+    if not FExecuted then
+      if OCIStmtExecute(FOciSvcCtx,FOciStmt,FOciError,0,0,nil,nil,OCI_DESCRIBE_ONLY) = OCI_ERROR then
+        HandleError;
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@numcols,nil,OCI_ATTR_PARAM_COUNT,FOciError) = OCI_ERROR then
       HandleError;
 
@@ -961,35 +1026,43 @@ begin
                                   HandleError;
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@Oscale,nil,OCI_ATTR_SCALE,FOciError) = OCI_ERROR then
                                   HandleError;
-                                if (Oscale = 0) and (Oprecision < 10) then
+                                // up to NUMBER(5), NUMBER(10), NUMBER(19): 16, 32, 64 bit integers; larger values raise ORA-01455
+                                if (Oscale = 0) and (Oprecision > 0) and (Oprecision <= 19) then
                                   begin
-                                  if Oprecision=0 then //Number(0,0) = number(32,4)
-                                    begin
-                                    FieldType := ftFMTBCD;
-                                    FieldSize := 4;
-                                    OFieldType := SQLT_VNU;
-                                    OFieldSize:= 22;
-                                    end
-                                  else if Oprecision < 5 then
+                                  if Oprecision <= 5 then
                                     begin
                                     FieldType := ftSmallint;
                                     OFieldType := SQLT_INT;
                                     OFieldSize := sizeof(smallint);
                                     end
-                                  else // OPrecision=5..9, OScale=0
+                                  else if Oprecision <= 10 then
                                     begin
                                     FieldType := ftInteger;
                                     OFieldType := SQLT_INT;
                                     OFieldSize:= sizeof(integer);
+                                    end
+                                  else // OPrecision=11..19, OScale=0
+                                    begin
+                                    FieldType := ftLargeint;
+                                    OFieldType := SQLT_INT;
+                                    OFieldSize:= sizeof(int64);
                                     end;
                                   end
-                                else if (Oscale = -127) {and (OPrecision=0)} then
+                                else if (Oscale = 0) and (Oprecision = 0) then //Number(0,0) = number(32,4)
                                   begin
-                                  FieldType := ftFloat;
-                                  OFieldType := SQLT_FLT;
-                                  OFieldSize:=sizeof(double);
+                                  FieldType := ftFMTBCD;
+                                  FieldSize := 4;
+                                  OFieldType := SQLT_VNU;
+                                  OFieldSize:= 22;
                                   end
-                                else if (Oscale >=0) and (Oscale <=4) and (OPrecision<=12) then
+                                else if (Oscale = -127) then
+                                  begin
+                                  // FLOAT(n) and NUMBER: converted from the decimal value in LoadField
+                                  FieldType := ftFloat;
+                                  OFieldType := SQLT_VNU;
+                                  OFieldSize:= 22;
+                                  end
+                                else if (Oscale >=1) and (Oscale <=4) and (OPrecision-Oscale<=14) then // fits in Currency
                                   begin
                                   FieldType := ftBCD;
                                   FieldSize := oscale;
@@ -1019,7 +1092,10 @@ begin
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
         OCI_TYPECODE_VARCHAR2 : begin
-                                FieldType := ftString;
+                                if OFieldType = OCI_TYPECODE_CHAR then
+                                  FieldType := ftFixedChar
+                                else
+                                  FieldType := ftString;
                                 OCharSize := 0;
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@OCharSize,nil,OCI_ATTR_CHAR_SIZE,FOciError) = OCI_ERROR then
                                   HandleError;
@@ -1061,6 +1137,7 @@ begin
       end;
 
       FieldBuffers[counter-1].DescType := ODescType;
+      FieldBuffers[counter-1].DataType := OFieldType;
       if ODescType <> 0 then
         begin
         OBuffer := @FieldBuffers[counter-1].buffer;
@@ -1086,7 +1163,7 @@ begin
       setlength(Fieldname,OFNameLength);
       move(OFieldName^,Fieldname[1],OFNameLength);
 
-      if FieldType in [ftString, ftMemo] then
+      if FieldType in [ftString, ftFixedChar, ftMemo] then
         AddFieldDef(FieldDefs, counter, FieldName, FieldType, FieldSize, -1, False, False, False)
       else
         FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
@@ -1114,8 +1191,6 @@ function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; bu
 
 var
   b       : pbyte;
-  size,i  : byte;
-  exp     : shortint;
   cur     : Currency;
   odt     : TODateTime;
 
@@ -1127,32 +1202,24 @@ begin
     begin
     Result := True;
     case FieldDef.DataType of
-      ftString :
+      ftString,
+      ftFixedChar :
         StrLCopy(PAnsiChar(buffer),PAnsiChar(fieldbuffers[FieldDef.FieldNo-1].buffer),FieldDef.Size*FieldDef.CharSize);
       ftBCD :
         begin
-        b := fieldbuffers[FieldDef.FieldNo-1].buffer;
-        size := b[0];
-        cur := 0;
-        if (b[1] and $80)=$80 then // the number is positive
-          begin
-          exp := (b[1] and $7f)-65;
-          for i := 2 to size do
-            cur := cur + (b[i]-1) * intpower(100,-(i-2)+exp);
-          end
-        else
-          begin
-          exp := (not(b[1]) and $7f)-65;
-          for i := 2 to size-1 do
-            cur := cur + (101-b[i]) * intpower(100,-(i-2)+exp);
-          cur := -cur;
-          end;
+        if not BCDToCurr(Nvu2FmtBCD(fieldbuffers[FieldDef.FieldNo-1].buffer),cur) then
+          cur := 0;
         move(cur,buffer^,SizeOf(Currency));
         end;
       ftFmtBCD :
         pBCD(buffer)^:= Nvu2FmtBCD(fieldbuffers[FieldDef.FieldNo-1].buffer);
       ftFloat :
-        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
+        if fieldbuffers[FieldDef.FieldNo-1].DataType = SQLT_VNU then
+          PDouble(buffer)^ := Nvu2Double(fieldbuffers[FieldDef.FieldNo-1].buffer)
+        else
+          move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
+      ftLargeint :
+        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(int64));
       ftSmallInt :
         move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(smallint));
       ftInteger :
@@ -1237,26 +1304,28 @@ begin
     ReadOnly := True;
     sql.clear;
     sql.add('SELECT '+
-              'i.INDEX_NAME,  '+
+              'i.INDEX_NAME, '+
               'c.COLUMN_NAME, '+
-              'p.CONSTRAINT_TYPE '+
-            'FROM ALL_INDEXES i, ALL_IND_COLUMNS c,ALL_CONSTRAINTS p  '+
+              'p.CONSTRAINT_TYPE, '+
+              'i.UNIQUENESS '+
+            'FROM ALL_INDEXES i '+
+              'JOIN ALL_IND_COLUMNS c ON c.INDEX_OWNER=i.OWNER AND c.INDEX_NAME=i.INDEX_NAME '+
+              'LEFT JOIN ALL_CONSTRAINTS p ON p.OWNER=i.TABLE_OWNER AND p.TABLE_NAME=i.TABLE_NAME '+
+                'AND p.INDEX_NAME=i.INDEX_NAME AND p.CONSTRAINT_TYPE IN (''P'',''U'') '+
             'WHERE '+
-              'i.OWNER=c.INDEX_OWNER AND '+
-              'i.INDEX_NAME=c.INDEX_NAME AND '+
-              'p.INDEX_NAME(+)=i.INDEX_NAME AND '+
-              'c.TABLE_NAME = ''' + TableName + ''' '+
-            'ORDER by i.INDEX_NAME,c.COLUMN_POSITION');
+              'i.TABLE_OWNER=sys_context(''userenv'',''current_schema'') AND '+
+              'i.TABLE_NAME=' + QuotedStr(TableName) + ' '+
+            'ORDER BY i.INDEX_NAME,c.COLUMN_POSITION');
     open;
     end;
   while not qry.eof do with IndexDefs.AddIndexDef do
     begin
     Name := trim(qry.fields[0].asstring);
     Fields := trim(qry.Fields[1].asstring);
-    If UpperCase(qry.fields[2].asstring)='P' then options := options + [ixPrimary];
-    If UpperCase(qry.fields[2].asstring)='U' then options := options + [ixUnique];
+    If UpperCase(qry.fields[2].asstring)='P' then options := options + [ixPrimary,ixUnique];
+    If (UpperCase(qry.fields[2].asstring)='U') or (UpperCase(qry.fields[3].asstring)='UNIQUE') then options := options + [ixUnique];
     qry.next;
-    while (name = qry.fields[0].asstring) and (not qry.eof) do
+    while (not qry.eof) and (name = trim(qry.fields[0].asstring)) do
       begin
       Fields := Fields + ';' + trim(qry.Fields[1].asstring);
       qry.next;
@@ -1308,10 +1377,21 @@ begin
     stProcedures : s := 'SELECT '+
                           'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS procedure_name '+
                         'FROM USER_PROCEDURES ';
+    stSequences  : s := 'SELECT '+
+                          '''' + DatabaseName + ''' as sequence_catalog, '+
+                          'sys_context( ''userenv'', ''current_schema'' ) as sequence_schema, '+
+                          'SEQUENCE_NAME '+
+                        'FROM USER_SEQUENCES '+
+                        'ORDER BY SEQUENCE_NAME';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
   result := s;
+end;
+
+function TOracleConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := 'SELECT ' + SequenceName + '.NEXTVAL FROM DUAL';
 end;
 
 constructor TOracleConnection.Create(AOwner: TComponent);

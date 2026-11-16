@@ -76,6 +76,8 @@ var SQLConnType : TSQLConnType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
 
 function IdentifierCase(const s: string): string;
+// Column type for a 32-bit integer column: the ftInteger definition on Oracle, INT elsewhere
+function IntColumnType: string;
 
 implementation
 
@@ -170,6 +172,14 @@ begin
     else
                   Result := s; // mixed case
   end;
+end;
+
+function IntColumnType: string;
+begin
+  if SQLServerType=ssOracle then
+    Result := FieldtypeDefinitions[ftInteger]
+  else
+    Result := 'INT';
 end;
 
 { TSQLDBConnector }
@@ -333,9 +343,12 @@ begin
     ssOracle:
       begin
       FieldtypeDefinitions[ftBoolean]  := '';
-      // At least Oracle 10, 11 do not support a BIGINT field:
-      FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19,0)';
-      FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
+      // INTEGER and SMALLINT are NUMBER(38) in Oracle
+      FieldtypeDefinitions[ftSmallint] := 'NUMBER(5)';
+      FieldtypeDefinitions[ftInteger]  := 'NUMBER(10)';
+      FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19)';
+      // Oracle has no TIME data type
+      FieldtypeDefinitions[ftTime]     := '';
       FieldtypeDefinitions[ftMemo]     := 'CLOB';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR2(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
@@ -479,7 +492,7 @@ begin
     Ftransaction.StartTransaction;
     TryDropIfExist('FPDEV');
     Fconnection.ExecuteDirect('create table FPDEV (' +
-                              '  ID INT NOT NULL,  ' +
+                              '  ID ' + IntColumnType + ' NOT NULL,  ' +
                               '  NAME VARCHAR(50), ' +
                               '  PRIMARY KEY (ID)  ' +
                               ')');
@@ -522,7 +535,7 @@ begin
     Ftransaction.StartTransaction;
     TryDropIfExist('FPDEV_FIELD');
 
-    Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
+    Sql := 'create table FPDEV_FIELD (ID ' + IntColumnType + ' NOT NULL,';
     for FType := low(TFieldType)to high(TFieldType) do
       if FieldtypeDefinitions[FType]<>'' then
         sql := sql + 'F' + Fieldtypenames[FType] + ' ' +
@@ -757,7 +770,7 @@ begin
       ssOracle,
       ssPostgreSQL,
       ssSybase,
-      ssMSSQL : FConnection.ExecuteDirect('DROP SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+      ssMSSQL : FConnection.ExecuteDirect('DROP SEQUENCE '+ASequenceName);
       ssSQLite : FConnection.ExecuteDirect('delete from sqlite_sequence where (name='''+ASequenceName+''')');
     else
       NoSeq:=True;

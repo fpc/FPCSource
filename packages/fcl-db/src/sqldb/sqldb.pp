@@ -1860,11 +1860,11 @@ function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
 type
   TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppDDLObject,ppDDLName,ppBogus);
   TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
-  TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
+  TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwFETCH, kwUnknown);
 
 const
   KeywordNames: array[TKeyword] of string =
-    ('WITH', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'JOIN', 'WHERE', 'GROUP', 'ORDER', 'UNION', 'ROWS', 'LIMIT', '');
+    ('WITH', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'JOIN', 'WHERE', 'GROUP', 'ORDER', 'UNION', 'ROWS', 'LIMIT', 'FETCH', '');
 
 var
   PSQL, CurrentP, SavedP,
@@ -2025,7 +2025,7 @@ begin
                        ParsePart := ppFrom;
                      end;
           ppFrom   : begin
-                     if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
+                     if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS, kwFETCH]) or
                         (Separator = sepEnd) then
                        begin
                        case Keyword of
@@ -2047,7 +2047,7 @@ begin
                        end;
                      end;
           ppWhere  : begin
-                     if (Keyword in [kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
+                     if (Keyword in [kwGROUP, kwORDER, kwLIMIT, kwROWS, kwFETCH]) or
                         (Separator = sepEnd) then
                        begin
                        ParsePart := ppBogus;

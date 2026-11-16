@@ -187,9 +187,13 @@ begin
     // embedded quote in table name
     if SQLServerType in [ssMySQL] then
       name3 := '`FPdev``2`'
+    else if SQLServerType=ssOracle then
+      // Oracle does not accept a double quote inside a quoted identifier
+      name3 := ''
     else
       name3 := Connection.FieldNameQuoteChars[0]+'FPdev""2'+Connection.FieldNameQuoteChars[1];
-    ExecuteDirect('create table '+name3+' (Id3 integer not null, constraint PK_FPDEV23 primary key(Id3))');
+    if name3<>'' then
+      ExecuteDirect('create table '+name3+' (Id3 integer not null, constraint PK_FPDEV23 primary key(Id3))');
     CommitDDL;
   end;
 
@@ -207,19 +211,23 @@ begin
     CheckTrue(CompareText('ID2', Q.ServerIndexDefs[0].Fields)=0, '2.2'+Q.ServerIndexDefs[0].Fields);
     CheckTrue(Q.ServerIndexDefs[0].Options=[ixPrimary,ixUnique], '2.3');
 
-    Q.SQL.Text:='select * from '+name3;
-    Q.Prepare;
-    Q.ServerIndexDefs.Update;
-    CheckEquals(1, Q.ServerIndexDefs.Count, '3.1');
-    CheckTrue(CompareText('ID3', Q.ServerIndexDefs[0].Fields)=0, '3.2');
-    CheckTrue(Q.ServerIndexDefs[0].Options=[ixPrimary,ixUnique], '3.3');
+    if name3<>'' then
+      begin
+      Q.SQL.Text:='select * from '+name3;
+      Q.Prepare;
+      Q.ServerIndexDefs.Update;
+      CheckEquals(1, Q.ServerIndexDefs.Count, '3.1');
+      CheckTrue(CompareText('ID3', Q.ServerIndexDefs[0].Fields)=0, '3.2');
+      CheckTrue(Q.ServerIndexDefs[0].Options=[ixPrimary,ixUnique], '3.3');
+      end;
   finally
     Q.UnPrepare;
     with SQLDBConnector do
     begin
       ExecuteDirect('DROP TABLE '+name1);
       ExecuteDirect('DROP TABLE '+name2);
-      ExecuteDirect('DROP TABLE '+name3);
+      if name3<>'' then
+        ExecuteDirect('DROP TABLE '+name3);
       CommitDDL;
     end;
   end;
