@@ -56,6 +56,9 @@ Type
     Property CertificateData;
     Property UseSSL;
     Property StrictASCIIURL;
+    Property RequestReadTimeout;
+    Property RequestHeaderTimeout;
+    Property RequestBodyMinRate;
     // Connection handling model: none (serial), thread (one per connection) or threadpool.
     Property ThreadMode;
   end;
@@ -90,6 +93,8 @@ Type
     Procedure SetLookupHostnames(Avalue : Boolean);
     procedure SetUseSSL(AValue: Boolean);
     procedure SetStrictASCIIURL(AValue: Boolean);
+    function GetRequestLimit(aIndex: Integer): Integer;
+    procedure SetRequestLimit(aIndex: Integer; aValue: Integer);
   protected
     procedure HTTPHandleRequest(Sender: TObject; var ARequest: TFPHTTPConnectionRequest; var AResponse: TFPHTTPConnectionResponse); virtual;
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
@@ -126,6 +131,12 @@ Type
     Property HostName : String Read GetHostName Write SetHostName;
     // Require the whole request line (URL included) to be printable US-ASCII.
     Property StrictASCIIURL : Boolean Read GetStrictASCIIURL Write SetStrictASCIIURL Default True;
+    // Per-read time-out (ms) while reading a request. 0 disables.
+    Property RequestReadTimeout : Integer Index 0 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestReadTimeout;
+    // Time (ms) from the first byte of a request to the end of its headers. 0 disables.
+    Property RequestHeaderTimeout : Integer Index 1 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestHeaderTimeout;
+    // Average rate (bytes/s) a request body must arrive at. 0 disables.
+    Property RequestBodyMinRate : Integer Index 2 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestBodyMinRate;
     // Access to server so you can set certificate data
     Property HTTPServer : TEmbeddedHttpServer Read FServer;
   end;
@@ -158,6 +169,8 @@ Type
     procedure SetThreaded(const AValue: Boolean);
     procedure SetUseSSL(AValue: Boolean);
     procedure SetStrictASCIIURL(AValue: Boolean);
+    function GetRequestLimit(aIndex: Integer): Integer;
+    procedure SetRequestLimit(aIndex: Integer; aValue: Integer);
   protected
     function InitializeWebHandler: TWebHandler; override;
   Public
@@ -184,6 +197,12 @@ Type
     Property HostName : String Read GetHostName Write SetHostName;
     // Require the whole request line (URL included) to be printable US-ASCII.
     Property StrictASCIIURL : Boolean Read GetStrictASCIIURL Write SetStrictASCIIURL Default True;
+    // Per-read time-out (ms) while reading a request. 0 disables.
+    Property RequestReadTimeout : Integer Index 0 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestReadTimeout;
+    // Time (ms) from the first byte of a request to the end of its headers. 0 disables.
+    Property RequestHeaderTimeout : Integer Index 1 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestHeaderTimeout;
+    // Average rate (bytes/s) a request body must arrive at. 0 disables.
+    Property RequestBodyMinRate : Integer Index 2 Read GetRequestLimit Write SetRequestLimit Default DefaultRequestBodyMinRate;
     // Access to certificate data
     Property CertificateData : TCertificateData Read GetCertificateData;
   end;
@@ -318,6 +337,26 @@ begin
   HTTPHandler.StrictASCIIURL:=AValue;
 end;
 
+function TCustomHTTPApplication.GetRequestLimit(aIndex: Integer): Integer;
+begin
+  case aIndex of
+    0: Result:=HTTPHandler.RequestReadTimeout;
+    1: Result:=HTTPHandler.RequestHeaderTimeout;
+  else
+    Result:=HTTPHandler.RequestBodyMinRate;
+  end;
+end;
+
+procedure TCustomHTTPApplication.SetRequestLimit(aIndex: Integer; aValue: Integer);
+begin
+  case aIndex of
+    0: HTTPHandler.RequestReadTimeout:=aValue;
+    1: HTTPHandler.RequestHeaderTimeout:=aValue;
+  else
+    HTTPHandler.RequestBodyMinRate:=aValue;
+  end;
+end;
+
 function TCustomHTTPApplication.InitializeWebHandler: TWebHandler;
 begin
   Result:=TFPHTTPServerHandler.Create(Self);
@@ -412,6 +451,26 @@ end;
 procedure TFPHTTPServerHandler.SetStrictASCIIURL(AValue: Boolean);
 begin
   FServer.StrictASCIIURL:=AValue;
+end;
+
+function TFPHTTPServerHandler.GetRequestLimit(aIndex: Integer): Integer;
+begin
+  case aIndex of
+    0: Result:=FServer.RequestReadTimeout;
+    1: Result:=FServer.RequestHeaderTimeout;
+  else
+    Result:=FServer.RequestBodyMinRate;
+  end;
+end;
+
+procedure TFPHTTPServerHandler.SetRequestLimit(aIndex: Integer; aValue: Integer);
+begin
+  case aIndex of
+    0: FServer.RequestReadTimeout:=aValue;
+    1: FServer.RequestHeaderTimeout:=aValue;
+  else
+    FServer.RequestBodyMinRate:=aValue;
+  end;
 end;
 
 function TFPHTTPServerHandler.GetAllowConnect: TConnectQuery;

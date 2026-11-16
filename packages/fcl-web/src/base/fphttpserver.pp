@@ -38,6 +38,8 @@ Const
   DefaultMaxLiveConnectionCount = 128;
   DefaultKeepConnectionIdleTimeout = 50; // Ms
   DefaultRequestReadTimeout = 30000; // Ms. Per-read timeout while reading a request. 0 disables.
+  DefaultRequestHeaderTimeout = 30000; // Ms. Time from the first byte of a request to the end of its headers. 0 disables.
+  DefaultRequestBodyMinRate = 0; // Bytes per second a request body must arrive at. 0 disables.
   DefaultPolledAcceptIdleTimeout = 100; // Ms. Poll interval used for tmPolled when no AcceptIdleTimeout is set.
 
 Type
@@ -96,6 +98,11 @@ Type
     FBuffer : Ansistring;
     FKeepAlive : Boolean;
     FRequestDataReceived : Boolean; // True once a byte of the current request has been read.
+    FRequestDeadline : QWord; // Tick count by which the current part of the request must be read; 0: none.
+    // The time a single read may wait: RequestReadTimeout, at most the time left until FRequestDeadline; 0: no limit
+    function ReadWaitTime: Integer;
+    // Raises the time-out for a read that got no data within ReadWaitTime
+    procedure RaiseReadTimeout;
     function GetKeepConnections: Boolean;
     function GetKeepConnectionTimeout: Integer;
     function GetKeepConnectionIdleTimeout: Integer;
@@ -385,6 +392,8 @@ Type
     FPort: Word;
     FQueueSize: Word;
     FRequestReadTimeout: Integer;
+    FRequestHeaderTimeout: Integer;
+    FRequestBodyMinRate: Integer;
     FSend503OnMaxConnections: Boolean;
     FStrictASCIIURL: Boolean;
     FServer : TInetServer;
@@ -553,6 +562,10 @@ Type
     //   not the total request time. Protects against clients that connect and then stall mid-request
     //   (e.g. slowloris, or non-HTTP clients sending a TLS handshake to a plaintext port). 0 disables.
     Property RequestReadTimeout : Integer Read FRequestReadTimeout Write FRequestReadTimeout Default DefaultRequestReadTimeout;
+    // Time (ms) from the first byte of a request to the end of its headers; 408 when exceeded. 0 disables.
+    Property RequestHeaderTimeout : Integer Read FRequestHeaderTimeout Write FRequestHeaderTimeout Default DefaultRequestHeaderTimeout;
+    // Average rate (bytes/s) a request body must arrive at after a first RequestReadTimeout; 408 when slower. 0 disables.
+    Property RequestBodyMinRate : Integer Read FRequestBodyMinRate Write FRequestBodyMinRate Default DefaultRequestBodyMinRate;
     // If True (the default), the complete request line - including the URL - must be printable US-ASCII.
     //   If False, only the method and HTTP-version tokens are validated, so a URL may contain raw
     //   (non percent-encoded) high bytes. Switch off only if you must accept such non-conforming clients.
@@ -602,6 +615,8 @@ Type
     Property MaxLineLength;
     Property MaxHeaderCount;
     Property RequestReadTimeout;
+    Property RequestHeaderTimeout;
+    Property RequestBodyMinRate;
     Property StrictASCIIURL;
   end;
 
@@ -623,6 +638,7 @@ resourcestring
   SErrIncompleteBody  = 'Request body incomplete: %d of %d bytes received';
   SErrAcceptFailed    = 'Error accepting a connection: %s: %s';
   SErrRequestReadTimeout = 'Time-out after %d ms reading request from %s (connection %s), closing connection';
+  SErrRequestDeadline = 'Request from %s (connection %s) not received in time, closing connection';
   SErrMissingProtocol = 'Missing HTTP protocol version in request "%s"';
   SErrInvalidRequestLine = 'Invalid characters in request line "%s"';
   SErrInvalidMethod = 'Invalid HTTP method in request line "%s"';
@@ -1669,6 +1685,8 @@ begin
   FMaxLiveConnectionCount:=DefaultMaxLiveConnectionCount;
   FSend503OnMaxConnections:=True;
   FRequestReadTimeout:=DefaultRequestReadTimeout;
+  FRequestHeaderTimeout:=DefaultRequestHeaderTimeout;
+  FRequestBodyMinRate:=DefaultRequestBodyMinRate;
   FStrictASCIIURL:=True;
 end;
 
@@ -1794,7 +1812,7 @@ function TFPHTTPConnection.ReadString : String;
   Procedure FillBuffer;
 
   Var
-    R : Integer;
+    R, lWait : Integer;
 
   begin
     // Do not block indefinitely while reading a request. If a read time-out is
@@ -1802,8 +1820,8 @@ function TFPHTTPConnection.ReadString : String;
     // request (an idle/preconnect socket) or it stalled mid-request (slowloris).
     // CanRead uses select(), so it is portable and tells us "no data within timeout"
     // without depending on platform errno values. The two cases are handled below.
-    if Assigned(Server) and (Server.RequestReadTimeout>0)
-       and not FSocket.CanRead(Server.RequestReadTimeout) then
+    lWait:=ReadWaitTime;
+    if (lWait>0) and not FSocket.CanRead(lWait) then
       begin
       // Distinguish an idle connection from a stalled request. If not a single byte
       // of the current request has arrived, the peer opened the connection but sent
@@ -1816,8 +1834,7 @@ function TFPHTTPConnection.ReadString : String;
         FBuffer:='';
         Exit;
         end;
-      Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
-              [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+      RaiseReadTimeout;
       end;
     SetLength(FBuffer,ReadBufLen);
     r:=FSocket.Read(FBuffer[1],ReadBufLen);
@@ -1825,8 +1842,12 @@ function TFPHTTPConnection.ReadString : String;
       Raise EHTTPServer.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
-    if (r>0) then
+    if (r>0) and not FRequestDataReceived then
+      begin
       FRequestDataReceived:=True;
+      if Assigned(Server) and (Server.RequestHeaderTimeout>0) then
+        FRequestDeadline:=GetTickCount64+QWord(Server.RequestHeaderTimeout);
+      end;
   end;
 
 Var
@@ -1915,6 +1936,36 @@ begin
   else if Assigned(Server) and Server.CanLog(hlmError) then
      Server.DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
 end;
+
+function TFPHTTPConnection.ReadWaitTime: Integer;
+
+var
+  lNow : QWord;
+
+begin
+  Result:=0;
+  if Assigned(Server) then
+    Result:=Server.RequestReadTimeout;
+  if FRequestDeadline=0 then
+    Exit;
+  lNow:=GetTickCount64;
+  if lNow>=FRequestDeadline then
+    RaiseReadTimeout;
+  if (Result=0) or (FRequestDeadline-lNow<QWord(Result)) then
+    Result:=FRequestDeadline-lNow;
+end;
+
+
+procedure TFPHTTPConnection.RaiseReadTimeout;
+
+begin
+  if (FRequestDeadline<>0) and (GetTickCount64>=FRequestDeadline) then
+    Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestDeadline,
+            [NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+  Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
+          [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+end;
+
 
 procedure TFPHTTPConnection.SetupSocket;
 begin
@@ -2047,10 +2098,11 @@ procedure TFPHTTPConnection.ReadRequestContent(
   ARequest: TFPHTTPConnectionRequest);
 
 Var
-  P,R : integer;
+  P,R,lWait,lGrace,lRate : integer;
   L : SizeInt;
   S : TBytes;
   Err : EHTTPServer;
+  lStart : QWord;
 
 begin
   S:=[];
@@ -2069,15 +2121,26 @@ begin
       FBuffer:='';
       L:=L-P;
       end;
+    lStart:=GetTickCount64;
+    lGrace:=0;
+    lRate:=0;
+    if Assigned(Server) then
+      begin
+      lRate:=Server.RequestBodyMinRate;
+      lGrace:=Server.RequestReadTimeout;
+      end;
+    if lGrace<=0 then
+      lGrace:=DefaultRequestReadTimeout;
     R:=1;
     While (L>0) and (R>0) do
       begin
       // Same stall protection as the header reader: a client that announced a
       // body but stops sending must not block the connection indefinitely.
-      if Assigned(Server) and (Server.RequestReadTimeout>0)
-         and not FSocket.CanRead(Server.RequestReadTimeout) then
-        Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
-                [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+      if lRate>0 then
+        FRequestDeadline:=lStart+QWord(lGrace)+QWord(Int64(P)*1000 div lRate);
+      lWait:=ReadWaitTime;
+      if (lWait>0) and not FSocket.CanRead(lWait) then
+        RaiseReadTimeout;
       R:=FSocket.Read(S[p],L);
       If R<0 then
         Raise EHTTPServer.Create(SErrReadingSocket);
@@ -2087,6 +2150,7 @@ begin
         L:=L-R;
         end;
       end;
+    FRequestDeadline:=0;
     if L>0 then
       begin
       Err:=EHTTPServer.CreateFmt(SErrIncompleteBody,[P,Length(S)]);
@@ -2110,6 +2174,7 @@ begin
   // A fresh request starts here: no byte received yet. This lets FillBuffer treat a
   // first-byte read time-out as an idle connection rather than a slowloris stall.
   FRequestDataReceived:=False;
+  FRequestDeadline:=0;
   StartLine:=ReadString;
   if StartLine='' then
     exit;
@@ -2132,6 +2197,7 @@ begin
         Raise Err;
         end;
     Until (S='');
+    FRequestDeadline:=0;
     Result.RemoteAddress :=  NetAddrToStr(FSocket.RemoteAddress.sin_addr);
     Result.ServerPort := FServer.Port;
   except
