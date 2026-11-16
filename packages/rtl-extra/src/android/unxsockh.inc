@@ -140,6 +140,37 @@ Const
          SO_TIMESTAMP    = 29;
          SCM_TIMESTAMP   = SO_TIMESTAMP;
          SO_ACCEPTCONN   = 30;
+         SO_SNDBUFFORCE           = 32;
+         SO_RCVBUFFORCE           = 33;
+         SO_PROTOCOL              = 38;
+         SO_DOMAIN                = 39;
+         SO_PEERSEC               = 31;
+         SO_PASSSEC               = 34;
+         SO_TIMESTAMPNS           = 35;
+         SCM_TIMESTAMPNS          = SO_TIMESTAMPNS;
+         SO_MARK                  = 36;
+         SO_TIMESTAMPING          = 37;
+         SCM_TIMESTAMPING         = SO_TIMESTAMPING;
+         SO_RXQ_OVFL              = 40;
+         SO_WIFI_STATUS           = 41;
+         SO_PEEK_OFF              = 42;
+         SO_BUSY_POLL             = 46;
+         SO_MAX_PACING_RATE       = 47;
+         SO_ATTACH_BPF            = 50;
+         SO_ATTACH_REUSEPORT_EBPF = 52;
+         SO_COOKIE                = 57;
+         SO_PEERGROUPS            = 59;
+         SO_ZEROCOPY              = 60;
+         SO_TXTIME                = 61;
+         SO_BINDTOIFINDEX         = 62;
+         SO_DETACH_REUSEPORT_BPF  = 68;
+         SO_PREFER_BUSY_POLL      = 69;
+         SO_NETNS_COOKIE          = 71;
+         SO_BUF_LOCK              = 72;
+         SO_RESERVE_MEM           = 73;
+         SO_RCVMARK               = 75;
+         SO_PASSPIDFD             = 76;
+         SO_PEERPIDFD             = 77;
 {$endif cpumips}
 
 // Following from kernel 2.6.14-1.1637_FC4
