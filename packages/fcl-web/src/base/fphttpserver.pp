@@ -620,6 +620,8 @@ implementation
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
+  SErrIncompleteBody  = 'Request body incomplete: %d of %d bytes received';
+  SErrAcceptFailed    = 'Error accepting a connection: %s: %s';
   SErrRequestReadTimeout = 'Time-out after %d ms reading request from %s (connection %s), closing connection';
   SErrMissingProtocol = 'Missing HTTP protocol version in request "%s"';
   SErrInvalidRequestLine = 'Invalid characters in request line "%s"';
@@ -1244,11 +1246,22 @@ end;
 
 procedure TFPCustomHttpServer.DoAcceptError(Sender: TObject; ASocket: TFPSocket;
   E: Exception; var ErrorAction: TAcceptErrorAction);
+
+const
+  AcceptErrorDelay = 50; // ms
+
 begin
   If Not Active then
-    ErrorAction:=AEAStop
-  else
-    ErrorAction:=AEARaise
+    begin
+    ErrorAction:=AEAStop;
+    Exit;
+    end;
+  ErrorAction:=AEAIgnore;
+  if CanLog(hlmError) then
+    DoLog(hlmError,SErrAcceptFailed,[E.ClassName,E.Message]);
+  // Back off after a failed accept
+  if (E is ESocketError) and (ESocketError(E).Code=seAcceptFailed) then
+    Sleep(AcceptErrorDelay);
 end;
 
 function TFPCustomHttpServer.GetActive: Boolean;
@@ -2037,6 +2050,7 @@ Var
   P,R : integer;
   L : SizeInt;
   S : TBytes;
+  Err : EHTTPServer;
 
 begin
   S:=[];
@@ -2072,6 +2086,13 @@ begin
         P:=P+R;
         L:=L-R;
         end;
+      end;
+    if L>0 then
+      begin
+      Err:=EHTTPServer.CreateFmt(SErrIncompleteBody,[P,Length(S)]);
+      Err.StatusCode:=400;
+      Err.StatusText:='BAD REQUEST';
+      Raise Err;
       end;
     end;
   ARequest.ContentBytes:=S;

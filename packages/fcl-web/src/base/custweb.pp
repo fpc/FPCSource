@@ -857,6 +857,7 @@ end;
 constructor TCustomWebApplication.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
+  ExceptionExitCode:=1;
   FWebHandler := InitializeWebHandler;
   FWebHandler.FOnTerminate:=@DoOnTerminate;
   FWebHandler.FOnLog:=@Log;
