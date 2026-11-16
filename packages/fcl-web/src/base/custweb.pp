@@ -64,6 +64,9 @@ Type
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
+    FModuleLock : TRTLCriticalSection;
+    // A pooled module of class MC from the component list, or a new module; new pooled modules are added to the list
+    function GetModule(MC: TCustomHTTPModuleClass; aSkipStreaming: Boolean): TCustomHTTPModule;
     procedure CreateExceptionHTMLPage(R: TResponse; E: Exception);
     procedure CreateExceptionJSON(R: TResponse; E: Exception);
     procedure DoCallModule(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest; AResponse: TResponse);
@@ -425,22 +428,36 @@ Var
   MC : TCustomHTTPModuleClass;
   M  : TCustomHTTPModule;
   MN : String;
-  lNewName : string;
-  i : Integer;
 
 begin
   MC:=Sender.ModuleClass;
   MN:=Sender.ModuleName;
   // Modules expect the path info to contain the action name as the first part. (See getmodulename);
   ARequest.GetNextPathInfo;
-  M:=FindModule(MC);
-  if (M=Nil) then
-    begin
-    if Sender.SkipStreaming then
-      M:=MC.CreateNew(Nil)
+  M:=GetModule(MC,Sender.SkipStreaming);
+  DoCallModule(M,MN,ARequest,AResponse);
+end;
+
+function TWebHandler.GetModule(MC: TCustomHTTPModuleClass; aSkipStreaming: Boolean): TCustomHTTPModule;
+
+Var
+  lNewName : string;
+  i : Integer;
+
+begin
+  EnterCriticalSection(FModuleLock);
+  try
+    Result:=FindModule(MC);
+    if Assigned(Result) then
+      Exit;
+    if aSkipStreaming then
+      Result:=MC.CreateNew(Nil)
     else
-      M:=MC.Create(Nil);
-    lNewName:=M.Name;
+      Result:=MC.Create(Nil);
+    // One-shot modules have no owner
+    if Result.Kind=wkOneShot then
+      Exit;
+    lNewName:=Result.Name;
     if lNewName<>'' then
       begin
       // Make sure we have a unique name.
@@ -448,13 +465,14 @@ begin
       While Self.FindComponent(lNewName)<>Nil do
         begin
         Inc(I);
-        lNewName:=M.Name+IntTostr(I);
+        lNewName:=Result.Name+IntTostr(I);
         end;
-      M.Name:=lNewName;
+      Result.Name:=lNewName;
       end;
-    Self.InsertComponent(M);
-    end;
-  DoCallModule(M,MN,ARequest,AResponse);
+    Self.InsertComponent(Result);
+  finally
+    LeaveCriticalSection(FModuleLock);
+  end;
 end;
 
 procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
@@ -493,13 +511,8 @@ begin
       DoError(SErrNoModuleForRequest,[MN],400,'Not found');
     MC:=MI.ModuleClass;
     end;
-  M:=FindModule(MC); // Check if a module exists already
-  If (M=Nil) then
-    if assigned(MI) and Mi.SkipStreaming then
-      M:=MC.CreateNew(Self)
-    else
-      M:=MC.Create(Self);
-   DoCallModule(M,MN,ARequest,AResponse);
+  M:=GetModule(MC,Assigned(MI) and MI.SkipStreaming);
+  DoCallModule(M,MN,ARequest,AResponse);
 end;
 
 procedure TWebHandler.SetRedirectOnErrorURL(AValue: string);
@@ -634,6 +647,7 @@ end;
 
 constructor TWebHandler.Create(AOwner:TComponent);
 begin
+  InitCriticalSection(FModuleLock);
   inherited Create(AOwner);
   FModuleVar:='Module'; // Do not localize
   FAllowDefaultModule:=True;
@@ -647,6 +661,7 @@ destructor TWebHandler.Destroy;
 begin
   ModuleFactory.OnModuleRequest:=@HandleModuleRequest;
   Inherited;
+  DoneCriticalSection(FModuleLock);
 end;
 
 { TCustomWebApplication }
