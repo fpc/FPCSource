@@ -108,6 +108,23 @@ type
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
     FOnIndexMissing: TDbfIndexMissingEvent;
+    FBigEndianHeader: Boolean;
+    function GetHdrRecordCount: Integer;
+    procedure SetHdrRecordCount(aValue: Integer);
+    function GetHdrFullHdrSize: Word;
+    procedure SetHdrFullHdrSize(aValue: Word);
+    function GetHdrRecordSize: Word;
+    procedure SetHdrRecordSize(aValue: Word);
+    // True if the 32-byte header is only consistent with the file size when read big-endian
+    function IsBigEndianHeader: Boolean;
+    // Rewrites a big-endian header in little-endian order
+    procedure ConvertBigEndianHeader;
+    // Record count stored in the file header
+    property HdrRecordCount: Integer read GetHdrRecordCount write SetHdrRecordCount;
+    // Full header size stored in the file header
+    property HdrFullHdrSize: Word read GetHdrFullHdrSize write SetHdrFullHdrSize;
+    // Record size stored in the file header
+    property HdrRecordSize: Word read GetHdrRecordSize write SetHdrRecordSize;
     // Yes if table has blob/memo type field(s) (storage in external file)
     function  HasBlob: Boolean;
     // File extension for memo field; uppercase if FFileName is uppercase
@@ -425,6 +442,110 @@ begin
   inherited;
 end;
 
+function TDbfFile.GetHdrRecordCount: Integer;
+
+begin
+  if FBigEndianHeader then
+    Result := Integer(SwapIntBE(DWord(PDbfHdr(Header)^.RecordCount)))
+  else
+    Result := Integer(SwapIntLE(DWord(PDbfHdr(Header)^.RecordCount)));
+end;
+
+
+procedure TDbfFile.SetHdrRecordCount(aValue: Integer);
+
+begin
+  if FBigEndianHeader then
+    PDbfHdr(Header)^.RecordCount := Integer(SwapIntBE(DWord(aValue)))
+  else
+    PDbfHdr(Header)^.RecordCount := Integer(SwapIntLE(DWord(aValue)));
+end;
+
+
+function TDbfFile.GetHdrFullHdrSize: Word;
+
+begin
+  if FBigEndianHeader then
+    Result := SwapWordBE(PDbfHdr(Header)^.FullHdrSize)
+  else
+    Result := SwapWordLE(PDbfHdr(Header)^.FullHdrSize);
+end;
+
+
+procedure TDbfFile.SetHdrFullHdrSize(aValue: Word);
+
+begin
+  if FBigEndianHeader then
+    PDbfHdr(Header)^.FullHdrSize := SwapWordBE(aValue)
+  else
+    PDbfHdr(Header)^.FullHdrSize := SwapWordLE(aValue);
+end;
+
+
+function TDbfFile.GetHdrRecordSize: Word;
+
+begin
+  if FBigEndianHeader then
+    Result := SwapWordBE(PDbfHdr(Header)^.RecordSize)
+  else
+    Result := SwapWordLE(PDbfHdr(Header)^.RecordSize);
+end;
+
+
+procedure TDbfFile.SetHdrRecordSize(aValue: Word);
+
+begin
+  if FBigEndianHeader then
+    PDbfHdr(Header)^.RecordSize := SwapWordBE(aValue)
+  else
+    PDbfHdr(Header)^.RecordSize := SwapWordLE(aValue);
+end;
+
+
+function TDbfFile.IsBigEndianHeader: Boolean;
+
+var
+  lFileSize: Int64;
+  lHdr: PDbfHdr;
+
+  // Header size, record size and record count agree with the file size
+  function Consistent(aHdrSize, aRecSize: Word; aRecCount: Integer): Boolean;
+
+  begin
+    Result := (aHdrSize > SizeOf(rDbfHdr)) and (aRecSize > 0) and (aRecCount >= 0)
+      and (aHdrSize <= lFileSize) and ((lFileSize - aHdrSize) div aRecSize = aRecCount);
+  end;
+
+
+begin
+  lFileSize := Stream.Size - HeaderOffset;
+  lHdr := PDbfHdr(Header);
+  Result := not Consistent(SwapWordLE(lHdr^.FullHdrSize), SwapWordLE(lHdr^.RecordSize),
+                           Integer(SwapIntLE(DWord(lHdr^.RecordCount))))
+            and Consistent(SwapWordBE(lHdr^.FullHdrSize), SwapWordBE(lHdr^.RecordSize),
+                           Integer(SwapIntBE(DWord(lHdr^.RecordCount))));
+end;
+
+
+procedure TDbfFile.ConvertBigEndianHeader;
+
+var
+  lRecordCount: Integer;
+  lFullHdrSize, lRecordSize: Word;
+
+begin
+  lRecordCount := HdrRecordCount;
+  lFullHdrSize := HdrFullHdrSize;
+  lRecordSize := HdrRecordSize;
+  FBigEndianHeader := false;
+  HdrRecordCount := lRecordCount;
+  HdrFullHdrSize := lFullHdrSize;
+  HdrRecordSize := lRecordSize;
+  inherited WriteHeader;
+  FlushHeader;
+end;
+
+
 procedure TDbfFile.Open;
 var
   lMemoFileName: string;
@@ -553,13 +674,19 @@ begin
 
     // check if we opened an already existing file
     lModified := false;
+    FBigEndianHeader := false;
     if not FileCreated then
     begin
       HeaderSize := sizeof(rDbfHdr); // temporary, required for getting version
       GetVersion;
 
-      RecordSize := PDbfHdr(Header)^.RecordSize;
-      HeaderSize := PDbfHdr(Header)^.FullHdrSize;
+      // header written in native order by a big-endian host
+      FBigEndianHeader := IsBigEndianHeader;
+      if FBigEndianHeader and (Mode <> pfReadOnly) then
+        ConvertBigEndianHeader;
+
+      RecordSize := HdrRecordSize;
+      HeaderSize := HdrFullHdrSize;
       if (HeaderSize = 0) or (RecordSize = 0) then
       begin
         HeaderSize := 0;
@@ -570,9 +697,9 @@ begin
       end;
 
       // check if specified recordcount is right; correct if not
-      if PDbfHdr(Header)^.RecordCount <> RecordCount then
+      if HdrRecordCount <> RecordCount then
       begin
-        PDbfHdr(Header)^.RecordCount := RecordCount;
+        HdrRecordCount := RecordCount;
         lModified := true;
       end;
 
@@ -894,7 +1021,7 @@ begin
 
           //AutoInc only support in Visual Foxpro; another upgrade
           //Note: .AutoIncrementNext is really a cardinal (see the definition)
-          PCardinal(@lFieldDescIII.AutoIncrementNext)^:=SwapIntLE(lFieldDef.AutoInc);
+          Unaligned(PCardinal(@lFieldDescIII.AutoIncrementNext)^):=SwapIntLE(lFieldDef.AutoInc);
           lFieldDescIII.AutoIncrementStep:=lFieldDef.AutoIncStep;
           // Set autoincrement flag using AutoIncStep as a marker
           if (lFieldDef.AutoIncStep<>0) then
@@ -968,19 +1095,19 @@ begin
     end;
 
     // Update header to correct sizes
-    PDbfHdr(Header)^.RecordSize := lFieldOffset;
+    HdrRecordSize := lFieldOffset;
     if lNullVarFlagCount>0 then
-      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count + 1) + 1
+      HdrFullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count + 1) + 1
     else
-      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
+      HdrFullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
     if DbfVersion=xVisualFoxPro then
-      PDbfHdr(Header)^.FullHdrSize := PDbfHdr(Header)^.FullHdrSize + SizeOf(rEndHdrVFP);
+      HdrFullHdrSize := HdrFullHdrSize + SizeOf(rEndHdrVFP);
 
     // write dbf header to disk
     inherited WriteHeader;
   finally
-    RecordSize := PDbfHdr(Header)^.RecordSize;
-    HeaderSize := PDbfHdr(Header)^.FullHdrSize;
+    RecordSize := HdrRecordSize;
+    HeaderSize := HdrFullHdrSize;
 
     // write full header to disk (dbf+fields)
     WriteHeader;
@@ -1089,7 +1216,7 @@ begin
         lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rEndFixedHdrVII) +
           FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
         // write new value to header buffer
-        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(ThisNextAutoInc);
+        Unaligned(PCardinal(FHeader+lAutoIncOffset)^) := SwapIntLE(ThisNextAutoInc);
       end
       else //No DBaseVII
       if (DbfVersion=xVisualFoxPro) and (TempFieldDef.NativeFieldType = 'I') and
@@ -1098,7 +1225,7 @@ begin
         // read current auto inc from field header
         lAutoIncOffset := SizeOf(rDbfHdr) + FieldDescIII_AutoIncOffset +
           SizeOf(rFieldDescIII) * I;
-        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(ThisNextAutoInc);
+        Unaligned(PCardinal(FHeader+lAutoIncOffset)^) := SwapIntLE(ThisNextAutoInc);
       end;
     end;
 
@@ -1139,7 +1266,7 @@ begin
   // make recordcount zero
   RecordCount := 0;
   // update recordcount
-  PDbfHdr(Header)^.RecordCount := RecordCount;
+  HdrRecordCount := RecordCount;
   // update disk header
   WriteHeader;
   // update indexes
@@ -1166,8 +1293,8 @@ begin
 
   // Write terminator at the end of the file, after the records:
   EofTerminator := $1A;
-  // We're using lDataHdr to make sure we have the latest/correct version
-  WriteBlock(@EofTerminator, 1, CalcPageOffset(lDataHdr.RecordCount+1));
+  // record count as stored in the header just written
+  WriteBlock(@EofTerminator, 1, CalcPageOffset(HdrRecordCount+1));
 end;
 
 procedure TDbfFile.ConstructFieldDefs;
@@ -1219,9 +1346,9 @@ begin
   HeaderSize := lFakeHeaderSize;
   RecordSize := lFieldSize;
   if FDbfVersion=xVisualFoxPro then
-    lColumnCount := (PDbfHdr(Header)^.FullHdrSize - lFakeHeaderSize - SizeOf(rEndHdrVFP)) div lFieldSize
+    lColumnCount := (HdrFullHdrSize - lFakeHeaderSize - SizeOf(rEndHdrVFP)) div lFieldSize
   else
-    lColumnCount := (PDbfHdr(Header)^.FullHdrSize - lFakeHeaderSize) div lFieldSize;
+    lColumnCount := (HdrFullHdrSize - lFakeHeaderSize) div lFieldSize;
 
   FBackLinkOffset := 0;
   FLockField := nil;
@@ -1261,7 +1388,7 @@ begin
         if (FDBFVersion=xVisualFoxPro) and ((lFieldDescIII.VisualFoxProFlags and $0C)<>0) then
         begin
           // We do not test for an I field - we could implement our own N autoincrement this way...
-          lAutoInc := PCardinal(@lFieldDescIII.AutoIncrementNext)^;
+          lAutoInc := SwapIntLE(Unaligned(PCardinal(@lFieldDescIII.AutoIncrementNext)^));
           lAutoIncStep := lFieldDescIII.AutoIncrementStep;
           FAutoIncPresent := True;
         end;
@@ -1362,16 +1489,19 @@ begin
 
     // dBase 7 -> read field properties, test if enough space, maybe no header
     if (FDbfVersion = xBaseVII) and (lPropHdrOffset + Sizeof(lFieldPropsHdr) <
-      PDbfHdr(Header)^.FullHdrSize) then
+      HdrFullHdrSize) then
     begin
       // read in field properties header
       ReadBlock(@lFieldPropsHdr, SizeOf(lFieldPropsHdr), lPropHdrOffset);
       // read in standard properties
-      lFieldOffset := lPropHdrOffset + lFieldPropsHdr.StartStdProps;
-      for I := 0 to lFieldPropsHdr.NumStdProps - 1 do
+      lFieldOffset := lPropHdrOffset + SwapWordLE(lFieldPropsHdr.StartStdProps);
+      for I := 0 to SwapWordLE(lFieldPropsHdr.NumStdProps) - 1 do
       begin
         // read property data
         ReadBlock(@lStdProp, SizeOf(lStdProp), lFieldOffset+I*SizeOf(lStdProp));
+        lStdProp.FieldOffset := SwapWordLE(lStdProp.FieldOffset);
+        lStdProp.DataOffset := SwapWordLE(lStdProp.DataOffset);
+        lStdProp.DataSize := SwapWordLE(lStdProp.DataSize);
         // is this a constraint?
         if lStdProp.FieldOffset = 0 then
         begin
@@ -1412,8 +1542,8 @@ begin
     end;
   finally
     // Restore proper sizes so normal records after the header can be read
-    HeaderSize := PDbfHdr(Header)^.FullHdrSize;
-    RecordSize := PDbfHdr(Header)^.RecordSize;
+    HeaderSize := HdrFullHdrSize;
+    RecordSize := HdrRecordSize;
   end;
 end;
 
@@ -1818,7 +1948,7 @@ begin
     // crop deleted records
     RecordCount := lWRecNo - 1;
     // update date/time stamp, recordcount
-    PDbfHdr(Header)^.RecordCount := RecordCount;
+    HdrRecordCount := RecordCount;
     WriteHeader;
   finally
     // close temporary file
@@ -2030,7 +2160,7 @@ begin
         Result := true;
         if Dst <> nil then
         begin
-          PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
+          SwapInt64LE(Src, Dst);
           if DataType = ftCurrency then
             PDouble(Dst)^ := PInt64(Dst)^ / 10000.0;
         end;
@@ -2507,7 +2637,7 @@ var
   TempFieldDef: TDbfFieldDef;
   I: Integer;
 begin
-  lRecordSize := PDbfHdr(Header)^.RecordSize;
+  lRecordSize := HdrRecordSize;
   // clear buffer (assume all string, fix specific fields later)
   //   note: Self.RecordSize is used for reading fielddefs too
   GetMem(FDefaultBuffer, lRecordSize+1);
@@ -2586,12 +2716,12 @@ begin
         end else
           NextVal := TempFieldDef.AutoInc;
         // store to buffer, positive = high bit on, so flip it
-        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal or $80000000);
+        Unaligned(PCardinal(DestBuf+TempFieldDef.Offset)^) := SwapIntBE(NextVal or $80000000);
         // increase
         Inc(NextVal);
         TempFieldDef.AutoInc := NextVal;
         // write new value to header buffer
-        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
+        Unaligned(PCardinal(FHeader+lAutoIncOffset)^) := SwapIntLE(NextVal);
       end
       else //No DBaseVII
       if (DbfVersion=xVisualFoxPro) and (TempFieldDef.NativeFieldType = 'I') and
@@ -2606,12 +2736,12 @@ begin
           NextVal := SwapIntLE(NextVal);
         end else
           NextVal := TempFieldDef.AutoInc;
-        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntLE(NextVal);
+        Unaligned(PCardinal(DestBuf+TempFieldDef.Offset)^) := SwapIntLE(NextVal);
         // Increase with step size
         NextVal:=NextVal+TempFieldDef.AutoIncStep;
         // write new value back
         TempFieldDef.AutoInc:=NextVal;
-        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
+        Unaligned(PCardinal(FHeader+lAutoIncOffset)^) := SwapIntLE(NextVal);
       end;
     end;
 
@@ -3065,7 +3195,7 @@ begin
   // read current header
   ReadHeader;
   // increase current record count
-  Inc(PDbfHdr(Header)^.RecordCount);
+  HdrRecordCount := HdrRecordCount + 1;
   // write header to disk
   WriteHeader;
   // done with header
@@ -3099,7 +3229,7 @@ begin
     // rolled back
     LockPage(0, true);
     ReadHeader;
-    Dec(PDbfHdr(Header)^.RecordCount);
+    HdrRecordCount := HdrRecordCount - 1;
     WriteHeader;
     UnlockPage(0);
     // roll back indexes, too
@@ -3118,7 +3248,7 @@ var
 begin
   // increase change count
   lockoffset := FLockField.Offset;
-  Inc(PWord(Buffer+lockoffset)^);
+  Unaligned(PWord(Buffer+lockoffset)^) := Unaligned(PWord(Buffer+lockoffset)^) + 1;
   // set time
   DecodeDate(Now(), year, month, day);
   DecodeTime(Now(), hour, minute, sec, msec);

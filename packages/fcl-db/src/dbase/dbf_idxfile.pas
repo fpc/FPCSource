@@ -2632,7 +2632,7 @@ begin
     TempFile.WriteHeader;
     GetMem(TempIdxHeader, RecordSize);
     // now recreate indexes to that file
-    for I := 0 to SwapWordLE(PMdxHdr(Header)^.TagsUsed - 1) do
+    for I := 0 to SwapWordLE(PMdxHdr(Header)^.TagsUsed) - 1 do
     begin
       // select this index
       SelectIndexVars(I);

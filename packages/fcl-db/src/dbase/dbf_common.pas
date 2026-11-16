@@ -332,12 +332,12 @@ end;
 
 procedure SwapInt64BE(Value, Result: Pointer);
 begin
-  PInt64(Result)^ := BEtoN(PInt64(Value)^);
+  Unaligned(PInt64(Result)^) := BEtoN(Unaligned(PInt64(Value)^));
 end;
 
 procedure SwapInt64LE(Value, Result: Pointer);
 begin
-  PInt64(Result)^ := LEtoN(PInt64(Value)^);
+  Unaligned(PInt64(Result)^) := LEtoN(Unaligned(PInt64(Value)^));
 end;
 
 {$else}

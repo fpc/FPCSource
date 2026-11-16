@@ -74,6 +74,10 @@ type
     procedure TestCodePage;
     // Tests large values in a numeric float field of size 20 with 5 decimals
     procedure TestLargeFloat;
+    // Tests a file whose header is stored big-endian, opened writable and read-only
+    procedure TestBigEndianHeader;
+    // Tests negative and large values in a (Visual) FoxPro currency field
+    procedure TestCurrency;
   end;
 
 
@@ -769,6 +773,151 @@ begin
     CheckTooLarge(1E23,1E19,'1E23');
     CheckTooLarge(1E30,1E19,'1E30');
     CheckTooLarge(-1E19,1E19,'-1E19');
+    DS.Close;
+  finally
+    ds.free;
+  end;
+end;
+
+procedure TTestSpecificTDBF.TestBigEndianHeader;
+
+const
+  RecCount = 3;
+
+type
+  THeaderBytes = array[4..11] of Byte;
+
+var
+  ds: TDBF;
+  lStream: TMemoryStream;
+  lLE, lBE, lCheck: THeaderBytes;
+  lDir, lFileName: string;
+  lFile: TFileStream;
+  I: Integer;
+
+  // Swaps the record count (4-7), header size (8-9) and record size (10-11)
+  procedure SwapHeader(const aSrc: THeaderBytes; out aDest: THeaderBytes);
+
+  begin
+    aDest[4] := aSrc[7];
+    aDest[5] := aSrc[6];
+    aDest[6] := aSrc[5];
+    aDest[7] := aSrc[4];
+    aDest[8] := aSrc[9];
+    aDest[9] := aSrc[8];
+    aDest[10] := aSrc[11];
+    aDest[11] := aSrc[10];
+  end;
+
+
+  procedure CheckRecords(aDataset: TDBF; const aName: string);
+
+  var
+    J: Integer;
+
+  begin
+    CheckEquals(RecCount, aDataset.RecordCount, aName+': record count');
+    aDataset.First;
+    for J := 1 to RecCount do
+    begin
+      CheckEquals(J*1000, aDataset.FieldByName('ID').AsInteger, aName+': ID of record '+IntToStr(J));
+      CheckEquals('Name'+IntToStr(J), aDataset.FieldByName('NAME').AsString, aName+': NAME of record '+IntToStr(J));
+      aDataset.Next;
+    end;
+  end;
+
+
+begin
+  ds := TDBFAutoClean.Create(nil);
+  try
+    DS.FieldDefs.Add('ID',ftInteger);
+    DS.FieldDefs.Add('NAME',ftString,10);
+    DS.CreateTable;
+    DS.Open;
+    for I := 1 to RecCount do
+    begin
+      DS.Append;
+      DS.FieldByName('ID').AsInteger := I*1000;
+      DS.FieldByName('NAME').AsString := 'Name'+IntToStr(I);
+      DS.Post;
+    end;
+    DS.Close;
+
+    lStream := DS.UserStream as TMemoryStream;
+    Move(PByte(lStream.Memory)[4], lLE, SizeOf(lLE));
+    SwapHeader(lLE, lBE);
+    CheckFalse(CompareMem(@lLE, @lBE, SizeOf(lLE)), 'Swapped header differs from the original');
+    Move(lBE, PByte(lStream.Memory)[4], SizeOf(lBE));
+
+    lDir := IncludeTrailingPathDelimiter(GetTempDir(False)) + 'tdbfbe' + IntToStr(Random(100000));
+    CheckTrue(ForceDirectories(lDir), 'Create directory for the read-only copy');
+    lFileName := IncludeTrailingPathDelimiter(lDir) + 'betest.dbf';
+    lStream.SaveToFile(lFileName);
+
+    DS.Open;
+    CheckRecords(DS, 'Writable open of big-endian header');
+    DS.Close;
+    Move(PByte(lStream.Memory)[4], lCheck, SizeOf(lCheck));
+    CheckTrue(CompareMem(@lLE, @lCheck, SizeOf(lLE)), 'Writable open rewrites the header little-endian');
+  finally
+    ds.free;
+  end;
+
+  ds := TDBF.Create(nil);
+  try
+    DS.FilePathFull := lDir;
+    DS.TableName := 'betest.dbf';
+    DS.ReadOnly := True;
+    DS.Open;
+    CheckRecords(DS, 'Read-only open of big-endian header');
+    DS.Close;
+  finally
+    ds.free;
+  end;
+  lFile := TFileStream.Create(lFileName, fmOpenRead or fmShareDenyNone);
+  try
+    lFile.Position := 4;
+    lFile.ReadBuffer(lCheck, SizeOf(lCheck));
+  finally
+    lFile.Free;
+  end;
+  CheckTrue(CompareMem(@lBE, @lCheck, SizeOf(lBE)), 'Read-only open leaves the big-endian header untouched');
+  DeleteFile(lFileName);
+  RemoveDir(lDir);
+end;
+
+procedure TTestSpecificTDBF.TestCurrency;
+
+const
+  Values: array[0..3] of Currency = (-1.5, -123456.7891, 987654321.1234, 429496.7296);
+
+var
+  ds: TDBF;
+  I: Integer;
+
+begin
+  ds := TDBFAutoClean.Create(nil);
+  try
+    if not ((DS as TDBFAutoClean).UserRequestedTableLevel in [25,30]) then
+      Ignore('Currency (Y) fields exist only in (Visual) FoxPro tablelevels.');
+    DS.FieldDefs.Add('ID',ftInteger);
+    DS.FieldDefs.Add('CUR',ftCurrency);
+    DS.CreateTable;
+    DS.Open;
+    for I := Low(Values) to High(Values) do
+    begin
+      DS.Append;
+      DS.FieldByName('ID').AsInteger := I;
+      DS.FieldByName('CUR').AsCurrency := Values[I];
+      DS.Post;
+    end;
+    DS.Close;
+    DS.Open;
+    for I := Low(Values) to High(Values) do
+    begin
+      CheckEquals(Values[I], DS.FieldByName('CUR').AsCurrency, 0, 'Currency value '+CurrToStr(Values[I])+' read back after reopen');
+      DS.Next;
+    end;
     DS.Close;
   finally
     ds.free;
