@@ -138,7 +138,7 @@ begin
     Raise exception.Create('TX509RSAPublicKey.AsDER does not match');
 
   // verify our generated token. This generates a new JWT
-  VerifyResult:=TMyJWT.ValidateJWT(aInput,Key);
+  VerifyResult:=TMyJWT.ValidateJWT(aInput,Key,['RS256']);
   if VerifyResult=Nil then
     Raise Exception.Create('No verify resultn, verification failed!');
 end.

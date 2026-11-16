@@ -31,6 +31,9 @@ uses
 Type
   EJWT = Class(EJSON);
 
+  // Key an algorithm verifies with: none, a shared secret (HMAC) or a public key (RSA, EC)
+  TJWTKeyType = (jktNone, jktSecret, jktPublic);
+
   { TJWTKey }
 
   TJWTKey = Record
@@ -171,7 +174,10 @@ Type
     Constructor Create; override;
     Destructor Destroy; override;
     Function Sign(aKey : TJWTKey) : String;
-    Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT;
+    // Parse aJWT and verify its signature with the algorithm named in its header; Nil if the signature is wrong
+    Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT; deprecated 'Use the overload with a list of algorithms';
+    // Parse aJWT and verify its signature; Nil if its algorithm is not in aAlgorithms or the signature is wrong
+    Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; const aAlgorithms : array of String; aClass : TJWTClass = Nil) : TJWT;
     // Owned by the JWT. The JSON header.
     Property JOSE : TJOSE Read FJOSE Write SetJOSE;
     // Owned by the JWT. The set of claims. The actual class will depend on the descendant.
@@ -189,9 +195,18 @@ Type
     class var FAlgorithms : TStringList;
     Class Procedure RegisterAlgorithm(const aName : String; aClass : TJWTSignerClass);
     Class Procedure UnRegisterAlgorithm(const aName : String);
+    // Raises EJWT when aAlgorithms is empty or names both secret-key and public-key algorithms
+    Class Procedure CheckAlgorithms(const aAlgorithms : array of String);
+    // ParseAndVerify; when aCheckAlgorithm is set, Nil for an algorithm not in aAlgorithms
+    Class Function DoParseAndVerify(const aJWT : String; aKey : TJWTKey; aCheckAlgorithm : Boolean;
+                                    const aAlgorithms : array of String; aClass : TJWTClass) : TJWT;
   Public
     class Destructor done;
     Class function AlgorithmName : String; virtual; abstract;
+    // The key the algorithm verifies with; jktPublic unless overridden
+    Class function KeyType : TJWTKeyType; virtual;
+    // The registered signer class for aAlgorithm (case-sensitive), Nil if there is none
+    Class function FindSignerClass(const aAlgorithm : String) : TJWTSignerClass;
     Class Function GetParts(const aJWT : String; out aJOSE,aClaims,aSign : String) : Boolean;
     Class Function CreateSigner(const aAlgorithm : String): TJWTSigner;
     Constructor Create; virtual;
@@ -200,7 +215,10 @@ Type
     Function AppendSignature(aJWT : TJWT; aKey : TJWTKey) : String;
     Function GetSignInputString(aJWT : TJWT) : UTF8String;
     Function GetSignInput(aJWT : TJWT) : TBytes;
-    Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT;
+    // Parse aJWT and verify its signature with the algorithm named in its header; Nil if the signature is wrong
+    Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT; deprecated 'Use the overload with a list of algorithms';
+    // Parse aJWT and verify its signature; Nil if its algorithm is not in aAlgorithms or the signature is wrong
+    Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; const aAlgorithms : array of String; aClass : TJWTClass = Nil) : TJWT;
     Class Procedure Register;
     Class Procedure UnRegister;
   end;
@@ -210,6 +228,7 @@ Type
   TJWTSignerNone = Class(TJWTSigner)
   Public
     Class function AlgorithmName : String; override;
+    Class function KeyType : TJWTKeyType; override;
     Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; override;
     Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; override;
   end;
@@ -225,6 +244,8 @@ uses strutils;
 Resourcestring
   SErrMissingAlgorithmName = 'Missing JWA algorithm name';
   SErrUnSupportedAlgorithmName = 'Unsupported JWA algorithm: "%s"';
+  SErrNoAlgorithms = 'No JWA algorithms allowed';
+  SErrMixedKeyTypes = 'JWA algorithms "%s" and "%s" use different key types and can not be allowed together';
 
 type
 
@@ -301,6 +322,11 @@ begin
   Result:='none'
 end;
 
+class function TJWTSignerNone.KeyType: TJWTKeyType;
+begin
+  Result:=jktNone;
+end;
+
 function TJWTSignerNone.CreateSignature(aJWT: TJWT; aKey : TJWTKey): String;
 begin
   Result:='';
@@ -312,7 +338,8 @@ Var
   J,C,S : String;
 
 begin
-  Result:=GetParts(aJWT,J,C,S) and (S='');
+  // Only valid without a key
+  Result:=(aKey.Length=0) and GetParts(aJWT,J,C,S) and (S='');
 end;
 
 { TJWTSignerReg }
@@ -334,6 +361,7 @@ begin
     begin
     FAlgorithms:=TStringList.Create;
     FAlgorithms.OwnsObjects:=True;
+    FAlgorithms.CaseSensitive:=True;
     end
   else
     UnregisterAlgorithm(aName);
@@ -375,19 +403,62 @@ end;
 class function TJWTSigner.CreateSigner(const aAlgorithm: String): TJWTSigner;
 
 Var
-  Idx : Integer;
   aClass : TJWTSignerClass;
 
 begin
   if (aAlgorithm='') then
     Raise EJWT.Create(SErrMissingAlgorithmName);
+  aClass:=FindSignerClass(aAlgorithm);
+  if aClass=Nil then
+    Raise EJWT.CreateFmt(SErrUnSupportedAlgorithmName,[aAlgorithm]);
+  Result:=aClass.Create;
+end;
+
+class function TJWTSigner.KeyType: TJWTKeyType;
+begin
+  Result:=jktPublic;
+end;
+
+class function TJWTSigner.FindSignerClass(const aAlgorithm: String): TJWTSignerClass;
+
+Var
+  Idx : Integer;
+
+begin
+  Result:=Nil;
   Idx:=-1;
   if Assigned(FAlgorithms) then
     Idx:=FAlgorithms.IndexOf(aAlgorithm);
-  if Idx=-1 then
-    Raise EJWT.CreateFmt(SErrUnSupportedAlgorithmName,[aAlgorithm]);
-  aClass:=TJWTSignerReg(FAlgorithms.Objects[Idx]).SignerClass;
-  Result:=aClass.Create;
+  if Idx<>-1 then
+    Result:=TJWTSignerReg(FAlgorithms.Objects[Idx]).SignerClass;
+end;
+
+class procedure TJWTSigner.CheckAlgorithms(const aAlgorithms: array of String);
+
+Var
+  lClass : TJWTSignerClass;
+  lSecret, lPublic : String;
+  S : String;
+
+begin
+  if Length(aAlgorithms)=0 then
+    Raise EJWT.Create(SErrNoAlgorithms);
+  lSecret:='';
+  lPublic:='';
+  for S in aAlgorithms do
+    begin
+    lClass:=FindSignerClass(S);
+    if lClass=Nil then
+      Continue;
+    case lClass.KeyType of
+      jktSecret : lSecret:=S;
+      jktPublic : lPublic:=S;
+    else
+      ;
+    end;
+    end;
+  if (lSecret<>'') and (lPublic<>'') then
+    Raise EJWT.CreateFmt(SErrMixedKeyTypes,[lSecret,lPublic]);
 end;
 
 Function TJWTSigner.AppendSignature(aJWT: TJWT;aKey : TJWTKey) : String;
@@ -407,14 +478,26 @@ begin
   Result:=TEncoding.UTF8.GetAnsiBytes(GetSignInputString(aJWT));
 end;
 
-Class function TJWTSigner.ParseAndVerify(const aJWT: String; aKey : TJWTKey; aClass : TJWTClass = Nil): TJWT;
+Class function TJWTSigner.DoParseAndVerify(const aJWT: String; aKey: TJWTKey; aCheckAlgorithm: Boolean;
+  const aAlgorithms: array of String; aClass: TJWTClass): TJWT;
 
 Var
   S : TJWTSigner;
   Ok : Boolean;
 
+  function IsAllowed(const aAlgorithm : String) : Boolean;
+  var
+    A : String;
+  begin
+    Result:=False;
+    for A in aAlgorithms do
+      if A=aAlgorithm then
+        Exit(True);
+  end;
 
 begin
+  if aCheckAlgorithm then
+    CheckAlgorithms(aAlgorithms);
   if (aClass=Nil) then
     aClass:=TJWT;
   Ok:=False;
@@ -422,15 +505,33 @@ begin
   Result:=aClass.Create;
   try
     Result.AsEncodedString:=aJWT;
-    S:=CreateSigner(Result.JOSE.alg);
-    if not S.Verify(aJWT,aKey) then
-      FreeAndNil(Result);
+    if aCheckAlgorithm and not IsAllowed(Result.JOSE.alg) then
+      FreeAndNil(Result)
+    else
+      begin
+      S:=CreateSigner(Result.JOSE.alg);
+      if not S.Verify(aJWT,aKey) then
+        FreeAndNil(Result);
+      end;
     OK:=true;
   finally
     S.Free;
     if not OK then
       Result.Free;
   end;
+end;
+
+Class function TJWTSigner.ParseAndVerify(const aJWT: String; aKey : TJWTKey; aClass : TJWTClass = Nil): TJWT;
+
+begin
+  Result:=DoParseAndVerify(aJWT,aKey,False,[],aClass);
+end;
+
+Class function TJWTSigner.ParseAndVerify(const aJWT: String; aKey : TJWTKey; const aAlgorithms: array of String;
+  aClass : TJWTClass = Nil): TJWT;
+
+begin
+  Result:=DoParseAndVerify(aJWT,aKey,True,aAlgorithms,aClass);
 end;
 
 class procedure TJWTSigner.Register;
@@ -522,7 +623,16 @@ class function TJWT.ValidateJWT(const aJWT: String; aKey : TJWTKey; aClass: TJWT
 begin
   if aClass=Nil then
     aClass:=Self;
-  Result:=TJWTSigner.ParseAndVerify(aJWT,aKey,aClass);
+  Result:=TJWTSigner.DoParseAndVerify(aJWT,aKey,False,[],aClass);
+end;
+
+class function TJWT.ValidateJWT(const aJWT: String; aKey: TJWTKey; const aAlgorithms: array of String;
+  aClass: TJWTClass): TJWT;
+
+begin
+  if aClass=Nil then
+    aClass:=Self;
+  Result:=TJWTSigner.DoParseAndVerify(aJWT,aKey,True,aAlgorithms,aClass);
 end;
 
 procedure TJWT.SetAsString(const AValue: TJSONStringType);

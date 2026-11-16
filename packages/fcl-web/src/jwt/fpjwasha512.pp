@@ -21,6 +21,7 @@ Type
   TJWTSignerHS512 = Class(TJWTSigner)
   Public
     Class function AlgorithmName : String; override;
+    Class function KeyType : TJWTKeyType; override;
     Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; override;
     Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; override;
   end;
@@ -43,6 +44,11 @@ Const
 class function TJWTSignerHS512.AlgorithmName: String;
 begin
   Result:='HS512';
+end;
+
+class function TJWTSignerHS512.KeyType: TJWTKeyType;
+begin
+  Result:=jktSecret;
 end;
 
 function TJWTSignerHS512.CreateSignature(aJWT: TJWT; aKey: TJWTKey): String;

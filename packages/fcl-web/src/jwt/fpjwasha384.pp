@@ -21,6 +21,7 @@ Type
   TJWTSignerHS384 = Class(TJWTSigner)
   Public
     Class function AlgorithmName : String; override;
+    Class function KeyType : TJWTKeyType; override;
     Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; override;
     Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; override;
   end;
@@ -43,6 +44,11 @@ Const
 class function TJWTSignerHS384.AlgorithmName: String;
 begin
   Result:='HS384';
+end;
+
+class function TJWTSignerHS384.KeyType: TJWTKeyType;
+begin
+  Result:=jktSecret;
 end;
 
 function TJWTSignerHS384.CreateSignature(aJWT: TJWT; aKey: TJWTKey): String;

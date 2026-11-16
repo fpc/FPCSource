@@ -41,9 +41,21 @@ type
     Property Key : TJWTKey Read FKey;
     procedure GetTestPEM(out aPrivateKeyPEM, aPublicKeyPEM: string);
     procedure TestVerifyRSAPem(SignerClass: TJWTSignerClass); virtual;
+    // True when ValidateJWT with aAlgorithms returns a token; an EJWT counts as not accepted
+    function Accepted(const aToken: String; aKey: TJWTKey; const aAlgorithms: array of String): Boolean;
+    // True when the deprecated ValidateJWT returns a token; an EJWT counts as not accepted
+    function AcceptedOld(const aToken: String; aKey: TJWTKey): Boolean;
+    // An RS256 token for JWT signed with the test private key, and the public key it verifies with
+    procedure MakeRS256(out aToken: String; out aPublicKey: TJWTKey);
   published
     procedure TestSignNone;
     procedure TestVerifyNone;
+    procedure TestVerifyNoneWithKey;
+    procedure TestAlgorithmNameCaseSensitive;
+    procedure TestAlgorithmListHS256;
+    procedure TestAlgorithmListRS256;
+    procedure TestAlgorithmListNone;
+    procedure TestAlgorithmListErrors;
 
     // SHA
     procedure TestSignSHA256;
@@ -146,6 +158,142 @@ begin
   FVerifyResult:=TJWT.ValidateJWT(aJWT,TJWTKey.Empty,TMyJWT);
   AssertNotNull('Have result',FVerifyResult);
   AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
+end;
+
+function TTestJWT.Accepted(const aToken: String; aKey: TJWTKey; const aAlgorithms: array of String): Boolean;
+
+var
+  lJWT: TJWT;
+
+begin
+  try
+    lJWT:=TJWT.ValidateJWT(aToken,aKey,aAlgorithms);
+  except
+    on EJWT do
+      lJWT:=nil;
+  end;
+  Result:=Assigned(lJWT);
+  lJWT.Free;
+end;
+
+{$WARN 5043 OFF}
+function TTestJWT.AcceptedOld(const aToken: String; aKey: TJWTKey): Boolean;
+
+var
+  lJWT: TJWT;
+
+begin
+  try
+    lJWT:=TJWT.ValidateJWT(aToken,aKey);
+  except
+    on EJWT do
+      lJWT:=nil;
+  end;
+  Result:=Assigned(lJWT);
+  lJWT.Free;
+end;
+{$WARN 5043 ON}
+
+procedure TTestJWT.MakeRS256(out aToken: String; out aPublicKey: TJWTKey);
+
+var
+  lPrivatePEM, lPublicPEM: String;
+  lSigner: TJWTSigner;
+
+begin
+  GetTestPEM(lPrivatePEM,lPublicPEM);
+  JWT.JOSE.alg:='RS256';
+  lSigner:=TJWTSignerRS256.Create;
+  try
+    aToken:=lSigner.AppendSignature(JWT,TJWTKey.Create(PemToDER(lPrivatePEM,_BEGIN_RSA_PRIVATE_KEY,_END_RSA_PRIVATE_KEY)));
+  finally
+    lSigner.Free;
+  end;
+  aPublicKey:=TJWTKey.Create(PemToDER(lPublicPEM,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY));
+end;
+
+procedure TTestJWT.TestVerifyNoneWithKey;
+
+Var
+  aJWT : String;
+
+begin
+  aJWT:=FJWT.AsEncodedString;
+  AssertFalse('An unsigned token is refused when a key is given',AcceptedOld(aJWT,FKey));
+  AssertTrue('An unsigned token is accepted without key',AcceptedOld(aJWT,TJWTKey.Empty));
+end;
+
+procedure TTestJWT.TestAlgorithmNameCaseSensitive;
+
+begin
+  FJWT.JOSE.alg:='NoNe';
+  AssertFalse('Algorithm "NoNe" is not "none"',AcceptedOld(FJWT.AsEncodedString,TJWTKey.Empty));
+  FJWT.JOSE.alg:='NONE';
+  AssertFalse('Algorithm "NONE" is not "none"',AcceptedOld(FJWT.AsEncodedString,TJWTKey.Empty));
+  FJWT.JOSE.alg:='HS256';
+  AssertFalse('Allowed algorithms are compared case-sensitively',Accepted(FJWT.Sign(FKey),FKey,['hs256']));
+end;
+
+procedure TTestJWT.TestAlgorithmListHS256;
+
+Var
+  aJWT : String;
+
+begin
+  FJWT.JOSE.alg:='HS256';
+  aJWT:=FJWT.Sign(FKey);
+  AssertTrue('HS256 token with HS256 allowed',Accepted(aJWT,FKey,['HS256']));
+  AssertFalse('HS256 token with only HS384 allowed',Accepted(aJWT,FKey,['HS384']));
+  AssertFalse('HS256 token with a wrong key',Accepted(aJWT,TJWTKey.Create('wrong key'),['HS256']));
+end;
+
+procedure TTestJWT.TestAlgorithmListRS256;
+
+Var
+  aJWT, aFake, aNone : String;
+  aPublicKey : TJWTKey;
+
+begin
+  MakeRS256(aJWT,aPublicKey);
+  AssertTrue('RS256 token with RS256 allowed',Accepted(aJWT,aPublicKey,['RS256']));
+  FJWT.JOSE.alg:='HS256';
+  aFake:=FJWT.Sign(aPublicKey);
+  AssertFalse('HS256 token made with the public key, RS256 allowed',Accepted(aFake,aPublicKey,['RS256']));
+  FJWT.JOSE.alg:='none';
+  aNone:=FJWT.AsEncodedString;
+  AssertFalse('Unsigned token, RS256 allowed',Accepted(aNone,aPublicKey,['RS256']));
+end;
+
+procedure TTestJWT.TestAlgorithmListNone;
+
+Var
+  aJWT : String;
+
+begin
+  aJWT:=FJWT.AsEncodedString;
+  AssertTrue('Unsigned token with none allowed and no key',Accepted(aJWT,TJWTKey.Empty,['none']));
+  AssertFalse('Unsigned token with none allowed and a key',Accepted(aJWT,FKey,['none']));
+end;
+
+procedure TTestJWT.TestAlgorithmListErrors;
+
+  procedure CheckRaises(const aMsg: String; const aAlgorithms: array of String);
+  var
+    lRaised: Boolean;
+  begin
+    lRaised:=False;
+    try
+      TJWT.ValidateJWT(FJWT.AsEncodedString,FKey,aAlgorithms).Free;
+    except
+      on EJWT do
+        lRaised:=True;
+    end;
+    AssertTrue(aMsg,lRaised);
+  end;
+
+begin
+  CheckRaises('An empty list of algorithms raises',[]);
+  CheckRaises('A secret-key and a public-key algorithm together raise',['HS256','RS256']);
 end;
 
 procedure TTestJWT.TestSignSHA256;
