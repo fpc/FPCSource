@@ -353,6 +353,8 @@ type
     FCurrentItem: TMimeItem;
     FMimeEndFound: Boolean;
     FAtStart: Boolean;
+    FPreambleData: RawByteString;
+    FPreambleCount: SizeInt;
   protected
     procedure SetBoundary(const AValue: String); override;
     procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); override;
@@ -993,6 +995,7 @@ Type
     FBuffer: string;
     FStream: TStream;
     FDataSize: Int64;
+    FRawCount: SizeInt;
   protected
     Procedure SetHeader(AIndex: Integer; Const AValue: String); override;
     function GetDataSize: Int64; override;
@@ -1024,114 +1027,124 @@ end;
 procedure TStreamingMimeItems.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
 
 Const
-   DashDash : AnsiString = '--';
-   CRLFDashDash : AnsiString = #13#10'--';
+  DashDash : RawByteString = '--';
+  CRLF : RawByteString = #13#10;
 
 var
-  bl: SizeInt;
-  p: SizeInt;
-  BufEnd: SizeInt;
-  LeadingLineEndMissing: Boolean;
-  Bound,EndBound : RawByteString;
-  Sep : AnsiString;
+  lDelim : RawByteString;
+  lDelimLen, lLen, lAvail, P : SizeInt;
+
+  // Address of the byte at FBufferCount
+  function Current : PAnsiChar;
+  begin
+    Result:=PAnsiChar(FBuffer)+FBufferCount-1;
+  end;
+
+  // Passes aCount bytes from FBufferCount on to the current part, or to the preamble before the first part
+  procedure Flush(aCount : SizeInt; aState : TContentStreamingState);
+  begin
+    if Assigned(FCurrentItem) then
+      FCurrentItem.ProcessStreaming(aState,Current^,aCount)
+    else if FAtStart and (aCount>0) then
+      begin
+      if FPreambleCount+aCount>Length(FPreambleData) then
+        SetLength(FPreambleData,2*(FPreambleCount+aCount));
+      System.Move(Current^,FPreambleData[FPreambleCount+1],aCount);
+      Inc(FPreambleCount,aCount);
+      end;
+    Inc(FBufferCount,aCount);
+  end;
 
 begin
-  // The length of the boundary, including the leading CR/LF, '--' and trailing '--' or
-  // CR/LF.
   {$IF SIZEOF(CHAR)=2}
-    Bound:=UTF8Encode(Boundary);
-    EndBound:=UTF8Encode('--'+Boundary);
+  lDelim:=CRLF+DashDash+UTF8Encode(Boundary);
   {$ELSE}
-    Bound:=Boundary;
-    EndBound:='--'+Boundary;
+  lDelim:=CRLF+DashDash+Boundary;
   {$ENDIF}
-  bl := Length(Bound)+6;
-  LeadingLineEndMissing:=False;
+  lDelimLen:=Length(lDelim);
   if State=cssStart then
     begin
-    FMimeEndFound := False;
-    FAtStart := True;
+    FMimeEndFound:=False;
+    FAtStart:=True;
+    FCurrentItem:=Nil;
+    FPreambleData:='';
+    FPreambleCount:=0;
+    // The first delimiter may be at the very start of the content, without CR/LF
+    FBuffer:=CRLF;
+    FBufferCount:=1;
     end;
-
-  // Allocate enough memory to hold the buffer-size, and the lenght of the
-  // boundary (bl). To be able to find a boundary-string at which is divided between
-  // two calls to this function, the last bl-amount of characters at the end of
-  // the buffer, are stored to be handled in the next call to this function.
-  SetLength(FBuffer, Size+bl);
-  if Size > 0 then
-    System.Move(Buf, FBuffer[FBufferCount+1], Size);
-
-  BufEnd := FBufferCount+1+Size;
-
-  FBufferCount := 1;
-  repeat
-  if FAtStart and CompareMem(@FBuffer[1], PAnsiChar(EndBound), Length(Bound)+2) then
+  if FMimeEndFound then
+    Exit;
+  if Size>0 then
     begin
-    // Sometimes a mime-message (mistakenly) does not start with CR/LF.
-    p := 1;
-    LeadingLineEndMissing := True;
-    end
-  else
-    p := Pos(CRLFDashDash+Bound, FBuffer, FBufferCount);
-  if (P > 0) and (P < Size) then
+    lLen:=Length(FBuffer);
+    SetLength(FBuffer,lLen+Size);
+    System.Move(Buf,FBuffer[lLen+1],Size);
+    end;
+  while not FMimeEndFound do
     begin
+    P:=Pos(lDelim,FBuffer,FBufferCount);
+    if P=0 then
+      begin
+      // Keep what may be the start of a delimiter
+      lAvail:=Length(FBuffer)-FBufferCount+1;
+      if State<>cssEnd then
+        Dec(lAvail,lDelimLen-1);
+      if lAvail>0 then
+        Flush(lAvail,cssData);
+      Break;
+      end;
+    if (P+lDelimLen+1>Length(FBuffer)) and (State<>cssEnd) then
+      begin
+      // The two bytes after the delimiter are not there yet
+      Flush(P-FBufferCount,cssData);
+      Break;
+      end;
     if Assigned(FCurrentItem) then
       begin
-      FCurrentItem.ProcessStreaming(cssEnd, FBuffer[FBufferCount], P-FBufferCount);
-      FCurrentItem := Nil;
+      Flush(P-FBufferCount,cssEnd);
+      FCurrentItem:=Nil;
       end
     else
       begin
-      if FAtStart and (P > 1) then
+      Flush(P-FBufferCount,cssData);
+      if FAtStart then
         begin
-        // Add the preamble to the content
+        // Without the CR/LF added at the start
         {$IF SIZEOF(CHAR)=2}
-        FPreamble := UTF8Decode(Copy(FBuffer, FBufferCount, P-1));
+        FPreamble:=UTF8Decode(Copy(FPreambleData,3,FPreambleCount-2));
         {$ELSE}
-        FPreamble := Copy(FBuffer, FBufferCount, P-1);
+        FPreamble:=Copy(FPreambleData,3,FPreambleCount-2);
         {$ENDIF}
+        FPreambleData:='';
+        FAtStart:=False;
         end;
       end;
-    FAtStart := False;
-    Inc(P, bl);
-    if LeadingLineEndMissing then
-      begin
-      Dec(P, 2);
-      LeadingLineEndMissing := False;
-      end;
-    FBufferCount := P;
-    Sep:=Copy(FBuffer,p-2,2);
-    if (Sep=DashDash) then
-      FMimeEndFound := True;
-    end;
-  if not Assigned(FCurrentItem) and not FMimeEndFound then
-    begin
-    FCurrentItem := AddPart;
-    FCurrentItem.ProcessStreaming(cssStart, FBuffer[p], 0)
-    end
-  until (P < 1) or FMimeEndFound;
-
-  if Assigned(FCurrentItem) then
-    begin
-    if state<>cssEnd then
-      begin
-      // Call FCurrentItem.ProcessStreaming with the current buffer, excluding
-      // the last bl bytes. Keep those at the start of FBuffer, to be handled
-      // in the next call to this function.
-      FCurrentItem.ProcessStreaming(cssData, FBuffer[FBufferCount], BufEnd-FBufferCount-bl);
-      System.Move(FBuffer[BufEnd-bl], FBuffer[1], bl);
-      FBufferCount := bl;
-      end
+    FBufferCount:=P+lDelimLen;
+    if Copy(FBuffer,FBufferCount,2)=DashDash then
+      FMimeEndFound:=True
     else
       begin
-      // This function won't be called again. Call FCurrentItem.ProcessStreaming
-      // with the complete remaining buffer.
-      FCurrentItem.ProcessStreaming(cssEnd, FBuffer[FBufferCount], BufEnd-FBufferCount+bl);
-      FBufferCount := 0;
+      Inc(FBufferCount,2);
+      FCurrentItem:=AddPart;
+      FCurrentItem.ProcessStreaming(cssStart,Current^,0);
       end;
+    end;
+  if (State=cssEnd) and Assigned(FCurrentItem) then
+    begin
+    FCurrentItem.ProcessStreaming(cssEnd,Current^,0);
+    FCurrentItem:=Nil;
+    end;
+  if FMimeEndFound or (State=cssEnd) then
+    begin
+    FBuffer:='';
+    FBufferCount:=1;
     end
-  else
-    FBufferCount := 0;
+  else if FBufferCount>1 then
+    begin
+    System.Delete(FBuffer,1,FBufferCount-1);
+    FBufferCount:=1;
+    end;
 end;
 
 class function TStreamingMimeItems.SupportsStreamingProcessing: Boolean;
@@ -1332,9 +1345,11 @@ procedure THTTPMimeItem.ProcessStreaming(const State: TContentStreamingState; co
         end
       else
         begin
-        i := Length(FRawData);
-        SetLength(FRawData, i+Size);
-        Move(Buf, FRawData[i], Size);
+        i := FRawCount+Size;
+        if i>Length(FRawData) then
+          SetLength(FRawData, 2*i);
+        Move(Buf, FRawData[FRawCount], Size);
+        FRawCount := i;
         end;
       end;
   end;
@@ -1391,7 +1406,9 @@ begin
   if State=cssEnd then
     begin
     if GetIsFile then
-      FreeAndNil(FStream);
+      FreeAndNil(FStream)
+    else
+      SetLength(FRawData, FRawCount);
     end;
 end;
 

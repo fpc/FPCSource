@@ -57,6 +57,8 @@ type
     procedure TestConcurrentUploads;
     procedure TestParseFields;
     procedure TestParseStreaming;
+    procedure TestStreamingChunkSizes;
+    procedure TestStreamingNoPreamble;
     procedure TestStreamingErrorDeletesFile;
     procedure TestManyParts;
     procedure TestMaxParts;
@@ -608,6 +610,80 @@ begin
     lRequest.Free;
   end;
   AssertFalse('Streamed file is deleted with the request',FileExists(lName));
+end;
+
+
+procedure TTestMultipart.TestStreamingChunkSizes;
+
+const
+  cSizes: array[0..13] of Integer = (1,2,3,4,5,6,7,8,11,12,13,16,64,100000);
+
+var
+  lRequest: TTestRequest;
+  lBody, lData: RawByteString;
+  I: Integer;
+  lMsg: String;
+
+begin
+  lData:='abc'+CRLF+'--XyZ1x'+StringOfChar('d',300)+CRLF+'--';
+  lBody:='preamble'+CRLF
+    +'--'+cBoundary+CRLF
+    +'Content-Disposition: form-data; name="text"'+CRLF
+    +CRLF
+    +'some text'+CRLF
+    +'--'+cBoundary+CRLF
+    +'Content-Disposition: form-data; name="upload"; filename="s.bin"'+CRLF
+    +CRLF
+    +lData+CRLF
+    +'--'+cBoundary+CRLF
+    +'Content-Disposition: form-data; name="last"'+CRLF
+    +CRLF
+    +'z'+CRLF
+    +'--'+cBoundary+'--'+CRLF
+    +'epilogue';
+  for I:=Low(cSizes) to High(cSizes) do
+    begin
+    lMsg:='chunks of '+IntToStr(cSizes[I])+': ';
+    lRequest:=NewRequest(lBody);
+    try
+      lRequest.ParseStreaming(cSizes[I]);
+      AssertEquals(lMsg+'number of fields',3,lRequest.ContentFields.Count);
+      AssertEquals(lMsg+'text field','some text',lRequest.ContentFields.Values['text']);
+      AssertEquals(lMsg+'field after the file','z',lRequest.ContentFields.Values['last']);
+      AssertEquals(lMsg+'one uploaded file',1,lRequest.Files.Count);
+      AssertEquals(lMsg+'file data',lData,ReadFile(lRequest.Files[0].LocalFileName));
+      AssertEquals(lMsg+'preamble','preamble',lRequest.Content);
+    finally
+      lRequest.Free;
+    end;
+    end;
+end;
+
+
+procedure TTestMultipart.TestStreamingNoPreamble;
+
+var
+  lRequest: TTestRequest;
+  lBody: RawByteString;
+  I: Integer;
+
+begin
+  lBody:='--'+cBoundary+CRLF
+    +'Content-Disposition: form-data; name="a"'+CRLF
+    +CRLF
+    +'1'+CRLF
+    +'--'+cBoundary+'--';
+  for I:=1 to 20 do
+    begin
+    lRequest:=NewRequest(lBody);
+    try
+      lRequest.ParseStreaming(I);
+      AssertEquals('chunks of '+IntToStr(I)+': field','1',lRequest.ContentFields.Values['a']);
+      AssertEquals('chunks of '+IntToStr(I)+': no preamble','',lRequest.Content);
+    finally
+      lRequest.Free;
+    end;
+    end;
 end;
 
 
