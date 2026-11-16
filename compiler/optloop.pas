@@ -120,6 +120,7 @@ unit optloop;
       var
         unrolls,i : cardinal;
         counts : qword;
+        countsexpr : Tconstexprint;
         unrollstatement,newforstatement : tstatementnode;
         unrollblock : tblocknode;
         getridoffor : boolean;
@@ -147,9 +148,13 @@ unit optloop;
             if (tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn) then
               begin
                 if lnf_backward in tfornode(node).loopflags then
-                  counts:=tordconstnode(tfornode(node).right).value-tordconstnode(tfornode(node).t1).value+1
+                  countsexpr:=tordconstnode(tfornode(node).right).value-tordconstnode(tfornode(node).t1).value+1
                 else
-                  counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
+                  countsexpr:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
+                { 2^64 iterations do not fit counts }
+                if countsexpr.overflow or (countsexpr<1) then
+                  exit;
+                counts:=countsexpr;
 
                 hascontrollflowstatements:=foreachnodestatic(tfornode(node).t2,@checkcontrollflowstatements,nil);
 
@@ -1075,7 +1080,45 @@ unit optloop;
         changedforloop : boolean;
       end;
 
+    { The last value of the counter of for i:=a to b rewritten as a backward loop over b-a+aLast..aLast:
+      0 or 1; -1 if neither fits the counter type for every possible value of b. }
+    function iterforloop_last(n: tfornode): integer;
+      var
+        startval, tolow, tohigh, countlow, counthigh, countermin, countermax: Tconstexprint;
+        last: integer;
+      begin
+        Result:=-1;
+        if (n.left.resultdef.typ<>orddef) then
+          exit;
+        countermin:=torddef(n.left.resultdef).low;
+        countermax:=torddef(n.left.resultdef).high;
+        startval:=tordconstnode(n.right).value;
+        if is_constintnode(n.t1) then
+          begin
+            tolow:=tordconstnode(n.t1).value;
+            tohigh:=tolow;
+          end
+        else if n.t1.resultdef.typ=orddef then
+          begin
+            tolow:=torddef(n.t1.resultdef).low;
+            tohigh:=torddef(n.t1.resultdef).high;
+          end
+        else
+          exit;
+        for last:=1 downto 0 do
+          begin
+            countlow:=tolow-startval+last;
+            counthigh:=tohigh-startval+last;
+            if not(countlow.overflow) and not(counthigh.overflow) and
+              (countlow>=countermin) and (counthigh<=countermax) then
+              exit(last);
+          end;
+      end;
+
+
     function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        last: integer;
       begin
         Result:=fen_false;
         if (n.nodetype=forn) and
@@ -1101,8 +1144,10 @@ unit optloop;
             if not(DynSetIn(tfornode(n).t2.optinfo^.usesum,tfornode(n).left.optinfo^.index)) and
               not(DynSetIn(tfornode(n).t2.optinfo^.defsum,tfornode(n).left.optinfo^.index))  then
               begin
-                { convert the loop from i:=a to b into i:=b-a+1 to 1 as this simplifies the
-                  abort condition }
+                last:=iterforloop_last(tfornode(n));
+                if last<0 then
+                  exit;
+                { convert the loop from i:=a to b into i:=b-a+last downto last }
 {$ifdef DEBUG_OPTFORLOOP}
                 writeln('**********************************************************************************');
                 writeln('Found loop for reverting: ');
@@ -1110,12 +1155,17 @@ unit optloop;
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
                 include(tfornode(n).loopflags,lnf_backward);
-                tfornode(n).right:=ctypeconvnode.create_internal(
-                  caddnode.create_internal(addn,caddnode.create_internal(subn,
-                    tfornode(n).t1,tfornode(n).right),
-                    cordconstnode.create(1,tfornode(n).left.resultdef,false)),
-                  tfornode(n).left.resultdef);
-                tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false);
+                if last=1 then
+                  tfornode(n).right:=ctypeconvnode.create_internal(
+                    caddnode.create_internal(addn,caddnode.create_internal(subn,
+                      tfornode(n).t1,tfornode(n).right),
+                      cordconstnode.create(1,tfornode(n).left.resultdef,false)),
+                    tfornode(n).left.resultdef)
+                else
+                  tfornode(n).right:=ctypeconvnode.create_internal(
+                    caddnode.create_internal(subn,tfornode(n).t1,tfornode(n).right),
+                    tfornode(n).left.resultdef);
+                tfornode(n).t1:=cordconstnode.create(last,tfornode(n).left.resultdef,false);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
                 exclude(n.transientflags,tnf_pass1_done);
                 do_firstpass(n);
