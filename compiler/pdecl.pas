@@ -1362,6 +1362,16 @@ implementation
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;
+                   { a single non-ASCII character of a UTF-8 source is a widechar: make it a string }
+                   if is_constwidecharnode(p) then
+                     begin
+                       initwidestring(pw);
+                       concatwidestringchar(pw,tcompilerwidechar(tordconstnode(p).value.uvalue));
+                       p.free;
+                       p:=cstringconstnode.createunistr(pw);
+                       donewidestring(pw);
+                       typecheckpass(p);
+                     end;
                    case p.nodetype of
                       ordconstn:
                         begin

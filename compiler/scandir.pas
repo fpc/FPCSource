@@ -2158,6 +2158,9 @@ unit scandir;
             exclude(current_settings.modeswitches,m_systemcodepage);
             exclude(current_settings.moduleswitches,cs_system_codepage);
             include(current_settings.moduleswitches,cs_explicit_codepage);
+            { the source code page is now this directive's, not that of a
+              UTF-8 signature, so a later m_systemcodepage replaces it }
+            current_scanner.mainfileutf8bom:=false;
           end;
       end;
 

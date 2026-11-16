@@ -1500,7 +1500,11 @@ implementation
 
     function getansistringcodepage:tstringencoding; inline;
       begin
-        if ([cs_explicit_codepage,cs_system_codepage]*current_settings.moduleswitches)<>[] then
+        { the system code page is the source's too, except in a module whose
+          main source file starts with a UTF-8 signature }
+        if cs_system_codepage in current_settings.moduleswitches then
+          result:=systemcodepage_ansistring
+        else if cs_explicit_codepage in current_settings.moduleswitches then
           result:=current_settings.sourcecodepage
         else
           result:=0;
@@ -1532,7 +1536,7 @@ implementation
                 oldstack:=symtablestack;
                 symtablestack:=tsymtablestack.create;
                 symtablestack.push(symtable);
-                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
+                current_module.ansistrdef:=cstringdef.createansi(getansistringcodepage,true);
                 symtablestack.pop(symtable);
                 symtablestack.free;
                 symtablestack:=oldstack;

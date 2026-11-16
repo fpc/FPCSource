@@ -128,6 +128,8 @@ interface
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
+          { the module's main source file starts with a UTF-8 signature }
+          mainfileutf8bom : boolean;
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
        private
           hidden_inputbuffer,                { input buffer }
@@ -407,6 +409,8 @@ implementation
 
 
     Procedure HandleModeSwitches(switch: tmodeswitch; changeInit: boolean);
+      var
+        syscodepage: tstringencoding;
       begin
         { turn ansi/unicodestrings on by default ? (only change when this
           particular setting is changed, so that a random modeswitch won't
@@ -485,18 +489,26 @@ implementation
               begin
                 { m_systemcodepage gets enabled -> disable any -FcXXX and
                   "codepage XXX" settings (exclude cs_explicit_codepage), and
-                  overwrite the source codepage }
-                current_settings.sourcecodepage:=DefaultSystemCodePage;
-                if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
+                  overwrite the source codepage; except that the source of a
+                  module whose main source file starts with a UTF-8 signature
+                  stays UTF-8, as the signature says what its bytes are. Its
+                  ansistrings have the system code page all the same
+                  (systemcodepage_ansistring): the signature is about the
+                  file, not about the strings of the program }
+                syscodepage:=DefaultSystemCodePage;
+                if (syscodepage<>CP_UTF8) and not cpavailable(syscodepage) then
                   begin
-                    Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
-                    current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                    Message2(scan_w_unavailable_system_codepage,IntToStr(syscodepage),IntToStr(default_settings.sourcecodepage));
+                    syscodepage:=default_settings.sourcecodepage;
                   end;
+                systemcodepage_ansistring:=syscodepage;
+                if not (assigned(current_scanner) and current_scanner.mainfileutf8bom) then
+                  current_settings.sourcecodepage:=syscodepage;
                 exclude(current_settings.moduleswitches,cs_explicit_codepage);
                 include(current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
                   begin
-                    init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                    init_settings.sourcecodepage:=syscodepage;
                     exclude(init_settings.moduleswitches,cs_explicit_codepage);
                     include(init_settings.moduleswitches,cs_system_codepage);
                   end;
@@ -521,6 +533,9 @@ implementation
                   disabling m_systemcodepage if it wasn't on in the first place
                   doesn't overwrite the sourcecodepage }
                 exclude(current_settings.moduleswitches,cs_system_codepage);
+                { a UTF-8 signature's code page is the module's again }
+                if assigned(current_scanner) and current_scanner.mainfileutf8bom then
+                  include(current_settings.moduleswitches,cs_explicit_codepage);
                 if not(cs_explicit_codepage in current_settings.moduleswitches) then
                   current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
@@ -4085,8 +4100,15 @@ type
 {$endif CHECK_INPUTPOINTER_LIMITS}
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
-                       exclude(current_settings.moduleswitches,cs_system_codepage);
-                       include(current_settings.moduleswitches,cs_explicit_codepage);
+                       { an included file with a signature, in a module that has one itself and
+                         uses the system code page for its ansistrings, changes neither }
+                       if not (mainfileutf8bom and (cs_system_codepage in current_settings.moduleswitches)) then
+                         begin
+                           exclude(current_settings.moduleswitches,cs_system_codepage);
+                           include(current_settings.moduleswitches,cs_explicit_codepage);
+                         end;
+                       if not assigned(inputfile.next) then
+                         mainfileutf8bom:=true;
                      end;
 
                    line_no:=1;
