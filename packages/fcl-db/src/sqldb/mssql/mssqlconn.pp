@@ -66,12 +66,28 @@ type
       FDBLogin: PLOGINREC;
       FDBProc : PDBPROCESS;
       Ftds    : integer;     // TDS protocol version
-      Fstatus : STATUS;      // current result/rows fetch status
       FServerInfo: TServerInfo;
-    function CheckError(const Ret: RETCODE): RETCODE;
+      FTransHandles: TFPList;   // transaction handles allocated by this connection
+      FPrimaryOwner: TSQLHandle; // transaction that uses FDBProc
+    function CheckError(const Ret: RETCODE; aProc: PDBPROCESS = nil): RETCODE;
     procedure Execute(const cmd: string); overload;
+    procedure Execute(aProc: PDBPROCESS; const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
-    procedure CancelQuery;
+    procedure CancelQuery(cursor: TSQLCursor);
+    // Executes the session settings of the connection on aProc
+    procedure InitProcess(aProc: PDBPROCESS);
+    // Opens an additional session with the login of the connection
+    function OpenProcess: PDBPROCESS;
+    // Session of aTransaction, or FDBProc if it has none
+    function ProcOf(aTransaction: TSQLTransaction): PDBPROCESS;
+    // Session of a transaction handle, or FDBProc if it has none
+    function ProcOfHandle(trans: TSQLHandle): PDBPROCESS;
+    // Closes the session of a transaction handle if it opened one, and frees FDBProc if it used it
+    procedure ReleaseTransProc(trans: TSQLHandle);
+    // Called by a transaction handle that is being freed
+    procedure TransHandleFreed(trans: TSQLHandle);
+    // Field definitions of the current result of an executed cursor
+    procedure DoAddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
     procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function AutoCommit: boolean;
@@ -115,6 +131,7 @@ type
     function GetSchemaInfoSQL(SchemaType:TSchemaType; SchemaObjectName, SchemaObjectPattern:string):string; override;
   public
     constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
@@ -193,6 +210,10 @@ type
     FParamReplaceString: string;
   protected
     FRowsAffected: integer;
+    FDBProc: PDBPROCESS;                              // session the statement was executed on, nil before Execute
+    FStatus: STATUS;                                  // current result/rows fetch status
+    FParams: TParams;                                 // parameters given to Prepare
+    FTransaction: TSQLTransaction;                    // transaction given to Prepare
     function ReplaceParams(AParams: TParams): string; // replaces parameters placeholders $1,$2,..$n in FQuery with supplied values in AParams
     procedure Prepare(const Buf: string; AParams: TParams);
     procedure Execute(AParams: TParams);
@@ -200,6 +221,17 @@ type
     procedure Put(column: integer; out s: string); overload;
   public
     constructor Create(AConnection: TMSSQLConnection); overload;
+  end;
+
+  { TMSSQLTrans }
+
+  TMSSQLTrans = class(TSQLHandle)
+  private
+    FConnection: TMSSQLConnection;
+    FDBProc: PDBPROCESS;   // session of the transaction
+    FOwnsProc: Boolean;    // FDBProc was opened for this transaction
+  public
+    destructor Destroy; override;
   end;
 
 
@@ -240,6 +272,8 @@ begin
     FQuery := AParams.ParseSQL(Buf, False, sqEscapeSlash in FConnection.ConnOptions, sqEscapeRepeat in FConnection.ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
   else
     FQuery := Buf;
+  FParams := AParams;
+  FDBProc := nil;
   FPrepared := True;
 end;
 
@@ -277,8 +311,8 @@ var
   data: PByte;
   datalen: DBINT;
 begin
-  data := dbdata(Fconnection.FDBProc, column);
-  datalen := dbdatlen(Fconnection.FDBProc, column);
+  data := dbdata(FDBProc, column);
+  datalen := dbdatlen(FDBProc, column);
   SetString(s, PAnsiChar(data), datalen);
 end;
 
@@ -286,6 +320,15 @@ constructor TDBLibCursor.Create(AConnection: TMSSQLConnection);
 begin
   inherited Create;
   FConnection := AConnection;
+end;
+
+{ TMSSQLTrans }
+
+destructor TMSSQLTrans.Destroy;
+begin
+  if Assigned(FConnection) then
+    FConnection.TransHandleFreed(Self);
+  inherited Destroy;
 end;
 
 
@@ -305,13 +348,15 @@ begin
   Result := (Ftds=DBTDS_50) or (Ftds=DBTDS_42);
 end;
 
-function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
+function TMSSQLConnection.CheckError(const Ret: RETCODE; aProc: PDBPROCESS): RETCODE;
 var E: EMSSQLDatabaseError;
 begin
   if (Ret=FAIL) or (DBErrorStr<>'') then
   begin
+    if aProc=nil then
+      aProc:=FDBProc;
     // try clear all pending results to allow ROLLBACK and prevent error 10038 "Results pending"
-    if assigned(FDBProc) then dbcancel(FDBProc);
+    if assigned(aProc) then dbcancel(aProc);
     if DBErrorStr = '' then
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
@@ -330,6 +375,18 @@ begin
   FConnOptions := [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSequences];
   //FieldNameQuoteChars:=DoubleQuotes; //default
   Ftds := DBTDS_UNKNOWN;
+  FTransHandles := TFPList.Create;
+end;
+
+destructor TMSSQLConnection.Destroy;
+var
+  I: integer;
+begin
+  Connected := False;
+  for I := 0 to FTransHandles.Count-1 do
+    TMSSQLTrans(FTransHandles[I]).FConnection := nil;
+  FreeAndNil(FTransHandles);
+  inherited Destroy;
 end;
 
 procedure TMSSQLConnection.CreateDB;
@@ -357,14 +414,16 @@ begin
   end;
 end;
 
-procedure TMSSQLConnection.CancelQuery;
+procedure TMSSQLConnection.CancelQuery(cursor: TSQLCursor);
+var c: TDBLibCursor;
 begin
   // Cancel the query currently being retrieved, discarding all pending rows and all remaining resultsets
-  if Fstatus = MORE_ROWS then begin
+  c := cursor as TDBLibCursor;
+  if (c.FStatus = MORE_ROWS) and assigned(c.FDBProc) then begin
     repeat
-      dbcanquery(FDBProc);
-    until dbresults(FDBProc) <> SUCCEED;
-    Fstatus := NO_MORE_ROWS;
+      dbcanquery(c.FDBProc);
+    until dbresults(c.FDBProc) <> SUCCEED;
+    c.FStatus := NO_MORE_ROWS;
   end;
 end;
 
@@ -418,11 +477,90 @@ begin
     Result := CharSet;
 end;
 
+procedure TMSSQLConnection.InitProcess(aProc: PDBPROCESS);
+const
+  IMPLICIT_TRANSACTIONS_OFF: array[boolean] of shortstring = ('SET IMPLICIT_TRANSACTIONS OFF', 'SET CHAINED OFF');
+  ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
+begin
+  //CheckError( dbsetopt(aProc, DBQUOTEDIDENT, '') ); //in FreeTDS executes: "SET QUOTED_IDENTIFIER ON"
+  //CheckError( dbsetopt(aProc, DBTEXTSIZE,  '2147483647') ); //in FreeTDS: unimplemented, returns FAIL
+  //CheckError( dbsetopt(aProc, DBTEXTLIMIT, '2147483647') ); //in FreeTDS: unimplemented, returns FAIL, but required by ntwdblib.dll
+  //CheckError( dbsqlexec(aProc) ); //after setting DBTEXTSIZE option
+  //CheckError (dbresults(aProc));
+  //while dbresults(aProc) = SUCCEED do ;
+
+  // Also SQL Server ODBC driver and Microsoft OLE DB Provider for SQL Server set ANSI_DEFAULTS to ON when connecting
+  //Execute(aProc, ANSI_DEFAULTS_ON[IsSybase]);
+  Execute(aProc, 'SET QUOTED_IDENTIFIER ON');
+
+  if Params.IndexOfName(STextSize) <> -1 then
+    Execute(aProc, 'SET TEXTSIZE '+Params.Values[STextSize])
+  else
+    Execute(aProc, 'SET TEXTSIZE 16777216');
+
+  if AutoCommit then
+    Execute(aProc, IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
+
+  if DatabaseName <> '' then
+    CheckError( dbuse(aProc, PAnsiChar(DatabaseName)), aProc );
+end;
+
+function TMSSQLConnection.OpenProcess: PDBPROCESS;
+begin
+  Result := dbopen(FDBLogin, PAnsiChar(HostName));
+  if Result=nil then CheckError(FAIL);
+  try
+    InitProcess(Result);
+  except
+    dbclose(Result);
+    raise;
+  end;
+end;
+
+function TMSSQLConnection.ProcOf(aTransaction: TSQLTransaction): PDBPROCESS;
+begin
+  Result := nil;
+  if Assigned(aTransaction) then
+    Result := PDBPROCESS(aTransaction.Handle);
+  if Result=nil then
+    Result := FDBProc;
+end;
+
+function TMSSQLConnection.ProcOfHandle(trans: TSQLHandle): PDBPROCESS;
+begin
+  Result := nil;
+  if Assigned(trans) then
+    Result := TMSSQLTrans(trans).FDBProc;
+  if Result=nil then
+    Result := FDBProc;
+end;
+
+procedure TMSSQLConnection.ReleaseTransProc(trans: TSQLHandle);
+var T: TMSSQLTrans;
+begin
+  if not Assigned(trans) then
+    Exit;
+  T := TMSSQLTrans(trans);
+  if T.FOwnsProc and Assigned(T.FDBProc) then
+    dbclose(T.FDBProc);
+  if FPrimaryOwner=T then
+    FPrimaryOwner := nil;
+  T.FDBProc := nil;
+  T.FOwnsProc := False;
+end;
+
+procedure TMSSQLConnection.TransHandleFreed(trans: TSQLHandle);
+begin
+  if Connected then
+    ReleaseTransProc(trans)
+  else if FPrimaryOwner=trans then
+    FPrimaryOwner := nil;
+  FTransHandles.Remove(trans);
+end;
+
 procedure TMSSQLConnection.DoInternalConnect;
 const
   DBVERSION: array[boolean] of BYTE = (DBVERSION_73, DBVERSION_100);
-  IMPLICIT_TRANSACTIONS_OFF: array[boolean] of shortstring = ('SET IMPLICIT_TRANSACTIONS OFF', 'SET CHAINED OFF');
-  ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
   VERSION_NUMBER: array[boolean] of shortstring = ('SERVERPROPERTY(''ProductVersion'')', '@@version_number');
 
@@ -472,27 +610,7 @@ begin
 
   Ftds := dbtds(FDBProc);
 
-  //CheckError( dbsetopt(FDBProc, DBQUOTEDIDENT, '') ); //in FreeTDS executes: "SET QUOTED_IDENTIFIER ON"
-  //CheckError( dbsetopt(FDBProc, DBTEXTSIZE,  '2147483647') ); //in FreeTDS: unimplemented, returns FAIL
-  //CheckError( dbsetopt(FDBProc, DBTEXTLIMIT, '2147483647') ); //in FreeTDS: unimplemented, returns FAIL, but required by ntwdblib.dll
-  //CheckError( dbsqlexec(FDBProc) ); //after setting DBTEXTSIZE option
-  //CheckError (dbresults(FDBProc));
-  //while dbresults(FDBProc) = SUCCEED do ;
-
-  // Also SQL Server ODBC driver and Microsoft OLE DB Provider for SQL Server set ANSI_DEFAULTS to ON when connecting
-  //Execute(ANSI_DEFAULTS_ON[IsSybase]);
-  Execute('SET QUOTED_IDENTIFIER ON');
-
-  if Params.IndexOfName(STextSize) <> -1 then
-    Execute('SET TEXTSIZE '+Params.Values[STextSize])
-  else
-    Execute('SET TEXTSIZE 16777216');
-
-  if AutoCommit then
-    Execute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
-
-  if DatabaseName <> '' then
-    CheckError( dbuse(FDBProc, PAnsiChar(DatabaseName)) );
+  InitProcess(FDBProc);
 
   with TDBLibCursor.Create(Self) do
   begin
@@ -515,9 +633,14 @@ begin
 end;
 
 procedure TMSSQLConnection.DoInternalDisconnect;
+var
+  I: integer;
 begin
   inherited DoInternalDisconnect;
 
+  for I := 0 to FTransHandles.Count-1 do
+    ReleaseTransProc(TSQLHandle(FTransHandles[I]));
+  FPrimaryOwner := nil;
   dbclose(FDBProc);
   dbfreelogin(FDBLogin);
 
@@ -544,44 +667,78 @@ begin
 end;
 
 function TMSSQLConnection.AllocateTransactionHandle: TSQLHandle;
+var T: TMSSQLTrans;
 begin
-  Result:=nil;
+  T:=TMSSQLTrans.Create;
+  T.FConnection:=Self;
+  FTransHandles.Add(T);
+  Result:=T;
 end;
 
 function TMSSQLConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
-  Result:=nil;
+  if Assigned(trans) then
+    Result:=TMSSQLTrans(trans).FDBProc
+  else
+    Result:=nil;
 end;
 
 function TMSSQLConnection.StartDBTransaction(trans: TSQLHandle; AParams: string): boolean;
+var T: TMSSQLTrans;
 begin
   Result := not AutoCommit;
-  if Result then
-    Execute(SBeginTransaction);
+  if not Assigned(trans) then
+  begin
+    if Result then
+      Execute(SBeginTransaction);
+    Exit;
+  end;
+  T := TMSSQLTrans(trans);
+  if not Result then
+  begin
+    // autocommit: every statement uses the connection session
+    T.FDBProc := FDBProc;
+    Exit;
+  end;
+  if T.FDBProc=nil then
+    if (FPrimaryOwner=nil) or (FPrimaryOwner=T) then
+    begin
+      T.FDBProc := FDBProc;
+      FPrimaryOwner := T;
+    end
+    else
+    begin
+      // another transaction is active on FDBProc: this one gets its own session
+      T.FDBProc := OpenProcess;
+      T.FOwnsProc := True;
+    end;
+  Execute(T.FDBProc, SBeginTransaction);
 end;
 
 function TMSSQLConnection.Commit(trans: TSQLHandle): boolean;
 begin
-  Execute('COMMIT');
+  Execute(ProcOfHandle(trans), 'COMMIT');
+  ReleaseTransProc(trans);
   Result:=true;
 end;
 
 function TMSSQLConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  Execute('IF @@TRANCOUNT>0 ROLLBACK');
+  Execute(ProcOfHandle(trans), 'IF @@TRANCOUNT>0 ROLLBACK');
+  ReleaseTransProc(trans);
   Result:=true;
 end;
 
 procedure TMSSQLConnection.CommitRetaining(trans: TSQLHandle);
 begin
-  if Commit(trans) then
-    Execute(SBeginTransaction);
+  Execute(ProcOfHandle(trans), 'COMMIT');
+  Execute(ProcOfHandle(trans), SBeginTransaction);
 end;
 
 procedure TMSSQLConnection.RollbackRetaining(trans: TSQLHandle);
 begin
-  if Rollback(trans) then
-    Execute(SBeginTransaction);
+  Execute(ProcOfHandle(trans), 'IF @@TRANCOUNT>0 ROLLBACK');
+  Execute(ProcOfHandle(trans), SBeginTransaction);
 end;
 
 function TMSSQLConnection.AutoCommit: boolean;
@@ -593,21 +750,28 @@ procedure TMSSQLConnection.PrepareStatement(cursor: TSQLCursor;
    ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 begin
   (cursor as TDBLibCursor).Prepare(buf, AParams);
+  (cursor as TDBLibCursor).FTransaction := ATransaction;
 end;
 
 procedure TMSSQLConnection.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  CancelQuery;
+  CancelQuery(cursor);
+  (cursor as TDBLibCursor).FDBProc := nil;
   cursor.FPrepared := False;
 end;
 
 procedure TMSSQLConnection.Execute(const cmd: string);
 begin
+  Execute(FDBProc, cmd);
+end;
+
+procedure TMSSQLConnection.Execute(aProc: PDBPROCESS; const cmd: string);
+begin
   DBErrorStr:='';
   DBMsgStr  :='';
-  CheckError( dbcmd(FDBProc, PAnsiChar(cmd)) );
-  CheckError( dbsqlexec(FDBProc) );
-  CheckError( dbresults(FDBProc) );
+  CheckError( dbcmd(aProc, PAnsiChar(cmd)), aProc );
+  CheckError( dbsqlexec(aProc), aProc );
+  CheckError( dbresults(aProc), aProc );
 end;
 
 procedure TMSSQLConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
@@ -616,27 +780,28 @@ var c: TDBLibCursor;
     res: RETCODE;
 begin
   c:=cursor as TDBLibCursor;
+  c.FDBProc:=ProcOf(ATransaction);
 
   if LogEvent(detParamValue) then
     LogParams(AParams);
   cmd := c.ReplaceParams(AParams);
   if LogEvent(detActualSQL) then
     Log(detActualSQL,Cmd);
-  Execute(cmd);
+  Execute(c.FDBProc, cmd);
 
   res := SUCCEED;
   repeat
-    c.FSelectable := dbcmdrow(FDBProc)=SUCCEED;
-    c.FRowsAffected := dbcount(FDBProc);
-    if assigned(dbiscount) and not dbiscount(FDBProc) then
+    c.FSelectable := dbcmdrow(c.FDBProc)=SUCCEED;
+    c.FRowsAffected := dbcount(c.FDBProc);
+    if assigned(dbiscount) and not dbiscount(c.FDBProc) then
       c.FRowsAffected := -1;
 
     if not c.FSelectable then  //Sybase stored proc.
     begin
       repeat
-        Fstatus := dbnextrow(FDBProc);
-      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
-      res := CheckError( dbresults(FDBProc) );
+        c.FStatus := dbnextrow(c.FDBProc);
+      until (c.FStatus = NO_MORE_ROWS) or (c.FStatus = FAIL);
+      res := CheckError( dbresults(c.FDBProc), c.FDBProc );
       // stored procedure information (return status and output parameters)
       // are available only after normal results are processed
       //if res = NO_MORE_RESULTS then GetParameters(cursor, AParams);
@@ -644,9 +809,9 @@ begin
   until c.FSelectable or (res = NO_MORE_RESULTS) or (res = FAIL);
 
   if res = NO_MORE_RESULTS then
-    Fstatus := NO_MORE_ROWS
+    c.FStatus := NO_MORE_ROWS
   else
-    Fstatus := MORE_ROWS;
+    c.FStatus := MORE_ROWS;
 end;
 
 procedure TMSSQLConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
@@ -655,12 +820,12 @@ begin
   // Microsoft SQL Server no more returns OUTPUT parameters as a special result row
   // so we can not use dbret*() functions, but instead we must use dbrpc*() functions
   // only procedure return status number is returned
-  if dbhasretstat(FDBProc) = 1 then
+  if dbhasretstat(TDBLibCursor(cursor).FDBProc) = 1 then
     begin
     Param := AParams.FindParam('RETURN_STATUS');
     if not assigned(Param) then
       Param := AParams.CreateParam(ftInteger, 'RETURN_STATUS', ptOutput);
-    Param.AsInteger := dbretstatus(FDBProc);
+    Param.AsInteger := dbretstatus(TDBLibCursor(cursor).FDBProc);
     end;
 end;
 
@@ -674,14 +839,16 @@ end;
 
 function TMSSQLConnection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): boolean;
 var Identity: int64;
+    Proc: PDBPROCESS;
 begin
   // global variable @@IDENTITY is NUMERIC(38,0)
   Result:=False;
-  if dbcmd(FDBProc, 'SELECT @@IDENTITY') = FAIL then Exit;
-  if dbsqlexec(FDBProc) = FAIL then Exit;
-  if dbresults(FDBProc) = FAIL then Exit;
-  if dbnextrow(FDBProc) = FAIL then Exit;
-  if dbconvert(FDBProc, dbcoltype(FDBProc,1), dbdata(FDBProc,1), -1, SYBINT8, @Identity, sizeof(Identity)) = -1 then Exit;
+  Proc:=ProcOf(Query.SQLTransaction);
+  if dbcmd(Proc, 'SELECT @@IDENTITY') = FAIL then Exit;
+  if dbsqlexec(Proc) = FAIL then Exit;
+  if dbresults(Proc) = FAIL then Exit;
+  if dbnextrow(Proc) = FAIL then Exit;
+  if dbconvert(Proc, dbcoltype(Proc,1), dbdata(Proc,1), -1, SYBINT8, @Identity, sizeof(Identity)) = -1 then Exit;
   // by default identity columns are ReadOnly
   Field.AsLargeInt := Identity;
   Result:=True;
@@ -722,15 +889,49 @@ begin
 end;
 
 procedure TMSSQLConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
+var c: TDBLibCursor;
+    Describe: boolean;
+    Proc: PDBPROCESS;
+begin
+  c := cursor as TDBLibCursor;
+  // A statement that was not executed is described with FMTONLY: column information without rows
+  Describe := c.FDBProc=nil;
+  if Describe then
+  begin
+    Proc := ProcOf(c.FTransaction);
+    Execute(Proc, 'SET FMTONLY ON');
+    try
+      c.FDBProc := Proc;
+      Execute(Proc, c.ReplaceParams(c.FParams));
+    except
+      c.FDBProc := nil;
+      Execute(Proc, 'SET FMTONLY OFF');
+      raise;
+    end;
+  end;
+  try
+    DoAddFieldDefs(c, FieldDefs);
+  finally
+    if Describe then
+    begin
+      c.FStatus := MORE_ROWS;
+      CancelQuery(c);
+      c.FDBProc := nil;
+      Execute(Proc, 'SET FMTONLY OFF');
+    end;
+  end;
+end;
+
+procedure TMSSQLConnection.DoAddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var i, FieldSize: integer;
     FieldName: string;
     FieldType: TFieldType;
     col: DBCOL;
 begin
   col.SizeOfStruct:=sizeof(col);
-  for i:=1 to dbnumcols(FDBProc) do
+  for i:=1 to dbnumcols(TDBLibCursor(cursor).FDBProc) do
   begin
-    if dbtablecolinfo(FDBProc, i, @col) = FAIL then continue;
+    if dbtablecolinfo(TDBLibCursor(cursor).FDBProc, i, @col) = FAIL then continue;
     FieldName := col.Name;
     FieldType := TranslateFldType(col.Typ);
     case FieldType of
@@ -766,22 +967,24 @@ begin
 end;
 
 function TMSSQLConnection.Fetch(cursor: TSQLCursor): boolean;
+var c: TDBLibCursor;
 begin
+  c := cursor as TDBLibCursor;
   // Compute rows resulting from the COMPUTE clause are not processed
   repeat
-    Fstatus := dbnextrow(FDBProc);
+    c.FStatus := dbnextrow(c.FDBProc);
     // In case of network failure FAIL is returned
     // Use dbsettime() to specify query timeout, else on Windows TCP KeepAliveTime is used, which defaults to 2 hours
-    Result  := Fstatus=REG_ROW;
-  until Result or (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
+    Result  := c.FStatus=REG_ROW;
+  until Result or (c.FStatus = NO_MORE_ROWS) or (c.FStatus = FAIL);
 
-  if Fstatus = NO_MORE_ROWS then
-    while dbresults(FDBProc) <> NO_MORE_RESULTS do // process remaining results if there are any
+  if c.FStatus = NO_MORE_ROWS then
+    while dbresults(c.FDBProc) <> NO_MORE_RESULTS do // process remaining results if there are any
       repeat
-        Fstatus := dbnextrow(FDBProc);
-      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
+        c.FStatus := dbnextrow(c.FDBProc);
+      until (c.FStatus = NO_MORE_ROWS) or (c.FStatus = FAIL);
 
-  if Fstatus = FAIL then CheckError(FAIL);
+  if c.FStatus = FAIL then CheckError(FAIL, c.FDBProc);
 end;
 
 function TMSSQLConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
@@ -794,13 +997,15 @@ var i: integer;
     dbdr: DBDATEREC;
     dbdta: DBDATETIMEALL;
     bcdstr: array[0..MaxFmtBCDFractionSize+2] of AnsiChar;
+    Proc: PDBPROCESS;
 begin
   CreateBlob:=false;
   i:=FieldDef.FieldNo;
+  Proc:=TDBLibCursor(cursor).FDBProc;
 
-  srctype:=dbcoltype(FDBProc,i);
-  data:=dbdata(FDBProc,i);
-  datalen:=dbdatlen(FDBProc,i);
+  srctype:=dbcoltype(Proc,i);
+  data:=dbdata(Proc,i);
+  datalen:=dbdatlen(Proc,i);
   Result:=assigned(data) and (datalen>=0);
   if not Result then
     Exit;
@@ -903,7 +1108,7 @@ begin
     Result:=false;
   end;
 
-  dbconvert(FDBProc, srctype, data , datalen, desttype, dest, destlen);
+  dbconvert(Proc, srctype, data , datalen, desttype, dest, destlen);
 
   case FieldDef.DataType of
     ftString, ftFixedChar:
@@ -915,7 +1120,7 @@ begin
       begin
         //detect DBDATEREC version by pre-setting dbdr
         dbdr.millisecond := -1;
-        if dbdatecrack(FDBProc, @dbdr, @dbdt) = SUCCEED then
+        if dbdatecrack(Proc, @dbdr, @dbdt) = SUCCEED then
         begin
           if dbdr.millisecond = -1 then
             PDateTime(buffer)^ := composedatetime(
@@ -940,8 +1145,8 @@ var data: PByte;
     datalen: DBINT;
 begin
   // see also LoadField
-  data:=dbdata(FDBProc, FieldDef.FieldNo);
-  datalen:=dbdatlen(FDBProc, FieldDef.FieldNo);
+  data:=dbdata(TDBLibCursor(cursor).FDBProc, FieldDef.FieldNo);
+  datalen:=dbdatlen(TDBLibCursor(cursor).FDBProc, FieldDef.FieldNo);
 
   ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, datalen);
   Move(data^, ABlobBuf^.BlobBuffer^.Buffer^, datalen);
@@ -950,7 +1155,7 @@ end;
 
 procedure TMSSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
-  CancelQuery;
+  CancelQuery(cursor);
   inherited;
 end;
 

@@ -105,6 +105,8 @@ type
     procedure TestGetAsSQLTextWideString;
     Procedure TestCommitUnprepares;
     Procedure TestRollBackUnprepares;
+    // A transaction committed while another transaction of the connection has an open query (issue 33873)
+    procedure TestSecondTransactionCommits;
   end;
 
   { TTestTSQLScript }
@@ -1564,6 +1566,63 @@ begin
   finally
     Q1.Free;
     Q2.Free;
+  end;
+end;
+
+procedure TTestTSQLConnection.TestSecondTransactionCommits;
+
+var
+  lQ1, lQ3: TSQLQuery;
+  lT2, lT3: TSQLTransaction;
+
+begin
+  if not (SQLServerType in [ssMSSQL, ssPostgreSQL, ssFirebird, ssInterbase]) then
+    Ignore(STestNotApplicable);
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, val integer, constraint PK_FPDEV2 primary key(id))');
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 values (1, 0)');
+    Transaction.Commit;
+    end;
+  lQ1:=Nil;
+  lQ3:=Nil;
+  lT2:=Nil;
+  lT3:=Nil;
+  try
+    lQ1:=TSQLQuery.Create(Nil);
+    lQ1.DataBase:=SQLDBConnector.Connection;
+    lQ1.Transaction:=SQLDBConnector.Transaction;
+    lQ1.SQL.Text:='select * from FPDEV2';
+    lQ1.Open;
+    AssertEquals('Value read in transaction 1', 0, lQ1.FieldByName('val').AsInteger);
+
+    lT2:=TSQLTransaction.Create(Nil);
+    lT2.DataBase:=SQLDBConnector.Connection;
+    lT2.StartTransaction;
+    if SQLServerType=ssMSSQL then
+      SQLDBConnector.Connection.ExecuteDirect('SET LOCK_TIMEOUT 5000', lT2);
+    SQLDBConnector.Connection.ExecuteDirect('update FPDEV2 set val=42 where id=1', lT2);
+    lT2.Commit;
+    AssertTrue('Transaction 1 still active', SQLDBConnector.Transaction.Active);
+    lQ1.Close;
+    SQLDBConnector.Transaction.Rollback;
+
+    lT3:=TSQLTransaction.Create(Nil);
+    lT3.DataBase:=SQLDBConnector.Connection;
+    lQ3:=TSQLQuery.Create(Nil);
+    lQ3.DataBase:=SQLDBConnector.Connection;
+    lQ3.Transaction:=lT3;
+    lQ3.SQL.Text:='select val from FPDEV2 where id=1';
+    lQ3.Open;
+    AssertEquals('Update of transaction 2 survives the rollback of transaction 1', 42, lQ3.Fields[0].AsInteger);
+    lQ3.Close;
+    lT3.Commit;
+  finally
+    lQ1.Free;
+    lQ3.Free;
+    lT2.Free;
+    lT3.Free;
   end;
 end;
 
