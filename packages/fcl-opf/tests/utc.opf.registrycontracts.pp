@@ -19,7 +19,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, System.Variants, System.Math, System.Contnrs,
-  Data.DB, Data.SqlDB, Data.SQLite3.Connection, FpcUnit.Test, FpcUnit.TestRegistry,
+  Data.Db, Data.Sqldb, Data.SqlDb.Sqlite3, FpcUnit.Test, FpcUnit.TestRegistry,
 {$ELSE}
   Classes, SysUtils, Variants, Math, contnrs, DB, sqldb, sqlite3conn, fpcunit, testregistry,
 {$ENDIF}

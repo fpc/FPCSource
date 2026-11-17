@@ -15,12 +15,12 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs, Data.DB, FpcUnit.Test, FpcUnit.TestRegistry,
+  System.Classes, System.SysUtils, System.Contnrs, Data.Db, FpcUnit.Test, FpcUnit.TestRegistry,
 {$ELSE}
   Classes, SysUtils, Contnrs, DB, fpcunit, testregistry,
 {$ENDIF}
 {$IFDEF FPC_DOTTEDUNITS}
-  Data.SqlDB, Data.SQLite3.Connection,
+  Data.Sqldb, Data.SqlDb.Sqlite3,
 {$ELSE}
   sqldb, sqlite3conn,
 {$ENDIF}

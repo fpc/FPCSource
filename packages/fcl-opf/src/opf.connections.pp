@@ -22,7 +22,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, Data.SqlDB,
+  System.Classes, System.SysUtils, Data.Sqldb,
 {$ELSE}
   Classes, SysUtils, sqldb,
 {$ENDIF}

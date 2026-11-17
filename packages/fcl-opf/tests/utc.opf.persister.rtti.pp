@@ -6,8 +6,8 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.TypInfo, Data.DB, Data.SqlDB,
-  Data.SQLite3.Connection,
+  System.Classes, System.SysUtils, System.TypInfo, Data.Db, Data.Sqldb,
+  Data.SqlDb.Sqlite3,
   FpcUnit.Test, FpcUnit.TestRegistry,
 {$ELSE}
   Classes, SysUtils, typinfo, db, sqldb,

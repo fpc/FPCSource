@@ -22,7 +22,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.TypInfo, Data.DB,
+  System.Classes, System.SysUtils, System.TypInfo, Data.Db,
 {$ELSE}
   Classes, SysUtils, typinfo, db,
 {$ENDIF}
@@ -61,7 +61,12 @@ type
 implementation
 
 uses
-  Variants, Opf.Json, Opf.Variants, Opf.Nullable, Opf.FieldValue, Opf.Factory;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Variants,
+{$ELSE}
+  Variants,
+{$ENDIF}
+  Opf.Json, Opf.Variants, Opf.Nullable, Opf.FieldValue, Opf.Factory;
 
 function IsSupportedTypeKind(aKind: TTypeKind): Boolean;
 begin

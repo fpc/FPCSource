@@ -13,7 +13,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.StrUtils, Data.DB, Data.SqlDB,
+  System.Classes, System.SysUtils, System.StrUtils, Data.Db, Data.Sqldb,
   FpcUnit.Test, FpcUnit.TestRegistry,
 {$ELSE}
   Classes, SysUtils, StrUtils, DB, sqldb, fpcunit, testregistry,

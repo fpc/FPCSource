@@ -6,8 +6,8 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.IniFiles, Data.DB, Data.SqlDB,
-  Data.SQLite3.Connection,
+  System.Classes, System.SysUtils, System.IniFiles, Data.Db, Data.Sqldb,
+  Data.SqlDb.Sqlite3,
   Data.PQ.Connection,
   Data.IB.Connection,
   Data.MySQL80.Connection,

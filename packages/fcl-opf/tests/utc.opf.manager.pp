@@ -408,7 +408,7 @@ implementation
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  Data.SqlDB, Data.SQLite3.Connection,
+  Data.Sqldb, Data.SqlDb.Sqlite3,
 {$ELSE}
   sqldb, sqlite3conn,
 {$ENDIF}

@@ -40,7 +40,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, Data.DB,
+  System.Classes, System.SysUtils, Data.Db,
 {$ELSE}
   Classes, SysUtils, DB,
 {$ENDIF}

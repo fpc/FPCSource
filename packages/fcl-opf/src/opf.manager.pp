@@ -493,9 +493,15 @@ Function OPManager : TOPManager;
 
 implementation
 
-uses typinfo, DateUtils, Opf.Consts, Opf.Executor, Opf.Logging, Opf.Driver, Opf.FieldValue
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.TypInfo, System.DateUtils,
+{$ELSE}
+  typinfo, DateUtils,
+{$ENDIF}
+  Opf.Consts, Opf.Executor, Opf.Logging, Opf.Driver, Opf.FieldValue
 {$IFNDEF VER3_2}
-  , Rtti
+  , {$IFDEF FPC_DOTTEDUNITS}System.Rtti{$ELSE}Rtti{$ENDIF}
 {$ENDIF}
   ;
 

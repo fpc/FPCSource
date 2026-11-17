@@ -22,7 +22,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.TypInfo, Data.DB, System.Rtti,
+  System.Classes, System.SysUtils, System.TypInfo, Data.Db, System.Rtti,
 {$ELSE}
   Classes, SysUtils, typinfo, db, rtti,
 {$ENDIF}
@@ -136,7 +136,12 @@ function OPFFindDefaultConstructor(aClass: TClass): CodePointer;
 implementation
 
 uses
-  Variants, Math, Opf.Nullable, Opf.Attributes, Opf.Factory, Opf.FieldValue, Opf.Json, Opf.Variants;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Variants, System.Math,
+{$ELSE}
+  Variants, Math,
+{$ENDIF}
+  Opf.Nullable, Opf.Attributes, Opf.Factory, Opf.FieldValue, Opf.Json, Opf.Variants;
 
 resourcestring
   SErrUnknownEnumValue = 'Unknown enumeration value "%s" for property %s';
@@ -249,7 +254,7 @@ begin
     TValue.specialize Make<Double>(aValue, aResult);
     Exit;
   end;
-  // Qualified: Data.DB declares ftSingle as well
+  // Qualified: Data.Db declares ftSingle as well
   case GetTypeData(aField.PropertyTypeInfo)^.FloatType of
     TFloatType.ftSingle:
       begin
@@ -452,7 +457,7 @@ begin
   Elements:=Nil;
   if Trim(S)<>'' then
   begin
-    Parts:=S.Split(',');
+    Parts:=S.Split([',']);
     SetLength(Elements, Length(Parts));
     for I:=0 to High(Parts) do
     begin
@@ -1199,7 +1204,7 @@ begin
     Exit;
   FHasAttributePK:=True;
   FPKConstraintName:=Opf.Attributes.OPPrimaryKey(PKAttr).ConstraintName;
-  FieldNames:=String(Opf.Attributes.OPPrimaryKey(PKAttr).Fields).Split(',');
+  FieldNames:=String(Opf.Attributes.OPPrimaryKey(PKAttr).Fields).Split([',']);
   for I:=0 to High(FieldNames) do
   begin
     FldName:=Trim(FieldNames[I]);
@@ -1235,7 +1240,7 @@ begin
     IdxDef.FieldNames:=Opf.Attributes.OPIndex(Attr).Fields;
     IdxDef.IndexName:=Opf.Attributes.OPIndex(Attr).IndexName;
     // Validate field names exist in map
-    FieldNames:=String(IdxDef.FieldNames).Split(',');
+    FieldNames:=String(IdxDef.FieldNames).Split([',']);
     for J:=0 to High(FieldNames) do
     begin
       FldName:=Trim(FieldNames[J]);

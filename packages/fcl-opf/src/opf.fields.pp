@@ -21,7 +21,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.TypInfo, System.Variants, Data.DB;
+  System.Classes, System.SysUtils, System.TypInfo, System.Variants, Data.Db,
 {$ELSE}
   Classes, SysUtils, typinfo, Variants, db,
 {$ENDIF}
@@ -283,7 +283,7 @@ begin
     Exit(fkDate);
   if N='TTIME' then
     Exit(fkTime);
-  // Qualified: Data.DB declares ftSingle as well
+  // Qualified: Data.Db declares ftSingle as well
   case GetTypeData(TI)^.FloatType of
     TFloatType.ftSingle: Result:=fkSingle;
     TFloatType.ftDouble: Result:=fkDouble;

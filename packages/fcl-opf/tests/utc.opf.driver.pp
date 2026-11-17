@@ -6,7 +6,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.TestRegistry, Data.SqlDB,
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.TestRegistry, Data.Sqldb,
 {$ELSE}
   Classes, SysUtils, fpcunit, testregistry, sqldb,
 {$ENDIF}

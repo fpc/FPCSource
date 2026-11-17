@@ -116,7 +116,7 @@ Function OPLogger: TOPLogger;
 
 implementation
 
-uses typinfo;
+uses {$IFDEF FPC_DOTTEDUNITS}System.TypInfo{$ELSE}typinfo{$ENDIF};
 
 Function OPLogger: TOPLogger;
 begin

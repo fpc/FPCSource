@@ -110,7 +110,7 @@ implementation
 
 {$IFNDEF VER3_2}
 uses
-  Rtti;
+  {$IFDEF FPC_DOTTEDUNITS}System.Rtti{$ELSE}Rtti{$ENDIF};
 {$ENDIF}
 
 { TOPLazy }

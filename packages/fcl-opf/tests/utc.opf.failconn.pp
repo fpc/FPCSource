@@ -9,8 +9,8 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, Data.DB, Data.SqlDB,
-  Data.SQLite3.Connection;
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb,
+  Data.SqlDb.Sqlite3;
 {$ELSE}
   Classes, SysUtils, db, sqldb,
   sqlite3conn;

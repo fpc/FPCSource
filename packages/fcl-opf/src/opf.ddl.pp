@@ -21,7 +21,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.TypInfo, Data.DB, Data.SqlDB,
+  System.Classes, System.SysUtils, System.TypInfo, Data.Db, Data.Sqldb,
 {$ELSE}
   Classes, SysUtils, typinfo, db, sqldb,
 {$ENDIF}
@@ -250,7 +250,13 @@ Function OPDDLBuilder : TOPDDLBuilder;
 
 implementation
 
-uses Opf.Consts, Opf.Logging, Opf.Transaction, Opf.FieldValue, Variants;
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Variants,
+{$ELSE}
+  Variants,
+{$ENDIF}
+  Opf.Consts, Opf.Logging, Opf.Transaction, Opf.FieldValue;
 
 var
   SQLFormatSettings: TFormatSettings;
@@ -1112,7 +1118,7 @@ var
   Q: Boolean;
 begin
   Q:=coForceQuotes in aCreateOptions;
-  Parts:=String(aIndex.FieldNames).Split(',');
+  Parts:=String(aIndex.FieldNames).Split([',']);
   Fields:='';
   for I:=0 to High(Parts) do
   begin

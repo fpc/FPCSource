@@ -22,7 +22,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, Data.DB;
+  System.Classes, System.SysUtils, Data.Db;
 {$ELSE}
   Classes, SysUtils, db;
 {$ENDIF}
@@ -177,7 +177,13 @@ procedure OPFRaiseError(aExcClass: EOPFClass; const aClassName, aOperation, aFmt
 
 implementation
 
-uses strutils, {$IFDEF FPC_DOTTEDUNITS}Data.SqlDB{$ELSE}sqldb{$ENDIF}, Opf.Logging;
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.StrUtils, Data.Sqldb,
+{$ELSE}
+  strutils, sqldb,
+{$ENDIF}
+  Opf.Logging;
 
 resourcestring
   SErrNotALogger = 'Logger must be a TOPLogger, not a %s';
