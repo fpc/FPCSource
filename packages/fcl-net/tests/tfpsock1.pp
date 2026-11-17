@@ -73,6 +73,24 @@ begin
     Exit('IN6 <> Comparison failed');
 end;
 
+Function TestIPv4Mapping: String;
+
+var
+  Mapped, Extracted: TNetworkAddress;
+
+begin
+  Result:='';
+  Mapped:=IN4MappedIN6Address('172.18.200.255');
+  if not IsIPv4Mapped(Mapped) then
+    Exit('IN4MappedIN6Address result not recognized as mapped');
+  Extracted:=ExtractIPv4Address(Mapped);
+  if (Extracted.AddressType<>atIN4) or (Extracted.Address<>'172.18.200.255') then
+    Exit('ExtractIPv4Address returned '+Extracted.Address+' for 172.18.200.255');
+  Extracted:=ExtractIPv4Address(IN4MappedIN6Address(IN4Val));
+  if Extracted.Address<>IN4Val then
+    Exit('ExtractIPv4Address returned '+Extracted.Address+' for '+IN4Val);
+end;
+
 Procedure DoTest(aTest,aResult : String);
 
 begin
@@ -91,5 +109,6 @@ begin
   DoTest('TestIN6Addr',TestIN6Addr);
   DoTest('TestAddrDispatch',TestAddrDispatch);
   DoTest('TestIN6Equality',TestIN6Equality);
+  DoTest('TestIPv4Mapping',TestIPv4Mapping);
 end.
 

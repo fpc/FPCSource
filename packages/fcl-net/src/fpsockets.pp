@@ -486,10 +486,10 @@ begin
   if IPv6Addr.AddressType  <> atIN6 then
     raise EUnsupportedAddress.Create('Can only extract IPv4 mapping from IPv6 addresses');
   IN6Addr := StrToHostAddr6(IPv6Addr.Address);
-  Result := IN4Address('%d.%d.%d.%d'.Format([IN6Addr.s6_addr8[12],
-                                             IN6Addr.s6_addr8[13],
-                                             IN6Addr.s6_addr8[14],
-                                             IN6Addr.s6_addr8[15]]));
+  Result := IN4Address('%d.%d.%d.%d'.Format([Byte(IN6Addr.s6_addr8[12]),
+                                             Byte(IN6Addr.s6_addr8[13]),
+                                             Byte(IN6Addr.s6_addr8[14]),
+                                             Byte(IN6Addr.s6_addr8[15])]));
 end;
 
 function IN6Equal(const A, B: String): Boolean;
