@@ -1303,31 +1303,29 @@ implementation
         Result:=(QWord(TCompDoubleRec(value).bytes)=QWord(MathNegZero.bytes));
       end;
 {$else sizeof(bestreal)=sizeof(double)}
+    { MathPosZero and MathNegZero are doubles, so a zero is converted to a
+      double before its bytes are compared: that conversion is exact and keeps
+      the sign }
     function IsPosZero(value: bestreal): boolean;
       var
-        X, Count: Integer;
-        ByteArray: PByte;
+        d: double;
       begin
         Result:=False;
-        ByteArray:=@value;
-        Count:=SizeOf(bestreal);
-
-        { Read raw bytes of floating-point value - must be all zeroes }
-        Result:=(CompareByte(ByteArray^,MathPosZero.bytes,Count)=0);
+        if value<>0.0 then
+          exit;
+        d:=value;
+        Result:=(QWord(TCompDoubleRec(d).bytes)=QWord(MathPosZero.bytes));
       end;
 
     function IsNegZero(value: bestreal): boolean;
       var
-        X, Count: Integer;
-        ByteArray: PByte;
+        d: double;
       begin
         Result:=False;
-        ByteArray:=@value;
-        Count:=SizeOf(bestreal);
-
-        { Read raw bytes of floating-point value - must be all zeroes except
-          for the most significant (sign) bit }
-        Result:=(CompareByte(ByteArray^,MathNegZero.bytes,Count)=0);
+        if value<>0.0 then
+          exit;
+        d:=value;
+        Result:=(QWord(TCompDoubleRec(d).bytes)=QWord(MathNegZero.bytes));
       end;
 {$ifend sizeof(bestreal)=sizeof(double)}
 
