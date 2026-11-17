@@ -384,16 +384,25 @@ procedure TTestDDLBuilder.TestBool(aDialect : TSQLDialect);
 Var
   S, BoolName : UTF8string;
 
+  // The column type of a boolean: the SMALLINT type of the dialect or the boolean keyword
+  function BoolType: UTF8String;
+  begin
+    if TMyOPDDLBuilder(Builder).GetBooleanKeyword=kwSmallInt then
+      Result:=TMyOPDDLBuilder(Builder).SmallIntTypeSQL
+    else
+      Result:=TMyOPDDLBuilder(Builder).KeyWord(TMyOPDDLBuilder(Builder).GetBooleanKeyword);
+  end;
+
 begin
   Map.Clear;
   Builder.Options:=[];
   Builder.SQLDialect:=aDialect;
   Add(tkBool,0,0);
-  BoolName:=TMyOPDDLBuilder(Builder).KeyWord(TMyOPDDLBuilder(Builder).GetBooleanKeyword);
+  BoolName:=BoolType;
   S:=Builder.GetCreateSQL('a',Map.AsArray);
   AssertEquals(aDialect.ToString+' Create','CREATE TABLE a (F1 '+BoolName+')',S);
   Builder.Options:=[sboKeyWordsLowerCase];
-  BoolName:=TMyOPDDLBuilder(Builder).KeyWord(TMyOPDDLBuilder(Builder).GetBooleanKeyword);
+  BoolName:=BoolType;
   S:=Builder.GetCreateSQL('a',Map.AsArray);
   AssertEquals(aDialect.ToString+' Create lower','create table a (F1 '+BoolName+')',S);
 end;

@@ -2383,7 +2383,7 @@ procedure TOPManager.DoSave(aObject: TObject; aState: TObjectPersistenceState; a
         if Param <> nil then
           aPers.PersistProperty(aObj, Field, Param);
       end;
-      Param := Query.Params.FindParam('_opf_oldversion');
+      Param := Query.Params.FindParam('opf_oldversion');
       if Param <> nil then
         SetVersionParam(Param, aOldVersion);
       try
@@ -2466,7 +2466,7 @@ begin
               begin
                 OldVersion := ReadVersion(aObject, VersionField);
                 IncrementVersion(aObject, VersionField);
-                SQL := SQL + ' AND (' + SQLBuilder.Identifier(VersionField.FieldName) + '=:_opf_oldversion)';
+                SQL := SQL + ' AND (' + SQLBuilder.Identifier(VersionField.FieldName) + '=:opf_oldversion)';
                 ExecuteVersionedUpdate(aObject, aPersister, lMap, SQL, Conn,
                   OldVersion);
               end
@@ -2954,9 +2954,9 @@ begin
     Q.Transaction:=aConn.Transaction;
     Q.SQL.Text:='SELECT 1 FROM '+SQLBuilder.Identifier(aDef.TableName, itTable)+' WHERE '+
       CombineWhere([SQLBuilder.GetWhereKey(aDef.TableName, aDef.FieldMap.AsArray),
-                    SQLBuilder.Identifier(aVersionField.FieldName)+'=:_opf_oldversion',
+                    SQLBuilder.Identifier(aVersionField.FieldName)+'=:opf_oldversion',
                     GetSoftDeleteFilter(aDef.FieldMap)]);
-    SetVersionParam(Q.Params.ParamByName('_opf_oldversion'), ReadVersion(aObject, aVersionField));
+    SetVersionParam(Q.Params.ParamByName('opf_oldversion'), ReadVersion(aObject, aVersionField));
     for I:=0 to aDef.FieldMap.Count-1 do
     begin
       Field:=aDef.FieldMap[I];
@@ -3007,7 +3007,7 @@ begin
   if TOPLogger(GetLogger).IsKindActive(lkTrace) then
     TOPLogger(GetLogger).LogTrace(Self, 'Delete: begin (%s)', [aObject.ClassName]);
   {$ENDIF}
-  // Cascades carry one key value: refuse before anything is changed
+  // Cascades pass one key value: refuse before anything is changed
   KeyCount:=0;
   for I:=0 to Def.FieldMap.Count-1 do
     if foInKey in Def.FieldMap[I].Options then
@@ -3030,7 +3030,7 @@ begin
   else
     SQL:=SQLBuilder.GetDeleteSQL(Def.TableName, Def.FieldMap.AsArray);
   if CheckVersion then
-    SQL:=SQL+' AND ('+SQLBuilder.Identifier(VersionField.FieldName)+'=:_opf_oldversion)';
+    SQL:=SQL+' AND ('+SQLBuilder.Identifier(VersionField.FieldName)+'=:opf_oldversion)';
   Persister:=CreatePersister(Def, 'Delete');
   try
     BeginUndoOperation;
@@ -3090,7 +3090,7 @@ begin
             Persister.PersistProperty(aObject, Field, Param);
         end;
         if CheckVersion then
-          SetVersionParam(Q.Params.ParamByName('_opf_oldversion'), ReadVersion(aObject, VersionField));
+          SetVersionParam(Q.Params.ParamByName('opf_oldversion'), ReadVersion(aObject, VersionField));
         SDTimestamp:=GetTimestamp;
         if IsSoftDelete then
           SetSoftDeleteParam(Q.Params.ParamByName('opf_sd'), SoftDeleteField, SDTimestamp);

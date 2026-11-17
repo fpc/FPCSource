@@ -85,6 +85,10 @@ Type
     Function NullClause(aNullable : Boolean) : UTF8String;
     // Dialect keyword resolution - delegates to Driver
     function GetBooleanKeyword: TSQLKeyWord; virtual;
+    // Column type for a 32-bit whole number: the driver type or the INT keyword
+    function IntTypeSQL: UTF8String;
+    // Column type for a 16-bit whole number: the driver type or the SMALLINT keyword
+    function SmallIntTypeSQL: UTF8String;
     function GetBlobKeyword: TSQLKeyWord; virtual;
     function GetMemoKeyword: TSQLKeyWord; virtual;
     function GetMemoSuffix: UTF8String; virtual;
@@ -427,6 +431,20 @@ begin
   FreeAndNil(_Instance);
 end;
 
+function TOPDDLBuilder.IntTypeSQL: UTF8String;
+begin
+  Result:=TypeSQL(Driver.GetIntTypeSQL);
+  if Result='' then
+    Result:=KeyWord(kwINT);
+end;
+
+function TOPDDLBuilder.SmallIntTypeSQL: UTF8String;
+begin
+  Result:=TypeSQL(Driver.GetSmallIntTypeSQL);
+  if Result='' then
+    Result:=KeyWord(kwSmallInt);
+end;
+
 function TOPDDLBuilder.GetBooleanKeyword: TSQLKeyWord;
 begin
   Result:=Driver.GetBooleanKeyword;
@@ -467,9 +485,9 @@ begin
   if OPFIsUnsigned32(aField) and (aField.MaxSize=0) then
     Result:=TypeSQL(Driver.GetBigIntTypeSQL)
   else if (aField.MaxSize>maxSmallint) or (aField.MaxSize=0) then
-    Result:=KeyWord(kwINT)
+    Result:=IntTypeSQL
   else
-    Result:=KeyWord(kwSMALLINT)
+    Result:=SmallIntTypeSQL
 end;
 
 function TOPDDLBuilder.GetStringField(aField : TOPFieldMap;const aTable: UTF8string) : UTF8String;
@@ -550,7 +568,10 @@ end;
 function TOPDDLBuilder.GetBooleanField(aField: TOPFieldMap;const aTable: UTF8string): UTF8string;
 
 begin
-  Result:=KeyWord(GetBooleanKeyword);
+  if GetBooleanKeyword=kwSmallInt then
+    Result:=SmallIntTypeSQL
+  else
+    Result:=KeyWord(GetBooleanKeyword);
 end;
 
 function TOPDDLBuilder.GetClassField(aField: TOPFieldMap; const aTable: UTF8string): UTF8string;
@@ -653,12 +674,12 @@ begin
       if foAsString in aField.Options then
         Result:=GetStringField(aField,aTable)
       else
-        Result:=KeyWord(kwINT);
+        Result:=IntTypeSQL;
     tkEnumeration:
       if foAsString in aField.Options then
         Result:=GetStringField(aField,aTable)
       else
-        Result:=KeyWord(kwSmallInt);
+        Result:=SmallIntTypeSQL;
     tkVariant:
       Result:=MemoField;
     tkClass : Result:=GetClassField(aField,aTable);

@@ -11,6 +11,7 @@ uses
   Data.PQ.Connection,
   Data.IB.Connection,
   Data.MySQL80.Connection,
+  Data.SqlDb.Oracle,
   FpcUnit.Test,
 {$ELSE}
   Classes, SysUtils, IniFiles, db, sqldb,
@@ -18,6 +19,7 @@ uses
   pqconnection,
   ibconnection,
   mysql80conn,
+  oracleconnection,
   fpcunit,
 {$ENDIF}
   Opf.Consts, Opf.Driver, Opf.Sql, Opf.DDL;
@@ -92,6 +94,17 @@ Type
     class function GetEnvPrefix: String; override;
     class function GetDialect: TSQLDialect; override;
     function CreateConnection(const aParams: TDatabaseParams): TSQLConnection; override;
+  end;
+
+  { TOracleSetupHelper }
+
+  TOracleSetupHelper = class(TDatabaseSetupHelper)
+  public
+    class function GetSectionName: String; override;
+    class function GetEnvPrefix: String; override;
+    class function GetDialect: TSQLDialect; override;
+    function CreateConnection(const aParams: TDatabaseParams): TSQLConnection; override;
+    procedure DeleteTables(aConn: TSQLConnection; const aTables: array of String); override;
   end;
 
   { TTestIntegration }
@@ -414,6 +427,65 @@ begin
     Conn.Free;
     Result:=Nil;
   end;
+end;
+
+{ TOracleSetupHelper }
+
+class function TOracleSetupHelper.GetSectionName: String;
+begin
+  Result:='Oracle';
+end;
+
+class function TOracleSetupHelper.GetEnvPrefix: String;
+begin
+  Result:='OPF_ORA';
+end;
+
+class function TOracleSetupHelper.GetDialect: TSQLDialect;
+begin
+  Result:=dOracle;
+end;
+
+function TOracleSetupHelper.CreateConnection(const aParams: TDatabaseParams): TSQLConnection;
+var
+  Conn: TOracleConnection;
+  T: TSQLTransaction;
+begin
+  if aParams.Database='' then
+    Exit(Nil);
+  Conn:=TOracleConnection.Create(Nil);
+  try
+    Conn.HostName:=aParams.Host;
+    if (aParams.Host<>'') and (aParams.Port<>'') then
+      Conn.HostName:=aParams.Host+':'+aParams.Port;
+    Conn.DatabaseName:=aParams.Database;
+    if aParams.User<>'' then
+      Conn.UserName:=aParams.User;
+    Conn.Password:=aParams.Password;
+    Conn.CharSet:='utf8';
+    T:=TSQLTransaction.Create(Conn);
+    T.Database:=Conn;
+    Conn.Transaction:=T;
+    Conn.Open;
+    Result:=Conn;
+  except
+    Conn.Free;
+    Result:=Nil;
+  end;
+end;
+
+procedure TOracleSetupHelper.DeleteTables(aConn: TSQLConnection; const aTables: array of String);
+var
+  S: String;
+begin
+  for S in aTables do
+    try
+      ExecDDL(aConn, 'DROP TABLE ' + S + ' CASCADE CONSTRAINTS PURGE');
+    except
+      // ORA-00942: the table does not exist
+      if aConn.Transaction.Active then
+        aConn.Transaction.Rollback;
+    end;
 end;
 
 { TTestIntegration }

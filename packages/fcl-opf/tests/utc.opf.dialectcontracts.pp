@@ -99,6 +99,7 @@ type
     procedure TestRetrievalPerDialect;
     procedure TestSQLServerInsertSameBatch;
     procedure TestOracleInsertReturningInto;
+    procedure TestOracleParamNames;
     procedure TestPostgresInsertReturning;
     procedure TestSQLiteInsertUnchanged;
   end;
@@ -456,6 +457,30 @@ procedure TTestDialectQueries.TestOracleInsertReturningInto;
 begin
   AssertEquals('INSERT INTO T (Name) VALUES (:Name) RETURNING ID INTO :opf_ret',
     InsertSQL(dOracle));
+end;
+
+procedure TTestDialectQueries.TestOracleParamNames;
+var
+  F: TOPFieldMap;
+
+  function ParamName(aDialect: TSQLDialect; const aFieldName: String): String;
+  begin
+    F.FieldName:=aFieldName;
+    FBuilder.SQLDialect:=aDialect;
+    Result:=FBuilder.FieldParamName(F);
+  end;
+
+begin
+  F:=TOPFieldMap.Create(Nil);
+  try
+    AssertEquals('Reserved word kept on PostgreSQL', 'Level', ParamName(dPostGres, 'Level'));
+    AssertEquals('Reserved word encoded on Oracle', OPFEncodedParamName('Level'), ParamName(dOracle, 'Level'));
+    AssertEquals('Leading underscore encoded on Oracle', OPFEncodedParamName('_x'), ParamName(dOracle, '_x'));
+    AssertEquals('NAME is a valid Oracle bind name', 'Name', ParamName(dOracle, 'Name'));
+    AssertEquals('Plain name kept on Oracle', 'Title', ParamName(dOracle, 'Title'));
+  finally
+    F.Free;
+  end;
 end;
 
 procedure TTestDialectQueries.TestPostgresInsertReturning;

@@ -61,6 +61,7 @@ uses
   utc.opf.integration.common,
   utc.opf.integration.sqlite, utc.opf.integration.pgsql,
   utc.opf.integration.fb, utc.opf.integration.mysql,
+  utc.opf.integration.oracle,
   utc.opf.integration.safety,
   Opf.Schema, utc.opf.schema,
   Opf.Migration, utc.opf.migration,

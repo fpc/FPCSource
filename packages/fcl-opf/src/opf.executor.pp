@@ -165,7 +165,13 @@ Function OPExecutor : TOPExecutor;
 
 implementation
 
-uses Opf.Consts, Opf.Logging, Opf.FieldValue;
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Data.BufDataset,
+{$ELSE}
+  bufdataset,
+{$ENDIF}
+  Opf.Consts, Opf.Logging, Opf.FieldValue;
 
 Resourcestring
   SErrExecutorUnboundParam = 'SQL parameter "%s" is not filled by any mapped field of %s';
@@ -186,12 +192,34 @@ begin
   end;
 end;
 
-{ Generated key value into the key property; False when it does not fit }
+{ Generated key value into the key property through the persister, using a one-row dataset }
 
-function SetKeyValue(aInstance: TObject; aField: TOPFieldMap; aValue: Int64): Boolean;
+function ApplyKeyValue(aPersister: TOPPersister; aInstance: TObject; aField: TOPFieldMap; aValue: Int64): Boolean;
+var
+  DS: TBufDataset;
+begin
+  DS:=TBufDataset.Create(Nil);
+  try
+    DS.FieldDefs.Add('opf_ret', ftLargeint);
+    DS.CreateDataset;
+    DS.Append;
+    DS.Fields[0].AsLargeInt:=aValue;
+    DS.Post;
+    Result:=aPersister.ApplyProperty(aInstance, aField, DS.Fields[0]);
+  finally
+    DS.Free;
+  end;
+end;
+
+{ Generated key value into the key property; False when it does not fit.
+  A key that is not a published property is set through the persister. }
+
+function SetKeyValue(aPersister: TOPPersister; aInstance: TObject; aField: TOPFieldMap; aValue: Int64): Boolean;
 var
   TD: PTypeData;
 begin
+  if GetPropInfo(aInstance, aField.PropertyName)=Nil then
+    Exit(ApplyKeyValue(aPersister, aInstance, aField, aValue));
   Result:=True;
   case aField.PropertyKind of
     tkInteger:
@@ -771,7 +799,7 @@ begin
         for I:=0 to aFieldMap.Count-1 do
           if foAutoInc in aFieldMap[I].Options then
           begin
-            if not SetKeyValue(aInstance, aFieldMap[I], RetParam.AsLargeInt) then
+            if not SetKeyValue(aPersister, aInstance, aFieldMap[I], RetParam.AsLargeInt) then
               RaiseError('ExecuteSQLAutoInc', SErrExecutorAutoIncRetrieval, [aInstance.ClassName]);
             Break;
           end;

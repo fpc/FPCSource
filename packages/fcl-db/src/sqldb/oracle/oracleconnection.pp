@@ -638,7 +638,7 @@ begin
   Result := True;
   aDescType := 0;
   case aDataType of
-    ftSmallInt, ftInteger :
+    ftSmallInt, ftInteger, ftBoolean :
       begin aType := SQLT_INT; aSize := sizeof(integer); end;
     ftLargeInt :
       begin aType := SQLT_INT; aSize := sizeof(int64); end;
@@ -698,7 +698,7 @@ begin
       end;
     end;
   lBind := nil;
-  if aParam.ParamType=ptInput then
+  if aParam.ParamType in [ptUnknown,ptInput] then
     begin
     if OCIBindByName(aCursor.FOciStmt,lBind,FOciError,PAnsiChar(aParam.Name),length(aParam.Name),lBuffer,lSize,lType,@aCursor.ParamBuffers[aIndex].ind,nil,nil,0,nil,OCI_DEFAULT)= OCI_ERROR then
       HandleError;
@@ -770,7 +770,7 @@ var i         : integer;
 
 begin
   with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do with AParams[i] do
-    if ParamType=ptInput then
+    if ParamType in [ptUnknown,ptInput] then
       begin
       if IsNull then ParamBuffers[i].ind := -1 else ParamBuffers[i].ind := 0;
 
@@ -796,6 +796,7 @@ begin
         ftSmallInt,
         ftInteger         : PInteger(ParamBuffers[i].buffer)^ := AsInteger;
         ftLargeInt        : PInt64(ParamBuffers[i].buffer)^ := AsLargeInt;
+        ftBoolean         : PInteger(ParamBuffers[i].buffer)^ := Ord(AsBoolean);
         ftFloat           : PDouble(ParamBuffers[i].buffer)^ := AsFloat;
         ftString,
         ftFixedChar,

@@ -169,8 +169,10 @@ Function OPSQLBuilder : TOPSQLBuilder;
 
 // Default parameter name for a column: the column name itself when it is a
 // plain identifier outside the reserved opf_ / _opf_ prefixes, otherwise
-// opf_c_<sanitized name>_<hash>.
+// OPFEncodedParamName(aFieldName).
 Function OPFFieldParamName(const aFieldName : String) : String;
+// Parameter name opf_c_<sanitized name>_<hash> for a column
+Function OPFEncodedParamName(const aFieldName : String) : String;
 
 Const
   // uppercased only
@@ -198,17 +200,23 @@ function OPFFieldParamName(const aFieldName: String): String;
         Result:=False;
   end;
 
+begin
+  Result:=aFieldName;
+  // Internal parameters (opf_sd, opf_pk, opf_oldversion, ...) use these prefixes
+  if IsPlainParamName(Result)
+     and not SameText(Copy(Result, 1, 4), 'opf_')
+     and not SameText(Copy(Result, 1, 5), '_opf_') then
+    Exit;
+  Result:=OPFEncodedParamName(aFieldName);
+end;
+
+function OPFEncodedParamName(const aFieldName: String): String;
+
 var
   I: Integer;
   S: String;
 
 begin
-  Result:=aFieldName;
-  // Internal parameters (opf_sd, opf_pk, _opf_oldversion, ...) use these prefixes
-  if IsPlainParamName(Result)
-     and not SameText(Copy(Result, 1, 4), 'opf_')
-     and not SameText(Copy(Result, 1, 5), '_opf_') then
-    Exit;
   S:='';
   for I:=1 to Length(aFieldName) do
     if aFieldName[I] in ['A'..'Z','a'..'z','0'..'9','_'] then
@@ -381,6 +389,8 @@ function TOPSQLBuilder.GetParamName(const F : TOPFieldMap) : String;
 
 begin
   Result:=OPFFieldParamName(F.FieldName);
+  if not Driver.IsValidParamName(Result) then
+    Result:=OPFEncodedParamName(F.FieldName);
 end;
 
 function TOPSQLBuilder.FieldParamName(const F: TOPFieldMap): String;

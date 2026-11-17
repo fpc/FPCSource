@@ -260,6 +260,11 @@ type
     class function HelperClass: TDatabaseSetupHelperClass; override;
   end;
 
+  TOracleSafety = class(TTestSafetyCommon)
+  protected
+    class function HelperClass: TDatabaseSetupHelperClass; override;
+  end;
+
 implementation
 
 const
@@ -1459,6 +1464,11 @@ begin
   Result:=TMySQLSetupHelper;
 end;
 
+class function TOracleSafety.HelperClass: TDatabaseSetupHelperClass;
+begin
+  Result:=TOracleSetupHelper;
+end;
+
 initialization
-  RegisterTests('Safety', [TSQLiteSafety, TPgSQLSafety, TFirebirdSafety, TMySQLSafety]);
+  RegisterTests('Safety', [TSQLiteSafety, TPgSQLSafety, TFirebirdSafety, TMySQLSafety, TOracleSafety]);
 end.

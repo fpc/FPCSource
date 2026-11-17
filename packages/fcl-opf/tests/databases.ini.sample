@@ -44,3 +44,11 @@
 ;Database=opf_test
 ;User=opf_test
 ;Password=
+
+[Oracle]
+; Database is the service name. Env vars: OPF_ORA_HOST, OPF_ORA_PORT, OPF_ORA_DB, OPF_ORA_USER, OPF_ORA_PASS
+;Host=localhost
+;Port=1521
+;Database=FREEPDB1
+;User=fpc
+;Password=

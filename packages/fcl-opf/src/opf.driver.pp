@@ -112,6 +112,10 @@ Type
     function GetCurrencyTypeSQL: UTF8String; virtual;
     // Column type for a 64-bit whole number
     function GetBigIntTypeSQL: UTF8String; virtual;
+    // Column type for a 32-bit whole number, empty to use the INT keyword
+    function GetIntTypeSQL: UTF8String; virtual;
+    // Column type for a 16-bit whole number, empty to use the SMALLINT keyword
+    function GetSmallIntTypeSQL: UTF8String; virtual;
     // Column type for long text, empty to use the long text keyword
     function GetMemoTypeSQL: UTF8String; virtual;
     // Column type for binary data, empty to use the binary data keyword
@@ -157,6 +161,8 @@ Type
     function QuoteIdentifier(const aIdentifier: UTF8String): UTF8String; virtual;
     // True if the word is a reserved word of the database
     function IsReservedWord(const aWord: UTF8String): Boolean; virtual;
+    // True if aName can be used as the name of a statement parameter
+    function IsValidParamName(const aName: UTF8String): Boolean; virtual;
     // The name, changed or quoted if it is a reserved word, as the reserved word setting says
     function TransformIdentifier(const aIdentifier: UTF8String): UTF8String; virtual;
     // Patterns that are never allowed in an identifier, quoted or not.
@@ -400,6 +406,8 @@ Type
     function GetMemoKeyword: TSQLKeyWord; override;
     // True if the name starts with a letter and can be used without quotes
     function IsRegularIdentifier(const aIdentifier: UTF8String): Boolean; override;
+    // False for a reserved word or a name that does not start with a letter
+    function IsValidParamName(const aName: UTF8String): Boolean; override;
     // Column type for a date or a date and time (time values use TIMESTAMP)
     function GetDateTimeTypeSQL(aKind: TOPFloatKind): UTF8String; override;
     // Column type BINARY_DOUBLE for a double precision number
@@ -408,6 +416,12 @@ Type
     function GetCurrencyTypeSQL: UTF8String; override;
     // Column type NUMBER(19) for a 64-bit whole number
     function GetBigIntTypeSQL: UTF8String; override;
+    // Column type NUMBER(10) for a 32-bit whole number
+    function GetIntTypeSQL: UTF8String; override;
+    // Column type NUMBER(5) for a 16-bit whole number
+    function GetSmallIntTypeSQL: UTF8String; override;
+    // Reads the tables, columns, indexes and foreign keys of the current schema
+    function IntrospectSchema(aConnection: TSQLConnection): TOPSchemaInfo; override;
     // Definition of an auto-increment primary key column using GENERATED AS IDENTITY
     function GetAutoIncColumnSQL(const aQuotedName: UTF8String; aIs64Bit: Boolean): UTF8String; override;
     // List of the reserved words of Oracle
@@ -799,6 +813,16 @@ begin
   Result:='BIGINT';
 end;
 
+function TSQLDriver.GetIntTypeSQL: UTF8String;
+begin
+  Result:='';
+end;
+
+function TSQLDriver.GetSmallIntTypeSQL: UTF8String;
+begin
+  Result:='';
+end;
+
 function TSQLDriver.GetMemoTypeSQL: UTF8String;
 begin
   Result:='';
@@ -835,6 +859,11 @@ function TSQLDriver.IsReservedWord(const aWord: UTF8String): Boolean;
 begin
   EnsureReservedWordCache;
   Result:=FReservedWordCache.IndexOf(aWord)>=0;
+end;
+
+function TSQLDriver.IsValidParamName(const aName: UTF8String): Boolean;
+begin
+  Result:=aName<>'';
 end;
 
 function TSQLDriver.TransformIdentifier(const aIdentifier: UTF8String): UTF8String;
@@ -2119,6 +2148,23 @@ begin
   Result:=inherited IsRegularIdentifier(aIdentifier) and (aIdentifier[1] in ['A'..'Z','a'..'z']);
 end;
 
+function TSQLDriverOracle.IsValidParamName(const aName: UTF8String): Boolean;
+const
+  // In GetReservedWords for quoting, but accepted as bind variable names
+  cBindNames: array[0..5] of UTF8String = ('VALUE','TYPE','NAME','ACTION','DATA','ROLE');
+var
+  W: UTF8String;
+begin
+  Result:=(aName<>'') and (aName[1] in ['A'..'Z','a'..'z']);
+  if Result and IsReservedWord(aName) then
+  begin
+    Result:=False;
+    for W in cBindNames do
+      if SameText(W, aName) then
+        Result:=True;
+  end;
+end;
+
 function TSQLDriverOracle.GetDateTimeTypeSQL(aKind: TOPFloatKind): UTF8String;
 begin
   // Oracle has no TIME type, and its DATE holds a time part
@@ -2142,6 +2188,171 @@ end;
 function TSQLDriverOracle.GetBigIntTypeSQL: UTF8String;
 begin
   Result:='NUMBER(19)';
+end;
+
+function TSQLDriverOracle.GetIntTypeSQL: UTF8String;
+begin
+  Result:='NUMBER(10)';
+end;
+
+function TSQLDriverOracle.GetSmallIntTypeSQL: UTF8String;
+begin
+  Result:='NUMBER(5)';
+end;
+
+{ NUMBER columns report their precision and scale; a NUMBER declared as
+  INTEGER (no precision, scale 0) reports precision 38. }
+
+function TSQLDriverOracle.IntrospectSchema(aConnection: TSQLConnection): TOPSchemaInfo;
+var
+  Q, Q2: TSQLQuery;
+  Schema: TOPSchemaInfo;
+  TableCount, ColCount, FKCount, IdxCount: Integer;
+  TableName, IdxName, PrevIdx, DataType: UTF8String;
+  I: Integer;
+begin
+  Schema:=TOPSchemaInfo.Create;
+  try
+    Q:=TSQLQuery.Create(nil);
+    try
+      Q.Database:=aConnection;
+      Q.Transaction:=aConnection.Transaction;
+
+      // Internal tables: _OPF_ unquoted, or "_opf_..." when created quoted
+      Q.SQL.Text:='SELECT TABLE_NAME FROM USER_TABLES '+
+        'WHERE DROPPED=''NO'' AND UPPER(TABLE_NAME) NOT LIKE ''\_OPF\_%'' ESCAPE ''\'' '+
+        'ORDER BY TABLE_NAME';
+      Q.Open;
+      TableCount:=0;
+      while not Q.EOF do
+      begin
+        SetLength(Schema.Tables, TableCount+1);
+        Schema.Tables[TableCount].TableName:=Q.Fields[0].AsString;
+        Schema.Tables[TableCount].Columns:=nil;
+        Schema.Tables[TableCount].PrimaryKey:=nil;
+        Schema.Tables[TableCount].Indexes:=nil;
+        Schema.Tables[TableCount].ForeignKeys:=nil;
+        Inc(TableCount);
+        Q.Next;
+      end;
+      Q.Close;
+
+      Q2:=TSQLQuery.Create(nil);
+      try
+        Q2.Database:=aConnection;
+        Q2.Transaction:=aConnection.Transaction;
+
+        for I:=0 to TableCount-1 do
+        begin
+          TableName:=Schema.Tables[I].TableName;
+
+          // Columns
+          Q2.SQL.Text:='SELECT COLUMN_NAME AS col_name, DATA_TYPE AS data_type, '+
+            'NULLABLE AS is_nullable, DATA_DEFAULT AS dflt_value, '+
+            'CASE WHEN DATA_TYPE IN (''CHAR'',''NCHAR'',''VARCHAR2'',''NVARCHAR2'') THEN CHAR_LENGTH ELSE 0 END AS max_len, '+
+            'CASE WHEN DATA_TYPE=''NUMBER'' AND DATA_PRECISION IS NULL AND DATA_SCALE=0 THEN 38 '+
+            '  WHEN DATA_TYPE=''NUMBER'' THEN NVL(DATA_PRECISION,0) ELSE 0 END AS num_prec, '+
+            'CASE WHEN DATA_TYPE=''NUMBER'' THEN NVL(DATA_SCALE,0) ELSE 0 END AS num_scale '+
+            'FROM USER_TAB_COLUMNS WHERE TABLE_NAME='+QuotedStr(TableName)+' '+
+            'ORDER BY COLUMN_ID';
+          Q2.Open;
+          ColCount:=0;
+          while not Q2.EOF do
+          begin
+            DataType:=Trim(Q2.FieldByName('data_type').AsString);
+            SetLength(Schema.Tables[I].Columns, ColCount+1);
+            Schema.Tables[I].Columns[ColCount].ColumnName:=Q2.FieldByName('col_name').AsString;
+            Schema.Tables[I].Columns[ColCount].DataType:=DataType;
+            Schema.Tables[I].Columns[ColCount].IsNullable:=(Q2.FieldByName('is_nullable').AsString='Y');
+            Schema.Tables[I].Columns[ColCount].DefaultValue:=Trim(Q2.FieldByName('dflt_value').AsString);
+            Schema.Tables[I].Columns[ColCount].MaxLength:=Q2.FieldByName('max_len').AsInteger;
+            Schema.Tables[I].Columns[ColCount].NumericPrecision:=Q2.FieldByName('num_prec').AsInteger;
+            Schema.Tables[I].Columns[ColCount].NumericScale:=Q2.FieldByName('num_scale').AsInteger;
+            Inc(ColCount);
+            Q2.Next;
+          end;
+          Q2.Close;
+
+          // Primary key
+          Q2.SQL.Text:='SELECT cc.COLUMN_NAME FROM USER_CONSTRAINTS c '+
+            'JOIN USER_CONS_COLUMNS cc ON cc.CONSTRAINT_NAME=c.CONSTRAINT_NAME '+
+            'WHERE c.TABLE_NAME='+QuotedStr(TableName)+' AND c.CONSTRAINT_TYPE=''P'' '+
+            'ORDER BY cc.POSITION';
+          Q2.Open;
+          while not Q2.EOF do
+          begin
+            SetLength(Schema.Tables[I].PrimaryKey, Length(Schema.Tables[I].PrimaryKey)+1);
+            Schema.Tables[I].PrimaryKey[High(Schema.Tables[I].PrimaryKey)]:=Q2.Fields[0].AsString;
+            Q2.Next;
+          end;
+          Q2.Close;
+
+          // Foreign keys
+          Q2.SQL.Text:='SELECT c.CONSTRAINT_NAME AS fk_name, cc.COLUMN_NAME AS fk_col, '+
+            'rc.TABLE_NAME AS ref_table, rcc.COLUMN_NAME AS ref_col, c.DELETE_RULE AS del_rule '+
+            'FROM USER_CONSTRAINTS c '+
+            'JOIN USER_CONS_COLUMNS cc ON cc.CONSTRAINT_NAME=c.CONSTRAINT_NAME '+
+            'JOIN USER_CONSTRAINTS rc ON rc.CONSTRAINT_NAME=c.R_CONSTRAINT_NAME AND rc.OWNER=c.R_OWNER '+
+            'JOIN USER_CONS_COLUMNS rcc ON rcc.CONSTRAINT_NAME=rc.CONSTRAINT_NAME AND rcc.POSITION=cc.POSITION '+
+            'WHERE c.TABLE_NAME='+QuotedStr(TableName)+' AND c.CONSTRAINT_TYPE=''R'' '+
+            'ORDER BY c.CONSTRAINT_NAME, cc.POSITION';
+          Q2.Open;
+          FKCount:=0;
+          while not Q2.EOF do
+          begin
+            SetLength(Schema.Tables[I].ForeignKeys, FKCount+1);
+            Schema.Tables[I].ForeignKeys[FKCount].ConstraintName:=Q2.FieldByName('fk_name').AsString;
+            Schema.Tables[I].ForeignKeys[FKCount].ColumnName:=Q2.FieldByName('fk_col').AsString;
+            Schema.Tables[I].ForeignKeys[FKCount].ReferencedTable:=Q2.FieldByName('ref_table').AsString;
+            Schema.Tables[I].ForeignKeys[FKCount].ReferencedColumn:=Q2.FieldByName('ref_col').AsString;
+            Schema.Tables[I].ForeignKeys[FKCount].OnDelete:=Trim(Q2.FieldByName('del_rule').AsString);
+            Inc(FKCount);
+            Q2.Next;
+          end;
+          Q2.Close;
+
+          // Indexes, without those of primary key and unique constraints
+          Q2.SQL.Text:='SELECT i.INDEX_NAME AS idx_name, i.UNIQUENESS AS uniqueness, ic.COLUMN_NAME AS col_name '+
+            'FROM USER_INDEXES i '+
+            'JOIN USER_IND_COLUMNS ic ON ic.INDEX_NAME=i.INDEX_NAME '+
+            'WHERE i.TABLE_NAME='+QuotedStr(TableName)+' '+
+            'AND NOT EXISTS (SELECT 1 FROM USER_CONSTRAINTS c '+
+            '  WHERE c.INDEX_NAME=i.INDEX_NAME AND c.CONSTRAINT_TYPE IN (''P'',''U'')) '+
+            'ORDER BY i.INDEX_NAME, ic.COLUMN_POSITION';
+          Q2.Open;
+          IdxCount:=0;
+          PrevIdx:='';
+          while not Q2.EOF do
+          begin
+            IdxName:=Q2.FieldByName('idx_name').AsString;
+            if IdxName<>PrevIdx then
+            begin
+              SetLength(Schema.Tables[I].Indexes, IdxCount+1);
+              Schema.Tables[I].Indexes[IdxCount].IndexName:=IdxName;
+              Schema.Tables[I].Indexes[IdxCount].IsUnique:=(Q2.FieldByName('uniqueness').AsString='UNIQUE');
+              Schema.Tables[I].Indexes[IdxCount].Columns:=nil;
+              PrevIdx:=IdxName;
+              Inc(IdxCount);
+            end;
+            SetLength(Schema.Tables[I].Indexes[IdxCount-1].Columns,
+              Length(Schema.Tables[I].Indexes[IdxCount-1].Columns)+1);
+            Schema.Tables[I].Indexes[IdxCount-1].Columns[
+              High(Schema.Tables[I].Indexes[IdxCount-1].Columns)]:=Q2.FieldByName('col_name').AsString;
+            Q2.Next;
+          end;
+          Q2.Close;
+        end;
+      finally
+        Q2.Free;
+      end;
+    finally
+      Q.Free;
+    end;
+  except
+    Schema.Free;
+    raise;
+  end;
+  Result:=Schema;
 end;
 
 function TSQLDriverOracle.GetEmptyInsertSQL(const aTable, aAutoIncColumn: UTF8String): UTF8String;

@@ -94,6 +94,7 @@ type
     procedure TestDoubleTypes;
     procedure TestSingleType;
     procedure TestBigIntTypes;
+    procedure TestIntegerTypesOracle;
     procedure TestExplicitPrecisionWins;
     procedure TestMemoBlobSQLServer;
     procedure TestUntypedFloatUnchanged;
@@ -323,6 +324,29 @@ procedure TTestDialectDDL.TestBigIntTypes;
 begin
   AssertEquals('PostgreSQL', 'BIGINT', ColumnType(dPostGres, 'Big'));
   AssertEquals('Oracle has no BIGINT', 'NUMBER(19)', ColumnType(dOracle, 'Big'));
+end;
+
+procedure TTestDialectDDL.TestIntegerTypesOracle;
+var
+  F: TOPFieldMap;
+begin
+  F:=TOPFieldMap.Create(Nil);
+  try
+    F.FieldName:='N';
+    F.PropertyKind:=tkInteger;
+    FBuilder.SQLDialect:=dOracle;
+    AssertEquals('Oracle 32-bit integer', 'NUMBER(10)', FBuilder.GetPropertyDefSQL('t', F));
+    FBuilder.SQLDialect:=dPostGres;
+    AssertEquals('PostgreSQL 32-bit integer', 'INT', FBuilder.GetPropertyDefSQL('t', F));
+    F.MaxSize:=100;
+    FBuilder.SQLDialect:=dOracle;
+    AssertEquals('Oracle 16-bit integer', 'NUMBER(5)', FBuilder.GetPropertyDefSQL('t', F));
+    F.MaxSize:=0;
+    F.PropertyKind:=tkBool;
+    AssertEquals('Oracle boolean', 'NUMBER(5)', FBuilder.GetPropertyDefSQL('t', F));
+  finally
+    F.Free;
+  end;
 end;
 
 procedure TTestDialectDDL.TestExplicitPrecisionWins;
