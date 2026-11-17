@@ -130,12 +130,6 @@ Resourcestring
   SErrCouldNotInitSSLKeys = 'Failed to initialize SSL keys';
   SErrH2InadequateSecurity = 'h2 refused: TLS parameters below RFC 9113 §9.2 floor (version=%s cipher=%s)';
 
-Const
-  // openssl/tls1.h. Passed to TSSLContext.SetMinProtoVersion to enforce the
-  // RFC 9113 §9.2 floor (TLS >= 1.2) when h2 is offered (Story 4.5). Lives here,
-  // at the call site, rather than in fpopenssl/openssl.pas (see story Task 1).
-  TLS1_2_VERSION = $0303;
-
 { --- RFC 9113 §9.2 TLS floor predicates (Story 4.5): pure, socket-free --- }
 
 // Parse an OpenSSL TLS version string ('TLSv1.2','TLSv1.3','TLSv1',...) into

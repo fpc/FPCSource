@@ -767,6 +767,16 @@ const
   SSL_CTRL_SET_CHANNEL_ID                     = 119;
   SSL_CTRL_SET_MIN_PROTO_VERSION              = 123;
 
+  // protocol versions, see openssl/ssl3.h, tls1.h, dtls1.h
+  SSL3_VERSION    = $0300;
+  TLS1_VERSION    = $0301;
+  TLS1_1_VERSION  = $0302;
+  TLS1_2_VERSION  = $0303;
+  TLS1_3_VERSION  = $0304;
+  TLS_MAX_VERSION = TLS1_3_VERSION;
+  DTLS1_VERSION   = $FEFF;
+  DTLS1_2_VERSION = $FEFD;
+
 
   DTLS_CTRL_GET_TIMEOUT            = 73;
   DTLS_CTRL_HANDLE_TIMEOUT         = 74;
