@@ -1088,6 +1088,39 @@ function BinaryCompare(const ALeft, ARight: Pointer; ASize: PtrUInt): Integer; i
 function _LookupVtableInfo(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; inline;
 function _LookupVtableInfoEx(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
   AFactory: THashFactoryClass): Pointer;
+function _LookupRecordComparer(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
+  AFactory: THashFactoryClass): Pointer;
+
+type
+  { Supplies the default comparer of a record type, or nil to keep comparing the record's bytes. The answer
+    is a raw interface of the kind AGInterface names (IComparer<T>, IEqualityComparer<T> or
+    IExtendedEqualityComparer<T>, the last with the hash list its callers expect), as _LookupVtableInfo
+    returns one for other types: a borrowed reference, which the Lookup keeps alive and the Default function
+    takes its own reference to. AFactory is the hash factory a Default overload was given, nil for the
+    others. }
+  TRecordComparerLookup = function(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
+    AFactory: THashFactoryClass): Pointer;
+
+  { A library that supplies the default comparers of record types, with a get and two setters as the
+    widestring manager has. Consulted by TComparer<T>.Default, TEqualityComparer<T>.Default and
+    TExtendedEqualityComparer<T>.Default when T is a record, before they fall back to comparing its bytes; a
+    comparer a collection already holds is not affected by a later change, so a library sets it before the
+    code that takes the default comparers of the types it answers runs. Setting it is not synchronized and
+    is not done while other threads ask for a comparer; a Lookup can be called from several threads at once.
+    One that sets it keeps the manager it replaced (SetRecordComparerManager's Old) and passes every request
+    it does not answer, for another type or another kind of interface, on to that one's Lookup, so that
+    libraries can be combined; to stop answering it sets that one back, managers going in the reverse order
+    of their setting. The code and data of a Lookup, and of every comparer it supplied, stay valid while they
+    can be reached: setting Old back does not end a Lookup already running or the life of a comparer handed
+    out. The manager belongs to this unit as compiled: Generics.Defaults and System.Generics.Defaults each
+    have one. }
+  TRecordComparerManager = record
+    Lookup: TRecordComparerLookup;
+  end;
+
+procedure GetRecordComparerManager(out Manager: TRecordComparerManager);
+procedure SetRecordComparerManager(const New: TRecordComparerManager); overload;
+procedure SetRecordComparerManager(const New: TRecordComparerManager; out Old: TRecordComparerManager); overload;
 
 Type
 
@@ -1101,9 +1134,17 @@ implementation
 { TComparer<T> }
 
 class function TComparer<T>.Default: IComparer<T>;
+var
+  Supplied: Pointer;
 begin
   if TComparerService.TypeNeedsBinaryMethods<T> then begin
-    Result := TBinaryComparer<T>.Create
+    Supplied := nil;
+    if GetTypeKind(T) = tkRecord then
+      Supplied := _LookupRecordComparer(giComparer, TypeInfo(T), SizeOf(T), nil);
+    if Assigned(Supplied) then
+      Result := Supplied
+    else
+      Result := TBinaryComparer<T>.Create
   end else
     Result := _LookupVtableInfo(giComparer, TypeInfo(T), SizeOf(T));
 end;
@@ -2749,18 +2790,34 @@ end;
 { TEqualityComparer<T> }
 
 class function TEqualityComparer<T>.Default: IEqualityComparer<T>;
+var
+  Supplied: Pointer;
 begin
-  if TComparerService.TypeNeedsBinaryMethods<T> then
-    Result := TBinaryEqualityComparer<T>.Create(Nil)
-  else
+  if TComparerService.TypeNeedsBinaryMethods<T> then begin
+    Supplied := nil;
+    if GetTypeKind(T) = tkRecord then
+      Supplied := _LookupRecordComparer(giEqualityComparer, TypeInfo(T), SizeOf(T), nil);
+    if Assigned(Supplied) then
+      Result := Supplied
+    else
+      Result := TBinaryEqualityComparer<T>.Create(Nil)
+  end else
     Result := _LookupVtableInfo(giEqualityComparer, TypeInfo(T), SizeOf(T));
 end;
 
 class function TEqualityComparer<T>.Default(AHashFactoryClass: THashFactoryClass): IEqualityComparer<T>;
+var
+  Supplied: Pointer;
 begin
-  if TComparerService.TypeNeedsBinaryMethods<T> then
-    Result := TBinaryEqualityComparer<T>.Create(AHashFactoryClass)
-  else if AHashFactoryClass.InheritsFrom(TExtendedHashFactory) then
+  if TComparerService.TypeNeedsBinaryMethods<T> then begin
+    Supplied := nil;
+    if GetTypeKind(T) = tkRecord then
+      Supplied := _LookupRecordComparer(giEqualityComparer, TypeInfo(T), SizeOf(T), AHashFactoryClass);
+    if Assigned(Supplied) then
+      Result := Supplied
+    else
+      Result := TBinaryEqualityComparer<T>.Create(AHashFactoryClass)
+  end else if AHashFactoryClass.InheritsFrom(TExtendedHashFactory) then
     Result := _LookupVtableInfoEx(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), AHashFactoryClass)
   else if AHashFactoryClass.InheritsFrom(THashFactory) then
     Result := _LookupVtableInfoEx(giEqualityComparer, TypeInfo(T), SizeOf(T), AHashFactoryClass);
@@ -2901,20 +2958,36 @@ end;
 { TExtendedEqualityComparer<T> }
 
 class function TExtendedEqualityComparer<T>.Default: IExtendedEqualityComparer<T>;
+var
+  Supplied: Pointer;
 begin
-  if TComparerService.TypeNeedsBinaryMethods<T> then
-    Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
-  else
+  if TComparerService.TypeNeedsBinaryMethods<T> then begin
+    Supplied := nil;
+    if GetTypeKind(T) = tkRecord then
+      Supplied := _LookupRecordComparer(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), nil);
+    if Assigned(Supplied) then
+      Result := Supplied
+    else
+      Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
+  end else
     Result := _LookupVtableInfo(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T));
 end;
 
 class function TExtendedEqualityComparer<T>.Default(
   AExtenedHashFactoryClass: TExtendedHashFactoryClass
   ): IExtendedEqualityComparer<T>;
+var
+  Supplied: Pointer;
 begin
-  if TComparerService.TypeNeedsBinaryMethods<T> then
-    Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
-  else
+  if TComparerService.TypeNeedsBinaryMethods<T> then begin
+    Supplied := nil;
+    if GetTypeKind(T) = tkRecord then
+      Supplied := _LookupRecordComparer(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), AExtenedHashFactoryClass);
+    if Assigned(Supplied) then
+      Result := Supplied
+    else
+      Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
+  end else
     Result := _LookupVtableInfoEx(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), AExtenedHashFactoryClass);
 end;
 
@@ -3500,6 +3573,35 @@ end;
 function _LookupVtableInfo(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer;
 begin
   Result := _LookupVtableInfoEx(AGInterface, ATypeInfo, ASize, nil);
+end;
+
+var
+  RecordComparerManager: TRecordComparerManager;
+
+procedure GetRecordComparerManager(out Manager: TRecordComparerManager);
+begin
+  Manager := RecordComparerManager;
+end;
+
+procedure SetRecordComparerManager(const New: TRecordComparerManager);
+begin
+  RecordComparerManager := New;
+end;
+
+procedure SetRecordComparerManager(const New: TRecordComparerManager; out Old: TRecordComparerManager);
+begin
+  Old := RecordComparerManager;
+  RecordComparerManager := New;
+end;
+
+function _LookupRecordComparer(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
+  AFactory: THashFactoryClass): Pointer;
+begin
+  Result := nil;
+  if not Assigned(ATypeInfo) or (ATypeInfo^.Kind <> tkRecord) then
+    Exit;
+  if Assigned(RecordComparerManager.Lookup) then
+    Result := RecordComparerManager.Lookup(AGInterface, ATypeInfo, ASize, AFactory);
 end;
 
 function _LookupVtableInfoEx(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
