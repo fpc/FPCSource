@@ -1263,6 +1263,8 @@ var
 begin
   if (SQLServerType=ssOracle) and (aMaxChars>4000) then
     Ignore('Oracle VARCHAR2 is limited to 4000 bytes unless MAX_STRING_SIZE=EXTENDED');
+  if (SQLServerType=ssMSSQL) and (aMaxChars>8000) then
+    Ignore('SQL Server VARCHAR(n) is limited to 8000 bytes');
   if not (SQLServerType in [ssFirebird, ssInterbase]) then
     exit;
   with TSQLDBConnector(DBConnector).Query do
@@ -1689,7 +1691,8 @@ begin
       AssertFalse(ReadOnly);
       AssertTrue(CanModify);
       edit;
-      FieldByName('ID').AsInteger:=1; // field "ID" from UNION can be marked as ReadOnly
+      if not FieldByName('ID').ReadOnly then // field "ID" from UNION can be marked as ReadOnly
+        FieldByName('ID').AsInteger:=1;
       post;
       ApplyUpdates;
       close;
@@ -2105,6 +2108,8 @@ var i: integer;
 begin
   if (asWhat in [0,2]) and (SQLServerType=ssOracle) then
     Ignore('Oracle reads a character parameter bound to a BLOB column as hexadecimal');
+  if (asWhat in [0,2]) and (SQLServerType=ssMSSQL) then
+    Ignore('SQL Server does not convert a character parameter to a BLOB column');
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 

@@ -72,6 +72,7 @@ type
     procedure TestTeXExport;
     procedure TestXMLExport; //tests simple xml export
     procedure TestXMLExportSpecialChars;
+    procedure TestXMLExportBinary;
     procedure TestXSDExport_Access_NoXSD_DecimalOverride; //tests xmlxsd export
     procedure TestXSDExport_Access_NoXSD_NoDecimalOverride; //tests xmlxsd export
     procedure TestXSDExport_Access_XSD_DecimalOverride; //tests xmlxsd export
@@ -84,7 +85,7 @@ type
 
 implementation
 
-uses bufdatasettoolsunit, xmlread,dom;
+uses bufdatasettoolsunit, xmlread,dom, base64;
 
 
 function TTestDBExport.FieldSupported(const FieldType: TFieldType;
@@ -1123,6 +1124,41 @@ begin
     XML.Free;
     FieldMapping.Free;
     Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXMLExportBinary;
+const
+  cData = #0#1#2#31'<&>'#255;
+var
+  Exporter: TSimpleXMLExporter;
+  DS: TBufDataset;
+  XML: TXMLDocument;
+  Node: TDOMNode;
+begin
+  XML:=Nil;
+  DS:=TBufDataset.Create(nil);
+  Exporter:=TSimpleXMLExporter.Create(nil);
+  try
+    DS.FieldDefs.Add('ID', ftInteger);
+    DS.FieldDefs.Add('FData', ftBlob);
+    DS.CreateDataset;
+    DS.Append;
+    DS.FieldByName('ID').AsInteger:=1;
+    DS.FieldByName('FData').AsString:=cData;
+    DS.Post;
+    Exporter.Dataset:=DS;
+    Exporter.FileName:=FExportTempDir+'binary'+TDetailedExportExtensions[efXML];
+    Exporter.Execute;
+    DS.Close;
+    ReadXMLFile(XML, Exporter.FileName);
+    Node:=XML.DocumentElement.FirstChild.FindNode('FData');
+    AssertNotNull('FData element written', Node);
+    AssertEquals('Binary field written as Base64', EncodeStringBase64(cData), Node.TextContent);
+  finally
+    XML.Free;
+    Exporter.Free;
+    DS.Free;
   end;
 end;
 

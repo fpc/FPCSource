@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, Data.Db, Data.Export.Db;
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db, System.Hash.Base64;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, DB, fpDBExport;
+  Classes, SysUtils, DB, fpDBExport, base64;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -270,11 +270,18 @@ end;
 
 procedure TCustomSimpleXMLExporter.ExportField(EF: TExportFieldItem);
 
+Const
+  BinaryFieldTypes = [ftBytes, ftVarBytes, ftBlob, ftGraphic, ftTypedBinary, ftOraBlob, ftDBaseOle, ftParadoxOle];
+
 Var
   S : UTF8String;
 
 begin
-  S:=FormatField(EF.Field);
+  // Binary data is written as Base64
+  if EF.Field.DataType in BinaryFieldTypes then
+    S:=EncodeStringBase64(EF.Field.AsString)
+  else
+    S:=FormatField(EF.Field);
   If FormatSettings.FieldAsAttributes then
     FCurrentRow:=FCurrentRow+' '+EF.ExportedName+'="'+AttrString(S)+'"'
   else

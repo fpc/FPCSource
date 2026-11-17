@@ -68,6 +68,7 @@ type
       Ftds    : integer;     // TDS protocol version
       FServerInfo: TServerInfo;
       FTransHandles: TFPList;   // transaction handles allocated by this connection
+      FCursors: TFPList;        // cursors allocated by this connection
       FPrimaryOwner: TSQLHandle; // transaction that uses FDBProc
     function CheckError(const Ret: RETCODE; aProc: PDBPROCESS = nil): RETCODE;
     procedure Execute(const cmd: string); overload;
@@ -88,6 +89,8 @@ type
     procedure TransHandleFreed(trans: TSQLHandle);
     // Field definitions of the current result of an executed cursor
     procedure DoAddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
+    // Raises an error when another cursor on the session of cursor still has unread rows
+    procedure CheckNoPendingRows(cursor: TSQLCursor);
     procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function AutoCommit: boolean;
@@ -235,6 +238,9 @@ type
   end;
 
 
+resourcestring
+  SErrResultsPending = 'Another query on the same session still has unread rows. Fetch all its rows (PacketRecords=-1) or use another transaction';
+
 const
   SBeginTransaction = 'BEGIN TRANSACTION';
   SAutoCommit = 'AUTOCOMMIT';
@@ -376,6 +382,7 @@ begin
   //FieldNameQuoteChars:=DoubleQuotes; //default
   Ftds := DBTDS_UNKNOWN;
   FTransHandles := TFPList.Create;
+  FCursors := TFPList.Create;
 end;
 
 destructor TMSSQLConnection.Destroy;
@@ -387,6 +394,7 @@ begin
     TMSSQLTrans(FTransHandles[I]).FConnection := nil;
   FreeAndNil(FTransHandles);
   inherited Destroy;
+  FreeAndNil(FCursors);
 end;
 
 procedure TMSSQLConnection.CreateDB;
@@ -650,10 +658,13 @@ end;
 function TMSSQLConnection.AllocateCursorHandle: TSQLCursor;
 begin
    Result:=TDBLibCursor.Create(Self);
+   FCursors.Add(Result);
 end;
 
 procedure TMSSQLConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
+  if Assigned(FCursors) then
+    FCursors.Remove(cursor);
   FreeAndNil(cursor);
 end;
 
@@ -781,6 +792,7 @@ var c: TDBLibCursor;
 begin
   c:=cursor as TDBLibCursor;
   c.FDBProc:=ProcOf(ATransaction);
+  CheckNoPendingRows(c);
 
   if LogEvent(detParamValue) then
     LogParams(AParams);
@@ -812,6 +824,18 @@ begin
     c.FStatus := NO_MORE_ROWS
   else
     c.FStatus := MORE_ROWS;
+end;
+
+procedure TMSSQLConnection.CheckNoPendingRows(cursor: TSQLCursor);
+var I: integer;
+    c: TDBLibCursor;
+begin
+  for I := 0 to FCursors.Count-1 do
+  begin
+    c := TDBLibCursor(FCursors[I]);
+    if (c<>cursor) and (c.FDBProc=TDBLibCursor(cursor).FDBProc) and (c.FStatus=MORE_ROWS) then
+      DatabaseError(SErrResultsPending, Self);
+  end;
 end;
 
 procedure TMSSQLConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
@@ -1042,11 +1066,18 @@ begin
       desttype:=SYBINT8;
       destlen:=sizeof(int64);
       end;
-    ftCurrency,
     ftFloat:
       begin
       desttype:=SQLFLT8;
       destlen:=sizeof(DBFLT8); //double
+      end;
+    ftCurrency:
+      begin
+      // read as text, parsed into a Currency
+      dest:=@bcdstr[0];
+      desttype:=SQLCHAR;
+      destlen:=sizeof(bcdstr)-1;
+      fillchar(bcdstr, sizeof(bcdstr), 0);
       end;
     ftDate, ftTime,
     ftDateTime:
@@ -1064,10 +1095,11 @@ begin
         end;
     ftBCD:
       begin
-      // FreeTDS 0.91 does not support converting from numeric to money
-      //desttype:=SQLMONEY;
-      desttype:=SQLFLT8;
-      destlen:=sizeof(currency);
+      // read as text, parsed into a Currency
+      dest:=@bcdstr[0];
+      desttype:=SQLCHAR;
+      destlen:=sizeof(bcdstr)-1;
+      fillchar(bcdstr, sizeof(bcdstr), 0);
       end;
     ftFmtBCD:
       begin
@@ -1132,8 +1164,10 @@ begin
                   encodetime(dbdr.hour, dbdr.minute, dbdr.second, dbdr.millisecond));
         end;
       end;
+    ftCurrency:
+      PDouble(buffer)^ := StrToCurr(Trim(bcdstr), FSQLFormatSettings);
     ftBCD:
-      PCurrency(buffer)^ := FloatToCurr(PDouble(buffer)^); //PCurrency(buffer)^ := dbmoneytocurr(buffer);
+      PCurrency(buffer)^ := StrToCurr(Trim(bcdstr), FSQLFormatSettings);
     ftFmtBCD:
       PBCD(buffer)^:=StrToBCD(bcdstr, FSQLFormatSettings); //PBCD(buffer)^:=dbnumerictobcd(dbnum);
   end;

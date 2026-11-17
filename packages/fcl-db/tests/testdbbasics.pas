@@ -3448,6 +3448,8 @@ var ds    : TDataset;
     lds   : TDataset;
     fld   : TField;
 begin
+  if DBConnector.TestUniDirectional and not DBConnector.SupportsConcurrentResultSets then
+    Ignore('The unidirectional lookup dataset keeps unread rows, and this connection cannot run another query meanwhile');
   lds := DBConnector.GetNDataset(10);
   ds := DBConnector.GetNDataset(5);
   with ds do

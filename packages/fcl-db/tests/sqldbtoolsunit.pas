@@ -46,6 +46,10 @@ type
     procedure ClearDatasets; override;
     procedure SetTestUniDirectional(const AValue: boolean); override;
     function GetTestUniDirectional: boolean; override;
+  public
+    // False for the DB-Library connections (MSSQL, Sybase)
+    function SupportsConcurrentResultSets: boolean; override;
+  protected
     procedure CreateNDatasets; override;
     procedure CreateFieldDataset; override;
     // If logging is enabled, this procedure will receive the event
@@ -285,6 +289,12 @@ begin
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
+      if SQLServerType=ssMSSQL then
+        begin
+        // DATETIME starts at 1753; TIMESTAMP is a binary row version
+        FieldtypeDefinitions[ftDateTime] := 'DATETIME2';
+        FieldtypeDefinitions[ftTimeStamp] := 'DATETIME2';
+        end;
 
       // Proper blob support:
       FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
@@ -421,7 +431,7 @@ begin
       end;
     end;
 
-  if SQLServerType in [ssMSSQL, ssSybase] then
+  if SQLServerType in [ssSybase] then
     // Some DB's do not support datetime values before 1753-01-01
     for i := 18 to testValuesCount-1 do
       testValues[ftDateTime,i] := testValues[ftDateTime,0];
@@ -483,6 +493,11 @@ end;
 function TSQLDBConnector.GetTestUniDirectional: boolean;
 begin
   result := FUniDirectional;
+end;
+
+function TSQLDBConnector.SupportsConcurrentResultSets: boolean;
+begin
+  Result := not (SQLServerType in [ssMSSQL, ssSybase]);
 end;
 
 procedure TSQLDBConnector.CreateNDatasets;

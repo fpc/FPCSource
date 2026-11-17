@@ -78,6 +78,8 @@ type
        procedure StartTest(TestName: string);
        // Run after a test is stopped
        procedure StopTest(TestName: string);
+       // False if a connection cannot read a second result set while another one has unread rows
+       function SupportsConcurrentResultSets: boolean; virtual;
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
        property FormatSettings: TFormatSettings read FFormatSettings;
        property CharSize: integer read GetCharSize;
@@ -394,6 +396,11 @@ begin
       // ignore log file errors
     end;
     end;
+end;
+
+function TDBConnector.SupportsConcurrentResultSets: boolean;
+begin
+  Result := True;
 end;
 
 function TDBConnector.GetCharSize: integer;
