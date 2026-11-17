@@ -716,8 +716,12 @@ begin
      lasttime:=getrealtime;
 
      { abort compilation on Esc key press }
+{$if defined(UNIX) or defined(WINDOWS)}
      while KeyPressed do
      begin
+{$else}
+     repeat
+{$endif}
        Drivers.GetKeyEvent(Event);
        if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
          begin
@@ -736,7 +740,12 @@ begin
             CompilerStatus:=true;
             exit;
          end;
+{$if defined(UNIX) or defined(WINDOWS)}
      end;
+{$else}
+     until Event.What=evNothing;
+{$endif}
+
 
 {$ifdef redircompiler}
      RedirDisableAll;
