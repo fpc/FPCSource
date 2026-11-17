@@ -353,6 +353,16 @@ begin
     stTLSv1: C := SslCtxNew(SslMethodTLSV1);
     stTLSv1_1: C := SslCtxNew(SslMethodTLSV1_1);
     stTLSv1_2: C := SslCtxNew(SslMethodTLSV1_2);
+    stTLSv1_3:
+      begin
+        // there is no TLSv1_3_method, use TLS_method with minimum TLS 1.3
+        if Assigned(SslTLSMethod) then
+          C := SslCtxNew(SslTLSMethod)
+        else
+          C := SslCtxNew(SslMethodV23);
+        if C<>nil then
+          SslCtxSetMinProtoVersion(C,TLS1_3_VERSION);
+      end;
   end;
   if (C=Nil) then
      Raise ESSL.Create(SErrCountNotGetContext);

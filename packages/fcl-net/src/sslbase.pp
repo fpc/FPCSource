@@ -30,7 +30,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  TSSLType = (stAny,stSSLv2,stSSLv3,stTLSv1,stTLSv1_1,stTLSv1_2);
+  TSSLType = (stAny,stSSLv2,stSSLv3,stTLSv1,stTLSv1_1,stTLSv1_2,stTLSv1_3);
 
   { TSSLData }
 
