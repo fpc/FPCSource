@@ -4176,6 +4176,21 @@ type
 {$else not CHECK_INPUTPOINTER_LIMITS}
                      inputfile.setline(line_no,inputstart+inputpointer-inputbuffer);
 {$endif CHECK_INPUTPOINTER_LIMITS}
+                   { skip a "#!" first line of the main source file, up to its line break }
+                   if (cs_skip_shebang in current_settings.globalswitches) and
+                      current_module.is_initial and
+                      not assigned(inputfile.next) then
+                     begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                       if (get_inputpointer_char='#') and (get_inputpointer_char(1)='!') then
+                         while not (get_inputpointer_char in [#0,#10,#13]) do
+                           inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
+                       if (inputpointer^='#') and ((inputpointer+1)^='!') then
+                         while not (inputpointer^ in [#0,#10,#13]) do
+                           inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
+                     end;
                  end;
               end
              else

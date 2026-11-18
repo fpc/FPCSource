@@ -3658,6 +3658,11 @@ begin
               exclude(init_settings.localswitches,cs_do_assertion)
             else
               include(init_settings.localswitches,cs_do_assertion);
+          'b' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_skip_shebang)
+            else
+              include(init_settings.globalswitches,cs_skip_shebang);
           'c' :
             If UnsetBool(More, j, opt, false) then
               exclude(init_settings.moduleswitches,cs_support_c_operators)
@@ -3762,7 +3767,8 @@ begin
           '-' :
             begin
               init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
-                                                                            cs_support_vectors,cs_load_fpcylix_unit];
+                                                                            cs_support_vectors,cs_load_fpcylix_unit,
+                                                                            cs_skip_shebang];
 
               init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
                                                                           cs_typed_addresses];

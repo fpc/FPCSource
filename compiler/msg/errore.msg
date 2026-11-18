@@ -4322,6 +4322,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,loongarch64,m68k,mips,mip
 **1S<x>_Syntax options:
 **2S2_Same as -Mobjfpc
 **2Sa_Turn on assertions
+**2Sb_Skip a first line starting with #! in the main source file
 **2Sc_Support operators as in the C language (*=, +=, /= and -=)
 **2Sd_Same as -Mdelphi
 **2Se<x>_Error options. <x> is a combination of the following:

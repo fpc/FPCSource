@@ -251,7 +251,9 @@ interface
          { if applicable, the compiler generates an executable in uf2 format }
          cs_generate_uf2,
 	 { Use ld.lld linker }
-         cs_link_lld
+         cs_link_lld,
+         { skip a "#!" first line in the main source file }
+         cs_skip_shebang
        );
        tglobalswitches = set of tglobalswitch;
 

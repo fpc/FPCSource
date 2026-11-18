@@ -43,11 +43,13 @@ function GetCacheDir: string;
 procedure SetCacheDir(AValue : string);
 function IsCacheValid(Src: TStringList;
                       const CachedSrcFile, CachedExeFile: string): boolean;
+// True if the compiler can be given aSrcFilename itself, with -Sb, instead of its cached copy.
+function CanCompileSource(const aSrcFilename: string): boolean;
 procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 function GetCompiler: string;
 procedure SetCompiler(AValue : string);
-function GetCompilerParameters(const SrcFilename, OutputDirectory, OutputFilename: string): string;
+function GetCompilerParameters(const SrcFilename, OutputDirectory, OutputFilename: string; aSkipShebang: boolean = false): string;
 procedure Run(const Filename: string);
 
 implementation
@@ -272,23 +274,82 @@ begin
   end;
 end;
 
+function CanCompileSource(const aSrcFilename: string): boolean;
+
+var
+  lFile: TextFile;
+  lLine: string;
+  lStart: Integer;
+
+begin
+  Result:=false;
+  if not FileExists(aSrcFilename) then
+    exit;
+  // the compiler prefers name.pp and name.pas over a name without extension
+  if (ExtractFileExt(aSrcFilename)='') and
+     (FileExists(aSrcFilename+'.pp') or FileExists(aSrcFilename+'.pas') or FileExists(aSrcFilename+'.p')) then
+    exit;
+  lLine:='';
+  AssignFile(lFile,aSrcFilename);
+  {$push}{$I-}
+  Reset(lFile);
+  if IOResult<>0 then
+    exit;
+  if not EOF(lFile) then
+    ReadLn(lFile,lLine);
+  CloseFile(lFile);
+  {$pop}
+  if IOResult<>0 then
+    exit;
+  lStart:=1;
+  if copy(lLine,1,3)=#$EF#$BB#$BF then
+    lStart:=4;
+  Result:=(copy(lLine,lStart,1)<>'#') or (copy(lLine,lStart,2)='#!');
+end;
+
+
 procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 var
   Compiler: String;
-  CompParams: String;
-  Proc: TProcess;
-  Count: Int64;
-  ss: TStringStream;
-  buf : Array[1..4096] of byte;
+  lOutput: String;
   pid: SizeUInt;
   BuildDir: String;
   OutputFilenameExe, BuildOutputFilename: String;
+  lCompiled: Boolean;
 
   procedure CleanUp;
   begin
     if BuildDir<>'' then begin
       // delete build directory
       DeleteDirectory(BuildDir);
+    end;
+  end;
+
+  function RunCompiler(const aFilename: string; aSkipShebang: boolean; out aOutput: string): boolean;
+  var
+    lProc: TProcess;
+    lCount: Int64;
+    lStream: TStringStream;
+    lBuf : Array[1..4096] of byte;
+  begin
+    lProc:=TProcess.Create(nil);
+    lStream:=TStringStream.Create('');
+    try
+      lProc.CommandLine:=Compiler+' '+GetCompilerParameters(aFilename,BuildDir,BuildOutputFilename,aSkipShebang);
+    {$WARNING Unconditional use of pipes breaks for targets not supporting them}
+      lProc.Options:= [poUsePipes, poStdErrToOutput];
+      lProc.ShowWindow := swoHide;
+      lProc.Execute;
+      repeat
+        lCount:=lProc.Output.Read(lBuf{%H-},4096);
+        if lCount>0 then
+          lStream.write(lBuf,lCount);
+      until lCount=0;
+      Result:=lProc.WaitOnExit and (lProc.ExitStatus=0);
+      aOutput:=lStream.DataString;
+    finally
+      lStream.Free;
+      lProc.Free;
     end;
   end;
 
@@ -319,21 +380,15 @@ begin
     end;
   end;
   try
-    CompParams:=GetCompilerParameters(CacheFilename,BuildDir,BuildOutputFilename);
-    Proc:=TProcess.Create(nil);
-    Proc.CommandLine:=Compiler+' '+CompParams;
-  {$WARNING Unconditional use of pipes breaks for targets not supporting them}
-    Proc.Options:= [poUsePipes, poStdErrToOutput];
-    Proc.ShowWindow := swoHide;
-    Proc.Execute;
-    ss:=TStringStream.Create('');
-    repeat
-      Count:=Proc.Output.Read(Buf{%H-},4096);
-      if Count>0 then
-        ss.write(buf,count);
-    until Count=0;
-    if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
-      WriteCompilerOutput(SrcFilename,BuildOutputFilename,ss.DataString);
+    if CanCompileSource(SrcFilename) then begin
+      lCompiled:=RunCompiler(SrcFilename,true,lOutput);
+      // a compiler without -Sb rejects the option: use the cached copy
+      if not lCompiled and (Pos('-Sb',lOutput)>0) then
+        lCompiled:=RunCompiler(CacheFilename,false,lOutput);
+    end else
+      lCompiled:=RunCompiler(CacheFilename,false,lOutput);
+    if not lCompiled then begin
+      WriteCompilerOutput(SrcFilename,BuildOutputFilename,lOutput);
       CleanUp;
       Halt(1);
     end;
@@ -344,15 +399,13 @@ begin
         Halt(1);
       end;
     end;
-    ss.Free;
-    Proc.Free;
   finally
     CleanUp;
   end;
 end;
 
 function GetCompilerParameters(const SrcFilename, OutputDirectory,
-  OutputFilename: string): string;
+  OutputFilename: string; aSkipShebang: boolean): string;
 { For example:
     /usr/bin/instantfpc -MObjFpc -Sh ./envvars.pas param1
   The shebang compile parameters: -MObjFpc -Sh
@@ -394,6 +447,8 @@ begin
   if OutputDirectory<>'' then
     AddParam('-FU'+OutputDirectory,Result);
   AddParam('-o'+OutputFilename,Result);
+  if aSkipShebang then
+    AddParam('-Sb',Result);
   AddParam(SrcFilename,Result);
 end;
 

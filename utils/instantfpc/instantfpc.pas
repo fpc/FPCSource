@@ -51,7 +51,10 @@ begin
   writeln('      Compiles source and runs program.');
   writeln('      Source is compared with the cache. If cache is not valid then');
   writeln('      source is copied to cache with the shebang line commented and');
-  writeln('      cached source is compiled.');
+  writeln('      the source file is compiled with -Sb, so that relative paths');
+  writeln('      resolve as for fpc. The cached copy is compiled instead when');
+  writeln('      the source is read from standard input or the compiler does');
+  writeln('      not support -Sb.');
   writeln('      If compilation fails the fpc output is written to stdout and');
   writeln('      instantfpc exits with error code 1.');
   writeln('      If compilation was successful the program is executed.');
