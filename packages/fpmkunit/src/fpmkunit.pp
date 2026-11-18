@@ -2653,9 +2653,31 @@ begin
 end;
 *)
 
+// Build OS from Defaults, or the compile-time host OS if Defaults is not assigned.
+function DefaultBuildOS : TOS;
+
+begin
+  if Assigned(Defaults) then
+    Result:=Defaults.BuildOS
+  else
+    Result:=StringToOS({$I %FPCTARGETOS%});
+end;
+
+
+// Build CPU from Defaults, or the compile-time host CPU if Defaults is not assigned.
+function DefaultBuildCPU : TCPU;
+
+begin
+  if Assigned(Defaults) then
+    Result:=Defaults.BuildCPU
+  else
+    Result:=StringToCPU({$I %FPCTARGETCPU%});
+end;
+
+
 function IsDifferentFromBuild(ACpu: TCPU; AOs: TOs): boolean;
 begin
-  result := (AOs<>Defaults.BuildOS) or (ACpu<>Defaults.BuildCPU);
+  result := (AOs<>DefaultBuildOS) or (ACpu<>DefaultBuildCPU);
 end;
 
 Function StringToCPU(const S : String) : TCPU;
@@ -2705,7 +2727,7 @@ end;
 Function MakeTargetString(const aTarget : TCompileTarget) : String;
 
 begin
-  Result:=aTarget.ToString((Defaults.BuildOS in AllLimit83fsOses) or (aTarget.OS in AllLimit83fsOses));
+  Result:=aTarget.ToString((DefaultBuildOS in AllLimit83fsOses) or (aTarget.OS in AllLimit83fsOses));
 end;
 
 Function MakeTargetString(CPU : TCPU;OS: TOS; aSubTarget : String = '') : String;
@@ -2761,7 +2783,7 @@ begin
   CT.CPU:=CPU;
   CT.OS:=OS;
   CT.Subtarget:=aSubTarget;
-  Result := MakeZipSuffix (CT,(Defaults.BuildOS in AllLimit83fsOses) or (OS in AllLimit83fsOses));
+  Result := MakeZipSuffix (CT,(DefaultBuildOS in AllLimit83fsOses) or (OS in AllLimit83fsOses));
 end;
 
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
