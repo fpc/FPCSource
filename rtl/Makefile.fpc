@@ -13,7 +13,6 @@ dirs_wdosx=win32
 dirs_wince=wince
 dirs_win64=win64
 dirs_go32v2=go32v2
-dirs_go32v1=go32v1
 dirs_os2=os2
 dirs_emx=emx
 dirs_freebsd=freebsd

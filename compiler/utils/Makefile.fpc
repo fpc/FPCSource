@@ -4,7 +4,6 @@
 
 [target]
 programs=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins
-rst=fpcsubst
 
 [clean]
 units=ppu crc

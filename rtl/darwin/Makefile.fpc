@@ -36,16 +36,6 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(COMMON)
 
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.0
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      $(UNIXUNIT)  \
-      $(DOSUNIT) $(CRTUNIT) $(OBJECTSUNIT)  \
-      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
-      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT)
-
 [prerules]
 ifeq ($(CPU_TARGET),i386)
 CPU_UNITS=$(MMXUNIT) $(CPUUNIT) $(INTRINSICSUNIT)

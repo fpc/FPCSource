@@ -119,7 +119,7 @@ interface
       CpuSuffix : array[TCpu] of string=(
         '_none','_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr',
         '_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64',
-        '_wasm32','_sparc64','_riscv32','_riscv64','xtensa','_z80', 'loongarch64'
+        '_wasm32','_sparc64','_riscv32','_riscv64','_xtensa','_z80', '_loongarch64'
       );
 
       ppcSuffix : array[TCpu] of string=(
@@ -274,7 +274,10 @@ interface
         FVariables      : TKeyValue;
         FIncludeTargets : TTargetSet;
         FExtraTargetsFile : String;
+        FInputSections  : TStringList;
+        FCheckSection   : string;
         procedure Init;
+        procedure CheckKey(p:TDictionaryItem);
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
         procedure PrintDic(p:TDictionaryItem);
@@ -294,6 +297,8 @@ interface
         procedure AddExtraTargets(const aFileName : String; aList : TStrings);
         procedure LoadSections;
         procedure LoadMakefileFPC;
+        // Report sections and keys of the input file that fpcmake does not use.
+        procedure CheckUnknownEntries;
         procedure LoadPackageSection;
         procedure LoadRequireSection;
         function  GetTargetRequires(c:TCpu;t:TOS):TStringList;
@@ -349,11 +354,163 @@ implementation
       s_no_targets_set='No targets set';
       s_targets_info='Targets: "%s"';
       s_globals='Globals:';
+      s_unknown_section='Warning: unknown section [%s] in %s';
+      s_unknown_key='Warning: unknown key "%s" in section [%s] of %s';
+
+    type
+      TKnownKey = record
+        Name : string;
+        TargetDependent : boolean;
+      end;
+
+    const
+      { section_key names read from a Makefile.fpc; TargetDependent keys accept CPU and OS suffixes }
+      KnownKeys : array[0..54] of TKnownKey = (
+        (Name:'package_name'; TargetDependent:false),
+        (Name:'package_version'; TargetDependent:false),
+        (Name:'package_main'; TargetDependent:false),
+        (Name:'package_targets'; TargetDependent:false),
+        (Name:'target_dirs'; TargetDependent:true),
+        (Name:'target_programs'; TargetDependent:true),
+        (Name:'target_units'; TargetDependent:true),
+        (Name:'target_implicitunits'; TargetDependent:true),
+        (Name:'target_loaders'; TargetDependent:true),
+        (Name:'target_rsts'; TargetDependent:true),
+        (Name:'target_examples'; TargetDependent:true),
+        (Name:'target_exampledirs'; TargetDependent:true),
+        (Name:'target_fpmake'; TargetDependent:true),
+        (Name:'clean_units'; TargetDependent:true),
+        (Name:'clean_files'; TargetDependent:true),
+        (Name:'clean_programs'; TargetDependent:true),
+        (Name:'install_units'; TargetDependent:true),
+        (Name:'install_files'; TargetDependent:true),
+        (Name:'install_buildunit'; TargetDependent:false),
+        (Name:'install_prefix'; TargetDependent:false),
+        (Name:'install_basedir'; TargetDependent:false),
+        (Name:'install_datadir'; TargetDependent:false),
+        (Name:'install_fpcpackage'; TargetDependent:false),
+        (Name:'install_fpcsubdir'; TargetDependent:false),
+        (Name:'install_createpackagefpc'; TargetDependent:false),
+        (Name:'dist_destdir'; TargetDependent:false),
+        (Name:'dist_zipname'; TargetDependent:false),
+        (Name:'dist_ziptarget'; TargetDependent:false),
+        (Name:'compiler_options'; TargetDependent:true),
+        (Name:'compiler_version'; TargetDependent:true),
+        (Name:'compiler_includedir'; TargetDependent:true),
+        (Name:'compiler_unitdir'; TargetDependent:true),
+        (Name:'compiler_sourcedir'; TargetDependent:true),
+        (Name:'compiler_objectdir'; TargetDependent:true),
+        (Name:'compiler_librarydir'; TargetDependent:true),
+        (Name:'compiler_targetdir'; TargetDependent:true),
+        (Name:'compiler_unittargetdir'; TargetDependent:true),
+        (Name:'shared_build'; TargetDependent:false),
+        (Name:'shared_libname'; TargetDependent:false),
+        (Name:'shared_libversion'; TargetDependent:false),
+        (Name:'shared_libunits'; TargetDependent:false),
+        (Name:'require_packages'; TargetDependent:true),
+        (Name:'require_tools'; TargetDependent:false),
+        (Name:'require_libc'; TargetDependent:false),
+        (Name:'require_nortl'; TargetDependent:false),
+        (Name:'require_fpcmake'; TargetDependent:false),
+        (Name:'require_target'; TargetDependent:false),
+        (Name:'require_cpu'; TargetDependent:false),
+        (Name:'default_rule'; TargetDependent:false),
+        (Name:'default_dir'; TargetDependent:false),
+        (Name:'default_target'; TargetDependent:false),
+        (Name:'default_cpu'; TargetDependent:false),
+        (Name:'default_fpcdir'; TargetDependent:false),
+        (Name:'default_lcldir'; TargetDependent:false),
+        (Name:'lcl_platform'; TargetDependent:false)
+      );
 
 
 {****************************************************************************
                                  Helpers
 ****************************************************************************}
+
+    // Index of aName in KnownKeys, or -1.
+    function KnownKeyIndex(const aName:string):integer;
+
+      var
+        i : integer;
+      begin
+        for i:=low(KnownKeys) to high(KnownKeys) do
+          if KnownKeys[i].Name=aName then
+            exit(i);
+        Result:=-1;
+      end;
+
+
+    // True if aName is a target dependent entry of KnownKeys.
+    function IsTargetKey(const aName:string):boolean;
+
+      var
+        lIdx : integer;
+      begin
+        lIdx:=KnownKeyIndex(aName);
+        Result:=(lIdx>=0) and KnownKeys[lIdx].TargetDependent;
+      end;
+
+
+    // True if aName ends in aSuffix and is longer than it.
+    function HasSuffix(const aName,aSuffix:string):boolean;
+
+      begin
+        Result:=(Length(aName)>Length(aSuffix)) and
+                (Copy(aName,Length(aName)-Length(aSuffix)+1,Length(aSuffix))=aSuffix);
+      end;
+
+
+    // aName without a trailing CpuSuffix entry, or aName if it has none.
+    function StripCpuSuffix(const aName:string):string;
+
+      var
+        lCpu : TCpu;
+      begin
+        for lCpu:=succ(low(TCpu)) to high(TCpu) do
+          if HasSuffix(aName,CpuSuffix[lCpu]) then
+            exit(Copy(aName,1,Length(aName)-Length(CpuSuffix[lCpu])));
+        Result:=aName;
+      end;
+
+
+    // aName without a trailing OSSuffix entry, or aName if it has none.
+    function StripOSSuffix(const aName:string):string;
+
+      var
+        lOS : TOS;
+      begin
+        for lOS:=succ(low(TOS)) to high(TOS) do
+          if HasSuffix(aName,OSSuffix[lOS]) then
+            exit(Copy(aName,1,Length(aName)-Length(OSSuffix[lOS])));
+        Result:=aName;
+      end;
+
+
+    // True if section_key aName is read by fpcmake, allowing the suffix orders of GetTargetVariable.
+    function IsKnownKey(const aName:string):boolean;
+
+      begin
+        Result:=(KnownKeyIndex(aName)>=0) or
+                IsTargetKey(StripCpuSuffix(aName)) or
+                IsTargetKey(StripOSSuffix(aName)) or
+                IsTargetKey(StripCpuSuffix(StripOSSuffix(aName))) or
+                IsTargetKey(StripOSSuffix(StripCpuSuffix(aName)));
+      end;
+
+
+    // True if some entry of KnownKeys belongs to section aSection.
+    function IsKnownSection(const aSection:string):boolean;
+
+      var
+        i : integer;
+      begin
+        Result:=false;
+        for i:=low(KnownKeys) to high(KnownKeys) do
+          if Copy(KnownKeys[i].Name,1,Length(aSection)+1)=aSection+'_' then
+            exit(true);
+      end;
+
 
     Function PathExists ( F : String) : Boolean;
       Var
@@ -697,6 +854,7 @@ implementation
         c : tcpu;
       begin
         FSections:=TDictionary.Create;
+        FInputSections:=TStringList.Create;
         for c:=succ(low(tcpu)) to high(tcpu) do
          for t:=succ(low(tos)) to high(tos) do
           FRequireList[c,t]:=TStringList.Create;
@@ -720,6 +878,7 @@ implementation
         c : tcpu;
       begin
         FSections.Free;
+        FInputSections.Free;
         for c:=succ(low(tcpu)) to high(tcpu) do
          for t:=succ(low(tos)) to high(tos) do
           FRequireList[c,t].Free;
@@ -789,7 +948,10 @@ implementation
                    SecName:=Copy(s,2,j-2);
                    CurrSec:=TFPCMakeSection(FSections[SecName]);
                    if CurrSec=nil then
-                    CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)))
+                    begin
+                      CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
+                      FInputSections.Add(SecName);
+                    end;
                  end
                 else
                  begin
@@ -853,6 +1015,39 @@ implementation
         Variables.Foreach(@PrintDic);
         { Load required packages }
         LoadRequireSection;
+      end;
+
+
+    procedure TFPCMake.CheckUnknownEntries;
+
+      var
+        i : integer;
+        lSec : TFPCMakeSection;
+      begin
+        for i:=0 to FInputSections.Count-1 do
+          begin
+            FCheckSection:=FInputSections[i];
+            { free-form sections and the export section of a package }
+            if (FCheckSection='prerules') or (FCheckSection='rules') or
+               (FIsPackage and (FCheckSection=LowerCase(FPackageName))) then
+              continue;
+            if not IsKnownSection(FCheckSection) then
+              Verbose(FPCMakeInfo,Format(s_unknown_section,[FCheckSection,FFileName]))
+            else
+              begin
+                lSec:=TFPCMakeSection(FSections[FCheckSection]);
+                if assigned(lSec) and assigned(lSec.Dictionary) then
+                  lSec.Dictionary.Foreach(@CheckKey);
+              end;
+          end;
+      end;
+
+
+    procedure TFPCMake.CheckKey(p:TDictionaryItem);
+
+      begin
+        if not IsKnownKey(FCheckSection+'_'+p.Name) then
+          Verbose(FPCMakeInfo,Format(s_unknown_key,[p.Name,FCheckSection,FFileName]));
       end;
 
 

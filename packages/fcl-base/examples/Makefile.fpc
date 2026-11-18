@@ -32,8 +32,6 @@ programs_os2=isockcli isocksvr testhres testnres testsres testrhre \
 programs_emx=isockcli isocksvr testhres testnres testsres testrhre \
              testrnre testrsre testur
 
-rst=restest
-
 [require]
 packages=fcl-base fcl-db fcl-fpcunit fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml
 

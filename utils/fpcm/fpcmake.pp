@@ -103,6 +103,7 @@ program fpcmake;
           if ParaTargets<>'' then
            CurrFPCMake.SetTargets(ParaTargets);
           CurrFPCMake.LoadMakefileFPC;
+          CurrFPCMake.CheckUnknownEntries;
 //          CurrFPCMake.Print;
 
           { Add the subdirs }
@@ -184,6 +185,7 @@ program fpcmake;
            CurrFPCMake.SetTargets(ParaTargets);
           CurrFPCMake.ExtraTargetsFile:=aExtra;
           CurrFPCMake.LoadMakefileFPC;
+          CurrFPCMake.CheckUnknownEntries;
 //          CurrFPCMake.Print;
 
           { Write Package.fpc }

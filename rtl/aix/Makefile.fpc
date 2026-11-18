@@ -40,16 +40,6 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) # $(OSPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(COMMON)
 
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.0
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      $(UNIXUNIT)  \
-      $(DOSUNIT) \
-      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
-      $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT)
-
 [prerules]
 RTL=..
 INC=$(RTL)/inc

@@ -36,17 +36,6 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(OSPROCINC) $(HAIKUINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(HAIKUINC)
 targetdir=.
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.0
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      $(UNIXUNIT)  \
-      $(DOSUNIT) \
-      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
-      $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT) $(DYNLIBSUNIT)
-
-
 [prerules]
 RTL=..
 INC=$(RTL)/inc

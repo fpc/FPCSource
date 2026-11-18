@@ -2,7 +2,7 @@
 #   Makefile.fpc for Free Pascal GTK 1.2.x Tutorial
 #
 
-[targets]
+[target]
 programs=$(subst .pp,,$(wildcard tut*.pp))
 
 [require]

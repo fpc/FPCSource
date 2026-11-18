@@ -38,16 +38,6 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(TARGETPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.0
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      $(UNIXUNIT)  \
-      $(DOSUNIT)  \
-      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
-      $(CPUUNIT) $(MMXUNIT) $(INTRINSICSUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT)
-
 [prerules]
 RTL=..
 INC=$(RTL)/inc

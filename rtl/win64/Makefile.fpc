@@ -23,8 +23,6 @@ rsts=$(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 
 programs=
 
-shared=fpcmemdll
-
 [require]
 nortl=y
 
