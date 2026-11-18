@@ -1076,10 +1076,10 @@ end;
 function IsKeywordDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
 
 const
-  MaxKeywords = 17;
+  MaxKeywords = 19;
   Keywords : array[1..MaxKeywords] of string = (
     'extern','static','inline','__inline','__inline__','const','volatile','register','__extension__',
-    '__cdecl','__stdcall','__fastcall','__declspec','__attribute__','__attribute','__asm__','__asm');
+    '__cdecl','_cdecl','__stdcall','_stdcall','__fastcall','__declspec','__attribute__','__attribute','__asm__','__asm');
 
 var
   i, j, lDepth : integer;
@@ -1185,10 +1185,10 @@ end;
 function IsKeywordNameDefine(const aText : AnsiString; out aName : AnsiString) : boolean;
 
 const
-  MaxNames = 22;
+  MaxNames = 24;
   Names : array[1..MaxNames] of string = (
     'STDCALL','CDECL','PASCAL','PACKED','WINAPI','SYS_TRAP','WINGDIAPI','CALLBACK','EXPENTRY','VOID','CONST',
-    'FAR','far','NEAR','near','HUGE','huge','int8','int16','int32','int64','__stdcall');
+    'FAR','far','NEAR','near','HUGE','huge','int8','int16','int32','int64','__stdcall','_stdcall','_cdecl');
 
 var
   lParams, lBody : AnsiString;

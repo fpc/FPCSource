@@ -729,10 +729,12 @@ end;
 procedure TTestFunctions.TestMicrosoftCallingConventions;
 
 begin
-  Convert(['int __stdcall ws(int a);','int __cdecl cs(int a);'],['-d']);
+  Convert(['int __stdcall ws(int a);','int __cdecl cs(int a);','int _stdcall ws2(void);','int _cdecl cs2(void);'],['-d']);
   AssertConverted;
   AssertInterface('__stdcall is stdcall without -w',['function ws(a:longint):longint;stdcall;external;']);
   AssertInterface('__cdecl is cdecl',['function cs(a:longint):longint;cdecl;external;']);
+  AssertInterface('_stdcall is stdcall',['function ws2:longint;stdcall;external;']);
+  AssertInterface('_cdecl is cdecl',['function cs2:longint;cdecl;external;']);
 end;
 
 
