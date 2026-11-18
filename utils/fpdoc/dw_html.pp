@@ -756,6 +756,8 @@ begin
       AddLink(ProcsSubindex, SDocProceduresAndFunctions);
     if Module.InterfaceSection.Variables.Count > 0 then
       AddLink(VarsSubindex, SDocVariables);
+    if Module.InterfaceSection.Properties.Count > 0 then
+      AddLink(PropsSubindex, SDocProperties);
     AddLink(IndexSubIndex,SDocIdentifierIndex);
     AppendFragment(ParaEl, NavigatorHTML);
     end
@@ -1385,6 +1387,8 @@ begin
       CreateModuleSimpleSubpage(aModule, ProcsSubindex, UTF8Decode(SDocProceduresAndFunctions), AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateModuleSimpleSubpage(aModule, VarsSubindex,UTF8Decode(SDocVariables), AModule.InterfaceSection.Variables);
+    PropsSubindex:
+      CreateModuleSimpleSubpage(aModule, PropsSubindex,UTF8Decode(SDocProperties), AModule.InterfaceSection.Properties);
     IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;
@@ -2096,8 +2100,12 @@ var
 
   begin
     AppendKw(CodeEl, 'property ');
-    AppendHyperlink(CodeEl, Element.Parent);
-    AppendSym(CodeEl, '.');
+    // a unit property has the interface section as parent, not a class
+    if not (Element.Parent is TPasSection) then
+      begin
+      AppendHyperlink(CodeEl, Element.Parent);
+      AppendSym(CodeEl, '.');
+      end;
     AppendText(CodeEl, UTF8Decode(Element.Name));
     if Assigned(Element.Args) and (Element.Args.Count>0) then
       begin

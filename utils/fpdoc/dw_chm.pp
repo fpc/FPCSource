@@ -598,6 +598,13 @@ begin
       SName:= ParentElement.Name + ' variable';
       MultiAlphaItem(Index.Items, SName, ParentElement, AModule.Name);
     end;
+    // unit properties
+    for j := 0 to AModule.InterfaceSection.Properties.Count-1 do
+    begin
+      ParentElement := TPasElement(AModule.InterfaceSection.Properties[j]);
+      SName:= ParentElement.Name + ' property';
+      MultiAlphaItem(Index.Items, SName, ParentElement, AModule.Name);
+    end;
     // declarations
     {
     for j := 0 to AModule.InterfaceSection.Declarations.Count-1 do

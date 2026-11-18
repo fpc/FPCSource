@@ -978,6 +978,8 @@ begin
       AddModuleItem(lList,ProcsSubindex);
     if Module.InterfaceSection.Variables.Count>0 then
       AddModuleItem(lList,VarsSubindex);
+    if Module.InterfaceSection.Properties.Count>0 then
+      AddModuleItem(lList,PropsSubindex);
     end;
   AddModuleItem(lList,IndexSubIndex);
 end;
@@ -1350,6 +1352,7 @@ begin
     ClassesSubindex : lItem:=SDocClass;
     ProcsSubindex : lItem:=SDocProcedureOrFunction;
     VarsSubindex : lItem:=SDocVariable;
+    PropsSubindex : lItem:=SDocProperty;
   else
     lItem:=SDocName;
   end;

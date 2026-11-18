@@ -105,6 +105,8 @@ Type
     procedure WriteTypes(ASection: TPasSection); virtual;
     procedure WriteEnumElements(TypeDecl : TPasEnumType);
     procedure WriteVars(ASection: TPasSection);
+    // Write the unit-level properties of ASection.
+    procedure WriteUnitProperties(ASection: TPasSection);
     procedure WriteFunctionsAndProcedures(ASection: TPasSection);
     procedure WriteProcedure(ProcDecl: TPasProcedureBase);
     procedure WriteClasses(ASection: TPasSection);
@@ -651,6 +653,7 @@ begin
     SortElementList(Classes);
     SortElementList(Functions);
     SortElementList(Variables);
+    SortElementList(Properties);
     end;
   WriteUnitOverView(ASection);
 
@@ -670,13 +673,14 @@ procedure TLinearWriter.WriteVarsConstsTypes(ASection: TPasSection);
 begin
   With Asection do
     if (Consts.Count>0) or (Types.Count>0) or
-       (Variables.Count>0) or (ResStrings.Count>0) then
+       (Variables.Count>0) or (ResStrings.Count>0) or (Properties.Count>0) then
       begin
       StartSection(SDocConstsTypesVars, ModuleName+'ConstsTypesVars');
       WriteResourceStrings(ASection);
       WriteConsts(ASection);
       WriteTypes(ASection);
       WriteVars(ASection);
+      WriteUnitProperties(ASection);
       end;
 end;
 
@@ -953,6 +957,38 @@ begin
       DescrEndParaGraph;
     end;
   end;
+end;
+
+
+procedure TLinearWriter.WriteUnitProperties(ASection: TPasSection);
+
+var
+  lProp: TPasProperty;
+  lIndex: Integer;
+  lNode: TDocNode;
+
+begin
+  if ASection.Properties.Count = 0 then
+    exit;
+  StartSubsection(SDocProperties,ModuleName+'Properties');
+  for lIndex := 0 to ASection.Properties.Count - 1 do
+    begin
+    lProp := TPasProperty(ASection.Properties[lIndex]);
+    DescrBeginParaGraph;
+    StartListing(False,'');
+    WriteLn(EscapeText('property '+lProp.GetDeclaration(True)));
+    EndListing;
+    WriteLabel(lProp);
+    WriteIndex(lProp);
+    lNode:=WriteDescr(lProp);
+    If Assigned(lNode) and Assigned(lNode.Version) then
+      begin
+      Writeln(Format('%s : ',[SDocVersion]));
+      WriteDescr(lProp, lNode.Version);
+      ConvertNotes(lProp,lNode.Notes);
+      end;
+    DescrEndParaGraph;
+    end;
 end;
 
 
@@ -1453,6 +1489,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);
+      AddList(AModule, InterfaceSection.Properties);
     end;
   end;
 

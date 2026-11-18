@@ -697,6 +697,8 @@ begin
       AddLink(NavBar,ProcsSubindex, SDocProceduresAndFunctions);
     if Module.InterfaceSection.Variables.Count > 0 then
       AddLink(NavBar,VarsSubindex, SDocVariables);
+    if Module.InterfaceSection.Properties.Count > 0 then
+      AddLink(NavBar,PropsSubindex, SDocProperties);
     AddLink(NavBar,IndexSubIndex,SDocIdentifierIndex);
     AppendFragment(NavBar, NavigatorHTML);
     end
@@ -802,6 +804,8 @@ begin
       AddLink(NavBar,ProcsSubindex, SDocProceduresAndFunctions);
     if Module.InterfaceSection.Variables.Count > 0 then
       AddLink(NavBar,VarsSubindex, SDocVariables);
+    if Module.InterfaceSection.Properties.Count > 0 then
+      AddLink(NavBar,PropsSubindex, SDocProperties);
     AddLink(NavBar,IndexSubIndex,SDocIdentifierIndex);
     AppendFragment(NavBar, NavigatorHTML);
     end
@@ -1274,6 +1278,7 @@ begin
     ClassesSubindex : Result:=SDocClasses;
     ProcsSubindex : Result:=SDocProceduresAndFunctions;
     VarsSubindex : Result:=SDocVariables;
+    PropsSubindex : Result:=SDocProperties;
     IndexSubIndex : Result:=SDocIdentifierIndex;
     ClassHierarchySubIndex : Result:=SDocPackageClassHierarchy;
     PropertiesByInheritanceSubindex : Result:=SDocProperties;
@@ -1325,7 +1330,9 @@ begin
   else if InList(lSection.Functions) then
     Result:=ProcsSubindex
   else if InList(lSection.Variables) then
-    Result:=VarsSubindex;
+    Result:=VarsSubindex
+  else if InList(lSection.Properties) then
+    Result:=PropsSubindex;
 end;
 
 
@@ -1834,6 +1841,8 @@ begin
       CreateModuleSimpleSubpage(aModule, ProcsSubindex, UTF8Decode(SDocProceduresAndFunctions), AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateModuleSimpleSubpage(aModule, VarsSubindex,UTF8Decode(SDocVariables), AModule.InterfaceSection.Variables);
+    PropsSubindex:
+      CreateModuleSimpleSubpage(aModule, PropsSubindex,UTF8Decode(SDocProperties), AModule.InterfaceSection.Properties);
     IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;

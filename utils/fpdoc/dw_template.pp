@@ -282,6 +282,7 @@ constructor TTemplateWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine)
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);
+      AddList(AModule, InterfaceSection.Properties);
     end;
   end;
 

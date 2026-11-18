@@ -222,6 +222,7 @@ begin
       ClassesSubindex: AddToNav(2+Offs,SDocClasses,aFileName);
       ProcsSubindex: AddToNav(2+Offs,SDocProceduresAndFunctions,aFileName);
       VarsSubindex: AddToNav(2+Offs,SDocVariables,aFileName);
+      PropsSubindex: AddToNav(2+Offs,SDocProperties,aFileName);
     end;
     end
 end;
@@ -1067,6 +1068,7 @@ begin
       AddElementsFromList(L,AModule.InterfaceSection.Functions);
       AddElementsFromList(L,AModule.InterfaceSection.Classes);
       AddElementsFromList(L,AModule.InterfaceSection.Variables);
+      AddElementsFromList(L,AModule.InterfaceSection.Properties);
       AddElementsFromList(L,AModule.InterfaceSection.ResStrings);
    end;
 end;
@@ -1316,6 +1318,8 @@ begin
       CreateSimpleSubpage(aModule,SDocProceduresAndFunctions, SDocProcedureOrFunction, AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateSimpleSubpage(aModule,SDocVariables, SDocVariable, AModule.InterfaceSection.Variables);
+    PropsSubindex:
+      CreateSimpleSubpage(aModule,SDocProperties, SDocProperty, AModule.InterfaceSection.Properties);
     IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;

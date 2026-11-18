@@ -230,6 +230,9 @@ const
   EventsByNameSubindex = 16;
   FieldsByNameSubindex = 17;
 
+  // Subpage index for unit-level properties
+  PropsSubindex = 18;
+
 
 Type
   { TMultiFileDocWriter }
@@ -806,6 +809,7 @@ begin
 
     AddPages(AModule, ProcsSubindex, InterfaceSection.Functions);
     AddPages(AModule, VarsSubindex, InterfaceSection.Variables);
+    AddPages(AModule, PropsSubindex, InterfaceSection.Properties);
     end;
 end;
 
@@ -1090,6 +1094,7 @@ begin
     ClassesSubindex: Result:='classes';
     ProcsSubindex: Result:='procs';
     VarsSubindex: Result:='vars';
+    PropsSubindex: Result:='props';
     TopicsSubIndex: Result:='topics';
     IndexSubIndex: Result:='indexes';
     ClassHierarchySubIndex: Result:='class-tree';
@@ -1271,6 +1276,7 @@ begin
       AddElementsFromList(L,AModule.InterfaceSection.Functions);
       AddElementsFromList(L,AModule.InterfaceSection.Classes);
       AddElementsFromList(L,AModule.InterfaceSection.Variables);
+      AddElementsFromList(L,AModule.InterfaceSection.Properties);
       AddElementsFromList(L,AModule.InterfaceSection.ResStrings);
    end;
 end;

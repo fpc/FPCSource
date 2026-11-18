@@ -16,6 +16,7 @@ Const
   SManVars    = 'variables';
   SManTypes   = 'types';
   SManResStr  = 'resstr';
+  SManProps   = 'properties';
 
   // Standard man sections.
   SManDocName            = 'NAME';
@@ -120,6 +121,8 @@ Type
     procedure WriteUnitConsts(ASection: TPasSection);
     procedure WriteUnitTypes(ASection: TPasSection);
     procedure WriteUnitVars(ASection: TPasSection);
+    // Write the man page with the unit-level properties of ASection.
+    procedure WriteUnitProperties(ASection: TPasSection);
     procedure WriteUnitClasses(ASection: TPasSection);
     procedure WriteUnitFunctionsAndProcedures(ASection: TPasSection);
     // Smaller elements
@@ -250,6 +253,8 @@ constructor TManWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     DocNode: TDocNode;
     DidAutolink: Boolean;
   begin
+    // ElementToManPage prefixes the page names with ModuleName
+    ModuleName:=AModule.Name;
     AddLabel(AModule);
     AddTopicPages(AModule);
     with AModule do
@@ -303,6 +308,7 @@ constructor TManWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);
+      AddList(AModule, InterfaceSection.Properties);
     end;
   end;
 
@@ -310,10 +316,15 @@ var
   i: Integer;
 begin
   inherited;
+  // the package label first, so the link tree has a node for the package before its modules
   if Length(Package.Name) > 1 then
+    begin
+    AddLabel(Package);
     AddTopicPages(Package);
+    end;
   for i := 0 to Package.Modules.Count - 1 do
     ScanModule(TPasModule(Package.Modules[i]));
+  ModuleName:='';
 end;
 
 { ---------------------------------------------------------------------
@@ -835,15 +846,16 @@ begin
       Result:=ModuleName+'.';
     If (E.Parent<>Nil) and (not (E.Parent is TPasSection)) then
       begin
+      // class members have no page of their own: they are listed on the page of their class
       If (E.Parent.Name<>'') then
         Result:=Result+E.Parent.Name;
-      If (E is TPasProperty) or (E is TPasProcedure) or (E is TPasClassType) then
-        Result:=Result+E.Name;
       end
     else
       begin
       If (E is TPasConst) then
         Result:=Result+SManConsts
+      else If E is TPasProperty then
+        Result:=Result+SManProps
       else If E is TPasVariable then
         Result:=Result+SManVars
       else If E is TPasClassType then
@@ -868,29 +880,32 @@ end;
 procedure TManWriter.WriteModuleSeealso(Comma : Boolean);
 
 Var
-  HC,HT,HV,HR : Boolean;
+  HC,HT,HV,HR,HP : Boolean;
 
 begin
   HC:=Module.InterfaceSection.Consts.Count>0;
   HR:=Module.InterfaceSection.ResStrings.Count>0;
   HV:=Module.InterfaceSection.Variables.Count>0;
   HT:=Module.InterfaceSection.Types.Count>0;
-  WriteManRef(ModuleName,HC or HR or HV or HT or comma);
+  HP:=Module.InterfaceSection.Properties.Count>0;
+  WriteManRef(ModuleName,HC or HR or HV or HT or HP or comma);
   if HC then
-    WriteManRef(ModuleName+'.'+SManConsts,HR or HV or HT or comma);
+    WriteManRef(ModuleName+'.'+SManConsts,HR or HV or HT or HP or comma);
   if HR then
-    WriteManRef(ModuleName+'.'+SManResStr, HV or HT or comma);
+    WriteManRef(ModuleName+'.'+SManResStr, HV or HT or HP or comma);
   if HV then
-    WriteManRef(ModuleName+'.'+SManVars, HT or comma);
+    WriteManRef(ModuleName+'.'+SManVars, HT or HP or comma);
   if HT then
-    WriteManRef(ModuleName+'.'+SManTypes,comma);
+    WriteManRef(ModuleName+'.'+SManTypes,HP or comma);
+  if HP then
+    WriteManRef(ModuleName+'.'+SManProps,comma);
 end;
 
 procedure TManWriter.WriteSeeAlso(ADocNode: TDocNode; Comma: Boolean);
 
 var
   Node: TDOMNode;
-  s: String;
+  s, lPage: String;
 
 begin
  if Not (Assigned(ADocNode) and Assigned(ADocNode.SeeAlso)) then
@@ -901,6 +916,13 @@ begin
     if IsLinkNode(Node) then
       begin
       S:=UTF8Encode(TDomElement(Node)['id']);
+      // the constructor registers the man page name of each element as its link
+      lPage:=Engine.ResolveLink(Module,S,True);
+      if lPage='' then
+        DoLog(SErrUnknownLink,[S])
+      else if Pos('/',lPage)=0 then
+        // links imported from other packages are HTML paths, not man page names
+        S:=lPage;
       WriteManRef(S,(Node.NextSibling<>Nil) or Comma);
       end;
     Node:=Node.NextSibling;
@@ -1154,6 +1176,7 @@ begin
       SortElementList(Classes);
       SortElementList(Functions);
       SortElementList(Variables);
+      SortElementList(Properties);
       SortElementList(ResStrings);
       end;
     WriteUnitPage(AModule);
@@ -1161,6 +1184,7 @@ begin
     WriteUnitConsts(InterfaceSection);
     WriteUnitTypes(InterfaceSection);
     WriteUnitVars(InterfaceSection);
+    WriteUnitProperties(InterfaceSection);
     WriteUnitClasses(InterfaceSection);
     WriteUnitFunctionsAndProcedures(InterfaceSection);
     end;
@@ -1511,6 +1535,38 @@ begin
       EndManPage;
     end;
     end;
+end;
+
+
+procedure TManWriter.WriteUnitProperties(ASection: TPasSection);
+
+var
+  lProp: TPasProperty;
+  lIndex: Integer;
+  lNode: TDocNode;
+
+begin
+  if ASection.Properties.Count = 0 then
+    exit;
+  StartManpage(ModuleName+'.'+SManProps);
+  Try
+    PageTitle(Modulename,ManSection,PackageName,PackageDescr);
+    StartSection(SManDocName);
+    Writeln(ModuleName+' \- '+SDocProperties);
+    StartSection(SManDocProperties);
+    for lIndex := 0 to ASection.Properties.Count - 1 do
+      begin
+      lProp := TPasProperty(ASection.Properties[lIndex]);
+      StartSubSection(lProp.Name);
+      DescrWriteCodeLine(EscapeText('property '+lProp.GetDeclaration(True)));
+      lNode:=Engine.FindDocNode(lProp);
+      WriteDescr(lProp,lNode);
+      end;
+    StartSection(SDocSeeAlso);
+    WriteModuleSeeAlso(False);
+  Finally
+    EndManPage;
+  end;
 end;
 
 
