@@ -76,6 +76,7 @@ D [0-9]
 "?"                     if NotInCPlusBlock then return(QUESTIONMARK) else skip_until_eol;
 ":"                     if NotInCPlusBlock then return(COLON) else skip_until_eol;
 ","                     if NotInCPlusBlock then return(COMMA) else skip_until_eol;
+"[["                    HandleC23Attribute;
 "["                     if NotInCPlusBlock then return(LECKKLAMMER) else skip_until_eol;
 "]"                     if NotInCPlusBlock then return(RECKKLAMMER) else skip_until_eol;
 "("                     if NotInCPlusBlock then

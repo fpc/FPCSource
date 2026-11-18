@@ -76,6 +76,16 @@ type
     procedure TestDefinesInEnum;
     procedure TestDefinesInBracesCompile;
     procedure TestSelfContainedUnitCompiles;
+    procedure TestPackedAttribute;
+    procedure TestC23PackedAttribute;
+    procedure TestPackedTypedefAndUnion;
+    procedure TestPackedWithOtherAttributes;
+    procedure TestPackedAttributeRestoresPragmaPack;
+    procedure TestAlignedAttributeDropped;
+    procedure TestC23AttributeDropped;
+    procedure TestPackedEnumAttributeDropped;
+    procedure TestPackedAttributeBeforeBodyDropped;
+    procedure TestPackedAttributesCompile;
   end;
 
 implementation
@@ -731,6 +741,111 @@ procedure TTestStructs.TestFunctionPointerMemberArgumentsCompile;
 
 begin
   Convert(ModuleHeader,['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestPackedAttribute;
+
+begin
+  Convert(['struct s { char a; int b; } __attribute__((packed));','struct t { int a; };']);
+  AssertConverted;
+  AssertInterface('packed attribute after the body',['{$PACKRECORDS 1}','type','s = record','a : ansichar;']);
+  AssertInterface('the alignment is restored after the packed record',['{$PACKRECORDS C}','t = record']);
+  AssertNotOutput('a converted attribute is no comment','ignored');
+end;
+
+
+procedure TTestStructs.TestC23PackedAttribute;
+
+begin
+  Convert(['struct s { char a; int b; } [[gnu::packed]];','struct p { int a; };','struct t { char a; } [[ __packed__ ]];']);
+  AssertConverted;
+  AssertInterface('C23 gnu::packed',['{$PACKRECORDS 1}','type','s = record']);
+  AssertInterface('C23 __packed__',['{$PACKRECORDS 1}','t = record']);
+end;
+
+
+procedure TTestStructs.TestPackedTypedefAndUnion;
+
+begin
+  Convert(['typedef struct { char a; int b; } __attribute__((__packed__)) ts;','struct p { int a; };',
+           'union u { char a; int b; } __attribute__ ((packed));']);
+  AssertConverted;
+  AssertInterface('packed typedef',['{$PACKRECORDS 1}','type','ts = record']);
+  AssertInterface('packed union',['{$PACKRECORDS 1}','u = record']);
+end;
+
+
+procedure TTestStructs.TestPackedWithOtherAttributes;
+
+begin
+  Convert(['struct s { char a; } __attribute__((packed, aligned(4)));']);
+  AssertConverted;
+  AssertInterface('packed with other attributes',['{$PACKRECORDS 1}','type','s = record']);
+  AssertOutput('the other attributes are kept as comment',['(* __attribute__((packed, aligned(4))) ignored *)']);
+end;
+
+
+procedure TTestStructs.TestPackedAttributeRestoresPragmaPack;
+
+begin
+  Convert(['#pragma pack(2)','struct s { char a; } __attribute__((packed));','struct t { int a; };']);
+  AssertConverted;
+  AssertInterface('the #pragma pack alignment is restored',['{$PACKRECORDS 2}','t = record']);
+end;
+
+
+procedure TTestStructs.TestAlignedAttributeDropped;
+
+begin
+  Convert(['struct s { int a; } __attribute__((aligned(8)));']);
+  AssertConverted;
+  AssertInterface('aligned attribute gives a plain record',['s = record','a : longint;','end;']);
+  AssertNotOutput('no packed record','PACKRECORDS 1');
+  AssertOutput('dropped attribute as comment',['(* __attribute__((aligned(8))) ignored *)']);
+end;
+
+
+procedure TTestStructs.TestC23AttributeDropped;
+
+begin
+  Convert(['[[deprecated]] int f(void);','[[nodiscard, gnu::nonnull(1)]] int g(int *p);'],['-d']);
+  AssertConverted;
+  AssertInterface('C23 attribute before a prototype',['function f:longint;cdecl;external;']);
+  AssertInterface('C23 attribute list',['function g(p:Plongint):longint;cdecl;external;']);
+  AssertOutput('dropped C23 attribute as comment',['(* [[deprecated]] ignored *)']);
+  AssertOutput('dropped C23 attribute list as comment',['(* [[nodiscard, gnu::nonnull(1)]] ignored *)']);
+end;
+
+
+procedure TTestStructs.TestPackedEnumAttributeDropped;
+
+begin
+  Convert(['enum e { ea, eb } __attribute__((packed));']);
+  AssertConverted;
+  AssertNotOutput('an enum is no packed record','PACKRECORDS 1');
+  AssertOutput('dropped enum attribute as comment',['(* __attribute__((packed)) ignored *)']);
+end;
+
+
+procedure TTestStructs.TestPackedAttributeBeforeBodyDropped;
+
+begin
+  Convert(['struct __attribute__((packed)) s { char a; };']);
+  AssertConverted;
+  AssertInterface('attribute before the tag gives a plain record',['s = record']);
+  AssertNotOutput('no packed record','PACKRECORDS 1');
+  AssertOutput('dropped attribute as comment',['(* __attribute__((packed)) ignored *)']);
+end;
+
+
+procedure TTestStructs.TestPackedAttributesCompile;
+
+begin
+  Convert(['struct s { char a; int b; } __attribute__((packed));','struct t { char a; int b; } [[gnu::packed]];',
+           'struct al { int a; } __attribute__((aligned(8)));','[[deprecated]] int f(void);'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

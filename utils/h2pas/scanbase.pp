@@ -82,8 +82,11 @@ Procedure HandleDeref;
 Procedure HandleCallingConvention(aCC : Integer);
 Procedure HandlePalmPilotCallingConvention;
 Procedure HandleIllegalCharacter;
-// Skips the parenthesized argument of __attribute__, __declspec or __asm__.
+// Skips __attribute__, __declspec or __asm__ with its parenthesized argument, writing it as comment;
+// returns _PACKED for a packed attribute after a struct or union body.
 Procedure HandleSkipParenthesized;
+// Skips a C23 attribute [[...]] like HandleSkipParenthesized.
+Procedure HandleC23Attribute;
 // Counts the brace nesting: aOpen for {, otherwise for }.
 Procedure HandleBrace(aOpen : Boolean);
 // Returns the defines met inside braces to the input, after a semicolon outside braces.
@@ -106,6 +109,8 @@ Procedure HandlePreProcStripConditional(isEnd : Boolean);
 Procedure EnterCplusPlus;
 // Returns the C preprocessor condition aText as FPC $if expression, or aText without comments when it cannot be translated.
 function TranslateCondition(const aText : string) : string;
+// Returns the record alignment set by #pragma pack: C or a number.
+function CurrentPackRecords : string;
 // Registers aName as a define without value.
 procedure AddEmptyDefine(const aName : AnsiString);
 // Returns true when aName is a define without value.
@@ -123,6 +128,7 @@ uses
 
 const
   MaxPackDepth = 32;
+  MaxBraceDepth = 64;
 
 function ReadDefineName(const aText : AnsiString; out aPos : integer) : AnsiString; forward;
 
@@ -140,6 +146,12 @@ var
   // Brace nesting outside defines, and the text of the defines met inside braces.
   BraceDepth : integer = 0;
   PendingDefines : AnsiString = '';
+  // STRUCT or UNION when the identifier just returned follows that keyword, 0 otherwise.
+  PendingAggregate : integer = 0;
+  // Per brace level: the brace opened a struct or union body.
+  BraceAggregate : array[1..MaxBraceDepth] of boolean;
+  // The last closing brace ended a struct or union body.
+  ClosedAggregate : boolean = false;
 
 procedure openInputfile;
 
@@ -1308,9 +1320,16 @@ begin
   if in_define then
     exit;
   if aOpen then
-    inc(BraceDepth)
+    begin
+    inc(BraceDepth);
+    if BraceDepth<=MaxBraceDepth then
+      BraceAggregate[BraceDepth]:=(yyretval=STRUCT) or (yyretval=UNION) or ((yyretval=ID) and (PendingAggregate<>0));
+    end
   else if BraceDepth>0 then
+    begin
+    ClosedAggregate:=(BraceDepth<=MaxBraceDepth) and BraceAggregate[BraceDepth];
     dec(BraceDepth);
+    end;
 end;
 
 
@@ -1437,6 +1456,10 @@ begin
     if IsEmptyDefine(yytext) then
       exit;
     end;
+  if (yyretval=STRUCT) or (yyretval=UNION) then
+    PendingAggregate:=yyretval
+  else
+    PendingAggregate:=0;
   if in_space_define=1 then
     in_space_define:=2;
   return(ID);
@@ -1476,14 +1499,93 @@ begin
     return(SYS_TRAP);
 end;
 
+// Returns true when the attribute text aText contains packed or __packed__;
+// aOthers is true when it also names other attributes.
+function IsPackedAttribute(const aText : AnsiString; out aOthers : boolean) : boolean;
+
+var
+  i : integer;
+  lWord : AnsiString;
+
+begin
+  Result:=false;
+  aOthers:=false;
+  i:=1;
+  while i<=length(aText) do
+    if aText[i] in IdentChars then
+      begin
+      lWord:='';
+      while (i<=length(aText)) and (aText[i] in IdentChars) do
+        begin
+        lWord:=lWord+aText[i];
+        inc(i);
+        end;
+      if (lWord='packed') or (lWord='__packed__') then
+        Result:=true
+      else if (lWord<>'gnu') and (lWord<>'__attribute__') and (lWord<>'__attribute') then
+        aOthers:=true;
+      end
+    else
+      inc(i);
+end;
+
+
+// Writes the attribute text aText as comment, unless info is stripped or a define is read.
+procedure WriteIgnoredAttribute(const aText : AnsiString);
+
+var
+  lText : AnsiString;
+
+begin
+  if stripinfo or in_define then
+    exit;
+  lText:=StringReplace(StringReplace(aText,'(*','( *',[rfReplaceAll]),'*)','* )',[rfReplaceAll]);
+  writeln(outfile,aktspace,'(* ',lText,' ignored *)');
+end;
+
+
+// Returns _PACKED for the packed attribute aText after a struct or union body, writes aText as comment otherwise.
+procedure HandleAttributeText(const aText : AnsiString);
+
+var
+  lOthers : boolean;
+
+begin
+  if (yyretval=RGKLAMMER) and ClosedAggregate and IsPackedAttribute(aText,lOthers) then
+    begin
+    if lOthers then
+      WriteIgnoredAttribute(aText);
+    return(_PACKED);
+    end
+  else
+    WriteIgnoredAttribute(aText);
+end;
+
+
+// Appends the character aChar to aText, with one space for a run of white space.
+procedure AddAttributeChar(var aText : AnsiString; aChar : char);
+
+begin
+  if aChar in [' ',#9,#13,newline,'\'] then
+    begin
+    if (aText<>'') and (aText[length(aText)]<>' ') then
+      aText:=aText+' ';
+    end
+  else
+    aText:=aText+aChar;
+end;
+
+
 Procedure HandleSkipParenthesized;
 
 var
   lDepth : integer;
+  lText : AnsiString;
 
 begin
   if SkipInCPlusBlock then
     exit;
+  lText:=yytext;
   repeat
     c:=get_char;
   until not ((c in [' ',#9]) or ((c=newline) and not in_define));
@@ -1492,6 +1594,7 @@ begin
     unget_char(c);
     exit;
     end;
+  lText:=lText+'(';
   lDepth:=1;
   repeat
     c:=get_char;
@@ -1500,7 +1603,35 @@ begin
       ')' : Dec(lDepth);
       #0 : lDepth:=0;
     end;
+    if c<>#0 then
+      AddAttributeChar(lText,c);
   until lDepth=0;
+  HandleAttributeText(lText);
+end;
+
+
+Procedure HandleC23Attribute;
+
+var
+  lDepth : integer;
+  lText : AnsiString;
+
+begin
+  if SkipInCPlusBlock then
+    exit;
+  lText:='[[';
+  lDepth:=2;
+  repeat
+    c:=get_char;
+    case c of
+      '[' : Inc(lDepth);
+      ']' : Dec(lDepth);
+      #0 : lDepth:=0;
+    end;
+    if c<>#0 then
+      AddAttributeChar(lText,c);
+  until lDepth=0;
+  HandleAttributeText(lText);
 end;
 
 
@@ -1509,6 +1640,13 @@ begin
    writeln('Illegal character in line ',yylineno);
    writeln('"',yyline,'"');
    return(256);
+end;
+
+
+function CurrentPackRecords : string;
+
+begin
+  Result:=PackCurrent;
 end;
 
 

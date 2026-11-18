@@ -250,7 +250,10 @@ var
 begin
   newpacked:=(aPack<>4);
   if (newpacked<>is_packed) and (not packrecords) then
-    writeln(outfile,'{$PACKRECORDS ',aPack,'}');
+    if newpacked then
+      writeln(outfile,'{$PACKRECORDS ',aPack,'}')
+    else
+      writeln(outfile,'{$PACKRECORDS ',CurrentPackRecords,'}');
   is_packed:=newpacked;
 end;
 
