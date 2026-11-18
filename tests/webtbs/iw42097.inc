@@ -3,6 +3,10 @@
 {$mode objfpc}
 {$Q-,R-}
 
+{$ifdef CPUINT64}
+  {$define TEST_64BIT_TYPES}
+{$endif}
+
 // Halts with aCode when aGot is not aExpected
 procedure Check(aCode: Integer; aGot, aExpected: QWord);
 
@@ -15,6 +19,7 @@ begin
 end;
 
 
+{$ifdef TEST_64BIT_TYPES}
 function QWordFullRange: QWord;
 
 var
@@ -61,6 +66,7 @@ begin
       break;
     end;
 end;
+{$endif TEST_64BIT_TYPES}
 
 
 function ByteConst: QWord;
@@ -117,6 +123,7 @@ begin
 end;
 
 
+{$ifdef TEST_64BIT_TYPES}
 function QWordFrom5(aTo: QWord): QWord;
 
 var
@@ -131,6 +138,7 @@ begin
       break;
     end;
 end;
+{$endif TEST_64BIT_TYPES}
 
 
 function LongintTo(aFrom, aTo: Longint; aBreak: QWord): QWord;
@@ -179,9 +187,11 @@ end;
 
 
 begin
+{$ifdef TEST_64BIT_TYPES}
   Check(1,QWordFullRange,3);
   Check(2,Int64FullRange,3);
   Check(3,Int64FullRangeDown,3);
+{$endif TEST_64BIT_TYPES}
   Check(4,ByteConst,256);
   Check(5,ByteTo(0,255),256);
   Check(6,ByteTo(0,7),8);
@@ -190,8 +200,10 @@ begin
   Check(9,CardinalTo(0,high(Cardinal),7),7);
   Check(10,CardinalTo(5,2,High(QWord)),0);
   Check(11,CardinalTo(5,9,High(QWord)),5);
+{$ifdef TEST_64BIT_TYPES}
   Check(12,QWordFrom5(2),0);
   Check(13,QWordFrom5(6),2);
+{$endif TEST_64BIT_TYPES}
   Check(14,LongintTo(0,high(Longint),10),10);
   Check(15,LongintTo(0,-5,High(QWord)),0);
   Check(16,LongintTo(1,5,High(QWord)),5);
