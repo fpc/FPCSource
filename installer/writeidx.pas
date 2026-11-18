@@ -22,17 +22,11 @@
     TFPHTMLFileLinkScanner = object(THTMLFileLinkScanner)
       function    CheckURL(const URL: string): boolean; virtual;
       function    CheckText(const Text: string): boolean; virtual;
-      procedure   ProcessDoc(Doc: PHTMLLinkScanFile); virtual;
     end;
 
 
   const
     HTMLIndexExt = '.htx';
-
-
-  procedure TFPHTMLFileLinkScanner.ProcessDoc(Doc: PHTMLLinkScanFile);
-    begin
-    end;
 
 
   function TFPHTMLFileLinkScanner.CheckURL(const URL: string): boolean;
@@ -62,9 +56,7 @@
   procedure doerror(const s : ansistring);
     begin
       writeln(s);
-      writeln;
-      writeln('Press ENTER to continue');
-      readln;
+      ExitCode:=1;
     end;
 
 
@@ -82,7 +74,7 @@
       New(LS, Init(DirOf(FileName)));
       LS^.ProcessDocument(FileName,[soSubDocsOnly]);
       if LS^.GetDocumentCount=0 then
-        doerror(format('Problem creating help index %1, aborting',[filename]))
+        doerror(format('Problem creating help index %s, aborting',[filename]))
       else
         begin
           FileName:=DirAndNameOf(FileName)+HTMLIndexExt;
@@ -105,6 +97,7 @@
     end;
 
   begin
+    RegisterWHTMLScan;
     if paramcount<>1 then
       writeln('Usage: writeidx <index name>')
     else
