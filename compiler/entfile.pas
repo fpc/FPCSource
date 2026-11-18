@@ -661,6 +661,12 @@ begin
   except
     exit;
   end;
+  { TCFileStream reports a failed open in CStreamError instead of raising }
+  if CStreamError<>0 then
+    begin
+      strm.free;
+      exit;
+    end;
   openfile:=openstream(strm);
   fisfile:=result;
 end;

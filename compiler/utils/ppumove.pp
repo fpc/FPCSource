@@ -43,7 +43,7 @@ const
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
 
-  ShortOpts = 'o:e:d:i:P:qhsvb';
+  ShortOpts = 'o:e:d:i:P:qhsSb';
   BufSize = 4096;
   PPUExt = 'ppu';
   ObjExt = 'o';
@@ -253,6 +253,11 @@ begin
   gotltofiles:=false;
   If Not Quiet then
    Write ('Processing ',PPUFn,'...');
+  if not FileExists(PPUFn) then
+   begin
+     Error('Error: Could not open : '+PPUFn,false);
+     Exit;
+   end;
   inppu:=tppufile.create(PPUFn);
   if not inppu.openfile then
    begin
@@ -547,13 +552,26 @@ begin
 end;
 
 
-Procedure usage;
-{
-  Print usage and exit.
-}
+// Write title, usage and options, then stop with exit code aExitCode.
+Procedure usage(aExitCode:longint);
 begin
-  Writeln(paramstr(0),': [-qhvbsS] [-e ext] [-o name] [-d path] [-P binutils prefix] file [file ...]');
-  Halt(0);
+  Writeln(Title+' '+Version);
+  Writeln(Copyright);
+  Writeln;
+  Writeln('usage: ',ExtractFileName(paramstr(0)),' [options] file [file ...]');
+  Writeln;
+  Writeln('[options] can be:');
+  Writeln('    -b          Write the commands to pmove'+BatchExt+' instead of running them');
+  Writeln('    -d <path>   Move the created files to directory <path>');
+  Writeln('    -e <ext>    Extension of the created unit files (default: ppu)');
+  Writeln('    -h          This helpscreen');
+  Writeln('    -i <path>   Read the input files from directory <path>');
+  Writeln('    -o <name>   Name of the library (required for more than one file)');
+  Writeln('    -P <prefix> Prefix for the binutils (ar, ld, strip)');
+  Writeln('    -q          Quiet: do not write progress messages');
+  Writeln('    -s          Strip the library');
+  Writeln('    -S          Create a static library (default: shared library)');
+  Halt(aExitCode);
 end;
 
 
@@ -566,7 +584,7 @@ var
   C : char;
 begin
   if paramcount=0 then
-   usage;
+   usage(1);
 { Reset }
   ObjFiles:=Nil;
   Quiet:=False;
@@ -594,8 +612,8 @@ begin
       'q' : Quiet:=True;
       'b' : Batch:=true;
       's' : DoStrip:=true;
-      '?' : Usage;
-      'h' : Usage;
+      '?' : Usage(1);
+      'h' : Usage(0);
       'P' : BinutilsPrefix:=OptArg;
     end;
   until false;
@@ -658,6 +676,12 @@ begin
   i:=OptInd;
   While (i<=ParamCount) and Dofile(ChangeFileExt(Paramstr(i),PPUExt)) do
    Inc(i);
+  if i<=ParamCount then
+   begin
+     if Batch then
+      Close(BatchFile);
+     Halt(1);
+   end;
 { Do Linking stage }
   DoLink;
 { Close BatchFile }

@@ -62,6 +62,26 @@ begin
 end;
 
 
+// Write title, usage and options, then stop with exit code aExitCode.
+Procedure Usage(aExitCode:longint);
+begin
+  writeln(Title+' '+Version);
+  writeln(Copyright);
+  writeln;
+  writeln('usage: ppufiles [options] <filename1> <filename2>...');
+  writeln;
+  writeln('[options] can be (case insensitive):');
+  writeln('    -a      Show all files (do not remove duplicates)');
+  writeln('    -l      Show only shared libraries');
+  writeln('    -s      Show only static libraries');
+  writeln('    -o      Show only object files');
+  writeln('    -h, -?  This helpscreen');
+  writeln;
+  writeln('Without -l, -s or -o all three kinds of files are shown.');
+  halt(aExitCode);
+end;
+
+
 Function ChangeFileExt(Const HStr,ext:String):String;
 {
   Return a filename which will have extension ext added if no
@@ -193,34 +213,41 @@ begin
   while (i<=paramcount) do
    begin
      s:=paramstr(i);
-     if s[1]<>'-' then
+     if (s='') or (s[1]<>'-') then
       break;
+     if length(s)<>2 then
+      begin
+        Error('Error: Unknown option '+s,false);
+        Usage(1);
+      end;
      case upcase(s[2]) of
       'L' : showshared:=true;
       'S' : showstatic:=true;
       'O' : showobjects:=true;
       'A' : skipdup:=false;
       '?','H' :
+        Usage(0);
+      else
         begin
-          writeln('usage: ppufiles [options] <files>');
-          writeln('options:');
-          writeln('  -A  Show all files (don''t remove duplicates)');
-          writeln('  -L  Show only shared libraries');
-          writeln('  -S  Show only static libraries');
-          writeln('  -O  Show only object files');
-          writeln('  -H  This helpscreen');
+          Error('Error: Unknown option '+s,false);
+          Usage(1);
         end;
      end;
      inc(i);
    end;
   { default shows everything }
-  if i=1 then
+  if not (showshared or showstatic or showobjects) then
    begin
      showshared:=true;
      showstatic:=true;
      showobjects:=true;
    end;
 { files }
+  if i>paramcount then
+   begin
+     Error('Error: No PPU file given',false);
+     Usage(1);
+   end;
   parafile:=i;
   for i:=parafile to ParamCount do
    begin
