@@ -94,6 +94,7 @@ Resourcestring
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogDetectedCompiler       = 'Detected compiler "%s" (version %s for %s)';
   SLogDetectedPrefix         = 'Detected %s prefix "%s"';
+  SLogDetectedInstallDir     = 'Detected %s install directory "%s"';
   SLogFPCDirEnv              = 'FPCDIR from environment setting "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
@@ -180,6 +181,7 @@ Resourcestring
 
   SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation. (%s)';
   SWarnFailedToWriteCompConf = 'Failed to write compiler-configuration file "%s": %s';
+  SWarnNoFPCRepository       = 'Could not detect the compiler installation, the generated configuration has no "fpc" repository: %s';
 
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';
