@@ -62,6 +62,15 @@ uses
   StreamIO, resdatastream, resfactory, lexlib, rcparser;
 {$ENDIF FPC_DOTTEDUNITS}
 
+// End of input for the RC lexer: closes the input file only, yyoutput stays open.
+function RCYYWrap: Boolean;
+
+begin
+  Close({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput);
+  Result:=True;
+end;
+
+
 { TRCResourceReader }
 
 function TRCResourceReader.GetExtensions: string;
@@ -99,9 +108,12 @@ end;
 procedure TRCResourceReader.ReadRCFile(aResources: TResources; aLocation: String; aStream: TStream);
 var
   i: Integer;
+  lOldWrap: {$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yywrap_t;
 begin
   AssignStream({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput, aStream);
   Reset({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput);
+  lOldWrap:={$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yywrap;
+  {$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yywrap:=@RCYYWrap;
   try
     {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yyfilename:= '#MAIN.RC';
     {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}SetDefaults;
@@ -117,6 +129,7 @@ begin
     if {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yyparse <> 0 then
       raise EReadError.Create('Parse Error');
   finally
+    {$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yywrap:=lOldWrap;
     {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}DisposePools;
     FreeAndNil({$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}ypreproc);
     FreeAndNil({$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yinclude);

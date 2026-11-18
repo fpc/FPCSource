@@ -329,11 +329,13 @@ numexpr
 
 ident_string
     : _ID                                          { string_new($$, yytext, opt_code_page); }
+    | _NSWPSTR                                     { string_new($$, yytext, opt_code_page); }
     | long_string
     ;
 
 non_whitespace_string
     : _NSWPSTR                                     { string_new($$, yytext, opt_code_page); }
+    | _ID                                          { string_new($$, yytext, opt_code_page); }
     ;
 
 filename_string
