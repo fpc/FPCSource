@@ -934,12 +934,22 @@ begin
   lDecls:=aMember^.p2;
   if not (assigned(lType) and (lType^.typ in [t_structdef,t_uniondef]) and assigned(lType^.p1)) then
     exit;
+  lTagged:=assigned(lType^.p2) and assigned(lType^.p2^.p);
   if not assigned(lDecls) then
+    begin
+    (* a tagged struct without declarator only declares its type *)
+    if lTagged then
+      begin
+      lRef:=NewID(lType^.p2^.str);
+      lRef^.structtag:=true;
+      aMember^.p1:=lRef;
+      HandleSpecialType(lType);
+      end;
     exit;
+    end;
   lMemberName:=DeclaratorName(lDecls^.p1);
   if lMemberName='' then
     exit;
-  lTagged:=assigned(lType^.p2) and assigned(lType^.p2^.p);
   if not lTagged and not HasPointerDeclarator(lDecls) then
     exit;
   if not lTagged then
@@ -971,7 +981,9 @@ begin
   while assigned(lMembers) do
     begin
     lMember:=lMembers^.p1;
-    if assigned(lMember) and (lMember^.typ=t_memberdec) then
+    if IsAnonymousMember(lMember) then
+      HoistStructProcVarElements(aOwner,lMember^.p1)
+    else if assigned(lMember) and (lMember^.typ=t_memberdec) then
       begin
       HoistInlineRecord(aOwner,lMember);
       lDecls:=lMember^.p2;

@@ -70,6 +70,8 @@ function OuterIndent(const aIndent : AnsiString) : AnsiString;
 function UnnamedParamName(aIndex : longint) : AnsiString;
 // Returns the name of the declarator aDecl (t_dec), or '' when it has none.
 function DeclaratorName(aDecl : presobject) : AnsiString;
+// Returns true when aMember (t_memberdec) is a struct or union without tag and without declarator.
+function IsAnonymousMember(aMember : presobject) : boolean;
 // Returns true when the constant expression aExpr uses only literals, casts to base types and plain constants.
 function IsPlainConstExpr(aExpr : presobject) : Boolean;
 // Registers aName as a plain constant, which -1 writes before the types.
@@ -1445,6 +1447,163 @@ begin
 end;
 
 
+function IsAnonymousMember(aMember : presobject) : boolean;
+
+begin
+  Result:=assigned(aMember) and (aMember^.typ=t_memberdec) and not assigned(aMember^.p2)
+          and assigned(aMember^.p1) and (aMember^.p1^.typ in [t_structdef,t_uniondef])
+          and not (assigned(aMember^.p1^.p2) and assigned(aMember^.p1^.p2^.p));
+end;
+
+
+// Adds the field names of the member list aMembers to aNames, with those of its anonymous members.
+procedure AddFieldNames(aNames : TStringList; aMembers : presobject);
+
+var
+  lDecls : presobject;
+  lName : AnsiString;
+
+begin
+  while assigned(aMembers) do
+    begin
+    if IsAnonymousMember(aMembers^.p1) then
+      AddFieldNames(aNames,aMembers^.p1^.p1^.p1)
+    else if assigned(aMembers^.p1) then
+      begin
+      lDecls:=aMembers^.p1^.p2;
+      while assigned(lDecls) do
+        begin
+        lName:=DeclaratorName(lDecls^.p1);
+        if lName<>'' then
+          aNames.Add(FixId(lName));
+        lDecls:=lDecls^.next;
+        end;
+      end;
+    aMembers:=aMembers^.next;
+    end;
+end;
+
+
+// Returns the field names of the member list aMembers, with those of its anonymous members.
+function FieldNames(aMembers : presobject) : TStringList;
+
+begin
+  Result:=TStringList.Create;
+  AddFieldNames(Result,aMembers);
+end;
+
+
+// Returns the next name anonN for an anonymous member, after aIndex and not in aNames.
+function AnonymousFieldName(aNames : TStringList; var aIndex : integer) : AnsiString;
+
+begin
+  repeat
+    inc(aIndex);
+    Result:='anon'+IntToStr(aIndex);
+  until aNames.IndexOf(Result)<0;
+end;
+
+
+// Writes the anonymous member aMember (t_memberdec) as a field with a generated name, without separator.
+procedure WriteAnonymousField(var outfile:text; aMember : presobject; aNames : TStringList; var aAnonIndex : integer);
+
+begin
+  write(outfile,AnonymousFieldName(aNames,aAnonIndex),' : ');
+  shift(2);
+  write_type_specifier(outfile,aMember^.p1);
+  popshift;
+end;
+
+
+// Writes the fields of the struct members aMembers on one line, separated by semicolons, for a variant.
+procedure WriteVariantFields(var outfile:text; aMembers : presobject; aNames : TStringList; var aAnonIndex : integer);
+
+var
+  lDecls : presobject;
+  lFirst : boolean;
+
+begin
+  lFirst:=true;
+  while assigned(aMembers) do
+    begin
+    if IsAnonymousMember(aMembers^.p1) then
+      begin
+      if not lFirst then
+        write(outfile,'; ');
+      WriteAnonymousField(outfile,aMembers^.p1,aNames,aAnonIndex);
+      lFirst:=false;
+      end
+    else if assigned(aMembers^.p1) then
+      begin
+      lDecls:=aMembers^.p1^.p2;
+      while assigned(lDecls) do
+        begin
+        if assigned(lDecls^.p1) and assigned(lDecls^.p1^.p2) then
+          begin
+          if not lFirst then
+            write(outfile,'; ');
+          write(outfile,FixId(lDecls^.p1^.p2^.p),' : ');
+          shift(2);
+          is_procvar:=false;
+          write_p_a_def(outfile,lDecls^.p1^.p1,aMembers^.p1^.p1);
+          WriteProcVarDirectives(outfile,false);
+          popshift;
+          lFirst:=false;
+          end;
+        lDecls:=lDecls^.next;
+        end;
+      end;
+    aMembers:=aMembers^.next;
+    end;
+end;
+
+
+// Writes the union members aMembers as variants numbered from aIndex: an anonymous struct is one variant
+// with its fields, the members of an anonymous union are variants of their own.
+procedure WriteUnionVariants(var outfile:text; aMembers : presobject; aNames : TStringList;
+                             var aAnonIndex, aIndex : integer);
+
+var
+  hp2, hp3 : presobject;
+
+begin
+  while assigned(aMembers) do
+    begin
+    hp2:=aMembers^.p1;
+    if IsAnonymousMember(hp2) and (hp2^.p1^.typ=t_uniondef) then
+      WriteUnionVariants(outfile,hp2^.p1^.p1,aNames,aAnonIndex,aIndex)
+    else if IsAnonymousMember(hp2) then
+      begin
+      write(outfile,aktspace,aIndex,' : ( ');
+      WriteVariantFields(outfile,hp2^.p1^.p1,aNames,aAnonIndex);
+      writeln(outfile,' );');
+      inc(aIndex);
+      end
+    else if assigned(hp2) then
+      begin
+      hp3:=hp2^.p2;
+      while assigned(hp3) do
+        begin
+        if assigned(hp3^.p1) and assigned(hp3^.p1^.p2) then
+          begin
+          write(outfile,aktspace,aIndex,' : ( ');
+          write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
+          shift(2);
+          is_procvar:=false;
+          write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
+          WriteProcVarDirectives(outfile,false);
+          popshift;
+          writeln(outfile,' );');
+          inc(aIndex);
+          end;
+        hp3:=hp3^.next;
+        end;
+      end;
+    aMembers:=aMembers^.next;
+    end;
+end;
+
+
 procedure write_type_specifier_struct(var outfile:text; p : presobject);
 
 var
@@ -1455,6 +1614,8 @@ var
   flag_index : longint;
   current_level : longint;
   is_sized : boolean;
+  lNames : TStringList;
+  lAnonIndex, lVariant : integer;
 
   // Ends the current flag field with the type that holds current_level bits.
   procedure CloseFlag;
@@ -1535,7 +1696,7 @@ begin
   flag_index:=-1;
   is_sized:=false;
   current_level:=0;
-  if ((in_args) or (typedef_level>1)) and (p^.p1=nil) and (p^.p2^.typ=t_id) then
+  if ((in_args) or (typedef_level>1)) and (p^.p1=nil) and assigned(p^.p2) and (p^.p2^.typ=t_id) then
     begin
     if pointerprefix and UseCTypesUnit and not IsACType(p^.p2^.str) then
       PTypeList.Add('P'+p^.p2^.str);
@@ -1546,12 +1707,34 @@ begin
       WriteRecordKeyword(outfile,'');
       shift(2);
       hp1:=p^.p1;
+      lNames:=FieldNames(hp1);
+      lAnonIndex:=0;
 
       (* walk through all members *)
       while assigned(hp1) do
         begin
         (* hp2 is t_memberdec *)
         hp2:=hp1^.p1;
+        if IsAnonymousMember(hp2) then
+          begin
+          if is_sized then
+            CloseFlag;
+          (* an anonymous union at the end is the variant part *)
+          if (hp2^.p1^.typ=t_uniondef) and not assigned(hp1^.next) then
+            begin
+            writeln(outfile,aktspace,'case longint of');
+            shift(2);
+            lVariant:=0;
+            WriteUnionVariants(outfile,hp2^.p1^.p1,lNames,lAnonIndex,lVariant);
+            popshift;
+            end
+          else
+            begin
+            write(outfile,aktspace);
+            WriteAnonymousField(outfile,hp2,lNames,lAnonIndex);
+            writeln(outfile,';');
+            end;
+          end;
         (*  hp3 is t_declist *)
         hp3:=hp2^.p2;
         while assigned(hp3) do
@@ -1577,6 +1760,7 @@ begin
         end;
       if is_sized then
         CloseFlag;
+      lNames.Free;
       popshift;
       write(outfile,aktspace,'end');
     end;
@@ -1586,12 +1770,12 @@ end;
 procedure write_type_specifier_union(var outfile:text; p : presobject);
 
 var
-  hp1,hp2,hp3 : presobject;
-  l : integer;
+  lNames : TStringList;
+  l, lAnonIndex : integer;
 
 begin
   inc(typedef_level);
-  if (typedef_level>1) and (p^.p1=nil) and (p^.p2^.typ=t_id) then
+  if (typedef_level>1) and (p^.p1=nil) and assigned(p^.p2) and (p^.p2^.typ=t_id) then
     begin
     write(outfile,p^.p2^.p);
     end
@@ -1602,31 +1786,10 @@ begin
     writeln(outfile,aktspace,'case longint of');
     shift(2);
     l:=0;
-    hp1:=p^.p1;
-
-    (* walk through all members *)
-    while assigned(hp1) do
-      begin
-      (* hp2 is t_memberdec *)
-      hp2:=hp1^.p1;
-      (* hp3 is t_declist *)
-      hp3:=hp2^.p2;
-      while assigned(hp3) do
-        begin
-        if assigned(hp3^.p1) and assigned(hp3^.p1^.p2) then
-          begin
-          write(outfile,aktspace,l,' : ( ');
-          write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
-          shift(2);
-          write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
-          popshift;
-          writeln(outfile,' );');
-          inc(l);
-          end;
-        hp3:=hp3^.next;
-        end;
-      hp1:=hp1^.next;
-      end;
+    lAnonIndex:=0;
+    lNames:=FieldNames(p^.p1);
+    WriteUnionVariants(outfile,p^.p1,lNames,lAnonIndex,l);
+    lNames.Free;
     popshift;
     write(outfile,aktspace,'end');
     popshift;

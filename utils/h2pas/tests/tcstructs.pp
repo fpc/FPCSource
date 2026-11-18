@@ -86,6 +86,14 @@ type
     procedure TestPackedEnumAttributeDropped;
     procedure TestPackedAttributeBeforeBodyDropped;
     procedure TestPackedAttributesCompile;
+    procedure TestAnonymousUnionLastMember;
+    procedure TestAnonymousUnionMiddleMember;
+    procedure TestAnonymousMembersInUnion;
+    procedure TestAnonymousStructInVariantPart;
+    procedure TestAnonymousMemberNamesAreUnique;
+    procedure TestAnonymousUnionFunctionPointer;
+    procedure TestTaggedStructWithoutDeclarator;
+    procedure TestAnonymousMembersCompile;
   end;
 
 implementation
@@ -846,6 +854,93 @@ procedure TTestStructs.TestPackedAttributesCompile;
 begin
   Convert(['struct s { char a; int b; } __attribute__((packed));','struct t { char a; int b; } [[gnu::packed]];',
            'struct al { int a; } __attribute__((aligned(8)));','[[deprecated]] int f(void);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestStructs.TestAnonymousUnionLastMember;
+
+begin
+  Convert(['struct issue {','  union { int foo; void *bar; };','};']);
+  AssertConverted;
+  AssertInterface('an anonymous union at the end is the variant part',
+    ['issue = record','case longint of','0 : ( foo : longint );','1 : ( bar : pointer );','end;']);
+end;
+
+
+procedure TTestStructs.TestAnonymousUnionMiddleMember;
+
+begin
+  Convert(['struct middle { int a; union { int foo; void *bar; }; int b; };']);
+  AssertConverted;
+  AssertInterface('an anonymous union in the middle is a field with a generated name',
+    ['a : longint;','anon1 : record','case longint of','0 : ( foo : longint );','1 : ( bar : pointer );','end;',
+     'b : longint;']);
+end;
+
+
+procedure TTestStructs.TestAnonymousMembersInUnion;
+
+begin
+  Convert(['union outer { int i; struct { char c; int n; }; union { float f; double d; }; };']);
+  AssertConverted;
+  AssertInterface('an anonymous struct is one variant, the members of an anonymous union are variants',
+    ['case longint of','0 : ( i : longint );','1 : ( c : ansichar; n : longint );','2 : ( f : single );',
+     '3 : ( d : double );']);
+end;
+
+
+procedure TTestStructs.TestAnonymousStructInVariantPart;
+
+begin
+  Convert(['struct tail { char a; union { char b; struct { char x; int y; }; }; };']);
+  AssertConverted;
+  AssertInterface('an anonymous struct in the variant part is one variant',
+    ['a : ansichar;','case longint of','0 : ( b : ansichar );','1 : ( x : ansichar; y : longint );','end;']);
+end;
+
+
+procedure TTestStructs.TestAnonymousMemberNamesAreUnique;
+
+begin
+  Convert(['struct clash { int anon1; struct { int p; }; union { int r; long s; }; int last; };']);
+  AssertConverted;
+  AssertInterface('a generated name skips the field names',['anon1 : longint;','anon2 : record','p : longint;','end;']);
+  AssertInterface('the next anonymous member gets the next name',['anon3 : record','case longint of']);
+end;
+
+
+procedure TTestStructs.TestAnonymousUnionFunctionPointer;
+
+begin
+  Convert(['struct withcb { union { void (*cb)(int); int id; }; };']);
+  AssertConverted;
+  AssertInterface('a function pointer variant is cdecl',['0 : ( cb : procedure (_para1:longint);cdecl );']);
+end;
+
+
+procedure TTestStructs.TestTaggedStructWithoutDeclarator;
+
+begin
+  Convert(['struct hastag { struct inner { int x; }; int y; };']);
+  AssertConverted;
+  AssertInterface('a tagged struct without declarator declares its type',['inner = record','x : longint;','end;']);
+  AssertInterface('and is no field',['hastag = record','y : longint;','end;']);
+end;
+
+
+procedure TTestStructs.TestAnonymousMembersCompile;
+
+begin
+  Convert(['struct issue { union { int foo; void *bar; }; };',
+           'struct middle { int a; union { int foo; void *bar; }; int b; };',
+           'union outer { int i; struct { char c; int n; }; union { float f; double d; }; };',
+           'struct tail { char a; union { char b; struct { char x; int y; }; }; };',
+           'struct clash { int anon1; struct { int p; }; union { int r; long s; }; int last; };',
+           'struct withcb { union { void (*cb)(int); int id; }; };',
+           'struct hastag { struct inner { int x; }; int y; };',
+           'struct bits { int a : 3; union { int u; char c; }; };'],['-d']);
   AssertConverted;
   AssertCompiles;
 end;

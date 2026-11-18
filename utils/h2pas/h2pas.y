@@ -477,6 +477,11 @@ member_declaration :
      {
        (* type_specifier declarator_list SEMICOLON *)
        $$:=NewType2(t_memberdec,$1,$2);
+     }|
+     type_specifier SEMICOLON
+     {
+       (* type_specifier SEMICOLON *)
+       $$:=NewType2(t_memberdec,$1,nil);
      }
      ;
 
