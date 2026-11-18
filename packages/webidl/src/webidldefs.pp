@@ -170,6 +170,7 @@ type
   private
     FAttributes: TExtAttributeList;
     FData: TObject;
+    FIsExternal: Boolean;
     FName: UTF8String;
     FParent: TIDLDefinition;
     function GetAttributes: TExtAttributeList;
@@ -189,6 +190,8 @@ type
     Property Name : UTF8String Read FName Write FName;
     Property Data : TObject Read FData Write FData;
     Property Parent : TIDLDefinition Read FParent Write FParent;
+    // Definition from a reference file: names resolve to it, but no code is generated for it.
+    Property IsExternal : Boolean Read FIsExternal Write FIsExternal;
     // Attributes are owned by the definition. If you set it, your list will be freed by the definition
     Property Attributes : TExtAttributeList Read GetAttributes Write SetAttributes;
   end;

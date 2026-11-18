@@ -1830,7 +1830,7 @@ end;
 procedure TWebIDLToPasWasmJob.WriteMapLikePrivateGetterImplementation(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition
   );
 var
-  call, aClassName : string;
+  aClassName : string;
   Info : TAccessorInfo;
 
 begin
@@ -1842,7 +1842,7 @@ begin
   Info.NativeType:=ntLongint;
   Addln('function '+aClassName+'._Getsize: LongInt;');
   Addln('begin');
-  Addln('  Result:=0;');
+  Addln('  Result:='+GetReadPropertyCall(Info,'size')+';');
   Addln('end;');
 end;
 
@@ -2284,7 +2284,8 @@ begin
   AddLn('constructor %s.create(const aDict : %sRec); overload;',[CurrClassName,CurrClassName]);
   Addln('begin');
   Indent;
-  For IDl in aDict.Members do
+  AddLn('inherited Create;');
+  For IDl in GetParentsMemberList(aDict) do
     if IDL is TIDLDictionaryMemberDefinition then
       if convertDef(Idl) then
         begin

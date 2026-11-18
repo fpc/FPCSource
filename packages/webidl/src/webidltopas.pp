@@ -154,6 +154,7 @@ type
     FOutputFileName: String;
     FPasDataClass: TPasDataClass;
     FPasNameList: TFPObjectList; // list TPasData
+    FReferenceFileNames: TStrings;
     FSetterPrefix: String;
     FTypeAliases: TStrings; // user defined type maping name to name
     FVerbose: Boolean;
@@ -167,6 +168,7 @@ type
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
     procedure SetOutputFileName(const AValue: String);
+    procedure SetReferenceFileNames(AValue: TStrings);
     procedure SetTypeAliases(AValue: TStrings);
   Protected
     function CheckExistingSequence(ST: TIDLSequenceTypeDefDefinition; out TN: TIDLString): Boolean;
@@ -175,6 +177,12 @@ type
     procedure TrimList(List: TStrings); virtual;
     procedure AddOptionsToHeader;
     Procedure Parse; virtual;
+    // Parses the WebIDL in aStream, read from the file aFileName, into the context.
+    procedure ParseStream(aStream: TStream; const aFileName: String); virtual;
+    // Returns a new stream with the contents of the reference file aFileName.
+    function OpenReferenceFile(const aFileName: String): TStream; virtual;
+    // Parses the reference files and flags their definitions as external.
+    procedure ParseReferenceFiles; virtual;
     Procedure WritePascal; virtual;
     function CreateParser(aContext: TWebIDLContext; S: TWebIDLScanner): TWebIDLParser; virtual;
     function CreateScanner(S: TStream): TWebIDLScanner; virtual;
@@ -198,6 +206,9 @@ type
     procedure ResolveTypeDefs(aList: TIDLDefinitionList); virtual;
     procedure ResolveTypeDef(D: TIDLDefinition); virtual;
     procedure RemoveInterfaceForwards(aList: TIDLDefinitionList); virtual;
+    // Returns true when D is selected by the ChromeOnly and used-list options.
+    Function SelectedDef(D : TIDLDefinition) : Boolean;
+    // Returns true when code is generated for D: selected and not from a reference file.
     Function ConvertDef(D : TIDLDefinition) : Boolean;
     function FindGlobalDef(const aName: UTF8String): TIDLDefinition; virtual;
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
@@ -316,6 +327,8 @@ type
   Public
     Property InputFileName: String Read FInputFileName Write FInputFileName;
     Property InputStream: TStream Read FInputStream Write FInputStream;
+    // WebIDL files parsed before the input to resolve names; no code is generated for their definitions.
+    Property ReferenceFileNames: TStrings Read FReferenceFileNames Write SetReferenceFileNames;
     Property OutputFileName: String Read FOutputFileName Write SetOutputFileName;
     Property OutputStream: TStream Read FOutputStream Write FOutputStream;
     Property Verbose: Boolean Read FVerbose Write FVerbose;
@@ -414,16 +427,72 @@ begin
   Result.Version:=FWebIDLVersion;
 end;
 
-procedure TBaseWebIDLToPas.Parse;
+procedure TBaseWebIDLToPas.ParseStream(aStream: TStream; const aFileName: String);
 
 Var
-  ms: TMemoryStream;
   S: TWebIDLScanner;
   P: TWebIDLParser;
 
 begin
   P:=Nil;
-  S:=Nil;
+  S:=CreateScanner(aStream);
+  try
+    S.CurFile:=aFileName;
+    P:=CreateParser(Context,S);
+    P.Parse;
+  finally
+    P.Free;
+    S.Free;
+  end;
+end;
+
+
+function TBaseWebIDLToPas.OpenReferenceFile(const aFileName: String): TStream;
+
+begin
+  Result:=TMemoryStream.Create;
+  try
+    TMemoryStream(Result).LoadFromFile(aFileName);
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+
+procedure TBaseWebIDLToPas.ParseReferenceFiles;
+
+var
+  lFileName: String;
+  lStream: TStream;
+  D: TIDLDefinition;
+
+begin
+  For lFileName in ReferenceFileNames do
+    begin
+    if Trim(lFileName)='' then
+      continue;
+    if Verbose then
+      DoLog('Parsing reference file %s',[lFileName]);
+    lStream:=OpenReferenceFile(lFileName);
+    try
+      ParseStream(lStream,lFileName);
+    finally
+      lStream.Free;
+    end;
+    end;
+  For D in Context.Definitions do
+    D.IsExternal:=True;
+end;
+
+
+procedure TBaseWebIDLToPas.Parse;
+
+Var
+  ms: TMemoryStream;
+
+begin
+  ParseReferenceFiles;
   ms:=TMemoryStream.Create;
   try
     if InputStream<>nil then
@@ -431,13 +500,8 @@ begin
     else
       ms.LoadFromFile(InputFileName);
     ms.Position:=0;
-    S:=CreateScanner(ms);
-    S.CurFile:=InputFileName;
-    P:=CreateParser(Context,S);
-    P.Parse;
+    ParseStream(ms,InputFileName);
   finally
-    P.Free;
-    S.Free;
     ms.Free;
   end;
 end;
@@ -1239,11 +1303,13 @@ begin
   FIncludeImplementationCode:=TStringList.Create;
   FGlobalDefs:=TFPObjectHashTable.Create(False);
   FBanned:=TStringList.Create;
+  FReferenceFileNames:=TStringList.Create;
 end;
 
 
 destructor TBaseWebIDLToPas.Destroy;
 begin
+  FreeAndNil(FReferenceFileNames);
   FreeAndNil(FBanned);
   FreeAndNil(FUsedDefs);
   FreeAndNil(FGlobalDefs);
@@ -2176,6 +2242,8 @@ begin
     L.Add('Verbose: '+BoolToStr(Verbose,true));
     L.Add('Converter: '+ClassName);
     L.Add('InputFileName: '+InputFileName);
+    if ReferenceFileNames.Count>0 then
+      L.Add('ReferenceFileNames: '+ReferenceFileNames.CommaText);
     L.Add('OutputFileName: '+OutputFileName);
     end;
   L.Add('Keyword prefix: '+KeywordPrefix);
@@ -2879,9 +2947,9 @@ var
   FD: TIDLFunctionDefinition;
 begin
   if D=nil then exit;
-  if not ConvertDef(D) then
+  if not SelectedDef(D) then
     exit;
-  // writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D),' D=',hexstr(ptruint(D),sizeof(ptruint)*2));
+  // writeln('TBaseWebIDLToPas.ResolveTypeDef START',D.Name,':',D.ClassName,' at ',GetDefPos(D),' D=',hexstr(ptruint(D),sizeof(ptruint)*2));
   if D Is TIDLInterfaceDefinition then
     ResolveTypeDefs(TIDLInterfaceDefinition(D).Members)
   else if D Is TIDLNamespaceDefinition then
@@ -2997,7 +3065,7 @@ begin
   end;
 end;
 
-function TBaseWebIDLToPas.ConvertDef(D: TIDLDefinition): Boolean;
+function TBaseWebIDLToPas.SelectedDef(D: TIDLDefinition): Boolean;
 
 
 var
@@ -3011,6 +3079,13 @@ begin
   if Result and (coOnlyUsed in BaseOptions) then
     if (D.Data is TPasData) and not TPasData(D.Data).Used then
       exit(False);
+end;
+
+
+function TBaseWebIDLToPas.ConvertDef(D: TIDLDefinition): Boolean;
+
+begin
+  Result:=SelectedDef(D) and not D.IsExternal;
 end;
 
 function TBaseWebIDLToPas.FindGlobalDef(const aName: UTF8String
@@ -3034,6 +3109,14 @@ begin
   if not WithoutFile then
     Result:=D.SrcFile+Result;
 end;
+
+procedure TBaseWebIDLToPas.SetReferenceFileNames(AValue: TStrings);
+
+begin
+  if FReferenceFileNames=AValue then Exit;
+  FReferenceFileNames.Assign(AValue);
+end;
+
 
 procedure TBaseWebIDLToPas.SetTypeAliases(AValue: TStrings);
 begin
@@ -3120,6 +3203,7 @@ begin
   if not (aDef.Member[Idx] is TIDLFunctionDefinition) then
     Raise EWebIDLParser.CreateFmt('Callback Interface %s member %s is not a function',[aDef.Name,aDef.Members[Idx].Name]);
   Result:=TIDLCallBackDefinition(FContext.Add(TIDLCallBackDefinition,aDef.Name,aDef.SrcFile,aDef.Line,aDef.Column));
+  Result.IsExternal:=aDef.IsExternal;
   Result.FunctionDef:=TIDLFunctionDefinition(aDef.Members.Extract(aDef.Member[Idx]));
   Result.FunctionDef.Name:=Result.Name;
   Result.FunctionDef.Parent:=Result;

@@ -186,6 +186,18 @@ begin
       L.free;
     end;
     end;
+  if HasOption('reference') then
+    begin
+    A:=GetOptionValue('reference');
+    if (Copy(A,1,1)='@') then
+      begin
+      Delete(A,1,1);
+      FWebIDLToPas.ReferenceFileNames.LoadFromFile(A);
+      end
+    else
+      FWebIDLToPas.ReferenceFileNames.CommaText:=A;
+    end;
+
   InputFileName:=GetOptionValue('i','input');
   if (InputFileName='') then
   begin
@@ -261,7 +273,8 @@ const
     'chrome',
     'list:',
     'private',
-    'banned:'
+    'banned:',
+    'reference:'
     );
 
 
@@ -357,8 +370,11 @@ begin
   Writeln(StdErr,'-n  --include=Filename     Include file at end of interface.');
   Writeln(StdErr,'-o  --output=FileName      Output file. Defaults to unit name with .pas extension appended.');
   Writeln(StdErr,'-p  --optionsinheader      Add options to header of generated file.');
-  Writeln(StdErr,'-l  --used=types           A comma separated list of used IDL types. Only these types and necessary dependent types will be converted.');
-  Writeln(StdErr,'                           use @filename to load the globals from file.');
+  Writeln(StdErr,'-l  --list=types           A comma separated list of used IDL types. Only these types and necessary dependent types will be converted.');
+  Writeln(StdErr,'                           use @filename to load the list from file.');
+  Writeln(StdErr,'    --reference=files      A comma separated list of webidl files that the input refers to.');
+  Writeln(StdErr,'                           Their definitions are not converted: name their unit with -x.');
+  Writeln(StdErr,'                           use @filename to load the file names from file.');
   Writeln(StdErr,'-t  --typealiases=alias    A comma separated list of type aliases in Alias=Name form.');
   Writeln(StdErr,'                           use @filename to load the aliases from file.');
   Writeln(StdErr,'-u  --unitname=Name        name for unit. Defaults to input file without extension.');
