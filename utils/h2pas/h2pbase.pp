@@ -63,7 +63,10 @@ function HandleArgList(aEl,aList : PResObject) : PResObject;
 function HandlePointerArgDeclarator(ptype, psym : presobject): presobject;
 function HandlePointerAbstractDeclarator(psym : presobject): presobject;
 function HandlePointerAbstractListDeclarator(psym,plist : presobject): presobject;
+// Returns the declarator list plist with the t_declist element pelem appended.
 function HandleDeclarationList(plist,pelem : presobject) : presobject;
+// Returns the initializer list aList with the initializer aElem appended.
+function HandleInitializerList(aList,aElem : presobject) : presobject;
 function handleSpecialSignedType(aType : presobject) : presobject;
 function handleSpecialUnSignedType(aType : presobject) : presobject;
 function handleArrayDecl(aType : presobject) : presobject;
@@ -482,15 +485,30 @@ var
 begin
   if not assigned(plist) then
     begin
-    Result:=NewType1(t_declist,pelem);
+    Result:=pelem;
     exit;
     end;
   hp:=plist;
   result:=hp;
   while assigned(hp^.next) do
     hp:=hp^.next;
-  hp^.next:=NewType1(t_declist,pelem);
+  hp^.next:=pelem;
 end;
+
+
+function HandleInitializerList(aList,aElem : presobject) : presobject;
+
+var
+  lLast : presobject;
+
+begin
+  Result:=aList;
+  lLast:=aList;
+  while assigned(lLast^.next) do
+    lLast:=lLast^.next;
+  lLast^.next:=aElem;
+end;
+
 
 // Returns the bit field declarator of psym with the size psize.
 function HandleSizedDeclarator(psym,psize : presobject) : presobject;
@@ -1504,11 +1522,250 @@ begin
 end;
 
 
+// Returns true when aType is the Pascal char type.
+function IsCharType(aType : presobject) : boolean;
+
+begin
+  Result:=assigned(aType) and (aType^.typ=t_id)
+          and ((LowerCase(aType^.str)=CHAR_STR) or (LowerCase(aType^.str)=ANSICHAR_STR));
+end;
+
+
+// Returns the number of characters of the Pascal string literal aText in aLength; false when aText is no literal.
+function PascalLiteralLength(const aText : AnsiString; var aLength : integer) : boolean;
+
+var
+  i : integer;
+
+begin
+  aLength:=0;
+  Result:=(aText<>'') and (aText[1] in ['''','#']);
+  i:=1;
+  while Result and (i<=length(aText)) do
+    if aText[i]='''' then
+      begin
+      inc(i);
+      while (i<=length(aText)) and ((aText[i]<>'''') or ((i<length(aText)) and (aText[i+1]=''''))) do
+        begin
+        if aText[i]='''' then
+          inc(i);
+        inc(aLength);
+        inc(i);
+        end;
+      Result:=i<=length(aText);
+      inc(i);
+      end
+    else if aText[i]='#' then
+      begin
+      inc(i);
+      if (i<=length(aText)) and (aText[i]='$') then
+        inc(i);
+      Result:=(i<=length(aText)) and (aText[i] in ['0'..'9','A'..'F','a'..'f']);
+      while (i<=length(aText)) and (aText[i] in ['0'..'9','A'..'F','a'..'f']) do
+        inc(i);
+      inc(aLength);
+      end
+    else
+      Result:=false;
+end;
+
+
+// Returns the string literal of the initializer aInit in aText; false when aInit is no string literal.
+function IsStringInitializer(aInit : presobject; var aText : AnsiString; var aLength : integer) : boolean;
+
+begin
+  aText:='';
+  aLength:=0;
+  Result:=(aInit^.typ=t_initializer) and assigned(aInit^.p1) and (aInit^.p1^.typ=t_id);
+  if Result then
+    begin
+    aText:=aInit^.p1^.str;
+    Result:=PascalLiteralLength(aText,aLength);
+    end;
+end;
+
+
+// Returns the number of elements of the array aNode in aSize; false when its size is no number.
+function ArraySize(aNode : presobject; var aSize : integer) : boolean;
+
+var
+  lError : integer;
+
+begin
+  aSize:=0;
+  Result:=assigned(aNode^.p2) and (aNode^.p2^.typ=t_id);
+  if Result then
+    begin
+    val(aNode^.p2^.str,aSize,lError);
+    Result:=(lError=0) and (aSize>0);
+    end;
+end;
+
+
+// Returns the number of elements of the initializer list aInit.
+function InitializerCount(aInit : presobject) : integer;
+
+var
+  lElem : presobject;
+
+begin
+  Result:=0;
+  lElem:=aInit^.p1;
+  while assigned(lElem) do
+    begin
+    inc(Result);
+    lElem:=lElem^.next;
+    end;
+end;
+
+
+// Returns true when the initializer aInit can be written for the type aNode (declarator chain) of aType.
+function CanWriteInitializer(aNode, aType, aInit : presobject) : boolean;
+
+var
+  lElem : presobject;
+  lText : AnsiString;
+  lSize, lLength : integer;
+
+begin
+  if not assigned(aNode) or (aNode^.typ in [t_pointerdef,t_addrdef]) then
+    Result:=(aInit^.typ=t_initializer) and (assigned(aNode) or not (aType^.typ in [t_structdef,t_uniondef]))
+  else if aNode^.typ=t_arraydef then
+    begin
+    Result:=ArraySize(aNode,lSize);
+    if not Result then
+      exit;
+    if aInit^.typ=t_initlist then
+      begin
+      Result:=InitializerCount(aInit)<=lSize;
+      lElem:=aInit^.p1;
+      while Result and assigned(lElem) do
+        begin
+        Result:=CanWriteInitializer(aNode^.p1,aType,lElem);
+        lElem:=lElem^.next;
+        end;
+      if Result and (InitializerCount(aInit)<lSize) then
+        Result:=assigned(aNode^.p1) or (aType^.typ=t_id);
+      end
+    else
+      Result:=not assigned(aNode^.p1) and IsCharType(aType)
+              and IsStringInitializer(aInit,lText,lLength) and (lLength<=lSize);
+    end
+  else
+    Result:=false;
+end;
+
+
+// Writes the zero value of the type aNode (declarator chain) of aType.
+procedure WriteZeroValue(aNode, aType : presobject);
+
+var
+  lSize, i : integer;
+
+begin
+  if assigned(aNode) and (aNode^.typ=t_arraydef) then
+    begin
+    ArraySize(aNode,lSize);
+    write(outfile,'(');
+    for i:=1 to lSize do
+      begin
+      if i>1 then
+        write(outfile,',');
+      WriteZeroValue(aNode^.p1,aType);
+      end;
+    write(outfile,')');
+    end
+  else if assigned(aNode) then
+    write(outfile,'nil')
+  else if IsCharType(aType) then
+    write(outfile,'#0')
+  else
+    write(outfile,'0');
+end;
+
+
+// Writes the initializer aInit for the type aNode (declarator chain) of aType.
+procedure WriteInitializer(aNode, aType, aInit : presobject);
+
+var
+  lElem : presobject;
+  lText : AnsiString;
+  lSize, lLength, i : integer;
+
+begin
+  if assigned(aNode) and (aNode^.typ=t_arraydef) then
+    begin
+    ArraySize(aNode,lSize);
+    if aInit^.typ=t_initlist then
+      begin
+      write(outfile,'(');
+      lElem:=aInit^.p1;
+      for i:=1 to lSize do
+        begin
+        if i>1 then
+          write(outfile,',');
+        if assigned(lElem) then
+          begin
+          WriteInitializer(aNode^.p1,aType,lElem);
+          lElem:=lElem^.next;
+          end
+        else
+          WriteZeroValue(aNode^.p1,aType);
+        end;
+      write(outfile,')');
+      end
+    else
+      begin
+      IsStringInitializer(aInit,lText,lLength);
+      write(outfile,lText);
+      for i:=lLength+1 to lSize do
+        write(outfile,'#0');
+      end;
+    end
+  else if not assigned(aNode) and IsCharType(aType) and not IsStringInitializer(aInit,lText,lLength) then
+    begin
+    write(outfile,'chr(');
+    write_expr(outfile,aInit^.p1);
+    write(outfile,')');
+    end
+  else if assigned(aNode) and (aInit^.p1^.typ=t_id) and (aInit^.p1^.str='0') then
+    write(outfile,'nil')
+  else
+    write_expr(outfile,aInit^.p1);
+end;
+
+
+// Sets the size of the open array declared by aDecl (t_dec) to the number of elements of the initializer aInit.
+procedure SizeOpenArray(aDecl, aInit : presobject);
+
+var
+  lNode : presobject;
+  lText : AnsiString;
+  lLength : integer;
+
+begin
+  lNode:=aDecl^.p1;
+  if not (assigned(lNode) and (lNode^.typ=t_pointerdef) and lNode^.openarray) then
+    exit;
+  if aInit^.typ=t_initlist then
+    lLength:=InitializerCount(aInit)
+  else if IsStringInitializer(aInit,lText,lLength) then
+    inc(lLength)
+  else
+    exit;
+  if lLength=0 then
+    exit;
+  lNode^.typ:=t_arraydef;
+  lNode^.openarray:=false;
+  lNode^.p2:=NewID(IntToStr(lLength));
+end;
+
+
 // Writes the variables of the declaration list aDeclList with type aType; decl is the extern or static specifier.
 procedure WriteVariables(decl : presobject; var aType : presobject; aDeclList : presobject);
 
 var
-  hp : presobject;
+  hp, lInit : presobject;
   lName, lPascalName : AnsiString;
 
 begin
@@ -1522,6 +1779,17 @@ begin
   while assigned(hp) and assigned(hp^.p1) do
     begin
     lName:=DeclaratorName(hp^.p1);
+    lInit:=hp^.p2;
+    if assigned(lInit) then
+      begin
+      SizeOpenArray(hp^.p1,lInit);
+      if (lName='') or IsProcPointer(hp^.p1^.p1) or not CanWriteInitializer(hp^.p1^.p1,aType,lInit) then
+        begin
+        if lName<>'' then
+          writeln(outfile,aktspace,'(* initializer of ',lName,' ignored *)');
+        lInit:=nil;
+        end;
+      end;
     lPascalName:='';
     if lName<>'' then
       begin
@@ -1533,9 +1801,14 @@ begin
     is_procvar:=false;
     write_p_a_def(outfile,hp^.p1^.p1,aType);
     WriteProcVarDirectives(outfile,false);
+    if assigned(lInit) then
+      begin
+      write(outfile,' = ');
+      WriteInitializer(hp^.p1^.p1,aType,lInit);
+      end;
     (* a renamed variable keeps its C name as symbol *)
     if lName<>'' then
-      if HasSpecifier(decl,'extern') then
+      if HasSpecifier(decl,'extern') and not assigned(lInit) then
         if lPascalName<>lName then
           write(outfile,';external name ''',lName,'''')
         else

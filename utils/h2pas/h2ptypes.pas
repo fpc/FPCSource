@@ -29,6 +29,7 @@ type
       { }
       t_declist,
       { p1 is t_dec
+        p2 is the initializer if it exists
         next if exists }
       t_memberdec,
       { p1 is type specifier
@@ -95,7 +96,12 @@ type
       t_switchnode,
       t_gotonode,
       t_continuenode,
-      t_breaknode
+      t_breaknode,
+      t_initializer,
+      { p1 contains the initial value expr }
+      t_initlist
+      { p1 contains the first element (t_initializer or t_initlist),
+        next is the next element if it exists }
       );
 
 const
@@ -134,7 +140,9 @@ const
     't_switchnode',
     't_gotonode',
     't_continuenode',
-    't_breaknode'
+    't_breaknode',
+    't_initializer',
+    't_initlist'
   );
 
 type

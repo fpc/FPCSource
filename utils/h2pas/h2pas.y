@@ -604,9 +604,9 @@ simple_type_name :
      ;
 
 declarator_list :
-     declarator_list COMMA declarator
+     declarator_list COMMA init_declarator
      {
-       (* declarator_list COMMA declarator *)
+       (* declarator_list COMMA init_declarator *)
        $$:=HandleDeclarationList($1,$3);
      }|
      error error_info COMMA declarator_list
@@ -623,10 +623,59 @@ declarator_list :
        yyerrok;
        $$:=nil;
      }|
+     init_declarator
+     {
+       (* init_declarator *)
+       $$:=$1;
+     }
+     ;
+
+init_declarator :
      declarator
      {
        (* declarator *)
        $$:=NewType1(t_declist,$1);
+     }|
+     declarator _ASSIGN initializer
+     {
+       (* declarator _ASSIGN initializer *)
+       $$:=NewType2(t_declist,$1,$3);
+     }
+     ;
+
+initializer :
+     expr
+     {
+       (* expr *)
+       $$:=NewType1(t_initializer,$1);
+     }|
+     LGKLAMMER initializer_list RGKLAMMER
+     {
+       (* LGKLAMMER initializer_list RGKLAMMER *)
+       $$:=NewType1(t_initlist,$2);
+     }|
+     LGKLAMMER initializer_list COMMA RGKLAMMER
+     {
+       (* LGKLAMMER initializer_list COMMA RGKLAMMER *)
+       $$:=NewType1(t_initlist,$2);
+     }|
+     LGKLAMMER RGKLAMMER
+     {
+       (* LGKLAMMER RGKLAMMER *)
+       $$:=NewType1(t_initlist,nil);
+     }
+     ;
+
+initializer_list :
+     initializer_list COMMA initializer
+     {
+       (* initializer_list COMMA initializer *)
+       $$:=HandleInitializerList($1,$3);
+     }|
+     initializer
+     {
+       (* initializer *)
+       $$:=$1;
      }
      ;
 

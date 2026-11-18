@@ -128,6 +128,15 @@ type
     procedure TestVariableNameOfTypeInOtherCase;
     procedure TestEnumMemberNameOfDefineInOtherCase;
     procedure TestNamesDifferingInCaseCompile;
+    procedure TestArrayInitializer;
+    procedure TestShortArrayInitializer;
+    procedure TestScalarInitializers;
+    procedure TestNestedArrayInitializer;
+    procedure TestCharArrayInitializers;
+    procedure TestPointerInitializers;
+    procedure TestInitializersIgnored;
+    procedure TestDefineInsideInitializer;
+    procedure TestInitializersCompile;
   end;
 
 implementation
@@ -1292,6 +1301,114 @@ begin
   AssertConverted;
   AssertInterface('a member pointer after a function pointer result is written with ^',['p : ^longint;']);
   AssertInterface('a variable pointer after a function pointer result is written with ^',['gp : ^longint;cvar;external;']);
+end;
+
+
+procedure TTestVariables.TestArrayInitializer;
+
+begin
+  Convert(['static int var1[] = { 0x00000001, 0x00000000 };','int var2[2] = { 1, 2 };']);
+  AssertConverted;
+  AssertNotOutput('no syntax error','declarator_list');
+  AssertInterface('an array without size gets the size of its initializer',
+    ['var1 : array[0..1] of longint = ($00000001,$00000000);']);
+  AssertInterface('an initialized public array',['var2 : array[0..1] of longint = (1,2);cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestShortArrayInitializer;
+
+begin
+  Convert(['int v[3] = {1};','double w[2] = {1.5,};']);
+  AssertConverted;
+  AssertInterface('a short initializer is padded with zeros',['v : array[0..2] of longint = (1,0,0);cvar;public;']);
+  AssertInterface('a trailing comma is accepted',['w : array[0..1] of double = (1.5,0);cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestScalarInitializers;
+
+begin
+  Convert(['static int a = 5;','const int b = 3;','int x = 1, y, z = -2;','extern int e = 7;']);
+  AssertConverted;
+  AssertInterface('an initialized static variable',['a : longint = 5;']);
+  AssertNotOutput('an initialized static variable is not public','a : longint = 5;cvar');
+  AssertInterface('an initialized const variable',['b : longint = 3;cvar;public;']);
+  AssertInterface('initializers in a declarator list',
+    ['x : longint = 1;cvar;public;','y : longint;cvar;public;','z : longint = -(2);cvar;public;']);
+  AssertInterface('an initialized extern variable is defined',['e : longint = 7;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestNestedArrayInitializer;
+
+begin
+  Convert(['int m[][2] = {{1,2},{3,4},};','int k[2][3] = {{1},{2,3}};']);
+  AssertConverted;
+  AssertInterface('a nested initializer',['m : array[0..1] of array[0..1] of longint = ((1,2),(3,4));cvar;public;']);
+  AssertInterface('nested initializers are padded',
+    ['k : array[0..1] of array[0..2] of longint = ((1,0,0),(2,3,0));cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestCharArrayInitializers;
+
+begin
+  Convert(['char s[] = "hello";','char t[4] = "hi";','char u[3] = {''a'',''b''};','char n[2] = {65,66};']);
+  AssertConverted;
+  AssertInterface('a string initializer includes the terminating zero',['s : array[0..5] of ansichar = ''hello''#0;cvar;public;']);
+  AssertInterface('a short string initializer is padded',['t : array[0..3] of ansichar = ''hi''#0#0;cvar;public;']);
+  AssertInterface('character elements',['u : array[0..2] of ansichar = (''a'',''b'',#0);cvar;public;']);
+  AssertInterface('numeric character elements',['n : array[0..1] of ansichar = (chr(65),chr(66));cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestPointerInitializers;
+
+begin
+  Convert(['char *p = "abc";','int *q[2] = {0};']);
+  AssertConverted;
+  AssertInterface('a string for a character pointer',['p : ^ansichar = ''abc'';cvar;public;']);
+  AssertInterface('zero pointers are nil',['q : array[0..1] of ^longint = (nil,nil);cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestInitializersIgnored;
+
+begin
+  Convert(['struct pt { int x; int y; };','struct pt origin = {0, 0};','#define SIZE 2','int n[SIZE] = {1,2};',
+           'int k[2] = {1,2,3};','void (*fp)(void) = 0;','int s = {1};']);
+  AssertConverted;
+  AssertInterface('a struct initializer is ignored',['(* initializer of origin ignored *)','origin : pt;cvar;public;']);
+  AssertInterface('an initializer for an array with a size expression is ignored',
+    ['(* initializer of n ignored *)','n : array[0..(SIZE)-1] of longint;cvar;public;']);
+  AssertInterface('a too long initializer is ignored',['(* initializer of k ignored *)','k : array[0..1] of longint;cvar;public;']);
+  AssertInterface('a function pointer initializer is ignored',['(* initializer of fp ignored *)']);
+  AssertInterface('a braced scalar initializer is ignored',['(* initializer of s ignored *)','s : longint;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestDefineInsideInitializer;
+
+begin
+  Convert(['int w[2] = {','#define INNER 4','1, 2 };','int after;']);
+  AssertConverted;
+  AssertInterface('the initialized variable',['w : array[0..1] of longint = (1,2);cvar;public;']);
+  AssertInterface('the define inside the initializer follows the declaration',['INNER = 4;']);
+  AssertInterface('the next declaration',['after : longint;cvar;public;']);
+end;
+
+
+procedure TTestVariables.TestInitializersCompile;
+
+begin
+  Convert(['static int var1[] = { 0x00000001, 0x00000000 };','int v[3] = {1};','static int a = 5;','const int b = 3;',
+           'int x = 1, y, z = -2;','int m[][2] = {{1,2},{3,4},};','int k[2][3] = {{1},{2,3}};','char s[] = "hello";',
+           'char t[4] = "hi";','char u[3] = {''a'',''b''};','char n[2] = {65,66};','char *p = "abc";','int *q[2] = {0};',
+           'double w[2] = {1.5,};','struct pt { int x; int y; };','struct pt origin = {0, 0};',
+           'void (*fp)(void) = 0;']);
+  AssertConverted;
+  AssertCompiles;
 end;
 
 
