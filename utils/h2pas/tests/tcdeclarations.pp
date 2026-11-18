@@ -73,6 +73,9 @@ type
     procedure TestQualifiersIgnored;
     procedure TestAttributesIgnored;
     procedure TestMicrosoftCallingConventions;
+    procedure TestCallConvMacro;
+    procedure TestCallConvMacroCompiles;
+    procedure TestIgnoredMacro;
     procedure TestStaticInlineFunction;
     procedure TestStaticInlineNotExternal;
     procedure TestStaticInlineCompiles;
@@ -735,6 +738,39 @@ begin
   AssertInterface('__cdecl is cdecl',['function cs(a:longint):longint;cdecl;external;']);
   AssertInterface('_stdcall is stdcall',['function ws2:longint;stdcall;external;']);
   AssertInterface('_cdecl is cdecl',['function cs2:longint;cdecl;external;']);
+end;
+
+
+procedure TTestFunctions.TestCallConvMacro;
+
+begin
+  Convert(['CY_API int f(int a);','int CY_API g(int a);','int h(int a);','typedef int (CY_CONV * cb)(int a);',
+           'typedef int (CY_API * scb)(int a);'],['-d','-M','CY_API=stdcall','-M','CY_CONV=cdecl']);
+  AssertConverted;
+  AssertInterface('macro before the type',['function f(a:longint):longint;stdcall;external;']);
+  AssertInterface('macro after the type',['function g(a:longint):longint;stdcall;external;']);
+  AssertInterface('the convention ends with the declaration',['function h(a:longint):longint;cdecl;external;']);
+  AssertInterface('cdecl macro in a function pointer type',['cb = function (a:longint):longint;cdecl;']);
+  AssertInterface('stdcall macro in a function pointer type',['scb = function (a:longint):longint;stdcall;']);
+end;
+
+
+procedure TTestFunctions.TestCallConvMacroCompiles;
+
+begin
+  Convert(['CY_API int f(int a);','int CY_API g(int a);','typedef int (CY_CONV * cb)(int a);'],
+          ['-d','-M','CY_API=stdcall','-M','CY_CONV=cdecl']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestFunctions.TestIgnoredMacro;
+
+begin
+  Convert(['CY_EXPORT int e(void);','int CY_EXPORT CY_EXPORT e2(void);'],['-d','-M','CY_EXPORT']);
+  AssertConverted;
+  AssertInterface('an ignored macro is skipped',['function e:longint;cdecl;external;','function e2:longint;cdecl;external;']);
 end;
 
 

@@ -24,6 +24,10 @@ type
     procedure TestEmptyDefine;
     procedure TestDefineOfEmptyDefine;
     procedure TestDefineOfEmptyDefineCompiles;
+    procedure TestDefineOfSeveralEmptyDefines;
+    procedure TestEmptyDefineInDeclaration;
+    procedure TestEmptyDefineInDeclarationCompiles;
+    procedure TestUndefinedEmptyDefine;
     procedure TestDecimal;
     procedure TestHexadecimal;
     procedure TestOctal;
@@ -251,6 +255,49 @@ begin
   Convert(['#define SQLITE_APICALL','#define SQLITE_STDCALL SQLITE_APICALL','#ifdef SQLITE_STDCALL','int x;','#endif'],['-d']);
   AssertConverted;
   AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestDefineOfSeveralEmptyDefines;
+
+begin
+  Convert(['#define HID_API_EXPORT','#define HID_API_CALL','#define HID_API_EXPORT_CALL HID_API_EXPORT HID_API_CALL',
+           '#define EXPORT_EXTERN extern HID_API_EXPORT']);
+  AssertConverted;
+  AssertOutput('a define of several empty defines is empty',
+    ['{$define HID_API_EXPORT}','{$define HID_API_CALL}','{$define HID_API_EXPORT_CALL}','{$define EXPORT_EXTERN}']);
+  AssertNotOutput('no error comment','error');
+end;
+
+
+procedure TTestConstMacros.TestEmptyDefineInDeclaration;
+
+begin
+  Convert(['#define API','#define CALL API API','int API API f(void);','API int g(void);','int CALL h(int a);',
+           'typedef int (API * cb)(int a);'],['-d']);
+  AssertConverted;
+  AssertInterface('empty defines in a prototype are skipped',
+    ['function f:longint;cdecl;external;','function g:longint;cdecl;external;','function h(a:longint):longint;cdecl;external;']);
+  AssertInterface('empty define in a function pointer type',['cb = function (a:longint):longint;cdecl;']);
+end;
+
+
+procedure TTestConstMacros.TestEmptyDefineInDeclarationCompiles;
+
+begin
+  Convert(['#define API','int API API f(void);','API int g(void);'],['-d']);
+  AssertConverted;
+  AssertCompiles;
+end;
+
+
+procedure TTestConstMacros.TestUndefinedEmptyDefine;
+
+begin
+  Convert(['#define API','#undef API','#define OTHER API'],['-d']);
+  AssertConverted;
+  AssertOutput('undef is written',['{$define API}','{$undef API}']);
+  AssertNotOutput('an undefined name is no empty define','{$define OTHER}');
 end;
 
 

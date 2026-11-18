@@ -55,6 +55,8 @@ var
    PreprocessorKeep : AnsiString; { files whose text is kept after preprocessing, separated by ; }
    OneTypeSection : boolean;  { write all types in one type section }
    PTypeList : TStringList;   { list of all pointer types }
+   // Calling convention macros given with -M, as name=convention; the convention is cdecl, stdcall or empty.
+   CallConvMacros : TStringList;
    freedynlibproc,
    loaddynlibproc : tstringlist;
 
@@ -68,6 +70,7 @@ Procedure ProcessOptions;
 
 Implementation
 
+uses sysutils;
 
 {*****************************************************************************
                                  Helpers
@@ -142,6 +145,8 @@ begin
   WriteLn ('        -C                 Use types in ctypes unit');
   writeln ('        -i                 create include files (no unit header)');
   writeln ('        -l libname         Specify the library name for external');
+  writeln ('        -M name=conv       treat the macro name as calling convention conv (cdecl or stdcall);');
+  writeln ('                           -M name ignores the macro. May be given several times');
   writeln ('        -o outputfilename  Specify the outputfilename');
   writeln ('        -p                 Use "P" instead of "^" for pointers');
   writeln ('        -pr                Pack all records (1 byte alignment)');
@@ -165,6 +170,39 @@ begin
   PTypeList.Duplicates := dupIgnore;
   freedynlibproc:=TStringList.Create;
   loaddynlibproc:=TStringList.Create;
+  CallConvMacros:=TStringList.Create;
+  CallConvMacros.CaseSensitive:=true;
+end;
+
+
+// Adds the -M argument aText, name=convention or name, to CallConvMacros; stops on an unknown convention.
+procedure AddCallConvMacro(const aText : AnsiString);
+
+var
+  lName, lConv : AnsiString;
+  lPos : integer;
+
+begin
+  lPos:=Pos('=',aText);
+  if lPos=0 then
+    begin
+    lName:=aText;
+    lConv:='';
+    end
+  else
+    begin
+    lName:=Copy(aText,1,lPos-1);
+    lConv:=LowerCase(Copy(aText,lPos+1,length(aText)-lPos));
+    end;
+  if (lName='') or not ((lConv='') or (lConv='cdecl') or (lConv='stdcall')) then
+    begin
+    writeln ('Error : -M : name=cdecl, name=stdcall or name expected, found ',aText);
+    halt(1);
+    end;
+  lPos:=CallConvMacros.IndexOfName(lName);
+  if lPos>=0 then
+    CallConvMacros.Delete(lPos);
+  CallConvMacros.Add(lName+'='+lConv);
 end;
 
 Procedure ProcessOptions;
@@ -245,6 +283,7 @@ begin
                end;
          'i' : includefile:=true;
          'l' : LibFileName:=GetNextParam ('l','libname');
+         'M' : AddCallConvMacro(GetNextParam ('M','name=convention'));
          'o' : outputfilename:=GetNextParam('o','outputfilename');
          'P' : createdynlib:=true;
          'p' : begin

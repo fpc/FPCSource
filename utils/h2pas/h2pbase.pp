@@ -1554,6 +1554,21 @@ begin
 end;
 
 
+// Returns aModifier, or the modifier of the pending -M calling convention when aModifier is nil;
+// clears the pending convention.
+function TakeModifier(aModifier : presobject) : presobject;
+
+begin
+  Result:=aModifier;
+  if not assigned(Result) then
+    if PendingCallConv='stdcall' then
+      Result:=NewID('no_pop')
+    else if PendingCallConv='cdecl' then
+      Result:=NewID('cdecl');
+  PendingCallConv:='';
+end;
+
+
 function HandleDeclarationStatement(decl, type_spec, modifier_spec,
   decllist_spec, block_spec: presobject): presobject;
 
@@ -1563,6 +1578,7 @@ var
 
 begin
   HandleDeclarationStatement:=Nil;
+  modifier_spec:=TakeModifier(modifier_spec);
   (* a function with a body is implemented here: not external, no procedure variable *)
   lUseLib:=UseLib;
   lDynLib:=createdynlib;
@@ -1605,6 +1621,7 @@ var
 
 begin
   HandleDeclarationSysTrap:=Nil;
+  modifier_spec:=TakeModifier(modifier_spec);
   (* by default we must pop the args pushed on stack *)
   no_pop:=false;
   if IsFunctionDeclList(decllist_spec) and HasSpecifier(decl,'static') then
@@ -1645,6 +1662,7 @@ var
 
 begin
   HandleSpecialType:=Nil;
+  PendingCallConv:='';
   (* struct tag; declares the tag only *)
   if aType^.typ=t_id then
     begin
@@ -1733,6 +1751,7 @@ var
 
 begin
   HandleTypedef:=nil;
+  dec_modifier:=TakeModifier(dec_modifier);
   if IsVoidArgList(arg_decl_list) then
     begin
     dispose(arg_decl_list,done);
@@ -1798,6 +1817,7 @@ var
 
 begin
   HandleTypedefList:=Nil;
+  dec_modifier:=TakeModifier(dec_modifier);
   lDecl:=nil;
   if assigned(declarator_list) then
     lDecl:=declarator_list^.p1;
@@ -2011,6 +2031,7 @@ function HandleErrorDecl(e1,e2 : presobject) : presobject;
 
 begin
   HandleErrorDecl:=Nil;
+  PendingCallConv:='';
   EmitErrorEnd('in declaration at line '+IntToStr(line_no)+' *)');
   in_space_define:=0;
   in_define:=false;
@@ -2020,22 +2041,12 @@ begin
   yyerrok;
 end;
 
-var
-  // Names of the defines converted so far, as written in the header.
-  // Names of the defines without value, such as calling convention macros.
-  EmptyDefines : TStringList = nil;
-
 function HandleDefine(dname : presobject) : presobject;
 
 begin
   HandleDefine:=Nil;
   writeln(outfile,'{$define ',dname^.p,'}',aktspace,commentstr);
-  if not assigned(EmptyDefines) then
-    begin
-    EmptyDefines:=TStringList.Create;
-    EmptyDefines.CaseSensitive:=true;
-    end;
-  EmptyDefines.Add(dname^.str);
+  AddEmptyDefine(dname^.str);
   DisposeNode(dname);
 end;
 
@@ -2297,7 +2308,7 @@ begin
       writeln(outfile,aktspace,'(* self-referencing #define ',dname^.p,' ignored *)');
     end
   (* the name of a define without value, as #define SQLITE_STDCALL SQLITE_APICALL: a define without value *)
-  else if (lName<>'') and assigned(EmptyDefines) and (EmptyDefines.IndexOf(lName)>=0) then
+  else if (lName<>'') and IsEmptyDefine(lName) then
     begin
     HandleDefine(dname);
     dname:=nil;
@@ -2916,6 +2927,5 @@ finalization
   StructMembers.Free;
   PendingDefines.Free;
   WrittenDefines.Free;
-  EmptyDefines.Free;
   FreeStoredFunctions;
 end.
