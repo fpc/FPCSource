@@ -293,7 +293,10 @@ end;
 procedure TSyntaxTokenList.AddToken(aToken: TSyntaxToken);
 begin
   if FTokenCount=Length(FList) then
-    SetLength(FList,FTokenCount+100);
+    if FTokenCount<64 then
+      SetLength(FList,64)
+    else
+      SetLength(FList,FTokenCount*2);
   FList[FTokenCount]:=aToken;
   Inc(FTokenCount);
 end;
