@@ -418,7 +418,7 @@ implementation
              F_AE,F_A,
              F_FNE,F_FE,
              F_FLE,F_FGE,
-             F_FL,F_G);
+             F_FL,F_FG);
       begin
          r:=flagsinvers[r];
       end;
