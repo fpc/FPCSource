@@ -388,6 +388,13 @@ type
 
 implementation
 
+{$ifopt Q+}
+  {$define CheckRange}
+{$endif}
+{$ifopt R+}
+  {$define CheckRange}
+{$endif}
+
 { TTestIterator }
 
 procedure TTestIterator.TearDown;
@@ -1776,11 +1783,17 @@ begin
     TestAsBoolean(J,(I<>0));
     TestAsInteger(J,I);
     TestAsInt64(J,I);
+{$ifdef CHECKRANGE}
 {$push}
-{$R-}
 {$Q-}
-    TestAsQword(J,I);
+{$R-}
+    if (I<0) then
+      TestAsQword(J,I,true)
+    else
 {$pop}
+{$else}
+    TestAsQword(J,I);
+{$endif}
     TestAsString(J,IntToStr(I));
     TestAsFloat(J,I);
   finally
@@ -1879,11 +1892,17 @@ begin
     TestAsBoolean(J,(I<>0));
     TestAsInteger(J,I);
     TestAsInt64(J,I);
+{$ifdef CHECKRANGE}
 {$push}
-{$R-}
 {$Q-}
-    TestAsQword(J,I);
+{$R-}
+    if (I<0) then
+      TestAsQword(J,I,true)
+    else
 {$pop}
+{$else}
+    TestAsQword(J,I);
+{$endif}
     TestAsString(J,IntToStr(I));
     TestAsFloat(J,I);
   finally
@@ -2081,13 +2100,40 @@ begin
     TestJSON(J,S);
     TestIsNull(J,False);
     TestAsBoolean(J,(F<>0));
+{$ifdef CHECKRANGE}
 {$push}
-{$R-}
 {$Q-}
-    TestAsInteger(J,Round(F));
-    TestAsInt64(J,Round(F));
-    TestAsQword(J,Round(F));
+{$R-}
+    if ((Round(F)<low(Integer)) or (Round(F)>high(Integer))) then
+      TestAsInteger(J,Round(F),true)
+    else
 {$pop}
+{$else}
+      TestAsInteger(J,Round(F));
+{$endif}
+    TestAsInt64(J,Round(F));
+{$ifdef CHECKRANGE}
+{$push}
+{$Q-}
+{$R-}
+    if ((F<low(Int64)) or (F>high(Int64))) then
+      TestAsInt64(J,Round(F),true)
+    else
+{$pop}
+{$else}
+      TestAsInt64(J,Round(F));
+{$endif}
+{$ifdef CHECKRANGE}
+{$push}
+{$Q-}
+{$R-}
+    if ((Round(F)<0) or (F>high(Qword))) then
+      TestAsQword(J,Round(F),true)
+    else
+{$pop}
+{$else}
+      TestAsQword(J,Round(F));
+{$endif}
     TestAsString(J,S);
     TestAsFloat(J,F);
   finally
