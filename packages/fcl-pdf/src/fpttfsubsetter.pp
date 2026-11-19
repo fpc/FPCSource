@@ -646,11 +646,8 @@ begin
   rec.CaretSlopeRun := NtoBE(t.CaretSlopeRun);
   rec.caretOffset := NtoBE(t.caretOffset);
   rec.metricDataFormat := NtoBE(t.metricDataFormat);
-//  rec.numberOfHMetrics := NtoBE(t.numberOfHMetrics);
-
+  // buildHmtxTable writes a long metric for every glyph
   hmetrics := FGlyphIDs.Count;
-  if (FGlyphIDs.Items[FGlyphIDs.Count-1].GID >= t.numberOfHMetrics) and (not FGlyphIDs.Contains(t.numberOfHMetrics-1)) then
-    inc(hmetrics);
   rec.numberOfHMetrics := NtoBE(hmetrics);
 
   Result.WriteBuffer(rec, SizeOf(THHead));

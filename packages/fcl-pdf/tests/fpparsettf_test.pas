@@ -377,6 +377,20 @@ type
     procedure TestHumanFriendlyName;
   end;
 
+
+  { A font with fewer long horizontal metrics than glyphs }
+
+  TTestFreeMonoFont = class(TBaseTestParseTTF)
+  protected
+    procedure SetUpFont; override;
+  published
+    procedure TestHHead_numberOfHMetrics;
+    procedure TestWidths_Size;
+    procedure TestWidths_HorMetric_3;
+    procedure TestWidths_HorMetric_4;
+    procedure TestWidths_HorMetric_4176;
+  end;
+
 implementation
 
 uses
@@ -388,6 +402,7 @@ const
   cFont1 = 'fonts' + PathDelim + 'LiberationSans-Regular.ttf';
   cFont2 = 'fonts' + PathDelim + 'FreeSans.ttf';
   cFont3 = 'fonts' + PathDelim + 'LiberationSans-Italic.ttf';
+  cFont4 = 'fonts' + PathDelim + 'FreeMono.ttf';
 
 { TTestEmptyParseTTF }
 
@@ -1994,8 +2009,45 @@ begin
 end;
 
 
+{ TTestFreeMonoFont }
+
+procedure TTestFreeMonoFont.SetUpFont;
+begin
+  AssertTrue('Failed to find TTF font file <' + cFont4 + '>', FileExists(cFont4));
+  LoadFont(cFont4);
+end;
+
+procedure TTestFreeMonoFont.TestHHead_numberOfHMetrics;
+begin
+  AssertEquals('numberOfHMetrics', 4, FI.HHead.numberOfHMetrics);
+end;
+
+procedure TTestFreeMonoFont.TestWidths_Size;
+begin
+  AssertEquals('Widths has an entry for every glyph', 4177, Length(FI.Widths));
+end;
+
+procedure TTestFreeMonoFont.TestWidths_HorMetric_3;
+begin
+  AssertEquals('Last long metric advance width', 600, FI.Widths[3].AdvanceWidth);
+  AssertEquals('Last long metric LSB', 0, FI.Widths[3].LSB);
+end;
+
+procedure TTestFreeMonoFont.TestWidths_HorMetric_4;
+begin
+  AssertEquals('First short metric uses the last advance width', 600, FI.Widths[4].AdvanceWidth);
+  AssertEquals('First short metric LSB', 240, FI.Widths[4].LSB);
+end;
+
+procedure TTestFreeMonoFont.TestWidths_HorMetric_4176;
+begin
+  AssertEquals('Last glyph uses the last advance width', 600, FI.Widths[4176].AdvanceWidth);
+  AssertEquals('Last glyph LSB', 40, FI.Widths[4176].LSB);
+end;
+
 initialization
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestFreeMonoFont{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestLiberationFont{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestFreeSansFont{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestLiberationItalicFont{$ifdef fptest}.Suite{$endif});

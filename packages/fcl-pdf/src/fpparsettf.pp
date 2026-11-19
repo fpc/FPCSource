@@ -554,13 +554,34 @@ end;
 procedure TTFFileInfo.ParseHmtx(AStream : TStream);
 var
   i : Integer;
+  lTableSize : Int64;
+  lMetrics, lExtra : Integer;
+  lLSB : Int16;
 begin
-  SetLength(FWidths,FHHead.numberOfHMetrics);
-  AStream.ReadBuffer(FWidths[0],SizeOf(TLongHorMetric)*Length(FWidths));
-  for I:=0 to FHHead.NumberOfHMetrics-1 do
+  lMetrics:=FHHead.numberOfHMetrics;
+  SetLength(FWidths,lMetrics);
+  if lMetrics=0 then
+    Exit;
+  AStream.ReadBuffer(FWidths[0],SizeOf(TLongHorMetric)*lMetrics);
+  for I:=0 to lMetrics-1 do
   begin
     FWidths[I].AdvanceWidth:=BEtoN(FWidths[I].AdvanceWidth);
     FWidths[I].LSB:=BEtoN(FWidths[I].LSB);
+  end;
+  // The glyphs after the long metrics only have a left side bearing, and use the last advance width.
+  lTableSize:=0;
+  for I:=0 to Length(FTables)-1 do
+    if GetTableType(FTables[I].Tag)=tthmtx then
+      lTableSize:=FTables[I].Length;
+  lExtra:=(lTableSize-SizeOf(TLongHorMetric)*lMetrics) div SizeOf(Int16);
+  if lExtra<=0 then
+    Exit;
+  SetLength(FWidths,lMetrics+lExtra);
+  for I:=lMetrics to lMetrics+lExtra-1 do
+  begin
+    AStream.ReadBuffer(lLSB,SizeOf(lLSB));
+    FWidths[I].AdvanceWidth:=FWidths[lMetrics-1].AdvanceWidth;
+    FWidths[I].LSB:=BEtoN(lLSB);
   end;
 end;
 

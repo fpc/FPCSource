@@ -288,7 +288,7 @@ begin
   lLines := LayoutTokens(aTokens, lColumns);
   lDoc := TPDFDocument.Create(nil);
   try
-    lDoc.Options := [poPageOriginAtTop, poCompressFonts, poCompressText];
+    lDoc.Options := [poPageOriginAtTop, poSubsetFont, poCompressFonts, poCompressText];
     lDoc.DefaultPaperType := ptA4;
     lDoc.DefaultOrientation := ppoPortrait;
     lDoc.DefaultUnitOfMeasure := uomMillimeters;
