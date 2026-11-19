@@ -59,6 +59,203 @@ begin
       end;
     T:=P.Targets.AddUnit('syntax.htmlrender.pp');
     T.Dependencies.AddUnit('syntax.highlighter');
+    T:=P.Targets.AddUnit('syntax.lfm.pp');
+    T.Dependencies.AddUnit('syntax.highlighter');
+    T:=P.Targets.AddUnit('syntax.table.pp');
+    T.Dependencies.AddUnit('syntax.highlighter');
+    T:=P.Targets.AddUnit('syntax.c.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.cpp.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      AddUnit('syntax.c');
+      end;
+    T:=P.Targets.AddUnit('syntax.csharp.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.java.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.kotlin.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.swift.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.rust.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.zig.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.d.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.typescript.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.ruby.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.lua.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.php.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.perl.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.basic.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.toml.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.assembly.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.batch.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.powershell.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.dockerfile.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.fortran.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.ada.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.modula2.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.oberon.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.python.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.xml.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.yaml.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.diff.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.makefile.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.barye.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.markdown.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
+    T:=P.Targets.AddUnit('syntax.rst.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.highlighter');
+      AddUnit('syntax.table');
+      end;
 
 {$ifndef ALLPACKAGES}
     Run;
