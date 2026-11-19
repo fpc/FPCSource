@@ -103,9 +103,117 @@ implementation
             end;
         end;
 
+      function is_constructor_branch(n : tnode) : boolean;
+        begin
+          result:=assigned(n) and
+            (n.nodetype=arrayconstructorn) and
+            is_array_constructor(n.resultdef);
+        end;
+
+      function is_empty_constructor_branch(n : tnode) : boolean;
+        begin
+          result:=is_constructor_branch(n) and
+            not assigned(tarrayconstructornode(n).left);
+        end;
+
+      { a bare [..] has an array constructor def, which cannot be the type
+        of the result temp -> use a set if possible, otherwise a dynamic array }
+      function constructor_def(n : tnode) : tdef;
+
+        { true if all constant elements fit into a set }
+        function constants_fit_set : boolean;
+          var
+            hp, ele : tnode;
+          begin
+            result:=true;
+            hp:=n;
+            while assigned(hp) do
+              begin
+                ele:=tarrayconstructornode(hp).left;
+                if assigned(ele) and (ele.nodetype=arrayconstructorrangen) then
+                  begin
+                    if (tarrayconstructorrangenode(ele).left.nodetype=ordconstn) and
+                        ((tordconstnode(tarrayconstructorrangenode(ele).left).value<0) or
+                         (tordconstnode(tarrayconstructorrangenode(ele).left).value>255)) then
+                      exit(false);
+                    ele:=tarrayconstructorrangenode(ele).right;
+                  end;
+                if assigned(ele) and
+                    (ele.nodetype=ordconstn) and
+                    ((tordconstnode(ele).value<0) or
+                     (tordconstnode(ele).value>255)) then
+                  exit(false);
+                hp:=tarrayconstructornode(hp).right;
+              end;
+          end;
+
+        { report the first element, whose type differs from the first element,
+          e.g. [1,'a'] }
+        procedure report_mixed_types;
+          var
+            hp : tnode;
+            firstdef : tdef;
+          begin
+            firstdef:=tarrayconstructornode(n).left.resultdef;
+            hp:=tarrayconstructornode(n).right;
+            while assigned(hp) do
+              begin
+                if compare_defs(firstdef,tarrayconstructornode(hp).left.resultdef,
+                    tarrayconstructornode(hp).left.nodetype)=te_incompatible then
+                  begin
+                    MessagePos1(tarrayconstructornode(hp).left.fileinfo,type_e_wrong_type_in_array_constructor,
+                      tarrayconstructornode(hp).left.resultdef.typename);
+                    exit;
+                  end;
+                hp:=tarrayconstructornode(hp).right;
+              end;
+            MessagePos1(n.fileinfo,type_e_wrong_type_in_array_constructor,firstdef.typename);
+          end;
+
+        var
+          hp : tnode;
+          eledef : tdef;
+          arrdef : tarraydef;
+        begin
+          result:=n.resultdef;
+          if ((tarraydef(n.resultdef).arrayoptions*[ado_IsVariant,ado_IsArrayOfConst])<>[]) and
+              assigned(tarrayconstructornode(n).left) then
+            begin
+              report_mixed_types;
+              exit(generrordef);
+            end;
+          if constants_fit_set and arrayconstructor_can_be_set(n) then
+            begin
+              hp:=arrayconstructor_to_set(n.getcopy,true);
+              result:=hp.resultdef;
+              hp.free;
+              exit;
+            end;
+          eledef:=tarraydef(n.resultdef).elementdef;
+          if (eledef=nil) or
+              (eledef.typ=undefineddef) or
+              is_void(eledef) then
+            exit;
+          { constants have the smallest fitting type, e.g. [1000] is smallint
+            -> widen to the default integer types }
+          if is_integer(eledef) and (eledef.typ=orddef) then
+            begin
+              if (torddef(eledef).low>=low(longint)) and
+                  (torddef(eledef).high<=high(longint)) then
+                eledef:=s32inttype
+              else if torddef(eledef).high<=high(int64) then
+                eledef:=s64inttype;
+            end;
+          arrdef:=carraydef.create(0,-1,sizesinttype);
+          include(arrdef.arrayoptions,ado_IsDynamicArray);
+          arrdef.elementdef:=eledef;
+          result:=arrdef;
+        end;
+
       var
         branchdef : tdef;
         cmp : tequaltype;
+        bcons, ocons : boolean;
       begin
         if not assigned(branchtree) or
             not assigned(branchtree.resultdef) or
@@ -113,10 +221,56 @@ implementation
           exit(olddef);
 
         branchdef:=branchtree.resultdef;
+        bcons:=is_constructor_branch(branchtree);
         if not assigned(olddef) then
           begin
             oldtree:=branchtree;
+            if bcons then
+              exit(constructor_def(branchtree));
             exit(branchdef);
+          end;
+
+        { bare [..] branches: a concrete type of another branch wins }
+        ocons:=is_constructor_branch(oldtree);
+        if bcons and not ocons then
+          exit(olddef);
+        if ocons and not bcons then
+          begin
+            oldtree:=branchtree;
+            exit(branchdef);
+          end;
+        if bcons and ocons then
+          begin
+            if is_empty_constructor_branch(branchtree) then
+              exit(olddef);
+            branchdef:=constructor_def(branchtree);
+            if is_empty_constructor_branch(oldtree) then
+              begin
+                oldtree:=branchtree;
+                exit(branchdef);
+              end;
+            if (olddef.typ=setdef) and is_dynamic_array(branchdef) then
+              begin
+                oldtree:=branchtree;
+                exit(branchdef);
+              end;
+            if is_dynamic_array(olddef) and (branchdef.typ=setdef) then
+              exit(olddef);
+            if is_dynamic_array(olddef) and is_dynamic_array(branchdef) then
+              begin
+                { use the bigger element type }
+                cmp:=compare_defs(tarraydef(olddef).elementdef,tarraydef(branchdef).elementdef,nothingn);
+                if (cmp<te_equal) and
+                    (cmp>compare_defs(tarraydef(branchdef).elementdef,tarraydef(olddef).elementdef,nothingn)) then
+                  begin
+                    oldtree:=branchtree;
+                    exit(branchdef);
+                  end;
+                exit(olddef);
+              end;
+            if (olddef.typ<>setdef) or (branchdef.typ<>setdef) then
+              exit(olddef);
+            { two sets: combine below }
           end;
 
         { anonymous functions get their type when the statement expression
