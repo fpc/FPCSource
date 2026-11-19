@@ -149,8 +149,8 @@ Resourcestring
   SLogRepositoryPrefix            = '  Prefix:           "%s" -> "%s"';
   SLogInstallRepository           = '  InstallRepository:"%s"';
 
-  SLogIncludeFile                 = '  IncludeFile:           "%s" -> "\%s"';
-  SLogIncludeFileMask             = '  IncludeFileMask:       "%s" -> "\%s"';
+  SLogIncludeFile                 = '  IncludeFile:           "%s" -> "%s"';
+  SLogIncludeFileMask             = '  IncludeFileMask:       "%s" -> "%s"';
   SLogIncludeFileDoesNotExist     = 'The log-file "%s" does not exist';
   SLogIncludeFileMaskDoesNotExist = 'The directory "%s" of the include-mask "%s" does not exist';
 

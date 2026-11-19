@@ -40,6 +40,7 @@ type
     procedure TestFallbackWithoutUnits;
     procedure TestDefaultRepositories;
     procedure TestDefaultRepositoriesWithoutCompiler;
+    procedure TestIncludeFilesRoundTrip;
 {$endif}
   end;
 
@@ -268,6 +269,9 @@ begin
     AssertTrue('user repository',lText.IndexOf('Name=user')>=0);
     AssertTrue('user repository path',lText.IndexOf('Path={LocalRepository}lib/fpc/{CompilerVersion}/')>=0);
     AssertTrue('user repository prefix',lText.IndexOf('Prefix={LocalRepository}')>=0);
+    AssertTrue('IncludeFiles section',lText.IndexOf('[IncludeFiles]')>=0);
+    AssertEquals('IncludeFiles mask follows the section','FileMask={LocalRepository}config/conf.d/*.conf',
+      lText[lText.IndexOf('[IncludeFiles]')+1]);
   finally
     lText.Free;
     lOptions.Free;
@@ -292,6 +296,36 @@ begin
     AssertTrue('No fpc repository',lText.IndexOf('Name=fpc')<0);
     AssertTrue('user repository',lText.IndexOf('Name=user')>=0);
     AssertTrue('InstallRepository',lText.IndexOf('InstallRepository=user')>=0);
+    AssertTrue('IncludeFiles mask',lText.IndexOf('FileMask={LocalRepository}config/conf.d/*.conf')>=0);
+  finally
+    lText.Free;
+    lOptions.Free;
+  end;
+end;
+
+
+procedure TTestGeneratedConfig.TestIncludeFilesRoundTrip;
+
+var
+  lOptions: TFppkgOptions;
+  lText: TStringList;
+
+begin
+  MakeDir(FDir+'conf.d');
+  WriteLines(FDir+'in.cfg',[
+    '[Global]',
+    'ConfigVersion=5',
+    '[IncludeFiles]',
+    'FileMask='+FDir+'conf.d/*.conf',
+    'File='+FDir+'extra.conf']);
+  lOptions:=TFppkgOptions.Create;
+  lText:=TStringList.Create;
+  try
+    lOptions.LoadFromFile(FDir+'in.cfg');
+    lOptions.SaveToFile(FDir+'out.cfg');
+    lText.LoadFromFile(FDir+'out.cfg');
+    AssertTrue('FileMask kept: '+lText.Text,lText.IndexOf('FileMask='+FDir+'conf.d/*.conf')>=0);
+    AssertTrue('File kept: '+lText.Text,lText.IndexOf('File='+FDir+'extra.conf')>=0);
   finally
     lText.Free;
     lOptions.Free;

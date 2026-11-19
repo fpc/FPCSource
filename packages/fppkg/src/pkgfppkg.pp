@@ -220,6 +220,8 @@ begin
   finally
     lCompilerOptions.Free;
   end;
+  // the directory of the IncludeFiles mask; a missing directory gives a warning on each run
+  ForceDirectories(FOptions.GlobalSection.CompilerConfigDir+'conf.d');
 end;
 
 

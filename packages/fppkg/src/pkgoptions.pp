@@ -159,6 +159,8 @@ Type
     FOptions: TFppkgOptions;
     // Only used for logging
     FOptionCache: TStringList;
+    // The File and FileMask entries as Key=Value lines, written by SaveToStrings
+    FEntries: TStringList;
     FCurrentDir: String;
 
     procedure IncludeFile(AFileName: string);
@@ -170,6 +172,8 @@ Type
     destructor Destroy; override;
     procedure SaveToStrings(AStrings: TStrings); override;
     procedure AddKeyValue(const AKey, AValue: string); override;
+    // Add a FileMask entry that is saved, without including the matching files.
+    procedure AddFileMask(const AFileMask: string);
     procedure LogValues(ALogLevel: TLogLevel); override;
     function AllowDuplicate: Boolean; override;
   end;
@@ -218,8 +222,8 @@ Type
 
     procedure BindToCompilerOptions(ACompilerOptions: TCompilerOptions);
     procedure AddRepositoriesForCompilerSettings(ACompilerOptions: TCompilerOptions);
-    // Add the "fpc" and "user" repositories of a newly generated configuration, as fpcmkcfg does.
-    // Without ACompilerOptions only the "user" repository is added.
+    // Add the "fpc" and "user" repositories and the IncludeFiles section of a newly generated configuration,
+    // as fpcmkcfg does. Without ACompilerOptions the "fpc" repository is left out.
     procedure AddDefaultRepositories(ACompilerOptions: TCompilerOptions);
     function AddRepositoryOptionSection(ASectionClass: TFppkgRepositoryOptionSectionClass): TFppkgRepositoryOptionSection;
     function AddIncludeFilesOptionSection(AFileMask: string): TFppkgIncludeFilesOptionSection;
@@ -392,7 +396,15 @@ end;
 procedure TFppkgIncludeFilesOptionSection.SaveToStrings(AStrings: TStrings);
 begin
   AStrings.Add('['+KeyIncludeFilesSection+']');
-  AddKeyValueToStrings(AStrings, KeyIncludeFileMask, FCurrentDir);
+  AStrings.AddStrings(FEntries);
+end;
+
+
+procedure TFppkgIncludeFilesOptionSection.AddFileMask(const AFileMask: string);
+
+begin
+  FEntries.Add(KeyIncludeFileMask+'='+AFileMask);
+  FOptionCache.Append(SLogIncludeFileMask + '=' + AFileMask);
 end;
 
 constructor TFppkgIncludeFilesOptionSection.Create(AnOptionParser: TTemplateParser;
@@ -402,10 +414,12 @@ begin
   FOptions := AnOptions;
   FCurrentDir := ACurrentDir;
   FOptionCache := TStringList.Create;
+  FEntries := TStringList.Create;
 end;
 
 destructor TFppkgIncludeFilesOptionSection.Destroy;
 begin
+  FEntries.Free;
   FOptionCache.Free;
   inherited Destroy;
 end;
@@ -414,11 +428,13 @@ procedure TFppkgIncludeFilesOptionSection.AddKeyValue(const AKey, AValue: string
 begin
   if SameText(AKey,KeyIncludeFile) then
     begin
+      FEntries.Add(KeyIncludeFile+'='+AValue);
       FOptionCache.Append(SLogIncludeFile + '=' + AValue);
       IncludeFile(AValue);
     end
   else if SameText(AKey,KeyIncludeFileMask) then
     begin
+      FEntries.Add(KeyIncludeFileMask+'='+AValue);
       FOptionCache.Append(SLogIncludeFileMask + '=' + AValue);
       IncludeFileMask(AValue);
     end;
@@ -998,6 +1014,8 @@ begin
     lSection.Path:=StringReplace(ACompilerOptions.FGlobalInstallDir,'{GlobalPrefix}',ACompilerOptions.GlobalPrefix,[rfReplaceAll,rfIgnoreCase]);
     lSection.Prefix:=ACompilerOptions.GlobalPrefix;
     end;
+  // same mask as the fpcmkcfg template, with the unparsed CompilerConfigDir
+  AddIncludeFilesOptionSection(GlobalSection.FCompilerConfigDir+'conf.d'+PathDelim+'*.conf');
   lSection := AddRepositoryOptionSection(TFppkgRepositoryOptionSection);
   lSection.RepositoryName:='user';
   lSection.Description:='User-installed packages';
@@ -1019,7 +1037,8 @@ end;
 
 function TFppkgOptions.AddIncludeFilesOptionSection(AFileMask: string): TFppkgIncludeFilesOptionSection;
 begin
-  Result := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, AFileMask);
+  Result := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, GetCurrentDir);
+  Result.AddFileMask(AFileMask);
   FSectionList.Add(Result);
 end;
 
