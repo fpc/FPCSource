@@ -30,7 +30,7 @@ uses
 
 Const
   {$if defined(MSWINDOWS)}
-  DefaultLibName = 'fontconfig.dll');
+  DefaultLibName = 'fontconfig.dll';
   {$elseif defined(darwin)}
   DefaultLibName = 'libfontconfig.dylib';
   {$elseif defined(haiku) or defined(OpenBSD)}
