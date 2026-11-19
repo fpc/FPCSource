@@ -278,13 +278,16 @@ uses
                    F_A,F_AE,F_B,F_BE,
                    F_S,F_NS,F_O,F_NO,
                    { For IEEE-compliant floating-point compares,
-                     same as normal counterparts but additionally check PF }
-                   F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE);
+                     same as normal counterparts but additionally check PF:
+                     F_FE, F_FA, F_FAE, F_FB and F_FBE are false for an
+                     unordered result (PF=1), F_FNE, F_FNB and F_FNBE
+                     (the inverses of F_FE, F_FB and F_FBE) are true }
+                   F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE,F_FNB,F_FNBE);
 
     const
-      FPUFlags = [F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE];
-      FPUFlags2Flags: array[F_FE..F_FBE] of TResFlags = (
-        F_E,F_NE,F_A,F_AE,F_B,F_BE
+      FPUFlags = [F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE,F_FNB,F_FNBE];
+      FPUFlags2Flags: array[F_FE..F_FNBE] of TResFlags = (
+        F_E,F_NE,F_A,F_AE,F_B,F_BE,F_AE,F_A
       );
 
 {*****************************************************************************
@@ -614,7 +617,9 @@ implementation
           (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
            F_BE,F_B,F_AE,F_A,
            F_NS,F_S,F_NO,F_O,
-           F_FNE,F_FE,F_FBE,F_FB,F_FAE,F_FA);
+           { an unordered result sets ZF and CF, so not(F_FA) and not(F_FAE)
+             are the plain F_BE and F_B }
+           F_FNE,F_FE,F_BE,F_B,F_FNB,F_FNBE,F_FB,F_FBE);
       begin
         f:=inv_flags[f];
       end;
@@ -624,7 +629,7 @@ implementation
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
           (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO,
-           C_None,C_None,C_None,C_None,C_None,C_None);
+           C_None,C_None,C_None,C_None,C_None,C_None,C_None,C_None);
       begin
         result := flags_2_cond[f];
         if (result=C_None) then

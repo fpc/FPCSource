@@ -1408,9 +1408,13 @@ implementation
          begin
            { Not of boolean expression. Turn around the operator and remove
              the not. This is not allowed for sets with the gten/lten,
-             because there is no ltn/gtn support }
-           if (taddnode(left).left.resultdef.typ<>setdef) or
-              (left.nodetype in [equaln,unequaln]) then
+             because there is no ltn/gtn support, and for floating point
+             types with the ordering operators, because e.g. not(a<b) is
+             true and a>=b is false if a or b is NaN }
+           if (left.nodetype in [equaln,unequaln]) or
+              ((taddnode(left).left.resultdef.typ<>setdef) and
+               ((taddnode(left).left.resultdef.typ<>floatdef) or
+                (cs_opt_fastmath in current_settings.optimizerswitches))) then
             begin
               result:=left;
               left.nodetype:=boolean_reverse[left.nodetype];

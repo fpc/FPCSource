@@ -2665,13 +2665,13 @@ unit cgx86;
          hl:=nil;
          f2:=f;
          case f of
-           F_FNE:
+           F_FNE,F_FNB,F_FNBE:
              begin
                ai:=Taicpu.op_sym(A_Jcc,S_NO,l);
                ai.SetCondition(C_P);
                ai.is_jmp:=true;
                list.concat(ai);
-               f2:=F_NE;
+               f2:=FPUFlags2Flags[f];
              end;
            F_FE,F_FA,F_FAE,F_FB,F_FBE:
              begin
@@ -2707,11 +2707,12 @@ unit cgx86;
         op:=A_AND;
         f2:=f;
         case f of
-          F_FE,F_FNE,F_FB,F_FBE:
+          F_FE,F_FNE,F_FB,F_FBE,F_FNB,F_FNBE:
             begin
               hreg2:=getintregister(list,OS_8);
               ai:=Taicpu.op_reg(A_SETcc,S_B,hreg2);
-              if (f=F_FNE) then       { F_FNE means "PF or (not ZF)" }
+              { F_FNE means "PF or (not ZF)", F_FNB and F_FNBE likewise }
+              if f in [F_FNE,F_FNB,F_FNBE] then
                 begin
                   ai.setcondition(C_P);
                   op:=A_OR;
@@ -2745,7 +2746,7 @@ unit cgx86;
       begin
         f2:=f;
         case f of
-          F_FE,F_FNE,F_FB,F_FBE:
+          F_FE,F_FNE,F_FB,F_FBE,F_FNB,F_FNBE:
             begin
               inherited g_flags2ref(list,size,f,ref);
               exit;
