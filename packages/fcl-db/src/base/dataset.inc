@@ -865,6 +865,12 @@ begin
   Result := DefaultFieldClasses[FieldType];
 end;
 
+function TDataSet.GetFieldClass(FieldDef: TFieldDef): TFieldClass;
+
+begin
+  Result := GetFieldClass(FieldDef.DataType);
+end;
+
 function TDataSet.GetIsIndexField(Field: TField): Boolean;
 
 begin

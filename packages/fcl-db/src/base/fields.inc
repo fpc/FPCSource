@@ -255,7 +255,7 @@ begin
   If Assigned(Collection) And
      (Collection is TFieldDefs) And
      Assigned(TFieldDefs(Collection).Dataset) then
-    Result:=TFieldDefs(Collection).Dataset.GetFieldClass(FDataType)
+    Result:=TFieldDefs(Collection).Dataset.GetFieldClass(Self)
   else
     Result:=Nil;
 end;

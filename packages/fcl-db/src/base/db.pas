@@ -1930,7 +1930,8 @@ type
     procedure GetCalcFields(Buffer: TRecordBuffer); virtual;
     function  GetCanModify: Boolean; virtual;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
-    function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
+    function  GetFieldClass(FieldType: TFieldType): TFieldClass; overload; virtual;
+    function  GetFieldClass(FieldDef: TFieldDef): TFieldClass; overload; virtual;
     Function  GetfieldCount : Integer;
     function  GetFieldValues(const FieldName : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
