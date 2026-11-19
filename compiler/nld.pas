@@ -1071,9 +1071,12 @@ implementation
                  left,hdef),
                nil));
            result:=ccallnode.createintern('fpc_variant_copy',hp);
-           firstpass(result);
+           { left and right are now owned by the call: detach them before the
+             firstpass, which can free them, while this node can still be
+             searched, e.g. as the init code of a temp }
            left:=nil;
            right:=nil;
+           firstpass(result);
            exit;
          end
         else if not(target_info.system in systems_garbage_collected_managed_types) and
@@ -1124,9 +1127,10 @@ implementation
               crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
             hp);
         result:=ccallnode.createintern(hs,hp);
-        firstpass(result);
+        { see above: detach left and right before the firstpass }
         left:=nil;
         right:=nil;
+        firstpass(result);
       end;
 
 
