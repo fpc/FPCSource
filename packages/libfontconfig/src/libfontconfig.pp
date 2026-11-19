@@ -554,10 +554,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils;
+  System.SysUtils, System.DynLibs;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils;
+  SysUtils, DynLibs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Procedure FcMatrixInit(out m : TFCMatrix);

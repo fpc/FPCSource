@@ -7,8 +7,7 @@ program demo_pdf;
 {$mode objfpc}{$H+}
 
 uses
-  // DynLibs installs the library loader that fpTTF uses for fontconfig
-  DynLibs, Classes, SysUtils, fpPDF, fpTTF,
+  Classes, SysUtils, fpPDF, fpTTF,
   syntax.highlighter, syntax.ada, syntax.assembly, syntax.barye, syntax.bash,
   syntax.basic, syntax.batch, syntax.c, syntax.cpp, syntax.csharp, syntax.css,
   syntax.d, syntax.diff, syntax.dockerfile, syntax.fortran, syntax.go,
