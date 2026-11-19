@@ -691,6 +691,9 @@ end;
 { not required, the JVM does the range checking for us }
 {$define FPC_HAS_ANSISTR_RANGECHECK}
 
+{ not required, function results are never passed in a hidden parameter }
+{$define FPC_HAS_ANSISTR_CHECK_CODEPAGE}
+
 
 {$define FPC_HAS_ANSISTR_SETLENGTH}
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
