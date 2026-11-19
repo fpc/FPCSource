@@ -34,9 +34,8 @@ type
   TPythonSyntaxHighlighter = class(TByteSyntaxHighlighter)
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -54,7 +53,7 @@ begin
 end;
 
 
-function TPythonSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TPythonSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lPos, lPrefixLength: SizeInt;
@@ -167,7 +166,7 @@ begin
     Emit(lFirst, lKind);
     lLineStart := False;
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

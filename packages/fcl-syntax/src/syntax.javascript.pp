@@ -36,7 +36,11 @@ type
   private
     FSource: string;
     FPos: integer;
+    FLastToken: TSyntaxToken;
+    FHasLastToken: boolean;
   protected
+    // Remember the last token that is not whitespace, then emit aToken
+    procedure EmitToken(aToken: TSyntaxToken); override;
     procedure ProcessSingleQuoteString(var endPos: integer);
     procedure ProcessDoubleQuoteString(var endPos: integer);
     procedure ProcessTemplateString(var endPos: integer);
@@ -52,11 +56,11 @@ type
     class function GetLanguages: TStringDynArray; override;
     procedure CheckCategory;
     class procedure RegisterDefaultCategories; override;
+    procedure DoExecute(const Source: string); override;
   public
     class var CategoryJavascript : integer;
               CategoryEmbeddedJS : Integer;
     constructor create; override;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
     procedure reset; override;
     end;
 
@@ -419,10 +423,21 @@ begin
   Result := ch in ['a'..'z', 'A'..'Z', '0'..'9', '_', '$'];
 end;
 
+procedure TJavaScriptSyntaxHighlighter.EmitToken(aToken: TSyntaxToken);
+
+begin
+  if (aToken.Kind <> shDefault) or (Trim(aToken.Text) <> '') then
+    begin
+    FLastToken := aToken;
+    FHasLastToken := True;
+    end;
+  inherited EmitToken(aToken);
+end;
+
+
 function TJavaScriptSyntaxHighlighter.IsRegexContext: boolean;
 
 var
-  i: integer;
   lastToken: TSyntaxToken;
   lText : String;
   lLen : integer;
@@ -430,17 +445,9 @@ var
 begin
   Result := True; // Default to allowing regex
 
-  if FTokens.Count = 0 then Exit;
+  if not FHasLastToken then Exit;
 
-  // Look at the last meaningful token
-  i := FTokens.Count - 1;
-  while (i >= 0) and (FTokens.Tokens[i].Kind = shDefault) and
-    (Trim(FTokens.Tokens[i].Text) = '') do
-    Dec(i);
-
-  if i < 0 then Exit;
-
-  lastToken := FTokens.Tokens[i];
+  lastToken := FLastToken;
   lText:=lastToken.text;
   lLen:=Length(lText);
 
@@ -479,19 +486,18 @@ begin
   DefaultCategory:=CategoryJavascript;
 end;
 
-function TJavaScriptSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TJavaScriptSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen,endPos, startPos: integer;
   ch: char;
 begin
-  Result:=Nil;
+  FHasLastToken := False;
   CheckCategory;
   lLen:=Length(Source);
   if lLen = 0 then
     Exit;
   endPos:=0;
   FSource:=Source;
-  FTokens.Reset;
   FPos := 1;
   while FPos <= lLen do
     begin
@@ -549,7 +555,6 @@ begin
     if FPos = endPos then
       Inc(FPos);
     end;
-  Result := FTokens.GetTokens;
 end;
 
 procedure TJavaScriptSyntaxHighlighter.reset;

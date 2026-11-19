@@ -49,7 +49,8 @@ type
     constructor Create; override;
     class var
       CategoryINI : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
+  protected
+    procedure DoExecute(const Source: string); override;
   end;
 
 function DoIniHighlighting(const Source: string): TSyntaxTokenArray;
@@ -183,19 +184,17 @@ begin
   DefaultCategory := CategoryINI;
 end;
 
-function TIniSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TIniSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen, endPos, startPos: integer;
   ch: char;
   atLineStart: boolean;
 begin
-  Result := Nil;
   CheckCategories;
   lLen := Length(Source);
   if lLen = 0 then
     Exit;
   FSource := Source;
-  FTokens.Reset;
   FPos := 1;
   EndPos := 0;
   atLineStart := True;
@@ -281,7 +280,6 @@ begin
     end;
     if FPos = endPos then Inc(FPos);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoIniHighlighting(const Source: string): TSyntaxTokenArray;

@@ -34,9 +34,8 @@ type
   TMakeSyntaxHighlighter = class(TByteSyntaxHighlighter)
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -51,7 +50,7 @@ begin
 end;
 
 
-function TMakeSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TMakeSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lPos, lDepth: SizeInt;
@@ -181,7 +180,7 @@ begin
       Unknown;
     Emit(lFirst, lKind);
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

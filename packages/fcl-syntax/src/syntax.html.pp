@@ -50,8 +50,10 @@ type
     FCurrentTag: string;
     FCssHighlighter: TCssSyntaxHighlighter;
     FJsHighlighter: TJavaScriptSyntaxHighlighter;
-
+    procedure EmbeddedToken(Sender: TObject; const aToken: TSyntaxToken);
   protected
+    // Emit the whitespace at the cursor as one token
+    procedure ProcessWhiteSpace;
     procedure ProcessText(var endPos: Integer);
     procedure ProcessTagOpen(var endPos: Integer);
     procedure ProcessTagClose(var endPos: Integer);
@@ -68,6 +70,7 @@ type
     class function GetLanguages: TStringDynArray; override;
     class procedure RegisterDefaultCategories; override;
     procedure CheckCategories;
+    procedure DoExecute(const source: string); override;
     property CssHighlighter: TCssSyntaxHighlighter read FCssHighlighter;
     property JsHighlighter: TJavaScriptSyntaxHighlighter read FJsHighlighter;
   public
@@ -79,7 +82,6 @@ type
     constructor Create; override;
     destructor Destroy; override;
     procedure reset; override;
-    function Execute(const source: string): TSyntaxTokenArray; override;
   end;
 
 const
@@ -162,6 +164,19 @@ begin
 end;
 
 
+procedure THtmlSyntaxHighlighter.ProcessWhiteSpace;
+
+var
+  lStart: Integer;
+begin
+  lStart := FPos;
+  while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
+    Inc(FPos);
+  if FPos > lStart then
+    AddToken(Copy(FSource, lStart, FPos - lStart), shDefault);
+end;
+
+
 procedure THtmlSyntaxHighlighter.ProcessTagOpen(var endPos: Integer);
 
 var
@@ -175,10 +190,7 @@ begin
   // Process opening <
   AddToken('<', shSymbol);
   Inc(FPos);
-
-  // Skip whitespace
-  while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
-    Inc(FPos);
+  ProcessWhiteSpace;
 
   // Process tag name
   nameStart := FPos;
@@ -311,10 +323,7 @@ begin
   // Process </
   AddToken('</', shSymbol);
   Inc(FPos, 2);
-
-  // Skip whitespace
-  while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
-    Inc(FPos);
+  ProcessWhiteSpace;
 
   // Process tag name
   nameStart := FPos;
@@ -326,10 +335,7 @@ begin
     nameEnd := FPos - 1;
     AddToken(Copy(FSource, nameStart, nameEnd - nameStart + 1), shKeyword);
     end;
-
-  // Skip whitespace
-  while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
-    Inc(FPos);
+  ProcessWhiteSpace;
 
   // Process closing >
   if (FPos <= FSourceLen) and (FSource[FPos] = '>') then
@@ -408,13 +414,19 @@ begin
 end;
 
 
+// Emit a token of an embedded JavaScript or CSS highlighter
+procedure THtmlSyntaxHighlighter.EmbeddedToken(Sender: TObject; const aToken: TSyntaxToken);
+
+begin
+  EmitToken(aToken);
+end;
+
+
 procedure THtmlSyntaxHighlighter.ProcessScript(var endPos: Integer);
 
 var
   startPos: Integer;
   scriptContent: string;
-  jsTokens: TSyntaxTokenArray;
-  i: Integer;
 
 begin
   startPos := FPos;
@@ -431,16 +443,7 @@ begin
   if endPos >= startPos then
     begin
     scriptContent := Copy(FSource, startPos, endPos - startPos + 1);
-
-    if Trim(scriptContent) <> '' then
-      begin
-      // Delegate to JavaScript highlighter
-      jsTokens := FJsHighlighter.Execute(scriptContent);
-
-      // Add JavaScript tokens with EmbeddedJS category
-      for i := 0 to High(jsTokens) do
-        FTokens.AddToken(jsTokens[i]);
-      end;
+    FJsHighlighter.Execute(scriptContent, @EmbeddedToken);
     end;
 
   FState := hsText;
@@ -451,8 +454,6 @@ procedure THtmlSyntaxHighlighter.ProcessStyle(var endPos: Integer);
 var
   startPos: Integer;
   styleContent: string;
-  cssTokens: TSyntaxTokenArray;
-  i: Integer;
 
 begin
   startPos := FPos;
@@ -469,15 +470,7 @@ begin
   if endPos >= startPos then
     begin
     styleContent := Copy(FSource, startPos, endPos - startPos + 1);
-
-    if Trim(styleContent) <> '' then
-      begin
-      // Delegate to CSS highlighter
-      cssTokens := FCssHighlighter.Execute(styleContent);
-      // Add CSS tokens with EmbeddedCSS category
-      for i := 0 to High(cssTokens) do
-        FTokens.AddToken(cssTokens[i]);
-      end;
+    FCssHighlighter.Execute(styleContent, @EmbeddedToken);
     end;
   FState := hsText;
 end;
@@ -580,15 +573,13 @@ begin
 end;
 
 
-function THtmlSyntaxHighlighter.Execute(const source: string): TSyntaxTokenArray;
+procedure THtmlSyntaxHighlighter.DoExecute(const source: string);
 var
   endPos: Integer;
 begin
-  Result:=[];
   FSourceLen:=Length(source);
   if FSourceLen=0 then
     Exit;
-  FTokens.Reset;
   FSource := source;
   FPos := 1;
   endpos:=0;
@@ -644,7 +635,6 @@ begin
     if FPos = endPos then
       Inc(FPos);
     end;
-  Result := FTokens.GetTokens;
 end;
 
 

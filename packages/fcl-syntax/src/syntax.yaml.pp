@@ -34,9 +34,8 @@ type
   TYamlSyntaxHighlighter = class(TByteSyntaxHighlighter)
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -48,7 +47,7 @@ begin
 end;
 
 
-function TYamlSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TYamlSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lPos, lIndent, lBlockIndent, lCurrentIndent: SizeInt;
@@ -173,7 +172,7 @@ begin
       end;
     Emit(lFirst, lKind);
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

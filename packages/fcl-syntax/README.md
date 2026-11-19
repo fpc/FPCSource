@@ -15,12 +15,14 @@ The package is part of Free Pascal. You do not need to install anything else.
 1. [A first program](#a-first-program)
 2. [Tokens](#tokens)
 3. [Token kinds](#token-kinds)
-4. [Choosing the language by name](#choosing-the-language-by-name)
-5. [Making HTML](#making-html)
-6. [Categories](#categories)
-7. [Supported languages](#supported-languages)
-8. [Writing your own highlighter](#writing-your-own-highlighter)
-9. [Examples and tests](#examples-and-tests)
+4. [Tokens one by one](#tokens-one-by-one)
+5. [Only some lines](#only-some-lines)
+6. [Choosing the language by name](#choosing-the-language-by-name)
+7. [Making HTML](#making-html)
+8. [Categories](#categories)
+9. [Supported languages](#supported-languages)
+10. [Writing your own highlighter](#writing-your-own-highlighter)
+11. [Examples and tests](#examples-and-tests)
 
 ## A first program
 
@@ -87,6 +89,7 @@ A token is a record of type `TSyntaxToken`. The most important fields are:
 |--------|------------------------|------------------------------------------|
 | `Text` | `string`               | The text of the token, exactly as in the source. |
 | `Kind` | `TSyntaxHighlightKind` | What kind of text this is. See below.     |
+| `Line` | `Integer`              | The line where the token starts. The first line is 1. |
 
 Spaces, tabs and line endings are also tokens. Normally they have the kind
 `shDefault`. When you put the `Text` of all tokens together, you get the
@@ -127,6 +130,94 @@ can use `Length`, `High` and `for ... in` with it.
 | `shKey`           | Keys, like the name before `=` in an INI file.     |
 
 `Kind.ToString` gives the name without `sh`, for example `Keyword`.
+
+## Tokens one by one
+
+`Execute` can also give you the tokens one by one, while it reads the source.
+Then the highlighter does not make an array. This is useful for big files.
+
+Pass a method as the second argument of `Execute`. The method must have this
+type:
+
+```pascal
+TSyntaxTokenEvent = procedure(Sender: TObject; const aToken: TSyntaxToken) of object;
+```
+
+The highlighter calls the method once for every token, in the order of the
+source. `Sender` is the highlighter.
+
+If you want to stop early, call `Abort` in the method. `Execute` then stops,
+and the `EAbort` exception goes to your code.
+
+## Only some lines
+
+Sometimes you only need a few lines, for example the lines that are visible
+in an editor. Call `SetRange(aFrom, aTo)` before `Execute`. The highlighter
+then only gives you the tokens that are on the lines `aFrom` to `aTo`. The
+first line is 1.
+
+* `-1` means "no limit". `SetRange(10, -1)` gives line 10 to the end.
+  `SetRange(-1, -1)` gives all lines again. This is the default.
+* A token can be longer than one line, for example a comment. If a part of the
+  token is inside the range, you get the whole token.
+* The highlighter always starts reading at the start of the source. This is
+  necessary, because a comment or string can start before `aFrom`. It stops
+  reading after line `aTo`.
+* The range also works for the array that `Execute` returns.
+* The range stays set until you call `SetRange` again.
+
+This program prints the tokens of line 2:
+
+```pascal
+program ex5;
+
+{$mode objfpc}{$H+}
+
+uses
+  SysUtils, syntax.highlighter, syntax.pascal;
+
+type
+  TPrinter = class
+    procedure PrintToken(Sender: TObject; const aToken: TSyntaxToken);
+  end;
+
+procedure TPrinter.PrintToken(Sender: TObject; const aToken: TSyntaxToken);
+begin
+  Writeln(aToken.Line, ' ', aToken.Kind.ToString, ': "',
+    StringReplace(aToken.Text, #10, '\n', [rfReplaceAll]), '"');
+end;
+
+const
+  Source = 'begin'#10 + 'a := 1;'#10 + 'b := 2;'#10 + 'end.';
+
+var
+  Highlighter: TSyntaxHighlighter;
+  Printer: TPrinter;
+
+begin
+  Printer := TPrinter.Create;
+  Highlighter := TPascalSyntaxHighlighter.Create;
+  try
+    Highlighter.SetRange(2, 2);
+    Highlighter.Execute(Source, @Printer.PrintToken);
+  finally
+    Highlighter.Free;
+    Printer.Free;
+  end;
+end.
+```
+
+The output is:
+
+```
+2 Default: "a"
+2 Default: " "
+2 Symbol: ":="
+2 Default: " "
+2 Numbers: "1"
+2 Symbol: ";"
+2 Default: "\n"
+```
 
 ## Choosing the language by name
 
@@ -354,8 +445,10 @@ To write a highlighter for a new language:
 1. Make a class that inherits from `TSyntaxHighlighter`.
 2. Override the class function `GetLanguages`. It returns the names of the
    language.
-3. Override `Execute`. Call `Reset` at the start. For each piece of text, call
-   `AddToken(Text, Kind)`. At the end, return `FTokens.GetTokens`.
+3. Override the protected method `DoExecute`. For each piece of text, call
+   `AddToken(Text, Kind)`. Do not skip any text: also call `AddToken` for
+   spaces and line endings. `Execute` uses the text of the tokens to count the
+   lines.
 4. Call the class procedure `Register` once, normally in the `initialization`
    section of the unit.
 
@@ -373,8 +466,7 @@ type
   TShoutSyntaxHighlighter = class(TSyntaxHighlighter)
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 class function TShoutSyntaxHighlighter.GetLanguages: TStringDynArray;
@@ -382,12 +474,11 @@ begin
   Result := ['shout'];
 end;
 
-function TShoutSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TShoutSyntaxHighlighter.DoExecute(const aSource: string);
 var
   I, Start: Integer;
   Kind: TSyntaxHighlightKind;
 begin
-  Reset;
   I := 1;
   while I <= Length(aSource) do
   begin
@@ -406,7 +497,6 @@ begin
     end;
     AddToken(Copy(aSource, Start, I - Start), Kind);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 var

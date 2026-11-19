@@ -50,7 +50,8 @@ type
     constructor Create; override;
     class var
       CategoryJSON : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
+  protected
+    procedure DoExecute(const Source: string); override;
   end;
 
 function DoJsonHighlighting(const Source: string): TSyntaxTokenArray;
@@ -322,18 +323,16 @@ begin
   DefaultCategory := CategoryJSON;
 end;
 
-function TJsonSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TJsonSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen, endPos, startPos: integer;
   ch: char;
 begin
-  Result := Nil;
   CheckCategories;
   lLen := Length(Source);
   if lLen = 0 then
     Exit;
   FSource := Source;
-  FTokens.Reset;
   FPos := 1;
   EndPos := 0;
   FExpectingKey := True; // Start expecting a key in root object
@@ -423,7 +422,6 @@ begin
     end;
     if FPos = endPos then Inc(FPos);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoJsonHighlighting(const Source: string): TSyntaxTokenArray;

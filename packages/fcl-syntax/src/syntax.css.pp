@@ -56,7 +56,8 @@ type
     class var
       CategoryCSS : Integer;
       CategoryEmbeddedCSS : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
+  protected
+    procedure DoExecute(const Source: string); override;
   end;
 
 const
@@ -386,18 +387,16 @@ begin
   DefaultCategory:=CategoryCSS;
 end;
 
-function TCssSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TCssSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen, endPos, startPos: integer;
   ch: char;
 begin
-  Result:=Nil;
   CheckCategories;
   lLen:=Length(Source);
   if lLen = 0 then
     Exit;
   FSource := Source;
-  FTokens.Reset;
   FPos := 1;
   EndPos:=0;
 
@@ -491,7 +490,6 @@ begin
     end;
     if FPos = endPos then Inc(FPos);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoCssHighlighting(const Source: string): TSyntaxTokenArray;

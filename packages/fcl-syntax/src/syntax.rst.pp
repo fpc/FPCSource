@@ -49,9 +49,8 @@ type
     procedure Explicit(aDots: SizeInt; out aBody: TRstBlock; out aOptions: boolean);
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -463,7 +462,7 @@ begin
 end;
 
 
-function TRstSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TRstSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lIndent, lBase, lNext, lNextEol, lCount, lPos, lBreaks: SizeInt;
@@ -616,7 +615,7 @@ begin
     if lBreaks > 1 then
       lOptions := False;
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

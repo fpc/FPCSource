@@ -39,15 +39,16 @@ type
   private
     FOutput: TSyntaxTokenArray;
     FCount: SizeInt;
+    FCollect: boolean;
   protected
     FText: string;
     FCursor: SizeInt;
     FLimit: SizeInt;
     // Category name registered as default category: the first language name
     class function CategoryName: string; virtual;
-    // Prepare scanning aSource
-    procedure Start(const aSource: string);
-    // Return the emitted tokens
+    // Prepare scanning aSource; with aCollect, Emit stores the tokens instead of emitting them
+    procedure Start(const aSource: string; aCollect: boolean = False);
+    // Return the stored tokens and release the source
     function Finish: TSyntaxTokenArray;
     // Character at the cursor plus aOffset, #0 outside the text
     function Ch(aOffset: SizeInt = 0): char;
@@ -119,10 +120,10 @@ type
     class function GetLanguages: TStringDynArray; override;
     // Token kind of an identifier
     function WordKind(const aValue: string): TSyntaxHighlightKind; virtual;
+    // Split aSource in tokens
+    procedure DoExecute(const aSource: string); override;
   public
     constructor Create; override;
-    // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
   end;
 
 // Language description with default identifier, operator, symbol and number forms
@@ -263,7 +264,7 @@ begin
 end;
 
 
-procedure TByteSyntaxHighlighter.Start(const aSource: string);
+procedure TByteSyntaxHighlighter.Start(const aSource: string; aCollect: boolean);
 
 begin
   FText := aSource;
@@ -271,6 +272,7 @@ begin
   FLimit := Length(FText);
   FOutput := nil;
   FCount := 0;
+  FCollect := aCollect;
 end;
 
 
@@ -318,9 +320,14 @@ var
 begin
   if FCursor <= aFirst then
     Exit;
+  lText := Copy(FText, aFirst, FCursor - aFirst);
+  if not FCollect then
+  begin
+    AddToken(lText, aKind);
+    Exit;
+  end;
   if FCount = Length(FOutput) then
     SetLength(FOutput, FCount * 2 + 64);
-  lText := Copy(FText, aFirst, FCursor - aFirst);
   if DefaultCategory > 0 then
     FOutput[FCount] := TSyntaxToken.Create(lText, aKind, DefaultCategory)
   else
@@ -850,7 +857,7 @@ begin
 end;
 
 
-function TTableSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TTableSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lPos: SizeInt;
@@ -936,7 +943,7 @@ begin
       end;
     FLineStart := False;
     end;
-  Result := Finish;
+  Finish;
 end;
 
 end.

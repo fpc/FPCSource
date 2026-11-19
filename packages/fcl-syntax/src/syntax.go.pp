@@ -51,11 +51,11 @@ type
     class function GetLanguages: TStringDynArray; override;
     procedure CheckCategory;
     class procedure RegisterDefaultCategories; override;
+    procedure DoExecute(const Source: string); override;
   public
     class var CategoryGo : integer;
               CategoryBuiltin : Integer;
     constructor create; override;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
     procedure reset; override;
     end;
 
@@ -385,19 +385,17 @@ begin
 end;
 
 
-function TGoSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TGoSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen, endPos, startPos: integer;
   ch: char;
 begin
-  Result := Nil;
   CheckCategory;
   lLen := Length(Source);
   if lLen = 0 then
     Exit;
   endPos := 0;
   FSource := Source;
-  FTokens.Reset;
   FPos := 1;
   while FPos <= lLen do
     begin
@@ -456,7 +454,6 @@ begin
     if FPos = endPos then
       Inc(FPos);
     end;
-  Result := FTokens.GetTokens;
 end;
 
 

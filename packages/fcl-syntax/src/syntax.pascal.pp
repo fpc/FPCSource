@@ -48,7 +48,8 @@ type
     class var
        CategoryPascal,
        CategoryIdentifier : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
+  protected
+    procedure DoExecute(const Source: string); override;
   end;
 
 function DoPascalHighlighting(const Source: string): TSyntaxTokenArray;
@@ -258,20 +259,18 @@ begin
   DefaultCategory:=CategoryPascal;
 end;
 
-function TPascalSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TPascalSyntaxHighlighter.DoExecute(const Source: string);
 var
   endPos: integer;
   StringLength: integer;
   lLen,startPos: integer;
   ch: char;
 begin
-  Result:=Nil;
   CheckCategories;
   if Length(Source) = 0 then
     Exit;
   FSource:=Source;
   lLen:=Length(FSource);
-  FTokens.Reset;
   FPos := 1;
   EndPos:=0;
   while FPos <= llen do
@@ -374,7 +373,6 @@ begin
     if FPos = endPos then
       Inc(FPos);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoPascalHighlighting(const Source: string): TSyntaxTokenArray;

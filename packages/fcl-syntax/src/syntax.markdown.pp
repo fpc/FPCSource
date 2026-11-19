@@ -40,9 +40,8 @@ type
     function FindRun(const aRun: string; aFrom, aBefore: SizeInt): SizeInt;
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -245,7 +244,7 @@ begin
 end;
 
 
-function TMarkdownSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TMarkdownSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst, lEol, lIndent, lCount: SizeInt;
@@ -366,7 +365,7 @@ begin
       Inc(FCursor);
     Emit(lFirst, shDefault);
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

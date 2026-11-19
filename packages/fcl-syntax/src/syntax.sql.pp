@@ -53,11 +53,11 @@ type
     class procedure CheckCategories;
     class procedure RegisterDefaultCategories; override;
     class function GetLanguages : TStringDynarray; override;
+    procedure DoExecute(const Source: string); override;
   public
     constructor Create; override;
     class var
       CategorySQL : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
     property StringEscapeMode: TSqlStringEscapeMode read FStringEscapeMode write FStringEscapeMode;
   end;
 
@@ -322,18 +322,16 @@ begin
   FStringEscapeMode := semDoubled; // Default to standard SQL escaping
 end;
 
-function TSqlSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TSqlSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen, endPos, startPos: integer;
   ch: char;
 begin
-  Result := Nil;
   CheckCategories;
   lLen := Length(Source);
   if lLen = 0 then
     Exit;
   FSource := Source;
-  FTokens.Reset;
   FPos := 1;
   EndPos := 0;
 
@@ -433,7 +431,6 @@ begin
     end;
     if FPos = endPos then Inc(FPos);
   end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoSqlHighlighting(const Source: string): TSyntaxTokenArray;

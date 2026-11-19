@@ -38,9 +38,8 @@ type
     procedure Classify(var aTokens: TSyntaxTokenArray);
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens, then refine their kinds from the local context
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -158,14 +157,16 @@ begin
 end;
 
 
-function TBaryeSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TBaryeSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst: SizeInt;
   lValue: string;
   lKind: TSyntaxHighlightKind;
+  lTokens: TSyntaxTokenArray;
+  lToken: TSyntaxToken;
 begin
-  Start(aSource);
+  Start(aSource, True);
   while FCursor <= FLimit do
     begin
     lFirst := FCursor;
@@ -244,8 +245,10 @@ begin
       Emit(lFirst, lKind);
       end;
     end;
-  Result := Finish;
-  Classify(Result);
+  lTokens := Finish;
+  Classify(lTokens);
+  for lToken in lTokens do
+    EmitToken(lToken);
 end;
 
 

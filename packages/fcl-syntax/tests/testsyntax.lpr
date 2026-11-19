@@ -96,6 +96,7 @@ uses
   unittest.markdown,
   unittest.rst,
   unittest.lfm,
+  unittest.tokenevents,
   consoletestrunner;
 
 type

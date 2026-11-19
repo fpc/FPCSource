@@ -46,7 +46,8 @@ type
   public
     constructor create; override;
     class var CategoryBash : Integer;
-    function Execute(const Source: string): TSyntaxTokenArray; override;
+  protected
+    procedure DoExecute(const Source: string); override;
   end;
 
 const
@@ -286,12 +287,11 @@ begin
   DefaultCategory:=CategoryBash;
 end;
 
-function TBashSyntaxHighlighter.Execute(const Source: string): TSyntaxTokenArray;
+procedure TBashSyntaxHighlighter.DoExecute(const Source: string);
 var
   lLen,startPos,endPos: integer;
   ch: char;
 begin
-  Result:=Nil;
   if Length(Source) = 0 then
     Exit;
   FSource := Source;
@@ -348,7 +348,6 @@ begin
     if FPos = endPos then
       Inc(FPos);
     end;
-  Result := FTokens.GetTokens;
 end;
 
 function DoBashHighlighting(const Source: string): TSyntaxTokenArray;

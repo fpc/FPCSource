@@ -34,9 +34,8 @@ type
   TDiffSyntaxHighlighter = class(TByteSyntaxHighlighter)
   protected
     class function GetLanguages: TStringDynArray; override;
-  public
     // Split aSource in tokens, one per line
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -48,7 +47,7 @@ begin
 end;
 
 
-function TDiffSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TDiffSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lFirst: SizeInt;
@@ -78,7 +77,7 @@ begin
       Inc(FCursor);
     Emit(lFirst, lKind);
     end;
-  Result := Finish;
+  Finish;
 end;
 
 initialization

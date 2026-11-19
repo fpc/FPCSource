@@ -44,8 +44,9 @@ type
   public
     class var CategoryLfm: integer;
     constructor Create; override;
+  protected
     // Split aSource in tokens
-    function Execute(const aSource: string): TSyntaxTokenArray; override;
+    procedure DoExecute(const aSource: string); override;
   end;
 
 implementation
@@ -109,19 +110,17 @@ begin
 end;
 
 
-function TLfmSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+procedure TLfmSyntaxHighlighter.DoExecute(const aSource: string);
 
 var
   lWord, lLower: string;
   lLineStart, lAfterObject, lInValue: boolean;
   lStart, lDepth: integer;
 begin
-  Result := nil;
   CheckCategories;
   if aSource = '' then
     Exit;
   FSource := aSource;
-  FTokens.Reset;
   FPos := 1;
   // lLineStart: only whitespace so far on this line
   lLineStart := True;
@@ -275,7 +274,6 @@ begin
       Inc(FPos);
       lLineStart := False;
     end;
-  Result := FTokens.GetTokens;
 end;
 
 initialization

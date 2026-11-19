@@ -71,6 +71,8 @@ type
   Public
     Text: string;
     Kind: TSyntaxHighlightKind;
+    // 1-based source line of the first character of the token
+    Line: Integer;
     // Create a syntax token
     Constructor create (const aText : string; aKind : TSyntaxHighlightKind; const aCategories : Array of Integer); overload;
     Constructor create (const aText : string; aKind : TSyntaxHighlightKind; const aCategory : Integer); overload;
@@ -87,6 +89,9 @@ type
     Property CategoryCount : Integer read FCategoryCount;
   end;
   TSyntaxTokenArray = array of TSyntaxToken;
+
+  // Receives one token from a highlighter
+  TSyntaxTokenEvent = procedure(Sender: TObject; const aToken: TSyntaxToken) of object;
 
   { TSyntaxTokenList }
 
@@ -115,9 +120,16 @@ type
   TSyntaxHighlighter = class
   private
     FDefaultCategory: Integer;
+    FOnToken: TSyntaxTokenEvent;
+    FRangeFrom: Integer;
+    FRangeTo: Integer;
+    FLine: Integer;
+    FAfterCR: Boolean;
+    FStopping: Boolean;
     class var
       FCategories: TStringList;
       FNextCategoryID: Integer;
+    procedure StoreToken(Sender: TObject; const aToken: TSyntaxToken);
   protected
     FTokens : TSyntaxTokenList;
     class function GetCategoryID(const category: string): Integer;
@@ -125,7 +137,12 @@ type
     class procedure RegisterDefaultCategories; virtual;
     class constructor init;
     class destructor done;
+    // Split aSource in tokens and pass each one to AddToken or EmitToken
+    procedure DoExecute(const aSource: string); virtual; abstract;
+    // Create a token with the default category and aCategory, and emit it
     procedure AddToken(const aText: string; akind: TSyntaxHighlightKind; aCategory : Integer = 0);
+    // Set the line of aToken and pass it to the token handler if it overlaps the range
+    procedure EmitToken(aToken: TSyntaxToken); virtual;
   public
     class procedure Register;
     class function RegisterCategory(const category: string): Integer;
@@ -136,10 +153,18 @@ type
     constructor Create; virtual;
     // Reset the token list and other attributes
     procedure reset; virtual;
-    // Start the tokenizing process, returns array of syntax tokens.
-    function Execute(const source: string): TSyntaxTokenArray; virtual; abstract;
+    // Split aSource in tokens and return the tokens that overlap the range
+    function Execute(const aSource: string): TSyntaxTokenArray; overload;
+    // Split aSource in tokens and pass the tokens that overlap the range to aOnToken
+    procedure Execute(const aSource: string; aOnToken: TSyntaxTokenEvent); overload;
+    // Only emit tokens that overlap source lines aFrom to aTo; -1 removes the limit on that side
+    procedure SetRange(aFrom, aTo: Integer);
     // Set this to zero if you don't want a default category to be added
     property DefaultCategory : Integer Read FDefaultCategory Write FDefaultCategory;
+    // First line of the range, -1 if there is no lower limit
+    property RangeFrom : Integer Read FRangeFrom;
+    // Last line of the range, -1 if there is no upper limit
+    property RangeTo : Integer Read FRangeTo;
   end;
   TSyntaxHighlighterClass = class of TSyntaxHighlighter;
 
@@ -214,6 +239,7 @@ var
 begin
   Text:=aText;
   Kind:=aKind;
+  Line:=0;
   FCategoryCount:=Length(aCategories);
   SetLength(FCategories,FCategoryCount+1);
   For I:=0 to Length(aCategories)-1 do
@@ -225,6 +251,7 @@ constructor TSyntaxToken.create(const aText: string; aKind: TSyntaxHighlightKind
 begin
   Text:=aText;
   Kind:=aKind;
+  Line:=0;
   FCategoryCount:=1;
   SetLength(FCategories,2);
   FCategories[0]:=aCategory;
@@ -234,6 +261,7 @@ constructor TSyntaxToken.create(const aText: string; aKind: TSyntaxHighlightKind
 begin
   Text:=aText;
   Kind:=aKind;
+  Line:=0;
   FCategoryCount:=0;
 end;
 
@@ -352,7 +380,86 @@ begin
     lToken:=TSyntaxToken.Create(aText,aKind,lCat1)
  else
     lToken:=TSyntaxToken.Create(aText,aKind);
-  FTokens.AddToken(ltoken);
+  EmitToken(lToken);
+end;
+
+
+procedure TSyntaxHighlighter.EmitToken(aToken: TSyntaxToken);
+
+var
+  lFirst, lLast: Integer;
+  lChar: Char;
+begin
+  lFirst:=FLine;
+  lLast:=FLine;
+  for lChar in aToken.Text do
+    begin
+    lLast:=FLine;
+    case lChar of
+      #13: Inc(FLine);
+      #10: if not FAfterCR then Inc(FLine);
+    end;
+    FAfterCR:=(lChar=#13);
+    end;
+  if (FRangeTo<>-1) and (lFirst>FRangeTo) then
+    begin
+    FStopping:=True;
+    Abort;
+    end;
+  if (FRangeFrom<>-1) and (lLast<FRangeFrom) then
+    Exit;
+  aToken.Line:=lFirst;
+  if Assigned(FOnToken) then
+    FOnToken(Self,aToken);
+end;
+
+
+procedure TSyntaxHighlighter.StoreToken(Sender: TObject; const aToken: TSyntaxToken);
+
+begin
+  FTokens.AddToken(aToken);
+end;
+
+
+function TSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
+
+begin
+  FTokens.Reset;
+  Execute(aSource,@StoreToken);
+  Result:=FTokens.GetTokens;
+end;
+
+
+procedure TSyntaxHighlighter.Execute(const aSource: string; aOnToken: TSyntaxTokenEvent);
+
+begin
+  FOnToken:=aOnToken;
+  FLine:=1;
+  FAfterCR:=False;
+  FStopping:=False;
+  try
+    try
+      DoExecute(aSource);
+    except
+      on EAbort do
+        if not FStopping then
+          raise;
+    end;
+  finally
+    FOnToken:=nil;
+    FStopping:=False;
+  end;
+end;
+
+
+procedure TSyntaxHighlighter.SetRange(aFrom, aTo: Integer);
+
+begin
+  if ((aFrom<>-1) and (aFrom<1)) or ((aTo<>-1) and (aTo<1))
+     or ((aFrom<>-1) and (aTo<>-1) and (aFrom>aTo)) then
+    raise ESyntaxHighlighter.CreateFmt('Invalid line range %d..%d',[aFrom,aTo]);
+  FRangeFrom:=aFrom;
+  FRangeTo:=aTo;
 end;
 
 class function TSyntaxHighlighter.GetCategoryID(const category: string): Integer;
@@ -373,6 +480,8 @@ end;
 constructor TSyntaxHighlighter.Create;
 begin
   Inherited;
+  FRangeFrom:=-1;
+  FRangeTo:=-1;
   Reset;
 end;
 
