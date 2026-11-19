@@ -1,6 +1,6 @@
 {
   Renders a highlighted source file to a PDF document with A4 pages.
-  Usage: demo_pdf [-f font] [-s size] [-l language] file
+  Usage: demo_pdf [-f font] [-s size] [-l language] [--page=N] file
 }
 program demo_pdf;
 
@@ -45,6 +45,7 @@ var
   Language: string = '';
   FontName: string = DefaultFont;
   FontSize: Integer = 9;
+  Page: Integer = 0;
 
 // Writes the command-line help and stops the program
 procedure Usage(const aError: string);
@@ -56,6 +57,7 @@ begin
   Writeln('  -f font      Font family name or .ttf file (default ', DefaultFont, ')');
   Writeln('  -s size      Font size in points (default 9)');
   Writeln('  -l language  Language name (default: from the file extension)');
+  Writeln('  --page=N     Write only page N, to file-NNN.pdf (default: all pages)');
   Halt(Ord(aError <> ''));
 end;
 
@@ -71,7 +73,13 @@ begin
   while lIdx <= ParamCount do
   begin
     lOption := ParamStr(lIdx);
-    if (Length(lOption) = 2) and (lOption[1] = '-') then
+    if Copy(lOption, 1, 7) = '--page=' then
+    begin
+      Page := StrToIntDef(Copy(lOption, 8, MaxInt), 0);
+      if Page < 1 then
+        Usage('Invalid page number in ' + lOption);
+    end
+    else if (Length(lOption) = 2) and (lOption[1] = '-') then
     begin
       Inc(lIdx);
       if lIdx > ParamCount then
@@ -127,8 +135,8 @@ begin
 end;
 
 
-// Splits aSource in tokens; one plain token if there is no highlighter for aLanguage
-function Highlight(const aLanguage, aSource: string): TSyntaxTokenArray;
+// Splits lines aFrom..aTo of aSource in tokens; one plain token if there is no highlighter for aLanguage
+function Highlight(const aLanguage, aSource: string; aFrom, aTo: Integer): TSyntaxTokenArray;
 
 var
   lHighlighter: TSyntaxHighlighter;
@@ -137,10 +145,12 @@ begin
   begin
     Writeln('No highlighter for "', aLanguage, '", using plain text');
     Result := [TSyntaxToken.Create(aSource, shDefault)];
+    Result[0].Line := 1;
     Exit;
   end;
   lHighlighter := TSyntaxHighlighterRegistry.Instance.CreateSyntaxHighlighter(aLanguage);
   try
+    lHighlighter.SetRange(aFrom, aTo);
     Result := lHighlighter.Execute(aSource);
   finally
     lHighlighter.Free;
@@ -148,12 +158,78 @@ begin
 end;
 
 
-// Cuts aTokens in lines of at most aColumns characters, with tabs expanded
-function LayoutTokens(const aTokens: TSyntaxTokenArray; aColumns: Integer): TLineArray;
+// Finds the source lines aFrom..aTo on page aPage, and the rows of line aFrom that are on earlier pages
+function FindPageLines(const aSource: string; aColumns, aRows, aPage: Integer;
+  out aFrom, aTo, aSkipRows: Integer): Boolean;
+
+var
+  lText: UnicodeString;
+  lIdx, lLine, lColumn, lLineRows, lRow, lStartRow: Integer;
+
+  procedure AddColumn;
+
+  begin
+    if lColumn >= aColumns then
+    begin
+      Inc(lLineRows);
+      lColumn := 0;
+    end;
+    Inc(lColumn);
+  end;
+
+begin
+  Result := False;
+  aFrom := -1;
+  aTo := -1;
+  aSkipRows := 0;
+  lText := UTF8Decode(aSource);
+  lStartRow := (aPage - 1) * aRows;
+  lLine := 1;
+  lRow := 0;
+  lColumn := 0;
+  lLineRows := 1;
+  lIdx := 1;
+  while True do
+  begin
+    if (lIdx > Length(lText)) or (lText[lIdx] in [#10, #13]) then
+    begin
+      if (aFrom = -1) and (lRow + lLineRows > lStartRow) then
+      begin
+        aFrom := lLine;
+        aSkipRows := lStartRow - lRow;
+      end;
+      Inc(lRow, lLineRows);
+      if (aFrom <> -1) and ((lRow >= lStartRow + aRows) or (lIdx > Length(lText))) then
+      begin
+        aTo := lLine;
+        Exit(True);
+      end;
+      if lIdx > Length(lText) then
+        Exit;
+      if (lText[lIdx] = #13) and (lIdx < Length(lText)) and (lText[lIdx + 1] = #10) then
+        Inc(lIdx);
+      Inc(lLine);
+      lColumn := 0;
+      lLineRows := 1;
+    end
+    else if lText[lIdx] = #9 then
+      repeat
+        AddColumn;
+      until lColumn mod TabWidth = 0
+    else
+      AddColumn;
+    Inc(lIdx);
+  end;
+end;
+
+
+// Cuts aTokens from source line aFirstLine on in lines of at most aColumns characters, with tabs expanded
+function LayoutTokens(const aTokens: TSyntaxTokenArray; aColumns, aFirstLine: Integer): TLineArray;
 
 var
   lLines: TLineArray;
-  lCount, lColumn: Integer;
+  lCount, lColumn, lLine: Integer;
+  lAfterCR: Boolean;
 
   procedure NewLine;
 
@@ -192,20 +268,32 @@ begin
   lLines := nil;
   lCount := 0;
   NewLine;
+  lLine := 1;
+  if (Length(aTokens) > 0) and (aTokens[0].Line > 0) then
+    lLine := aTokens[0].Line;
+  lAfterCR := False;
   for lToken in aTokens do
   begin
     lText := UTF8Decode(lToken.Text);
     for lChar in lText do
-      case lChar of
-        #13: ;
-        #10: NewLine;
-        #9:
+    begin
+      if (lChar = #13) or ((lChar = #10) and not lAfterCR) then
+      begin
+        if lLine >= aFirstLine then
+          NewLine;
+        Inc(lLine);
+      end
+      else if (lChar <> #10) and (lLine >= aFirstLine) then
+      begin
+        if lChar = #9 then
           repeat
             AddChar(' ', lToken.Kind);
-          until lColumn mod TabWidth = 0;
-      else
-        AddChar(lChar, lToken.Kind);
+          until lColumn mod TabWidth = 0
+        else
+          AddChar(lChar, lToken.Kind);
       end;
+      lAfterCR := lChar = #13;
+    end;
   end;
   SetLength(lLines, lCount);
   Result := lLines;
@@ -265,8 +353,8 @@ begin
 end;
 
 
-// Writes aTokens on as many A4 pages as needed and saves them as a PDF file
-procedure RenderPDF(const aTokens: TSyntaxTokenArray; aFont: TFPFontCacheItem);
+// Writes aSource (all pages, or only page Page) on A4 pages and saves them as a PDF file
+procedure RenderPDF(const aSource: string; aFont: TFPFontCacheItem);
 
 var
   lDoc: TPDFDocument;
@@ -275,6 +363,7 @@ var
   lLines: TLineArray;
   lRun: TRun;
   lFontIdx, lColumns, lRows, lFirst, lRow, lColumn: Integer;
+  lFromLine, lToLine, lSkipRows: Integer;
   lCharWidth, lLineHeight: Double;
   lFileName: string;
 begin
@@ -284,7 +373,14 @@ begin
   lRows := Trunc((PageHeight - 2 * Margin) / lLineHeight);
   if (lColumns < 1) or (lRows < 1) then
     Usage('The page is too small for this font size');
-  lLines := LayoutTokens(aTokens, lColumns);
+  lFromLine := -1;
+  lToLine := -1;
+  lSkipRows := 0;
+  if (Page > 0) and not FindPageLines(aSource, lColumns, lRows, Page, lFromLine, lToLine, lSkipRows) then
+    Usage(Format('Page %d does not exist', [Page]));
+  lLines := LayoutTokens(Highlight(Language, aSource, lFromLine, lToLine), lColumns, lFromLine);
+  if Page > 0 then
+    lLines := Copy(lLines, lSkipRows, lRows);
   lDoc := TPDFDocument.Create(nil);
   try
     lDoc.Options := [poPageOriginAtTop, poSubsetFont, poCompressFonts, poCompressText];
@@ -315,7 +411,10 @@ begin
       end;
       Inc(lFirst, lRows);
     end;
-    lFileName := ChangeFileExt(ExtractFileName(SourceFile), '.pdf');
+    lFileName := ChangeFileExt(ExtractFileName(SourceFile), '');
+    if Page > 0 then
+      lFileName := Format('%s-%.3d', [lFileName, Page]);
+    lFileName := lFileName + '.pdf';
     lDoc.SaveToFile(lFileName);
     Writeln('Wrote ', lFileName, ' with ', lDoc.Pages.Count, ' pages');
   finally
@@ -328,5 +427,5 @@ begin
   ParseOptions;
   if Language = '' then
     Language := LanguageFromFileName(SourceFile);
-  RenderPDF(Highlight(Language, ReadSource(SourceFile)), FindFont(FontName));
+  RenderPDF(ReadSource(SourceFile), FindFont(FontName));
 end.

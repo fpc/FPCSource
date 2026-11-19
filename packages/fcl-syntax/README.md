@@ -559,6 +559,7 @@ and override only the class function `Describe`. Look at `syntax.lua.pp` or
   | `-f font`     | Font family name, or the name of a `.ttf` file. Use a monospace font. The default is `DejaVu Sans Mono`, or `Courier New` on Windows and macOS. |
   | `-s size`     | Font size in points. Default 10 for images and 9 for PDF. |
   | `-l language` | Language name, for example `python`. By default the program uses the file extension. |
+  | `--page=N`    | Write only page N: `source-007.png`, or `source-007.pdf` with one page. The program highlights only the lines on that page (see [Only some lines](#only-some-lines)). |
 
   Lines that are too long for the image or the page continue on the next
   line. Tabs are 8 characters wide. The programs find fonts with the font
