@@ -515,6 +515,7 @@ type
     FStreamingContentRead: Integer;
     FOnStreamEncodingEvent: TOnStreamEncodingEvent;
     FKeepUploadedFiles: Boolean;
+    FIsEarlyData: Boolean;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
     function GetRP(const AParam : String): String;
@@ -578,6 +579,8 @@ type
     Property Files : TUploadedFiles Read FFiles;
     // When False, the destructor deletes the local files of the uploaded files
     Property KeepUploadedFiles : Boolean Read FKeepUploadedFiles Write FKeepUploadedFiles;
+    // True when the request arrived as TLS early data (0-RTT)
+    Property IsEarlyData : Boolean Read FIsEarlyData Write FIsEarlyData;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
     Property OnStreamEncodingEvent: TOnStreamEncodingEvent read FOnStreamEncodingEvent write FOnStreamEncodingEvent;
