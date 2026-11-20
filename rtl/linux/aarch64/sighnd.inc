@@ -26,7 +26,13 @@ begin
   case sig of
     SIGFPE:
       begin
-        res:=207;
+        case SigInfo^.si_code of
+          FPE_FLTDIV: res:=208;  { floating point divide by zero }
+          FPE_FLTOVF: res:=205;  { floating point overflow }
+          FPE_FLTUND: res:=206;  { floating point underflow }
+          else
+            res:=207;            { invalid operation, inexact result or unknown }
+        end;
 {$ifdef SYSTEM_DEBUG}
         writeln('magic of FPSIMD_Context: $',hexstr(uContext^.uc_mcontext.FPSIMD_Context.head.magic,8));
         writeln('size of FPSIMD_Context: $',hexstr(uContext^.uc_mcontext.FPSIMD_Context.head.size,8));
