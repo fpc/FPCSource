@@ -60,6 +60,8 @@ Type
 
   TFPHTTPWebClient = Class(TAbstractWebClient)
   Protected
+    // Create the HTTP client used for one request.
+    Function CreateHTTPClient : TFPHTTPClient; virtual;
     Function DoCreateRequest(aIsAsync : Boolean; const aRequestID : String): TWebClientRequest; override;
     Function DoHTTPMethod(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse; override;
   end;
@@ -126,13 +128,19 @@ end;
 
 { TFPHTTPWebClient }
 
+function TFPHTTPWebClient.CreateHTTPClient: TFPHTTPClient;
+
+begin
+  Result:=TFPHTTPClient.Create(Self);
+end;
+
 function TFPHTTPWebClient.DoCreateRequest(aIsAsync: Boolean; const aRequestID: String): TWebClientRequest;
 
 Var
   C : TFPHTTPClient;
 
 begin
-  C:=TFPHTTPClient.Create(Self);
+  C:=CreateHTTPClient;
   C.RequestHeaders.NameValueSeparator:=':';
   C.ResponseHeaders.NameValueSeparator:=':';
 //  C.HTTPversion:='1.0';

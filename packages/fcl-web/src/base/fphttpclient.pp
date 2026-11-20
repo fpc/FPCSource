@@ -168,7 +168,6 @@ Type
     function GetCookies: TStrings;
     function GetCookieList: TCookies;
     function GetProxy: TProxyData;
-    Procedure ResetResponse;
     procedure SetConnectTimeout(AValue: Integer);
     Procedure SetCookies(const AValue: TStrings);
     Procedure SetCookieList(const AValue: TCookies);
@@ -184,6 +183,12 @@ Type
   protected
     // Return header value. aHeader is the header name, followed by a colon ':'
     function CheckHeader(const aHeader: string): string;
+    // Clear the status, headers and cookies of the previous response.
+    Procedure ResetResponse; virtual;
+    // Fill aHeaders with the request header lines (no request line), including authorization, host, content-length and cookies.
+    Procedure PrepareRequestHeaders(const AMethod: String; URI: TURI; aHeaders: TStrings); virtual;
+    // Add one response header line to ResponseHeaders, handling Set-Cookie.
+    Procedure AddResponseHeader(const aLine: String); virtual;
     // Event stream handling:
     function CreateEventSource(aSocket: TSocketStream; const aBuffer: AnsiString): TCustomHTTPEventSource; virtual;
     // transfers socket to event stream handler.
@@ -924,7 +929,7 @@ begin
   Result := CompareText(GetHeader('Connection'), 'close') = 0;
 end;
 
-procedure TFPCustomHTTPClient.SendRequest(const AMethod: String; URI: TURI);
+procedure TFPCustomHTTPClient.PrepareRequestHeaders(const AMethod: String; URI: TURI; aHeaders: TStrings);
 
 Var
   PH,UN,PW,S,L : String;
@@ -932,7 +937,6 @@ Var
   AddContentLength : Boolean;
 
 begin
-  S:=Uppercase(AMethod)+' '+GetServerURL(URI)+' '+'HTTP/'+FHTTPVersion+CRLF;
   UN:=URI.Username;
   PW:=URI.Password;
   if (UserName<>'') then
@@ -942,7 +946,7 @@ begin
     end;
   If (UN<>'') then
     begin
-    S:=S+'Authorization: Basic ' + EncodeStringBase64(UN+':'+PW)+CRLF;
+    aHeaders.Add('Authorization: Basic ' + EncodeStringBase64(UN+':'+PW));
     I:=IndexOfHeader('Authorization');
     If I<>-1 then
       RequestHeaders.Delete(i);
@@ -951,14 +955,14 @@ begin
     begin
     PH:=FProxy.GetProxyHeaders;
     if (PH<>'') then
-      S:=S+PH+CRLF;
+      aHeaders.Add(PH);
     end;
   if IndexOfHeader('Host')=-1 then
     begin
-    S:=S+'Host: '+URI.Host;
+    S:='Host: '+URI.Host;
     If (URI.Port<>0) then
       S:=S+':'+IntToStr(URI.Port);
-    S:=S+CRLF;
+    aHeaders.Add(S);
     end;
   AddContentLength:=Assigned(RequestBody) and (IndexOfHeader('Content-Length')=-1);
   If AddContentLength then
@@ -968,7 +972,7 @@ begin
     begin
     l:=FRequestHeaders[i];
     If AllowHeader(L) then
-      S:=S+L+CRLF;
+      aHeaders.Add(L);
     end;
   If AddContentLength then
     FRequestHeaders.Delete(FRequestHeaders.IndexOfName('Content-Length'));
@@ -990,17 +994,36 @@ begin
     begin
     L:='Cookie: '+L;
     if AllowHeader(L) then
-      S:=S+L+CRLF;
+      aHeaders.Add(L);
     end;
   FreeAndNil(FSentCookies);
   FSentCookies:=FCookies;
   FCookies:=Nil;
-  S:=S+CRLF;
   if Assigned(FRequestBody) then
     FRequestContentLength:=FRequestBody.Size
   else
     FRequestContentLength:=0;
   FRequestDataWritten:=0;
+end;
+
+procedure TFPCustomHTTPClient.SendRequest(const AMethod: String; URI: TURI);
+
+Var
+  S : String;
+  I : Integer;
+  lHeaders : TStrings;
+
+begin
+  S:=Uppercase(AMethod)+' '+GetServerURL(URI)+' '+'HTTP/'+FHTTPVersion+CRLF;
+  lHeaders:=TStringList.Create;
+  try
+    PrepareRequestHeaders(AMethod,URI,lHeaders);
+    For I:=0 to lHeaders.Count-1 do
+      S:=S+lHeaders[I]+CRLF;
+  finally
+    lHeaders.Free;
+  end;
+  S:=S+CRLF;
   if not Terminated and not WriteString(S) then
     raise EHTTPClientSocketWrite.Create(SErrWritingSocket);
   if not Terminated and Assigned(FRequestBody) and not WriteRequestBody then
@@ -1182,7 +1205,7 @@ begin
   FResponseStatusText:=AStatusLine;
 end;
 
-function TFPCustomHTTPClient.ReadResponseHeaders: integer;
+procedure TFPCustomHTTPClient.AddResponseHeader(const aLine: String);
 
   Procedure DoCookies(S : String);
 
@@ -1208,6 +1231,19 @@ function TFPCustomHTTPClient.ReadResponseHeaders: integer;
 Const
   SetCookie = 'set-cookie';
 
+begin
+  if (MaxHeaderCount>0) and (ResponseHeaders.Count>MaxHeaderCount) then
+    raise EHTTPClient.CreateFmt(SErrResponseTooManyHeaders, [MaxHeaderCount]);
+  ResponseHeaders.Add(aLine);
+  If StartsText(SetCookie,aLine) then
+    begin
+    DoCookies(aLine);
+    ResponseCookies.AddFromString(aLine);
+    end;
+end;
+
+function TFPCustomHTTPClient.ReadResponseHeaders: integer;
+
 Var
   StatusLine,S : String;
 
@@ -1219,16 +1255,7 @@ begin
   Result:=ParseStatusLine(StatusLine);
   Repeat
     if ReadString(S) and (S<>'') then
-      begin
-      if (MaxHeaderCount>0) and (ResponseHeaders.Count>MaxHeaderCount) then
-        raise EHTTPClient.CreateFmt(SErrResponseTooManyHeaders, [MaxHeaderCount]);
-      ResponseHeaders.Add(S);
-      If StartsText(SetCookie,S) then
-        begin
-        DoCookies(S);
-        ResponseCookies.AddFromString(S);
-        end;
-      end
+      AddResponseHeader(S);
   Until (S='') or Terminated;
 end;
 
