@@ -100,9 +100,6 @@ function H2HeadersFromHTTPRequest(aRequest: TRequest; out aBody: TBytes): THPack
 
 implementation
 
-type
-  TServerCracker = class(TFPCustomHttpServer);
-
 // True for the response headers HTTP/2 forbids
 function IsForbiddenResponseHeader(const aLowerName: string): Boolean;
 begin
@@ -389,7 +386,7 @@ begin
     Resp := TH2Response.CreateH2(Req, aConn, aStreamID);
     try
       // Reuse the existing, unmodified pipeline
-      TServerCracker(FServer).HandleRequest(Req, Resp);
+      FServer.HandleRequest(Req, Resp);
       // Ensure the response is flushed even if the handler did not send it
       if not Resp.ContentSent then
         Resp.SendContent;

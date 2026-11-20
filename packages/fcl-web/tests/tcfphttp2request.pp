@@ -648,7 +648,7 @@ procedure TTestHTTP2Request.TestEndToEndDispatchThroughServer;
 var
   Dup, Dup2: TDuplexStream;
   Conn, Conn2: TH2Connection;
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Dispatcher: TH2Dispatcher;
   List: THPackHeaderTextList;
   Body: TBytes;
@@ -664,7 +664,7 @@ begin
     Dup := TDuplexStream.Create(Concat(ValidClientInput,
       Concat(HeadersFrameBytes(1, EncodeBlock(List)),
              DataFrameBytes(1, Body, H2_FLAG_END_STREAM))));
-    Server := TFPCustomHttpServer.Create(nil);
+    Server := TFPHttpServer.Create(nil);
     Dispatcher := TH2Dispatcher.Create(Server);
     try
       Server.OnRequest := @HandleTestRequest;
@@ -1098,7 +1098,7 @@ procedure TTestHTTP2Request.TestMalformedRequestRSTStreamNotDispatched;
 var
   Dup: TDuplexStream;
   Conn: TH2Connection;
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Dispatcher: TH2Dispatcher;
   List: THPackHeaderTextList;
   Outp: TBytesStream;
@@ -1110,7 +1110,7 @@ begin
   try
     Dup := TDuplexStream.Create(Concat(ValidClientInput,
       HeadersFrameBytes(1, EncodeBlock(List), H2_FLAG_END_STREAM)));
-    Server := TFPCustomHttpServer.Create(nil);
+    Server := TFPHttpServer.Create(nil);
     Dispatcher := TH2Dispatcher.Create(Server);
     try
       Server.OnRequest := @HandleTestRequest;

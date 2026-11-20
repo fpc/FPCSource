@@ -527,14 +527,14 @@ end;
 
 procedure TTestHTTP2Handler.TestEndToEndDispatchThroughAdoptConnection;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Outp: TBytesStream;
   H: TH2FrameHeader;
   Frag: TBytes;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Dup := TDuplexStream.Create(Concat(ValidClientInput, GetRequestFrame('/index')));
   try
@@ -575,14 +575,14 @@ end;
 
 procedure TTestHTTP2Handler.TestSeedBytesAreHonored;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Outp: TBytesStream;
   H: TH2FrameHeader;
   Frag: TBytes;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   // Preface in the seed; SETTINGS + HEADERS on the transport.
   Dup := TDuplexStream.Create(Concat(ClientSettings, GetRequestFrame('/seeded')));
@@ -626,7 +626,7 @@ end;
 
 procedure TTestHTTP2Handler.TestPriorKnowledgeReconstruction;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Outp: TBytesStream;
@@ -634,7 +634,7 @@ var
   Frag: TBytes;
   Preface, ConsumedHead, PrefaceTail, TransportInput: TBytes;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Preface := ClientPreface;
   // Split exactly where ReadRequestHeaders leaves off: bytes 0..17 are the
@@ -679,11 +679,11 @@ end;
 
 procedure TTestHTTP2Handler.TestConnectionRegisteredThenRemoved;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Dup := TDuplexStream.Create(Concat(ValidClientInput, GetRequestFrame('/index')));
   try
@@ -750,11 +750,11 @@ end;
 
 procedure TTestHTTP2Handler.TestSetThreadModeWhileActiveRaises;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Raised: Boolean;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   try
     Handler.WebServer := Server;
@@ -777,12 +777,12 @@ end;
 
 procedure TTestHTTP2Handler.TestSetWebServerWhileActiveRaises;
 var
-  Server, Server2: TFPCustomHttpServer;
+  Server, Server2: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Raised: Boolean;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
-  Server2 := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
+  Server2 := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   try
     Handler.WebServer := Server;
@@ -812,11 +812,11 @@ end;
 
 procedure TTestHTTP2Handler.TestInlineDeactivateAfterFiniteAdopt;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Dup := TDuplexStream.Create(Concat(ValidClientInput, GetRequestFrame('/x')));
   try
@@ -850,11 +850,11 @@ end;
 
 procedure TTestHTTP2Handler.TestThreadModeDeterministicJoinNoLeak;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TTestableH2Handler;
   Mock: TBlockingDuplexStream;
 begin
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TTestableH2Handler.Create(nil);
   Mock := TBlockingDuplexStream.Create(ValidClientInput);
   try
@@ -1143,7 +1143,7 @@ end;
 
 procedure TTestHTTP2Handler.TestH2CUpgradeDispatchEndToEnd;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Req: TFPHTTPConnectionRequest;
@@ -1156,7 +1156,7 @@ begin
   Settings[0].Identifier := H2_SETTINGS_INITIAL_WINDOW_SIZE;
   Settings[0].Value := 65535;
 
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Req := H2CRequest('h2c', B64(SettingsPayload(Settings), True), True);
   Req.Method := 'GET';
@@ -1212,7 +1212,7 @@ end;
 
 procedure TTestHTTP2Handler.TestH2CUpgradeHeaderCleaning;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Req: TFPHTTPConnectionRequest;
@@ -1222,7 +1222,7 @@ begin
   Settings[0].Identifier := H2_SETTINGS_INITIAL_WINDOW_SIZE;
   Settings[0].Value := 65535;
 
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   // H2CRequest sets Upgrade:=h2c and the HTTP2-Settings header; add a mixed-case
   // custom header and a Connection header - all upgrade machinery must NOT survive.
@@ -1264,7 +1264,7 @@ procedure TTestHTTP2Handler.TestH2CUpgradePostBodyBecomesStream1Body;
 const
   BodyText = 'the-request-body-bytes';
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
   Dup: TDuplexStream;
   Req: TFPHTTPConnectionRequest;
@@ -1274,7 +1274,7 @@ begin
   Settings[0].Identifier := H2_SETTINGS_INITIAL_WINDOW_SIZE;
   Settings[0].Value := 65535;
 
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   Req := H2CRequest('h2c', B64(SettingsPayload(Settings), True), True);
   Req.Method := 'POST';
@@ -1313,12 +1313,12 @@ end;
 
 procedure TTestHTTP2Handler.TestNegotiatedProtocolEmptyWithoutSSL;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Conn: TFPHTTPConnection;
 begin
   // AC#2: a cleartext / non-OpenSSL connection (here: no socket handler at all)
   // reports '' - it never appears to have negotiated h2 (NFR3).
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Conn := TFPHTTPConnection.Create(Server, nil);
   try
     AssertEquals('no SSL handler => NegotiatedProtocol is empty', '', Conn.NegotiatedProtocol);
@@ -1375,12 +1375,12 @@ end;
 
 procedure TTestHTTP2Handler.TestActivateAdvertisesALPNAndRestores;
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
 begin
   // AC#1: an empty ALPN list is set to 'h2,http/1.1' on activate, then restored to
   // its pre-activation (empty) value on deactivate - byte-for-byte clean (NFR1).
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   try
     AssertEquals('ALPN list starts empty', '', Server.CertificateData.ALPNProtocols);
@@ -1402,12 +1402,12 @@ procedure TTestHTTP2Handler.TestActivateHonorsUserALPNList;
 const
   UserList = 'h2,http/1.1,myproto';
 var
-  Server: TFPCustomHttpServer;
+  Server: TFPHttpServer;
   Handler: TFPHTTP2Handler;
 begin
   // AC#1: a user-supplied (non-empty) ALPN list is NOT clobbered on activate and is
   // restored verbatim on deactivate.
-  Server := TFPCustomHttpServer.Create(nil);
+  Server := TFPHttpServer.Create(nil);
   Handler := TFPHTTP2Handler.Create(nil);
   try
     Server.CertificateData.ALPNProtocols := UserList;

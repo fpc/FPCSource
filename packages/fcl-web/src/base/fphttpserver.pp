@@ -478,9 +478,6 @@ Type
     procedure StopServerSocket; virtual;
     // free server socket instance
     Procedure FreeServerSocket; virtual;
-    // Handle request. This calls OnRequest. It can be overridden by descendants to provide standard handling.
-    procedure HandleRequest(Var ARequest: TFPHTTPConnectionRequest;
-                            Var AResponse : TFPHTTPConnectionResponse); virtual;
     // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     // Called when a connection encounters an error outside the request. Will call OnUnexpectedError when set.
@@ -506,6 +503,9 @@ Type
     class constructor init;
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
+    // Handle request. This calls OnRequest. It can be overridden by descendants to provide standard handling.
+    procedure HandleRequest(Var ARequest: TFPHTTPConnectionRequest;
+                            Var AResponse : TFPHTTPConnectionResponse); virtual;
     Function RegisterUpdateHandler(Const aName : string; const OnCheck : THandlesUpgradeEvent; const OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
     Procedure UnRegisterUpdateHandler(Const aName : string);
     // Register the HTTP/2 prior-knowledge adopt callback. Additive, callback-based
