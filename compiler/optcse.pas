@@ -51,7 +51,7 @@ unit optcse;
       systems,
       cutils,cclasses,
       nutils,compinnr,
-      nbas,nld,ninl,ncal,nadd,nmem,ncnv,
+      nbas,ncon,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
       procinfo,
       paramgr,
@@ -101,9 +101,120 @@ unit optcse;
         equalto : tfplist;
         refs : tfplist;
         avail : TDFASet;
+        { hash based lookup of the entries of nodelist: all entries with the same
+          hash value modulo the bucket count are chained in ascending order, so
+          the first match found is the first occurrence of an expression }
+        hashes : array of longword;
+        nextinbucket : array of longint;
+        bucketfirst,
+        bucketlast : array of longint;
+        bucketmask : longword;
+        { memoizes the hash value of each node of the current cse domain }
+        hashmemo : THashSet;
       end;
 
       plists = ^tlists;
+
+
+    { returns true if the operands of n might be swapped without changing the value of n,
+      this is only valid inside a cse domain, i.e. if the operands have no side effects }
+    function is_commutative_for_cse(n : tnode) : boolean;
+      begin
+        result:=false;
+        case n.nodetype of
+          equaln,unequaln:
+            result:=true;
+          { string or dyn. array concatenation is not commutative, so check the result type }
+          addn,muln,symdifn,xorn:
+            result:=n.resultdef.typ in [orddef,floatdef,setdef];
+          andn,orn:
+            { do not swap the operands of short boolean evaluated expressions: even if the
+              operands have no side effects, the right one might fault if the left one
+              is not evaluated first, consider (p<>nil) and (p^.x>0) }
+            result:=(n.resultdef.typ in [orddef,setdef]) and
+              not(is_boolean(n.resultdef) and doshortbooleval(n));
+          else
+            ;
+        end;
+      end;
+
+
+    { tbinopnode.docompare takes care of swapped operands if tnf_swapable is set, so
+      set it for all commutative nodes of a cse domain before searching for common
+      sub-expressions and remove it afterwards }
+    function markswapable(var n:tnode; arg: pointer) : foreachnoderesult;
+      begin
+        result:=fen_true;
+        if is_commutative_for_cse(n) then
+          include(n.transientflags,tnf_swapable);
+      end;
+
+
+    function csehashmix(h,v : longword) : longword;inline;
+      begin
+        { FNV-1a like mixing }
+        result:=longword((h xor v)*16777619);
+      end;
+
+
+    function csehashptr(p : pointer) : longword;inline;
+      begin
+        { the lower bits of heap pointers are typically zero }
+        result:=longword(PtrUInt(p) shr 4);
+      end;
+
+
+    { calculates a structural hash value of n: if n.isequal(m) is true, csehash(n)=csehash(m)
+      must hold, so only properties compared by the docompare methods might be used }
+    function csehash(n : tnode;memo : THashSet) : longword;
+      var
+        item : PHashSetItem;
+        hl,hr : longword;
+      begin
+        if not(assigned(n)) then
+          begin
+            result:=0;
+            exit;
+          end;
+        item:=memo.Find(@n,sizeof(n));
+        if assigned(item) then
+          begin
+            result:=longword(PtrUInt(item^.Data));
+            exit;
+          end;
+        result:=csehashmix(2166136261,ord(n.nodetype));
+        case n.nodetype of
+          loadn:
+            result:=csehashmix(result,csehashptr(tloadnode(n).symtableentry));
+          subscriptn:
+            result:=csehashmix(result,csehashptr(tsubscriptnode(n).vs));
+          temprefn:
+            result:=csehashmix(result,csehashptr(ttemprefnode(n).tempinfo));
+          ordconstn:
+            result:=csehashmix(result,longword(tordconstnode(n).value.uvalue));
+          inlinen:
+            result:=csehashmix(result,ord(tinlinenode(n).inlinenumber));
+          typeconvn:
+            result:=csehashmix(result,ord(ttypeconvnode(n).convtype));
+          else
+            ;
+        end;
+        if n.inheritsfrom(tbinarynode) then
+          begin
+            hl:=csehash(tbinarynode(n).left,memo);
+            hr:=csehash(tbinarynode(n).right,memo);
+            { for swapable nodes, the hash value must not depend on the order of the operands }
+            if tnf_swapable in n.transientflags then
+              result:=csehashmix(result,dword((hl+hr) xor (hl*hr)))
+            else
+              result:=csehashmix(csehashmix(result,hl),hr);
+            if n.inheritsfrom(ttertiarynode) then
+              result:=csehashmix(result,csehash(ttertiarynode(n).third,memo));
+          end
+        else if n.inheritsfrom(tunarynode) then
+          result:=csehashmix(result,csehash(tunarynode(n).left,memo));
+        memo.FindOrAdd(@n,sizeof(n))^.Data:=TObject(PtrUInt(result));
+      end;
 
     { collectnodes needs the address of itself to call foreachnodestatic,
       so we need a wrapper because @<func> inside <func doesn't work }
@@ -175,7 +286,8 @@ unit optcse;
         end;
 
       var
-        i : longint;
+        i,newindex : longint;
+        hash,bucket : longword;
         tempdef : tdef;
       begin
         result:=fen_false;
@@ -281,17 +393,29 @@ unit optcse;
             plists(arg)^.refs.Add(nil);
             plists(arg)^.equalto.Add(pointer(-1));
 
-            DynSetInclude(plists(arg)^.avail,plists(arg)^.nodelist.count-1);
+            newindex:=plists(arg)^.nodelist.count-1;
+            DynSetInclude(plists(arg)^.avail,newindex);
 
-            for i:=0 to plists(arg)^.nodelist.count-2 do
+            if newindex>high(plists(arg)^.hashes) then
               begin
-                if tnode(plists(arg)^.nodelist[i]).isequal(n) and DynSetIn(plists(arg)^.avail,i) then
+                SetLength(plists(arg)^.hashes,length(plists(arg)^.hashes)*2+16);
+                SetLength(plists(arg)^.nextinbucket,length(plists(arg)^.hashes));
+              end;
+            hash:=csehash(n,plists(arg)^.hashmemo);
+            bucket:=hash and plists(arg)^.bucketmask;
+
+            { search the first available occurrence of n }
+            i:=plists(arg)^.bucketfirst[bucket];
+            while i<>-1 do
+              begin
+                if (plists(arg)^.hashes[i]=hash) and DynSetIn(plists(arg)^.avail,i) and
+                  tnode(plists(arg)^.nodelist[i]).isequal(n) then
                   begin
                     { use always the first occurrence }
                     if plists(arg)^.equalto[i]<>pointer(-1) then
-                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=plists(arg)^.equalto[i]
+                      plists(arg)^.equalto[newindex]:=plists(arg)^.equalto[i]
                     else
-                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(ptrint(i));
+                      plists(arg)^.equalto[newindex]:=pointer(ptrint(i));
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
                     { tree has been found, no need to search further,
                       sub-trees have been added by the first occurrence of
@@ -299,7 +423,17 @@ unit optcse;
                     result:=fen_norecurse_false;
                     break;
                   end;
+                i:=plists(arg)^.nextinbucket[i];
               end;
+
+            { append the new entry to its bucket }
+            plists(arg)^.hashes[newindex]:=hash;
+            plists(arg)^.nextinbucket[newindex]:=-1;
+            if plists(arg)^.bucketlast[bucket]=-1 then
+              plists(arg)^.bucketfirst[bucket]:=newindex
+            else
+              plists(arg)^.nextinbucket[plists(arg)^.bucketlast[bucket]]:=newindex;
+            plists(arg)^.bucketlast[bucket]:=newindex;
           end;
 
         { boolean and/or require a special handling: after evaluating the and/or node,
@@ -347,6 +481,8 @@ unit optcse;
         hp : ttempcreatenode;
         addrstored : boolean;
         hp2 : tnode;
+        domainsize,
+        bucketcount : longword;
       begin
         result:=fen_false;
         nodes:=nil;
@@ -460,7 +596,27 @@ unit optcse;
                 lists.locationlist:=tfplist.create;
                 lists.equalto:=tfplist.create;
                 lists.refs:=tfplist.create;
+
+                { the swapable flags influence the hash values, so set them first }
+                foreachnodestatic(pm_postprocess,n,@markswapable,nil);
+
+                domainsize:=node_count(n);
+                bucketcount:=16;
+                while bucketcount<domainsize do
+                  bucketcount:=bucketcount*2;
+                SetLength(lists.bucketfirst,bucketcount);
+                SetLength(lists.bucketlast,bucketcount);
+                for i:=0 to bucketcount-1 do
+                  begin
+                    lists.bucketfirst[i]:=-1;
+                    lists.bucketlast[i]:=-1;
+                  end;
+                lists.bucketmask:=bucketcount-1;
+                lists.hashmemo:=THashSet.Create(domainsize,true,false);
+
                 foreachnodestatic(pm_postprocess,n,@collectnodes,@lists);
+
+                FreeAndNil(lists.hashmemo);
 
                 templist:=tfplist.create;
                 templist.count:=lists.nodelist.count;
@@ -592,6 +748,8 @@ unit optcse;
                     printnode(output,nodes);
 {$endif csedebug}
                   end;
+
+                node_reset_flags(n,[],[tnf_swapable]);
               end
           end;
       end;
