@@ -25,6 +25,7 @@ uses
   utc.opf.manager, utc.opf.fields, utc.opf.connections, utc.opf.registry,
   utc.opf.sql, utc.opf.ddl, utc.opf.task,
   utc.opf.json,
+  utc.opf.mapping.json,
   utc.opf.listreg,
   utc.opf.executor,
   utc.opf.failconn,

@@ -69,6 +69,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="utc.opf.mapping.json.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="utc.opf.listreg.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>

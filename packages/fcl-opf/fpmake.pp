@@ -315,6 +315,17 @@ begin
       AddUnit('opf.fieldvalue');
       end;
 
+    T:=P.Targets.AddUnit('opf.mapping.json.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('opf.types');
+      AddUnit('opf.fields');
+      AddUnit('opf.registry');
+      AddUnit('opf.relations');
+      AddUnit('opf.m2m');
+      end;
+
     T:=P.Targets.AddUnit('opf.linq.pp');
     with T.Dependencies do
       begin

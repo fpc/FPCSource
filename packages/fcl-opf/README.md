@@ -12,6 +12,7 @@ no framework patterns to adopt.
 - **Zero-config CRUD** — Register a class, get Save, Load, Update, Delete with automatic SQL generation
 - **Convention-based mapping** — Published properties map to columns by name; class name (minus `T` prefix) maps to table name
 - **Explicit field mapping** — Override any convention with per-class field map customization
+- **JSON mapping files** — Opt-in unit `Opf.Mapping.Json`: `SaveMapping` writes the mapping of all registered classes (table, columns, options, sizes, sequences, defaults, primary key constraint, indexes, relations, many-to-many links) to a JSON file; edit it and `LoadMapping` applies it on top of the default mapping. Works on FPC 3.2.2, where there are no attributes. See [JSON mapping files](#json-mapping-files)
 - **Interface-driven persisters** — Maximum performance path with no RTTI overhead
 - **Custom SQL** — `LoadSQL` lets you write SQL while the ORM maps result sets to objects
 - **List loading** — Load collections of objects matching query criteria
@@ -88,7 +89,7 @@ Any `TSQLConnection` descendant works — the framework auto-detects the dialect
 
 - **Transactions** — Implicit per-operation wrapping with explicit `BeginTransaction` / `Commit` / `Rollback` for multi-operation scenarios. When the database rolls back, objects get back what the manager wrote into them (generated key, version, audit fields, soft-delete flag, persistence state): at once for the objects of a failed `Save`/`Delete`/list save, and at the outermost `Rollback` for objects that report being freed (`IFPObserved`, e.g. any `TPersistent`). A connection whose own transaction is already active is refused (`ActiveTransactionPolicy = atpRaise`, the default) or used as it is (`atpJoin`). There is no two-phase commit: when the commit fails on a second connection after the first one committed, `EOPFPartialCommit` is raised. It lists the committed connections (`CommittedConnections`), the one that failed (`FailedConnection`), those rolled back without a commit attempt (`NotCommittedConnections`) and the original error (`OriginalErrorClass`, `OriginalMessage`). `TOPManager.OnPartialCommit` is called before it is raised, e.g. to log or start compensating actions
 - **Multiple connections** — Named connection definitions with default designation and backend switching without code changes. An `IOPConnectionResolver` receives the class of the objects (`ResolveConnection(aClass)`) and can route classes to different connections. Connection definitions save passwords through the cipher also to streams, replace a file only when the new one is complete, keep params in a `[<name>.Params]` INI section (old files are still read), and apply `Port` and `Role` to the connection
-- **Error details** — `EOPF.ErrorCode`, `SQLState` and `OriginalClassName` carry the details of the database error that caused an exception (e.g. tell a unique violation from a deadlock). For PostgreSQL the SQLSTATE comes through `Opf.PQErrors`, part of the package; other handlers can be added with `OPFRegisterErrorDetailsHandler`
+- **Error details** — `EOPF.ErrorCode`, `SQLState` and `OriginalClassName` hold the details of the database error that caused an exception (e.g. tell a unique violation from a deadlock). For PostgreSQL the SQLSTATE comes through `Opf.PQErrors`, part of the package; other handlers can be added with `OPFRegisterErrorDetailsHandler`
 - **Threads** — The singletons (registries, builders, executor, logger, factory, serializer) are created safely when several threads ask for them at once. Registering classes and relations is not synchronised: finish it before other threads use the registries
 - **Extensibility** — Subclass `TOPManager`, `TOPRegistry`, or `TOPSQLBuilder`; replaceable singletons via `SetInstanceClass`
 - **Centralized logging** — `TOPLogger` with configurable log kinds (SQL, Trace, Info, Error)
@@ -153,6 +154,60 @@ begin
 end.
 ```
 
+## JSON mapping files
+
+`Opf.Mapping.Json` is not used by any other unit: a program that does not name it in a uses clause is not affected. The registry only offers a hook, `TOPRegistry.RegistrationListener`.
+
+Write the default mapping once, edit the file, and load it at startup:
+
+```pascal
+uses Opf.Mapping.Json;
+
+begin
+  // Classes are registered in initialization sections
+  if WriteMapping then
+    SaveMapping('mapping.json')
+  else
+    LoadMapping('mapping.json');
+end.
+```
+
+A class that cannot be registered yet, because it has no `ID` or `<Class>ID` property, can still be written. `SaveDefaultMapping` registers the classes in a private registry and puts `foInKey` on the first field of a class without a key:
+
+```pascal
+SaveDefaultMapping('mapping.json', [TCustomer, TOrder], TRTTIPersister);
+```
+
+A class entry lists only what differs from the default mapping; every key is optional:
+
+```json
+{
+  "version": 1,
+  "classes": {
+    "TPerson": {
+      "table": "PERSONS",
+      "pkConstraint": "PK_PERSONS",
+      "indexes": [ { "name": "IX_PERSON_NAME", "fields": ["LastName", "FirstName"] } ],
+      "fields": {
+        "PersonNr": { "column": "PERSON_NR", "options": ["foInKey", "foInSelect", "foInInsert"] },
+        "LastName": { "column": "LAST_NAME", "maxSize": 80, "default": "" },
+        "Notes":    { "skip": true }
+      },
+      "relations": [ { "parent": "TDepartment", "foreignKey": "DepartmentID", "constraint": "FK_PERSON_DEPT", "dbCascade": false } ]
+    }
+  },
+  "manyToMany": [ { "classA": "TPerson", "classB": "TTag", "junctionTable": "PERSON_TAG", "foreignKeyA": "PERSON_ID", "foreignKeyB": "TAG_ID" } ]
+}
+```
+
+- `LoadMapping` applies the file to the classes that are already registered, and to classes registered later, through the registry hook. Call it before the manager loads or saves objects.
+- `LoadMapping(FileName, TRTTIPersister)` also registers the classes of the file that are not registered yet. They are found with `Classes.GetClass`, so they must be registered with `RegisterClass`. Such a definition has `AutoCreated` set: a later `RegisterPersister` for the same class replaces it instead of raising.
+- A key that is present replaces the value of the default mapping; `options` is always the complete set of options of the field. When a class entry puts `foInKey` on a field, the fields without an entry lose `foInKey`, so the file defines the whole primary key.
+- The `fields` of an index are property or column names; they are stored as column names. `foreignKey` is a column or property name. A relation or many-to-many link in the file replaces one registered in code; it is registered as soon as both classes are registered.
+- The last change wins: settings made in code after `RegisterPersister` returns override the file for classes registered after `LoadMapping`.
+- A field entry for a property that is not mapped, an unknown key or option, or a value of the wrong JSON type raises `EOPFMapping`. Class names may be written as `UnitName.ClassName`.
+- `TOPJSONMapping` does the same for a registry other than the global one (`Registry` and `M2MRegistry` properties).
+
 ## Building
 
 ### With FPC (command line)
@@ -186,7 +241,7 @@ A project group file `fcl_opf.lpg` is provided that references both packages and
 
 ## Examples
 
-The `demos/` directory contains 38 self-contained example applications:
+The `demos/` directory contains 39 self-contained example applications:
 
 | Demo | Description |
 |------|-------------|
@@ -203,6 +258,7 @@ The `demos/` directory contains 38 self-contained example applications:
 | `custom_persister/` | Custom persister class implementation |
 | `interface/` | Interface-driven persister (no RTTI) |
 | `json_blob/` | Class-typed properties stored as JSON columns |
+| `json_mapping/` | Table and column mapping from a JSON file, for FPC 3.2.2 |
 | `nullable/` | Three levels of nullable field support |
 | `dirty_implicit/` | Dirty tracking with global snapshot manager in implicit mode (all classes tracked) |
 | `dirty_explicit/` | Dirty tracking with global snapshot manager in explicit mode (only registered classes) |

@@ -16,6 +16,7 @@
 unit Opf.Registry;
 
 {$mode objfpc}{$H+}
+{$INTERFACES CORBA}
 
 interface
 
@@ -57,6 +58,17 @@ Type
   end;
   TOPPersisterClass = Class of TOPPersister;
 
+  { IOPRegistrationListener }
+
+  // Receives the class definitions a registry creates with a persister class.
+  // An exception raised by either method undoes the registration.
+  IOPRegistrationListener = interface ['{6C2E7D0B-5A1F-4E86-9B3D-2F7A4C8E1D59}']
+    // Called when the field map is filled, before the primary key is resolved.
+    procedure ClassRegistering(aDef: TPersisterDef);
+    // Called when the definition and its attribute relations are complete.
+    procedure ClassRegistered(aDef: TPersisterDef);
+  end;
+
   { TPersisterDef }
 
   TPersisterDef = Class(TCollectionItem)
@@ -76,6 +88,7 @@ Type
     FPKConstraintName: UTF8String;
     FIndexes: TOPIndexDefArray;
     FConstructorCode: CodePointer;
+    FAutoCreated: Boolean;
     function GetOptions: TStrings;
     function GetTableName: UTF8String;
     procedure SetOptions(AValue: TStrings);
@@ -134,6 +147,8 @@ Type
     function RttiFactory(aClass: TClass; aContext: TOPFactoryContext): TObject;
     // The constructor used to create new objects of the class, if one was found.
     Property ConstructorCode : CodePointer Read FConstructorCode Write FConstructorCode;
+    // True if a later RegisterPersister for the same class replaces this definition instead of raising.
+    Property AutoCreated : Boolean Read FAutoCreated Write FAutoCreated;
   end;
 
   { TPersisterDefs }
@@ -158,6 +173,7 @@ Type
     FRelationRegistry : TComponent;
     FOwnsRelationRegistry : Boolean;
     FLock : TRTLCriticalSection;
+    FRegistrationListener : IOPRegistrationListener;
     function GetPersister(aIndex : Integer): TPersisterDef;
     function GetPersisterCount: Integer;
     function GetRelationRegistry: TComponent;
@@ -202,6 +218,8 @@ Type
     // The global registry uses the global relation registry; another registry
     // creates one of its own unless one is assigned.
     Property RelationRegistry : TComponent Read GetRelationRegistry Write SetRelationRegistry;
+    // Notified of every class registered with a persister class; Nil for none.
+    Property RegistrationListener : IOPRegistrationListener Read FRegistrationListener Write FRegistrationListener;
   end;
 
 Function OPRegistry : TOPRegistry;
@@ -444,10 +462,11 @@ end;
 function TOPRegistry.DoRegisterPersister(aInstanceClass: TClass; aPersisterClass: TOPPersisterClass): TPersisterDef;
 var
   Persister: TOPPersister;
+  lOldDef: TPersisterDef;
   {$IFNDEF VER3_2}
   DeferredRels: TOPDeferredRelationArray;
   HasAttrPK: Boolean;
-  I: Integer;
+  I, lRelIdx: Integer;
   DR: TOPDeferredRelation;
   ParentDef: TPersisterDef;
   RelDef: TOPRelationDef;
@@ -456,7 +475,8 @@ var
 begin
   if aInstanceClass=Nil then
     RaiseError('RegisterClass', SErrNeedClass);
-  if IndexOfPersister(aInstanceClass)<>-1 then
+  lOldDef:=FindPersister(aInstanceClass);
+  if (lOldDef<>Nil) and not lOldDef.AutoCreated then
     RaiseError('RegisterClass', SErrDuplicatePersister, [aInstanceClass.ClassName]);
   {$IFNDEF VER3_2}
   SetLength(DeferredRels, 0);
@@ -490,6 +510,8 @@ begin
       finally
         Persister.Free;
       end;
+      if Assigned(FRegistrationListener) then
+        FRegistrationListener.ClassRegistering(Result);
       if Result.FieldMap.Count>0 then
       begin
         {$IFNDEF VER3_2}
@@ -509,13 +531,26 @@ begin
       if ParentDef = nil then
         RaiseError('RegisterPersister', SErrParentNotRegistered,
           [DR.ParentClassName, aInstanceClass.ClassName]);
-      RelDef:=TOPRelationRegistry(RelationRegistry).RegisterRelationship(
-        ParentDef.InstanceClass, aInstanceClass, DR.FKFieldName, DR.DBCascade);
-      Added.Add(RelDef);
+      lRelIdx:=TOPRelationRegistry(RelationRegistry).IndexOfRelation(ParentDef.InstanceClass, aInstanceClass);
+      if (lOldDef<>Nil) and (lRelIdx<>-1) then
+      begin
+        // Registered for the auto-created definition
+        RelDef:=TOPRelationRegistry(RelationRegistry).Relations[lRelIdx];
+        RelDef.ForeignKeyFieldName:=DR.FKFieldName;
+        RelDef.DBCascade:=DR.DBCascade;
+      end
+      else
+      begin
+        RelDef:=TOPRelationRegistry(RelationRegistry).RegisterRelationship(
+          ParentDef.InstanceClass, aInstanceClass, DR.FKFieldName, DR.DBCascade);
+        Added.Add(RelDef);
+      end;
       // The foreign key name of the attribute names the constraint
       RelDef.ConstraintName:=DR.FKName;
     end;
     {$ENDIF}
+    if (aPersisterClass<>Nil) and Assigned(FRegistrationListener) then
+      FRegistrationListener.ClassRegistered(Result);
   except
     {$IFNDEF VER3_2}
     for I:=Added.Count-1 downto 0 do
@@ -531,6 +566,8 @@ begin
     Added.Free;
   end;
   {$ENDIF}
+  if lOldDef<>Nil then
+    lOldDef.Free;
   {$IFNDEF OPF_SKIP_LOGGING}
   if TOPLogger(GetLogger).IsKindActive(lkInfo) then
     TOPLogger(GetLogger).LogInfo(Self, 'Registered persister for class "%s" with %d fields', [aInstanceClass.ClassName, Result.FieldMap.Count]);
@@ -704,6 +741,7 @@ begin
     FUpdateSQL:=D.UpdateSQL;
     FTableName:=D.FTableName;
     FHasIOPPrimaryKey:=D.FHasIOPPrimaryKey;
+    FAutoCreated:=D.FAutoCreated;
     if Assigned(D.FFieldMap) then
       begin
       if FFieldMap=nil then

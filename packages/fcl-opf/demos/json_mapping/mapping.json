@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "classes": {
+    "TCustomer": {
+      "table": "CUSTOMERS",
+      "pkConstraint": "PK_CUSTOMERS",
+      "fields": {
+        "Code": { "column": "CUST_CODE", "options": ["foInKey", "foInSelect", "foInInsert"], "maxSize": 10 },
+        "Name": { "column": "CUST_NAME", "maxSize": 80 },
+        "Email": { "column": "E_MAIL", "maxSize": 120 },
+        "Notes": { "skip": true }
+      }
+    },
+    "TOrder": {
+      "table": "ORDERS",
+      "indexes": [ { "name": "IX_ORDERS_CUSTOMER", "fields": ["CustomerCode"] } ],
+      "fields": {
+        "ID": { "column": "ORDER_ID" },
+        "CustomerCode": { "column": "CUST_CODE", "maxSize": 10 },
+        "OrderDate": { "column": "ORDER_DATE" }
+      },
+      "relations": [ { "parent": "TCustomer", "foreignKey": "CustomerCode", "constraint": "FK_ORDERS_CUSTOMER" } ]
+    }
+  }
+}
