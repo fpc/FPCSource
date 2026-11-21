@@ -152,6 +152,14 @@ unit aoptx86;
         { Like UpdateUsedRegs, but ignores deallocations }
         class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
 
+{$ifdef x86_64}
+        { Returns true if the last instruction before p which writes to the
+          super register of Reg left the upper 32 bits of the 64-bit register
+          zero. Only straight-line code is searched and, under -O2, only the
+          instruction right before p }
+        function UpperRegBitsZeroBefore(p: tai; Reg: TRegister): Boolean;
+{$endif x86_64}
+
         { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
         class function IsBTXAcceptable(p : tai) : boolean; static;
 
@@ -1362,6 +1370,89 @@ unit aoptx86;
                 end;
           end;
       end;
+
+
+{$ifdef x86_64}
+    function TX86AsmOptimizer.UpperRegBitsZeroBefore(p: tai; Reg: TRegister): Boolean;
+      var
+        hp: tai;
+        Reg64: TRegister;
+        SupReg: TSuperRegister;
+        OperIdx, Written: Integer;
+      begin
+        Result := False;
+        SupReg := getsupreg(Reg);
+        Reg64 := newreg(R_INTREGISTER, SupReg, R_SUBQ);
+        hp := p;
+        while GetLastInstruction(hp, hp) and (hp.typ = ait_instruction) do
+          begin
+            if RegModifiedByInstruction(Reg64, hp) then
+              begin
+                with taicpu(hp) do
+                  case opcode of
+                    { The 32-bit forms do not write the destination
+                      (BSF/BSR with a zero source, CMPXCHG if the comparison
+                      fails) or might be encoded as NOP (XCHG %eax,%eax), so
+                      the upper 32 bits are not necessarily cleared }
+                    A_BSF, A_BSR, A_CMPXCHG, A_XCHG:
+                      Exit;
+                    A_MUL, A_DIV, A_IDIV, A_IMUL:
+                      if (ops = 1) then
+                        begin
+                          { Writes %edx:%eax implicitly }
+                          Result := (opsize = S_L) and (SupReg in [RS_EAX, RS_EDX]);
+                          Exit;
+                        end;
+                    A_SHR:
+                      if opsize = S_Q then
+                        begin
+                          Result := (ops = 2) and
+                            (oper[0]^.typ = top_const) and ((oper[0]^.val and 63) >= 32) and
+                            MatchOperand(oper[1]^, Reg64);
+                          Exit;
+                        end;
+                    A_MOV, A_AND:
+                      if opsize = S_Q then
+                        begin
+                          Result := (oper[0]^.typ = top_const) and
+                            (oper[0]^.val >= 0) and (oper[0]^.val <= $FFFFFFFF) and
+                            MatchOperand(oper[1]^, Reg64);
+                          Exit;
+                        end;
+                    A_MOVZX:
+                      if opsize in [S_BQ, S_WQ] then
+                        begin
+                          Result := MatchOperand(oper[1]^, Reg64);
+                          Exit;
+                        end;
+                    else
+                      ;
+                  end;
+
+                { Writing to a 32-bit register clears the upper 32 bits; the
+                  register must be written through an explicit operand and only
+                  as a 32-bit register }
+                Written := 0;
+                for OperIdx := 0 to taicpu(hp).ops - 1 do
+                  with taicpu(hp).oper[OperIdx]^ do
+                    if (typ = top_reg) and (getregtype(reg) = R_INTREGISTER) and
+                      (getsupreg(reg) = SupReg) and
+                      (taicpu(hp).spilling_get_operation_type(OperIdx) <> operand_read) then
+                      begin
+                        if getsubreg(reg) <> R_SUBD then
+                          Exit;
+                        Inc(Written);
+                      end;
+                Result := Written > 0;
+                Exit;
+              end;
+
+            { Under -O2, only look at the previous instruction }
+            if not (cs_opt_level3 in current_settings.optimizerswitches) then
+              Exit;
+          end;
+      end;
+{$endif x86_64}
 
 
     function TX86AsmOptimizer.FlagsReadOnlyUnsigned(p, cmpinstr: tai): Boolean;
@@ -17130,6 +17221,18 @@ unit aoptx86;
           (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
           not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
           begin
+{$ifdef x86_64}
+            if taicpu(p).opsize = S_L then
+              begin
+                if UpperRegBitsZeroBefore(p, ActiveReg) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'AND %reg,%reg proven unnecessary after backward search (And2Nop)', p);
+                    RemoveCurrentP(p, hp1);
+                    Result:=True;
+                  end;
+                Exit;
+              end;
+{$endif x86_64}
             hp2:=p;
             while GetLastInstruction(hp2, hp2) and
               (cs_opt_level3 in current_settings.optimizerswitches) and
@@ -18070,6 +18173,21 @@ unit aoptx86;
         Value: TCGInt;
       begin
         Result := False;
+{$ifdef x86_64}
+        { Instructions that already zero the upper 32 bits might only have
+          appeared before the AND after pass 1 (e.g. CMOV), so check again }
+        if (taicpu(p).opsize = S_L) and
+          MatchOpType(taicpu(p), top_reg, top_reg) and
+          (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
+          UpperRegBitsZeroBefore(p, taicpu(p).oper[1]^.reg) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'AND %reg,%reg proven unnecessary after backward search (And2Nop 2)', p);
+            RemoveCurrentP(p);
+            Result := True;
+            Exit;
+          end;
+{$endif x86_64}
         if MatchOpType(taicpu(p), top_const, top_reg) then
           begin
             { Detect:
