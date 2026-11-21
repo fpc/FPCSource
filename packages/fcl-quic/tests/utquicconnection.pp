@@ -92,6 +92,14 @@ type
     procedure TestMiscFrames;
     procedure TestLostMaxData;
     procedure TestHandshakeAckValidatesAddress;
+    procedure TestResetTokenOfUnusedCid;
+    procedure TestHugeIdleTimeout;
+    procedure TestIdleTimeoutFloor;
+    procedure TestEventException;
+    procedure TestAbort;
+    procedure TestAutomaticKeyUpdate;
+    procedure TestConfidentialityLimit;
+    procedure TestIntegrityLimit;
   end;
 
 implementation
@@ -1311,6 +1319,180 @@ begin
   SetLength(lFrame.AckRanges,1);
   Inject(True,qelHandshake,Encode([lFrame]));
   AssertTrue('Handshake ACK validates the client address',FNet.Client.Connection.Recovery.PeerAddressValidated);
+end;
+
+
+procedure TTestQuicConnection.TestResetTokenOfUnusedCid;
+
+const
+  UnusedToken = 'ffeeddccbbaa99887766554433221100';
+
+var
+  lFrame: TQuicFrame;
+
+begin
+  FNet.Handshake;
+  lFrame:=QuicFrame(QUIC_FRAME_NEW_CONNECTION_ID);
+  lFrame.SequenceNumber:=1;
+  lFrame.ConnectionId:=QuicHexToBytes('c1c2c3c4c5c6c7c8');
+  lFrame.ResetToken:=QuicHexToBytes(UnusedToken);
+  InjectFrames(True,[lFrame]);
+  FNet.Client.Connection.ReceiveDatagram(QuicHexToBytes('41aabbccddeeff00112233'+UnusedToken),FNet.Now);
+  AssertTrue('Token of an unused connection ID is no reset',FNet.Client.Connection.State=qcsEstablished);
+end;
+
+
+procedure TTestQuicConnection.TestHugeIdleTimeout;
+
+begin
+  FNet.ClientParams.MaxIdleTimeout:=QWord(1) shl 61;
+  FNet.ServerParams.MaxIdleTimeout:=QWord(1) shl 61;
+  FNet.Handshake;
+  FNet.Run;
+  AssertTrue('Client idle timer does not wrap',FNet.Client.Connection.NextTimeout>FNet.Now);
+  AssertTrue('Server idle timer does not wrap',FNet.Server.Connection.NextTimeout>FNet.Now);
+end;
+
+
+procedure TTestQuicConnection.TestIdleTimeoutFloor;
+
+var
+  lStart, lMinimum: QWord;
+
+begin
+  FNet.ServerParams.MaxIdleTimeout:=1;
+  FNet.Handshake;
+  lStart:=FNet.Now;
+  lMinimum:=3*FNet.Server.Connection.Recovery.PtoDuration;
+  FNet.Server.Connection.HandleTimeout(lStart+2000);
+  AssertTrue('Open after the 1 ms idle timeout',FNet.Server.Connection.State=qcsEstablished);
+  FNet.Server.Connection.HandleTimeout(lStart+lMinimum+1000);
+  AssertTrue('Closed after three probe timeouts',FNet.Server.Connection.State=qcsClosed);
+  AssertEquals('Reason','Idle timeout',FNet.Server.Connection.CloseReason);
+end;
+
+
+procedure TTestQuicConnection.TestEventException;
+
+begin
+  FNet.Client.FailOnTicket:=True;
+  FNet.Handshake;
+  FNet.Run;
+  ExpectClose(FNet.Client.Connection,QUIC_INTERNAL_ERROR);
+  AssertEquals('Reason','Ticket store failed',FNet.Client.Connection.CloseReason);
+end;
+
+
+procedure TTestQuicConnection.TestAbort;
+
+var
+  lData: TBytes;
+
+begin
+  FNet.Handshake;
+  FNet.Client.Connection.Abort('gone');
+  AssertTrue('Closed',FNet.Client.Connection.State=qcsClosed);
+  AssertEquals('Error code',QUIC_INTERNAL_ERROR,FNet.Client.Connection.CloseErrorCode);
+  AssertEquals('Reason','gone',FNet.Client.Connection.CloseReason);
+  AssertEquals('Close event',1,FNet.Client.CloseEvents);
+  FNet.Client.Connection.Abort('again');
+  AssertEquals('First reason kept','gone',FNet.Client.Connection.CloseReason);
+  AssertEquals('One close event',1,FNet.Client.CloseEvents);
+  AssertFalse('Nothing sent',FNet.Client.Connection.NextDatagram(FNet.Now,lData));
+end;
+
+
+procedure TTestQuicConnection.TestAutomaticKeyUpdate;
+
+var
+  lSaved: TQuicAeadLimits;
+  lSuite: TQuicCipherSuite;
+  lId, lServerId: QWord;
+  lPhase: Boolean;
+  lUpdates, I: Integer;
+
+begin
+  lSaved:=QuicConfidentialityLimit;
+  try
+    for lSuite:=Low(TQuicCipherSuite) to High(TQuicCipherSuite) do
+      QuicConfidentialityLimit[lSuite]:=16;
+    FNet.Handshake;
+    FNet.Client.Connection.OpenStream(True,lId);
+    lPhase:=FNet.Client.Connection.KeyPhase;
+    lUpdates:=0;
+    for I:=1 to 40 do
+      begin
+      WriteString(FNet.Client.Connection,lId,'x',False);
+      FNet.Run;
+      if FNet.Client.Connection.KeyPhase<>lPhase then
+        begin
+        lPhase:=not lPhase;
+        Inc(lUpdates);
+        end;
+      end;
+    AssertTrue('Keys updated more than once',lUpdates>=2);
+    AssertTrue('Client established',FNet.Client.Connection.State=qcsEstablished);
+    AssertTrue('Server stream',FNet.Server.Connection.AcceptStream(lServerId));
+    AssertEquals('Data across the updates',StringOfChar('x',40),ReadAll(FNet.Server.Connection,lServerId));
+  finally
+    QuicConfidentialityLimit:=lSaved;
+  end;
+end;
+
+
+procedure TTestQuicConnection.TestConfidentialityLimit;
+
+var
+  lSaved: TQuicAeadLimits;
+  lSuite: TQuicCipherSuite;
+  lId: QWord;
+  lData: TBytes;
+  I: Integer;
+
+begin
+  lSaved:=QuicConfidentialityLimit;
+  try
+    for lSuite:=Low(TQuicCipherSuite) to High(TQuicCipherSuite) do
+      QuicConfidentialityLimit[lSuite]:=8;
+    FNet.Handshake;
+    FNet.Client.Connection.OpenStream(True,lId);
+    for I:=1 to 30 do
+      if FNet.Client.Connection.WriteStream(lId,QuicHexToBytes('78'),False) then
+        FNet.Client.Connection.NextDatagram(FNet.Now,lData);
+    ExpectClose(FNet.Client.Connection,QUIC_AEAD_LIMIT_REACHED);
+  finally
+    QuicConfidentialityLimit:=lSaved;
+  end;
+end;
+
+
+procedure TTestQuicConnection.TestIntegrityLimit;
+
+var
+  lSaved: TQuicAeadLimits;
+  lSuite: TQuicCipherSuite;
+  lId: QWord;
+  lBad: TBytes;
+
+begin
+  lSaved:=QuicIntegrityLimit;
+  try
+    for lSuite:=Low(TQuicCipherSuite) to High(TQuicCipherSuite) do
+      QuicIntegrityLimit[lSuite]:=2;
+    FNet.Handshake;
+    FNet.Client.Connection.OpenStream(True,lId);
+    WriteString(FNet.Client.Connection,lId,'x',False);
+    FCapture:=True;
+    FNet.Step;
+    lBad:=Copy(FCaptured);
+    lBad[High(lBad)]:=lBad[High(lBad)] xor 1;
+    FNet.Server.Connection.ReceiveDatagram(lBad,FNet.Now);
+    AssertTrue('One failure is tolerated',FNet.Server.Connection.State=qcsEstablished);
+    FNet.Server.Connection.ReceiveDatagram(lBad,FNet.Now);
+    ExpectClose(FNet.Server.Connection,QUIC_AEAD_LIMIT_REACHED);
+  finally
+    QuicIntegrityLimit:=lSaved;
+  end;
 end;
 
 

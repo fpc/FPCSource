@@ -21,12 +21,12 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Classes, System.Hash.Utils, FpQuic.Consts, FpQuic.Buffers,
+  System.SysUtils, System.Classes, FpQuic.Consts, FpQuic.Buffers,
   FpQuic.Frames, FpQuic.Packets, FpQuic.TransportParams, FpQuic.Crypto,
   FpQuic.TLS, FpQuic.Streams, FpQuic.Recovery;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, Classes, fphashutils, FpQuic.Consts, FpQuic.Buffers, FpQuic.Frames, FpQuic.Packets, FpQuic.TransportParams,
+  SysUtils, Classes, FpQuic.Consts, FpQuic.Buffers, FpQuic.Frames, FpQuic.Packets, FpQuic.TransportParams,
   FpQuic.Crypto, FpQuic.TLS, FpQuic.Streams, FpQuic.Recovery;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -144,6 +144,7 @@ type
     FBytesSent: QWord;
     FIdleTimeout: QWord;
     FLastActivity: QWord;
+    FAuthFailures: QWord;
     FNow: QWord;
     FCloseFrame: TQuicFrame;
     FClosePending: Boolean;
@@ -210,6 +211,8 @@ type
     function SealPacket(aLevel: TQuicEncryptionLevel; aPn: QWord; aPnLength: Integer; const aPayload: TBytes): TBytes;
     procedure UpdateRecoveryState;
     procedure Touch;
+    function IdleDeadline: QWord;
+    procedure CheckConfidentialityLimit;
   protected
     // IQuicTLSEvents
     procedure TLSSendCrypto(aLevel: TQuicEncryptionLevel; const aData: TBytes);
@@ -237,6 +240,8 @@ type
     procedure HandleTimeout(aNow: QWord);
     // Closes the connection with an application error code.
     procedure Close(aErrorCode: QWord; const aReason: String; aNow: QWord);
+    // Enters the closed state at once with INTERNAL_ERROR and aReason, without sending CONNECTION_CLOSE.
+    procedure Abort(const aReason: String);
     // Opens a local stream; False when the peer stream limit is reached or the handshake is not complete.
     function OpenStream(aBidi: Boolean; out aId: QWord): Boolean;
     // Takes the next stream opened by the peer.
@@ -317,6 +322,7 @@ const
   CryptoBufferLimit = 65536;
   MaxIssuedCids = 4;
   MaxEarlyPending = 16;
+  MaxIdleTimeoutMs = QWord(1) shl 40;
   // 1-RTT datagrams this close to QUIC_MAX_DATAGRAM are padded to it.
   FullDatagramSlack = 32;
   LongPacketTypes: array[qelInitial..qelHandshake] of TQuicPacketType = (qptInitial,qptHandshake);
@@ -354,13 +360,13 @@ end;
 
 { TQuicConnection }
 
-// Returns aLength random bytes.
-function RandomBytes(aLength: Integer): TBytes;
+// Converts a max_idle_timeout in milliseconds to microseconds, limited to MaxIdleTimeoutMs.
+function IdleMicroseconds(aMilliseconds: QWord): QWord;
 
 begin
-  Result:=nil;
-  SetLength(Result,aLength);
-  CryptoGetRandomBytes(PByte(Result),aLength);
+  if aMilliseconds>MaxIdleTimeoutMs then
+    aMilliseconds:=MaxIdleTimeoutMs;
+  Result:=aMilliseconds*1000;
 end;
 
 
@@ -379,7 +385,7 @@ begin
   FPendingAlert:=-1;
   FNow:=aNow;
   FLastActivity:=aNow;
-  FLocalCid:=RandomBytes(QUIC_LOCAL_CID_LENGTH);
+  FLocalCid:=QuicRandomBytes(QUIC_LOCAL_CID_LENGTH);
   SetLength(FLocalCids,1);
   FLocalCids[0].Sequence:=0;
   FLocalCids[0].Cid:=FLocalCid;
@@ -391,12 +397,12 @@ begin
   FCC:=TQuicNewReno.Create(QUIC_MAX_DATAGRAM);
   FRecovery:=TQuicLossDetector.Create(FCC);
   FRecovery.PeerAddressValidated:=FIsServer;
-  FIdleTimeout:=FLocalParams.MaxIdleTimeout*1000;
+  FIdleTimeout:=IdleMicroseconds(FLocalParams.MaxIdleTimeout);
   FRecvMaxData:=FLocalParams.InitialMaxData;
   FStreams:=TQuicStreamMap.Create(FIsServer,FLocalParams);
   if FIsServer then
     Exit;
-  FOriginalDcid:=RandomBytes(QUIC_LOCAL_CID_LENGTH);
+  FOriginalDcid:=QuicRandomBytes(QUIC_LOCAL_CID_LENGTH);
   SetLength(FPeerCids,1);
   FPeerCids[0].Cid:=FOriginalDcid;
   InstallInitialKeys(FOriginalDcid);
@@ -502,6 +508,10 @@ begin
     Exit;
   FSpaces[aLevel].Discarded:=True;
   FSpaces[aLevel].DropKeys;
+  FSpaces[aLevel].CryptoSend.Free;
+  FSpaces[aLevel].CryptoSend:=TQuicSendBuffer.Create;
+  FSpaces[aLevel].CryptoRecv.Free;
+  FSpaces[aLevel].CryptoRecv:=TQuicReassembly.Create;
   FRecovery.DiscardSpace(aLevel);
 end;
 
@@ -517,6 +527,40 @@ procedure TQuicConnection.Touch;
 
 begin
   FLastActivity:=FNow;
+end;
+
+
+// Time the connection closes without activity: the idle timeout, at least three probe timeouts.
+function TQuicConnection.IdleDeadline: QWord;
+
+var
+  lMinimum: QWord;
+
+begin
+  lMinimum:=3*FRecovery.PtoDuration;
+  if FIdleTimeout>lMinimum then
+    Result:=FLastActivity+FIdleTimeout
+  else
+    Result:=FLastActivity+lMinimum;
+end;
+
+
+// Updates the 1-RTT keys halfway to the confidentiality limit and closes the connection when it is reached.
+procedure TQuicConnection.CheckConfidentialityLimit;
+
+var
+  lSpace: TQuicSpace;
+  lLimit: QWord;
+
+begin
+  lSpace:=FSpaces[qelApplication];
+  if (FState<>qcsEstablished) or (lSpace.Tx=nil) then
+    Exit;
+  lLimit:=QuicConfidentialityLimit[lSpace.Tx.Suite];
+  if lSpace.NextPn-FTxPhaseStartPn>=lLimit div 2 then
+    InitiateKeyUpdate;
+  if lSpace.NextPn-FTxPhaseStartPn>=lLimit then
+    EnterClosing(QUIC_AEAD_LIMIT_REACHED,0,'AEAD confidentiality limit reached',False);
 end;
 
 
@@ -649,6 +693,9 @@ end;
 
 procedure TQuicConnection.ApplyPeerParams;
 
+var
+  lPeerIdle: QWord;
+
 begin
   FPeerParams:=QuicDecodeTransportParams(FPendingParams,not FIsServer);
   CheckCid(FPeerParams.HasInitialSourceCid,FPeerParams.InitialSourceCid,FPeerInitialScid,
@@ -666,8 +713,9 @@ begin
   FStreams.SetPeerParams(FPeerParams);
   FSendMaxData:=FPeerParams.InitialMaxData;
   FRecovery.MaxAckDelay:=FPeerParams.MaxAckDelay*1000;
-  if (FPeerParams.MaxIdleTimeout>0) and ((FIdleTimeout=0) or (FPeerParams.MaxIdleTimeout*1000<FIdleTimeout)) then
-    FIdleTimeout:=FPeerParams.MaxIdleTimeout*1000;
+  lPeerIdle:=IdleMicroseconds(FPeerParams.MaxIdleTimeout);
+  if (lPeerIdle>0) and ((FIdleTimeout=0) or (lPeerIdle<FIdleTimeout)) then
+    FIdleTimeout:=lPeerIdle;
 end;
 
 
@@ -757,22 +805,25 @@ begin
 end;
 
 
+procedure TQuicConnection.Abort(const aReason: String);
+
+begin
+  if FState=qcsClosed then
+    Exit;
+  FCloseErrorCode:=QUIC_INTERNAL_ERROR;
+  FCloseReason:=aReason;
+  SetClosed;
+end;
+
+
 { Receiving }
 
 function TQuicConnection.IsStatelessReset(const aData: TBytes): Boolean;
 
-var
-  lTail: TBytes;
-  lCid: TQuicPeerCid;
-
 begin
-  Result:=False;
-  if Length(aData)<21 then
-    Exit;
-  lTail:=Copy(aData,Length(aData)-QUIC_RESET_TOKEN_LENGTH,QUIC_RESET_TOKEN_LENGTH);
-  for lCid in FPeerCids do
-    if QuicBytesEqual(lCid.ResetToken,lTail) then
-      Exit(True);
+  Result:=(Length(aData)>=21) and (Length(FPeerCids)>0)
+          and QuicBytesEqualConstantTime(FPeerCids[0].ResetToken,
+                Copy(aData,Length(aData)-QUIC_RESET_TOKEN_LENGTH,QUIC_RESET_TOKEN_LENGTH));
 end;
 
 
@@ -804,6 +855,8 @@ begin
   except
     on E: EQuicError do
       EnterClosing(E.ErrorCode,E.FrameType,E.Message,False);
+    on E: Exception do
+      EnterClosing(QUIC_INTERNAL_ERROR,0,E.Message,False);
   end;
   FStreams.RemoveClosed;
   UpdateRecoveryState;
@@ -918,7 +971,15 @@ begin
   else
     Result:=QuicDecryptPayload(lKeys,aPn,aPacket,aHeader.PnOffset+lPnLength,aPayload);
   if not Result then
+    begin
+    if (aLevel=qelApplication) and not aEarly then
+      begin
+      Inc(FAuthFailures);
+      if FAuthFailures>=QuicIntegrityLimit[lKeys.Suite] then
+        raise EQuicError.CreateCode(QUIC_AEAD_LIMIT_REACHED,'AEAD integrity limit reached');
+      end;
     Exit;
+    end;
   if (aLevel=qelApplication) and not aEarly then
     lReserved:=aPacket[0] and $18
   else
@@ -1388,8 +1449,8 @@ begin
     begin
     lFrame:=QuicFrame(QUIC_FRAME_NEW_CONNECTION_ID);
     lFrame.SequenceNumber:=FNextCidSequence;
-    lFrame.ConnectionId:=RandomBytes(QUIC_LOCAL_CID_LENGTH);
-    lFrame.ResetToken:=RandomBytes(QUIC_RESET_TOKEN_LENGTH);
+    lFrame.ConnectionId:=QuicRandomBytes(QUIC_LOCAL_CID_LENGTH);
+    lFrame.ResetToken:=QuicRandomBytes(QUIC_RESET_TOKEN_LENGTH);
     SetLength(FLocalCids,Length(FLocalCids)+1);
     FLocalCids[High(FLocalCids)].Sequence:=FNextCidSequence;
     FLocalCids[High(FLocalCids)].Cid:=lFrame.ConnectionId;
@@ -1464,7 +1525,7 @@ begin
     if not FSpaces[lLevel].Discarded then
       Consider(FSpaces[lLevel].Ack.Deadline);
   if FIdleTimeout>0 then
-    Consider(FLastActivity+FIdleTimeout);
+    Consider(IdleDeadline);
 end;
 
 
@@ -1485,7 +1546,7 @@ begin
       SetClosed;
     Exit;
     end;
-  if (FIdleTimeout>0) and (aNow>=FLastActivity+FIdleTimeout) then
+  if (FIdleTimeout>0) and (aNow>=IdleDeadline) then
     begin
     FCloseReason:='Idle timeout';
     SetClosed;
@@ -1847,6 +1908,7 @@ begin
   aData:=nil;
   if FState>=qcsDraining then
     Exit(False);
+  CheckConfidentialityLimit;
   if FState=qcsClosing then
     begin
     Result:=BuildClosePackets(aData);

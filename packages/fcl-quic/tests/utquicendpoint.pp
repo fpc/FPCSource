@@ -28,6 +28,14 @@ type
     destructor Destroy; override;
   end;
 
+  // Server whose worker thread raises an exception when FailNext is set.
+  TFailingServer = class(TQuicServer)
+  protected
+    procedure Poll(aWait: Integer); override;
+  public
+    FailNext: Boolean;
+  end;
+
   TTestQuicEndpoint = class(TTestCase)
   private
     FServer: TQuicServer;
@@ -72,9 +80,22 @@ type
     procedure TestRetry;
     procedure TestRetryTokens;
     procedure TestConnectionLimits;
+    procedure TestWorkerException;
   end;
 
 implementation
+
+procedure TFailingServer.Poll(aWait: Integer);
+
+begin
+  if FailNext then
+    begin
+    FailNext:=False;
+    raise Exception.Create('Worker failure');
+    end;
+  inherited Poll(aWait);
+end;
+
 
 constructor TWriterThread.Create(aStream: TQuicStreamAdapter; const aData: TBytes);
 
@@ -964,6 +985,31 @@ begin
     lOther.Free;
     CloseSocket(lSocket);
     lNet.Free;
+  end;
+end;
+
+
+procedure TTestQuicEndpoint.TestWorkerException;
+
+var
+  lServer: TFailingServer;
+  lConnection, lServerConnection: TQuicEndpointConnection;
+
+begin
+  lServer:=TFailingServer.Create(ServerTLS,QuicDefaultEndpointParams);
+  FServer:=lServer;
+  FServer.Listen('127.0.0.1',0);
+  lConnection:=ConnectClient(ClientTLS);
+  AssertNotNull('Connected',lConnection);
+  lServerConnection:=FServer.Accept(5000);
+  AssertNotNull('Accepted',lServerConnection);
+  try
+    lServer.FailNext:=True;
+    AssertTrue('Server connection closed',lServerConnection.WaitClosed(5000));
+    AssertEquals('Error code',QUIC_INTERNAL_ERROR,lServerConnection.Connection.CloseErrorCode);
+    AssertEquals('Reason','Worker failure',lServerConnection.Connection.CloseReason);
+  finally
+    lServerConnection.Free;
   end;
 end;
 

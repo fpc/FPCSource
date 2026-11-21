@@ -35,6 +35,8 @@ QUIC is described in three RFCs:
   You give it data, and it gives you data back. You decide how to send it.
 - Session resumption and 0-RTT. A client that connected before can connect again faster,
   and it can send data before the handshake is finished.
+  **Warning:** an attacker can record 0-RTT data and send it again to another server process,
+  or to the same server after a restart. Use 0-RTT only for requests that are safe to repeat.
 - Protection for busy servers. A server has limits on the number of connections (`MaxConnections`)
   and on the number of handshakes that are not finished (`MaxHandshakes`).
   When many handshakes are busy (`RetryThreshold`), a new client must first answer a Retry packet.
@@ -45,6 +47,7 @@ These features are **not** in implemented (yet) in this package:
 - Connection migration: a connection cannot move to a new IP address.
 - Path MTU discovery: all datagrams are at most 1200 bytes.
 - ECN and the DATAGRAM extension.
+- WinCE: there is no secure random source on WinCE, so creating a client or a server raises an error.
 
 If you need HTTP/3, use the package `fcl-http3`. It is built on top of `fcl-quic`.
 
@@ -112,7 +115,7 @@ begin
   TLS := Default(TQuicTLSConfig);
   TLS.Alpn := ['echo'];            // the name of the protocol; the server must use the same name
   TLS.ServerName := 'localhost';   // the name in the certificate of the server
-  TLS.VerifyPeer := True;          // check the certificate of the server
+  TLS.VerifyPeer := True;          // check the certificate of the server (the default is False!)
   TLS.CAFile := 'ca.pem';          // the certificate that signed the server certificate
   Client := TQuicClient.Create(TLS, QuicDefaultEndpointParams);
   try
@@ -141,6 +144,10 @@ begin
   end;
 end.
 ```
+
+`VerifyPeer` is `False` by default. Then the client does not check the certificate of the server,
+and anybody between the client and the server can read and change the data.
+Always set `VerifyPeer` and `ServerName` when the client talks to a real server.
 
 ## Step 3: write a server
 

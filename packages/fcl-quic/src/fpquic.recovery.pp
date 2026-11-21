@@ -55,6 +55,7 @@ type
   TQuicAckTracker = class
   private
     FReceived: TQuicRangeSet;
+    FFloor: QWord;
     FLargestTime: QWord;
     FUnacked: Integer;
     FNewPackets: Boolean;
@@ -62,7 +63,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // True when packet number aPn was already received.
+    // True when packet number aPn was already received or is older than the ranges kept.
     function IsDuplicate(aPn: QWord): Boolean;
     // Records a received packet; aImmediate requests an ACK without delay, aMaxAckDelay is in microseconds.
     procedure OnPacket(aPn: QWord; aAckEliciting, aImmediate: Boolean; aNow, aMaxAckDelay: QWord);
@@ -212,7 +213,7 @@ end;
 function TQuicAckTracker.IsDuplicate(aPn: QWord): Boolean;
 
 begin
-  Result:=FReceived.Contains(aPn);
+  Result:=(aPn<FFloor) or FReceived.Contains(aPn);
 end;
 
 
@@ -227,7 +228,10 @@ begin
     FLargestTime:=aNow;
   FReceived.Add(aPn,aPn);
   if FReceived.Count>QUIC_MAX_ACK_RANGES then
+    begin
     FReceived.Remove(0,FReceived[0].High);
+    FFloor:=FReceived[0].Low;
+    end;
   FNewPackets:=True;
   if not aAckEliciting then
     Exit;

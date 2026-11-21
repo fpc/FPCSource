@@ -181,6 +181,8 @@ type
     FRetryThreshold: Integer;
     FGso: Boolean;
     function GetPort: Word;
+    procedure SendDatagram(const aAddress: TNetworkAddress; aPort: Word; aData: PByte; aLength: Integer);
+    procedure AbortAll(const aReason: String);
     procedure SendBatch(aConnection: TQuicEndpointConnection; const aBatch: TBytes; aSegmentSize: Integer);
     function GetConnectionCount: Integer;
     function RetryMac(const aData, aScid: TBytes; const aAddress: TNetworkAddress; aPort: Word): TBytes;
@@ -193,8 +195,9 @@ type
   protected
     // Opens the UDP socket on aAddress:aPort and starts the worker thread; IPv6 sockets also accept IPv4.
     procedure Open(const aAddress: String; aPort: Word);
-    // Receives datagrams for up to aWait milliseconds and handles timers.
-    procedure Poll(aWait: Integer);
+    // Receives datagrams for up to aWait milliseconds and handles timers. When it raises an exception, the worker
+    // thread closes all connections with that error and continues.
+    procedure Poll(aWait: Integer); virtual;
     // Routes a received datagram to its connection.
     procedure RouteDatagram(const aData: TBytes; const aAddress: TNetworkAddress; aPort: Word);
   public
@@ -264,10 +267,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Hash.Utils, FpQuic.Crypto;
+  FpQuic.Crypto;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  fphashutils, FpQuic.Crypto;
+  FpQuic.Crypto;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -312,36 +315,11 @@ begin
 end;
 
 
-// Returns aLength random bytes.
-function RandomBytes(aLength: Integer): TBytes;
-
-begin
-  Result:=nil;
-  SetLength(Result,aLength);
-  CryptoGetRandomBytes(PByte(Result),aLength);
-end;
-
-
 // Key of connection ID aCid in the routing table.
 function RouteKey(const aCid: TBytes): AnsiString;
 
 begin
   SetString(Result,PAnsiChar(aCid),Length(aCid));
-end;
-
-
-// Compares two byte arrays of equal length in a time that does not depend on their contents.
-function SameBytesConstantTime(const aLeft, aRight: TBytes): Boolean;
-
-var
-  I: Integer;
-  lDiff: Byte;
-
-begin
-  lDiff:=0;
-  for I:=0 to Length(aLeft)-1 do
-    lDiff:=lDiff or (aLeft[I] xor aRight[I]);
-  Result:=lDiff=0;
 end;
 
 
@@ -435,7 +413,12 @@ procedure TQuicEndpointThread.Execute;
 
 begin
   while not Terminated do
-    FEndpoint.Poll(PollInterval);
+    try
+      FEndpoint.Poll(PollInterval);
+    except
+      on E: Exception do
+        FEndpoint.AbortAll(E.Message);
+    end;
 end;
 
 
@@ -878,7 +861,7 @@ begin
   FConnections:=TFPList.Create;
   FAccept:=TFPList.Create;
   FRoutes:=TFPDataHashTable.CreateWith(RouteTableSize,@RSHash);
-  FRetryKey:=RandomBytes(32);
+  FRetryKey:=QuicRandomBytes(32);
   FFactory:=TQuicOpenSSLCipherFactory.Create;
   FContext:=TQuicOpenSSLContext.Create(aIsServer,aTLS);
 end;
@@ -902,6 +885,7 @@ begin
   FRoutes.Free;
   FContext.Free;
   FFactory.Free;
+  QuicWipe(FRetryKey);
   RTLEventDestroy(FSignal);
   FLock.Free;
   inherited Destroy;
@@ -970,6 +954,37 @@ begin
 end;
 
 
+// Sends one datagram; socket errors are ignored.
+procedure TQuicEndpoint.SendDatagram(const aAddress: TNetworkAddress; aPort: Word; aData: PByte; aLength: Integer);
+
+begin
+  try
+    SendTo(FSocket,aAddress,aPort,aData,aLength);
+  except
+    on ESocketCodeError do
+      ;
+  end;
+end;
+
+
+// Closes every connection at once with aReason and wakes the threads waiting for them.
+procedure TQuicEndpoint.AbortAll(const aReason: String);
+
+var
+  I: Integer;
+
+begin
+  Lock;
+  try
+    for I:=0 to FConnections.Count-1 do
+      TQuicEndpointConnection(FConnections[I]).FConnection.Abort(aReason);
+  finally
+    Unlock;
+  end;
+  RTLEventSetEvent(FSignal);
+end;
+
+
 procedure TQuicEndpoint.SendBatch(aConnection: TQuicEndpointConnection; const aBatch: TBytes; aSegmentSize: Integer);
 
 var
@@ -986,12 +1001,7 @@ begin
   while lOffset<Length(aBatch) do
     begin
     lSize:=Min(aSegmentSize,Length(aBatch)-lOffset);
-    try
-      SendTo(FSocket,aConnection.FAddress,aConnection.FPort,@aBatch[lOffset],lSize);
-    except
-      on ESocketCodeError do
-        ;
-    end;
+    SendDatagram(aConnection.FAddress,aConnection.FPort,@aBatch[lOffset],lSize);
     Inc(lOffset,lSize);
     end;
 end;
@@ -1066,7 +1076,7 @@ begin
   if Length(aToken)<=RetryMacLength then
     Exit;
   lData:=Copy(aToken,0,Length(aToken)-RetryMacLength);
-  if not SameBytesConstantTime(RetryMac(lData,aScid,aAddress,aPort),Copy(aToken,Length(lData),RetryMacLength)) then
+  if not QuicBytesEqualConstantTime(RetryMac(lData,aScid,aAddress,aPort),Copy(aToken,Length(lData),RetryMacLength)) then
     Exit;
   lReader.InitBytes(lData);
   lExpiry:=lReader.ReadVarInt;
@@ -1082,14 +1092,14 @@ var
   lWriter: TQuicWriter;
 
 begin
-  lScid:=RandomBytes(QUIC_LOCAL_CID_LENGTH);
+  lScid:=QuicRandomBytes(QUIC_LOCAL_CID_LENGTH);
   lWriter.Init;
   lWriter.WriteVarInt(GetTickCount64+RetryTokenLifetime);
   lWriter.WriteVarBytes(aHeader.DestCid);
   lData:=lWriter.ToBytes;
   lPacket:=QuicBuildRetry(aHeader.SrcCid,lScid,Concat(lData,RetryMac(lData,lScid,aAddress,aPort)));
   lPacket:=Concat(lPacket,QuicRetryIntegrityTag(FFactory,aHeader.DestCid,lPacket));
-  SendTo(FSocket,aAddress,aPort,PByte(lPacket),Length(lPacket));
+  SendDatagram(aAddress,aPort,PByte(lPacket),Length(lPacket));
 end;
 
 
@@ -1162,7 +1172,7 @@ begin
   else if lHeader.PacketType=qptUnsupported then
     begin
     lVN:=QuicBuildVersionNegotiation(lHeader.SrcCid,lHeader.DestCid,[QUIC_VERSION_1]);
-    SendTo(FSocket,aAddress,aPort,PByte(lVN),Length(lVN));
+    SendDatagram(aAddress,aPort,PByte(lVN),Length(lVN));
     end
   else if lHeader.PacketType=qptInitial then
     AcceptInitial(lHeader,aData,aAddress,aPort);

@@ -168,7 +168,9 @@ begin
     for I:=0 to QUIC_MAX_ACK_RANGES do
       lTracker.OnPacket(I*2,True,False,1,25000);
     AssertEquals('Ranges capped',QUIC_MAX_ACK_RANGES,Length(lTracker.BuildFrame(1,3).AckRanges));
-    AssertFalse('Oldest range dropped',lTracker.IsDuplicate(0));
+    AssertTrue('Packet of the dropped range stays a duplicate',lTracker.IsDuplicate(0));
+    AssertTrue('Packet below the dropped range is a duplicate',lTracker.IsDuplicate(1));
+    AssertFalse('Gap above the dropped range is no duplicate',lTracker.IsDuplicate(3));
   finally
     lTracker.Free;
   end;

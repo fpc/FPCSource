@@ -159,6 +159,10 @@ its own ACKs and its own CRYPTO data. The Initial keys are thrown away as soon a
 and the Handshake keys are thrown away when the handshake is confirmed.
 
 Later, either side can change the 1-RTT keys. This is called a **key update**. The package supports it in both directions.
+A key must not encrypt too many packets (RFC 9001 section 6.6). The connection therefore changes its keys by itself
+when it has used half of this limit (`QuicConfidentialityLimit`). If it reaches the limit anyway, it closes with the
+error AEAD_LIMIT_REACHED. It also closes with this error when too many received packets cannot be decrypted
+(`QuicIntegrityLimit`).
 
 ## 6. The endpoint: threads and waiting
 
@@ -216,6 +220,12 @@ to it goes away. The code that creates an object must also free it.
   `TQuicConnection` catches it in `ReceiveDatagram` and closes the connection.
   It sends a CONNECTION_CLOSE frame with that error code. The exception never reaches your program.
 - A packet that cannot be decrypted is ignored. This is what the RFC asks for.
+- Other exceptions in `ReceiveDatagram`, for example from your session cache handler, also close the connection,
+  with the error INTERNAL_ERROR.
+- OpenSSL calls the package through C callbacks. An exception must not travel through the C code of OpenSSL.
+  So each callback catches the exception and keeps it. When OpenSSL returns, the package raises it again.
+- When an exception leaves the work of the worker thread, the endpoint closes all its connections at once
+  (`TQuicConnection.Abort`). The waiting threads wake up and see the closed connection. The worker thread keeps running.
 - The endpoint raises `EQuicStreamError` in your thread when a stream cannot be read or written.
   The [README](../README.md) lists the cases.
 

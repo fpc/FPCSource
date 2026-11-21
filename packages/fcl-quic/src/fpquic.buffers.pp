@@ -142,6 +142,12 @@ function QuicBytesOf(aData: PByte; aCount: Integer): TBytes;
 // True when both byte arrays have the same content.
 function QuicBytesEqual(const aLeft, aRight: TBytes): Boolean;
 
+// True when both byte arrays have the same content; the time taken depends only on the lengths.
+function QuicBytesEqualConstantTime(const aLeft, aRight: TBytes): Boolean;
+
+// Overwrites the content of aBytes with zeros.
+procedure QuicWipe(var aBytes: TBytes);
+
 // Converts a hexadecimal string (whitespace allowed) to bytes.
 function QuicHexToBytes(const aHex: String): TBytes;
 
@@ -181,6 +187,30 @@ function QuicBytesEqual(const aLeft, aRight: TBytes): Boolean;
 begin
   Result:=(System.Length(aLeft)=System.Length(aRight))
           and ((System.Length(aLeft)=0) or CompareMem(@aLeft[0],@aRight[0],System.Length(aLeft)));
+end;
+
+
+function QuicBytesEqualConstantTime(const aLeft, aRight: TBytes): Boolean;
+
+var
+  I: Integer;
+  lDiff: Byte;
+
+begin
+  if System.Length(aLeft)<>System.Length(aRight) then
+    Exit(False);
+  lDiff:=0;
+  for I:=0 to System.Length(aLeft)-1 do
+    lDiff:=lDiff or (aLeft[I] xor aRight[I]);
+  Result:=lDiff=0;
+end;
+
+
+procedure QuicWipe(var aBytes: TBytes);
+
+begin
+  FillChar(PByte(aBytes)^,System.Length(aBytes),0);
+  aBytes:=nil;
 end;
 
 

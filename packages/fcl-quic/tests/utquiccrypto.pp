@@ -29,6 +29,7 @@ type
     procedure TestRetryIntegrityTag;
     procedure TestSuiteKeyLength;
     procedure TestOpenSSLError;
+    procedure TestRandomBytes;
   end;
 
 implementation
@@ -288,6 +289,19 @@ begin
   finally
     lAead.Free;
   end;
+end;
+
+
+procedure TTestQuicCrypto.TestRandomBytes;
+
+var
+  lFirst, lSecond: TBytes;
+
+begin
+  lFirst:=QuicRandomBytes(16);
+  lSecond:=QuicRandomBytes(16);
+  AssertEquals('Length',16,Length(lFirst));
+  AssertFalse('Different values',QuicBytesEqual(lFirst,lSecond));
 end;
 
 

@@ -21,11 +21,22 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Hash.Sha256, System.Hash.Sha512, FpQuic.Consts, FpQuic.Buffers;
+  System.SysUtils, System.Hash.Sha256, System.Hash.Sha512, System.Hash.Utils, FpQuic.Consts, FpQuic.Buffers;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, fpsha256, fpsha512, FpQuic.Consts, FpQuic.Buffers;
+  SysUtils, fpsha256, fpsha512, fphashutils, FpQuic.Consts, FpQuic.Buffers;
 {$ENDIF FPC_DOTTEDUNITS}
+
+type
+  // A packet count limit per cipher suite.
+  TQuicAeadLimits = array[TQuicCipherSuite] of QWord;
+
+var
+  // Number of packets protected with one key at which a connection closes; keys are updated at half of it
+  // (RFC 9001 section 6.6).
+  QuicConfidentialityLimit: TQuicAeadLimits = (8388608,8388608,High(QWord));
+  // Number of received packets failing authentication at which a connection closes (RFC 9001 section 6.6).
+  QuicIntegrityLimit: TQuicAeadLimits = (4503599627370496,4503599627370496,68719476736);
 
 type
   TQuicNonce = array[0..11] of Byte;
@@ -51,9 +62,9 @@ type
 
   // Creates cipher objects; the caller owns and frees the returned objects.
   IQuicCipherFactory = interface
-    // Creates the AEAD of aSuite with key aKey.
+    // Creates the AEAD of aSuite with a copy of key aKey.
     function CreateAead(aSuite: TQuicCipherSuite; const aKey: TBytes): TQuicAead;
-    // Creates the header protection cipher of aSuite with key aKey.
+    // Creates the header protection cipher of aSuite with a copy of key aKey.
     function CreateHeaderProtection(aSuite: TQuicCipherSuite; const aKey: TBytes): TQuicHeaderProtection;
   end;
 
@@ -100,6 +111,9 @@ procedure QuicInitialSecrets(const aDestCid: TBytes; out aClientSecret, aServerS
 
 // Key length of aSuite in bytes.
 function QuicSuiteKeyLength(aSuite: TQuicCipherSuite): Integer;
+
+// Returns aLength bytes from the random source of the operating system.
+function QuicRandomBytes(aLength: Integer): TBytes;
 
 // Encrypts the payload after the header and applies header protection.
 // aPacket holds the header (unprotected packet number at aPnOffset, aPnLength bytes) and the plaintext.
@@ -225,6 +239,19 @@ begin
 end;
 
 
+function QuicRandomBytes(aLength: Integer): TBytes;
+
+begin
+{$IF NOT DEFINED(MSWINDOWS) AND NOT DEFINED(UNIX)}
+  if not OSRandomBytesAvailable then
+    raise EQuicError.CreateCode(QUIC_INTERNAL_ERROR,'The operating system has no random source');
+{$ENDIF}
+  Result:=nil;
+  SetLength(Result,aLength);
+  CryptoGetRandomBytes(PByte(Result),aLength);
+end;
+
+
 { TQuicKeys }
 
 constructor TQuicKeys.Create(const aFactory: IQuicCipherFactory; aSuite: TQuicCipherSuite; const aSecret: TBytes);
@@ -237,13 +264,18 @@ end;
 constructor TQuicKeys.CreateUpdate(const aFactory: IQuicCipherFactory; aSuite: TQuicCipherSuite;
   const aSecret, aHPKey: TBytes);
 
+var
+  lKey: TBytes;
+
 begin
   FFactory:=aFactory;
   FSuite:=aSuite;
-  FSecret:=aSecret;
-  FHPKey:=aHPKey;
+  FSecret:=Copy(aSecret);
+  FHPKey:=Copy(aHPKey);
   FIV:=QuicHkdfExpandLabel(aSuite,aSecret,'quic iv',nil,12);
-  FAead:=aFactory.CreateAead(aSuite,QuicHkdfExpandLabel(aSuite,aSecret,'quic key',nil,QuicSuiteKeyLength(aSuite)));
+  lKey:=QuicHkdfExpandLabel(aSuite,aSecret,'quic key',nil,QuicSuiteKeyLength(aSuite));
+  FAead:=aFactory.CreateAead(aSuite,lKey);
+  QuicWipe(lKey);
   FHP:=aFactory.CreateHeaderProtection(aSuite,aHPKey);
 end;
 
@@ -253,6 +285,9 @@ destructor TQuicKeys.Destroy;
 begin
   FAead.Free;
   FHP.Free;
+  QuicWipe(FSecret);
+  QuicWipe(FIV);
+  QuicWipe(FHPKey);
   inherited Destroy;
 end;
 

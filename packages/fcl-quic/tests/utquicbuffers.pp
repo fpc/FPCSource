@@ -228,11 +228,24 @@ end;
 
 procedure TTestQuicBuffers.TestBytesEqual;
 
+var
+  lBytes, lAlias: TBytes;
+
 begin
   AssertTrue('Empty equal',QuicBytesEqual(nil,nil));
   AssertTrue('Equal',QuicBytesEqual(QuicHexToBytes('0102'),QuicHexToBytes('0102')));
   AssertFalse('Different content',QuicBytesEqual(QuicHexToBytes('0102'),QuicHexToBytes('0103')));
   AssertFalse('Different length',QuicBytesEqual(QuicHexToBytes('0102'),QuicHexToBytes('01')));
+  AssertTrue('Constant time: empty equal',QuicBytesEqualConstantTime(nil,nil));
+  AssertTrue('Constant time: equal',QuicBytesEqualConstantTime(QuicHexToBytes('0102'),QuicHexToBytes('0102')));
+  AssertFalse('Constant time: different content',
+    QuicBytesEqualConstantTime(QuicHexToBytes('0102'),QuicHexToBytes('0103')));
+  AssertFalse('Constant time: different length',QuicBytesEqualConstantTime(QuicHexToBytes('0102'),QuicHexToBytes('01')));
+  lBytes:=QuicHexToBytes('0102');
+  lAlias:=lBytes;
+  QuicWipe(lBytes);
+  AssertEquals('Wiped array released',0,Length(lBytes));
+  AssertEquals('Content overwritten','0000',QuicBytesToHex(lAlias));
 end;
 
 

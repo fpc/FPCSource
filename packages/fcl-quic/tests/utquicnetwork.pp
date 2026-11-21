@@ -33,6 +33,8 @@ type
     // Latest session ticket received and the number of tickets.
     Ticket: TBytes;
     TicketEvents: Integer;
+    // Raise an exception when a session ticket arrives.
+    FailOnTicket: Boolean;
     destructor Destroy; override;
     procedure QuicHandshakeComplete(aConnection: TQuicConnection);
     procedure QuicStreamData(aConnection: TQuicConnection; aStreamId: QWord);
@@ -133,6 +135,8 @@ end;
 procedure TTestPeer.QuicSessionTicket(aConnection: TQuicConnection; const aTicket: TBytes);
 
 begin
+  if FailOnTicket then
+    raise Exception.Create('Ticket store failed');
   Ticket:=aTicket;
   Inc(TicketEvents);
 end;

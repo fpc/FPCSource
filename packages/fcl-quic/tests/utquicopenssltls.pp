@@ -38,6 +38,9 @@ type
     EarlyReadSecret: TBytes;
     Ticket: TBytes;
     OwnsContext: Boolean;
+    // Name of the event that raises an exception: send, secret, params, alert, early or ticket.
+    FailOn: String;
+    procedure CheckFail(const aEvent: String);
     constructor Create(aIsServer: Boolean; const aConfig: TQuicTLSConfig);
     constructor CreateShared(aContext: TQuicOpenSSLContext);
     destructor Destroy; override;
@@ -58,6 +61,9 @@ type
     procedure Handshake(const aClient, aServer: TQuicTLSConfig);
     procedure Exchange(const aClientParams, aServerParams: TBytes);
     function FirstTicket(aServerContext: TQuicOpenSSLContext; const aClient: TQuicTLSConfig): TBytes;
+    function FailingHandshake(const aClient, aServer: TQuicTLSConfig; aServerFails: Boolean;
+      const aEvent: String): String;
+    procedure ExpectConfigError(const aConfig: TQuicTLSConfig; const aMessage: String);
   protected
     procedure TearDown; override;
   published
@@ -76,6 +82,13 @@ type
     procedure TestDefaultTrustStore;
     procedure TestAlpnMismatch;
     procedure TestBadCertificateFile;
+    procedure TestEventExceptions;
+    procedure TestEarlySecretException;
+    procedure TestKeyLogError;
+    procedure TestVerifyNeedsServerName;
+    procedure TestMissingCAFile;
+    procedure TestInvalidCipherSuites;
+    procedure TestUnsupportedCipherSuite;
   end;
 
 implementation
@@ -110,9 +123,18 @@ begin
 end;
 
 
+procedure TTLSPeer.CheckFail(const aEvent: String);
+
+begin
+  if FailOn=aEvent then
+    raise Exception.Create('Event '+aEvent+' failed');
+end;
+
+
 procedure TTLSPeer.TLSEarlySecret(aWrite: Boolean; aSuite: TQuicCipherSuite; const aSecret: TBytes);
 
 begin
+  CheckFail('early');
   if aWrite then
     EarlyWriteSecret:=aSecret
   else
@@ -123,6 +145,7 @@ end;
 procedure TTLSPeer.TLSSessionTicket(const aTicket: TBytes);
 
 begin
+  CheckFail('ticket');
   Ticket:=aTicket;
 end;
 
@@ -130,6 +153,7 @@ end;
 procedure TTLSPeer.TLSSendCrypto(aLevel: TQuicEncryptionLevel; const aData: TBytes);
 
 begin
+  CheckFail('send');
   SetLength(Pending,Length(Pending)+1);
   Pending[High(Pending)].Level:=aLevel;
   Pending[High(Pending)].Data:=aData;
@@ -140,6 +164,7 @@ procedure TTLSPeer.TLSSecret(aLevel: TQuicEncryptionLevel; aWrite: Boolean; aSui
   const aSecret: TBytes);
 
 begin
+  CheckFail('secret');
   Suite:=aSuite;
   if aWrite then
     WriteSecrets[aLevel]:=aSecret
@@ -151,6 +176,7 @@ end;
 procedure TTLSPeer.TLSPeerTransportParams(const aParams: TBytes);
 
 begin
+  CheckFail('params');
   PeerParams:=aParams;
 end;
 
@@ -158,6 +184,7 @@ end;
 procedure TTLSPeer.TLSAlert(aAlert: Byte);
 
 begin
+  CheckFail('alert');
   Alert:=aAlert;
 end;
 
@@ -575,6 +602,162 @@ begin
     on E: EQuicOpenSSL do
       AssertTrue('Message',Pos('certificate',E.Message)>0);
   end;
+end;
+
+
+function TTestQuicOpenSSLTLS.FailingHandshake(const aClient, aServer: TQuicTLSConfig; aServerFails: Boolean;
+  const aEvent: String): String;
+
+begin
+  FClient:=TTLSPeer.Create(False,aClient);
+  FServer:=TTLSPeer.Create(True,aServer);
+  if aServerFails then
+    FServer.FailOn:=aEvent
+  else
+    FClient.FailOn:=aEvent;
+  Result:='';
+  try
+    Exchange(QuicHexToBytes('0402bbbb'),QuicHexToBytes('0401aa'));
+  except
+    on E: Exception do
+      Result:=E.Message;
+  end;
+  TearDown;
+end;
+
+
+procedure TTestQuicOpenSSLTLS.ExpectConfigError(const aConfig: TQuicTLSConfig; const aMessage: String);
+
+begin
+  try
+    TQuicOpenSSLContext.Create(False,aConfig).Free;
+    Fail('Context creation must fail: '+aMessage);
+  except
+    on E: EQuicOpenSSL do
+      AssertEquals('Message',aMessage,E.Message);
+  end;
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestEventExceptions;
+
+const
+  ClientEvents: array[0..3] of String = ('send','secret','params','ticket');
+
+var
+  lEvent: String;
+  lClient: TQuicTLSConfig;
+
+begin
+  for lEvent in ClientEvents do
+    AssertEquals('Client '+lEvent,'Event '+lEvent+' failed',FailingHandshake(ClientConfig,ServerConfig,False,lEvent));
+  lClient:=ClientConfig;
+  lClient.Alpn:=['other'];
+  AssertEquals('Server alert','Event alert failed',FailingHandshake(lClient,ServerConfig,True,'alert'));
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestEarlySecretException;
+
+var
+  lServer, lClient: TQuicTLSConfig;
+  lContext: TQuicOpenSSLContext;
+  lTicket, lParams: TBytes;
+
+begin
+  lServer:=ServerConfig;
+  lServer.EnableEarlyData:=True;
+  lClient:=ClientConfig;
+  lClient.EnableEarlyData:=True;
+  lContext:=TQuicOpenSSLContext.Create(True,lServer);
+  try
+    lTicket:=FirstTicket(lContext,lClient);
+    FClient:=TTLSPeer.Create(False,lClient);
+    FServer:=TTLSPeer.CreateShared(lContext);
+    FClient.FailOn:='early';
+    AssertTrue('0-RTT possible',FClient.TLS.Resume(lTicket,lParams));
+    try
+      Exchange(QuicHexToBytes('0402bbbb'),ServerParamBytes(1000));
+      Fail('The early secret event must fail');
+    except
+      on E: Exception do
+        AssertEquals('Message','Event early failed',E.Message);
+    end;
+  finally
+    TearDown;
+    lContext.Free;
+  end;
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestKeyLogError;
+
+var
+  lClient: TQuicTLSConfig;
+
+begin
+  lClient:=ClientConfig;
+  lClient.KeyLogFile:=TestDataDir+'missing-directory'+PathDelim+'keys.log';
+  try
+    Handshake(lClient,ServerConfig);
+    Fail('Writing the key log must fail');
+  except
+    on E: EFCreateError do
+      AssertFalse('Not complete',FClient.TLS.IsComplete);
+  end;
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestVerifyNeedsServerName;
+
+var
+  lClient: TQuicTLSConfig;
+
+begin
+  lClient:=ClientConfig;
+  lClient.VerifyPeer:=True;
+  lClient.ServerName:='';
+  ExpectConfigError(lClient,'VerifyPeer needs a ServerName');
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestMissingCAFile;
+
+var
+  lClient: TQuicTLSConfig;
+
+begin
+  lClient:=ClientConfig;
+  lClient.VerifyPeer:=True;
+  lClient.CAFile:=TestDataDir+'missing.crt';
+  ExpectConfigError(lClient,'Cannot load the CA certificates');
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestInvalidCipherSuites;
+
+var
+  lClient: TQuicTLSConfig;
+
+begin
+  lClient:=ClientConfig;
+  lClient.CipherSuites:='TLS_BOGUS';
+  ExpectConfigError(lClient,'Invalid cipher suites');
+end;
+
+
+procedure TTestQuicOpenSSLTLS.TestUnsupportedCipherSuite;
+
+var
+  lClient, lServer: TQuicTLSConfig;
+
+begin
+  lClient:=ClientConfig;
+  lClient.CipherSuites:='TLS_AES_128_CCM_SHA256';
+  lServer:=ServerConfig;
+  lServer.CipherSuites:='TLS_AES_128_CCM_SHA256';
+  AssertEquals('CCM refused','Cipher suite TLS_AES_128_CCM_SHA256 is not supported by QUIC',
+    FailingHandshake(lClient,lServer,False,''));
 end;
 
 

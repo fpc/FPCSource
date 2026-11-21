@@ -83,7 +83,8 @@ type
     // Server: PEM certificate chain file and private key file.
     CertificateFile: String;
     PrivateKeyFile: String;
-    // Client: verify the server certificate against CAFile and CAPath (or the default store when both are empty).
+    // Client: verify the server certificate and ServerName against CAFile and CAPath (or the default store when
+    // both are empty). False by default: the server certificate is then not checked.
     VerifyPeer: Boolean;
     CAFile: String;
     CAPath: String;
@@ -94,7 +95,8 @@ type
     // Server: PEM certificate chain and private key held in memory, used instead of the files when not empty.
     CertificateData: TBytes;
     PrivateKeyData: TBytes;
-    // Accept (server) or send (client) 0-RTT data on resumed sessions.
+    // Accept (server) or send (client) 0-RTT data on resumed sessions. An attacker can replay 0-RTT data to
+    // another server process or after a restart; accept it only for requests that are safe to repeat.
     EnableEarlyData: Boolean;
   end;
 
@@ -126,14 +128,16 @@ type
     FReadLevel: TQuicEncryptionLevel;
     FWriteLevel: TQuicEncryptionLevel;
     FComplete: Boolean;
+    FError: TObject;
     procedure Advance;
+    function Fail: cint;
   public
     // Creates a session using aContext, which must outlive the session.
     constructor Create(aContext: TQuicOpenSSLContext);
     destructor Destroy; override;
-    // Starts the handshake.
+    // Starts the handshake; raises the first exception raised by an event handler or the key log.
     procedure Start(const aEvents: IQuicTLSEvents; const aTransportParams: TBytes);
-    // Passes received CRYPTO data to OpenSSL.
+    // Passes received CRYPTO data to OpenSSL; raises the first exception raised by an event handler or the key log.
     procedure ProvideData(aLevel: TQuicEncryptionLevel; const aData: TBytes);
     // True once the handshake is complete.
     function IsComplete: Boolean;
@@ -171,7 +175,7 @@ constructor TQuicOpenSSLAead.Create(aSuite: TQuicCipherSuite; const aKey: TBytes
 
 begin
   FCipher:=EVP_get_cipherbyname(PAnsiChar(AeadNames[aSuite]));
-  FKey:=aKey;
+  FKey:=Copy(aKey);
   FCtx:=EVP_CIPHER_CTX_new();
 end;
 
@@ -180,6 +184,7 @@ destructor TQuicOpenSSLAead.Destroy;
 
 begin
   EVP_CIPHER_CTX_free(FCtx);
+  QuicWipe(FKey);
   inherited Destroy;
 end;
 
@@ -225,7 +230,7 @@ constructor TQuicOpenSSLHeaderProtection.Create(aSuite: TQuicCipherSuite; const 
 
 begin
   FCipher:=EVP_get_cipherbyname(PAnsiChar(HPNames[aSuite]));
-  FKey:=aKey;
+  FKey:=Copy(aKey);
   FChaCha:=aSuite=qcsChaCha20Poly1305;
   FCtx:=EVP_CIPHER_CTX_new();
 end;
@@ -235,6 +240,7 @@ destructor TQuicOpenSSLHeaderProtection.Destroy;
 
 begin
   EVP_CIPHER_CTX_free(FCtx);
+  QuicWipe(FKey);
   inherited Destroy;
 end;
 
@@ -414,16 +420,18 @@ begin
 end;
 
 
-// Maps a TLS 1.3 cipher suite name to a QUIC cipher suite.
+// Maps a TLS 1.3 cipher suite name to a QUIC cipher suite; raises EQuicOpenSSL for other suites.
 function SuiteOf(const aName: AnsiString): TQuicCipherSuite;
 
 begin
-  if aName='TLS_AES_256_GCM_SHA384' then
+  if aName='TLS_AES_128_GCM_SHA256' then
+    Result:=qcsAes128Gcm
+  else if aName='TLS_AES_256_GCM_SHA384' then
     Result:=qcsAes256Gcm
   else if aName='TLS_CHACHA20_POLY1305_SHA256' then
     Result:=qcsChaCha20Poly1305
   else
-    Result:=qcsAes128Gcm;
+    raise EQuicOpenSSL.Create('Cipher suite '+aName+' is not supported by QUIC');
 end;
 
 
@@ -435,9 +443,13 @@ var
 
 begin
   lTLS:=TQuicOpenSSLTLS(aArg);
-  lTLS.FEvents.TLSSendCrypto(lTLS.FWriteLevel,QuicBytesOf(aBuf,aLen));
-  aConsumed^:=aLen;
-  Result:=1;
+  try
+    lTLS.FEvents.TLSSendCrypto(lTLS.FWriteLevel,QuicBytesOf(aBuf,aLen));
+    aConsumed^:=aLen;
+    Result:=1;
+  except
+    Result:=lTLS.Fail;
+  end;
 end;
 
 
@@ -479,21 +491,25 @@ var
 
 begin
   lTLS:=TQuicOpenSSLTLS(aArg);
-  lCipher:=SSL_get_pending_cipher(s);
-  if lCipher=nil then
-    lCipher:=SSL_SESSION_get0_cipher(SSL_get_session(s));
-  if aProtLevel=OSSL_RECORD_PROTECTION_LEVEL_EARLY then
-    begin
-    lTLS.FEvents.TLSEarlySecret(aDirection=1,SuiteOf(SSLCipherGetName(lCipher)),QuicBytesOf(aSecret,aSecretLen));
-    Exit(1);
-    end;
-  lLevel:=LevelOf(aProtLevel);
-  if aDirection=1 then
-    lTLS.FWriteLevel:=lLevel
-  else
-    lTLS.FReadLevel:=lLevel;
-  lTLS.FEvents.TLSSecret(lLevel,aDirection=1,SuiteOf(SSLCipherGetName(lCipher)),QuicBytesOf(aSecret,aSecretLen));
   Result:=1;
+  try
+    lCipher:=SSL_get_pending_cipher(s);
+    if lCipher=nil then
+      lCipher:=SSL_SESSION_get0_cipher(SSL_get_session(s));
+    if aProtLevel=OSSL_RECORD_PROTECTION_LEVEL_EARLY then
+      begin
+      lTLS.FEvents.TLSEarlySecret(aDirection=1,SuiteOf(SSLCipherGetName(lCipher)),QuicBytesOf(aSecret,aSecretLen));
+      Exit;
+      end;
+    lLevel:=LevelOf(aProtLevel);
+    if aDirection=1 then
+      lTLS.FWriteLevel:=lLevel
+    else
+      lTLS.FReadLevel:=lLevel;
+    lTLS.FEvents.TLSSecret(lLevel,aDirection=1,SuiteOf(SSLCipherGetName(lCipher)),QuicBytesOf(aSecret,aSecretLen));
+  except
+    Result:=lTLS.Fail;
+  end;
 end;
 
 
@@ -505,9 +521,13 @@ var
 
 begin
   lTLS:=TQuicOpenSSLTLS(aArg);
-  lTLS.FPeerParams:=QuicBytesOf(aParams,aLen);
-  lTLS.FEvents.TLSPeerTransportParams(lTLS.FPeerParams);
-  Result:=1;
+  try
+    lTLS.FPeerParams:=QuicBytesOf(aParams,aLen);
+    lTLS.FEvents.TLSPeerTransportParams(lTLS.FPeerParams);
+    Result:=1;
+  except
+    Result:=lTLS.Fail;
+  end;
 end;
 
 
@@ -522,15 +542,19 @@ var
 
 begin
   lTLS:=TQuicOpenSSLTLS(SSL_get_ex_data(s,0));
-  lDer:=nil;
-  SetLength(lDer,i2d_SSL_SESSION(aSession,nil));
-  lOut:=PByte(lDer);
-  i2d_SSL_SESSION(aSession,@lOut);
-  lWriter.Init;
-  lWriter.WriteVarBytes(lDer);
-  lWriter.WriteVarBytes(lTLS.FPeerParams);
-  lTLS.FEvents.TLSSessionTicket(lWriter.ToBytes);
   Result:=0;
+  try
+    lDer:=nil;
+    SetLength(lDer,i2d_SSL_SESSION(aSession,nil));
+    lOut:=PByte(lDer);
+    i2d_SSL_SESSION(aSession,@lOut);
+    lWriter.Init;
+    lWriter.WriteVarBytes(lDer);
+    lWriter.WriteVarBytes(lTLS.FPeerParams);
+    lTLS.FEvents.TLSSessionTicket(lWriter.ToBytes);
+  except
+    lTLS.Fail;
+  end;
 end;
 
 
@@ -569,9 +593,17 @@ end;
 // OpenSSL callback: a TLS alert to send.
 function CbAlert(s: PSSL; aAlert: Byte; aArg: Pointer): cint; cdecl;
 
+var
+  lTLS: TQuicOpenSSLTLS;
+
 begin
-  TQuicOpenSSLTLS(aArg).FEvents.TLSAlert(aAlert);
-  Result:=1;
+  lTLS:=TQuicOpenSSLTLS(aArg);
+  try
+    lTLS.FEvents.TLSAlert(aAlert);
+    Result:=1;
+  except
+    Result:=lTLS.Fail;
+  end;
 end;
 
 
@@ -594,24 +626,30 @@ end;
 procedure CbKeyLog(s: PSSL; aLine: PAnsiChar); cdecl;
 
 var
+  lTLS: TQuicOpenSSLTLS;
   lFileName: String;
   lFile: TFileStream;
   lText: AnsiString;
 
 begin
-  lFileName:=TQuicOpenSSLTLS(SSL_get_ex_data(s,0)).FContext.FConfig.KeyLogFile;
-  if FileExists(lFileName) then
-    begin
-    lFile:=TFileStream.Create(lFileName,fmOpenWrite or fmShareDenyNone);
-    lFile.Seek(0,soEnd);
-    end
-  else
-    lFile:=TFileStream.Create(lFileName,fmCreate);
+  lTLS:=TQuicOpenSSLTLS(SSL_get_ex_data(s,0));
+  lFileName:=lTLS.FContext.FConfig.KeyLogFile;
   try
-    lText:=AnsiString(aLine)+#10;
-    lFile.WriteBuffer(lText[1],Length(lText));
-  finally
-    lFile.Free;
+    if FileExists(lFileName) then
+      begin
+      lFile:=TFileStream.Create(lFileName,fmOpenWrite or fmShareDenyNone);
+      lFile.Seek(0,soEnd);
+      end
+    else
+      lFile:=TFileStream.Create(lFileName,fmCreate);
+    try
+      lText:=AnsiString(aLine)+#10;
+      lFile.WriteBuffer(lText[1],Length(lText));
+    finally
+      lFile.Free;
+    end;
+  except
+    lTLS.Fail;
   end;
 end;
 
@@ -637,7 +675,7 @@ begin
   FCtx:=SslCtxNew(SslTLSMethod);
   SslCtxSetMinProtoVersion(FCtx,TLS1_3_VERSION);
   if aConfig.CipherSuites<>'' then
-    SSL_CTX_set_ciphersuites(FCtx,PAnsiChar(aConfig.CipherSuites));
+    CheckSSL(SSL_CTX_set_ciphersuites(FCtx,PAnsiChar(aConfig.CipherSuites)),'Invalid cipher suites');
   if aConfig.KeyLogFile<>'' then
     SSL_CTX_set_keylog_callback(FCtx,@CbKeyLog);
   if aIsServer then
@@ -659,11 +697,13 @@ begin
     SslCtxSetAlpnProtos(FCtx,PByte(FAlpnWire),Length(FAlpnWire));
     if aConfig.VerifyPeer then
       begin
+      if aConfig.ServerName='' then
+        raise EQuicOpenSSL.Create('VerifyPeer needs a ServerName');
       SslCtxSetVerify(FCtx,SSL_VERIFY_PEER,nil);
       if (aConfig.CAFile<>'') or (aConfig.CAPath<>'') then
-        SslCtxLoadVerifyLocations(FCtx,aConfig.CAFile,aConfig.CAPath)
+        CheckSSL(SslCtxLoadVerifyLocations(FCtx,aConfig.CAFile,aConfig.CAPath),'Cannot load the CA certificates')
       else
-        SslCtxSetDefaultVerifyPaths(FCtx);
+        CheckSSL(SslCtxSetDefaultVerifyPaths(FCtx),'Cannot load the default CA certificates');
       end;
     end;
 end;
@@ -744,6 +784,7 @@ begin
   if FComplete then
     SSL_set_shutdown(FSSL,SSL_SHUTDOWN_DONE);
   SslFree(FSSL);
+  FError.Free;
   inherited Destroy;
 end;
 
@@ -752,12 +793,28 @@ procedure TQuicOpenSSLTLS.Advance;
 
 var
   lDummy: Byte;
+  lError: TObject;
 
 begin
   if FComplete then
     SslRead(FSSL,@lDummy,1)
   else
     FComplete:=(SSL_do_handshake(FSSL)=1) and (SSL_is_init_finished(FSSL)=1);
+  if FError=nil then
+    Exit;
+  lError:=FError;
+  FError:=nil;
+  raise lError;
+end;
+
+
+// Keeps the exception being handled for Advance to raise once OpenSSL returns; returns 0.
+function TQuicOpenSSLTLS.Fail: cint;
+
+begin
+  if FError=nil then
+    FError:=TObject(AcquireExceptionObject);
+  Result:=0;
 end;
 
 
@@ -772,7 +829,7 @@ begin
     if FContext.FConfig.ServerName<>'' then
       SslSetTlsextHostName(FSSL,PAnsiChar(FContext.FConfig.ServerName));
     if FContext.FConfig.VerifyPeer then
-      SslSet1Host(FSSL,FContext.FConfig.ServerName);
+      CheckSSL(SslSet1Host(FSSL,FContext.FConfig.ServerName),'Invalid server name');
     Advance;
     end;
 end;
