@@ -835,10 +835,10 @@ implementation
 {$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-{$ifdef cpumm}
+        { not only for cpumm: e.g. aarch64 and arm keep floating point values
+          in R_MMREGISTER, uses_registers is false without an mm allocator }
         if uses_registers(R_MMREGISTER) then
           alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
-{$endif cpumm}
 {$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
@@ -860,10 +860,10 @@ implementation
 {$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-{$ifdef cpumm}
+        { not only for cpumm: e.g. aarch64 and arm keep floating point values
+          in R_MMREGISTER, uses_registers is false without an mm allocator }
         if uses_registers(R_MMREGISTER) then
           dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
-{$endif cpumm}
 {$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
