@@ -202,6 +202,12 @@ begin
 {$include fcl-process/fpmake.pp}
 end;
 
+procedure add_fcl_quic(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-quic/fpmake.pp}
+end;
+
 procedure add_fcl_registry(const ADirectory: string);
 begin
   with Installer do
