@@ -27,23 +27,27 @@ uses
   SysUtils, Classes, FpQuic.Consts, FpQuic.Buffers, FpQuic.TransportParams;
 {$ENDIF FPC_DOTTEDUNITS}
 
+var
+  // Largest number of separate received ranges a reassembly buffer keeps.
+  QuicMaxReceiveRanges: Integer = 1024;
+
 type
   // Receive buffer that delivers bytes in order from out-of-order fragments.
   TQuicReassembly = class
   private
     FReadOffset: QWord;
-    FReady: TBytes;
-    FPending: array of record
-      Offset: QWord;
-      Data: TBytes;
-    end;
+    FBuffer: TBytes;
+    FReceived: TQuicRangeSet;
     FHighestOffset: QWord;
     FFinalSize: QWord;
     FHasFinalSize: Boolean;
-    procedure Append(aOffset: QWord; const aData: TBytes);
     procedure CheckFinalSize(aEnd: QWord; aFin: Boolean);
+    procedure Consume(aCount: Integer);
   public
-    // Adds aData at aOffset; aFin marks the end of the stream. Raises FINAL_SIZE_ERROR on inconsistencies.
+    constructor Create;
+    destructor Destroy; override;
+    // Adds aData at aOffset; aFin marks the end of the stream. Data received twice is stored once.
+    // Raises FINAL_SIZE_ERROR on inconsistencies and INTERNAL_ERROR above QuicMaxReceiveRanges ranges.
     procedure Insert(aOffset: QWord; const aData: TBytes; aFin: Boolean);
     // Fixes the final size without data (RESET_STREAM); raises FINAL_SIZE_ERROR on inconsistencies.
     procedure SetFinalSize(aFinalSize: QWord);
@@ -53,6 +57,8 @@ type
     function ReadAll: TBytes;
     // Number of in-order bytes ready to read.
     function Available: Integer;
+    // Number of bytes held from the read offset up to the highest stored byte, gaps included.
+    function Buffered: Integer;
     // True when all bytes up to the final size were read.
     function IsFinished: Boolean;
     // Offset of the next byte to read.
@@ -241,15 +247,29 @@ end;
 
 { TQuicReassembly }
 
-procedure TQuicReassembly.Append(aOffset: QWord; const aData: TBytes);
-
-var
-  lEnd: QWord;
+constructor TQuicReassembly.Create;
 
 begin
-  lEnd:=FReadOffset+QWord(Length(FReady));
-  if aOffset+QWord(Length(aData))>lEnd then
-    FReady:=Concat(FReady,Copy(aData,lEnd-aOffset,Length(aData)));
+  FReceived:=TQuicRangeSet.Create;
+end;
+
+
+destructor TQuicReassembly.Destroy;
+
+begin
+  FReceived.Free;
+  inherited Destroy;
+end;
+
+
+procedure TQuicReassembly.Consume(aCount: Integer);
+
+begin
+  if aCount=0 then
+    Exit;
+  Delete(FBuffer,0,aCount);
+  FReceived.Remove(FReadOffset,FReadOffset+QWord(aCount)-1);
+  Inc(FReadOffset,aCount);
 end;
 
 
@@ -273,35 +293,22 @@ end;
 procedure TQuicReassembly.Insert(aOffset: QWord; const aData: TBytes; aFin: Boolean);
 
 var
-  I: Integer;
-  lMerged: Boolean;
+  lEnd, lSkip: QWord;
 
 begin
-  CheckFinalSize(aOffset+QWord(Length(aData)),aFin);
-  if Length(aData)=0 then
+  lEnd:=aOffset+QWord(Length(aData));
+  CheckFinalSize(lEnd,aFin);
+  if (Length(aData)=0) or (lEnd<=FReadOffset) then
     Exit;
-  if aOffset>FReadOffset+QWord(Length(FReady)) then
-    begin
-    I:=Length(FPending);
-    SetLength(FPending,I+1);
-    FPending[I].Offset:=aOffset;
-    FPending[I].Data:=aData;
-    Exit;
-    end;
-  Append(aOffset,aData);
-  repeat
-    lMerged:=False;
-    I:=0;
-    while I<Length(FPending) do
-      if FPending[I].Offset<=FReadOffset+QWord(Length(FReady)) then
-        begin
-        Append(FPending[I].Offset,FPending[I].Data);
-        Delete(FPending,I,1);
-        lMerged:=True;
-        end
-      else
-        Inc(I);
-  until not lMerged;
+  lSkip:=0;
+  if aOffset<FReadOffset then
+    lSkip:=FReadOffset-aOffset;
+  if lEnd-FReadOffset>QWord(Length(FBuffer)) then
+    SetLength(FBuffer,lEnd-FReadOffset);
+  Move(aData[lSkip],FBuffer[aOffset+lSkip-FReadOffset],QWord(Length(aData))-lSkip);
+  FReceived.Add(aOffset+lSkip,lEnd-1);
+  if FReceived.Count>QuicMaxReceiveRanges then
+    raise EQuicError.CreateCode(QUIC_INTERNAL_ERROR,'Too many gaps in received data');
 end;
 
 
@@ -315,30 +322,38 @@ end;
 function TQuicReassembly.Read(aBuffer: PByte; aCount: Integer): Integer;
 
 begin
-  Result:=Length(FReady);
+  Result:=Available;
   if Result>aCount then
     Result:=aCount;
   if Result<=0 then
     Exit(0);
-  Move(FReady[0],aBuffer^,Result);
-  Delete(FReady,0,Result);
-  Inc(FReadOffset,Result);
+  Move(FBuffer[0],aBuffer^,Result);
+  Consume(Result);
 end;
 
 
 function TQuicReassembly.ReadAll: TBytes;
 
 begin
-  Result:=FReady;
-  FReady:=nil;
-  Inc(FReadOffset,Length(Result));
+  Result:=Copy(FBuffer,0,Available);
+  Consume(Length(Result));
 end;
 
 
 function TQuicReassembly.Available: Integer;
 
 begin
-  Result:=Length(FReady);
+  if (FReceived.Count>0) and (FReceived[0].Low=FReadOffset) then
+    Result:=FReceived[0].High-FReadOffset+1
+  else
+    Result:=0;
+end;
+
+
+function TQuicReassembly.Buffered: Integer;
+
+begin
+  Result:=Length(FBuffer);
 end;
 
 

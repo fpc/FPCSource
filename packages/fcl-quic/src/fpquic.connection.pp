@@ -223,7 +223,9 @@ type
     // Creates a client connection and its first flight; aNow is the current time in microseconds.
     constructor CreateClient(const aConfig: TQuicConnectionConfig; aNow: QWord);
     // Creates a server connection for a client whose first Initial packet had Destination Connection ID aOriginalDcid.
-    constructor CreateServer(const aConfig: TQuicConnectionConfig; const aOriginalDcid: TBytes; aNow: QWord);
+    // aRetryScid is the Source Connection ID of the Retry packet the client answered, empty without Retry.
+    constructor CreateServer(const aConfig: TQuicConnectionConfig; const aOriginalDcid: TBytes; aNow: QWord;
+      const aRetryScid: TBytes = nil);
     destructor Destroy; override;
     // Processes one received UDP datagram.
     procedure ReceiveDatagram(const aData: TBytes; aNow: QWord);
@@ -428,7 +430,7 @@ end;
 
 
 constructor TQuicConnection.CreateServer(const aConfig: TQuicConnectionConfig; const aOriginalDcid: TBytes;
-  aNow: QWord);
+  aNow: QWord; const aRetryScid: TBytes);
 
 begin
   CreateClient(aConfig,aNow);
@@ -436,7 +438,14 @@ begin
   FLocalParams.HasOriginalDestinationCid:=True;
   FLocalParams.OriginalDestinationCid:=aOriginalDcid;
   FLocalParams.DisableActiveMigration:=True;
-  InstallInitialKeys(aOriginalDcid);
+  if Length(aRetryScid)>0 then
+    begin
+    FLocalParams.HasRetrySourceCid:=True;
+    FLocalParams.RetrySourceCid:=aRetryScid;
+    InstallInitialKeys(aRetryScid);
+    end
+  else
+    InstallInitialKeys(aOriginalDcid);
   FTLS.Start(Self,QuicEncodeTransportParams(FLocalParams));
 end;
 

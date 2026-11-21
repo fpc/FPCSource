@@ -11,7 +11,8 @@ interface
 
 uses
   SysUtils, Classes, fpcunit, testregistry, fpsockets, FpQuic.Consts, FpQuic.Buffers, FpQuic.Packets,
-  FpQuic.TransportParams, FpQuic.OpenSSL, FpQuic.Connection, FpQuic.Udp, FpQuic.Endpoint, utquichelpers;
+  FpQuic.TransportParams, FpQuic.OpenSSL, FpQuic.Connection, FpQuic.Udp, FpQuic.Endpoint, utquichelpers,
+  utquicnetwork;
 
 type
   // Writes a buffer to a stream in a background thread.
@@ -39,6 +40,10 @@ type
     procedure TicketStored(Sender: TObject; const aKey: String; var aTicket: TBytes);
     procedure TicketLoad(Sender: TObject; const aKey: String; var aTicket: TBytes);
     procedure LargeTransfer(Size: Integer);
+    function StartRawClient: TTestNetwork;
+    procedure SendDatagrams(aSocket: TFPSocket; const aDatagrams: array of TBytes);
+    function ReceiveDatagram(aSocket: TFPSocket): TBytes;
+    function WaitConnectionCount(aCount: Integer): Integer;
   protected
     FStoredKey: String;
     FStoreCount: Integer;
@@ -64,6 +69,9 @@ type
     procedure TestIPv6;
     procedure TestDualStack;
     procedure TestWriteTimeout;
+    procedure TestRetry;
+    procedure TestRetryTokens;
+    procedure TestConnectionLimits;
   end;
 
 implementation
@@ -152,6 +160,66 @@ begin
     if lCount>0 then
       Result:=Result+TEncoding.UTF8.GetString(QuicBytesOf(@lBuf[0],lCount));
   until lCount=0;
+end;
+
+
+function TTestQuicEndpoint.StartRawClient: TTestNetwork;
+
+begin
+  Result:=TTestNetwork.Create;
+  Result.ClientTLS:=ClientTLS;
+  Result.Start;
+  Result.Client.Collect(Result.Now);
+end;
+
+
+procedure TTestQuicEndpoint.SendDatagrams(aSocket: TFPSocket; const aDatagrams: array of TBytes);
+
+var
+  lData: TBytes;
+
+begin
+  for lData in aDatagrams do
+    SendTo(aSocket,'127.0.0.1',FServer.Port,PByte(lData),Length(lData));
+end;
+
+
+function TTestQuicEndpoint.ReceiveDatagram(aSocket: TFPSocket): TBytes;
+
+var
+  lResult: TReceiveFromResult;
+  I: Integer;
+
+begin
+  Result:=nil;
+  SetLength(Result,2000);
+  I:=0;
+  repeat
+    DataAvailable(aSocket,100);
+    lResult:=ReceiveFrom(aSocket,PByte(Result),Length(Result));
+    Inc(I);
+  until (lResult.DataSize>0) or (I>50);
+  if lResult.DataSize>0 then
+    SetLength(Result,lResult.DataSize)
+  else
+    Result:=nil;
+end;
+
+
+function TTestQuicEndpoint.WaitConnectionCount(aCount: Integer): Integer;
+
+var
+  I: Integer;
+
+begin
+  I:=0;
+  repeat
+    Result:=FServer.ConnectionCount;
+    if Result=aCount then
+      Exit;
+    Sleep(20);
+    Inc(I);
+  until I>25;
 end;
 
 
@@ -786,6 +854,117 @@ begin
   end;
   AssertEquals('Unaccepted server connection',1,FServer.ConnectionCount);
   FreeAndNil(FServer);
+end;
+
+
+procedure TTestQuicEndpoint.TestRetry;
+
+var
+  lConnection, lAccepted: TQuicEndpointConnection;
+  lStream, lPeer: TQuicStreamAdapter;
+
+begin
+  StartServer;
+  FServer.RetryThreshold:=0;
+  lConnection:=ConnectClient(ClientTLS);
+  AssertNotNull('Connected after Retry',lConnection);
+  FClient.Lock;
+  try
+    AssertTrue('Server sent retry_source_connection_id',lConnection.Connection.PeerParams.HasRetrySourceCid);
+  finally
+    FClient.Unlock;
+  end;
+  lStream:=lConnection.OpenStream;
+  lAccepted:=nil;
+  lPeer:=nil;
+  try
+    lStream.WriteBuffer(PAnsiChar('retry')^,5);
+    lStream.Finish;
+    lAccepted:=FServer.Accept(5000);
+    AssertNotNull('Server accepted',lAccepted);
+    lPeer:=lAccepted.AcceptStream(5000);
+    AssertNotNull('Stream accepted',lPeer);
+    AssertEquals('Data after Retry','retry',ReadString(lPeer));
+  finally
+    lPeer.Free;
+    lStream.Free;
+    lAccepted.Free;
+  end;
+end;
+
+
+procedure TTestQuicEndpoint.TestRetryTokens;
+
+var
+  lNet: TTestNetwork;
+  lSocket, lOther: TFPSocket;
+  lReply, lPacket: TBytes;
+  lHeader: TQuicPacketHeader;
+  lWriter: TQuicWriter;
+
+begin
+  StartServer;
+  FServer.RetryThreshold:=0;
+  lNet:=StartRawClient;
+  lSocket:=UDPSocket(stIPv4);
+  lOther:=UDPSocket(stIPv4);
+  try
+    SendDatagrams(lSocket,[lNet.Client.Outbox[0]]);
+    lReply:=ReceiveDatagram(lSocket);
+    AssertTrue('Reply parsed',QuicParseHeader(PByte(lReply),Length(lReply),8,lHeader));
+    AssertTrue('Retry packet',lHeader.PacketType=qptRetry);
+    AssertEquals('No state before the Retry is answered',0,FServer.ConnectionCount);
+    lNet.Client.Connection.ReceiveDatagram(lReply,lNet.Now);
+    lNet.Client.Outbox:=nil;
+    lNet.Client.Collect(lNet.Now);
+    SendDatagrams(lOther,lNet.Client.Outbox);
+    lWriter.Init;
+    QuicWriteLongHeader(lWriter,qptInitial,QuicHexToBytes('0102030405060708'),nil,QuicHexToBytes('0102030405'),0,4,
+      1150);
+    lWriter.WriteZeros(1200-lWriter.Length);
+    lPacket:=lWriter.ToBytes;
+    SendDatagrams(lSocket,[lPacket]);
+    Sleep(200);
+    AssertEquals('Token from another port and short token rejected',0,FServer.ConnectionCount);
+    SendDatagrams(lSocket,lNet.Client.Outbox);
+    AssertEquals('Valid token creates the connection',1,WaitConnectionCount(1));
+  finally
+    CloseSocket(lOther);
+    CloseSocket(lSocket);
+    lNet.Free;
+  end;
+end;
+
+
+procedure TTestQuicEndpoint.TestConnectionLimits;
+
+var
+  lNet: TTestNetwork;
+  lSocket: TFPSocket;
+  lOther: TQuicClient;
+
+begin
+  StartServer;
+  FServer.RetryThreshold:=-1;
+  FServer.MaxHandshakes:=1;
+  lNet:=StartRawClient;
+  lSocket:=UDPSocket(stIPv4);
+  lOther:=TQuicClient.Create(ClientTLS,QuicDefaultEndpointParams);
+  try
+    SendDatagrams(lSocket,lNet.Client.Outbox);
+    AssertEquals('Unfinished handshake',1,WaitConnectionCount(1));
+    AssertNull('Handshake limit reached',lOther.Connect('127.0.0.1',FServer.Port,500));
+    FServer.MaxHandshakes:=0;
+    FServer.MaxConnections:=1;
+    AssertNull('Connection limit reached',lOther.Connect('127.0.0.1',FServer.Port,500));
+    AssertEquals('No connection added',1,FServer.ConnectionCount);
+    FServer.MaxConnections:=0;
+    AssertNotNull('Accepted without limits',ConnectClient(ClientTLS));
+  finally
+    lOther.Free;
+    CloseSocket(lSocket);
+    lNet.Free;
+  end;
 end;
 
 

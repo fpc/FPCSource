@@ -21,12 +21,12 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Classes, System.Math, System.SyncObjs, System.Net.Sockets, System.Net.FPSockets,
-  FpQuic.Consts, FpQuic.Buffers, FpQuic.Packets, FpQuic.TransportParams,
+  System.SysUtils, System.Classes, System.Math, System.SyncObjs, System.Contnrs, System.Net.Sockets,
+  System.Net.FPSockets, FpQuic.Consts, FpQuic.Buffers, FpQuic.Packets, FpQuic.TransportParams,
   FpQuic.OpenSSL, FpQuic.Connection, FpQuic.Udp;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, Classes, Math, SyncObjs, sockets, fpsockets, FpQuic.Consts, FpQuic.Buffers, FpQuic.Packets,
+  SysUtils, Classes, Math, SyncObjs, contnrs, sockets, fpsockets, FpQuic.Consts, FpQuic.Buffers, FpQuic.Packets,
   FpQuic.TransportParams, FpQuic.OpenSSL, FpQuic.Connection, FpQuic.Udp;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -85,9 +85,16 @@ type
     FAccepted: Boolean;
     FQueued: Boolean;
     FTicketKey: String;
+    FRoutes: array of TBytes;
+    FInHandshake: Boolean;
     function GetState: TQuicConnectionState;
     function GetEarlyDataAccepted: Boolean;
     procedure QueueAccept;
+    procedure EndHandshake;
+    procedure AddRoute(const aCid: TBytes);
+    procedure RemoveRoute(aIndex: Integer);
+    procedure UpdateRoutes;
+    procedure RemoveRoutes;
   protected
     // IQuicConnectionEvents
     procedure QuicHandshakeComplete(aConnection: TQuicConnection);
@@ -95,9 +102,9 @@ type
     procedure QuicConnectionClosed(aConnection: TQuicConnection);
     procedure QuicSessionTicket(aConnection: TQuicConnection; const aTicket: TBytes);
   public
-    // Creates the connection object; aOriginalDcid is used for server connections only.
+    // Creates the connection object; aOriginalDcid and aRetryScid are used for server connections only.
     constructor Create(aEndpoint: TQuicEndpoint; const aAddress: TNetworkAddress; aPort: Word;
-      const aOriginalDcid: TBytes);
+      const aOriginalDcid: TBytes; const aRetryScid: TBytes = nil);
     // Closes the connection if needed and removes it from its endpoint.
     destructor Destroy; override;
     // Waits until the handshake completed; False on timeout or failure.
@@ -166,10 +173,23 @@ type
     FIsServer: Boolean;
     FConnections: TFPList;
     FAccept: TFPList;
+    FRoutes: TFPDataHashTable;
+    FRetryKey: TBytes;
+    FHandshakes: Integer;
+    FMaxConnections: Integer;
+    FMaxHandshakes: Integer;
+    FRetryThreshold: Integer;
     FGso: Boolean;
     function GetPort: Word;
     procedure SendBatch(aConnection: TQuicEndpointConnection; const aBatch: TBytes; aSegmentSize: Integer);
     function GetConnectionCount: Integer;
+    function RetryMac(const aData, aScid: TBytes; const aAddress: TNetworkAddress; aPort: Word): TBytes;
+    function CheckRetryToken(const aToken, aScid: TBytes; const aAddress: TNetworkAddress; aPort: Word;
+      out aOriginalDcid: TBytes): Boolean;
+    procedure SendRetry(const aHeader: TQuicPacketHeader; const aAddress: TNetworkAddress; aPort: Word);
+    procedure AcceptInitial(const aHeader: TQuicPacketHeader; const aData: TBytes; const aAddress: TNetworkAddress;
+      aPort: Word);
+    procedure Deliver(aConnection: TQuicEndpointConnection; const aData: TBytes);
   protected
     // Opens the UDP socket on aAddress:aPort and starts the worker thread; IPv6 sockets also accept IPv4.
     procedure Open(const aAddress: String; aPort: Word);
@@ -222,6 +242,14 @@ type
   public
     // Creates a server with the given TLS settings and transport parameters.
     constructor Create(const aTLS: TQuicTLSConfig; const aParams: TQuicTransportParams);
+    // Largest number of connections; new clients beyond it are ignored. 0 means no limit.
+    property MaxConnections: Integer read FMaxConnections write FMaxConnections;
+    // Largest number of connections whose handshake is not complete; new clients beyond it are ignored.
+    // 0 means no limit.
+    property MaxHandshakes: Integer read FMaxHandshakes write FMaxHandshakes;
+    // Number of incomplete handshakes from which new clients must first answer a Retry packet.
+    // 0 sends a Retry to every client; a negative value never sends one.
+    property RetryThreshold: Integer read FRetryThreshold write FRetryThreshold;
     // Starts serving on aAddress (IPv4 or IPv6 literal; '::' for both) and aPort (0: any free port).
     procedure Listen(const aAddress: String; aPort: Word);
     // Waits for a connection whose handshake completed or that has 0-RTT stream data; the caller owns it.
@@ -234,10 +262,21 @@ function QuicDefaultEndpointParams: TQuicTransportParams;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Hash.Utils, FpQuic.Crypto;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  fphashutils, FpQuic.Crypto;
+{$ENDIF FPC_DOTTEDUNITS}
+
 const
   ReceiveBufferSize = 65536;
   MaxBufferedSend = 1048576;
   PollInterval = 20;
+  RetryTokenLifetime = 10000;
+  RetryMacLength = 16;
+  RouteTableSize = 4093;
 
 type
   // Worker thread of an endpoint.
@@ -270,6 +309,39 @@ function Deadline(aTimeout: Integer): QWord;
 
 begin
   Result:=GetTickCount64+QWord(aTimeout);
+end;
+
+
+// Returns aLength random bytes.
+function RandomBytes(aLength: Integer): TBytes;
+
+begin
+  Result:=nil;
+  SetLength(Result,aLength);
+  CryptoGetRandomBytes(PByte(Result),aLength);
+end;
+
+
+// Key of connection ID aCid in the routing table.
+function RouteKey(const aCid: TBytes): AnsiString;
+
+begin
+  SetString(Result,PAnsiChar(aCid),Length(aCid));
+end;
+
+
+// Compares two byte arrays of equal length in a time that does not depend on their contents.
+function SameBytesConstantTime(const aLeft, aRight: TBytes): Boolean;
+
+var
+  I: Integer;
+  lDiff: Byte;
+
+begin
+  lDiff:=0;
+  for I:=0 to Length(aLeft)-1 do
+    lDiff:=lDiff or (aLeft[I] xor aRight[I]);
+  Result:=lDiff=0;
 end;
 
 
@@ -370,7 +442,7 @@ end;
 { TQuicEndpointConnection }
 
 constructor TQuicEndpointConnection.Create(aEndpoint: TQuicEndpoint; const aAddress: TNetworkAddress; aPort: Word;
-  const aOriginalDcid: TBytes);
+  const aOriginalDcid: TBytes; const aRetryScid: TBytes);
 
 var
   lConfig: TQuicConnectionConfig;
@@ -392,7 +464,11 @@ begin
     lConfig.Ticket:=TQuicClient(aEndpoint).FSessionCache.Load(FTicketKey);
     end;
   if aEndpoint.FIsServer then
-    FConnection:=TQuicConnection.CreateServer(lConfig,aOriginalDcid,aEndpoint.Now)
+    begin
+    FConnection:=TQuicConnection.CreateServer(lConfig,aOriginalDcid,aEndpoint.Now,aRetryScid);
+    FInHandshake:=True;
+    Inc(aEndpoint.FHandshakes);
+    end
   else
     FConnection:=TQuicConnection.CreateClient(lConfig,aEndpoint.Now);
   aEndpoint.FConnections.Add(Self);
@@ -409,6 +485,8 @@ begin
       FConnection.Close(0,'',FEndpoint.Now);
       FEndpoint.Flush(Self);
       end;
+    EndHandshake;
+    RemoveRoutes;
     FEndpoint.FConnections.Remove(Self);
     FEndpoint.FAccept.Remove(Self);
     FConnection.Free;
@@ -455,9 +533,72 @@ begin
 end;
 
 
+procedure TQuicEndpointConnection.EndHandshake;
+
+begin
+  if not FInHandshake then
+    Exit;
+  FInHandshake:=False;
+  Dec(FEndpoint.FHandshakes);
+end;
+
+
+procedure TQuicEndpointConnection.AddRoute(const aCid: TBytes);
+
+begin
+  FEndpoint.FRoutes.Add(RouteKey(aCid),Self);
+  Insert(aCid,FRoutes,Length(FRoutes));
+end;
+
+
+procedure TQuicEndpointConnection.RemoveRoute(aIndex: Integer);
+
+begin
+  FEndpoint.FRoutes.Delete(RouteKey(FRoutes[aIndex]));
+  Delete(FRoutes,aIndex,1);
+end;
+
+
+procedure TQuicEndpointConnection.UpdateRoutes;
+
+var
+  lCids: TQuicLocalCidArray;
+  lSame: Boolean;
+  I: Integer;
+
+begin
+  lCids:=FConnection.LocalCids;
+  lSame:=Length(FRoutes)=Length(lCids)+1;
+  I:=0;
+  while lSame and (I<Length(lCids)) do
+    begin
+    lSame:=QuicBytesEqual(FRoutes[I+1],lCids[I].Cid);
+    Inc(I);
+    end;
+  if lSame then
+    Exit;
+  for I:=High(FRoutes) downto 1 do
+    RemoveRoute(I);
+  for I:=0 to High(lCids) do
+    AddRoute(lCids[I].Cid);
+end;
+
+
+procedure TQuicEndpointConnection.RemoveRoutes;
+
+var
+  I: Integer;
+
+begin
+  for I:=High(FRoutes) downto 0 do
+    RemoveRoute(I);
+end;
+
+
 procedure TQuicEndpointConnection.QuicHandshakeComplete(aConnection: TQuicConnection);
 
 begin
+  EndHandshake;
   QueueAccept;
 end;
 
@@ -736,6 +877,8 @@ begin
   FSignal:=RTLEventCreate;
   FConnections:=TFPList.Create;
   FAccept:=TFPList.Create;
+  FRoutes:=TFPDataHashTable.CreateWith(RouteTableSize,@RSHash);
+  FRetryKey:=RandomBytes(32);
   FFactory:=TQuicOpenSSLCipherFactory.Create;
   FContext:=TQuicOpenSSLContext.Create(aIsServer,aTLS);
 end;
@@ -756,6 +899,7 @@ begin
     CloseSocket(FSocket);
   FAccept.Free;
   FConnections.Free;
+  FRoutes.Free;
   FContext.Free;
   FFactory.Free;
   RTLEventDestroy(FSignal);
@@ -888,6 +1032,109 @@ begin
     end;
   if lCount>0 then
     SendBatch(aConnection,lBatch,lSegmentSize);
+  if FIsServer then
+    aConnection.UpdateRoutes;
+end;
+
+
+function TQuicEndpoint.RetryMac(const aData, aScid: TBytes; const aAddress: TNetworkAddress; aPort: Word): TBytes;
+
+var
+  lWriter: TQuicWriter;
+
+begin
+  lWriter.Init;
+  lWriter.WriteBytes(aData);
+  lWriter.WriteVarBytes(aScid);
+  lWriter.WriteVarBytes(TEncoding.UTF8.GetBytes(aAddress.Address));
+  lWriter.WriteUInt16(aPort);
+  Result:=Copy(QuicHkdfExtract(qcsAes128Gcm,FRetryKey,lWriter.ToBytes),0,RetryMacLength);
+end;
+
+
+function TQuicEndpoint.CheckRetryToken(const aToken, aScid: TBytes; const aAddress: TNetworkAddress; aPort: Word;
+  out aOriginalDcid: TBytes): Boolean;
+
+var
+  lData: TBytes;
+  lReader: TQuicReader;
+  lExpiry: QWord;
+
+begin
+  aOriginalDcid:=nil;
+  Result:=False;
+  if Length(aToken)<=RetryMacLength then
+    Exit;
+  lData:=Copy(aToken,0,Length(aToken)-RetryMacLength);
+  if not SameBytesConstantTime(RetryMac(lData,aScid,aAddress,aPort),Copy(aToken,Length(lData),RetryMacLength)) then
+    Exit;
+  lReader.InitBytes(lData);
+  lExpiry:=lReader.ReadVarInt;
+  aOriginalDcid:=lReader.ReadVarBytes;
+  Result:=lExpiry>=GetTickCount64;
+end;
+
+
+procedure TQuicEndpoint.SendRetry(const aHeader: TQuicPacketHeader; const aAddress: TNetworkAddress; aPort: Word);
+
+var
+  lScid, lData, lPacket: TBytes;
+  lWriter: TQuicWriter;
+
+begin
+  lScid:=RandomBytes(QUIC_LOCAL_CID_LENGTH);
+  lWriter.Init;
+  lWriter.WriteVarInt(GetTickCount64+RetryTokenLifetime);
+  lWriter.WriteVarBytes(aHeader.DestCid);
+  lData:=lWriter.ToBytes;
+  lPacket:=QuicBuildRetry(aHeader.SrcCid,lScid,Concat(lData,RetryMac(lData,lScid,aAddress,aPort)));
+  lPacket:=Concat(lPacket,QuicRetryIntegrityTag(FFactory,aHeader.DestCid,lPacket));
+  SendTo(FSocket,aAddress,aPort,PByte(lPacket),Length(lPacket));
+end;
+
+
+procedure TQuicEndpoint.AcceptInitial(const aHeader: TQuicPacketHeader; const aData: TBytes;
+  const aAddress: TNetworkAddress; aPort: Word);
+
+var
+  lConnection: TQuicEndpointConnection;
+  lOriginalDcid, lRetryScid: TBytes;
+
+begin
+  if ((FMaxConnections>0) and (FConnections.Count>=FMaxConnections))
+     or ((FMaxHandshakes>0) and (FHandshakes>=FMaxHandshakes)) then
+    Exit;
+  lOriginalDcid:=aHeader.DestCid;
+  lRetryScid:=nil;
+  if Length(aHeader.Token)>0 then
+    begin
+    if not CheckRetryToken(aHeader.Token,aHeader.DestCid,aAddress,aPort,lOriginalDcid) then
+      Exit;
+    lRetryScid:=aHeader.DestCid;
+    end
+  else if (FRetryThreshold>=0) and (FHandshakes>=FRetryThreshold) then
+    begin
+    SendRetry(aHeader,aAddress,aPort);
+    Exit;
+    end;
+  lConnection:=TQuicEndpointConnection.Create(Self,aAddress,aPort,lOriginalDcid,lRetryScid);
+  lConnection.AddRoute(aHeader.DestCid);
+  lConnection.FConnection.ReceiveDatagram(aData,Now);
+  if not lConnection.FConnection.InitialReceived then
+    begin
+    lConnection.FConnection.Close(0,'',Now);
+    lConnection.Free;
+    end
+  else
+    Flush(lConnection);
+end;
+
+
+procedure TQuicEndpoint.Deliver(aConnection: TQuicEndpointConnection; const aData: TBytes);
+
+begin
+  aConnection.FConnection.ReceiveDatagram(aData,Now);
+  Flush(aConnection);
 end;
 
 
@@ -897,41 +1144,28 @@ var
   lHeader: TQuicPacketHeader;
   lConnection: TQuicEndpointConnection;
   lVN: TBytes;
-  I: Integer;
 
 begin
   if not QuicParseHeader(PByte(aData),Length(aData),QUIC_LOCAL_CID_LENGTH,lHeader) then
     Exit;
-  for I:=0 to FConnections.Count-1 do
+  if not FIsServer then
     begin
-    lConnection:=TQuicEndpointConnection(FConnections[I]);
-    if (not FIsServer) or lConnection.FConnection.OwnsCid(lHeader.DestCid)
-       or QuicBytesEqual(lHeader.DestCid,lConnection.FConnection.OriginalDcid) then
-      begin
-      lConnection.FConnection.ReceiveDatagram(aData,Now);
-      Flush(lConnection);
-      Exit;
-      end;
-    end;
-  if (not FIsServer) or (Length(aData)<QUIC_MIN_INITIAL_DATAGRAM) then
+    if FConnections.Count>0 then
+      Deliver(TQuicEndpointConnection(FConnections[0]),aData);
     Exit;
-  if lHeader.PacketType=qptUnsupported then
+    end;
+  lConnection:=TQuicEndpointConnection(FRoutes[RouteKey(lHeader.DestCid)]);
+  if lConnection<>nil then
+    Deliver(lConnection,aData)
+  else if Length(aData)<QUIC_MIN_INITIAL_DATAGRAM then
+    Exit
+  else if lHeader.PacketType=qptUnsupported then
     begin
     lVN:=QuicBuildVersionNegotiation(lHeader.SrcCid,lHeader.DestCid,[QUIC_VERSION_1]);
     SendTo(FSocket,aAddress,aPort,PByte(lVN),Length(lVN));
     end
   else if lHeader.PacketType=qptInitial then
-    begin
-    lConnection:=TQuicEndpointConnection.Create(Self,aAddress,aPort,lHeader.DestCid);
-    lConnection.FConnection.ReceiveDatagram(aData,Now);
-    if not lConnection.FConnection.InitialReceived then
-      begin
-      lConnection.FConnection.Close(0,'',Now);
-      lConnection.Free;
-      end
-    else
-      Flush(lConnection);
-    end;
+    AcceptInitial(lHeader,aData,aAddress,aPort);
 end;
 
 
@@ -1033,6 +1267,9 @@ constructor TQuicServer.Create(const aTLS: TQuicTLSConfig; const aParams: TQuicT
 
 begin
   inherited Create(True,aTLS,aParams);
+  FMaxConnections:=10000;
+  FMaxHandshakes:=1000;
+  FRetryThreshold:=100;
 end;
 
 

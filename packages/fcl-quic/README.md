@@ -35,13 +35,16 @@ QUIC is described in three RFCs:
   You give it data, and it gives you data back. You decide how to send it.
 - Session resumption and 0-RTT. A client that connected before can connect again faster,
   and it can send data before the handshake is finished.
+- Protection for busy servers. A server has limits on the number of connections (`MaxConnections`)
+  and on the number of handshakes that are not finished (`MaxHandshakes`).
+  When many handshakes are busy (`RetryThreshold`), a new client must first answer a Retry packet.
+  This proves that the client really owns its IP address.
 
 These features are **not** in implemented (yet) in this package:
 
 - Connection migration: a connection cannot move to a new IP address.
 - Path MTU discovery: all datagrams are at most 1200 bytes.
 - ECN and the DATAGRAM extension.
-- Retry packets from the server. (The client does understand Retry packets.)
 
 If you need HTTP/3, use the package `fcl-http3`. It is built on top of `fcl-quic`.
 

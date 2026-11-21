@@ -29,6 +29,8 @@ type
     procedure TestFinalSizeErrors;
     procedure TestSetFinalSize;
     procedure TestPartialRead;
+    procedure TestDuplicatesStoredOnce;
+    procedure TestTooManyRanges;
   end;
 
   TTestQuicSendBuffer = class(TTestCase)
@@ -211,6 +213,51 @@ begin
   AssertEquals('First byte',Ord('a'),lBuf[0]);
   AssertEquals('Rest','ef',ReadString);
   AssertEquals('Read zero count',0,FBuffer.Read(@lBuf[0],0));
+end;
+
+
+procedure TTestQuicReassembly.TestDuplicatesStoredOnce;
+
+var
+  I: Integer;
+
+begin
+  for I:=1 to 1000 do
+    FBuffer.Insert(100,Bytes('0123456789'),False);
+  AssertEquals('Duplicates use no extra memory',110,FBuffer.Buffered);
+  AssertEquals('Gap blocks reading',0,FBuffer.Available);
+  FBuffer.Insert(0,Bytes(StringOfChar('x',100)),False);
+  AssertEquals('Gap filled',110,FBuffer.Available);
+  AssertEquals('Data after the gap','0123456789',Copy(ReadString,101,10));
+  AssertEquals('Buffer empty after reading',0,FBuffer.Buffered);
+  FBuffer.Insert(105,Bytes('56789abc'),False);
+  AssertEquals('Overlap with read data is trimmed','abc',ReadString);
+end;
+
+
+procedure TTestQuicReassembly.TestTooManyRanges;
+
+var
+  lOld: Integer;
+
+begin
+  lOld:=QuicMaxReceiveRanges;
+  QuicMaxReceiveRanges:=3;
+  try
+    FBuffer.Insert(2,Bytes('a'),False);
+    FBuffer.Insert(4,Bytes('b'),False);
+    FBuffer.Insert(6,Bytes('c'),False);
+    FBuffer.Insert(4,Bytes('b'),False);
+    try
+      FBuffer.Insert(8,Bytes('d'),False);
+      Fail('A fourth range must fail');
+    except
+      on E: EQuicError do
+        AssertEquals('Error code',QUIC_INTERNAL_ERROR,E.ErrorCode);
+    end;
+  finally
+    QuicMaxReceiveRanges:=lOld;
+  end;
 end;
 
 
