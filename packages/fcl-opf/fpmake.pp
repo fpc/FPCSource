@@ -30,6 +30,8 @@ begin
     P.Description := 'Object persistence framework on top of SQLDB, part of Free Component Libraries (FCL).';
     P.NeedLibC:= false;
     P.OSes:= [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 

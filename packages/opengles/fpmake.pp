@@ -23,6 +23,8 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes := [darwin,iphonesim,ios,linux,win32,win64,wince,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim,ios,android]);
     P.SourcePath.Add('src');
