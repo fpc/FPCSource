@@ -109,8 +109,12 @@ ver_translation_pair
     ;
 
 res_rcdata
-    : resid rcdataid { create_resource($1, $2); } suboptions filename_string                  { aktresource.SetCustomRawDataStream($5); }
-    | resid rcdataid { create_resource($1, $2); } suboptions _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($6); }
+    : resid rcdataid { create_resource($1, $2); } suboptions rcdata_body
+    ;
+
+rcdata_body
+    : filename_string                                                                         { aktresource.SetCustomRawDataStream($1); }
+    | _BEGIN raw_data _END                                                                    { aktresource.SetCustomRawDataStream($2); }
     ;
 
 res_stringtable

@@ -32,6 +32,10 @@ type
     procedure TestQuotedNameDottedFile;
     procedure TestDottedNameSameAsQuotedName;
     procedure TestNumericNamePlainFile;
+    procedure TestDottedNameQuotedFile;
+    procedure TestOptionPlainFile;
+    procedure TestOptionRawData;
+    procedure TestRawData;
   end;
 
 implementation
@@ -186,6 +190,42 @@ begin
   AssertTrue('1 RCDATA testbin: resource has an ID',FResources[0].Name.DescType=dtID);
   AssertEquals('1 RCDATA testbin: resource ID',1,FResources[0].Name.ID);
   AssertEquals('1 RCDATA testbin: resource data','plain data',DataOf(FResources[0]));
+end;
+
+
+procedure TTestRCNames.TestDottedNameQuotedFile;
+
+begin
+  ReadRC('test.bin RCDATA "test.bin"');
+  AssertNamedResource('test.bin RCDATA "test.bin"','TEST.BIN','dotted data');
+end;
+
+
+procedure TTestRCNames.TestOptionPlainFile;
+
+begin
+  ReadRC('test RCDATA DISCARDABLE testbin');
+  AssertNamedResource('test RCDATA DISCARDABLE testbin','TEST','plain data');
+  AssertTrue('test RCDATA DISCARDABLE testbin: discardable flag',
+    (FResources[0].MemoryFlags and MF_DISCARDABLE)<>0);
+end;
+
+
+procedure TTestRCNames.TestOptionRawData;
+
+begin
+  ReadRC('test RCDATA DISCARDABLE'+LineEnding+'BEGIN'+LineEnding+'  "abc"'+LineEnding+'END');
+  AssertNamedResource('test RCDATA DISCARDABLE BEGIN "abc" END','TEST','abc');
+  AssertTrue('test RCDATA DISCARDABLE BEGIN "abc" END: discardable flag',
+    (FResources[0].MemoryFlags and MF_DISCARDABLE)<>0);
+end;
+
+
+procedure TTestRCNames.TestRawData;
+
+begin
+  ReadRC('test RCDATA { "abc" }');
+  AssertNamedResource('test RCDATA { "abc" }','TEST','abc');
 end;
 
 
