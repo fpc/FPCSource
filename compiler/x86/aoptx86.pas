@@ -201,6 +201,7 @@ unit aoptx86;
 {$endif x86_64}
         function DoMovLoadForwarding(var p : tai) : Boolean;
         function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
+        function DoJpRemoval(var p : tai) : Boolean;
         function HandleSHRMerge(var p: tai; const PostPeephole: Boolean): Boolean;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
@@ -10349,12 +10350,95 @@ unit aoptx86;
      end;
 
 
+   { Removes a "jp" that is not needed because the flags come from a floating
+     point comparison: an unordered result sets ZF, PF and CF to 1, so
+       jp  .L1                  jp  .L1
+       jna .L1        or        jae .L2
+                              .L1:
+     behave the same without the jp (jna/jnae/je/jp jump to .L1 anyway,
+     jnbe/jnb/jne/jnp don't jump and fall through to .L1). Such pairs
+     appear after the jump optimizations, the code generator emits
+     "jp .Lx; ja .Ly; .Lx:" for > and >= (tcgx86.a_jmp_flags). }
+   function TX86AsmOptimizer.DoJpRemoval(var p : tai) : Boolean;
+     const
+       { conditions which are true resp. false after an unordered result,
+         SF and OF are not considered }
+       UnorderedTrueConds = [C_E, C_Z, C_B, C_C, C_NAE, C_BE, C_NA, C_P, C_PE];
+       UnorderedFalseConds = [C_NE, C_NZ, C_AE, C_NB, C_NC, C_A, C_NBE, C_NP, C_PO];
+     var
+       hp1, hp2: tai;
+       JumpLabel: TAsmLabel;
+       Count: Integer;
+     begin
+       Result := False;
+       if not IsJumpToLabel(taicpu(p)) or
+         not GetNextInstruction(p, hp1) or
+         not MatchInstruction(hp1, A_Jcc, []) or
+         not IsJumpToLabel(taicpu(hp1)) then
+         Exit;
+
+       JumpLabel := TAsmLabel(taicpu(p).oper[0]^.ref^.symbol);
+       if taicpu(hp1).condition in UnorderedTrueConds then
+         begin
+           if taicpu(hp1).oper[0]^.ref^.symbol <> JumpLabel then
+             Exit;
+         end
+       else if taicpu(hp1).condition in UnorderedFalseConds then
+         begin
+           if not GetNextInstruction(hp1, hp2) or
+             not FindLabel(JumpLabel, hp2) then
+             Exit;
+         end
+       else
+         Exit;
+
+       { The flags must come from a floating point comparison; go back on the
+         fall-through path over instructions that don't change the flags }
+       hp2 := p;
+       Count := 0;
+       repeat
+         if not GetLastInstruction(hp2, hp2) or
+           (hp2.typ <> ait_instruction) then
+           Exit;
+
+         case taicpu(hp2).opcode of
+           A_COMISS, A_COMISD, A_UCOMISS, A_UCOMISD,
+           A_VCOMISS, A_VCOMISD, A_VUCOMISS, A_VUCOMISD,
+           A_VCOMISH, A_VUCOMISH,
+           A_FCOMI, A_FCOMIP, A_FUCOMI, A_FUCOMIP:
+             Break;
+           A_Jcc:
+             { a conditional jump does not change the flags and p is on its
+               fall-through path };
+           else
+             if is_calljmp(taicpu(hp2).opcode) or
+               RegModifiedByInstruction(NR_DEFAULTFLAGS, hp2) then
+               Exit;
+         end;
+         Inc(Count);
+       until not((cs_opt_level3 in current_settings.optimizerswitches) and (Count>2)) or (Count>8);
+
+       if taicpu(hp1).condition in UnorderedTrueConds then
+         DebugMsg(SPeepholeOptimization + 'JpJcc2Jcc (unordered result already jumps)', p)
+       else
+         DebugMsg(SPeepholeOptimization + 'JpJccLbl2JccLbl (unordered result falls through to label)', p);
+
+       JumpLabel.DecRefs;
+       RemoveCurrentP(p, hp1);
+       Result := True;
+     end;
+
+
    function TX86AsmOptimizer.OptPass1Jcc(var p : tai) : boolean;
      var
        hp1, hp2, hp3, hp4, hp5: tai;
        ThisReg: TRegister;
      begin
        Result := False;
+       if (taicpu(p).condition in [C_P, C_PE]) and
+         DoJpRemoval(p) then
+           Exit(True);
+
        if not GetNextInstruction(p,hp1) then
          Exit;
 
@@ -15445,6 +15529,9 @@ unit aoptx86;
       begin
         if (aoc_DoPass2JccOpts in OptsToCheck) and
           DoJumpOptimizations(p, TempBool) then
+          Exit(True);
+
+        if DoJpRemoval(p) then
           Exit(True);
 
         result:=false;
