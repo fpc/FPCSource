@@ -27,7 +27,7 @@ stages:
         RUNNER_TAG: saas-linux-medium-amd64
       - ARCH: aarch64
         # PLATFORM: linux/arm64
-        RUNNER_TAG: saas-linux-small-arm64
+        RUNNER_TAG: saas-linux-medium-arm64
   tags:
     - $RUNNER_TAG
 
