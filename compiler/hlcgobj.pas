@@ -3632,6 +3632,8 @@ implementation
       OP_ROL,OP_ROR:
         begin
           case cgsize of
+            OS_128,OS_S128:
+              a:=a and 127;
             OS_64,OS_S64:
               a:=a and 63;
             OS_32,OS_S32:
