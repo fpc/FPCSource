@@ -1026,6 +1026,10 @@ Function Sqr(l:smallint):smallint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMI
 Function Sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function Sqr(l:Int128):Int128;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:UInt128):UInt128;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 {$if defined(CPUINT8)}
 Function Odd(l:shortint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Odd(l:byte):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}

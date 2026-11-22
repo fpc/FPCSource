@@ -2261,6 +2261,28 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_SYSTEM_HAS_SQR_INT128}
+
+function Sqr(l:Int128):Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  sqr := l*l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_SQR_INT128}
+
+{$ifndef FPC_SYSTEM_HAS_SQR_UINT128}
+
+function Sqr(l:UInt128):UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  sqr := l*l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_SQR_UINT128}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifdef CPU16}
 {$ifndef FPC_SYSTEM_HAS_DECLOCKED_SMALLINT}
 function declocked(var l:smallint):boolean;
