@@ -248,6 +248,15 @@
       end;
 {$endif FPC_SYSTEM_HAS_MUL_UINT128}
 
+{$ifndef FPC_SYSTEM_HAS_MUL_QWORD_TO_UINT128}
+    function fpc_mul_uint128_compilerproc(f1,f2 : qword) : qword; external name 'FPC_MUL_UINT128';
+
+    function fpc_mul_qword_to_uint128(f1,f2 : qword) : uint128;[public,alias: 'FPC_MUL_QWORD_TO_UINT128']; compilerproc;
+      begin
+        fpc_mul_qword_to_uint128:=fpc_mul_uint128_compilerproc(f1,f2);
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_QWORD_TO_UINT128}
+
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INT128}
     function fpc_mul_int128(f1,f2 : int128) : int128;[public,alias: 'FPC_MUL_INT128']; compilerproc;
