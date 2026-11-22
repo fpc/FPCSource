@@ -74,6 +74,7 @@ interface
           function first_adddynarray : tnode; virtual;
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
+          function first_add128bitint: tnode; virtual;
           function first_add64bitint: tnode; virtual;
           function first_addpointer: tnode; virtual;
           function first_cmppointer: tnode; virtual;
@@ -91,6 +92,10 @@ interface
           { get multiplies with left/right both s32bit or u32bit, }
           { and resultdef of the muln s64bit or u64bit           }
           function use_generic_mul32to64: boolean; virtual;
+
+          { override and return false if code generator can handle }
+          { full 128 bit multiplies.                               }
+          function use_generic_mul128bit: boolean; virtual;
 
           { override and return false if code generator can handle }
           { full 64 bit multiplies.                                }
@@ -118,6 +123,9 @@ interface
           }
           function first_addfloat_soft: tnode; virtual;
        private
+          { checks whether a muln can be calculated as a 64bit }
+          { * 64bit -> 128 bit                                 }
+          function try_make_mul64to128: boolean;
           { checks whether a muln can be calculated as a 32bit }
           { * 32bit -> 64 bit                                  }
           function try_make_mul32to64: boolean;
@@ -4421,9 +4429,98 @@ const
       end;
 
 
+    function taddnode.use_generic_mul128bit: boolean;
+      begin
+        result := true;
+      end;
+
+
     function taddnode.use_generic_mul64bit: boolean;
       begin
         result := true;
+      end;
+
+
+    function taddnode.try_make_mul64to128: boolean;
+
+        function canbe64bitint(v: tconstexprint; out canbesignedconst, canbeunsignedconst: boolean): boolean;
+          begin
+            result := ((v >= low(int64)) and (v <= high(int64))) or
+                      ((v >= low(qword)) and (v <= high(qword)));
+            canbesignedconst:=v<=high(int64);
+            canbeunsignedconst:=v>=0;
+          end;
+
+        function is_64bitordconst(n: tnode; out canbesignedconst, canbeunsignedconst: boolean): boolean;
+          begin
+            canbesignedconst:=false;
+            canbeunsignedconst:=false;
+            result := (n.nodetype = ordconstn) and
+                      canbe64bitint(tordconstnode(n).value, canbesignedconst, canbeunsignedconst);
+          end;
+
+        function is_64to128typeconv(n: tnode): boolean;
+          begin
+            result := (n.nodetype = typeconvn) and
+                      is_integer(ttypeconvnode(n).left.resultdef) and
+                      not is_128bit(ttypeconvnode(n).left.resultdef);
+          end;
+
+      var
+        temp: tnode;
+        leftoriginallysigned,
+        canbesignedconst, canbeunsignedconst, swapped: boolean;
+      begin
+        result := false;
+        swapped := false;
+        { make sure that if there is a constant, that it's on the right }
+        if left.nodetype = ordconstn then
+          begin
+            swapleftright;
+            swapped := true;
+          end;
+        if is_64to128typeconv(left) then
+          begin
+            leftoriginallysigned:=is_signed(ttypeconvnode(left).left.resultdef);
+            if ((is_64bitordconst(right,canbesignedconst, canbeunsignedconst) and
+                 ((leftoriginallysigned and canbesignedconst) or
+                  (not leftoriginallysigned and canbeunsignedconst))) or
+                (is_64to128typeconv(right) and
+                  ((leftoriginallysigned =
+                    is_signed(ttypeconvnode(right).left.resultdef)) or
+                   (leftoriginallysigned and
+                    (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit,u32bit]))))) then
+              begin
+                temp := ttypeconvnode(left).left;
+                ttypeconvnode(left).left := nil;
+                left.free;
+                left := temp;
+                if (right.nodetype = typeconvn) then
+                  begin
+                    temp := ttypeconvnode(right).left;
+                    ttypeconvnode(right).left := nil;
+                    right.free;
+                    right := temp;
+                  end;
+                if (is_signed(left.resultdef)) then
+                  begin
+                    inserttypeconv_internal(left,s64inttype);
+                    inserttypeconv_internal(right,s64inttype);
+                  end
+                else
+                  begin
+                    inserttypeconv_internal(left,u64inttype);
+                    inserttypeconv_internal(right,u64inttype);
+                  end;
+                firstpass(left);
+                firstpass(right);
+                result := true;
+              end;
+          end;
+        { pass_Typecheck caches left/right type and resultdef, so restore the
+          original order }
+        if not result and swapped then
+          swapleftright;
       end;
 
 
@@ -4633,6 +4730,86 @@ const
                     left:=nil;
                   end;
               end;
+          end;
+      end;
+
+
+    function taddnode.first_add128bitint: tnode;
+      var
+        procname: string[31];
+        power: longint;
+      begin
+        result := nil;
+        { create helper calls mul }
+        if nodetype <> muln then
+          exit;
+
+        { make sure that if there is a constant, that it's on the right }
+        if left.nodetype = ordconstn then
+          swapleftright;
+
+        { can we use a shift instead of a mul? }
+        if not (cs_check_overflow in current_settings.localswitches) and
+           (right.nodetype = ordconstn) and
+           ispowerof2(tordconstnode(right).value,power) then
+          begin
+            tordconstnode(right).value := power;
+            result := cshlshrnode.create(shln,left,right);
+            { left and right are reused }
+            left := nil;
+            right := nil;
+            { return firstpassed new node }
+            exit;
+          end;
+
+        if try_make_mul64to128 then
+          begin
+            { this uses the same criteria for signedness as the 32 to 64-bit mul
+              handling in the i386 code generator }
+            if is_signed(left.resultdef) and is_signed(right.resultdef) then
+              procname := 'fpc_mul_int64_to_int128'
+            else
+              procname := 'fpc_mul_qword_to_uint128';
+
+            right := ccallparanode.create(right,ccallparanode.create(left,nil));
+            result := ccallnode.createintern(procname,right);
+            left := nil;
+            right := nil;
+          end
+        else
+          begin
+            { can full 128-bit multiplication be handled inline? }
+            if not use_generic_mul128bit then
+              begin
+                { generic handling replaces this node with call to fpc_mul_int128,
+                  whose result is int128 }
+                if is_currency(resultdef) then
+                  resultdef:=s128inttype;
+                exit;
+              end;
+
+            //{ when currency is used set the result of the
+            //  parameters to s64bit, so they are not converted }
+            //if is_currency(resultdef) then
+            //  begin
+            //    left.resultdef:=s64inttype;
+            //    right.resultdef:=s64inttype;
+            //  end;
+
+            { otherwise, create the parameters for the helper }
+            right :=   ccallparanode.create(right,ccallparanode.create(left,nil));
+            left := nil;
+            { only qword needs the unsigned code, the
+              signed code is also used for currency }
+            if is_signed(resultdef) then
+              procname := 'fpc_mul_int128'
+            else
+              procname := 'fpc_mul_uint128';
+            if cs_check_overflow in current_settings.localswitches then
+              procname := procname + '_checkoverflow';
+
+            result := ccallnode.createintern(procname,right);
+            right := nil;
           end;
       end;
 
@@ -5076,6 +5253,17 @@ const
                  { if the code generator can handle 32 to 64-bit muls,
                    we're done here }
                  expectloc:=LOC_REGISTER;
+               end
+             { is there a 128 bit type ? }
+             else if (torddef(ld).ordtype in [s128bit,u128bit]) then
+               begin
+                 result := first_add128bitint;
+                 if assigned(result) then
+                   exit;
+                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                    expectloc:=LOC_REGISTER
+                  else
+                    expectloc:=LOC_JUMP;
                end
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               { is there a 64 bit type ? }
