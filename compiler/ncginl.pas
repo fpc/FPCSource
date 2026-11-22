@@ -962,7 +962,7 @@ implementation
 {$ifdef cpu64bitalu}
                if def_cgsize(resultdef) in [OS_128,OS_S128] then
                  cg128.a_op128_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
-                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),0,
+                   tordconstnode(op2).value.AsQWord and (resultdef.size*8-1),0,
                    op1.location.register128, location.register128)
                else
 {$else cpu64bitalu}
