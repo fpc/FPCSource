@@ -512,6 +512,7 @@ unit cgobj;
         procedure a_op128_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;regsrc,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op128_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister128;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op128_reg(list : TAsmList;op:TOpCG;size : tcgsize;regdst : tregister128);virtual;
+        procedure a_op128_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference);virtual;
         procedure a_op128_loc(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation);virtual;
 
         procedure a_load128_loc_cgpara(list : TAsmList;const l : tlocation;const paraloc : TCGPara);virtual;
@@ -3601,6 +3602,20 @@ implementation
         if not (op in [OP_NOT,OP_NEG]) then
           internalerror(2020050706);
         a_op128_reg_reg(list,op,size,regdst,regdst);
+      end;
+
+
+    procedure tcg128.a_op128_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference);
+      var
+        tempreg: tregister128;
+      begin
+        if not (op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050713);
+        tempreg.reghi:=cg.getintregister(list,OS_64);
+        tempreg.reglo:=cg.getintregister(list,OS_64);
+        a_load128_ref_reg(list,ref,tempreg);
+        a_op128_reg_reg(list,op,size,tempreg,tempreg);
+        a_load128_reg_ref(list,tempreg,ref);
       end;
 
 
