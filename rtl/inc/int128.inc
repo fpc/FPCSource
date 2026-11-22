@@ -315,3 +315,19 @@
       end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 {$endif FPC_SYSTEM_HAS_MUL_INT128}
+
+{$ifndef FPC_SYSTEM_HAS_MUL_INT64_TO_INT128}
+    function fpc_mul_int128_compilerproc(f1,f2 : int128) : int128; external name 'FPC_MUL_INT128';
+
+    function fpc_mul_int64_to_int128(f1,f2 : int64) : int128;[public,alias: 'FPC_MUL_INT64_TO_INT128']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
+      begin
+        fpc_mul_int64_to_int128:=fpc_mul_int128_compilerproc(f1,f2);
+      end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
+{$endif FPC_SYSTEM_HAS_MUL_INT64_TO_INT128}

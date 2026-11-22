@@ -645,6 +645,7 @@ function fpc_mul_uint128_checkoverflow(f1,f2 : uint128) : uint128; compilerproc;
 function fpc_mul_int128(f1,f2 : int128) : int128; compilerproc;
 function fpc_mul_int128_checkoverflow(f1,f2 : int128) : int128; compilerproc;
 function fpc_mul_qword_to_uint128(f1,f2 : qword) : uint128; compilerproc;
+function fpc_mul_int64_to_int128(f1,f2 : int64) : int128; compilerproc;
 {$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function fpc_div_currency(n,z : currency) : currency; compilerproc;
