@@ -150,6 +150,7 @@ Var
         BeginThread:=BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId);
       end;
 
+{$ifndef TM_HAS_CREATE_SUSPENDED}
 type
   PSuspendedStart = ^TSuspendedStart;
   TSuspendedStart = record
@@ -262,13 +263,14 @@ begin
   SuspendedStartList:=lStart;
   UnlockSuspendedStarts;
 end;
+{$endif TM_HAS_CREATE_SUSPENDED}
 
 
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID;
                      Suspended : Boolean; const stacksize: SizeUInt) : TThreadHandle;
       begin
         if Suspended then
-          Result:=BeginSuspendedThread(nil,stacksize,ThreadFunction,p,0,ThreadId)
+          Result:=BeginThread(nil,stacksize,ThreadFunction,p,CREATE_SUSPENDED,ThreadId)
         else
           Result:=BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId);
       end;
@@ -294,11 +296,11 @@ end;
 function BeginThread(sa : Pointer;stacksize : SizeUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadHandle;
 
 begin
-{$ifndef HAS_CREATE_SUSPENDED}
+{$ifndef TM_HAS_CREATE_SUSPENDED}
   if (creationFlags and CREATE_SUSPENDED)<>0 then
     Result:=BeginSuspendedThread(sa,stacksize,threadfunction,P,creationFlags and not CREATE_SUSPENDED,ThreadID)
   else
-{$endif HAS_CREATE_SUSPENDED}
+{$endif TM_HAS_CREATE_SUSPENDED}
     Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
 end;
 
@@ -325,16 +327,20 @@ end;
 function ResumeThread  (threadHandle : TThreadHandle) : dword;
 
 begin
+{$ifndef TM_HAS_CREATE_SUSPENDED}
   if PulseSuspendedStart(threadHandle,false) then
     Result:=1
   else
+{$endif TM_HAS_CREATE_SUSPENDED}
     Result:=CurrentTM.ResumeThread(ThreadHandle);
 end;
 
 function CloseThread  (threadHandle : TThreadHandle):dword;
 
 begin
+{$ifndef TM_HAS_CREATE_SUSPENDED}
   PulseSuspendedStart(threadHandle,true);
+{$endif TM_HAS_CREATE_SUSPENDED}
   result:=CurrentTM.CloseThread(ThreadHandle);
 end;
 
@@ -347,7 +353,9 @@ end;
 function  KillThread (threadHandle : TThreadHandle) : dword;
 
 begin
+{$ifndef TM_HAS_CREATE_SUSPENDED}
   PulseSuspendedStart(threadHandle,true);
+{$endif TM_HAS_CREATE_SUSPENDED}
   Result:=CurrentTM.KillThread(ThreadHandle);
 end;
 

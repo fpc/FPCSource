@@ -134,7 +134,8 @@ procedure DoneThread;
 *****************************************************************************}
 
 { Start a thread. creationFlags may contain CREATE_SUSPENDED: the thread starts when
-  ResumeThread is called on the returned handle, on every platform. }
+  ResumeThread is called on the returned handle. The thread manager implements this
+  where the OS or cthreads supports it, the system unit elsewhere. }
 function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : TThreadID) : TThreadHandle;

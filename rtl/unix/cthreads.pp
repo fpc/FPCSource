@@ -372,15 +372,22 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
-    // Records the kernel thread id of the calling thread in aEntry and applies a pending nice value
-    procedure StartTidEntry(aEntry: PThreadTidEntry);
+    // Records the kernel thread id of the calling thread in its entry, if it has one, and applies a pending nice value
+    procedure StartTidEntry;
+
+    var
+      lEntry: PThreadTidEntry;
 
     begin
       pthread_mutex_lock(@ThreadTidLock);
-      aEntry^.Tid:=CurrentKernelTid;
-      if aEntry^.HasPendingNice then
-        SetTidNice(aEntry^.Tid,aEntry^.PendingNice);
-      aEntry^.HasPendingNice:=false;
+      lEntry:=FindTidEntry(pthread_self());
+      if assigned(lEntry) then
+        begin
+          lEntry^.Tid:=CurrentKernelTid;
+          if lEntry^.HasPendingNice then
+            SetTidNice(lEntry^.Tid,lEntry^.PendingNice);
+          lEntry^.HasPendingNice:=false;
+        end;
       pthread_mutex_unlock(@ThreadTidLock);
     end;
 
@@ -454,20 +461,81 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 *****************************************************************************}
 
     type
+      { State of a thread started with CREATE_SUSPENDED }
+      TSuspendedState = (ssWaiting, ssResumed, ssCancelled);
+      PSuspendedStart = ^TSuspendedStart;
+      TSuspendedStart = record
+        Thread : pthread_t;
+        State : TSuspendedState;
+        Cond : pthread_cond_t;
+        Next : PSuspendedStart;
+      end;
+
       pthreadinfo = ^tthreadinfo;
       tthreadinfo = record
         f : tthreadfunc;
         p : pointer;
         stklen : cardinal;
-{$ifdef linux}
-        tidentry : PThreadTidEntry;
-{$endif linux}
+        { nil unless the thread was started with CREATE_SUSPENDED }
+        start : PSuspendedStart;
       end;
+
+    var
+      SuspendedStarts : PSuspendedStart;
+      SuspendedLock : pthread_mutex_t;
+      SuspendedLockReady : boolean;
+
+
+    // Blocks until aStart is resumed or cancelled; True if resumed. Uses no heap or threadvars.
+    function WaitForResume(aStart: PSuspendedStart): boolean;
+
+    begin
+      pthread_mutex_lock(@SuspendedLock);
+      while aStart^.State=ssWaiting do
+        pthread_cond_wait(@aStart^.Cond,@SuspendedLock);
+      WaitForResume:=aStart^.State=ssResumed;
+      pthread_mutex_unlock(@SuspendedLock);
+      pthread_cond_destroy(@aStart^.Cond);
+    end;
+
+
+    // Removes the suspended start of aThread and wakes it with aState; False if aThread is not waiting
+    function ReleaseSuspendedStart(aThread: pthread_t; aState: TSuspendedState): boolean;
+
+    var
+      lPrev, lStart: PSuspendedStart;
+
+    begin
+      ReleaseSuspendedStart:=false;
+      if SuspendedStarts=nil then
+        exit;
+      pthread_mutex_lock(@SuspendedLock);
+      lPrev:=nil;
+      lStart:=SuspendedStarts;
+      while assigned(lStart) and (lStart^.Thread<>aThread) do
+        begin
+          lPrev:=lStart;
+          lStart:=lStart^.Next;
+        end;
+      if assigned(lStart) then
+        begin
+          if assigned(lPrev) then
+            lPrev^.Next:=lStart^.Next
+          else
+            SuspendedStarts:=lStart^.Next;
+          lStart^.State:=aState;
+          pthread_cond_signal(@lStart^.Cond);
+          ReleaseSuspendedStart:=true;
+        end;
+      pthread_mutex_unlock(@SuspendedLock);
+    end;
+
 
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
         nset: tsigset;
+        lResumed : boolean;
 {$if defined(linux) and not defined(FPC_USE_LIBC)}
         nlibcset: tlibc_sigset;
 {$endif linux/no FPC_USE_LIBC}
@@ -481,6 +549,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         s: string[100]; // not an ansistring
 {$endif DEBUG_MT}
       begin
+        { A suspended thread runs no RTL code before ResumeThread }
+        lResumed:=true;
+        if assigned(pthreadinfo(param)^.start) then
+          lResumed:=WaitForResume(pthreadinfo(param)^.start);
 {$ifdef DEBUG_MT}
         s := 'New thread started, initing threadvars'#10;
         fpwrite(0,s[1],length(s));
@@ -513,18 +585,23 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
 {$ifdef linux}
-        StartTidEntry(ti.tidentry);
+        StartTidEntry;
 {$endif linux}
 
         { Initialize thread }
         InitThread(ti.stklen);
 
         dispose(pthreadinfo(param));
+        if assigned(ti.start) then
+          dispose(ti.start);
         { Start thread function }
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
 {$endif DEBUG_MT}
-        ThreadMain:=pointer(ti.f(ti.p));
+        if lResumed then
+          ThreadMain:=pointer(ti.f(ti.p))
+        else
+          ThreadMain:=nil;
 {$ifdef linux}
         RemoveTidEntries(pthread_self());
 {$endif linux}
@@ -572,6 +649,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     var
       ti : pthreadinfo;
       thread_attr : pthread_attr_t;
+      lStart : PSuspendedStart;
 {$ifdef linux}
       lEntry : PThreadTidEntry;
 {$endif linux}
@@ -581,16 +659,29 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       InitMultiThreading;
 
+      lStart:=nil;
+      if (creationFlags and CREATE_SUSPENDED)<>0 then
+        begin
+          new(lStart);
+          lStart^.State:=ssWaiting;
+          lStart^.Next:=nil;
+          if pthread_cond_init(@lStart^.Cond,nil)<>0 then
+            begin
+              dispose(lStart);
+              threadid:=TThreadID(0);
+              exit(TThreadID(0));
+            end;
+        end;
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
       ti^.f:=ThreadFunction;
       ti^.p:=p;
       ti^.stklen:=stacksize;
+      ti^.start:=lStart;
 {$ifdef linux}
-      new(ti^.tidentry);
-      FillChar(ti^.tidentry^,SizeOf(TThreadTidEntry),0);
-      lEntry:=ti^.tidentry;
+      new(lEntry);
+      FillChar(lEntry^,SizeOf(TThreadTidEntry),0);
 {$endif linux}
       { call pthread_create }
 {$ifdef DEBUG_MT}
@@ -633,6 +724,20 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$ifdef linux}
       pthread_mutex_unlock(@ThreadTidLock);
 {$endif linux}
+      if assigned(lStart) then
+        if threadid=TThreadID(0) then
+          begin
+            pthread_cond_destroy(@lStart^.Cond);
+            dispose(lStart);
+          end
+        else
+          begin
+            pthread_mutex_lock(@SuspendedLock);
+            lStart^.Thread:=pthread_t(threadid);
+            lStart^.Next:=SuspendedStarts;
+            SuspendedStarts:=lStart;
+            pthread_mutex_unlock(@SuspendedLock);
+          end;
       CBeginThread:=threadid;
       pthread_attr_destroy(@thread_attr);
 {$ifdef DEBUG_MT}
@@ -668,9 +773,13 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
+  // Starts a thread created with CREATE_SUSPENDED; returns 1 then, dword(-1) otherwise
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-      result:=dword(-1);
+      if ReleaseSuspendedStart(pthread_t(threadHandle),ssResumed) then
+        result:=1
+      else
+        result:=dword(-1);
     end;
 
 
@@ -692,6 +801,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       RemoveTidEntries(pthread_t(threadHandle));
 {$endif linux}
       pthread_detach(pthread_t(threadHandle));
+      { a thread that was never resumed ends without running its thread function }
+      if ReleaseSuspendedStart(pthread_t(threadHandle),ssCancelled) then
+        exit(0);
 {$ifndef android}
       CKillThread := pthread_cancel(pthread_t(threadHandle));
 {$else}
@@ -699,6 +811,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif}
     end;
 
+  { A thread that was never resumed stays suspended }
   function CCloseThread (threadHandle : TThreadID) : dword;
     begin
       result:=0;
@@ -1424,6 +1537,8 @@ begin
   Result:=LoadPthreads;
 {$endif}
   ThreadID := TThreadID (pthread_self());
+  if Result and not SuspendedLockReady then
+    SuspendedLockReady:=pthread_mutex_init(@SuspendedLock,nil)=0;
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}

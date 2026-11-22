@@ -715,6 +715,11 @@ const
   STACK_SIZE_PARAM_IS_A_RESERVATION = $10000;
 {$endif HAS_CREATE_SUSPENDED}
 
+{ The thread manager handles CREATE_SUSPENDED: the OS, or cthreads on unix }
+{$if defined(HAS_CREATE_SUSPENDED) or defined(UNIX)}
+  {$define TM_HAS_CREATE_SUSPENDED}
+{$endif}
+
 { platform-dependent defines }
 {$i rtldefs.inc}
 
