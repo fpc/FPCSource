@@ -114,7 +114,13 @@ Type
     Procedure AllocateConnectionID;
     // Read the request content
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
-    // Check that the request body length is unambiguous; raises 501 for a Transfer-Encoding
+    // Read exactly aCount body bytes into aBytes at aOffset; aStart is the tick count the body started at
+    procedure ReadBodyBytes(var aBytes: TBytes; aOffset, aCount: SizeInt; aStart: QWord);
+    // Decode a chunked request body, discard trailer fields, and set Content-Length to the decoded size
+    procedure ReadChunkedContent(ARequest: TFPHTTPConnectionRequest); virtual;
+    // Check that the request body length is unambiguous.
+    //   Transfer-Encoding: only "chunked" on HTTP/1.1 without Content-Length is accepted;
+    //   other codings before chunked raise 501, any other combination raises 400.
     procedure CheckRequestFraming(ARequest: TFPHTTPConnectionRequest); virtual;
     // Allow descendents to handle unknown headers
     procedure UnknownHeader({%H-}ARequest: TFPHTTPConnectionRequest; const {%H-}AHeader: String); virtual;
@@ -661,6 +667,13 @@ resourcestring
   SErrInvalidContentLength = 'Invalid Content-Length "%s"';
   SErrConflictingContentLength = 'Conflicting Content-Length headers: "%s" and "%s"';
   SErrTransferEncodingNotSupported = 'Transfer-Encoding "%s" in a request is not supported';
+  SErrInvalidTransferEncoding = 'Invalid Transfer-Encoding "%s"';
+  SErrTransferEncodingWithLength = 'Request has both Transfer-Encoding and Content-Length';
+  SErrTransferEncodingVersion = 'Transfer-Encoding in a HTTP/%s request';
+  SErrInvalidChunkSize = 'Invalid chunk size line "%s"';
+  SErrInvalidChunkEnd = 'Chunk data not followed by CRLF';
+  SErrTooManyTrailers = 'Too many trailer fields';
+  SErrPayloadTooLarge = 'Payload size exceeds maximum size';
 
 { TFPHTTPConnectionRequest }
 
@@ -2032,6 +2045,14 @@ begin
     if ARequest.HeaderIsSet(hhContentLength) and (ARequest.GetHeader(hhContentLength)<>V) then
       Raise EHTTPServer.CreateFmtHelp(SErrConflictingContentLength,
               [EscapeLogText(ARequest.GetHeader(hhContentLength)),EscapeLogText(V)],400);
+    end
+  else if SameText(N,HTTPHeaderNames[hhTransferEncoding]) then
+    begin
+    if V='' then
+      Raise EHTTPServer.CreateFmtHelp(SErrInvalidTransferEncoding,[''],400);
+    // Repeated Transfer-Encoding fields form one comma-separated list
+    if ARequest.HeaderIsSet(hhTransferEncoding) then
+      V:=ARequest.GetHeader(hhTransferEncoding)+', '+V;
     end;
   ARequest.SetFieldByName(N,V);
 end;
@@ -2039,10 +2060,27 @@ end;
 
 procedure TFPHTTPConnection.CheckRequestFraming(ARequest: TFPHTTPConnectionRequest);
 
+Var
+  lValue,lLast,lFirst : String;
+  P : Integer;
+
 begin
-  if ARequest.HeaderIsSet(hhTransferEncoding) then
-    Raise EHTTPServer.CreateFmtHelp(SErrTransferEncodingNotSupported,
-            [EscapeLogText(ARequest.GetHeader(hhTransferEncoding))],501);
+  if not ARequest.HeaderIsSet(hhTransferEncoding) then
+    Exit;
+  lValue:=ARequest.GetHeader(hhTransferEncoding);
+  if ARequest.HttpVersion<>'1.1' then
+    Raise EHTTPServer.CreateFmtHelp(SErrTransferEncodingVersion,[EscapeLogText(ARequest.HttpVersion)],400);
+  if ARequest.HeaderIsSet(hhContentLength) then
+    Raise EHTTPServer.CreateHelp(SErrTransferEncodingWithLength,400);
+  P:=Length(lValue);
+  While (P>0) and (lValue[P]<>',') do
+    Dec(P);
+  lLast:=Trim(Copy(lValue,P+1,Length(lValue)-P));
+  lFirst:=Trim(Copy(lValue,1,P-1));
+  if not SameText(lLast,'chunked') then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidTransferEncoding,[EscapeLogText(lValue)],400);
+  if lFirst<>'' then
+    Raise EHTTPServer.CreateFmtHelp(SErrTransferEncodingNotSupported,[EscapeLogText(lValue)],501);
 end;
 
 
@@ -2137,68 +2175,146 @@ procedure TFPHTTPConnection.ReadRequestContent(
   ARequest: TFPHTTPConnectionRequest);
 
 Var
-  P,R,lWait,lGrace,lRate : integer;
   L : SizeInt;
   S : TBytes;
-  Err : EHTTPServer;
-  lStart : QWord;
 
 begin
+  if ARequest.HeaderIsSet(hhTransferEncoding) then
+    begin
+    ReadChunkedContent(ARequest);
+    Exit;
+    end;
   S:=[];
   L:=ARequest.ContentLength;
   if (Server.MaxBodySize>0) and (L>Server.MaxBodySize) then
-    PayloadTooLarge('Payload size exceeds maximum size');
+    PayloadTooLarge(SErrPayloadTooLarge);
   If (L>0) then
     begin
     SetLength(S,L);
-    P:=Length(FBuffer);
-    if (P>0) then
-      begin
-      if P>L then
-        P:=L;
-      Move(FBuffer[1],S[0],P);
-      FBuffer:='';
-      L:=L-P;
-      end;
-    lStart:=GetTickCount64;
-    lGrace:=0;
-    lRate:=0;
-    if Assigned(Server) then
-      begin
-      lRate:=Server.RequestBodyMinRate;
-      lGrace:=Server.RequestReadTimeout;
-      end;
-    if lGrace<=0 then
-      lGrace:=DefaultRequestReadTimeout;
-    R:=1;
-    While (L>0) and (R>0) do
-      begin
-      // Same stall protection as the header reader: a client that announced a
-      // body but stops sending must not block the connection indefinitely.
-      if lRate>0 then
-        FRequestDeadline:=lStart+QWord(lGrace)+QWord(Int64(P)*1000 div lRate);
-      lWait:=ReadWaitTime;
-      if (lWait>0) and not FSocket.CanRead(lWait) then
-        RaiseReadTimeout;
-      R:=FSocket.Read(S[p],L);
-      If R<0 then
-        Raise EHTTPServer.Create(SErrReadingSocket);
-      if (R>0) then
-        begin
-        P:=P+R;
-        L:=L-R;
-        end;
-      end;
+    ReadBodyBytes(S,0,L,GetTickCount64);
     FRequestDeadline:=0;
-    if L>0 then
-      begin
-      Err:=EHTTPServer.CreateFmt(SErrIncompleteBody,[P,Length(S)]);
-      Err.StatusCode:=400;
-      Err.StatusText:='BAD REQUEST';
-      Raise Err;
-      end;
     end;
   ARequest.ContentBytes:=S;
+end;
+
+
+procedure TFPHTTPConnection.ReadBodyBytes(var aBytes: TBytes; aOffset, aCount: SizeInt; aStart: QWord);
+
+Var
+  lDone,lRead : SizeInt;
+  lWait,lGrace,lRate : Integer;
+  Err : EHTTPServer;
+
+begin
+  lDone:=Length(FBuffer);
+  if lDone>aCount then
+    lDone:=aCount;
+  if lDone>0 then
+    begin
+    Move(FBuffer[1],aBytes[aOffset],lDone);
+    Delete(FBuffer,1,lDone);
+    end;
+  lGrace:=0;
+  lRate:=0;
+  if Assigned(Server) then
+    begin
+    lRate:=Server.RequestBodyMinRate;
+    lGrace:=Server.RequestReadTimeout;
+    end;
+  if lGrace<=0 then
+    lGrace:=DefaultRequestReadTimeout;
+  lRead:=1;
+  While (lDone<aCount) and (lRead>0) do
+    begin
+    // Deadline for the minimum body rate, counted over the whole body
+    if lRate>0 then
+      FRequestDeadline:=aStart+QWord(lGrace)+QWord(Int64(aOffset+lDone)*1000 div lRate);
+    lWait:=ReadWaitTime;
+    if (lWait>0) and not FSocket.CanRead(lWait) then
+      RaiseReadTimeout;
+    lRead:=FSocket.Read(aBytes[aOffset+lDone],aCount-lDone);
+    If lRead<0 then
+      Raise EHTTPServer.Create(SErrReadingSocket);
+    Inc(lDone,lRead);
+    end;
+  if lDone<aCount then
+    begin
+    Err:=EHTTPServer.CreateFmt(SErrIncompleteBody,[aOffset+lDone,aOffset+aCount]);
+    Err.StatusCode:=400;
+    Err.StatusText:='BAD REQUEST';
+    Raise Err;
+    end;
+end;
+
+
+procedure TFPHTTPConnection.ReadChunkedContent(ARequest: TFPHTTPConnectionRequest);
+
+  // chunk-size [ BWS ";" chunk-ext ]: 1 or more hex digits, at most 15 significant ones
+  Function ParseChunkSize(const aLine : String) : Int64;
+
+  Var
+    S : String;
+    P,J : Integer;
+
+  begin
+    S:=aLine;
+    P:=Pos(';',S);
+    if P>0 then
+      SetLength(S,P-1);
+    While (S<>'') and (S[Length(S)] in [' ',#9]) do
+      SetLength(S,Length(S)-1);
+    P:=1;
+    While (P<Length(S)) and (S[P]='0') do
+      Inc(P);
+    if (S='') or (Length(S)-P+1>15) then
+      Raise EHTTPServer.CreateFmtHelp(SErrInvalidChunkSize,[EscapeLogText(aLine)],400);
+    Result:=0;
+    For J:=P to Length(S) do
+      case S[J] of
+        '0'..'9' : Result:=Result*16+Ord(S[J])-Ord('0');
+        'A'..'F' : Result:=Result*16+Ord(S[J])-Ord('A')+10;
+        'a'..'f' : Result:=Result*16+Ord(S[J])-Ord('a')+10;
+      else
+        Raise EHTTPServer.CreateFmtHelp(SErrInvalidChunkSize,[EscapeLogText(aLine)],400);
+      end;
+  end;
+
+Var
+  lBody : TBytes;
+  lSize : Int64;
+  lTotal : SizeInt;
+  lStart : QWord;
+  lCount : Integer;
+
+begin
+  lBody:=[];
+  lTotal:=0;
+  lStart:=GetTickCount64;
+  Repeat
+    lSize:=ParseChunkSize(ReadString);
+    if lSize>0 then
+      begin
+      if (lSize>High(SizeInt)-lTotal)
+         or ((Server.MaxBodySize>0) and (lTotal+lSize>Server.MaxBodySize)) then
+        PayloadTooLarge(SErrPayloadTooLarge);
+      SetLength(lBody,lTotal+lSize);
+      ReadBodyBytes(lBody,lTotal,lSize,lStart);
+      Inc(lTotal,lSize);
+      if ReadString<>'' then
+        Raise EHTTPServer.CreateHelp(SErrInvalidChunkEnd,400);
+      end;
+  Until lSize=0;
+  lCount:=0;
+  While ReadString<>'' do
+    begin
+    Inc(lCount);
+    if (Server.MaxHeaderCount>0) and (lCount>Server.MaxHeaderCount) then
+      Raise EHTTPServer.CreateHelp(SErrTooManyTrailers,400);
+    end;
+  FRequestDeadline:=0;
+  ARequest.SetHeader(hhTransferEncoding,'');
+  ARequest.ContentLength:=lTotal;
+  ARequest.ContentBytes:=lBody;
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
@@ -2333,7 +2449,7 @@ begin
     //set port
     Req.ServerPort := Server.Port;
     // Read content, if any
-    If Req.ContentLength>0 then
+    If (Req.ContentLength>0) or Req.HeaderIsSet(hhTransferEncoding) then
       ReadRequestContent(Req);
     Req.InitRequestVars;
     If Server.CheckHTTP2PriorKnowledge(Self,Req) then
