@@ -247,3 +247,15 @@
           end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_UINT128}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_INT128}
+    function fpc_mul_int128(f1,f2 : int128) : int128;[public,alias: 'FPC_MUL_INT128']; compilerproc;
+      begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        { uint128(f1)*uint128(f2) is coded as a call to muluint128 }
+        result:=int128(uint128(f1)*uint128(f2));
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_INT128}
