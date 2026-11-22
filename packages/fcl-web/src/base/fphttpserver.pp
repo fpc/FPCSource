@@ -114,6 +114,8 @@ Type
     Procedure AllocateConnectionID;
     // Read the request content
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
+    // Check that the request body length is unambiguous; raises 501 for a Transfer-Encoding
+    procedure CheckRequestFraming(ARequest: TFPHTTPConnectionRequest); virtual;
     // Allow descendents to handle unknown headers
     procedure UnknownHeader({%H-}ARequest: TFPHTTPConnectionRequest; const {%H-}AHeader: String); virtual;
     // Handle request error, calls OnRequestError
@@ -655,6 +657,10 @@ resourcestring
   SErrLogMissingProtocol = 'Missing HTTP protocol version in first line "%s" for request';
   SWarnEmptyRequest = 'Empty request detected.';
   SerrRequestHeaderTooLong = 'Request Header exceeds maximum size (%d)';
+  SErrInvalidHeaderName = 'Invalid header field name in "%s"';
+  SErrInvalidContentLength = 'Invalid Content-Length "%s"';
+  SErrConflictingContentLength = 'Conflicting Content-Length headers: "%s" and "%s"';
+  SErrTransferEncodingNotSupported = 'Transfer-Encoding "%s" in a request is not supported';
 
 { TFPHTTPConnectionRequest }
 
@@ -1987,6 +1993,20 @@ end;
 procedure TFPHTTPConnection.InterPretHeader(ARequest: TFPHTTPConnectionRequest;
   const AHeader: String);
 
+  // Content-Length is 1 to 18 decimal digits: no sign, no hex prefix, no Int64 overflow
+  Function IsValidLength(const aValue : String) : Boolean;
+
+  Var
+    J : Integer;
+
+  begin
+    Result:=(aValue<>'') and (Length(aValue)<=18);
+    if Result then
+      For J:=1 to Length(aValue) do
+        if not (aValue[J] in ['0'..'9']) then
+          Exit(False);
+  end;
+
 Var
   P : Integer;
   N,V : String;
@@ -2000,12 +2020,31 @@ begin
     Exit;
     end;
   N:=Copy(V,1,P-1);
-  if SameText(N,'Upgrade') then
-    V:=V;
+  // RFC 9112 5.1: whitespace between field name and colon (or obs-fold) is a 400
+  if (N='') or (N[1] in [' ',#9]) or (N[Length(N)] in [' ',#9]) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidHeaderName,[EscapeLogText(AHeader)],400);
   Delete(V,1,P);
   V:=Trim(V);
+  if SameText(N,HTTPHeaderNames[hhContentLength]) then
+    begin
+    if not IsValidLength(V) then
+      Raise EHTTPServer.CreateFmtHelp(SErrInvalidContentLength,[EscapeLogText(V)],400);
+    if ARequest.HeaderIsSet(hhContentLength) and (ARequest.GetHeader(hhContentLength)<>V) then
+      Raise EHTTPServer.CreateFmtHelp(SErrConflictingContentLength,
+              [EscapeLogText(ARequest.GetHeader(hhContentLength)),EscapeLogText(V)],400);
+    end;
   ARequest.SetFieldByName(N,V);
 end;
+
+
+procedure TFPHTTPConnection.CheckRequestFraming(ARequest: TFPHTTPConnectionRequest);
+
+begin
+  if ARequest.HeaderIsSet(hhTransferEncoding) then
+    Raise EHTTPServer.CreateFmtHelp(SErrTransferEncodingNotSupported,
+            [EscapeLogText(ARequest.GetHeader(hhTransferEncoding))],501);
+end;
+
 
 procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest;
   AStartLine : String);
@@ -2197,6 +2236,7 @@ begin
         Raise Err;
         end;
     Until (S='');
+    CheckRequestFraming(Result);
     FRequestDeadline:=0;
     Result.RemoteAddress :=  NetAddrToStr(FSocket.RemoteAddress.sin_addr);
     Result.ServerPort := FServer.Port;
