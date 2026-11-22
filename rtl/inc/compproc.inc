@@ -641,6 +641,7 @@ function fpc_mul_dword_to_qword(f1,f2 : dword) : qword; compilerproc;
 function fpc_mul_longint_to_int64(f1,f2 : longint) : int64; compilerproc;
 {$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
 function fpc_div_uint128(n,z : uint128) : uint128; compilerproc;
+function fpc_mod_uint128(n,z : uint128) : uint128; compilerproc;
 function fpc_mul_uint128(f1,f2 : uint128) : uint128; compilerproc;
 function fpc_mul_uint128_checkoverflow(f1,f2 : uint128) : uint128; compilerproc;
 function fpc_mul_int128(f1,f2 : int128) : int128; compilerproc;

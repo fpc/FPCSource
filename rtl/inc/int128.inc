@@ -241,6 +241,47 @@
 {$endif FPC_SYSTEM_HAS_DIV_UINT128}
 
 
+{$ifndef FPC_SYSTEM_HAS_MOD_UINT128}
+    function fpc_mod_uint128(n,z : uint128) : uint128;[public,alias: 'FPC_MOD_UINT128']; compilerproc;
+
+      var
+         shift,lzz,lzn : longint;
+
+      begin
+         { Use the usually faster 64-bit mod if possible }
+         if (hi(z) = 0) and (hi(n) = 0) then
+           begin
+             fpc_mod_uint128 := Qword(z) mod Qword(n);
+             exit;
+           end;
+         fpc_mod_uint128:=0;
+         if n=0 then
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+         if z=0 then
+           exit;
+         lzz:=BsrUInt128(z);
+         lzn:=BsrUInt128(n);
+         { if the denominator contains less zeros }
+         { then the numerator                     }
+         { the d is greater than the n            }
+         if lzn>lzz then
+           begin
+              fpc_mod_uint128:=z;
+              exit;
+           end;
+         shift:=lzz-lzn;
+         n:=n shl shift;
+         for shift:=shift downto 0 do
+           begin
+             if z>=n then
+               z:=z-n;
+             n:=n shr 1;
+           end;
+         fpc_mod_uint128:=z;
+      end;
+{$endif FPC_SYSTEM_HAS_MOD_UINT128}
+
+
 {$ifndef FPC_SYSTEM_HAS_MUL_UINT128}
     function fpc_mul_uint128(f1,f2 : uint128) : uint128;[public,alias: 'FPC_MUL_UINT128']; compilerproc;
       var
