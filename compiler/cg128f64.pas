@@ -42,6 +42,7 @@ unit cg128f64;
         procedure a_load128_loc_reg(list : TAsmList;const l : tlocation;reg : tregister128);override;
 
         procedure a_op128_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister128);override;
+        procedure a_op128_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister128; const ref: treference);override;
         procedure a_op128_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;const l: tlocation);override;
         procedure a_op128_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister128;const l : tlocation);override;
         procedure a_op128_ref_loc(list: TAsmList; op: TOpCG; size: tcgsize;const ref: treference; const l: tlocation);override;
@@ -85,6 +86,26 @@ unit cg128f64;
         tempreg.reglo:=cg.getintregister(list,OS_64);
         a_load128_ref_reg(list,ref,tempreg);
         a_op128_reg_reg(list,op,size,tempreg,reg);
+      end;
+
+
+    procedure tcg128f64.a_op128_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister128; const ref: treference);
+      var
+        tempreg: tregister128;
+      begin
+        tempreg.reghi:=cg.getintregister(list,OS_64);
+        tempreg.reglo:=cg.getintregister(list,OS_64);
+        if op in [OP_NEG,OP_NOT] then
+          begin
+            a_op128_reg_reg(list,op,size,reg,tempreg);
+            a_load128_reg_ref(list,tempreg,ref);
+          end
+        else
+          begin
+            a_load128_ref_reg(list,ref,tempreg);
+            a_op128_reg_reg(list,op,size,reg,tempreg);
+            a_load128_reg_ref(list,tempreg,ref);
+          end;
       end;
 
 
