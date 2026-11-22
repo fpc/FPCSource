@@ -843,6 +843,15 @@ implementation
          if assigned(result) then
            exit;
 
+         { 128bit }
+         if use_moddiv128bitint_helper then
+           begin
+             result := first_moddiv128bitint;
+             if assigned(result) then
+               exit;
+             expectloc:=LOC_REGISTER;
+           end
+         else
          { 64bit }
          if use_moddiv64bitint_helper then
            begin
