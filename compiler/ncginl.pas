@@ -411,17 +411,17 @@ implementation
         var
          addvalue : TConstExprInt;
          addconstant : boolean;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
          hregisterhi,
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpuhighleveltarget}
          hregister : tregister;
         begin
           { set defaults }
           addconstant:=true;
           hregister:=NR_NO;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
           hregisterhi:=NR_NO;
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpuhighleveltarget}
 
           { first secondpass second argument, because if the first arg }
           { is used in that expression then SSL may move it to another }
@@ -460,9 +460,13 @@ implementation
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,second_incdec_tempregdef,addvalue<=1);
                       hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+                      hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register128.reghi;
+{$else cpu64bitalu}
                       hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
-{$endif not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
                       { insert multiply with addvalue if its >1 }
                       if addvalue>1 then
                         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,left.resultdef,addvalue.AsInt64,hregister);
@@ -470,9 +474,13 @@ implementation
                   else if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                     begin
                       hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+                      hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register128.reghi;
+{$else cpu64bitalu}
                       hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
-{$endif not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
                     end;
                   addconstant:=false;
                 end;
@@ -480,13 +488,21 @@ implementation
           { write the add instruction }
           if addconstant then
             begin
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+              if def_cgsize(left.resultdef) in [OS_128,OS_S128] then
+                { use addvalue.svalue here to avoid an internal error if addvalue is unsigned and overflows int128, see #35298,
+                  we are only interested in the bit pattern here }
+                cg128.a_op128_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),hlcgint_lo(addvalue.svalue),hlcgint_hi(addvalue.svalue),tcallparanode(left).left.location)
+              else
+{$else cpu64bitalu}
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                 { use addvalue.svalue here to avoid an internal error if addvalue is unsigned and overflows int64, see #35298,
                   we are only interested in the bit pattern here }
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),addvalue.svalue,tcallparanode(left).left.location)
               else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
 {$ifdef cpu64bitalu}
                   aint(addvalue.AsInt64),
@@ -497,7 +513,21 @@ implementation
             end
            else
              begin
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+               if def_cgsize(left.resultdef) in [OS_128,OS_S128] then
+                 case tcallparanode(tcallparanode(left).right).left.location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     cg128.a_op128_ref_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
+                       tcallparanode(tcallparanode(left).right).left.location.reference,tcallparanode(left).left.location);
+                   LOC_REGISTER,LOC_CREGISTER:
+                     cg128.a_op128_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
+                       joinreg128(hregister,hregisterhi),tcallparanode(left).left.location);
+                   else
+                     Internalerror(2020042801);
+                 end
+               else
+{$else cpu64bitalu}
                if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                  case tcallparanode(tcallparanode(left).right).left.location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
@@ -510,7 +540,8 @@ implementation
                      Internalerror(2020042801);
                  end
                else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
                  case tcallparanode(tcallparanode(left).right).left.location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
                      hlcg.a_op_ref_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
