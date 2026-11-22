@@ -198,3 +198,21 @@
 
 
 {$endif FPC_INCLUDE_SOFTWARE_SHIFT_INT128}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_UINT128}
+    function fpc_mul_uint128(f1,f2 : uint128) : uint128;[public,alias: 'FPC_MUL_UINT128']; compilerproc;
+      var
+        b : byte;
+      begin
+        result:=0;
+
+        for b:=0 to 127 do
+          begin
+            if odd(f2) then
+              result:=result+f1;
+            f1:=f1 shl 1;
+            f2:=f2 shr 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_UINT128}
