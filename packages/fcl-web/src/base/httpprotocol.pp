@@ -158,6 +158,12 @@ Function HTTPDecode(const AStr: String): String;
 Function HTTPDecode(const AStr: String; aPlusAsSpaces : Boolean): String;
 Function HTTPEncode(const AStr: String; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
 Function HTTPEncode(const AStr: String): String;
+// Percent-decode the bytes of AStr; the result has the code page of AStr
+Function HTTPDecodeRaw(const AStr: RawByteString; aPlusAsSpaces : Boolean): RawByteString;
+// Percent-encode the bytes of AStr like HTTPEncode(AStr); the result has the code page of AStr
+Function HTTPEncodeRaw(const AStr: RawByteString): RawByteString;
+// Percent-encode the bytes of AStr like HTTPEncode(AStr,aUnsafeChars,aSpacesAsPlus); the result has the code page of AStr
+Function HTTPEncodeRaw(const AStr: RawByteString; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): RawByteString;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 Function ExcludeHTTPPathDelimiter(const AStr: String): String;
 Function GetHTTPStatusText (ACode: Cardinal; aUppercase : Boolean = False) : String;
@@ -187,8 +193,19 @@ end;
 
 Function HTTPDecode(const AStr: String; aPlusAsSpaces : Boolean): String;
 
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Decode(HTTPDecodeRaw(UTF8Encode(AStr),aPlusAsSpaces));
+{$ELSE}
+  Result:=HTTPDecodeRaw(AStr,aPlusAsSpaces);
+{$ENDIF}
+end;
+
+
+Function HTTPDecodeRaw(const AStr: RawByteString; aPlusAsSpaces : Boolean): RawByteString;
+
 var
-  S,SS, R : PChar;
+  S,SS, R : PAnsiChar;
   H : String[3];
   L,C : Integer;
 
@@ -198,9 +215,10 @@ begin
   SetLength(Result,L);
   If (L=0) then
     exit;
-  S:=PChar(AStr);
+  SetCodePage(Result,StringCodePage(AStr),False);
+  S:=PAnsiChar(AStr);
   SS:=S;
-  R:=PChar(Result);
+  R:=PAnsiChar(Result);
   while (S-SS)<L do
     begin
     case S^ of
@@ -237,13 +255,14 @@ begin
     Inc(R);
     Inc(S);
     end;
-  SetLength(Result,R-PChar(Result));
+  SetLength(Result,R-PAnsiChar(Result));
 end;
 
-function DoHTTPEncode(const AStr: String; HTTPAllowed : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
+// Percent-encode every byte of AStr whose value is not in HTTPAllowed
+function DoHTTPEncode(const AStr: RawByteString; HTTPAllowed : THTTPUnsafeChars; aSpacesAsPlus : Boolean): RawByteString;
 
 var
-  SS,S,R: PChar;
+  SS,S,R: PAnsiChar;
   H : String[2];
   L : Integer;
 
@@ -253,8 +272,9 @@ begin
   SetLength(Result,L*3); // Worst case scenario
   if (L=0) then
     exit;
-  R:=PChar(Result);
-  S:=PChar(AStr);
+  SetCodePage(Result,StringCodePage(AStr),False);
+  R:=PAnsiChar(Result);
+  S:=PAnsiChar(AStr);
   SS:=S; // Avoid #0 limit !!
   while ((S-SS)<L) do
     begin
@@ -275,7 +295,7 @@ begin
     Inc(R);
     Inc(S);
     end;
-  SetLength(Result,R-PChar(Result));
+  SetLength(Result,R-PAnsiChar(Result));
 end;
 
 const
@@ -288,11 +308,34 @@ const
 function HTTPEncode(const AStr: String): String;
 
 begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=String(HTTPEncodeRaw(UTF8Encode(AStr)));
+{$ELSE}
+  Result:=HTTPEncodeRaw(AStr);
+{$ENDIF}
+end;
+
+
+Function HTTPEncode(const AStr: String; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=String(HTTPEncodeRaw(UTF8Encode(AStr),aUnsafeChars,aSpacesAsPlus));
+{$ELSE}
+  Result:=HTTPEncodeRaw(AStr,aUnsafeChars,aSpacesAsPlus);
+{$ENDIF}
+end;
+
+
+Function HTTPEncodeRaw(const AStr: RawByteString): RawByteString;
+
+begin
   // Backwards compatible: % is not allowed.
   Result:=DoHTTPEncode(aStr,OrdHTTPAllowed,True);
 end;
 
-Function HTTPEncode(const AStr: String; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
+
+Function HTTPEncodeRaw(const AStr: RawByteString; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): RawByteString;
 
 begin
   Result:=DoHTTPEncode(aStr,OrdDelphiHTTPAllowed-aUnsafeChars,aSpacesAsPlus);
