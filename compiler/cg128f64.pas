@@ -44,6 +44,7 @@ unit cg128f64;
         procedure a_op128_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister128);override;
         procedure a_op128_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;valuelo,valuehi : int64;const l: tlocation);override;
         procedure a_op128_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister128;const l : tlocation);override;
+        procedure a_op128_ref_loc(list: TAsmList; op: TOpCG; size: tcgsize;const ref: treference; const l: tlocation);override;
         procedure a_op128_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg128 : tregister128);override;
       end;
 
@@ -108,6 +109,26 @@ unit cg128f64;
             a_op128_reg_reg(list,op,size,reg,l.register128);
           else
             internalerror(2002032422);
+        end;
+      end;
+
+
+    procedure tcg128f64.a_op128_ref_loc(list: TAsmList; op: TOpCG; size: tcgsize;const ref: treference; const l: tlocation);
+      var
+        tempreg: tregister128;
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            begin
+              tempreg.reghi:=cg.getintregister(list,OS_64);
+              tempreg.reglo:=cg.getintregister(list,OS_64);
+              a_load128_ref_reg(list,ref,tempreg);
+              a_op128_reg_ref(list,op,size,tempreg,l.reference);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op128_ref_reg(list,op,size,ref,l.register128);
+          else
+            internalerror(2020042803);
         end;
       end;
 
