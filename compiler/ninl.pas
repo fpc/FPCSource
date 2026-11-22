@@ -246,12 +246,14 @@ implementation
       ordtype: tordtype;
     begin
       ordtype := torddef(def).ordtype;
-      if not (ordtype in [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+      if not (ordtype in [scurrency,s128bit,u128bit,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
         internalerror(2013032603);
 
       if is_oversizedord(def) then
         begin
           case ordtype of
+            s128bit: exit('int128');
+            u128bit: exit('uint128');
             scurrency,
             s64bit: exit('int64');
             u64bit: exit('qword');
@@ -454,7 +456,7 @@ implementation
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
 
-            scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit:
+            scurrency,s128bit,u128bit,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit:
               begin
                 intrinsiccode := in_str_x_string;
                 procname := procname + get_str_int_func(source.resultdef);
