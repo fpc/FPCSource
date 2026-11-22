@@ -2527,6 +2527,98 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_SYSTEM_HAS_INT_STR_INT128}
+
+procedure int_str(l:int128;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
+var
+  m,m1 : uint128;
+  pcstart,
+  pc2start,
+  pc,pc2 : PAnsiChar;
+  hs : string[64];
+  overflow : longint;
+begin
+  pc2start:=@s[1];
+  pc2:=pc2start;
+  if (l<0) then
+    begin
+      pc2^:='-';
+      inc(pc2);
+      m:=uint128(-l);
+    end
+  else
+    m:=uint128(l);
+  pcstart:=PAnsiChar(@hs[0]);
+  pc:=pcstart;
+  repeat
+    m1:=m div 10;
+    inc(pc);
+    pc^:=AnsiChar(m-(m1*10)+byte('0'));
+    m:=m1;
+  until m=0;
+  overflow:=(pc-pcstart)+(pc2-pc2start)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
+    begin
+      pc2^:=pc^;
+      inc(pc2);
+      dec(pc);
+    end;
+  s[0]:=AnsiChar(pc2-pc2start);
+end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
+{$endif ndef FPC_SYSTEM_HAS_INT_STR_INT128}
+{$ifndef FPC_SYSTEM_HAS_INT_STR_UINT128}
+
+procedure int_str_unsigned(l:uint128;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
+var
+  m1 : uint128;
+  pcstart,
+  pc2start,
+  pc,pc2 : PAnsiChar;
+  hs : string[64];
+  overflow : longint;
+begin
+  pc2start:=@s[1];
+  pc2:=pc2start;
+  pcstart:=PAnsiChar(@hs[0]);
+  pc:=pcstart;
+  repeat
+    inc(pc);
+    m1:=l div 10;
+    pc^:=AnsiChar(l-(m1*10)+byte('0'));
+    l:=m1;
+  until l=0;
+  overflow:=(pc-pcstart)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
+    begin
+      pc2^:=pc^;
+      inc(pc2);
+      dec(pc);
+    end;
+  s[0]:=AnsiChar(pc2-pc2start);
+end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
+{$endif ndef FPC_SYSTEM_HAS_INT_STR_UINT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifndef FPUNONE}
 {$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}
 

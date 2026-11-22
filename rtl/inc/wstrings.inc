@@ -964,6 +964,27 @@ end;
 
 {$endif CPU64}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+Procedure fpc_WideStr_Int128(v : Int128; Len : SizeInt; out S : WideString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  Str(v:Len,SS);
+  S:=WideString(SS);
+end;
+
+
+Procedure fpc_WideStr_Uint128(v : UInt128;Len : SizeInt; out S : WideString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  str(v:Len,SS);
+  S:=WideString(SS);
+end;
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 function UTF8Encode(const s : WideString) : RawByteString;
   var
     i : SizeInt;

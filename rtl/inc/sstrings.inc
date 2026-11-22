@@ -541,6 +541,25 @@ begin
 end;
 {$endif CPU16 or CPU8}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+procedure fpc_shortstr_uint128(v : uint128;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_UINT128']; compilerproc;
+begin
+  int_str_unsigned(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+
+procedure fpc_shortstr_int128(v : int128;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT128'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 
 { fpc_shortstr_sInt must appear before this file is included, because }
 { it's used inside real2str.inc and otherwise the searching via the      }
@@ -1065,6 +1084,53 @@ begin
 end;
 
 {$endif CPU16 or CPU8}
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+procedure fpc_chararray_uint128(v : uint128;len : SizeInt;out a : array of AnsiChar);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str_unsigned(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
+
+procedure fpc_chararray_int128(v : int128;len : SizeInt;out a : array of AnsiChar);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 
 {$ifndef FPUNONE}

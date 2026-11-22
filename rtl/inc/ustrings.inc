@@ -1691,6 +1691,27 @@ end;
 
 {$endif CPU16 or CPU8}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+Procedure fpc_UnicodeStr_Int128(v : Int128; Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  Str (v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+
+Procedure fpc_UnicodeStr_Uint128(v : Uint128;Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  str(v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 
 function UnicodeToUtf8(Dest: PAnsiChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin

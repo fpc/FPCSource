@@ -176,6 +176,25 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
     procedure fpc_UnicodeStr_smallint(v : smallint;len : SizeInt;out s : UnicodeString); compilerproc;
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU16 or CPU8}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+  procedure fpc_shortstr_uint128(v : uint128;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_shortstr_int128(v : int128;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_chararray_uint128(v : uint128;len : SizeInt;out a : array of AnsiChar); compilerproc;
+  procedure fpc_chararray_int128(v : int128;len : SizeInt;out a : array of AnsiChar); compilerproc;
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  procedure fpc_ansistr_uint128(v : uint128;len : SizeInt;out s : RawByteString;cp : TSystemCodePage); compilerproc; inline;
+  procedure fpc_ansistr_int128(v : int128;len : SizeInt;out s : RawByteString;cp : TSystemCodePage); compilerproc; inline;
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_widestr_uint128(v : uint128;len : SizeInt;out s : widestring); compilerproc;
+    procedure fpc_widestr_int128(v : int128;len : SizeInt;out s : widestring); compilerproc;
+    {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_UnicodeStr_uint128(v : uint128;len : SizeInt;out s : UnicodeString); compilerproc;
+    procedure fpc_UnicodeStr_int128(v : int128;len : SizeInt;out s : UnicodeString); compilerproc;
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     {$ifndef FPUNONE}

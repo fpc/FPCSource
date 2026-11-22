@@ -1243,6 +1243,27 @@ begin
 end;
 {$endif CPU16 or CPU8}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+Procedure fpc_AnsiStr_UInt128(v : UInt128;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_UINT128']; compilerproc; inline;
+Var
+  SS : ShortString;
+begin
+  str(v:Len,SS);
+  S:=SS;
+  SetCodePage(s,cp,false);
+end;
+
+Procedure fpc_AnsiStr_Int128(v : Int128; Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_INT128']; compilerproc; inline;
+Var
+  SS : ShortString;
+begin
+  str (v:Len,SS);
+  S:=SS;
+  SetCodePage(s,cp,false);
+end;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 Procedure fpc_ansistr_delete(Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
