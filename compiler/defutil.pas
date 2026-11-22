@@ -574,7 +574,7 @@ implementation
          def:=s64inttype
         else if (l>=low(qword)) and (h<=high(qword)) then
          def:=u64inttype
-        else if (l>=MinInt128) and (h<=MaxInt128) then
+        else if (l>=Tconstexprint(MinInt128)) and (h<=Tconstexprint(MaxInt128)) then
          def:=s128inttype
         else
          def:=u128inttype;
