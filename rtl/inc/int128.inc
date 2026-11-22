@@ -215,4 +215,35 @@
             f2:=f2 shr 1;
           end;
       end;
+
+
+    function fpc_mul_uint128_checkoverflow(f1,f2 : uint128) : uint128;[public,alias: 'FPC_MUL_UINT128_CHECKOVERFLOW']; compilerproc;
+      var
+         _f1,bitpos : uint128;
+         b : byte;
+         f1overflowed : boolean;
+      begin
+        result:=0;
+        bitpos:=1;
+        f1overflowed:=false;
+
+        for b:=0 to 127 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=result;
+                result:=result+f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if (f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>result) or (f1>result)))) then
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for uint128 :) }
+            f1overflowed:=f1overflowed or ((f1 and (uint128(1) shl 127))<>0);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
 {$endif FPC_SYSTEM_HAS_MUL_UINT128}
