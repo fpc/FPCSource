@@ -2714,6 +2714,30 @@ function BEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif not cpujvm}
 
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function BEtoN(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_BIG}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+
+
+{$ifndef cpujvm}
+function BEtoN(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_BIG}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+{$endif not cpujvm}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
+
 
 function LEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -2779,6 +2803,30 @@ function LEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
     {$ENDIF}
   end;
 {$endif not cpujvm}
+
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function LEtoN(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_LITTLE}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+
+
+{$ifndef cpujvm}
+function LEtoN(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_LITTLE}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+{$endif not cpujvm}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 
 
@@ -2848,6 +2896,30 @@ function NtoBE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif not cpujvm}
 
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function NtoBE(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_BIG}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+
+
+{$ifndef cpujvm}
+function NtoBE(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_BIG}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+{$endif not cpujvm}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
+
 function NtoLE(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     {$IFDEF ENDIAN_LITTLE}
@@ -2912,6 +2984,30 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
     {$ENDIF}
   end;
 {$endif not cpujvm}
+
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function NtoLE(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_LITTLE}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+
+
+{$ifndef cpujvm}
+function NtoLE(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    {$IFDEF ENDIAN_LITTLE}
+      Result := AValue;
+    {$ELSE}
+      Result := SwapEndian(AValue);
+    {$ENDIF}
+  end;
+{$endif not cpujvm}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 

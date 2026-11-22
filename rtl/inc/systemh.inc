@@ -1072,6 +1072,10 @@ function BEtoN(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$end
 function BEtoN(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function BEtoN(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function BEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function BEtoN(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BEtoN(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function LEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function LEtoN(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1079,6 +1083,10 @@ function LEtoN(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$end
 function LEtoN(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function LEtoN(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function LEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function LEtoN(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+function LEtoN(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function NtoBE(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoBE(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1086,6 +1094,10 @@ function NtoBE(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$end
 function NtoBE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoBE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoBE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function NtoBE(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+function NtoBE(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function NtoLE(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1093,6 +1105,10 @@ function NtoLE(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$end
 function NtoLE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function NtoLE(const AValue: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+function NtoLE(const AValue: UInt128): UInt128;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64;
 
