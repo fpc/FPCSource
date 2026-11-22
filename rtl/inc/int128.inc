@@ -258,4 +258,51 @@
         { uint128(f1)*uint128(f2) is coded as a call to muluint128 }
         result:=int128(uint128(f1)*uint128(f2));
       end;
+
+
+    function fpc_mul_int128_checkoverflow(f1,f2 : int128) : int128;[public,alias: 'FPC_MUL_INT128_CHECKOVERFLOW']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
+      var
+         sign : boolean;
+         q1,q2,q3 : uint128;
+      begin
+        if f1<0 then
+          begin
+            q1:=uint128(-f1);
+            sign:=true;
+          end
+        else
+          begin
+            q1:=f1;
+            sign:=false;
+          end;
+        if f2<0 then
+          begin
+            sign:=not(sign);
+            q2:=uint128(-f2);
+          end
+        else
+          q2:=f2;
+        { the q1*q2 is coded as call to mulqword }
+        q3:=q1*q2;
+
+        if (q1 <> 0) and (q2 <>0) and
+          ((q1>q3) or (q2>q3) or
+            { the bit 127 can be only set if we have $80000000 00000000 00000000 00000000 }
+            { and sign is true                                                            }
+            (q3 shr 127<>0) and
+             ((q3<>uint128(uint128(1) shl 127)) or not(sign))
+            ) then
+          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+
+        if sign then
+          result:=-q3
+        else
+          result:=q3;
+      end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 {$endif FPC_SYSTEM_HAS_MUL_INT128}
