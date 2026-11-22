@@ -797,6 +797,17 @@ unit cgcpu;
                     end;
                 end;
             end;
+          OP_ROL,OP_ROR:
+            begin
+              value:=valuelo and 127;
+              if value<>0 then
+                begin
+                  if value=64 then
+                    list.concat(taicpu.op_reg_reg(A_XCHG,S_Q,regdst.reglo,regdst.reghi))
+                  else
+                    internalerror(2026112201);
+                end;
+            end;
           else
             internalerror(200204021);
         end;
