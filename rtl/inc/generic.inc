@@ -2617,7 +2617,36 @@ function SwapEndian(const AValue: QWord): QWord;
     Result := (Result shl 32) or ((Result shr 32));
   end;
 {$endif}
+
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$ifndef FPC_SYSTEM_HAS_SWAPENDIAN_INT128}
+function SwapEndian(const AValue: Int128): Int128;
+  begin
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF0000FFFF0000FFFF);
+    Result := ((Result shl 32) and $FFFFFFFF00000000FFFFFFFF00000000) or
+            ((Result shr 32) and $00000000FFFFFFFF00000000FFFFFFFF);
+    Result := (Result shl 64) or ((Result shr 64));
+  end;
+
+{$ifndef cpujvm}
+function SwapEndian(const AValue: UInt128): UInt128;
+  begin
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF0000FFFF0000FFFF);
+    Result := ((Result shl 32) and $FFFFFFFF00000000FFFFFFFF00000000) or
+            ((Result shr 32) and $00000000FFFFFFFF00000000FFFFFFFF);
+    Result := (Result shl 64) or ((Result shr 64));
+  end;
+{$endif}
+{$endif FPC_SYSTEM_HAS_SWAPENDIAN_INT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function BEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin

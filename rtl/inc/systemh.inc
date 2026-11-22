@@ -1061,6 +1061,10 @@ function SwapEndian(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;
 function SwapEndian(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: Int64): Int64;
 function SwapEndian(const AValue: QWord): QWord;
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function SwapEndian(const AValue: Int128): Int128;
+function SwapEndian(const AValue: UInt128): UInt128;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 function BEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function BEtoN(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
