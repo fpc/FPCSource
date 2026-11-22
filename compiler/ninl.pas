@@ -1610,12 +1610,14 @@ implementation
       ordtype: tordtype;
     begin
       ordtype := torddef(def).ordtype;
-      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+      if not (ordtype in [s128bit,u128bit,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
         internalerror(2020080101);
 
       if is_oversizedint(def) then
         begin
           case ordtype of
+            s128bit: exit('int128');
+            u128bit: exit('uint128');
             s64bit: exit('int64');
             u64bit: exit('qword');
             s32bit: exit('longint');
@@ -1629,8 +1631,8 @@ implementation
       else
         begin
           case ordtype of
-            s64bit,s32bit,s16bit,s8bit: exit('sint');
-            u64bit,u32bit,u16bit,u8bit: exit('uint');
+            s128bit,s64bit,s32bit,s16bit,s8bit: exit('sint');
+            u128bit,u64bit,u32bit,u16bit,u8bit: exit('uint');
             else
               internalerror(2013032607);
           end;
@@ -1767,8 +1769,8 @@ implementation
           orddef:
             begin
               case torddef(destpara.resultdef).ordtype of
-                s8bit,s16bit,s32bit,s64bit,
-                u8bit,u16bit,u32bit,u64bit:
+                s8bit,s16bit,s32bit,s64bit,s128bit,
+                u8bit,u16bit,u32bit,u64bit,u128bit:
                   begin
                     suffix := get_val_int_func(destpara.resultdef) + '_';
                     { we also need a destsize para in the case of sint or uint }
