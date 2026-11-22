@@ -282,6 +282,44 @@
 {$endif FPC_SYSTEM_HAS_MOD_UINT128}
 
 
+{$ifndef FPC_SYSTEM_HAS_DIV_INT128}
+    function fpc_div_int128(n,z : int128) : int128;[public,alias: 'FPC_DIV_INT128']; compilerproc;
+
+      var
+         sign : boolean;
+         q1,q2 : uint128;
+
+      begin
+         if n=0 then
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+         { can the fpu do the work? }
+           begin
+              sign:=false;
+              if z<0 then
+                begin
+                   sign:=not(sign);
+                   q1:=uint128(-z);
+                end
+              else
+                q1:=z;
+              if n<0 then
+                begin
+                   sign:=not(sign);
+                   q2:=uint128(-n);
+                end
+              else
+                q2:=n;
+
+              { the div is coded by the compiler as call to divqword }
+              if sign then
+                fpc_div_int128:=-(q1 div q2)
+              else
+                fpc_div_int128:=q1 div q2;
+           end;
+      end;
+{$endif FPC_SYSTEM_HAS_DIV_INT128}
+
+
 {$ifndef FPC_SYSTEM_HAS_MUL_UINT128}
     function fpc_mul_uint128(f1,f2 : uint128) : uint128;[public,alias: 'FPC_MUL_UINT128']; compilerproc;
       var
