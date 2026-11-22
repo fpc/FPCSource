@@ -1204,6 +1204,7 @@ var
   function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): AnsiString;
   procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
   function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
+  // 1 on success, 0 on failure, -1 when the library has no SSL_set1_host
   function SslSet1Host(ssl: PSSL; hostname: string): cInt;
 
 // libeay.dll
@@ -1216,6 +1217,10 @@ var
   function X509New: PX509;
   procedure X509Free(x: PX509);
   function X509NameOneline(a: PX509_NAME; var buf: AnsiString; size: cInt):AnsiString;
+  // 1 when the certificate matches name, 0 when not, negative on error or when unavailable
+  function X509CheckHost(x: PX509; const name: AnsiString; flags: cuInt): cInt;
+  // As X509CheckHost for an IP address; -2 when address is not an IP address
+  function X509CheckIpAsc(x: PX509; const address: AnsiString; flags: cuInt): cInt;
   function X509GetSubjectName(a: PX509):PX509_NAME;
   function X509GetIssuerName(a: PX509):PX509_NAME;
   function X509NameHash(x: PX509_NAME):cuLong;
@@ -1758,13 +1763,15 @@ type
   TSSLGetServername = function(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): PAnsiChar; cdecl;
   TSSLCtxCallbackCtrl = procedure(ctx: PSSL_CTX; _type: cInt; cb: PCallbackCb); cdecl;
   TSSLSetSslCtx = function(ssl: PSSL; ctx: PSSL_CTX): PSSL; cdecl;
-  TSslSet1Host = function(ssl: PSSL; hostname: string): cInt; cdecl;
+  TSslSet1Host = function(ssl: PSSL; hostname: PAnsiChar): cInt; cdecl;
 
 // libeay.dll
   TERR_load_crypto_strings = procedure; cdecl;
   TX509New = function: PX509; cdecl;
   TX509Free = procedure(x: PX509); cdecl;
   TX509NameOneline = function(a: PX509_NAME; buf: PAnsiChar; size: cInt):PAnsiChar; cdecl;
+  TX509CheckHost = function(x: PX509; chk: PAnsiChar; chklen: csize_t; flags: cuInt; peername: PPAnsiChar): cInt; cdecl;
+  TX509CheckIpAsc = function(x: PX509; address: PAnsiChar; flags: cuInt): cInt; cdecl;
   TX509GetSubjectName = function(a: PX509):PX509_NAME; cdecl;
   TX509GetIssuerName = function(a: PX509):PX509_NAME; cdecl;
   TX509NameHash = function(x: PX509_NAME):cuLong; cdecl;
@@ -2059,6 +2066,8 @@ var
   _X509New: TX509New = nil;
   _X509Free: TX509Free = nil;
   _X509NameOneline: TX509NameOneline = nil;
+  _X509CheckHost: TX509CheckHost = nil;
+  _X509CheckIpAsc: TX509CheckIpAsc = nil;
   _X509GetSubjectName: TX509GetSubjectName = nil;
   _X509GetIssuerName: TX509GetIssuerName = nil;
   _X509NameHash: TX509NameHash = nil;
@@ -2952,9 +2961,9 @@ end;
 function SslSet1Host(ssl: PSSL; hostname: string): cInt;
 begin
   if InitSSLInterface and Assigned(_SslSet1Host) then
-    result := _SslSet1Host(ssl, hostname)
+    result := _SslSet1Host(ssl, PAnsiChar(AnsiString(hostname)))
   else
-    result := 0;
+    result := -1;
 end;
 
 // libeay.dll
@@ -3035,6 +3044,22 @@ begin
     Result := _X509NameOneline(a, PAnsiChar(buf),size)
   else
     Result := '';
+end;
+
+function X509CheckHost(x: PX509; const name: AnsiString; flags: cuInt): cInt;
+begin
+  if InitSSLInterface and Assigned(_X509CheckHost) then
+    Result := _X509CheckHost(x, PAnsiChar(name), Length(name), flags, nil)
+  else
+    Result := -1;
+end;
+
+function X509CheckIpAsc(x: PX509; const address: AnsiString; flags: cuInt): cInt;
+begin
+  if InitSSLInterface and Assigned(_X509CheckIpAsc) then
+    Result := _X509CheckIpAsc(x, PAnsiChar(address), flags)
+  else
+    Result := -1;
 end;
 
 function X509GetSubjectName(a: PX509):PX509_NAME;
@@ -5577,6 +5602,8 @@ begin
   _X509New := GetProcAddr(SSLUtilHandle, 'X509_new');
   _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free');
   _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline');
+  _X509CheckHost := GetProcAddr(SSLUtilHandle, 'X509_check_host');
+  _X509CheckIpAsc := GetProcAddr(SSLUtilHandle, 'X509_check_ip_asc');
   _X509GetSubjectName := GetProcAddr(SSLUtilHandle, 'X509_get_subject_name');
   _X509GetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_get_issuer_name');
   _X509NameHash := GetProcAddr(SSLUtilHandle, 'X509_NAME_hash');
@@ -5958,6 +5985,8 @@ begin
   _SslCtxCallbackCtrl := nil;
   _SslSetSslCtx := nil;
   _SslSet1Host := nil;
+  _X509CheckHost := nil;
+  _X509CheckIpAsc := nil;
   _PKCS7_ISSUER_AND_SERIAL_new:=nil;
   _PKCS7_ISSUER_AND_SERIAL_free:=nil;
   _PKCS7_ISSUER_AND_SERIAL_digest:=nil;
