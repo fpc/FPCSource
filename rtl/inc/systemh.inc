@@ -1017,6 +1017,14 @@ Function Abs(l:Int64):Int64;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_INT64}
 Function Abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ABS_INT64}
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$ifdef FPC_HAS_INTERNAL_ABS_INT128}
+{$define FPC_SYSTEM_HAS_ABS_INT128}
+Function Abs(l:Int128):Int128;[internproc:fpc_in_abs_long];
+{$else FPC_HAS_INTERNAL_ABS_INT128}
+Function Abs(l:Int128):Int128;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ABS_INT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 {$if defined(CPUINT8)}
 Function Sqr(l:shortint):shortint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUINT8}

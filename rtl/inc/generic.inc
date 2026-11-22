@@ -2242,6 +2242,21 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_ABS_INT64}
 
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$ifndef FPC_SYSTEM_HAS_ABS_INT128}
+
+function abs(l: Int128): Int128;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  if l < 0 then
+    abs := -l
+  else
+    abs := l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ABS_INT128}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
+
 {$ifndef FPC_SYSTEM_HAS_SQR_INT64}
 
 function sqr(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
