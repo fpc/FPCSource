@@ -598,10 +598,50 @@ end;
 
 { TURLEncoding }
 
+// The UTF-8 bytes of aText
+function TextToUTF8(const aText: string): RawByteString;
+
+{$IF SIZEOF(CHAR)=1}
+var
+  lUTF8 : UTF8String;
+{$ENDIF}
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Encode(aText);
+{$ELSE}
+  lUTF8:=aText;
+  Result:=lUTF8;
+{$ENDIF}
+end;
+
+
+// The text whose UTF-8 bytes are aBytes, whatever the code page of aBytes
+function UTF8ToText(const aBytes: RawByteString): string;
+
+{$IF SIZEOF(CHAR)=1}
+var
+  lUTF8 : UTF8String;
+{$ENDIF}
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Decode(aBytes);
+{$ELSE}
+  lUTF8:='';
+  SetLength(lUTF8,Length(aBytes));
+  if Length(aBytes)>0 then
+    Move(aBytes[1],lUTF8[1],Length(aBytes));
+  Result:=lUTF8;
+{$ENDIF}
+end;
+
+
 function TURLEncoding.DoDecode(const aInput: RawBytestring): RawBytestring;
 
 begin
-  Result:=HTTPDecode(aInput);
+  Result:=HTTPDecodeRaw(aInput,True);
+  SetCodePage(Result,CP_UTF8,False);
 end;
 
 function TURLEncoding.Encode(const aInput: string; const aSet: TUnsafeChars; const aOptions: TEncodeOptions; aEncoding: TEncoding): string;
@@ -609,31 +649,43 @@ function TURLEncoding.Encode(const aInput: string; const aSet: TUnsafeChars; con
 
 var
   S : TUnsafeChars;
+  lBytes : TBytes;
+  lRaw : RawByteString;
 
 begin
   S:=aSet;
   if (TEncodeOption.EncodePercent in aOptions) then
     S:=aSet+[Ord('%')];
-  Result:=HttpEncode(aInput,S,TEncodeOption.SpacesAsPlus in aOptions);
+  if aEncoding=nil then
+    lRaw:=TextToUTF8(aInput)
+  else
+    begin
+    lBytes:=aEncoding.GetBytes(UnicodeString(aInput));
+    lRaw:='';
+    SetLength(lRaw,Length(lBytes));
+    if Length(lBytes)>0 then
+      Move(lBytes[0],lRaw[1],Length(lBytes));
+    end;
+  Result:=String(HTTPEncodeRaw(lRaw,S,TEncodeOption.SpacesAsPlus in aOptions));
 end;
 
 function TURLEncoding.DoEncode(const aInput: RawBytestring): RawBytestring;
 
 begin
-  Result:=HTTPEncode(aInput)
+  Result:=HTTPEncodeRaw(aInput)
 end;
 
 function TURLEncoding.EncodeQuery(const aInput: string; const aExtraUnsafeChars: TUnsafeChars): string;
 
 const
-  QueryUnsafeChars: TUnsafeChars = [Ord('''')+Ord('%')];
+  QueryUnsafeChars: TUnsafeChars = [Ord(''''),Ord('%')];
 
 var
   Unsafe: TUnsafeChars;
 
 begin
   Unsafe:=QueryUnsafeChars+aExtraUnsafeChars;
-  Result:=HTTPEncode(aInput,Unsafe,True);
+  Result:=String(HTTPEncodeRaw(TextToUTF8(aInput),Unsafe,True));
 end;
 
 function TURLEncoding.EncodePath(const aPath: string; const aExtraUnsafeChars: TUnsafeChars): string;
@@ -651,12 +703,12 @@ begin
   lPaths:=APath.Split(['/'], TStringSplitOptions.ExcludeEmpty);
   Last:=Length(lPaths)-1;
   for I:=0 to Last do
-    Result:=Result+'/'+HTTPEncode(LPaths[I],aExtraUnsafeChars,True);
+    Result:=Result+'/'+String(HTTPEncodeRaw(TextToUTF8(LPaths[I]),aExtraUnsafeChars,True));
 end;
 
 class function TURLEncoding.URIDecode(const aValue: string; aPlusAsSpaces: Boolean): string;
 begin
-  Result:=HTTPDecode(aValue,aPlusAsSpaces);
+  Result:=UTF8ToText(HTTPDecodeRaw(TextToUTF8(aValue),aPlusAsSpaces));
 end;
 
 

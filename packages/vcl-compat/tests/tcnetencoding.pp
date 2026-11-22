@@ -46,6 +46,11 @@ type
     procedure TestEqual;
     procedure TestAmpersand;
     procedure TestQuestion;
+    procedure TestNonASCIIUnicodeString;
+    procedure TestNonASCIIRawByteString;
+    procedure TestNonASCIIString;
+    procedure TestEncodeQueryUnsafe;
+    procedure TestEncodeWithEncoding;
   end;
 
 
@@ -152,6 +157,60 @@ procedure TTestURLEncoding.TestQuestion;
 begin
   AssertEquals('From QuestionMark','%'+hexStr(Ord('?'),2),Enc.Encode('?'));
   AssertEquals('To questionmark','?',Enc.Decode('%'+hexStr(Ord('?'),2)));
+end;
+
+const
+  NonASCIIEncoded = 'a%C2%A3b%E2%82%ACc';
+
+// a, pound sign, b, euro sign, c
+function NonASCIIText : UnicodeString;
+
+begin
+  Result:='a'+WideChar($00A3)+'b'+WideChar($20AC)+'c';
+end;
+
+
+procedure TTestURLEncoding.TestNonASCIIUnicodeString;
+begin
+  AssertEquals('Encode UnicodeString',UnicodeString(NonASCIIEncoded),Enc.Encode(NonASCIIText));
+  AssertEquals('Decode UnicodeString',NonASCIIText,Enc.Decode(UnicodeString(NonASCIIEncoded)));
+end;
+
+procedure TTestURLEncoding.TestNonASCIIRawByteString;
+
+var
+  lUTF8 : UTF8String;
+  lDecoded : RawByteString;
+
+begin
+  lUTF8:=UTF8Encode(NonASCIIText);
+  AssertEquals('Encode RawByteString',UnicodeString(NonASCIIEncoded),UnicodeString(Enc.Encode(RawByteString(lUTF8))));
+  lDecoded:=Enc.Decode(RawByteString(NonASCIIEncoded));
+  AssertEquals('Decode RawByteString code page',CP_UTF8,StringCodePage(lDecoded));
+  AssertEquals('Decode RawByteString',NonASCIIText,UTF8Decode(lDecoded));
+end;
+
+procedure TTestURLEncoding.TestNonASCIIString;
+
+var
+  lText : string;
+
+begin
+  lText:=NonASCIIText;
+  AssertEquals('EncodeQuery',UnicodeString(NonASCIIEncoded),UnicodeString(Enc.EncodeQuery(lText,[])));
+  AssertEquals('EncodePath',UnicodeString('/x/'+NonASCIIEncoded),UnicodeString(Enc.EncodePath('/x/'+lText,[])));
+  AssertEquals('Encode with options',UnicodeString(NonASCIIEncoded),UnicodeString(Enc.Encode(lText,[],[])));
+  AssertEquals('URIDecode',NonASCIIText,UnicodeString(TURLEncoding.URIDecode(NonASCIIEncoded,False)));
+end;
+
+procedure TTestURLEncoding.TestEncodeQueryUnsafe;
+begin
+  AssertEquals('Quote and percent encoded, letters kept','L%27%25',Enc.EncodeQuery('L''%',[]));
+end;
+
+procedure TTestURLEncoding.TestEncodeWithEncoding;
+begin
+  AssertEquals('UTF-16LE bytes','a%00b%00',Enc.Encode('ab',[],[],TEncoding.Unicode));
 end;
 
 { TTestBase64Encoding }
