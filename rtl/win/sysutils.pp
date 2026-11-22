@@ -1063,6 +1063,7 @@ const
 var
   TZInfo: TTimeZoneInformation;
   DSTStart, DSTEnd: TDateTime;
+  lStart, lEnd, lNow: Int64;
 
 begin
   if not Assigned(GetTimeZoneInformationForYear) then
@@ -1082,11 +1083,15 @@ begin
       DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
       DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
     end;
-    if DSTStart < DSTEnd then
-      IsDST := (DSTStart<=DateTime) and (DateTime<DSTEnd)
+    // Compare whole milliseconds: the transition instant itself must fall on the right side
+    lStart := Round(DSTStart*MSecsPerDay);
+    lEnd := Round(DSTEnd*MSecsPerDay);
+    lNow := Round(DateTime*MSecsPerDay);
+    if lStart < lEnd then
+      IsDST := (lStart<=lNow) and (lNow<lEnd)
     else
       // Southern hemisphere countries, when daylight saving observer over the year end
-      IsDST := (DateTime >= DSTStart) or (DateTime < DSTEnd);
+      IsDST := (lNow >= lStart) or (lNow < lEnd);
     if IsDST then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else

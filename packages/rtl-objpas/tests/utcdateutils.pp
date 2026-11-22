@@ -1,5 +1,5 @@
-{ Tests of the DateUtils unit: ScanDateTime, ISO 8601 conversion, increments, spans and ranges.
-  Includes the tests of tests/test/units/dateutil. }
+{ Tests of the DateUtils unit: ScanDateTime, ISO 8601 conversion, increments, spans, ranges
+  and TTimeZone.Local. Includes the tests of tests/test/units/dateutil. }
 unit utcdateutils;
 
 {$mode objfpc}{$H+}
@@ -158,6 +158,24 @@ type
     procedure TestTimeStampLimits;
     // UnixToDateTime and DateTimeToUnix far from 1970
     procedure TestUnixDateTime;
+  end;
+
+  { TTestLocalTimeZone: every quarter hour of 2026 in the zone of the machine running the tests }
+
+  TTestLocalTimeZone = class(TTestCase)
+  private
+    function QuarterHour(aIndex: Integer): TDateTime;
+    function QuarterHourCount: Integer;
+    function OffsetRaisesInvalid(aLocal: TDateTime): Boolean;
+  published
+    // ToLocalTime agrees with UniversalTimeToLocal
+    procedure TestToLocalTime;
+    // Standard and daylight local times survive ToUniversalTime and ToLocalTime
+    procedure TestLocalRoundTrip;
+    // Local times in a gap raise ELocalTimeInvalid
+    procedure TestInvalidTimes;
+    // Local times in an overlap have two UTC times that both map back
+    procedure TestAmbiguousTimes;
   end;
 
 implementation
@@ -1238,7 +1256,109 @@ begin
 end;
 
 
+function TTestLocalTimeZone.QuarterHour(aIndex: Integer): TDateTime;
+
+begin
+  Result:=IncMinute(EncodeDate(2026,1,1),aIndex*15);
+end;
+
+
+function TTestLocalTimeZone.QuarterHourCount: Integer;
+
+begin
+  Result:=365*24*4;
+end;
+
+
+function TTestLocalTimeZone.OffsetRaisesInvalid(aLocal: TDateTime): Boolean;
+
+begin
+  Result:=False;
+  try
+    TTimeZone.Local.GetUtcOffset(aLocal);
+  except
+    on ELocalTimeInvalid do
+      Result:=True;
+  end;
+end;
+
+
+procedure TTestLocalTimeZone.TestToLocalTime;
+
+var
+  I: Integer;
+  lUTC: TDateTime;
+
+begin
+  for I:=0 to QuarterHourCount-1 do
+    begin
+    lUTC:=QuarterHour(I);
+    AssertEquals('ToLocalTime of '+DTStr(lUTC),DTStr(UniversalTimeToLocal(lUTC)),DTStr(TTimeZone.Local.ToLocalTime(lUTC)));
+    end;
+end;
+
+
+procedure TTestLocalTimeZone.TestLocalRoundTrip;
+
+var
+  I: Integer;
+  lLocal: TDateTime;
+  lType: TLocalTimeType;
+
+begin
+  for I:=0 to QuarterHourCount-1 do
+    begin
+    lLocal:=QuarterHour(I);
+    lType:=TTimeZone.Local.GetLocalTimeType(lLocal);
+    if lType in [lttStandard,lttDaylight] then
+      begin
+      AssertEquals('Round trip of '+DTStr(lLocal),DTStr(lLocal),
+        DTStr(TTimeZone.Local.ToLocalTime(TTimeZone.Local.ToUniversalTime(lLocal))));
+      AssertEquals('IsDaylightTime of '+DTStr(lLocal),lType=lttDaylight,TTimeZone.Local.IsDaylightTime(lLocal));
+      end;
+    end;
+end;
+
+
+procedure TTestLocalTimeZone.TestInvalidTimes;
+
+var
+  I: Integer;
+  lLocal: TDateTime;
+
+begin
+  for I:=0 to QuarterHourCount-1 do
+    begin
+    lLocal:=QuarterHour(I);
+    if TTimeZone.Local.IsInvalidTime(lLocal) then
+      AssertTrue('GetUtcOffset of invalid '+DTStr(lLocal)+' raises ELocalTimeInvalid',OffsetRaisesInvalid(lLocal));
+    end;
+end;
+
+
+procedure TTestLocalTimeZone.TestAmbiguousTimes;
+
+var
+  I: Integer;
+  lLocal,lStandard,lDaylight: TDateTime;
+
+begin
+  for I:=0 to QuarterHourCount-1 do
+    begin
+    lLocal:=QuarterHour(I);
+    if TTimeZone.Local.IsAmbiguousTime(lLocal) then
+      begin
+      lStandard:=TTimeZone.Local.ToUniversalTime(lLocal,False);
+      lDaylight:=TTimeZone.Local.ToUniversalTime(lLocal,True);
+      AssertTrue('Daylight UTC time of ambiguous '+DTStr(lLocal)+' is before the standard one',lDaylight<lStandard);
+      AssertEquals('Standard UTC time of ambiguous '+DTStr(lLocal)+' maps back',DTStr(lLocal),DTStr(TTimeZone.Local.ToLocalTime(lStandard)));
+      AssertEquals('Daylight UTC time of ambiguous '+DTStr(lLocal)+' maps back',DTStr(lLocal),DTStr(TTimeZone.Local.ToLocalTime(lDaylight)));
+      end;
+    end;
+end;
+
+
 initialization
   RegisterTests([TTestScanDateTime, TTestScanDateTimeDefault, TTestISO8601, TTestIncDateTime, TTestDateTimeSpan,
-    TTestDateTimeRange]);
+    TTestDateTimeRange, TTestLocalTimeZone]);
 end.

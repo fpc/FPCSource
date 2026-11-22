@@ -3717,15 +3717,45 @@ function TTimeZone.ToLocalTime(const aDateTime: TDateTime): TDateTime;
 
 var
   ltt: TLocalTimeType;
-  lOffset,lDst: Int64;
+  lOffset,lDst,lTotal: Int64;
+  I : Integer;
 
 begin
-  { UTC -> Local }
+  { UTC -> Local: the result is aDateTime+lTotal once lTotal is a UTC offset that local time can have }
   DoGetOffsetsAndType(aDateTime,lOffset,lDst,ltt);
-  Result:=IncSecond(aDateTime,lOffset);
-  DoGetOffsetsAndType(Result,lOffset,lDst,ltt);
-  if (ltt in [lttInvalid,lttDaylight]) then
-    Result:=IncSecond(Result,lDst);
+  if ltt=lttDaylight then
+    lTotal:=lOffset+lDst
+  else
+    lTotal:=lOffset;
+  for I:=1 to 4 do
+    begin
+    Result:=IncSecond(aDateTime,lTotal);
+    DoGetOffsetsAndType(Result,lOffset,lDst,ltt);
+    case ltt of
+      lttStandard:
+        if lTotal=lOffset then
+          Exit
+        else
+          lTotal:=lOffset;
+      lttDaylight:
+        if lTotal=lOffset+lDst then
+          Exit
+        else
+          lTotal:=lOffset+lDst;
+      lttAmbiguous:
+        if (lTotal=lOffset) or (lTotal=lOffset+lDst) then
+          Exit
+        else
+          lTotal:=lOffset;
+      lttInvalid:
+        // The local time lies in a gap: the instant is on the side of the other offset
+        if lTotal=lOffset+lDst then
+          lTotal:=lOffset
+        else
+          lTotal:=lOffset+lDst;
+    end;
+    end;
+  Result:=IncSecond(aDateTime,lTotal);
 end;
 
 function TTimeZone.ToUniversalTime(const aDateTime: TDateTime; const aForceDaylight: Boolean): TDateTime;
@@ -3918,19 +3948,124 @@ begin
   Result:=ID;// For the moment, it is not clear what this should do.
 end;
 
+// UTC offset in seconds (east positive) and DST flag in effect at the UTC instant aUTC; False if unknown
+function LocalOffsetAtUTC(const aUTC: TDateTime; out aOffset: Int64; out aDST: Boolean): Boolean;
+
+var
+  lMinutes : Integer;
+
+begin
+  Result:=GetLocalTimeOffset(aUTC,True,lMinutes,aDST);
+  aOffset:=-Int64(lMinutes)*SecsPerMin;
+end;
+
+
+// Standard offset and DST saving in the year of aLocal, given the offset aTotal and flag aDST in effect at aLocal
+procedure LocalYearOffsets(const aLocal: TDateTime; aTotal: Int64; aDST: Boolean; out aStandard, aDstSave: Int64);
+
+var
+  lYear : Word;
+  lJan,lJul : Int64;
+  lDSTJan,lDSTJul : Boolean;
+
+begin
+  lYear:=YearOf(aLocal);
+  if not LocalOffsetAtUTC(EncodeDateTime(lYear,1,15,12,0,0,0),lJan,lDSTJan) then
+    lDSTJan:=False;
+  if not LocalOffsetAtUTC(EncodeDateTime(lYear,7,15,12,0,0,0),lJul,lDSTJul) then
+    lDSTJul:=False;
+  if aDST then
+    begin
+    aStandard:=aTotal;
+    if not lDSTJan then
+      aStandard:=lJan
+    else if not lDSTJul then
+      aStandard:=lJul;
+    aDstSave:=aTotal-aStandard;
+    end
+  else
+    begin
+    aStandard:=aTotal;
+    aDstSave:=0;
+    if lDSTJan then
+      aDstSave:=lJan-aTotal
+    else if lDSTJul then
+      aDstSave:=lJul-aTotal;
+    end;
+end;
+
+
 procedure TLocalTimeZone.DoGetOffsetsAndType(const aDateTime: TDateTime;
   out aOffset, aDstSave: Int64; out aType: TLocalTimeType);
+
+const
+  DSTTypes : Array[Boolean] of TLocalTimeType = (lttStandard,lttDaylight);
+
 var
-  lOffset : Integer;
-  lDst : Boolean;
+  lMinutes : Integer;
+  lBefore,lAfter,lOffset : Int64;
+  lDST,lDSTBefore,lDSTAfter,lValidBefore,lValidAfter : Boolean;
+
 begin
-  GetLocalTimeOffset(aDateTime,False,lOffset,lDst);
-  aOffSet:=-lOffset* 60;
-  aDSTSave:=0;
-  if lDST then
-    aType:=lttDaylight
+  // Offsets in effect a day before and a day after: at most one transition lies between them
+  if not (LocalOffsetAtUTC(IncDay(aDateTime,-1),lBefore,lDSTBefore)
+          and LocalOffsetAtUTC(IncDay(aDateTime,1),lAfter,lDSTAfter)) then
+    begin
+    GetLocalTimeOffset(aDateTime,False,lMinutes,lDST);
+    aOffset:=-Int64(lMinutes)*SecsPerMin;
+    aDstSave:=0;
+    aType:=DSTTypes[lDST];
+    Exit;
+    end;
+  if lBefore=lAfter then
+    begin
+    LocalOffsetAtUTC(IncSecond(aDateTime,-lBefore),lOffset,lDST);
+    aType:=DSTTypes[lDST];
+    LocalYearOffsets(aDateTime,lOffset,lDST,aOffset,aDstSave);
+    Exit;
+    end;
+  // aDateTime is valid with an offset if converting it to UTC with that offset gives back the same offset
+  LocalOffsetAtUTC(IncSecond(aDateTime,-lBefore),lOffset,lDST);
+  lValidBefore:=(lOffset=lBefore);
+  LocalOffsetAtUTC(IncSecond(aDateTime,-lAfter),lOffset,lDST);
+  lValidAfter:=(lOffset=lAfter);
+  if lValidBefore and lValidAfter then
+    aType:=lttAmbiguous
+  else if lValidBefore then
+    aType:=DSTTypes[lDSTBefore]
+  else if lValidAfter then
+    aType:=DSTTypes[lDSTAfter]
   else
-    aType:=lttStandard;
+    aType:=lttInvalid;
+  if lDSTBefore=lDSTAfter then
+    begin
+    // A change of the standard offset, not a DST transition
+    aDstSave:=0;
+    if aType=lttAmbiguous then
+      begin
+      aOffset:=lAfter;
+      aDstSave:=lBefore-lAfter;
+      end
+    else if aType=lttInvalid then
+      begin
+      aOffset:=lBefore;
+      aDstSave:=lAfter-lBefore;
+      end
+    else if lValidBefore then
+      aOffset:=lBefore
+    else
+      aOffset:=lAfter;
+    end
+  else if lDSTBefore then
+    begin
+    aOffset:=lAfter;
+    aDstSave:=lBefore-lAfter;
+    end
+  else
+    begin
+    aOffset:=lBefore;
+    aDstSave:=lAfter-lBefore;
+    end;
 end;
 
 {$endif fpunone}
