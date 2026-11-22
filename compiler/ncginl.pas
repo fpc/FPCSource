@@ -668,11 +668,15 @@ implementation
 
           location_reset(location,LOC_VOID,OS_NO);
 
-{$if not defined(cpu64bitalu) } // and not defined(cpuhighleveltarget)}
+{$ifdef cpu64bitalu} // and not defined(cpuhighleveltarget)}
+          if (def_cgsize(left.resultdef) in [OS_128,OS_S128]) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+            cg128.a_op128_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location)
+          else
+{$else cpu64bitalu} // and not defined(cpuhighleveltarget)}
           if (def_cgsize(left.resultdef) in [OS_64,OS_S64]) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
             cg64.a_op64_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location)
           else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
             hlcg.a_op_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location);
         end;
 
