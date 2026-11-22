@@ -1110,6 +1110,40 @@ end;
 {$endif CPU8}
 
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+Function fpc_Val_uint128_AnsiStr (Const S : RawByteString; out Code : ValSInt): uint128; [public, alias:'FPC_VAL_UINT128_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_uint128_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := S;
+       Val(SS,fpc_Val_uint128_AnsiStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_int128_AnsiStr (Const S : RawByteString; out Code : ValSInt): Int128; [public, alias:'FPC_VAL_INT128_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_int128_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := s;
+       Val(SS,fpc_Val_int128_AnsiStr,Code);
+    end;
+end;
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
+
 {$ifndef FPUNONE}
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString;cp : TSystemCodePage);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; inline;
 var

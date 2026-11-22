@@ -1575,6 +1575,40 @@ end;
 {$endif CPU16 or CPU8}
 
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+Function fpc_Val_uint128_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): uint128; [public, alias:'FPC_VAL_UINT128_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_uint128_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_uint128_UnicodeStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_int128_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): Int128; [public, alias:'FPC_VAL_INT128_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_int128_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_int128_UnicodeStr,Code);
+    end;
+end;
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
+
 {$ifndef FPUNONE}
 procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString);compilerproc;
 var

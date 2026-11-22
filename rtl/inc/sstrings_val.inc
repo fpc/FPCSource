@@ -702,3 +702,7 @@ begin
   Code:=0;
 end;
 {$endif EXCLUDE_COMPLEX_PROCS}
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+{$i sstrings_val_int128.inc}
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}

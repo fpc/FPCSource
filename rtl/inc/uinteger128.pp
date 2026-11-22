@@ -21,6 +21,8 @@ unit uinteger128;
 
 {$MODE objfpc}
 
+{$DEFINE UNIT_UINTEGER128}
+
   interface
 
     type

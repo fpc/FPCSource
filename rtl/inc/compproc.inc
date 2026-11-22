@@ -332,6 +332,25 @@ Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSIn
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU16 or CPU8}
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function fpc_val_int128_shortstr(Const S: ShortString; out Code: ValSInt): Int128; compilerproc;
+Function fpc_val_uint128_shortstr(Const S: ShortString; out Code: ValSInt): UInt128; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_Val_uint128_AnsiStr (Const S : RawByteString; out Code : ValSInt): uint128;compilerproc;
+Function fpc_Val_int128_AnsiStr (Const S : RawByteString; out Code : ValSInt): Int128; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_uint128_WideStr (Const S : WideString; out Code : ValSInt): uint128; compilerproc;
+Function fpc_Val_int128_WideStr (Const S : WideString; out Code : ValSInt): Int128; compilerproc;
+{$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_uint128_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): uint128; compilerproc;
+Function fpc_Val_int128_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): Int128; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 { A glitch in FPC 3.2.2 prevents inline from working properly here on
   ARM (causes a dangling pointer and hence heap corruption). }

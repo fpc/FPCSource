@@ -15,7 +15,14 @@
                 Int128/UInt128 support for the Val() Functions
 *****************************************************************************}
 
-  Function fpc_val_int128_shortstr(Const S: ShortString; out Code: ValSInt): Int128;{ [public, alias:'FPC_VAL_INT128_SHORTSTR']; compilerproc;}
+{$ifndef UNIT_UINTEGER128}
+  const
+    MinInt128 = Low(Int128);
+    MaxInt128 = High(Int128);
+    MaxUInt128 = High(UInt128);
+{$endif UNIT_UINTEGER128}
+
+  Function fpc_val_int128_shortstr(Const S: ShortString; out Code: ValSInt): Int128;{$ifndef UNIT_UINTEGER128}[public, alias:'FPC_VAL_INT128_SHORTSTR']; compilerproc;{$endif}
 
   var  u : sizeuint;
        sp,ns : sizeint;
@@ -82,7 +89,7 @@
   {$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
-  Function fpc_val_uint128_shortstr(Const S: ShortString; out Code: ValSInt): UInt128; {[public, alias:'FPC_VAL_UINT128_SHORTSTR']; compilerproc;}
+  Function fpc_val_uint128_shortstr(Const S: ShortString; out Code: ValSInt): UInt128;{$ifndef UNIT_UINTEGER128}[public, alias:'FPC_VAL_UINT128_SHORTSTR']; compilerproc;{$endif}
   var
     sp,ns : SizeInt;
     u : SizeUInt;
