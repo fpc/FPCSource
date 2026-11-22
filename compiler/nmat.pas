@@ -51,6 +51,7 @@ interface
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
           function use_moddiv64bitint_helper: boolean; virtual;
+          function first_moddiv128bitint: tnode; virtual;
           function first_moddiv64bitint: tnode; virtual;
           function firstoptimize: tnode; virtual;
           function first_moddivint: tnode; virtual;
@@ -604,6 +605,30 @@ implementation
         result:=nil;
       end;
 {$endif cpuneedsdiv32helper}
+
+
+    function tmoddivnode.first_moddiv128bitint: tnode;
+      var
+        procname: string[31];
+      begin
+        result := nil;
+
+        { create a call to a helper }
+        if nodetype = divn then
+          procname := 'fpc_div_'
+        else
+          procname := 'fpc_mod_';
+        if is_signed(resultdef) then
+          procname := procname + 'int128'
+        else
+          procname := procname + 'uint128';
+
+        result := ccallnode.createintern(procname,ccallparanode.create(left,
+          ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
 
 
     function tmoddivnode.first_moddiv64bitint: tnode;
