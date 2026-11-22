@@ -348,6 +348,46 @@ begin
    end;
 end;
 
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+function hexstr(val : int128;cnt : byte) : shortstring;
+var
+  i : ObjpasInt;
+begin
+  hexstr[0]:=AnsiChar(cnt);
+  for i:=cnt downto 1 do
+   begin
+     hexstr[i]:=hextbl[val and $f];
+     val:=val shr 4;
+   end;
+end;
+
+
+function octstr(val : int128;cnt : byte) : shortstring;
+var
+  i : ObjpasInt;
+begin
+  octstr[0]:=AnsiChar(cnt);
+  for i:=cnt downto 1 do
+   begin
+     octstr[i]:=hextbl[val and 7];
+     val:=val shr 3;
+   end;
+end;
+
+
+function binstr(val : int128;cnt : byte) : shortstring;
+var
+  i : ObjpasInt;
+begin
+  binstr[0]:=AnsiChar(cnt);
+  for i:=cnt downto 1 do
+   begin
+     binstr[i]:=AnsiChar(48+val and 1);
+     val:=val shr 1;
+   end;
+end;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
+
 {$ifndef FPC_HAS_QWORD_HEX_SHORTSTR}
 {$define FPC_HAS_QWORD_HEX_SHORTSTR}
 Function  hexStr(Val:qword;cnt:byte):shortstring;
@@ -373,6 +413,34 @@ begin
   binStr:=binStr(int64(Val),cnt);
 end;
 {$endif FPC_HAS_QWORD_BIN_SHORTSTR}
+
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+
+{$ifndef FPC_HAS_UINT128_HEX_SHORTSTR}
+{$define FPC_HAS_UINT128_HEX_SHORTSTR}
+Function  HexStr(Val:uint128;cnt:byte):shortstring;
+begin
+  hexStr:=hexStr(int128(Val),cnt);
+end;
+{$endif FPC_HAS_UINT128_HEX_SHORTSTR}
+
+{$ifndef FPC_HAS_UINT128_OCT_SHORTSTR}
+{$define FPC_HAS_UINT128_OCT_SHORTSTR}
+Function  OctStr(Val:uint128;cnt:byte):shortstring;
+begin
+  OctStr:=OctStr(int128(Val),cnt);
+end;
+{$endif FPC_HAS_UINT128_OCT_SHORTSTR}
+
+{$ifndef FPC_HAS_UINT128_BIN_SHORTSTR}
+{$define FPC_HAS_UINT128_BIN_SHORTSTR}
+Function  BinStr(Val:uint128;cnt:byte):shortstring;
+begin
+  binStr:=binStr(int128(Val),cnt);
+end;
+{$endif FPC_HAS_UINT128_BIN_SHORTSTR}
+
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 
 
 {$ifndef FPC_HAS_HEXSTR_POINTER_SHORTSTR}

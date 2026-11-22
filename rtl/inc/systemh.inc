@@ -1432,6 +1432,14 @@ Function  BinStr(Val:int64;cnt:byte):shortstring;
 Function  HexStr(Val:qword;cnt:byte):shortstring;
 Function  OctStr(Val:qword;cnt:byte):shortstring;
 Function  BinStr(Val:qword;cnt:byte):shortstring;
+{$ifdef FPC_HAS_TYPES_INT128_AND_UINT128}
+Function  HexStr(Val:int128;cnt:byte):shortstring;
+Function  OctStr(Val:int128;cnt:byte):shortstring;
+Function  BinStr(Val:int128;cnt:byte):shortstring;
+Function  HexStr(Val:uint128;cnt:byte):shortstring;
+Function  OctStr(Val:uint128;cnt:byte):shortstring;
+Function  BinStr(Val:uint128;cnt:byte):shortstring;
+{$endif FPC_HAS_TYPES_INT128_AND_UINT128}
 {$ifdef CPUI8086}
 Function  HexStr(Val:NearPointer):shortstring;
 function  HexStr(Val:NearCsPointer):shortstring;
