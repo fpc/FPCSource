@@ -935,33 +935,63 @@ implementation
           hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+        if def_cgsize(resultdef) in [OS_128,OS_S128] then
+          begin
+            location.register128.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+            location.register128.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+          end
+        else
+{$else cpu64bitalu}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         if assigned(op2) then
           begin
              { rotating by a constant directly coded: }
              if op2.nodetype=ordconstn then
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+               if def_cgsize(resultdef) in [OS_128,OS_S128] then
+                 cg128.a_op128_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),0,
+                   op1.location.register128, location.register128)
+               else
+{$else cpu64bitalu}
                if def_cgsize(resultdef) in [OS_64,OS_S64] then
                  cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
                    tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
                    op1.location.register64, location.register64)
                else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
                    tordconstnode(op2).value.AsQWord and (resultdef.size*8-1),
                    op1.location.register, location.register)
              else
                begin
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+                 if def_cgsize(resultdef) in [OS_128,OS_S128] then
+                   begin
+                     if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
+                       not(equal_defs(op2.resultdef,alusinttype)) then
+                       hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
+                                               op2.resultdef,alusinttype,true);
+                     cg128.a_op128_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                                               joinreg128(op2.location.register,NR_NO),op1.location.register128,
+                                               location.register128);
+                   end
+                 else
+{$else cpu64bitalu}
                  if def_cgsize(resultdef) in [OS_64,OS_S64] then
                    begin
                      if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
@@ -973,7 +1003,8 @@ implementation
                                              location.register64);
                    end
                  else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
                    begin
                      if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
                        not(equal_defs(op2.resultdef,resultdef)) then
@@ -986,12 +1017,19 @@ implementation
                end;
           end
         else
-{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
+{$ifndef cpuhighleveltarget}
+{$ifdef cpu64bitalu}
+          if def_cgsize(resultdef) in [OS_128,OS_S128] then
+            cg128.a_op128_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,0,
+                                        op1.location.register128,location.register128)
+          else
+{$else cpu64bitalu}
           if def_cgsize(resultdef) in [OS_64,OS_S64] then
             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,
                                       op1.location.register64,location.register64)
           else
-{$endif not cpu64bitalu and not cpuhighleveltarget}
+{$endif cpu64bitalu}
+{$endif cpuhighleveltarget}
             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,1,
                                     op1.location.register,location.register);
       end;
