@@ -1039,7 +1039,7 @@ begin
               AddLog(LongLogFile,message_missing+PPFileInfo[current]);
               if Config.Note<>'' then
                 AddLog(LongLogFile,Config.Note);
-              for i:=0 to length(Config.ExpectMsgs) do
+              for i:=0 to high(Config.ExpectMsgs) do
                 if not fndmsgs[i] then
                   begin
                     str(Config.ExpectMsgs[i],msgid);
