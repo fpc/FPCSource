@@ -3481,9 +3481,9 @@ implementation
         case l.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_load128_reg_ref(list,l.register128,ref);
-          { not yet implemented:
           LOC_CONSTANT :
-            a_load128_const_ref(list,l.value128,ref);
+            a_load128_const_ref(list,hlcgint_lo(l.value128),hlcgint_hi(l.value128),ref);
+          { not yet implemented:
           LOC_SUBSETREF, LOC_CSUBSETREF:
             a_load64_subsetref_ref(list,l.sref,ref); }
           else
