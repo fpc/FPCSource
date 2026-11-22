@@ -98,6 +98,7 @@ Type
     FBuffer : Ansistring;
     FKeepAlive : Boolean;
     FRequestDataReceived : Boolean; // True once a byte of the current request has been read.
+    FResponseStarted : Boolean; // True once response headers of the current request were written.
     FRequestDeadline : QWord; // Tick count by which the current part of the request must be read; 0: none.
     // The time a single read may wait: RequestReadTimeout, at most the time left until FRequestDeadline; 0: no limit
     function ReadWaitTime: Integer;
@@ -126,6 +127,9 @@ Type
     procedure UnknownHeader({%H-}ARequest: TFPHTTPConnectionRequest; const {%H-}AHeader: String); virtual;
     // Handle request error, calls OnRequestError
     procedure HandleRequestError(E : Exception); virtual;
+    // Send a minimal response with the status of an EHTTP request error (4xx/5xx), then close the write side.
+    //   Nothing is sent when response headers were already written or the connection was upgraded.
+    procedure SendErrorResponse(E : Exception); virtual;
     // Handle unexpected error, calls OnUnexpectedError
     procedure HandleUnexpectedError(E : Exception); virtual;
     // Setup socket
@@ -403,6 +407,7 @@ Type
     FRequestHeaderTimeout: Integer;
     FRequestBodyMinRate: Integer;
     FSend503OnMaxConnections: Boolean;
+    FSendErrorResponses: Boolean;
     FStrictASCIIURL: Boolean;
     FServer : TInetServer;
     FLoadActivate : Boolean;
@@ -565,6 +570,8 @@ Type
     Property MaxLiveConnectionCount : Integer Read FMaxLiveConnectionCount Write FMaxLiveConnectionCount Default DefaultMaxLiveConnectionCount;
     // If true, when max connections is reached, send a 503. If false, connection is simply closed.
     property Send503OnMaxConnections : Boolean Read FSend503OnMaxConnections Write FSend503OnMaxConnections Default True;
+    // If true, a malformed or refused request gets a response with its error status before the connection is closed.
+    property SendErrorResponses : Boolean Read FSendErrorResponses Write FSendErrorResponses Default True;
     // Per-read socket time-out (ms) used while reading a request (headers and content).
     //   Set as SO_RCVTIMEO/SO_SNDTIMEO on the connection socket, so it limits a single recv/send call,
     //   not the total request time. Protects against clients that connect and then stall mid-request
@@ -626,6 +633,7 @@ Type
     Property RequestHeaderTimeout;
     Property RequestBodyMinRate;
     Property StrictASCIIURL;
+    Property SendErrorResponses;
   end;
 
   EHTTPServer = Class(EHTTP);
@@ -674,6 +682,7 @@ resourcestring
   SErrInvalidChunkEnd = 'Chunk data not followed by CRLF';
   SErrTooManyTrailers = 'Too many trailer fields';
   SErrPayloadTooLarge = 'Payload size exceeds maximum size';
+  SErrSendingErrorResponse = 'Exception sending %d error response: %s: %s';
 
 { TFPHTTPConnectionRequest }
 
@@ -1155,6 +1164,7 @@ Var
 begin
   if Connection.IsUpgraded then
     exit;
+  Connection.FResponseStarted:=True;
   S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetHTTPStatusText(Code)]);
   For I:=0 to Headers.Count-1 do
     S:=S+UTF8Encode(Headers[i]+#13#10);
@@ -1703,6 +1713,7 @@ begin
   FMaxBodySize:=DefaultMaxBodySize;
   FMaxLiveConnectionCount:=DefaultMaxLiveConnectionCount;
   FSend503OnMaxConnections:=True;
+  FSendErrorResponses:=True;
   FRequestReadTimeout:=DefaultRequestReadTimeout;
   FRequestHeaderTimeout:=DefaultRequestHeaderTimeout;
   FRequestBodyMinRate:=DefaultRequestBodyMinRate;
@@ -1947,6 +1958,52 @@ begin
   else if Assigned(Server) and Server.CanLog(hlmError) then
     Server.DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
 end;
+
+procedure TFPHTTPConnection.SendErrorResponse(E: Exception);
+
+Var
+  lCode,lRead,lTotal : Integer;
+  lText,lBody,lResponse : String;
+  lEnd : QWord;
+  lBuf : Array[0..ReadBufLen-1] of Byte;
+
+begin
+  if not (E is EHTTP) or FResponseStarted or IsUpgraded or not Assigned(FSocket) then
+    Exit;
+  if Assigned(Server) and not Server.SendErrorResponses then
+    Exit;
+  lCode:=EHTTP(E).StatusCode;
+  if (lCode<400) or (lCode>599) then
+    Exit;
+  FResponseStarted:=True;
+  lText:=GetHTTPStatusText(lCode);
+  lBody:=IntToStr(lCode)+' '+lText;
+  lResponse:='HTTP/1.1 '+lBody+#13#10
+            +'Content-Type: text/plain'#13#10
+            +'Content-Length: '+IntToStr(Length(lBody))+#13#10
+            +'Connection: close'#13#10
+            +#13#10
+            +lBody;
+  try
+    FSocket.WriteBuffer(lResponse[1],Length(lResponse));
+    fpShutdown(FSocket.Handle,SHUT_WR);
+    // Discard remaining request data, at most 64 KB or 1 second, until the client closes
+    lTotal:=0;
+    lEnd:=GetTickCount64+1000;
+    While (lTotal<65536) and (GetTickCount64<lEnd) and FSocket.CanRead(100) do
+      begin
+      lRead:=FSocket.Read(lBuf,SizeOf(lBuf));
+      if lRead<=0 then
+        Break;
+      Inc(lTotal,lRead);
+      end;
+  except
+    On E2 : Exception do
+      if Assigned(Server) and Server.CanLog(hlmError) then
+        Server.DoLog(hlmError,SErrSendingErrorResponse,[lCode,E2.ClassName,E2.Message]);
+  end;
+end;
+
 
 procedure TFPHTTPConnection.HandleUnexpectedError(E: Exception);
 begin
@@ -2432,6 +2489,7 @@ begin
     FIsUpgraded:=True;
     Exit;
     end;
+  FResponseStarted:=False;
   // Read headers.
   Resp:=Nil;
   Req:=ReadRequestHeaders;
@@ -2544,6 +2602,7 @@ begin
       begin
       FKeepAlive:=False; // don't keep alive connections that failed
       HandleRequestError(E);
+      SendErrorResponse(E);
       end;
   end;
   FBusy:=False;
