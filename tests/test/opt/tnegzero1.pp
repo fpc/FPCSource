@@ -1,5 +1,5 @@
 { %CPU=i386,x86_64 }
-{ %OPT=-O2 }
+{ %OPT=-O- -O2 }
 
 { 0.0 and -0.0 are different constants: the constant optimization of -O2
   must not load one of them for the other }

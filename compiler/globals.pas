@@ -1310,22 +1310,16 @@ implementation
       var
         d: double;
       begin
-        Result:=False;
-        if value<>0.0 then
-          exit;
         d:=value;
-        Result:=(QWord(TCompDoubleRec(d).bytes)=QWord(MathPosZero.bytes));
+        Result:=QWord(TCompDoubleRec(d).bytes)=0;
       end;
 
     function IsNegZero(value: bestreal): boolean;
       var
         d: double;
       begin
-        Result:=False;
-        if value<>0.0 then
-          exit;
         d:=value;
-        Result:=(QWord(TCompDoubleRec(d).bytes)=QWord(MathNegZero.bytes));
+        Result:=QWord(TCompDoubleRec(d).bytes)=QWord(MathNegZero.bytes);
       end;
 {$ifend sizeof(bestreal)=sizeof(double)}
 
