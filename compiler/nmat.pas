@@ -50,6 +50,7 @@ interface
          protected
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
+          function use_moddiv128bitint_helper: boolean; virtual;
           function use_moddiv64bitint_helper: boolean; virtual;
           function first_moddiv128bitint: tnode; virtual;
           function first_moddiv64bitint: tnode; virtual;
@@ -269,6 +270,15 @@ implementation
         n:=tmoddivnode(inherited dogetcopy);
         n.moddivnodeflags:=moddivnodeflags;
         result:=n;
+      end;
+
+
+    function tmoddivnode.use_moddiv128bitint_helper: boolean;
+      begin
+        result:=
+          (left.resultdef.typ=orddef) and
+          (right.resultdef.typ=orddef) and
+          (is_128bit(left.resultdef) or is_128bit(right.resultdef));
       end;
 
 
