@@ -61,6 +61,27 @@ begin
   end;
 end;
 
+// A BCD holding all of aDigits, leading zeros included, with aPlaces decimals
+function UnnormalizedBCD(const aDigits: string; aPlaces: Byte; aNeg: Boolean): TBCD;
+var
+  lIndex: integer;
+  lDigit: byte;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.Precision := Length(aDigits);
+  Result.SignSpecialPlaces := aPlaces;
+  if aNeg then
+    Result.SignSpecialPlaces := Result.SignSpecialPlaces or $80;
+  for lIndex := 1 to Length(aDigits) do
+  begin
+    lDigit := Ord(aDigits[lIndex]) - Ord('0');
+    if Odd(lIndex) then
+      Result.Fraction[(lIndex - 1) div 2] := lDigit shl 4
+    else
+      Result.Fraction[(lIndex - 1) div 2] := Result.Fraction[(lIndex - 1) div 2] or lDigit;
+  end;
+end;
+
 procedure testBCDToStrF(const s1, s2: string);
 begin
   if s1 <> s2 then
@@ -208,6 +229,14 @@ begin
   testBCDToStr(-1.03125, '-1,03125');
   testBCDToStr(CurrToBCD(1.2345), '1,2345');
   testBCDToStr(CurrToBCD(-0.0045), '-0,0045');
+  testBCDToStr(UnnormalizedBCD('0000000310', 2, False), '3,10');
+  testBCDToStr(UnnormalizedBCD('0000000310', 2, True), '-3,10');
+  testBCDToStr(UnnormalizedBCD('0000000005', 2, False), '0,05');
+  testBCDToStr(UnnormalizedBCD('0000000000', 2, False), '0,00');
+  testBCDToStr(UnnormalizedBCD('0000000042', 0, False), '42');
+  testBCDToStr(UnnormalizedBCD('0000000000', 0, False), '0');
+  testBCDToStr(UnnormalizedBCD('0123', 3, False), '0,123');
+  testBCDToStr(UnnormalizedBCD('5', 2, False), '0,05');
 
   // test BCDToStrF:
   FS.DecimalSeparator:=',';

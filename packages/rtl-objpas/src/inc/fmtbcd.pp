@@ -1829,23 +1829,16 @@ IMPLEMENTATION
             result := result + '-';
 {$endif}
             end;
-          if Plac >= Prec then
-            begin
-            // insert leading 0 before decimal point
-{$ifndef use_ansistring}
-            Inc ( l );
-            result[l] := '0';
-{$else}
-            result := result + '0';
-{$endif}
-            end;
           if Prec > 0 then
             begin
+            // Start at the units digit at the latest; digits not stored are zero
+            if FDig > 0 then
+              FDig := 0;
+            // Skip leading zeros of the integer part, keeping the units digit
+            while ( FDig < 0 ) and ( Singles[FDig] = 0 ) do
+              Inc ( FDig );
             if Plac > 0 then
-              begin
-              if Plac > Prec then FDig := 1;
-              pp := 1;
-              end
+              pp := 1
             else
               pp := low ( bh.FDig ) - 1; // there is no decimal point
             for i := FDig TO LDig do
@@ -1866,6 +1859,15 @@ IMPLEMENTATION
               result := result + Chr ( Singles[i] + Ord ( '0' ) );
 {$endif}
               end;
+            end
+          else
+            begin
+{$ifndef use_ansistring}
+            Inc ( l );
+            result[l] := '0';
+{$else}
+            result := result + '0';
+{$endif}
             end;
         end;
 {$ifndef use_ansistring}
