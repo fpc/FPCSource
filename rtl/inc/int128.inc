@@ -320,6 +320,39 @@
 {$endif FPC_SYSTEM_HAS_DIV_INT128}
 
 
+{$ifndef FPC_SYSTEM_HAS_MOD_INT128}
+    function fpc_mod_int128(n,z : int128) : int128;[public,alias: 'FPC_MOD_INT128']; compilerproc;
+
+      var
+         signed : boolean;
+         r,nq,zq : uint128;
+
+      begin
+         if n=0 then
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+         if n<0 then
+           nq:=-n
+         else
+           nq:=n;
+         if z<0 then
+           begin
+             signed:=true;
+             zq:=uint128(-z)
+           end
+         else
+           begin
+             signed:=false;
+             zq:=z;
+           end;
+         r:=zq mod nq;
+         if signed then
+           fpc_mod_int128:=-int128(r)
+         else
+           fpc_mod_int128:=r;
+      end;
+{$endif FPC_SYSTEM_HAS_MOD_INT128}
+
+
 {$ifndef FPC_SYSTEM_HAS_MUL_UINT128}
     function fpc_mul_uint128(f1,f2 : uint128) : uint128;[public,alias: 'FPC_MUL_UINT128']; compilerproc;
       var
