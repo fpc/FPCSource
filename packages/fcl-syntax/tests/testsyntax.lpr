@@ -100,6 +100,7 @@ uses
   unittest.wordtable,
   unittest.tokencategories,
   unittest.sharedtext,
+  unittest.bytescanner,
   consoletestrunner;
 
 type

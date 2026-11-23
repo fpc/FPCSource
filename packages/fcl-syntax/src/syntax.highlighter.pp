@@ -147,6 +147,8 @@ type
       FCategories: TStringList;
       FNextCategoryID: Integer;
     procedure StoreToken(Sender: TObject; const aToken: TSyntaxToken);
+    // Set kind, line and categories (DefaultCategory and aCategory) of aToken
+    procedure SetTokenFields(var aToken: TSyntaxToken; aKind: TSyntaxHighlightKind; aCategory: Integer); inline;
   protected
     FTokens : TSyntaxTokenList;
     class function GetCategoryID(const category: string): Integer;
@@ -417,13 +419,11 @@ begin
   FCategories.Free;
 end;
 
-procedure TSyntaxHighlighter.AddToken(const aText: string; akind: TSyntaxHighlightKind; aCategory: Integer);
+procedure TSyntaxHighlighter.SetTokenFields(var aToken: TSyntaxToken; aKind: TSyntaxHighlightKind; aCategory: Integer);
 var
   lCat1,lCat2 : Integer;
-  lToken : TSyntaxToken;
 
 begin
-  if Length(aText) = 0 then Exit;
   lCat2:=0;
   lCat1:=DefaultCategory;
   if aCategory<>0 then
@@ -435,17 +435,27 @@ begin
     InvalidCategoryID(lCat1);
   if (lCat2<Low(SmallInt)) or (lCat2>MaxCategoryID) then
     InvalidCategoryID(lCat2);
-  lToken.Text:=aText;
-  lToken.Kind:=aKind;
-  lToken.Line:=0;
-  lToken.FCategories[0]:=lCat1;
-  lToken.FCategories[1]:=lCat2;
+  aToken.Kind:=aKind;
+  aToken.Line:=0;
+  aToken.FCategories[0]:=lCat1;
+  aToken.FCategories[1]:=lCat2;
   if lCat2>0 then
-    lToken.FCategoryCount:=2
+    aToken.FCategoryCount:=2
   else if lCat1>0 then
-    lToken.FCategoryCount:=1
+    aToken.FCategoryCount:=1
   else
-    lToken.FCategoryCount:=0;
+    aToken.FCategoryCount:=0;
+end;
+
+
+procedure TSyntaxHighlighter.AddToken(const aText: string; akind: TSyntaxHighlightKind; aCategory: Integer);
+var
+  lToken : TSyntaxToken;
+
+begin
+  if Length(aText) = 0 then Exit;
+  lToken.Text:=aText;
+  SetTokenFields(lToken,aKind,aCategory);
   EmitToken(lToken);
 end;
 
@@ -479,9 +489,17 @@ end;
 
 procedure TSyntaxHighlighter.AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory: Integer);
 
+var
+  lToken : TSyntaxToken;
+
 begin
-  if aLength > 0 then
-    AddToken(SourceText(aSource, aStart, aLength), aKind, aCategory);
+  if aLength <= 0 then
+    Exit;
+  lToken.Text:=SourceText(aSource, aStart, aLength);
+  if Length(lToken.Text) = 0 then
+    Exit;
+  SetTokenFields(lToken,aKind,aCategory);
+  EmitToken(lToken);
 end;
 
 

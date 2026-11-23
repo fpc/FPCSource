@@ -51,9 +51,9 @@ type
     // Return the stored tokens and release the source
     function Finish: TSyntaxTokenArray;
     // Character at the cursor plus aOffset, #0 outside the text
-    function Ch(aOffset: SizeInt = 0): char;
+    function Ch(aOffset: SizeInt = 0): char; inline;
     // True if aValue occurs at the cursor plus aOffset
-    function At(const aValue: string; aOffset: SizeInt = 0): boolean;
+    function At(const aValue: string; aOffset: SizeInt = 0): boolean; inline;
     // Emit the text from aFirst up to the cursor as a token of kind aKind
     procedure Emit(aFirst: SizeInt; aKind: TSyntaxHighlightKind);
     // Move the cursor to the end of the line
@@ -344,17 +344,13 @@ end;
 function TByteSyntaxHighlighter.At(const aValue: string; aOffset: SizeInt): boolean;
 
 var
-  I: Integer;
   lPos: SizeInt;
 begin
-  Result := False;
   lPos := FCursor + aOffset;
-  if (aValue = '') or (lPos < 1) or (Length(aValue) > FLimit - lPos + 1) then
-    Exit;
-  for I := 1 to Length(aValue) do
-    if FText[lPos + I - 1] <> aValue[I] then
-      Exit;
-  Result := True;
+  Result := (Length(aValue) > 0) and (lPos >= 1) and (Length(aValue) <= FLimit - lPos + 1)
+            and (FText[lPos] = aValue[1])
+            and ((Length(aValue) = 1)
+                 or (CompareByte(PChar(Pointer(FText))[lPos], PChar(Pointer(aValue))[1], Length(aValue) - 1) = 0));
 end;
 
 
