@@ -387,6 +387,22 @@ type
     // calculations in stringfromlabel are correct
     procedure TestCompressShortDomain;
     procedure TestCompressShortDomainTCP;
+
+    // ExtractAnswer*, the answer parsing used by ResolveName, ResolveName6 and ResolveAddress
+    procedure TestExtractAnswerAddresses;
+    procedure TestExtractAnswerAddressesCompressed;
+    procedure TestExtractAnswerAddresses6;
+    procedure TestExtractAnswerNames;
+    procedure TestExtractAnswerCName;
+    procedure TestExtractAnswerAddressesArrayFull;
+    procedure TestExtractAnswerAddressesAnCountTooHigh;
+    procedure TestExtractAnswerAddressesSkipsBadRDLength;
+    procedure TestExtractAnswerAddressesRDLengthPastEnd;
+    procedure TestExtractAnswerAddressesRecordPastAnsLen;
+    procedure TestExtractAnswerAddressesLabelPastEnd;
+    procedure TestExtractAnswerAddressesPointerByteAtEnd;
+    procedure TestExtractAnswerNamesPointerLoop;
+    procedure TestExtractAnswerNamesSelfPointer;
   end;
 
 implementation
@@ -4654,6 +4670,294 @@ begin
   qd.h.id[1] := fdr.hdr.id[1];
   SetLength(buf, truncoffset);
   Result := BufferToPayload(buf, qd.Payload);
+end;
+
+const
+  cAnswerQuestion : array[0..6] of Byte = (1,Ord('a'),0, 0,1, 0,1);
+  cAnswerA : array[0..15] of Byte = ($C0,12, 0,1, 0,1, 0,0,0,0, 0,4, 127,0,0,1);
+  cAnswerA2 : array[0..15] of Byte = ($C0,12, 0,1, 0,1, 0,0,0,0, 0,4, 127,0,5,1);
+
+
+// Fill aQD with a response for aAnCount answers whose payload is a question for "a" followed by aAnswer.
+procedure BuildRawAnswer(out aQD: TQueryData; aAnCount: Word; const aAnswer: array of Byte;
+  out aAnsLen: Integer);
+
+begin
+  aQD:=Default(TQueryData);
+  aQD.h.flags1:=QF_QR;
+  aQD.h.qdcount:=HToNs(1);
+  aQD.h.ancount:=aAnCount;
+  Move(cAnswerQuestion,aQD.Payload[0],Length(cAnswerQuestion));
+  if Length(aAnswer)>0 then
+    Move(aAnswer[0],aQD.Payload[Length(cAnswerQuestion)],Length(aAnswer));
+  aAnsLen:=Length(cAnswerQuestion)+Length(aAnswer);
+end;
+
+
+// Concatenate two byte arrays.
+function JoinBytes(const aFirst, aSecond: array of Byte): TBytes;
+
+begin
+  Result:=Default(TBytes);
+  SetLength(Result,Length(aFirst)+Length(aSecond));
+  Move(aFirst[0],Result[0],Length(aFirst));
+  Move(aSecond[0],Result[Length(aFirst)],Length(aSecond));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddresses;
+
+var
+  lFake: TFakeDNSResponse;
+  lQD: TQueryData;
+  lAnsLen: Word;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildFakeResponseA(FAKEFQDN, lFake);
+  AssertTrue('Unable to convert fake dns response to querydata',
+    BuildQueryData(lFake, lQD, lAnsLen));
+  AssertTrue('CheckAnswer should return true.', CheckAnswer(lQD.h,lQD.h));
+  AssertEquals('Number of addresses', 2, ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('No CNAME', '', lCName);
+  AssertEquals('First address in network order', '127.0.0.1', NetAddrToStr(lAddr[0]));
+  AssertEquals('Second address in network order', '127.0.5.1', NetAddrToStr(lAddr[1]));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesCompressed;
+
+var
+  lFake: TFakeDNSResponse;
+  lQD: TQueryData;
+  lAnsLen: Word;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildFakeResponseA(FAKEFQDN, lFake);
+  AssertTrue('Unable to convert fake dns response to querydata',
+    BuildQueryData(lFake, lQD, lAnsLen, True));
+  AssertTrue('CheckAnswer should return true.', CheckAnswer(lQD.h,lQD.h));
+  AssertEquals('Number of addresses', 2, ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('First address', '127.0.0.1', NetAddrToStr(lAddr[0]));
+  AssertEquals('Second address', '127.0.5.1', NetAddrToStr(lAddr[1]));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddresses6;
+
+var
+  lFake: TFakeDNSResponse;
+  lQD: TQueryData;
+  lAnsLen: Word;
+  lAddr: array[0..4] of THostAddr6;
+  lExpected: THostAddr6;
+  lCName: String;
+
+begin
+  BuildFakeResponseAAAA(FAKEFQDN, lFake);
+  AssertTrue('Unable to convert fake dns response to querydata',
+    BuildQueryData(lFake, lQD, lAnsLen));
+  AssertTrue('CheckAnswer should return true.', CheckAnswer(lQD.h,lQD.h));
+  AssertEquals('Number of addresses', 2, ExtractAnswerAddresses6(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('No CNAME', '', lCName);
+  lExpected:=StrToNetAddr6('fe80::3b92:3429:ff16:a3e4');
+  AssertTrue('First address', CompareMem(@lAddr[0], @lExpected, SizeOf(THostAddr6)));
+  lExpected:=StrToNetAddr6('fe80::92e6:baff:fe44:ffbb');
+  AssertTrue('Second address', CompareMem(@lAddr[1], @lExpected, SizeOf(THostAddr6)));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerNames;
+
+var
+  lFake: TFakeDNSResponse;
+  lQD: TQueryData;
+  lAnsLen: Word;
+  lNames: array[0..4] of String;
+  lCName: String;
+
+begin
+  BuildFakeResponsePTR(FAKEFQDN, lFake);
+  AssertTrue('Unable to convert fake dns response to querydata',
+    BuildQueryData(lFake, lQD, lAnsLen));
+  AssertTrue('CheckAnswer should return true.', CheckAnswer(lQD.h,lQD.h));
+  AssertEquals('Number of names', 1, ExtractAnswerNames(lQD, lAnsLen, lNames, lCName));
+  AssertEquals('No CNAME', '', lCName);
+  AssertEquals('PTR name', 'fakeptrans.'+FAKEFQDN, lNames[0]);
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerCName;
+
+var
+  lFake: TFakeDNSResponse;
+  lQD: TQueryData;
+  lAnsLen: Word;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildFakeResponseCNAME(FAKEFQDN, lFake);
+  AssertTrue('Unable to convert fake dns response to querydata',
+    BuildQueryData(lFake, lQD, lAnsLen));
+  AssertTrue('CheckAnswer should return true.', CheckAnswer(lQD.h,lQD.h));
+  AssertEquals('Number of addresses', 0, ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('CNAME target', 'fakecname.'+FAKEFQDN, lCName);
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesArrayFull;
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..0] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 2, JoinBytes(cAnswerA, cAnswerA2), lAnsLen);
+  AssertEquals('Only as many addresses as the array holds', 1,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('First address', '127.0.0.1', NetAddrToStr(lAddr[0]));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesAnCountTooHigh;
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 5, cAnswerA, lAnsLen);
+  AssertEquals('Records missing from the payload are not returned', 1,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesSkipsBadRDLength;
+
+const
+  cShortA : array[0..14] of Byte = ($C0,12, 0,1, 0,1, 0,0,0,0, 0,3, 10,0,0);
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 2, JoinBytes(cShortA, cAnswerA), lAnsLen);
+  AssertEquals('A record with RDLength 3 is skipped', 1,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+  AssertEquals('Record after the bad one', '127.0.0.1', NetAddrToStr(lAddr[0]));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesRDLengthPastEnd;
+
+const
+  cLongA : array[0..15] of Byte = ($C0,12, 0,1, 0,1, 0,0,0,0, $FF,$FF, 127,0,0,1);
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 2, JoinBytes(cLongA, cAnswerA), lAnsLen);
+  AssertEquals('RDLength 65535 ends parsing', 0,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesRecordPastAnsLen;
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 1, cAnswerA, lAnsLen);
+  AssertEquals('Record ending one byte past the answer length is rejected', 0,
+    ExtractAnswerAddresses(lQD, lAnsLen-1, lAddr, lCName));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesLabelPastEnd;
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 1, [63], lAnsLen);
+  AssertEquals('Owner label longer than the answer', 0,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerAddressesPointerByteAtEnd;
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 1, [$FF], lAnsLen);
+  AssertEquals('Pointer byte as the last answer byte', 0,
+    ExtractAnswerAddresses(lQD, lAnsLen, lAddr, lCName));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerNamesPointerLoop;
+
+const
+  cLoopPTR : array[0..15] of Byte = ($C0,12, 0,12, 0,1, 0,0,0,0, 0,4, 1,Ord('x'), $C0,31);
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lNames: array[0..4] of String;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 1, cLoopPTR, lAnsLen);
+  AssertEquals('PTR whose name points back at its own label', 1,
+    ExtractAnswerNames(lQD, lAnsLen, lNames, lCName));
+  AssertTrue('Looping name is cut off at 255 characters', Length(lNames[0])<=255);
+  AssertEquals('Looping name starts with the label', 'x.x.', Copy(lNames[0],1,4));
+end;
+
+
+procedure TNetDbTest.TestExtractAnswerNamesSelfPointer;
+
+const
+  cSelfPTR : array[0..13] of Byte = ($C0,12, 0,12, 0,1, 0,0,0,0, 0,2, $C0,31);
+
+var
+  lQD: TQueryData;
+  lAnsLen: Integer;
+  lNames: array[0..4] of String;
+  lCName: String;
+
+begin
+  BuildRawAnswer(lQD, 1, cSelfPTR, lAnsLen);
+  AssertEquals('PTR whose name is a pointer to itself', 1,
+    ExtractAnswerNames(lQD, lAnsLen, lNames, lCName));
+  AssertEquals('Self pointer gives an empty name', '', lNames[0]);
 end;
 
 initialization
