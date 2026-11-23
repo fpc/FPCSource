@@ -8,10 +8,19 @@ interface
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, fpcunit, testregistry,
+  Classes, SysUtils, Types, fpcunit, testregistry,
   syntax.highlighter, syntax.pascal, syntax.javascript, syntax.html, syntax.barye;
 
 type
+
+  { TFixedTokenHighlighter }
+
+  TFixedTokenHighlighter = class(TSyntaxHighlighter)
+  protected
+    class function GetLanguages: TStringDynArray; override;
+    // Emit the parts of aSource separated by '|' as tokens
+    procedure DoExecute(const aSource: string); override;
+  end;
 
   { TTestTokenEvents }
 
@@ -50,9 +59,28 @@ type
     procedure TestBaryeLines;
     procedure TestBaryeRange;
     procedure TestEmitDoesNotChangeEmbeddedToken;
+    procedure TestLineEndSplitOverTokens;
+    procedure TestRangeWithLineEndAtTokenEnd;
   end;
 
 implementation
+
+class function TFixedTokenHighlighter.GetLanguages: TStringDynArray;
+
+begin
+  Result := [];
+end;
+
+
+procedure TFixedTokenHighlighter.DoExecute(const aSource: string);
+
+var
+  lPart: string;
+begin
+  for lPart in aSource.Split(['|']) do
+    AddToken(lPart, shDefault);
+end;
+
 
 const
   TenLines =
@@ -539,6 +567,49 @@ begin
   end;
   AssertEquals('embedded var has the HTML line', 3, lTokens[FindToken(lTokens, 'var')].Line);
   AssertEquals('tokens cover the source', Source, Join(lTokens));
+end;
+
+procedure TTestTokenEvents.TestLineEndSplitOverTokens;
+
+var
+  lHighlighter: TFixedTokenHighlighter;
+  lTokens: TSyntaxTokenArray;
+begin
+  lHighlighter := TFixedTokenHighlighter.Create;
+  try
+    lTokens := lHighlighter.Execute('a'#13'|'#10'b|c');
+    AssertEquals('token count, CR and LF in two tokens', 3, Length(lTokens));
+    AssertEquals('token ending in CR', 1, lTokens[0].Line);
+    AssertEquals('token starting with the LF of a CRLF', 2, lTokens[1].Line);
+    AssertEquals('token after a CRLF split over two tokens', 2, lTokens[2].Line);
+    lTokens := lHighlighter.Execute('a'#10'|'#10'b|c');
+    AssertEquals('token ending in LF', 1, lTokens[0].Line);
+    AssertEquals('token starting with a second LF', 2, lTokens[1].Line);
+    AssertEquals('token after two LFs', 3, lTokens[2].Line);
+    lTokens := lHighlighter.Execute('a'#13'|'#13'b|c');
+    AssertEquals('token after two CRs', 3, lTokens[2].Line);
+  finally
+    lHighlighter.Free;
+  end;
+end;
+
+
+procedure TTestTokenEvents.TestRangeWithLineEndAtTokenEnd;
+
+var
+  lHighlighter: TFixedTokenHighlighter;
+  lTokens: TSyntaxTokenArray;
+begin
+  lHighlighter := TFixedTokenHighlighter.Create;
+  try
+    lHighlighter.SetRange(2, -1);
+    lTokens := lHighlighter.Execute('a'#10'|b|c'#10'd');
+    AssertEquals('a token whose line end is its last character stays on its line', 2, Length(lTokens));
+    AssertEquals('first token in range', 'b', lTokens[0].Text);
+    AssertEquals('multi-line token in range', 2, lTokens[1].Line);
+  finally
+    lHighlighter.Free;
+  end;
 end;
 
 initialization

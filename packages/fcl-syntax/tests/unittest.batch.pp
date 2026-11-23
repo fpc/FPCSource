@@ -31,6 +31,9 @@ type
     class function Fixture: TSyntaxFixture; override;
   published
     procedure TestRemComment;
+    procedure TestRemMixedCase;
+    procedure TestRemPrefixOfWord;
+    procedure TestRemCutOff;
   end;
 
 implementation
@@ -48,6 +51,31 @@ procedure TTestBatchHighlighter.TestRemComment;
 
 begin
   AssertRole('batch', 'REM if exist', 'if', shComment);
+end;
+
+
+procedure TTestBatchHighlighter.TestRemMixedCase;
+
+begin
+  AssertRole('batch', 'Rem if exist', 'if', shComment);
+  AssertRole('batch', 'rEm if exist', 'if', shComment);
+  AssertRole('batch', 'rem if exist', 'if', shComment);
+end;
+
+
+procedure TTestBatchHighlighter.TestRemPrefixOfWord;
+
+begin
+  AssertRole('batch', 'remark' + #13#10 + 'if exist x', 'if', shKeyword);
+  AssertRole('batch', 'REMARK' + #13#10 + 'if exist x', 'if', shKeyword);
+end;
+
+
+procedure TTestBatchHighlighter.TestRemCutOff;
+
+begin
+  AssertRole('batch', 're', 're', shDefault);
+  AssertRole('batch', 'if x' + #13#10 + 'Re', 'Re', shDefault);
 end;
 
 initialization

@@ -31,6 +31,7 @@ type
     class function Fixture: TSyntaxFixture; override;
   published
     procedure TestRemComment;
+    procedure TestRemMixedCase;
     procedure TestDoubledQuote;
   end;
 
@@ -49,6 +50,15 @@ procedure TTestBasicHighlighter.TestRemComment;
 
 begin
   AssertRole('basic', 'REM Function', 'Function', shComment);
+end;
+
+
+procedure TTestBasicHighlighter.TestRemMixedCase;
+
+begin
+  AssertRole('basic', 'Rem Function', 'Function', shComment);
+  AssertRole('basic', 'x = 1 rem Function', 'Function', shComment);
+  AssertRole('basic', 'Remove Function', 'Function', shKeyword);
 end;
 
 

@@ -32,6 +32,7 @@ type
   published
     procedure TestNowdoc;
     procedure TestAttribute;
+    procedure TestComments;
   end;
 
 implementation
@@ -56,6 +57,17 @@ procedure TTestPhpHighlighter.TestAttribute;
 
 begin
   AssertRole('php', '#[Example] function f() {}', '#[Example', shAttribute);
+end;
+
+
+procedure TTestPhpHighlighter.TestComments;
+
+begin
+  AssertRole('php', '# FUNCTION' + #10 + 'function', 'FUNCTION', shComment);
+  AssertRole('php', '# FUNCTION' + #10 + 'function', 'function', shKeyword);
+  AssertRole('php', '/* Function */ function', 'Function', shComment);
+  AssertRole('php', '/* Function */ function', 'function', shKeyword);
+  AssertRole('php', 'function f() {} //', '//', shComment);
 end;
 
 initialization

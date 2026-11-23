@@ -149,6 +149,8 @@ type
     FWordKindOverridden: boolean;
     FLineStart: boolean;
     FSpecialStart: TSysCharSet;
+    FCommentStart: TSysCharSet;
+    FStringStart: TSysCharSet;
     function CommentToken: boolean;
     function AtFolded(const aValue: string): boolean;
     function StringToken: boolean;
@@ -674,6 +676,8 @@ constructor TTableSyntaxHighlighter.Create;
 
 var
   lWordKind: TWordKindMethod;
+  I: Integer;
+  lChar: char;
 begin
   inherited Create;
   FDescription := Describe;
@@ -697,6 +701,19 @@ begin
   else
     FSpecialStart := [];
   end;
+  FCommentStart := [];
+  for I := 0 to High(FDescription.Comments) do
+    if FDescription.Comments[I].OpenText <> '' then
+      begin
+      lChar := FDescription.Comments[I].OpenText[1];
+      Include(FCommentStart, lChar);
+      if not FDescription.CaseSensitive and (lChar in ['a'..'z']) then
+        Include(FCommentStart, UpCase(lChar));
+      end;
+  FStringStart := [];
+  for I := 0 to High(FDescription.Strings) do
+    if FDescription.Strings[I].OpenText <> '' then
+      Include(FStringStart, FDescription.Strings[I].OpenText[1]);
 end;
 
 
@@ -751,8 +768,21 @@ end;
 
 function TTableSyntaxHighlighter.AtFolded(const aValue: string): boolean;
 
+var
+  I: Integer;
+  lChar: char;
 begin
-  Result := LowerCase(Copy(FText, FCursor, Length(aValue))) = aValue;
+  if (Length(aValue) = 0) or (Length(aValue) > FLimit - FCursor + 1) then
+    Exit(False);
+  for I := 0 to Length(aValue) - 1 do
+    begin
+    lChar := FText[FCursor + I];
+    if lChar in ['A'..'Z'] then
+      lChar := Chr(Ord(lChar) + 32);
+    if lChar <> aValue[I + 1] then
+      Exit(False);
+    end;
+  Result := True;
 end;
 
 
@@ -1180,7 +1210,7 @@ begin
       Emit(lFirst, shComment);
       Continue;
       end;
-    if SpecialString or CommentToken or StringToken then
+    if SpecialString or ((Ch in FCommentStart) and CommentToken) or ((Ch in FStringStart) and StringToken) then
       begin
       FLineStart := False;
       Continue;

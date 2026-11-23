@@ -383,13 +383,21 @@ begin
 end;
 
 procedure TSyntaxTokenList.AddToken(const aToken: TSyntaxToken);
+var
+  lSlot : ^TSyntaxToken;
 begin
   if FTokenCount=Length(FList) then
     if FTokenCount<64 then
       SetLength(FList,64)
     else
       SetLength(FList,FTokenCount*2);
-  FList[FTokenCount]:=aToken;
+  // Assign field by field instead of the whole record
+  lSlot:=@FList[FTokenCount];
+  lSlot^.Text:=aToken.Text;
+  lSlot^.Kind:=aToken.Kind;
+  lSlot^.Line:=aToken.Line;
+  lSlot^.FCategories:=aToken.FCategories;
+  lSlot^.FCategoryCount:=aToken.FCategoryCount;
   Inc(FTokenCount);
 end;
 
@@ -532,20 +540,31 @@ end;
 procedure TSyntaxHighlighter.EmitToken(var aToken: TSyntaxToken);
 
 var
-  lFirst, lLast: Integer;
+  lFirst, lLast, lLine, I: Integer;
+  lAfterCR: Boolean;
+  lText: PChar;
   lChar: Char;
 begin
-  lFirst:=FLine;
-  lLast:=FLine;
-  for lChar in aToken.Text do
+  lLine:=FLine;
+  lAfterCR:=FAfterCR;
+  lFirst:=lLine;
+  lLast:=lLine;
+  lText:=PChar(Pointer(aToken.Text));
+  for I:=0 to Length(aToken.Text)-1 do
     begin
-    lLast:=FLine;
-    case lChar of
-      #13: Inc(FLine);
-      #10: if not FAfterCR then Inc(FLine);
+    lChar:=lText[I];
+    lLast:=lLine;
+    if lChar>#13 then
+      lAfterCR:=False
+    else
+      begin
+      if (lChar=#13) or ((lChar=#10) and not lAfterCR) then
+        Inc(lLine);
+      lAfterCR:=(lChar=#13);
+      end;
     end;
-    FAfterCR:=(lChar=#13);
-    end;
+  FLine:=lLine;
+  FAfterCR:=lAfterCR;
   if (FRangeTo<>-1) and (lFirst>FRangeTo) then
     begin
     FStopping:=True;
