@@ -18,17 +18,6 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit netdb;
 {$ENDIF FPC_DOTTEDUNITS}
-{
-  WARNING
-  This unit hardly does any error checking. For example, stringfromlabel
-  could easily be exploited by  someone sending malicious UDP packets in
-  order to crash  your program.  So if you really want to depend on this
-  in critical programs then you'd better fix a lot of code in here.
-  Otherwise, it appears to work pretty well.
-
-  When compiling this unit with the FPC_USE_LIBC defined, the warning above
-  can be ignored, since the libc implementation should be robust.
-}
 
 Interface
 
