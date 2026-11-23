@@ -297,6 +297,14 @@ Function SkipAnsQueries(Var Ans : TQueryDataLengthTCP; L : Integer) : integer;
 function stringfromlabel(pl: TPayLoad; var start: Integer): string;
 function stringfromlabel(pl: TPayLoadTCP; var start: Integer): string;
 Function CheckAnswer(Const Qry : TDNSHeader; Var Ans : TDNSHeader) : Boolean;
+// Return a query ID read from /dev/urandom, or from Random when that fails.
+function RandomQueryID: Word;
+{ Check that aAns, with aAnsLen payload bytes, is the response to aQry, with
+  aQryLen payload bytes: same ID, response flag set, and the same question
+  (name compared case-insensitively). A response without a question section
+  is accepted only when it has an error code. }
+function IsAnswerTo(const aQry: TQueryData; aQryLen: Integer;
+  const aAns: TQueryData; aAnsLen: Integer): Boolean;
 function IsValidAtype(atype: Word): Boolean;
 
 function IsTruncated(R: TDNSHeader): Boolean;
@@ -957,6 +965,57 @@ begin
     end;
 end;
 
+
+function RandomQueryID: Word;
+
+var
+  lFD: cint;
+
+begin
+  Result:=0;
+  lFD:=FpOpen('/dev/urandom',O_RDONLY);
+  if (lFD<0) or (FpRead(lFD,Result,SizeOf(Result))<>SizeOf(Result)) then
+    Result:=Random(65536);
+  if lFD>=0 then
+    FpClose(lFD);
+end;
+
+
+function IsAnswerTo(const aQry: TQueryData; aQryLen: Integer;
+  const aAns: TQueryData; aAnsLen: Integer): Boolean;
+
+var
+  lNameEnd, i: Integer;
+  lA, lQ: Byte;
+
+begin
+  Result:=False;
+  if (aAnsLen<0) or (aQryLen<5) or (aQryLen>Length(aQry.Payload)) then
+    Exit;
+  if (aAns.h.ID[0]<>aQry.h.ID[0]) or (aAns.h.ID[1]<>aQry.h.ID[1]) then
+    Exit;
+  if (aAns.h.Flags1 and QF_QR)=0 then
+    Exit;
+  if NToHs(aAns.h.qdcount)=0 then
+    Exit((aAns.h.Flags2 and QF_RCODE)<>0);
+  if (NToHs(aAns.h.qdcount)<>1) or (aAnsLen<aQryLen) then
+    Exit;
+  // Name bytes compared case-insensitively; length bytes are below 64 and never letters.
+  lNameEnd:=aQryLen-5;
+  for i:=0 to lNameEnd-1 do
+    begin
+    lA:=aAns.Payload[i];
+    lQ:=aQry.Payload[i];
+    if lA in [65..90] then
+      Inc(lA,32);
+    if lQ in [65..90] then
+      Inc(lQ,32);
+    if lA<>lQ then
+      Exit;
+    end;
+  Result:=CompareByte(aAns.Payload[lNameEnd],aQry.Payload[lNameEnd],5)=0;
+end;
+
 {
  Check that Atype is valid. These are the DNSQRY_? params we support. See the
  definitions at the top of this unit for the names.
@@ -1614,15 +1673,17 @@ Function Query(Resolver : Integer; Var Qry,Ans : TQueryData; QryLen : Integer; V
 Var
   SA : TInetSockAddr;
   Sock,L : Longint;
-  Al,RTO : Longint;
+  RTO : Longint;
+  lID : Word;
+  lNow, lDeadline : QWord;
   ReadFDS : TFDSet;
 
 begin
   Result:=False;
+  lID:=RandomQueryID;
   With Qry.h do
     begin
-    ID[0]:=Random(256);
-    ID[1]:=Random(256);
+    Move(lID,ID,SizeOf(ID));
     Flags1:=QF_RD;
     Flags2:=0;
     qdcount:=htons(1); // was 1 shl 8;
@@ -1639,30 +1700,35 @@ begin
     sin_port:=htons(DNSServerPort);
     sin_addr.s_addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
     end;
-  fpsendto(sock,@qry,qrylen+12,0,@SA,SizeOf(SA));
-  // Wait for answer.
-  RTO:=TimeOutS*1000+TimeOutMS;
-  fpFD_ZERO(ReadFDS);
-  fpFD_Set(sock,readfds);
-  if fpSelect(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
+  // A connected UDP socket only receives datagrams from the resolver address and port.
+  if (fpconnect(Sock,@SA,SizeOf(SA))<>0) or (fpsend(Sock,@Qry,QryLen+12,0)<>QryLen+12) then
     begin
     fpclose(Sock);
     exit;
     end;
-  AL:=SizeOf(SA);
-  FillChar(Ans,SizeOf(Ans),0);
-  L:=fprecvfrom(Sock,@ans,SizeOf(Ans),0,@SA,@AL);
+  lDeadline:=GetTickCount64+QWord(TimeOutS*1000+TimeOutMS);
+  repeat
+    lNow:=GetTickCount64;
+    if lNow>=lDeadline then
+      break;
+    RTO:=lDeadline-lNow;
+    fpFD_ZERO(ReadFDS);
+    fpFD_Set(Sock,ReadFDS);
+    if fpSelect(Sock+1,@ReadFDS,Nil,Nil,RTO)<=0 then
+      break;
+    FillChar(Ans,SizeOf(Ans),0);
+    L:=fprecv(Sock,@Ans,SizeOf(Ans),0);
+    if L<0 then
+      break;
+    if (L>=12) and IsAnswerTo(Qry,QryLen,Ans,L-12) then
+      begin
+      // AnsLen >= 0 tells the caller that the server responded, even when Result is False.
+      AnsLen:=L-12;
+      Result:=CheckAnswer(Qry.h,Ans.h);
+      break;
+      end;
+  until False;
   fpclose(Sock);
-
-  if L < 12 then exit;
-  // Return Payload length.
-  Anslen:=L-12;
-  // even though we may still return false to indicate an error, if AnsLen
-  // is >= 0 then the caller knows the dns server responded.
-  If not CheckAnswer(Qry.h,Ans.h) Then
-    exit;
-  Result:=True;
-  //end;
 end;
 
 function FetchDNSResponse(sock: Cint; out len: ssize_t;
@@ -1709,14 +1775,15 @@ Var
   respsize: Word;
   resp: TTCPSocketResult;
   tstart: QWord;
+  lID: Word;
 
 begin
   tstart := GetTickCount64;
   Result:=False;
+  lID:=RandomQueryID;
   With Qry.hpl.h do
   begin
-    ID[0]:=Random(256);
-    ID[1]:=Random(256);
+    Move(lID,ID,SizeOf(ID));
     Flags1:=QF_RD;
     Flags2:=0;
     qdcount:=htons(1); // was 1 shl 8;
@@ -1736,7 +1803,10 @@ begin
 
   // connect to the resolver
   if (fpconnect(Sock, @SA, SizeOf(SA)) <> 0) then
+  begin
+    fpclose(Sock);
     exit;
+  end;
 
   // send the query to the resolver
   sendsize := QryLen + SizeOf(Qry.hpl.h) + SizeOf(Qry.length);

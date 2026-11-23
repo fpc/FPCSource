@@ -403,9 +403,34 @@ type
     procedure TestExtractAnswerAddressesPointerByteAtEnd;
     procedure TestExtractAnswerNamesPointerLoop;
     procedure TestExtractAnswerNamesSelfPointer;
+
+    // RandomQueryID and IsAnswerTo, the reply checks used by Query
+    procedure TestRandomQueryIDIgnoresRandSeed;
+    procedure TestRandomQueryIDSpread;
+    procedure TestIsAnswerTo;
+    procedure TestIsAnswerToCaseInsensitive;
+    procedure TestIsAnswerToWrongID;
+    procedure TestIsAnswerToNotResponse;
+    procedure TestIsAnswerToOtherName;
+    procedure TestIsAnswerToOtherType;
+    procedure TestIsAnswerToShort;
+    procedure TestIsAnswerToErrorWithoutQuestion;
+    procedure TestIsAnswerToNoQuestionNoError;
+
+    // Query against a UDP server on the loopback interface
+    procedure TestQueryGoodReply;
+    procedure TestQuerySkipsWrongID;
+    procedure TestQuerySkipsOtherQuestion;
+    procedure TestQueryIgnoresOtherSource;
+    procedure TestQueryErrorReply;
+    procedure TestQueryOnlyWrongReplies;
+    procedure TestQueryTimeout;
   end;
 
 implementation
+
+uses
+  BaseUnix;
 
 procedure dump_payload(const pl: TBuffer);
 var
@@ -4958,6 +4983,471 @@ begin
   AssertEquals('PTR whose name is a pointer to itself', 1,
     ExtractAnswerNames(lQD, lAnsLen, lNames, lCName));
   AssertEquals('Self pointer gives an empty name', '', lNames[0]);
+end;
+
+
+// Fill aQry with a query for example.test and aAns with its matching response.
+procedure BuildQueryPair(out aQry, aAns: TQueryData; out aQryLen: Integer);
+
+begin
+  aQry:=Default(TQueryData);
+  aQryLen:=BuildPayLoad(aQry,'example.test',DNSQRY_A,1);
+  aQry.h.ID[0]:=$12;
+  aQry.h.ID[1]:=$34;
+  aQry.h.Flags1:=QF_RD;
+  aQry.h.qdcount:=HToNs(1);
+  aAns:=aQry;
+  aAns.h.Flags1:=QF_QR or QF_RD;
+end;
+
+
+type
+  TFakeReplyKind = (frGood, frWrongID, frOtherName, frOtherSource, frNXDomain);
+
+  // UDP server on 127.0.0.1 that answers one query with a list of replies.
+  TFakeDNSServer = class(TThread)
+  private
+    FSock: TSocket;
+    FOtherSock: TSocket;
+    FPort: Word;
+    FReplies: array of TFakeReplyKind;
+    procedure SendReply(aKind: TFakeReplyKind; const aQry: TQueryData; aQryLen: Integer;
+      const aTo: TInetSockAddr);
+  protected
+    procedure Execute; override;
+  public
+    // Bind 127.0.0.1 for the server and 127.0.0.2 for frOtherSource, then start.
+    constructor Create(const aReplies: array of TFakeReplyKind);
+    destructor Destroy; override;
+    // Port the server listens on, in host order.
+    property Port: Word read FPort;
+  end;
+
+
+// Open a UDP socket bound to aAddress on a free port.
+function BindUDP(const aAddress: String): TSocket;
+
+var
+  lAddr: TInetSockAddr;
+
+begin
+  Result:=fpSocket(AF_INET,SOCK_DGRAM,0);
+  if Result<0 then
+    raise Exception.Create('Cannot create UDP socket');
+  lAddr:=Default(TInetSockAddr);
+  lAddr.sin_family:=AF_INET;
+  lAddr.sin_addr:=StrToNetAddr(aAddress);
+  if fpBind(Result,@lAddr,SizeOf(lAddr))<>0 then
+    raise Exception.CreateFmt('Cannot bind UDP socket to %s',[aAddress]);
+end;
+
+
+constructor TFakeDNSServer.Create(const aReplies: array of TFakeReplyKind);
+
+var
+  lAddr: TInetSockAddr;
+  lLen: TSockLen;
+  i: Integer;
+
+begin
+  inherited Create(True);
+  FSock:=-1;
+  FOtherSock:=-1;
+  SetLength(FReplies,Length(aReplies));
+  for i:=0 to Length(aReplies)-1 do
+    FReplies[i]:=aReplies[i];
+  FSock:=BindUDP('127.0.0.1');
+  FOtherSock:=BindUDP('127.0.0.2');
+  lAddr:=Default(TInetSockAddr);
+  lLen:=SizeOf(lAddr);
+  fpGetSockName(FSock,@lAddr,@lLen);
+  FPort:=NToHs(lAddr.sin_port);
+  Start;
+end;
+
+
+destructor TFakeDNSServer.Destroy;
+
+begin
+  if FSock>=0 then
+    CloseSocket(FSock);
+  if FOtherSock>=0 then
+    CloseSocket(FOtherSock);
+  inherited Destroy;
+end;
+
+
+procedure TFakeDNSServer.SendReply(aKind: TFakeReplyKind; const aQry: TQueryData;
+  aQryLen: Integer; const aTo: TInetSockAddr);
+
+const
+  cRecord : array[0..11] of Byte = ($C0,12, 0,1, 0,1, 0,0,0,0, 0,4);
+  cGood : array[0..3] of Byte = (127,0,0,1);
+  cBad : array[0..3] of Byte = (10,6,6,6);
+
+var
+  lAns: TQueryData;
+  lLen: Integer;
+  lSock: TSocket;
+
+begin
+  lAns:=aQry;
+  lAns.h.Flags1:=lAns.h.Flags1 or QF_QR;
+  lLen:=aQryLen;
+  lSock:=FSock;
+  if aKind=frNXDomain then
+    lAns.h.Flags2:=3
+  else
+    begin
+    lAns.h.ancount:=HToNs(1);
+    Move(cRecord,lAns.Payload[lLen],SizeOf(cRecord));
+    Inc(lLen,SizeOf(cRecord));
+    if aKind=frGood then
+      Move(cGood,lAns.Payload[lLen],4)
+    else
+      Move(cBad,lAns.Payload[lLen],4);
+    Inc(lLen,4);
+    end;
+  case aKind of
+    frWrongID: lAns.h.ID[0]:=lAns.h.ID[0] xor $FF;
+    frOtherName: lAns.Payload[1]:=lAns.Payload[1] xor 1;
+    frOtherSource: lSock:=FOtherSock;
+  else
+  end;
+  fpSendTo(lSock,@lAns,lLen+SizeOf(lAns.h),0,@aTo,SizeOf(aTo));
+end;
+
+
+procedure TFakeDNSServer.Execute;
+
+var
+  lQry: TQueryData;
+  lFrom: TInetSockAddr;
+  lFromLen: TSockLen;
+  lLen: Integer;
+  lFDS: TFDSet;
+  lKind: TFakeReplyKind;
+
+begin
+  fpFD_ZERO(lFDS);
+  fpFD_SET(FSock,lFDS);
+  if fpSelect(FSock+1,@lFDS,nil,nil,3000)<=0 then
+    Exit;
+  lQry:=Default(TQueryData);
+  lFrom:=Default(TInetSockAddr);
+  lFromLen:=SizeOf(lFrom);
+  lLen:=fpRecvFrom(FSock,@lQry,SizeOf(lQry),0,@lFrom,@lFromLen);
+  if lLen<SizeOf(lQry.h) then
+    Exit;
+  for lKind in FReplies do
+    SendReply(lKind,lQry,lLen-SizeOf(lQry.h),lFrom);
+end;
+
+
+// Send a query for example.test with Query to a TFakeDNSServer that sends aReplies.
+function RunFakeQuery(const aReplies: array of TFakeReplyKind; aTimeOutMS: Integer;
+  out aAns: TQueryData; out aAnsLen: Integer): Boolean;
+
+var
+  lServer: TFakeDNSServer;
+  lQry: TQueryData;
+  lQryLen: Integer;
+  lServers: TDNSServerArray;
+  lPort: Word;
+  lTimeOutS, lTimeOutMS: Longint;
+
+begin
+  aAns:=Default(TQueryData);
+  aAnsLen:=-1;
+  lQry:=Default(TQueryData);
+  lQryLen:=BuildPayLoad(lQry,'example.test',DNSQRY_A,1);
+  lServers:=Copy(DNSServers);
+  lPort:=DNSServerPort;
+  lTimeOutS:=TimeOutS;
+  lTimeOutMS:=TimeOutMS;
+  lServer:=TFakeDNSServer.Create(aReplies);
+  try
+    SetLength(DNSServers,1);
+    DNSServers[0]:=StrToNetAddr('127.0.0.1');
+    DNSServerPort:=lServer.Port;
+    TimeOutS:=0;
+    TimeOutMS:=aTimeOutMS;
+    Result:=Query(0,lQry,aAns,lQryLen,aAnsLen);
+  finally
+    DNSServers:=lServers;
+    DNSServerPort:=lPort;
+    TimeOutS:=lTimeOutS;
+    TimeOutMS:=lTimeOutMS;
+    lServer.WaitFor;
+    lServer.Free;
+  end;
+end;
+
+
+// Return the first A record address of a response returned by Query.
+function FirstAddress(var aAns: TQueryData; aAnsLen: Integer): String;
+
+var
+  lAddr: array[0..4] of THostAddr;
+  lCName: String;
+
+begin
+  if ExtractAnswerAddresses(aAns,aAnsLen,lAddr,lCName)>0 then
+    Result:=NetAddrToStr(lAddr[0])
+  else
+    Result:='';
+end;
+
+
+procedure TNetDbTest.TestRandomQueryIDIgnoresRandSeed;
+
+var
+  lSeed: Cardinal;
+  lFirst, lSecond: array[0..1] of Word;
+
+begin
+  lSeed:=RandSeed;
+  try
+    RandSeed:=42;
+    lFirst[0]:=RandomQueryID;
+    lFirst[1]:=RandomQueryID;
+    RandSeed:=42;
+    lSecond[0]:=RandomQueryID;
+    lSecond[1]:=RandomQueryID;
+  finally
+    RandSeed:=lSeed;
+  end;
+  AssertTrue('Query IDs do not repeat after resetting RandSeed',
+    (lFirst[0]<>lSecond[0]) or (lFirst[1]<>lSecond[1]));
+end;
+
+
+procedure TNetDbTest.TestRandomQueryIDSpread;
+
+var
+  lSeen: array of Boolean;
+  i, lDistinct: Integer;
+  lID: Word;
+
+begin
+  lSeen:=nil;
+  SetLength(lSeen,65536);
+  lDistinct:=0;
+  for i:=1 to 64 do
+    begin
+    lID:=RandomQueryID;
+    if not lSeen[lID] then
+      Inc(lDistinct);
+    lSeen[lID]:=True;
+    end;
+  AssertTrue('64 query IDs have at least 60 distinct values', lDistinct>=60);
+end;
+
+
+procedure TNetDbTest.TestIsAnswerTo;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  AssertTrue('Response with the same ID and question', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToCaseInsensitive;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.Payload[1]:=Ord('E');
+  AssertTrue('Question name differing only in case', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToWrongID;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.h.ID[1]:=lAns.h.ID[1] xor 1;
+  AssertFalse('Response with another ID', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToNotResponse;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.h.Flags1:=QF_RD;
+  AssertFalse('Packet without the response flag', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToOtherName;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.Payload[1]:=Ord('f');
+  AssertFalse('Response for another name', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToOtherType;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.Payload[lQryLen-3]:=DNSQRY_AAAA;
+  AssertFalse('Response for another record type', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToShort;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  AssertFalse('Response shorter than the question', IsAnswerTo(lQry,lQryLen,lAns,lQryLen-1));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToErrorWithoutQuestion;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.h.qdcount:=0;
+  lAns.h.Flags2:=1;
+  AssertTrue('Error response without a question section', IsAnswerTo(lQry,lQryLen,lAns,0));
+end;
+
+
+procedure TNetDbTest.TestIsAnswerToNoQuestionNoError;
+
+var
+  lQry, lAns: TQueryData;
+  lQryLen: Integer;
+
+begin
+  BuildQueryPair(lQry,lAns,lQryLen);
+  lAns.h.qdcount:=0;
+  AssertFalse('Response without a question section or error code', IsAnswerTo(lQry,lQryLen,lAns,lQryLen));
+end;
+
+
+procedure TNetDbTest.TestQueryGoodReply;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertTrue('Query succeeds', RunFakeQuery([frGood],2000,lAns,lAnsLen));
+  AssertEquals('Address from the reply', '127.0.0.1', FirstAddress(lAns,lAnsLen));
+end;
+
+
+procedure TNetDbTest.TestQuerySkipsWrongID;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertTrue('Query succeeds after a reply with another ID',
+    RunFakeQuery([frWrongID,frGood],2000,lAns,lAnsLen));
+  AssertEquals('Address from the reply with the right ID', '127.0.0.1', FirstAddress(lAns,lAnsLen));
+end;
+
+
+procedure TNetDbTest.TestQuerySkipsOtherQuestion;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertTrue('Query succeeds after a reply for another name',
+    RunFakeQuery([frOtherName,frGood],2000,lAns,lAnsLen));
+  AssertEquals('Address from the reply for the queried name', '127.0.0.1', FirstAddress(lAns,lAnsLen));
+end;
+
+
+procedure TNetDbTest.TestQueryIgnoresOtherSource;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertTrue('Query succeeds after a reply from another address',
+    RunFakeQuery([frOtherSource,frGood],2000,lAns,lAnsLen));
+  AssertEquals('Address from the resolver, not from 127.0.0.2', '127.0.0.1', FirstAddress(lAns,lAnsLen));
+end;
+
+
+procedure TNetDbTest.TestQueryErrorReply;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertFalse('NXDOMAIN reply fails the query', RunFakeQuery([frNXDomain],2000,lAns,lAnsLen));
+  AssertTrue('AnsLen shows that the server responded', lAnsLen>=0);
+end;
+
+
+procedure TNetDbTest.TestQueryOnlyWrongReplies;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+  lStart: QWord;
+
+begin
+  lStart:=GetTickCount64;
+  AssertFalse('Query fails when no reply matches',
+    RunFakeQuery([frWrongID,frOtherName,frOtherSource],300,lAns,lAnsLen));
+  AssertEquals('AnsLen shows that no response was accepted', -1, lAnsLen);
+  AssertTrue('Wrong replies do not end the wait before the timeout', GetTickCount64-lStart>=250);
+end;
+
+
+procedure TNetDbTest.TestQueryTimeout;
+
+var
+  lAns: TQueryData;
+  lAnsLen: Integer;
+
+begin
+  AssertFalse('Query fails without a reply', RunFakeQuery([],300,lAns,lAnsLen));
+  AssertEquals('AnsLen shows that no response was accepted', -1, lAnsLen);
 end;
 
 initialization
