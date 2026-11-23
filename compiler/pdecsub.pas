@@ -792,7 +792,7 @@ implementation
                 module:=find_module_from_symtable(ttypesym(typesrsym).typedef.owner);
                 if not assigned(module) then
                   internalerror(2016112803);
-                specializename:=specializename+'_$'+hexstr(module.moduleid,8)+'$$'+ttypesym(typesrsym).typedef.unique_id_str;
+                specializename:=specializename+'_$'+module.modulename^+'$$'+ttypesym(typesrsym).typedef.unique_id_str;
                 if i>0 then
                   prettyname:=prettyname+',';
                 prettyname:=prettyname+ttypesym(typesrsym).prettyname;

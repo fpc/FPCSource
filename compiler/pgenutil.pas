@@ -109,7 +109,7 @@ uses
           module:=current_module;
         if not assigned(module) then
           internalerror(2016112802);
-        namepart:='_$'+hexstr(module.moduleid,8)+'$$'+paramtype.unique_id_str;
+        namepart:='_$'+module.modulename^+'$$'+paramtype.unique_id_str;
         if constprettyname<>'' then
           namepart:=namepart+'$$'+constprettyname;
         { we use the full name of the type to uniquely identify it }
@@ -590,7 +590,7 @@ uses
             module:=find_module_from_symtable(parsedtype.owner);
             if not assigned(module) then
               internalerror(2016112801);
-            namepart:='_$'+hexstr(module.moduleid,8)+'$$'+parsedtype.unique_id_str;
+            namepart:='_$'+module.modulename^+'$$'+parsedtype.unique_id_str;
             specializename:='$'+namepart;
             prettyname:=parsedtype.fullownerhierarchyname(true,true)+parsedtype.typesym.prettyname;
             if assigned(poslist) then
