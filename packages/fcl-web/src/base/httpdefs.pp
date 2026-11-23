@@ -1919,6 +1919,7 @@ var
   I : Integer;
 begin
   Result:=aValue;
+  UniqueString(Result);
   P:=PChar(Result);
   For I:=1 to Length(Result) do
     begin
@@ -3272,6 +3273,20 @@ begin
   ContentLength:=L;
 end;
 
+// Check that aName is a non-empty RFC 9110 token.
+function IsValidHeaderName(const aName: String): Boolean;
+
+var
+  C : Char;
+
+begin
+  Result:=aName<>'';
+  for C in aName do
+    if not (C in ['!','#','$','%','&','''','*','+','-','.','^','_','`','|','~','0'..'9','A'..'Z','a'..'z']) then
+      Exit(False);
+end;
+
+
 procedure TResponse.CollectHeaders(Headers: TStrings);
 
 Var
@@ -3280,7 +3295,7 @@ Var
   N,V : String;
 
 begin
-  Headers.add(Format('Status: %d %s',[Code,CodeText]));
+  Headers.add(Format('Status: %d %s',[Code,CleanHeader(CodeText)]));
 {$ifdef cgidebug}
   SendMethodEnter('Collectheaders');
   If Not Assigned(FCookies) then
@@ -3292,13 +3307,13 @@ begin
     Headers.Add(HeaderSetCookie+': '+FCookies[i].AsString);
   For H in THeader do
     if (hdResponse in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
-      Headers.Add(HTTPHeaderNames[H]+': '+GetHeader(H));
+      Headers.Add(HTTPHeaderNames[H]+': '+CleanHeader(GetHeader(H)));
   if Assigned(FCustomHeaders) then
     For I:=0 to FCustomHeaders.Count - 1 do
       begin
       FCustomHeaders.GetNameValue(I,N,V);
-      if (V<>'') then
-        Headers.Add(N+': '+V);
+      if (V<>'') and IsValidHeaderName(N) then
+        Headers.Add(N+': '+CleanHeader(V));
       end;
   Headers.Add('');
 {$ifdef cgidebug} SendMethodExit('Collectheaders');{$endif}
