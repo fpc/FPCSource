@@ -10397,7 +10397,11 @@ unit aoptx86;
        hp2 := p;
        Count := 0;
        repeat
-         if not GetLastInstruction(hp2, hp2) or
+         { the loop may only be left by finding the comparison, so the limits
+           of the search are checked here }
+         if (Count > 8) or
+           (not(cs_opt_level3 in current_settings.optimizerswitches) and (Count > 1)) or
+           not GetLastInstruction(hp2, hp2) or
            (hp2.typ <> ait_instruction) then
            Exit;
 
@@ -10416,7 +10420,7 @@ unit aoptx86;
                Exit;
          end;
          Inc(Count);
-       until not((cs_opt_level3 in current_settings.optimizerswitches) and (Count>2)) or (Count>8);
+       until False;
 
        if taicpu(hp1).condition in UnorderedTrueConds then
          DebugMsg(SPeepholeOptimization + 'JpJcc2Jcc (unordered result already jumps)', p)
