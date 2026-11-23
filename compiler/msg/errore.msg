@@ -2202,6 +2202,9 @@ type_e_ordinal_or_pointer_expr_expected=04134_E_Ordinal or pointer expression ex
 type_e_interface_has_no_name=04135_E_Interface type $1 has no valid name
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid name.
+type_e_type_inquiry_generic_param_needs_name=04136_E_"type of" gives the type "$1", which has no name and cannot be a generic parameter, declare a named type
+% A generic can only be specialized with named types. Declare e.g. "TMyType = type of X;"
+% and use TMyType as the type parameter.
 %
 % \end{description}
 #

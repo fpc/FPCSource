@@ -569,6 +569,7 @@ uses
         module : tmodule;
         constprettyname : string;
         validparam : boolean;
+        istypeinquiry : boolean;
       begin
         result:=true;
         prettyname:='';
@@ -608,6 +609,8 @@ uses
               consume(_COMMA);
             block_type:=bt_type;
             tmpparampos:=current_filepos;
+            { "type of <operand>" }
+            istypeinquiry:=current_scanner.token=_TYPE;
             typeparam:=factor(false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
             validparam:=typeparam.nodetype in tgeneric_param_nodes;
@@ -629,7 +632,15 @@ uses
                 if typeparam.resultdef.typ<>errordef then
                   begin
                     if (typeparam.nodetype=typen) and not assigned(typeparam.resultdef.typesym) then
-                      message(type_e_generics_cannot_reference_itself)
+                      begin
+                        if istypeinquiry then
+                          begin
+                            MessagePos1(tmpparampos,type_e_type_inquiry_generic_param_needs_name,typeparam.resultdef.typename);
+                            result:=false;
+                          end
+                        else
+                          message(type_e_generics_cannot_reference_itself);
+                      end
                     else if (typeparam.resultdef.typ<>errordef) then
                       begin
                         { all non-type nodes are considered const }
