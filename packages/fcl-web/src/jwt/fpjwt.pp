@@ -174,7 +174,7 @@ Type
     Constructor Create; override;
     Destructor Destroy; override;
     Function Sign(aKey : TJWTKey) : String;
-    // Parse aJWT and verify its signature with the algorithm named in its header; Nil if the signature is wrong
+    // Parse aJWT and verify it with the algorithm named in its header; Nil for a wrong signature, for none, or for a secret-key algorithm with a PEM or DER key
     Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT; deprecated 'Use the overload with a list of algorithms';
     // Parse aJWT and verify its signature; Nil if its algorithm is not in aAlgorithms or the signature is wrong
     Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; const aAlgorithms : array of String; aClass : TJWTClass = Nil) : TJWT;
@@ -197,7 +197,7 @@ Type
     Class Procedure UnRegisterAlgorithm(const aName : String);
     // Raises EJWT when aAlgorithms is empty or names both secret-key and public-key algorithms
     Class Procedure CheckAlgorithms(const aAlgorithms : array of String);
-    // ParseAndVerify; when aCheckAlgorithm is set, Nil for an algorithm not in aAlgorithms
+    // ParseAndVerify; Nil for an algorithm not in aAlgorithms when aCheckAlgorithm is set, else as the deprecated ParseAndVerify
     Class Function DoParseAndVerify(const aJWT : String; aKey : TJWTKey; aCheckAlgorithm : Boolean;
                                     const aAlgorithms : array of String; aClass : TJWTClass) : TJWT;
   Public
@@ -215,7 +215,7 @@ Type
     Function AppendSignature(aJWT : TJWT; aKey : TJWTKey) : String;
     Function GetSignInputString(aJWT : TJWT) : UTF8String;
     Function GetSignInput(aJWT : TJWT) : TBytes;
-    // Parse aJWT and verify its signature with the algorithm named in its header; Nil if the signature is wrong
+    // Parse aJWT and verify it with the algorithm named in its header; Nil for a wrong signature, for none, or for a secret-key algorithm with a PEM or DER key
     Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT; deprecated 'Use the overload with a list of algorithms';
     // Parse aJWT and verify its signature; Nil if its algorithm is not in aAlgorithms or the signature is wrong
     Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; const aAlgorithms : array of String; aClass : TJWTClass = Nil) : TJWT;
@@ -478,6 +478,53 @@ begin
   Result:=TEncoding.UTF8.GetAnsiBytes(GetSignInputString(aJWT));
 end;
 
+// Check whether aKey is PEM text or a single DER SEQUENCE that spans all its bytes.
+function IsPublicKeyData(const aKey: TJWTKey): Boolean;
+
+const
+  cPEM = '-----BEGIN';
+
+var
+  lLen, lStart, lCount, lValue, i: Integer;
+
+begin
+  Result:=False;
+  lLen:=aKey.Length;
+  lStart:=0;
+  while (lStart<lLen) and (aKey.Bytes[lStart] in [9,10,13,32]) do
+    Inc(lStart);
+  if (lLen-lStart>=Length(cPEM)) and CompareMem(@aKey.Bytes[lStart],PChar(cPEM),Length(cPEM)) then
+    Exit(True);
+  if (lLen<2) or (aKey.Bytes[0]<>$30) then
+    Exit;
+  if aKey.Bytes[1]<$80 then
+    Exit(aKey.Bytes[1]=lLen-2);
+  lCount:=aKey.Bytes[1] and $7F;
+  if (lCount=0) or (lCount>3) or (lLen<2+lCount) then
+    Exit;
+  lValue:=0;
+  for i:=0 to lCount-1 do
+    lValue:=(lValue shl 8) or aKey.Bytes[2+i];
+  Result:=lValue=lLen-2-lCount;
+end;
+
+
+// Check whether the deprecated verify overloads may use aSignerClass with aKey: never none, no secret-key algorithm with a public key.
+function LegacyAllowed(aSignerClass: TJWTSignerClass; const aKey: TJWTKey): Boolean;
+
+begin
+  Result:=True;
+  if aSignerClass=Nil then
+    Exit;
+  case aSignerClass.KeyType of
+    jktNone : Result:=False;
+    jktSecret : Result:=not IsPublicKeyData(aKey);
+  else
+    ;
+  end;
+end;
+
+
 Class function TJWTSigner.DoParseAndVerify(const aJWT: String; aKey: TJWTKey; aCheckAlgorithm: Boolean;
   const aAlgorithms: array of String; aClass: TJWTClass): TJWT;
 
@@ -506,6 +553,8 @@ begin
   try
     Result.AsEncodedString:=aJWT;
     if aCheckAlgorithm and not IsAllowed(Result.JOSE.alg) then
+      FreeAndNil(Result)
+    else if not aCheckAlgorithm and not LegacyAllowed(FindSignerClass(Result.JOSE.alg),aKey) then
       FreeAndNil(Result)
     else
       begin

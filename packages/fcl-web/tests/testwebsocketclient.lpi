@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="10">
       <Unit0>
         <Filename Value="testwebsocketclient.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -75,6 +75,10 @@
         <Filename Value="../src/websocket/fpwebsocketclient.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="tcwsframemask.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -279,7 +279,7 @@ Type
     Property OnConnectionHandshake : TWSConnectionHandshakeEvent Read FOnConnectionHandshake Write FOnConnectionHandshake;
     // Called when unhandled exceptions occur
     Property OnError : TWSErrorEvent Read FOnError Write FOnError;
-    // Mask to use when sending frames. Set to nonzero value to send masked frames.
+    // Set to a nonzero value to send masked frames, each with a new random mask.
     Property OutgoingFrameMask : Integer Read FOutgoingFrameMask Write FOutgoingFrameMask;
   end;
 

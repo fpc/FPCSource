@@ -56,6 +56,9 @@ type
     procedure TestAlgorithmListRS256;
     procedure TestAlgorithmListNone;
     procedure TestAlgorithmListErrors;
+    procedure TestDeprecatedRefusesPEMKeyAsSecret;
+    procedure TestDeprecatedAcceptsSecret;
+    procedure TestDeprecatedAcceptsSecretStartingLikeDER;
 
     // SHA
     procedure TestSignSHA256;
@@ -155,7 +158,7 @@ Var
 
 begin
   aJWT:=FJWT.AsEncodedString;
-  FVerifyResult:=TJWT.ValidateJWT(aJWT,TJWTKey.Empty,TMyJWT);
+  FVerifyResult:=TJWT.ValidateJWT(aJWT,TJWTKey.Empty,['none'],TMyJWT);
   AssertNotNull('Have result',FVerifyResult);
   AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
 end;
@@ -220,7 +223,7 @@ Var
 begin
   aJWT:=FJWT.AsEncodedString;
   AssertFalse('An unsigned token is refused when a key is given',AcceptedOld(aJWT,FKey));
-  AssertTrue('An unsigned token is accepted without key',AcceptedOld(aJWT,TJWTKey.Empty));
+  AssertFalse('An unsigned token is refused without key',AcceptedOld(aJWT,TJWTKey.Empty));
 end;
 
 procedure TTestJWT.TestAlgorithmNameCaseSensitive;
@@ -259,6 +262,7 @@ begin
   FJWT.JOSE.alg:='HS256';
   aFake:=FJWT.Sign(aPublicKey);
   AssertFalse('HS256 token made with the public key, RS256 allowed',Accepted(aFake,aPublicKey,['RS256']));
+  AssertFalse('HS256 token made with the public key, deprecated overload',AcceptedOld(aFake,aPublicKey));
   FJWT.JOSE.alg:='none';
   aNone:=FJWT.AsEncodedString;
   AssertFalse('Unsigned token, RS256 allowed',Accepted(aNone,aPublicKey,['RS256']));
@@ -294,6 +298,39 @@ procedure TTestJWT.TestAlgorithmListErrors;
 begin
   CheckRaises('An empty list of algorithms raises',[]);
   CheckRaises('A secret-key and a public-key algorithm together raise',['HS256','RS256']);
+end;
+
+procedure TTestJWT.TestDeprecatedRefusesPEMKeyAsSecret;
+
+Var
+  lPrivatePEM, lPublicPEM, aFake : String;
+  aPEMKey : TJWTKey;
+
+begin
+  GetTestPEM(lPrivatePEM,lPublicPEM);
+  aPEMKey:=TJWTKey.Create(lPublicPEM);
+  FJWT.JOSE.alg:='HS256';
+  aFake:=FJWT.Sign(aPEMKey);
+  AssertFalse('HS256 token made with a PEM public key, deprecated overload',AcceptedOld(aFake,aPEMKey));
+end;
+
+procedure TTestJWT.TestDeprecatedAcceptsSecret;
+
+begin
+  FJWT.JOSE.alg:='HS256';
+  AssertTrue('HS256 token with a plain secret, deprecated overload',AcceptedOld(FJWT.Sign(FKey),FKey));
+end;
+
+procedure TTestJWT.TestDeprecatedAcceptsSecretStartingLikeDER;
+
+Var
+  aKey : TJWTKey;
+
+begin
+  aKey:=TJWTKey.Create(#$30#$05'abc');
+  FJWT.JOSE.alg:='HS256';
+  AssertTrue('HS256 secret starting with $30 but no matching DER length, deprecated overload',
+    AcceptedOld(FJWT.Sign(aKey),aKey));
 end;
 
 procedure TTestJWT.TestSignSHA256;

@@ -17,7 +17,7 @@ uses
   {$IFDEF UNIX}cthreads, BaseUnix,{$ENDIF}
   Classes, SysUtils, consoletestrunner,
   tcwsclienthelpers, tcwsclientbasic, tcwsclientpump, tcwsclientpeer,
-  tcwsclientcallbacks, tcwsclientfree;
+  tcwsclientcallbacks, tcwsclientfree, tcwsframemask;
 
 type
 

@@ -237,7 +237,7 @@ Type
     // Maximum accepted reassembled message payload, 0 means unlimited.
     Property MaxMessagePayloadSize : QWord Read FMaxMessagePayloadSize
       Write SetMaxMessagePayloadSize;
-    // Mask to use for outgoing frames
+    // Outgoing frames are masked, each with a new random mask; a value of 0 is replaced by a random one at connect.
     Property OutGoingFrameMask : Integer Read FOutGoingFrameMask Write FOutGoingFrameMask;
     // Port to connect to
     Property Port : Integer Read FPort Write SetPort;
@@ -333,7 +333,7 @@ uses sha1;
   safely return from that callback through an already destroyed object.
 
   TWSMessagePump.AddClient accepts the public base parameter for compatibility
-  but requires a TWebSocketClientConnection carrying this unit's managed
+  but requires a TWebSocketClientConnection with this unit's managed
   session.  A raw TWSClientConnection has no lifetime lease and therefore
   cannot be read safely while an unrelated owner may destroy it.
 
@@ -2466,7 +2466,7 @@ begin
   { A raw TWSClientConnection has no reference/lifetime protocol. Accepting
     one here would let its external owner free it while CheckIncoming runs.
     Preserve the public entry point, but fail before registration unless the
-    connection carries the managed session used by this client unit. }
+    connection has the managed session used by this client unit. }
   if not (aConnection is TWebSocketClientConnection) then
     Raise EWebSocketClient.Create('The message pump requires a client session connection');
   Session:=TWSClientSession(TWebSocketClientConnection(aConnection).FClientSession);

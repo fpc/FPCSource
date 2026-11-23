@@ -419,6 +419,8 @@ type
     Procedure Disconnect; inline;
     // Descendents can override this to provide custom frames
     Function FrameClass : TWSFrameClass; virtual;
+    // Return a new random nonzero mask when OutgoingFrameMask is nonzero, 0 otherwise.
+    Function NextFrameMask : Integer;
     // Send raw frame. No checking is done !
     procedure Send(aFrame : TWSFrame); virtual;
     // Send message
@@ -441,7 +443,7 @@ type
     property HandshakeCompleted: Boolean read GetHandshakeCompleted;
     // Options passed by server
     Property Options : TWSOptions Read FOptions;
-    // Mask to use when sending frames. Set to nonzero value to send masked frames.
+    // Set to a nonzero value to send masked frames, each with a new random mask.
     Property OutgoingFrameMask : Integer Read FOutgoingFrameMask Write FOutgoingFrameMask;
     // Maximum accepted payload of one incoming frame. 0 disables the policy limit.
     property MaxFramePayloadSize: QWord read FMaxFramePayloadSize write FMaxFramePayloadSize;
@@ -1679,6 +1681,18 @@ end;
 
 { TWSConnection }
 
+function TWSConnection.NextFrameMask: Integer;
+
+begin
+  Result:=0;
+  if OutgoingFrameMask=0 then
+    Exit;
+  repeat
+    Result:=Integer(Random(Int64($100000000)));
+  until Result<>0;
+end;
+
+
 procedure TWSConnection.Send(aFrameType : TFrameType; aData : TBytes = Nil);
 
 Var
@@ -1687,7 +1701,7 @@ Var
 begin
   if not (aFrameType in [ftClose,ftPing,ftPong]) then
     Raise EWebSocket.CreateFmt(SErrNotSimpleOperation,[Ord(aFrameType)]);
-  aFrame:=FrameClass.Create(aFrameType,True,aData, OutgoingFrameMask);
+  aFrame:=FrameClass.Create(aFrameType,True,aData,NextFrameMask);
   try
     Send(aFrame);
   finally
@@ -2176,7 +2190,7 @@ var
   aFrame: TWSFrame;
 
 begin
-  aFrame:=FrameClass.Create(aMessage, OutgoingFrameMask);
+  aFrame:=FrameClass.Create(aMessage,NextFrameMask);
   try
     Send(aFrame);
   finally
@@ -2188,7 +2202,7 @@ procedure TWSConnection.Send(const ABytes: TBytes);
 var
   aFrame: TWSFrame;
 begin
-  aFrame:=FrameClass.Create(ftBinary,True,ABytes, OutgoingFrameMask);
+  aFrame:=FrameClass.Create(ftBinary,True,ABytes,NextFrameMask);
   try
     Send(aFrame);
   finally
@@ -2310,7 +2324,7 @@ function TWSConnection.WriteControlFrame(aFrameType: TFrameType;
 var
   Frame: TWSFrame;
 begin
-  Frame:=FrameClass.Create(aFrameType,True,aData,OutgoingFrameMask);
+  Frame:=FrameClass.Create(aFrameType,True,aData,NextFrameMask);
   try
     Result:=WriteFrame(Frame,aErrorMessage);
   finally
