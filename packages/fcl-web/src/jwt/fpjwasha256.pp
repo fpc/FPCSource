@@ -29,9 +29,9 @@ Type
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Hash.Sha256, Fcl.BaseNEnc;
+uses System.Hash.Sha256, Fcl.BaseNEnc, System.StrUtils;
 {$ELSE FPC_DOTTEDUNITS}
-uses fpsha256, basenenc;
+uses fpsha256, basenenc, strutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
@@ -81,7 +81,7 @@ begin
   if Not TSHA256.HMAC(aKey.AsPointer,aKey.Length,PByte(B),Length(B),aDigest) then
     exit;
   S2:=Base64URL.Encode(@aDigest[0],Length(aDigest),False);
-  Result:=(S2=S);
+  Result:=SecureCompare(S2,S);
 end;
 
 initialization

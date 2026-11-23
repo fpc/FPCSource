@@ -502,7 +502,7 @@ end;
 
 class function TCustomFPWebModule.HasToken(ARequest: TRequest; const aToken : string) : boolean;
 begin
-  Result:=(ARequest.ContentFields.Values[cCSRFVariable]=aToken)
+  Result:=SecureCompare(ARequest.ContentFields.Values[cCSRFVariable],aToken);
 end;
 
 procedure TCustomFPWebModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);

@@ -232,6 +232,7 @@ function TRestBasicAuthenticator.DoAuthenticateRequest(IO: TRestIO): Boolean;
 
 Var
   UID,UN,PW : UTF8String;
+  lUserOK, lPasswordOK : Boolean;
 
 begin
   Result:=False;
@@ -241,7 +242,9 @@ begin
     if (UN<>'') and (PW<>'') then
       If (DefaultUserName<>'') and (DefaultPassword<>'') then
         begin
-        Result:=(UN=DefaultUserName) and (PW=DefaultPassword);
+        lUserOK:=SecureCompare(UN,DefaultUserName);
+        lPasswordOK:=SecureCompare(PW,DefaultPassword);
+        Result:=lUserOK and lPasswordOK;
         If Result then
           begin
           UID:=DefaultUserID;
