@@ -62,6 +62,7 @@ type
     procedure TestListSendsVary;
     procedure TestVaryAppended;
     procedure TestVaryNotDuplicated;
+    procedure TestVaryTokenContainingOrigin;
     procedure TestUnlistedOriginGetsNoHeader;
     procedure TestUnlistedOriginGetsNoCredentials;
     procedure TestUnlistedOriginGetsNoPreflightHeaders;
@@ -331,6 +332,17 @@ begin
   FResponse.SetHeader(hhVary,'Origin');
   Handle('https://a.example');
   AssertEquals('Vary that names Origin is kept', 'Origin', FResponse.GetHeader(hhVary));
+end;
+
+
+procedure TTestCORSSupport.TestVaryTokenContainingOrigin;
+
+begin
+  FCORS.AllowedOrigins:='https://a.example';
+  FResponse.SetHeader(hhVary,'X-Origin-Id');
+  Handle('https://a.example');
+  AssertEquals('A Vary token that only contains Origin does not count', 'X-Origin-Id, Origin',
+    FResponse.GetHeader(hhVary));
 end;
 
 

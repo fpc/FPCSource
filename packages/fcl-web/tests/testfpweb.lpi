@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="24">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -131,6 +131,10 @@
         <Filename Value="tccorssupport.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="tcrestcors.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -314,7 +314,11 @@ Type
     // General HTTP handling
     procedure DoRegisterRoutes; virtual;
     procedure DoHandleEvent(IsBefore : Boolean;IO: TRestIO); virtual;
+    // Value for Access-Control-Allow-Origin: the request origin when CORSAllowedOrigins lists it, '' when it does not.
+    // With an empty CORSAllowedOrigins: the mirrored origin with rdoEmptyCORSDomainToOrigin, * otherwise.
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
+    // Set Vary, Access-Control-Allow-Origin and Access-Control-Allow-Credentials; return False when the origin is not allowed.
+    function SetCORSOriginHeaders(IO: TRestIO): Boolean; virtual;
     procedure HandleCORSRequest(aConnection: TSQLDBConnectionDef; IO: TRestIO); virtual;
     procedure HandleResourceRequest(aConnection : TSQLDBConnectionDef; IO: TRestIO); virtual;
     procedure HandleCorsResponseHeaders(IO: TRestIO); virtual;
@@ -371,7 +375,7 @@ Type
     Property Authenticator : TRestAuthenticator Read FAuthenticator Write SetAuthenticator;
     // If >0, Enforce a limit on output results.
     Property EnforceLimit : Integer Read FEnforceLimit Write FEnforceLimit;
-    // Domains that are allowed to use this REST service
+    // Comma- or space-separated origins (scheme://host[:port]) or host names allowed to use this service; * allows any origin
     Property CORSAllowedOrigins: String Read FCORSAllowedOrigins  Write FCORSAllowedOrigins;
     // Access-Control-Max-Age header value. Set to zero not to send the header
     Property CORSMaxAge : Integer Read FCORSMaxAge Write FCORSMaxAge;
@@ -1921,30 +1925,47 @@ end;
 function TSQLDBRestDispatcher.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
 
 Var
-  URl : String;
-  uri : TURI;
+  lOrigin, lURL : String;
+  lURI : TURI;
 
 begin
-  Result:=FCORSAllowedOrigins;
+  lOrigin:=Trim(aRequest.GetCustomHeader('Origin'));
+  if Trim(FCORSAllowedOrigins)<>'' then
+    Exit(MatchCORSOrigin(FCORSAllowedOrigins,lOrigin));
+  if not (rdoEmptyCORSDomainToOrigin in DispatchOptions) then
+    Exit('*');
+  Result:=lOrigin;
   if Result='' then
     begin
-    // Sent with CORS request
-    Result:=aRequest.GetCustomHeader('Origin');
-    if (Result='') and (rdoEmptyCORSDomainToOrigin in DispatchOptions) then
+    lURL:=aRequest.Referer;
+    if (lURL<>'') then
       begin
-      // Fallback
-      URL:=aRequest.Referer;
-      if (URL<>'') then
-        begin
-        uri:=ParseURI(URL,'http',0);
-        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
-        if (URI.Port<>0) then
-          Result:=Result+':'+IntToStr(URI.Port);
-        end;
+      lURI:=ParseURI(lURL,'http',0);
+      Result:=Format('%s://%s',[lURI.Protocol,lURI.Host]);
+      if (lURI.Port<>0) then
+        Result:=Result+':'+IntToStr(lURI.Port);
       end;
     end;
   if Result='' then
     Result:='*';
+end;
+
+
+function TSQLDBRestDispatcher.SetCORSOriginHeaders(IO: TRestIO): Boolean;
+
+Var
+  lOrigin : String;
+
+begin
+  lOrigin:=ResolvedCORSAllowedOrigins(IO.Request);
+  if lOrigin<>'*' then
+    AddVaryHeader(IO.Response,'Origin');
+  Result:=lOrigin<>'';
+  if not Result then
+    Exit;
+  IO.Response.SetCustomHeader('Access-Control-Allow-Origin',lOrigin);
+  if CORSAllowCredentials then
+    IO.Response.SetCustomHeader('Access-Control-Allow-Credentials','true');
 end;
 
 procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBConnectionDef; IO : TRestIO);
@@ -1966,13 +1987,14 @@ begin
     end
   else
     begin
-    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
-    S:=IO.Resource.GetHTTPAllow;
-    IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
-    IO.Response.SetCustomHeader('Access-Control-Allow-Headers','x-requested-with, content-type, authorization');
-    if CorsMaxAge>0 then
-      IO.Response.SetCustomHeader('Access-Control-Max-Age',IntToStr(CorsMaxAge));
-    IO.Response.SetCustomHeader('Access-Control-Allow-Credentials',BoolToStr(CORSAllowCredentials,'true','false'));
+    if SetCORSOriginHeaders(IO) then
+      begin
+      S:=IO.Resource.GetHTTPAllow;
+      IO.Response.SetCustomHeader('Access-Control-Allow-Methods',S);
+      IO.Response.SetCustomHeader('Access-Control-Allow-Headers','x-requested-with, content-type, authorization');
+      if CorsMaxAge>0 then
+        IO.Response.SetCustomHeader('Access-Control-Max-Age',IntToStr(CorsMaxAge));
+      end;
     IO.Response.Code:=FStatus.GetStatusCode(rsCORSOK);
     IO.Response.CodeText:='OK';
     end;
@@ -1983,10 +2005,7 @@ procedure TSQLDBRestDispatcher.HandleCorsResponseHeaders(IO : TRestIO);
 
 begin
   if (rdoHandleCORS in DispatchOptions) then
-    begin
-    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
-    IO.Response.SetCustomHeader('Access-Control-Allow-Credentials',BoolToStr(CORSAllowCredentials,'true','false'));
-    end;
+    SetCORSOriginHeaders(IO);
 end;
 
 procedure TSQLDBRestDispatcher.HandleOtherResponseHeaders(IO : TRestIO);

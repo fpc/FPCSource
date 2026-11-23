@@ -808,6 +808,8 @@ Procedure PayloadTooLarge(const aMessage : string);
   Returns * when an entry is *, aOrigin when an entry equals it (case-insensitive)
   or when an entry without a scheme equals its host or host:port, and '' otherwise. }
 Function MatchCORSOrigin(const aAllowed, aOrigin: String): String;
+// Add aName to the Vary header of aResponse unless it is listed there already.
+Procedure AddVaryHeader(aResponse: TResponse; const aName: String);
 
 Var
   // Default classes used when instantiating the collections.
@@ -1224,6 +1226,33 @@ begin
 end;
 
 
+procedure AddVaryHeader(aResponse: TResponse; const aName: String);
+
+var
+  lVary, lItem: String;
+  lStart, lPos, lLen: Integer;
+
+begin
+  lVary:=aResponse.GetHeader(hhVary);
+  lLen:=Length(lVary);
+  lPos:=1;
+  while lPos<=lLen do
+    begin
+    lStart:=lPos;
+    while (lPos<=lLen) and (lVary[lPos]<>',') do
+      Inc(lPos);
+    lItem:=Trim(Copy(lVary,lStart,lPos-lStart));
+    if (lItem='*') or SameText(lItem,aName) then
+      Exit;
+    Inc(lPos);
+    end;
+  if Trim(lVary)='' then
+    aResponse.SetHeader(hhVary,aName)
+  else
+    aResponse.SetHeader(hhVary,lVary+', '+aName);
+end;
+
+
 { TCORSSupport }
 
 procedure TCORSSupport.SetAllowedMethods(const AValue: String);
@@ -1278,7 +1307,7 @@ function TCORSSupport.HandleRequest(aRequest: TRequest; aResponse: TResponse; aO
 
 Var
   Full : Boolean;
-  lOrigin, lVary : String;
+  lOrigin : String;
 
 begin
   Result:=False;
@@ -1289,13 +1318,7 @@ begin
   With aResponse do
     begin
     if lOrigin<>'*' then
-      begin
-      lVary:=GetHeader(hhVary);
-      if lVary='' then
-        SetHeader(hhVary,'Origin')
-      else if Pos('origin',LowerCase(lVary))=0 then
-        SetHeader(hhVary,lVary+', Origin');
-      end;
+      AddVaryHeader(aResponse,'Origin');
     if lOrigin<>'' then
       begin
       SetCustomHeader('Access-Control-Allow-Origin',lOrigin);
