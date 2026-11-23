@@ -149,7 +149,9 @@ unit optcse;
           include(n.transientflags,tnf_swapable);
       end;
 
-
+{$push}
+{$R-}
+{$Q-}
     function csehashmix(h,v : longword) : longword;inline;
       begin
         { FNV-1a like mixing }
@@ -215,6 +217,7 @@ unit optcse;
           result:=csehashmix(result,csehash(tunarynode(n).left,memo));
         memo.FindOrAdd(@n,sizeof(n))^.Data:=TObject(PtrUInt(result));
       end;
+{$pop}
 
     { collectnodes needs the address of itself to call foreachnodestatic,
       so we need a wrapper because @<func> inside <func doesn't work }
