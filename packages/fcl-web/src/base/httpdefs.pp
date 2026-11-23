@@ -778,6 +778,7 @@ type
     procedure SetAllowedMethods(const AValue: String);
   Public
     Constructor Create; virtual;
+    // Value for Access-Control-Allow-Origin: *, the request origin when AllowedOrigins lists it, or '' when it does not.
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
     // Handle CORS headers. Returns TRUE if the full headers were added and response was sent.
     Function HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions : THandleCORSOptions = [hcDetect]) : Boolean; virtual;
@@ -789,9 +790,9 @@ type
     Property Options : TCORSOptions Read FOptions Write FOptions;
     // Allowed methods
     Property AllowedMethods : String Read FAllowedMethods Write SetAllowedMethods;
-    // Domains that are allowed to use this RPC service
+    // Comma- or space-separated origins (scheme://host[:port]) or host names allowed to use this service; * allows any origin
     Property AllowedOrigins: String Read FAllowedOrigins  Write FAllowedOrigins;
-    // Domains that are allowed to use this RPC service
+    // Value of the Access-Control-Allow-Headers header
     Property AllowedHeaders: String Read FAllowedHeaders Write FAllowedHeaders;
     // Access-Control-Max-Age header value. Set to zero not to send the header
     Property MaxAge : Integer Read FMaxAge Write FMaxAge;
@@ -803,6 +804,10 @@ Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 // Raise an exception with HTTP code 413
 Procedure PayloadTooLarge(const aMessage : string);
+{ Match origin aOrigin against aAllowed, a comma- or space-separated list.
+  Returns * when an entry is *, aOrigin when an entry equals it (case-insensitive)
+  or when an entry without a scheme equals its host or host:port, and '' otherwise. }
+Function MatchCORSOrigin(const aAllowed, aOrigin: String): String;
 
 Var
   // Default classes used when instantiating the collections.
@@ -1162,6 +1167,63 @@ begin
   inherited SetBoundary(AValue);
 end;
 
+function MatchCORSOrigin(const aAllowed, aOrigin: String): String;
+
+const
+  cSeparators = [',',' ',#9];
+
+var
+  lOrigin, lHostPort, lHost, lEntry: String;
+  lStart, lPos, lLen: Integer;
+
+begin
+  Result:='';
+  lOrigin:=Trim(aOrigin);
+  lHostPort:='';
+  lHost:='';
+  lPos:=Pos('://',lOrigin);
+  if lPos>0 then
+    begin
+    lHostPort:=Copy(lOrigin,lPos+3,MaxInt);
+    lPos:=Pos('/',lHostPort);
+    if lPos>0 then
+      SetLength(lHostPort,lPos-1);
+    if (lHostPort<>'') and (lHostPort[1]='[') then
+      lHost:=Copy(lHostPort,1,Pos(']',lHostPort))
+    else
+      begin
+      lPos:=Pos(':',lHostPort);
+      if lPos>0 then
+        lHost:=Copy(lHostPort,1,lPos-1)
+      else
+        lHost:=lHostPort;
+      end;
+    end;
+  lLen:=Length(aAllowed);
+  lPos:=1;
+  while lPos<=lLen do
+    begin
+    while (lPos<=lLen) and (aAllowed[lPos] in cSeparators) do
+      Inc(lPos);
+    lStart:=lPos;
+    while (lPos<=lLen) and not (aAllowed[lPos] in cSeparators) do
+      Inc(lPos);
+    lEntry:=Copy(aAllowed,lStart,lPos-lStart);
+    if (Length(lEntry)>1) and (lEntry[Length(lEntry)]='/') then
+      SetLength(lEntry,Length(lEntry)-1);
+    if lEntry='*' then
+      Exit('*');
+    if (lEntry='') or (lOrigin='') then
+      Continue;
+    if SameText(lEntry,lOrigin) then
+      Result:=lOrigin
+    else if (Pos('://',lEntry)=0) and (lHost<>'')
+            and (SameText(lEntry,lHost) or SameText(lEntry,lHostPort)) then
+      Result:=lOrigin;
+    end;
+end;
+
+
 { TCORSSupport }
 
 procedure TCORSSupport.SetAllowedMethods(const AValue: String);
@@ -1205,42 +1267,52 @@ end;
 
 function TCORSSupport.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
 
-Var
-  URl : String;
-  uri : TURI;
-
 begin
-  Result:=FAllowedOrigins;
-  if Result='' then
-    Result:='*';
+  if Trim(FAllowedOrigins)='' then
+    Exit('*');
+  Result:=MatchCORSOrigin(FAllowedOrigins,Trim(aRequest.GetCustomHeader('Origin')));
 end;
+
 
 function TCORSSupport.HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions: THandleCORSOptions): Boolean;
 
 Var
   Full : Boolean;
+  lOrigin, lVary : String;
 
 begin
   Result:=False;
   if Not Enabled then
     exit;
   Full:=(hcFull in aOptions) or ((hcDetect in aOptions) and SameText(aRequest.Method,'OPTIONS'));
+  lOrigin:=ResolvedCORSAllowedOrigins(aRequest);
   With aResponse do
     begin
-    SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(aRequest));
-    if (coAllowCredentials in Options) then
-      SetCustomHeader('Access-Control-Allow-Credentials','true');
-    if Full then
+    if lOrigin<>'*' then
       begin
-      SetCustomHeader('Access-Control-Allow-Methods',AllowedMethods);
-      SetCustomHeader('Access-Control-Allow-Headers',AllowedHeaders);
-      if MaxAge>0 then
-        SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
-      if (hcSend in aOptions) then
+      lVary:=GetHeader(hhVary);
+      if lVary='' then
+        SetHeader(hhVary,'Origin')
+      else if Pos('origin',LowerCase(lVary))=0 then
+        SetHeader(hhVary,lVary+', Origin');
+      end;
+    if lOrigin<>'' then
+      begin
+      SetCustomHeader('Access-Control-Allow-Origin',lOrigin);
+      if (coAllowCredentials in Options) then
+        SetCustomHeader('Access-Control-Allow-Credentials','true');
+      if Full then
         begin
-        SetStatus(200,True);
-        Result:=True;
+        SetCustomHeader('Access-Control-Allow-Methods',AllowedMethods);
+        SetCustomHeader('Access-Control-Allow-Headers',AllowedHeaders);
+        if MaxAge>0 then
+          SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
         end;
+      end;
+    if Full and (hcSend in aOptions) then
+      begin
+      SetStatus(200,True);
+      Result:=True;
       end;
     end;
 end;

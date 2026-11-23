@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="22">
+    <Units Count="23">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -127,6 +127,10 @@
         <Filename Value="tcfilemodulelocation.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit21>
+      <Unit22>
+        <Filename Value="tccorssupport.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit22>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

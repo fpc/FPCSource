@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}cthreads,{$ENDIF} Classes, consoletestrunner, tchttproute, tcjwt,  tccookies, tchttpprotocol, jsonparser,
   fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256, fpjwarsa, testsqldbopenapi, sqldbrestopenapi,
   tchttpserverstop, tcfpwebcsrf, tchttpclientlimits, tchttpclientheaders, tchttpclienthooks, tcfpwebfile, tchttpserverbody,
-  tcmultipart, tcfcgiwrite, tcresponseheaders, tcfilemodulelocation;
+  tcmultipart, tcfcgiwrite, tcresponseheaders, tcfilemodulelocation, tccorssupport;
 
 type
 
