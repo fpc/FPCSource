@@ -1,4 +1,3 @@
-src/httpsvlt.pp=namespaced/System.Net.Httpsvlt.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/resolve.pp=namespaced/System.Net.Resolve.pp

@@ -573,7 +573,6 @@ sdlgraph=*System.Sdlgraph
 gnutls=*Api.Gnutls
 gnutlssockets=*System.Net.Gnutlssockets
 httpd=*Api.Httpd20.Httpd
-httpsvlt=*System.Net.Httpsvlt
 resolve=*System.Net.Resolve
 sslbase=*System.Net.Sslbase
 sslsockets=*System.Net.Sslsockets

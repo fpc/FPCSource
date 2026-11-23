@@ -88,7 +88,6 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/ip6test.pp');
-    P.Targets.AddExampleProgram('examples/svrclass.pp');
     P.Targets.AddExampleProgram('examples/testdns.pp');
     P.Targets.AddExampleProgram('examples/testnet.pp');
     P.Targets.AddExampleProgram('examples/testhosts.pp');

@@ -6,8 +6,7 @@
 packages=fcl-base fcl-xml fcl-net
 
 [target]
-programs=rpcserv rpccli isockcli isocksvr
-units=svrclass svrclass_xmlrpc
+programs=isockcli isocksvr
 
 [compiler]
 options=-S2h

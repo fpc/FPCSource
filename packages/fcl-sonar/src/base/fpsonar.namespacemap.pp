@@ -30,7 +30,7 @@ type
   TNamespacePairArray = array of TNamespacePair;
 
 const
-  cNamespaceMap: array[0..2337] of TNamespacePair = (
+  cNamespaceMap: array[0..2336] of TNamespacePair = (
     (Plain: 'a52'; Dotted: 'Api.A52'),
     (Plain: 'abactions'; Dotted: 'MacOsApi.ABActions'),
     (Plain: 'abaddressbook'; Dotted: 'MacOsApi.ABAddressBook'),
@@ -1062,7 +1062,6 @@ const
     (Plain: 'httpjson'; Dotted: 'FpWeb.Http.Json'),
     (Plain: 'httpprotocol'; Dotted: 'FpWeb.Http.Protocol'),
     (Plain: 'httproute'; Dotted: 'FpWeb.Route'),
-    (Plain: 'httpsvlt'; Dotted: 'System.Net.Httpsvlt'),
     (Plain: 'hwrmiscflags'; Dotted: 'PalmApi.Hwrmiscflags'),
     (Plain: 'hwvideo'; Dotted: 'OS2Api.Hwvideo'),
     (Plain: 'ibase40'; Dotted: 'Api.Ibase40'),

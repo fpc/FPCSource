@@ -1030,7 +1030,6 @@ httpdefs=FpWeb.Http.Defs
 httpjson=FpWeb.Http.Json
 httpprotocol=FpWeb.Http.Protocol
 httproute=FpWeb.Route
-httpsvlt=System.Net.Httpsvlt
 hwrmiscflags=PalmApi.Hwrmiscflags
 hwvideo=OS2Api.Hwvideo
 ibase40=Api.Ibase40
