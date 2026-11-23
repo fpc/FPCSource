@@ -4893,11 +4893,37 @@ unit aoptx86;
                         mov reg1, mem1/reg2
                         mov mem1/reg2, reg1 }
                       begin
-                        if taicpu(p).oper[0]^.typ=top_reg then
-                          AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
-                        DebugMsg(SPeepholeOptimization + 'MovMov2Mov 1',p);
-                        RemoveInstruction(hp1);
-                        Result:=true;
+{$ifdef x86_64}
+                        { a 32-bit mov to a register clears the upper 32 bits
+                          of the 64-bit register, so the second mov is only
+                          redundant if they are zero already; otherwise
+                          replace it by andl reg1,reg1 which is cheaper than
+                          a load and is removed later by And2Nop if it turns
+                          out to be unnecessary }
+                        if (taicpu(p).opsize=S_L) and
+                          (taicpu(hp1).oper[1]^.typ=top_reg) and
+                          not(UpperRegBitsZeroBefore(p,taicpu(hp1).oper[1]^.reg)) then
+                          begin
+                            TransferUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                            if RegUsedAfterInstruction(NR_DEFAULTFLAGS,hp1,TmpUsedRegs) then
+                              Exit;
+                            if taicpu(p).oper[0]^.typ=top_reg then
+                              AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
+                            DebugMsg(SPeepholeOptimization + 'MovMov2MovAnd (upper 32 bits must be cleared)',p);
+                            taicpu(hp1).opcode:=A_AND;
+                            taicpu(hp1).loadreg(0,taicpu(hp1).oper[1]^.reg);
+                            Result:=true;
+                          end
+                        else
+{$endif x86_64}
+                          begin
+                            if taicpu(p).oper[0]^.typ=top_reg then
+                              AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
+                            DebugMsg(SPeepholeOptimization + 'MovMov2Mov 1',p);
+                            RemoveInstruction(hp1);
+                            Result:=true;
+                          end;
 
                         if (taicpu(p).oper[1]^.typ = top_reg) then
                           begin
