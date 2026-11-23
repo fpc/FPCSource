@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="22">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -123,6 +123,10 @@
         <Filename Value="tcresponseheaders.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit20>
+      <Unit21>
+        <Filename Value="tcfilemodulelocation.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit21>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -41,6 +41,8 @@ Type
   private
     FCacheControlMaxAge: Integer;
     FScriptName:string;
+    // BaseURL without the script name: the key of the location in Locations.
+    function LocationKey: String;
   Protected
     // Determine filename frome request.
     Function GetRequestFileName(Const ARequest : TRequest) : String; virtual;
@@ -340,6 +342,16 @@ begin
   Result:=HTTPDecode(Result,False);
 end;
 
+function TFPCustomFileModule.LocationKey: String;
+
+begin
+  if FScriptName<>'' then
+    Result:=Copy(BaseURL,Length(FScriptName)+2,MaxInt)
+  else
+    Result:=BaseURL;
+end;
+
+
 function TFPCustomFileModule.MapFileName(const AFileName: String): String;
 
 Var
@@ -350,10 +362,7 @@ begin
     Result:=AFileName
   else
     begin
-    if FScriptName<>'' then
-      localBaseURL:=Copy(BaseURL,Length(FScriptName)+2,MaxInt)
-    else
-      localBaseURL:=BaseURL;
+    localBaseURL:=LocationKey;
     D:=Locations.Values[localBaseURL];
     If (D='') then
       Result:=''
@@ -379,7 +388,7 @@ begin
     BaseDir:=ExtractFilePath(Paramstr(0))
   else
     begin
-    BaseDir:=Locations.Values[BaseURL];
+    BaseDir:=Locations.Values[LocationKey];
     if (BaseDir='') then
       BaseDir:=ExtractFilePath(Paramstr(0))
     end;
