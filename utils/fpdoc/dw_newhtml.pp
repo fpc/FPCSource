@@ -19,7 +19,7 @@ unit dw_newhtml;
 {$WARN 5024 off : Parameter "$1" not used}
 interface
 
-uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter, dw_basehtml, PasWrite;
+uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter, dw_basehtml, PasWrite, syntax.highlighter, syntax.pascal;
 
 
 type
@@ -41,6 +41,10 @@ type
     FDateFormat: String;
     FIndexColCount : Integer;
     FSearchPage : String;
+    FHighlighter : TPascalSyntaxHighlighter;
+    FSHParent : TDOMNode;
+    FSHLinkMap : TLinkIdentifierMap;
+    procedure DoSyntaxToken(Sender: TObject; const aToken: TSyntaxToken);
     function GetVarDef(aElement: TPasVariable; aPrefixParent: Boolean): string;
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
@@ -163,6 +167,8 @@ type
   public
     // Creating all module hierarchy classes happens here !
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    // Free the syntax highlighter
+    destructor Destroy; override;
     // Overrides
     Class Function FileNameExtension : String; override;
     class procedure Usage(List: TStrings); override;
@@ -185,7 +191,7 @@ type
 
 implementation
 
-uses fpdocstrs, SysUtils, HTMWrite, syntax.highlighter, syntax.pascal, fpdocclasstree;
+uses fpdocstrs, SysUtils, HTMWrite, fpdocclasstree;
 
 {$i newcss.inc}
 
@@ -198,7 +204,17 @@ begin
   IndexColCount:=3;
   Charset:='iso-8859-1';
   FCSSFile:='fpdocs.css';
+  FHighlighter:=TPascalSyntaxHighlighter.Create;
 end;
+
+
+destructor TNewHTMLWriter.Destroy;
+
+begin
+  FreeAndNil(FHighlighter);
+  inherited Destroy;
+end;
+
 
 procedure TNewHTMLWriter.AppendSideMenuScript(aHead: THTMLElement);
 
@@ -887,76 +903,64 @@ begin
   Result:=AppendPasSHFragment(Parent, AText, AShFlags,Nil);
 end;
 
+// Append the HTML for one highlighted token to FSHParent
+procedure TNewHTMLWriter.DoSyntaxToken(Sender: TObject; const aToken: TSyntaxToken);
+
+  function NewEl(const aElType, aAttr, aAttrVal: DOMString): TDOMElement;
+
+  begin
+    Result:=CreateEl(FSHParent,aElType);
+    Result[aAttr]:=aAttrVal;
+  end;
+
+var
+  lEl: TDOMElement;
+  lParent: TDOMNode;
+  lLink: String;
+
+begin
+  case aToken.Kind of
+    shInvalid:    lEl:=NewEl('font','color','red');
+    shSymbol :    lEl:=NewEl('span','class','sym');
+    shKeyword:    lEl:=NewEl('span','class','kw');
+    shComment:    lEl:=NewEl('span','class','cmt');
+    shDirective:  lEl:=NewEl('span','class','dir');
+    shNumbers:    lEl:=NewEl('span','class','num');
+    shCharacters: lEl:=NewEl('span','class','chr');
+    shStrings:    lEl:=NewEl('span','class','str');
+    shAssembler:  lEl:=NewEl('span','class','asm');
+  else
+    lEl:=Nil;
+  end;
+  if aToken.Text='' then
+    Exit;
+  lLink:='';
+  if lEl<>Nil then
+    lParent:=lEl
+  else
+    begin
+    lParent:=FSHParent;
+    if (aToken.Kind=shDefault) and Assigned(FSHLinkMap) then
+      lLink:=FSHLinkMap.GetLink(aToken.Text);
+    end;
+  if lLink<>'' then
+    lParent:=CreateLink(lParent,lLink);
+  AppendText(lParent,aToken.Text);
+end;
+
+
 function TNewHTMLWriter.AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte;
   aLinkIdentifierMap: TLinkIdentifierMap): Byte;
 
-var
-  El: TDOMElement;
-
-  Procedure OutputToken(aToken : TSyntaxToken);
-
-  Var
-    CurParent: TDomNode;
-    lLink : String;
-
-  begin
-    lLink:='';
-    If (aToken.Text='') then
-      exit;
-    If (el<>Nil) then
-      CurParent:=El
-    else
-      begin
-      CurParent:=Parent;
-      if (aToken.Kind=shDefault) and Assigned(aLinkIdentifierMap) then
-        lLink:=aLinkIdentifierMap.GetLink(aToken.Text);
-      end;
-    if lLink<>'' then
-      CurParent:=CreateLink(CurParent,lLink);
-    AppendText(CurParent,aToken.Text);
-    El:=Nil;
-  end;
-
-  Function NewEl(Const ElType,Attr,AttrVal : DOMString) : TDomElement;
-
-  begin
-    Result:=CreateEl(Parent,ElType);
-    Result[Attr]:=AttrVal;
-  end;
-
-  Function NewSpan(Const AttrVal : DOMString) : TDomElement;
-
-  begin
-    Result:=CreateEl(Parent,'span');
-    Result['class']:=AttrVal;
-  end;
-var
-  HL : TPascalSyntaxHighlighter;
-  Tokens : TSyntaxTokenArray;
-  T : TSyntaxToken;
 begin
   Result:=0;
-  HL:=TPascalSyntaxHighlighter.Create;
-  Try
-    Tokens:=HL.Execute(aText);
-    For T in Tokens do
-      begin
-      case T.Kind  of
-        shDefault:    El:=Nil;
-        shInvalid:    El:=newel('font','color','red');
-        shSymbol :    El:=newspan('sym');
-        shKeyword:    El:=newspan('kw');
-        shComment:    El:=newspan('cmt');
-        shDirective:  El:=newspan('dir');
-        shNumbers:    El:=newspan('num');
-        shCharacters: El:=newspan('chr');
-        shStrings:    El:=newspan('str');
-        shAssembler:  El:=newspan('asm');
-      end;
-      OutputToken(T);
-      end;
+  FSHParent:=Parent;
+  FSHLinkMap:=aLinkIdentifierMap;
+  try
+    FHighlighter.Execute(aText,@DoSyntaxToken);
   finally
-    HL.Free;
+    FSHParent:=Nil;
+    FSHLinkMap:=Nil;
   end;
 end;
 
