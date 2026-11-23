@@ -40,6 +40,12 @@ type
     FOutput: TSyntaxTokenArray;
     FCount: SizeInt;
     FCollect: boolean;
+    // Store aText as a token of kind aKind
+    procedure CollectText(const aText: string; aKind: TSyntaxHighlightKind);
+    // Store the text from aFirst up to the cursor as a token of kind aKind
+    procedure CollectToken(aFirst: SizeInt; aKind: TSyntaxHighlightKind);
+    // Emit aText as a token of kind aKind, or store it when collecting
+    procedure EmitText(const aText: string; aKind: TSyntaxHighlightKind);
   protected
     FText: string;
     FCursor: SizeInt;
@@ -140,10 +146,14 @@ type
   private
     FDescription: TLanguageDescription;
     FWords: TSyntaxWordTable;
+    FWordKindOverridden: boolean;
     FLineStart: boolean;
+    FSpecialStart: TSysCharSet;
     function CommentToken: boolean;
+    function AtFolded(const aValue: string): boolean;
     function StringToken: boolean;
-    function SpecialString: boolean;
+    function SpecialString: boolean; inline;
+    function FlavorString: boolean;
     procedure NumberToken;
   protected
     // The lexical description of the language
@@ -356,24 +366,45 @@ end;
 
 procedure TByteSyntaxHighlighter.Emit(aFirst: SizeInt; aKind: TSyntaxHighlightKind);
 
-var
-  lText: string;
 begin
   if FCursor <= aFirst then
     Exit;
-  lText := SourceText(FText, aFirst, FCursor - aFirst);
-  if not FCollect then
-  begin
-    AddToken(lText, aKind);
-    Exit;
-  end;
+  if FCollect then
+    CollectToken(aFirst, aKind)
+  else
+    AddSourceToken(FText, aFirst, FCursor - aFirst, aKind);
+end;
+
+
+procedure TByteSyntaxHighlighter.CollectText(const aText: string; aKind: TSyntaxHighlightKind);
+
+begin
   if FCount = Length(FOutput) then
     SetLength(FOutput, FCount * 2 + 64);
   if DefaultCategory > 0 then
-    FOutput[FCount] := TSyntaxToken.Create(lText, aKind, DefaultCategory)
+    FOutput[FCount] := TSyntaxToken.Create(aText, aKind, DefaultCategory)
   else
-    FOutput[FCount] := TSyntaxToken.Create(lText, aKind);
+    FOutput[FCount] := TSyntaxToken.Create(aText, aKind);
   Inc(FCount);
+end;
+
+
+procedure TByteSyntaxHighlighter.CollectToken(aFirst: SizeInt; aKind: TSyntaxHighlightKind);
+
+begin
+  CollectText(SourceText(FText, aFirst, FCursor - aFirst), aKind);
+end;
+
+
+procedure TByteSyntaxHighlighter.EmitText(const aText: string; aKind: TSyntaxHighlightKind);
+
+begin
+  if aText = '' then
+    Exit;
+  if FCollect then
+    CollectText(aText, aKind)
+  else
+    AddToken(aText, aKind);
 end;
 
 
@@ -636,14 +667,36 @@ begin
 end;
 
 
+type
+  TWordKindMethod = function(const aValue: string): TSyntaxHighlightKind of object;
+
 constructor TTableSyntaxHighlighter.Create;
 
+var
+  lWordKind: TWordKindMethod;
 begin
   inherited Create;
   FDescription := Describe;
   FWords := TSyntaxWordTable.Create(FDescription.CaseSensitive);
   FWords.AddWords(FDescription.Keywords, shKeyword);
   FWords.AddWords(FDescription.Builtins, shKey);
+  // Compare the virtual WordKind of this instance with the base implementation
+  lWordKind := @WordKind;
+  FWordKindOverridden := TMethod(lWordKind).Code <> Pointer(@TTableSyntaxHighlighter.WordKind);
+  case FDescription.Flavor of
+    lfRust: FSpecialStart := ['r', 'b', 'c'];
+    lfSwift: FSpecialStart := ['#'];
+    lfCpp: FSpecialStart := ['R', 'u', 'U', 'L'];
+    lfCSharp: FSpecialStart := ['"', '$'];
+    lfLua: FSpecialStart := ['[', '-'];
+    lfZig: FSpecialStart := ['\'];
+    lfRuby: FSpecialStart := ['%', '<'];
+    lfPerl: FSpecialStart := ['q', '<'];
+    lfPowerShell: FSpecialStart := ['@'];
+    lfPhp: FSpecialStart := ['<'];
+  else
+    FSpecialStart := [];
+  end;
 end;
 
 
@@ -677,9 +730,10 @@ begin
     begin
     lForm := @FDescription.Comments[I];
     lLen := Length(lForm^.OpenText);
-    lHit := At(lForm^.OpenText);
-    if not FDescription.CaseSensitive then
-      lHit := LowerCase(Copy(FText, FCursor, lLen)) = lForm^.OpenText;
+    if FDescription.CaseSensitive then
+      lHit := At(lForm^.OpenText)
+    else
+      lHit := AtFolded(lForm^.OpenText);
     if lHit and (not lForm^.LineStartOnly or FLineStart)
        and (not lForm^.WordBoundary or not (Ch(lLen) in FDescription.IdentifierRest)) then
       begin
@@ -695,7 +749,21 @@ begin
 end;
 
 
+function TTableSyntaxHighlighter.AtFolded(const aValue: string): boolean;
+
+begin
+  Result := LowerCase(Copy(FText, FCursor, Length(aValue))) = aValue;
+end;
+
+
 function TTableSyntaxHighlighter.SpecialString: boolean;
+
+begin
+  Result := (Ch in FSpecialStart) and FlavorString;
+end;
+
+
+function TTableSyntaxHighlighter.FlavorString: boolean;
 
 var
   lFirst, lPos, lHashes, lCount, lDepth, lTagStart, lLineStart: SizeInt;
@@ -1137,8 +1205,13 @@ begin
       Inc(FCursor);
       while (FCursor <= FLimit) and (Ch in FDescription.IdentifierRest) do
         Inc(FCursor);
-      lValue := Copy(FText, lFirst, FCursor - lFirst);
-      lKind := WordKind(lValue);
+      if FWordKindOverridden then
+        begin
+        lValue := SourceText(FText, lFirst, FCursor - lFirst);
+        lKind := WordKind(lValue);
+        end
+      else
+        lKind := FWords.Lookup(PChar(Pointer(FText)) + lFirst - 1, FCursor - lFirst);
       if (FDescription.Flavor = lfDocker) and not FLineStart then
         lKind := shDefault;
       if FDescription.Flavor = lfToml then
@@ -1149,7 +1222,10 @@ begin
         if (lPos <= FLimit) and (FText[lPos] = '=') then
           lKind := shKey;
         end;
-      Emit(lFirst, lKind);
+      if FWordKindOverridden then
+        EmitText(lValue, lKind)
+      else
+        Emit(lFirst, lKind);
       end
     else
       begin

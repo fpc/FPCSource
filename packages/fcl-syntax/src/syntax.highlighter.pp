@@ -136,6 +136,7 @@ type
     var
     FSharedTexts: array[0..SharedTextSlots - 1] of string;
     FShareTexts: Boolean;
+    FToken: TSyntaxToken;
     FDefaultCategory: Integer;
     FOnToken: TSyntaxTokenEvent;
     FRangeFrom: Integer;
@@ -147,6 +148,10 @@ type
       FCategories: TStringList;
       FNextCategoryID: Integer;
     procedure StoreToken(Sender: TObject; const aToken: TSyntaxToken);
+    // Set aText to aLength bytes of aSource from aStart, shared with earlier identical texts when ShareTexts is set
+    procedure AssignSourceText(var aText: string; const aSource: string; aStart, aLength: SizeInt);
+    // Set aText to Copy(aSource, aStart, aLength)
+    procedure CopySourceText(var aText: string; const aSource: string; aStart, aLength: SizeInt);
     // Set kind, line and categories (DefaultCategory and aCategory) of aToken
     procedure SetTokenFields(var aToken: TSyntaxToken; aKind: TSyntaxHighlightKind; aCategory: Integer); inline;
   protected
@@ -165,7 +170,7 @@ type
     // AddToken with the text of aLength bytes of aSource from aStart
     procedure AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory : Integer = 0);
     // Set the line of aToken and pass it to the token handler if it overlaps the range
-    procedure EmitToken(aToken: TSyntaxToken); virtual;
+    procedure EmitToken(var aToken: TSyntaxToken); virtual;
     // True while Execute builds a token array: SourceText then shares short texts
     property ShareTexts : Boolean Read FShareTexts Write FShareTexts;
   public
@@ -449,19 +454,24 @@ end;
 
 
 procedure TSyntaxHighlighter.AddToken(const aText: string; akind: TSyntaxHighlightKind; aCategory: Integer);
-var
-  lToken : TSyntaxToken;
 
 begin
   if Length(aText) = 0 then Exit;
-  lToken.Text:=aText;
-  SetTokenFields(lToken,aKind,aCategory);
-  EmitToken(lToken);
+  FToken.Text:=aText;
+  SetTokenFields(FToken,aKind,aCategory);
+  EmitToken(FToken);
+end;
+
+
+procedure TSyntaxHighlighter.CopySourceText(var aText: string; const aSource: string; aStart, aLength: SizeInt);
+
+begin
+  aText := Copy(aSource, aStart, aLength);
 end;
 
 
 {$push}{$Q-}{$R-}
-function TSyntaxHighlighter.SourceText(const aSource: string; aStart, aLength: SizeInt): string;
+procedure TSyntaxHighlighter.AssignSourceText(var aText: string; const aSource: string; aStart, aLength: SizeInt);
 
 var
   I: Integer;
@@ -469,41 +479,57 @@ var
   lHash: DWord;
   lSlot: Integer;
 begin
-  if not FShareTexts or (aLength <= 0) or (aLength > MaxSharedTextLength)
-     or (aStart < 1) or (aStart + aLength - 1 > Length(aSource)) then
-    Exit(Copy(aSource, aStart, aLength));
+  if (aLength <= 0) or (aStart < 1) or (aStart + aLength - 1 > Length(aSource)) then
+    begin
+    CopySourceText(aText, aSource, aStart, aLength);
+    Exit;
+    end;
   lText := PChar(Pointer(aSource)) + aStart - 1;
-  lHash := aLength;
-  for I := 0 to aLength - 1 do
-    lHash := lHash * 31 + Ord(lText[I]);
-  lSlot := (lHash xor (lHash shr 11)) and (SharedTextSlots - 1);
-  if (Length(FSharedTexts[lSlot]) = aLength)
-     and (CompareByte(Pointer(FSharedTexts[lSlot])^, lText^, aLength) = 0)
-     and (StringCodePage(FSharedTexts[lSlot]) = StringCodePage(aSource)) then
-    Exit(FSharedTexts[lSlot]);
-  Result := Copy(aSource, aStart, aLength);
-  FSharedTexts[lSlot] := Result;
+  lSlot := -1;
+  if FShareTexts and (aLength <= MaxSharedTextLength) then
+    begin
+    lHash := aLength;
+    for I := 0 to aLength - 1 do
+      lHash := lHash * 31 + Ord(lText[I]);
+    lSlot := (lHash xor (lHash shr 11)) and (SharedTextSlots - 1);
+    if (Length(FSharedTexts[lSlot]) = aLength)
+       and (CompareByte(Pointer(FSharedTexts[lSlot])^, lText^, aLength) = 0)
+       and (StringCodePage(FSharedTexts[lSlot]) = StringCodePage(aSource)) then
+      begin
+      aText := FSharedTexts[lSlot];
+      Exit;
+      end;
+    end;
+  SetString(aText, lText, aLength);
+  if StringCodePage(aText) <> StringCodePage(aSource) then
+    SetCodePage(RawByteString(aText), StringCodePage(aSource), False);
+  if lSlot >= 0 then
+    FSharedTexts[lSlot] := aText;
 end;
 {$pop}
 
 
-procedure TSyntaxHighlighter.AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory: Integer);
+function TSyntaxHighlighter.SourceText(const aSource: string; aStart, aLength: SizeInt): string;
 
-var
-  lToken : TSyntaxToken;
+begin
+  AssignSourceText(Result, aSource, aStart, aLength);
+end;
+
+
+procedure TSyntaxHighlighter.AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory: Integer);
 
 begin
   if aLength <= 0 then
     Exit;
-  lToken.Text:=SourceText(aSource, aStart, aLength);
-  if Length(lToken.Text) = 0 then
+  AssignSourceText(FToken.Text, aSource, aStart, aLength);
+  if Length(FToken.Text) = 0 then
     Exit;
-  SetTokenFields(lToken,aKind,aCategory);
-  EmitToken(lToken);
+  SetTokenFields(FToken,aKind,aCategory);
+  EmitToken(FToken);
 end;
 
 
-procedure TSyntaxHighlighter.EmitToken(aToken: TSyntaxToken);
+procedure TSyntaxHighlighter.EmitToken(var aToken: TSyntaxToken);
 
 var
   lFirst, lLast: Integer;
@@ -572,6 +598,7 @@ begin
   finally
     FOnToken:=nil;
     FStopping:=False;
+    FToken.Text:='';
   end;
 end;
 

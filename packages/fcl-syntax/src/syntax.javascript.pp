@@ -40,7 +40,7 @@ type
     FHasLastToken: boolean;
   protected
     // Remember the last token that is not whitespace, then emit aToken
-    procedure EmitToken(aToken: TSyntaxToken); override;
+    procedure EmitToken(var aToken: TSyntaxToken); override;
     procedure ProcessSingleQuoteString(var endPos: integer);
     procedure ProcessDoubleQuoteString(var endPos: integer);
     procedure ProcessTemplateString(var endPos: integer);
@@ -429,7 +429,7 @@ begin
   Result := ch in ['a'..'z', 'A'..'Z', '0'..'9', '_', '$'];
 end;
 
-procedure TJavaScriptSyntaxHighlighter.EmitToken(aToken: TSyntaxToken);
+procedure TJavaScriptSyntaxHighlighter.EmitToken(var aToken: TSyntaxToken);
 
 begin
   if (aToken.Kind <> shDefault) or (Trim(aToken.Text) <> '') then

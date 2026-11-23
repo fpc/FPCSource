@@ -417,8 +417,11 @@ end;
 // Emit a token of an embedded JavaScript or CSS highlighter
 procedure THtmlSyntaxHighlighter.EmbeddedToken(Sender: TObject; const aToken: TSyntaxToken);
 
+var
+  lToken: TSyntaxToken;
 begin
-  EmitToken(aToken);
+  lToken := aToken;
+  EmitToken(lToken);
 end;
 
 

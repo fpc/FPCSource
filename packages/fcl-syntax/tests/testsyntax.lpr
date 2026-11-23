@@ -101,6 +101,7 @@ uses
   unittest.tokencategories,
   unittest.sharedtext,
   unittest.bytescanner,
+  unittest.tablewords,
   consoletestrunner;
 
 type

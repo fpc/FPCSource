@@ -36,6 +36,9 @@ type
     procedure TestCodePageOfSource;
     procedure TestEventPathDoesNotShare;
     procedure TestShareTextsResetAfterExecute;
+    procedure TestCodePageWithoutSharing;
+    procedure TestTokenTextReleasedAfterExecute;
+    procedure TestRangeStopThenFullExecute;
   end;
 
   { TTokenCollector }
@@ -258,6 +261,87 @@ begin
   finally
     lCollector.Free;
     lProbe.Free;
+  end;
+end;
+
+procedure TTestSharedText.TestCodePageWithoutSharing;
+
+var
+  lHighlighter: TPascalSyntaxHighlighter;
+  lCollector: TTokenCollector;
+  lRaw: RawByteString;
+  lLatin: string;
+begin
+  lRaw := 'word := other';
+  SetCodePage(lRaw, 1252, False);
+  lLatin := lRaw;
+  lHighlighter := TPascalSyntaxHighlighter.Create;
+  lCollector := TTokenCollector.Create;
+  try
+    lHighlighter.Execute(lLatin, @lCollector.DoToken);
+    AssertTrue('tokens', Length(lCollector.Tokens) > 0);
+    AssertEquals('code page of an event token', 1252, StringCodePage(lCollector.Tokens[0].Text));
+    AssertEquals('text of an event token', 'word', lCollector.Tokens[0].Text);
+  finally
+    lCollector.Free;
+    lHighlighter.Free;
+  end;
+end;
+
+
+procedure TTestSharedText.TestTokenTextReleasedAfterExecute;
+
+var
+  lHighlighter: TPascalSyntaxHighlighter;
+  lCollector: TTokenCollector;
+  lLast: Integer;
+begin
+  lHighlighter := TPascalSyntaxHighlighter.Create;
+  lCollector := TTokenCollector.Create;
+  try
+    lHighlighter.Execute('x := LastIdentifierOfTheSource', @lCollector.DoToken);
+    lLast := High(lCollector.Tokens);
+    AssertEquals('last token', 'LastIdentifierOfTheSource', lCollector.Tokens[lLast].Text);
+    AssertEquals('the highlighter holds no reference to the last token text', 1, StringRefCount(lCollector.Tokens[lLast].Text));
+  finally
+    lCollector.Free;
+    lHighlighter.Free;
+  end;
+end;
+
+
+procedure TTestSharedText.TestRangeStopThenFullExecute;
+
+const
+  Source = 'a := 1;'#10'b := 2;'#10'c := 3;';
+var
+  lHighlighter: TPascalSyntaxHighlighter;
+  lCollector: TTokenCollector;
+  lTokens: TSyntaxTokenArray;
+  lJoined: string;
+  I: Integer;
+begin
+  lHighlighter := TPascalSyntaxHighlighter.Create;
+  lCollector := TTokenCollector.Create;
+  try
+    lHighlighter.SetRange(1, 1);
+    lTokens := lHighlighter.Execute(Source);
+    AssertTrue('range stop returns tokens', Length(lTokens) > 0);
+    AssertEquals('range stop ends on line 1', 1, lTokens[High(lTokens) - 1].Line);
+    lHighlighter.SetRange(-1, -1);
+    lTokens := lHighlighter.Execute(Source);
+    lJoined := '';
+    for I := 0 to High(lTokens) do
+      lJoined := lJoined + lTokens[I].Text;
+    AssertEquals('array path after a range stop covers the source', Source, lJoined);
+    lHighlighter.Execute(Source, @lCollector.DoToken);
+    lJoined := '';
+    for I := 0 to High(lCollector.Tokens) do
+      lJoined := lJoined + lCollector.Tokens[I].Text;
+    AssertEquals('event path after the array path covers the source', Source, lJoined);
+  finally
+    lCollector.Free;
+    lHighlighter.Free;
   end;
 end;
 

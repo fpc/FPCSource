@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  syntax.highlighter, syntax.pascal, syntax.javascript, syntax.html;
+  syntax.highlighter, syntax.pascal, syntax.javascript, syntax.html, syntax.barye;
 
 type
 
@@ -47,6 +47,9 @@ type
     procedure TestHtmlEmbeddedLines;
     procedure TestHtmlRangeInsideScript;
     procedure TestHtmlWhitespaceInTags;
+    procedure TestBaryeLines;
+    procedure TestBaryeRange;
+    procedure TestEmitDoesNotChangeEmbeddedToken;
   end;
 
 implementation
@@ -476,6 +479,67 @@ begin
     AssertEquals('tokens cover "' + lSource + '"', lSource, Join(DoHtmlHighlighting(lSource)));
 end;
 
+
+procedure TTestTokenEvents.TestBaryeLines;
+
+const
+  Source = 'fn a() {'#10'  return 1'#10'}'#10'fn b() {}';
+var
+  lHighlighter: TSyntaxHighlighter;
+  lArray, lEvents: TSyntaxTokenArray;
+  I: Integer;
+begin
+  lHighlighter := TSyntaxHighlighterRegistry.Instance.CreateSyntaxHighlighter('barye');
+  try
+    lArray := lHighlighter.Execute(Source);
+    lEvents := Collect(lHighlighter, Source);
+  finally
+    lHighlighter.Free;
+  end;
+  AssertEquals('line of return', 2, lEvents[FindToken(lEvents, 'return')].Line);
+  AssertEquals('line of b', 4, lEvents[FindToken(lEvents, 'b')].Line);
+  AssertEquals('token count of both paths', Length(lArray), Length(lEvents));
+  for I := 0 to High(lArray) do
+    AssertEquals('line of token ' + IntToStr(I), lArray[I].Line, lEvents[I].Line);
+  AssertEquals('tokens cover the source', Source, Join(lEvents));
+end;
+
+
+procedure TTestTokenEvents.TestBaryeRange;
+
+const
+  Source = 'fn a() {'#10'  return 1'#10'}'#10'fn b() {}';
+var
+  lHighlighter: TSyntaxHighlighter;
+begin
+  lHighlighter := TSyntaxHighlighterRegistry.Instance.CreateSyntaxHighlighter('barye');
+  try
+    lHighlighter.SetRange(2, 3);
+    AssertEquals('tokens overlapping lines 2 and 3', #10'  return 1'#10'}'#10, Join(Collect(lHighlighter, Source)));
+    AssertEquals('array path with the same range', #10'  return 1'#10'}'#10, Join(lHighlighter.Execute(Source)));
+  finally
+    lHighlighter.Free;
+  end;
+end;
+
+
+procedure TTestTokenEvents.TestEmitDoesNotChangeEmbeddedToken;
+
+const
+  Source = '<p>x</p>'#10'<script>'#10'var a = 1;'#10'</script>';
+var
+  lHighlighter: THtmlSyntaxHighlighter;
+  lTokens: TSyntaxTokenArray;
+begin
+  lHighlighter := THtmlSyntaxHighlighter.Create;
+  try
+    lTokens := Collect(lHighlighter, Source);
+  finally
+    lHighlighter.Free;
+  end;
+  AssertEquals('embedded var has the HTML line', 3, lTokens[FindToken(lTokens, 'var')].Line);
+  AssertEquals('tokens cover the source', Source, Join(lTokens));
+end;
 
 initialization
   RegisterTest(TTestTokenEvents);

@@ -164,7 +164,7 @@ var
   lValue: string;
   lKind: TSyntaxHighlightKind;
   lTokens: TSyntaxTokenArray;
-  lToken: TSyntaxToken;
+  I: Integer;
 begin
   Start(aSource, True);
   while FCursor <= FLimit do
@@ -247,8 +247,8 @@ begin
     end;
   lTokens := Finish;
   Classify(lTokens);
-  for lToken in lTokens do
-    EmitToken(lToken);
+  for I := 0 to High(lTokens) do
+    EmitToken(lTokens[I]);
 end;
 
 
