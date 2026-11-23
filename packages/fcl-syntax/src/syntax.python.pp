@@ -46,6 +46,9 @@ const
   PythonBuiltins = 'True False None Ellipsis NotImplemented bool bytes bytearray complex dict float frozenset int list memoryview '
     + 'object range set slice str tuple type';
 
+var
+  PythonWords: TSyntaxWordTable;
+
 class function TPythonSyntaxHighlighter.GetLanguages: TStringDynArray;
 
 begin
@@ -108,10 +111,7 @@ begin
       while (FCursor <= FLimit) and (Ch in NameChars) do
         Inc(FCursor);
       lValue := Copy(FText, lFirst, FCursor - lFirst);
-      if WordsContain(PythonKeywords, lValue) then
-        lKind := shKeyword
-      else if WordsContain(PythonBuiltins, lValue) then
-        lKind := shKey;
+      lKind := PythonWords.Lookup(lValue);
       end
     else if (Ch in ['0'..'9']) or ((Ch = '.') and (Ch(1) in ['0'..'9'])) then
       begin
@@ -170,5 +170,10 @@ begin
 end;
 
 initialization
+  PythonWords := TSyntaxWordTable.Create(True);
+  PythonWords.AddWords(PythonKeywords, shKeyword);
+  PythonWords.AddWords(PythonBuiltins, shKey);
   TPythonSyntaxHighlighter.Register;
+finalization
+  FreeAndNil(PythonWords);
 end.

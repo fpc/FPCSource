@@ -104,11 +104,40 @@ type
     Flavor: TLanguageFlavor;
   end;
 
+  { TSyntaxWordTable }
+
+  // Hash set of words, with a token kind per word
+  TSyntaxWordTable = class
+  private
+    FKeys: array of string;
+    FKinds: array of TSyntaxHighlightKind;
+    FCount: SizeInt;
+    FMask: SizeInt;
+    FCaseSensitive: boolean;
+    function HashOf(aValue: PChar; aLength: Integer): SizeInt;
+    function SameWord(const aKey: string; aValue: PChar; aLength: Integer): boolean;
+    function IndexOf(aValue: PChar; aLength: Integer): SizeInt;
+    procedure Insert(const aKey: string; aKind: TSyntaxHighlightKind);
+    procedure Grow;
+  public
+    // Create an empty table; without aCaseSensitive, words match in any ASCII case
+    constructor Create(aCaseSensitive: boolean);
+    // Add the space separated words of aWords with kind aKind; a word already present keeps its kind
+    procedure AddWords(const aWords: string; aKind: TSyntaxHighlightKind);
+    // Kind of aValue, aDefault if aValue is not in the table
+    function Lookup(const aValue: string; aDefault: TSyntaxHighlightKind = shDefault): TSyntaxHighlightKind;
+    // True if aValue is in the table
+    function Contains(const aValue: string): boolean;
+    // Number of words in the table
+    property Count: SizeInt read FCount;
+  end;
+
   { TTableSyntaxHighlighter }
 
   TTableSyntaxHighlighter = class(TByteSyntaxHighlighter)
   private
     FDescription: TLanguageDescription;
+    FWords: TSyntaxWordTable;
     FLineStart: boolean;
     function CommentToken: boolean;
     function StringToken: boolean;
@@ -124,6 +153,7 @@ type
     procedure DoExecute(const aSource: string); override;
   public
     constructor Create; override;
+    destructor Destroy; override;
   end;
 
 // Language description with default identifier, operator, symbol and number forms
@@ -144,8 +174,21 @@ implementation
 
 function WordsContain(const aWords, aValue: string): boolean;
 
+var
+  lPos, lLen: SizeInt;
 begin
-  Result := (aValue <> '') and (Length(aValue) <= 64) and (Pos(' ' + aValue + ' ', ' ' + aWords + ' ') > 0);
+  Result := False;
+  lLen := Length(aValue);
+  if (lLen = 0) or (lLen > 64) then
+    Exit;
+  lPos := Pos(aValue, aWords);
+  while lPos > 0 do
+    begin
+    if ((lPos = 1) or (aWords[lPos - 1] = ' '))
+       and ((lPos + lLen > Length(aWords)) or (aWords[lPos + lLen] = ' ')) then
+      Exit(True);
+    lPos := Pos(aValue, aWords, lPos + 1);
+    end;
 end;
 
 
@@ -420,6 +463,159 @@ begin
 end;
 
 
+{ TSyntaxWordTable }
+
+constructor TSyntaxWordTable.Create(aCaseSensitive: boolean);
+
+begin
+  inherited Create;
+  FCaseSensitive := aCaseSensitive;
+  FMask := 15;
+  SetLength(FKeys, FMask + 1);
+  SetLength(FKinds, FMask + 1);
+end;
+
+
+{$push}{$Q-}{$R-}
+function TSyntaxWordTable.HashOf(aValue: PChar; aLength: Integer): SizeInt;
+
+var
+  I: Integer;
+  lHash: DWord;
+  lChar: char;
+begin
+  lHash := 2166136261;
+  for I := 0 to aLength - 1 do
+    begin
+    lChar := aValue[I];
+    if not FCaseSensitive and (lChar in ['A'..'Z']) then
+      lChar := Chr(Ord(lChar) + 32);
+    lHash := (lHash xor Ord(lChar)) * 16777619;
+    end;
+  Result := SizeInt(lHash) and FMask;
+end;
+{$pop}
+
+
+function TSyntaxWordTable.SameWord(const aKey: string; aValue: PChar; aLength: Integer): boolean;
+
+var
+  I: Integer;
+  lChar: char;
+begin
+  if Length(aKey) <> aLength then
+    Exit(False);
+  if FCaseSensitive then
+    Exit(CompareByte(aKey[1], aValue^, aLength) = 0);
+  for I := 0 to aLength - 1 do
+    begin
+    lChar := aValue[I];
+    if lChar in ['A'..'Z'] then
+      lChar := Chr(Ord(lChar) + 32);
+    if aKey[I + 1] <> lChar then
+      Exit(False);
+    end;
+  Result := True;
+end;
+
+
+function TSyntaxWordTable.IndexOf(aValue: PChar; aLength: Integer): SizeInt;
+
+begin
+  if (FCount = 0) or (aLength = 0) then
+    Exit(-1);
+  Result := HashOf(aValue, aLength);
+  while FKeys[Result] <> '' do
+    begin
+    if SameWord(FKeys[Result], aValue, aLength) then
+      Exit;
+    Result := (Result + 1) and FMask;
+    end;
+  Result := -1;
+end;
+
+
+procedure TSyntaxWordTable.Insert(const aKey: string; aKind: TSyntaxHighlightKind);
+
+var
+  lSlot: SizeInt;
+begin
+  lSlot := HashOf(PChar(aKey), Length(aKey));
+  while FKeys[lSlot] <> '' do
+    lSlot := (lSlot + 1) and FMask;
+  FKeys[lSlot] := aKey;
+  FKinds[lSlot] := aKind;
+end;
+
+
+procedure TSyntaxWordTable.Grow;
+
+var
+  lKeys: array of string;
+  lKinds: array of TSyntaxHighlightKind;
+  I: Integer;
+begin
+  lKeys := FKeys;
+  lKinds := FKinds;
+  FMask := FMask * 2 + 1;
+  FKeys := nil;
+  FKinds := nil;
+  SetLength(FKeys, FMask + 1);
+  SetLength(FKinds, FMask + 1);
+  for I := 0 to High(lKeys) do
+    if lKeys[I] <> '' then
+      Insert(lKeys[I], lKinds[I]);
+end;
+
+
+procedure TSyntaxWordTable.AddWords(const aWords: string; aKind: TSyntaxHighlightKind);
+
+var
+  lPos, lFirst: SizeInt;
+  lWord: string;
+begin
+  lPos := 1;
+  while lPos <= Length(aWords) do
+    begin
+    while (lPos <= Length(aWords)) and (aWords[lPos] = ' ') do
+      Inc(lPos);
+    lFirst := lPos;
+    while (lPos <= Length(aWords)) and (aWords[lPos] <> ' ') do
+      Inc(lPos);
+    if (lPos > lFirst) and (IndexOf(@aWords[lFirst], lPos - lFirst) < 0) then
+      begin
+      lWord := Copy(aWords, lFirst, lPos - lFirst);
+      if not FCaseSensitive then
+        lWord := LowerCase(lWord);
+      if (FCount + 1) * 2 > FMask + 1 then
+        Grow;
+      Insert(lWord, aKind);
+      Inc(FCount);
+      end;
+    end;
+end;
+
+
+function TSyntaxWordTable.Lookup(const aValue: string; aDefault: TSyntaxHighlightKind): TSyntaxHighlightKind;
+
+var
+  lIndex: SizeInt;
+begin
+  lIndex := IndexOf(PChar(aValue), Length(aValue));
+  if lIndex < 0 then
+    Result := aDefault
+  else
+    Result := FKinds[lIndex];
+end;
+
+
+function TSyntaxWordTable.Contains(const aValue: string): boolean;
+
+begin
+  Result := IndexOf(PChar(aValue), Length(aValue)) >= 0;
+end;
+
+
 { TTableSyntaxHighlighter }
 
 class function TTableSyntaxHighlighter.GetLanguages: TStringDynArray;
@@ -434,23 +630,24 @@ constructor TTableSyntaxHighlighter.Create;
 begin
   inherited Create;
   FDescription := Describe;
+  FWords := TSyntaxWordTable.Create(FDescription.CaseSensitive);
+  FWords.AddWords(FDescription.Keywords, shKeyword);
+  FWords.AddWords(FDescription.Builtins, shKey);
+end;
+
+
+destructor TTableSyntaxHighlighter.Destroy;
+
+begin
+  FreeAndNil(FWords);
+  inherited Destroy;
 end;
 
 
 function TTableSyntaxHighlighter.WordKind(const aValue: string): TSyntaxHighlightKind;
 
-var
-  lWord: string;
 begin
-  lWord := aValue;
-  if not FDescription.CaseSensitive then
-    lWord := LowerCase(lWord);
-  if WordsContain(FDescription.Keywords, lWord) then
-    Result := shKeyword
-  else if WordsContain(FDescription.Builtins, lWord) then
-    Result := shKey
-  else
-    Result := shDefault;
+  Result := FWords.Lookup(aValue);
 end;
 
 

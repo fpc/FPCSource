@@ -61,19 +61,30 @@ type
     function toString : string;
   end;
 
+const
+  // Maximum number of categories of one token
+  MaxTokenCategories = 7;
+  // Highest category ID
+  MaxCategoryID = High(SmallInt);
+
+type
+
   { TSyntaxToken }
 
   // One syntax token
   TSyntaxToken = record
   Private
-    FCategoryCount : integer;
-    FCategories: TIntegerDynArray;  // Registered category IDs
+    FCategories: array[0..MaxTokenCategories - 1] of SmallInt;  // Registered category IDs
+    FCategoryCount : Byte;
   Public
-    Text: string;
     Kind: TSyntaxHighlightKind;
     // 1-based source line of the first character of the token
     Line: Integer;
-    // Create a syntax token
+    Text: string;
+  Private
+    function GetCategoryCount: Integer; inline;
+  Public
+    // Create a syntax token; ESyntaxHighlighter for more than MaxTokenCategories categories or an ID above MaxCategoryID
     Constructor create (const aText : string; aKind : TSyntaxHighlightKind; const aCategories : Array of Integer); overload;
     Constructor create (const aText : string; aKind : TSyntaxHighlightKind; const aCategory : Integer); overload;
     Constructor create (const aText : string; aKind : TSyntaxHighlightKind); overload;
@@ -81,12 +92,12 @@ type
     Function Categories : TIntegerDynArray;
     // Categories as strings
     function CategoriesAsString : String;
-    // Add a category
+    // Add a category; ESyntaxHighlighter if the token has MaxTokenCategories categories or the ID is out of range
     Procedure AddCategory(aCategoryID : integer);
     // Check if a particular category is present
     function HasCategory(aCategoryID : integer) : Boolean;
     // Number of categories associated to this token
-    Property CategoryCount : Integer read FCategoryCount;
+    Property CategoryCount : Integer read GetCategoryCount;
   end;
   TSyntaxTokenArray = array of TSyntaxToken;
 
@@ -233,28 +244,50 @@ end;
 
 { TSyntaxToken }
 
+// Raise ESyntaxHighlighter for a category ID that does not fit in a token
+procedure InvalidCategoryID(aCategoryID: Integer);
+
+begin
+  Raise ESyntaxHighlighter.CreateFmt('Category ID %d out of range [%d..%d]',[aCategoryID,Low(SmallInt),MaxCategoryID]);
+end;
+
+
+// Raise ESyntaxHighlighter for a token with more than MaxTokenCategories categories
+procedure TooManyCategories(aCount: Integer);
+
+begin
+  Raise ESyntaxHighlighter.CreateFmt('%d categories for one token, at most %d allowed',[aCount,MaxTokenCategories]);
+end;
+
+
 constructor TSyntaxToken.create(const aText: string; aKind: TSyntaxHighlightKind; const aCategories: array of Integer);
 var
   I : integer;
 begin
+  if Length(aCategories)>MaxTokenCategories then
+    TooManyCategories(Length(aCategories));
+  For I:=0 to Length(aCategories)-1 do
+    begin
+    if (aCategories[I]<Low(SmallInt)) or (aCategories[I]>MaxCategoryID) then
+      InvalidCategoryID(aCategories[I]);
+    FCategories[I]:=aCategories[I];
+    end;
+  FCategoryCount:=Length(aCategories);
   Text:=aText;
   Kind:=aKind;
   Line:=0;
-  FCategoryCount:=Length(aCategories);
-  SetLength(FCategories,FCategoryCount+1);
-  For I:=0 to Length(aCategories)-1 do
-    FCategories[I]:=aCategories[i];
 end;
 
 constructor TSyntaxToken.create(const aText: string; aKind: TSyntaxHighlightKind; const aCategory: Integer);
 
 begin
+  if (aCategory<Low(SmallInt)) or (aCategory>MaxCategoryID) then
+    InvalidCategoryID(aCategory);
+  FCategories[0]:=aCategory;
+  FCategoryCount:=1;
   Text:=aText;
   Kind:=aKind;
   Line:=0;
-  FCategoryCount:=1;
-  SetLength(FCategories,2);
-  FCategories[0]:=aCategory;
 end;
 
 constructor TSyntaxToken.create(const aText: string; aKind: TSyntaxHighlightKind);
@@ -265,9 +298,19 @@ begin
   FCategoryCount:=0;
 end;
 
-function TSyntaxToken.Categories: TIntegerDynArray;
+function TSyntaxToken.GetCategoryCount: Integer;
 begin
-  Result:=Copy(FCategories,0,CategoryCount);
+  Result:=FCategoryCount;
+end;
+
+function TSyntaxToken.Categories: TIntegerDynArray;
+var
+  I : integer;
+begin
+  Result:=[];
+  SetLength(Result,FCategoryCount);
+  For I:=0 to FCategoryCount-1 do
+    Result[I]:=FCategories[I];
 end;
 
 function TSyntaxToken.CategoriesAsString: String;
@@ -285,8 +328,10 @@ end;
 
 procedure TSyntaxToken.AddCategory(aCategoryID: integer);
 begin
-  if FCategoryCount=Length(Categories) then
-    SetLength(FCategories,FCategoryCount+3);
+  if FCategoryCount>=MaxTokenCategories then
+    TooManyCategories(FCategoryCount+1);
+  if (aCategoryID<Low(SmallInt)) or (aCategoryID>MaxCategoryID) then
+    InvalidCategoryID(aCategoryID);
   FCategories[FCategoryCount]:=aCategoryID;
   inc(FCategoryCount);
 end;
@@ -504,6 +549,8 @@ begin
     Result := existingID
   else
     begin
+    if FNextCategoryID>MaxCategoryID then
+      Raise ESyntaxHighlighter.CreateFmt('Cannot register category "%s": more than %d categories',[category,MaxCategoryID]);
     Result := FNextCategoryID;
     FCategories.AddObject(category, TObject(PtrInt(Result)));
     Inc(FNextCategoryID);

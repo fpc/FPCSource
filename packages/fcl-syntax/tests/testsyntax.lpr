@@ -97,6 +97,8 @@ uses
   unittest.rst,
   unittest.lfm,
   unittest.tokenevents,
+  unittest.wordtable,
+  unittest.tokencategories,
   consoletestrunner;
 
 type
