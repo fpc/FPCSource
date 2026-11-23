@@ -51,6 +51,8 @@ type
     FCssHighlighter: TCssSyntaxHighlighter;
     FJsHighlighter: TJavaScriptSyntaxHighlighter;
     procedure EmbeddedToken(Sender: TObject; const aToken: TSyntaxToken);
+    function MatchAt(aPos: Integer; const aValue: string): Boolean;
+    function FindEndTag(const aTag: string): Integer;
   protected
     // Emit the whitespace at the cursor as one token
     procedure ProcessWhiteSpace;
@@ -433,15 +435,7 @@ var
 
 begin
   startPos := FPos;
-
-  // Find </script>
-  while (FPos + 8 <= FSourceLen) do
-    begin
-    if (LowerCase(Copy(FSource, FPos, 9)) = '</script>') then
-      break;
-    Inc(FPos);
-    end;
-
+  FPos := FindEndTag('</script>');
   endPos := FPos - 1;
   if endPos >= startPos then
     begin
@@ -460,15 +454,7 @@ var
 
 begin
   startPos := FPos;
-
-  // Find </style>
-  while (FPos + 7 <= FSourceLen) do
-    begin
-    if (LowerCase(Copy(FSource, FPos, 8)) = '</style>') then
-      break;
-    Inc(FPos);
-    end;
-
+  FPos := FindEndTag('</style>');
   endPos := FPos - 1;
   if endPos >= startPos then
     begin
@@ -528,8 +514,55 @@ end;
 function THtmlSyntaxHighlighter.PeekString(const s: string): Boolean;
 
 begin
-  Result := (FPos + Length(s) - 1 <= FSourceLen) and
-            (LowerCase(Copy(FSource, FPos, Length(s))) = LowerCase(s));
+  Result := MatchAt(FPos, s);
+end;
+
+
+// Compare the source at aPos with aValue, ASCII case-insensitive
+function THtmlSyntaxHighlighter.MatchAt(aPos: Integer; const aValue: string): Boolean;
+
+var
+  I: Integer;
+  lSource, lValue: Char;
+begin
+  if aPos + Length(aValue) - 1 > FSourceLen then
+    Exit(False);
+  for I := 1 to Length(aValue) do
+    begin
+    lSource := FSource[aPos + I - 1];
+    lValue := aValue[I];
+    if lSource <> lValue then
+      begin
+      if lSource in ['A'..'Z'] then
+        lSource := Chr(Ord(lSource) + 32);
+      if lValue in ['A'..'Z'] then
+        lValue := Chr(Ord(lValue) + 32);
+      if lSource <> lValue then
+        Exit(False);
+      end;
+    end;
+  Result := True;
+end;
+
+
+// Position of aTag, which starts with '<', at or after FPos; FSourceLen + 1 if not found
+function THtmlSyntaxHighlighter.FindEndTag(const aTag: string): Integer;
+
+var
+  lOffset: SizeInt;
+begin
+  Result := FPos;
+  while Result + Length(aTag) - 1 <= FSourceLen do
+    begin
+    lOffset := IndexByte(FSource[Result], FSourceLen - Result + 1, Ord('<'));
+    if lOffset < 0 then
+      Break;
+    Inc(Result, lOffset);
+    if MatchAt(Result, aTag) then
+      Exit;
+    Inc(Result);
+    end;
+  Result := FSourceLen + 1;
 end;
 
 

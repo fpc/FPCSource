@@ -47,6 +47,11 @@ type
     procedure TestStrayCharInTag;
     procedure TestUnterminatedComment;
     procedure TestUnterminatedCDATA;
+    procedure TestScriptEndTagCase;
+    procedure TestStyleEndTagCase;
+    procedure TestScriptWithLessThan;
+    procedure TestDoctypeLowerCase;
+    procedure TestUnterminatedScript;
   end;
 
 implementation
@@ -403,6 +408,115 @@ begin
   AssertEquals('Tokens reproduce an unterminated CDATA section', '<![CDATA[ ab', JoinTokens(lTokens));
   AssertEquals('Unterminated CDATA text', ' ab', lTokens[High(lTokens)].Text);
   AssertEquals('Unterminated CDATA is a raw string', Ord(shRawString), Ord(lTokens[High(lTokens)].Kind));
+end;
+
+
+// Index of the first token in aTokens with text aText, or -1
+function FindToken(const aTokens: TSyntaxTokenArray; const aText: string): Integer;
+
+var
+  I: Integer;
+begin
+  for I := 0 to High(aTokens) do
+    if aTokens[I].Text = aText then
+      Exit(I);
+  Result := -1;
+end;
+
+
+procedure TTestHtmlHighlighter.TestScriptEndTagCase;
+
+const
+  cSource = '<script>x = "<b>";</SCRIPT><p>';
+var
+  lTokens: TSyntaxTokenArray;
+  lIndex, lJS: Integer;
+begin
+  lTokens := DoHtmlHighlighting(cSource);
+  lJS := TSyntaxHighlighter.GetRegisteredCategoryID('EmbeddedJS');
+  AssertEquals('Tokens reproduce a script with an uppercase end tag', cSource, JoinTokens(lTokens));
+  lIndex := FindToken(lTokens, '"<b>"');
+  AssertTrue('Tag inside a script string is a token', lIndex >= 0);
+  AssertTrue('Tag inside a script string is JavaScript', lTokens[lIndex].HasCategory(lJS));
+  lIndex := FindToken(lTokens, 'SCRIPT');
+  AssertTrue('Uppercase end tag name is a token', lIndex >= 0);
+  AssertEquals('Uppercase end tag name is a keyword', Ord(shKeyword), Ord(lTokens[lIndex].Kind));
+  AssertFalse('Uppercase end tag name is not JavaScript', lTokens[lIndex].HasCategory(lJS));
+  lIndex := FindToken(lTokens, 'p');
+  AssertTrue('Tag after the script is a token', lIndex >= 0);
+  AssertEquals('Tag after the script is a keyword', Ord(shKeyword), Ord(lTokens[lIndex].Kind));
+end;
+
+
+procedure TTestHtmlHighlighter.TestStyleEndTagCase;
+
+const
+  cSource = '<style>a { color: red; }</Style><p>';
+var
+  lTokens: TSyntaxTokenArray;
+  lIndex, lCSS: Integer;
+begin
+  lTokens := DoHtmlHighlighting(cSource);
+  lCSS := TSyntaxHighlighter.GetRegisteredCategoryID('EmbeddedCSS');
+  AssertEquals('Tokens reproduce a style with a mixed case end tag', cSource, JoinTokens(lTokens));
+  lIndex := FindToken(lTokens, 'color');
+  AssertTrue('Property inside the style is a token', lIndex >= 0);
+  AssertTrue('Property inside the style is CSS', lTokens[lIndex].HasCategory(lCSS));
+  lIndex := FindToken(lTokens, 'Style');
+  AssertTrue('Mixed case end tag name is a token', lIndex >= 0);
+  AssertFalse('Mixed case end tag name is not CSS', lTokens[lIndex].HasCategory(lCSS));
+end;
+
+
+procedure TTestHtmlHighlighter.TestScriptWithLessThan;
+
+const
+  cSource = '<script>if (a < b) x = "</scrip"; f();</script>';
+var
+  lTokens: TSyntaxTokenArray;
+  lIndex, lJS: Integer;
+begin
+  lTokens := DoHtmlHighlighting(cSource);
+  lJS := TSyntaxHighlighter.GetRegisteredCategoryID('EmbeddedJS');
+  AssertEquals('Tokens reproduce a script with a partial end tag', cSource, JoinTokens(lTokens));
+  lIndex := FindToken(lTokens, 'f');
+  AssertTrue('Identifier after a partial end tag is a token', lIndex >= 0);
+  AssertTrue('Identifier after a partial end tag is JavaScript', lTokens[lIndex].HasCategory(lJS));
+end;
+
+
+procedure TTestHtmlHighlighter.TestDoctypeLowerCase;
+
+var
+  lTokens: TSyntaxTokenArray;
+begin
+  lTokens := DoHtmlHighlighting('<!doctype html>');
+  AssertEquals('Lowercase doctype token count', 1, Length(lTokens));
+  AssertEquals('Lowercase doctype text', '<!doctype html>', lTokens[0].Text);
+  AssertEquals('Lowercase doctype is a directive', Ord(shDirective), Ord(lTokens[0].Kind));
+  lTokens := DoHtmlHighlighting('<!-x-->');
+  AssertEquals('Tokens reproduce a near comment opener', '<!-x-->', JoinTokens(lTokens));
+  AssertEquals('Near comment opener is no comment', -1, FindToken(lTokens, '<!--'));
+end;
+
+
+procedure TTestHtmlHighlighter.TestUnterminatedScript;
+
+const
+  cSource = '<script>var longName = 1;';
+var
+  lTokens: TSyntaxTokenArray;
+  lIndex, lJS: Integer;
+begin
+  lTokens := DoHtmlHighlighting(cSource);
+  lJS := TSyntaxHighlighter.GetRegisteredCategoryID('EmbeddedJS');
+  AssertEquals('Tokens reproduce an unterminated script', cSource, JoinTokens(lTokens));
+  lIndex := FindToken(lTokens, 'longName');
+  AssertTrue('Identifier in an unterminated script is a token', lIndex >= 0);
+  AssertTrue('Identifier in an unterminated script is JavaScript', lTokens[lIndex].HasCategory(lJS));
+  lIndex := FindToken(lTokens, ';');
+  AssertTrue('Last character of an unterminated script is a token', lIndex >= 0);
+  AssertTrue('Last character of an unterminated script is JavaScript', lTokens[lIndex].HasCategory(lJS));
 end;
 
 initialization
