@@ -125,7 +125,9 @@ type
     // Add the space separated words of aWords with kind aKind; a word already present keeps its kind
     procedure AddWords(const aWords: string; aKind: TSyntaxHighlightKind);
     // Kind of aValue, aDefault if aValue is not in the table
-    function Lookup(const aValue: string; aDefault: TSyntaxHighlightKind = shDefault): TSyntaxHighlightKind;
+    function Lookup(const aValue: string; aDefault: TSyntaxHighlightKind = shDefault): TSyntaxHighlightKind; overload;
+    // Kind of the aLength characters at aValue, aDefault if they are not in the table
+    function Lookup(aValue: PChar; aLength: Integer; aDefault: TSyntaxHighlightKind = shDefault): TSyntaxHighlightKind; overload;
     // True if aValue is in the table
     function Contains(const aValue: string): boolean;
     // Number of words in the table
@@ -363,7 +365,7 @@ var
 begin
   if FCursor <= aFirst then
     Exit;
-  lText := Copy(FText, aFirst, FCursor - aFirst);
+  lText := SourceText(FText, aFirst, FCursor - aFirst);
   if not FCollect then
   begin
     AddToken(lText, aKind);
@@ -609,6 +611,19 @@ begin
 end;
 
 
+function TSyntaxWordTable.Lookup(aValue: PChar; aLength: Integer; aDefault: TSyntaxHighlightKind): TSyntaxHighlightKind;
+
+var
+  lIndex: SizeInt;
+begin
+  lIndex := IndexOf(aValue, aLength);
+  if lIndex < 0 then
+    Result := aDefault
+  else
+    Result := FKinds[lIndex];
+end;
+
+
 function TSyntaxWordTable.Contains(const aValue: string): boolean;
 
 begin
@@ -656,7 +671,7 @@ function TTableSyntaxHighlighter.CommentToken: boolean;
 var
   I: Integer;
   lFirst, lLen: SizeInt;
-  lForm: TCommentForm;
+  lForm: ^TCommentForm;
   lHit: boolean;
 begin
   Result := False;
@@ -664,19 +679,19 @@ begin
     Exit;
   for I := 0 to High(FDescription.Comments) do
     begin
-    lForm := FDescription.Comments[I];
-    lLen := Length(lForm.OpenText);
-    lHit := At(lForm.OpenText);
+    lForm := @FDescription.Comments[I];
+    lLen := Length(lForm^.OpenText);
+    lHit := At(lForm^.OpenText);
     if not FDescription.CaseSensitive then
-      lHit := LowerCase(Copy(FText, FCursor, lLen)) = lForm.OpenText;
-    if lHit and (not lForm.LineStartOnly or FLineStart)
-       and (not lForm.WordBoundary or not (Ch(lLen) in FDescription.IdentifierRest)) then
+      lHit := LowerCase(Copy(FText, FCursor, lLen)) = lForm^.OpenText;
+    if lHit and (not lForm^.LineStartOnly or FLineStart)
+       and (not lForm^.WordBoundary or not (Ch(lLen) in FDescription.IdentifierRest)) then
       begin
       lFirst := FCursor;
-      if lForm.CloseText = '' then
+      if lForm^.CloseText = '' then
         LineEnd
       else
-        Block(lForm.OpenText, lForm.CloseText, lForm.Nested);
+        Block(lForm^.OpenText, lForm^.CloseText, lForm^.Nested);
       Emit(lFirst, shComment);
       Exit(True);
       end;
@@ -934,16 +949,16 @@ function TTableSyntaxHighlighter.StringToken: boolean;
 var
   I: Integer;
   lFirst, lPos: SizeInt;
-  lForm: TStringForm;
+  lForm: ^TStringForm;
 begin
   Result := False;
   for I := 0 to High(FDescription.Strings) do
     begin
-    lForm := FDescription.Strings[I];
-    if At(lForm.OpenText) then
+    lForm := @FDescription.Strings[I];
+    if At(lForm^.OpenText) then
       begin
       // A Rust lifetime or an Ada attribute is not an unfinished character literal
-      if (lForm.Kind = shCharacters) and (FDescription.Flavor in [lfRust, lfAda]) and (Ch = '''') then
+      if (lForm^.Kind = shCharacters) and (FDescription.Flavor in [lfRust, lfAda]) and (Ch = '''') then
         begin
         lPos := FCursor + 1;
         if (lPos <= FLimit) and (FText[lPos] = '\') then
@@ -977,8 +992,8 @@ begin
         Exit(True);
         end;
       lFirst := FCursor;
-      Quoted(lForm.OpenText, lForm.CloseText, lForm.Escape, lForm.Multiline, lForm.Doubled);
-      Emit(lFirst, lForm.Kind);
+      Quoted(lForm^.OpenText, lForm^.CloseText, lForm^.Escape, lForm^.Multiline, lForm^.Doubled);
+      Emit(lFirst, lForm^.Kind);
       Exit(True);
       end;
     end;
@@ -991,43 +1006,43 @@ var
   lFirst, lPos: SizeInt;
   lBase: Byte;
   lAllowed: TSysCharSet;
-  lForm: TNumberForms;
+  lForm: ^TNumberForms;
   lIsHex: boolean;
 begin
   lFirst := FCursor;
-  lForm := FDescription.Numbers;
+  lForm := @FDescription.Numbers;
   lBase := 10;
   lIsHex := False;
   lAllowed := ['0'..'9'];
-  if lForm.Hex and (At('0x') or At('0X') or At('&h') or At('&H')) then
+  if lForm^.Hex and (At('0x') or At('0X') or At('&h') or At('&H')) then
     begin
     Inc(FCursor, 2);
     lBase := 16;
     lIsHex := True;
     lAllowed := lAllowed + ['a'..'f', 'A'..'F'];
     end
-  else if lForm.Binary and (At('0b') or At('0B') or At('&b') or At('&B')) then
+  else if lForm^.Binary and (At('0b') or At('0B') or At('&b') or At('&B')) then
     begin
     Inc(FCursor, 2);
     lBase := 2;
     lAllowed := ['0', '1'];
     end
-  else if lForm.Octal and (At('0o') or At('0O') or At('&o') or At('&O')) then
+  else if lForm^.Octal and (At('0o') or At('0O') or At('&o') or At('&O')) then
     begin
     Inc(FCursor, 2);
     lBase := 8;
     lAllowed := ['0'..'7'];
     end
-  else if lForm.LeadingOctal and (Ch = '0') and (Ch(1) in ['0'..'7']) then
+  else if lForm^.LeadingOctal and (Ch = '0') and (Ch(1) in ['0'..'7']) then
     begin
     lBase := 8;
     lAllowed := ['0'..'7'];
     end;
-  if lForm.Separators then
-    Include(lAllowed, lForm.Separator);
+  if lForm^.Separators then
+    Include(lAllowed, lForm^.Separator);
   while (FCursor <= FLimit) and (Ch in lAllowed) do
     Inc(FCursor);
-  if lForm.Based and (Ch = '#') then
+  if lForm^.Based and (Ch = '#') then
     begin
     Inc(FCursor);
     while (FCursor <= FLimit) and (Ch in ['0'..'9', 'a'..'f', 'A'..'F', '_', '.']) do
@@ -1035,15 +1050,15 @@ begin
     if Ch = '#' then
       Inc(FCursor);
     end
-  else if lForm.Fraction and (lBase in [10, 16]) and (Ch = '.') and (Ch(1) <> '.')
+  else if lForm^.Fraction and (lBase in [10, 16]) and (Ch = '.') and (Ch(1) <> '.')
           and ((Ch(1) in lAllowed) or (FCursor = lFirst)) then
     begin
     Inc(FCursor);
     while (FCursor <= FLimit) and (Ch in lAllowed) do
       Inc(FCursor);
     end;
-  if lForm.Exponent and (FCursor <= FLimit)
-     and (((not lIsHex) and (Pos(Ch, lForm.ExponentLetters) > 0)) or (lIsHex and lForm.HexExponent and (Ch in ['p', 'P']))) then
+  if lForm^.Exponent and (FCursor <= FLimit)
+     and (((not lIsHex) and (Pos(Ch, lForm^.ExponentLetters) > 0)) or (lIsHex and lForm^.HexExponent and (Ch in ['p', 'P']))) then
     begin
     lPos := FCursor + 1;
     if (lPos <= FLimit) and (FText[lPos] in ['+', '-']) then
@@ -1055,10 +1070,10 @@ begin
         Inc(FCursor);
       end;
     end;
-  if lForm.TrailingBase then
+  if lForm^.TrailingBase then
     while (FCursor <= FLimit) and (Ch in ['0'..'9', 'A'..'F', 'a'..'f', 'H', 'h', 'X', 'x']) do
       Inc(FCursor);
-  while (FCursor <= FLimit) and (Pos(Ch, lForm.Suffixes) > 0) do
+  while (FCursor <= FLimit) and (Pos(Ch, lForm^.Suffixes) > 0) do
     Inc(FCursor);
   if FCursor = lFirst then
     Inc(FCursor);

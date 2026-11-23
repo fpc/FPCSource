@@ -115,7 +115,7 @@ type
     // Create an empty token list
     class function Create : TSyntaxTokenList; static;
     // Add a token
-    Procedure AddToken(aToken : TSyntaxToken);
+    Procedure AddToken(const aToken : TSyntaxToken);
     // Clear the token list
     procedure reset;
     // Get the actual list of tokens
@@ -130,6 +130,12 @@ type
 
   TSyntaxHighlighter = class
   private
+    const
+      SharedTextSlots = 1024;
+      MaxSharedTextLength = 16;
+    var
+    FSharedTexts: array[0..SharedTextSlots - 1] of string;
+    FShareTexts: Boolean;
     FDefaultCategory: Integer;
     FOnToken: TSyntaxTokenEvent;
     FRangeFrom: Integer;
@@ -152,8 +158,14 @@ type
     procedure DoExecute(const aSource: string); virtual; abstract;
     // Create a token with the default category and aCategory, and emit it
     procedure AddToken(const aText: string; akind: TSyntaxHighlightKind; aCategory : Integer = 0);
+    // Text of aLength bytes of aSource from aStart; with ShareTexts, short texts are shared with earlier identical texts
+    function SourceText(const aSource: string; aStart, aLength: SizeInt): string;
+    // AddToken with the text of aLength bytes of aSource from aStart
+    procedure AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory : Integer = 0);
     // Set the line of aToken and pass it to the token handler if it overlaps the range
     procedure EmitToken(aToken: TSyntaxToken); virtual;
+    // True while Execute builds a token array: SourceText then shares short texts
+    property ShareTexts : Boolean Read FShareTexts Write FShareTexts;
   public
     class procedure Register;
     class function RegisterCategory(const category: string): Integer;
@@ -363,7 +375,7 @@ begin
   Result:=Default(TSyntaxTokenList);
 end;
 
-procedure TSyntaxTokenList.AddToken(aToken: TSyntaxToken);
+procedure TSyntaxTokenList.AddToken(const aToken: TSyntaxToken);
 begin
   if FTokenCount=Length(FList) then
     if FTokenCount<64 then
@@ -419,13 +431,57 @@ begin
       lCat1:=aCategory
     else
       lCat2:=aCategory;
- if lCat2>0 then
-    lToken:=TSyntaxToken.Create(aText,aKind,[lCat1,lCat2])
- else if lCat1>0 then
-    lToken:=TSyntaxToken.Create(aText,aKind,lCat1)
- else
-    lToken:=TSyntaxToken.Create(aText,aKind);
+  if (lCat1<Low(SmallInt)) or (lCat1>MaxCategoryID) then
+    InvalidCategoryID(lCat1);
+  if (lCat2<Low(SmallInt)) or (lCat2>MaxCategoryID) then
+    InvalidCategoryID(lCat2);
+  lToken.Text:=aText;
+  lToken.Kind:=aKind;
+  lToken.Line:=0;
+  lToken.FCategories[0]:=lCat1;
+  lToken.FCategories[1]:=lCat2;
+  if lCat2>0 then
+    lToken.FCategoryCount:=2
+  else if lCat1>0 then
+    lToken.FCategoryCount:=1
+  else
+    lToken.FCategoryCount:=0;
   EmitToken(lToken);
+end;
+
+
+{$push}{$Q-}{$R-}
+function TSyntaxHighlighter.SourceText(const aSource: string; aStart, aLength: SizeInt): string;
+
+var
+  I: Integer;
+  lText: PChar;
+  lHash: DWord;
+  lSlot: Integer;
+begin
+  if not FShareTexts or (aLength <= 0) or (aLength > MaxSharedTextLength)
+     or (aStart < 1) or (aStart + aLength - 1 > Length(aSource)) then
+    Exit(Copy(aSource, aStart, aLength));
+  lText := PChar(Pointer(aSource)) + aStart - 1;
+  lHash := aLength;
+  for I := 0 to aLength - 1 do
+    lHash := lHash * 31 + Ord(lText[I]);
+  lSlot := (lHash xor (lHash shr 11)) and (SharedTextSlots - 1);
+  if (Length(FSharedTexts[lSlot]) = aLength)
+     and (CompareByte(Pointer(FSharedTexts[lSlot])^, lText^, aLength) = 0)
+     and (StringCodePage(FSharedTexts[lSlot]) = StringCodePage(aSource)) then
+    Exit(FSharedTexts[lSlot]);
+  Result := Copy(aSource, aStart, aLength);
+  FSharedTexts[lSlot] := Result;
+end;
+{$pop}
+
+
+procedure TSyntaxHighlighter.AddSourceToken(const aSource: string; aStart, aLength: SizeInt; aKind: TSyntaxHighlightKind; aCategory: Integer);
+
+begin
+  if aLength > 0 then
+    AddToken(SourceText(aSource, aStart, aLength), aKind, aCategory);
 end;
 
 
@@ -470,7 +526,12 @@ function TSyntaxHighlighter.Execute(const aSource: string): TSyntaxTokenArray;
 
 begin
   FTokens.Reset;
-  Execute(aSource,@StoreToken);
+  FShareTexts:=True;
+  try
+    Execute(aSource,@StoreToken);
+  finally
+    FShareTexts:=False;
+  end;
   Result:=FTokens.GetTokens;
 end;
 

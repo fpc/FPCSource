@@ -108,7 +108,7 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings);
 end;
 
 
@@ -128,7 +128,7 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shRawString);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shRawString);
 end;
 
 
@@ -154,7 +154,7 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shCharacters);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shCharacters);
 end;
 
 
@@ -168,7 +168,7 @@ begin
   while (FPos <= Length(FSource)) and (FSource[FPos] <> #10) and (FSource[FPos] <> #13) do
     Inc(FPos);
   endPos := FPos - 1;
-  lText := Copy(FSource, startPos, endPos - startPos + 1);
+  lText := SourceText(FSource, startPos, endPos - startPos + 1);
   // //go: and // +build steer the toolchain
   if (Copy(lText, 1, 5) = '//go:') or (Copy(lText, 1, 9) = '// +build') then
     lKind := shDirective
@@ -196,7 +196,7 @@ begin
   if FPos = Length(FSource) then
     Inc(FPos);
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment);
 end;
 
 
@@ -220,7 +220,7 @@ begin
   i := 0;
   while (FPos + i <= Length(FSource)) and IsWordChar(FSource[FPos + i]) do
     Inc(i);
-  keyword := Copy(FSource, FPos, i);
+  keyword := SourceText(FSource, FPos, i);
   Result := False;
   for j := 0 to MaxKeyword do
     if GoKeywordTable[j] = keyword then
@@ -303,7 +303,7 @@ begin
   if (FPos <= Length(FSource)) and (FSource[FPos] = 'i') then
     Inc(FPos);
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shNumbers);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shNumbers);
 end;
 
 
@@ -346,7 +346,7 @@ begin
         Inc(FPos, 2);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shOperator);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shOperator);
 end;
 
 
@@ -426,14 +426,14 @@ begin
           while (FPos <= Length(FSource)) and IsWordChar(FSource[FPos]) do
             Inc(FPos);
           endPos := FPos - 1;
-          AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+          AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
           end;
         end;
       '=', '!', '<', '>', '&', '|', '+', '-', '*', '/', '%', '^', ':', '~':
         ProcessOperator(endPos);
       ';', '(', ')', '[', ']', '{', '}', ',':
         begin
-        AddToken(ch, shSymbol);
+        AddSourceToken(FSource, FPos, 1, shSymbol);
         endPos := FPos;
         Inc(FPos);
         end;
@@ -443,10 +443,10 @@ begin
         while (FPos <= Length(FSource)) and (FSource[FPos] in [' ', #9, #10, #13]) do
           Inc(FPos);
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
         end;
       else
-        AddToken(ch, shInvalid);
+        AddSourceToken(FSource, FPos, 1, shInvalid);
         endPos := FPos;
         Inc(FPos);
       end;

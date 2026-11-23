@@ -101,7 +101,7 @@ begin
               begin
                 // Invalid unicode escape - mark as invalid
                 endPos := FPos - 1;
-                AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+                AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
                 Exit;
               end;
             end
@@ -109,7 +109,7 @@ begin
             begin
               // Incomplete unicode escape
               endPos := Length(FSource);
-              AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+              AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
               FPos := Length(FSource) + 1;
               Exit;
             end;
@@ -117,7 +117,7 @@ begin
         else
           // Invalid escape sequence
           endPos := FPos - 1;
-          AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+          AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
           Exit;
         end;
       end
@@ -125,7 +125,7 @@ begin
       begin
         // String ends with backslash
         endPos := Length(FSource);
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
         FPos := Length(FSource) + 1;
         Exit;
       end;
@@ -134,7 +134,7 @@ begin
     begin
       // Control characters must be escaped in JSON
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
       Exit;
     end
     else
@@ -147,7 +147,7 @@ begin
   if (FPos > Length(FSource)) or (FSource[FPos - 1] <> '"') then
   begin
     // Unterminated string - mark as invalid
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+    AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
     Exit;
   end;
 
@@ -157,7 +157,7 @@ begin
   else
     kind := shStrings;
 
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), kind);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, kind);
 end;
 
 procedure TJsonSyntaxHighlighter.ProcessNumber(var endPos: integer);
@@ -178,7 +178,7 @@ begin
   if (FPos > Length(FSource)) or not IsDigitChar(FSource[FPos]) then
   begin
     endPos := FPos - 1;
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+    AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
     Exit;
   end;
 
@@ -192,7 +192,7 @@ begin
       while (FPos <= Length(FSource)) and (IsDigitChar(FSource[FPos]) or (FSource[FPos] in ['.', 'e', 'E', '+', '-'])) do
         Inc(FPos);
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
       Exit;
     end;
   end
@@ -213,7 +213,7 @@ begin
     if (FPos > Length(FSource)) or not IsDigitChar(FSource[FPos]) then
     begin
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
       Exit;
     end;
 
@@ -235,7 +235,7 @@ begin
     if (FPos > Length(FSource)) or not IsDigitChar(FSource[FPos]) then
     begin
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
       Exit;
     end;
 
@@ -244,7 +244,7 @@ begin
   end;
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shNumbers);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shNumbers);
 end;
 
 function TJsonSyntaxHighlighter.CheckForKeyword(var endPos: integer): boolean;
@@ -359,7 +359,7 @@ begin
         while (FPos <= Length(FSource)) and (FSource[FPos] in ['a'..'z', 'A'..'Z']) do
           Inc(FPos);
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInvalid);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shInvalid);
       end;
       end;
     '{':
@@ -413,10 +413,10 @@ begin
       while (FPos <= Length(FSource)) and (FSource[FPos] in [' ', #9, #10, #13]) do
         Inc(FPos);
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
       end;
     else
-      AddToken(ch, shInvalid);
+      AddSourceToken(FSource, FPos, 1, shInvalid);
       endPos := FPos;
       Inc(FPos);
     end;

@@ -43,6 +43,9 @@ type
     procedure TestJavaScriptNumericFormats;
     procedure TestComplexJavaScriptFunction;
     procedure TestJavaScriptContextSensitive;
+    procedure TestRegexSlashInClass;
+    procedure TestRegexEscapedBracketInClass;
+    procedure TestRegexNewFlags;
   end;
 
 implementation
@@ -252,6 +255,48 @@ begin
   AssertEquals('Should have 1 token', 1, Length(tokens));
   AssertEquals('Token should be escaped regex', '/\\d+\\.\\d*/', tokens[0].Text);
   AssertEquals('Token should be regex type', Ord(shRegex), Ord(tokens[0].Kind));
+end;
+
+procedure TTestJavaScriptHighlighter.TestRegexSlashInClass;
+const
+  Regex = '/([!"#$%&''()*+,./:;<=>?@[\\\]^`{|}~])/g';
+var
+  tokens: TSyntaxTokenArray;
+  I, lRegex, lVar: Integer;
+begin
+  tokens := DoJavaScriptHighlighting('x = s.replace(' + Regex + ', "\\$1");' + #10 + 'var y = 1;');
+  lRegex := -1;
+  lVar := -1;
+  for I := 0 to High(tokens) do
+    if tokens[I].Text = Regex then
+      lRegex := I
+    else if tokens[I].Text = 'var' then
+      lVar := I;
+  AssertTrue('Regex with a slash and a backtick in a class is one token', lRegex >= 0);
+  AssertEquals('Regex kind', Ord(shRegex), Ord(tokens[lRegex].Kind));
+  AssertTrue('Code after the regex is a separate token', lVar >= 0);
+  AssertEquals('Code after the regex is not inside a template', Ord(shKeyword), Ord(tokens[lVar].Kind));
+end;
+
+procedure TTestJavaScriptHighlighter.TestRegexEscapedBracketInClass;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoJavaScriptHighlighting('/[\]/]+/g');
+  AssertEquals('Should have 1 token', 1, Length(tokens));
+  AssertEquals('Escaped bracket does not end the class', '/[\]/]+/g', tokens[0].Text);
+  tokens := DoJavaScriptHighlighting('/a\[/ + 1');
+  AssertEquals('Escaped bracket does not start a class', '/a\[/', tokens[0].Text);
+  AssertEquals('Escaped bracket regex kind', Ord(shRegex), Ord(tokens[0].Kind));
+end;
+
+procedure TTestJavaScriptHighlighter.TestRegexNewFlags;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoJavaScriptHighlighting('/a/dv');
+  AssertEquals('Should have 1 token', 1, Length(tokens));
+  AssertEquals('Regex with d and v flags', '/a/dv', tokens[0].Text);
 end;
 
 procedure TTestJavaScriptHighlighter.TestJavaScriptTemplateLiterals;

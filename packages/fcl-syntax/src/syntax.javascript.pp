@@ -117,7 +117,7 @@ begin
     Inc(FPos);
     end;
     endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessDoubleQuoteString(var endPos: integer);
@@ -140,7 +140,7 @@ begin
     Inc(FPos);
     end;
     endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessTemplateString(var endPos: integer);
@@ -184,26 +184,32 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shRawString);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shRawString);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessRegexLiteral(var endPos: integer);
 var
   startPos: integer;
+  lInClass: boolean;
 begin
   startPos := FPos;
+  lInClass := False;
   Inc(FPos); // Skip opening /
 
   while FPos <= Length(FSource) do
     begin
-    if FSource[FPos] = '/' then
+    if (FSource[FPos] = '/') and not lInClass then
       begin
       Inc(FPos);
       // Handle regex flags (g, i, m, etc.)
-      while (FPos <= Length(FSource)) and (FSource[FPos] in ['g', 'i', 'm', 's', 'u', 'y']) do
+      while (FPos <= Length(FSource)) and (FSource[FPos] in ['d', 'g', 'i', 'm', 's', 'u', 'v', 'y']) do
         Inc(FPos);
       break;
       end
+    else if FSource[FPos] = '[' then
+      lInClass := True
+    else if FSource[FPos] = ']' then
+      lInClass := False
     else if FSource[FPos] = '\' then
       begin
       if FPos < Length(FSource) then Inc(FPos); // Skip escaped character
@@ -216,7 +222,7 @@ begin
     end;
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shRegex);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shRegex);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessSingleLineComment(var endPos: integer);
@@ -227,7 +233,7 @@ begin
   while (FPos <= Length(FSource)) and (FSource[FPos] <> #10) and (FSource[FPos] <> #13) do
     Inc(FPos);
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessMultiLineComment(var endPos: integer);
@@ -246,7 +252,7 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment);
 end;
 
 function TJavaScriptSyntaxHighlighter.CheckForComment(var endPos: integer): boolean;
@@ -278,7 +284,7 @@ begin
     Inc(i);
     end;
 
-  keyword := Copy(FSource, FPos, i);
+  keyword := SourceText(FSource, FPos, i);
   Result := False;
 
   for j := 0 to MaxKeyword do
@@ -343,7 +349,7 @@ begin
     end;
 
     endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shNumbers);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shNumbers);
 end;
 
 procedure TJavaScriptSyntaxHighlighter.ProcessOperator(var endPos: integer);
@@ -415,7 +421,7 @@ begin
     end;
 
     endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shOperator);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shOperator);
 end;
 
 function TJavaScriptSyntaxHighlighter.IsWordChar(ch: char): boolean;
@@ -527,14 +533,14 @@ begin
           while (FPos <= Length(FSource)) and IsWordChar(FSource[FPos]) do
             Inc(FPos);
               endPos := FPos - 1;
-          AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+          AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
           end;
         end;
       '=', '!', '<', '>', '&', '|', '+', '-', '*', '%', '^', '~', '?', ':', '.':
         ProcessOperator(endPos);
       ';', '(', ')', '[', ']', '{', '}', ',':
         begin
-        AddToken(ch, shSymbol);
+        AddSourceToken(FSource, FPos, 1, shSymbol);
             endPos := FPos;
         Inc(FPos);
         end;
@@ -544,10 +550,10 @@ begin
         while (FPos <= Length(FSource)) and (FSource[FPos] in [' ', #9, #10, #13]) do
           Inc(FPos);
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
         end;
       else
-        AddToken(ch, shInvalid);
+        AddSourceToken(FSource, FPos, 1, shInvalid);
         endPos := FPos;
         Inc(FPos);
       end;

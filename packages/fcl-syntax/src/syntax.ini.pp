@@ -73,7 +73,7 @@ begin
     Inc(FPos); // Include closing ]
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shSection);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shSection);
 end;
 
 procedure TIniSyntaxHighlighter.ProcessKey(var endPos: integer);
@@ -86,7 +86,7 @@ begin
     Inc(FPos);
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shKey);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shKey);
 end;
 
 procedure TIniSyntaxHighlighter.ProcessComment(var endPos: integer);
@@ -100,7 +100,7 @@ begin
     Inc(FPos);
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment);
 end;
 
 procedure TIniSyntaxHighlighter.ProcessValue(var endPos: integer);
@@ -146,9 +146,9 @@ begin
 
   endPos := FPos - 1;
   if inQuotes then
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings)
+    AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings)
   else
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+    AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
 end;
 
 function TIniSyntaxHighlighter.IsWordChar(ch: char): boolean;
@@ -243,7 +243,7 @@ begin
       else
         Inc(FPos); // LF or CR only
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
       atLineStart := True;
       end;
     ' ', #9:
@@ -252,7 +252,7 @@ begin
       while (FPos <= Length(FSource)) and (FSource[FPos] in [' ', #9]) do
         Inc(FPos);
       endPos := FPos - 1;
-      AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+      AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
       end;
     'a'..'z', 'A'..'Z', '0'..'9', '_', '-', '.':
       begin
@@ -268,12 +268,12 @@ begin
         while (FPos <= Length(FSource)) and IsWordChar(FSource[FPos]) do
           Inc(FPos);
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
       end;
       atLineStart := False;
       end;
     else
-      AddToken(ch, shDefault);
+      AddSourceToken(FSource, FPos, 1, shDefault);
       endPos := FPos;
       Inc(FPos);
       atLineStart := False;

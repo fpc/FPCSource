@@ -100,6 +100,9 @@ type
     procedure TestAsmComment;
     procedure TestAsmEndSourceText;
     procedure TestAsmEndInIdentifier;
+    procedure TestKeywordCase;
+    procedure TestKeywordBoundaries;
+    procedure TestAsmKeywordCase;
   end;
 
 implementation
@@ -887,6 +890,47 @@ begin
   AssertEquals('Identifier starting with end stays assembler', #10'  mov eax, endval'#10, tokens[1].Text);
   AssertEquals('Asm text is assembler', Ord(shAssembler), Ord(tokens[1].Kind));
   AssertEquals('End keyword', 'end', tokens[2].Text);
+end;
+
+procedure TTestPascalHighlighter.TestKeywordCase;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting('BEGIN Begin bEgIn');
+  AssertEquals('Token count', 5, Length(tokens));
+  AssertEquals('Upper case keyword', Ord(shKeyword), Ord(tokens[0].Kind));
+  AssertEquals('Upper case keyword keeps its text', 'BEGIN', tokens[0].Text);
+  AssertEquals('Capitalized keyword', Ord(shKeyword), Ord(tokens[2].Kind));
+  AssertEquals('Mixed case keyword', Ord(shKeyword), Ord(tokens[4].Kind));
+  AssertEquals('Mixed case keyword keeps its text', 'bEgIn', tokens[4].Text);
+end;
+
+procedure TTestPascalHighlighter.TestKeywordBoundaries;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting('beginx xbegin begin_ in_ resourcestringx');
+  AssertEquals('Token count', 9, Length(tokens));
+  AssertEquals('Keyword followed by a letter', Ord(shDefault), Ord(tokens[0].Kind));
+  AssertEquals('Keyword after a letter', Ord(shDefault), Ord(tokens[2].Kind));
+  AssertEquals('Keyword followed by an underscore', Ord(shDefault), Ord(tokens[4].Kind));
+  AssertEquals('Short keyword followed by an underscore', Ord(shDefault), Ord(tokens[6].Kind));
+  AssertEquals('Longest keyword followed by a letter', Ord(shDefault), Ord(tokens[8].Kind));
+  AssertEquals('Longest keyword followed by a letter keeps its text', 'resourcestringx', tokens[8].Text);
+end;
+
+procedure TTestPascalHighlighter.TestAsmKeywordCase;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting('ASM nop END');
+  AssertEquals('Token count', 3, Length(tokens));
+  AssertEquals('Upper case asm', 'ASM', tokens[0].Text);
+  AssertEquals('Asm body is assembler', Ord(shAssembler), Ord(tokens[1].Kind));
+  AssertEquals('Upper case end', 'END', tokens[2].Text);
+  tokens := DoPascalHighlighting('asmx nop');
+  AssertEquals('Identifier starting with asm is not an asm block', Ord(shDefault), Ord(tokens[0].Kind));
+  AssertEquals('Identifier starting with asm keeps its text', 'asmx', tokens[0].Text);
 end;
 
 initialization

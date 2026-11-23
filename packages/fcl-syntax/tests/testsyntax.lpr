@@ -99,6 +99,7 @@ uses
   unittest.tokenevents,
   unittest.wordtable,
   unittest.tokencategories,
+  unittest.sharedtext,
   consoletestrunner;
 
 type

@@ -79,7 +79,7 @@ begin
   if (FPos <= Length(FSource)) and (FSource[FPos] = '''') then
     Inc(FPos); // Include closing quote
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings);
 end;
 
 procedure TBashSyntaxHighlighter.ProcessDoubleQuoteString(var endPos: integer);
@@ -103,7 +103,7 @@ begin
     Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shStrings);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shStrings);
 end;
 
 procedure TBashSyntaxHighlighter.ProcessBackquoteString(var endPos: integer);
@@ -124,7 +124,7 @@ begin
   if (FPos <= Length(FSource)) and (FSource[FPos] = '`') then
     Inc(FPos); // Include closing backquote
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shInterpolation);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shInterpolation);
 end;
 
 procedure TBashSyntaxHighlighter.ProcessVariable(var endPos: integer);
@@ -156,7 +156,7 @@ begin
     end;
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault); // Variables as default for now
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault); // Variables as default for now
 end;
 
 procedure TBashSyntaxHighlighter.ProcessComment(var endPos: integer);
@@ -167,7 +167,7 @@ begin
   while (FPos <= Length(FSource)) and (FSource[FPos] <> #10) and (FSource[FPos] <> #13) do
     Inc(FPos);
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment);
 end;
 
 function TBashSyntaxHighlighter.CheckForKeyword(var endPos: integer): boolean;
@@ -178,7 +178,7 @@ begin
   i := 0;
   while (FPos+i<=Length(FSource)) and (i < MaxKeywordLength) and IsWordChar(FSource[FPos + i]) do
     Inc(i);
-  keyword:=Copy(FSource,FPos,i);
+  keyword:=SourceText(FSource,FPos,i);
   Result := False;
 
   for j := 0 to MaxKeyword do
@@ -211,7 +211,7 @@ begin
       Inc(FPos);
     end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shNumbers);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shNumbers);
 end;
 
 procedure TBashSyntaxHighlighter.ProcessOperator(var endPos: integer);
@@ -261,7 +261,7 @@ begin
     Inc(FPos);
   end;
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shOperator);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shOperator);
 end;
 
 function TBashSyntaxHighlighter.IsWordChar(ch: char): boolean;
@@ -322,13 +322,13 @@ begin
           while (FPos <= Length(FSource)) and IsWordChar(FSource[FPos]) do
             Inc(FPos);
           endPos := FPos - 1;
-          AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+          AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
           end;
         end;
       '=', '!', '<', '>', '&', '|', '+', '-', '*', '/', '%', '^': ProcessOperator(endPos);
       ';', '(', ')', '[', ']', '{', '}', ',':
         begin
-        AddToken(ch, shSymbol);
+        AddSourceToken(FSource, FPos, 1, shSymbol);
         endPos := FPos;
         Inc(FPos);
         end;
@@ -338,10 +338,10 @@ begin
         while (FPos <= Length(FSource)) and (FSource[FPos] in [' ', #9, #10, #13]) do
           Inc(FPos);
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
         end;
     else
-      AddToken(ch, shInvalid);
+      AddSourceToken(FSource, FPos, 1, shInvalid);
       endPos := FPos;
       Inc(FPos);
     end;

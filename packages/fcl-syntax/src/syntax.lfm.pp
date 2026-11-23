@@ -74,7 +74,7 @@ begin
   lStart := FPos;
   while (FPos <= Length(FSource)) and (FSource[FPos] in aAllowed) do
     Inc(FPos);
-  Result := Copy(FSource, lStart, FPos - lStart);
+  Result := SourceText(FSource, lStart, FPos - lStart);
 end;
 
 
@@ -162,7 +162,7 @@ begin
           else
             Inc(FPos);
           end;
-        AddToken(Copy(FSource, lStart, FPos - lStart), shStrings);
+        AddSourceToken(FSource, lStart, FPos - lStart, shStrings);
         lLineStart := False;
         end;
       '#':
@@ -177,7 +177,7 @@ begin
           end
         else
           TakeWhile(LfmDigits);
-        AddToken(Copy(FSource, lStart, FPos - lStart), shCharacters);
+        AddSourceToken(FSource, lStart, FPos - lStart, shCharacters);
         lLineStart := False;
         end;
       '{':
@@ -188,13 +188,13 @@ begin
           Inc(FPos);
         if FPos <= Length(FSource) then
           Inc(FPos);
-        AddToken(Copy(FSource, lStart, FPos - lStart), shComment);
+        AddSourceToken(FSource, lStart, FPos - lStart, shComment);
         lLineStart := False;
         end;
       '0'..'9', '$', '-', '+':
         if (Ch in ['-', '+']) and not (Ch(1) in LfmDigits + ['.', '$']) then
           begin
-          AddToken(Ch, shOperator);
+          AddSourceToken(FSource, FPos, 1, shOperator);
           Inc(FPos);
           lLineStart := False;
           end
@@ -222,7 +222,7 @@ begin
               TakeWhile(LfmDigits);
               end;
             end;
-          AddToken(Copy(FSource, lStart, FPos - lStart), shNumbers);
+          AddSourceToken(FSource, lStart, FPos - lStart, shNumbers);
           lLineStart := False;
           end;
       'A'..'Z', 'a'..'z', '_':
@@ -255,7 +255,7 @@ begin
         end;
       '(', '<', '[':
         begin
-        AddToken(Ch, shSymbol);
+        AddSourceToken(FSource, FPos, 1, shSymbol);
         if Ch = '(' then
           Inc(lDepth);
         Inc(FPos);
@@ -263,14 +263,14 @@ begin
         end;
       ')', '>', ']':
         begin
-        AddToken(Ch, shSymbol);
+        AddSourceToken(FSource, FPos, 1, shSymbol);
         if (Ch = ')') and (lDepth > 0) then
           Dec(lDepth);
         Inc(FPos);
         lLineStart := False;
         end;
     else
-      AddToken(Ch, shSymbol);
+      AddSourceToken(FSource, FPos, 1, shSymbol);
       Inc(FPos);
       lLineStart := False;
     end;

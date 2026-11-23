@@ -150,7 +150,7 @@ begin
       if FPos > startPos then
         begin
         endPos := FPos - 1;
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+        AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
         FPos := endPos + 1;
         end;
       ProcessEntity(endPos);
@@ -160,7 +160,7 @@ begin
     end;
   endPos := FPos - 1;
   if endPos >= startPos then
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDefault);
+    AddSourceToken(FSource, startPos, endPos - startPos + 1, shDefault);
 end;
 
 
@@ -173,7 +173,7 @@ begin
   while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
     Inc(FPos);
   if FPos > lStart then
-    AddToken(Copy(FSource, lStart, FPos - lStart), shDefault);
+    AddSourceToken(FSource, lStart, FPos - lStart, shDefault);
 end;
 
 
@@ -202,7 +202,7 @@ begin
     nameEnd := FPos - 1;
     tagName := LowerCase(Copy(FSource, nameStart, nameEnd - nameStart + 1));
     FCurrentTag := tagName;
-    AddToken(Copy(FSource, nameStart, nameEnd - nameStart + 1), shKeyword);
+    AddSourceToken(FSource, nameStart, nameEnd - nameStart + 1, shKeyword);
     end;
 
   // Process attributes
@@ -215,7 +215,7 @@ begin
       startPos := FPos;
       while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9, #10, #13]) do
         Inc(FPos);
-      AddToken(Copy(FSource, startPos, FPos - startPos), shDefault);
+      AddSourceToken(FSource, startPos, FPos - startPos, shDefault);
       end;
     if (FPos <= FSourceLen) and (FSource[FPos] = '>') then
       break;
@@ -233,7 +233,7 @@ begin
 
     if FPos > startPos then
       begin
-      attrName := Copy(FSource, startPos, FPos - startPos);
+      attrName := SourceText(FSource, startPos, FPos - startPos);
       if attrName = 'style' then
         AddToken(attrName, shDefault, CategoryHTMLStyleAttr)
       else
@@ -243,7 +243,7 @@ begin
     // Skip whitespace around =
     while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9]) do
       begin
-      AddToken(FSource[FPos], shDefault);
+      AddSourceToken(FSource, FPos, 1, shDefault);
       Inc(FPos);
       end;
 
@@ -256,7 +256,7 @@ begin
       // Skip whitespace after =
       while (FPos <= FSourceLen) and (FSource[FPos] in [' ', #9]) do
         begin
-        AddToken(FSource[FPos], shDefault);
+        AddSourceToken(FSource, FPos, 1, shDefault);
         Inc(FPos);
         end;
 
@@ -276,19 +276,19 @@ begin
         if (attrName = 'style') and (FPos > startPos + 2) then
           begin
           // Delegate CSS content to CSS highlighter (excluding quotes)
-          AddToken(FSource[startPos], shSymbol); // Opening quote
+          AddSourceToken(FSource, startPos, 1, shSymbol); // Opening quote
           if FPos > startPos + 2 then
-            AddToken(Copy(FSource, startPos + 1, FPos - startPos - 2), shDefault, TCssSyntaxHighlighter.CategoryEmbeddedCSS);
-          AddToken(FSource[FPos - 1], shSymbol); // Closing quote
+            AddSourceToken(FSource, startPos + 1, FPos - startPos - 2, shDefault, TCssSyntaxHighlighter.CategoryEmbeddedCSS);
+          AddSourceToken(FSource, FPos - 1, 1, shSymbol); // Closing quote
           end
         else
-          AddToken(Copy(FSource, startPos, FPos - startPos), shStrings);
+          AddSourceToken(FSource, startPos, FPos - startPos, shStrings);
       end;
       end;
     // A character that starts no attribute, such as < or ", is a token of its own
     if FPos = attrStart then
       begin
-      AddToken(FSource[FPos], shDefault);
+      AddSourceToken(FSource, FPos, 1, shDefault);
       Inc(FPos);
       end;
     end;
@@ -333,7 +333,7 @@ begin
   if FPos > nameStart then
     begin
     nameEnd := FPos - 1;
-    AddToken(Copy(FSource, nameStart, nameEnd - nameStart + 1), shKeyword);
+    AddSourceToken(FSource, nameStart, nameEnd - nameStart + 1, shKeyword);
     end;
   ProcessWhiteSpace;
 
@@ -369,7 +369,7 @@ begin
     end;
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shComment, CategoryHTMLComment);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shComment, CategoryHTMLComment);
 end;
 
 
@@ -385,7 +385,7 @@ begin
   if (FPos <= FSourceLen) and (FSource[FPos] = '>') then
     Inc(FPos);
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shDirective);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shDirective);
   FState := hsText;
 end;
 
@@ -410,7 +410,7 @@ begin
     end;
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shRawString);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shRawString);
 end;
 
 
@@ -506,7 +506,7 @@ begin
     Inc(FPos);
 
   endPos := FPos - 1;
-  AddToken(Copy(FSource, startPos, endPos - startPos + 1), shEscape);
+  AddSourceToken(FSource, startPos, endPos - startPos + 1, shEscape);
 end;
 
 
