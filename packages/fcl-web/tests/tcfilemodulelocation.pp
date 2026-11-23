@@ -37,6 +37,13 @@ type
     procedure TestTraversalWithScriptName;
     procedure TestServeOutsideExeDirWithoutScriptName;
     procedure TestServeOutsideExeDirWithScriptName;
+    procedure TestEncodedNameServed;
+    procedure TestEncodedDotsRefused;
+    procedure TestEncodedSlashRefused;
+    procedure TestDoubleEncodedDotsStayLiteral;
+    procedure TestDoubleEncodedSlashStayLiteral;
+    procedure TestDoubleEncodedDotsStayLiteralWithScriptName;
+    procedure TestEncodedDotsRefusedWithScriptName;
   end;
 
 implementation
@@ -182,6 +189,62 @@ procedure TTestFileModuleLocation.TestServeOutsideExeDirWithScriptName;
 begin
   AssertEquals('File in a location outside the executable directory is served under a script name', 200,
     Serve(cOutsideLocation,cScriptName,'inside.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestEncodedNameServed;
+
+begin
+  AssertEquals('Percent-encoded file name is decoded and served', 200,
+    Serve(cLocation,'','in%73ide.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestEncodedDotsRefused;
+
+begin
+  AssertEquals('Encoded dots, as in a CGI PATH_INFO the web server decoded once, are refused', 403,
+    Serve(cLocation,'','%2e%2e/secret.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestEncodedSlashRefused;
+
+begin
+  AssertEquals('Percent-encoded slash after dots is refused', 403,
+    Serve(cLocation,'','..%2fsecret.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestDoubleEncodedDotsStayLiteral;
+
+begin
+  AssertEquals('Dots encoded twice are decoded once and looked up as a literal name inside the location', 404,
+    Serve(cLocation,'','%252e%252e/secret.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestDoubleEncodedSlashStayLiteral;
+
+begin
+  AssertEquals('Dots and slash encoded twice are decoded once and looked up as a literal name', 404,
+    Serve(cLocation,'','%252e%252e%252fsecret.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestDoubleEncodedDotsStayLiteralWithScriptName;
+
+begin
+  AssertEquals('Dots encoded twice stay a literal name under a script name', 404,
+    Serve(cLocation,cScriptName,'%252e%252e/secret.txt'));
+end;
+
+
+procedure TTestFileModuleLocation.TestEncodedDotsRefusedWithScriptName;
+
+begin
+  AssertEquals('Encoded dots, as in a CGI PATH_INFO the web server decoded once, are refused under a script name', 403,
+    Serve(cLocation,cScriptName,'%2e%2e/secret.txt'));
 end;
 
 initialization
