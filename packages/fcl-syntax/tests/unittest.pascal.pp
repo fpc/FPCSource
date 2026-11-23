@@ -97,9 +97,24 @@ type
     procedure TestSymbols;
     procedure TestDirectives;
     procedure TestIdentifiers;
+    procedure TestAsmComment;
+    procedure TestAsmEndSourceText;
+    procedure TestAsmEndInIdentifier;
   end;
 
 implementation
+
+// Concatenated text of aTokens
+function JoinTokens(const aTokens: TSyntaxTokenArray): string;
+
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to High(aTokens) do
+    Result := Result + aTokens[I].Text;
+end;
+
 
 procedure TTestPascalHighlighter.SetUp;
 begin
@@ -825,6 +840,53 @@ begin
   AssertEquals('Should have 1 token', 1, Length(tokens));
   AssertEquals('Token should be identifier', 'MyVariable', tokens[0].Text);
   AssertEquals('Token should be default type', Ord(shDefault), Ord(tokens[0].Kind));
+end;
+
+procedure TTestPascalHighlighter.TestAsmComment;
+const
+  Source = 'asm'#10'  mov eax, 1 { one }'#10'  (* two *) nop // three'#10'end;';
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting(Source);
+  AssertEquals('Tokens recompose the source', Source, JoinTokens(tokens));
+  AssertEquals('Token count', 10, Length(tokens));
+  AssertEquals('Asm text before first comment', #10'  mov eax, 1 ', tokens[1].Text);
+  AssertEquals('Asm text before first comment is assembler', Ord(shAssembler), Ord(tokens[1].Kind));
+  AssertEquals('First comment', '{ one }', tokens[2].Text);
+  AssertEquals('First comment is comment', Ord(shComment), Ord(tokens[2].Kind));
+  AssertEquals('Second comment', '(* two *)', tokens[4].Text);
+  AssertEquals('Second comment is comment', Ord(shComment), Ord(tokens[4].Kind));
+  AssertEquals('Asm text between comments', ' nop ', tokens[5].Text);
+  AssertEquals('Third comment', '// three', tokens[6].Text);
+  AssertEquals('Third comment is comment', Ord(shComment), Ord(tokens[6].Kind));
+  AssertEquals('End keyword', 'end', tokens[8].Text);
+  AssertEquals('End keyword is keyword', Ord(shKeyword), Ord(tokens[8].Kind));
+end;
+
+procedure TTestPascalHighlighter.TestAsmEndSourceText;
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting('asm nop End;');
+  AssertEquals('Tokens recompose the source', 'asm nop End;', JoinTokens(tokens));
+  AssertEquals('Token count', 4, Length(tokens));
+  AssertEquals('End keyword keeps the source text', 'End', tokens[2].Text);
+  AssertEquals('End keyword is keyword', Ord(shKeyword), Ord(tokens[2].Kind));
+end;
+
+procedure TTestPascalHighlighter.TestAsmEndInIdentifier;
+const
+  Source = 'asm'#10'  mov eax, endval'#10'end;';
+var
+  tokens: TSyntaxTokenArray;
+begin
+  tokens := DoPascalHighlighting(Source);
+  AssertEquals('Tokens recompose the source', Source, JoinTokens(tokens));
+  AssertEquals('Token count', 4, Length(tokens));
+  AssertEquals('Identifier starting with end stays assembler', #10'  mov eax, endval'#10, tokens[1].Text);
+  AssertEquals('Asm text is assembler', Ord(shAssembler), Ord(tokens[1].Kind));
+  AssertEquals('End keyword', 'end', tokens[2].Text);
 end;
 
 initialization

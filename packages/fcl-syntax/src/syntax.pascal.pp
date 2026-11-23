@@ -34,6 +34,10 @@ type
   private
     FSource: string;
     FPos: integer;
+    // True if a comment starts at FPos
+    function IsCommentStart: boolean;
+    // True if the word END, in any case, starts at FPos
+    function IsAsmEnd: boolean;
   protected
     procedure CheckCategories;
     procedure ProcessComment1(var endPos: integer; akind : TSyntaxHighlightKind);
@@ -160,6 +164,26 @@ begin
     Result := False;
 end;
 
+function TPascalSyntaxHighlighter.IsCommentStart: boolean;
+
+begin
+  Result := (FPos <= Length(FSource))
+            and ((FSource[FPos] = '{')
+                 or ((FPos < Length(FSource)) and (FSource[FPos] = '(') and (FSource[FPos + 1] = '*'))
+                 or ((FPos < Length(FSource)) and (FSource[FPos] = '/') and (FSource[FPos + 1] = '/')));
+end;
+
+
+function TPascalSyntaxHighlighter.IsAsmEnd: boolean;
+
+begin
+  Result := (FPos + 2 <= Length(FSource))
+            and (UpCase(FSource[FPos]) = 'E') and (UpCase(FSource[FPos + 1]) = 'N')
+            and (UpCase(FSource[FPos + 2]) = 'D')
+            and ((FPos + 3 > Length(FSource)) or not (FSource[FPos + 3] in ['0'..'9', 'A'..'Z', 'a'..'z', '_']));
+end;
+
+
 procedure TPascalSyntaxHighlighter.ProcessAsm(var endPos: integer);
 var
   startPos: integer;
@@ -169,32 +193,32 @@ begin
   lastChar := ' ';
   while FPos <= Length(FSource) do
     begin
-    if (lastChar in [' ', #9, #10, #13]) and
-      (FPos + 2 <= Length(FSource)) and
-      (UpCase(FSource[FPos]) = 'E') and (UpCase(FSource[FPos + 1]) = 'N') and
-      (UpCase(FSource[FPos + 2]) = 'D') then
+    if (lastChar in [' ', #9, #10, #13]) and IsAsmEnd then
       begin
-      endPos := FPos - 1;
-      if endPos >= startPos then
-        AddToken(Copy(FSource, startPos, endPos - startPos + 1), shAssembler);
-      AddToken('END', shKeyword);
+      if FPos > startPos then
+        AddToken(Copy(FSource, startPos, FPos - startPos), shAssembler);
+      AddToken(Copy(FSource, FPos, 3), shKeyword);
       Inc(FPos, 3);
+      endPos := FPos - 1;
       Exit;
+      end;
+    if IsCommentStart then
+      begin
+      if FPos > startPos then
+        AddToken(Copy(FSource, startPos, FPos - startPos), shAssembler);
+      CheckForComment(endPos);
+      startPos := FPos;
+      lastChar := ' ';
       end
     else
       begin
-      if CheckForComment(endPos) then
-        lastChar := ' '
-      else
-        begin
-        lastChar := FSource[FPos];
-        Inc(FPos);
-        end;
+      lastChar := FSource[FPos];
+      Inc(FPos);
       end;
     end;
   endPos := FPos - 1;
-  if endPos >= startPos then
-    AddToken(Copy(FSource, startPos, endPos - startPos + 1), shAssembler);
+  if FPos > startPos then
+    AddToken(Copy(FSource, startPos, FPos - startPos), shAssembler);
 end;
 
 function TPascalSyntaxHighlighter.CheckForKeyword(var endPos: integer): boolean;

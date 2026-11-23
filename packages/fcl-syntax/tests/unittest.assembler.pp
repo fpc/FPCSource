@@ -59,7 +59,7 @@ begin
   AssertTrue('Should have at least 2 tokens', Length(tokens) >= 2);
   AssertEquals('First token should be ASM', 'asm', tokens[0].Text);
   AssertEquals('First token should be keyword', Ord(shKeyword), Ord(tokens[0].Kind));
-  AssertEquals('Last token should be END', 'END', tokens[High(tokens)].Text);
+  AssertEquals('Last token should be end as written in the source', 'end',tokens[High(tokens)].Text);
   AssertEquals('Last token should be keyword', Ord(shKeyword), Ord(tokens[High(tokens)].Kind));
 end;
 
@@ -89,7 +89,7 @@ begin
   AssertTrue('Should contain assembler tokens', foundAsmToken);
 
   // Last token should be END keyword
-  AssertEquals('Last token should be END', 'END', tokens[High(tokens)].Text);
+  AssertEquals('Last token should be end as written in the source', 'end',tokens[High(tokens)].Text);
   AssertEquals('Last token should be keyword', Ord(shKeyword), Ord(tokens[High(tokens)].Kind));
 end;
 
@@ -189,7 +189,7 @@ begin
   AssertTrue('Should contain assembler tokens in multiline', foundAsmToken);
 
   // Last token should be END keyword
-  AssertEquals('Last token should be END', 'END', tokens[High(tokens)].Text);
+  AssertEquals('Last token should be end as written in the source', 'end',tokens[High(tokens)].Text);
   AssertEquals('Last token should be keyword', Ord(shKeyword), Ord(tokens[High(tokens)].Kind));
 end;
 
@@ -209,7 +209,7 @@ begin
   AssertEquals('Second token should be assembler', Ord(shAssembler), Ord(tokens[1].Kind));
 
   // Last token should be END keyword
-  AssertEquals('Last token should be END', 'END', tokens[High(tokens)].Text);
+  AssertEquals('Last token should be end as written in the source', 'end',tokens[High(tokens)].Text);
   AssertEquals('Last token should be keyword', Ord(shKeyword), Ord(tokens[High(tokens)].Kind));
 end;
 

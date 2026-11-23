@@ -32,6 +32,11 @@ type
   published
     procedure TestPercentLiteral;
     procedure TestHeredoc;
+    procedure TestPlainHeredoc;
+    procedure TestDashHeredoc;
+    procedure TestAppendOperator;
+    procedure TestShiftByNumber;
+    procedure TestUnterminatedHeredoc;
   end;
 
 implementation
@@ -56,6 +61,44 @@ procedure TTestRubyHighlighter.TestHeredoc;
 
 begin
   AssertRole('ruby', '<<~TEXT' + #10 + 'def #' + #10 + 'TEXT', 'def', shStrings);
+end;
+
+
+procedure TTestRubyHighlighter.TestPlainHeredoc;
+
+begin
+  AssertRole('ruby', 'x = <<TEXT' + #10 + 'def #' + #10 + 'TEXT' + #10 + 'def f', 'def', shStrings);
+  AssertRole('ruby', 'x = <<TEXT' + #10 + 'def #' + #10 + 'TEXT' + #10 + 'def f', 'def', shKeyword, 2);
+end;
+
+
+procedure TTestRubyHighlighter.TestDashHeredoc;
+
+begin
+  AssertRole('ruby', 'x = <<-TEXT' + #10 + 'def #' + #10 + '  TEXT' + #10 + 'def f', 'def', shStrings);
+  AssertRole('ruby', 'x = <<-TEXT' + #10 + 'def #' + #10 + '  TEXT' + #10 + 'def f', 'def', shKeyword, 2);
+end;
+
+
+procedure TTestRubyHighlighter.TestAppendOperator;
+
+begin
+  AssertRole('ruby', 'a = b << c' + #10 + 'def f', 'def', shKeyword);
+end;
+
+
+procedure TTestRubyHighlighter.TestShiftByNumber;
+
+begin
+  AssertRole('ruby', 'a = 1 << 4' + #10 + 'def f', 'def', shKeyword);
+  AssertRole('ruby', 'a = 1 <<4' + #10 + 'def f', 'def', shKeyword);
+end;
+
+
+procedure TTestRubyHighlighter.TestUnterminatedHeredoc;
+
+begin
+  AssertRole('ruby', 'list <<item' + #10 + 'def f', 'def', shKeyword);
 end;
 
 initialization

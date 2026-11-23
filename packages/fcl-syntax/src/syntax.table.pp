@@ -494,6 +494,7 @@ var
   lOpening, lClosing, lTag: string;
   lQuote: char;
   lKind: TSyntaxHighlightKind;
+  lSpaced, lFound: boolean;
 begin
   Result := False;
   lFirst := FCursor;
@@ -680,8 +681,10 @@ begin
       Inc(lPos);
     if (lPos <= FLimit) and (FText[lPos] in ['-', '~']) then
       Inc(lPos);
+    lTagStart := lPos;
     while (lPos <= FLimit) and (FText[lPos] in [' ', #9]) do
       Inc(lPos);
+    lSpaced := lPos > lTagStart;
     lQuote := #0;
     if (lPos <= FLimit) and (FText[lPos] in ['"', '''']) then
       begin
@@ -689,14 +692,17 @@ begin
       Inc(lPos);
       end;
     lTagStart := lPos;
-    while (lPos <= FLimit) and (FText[lPos] in ['A'..'Z', 'a'..'z', '0'..'9', '_']) do
-      Inc(lPos);
+    if (lPos <= FLimit) and (FText[lPos] in ['A'..'Z', 'a'..'z', '_']) then
+      while (lPos <= FLimit) and (FText[lPos] in ['A'..'Z', 'a'..'z', '0'..'9', '_']) do
+        Inc(lPos);
     lTag := Copy(FText, lTagStart, lPos - lTagStart);
-    if (lTag <> '') and ((lQuote = #0) or ((lPos <= FLimit) and (FText[lPos] = lQuote))) then
+    if (lTag <> '') and ((lQuote = #0) or ((lPos <= FLimit) and (FText[lPos] = lQuote)))
+       and not (lSpaced and (lQuote = #0) and (FDescription.Flavor <> lfPhp)) then
       begin
       FCursor := lPos;
       LineEnd;
-      while FCursor <= FLimit do
+      lFound := False;
+      while not lFound and (FCursor <= FLimit) do
         begin
         if At(#13#10) then
           Inc(FCursor, 2)
@@ -705,13 +711,19 @@ begin
         lLineStart := FCursor;
         while (FCursor <= FLimit) and (Ch in [' ', #9]) do
           Inc(FCursor);
-        if At(lTag) and not (Ch(Length(lTag)) in FDescription.IdentifierRest) then
+        lFound := At(lTag) and not (Ch(Length(lTag)) in FDescription.IdentifierRest);
+        if lFound then
+          Inc(FCursor, Length(lTag))
+        else
           begin
-          Inc(FCursor, Length(lTag));
-          Break;
+          FCursor := lLineStart;
+          LineEnd;
           end;
-        FCursor := lLineStart;
-        LineEnd;
+        end;
+      if not lFound then
+        begin
+        FCursor := lFirst;
+        Exit(False);
         end;
       Emit(lFirst, shStrings);
       Exit(True);
