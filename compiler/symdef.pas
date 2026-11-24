@@ -1672,6 +1672,30 @@ implementation
       end;
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr;const st_realname:TSymStr):TSymStr;
+
+      procedure ConcatenateNames(const left, join:TSymStr; var right:TSymStr);
+        const
+          HASH_LEN=12+2; // incl $H
+        var
+          hash : qword;
+        begin
+         if length(right)>(maxidlen-length(left)-length(join)) then
+           begin
+             hash:=InitFnv64;
+             hash:=UpdateFnv64(hash,right[1],length(right));
+             if length(left)>(maxidlen-HASH_LEN-length(join)) then
+               begin
+                 hash:=UpdateFnv64(hash,join[1],length(join));
+                 hash:=UpdateFnv64(hash,left[1],length(left));
+                 right:='$H'+Base64Mangle(hash);
+               end
+             else
+               right:=left+join+'$H'+Base64Mangle(hash);
+           end
+         else
+           right:=left+join+right;
+        end;
+
       var
         s,
         prefix,
@@ -1718,13 +1742,7 @@ implementation
                owner_name:=st_realname
              else
                owner_name:=tabstractrecorddef(st.defowner).objname^;
-             if length(prefix)>(maxidlen-length(owner_name)-3) then
-               begin
-                 hash:=InitFnv64;
-                 hash:=UpdateFnv64(hash,prefix[1],length(prefix));
-                 prefix:='$H'+Base64Mangle(hash);
-               end;
-             prefix:=owner_name+'_$_'+prefix;
+             ConcatenateNames(owner_name,'_$_',prefix);
              st:=st.defowner.owner;
              done_realname:=true;
            end;
@@ -1761,13 +1779,36 @@ implementation
           owner_name:=st.name^;
         if (TSymtable(main_module.localsymtable)=st) and
            (not main_module.is_unit) then
-          result:=result+'P$'+owner_name
-        else
-          result:=result+owner_name;
+          result:=result+'P$';
         if prefix<>'' then
-          result:=result+'$_$'+prefix;
+          begin
+             ConcatenateNames(owner_name,'$_$',prefix);
+             Result := Result + prefix;
+          end
+        else
+          Result := Result + owner_name;
+
         if suffix<>'' then
-          result:=result+'_$$_'+suffix;
+          begin
+            { off $ifndef symansistr}
+            if Length(Result)+Length(suffix)+4>maxidlen-1 then
+              begin
+               hash:=InitFnv64;
+               hash:=UpdateFnv64(hash,Result[1],length(Result));
+               prefix:='_$$_';
+               hash:=UpdateFnv64(hash,prefix[1],length(prefix));
+               hash:=UpdateFnv64(hash,suffix[1],length(suffix));
+               if Length(Result)>=maxidlen-4-(high(Base64OfUint64String)-low(Base64OfUint64String)+1)-2 then
+                 result:=copy(result,1,maxidlen-(high(Base64OfUint64String)-low(Base64OfUint64String)+1)-2)+'$H'+Base64Mangle(hash)
+               else
+                 result:=result+'_$$_'
+                   +copy(suffix,1,maxidlen-Length(Result)-4-(high(Base64OfUint64String)-low(Base64OfUint64String)+1)-2)
+                   +'$H'+Base64Mangle(hash);
+              end;
+            { off $endif}
+
+              result:=result+'_$$_'+suffix;
+          end;
         if length(result)>(maxidlen-1) then
           begin
             hash:=InitFnv64;
