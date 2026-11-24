@@ -202,6 +202,8 @@ Var
 
 begin
   Result:=[];
+  if aJSON='' then
+    exit;
   D:=GetJSON(aJSON);
   try
     if D=Nil then exit;
