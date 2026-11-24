@@ -104,6 +104,8 @@ function BuilderToMarkdown(aBuilder : TMarkdownStringBuilder) : TMarkdownString;
 function IsWhitespaceChar(aChar: TMarkdownChar): boolean;
 // Does S consist of only whitespace characters ?
 function IsWhitespace(const S: TMarkdownString): boolean;
+// Is aChar a whitespace character ? Same result as IsWhitespace of a one-character string.
+function IsWhitespace(aChar: TMarkdownChar): boolean;
 // must character aChar be escaped ?
 function MustEscape(C : TMarkdownChar) : boolean;
 // Are all characters in S identical ?
@@ -687,6 +689,12 @@ begin
   for C in s do
     if not isWhitespaceChar(C) then
       exit(false);
+end;
+
+function IsWhitespace(aChar: TMarkdownChar): boolean;
+
+begin
+  Result:=aChar in [#9,#10,#32];
 end;
 
 function MustEscape(C : TMarkdownChar) : boolean;

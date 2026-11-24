@@ -106,6 +106,7 @@ Type
     function  HandleEntityInner: TMarkdownString; virtual;
     procedure HandleTilde; virtual;
     procedure HandleTextEscape; virtual;
+    // Handle the text at the scanner position. A run of letters, digits and non-ASCII bytes is handled in one call.
     procedure HandleTextCore; virtual;
     procedure HandleAutoLink; virtual;
     // <!-- ... --> at the scanner position. Returns False when there is no closing -->.
@@ -122,6 +123,8 @@ Type
     procedure ProcessNested(aNode: TMarkdownTextNode; const aText: TMarkdownString; aPos: TPosition); virtual;
     procedure HandleCloseDelimiter(); virtual;
     procedure HandleGFMExtensions; virtual;
+    // Length of the run of letters, digits and non-ASCII bytes at the scanner position, up to a GFM autolink or email start.
+    function PlainRunLength : Integer;
     procedure HandleGFMLinkEmail(aLength: integer); virtual;
     procedure HandleGFMLinkURL(aStartChars : integer; const aProtocol : TMarkdownString = ''); virtual;
     // True when an active [ or ![ delimiter is open, so the text may be link text
@@ -395,7 +398,7 @@ begin
   Scanner.NextChars(lLen);
   lWhitespace:=false;
   lFirstWhitespace:=true;
-  while Scanner.PeekRun(True)<>aTerminal do
+  while not Scanner.PeekRunEquals(True,aTerminal) do
     begin
     C:=Scanner.Peek;
     if isWhitespaceChar(C) then
@@ -1099,6 +1102,9 @@ end;
 
 procedure TInlineTextProcessor.HandleTextCore;
 
+var
+  lCount : Integer;
+
 begin
   // code blocks leave whitespace intact
   if WhiteSpaceMode=wsLeave then
@@ -1136,12 +1142,64 @@ begin
              and not (Directives and HandleDirective) then
             Nodes.addText(Scanner.location,Scanner.NextChar);
   else
-    if GFMExtensions then
+    begin
+    lCount:=PlainRunLength;
+    if lCount>1 then
+      Nodes.addText(Scanner.location,Scanner.NextChars(lCount))
+    else if GFMExtensions then
       HandleGFMExtensions
     else
       Nodes.addText(Scanner.location,Scanner.NextChar);
+    end;
   end;
   //  DumpNodes;
+end;
+
+
+function TInlineTextProcessor.PlainRunLength : Integer;
+
+const
+  cBatch = ['A'..'Z','a'..'z','0'..'9',#128..#255];
+  cEMailChars = ['a'..'z','A'..'Z','0'..'9','+','-','_','@','.'];
+
+var
+  lText : TMarkdownString;
+  lStart,lPos,lLen,lScan : Integer;
+  c : TMarkdownChar;
+
+  function At(const aPrefix : TMarkdownString) : Boolean;
+  begin
+    Result:=(lPos+Length(aPrefix)-1<=lLen) and (CompareByte(lText[lPos],aPrefix[1],Length(aPrefix))=0);
+  end;
+
+begin
+  lText:=Scanner.Text;
+  lLen:=Length(lText);
+  lStart:=Scanner.CursorPos;
+  lPos:=lStart;
+  // lScan: end of the email-character run already known to contain no @
+  lScan:=lPos;
+  while lPos<=lLen do
+    begin
+    c:=lText[lPos];
+    if not (c in cBatch) then
+      Break;
+    if GFMExtensions then
+      begin
+      if (lPos>=lScan) and (c in cEmailChars) then
+        begin
+        lScan:=lPos;
+        while (lScan<=lLen) and (lText[lScan] in cEmailChars) and (lText[lScan]<>'@') do
+          Inc(lScan);
+        if (lScan<=lLen) and (lText[lScan]='@') then
+          Break;
+        end;
+      if (c in ['w','h','f']) and (At('www.') or At('http://') or At('https://') or At('ftp://')) then
+        Break;
+      end;
+    Inc(lPos);
+    end;
+  Result:=lPos-lStart;
 end;
 
 
@@ -1178,6 +1236,11 @@ var
 
 begin
   Result:=False;
+  lLen:=Scanner.CursorPos;
+  while (lLen<=Length(Scanner.Text)) and (Scanner.Text[lLen] in cEmailChars) and (Scanner.Text[lLen]<>'@') do
+    Inc(lLen);
+  if (lLen>Length(Scanner.Text)) or (Scanner.Text[lLen]<>'@') then
+    Exit;
   S:=Scanner.PeekWhile(cEmailChars);
   lLen:=Length(S);
   if lLen=0 then exit;

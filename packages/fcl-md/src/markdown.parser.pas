@@ -502,6 +502,30 @@ begin
     aList.Add(ent.e,UnicodeToMarkdown(ent.u));
 end;
 
+var
+  GlobalEntities : TFPStringHashTable = Nil;
+
+// Process-wide entity table, built on first use; concurrent first callers race with a compare-and-swap.
+function SharedEntities : TFPStringHashTable;
+
+var
+  lEnt : THTMLEntityDef;
+  lNew : TFPStringHashTable;
+
+begin
+  Result:=TFPStringHashTable(InterlockedCompareExchange(Pointer(GlobalEntities),Nil,Nil));
+  if Result<>Nil then
+    Exit;
+  lNew:=TFPStringHashTable.Create;
+  for lEnt in EntityDefList do
+    lNew.Add(lEnt.e,UnicodeToMarkdown(lEnt.u));
+  Result:=TFPStringHashTable(InterlockedCompareExchange(Pointer(GlobalEntities),Pointer(lNew),Nil));
+  if Result=Nil then
+    Result:=lNew
+  else
+    lNew.Free;
+end;
+
 
 constructor TMarkdownParser.Create(aOwner : TComponent);
 
@@ -511,15 +535,13 @@ begin
   FBuilder:=TMarkdownStringBuilder.Create;
   FProcessorStack:=TStack.Create;
   FLines:=TMarkdownLineList.create(true);
-  FEntities:=TFPStringHashTable.create;
-  CollectEntities(FEntities);
+  FEntities:=SharedEntities;
 end;
 
 
 destructor TMarkdownParser.Destroy;
 
 begin
-  FreeAndNil(FEntities);
   FreeAndNil(FProcessorStack);
   FreeAndNil(FBuilder);
   FreeAndNil(FLines);
@@ -783,9 +805,7 @@ begin
     lBlock:=aParent.blocks.Last as TMarkdownTextBlock
   else
     lBlock:=TMarkdownTextBlock.create(aParent,FCurrentLine,'');
-  if lBlock.Text<>'' then
-    lBlock.Text:=lBlock.Text+#10;
-  lBlock.Text:=lBlock.Text+aLine;
+  lBlock.AppendText(aLine);
 end;
 
 
@@ -1142,4 +1162,6 @@ begin
 end;
 
 
+finalization
+  FreeAndNil(GlobalEntities);
 end.

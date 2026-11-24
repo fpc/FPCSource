@@ -68,6 +68,10 @@ type
     procedure TestEmphasisAndStrongInOneSplit2;
     procedure TestStrikethroughGFM;
     procedure TestAutoLinks;
+    procedure TestGFMEmailAfterWord;
+    procedure TestGFMAtWithoutDomainIsText;
+    procedure TestGFMUrlAfterLetters;
+    procedure TestGFMPlainRunNonAscii;
     procedure TestInlineLink;
     procedure TestInlineImage;
     procedure TestUnmatchedBrackets;
@@ -394,6 +398,49 @@ begin
   AssertEquals('Autolink text content', 'https://www.example.com', Node.NodeText);
 
   AssertEquals('Text after', '.', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMEmailAfterWord;
+begin
+  SetupProcessor('Mail me.you@example.com now');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Text, email link, text', 3, FNodes.Count);
+  AssertEquals('Text before the email stops at the space', 'Mail ', NodeAsText(0).NodeText);
+  AssertEquals('Email link starts at the first letter of the address', 'me.you@example.com', FNodes[1].NodeText);
+  AssertEquals('Email link href', 'mailto:me.you@example.com', FNodes[1].Attrs['href']);
+  AssertEquals('Text after the email', ' now', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMAtWithoutDomainIsText;
+begin
+  SetupProcessor('Mail x@y now');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('An @ without a dotted domain is plain text', 1, FNodes.Count);
+  AssertEquals('Text is unchanged', 'Mail x@y now', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMUrlAfterLetters;
+begin
+  SetupProcessor('Seewww.example.com or abchttps://example.com/x');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Text, link, text, link', 4, FNodes.Count);
+  AssertEquals('Letters before www. stay text', 'See', NodeAsText(0).NodeText);
+  AssertEquals('www. link text', 'www.example.com', FNodes[1].NodeText);
+  AssertEquals('www. link href', 'http://www.example.com', FNodes[1].Attrs['href']);
+  AssertEquals('Letters before https:// stay text', ' or abc', NodeAsText(2).NodeText);
+  AssertEquals('https:// link href', 'https://example.com/x', FNodes[3].Attrs['href']);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMPlainRunNonAscii;
+begin
+  SetupProcessor(UnicodeToMarkdown('word1 naïve2 end'));
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Letters, digits and UTF-8 form one text node', 1, FNodes.Count);
+  AssertEquals('Text is unchanged', UnicodeToMarkdown('word1 naïve2 end'), NodeAsText(0).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.TestInlineLink;

@@ -116,6 +116,8 @@ Type
   public
     // When the last block is active, add to that block. Otherwise, create a new text node
     function AddText(aPos: TPosition; const aContent: TMarkdownString): TMarkdownTextNode;
+    // Append a single character to the last active text node, or to a new one.
+    function AddText(aPos: TPosition; aChar: TMarkdownChar): TMarkdownTextNode;
     function AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: TMarkdownString; aDoClose: Boolean=True): TMarkdownTextNode; // always make a new node, and make it inactive
     procedure RemoveAfter(node : TMarkdownTextNode);
     function LastNode : TMarkdownTextNode;
@@ -414,6 +416,8 @@ Type
   public
     constructor Create(aParent : TMarkdownBlock; aLine : integer; const aText : TMarkdownString); reintroduce;
     destructor Destroy; override;
+    // Append aLine to the text, separated from existing text by a line feed.
+    procedure AppendText(const aLine : TMarkdownString);
     property Text : TMarkdownString read FText write FText;
     property Nodes : TMarkdownTextNodeList Read FNodes Write FNodes;
   end;
@@ -773,6 +777,25 @@ begin
   else
     Result:=lNode;
   Result.addText(aContent);
+end;
+
+function TMarkdownTextNodeList.AddText(aPos: TPosition; aChar: TMarkdownChar): TMarkdownTextNode;
+
+var
+  lNode : TMarkdownTextNode;
+
+begin
+  lNode:=Nil;
+  if (Count>0) then
+    lNode:=Elements[Count-1];
+  if (lNode=Nil) or not lNode.Active then
+    begin
+    Result:=TMarkdownTextNode.Create(aPos,nkText);
+    add(Result);
+    end
+  else
+    Result:=lNode;
+  Result.addText(aChar);
 end;
 
 function TMarkdownTextNodeList.AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: TMarkdownString; aDoClose: Boolean
@@ -1209,6 +1232,16 @@ begin
   inherited;
 end;
 
+procedure TMarkdownTextBlock.AppendText(const aLine : TMarkdownString);
+
+begin
+  if FText='' then
+    FText:=aLine
+  else
+    FText:=FText+#10+aLine;
+end;
+
+
 { TMarkdownTableBlock }
 
 destructor TMarkdownTableBlock.Destroy;
@@ -1257,9 +1290,9 @@ constructor TMarkdownDocument.Create(aParent: TMarkdownBlock; aLine: Integer);
 
 begin
   inherited Create(aParent, aLine);
-  FAnchors:=TFPObjectHashTable.Create(False);
-  FFootnoteDefs:=TFPObjectHashTable.Create(False);
-  FLinkRefs:=TFPObjectHashTable.Create(True);
+  FAnchors:=TFPObjectHashTable.CreateWith(1031,@RSHash,False);
+  FFootnoteDefs:=TFPObjectHashTable.CreateWith(1031,@RSHash,False);
+  FLinkRefs:=TFPObjectHashTable.CreateWith(1031,@RSHash,True);
   FMarkers:=TMarkdownMarkerList.Create(True);
   FFootnotes:=TMarkdownBlockList.Create(False);
 end;
