@@ -505,6 +505,7 @@ Type
   protected
     function CountAutoIncRows: Integer;
     procedure DirectSelectAutoInc(aID: Integer; out aName: String);
+    procedure GenerateName(aInstance: TObject; aField: TOPFieldMap; aConnection: TObject);
   protected
     procedure CreateAutoIncTable; virtual; abstract;
     procedure SetUp; override;
@@ -514,6 +515,8 @@ Type
     procedure TestAutoIncInsertMultipleRows;
     procedure TestAutoIncInsertPreservesOtherFields;
     procedure TestAutoIncUpdateIgnoresAutoInc;
+    procedure TestAutoIncRunsCustomGenerator;
+    procedure TestAutoIncGeneratesUUID;
   end;
 
   { TTestUUIDCommon }
@@ -2008,6 +2011,43 @@ begin
     DirectSelectAutoInc(1, SelName);
     AssertEquals('Name updated', 'Updated', SelName);
     AssertEquals('ID unchanged', 1, Obj.ID);
+  finally Obj.Free; end;
+end;
+
+procedure TTestAutoIncCommon.GenerateName(aInstance: TObject; aField: TOPFieldMap; aConnection: TObject);
+begin
+  SetStrProp(aInstance, aField.PropertyName, 'Generated');
+end;
+
+procedure TTestAutoIncCommon.TestAutoIncRunsCustomGenerator;
+var Obj: TTestAutoIncContact; Field: TOPFieldMap; SelName: String;
+begin
+  Field:=OPRegistry.FindPersister(TTestAutoIncContact).FieldMap.FindByPropertyName('Name');
+  Field.OnGenerateValue:=@GenerateName;
+  Obj:=TTestAutoIncContact.Create;
+  try
+    Obj.FState:=opsNew;
+    OPManager.Save(Obj);
+    AssertEquals('Generator ran next to the auto-increment key', 'Generated', Obj.Name);
+    AssertTrue('Auto-increment ID populated', Obj.ID > 0);
+    DirectSelectAutoInc(Obj.ID, SelName);
+    AssertEquals('Generated value inserted', 'Generated', SelName);
+  finally Obj.Free; end;
+end;
+
+procedure TTestAutoIncCommon.TestAutoIncGeneratesUUID;
+var Obj: TTestAutoIncContact; Field: TOPFieldMap; SelName: String;
+begin
+  Field:=OPRegistry.FindPersister(TTestAutoIncContact).FieldMap.FindByPropertyName('Name');
+  Field.Options:=Field.Options+[foUUID];
+  Obj:=TTestAutoIncContact.Create;
+  try
+    Obj.FState:=opsNew;
+    OPManager.Save(Obj);
+    AssertEquals('UUID generated next to the auto-increment key', 36, Length(Obj.Name));
+    AssertTrue('Auto-increment ID populated', Obj.ID > 0);
+    DirectSelectAutoInc(Obj.ID, SelName);
+    AssertEquals('UUID inserted', Obj.Name, SelName);
   finally Obj.Free; end;
 end;
 

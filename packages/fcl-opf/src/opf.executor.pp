@@ -69,6 +69,13 @@ Type
     procedure DoExecuteSQL(aInstance: TObject; aPersister: TOPPersister;
       aFieldMap: TOPFieldMapList; const aSQL: UTF8String;
       aConnection: TSQLConnection; aBuilder: TOPSQLBuilder);
+  Protected
+    { Fills in the UUIDs, sequence values and custom generated values of a new
+      object, for all fields except auto-increment fields. aMethod names the
+      operation in error messages. }
+    procedure GenerateValues(const aMethod: string; aInstance: TObject;
+      aFieldMap: TOPFieldMapList; aConnection: TSQLConnection;
+      aBuilder: TOPSQLBuilder); virtual;
   Public
     // Frees the shared executor instance when the program ends
     Class Destructor Cleanup;
@@ -619,6 +626,16 @@ end;
 procedure TOPExecutor.ExecuteSQLWithGeneration(aInstance: TObject; aPersister: TOPPersister;
   aFieldMap: TOPFieldMapList; const aSQL: UTF8String;
   aConnection: TSQLConnection; aBuilder: TOPSQLBuilder);
+begin
+  ValidateExecArgs('ExecuteSQLWithGeneration', aInstance, aPersister, aFieldMap, aSQL, aConnection);
+  if aBuilder=Nil then
+    aBuilder:=OPSQLBuilder;
+  GenerateValues('ExecuteSQLWithGeneration', aInstance, aFieldMap, aConnection, aBuilder);
+  DoExecuteSQL(aInstance, aPersister, aFieldMap, aSQL, aConnection, aBuilder);
+end;
+
+procedure TOPExecutor.GenerateValues(const aMethod: string; aInstance: TObject;
+  aFieldMap: TOPFieldMapList; aConnection: TSQLConnection; aBuilder: TOPSQLBuilder);
 var
   I: Integer;
   Field: TOPFieldMap;
@@ -629,17 +646,16 @@ var
   SeqQuery: TSQLQuery;
   SeqVal: Int64;
 begin
-  ValidateExecArgs('ExecuteSQLWithGeneration', aInstance, aPersister, aFieldMap, aSQL, aConnection);
-  if aBuilder=Nil then
-    aBuilder:=OPSQLBuilder;
   // UUID generation: set values on object before INSERT
   for I:=0 to aFieldMap.Count-1 do
   begin
     Field:=aFieldMap[I];
+    if foAutoInc in Field.Options then
+      Continue;
     if (foUUID in Field.Options) and (GetStrProp(aInstance, Field.PropertyName) = '') then
     begin
       if CreateGUID(GUID) <> 0 then
-        RaiseError('ExecuteSQLWithGeneration', SErrExecutorUUIDGenFailed, [Field.FieldName, aInstance.ClassName]);
+        RaiseError(aMethod, SErrExecutorUUIDGenFailed, [Field.FieldName, aInstance.ClassName]);
       UUIDStr:=GUIDToString(GUID);
       UUIDStr:=Copy(UUIDStr, 2, Length(UUIDStr) - 2);
       if FUpperCaseUUID then
@@ -654,11 +670,12 @@ begin
   begin
     Field:=aFieldMap[I];
     // A key the application already set is kept
-    if (Field.SequenceName <> '') and not HasKeyValue(aInstance, Field) then
+    if (Field.SequenceName <> '') and not (foAutoInc in Field.Options)
+       and not HasKeyValue(aInstance, Field) then
     begin
       SeqSQL:=aBuilder.GetSequenceNextValSQL(Field.SequenceName);
       if SeqSQL = '' then
-        RaiseError('ExecuteSQLWithGeneration', SErrExecutorSequenceNotSupported,
+        RaiseError(aMethod, SErrExecutorSequenceNotSupported,
           [aBuilder.SQLDialect.ToString]);
       SeqQuery:=TSQLQuery.Create(Nil);
       try
@@ -669,11 +686,11 @@ begin
           SeqQuery.Open;
         except
           on E: EDatabaseError do
-            RaiseDBError('ExecuteSQLWithGeneration', SErrExecutorSequenceRetrieval,
+            RaiseDBError(aMethod, SErrExecutorSequenceRetrieval,
               [Field.SequenceName, aInstance.ClassName, E.Message], E);
         end;
         if SeqQuery.EOF then
-          RaiseError('ExecuteSQLWithGeneration', SErrExecutorSequenceRetrieval,
+          RaiseError(aMethod, SErrExecutorSequenceRetrieval,
             [Field.SequenceName, aInstance.ClassName, 'query returned no rows']);
         SeqVal:=SeqQuery.Fields[0].AsLargeInt;
         SeqQuery.Close;
@@ -686,10 +703,10 @@ begin
             // Out of range values would be truncated
             TD:=GetTypeData(GetPropInfo(aInstance, Field.PropertyName)^.PropType);
             if (TD^.OrdType=otULong) and ((SeqVal<0) or (SeqVal>High(Cardinal))) then
-              RaiseError('ExecuteSQLWithGeneration', SErrExecutorSequenceRetrieval,
+              RaiseError(aMethod, SErrExecutorSequenceRetrieval,
                 [Field.SequenceName, aInstance.ClassName, Format(SErrSequenceOutOfRange, [SeqVal])])
             else if (TD^.OrdType<>otULong) and ((SeqVal<TD^.MinValue) or (SeqVal>TD^.MaxValue)) then
-              RaiseError('ExecuteSQLWithGeneration', SErrExecutorSequenceRetrieval,
+              RaiseError(aMethod, SErrExecutorSequenceRetrieval,
                 [Field.SequenceName, aInstance.ClassName, Format(SErrSequenceOutOfRange, [SeqVal])]);
             SetOrdProp(aInstance, Field.PropertyName, SeqVal);
           end;
@@ -700,7 +717,7 @@ begin
         tkSString, tkAString, tkWString, tkUString:
           SetStrProp(aInstance, Field.PropertyName, IntToStr(SeqVal));
       else
-        RaiseError('ExecuteSQLWithGeneration', SErrExecutorSequenceRetrieval,
+        RaiseError(aMethod, SErrExecutorSequenceRetrieval,
           [Field.SequenceName, aInstance.ClassName, 'unsupported property type for sequence value']);
       end;
     end;
@@ -709,20 +726,18 @@ begin
   for I:=0 to aFieldMap.Count-1 do
   begin
     Field:=aFieldMap[I];
-    if Assigned(Field.OnGenerateValue) then
+    if Assigned(Field.OnGenerateValue) and not (foAutoInc in Field.Options) then
     begin
       try
         Field.OnGenerateValue(aInstance, Field, aConnection);
       except
         on E: Exception do
           // Keep the error code and SQL state of a database error
-          RaiseDBError('ExecuteSQLWithGeneration', SErrExecutorCustomGenFailed,
+          RaiseDBError(aMethod, SErrExecutorCustomGenFailed,
             [Field.FieldName, aInstance.ClassName, E.Message], E);
       end;
     end;
   end;
-  // Delegate to standard ExecuteSQL for the actual INSERT
-  DoExecuteSQL(aInstance, aPersister, aFieldMap, aSQL, aConnection, aBuilder);
 end;
 
 procedure TOPExecutor.ExecuteSQLAutoInc(aInstance: TObject; aPersister: TOPPersister;
@@ -748,6 +763,7 @@ begin
   ValidateExecArgs('ExecuteSQLAutoInc', aInstance, aPersister, aFieldMap, aSQL, aConnection);
   if aBuilder=Nil then
     aBuilder:=OPSQLBuilder;
+  GenerateValues('ExecuteSQLAutoInc', aInstance, aFieldMap, aConnection, aBuilder);
   Mode:=aBuilder.Driver.AutoIncRetrieval;
   // RETURNING, or (SQL Server) a SELECT in the same batch: both give a result set
   HasReturning:=aBuilder.SupportsReturningClause or (Mode=airSameBatch);
