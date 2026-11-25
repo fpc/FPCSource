@@ -1824,7 +1824,7 @@ begin
   liCache.Put(lCacheAddr, func, source, line);
   Unlock(LiCacheLock);
 {$endif has_LineInfoCache}
-  LookupLineInfo:=true;
+  LookupLineInfo:=(func <> '') or (source <> '') or (line <> 0);
 end;
 
 
