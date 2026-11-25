@@ -93,6 +93,7 @@ type
     procedure TestCommentWritesNothing;
     procedure TestEmptyLinkWritesTarget;
     procedure TestDirectivesWriteContent;
+    procedure TestCodeBlockVerbatimNotEscaped;
   end;
 
 implementation
@@ -468,6 +469,17 @@ begin
   CheckContains('Environment defined','\newenvironment{mdalert}',S);
   CheckContains('Environment used','\begin{mdalert}{note}{Note}',S);
   CheckContains('Environment closed','\end{mdalert}',S);
+end;
+
+
+procedure TTestLaTeXRenderExtensions.TestCodeBlockVerbatimNotEscaped;
+
+var
+  S : TMarkdownString;
+begin
+  S:=Render('```'#10'x < y & z_1 % {a}'#10'```'#10#10'    if a > b then'#10);
+  CheckContains('Fenced code verbatim','\begin{verbatim}'+sLineBreak+'x < y & z_1 % {a}'+sLineBreak+'\end{verbatim}',S);
+  CheckContains('Indented code verbatim','\begin{verbatim}'+sLineBreak+'if a > b then'+sLineBreak+'\end{verbatim}',S);
 end;
 
 

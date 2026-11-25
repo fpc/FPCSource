@@ -18,7 +18,7 @@ uses
   markdown.htmlrender, markdown.inlinetext, markdown.line, markdown.parser, markdown.render, markdown.scanner,
   markdown.utils, utest.markdown.scanner, utest.markdown.inlinetext, utest.markdown.htmlrender, utest.markdown.parser,
   utest.markdown.fpdocrender,markdown.latexrender,utest.markdown.latexrender,markdown.processors,
-  markdown.transforms, utest.markdown.pdfrender, utest.markdown.ansirender;
+  markdown.transforms, utest.markdown.pdfrender, utest.markdown.ansirender, utest.markdown.codehighlight;
 
 begin
   DefaultRunAllTests:=True;

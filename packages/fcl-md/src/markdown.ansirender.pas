@@ -27,7 +27,8 @@ uses
 {$ENDIF}
   Markdown.Elements,
   Markdown.Render,
-  Markdown.Utils;
+  Markdown.Utils,
+  Markdown.CodeHighlight;
 
 type
   // Style flags collected for a text run.
@@ -63,9 +64,12 @@ type
     FMarkerVis : Integer;
     // inherited inline style (set by heading/quote block renderers)
     FBaseStyle : TRunStyle;
-    FInListItem : Boolean; 
+    FInListItem : Boolean;
+    FCodeTokenStyles : Array[TMarkdownCodeTokenKind] of TRunStyle;
     procedure StartLine;
     procedure PlaceStyled(const aVisible, aStyled : TMarkdownString);
+    function GetCodeTokenStyle(aKind : TMarkdownCodeTokenKind): TRunStyle;
+    procedure SetCodeTokenStyle(aKind : TMarkdownCodeTokenKind; const aValue: TRunStyle);
   public
     constructor Create(aOwner : TComponent); override;
     destructor Destroy; override;
@@ -95,6 +99,8 @@ type
     // Theme/state accessed by block renderers
     property BaseStyle : TRunStyle read FBaseStyle write FBaseStyle;
     property InListItem : Boolean read FInListItem write FInListItem;
+    // Style of the tokens of kind aKind in highlighted code blocks.
+    property CodeTokenStyles[aKind : TMarkdownCodeTokenKind] : TRunStyle read GetCodeTokenStyle write SetCodeTokenStyle;
     property Output : TStrings read FOutput;
     // Result of the parameterless RenderDocument
     property Lines : TStringList read FResult;
@@ -124,6 +130,22 @@ const
   clBullet  = 4;  // blue
   clQuote   = 2;  // green
   clRule    = 8;  // bright black / grey
+
+  CodeTokenColors : Array[TMarkdownCodeTokenKind] of Integer = (
+    clCodeBlk, // ctkDefault
+    12,        // ctkKeyword: bright blue
+    8,         // ctkComment: grey
+    13,        // ctkDirective: bright magenta
+    14,        // ctkNumber: bright cyan
+    11,        // ctkString: bright yellow
+    5,         // ctkEscape: magenta
+    7,         // ctkSymbol: light grey
+    7,         // ctkOperator: light grey
+    6,         // ctkAttribute: cyan
+    4,         // ctkKey: blue
+    12,        // ctkSection: bright blue
+    9          // ctkError: bright red
+  );
 
 type
   { Block renderers }
@@ -261,6 +283,8 @@ end;
 { TMarkDownANSIRenderer }
 
 constructor TMarkDownANSIRenderer.Create(aOwner : TComponent);
+var
+  lKind : TMarkdownCodeTokenKind;
 begin
   inherited Create(aOwner);
   FWidth:=80;
@@ -268,6 +292,25 @@ begin
   FHyperlinks:=True;
   FResult:=TStringList.Create;
   FBaseStyle:=DefaultStyle;
+  for lKind in TMarkdownCodeTokenKind do
+    begin
+    FCodeTokenStyles[lKind]:=DefaultStyle;
+    FCodeTokenStyles[lKind].Fg:=CodeTokenColors[lKind];
+    end;
+  FCodeTokenStyles[ctkKeyword].Bold:=True;
+  FCodeTokenStyles[ctkComment].Italic:=True;
+end;
+
+
+function TMarkDownANSIRenderer.GetCodeTokenStyle(aKind : TMarkdownCodeTokenKind): TRunStyle;
+begin
+  Result:=FCodeTokenStyles[aKind];
+end;
+
+
+procedure TMarkDownANSIRenderer.SetCodeTokenStyle(aKind : TMarkdownCodeTokenKind; const aValue: TRunStyle);
+begin
+  FCodeTokenStyles[aKind]:=aValue;
 end;
 
 
@@ -821,21 +864,35 @@ var
   lChild : TMarkdownBlock;
   lLine : TMarkdownString;
   lStyle : TRunStyle;
+  lTokens : TMarkdownCodeTokenArray;
+  lTokenLine : TMarkdownCodeTokenArray;
+  lToken : TMarkdownCodeToken;
 begin
   ANSI.BlankLine;
   ANSI.PushPrefix(4,Spaces(4));
-  lStyle:=ANSI.DefaultStyle;
-  lStyle.Fg:=clCodeBlk;
-  for i:=0 to aBlock.ChildCount-1 do
+  if ANSI.HighlightCodeBlock(aBlock as TMarkdownCodeBlock,lTokens) then
+    // verbatim: no wrapping, also not between tokens
+    for lTokenLine in SplitCodeTokenLines(lTokens) do
+      begin
+      for lToken in lTokenLine do
+        ANSI.AddRaw(lToken.Text,ANSI.StyleText(lToken.Text,ANSI.CodeTokenStyles[lToken.Kind]));
+      ANSI.NewLine;
+      end
+  else
     begin
-    lChild:=aBlock.Children[i];
-    lLine:='';
-    if lChild is TMarkdownTextBlock then
-      for j:=0 to TMarkdownTextBlock(lChild).Nodes.Count-1 do
-        lLine:=lLine+TMarkdownTextBlock(lChild).Nodes[j].NodeText;
-    // verbatim: no wrapping, no entity resolution, exact whitespace
-    ANSI.AddRun(lLine,lStyle,False);
-    ANSI.NewLine;
+    lStyle:=ANSI.DefaultStyle;
+    lStyle.Fg:=clCodeBlk;
+    for i:=0 to aBlock.ChildCount-1 do
+      begin
+      lChild:=aBlock.Children[i];
+      lLine:='';
+      if lChild is TMarkdownTextBlock then
+        for j:=0 to TMarkdownTextBlock(lChild).Nodes.Count-1 do
+          lLine:=lLine+TMarkdownTextBlock(lChild).Nodes[j].NodeText;
+      // verbatim: no wrapping, no entity resolution, exact whitespace
+      ANSI.AddRun(lLine,lStyle,False);
+      ANSI.NewLine;
+      end;
     end;
   ANSI.PopPrefix;
   ANSI.BlankLine;

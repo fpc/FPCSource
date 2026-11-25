@@ -138,6 +138,7 @@ begin
       AddUnit('markdown.elements');
       AddUnit('markdown.utils');
       AddUnit('markdown.render');
+      AddUnit('markdown.codehighlight');
       end;
 
     T:=P.Targets.AddUnit('markdown.fpdocrender.pas');
@@ -154,6 +155,7 @@ begin
       AddUnit('markdown.elements');
       AddUnit('markdown.htmlentities');
       AddUnit('markdown.render');
+      AddUnit('markdown.codehighlight');
       end;
 
     T:=P.Targets.AddUnit('markdown.ansirender.pas',P.OSes-NoAnsiOSes);
@@ -162,6 +164,7 @@ begin
       AddUnit('markdown.elements');
       AddUnit('markdown.htmlentities');
       AddUnit('markdown.render');
+      AddUnit('markdown.codehighlight');
       end;
 
     P.ExamplePath.Add('demo');

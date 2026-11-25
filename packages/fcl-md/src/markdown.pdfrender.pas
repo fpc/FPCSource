@@ -25,10 +25,10 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils, System.Classes, System.Contnrs, System.Types,MarkDown.Elements, 
-  MarkDown.Render, Markdown.Utils, fpimage, FpPdf.Pdf, FpPdf.Ttf;
+  MarkDown.Render, Markdown.Utils, Markdown.CodeHighlight, fpimage, FpPdf.Pdf, FpPdf.Ttf;
 {$ELSE}
   SysUtils, Classes, Contnrs, Types, MarkDown.Elements, MarkDown.Render, Markdown.Utils,
-  fpimage, fppdf, fpttf;
+  Markdown.CodeHighlight, fpimage, fppdf, fpttf;
 {$ENDIF}
 
 const
@@ -198,6 +198,7 @@ type
     FFallbackFont: TFPFontCacheItem; // cached font used for glyphs the main font lacks
     FOnGetImage: TMarkdownImageEvent;
     FLists : TLayoutLists;
+    FCodeTokenColors : Array[TMarkdownCodeTokenKind] of TARGBColor;
 
     FLineWidth: TPDFFloat;
     FLayout : TLayoutData;
@@ -297,6 +298,8 @@ type
     Procedure Undent(aSize : integer);
     procedure IncBulletLevel;
     Procedure DecBulletLevel;
+    function GetCodeTokenColor(aKind : TMarkdownCodeTokenKind): TARGBColor;
+    procedure SetCodeTokenColor(aKind : TMarkdownCodeTokenKind; aValue: TARGBColor);
     function GetBullet : TMarkdownString;
     function GetBulletAt(aLevel : integer) : TMarkdownString;
     function CreateLayoutItem(aKind : TLayoutItemKind; aX,aY : TPDFFloat) : TLayoutItem; inline;
@@ -314,6 +317,10 @@ type
     function HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: TMarkdownString): boolean;
     // Record the current page and position as the destination of aID
     procedure AddDestination(const aID : TMarkdownString);
+    // Write aText of a highlighted code block on the current line, in the colour for aKind.
+    procedure LayoutCodeToken(const aText : TMarkdownString; aKind : TMarkdownCodeTokenKind; const aContext : TFontContext); virtual;
+    // Make the current line at least aHeight high.
+    procedure EnsureLineHeight(aHeight : TPDFFloat);
 
     // Properties
     Property Document : TMarkdownDocument Read FDocument;
@@ -328,6 +335,8 @@ type
     property FontHyperLinkColor: TARGBColor read FHyperLinkColor write FHyperLinkColor;
     property BGCodeColor: TARGBColor read FBGCodeColor write FBGCodeColor;
     property FontCodeColor: TARGBColor read FFontCodeColor write FFontCodeColor;
+    // Colour of the tokens of kind aKind in highlighted code blocks; clNone for the colour of unhighlighted code.
+    property CodeTokenColors[aKind : TMarkdownCodeTokenKind]: TARGBColor read GetCodeTokenColor write SetCodeTokenColor;
     property BGMarkColor: TARGBColor read FBGMarkColor write FBGMarkColor;
     property FontMarkColor: TARGBColor read FFontMarkColor write FFontMarkColor;
 
@@ -997,6 +1006,10 @@ var
   i, lPad, lLineHeight: Integer;
   lStartX, lStartY: TPDFFloat;
   lBG: TLayoutItem;
+  lTokens : TMarkdownCodeTokenArray;
+  lLine : TMarkdownCodeTokenArray;
+  lToken : TMarkdownCodeToken;
+  lContext : TFontContext;
 begin
   if not assigned(aBlock) or (aBlock.ChildCount=0) then
     exit;
@@ -1014,13 +1027,28 @@ begin
   // Inset the code by the padding (top and left)
   SetCurrentY(lStartY + lPad);
   Indent(lPad);
-  // Each child text block is one code line; the monospace/code context is picked up
-  // from this renderer by the text block renderer's parent walk.
-  for i := 0 to aBlock.ChildCount-1 do
+  if Renderer.HighlightCodeBlock(aBlock as TMarkdownCodeBlock,lTokens) then
     begin
-    Renderer.RenderBlock(aBlock.Children[i]);
-    NewLine;
-    end;
+    lContext:=[fcMono,fcFencedCode];
+    if GetFirstParentWithClass(TPDFMarkDownQuoteBlockRenderer)<>Nil then
+      Include(lContext,fcQuote);
+    for lLine in SplitCodeTokenLines(lTokens) do
+      begin
+      for lToken in lLine do
+        PDFRenderer.LayoutCodeToken(lToken.Text,lToken.Kind,lContext);
+      PDFRenderer.EnsureLineHeight(lLineHeight);
+      NewLine;
+      end;
+    end
+  else
+    // Each child text block is one code line; the monospace/code context is picked up
+    // from this renderer by the text block renderer's parent walk.
+    for i := 0 to aBlock.ChildCount-1 do
+      begin
+      Renderer.RenderBlock(aBlock.Children[i]);
+      PDFRenderer.EnsureLineHeight(lLineHeight);
+      NewLine;
+      end;
   Undent(lPad);
   ParagraphBreak;
 end;
@@ -1596,6 +1624,19 @@ begin
   fFonTARGBColor:=clWindowText;
   // A muted green-grey for quoted text (clWindowFrame is black in this unit)
   fFontQuoteColor:=RGBToColor(106,153,85);
+  FCodeTokenColors[ctkDefault]:=clNone;
+  FCodeTokenColors[ctkKeyword]:=RGBToColor(0,0,153);
+  FCodeTokenColors[ctkComment]:=RGBToColor(102,102,102);
+  FCodeTokenColors[ctkDirective]:=RGBToColor(128,0,128);
+  FCodeTokenColors[ctkNumber]:=RGBToColor(0,102,102);
+  FCodeTokenColors[ctkString]:=RGBToColor(153,26,0);
+  FCodeTokenColors[ctkEscape]:=RGBToColor(153,77,0);
+  FCodeTokenColors[ctkSymbol]:=clNone;
+  FCodeTokenColors[ctkOperator]:=clNone;
+  FCodeTokenColors[ctkAttribute]:=RGBToColor(0,102,153);
+  FCodeTokenColors[ctkKey]:=RGBToColor(0,0,153);
+  FCodeTokenColors[ctkSection]:=RGBToColor(0,0,153);
+  FCodeTokenColors[ctkError]:=RGBToColor(204,0,0);
 
   fBaseFontSize:=10;
   FLayout.BaselineShiftCurrent:=0;
@@ -2188,6 +2229,44 @@ procedure TMarkDownPDFRenderer.AddDestination(const aID: TMarkdownString);
 begin
   if (aID<>'') and (FDestinations.IndexOf(MarkdownToString(aID))<0) then
     FDestinations.AddObject(MarkdownToString(aID),TPDFDestination.Create(FLayout.CurrentPageIndex,FLayout.LineY));
+end;
+
+
+function TMarkDownPDFRenderer.GetCodeTokenColor(aKind: TMarkdownCodeTokenKind): TARGBColor;
+
+begin
+  Result:=FCodeTokenColors[aKind];
+end;
+
+
+procedure TMarkDownPDFRenderer.SetCodeTokenColor(aKind: TMarkdownCodeTokenKind; aValue: TARGBColor);
+
+begin
+  FCodeTokenColors[aKind]:=aValue;
+end;
+
+
+procedure TMarkDownPDFRenderer.LayoutCodeToken(const aText: TMarkdownString; aKind: TMarkdownCodeTokenKind; const aContext: TFontContext);
+
+var
+  I, lFirst : Integer;
+  lColor : TARGBColor;
+
+begin
+  lFirst:=FLists.Items.Count;
+  FlushTextRun(aText,BaseFontSize,[],'',aContext,False);
+  lColor:=FCodeTokenColors[aKind];
+  if lColor<>clNone then
+    for I:=lFirst to FLists.Items.Count-1 do
+      FLists.Items[I].Color:=lColor;
+end;
+
+
+procedure TMarkDownPDFRenderer.EnsureLineHeight(aHeight: TPDFFloat);
+
+begin
+  if FLayout.LineHeight<aHeight then
+    FLayout.LineHeight:=aHeight;
 end;
 
 
