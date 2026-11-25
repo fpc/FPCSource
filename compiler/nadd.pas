@@ -1747,10 +1747,10 @@ const
                         result:=taddnode(left).left.getcopy;
                         exit;
                       end
-                    else if (v>=torddef(resultdef).low) and
+                    else if (resultdef.typ=orddef) and (v>=torddef(resultdef).low) and
                       (v<=torddef(resultdef).high) then
                       begin
-                        result:=caddnode.create(addn,taddnode(left).left.getcopy,cordconstnode.create(v,resultdef,false)); getcopy;
+                        result:=caddnode.create(addn,taddnode(left).left.getcopy,cordconstnode.create(v,resultdef,false));
                         exit;
                       end;
                   end;
