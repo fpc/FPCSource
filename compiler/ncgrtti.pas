@@ -49,7 +49,9 @@ interface
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
+        procedure prop_params_write_rtti(sym:tpropertysym;rt:trttitype);
         procedure published_write_rtti(def : tobjectdef;rt:trttitype);
+        procedure record_extended_write_rtti(def:trecorddef;rt:trttitype);
         procedure properties_write_rtti_data(tcb:ttai_typedconstbuilder;propnamelist:TFPHashObjectList;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
@@ -960,9 +962,27 @@ implementation
       end;
 
 
+    procedure TRTTIWriter.prop_params_write_rtti(sym:tpropertysym;rt:trttitype);
+      var
+        i : longint;
+        para : tparavarsym;
+      begin
+        if not assigned(sym.parast) then
+          exit;
+        for i:=0 to sym.parast.SymList.Count-1 do
+          begin
+            para:=tparavarsym(sym.parast.SymList[i]);
+            if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
+              write_rtti(tarraydef(para.vardef).elementdef,rt)
+            else if para.vardef<>cformaltype then
+              write_rtti(para.vardef,rt);
+          end;
+      end;
+
+
     procedure TRTTIWriter.published_write_rtti(def : tobjectdef;rt:trttitype);
       var
-        i   : longint;
+        i : longint;
         st : tsymtable;
         sym : tsym;
       begin
@@ -974,13 +994,56 @@ implementation
               begin
                 case tsym(sym).typ of
                   propertysym:
-                    write_rtti(tpropertysym(sym).propdef,rt);
+                    begin
+                      write_rtti(tpropertysym(sym).propdef,rt);
+                      { the extended data of an indexed property refers to the
+                        types of its index parameters }
+                      if (def.objecttype in [odt_class,odt_helper]) and
+                         def.is_visible_for_rtti(ro_properties,sym.visibility) then
+                        prop_params_write_rtti(tpropertysym(sym),rt);
+                    end;
                   fieldvarsym:
                     write_rtti(tfieldvarsym(sym).vardef,rt);
                   else
                     ;
                 end;
               end;
+          end;
+      end;
+
+
+    procedure TRTTIWriter.record_extended_write_rtti(def:trecorddef;rt:trttitype);
+      var
+        i,j : longint;
+        sym : tsym;
+        pdef : tprocdef;
+      begin
+        { the types the extended method and property tables of a record refer to }
+        for i:=0 to def.symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(def.symtable.SymList[i]);
+            case sym.typ of
+              propertysym:
+                if def.is_visible_for_rtti(ro_properties,sym.visibility) then
+                  begin
+                    write_rtti(tpropertysym(sym).propdef,rt);
+                    prop_params_write_rtti(tpropertysym(sym),rt);
+                  end;
+              procsym:
+                for j:=0 to tprocsym(sym).procdeflist.Count-1 do
+                  begin
+                    pdef:=tprocdef(tprocsym(sym).procdeflist[j]);
+                    if not pdef.is_generic and
+                       def.is_visible_for_rtti(ro_methods,pdef.visibility) then
+                      begin
+                        if not is_void(pdef.returndef) then
+                          write_rtti(pdef.returndef,rt);
+                        params_write_rtti(pdef,rt,true);
+                      end;
+                  end;
+              else
+                ;
+            end;
           end;
       end;
 
@@ -2641,11 +2704,18 @@ implementation
                   write_rtti(def, initrtti);
                 end;
               fields_write_rtti(trecorddef(def).symtable,rt);
+              { a bitpacked record's type information has no extended tables }
+              if (rt=fullrtti) and not trecorddef(def).is_packed then
+                record_extended_write_rtti(trecorddef(def),rt);
             end;
           objectdef :
             begin
               if assigned(tobjectdef(def).childof) then
                 write_rtti(tobjectdef(def).childof,rt);
+              { a helper's type information refers to the type it extends }
+              if (rt=fullrtti) and is_objectpascal_helper(def) and
+                 assigned(tobjectdef(def).extendeddef) then
+                write_rtti(tobjectdef(def).extendeddef,rt);
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
                 fields_write_rtti(tobjectdef(def).symtable,rt)
               else
@@ -2670,7 +2740,12 @@ implementation
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
           procvardef:
-            params_write_rtti(tabstractprocdef(def),rt,false);
+            begin
+              { the type information refers to the result type as well }
+              if not is_void(tprocvardef(def).returndef) then
+                write_rtti(tprocvardef(def).returndef,rt);
+              params_write_rtti(tabstractprocdef(def),rt,false);
+            end;
           else
             ;
         end;
@@ -2715,6 +2790,11 @@ implementation
         rttidef: tdef;
         s: TIDString;
       begin
+        { a distinct alias of a class or interface uses its original's type
+          information (tobjectdef.rtti_mangledname) }
+        while (def.typ=objectdef) and tobjectdef(def).is_unique_objpasdef do
+          def:=tobjectdef(def).childof;
+
         { Objective-C has its own RTTI system }
         if is_objc_class_or_protocol(def) then
           exit;
