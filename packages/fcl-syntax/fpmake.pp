@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('fcl-md');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -256,6 +257,54 @@ begin
       AddUnit('syntax.highlighter');
       AddUnit('syntax.table');
       end;
+    T:=P.Targets.AddUnit('syntax.all.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('syntax.ada');
+      AddUnit('syntax.assembly');
+      AddUnit('syntax.barye');
+      AddUnit('syntax.basic');
+      AddUnit('syntax.bash');
+      AddUnit('syntax.batch');
+      AddUnit('syntax.c');
+      AddUnit('syntax.cpp');
+      AddUnit('syntax.csharp');
+      AddUnit('syntax.css');
+      AddUnit('syntax.d');
+      AddUnit('syntax.diff');
+      AddUnit('syntax.dockerfile');
+      AddUnit('syntax.fortran');
+      AddUnit('syntax.go');
+      AddUnit('syntax.html');
+      AddUnit('syntax.ini');
+      AddUnit('syntax.java');
+      AddUnit('syntax.javascript');
+      AddUnit('syntax.json');
+      AddUnit('syntax.kotlin');
+      AddUnit('syntax.lfm');
+      AddUnit('syntax.lua');
+      AddUnit('syntax.makefile');
+      AddUnit('syntax.markdown');
+      AddUnit('syntax.modula2');
+      AddUnit('syntax.oberon');
+      AddUnit('syntax.pascal');
+      AddUnit('syntax.perl');
+      AddUnit('syntax.php');
+      AddUnit('syntax.powershell');
+      AddUnit('syntax.python');
+      AddUnit('syntax.rst');
+      AddUnit('syntax.ruby');
+      AddUnit('syntax.rust');
+      AddUnit('syntax.sql');
+      AddUnit('syntax.swift');
+      AddUnit('syntax.toml');
+      AddUnit('syntax.typescript');
+      AddUnit('syntax.xml');
+      AddUnit('syntax.yaml');
+      AddUnit('syntax.zig');
+      end;
+    T:=P.Targets.AddUnit('syntax.mdhighlighter.pp');
+    T.Dependencies.AddUnit('syntax.highlighter');
 
 {$ifndef ALLPACKAGES}
     Run;

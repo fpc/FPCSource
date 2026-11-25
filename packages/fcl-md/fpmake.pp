@@ -109,11 +109,18 @@ begin
       end;
 
 
+    T:=P.Targets.AddUnit('markdown.codehighlight.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('markdown.utils');
+      end;
+
     T:=P.Targets.AddUnit('markdown.render.pas');
     with T.Dependencies do
       begin
       AddUnit('markdown.elements');
       AddUnit('markdown.utils');
+      AddUnit('markdown.codehighlight');
       end;
 
     T:=P.Targets.AddUnit('markdown.htmlrender.pas');
@@ -122,6 +129,7 @@ begin
       AddUnit('markdown.elements');
       AddUnit('markdown.utils');
       AddUnit('markdown.render');
+      AddUnit('markdown.codehighlight');
       end;
 
     T:=P.Targets.AddUnit('markdown.latexrender.pas');
