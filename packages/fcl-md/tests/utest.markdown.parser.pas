@@ -154,6 +154,12 @@ type
     procedure TestNestedOrderedItemsBlankBetween;
     procedure TestNestedItemBlankThenOuterText;
     procedure TestQuotedNestedItemBlankThenText;
+    // Ordered lists nest to any depth.
+    procedure TestOrderedThreeLevels;
+    procedure TestOrderedFourLevels;
+    procedure TestMixedThreeLevels;
+    procedure TestQuotedOrderedThreeLevels;
+    procedure TestNestedOrderedItemIndentedCode;
     // Blocks starting inside an indented item are recognised and lose that indentation.
     procedure TestItemHeading;
     procedure TestItemQuote;
@@ -1390,6 +1396,87 @@ begin
   lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
   AssertEquals('Nested item has 2 paragraphs',2,lInner.Blocks[0].ChildCount);
   AssertEquals('Second paragraph of nested item','c',lInner.Blocks[0].Children[1].PlainText);
+end;
+
+
+procedure TTestLists.TestOrderedThreeLevels;
+
+var
+  lList : TMarkDownListBlock;
+
+begin
+  SetupParser('1. a'#10'   1. b'#10'      1. c'#10'2. e');
+  lList:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Top list has 2 items',2,lList.Blocks.Count);
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Second level has 1 item',1,lList.Blocks.Count);
+  AssertEquals('Second level item has text and nested list',2,lList.Blocks[0].ChildCount);
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertTrue('Third level is ordered',lList.Ordered);
+  AssertEquals('Third level item text','c',lList.Blocks[0].PlainText);
+end;
+
+
+procedure TTestLists.TestOrderedFourLevels;
+
+var
+  lList : TMarkDownListBlock;
+  I : Integer;
+
+begin
+  SetupParser('1. a'#10'   1. b'#10'      1. c'#10'         1. d'#10'2. e');
+  lList:=FDoc.Blocks[0] as TMarkDownListBlock;
+  for I:=1 to 3 do
+    begin
+    AssertEquals(Format('Item at level %d has text and nested list',[I]),2,lList.Blocks[0].ChildCount);
+    lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+    end;
+  AssertEquals('Fourth level item text','d',lList.Blocks[0].PlainText);
+end;
+
+
+procedure TTestLists.TestMixedThreeLevels;
+
+var
+  lList : TMarkDownListBlock;
+
+begin
+  SetupParser('1. a'#10'   - b'#10'     1. c'#10'2. d');
+  lList:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Top list has 2 items',2,lList.Blocks.Count);
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertFalse('Second level is a bullet list',lList.Ordered);
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertTrue('Third level is ordered',lList.Ordered);
+  AssertEquals('Third level item text','c',lList.Blocks[0].PlainText);
+end;
+
+
+procedure TTestLists.TestQuotedOrderedThreeLevels;
+
+var
+  lList : TMarkDownListBlock;
+
+begin
+  SetupParser('> 1. a'#10'>    1. b'#10'>       1. c');
+  lList:=(FDoc.Blocks[0] as TMarkDownQuoteBlock).Blocks[0] as TMarkDownListBlock;
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Second level item has text and nested list',2,lList.Blocks[0].ChildCount);
+  lList:=lList.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Third level item text','c',lList.Blocks[0].PlainText);
+end;
+
+
+procedure TTestLists.TestNestedOrderedItemIndentedCode;
+
+var
+  lList : TMarkDownListBlock;
+
+begin
+  SetupParser('1. a'#10'   1. b'#10#10'          code');
+  lList:=(FDoc.Blocks[0] as TMarkDownListBlock).Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested item has text and code',2,lList.Blocks[0].ChildCount);
+  AssertTrue('Second block of nested item is code',lList.Blocks[0].Children[1] is TMarkDownCodeBlock);
 end;
 
 
