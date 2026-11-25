@@ -147,6 +147,13 @@ type
     procedure TestNestedListsLoose;
     procedure TestQuotedListLoose;
     procedure TestQuotedListTight;
+    // A blank line inside a nested item does not end it when the next line continues it.
+    procedure TestNestedItemBlankThenText;
+    procedure TestNestedOrderedItemBlankThenText;
+    procedure TestNestedItemsBlankBetween;
+    procedure TestNestedOrderedItemsBlankBetween;
+    procedure TestNestedItemBlankThenOuterText;
+    procedure TestQuotedNestedItemBlankThenText;
     // Blocks starting inside an indented item are recognised and lose that indentation.
     procedure TestItemHeading;
     procedure TestItemQuote;
@@ -1292,6 +1299,97 @@ begin
   SetupParser('> - a'#10'> - b'#10'>'#10'> after');
   lQuote:=FDoc.Blocks[0] as TMarkDownQuoteBlock;
   AssertFalse('A blank quote line after the last item keeps the quoted list tight',(lQuote.Blocks[0] as TMarkDownListBlock).Loose);
+end;
+
+
+procedure TTestLists.TestNestedItemBlankThenText;
+
+var
+  lOuter,lInner : TMarkDownListBlock;
+
+begin
+  SetupParser('- a'#10'  - b'#10#10'    c'#10'- d');
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Outer list has 2 items',2,lOuter.Blocks.Count);
+  AssertEquals('First outer item has text and nested list',2,lOuter.Blocks[0].ChildCount);
+  lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested item has 2 paragraphs',2,lInner.Blocks[0].ChildCount);
+  AssertEquals('Second paragraph of nested item','c',lInner.Blocks[0].Children[1].PlainText);
+  AssertFalse('Outer list is tight',lOuter.Loose);
+  AssertTrue('Nested list is loose',lInner.Loose);
+end;
+
+
+procedure TTestLists.TestNestedOrderedItemBlankThenText;
+
+var
+  lOuter,lInner : TMarkDownListBlock;
+
+begin
+  SetupParser('1. a'#10'   1. b'#10#10'      c'#10'2. d');
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Outer list has 2 items',2,lOuter.Blocks.Count);
+  AssertEquals('First outer item has text and nested list',2,lOuter.Blocks[0].ChildCount);
+  lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested item has 2 paragraphs',2,lInner.Blocks[0].ChildCount);
+  AssertEquals('Second paragraph of nested item','c',lInner.Blocks[0].Children[1].PlainText);
+end;
+
+
+procedure TTestLists.TestNestedItemsBlankBetween;
+
+var
+  lOuter,lInner : TMarkDownListBlock;
+
+begin
+  SetupParser('- a'#10'  - b'#10#10'  - c');
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('First outer item has text and one nested list',2,lOuter.Blocks[0].ChildCount);
+  lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested list has 2 items',2,lInner.Blocks.Count);
+  AssertTrue('Nested list is loose',lInner.Loose);
+end;
+
+
+procedure TTestLists.TestNestedOrderedItemsBlankBetween;
+
+var
+  lOuter,lInner : TMarkDownListBlock;
+
+begin
+  SetupParser('1. a'#10'   1. b'#10#10'   2. c');
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('First outer item has text and one nested list',2,lOuter.Blocks[0].ChildCount);
+  lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested list has 2 items',2,lInner.Blocks.Count);
+end;
+
+
+procedure TTestLists.TestNestedItemBlankThenOuterText;
+
+var
+  lOuter : TMarkDownListBlock;
+
+begin
+  SetupParser('- a'#10'  - b'#10#10'  c');
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Outer item has text, nested list and paragraph',3,lOuter.Blocks[0].ChildCount);
+  AssertEquals('Paragraph of outer item','c',lOuter.Blocks[0].Children[2].PlainText);
+  AssertTrue('Outer list is loose',lOuter.Loose);
+end;
+
+
+procedure TTestLists.TestQuotedNestedItemBlankThenText;
+
+var
+  lOuter,lInner : TMarkDownListBlock;
+
+begin
+  SetupParser('> - a'#10'>   - b'#10'>'#10'>     c');
+  lOuter:=(FDoc.Blocks[0] as TMarkDownQuoteBlock).Blocks[0] as TMarkDownListBlock;
+  lInner:=lOuter.Blocks[0].Children[1] as TMarkDownListBlock;
+  AssertEquals('Nested item has 2 paragraphs',2,lInner.Blocks[0].ChildCount);
+  AssertEquals('Second paragraph of nested item','c',lInner.Blocks[0].Children[1].PlainText);
 end;
 
 
