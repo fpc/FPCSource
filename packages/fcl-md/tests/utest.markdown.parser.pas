@@ -109,6 +109,8 @@ type
   TTestLists = class(TBlockTestCase)
   private
     function TestList(const Msg, Source: TMarkdownString; aListCount, aListItemCount: Integer): TMarkDownListBlock;
+    // Parse aSource and check the Loose flag of the list that is the first document block.
+    procedure TestLoose(const aMsg, aSource: TMarkdownString; aLoose: Boolean);
   published
     procedure TestUnorderedList;
     procedure TestOrderedList;
@@ -133,6 +135,18 @@ type
     procedure TestItemContentIndentThematicBreak;
     procedure TestItemContentIndentWideMarker;
     procedure TestItemTwoParagraphsAreLoose;
+    procedure TestBlankBetweenItemsIsLoose;
+    procedure TestBlankBetweenOrderedItemsIsLoose;
+    procedure TestBlankAfterEmptyItemIsLoose;
+    procedure TestBlankBeforeNestedListIsLoose;
+    procedure TestBlankBeforeCodeInItemIsLoose;
+    procedure TestBlocksWithoutBlankAreTight;
+    procedure TestBlankInsideCodeIsTight;
+    procedure TestBlankInsideItemQuoteIsTight;
+    procedure TestTrailingBlankIsTight;
+    procedure TestNestedListsLoose;
+    procedure TestQuotedListLoose;
+    procedure TestQuotedListTight;
     // Blocks starting inside an indented item are recognised and lose that indentation.
     procedure TestItemHeading;
     procedure TestItemQuote;
@@ -864,6 +878,16 @@ begin
 
 end;
 
+
+procedure TTestLists.TestLoose(const aMsg, aSource: TMarkdownString; aLoose: Boolean);
+
+begin
+  SetupParser(aSource);
+  AssertTrue(aMsg+': first block is a list',FDoc.Blocks[0] is TMarkDownListBlock);
+  AssertEquals(aMsg,aLoose,(FDoc.Blocks[0] as TMarkDownListBlock).Loose);
+end;
+
+
 procedure TTestLists.TestNestedList2;
 
 var
@@ -1082,6 +1106,7 @@ begin
   AssertTrue('Block is a list', Doc.Blocks[0] is TMarkDownListBlock);
   List := Doc.Blocks[0] as TMarkDownListBlock;
   AssertEquals('Loose list should still have 2 items', 2, List.Blocks.Count);
+  AssertTrue('List is loose', List.Loose);
 end;
 
 procedure TTestLists.TestLazyContinuationPreserved;
@@ -1167,6 +1192,106 @@ begin
   SetupParser('-   one'#10#10'    continued');
   List := Doc.Blocks[0] as TMarkDownListBlock;
   AssertTrue('An item holding two paragraphs makes the list loose', List.Loose);
+end;
+
+
+procedure TTestLists.TestBlankBetweenItemsIsLoose;
+
+begin
+  TestLoose('A blank line between two items makes the list loose','- a'#10'- b'#10#10'- c',True);
+end;
+
+
+procedure TTestLists.TestBlankBetweenOrderedItemsIsLoose;
+
+begin
+  TestLoose('A blank line between two ordered items makes the list loose','1. a'#10#10'2. b',True);
+end;
+
+
+procedure TTestLists.TestBlankAfterEmptyItemIsLoose;
+
+begin
+  TestLoose('A blank line after an empty item makes the list loose','* a'#10'*'#10#10'* c',True);
+end;
+
+
+procedure TTestLists.TestBlankBeforeNestedListIsLoose;
+
+begin
+  TestLoose('A blank line between the text and the nested list of an item makes the list loose','- a'#10#10'  - b',True);
+end;
+
+
+procedure TTestLists.TestBlankBeforeCodeInItemIsLoose;
+
+begin
+  TestLoose('A blank line before a code block in an item makes the list loose','- a'#10#10'  ```'#10'  code'#10'  ```'#10'- b',True);
+end;
+
+
+procedure TTestLists.TestBlocksWithoutBlankAreTight;
+
+begin
+  TestLoose('Two blocks of an item without a blank line between them keep the list tight','- # Heading'#10'  text'#10'- b',False);
+end;
+
+
+procedure TTestLists.TestBlankInsideCodeIsTight;
+
+begin
+  TestLoose('Blank lines inside a fenced code block keep the list tight','- a'#10'- ```'#10'  b'#10#10#10'  ```'#10'- c',False);
+end;
+
+
+procedure TTestLists.TestBlankInsideItemQuoteIsTight;
+
+begin
+  TestLoose('A blank quote line inside an item keeps the list tight','* a'#10'  > b'#10'  >'#10'* c',False);
+end;
+
+
+procedure TTestLists.TestTrailingBlankIsTight;
+
+begin
+  TestLoose('A blank line after the last item keeps the list tight','- a'#10'- b'#10#10'after',False);
+end;
+
+
+procedure TTestLists.TestNestedListsLoose;
+
+var
+  lOuter : TMarkDownListBlock;
+
+begin
+  TestLoose('A blank line between outer items makes the outer list loose','- a'#10'  - b'#10'  - c'#10#10'- d'#10'  - e'#10'  - f',True);
+  lOuter:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertFalse('First inner list stays tight',(lOuter.Blocks[0].Children[1] as TMarkDownListBlock).Loose);
+  AssertFalse('Second inner list stays tight',(lOuter.Blocks[1].Children[1] as TMarkDownListBlock).Loose);
+end;
+
+
+procedure TTestLists.TestQuotedListLoose;
+
+var
+  lQuote : TMarkDownQuoteBlock;
+
+begin
+  SetupParser('> - a'#10'>'#10'> - b');
+  lQuote:=FDoc.Blocks[0] as TMarkDownQuoteBlock;
+  AssertTrue('A blank quote line between items makes the quoted list loose',(lQuote.Blocks[0] as TMarkDownListBlock).Loose);
+end;
+
+
+procedure TTestLists.TestQuotedListTight;
+
+var
+  lQuote : TMarkDownQuoteBlock;
+
+begin
+  SetupParser('> - a'#10'> - b'#10'>'#10'> after');
+  lQuote:=FDoc.Blocks[0] as TMarkDownQuoteBlock;
+  AssertFalse('A blank quote line after the last item keeps the quoted list tight',(lQuote.Blocks[0] as TMarkDownListBlock).Loose);
 end;
 
 
