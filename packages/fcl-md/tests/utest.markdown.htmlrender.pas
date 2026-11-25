@@ -1025,6 +1025,12 @@ procedure TTestHTMLRenderExtensions.TestAutolinkTrailingPunctuation;
 begin
   AssertEquals('Correct html','<p>Visit <a href="https://x.org">https://x.org</a>.</p>'+sLineBreak,
                Render('Visit https://x.org.'));
+  AssertEquals('www. link text has no added protocol','<p>Visit <a href="http://www.x.org">www.x.org</a>.</p>'+sLineBreak,
+               Render('Visit www.x.org.'));
+  AssertEquals('No autolink inside a word','<p>Seewww.x.org and xhttps://x.org</p>'+sLineBreak,
+               Render('Seewww.x.org and xhttps://x.org'));
+  AssertEquals('Autolink after an opening parenthesis','<p>(<a href="http://www.x.org">www.x.org</a>)</p>'+sLineBreak,
+               Render('(www.x.org)'));
 end;
 
 

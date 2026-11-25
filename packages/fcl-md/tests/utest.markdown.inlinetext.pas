@@ -70,7 +70,10 @@ type
     procedure TestAutoLinks;
     procedure TestGFMEmailAfterWord;
     procedure TestGFMAtWithoutDomainIsText;
-    procedure TestGFMUrlAfterLetters;
+    procedure TestGFMUrlInsideWordIsText;
+    procedure TestGFMProtocolAfterNonLetter;
+    procedure TestGFMUrlAfterDelimiter;
+    procedure TestGFMUrlTrailingPunctuation;
     procedure TestGFMPlainRunNonAscii;
     procedure TestInlineLink;
     procedure TestInlineImage;
@@ -407,7 +410,7 @@ begin
   FProcessor.Process(True);
   AssertEquals('Text, email link, text', 3, FNodes.Count);
   AssertEquals('Text before the email stops at the space', 'Mail ', NodeAsText(0).NodeText);
-  AssertEquals('Email link starts at the first letter of the address', 'me.you@example.com', FNodes[1].NodeText);
+  AssertEquals('Email link starts at the first letter of the address', 'me.you@example.com', NodeAsNamed(1, nkEmail).NodeText);
   AssertEquals('Email link href', 'mailto:me.you@example.com', FNodes[1].Attrs['href']);
   AssertEquals('Text after the email', ' now', NodeAsText(2).NodeText);
 end;
@@ -421,17 +424,52 @@ begin
   AssertEquals('Text is unchanged', 'Mail x@y now', NodeAsText(0).NodeText);
 end;
 
-procedure TTestInlineTextProcessor.TestGFMUrlAfterLetters;
+procedure TTestInlineTextProcessor.TestGFMUrlInsideWordIsText;
 begin
   SetupProcessor('Seewww.example.com or abchttps://example.com/x');
   FProcessor.GFMExtensions := True;
   FProcessor.Process(True);
-  AssertEquals('Text, link, text, link', 4, FNodes.Count);
-  AssertEquals('Letters before www. stay text', 'See', NodeAsText(0).NodeText);
-  AssertEquals('www. link text', 'www.example.com', FNodes[1].NodeText);
-  AssertEquals('www. link href', 'http://www.example.com', FNodes[1].Attrs['href']);
-  AssertEquals('Letters before https:// stay text', ' or abc', NodeAsText(2).NodeText);
-  AssertEquals('https:// link href', 'https://example.com/x', FNodes[3].Attrs['href']);
+  AssertEquals('www. and https:// after letters are no autolink', 1, FNodes.Count);
+  AssertEquals('Text is unchanged', 'Seewww.example.com or abchttps://example.com/x', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMProtocolAfterNonLetter;
+begin
+  SetupProcessor('a1https://x.org');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Text, link', 2, FNodes.Count);
+  AssertEquals('Text before the protocol', 'a1', NodeAsText(0).NodeText);
+  AssertEquals('Protocol link after a digit', 'https://x.org', NodeAsNamed(1, nkURI).Attrs['href']);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMUrlAfterDelimiter;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('(www.example.com)');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Text, link, text', 3, FNodes.Count);
+  AssertEquals('Opening parenthesis stays text', '(', NodeAsText(0).NodeText);
+  Node := NodeAsNamed(1, nkURI);
+  AssertEquals('www. link after ( has no added protocol in its text', 'www.example.com', Node.NodeText);
+  AssertEquals('www. link href', 'http://www.example.com', Node.Attrs['href']);
+  AssertEquals('Closing parenthesis is not part of the link', ')', NodeAsText(2).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestGFMUrlTrailingPunctuation;
+var
+  Node: TMarkDownTextNode;
+begin
+  SetupProcessor('Visit www.example.com.');
+  FProcessor.GFMExtensions := True;
+  FProcessor.Process(True);
+  AssertEquals('Text, link, text', 3, FNodes.Count);
+  Node := NodeAsNamed(1, nkURI);
+  AssertEquals('Link text has no added protocol', 'www.example.com', Node.NodeText);
+  AssertEquals('Link href has the protocol', 'http://www.example.com', Node.Attrs['href']);
+  AssertEquals('Trailing period is text', '.', NodeAsText(2).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.TestGFMPlainRunNonAscii;
