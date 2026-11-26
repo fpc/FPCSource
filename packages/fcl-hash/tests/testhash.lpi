@@ -58,6 +58,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="utestecc.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="../src/fpasn.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>

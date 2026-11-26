@@ -701,29 +701,30 @@ begin
   vli_set(X1, t7);
 end;
 
-procedure EccPointMult(out Output: TEccPoint; const Point: TEccPoint; Scalar: TVLI; InitialZ: PVLI);
+// Output = Scalar * Point for Scalar in [2, n-3]. The number of ladder steps does not depend on the value of Scalar.
+procedure EccPointLadder(out Output: TEccPoint; const Point: TEccPoint; const Scalar: TVLI; InitialZ: PVLI);
 var
   Rx, Ry: array[0..1] of TVLI;
+  Regular: array[0..1] of TVLI;
+  K: PVLI;
   z: TVLI;
   i, nb: Integer;
 begin
+  // Scalar + n or Scalar + 2n, whichever has bit 256 set: same product, fixed bit length
+  nb := vli_add(Regular[0], Scalar, Curve_N_32);
+  vli_add(Regular[1], Regular[0], Curve_N_32);
+  K := @Regular[1-nb];
   // R0 and R1
   vli_set(Rx[1], Point.x);
   vli_set(Ry[1], Point.y);
   XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], InitialZ);
-  for I := vli_numBits(Scalar)-2 downto 1 do
+  for I := ECC_BYTES*8-1 downto 1 do
   begin
-    if vli_testBit(Scalar, i) then
-      nb := 0
-    else
-      nb := 1;
+    nb := 1-Ord(vli_testBit(K^, i));
     XYcZ_addC(Rx[1-nb], Ry[1-nb], Rx[nb], Ry[nb]);
     XYcZ_add(Rx[nb], Ry[nb], Rx[1-nb], Ry[1-nb]);
   end;
-  if vli_testBit(Scalar, 0) then
-    nb := 0
-  else
-    nb := 1;
+  nb := 1-Ord(vli_testBit(K^, 0));
   XYcZ_addC(Rx[1-nb], Ry[1-nb], Rx[nb], Ry[nb]);
   // Find final 1/Z value.
   vli_modSub(z, Rx[1], Rx[0], Curve_P_32);  // X1 - X0
@@ -737,6 +738,45 @@ begin
   apply_z(Rx[0], Ry[0], z);
   vli_set(Output.x, Rx[0]);
   vli_set(Output.y, Ry[0]);
+end;
+
+
+// True when VLI equals the small number Value.
+function vli_isSmall(const VLI: TVLI; Value: UInt64): Boolean;
+var
+  I: Integer;
+begin
+  Result := VLI[0] = Value;
+  for I := 1 to NUM_ECC_DIGITS-1 do
+    Result := Result and (VLI[I] = 0);
+end;
+
+
+// Output = Scalar * Point; Scalar is used modulo n.
+procedure EccPointMult(out Output: TEccPoint; const Point: TEccPoint; const Scalar: TVLI; InitialZ: PVLI);
+var
+  K, NegK, Two: TVLI;
+begin
+  vli_set(K, Scalar);
+  if vli_cmp(Curve_N_32, K) <> 1 then
+    vli_sub(K, K, Curve_N_32);
+  vli_sub(NegK, Curve_N_32, K);
+  // 1, n-1 and n-2 reach the point at infinity inside the ladder
+  if vli_isSmall(K, 1) then
+    Output := Point
+  else if vli_isSmall(NegK, 1) or vli_isSmall(NegK, 2) then
+  begin
+    if vli_isSmall(NegK, 1) then
+      Output := Point
+    else
+    begin
+      vli_clear(Two);
+      Two[0] := 2;
+      EccPointLadder(Output, Point, Two, InitialZ);
+    end;
+    vli_sub(Output.y, Curve_P_32, Output.y);
+  end else
+    EccPointLadder(Output, Point, K, InitialZ);
 end;
 
 procedure EccBytes2Native(out Native: TVLI; Bytes: PByteBuffer);
@@ -1005,7 +1045,7 @@ end;
 function EcdsaSign(const PrivateKey: TEccPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
 
 var
-  K, Temp, S: TVLI;
+  K, Blind, Temp, S: TVLI;
   P: TEccPoint;
   Tries: Integer;
 
@@ -1026,12 +1066,23 @@ begin
     if vli_cmp(Curve_N_32, P.x) <> 1 then
       vli_sub(P.x, P.x, Curve_N_32);
   until not vli_isZero(p.x);
+  // Random Blind in [1, n-1]
+  Tries := 0;
+  repeat
+    Inc(Tries);
+    if not EccGetRandomNumber(Blind) or (Tries >= MAX_TRIES) then
+      Exit;
+    if vli_cmp(Curve_N_32, Blind) <> 1 then
+      vli_sub(Blind, Blind, Curve_N_32);
+  until not vli_isZero(Blind);
   EccNative2Bytes(@Signature, P.x);
   EccBytes2Native(Temp, @PrivateKey);
   vli_modMult(S, P.x, Temp, Curve_N_32); // s = r*d
   EccBytes2Native(Temp, @Hash);
   vli_modAdd(S, Temp, S, Curve_N_32); // s = e + r*d
-  vli_modInv(k, k, Curve_N_32); // k = 1 / k
+  vli_modMult(k, k, Blind, Curve_N_32); // k = k*b
+  vli_modInv(k, k, Curve_N_32); // k = 1 / (k*b)
+  vli_modMult(k, k, Blind, Curve_N_32); // k = 1 / k
   vli_modMult(S, S, k, Curve_N_32); // s = (e + r*d) / k
   EccNative2Bytes(@Signature[ECC_BYTES], S);
   Result := True;
