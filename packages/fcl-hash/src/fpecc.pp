@@ -1168,24 +1168,12 @@ begin
   Result := vli_cmp(rx, l_r) = 0; // Accept only if v == r
 end;
 
+// Fill VLI from GetRandomBytes. False when GetRandomBytes is not set or fails.
 function IntEccGetRandomNumber(out VLI: TVLI): Boolean;
 
-Var
-  P : PByte;
-  i : Integer;
-
 begin
-  Result:=True;
-  if (Pointer(@GetRandomBytes)=Nil) or not GetRandomBytes(@VLI,Sizeof(VLI)) then
-    begin
-    P:=@VLI;
-    For I:=0 to SizeOf(TVLI)-1 do
-      begin
-      P^:=Random(256);
-      Inc(P);
-      end;
-    Result:=True;
-    end;
+  FillChar(VLI,SizeOf(VLI),0);
+  Result:=(Pointer(@GetRandomBytes)<>Nil) and GetRandomBytes(@VLI,SizeOf(VLI));
 end;
 
 Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey;

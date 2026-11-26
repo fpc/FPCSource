@@ -24,6 +24,7 @@ type
     procedure TestSignVerifyEdgeKeys;
     procedure TestSignVerifyRandomKeys;
     procedure TestEcdhAgreement;
+    procedure TestNoRandomBytes;
   end;
 
 implementation
@@ -44,6 +45,13 @@ const
     ('FFFFFFFEFFFFFF00FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551','02285250EDC3BCFCD9027BBA12176D343A26035672D5B4A81155D4E37A2FD20BAE'),
     ('00000000000000000000000000000000123456789ABCDEF0FEDCBA9876543210','03CFF9839CBB40EC26ED68292ACA28802ACEBBE4AA28A244EEA5C890C03965B7EB')
   );
+
+// Random source that always fails
+function FailingRandomBytes(aBytes: PByte; aCount: Integer): Boolean;
+begin
+  Result:=False;
+end;
+
 
 { TTestECC }
 
@@ -144,6 +152,36 @@ begin
   AssertTrue('Secret with private key 1 computed',EcdhSharedSecret(lPublicB,lPrivateA,lSecretA));
   AssertEquals('Secret with private key 1 is the x of the other public key',
                Copy(PublicKeyToHex(lPublicB),3,64),UpperCase(BytesToHexStr(BytesFromVar(@lSecretA,SizeOf(lSecretA)))));
+end;
+
+
+procedure TTestECC.TestNoRandomBytes;
+var
+  lSaved: TGetRandomBytes;
+  lPublicKey, lOtherPublicKey: TEccPublicKey;
+  lPrivateKey: TEccPrivateKey;
+  lHash: TEccHash;
+  lSignature: TEccSignature;
+  lSecret: TEccSecretKey;
+  I: Integer;
+begin
+  AssertTrue('Other key made',EccMakeKey(lOtherPublicKey,lPrivateKey));
+  FillChar(lHash,SizeOf(lHash),1);
+  lSaved:=GetRandomBytes;
+  try
+    for I:=0 to 1 do
+      begin
+      if I=0 then
+        GetRandomBytes:=@FailingRandomBytes
+      else
+        GetRandomBytes:=nil;
+      AssertFalse('No key without random bytes ('+IntToStr(I)+')',EccMakeKey(lPublicKey,lPrivateKey));
+      AssertFalse('No signature without random bytes ('+IntToStr(I)+')',EcdsaSign(lPrivateKey,lHash,lSignature));
+      AssertFalse('No shared secret without random bytes ('+IntToStr(I)+')',EcdhSharedSecret(lOtherPublicKey,lPrivateKey,lSecret));
+      end;
+  finally
+    GetRandomBytes:=lSaved;
+  end;
 end;
 
 
