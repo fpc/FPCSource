@@ -84,26 +84,47 @@ begin
   TSHA256.DigestBase64(GetRawStringBytes(S),True,ThumbPrint);
 end;
 
+// True when List, from ASNParse, has the shape of an SEC1 EC private key with a public key:
+// INTEGER version, OCTET STRING private key, [0] curve OID, [1] BIT STRING public key.
+function PemIsECPrivateKeyList(List: TStrings): Boolean;
+
+  function ItemType(aIndex: Integer): Integer;
+  var
+    lSize: Integer;
+  begin
+    ASNParse_GetItem(List, aIndex, Result, lSize);
+  end;
+
+begin
+  Result := (List.Count >= 7)
+            and (ItemType(1) = ASN1_INT)
+            and (ItemType(2) = ASN1_OCTSTR)
+            and (ItemType(4) = ASN1_OBJID)
+            and (ItemType(6) = ASN1_BITSTR);
+end;
+
 procedure PemLoadPublicKey64FromList(List: TStrings; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64: AnsiString);
 
 var
-  SPrivateKeyHexa, SPublicKeyHexa: AnsiString;
-  DecompressedPublicKey, SPrivateKey : TBytes;
+  SPrivateKeyHexa: AnsiString;
+  SPrivateKey : TBytes;
+  Uncompressed: array[0..2*ECC_BYTES] of Byte;
 
 begin
+  if not PemIsECPrivateKeyList(List) then
+    Raise EHashUtil.Create('Not an EC private key');
   SPrivateKeyHexa := List.Strings[2];
   HexStrToBytes(SPrivateKeyHexa, SPrivateKey);
   if Length(SPrivateKey)>=SizeOf(PrivateKey) then
     BytesToVar(SPrivateKey,Privatekey,SizeOf(Privatekey))
   else
     Raise EHashUtil.CreateFmt('Wrong private key length, got %d, expected %d',[Length(SPrivateKey),SizeOf(TPrivateKey)]);
-  SPublicKeyHexa := List.Strings[6]; // 132 chars
-  if Length(SPublicKeyHexa) = 2+2*(2*ECC_BYTES) then
-    Delete(SPublicKeyHexa,1,2); // skip the leading $04 for uncompressed publickey
-  DecompressedPublicKey:=HexStrToBytes(SPublicKeyHexa);
-  EccPublicKeyFromHexa(PublicKey, SPublicKeyHexa);
-  PublicKeyX64:=base64URL.Encode(Copy(DecompressedPublicKey,0,32),False);
-  PublicKeyY64:=base64URL.Encode(Copy(DecompressedPublicKey, 32, 32),False);
+  // Compressed (02/03 x) or uncompressed (04 x y) public key; raises EHashUtil for a point not on the curve
+  EccPublicKeyFromHexa(PublicKey, List.Strings[6]);
+  if not EccExportX963(PublicKey, @Uncompressed, SizeOf(Uncompressed)) then
+    Raise EHashUtil.Create('Invalid EC public key');
+  PublicKeyX64:=base64URL.Encode(BytesFromVar(@Uncompressed[1],ECC_BYTES),False);
+  PublicKeyY64:=base64URL.Encode(BytesFromVar(@Uncompressed[1+ECC_BYTES],ECC_BYTES),False);
 end;
 
 function PemIsECDSA(const FileName: String; List: TStrings): Boolean;
@@ -169,9 +190,8 @@ begin
   SetLength(Buffer,aStream.Size);
   aStream.ReadBuffer(Buffer,aStream.Size);
   ASNParsePemSection(Buffer, List, _BEGIN_EC_PRIVATE_KEY, _END_EC_PRIVATE_KEY);
-  if List.Count < 7 then
+  if not PemIsECPrivateKeyList(List) then
     Exit;
-//  Writeln(List.Text);
   CurveOID := List.Strings[4];
   Result := (CurveOID=ASN_secp256r1);
 end;

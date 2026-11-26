@@ -33,6 +33,7 @@ Type
     Procedure TestRSA_PrivateKeyNoRandomBytes;
     Procedure TestRSA_BlindedSignatureDeterministic;
     Procedure TestPemParseValidUntil;
+    Procedure TestECC_LoadPublicKeyForms;
   end;
 
 implementation
@@ -579,6 +580,66 @@ begin
   finally
     List.Free;
   end;
+end;
+
+procedure TTestPEM.TestECC_LoadPublicKeyForms;
+const
+  // One P-256 key made with OpenSSL: uncompressed, -conv_form compressed and -no_public
+  KeyUncompressed =
+    '-----BEGIN EC PRIVATE KEY-----'+sLineBreak+
+    'MHcCAQEEIJ6O/ZNuzzd6eq5NUjoxile7fx2goOeUnnyTH0io9MUloAoGCCqGSM49'+sLineBreak+
+    'AwEHoUQDQgAEYDpmnlYZO8I1RRgXsGoXVCZrebufbrzINIYLAUdNHnP8BijXHFbU'+sLineBreak+
+    'W3HaDlXk+V+fMdfl7WFLlPzOLFL+JA6Xcw=='+sLineBreak+
+    '-----END EC PRIVATE KEY-----';
+  KeyCompressed =
+    '-----BEGIN EC PRIVATE KEY-----'+sLineBreak+
+    'MFcCAQEEIJ6O/ZNuzzd6eq5NUjoxile7fx2goOeUnnyTH0io9MUloAoGCCqGSM49'+sLineBreak+
+    'AwEHoSQDIgADYDpmnlYZO8I1RRgXsGoXVCZrebufbrzINIYLAUdNHnM='+sLineBreak+
+    '-----END EC PRIVATE KEY-----';
+  KeyNoPublic =
+    '-----BEGIN EC PRIVATE KEY-----'+sLineBreak+
+    'MDECAQEEIJ6O/ZNuzzd6eq5NUjoxile7fx2goOeUnnyTH0io9MUloAoGCCqGSM49'+sLineBreak+
+    'AwEH'+sLineBreak+
+    '-----END EC PRIVATE KEY-----';
+  PointX = '603A669E56193BC235451817B06A1754266B79BB9F6EBCC834860B01474D1E73';
+  PointY = 'FC0628D71C56D45B71DA0E55E4F95F9F31D7E5ED614B94FCCE2C52FE240E9773';
+
+type
+  TLoaded = record
+    Ok: Boolean;
+    PrivateKey: TEccPrivateKey;
+    PublicKey: TEccPublicKey;
+    X64, Y64, ThumbPrint: AnsiString;
+  end;
+
+  function Load(const aPEM: String): TLoaded;
+  var
+    S: TStringStream;
+  begin
+    Result:=Default(TLoaded);
+    S:=TStringStream.Create(aPEM);
+    try
+      Result.Ok:=PemLoadECDSA(S,Result.PrivateKey,Result.PublicKey,Result.X64,Result.Y64,Result.ThumbPrint);
+    finally
+      S.Free;
+    end;
+  end;
+
+var
+  Plain, Comp: TLoaded;
+begin
+  Plain:=Load(KeyUncompressed);
+  AssertTrue('Uncompressed key loaded',Plain.Ok);
+  AssertEquals('X of the uncompressed key',PointX,UpperCase(BytesToHexStr(Base64URL.Decode(Plain.X64))));
+  AssertEquals('Y of the uncompressed key',PointY,UpperCase(BytesToHexStr(Base64URL.Decode(Plain.Y64))));
+  Comp:=Load(KeyCompressed);
+  AssertTrue('Compressed key loaded',Comp.Ok);
+  AssertTrue('Same private key',CompareMem(@Plain.PrivateKey,@Comp.PrivateKey,SizeOf(Plain.PrivateKey)));
+  AssertTrue('Same public key',CompareMem(@Plain.PublicKey,@Comp.PublicKey,SizeOf(Plain.PublicKey)));
+  AssertEquals('X of the compressed key',PointX,UpperCase(BytesToHexStr(Base64URL.Decode(Comp.X64))));
+  AssertEquals('Y of the compressed key',PointY,UpperCase(BytesToHexStr(Base64URL.Decode(Comp.Y64))));
+  AssertEquals('Same thumbprint',Plain.ThumbPrint,Comp.ThumbPrint);
+  AssertFalse('Key without public key not loaded',Load(KeyNoPublic).Ok);
 end;
 
 procedure TTestPEM.TestPemFindTags;
