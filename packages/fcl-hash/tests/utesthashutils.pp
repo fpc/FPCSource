@@ -18,6 +18,7 @@ type
     procedure TestHexStrToString;
     procedure TestBytesToVarPointer;
     procedure TestHexStrToBytesInvalid;
+    procedure TestFallbackGeneratorSeed;
   end;
 
 implementation
@@ -97,6 +98,58 @@ begin
   AssertTrue('Invalid character after valid ones',Raises('00112G'));
   AssertFalse('Valid hex',Raises('00aAfF99'));
   AssertFalse('Empty string',Raises(''));
+end;
+
+
+var
+  // State of SeedOnlyRandomBytes
+  SeedCalls: Integer;
+  SeedSize: Integer;
+  SeedLastByte: Byte;
+
+// Random source that fails the first request and fills later ones with 1, 2, 3, ... and SeedLastByte at the end
+function SeedOnlyRandomBytes(aBytes: PByte; aCount: Integer): Boolean;
+var
+  I: Integer;
+begin
+  Inc(SeedCalls);
+  Result:=SeedCalls>1;
+  if not Result then
+    Exit;
+  SeedSize:=aCount;
+  for I:=0 to aCount-1 do
+    aBytes[I]:=I+1;
+  aBytes[aCount-1]:=SeedLastByte;
+end;
+
+
+procedure TTestHashUtils.TestFallbackGeneratorSeed;
+
+  // 64 bytes from CryptoGetRandomBytes when the fallback generator gets a seed ending in aLastByte
+  function FallbackBytes(aLastByte: Byte): TBytes;
+  begin
+    Result:=[];
+    SetLength(Result,64);
+    SeedCalls:=0;
+    SeedSize:=0;
+    SeedLastByte:=aLastByte;
+    AssertTrue('Fallback generator used',CryptoGetRandomBytes(PByte(Result),Length(Result)));
+  end;
+
+var
+  lSaved: TGetRandomBytes;
+  lFirst, lSecond: TBytes;
+begin
+  lSaved:=GetRandomBytes;
+  try
+    GetRandomBytes:=@SeedOnlyRandomBytes;
+    lFirst:=FallbackBytes(1);
+    AssertEquals('Seed size',12,SeedSize);
+    lSecond:=FallbackBytes(2);
+    AssertFalse('The last seed byte changes the output',CompareMem(@lFirst[0],@lSecond[0],Length(lFirst)));
+  finally
+    GetRandomBytes:=lSaved;
+  end;
 end;
 
 

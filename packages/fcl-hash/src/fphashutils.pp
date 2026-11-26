@@ -423,7 +423,7 @@ type
 
 procedure TLecuyer.Seed;
 var
-  VLI: Array[0..2] of byte;
+  VLI: Array[0..2] of UInt32;
   I : Integer;
 
 begin
@@ -436,6 +436,7 @@ begin
     rs2 := VLI[1];
     rs3 := VLI[2];
   Until ((rs1>1) and (rs2>7) and (rs3>15)) or (I>100);
+  FillChar(VLI,SizeOf(VLI),0);
   if I>100 then
     Raise EHashUtil.Create('Cannot seed Lecuyer: no suitable random bytes');
   SeedCount := 1;
