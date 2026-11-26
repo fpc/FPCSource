@@ -45,6 +45,8 @@ function HOTPCalculateToken(const aSecret: AnsiString; const Counter: LongInt): 
 function TOTPCalculateToken(const aSecret: AnsiString): LongInt;
 function TOTPGenerateToken(const aSecret: AnsiString): LongInt;
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
+// Validate Token for Unix time aUnixTime (seconds since 1970-01-01 UTC) instead of the current time.
+function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; const aUnixTime: Int64; var Counter: LongInt): Boolean;
 // Return a new Base32 encoded shared secret of aLength random bytes (at least TOTP_MinSecretLength).
 // aRandom supplies the bytes; when it is Nil, fphashutils.GetRandomBytes is used.
 // Raises EOTPError when aLength is too small or no random bytes can be obtained.
@@ -135,13 +137,16 @@ end;
 
 // @Secret Base32 encoded, @WindowSize=1
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
+begin
+  Result := TOTPValidate(aSecret, Token, WindowSize, DateTimeToUnix(Now,False), Counter);
+end;
+
+function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; const aUnixTime: Int64; var Counter: LongInt): Boolean;
 var
   TimeStamp: Longint;
-  UnixTime: Longint;
 begin
   Result := False;
-  UnixTime := DateTimeToUnix(Now,False);
-  TimeStamp := UnixTime div TOTP_KeyRegeneration;
+  TimeStamp := aUnixTime div TOTP_KeyRegeneration;
   Counter := Timestamp-WindowSize;
   while Counter <= TimeStamp+WindowSize do
   begin

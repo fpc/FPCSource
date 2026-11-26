@@ -24,6 +24,7 @@ type
     Procedure TestGenDiffers;
     Procedure TestGenIndependentOfRandSeed;
     Procedure TestGenCallback;
+    Procedure TestValidateRFC6238;
   end;
 
 implementation
@@ -157,6 +158,33 @@ begin
   CountingBytes(lExpected);
   AssertEquals('the secret is made from the callback bytes', Base32.Encode(lExpected),
     TOTPSharedSecret(@CountingBytes));
+end;
+
+
+procedure TTestOnetimePass.TestValidateRFC6238;
+
+const
+  // RFC 6238 appendix B, SHA-1: secret '12345678901234567890', last 6 digits of the 8 digit tokens
+  RFCSecret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+  Times: array[0..5] of Int64 = (59, 1111111109, 1111111111, 1234567890, 2000000000, 20000000000);
+  Tokens: array[0..5] of LongInt = (287082, 081804, 050471, 005924, 279037, 353130);
+
+var
+  I: Integer;
+  lCounter: LongInt;
+
+begin
+  for I:=0 to High(Times) do
+    begin
+    lCounter:=0;
+    AssertTrue('Token at Unix time '+IntToStr(Times[I]),TOTPValidate(RFCSecret,Tokens[I],0,Times[I],lCounter));
+    AssertEquals('Time step at Unix time '+IntToStr(Times[I]),Times[I] div 30,lCounter);
+    AssertFalse('Other token at Unix time '+IntToStr(Times[I]),TOTPValidate(RFCSecret,(Tokens[I]+1) mod 1000000,0,Times[I],lCounter));
+    end;
+  lCounter:=0;
+  AssertTrue('Token at the 2038 Longint limit',
+             TOTPValidate(RFCSecret,HOTPCalculateToken(RFCSecret,2147483648 div 30),1,2147483648,lCounter));
+  AssertEquals('Time step at the 2038 Longint limit',2147483648 div 30,lCounter);
 end;
 
 
