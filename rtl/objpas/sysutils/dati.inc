@@ -634,10 +634,15 @@ var
         move(Src[0],Result[1],len*sizeOf(Char));
     end;
 
+    // An ASCII digit. Compared directly: testing a WideChar against the AnsiChar set ['0'..'9'] first
+    // converts it to the system code page, which can turn a character outside ASCII into a digit.
+    function IsDigit(aChar : Char) : Boolean; inline;
+    begin
+      Result := (aChar >= '0') and (aChar <= '9');
+    end;
+
    function SplitElements(out TimeValues: TTimeValues; out AmPm: Integer): Boolean;
    //Strict version. It does not allow #32 as Separator, it will treat it as whitespace always
-   const
-     Digits = ['0'..'9'];
    var
       Cur, Offset, ElemLen, Err, TimeIndex, FirstSignificantDigit: Integer;
       Value: Word;
@@ -656,13 +661,13 @@ var
      Offset := Cur;
      //First non-blank cannot be Separator or DecimalSeparator
      if (Cur > Len - 1) or (S[Cur] = Separator) or (S[Cur] = defs.Decimalseparator) then Exit;
-     DigitPending := (S[Cur] in Digits);
+     DigitPending := IsDigit(S[Cur]);
      While (Cur < Len) do
      begin
        //writeln;
        //writeln('Main While loop:  Cur = ',Cur,' S[Cur] = "',S[Cur],'" Len = ',Len);
        CurChar := S[Cur];
-       if CurChar in Digits then
+       if IsDigit(CurChar) then
        begin//Digits
          //HH, MM, SS, or Msec?
          //writeln('Digit');
@@ -672,7 +677,7 @@ var
          if (not (DigitPending {or (#32 = Separator)})) or (TimeIndex > tiMSec) then Exit;
          OffSet := Cur;
          if (CurChar <> '0') then FirstSignificantDigit := OffSet else FirstSignificantDigit := -1;
-         while (Cur < Len -1) and (S[Cur + 1] in Digits) do
+         while (Cur < Len -1) and IsDigit(S[Cur + 1]) do
          begin
            //Mark first Digit that is not '0'
            if (FirstSignificantDigit = -1) and (S[Cur] <> '0') then FirstSignificantDigit := Cur;
@@ -721,7 +726,7 @@ var
          if (AmPm <> AMPM_None) or DigitPending then Exit;
          OffSet := Cur;
          while (Cur < Len -1) and (not (S[Cur + 1] in [Separator, #32, defs.DecimalSeparator]))
-           and not (S[Cur + 1] in Digits) do Inc(Cur);
+           and not IsDigit(S[Cur + 1]) do Inc(Cur);
          ElemLen := 1 + Cur - OffSet;
          //writeln('  S[Offset] = ',S[Offset], ' S[Cur] = ',S[Cur],' ElemLen = ',ElemLen,' -> ', StrPas(S + Offset, ElemLen));
          //writeln('  Cur = ',Cur);
