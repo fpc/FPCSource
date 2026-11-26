@@ -24,6 +24,7 @@ type
     Procedure TestLargeBuffer;
     Procedure TestCryptoNoZeroBytes;
     Procedure TestCryptoDiffers;
+    Procedure TestCryptoRandomBytesAvailable;
   end;
 
 implementation
@@ -178,6 +179,35 @@ begin
   RandSeed:=42;
   AssertTrue('CryptoGetRandomBytes succeeds again', CryptoGetRandomBytes(PByte(lSecond), cSize));
   AssertFalse('CryptoGetRandomBytes does not repeat after the same RandSeed', CompareMem(@lFirst[0], @lSecond[0], cSize));
+end;
+
+
+// Random source standing in for an application's own source
+function CustomRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
+
+begin
+  Result:=OSGetRandomBytes(aBytes,aCount);
+end;
+
+
+procedure TTestRandomBytes.TestCryptoRandomBytesAvailable;
+
+var
+  lSaved: TGetRandomBytes;
+
+begin
+  AssertEquals('Available by default exactly when there is a system source', OSRandomBytesAvailable, CryptoRandomBytesAvailable);
+  lSaved:=GetRandomBytes;
+  try
+    GetRandomBytes:=@InsecureRandomBytes;
+    AssertFalse('Not available with InsecureRandomBytes', CryptoRandomBytesAvailable);
+    GetRandomBytes:=nil;
+    AssertFalse('Not available without a source', CryptoRandomBytesAvailable);
+    GetRandomBytes:=@CustomRandomBytes;
+    AssertTrue('Available with an application source', CryptoRandomBytesAvailable);
+  finally
+    GetRandomBytes:=lSaved;
+  end;
 end;
 
 

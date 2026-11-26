@@ -63,16 +63,23 @@ Type
   TGetRandomBytes = function(aBytes : PByte; aCount: Integer): Boolean;
 
 // Fill aCount bytes at aBytes from the operating system's cryptographic random source.
-// Uses BCryptGenRandom on Windows, getrandom on Linux, arc4random_buf on Darwin and
-// /dev/urandom on other Unix systems. Returns False if no such source is available.
+// Uses BCryptGenRandom on Windows, getrandom on Linux, arc4random_buf on Darwin,
+// random_get on WASI and /dev/urandom on other Unix systems. Returns False if no such source is available.
 Function OSGetRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
 
 // True if OSGetRandomBytes is supported on this target.
 Function OSRandomBytesAvailable : Boolean;
 
+// Fill aCount bytes at aBytes from the RTL Random. Not cryptographically secure.
+Function InsecureRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
+
+// True when GetRandomBytes is set and is not InsecureRandomBytes.
+Function CryptoRandomBytesAvailable : Boolean;
+
 var
   // Random byte source used by this package (RSA, ECC, one-time passwords).
-  // Defaults to OSGetRandomBytes; on targets without a system source it uses the RTL Random, which is not cryptographically secure.
+  // Defaults to OSGetRandomBytes. On targets without a system source it defaults to InsecureRandomBytes:
+  // keys, padding and secrets are then predictable. Check CryptoRandomBytesAvailable, or install a secure source here.
   GetRandomBytes : TGetRandomBytes;
 
 
@@ -84,6 +91,15 @@ uses
   {$IFDEF MSWINDOWS}WinApi.BCrypt{$ELSE}LinuxApi, UnixApi.Base{$ENDIF};
 {$ELSE FPC_DOTTEDUNITS}
   {$IFDEF MSWINDOWS}bcrypt{$ELSE}linux, baseunix{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF}
+
+{$IFDEF WASI}
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  WASIApi.WASIApi;
+{$ELSE FPC_DOTTEDUNITS}
+  wasiapi;
 {$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
@@ -524,7 +540,7 @@ begin
   Result:=Copy(aSource,P1,P2-P1);
 end;
 
-function IntGetRandomNumber(aBytes : PByte; aCount: Integer): Boolean;
+function InsecureRandomBytes(aBytes : PByte; aCount: Integer): Boolean;
 
 Var
   i: Integer;
@@ -603,6 +619,8 @@ begin
     end;
 {$ELSEIF DEFINED(UNIX)}
   Result:=DevURandomBytes(aBytes,aCount);
+{$ELSEIF DEFINED(WASI)}
+  Result:=__wasi_random_get(PUInt8(aBytes),aCount)=__WASI_ERRNO_SUCCESS;
 {$ELSE}
   Result:=False;
 {$ENDIF}
@@ -612,11 +630,18 @@ end;
 function OSRandomBytesAvailable: Boolean;
 
 begin
-{$IF DEFINED(MSWINDOWS) or DEFINED(UNIX)}
+{$IF DEFINED(MSWINDOWS) or DEFINED(UNIX) or DEFINED(WASI)}
   Result:=True;
 {$ELSE}
   Result:=False;
 {$ENDIF}
+end;
+
+
+function CryptoRandomBytesAvailable: Boolean;
+
+begin
+  Result:=Assigned(GetRandomBytes) and (Pointer(GetRandomBytes)<>Pointer(@InsecureRandomBytes));
 end;
 
 
@@ -626,7 +651,7 @@ initialization
   else
     begin
     Randomize;
-    GetRandomBytes:=@IntGetRandomNumber;
+    GetRandomBytes:=@InsecureRandomBytes;
     end;
 end.
 
