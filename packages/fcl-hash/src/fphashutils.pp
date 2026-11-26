@@ -60,6 +60,8 @@ Function BytesToStr(const aBytes: TBytes): string; overload;
 
 Function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer; ZeroBytesAllowed: boolean = true): Boolean;
 Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
+// True when the aSize bytes at A and B are equal. The time taken does not depend on the contents.
+Function ConstantTimeEqual(A, B: PByte; aSize: Integer): Boolean;
 
 Type
   TGetRandomBytes = function(aBytes : PByte; aCount: Integer): Boolean;
@@ -500,6 +502,19 @@ begin
     Move(R, Buffer[Rounds*SizeOf(UInt32)], Remainder);
     R:=R-R;// Silence compiler warning
   end;
+end;
+
+function ConstantTimeEqual(A, B: PByte; aSize: Integer): Boolean;
+
+var
+  I: Integer;
+  Diff: Byte;
+
+begin
+  Diff:=0;
+  for I:=0 to aSize-1 do
+    Diff:=Diff or (A[I] xor B[I]);
+  Result:=Diff=0;
 end;
 
 function ExtractBetween(const ASource, aStart, aEnd: String): String;

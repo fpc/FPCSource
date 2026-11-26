@@ -416,12 +416,8 @@ end;
 
 
 function TSHA512.IsEqual(const ADigest: TSHA512Digest): Boolean;
-var
-  Left, Right: TBytes;
 begin
-  Left:=BytesFromVar(@ADigest, SizeOf(ADigest));
-  Right:=BytesFromVar(@Self.Digest, SizeOf(Self.Digest));
-  Result:=CompareMem(Pointer(Left), Pointer(Right),System.Length(Left));
+  Result:=ConstantTimeEqual(@ADigest, @Self.Digest, SizeOf(ADigest));
 end;
 
 procedure TSHA512.Update(PBuf: PByte; Size: SizeUInt);
@@ -676,12 +672,8 @@ end;
 
 
 function TSHA384.IsEqual(const ADigest: TSHA384Digest): Boolean;
-var
-  Left, Right: TBytes;
 begin
-  Left:=BytesFromVar(@ADigest, SizeOf(ADigest));
-  Right:=BytesFromVar(@Self.Digest, SizeOf(Self.Digest));
-  Result:=CompareMem(Pointer(Left), Pointer(Right),System.Length(Left));
+  Result:=ConstantTimeEqual(@ADigest, @Self.Digest, SizeOf(ADigest));
 end;
 
 procedure TSHA384.Update(PBuf: PByte; Size: SizeUInt);

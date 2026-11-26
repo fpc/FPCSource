@@ -5,7 +5,7 @@ unit utesthashutils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fphashutils;
+  Classes, SysUtils, fpcunit, testregistry, fphashutils, fpsha256, fpsha512;
 
 type
 
@@ -19,6 +19,8 @@ type
     procedure TestBytesToVarPointer;
     procedure TestHexStrToBytesInvalid;
     procedure TestFallbackGeneratorSeed;
+    procedure TestConstantTimeEqual;
+    procedure TestDigestIsEqual;
   end;
 
 implementation
@@ -150,6 +152,47 @@ begin
   finally
     GetRandomBytes:=lSaved;
   end;
+end;
+
+
+procedure TTestHashUtils.TestConstantTimeEqual;
+var
+  A, B: array[0..15] of Byte;
+begin
+  FillChar(A,SizeOf(A),7);
+  FillChar(B,SizeOf(B),7);
+  AssertTrue('Equal',ConstantTimeEqual(@A,@B,SizeOf(A)));
+  B[0]:=8;
+  AssertFalse('First byte differs',ConstantTimeEqual(@A,@B,SizeOf(A)));
+  B[0]:=7;
+  B[15]:=6;
+  AssertFalse('Last byte differs',ConstantTimeEqual(@A,@B,SizeOf(A)));
+  AssertTrue('Only the first 15 bytes compared',ConstantTimeEqual(@A,@B,15));
+  AssertTrue('Zero bytes',ConstantTimeEqual(@A,@B,0));
+end;
+
+
+procedure TTestHashUtils.TestDigestIsEqual;
+var
+  lSHA256: TSHA256;
+  lDigest256: TSHA256Digest;
+  lSHA512: TSHA512;
+  lDigest512: TSHA512Digest;
+begin
+  lSHA256.Init;
+  lSHA256.Update(TBytes([1,2,3]));
+  lSHA256.Final;
+  lDigest256:=lSHA256.Digest;
+  AssertTrue('SHA-256 same digest',lSHA256.IsEqual(lDigest256));
+  lDigest256[High(lDigest256)]:=lDigest256[High(lDigest256)] xor 1;
+  AssertFalse('SHA-256 last byte differs',lSHA256.IsEqual(lDigest256));
+  lSHA512.Init;
+  lSHA512.Update(TBytes([1,2,3]));
+  lSHA512.Final;
+  lDigest512:=lSHA512.Digest;
+  AssertTrue('SHA-512 same digest',lSHA512.IsEqual(lDigest512));
+  lDigest512[0]:=lDigest512[0] xor 1;
+  AssertFalse('SHA-512 first byte differs',lSHA512.IsEqual(lDigest512));
 end;
 
 

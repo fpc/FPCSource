@@ -362,12 +362,8 @@ end;
 
 function TSHA256.IsEqual(const ADigest: TSHA256Digest): Boolean;
 
-var
-  Left, Right: TBytes;
 begin
-  Left:=BytesFromVar(@ADigest, SizeOf(ADigest));
-  Right:=BytesFromVar(@Self.Digest, SizeOf(Self.Digest));
-  Result:=CompareMem(Pointer(Left), Pointer(Right),Length(Left));
+  Result:=ConstantTimeEqual(@ADigest, @Self.Digest, SizeOf(ADigest));
 end;
 
 
@@ -615,12 +611,8 @@ end;
 
 function TSHA224.IsEqual(const ADigest: TSHA224Digest): Boolean;
 
-var
-  Left, Right: TBytes;
 begin
-  Left:=BytesFromVar(@ADigest, SizeOf(ADigest));
-  Right:=BytesFromVar(@Self.Digest, SizeOf(Self.Digest));
-  Result:=CompareMem(Pointer(Left), Pointer(Right),Length(Left));
+  Result:=ConstantTimeEqual(@ADigest, @Self.Digest, SizeOf(ADigest));
 end;
 
 
