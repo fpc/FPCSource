@@ -961,6 +961,21 @@ begin
   PublicKey[0] := 2 + (PublicPoint.y[0] and $01);
 end;
 
+// Uniform random K in [1, n-1]: values out of range are drawn again. False when no random number is available.
+function EccRandomScalar(out K: TVLI): Boolean;
+var
+  Tries: Integer;
+begin
+  for Tries := 1 to MAX_TRIES do
+  begin
+    if not EccGetRandomNumber(K) then
+      Exit(False);
+    if not vli_isZero(K) and (vli_cmp(Curve_N_32, K) = 1) then
+      Exit(True);
+  end;
+  Result := False;
+end;
+
 function EccMakeKey(out PublicKey: TEccPublicKey; out PrivateKey: TEccPrivateKey): Boolean;
 
 var
@@ -973,14 +988,8 @@ begin
   Tries := 0;
   repeat
     Inc(Tries);
-    if not EccGetRandomNumber(PrivateK) or (Tries >= MAX_TRIES) then
+    if (Tries > MAX_TRIES) or not EccRandomScalar(PrivateK) then
       Exit;
-    if vli_isZero(PrivateK) then
-      Continue;
-    // Make sure the private key is in the range [1, n-1]
-    // For the supported curves, n is always large enough that we only need to subtract once at most
-    if vli_cmp(Curve_N_32, PrivateK) <> 1 then
-      vli_sub(PrivateK, PrivateK, Curve_N_32);
     EccPointMult(PublicPoint, Curve_G_32, PrivateK, nil);
   until not EccPointIsZero(PublicPoint);
   EccNative2Bytes(@PrivateKey, PrivateK);
@@ -1096,27 +1105,16 @@ begin
   Tries := 0;
   repeat
     Inc(Tries);
-    if not EccGetRandomNumber(k) or (Tries >= MAX_TRIES) then
+    if (Tries > MAX_TRIES) or not EccRandomScalar(k) then
       Exit;
-    if vli_isZero(k) then
-      Continue;
-    if vli_cmp(Curve_N_32, k) <> 1 then
-      vli_sub(k, k, Curve_N_32);
     // Temp = k * G
     EccPointMult(P, Curve_G_32, k, nil);
     // r = x1 (mod n)
     if vli_cmp(Curve_N_32, P.x) <> 1 then
       vli_sub(P.x, P.x, Curve_N_32);
   until not vli_isZero(p.x);
-  // Random Blind in [1, n-1]
-  Tries := 0;
-  repeat
-    Inc(Tries);
-    if not EccGetRandomNumber(Blind) or (Tries >= MAX_TRIES) then
-      Exit;
-    if vli_cmp(Curve_N_32, Blind) <> 1 then
-      vli_sub(Blind, Blind, Curve_N_32);
-  until not vli_isZero(Blind);
+  if not EccRandomScalar(Blind) then
+    Exit;
   EccNative2Bytes(@Signature, P.x);
   EccBytes2Native(Temp, @PrivateKey);
   vli_modMult(S, P.x, Temp, Curve_N_32); // s = r*d

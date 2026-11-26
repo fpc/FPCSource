@@ -27,6 +27,7 @@ type
     procedure TestNoRandomBytes;
     procedure TestInvalidPublicKeys;
     procedure TestImportX963;
+    procedure TestRandomScalarRejection;
   end;
 
 implementation
@@ -82,6 +83,27 @@ begin
     on EHashUtil do
       Result:=True;
   end;
+end;
+
+
+var
+  // Number of calls to StubScalars
+  StubCalls: Integer;
+  // Calls of StubScalars that return 2^256-1 and 0 before returning 2
+  StubBadCalls: Integer;
+
+// Random scalars: 2^256-1 and 0 alternately for the first StubBadCalls calls, then 2
+function StubScalars(out VLI: TVLI): Boolean;
+begin
+  Inc(StubCalls);
+  FillChar(VLI,SizeOf(VLI),0);
+  if StubCalls<=StubBadCalls then
+  begin
+    if Odd(StubCalls) then
+      FillChar(VLI,SizeOf(VLI),$FF);
+  end else
+    VLI[0]:=2;
+  Result:=True;
 end;
 
 
@@ -268,6 +290,31 @@ begin
   AssertFalse('Point with a wrong y rejected',EccImportX963(@lBadPoint[0],Length(lBadPoint),lPublicKey));
   AssertFalse('Point with a wrong y rejected from x and y',EccImportX963FromXY(@lBadPoint[1],ECC_BYTES,@lBadPoint[1+ECC_BYTES],ECC_BYTES,lPublicKey));
   AssertTrue('EccPublicKeyFromHexa rejects a wrong y',PublicKeyFromHexaRaises(BytesToHexStr(lBadPoint)));
+end;
+
+
+procedure TTestECC.TestRandomScalarRejection;
+var
+  lSaved: TEccGetRandomNumber;
+  lPublicKey: TEccPublicKey;
+  lPrivateKey: TEccPrivateKey;
+begin
+  lSaved:=EccGetRandomNumber;
+  try
+    EccGetRandomNumber:=@StubScalars;
+    StubCalls:=0;
+    StubBadCalls:=2;
+    AssertTrue('Key made after 2^256-1 and 0 were drawn',EccMakeKey(lPublicKey,lPrivateKey));
+    AssertEquals('Private key is the first value in range',
+                 '0000000000000000000000000000000000000000000000000000000000000002',
+                 UpperCase(BytesToHexStr(BytesFromVar(@lPrivateKey,SizeOf(lPrivateKey)))));
+    AssertEquals('Random numbers drawn',3,StubCalls);
+    StubCalls:=0;
+    StubBadCalls:=MaxInt;
+    AssertFalse('No key when every value is out of range',EccMakeKey(lPublicKey,lPrivateKey));
+  finally
+    EccGetRandomNumber:=lSaved;
+  end;
 end;
 
 
