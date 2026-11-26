@@ -64,17 +64,15 @@ resourcestring
   SErrSecretTooShort = 'Shared secret length %d is below the minimum of %d bytes';
   SErrNoRandomBytes = 'Cannot obtain random bytes for the shared secret';
 
-// @Result[8]
+// Value as 8 bytes, most significant byte first.
 Function Int64ToRawString(const Value: Int64) : AnsiString;
 
 var
-  B: array[0..7] of Byte;
   I: Int32;
 begin
-  PInt64(@B)^ := Value;
   Result:='';
   for I := 7 downto 0 do
-    Result:=Result+AnsiChar(B[I]);
+    Result:=Result+AnsiChar((QWord(Value) shr (8*I)) and $FF);
 end;
 
 function TOTPCalculateToken(const aSecret: AnsiString): Longint;

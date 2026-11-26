@@ -25,6 +25,7 @@ type
     Procedure TestGenIndependentOfRandSeed;
     Procedure TestGenCallback;
     Procedure TestValidateRFC6238;
+    Procedure TestHOTPRFC4226;
   end;
 
 implementation
@@ -158,6 +159,22 @@ begin
   CountingBytes(lExpected);
   AssertEquals('the secret is made from the callback bytes', Base32.Encode(lExpected),
     TOTPSharedSecret(@CountingBytes));
+end;
+
+
+procedure TTestOnetimePass.TestHOTPRFC4226;
+
+const
+  // RFC 4226 appendix D: secret '12345678901234567890', counters 0..9
+  RFCSecret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+  Tokens: array[0..9] of LongInt = (755224, 287082, 359152, 969429, 338314, 254676, 287922, 162583, 399871, 520489);
+
+var
+  I: Integer;
+
+begin
+  for I:=0 to High(Tokens) do
+    AssertEquals('HOTP token for counter '+IntToStr(I),Tokens[I],HOTPCalculateToken(RFCSecret,I));
 end;
 
 
