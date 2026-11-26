@@ -40,6 +40,7 @@ Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
 // Copy all bytes of aBytes to the memory at aLocation, which must have room for Length(aBytes) bytes.
 Procedure BytesToVar(const aBytes : TBytes; aLocation : Pointer);
 
+// Bytes from a hex string, upper or lower case. EHashUtil for an odd length or a non-hex character.
 Procedure HexStrToBytes(Const aHexStr : UnicodeString; out aBytes : TBytes); overload;
 Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
 Function HexStrToBytes(Const aHexStr : String) : TBytes; overload;
@@ -163,32 +164,28 @@ end;
 
 Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
 
-const
-  Convert: array['0'..'f'] of SmallInt =
-    ( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
-     -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-     -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-     -1,10,11,12,13,14,15);
+  // Value of hex digit at position aPos, EHashUtil for any other character.
+  function DigitValue(aPos: Integer): Byte;
+  begin
+    case aHexStr[aPos] of
+      '0'..'9': Result:=Ord(aHexStr[aPos])-Ord('0');
+      'A'..'F': Result:=Ord(aHexStr[aPos])-Ord('A')+10;
+      'a'..'f': Result:=Ord(aHexStr[aPos])-Ord('a')+10;
+    else
+      raise EHashUtil.CreateFmt('Invalid hex digit "%s" at position %d',[aHexStr[aPos],aPos]);
+    end;
+  end;
 
 Var
-  Len : LongInt;
-  P: PAnsiChar;
-  PResult: PByte;
+  I : Integer;
 
 begin
-  Len:=Length(aHexStr);
   aBytes:=[];
-  SetLength(aBytes, (Len+1) div 2);
-  if Len=0 then Exit;
-  P := PAnsiChar(aHexStr);
-  PResult := PByte(aBytes);
-  while Len > 0 do
-  begin
-    PResult^ := (Convert[P[0]] shl 4) + Convert[P[1]];
-    Inc(PResult);
-    Inc(P, 2);
-    Dec(Len, 2);
-  end;
+  if Odd(Length(aHexStr)) then
+    raise EHashUtil.CreateFmt('Hex string has an odd length: %d',[Length(aHexStr)]);
+  SetLength(aBytes, Length(aHexStr) div 2);
+  for I:=0 to Length(aBytes)-1 do
+    aBytes[I]:=(DigitValue(2*I+1) shl 4) or DigitValue(2*I+2);
 end;
 
 

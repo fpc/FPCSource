@@ -17,6 +17,7 @@ type
     procedure TestHexStrToBytesUnicodeString;
     procedure TestHexStrToString;
     procedure TestBytesToVarPointer;
+    procedure TestHexStrToBytesInvalid;
   end;
 
 implementation
@@ -67,6 +68,35 @@ begin
   AssertEquals('Byte after the destination unchanged',$EE,lBuffer[33]);
   BytesToVar(nil,Pointer(@lBuffer[1]));
   AssertEquals('Empty array copies nothing',1,lBuffer[1]);
+end;
+
+
+procedure TTestHashUtils.TestHexStrToBytesInvalid;
+
+  // True when HexStrToBytes raises EHashUtil for aHex
+  function Raises(const aHex: AnsiString): Boolean;
+  var
+    lBytes: TBytes;
+  begin
+    Result:=False;
+    try
+      HexStrToBytes(aHex,lBytes);
+    except
+      on EHashUtil do
+        Result:=True;
+    end;
+  end;
+
+begin
+  AssertTrue('ZZ',Raises('ZZ'));
+  AssertTrue('::',Raises('::'));
+  AssertTrue('gg',Raises('gg'));
+  AssertTrue('~~',Raises('~~'));
+  AssertTrue('Two spaces',Raises('  '));
+  AssertTrue('Odd length',Raises('abc'));
+  AssertTrue('Invalid character after valid ones',Raises('00112G'));
+  AssertFalse('Valid hex',Raises('00aAfF99'));
+  AssertFalse('Empty string',Raises(''));
 end;
 
 
