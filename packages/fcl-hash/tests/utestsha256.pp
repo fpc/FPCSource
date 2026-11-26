@@ -71,9 +71,14 @@ begin
   S:=TStringStream.Create(APrivateKeyPem);
   try
     AssertTrue('Loaded key',PemLoadECDSA(S,aPrivateKey,aPublicKey,X,Y));
-    AssertTrue('Encrypted',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+    AssertTrue('Signed',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+    AssertTrue('Verified with the public key from the PEM',TECDSA.VerifySHA256(aInput,aPublicKey,aSignature));
     EccPublicKeyFromPrivateKey(aPublicKey,aPrivateKey);
-    AssertTrue('Verified our own',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+    AssertTrue('Verified with the public key from the private key',TECDSA.VerifySHA256(aInput,aPublicKey,aSignature));
+    AssertTrue('Verified with the private key',TECDSA.VerifySHA256(aInput,aPrivateKey,aSignature));
+    AssertFalse('Other payload not verified',TECDSA.VerifySHA256(aInput+'x',aPublicKey,aSignature));
+    aSignature[0]:=aSignature[0] xor 1;
+    AssertFalse('Changed signature not verified',TECDSA.VerifySHA256(aInput,aPublicKey,aSignature));
   finally
     S.Free;
   end;
