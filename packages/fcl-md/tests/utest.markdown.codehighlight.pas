@@ -173,6 +173,7 @@ type
     procedure TestEmptyLineAdvancesUnhighlighted;
     procedure TestDefaultColors;
     procedure TestTokenRunColors;
+    procedure TestWhiteTokenColor;
   end;
 
 implementation
@@ -1044,6 +1045,16 @@ begin
   AssertEquals('Run colours','begin=123456| =none|1=654321',
                StringToMarkdown(String.Join('|',FRenderer.RunColors.ToStringArray)));
   AssertTrue('RunColor reset after the code block',FRenderer.RunColor=clNone);
+end;
+
+
+procedure TTestPDFCodeHighlight.TestWhiteTokenColor;
+
+begin
+  FRenderer.CodeTokenColors[ctkKeyword]:=$FFFFFF;
+  Render('```test'#10'begin'#10'```');
+  AssertEquals('White token colour is kept','begin=FFFFFF',
+               StringToMarkdown(String.Join('|',FRenderer.RunColors.ToStringArray)));
 end;
 
 

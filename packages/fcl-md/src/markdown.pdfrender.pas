@@ -32,7 +32,7 @@ uses
 {$ENDIF}
 
 const
-  clNone = $FFFFFF;
+  clNone = $1FFFFFFF;
   clInfoText = 0;
   clWindow = 0;
   clWindowText = 0;
