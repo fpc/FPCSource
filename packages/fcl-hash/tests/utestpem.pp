@@ -24,6 +24,7 @@ Type
     Procedure TestRSA_SignCRTPLessThanQ;
     Procedure TestRSA_VerifyDigestInfo;
     Procedure TestRSA_VerifyRejectsE3Forgery;
+    Procedure TestPemFindTags;
   end;
 
 implementation
@@ -308,6 +309,32 @@ const
 begin
   AssertFalse('Forged signature rejected',
               RS256VerifyFromPublicKeyHexa(ForgeKeyHexa,HexStrToString(ForgeHash),HexStrToString(ForgeSignature)));
+end;
+
+procedure TTestPEM.TestPemFindTags;
+var
+  List: TStringList;
+  StartIndex, EndIndex: Integer;
+begin
+  List:=TStringList.Create;
+  try
+    List.Text:='Comment'+sLineBreak+_BEGIN_PUBLIC_KEY+sLineBreak+'AAAA'+sLineBreak+_END_PUBLIC_KEY;
+    AssertTrue('Complete block found',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+    AssertEquals('Begin line',1,StartIndex);
+    AssertEquals('End line',3,EndIndex);
+
+    List.Text:='Comment'+sLineBreak+_BEGIN_PUBLIC_KEY+sLineBreak+'AAAA';
+    AssertFalse('Begin without end',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+    AssertEquals('Start index without end',0,StartIndex);
+    AssertEquals('End index without end',0,EndIndex);
+
+    List.Text:='AAAA'+sLineBreak+_END_PUBLIC_KEY;
+    AssertFalse('End without begin',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+  finally
+    List.Free;
+  end;
+  AssertEquals('PemToDER without end line',0,
+               Length(PemToDER(_BEGIN_PUBLIC_KEY+sLineBreak+'AAAA'+sLineBreak,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY)));
 end;
 
 initialization

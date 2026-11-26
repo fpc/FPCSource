@@ -299,10 +299,12 @@ begin
           exit(true)
         else
           inc(EndIndex);
+      // No EndTag after this BeginTag
+      break;
     end else
       inc(StartIndex);
   end;
-  // BeginTag missing
+  // BeginTag or EndTag missing
   StartIndex:=0;
   EndIndex:=0;
 end;
