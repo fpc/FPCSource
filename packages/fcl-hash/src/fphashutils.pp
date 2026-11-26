@@ -192,32 +192,9 @@ end;
 
 procedure HexStrToBytes(const aHexStr: UnicodeString; out aBytes: TBytes);
 
-const
-  Convert: array['0'..'f'] of SmallInt =
-    ( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
-     -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-     -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-     -1,10,11,12,13,14,15);
-
-Var
-  Len : LongInt;
-  P: PChar;
-  PResult: PByte;
-
 begin
-  Len:=Length(aHexStr);
-  aBytes:=[];
-  SetLength(aBytes, (Len+1) div 2);
-  if Len=0 then Exit;
-  P := PChar(aHexStr);
-  PResult := PByte(aBytes);
-  while Len > 0 do
-  begin
-    PResult^ := (Convert[P[0]] shl 4) + Convert[P[1]];
-    Inc(PResult);
-    Inc(P, 2);
-    Dec(Len, 2);
-  end;
+  // Hex digits are ASCII
+  HexStrToBytes(AnsiString(aHexStr),aBytes);
 end;
 
 function BytesToHexStr(const aSource: AnsiString): Ansistring;
