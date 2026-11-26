@@ -16,6 +16,7 @@ type
     procedure TestHexStrToBytesAnsiString;
     procedure TestHexStrToBytesUnicodeString;
     procedure TestHexStrToString;
+    procedure TestBytesToVarPointer;
   end;
 
 implementation
@@ -45,6 +46,27 @@ end;
 procedure TTestHashUtils.TestHexStrToString;
 begin
   AssertEquals('HexStrToString','AB'#0#255,HexStrToString('4142' + '00FF'));
+end;
+
+
+procedure TTestHashUtils.TestBytesToVarPointer;
+var
+  lBuffer: array[0..33] of Byte;
+  lData: TBytes;
+  I: Integer;
+begin
+  FillChar(lBuffer,SizeOf(lBuffer),$EE);
+  lData:=[];
+  SetLength(lData,32);
+  for I:=0 to 31 do
+    lData[I]:=I+1;
+  BytesToVar(lData,Pointer(@lBuffer[1]));
+  AssertEquals('Byte before the destination unchanged',$EE,lBuffer[0]);
+  for I:=0 to 31 do
+    AssertEquals('Byte '+IntToStr(I)+' copied',I+1,lBuffer[I+1]);
+  AssertEquals('Byte after the destination unchanged',$EE,lBuffer[33]);
+  BytesToVar(nil,Pointer(@lBuffer[1]));
+  AssertEquals('Empty array copies nothing',1,lBuffer[1]);
 end;
 
 

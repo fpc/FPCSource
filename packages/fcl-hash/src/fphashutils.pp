@@ -37,7 +37,8 @@ Type
 Procedure BytesFromVar(out aBytes : TBytes; aLocation : Pointer; aSize : Integer);
 Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
 Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
-Procedure BytesToVar(const aBytes : TBytes; Out aLocation : Pointer);
+// Copy all bytes of aBytes to the memory at aLocation, which must have room for Length(aBytes) bytes.
+Procedure BytesToVar(const aBytes : TBytes; aLocation : Pointer);
 
 Procedure HexStrToBytes(Const aHexStr : UnicodeString; out aBytes : TBytes); overload;
 Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
@@ -133,10 +134,11 @@ begin
   Move(aBytes[0],aLocation,aSize);
 end;
 
-procedure BytesToVar(const aBytes: TBytes; out aLocation: Pointer);
+procedure BytesToVar(const aBytes: TBytes; aLocation: Pointer);
 
 begin
-  BytesToVar(aBytes,aLocation,Length(aBytes));
+  if Length(aBytes)>0 then
+    Move(aBytes[0],aLocation^,Length(aBytes));
 end;
 
 function HexStrToBytes(const aHexStr: String): TBytes;
